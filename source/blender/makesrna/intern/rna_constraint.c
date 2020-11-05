@@ -3453,7 +3453,7 @@ void RNA_def_constraint(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop,
-      "Rot error",
+      "Rotation error",
       "Amount of residual error in radians for constraints that work on orientation");
 
   RNA_define_lib_overridable(false);

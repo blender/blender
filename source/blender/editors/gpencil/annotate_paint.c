@@ -1432,6 +1432,41 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
   return 1;
 }
 
+/* Enable the annotations in the current space. */
+static void annotation_visible_on_space(tGPsdata *p)
+{
+  ScrArea *area = p->area;
+  switch (area->spacetype) {
+    case SPACE_VIEW3D: {
+      View3D *v3d = (View3D *)area->spacedata.first;
+      v3d->flag2 |= V3D_SHOW_ANNOTATION;
+      break;
+    }
+    case SPACE_SEQ: {
+      SpaceSeq *sseq = (SpaceSeq *)area->spacedata.first;
+      sseq->flag |= SEQ_SHOW_GPENCIL;
+      break;
+    }
+    case SPACE_IMAGE: {
+      SpaceImage *sima = (SpaceImage *)area->spacedata.first;
+      sima->flag |= SI_SHOW_GPENCIL;
+      break;
+    }
+    case SPACE_NODE: {
+      SpaceNode *snode = (SpaceNode *)area->spacedata.first;
+      snode->flag |= SNODE_SHOW_GPENCIL;
+      break;
+    }
+    case SPACE_CLIP: {
+      SpaceClip *sclip = (SpaceClip *)area->spacedata.first;
+      sclip->flag |= SC_SHOW_ANNOTATION;
+      break;
+    }
+    default:
+      break;
+  }
+}
+
 /* init new painting session */
 static tGPsdata *annotation_session_initpaint(bContext *C)
 {
@@ -1457,6 +1492,9 @@ static tGPsdata *annotation_session_initpaint(bContext *C)
    *       erase size won't get lost
    */
   p->radius = U.gp_eraser;
+
+  /* Annotations must be always visible when use it. */
+  annotation_visible_on_space(p);
 
   /* return context data for running paint operator */
   return p;

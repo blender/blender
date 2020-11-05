@@ -453,7 +453,7 @@ void ED_gizmotypes_preselect_3d(void)
 /* -------------------------------------------------------------------- */
 /** \name Gizmo Accessors
  *
- * This avoids each user of the gizmo needing to write their own look-ups to access
+ * This avoids each user of the gizmo needing to write their own lookups to access
  * the information from this gizmo.
  * \{ */
 

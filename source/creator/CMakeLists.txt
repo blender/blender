@@ -152,9 +152,23 @@ if(WITH_BUILDINFO)
   add_definitions(-DWITH_BUILDINFO)
   # --------------------------------------------------------------------------
   # These defines could all be moved into the header below
-  string(REPLACE " " "\ " BUILDINFO_CFLAGS "${CMAKE_C_FLAGS}")
-  string(REPLACE " " "\ " BUILDINFO_CXXFLAGS "${CMAKE_CXX_FLAGS}")
-  string(REPLACE " " "\ " BUILDINFO_LINKFLAGS "${PLATFORM_LINKFLAGS}")
+
+  set(BUILDINFO_CFLAGS "${CMAKE_C_FLAGS}")
+  set(BUILDINFO_CXXFLAGS "${CMAKE_CXX_FLAGS}")
+  set(BUILDINFO_LINKFLAGS "${PLATFORM_LINKFLAGS}")
+
+  if(WITH_COMPILER_SHORT_FILE_MACRO)
+    # Needed because currently including quotes isn't supported.
+    # Besides this it's not necessary to include path information
+    # about the system building Blender in the executable.
+    string(REPLACE "${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}" " " BUILDINFO_CFLAGS "${BUILDINFO_CFLAGS}")
+    string(REPLACE "${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}" " " BUILDINFO_CXXFLAGS "${BUILDINFO_CXXFLAGS}")
+  endif()
+
+  string(REPLACE " " "\ " BUILDINFO_CFLAGS "${BUILDINFO_CFLAGS}")
+  string(REPLACE " " "\ " BUILDINFO_CXXFLAGS "${BUILDINFO_CXXFLAGS}")
+  string(REPLACE " " "\ " BUILDINFO_LINKFLAGS "${BUILDINFO_LINKFLAGS}")
+
   add_definitions(
     # # define in header now, else these get out of date on rebuilds.
     # -DBUILD_DATE="${BUILD_DATE}"

@@ -169,12 +169,12 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
   const size_t num_curves = hair->num_curves();
   for (uint j = 0; j < num_curves; j++) {
     const Hair::Curve curve = hair->get_curve(j);
-    const float *curve_radius = &hair->curve_radius[0];
+    const float *curve_radius = &hair->get_curve_radius()[0];
     for (int k = 0; k < curve.num_keys - 1; k++) {
       if (curve_attr_mP == NULL) {
         /* Really simple logic for static hair. */
         BoundBox bounds = BoundBox::empty;
-        curve.bounds_grow(k, &hair->curve_keys[0], curve_radius, bounds);
+        curve.bounds_grow(k, &hair->get_curve_keys()[0], curve_radius, bounds);
         if (bounds.valid()) {
           int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
           references.push_back(BVHReference(bounds, j, i, packed_type));
@@ -189,9 +189,9 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
          */
         /* TODO(sergey): Support motion steps for spatially split BVH. */
         BoundBox bounds = BoundBox::empty;
-        curve.bounds_grow(k, &hair->curve_keys[0], curve_radius, bounds);
-        const size_t num_keys = hair->curve_keys.size();
-        const size_t num_steps = hair->motion_steps;
+        curve.bounds_grow(k, &hair->get_curve_keys()[0], curve_radius, bounds);
+        const size_t num_keys = hair->get_curve_keys().size();
+        const size_t num_steps = hair->get_motion_steps();
         const float3 *key_steps = curve_attr_mP->data_float3();
         for (size_t step = 0; step < num_steps - 1; step++) {
           curve.bounds_grow(k, key_steps + step * num_keys, curve_radius, bounds);
@@ -210,10 +210,10 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
          */
         const int num_bvh_steps = params.num_motion_curve_steps * 2 + 1;
         const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
-        const size_t num_steps = hair->motion_steps;
-        const float3 *curve_keys = &hair->curve_keys[0];
+        const size_t num_steps = hair->get_motion_steps();
+        const float3 *curve_keys = &hair->get_curve_keys()[0];
         const float3 *key_steps = curve_attr_mP->data_float3();
-        const size_t num_keys = hair->curve_keys.size();
+        const size_t num_keys = hair->get_curve_keys().size();
         /* Calculate bounding box of the previous time step.
          * Will be reused later to avoid duplicated work on
          * calculating BVH time step boundbox.
@@ -270,11 +270,11 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
 
 void BVHBuild::add_reference_geometry(BoundBox &root, BoundBox &center, Geometry *geom, int i)
 {
-  if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
+  if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
     Mesh *mesh = static_cast<Mesh *>(geom);
     add_reference_triangles(root, center, mesh, i);
   }
-  else if (geom->type == Geometry::HAIR) {
+  else if (geom->geometry_type == Geometry::HAIR) {
     Hair *hair = static_cast<Hair *>(geom);
     add_reference_curves(root, center, hair, i);
   }
@@ -299,11 +299,11 @@ static size_t count_curve_segments(Hair *hair)
 
 static size_t count_primitives(Geometry *geom)
 {
-  if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
+  if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
     Mesh *mesh = static_cast<Mesh *>(geom);
     return mesh->num_triangles();
   }
-  else if (geom->type == Geometry::HAIR) {
+  else if (geom->geometry_type == Geometry::HAIR) {
     Hair *hair = static_cast<Hair *>(geom);
     return count_curve_segments(hair);
   }
@@ -321,14 +321,14 @@ void BVHBuild::add_references(BVHRange &root)
       if (!ob->is_traceable()) {
         continue;
       }
-      if (!ob->geometry->is_instanced()) {
-        num_alloc_references += count_primitives(ob->geometry);
+      if (!ob->get_geometry()->is_instanced()) {
+        num_alloc_references += count_primitives(ob->get_geometry());
       }
       else
         num_alloc_references++;
     }
     else {
-      num_alloc_references += count_primitives(ob->geometry);
+      num_alloc_references += count_primitives(ob->get_geometry());
     }
   }
 
@@ -344,13 +344,13 @@ void BVHBuild::add_references(BVHRange &root)
         ++i;
         continue;
       }
-      if (!ob->geometry->is_instanced())
-        add_reference_geometry(bounds, center, ob->geometry, i);
+      if (!ob->get_geometry()->is_instanced())
+        add_reference_geometry(bounds, center, ob->get_geometry(), i);
       else
         add_reference_object(bounds, center, ob, i);
     }
     else
-      add_reference_geometry(bounds, center, ob->geometry, i);
+      add_reference_geometry(bounds, center, ob->get_geometry(), i);
 
     i++;
 

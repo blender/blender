@@ -38,7 +38,6 @@ using std::vector;
 struct MANTA {
  public:
   MANTA(int *res, struct FluidModifierData *fmd);
-  MANTA(){};
   virtual ~MANTA();
 
   /* Mirroring Mantaflow structures for particle data (pVel also used for mesh vert vels). */
@@ -745,7 +744,7 @@ struct MANTA {
   unordered_map<string, string> mRNAMap;
 
   /* The ID of the solver objects will be incremented for every new object. */
-  int mCurrentID;
+  const int mCurrentID;
 
   bool mUsingHeat;
   bool mUsingColors;
@@ -775,7 +774,7 @@ struct MANTA {
   int mResX;
   int mResY;
   int mResZ;
-  int mMaxRes;
+  const int mMaxRes;
 
   int mResXNoise;
   int mResYNoise;

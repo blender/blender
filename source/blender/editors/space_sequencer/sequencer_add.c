@@ -903,7 +903,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
     }
   }
 
-  BKE_sequence_init_colorspace(seq);
+  SEQ_render_init_colorspace(seq);
   BKE_sequence_calc_disp(scene, seq);
   BKE_sequencer_sort(scene);
 

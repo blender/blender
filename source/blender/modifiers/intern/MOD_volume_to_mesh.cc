@@ -45,6 +45,8 @@
 #include "BLI_span.hh"
 #include "BLI_timeit.hh"
 
+#include "DEG_depsgraph_query.h"
+
 #ifdef WITH_OPENVDB
 #  include <openvdb/tools/GridTransformer.h>
 #  include <openvdb/tools/VolumeToMesh.h>
@@ -260,31 +262,39 @@ static Mesh *new_mesh_from_openvdb_data(Span<openvdb::Vec3s> verts,
 }
 #endif
 
+static Mesh *create_empty_mesh(const Mesh *input_mesh)
+{
+  Mesh *new_mesh = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+  BKE_mesh_copy_settings(new_mesh, input_mesh);
+  return new_mesh;
+}
+
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *input_mesh)
 {
 #ifdef WITH_OPENVDB
   VolumeToMeshModifierData *vmmd = reinterpret_cast<VolumeToMeshModifierData *>(md);
   if (vmmd->object == nullptr) {
-    return input_mesh;
+    return create_empty_mesh(input_mesh);
   }
   if (vmmd->object->type != OB_VOLUME) {
-    return input_mesh;
+    return create_empty_mesh(input_mesh);
   }
   if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE &&
       vmmd->voxel_size == 0.0f) {
-    return input_mesh;
+    return create_empty_mesh(input_mesh);
   }
   if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT &&
       vmmd->voxel_amount == 0) {
-    return input_mesh;
+    return create_empty_mesh(input_mesh);
   }
 
   Volume *volume = static_cast<Volume *>(vmmd->object->data);
 
+  BKE_volume_load(volume, DEG_get_bmain(ctx->depsgraph));
   VolumeGrid *volume_grid = BKE_volume_grid_find(volume, vmmd->grid_name);
   if (volume_grid == nullptr) {
-    BKE_modifier_set_error(vmmd->object, md, "Cannot find '%s' grid", vmmd->grid_name);
-    return input_mesh;
+    BKE_modifier_set_error(ctx->object, md, "Cannot find '%s' grid", vmmd->grid_name);
+    return create_empty_mesh(input_mesh);
   }
 
   const openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
@@ -293,7 +303,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   VolumeToMeshOp to_mesh_op{*grid, *vmmd, *ctx};
   if (!BKE_volume_grid_type_operation(grid_type, to_mesh_op)) {
     BKE_modifier_set_error(ctx->object, md, "Expected a scalar grid");
-    return input_mesh;
+    return create_empty_mesh(input_mesh);
   }
 
   Mesh *mesh = new_mesh_from_openvdb_data(to_mesh_op.verts, to_mesh_op.tris, to_mesh_op.quads);
@@ -305,7 +315,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #else
   UNUSED_VARS(md);
   BKE_modifier_set_error(ctx->object, md, "Compiled without OpenVDB");
-  return input_mesh;
+  return create_empty_mesh(input_mesh);
 #endif
 }
 

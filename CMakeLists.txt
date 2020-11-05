@@ -1662,15 +1662,14 @@ endif()
 
 if(WITH_COMPILER_SHORT_FILE_MACRO)
   # Use '-fmacro-prefix-map' for Clang and GCC (MSVC doesn't support this).
-  if((CMAKE_COMPILER_IS_GNUCC AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 8.4) OR
-     (CMAKE_C_COMPILER_ID STREQUAL "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0) OR
-     (CMAKE_C_COMPILER_ID STREQUAL "AppleClang" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 12.0)
-  )
-
+  ADD_CHECK_C_COMPILER_FLAG(C_PREFIX_MAP_FLAGS C_MACRO_PREFIX_MAP -fmacro-prefix-map=foo=bar)
+  ADD_CHECK_CXX_COMPILER_FLAG(CXX_PREFIX_MAP_FLAGS CXX_MACRO_PREFIX_MAP -fmacro-prefix-map=foo=bar)
+  if(C_MACRO_PREFIX_MAP AND CXX_MACRO_PREFIX_MAP)
     if(APPLE)
       if(XCODE AND ${XCODE_VERSION} VERSION_LESS 12.0)
-      # Developers may have say LLVM Clang-10.0.1 toolchain with Xcode-11.
-        message_first_run(WARNING
+      # Developers may have say LLVM Clang-10.0.1 toolchain (which supports the flag)
+      # with Xcode-11 (the Clang of which doesn't support the flag).
+        message(WARNING
           "-fmacro-prefix-map flag is NOT supported by Clang shipped with Xcode-${XCODE_VERSION}."
           " Some Xcode functionality in Product menu may not work. Disabling WITH_COMPILER_SHORT_FILE_MACRO."
         )
@@ -1680,16 +1679,16 @@ if(WITH_COMPILER_SHORT_FILE_MACRO)
     if(WITH_COMPILER_SHORT_FILE_MACRO)
       path_ensure_trailing_slash(_src_dir "${CMAKE_SOURCE_DIR}")
       path_ensure_trailing_slash(_bin_dir "${CMAKE_BINARY_DIR}")
-      set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} \
--fmacro-prefix-map=\"${_src_dir}\"=\"\" \
--fmacro-prefix-map=\"${_bin_dir}\"=\"\""
-      )
+      # Keep this variable so it can be stripped from build-info.
+      set(PLATFORM_CFLAGS_FMACRO_PREFIX_MAP
+        "-fmacro-prefix-map=\"${_src_dir}\"=\"\" -fmacro-prefix-map=\"${_bin_dir}\"=\"\"")
+      set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} ${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}")
       unset(_src_dir)
       unset(_bin_dir)
     endif()
   else()
-    message_first_run(WARNING
-      "-fmacro-prefix-map flag is NOT supported by ${CMAKE_C_COMPILER_ID} version-${CMAKE_C_COMPILER_VERSION}."
+    message(WARNING
+      "-fmacro-prefix-map flag is NOT supported by C/C++ compiler."
       " Disabling WITH_COMPILER_SHORT_FILE_MACRO."
     )
     set(WITH_COMPILER_SHORT_FILE_MACRO OFF)

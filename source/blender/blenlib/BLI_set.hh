@@ -48,7 +48,7 @@
  * - Small buffer optimization is enabled by default, if the key is not too large.
  * - The methods `add_new` and `remove_contained` should be used instead of `add` and `remove`
  *   whenever appropriate. Assumptions and intention are described better this way.
- * - Look-ups can be performed using types other than Key without conversion. For that use the
+ * - Lookups can be performed using types other than Key without conversion. For that use the
  *   methods ending with `_as`. The template parameters Hash and #IsEqual have to support the other
  *   key type. This can greatly improve performance when the set contains strings.
  * - The default constructor is cheap, even when a large #InlineBufferCapacity is used. A large

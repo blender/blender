@@ -215,12 +215,13 @@ def object_add_grid_scale_apply_operator(operator, context):
     """
     Scale an operators distance values by the grid size.
     """
+    # This is a Python version of the C function `WM_operator_view3d_unit_defaults`.
     grid_scale = object_add_grid_scale(context)
 
     properties = operator.properties
     properties_def = properties.bl_rna.properties
     for prop_id in properties_def.keys():
-        if not properties.is_property_set(prop_id):
+        if not properties.is_property_set(prop_id, ghost=False):
             prop_def = properties_def[prop_id]
             if prop_def.unit == 'LENGTH' and prop_def.subtype == 'DISTANCE':
                 setattr(operator, prop_id,

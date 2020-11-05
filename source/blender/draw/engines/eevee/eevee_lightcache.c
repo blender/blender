@@ -1058,6 +1058,7 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
 
   /* Disable specular lighting when rendering probes to avoid feedback loops (looks bad). */
   common_data->spec_toggle = false;
+  common_data->sss_toggle = false;
   common_data->prb_num_planar = 0;
   common_data->prb_num_render_cube = 0;
   common_data->ray_type = EEVEE_RAY_DIFFUSE;
@@ -1127,6 +1128,7 @@ static void eevee_lightbake_render_probe_sample(void *ved, void *user_data)
 
   /* Disable specular lighting when rendering probes to avoid feedback loops (looks bad). */
   common_data->spec_toggle = false;
+  common_data->sss_toggle = false;
   common_data->prb_num_planar = 0;
   common_data->prb_num_render_cube = 0;
   common_data->ray_type = EEVEE_RAY_GLOSSY;

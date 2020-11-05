@@ -62,6 +62,7 @@
 
 #include "BLF_api.h"
 
+#include "render.h"
 #include "sequencer.h"
 
 static struct SeqEffectHandle get_sequence_effect_impl(int seq_type);
@@ -151,15 +152,15 @@ static ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
 
   if (out->rect_float) {
     if (ibuf1 && !ibuf1->rect_float) {
-      BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf1, true);
+      seq_imbuf_to_sequencer_space(scene, ibuf1, true);
     }
 
     if (ibuf2 && !ibuf2->rect_float) {
-      BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf2, true);
+      seq_imbuf_to_sequencer_space(scene, ibuf2, true);
     }
 
     if (ibuf3 && !ibuf3->rect_float) {
-      BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf3, true);
+      seq_imbuf_to_sequencer_space(scene, ibuf3, true);
     }
 
     IMB_colormanagement_assign_float_colorspace(out, scene->sequencer_colorspace_settings.name);
@@ -2989,7 +2990,7 @@ static ImBuf *do_multicam(const SeqRenderData *context,
     return NULL;
   }
 
-  out = BKE_sequencer_give_ibuf_seqbase(context, cfra, seq->multicam_source, seqbasep);
+  out = seq_render_give_ibuf_seqbase(context, cfra, seq->multicam_source, seqbasep);
 
   return out;
 }
@@ -3018,7 +3019,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
   seqbasep = BKE_sequence_seqbase(&ed->seqbase, seq);
 
   if (seq->machine > 1) {
-    i = BKE_sequencer_give_ibuf_seqbase(context, cfra, seq->machine - 1, seqbasep);
+    i = seq_render_give_ibuf_seqbase(context, cfra, seq->machine - 1, seqbasep);
   }
 
   /* found nothing? so let's work the way up the metastrip stack, so
@@ -3253,7 +3254,7 @@ float BKE_sequencer_speed_effect_target_frame_get(const SeqRenderData *context,
                                                   float cfra,
                                                   int input)
 {
-  int nr = BKE_sequencer_give_stripelem_index(seq, cfra);
+  int nr = seq_give_stripelem_index(seq, cfra);
   SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
   BKE_sequence_effect_speed_rebuild_map(context->scene, seq, false);
 
@@ -3272,7 +3273,7 @@ float BKE_sequencer_speed_effect_target_frame_get(const SeqRenderData *context,
 
 static float speed_effect_interpolation_ratio_get(SpeedControlVars *s, Sequence *seq, float cfra)
 {
-  int nr = BKE_sequencer_give_stripelem_index(seq, cfra);
+  int nr = seq_give_stripelem_index(seq, cfra);
   return s->frameMap[nr] - floor(s->frameMap[nr]);
 }
 
@@ -3293,7 +3294,7 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
     out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
     facf0 = facf1 = speed_effect_interpolation_ratio_get(s, seq, cfra);
     /* Current frame is ibuf1, next frame is ibuf2. */
-    out = BKE_sequencer_effect_execute_threaded(
+    out = seq_render_effect_execute_threaded(
         &cross_effect, context, NULL, cfra, facf0, facf1, ibuf1, ibuf2, ibuf3);
     return out;
   }
@@ -3905,7 +3906,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* Compensate text size for preview render size. */
   proxy_size_comp = context->scene->r.size / 100.0;
   if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
-    proxy_size_comp *= BKE_sequencer_rendersize_to_scale_factor(context->preview_render_size);
+    proxy_size_comp *= SEQ_rendersize_to_scale_factor(context->preview_render_size);
   }
 
   /* set before return */

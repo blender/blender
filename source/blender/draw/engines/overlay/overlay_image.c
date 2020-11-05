@@ -57,6 +57,8 @@ void OVERLAY_image_cache_init(OVERLAY_Data *vedata)
 
   state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER | DRW_STATE_BLEND_ALPHA_PREMUL;
   DRW_PASS_CREATE(psl->image_background_ps, state);
+  state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL;
+  DRW_PASS_CREATE(psl->image_background_scene_ps, state);
 
   state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
   DRW_PASS_CREATE(psl->image_empties_ps, state | pd->clipping_state);
@@ -68,6 +70,7 @@ void OVERLAY_image_cache_init(OVERLAY_Data *vedata)
   state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
   DRW_PASS_CREATE(psl->image_empties_front_ps, state);
   DRW_PASS_CREATE(psl->image_foreground_ps, state);
+  DRW_PASS_CREATE(psl->image_foreground_scene_ps, state);
 }
 
 static void overlay_image_calc_aspect(Image *ima, const int size[2], float r_image_aspect[2])
@@ -136,7 +139,8 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
                                                               const DRWContextState *draw_ctx,
                                                               OVERLAY_PrivateData *pd,
                                                               float *r_aspect,
-                                                              bool *r_use_alpha_premult)
+                                                              bool *r_use_alpha_premult,
+                                                              bool *r_use_view_transform)
 {
   void *lock;
   Image *image = bgpic->ima;
@@ -148,6 +152,7 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
   int width, height;
   int ctime = (int)DEG_get_ctime(draw_ctx->depsgraph);
   *r_use_alpha_premult = false;
+  *r_use_view_transform = false;
 
   switch (bgpic->source) {
     case CAM_BGIMG_SOURCE_IMAGE:
@@ -155,6 +160,7 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
         return NULL;
       }
       *r_use_alpha_premult = (image->alpha_mode == IMA_ALPHA_PREMUL);
+      *r_use_view_transform = (image->flag & IMA_VIEW_AS_RENDER) != 0;
 
       BKE_image_user_frame_calc(image, iuser, ctime);
       if (image->source == IMA_SRC_SEQUENCE && !(iuser->flag & IMA_USER_FRAME_IN_RANGE)) {
@@ -183,7 +189,6 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
 
       aspect_x = bgpic->ima->aspx;
       aspect_y = bgpic->ima->aspy;
-
       break;
 
     case CAM_BGIMG_SOURCE_MOVIE:
@@ -208,6 +213,7 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
 
       aspect_x = clip->aspx;
       aspect_y = clip->aspy;
+      *r_use_view_transform = true;
 
       BKE_movieclip_get_size(clip, &bgpic->cuser, &width, &height);
 
@@ -328,21 +334,27 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
     float aspect = 1.0;
     bool use_alpha_premult;
+    bool use_view_transform = false;
     float mat[4][4];
 
     /* retrieve the image we want to show, continue to next when no image could be found */
     GPUTexture *tex = image_camera_background_texture_get(
-        bgpic, draw_ctx, pd, &aspect, &use_alpha_premult);
+        bgpic, draw_ctx, pd, &aspect, &use_alpha_premult, &use_view_transform);
 
     if (tex) {
       image_camera_background_matrix_get(cam, bgpic, draw_ctx, aspect, mat);
 
       mul_m4_m4m4(mat, modelmat, mat);
       const bool is_foreground = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != 0;
+      /* Alpha is clamped just below 1.0 to fix background images to intefere with foreground
+       * images. Without this a background image with 1.0 will be rendered on top of a transparent
+       * foreground image due to the differnet blending modes they use. */
+      const float color_premult_alpha[4] = {1.0f, 1.0f, 1.0f, MIN2(bgpic->alpha, 0.999999)};
 
-      const float color_premult_alpha[4] = {1.0f, 1.0f, 1.0f, bgpic->alpha};
-
-      DRWPass *pass = is_foreground ? psl->image_foreground_ps : psl->image_background_ps;
+      DRWPass *pass = is_foreground ? (use_view_transform ? psl->image_foreground_scene_ps :
+                                                            psl->image_foreground_ps) :
+                                      (use_view_transform ? psl->image_background_scene_ps :
+                                                            psl->image_background_ps);
 
       GPUShader *sh = OVERLAY_shader_image();
       DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
@@ -447,6 +459,22 @@ void OVERLAY_image_cache_finish(OVERLAY_Data *vedata)
   DRW_pass_sort_shgroup_z(psl->image_empties_blend_ps);
   DRW_pass_sort_shgroup_z(psl->image_empties_front_ps);
   DRW_pass_sort_shgroup_z(psl->image_empties_back_ps);
+}
+
+/* This function draws images that needs the view transform applied.
+ * It draws these images directly into the scene color buffer. */
+void OVERLAY_image_scene_background_draw(OVERLAY_Data *vedata)
+{
+  OVERLAY_PassList *psl = vedata->psl;
+
+  if (DRW_state_is_fbo() && (!DRW_pass_is_empty(psl->image_background_scene_ps) ||
+                             !DRW_pass_is_empty(psl->image_foreground_scene_ps))) {
+    const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+    GPU_framebuffer_bind(dfbl->default_fb);
+
+    DRW_draw_pass(psl->image_background_scene_ps);
+    DRW_draw_pass(psl->image_foreground_scene_ps);
+  }
 }
 
 void OVERLAY_image_background_draw(OVERLAY_Data *vedata)

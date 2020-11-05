@@ -42,11 +42,11 @@ void EdgeDice::reserve(int num_verts, int num_triangles)
 {
   Mesh *mesh = params.mesh;
 
-  vert_offset = mesh->verts.size();
+  vert_offset = mesh->get_verts().size();
   tri_offset = mesh->num_triangles();
 
-  mesh->resize_mesh(mesh->verts.size() + num_verts, mesh->num_triangles());
-  mesh->reserve_mesh(mesh->verts.size() + num_verts, mesh->num_triangles() + num_triangles);
+  mesh->resize_mesh(mesh->get_verts().size() + num_verts, mesh->num_triangles());
+  mesh->reserve_mesh(mesh->get_verts().size() + num_verts, mesh->num_triangles() + num_triangles);
 
   Attribute *attr_vN = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 

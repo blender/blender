@@ -429,8 +429,8 @@ static void menu_items_from_all_operators(bContext *C, struct MenuSearch_Data *d
 /**
  * Create #MenuSearch_Data by inspecting the current context, this uses two methods:
  *
- * - Look-up pre-defined editor-menus.
- * - Look-up key-map items which call menus.
+ * - Look up predefined editor-menus.
+ * - Look up key-map items which call menus.
  */
 static struct MenuSearch_Data *menu_items_from_ui_create(
     bContext *C, wmWindow *win, ScrArea *area_init, ARegion *region_init, bool include_all_areas)

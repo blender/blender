@@ -347,6 +347,8 @@ typedef enum {
   /** Use dual source blending. WARNING: Only one color buffer allowed. */
   DRW_STATE_BLEND_CUSTOM = (9 << 11),
   DRW_STATE_LOGIC_INVERT = (10 << 11),
+  DRW_STATE_BLEND_ALPHA_UNDER_PREMUL = (11 << 11),
+
 
   DRW_STATE_IN_FRONT_SELECT = (1 << 27),
   DRW_STATE_SHADOW_OFFSET = (1 << 28),

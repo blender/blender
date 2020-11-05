@@ -381,7 +381,7 @@ ImageHandle ImageManager::add_image(const string &filename, const ImageParams &p
 
 ImageHandle ImageManager::add_image(const string &filename,
                                     const ImageParams &params,
-                                    const vector<int> &tiles)
+                                    const array<int> &tiles)
 {
   ImageHandle handle;
   handle.manager = this;

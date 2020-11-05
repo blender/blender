@@ -103,11 +103,13 @@ typedef struct OVERLAY_PassList {
   DRWPass *fade_ps[2];
   DRWPass *grid_ps;
   DRWPass *image_background_ps;
+  DRWPass *image_background_scene_ps;
   DRWPass *image_empties_ps;
   DRWPass *image_empties_back_ps;
   DRWPass *image_empties_blend_ps;
   DRWPass *image_empties_front_ps;
   DRWPass *image_foreground_ps;
+  DRWPass *image_foreground_scene_ps;
   DRWPass *metaball_ps[2];
   DRWPass *motion_paths_ps;
   DRWPass *outlines_prepass_ps;
@@ -592,6 +594,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_image_cache_finish(OVERLAY_Data *vedata);
 void OVERLAY_image_draw(OVERLAY_Data *vedata);
 void OVERLAY_image_background_draw(OVERLAY_Data *vedata);
+void OVERLAY_image_scene_background_draw(OVERLAY_Data *vedata);
 void OVERLAY_image_in_front_draw(OVERLAY_Data *vedata);
 
 void OVERLAY_metaball_cache_init(OVERLAY_Data *vedata);

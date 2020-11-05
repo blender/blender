@@ -206,6 +206,9 @@ void drw_state_set(DRWState state)
     case DRW_STATE_LOGIC_INVERT:
       blend = GPU_BLEND_INVERT;
       break;
+    case DRW_STATE_BLEND_ALPHA_UNDER_PREMUL:
+      blend = GPU_BLEND_ALPHA_UNDER_PREMUL;
+      break;
     default:
       blend = GPU_BLEND_NONE;
       break;

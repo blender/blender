@@ -104,8 +104,12 @@ NODE_DEFINE(Object)
   SOCKET_POINT2(dupli_uv, "Dupli UV", make_float2(0.0f, 0.0f));
   SOCKET_TRANSFORM_ARRAY(motion, "Motion", array<Transform>());
   SOCKET_FLOAT(shadow_terminator_offset, "Terminator Offset", 0.0f);
+  SOCKET_STRING(asset_name, "Asset Name", ustring());
 
   SOCKET_BOOLEAN(is_shadow_catcher, "Shadow Catcher", false);
+
+  SOCKET_NODE(particle_system, "Particle System", &ParticleSystem::node_type);
+  SOCKET_INT(particle_index, "Particle Index", 0);
 
   return type;
 }
@@ -213,10 +217,11 @@ void Object::tag_update(Scene *scene)
 {
   if (geometry) {
     if (geometry->transform_applied)
-      geometry->need_update = true;
+      geometry->tag_modified();
 
-    foreach (Shader *shader, geometry->used_shaders) {
-      if (shader->use_mis && shader->has_surface_emission)
+    foreach (Node *node, geometry->get_used_shaders()) {
+      Shader *shader = static_cast<Shader *>(node);
+      if (shader->get_use_mis() && shader->has_surface_emission)
         scene->light_manager->need_update = true;
     }
   }
@@ -273,7 +278,7 @@ uint Object::visibility_for_tracing() const
 
 float Object::compute_volume_step_size() const
 {
-  if (geometry->type != Geometry::MESH && geometry->type != Geometry::VOLUME) {
+  if (geometry->geometry_type != Geometry::MESH && geometry->geometry_type != Geometry::VOLUME) {
     return FLT_MAX;
   }
 
@@ -286,11 +291,12 @@ float Object::compute_volume_step_size() const
   /* Compute step rate from shaders. */
   float step_rate = FLT_MAX;
 
-  foreach (Shader *shader, mesh->used_shaders) {
+  foreach (Node *node, mesh->get_used_shaders()) {
+    Shader *shader = static_cast<Shader *>(node);
     if (shader->has_volume) {
-      if ((shader->heterogeneous_volume && shader->has_volume_spatial_varying) ||
+      if ((shader->get_heterogeneous_volume() && shader->has_volume_spatial_varying) ||
           (shader->has_volume_attribute_dependency)) {
-        step_rate = fminf(shader->volume_step_rate, step_rate);
+        step_rate = fminf(shader->get_volume_step_rate(), step_rate);
       }
     }
   }
@@ -302,7 +308,7 @@ float Object::compute_volume_step_size() const
   /* Compute step size from voxel grids. */
   float step_size = FLT_MAX;
 
-  if (geometry->type == Geometry::VOLUME) {
+  if (geometry->geometry_type == Geometry::VOLUME) {
     Volume *volume = static_cast<Volume *>(geometry);
 
     foreach (Attribute &attr, volume->attributes.attributes) {
@@ -314,12 +320,17 @@ float Object::compute_volume_step_size() const
         }
 
         /* User specified step size. */
-        float voxel_step_size = volume->step_size;
+        float voxel_step_size = volume->get_step_size();
 
         if (voxel_step_size == 0.0f) {
           /* Auto detect step size. */
-          float3 size = make_float3(
-              1.0f / metadata.width, 1.0f / metadata.height, 1.0f / metadata.depth);
+          float3 size = make_float3(1.0f, 1.0f, 1.0f);
+#ifdef WITH_NANOVDB
+          /* Dimensions were not applied to image transform with NanOVDB (see image_vdb.cpp) */
+          if (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
+              metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3)
+#endif
+            size /= make_float3(metadata.width, metadata.height, metadata.depth);
 
           /* Step size is transformed from voxel to world space. */
           Transform voxel_tfm = tfm;
@@ -328,7 +339,7 @@ float Object::compute_volume_step_size() const
           }
           voxel_step_size = min3(fabs(transform_direction(&voxel_tfm, size)));
         }
-        else if (volume->object_space) {
+        else if (volume->get_object_space()) {
           /* User specified step size in object space. */
           float3 size = make_float3(voxel_step_size, voxel_step_size, voxel_step_size);
           voxel_step_size = min3(fabs(transform_direction(&tfm, size)));
@@ -372,14 +383,15 @@ static float object_surface_area(UpdateObjectTransformState *state,
                                  const Transform &tfm,
                                  Geometry *geom)
 {
-  if (geom->type != Geometry::MESH && geom->type != Geometry::VOLUME) {
+  if (geom->geometry_type != Geometry::MESH && geom->geometry_type != Geometry::VOLUME) {
     return 0.0f;
   }
 
   Mesh *mesh = static_cast<Mesh *>(geom);
-  if (mesh->has_volume || geom->type == Geometry::VOLUME) {
+  if (mesh->has_volume || geom->geometry_type == Geometry::VOLUME) {
     /* Volume density automatically adjust to object scale. */
-    if (geom->type == Geometry::VOLUME && static_cast<Volume *>(geom)->object_space) {
+    if (geom->geometry_type == Geometry::VOLUME &&
+        static_cast<Volume *>(geom)->get_object_space()) {
       const float3 unit = normalize(make_float3(1.0f, 1.0f, 1.0f));
       return 1.0f / len(transform_direction(&tfm, unit));
     }
@@ -411,9 +423,9 @@ static float object_surface_area(UpdateObjectTransformState *state,
       size_t num_triangles = mesh->num_triangles();
       for (size_t j = 0; j < num_triangles; j++) {
         Mesh::Triangle t = mesh->get_triangle(j);
-        float3 p1 = mesh->verts[t.v[0]];
-        float3 p2 = mesh->verts[t.v[1]];
-        float3 p3 = mesh->verts[t.v[2]];
+        float3 p1 = mesh->get_verts()[t.v[0]];
+        float3 p2 = mesh->get_verts()[t.v[1]];
+        float3 p3 = mesh->get_verts()[t.v[2]];
 
         surface_area += triangle_area(p1, p2, p3);
       }
@@ -432,9 +444,9 @@ static float object_surface_area(UpdateObjectTransformState *state,
     size_t num_triangles = mesh->num_triangles();
     for (size_t j = 0; j < num_triangles; j++) {
       Mesh::Triangle t = mesh->get_triangle(j);
-      float3 p1 = transform_point(&tfm, mesh->verts[t.v[0]]);
-      float3 p2 = transform_point(&tfm, mesh->verts[t.v[1]]);
-      float3 p3 = transform_point(&tfm, mesh->verts[t.v[2]]);
+      float3 p1 = transform_point(&tfm, mesh->get_verts()[t.v[0]]);
+      float3 p2 = transform_point(&tfm, mesh->get_verts()[t.v[1]]);
+      float3 p3 = transform_point(&tfm, mesh->get_verts()[t.v[2]]);
 
       surface_area += triangle_area(p1, p2, p3);
     }
@@ -473,11 +485,11 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.particle_index = particle_index;
   kobject.motion_offset = 0;
 
-  if (geom->use_motion_blur) {
+  if (geom->get_use_motion_blur()) {
     state->have_motion = true;
   }
 
-  if (geom->type == Geometry::MESH) {
+  if (geom->geometry_type == Geometry::MESH) {
     /* TODO: why only mesh? */
     Mesh *mesh = static_cast<Mesh *>(geom);
     if (mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
@@ -528,14 +540,16 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.dupli_generated[0] = ob->dupli_generated[0];
   kobject.dupli_generated[1] = ob->dupli_generated[1];
   kobject.dupli_generated[2] = ob->dupli_generated[2];
-  kobject.numkeys = (geom->type == Geometry::HAIR) ? static_cast<Hair *>(geom)->curve_keys.size() :
-                                                     0;
+  kobject.numkeys = (geom->geometry_type == Geometry::HAIR) ?
+                        static_cast<Hair *>(geom)->get_curve_keys().size() :
+                        0;
   kobject.dupli_uv[0] = ob->dupli_uv[0];
   kobject.dupli_uv[1] = ob->dupli_uv[1];
-  int totalsteps = geom->motion_steps;
+  int totalsteps = geom->get_motion_steps();
   kobject.numsteps = (totalsteps - 1) / 2;
-  kobject.numverts = (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) ?
-                         static_cast<Mesh *>(geom)->verts.size() :
+  kobject.numverts = (geom->geometry_type == Geometry::MESH ||
+                      geom->geometry_type == Geometry::VOLUME) ?
+                         static_cast<Mesh *>(geom)->get_verts().size() :
                          0;
   kobject.patch_map_offset = 0;
   kobject.attribute_map_offset = 0;
@@ -553,7 +567,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   state->object_volume_step[ob->index] = FLT_MAX;
 
   /* Have curves. */
-  if (geom->type == Geometry::HAIR) {
+  if (geom->geometry_type == Geometry::HAIR) {
     state->have_curves = true;
   }
 }
@@ -688,6 +702,10 @@ void ObjectManager::device_update(Device *device,
     progress.set_status("Updating Objects", "Applying Static Transformations");
     apply_static_transforms(dscene, scene, progress);
   }
+
+  foreach (Object *object, scene->objects) {
+    object->clear_modified();
+  }
 }
 
 void ObjectManager::device_update_flags(
@@ -787,7 +805,7 @@ void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Sc
   foreach (Object *object, scene->objects) {
     Geometry *geom = object->geometry;
 
-    if (geom->type == Geometry::MESH) {
+    if (geom->geometry_type == Geometry::MESH) {
       Mesh *mesh = static_cast<Mesh *>(geom);
       if (mesh->patch_table) {
         uint patch_map_offset = 2 * (mesh->patch_table_offset + mesh->patch_table->total_size() -
@@ -865,11 +883,11 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
     bool apply = (geometry_users[geom] == 1) && !geom->has_surface_bssrdf &&
                  !geom->has_true_displacement();
 
-    if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
+    if (geom->geometry_type == Geometry::MESH) {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      apply = apply && mesh->subdivision_type == Mesh::SUBDIVISION_NONE;
+      apply = apply && mesh->get_subdivision_type() == Mesh::SUBDIVISION_NONE;
     }
-    else if (geom->type == Geometry::HAIR) {
+    else if (geom->geometry_type == Geometry::HAIR) {
       /* Can't apply non-uniform scale to curves, this can't be represented by
        * control points and radius alone. */
       float scale;

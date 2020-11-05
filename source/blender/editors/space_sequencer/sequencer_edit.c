@@ -154,7 +154,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
   for (link = pj->queue.first; link; link = link->next) {
     struct SeqIndexBuildContext *context = link->data;
 
-    BKE_sequencer_proxy_rebuild(context, stop, do_update, progress);
+    SEQ_proxy_rebuild(context, stop, do_update, progress);
 
     if (*stop) {
       pj->stop = 1;
@@ -171,7 +171,7 @@ static void proxy_endjob(void *pjv)
   LinkData *link;
 
   for (link = pj->queue.first; link; link = link->next) {
-    BKE_sequencer_proxy_rebuild_finish(link->data, pj->stop);
+    SEQ_proxy_rebuild_finish(link->data, pj->stop);
   }
 
   BKE_sequencer_free_imbuf(pj->scene, &ed->seqbase, false);
@@ -234,7 +234,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
       continue;
     }
 
-    bool success = BKE_sequencer_proxy_rebuild_context(
+    bool success = SEQ_proxy_rebuild_context(
         pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
 
     if (!success && (seq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
@@ -1106,7 +1106,7 @@ static int sequencer_gap_remove_exec(bContext *C, wmOperator *op)
 
   /* Check if the current frame has a gap already. */
   for (cfra = CFRA; cfra >= sfra; cfra--) {
-    if (BKE_sequencer_evaluate_frame(scene, cfra)) {
+    if (SEQ_render_evaluate_frame(scene, cfra)) {
       first = true;
       break;
     }
@@ -1115,13 +1115,13 @@ static int sequencer_gap_remove_exec(bContext *C, wmOperator *op)
   for (; cfra < efra; cfra++) {
     /* There's still no strip to remove a gap for. */
     if (first == false) {
-      if (BKE_sequencer_evaluate_frame(scene, cfra)) {
+      if (SEQ_render_evaluate_frame(scene, cfra)) {
         first = true;
       }
     }
-    else if (BKE_sequencer_evaluate_frame(scene, cfra) == 0) {
+    else if (SEQ_render_evaluate_frame(scene, cfra) == 0) {
       done = true;
-      while (BKE_sequencer_evaluate_frame(scene, cfra) == 0) {
+      while (SEQ_render_evaluate_frame(scene, cfra) == 0) {
         done = sequence_offset_after_frame(scene, -1, cfra);
         if (done == false) {
           break;
@@ -2681,7 +2681,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 
       while (cfra < frame_end) {
         /* New seq. */
-        se = BKE_sequencer_give_stripelem(seq, cfra);
+        se = SEQ_render_give_stripelem(seq, cfra);
 
         seq_new = BKE_sequence_dupli_recursive(
             scene, scene, ed->seqbasep, seq, SEQ_DUPE_UNIQUE_NAME);
@@ -3221,7 +3221,7 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
   if (active_seq->strip) {
     switch (active_seq->type) {
       case SEQ_TYPE_IMAGE:
-        se = BKE_sequencer_give_stripelem(active_seq, scene->r.cfra);
+        se = SEQ_render_give_stripelem(active_seq, scene->r.cfra);
         break;
       case SEQ_TYPE_MOVIE:
         se = active_seq->strip->stripdata;
@@ -3505,12 +3505,12 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
       short stop = 0, do_update;
       float progress;
 
-      BKE_sequencer_proxy_rebuild_context(bmain, depsgraph, scene, seq, file_list, &queue);
+      SEQ_proxy_rebuild_context(bmain, depsgraph, scene, seq, file_list, &queue);
 
       for (link = queue.first; link; link = link->next) {
         struct SeqIndexBuildContext *context = link->data;
-        BKE_sequencer_proxy_rebuild(context, &stop, &do_update, &progress);
-        BKE_sequencer_proxy_rebuild_finish(context, 0);
+        SEQ_proxy_rebuild(context, &stop, &do_update, &progress);
+        SEQ_proxy_rebuild_finish(context, 0);
       }
       BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
     }
@@ -3569,7 +3569,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
   SEQ_CURRENT_BEGIN (ed, seq) {
     if ((seq->flag & SELECT)) {
       if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_META)) {
-        BKE_sequencer_proxy_set(seq, turnon);
+        SEQ_proxy_set(seq, turnon);
         if (seq->strip->proxy == NULL) {
           continue;
         }

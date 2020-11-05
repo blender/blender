@@ -1259,13 +1259,13 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
     render_size = scene->r.size / 100.0;
   }
   else {
-    render_size = BKE_sequencer_rendersize_to_scale_factor(sseq->render_size);
+    render_size = SEQ_rendersize_to_scale_factor(sseq->render_size);
   }
 
   rectx = roundf(render_size * scene->r.xsch);
   recty = roundf(render_size * scene->r.ysch);
 
-  BKE_sequencer_new_render_data(
+  SEQ_render_new_render_data(
       bmain, depsgraph, scene, rectx, recty, sseq->render_size, false, &context);
   context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
 
@@ -1285,10 +1285,10 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
   }
 
   if (special_seq_update) {
-    ibuf = BKE_sequencer_give_ibuf_direct(&context, cfra + frame_ofs, special_seq_update);
+    ibuf = SEQ_render_give_ibuf_direct(&context, cfra + frame_ofs, special_seq_update);
   }
   else {
-    ibuf = BKE_sequencer_give_ibuf(&context, cfra + frame_ofs, sseq->chanshown);
+    ibuf = SEQ_render_give_ibuf(&context, cfra + frame_ofs, sseq->chanshown);
   }
 
   if (viewport) {
@@ -2086,7 +2086,7 @@ static bool draw_cache_view_init_fn(void *userdata, size_t item_count)
 
 /* Called as a callback */
 static bool draw_cache_view_iter_fn(
-    void *userdata, struct Sequence *seq, int nfra, int cache_type, float UNUSED(cost))
+    void *userdata, struct Sequence *seq, int timeline_frame, int cache_type, float UNUSED(cost))
 {
   CacheDrawData *drawdata = userdata;
   struct View2D *v2d = drawdata->v2d;
@@ -2132,14 +2132,13 @@ static bool draw_cache_view_iter_fn(
     return false;
   }
 
-  int cfra = seq->start + nfra;
   float vert_pos[6][2];
-  copy_v2_fl2(vert_pos[0], cfra, stripe_bot);
-  copy_v2_fl2(vert_pos[1], cfra, stripe_top);
-  copy_v2_fl2(vert_pos[2], cfra + 1, stripe_top);
+  copy_v2_fl2(vert_pos[0], timeline_frame, stripe_bot);
+  copy_v2_fl2(vert_pos[1], timeline_frame, stripe_top);
+  copy_v2_fl2(vert_pos[2], timeline_frame + 1, stripe_top);
   copy_v2_v2(vert_pos[3], vert_pos[2]);
   copy_v2_v2(vert_pos[4], vert_pos[0]);
-  copy_v2_fl2(vert_pos[5], cfra + 1, stripe_bot);
+  copy_v2_fl2(vert_pos[5], timeline_frame + 1, stripe_bot);
 
   for (int i = 0; i < 6; i++) {
     GPU_vertbuf_vert_set(vbo, *vert_count + i, vert_pos[i]);

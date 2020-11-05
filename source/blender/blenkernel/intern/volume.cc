@@ -1156,6 +1156,7 @@ VolumeGrid *BKE_volume_grid_active_get(const Volume *volume)
   return BKE_volume_grid_get(volume, index);
 }
 
+/* Tries to find a grid with the given name. Make sure that that the volume has been loaded. */
 VolumeGrid *BKE_volume_grid_find(const Volume *volume, const char *name)
 {
   int num_grids = BKE_volume_num_grids(volume);

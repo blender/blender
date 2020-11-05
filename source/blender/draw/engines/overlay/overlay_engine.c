@@ -509,6 +509,11 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_FramebufferList *fbl = data->fbl;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
+  /* Needs to be done first as it modifies the scene color and depth buffer. */
+  if (!pd->is_image_editor) {
+    OVERLAY_image_scene_background_draw(vedata);
+  }
+
   if (DRW_state_is_fbo()) {
     const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     GPU_framebuffer_bind(dfbl->overlay_only_fb);

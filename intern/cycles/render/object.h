@@ -18,6 +18,11 @@
 #define __OBJECT_H__
 
 #include "graph/node.h"
+
+/* included as Object::set_particle_system defined through NODE_SOCKET_API does
+ * not select the right Node::set overload as it does not know that ParticleSystem
+ * is a Node */
+#include "render/particles.h"
 #include "render/scene.h"
 
 #include "util/util_array.h"
@@ -46,26 +51,26 @@ class Object : public Node {
  public:
   NODE_DECLARE
 
-  Geometry *geometry;
-  Transform tfm;
+  NODE_SOCKET_API(Geometry *, geometry)
+  NODE_SOCKET_API(Transform, tfm)
   BoundBox bounds;
-  uint random_id;
-  int pass_id;
-  float3 color;
-  ustring asset_name;
+  NODE_SOCKET_API(uint, random_id)
+  NODE_SOCKET_API(int, pass_id)
+  NODE_SOCKET_API(float3, color)
+  NODE_SOCKET_API(ustring, asset_name)
   vector<ParamValue> attributes;
-  uint visibility;
-  array<Transform> motion;
-  bool hide_on_missing_motion;
-  bool use_holdout;
-  bool is_shadow_catcher;
-  float shadow_terminator_offset;
+  NODE_SOCKET_API(uint, visibility)
+  NODE_SOCKET_API_ARRAY(array<Transform>, motion)
+  NODE_SOCKET_API(bool, hide_on_missing_motion)
+  NODE_SOCKET_API(bool, use_holdout)
+  NODE_SOCKET_API(bool, is_shadow_catcher)
+  NODE_SOCKET_API(float, shadow_terminator_offset)
 
-  float3 dupli_generated;
-  float2 dupli_uv;
+  NODE_SOCKET_API(float3, dupli_generated)
+  NODE_SOCKET_API(float2, dupli_uv)
 
-  ParticleSystem *particle_system;
-  int particle_index;
+  NODE_SOCKET_API(ParticleSystem *, particle_system);
+  NODE_SOCKET_API(int, particle_index);
 
   Object();
   ~Object();

@@ -539,10 +539,10 @@ static int mg_mFractalOrfBmTex(const Tex *tex, const float texvec[3], TexResult 
   float (*mgravefunc)(float, float, float, float, float, float, int);
 
   if (tex->stype == TEX_MFRACTAL) {
-    mgravefunc = mg_MultiFractal;
+    mgravefunc = BLI_mg_MultiFractal;
   }
   else {
-    mgravefunc = mg_fBm;
+    mgravefunc = BLI_mg_fBm;
   }
 
   texres->tin = tex->ns_outscale * mgravefunc(texvec[0],
@@ -594,10 +594,10 @@ static int mg_ridgedOrHybridMFTex(const Tex *tex, const float texvec[3], TexResu
   float (*mgravefunc)(float, float, float, float, float, float, float, float, int);
 
   if (tex->stype == TEX_RIDGEDMF) {
-    mgravefunc = mg_RidgedMultiFractal;
+    mgravefunc = BLI_mg_RidgedMultiFractal;
   }
   else {
-    mgravefunc = mg_HybridMultiFractal;
+    mgravefunc = BLI_mg_HybridMultiFractal;
   }
 
   texres->tin = tex->ns_outscale * mgravefunc(texvec[0],
@@ -655,43 +655,43 @@ static int mg_HTerrainTex(const Tex *tex, const float texvec[3], TexResult *texr
 {
   int rv = TEX_INT;
 
-  texres->tin = tex->ns_outscale * mg_HeteroTerrain(texvec[0],
-                                                    texvec[1],
-                                                    texvec[2],
-                                                    tex->mg_H,
-                                                    tex->mg_lacunarity,
-                                                    tex->mg_octaves,
-                                                    tex->mg_offset,
-                                                    tex->noisebasis);
+  texres->tin = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0],
+                                                        texvec[1],
+                                                        texvec[2],
+                                                        tex->mg_H,
+                                                        tex->mg_lacunarity,
+                                                        tex->mg_octaves,
+                                                        tex->mg_offset,
+                                                        tex->noisebasis);
 
   if (texres->nor != NULL) {
     float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    texres->nor[0] = tex->ns_outscale * mg_HeteroTerrain(texvec[0] + offs,
-                                                         texvec[1],
-                                                         texvec[2],
-                                                         tex->mg_H,
-                                                         tex->mg_lacunarity,
-                                                         tex->mg_octaves,
-                                                         tex->mg_offset,
-                                                         tex->noisebasis);
-    texres->nor[1] = tex->ns_outscale * mg_HeteroTerrain(texvec[0],
-                                                         texvec[1] + offs,
-                                                         texvec[2],
-                                                         tex->mg_H,
-                                                         tex->mg_lacunarity,
-                                                         tex->mg_octaves,
-                                                         tex->mg_offset,
-                                                         tex->noisebasis);
-    texres->nor[2] = tex->ns_outscale * mg_HeteroTerrain(texvec[0],
-                                                         texvec[1],
-                                                         texvec[2] + offs,
-                                                         tex->mg_H,
-                                                         tex->mg_lacunarity,
-                                                         tex->mg_octaves,
-                                                         tex->mg_offset,
-                                                         tex->noisebasis);
+    texres->nor[0] = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0] + offs,
+                                                             texvec[1],
+                                                             texvec[2],
+                                                             tex->mg_H,
+                                                             tex->mg_lacunarity,
+                                                             tex->mg_octaves,
+                                                             tex->mg_offset,
+                                                             tex->noisebasis);
+    texres->nor[1] = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0],
+                                                             texvec[1] + offs,
+                                                             texvec[2],
+                                                             tex->mg_H,
+                                                             tex->mg_lacunarity,
+                                                             tex->mg_octaves,
+                                                             tex->mg_offset,
+                                                             tex->noisebasis);
+    texres->nor[2] = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0],
+                                                             texvec[1],
+                                                             texvec[2] + offs,
+                                                             tex->mg_H,
+                                                             tex->mg_lacunarity,
+                                                             tex->mg_octaves,
+                                                             tex->mg_offset,
+                                                             tex->noisebasis);
 
     tex_normal_derivate(tex, texres);
     rv |= TEX_NOR;
@@ -706,31 +706,31 @@ static int mg_distNoiseTex(const Tex *tex, const float texvec[3], TexResult *tex
 {
   int rv = TEX_INT;
 
-  texres->tin = mg_VLNoise(
+  texres->tin = BLI_mg_VLNoise(
       texvec[0], texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
 
   if (texres->nor != NULL) {
     float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    texres->nor[0] = mg_VLNoise(texvec[0] + offs,
-                                texvec[1],
-                                texvec[2],
-                                tex->dist_amount,
-                                tex->noisebasis,
-                                tex->noisebasis2);
-    texres->nor[1] = mg_VLNoise(texvec[0],
-                                texvec[1] + offs,
-                                texvec[2],
-                                tex->dist_amount,
-                                tex->noisebasis,
-                                tex->noisebasis2);
-    texres->nor[2] = mg_VLNoise(texvec[0],
-                                texvec[1],
-                                texvec[2] + offs,
-                                tex->dist_amount,
-                                tex->noisebasis,
-                                tex->noisebasis2);
+    texres->nor[0] = BLI_mg_VLNoise(texvec[0] + offs,
+                                    texvec[1],
+                                    texvec[2],
+                                    tex->dist_amount,
+                                    tex->noisebasis,
+                                    tex->noisebasis2);
+    texres->nor[1] = BLI_mg_VLNoise(texvec[0],
+                                    texvec[1] + offs,
+                                    texvec[2],
+                                    tex->dist_amount,
+                                    tex->noisebasis,
+                                    tex->noisebasis2);
+    texres->nor[2] = BLI_mg_VLNoise(texvec[0],
+                                    texvec[1],
+                                    texvec[2] + offs,
+                                    tex->dist_amount,
+                                    tex->noisebasis,
+                                    tex->noisebasis2);
 
     tex_normal_derivate(tex, texres);
     rv |= TEX_NOR;
@@ -760,24 +760,24 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
     sc = tex->ns_outscale / sc;
   }
 
-  voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
+  BLI_voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
   texres->tin = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
 
   if (tex->vn_coltype) {
     float ca[3]; /* cell color */
-    cellNoiseV(pa[0], pa[1], pa[2], ca);
+    BLI_cellNoiseV(pa[0], pa[1], pa[2], ca);
     texres->tr = aw1 * ca[0];
     texres->tg = aw1 * ca[1];
     texres->tb = aw1 * ca[2];
-    cellNoiseV(pa[3], pa[4], pa[5], ca);
+    BLI_cellNoiseV(pa[3], pa[4], pa[5], ca);
     texres->tr += aw2 * ca[0];
     texres->tg += aw2 * ca[1];
     texres->tb += aw2 * ca[2];
-    cellNoiseV(pa[6], pa[7], pa[8], ca);
+    BLI_cellNoiseV(pa[6], pa[7], pa[8], ca);
     texres->tr += aw3 * ca[0];
     texres->tg += aw3 * ca[1];
     texres->tb += aw3 * ca[2];
-    cellNoiseV(pa[9], pa[10], pa[11], ca);
+    BLI_cellNoiseV(pa[9], pa[10], pa[11], ca);
     texres->tr += aw4 * ca[0];
     texres->tg += aw4 * ca[1];
     texres->tb += aw4 * ca[2];
@@ -807,11 +807,11 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
     float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    voronoi(texvec[0] + offs, texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
+    BLI_voronoi(texvec[0] + offs, texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
     texres->nor[0] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
-    voronoi(texvec[0], texvec[1] + offs, texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
+    BLI_voronoi(texvec[0], texvec[1] + offs, texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
     texres->nor[1] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
-    voronoi(texvec[0], texvec[1], texvec[2] + offs, da, pa, tex->vn_mexp, tex->vn_distm);
+    BLI_voronoi(texvec[0], texvec[1], texvec[2] + offs, da, pa, tex->vn_mexp, tex->vn_distm);
     texres->nor[2] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
 
     tex_normal_derivate(tex, texres);

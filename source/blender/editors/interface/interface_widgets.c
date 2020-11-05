@@ -548,6 +548,24 @@ void UI_draw_anti_tria(
   GPU_blend(GPU_BLEND_NONE);
 }
 
+/* Triangle 'icon' for panel header and other cases. */
+void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
+{
+  const float f3 = 0.05 * U.widget_unit;
+  const float f5 = 0.15 * U.widget_unit;
+  const float f7 = 0.25 * U.widget_unit;
+
+  if (dir == 'h') {
+    UI_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);
+  }
+  else if (dir == 't') {
+    UI_draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3, color);
+  }
+  else { /* 'v' = vertical, down. */
+    UI_draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7, color);
+  }
+}
+
 /* triangle 'icon' inside rect */
 void ui_draw_anti_tria_rect(const rctf *rect, char dir, const float color[4])
 {

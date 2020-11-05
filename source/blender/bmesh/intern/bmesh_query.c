@@ -1605,7 +1605,7 @@ float BM_loop_calc_face_normal_safe_vcos_ex(const BMLoop *l,
 }
 
 /**
- * #BM_loop_calc_face_normal_safe_ex with pre-defined sane epsilon.
+ * #BM_loop_calc_face_normal_safe_ex with predefined sane epsilon.
  *
  * Since this doesn't scale based on triangle size, fixed value works well.
  */

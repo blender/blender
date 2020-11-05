@@ -58,7 +58,7 @@ bool GeometryManager::displace(
   size_t object_index = OBJECT_NONE;
 
   for (size_t i = 0; i < scene->objects.size(); i++) {
-    if (scene->objects[i]->geometry == mesh) {
+    if (scene->objects[i]->get_geometry() == mesh) {
       object_index = i;
       break;
     }
@@ -76,10 +76,10 @@ bool GeometryManager::displace(
     Mesh::Triangle t = mesh->get_triangle(i);
     int shader_index = mesh->shader[i];
     Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-                         mesh->used_shaders[shader_index] :
+                         static_cast<Shader *>(mesh->used_shaders[shader_index]) :
                          scene->default_surface;
 
-    if (!shader->has_displacement || shader->displacement_method == DISPLACE_BUMP) {
+    if (!shader->has_displacement || shader->get_displacement_method() == DISPLACE_BUMP) {
       continue;
     }
 
@@ -160,10 +160,10 @@ bool GeometryManager::displace(
     Mesh::Triangle t = mesh->get_triangle(i);
     int shader_index = mesh->shader[i];
     Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-                         mesh->used_shaders[shader_index] :
+                         static_cast<Shader *>(mesh->used_shaders[shader_index]) :
                          scene->default_surface;
 
-    if (!shader->has_displacement || shader->displacement_method == DISPLACE_BUMP) {
+    if (!shader->has_displacement || shader->get_displacement_method() == DISPLACE_BUMP) {
       continue;
     }
 
@@ -227,8 +227,9 @@ bool GeometryManager::displace(
 
   bool need_recompute_vertex_normals = false;
 
-  foreach (Shader *shader, mesh->used_shaders) {
-    if (shader->has_displacement && shader->displacement_method == DISPLACE_TRUE) {
+  foreach (Node *node, mesh->get_used_shaders()) {
+    Shader *shader = static_cast<Shader *>(node);
+    if (shader->has_displacement && shader->get_displacement_method() == DISPLACE_TRUE) {
       need_recompute_vertex_normals = true;
       break;
     }
@@ -241,11 +242,11 @@ bool GeometryManager::displace(
     for (size_t i = 0; i < num_triangles; i++) {
       int shader_index = mesh->shader[i];
       Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-                           mesh->used_shaders[shader_index] :
+                           static_cast<Shader *>(mesh->used_shaders[shader_index]) :
                            scene->default_surface;
 
       tri_has_true_disp[i] = shader->has_displacement &&
-                             shader->displacement_method == DISPLACE_TRUE;
+                             shader->get_displacement_method() == DISPLACE_TRUE;
     }
 
     /* static vertex normals */

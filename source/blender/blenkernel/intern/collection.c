@@ -174,6 +174,8 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
 
 void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection)
 {
+  BKE_id_blend_write(writer, &collection->id);
+
   /* Shared function for collection data-blocks and scene master collection. */
   BKE_previewimg_blend_write(writer, collection->preview);
 
@@ -198,7 +200,6 @@ static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_a
 
     /* write LibData */
     BLO_write_id_struct(writer, Collection, id_address, &collection->id);
-    BKE_id_blend_write(writer, &collection->id);
 
     BKE_collection_blend_write_nolib(writer, collection);
   }
@@ -474,6 +475,7 @@ void BKE_collection_add_from_collection(Main *bmain,
 /** Free (or release) any data used by this collection (does not free the collection itself). */
 void BKE_collection_free(Collection *collection)
 {
+  BKE_libblock_free_data(&collection->id, false);
   collection_free_data(&collection->id);
 }
 

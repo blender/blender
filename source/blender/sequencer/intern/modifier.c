@@ -46,6 +46,7 @@
 
 #include "SEQ_sequencer.h"
 
+#include "render.h"
 #include "sequencer.h"
 
 static SequenceModifierTypeInfo *modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES];
@@ -82,19 +83,58 @@ typedef struct ModifierThread {
   modifier_apply_threaded_cb apply_callback;
 } ModifierThread;
 
+/**
+ * \a cfra is offset by \a fra_offset only in case we are using a real mask.
+ */
+static ImBuf *modifier_render_mask_input(const SeqRenderData *context,
+                                         int mask_input_type,
+                                         Sequence *mask_sequence,
+                                         Mask *mask_id,
+                                         int cfra,
+                                         int fra_offset,
+                                         bool make_float)
+{
+  ImBuf *mask_input = NULL;
+
+  if (mask_input_type == SEQUENCE_MASK_INPUT_STRIP) {
+    if (mask_sequence) {
+      SeqRenderState state;
+      seq_render_state_init(&state);
+
+      mask_input = seq_render_strip(context, &state, mask_sequence, cfra);
+
+      if (make_float) {
+        if (!mask_input->rect_float) {
+          IMB_float_from_rect(mask_input);
+        }
+      }
+      else {
+        if (!mask_input->rect) {
+          IMB_rect_from_float(mask_input);
+        }
+      }
+    }
+  }
+  else if (mask_input_type == SEQUENCE_MASK_INPUT_ID) {
+    mask_input = seq_render_mask(context, mask_id, cfra - fra_offset, make_float);
+  }
+
+  return mask_input;
+}
+
 static ImBuf *modifier_mask_get(SequenceModifierData *smd,
                                 const SeqRenderData *context,
                                 int cfra,
                                 int fra_offset,
                                 bool make_float)
 {
-  return BKE_sequencer_render_mask_input(context,
-                                         smd->mask_input_type,
-                                         smd->mask_sequence,
-                                         smd->mask_id,
-                                         cfra,
-                                         fra_offset,
-                                         make_float);
+  return modifier_render_mask_input(context,
+                                    smd->mask_input_type,
+                                    smd->mask_sequence,
+                                    smd->mask_id,
+                                    cfra,
+                                    fra_offset,
+                                    make_float);
 }
 
 static void modifier_init_handle(void *handle_v, int start_line, int tot_line, void *init_data_v)
@@ -174,6 +214,291 @@ static void modifier_apply_threaded(ImBuf *ibuf,
 /** \name Color Balance Modifier
  * \{ */
 
+static StripColorBalance calc_cb(StripColorBalance *cb_)
+{
+  StripColorBalance cb = *cb_;
+  int c;
+
+  for (c = 0; c < 3; c++) {
+    cb.lift[c] = 2.0f - cb.lift[c];
+  }
+
+  if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
+    for (c = 0; c < 3; c++) {
+      /* tweak to give more subtle results
+       * values above 1.0 are scaled */
+      if (cb.lift[c] > 1.0f) {
+        cb.lift[c] = pow(cb.lift[c] - 1.0f, 2.0) + 1.0;
+      }
+
+      cb.lift[c] = 2.0f - cb.lift[c];
+    }
+  }
+
+  if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_GAIN) {
+    for (c = 0; c < 3; c++) {
+      if (cb.gain[c] != 0.0f) {
+        cb.gain[c] = 1.0f / cb.gain[c];
+      }
+      else {
+        cb.gain[c] = 1000000; /* should be enough :) */
+      }
+    }
+  }
+
+  if (!(cb.flag & SEQ_COLOR_BALANCE_INVERSE_GAMMA)) {
+    for (c = 0; c < 3; c++) {
+      if (cb.gamma[c] != 0.0f) {
+        cb.gamma[c] = 1.0f / cb.gamma[c];
+      }
+      else {
+        cb.gamma[c] = 1000000; /* should be enough :) */
+      }
+    }
+  }
+
+  return cb;
+}
+
+/* note: lift is actually 2-lift */
+MINLINE float color_balance_fl(
+    float in, const float lift, const float gain, const float gamma, const float mul)
+{
+  float x = (((in - 1.0f) * lift) + 1.0f) * gain;
+
+  /* prevent NaN */
+  if (x < 0.f) {
+    x = 0.f;
+  }
+
+  x = powf(x, gamma) * mul;
+  CLAMP(x, FLT_MIN, FLT_MAX);
+  return x;
+}
+
+static void make_cb_table_float(float lift, float gain, float gamma, float *table, float mul)
+{
+  int y;
+
+  for (y = 0; y < 256; y++) {
+    float v = color_balance_fl((float)y * (1.0f / 255.0f), lift, gain, gamma, mul);
+
+    table[y] = v;
+  }
+}
+
+static void color_balance_byte_byte(StripColorBalance *cb_,
+                                    unsigned char *rect,
+                                    unsigned char *mask_rect,
+                                    int width,
+                                    int height,
+                                    float mul)
+{
+  // unsigned char cb_tab[3][256];
+  unsigned char *cp = rect;
+  unsigned char *e = cp + width * 4 * height;
+  unsigned char *m = mask_rect;
+
+  StripColorBalance cb = calc_cb(cb_);
+
+  while (cp < e) {
+    float p[4];
+    int c;
+
+    straight_uchar_to_premul_float(p, cp);
+
+    for (c = 0; c < 3; c++) {
+      float t = color_balance_fl(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
+
+      if (m) {
+        float m_normal = (float)m[c] / 255.0f;
+
+        p[c] = p[c] * (1.0f - m_normal) + t * m_normal;
+      }
+      else {
+        p[c] = t;
+      }
+    }
+
+    premul_float_to_straight_uchar(cp, p);
+
+    cp += 4;
+    if (m) {
+      m += 4;
+    }
+  }
+}
+
+static void color_balance_byte_float(StripColorBalance *cb_,
+                                     unsigned char *rect,
+                                     float *rect_float,
+                                     unsigned char *mask_rect,
+                                     int width,
+                                     int height,
+                                     float mul)
+{
+  float cb_tab[4][256];
+  int c, i;
+  unsigned char *p = rect;
+  unsigned char *e = p + width * 4 * height;
+  unsigned char *m = mask_rect;
+  float *o;
+  StripColorBalance cb;
+
+  o = rect_float;
+
+  cb = calc_cb(cb_);
+
+  for (c = 0; c < 3; c++) {
+    make_cb_table_float(cb.lift[c], cb.gain[c], cb.gamma[c], cb_tab[c], mul);
+  }
+
+  for (i = 0; i < 256; i++) {
+    cb_tab[3][i] = ((float)i) * (1.0f / 255.0f);
+  }
+
+  while (p < e) {
+    if (m) {
+      const float t[3] = {m[0] / 255.0f, m[1] / 255.0f, m[2] / 255.0f};
+
+      p[0] = p[0] * (1.0f - t[0]) + t[0] * cb_tab[0][p[0]];
+      p[1] = p[1] * (1.0f - t[1]) + t[1] * cb_tab[1][p[1]];
+      p[2] = p[2] * (1.0f - t[2]) + t[2] * cb_tab[2][p[2]];
+
+      m += 4;
+    }
+    else {
+      o[0] = cb_tab[0][p[0]];
+      o[1] = cb_tab[1][p[1]];
+      o[2] = cb_tab[2][p[2]];
+    }
+
+    o[3] = cb_tab[3][p[3]];
+
+    p += 4;
+    o += 4;
+  }
+}
+
+static void color_balance_float_float(StripColorBalance *cb_,
+                                      float *rect_float,
+                                      const float *mask_rect_float,
+                                      int width,
+                                      int height,
+                                      float mul)
+{
+  float *p = rect_float;
+  const float *e = rect_float + width * 4 * height;
+  const float *m = mask_rect_float;
+  StripColorBalance cb = calc_cb(cb_);
+
+  while (p < e) {
+    int c;
+    for (c = 0; c < 3; c++) {
+      float t = color_balance_fl(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
+
+      if (m) {
+        p[c] = p[c] * (1.0f - m[c]) + t * m[c];
+      }
+      else {
+        p[c] = t;
+      }
+    }
+
+    p += 4;
+    if (m) {
+      m += 4;
+    }
+  }
+}
+
+typedef struct ColorBalanceInitData {
+  StripColorBalance *cb;
+  ImBuf *ibuf;
+  float mul;
+  ImBuf *mask;
+  bool make_float;
+} ColorBalanceInitData;
+
+typedef struct ColorBalanceThread {
+  StripColorBalance *cb;
+  float mul;
+
+  int width, height;
+
+  unsigned char *rect, *mask_rect;
+  float *rect_float, *mask_rect_float;
+
+  bool make_float;
+} ColorBalanceThread;
+
+static void color_balance_init_handle(void *handle_v,
+                                      int start_line,
+                                      int tot_line,
+                                      void *init_data_v)
+{
+  ColorBalanceThread *handle = (ColorBalanceThread *)handle_v;
+  ColorBalanceInitData *init_data = (ColorBalanceInitData *)init_data_v;
+  ImBuf *ibuf = init_data->ibuf;
+  ImBuf *mask = init_data->mask;
+
+  int offset = 4 * start_line * ibuf->x;
+
+  memset(handle, 0, sizeof(ColorBalanceThread));
+
+  handle->cb = init_data->cb;
+  handle->mul = init_data->mul;
+  handle->width = ibuf->x;
+  handle->height = tot_line;
+  handle->make_float = init_data->make_float;
+
+  if (ibuf->rect) {
+    handle->rect = (unsigned char *)ibuf->rect + offset;
+  }
+
+  if (ibuf->rect_float) {
+    handle->rect_float = ibuf->rect_float + offset;
+  }
+
+  if (mask) {
+    if (mask->rect) {
+      handle->mask_rect = (unsigned char *)mask->rect + offset;
+    }
+
+    if (mask->rect_float) {
+      handle->mask_rect_float = mask->rect_float + offset;
+    }
+  }
+  else {
+    handle->mask_rect = NULL;
+    handle->mask_rect_float = NULL;
+  }
+}
+
+static void *color_balance_do_thread(void *thread_data_v)
+{
+  ColorBalanceThread *thread_data = (ColorBalanceThread *)thread_data_v;
+  StripColorBalance *cb = thread_data->cb;
+  int width = thread_data->width, height = thread_data->height;
+  unsigned char *rect = thread_data->rect;
+  unsigned char *mask_rect = thread_data->mask_rect;
+  float *rect_float = thread_data->rect_float;
+  float *mask_rect_float = thread_data->mask_rect_float;
+  float mul = thread_data->mul;
+
+  if (rect_float) {
+    color_balance_float_float(cb, rect_float, mask_rect_float, width, height, mul);
+  }
+  else if (thread_data->make_float) {
+    color_balance_byte_float(cb, rect, rect_float, mask_rect, width, height, mul);
+  }
+  else {
+    color_balance_byte_byte(cb, rect, mask_rect, width, height, mul);
+  }
+
+  return NULL;
+}
+
 static void colorBalance_init_data(SequenceModifierData *smd)
 {
   ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
@@ -188,11 +513,41 @@ static void colorBalance_init_data(SequenceModifierData *smd)
   }
 }
 
+static void modifier_color_balance_apply(
+    StripColorBalance *cb, ImBuf *ibuf, float mul, bool make_float, ImBuf *mask_input)
+{
+  ColorBalanceInitData init_data;
+
+  if (!ibuf->rect_float && make_float) {
+    imb_addrectfloatImBuf(ibuf);
+  }
+
+  init_data.cb = cb;
+  init_data.ibuf = ibuf;
+  init_data.mul = mul;
+  init_data.make_float = make_float;
+  init_data.mask = mask_input;
+
+  IMB_processor_apply_threaded(ibuf->y,
+                               sizeof(ColorBalanceThread),
+                               &init_data,
+                               color_balance_init_handle,
+                               color_balance_do_thread);
+
+  /* color balance either happens on float buffer or byte buffer, but never on both,
+   * free byte buffer if there's float buffer since float buffer would be used for
+   * color balance in favor of byte buffer
+   */
+  if (ibuf->rect_float && ibuf->rect) {
+    imb_freerectImBuf(ibuf);
+  }
+}
+
 static void colorBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
   ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
 
-  BKE_sequencer_color_balance_apply(&cbmd->color_balance, ibuf, cbmd->color_multiply, false, mask);
+  modifier_color_balance_apply(&cbmd->color_balance, ibuf, cbmd->color_multiply, false, mask);
 }
 
 static SequenceModifierTypeInfo seqModifier_ColorBalance = {
@@ -1060,7 +1415,7 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
 
   if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
     processed_ibuf = IMB_dupImBuf(ibuf);
-    BKE_sequencer_imbuf_from_sequencer_space(context->scene, processed_ibuf);
+    SEQ_render_imbuf_from_sequencer_space(context->scene, processed_ibuf);
   }
 
   for (smd = seq->modifiers.first; smd; smd = smd->next) {
@@ -1100,7 +1455,7 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
   }
 
   if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
-    BKE_sequencer_imbuf_to_sequencer_space(context->scene, processed_ibuf, false);
+    seq_imbuf_to_sequencer_space(context->scene, processed_ibuf, false);
   }
 
   return processed_ibuf;

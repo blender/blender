@@ -1699,7 +1699,7 @@ bool DNA_sdna_patch_struct(SDNA *sdna, const char *struct_name_old, const char *
   return false;
 }
 
-/* Make public if called often with same struct (avoid duplicate look-ups). */
+/* Make public if called often with same struct (avoid duplicate lookups). */
 static bool DNA_sdna_patch_struct_member_nr(SDNA *sdna,
                                             const int struct_name_nr,
                                             const char *elem_old,

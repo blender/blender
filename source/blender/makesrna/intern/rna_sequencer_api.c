@@ -93,7 +93,7 @@ static Sequence *alloc_generic_sequence(
     strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
     BLI_split_dirfile(file, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
-    BKE_sequence_init_colorspace(seq);
+    SEQ_render_init_colorspace(seq);
   }
   else {
     strip->stripdata = NULL;
@@ -477,7 +477,7 @@ void RNA_api_sequence_strip(StructRNA *srna)
   RNA_def_function_ui_description(func, "Update the strip dimensions");
   parm = RNA_def_boolean(func, "data", false, "Data", "Update strip data");
 
-  func = RNA_def_function(srna, "strip_elem_from_frame", "BKE_sequencer_give_stripelem");
+  func = RNA_def_function(srna, "strip_elem_from_frame", "SEQ_render_give_stripelem");
   RNA_def_function_ui_description(func, "Return the strip element from a given frame or None");
   parm = RNA_def_int(func,
                      "frame",

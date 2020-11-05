@@ -26,6 +26,8 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_context.h"
 #include "BKE_unit.h"
 
@@ -40,11 +42,64 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
+/** \name To Sphere Utilities
+ * \{ */
+
+struct ToSphereInfo {
+  float prop_size_prev;
+  float radius;
+};
+
+/** Calculate average radius. */
+static void to_sphere_radius_update(TransInfo *t)
+{
+  struct ToSphereInfo *data = t->custom.mode.data;
+  float radius = 0.0f;
+
+  const bool is_local_center = transdata_check_local_center(t, t->around);
+
+  if (t->flag & T_PROP_EDIT_ALL) {
+    int factor_accum = 0.0f;
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      TransData *td = tc->data;
+      for (int i = 0; i < tc->data_len; i++, td++) {
+        if (td->factor == 0.0f) {
+          continue;
+        }
+        const float *center = is_local_center ? td->center : tc->center_local;
+        radius += td->factor * len_v3v3(center, td->iloc);
+        factor_accum += td->factor;
+      }
+    }
+    if (factor_accum != 0.0f) {
+      radius /= factor_accum;
+    }
+  }
+  else {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      TransData *td = tc->data;
+      for (int i = 0; i < tc->data_len; i++, td++) {
+        const float *center = is_local_center ? td->center : tc->center_local;
+        radius += len_v3v3(center, td->iloc);
+      }
+    }
+    radius /= (float)t->data_len_all;
+  }
+
+  data->prop_size_prev = t->prop_size;
+  data->radius = radius;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Transform (ToSphere)
  * \{ */
 
 static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
 {
+  const bool is_local_center = transdata_check_local_center(t, t->around);
+
   float vec[3];
   float ratio, radius;
   int i;
@@ -73,6 +128,11 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
     BLI_snprintf(str, sizeof(str), TIP_("To Sphere: %.4f %s"), ratio, t->proptext);
   }
 
+  const struct ToSphereInfo *data = t->custom.mode.data;
+  if (data->prop_size_prev != t->prop_size) {
+    to_sphere_radius_update(t);
+  }
+
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (i = 0; i < tc->data_len; i++, td++) {
@@ -81,15 +141,17 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
         continue;
       }
 
-      sub_v3_v3v3(vec, td->iloc, tc->center_local);
+      const float *center = is_local_center ? td->center : tc->center_local;
+
+      sub_v3_v3v3(vec, td->iloc, center);
 
       radius = normalize_v3(vec);
 
       tratio = ratio * td->factor;
 
-      mul_v3_fl(vec, radius * (1.0f - tratio) + t->val * tratio);
+      mul_v3_fl(vec, radius * (1.0f - tratio) + data->radius * tratio);
 
-      add_v3_v3v3(td->loc, tc->center_local, vec);
+      add_v3_v3v3(td->loc, center, vec);
     }
   }
 
@@ -100,8 +162,6 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
 
 void initToSphere(TransInfo *t)
 {
-  int i;
-
   t->mode = TFM_TOSPHERE;
   t->transform = applyToSphere;
 
@@ -119,14 +179,10 @@ void initToSphere(TransInfo *t)
   t->num.val_flag[0] |= NUM_NULL_ONE | NUM_NO_NEGATIVE;
   t->flag |= T_NO_CONSTRAINT;
 
-  /* Calculate average radius */
-  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
-      t->val += len_v3v3(tc->center_local, td->iloc);
-    }
-  }
+  struct ToSphereInfo *data = MEM_callocN(sizeof(*data), __func__);
+  t->custom.mode.data = data;
+  t->custom.mode.use_free = true;
 
-  t->val /= (float)t->data_len_all;
+  to_sphere_radius_update(t);
 }
 /** \} */

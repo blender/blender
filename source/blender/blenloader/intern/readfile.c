@@ -4393,7 +4393,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
           seq->strip->proxy->anim = NULL;
         }
         else if (seq->flag & SEQ_USE_PROXY) {
-          BKE_sequencer_proxy_set(seq, true);
+          SEQ_proxy_set(seq, true);
         }
 
         /* need to load color balance to it could be converted to modifier */

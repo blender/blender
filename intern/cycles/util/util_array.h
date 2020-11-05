@@ -213,6 +213,26 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     return data_[i];
   }
 
+  T *begin()
+  {
+    return data_;
+  }
+
+  const T *begin() const
+  {
+    return data_;
+  }
+
+  T *end()
+  {
+    return data_ + datasize_;
+  }
+
+  const T *end() const
+  {
+    return data_ + datasize_;
+  }
+
   void reserve(size_t newcapacity)
   {
     if (newcapacity > capacity_) {

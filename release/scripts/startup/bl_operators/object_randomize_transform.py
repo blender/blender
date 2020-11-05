@@ -97,7 +97,7 @@ from bpy.props import (
 
 
 class RandomizeLocRotSize(Operator):
-    """Randomize objects loc/rot/scale"""
+    """Randomize objects location, rotation, and scale"""
     bl_idname = "object.randomize_transform"
     bl_label = "Randomize Transform"
     bl_options = {'REGISTER', 'UNDO'}

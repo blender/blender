@@ -55,6 +55,7 @@
 
 #include "SEQ_sequencer.h"
 
+#include "render.h"
 #include "sequencer.h"
 
 typedef struct PrefetchJob {
@@ -286,25 +287,25 @@ static void seq_prefetch_update_context(const SeqRenderData *context)
   PrefetchJob *pfjob;
   pfjob = seq_prefetch_job_get(context->scene);
 
-  BKE_sequencer_new_render_data(pfjob->bmain_eval,
-                                pfjob->depsgraph,
-                                pfjob->scene_eval,
-                                context->rectx,
-                                context->recty,
-                                context->preview_render_size,
-                                false,
-                                &pfjob->context_cpy);
+  SEQ_render_new_render_data(pfjob->bmain_eval,
+                             pfjob->depsgraph,
+                             pfjob->scene_eval,
+                             context->rectx,
+                             context->recty,
+                             context->preview_render_size,
+                             false,
+                             &pfjob->context_cpy);
   pfjob->context_cpy.is_prefetch_render = true;
   pfjob->context_cpy.task_id = SEQ_TASK_PREFETCH_RENDER;
 
-  BKE_sequencer_new_render_data(pfjob->bmain,
-                                pfjob->depsgraph,
-                                pfjob->scene,
-                                context->rectx,
-                                context->recty,
-                                context->preview_render_size,
-                                false,
-                                &pfjob->context);
+  SEQ_render_new_render_data(pfjob->bmain,
+                             pfjob->depsgraph,
+                             pfjob->scene,
+                             context->rectx,
+                             context->recty,
+                             context->preview_render_size,
+                             false,
+                             &pfjob->context);
   pfjob->context.is_prefetch_render = false;
 
   /* Same ID as prefetch context, because context will be swapped, but we still
@@ -361,7 +362,7 @@ static bool seq_prefetch_do_skip_frame(Scene *scene)
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
   float cfra = seq_prefetch_cfra(pfjob);
   Sequence *seq_arr[MAXSEQ + 1];
-  int count = BKE_sequencer_get_shown_sequences(ed->seqbasep, cfra, 0, seq_arr);
+  int count = seq_get_shown_sequences(ed->seqbasep, cfra, 0, seq_arr);
   SeqRenderData *ctx = &pfjob->context_cpy;
   ImBuf *ibuf = NULL;
 
@@ -460,7 +461,7 @@ static void *seq_prefetch_frames(void *job)
       continue;
     }
 
-    ImBuf *ibuf = BKE_sequencer_give_ibuf(&pfjob->context_cpy, seq_prefetch_cfra(pfjob), 0);
+    ImBuf *ibuf = SEQ_render_give_ibuf(&pfjob->context_cpy, seq_prefetch_cfra(pfjob), 0);
     BKE_sequencer_cache_free_temp_cache(
         pfjob->scene, pfjob->context.task_id, seq_prefetch_cfra(pfjob));
     IMB_freeImBuf(ibuf);

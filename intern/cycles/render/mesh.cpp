@@ -132,11 +132,58 @@ NODE_DEFINE(Mesh)
   SOCKET_INT_ARRAY(shader, "Shader", array<int>());
   SOCKET_BOOLEAN_ARRAY(smooth, "Smooth", array<bool>());
 
+  SOCKET_INT_ARRAY(triangle_patch, "Triangle Patch", array<int>());
+  SOCKET_POINT2_ARRAY(vert_patch_uv, "Patch UVs", array<float2>());
+
+  static NodeEnum subdivision_type_enum;
+  subdivision_type_enum.insert("none", SUBDIVISION_NONE);
+  subdivision_type_enum.insert("linear", SUBDIVISION_LINEAR);
+  subdivision_type_enum.insert("catmull_clark", SUBDIVISION_CATMULL_CLARK);
+  SOCKET_ENUM(subdivision_type, "Subdivision Type", subdivision_type_enum, SUBDIVISION_NONE);
+
+  SOCKET_INT_ARRAY(subd_creases_edge, "Subdivision Crease Edges", array<int>());
+  SOCKET_FLOAT_ARRAY(subd_creases_weight, "Subdivision Crease Weights", array<float>());
+  SOCKET_INT_ARRAY(subd_face_corners, "Subdivision Face Corners", array<int>());
+  SOCKET_INT_ARRAY(subd_start_corner, "Subdivision Face Start Corner", array<int>());
+  SOCKET_INT_ARRAY(subd_num_corners, "Subdivision Face Corner Count", array<int>());
+  SOCKET_INT_ARRAY(subd_shader, "Subdivision Face Shader", array<int>());
+  SOCKET_BOOLEAN_ARRAY(subd_smooth, "Subdivision Face Smooth", array<bool>());
+  SOCKET_INT_ARRAY(subd_ptex_offset, "Subdivision Face PTex Offset", array<int>());
+  SOCKET_INT(num_ngons, "NGons Number", 0);
+
+  /* Subdivisions parameters */
+  SOCKET_FLOAT(subd_dicing_rate, "Subdivision Dicing Rate", 0.0f)
+  SOCKET_INT(subd_max_level, "Subdivision Dicing Rate", 0);
+  SOCKET_TRANSFORM(subd_objecttoworld, "Subdivision Object Transform", transform_identity());
+
   return type;
 }
 
-Mesh::Mesh(const NodeType *node_type_, Type geom_type_)
-    : Geometry(node_type_, geom_type_), subd_attributes(this, ATTR_PRIM_SUBD)
+SubdParams *Mesh::get_subd_params()
+{
+  if (subdivision_type == SubdivisionType::SUBDIVISION_NONE) {
+    return nullptr;
+  }
+
+  if (!subd_params) {
+    subd_params = new SubdParams(this);
+  }
+
+  subd_params->dicing_rate = subd_dicing_rate;
+  subd_params->max_level = subd_max_level;
+  subd_params->objecttoworld = subd_objecttoworld;
+
+  return subd_params;
+}
+
+bool Mesh::need_tesselation()
+{
+  return get_subd_params() && (verts_is_modified() || subd_dicing_rate_is_modified() ||
+                               subd_objecttoworld_is_modified() || subd_max_level_is_modified());
+}
+
+Mesh::Mesh(const NodeType *node_type, Type geom_type_)
+    : Geometry(node_type, geom_type_), subd_attributes(this, ATTR_PRIM_SUBD)
 {
   vert_offset = 0;
 
@@ -145,6 +192,7 @@ Mesh::Mesh(const NodeType *node_type_, Type geom_type_)
   corner_offset = 0;
 
   num_subd_verts = 0;
+  num_subd_faces = 0;
 
   num_ngons = 0;
 
@@ -171,7 +219,7 @@ void Mesh::resize_mesh(int numverts, int numtris)
   shader.resize(numtris);
   smooth.resize(numtris);
 
-  if (subd_faces.size()) {
+  if (get_num_subd_faces()) {
     triangle_patch.resize(numtris);
     vert_patch_uv.resize(numverts);
   }
@@ -187,7 +235,7 @@ void Mesh::reserve_mesh(int numverts, int numtris)
   shader.reserve(numtris);
   smooth.reserve(numtris);
 
-  if (subd_faces.size()) {
+  if (get_num_subd_faces()) {
     triangle_patch.reserve(numtris);
     vert_patch_uv.reserve(numverts);
   }
@@ -197,20 +245,36 @@ void Mesh::reserve_mesh(int numverts, int numtris)
 
 void Mesh::resize_subd_faces(int numfaces, int num_ngons_, int numcorners)
 {
-  subd_faces.resize(numfaces);
+  subd_start_corner.resize(numfaces);
+  subd_num_corners.resize(numfaces);
+  subd_shader.resize(numfaces);
+  subd_smooth.resize(numfaces);
+  subd_ptex_offset.resize(numfaces);
   subd_face_corners.resize(numcorners);
   num_ngons = num_ngons_;
+  num_subd_faces = numfaces;
 
   subd_attributes.resize();
 }
 
 void Mesh::reserve_subd_faces(int numfaces, int num_ngons_, int numcorners)
 {
-  subd_faces.reserve(numfaces);
+  subd_start_corner.reserve(numfaces);
+  subd_num_corners.reserve(numfaces);
+  subd_shader.reserve(numfaces);
+  subd_smooth.reserve(numfaces);
+  subd_ptex_offset.reserve(numfaces);
   subd_face_corners.reserve(numcorners);
   num_ngons = num_ngons_;
+  num_subd_faces = numfaces;
 
   subd_attributes.resize(true);
+}
+
+void Mesh::reserve_subd_creases(size_t num_creases)
+{
+  subd_creases_edge.reserve(num_creases * 2);
+  subd_creases_weight.reserve(num_creases);
 }
 
 void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)
@@ -226,18 +290,26 @@ void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)
   triangle_patch.clear();
   vert_patch_uv.clear();
 
-  subd_faces.clear();
+  subd_start_corner.clear();
+  subd_num_corners.clear();
+  subd_shader.clear();
+  subd_smooth.clear();
+  subd_ptex_offset.clear();
   subd_face_corners.clear();
 
   num_subd_verts = 0;
+  num_subd_faces = 0;
 
-  subd_creases.clear();
+  subd_creases_edge.clear();
+  subd_creases_weight.clear();
 
   subd_attributes.clear();
   attributes.clear(preserve_voxel_data);
 
   vert_to_stitching_key_map.clear();
   vert_stitching_map.clear();
+
+  subdivision_type = SubdivisionType::SUBDIVISION_NONE;
 
   delete patch_table;
   patch_table = NULL;
@@ -251,18 +323,22 @@ void Mesh::clear(bool preserve_shaders)
 void Mesh::add_vertex(float3 P)
 {
   verts.push_back_reserved(P);
+  tag_verts_modified();
 
-  if (subd_faces.size()) {
+  if (get_num_subd_faces()) {
     vert_patch_uv.push_back_reserved(make_float2(0.0f, 0.0f));
+    tag_vert_patch_uv_modified();
   }
 }
 
 void Mesh::add_vertex_slow(float3 P)
 {
   verts.push_back_slow(P);
+  tag_verts_modified();
 
-  if (subd_faces.size()) {
+  if (get_num_subd_faces()) {
     vert_patch_uv.push_back_slow(make_float2(0.0f, 0.0f));
+    tag_vert_patch_uv_modified();
   }
 }
 
@@ -274,8 +350,13 @@ void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
   shader.push_back_reserved(shader_);
   smooth.push_back_reserved(smooth_);
 
-  if (subd_faces.size()) {
+  tag_triangles_modified();
+  tag_shader_modified();
+  tag_smooth_modified();
+
+  if (get_num_subd_faces()) {
     triangle_patch.push_back_reserved(-1);
+    tag_triangle_patch_modified();
   }
 }
 
@@ -288,14 +369,47 @@ void Mesh::add_subd_face(int *corners, int num_corners, int shader_, bool smooth
   }
 
   int ptex_offset = 0;
-
-  if (subd_faces.size()) {
-    SubdFace &s = subd_faces[subd_faces.size() - 1];
+  // cannot use get_num_subd_faces here as it holds the total number of subd_faces, but we do not
+  // have the total amount of data yet
+  if (subd_shader.size()) {
+    SubdFace s = get_subd_face(subd_shader.size() - 1);
     ptex_offset = s.ptex_offset + s.num_ptex_faces();
   }
 
-  SubdFace face = {start_corner, num_corners, shader_, smooth_, ptex_offset};
-  subd_faces.push_back_reserved(face);
+  subd_start_corner.push_back_reserved(start_corner);
+  subd_num_corners.push_back_reserved(num_corners);
+  subd_shader.push_back_reserved(shader_);
+  subd_smooth.push_back_reserved(smooth_);
+  subd_ptex_offset.push_back_reserved(ptex_offset);
+
+  tag_subd_face_corners_modified();
+  tag_subd_start_corner_modified();
+  tag_subd_num_corners_modified();
+  tag_subd_shader_modified();
+  tag_subd_smooth_modified();
+  tag_subd_ptex_offset_modified();
+}
+
+Mesh::SubdFace Mesh::get_subd_face(size_t index) const
+{
+  Mesh::SubdFace s;
+  s.shader = subd_shader[index];
+  s.num_corners = subd_num_corners[index];
+  s.smooth = subd_smooth[index];
+  s.ptex_offset = subd_ptex_offset[index];
+  s.start_corner = subd_start_corner[index];
+  return s;
+}
+
+void Mesh::add_crease(int v0, int v1, float weight)
+{
+  subd_creases_edge.push_back_slow(v0);
+  subd_creases_edge.push_back_slow(v1);
+  subd_creases_weight.push_back_slow(weight);
+
+  tag_subd_creases_edge_modified();
+  tag_subd_creases_edge_modified();
+  tag_subd_creases_weight_modified();
 }
 
 void Mesh::copy_center_to_motion_step(const int motion_step)
@@ -505,7 +619,7 @@ void Mesh::add_vertex_normals()
   }
 
   /* subd vertex normals */
-  if (!subd_attributes.find(ATTR_STD_VERTEX_NORMAL) && subd_faces.size()) {
+  if (!subd_attributes.find(ATTR_STD_VERTEX_NORMAL) && get_num_subd_faces()) {
     /* get attributes */
     Attribute *attr_vN = subd_attributes.add(ATTR_STD_VERTEX_NORMAL);
     float3 *vN = attr_vN->data_float3();
@@ -513,8 +627,8 @@ void Mesh::add_vertex_normals()
     /* compute vertex normals */
     memset(vN, 0, verts.size() * sizeof(float3));
 
-    for (size_t i = 0; i < subd_faces.size(); i++) {
-      SubdFace &face = subd_faces[i];
+    for (size_t i = 0; i < get_num_subd_faces(); i++) {
+      SubdFace face = get_subd_face(i);
       float3 fN = face.normal(this);
 
       for (size_t j = 0; j < face.num_corners; j++) {
@@ -574,8 +688,9 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
     if (shader_ptr[i] != last_shader || last_smooth != smooth[i]) {
       last_shader = shader_ptr[i];
       last_smooth = smooth[i];
-      Shader *shader = (last_shader < used_shaders.size()) ? used_shaders[last_shader] :
-                                                             scene->default_surface;
+      Shader *shader = (last_shader < used_shaders.size()) ?
+                           static_cast<Shader *>(used_shaders[last_shader]) :
+                           scene->default_surface;
       shader_id = scene->shader_manager->get_shader_id(shader, last_smooth);
     }
 
@@ -616,7 +731,7 @@ void Mesh::pack_verts(const vector<uint> &tri_prim_index,
 {
   size_t verts_size = verts.size();
 
-  if (verts_size && subd_faces.size()) {
+  if (verts_size && get_num_subd_faces()) {
     float2 *vert_patch_uv_ptr = vert_patch_uv.data();
 
     for (size_t i = 0; i < verts_size; i++) {
@@ -633,17 +748,17 @@ void Mesh::pack_verts(const vector<uint> &tri_prim_index,
                                t.v[2] + vert_offset,
                                tri_prim_index[i + tri_offset]);
 
-    tri_patch[i] = (!subd_faces.size()) ? -1 : (triangle_patch[i] * 8 + patch_offset);
+    tri_patch[i] = (!get_num_subd_faces()) ? -1 : (triangle_patch[i] * 8 + patch_offset);
   }
 }
 
 void Mesh::pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset)
 {
-  size_t num_faces = subd_faces.size();
+  size_t num_faces = get_num_subd_faces();
   int ngons = 0;
 
   for (size_t f = 0; f < num_faces; f++) {
-    SubdFace face = subd_faces[f];
+    SubdFace face = get_subd_face(f);
 
     if (face.is_quad()) {
       int c[4];
