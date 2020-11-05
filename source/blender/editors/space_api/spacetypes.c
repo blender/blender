@@ -271,7 +271,6 @@ void ED_region_draw_cb_exit(ARegionType *art, void *handle)
 void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
 {
   RegionDrawCB *rdc;
-  bool has_drawn_something = false;
 
   for (rdc = region->type->drawcalls.first; rdc; rdc = rdc->next) {
     if (rdc->type == type) {
