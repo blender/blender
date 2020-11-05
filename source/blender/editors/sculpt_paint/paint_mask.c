@@ -42,6 +42,7 @@
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
@@ -993,7 +994,7 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
                                             }),
                                             trim_mesh);
   BM_mesh_free(bm);
-  BKE_mesh_free(trim_mesh);
+  BKE_id_free(NULL, trim_mesh);
   trim_operation->mesh = result;
 }
 
@@ -1207,7 +1208,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 static void sculpt_gesture_trim_geometry_free(SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
-  BKE_mesh_free(trim_operation->mesh);
+  BKE_id_free(NULL, trim_operation->mesh);
   MEM_freeN(trim_operation->true_mesh_co);
 }
 
@@ -1218,7 +1219,6 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 
 static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 {
-
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *sculpt_mesh = BKE_mesh_from_object(sgcontext->vc.obact);
   Mesh *trim_mesh = trim_operation->mesh;
@@ -1296,12 +1296,17 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
     BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, true, boolean_mode);
   }
 
-  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, sculpt_mesh);
+  MEM_freeN(looptris);
+
+  Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
+                                            (&(struct BMeshToMeshParams){
+                                                .calc_object_remap = false,
+                                            }),
+                                            sculpt_mesh);
   BM_mesh_free(bm);
   result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-
-  BKE_mesh_nomain_to_mesh(result, sculpt_mesh, sgcontext->vc.obact, &CD_MASK_MESH, true);
-  BKE_mesh_free(result);
+  BKE_mesh_nomain_to_mesh(
+      result, sgcontext->vc.obact->data, sgcontext->vc.obact, &CD_MASK_MESH, true);
 }
 
 static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)

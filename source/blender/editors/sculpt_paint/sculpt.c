@@ -298,6 +298,21 @@ void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3])
   SCULPT_vertex_normal_get(ss, SCULPT_active_vertex_get(ss), normal);
 }
 
+MVert *SCULPT_mesh_deformed_mverts_get(SculptSession *ss)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      if (ss->shapekey_active || ss->deform_modifiers_active) {
+        return BKE_pbvh_get_verts(ss->pbvh);
+      }
+      return ss->mvert;
+    case PBVH_BMESH:
+    case PBVH_GRIDS:
+      return NULL;
+  }
+  return NULL;
+}
+
 float *SCULPT_brush_deform_target_vertex_co_get(SculptSession *ss,
                                                 const int deform_target,
                                                 PBVHVertexIter *iter)
