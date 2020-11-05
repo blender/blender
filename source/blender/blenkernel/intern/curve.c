@@ -2184,6 +2184,22 @@ static void bevel_list_calc_bisect(BevList *bl)
     bevp1 = bevp2;
     bevp2++;
   }
+
+  if (is_cyclic == false) {
+    bevp0 = &bl->bevpoints[0];
+    bevp1 = &bl->bevpoints[1];
+    sub_v3_v3v3(bevp0->dir, bevp1->vec, bevp0->vec);
+    if (normalize_v3(bevp0->dir) == 0.0f) {
+      copy_v3_v3(bevp0->dir, bevp1->dir);
+    }
+
+    bevp0 = &bl->bevpoints[bl->nr - 2];
+    bevp1 = &bl->bevpoints[bl->nr - 1];
+    sub_v3_v3v3(bevp1->dir, bevp1->vec, bevp0->vec);
+    if (normalize_v3(bevp1->dir) == 0.0f) {
+      copy_v3_v3(bevp1->dir, bevp0->dir);
+    }
+  }
 }
 static void bevel_list_flip_tangents(BevList *bl)
 {
