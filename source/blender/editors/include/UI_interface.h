@@ -1682,7 +1682,7 @@ void UI_panels_begin(const struct bContext *C, struct ARegion *region);
 void UI_panels_end(const struct bContext *C, struct ARegion *region, int *r_x, int *r_y);
 void UI_panels_draw(const struct bContext *C, struct ARegion *region);
 
-struct Panel *UI_panel_find_by_type(struct ListBase *lb, struct PanelType *pt);
+struct Panel *UI_panel_find_by_type(struct ListBase *lb, const struct PanelType *pt);
 struct Panel *UI_panel_begin(struct ARegion *region,
                              struct ListBase *lb,
                              uiBlock *block,
@@ -1695,14 +1695,14 @@ void UI_panel_end(struct Panel *panel, int width, int height);
 
 bool UI_panel_is_closed(const struct Panel *panel);
 bool UI_panel_is_active(const struct Panel *panel);
-void UI_panel_label_offset(struct uiBlock *block, int *r_x, int *r_y);
+void UI_panel_label_offset(const struct uiBlock *block, int *r_x, int *r_y);
 int UI_panel_size_y(const struct Panel *panel);
 bool UI_panel_is_dragging(const struct Panel *panel);
 bool UI_panel_matches_search_filter(const struct Panel *panel);
 
 bool UI_panel_category_is_visible(const struct ARegion *region);
 void UI_panel_category_add(struct ARegion *region, const char *name);
-struct PanelCategoryDyn *UI_panel_category_find(struct ARegion *region, const char *idname);
+struct PanelCategoryDyn *UI_panel_category_find(const struct ARegion *region, const char *idname);
 struct PanelCategoryStack *UI_panel_category_active_find(struct ARegion *region,
                                                          const char *idname);
 const char *UI_panel_category_active_get(struct ARegion *region, bool set_fallback);
@@ -1721,7 +1721,7 @@ void UI_panel_custom_data_set(struct Panel *panel, struct PointerRNA *custom_dat
 struct Panel *UI_panel_add_instanced(const struct bContext *C,
                                      struct ARegion *region,
                                      struct ListBase *panels,
-                                     char *panel_idname,
+                                     const char *panel_idname,
                                      struct PointerRNA *custom_data);
 void UI_panels_free_instanced(const struct bContext *C, struct ARegion *region);
 

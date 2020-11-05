@@ -210,7 +210,7 @@ static bool panel_active_animation_changed(ListBase *lb,
 /**
  * \return True if the properties editor switch tabs since the last layout pass.
  */
-static bool properties_space_needs_realign(ScrArea *area, ARegion *region)
+static bool properties_space_needs_realign(const ScrArea *area, const ARegion *region)
 {
   if (area->spacetype == SPACE_PROPERTIES && region->regiontype == RGN_TYPE_WINDOW) {
     SpaceProperties *sbuts = area->spacedata.first;
@@ -223,7 +223,7 @@ static bool properties_space_needs_realign(ScrArea *area, ARegion *region)
   return false;
 }
 
-static bool panels_need_realign(ScrArea *area, ARegion *region, Panel **r_panel_animation)
+static bool panels_need_realign(const ScrArea *area, ARegion *region, Panel **r_panel_animation)
 {
   *r_panel_animation = NULL;
 
@@ -299,7 +299,7 @@ static Panel *panel_add_instanced(ARegion *region,
 Panel *UI_panel_add_instanced(const bContext *C,
                               ARegion *region,
                               ListBase *panels,
-                              char *panel_idname,
+                              const char *panel_idname,
                               PointerRNA *custom_data)
 {
   ARegionType *region_type = region->type;
@@ -321,7 +321,7 @@ Panel *UI_panel_add_instanced(const bContext *C,
 }
 
 /**
- * Find a unique key to append to the #PanelTyype.idname for the lookup to the panel's #uiBlock.
+ * Find a unique key to append to the #PanelType.idname for the lookup to the panel's #uiBlock.
  * Needed for instanced panels, where there can be multiple with the same type and identifier.
  */
 void UI_list_panel_unique_str(Panel *panel, char *r_name)
@@ -456,7 +456,7 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
 
   /* Find how many instanced panels with this context string. */
   int list_panels_len = 0;
-  LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+  LISTBASE_FOREACH (const Panel *, panel, &region->panels) {
     if (panel->type) {
       if (panel->type->flag & PNL_INSTANCED) {
         if (panel_type_context_poll(region, panel->type, context)) {
@@ -557,12 +557,12 @@ static void region_panels_set_expansion_from_list_data(const bContext *C, ARegio
 /**
  * Recursive implementation for #set_panels_list_data_expand_flag.
  */
-static void get_panel_expand_flag(Panel *panel, short *flag, short *flag_index)
+static void get_panel_expand_flag(const Panel *panel, short *flag, short *flag_index)
 {
   const bool open = !(panel->flag & PNL_CLOSED);
   SET_FLAG_FROM_TEST(*flag, open, (1 << *flag_index));
 
-  LISTBASE_FOREACH (Panel *, child, &panel->children) {
+  LISTBASE_FOREACH (const Panel *, child, &panel->children) {
     *flag_index = *flag_index + 1;
     get_panel_expand_flag(child, flag, flag_index);
   }
@@ -670,7 +670,7 @@ static bool panel_type_context_poll(ARegion *region,
   return false;
 }
 
-Panel *UI_panel_find_by_type(ListBase *lb, PanelType *pt)
+Panel *UI_panel_find_by_type(ListBase *lb, const PanelType *pt)
 {
   const char *idname = pt->idname;
 
@@ -891,7 +891,7 @@ static void ui_offset_panel_block(uiBlock *block)
   block->rect.xmin = block->rect.ymin = 0.0;
 }
 
-void ui_panel_tag_search_filter_match(struct Panel *panel)
+void ui_panel_tag_search_filter_match(Panel *panel)
 {
   panel->runtime_flag |= PANEL_SEARCH_FILTER_MATCH;
 }
@@ -1057,7 +1057,7 @@ void UI_panels_draw(const bContext *C, ARegion *region)
 #define PNL_ICON UI_UNIT_X /* Could be UI_UNIT_Y too. */
 
 /* For button layout next to label. */
-void UI_panel_label_offset(uiBlock *block, int *r_x, int *r_y)
+void UI_panel_label_offset(const uiBlock *block, int *r_x, int *r_y)
 {
   Panel *panel = block->panel;
   const bool is_subpanel = (panel->type && panel->type->parent);
@@ -2106,9 +2106,9 @@ static void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was
  * \param mx: The mouse x coordinate, in panel space.
  */
 static void ui_handle_panel_header(const bContext *C,
-                                   uiBlock *block,
+                                   const uiBlock *block,
                                    const int mx,
-                                   short int event_type,
+                                   const int event_type,
                                    const short ctrl,
                                    const short shift)
 {
@@ -2198,7 +2198,7 @@ bool UI_panel_category_is_visible(const ARegion *region)
          region->panels_category.first != region->panels_category.last;
 }
 
-PanelCategoryDyn *UI_panel_category_find(ARegion *region, const char *idname)
+PanelCategoryDyn *UI_panel_category_find(const ARegion *region, const char *idname)
 {
   return BLI_findstring(&region->panels_category, idname, offsetof(PanelCategoryDyn, idname));
 }
@@ -2566,7 +2566,7 @@ static void ui_handler_remove_panel(bContext *C, void *userdata)
   panel_activate_state(C, panel, PANEL_STATE_EXIT);
 }
 
-static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelState state)
+static void panel_activate_state(const bContext *C, Panel *panel, const uiHandlePanelState state)
 {
   uiHandlePanelData *data = panel->activedata;
   wmWindow *win = CTX_wm_window(C);
