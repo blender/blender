@@ -56,7 +56,8 @@ using std::to_string;
 atomic<int> MANTA::solverID(0);
 int MANTA::with_debug(0);
 
-MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
+MANTA::MANTA(int *res, FluidModifierData *fmd)
+    : mCurrentID(++solverID), mMaxRes(fmd->domain->maxres)
 {
   if (with_debug)
     cout << "FLUID: " << mCurrentID << " with res(" << res[0] << ", " << res[1] << ", " << res[2]
@@ -85,11 +86,10 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
   mUsingInvel = (fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
   mUsingOutflow = (fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
 
-  /* Simulation constants. */
-  mResX = res[0];
+  /* Simulation constants */
+  mResX = res[0]; /* Current size of domain (will adjust with adaptive domain). */
   mResY = res[1];
   mResZ = res[2];
-  mMaxRes = MAX3(mResX, mResY, mResZ);
   mTotalCells = mResX * mResY * mResZ;
   mResGuiding = fds->res;
 
