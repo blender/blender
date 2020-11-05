@@ -6169,11 +6169,14 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
           else {
             SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_FACE_SETS, -1);
           }
+
+          BKE_pbvh_node_mark_update(nodes[i]);
         }
       }
-      else if (ss->bm) {
+      else {
         for (int i = 0; i < totnode; i++) {
           SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1);
+          BKE_pbvh_node_mark_update(nodes[i]);
         }
       }
     }
