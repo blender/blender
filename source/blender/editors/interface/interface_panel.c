@@ -85,6 +85,11 @@ typedef enum uiPanelRuntimeFlag {
   PANEL_USE_CLOSED_FROM_SEARCH = (1 << 8),
   /** The Panel was before the start of the current / latest layout pass. */
   PANEL_WAS_CLOSED = (1 << 9),
+  /**
+   * Set when the panel is being dragged and while it animates back to its aligned
+   * position. Unlike #PANEL_STATE_ANIMATION, this is applied to sub-panels as well.
+   */
+  PANEL_IS_DRAG_DROP = (1 << 10),
 } uiPanelRuntimeFlag;
 
 /* The state of the mouse position relative to the panel. */
@@ -108,7 +113,6 @@ typedef struct uiHandlePanelData {
   double starttime;
 
   /* Dragging. */
-  bool is_drag_drop;
   int startx, starty;
   int startofsx, startofsy;
   float start_cur_xmin, start_cur_ymin;
@@ -618,6 +622,18 @@ static bool panel_set_flag_recursive(Panel *panel, int flag, bool value)
   return changed;
 }
 
+/**
+ * Set runtime flag state for a panel and its sub-panels.
+ */
+static void panel_set_runtime_flag_recursive(Panel *panel, int flag, bool value)
+{
+  SET_FLAG_FROM_TEST(panel->runtime_flag, value, flag);
+
+  LISTBASE_FOREACH (Panel *, sub_panel, &panel->children) {
+    panel_set_runtime_flag_recursive(sub_panel, flag, value);
+  }
+}
+
 static void panels_collapse_all(ARegion *region, const Panel *from_panel)
 {
   const bool has_category_tabs = UI_panel_category_is_visible(region);
@@ -1024,14 +1040,14 @@ void UI_panels_draw(const bContext *C, ARegion *region)
   /* Draw in reverse order, because #uiBlocks are added in reverse order
    * and we need child panels to draw on top. */
   LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->uiblocks) {
-    if (block->active && block->panel && !(block->panel->flag & PNL_SELECT) &&
+    if (block->active && block->panel && !UI_panel_is_dragging(block->panel) &&
         !UI_block_is_search_only(block)) {
       UI_block_draw(C, block);
     }
   }
 
   LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->uiblocks) {
-    if (block->active && block->panel && (block->panel->flag & PNL_SELECT) &&
+    if (block->active && block->panel && UI_panel_is_dragging(block->panel) &&
         !UI_block_is_search_only(block)) {
       UI_block_draw(C, block);
     }
@@ -1605,14 +1621,9 @@ static int get_panel_real_ofsy(Panel *panel)
   return panel->ofsy;
 }
 
-bool UI_panel_is_dragging(const struct Panel *panel)
+bool UI_panel_is_dragging(const Panel *panel)
 {
-  uiHandlePanelData *data = panel->activedata;
-  if (!data) {
-    return false;
-  }
-
-  return data->is_drag_drop;
+  return panel->runtime_flag & PANEL_IS_DRAG_DROP;
 }
 
 /**
@@ -1834,15 +1845,13 @@ static void ui_do_animate(bContext *C, Panel *panel)
   }
 
   if (fac >= 1.0f) {
-    /* Store before data is freed. */
-    const bool is_drag_drop = data->is_drag_drop;
-
-    panel_activate_state(C, panel, PANEL_STATE_EXIT);
-    if (is_drag_drop) {
-      /* Note: doing this in #panel_activate_state would require removing `const` for context in
-       * many other places. */
+    if (UI_panel_is_dragging(panel)) {
+      /* Note: doing this in #panel_activate_state would require
+       *  removing `const` for context in many other places. */
       reorder_instanced_panel_list(C, region, panel);
     }
+
+    panel_activate_state(C, panel, PANEL_STATE_EXIT);
     return;
   }
 }
@@ -1851,7 +1860,7 @@ static void panels_layout_begin_clear_flags(ListBase *lb)
 {
   LISTBASE_FOREACH (Panel *, panel, lb) {
     /* Flags to copy over to the next layout pass. */
-    const short flag_copy = PANEL_USE_CLOSED_FROM_SEARCH;
+    const short flag_copy = PANEL_USE_CLOSED_FROM_SEARCH | PANEL_IS_DRAG_DROP;
 
     const bool was_active = panel->runtime_flag & PANEL_ACTIVE;
     const bool was_closed = UI_panel_is_closed(panel);
@@ -2567,15 +2576,20 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
     return;
   }
 
-  const bool was_drag_drop = (data && data->state == PANEL_STATE_DRAG);
-
-  /* Set selection state for the panel and its sub-panels, which need to know they are selected
-   * too so they can be drawn above their parent when it's dragged. */
-  if (state == PANEL_STATE_EXIT || state == PANEL_STATE_ANIMATION) {
+  /*
+   * Note on "select" and "drag drop" flags:
+   * First, the panel is "picked up" and both flags are set. Then when the mouse releases
+   * and the panel starts animating to its aligned position, PNL_SELECT is unset. When the
+   * animation finishes, PANEL_IS_DRAG_DROP is cleared. */
+  if (state == PANEL_STATE_DRAG) {
+    panel_set_flag_recursive(panel, PNL_SELECT, true);
+    panel_set_runtime_flag_recursive(panel, PANEL_IS_DRAG_DROP, true);
+  }
+  else if (state == PANEL_STATE_ANIMATION) {
     panel_set_flag_recursive(panel, PNL_SELECT, false);
   }
-  else {
-    panel_set_flag_recursive(panel, PNL_SELECT, true);
+  else if (state == PANEL_STATE_EXIT) {
+    panel_set_runtime_flag_recursive(panel, PANEL_IS_DRAG_DROP, false);
   }
 
   if (data && data->animtimer) {
@@ -2617,12 +2631,6 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
     data->start_cur_xmin = region->v2d.cur.xmin;
     data->start_cur_ymin = region->v2d.cur.ymin;
     data->starttime = PIL_check_seconds_timer();
-
-    /* Remember drag drop state even when animating to the aligned position after dragging. */
-    data->is_drag_drop = was_drag_drop;
-    if (state == PANEL_STATE_DRAG) {
-      data->is_drag_drop = true;
-    }
   }
 
   ED_region_tag_redraw(region);
