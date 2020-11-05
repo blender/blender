@@ -1750,9 +1750,9 @@ float BLI_mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int
 
   /* get a random vector and scale the randomization */
   float rv[3] = {
-    rv[0] = noisefunc1(x + 13.5f, y + 13.5f, z + 13.5f) * distortion,
-    rv[1] = noisefunc1(x, y, z) * distortion,
-    rv[2] = noisefunc1(x - 13.5f, y - 13.5f, z - 13.5f) * distortion,
+      rv[0] = noisefunc1(x + 13.5f, y + 13.5f, z + 13.5f) * distortion,
+      rv[1] = noisefunc1(x, y, z) * distortion,
+      rv[2] = noisefunc1(x - 13.5f, y - 13.5f, z - 13.5f) * distortion,
   };
 
   return noisefunc2(x + rv[0], y + rv[1], z + rv[2]); /* distorted-domain noise */

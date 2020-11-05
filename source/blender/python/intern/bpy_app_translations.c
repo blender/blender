@@ -420,9 +420,9 @@ static BLT_i18n_contexts_descriptor _contexts[] = BLT_I18NCONTEXTS_DESC;
 static PyStructSequence_Field app_translations_contexts_fields[ARRAY_SIZE(_contexts)] = {{NULL}};
 
 static PyStructSequence_Desc app_translations_contexts_desc = {
-    "bpy.app.translations.contexts",                                  /* name */
+    "bpy.app.translations.contexts",                                 /* name */
     "This named tuple contains all predefined translation contexts", /* doc */
-    app_translations_contexts_fields,                                 /* fields */
+    app_translations_contexts_fields,                                /* fields */
     ARRAY_SIZE(app_translations_contexts_fields) - 1,
 };
 
