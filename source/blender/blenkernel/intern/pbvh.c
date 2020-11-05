@@ -1430,7 +1430,7 @@ void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node)
 {
   PBVHVertexIter vd;
 
-  if (!pbvh->bm || !pbvh->cd_origvcol_offset) {
+  if (!pbvh->bm || pbvh->cd_origvcol_offset < 0) {
     return;
   }
 
@@ -1446,6 +1446,25 @@ void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node)
     float *c2 = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, cd_vcol_offset);
 
     copy_v4_v4(c1, c2);
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+void BKE_pbvh_update_origco_bmesh(PBVH *pbvh, PBVHNode *node)
+{
+  PBVHVertexIter vd;
+
+  if (!pbvh->bm || pbvh->cd_origco_offset < 0 || pbvh->cd_origno_offset < 0) {
+    return;
+  }
+
+  BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_ALL)
+  {
+    float *no = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_origno_offset);
+    float *co = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_origco_offset);
+
+    copy_v3_v3(co, vd.bm_vert->co);
+    copy_v3_v3(no, vd.bm_vert->no);
   }
   BKE_pbvh_vertex_iter_end;
 }

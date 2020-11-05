@@ -569,13 +569,14 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1[6];
+  char _pad1[2];
 
   float autosmooth_factor;
 
   float tilt_strength_factor;
 
   float topology_rake_factor;
+  float vcol_boundary_factor;
 
   float crease_pinch_factor;
 
@@ -890,6 +891,8 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_DISPLACEMENT_ERASER, \
         SCULPT_TOOL_SLIDE_RELAX, \
         SCULPT_TOOL_MASK) == 0)
+
+#define SCULPT_TOOL_HAS_VCOL_BOUNDARY_SMOOTH(t) ELEM(t, SCULPT_TOOL_PAINT)
 
 /* ImagePaintSettings.tool */
 typedef enum eBrushImagePaintTool {

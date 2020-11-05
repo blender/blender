@@ -567,6 +567,10 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
+
+        if capabilities.has_vcol_boundary_smooth:
+            layout.prop(brush, "vcol_boundary_factor", slider=True)
+
         # topology_rake_factor
         if (
                 capabilities.has_topology_rake and

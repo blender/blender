@@ -791,12 +791,12 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_smooth_vcol_boundary(Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode)
+void SCULPT_smooth_vcol_boundary(
+    Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength)
 {
   SculptSession *ss = ob->sculpt;
 
   Brush *brush = BKE_paint_brush(&sd->paint);
-  float bstrength = ss->cache->bstrength;
 
   const int max_iterations = 4;
   const float fract = 1.0f / max_iterations;

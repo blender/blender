@@ -358,6 +358,10 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_paint_brush_task_cb_ex, &settings);
+
+  if (brush->vcol_boundary_factor > 0.0f) {
+    SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode, brush->vcol_boundary_factor);
+  }
 }
 
 static void do_smear_brush_task_cb_exec(void *__restrict userdata,

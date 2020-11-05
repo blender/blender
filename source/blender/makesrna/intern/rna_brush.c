@@ -369,6 +369,12 @@ static bool rna_BrushCapabilitiesSculpt_has_topology_rake_get(PointerRNA *ptr)
   return SCULPT_TOOL_HAS_TOPOLOGY_RAKE(br->sculpt_tool);
 }
 
+static bool rna_BrushCapabilitiesSculpt_has_vcol_boundary_smooth_get(PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+  return SCULPT_TOOL_HAS_VCOL_BOUNDARY_SMOOTH(br->sculpt_tool);
+}
+
 static bool rna_BrushCapabilitiesSculpt_has_auto_smooth_get(PointerRNA *ptr)
 {
   Brush *br = (Brush *)ptr->data;
@@ -1153,6 +1159,7 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
   SCULPT_TOOL_CAPABILITY(has_accumulate, "Has Accumulate");
   SCULPT_TOOL_CAPABILITY(has_auto_smooth, "Has Auto Smooth");
   SCULPT_TOOL_CAPABILITY(has_topology_rake, "Has Topology Rake");
+  SCULPT_TOOL_CAPABILITY(has_vcol_boundary_smooth, "Has VCol Boundary Smooth");
   SCULPT_TOOL_CAPABILITY(has_height, "Has Height");
   SCULPT_TOOL_CAPABILITY(has_jitter, "Has Jitter");
   SCULPT_TOOL_CAPABILITY(has_normal_weight, "Has Crease/Pinch Factor");
@@ -2828,6 +2835,17 @@ static void rna_def_brush(BlenderRNA *brna)
                            "Automatically align edges to the brush direction to "
                            "generate cleaner topology and define sharp features. "
                            "Best used on low-poly meshes as it has a performance impact");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+    prop = RNA_def_property(srna, "vcol_boundary_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "vcol_boundary_factor");
+  RNA_def_property_float_default(prop, 0);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+  RNA_def_property_ui_text(prop,
+                           "Boundary Hardening",
+                           "Automatically align edges on color boundaries"
+                           "to generate sharper features. ");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "tilt_strength_factor", PROP_FLOAT, PROP_FACTOR);

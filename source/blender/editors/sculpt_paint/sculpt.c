@@ -1512,6 +1512,7 @@ static bool sculpt_tool_needs_original(const char sculpt_tool)
               SCULPT_TOOL_DRAW_SHARP,
               SCULPT_TOOL_ELASTIC_DEFORM,
               SCULPT_TOOL_SMOOTH,
+              SCULPT_TOOL_PAINT,
               SCULPT_TOOL_VCOL_BOUNDARY,
               SCULPT_TOOL_BOUNDARY,
               SCULPT_TOOL_POSE);
@@ -6030,7 +6031,7 @@ static void do_brush_action_task_cb(void *__restrict userdata,
     BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
   else if (ELEM(data->brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
-    if (!ss->bm) {  // this is thread safe for faces and grids pbvh?
+    if (!ss->bm) {
       SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
     }
 
@@ -6137,20 +6138,21 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   if (totnode) {
     float location[3];
 
-    SculptThreadedTaskData task_data = {
-        .sd = sd,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-    };
-
     // dyntopo can't push undo nodes inside a thread
     if (ss->bm) {
       if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
         for (int i = 0; i < totnode; i++) {
-          if (SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, -1)) {
+          int other = brush->vcol_boundary_factor > 0.0f ? SCULPT_UNDO_COORDS : -1;
+
+          if (SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, other)) {
             BKE_pbvh_update_origcolor_bmesh(ss->pbvh, nodes[i]);
+
+            if (other != -1) {
+              BKE_pbvh_update_origco_bmesh(ss->pbvh, nodes[i]);
+            }
           }
+
+          BKE_pbvh_node_mark_update_color(nodes[i]);
           // SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COLOR);
         }
       }
@@ -6171,10 +6173,19 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         }
       }
     }
+    else {
+      SculptThreadedTaskData task_data = {
+          .sd = sd,
+          .ob = ob,
+          .brush = brush,
+          .nodes = nodes,
+      };
 
-    TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
+      TaskParallelSettings settings;
+      BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+      BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
+    }
+
 
     if (sculpt_brush_needs_normal(ss, brush)) {
       update_sculpt_normal(sd, ob, nodes, totnode);
@@ -6312,7 +6323,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         SCULPT_do_paint_brush(sd, ob, nodes, totnode);
         break;
       case SCULPT_TOOL_VCOL_BOUNDARY:
-        SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode);
+        SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode, ss->cache->bstrength);
         break;
       case SCULPT_TOOL_SMEAR:
         SCULPT_do_smear_brush(sd, ob, nodes, totnode);
@@ -7505,6 +7516,7 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
           ((brush->sculpt_tool == SCULPT_TOOL_MASK) && (brush->mask_tool == BRUSH_MASK_SMOOTH)) ||
           (brush->sculpt_tool == SCULPT_TOOL_POSE) ||
           (brush->sculpt_tool == SCULPT_TOOL_VCOL_BOUNDARY) ||
+          (brush->sculpt_tool == SCULPT_TOOL_PAINT && brush->vcol_boundary_factor > 0.0f) ||
           (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) ||
           (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||
           (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
