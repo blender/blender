@@ -228,8 +228,7 @@ void view3d_buttons_register(struct ARegionType *art);
 struct View3DCameraControl *ED_view3d_cameracontrol_acquire(struct Depsgraph *depsgraph,
                                                             Scene *scene,
                                                             View3D *v3d,
-                                                            RegionView3D *rv3d,
-                                                            const bool use_parent_root);
+                                                            RegionView3D *rv3d);
 void ED_view3d_cameracontrol_update(struct View3DCameraControl *vctrl,
                                     const bool use_autokey,
                                     struct bContext *C,

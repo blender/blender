@@ -5659,13 +5659,6 @@ static void rna_def_userdef_input(BlenderRNA *brna)
       "Auto Depth",
       "Use the depth under the mouse to improve view pan/rotate/zoom functionality");
 
-  prop = RNA_def_property(srna, "use_camera_lock_parent", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_CAM_LOCK_NO_PARENT);
-  RNA_def_property_ui_text(prop,
-                           "Camera Parent Lock",
-                           "When the camera is locked to the view and in fly mode, "
-                           "transform the parent rather than the camera");
-
   /* view zoom */
   prop = RNA_def_property(srna, "use_zoom_to_mouse", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZOOM_TO_MOUSEPOS);

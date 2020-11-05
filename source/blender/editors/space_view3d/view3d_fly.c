@@ -392,7 +392,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   }
 
   fly->v3d_camera_control = ED_view3d_cameracontrol_acquire(
-      fly->depsgraph, fly->scene, fly->v3d, fly->rv3d, (U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0);
+      fly->depsgraph, fly->scene, fly->v3d, fly->rv3d);
 
   /* calculate center */
   if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {

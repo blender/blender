@@ -1548,9 +1548,6 @@ class USERPREF_PT_navigation_fly_walk(NavigationPanel, CenterAlignMixIn, Panel):
 
         layout.row().prop(inputs, "navigation_mode", expand=True)
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.prop(inputs, "use_camera_lock_parent")
-
 
 class USERPREF_PT_navigation_fly_walk_navigation(NavigationPanel, CenterAlignMixIn, Panel):
     bl_label = "Walk"

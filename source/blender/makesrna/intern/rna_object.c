@@ -2699,6 +2699,15 @@ static void rna_def_object(BlenderRNA *brna)
       prop, "Parent Bone", "Name of parent bone in case of a bone parenting relation");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_dependency_update");
 
+  prop = RNA_def_property(srna, "use_camera_lock_parent", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "transflag", OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK);
+  RNA_def_property_ui_text(prop,
+                           "Camera Parent Lock",
+                           "View Lock 3D viewport camera transformation affects the object's "
+                           "parent instead");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
+
   /* Track and Up flags */
   /* XXX: these have been saved here for a bit longer (after old track was removed),
    *      since some other tools still refer to this */
