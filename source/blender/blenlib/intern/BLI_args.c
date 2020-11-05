@@ -148,11 +148,6 @@ void BLI_argsPrint(struct bArgs *ba)
   }
 }
 
-const char **BLI_argsArgv(struct bArgs *ba)
-{
-  return ba->argv;
-}
-
 static bArgDoc *internalDocs(struct bArgs *ba,
                              const char *short_arg,
                              const char *long_arg,

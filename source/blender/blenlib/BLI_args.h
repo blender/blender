@@ -73,7 +73,6 @@ void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg);
 void BLI_argsPrintOtherDoc(struct bArgs *ba);
 
 void BLI_argsPrint(struct bArgs *ba);
-const char **BLI_argsArgv(struct bArgs *ba);
 
 #ifdef __cplusplus
 }
