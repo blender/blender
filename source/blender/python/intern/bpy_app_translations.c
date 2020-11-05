@@ -421,7 +421,7 @@ static PyStructSequence_Field app_translations_contexts_fields[ARRAY_SIZE(_conte
 
 static PyStructSequence_Desc app_translations_contexts_desc = {
     "bpy.app.translations.contexts",                                  /* name */
-    "This named tuple contains all pre-defined translation contexts", /* doc */
+    "This named tuple contains all predefined translation contexts", /* doc */
     app_translations_contexts_fields,                                 /* fields */
     ARRAY_SIZE(app_translations_contexts_fields) - 1,
 };
@@ -464,7 +464,7 @@ static PyObject *app_translations_contexts_make(void)
  * \{ */
 
 PyDoc_STRVAR(app_translations_contexts_doc,
-             "A named tuple containing all pre-defined translation contexts.\n"
+             "A named tuple containing all predefined translation contexts.\n"
              "\n"
              ".. warning::\n"
              "   Never use a (new) context starting with \"" BLT_I18NCONTEXT_DEFAULT_BPYRNA

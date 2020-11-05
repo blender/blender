@@ -19,7 +19,7 @@
  *
  * \name Generic Gizmos.
  *
- * This is exposes pre-defined gizmos for re-use.
+ * This is exposes predefined gizmos for re-use.
  */
 
 #pragma once

@@ -1412,7 +1412,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
  *
  * \param chunk_count: Number of elements to split each chunk into.
  * - A small value increases the ability to de-duplicate chunks,
- *   but adds overhead by increasing the number of chunks to look-up when searching for duplicates,
+ *   but adds overhead by increasing the number of chunks to look up when searching for duplicates,
  *   as well as some overhead constructing the original array again, with more calls to ``memcpy``.
  * - Larger values reduce the *book keeping* overhead,
  *   but increase the chance a small,

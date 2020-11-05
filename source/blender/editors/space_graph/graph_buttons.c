@@ -309,7 +309,7 @@ static void graphedit_activekey_left_handle_coord_cb(bContext *C, void *fcu_ptr,
   /* perform normal updates NOW */
   graphedit_activekey_handles_cb(C, fcu_ptr, bezt_ptr);
 
-  /* restore selection state so that no-one notices this hack */
+  /* restore selection state so that no one notices this hack */
   bezt->f1 = f1;
   bezt->f3 = f3;
 }
@@ -331,7 +331,7 @@ static void graphedit_activekey_right_handle_coord_cb(bContext *C, void *fcu_ptr
   /* perform normal updates NOW */
   graphedit_activekey_handles_cb(C, fcu_ptr, bezt_ptr);
 
-  /* restore selection state so that no-one notices this hack */
+  /* restore selection state so that no one notices this hack */
   bezt->f1 = f1;
   bezt->f3 = f3;
 }

@@ -578,7 +578,7 @@ void BKE_armature_transform(bArmature *arm, const float mat[4][4], const bool do
 /* -------------------------------------------------------------------- */
 /** \name Armature Bone Find by Name
  *
- * Using fast #GHash look-ups when available.
+ * Using fast #GHash lookups when available.
  * \{ */
 
 static Bone *get_named_bone_bonechildren(ListBase *lb, const char *name)

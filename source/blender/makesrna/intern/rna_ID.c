@@ -1310,7 +1310,7 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
        "MANDATORY",
        0,
        "Mandatory",
-       "For templates, prevents the user from removing pre-defined operation (NOT USED)"},
+       "For templates, prevents the user from removing predefined operation (NOT USED)"},
       {IDOVERRIDE_LIBRARY_FLAG_LOCKED,
        "LOCKED",
        0,
