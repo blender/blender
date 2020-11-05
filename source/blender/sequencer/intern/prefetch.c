@@ -55,6 +55,7 @@
 
 #include "SEQ_sequencer.h"
 
+#include "render.h"
 #include "sequencer.h"
 
 typedef struct PrefetchJob {
@@ -361,7 +362,7 @@ static bool seq_prefetch_do_skip_frame(Scene *scene)
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
   float cfra = seq_prefetch_cfra(pfjob);
   Sequence *seq_arr[MAXSEQ + 1];
-  int count = BKE_sequencer_get_shown_sequences(ed->seqbasep, cfra, 0, seq_arr);
+  int count = seq_get_shown_sequences(ed->seqbasep, cfra, 0, seq_arr);
   SeqRenderData *ctx = &pfjob->context_cpy;
   ImBuf *ibuf = NULL;
 

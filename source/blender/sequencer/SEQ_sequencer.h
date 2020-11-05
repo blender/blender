@@ -108,7 +108,7 @@ void BKE_sequence_iterator_next(SeqIterator *iter);
 void BKE_sequence_iterator_end(SeqIterator *iter);
 
 /* **********************************************************************
- * sequencer.c
+ * render.c
  *
  * Sequencer render functions
  * **********************************************************************
@@ -146,7 +146,6 @@ struct ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, 
 struct ImBuf *BKE_sequencer_give_ibuf_direct(const SeqRenderData *context,
                                              float cfra,
                                              struct Sequence *seq);
-void BKE_sequence_alpha_mode_from_extension(struct Sequence *seq);
 void BKE_sequence_init_colorspace(struct Sequence *seq);
 void BKE_sequencer_new_render_data(struct Main *bmain,
                                    struct Depsgraph *depsgraph,
@@ -156,11 +155,11 @@ void BKE_sequencer_new_render_data(struct Main *bmain,
                                    int preview_render_size,
                                    int for_render,
                                    SeqRenderData *r_context);
-bool SEQ_can_use_proxy(struct Sequence *seq, int psize);
-int SEQ_rendersize_to_proxysize(int render_size);
+int BKE_sequencer_evaluate_frame(struct Scene *scene, int cfra);
+struct StripElem *BKE_sequencer_give_stripelem(struct Sequence *seq, int cfra);
 
 /* **********************************************************************
- * sequencer.c
+ * render.c
  *
  * Sequencer color space functions
  * ********************************************************************** */
@@ -173,6 +172,7 @@ void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixe
  *
  * Sequencer scene functions
  * ********************************************************************** */
+
 struct Editing *BKE_sequencer_editing_get(struct Scene *scene, bool alloc);
 struct Editing *BKE_sequencer_editing_ensure(struct Scene *scene);
 void BKE_sequencer_editing_free(struct Scene *scene, const bool do_id_user);
@@ -214,12 +214,21 @@ void BKE_sequence_movie_reload_if_needed(struct Main *bmain,
                                          struct Sequence *seq,
                                          bool *r_was_reloaded,
                                          bool *r_can_produce_frames);
-int BKE_sequencer_evaluate_frame(struct Scene *scene, int cfra);
-struct StripElem *BKE_sequencer_give_stripelem(struct Sequence *seq, int cfra);
+void BKE_sequence_alpha_mode_from_extension(struct Sequence *seq);
 void BKE_sequencer_update_changed_seq_and_deps(struct Scene *scene,
                                                struct Sequence *changed_seq,
                                                int len_change,
                                                int ibuf_change);
+bool BKE_sequencer_check_scene_recursion(struct Scene *scene, struct ReportList *reports);
+bool BKE_sequencer_render_loop_check(struct Sequence *seq_main, struct Sequence *seq);
+int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b);
+
+/* **********************************************************************
+ * proxy.c
+ *
+ * Proxy functions
+ * ********************************************************************** */
+
 bool BKE_sequencer_proxy_rebuild_context(struct Main *bmain,
                                          struct Depsgraph *depsgraph,
                                          struct Scene *scene,
@@ -232,9 +241,8 @@ void BKE_sequencer_proxy_rebuild(struct SeqIndexBuildContext *context,
                                  float *progress);
 void BKE_sequencer_proxy_rebuild_finish(struct SeqIndexBuildContext *context, bool stop);
 void BKE_sequencer_proxy_set(struct Sequence *seq, bool value);
-bool BKE_sequencer_check_scene_recursion(struct Scene *scene, struct ReportList *reports);
-bool BKE_sequencer_render_loop_check(struct Sequence *seq_main, struct Sequence *seq);
-int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b);
+bool SEQ_can_use_proxy(struct Sequence *seq, int psize);
+int SEQ_rendersize_to_proxysize(int render_size);
 double BKE_sequencer_rendersize_to_scale_factor(int size);
 
 /* **********************************************************************
