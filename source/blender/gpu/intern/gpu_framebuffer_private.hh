@@ -100,10 +100,10 @@ class FrameBuffer {
   /** Debug name. */
   char name_[DEBUG_NAME_LEN];
   /** Frame-buffer state. */
-  int viewport_[4];
-  int scissor_[4];
+  int viewport_[4] = {0};
+  int scissor_[4] = {0};
   bool scissor_test_ = false;
-  bool dirty_state_;
+  bool dirty_state_ = true;
 
  public:
   FrameBuffer(const char *name);
