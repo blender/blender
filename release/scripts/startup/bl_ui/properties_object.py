@@ -141,6 +141,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
         if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
             sub.prop_search(ob, "parent_bone", parent.data, "bones")
         sub.active = (parent is not None)
+        sub.prop(ob, "use_camera_lock_parent")
 
         col.separator()
 

@@ -800,6 +800,14 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
+  if (!USER_VERSION_ATLEAST(292, 3)) {
+    if (userdef->pixelsize == 0.0f) {
+      userdef->pixelsize = 1.0f;
+    }
+    /* Clear old userdef flag for "Camera Parent Lock". */
+    userdef->uiflag &= ~USER_UIFLAG_UNUSED_3;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -811,10 +819,6 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
-  }
-
-  if (userdef->pixelsize == 0.0f) {
-    userdef->pixelsize = 1.0f;
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {

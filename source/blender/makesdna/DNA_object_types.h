@@ -508,7 +508,7 @@ enum {
 
 /* (short) transflag */
 enum {
-  OB_TRANSFLAG_UNUSED_0 = 1 << 0, /* cleared */
+  OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK = 1 << 0,
   OB_TRANSFLAG_UNUSED_1 = 1 << 1, /* cleared */
   OB_NEG_SCALE = 1 << 2,
   OB_TRANSFLAG_UNUSED_3 = 1 << 3, /* cleared */
