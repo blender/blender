@@ -1657,6 +1657,11 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
   tmp.totselect = 0;
   tmp.texflag &= ~ME_AUTOSPACE_EVALUATED;
 
+  /* Clear any run-time data.
+   * Even though this mesh wont typically have run-time data, the Python API can for e.g.
+   * create loop-triangle cache here, which is confusing when left in the mesh, see: T81136. */
+  BKE_mesh_runtime_clear_geometry(&tmp);
+
   /* skip the listbase */
   MEMCPY_STRUCT_AFTER(mesh_dst, &tmp, id.prev);
 
