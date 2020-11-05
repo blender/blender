@@ -2086,7 +2086,7 @@ static bool draw_cache_view_init_fn(void *userdata, size_t item_count)
 
 /* Called as a callback */
 static bool draw_cache_view_iter_fn(
-    void *userdata, struct Sequence *seq, int nfra, int cache_type, float UNUSED(cost))
+    void *userdata, struct Sequence *seq, int timeline_frame, int cache_type, float UNUSED(cost))
 {
   CacheDrawData *drawdata = userdata;
   struct View2D *v2d = drawdata->v2d;
@@ -2132,14 +2132,13 @@ static bool draw_cache_view_iter_fn(
     return false;
   }
 
-  int cfra = seq->start + nfra;
   float vert_pos[6][2];
-  copy_v2_fl2(vert_pos[0], cfra, stripe_bot);
-  copy_v2_fl2(vert_pos[1], cfra, stripe_top);
-  copy_v2_fl2(vert_pos[2], cfra + 1, stripe_top);
+  copy_v2_fl2(vert_pos[0], timeline_frame, stripe_bot);
+  copy_v2_fl2(vert_pos[1], timeline_frame, stripe_top);
+  copy_v2_fl2(vert_pos[2], timeline_frame + 1, stripe_top);
   copy_v2_v2(vert_pos[3], vert_pos[2]);
   copy_v2_v2(vert_pos[4], vert_pos[0]);
-  copy_v2_fl2(vert_pos[5], cfra + 1, stripe_bot);
+  copy_v2_fl2(vert_pos[5], timeline_frame + 1, stripe_bot);
 
   for (int i = 0; i < 6; i++) {
     GPU_vertbuf_vert_set(vbo, *vert_count + i, vert_pos[i]);

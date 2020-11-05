@@ -257,7 +257,7 @@ void BKE_sequencer_cache_iterate(struct Scene *scene,
                                  bool callback_init(void *userdata, size_t item_count),
                                  bool callback_iter(void *userdata,
                                                     struct Sequence *seq,
-                                                    int cfra,
+                                                    int timeline_frame,
                                                     int cache_type,
                                                     float cost));
 
