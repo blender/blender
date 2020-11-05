@@ -33,8 +33,8 @@ set(INC
   ../render/extern/include
   ../sequencer
   ../windowmanager
-  ../../../intern/guardedalloc
   ../../../intern/clog
+  ../../../intern/guardedalloc
 
   # for writefile.c: dna_type_offsets.h
   ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern

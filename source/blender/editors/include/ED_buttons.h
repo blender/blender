@@ -26,8 +26,8 @@
 extern "C" {
 #endif
 
-struct bContext;
 struct SpaceProperties;
+struct bContext;
 
 int ED_buttons_tabs_list(struct SpaceProperties *sbuts, short *context_tabs_array);
 bool ED_buttons_tab_has_search_result(struct SpaceProperties *sbuts, const int index);

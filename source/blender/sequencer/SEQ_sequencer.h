@@ -36,6 +36,7 @@ struct Main;
 struct Mask;
 struct ReportList;
 struct Scene;
+struct SeqIndexBuildContext;
 struct Sequence;
 struct SequenceModifierData;
 struct Stereo3dFormat;
@@ -43,7 +44,6 @@ struct StripElem;
 struct TextVars;
 struct bContext;
 struct bSound;
-struct SeqIndexBuildContext;
 
 /* Wipe effect */
 enum {

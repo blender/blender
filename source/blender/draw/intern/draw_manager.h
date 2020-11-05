@@ -43,8 +43,8 @@
 
 #include "draw_instance_data.h"
 
-struct Object;
 struct DupliObject;
+struct Object;
 
 /* Use draw manager to call GPU_select, see: DRW_draw_select_loop */
 #define USE_GPU_SELECT

@@ -28,10 +28,10 @@ extern "C" {
 #endif
 
 struct Editing;
-struct SeqRenderData;
-struct ListBase;
 struct ImBuf;
+struct ListBase;
 struct Scene;
+struct SeqRenderData;
 struct Sequence;
 
 /* mutable state for sequencer */
