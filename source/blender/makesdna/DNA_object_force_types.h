@@ -54,7 +54,7 @@ typedef enum ePFieldType {
   PFIELD_LENNARDJ = 9,
   /** Defines predator / goal for boids. */
   PFIELD_BOID = 10,
-  /** Force defined by BLI_gTurbulence. */
+  /** Force defined by BLI_noise_generic_turbulence. */
   PFIELD_TURBULENCE = 11,
   /** Linear & quadratic drag. */
   PFIELD_DRAG = 12,

@@ -338,9 +338,9 @@ static void alter_co(BMVert *v,
     add_v3_v3v3(co2, v->co, params->fractal_ofs);
     mul_v3_fl(co2, 10.0f);
 
-    tvec[0] = fac * (BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 2) - 0.5f);
-    tvec[1] = fac * (BLI_gTurbulence(1.0, co2[1], co2[0], co2[2], 15, 0, 2) - 0.5f);
-    tvec[2] = fac * (BLI_gTurbulence(1.0, co2[1], co2[2], co2[0], 15, 0, 2) - 0.5f);
+    tvec[0] = fac * (BLI_noise_generic_turbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 2) - 0.5f);
+    tvec[1] = fac * (BLI_noise_generic_turbulence(1.0, co2[1], co2[0], co2[2], 15, 0, 2) - 0.5f);
+    tvec[2] = fac * (BLI_noise_generic_turbulence(1.0, co2[1], co2[2], co2[0], 15, 0, 2) - 0.5f);
 
     /* add displacement */
     madd_v3_v3fl(co, normal, tvec[0]);

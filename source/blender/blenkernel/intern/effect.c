@@ -1009,9 +1009,12 @@ static void do_physical_effector(EffectorCache *eff,
       else {
         add_v3_v3v3(temp, efd->vec_to_point2, efd->nor2);
       }
-      force[0] = -1.0f + 2.0f * BLI_gTurbulence(pd->f_size, temp[0], temp[1], temp[2], 2, 0, 2);
-      force[1] = -1.0f + 2.0f * BLI_gTurbulence(pd->f_size, temp[1], temp[2], temp[0], 2, 0, 2);
-      force[2] = -1.0f + 2.0f * BLI_gTurbulence(pd->f_size, temp[2], temp[0], temp[1], 2, 0, 2);
+      force[0] = -1.0f + 2.0f * BLI_noise_generic_turbulence(
+                                    pd->f_size, temp[0], temp[1], temp[2], 2, 0, 2);
+      force[1] = -1.0f + 2.0f * BLI_noise_generic_turbulence(
+                                    pd->f_size, temp[1], temp[2], temp[0], 2, 0, 2);
+      force[2] = -1.0f + 2.0f * BLI_noise_generic_turbulence(
+                                    pd->f_size, temp[2], temp[0], temp[1], 2, 0, 2);
       mul_v3_fl(force, strength * efd->falloff);
       break;
     case PFIELD_DRAG:

@@ -824,7 +824,8 @@ static void fcm_noise_evaluate(
    * - 0.1 is passed as the 'z' value, otherwise evaluation fails for size = phase = 1
    *   with evaltime being an integer (which happens when evaluating on frame by frame basis)
    */
-  noise = BLI_turbulence(data->size, evaltime - data->offset, data->phase, 0.1f, data->depth);
+  noise = BLI_noise_turbulence(
+      data->size, evaltime - data->offset, data->phase, 0.1f, data->depth);
 
   /* combine the noise with existing motion data */
   switch (data->modification) {

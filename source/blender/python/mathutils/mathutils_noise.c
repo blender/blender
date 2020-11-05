@@ -246,7 +246,8 @@ static void noise_vector(float x, float y, float z, int nb, float v[3])
   /* Simply evaluate noise at 3 different positions */
   const float *ofs = state_offset_vector;
   for (int j = 0; j < 3; j++) {
-    v[j] = (2.0f * BLI_gNoise(1.0f, x + ofs[0], y + ofs[1], z + ofs[2], 0, nb) - 1.0f);
+    v[j] = (2.0f * BLI_noise_generic_noise(1.0f, x + ofs[0], y + ofs[1], z + ofs[2], 0, nb) -
+            1.0f);
     ofs += 3;
   }
 }
@@ -258,7 +259,7 @@ static float turb(
   float amp, out, t;
   int i;
   amp = 1.f;
-  out = (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
+  out = (float)(2.0f * BLI_noise_generic_noise(1.f, x, y, z, 0, nb) - 1.0f);
   if (hard) {
     out = fabsf(out);
   }
@@ -267,7 +268,7 @@ static float turb(
     x *= freqscale;
     y *= freqscale;
     z *= freqscale;
-    t = (float)(amp * (2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f));
+    t = (float)(amp * (2.0f * BLI_noise_generic_noise(1.f, x, y, z, 0, nb) - 1.0f));
     if (hard) {
       t = fabsf(t);
     }
@@ -450,7 +451,7 @@ static PyObject *M_Noise_noise(PyObject *UNUSED(self), PyObject *args, PyObject 
   }
 
   return PyFloat_FromDouble(
-      (2.0f * BLI_gNoise(1.0f, vec[0], vec[1], vec[2], 0, noise_basis_enum) - 1.0f));
+      (2.0f * BLI_noise_generic_noise(1.0f, vec[0], vec[1], vec[2], 0, noise_basis_enum) - 1.0f));
 }
 
 PyDoc_STRVAR(M_Noise_noise_vector_doc,
@@ -659,7 +660,8 @@ static PyObject *M_Noise_fractal(PyObject *UNUSED(self), PyObject *args, PyObjec
     return NULL;
   }
 
-  return PyFloat_FromDouble(BLI_mg_fBm(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
+  return PyFloat_FromDouble(
+      BLI_noise_mg_fbm(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
 }
 
 PyDoc_STRVAR(
@@ -713,7 +715,7 @@ static PyObject *M_Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args, P
   }
 
   return PyFloat_FromDouble(
-      BLI_mg_MultiFractal(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
+      BLI_noise_mg_multi_fractal(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
 }
 
 PyDoc_STRVAR(M_Noise_variable_lacunarity_doc,
@@ -780,8 +782,8 @@ static PyObject *M_Noise_variable_lacunarity(PyObject *UNUSED(self), PyObject *a
     return NULL;
   }
 
-  return PyFloat_FromDouble(
-      BLI_mg_VLNoise(vec[0], vec[1], vec[2], d, noise_type1_enum, noise_type2_enum));
+  return PyFloat_FromDouble(BLI_noise_mg_variable_lacunarity(
+      vec[0], vec[1], vec[2], d, noise_type1_enum, noise_type2_enum));
 }
 
 PyDoc_STRVAR(
@@ -838,7 +840,7 @@ static PyObject *M_Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args, 
   }
 
   return PyFloat_FromDouble(
-      BLI_mg_HeteroTerrain(vec[0], vec[1], vec[2], H, lac, oct, ofs, noise_basis_enum));
+      BLI_noise_mg_hetero_terrain(vec[0], vec[1], vec[2], H, lac, oct, ofs, noise_basis_enum));
 }
 
 PyDoc_STRVAR(
@@ -899,8 +901,8 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *
     return NULL;
   }
 
-  return PyFloat_FromDouble(
-      BLI_mg_HybridMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
+  return PyFloat_FromDouble(BLI_noise_mg_hybrid_multi_fractal(
+      vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
 }
 
 PyDoc_STRVAR(
@@ -961,8 +963,8 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *
     return NULL;
   }
 
-  return PyFloat_FromDouble(
-      BLI_mg_RidgedMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
+  return PyFloat_FromDouble(BLI_noise_mg_ridged_multi_fractal(
+      vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
 }
 
 PyDoc_STRVAR(M_Noise_voronoi_doc,
@@ -1008,7 +1010,7 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args, PyObjec
 
   list = PyList_New(4);
 
-  BLI_voronoi(vec[0], vec[1], vec[2], da, pa, me, metric_enum);
+  BLI_noise_voronoi(vec[0], vec[1], vec[2], da, pa, me, metric_enum);
 
   for (i = 0; i < 4; i++) {
     PyObject *v = Vector_CreatePyObject(pa + 3 * i, 3, NULL);
@@ -1042,7 +1044,7 @@ static PyObject *M_Noise_cell(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
-  return PyFloat_FromDouble(BLI_cellNoise(vec[0], vec[1], vec[2]));
+  return PyFloat_FromDouble(BLI_noise_cell(vec[0], vec[1], vec[2]));
 }
 
 PyDoc_STRVAR(M_Noise_cell_vector_doc,
@@ -1067,7 +1069,7 @@ static PyObject *M_Noise_cell_vector(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
-  BLI_cellNoiseV(vec[0], vec[1], vec[2], r_vec);
+  BLI_noise_cell_v3(vec[0], vec[1], vec[2], r_vec);
   return Vector_CreatePyObject(r_vec, 3, NULL);
 }
 
