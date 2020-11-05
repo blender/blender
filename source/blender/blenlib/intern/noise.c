@@ -454,23 +454,6 @@ float BLI_turbulence(float noisesize, float x, float y, float z, int nr)
   return s / div;
 }
 
-float BLI_turbulence1(float noisesize, float x, float y, float z, int nr)
-{
-  float s, d = 0.5, div = 1.0;
-
-  s = fabsf((-1.0f + 2.0f * BLI_hnoise(noisesize, x, y, z)));
-
-  while (nr > 0) {
-
-    s += fabsf(d * (-1.0f + 2.0f * BLI_hnoise(noisesize * d, x, y, z)));
-    div += d;
-    d *= 0.5f;
-
-    nr--;
-  }
-  return s / div;
-}
-
 /* ********************* FROM PERLIN HIMSELF: ******************** */
 
 static const char g_perlin_data_ub[512 + 2] = {
