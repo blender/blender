@@ -36,7 +36,9 @@
 
 #include "transform_data.h"
 
-/* ************************** Types ***************************** */
+/* -------------------------------------------------------------------- */
+/** \name Types/
+ * \{ */
 
 struct ARegion;
 struct Depsgraph;
@@ -58,7 +60,7 @@ struct wmKeyConfig;
 struct wmKeyMap;
 struct wmTimer;
 
-/* transinfo->redraw */
+/** #TransInfo.redraw */
 typedef enum {
   TREDRAW_NOTHING = 0,
   TREDRAW_HARD = 1,
@@ -264,8 +266,8 @@ typedef struct TransInfo {
   TransDataContainer *data_container;
   int data_container_len;
 
-  /** eTransConvertType
-   * TODO: It should be a member of TransDataContainer. */
+  /** #eTransConvertType
+   * TODO: It should be a member of #TransDataContainer. */
   int data_type;
 
   /** Combine length of all #TransDataContainer.data_len
@@ -329,16 +331,16 @@ typedef struct TransInfo {
   float persinv[4][4];
   short persp;
   short around;
-  /** spacetype where transforming is. */
+  /** space-type where transforming is. */
   char spacetype;
   /** Choice of custom cursor with or without a help line from the gizmo to the mouse position. */
   char helpline;
-  /** Avoid looking inside TransDataContainer obedit. */
+  /** Avoid looking inside #TransDataContainer.obedit. */
   short obedit_type;
 
   /** translation, to show for widget. */
   float vec[3];
-  /** rot/rescale, to show for widget. */
+  /** Rotate/re-scale, to show for widget. */
   float mat[3][3];
 
   /** orientation matrix of the current space. */
@@ -368,7 +370,7 @@ typedef struct TransInfo {
   /** Value taken as input, either through mouse coordinates or entered as a parameter. */
   float values[4];
 
-  /** Offset applied ontop of modal input. */
+  /** Offset applied on top of modal input. */
   float values_modal_offset[4];
 
   /** Final value of the transformation (displayed in the redo panel).
@@ -397,7 +399,7 @@ typedef struct TransInfo {
   struct ViewLayer *view_layer;
   struct ToolSettings *settings;
   struct wmTimer *animtimer;
-  /** so we can do lookups for header text. */
+  /** Needed so we can perform a look up for header text. */
   struct wmKeyMap *keymap;
   /** assign from the operator, or can be NULL. */
   struct ReportList *reports;
@@ -417,9 +419,13 @@ typedef struct TransInfo {
   TransCustomDataContainer custom;
 } TransInfo;
 
-/* ******************** Macros & Prototypes *********************** */
+/** \} */
 
-/* transinfo->state */
+/* -------------------------------------------------------------------- */
+/** \name Flags
+ * \{ */
+
+/** #TransInfo.state */
 enum {
   TRANS_STARTING = 0,
   TRANS_RUNNING = 1,
@@ -427,7 +433,7 @@ enum {
   TRANS_CANCEL = 3,
 };
 
-/* transinfo->flag */
+/** #TransInfo.flag */
 enum {
   T_OBJECT = 1 << 0,
   /** \note We could remove 'T_EDIT' and use 'obedit_type', for now ensure they're in sync. */
@@ -452,11 +458,11 @@ enum {
   T_PROP_EDIT_ALL = T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED,
 
   T_V3D_ALIGN = 1 << 13,
-  /** For 2d views like uv or fcurve. */
+  /** For 2D views such as UV or f-curve. */
   T_2D_EDIT = 1 << 14,
   T_CLIP_UV = 1 << 15,
 
-  /** Auto-ik is on. */
+  /** Auto-IK is on. */
   T_AUTOIK = 1 << 16,
 
   /** Don't use mirror even if the data-block option is set. */
@@ -469,7 +475,7 @@ enum {
   /** To specify if we save back settings at the end. */
   T_MODAL = 1 << 19,
 
-  /** No retopo. */
+  /** No re-topology (projection). */
   T_NO_PROJECT = 1 << 20,
 
   T_RELEASE_CONFIRM = 1 << 21,
@@ -484,8 +490,9 @@ enum {
 
   T_CLNOR_REBUILD = 1 << 25,
 
-  /* Special Aftertrans. */
+  /** Merges unselected into selected after transforming (runs after transforming). */
   T_AUTOMERGE = 1 << 26,
+  /** Runs auto-merge & splits. */
   T_AUTOSPLIT = 1 << 27,
 };
 
@@ -502,8 +509,6 @@ enum {
  * disabled since it makes absolute snapping not work so nicely
  */
 // #define USE_NODE_CENTER
-
-/* ******************************************************************************** */
 
 /** #TransInfo.helpline */
 enum {
@@ -538,8 +543,14 @@ enum {
   MULTI_POINTS = 1 << 3,
 };
 
-/** keymap modal items */
-/* NOTE: these values are saved in keymap files, do not change then but just add new ones. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keymap Modal Items
+ *
+ * \note these values are saved in key-map files, do not change then but just add new ones.
+ * \{ */
+
 enum {
   TFM_MODAL_CANCEL = 1,
   TFM_MODAL_CONFIRM = 2,
@@ -559,7 +570,9 @@ enum {
   TFM_MODAL_ADD_SNAP = 16,
   TFM_MODAL_REMOVE_SNAP = 17,
 
-  /* 18 and 19 used by numinput, defined in transform.h */
+  /* 18 and 19 used by number-input, defined in `ED_numinput.h`. */
+  // NUM_MODAL_INCREMENT_UP = 18,
+  // NUM_MODAL_INCREMENT_DOWN = 19,
 
   TFM_MODAL_PROPSIZE_UP = 20,
   TFM_MODAL_PROPSIZE_DOWN = 21,
@@ -569,14 +582,20 @@ enum {
   TFM_MODAL_EDGESLIDE_UP = 24,
   TFM_MODAL_EDGESLIDE_DOWN = 25,
 
-  /* for analog input, like trackpad */
+  /** For analog input, like track-pad. */
   TFM_MODAL_PROPSIZE = 26,
-  /* node editor insert offset (aka auto-offset) direction toggle */
+  /** Node editor insert offset (also called auto-offset) direction toggle. */
   TFM_MODAL_INSERTOFS_TOGGLE_DIR = 27,
 
   TFM_MODAL_AUTOCONSTRAINT = 28,
   TFM_MODAL_AUTOCONSTRAINTPLANE = 29,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Transform API
+ * \{ */
 
 bool initTransform(struct bContext *C,
                    struct TransInfo *t,
@@ -601,18 +620,31 @@ void removeAspectRatio(TransInfo *t, float vec[2]);
 
 struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
 
-/*********************** transform_gizmo.c ********** */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Gizmo
+ * \{ */
+
+/* transform_gizmo.c */
 #define GIZMO_AXIS_LINE_WIDTH 2.0f
 
-/* return 0 when no gimbal for selection */
 bool gimbal_axis(struct Object *ob, float gmat[3][3]);
 void drawDial3d(const TransInfo *t);
 
-/*********************** TransData Creation and General Handling *********** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name TransData Creation and General Handling
+ * \{ */
+
 bool transdata_check_local_islands(TransInfo *t, short around);
 
-/********************** Mouse Input ******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mouse Input
+ * \{ */
 
 typedef enum {
   INPUT_NONE,
@@ -646,7 +678,11 @@ void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);
 void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *t, float values[3]));
 
-/*********************** Generics ********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generics
+ * \{ */
 
 void initTransDataContainers_FromObjectData(TransInfo *t,
                                             struct Object *obact,
@@ -716,3 +752,5 @@ bool checkUseAxisMatrix(TransInfo *t);
                           *tc_end = (t)->data_container + (t)->data_container_len; \
        th != tc_end; \
        th++, i++)
+
+/** \} */
