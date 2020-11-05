@@ -1029,8 +1029,8 @@ OSD_SOURCE=( "https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v${OSD
 
 OPENVDB_USE_REPO=false
 OPENVDB_BLOSC_SOURCE=( "https://github.com/Blosc/c-blosc/archive/v${OPENVDB_BLOSC_VERSION}.tar.gz" )
-OPENVDB_SOURCE=( "https://github.com/dreamworksanimation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz" )
-#~ OPENVDB_SOURCE_REPO=( "https:///dreamworksanimation/openvdb.git" )
+OPENVDB_SOURCE=( "https://github.com/AcademySoftwareFoundation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz" )
+#~ OPENVDB_SOURCE_REPO=( "https://github.com/AcademySoftwareFoundation/openvdb.git" )
 #~ OPENVDB_SOURCE_REPO_UID="404659fffa659da075d1c9416e4fc939139a84ee"
 #~ OPENVDB_SOURCE_REPO_BRANCH="dev"
 
