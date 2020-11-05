@@ -174,37 +174,37 @@ static int clouds(const Tex *tex, const float texvec[3], TexResult *texres)
 {
   int rv = TEX_INT;
 
-  texres->tin = BLI_gTurbulence(tex->noisesize,
-                                texvec[0],
-                                texvec[1],
-                                texvec[2],
-                                tex->noisedepth,
-                                (tex->noisetype != TEX_NOISESOFT),
-                                tex->noisebasis);
+  texres->tin = BLI_noise_generic_turbulence(tex->noisesize,
+                                             texvec[0],
+                                             texvec[1],
+                                             texvec[2],
+                                             tex->noisedepth,
+                                             (tex->noisetype != TEX_NOISESOFT),
+                                             tex->noisebasis);
 
   if (texres->nor != NULL) {
     /* calculate bumpnormal */
-    texres->nor[0] = BLI_gTurbulence(tex->noisesize,
-                                     texvec[0] + tex->nabla,
-                                     texvec[1],
-                                     texvec[2],
-                                     tex->noisedepth,
-                                     (tex->noisetype != TEX_NOISESOFT),
-                                     tex->noisebasis);
-    texres->nor[1] = BLI_gTurbulence(tex->noisesize,
-                                     texvec[0],
-                                     texvec[1] + tex->nabla,
-                                     texvec[2],
-                                     tex->noisedepth,
-                                     (tex->noisetype != TEX_NOISESOFT),
-                                     tex->noisebasis);
-    texres->nor[2] = BLI_gTurbulence(tex->noisesize,
-                                     texvec[0],
-                                     texvec[1],
-                                     texvec[2] + tex->nabla,
-                                     tex->noisedepth,
-                                     (tex->noisetype != TEX_NOISESOFT),
-                                     tex->noisebasis);
+    texres->nor[0] = BLI_noise_generic_turbulence(tex->noisesize,
+                                                  texvec[0] + tex->nabla,
+                                                  texvec[1],
+                                                  texvec[2],
+                                                  tex->noisedepth,
+                                                  (tex->noisetype != TEX_NOISESOFT),
+                                                  tex->noisebasis);
+    texres->nor[1] = BLI_noise_generic_turbulence(tex->noisesize,
+                                                  texvec[0],
+                                                  texvec[1] + tex->nabla,
+                                                  texvec[2],
+                                                  tex->noisedepth,
+                                                  (tex->noisetype != TEX_NOISESOFT),
+                                                  tex->noisebasis);
+    texres->nor[2] = BLI_noise_generic_turbulence(tex->noisesize,
+                                                  texvec[0],
+                                                  texvec[1],
+                                                  texvec[2] + tex->nabla,
+                                                  tex->noisedepth,
+                                                  (tex->noisetype != TEX_NOISESOFT),
+                                                  tex->noisebasis);
 
     tex_normal_derivate(tex, texres);
     rv |= TEX_NOR;
@@ -214,20 +214,20 @@ static int clouds(const Tex *tex, const float texvec[3], TexResult *texres)
     /* in this case, int. value should really be computed from color,
      * and bumpnormal from that, would be too slow, looks ok as is */
     texres->tr = texres->tin;
-    texres->tg = BLI_gTurbulence(tex->noisesize,
-                                 texvec[1],
-                                 texvec[0],
-                                 texvec[2],
-                                 tex->noisedepth,
-                                 (tex->noisetype != TEX_NOISESOFT),
-                                 tex->noisebasis);
-    texres->tb = BLI_gTurbulence(tex->noisesize,
-                                 texvec[1],
-                                 texvec[2],
-                                 texvec[0],
-                                 tex->noisedepth,
-                                 (tex->noisetype != TEX_NOISESOFT),
-                                 tex->noisebasis);
+    texres->tg = BLI_noise_generic_turbulence(tex->noisesize,
+                                              texvec[1],
+                                              texvec[0],
+                                              texvec[2],
+                                              tex->noisedepth,
+                                              (tex->noisetype != TEX_NOISESOFT),
+                                              tex->noisebasis);
+    texres->tb = BLI_noise_generic_turbulence(tex->noisesize,
+                                              texvec[1],
+                                              texvec[2],
+                                              texvec[0],
+                                              tex->noisedepth,
+                                              (tex->noisetype != TEX_NOISESOFT),
+                                              tex->noisebasis);
     BRICONTRGB;
     texres->ta = 1.0;
     return (rv | TEX_RGB);
@@ -296,12 +296,14 @@ static float wood_int(const Tex *tex, float x, float y, float z)
   }
   else if (wt == TEX_BANDNOISE) {
     wi = tex->turbul *
-         BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype != TEX_NOISESOFT), tex->noisebasis);
+         BLI_noise_generic_noise(
+             tex->noisesize, x, y, z, (tex->noisetype != TEX_NOISESOFT), tex->noisebasis);
     wi = waveform[wf]((x + y + z) * 10.0f + wi);
   }
   else if (wt == TEX_RINGNOISE) {
     wi = tex->turbul *
-         BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype != TEX_NOISESOFT), tex->noisebasis);
+         BLI_noise_generic_noise(
+             tex->noisesize, x, y, z, (tex->noisetype != TEX_NOISESOFT), tex->noisebasis);
     wi = waveform[wf](sqrtf(x * x + y * y + z * z) * 20.0f + wi);
   }
 
@@ -346,13 +348,13 @@ static float marble_int(const Tex *tex, float x, float y, float z)
 
   n = 5.0f * (x + y + z);
 
-  mi = n + tex->turbul * BLI_gTurbulence(tex->noisesize,
-                                         x,
-                                         y,
-                                         z,
-                                         tex->noisedepth,
-                                         (tex->noisetype != TEX_NOISESOFT),
-                                         tex->noisebasis);
+  mi = n + tex->turbul * BLI_noise_generic_turbulence(tex->noisesize,
+                                                      x,
+                                                      y,
+                                                      z,
+                                                      tex->noisedepth,
+                                                      (tex->noisetype != TEX_NOISESOFT),
+                                                      tex->noisebasis);
 
   if (mt >= TEX_SOFT) { /* TEX_SOFT always true */
     mi = waveform[wf](mi);
@@ -472,36 +474,36 @@ static int stucci(const Tex *tex, const float texvec[3], TexResult *texres)
   float nor[3], b2, ofs;
   int retval = TEX_INT;
 
-  b2 = BLI_gNoise(tex->noisesize,
-                  texvec[0],
-                  texvec[1],
-                  texvec[2],
-                  (tex->noisetype != TEX_NOISESOFT),
-                  tex->noisebasis);
+  b2 = BLI_noise_generic_noise(tex->noisesize,
+                               texvec[0],
+                               texvec[1],
+                               texvec[2],
+                               (tex->noisetype != TEX_NOISESOFT),
+                               tex->noisebasis);
 
   ofs = tex->turbul / 200.0f;
 
   if (tex->stype) {
     ofs *= (b2 * b2);
   }
-  nor[0] = BLI_gNoise(tex->noisesize,
-                      texvec[0] + ofs,
-                      texvec[1],
-                      texvec[2],
-                      (tex->noisetype != TEX_NOISESOFT),
-                      tex->noisebasis);
-  nor[1] = BLI_gNoise(tex->noisesize,
-                      texvec[0],
-                      texvec[1] + ofs,
-                      texvec[2],
-                      (tex->noisetype != TEX_NOISESOFT),
-                      tex->noisebasis);
-  nor[2] = BLI_gNoise(tex->noisesize,
-                      texvec[0],
-                      texvec[1],
-                      texvec[2] + ofs,
-                      (tex->noisetype != TEX_NOISESOFT),
-                      tex->noisebasis);
+  nor[0] = BLI_noise_generic_noise(tex->noisesize,
+                                   texvec[0] + ofs,
+                                   texvec[1],
+                                   texvec[2],
+                                   (tex->noisetype != TEX_NOISESOFT),
+                                   tex->noisebasis);
+  nor[1] = BLI_noise_generic_noise(tex->noisesize,
+                                   texvec[0],
+                                   texvec[1] + ofs,
+                                   texvec[2],
+                                   (tex->noisetype != TEX_NOISESOFT),
+                                   tex->noisebasis);
+  nor[2] = BLI_noise_generic_noise(tex->noisesize,
+                                   texvec[0],
+                                   texvec[1],
+                                   texvec[2] + ofs,
+                                   (tex->noisetype != TEX_NOISESOFT),
+                                   tex->noisebasis);
 
   texres->tin = nor[2];
 
@@ -539,10 +541,10 @@ static int mg_mFractalOrfBmTex(const Tex *tex, const float texvec[3], TexResult 
   float (*mgravefunc)(float, float, float, float, float, float, int);
 
   if (tex->stype == TEX_MFRACTAL) {
-    mgravefunc = BLI_mg_MultiFractal;
+    mgravefunc = BLI_noise_mg_multi_fractal;
   }
   else {
-    mgravefunc = BLI_mg_fBm;
+    mgravefunc = BLI_noise_mg_fbm;
   }
 
   texres->tin = tex->ns_outscale * mgravefunc(texvec[0],
@@ -594,10 +596,10 @@ static int mg_ridgedOrHybridMFTex(const Tex *tex, const float texvec[3], TexResu
   float (*mgravefunc)(float, float, float, float, float, float, float, float, int);
 
   if (tex->stype == TEX_RIDGEDMF) {
-    mgravefunc = BLI_mg_RidgedMultiFractal;
+    mgravefunc = BLI_noise_mg_ridged_multi_fractal;
   }
   else {
-    mgravefunc = BLI_mg_HybridMultiFractal;
+    mgravefunc = BLI_noise_mg_hybrid_multi_fractal;
   }
 
   texres->tin = tex->ns_outscale * mgravefunc(texvec[0],
@@ -655,43 +657,43 @@ static int mg_HTerrainTex(const Tex *tex, const float texvec[3], TexResult *texr
 {
   int rv = TEX_INT;
 
-  texres->tin = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0],
-                                                        texvec[1],
-                                                        texvec[2],
-                                                        tex->mg_H,
-                                                        tex->mg_lacunarity,
-                                                        tex->mg_octaves,
-                                                        tex->mg_offset,
-                                                        tex->noisebasis);
+  texres->tin = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0],
+                                                               texvec[1],
+                                                               texvec[2],
+                                                               tex->mg_H,
+                                                               tex->mg_lacunarity,
+                                                               tex->mg_octaves,
+                                                               tex->mg_offset,
+                                                               tex->noisebasis);
 
   if (texres->nor != NULL) {
     float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    texres->nor[0] = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0] + offs,
-                                                             texvec[1],
-                                                             texvec[2],
-                                                             tex->mg_H,
-                                                             tex->mg_lacunarity,
-                                                             tex->mg_octaves,
-                                                             tex->mg_offset,
-                                                             tex->noisebasis);
-    texres->nor[1] = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0],
-                                                             texvec[1] + offs,
-                                                             texvec[2],
-                                                             tex->mg_H,
-                                                             tex->mg_lacunarity,
-                                                             tex->mg_octaves,
-                                                             tex->mg_offset,
-                                                             tex->noisebasis);
-    texres->nor[2] = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0],
-                                                             texvec[1],
-                                                             texvec[2] + offs,
-                                                             tex->mg_H,
-                                                             tex->mg_lacunarity,
-                                                             tex->mg_octaves,
-                                                             tex->mg_offset,
-                                                             tex->noisebasis);
+    texres->nor[0] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0] + offs,
+                                                                    texvec[1],
+                                                                    texvec[2],
+                                                                    tex->mg_H,
+                                                                    tex->mg_lacunarity,
+                                                                    tex->mg_octaves,
+                                                                    tex->mg_offset,
+                                                                    tex->noisebasis);
+    texres->nor[1] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0],
+                                                                    texvec[1] + offs,
+                                                                    texvec[2],
+                                                                    tex->mg_H,
+                                                                    tex->mg_lacunarity,
+                                                                    tex->mg_octaves,
+                                                                    tex->mg_offset,
+                                                                    tex->noisebasis);
+    texres->nor[2] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0],
+                                                                    texvec[1],
+                                                                    texvec[2] + offs,
+                                                                    tex->mg_H,
+                                                                    tex->mg_lacunarity,
+                                                                    tex->mg_octaves,
+                                                                    tex->mg_offset,
+                                                                    tex->noisebasis);
 
     tex_normal_derivate(tex, texres);
     rv |= TEX_NOR;
@@ -706,31 +708,31 @@ static int mg_distNoiseTex(const Tex *tex, const float texvec[3], TexResult *tex
 {
   int rv = TEX_INT;
 
-  texres->tin = BLI_mg_VLNoise(
+  texres->tin = BLI_noise_mg_variable_lacunarity(
       texvec[0], texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
 
   if (texres->nor != NULL) {
     float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    texres->nor[0] = BLI_mg_VLNoise(texvec[0] + offs,
-                                    texvec[1],
-                                    texvec[2],
-                                    tex->dist_amount,
-                                    tex->noisebasis,
-                                    tex->noisebasis2);
-    texres->nor[1] = BLI_mg_VLNoise(texvec[0],
-                                    texvec[1] + offs,
-                                    texvec[2],
-                                    tex->dist_amount,
-                                    tex->noisebasis,
-                                    tex->noisebasis2);
-    texres->nor[2] = BLI_mg_VLNoise(texvec[0],
-                                    texvec[1],
-                                    texvec[2] + offs,
-                                    tex->dist_amount,
-                                    tex->noisebasis,
-                                    tex->noisebasis2);
+    texres->nor[0] = BLI_noise_mg_variable_lacunarity(texvec[0] + offs,
+                                                      texvec[1],
+                                                      texvec[2],
+                                                      tex->dist_amount,
+                                                      tex->noisebasis,
+                                                      tex->noisebasis2);
+    texres->nor[1] = BLI_noise_mg_variable_lacunarity(texvec[0],
+                                                      texvec[1] + offs,
+                                                      texvec[2],
+                                                      tex->dist_amount,
+                                                      tex->noisebasis,
+                                                      tex->noisebasis2);
+    texres->nor[2] = BLI_noise_mg_variable_lacunarity(texvec[0],
+                                                      texvec[1],
+                                                      texvec[2] + offs,
+                                                      tex->dist_amount,
+                                                      tex->noisebasis,
+                                                      tex->noisebasis2);
 
     tex_normal_derivate(tex, texres);
     rv |= TEX_NOR;
@@ -760,24 +762,24 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
     sc = tex->ns_outscale / sc;
   }
 
-  BLI_voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
+  BLI_noise_voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
   texres->tin = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
 
   if (tex->vn_coltype) {
     float ca[3]; /* cell color */
-    BLI_cellNoiseV(pa[0], pa[1], pa[2], ca);
+    BLI_noise_cell_v3(pa[0], pa[1], pa[2], ca);
     texres->tr = aw1 * ca[0];
     texres->tg = aw1 * ca[1];
     texres->tb = aw1 * ca[2];
-    BLI_cellNoiseV(pa[3], pa[4], pa[5], ca);
+    BLI_noise_cell_v3(pa[3], pa[4], pa[5], ca);
     texres->tr += aw2 * ca[0];
     texres->tg += aw2 * ca[1];
     texres->tb += aw2 * ca[2];
-    BLI_cellNoiseV(pa[6], pa[7], pa[8], ca);
+    BLI_noise_cell_v3(pa[6], pa[7], pa[8], ca);
     texres->tr += aw3 * ca[0];
     texres->tg += aw3 * ca[1];
     texres->tb += aw3 * ca[2];
-    BLI_cellNoiseV(pa[9], pa[10], pa[11], ca);
+    BLI_noise_cell_v3(pa[9], pa[10], pa[11], ca);
     texres->tr += aw4 * ca[0];
     texres->tg += aw4 * ca[1];
     texres->tb += aw4 * ca[2];
@@ -807,11 +809,11 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
     float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    BLI_voronoi(texvec[0] + offs, texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
+    BLI_noise_voronoi(texvec[0] + offs, texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
     texres->nor[0] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
-    BLI_voronoi(texvec[0], texvec[1] + offs, texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
+    BLI_noise_voronoi(texvec[0], texvec[1] + offs, texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
     texres->nor[1] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
-    BLI_voronoi(texvec[0], texvec[1], texvec[2] + offs, da, pa, tex->vn_mexp, tex->vn_distm);
+    BLI_noise_voronoi(texvec[0], texvec[1], texvec[2] + offs, da, pa, tex->vn_mexp, tex->vn_distm);
     texres->nor[2] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
 
     tex_normal_derivate(tex, texres);
