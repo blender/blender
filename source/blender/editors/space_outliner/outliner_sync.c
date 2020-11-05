@@ -253,11 +253,13 @@ static void outliner_select_sync_to_edit_bone(ViewLayer *view_layer,
 
   if (EBONE_SELECTABLE(arm, ebone)) {
     if (tselem->flag & TSE_SELECTED) {
-      ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-
+      ED_armature_ebone_select_set(ebone, true);
       add_selected_item(selected_ebones, ebone);
     }
     else if (!is_edit_bone_selected(selected_ebones, ebone)) {
+      /* Dont flush to parent bone tip, synced selection is iterating the whole tree so deselecting
+       * potential children with 'ED_armature_ebone_select_set(ebone, false)' would leave own tip
+       * deselected. */
       ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
     }
   }
