@@ -762,6 +762,7 @@ void ShaderGraph::compute_displacement_hash()
     foreach (ShaderInput *input, node->inputs) {
       int link_id = (input->link) ? input->link->parent->id : 0;
       md5.append((uint8_t *)&link_id, sizeof(link_id));
+      md5.append((input->link) ? input->link->name().c_str() : "");
     }
 
     if (node->special_type == SHADER_SPECIAL_TYPE_OSL) {
