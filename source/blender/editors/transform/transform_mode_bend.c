@@ -276,8 +276,6 @@ void initBend(TransInfo *t)
   }
   calculateCenterLocal(t, t->center_global);
 
-  t->val = 0.0f;
-
   data = MEM_callocN(sizeof(*data), __func__);
 
   curs = t->scene->cursor.location;

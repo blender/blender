@@ -270,9 +270,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->data_len_all = 0;
 
-  t->val = 0.0f;
-
-  zero_v3(t->vec);
   zero_v3(t->center_global);
 
   unit_m3(t->mat);
