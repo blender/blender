@@ -786,14 +786,13 @@ static float noise3_perlin(const float vec[3])
   int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
   float rx0, rx1, ry0, ry1, rz0, rz1, sx, sy, sz, a, b, c, d, t, u, v;
   const float *q;
-  int i, j;
 
   SETUP(vec[0], bx0, bx1, rx0, rx1);
   SETUP(vec[1], by0, by1, ry0, ry1);
   SETUP(vec[2], bz0, bz1, rz0, rz1);
 
-  i = p[bx0];
-  j = p[bx1];
+  int i = p[bx0];
+  int j = p[bx1];
 
   b00 = p[i + by0];
   b10 = p[j + by0];
@@ -846,22 +845,14 @@ static float noise3_perlin(const float vec[3])
 /* for use with BLI_gNoise/gTurbulence, returns signed noise */
 static float orgPerlinNoise(float x, float y, float z)
 {
-  float v[3];
-
-  v[0] = x;
-  v[1] = y;
-  v[2] = z;
+  float v[3] = {x, y, z};
   return noise3_perlin(v);
 }
 
 /* for use with BLI_gNoise/gTurbulence, returns unsigned noise */
 static float orgPerlinNoiseU(float x, float y, float z)
 {
-  float v[3];
-
-  v[0] = x;
-  v[1] = y;
-  v[2] = z;
+  float v[3] = {x, y, z};
   return (0.5f + 0.5f * noise3_perlin(v));
 }
 
@@ -906,13 +897,12 @@ static float dist_Manhattan(float x, float y, float z, float e)
 /* Chebychev */
 static float dist_Chebychev(float x, float y, float z, float e)
 {
-  float t;
   (void)e;
 
   x = fabsf(x);
   y = fabsf(y);
   z = fabsf(z);
-  t = (x > y) ? x : y;
+  float t = (x > y) ? x : y;
   return ((z > t) ? z : t);
 }
 
@@ -944,9 +934,6 @@ static float dist_Minkovsky(float x, float y, float z, float e)
  * Returns distances in da and point coords in pa */
 void BLI_voronoi(float x, float y, float z, float *da, float *pa, float me, int dtype)
 {
-  int xx, yy, zz, xi, yi, zi;
-  float xd, yd, zd, d;
-
   float (*distfunc)(float, float, float, float);
   switch (dtype) {
     case 1:
@@ -973,18 +960,18 @@ void BLI_voronoi(float x, float y, float z, float *da, float *pa, float me, int 
       break;
   }
 
-  xi = (int)(floor(x));
-  yi = (int)(floor(y));
-  zi = (int)(floor(z));
+  int xi = (int)(floor(x));
+  int yi = (int)(floor(y));
+  int zi = (int)(floor(z));
   da[0] = da[1] = da[2] = da[3] = 1e10f;
-  for (xx = xi - 1; xx <= xi + 1; xx++) {
-    for (yy = yi - 1; yy <= yi + 1; yy++) {
-      for (zz = zi - 1; zz <= zi + 1; zz++) {
+  for (int xx = xi - 1; xx <= xi + 1; xx++) {
+    for (int yy = yi - 1; yy <= yi + 1; yy++) {
+      for (int zz = zi - 1; zz <= zi + 1; zz++) {
         const float *p = HASHPNT(xx, yy, zz);
-        xd = x - (p[0] + xx);
-        yd = y - (p[1] + yy);
-        zd = z - (p[2] + zz);
-        d = distfunc(xd, yd, zd, me);
+        float xd = x - (p[0] + xx);
+        float yd = y - (p[1] + yy);
+        float zd = z - (p[2] + zz);
+        float d = distfunc(xd, yd, zd, me);
         if (d < da[0]) {
           da[3] = da[2];
           da[2] = da[1];
@@ -1245,9 +1232,6 @@ float BLI_gTurbulence(
     float noisesize, float x, float y, float z, int oct, int hard, int noisebasis)
 {
   float (*noisefunc)(float, float, float);
-  float sum, t, amp = 1, fscale = 1;
-  int i;
-
   switch (noisebasis) {
     case 1:
       noisefunc = orgPerlinNoiseU;
@@ -1292,9 +1276,9 @@ float BLI_gTurbulence(
     z *= noisesize;
   }
 
-  sum = 0;
-  for (i = 0; i <= oct; i++, amp *= 0.5f, fscale *= 2.0f) {
-    t = noisefunc(fscale * x, fscale * y, fscale * z);
+  float sum = 0, amp, fscale = 1;
+  for (int i = 0; i <= oct; i++, amp *= 0.5f, fscale *= 2.0f) {
+    float t = noisefunc(fscale * x, fscale * y, fscale * z);
     if (hard) {
       t = fabsf(2.0f * t - 1.0f);
     }
@@ -1322,9 +1306,6 @@ float BLI_gTurbulence(
 float BLI_mg_fBm(
     float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
-  float rmd, value = 0.0, pwr = 1.0, pwHL = powf(lacunarity, -H);
-  int i;
-
   float (*noisefunc)(float, float, float);
   switch (noisebasis) {
     case 1:
@@ -1361,7 +1342,8 @@ float BLI_mg_fBm(
     }
   }
 
-  for (i = 0; i < (int)octaves; i++) {
+  float value = 0.0, pwr = 1.0, pwHL = powf(lacunarity, -H);
+  for (int i = 0; i < (int)octaves; i++) {
     value += noisefunc(x, y, z) * pwr;
     pwr *= pwHL;
     x *= lacunarity;
@@ -1369,7 +1351,7 @@ float BLI_mg_fBm(
     z *= lacunarity;
   }
 
-  rmd = octaves - floorf(octaves);
+  float rmd = octaves - floorf(octaves);
   if (rmd != 0.0f) {
     value += rmd * noisefunc(x, y, z) * pwr;
   }
@@ -1395,9 +1377,6 @@ float BLI_mg_fBm(
 float BLI_mg_MultiFractal(
     float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
-  float rmd, value = 1.0, pwr = 1.0, pwHL = powf(lacunarity, -H);
-  int i;
-
   float (*noisefunc)(float, float, float);
   switch (noisebasis) {
     case 1:
@@ -1434,14 +1413,15 @@ float BLI_mg_MultiFractal(
     }
   }
 
-  for (i = 0; i < (int)octaves; i++) {
+  float value = 1.0, pwr = 1.0, pwHL = powf(lacunarity, -H);
+  for (int i = 0; i < (int)octaves; i++) {
     value *= (pwr * noisefunc(x, y, z) + 1.0f);
     pwr *= pwHL;
     x *= lacunarity;
     y *= lacunarity;
     z *= lacunarity;
   }
-  rmd = octaves - floorf(octaves);
+  float rmd = octaves - floorf(octaves);
   if (rmd != 0.0f) {
     value *= (rmd * noisefunc(x, y, z) * pwr + 1.0f);
   }
@@ -1469,11 +1449,6 @@ float BLI_mg_HeteroTerrain(float x,
                            float offset,
                            int noisebasis)
 {
-  float value, increment, rmd;
-  int i;
-  float pwHL = powf(lacunarity, -H);
-  float pwr = pwHL; /* starts with i=1 instead of 0 */
-
   float (*noisefunc)(float, float, float);
   switch (noisebasis) {
     case 1:
@@ -1511,13 +1486,15 @@ float BLI_mg_HeteroTerrain(float x,
   }
 
   /* first unscaled octave of function; later octaves are scaled */
-  value = offset + noisefunc(x, y, z);
+  float value = offset + noisefunc(x, y, z);
   x *= lacunarity;
   y *= lacunarity;
   z *= lacunarity;
 
-  for (i = 1; i < (int)octaves; i++) {
-    increment = (noisefunc(x, y, z) + offset) * pwr * value;
+  float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL; /* starts with i=1 instead of 0 */
+  for (int i = 1; i < (int)octaves; i++) {
+    float increment = (noisefunc(x, y, z) + offset) * pwr * value;
     value += increment;
     pwr *= pwHL;
     x *= lacunarity;
@@ -1525,9 +1502,9 @@ float BLI_mg_HeteroTerrain(float x,
     z *= lacunarity;
   }
 
-  rmd = octaves - floorf(octaves);
+  float rmd = octaves - floorf(octaves);
   if (rmd != 0.0f) {
-    increment = (noisefunc(x, y, z) + offset) * pwr * value;
+    float increment = (noisefunc(x, y, z) + offset) * pwr * value;
     value += rmd * increment;
   }
   return value;
@@ -1550,12 +1527,7 @@ float BLI_mg_HybridMultiFractal(float x,
                                 float gain,
                                 int noisebasis)
 {
-  float result, signal, weight, rmd;
-  int i;
-  float pwHL = powf(lacunarity, -H);
-  float pwr = pwHL; /* starts with i=1 instead of 0 */
   float (*noisefunc)(float, float, float);
-
   switch (noisebasis) {
     case 1:
       noisefunc = orgPerlinNoise;
@@ -1591,17 +1563,19 @@ float BLI_mg_HybridMultiFractal(float x,
     }
   }
 
-  result = noisefunc(x, y, z) + offset;
-  weight = gain * result;
+  float result = noisefunc(x, y, z) + offset;
+  float weight = gain * result;
   x *= lacunarity;
   y *= lacunarity;
   z *= lacunarity;
 
-  for (i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
+  float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL; /* starts with i=1 instead of 0 */
+  for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
     if (weight > 1.0f) {
       weight = 1.0f;
     }
-    signal = (noisefunc(x, y, z) + offset) * pwr;
+    float signal = (noisefunc(x, y, z) + offset) * pwr;
     pwr *= pwHL;
     result += weight * signal;
     weight *= gain * signal;
@@ -1610,7 +1584,7 @@ float BLI_mg_HybridMultiFractal(float x,
     z *= lacunarity;
   }
 
-  rmd = octaves - floorf(octaves);
+  float rmd = octaves - floorf(octaves);
   if (rmd != 0.f) {
     result += rmd * ((noisefunc(x, y, z) + offset) * pwr);
   }
@@ -1637,11 +1611,6 @@ float BLI_mg_RidgedMultiFractal(float x,
                                 float gain,
                                 int noisebasis)
 {
-  float result, signal, weight;
-  int i;
-  float pwHL = powf(lacunarity, -H);
-  float pwr = pwHL; /* starts with i=1 instead of 0 */
-
   float (*noisefunc)(float, float, float);
   switch (noisebasis) {
     case 1:
@@ -1678,15 +1647,14 @@ float BLI_mg_RidgedMultiFractal(float x,
     }
   }
 
-  signal = offset - fabsf(noisefunc(x, y, z));
-  signal *= signal;
-  result = signal;
-
-  for (i = 1; i < (int)octaves; i++) {
+  float result, signal = powf(offset - fabsf(noisefunc(x, y, z)), 2);
+  for (int i = 1; i < (int)octaves; i++) {
+    float pwHL = powf(lacunarity, -H);
+    float pwr = pwHL; /* starts with i=1 instead of 0 */
     x *= lacunarity;
     y *= lacunarity;
     z *= lacunarity;
-    weight = signal * gain;
+    float weight = signal * gain;
     if (weight > 1.0f) {
       weight = 1.0f;
     }
@@ -1708,10 +1676,7 @@ float BLI_mg_RidgedMultiFractal(float x,
  */
 float BLI_mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int nbas2)
 {
-  float rv[3];
   float (*noisefunc1)(float, float, float);
-  float (*noisefunc2)(float, float, float);
-
   switch (nbas1) {
     case 1:
       noisefunc1 = orgPerlinNoise;
@@ -1747,6 +1712,7 @@ float BLI_mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int
     }
   }
 
+  float (*noisefunc2)(float, float, float);
   switch (nbas2) {
     case 1:
       noisefunc2 = orgPerlinNoise;
@@ -1783,9 +1749,12 @@ float BLI_mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int
   }
 
   /* get a random vector and scale the randomization */
-  rv[0] = noisefunc1(x + 13.5f, y + 13.5f, z + 13.5f) * distortion;
-  rv[1] = noisefunc1(x, y, z) * distortion;
-  rv[2] = noisefunc1(x - 13.5f, y - 13.5f, z - 13.5f) * distortion;
+  float rv[3] = {
+    rv[0] = noisefunc1(x + 13.5f, y + 13.5f, z + 13.5f) * distortion,
+    rv[1] = noisefunc1(x, y, z) * distortion,
+    rv[2] = noisefunc1(x - 13.5f, y - 13.5f, z - 13.5f) * distortion,
+  };
+
   return noisefunc2(x + rv[0], y + rv[1], z + rv[2]); /* distorted-domain noise */
 }
 
