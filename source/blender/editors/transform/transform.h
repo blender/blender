@@ -282,8 +282,6 @@ typedef struct TransInfo {
   short state;
   /** Current context/options for transform. */
   int options;
-  /** Initial value for some transformations (and rotation angle). */
-  float val;
   void (*transform)(struct TransInfo *, const int[2]);
   /** Transform function pointer. */
   eRedrawFlag (*handleEvent)(struct TransInfo *, const struct wmEvent *);
