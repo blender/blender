@@ -89,7 +89,7 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
   PBVHNode *node = data->nodes[i];
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i], SCULPT_UNDO_COORDS);
 
   PBVHVertexIter vd;
 

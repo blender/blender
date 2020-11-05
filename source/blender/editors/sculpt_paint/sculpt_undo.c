@@ -338,7 +338,7 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
     MPropCol *vcol = ss->vcol;
 
     for (int i = 0; i < unode->totvert; i++) {
-      copy_v4_v4(vcol[index[i]].color, unode->col[i]);
+      swap_v4_v4(vcol[index[i]].color, unode->col[i]);
       mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
     }
   }
@@ -624,7 +624,9 @@ static int sculpt_undo_bmesh_restore(bContext *C,
   return false;
 }
 
-static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)
+static void sculpt_undo_restore_list(bContext *C,
+                                                              Depsgraph *depsgraph,
+                                                              ListBase *lb)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -707,6 +709,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
      * continue. */
     if (unode->maxvert) {
       if (ss->totvert != unode->maxvert) {
+        printf("error! %s\n", __func__);
         continue;
       }
     }
@@ -918,7 +921,7 @@ static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
 }
 #endif
 
-SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node)
+SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
 
@@ -926,7 +929,19 @@ SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node)
     return NULL;
   }
 
-  return BLI_findptr(&usculpt->nodes, node, offsetof(SculptUndoNode, node));
+  if (type < 0) {
+    return BLI_findptr(&usculpt->nodes, node, offsetof(SculptUndoNode, node));
+  }
+
+  SculptUndoNode *unode;
+
+  for (unode = usculpt->nodes.first; unode; unode = unode->next) {
+    if (unode->node == node && type == unode->type) {
+      return unode;
+    }
+  }
+
+  return NULL;
 }
 
 SculptUndoNode *SCULPT_undo_get_first_node()
@@ -1304,7 +1319,10 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   return unode;
 }
 
-bool SCULPT_ensure_dyntopo_node_undo(Object *ob, PBVHNode *node, SculptUndoType type, int extraType)
+bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
+                                     PBVHNode *node,
+                                     SculptUndoType type,
+                                     int extraType)
 {
   SculptSession *ss = ob->sculpt;
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
@@ -1378,7 +1396,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  if ((unode = SCULPT_undo_get_node(node))) {
+  if ((unode = SCULPT_undo_get_node(node, type))) {
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
@@ -1436,6 +1454,8 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
   else {
     unode->shapeName[0] = '\0';
   }
+
+  sculpt_undo_print_nodes(NULL);
 
   BLI_thread_unlock(LOCK_CUSTOM1);
 

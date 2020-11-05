@@ -242,12 +242,6 @@ typedef struct {
   struct SculptSession *ss;
 } SculptOrigVertData;
 
-void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node);
-void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter);
-void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
-                                      Object *ob,
-                                      struct SculptUndoNode *unode);
-
 /* Utils. */
 void SCULPT_calc_brush_plane(struct Sculpt *sd,
                              struct Object *ob,
@@ -1105,8 +1099,17 @@ void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
                                       const float angle);
 void SCULPT_cache_free(StrokeCache *cache);
 
+void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
+                                Object *ob,
+                                PBVHNode *node,
+                                SculptUndoType type);
+void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter);
+void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
+                                      Object *ob,
+                                      struct SculptUndoNode *unode);
+
 SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
-SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node);
+SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
 void SCULPT_undo_push_begin(const char *name);
 void SCULPT_undo_push_end(void);
