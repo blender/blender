@@ -4261,8 +4261,8 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
                    0,
                    "");
         }
-        uiItemS(column);
       }
+      uiItemS(column);
     }
     else {
       if (item->icon) {
