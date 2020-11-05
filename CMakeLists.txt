@@ -526,10 +526,10 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
         # Silence the warning that object-size is not effective in -O0.
         set(_asan_defaults "${_asan_defaults}")
       else()
-        set(_asan_defaults "${_asan_defaults} -fsanitize=object-size")
+        string(APPEND _asan_defaults " -fsanitize=object-size")
       endif()
     else()
-      set(_asan_defaults "${_asan_defaults} -fsanitize=leak -fsanitize=object-size")
+      string(APPEND _asan_defaults " -fsanitize=leak -fsanitize=object-size")
     endif()
 
     set(COMPILER_ASAN_CFLAGS "${_asan_defaults}" CACHE STRING "C flags for address sanitizer")
@@ -863,11 +863,11 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
       # Since linker flags are not set, all compiler checks and `find_package`
       # calls that rely on `try_compile` will fail.
       # See CMP0066 also.
-      set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${COMPILER_ASAN_CFLAGS}")
-      set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} ${COMPILER_ASAN_CFLAGS}")
+      string(APPEND CMAKE_C_FLAGS_DEBUG " ${COMPILER_ASAN_CFLAGS}")
+      string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " ${COMPILER_ASAN_CFLAGS}")
 
-      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COMPILER_ASAN_CXXFLAGS}")
-      set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${COMPILER_ASAN_CXXFLAGS}")
+      string(APPEND CMAKE_CXX_FLAGS_DEBUG " ${COMPILER_ASAN_CXXFLAGS}")
+      string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " ${COMPILER_ASAN_CXXFLAGS}")
     endif()
     if(MSVC)
       set(COMPILER_ASAN_LINKER_FLAGS "/FUNCTIONPADMIN:6")
@@ -946,11 +946,11 @@ endif()
 # Do it globally, SSE2 is required for quite some time now.
 # Doing it now allows to use SSE/SSE2 in inline headers.
 if(SUPPORT_SSE_BUILD)
-  set(PLATFORM_CFLAGS " ${COMPILER_SSE_FLAG} ${PLATFORM_CFLAGS}")
+  string(PREPEND PLATFORM_CFLAGS "${COMPILER_SSE_FLAG} ")
   add_definitions(-D__SSE__ -D__MMX__)
 endif()
 if(SUPPORT_SSE2_BUILD)
-  set(PLATFORM_CFLAGS " ${PLATFORM_CFLAGS} ${COMPILER_SSE2_FLAG}")
+  string(APPEND PLATFORM_CFLAGS " ${COMPILER_SSE2_FLAG}")
   add_definitions(-D__SSE2__)
   if(NOT SUPPORT_SSE_BUILD) # don't double up
     add_definitions(-D__MMX__)
@@ -1162,8 +1162,8 @@ if(WITH_OPENMP)
 
   if(OPENMP_FOUND)
     if(NOT WITH_OPENMP_STATIC)
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+      string(APPEND CMAKE_C_FLAGS " ${OpenMP_C_FLAGS}")
+      string(APPEND CMAKE_CXX_FLAGS " ${OpenMP_CXX_FLAGS}")
     else()
       # Typically avoid adding flags as defines but we can't
       # pass OpenMP flags to the linker for static builds, meaning
@@ -1553,8 +1553,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
   ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
 
   # disable numbered, false positives
-  set(C_WARNINGS "${C_WARNINGS} -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
-  set(CXX_WARNINGS "${CXX_WARNINGS} -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
+  string(APPEND C_WARNINGS " -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
+  string(APPEND CXX_WARNINGS " -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
 elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   # most msvc warnings are C & C++
   set(_WARNINGS
@@ -1585,7 +1585,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 
   if(MSVC_VERSION GREATER_EQUAL 1911)
     # see https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5038?view=vs-2017
-    set(_WARNINGS "${_WARNINGS} /w35038") # order of initialization in c++ constructors
+    string(APPEND _WARNINGS " /w35038") # order of initialization in c++ constructors
   endif()
 
   string(REPLACE ";" " " _WARNINGS "${_WARNINGS}")
@@ -1626,19 +1626,19 @@ if(WITH_PYTHON)
 endif()
 
 if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
+  string(APPEND CMAKE_CXX_FLAGS " /std:c++17")
   # Make MSVC properly report the value of the __cplusplus preprocessor macro
   # Available MSVC 15.7 (1914) and up, without this it reports 199711L regardless
   # of the C++ standard chosen above
   if(MSVC_VERSION GREATER 1913)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
+    string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
   endif()
 elseif(
   CMAKE_COMPILER_IS_GNUCC OR
   CMAKE_C_COMPILER_ID MATCHES "Clang" OR
   CMAKE_C_COMPILER_ID MATCHES "Intel"
 )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+  string(APPEND CMAKE_CXX_FLAGS " -std=c++17")
 else()
   message(FATAL_ERROR "Unknown compiler ${CMAKE_C_COMPILER_ID}, can't enable C++17 build")
 endif()
@@ -1651,12 +1651,12 @@ if(
   (CMAKE_C_COMPILER_ID MATCHES "Intel")
 )
   # Use C11 + GNU extensions, works with GCC, Clang, ICC
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+  string(APPEND CMAKE_C_FLAGS " -std=gnu11")
 endif()
 
 if(UNIX AND NOT APPLE)
   if(NOT WITH_CXX11_ABI)
-    set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
+    string(APPEND PLATFORM_CFLAGS " -D_GLIBCXX_USE_CXX11_ABI=0")
   endif()
 endif()
 
@@ -1682,7 +1682,7 @@ if(WITH_COMPILER_SHORT_FILE_MACRO)
       # Keep this variable so it can be stripped from build-info.
       set(PLATFORM_CFLAGS_FMACRO_PREFIX_MAP
         "-fmacro-prefix-map=\"${_src_dir}\"=\"\" -fmacro-prefix-map=\"${_bin_dir}\"=\"\"")
-      set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} ${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}")
+      string(APPEND PLATFORM_CFLAGS " ${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}")
       unset(_src_dir)
       unset(_bin_dir)
     endif()
@@ -1795,7 +1795,7 @@ if(FIRST_RUN)
     set(_msg "  - ${_setting}")
     string(LENGTH "${_msg}" _len)
     while("32" GREATER "${_len}")
-      set(_msg "${_msg} ")
+      string(APPEND _msg " ")
       math(EXPR _len "${_len} + 1")
     endwhile()
 

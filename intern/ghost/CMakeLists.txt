@@ -332,7 +332,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
 elseif(WIN32)
   # # Warnings as errors, this is too strict!
   # if(MSVC)
-  #   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
+  #   string(APPEND CMAKE_CXX_FLAGS " /WX")
   # endif()
 
   list(APPEND INC_SYS

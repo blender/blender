@@ -45,7 +45,7 @@ if(WITH_CYCLES_NATIVE_ONLY)
   )
 
   if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+    string(APPEND CMAKE_CXX_FLAGS " -march=native")
     set(CYCLES_KERNEL_FLAGS "-march=native")
   else()
     if(NOT MSVC_NATIVE_ARCH_FLAGS)
@@ -101,10 +101,10 @@ elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CYCLES_AVX2_KERNEL_FLAGS "${CYCLES_AVX2_ARCH_FLAGS} ${CYCLES_KERNEL_FLAGS}")
   endif()
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CYCLES_KERNEL_FLAGS}")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Ox")
-  set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /Ox")
+  string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_KERNEL_FLAGS}")
+  string(APPEND CMAKE_CXX_FLAGS_RELEASE " /Ox")
+  string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " /Ox")
+  string(APPEND CMAKE_CXX_FLAGS_MINSIZEREL " /Ox")
 elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   check_cxx_compiler_flag(-msse CXX_HAS_SSE)
   check_cxx_compiler_flag(-mavx CXX_HAS_AVX)
@@ -113,20 +113,20 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   # Assume no signal trapping for better code generation.
   set(CYCLES_KERNEL_FLAGS "-fno-trapping-math")
   # Avoid overhead of setting errno for NaNs.
-  set(CYCLES_KERNEL_FLAGS "${CYCLES_KERNEL_FLAGS} -fno-math-errno")
+  string(APPEND CYCLES_KERNEL_FLAGS " -fno-math-errno")
   # Let compiler optimize 0.0 - x without worrying about signed zeros.
-  set(CYCLES_KERNEL_FLAGS "${CYCLES_KERNEL_FLAGS} -fno-signed-zeros")
+  string(APPEND CYCLES_KERNEL_FLAGS " -fno-signed-zeros")
 
   if(CMAKE_COMPILER_IS_GNUCC)
     # Assume no signal trapping for better code generation.
-    set(CYCLES_KERNEL_FLAGS "${CYCLES_KERNEL_FLAGS} -fno-signaling-nans")
+    string(APPEND CYCLES_KERNEL_FLAGS " -fno-signaling-nans")
     # Assume a fixed rounding mode for better constant folding.
-    set(CYCLES_KERNEL_FLAGS "${CYCLES_KERNEL_FLAGS} -fno-rounding-math")
+    string(APPEND CYCLES_KERNEL_FLAGS " -fno-rounding-math")
   endif()
 
   if(CXX_HAS_SSE)
     if(CMAKE_COMPILER_IS_GNUCC)
-      set(CYCLES_KERNEL_FLAGS "${CYCLES_KERNEL_FLAGS} -mfpmath=sse")
+      string(APPEND CYCLES_KERNEL_FLAGS " -mfpmath=sse")
     endif()
 
     set(CYCLES_SSE2_KERNEL_FLAGS "${CYCLES_KERNEL_FLAGS} -msse -msse2")
@@ -140,7 +140,7 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
     endif()
   endif()
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CYCLES_KERNEL_FLAGS}")
+  string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_KERNEL_FLAGS}")
 elseif(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   check_cxx_compiler_flag(/QxSSE2 CXX_HAS_SSE)
   check_cxx_compiler_flag(/arch:AVX CXX_HAS_AVX)

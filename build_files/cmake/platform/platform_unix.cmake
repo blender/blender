@@ -73,7 +73,7 @@ if(EXISTS ${LIBDIR})
 endif()
 
 if(WITH_STATIC_LIBS)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " -static-libstdc++")
 endif()
 
 # Wrapper to prefer static libraries
@@ -620,7 +620,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS_RELEASE          "${GCC_EXTRA_FLAGS_RELEASE} ${CMAKE_C_FLAGS_RELEASE}")
   set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${GCC_EXTRA_FLAGS_RELEASE} ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
   set(CMAKE_CXX_FLAGS_RELEASE        "${GCC_EXTRA_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELEASE}")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GCC_EXTRA_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+  string(PREPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GCC_EXTRA_FLAGS_RELEASE} ")
   unset(GCC_EXTRA_FLAGS_RELEASE)
 
   if(WITH_LINKER_GOLD)
@@ -628,8 +628,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
       COMMAND ${CMAKE_C_COMPILER} -fuse-ld=gold -Wl,--version
       ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
     if("${LD_VERSION}" MATCHES "GNU gold")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fuse-ld=gold")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=gold")
+      string(APPEND CMAKE_C_FLAGS " -fuse-ld=gold")
+      string(APPEND CMAKE_CXX_FLAGS " -fuse-ld=gold")
     else()
       message(STATUS "GNU gold linker isn't available, using the default system linker.")
     endif()
@@ -641,8 +641,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
       COMMAND ${CMAKE_C_COMPILER} -fuse-ld=lld -Wl,--version
       ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
     if("${LD_VERSION}" MATCHES "LLD")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fuse-ld=lld")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=lld")
+      string(APPEND CMAKE_C_FLAGS " -fuse-ld=lld")
+      string(APPEND CMAKE_CXX_FLAGS " -fuse-ld=lld")
     else()
       message(STATUS "LLD linker isn't available, using the default system linker.")
     endif()
@@ -667,12 +667,12 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
   endif()
   mark_as_advanced(XILD)
 
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fp-model precise -prec_div -parallel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model precise -prec_div -parallel")
+  string(APPEND CMAKE_C_FLAGS " -fp-model precise -prec_div -parallel")
+  string(APPEND CMAKE_CXX_FLAGS " -fp-model precise -prec_div -parallel")
 
-  # set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -diag-enable sc3")
+  # string(APPEND PLATFORM_CFLAGS " -diag-enable sc3")
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
-  set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-intel")
+  string(APPEND PLATFORM_LINKFLAGS " -static-intel")
 endif()
 
 # Avoid conflicts with Mesa llvmpipe, Luxrender, and other plug-ins that may
@@ -685,5 +685,5 @@ set(PLATFORM_LINKFLAGS
 # browsers can't properly detect blender as an executable then. Still enabled
 # for non-portable installs as typically used by Linux distributions.
 if(WITH_INSTALL_PORTABLE)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -no-pie")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " -no-pie")
 endif()

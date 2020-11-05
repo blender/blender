@@ -196,7 +196,7 @@ function(blender_user_header_search_paths
     foreach(_INC ${includes})
       get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
       # _ALL_INCS is a space-separated string of file paths in quotes.
-      set(_ALL_INCS "${_ALL_INCS} \"${_ABS_INC}\"")
+      string(APPEND _ALL_INCS " \"${_ABS_INC}\"")
     endforeach()
     set_target_properties(${name} PROPERTIES XCODE_ATTRIBUTE_USER_HEADER_SEARCH_PATHS "${_ALL_INCS}")
   endif()
@@ -263,11 +263,11 @@ macro(add_cc_flags_custom_test
   string(TOUPPER ${name} _name_upper)
   if(DEFINED CMAKE_C_FLAGS_${_name_upper})
     message(STATUS "Using custom CFLAGS: CMAKE_C_FLAGS_${_name_upper} in \"${CMAKE_CURRENT_SOURCE_DIR}\"")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${_name_upper}}" ${ARGV1})
+    string(APPEND CMAKE_C_FLAGS " ${CMAKE_C_FLAGS_${_name_upper}}" ${ARGV1})
   endif()
   if(DEFINED CMAKE_CXX_FLAGS_${_name_upper})
     message(STATUS "Using custom CXXFLAGS: CMAKE_CXX_FLAGS_${_name_upper} in \"${CMAKE_CURRENT_SOURCE_DIR}\"")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${_name_upper}}" ${ARGV1})
+    string(APPEND CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS_${_name_upper}}" ${ARGV1})
   endif()
   unset(_name_upper)
 
@@ -688,14 +688,14 @@ endmacro()
 macro(add_c_flag
   flag)
 
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+  string(APPEND CMAKE_C_FLAGS " ${flag}")
+  string(APPEND CMAKE_CXX_FLAGS " ${flag}")
 endmacro()
 
 macro(add_cxx_flag
   flag)
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+  string(APPEND CMAKE_CXX_FLAGS " ${flag}")
 endmacro()
 
 macro(remove_strict_flags)
