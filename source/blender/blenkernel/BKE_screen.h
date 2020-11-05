@@ -33,6 +33,9 @@ extern "C" {
 #endif
 
 struct ARegion;
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendWriter;
 struct Header;
 struct ID;
 struct LibraryForeachIDData;
@@ -58,9 +61,6 @@ struct wmMsgBus;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via
  * ED_spacetypes_init() in editors/space_api/spacetypes.c   */

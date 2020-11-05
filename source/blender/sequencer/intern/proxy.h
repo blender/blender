@@ -27,8 +27,8 @@
 extern "C" {
 #endif
 
-struct SeqRenderData;
 struct ImBuf;
+struct SeqRenderData;
 struct Sequence;
 
 #define PROXY_MAXFILE (2 * FILE_MAXDIR + FILE_MAXFILE)

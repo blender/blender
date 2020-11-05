@@ -34,6 +34,8 @@ extern "C" {
 #define TODO_LAYER           /* generic todo */
 
 struct Base;
+struct BlendDataReader;
+struct BlendLibReader;
 struct Collection;
 struct Depsgraph;
 struct LayerCollection;
@@ -42,8 +44,6 @@ struct Object;
 struct Scene;
 struct View3D;
 struct ViewLayer;
-struct BlendDataReader;
-struct BlendLibReader;
 
 typedef enum eViewLayerCopyMethod {
   VIEWLAYER_ADD_NEW = 0,

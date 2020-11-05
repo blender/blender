@@ -35,17 +35,17 @@ extern "C" {
 
 struct BLI_Iterator;
 struct Base;
+struct BlendDataReader;
+struct BlendExpander;
+struct BlendLibReader;
+struct BlendWriter;
 struct Collection;
+struct Library;
 struct Main;
 struct Object;
 struct Scene;
-struct ViewLayer;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
-struct BlendExpander;
 struct SceneCollection;
-struct Library;
+struct ViewLayer;
 
 typedef struct CollectionParent {
   struct CollectionParent *next, *prev;
