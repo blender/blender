@@ -38,41 +38,41 @@ typedef struct bArgs bArgs;
  */
 typedef int (*BA_ArgCallback)(int argc, const char **argv, void *data);
 
-struct bArgs *BLI_argsInit(int argc, const char **argv);
-void BLI_argsFree(struct bArgs *ba);
+struct bArgs *BLI_args_create(int argc, const char **argv);
+void BLI_args_destroy(struct bArgs *ba);
 
-/** The pass to use for #BLI_argsAdd. */
-void BLI_argsPassSet(struct bArgs *ba, int current_pass);
+/** The pass to use for #BLI_args_add. */
+void BLI_args_pass_set(struct bArgs *ba, int current_pass);
 
 /**
  * Pass starts at 1, -1 means valid all the time
  * short_arg or long_arg can be null to specify no short or long versions
  */
-void BLI_argsAdd(struct bArgs *ba,
-                 const char *short_arg,
-                 const char *long_arg,
-                 const char *doc,
-                 BA_ArgCallback cb,
-                 void *data);
+void BLI_args_add(struct bArgs *ba,
+                  const char *short_arg,
+                  const char *long_arg,
+                  const char *doc,
+                  BA_ArgCallback cb,
+                  void *data);
 
 /**
  * Short_case and long_case specify if those arguments are case specific
  */
-void BLI_argsAddCase(struct bArgs *ba,
-                     const char *short_arg,
-                     int short_case,
-                     const char *long_arg,
-                     int long_case,
-                     const char *doc,
-                     BA_ArgCallback cb,
-                     void *data);
+void BLI_args_add_case(struct bArgs *ba,
+                       const char *short_arg,
+                       int short_case,
+                       const char *long_arg,
+                       int long_case,
+                       const char *doc,
+                       BA_ArgCallback cb,
+                       void *data);
 
-void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *data);
+void BLI_args_parse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *data);
 
-void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg);
-void BLI_argsPrintOtherDoc(struct bArgs *ba);
+void BLI_args_print_arg_doc(struct bArgs *ba, const char *arg);
+void BLI_args_print_other_doc(struct bArgs *ba);
 
-void BLI_argsPrint(struct bArgs *ba);
+void BLI_args_print(struct bArgs *ba);
 
 #ifdef __cplusplus
 }

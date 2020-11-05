@@ -111,7 +111,7 @@ static bArgument *lookUp(struct bArgs *ba, const char *arg, int pass, int case_s
   return BLI_ghash_lookup(ba->items, &key);
 }
 
-bArgs *BLI_argsInit(int argc, const char **argv)
+bArgs *BLI_args_create(int argc, const char **argv)
 {
   bArgs *ba = MEM_callocN(sizeof(bArgs), "bArgs");
   ba->passes = MEM_callocN(sizeof(int) * argc, "bArgs passes");
@@ -120,13 +120,13 @@ bArgs *BLI_argsInit(int argc, const char **argv)
   ba->argc = argc;
   ba->argv = argv;
 
-  /* Must be initialized by #BLI_argsPassSet. */
+  /* Must be initialized by #BLI_args_pass_set. */
   ba->current_pass = 0;
 
   return ba;
 }
 
-void BLI_argsFree(struct bArgs *ba)
+void BLI_args_destroy(struct bArgs *ba)
 {
   BLI_ghash_free(ba->items, MEM_freeN, MEM_freeN);
   MEM_freeN(ba->passes);
@@ -134,13 +134,13 @@ void BLI_argsFree(struct bArgs *ba)
   MEM_freeN(ba);
 }
 
-void BLI_argsPassSet(struct bArgs *ba, int current_pass)
+void BLI_args_pass_set(struct bArgs *ba, int current_pass)
 {
   BLI_assert((current_pass != 0) && (current_pass >= -1));
   ba->current_pass = current_pass;
 }
 
-void BLI_argsPrint(struct bArgs *ba)
+void BLI_args_print(struct bArgs *ba)
 {
   int i;
   for (i = 0; i < ba->argc; i++) {
@@ -206,14 +206,14 @@ static void internalAdd(
   BLI_ghash_insert(ba->items, key, a);
 }
 
-void BLI_argsAddCase(struct bArgs *ba,
-                     const char *short_arg,
-                     int short_case,
-                     const char *long_arg,
-                     int long_case,
-                     const char *doc,
-                     BA_ArgCallback cb,
-                     void *data)
+void BLI_args_add_case(struct bArgs *ba,
+                       const char *short_arg,
+                       int short_case,
+                       const char *long_arg,
+                       int long_case,
+                       const char *doc,
+                       BA_ArgCallback cb,
+                       void *data)
 {
   bArgDoc *d = internalDocs(ba, short_arg, long_arg, doc);
 
@@ -226,14 +226,14 @@ void BLI_argsAddCase(struct bArgs *ba,
   }
 }
 
-void BLI_argsAdd(struct bArgs *ba,
-                 const char *short_arg,
-                 const char *long_arg,
-                 const char *doc,
-                 BA_ArgCallback cb,
-                 void *data)
+void BLI_args_add(struct bArgs *ba,
+                  const char *short_arg,
+                  const char *long_arg,
+                  const char *doc,
+                  BA_ArgCallback cb,
+                  void *data)
 {
-  BLI_argsAddCase(ba, short_arg, 0, long_arg, 0, doc, cb, data);
+  BLI_args_add_case(ba, short_arg, 0, long_arg, 0, doc, cb, data);
 }
 
 static void internalDocPrint(bArgDoc *d)
@@ -251,7 +251,7 @@ static void internalDocPrint(bArgDoc *d)
   printf(" %s\n\n", d->documentation);
 }
 
-void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg)
+void BLI_args_print_arg_doc(struct bArgs *ba, const char *arg)
 {
   bArgument *a = lookUp(ba, arg, -1, -1);
 
@@ -264,7 +264,7 @@ void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg)
   }
 }
 
-void BLI_argsPrintOtherDoc(struct bArgs *ba)
+void BLI_args_print_other_doc(struct bArgs *ba)
 {
   bArgDoc *d;
 
@@ -275,7 +275,7 @@ void BLI_argsPrintOtherDoc(struct bArgs *ba)
   }
 }
 
-void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *default_data)
+void BLI_args_parse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *default_data)
 {
   BLI_assert((pass != 0) && (pass >= -1));
   int i = 0;
