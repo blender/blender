@@ -490,7 +490,7 @@ void EEVEE_motion_blur_swap_data(EEVEE_Data *vedata)
   BLI_assert((effects->enabled_effects & EFFECT_MOTION_BLUR) != 0);
 
   /* Camera Data. */
-  effects->motion_blur.camera[MB_PREV] = effects->motion_blur.camera[MB_CURR];
+  effects->motion_blur.camera[MB_PREV] = effects->motion_blur.camera[MB_NEXT];
 
   /* Object Data. */
   for (BLI_ghashIterator_init(&ghi, effects->motion_blur.object);
