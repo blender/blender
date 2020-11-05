@@ -684,7 +684,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
-      {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint", ""},
+      {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint Plane", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
