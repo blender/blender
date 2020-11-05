@@ -101,8 +101,8 @@ endif()
 if(APPLE)
   # SSE math is enabled by default on x86_64
   if(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -mfpmath=sse")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfpmath=sse")
+    string(APPEND CMAKE_C_FLAGS_RELEASE " -mfpmath=sse")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -mfpmath=sse")
   endif()
 endif()
 

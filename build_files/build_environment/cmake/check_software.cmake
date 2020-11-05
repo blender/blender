@@ -43,7 +43,7 @@ if(UNIX)
 
   if(APPLE)
     if(NOT EXISTS "/usr/local/opt/bison/bin/bison")
-      set(_software_missing "${_software_missing} bison")
+      string(APPEND _software_missing " bison")
     endif()
   endif()
 

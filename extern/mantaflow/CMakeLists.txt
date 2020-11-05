@@ -37,8 +37,8 @@ endif()
 
 if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
   if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+    string(APPEND CMAKE_C_FLAGS " -fvisibility=hidden")
+    string(APPEND CMAKE_CXX_FLAGS " -fvisibility=hidden")
   endif()
 endif()
 

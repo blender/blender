@@ -23,9 +23,9 @@ macro (add_c_flag_if_supported c_flag)
     message("Checking C compiler flag support for: " ${c_flag})
     check_c_compiler_flag("${c_flag}" C_FLAG_SUPPORTED)
     if (${C_FLAG_SUPPORTED})
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${c_flag}" CACHE STRING "")
+      string(APPEND CMAKE_C_FLAGS " ${c_flag}" CACHE STRING "")
     else ()
-      set(DRACO_FAILED_C_FLAGS "${DRACO_FAILED_C_FLAGS} ${c_flag}" CACHE STRING
+      string(APPEND DRACO_FAILED_C_FLAGS " ${c_flag}" CACHE STRING
           "" FORCE)
     endif ()
   endif ()
@@ -45,9 +45,9 @@ macro (add_cxx_flag_if_supported cxx_flag)
     message("Checking CXX compiler flag support for: " ${cxx_flag})
     check_cxx_compiler_flag("${cxx_flag}" CXX_FLAG_SUPPORTED)
     if (${CXX_FLAG_SUPPORTED})
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${cxx_flag}" CACHE STRING "")
+      string(APPEND CMAKE_CXX_FLAGS " ${cxx_flag}" CACHE STRING "")
     else()
-      set(DRACO_FAILED_CXX_FLAGS "${DRACO_FAILED_CXX_FLAGS} ${cxx_flag}" CACHE
+      string(APPEND DRACO_FAILED_CXX_FLAGS " ${cxx_flag}" CACHE
           STRING "" FORCE)
     endif ()
   endif ()
@@ -138,7 +138,7 @@ macro (append_as_flag flag)
   string(FIND "${DRACO_AS_FLAGS}" "${flag}" AS_FLAG_FOUND)
 
   if (${AS_FLAG_FOUND} EQUAL -1)
-    set(DRACO_AS_FLAGS "${DRACO_AS_FLAGS} ${flag}")
+    string(APPEND DRACO_AS_FLAGS " ${flag}")
   endif ()
 endmacro ()
 
@@ -148,7 +148,7 @@ macro (append_c_flag flag)
   string(FIND "${CMAKE_C_FLAGS}" "${flag}" C_FLAG_FOUND)
 
   if (${C_FLAG_FOUND} EQUAL -1)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}")
+    string(APPEND CMAKE_C_FLAGS " ${flag}")
   endif ()
 endmacro ()
 
@@ -158,7 +158,7 @@ macro (append_cxx_flag flag)
   string(FIND "${CMAKE_CXX_FLAGS}" "${flag}" CXX_FLAG_FOUND)
 
   if (${CXX_FLAG_FOUND} EQUAL -1)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+    string(APPEND CMAKE_CXX_FLAGS " ${flag}")
   endif ()
 endmacro ()
 
@@ -174,7 +174,7 @@ macro (append_exe_linker_flag flag)
   string(FIND "${CMAKE_EXE_LINKER_FLAGS}" "${flag}" LINKER_FLAG_FOUND)
 
   if (${LINKER_FLAG_FOUND} EQUAL -1)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${flag}")
+    string(APPEND CMAKE_EXE_LINKER_FLAGS " ${flag}")
   endif ()
 endmacro ()
 
@@ -191,7 +191,7 @@ function (append_link_flag_to_target target flags)
       return()
     endif ()
 
-    set(target_link_flags "${target_link_flags} ${flags}")
+    string(APPEND target_link_flags " ${flags}")
   else ()
     set(target_link_flags "${flags}")
   endif ()

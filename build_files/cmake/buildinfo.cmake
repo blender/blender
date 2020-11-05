@@ -128,7 +128,7 @@ if(EXISTS ${SOURCE_DIR}/.git)
                   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
   if(NOT _git_changed_files STREQUAL "")
-    set(MY_WC_BRANCH "${MY_WC_BRANCH} (modified)")
+    string(APPEND MY_WC_BRANCH " (modified)")
   else()
     # Unpushed commits are also considered local modifications
     execute_process(COMMAND git log @{u}..
@@ -137,7 +137,7 @@ if(EXISTS ${SOURCE_DIR}/.git)
                     OUTPUT_STRIP_TRAILING_WHITESPACE
                     ERROR_QUIET)
     if(NOT _git_unpushed_log STREQUAL "")
-      set(MY_WC_BRANCH "${MY_WC_BRANCH} (modified)")
+      string(APPEND MY_WC_BRANCH " (modified)")
     endif()
     unset(_git_unpushed_log)
   endif()

@@ -34,7 +34,7 @@ setup_libdirs()
 add_cc_flags_custom_test(msgfmt)
 
 if(WIN32)
-  set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /nodefaultlib:MSVCRT.lib")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /nodefaultlib:MSVCRT.lib")
 endif()
 
 add_executable(msgfmt ${SRC})

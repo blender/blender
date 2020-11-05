@@ -20,7 +20,7 @@
 
 if(CMAKE_COMPILER_IS_GNUCC)
   # add here so we fail early.
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=implicit-function-declaration")
+  string(APPEND CMAKE_C_FLAGS " -Werror=implicit-function-declaration")
 endif()
 
 # files rna_access.c rna_define.c makesrna.c intentionally excluded.
@@ -151,7 +151,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
   set(GENSRC_CFLAGS "-Wno-missing-prototypes")
 endif()
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-  set(GENSRC_CFLAGS "${GENSRC_CFLAGS} -Wno-missing-variable-declarations")
+  string(APPEND GENSRC_CFLAGS " -Wno-missing-variable-declarations")
 endif()
 
 if(GENSRC_CFLAGS)
