@@ -489,19 +489,19 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
     SpaceSeq *sseq = oglrender->sseq;
     int chanshown = sseq ? sseq->chanshown : 0;
 
-    BKE_sequencer_new_render_data(oglrender->bmain,
-                                  oglrender->depsgraph,
-                                  scene,
-                                  oglrender->sizex,
-                                  oglrender->sizey,
-                                  100,
-                                  false,
-                                  &context);
+    SEQ_render_new_render_data(oglrender->bmain,
+                               oglrender->depsgraph,
+                               scene,
+                               oglrender->sizex,
+                               oglrender->sizey,
+                               100,
+                               false,
+                               &context);
 
     for (view_id = 0; view_id < oglrender->views_len; view_id++) {
       context.view_id = view_id;
       context.gpu_offscreen = oglrender->ofs;
-      oglrender->seq_data.ibufs_arr[view_id] = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
+      oglrender->seq_data.ibufs_arr[view_id] = SEQ_render_give_ibuf(&context, CFRA, chanshown);
     }
   }
 

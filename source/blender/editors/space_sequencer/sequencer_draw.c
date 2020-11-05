@@ -1259,13 +1259,13 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
     render_size = scene->r.size / 100.0;
   }
   else {
-    render_size = BKE_sequencer_rendersize_to_scale_factor(sseq->render_size);
+    render_size = SEQ_rendersize_to_scale_factor(sseq->render_size);
   }
 
   rectx = roundf(render_size * scene->r.xsch);
   recty = roundf(render_size * scene->r.ysch);
 
-  BKE_sequencer_new_render_data(
+  SEQ_render_new_render_data(
       bmain, depsgraph, scene, rectx, recty, sseq->render_size, false, &context);
   context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
 
@@ -1285,10 +1285,10 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
   }
 
   if (special_seq_update) {
-    ibuf = BKE_sequencer_give_ibuf_direct(&context, cfra + frame_ofs, special_seq_update);
+    ibuf = SEQ_render_give_ibuf_direct(&context, cfra + frame_ofs, special_seq_update);
   }
   else {
-    ibuf = BKE_sequencer_give_ibuf(&context, cfra + frame_ofs, sseq->chanshown);
+    ibuf = SEQ_render_give_ibuf(&context, cfra + frame_ofs, sseq->chanshown);
   }
 
   if (viewport) {

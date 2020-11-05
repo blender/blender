@@ -161,7 +161,7 @@ void seq_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make_float)
   seq_imbuf_assign_spaces(scene, ibuf);
 }
 
-void BKE_sequencer_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf)
+void SEQ_render_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf)
 {
   const char *from_colorspace = scene->sequencer_colorspace_settings.name;
   const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
@@ -178,7 +178,7 @@ void BKE_sequencer_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf)
   }
 }
 
-void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4])
+void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4])
 {
   const char *from_colorspace = scene->sequencer_colorspace_settings.name;
   const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
@@ -193,7 +193,7 @@ void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixe
   }
 }
 
-void BKE_sequence_init_colorspace(Sequence *seq)
+void SEQ_render_init_colorspace(Sequence *seq)
 {
   if (seq->strip && seq->strip->stripdata) {
     char name[FILE_MAX];
@@ -226,14 +226,14 @@ void BKE_sequence_init_colorspace(Sequence *seq)
 /* -------------------------------------------------------------------- */
 /** \name Rendering utility functions
  * \{ */
-void BKE_sequencer_new_render_data(Main *bmain,
-                                   struct Depsgraph *depsgraph,
-                                   Scene *scene,
-                                   int rectx,
-                                   int recty,
-                                   int preview_render_size,
-                                   int for_render,
-                                   SeqRenderData *r_context)
+void SEQ_render_new_render_data(Main *bmain,
+                                struct Depsgraph *depsgraph,
+                                Scene *scene,
+                                int rectx,
+                                int recty,
+                                int preview_render_size,
+                                int for_render,
+                                SeqRenderData *r_context)
 {
   r_context->bmain = bmain;
   r_context->depsgraph = depsgraph;
@@ -306,7 +306,7 @@ float seq_give_stripelem_index(Sequence *seq, float cfra)
   return nr;
 }
 
-StripElem *BKE_sequencer_give_stripelem(Sequence *seq, int cfra)
+StripElem *SEQ_render_give_stripelem(Sequence *seq, int cfra)
 {
   StripElem *se = seq->strip->stripdata;
 
@@ -378,7 +378,7 @@ static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfr
   return totseq;
 }
 
-int BKE_sequencer_evaluate_frame(Scene *scene, int cfra)
+int SEQ_render_evaluate_frame(Scene *scene, int cfra)
 {
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   Sequence *seq_arr[MAXSEQ + 1];
@@ -674,7 +674,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     preview_scale_factor = (float)scene->r.size / 100;
   }
   else {
-    preview_scale_factor = BKE_sequencer_rendersize_to_scale_factor(context->preview_render_size);
+    preview_scale_factor = SEQ_rendersize_to_scale_factor(context->preview_render_size);
   }
 
   if (sequencer_use_crop(seq)) {
@@ -1070,7 +1070,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
   char prefix[FILE_MAX];
   ImBuf *ibuf = NULL;
 
-  StripElem *s_elem = BKE_sequencer_give_stripelem(seq, cfra);
+  StripElem *s_elem = SEQ_render_give_stripelem(seq, cfra);
   if (s_elem == NULL) {
     return NULL;
   }
@@ -2025,7 +2025,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
  * you have to free after usage!
  */
 
-ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int chanshown)
+ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float cfra, int chanshown)
 {
   Scene *scene = context->scene;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
@@ -2094,7 +2094,7 @@ ImBuf *seq_render_give_ibuf_seqbase(const SeqRenderData *context,
   return seq_render_strip_stack(context, &state, seqbasep, cfra, chan_shown);
 }
 
-ImBuf *BKE_sequencer_give_ibuf_direct(const SeqRenderData *context, float cfra, Sequence *seq)
+ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context, float cfra, Sequence *seq)
 {
   SeqRenderState state;
   seq_render_state_init(&state);

@@ -142,21 +142,21 @@ typedef struct SeqRenderData {
   // bool gpu_full_samples;
 } SeqRenderData;
 
-struct ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int chanshown);
-struct ImBuf *BKE_sequencer_give_ibuf_direct(const SeqRenderData *context,
-                                             float cfra,
-                                             struct Sequence *seq);
-void BKE_sequence_init_colorspace(struct Sequence *seq);
-void BKE_sequencer_new_render_data(struct Main *bmain,
-                                   struct Depsgraph *depsgraph,
-                                   struct Scene *scene,
-                                   int rectx,
-                                   int recty,
-                                   int preview_render_size,
-                                   int for_render,
-                                   SeqRenderData *r_context);
-int BKE_sequencer_evaluate_frame(struct Scene *scene, int cfra);
-struct StripElem *BKE_sequencer_give_stripelem(struct Sequence *seq, int cfra);
+struct ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float cfra, int chanshown);
+struct ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
+                                          float cfra,
+                                          struct Sequence *seq);
+void SEQ_render_init_colorspace(struct Sequence *seq);
+void SEQ_render_new_render_data(struct Main *bmain,
+                                struct Depsgraph *depsgraph,
+                                struct Scene *scene,
+                                int rectx,
+                                int recty,
+                                int preview_render_size,
+                                int for_render,
+                                SeqRenderData *r_context);
+int SEQ_render_evaluate_frame(struct Scene *scene, int cfra);
+struct StripElem *SEQ_render_give_stripelem(struct Sequence *seq, int cfra);
 
 /* **********************************************************************
  * render.c
@@ -164,8 +164,8 @@ struct StripElem *BKE_sequencer_give_stripelem(struct Sequence *seq, int cfra);
  * Sequencer color space functions
  * ********************************************************************** */
 
-void BKE_sequencer_imbuf_from_sequencer_space(struct Scene *scene, struct ImBuf *ibuf);
-void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4]);
+void SEQ_render_imbuf_from_sequencer_space(struct Scene *scene, struct ImBuf *ibuf);
+void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4]);
 
 /* **********************************************************************
  * sequencer.c
@@ -229,21 +229,21 @@ int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b);
  * Proxy functions
  * ********************************************************************** */
 
-bool BKE_sequencer_proxy_rebuild_context(struct Main *bmain,
-                                         struct Depsgraph *depsgraph,
-                                         struct Scene *scene,
-                                         struct Sequence *seq,
-                                         struct GSet *file_list,
-                                         ListBase *queue);
-void BKE_sequencer_proxy_rebuild(struct SeqIndexBuildContext *context,
-                                 short *stop,
-                                 short *do_update,
-                                 float *progress);
-void BKE_sequencer_proxy_rebuild_finish(struct SeqIndexBuildContext *context, bool stop);
-void BKE_sequencer_proxy_set(struct Sequence *seq, bool value);
+bool SEQ_proxy_rebuild_context(struct Main *bmain,
+                               struct Depsgraph *depsgraph,
+                               struct Scene *scene,
+                               struct Sequence *seq,
+                               struct GSet *file_list,
+                               ListBase *queue);
+void SEQ_proxy_rebuild(struct SeqIndexBuildContext *context,
+                       short *stop,
+                       short *do_update,
+                       float *progress);
+void SEQ_proxy_rebuild_finish(struct SeqIndexBuildContext *context, bool stop);
+void SEQ_proxy_set(struct Sequence *seq, bool value);
 bool SEQ_can_use_proxy(struct Sequence *seq, int psize);
 int SEQ_rendersize_to_proxysize(int render_size);
-double BKE_sequencer_rendersize_to_scale_factor(int size);
+double SEQ_rendersize_to_scale_factor(int size);
 
 /* **********************************************************************
  * image_cache.c

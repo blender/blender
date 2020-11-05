@@ -1415,7 +1415,7 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
 
   if (seq->modifiers.first && (seq->flag & SEQ_USE_LINEAR_MODIFIERS)) {
     processed_ibuf = IMB_dupImBuf(ibuf);
-    BKE_sequencer_imbuf_from_sequencer_space(context->scene, processed_ibuf);
+    SEQ_render_imbuf_from_sequencer_space(context->scene, processed_ibuf);
   }
 
   for (smd = seq->modifiers.first; smd; smd = smd->next) {

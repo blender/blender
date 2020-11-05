@@ -470,7 +470,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 static void rna_Sequence_use_proxy_set(PointerRNA *ptr, bool value)
 {
   Sequence *seq = (Sequence *)ptr->data;
-  BKE_sequencer_proxy_set(seq, value != 0);
+  SEQ_proxy_set(seq, value != 0);
 }
 
 static int transform_seq_cmp_fn(Sequence *seq, void *arg_pt)

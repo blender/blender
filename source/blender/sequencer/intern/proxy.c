@@ -90,7 +90,7 @@ int SEQ_rendersize_to_proxysize(int render_size)
   return IMB_PROXY_NONE;
 }
 
-double BKE_sequencer_rendersize_to_scale_factor(int render_size)
+double SEQ_rendersize_to_scale_factor(int render_size)
 {
   switch (render_size) {
     case SEQ_RENDER_SIZE_PROXY_25:
@@ -179,14 +179,14 @@ static bool seq_proxy_get_fname(Editing *ed,
   }
 
   /* Proxy size number to be used in path. */
-  int proxy_size_number = BKE_sequencer_rendersize_to_scale_factor(render_size) * 100;
+  int proxy_size_number = SEQ_rendersize_to_scale_factor(render_size) * 100;
 
   BLI_snprintf(name,
                PROXY_MAXFILE,
                "%s/images/%d/%s_proxy%s",
                dir,
                proxy_size_number,
-               BKE_sequencer_give_stripelem(seq, cfra)->name,
+               SEQ_render_give_stripelem(seq, cfra)->name,
                suffix);
   BLI_path_abs(name, BKE_main_blendfile_path_from_global());
   strcat(name, ".jpg");
@@ -390,12 +390,12 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
   return num_views;
 }
 
-bool BKE_sequencer_proxy_rebuild_context(Main *bmain,
-                                         Depsgraph *depsgraph,
-                                         Scene *scene,
-                                         Sequence *seq,
-                                         struct GSet *file_list,
-                                         ListBase *queue)
+bool SEQ_proxy_rebuild_context(Main *bmain,
+                               Depsgraph *depsgraph,
+                               Scene *scene,
+                               Sequence *seq,
+                               struct GSet *file_list,
+                               ListBase *queue)
 {
   SeqIndexBuildContext *context;
   Sequence *nseq;
@@ -461,10 +461,10 @@ bool BKE_sequencer_proxy_rebuild_context(Main *bmain,
   return true;
 }
 
-void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context,
-                                 short *stop,
-                                 short *do_update,
-                                 float *progress)
+void SEQ_proxy_rebuild(SeqIndexBuildContext *context,
+                       short *stop,
+                       short *do_update,
+                       float *progress)
 {
   const bool overwrite = context->overwrite;
   SeqRenderData render_context;
@@ -492,14 +492,14 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context,
 
   /* fail safe code */
 
-  BKE_sequencer_new_render_data(bmain,
-                                context->depsgraph,
-                                context->scene,
-                                roundf((scene->r.size * (float)scene->r.xsch) / 100.0f),
-                                roundf((scene->r.size * (float)scene->r.ysch) / 100.0f),
-                                100,
-                                false,
-                                &render_context);
+  SEQ_render_new_render_data(bmain,
+                             context->depsgraph,
+                             context->scene,
+                             roundf((scene->r.size * (float)scene->r.xsch) / 100.0f),
+                             roundf((scene->r.size * (float)scene->r.ysch) / 100.0f),
+                             100,
+                             false,
+                             &render_context);
 
   render_context.skip_cache = true;
   render_context.is_proxy_render = true;
@@ -532,7 +532,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context,
   }
 }
 
-void BKE_sequencer_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
+void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
 {
   if (context->index_context) {
     StripAnim *sanim;
@@ -553,7 +553,7 @@ void BKE_sequencer_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop
   MEM_freeN(context);
 }
 
-void BKE_sequencer_proxy_set(struct Sequence *seq, bool value)
+void SEQ_proxy_set(struct Sequence *seq, bool value)
 {
   if (value) {
     seq->flag |= SEQ_USE_PROXY;

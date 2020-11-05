@@ -370,7 +370,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 
       /* sequencer's image buffers are in non-linear space, need to make them linear */
       copy_v4_v4(info->linearcol, info->colf);
-      BKE_sequencer_pixel_from_sequencer_space_v4(scene, info->linearcol);
+      SEQ_render_pixel_from_sequencer_space_v4(scene, info->linearcol);
 
       info->color_manage = true;
     }
