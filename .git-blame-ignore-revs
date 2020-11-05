@@ -43,3 +43,51 @@ e0cb02587012b4b2f4b18363dc7d0a7da2c02093
 
 # Cleanup: use C comments for descriptive text
 2abfcebb0eb7989e3d1e7d03f37ecf5c088210af
+
+# use lowercase for cmake builtin names and macros, remove contents in else() and endif() which is no longer needed.
+afacd184982e58a9c830a3d5366e25983939a7ba
+
+# Spelling: It's Versus Its
+3a7fd309fce89213b0224b3c6807adb2d1fe7ca8
+
+# Spelling: Then Versus Than
+d1eefc421544e2ea632fb35cb6bcaade4c39ce6b
+
+# Spelling: Miscellaneous
+84ef3b80de4915a24a9fd2fd214d0fa44e59b854
+
+# Spelling: Loose Versus Lose
+c0a6bc19794c69843c38451c762e91bc10136e0f
+
+# Spelling: Apart Versus A Part
+3d26cd01b9ba6381eb165e11536345ae652dfb41
+
+# Cleanup: use 2 space indentation for CMake
+3076d95ba441cd32706a27d18922a30f8fd28b8a
+
+# Cleanup: use over-line for doxy comments
+4b188bb08cf5aaae3c68ab57bbcfa037eef1ac10
+
+# Cleanup: General comment style clean up of graph_edit.c and fcurve.c
+0105f146bb40bd609ccbda3d3f6aeb8e14ad3f9e
+
+# Cleanup: pep8 (indentation, spacing, long lines)
+41d2d6da0c96d351b47acb64d3e0decdba16cb16
+
+# Cleanup: pep8, blank lines
+bab9de2a52929fe2b45ecddb1eb09da3378e303b
+
+# Cleanup: PEP8 for python changes
+1e7e94588daa66483190f45a9de5e98228f80e05
+
+# GPencil: Cleanup pep8
+a09cc3ee1a99f2cd5040bbf30c8ab8c588bb2bb1
+
+# Cleanup: trailing space, remove tabs, pep8
+c42a6b77b52560d257279de2cb624b4ef2c0d24c
+
+# Cleanup: use C style doxygen comments
+8c1726918374e1d2d2123e17bae8db5aadde3433
+
+# Cleanup: use doxy sections for imbuf
+c207f7c22e1439e0b285fba5d2c072bdae23f981
