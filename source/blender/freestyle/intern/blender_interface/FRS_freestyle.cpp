@@ -59,7 +59,7 @@ using namespace Freestyle;
 
 #include "DEG_depsgraph_query.h"
 
-#include "renderpipeline.h"
+#include "pipeline.h"
 
 #include "FRS_freestyle.h"
 

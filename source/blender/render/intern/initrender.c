@@ -41,7 +41,7 @@
 
 /* this module */
 #include "render_types.h"
-#include "renderpipeline.h"
+#include "pipeline.h"
 
 /* Own includes */
 #include "initrender.h"

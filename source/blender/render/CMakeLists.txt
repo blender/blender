@@ -42,16 +42,16 @@ set(INC
 
 
 set(SRC
-  intern/source/bake_api.c
-  intern/source/external_engine.c
-  intern/source/imagetexture.c
-  intern/source/initrender.c
-  intern/source/multires_bake.c
-  intern/source/pipeline.c
-  intern/source/pointdensity.c
-  intern/source/render_result.c
-  intern/source/render_texture.c
-  intern/source/zbuf.c
+  intern/bake_api.c
+  intern/external_engine.c
+  intern/imagetexture.c
+  intern/initrender.c
+  intern/multires_bake.c
+  intern/pipeline.c
+  intern/pointdensity.c
+  intern/render_result.c
+  intern/render_texture.c
+  intern/zbuf.c
 
   RE_bake.h
   RE_engine.h
@@ -60,12 +60,12 @@ set(SRC
   RE_render_ext.h
   RE_shader_ext.h
 
-  intern/include/initrender.h
-  intern/include/render_result.h
-  intern/include/render_types.h
-  intern/include/renderpipeline.h
-  intern/include/texture.h
-  intern/include/zbuf.h
+  intern/initrender.h
+  intern/render_result.h
+  intern/render_types.h
+  intern/pipeline.h
+  intern/texture.h
+  intern/zbuf.h
 )
 
 set(LIB

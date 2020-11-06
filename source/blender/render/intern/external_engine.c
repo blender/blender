@@ -65,7 +65,7 @@
 #include "initrender.h"
 #include "render_result.h"
 #include "render_types.h"
-#include "renderpipeline.h"
+#include "pipeline.h"
 
 /* Render Engine Types */
 
