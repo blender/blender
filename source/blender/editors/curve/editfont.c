@@ -1695,8 +1695,8 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (event_val && (ascii || event->utf8_buf[0])) {
     /* handle case like TAB (== 9) */
-    if ((ascii > 31 && ascii < 254 && ascii != 127) || (ELEM(ascii, 13, 10)) ||
-        (ascii == 8) || (event->utf8_buf[0])) {
+    if ((ascii > 31 && ascii < 254 && ascii != 127) || (ELEM(ascii, 13, 10)) || (ascii == 8) ||
+        (event->utf8_buf[0])) {
 
       if (accentcode) {
         if (ef->pos > 0) {
