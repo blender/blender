@@ -63,9 +63,9 @@
 #include "DRW_engine.h"
 
 #include "initrender.h"
+#include "pipeline.h"
 #include "render_result.h"
 #include "render_types.h"
-#include "pipeline.h"
 
 /* Render Engine Types */
 
