@@ -3621,7 +3621,7 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 {
   PropertyRNA *prop;
   const char *name;
-  bool use_ghost = false;
+  bool use_ghost = true;
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
