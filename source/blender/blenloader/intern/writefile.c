@@ -1322,11 +1322,6 @@ static void write_view_settings(BlendWriter *writer, ColorManagedViewSettings *v
   }
 }
 
-static void write_paint(BlendWriter *writer, Paint *p)
-{
-  BKE_paint_blend_write(writer, p);
-}
-
 static void write_layer_collections(BlendWriter *writer, ListBase *lb)
 {
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
@@ -1412,35 +1407,35 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   BLO_write_struct(writer, ToolSettings, tos);
   if (tos->vpaint) {
     BLO_write_struct(writer, VPaint, tos->vpaint);
-    write_paint(writer, &tos->vpaint->paint);
+    BKE_paint_blend_write(writer, &tos->vpaint->paint);
   }
   if (tos->wpaint) {
     BLO_write_struct(writer, VPaint, tos->wpaint);
-    write_paint(writer, &tos->wpaint->paint);
+    BKE_paint_blend_write(writer, &tos->wpaint->paint);
   }
   if (tos->sculpt) {
     BLO_write_struct(writer, Sculpt, tos->sculpt);
-    write_paint(writer, &tos->sculpt->paint);
+    BKE_paint_blend_write(writer, &tos->sculpt->paint);
   }
   if (tos->uvsculpt) {
     BLO_write_struct(writer, UvSculpt, tos->uvsculpt);
-    write_paint(writer, &tos->uvsculpt->paint);
+    BKE_paint_blend_write(writer, &tos->uvsculpt->paint);
   }
   if (tos->gp_paint) {
     BLO_write_struct(writer, GpPaint, tos->gp_paint);
-    write_paint(writer, &tos->gp_paint->paint);
+    BKE_paint_blend_write(writer, &tos->gp_paint->paint);
   }
   if (tos->gp_vertexpaint) {
     BLO_write_struct(writer, GpVertexPaint, tos->gp_vertexpaint);
-    write_paint(writer, &tos->gp_vertexpaint->paint);
+    BKE_paint_blend_write(writer, &tos->gp_vertexpaint->paint);
   }
   if (tos->gp_sculptpaint) {
     BLO_write_struct(writer, GpSculptPaint, tos->gp_sculptpaint);
-    write_paint(writer, &tos->gp_sculptpaint->paint);
+    BKE_paint_blend_write(writer, &tos->gp_sculptpaint->paint);
   }
   if (tos->gp_weightpaint) {
     BLO_write_struct(writer, GpWeightPaint, tos->gp_weightpaint);
-    write_paint(writer, &tos->gp_weightpaint->paint);
+    BKE_paint_blend_write(writer, &tos->gp_weightpaint->paint);
   }
   /* write grease-pencil custom ipo curve to file */
   if (tos->gp_interpolate.custom_ipo) {
@@ -1459,7 +1454,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
     BKE_curveprofile_blend_write(writer, tos->custom_bevel_profile_preset);
   }
 
-  write_paint(writer, &tos->imapaint.paint);
+  BKE_paint_blend_write(writer, &tos->imapaint.paint);
 
   Editing *ed = sce->ed;
   if (ed) {
