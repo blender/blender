@@ -33,6 +33,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_compiler_compat.h"
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
 #include "BKE_main.h"
@@ -70,55 +71,44 @@ namespace blender::io::alembic {
 /* Some helpers for mesh generation */
 namespace utils {
 
-static void build_mat_map(const Main *bmain, std::map<std::string, Material *> &mat_map)
+static std::map<std::string, Material *> build_material_map(const Main *bmain)
 {
-  Material *material = static_cast<Material *>(bmain->materials.first);
-
-  for (; material; material = static_cast<Material *>(material->id.next)) {
+  std::map<std::string, Material *> mat_map;
+  LISTBASE_FOREACH (Material *, material, &bmain->materials) {
     mat_map[material->id.name + 2] = material;
   }
+  return mat_map;
 }
 
 static void assign_materials(Main *bmain,
                              Object *ob,
                              const std::map<std::string, int> &mat_index_map)
 {
-  bool can_assign = true;
-  std::map<std::string, int>::const_iterator it = mat_index_map.begin();
-
-  int matcount = 0;
-  for (; it != mat_index_map.end(); ++it, matcount++) {
+  std::map<std::string, int>::const_iterator it;
+  for (it = mat_index_map.begin(); it != mat_index_map.end(); ++it) {
     if (!BKE_object_material_slot_add(bmain, ob)) {
-      can_assign = false;
-      break;
+      return;
     }
   }
 
-  /* TODO(kevin): use global map? */
-  std::map<std::string, Material *> mat_map;
-  build_mat_map(bmain, mat_map);
-
+  std::map<std::string, Material *> matname_to_material = build_material_map(bmain);
   std::map<std::string, Material *>::iterator mat_iter;
 
-  if (can_assign) {
-    it = mat_index_map.begin();
+  for (it = mat_index_map.begin(); it != mat_index_map.end(); ++it) {
+    const std::string mat_name = it->first;
+    const int mat_index = it->second;
 
-    for (; it != mat_index_map.end(); ++it) {
-      std::string mat_name = it->first;
-      mat_iter = mat_map.find(mat_name);
-
-      Material *assigned_mat;
-
-      if (mat_iter == mat_map.end()) {
-        assigned_mat = BKE_material_add(bmain, mat_name.c_str());
-        mat_map[mat_name] = assigned_mat;
-      }
-      else {
-        assigned_mat = mat_iter->second;
-      }
-
-      BKE_object_material_assign(bmain, ob, assigned_mat, it->second, BKE_MAT_ASSIGN_OBDATA);
+    Material *assigned_mat;
+    mat_iter = matname_to_material.find(mat_name);
+    if (mat_iter == matname_to_material.end()) {
+      assigned_mat = BKE_material_add(bmain, mat_name.c_str());
+      matname_to_material[mat_name] = assigned_mat;
     }
+    else {
+      assigned_mat = mat_iter->second;
+    }
+
+    BKE_object_material_assign(bmain, ob, assigned_mat, mat_index, BKE_MAT_ASSIGN_OBDATA);
   }
 }
 
