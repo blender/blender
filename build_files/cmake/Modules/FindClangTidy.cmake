@@ -43,7 +43,10 @@ find_program(CLANG_TIDY_EXECUTABLE
     ${_clang_tidy_SEARCH_DIRS}
 )
 
-if(CLANG_TIDY_EXECUTABLE)
+if(CLANG_TIDY_EXECUTABLE AND NOT EXISTS ${CLANG_TIDY_EXECUTABLE})
+  message(WARNING "Cached or directly specified Clang-Tidy executable does not exist.")
+  set(CLANG_TIDY_FOUND FALSE)
+elseif(CLANG_TIDY_EXECUTABLE)
   # Mark clang-tidy as found.
   set(CLANG_TIDY_FOUND TRUE)
 
