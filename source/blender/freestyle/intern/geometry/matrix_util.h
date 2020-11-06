@@ -42,16 +42,18 @@ namespace MatrixUtil {
 /**
  * computes the eigen values and eigen vectors of a semi definite symmetric matrix
  *
- * \param  mat: The matrix stored in column symmetric storage, i.e.
- *     matrix = { m11, m12, m22, m13, m23, m33, m14, m24, m34, m44 ... }
- *     size = n(n+1)/2
+ * \param mat: The matrix stored in column symmetric storage, i.e.
+ * <pre>
+ * matrix = { m11, m12, m22, m13, m23, m33, m14, m24, m34, m44 ... }
+ * size = n(n+1)/2
+ * </pre>
  *
  * \param eigen_vec: (return) = { v1, v2, v3, ..., vn }
- *   where vk = vk0, vk1, ..., vkn
- *     size = n^2, must be allocated by caller
+ *   where `vk = vk0, vk1, ..., vkn`
+ *     `size = n^2`, must be allocated by caller.
  *
  * \param eigen_val: (return) are in decreasing order
- *     size = n,   must be allocated by caller
+ *     `size = n`,   must be allocated by caller.
  */
 void semi_definite_symmetric_eigen(const double *mat, int n, double *eigen_vec, double *eigen_val);
 

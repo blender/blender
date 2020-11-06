@@ -38,11 +38,11 @@ namespace libmv {
 // and if expected error estimation is too large, keyframe candidate
 // is rejecting.
 //
-// \param tracks contains all tracked correspondences between frames
-//        expected to be undistorted and normalized
-// \param intrinsics is camera intrinsics
-// \param keyframes will contain all images number which are considered
-//        good to be used for reconstruction
+// \param tracks: contains all tracked correspondences between frames
+//        expected to be undistorted and normalized.
+// \param intrinsics: is camera intrinsics.
+// \param keyframes: will contain all images number which are considered
+//        good to be used for reconstruction.
 void SelectKeyframesBasedOnGRICAndVariance(
     const Tracks &tracks,
     const CameraIntrinsics &intrinsics,

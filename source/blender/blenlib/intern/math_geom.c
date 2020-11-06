@@ -1418,7 +1418,7 @@ int isect_seg_seg_v2_lambda_mu_db(const double v1[2],
 
 /**
  * \param l1, l2: Coordinates (point of line).
- * \param sp, r:  Coordinate and radius (sphere).
+ * \param sp, r: Coordinate and radius (sphere).
  * \return r_p1, r_p2: Intersection coordinates.
  *
  * \note The order of assignment for intersection points (\a r_p1, \a r_p2) is predictable,
