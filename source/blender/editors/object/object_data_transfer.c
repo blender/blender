@@ -563,32 +563,45 @@ static bool data_transfer_poll_property(const bContext *UNUSED(C),
     return false;
   }
 
-  if (STREQ(prop_id, "use_object_transform") && use_auto_transform) {
-    return false;
+  if (STREQ(prop_id, "use_object_transform")) {
+    if (use_auto_transform) {
+      return false;
+    }
   }
-  if (STREQ(prop_id, "max_distance") && !use_max_distance) {
-    return false;
+  else if (STREQ(prop_id, "max_distance")) {
+    if (!use_max_distance) {
+      return false;
+    }
   }
-  if (STREQ(prop_id, "islands_precision") && !DT_DATATYPE_IS_LOOP(data_type)) {
-    return false;
+  else if (STREQ(prop_id, "islands_precision")) {
+    if (!DT_DATATYPE_IS_LOOP(data_type)) {
+      return false;
+    }
   }
-
-  if (STREQ(prop_id, "vert_mapping") && !DT_DATATYPE_IS_VERT(data_type)) {
-    return false;
+  else if (STREQ(prop_id, "vert_mapping")) {
+    if (!DT_DATATYPE_IS_VERT(data_type)) {
+      return false;
+    }
   }
-  if (STREQ(prop_id, "edge_mapping") && !DT_DATATYPE_IS_EDGE(data_type)) {
-    return false;
+  else if (STREQ(prop_id, "edge_mapping")) {
+    if (!DT_DATATYPE_IS_EDGE(data_type)) {
+      return false;
+    }
   }
-  if (STREQ(prop_id, "loop_mapping") && !DT_DATATYPE_IS_LOOP(data_type)) {
-    return false;
+  else if (STREQ(prop_id, "loop_mapping")) {
+    if (!DT_DATATYPE_IS_LOOP(data_type)) {
+      return false;
+    }
   }
-  if (STREQ(prop_id, "poly_mapping") && !DT_DATATYPE_IS_POLY(data_type)) {
-    return false;
+  else if (STREQ(prop_id, "poly_mapping")) {
+    if (!DT_DATATYPE_IS_POLY(data_type)) {
+      return false;
+    }
   }
-
-  if (STR_ELEM(prop_id, "layers_select_src", "layers_select_dst") &&
-      !DT_DATATYPE_IS_MULTILAYERS(data_type)) {
-    return false;
+  else if (STR_ELEM(prop_id, "layers_select_src", "layers_select_dst")) {
+    if (!DT_DATATYPE_IS_MULTILAYERS(data_type)) {
+      return false;
+    }
   }
 
   /* Else, show it! */
