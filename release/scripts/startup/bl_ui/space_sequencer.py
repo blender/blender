@@ -1187,7 +1187,7 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
         subsub.active = strip.use_shadow and (not strip.mute)
         subsub.prop(strip, "shadow_color", text="")
         row.prop_decorator(strip, "shadow_color")
-        
+
         row = layout.row(align=True, heading="Box")
         row.use_property_decorate = False
         sub = row.row(align=True)
@@ -1196,7 +1196,7 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
         subsub.active = strip.use_box and (not strip.mute)
         subsub.prop(strip, "box_color", text="")
         row.prop_decorator(strip, "box_color")
-        
+
         row = layout.row(align=True, heading="Box Margin")
         row.use_property_decorate = False
         sub = row.row(align=True)
