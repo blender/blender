@@ -301,12 +301,12 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
   }
   ParticleData *particle = &psys->particles[parent_index];
   int num = particle->num_dmcache;
-  if (num == DMCACHE_NOTFOUND || num == DMCACHE_ISCHILD) {
+  if (ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     if (particle->num < psmd->mesh_final->totface) {
       num = particle->num;
     }
   }
-  if (num != DMCACHE_NOTFOUND && num != DMCACHE_ISCHILD) {
+  if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     MFace *mface = &psmd->mesh_final->mface[num];
     for (int j = 0; j < num_uv_layers; j++) {
       psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, r_uv[j]);
@@ -330,12 +330,12 @@ static void particle_calculate_parent_mcol(ParticleSystem *psys,
   }
   ParticleData *particle = &psys->particles[parent_index];
   int num = particle->num_dmcache;
-  if (num == DMCACHE_NOTFOUND || num == DMCACHE_ISCHILD) {
+  if (ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     if (particle->num < psmd->mesh_final->totface) {
       num = particle->num;
     }
   }
-  if (num != DMCACHE_NOTFOUND && num != DMCACHE_ISCHILD) {
+  if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     MFace *mface = &psmd->mesh_final->mface[num];
     for (int j = 0; j < num_col_layers; j++) {
       /* CustomDataLayer CD_MCOL has 4 structs per face. */

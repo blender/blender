@@ -169,7 +169,7 @@ int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], 
       }
       break;
     case 3:
-      if (sum == 3 || sum == -3) {
+      if (ELEM(sum, 3, -3)) {
         numTris = 0;
       }
       else {

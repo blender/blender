@@ -285,7 +285,7 @@ void wrap_offset(
           end += max;
           chop = 1;
         }
-        else if (ch == ' ' || ch == '-') {
+        else if (ELEM(ch, ' ', '-')) {
           end = i + 1;
           chop = 0;
           if (linep == linein && i >= cursin) {
@@ -362,7 +362,7 @@ void wrap_offset_in_line(
         end += max;
         chop = 1;
       }
-      else if (ch == ' ' || ch == '-') {
+      else if (ELEM(ch, ' ', '-')) {
         end = i + 1;
         chop = 0;
         if (i >= cursin) {
@@ -483,7 +483,7 @@ static int text_draw_wrapped(const SpaceText *st,
         break;
       }
     }
-    else if (str[mi] == ' ' || str[mi] == '-') {
+    else if (ELEM(str[mi], ' ', '-')) {
       wrap = i + 1;
       mend = mi + 1;
     }
@@ -820,7 +820,7 @@ int text_get_visible_lines(const SpaceText *st, ARegion *region, const char *str
         start = MIN2(end, i);
         end += max;
       }
-      else if (ch == ' ' || ch == '-') {
+      else if (ELEM(ch, ' ', '-')) {
         end = i + 1;
       }
 

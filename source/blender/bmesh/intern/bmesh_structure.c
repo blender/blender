@@ -402,7 +402,7 @@ bool bmesh_radial_validate(int radlen, BMLoop *l)
     if (l_iter->e != l->e) {
       return false;
     }
-    if (l_iter->v != l->e->v1 && l_iter->v != l->e->v2) {
+    if (!ELEM(l_iter->v, l->e->v1, l->e->v2)) {
       return false;
     }
 

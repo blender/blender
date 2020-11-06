@@ -1407,7 +1407,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
   /* a priori not raw editable */
   prop->rawtype = -1;
 
-  if (type != PROP_COLLECTION && type != PROP_POINTER) {
+  if (!ELEM(type, PROP_COLLECTION, PROP_POINTER)) {
     prop->flag = PROP_EDITABLE;
 
     if (type != PROP_STRING) {

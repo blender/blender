@@ -227,7 +227,7 @@ bool WM_jobs_test(wmWindowManager *wm, void *owner, int job_type)
   /* job can be running or about to run (suspended) */
   for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
     if (wm_job->owner == owner) {
-      if (job_type == WM_JOB_TYPE_ANY || (wm_job->job_type == job_type)) {
+      if (ELEM(job_type, WM_JOB_TYPE_ANY, wm_job->job_type)) {
         if (wm_job->running || wm_job->suspended) {
           return true;
         }
@@ -587,7 +587,7 @@ void WM_jobs_kill_type(struct wmWindowManager *wm, void *owner, int job_type)
     next_job = wm_job->next;
 
     if (!owner || wm_job->owner == owner) {
-      if (job_type == WM_JOB_TYPE_ANY || wm_job->job_type == job_type) {
+      if (ELEM(job_type, WM_JOB_TYPE_ANY, wm_job->job_type)) {
         wm_jobs_kill_job(wm, wm_job);
       }
     }

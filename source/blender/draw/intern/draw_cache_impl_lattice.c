@@ -389,11 +389,11 @@ static GPUIndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
 #define LATT_INDEX(u, v, w) ((((w)*rdata->dims.v_len + (v)) * rdata->dims.u_len) + (u))
 
     for (int w = 0; w < rdata->dims.w_len; w++) {
-      int wxt = (w == 0 || w == rdata->dims.w_len - 1);
+      int wxt = (ELEM(w, 0, rdata->dims.w_len - 1));
       for (int v = 0; v < rdata->dims.v_len; v++) {
-        int vxt = (v == 0 || v == rdata->dims.v_len - 1);
+        int vxt = (ELEM(v, 0, rdata->dims.v_len - 1));
         for (int u = 0; u < rdata->dims.u_len; u++) {
-          int uxt = (u == 0 || u == rdata->dims.u_len - 1);
+          int uxt = (ELEM(u, 0, rdata->dims.u_len - 1));
 
           if (w && ((uxt || vxt) || !rdata->show_only_outside)) {
             GPU_indexbuf_add_line_verts(&elb, LATT_INDEX(u, v, w - 1), LATT_INDEX(u, v, w));

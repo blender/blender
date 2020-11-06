@@ -668,7 +668,7 @@ ImageTile *BKE_image_get_tile(Image *ima, int tile_number)
 
   /* Tile number 0 is a special case and refers to the first tile, typically
    * coming from non-UDIM-aware code. */
-  if (tile_number == 0 || tile_number == 1001) {
+  if (ELEM(tile_number, 0, 1001)) {
     return ima->tiles.first;
   }
 
@@ -805,7 +805,7 @@ Image *BKE_image_load_exists_ex(Main *bmain, const char *filepath, bool *r_exist
 
   /* first search an identical filepath */
   for (ima = bmain->images.first; ima; ima = ima->id.next) {
-    if (ima->source != IMA_SRC_VIEWER && ima->source != IMA_SRC_GENERATED) {
+    if (!ELEM(ima->source, IMA_SRC_VIEWER, IMA_SRC_GENERATED)) {
       STRNCPY(strtest, ima->filepath);
       BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &ima->id));
 
@@ -1316,7 +1316,7 @@ int BKE_image_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
     return IMB_FTYPE_TIF;
   }
 #endif
-  if (imtype == R_IMF_IMTYPE_OPENEXR || imtype == R_IMF_IMTYPE_MULTILAYER) {
+  if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
     return IMB_FTYPE_OPENEXR;
   }
 #ifdef WITH_CINEON
@@ -1666,7 +1666,7 @@ static bool do_add_image_extension(char *string,
   }
 #endif
 #ifdef WITH_OPENEXR
-  else if (imtype == R_IMF_IMTYPE_OPENEXR || imtype == R_IMF_IMTYPE_MULTILAYER) {
+  else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
     if (!BLI_path_extension_check(string, extension_test = ".exr")) {
       extension = extension_test;
     }

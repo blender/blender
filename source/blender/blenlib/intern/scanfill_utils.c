@@ -157,14 +157,14 @@ static ScanFillEdge *edge_step(PolyInfo *poly_info,
   eed = (e_curr->next && e_curr != poly_info[poly_nr].edge_last) ? e_curr->next :
                                                                    poly_info[poly_nr].edge_first;
   if ((v_curr == eed->v1 || v_curr == eed->v2) == true &&
-      (v_prev == eed->v1 || v_prev == eed->v2) == false) {
+      (ELEM(v_prev, eed->v1, eed->v2)) == false) {
     return eed;
   }
 
   eed = (e_curr->prev && e_curr != poly_info[poly_nr].edge_first) ? e_curr->prev :
                                                                     poly_info[poly_nr].edge_last;
   if ((v_curr == eed->v1 || v_curr == eed->v2) == true &&
-      (v_prev == eed->v1 || v_prev == eed->v2) == false) {
+      (ELEM(v_prev, eed->v1, eed->v2)) == false) {
     return eed;
   }
 

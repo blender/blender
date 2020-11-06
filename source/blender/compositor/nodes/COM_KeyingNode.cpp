@@ -63,7 +63,7 @@ NodeOperationOutput *KeyingNode::setupPreBlur(NodeConverter &converter,
     converter.addLink(convertRGBToYCCOperation->getOutputSocket(0),
                       separateOperation->getInputSocket(0));
 
-    if (channel == 0 || channel == 3) {
+    if (ELEM(channel, 0, 3)) {
       converter.addLink(separateOperation->getOutputSocket(0),
                         combineOperation->getInputSocket(channel));
     }

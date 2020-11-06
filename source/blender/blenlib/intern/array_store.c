@@ -1313,7 +1313,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
         ASSERT_CHUNKLIST_DATA(chunk_list, data);
 
         /* its likely that the next chunk in the list will be a match, so check it! */
-        while ((cref_found->next != NULL) && (cref_found->next != chunk_list_reference_last)) {
+        while (!ELEM(cref_found->next, NULL, chunk_list_reference_last)) {
           cref_found = cref_found->next;
           BChunk *chunk_found = cref_found->link;
 

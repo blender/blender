@@ -303,8 +303,8 @@ void ED_view3d_clipping_calc(
   /* four clipping planes and bounding volume */
   /* first do the bounding volume */
   for (int val = 0; val < 4; val++) {
-    float xs = (val == 0 || val == 3) ? rect->xmin : rect->xmax;
-    float ys = (val == 0 || val == 1) ? rect->ymin : rect->ymax;
+    float xs = (ELEM(val, 0, 3)) ? rect->xmin : rect->xmax;
+    float ys = (ELEM(val, 0, 1)) ? rect->ymin : rect->ymax;
 
     ED_view3d_unproject(region, xs, ys, 0.0, bb->vec[val]);
     ED_view3d_unproject(region, xs, ys, 1.0, bb->vec[4 + val]);

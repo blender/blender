@@ -1435,7 +1435,7 @@ static bool do_outliner_range_select_recursive(ListBase *lb,
     }
 
     /* Set state for selection */
-    if (te == active || te == cursor) {
+    if (ELEM(te, active, cursor)) {
       selecting = !selecting;
     }
 

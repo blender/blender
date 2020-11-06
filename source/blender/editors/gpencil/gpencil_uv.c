@@ -502,13 +502,13 @@ static int gpencil_reset_transform_fill_exec(bContext *C, wmOperator *op)
   /* Loop all selected strokes and reset. */
   GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
     if (gps->flag & GP_STROKE_SELECT) {
-      if ((mode == GP_UV_TRANSLATE) || (mode == GP_UV_ALL)) {
+      if (ELEM(mode, GP_UV_TRANSLATE, GP_UV_ALL)) {
         zero_v2(gps->uv_translation);
       }
-      if ((mode == GP_UV_ROTATE) || (mode == GP_UV_ALL)) {
+      if (ELEM(mode, GP_UV_ROTATE, GP_UV_ALL)) {
         gps->uv_rotation = 0.0f;
       }
-      if ((mode == GP_UV_SCALE) || (mode == GP_UV_ALL)) {
+      if (ELEM(mode, GP_UV_SCALE, GP_UV_ALL)) {
         gps->uv_scale = 1.0f;
       }
       /* Calc geometry data. */

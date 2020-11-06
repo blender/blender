@@ -2869,15 +2869,15 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
           /* indicate with handlecodes double points */
           if (prevbezt->h1 == prevbezt->h2) {
-            if (prevbezt->h1 == 0 || prevbezt->h1 == HD_VECT) {
+            if (ELEM(prevbezt->h1, 0, HD_VECT)) {
               bevp->split_tag = true;
             }
           }
           else {
-            if (prevbezt->h1 == 0 || prevbezt->h1 == HD_VECT) {
+            if (ELEM(prevbezt->h1, 0, HD_VECT)) {
               bevp->split_tag = true;
             }
-            else if (prevbezt->h2 == 0 || prevbezt->h2 == HD_VECT) {
+            else if (ELEM(prevbezt->h2, 0, HD_VECT)) {
               bevp->split_tag = true;
             }
           }
@@ -4961,7 +4961,7 @@ bool BKE_nurb_type_convert(Nurb *nu,
     }
   }
   else if (nu->type == CU_BEZIER) { /* Bezier */
-    if (type == CU_POLY || type == CU_NURBS) {
+    if (ELEM(type, CU_POLY, CU_NURBS)) {
       nr = use_handles ? (3 * nu->pntsu) : nu->pntsu;
       nu->bp = MEM_calloc_arrayN(nr, sizeof(BPoint), "setsplinetype");
       a = nu->pntsu;

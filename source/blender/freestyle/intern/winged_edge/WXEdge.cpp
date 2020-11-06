@@ -119,7 +119,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
   else if (_nNullDotP == 1) {
     // that means that we have exactly one of the 2 extremities of our silhouette edge is a vertex
     // of the mesh
-    if ((_nPosDotP == 2) || (_nPosDotP == 0)) {
+    if (ELEM(_nPosDotP, 2, 0)) {
       _pSmoothEdge = NULL;
       return _pSmoothEdge;
     }

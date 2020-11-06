@@ -2032,7 +2032,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
           attached = 0;
           for (b = obp->nofsprings; b > 0; b--) {
             bs = sb->bspring + obp->springs[b - 1];
-            if ((ilast - bb == bs->v2) || (ilast - bb == bs->v1)) {
+            if (ELEM(ilast - bb, bs->v2, bs->v1)) {
               attached = 1;
               continue;
             }

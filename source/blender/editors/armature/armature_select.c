@@ -1806,11 +1806,11 @@ static void select_similar_data_pchan(bContext *C, const size_t bytes_size, cons
 
 static void is_ancestor(EditBone *bone, EditBone *ancestor)
 {
-  if (bone->temp.ebone == ancestor || bone->temp.ebone == NULL) {
+  if (ELEM(bone->temp.ebone, ancestor, NULL)) {
     return;
   }
 
-  if (bone->temp.ebone->temp.ebone != NULL && bone->temp.ebone->temp.ebone != ancestor) {
+  if (!ELEM(bone->temp.ebone->temp.ebone, NULL, ancestor)) {
     is_ancestor(bone->temp.ebone, ancestor);
   }
 

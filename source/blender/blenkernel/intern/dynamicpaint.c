@@ -2700,7 +2700,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
 
     const int final_tri_index = tempPoints[final_index].tri_index;
     /* If found pixel still lies on wrong face ( mesh has smaller than pixel sized faces) */
-    if (final_tri_index != target_tri && final_tri_index != -1) {
+    if (!ELEM(final_tri_index, target_tri, -1)) {
       /* Check if it's close enough to likely touch the intended triangle. Any triangle
        * becomes thinner than a pixel at its vertices, so robustness requires some margin. */
       const float final_pt[2] = {((final_index % w) + 0.5f) / w, ((final_index / w) + 0.5f) / h};
@@ -3034,7 +3034,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
                     n_pos++;
                   }
                 }
-                else if (n_target == ON_MESH_EDGE || n_target == OUT_OF_TEXTURE) {
+                else if (ELEM(n_target, ON_MESH_EDGE, OUT_OF_TEXTURE)) {
                   ed->flags[final_index[index]] |= ADJ_ON_MESH_EDGE;
                 }
               }
@@ -3736,7 +3736,7 @@ static bool meshBrush_boundsIntersect(Bounds3D *b1,
   if (brush->collision == MOD_DPAINT_COL_VOLUME) {
     return boundsIntersect(b1, b2);
   }
-  if (brush->collision == MOD_DPAINT_COL_DIST || brush->collision == MOD_DPAINT_COL_VOLDIST) {
+  if (ELEM(brush->collision, MOD_DPAINT_COL_DIST, MOD_DPAINT_COL_VOLDIST)) {
     return boundsIntersectDist(b1, b2, brush_radius);
   }
   return true;
@@ -4710,8 +4710,7 @@ static void dynamic_paint_paint_single_point_cb_ex(void *__restrict userdata,
   }
 
   /* Smooth range or color ramp */
-  if (brush->proximity_falloff == MOD_DPAINT_PRFALL_SMOOTH ||
-      brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP) {
+  if (ELEM(brush->proximity_falloff, MOD_DPAINT_PRFALL_SMOOTH, MOD_DPAINT_PRFALL_RAMP)) {
     strength = 1.0f - distance / brush_radius;
     CLAMP(strength, 0.0f, 1.0f);
   }

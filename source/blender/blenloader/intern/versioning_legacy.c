@@ -1253,7 +1253,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       ed = sce->ed;
       if (ed) {
         SEQ_ALL_BEGIN (sce->ed, seq) {
-          if (seq->type == SEQ_TYPE_IMAGE || seq->type == SEQ_TYPE_MOVIE) {
+          if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
             seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
           }
         }

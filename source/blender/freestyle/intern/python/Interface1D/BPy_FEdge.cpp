@@ -106,7 +106,7 @@ static PyObject *FEdge_sq_item(BPy_FEdge *self, int keynum)
   if (keynum < 0) {
     keynum += FEdge_sq_length(self);
   }
-  if (keynum == 0 || keynum == 1) {
+  if (ELEM(keynum, 0, 1)) {
     SVertex *v = self->fe->operator[](keynum);
     if (v) {
       return BPy_SVertex_from_SVertex(*v);

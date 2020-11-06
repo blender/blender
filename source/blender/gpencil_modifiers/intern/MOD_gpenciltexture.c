@@ -97,7 +97,7 @@ static void deformStroke(GpencilModifierData *md,
                                       mmd->flag & GP_TEX_INVERT_MATERIAL)) {
     return;
   }
-  if ((mmd->mode == FILL) || (mmd->mode == STROKE_AND_FILL)) {
+  if (ELEM(mmd->mode, FILL, STROKE_AND_FILL)) {
     gps->uv_rotation += mmd->fill_rotation;
     gps->uv_translation[0] += mmd->fill_offset[0];
     gps->uv_translation[1] += mmd->fill_offset[1];
@@ -105,7 +105,7 @@ static void deformStroke(GpencilModifierData *md,
     BKE_gpencil_stroke_geometry_update(gps);
   }
 
-  if ((mmd->mode == STROKE) || (mmd->mode == STROKE_AND_FILL)) {
+  if (ELEM(mmd->mode, STROKE, STROKE_AND_FILL)) {
     float totlen = 1.0f;
     if (mmd->fit_method == GP_TEX_FIT_STROKE) {
       totlen = 0.0f;

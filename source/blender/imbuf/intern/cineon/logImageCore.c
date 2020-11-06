@@ -215,7 +215,7 @@ size_t getRowLength(size_t width, LogImageElement logElement)
       if (logElement.packing == 0) {
         return ((width * logElement.depth * 10 - 1) / 32 + 1) * 4;
       }
-      else if (logElement.packing == 1 || logElement.packing == 2) {
+      else if (ELEM(logElement.packing, 1, 2)) {
         return ((width * logElement.depth - 1) / 3 + 1) * 4;
       }
       break;
@@ -223,7 +223,7 @@ size_t getRowLength(size_t width, LogImageElement logElement)
       if (logElement.packing == 0) {
         return ((width * logElement.depth * 12 - 1) / 32 + 1) * 4;
       }
-      else if (logElement.packing == 1 || logElement.packing == 2) {
+      else if (ELEM(logElement.packing, 1, 2)) {
         return width * logElement.depth * 2;
       }
       break;
@@ -442,8 +442,7 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 
   for (i = 0; i < logImage->numElements; i++) {
     /* descriptor_Depth and descriptor_Composite are not supported */
-    if (logImage->element[i].descriptor != descriptor_Depth &&
-        logImage->element[i].descriptor != descriptor_Composite) {
+    if (!ELEM(logImage->element[i].descriptor, descriptor_Depth, descriptor_Composite)) {
       /* Allocate memory */
       elementData[i] = imb_alloc_pixels(
           logImage->width, logImage->height, logImage->element[i].depth, sizeof(float), __func__);
@@ -680,7 +679,7 @@ static int logImageElementGetData(LogImageFile *logImage, LogImageElement logEle
       if (logElement.packing == 0) {
         return logImageElementGetData10Packed(logImage, logElement, data);
       }
-      else if (logElement.packing == 1 || logElement.packing == 2) {
+      else if (ELEM(logElement.packing, 1, 2)) {
         return logImageElementGetData10(logImage, logElement, data);
       }
       break;
@@ -689,7 +688,7 @@ static int logImageElementGetData(LogImageFile *logImage, LogImageElement logEle
       if (logElement.packing == 0) {
         return logImageElementGetData12Packed(logImage, logElement, data);
       }
-      else if (logElement.packing == 1 || logElement.packing == 2) {
+      else if (ELEM(logElement.packing, 1, 2)) {
         return logImageElementGetData12(logImage, logElement, data);
       }
       break;

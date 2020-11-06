@@ -440,7 +440,7 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
   ID *id = tselem->id;
 
   BLI_assert(id != NULL);
-  BLI_assert((tselem->type == 0 && te->idcode != 0) || tselem->type == TSE_LAYER_COLLECTION);
+  BLI_assert(ELEM(tselem->type, 0 && te->idcode != 0, TSE_LAYER_COLLECTION));
   UNUSED_VARS_NDEBUG(te);
 
   if (te->idcode == ID_LI && ((Library *)id)->parent != NULL) {

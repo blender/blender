@@ -1488,8 +1488,7 @@ static void blendWrite(BlendWriter *writer, const ModifierData *md)
           BLO_write_uint32_array(
               writer, smd->verts[i].binds[j].numverts, smd->verts[i].binds[j].vert_inds);
 
-          if (smd->verts[i].binds[j].mode == MOD_SDEF_MODE_CENTROID ||
-              smd->verts[i].binds[j].mode == MOD_SDEF_MODE_LOOPTRI) {
+          if (ELEM(smd->verts[i].binds[j].mode, MOD_SDEF_MODE_CENTROID, MOD_SDEF_MODE_LOOPTRI)) {
             BLO_write_float3_array(writer, 1, smd->verts[i].binds[j].vert_weights);
           }
           else {
@@ -1517,8 +1516,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
           BLO_read_uint32_array(
               reader, smd->verts[i].binds[j].numverts, &smd->verts[i].binds[j].vert_inds);
 
-          if (smd->verts[i].binds[j].mode == MOD_SDEF_MODE_CENTROID ||
-              smd->verts[i].binds[j].mode == MOD_SDEF_MODE_LOOPTRI) {
+          if (ELEM(smd->verts[i].binds[j].mode, MOD_SDEF_MODE_CENTROID, MOD_SDEF_MODE_LOOPTRI)) {
             BLO_read_float3_array(reader, 1, &smd->verts[i].binds[j].vert_weights);
           }
           else {

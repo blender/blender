@@ -1002,7 +1002,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
   const PropertySubType subtype = RNA_property_subtype(prop);
 
   uiBut *but;
-  if (subtype == PROP_FILEPATH || subtype == PROP_DIRPATH) {
+  if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
     UI_block_layout_set_current(block, uiLayoutRow(sub, true));
     but = uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, prop_but_width - UI_UNIT_X, h);
 
@@ -1886,7 +1886,7 @@ static void ui_item_rna_size(uiLayout *layout,
     else if (type == PROP_ENUM && !icon_only) {
       w += UI_UNIT_X / 4;
     }
-    else if (type == PROP_FLOAT || type == PROP_INT) {
+    else if (ELEM(type, PROP_FLOAT, PROP_INT)) {
       w += UI_UNIT_X * 3;
     }
   }
@@ -5480,7 +5480,7 @@ uiLayout *UI_block_layout(uiBlock *block,
   layout->context = NULL;
   layout->emboss = UI_EMBOSS_UNDEFINED;
 
-  if (type == UI_LAYOUT_MENU || type == UI_LAYOUT_PIEMENU) {
+  if (ELEM(type, UI_LAYOUT_MENU, UI_LAYOUT_PIEMENU)) {
     layout->space = 0;
   }
 

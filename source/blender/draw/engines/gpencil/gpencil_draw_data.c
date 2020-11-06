@@ -371,7 +371,7 @@ static float light_power_get(const Light *la)
   if (la->type == LA_AREA) {
     return 1.0f / (4.0f * M_PI);
   }
-  if (la->type == LA_SPOT || la->type == LA_LOCAL) {
+  if (ELEM(la->type, LA_SPOT, LA_LOCAL)) {
     return 1.0f / (4.0f * M_PI * M_PI);
   }
 

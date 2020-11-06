@@ -224,7 +224,7 @@ static uint txtfmt_py_numeral_string_count_hexadecimal(const char *string)
 /* Zeros. */
 static bool txtfmt_py_numeral_char_is_zero(const char c)
 {
-  return (c == '0') || (c == '_');
+  return (ELEM(c, '0', '_'));
 }
 static uint txtfmt_py_numeral_string_count_zeros(const char *string)
 {
@@ -408,7 +408,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
         /* fill the remaining line */
         text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(fmt - line->format));
       }
-      else if (*str == '"' || *str == '\'') {
+      else if (ELEM(*str, '"', '\'')) {
         /* Strings */
         find = *str;
         cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;

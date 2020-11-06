@@ -983,7 +983,7 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
     /* Typical loopiong over edges in the middle of a mesh */
     /* However, why use 2 here at all?
      * I guess for internal ngon loops it can be useful. Antony R. */
-    if (vert_edge_tot == 4 || vert_edge_tot == 2) {
+    if (ELEM(vert_edge_tot, 4, 2)) {
       int i_opposite = vert_edge_tot / 2;
       int i = 0;
       do {

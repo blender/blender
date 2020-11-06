@@ -656,7 +656,7 @@ int Operators::sequentialSplit(UnaryPredicate0D &startingPred,
           goto error;
         }
       } while (!startingPred.result);
-    } while ((itStart != end) && (itStart != last));
+    } while (!ELEM(itStart, end, last));
   }
 
   // Update the current set of chains:
@@ -1122,7 +1122,7 @@ static Stroke *createStroke(Interface1D &inter)
     stroke->push_back(stroke_vertex);
     previous = current;
     ++it;
-  } while ((it != itend) && (it != itfirst));
+  } while (!ELEM(it, itend, itfirst));
 
   if (it == itfirst) {
     // Add last vertex:

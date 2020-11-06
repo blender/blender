@@ -317,8 +317,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob),
       float len, c, l, vec[3];
 
       spring = (ClothSpring *)node->link;
-      if (spring->type != CLOTH_SPRING_TYPE_STRUCTURAL &&
-          spring->type != CLOTH_SPRING_TYPE_SHEAR) {
+      if (!ELEM(spring->type, CLOTH_SPRING_TYPE_STRUCTURAL, CLOTH_SPRING_TYPE_SHEAR)) {
         continue;
       }
 

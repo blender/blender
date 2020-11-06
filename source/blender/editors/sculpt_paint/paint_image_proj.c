@@ -1789,7 +1789,7 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
 
 static int project_paint_pixel_sizeof(const short tool)
 {
-  if ((tool == PAINT_TOOL_CLONE) || (tool == PAINT_TOOL_SMEAR)) {
+  if (ELEM(tool, PAINT_TOOL_CLONE, PAINT_TOOL_SMEAR)) {
     return sizeof(ProjPixelClone);
   }
   return sizeof(ProjPixel);

@@ -51,7 +51,7 @@ enum {
  */
 static bool bm_edge_step_ok(BMEdge *e)
 {
-  return BM_elem_flag_test(e, BM_ELEM_TAG) && ((e->l == NULL) || (e->l->radial_next == e->l));
+  return BM_elem_flag_test(e, BM_ELEM_TAG) && (ELEM(e->l, NULL, e->l->radial_next));
 }
 
 static int bm_edge_face(BMEdge *e)

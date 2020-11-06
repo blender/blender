@@ -203,7 +203,7 @@ static void draw_vertical_join_shape(ScrArea *area, char dir, uint pos)
  */
 static void draw_join_shape(ScrArea *area, char dir, uint pos)
 {
-  if (dir == 'u' || dir == 'd') {
+  if (ELEM(dir, 'u', 'd')) {
     draw_vertical_join_shape(area, dir, pos);
   }
   else {

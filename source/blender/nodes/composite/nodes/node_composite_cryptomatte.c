@@ -65,7 +65,7 @@ static void cryptomatte_add(NodeCryptomatte *n, float f)
 
       /* Find the next separator. */
       char *token_end = strchr(n->matte_id + start, ',');
-      if (token_end == NULL || token_end == n->matte_id + start) {
+      if (ELEM(token_end, NULL, n->matte_id + start)) {
         token_end = n->matte_id + end;
       }
       /* Be aware that token_len still contains any trailing white space. */
@@ -144,7 +144,7 @@ static void cryptomatte_remove(NodeCryptomatte *n, float f)
 
     /* Find the next separator. */
     char *token_end = strchr(n->matte_id + start + 1, ',');
-    if (token_end == NULL || token_end == n->matte_id + start) {
+    if (ELEM(token_end, NULL, n->matte_id + start)) {
       token_end = n->matte_id + end;
     }
     /* Be aware that token_len still contains any trailing white space. */

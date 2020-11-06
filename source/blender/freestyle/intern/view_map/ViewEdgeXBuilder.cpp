@@ -315,7 +315,7 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
     tend = iFaceLayer.fl->getSmoothEdge()->ta();
   }
   // special case of EDGE_VERTEX config:
-  if ((tend == 0.0) || (tend == 1.0)) {
+  if (ELEM(tend, 0.0, 1.0)) {
     WVertex *nextVertex;
     if (tend == 0.0) {
       nextVertex = woeend->GetaVertex();
@@ -397,7 +397,7 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLa
   }
 
   // special case of EDGE_VERTEX config:
-  if ((tend == 0.0) || (tend == 1.0)) {
+  if (ELEM(tend, 0.0, 1.0)) {
     WVertex *previousVertex;
     if (tend == 0.0) {
       previousVertex = woebegin->GetaVertex();

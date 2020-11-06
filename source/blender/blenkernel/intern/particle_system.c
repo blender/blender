@@ -1165,7 +1165,7 @@ ParticleSystem *psys_get_target_system(Object *ob, ParticleTarget *pt)
 {
   ParticleSystem *psys = NULL;
 
-  if (pt->ob == NULL || pt->ob == ob) {
+  if (ELEM(pt->ob, NULL, ob)) {
     psys = BLI_findlink(&ob->particlesystem, pt->psys - 1);
   }
   else {

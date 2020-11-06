@@ -149,7 +149,7 @@ void semi_definite_symmetric_eigen(const double *mat, int n, double *eigen_vec, 
           imv = n * (m - 1);
 
           for (i = 1; i <= n; i++) {
-            if ((i != l) && (i != m)) {
+            if (!ELEM(i, l, m)) {
               iq = (i * i - i) / 2;
 
               if (i < m) {

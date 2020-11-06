@@ -917,7 +917,7 @@ static void shape_preset_init_trias_ex(uiWidgetTrias *tria,
   float centx, centy, sizex, sizey, minsize;
   int a, i1 = 0, i2 = 1;
 
-  if (where == 'r' || where == 'l') {
+  if (ELEM(where, 'r', 'l')) {
     minsize = BLI_rcti_size_y(rect);
   }
   else {

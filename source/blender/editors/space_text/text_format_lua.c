@@ -271,7 +271,7 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const bool do_
       else if (*str == '-' && *(str + 1) == '-') {
         text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(fmt - line->format));
       }
-      else if (*str == '"' || *str == '\'') {
+      else if (ELEM(*str, '"', '\'')) {
         /* Strings */
         find = *str;
         cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;

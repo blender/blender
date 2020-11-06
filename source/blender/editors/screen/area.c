@@ -1385,7 +1385,7 @@ static void region_rect_recursive(
     region->winrct = *remainder;
     BLI_rcti_init(remainder, 0, 0, 0, 0);
   }
-  else if (alignment == RGN_ALIGN_TOP || alignment == RGN_ALIGN_BOTTOM) {
+  else if (ELEM(alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
     rcti *winrct = (region->overlap) ? overlap_remainder : remainder;
 
     if ((prefsizey == 0) || (rct_fits(winrct, 'v', prefsizey) < 0)) {
@@ -1437,7 +1437,7 @@ static void region_rect_recursive(
       BLI_rcti_sanitize(winrct);
     }
   }
-  else if (alignment == RGN_ALIGN_VSPLIT || alignment == RGN_ALIGN_HSPLIT) {
+  else if (ELEM(alignment, RGN_ALIGN_VSPLIT, RGN_ALIGN_HSPLIT)) {
     /* percentage subdiv*/
     region->winrct = *remainder;
 
@@ -3582,7 +3582,7 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
           ofs_y += vertical_offset;
         }
       } /* Strip */
-      else if (i == 1 || i == 2) {
+      else if (ELEM(i, 1, 2)) {
         int len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[i + 1]);
         if (metadata_is_valid(ibuf, temp_str, i + 1, len)) {
           BLF_position(fontid, xmin, ymax - vertical_offset - ofs_y, 0.0f);

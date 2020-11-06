@@ -118,7 +118,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
     }
   }
 
-  if (context_dict == NULL || context_dict == Py_None) {
+  if (ELEM(context_dict, NULL, Py_None)) {
     context_dict = NULL;
   }
   else if (!PyDict_Check(context_dict)) {
@@ -220,7 +220,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
     }
   }
 
-  if (context_dict == NULL || context_dict == Py_None) {
+  if (ELEM(context_dict, NULL, Py_None)) {
     context_dict = NULL;
   }
   else if (!PyDict_Check(context_dict)) {

@@ -1504,7 +1504,7 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
     if ((bone->flag & BONE_HINGE) && (bone->flag & BONE_CONNECTED)) {
       bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
     }
-    else if ((bone->flag & BONE_TRANSFORM) && (mode == TFM_ROTATION || mode == TFM_TRACKBALL) &&
+    else if ((bone->flag & BONE_TRANSFORM) && (ELEM(mode, TFM_ROTATION, TFM_TRACKBALL)) &&
              (around == V3D_AROUND_LOCAL_ORIGINS)) {
       bone->flag |= BONE_TRANSFORM_CHILD;
     }

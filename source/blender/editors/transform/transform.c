@@ -1947,7 +1947,7 @@ int transformEnd(bContext *C, TransInfo *t)
 
   t->context = C;
 
-  if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING) {
+  if (!ELEM(t->state, TRANS_STARTING, TRANS_RUNNING)) {
     /* handle restoring objects */
     if (t->state == TRANS_CANCEL) {
       exit_code = OPERATOR_CANCELLED;

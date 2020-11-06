@@ -286,7 +286,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 
   rle = ISRLE(image.type);
   bpp = BPP(image.type);
-  if (bpp != 1 && bpp != 2) {
+  if (!ELEM(bpp, 1, 2)) {
     fprintf(stderr, "longimagedata: image must have 1 or 2 byte per pix chan\n");
     return NULL;
   }

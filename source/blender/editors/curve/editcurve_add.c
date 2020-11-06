@@ -141,7 +141,7 @@ Nurb *ED_curve_add_nurbs_primitive(
   BKE_nurbList_flag_set(editnurb, SELECT, false);
 
   /* these types call this function to return a Nurb */
-  if (stype != CU_PRIM_TUBE && stype != CU_PRIM_DONUT) {
+  if (!ELEM(stype, CU_PRIM_TUBE, CU_PRIM_DONUT)) {
     nu = (Nurb *)MEM_callocN(sizeof(Nurb), "addNurbprim");
     nu->type = cutype;
     nu->resolu = cu->resolu;

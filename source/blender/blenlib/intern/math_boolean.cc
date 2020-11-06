@@ -470,7 +470,7 @@ void exactinit()
     }
     every_other = !every_other;
     check = 1.0 + epsilon;
-  } while ((check != 1.0) && (check != lastcheck));
+  } while (!ELEM(check, 1.0, lastcheck));
   splitter += 1.0;
 
   /* Error bounds for orientation and #incircle tests. */

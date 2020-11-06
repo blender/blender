@@ -103,7 +103,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
       continue;
     }
 
-    if ((pc->region_type != RGN_TYPE_ANY) && (region->regiontype != pc->region_type)) {
+    if (!ELEM(pc->region_type, RGN_TYPE_ANY, region->regiontype)) {
       continue;
     }
 

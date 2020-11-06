@@ -2930,7 +2930,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     /* Remove curves and meshes converted to Grease Pencil object. */
     if (gpencilConverted) {
       FOREACH_SCENE_OBJECT_BEGIN (scene, ob_delete) {
-        if ((ob_delete->type == OB_CURVE) || (ob_delete->type == OB_MESH)) {
+        if (ELEM(ob_delete->type, OB_CURVE, OB_MESH)) {
           if (ob_delete->flag & OB_DONE) {
             ED_object_base_free_and_unlink(bmain, scene, ob_delete);
           }

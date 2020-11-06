@@ -555,7 +555,7 @@ bool ED_gpencil_stroke_can_use_direct(const ScrArea *area, const bGPDstroke *gps
   /* filter stroke types by flags + spacetype */
   if (gps->flag & GP_STROKE_3DSPACE) {
     /* 3D strokes - only in 3D view */
-    return ((area->spacetype == SPACE_VIEW3D) || (area->spacetype == SPACE_PROPERTIES));
+    return (ELEM(area->spacetype, SPACE_VIEW3D, SPACE_PROPERTIES));
   }
   if (gps->flag & GP_STROKE_2DIMAGE) {
     /* Special "image" strokes - only in Image Editor */
@@ -1429,7 +1429,7 @@ void ED_gpencil_reset_layers_parent(Depsgraph *depsgraph, Object *obact, bGPdata
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     if (gpl->parent != NULL) {
       /* calculate new matrix */
-      if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
+      if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
         invert_m4_m4(cur_mat, gpl->parent->obmat);
         copy_v3_v3(gpl_loc, obact->obmat[3]);
       }
@@ -2289,7 +2289,7 @@ static void gpencil_insert_point(
     gpencil_copy_points(gps, pt, pt_final, i, i2);
 
     /* create new point duplicating point and copy location */
-    if ((i == a_idx) || (i == b_idx)) {
+    if (ELEM(i, a_idx, b_idx)) {
       i2++;
       pt_final = &gps->points[i2];
       gpencil_copy_points(gps, pt, pt_final, i, i2);

@@ -5431,7 +5431,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   /* Get/set both take the same args currently. */
   PyObject *seq;
 
-  if (prop_type != PROP_INT && prop_type != PROP_FLOAT) {
+  if (!ELEM(prop_type, PROP_INT, PROP_FLOAT)) {
     PyErr_Format(PyExc_TypeError, "foreach_get/set available only for int and float");
     return NULL;
   }

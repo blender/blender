@@ -61,7 +61,7 @@ static int cddm_poly_compare(MLoop *mloop_array,
 
   MLoop *mloop_source, *mloop_target;
 
-  BLI_assert(direct_reverse == 1 || direct_reverse == -1);
+  BLI_assert(ELEM(direct_reverse, 1, -1));
 
   i_loop_source = 0;
   mloop_source = mloop_array + mpoly_source->loopstart;

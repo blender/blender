@@ -292,7 +292,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
         str++;
         *fmt = FMT_TYPE_COMMENT;
       }
-      else if (*str == '"' || *str == '\'') {
+      else if (ELEM(*str, '"', '\'')) {
         /* Strings */
         find = *str;
         cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;

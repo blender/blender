@@ -2670,7 +2670,7 @@ void BKE_gpencil_parent_matrix_get(const Depsgraph *depsgraph,
     return;
   }
 
-  if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
+  if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
     mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
     add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
     return;
@@ -2712,7 +2712,7 @@ void BKE_gpencil_update_layer_parent(const Depsgraph *depsgraph, Object *ob)
     if ((gpl->parent != NULL) && (gpl->actframe != NULL)) {
       Object *ob_parent = DEG_get_evaluated_object(depsgraph, gpl->parent);
       /* calculate new matrix */
-      if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
+      if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
         copy_m4_m4(cur_mat, ob_parent->obmat);
       }
       else if (gpl->partype == PARBONE) {

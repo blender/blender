@@ -1331,7 +1331,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
   BLI_remlink(lb, id);
 
   /* Check if we can actually insert id before or after id_sorting_hint, if given. */
-  if (id_sorting_hint != NULL && id_sorting_hint != id) {
+  if (!ELEM(id_sorting_hint, NULL, id)) {
     BLI_assert(BLI_findindex(lb, id_sorting_hint) >= 0);
 
     ID *id_sorting_hint_next = id_sorting_hint->next;
@@ -1569,7 +1569,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
       char base_name_test[MAX_ID_NAME - 2];
       int number_test;
       if ((id != id_test) && !ID_IS_LINKED(id_test) && (name[0] == id_test->name[2]) &&
-          (id_test->name[base_name_len + 2] == '.' || id_test->name[base_name_len + 2] == '\0') &&
+          (ELEM(id_test->name[base_name_len + 2], '.', '\0')) &&
           STREQLEN(name, id_test->name + 2, base_name_len) &&
           (BLI_split_name_num(base_name_test, &number_test, id_test->name + 2, '.') ==
            base_name_len)) {
