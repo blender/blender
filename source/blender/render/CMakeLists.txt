@@ -21,7 +21,7 @@
 
 set(INC
   .
-  intern/include
+  intern
   ../blenkernel
   ../blenlib
   ../blentranslation
