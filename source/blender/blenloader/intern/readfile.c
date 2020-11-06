@@ -294,7 +294,7 @@ typedef struct BHeadN {
  * bit kludge but better than doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing - campbell
  */
-void blo_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
+void BLO_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
 {
   char fixed_buf[1024]; /* should be long enough */
 
@@ -2948,7 +2948,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
   else {
     if (ob->instance_collection != NULL) {
       ID *id = BLO_read_get_new_id_address(reader, ob->id.lib, &ob->instance_collection->id);
-      blo_reportf_wrap(reader->fd->reports,
+      BLO_reportf_wrap(reader->fd->reports,
                        RPT_WARNING,
                        TIP_("Non-Empty object '%s' cannot duplicate collection '%s' "
                             "anymore in Blender 2.80, removed instancing"),
@@ -3288,7 +3288,7 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
     bool is_allocated = false;
 
     if (md->type == eModifierType_Fluidsim) {
-      blo_reportf_wrap(
+      BLO_reportf_wrap(
           reader->fd->reports,
           RPT_WARNING,
           TIP_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
@@ -3298,7 +3298,7 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
       is_allocated = true;
     }
     else if (md->type == eModifierType_Smoke) {
-      blo_reportf_wrap(
+      BLO_reportf_wrap(
           reader->fd->reports,
           RPT_WARNING,
           TIP_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
@@ -3874,7 +3874,7 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
     BLO_read_id_address(reader, sce->id.lib, &base_legacy->object);
 
     if (base_legacy->object == NULL) {
-      blo_reportf_wrap(reader->fd->reports,
+      BLO_reportf_wrap(reader->fd->reports,
                        RPT_WARNING,
                        TIP_("LIB: object lost from scene: '%s'"),
                        sce->id.name + 2);
@@ -4525,7 +4525,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   for (newmain = fd->mainlist->first; newmain; newmain = newmain->next) {
     if (newmain->curlib) {
       if (BLI_path_cmp(newmain->curlib->filepath_abs, lib->filepath_abs) == 0) {
-        blo_reportf_wrap(fd->reports,
+        BLO_reportf_wrap(fd->reports,
                          RPT_WARNING,
                          TIP_("Library '%s', '%s' had multiple instances, save and reload!"),
                          lib->filepath,
@@ -5918,7 +5918,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     if (libmain->curlib == NULL) {
       const char *idname = blo_bhead_id_name(fd, bhead);
 
-      blo_reportf_wrap(fd->reports,
+      BLO_reportf_wrap(fd->reports,
                        RPT_WARNING,
                        TIP_("LIB: Data refers to main .blend file: '%s' from %s"),
                        idname,
@@ -7028,7 +7028,7 @@ static void read_library_linked_id(
   }
 
   if (!is_valid) {
-    blo_reportf_wrap(reports,
+    BLO_reportf_wrap(reports,
                      RPT_ERROR,
                      TIP_("LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a "
                           "non-linkable data type"),
@@ -7047,7 +7047,7 @@ static void read_library_linked_id(
     read_libblock(fd, mainvar, bhead, id->tag, false, r_id);
   }
   else {
-    blo_reportf_wrap(reports,
+    BLO_reportf_wrap(reports,
                      RPT_WARNING,
                      TIP_("LIB: %s: '%s' missing from '%s', parent '%s'"),
                      BKE_idtype_idcode_to_name(GS(id->name)),
@@ -7152,7 +7152,7 @@ static FileData *read_library_file_data(FileData *basefd,
     /* Read packed file. */
     PackedFile *pf = mainptr->curlib->packedfile;
 
-    blo_reportf_wrap(basefd->reports,
+    BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      TIP_("Read packed library:  '%s', parent '%s'"),
                      mainptr->curlib->filepath,
@@ -7164,7 +7164,7 @@ static FileData *read_library_file_data(FileData *basefd,
   }
   else {
     /* Read file on disk. */
-    blo_reportf_wrap(basefd->reports,
+    BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      TIP_("Read library:  '%s', '%s', parent '%s'"),
                      mainptr->curlib->filepath_abs,
@@ -7206,7 +7206,7 @@ static FileData *read_library_file_data(FileData *basefd,
   }
 
   if (fd == NULL) {
-    blo_reportf_wrap(
+    BLO_reportf_wrap(
         basefd->reports, RPT_WARNING, TIP_("Cannot find lib '%s'"), mainptr->curlib->filepath_abs);
   }
 

@@ -43,6 +43,8 @@
 /* for SDNA_TYPE_FROM_STRUCT() macro */
 #include "dna_type_offsets.h"
 
+#include "DNA_windowmanager_types.h" /* for ReportType */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -239,6 +241,13 @@ struct Main *BLO_read_lib_get_main(BlendLibReader *reader);
 void BLO_expand_id(BlendExpander *expander, struct ID *id);
 
 #define BLO_expand(expander, id) BLO_expand_id(expander, (struct ID *)id)
+
+/* Report API
+ * ===================
+ */
+
+void BLO_reportf_wrap(struct ReportList *reports, ReportType type, const char *format, ...)
+    ATTR_PRINTF_FORMAT(3, 4);
 
 #ifdef __cplusplus
 }

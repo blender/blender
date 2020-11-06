@@ -173,9 +173,6 @@ const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead);
 
 /* do versions stuff */
 
-void blo_reportf_wrap(struct ReportList *reports, ReportType type, const char *format, ...)
-    ATTR_PRINTF_FORMAT(3, 4);
-
 void blo_do_versions_dna(struct SDNA *sdna, const int versionfile, const int subversionfile);
 
 void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm,
