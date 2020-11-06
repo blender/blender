@@ -45,8 +45,8 @@ SteerableViewMap::SteerableViewMap(unsigned int nbOrientations)
   _nbOrientations = nbOrientations;
   _bound = cos(M_PI / (float)_nbOrientations);
   for (unsigned int i = 0; i < _nbOrientations; ++i) {
-    _directions.push_back(Vec2d(cos((float)i * M_PI / (float)_nbOrientations),
-                                sin((float)i * M_PI / (float)_nbOrientations)));
+    _directions.emplace_back(cos((float)i * M_PI / (float)_nbOrientations),
+                             sin((float)i * M_PI / (float)_nbOrientations));
   }
   Build();
 }

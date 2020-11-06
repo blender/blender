@@ -42,7 +42,7 @@ void WFillGrid::fillGrid()
       (*f)->RetrieveVertexList(fvertices);
 
       for (vector<WVertex *>::const_iterator wv = fvertices.begin(); wv != fvertices.end(); ++wv) {
-        vectors.push_back(Vec3r((*wv)->GetVertex()));
+        vectors.emplace_back((*wv)->GetVertex());
       }
 
       // occluder will be deleted by the grid

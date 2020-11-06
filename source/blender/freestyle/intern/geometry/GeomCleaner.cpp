@@ -54,8 +54,7 @@ void GeomCleaner::SortIndexedVertexArray(const float *iVertices,
   list<IndexedVertex> indexedVertices;
   unsigned i;
   for (i = 0; i < iVSize; i += 3) {
-    indexedVertices.push_back(
-        IndexedVertex(Vec3f(iVertices[i], iVertices[i + 1], iVertices[i + 2]), i / 3));
+    indexedVertices.emplace_back(Vec3f(iVertices[i], iVertices[i + 1], iVertices[i + 2]), i / 3);
   }
 
   // q-sort
@@ -99,7 +98,7 @@ void GeomCleaner::CompressIndexedVertexArray(const float *iVertices,
   vector<Vec3f> vertices;
   unsigned i;
   for (i = 0; i < iVSize; i += 3) {
-    vertices.push_back(Vec3f(iVertices[i], iVertices[i + 1], iVertices[i + 2]));
+    vertices.emplace_back(iVertices[i], iVertices[i + 1], iVertices[i + 2]);
   }
 
   unsigned *mapVertex = new unsigned[iVSize];
@@ -207,7 +206,7 @@ void GeomCleaner::CleanIndexedVertexArray(const float *iVertices,
   vector<Vec3f> vertices;
   unsigned i;
   for (i = 0; i < iVSize; i += 3) {
-    vertices.push_back(Vec3f(iVertices[i], iVertices[i + 1], iVertices[i + 2]));
+    vertices.emplace_back(iVertices[i], iVertices[i + 1], iVertices[i + 2]);
   }
 
   cleanHashTable ht;

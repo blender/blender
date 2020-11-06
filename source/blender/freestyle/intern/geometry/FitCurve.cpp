@@ -493,7 +493,7 @@ void FitCurveWrapper::FitCurve(vector<Vec2d> &data, vector<Vec2d> &oCurve, doubl
 
   // copy results
   for (vector<Vector2>::iterator v = _vertices.begin(), vend = _vertices.end(); v != vend; ++v) {
-    oCurve.push_back(Vec2d(v->x(), v->y()));
+    oCurve.emplace_back(v->x(), v->y());
   }
 }
 

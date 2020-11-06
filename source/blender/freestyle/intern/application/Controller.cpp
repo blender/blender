@@ -350,7 +350,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
   string basename = string(cleaned);
 #endif
 
-  _ListOfModels.push_back("Blender_models");
+  _ListOfModels.emplace_back("Blender_models");
 
   _Scene3dBBox = _RootNode->bbox();
 

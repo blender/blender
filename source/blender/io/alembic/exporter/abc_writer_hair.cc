@@ -170,7 +170,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
           float r_uv[2], mapfw[4], vec[3];
 
           psys_interpolate_uvs(tface, face->v4, pa->fuv, r_uv);
-          uv_values.push_back(Imath::V2f(r_uv[0], r_uv[1]));
+          uv_values.emplace_back(r_uv[0], r_uv[1]);
 
           psys_interpolate_face(mverts, face, tface, NULL, mapfw, vec, normal, NULL, NULL, NULL);
 
@@ -203,7 +203,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
           }
 
           if (vtx[o] == num) {
-            uv_values.push_back(Imath::V2f(tface->uv[o][0], tface->uv[o][1]));
+            uv_values.emplace_back(tface->uv[o][0], tface->uv[o][1]);
 
             MVert *mv = mverts + vtx[o];
 
@@ -230,7 +230,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
       mul_m4_v3(inv_mat, vert);
 
       /* Convert Z-up to Y-up. */
-      verts.push_back(Imath::V3f(vert[0], vert[2], -vert[1]));
+      verts.emplace_back(vert[0], vert[2], -vert[1]);
     }
   }
 }
@@ -277,12 +277,12 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
       float r_uv[2], tmpnor[3], mapfw[4], vec[3];
 
       psys_interpolate_uvs(tface, face->v4, pc->fuv, r_uv);
-      uv_values.push_back(Imath::V2f(r_uv[0], r_uv[1]));
+      uv_values.emplace_back(r_uv[0], r_uv[1]);
 
       psys_interpolate_face(mverts, face, tface, NULL, mapfw, vec, tmpnor, NULL, NULL, NULL);
 
       /* Convert Z-up to Y-up. */
-      norm_values.push_back(Imath::V3f(tmpnor[0], tmpnor[2], -tmpnor[1]));
+      norm_values.emplace_back(tmpnor[0], tmpnor[2], -tmpnor[1]);
     }
     else {
       if (!uv_values.empty()) {
@@ -302,7 +302,7 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
       mul_m4_v3(inv_mat, vert);
 
       /* Convert Z-up to Y-up. */
-      verts.push_back(Imath::V3f(vert[0], vert[2], -vert[1]));
+      verts.emplace_back(vert[0], vert[2], -vert[1]);
 
       path++;
     }

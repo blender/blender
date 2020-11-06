@@ -562,7 +562,7 @@ int Stroke::Resample(int iNPoints)
     real norm_var = vec_tmp.norm();
     int numberOfPointsToAdd = (int)floor(NPointsToAdd * norm_var / _Length);
     float csampling = norm_var / (float)(numberOfPointsToAdd + 1);
-    strokeSegments.push_back(StrokeSegment(it, next, norm_var, numberOfPointsToAdd, csampling));
+    strokeSegments.emplace_back(it, next, norm_var, numberOfPointsToAdd, csampling);
     N += numberOfPointsToAdd;
     meanlength += norm_var;
     ++nsegments;

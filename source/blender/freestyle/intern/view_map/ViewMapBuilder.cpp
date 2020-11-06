@@ -566,7 +566,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
       if (wFace) {
         vector<Vec3r> vertices;
         for (int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i) {
-          vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
+          vertices.emplace_back(wFace->GetVertex(i)->GetVertex());
         }
         Polygon3r poly(vertices, wFace->GetNormal());
         poly.userdata = (void *)wFace;
@@ -764,7 +764,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
       if (wFace) {
         vector<Vec3r> vertices;
         for (int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i) {
-          vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
+          vertices.emplace_back(wFace->GetVertex(i)->GetVertex());
         }
         Polygon3r poly(vertices, wFace->GetNormal());
         poly.userdata = (void *)wFace;
@@ -918,7 +918,7 @@ static void computeFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
         if (wFace) {
           vector<Vec3r> vertices;
           for (int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i) {
-            vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
+            vertices.emplace_back(wFace->GetVertex(i)->GetVertex());
           }
           Polygon3r poly(vertices, wFace->GetNormal());
           poly.userdata = (void *)wFace;
@@ -1002,7 +1002,7 @@ static void computeVeryFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
     if (wFace) {
       vector<Vec3r> vertices;
       for (int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i) {
-        vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
+        vertices.emplace_back(wFace->GetVertex(i)->GetVertex());
       }
       Polygon3r poly(vertices, wFace->GetNormal());
       poly.userdata = (void *)wFace;

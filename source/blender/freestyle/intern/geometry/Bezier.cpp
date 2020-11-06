@@ -73,8 +73,8 @@ void BezierCurveSegment::Build()
   float increment = 1.0 / (float)nvertices;
   float t = 0.0f;
   for (int i = 0; i <= nvertices; ++i) {
-    _Vertices.push_back(Vec2d((x[3] + t * (x[2] + t * (x[1] + t * x[0]))),
-                              (y[3] + t * (y[2] + t * (y[1] + t * y[0])))));
+    _Vertices.emplace_back((x[3] + t * (x[2] + t * (x[1] + t * x[0]))),
+                           (y[3] + t * (y[2] + t * (y[1] + t * y[0]))));
     t += increment;
   }
 }

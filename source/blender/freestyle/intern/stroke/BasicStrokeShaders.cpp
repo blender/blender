@@ -384,13 +384,13 @@ int BezierCurveShader::shade(Stroke &stroke) const
   // Build the Bezier curve from this set of data points:
   vector<Vec2d> data;
   StrokeInternal::StrokeVertexIterator v = stroke.strokeVerticesBegin(), vend;
-  data.push_back(Vec2d(v->x(), v->y()));  // first one
+  data.emplace_back(v->x(), v->y());  // first one
   StrokeInternal::StrokeVertexIterator previous = v;
   ++v;
   for (vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     if (!((fabs(v->x() - (previous)->x()) < M_EPSILON) &&
           ((fabs(v->y() - (previous)->y()) < M_EPSILON)))) {
-      data.push_back(Vec2d(v->x(), v->y()));
+      data.emplace_back(v->x(), v->y());
     }
     previous = v;
   }
