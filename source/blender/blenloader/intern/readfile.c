@@ -3894,47 +3894,6 @@ static void lib_link_sequence_modifiers(BlendLibReader *reader, Scene *scene, Li
   }
 }
 
-static void direct_link_lightcache_texture(BlendDataReader *reader, LightCacheTexture *lctex)
-{
-  lctex->tex = NULL;
-
-  if (lctex->data) {
-    BLO_read_data_address(reader, &lctex->data);
-    if (lctex->data && BLO_read_requires_endian_switch(reader)) {
-      int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] *
-                      lctex->tex_size[2];
-
-      if (lctex->data_type == LIGHTCACHETEX_FLOAT) {
-        BLI_endian_switch_float_array((float *)lctex->data, data_size * sizeof(float));
-      }
-      else if (lctex->data_type == LIGHTCACHETEX_UINT) {
-        BLI_endian_switch_uint32_array((uint *)lctex->data, data_size * sizeof(uint));
-      }
-    }
-  }
-
-  if (lctex->data == NULL) {
-    zero_v3_int(lctex->tex_size);
-  }
-}
-
-static void direct_link_lightcache(BlendDataReader *reader, LightCache *cache)
-{
-  cache->flag &= ~LIGHTCACHE_NOT_USABLE;
-  direct_link_lightcache_texture(reader, &cache->cube_tx);
-  direct_link_lightcache_texture(reader, &cache->grid_tx);
-
-  if (cache->cube_mips) {
-    BLO_read_data_address(reader, &cache->cube_mips);
-    for (int i = 0; i < cache->mips_len; i++) {
-      direct_link_lightcache_texture(reader, &cache->cube_mips[i]);
-    }
-  }
-
-  BLO_read_data_address(reader, &cache->cube_data);
-  BLO_read_data_address(reader, &cache->grid_data);
-}
-
 /* check for cyclic set-scene,
  * libs can cause this case which is normally prevented, see (T#####) */
 #define USE_SETSCENE_CHECK
@@ -4512,7 +4471,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     /* else try to read the cache from file. */
     BLO_read_data_address(reader, &sce->eevee.light_cache_data);
     if (sce->eevee.light_cache_data) {
-      direct_link_lightcache(reader, sce->eevee.light_cache_data);
+      EEVEE_lightcache_blend_read_data(reader, sce->eevee.light_cache_data);
     }
   }
   EEVEE_lightcache_info_update(&sce->eevee);

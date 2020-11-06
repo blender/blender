@@ -25,6 +25,7 @@ set(INC
   ../blenfont
   ../blenkernel
   ../blenlib
+  ../blenloader
   ../blentranslation
   ../bmesh
   ../depsgraph
@@ -42,6 +43,9 @@ set(INC
   ../../../intern/atomic
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
+
+  # dna_type_offsets.h
+  ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
 )
 
 set(SRC
