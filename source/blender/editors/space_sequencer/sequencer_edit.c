@@ -985,21 +985,21 @@ static bool split_seq_list(
   return (seq_first_new != NULL);
 }
 
-static bool sequence_offset_after_frame(Scene *scene, const int delta, const int cfra)
+static bool sequence_offset_after_frame(Scene *scene, const int delta, const int timeline_frame)
 {
   Sequence *seq;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   bool done = false;
   TimeMarker *marker;
 
-  /* All strips >= cfra are shifted. */
+  /* All strips >= timeline_frame are shifted. */
 
   if (ed == NULL) {
     return 0;
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (seq->startdisp >= cfra) {
+    if (seq->startdisp >= timeline_frame) {
       BKE_sequence_translate(scene, seq, delta);
       BKE_sequence_calc(scene, seq);
       BKE_sequence_invalidate_cache_preprocessed(scene, seq);
@@ -1009,7 +1009,7 @@ static bool sequence_offset_after_frame(Scene *scene, const int delta, const int
 
   if (!scene->toolsettings->lock_markers) {
     for (marker = scene->markers.first; marker; marker = marker->next) {
-      if (marker->frame >= cfra) {
+      if (marker->frame >= timeline_frame) {
         marker->frame += delta;
       }
     }
@@ -1095,7 +1095,7 @@ static int sequencer_gap_remove_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   rctf rectf;
-  int cfra, efra, sfra;
+  int timeline_frame, efra, sfra;
   bool first = false, done;
   bool do_all = RNA_boolean_get(op->ptr, "all");
 
@@ -1105,24 +1105,24 @@ static int sequencer_gap_remove_exec(bContext *C, wmOperator *op)
   efra = (int)rectf.xmax;
 
   /* Check if the current frame has a gap already. */
-  for (cfra = CFRA; cfra >= sfra; cfra--) {
-    if (SEQ_render_evaluate_frame(scene, cfra)) {
+  for (timeline_frame = CFRA; timeline_frame >= sfra; timeline_frame--) {
+    if (SEQ_render_evaluate_frame(scene, timeline_frame)) {
       first = true;
       break;
     }
   }
 
-  for (; cfra < efra; cfra++) {
+  for (; timeline_frame < efra; timeline_frame++) {
     /* There's still no strip to remove a gap for. */
     if (first == false) {
-      if (SEQ_render_evaluate_frame(scene, cfra)) {
+      if (SEQ_render_evaluate_frame(scene, timeline_frame)) {
         first = true;
       }
     }
-    else if (SEQ_render_evaluate_frame(scene, cfra) == 0) {
+    else if (SEQ_render_evaluate_frame(scene, timeline_frame) == 0) {
       done = true;
-      while (SEQ_render_evaluate_frame(scene, cfra) == 0) {
-        done = sequence_offset_after_frame(scene, -1, cfra);
+      while (SEQ_render_evaluate_frame(scene, timeline_frame) == 0) {
+        done = sequence_offset_after_frame(scene, -1, timeline_frame);
         if (done == false) {
           break;
         }
@@ -2659,7 +2659,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
   Sequence *seq, *seq_new;
   Strip *strip_new;
   StripElem *se, *se_new;
-  int start_ofs, cfra, frame_end;
+  int start_ofs, timeline_frame, frame_end;
   int step = RNA_int_get(op->ptr, "length");
 
   seq = ed->seqbasep->first; /* Poll checks this is valid. */
@@ -2676,12 +2676,12 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
       /* if (seq->ipo) id_us_min(&seq->ipo->id); */
       /* XXX, remove fcurve and assign to split image strips */
 
-      start_ofs = cfra = BKE_sequence_tx_get_final_left(seq, false);
+      start_ofs = timeline_frame = BKE_sequence_tx_get_final_left(seq, false);
       frame_end = BKE_sequence_tx_get_final_right(seq, false);
 
-      while (cfra < frame_end) {
+      while (timeline_frame < frame_end) {
         /* New seq. */
-        se = SEQ_render_give_stripelem(seq, cfra);
+        se = SEQ_render_give_stripelem(seq, timeline_frame);
 
         seq_new = BKE_sequence_dupli_recursive(
             scene, scene, ed->seqbasep, seq, SEQ_DUPE_UNIQUE_NAME);
@@ -2713,7 +2713,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 
         /* XXX, COPY FCURVES */
 
-        cfra++;
+        timeline_frame++;
         start_ofs += step;
       }
 
@@ -3019,11 +3019,12 @@ static bool strip_jump_internal(Scene *scene,
                                 const bool do_center)
 {
   bool changed = false;
-  int cfra = CFRA;
-  int nfra = BKE_sequencer_find_next_prev_edit(scene, cfra, side, do_skip_mute, do_center, false);
+  int timeline_frame = CFRA;
+  int next_frame = BKE_sequencer_find_next_prev_edit(
+      scene, timeline_frame, side, do_skip_mute, do_center, false);
 
-  if (nfra != cfra) {
-    CFRA = nfra;
+  if (next_frame != timeline_frame) {
+    CFRA = next_frame;
     changed = true;
   }
 
@@ -3788,7 +3789,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
   Sequence *seq = BKE_sequencer_active_get(scene);
   const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
-  int minframe, numdigits;
+  int minext_frameme, numdigits;
 
   if (seq->type == SEQ_TYPE_IMAGE) {
     char directory[FILE_MAX];
@@ -3797,7 +3798,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 
     /* Need to find min/max frame for placeholders. */
     if (use_placeholders) {
-      len = sequencer_image_seq_get_minmax_frame(op, seq->sfra, &minframe, &numdigits);
+      len = sequencer_image_seq_get_minmax_frame(op, seq->sfra, &minext_frameme, &numdigits);
     }
     else {
       len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
@@ -3821,7 +3822,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
     seq->strip->stripdata = se = MEM_callocN(len * sizeof(StripElem), "stripelem");
 
     if (use_placeholders) {
-      sequencer_image_seq_reserve_frames(op, se, len, minframe, numdigits);
+      sequencer_image_seq_reserve_frames(op, se, len, minext_frameme, numdigits);
     }
     else {
       RNA_BEGIN (op->ptr, itemptr, "files") {

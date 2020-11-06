@@ -86,13 +86,13 @@ typedef struct ModifierThread {
 } ModifierThread;
 
 /**
- * \a cfra is offset by \a fra_offset only in case we are using a real mask.
+ * \a timeline_frame is offset by \a fra_offset only in case we are using a real mask.
  */
 static ImBuf *modifier_render_mask_input(const SeqRenderData *context,
                                          int mask_input_type,
                                          Sequence *mask_sequence,
                                          Mask *mask_id,
-                                         int cfra,
+                                         int timeline_frame,
                                          int fra_offset,
                                          bool make_float)
 {
@@ -103,7 +103,7 @@ static ImBuf *modifier_render_mask_input(const SeqRenderData *context,
       SeqRenderState state;
       seq_render_state_init(&state);
 
-      mask_input = seq_render_strip(context, &state, mask_sequence, cfra);
+      mask_input = seq_render_strip(context, &state, mask_sequence, timeline_frame);
 
       if (make_float) {
         if (!mask_input->rect_float) {
@@ -118,7 +118,7 @@ static ImBuf *modifier_render_mask_input(const SeqRenderData *context,
     }
   }
   else if (mask_input_type == SEQUENCE_MASK_INPUT_ID) {
-    mask_input = seq_render_mask(context, mask_id, cfra - fra_offset, make_float);
+    mask_input = seq_render_mask(context, mask_id, timeline_frame - fra_offset, make_float);
   }
 
   return mask_input;
@@ -126,7 +126,7 @@ static ImBuf *modifier_render_mask_input(const SeqRenderData *context,
 
 static ImBuf *modifier_mask_get(SequenceModifierData *smd,
                                 const SeqRenderData *context,
-                                int cfra,
+                                int timeline_frame,
                                 int fra_offset,
                                 bool make_float)
 {
@@ -134,7 +134,7 @@ static ImBuf *modifier_mask_get(SequenceModifierData *smd,
                                     smd->mask_input_type,
                                     smd->mask_sequence,
                                     smd->mask_id,
-                                    cfra,
+                                    timeline_frame,
                                     fra_offset,
                                     make_float);
 }
@@ -1410,7 +1410,7 @@ SequenceModifierData *BKE_sequence_modifier_find_by_name(Sequence *seq, const ch
 ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
                                          Sequence *seq,
                                          ImBuf *ibuf,
-                                         int cfra)
+                                         int timeline_frame)
 {
   SequenceModifierData *smd;
   ImBuf *processed_ibuf = ibuf;
@@ -1442,7 +1442,8 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
         frame_offset = smd->mask_id ? ((Mask *)smd->mask_id)->sfra : 0;
       }
 
-      ImBuf *mask = modifier_mask_get(smd, context, cfra, frame_offset, ibuf->rect_float != NULL);
+      ImBuf *mask = modifier_mask_get(
+          smd, context, timeline_frame, frame_offset, ibuf->rect_float != NULL);
 
       if (processed_ibuf == ibuf) {
         processed_ibuf = IMB_dupImBuf(ibuf);

@@ -975,18 +975,18 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
   if (extend == false) {
     ED_sequencer_deselect_all(scene);
   }
-  const int cfra = CFRA;
+  const int timeline_frame = CFRA;
   SEQ_CURRENT_BEGIN (ed, seq) {
     bool test = false;
     switch (side) {
       case -1:
-        test = (cfra >= seq->enddisp);
+        test = (timeline_frame >= seq->enddisp);
         break;
       case 1:
-        test = (cfra <= seq->startdisp);
+        test = (timeline_frame <= seq->startdisp);
         break;
       case 0:
-        test = (cfra <= seq->enddisp) && (cfra >= seq->startdisp);
+        test = (timeline_frame <= seq->enddisp) && (timeline_frame >= seq->startdisp);
         break;
     }
 

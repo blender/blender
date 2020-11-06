@@ -47,7 +47,7 @@ void sequencer_draw_preview(const struct bContext *C,
                             struct Scene *scene,
                             struct ARegion *region,
                             struct SpaceSeq *sseq,
-                            int cfra,
+                            int timeline_frame,
                             int offset,
                             bool draw_overlay,
                             bool draw_backdrop);
@@ -64,7 +64,7 @@ struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
                                  struct Depsgraph *depsgraph,
                                  struct Scene *scene,
                                  struct SpaceSeq *sseq,
-                                 int cfra,
+                                 int timeline_frame,
                                  int frame_ofs,
                                  const char *viewname);
 

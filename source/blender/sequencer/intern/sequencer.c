@@ -2562,7 +2562,7 @@ static Strip *seq_strip_alloc(int type)
   return strip;
 }
 
-Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine, int type)
+Sequence *BKE_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type)
 {
   Sequence *seq;
 
@@ -2573,7 +2573,7 @@ Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine, int type)
   seq->name[2] = 0;
 
   seq->flag = SELECT;
-  seq->start = cfra;
+  seq->start = timeline_frame;
   seq->machine = machine;
   seq->sat = 1.0;
   seq->mul = 1.0;
@@ -3109,7 +3109,7 @@ bool BKE_sequence_is_valid_check(Sequence *seq)
 }
 
 int BKE_sequencer_find_next_prev_edit(Scene *scene,
-                                      int cfra,
+                                      int timeline_frame,
                                       const short side,
                                       const bool do_skip_mute,
                                       const bool do_center,
@@ -3118,7 +3118,7 @@ int BKE_sequencer_find_next_prev_edit(Scene *scene,
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   Sequence *seq;
 
-  int dist, best_dist, best_frame = cfra;
+  int dist, best_dist, best_frame = timeline_frame;
   int seq_frames[2], seq_frames_tot;
 
   /* In case where both is passed,
@@ -3127,7 +3127,7 @@ int BKE_sequencer_find_next_prev_edit(Scene *scene,
   best_dist = MAXFRAME * 2;
 
   if (ed == NULL) {
-    return cfra;
+    return timeline_frame;
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -3159,17 +3159,17 @@ int BKE_sequencer_find_next_prev_edit(Scene *scene,
 
       switch (side) {
         case SEQ_SIDE_LEFT:
-          if (seq_frame < cfra) {
-            dist = cfra - seq_frame;
+          if (seq_frame < timeline_frame) {
+            dist = timeline_frame - seq_frame;
           }
           break;
         case SEQ_SIDE_RIGHT:
-          if (seq_frame > cfra) {
-            dist = seq_frame - cfra;
+          if (seq_frame > timeline_frame) {
+            dist = seq_frame - timeline_frame;
           }
           break;
         case SEQ_SIDE_BOTH:
-          dist = abs(seq_frame - cfra);
+          dist = abs(seq_frame - timeline_frame);
           break;
       }
 
@@ -3183,25 +3183,25 @@ int BKE_sequencer_find_next_prev_edit(Scene *scene,
   return best_frame;
 }
 
-static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int cfra)
+static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
-    if (seq->enddisp < cfra || seq->startdisp > cfra) {
+    if (seq->enddisp < timeline_frame || seq->startdisp > timeline_frame) {
       BKE_sequence_free_anim(seq);
     }
     if (seq->type == SEQ_TYPE_META) {
-      sequencer_all_free_anim_ibufs(&seq->seqbase, cfra);
+      sequencer_all_free_anim_ibufs(&seq->seqbase, timeline_frame);
     }
   }
 }
 
-void BKE_sequencer_all_free_anim_ibufs(Scene *scene, int cfra)
+void BKE_sequencer_all_free_anim_ibufs(Scene *scene, int timeline_frame)
 {
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   if (ed == NULL) {
     return;
   }
-  sequencer_all_free_anim_ibufs(&ed->seqbase, cfra);
+  sequencer_all_free_anim_ibufs(&ed->seqbase, timeline_frame);
   BKE_sequencer_cache_cleanup(scene);
 }
 
