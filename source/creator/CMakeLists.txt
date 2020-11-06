@@ -31,7 +31,7 @@ blender_include_dirs(
   ../blender/editors/include
   ../blender/imbuf
   ../blender/makesrna
-  ../blender/render/extern/include
+  ../blender/render
   ../blender/gpu
   ../blender/makesdna
   ../blender/windowmanager

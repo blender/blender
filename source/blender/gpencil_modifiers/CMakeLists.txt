@@ -31,7 +31,7 @@ set(INC
   ../editors/include
   ../makesdna
   ../makesrna
-  ../render/extern/include
+  ../render
   ../windowmanager
   ../../../intern/eigen
   ../../../intern/guardedalloc

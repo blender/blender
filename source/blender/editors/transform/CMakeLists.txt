@@ -26,7 +26,7 @@ set(INC
   ../../ikplugin
   ../../makesdna
   ../../makesrna
-  ../../render/extern/include
+  ../../render
   ../../depsgraph
   ../../sequencer
   ../../windowmanager

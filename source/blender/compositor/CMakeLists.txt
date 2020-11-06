@@ -34,7 +34,7 @@ set(INC
   ../windowmanager
   ../nodes/composite
   ../nodes/intern
-  ../render/extern/include
+  ../render
   ../render/intern/include
   ../../../extern/clew/include
   ../../../intern/atomic
