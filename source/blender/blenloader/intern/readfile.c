@@ -2948,7 +2948,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
   else {
     if (ob->instance_collection != NULL) {
       ID *id = BLO_read_get_new_id_address(reader, ob->id.lib, &ob->instance_collection->id);
-      BLO_reportf_wrap(reader->fd->reports,
+      BLO_reportf_wrap(BLO_read_lib_reports(reader),
                        RPT_WARNING,
                        TIP_("Non-Empty object '%s' cannot duplicate collection '%s' "
                             "anymore in Blender 2.80, removed instancing"),
@@ -3289,7 +3289,7 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
 
     if (md->type == eModifierType_Fluidsim) {
       BLO_reportf_wrap(
-          reader->fd->reports,
+          BLO_read_data_reports(reader),
           RPT_WARNING,
           TIP_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
           md->name,
@@ -3299,7 +3299,7 @@ static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object 
     }
     else if (md->type == eModifierType_Smoke) {
       BLO_reportf_wrap(
-          reader->fd->reports,
+          BLO_read_data_reports(reader),
           RPT_WARNING,
           TIP_("Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"),
           md->name,
@@ -3874,7 +3874,7 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
     BLO_read_id_address(reader, sce->id.lib, &base_legacy->object);
 
     if (base_legacy->object == NULL) {
-      BLO_reportf_wrap(reader->fd->reports,
+      BLO_reportf_wrap(BLO_read_lib_reports(reader),
                        RPT_WARNING,
                        TIP_("LIB: object lost from scene: '%s'"),
                        sce->id.name + 2);
@@ -7488,6 +7488,11 @@ void BLO_read_glob_list(BlendDataReader *reader, ListBase *list)
   link_glob_list(reader->fd, list);
 }
 
+ReportList *BLO_read_data_reports(BlendDataReader *reader)
+{
+  return reader->fd->reports;
+}
+
 bool BLO_read_lib_is_undo(BlendLibReader *reader)
 {
   return reader->fd->memfile != NULL;
@@ -7496,6 +7501,11 @@ bool BLO_read_lib_is_undo(BlendLibReader *reader)
 Main *BLO_read_lib_get_main(BlendLibReader *reader)
 {
   return reader->main;
+}
+
+ReportList *BLO_read_lib_reports(BlendLibReader *reader)
+{
+  return reader->fd->reports;
 }
 
 void BLO_expand_id(BlendExpander *expander, ID *id)

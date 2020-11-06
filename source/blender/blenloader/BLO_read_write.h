@@ -55,6 +55,7 @@ typedef struct BlendLibReader BlendLibReader;
 typedef struct BlendWriter BlendWriter;
 
 struct Main;
+struct ReportList;
 
 /* Blend Write API
  * ===============
@@ -214,6 +215,7 @@ bool BLO_read_requires_endian_switch(BlendDataReader *reader);
 bool BLO_read_data_is_undo(BlendDataReader *reader);
 void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr);
 void BLO_read_glob_list(BlendDataReader *reader, struct ListBase *list);
+struct ReportList *BLO_read_data_reports(BlendDataReader *reader);
 
 /* Blend Read Lib API
  * ===================
@@ -230,6 +232,7 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader, struct Library *lib, str
 /* Misc. */
 bool BLO_read_lib_is_undo(BlendLibReader *reader);
 struct Main *BLO_read_lib_get_main(BlendLibReader *reader);
+struct ReportList *BLO_read_lib_reports(BlendLibReader *reader);
 
 /* Blend Expand API
  * ===================
