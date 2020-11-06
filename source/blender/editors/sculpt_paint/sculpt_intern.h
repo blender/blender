@@ -1172,3 +1172,5 @@ bool SCULPT_ensure_dyntopo_node_undo(struct Object *ob,
                                      struct PBVHNode *node,
                                      SculptUndoType type,
                                      int extraType);
+
+void SCULPT_update_flat_vcol_shading(struct Object *ob, struct Scene *scene);

@@ -375,13 +375,15 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
   Object *ob = OBACT(view_layer);
 
   if (ob) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
-
     if (ob->sculpt) {
+      SCULPT_update_flat_vcol_shading(ob, scene);
+
       ob->sculpt->bm_smooth_shading = ((scene->toolsettings->sculpt->flags &
                                         SCULPT_DYNTOPO_SMOOTH_SHADING) != 0);
     }
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | ND_DRAW, ob);
   }
 }
 
@@ -815,6 +817,16 @@ static void rna_def_sculpt(BlenderRNA *brna)
                            "Smooth Shading",
                            "Show faces in dynamic-topology mode with smooth "
                            "shading rather than flat shaded");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+
+  prop = RNA_def_property(srna, "use_flat_vcol_shading", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_FLAT_VCOL_SHADING);
+  RNA_def_property_ui_text(
+      prop,
+      "Draw Color Cells",
+      "Draw vertex colors in flat cells instead of smoothly interpolating."
+      "For debugging purposes only, does not effect rendering in eevee or cycles");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 

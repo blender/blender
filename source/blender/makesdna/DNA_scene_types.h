@@ -2204,6 +2204,7 @@ typedef enum eSculptFlags {
 
   /* Don't display face sets in viewport. */
   SCULPT_HIDE_FACE_SETS = (1 << 17),
+  SCULPT_DYNTOPO_FLAT_VCOL_SHADING = (1<<18)
 } eSculptFlags;
 
 /* ImagePaintSettings.mode */

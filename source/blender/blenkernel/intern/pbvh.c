@@ -1019,6 +1019,7 @@ typedef struct PBVHUpdateData {
   float (*vnors)[3];
   int flag;
   bool show_sculpt_face_sets;
+  bool flat_vcol_shading;
 } PBVHUpdateData;
 
 static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
@@ -1336,10 +1337,28 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                       update_flags,
                                       pbvh->cd_vert_node_offset,
                                       pbvh->face_sets_color_seed,
-                                      pbvh->face_sets_color_default);
+                                      pbvh->face_sets_color_default,
+                                      data->flat_vcol_shading);
         break;
     }
   }
+}
+
+void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value)
+{
+  if (value != pbvh->flat_vcol_shading) {
+    for (int i = 0; i < pbvh->totnode; i++) {
+      PBVHNode *node = pbvh->nodes + i;
+
+      if (!(node->flag & PBVH_Leaf)) {
+        continue;
+      }
+
+      BKE_pbvh_node_mark_rebuild_draw(node);
+    }
+  }
+
+  pbvh->flat_vcol_shading = value;
 }
 
 static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
@@ -1385,9 +1404,7 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
 
   /* Parallel creation and update of draw buffers. */
   PBVHUpdateData data = {
-      .pbvh = pbvh,
-      .nodes = nodes,
-  };
+      .pbvh = pbvh, .nodes = nodes, .flat_vcol_shading = pbvh->flat_vcol_shading};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

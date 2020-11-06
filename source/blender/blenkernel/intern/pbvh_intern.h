@@ -188,6 +188,8 @@ struct PBVH {
 
   struct BMLog *bm_log;
   struct SubdivCCG *subdiv_ccg;
+
+  bool flat_vcol_shading;
 };
 
 /* pbvh.c */

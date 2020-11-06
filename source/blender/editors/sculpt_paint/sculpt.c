@@ -1604,7 +1604,10 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
  * Initialize a #SculptOrigVertData for accessing original vertex data;
  * handles #BMesh, #Mesh, and multi-resolution.
  */
-void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node, SculptUndoType type)
+void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
+                                Object *ob,
+                                PBVHNode *node,
+                                SculptUndoType type)
 {
   SculptUndoNode *unode = NULL;
   data->ss = ob->sculpt;
@@ -6193,7 +6196,6 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
     }
 
-
     if (sculpt_brush_needs_normal(ss, brush)) {
       update_sculpt_normal(sd, ob, nodes, totnode);
     }
@@ -6441,7 +6443,7 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
       if (ss->bm) {
         float *co = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, ss->cd_origco_offset);
         copy_v3_v3(val, co);
-        //copy_v3_v3(val, BM_log_original_vert_co(ss->bm_log, vd.bm_vert));
+        // copy_v3_v3(val, BM_log_original_vert_co(ss->bm_log, vd.bm_vert));
       }
       else {
         copy_v3_v3(val, orco[vd.i]);
@@ -8485,6 +8487,22 @@ static bool sculpt_no_multires_poll(bContext *C)
   return false;
 }
 
+/* checks if pbvh needs to sync its flat vcol shading flag with scene tool settings
+   scene and ob are allowd to be NULL (in which case nothing is done).
+*/
+void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene)
+{
+  if (!scene || !ob || !ob->sculpt || !ob->sculpt->pbvh) {
+    return;
+  }
+
+  if (ob->sculpt->pbvh) {
+    bool flat_vcol_shading = ((scene->toolsettings->sculpt->flags &
+                               SCULPT_DYNTOPO_FLAT_VCOL_SHADING) != 0);
+
+    BKE_pbvh_set_flat_vcol_shading(ob->sculpt->pbvh, flat_vcol_shading);
+  }
+}
 static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);

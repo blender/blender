@@ -2062,7 +2062,7 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   return pbvh;
 }
 
-//XXX hack
+// XXX hack
 extern SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
 
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
@@ -2070,6 +2070,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   if (ob == NULL || ob->sculpt == NULL) {
     return NULL;
   }
+
+  Scene *scene = DEG_get_input_scene(depsgraph);
 
   bool respect_hide = true;
   if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
@@ -2080,6 +2082,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
   PBVH *pbvh = ob->sculpt->pbvh;
   if (pbvh != NULL) {
+    SCULPT_update_flat_vcol_shading(ob, scene);
+
     /* NOTE: It is possible that grids were re-allocated due to modifier
      * stack. Need to update those pointers. */
     if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
@@ -2115,6 +2119,11 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   }
 
   ob->sculpt->pbvh = pbvh;
+
+  if (pbvh) {
+    SCULPT_update_flat_vcol_shading(ob, scene);
+  }
+
   return pbvh;
 }
 
