@@ -19,6 +19,10 @@
 
 #pragma once
 
+/** \file
+ * \ingroup sim
+ */
+
 #include <Eigen/Core>
 
 namespace Eigen {
