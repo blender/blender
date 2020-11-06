@@ -24,7 +24,9 @@
 #include <math.h>
 
 #include "BLI_compiler_compat.h"
-#include "BLI_noise.h"
+#include "BLI_sys_types.h"
+
+#include "BLI_noise.h" /* Own include. */
 
 /* local */
 static float noise3_perlin(const float vec[3]);
@@ -1155,7 +1157,8 @@ void BLI_noise_cell_v3(float x, float y, float z, float ca[3])
 /*****************/
 
 /* newnoise: generic noise function for use with different noisebases */
-float BLI_noise_generic_noise(float noisesize, float x, float y, float z, int hard, int noisebasis)
+float BLI_noise_generic_noise(
+    float noisesize, float x, float y, float z, bool hard, int noisebasis)
 {
   float (*noisefunc)(float, float, float);
 
@@ -1213,7 +1216,7 @@ float BLI_noise_generic_noise(float noisesize, float x, float y, float z, int ha
 
 /* newnoise: generic turbulence function for use with different noisebasis */
 float BLI_noise_generic_turbulence(
-    float noisesize, float x, float y, float z, int oct, int hard, int noisebasis)
+    float noisesize, float x, float y, float z, int oct, bool hard, int noisebasis)
 {
   float (*noisefunc)(float, float, float);
   switch (noisebasis) {
