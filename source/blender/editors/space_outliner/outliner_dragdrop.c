@@ -641,6 +641,7 @@ static int material_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 
   BKE_object_material_assign(bmain, ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 
+  WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, ob);
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 
