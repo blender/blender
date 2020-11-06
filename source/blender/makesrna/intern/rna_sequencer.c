@@ -956,8 +956,7 @@ static void rna_SequenceProxy_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   Sequence *seq = sequence_get_by_proxy(ed, ptr->data);
-
-  BKE_sequence_invalidate_cache_raw(scene, seq);
+  BKE_sequence_invalidate_cache_preprocessed(scene, seq);
 }
 
 /* do_versions? */
@@ -1513,12 +1512,12 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_proxy_custom_directory", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "storage", SEQ_STORAGE_PROXY_CUSTOM_DIR);
   RNA_def_property_ui_text(prop, "Proxy Custom Directory", "Use a custom directory to store data");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "use_proxy_custom_file", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "storage", SEQ_STORAGE_PROXY_CUSTOM_FILE);
   RNA_def_property_ui_text(prop, "Proxy Custom File", "Use a custom file to read proxy data from");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 }
 
 static void rna_def_color_balance(BlenderRNA *brna)
@@ -2182,7 +2181,7 @@ static void rna_def_proxy(StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "Use Proxy / Timecode", "Use a preview proxy and/or time-code index for this strip");
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Sequence_use_proxy_set");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "strip->proxy");
