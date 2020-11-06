@@ -3788,6 +3788,11 @@ static void init_text_effect(Sequence *seq)
 
   copy_v4_fl(data->color, 1.0f);
   data->shadow_color[3] = 1.0f;
+  data->box_color[0] = 0.5f;
+  data->box_color[1] = 0.5f;
+  data->box_color[2] = 0.5f;
+  data->box_color[3] = 1.0f;
+  data->box_margin = 0.01f;
 
   BLI_strncpy(data->text, "Text", sizeof(data->text));
 
@@ -3929,18 +3934,18 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   x = (data->loc[0] * width);
   y = (data->loc[1] * height) + y_ofs;
 
+  /* vars for calculating wordwrap and optional box */
+  struct {
+    struct ResultBLF info;
+    rctf rect;
+  } wrap;
+
+  BLF_boundbox_ex(font, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
+
   if ((data->align == SEQ_TEXT_ALIGN_X_LEFT) && (data->align_y == SEQ_TEXT_ALIGN_Y_TOP)) {
     y -= line_height;
   }
   else {
-    /* vars for calculating wordwrap */
-    struct {
-      struct ResultBLF info;
-      rctf rect;
-    } wrap;
-
-    BLF_boundbox_ex(font, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
-
     if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
       x -= BLI_rctf_size_x(&wrap.rect);
     }
@@ -3959,8 +3964,34 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
     }
   }
 
+  if (data->flag & SEQ_TEXT_BOX) {
+    if (out->rect) {
+      const int margin = data->box_margin * width;
+      const int minx = x + wrap.rect.xmin - margin;
+      const int maxx = x + wrap.rect.xmax + margin;
+      const int miny = y + wrap.rect.ymin - margin;
+      const int maxy = y + wrap.rect.ymax + margin;
+
+      if (data->flag & SEQ_TEXT_SHADOW) {
+        /* draw a shadow behind the box */
+        int shadow_offset = 0.005f * width;
+
+        if (shadow_offset == 0) {
+          shadow_offset = 1;
+        }
+
+        IMB_rectfill_area_replace(out,
+                                  data->shadow_color,
+                                  minx + shadow_offset,
+                                  miny - shadow_offset,
+                                  maxx + shadow_offset,
+                                  maxy - shadow_offset);
+      }
+      IMB_rectfill_area_replace(out, data->box_color, minx, miny, maxx, maxy);
+    }
+  }
   /* BLF_SHADOW won't work with buffers, instead use cheap shadow trick */
-  if (data->flag & SEQ_TEXT_SHADOW) {
+  else if (data->flag & SEQ_TEXT_SHADOW) {
     int fontx, fonty;
     fontx = BLF_width_max(font);
     fonty = line_height;
