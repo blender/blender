@@ -75,6 +75,7 @@
 #include "BKE_main.h" /* for Main */
 #include "BKE_mesh.h" /* for ME_ defines (patching) */
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
@@ -461,20 +462,6 @@ static void do_version_constraints_245(ListBase *lb)
   }
 }
 
-PartEff *blo_do_version_give_parteff_245(Object *ob)
-{
-  PartEff *paf;
-
-  paf = ob->effect.first;
-  while (paf) {
-    if (paf->type == EFF_PARTICLE) {
-      return paf;
-    }
-    paf = paf->next;
-  }
-  return NULL;
-}
-
 /* NOTE: this version patch is intended for versions < 2.52.2,
  * but was initially introduced in 2.27 already. */
 void blo_do_version_old_trackto_to_constraints(Object *ob)
@@ -718,7 +705,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob = bmain->objects.first;
     PartEff *paf;
     while (ob) {
-      paf = blo_do_version_give_parteff_245(ob);
+      paf = BKE_object_do_version_give_parteff_245(ob);
       if (paf) {
         if (paf->staticstep == 0) {
           paf->staticstep = 5;
@@ -1476,7 +1463,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      paf = blo_do_version_give_parteff_245(ob);
+      paf = BKE_object_do_version_give_parteff_245(ob);
       if (paf) {
         if (paf->disp == 0) {
           paf->disp = 100;
@@ -2233,7 +2220,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
 
       /* convert old particles to new system */
-      if ((paf = blo_do_version_give_parteff_245(ob))) {
+      if ((paf = BKE_object_do_version_give_parteff_245(ob))) {
         ParticleSystem *psys;
         ModifierData *md;
         ParticleSystemModifierData *psmd;
