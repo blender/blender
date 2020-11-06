@@ -78,4 +78,4 @@ endif()
 blender_add_lib(bf_sequencer "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # Needed so we can use dna_type_offsets.h.
-add_dependencies(bf_blenkernel bf_dna)
+add_dependencies(bf_sequencer bf_dna)
