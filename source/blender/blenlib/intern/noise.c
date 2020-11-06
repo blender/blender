@@ -1263,7 +1263,7 @@ float BLI_noise_generic_turbulence(
     z *= noisesize;
   }
 
-  float sum = 0, amp, fscale = 1;
+  float sum = 0, amp = 1, fscale = 1;
   for (int i = 0; i <= oct; i++, amp *= 0.5f, fscale *= 2.0f) {
     float t = noisefunc(fscale * x, fscale * y, fscale * z);
     if (hard) {
