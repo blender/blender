@@ -52,7 +52,7 @@ struct GetSet {
 
   PyGetSetDef def()
   {
-    PyGetSetDef def = {&name[0], getter, setter, &doc[0], NULL};
+    PyGetSetDef def = {&name[0], getter, setter, &doc[0], nullptr};
     return def;
   }
 };
@@ -175,10 +175,10 @@ void cbDealloc(PbObject *self)
 PyObject *cbNew(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
   PbObject *self = (PbObject *)type->tp_alloc(type, 0);
-  if (self != NULL) {
+  if (self != nullptr) {
     // lookup and link classdef
     self->classdef = WrapperRegistry::instance().lookup(type->tp_name);
-    self->instance = NULL;
+    self->instance = nullptr;
     // cout << "creating " << self->classdef->cName << endl;
   }
   else
@@ -233,7 +233,7 @@ ClassData *WrapperRegistry::getOrConstructClass(const string &classname)
     data->cPureName = classname.substr(0, tplIdx);
     data->cTemplate = classname.substr(tplIdx + 1, classname.find('>') - tplIdx - 1);
   }
-  data->baseclass = NULL;
+  data->baseclass = nullptr;
   data->constructor = cbDisableConstructor;
   mClasses[classname] = data;
   mClassList.push_back(data);
@@ -435,7 +435,7 @@ ClassData *WrapperRegistry::lookup(const string &name)
     if (it->first == name || it->second->cName == name)
       return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 void WrapperRegistry::cleanup()
@@ -510,7 +510,7 @@ void WrapperRegistry::runPreInit()
   PyObject *sys_path = PySys_GetObject((char *)"path");
   for (size_t i = 0; i < mPaths.size(); i++) {
     PyObject *path = Manta::toPy(mPaths[i]);
-    if (sys_path == NULL || path == NULL || PyList_Append(sys_path, path) < 0) {
+    if (sys_path == nullptr || path == nullptr || PyList_Append(sys_path, path) < 0) {
       errMsg("unable to set python path");
     }
     Py_DECREF(path);
@@ -531,7 +531,7 @@ PyObject *WrapperRegistry::createPyObject(const string &classname,
     errMsg("Class " + classname + " doesn't exist.");
 
   // create object
-  PyObject *obj = cbNew(&classdef->typeInfo, NULL, NULL);
+  PyObject *obj = cbNew(&classdef->typeInfo, nullptr, nullptr);
   PbObject *self = (PbObject *)obj;
   PyObject *nkw = 0;
 
@@ -578,8 +578,8 @@ inline PyObject *castPy(PyTypeObject *p)
 PyObject *WrapperRegistry::initModule()
 {
   // generate and terminate all method lists
-  PyMethodDef sentinelFunc = {NULL, NULL, 0, NULL};
-  PyGetSetDef sentinelGetSet = {NULL, NULL, NULL, NULL, NULL};
+  PyMethodDef sentinelFunc = {nullptr, nullptr, 0, nullptr};
+  PyGetSetDef sentinelGetSet = {nullptr, nullptr, nullptr, nullptr, nullptr};
   for (int i = 0; i < (int)mClassList.size(); i++) {
     ClassData *cls = mClassList[i];
     cls->genMethods.clear();
@@ -599,11 +599,11 @@ PyObject *WrapperRegistry::initModule()
                                    gDefaultModuleName.c_str(),
                                    "Bridge module to the C++ solver",
                                    -1,
-                                   NULL,
-                                   NULL,
-                                   NULL,
-                                   NULL,
-                                   NULL};
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr};
   // get generic methods (plugin functions)
   MainModule.m_methods = &mClasses["__modclass__"]->genMethods[0];
 
@@ -613,8 +613,8 @@ PyObject *WrapperRegistry::initModule()
   PyObject *module = Py_InitModule(gDefaultModuleName.c_str(),
                                    &mClasses["__modclass__"]->genMethods[0]);
 #endif
-  if (module == NULL)
-    return NULL;
+  if (module == nullptr)
+    return nullptr;
 
   // load classes
   for (vector<ClassData *>::iterator it = mClassList.begin(); it != mClassList.end(); ++it) {
@@ -631,43 +631,43 @@ PyObject *WrapperRegistry::initModule()
 
     // define python classinfo
     PyTypeObject t = {
-        PyVarObject_HEAD_INIT(NULL, 0)(char *) data.pyName.c_str(),  // tp_name
-        sizeof(PbObject),                                            // tp_basicsize
-        0,                                                           // tp_itemsize
-        (destructor)cbDealloc,                                       // tp_dealloc
-        0,                                                           // tp_print
-        0,                                                           // tp_getattr
-        0,                                                           // tp_setattr
-        0,                                                           // tp_reserved
-        0,                                                           // tp_repr
-        num,                                                         // tp_as_number
-        0,                                                           // tp_as_sequence
-        0,                                                           // tp_as_mapping
-        0,                                                           // tp_hash
-        0,                                                           // tp_call
-        0,                                                           // tp_str
-        0,                                                           // tp_getattro
-        0,                                                           // tp_setattro
-        0,                                                           // tp_as_buffer
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                    // tp_flags
-        nameptr,                                                     // tp_doc
-        0,                                                           // tp_traverse
-        0,                                                           // tp_clear
-        0,                                                           // tp_richcompare
-        0,                                                           // tp_weaklistoffset
-        0,                                                           // tp_iter
-        0,                                                           // tp_iternext
-        &data.genMethods[0],                                         // tp_methods
-        0,                                                           // tp_members
-        &data.genGetSet[0],                                          // tp_getset
-        0,                                                           // tp_base
-        0,                                                           // tp_dict
-        0,                                                           // tp_descr_get
-        0,                                                           // tp_descr_set
-        0,                                                           // tp_dictoffset
-        (initproc)(data.constructor),                                // tp_init
-        0,                                                           // tp_alloc
-        cbNew                                                        // tp_new
+        PyVarObject_HEAD_INIT(nullptr, 0)(char *) data.pyName.c_str(),  // tp_name
+        sizeof(PbObject),                                               // tp_basicsize
+        0,                                                              // tp_itemsize
+        (destructor)cbDealloc,                                          // tp_dealloc
+        0,                                                              // tp_print
+        0,                                                              // tp_getattr
+        0,                                                              // tp_setattr
+        0,                                                              // tp_reserved
+        0,                                                              // tp_repr
+        num,                                                            // tp_as_number
+        0,                                                              // tp_as_sequence
+        0,                                                              // tp_as_mapping
+        0,                                                              // tp_hash
+        0,                                                              // tp_call
+        0,                                                              // tp_str
+        0,                                                              // tp_getattro
+        0,                                                              // tp_setattro
+        0,                                                              // tp_as_buffer
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                       // tp_flags
+        nameptr,                                                        // tp_doc
+        0,                                                              // tp_traverse
+        0,                                                              // tp_clear
+        0,                                                              // tp_richcompare
+        0,                                                              // tp_weaklistoffset
+        0,                                                              // tp_iter
+        0,                                                              // tp_iternext
+        &data.genMethods[0],                                            // tp_methods
+        0,                                                              // tp_members
+        &data.genGetSet[0],                                             // tp_getset
+        0,                                                              // tp_base
+        0,                                                              // tp_dict
+        0,                                                              // tp_descr_get
+        0,                                                              // tp_descr_set
+        0,                                                              // tp_dictoffset
+        (initproc)(data.constructor),                                   // tp_init
+        0,                                                              // tp_alloc
+        cbNew                                                           // tp_new
     };
     data.typeInfo = t;
 
@@ -722,7 +722,7 @@ bool canConvert(PyObject *obj, const string &classname)
 Manta::PbClass *objFromPy(PyObject *obj)
 {
   if (Py_TYPE(obj)->tp_dealloc != (destructor)cbDealloc)  // not a manta object
-    return NULL;
+    return nullptr;
 
   return ((PbObject *)obj)->instance;
 }

@@ -48,7 +48,7 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "markAsFixed", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Mesh &mesh = *_args.getPtr<Mesh>("mesh", 0, &_lock);
@@ -111,7 +111,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "texcoordInflow", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       VortexSheetMesh &mesh = *_args.getPtr<VortexSheetMesh>("mesh", 0, &_lock);
@@ -155,7 +155,7 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "meshSmokeInflow", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       VortexSheetMesh &mesh = *_args.getPtr<VortexSheetMesh>("mesh", 0, &_lock);
@@ -239,8 +239,8 @@ struct KnAcceleration : public KernelBase {
 
 void vorticitySource(VortexSheetMesh &mesh,
                      Vec3 gravity,
-                     const MACGrid *vel = NULL,
-                     const MACGrid *velOld = NULL,
+                     const MACGrid *vel = nullptr,
+                     const MACGrid *velOld = nullptr,
                      Real scale = 0.1,
                      Real maxAmount = 0,
                      Real mult = 1.0)
@@ -289,13 +289,13 @@ static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "vorticitySource", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       VortexSheetMesh &mesh = *_args.getPtr<VortexSheetMesh>("mesh", 0, &_lock);
       Vec3 gravity = _args.get<Vec3>("gravity", 1, &_lock);
-      const MACGrid *vel = _args.getPtrOpt<MACGrid>("vel", 2, NULL, &_lock);
-      const MACGrid *velOld = _args.getPtrOpt<MACGrid>("velOld", 3, NULL, &_lock);
+      const MACGrid *vel = _args.getPtrOpt<MACGrid>("vel", 2, nullptr, &_lock);
+      const MACGrid *velOld = _args.getPtrOpt<MACGrid>("velOld", 3, nullptr, &_lock);
       Real scale = _args.getOpt<Real>("scale", 4, 0.1, &_lock);
       Real maxAmount = _args.getOpt<Real>("maxAmount", 5, 0, &_lock);
       Real mult = _args.getOpt<Real>("mult", 6, 1.0, &_lock);
@@ -373,7 +373,7 @@ static PyObject *_W_4(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "smoothVorticity", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       VortexSheetMesh &mesh = *_args.getPtr<VortexSheetMesh>("mesh", 0, &_lock);
@@ -437,7 +437,7 @@ static PyObject *_W_5(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "VPseedK41", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       VortexParticleSystem &system = *_args.getPtr<VortexParticleSystem>("system", 0, &_lock);
@@ -473,7 +473,7 @@ void VICintegration(VortexSheetMesh &mesh,
                     Real sigma,
                     Grid<Vec3> &vel,
                     const FlagGrid &flags,
-                    Grid<Vec3> *vorticity = NULL,
+                    Grid<Vec3> *vorticity = nullptr,
                     Real cgMaxIterFac = 1.5,
                     Real cgAccuracy = 1e-3,
                     Real scale = 0.01,
@@ -604,14 +604,14 @@ static PyObject *_W_6(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "VICintegration", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       VortexSheetMesh &mesh = *_args.getPtr<VortexSheetMesh>("mesh", 0, &_lock);
       Real sigma = _args.get<Real>("sigma", 1, &_lock);
       Grid<Vec3> &vel = *_args.getPtr<Grid<Vec3>>("vel", 2, &_lock);
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 3, &_lock);
-      Grid<Vec3> *vorticity = _args.getPtrOpt<Grid<Vec3>>("vorticity", 4, NULL, &_lock);
+      Grid<Vec3> *vorticity = _args.getPtrOpt<Grid<Vec3>>("vorticity", 4, nullptr, &_lock);
       Real cgMaxIterFac = _args.getOpt<Real>("cgMaxIterFac", 5, 1.5, &_lock);
       Real cgAccuracy = _args.getOpt<Real>("cgAccuracy", 6, 1e-3, &_lock);
       Real scale = _args.getOpt<Real>("scale", 7, 0.01, &_lock);
@@ -665,7 +665,7 @@ static PyObject *_W_7(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "densityFromLevelset", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const LevelsetGrid &phi = *_args.getPtr<LevelsetGrid>("phi", 0, &_lock);

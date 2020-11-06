@@ -73,7 +73,7 @@ class FluidSolver : public PbClass {
       FluidSolver *pbo = dynamic_cast<FluidSolver *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "FluidSolver::getGridSize", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -121,7 +121,7 @@ class FluidSolver : public PbClass {
       FluidSolver *pbo = dynamic_cast<FluidSolver *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "FluidSolver::printMemInfo", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -147,7 +147,7 @@ class FluidSolver : public PbClass {
       FluidSolver *pbo = dynamic_cast<FluidSolver *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "FluidSolver::step", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -173,7 +173,7 @@ class FluidSolver : public PbClass {
       FluidSolver *pbo = dynamic_cast<FluidSolver *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "FluidSolver::adaptTimestep", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Real maxVel = _args.get<Real>("maxVel", 0, &_lock);
@@ -200,7 +200,7 @@ class FluidSolver : public PbClass {
       FluidSolver *pbo = dynamic_cast<FluidSolver *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "FluidSolver::create", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         PbType type = _args.get<PbType>("type", 0, &_lock);

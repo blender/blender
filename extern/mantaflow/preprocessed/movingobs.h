@@ -62,7 +62,7 @@ class MovingObstacle : public PbClass {
       MovingObstacle *pbo = dynamic_cast<MovingObstacle *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "MovingObstacle::add", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Shape *shape = _args.getPtr<Shape>("shape", 0, &_lock);
@@ -96,7 +96,7 @@ class MovingObstacle : public PbClass {
       MovingObstacle *pbo = dynamic_cast<MovingObstacle *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "MovingObstacle::moveLinear", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Real t = _args.get<Real>("t", 0, &_lock);
@@ -130,7 +130,7 @@ class MovingObstacle : public PbClass {
       MovingObstacle *pbo = dynamic_cast<MovingObstacle *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "MovingObstacle::projectOutside", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);

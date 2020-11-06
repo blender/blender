@@ -79,7 +79,7 @@ class VortexParticleSystem : public ParticleSystem<VortexParticleData> {
       VortexParticleSystem *pbo = dynamic_cast<VortexParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "VortexParticleSystem::advectSelf", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Real scale = _args.getOpt<Real>("scale", 0, 1.0, &_lock);
@@ -106,7 +106,7 @@ class VortexParticleSystem : public ParticleSystem<VortexParticleData> {
       VortexParticleSystem *pbo = dynamic_cast<VortexParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "VortexParticleSystem::applyToMesh", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Mesh &mesh = *_args.getPtr<Mesh>("mesh", 0, &_lock);

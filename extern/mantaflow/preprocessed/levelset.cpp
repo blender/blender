@@ -510,7 +510,7 @@ static void doReinitMarch(Grid<Real> &phi,
   const int dim = (phi.is3D() ? 3 : 2);
   Grid<int> fmFlags(phi.getParent());
 
-  FastMarch<FmHeapEntryIn, -1> marchIn(flags, fmFlags, phi, maxTime, NULL);
+  FastMarch<FmHeapEntryIn, -1> marchIn(flags, fmFlags, phi, maxTime, nullptr);
 
   // march inside
   InitFmIn(flags, fmFlags, phi, ignoreWalls, obstacleType);

@@ -404,7 +404,7 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "getSpiralVelocity", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -454,7 +454,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "setGradientYWeight", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &W = *_args.getPtr<Grid<Real>>("W", 0, &_lock);
@@ -574,10 +574,10 @@ void solvePressure(MACGrid &vel,
                    Grid<Real> &pressure,
                    const FlagGrid &flags,
                    Real cgAccuracy = 1e-3,
-                   const Grid<Real> *phi = 0,
-                   const Grid<Real> *perCellCorr = 0,
-                   const MACGrid *fractions = 0,
-                   const MACGrid *obvel = 0,
+                   const Grid<Real> *phi = nullptr,
+                   const Grid<Real> *perCellCorr = nullptr,
+                   const MACGrid *fractions = nullptr,
+                   const MACGrid *obvel = nullptr,
                    Real gfClamp = 1e-04,
                    Real cgMaxIterFac = 1.5,
                    bool precondition = true,
@@ -585,9 +585,9 @@ void solvePressure(MACGrid &vel,
                    bool enforceCompatibility = false,
                    bool useL2Norm = false,
                    bool zeroPressureFixing = false,
-                   const Grid<Real> *curv = NULL,
+                   const Grid<Real> *curv = nullptr,
                    const Real surfTens = 0.0,
-                   Grid<Real> *retRhs = NULL);
+                   Grid<Real> *retRhs = nullptr);
 
 //! Main function for fluid guiding , includes "regular" pressure solve
 
@@ -603,16 +603,16 @@ void PD_fluid_guiding(MACGrid &vel,
                       Real epsRel = 1e-3,
                       Real epsAbs = 1e-3,
                       int maxIters = 200,
-                      Grid<Real> *phi = 0,
-                      Grid<Real> *perCellCorr = 0,
-                      MACGrid *fractions = 0,
-                      MACGrid *obvel = 0,
+                      Grid<Real> *phi = nullptr,
+                      Grid<Real> *perCellCorr = nullptr,
+                      MACGrid *fractions = nullptr,
+                      MACGrid *obvel = nullptr,
                       Real gfClamp = 1e-04,
                       Real cgMaxIterFac = 1.5,
                       Real cgAccuracy = 1e-3,
                       int preconditioner = 1,
                       bool zeroPressureFixing = false,
-                      const Grid<Real> *curv = NULL,
+                      const Grid<Real> *curv = nullptr,
                       const Real surfTens = 0.)
 {
   FluidSolver *parent = vel.getParent();
@@ -693,7 +693,7 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "PD_fluid_guiding", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       MACGrid &vel = *_args.getPtr<MACGrid>("vel", 0, &_lock);
@@ -708,16 +708,16 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       Real epsRel = _args.getOpt<Real>("epsRel", 9, 1e-3, &_lock);
       Real epsAbs = _args.getOpt<Real>("epsAbs", 10, 1e-3, &_lock);
       int maxIters = _args.getOpt<int>("maxIters", 11, 200, &_lock);
-      Grid<Real> *phi = _args.getPtrOpt<Grid<Real>>("phi", 12, 0, &_lock);
-      Grid<Real> *perCellCorr = _args.getPtrOpt<Grid<Real>>("perCellCorr", 13, 0, &_lock);
-      MACGrid *fractions = _args.getPtrOpt<MACGrid>("fractions", 14, 0, &_lock);
-      MACGrid *obvel = _args.getPtrOpt<MACGrid>("obvel", 15, 0, &_lock);
+      Grid<Real> *phi = _args.getPtrOpt<Grid<Real>>("phi", 12, nullptr, &_lock);
+      Grid<Real> *perCellCorr = _args.getPtrOpt<Grid<Real>>("perCellCorr", 13, nullptr, &_lock);
+      MACGrid *fractions = _args.getPtrOpt<MACGrid>("fractions", 14, nullptr, &_lock);
+      MACGrid *obvel = _args.getPtrOpt<MACGrid>("obvel", 15, nullptr, &_lock);
       Real gfClamp = _args.getOpt<Real>("gfClamp", 16, 1e-04, &_lock);
       Real cgMaxIterFac = _args.getOpt<Real>("cgMaxIterFac", 17, 1.5, &_lock);
       Real cgAccuracy = _args.getOpt<Real>("cgAccuracy", 18, 1e-3, &_lock);
       int preconditioner = _args.getOpt<int>("preconditioner", 19, 1, &_lock);
       bool zeroPressureFixing = _args.getOpt<bool>("zeroPressureFixing", 20, false, &_lock);
-      const Grid<Real> *curv = _args.getPtrOpt<Grid<Real>>("curv", 21, NULL, &_lock);
+      const Grid<Real> *curv = _args.getPtrOpt<Grid<Real>>("curv", 21, nullptr, &_lock);
       const Real surfTens = _args.getOpt<Real>("surfTens", 22, 0., &_lock);
       _retval = getPyNone();
       PD_fluid_guiding(vel,
@@ -775,7 +775,7 @@ static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "releaseBlurPrecomp", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       _retval = getPyNone();

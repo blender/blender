@@ -60,7 +60,7 @@ class LevelsetGrid : public Grid<Real> {
 
   void reinitMarching(const FlagGrid &flags,
                       Real maxTime = 4.0,
-                      MACGrid *velTransport = NULL,
+                      MACGrid *velTransport = nullptr,
                       bool ignoreWalls = false,
                       bool correctOuterLayer = true,
                       int obstacleType = FlagGrid::TypeObstacle);
@@ -71,12 +71,12 @@ class LevelsetGrid : public Grid<Real> {
       LevelsetGrid *pbo = dynamic_cast<LevelsetGrid *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "LevelsetGrid::reinitMarching", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
         Real maxTime = _args.getOpt<Real>("maxTime", 1, 4.0, &_lock);
-        MACGrid *velTransport = _args.getPtrOpt<MACGrid>("velTransport", 2, NULL, &_lock);
+        MACGrid *velTransport = _args.getPtrOpt<MACGrid>("velTransport", 2, nullptr, &_lock);
         bool ignoreWalls = _args.getOpt<bool>("ignoreWalls", 3, false, &_lock);
         bool correctOuterLayer = _args.getOpt<bool>("correctOuterLayer", 4, true, &_lock);
         int obstacleType = _args.getOpt<int>("obstacleType", 5, FlagGrid::TypeObstacle, &_lock);
@@ -104,7 +104,7 @@ class LevelsetGrid : public Grid<Real> {
       LevelsetGrid *pbo = dynamic_cast<LevelsetGrid *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "LevelsetGrid::createMesh", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Mesh &mesh = *_args.getPtr<Mesh>("mesh", 0, &_lock);
@@ -131,7 +131,7 @@ class LevelsetGrid : public Grid<Real> {
       LevelsetGrid *pbo = dynamic_cast<LevelsetGrid *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "LevelsetGrid::join", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const LevelsetGrid &o = *_args.getPtr<LevelsetGrid>("o", 0, &_lock);
@@ -149,7 +149,9 @@ class LevelsetGrid : public Grid<Real> {
     }
   }
 
-  void subtract(const LevelsetGrid &o, const FlagGrid *flags = NULL, const int subtractType = 0);
+  void subtract(const LevelsetGrid &o,
+                const FlagGrid *flags = nullptr,
+                const int subtractType = 0);
   static PyObject *_W_4(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -157,11 +159,11 @@ class LevelsetGrid : public Grid<Real> {
       LevelsetGrid *pbo = dynamic_cast<LevelsetGrid *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "LevelsetGrid::subtract", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const LevelsetGrid &o = *_args.getPtr<LevelsetGrid>("o", 0, &_lock);
-        const FlagGrid *flags = _args.getPtrOpt<FlagGrid>("flags", 1, NULL, &_lock);
+        const FlagGrid *flags = _args.getPtrOpt<FlagGrid>("flags", 1, nullptr, &_lock);
         const int subtractType = _args.getOpt<int>("subtractType", 2, 0, &_lock);
         pbo->_args.copy(_args);
         _retval = getPyNone();
@@ -186,7 +188,7 @@ class LevelsetGrid : public Grid<Real> {
       LevelsetGrid *pbo = dynamic_cast<LevelsetGrid *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "LevelsetGrid::initFromFlags", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -215,7 +217,7 @@ class LevelsetGrid : public Grid<Real> {
       LevelsetGrid *pbo = dynamic_cast<LevelsetGrid *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "LevelsetGrid::fillHoles", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         int maxDepth = _args.getOpt<int>("maxDepth", 0, 10, &_lock);
@@ -243,7 +245,7 @@ class LevelsetGrid : public Grid<Real> {
       LevelsetGrid *pbo = dynamic_cast<LevelsetGrid *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "LevelsetGrid::floodFill", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const Real value = _args.getOpt<Real>("value", 0, -0.5, &_lock);

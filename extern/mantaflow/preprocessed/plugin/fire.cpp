@@ -258,10 +258,10 @@ struct KnProcessBurn : public KernelBase {
 void processBurn(Grid<Real> &fuel,
                  Grid<Real> &density,
                  Grid<Real> &react,
-                 Grid<Real> *red = NULL,
-                 Grid<Real> *green = NULL,
-                 Grid<Real> *blue = NULL,
-                 Grid<Real> *heat = NULL,
+                 Grid<Real> *red = nullptr,
+                 Grid<Real> *green = nullptr,
+                 Grid<Real> *blue = nullptr,
+                 Grid<Real> *heat = nullptr,
                  Real burningRate = 0.75f,
                  Real flameSmoke = 1.0f,
                  Real ignitionTemp = 1.25f,
@@ -290,16 +290,16 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "processBurn", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &fuel = *_args.getPtr<Grid<Real>>("fuel", 0, &_lock);
       Grid<Real> &density = *_args.getPtr<Grid<Real>>("density", 1, &_lock);
       Grid<Real> &react = *_args.getPtr<Grid<Real>>("react", 2, &_lock);
-      Grid<Real> *red = _args.getPtrOpt<Grid<Real>>("red", 3, NULL, &_lock);
-      Grid<Real> *green = _args.getPtrOpt<Grid<Real>>("green", 4, NULL, &_lock);
-      Grid<Real> *blue = _args.getPtrOpt<Grid<Real>>("blue", 5, NULL, &_lock);
-      Grid<Real> *heat = _args.getPtrOpt<Grid<Real>>("heat", 6, NULL, &_lock);
+      Grid<Real> *red = _args.getPtrOpt<Grid<Real>>("red", 3, nullptr, &_lock);
+      Grid<Real> *green = _args.getPtrOpt<Grid<Real>>("green", 4, nullptr, &_lock);
+      Grid<Real> *blue = _args.getPtrOpt<Grid<Real>>("blue", 5, nullptr, &_lock);
+      Grid<Real> *heat = _args.getPtrOpt<Grid<Real>>("heat", 6, nullptr, &_lock);
       Real burningRate = _args.getOpt<Real>("burningRate", 7, 0.75f, &_lock);
       Real flameSmoke = _args.getOpt<Real>("flameSmoke", 8, 1.0f, &_lock);
       Real ignitionTemp = _args.getOpt<Real>("ignitionTemp", 9, 1.25f, &_lock);
@@ -407,7 +407,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "updateFlame", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const Grid<Real> &react = *_args.getPtr<Grid<Real>>("react", 0, &_lock);

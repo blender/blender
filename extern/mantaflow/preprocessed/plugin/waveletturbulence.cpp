@@ -69,7 +69,7 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "interpolateGrid", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &target = *_args.getPtr<Grid<Real>>("target", 0, &_lock);
@@ -116,7 +116,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "interpolateGridVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Vec3> &target = *_args.getPtr<Grid<Vec3>>("target", 0, &_lock);
@@ -263,7 +263,7 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "interpolateMACGrid", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       MACGrid &target = *_args.getPtr<MACGrid>("target", 0, &_lock);
@@ -395,7 +395,7 @@ void applySimpleNoiseVec3(const FlagGrid &flags,
                           Grid<Vec3> &target,
                           const WaveletNoiseField &noise,
                           Real scale = 1.0,
-                          const Grid<Real> *weight = NULL)
+                          const Grid<Real> *weight = nullptr)
 {
   // note - passing a MAC grid here is slightly inaccurate, we should evaluate each component
   // separately
@@ -408,14 +408,14 @@ static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "applySimpleNoiseVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
       Grid<Vec3> &target = *_args.getPtr<Grid<Vec3>>("target", 1, &_lock);
       const WaveletNoiseField &noise = *_args.getPtr<WaveletNoiseField>("noise", 2, &_lock);
       Real scale = _args.getOpt<Real>("scale", 3, 1.0, &_lock);
-      const Grid<Real> *weight = _args.getPtrOpt<Grid<Real>>("weight", 4, NULL, &_lock);
+      const Grid<Real> *weight = _args.getPtrOpt<Grid<Real>>("weight", 4, nullptr, &_lock);
       _retval = getPyNone();
       applySimpleNoiseVec3(flags, target, noise, scale, weight);
       _args.check();
@@ -537,7 +537,7 @@ void applySimpleNoiseReal(const FlagGrid &flags,
                           Grid<Real> &target,
                           const WaveletNoiseField &noise,
                           Real scale = 1.0,
-                          const Grid<Real> *weight = NULL)
+                          const Grid<Real> *weight = nullptr)
 {
   knApplySimpleNoiseReal(flags, target, noise, scale, weight);
 }
@@ -548,14 +548,14 @@ static PyObject *_W_4(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "applySimpleNoiseReal", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
       Grid<Real> &target = *_args.getPtr<Grid<Real>>("target", 1, &_lock);
       const WaveletNoiseField &noise = *_args.getPtr<WaveletNoiseField>("noise", 2, &_lock);
       Real scale = _args.getOpt<Real>("scale", 3, 1.0, &_lock);
-      const Grid<Real> *weight = _args.getPtrOpt<Grid<Real>>("weight", 4, NULL, &_lock);
+      const Grid<Real> *weight = _args.getPtrOpt<Grid<Real>>("weight", 4, nullptr, &_lock);
       _retval = getPyNone();
       applySimpleNoiseReal(flags, target, noise, scale, weight);
       _args.check();
@@ -763,8 +763,8 @@ void applyNoiseVec3(const FlagGrid &flags,
                     const WaveletNoiseField &noise,
                     Real scale = 1.0,
                     Real scaleSpatial = 1.0,
-                    const Grid<Real> *weight = NULL,
-                    const Grid<Vec3> *uv = NULL)
+                    const Grid<Real> *weight = nullptr,
+                    const Grid<Vec3> *uv = nullptr)
 {
   // check whether the uv grid has a different resolution
   bool uvInterpol = false;
@@ -794,7 +794,7 @@ static PyObject *_W_5(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "applyNoiseVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -802,8 +802,8 @@ static PyObject *_W_5(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const WaveletNoiseField &noise = *_args.getPtr<WaveletNoiseField>("noise", 2, &_lock);
       Real scale = _args.getOpt<Real>("scale", 3, 1.0, &_lock);
       Real scaleSpatial = _args.getOpt<Real>("scaleSpatial", 4, 1.0, &_lock);
-      const Grid<Real> *weight = _args.getPtrOpt<Grid<Real>>("weight", 5, NULL, &_lock);
-      const Grid<Vec3> *uv = _args.getPtrOpt<Grid<Vec3>>("uv", 6, NULL, &_lock);
+      const Grid<Real> *weight = _args.getPtrOpt<Grid<Real>>("weight", 5, nullptr, &_lock);
+      const Grid<Vec3> *uv = _args.getPtrOpt<Grid<Vec3>>("uv", 6, nullptr, &_lock);
       _retval = getPyNone();
       applyNoiseVec3(flags, target, noise, scale, scaleSpatial, weight, uv);
       _args.check();
@@ -905,7 +905,7 @@ static PyObject *_W_6(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "computeEnergy", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -943,7 +943,7 @@ static PyObject *_W_7(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "computeWaveletCoeffs", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &input = *_args.getPtr<Grid<Real>>("input", 0, &_lock);
@@ -968,7 +968,7 @@ void PbRegister_computeWaveletCoeffs()
 }
 
 // note - alomst the same as for vorticity confinement
-void computeVorticity(const MACGrid &vel, Grid<Vec3> &vorticity, Grid<Real> *norm = NULL)
+void computeVorticity(const MACGrid &vel, Grid<Vec3> &vorticity, Grid<Real> *norm = nullptr)
 {
   Grid<Vec3> velCenter(vel.getParent());
   GetCentered(velCenter, vel);
@@ -983,12 +983,12 @@ static PyObject *_W_8(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "computeVorticity", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const MACGrid &vel = *_args.getPtr<MACGrid>("vel", 0, &_lock);
       Grid<Vec3> &vorticity = *_args.getPtr<Grid<Vec3>>("vorticity", 1, &_lock);
-      Grid<Real> *norm = _args.getPtrOpt<Grid<Real>>("norm", 2, NULL, &_lock);
+      Grid<Real> *norm = _args.getPtrOpt<Grid<Real>>("norm", 2, nullptr, &_lock);
       _retval = getPyNone();
       computeVorticity(vel, vorticity, norm);
       _args.check();
@@ -1104,7 +1104,7 @@ static PyObject *_W_9(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "computeStrainRateMag", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const MACGrid &vel = *_args.getPtr<MACGrid>("vel", 0, &_lock);
@@ -1219,7 +1219,7 @@ static PyObject *_W_10(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "extrapolateSimpleFlags", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -1263,7 +1263,7 @@ static PyObject *_W_11(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "getCurl", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const MACGrid &vel = *_args.getPtr<MACGrid>("vel", 0, &_lock);

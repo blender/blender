@@ -617,7 +617,7 @@ struct knUnprojectNormalComp : public KernelBase {
 void extrapolateMACSimple(FlagGrid &flags,
                           MACGrid &vel,
                           int distance = 4,
-                          LevelsetGrid *phiObs = NULL,
+                          LevelsetGrid *phiObs = nullptr,
                           bool intoObs = false)
 {
   Grid<int> tmp(flags.getParent());
@@ -669,13 +669,13 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "extrapolateMACSimple", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
       MACGrid &vel = *_args.getPtr<MACGrid>("vel", 1, &_lock);
       int distance = _args.getOpt<int>("distance", 2, 4, &_lock);
-      LevelsetGrid *phiObs = _args.getPtrOpt<LevelsetGrid>("phiObs", 3, NULL, &_lock);
+      LevelsetGrid *phiObs = _args.getPtrOpt<LevelsetGrid>("phiObs", 3, nullptr, &_lock);
       bool intoObs = _args.getOpt<bool>("intoObs", 4, false, &_lock);
       _retval = getPyNone();
       extrapolateMACSimple(flags, vel, distance, phiObs, intoObs);
@@ -839,7 +839,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "extrapolateMACFromWeight", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       MACGrid &vel = *_args.getPtr<MACGrid>("vel", 0, &_lock);
@@ -1092,7 +1092,7 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "extrapolateLsSimple", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &phi = *_args.getPtr<Grid<Real>>("phi", 0, &_lock);
@@ -1170,7 +1170,7 @@ static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "extrapolateVec3Simple", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Vec3> &vel = *_args.getPtr<Grid<Vec3>>("vel", 0, &_lock);

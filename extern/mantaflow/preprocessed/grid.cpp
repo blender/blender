@@ -1290,7 +1290,7 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "gridMaxDiff", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &g1 = *_args.getPtr<Grid<Real>>("g1", 0, &_lock);
@@ -1330,7 +1330,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "gridMaxDiffInt", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<int> &g1 = *_args.getPtr<Grid<int>>("g1", 0, &_lock);
@@ -1377,7 +1377,7 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "gridMaxDiffVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Vec3> &g1 = *_args.getPtr<Grid<Vec3>>("g1", 0, &_lock);
@@ -1470,7 +1470,7 @@ static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "copyMacToVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       MACGrid &source = *_args.getPtr<MACGrid>("source", 0, &_lock);
@@ -1507,7 +1507,7 @@ static PyObject *_W_4(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "convertMacToVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       MACGrid &source = *_args.getPtr<MACGrid>("source", 0, &_lock);
@@ -1604,7 +1604,7 @@ static PyObject *_W_5(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "resampleVec3ToMac", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Vec3> &source = *_args.getPtr<Grid<Vec3>>("source", 0, &_lock);
@@ -1697,7 +1697,7 @@ static PyObject *_W_6(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "resampleMacToVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       MACGrid &source = *_args.getPtr<MACGrid>("source", 0, &_lock);
@@ -1789,7 +1789,7 @@ static PyObject *_W_7(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "copyLevelsetToReal", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       LevelsetGrid &source = *_args.getPtr<LevelsetGrid>("source", 0, &_lock);
@@ -1911,7 +1911,7 @@ static PyObject *_W_8(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "copyVec3ToReal", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Vec3> &source = *_args.getPtr<Grid<Vec3>>("source", 0, &_lock);
@@ -2035,7 +2035,7 @@ static PyObject *_W_9(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "copyRealToVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &sourceX = *_args.getPtr<Grid<Real>>("sourceX", 0, &_lock);
@@ -2074,7 +2074,7 @@ static PyObject *_W_10(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "convertLevelsetToReal", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       LevelsetGrid &source = *_args.getPtr<LevelsetGrid>("source", 0, &_lock);
@@ -2139,7 +2139,7 @@ static PyObject *_W_11(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "swapComponents", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Vec3> &vel = *_args.getPtr<Grid<Vec3>>("vel", 0, &_lock);
@@ -2181,7 +2181,7 @@ static PyObject *_W_12(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "getUvWeight", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Vec3> &uv = *_args.getPtr<Grid<Vec3>>("uv", 0, &_lock);
@@ -2280,7 +2280,7 @@ struct knResetUvGrid : public KernelBase {
   const Vec3 *offset;
 };
 
-void resetUvGrid(Grid<Vec3> &target, const Vec3 *offset = NULL)
+void resetUvGrid(Grid<Vec3> &target, const Vec3 *offset = nullptr)
 {
   knResetUvGrid reset(target,
                       offset);  // note, llvm complains about anonymous declaration here... ?
@@ -2292,11 +2292,11 @@ static PyObject *_W_13(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "resetUvGrid", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Vec3> &target = *_args.getPtr<Grid<Vec3>>("target", 0, &_lock);
-      const Vec3 *offset = _args.getPtrOpt<Vec3>("offset", 1, NULL, &_lock);
+      const Vec3 *offset = _args.getPtrOpt<Vec3>("offset", 1, nullptr, &_lock);
       _retval = getPyNone();
       resetUvGrid(target, offset);
       _args.check();
@@ -2318,7 +2318,7 @@ void PbRegister_resetUvGrid()
 }
 
 void updateUvWeight(
-    Real resetTime, int index, int numUvs, Grid<Vec3> &uv, const Vec3 *offset = NULL)
+    Real resetTime, int index, int numUvs, Grid<Vec3> &uv, const Vec3 *offset = nullptr)
 {
   const Real t = uv.getParent()->getTime();
   Real timeOff = resetTime / (Real)numUvs;
@@ -2357,14 +2357,14 @@ static PyObject *_W_14(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "updateUvWeight", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Real resetTime = _args.get<Real>("resetTime", 0, &_lock);
       int index = _args.get<int>("index", 1, &_lock);
       int numUvs = _args.get<int>("numUvs", 2, &_lock);
       Grid<Vec3> &uv = *_args.getPtr<Grid<Vec3>>("uv", 3, &_lock);
-      const Vec3 *offset = _args.getPtrOpt<Vec3>("offset", 4, NULL, &_lock);
+      const Vec3 *offset = _args.getPtrOpt<Vec3>("offset", 4, nullptr, &_lock);
       _retval = getPyNone();
       updateUvWeight(resetTime, index, numUvs, uv, offset);
       _args.check();
@@ -2812,7 +2812,7 @@ struct knCountFluidCells : public KernelBase {
 
 //! averaged value for all cells (if flags are given, only for fluid cells)
 
-Real getGridAvg(Grid<Real> &source, FlagGrid *flags = NULL)
+Real getGridAvg(Grid<Real> &source, FlagGrid *flags = nullptr)
 {
   double sum = knGridTotalSum(source, flags);
 
@@ -2837,11 +2837,11 @@ static PyObject *_W_15(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "getGridAvg", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &source = *_args.getPtr<Grid<Real>>("source", 0, &_lock);
-      FlagGrid *flags = _args.getPtrOpt<FlagGrid>("flags", 1, NULL, &_lock);
+      FlagGrid *flags = _args.getPtrOpt<FlagGrid>("flags", 1, nullptr, &_lock);
       _retval = toPy(getGridAvg(source, flags));
       _args.check();
     }
@@ -2920,7 +2920,7 @@ static PyObject *_W_16(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "getComponent", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const Grid<Vec3> &source = *_args.getPtr<Grid<Vec3>>("source", 0, &_lock);
@@ -3003,7 +3003,7 @@ static PyObject *_W_17(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "setComponent", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const Grid<Real> &source = *_args.getPtr<Grid<Real>>("source", 0, &_lock);
@@ -3373,7 +3373,7 @@ static PyObject *_W_18(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "markIsolatedFluidCell", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -3427,7 +3427,7 @@ static PyObject *_W_19(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "copyMACData", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const MACGrid &source = *_args.getPtr<MACGrid>("source", 0, &_lock);

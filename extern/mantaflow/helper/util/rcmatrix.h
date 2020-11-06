@@ -157,18 +157,18 @@ template<class N, class T> struct RCMatrix {
   {
     for (N i = 0; i < n; i++) {
       dealloc_row(i);
-      matrix[i] = NULL;
+      matrix[i] = nullptr;
       if (offsets.size())
         offsets[i] = 0;
     }
   };
   bool empty(N i) const
   {
-    return matrix[i] == NULL;
+    return matrix[i] == nullptr;
   }
   N row_nonzero_size(N i) const
   {
-    return matrix[i] == NULL ? 0 : matrix[i]->index.size();
+    return matrix[i] == nullptr ? 0 : matrix[i]->index.size();
   }
   void resize(N size, N expected_none_zeros = 0)
   {
@@ -185,7 +185,7 @@ template<class N, class T> struct RCMatrix {
       // Expanding
       matrix.resize(size);
       for (N i = n; i < size; i++) {
-        matrix[i] = NULL;
+        matrix[i] = nullptr;
         if (offsets.size())
           offsets[i] = 0;
       }
@@ -209,7 +209,7 @@ template<class N, class T> struct RCMatrix {
     if (matrix[i]) {
       if (offsets.empty() || !offsets[i])
         delete matrix[i];
-      matrix[i] = NULL;
+      matrix[i] = nullptr;
       if (offsets.size())
         offsets[i] = 0;
     }
@@ -426,7 +426,7 @@ template<class N, class T> struct RCMatrix {
     }
     operator bool() const
     {
-      return rowEntry != NULL && k < (N)rowEntry->index.size();
+      return rowEntry != nullptr && k < (N)rowEntry->index.size();
     }
     Iterator &operator++()
     {
@@ -447,7 +447,7 @@ template<class N, class T> struct RCMatrix {
     }
     N size() const
     {
-      return rowEntry == NULL ? 0 : rowEntry->index.size();
+      return rowEntry == nullptr ? 0 : rowEntry->index.size();
     }
 
    protected:

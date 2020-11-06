@@ -39,7 +39,7 @@ Mesh::Mesh(FluidSolver *parent) : PbClass(parent)
 Mesh::~Mesh()
 {
   for (IndexInt i = 0; i < (IndexInt)mMeshData.size(); ++i)
-    mMeshData[i]->setMesh(NULL);
+    mMeshData[i]->setMesh(nullptr);
 
   if (mFreeMdata) {
     for (IndexInt i = 0; i < (IndexInt)mMeshData.size(); ++i)
@@ -88,7 +88,7 @@ PbClass *Mesh::create(PbType t, PbTypeVec T, const string &name)
         "Unable to get mesh data pointer from newly created object. Only create MeshData type "
         "with a Mesh.creat() call, eg, MdataReal, MdataVec3 etc.");
     delete pyObj;
-    return NULL;
+    return nullptr;
   }
   else {
     this->registerMdata(mdata);
@@ -97,7 +97,7 @@ PbClass *Mesh::create(PbType t, PbTypeVec T, const string &name)
   // directly init size of new mdata field:
   mdata->resize(this->getSizeSlow());
 #else
-  PbClass *pyObj = NULL;
+  PbClass *pyObj = nullptr;
 #endif
   return pyObj;
 }
@@ -1279,7 +1279,7 @@ std::string Mesh::getTrisDataPointer()
 
 // mesh data
 
-MeshDataBase::MeshDataBase(FluidSolver *parent) : PbClass(parent), mMesh(NULL)
+MeshDataBase::MeshDataBase(FluidSolver *parent) : PbClass(parent), mMesh(nullptr)
 {
 }
 
@@ -1294,13 +1294,13 @@ MeshDataBase::~MeshDataBase()
 
 template<class T>
 MeshDataImpl<T>::MeshDataImpl(FluidSolver *parent)
-    : MeshDataBase(parent), mpGridSource(NULL), mGridSourceMAC(false)
+    : MeshDataBase(parent), mpGridSource(nullptr), mGridSourceMAC(false)
 {
 }
 
 template<class T>
 MeshDataImpl<T>::MeshDataImpl(FluidSolver *parent, MeshDataImpl<T> *other)
-    : MeshDataBase(parent), mpGridSource(NULL), mGridSourceMAC(false)
+    : MeshDataBase(parent), mpGridSource(nullptr), mGridSourceMAC(false)
 {
   this->mData = other->mData;
   setName(other->getName());

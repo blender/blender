@@ -440,7 +440,7 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "getUniFileSize", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const string &name = _args.get<string>("name", 0, &_lock);
@@ -479,7 +479,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "printUniFileInfoString", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const string &name = _args.get<string>("name", 0, &_lock);
@@ -715,7 +715,7 @@ template<> int writeGridVol<Real>(const string &name, Grid<Real> *grid)
   header.bboxMax = Vec3(0.5);
 
   FILE *fp = fopen(name.c_str(), "wb");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     errMsg("writeGridVol: Cannot open '" << name << "'");
     return 0;
   }
@@ -749,7 +749,7 @@ template<> int readGridVol<Real>(const string &name, Grid<Real> *grid)
 
   volHeader header;
   FILE *fp = fopen(name.c_str(), "rb");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     errMsg("readGridVol: Cannot open '" << name << "'");
     return 0;
   }
@@ -844,11 +844,11 @@ int readGrid4dUni(
            1);
 
 #if NO_ZLIB != 1
-  gzFile gzf = NULL;
+  gzFile gzf = nullptr;
   char ID[5] = {0, 0, 0, 0, 0};
 
   // optionally - reuse file handle, if valid one is passed in fileHandle pointer...
-  if ((!fileHandle) || (fileHandle && (*fileHandle == NULL))) {
+  if ((!fileHandle) || (fileHandle && (*fileHandle == nullptr))) {
     gzf = (gzFile)safeGzopen(name.c_str(), "rb");
     if (!gzf) {
       errMsg("readGrid4dUni: can't open file " << name);
@@ -969,11 +969,11 @@ int readGrid4dUni(
 void readGrid4dUniCleanup(void **fileHandle)
 {
 #if NO_ZLIB != 1
-  gzFile gzf = NULL;
+  gzFile gzf = nullptr;
   if (fileHandle) {
     gzf = (gzFile)(*fileHandle);
     gzclose(gzf);
-    *fileHandle = NULL;
+    *fileHandle = nullptr;
   }
 #else
   debMsg("file format not supported without zlib", 1);
@@ -1171,7 +1171,7 @@ int readGridsNumpy(const string &name, std::vector<PbClass *> *grids)
 
 // adopted from getUniFileSize
 void getNpzFileSize(
-    const string &name, int &x, int &y, int &z, int *t = NULL, std::string *info = NULL)
+    const string &name, int &x, int &y, int &z, int *t = nullptr, std::string *info = nullptr)
 {
   x = y = z = 0;
 
@@ -1207,7 +1207,7 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "getNpzFileSize", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const string &name = _args.get<string>("name", 0, &_lock);
@@ -1289,7 +1289,7 @@ static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "quantizeGrid", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &grid = *_args.getPtr<Grid<Real>>("grid", 0, &_lock);
@@ -1365,7 +1365,7 @@ static PyObject *_W_4(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "quantizeGridVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Vec3> &grid = *_args.getPtr<Grid<Vec3>>("grid", 0, &_lock);
