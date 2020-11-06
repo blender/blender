@@ -25,6 +25,9 @@
  * Also Blender's main event loop (WM_main).
  */
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include <stddef.h>
 #include <string.h>
 
@@ -69,6 +72,8 @@
 #  include "BPY_extern_run.h"
 #endif
 
+#include "BLO_read_write.h"
+
 /* ****************************************************** */
 
 static void window_manager_free_data(ID *id)
@@ -98,6 +103,158 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
+{
+  BKE_screen_view3d_shading_blend_write(writer, &xr_data->session_settings.shading);
+}
+
+static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  wmWindowManager *wm = (wmWindowManager *)id;
+
+  BLO_write_id_struct(writer, wmWindowManager, id_address, &wm->id);
+  BKE_id_blend_write(writer, &wm->id);
+  write_wm_xr_data(writer, &wm->xr);
+
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    /* update deprecated screen member (for so loading in 2.7x uses the correct screen) */
+    win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
+
+    BLO_write_struct(writer, wmWindow, win);
+    BLO_write_struct(writer, WorkSpaceInstanceHook, win->workspace_hook);
+    BLO_write_struct(writer, Stereo3dFormat, win->stereo3d_format);
+
+    BKE_screen_area_map_blend_write(writer, &win->global_areas);
+
+    /* data is written, clear deprecated data again */
+    win->screen = NULL;
+  }
+}
+
+static void direct_link_wm_xr_data(BlendDataReader *reader, wmXrData *xr_data)
+{
+  BKE_screen_view3d_shading_blend_read_data(reader, &xr_data->session_settings.shading);
+}
+
+static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  wmWindowManager *wm = (wmWindowManager *)id;
+
+  id_us_ensure_real(&wm->id);
+  BLO_read_list(reader, &wm->windows);
+
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    BLO_read_data_address(reader, &win->parent);
+
+    WorkSpaceInstanceHook *hook = win->workspace_hook;
+    BLO_read_data_address(reader, &win->workspace_hook);
+
+    /* This will be NULL for any pre-2.80 blend file. */
+    if (win->workspace_hook != NULL) {
+      /* We need to restore a pointer to this later when reading workspaces,
+       * so store in global oldnew-map.
+       * Note that this is only needed for versioning of older .blend files now.. */
+      BLO_read_data_globmap_add(reader, hook, win->workspace_hook);
+      /* Cleanup pointers to data outside of this data-block scope. */
+      win->workspace_hook->act_layout = NULL;
+      win->workspace_hook->temp_workspace_store = NULL;
+      win->workspace_hook->temp_layout_store = NULL;
+    }
+
+    BKE_screen_area_map_blend_read_data(reader, &win->global_areas);
+
+    win->ghostwin = NULL;
+    win->gpuctx = NULL;
+    win->eventstate = NULL;
+    win->cursor_keymap_status = NULL;
+    win->tweak = NULL;
+#ifdef WIN32
+    win->ime_data = NULL;
+#endif
+
+    BLI_listbase_clear(&win->queue);
+    BLI_listbase_clear(&win->handlers);
+    BLI_listbase_clear(&win->modalhandlers);
+    BLI_listbase_clear(&win->gesture);
+
+    win->active = 0;
+
+    win->cursor = 0;
+    win->lastcursor = 0;
+    win->modalcursor = 0;
+    win->grabcursor = 0;
+    win->addmousemove = true;
+    BLO_read_data_address(reader, &win->stereo3d_format);
+
+    /* Multi-view always fallback to anaglyph at file opening
+     * otherwise quad-buffer saved files can break Blender. */
+    if (win->stereo3d_format) {
+      win->stereo3d_format->display_mode = S3D_DISPLAY_ANAGLYPH;
+    }
+  }
+
+  direct_link_wm_xr_data(reader, &wm->xr);
+
+  BLI_listbase_clear(&wm->timers);
+  BLI_listbase_clear(&wm->operators);
+  BLI_listbase_clear(&wm->paintcursors);
+  BLI_listbase_clear(&wm->queue);
+  BKE_reports_init(&wm->reports, RPT_STORE);
+
+  BLI_listbase_clear(&wm->keyconfigs);
+  wm->defaultconf = NULL;
+  wm->addonconf = NULL;
+  wm->userconf = NULL;
+  wm->undo_stack = NULL;
+
+  wm->message_bus = NULL;
+
+  wm->xr.runtime = NULL;
+
+  BLI_listbase_clear(&wm->jobs);
+  BLI_listbase_clear(&wm->drags);
+
+  wm->windrawable = NULL;
+  wm->winactive = NULL;
+  wm->initialized = 0;
+  wm->op_undo_depth = 0;
+  wm->is_interface_locked = 0;
+}
+
+static void lib_link_wm_xr_data(BlendLibReader *reader, ID *parent_id, wmXrData *xr_data)
+{
+  BLO_read_id_address(reader, parent_id->lib, &xr_data->session_settings.base_pose_object);
+}
+
+static void lib_link_workspace_instance_hook(BlendLibReader *reader,
+                                             WorkSpaceInstanceHook *hook,
+                                             ID *id)
+{
+  WorkSpace *workspace = BKE_workspace_active_get(hook);
+  BLO_read_id_address(reader, id->lib, &workspace);
+  BKE_workspace_active_set(hook, workspace);
+}
+
+static void window_manager_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  wmWindowManager *wm = (wmWindowManager *)id;
+
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    if (win->workspace_hook) { /* NULL for old files */
+      lib_link_workspace_instance_hook(reader, win->workspace_hook, &wm->id);
+    }
+    BLO_read_id_address(reader, wm->id.lib, &win->scene);
+    /* deprecated, but needed for versioning (will be NULL'ed then) */
+    BLO_read_id_address(reader, NULL, &win->screen);
+
+    LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
+      BKE_screen_area_blend_read_lib(reader, &wm->id, area);
+    }
+
+    lib_link_wm_xr_data(reader, &wm->id, &wm->xr);
+  }
+}
+
 IDTypeInfo IDType_ID_WM = {
     .id_code = ID_WM,
     .id_filter = 0,
@@ -116,9 +273,9 @@ IDTypeInfo IDType_ID_WM = {
     .foreach_id = window_manager_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
+    .blend_write = window_manager_blend_write,
+    .blend_read_data = window_manager_blend_read_data,
+    .blend_read_lib = window_manager_blend_read_lib,
     .blend_read_expand = NULL,
 
     .blend_read_undo_preserve = NULL,

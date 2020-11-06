@@ -2569,21 +2569,6 @@ static void lib_link_constraint_channels(BlendLibReader *reader, ID *id, ListBas
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: WorkSpace
- * \{ */
-
-static void lib_link_workspace_instance_hook(BlendLibReader *reader,
-                                             WorkSpaceInstanceHook *hook,
-                                             ID *id)
-{
-  WorkSpace *workspace = BKE_workspace_active_get(hook);
-  BLO_read_id_address(reader, id->lib, &workspace);
-  BKE_workspace_active_set(hook, workspace);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Armature
  * \{ */
 
@@ -4567,129 +4552,6 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name XR-data
- * \{ */
-
-static void direct_link_wm_xr_data(BlendDataReader *reader, wmXrData *xr_data)
-{
-  BKE_screen_view3d_shading_blend_read_data(reader, &xr_data->session_settings.shading);
-}
-
-static void lib_link_wm_xr_data(BlendLibReader *reader, ID *parent_id, wmXrData *xr_data)
-{
-  BLO_read_id_address(reader, parent_id->lib, &xr_data->session_settings.base_pose_object);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Read ID: Window Manager
- * \{ */
-
-static void direct_link_windowmanager(BlendDataReader *reader, wmWindowManager *wm)
-{
-  id_us_ensure_real(&wm->id);
-  BLO_read_list(reader, &wm->windows);
-
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    BLO_read_data_address(reader, &win->parent);
-
-    WorkSpaceInstanceHook *hook = win->workspace_hook;
-    BLO_read_data_address(reader, &win->workspace_hook);
-
-    /* This will be NULL for any pre-2.80 blend file. */
-    if (win->workspace_hook != NULL) {
-      /* We need to restore a pointer to this later when reading workspaces,
-       * so store in global oldnew-map.
-       * Note that this is only needed for versioning of older .blend files now.. */
-      oldnewmap_insert(reader->fd->globmap, hook, win->workspace_hook, 0);
-      /* Cleanup pointers to data outside of this data-block scope. */
-      win->workspace_hook->act_layout = NULL;
-      win->workspace_hook->temp_workspace_store = NULL;
-      win->workspace_hook->temp_layout_store = NULL;
-    }
-
-    BKE_screen_area_map_blend_read_data(reader, &win->global_areas);
-
-    win->ghostwin = NULL;
-    win->gpuctx = NULL;
-    win->eventstate = NULL;
-    win->cursor_keymap_status = NULL;
-    win->tweak = NULL;
-#ifdef WIN32
-    win->ime_data = NULL;
-#endif
-
-    BLI_listbase_clear(&win->queue);
-    BLI_listbase_clear(&win->handlers);
-    BLI_listbase_clear(&win->modalhandlers);
-    BLI_listbase_clear(&win->gesture);
-
-    win->active = 0;
-
-    win->cursor = 0;
-    win->lastcursor = 0;
-    win->modalcursor = 0;
-    win->grabcursor = 0;
-    win->addmousemove = true;
-    BLO_read_data_address(reader, &win->stereo3d_format);
-
-    /* Multi-view always fallback to anaglyph at file opening
-     * otherwise quad-buffer saved files can break Blender. */
-    if (win->stereo3d_format) {
-      win->stereo3d_format->display_mode = S3D_DISPLAY_ANAGLYPH;
-    }
-  }
-
-  direct_link_wm_xr_data(reader, &wm->xr);
-
-  BLI_listbase_clear(&wm->timers);
-  BLI_listbase_clear(&wm->operators);
-  BLI_listbase_clear(&wm->paintcursors);
-  BLI_listbase_clear(&wm->queue);
-  BKE_reports_init(&wm->reports, RPT_STORE);
-
-  BLI_listbase_clear(&wm->keyconfigs);
-  wm->defaultconf = NULL;
-  wm->addonconf = NULL;
-  wm->userconf = NULL;
-  wm->undo_stack = NULL;
-
-  wm->message_bus = NULL;
-
-  wm->xr.runtime = NULL;
-
-  BLI_listbase_clear(&wm->jobs);
-  BLI_listbase_clear(&wm->drags);
-
-  wm->windrawable = NULL;
-  wm->winactive = NULL;
-  wm->initialized = 0;
-  wm->op_undo_depth = 0;
-  wm->is_interface_locked = 0;
-}
-
-static void lib_link_windowmanager(BlendLibReader *reader, wmWindowManager *wm)
-{
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (win->workspace_hook) { /* NULL for old files */
-      lib_link_workspace_instance_hook(reader, win->workspace_hook, &wm->id);
-    }
-    BLO_read_id_address(reader, wm->id.lib, &win->scene);
-    /* deprecated, but needed for versioning (will be NULL'ed then) */
-    BLO_read_id_address(reader, NULL, &win->screen);
-
-    LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
-      BKE_screen_area_blend_read_lib(reader, &wm->id, area);
-    }
-
-    lib_link_wm_xr_data(reader, &wm->id, &wm->xr);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Screen
  * \{ */
 
@@ -5431,9 +5293,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
   bool success = true;
 
   switch (GS(id->name)) {
-    case ID_WM:
-      direct_link_windowmanager(&reader, (wmWindowManager *)id);
-      break;
     case ID_SCR:
       success = direct_link_screen(&reader, (bScreen *)id);
       break;
@@ -5449,6 +5308,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
+    case ID_WM:
     case ID_WS:
     case ID_PA:
     case ID_GR:
@@ -6063,9 +5923,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
      * Please keep order of entries in that switch matching that order, it's easier to quickly see
      * whether something is wrong then. */
     switch (GS(id->name)) {
-      case ID_WM:
-        lib_link_windowmanager(&reader, (wmWindowManager *)id);
-        break;
       case ID_SCE:
         lib_link_scene(&reader, (Scene *)id);
         break;
@@ -6079,6 +5936,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LI:
         lib_link_library(&reader, (Library *)id); /* Only init users. */
         break;
+      case ID_WM:
       case ID_WS:
       case ID_SCR:
       case ID_PA:
@@ -8159,6 +8017,11 @@ void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p)
 bool BLO_read_data_is_undo(BlendDataReader *reader)
 {
   return reader->fd->memfile != NULL;
+}
+
+void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr)
+{
+  oldnewmap_insert(reader->fd->globmap, oldaddr, newaddr, 0);
 }
 
 bool BLO_read_lib_is_undo(BlendLibReader *reader)
