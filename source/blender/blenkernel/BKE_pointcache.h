@@ -91,6 +91,8 @@ struct RigidBodyWorld;
 struct Scene;
 struct SoftBody;
 struct ViewLayer;
+struct BlendWriter;
+struct BlendDataReader;
 
 /* temp structure for read/write */
 typedef struct PTCacheData {
@@ -373,6 +375,14 @@ void BKE_ptcache_validate(struct PointCache *cache, int framenr);
 
 /* Set correct flags after unsuccessful simulation step */
 void BKE_ptcache_invalidate(struct PointCache *cache);
+
+/********************** .blend File I/O *********************/
+
+void BKE_ptcache_blend_write(struct BlendWriter *writer, struct ListBase *ptcaches);
+void BKE_ptcache_blend_read_data(struct BlendDataReader *reader,
+                                 struct ListBase *ptcaches,
+                                 struct PointCache **ocache,
+                                 int force_disk);
 
 #ifdef __cplusplus
 }
