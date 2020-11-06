@@ -455,8 +455,8 @@ void imm_draw_cylinder_fill_normal_3d(
     for (int j = 0; j < stacks; j++) {
       float fac1 = (float)j / (float)stacks;
       float fac2 = (float)(j + 1) / (float)stacks;
-      float r1 = base * (1.f - fac1) + top * fac1;
-      float r2 = base * (1.f - fac2) + top * fac2;
+      float r1 = base * (1.0f - fac1) + top * fac1;
+      float r2 = base * (1.0f - fac2) + top * fac2;
       float h1 = height * ((float)j / (float)stacks);
       float h2 = height * ((float)(j + 1) / (float)stacks);
 
@@ -511,8 +511,8 @@ void imm_draw_cylinder_wire_3d(
     for (int j = 0; j < stacks; j++) {
       float fac1 = (float)j / (float)stacks;
       float fac2 = (float)(j + 1) / (float)stacks;
-      float r1 = base * (1.f - fac1) + top * fac1;
-      float r2 = base * (1.f - fac2) + top * fac2;
+      float r1 = base * (1.0f - fac1) + top * fac1;
+      float r2 = base * (1.0f - fac2) + top * fac2;
       float h1 = height * ((float)j / (float)stacks);
       float h2 = height * ((float)(j + 1) / (float)stacks);
 
@@ -549,8 +549,8 @@ void imm_draw_cylinder_fill_3d(
     for (int j = 0; j < stacks; j++) {
       float fac1 = (float)j / (float)stacks;
       float fac2 = (float)(j + 1) / (float)stacks;
-      float r1 = base * (1.f - fac1) + top * fac1;
-      float r2 = base * (1.f - fac2) + top * fac2;
+      float r1 = base * (1.0f - fac1) + top * fac1;
+      float r2 = base * (1.0f - fac2) + top * fac2;
       float h1 = height * ((float)j / (float)stacks);
       float h2 = height * ((float)(j + 1) / (float)stacks);
 

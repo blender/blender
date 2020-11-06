@@ -99,7 +99,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
     usd_intensity = light->energy;
   }
   else {
-    usd_intensity = light->energy / 100.f;
+    usd_intensity = light->energy / 100.0f;
   }
   usd_light.CreateIntensityAttr().Set(usd_intensity, timecode);
 

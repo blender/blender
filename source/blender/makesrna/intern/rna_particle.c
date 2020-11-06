@@ -1011,13 +1011,13 @@ static float rna_PartSettings_timestep_get(struct PointerRNA *ptr)
 static void rna_PartSetting_hairlength_set(struct PointerRNA *ptr, float value)
 {
   ParticleSettings *settings = (ParticleSettings *)ptr->data;
-  settings->normfac = value / 4.f;
+  settings->normfac = value / 4.0f;
 }
 
 static float rna_PartSetting_hairlength_get(struct PointerRNA *ptr)
 {
   ParticleSettings *settings = (ParticleSettings *)ptr->data;
-  return settings->normfac * 4.f;
+  return settings->normfac * 4.0f;
 }
 
 static void rna_PartSetting_linelentail_set(struct PointerRNA *ptr, float value)

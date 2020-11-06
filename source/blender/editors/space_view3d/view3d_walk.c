@@ -473,8 +473,8 @@ enum {
 };
 
 /* keep the previous speed until user changes userpreferences */
-static float base_speed = -1.f;
-static float userdef_speed = -1.f;
+static float base_speed = -1.0f;
+static float userdef_speed = -1.0f;
 
 static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 {
@@ -521,8 +521,9 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->speed = 0.0f;
   walk->is_fast = false;
   walk->is_slow = false;
-  walk->grid = (walk->scene->unit.system == USER_UNIT_NONE) ? 1.f :
-                                                              1.f / walk->scene->unit.scale_length;
+  walk->grid = (walk->scene->unit.system == USER_UNIT_NONE) ?
+                   1.0f :
+                   1.0f / walk->scene->unit.scale_length;
 
   /* user preference settings */
   walk->teleport.duration = U.walk_navigation.teleport_time;

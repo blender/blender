@@ -191,10 +191,10 @@ TEST(ArrayND, CopyFrom) {
   a(1, 1, 0) = 4;
   ArrayND<float, 3> b;
   b.CopyFrom(a);
-  EXPECT_FLOAT_EQ(1.f, b(0, 0, 0));
-  EXPECT_FLOAT_EQ(2.f, b(0, 1, 0));
-  EXPECT_FLOAT_EQ(3.f, b(1, 0, 0));
-  EXPECT_FLOAT_EQ(4.f, b(1, 1, 0));
+  EXPECT_FLOAT_EQ(1.0f, b(0, 0, 0));
+  EXPECT_FLOAT_EQ(2.0f, b(0, 1, 0));
+  EXPECT_FLOAT_EQ(3.0f, b(1, 0, 0));
+  EXPECT_FLOAT_EQ(4.0f, b(1, 1, 0));
 }
 
 TEST(ArrayND, MultiplyElements) {

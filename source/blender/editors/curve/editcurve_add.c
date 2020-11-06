@@ -397,8 +397,8 @@ Nurb *ED_curve_add_nurbs_primitive(
       break;
     case CU_PRIM_SPHERE: /* sphere */
       if (cutype == CU_NURBS) {
-        const float tmp_cent[3] = {0.f, 0.f, 0.f};
-        const float tmp_vec[3] = {0.f, 0.f, 1.f};
+        const float tmp_cent[3] = {0.0f, 0.0f, 0.0f};
+        const float tmp_vec[3] = {0.0f, 0.0f, 1.0f};
 
         nu->pntsu = 5;
         nu->pntsv = 1;
@@ -451,8 +451,8 @@ Nurb *ED_curve_add_nurbs_primitive(
       break;
     case CU_PRIM_DONUT: /* torus */
       if (cutype == CU_NURBS) {
-        const float tmp_cent[3] = {0.f, 0.f, 0.f};
-        const float tmp_vec[3] = {0.f, 0.f, 1.f};
+        const float tmp_cent[3] = {0.0f, 0.0f, 0.0f};
+        const float tmp_vec[3] = {0.0f, 0.0f, 1.0f};
 
         xzproj = 1;
         nu = ED_curve_add_nurbs_primitive(C, obedit, mat, CU_NURBS | CU_PRIM_CIRCLE, 0);

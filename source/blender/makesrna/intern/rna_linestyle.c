@@ -1573,7 +1573,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "pivot_u", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "pivot_u");
-  RNA_def_property_range(prop, 0.f, 1.f);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop,
                            "Stroke Point Parameter",
                            "Pivot in terms of the stroke point parameter u (0 <= u <= 1)");
@@ -1920,7 +1920,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "thickness_ratio", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "thickness_ratio");
-  RNA_def_property_range(prop, 0.f, 1.f);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
       prop,
       "Thickness Ratio",

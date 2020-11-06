@@ -885,7 +885,7 @@ static int __recursiveSplit(Chain *_curve,
 #endif
   real _min = FLT_MAX;
   ++it;
-  real mean = 0.f;
+  real mean = 0.0f;
   // soc unused - real variance                              = 0.0f;
   unsigned count = 0;
   CurveInternal::CurvePointIterator next = it;

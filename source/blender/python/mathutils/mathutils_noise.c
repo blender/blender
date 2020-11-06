@@ -179,7 +179,7 @@ static float frand(void)
   y ^= (y << 15) & 0xefc60000UL;
   y ^= (y >> 18);
 
-  return (float)y / 4294967296.f;
+  return (float)y / 4294967296.0f;
 }
 
 /*------------------------------------------------------------*/
@@ -258,8 +258,8 @@ static float turb(
 {
   float amp, out, t;
   int i;
-  amp = 1.f;
-  out = (float)(2.0f * BLI_noise_generic_noise(1.f, x, y, z, false, nb) - 1.0f);
+  amp = 1.0f;
+  out = (float)(2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f);
   if (hard) {
     out = fabsf(out);
   }
@@ -268,7 +268,7 @@ static float turb(
     x *= freqscale;
     y *= freqscale;
     z *= freqscale;
-    t = (float)(amp * (2.0f * BLI_noise_generic_noise(1.f, x, y, z, false, nb) - 1.0f));
+    t = (float)(amp * (2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f));
     if (hard) {
       t = fabsf(t);
     }
@@ -291,7 +291,7 @@ static void vTurb(float x,
 {
   float amp, t[3];
   int i;
-  amp = 1.f;
+  amp = 1.0f;
   noise_vector(x, y, z, nb, v);
   if (hard) {
     v[0] = fabsf(v[0]);

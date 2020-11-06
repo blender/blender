@@ -899,7 +899,7 @@ static Object *boid_find_ground(BoidBrainData *bbd,
   for (coll = bbd->sim->colliders->first; coll; coll = coll->next) {
     col.current = coll->ob;
     col.md = coll->collmd;
-    col.fac1 = col.fac2 = 0.f;
+    col.fac1 = col.fac2 = 0.0f;
 
     if (col.md && col.md->bvhtree) {
       BLI_bvhtree_ray_cast_ex(col.md->bvhtree,

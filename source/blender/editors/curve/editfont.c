@@ -651,7 +651,7 @@ static void txt_add_object(bContext *C,
   int nchars = 0, nbytes = 0;
   char *s;
   int a;
-  const float rot[3] = {0.f, 0.f, 0.f};
+  const float rot[3] = {0.0f, 0.0f, 0.0f};
 
   obedit = BKE_object_add(bmain, view_layer, OB_FONT, NULL);
   base = view_layer->basact;

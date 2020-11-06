@@ -5497,7 +5497,7 @@ void vcloud_estimate_transform_v3(const int list_size,
       stunt[1] = q[1][1];
       stunt[2] = q[2][2];
       /* renormalizing for numeric stability */
-      mul_m3_fl(q, 1.f / len_v3(stunt));
+      mul_m3_fl(q, 1.0f / len_v3(stunt));
 
       /* this is pretty much Polardecompose 'inline' the algo based on Higham's thesis */
       /* without the far case ... but seems to work here pretty neat                   */

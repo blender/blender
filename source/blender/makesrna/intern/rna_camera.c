@@ -384,7 +384,7 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "convergence_distance", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_range(prop, 0.00001f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.00001f, 15.f, 1, 3);
+  RNA_def_property_ui_range(prop, 0.00001f, 15.0f, 1, 3);
   RNA_def_property_ui_text(prop,
                            "Convergence Plane Distance",
                            "The converge point for the stereo cameras "
@@ -584,7 +584,7 @@ void RNA_def_camera(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sensor_width", PROP_FLOAT, PROP_DISTANCE_CAMERA);
   RNA_def_property_float_sdna(prop, NULL, "sensor_x");
   RNA_def_property_range(prop, 1.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 1.0f, 100.f, 100, 4);
+  RNA_def_property_ui_range(prop, 1.0f, 100.0f, 100, 4);
   RNA_def_property_ui_text(
       prop, "Sensor Width", "Horizontal size of the image sensor area in millimeters");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
@@ -592,7 +592,7 @@ void RNA_def_camera(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sensor_height", PROP_FLOAT, PROP_DISTANCE_CAMERA);
   RNA_def_property_float_sdna(prop, NULL, "sensor_y");
   RNA_def_property_range(prop, 1.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 1.0f, 100.f, 100, 4);
+  RNA_def_property_ui_range(prop, 1.0f, 100.0f, 100, 4);
   RNA_def_property_ui_text(
       prop, "Sensor Height", "Vertical size of the image sensor area in millimeters");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");

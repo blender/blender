@@ -45,10 +45,10 @@ static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode *node)
   nbd->preview = 1;
   nbd->gamco = 0;
   nbd->samples = 16;
-  nbd->fstop = 128.f;
+  nbd->fstop = 128.0f;
   nbd->maxblur = 16;
-  nbd->bthresh = 1.f;
-  nbd->scale = 1.f;
+  nbd->bthresh = 1.0f;
+  nbd->scale = 1.0f;
   nbd->no_zbuf = 1;
   node->storage = nbd;
 }

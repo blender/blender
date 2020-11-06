@@ -6396,7 +6396,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
    * allow choosing a hue for black values, by giving a tiny increment */
   if (cpicker->use_color_lock) {
     if (U.color_picker_type == USER_CP_CIRCLE_HSV) { /* lock */
-      if (hsv[2] == 0.f) {
+      if (hsv[2] == 0.0f) {
         hsv[2] = 0.0001f;
       }
     }
@@ -6499,15 +6499,15 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
    * allow choosing a hue for black values, by giving a tiny increment */
   if (cpicker->use_color_lock) {
     if (U.color_picker_type == USER_CP_CIRCLE_HSV) { /* lock */
-      if (hsv[2] == 0.f) {
+      if (hsv[2] == 0.0f) {
         hsv[2] = 0.0001f;
       }
     }
     else {
-      if (hsv[2] == 0.f) {
+      if (hsv[2] == 0.0f) {
         hsv[2] = 0.0001f;
       }
-      if (hsv[2] == 1.f) {
+      if (hsv[2] == 1.0f) {
         hsv[2] = 0.9999f;
       }
     }
@@ -7315,7 +7315,7 @@ static bool ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int m
   hist->ymax += (dy * 0.1f) * yfac;
 
   /* 0.1 allows us to see HDR colors up to 10 */
-  CLAMP(hist->ymax, 0.1f, 100.f);
+  CLAMP(hist->ymax, 0.1f, 100.0f);
 
   data->draglastx = mx;
   data->draglasty = my;
@@ -7348,7 +7348,7 @@ static int ui_do_but_HISTOGRAM(
     /* XXX hardcoded keymap check.... */
     if (event->type == EVT_BACKSPACEKEY && event->val == KM_PRESS) {
       Histogram *hist = (Histogram *)but->poin;
-      hist->ymax = 1.f;
+      hist->ymax = 1.0f;
 
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       return WM_UI_HANDLER_BREAK;
@@ -7421,7 +7421,7 @@ static int ui_do_but_WAVEFORM(
     /* XXX hardcoded keymap check.... */
     if (event->type == EVT_BACKSPACEKEY && event->val == KM_PRESS) {
       Scopes *scopes = (Scopes *)but->poin;
-      scopes->wavefrm_yfac = 1.f;
+      scopes->wavefrm_yfac = 1.0f;
 
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       return WM_UI_HANDLER_BREAK;

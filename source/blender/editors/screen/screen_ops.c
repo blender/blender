@@ -2827,7 +2827,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 
   CFRA += delta;
   FRAMENUMBER_MIN_CLAMP(CFRA);
-  SUBFRA = 0.f;
+  SUBFRA = 0.0f;
 
   areas_do_frame_follow(C, false);
 

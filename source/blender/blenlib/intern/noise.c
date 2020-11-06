@@ -1051,8 +1051,8 @@ static float voronoi_F1F2(float x, float y, float z)
 static float voronoi_Cr(float x, float y, float z)
 {
   float t = 10 * voronoi_F1F2(x, y, z);
-  if (t > 1.f) {
-    return 1.f;
+  if (t > 1.0f) {
+    return 1.0f;
   }
   return t;
 }
@@ -1099,8 +1099,8 @@ static float voronoi_F1F2S(float x, float y, float z)
 static float voronoi_CrS(float x, float y, float z)
 {
   float t = 10 * voronoi_F1F2(x, y, z);
-  if (t > 1.f) {
-    return 1.f;
+  if (t > 1.0f) {
+    return 1.0f;
   }
   return (2.0f * t - 1.0f);
 }
@@ -1572,7 +1572,7 @@ float BLI_noise_mg_hybrid_multi_fractal(float x,
   }
 
   float rmd = octaves - floorf(octaves);
-  if (rmd != 0.f) {
+  if (rmd != 0.0f) {
     result += rmd * ((noisefunc(x, y, z) + offset) * pwr);
   }
 

@@ -51,7 +51,7 @@ float BLI_voxel_sample_nearest(const float *data, const int res[3], const float 
 BLI_INLINE int FLOORI(float x)
 {
   const int r = (int)x;
-  return ((x >= 0.f) || (float)r == x) ? r : (r - 1);
+  return ((x >= 0.0f) || (float)r == x) ? r : (r - 1);
 }
 
 /* clamp function, cannot use the CLAMPIS macro,
@@ -92,9 +92,9 @@ float BLI_voxel_sample_trilinear(const float *data, const int res[3], const floa
     const float dy = yf - (float)y;
     const float dz = zf - (float)z;
 
-    const float u[2] = {1.f - dx, dx};
-    const float v[2] = {1.f - dy, dy};
-    const float w[2] = {1.f - dz, dz};
+    const float u[2] = {1.0f - dx, dx};
+    const float v[2] = {1.0f - dy, dy};
+    const float w[2] = {1.0f - dz, dz};
 
     return w[0] *
                (v[0] * (u[0] * data[xc[0] + yc[0] + zc[0]] + u[1] * data[xc[1] + yc[0] + zc[0]]) +
@@ -103,7 +103,7 @@ float BLI_voxel_sample_trilinear(const float *data, const int res[3], const floa
                (v[0] * (u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]]) +
                 v[1] * (u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]]));
   }
-  return 0.f;
+  return 0.0f;
 }
 
 float BLI_voxel_sample_triquadratic(const float *data, const int res[3], const float co[3])
@@ -132,9 +132,9 @@ float BLI_voxel_sample_triquadratic(const float *data, const int res[3], const f
     };
 
     const float dx = xf - (float)x, dy = yf - (float)y, dz = zf - (float)z;
-    const float u[3] = {dx * (0.5f * dx - 1.f) + 0.5f, dx * (1.0f - dx) + 0.5f, 0.5f * dx * dx};
-    const float v[3] = {dy * (0.5f * dy - 1.f) + 0.5f, dy * (1.0f - dy) + 0.5f, 0.5f * dy * dy};
-    const float w[3] = {dz * (0.5f * dz - 1.f) + 0.5f, dz * (1.0f - dz) + 0.5f, 0.5f * dz * dz};
+    const float u[3] = {dx * (0.5f * dx - 1.0f) + 0.5f, dx * (1.0f - dx) + 0.5f, 0.5f * dx * dx};
+    const float v[3] = {dy * (0.5f * dy - 1.0f) + 0.5f, dy * (1.0f - dy) + 0.5f, 0.5f * dy * dy};
+    const float w[3] = {dz * (0.5f * dz - 1.0f) + 0.5f, dz * (1.0f - dz) + 0.5f, 0.5f * dz * dz};
 
     return w[0] *
                (v[0] * (u[0] * data[xc[0] + yc[0] + zc[0]] + u[1] * data[xc[1] + yc[0] + zc[0]] +
@@ -158,7 +158,7 @@ float BLI_voxel_sample_triquadratic(const float *data, const int res[3], const f
                 v[2] * (u[0] * data[xc[0] + yc[2] + zc[2]] + u[1] * data[xc[1] + yc[2] + zc[2]] +
                         u[2] * data[xc[2] + yc[2] + zc[2]]));
   }
-  return 0.f;
+  return 0.0f;
 }
 
 float BLI_voxel_sample_tricubic(const float *data,
@@ -195,18 +195,18 @@ float BLI_voxel_sample_tricubic(const float *data,
 
     float u[4], v[4], w[4];
     if (bspline) {  // B-Spline
-      u[0] = (((-1.f / 6.f) * dx + 0.5f) * dx - 0.5f) * dx + (1.f / 6.f);
-      u[1] = ((0.5f * dx - 1.f) * dx) * dx + (2.f / 3.f);
-      u[2] = ((-0.5f * dx + 0.5f) * dx + 0.5f) * dx + (1.f / 6.f);
-      u[3] = (1.f / 6.f) * dx * dx * dx;
-      v[0] = (((-1.f / 6.f) * dy + 0.5f) * dy - 0.5f) * dy + (1.f / 6.f);
-      v[1] = ((0.5f * dy - 1.f) * dy) * dy + (2.f / 3.f);
-      v[2] = ((-0.5f * dy + 0.5f) * dy + 0.5f) * dy + (1.f / 6.f);
-      v[3] = (1.f / 6.f) * dy * dy * dy;
-      w[0] = (((-1.f / 6.f) * dz + 0.5f) * dz - 0.5f) * dz + (1.f / 6.f);
-      w[1] = ((0.5f * dz - 1.f) * dz) * dz + (2.f / 3.f);
-      w[2] = ((-0.5f * dz + 0.5f) * dz + 0.5f) * dz + (1.f / 6.f);
-      w[3] = (1.f / 6.f) * dz * dz * dz;
+      u[0] = (((-1.0f / 6.0f) * dx + 0.5f) * dx - 0.5f) * dx + (1.0f / 6.0f);
+      u[1] = ((0.5f * dx - 1.0f) * dx) * dx + (2.0f / 3.0f);
+      u[2] = ((-0.5f * dx + 0.5f) * dx + 0.5f) * dx + (1.0f / 6.0f);
+      u[3] = (1.0f / 6.0f) * dx * dx * dx;
+      v[0] = (((-1.0f / 6.0f) * dy + 0.5f) * dy - 0.5f) * dy + (1.0f / 6.0f);
+      v[1] = ((0.5f * dy - 1.0f) * dy) * dy + (2.0f / 3.0f);
+      v[2] = ((-0.5f * dy + 0.5f) * dy + 0.5f) * dy + (1.0f / 6.0f);
+      v[3] = (1.0f / 6.0f) * dy * dy * dy;
+      w[0] = (((-1.0f / 6.0f) * dz + 0.5f) * dz - 0.5f) * dz + (1.0f / 6.0f);
+      w[1] = ((0.5f * dz - 1.0f) * dz) * dz + (2.0f / 3.0f);
+      w[2] = ((-0.5f * dz + 0.5f) * dz + 0.5f) * dz + (1.0f / 6.0f);
+      w[3] = (1.0f / 6.0f) * dz * dz * dz;
     }
     else {  // Catmull-Rom
       u[0] = ((-0.5f * dx + 1.0f) * dx - 0.5f) * dx;
@@ -260,5 +260,5 @@ float BLI_voxel_sample_tricubic(const float *data,
                 v[3] * (u[0] * data[xc[0] + yc[3] + zc[3]] + u[1] * data[xc[1] + yc[3] + zc[3]] +
                         u[2] * data[xc[2] + yc[3] + zc[3]] + u[3] * data[xc[3] + yc[3] + zc[3]]));
   }
-  return 0.f;
+  return 0.0f;
 }

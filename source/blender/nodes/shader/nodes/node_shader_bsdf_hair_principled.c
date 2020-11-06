@@ -34,7 +34,7 @@ static bNodeSocketTemplate sh_node_bsdf_hair_principled_in[] = {
     {SOCK_FLOAT, N_("IOR"), 1.55f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
     {SOCK_FLOAT,
      N_("Offset"),
-     2.0f * ((float)M_PI) / 180.f,
+     2.0f * ((float)M_PI) / 180.0f,
      0.0f,
      0.0f,
      0.0f,

@@ -709,7 +709,7 @@ bool ABC_import(bContext *C,
   else {
     /* Fake a job context, so that we don't need NULL pointer checks while importing. */
     short stop = 0, do_update = 0;
-    float progress = 0.f;
+    float progress = 0.0f;
 
     import_startjob(job, &stop, &do_update, &progress);
     import_endjob(job);

@@ -1694,8 +1694,8 @@ GPUBatch *DRW_cache_speaker_get(void)
       copy_v3_fl3(v, r, 0.0f, z);
       GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx++, v);
       for (int i = 1; i < segments; i++) {
-        float x = cosf(2.f * (float)M_PI * i / segments) * r;
-        float y = sinf(2.f * (float)M_PI * i / segments) * r;
+        float x = cosf(2.0f * (float)M_PI * i / segments) * r;
+        float y = sinf(2.0f * (float)M_PI * i / segments) * r;
         copy_v3_fl3(v, x, y, z);
         GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx++, v);
         GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx++, v);
@@ -2463,14 +2463,14 @@ static float axis_marker[8][2] = {
     {-1.0f * S_X, -1.0f * S_Y},
     {-1.0f * S_X, 1.0f * S_Y}
 #else /* diamond */
-    {-S_X, 0.f},
-    {0.f, S_Y},
-    {0.f, S_Y},
-    {S_X, 0.f},
-    {S_X, 0.f},
-    {0.f, -S_Y},
-    {0.f, -S_Y},
-    {-S_X, 0.f}
+    {-S_X, 0.0f},
+    {0.0f, S_Y},
+    {0.0f, S_Y},
+    {S_X, 0.0f},
+    {S_X, 0.0f},
+    {0.0f, -S_Y},
+    {0.0f, -S_Y},
+    {-S_X, 0.0f}
 #endif
 };
 #define MARKER_LEN (sizeof(axis_marker) / (sizeof(float[2])))

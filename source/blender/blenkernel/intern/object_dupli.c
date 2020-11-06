@@ -1392,7 +1392,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
           mat4_to_size(original_size, obmat);
           size_to_mat4(size_mat, original_size);
 
-          xvec[0] = -1.f;
+          xvec[0] = -1.0f;
           xvec[1] = xvec[2] = 0;
           vec_to_quat(q, xvec, ob->trackflag, ob->upflag);
           quat_to_mat4(obmat, q);

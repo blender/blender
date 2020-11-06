@@ -267,8 +267,8 @@ MINLINE float color_balance_fl(
   float x = (((in - 1.0f) * lift) + 1.0f) * gain;
 
   /* prevent NaN */
-  if (x < 0.f) {
-    x = 0.f;
+  if (x < 0.0f) {
+    x = 0.0f;
   }
 
   x = powf(x, gamma) * mul;
@@ -850,7 +850,7 @@ static void hue_correct_apply_threaded(int width,
 
       /* adjust value, scaling returned default 0.5 up to 1 */
       f = BKE_curvemapping_evaluateF(curve_mapping, 2, hsv[0]);
-      hsv[2] *= (f * 2.f);
+      hsv[2] *= (f * 2.0f);
 
       hsv[0] = hsv[0] - floorf(hsv[0]); /* mod 1.0 */
       CLAMP(hsv[1], 0.0f, 1.0f);
@@ -1242,7 +1242,7 @@ static void tonemapmodifier_apply(struct SequenceModifierData *smd, ImBuf *ibuf,
   unsigned char *cp = (unsigned char *)ibuf->rect;
   float avl, maxl = -FLT_MAX, minl = FLT_MAX;
   const float sc = 1.0f / p;
-  float Lav = 0.f;
+  float Lav = 0.0f;
   float cav[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   while (p--) {
     float pixel[4];

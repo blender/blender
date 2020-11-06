@@ -1063,7 +1063,7 @@ static int sb_detect_face_pointCached(const float face_v1[3],
   GHash *hash;
   GHashIterator *ihash;
   float nv1[3], edge1[3], edge2[3], d_nvect[3], aabbmin[3], aabbmax[3];
-  float facedist, outerfacethickness, tune = 10.f;
+  float facedist, outerfacethickness, tune = 10.0f;
   int a, deflected = 0;
 
   aabbmin[0] = min_fff(face_v1[0], face_v2[0], face_v3[0]);
@@ -2797,8 +2797,8 @@ static void reference_to_scratch(Object *ob)
   SoftBody *sb = ob->soft;
   ReferenceVert *rp;
   BodyPoint *bp;
-  float accu_pos[3] = {0.f, 0.f, 0.f};
-  float accu_mass = 0.f;
+  float accu_pos[3] = {0.0f, 0.0f, 0.0f};
+  float accu_mass = 0.0f;
   int a;
 
   sb->scratch->Ref.ivert = MEM_mallocN(sizeof(ReferenceVert) * sb->totpoint, "SB_Reference");

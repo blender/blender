@@ -87,7 +87,7 @@ class GaussianPyramid : public ImagePyramid {
   float _sigma;
 
  public:
-  GaussianPyramid(float iSigma = 1.f) : ImagePyramid()
+  GaussianPyramid(float iSigma = 1.0f) : ImagePyramid()
   {
     _sigma = iSigma;
   }

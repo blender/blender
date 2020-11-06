@@ -23,7 +23,7 @@
 
 #include "node_composite_util.h"
 
-static bNodeSocketTemplate cmp_node_dblur_in[] = {{SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.f},
+static bNodeSocketTemplate cmp_node_dblur_in[] = {{SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
                                                   {-1, ""}};
 
 static bNodeSocketTemplate cmp_node_dblur_out[] = {{SOCK_RGBA, N_("Image")}, {-1, ""}};
