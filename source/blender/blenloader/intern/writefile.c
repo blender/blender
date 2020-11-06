@@ -942,108 +942,6 @@ static void write_fmaps(BlendWriter *writer, ListBase *fbase)
   }
 }
 
-static void write_modifiers(BlendWriter *writer, ListBase *modbase)
-{
-  if (modbase == NULL) {
-    return;
-  }
-
-  LISTBASE_FOREACH (ModifierData *, md, modbase) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
-    if (mti == NULL) {
-      return;
-    }
-
-    BLO_write_struct_by_name(writer, mti->structName, md);
-
-    if (md->type == eModifierType_Cloth) {
-      ClothModifierData *clmd = (ClothModifierData *)md;
-
-      BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
-      BLO_write_struct(writer, ClothCollSettings, clmd->coll_parms);
-      BLO_write_struct(writer, EffectorWeights, clmd->sim_parms->effector_weights);
-      BKE_ptcache_blend_write(writer, &clmd->ptcaches);
-    }
-    else if (md->type == eModifierType_Fluid) {
-      FluidModifierData *fmd = (FluidModifierData *)md;
-
-      if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
-        BLO_write_struct(writer, FluidDomainSettings, fmd->domain);
-
-        if (fmd->domain) {
-          BKE_ptcache_blend_write(writer, &(fmd->domain->ptcaches[0]));
-
-          /* create fake pointcache so that old blender versions can read it */
-          fmd->domain->point_cache[1] = BKE_ptcache_add(&fmd->domain->ptcaches[1]);
-          fmd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE | PTCACHE_FAKE_SMOKE;
-          fmd->domain->point_cache[1]->step = 1;
-
-          BKE_ptcache_blend_write(writer, &(fmd->domain->ptcaches[1]));
-
-          if (fmd->domain->coba) {
-            BLO_write_struct(writer, ColorBand, fmd->domain->coba);
-          }
-
-          /* cleanup the fake pointcache */
-          BKE_ptcache_free_list(&fmd->domain->ptcaches[1]);
-          fmd->domain->point_cache[1] = NULL;
-
-          BLO_write_struct(writer, EffectorWeights, fmd->domain->effector_weights);
-        }
-      }
-      else if (fmd->type & MOD_FLUID_TYPE_FLOW) {
-        BLO_write_struct(writer, FluidFlowSettings, fmd->flow);
-      }
-      else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
-        BLO_write_struct(writer, FluidEffectorSettings, fmd->effector);
-      }
-    }
-    else if (md->type == eModifierType_Fluidsim) {
-      FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
-
-      BLO_write_struct(writer, FluidsimSettings, fluidmd->fss);
-    }
-    else if (md->type == eModifierType_DynamicPaint) {
-      DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-
-      if (pmd->canvas) {
-        BLO_write_struct(writer, DynamicPaintCanvasSettings, pmd->canvas);
-
-        /* write surfaces */
-        LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
-          BLO_write_struct(writer, DynamicPaintSurface, surface);
-        }
-        /* write caches and effector weights */
-        LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
-          BKE_ptcache_blend_write(writer, &(surface->ptcaches));
-
-          BLO_write_struct(writer, EffectorWeights, surface->effector_weights);
-        }
-      }
-      if (pmd->brush) {
-        BLO_write_struct(writer, DynamicPaintBrushSettings, pmd->brush);
-        BLO_write_struct(writer, ColorBand, pmd->brush->paint_ramp);
-        BLO_write_struct(writer, ColorBand, pmd->brush->vel_ramp);
-      }
-    }
-    else if (md->type == eModifierType_Collision) {
-
-#if 0
-      CollisionModifierData *collmd = (CollisionModifierData *)md;
-      // TODO: CollisionModifier should use pointcache
-      // + have proper reset events before enabling this
-      writestruct(wd, DATA, MVert, collmd->numverts, collmd->x);
-      writestruct(wd, DATA, MVert, collmd->numverts, collmd->xnew);
-      writestruct(wd, DATA, MFace, collmd->numfaces, collmd->mfaces);
-#endif
-    }
-
-    if (mti->blendWrite != NULL) {
-      mti->blendWrite(writer, md);
-    }
-  }
-}
-
 static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
 {
   if (modbase == NULL) {
@@ -1173,7 +1071,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     }
 
     BKE_particle_system_blend_write(writer, &ob->particlesystem);
-    write_modifiers(writer, &ob->modifiers);
+    BKE_modifier_blend_write(writer, &ob->modifiers);
     write_gpencil_modifiers(writer, &ob->greasepencil_modifiers);
     BKE_shaderfx_blend_write(writer, &ob->shader_fx);
 

@@ -30,6 +30,7 @@ extern "C" {
 struct ARegionType;
 struct BMEditMesh;
 struct BlendDataReader;
+struct BlendLibReader;
 struct BlendWriter;
 struct CustomData_MeshMasks;
 struct DepsNodeHandle;
@@ -534,6 +535,12 @@ struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(struct Object
                                                                    const bool get_cage_mesh);
 
 void BKE_modifier_check_uuids_unique_and_report(const struct Object *object);
+
+void BKE_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
+void BKE_modifier_blend_read_data(struct BlendDataReader *reader,
+                                  struct ListBase *lb,
+                                  struct Object *ob);
+void BKE_modifier_blend_read_lib(struct BlendLibReader *reader, struct Object *ob);
 
 #ifdef __cplusplus
 }
