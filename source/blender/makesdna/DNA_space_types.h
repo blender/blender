@@ -234,6 +234,9 @@ typedef enum eSpaceButtons_Flag {
 /** \name Outliner
  * \{ */
 
+/* Defined in `outliner_intern.h`. */
+typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
+
 /* Outliner */
 typedef struct SpaceOutliner {
   SpaceLink *next, *prev;
@@ -276,6 +279,8 @@ typedef struct SpaceOutliner {
    * Pointers to treestore elements, grouped by (id, type, nr)
    * in hashtable for faster searching */
   void *treehash;
+
+  SpaceOutliner_Runtime *runtime;
 } SpaceOutliner;
 
 /* SpaceOutliner.flag */

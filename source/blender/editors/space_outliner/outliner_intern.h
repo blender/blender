@@ -25,6 +25,10 @@
 
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* internal exports only */
 
 struct ARegion;
@@ -41,6 +45,10 @@ struct bContext;
 struct bPoseChannel;
 struct wmKeyConfig;
 struct wmOperatorType;
+
+typedef struct SpaceOutliner_Runtime {
+  struct TreeView *tree_view;
+} SpaceOutliner_Runtime;
 
 typedef enum TreeElementInsertType {
   TE_INSERT_BEFORE,
@@ -534,3 +542,7 @@ void outliner_tag_redraw_avoid_rebuild_on_open_change(const struct SpaceOutliner
 /* outliner_sync.c ---------------------------------------------- */
 
 void outliner_sync_selection(const struct bContext *C, struct SpaceOutliner *space_outliner);
+
+#ifdef __cplusplus
+}
+#endif

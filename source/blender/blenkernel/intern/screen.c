@@ -1640,6 +1640,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       }
       space_outliner->treehash = NULL;
       space_outliner->tree.first = space_outliner->tree.last = NULL;
+      space_outliner->runtime = NULL;
     }
     else if (sl->spacetype == SPACE_IMAGE) {
       SpaceImage *sima = (SpaceImage *)sl;
