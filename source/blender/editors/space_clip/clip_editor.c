@@ -675,7 +675,7 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
               }
             }
             else {
-              if (cur_sc->clip == old_clip || cur_sc->clip == NULL) {
+              if (ELEM(cur_sc->clip, old_clip, NULL)) {
                 cur_sc->clip = clip;
               }
             }

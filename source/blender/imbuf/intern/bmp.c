@@ -301,7 +301,7 @@ int imb_savebmp(ImBuf *ibuf, const char *filepath, int UNUSED(flags))
   BMPINFOHEADER infoheader;
 
   const size_t bytes_per_pixel = (ibuf->planes + 7) >> 3;
-  BLI_assert(bytes_per_pixel == 1 || bytes_per_pixel == 3);
+  BLI_assert(ELEM(bytes_per_pixel, 1, 3));
 
   const size_t pad_bytes_per_scanline = (4 - ibuf->x * bytes_per_pixel % 4) % 4;
   const size_t bytesize = (ibuf->x * bytes_per_pixel + pad_bytes_per_scanline) * ibuf->y;

@@ -1722,7 +1722,7 @@ static int text_get_cursor_rel(
         loop = 0;
         break;
       }
-      else if (ch == ' ' || ch == '-') {
+      else if (ELEM(ch, ' ', '-')) {
         if (found) {
           loop = 0;
           break;
@@ -1987,7 +1987,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
         loop = 0;
         break;
       }
-      else if (ch == ' ' || ch == '-') {
+      else if (ELEM(ch, ' ', '-')) {
         end = i + 1;
         endj = j;
         chop = 0;

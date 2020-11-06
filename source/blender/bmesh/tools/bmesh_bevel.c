@@ -1399,7 +1399,7 @@ static void offset_meet(BevelParams *bp,
     normalize_v3(norm_perp2);
 
     float off1a[3], off1b[3], off2a[3], off2b[3];
-    if (bp->offset_type == BEVEL_AMT_PERCENT || bp->offset_type == BEVEL_AMT_ABSOLUTE) {
+    if (ELEM(bp->offset_type, BEVEL_AMT_PERCENT, BEVEL_AMT_ABSOLUTE)) {
       offset_meet_lines_percent_or_absolute(bp, e1, e2, v, off1a, off1b, off2a, off2b);
     }
     else {
@@ -1556,7 +1556,7 @@ static bool offset_on_edge_between(BevelParams *bp,
   float meet1[3], meet2[3];
   bool ok1 = offset_meet_edge(e1, emid, v, meet1, &ang1);
   bool ok2 = offset_meet_edge(emid, e2, v, meet2, &ang2);
-  if (bp->offset_type == BEVEL_AMT_PERCENT || bp->offset_type == BEVEL_AMT_ABSOLUTE) {
+  if (ELEM(bp->offset_type, BEVEL_AMT_PERCENT, BEVEL_AMT_ABSOLUTE)) {
     BMVert *v2 = BM_edge_other_vert(emid->e, v);
     if (bp->offset_type == BEVEL_AMT_PERCENT) {
       interp_v3_v3v3(meetco, v->co, v2->co, bp->offset / 100.0f);
@@ -2158,7 +2158,7 @@ static void snap_to_superellipsoid(float co[3], const float super_r, bool midlin
   float x = a;
   float y = b;
   float z = c;
-  if (r == PRO_SQUARE_R || r == PRO_SQUARE_IN_R) {
+  if (ELEM(r, PRO_SQUARE_R, PRO_SQUARE_IN_R)) {
     /* Will only be called for 2d profile. */
     BLI_assert(fabsf(z) < BEVEL_EPSILON);
     z = 0.0f;
@@ -2441,7 +2441,7 @@ static void bevel_harden_normals(BevelParams *bp, BMesh *bm)
   BMFace *f;
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     FKind fkind = get_face_kind(bp, f);
-    if (fkind == F_ORIG || fkind == F_RECON) {
+    if (ELEM(fkind, F_ORIG, F_RECON)) {
       continue;
     }
     BMIter liter;
@@ -4619,7 +4619,7 @@ static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, BoundVert *vpipe)
         if (bp->profile_type == BEVEL_PROFILE_CUSTOM) {
           /* Find both profile vertices that correspond to this point. */
           float *profile_point_pipe1, *profile_point_pipe2, f;
-          if (i == ipipe1 || i == ipipe2) {
+          if (ELEM(i, ipipe1, ipipe2)) {
             if (n_bndv == 3 && i == ipipe1) {
               /* This part of the vmesh is the triangular corner between the two pipe profiles. */
               int ring = max_ii(j, k);
@@ -6229,7 +6229,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
           break;
         }
       }
-      if (bp->offset_type != BEVEL_AMT_PERCENT && bp->offset_type != BEVEL_AMT_ABSOLUTE) {
+      if (!ELEM(bp->offset_type, BEVEL_AMT_PERCENT, BEVEL_AMT_ABSOLUTE)) {
         e->offset_r_spec = e->offset_l_spec;
       }
       if (bp->use_weights) {
@@ -6771,7 +6771,7 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
     BMIter iter;
     BMLoop *l;
     BM_ITER_ELEM (l, &iter, r_f, BM_LOOPS_OF_FACE) {
-      if (l->v == verts[0] || l->v == verts[2]) {
+      if (ELEM(l->v, verts[0], verts[2])) {
         BM_elem_flag_enable(l, BM_ELEM_LONG_TAG);
       }
     }
@@ -7232,7 +7232,7 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
   EdgeHalf *ec;
   BMVert *vd;
   float kc;
-  if (bp->offset_type == BEVEL_AMT_PERCENT || bp->offset_type == BEVEL_AMT_ABSOLUTE) {
+  if (ELEM(bp->offset_type, BEVEL_AMT_PERCENT, BEVEL_AMT_ABSOLUTE)) {
     if (ea->is_bev && ebother != NULL && ebother->prev->is_bev) {
       if (bp->offset_type == BEVEL_AMT_PERCENT) {
         return 50.0f;

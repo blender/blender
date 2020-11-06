@@ -348,8 +348,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 
         if (dpx->element[i].refHighQuantity == DPX_UNDEFINED_R32 ||
             isnan(dpx->element[i].refHighQuantity)) {
-          if (dpx->element[i].transfer == transfer_PrintingDensity ||
-              dpx->element[i].transfer == transfer_Logarithmic) {
+          if (ELEM(dpx->element[i].transfer, transfer_PrintingDensity, transfer_Logarithmic)) {
             dpx->element[i].refHighQuantity = 2.048f;
           }
           else {

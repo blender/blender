@@ -2138,7 +2138,7 @@ static void viewzoom_apply_camera(ViewOpsData *vod,
                                      zoomfac_prev,
                                      &vod->prev.time);
 
-  if (zfac != 1.0f && zfac != 0.0f) {
+  if (!ELEM(zfac, 1.0f, 0.0f)) {
     /* calculate inverted, then invert again (needed because of camera zoom scaling) */
     zfac = 1.0f / zfac;
     view_zoom_to_window_xy_camera(vod->scene,
@@ -2382,7 +2382,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     viewzoom_exec(C, op);
   }
   else {
-    if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
+    if (ELEM(event->type, MOUSEZOOM, MOUSEPAN)) {
 
       if (U.uiflag & USER_ZOOM_HORIZ) {
         vod->init.event_xy[0] = vod->prev.event_xy[0] = event->x;

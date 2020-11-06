@@ -362,7 +362,7 @@ static void screen_areas_align(
 {
   wmWindow *win = CTX_wm_window(C);
 
-  if (dir == 0 || dir == 2) {
+  if (ELEM(dir, 0, 2)) {
     /* horizontal join, use average for new top and bottom. */
     int top = (sa1->v2->vec.y + sa2->v2->vec.y) / 2;
     int bottom = (sa1->v4->vec.y + sa2->v4->vec.y) / 2;
@@ -687,7 +687,7 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
       WM_cursor_set(win, WM_CURSOR_EDIT);
     }
     else if (az->type == AZONE_REGION) {
-      if (az->edge == AE_LEFT_TO_TOPRIGHT || az->edge == AE_RIGHT_TO_TOPLEFT) {
+      if (ELEM(az->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
         WM_cursor_set(win, WM_CURSOR_X_MOVE);
       }
       else {
@@ -772,7 +772,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
           }
         }
 
-        if (region == region_prev || region == screen->active_region) {
+        if (ELEM(region, region_prev, screen->active_region)) {
           do_draw = true;
         }
       }

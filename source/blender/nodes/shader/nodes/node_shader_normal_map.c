@@ -82,7 +82,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   }
 
   const char *color_to_normal_fnc_name = "color_to_normal_new_shading";
-  if (nm->space == SHD_SPACE_BLENDER_OBJECT || nm->space == SHD_SPACE_BLENDER_WORLD) {
+  if (ELEM(nm->space, SHD_SPACE_BLENDER_OBJECT, SHD_SPACE_BLENDER_WORLD)) {
     color_to_normal_fnc_name = "color_to_blender_normal_new_shading";
   }
 

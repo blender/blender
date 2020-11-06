@@ -191,7 +191,7 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
 
     // Either we have run out of FEdges, or we already have the one edge we need to determine
     // visibility Cull all remaining edges.
-    while (fe != NULL && fe != festart) {
+    while (!ELEM(fe, NULL, festart)) {
       fe->setIsInImage(false);
       fe = fe->nextEdge();
     }
@@ -253,7 +253,7 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
           expandGridSpaceOccluderProscenium(fe);
         }
         fe = fe->nextEdge();
-      } while (fe != NULL && fe != festart);
+      } while (!ELEM(fe, NULL, festart));
     }
   }
 

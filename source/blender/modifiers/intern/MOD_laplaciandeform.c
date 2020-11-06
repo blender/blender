@@ -666,8 +666,7 @@ static void LaplacianDeformModifier_do(
     sysdif = isSystemDifferent(lmd, ob, mesh, numVerts);
     sys = lmd->cache_system;
     if (sysdif) {
-      if (sysdif == LAPDEFORM_SYSTEM_ONLY_CHANGE_ANCHORS ||
-          sysdif == LAPDEFORM_SYSTEM_ONLY_CHANGE_GROUP) {
+      if (ELEM(sysdif, LAPDEFORM_SYSTEM_ONLY_CHANGE_ANCHORS, LAPDEFORM_SYSTEM_ONLY_CHANGE_GROUP)) {
         filevertexCos = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "TempModDeformCoordinates");
         memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * numVerts);
         MEM_SAFE_FREE(lmd->vertexco);

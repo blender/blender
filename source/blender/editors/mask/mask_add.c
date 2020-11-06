@@ -202,7 +202,7 @@ static void finSelectedSplinePoint(MaskLayer *mask_layer,
       MaskSplinePoint *cur_point = &cur_spline->points[i];
 
       if (MASKPOINT_ISSEL_ANY(cur_point)) {
-        if (*spline != NULL && *spline != cur_spline) {
+        if (!ELEM(*spline, NULL, cur_spline)) {
           *spline = NULL;
           *point = NULL;
           return;

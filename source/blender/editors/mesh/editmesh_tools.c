@@ -875,7 +875,7 @@ static void edbm_add_edge_face_exec__tricky_finalize_sel(BMesh *bm, BMElem *ele_
   }
   else {
     BMLoop *l = BM_face_edge_share_loop(f, (BMEdge *)ele_desel);
-    BLI_assert(f->len == 4 || f->len == 3);
+    BLI_assert(ELEM(f->len, 4, 3));
 
     BM_edge_select_set(bm, (BMEdge *)ele_desel, false);
     if (f->len == 4) {
@@ -4082,7 +4082,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
         isect = bm_edge_seg_isect(sco_a, sco_b, mouse_path, len, mode, &isected);
 
         if (isect != 0.0f) {
-          if (mode != KNIFE_MULTICUT && mode != KNIFE_MIDPOINT) {
+          if (!ELEM(mode, KNIFE_MULTICUT, KNIFE_MIDPOINT)) {
             BMO_slot_map_float_insert(&bmop, slot_edge_percents, be, isect);
           }
         }

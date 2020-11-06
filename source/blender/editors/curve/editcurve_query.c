@@ -185,7 +185,7 @@ void ED_curve_nurb_vert_selected_find(
       a = nu1->pntsu;
       while (a--) {
         if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt1)) {
-          if (*r_nu != NULL && *r_nu != nu1) {
+          if (!ELEM(*r_nu, NULL, nu1)) {
             *r_nu = NULL;
             *r_bp = NULL;
             *r_bezt = NULL;
@@ -209,7 +209,7 @@ void ED_curve_nurb_vert_selected_find(
       a = nu1->pntsu * nu1->pntsv;
       while (a--) {
         if (bp1->f1 & SELECT) {
-          if (*r_nu != NULL && *r_nu != nu1) {
+          if (!ELEM(*r_nu, NULL, nu1)) {
             *r_bp = NULL;
             *r_bezt = NULL;
             *r_nu = NULL;

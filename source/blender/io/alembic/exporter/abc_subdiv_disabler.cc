@@ -92,7 +92,7 @@ ModifierData *SubdivModifierDisabler::get_subdiv_modifier(Scene *scene, Object *
     }
 
     /* mesh is not a subsurf. break */
-    if ((md->type != eModifierType_Displace) && (md->type != eModifierType_ParticleSystem)) {
+    if (!ELEM(md->type, eModifierType_Displace, eModifierType_ParticleSystem)) {
       return nullptr;
     }
   }

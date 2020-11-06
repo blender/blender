@@ -407,7 +407,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   me = (Mesh *)ob->data;
   key = me->key;
 
-  if (totvert == 0 || totvert == me->totvert) {
+  if (ELEM(totvert, 0, me->totvert)) {
     BKE_report(op->reports, RPT_WARNING, "No mesh data to join");
     return OPERATOR_CANCELLED;
   }

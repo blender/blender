@@ -949,7 +949,7 @@ static bool vfont_to_curve(Object *ob,
       //      CLOG_WARN(&LOG, "linewidth exceeded: %c%c%c...", mem[i], mem[i+1], mem[i+2]);
       for (j = i; j && (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
         bool dobreak = false;
-        if (mem[j] == ' ' || mem[j] == '-') {
+        if (ELEM(mem[j], ' ', '-')) {
           ct -= (i - (j - 1));
           cnr -= (i - (j - 1));
           if (mem[j] == ' ') {

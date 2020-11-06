@@ -308,7 +308,7 @@ void depsgraph_tag_component(Depsgraph *graph,
 void deg_graph_id_tag_legacy_compat(
     Main *bmain, Depsgraph *depsgraph, ID *id, IDRecalcFlag tag, eUpdateSource update_source)
 {
-  if (tag == ID_RECALC_GEOMETRY || tag == 0) {
+  if (ELEM(tag, ID_RECALC_GEOMETRY, 0)) {
     switch (GS(id->name)) {
       case ID_OB: {
         Object *object = (Object *)id;

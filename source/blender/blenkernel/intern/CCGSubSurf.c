@@ -736,7 +736,7 @@ CCGError ccgSubSurf_syncFace(
     }
   }
   else {
-    if (ss->syncState == eSyncState_Vert || ss->syncState == eSyncState_Edge) {
+    if (ELEM(ss->syncState, eSyncState_Vert, eSyncState_Edge)) {
       ss->syncState = eSyncState_Face;
     }
     else if (ss->syncState != eSyncState_Face) {

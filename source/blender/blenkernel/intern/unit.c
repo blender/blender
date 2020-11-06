@@ -816,7 +816,7 @@ static char *find_next_op(const char *str, char *remaining_str, int len_max)
       /* Make sure we don't look backwards before the start of the string. */
       if (remaining_str != str && i != 0) {
         /* Check for scientific notation. */
-        if (remaining_str[i - 1] == 'e' || remaining_str[i - 1] == 'E') {
+        if (ELEM(remaining_str[i - 1], 'e', 'E')) {
           scientific_notation = true;
           continue;
         }
@@ -1178,7 +1178,7 @@ bool BKE_unit_replace_string(
 
       /* Any operators after this? */
       for (ch = str_found + 1; *ch != '\0'; ch++) {
-        if (*ch == ' ' || *ch == '\t') {
+        if (ELEM(*ch, ' ', '\t')) {
           continue;
         }
         op_found = (ch_is_op(*ch) || ELEM(*ch, ',', ')'));

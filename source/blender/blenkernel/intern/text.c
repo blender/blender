@@ -2335,7 +2335,7 @@ int txt_setcurr_tab_spaces(Text *text, int space)
       if (ch == ':') {
         is_indent = 1;
       }
-      else if (ch != ' ' && ch != '\t') {
+      else if (!ELEM(ch, ' ', '\t')) {
         is_indent = 0;
       }
     }

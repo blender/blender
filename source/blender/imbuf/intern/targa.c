@@ -703,7 +703,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
     return ibuf;
   }
 
-  if (tga.imgtyp != 1 && tga.imgtyp != 9) { /* happens sometimes (beuh) */
+  if (!ELEM(tga.imgtyp, 1, 9)) { /* happens sometimes (beuh) */
     if (cmap) {
       MEM_freeN(cmap);
       cmap = NULL;
@@ -777,7 +777,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
     ibuf->planes = 24;
   }
 
-  if (tga.imgtyp == 3 || tga.imgtyp == 11) {
+  if (ELEM(tga.imgtyp, 3, 11)) {
     uchar *crect;
     unsigned int *lrect, col;
 

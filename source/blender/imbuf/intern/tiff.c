@@ -888,7 +888,7 @@ int imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
         /* convert from float source */
         float rgb[4];
 
-        if (channels_in_float == 3 || channels_in_float == 4) {
+        if (ELEM(channels_in_float, 3, 4)) {
           if (ibuf->float_colorspace || (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA)) {
             /* Float buffer was managed already, no need in color
              * space conversion.

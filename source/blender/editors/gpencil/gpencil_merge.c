@@ -314,7 +314,7 @@ static int gpencil_insert_to_array(tGPencilPointCache *src_array,
     }
     src_elem = &src_array[idx];
     /* check if all points or only a stroke */
-    if ((gps_filter != NULL) && (gps_filter != src_elem->gps)) {
+    if (!ELEM(gps_filter, NULL, src_elem->gps)) {
       continue;
     }
 

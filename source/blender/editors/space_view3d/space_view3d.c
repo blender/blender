@@ -153,7 +153,7 @@ bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion 
       rv3d = region->regiondata;
       if ((rv3d->viewlock & RV3D_LOCK_ROTATION) == 0) {
         region_unlock = region;
-        if (rv3d->persp == RV3D_PERSP || rv3d->persp == RV3D_CAMOB) {
+        if (ELEM(rv3d->persp, RV3D_PERSP, RV3D_CAMOB)) {
           region_unlock_user = region;
           break;
         }

@@ -1260,7 +1260,7 @@ void calchandles_fcurve_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
     /* For automatic ease in and out. */
     if (BEZT_IS_AUTOH(bezt) && !cycle) {
       /* Only do this on first or last beztriple. */
-      if ((a == 0) || (a == fcu->totvert - 1)) {
+      if (ELEM(a, 0, fcu->totvert - 1)) {
         /* Set both handles to have same horizontal value as keyframe. */
         if (fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) {
           bezt->vec[0][1] = bezt->vec[2][1] = bezt->vec[1][1];

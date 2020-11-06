@@ -836,7 +836,7 @@ void ViewEdge::UpdateFEdges()
   do {
     currentEdge->setViewEdge(this);
     currentEdge = currentEdge->nextEdge();
-  } while ((currentEdge != NULL) && (currentEdge != _FEdgeB));
+  } while (!ELEM(currentEdge, NULL, _FEdgeB));
   // last one
   _FEdgeB->setViewEdge(this);
 }

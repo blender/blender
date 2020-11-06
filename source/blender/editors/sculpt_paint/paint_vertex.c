@@ -964,7 +964,7 @@ static void do_weight_paint_vertex_multi(
   if (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) {
     index_mirr = mesh_get_x_mirror_vert(ob, NULL, index, topology);
 
-    if (index_mirr != -1 && index_mirr != index) {
+    if (!ELEM(index_mirr, -1, index)) {
       dv_mirr = &me->dvert[index_mirr];
     }
     else {

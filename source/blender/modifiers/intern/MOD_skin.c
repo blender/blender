@@ -999,7 +999,7 @@ static void add_poly(SkinOutput *so, BMVert *v1, BMVert *v2, BMVert *v3, BMVert 
   BMFace *f;
 
   BLI_assert(v1 != v2 && v1 != v3 && v1 != v4);
-  BLI_assert(v2 != v3 && v2 != v4);
+  BLI_assert(!ELEM(v2, v3, v4));
   BLI_assert(v3 != v4);
   BLI_assert(v1 && v2 && v3);
 

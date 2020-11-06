@@ -269,11 +269,11 @@ uint BKE_curve_decimate_bezt_array(BezTriple *bezt_array,
     if (a == HD_VECT) { \
       a = HD_FREE; \
     } \
-    else if (a == HD_AUTO || a == HD_AUTO_ANIM) { \
+    else if (ELEM(a, HD_AUTO, HD_AUTO_ANIM)) { \
       a = HD_ALIGN; \
     } \
     /* opposite handle */ \
-    if (b == HD_AUTO || b == HD_AUTO_ANIM) { \
+    if (ELEM(b, HD_AUTO, HD_AUTO_ANIM)) { \
       b = HD_ALIGN; \
     } \
   } \

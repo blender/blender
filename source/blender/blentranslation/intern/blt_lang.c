@@ -105,7 +105,7 @@ static void fill_locales(void)
   while (line) {
     int t;
     str = (char *)line->link;
-    if (str[0] == '#' || str[0] == '\0') {
+    if (ELEM(str[0], '#', '\0')) {
       line = line->next;
       continue; /* Comment or void... */
     }
@@ -130,7 +130,7 @@ static void fill_locales(void)
       char *loc, *sep1, *sep2, *sep3;
 
       str = (char *)line->link;
-      if (str[0] == '#' || str[0] == '\0') {
+      if (ELEM(str[0], '#', '\0')) {
         line = line->next;
         continue;
       }

@@ -702,10 +702,10 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   if (but->funcN != oldbut->funcN) {
     return false;
   }
-  if (oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) {
+  if (!ELEM(oldbut->func_arg1, oldbut, but->func_arg1)) {
     return false;
   }
-  if (oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) {
+  if (!ELEM(oldbut->func_arg2, oldbut, but->func_arg2)) {
     return false;
   }
   if (!but->funcN && ((but->poin != oldbut->poin && (uiBut *)oldbut->poin != oldbut) ||

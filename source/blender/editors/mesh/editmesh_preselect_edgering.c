@@ -110,7 +110,7 @@ static void edgering_find_order(BMEdge *eed_last, BMEdge *eed, BMVert *eve_last,
 
   BMLoop *l_other = BM_loop_other_edge_loop(l, eed->v1);
   const bool rev = (l_other == l->prev);
-  while (l_other->v != eed_last->v1 && l_other->v != eed_last->v2) {
+  while (!ELEM(l_other->v, eed_last->v1, eed_last->v2)) {
     l_other = rev ? l_other->prev : l_other->next;
   }
 

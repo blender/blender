@@ -206,7 +206,7 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
 
   BKE_sequencer_active_set(scene, seq);
 
-  if ((seq->type == SEQ_TYPE_IMAGE) || (seq->type == SEQ_TYPE_MOVIE)) {
+  if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
     if (seq->strip) {
       BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
     }
@@ -466,7 +466,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
       BKE_sequencer_active_set(scene, seq);
 
-      if ((seq->type == SEQ_TYPE_IMAGE) || (seq->type == SEQ_TYPE_MOVIE)) {
+      if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
         if (seq->strip) {
           BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
         }

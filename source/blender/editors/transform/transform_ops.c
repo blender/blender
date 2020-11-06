@@ -541,7 +541,7 @@ static bool transform_poll_property(const bContext *UNUSED(C),
   {
     /* Hide orientation axis if no constraints are set, since it wont be used. */
     PropertyRNA *prop_con = RNA_struct_find_property(op->ptr, "orient_type");
-    if (prop_con != NULL && (prop_con != prop)) {
+    if (!ELEM(prop_con, NULL, prop)) {
       if (STRPREFIX(prop_id, "constraint")) {
 
         /* Special case: show constraint axis if we don't have values,

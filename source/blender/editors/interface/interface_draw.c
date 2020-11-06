@@ -973,15 +973,15 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
         1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_a, res, is_line, pos);
   }
   else {
-    if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_R) {
+    if (ELEM(hist->mode, HISTO_MODE_RGB, HISTO_MODE_R)) {
       histogram_draw_one(
           1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res, is_line, pos);
     }
-    if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_G) {
+    if (ELEM(hist->mode, HISTO_MODE_RGB, HISTO_MODE_G)) {
       histogram_draw_one(
           0.0, 1.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_g, res, is_line, pos);
     }
-    if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_B) {
+    if (ELEM(hist->mode, HISTO_MODE_RGB, HISTO_MODE_B)) {
       histogram_draw_one(
           0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res, is_line, pos);
     }

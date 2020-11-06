@@ -89,7 +89,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input,
   newInput.ymin = input->ymin;
   newInput.ymax = input->ymax;
 
-  if (m_wrappingType == CMP_NODE_WRAP_X || m_wrappingType == CMP_NODE_WRAP_XY) {
+  if (ELEM(m_wrappingType, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY)) {
     // wrap only on the x-axis if tile is wrapping
     newInput.xmin = getWrappedOriginalXPos(input->xmin);
     newInput.xmax = roundf(getWrappedOriginalXPos(input->xmax));
@@ -98,7 +98,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input,
       newInput.xmax = this->getWidth();
     }
   }
-  if (m_wrappingType == CMP_NODE_WRAP_Y || m_wrappingType == CMP_NODE_WRAP_XY) {
+  if (ELEM(m_wrappingType, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY)) {
     // wrap only on the y-axis if tile is wrapping
     newInput.ymin = getWrappedOriginalYPos(input->ymin);
     newInput.ymax = roundf(getWrappedOriginalYPos(input->ymax));

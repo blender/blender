@@ -148,7 +148,7 @@ static bool fcc_is_data(int fcc)
   if (!isdigit(fccs[0]) || !isdigit(fccs[1]) || (fccs[2] != 'd' && fccs[2] != 'w')) {
     return 0;
   }
-  if (fccs[3] != 'b' && fccs[3] != 'c') {
+  if (!ELEM(fccs[3], 'b', 'c')) {
     return 0;
   }
 

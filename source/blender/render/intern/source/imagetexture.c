@@ -200,7 +200,7 @@ int imagewrap(Tex *tex,
       return retval;
     }
   }
-  else if (tex->extend == TEX_CLIP || tex->extend == TEX_CHECKER) {
+  else if (ELEM(tex->extend, TEX_CLIP, TEX_CHECKER)) {
     if (x < 0 || y < 0 || x >= ibuf->x || y >= ibuf->y) {
       if (ima) {
         BKE_image_pool_release_ibuf(ima, ibuf, pool);
@@ -1214,7 +1214,7 @@ static int imagewraposa_aniso(Tex *tex,
       return retval;
     }
   }
-  else if (tex->extend == TEX_CLIP || tex->extend == TEX_CHECKER) {
+  else if (ELEM(tex->extend, TEX_CLIP, TEX_CHECKER)) {
     if ((fx + minx) < 0.0f || (fy + miny) < 0.0f || (fx - minx) > 1.0f || (fy - miny) > 1.0f) {
       if (ima) {
         BKE_image_pool_release_ibuf(ima, ibuf, pool);
@@ -1699,7 +1699,7 @@ int imagewraposa(Tex *tex,
       return retval;
     }
   }
-  else if (tex->extend == TEX_CLIP || tex->extend == TEX_CHECKER) {
+  else if (ELEM(tex->extend, TEX_CLIP, TEX_CHECKER)) {
     if (fx + minx < 0.0f || fy + miny < 0.0f || fx - minx > 1.0f || fy - miny > 1.0f) {
       if (ima) {
         BKE_image_pool_release_ibuf(ima, ibuf, pool);

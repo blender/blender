@@ -801,7 +801,7 @@ bool bone_autoside_name(
     while (changed) { /* remove extensions */
       changed = false;
       if (len > 2 && basename[len - 2] == '.') {
-        if (basename[len - 1] == 'L' || basename[len - 1] == 'R') { /* L R */
+        if (ELEM(basename[len - 1], 'L', 'R')) { /* L R */
           basename[len - 2] = '\0';
           len -= 2;
           changed = true;

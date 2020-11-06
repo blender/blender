@@ -2066,10 +2066,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         if (srl->freestyleConfig.mode == 0) {
           srl->freestyleConfig.mode = FREESTYLE_CONTROL_EDITOR_MODE;
         }
-        if (srl->freestyleConfig.raycasting_algorithm ==
-                FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE ||
-            srl->freestyleConfig.raycasting_algorithm ==
-                FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL) {
+        if (ELEM(srl->freestyleConfig.raycasting_algorithm, FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE, FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL)) {
           srl->freestyleConfig.raycasting_algorithm = 0; /* deprecated */
           srl->freestyleConfig.flags |= FREESTYLE_CULLING;
         }

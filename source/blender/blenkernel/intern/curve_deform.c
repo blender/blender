@@ -225,7 +225,7 @@ static bool calc_curve_deform(
     quat_apply_track(
         quat,
         axis,
-        (axis == 0 || axis == 2) ? 1 : 0); /* up flag is a dummy, set so no rotation is done */
+        (ELEM(axis, 0, 2)) ? 1 : 0); /* up flag is a dummy, set so no rotation is done */
     vec_apply_track(cent, axis);
     cent[index] = 0.0f;
 

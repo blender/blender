@@ -931,7 +931,7 @@ static int count_active_texture_sampler(GPUShader *shader, char *source)
       /* Move past "uniform". */
       code += 7;
       /* Skip sampler type suffix. */
-      while (*code != ' ' && *code != '\0') {
+      while (!ELEM(*code, ' ', '\0')) {
         code++;
       }
       /* Skip following spaces. */

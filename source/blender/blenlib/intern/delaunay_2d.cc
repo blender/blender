@@ -2008,7 +2008,7 @@ template<typename T> void dissolve_symedge(CDT_state<T> *cdt_state, SymEdge<T> *
     se = sym(se);
     symse = sym(se);
   }
-  if (cdt->outer_face->symedge == se || cdt->outer_face->symedge == symse) {
+  if (ELEM(cdt->outer_face->symedge, se, symse)) {
     /* Advancing by 2 to get past possible 'sym(se)'. */
     if (se->next->next == se) {
       cdt->outer_face->symedge = NULL;

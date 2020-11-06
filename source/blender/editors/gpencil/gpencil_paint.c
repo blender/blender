@@ -1152,7 +1152,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
           /* invalidate any other point, to interpolate between
            * first and last contact in an imaginary line between them */
           for (i = 0; i < gpd->runtime.sbuffer_used; i++) {
-            if ((i != first_valid) && (i != last_valid)) {
+            if (!ELEM(i, first_valid, last_valid)) {
               depth_arr[i] = FLT_MAX;
             }
           }
@@ -2719,7 +2719,7 @@ static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgra
     short ok = gpencil_stroke_addpoint(p, p->mval, p->pressure, p->curtime);
 
     /* handle errors while adding point */
-    if ((ok == GP_STROKEADD_FULL) || (ok == GP_STROKEADD_OVERFLOW)) {
+    if (ELEM(ok, GP_STROKEADD_FULL, GP_STROKEADD_OVERFLOW)) {
       /* finish off old stroke */
       gpencil_paint_strokeend(p);
       /* And start a new one!!! Else, projection errors! */

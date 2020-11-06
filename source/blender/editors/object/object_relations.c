@@ -911,7 +911,7 @@ bool ED_object_parent_set(ReportList *reports,
     else if (partype == PAR_ARMATURE_NAME) {
       ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_NAME);
     }
-    else if ((partype == PAR_ARMATURE_AUTO) || (partype == PAR_ARMATURE_ENVELOPE)) {
+    else if (ELEM(partype, PAR_ARMATURE_AUTO, PAR_ARMATURE_ENVELOPE)) {
       WM_cursor_wait(1);
       ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_AUTO);
       WM_cursor_wait(0);

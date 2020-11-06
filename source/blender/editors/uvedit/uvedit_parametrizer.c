@@ -4407,8 +4407,7 @@ void param_delete(ParamHandle *handle)
   PHandle *phandle = (PHandle *)handle;
   int i;
 
-  param_assert((phandle->state == PHANDLE_STATE_ALLOCATED) ||
-               (phandle->state == PHANDLE_STATE_CONSTRUCTED));
+  param_assert(ELEM(phandle->state, PHANDLE_STATE_ALLOCATED, PHANDLE_STATE_CONSTRUCTED));
 
   for (i = 0; i < phandle->ncharts; i++) {
     p_chart_delete(phandle->charts[i]);
@@ -4507,7 +4506,7 @@ void param_face_add(ParamHandle *handle,
 
   param_assert(phash_lookup(phandle->hash_faces, key) == NULL);
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
-  param_assert((nverts == 3) || (nverts == 4));
+  param_assert(ELEM(nverts, 3, 4));
 
   if (nverts > 4) {
     /* ngon */

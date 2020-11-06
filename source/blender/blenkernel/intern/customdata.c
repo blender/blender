@@ -2509,7 +2509,7 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
     return &data->layers[CustomData_get_layer_index(data, type)];
   }
 
-  if ((alloctype == CD_ASSIGN) || (alloctype == CD_REFERENCE)) {
+  if (ELEM(alloctype, CD_ASSIGN, CD_REFERENCE)) {
     newlayerdata = layerdata;
   }
   else if (totelem > 0 && typeInfo->size > 0) {

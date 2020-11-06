@@ -626,7 +626,7 @@ static void draw_seq_text(View2D *v2d,
     name = BKE_sequence_give_name(seq);
   }
 
-  if (seq->type == SEQ_TYPE_META || seq->type == SEQ_TYPE_ADJUSTMENT) {
+  if (ELEM(seq->type, SEQ_TYPE_META, SEQ_TYPE_ADJUSTMENT)) {
     str_len = BLI_snprintf(str, sizeof(str), "%s | %d", name, seq->len);
   }
   else if (seq->type == SEQ_TYPE_SCENE) {

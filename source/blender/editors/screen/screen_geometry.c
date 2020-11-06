@@ -202,7 +202,7 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
             /* all selected vertices get the right offset */
             LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
               /* if is a collapsed area */
-              if (sv != area->v1 && sv != area->v4) {
+              if (!ELEM(sv, area->v1, area->v4)) {
                 if (sv->flag) {
                   sv->vec.y = yval;
                   /* Changed size of a area. Run another pass to ensure everything still fits. */
@@ -228,7 +228,7 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
             /* all selected vertices get the right offset */
             LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
               /* if is not a collapsed area */
-              if (sv != area->v2 && sv != area->v3) {
+              if (!ELEM(sv, area->v2, area->v3)) {
                 if (sv->flag) {
                   sv->vec.y = yval;
                   /* Changed size of a area. Run another pass to ensure everything still fits. */

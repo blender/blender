@@ -2190,7 +2190,7 @@ static void mesh_init_origspace(Mesh *mesh)
   for (i = 0; i < numpoly; i++, mp++) {
     OrigSpaceLoop *lof = lof_array + mp->loopstart;
 
-    if (mp->totloop == 3 || mp->totloop == 4) {
+    if (ELEM(mp->totloop, 3, 4)) {
       for (j = 0; j < mp->totloop; j++, lof++) {
         copy_v2_v2(lof->uv, default_osf[j]);
       }

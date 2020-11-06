@@ -742,7 +742,7 @@ static int convert_include(const char *filename)
               break;
             }
 
-            if (*md1 == ',' || *md1 == ' ') {
+            if (ELEM(*md1, ',', ' ')) {
               *md1 = 0;
             }
             md1++;
@@ -1439,7 +1439,7 @@ int main(int argc, char **argv)
 {
   int return_status = 0;
 
-  if (argc != 4 && argc != 5) {
+  if (!ELEM(argc, 4, 5)) {
     printf("Usage: %s dna.c dna_struct_offsets.h [base directory]\n", argv[0]);
     return_status = 1;
   }

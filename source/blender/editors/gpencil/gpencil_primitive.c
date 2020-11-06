@@ -849,7 +849,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
           /* invalidate any other point, to interpolate between
            * first and last contact in an imaginary line between them */
           for (i = 0; i < gps->totpoints; i++) {
-            if ((i != first_valid) && (i != last_valid)) {
+            if (!ELEM(i, first_valid, last_valid)) {
               depth_arr[i] = FLT_MAX;
             }
           }

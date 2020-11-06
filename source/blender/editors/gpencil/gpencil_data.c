@@ -1557,14 +1557,14 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
               continue;
             }
             /* some stroke is already at front*/
-            if ((direction == GP_STROKE_MOVE_TOP) || (direction == GP_STROKE_MOVE_UP)) {
+            if (ELEM(direction, GP_STROKE_MOVE_TOP, GP_STROKE_MOVE_UP)) {
               if (gps == gpf->strokes.last) {
                 gpf_lock = true;
                 continue;
               }
             }
             /* some stroke is already at botom */
-            if ((direction == GP_STROKE_MOVE_BOTTOM) || (direction == GP_STROKE_MOVE_DOWN)) {
+            if (ELEM(direction, GP_STROKE_MOVE_BOTTOM, GP_STROKE_MOVE_DOWN)) {
               if (gps == gpf->strokes.first) {
                 gpf_lock = true;
                 continue;
@@ -3035,7 +3035,7 @@ static int gpencil_material_isolate_exec(bContext *C, wmOperator *op)
   for (short i = 0; i < *totcol; i++) {
     ma = BKE_gpencil_material(ob, i + 1);
     /* Skip if this is the active one */
-    if ((ma == NULL) || (ma == active_ma)) {
+    if (ELEM(ma, NULL, active_ma)) {
       continue;
     }
 

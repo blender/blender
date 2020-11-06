@@ -589,7 +589,7 @@ int seq_effect_find_selected(Scene *scene,
         *r_error_str = N_("Cannot apply effects to audio sequence strips");
         return 0;
       }
-      if ((seq != activeseq) && (seq != seq2)) {
+      if (!ELEM(seq, activeseq, seq2)) {
         if (seq2 == NULL) {
           seq2 = seq;
         }

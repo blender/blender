@@ -481,7 +481,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   /* calculate the maximum number of copies which will fit within the
    * prescribed length */
-  if (amd->fit_type == MOD_ARR_FITLENGTH || amd->fit_type == MOD_ARR_FITCURVE) {
+  if (ELEM(amd->fit_type, MOD_ARR_FITLENGTH, MOD_ARR_FITCURVE)) {
     const float float_epsilon = 1e-6f;
     bool offset_is_too_small = false;
     float dist = len_v3(offset[3]);

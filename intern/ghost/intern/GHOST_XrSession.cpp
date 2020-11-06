@@ -222,7 +222,7 @@ GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
   m_oxr->session_state = lifecycle.state;
 
   /* Runtime may send events for apparently destroyed session. Our handle should be NULL then. */
-  assert((m_oxr->session == XR_NULL_HANDLE) || (m_oxr->session == lifecycle.session));
+  assert(ELEM(m_oxr->session, XR_NULL_HANDLE, lifecycle.session));
 
   switch (lifecycle.state) {
     case XR_SESSION_STATE_READY: {

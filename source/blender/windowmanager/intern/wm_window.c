@@ -1767,7 +1767,7 @@ static char *wm_clipboard_text_get_ex(bool selection, int *r_len, bool firstline
   if (firstline) {
     /* will return an over-alloc'ed value in the case there are newlines */
     for (char *p = buf; *p; p++) {
-      if ((*p != '\n') && (*p != '\r')) {
+      if (!ELEM(*p, '\n', '\r')) {
         *(p2++) = *p;
       }
       else {

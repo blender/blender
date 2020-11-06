@@ -565,7 +565,7 @@ static void append_sorted_object_parent_hierarchy(Object *root_object,
                                                   Object **sorted_objects,
                                                   int *object_index)
 {
-  if (object->parent != NULL && object->parent != root_object) {
+  if (!ELEM(object->parent, NULL, root_object)) {
     append_sorted_object_parent_hierarchy(
         root_object, object->parent, sorted_objects, object_index);
   }
@@ -1374,7 +1374,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
           if (centermode == ORIGIN_TO_CURSOR) {
             copy_v3_v3(gpcenter, cursor);
           }
-          if ((centermode == ORIGIN_TO_GEOMETRY) || (centermode == ORIGIN_TO_CURSOR)) {
+          if (ELEM(centermode, ORIGIN_TO_GEOMETRY, ORIGIN_TO_CURSOR)) {
             bGPDspoint *pt;
             float imat[3][3], bmat[3][3];
             float offset_global[3];
