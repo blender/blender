@@ -2746,19 +2746,9 @@ void blo_do_versions_key_uidgen(Key *key)
 /** \name Read ID: Object
  * \{ */
 
-static void lib_link_modifiers_common(void *userData, Object *ob, ID **idpoin, int cb_flag)
-{
-  BlendLibReader *reader = userData;
-
-  BLO_read_id_address(reader, ob->id.lib, idpoin);
-  if (*idpoin != NULL && (cb_flag & IDWALK_CB_USER) != 0) {
-    id_us_plus_no_lib(*idpoin);
-  }
-}
-
 static void lib_link_modifiers(BlendLibReader *reader, Object *ob)
 {
-  BKE_modifiers_foreach_ID_link(ob, lib_link_modifiers_common, reader);
+  BKE_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
 
   /* If linking from a library, clear 'local' library override flag. */
   if (ob->id.lib != NULL) {
@@ -2770,24 +2760,12 @@ static void lib_link_modifiers(BlendLibReader *reader, Object *ob)
 
 static void lib_link_gpencil_modifiers(BlendLibReader *reader, Object *ob)
 {
-  BKE_gpencil_modifiers_foreach_ID_link(ob, lib_link_modifiers_common, reader);
+  BKE_gpencil_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
 
   /* If linking from a library, clear 'local' library override flag. */
   if (ob->id.lib != NULL) {
     LISTBASE_FOREACH (GpencilModifierData *, mod, &ob->greasepencil_modifiers) {
       mod->flag &= ~eGpencilModifierFlag_OverrideLibrary_Local;
-    }
-  }
-}
-
-static void lib_link_shaderfxs(BlendLibReader *reader, Object *ob)
-{
-  BKE_shaderfx_foreach_ID_link(ob, lib_link_modifiers_common, reader);
-
-  /* If linking from a library, clear 'local' library override flag. */
-  if (ob->id.lib != NULL) {
-    LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
-      fx->flag &= ~eShaderFxFlag_OverrideLibrary_Local;
     }
   }
 }
@@ -2947,7 +2925,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
   BKE_particle_system_blend_read_lib(reader, ob, &ob->id, &ob->particlesystem);
   lib_link_modifiers(reader, ob);
   lib_link_gpencil_modifiers(reader, ob);
-  lib_link_shaderfxs(reader, ob);
+  BKE_shaderfx_blend_read_lib(reader, ob);
 
   if (ob->rigidbody_constraint) {
     BLO_read_id_address(reader, ob->id.lib, &ob->rigidbody_constraint->ob1);
@@ -3406,20 +3384,6 @@ static void direct_link_gpencil_modifiers(BlendDataReader *reader, ListBase *lb)
   }
 }
 
-static void direct_link_shaderfxs(BlendDataReader *reader, ListBase *lb)
-{
-  BLO_read_list(reader, lb);
-
-  LISTBASE_FOREACH (ShaderFxData *, fx, lb) {
-    fx->error = NULL;
-
-    /* if shader disappear, or for upward compatibility */
-    if (NULL == BKE_shaderfx_get_info(fx->type)) {
-      fx->type = eShaderFxType_None;
-    }
-  }
-}
-
 static void direct_link_object(BlendDataReader *reader, Object *ob)
 {
   PartEff *paf;
@@ -3465,7 +3429,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   /* do it here, below old data gets converted */
   direct_link_modifiers(reader, &ob->modifiers, ob);
   direct_link_gpencil_modifiers(reader, &ob->greasepencil_modifiers);
-  direct_link_shaderfxs(reader, &ob->shader_fx);
+  BKE_shaderfx_blend_read_data(reader, &ob->shader_fx);
 
   BLO_read_list(reader, &ob->effect);
   paf = ob->effect.first;

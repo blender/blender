@@ -416,6 +416,11 @@ void BKE_object_to_mesh_clear(struct Object *object);
 
 void BKE_object_check_uuids_unique_and_report(const struct Object *object);
 
+void BKE_object_modifiers_lib_link_common(void *userData,
+                                          struct Object *ob,
+                                          struct ID **idpoin,
+                                          int cb_flag);
+
 #ifdef __cplusplus
 }
 #endif

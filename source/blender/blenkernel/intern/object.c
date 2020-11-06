@@ -135,6 +135,8 @@
 
 #include "DRW_engine.h"
 
+#include "BLO_read_write.h"
+
 #include "SEQ_sequencer.h"
 
 #ifdef WITH_PYTHON
@@ -4806,4 +4808,17 @@ void BKE_object_check_uuids_unique_and_report(const Object *object)
 {
   BKE_pose_check_uuids_unique_and_report(object->pose);
   BKE_modifier_check_uuids_unique_and_report(object);
+}
+
+void BKE_object_modifiers_lib_link_common(void *userData,
+                                          struct Object *ob,
+                                          struct ID **idpoin,
+                                          int cb_flag)
+{
+  BlendLibReader *reader = userData;
+
+  BLO_read_id_address(reader, ob->id.lib, idpoin);
+  if (*idpoin != NULL && (cb_flag & IDWALK_CB_USER) != 0) {
+    id_us_plus_no_lib(*idpoin);
+  }
 }

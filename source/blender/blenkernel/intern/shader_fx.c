@@ -50,6 +50,8 @@
 
 #include "FX_shader_types.h"
 
+#include "BLO_read_write.h"
+
 static ShaderFxTypeInfo *shader_fx_types[NUM_SHADER_FX_TYPES] = {NULL};
 
 /* *************************************************** */
@@ -275,4 +277,46 @@ void BKE_shaderfx_foreach_ID_link(Object *ob, ShaderFxIDWalkFunc walk, void *use
 ShaderFxData *BKE_shaderfx_findby_name(Object *ob, const char *name)
 {
   return BLI_findstring(&(ob->shader_fx), name, offsetof(ShaderFxData, name));
+}
+
+void BKE_shaderfx_blend_write(BlendWriter *writer, ListBase *fxbase)
+{
+  if (fxbase == NULL) {
+    return;
+  }
+
+  LISTBASE_FOREACH (ShaderFxData *, fx, fxbase) {
+    const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(fx->type);
+    if (fxi == NULL) {
+      return;
+    }
+
+    BLO_write_struct_by_name(writer, fxi->struct_name, fx);
+  }
+}
+
+void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBase *lb)
+{
+  BLO_read_list(reader, lb);
+
+  LISTBASE_FOREACH (ShaderFxData *, fx, lb) {
+    fx->error = NULL;
+
+    /* if shader disappear, or for upward compatibility */
+    if (NULL == BKE_shaderfx_get_info(fx->type)) {
+      fx->type = eShaderFxType_None;
+    }
+  }
+}
+
+void BKE_shaderfx_blend_read_lib(BlendLibReader *reader, Object *ob)
+{
+  BKE_shaderfx_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
+
+  /* If linking from a library, clear 'local' library override flag. */
+  if (ob->id.lib != NULL) {
+    LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
+      fx->flag &= ~eShaderFxFlag_OverrideLibrary_Local;
+    }
+  }
 }
