@@ -154,6 +154,7 @@
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
@@ -809,50 +810,6 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   }
 }
 
-static void write_particlesystems(BlendWriter *writer, ListBase *particles)
-{
-  LISTBASE_FOREACH (ParticleSystem *, psys, particles) {
-    BLO_write_struct(writer, ParticleSystem, psys);
-
-    if (psys->particles) {
-      BLO_write_struct_array(writer, ParticleData, psys->totpart, psys->particles);
-
-      if (psys->particles->hair) {
-        ParticleData *pa = psys->particles;
-
-        for (int a = 0; a < psys->totpart; a++, pa++) {
-          BLO_write_struct_array(writer, HairKey, pa->totkey, pa->hair);
-        }
-      }
-
-      if (psys->particles->boid && (psys->part->phystype == PART_PHYS_BOIDS)) {
-        BLO_write_struct_array(writer, BoidParticle, psys->totpart, psys->particles->boid);
-      }
-
-      if (psys->part->fluid && (psys->part->phystype == PART_PHYS_FLUID) &&
-          (psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS)) {
-        BLO_write_struct_array(
-            writer, ParticleSpring, psys->tot_fluidsprings, psys->fluid_springs);
-      }
-    }
-    LISTBASE_FOREACH (ParticleTarget *, pt, &psys->targets) {
-      BLO_write_struct(writer, ParticleTarget, pt);
-    }
-
-    if (psys->child) {
-      BLO_write_struct_array(writer, ChildParticle, psys->totchild, psys->child);
-    }
-
-    if (psys->clmd) {
-      BLO_write_struct(writer, ClothModifierData, psys->clmd);
-      BLO_write_struct(writer, ClothSimSettings, psys->clmd->sim_parms);
-      BLO_write_struct(writer, ClothCollSettings, psys->clmd->coll_parms);
-    }
-
-    BKE_ptcache_blend_write(writer, &psys->ptcaches);
-  }
-}
-
 static void write_motionpath(BlendWriter *writer, bMotionPath *mpath)
 {
   /* sanity checks */
@@ -1231,7 +1188,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
       BLO_write_struct(writer, ImageUser, ob->iuser);
     }
 
-    write_particlesystems(writer, &ob->particlesystem);
+    BKE_particle_system_blend_write(writer, &ob->particlesystem);
     write_modifiers(writer, &ob->modifiers);
     write_gpencil_modifiers(writer, &ob->greasepencil_modifiers);
     write_shaderfxs(writer, &ob->shader_fx);

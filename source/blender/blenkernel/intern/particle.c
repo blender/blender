@@ -32,6 +32,7 @@
 
 #include "DNA_defaults.h"
 
+#include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_dynamicpaint_types.h"
@@ -5237,5 +5238,174 @@ void BKE_particle_batch_cache_free(ParticleSystem *psys)
 {
   if (psys->batch_cache) {
     BKE_particle_batch_cache_free_cb(psys);
+  }
+}
+
+void BKE_particle_system_blend_write(BlendWriter *writer, ListBase *particles)
+{
+  LISTBASE_FOREACH (ParticleSystem *, psys, particles) {
+    BLO_write_struct(writer, ParticleSystem, psys);
+
+    if (psys->particles) {
+      BLO_write_struct_array(writer, ParticleData, psys->totpart, psys->particles);
+
+      if (psys->particles->hair) {
+        ParticleData *pa = psys->particles;
+
+        for (int a = 0; a < psys->totpart; a++, pa++) {
+          BLO_write_struct_array(writer, HairKey, pa->totkey, pa->hair);
+        }
+      }
+
+      if (psys->particles->boid && (psys->part->phystype == PART_PHYS_BOIDS)) {
+        BLO_write_struct_array(writer, BoidParticle, psys->totpart, psys->particles->boid);
+      }
+
+      if (psys->part->fluid && (psys->part->phystype == PART_PHYS_FLUID) &&
+          (psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS)) {
+        BLO_write_struct_array(
+            writer, ParticleSpring, psys->tot_fluidsprings, psys->fluid_springs);
+      }
+    }
+    LISTBASE_FOREACH (ParticleTarget *, pt, &psys->targets) {
+      BLO_write_struct(writer, ParticleTarget, pt);
+    }
+
+    if (psys->child) {
+      BLO_write_struct_array(writer, ChildParticle, psys->totchild, psys->child);
+    }
+
+    if (psys->clmd) {
+      BLO_write_struct(writer, ClothModifierData, psys->clmd);
+      BLO_write_struct(writer, ClothSimSettings, psys->clmd->sim_parms);
+      BLO_write_struct(writer, ClothCollSettings, psys->clmd->coll_parms);
+    }
+
+    BKE_ptcache_blend_write(writer, &psys->ptcaches);
+  }
+}
+
+void BKE_particle_system_blend_read_data(BlendDataReader *reader, ListBase *particles)
+{
+  ParticleData *pa;
+  int a;
+
+  LISTBASE_FOREACH (ParticleSystem *, psys, particles) {
+    BLO_read_data_address(reader, &psys->particles);
+
+    if (psys->particles && psys->particles->hair) {
+      for (a = 0, pa = psys->particles; a < psys->totpart; a++, pa++) {
+        BLO_read_data_address(reader, &pa->hair);
+      }
+    }
+
+    if (psys->particles && psys->particles->keys) {
+      for (a = 0, pa = psys->particles; a < psys->totpart; a++, pa++) {
+        pa->keys = NULL;
+        pa->totkey = 0;
+      }
+
+      psys->flag &= ~PSYS_KEYED;
+    }
+
+    if (psys->particles && psys->particles->boid) {
+      pa = psys->particles;
+      BLO_read_data_address(reader, &pa->boid);
+
+      /* This is purely runtime data, but still can be an issue if left dangling. */
+      pa->boid->ground = NULL;
+
+      for (a = 1, pa++; a < psys->totpart; a++, pa++) {
+        pa->boid = (pa - 1)->boid + 1;
+        pa->boid->ground = NULL;
+      }
+    }
+    else if (psys->particles) {
+      for (a = 0, pa = psys->particles; a < psys->totpart; a++, pa++) {
+        pa->boid = NULL;
+      }
+    }
+
+    BLO_read_data_address(reader, &psys->fluid_springs);
+
+    BLO_read_data_address(reader, &psys->child);
+    psys->effectors = NULL;
+
+    BLO_read_list(reader, &psys->targets);
+
+    psys->edit = NULL;
+    psys->free_edit = NULL;
+    psys->pathcache = NULL;
+    psys->childcache = NULL;
+    BLI_listbase_clear(&psys->pathcachebufs);
+    BLI_listbase_clear(&psys->childcachebufs);
+    psys->pdd = NULL;
+
+    if (psys->clmd) {
+      BLO_read_data_address(reader, &psys->clmd);
+      psys->clmd->clothObject = NULL;
+      psys->clmd->hairdata = NULL;
+
+      BLO_read_data_address(reader, &psys->clmd->sim_parms);
+      BLO_read_data_address(reader, &psys->clmd->coll_parms);
+
+      if (psys->clmd->sim_parms) {
+        psys->clmd->sim_parms->effector_weights = NULL;
+        if (psys->clmd->sim_parms->presets > 10) {
+          psys->clmd->sim_parms->presets = 0;
+        }
+      }
+
+      psys->hair_in_mesh = psys->hair_out_mesh = NULL;
+      psys->clmd->solver_result = NULL;
+    }
+
+    BKE_ptcache_blend_read_data(reader, &psys->ptcaches, &psys->pointcache, 0);
+    if (psys->clmd) {
+      psys->clmd->point_cache = psys->pointcache;
+    }
+
+    psys->tree = NULL;
+    psys->bvhtree = NULL;
+
+    psys->orig_psys = NULL;
+    psys->batch_cache = NULL;
+  }
+}
+
+void BKE_particle_system_blend_read_lib(BlendLibReader *reader,
+                                        Object *ob,
+                                        ID *id,
+                                        ListBase *particles)
+{
+  LISTBASE_FOREACH_MUTABLE (ParticleSystem *, psys, particles) {
+
+    BLO_read_id_address(reader, id->lib, &psys->part);
+    if (psys->part) {
+      LISTBASE_FOREACH (ParticleTarget *, pt, &psys->targets) {
+        BLO_read_id_address(reader, id->lib, &pt->ob);
+      }
+
+      BLO_read_id_address(reader, id->lib, &psys->parent);
+      BLO_read_id_address(reader, id->lib, &psys->target_ob);
+
+      if (psys->clmd) {
+        /* XXX - from reading existing code this seems correct but intended usage of
+         * pointcache /w cloth should be added in 'ParticleSystem' - campbell */
+        psys->clmd->point_cache = psys->pointcache;
+        psys->clmd->ptcaches.first = psys->clmd->ptcaches.last = NULL;
+        BLO_read_id_address(reader, id->lib, &psys->clmd->coll_parms->group);
+        psys->clmd->modifier.error = NULL;
+      }
+    }
+    else {
+      /* particle modifier must be removed before particle system */
+      ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
+      BLI_remlink(&ob->modifiers, psmd);
+      BKE_modifier_free((ModifierData *)psmd);
+
+      BLI_remlink(particles, psys);
+      MEM_freeN(psys);
+    }
   }
 }

@@ -2743,142 +2743,6 @@ void blo_do_versions_key_uidgen(Key *key)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Particle Settings
- * \{ */
-
-static void lib_link_particlesystems(BlendLibReader *reader,
-                                     Object *ob,
-                                     ID *id,
-                                     ListBase *particles)
-{
-  LISTBASE_FOREACH_MUTABLE (ParticleSystem *, psys, particles) {
-
-    BLO_read_id_address(reader, id->lib, &psys->part);
-    if (psys->part) {
-      LISTBASE_FOREACH (ParticleTarget *, pt, &psys->targets) {
-        BLO_read_id_address(reader, id->lib, &pt->ob);
-      }
-
-      BLO_read_id_address(reader, id->lib, &psys->parent);
-      BLO_read_id_address(reader, id->lib, &psys->target_ob);
-
-      if (psys->clmd) {
-        /* XXX - from reading existing code this seems correct but intended usage of
-         * pointcache /w cloth should be added in 'ParticleSystem' - campbell */
-        psys->clmd->point_cache = psys->pointcache;
-        psys->clmd->ptcaches.first = psys->clmd->ptcaches.last = NULL;
-        BLO_read_id_address(reader, id->lib, &psys->clmd->coll_parms->group);
-        psys->clmd->modifier.error = NULL;
-      }
-    }
-    else {
-      /* particle modifier must be removed before particle system */
-      ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
-      BLI_remlink(&ob->modifiers, psmd);
-      BKE_modifier_free((ModifierData *)psmd);
-
-      BLI_remlink(particles, psys);
-      MEM_freeN(psys);
-    }
-  }
-}
-static void direct_link_particlesystems(BlendDataReader *reader, ListBase *particles)
-{
-  ParticleData *pa;
-  int a;
-
-  LISTBASE_FOREACH (ParticleSystem *, psys, particles) {
-    BLO_read_data_address(reader, &psys->particles);
-
-    if (psys->particles && psys->particles->hair) {
-      for (a = 0, pa = psys->particles; a < psys->totpart; a++, pa++) {
-        BLO_read_data_address(reader, &pa->hair);
-      }
-    }
-
-    if (psys->particles && psys->particles->keys) {
-      for (a = 0, pa = psys->particles; a < psys->totpart; a++, pa++) {
-        pa->keys = NULL;
-        pa->totkey = 0;
-      }
-
-      psys->flag &= ~PSYS_KEYED;
-    }
-
-    if (psys->particles && psys->particles->boid) {
-      pa = psys->particles;
-      BLO_read_data_address(reader, &pa->boid);
-
-      /* This is purely runtime data, but still can be an issue if left dangling. */
-      pa->boid->ground = NULL;
-
-      for (a = 1, pa++; a < psys->totpart; a++, pa++) {
-        pa->boid = (pa - 1)->boid + 1;
-        pa->boid->ground = NULL;
-      }
-    }
-    else if (psys->particles) {
-      for (a = 0, pa = psys->particles; a < psys->totpart; a++, pa++) {
-        pa->boid = NULL;
-      }
-    }
-
-    BLO_read_data_address(reader, &psys->fluid_springs);
-
-    BLO_read_data_address(reader, &psys->child);
-    psys->effectors = NULL;
-
-    BLO_read_list(reader, &psys->targets);
-
-    psys->edit = NULL;
-    psys->free_edit = NULL;
-    psys->pathcache = NULL;
-    psys->childcache = NULL;
-    BLI_listbase_clear(&psys->pathcachebufs);
-    BLI_listbase_clear(&psys->childcachebufs);
-    psys->pdd = NULL;
-
-    if (psys->clmd) {
-      BLO_read_data_address(reader, &psys->clmd);
-      psys->clmd->clothObject = NULL;
-      psys->clmd->hairdata = NULL;
-
-      BLO_read_data_address(reader, &psys->clmd->sim_parms);
-      BLO_read_data_address(reader, &psys->clmd->coll_parms);
-
-      if (psys->clmd->sim_parms) {
-        psys->clmd->sim_parms->effector_weights = NULL;
-        if (psys->clmd->sim_parms->presets > 10) {
-          psys->clmd->sim_parms->presets = 0;
-        }
-      }
-
-      psys->hair_in_mesh = psys->hair_out_mesh = NULL;
-      psys->clmd->solver_result = NULL;
-    }
-
-    BKE_ptcache_blend_read_data(reader, &psys->ptcaches, &psys->pointcache, 0);
-    if (psys->clmd) {
-      psys->clmd->point_cache = psys->pointcache;
-    }
-
-    psys->tree = NULL;
-    psys->bvhtree = NULL;
-
-    psys->orig_psys = NULL;
-    psys->batch_cache = NULL;
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Read ID: Mesh
- * \{ */
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Object
  * \{ */
 
@@ -3080,7 +2944,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
     BLO_read_id_address(reader, ob->id.lib, &ob->soft->effector_weights->group);
   }
 
-  lib_link_particlesystems(reader, ob, &ob->id, &ob->particlesystem);
+  BKE_particle_system_blend_read_lib(reader, ob, &ob->id, &ob->particlesystem);
   lib_link_modifiers(reader, ob);
   lib_link_gpencil_modifiers(reader, ob);
   lib_link_shaderfxs(reader, ob);
@@ -3704,7 +3568,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   }
 
   BLO_read_list(reader, &ob->particlesystem);
-  direct_link_particlesystems(reader, &ob->particlesystem);
+  BKE_particle_system_blend_read_data(reader, &ob->particlesystem);
 
   direct_link_constraints(reader, &ob->constraints);
 
