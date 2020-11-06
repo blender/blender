@@ -116,7 +116,7 @@ void FRS_init()
 
   BKE_callback_add(&load_post_callback_funcstore, BKE_CB_EVT_LOAD_POST);
 
-  freestyle_is_initialized = 1;
+  freestyle_is_initialized = true;
 }
 
 void FRS_set_context(bContext *C)

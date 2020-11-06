@@ -495,7 +495,7 @@ static PyObject *BPy_FrsMaterial_richcmpr(PyObject *objectA,
                                           int comparison_type)
 {
   const BPy_FrsMaterial *matA = NULL, *matB = NULL;
-  bool result = 0;
+  bool result = false;
 
   if (!BPy_FrsMaterial_Check(objectA) || !BPy_FrsMaterial_Check(objectB)) {
     if (comparison_type == Py_NE) {

@@ -272,7 +272,7 @@ TEST_F(AbstractHierarchyIteratorTest, ExportSubsetTest)
   /* Even when only asking an export of transforms, on the first frame everything should be
    * exported. */
   {
-    ExportSubset export_subset = {0};
+    ExportSubset export_subset = {false};
     export_subset.transforms = true;
     export_subset.shapes = false;
     iterator->set_export_subset(export_subset);
@@ -296,7 +296,7 @@ TEST_F(AbstractHierarchyIteratorTest, ExportSubsetTest)
 
   /* Third iteration, should only write data now. */
   {
-    ExportSubset export_subset = {0};
+    ExportSubset export_subset = {false};
     export_subset.transforms = false;
     export_subset.shapes = true;
     iterator->set_export_subset(export_subset);
@@ -311,7 +311,7 @@ TEST_F(AbstractHierarchyIteratorTest, ExportSubsetTest)
 
   /* Fourth iteration, should export everything now. */
   {
-    ExportSubset export_subset = {0};
+    ExportSubset export_subset = {false};
     export_subset.transforms = true;
     export_subset.shapes = true;
     iterator->set_export_subset(export_subset);

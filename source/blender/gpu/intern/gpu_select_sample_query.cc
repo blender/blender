@@ -70,7 +70,7 @@ typedef struct GPUSelectQueryState {
   eGPUDepthTest depth_test;
 } GPUSelectQueryState;
 
-static GPUSelectQueryState g_query_state = {0};
+static GPUSelectQueryState g_query_state = {false};
 
 void gpu_select_query_begin(
     uint (*buffer)[4], uint bufsize, const rcti *input, char mode, int oldhits)

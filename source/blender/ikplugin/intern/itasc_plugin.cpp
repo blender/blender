@@ -956,7 +956,7 @@ static int convert_channels(struct Depsgraph *depsgraph,
      * this is because some of the pose data (e.g. pose head) don't have corresponding
      * joint angles and can't be applied to the iTaSC armature dynamically */
     if (!(pchan->flag & POSE_DONE)) {
-      BKE_pose_where_is_bone(depsgraph, ikscene->blscene, ikscene->blArmature, pchan, ctime, 1);
+      BKE_pose_where_is_bone(depsgraph, ikscene->blscene, ikscene->blArmature, pchan, ctime, true);
     }
     /* tell blender that this channel was controlled by IK,
      * it's cleared on each BKE_pose_where_is() */
@@ -1720,7 +1720,8 @@ static void execute_scene(struct Depsgraph *depsgraph,
     /* in animation mode, we must get the bone position from action and constraints */
     for (i = 0, ikchan = ikscene->channels; i < ikscene->numchan; i++, ikchan++) {
       if (!(ikchan->pchan->flag & POSE_DONE)) {
-        BKE_pose_where_is_bone(depsgraph, blscene, ikscene->blArmature, ikchan->pchan, ctime, 1);
+        BKE_pose_where_is_bone(
+            depsgraph, blscene, ikscene->blArmature, ikchan->pchan, ctime, true);
       }
       /* tell blender that this channel was controlled by IK,
        * it's cleared on each BKE_pose_where_is() */

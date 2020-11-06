@@ -41,7 +41,7 @@ TEST(path_util, Clean)
     EXPECT_STREQ("a/", path);
   }
 
-  if (0) /* FIXME */
+  if (false) /* FIXME */
   {
     char path[FILE_MAX] = "./a////";
     BLI_path_normalize(NULL, path);

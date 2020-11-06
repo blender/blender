@@ -371,7 +371,7 @@ void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_scene)
     mul_m4_m4m4(ob->obmat, bc_unit.get_scale(), ob->obmat);
   }
   mul_m4_m4m4(ob->obmat, bc_unit.get_rotation(), ob->obmat);
-  BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
+  BKE_object_apply_mat4(ob, ob->obmat, false, false);
 }
 
 void bc_match_scale(std::vector<Object *> *objects_done,

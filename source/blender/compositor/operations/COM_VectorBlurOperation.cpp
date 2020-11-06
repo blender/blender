@@ -747,7 +747,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
       float blendfac, ipodata[4];
 
       /* clear zbuf, if we draw future we fill in not moving pixels */
-      if (0) {
+      if (false) {
         for (x = xsize * ysize - 1; x >= 0; x--) {
           rectz[x] = 10e16;
         }
