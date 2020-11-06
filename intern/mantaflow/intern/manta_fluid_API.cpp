@@ -37,203 +37,145 @@ void manta_free(MANTA *fluid)
   fluid = nullptr;
 }
 
-int manta_ensure_obstacle(MANTA *fluid, struct FluidModifierData *fmd)
+bool manta_ensure_obstacle(MANTA *fluid, struct FluidModifierData *fmd)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->initObstacle(fmd);
 }
-int manta_ensure_guiding(MANTA *fluid, struct FluidModifierData *fmd)
+bool manta_ensure_guiding(MANTA *fluid, struct FluidModifierData *fmd)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->initGuiding(fmd);
 }
-int manta_ensure_invelocity(MANTA *fluid, struct FluidModifierData *fmd)
+bool manta_ensure_invelocity(MANTA *fluid, struct FluidModifierData *fmd)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->initInVelocity(fmd);
 }
-int manta_ensure_outflow(MANTA *fluid, struct FluidModifierData *fmd)
+bool manta_ensure_outflow(MANTA *fluid, struct FluidModifierData *fmd)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->initOutflow(fmd);
 }
 
-int manta_write_config(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_write_config(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->writeConfiguration(fmd, framenr);
 }
 
-int manta_write_data(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_write_data(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->writeData(fmd, framenr);
 }
 
-int manta_write_noise(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_write_noise(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->writeNoise(fmd, framenr);
 }
 
-int manta_read_config(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_read_config(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->readConfiguration(fmd, framenr);
 }
 
-int manta_read_data(MANTA *fluid, FluidModifierData *fmd, int framenr, bool resumable)
+bool manta_read_data(MANTA *fluid, FluidModifierData *fmd, int framenr, bool resumable)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->readData(fmd, framenr, resumable);
 }
 
-int manta_read_noise(MANTA *fluid, FluidModifierData *fmd, int framenr, bool resumable)
+bool manta_read_noise(MANTA *fluid, FluidModifierData *fmd, int framenr, bool resumable)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->readNoise(fmd, framenr, resumable);
 }
 
-int manta_read_mesh(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_read_mesh(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->readMesh(fmd, framenr);
 }
 
-int manta_read_particles(MANTA *fluid, FluidModifierData *fmd, int framenr, bool resumable)
+bool manta_read_particles(MANTA *fluid, FluidModifierData *fmd, int framenr, bool resumable)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->readParticles(fmd, framenr, resumable);
 }
 
-int manta_read_guiding(MANTA *fluid, FluidModifierData *fmd, int framenr, bool sourceDomain)
+bool manta_read_guiding(MANTA *fluid, FluidModifierData *fmd, int framenr, bool sourceDomain)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->readGuiding(fmd, framenr, sourceDomain);
 }
 
-int manta_bake_data(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_bake_data(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->bakeData(fmd, framenr);
 }
 
-int manta_bake_noise(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_bake_noise(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->bakeNoise(fmd, framenr);
 }
 
-int manta_bake_mesh(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_bake_mesh(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->bakeMesh(fmd, framenr);
 }
 
-int manta_bake_particles(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_bake_particles(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->bakeParticles(fmd, framenr);
 }
 
-int manta_bake_guiding(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_bake_guiding(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->bakeGuiding(fmd, framenr);
 }
 
-int manta_has_data(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_has_data(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->hasData(fmd, framenr);
 }
 
-int manta_has_noise(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_has_noise(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->hasNoise(fmd, framenr);
 }
 
-int manta_has_mesh(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_has_mesh(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->hasMesh(fmd, framenr);
 }
 
-int manta_has_particles(MANTA *fluid, FluidModifierData *fmd, int framenr)
+bool manta_has_particles(MANTA *fluid, FluidModifierData *fmd, int framenr)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->hasParticles(fmd, framenr);
 }
 
-int manta_has_guiding(MANTA *fluid, FluidModifierData *fmd, int framenr, bool domain)
+bool manta_has_guiding(MANTA *fluid, FluidModifierData *fmd, int framenr, bool domain)
 {
-  if (!fluid || !fmd)
-    return 0;
   return fluid->hasGuiding(fmd, framenr, domain);
 }
 
 void manta_update_variables(MANTA *fluid, FluidModifierData *fmd)
 {
-  if (!fluid)
-    return;
   fluid->updateVariables(fmd);
 }
 
 int manta_get_frame(MANTA *fluid)
 {
-  if (!fluid)
-    return 0;
   return fluid->getFrame();
 }
 
 float manta_get_timestep(MANTA *fluid)
 {
-  if (!fluid)
-    return 0;
   return fluid->getTimestep();
 }
 
 void manta_adapt_timestep(MANTA *fluid)
 {
-  if (!fluid)
-    return;
   fluid->adaptTimestep();
 }
 
 bool manta_needs_realloc(MANTA *fluid, FluidModifierData *fmd)
 {
-  if (!fluid || !fmd)
-    return false;
   return fluid->needsRealloc(fmd);
 }
 
 void manta_update_pointers(struct MANTA *fluid, struct FluidModifierData *fmd, bool flush)
 {
-  if (!fluid || !fmd)
-    return;
   fluid->updatePointers(fmd, flush);
 }
 
@@ -372,11 +314,9 @@ float *manta_get_pressure(MANTA *fluid)
 }
 
 /* Smoke functions */
-void manta_smoke_export_script(MANTA *smoke, FluidModifierData *fmd)
+bool manta_smoke_export_script(MANTA *smoke, FluidModifierData *fmd)
 {
-  if (!smoke || !fmd)
-    return;
-  smoke->exportSmokeScript(fmd);
+  return smoke->exportSmokeScript(fmd);
 }
 
 static void get_rgba(
@@ -452,18 +392,13 @@ void manta_noise_get_rgba_fixed_color(MANTA *smoke, float color[3], float *data,
   get_rgba_fixed_color(color, smoke->getTotalCellsHigh(), data, sequential);
 }
 
-int manta_smoke_ensure_heat(MANTA *smoke, struct FluidModifierData *fmd)
+bool manta_smoke_ensure_heat(MANTA *smoke, struct FluidModifierData *fmd)
 {
-  if (!smoke || !fmd)
-    return 0;
   return smoke->initHeat(fmd);
 }
 
-int manta_smoke_ensure_fire(MANTA *smoke, struct FluidModifierData *fmd)
+bool manta_smoke_ensure_fire(MANTA *smoke, struct FluidModifierData *fmd)
 {
-  if (!smoke || !fmd)
-    return 0;
-
   bool result = smoke->initFire(fmd);
   if (smoke->usingNoise()) {
     result &= smoke->initFireHigh(fmd);
@@ -471,11 +406,8 @@ int manta_smoke_ensure_fire(MANTA *smoke, struct FluidModifierData *fmd)
   return result;
 }
 
-int manta_smoke_ensure_colors(MANTA *smoke, struct FluidModifierData *fmd)
+bool manta_smoke_ensure_colors(MANTA *smoke, struct FluidModifierData *fmd)
 {
-  if (!smoke || !fmd)
-    return 0;
-
   bool result = smoke->initColors(fmd);
   if (smoke->usingNoise()) {
     result &= smoke->initColorsHigh(fmd);
@@ -560,107 +492,104 @@ float *manta_smoke_get_emission_in(MANTA *smoke)
   return smoke->getEmissionIn();
 }
 
-int manta_smoke_has_heat(MANTA *smoke)
+bool manta_smoke_has_heat(MANTA *smoke)
 {
-  return (smoke->getHeat()) ? 1 : 0;
+  return smoke->getHeat() != nullptr;
+  ;
 }
-int manta_smoke_has_fuel(MANTA *smoke)
+bool manta_smoke_has_fuel(MANTA *smoke)
 {
-  return (smoke->getFuel()) ? 1 : 0;
+  return smoke->getFuel() != nullptr;
 }
-int manta_smoke_has_colors(MANTA *smoke)
+bool manta_smoke_has_colors(MANTA *smoke)
 {
-  return (smoke->getColorR() && smoke->getColorG() && smoke->getColorB()) ? 1 : 0;
+  return smoke->getColorR() != nullptr && smoke->getColorG() != nullptr &&
+         smoke->getColorB() != nullptr;
 }
 
 float *manta_noise_get_density(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getDensityHigh() : nullptr;
+  return smoke->getDensityHigh();
 }
 float *manta_noise_get_fuel(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getFuelHigh() : nullptr;
+  return smoke->getFuelHigh();
 }
 float *manta_noise_get_react(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getReactHigh() : nullptr;
+  return smoke->getReactHigh();
 }
 float *manta_noise_get_color_r(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getColorRHigh() : nullptr;
+  return smoke->getColorRHigh();
 }
 float *manta_noise_get_color_g(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getColorGHigh() : nullptr;
+  return smoke->getColorGHigh();
 }
 float *manta_noise_get_color_b(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getColorBHigh() : nullptr;
+  return smoke->getColorBHigh();
 }
 float *manta_noise_get_flame(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getFlameHigh() : nullptr;
+  return smoke->getFlameHigh();
 }
 float *manta_noise_get_texture_u(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getTextureU() : nullptr;
+  return smoke->getTextureU();
 }
 float *manta_noise_get_texture_v(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getTextureV() : nullptr;
+  return smoke->getTextureV();
 }
 float *manta_noise_get_texture_w(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getTextureW() : nullptr;
+  return smoke->getTextureW();
 }
 float *manta_noise_get_texture_u2(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getTextureU2() : nullptr;
+  return smoke->getTextureU2();
 }
 float *manta_noise_get_texture_v2(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getTextureV2() : nullptr;
+  return smoke->getTextureV2();
 }
 float *manta_noise_get_texture_w2(MANTA *smoke)
 {
-  return (smoke && smoke->usingNoise()) ? smoke->getTextureW2() : nullptr;
+  return smoke->getTextureW2();
 }
 
-int manta_noise_has_fuel(MANTA *smoke)
+bool manta_noise_has_fuel(MANTA *smoke)
 {
-  return (smoke->getFuelHigh()) ? 1 : 0;
+  return smoke->getFuelHigh() != nullptr;
 }
-int manta_noise_has_colors(MANTA *smoke)
+bool manta_noise_has_colors(MANTA *smoke)
 {
-  return (smoke->getColorRHigh() && smoke->getColorGHigh() && smoke->getColorBHigh()) ? 1 : 0;
+  return smoke->getColorRHigh() != nullptr && smoke->getColorGHigh() != nullptr &&
+         smoke->getColorBHigh() != nullptr;
+  ;
 }
 
 void manta_noise_get_res(MANTA *smoke, int *res)
 {
-  if (smoke && smoke->usingNoise()) {
-    res[0] = smoke->getResXHigh();
-    res[1] = smoke->getResYHigh();
-    res[2] = smoke->getResZHigh();
-  }
+  res[0] = smoke->getResXHigh();
+  res[1] = smoke->getResYHigh();
+  res[2] = smoke->getResZHigh();
 }
 int manta_noise_get_cells(MANTA *smoke)
 {
-  int total_cells_high = smoke->getResXHigh() * smoke->getResYHigh() * smoke->getResZHigh();
-  return (smoke && smoke->usingNoise()) ? total_cells_high : 0;
+  return smoke->getResXHigh() * smoke->getResYHigh() * smoke->getResZHigh();
 }
 
 /* Liquid functions */
-void manta_liquid_export_script(MANTA *liquid, FluidModifierData *fmd)
+bool manta_liquid_export_script(MANTA *liquid, FluidModifierData *fmd)
 {
-  if (!liquid || !fmd)
-    return;
-  liquid->exportLiquidScript(fmd);
+  return liquid->exportLiquidScript(fmd);
 }
 
-int manta_liquid_ensure_sndparts(MANTA *liquid, struct FluidModifierData *fmd)
+bool manta_liquid_ensure_sndparts(MANTA *liquid, struct FluidModifierData *fmd)
 {
-  if (!liquid || !fmd)
-    return 0;
   return liquid->initLiquidSndParts(fmd);
 }
 
@@ -833,17 +762,4 @@ float manta_liquid_get_snd_particle_velocity_y_at(MANTA *liquid, int i)
 float manta_liquid_get_snd_particle_velocity_z_at(MANTA *liquid, int i)
 {
   return liquid->getSndParticleVelocityZAt(i);
-}
-
-bool manta_liquid_flip_from_file(MANTA *liquid)
-{
-  return liquid->usingFlipFromFile();
-}
-bool manta_liquid_mesh_from_file(MANTA *liquid)
-{
-  return liquid->usingMeshFromFile();
-}
-bool manta_liquid_particle_from_file(MANTA *liquid)
-{
-  return liquid->usingParticleFromFile();
 }
