@@ -980,6 +980,14 @@ void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
   CustomData_free_layer(&me->vdata, CD_PROP_FLOAT3, me->totvert, layer_idx);
 }
 
+void BKE_mesh_edges_set_draw_render(Mesh *mesh)
+{
+  MEdge *med = mesh->medge;
+  for (int i = 0; i < mesh->totedge; i++, med++) {
+    med->flag |= ME_EDGEDRAW | ME_EDGERENDER;
+  }
+}
+
 void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob)
 {
   BLI_assert(ob->type == OB_POINTCLOUD);
