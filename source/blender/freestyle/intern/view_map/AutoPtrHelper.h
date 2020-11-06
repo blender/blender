@@ -27,6 +27,8 @@ namespace Freestyle {
 
 template<typename T> class AutoPtr : public std::unique_ptr<T> {
  public:
+  using std::unique_ptr<T>::unique_ptr;
+
   AutoPtr() : std::unique_ptr<T>()
   {
   }
@@ -41,6 +43,8 @@ template<typename T> class AutoPtr : public std::unique_ptr<T> {
   {
     other.release();
   }
+
+  using std::unique_ptr<T>::operator=;
 
   template<typename X> AutoPtr &operator=(AutoPtr<X> &other) = delete;
 };

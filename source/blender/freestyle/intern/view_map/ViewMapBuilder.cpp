@@ -1381,17 +1381,17 @@ void ViewMapBuilder::ComputeCumulativeVisibility(ViewMap *ioViewMap,
   AutoPtr<OccluderSource> source;
 
   if (_orthographicProjection) {
-    transform.reset(new BoxGrid::Transform);
+    transform = std::make_unique<BoxGrid::Transform>();
   }
   else {
-    transform.reset(new SphericalGrid::Transform);
+    transform = std::make_unique<SphericalGrid::Transform>();
   }
 
   if (cull) {
-    source.reset(new CulledOccluderSource(*transform, we, *ioViewMap, true));
+    source = std::make_unique<CulledOccluderSource>(*transform, we, *ioViewMap, true);
   }
   else {
-    source.reset(new OccluderSource(*transform, we));
+    source = std::make_unique<OccluderSource>(*transform, we);
   }
 
   AutoPtr<GridDensityProvider> density(factory.newGridDensityProvider(*source, bbox, *transform));
@@ -1419,17 +1419,17 @@ void ViewMapBuilder::ComputeDetailedVisibility(ViewMap *ioViewMap,
   AutoPtr<OccluderSource> source;
 
   if (_orthographicProjection) {
-    transform.reset(new BoxGrid::Transform);
+    transform = std::make_unique<BoxGrid::Transform>();
   }
   else {
-    transform.reset(new SphericalGrid::Transform);
+    transform = std::make_unique<SphericalGrid::Transform>();
   }
 
   if (cull) {
-    source.reset(new CulledOccluderSource(*transform, we, *ioViewMap, true));
+    source = std::make_unique<CulledOccluderSource>(*transform, we, *ioViewMap, true);
   }
   else {
-    source.reset(new OccluderSource(*transform, we));
+    source = std::make_unique<OccluderSource>(*transform, we);
   }
 
   AutoPtr<GridDensityProvider> density(factory.newGridDensityProvider(*source, bbox, *transform));

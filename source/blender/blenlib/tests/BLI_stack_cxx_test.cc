@@ -170,8 +170,8 @@ TEST(stack, Peek)
 TEST(stack, UniquePtrValues)
 {
   Stack<std::unique_ptr<int>> stack;
-  stack.push(std::unique_ptr<int>(new int()));
-  stack.push(std::unique_ptr<int>(new int()));
+  stack.push(std::unique_ptr<int>(std::make_unique<int>()));
+  stack.push(std::unique_ptr<int>(std::make_unique<int>()));
   std::unique_ptr<int> a = stack.pop();
   std::unique_ptr<int> &b = stack.peek();
   UNUSED_VARS(a, b);

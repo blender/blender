@@ -519,7 +519,7 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
 
 IMeshArena::IMeshArena()
 {
-  pimpl_ = std::unique_ptr<IMeshArenaImpl>(new IMeshArenaImpl());
+  pimpl_ = std::unique_ptr<IMeshArenaImpl>(std::make_unique<IMeshArenaImpl>());
 }
 
 IMeshArena::~IMeshArena()
