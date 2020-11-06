@@ -1210,7 +1210,7 @@ void IMB_exr_read_channels(void *handle)
       "BlenderMultiChannel");
 
   /* 'previous multilayer attribute, flipped. */
-  short flip = (ta && STREQLEN(ta->value().c_str(), "Blender V2.43", 13));
+  short flip = (ta && STRPREFIX(ta->value().c_str(), "Blender V2.43"));
 
   exr_printf(
       "\nIMB_exr_read_channels\n%s %-6s %-22s "

@@ -1029,10 +1029,10 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
    * need this to make further step with copying non-cv related curves copying
    * not touching cv's f-curves */
   LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, orig_curves) {
-    if (STREQLEN(fcu->rna_path, "splines", 7)) {
+    if (STRPREFIX(fcu->rna_path, "splines")) {
       const char *ch = strchr(fcu->rna_path, '.');
 
-      if (ch && (STREQLEN(ch, ".bezier_points", 14) || STREQLEN(ch, ".points", 7))) {
+      if (ch && (STRPREFIX(ch, ".bezier_points") || STRPREFIX(ch, ".points"))) {
         fcurve_remove(adt, orig_curves, fcu);
       }
     }
@@ -1060,7 +1060,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
   /* the remainders in orig_curves can be copied back (like follow path) */
   /* (if it's not path to spline) */
   LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, orig_curves) {
-    if (STREQLEN(fcu->rna_path, "splines", 7)) {
+    if (STRPREFIX(fcu->rna_path, "splines")) {
       fcurve_remove(adt, orig_curves, fcu);
     }
     else {
