@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup bph
+ * \ingroup sim
  */
 
 #include "implicit.h"
