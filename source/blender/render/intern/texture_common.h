@@ -79,7 +79,7 @@ struct ImagePool;
 struct Tex;
 struct TexResult;
 
-/* imagetexture.h */
+/* texture_image.c */
 
 int imagewraposa(struct Tex *tex,
                  struct Image *ima,
