@@ -27,19 +27,19 @@
 
 namespace blender::gpu {
 
-void GLVertBuf::acquire_data(void)
+void GLVertBuf::acquire_data()
 {
   /* Discard previous data if any. */
   MEM_SAFE_FREE(data);
   data = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
 }
 
-void GLVertBuf::resize_data(void)
+void GLVertBuf::resize_data()
 {
   data = (uchar *)MEM_reallocN(data, sizeof(uchar) * this->size_alloc_get());
 }
 
-void GLVertBuf::release_data(void)
+void GLVertBuf::release_data()
 {
   if (vbo_id_ != 0) {
     GLContext::buf_free(vbo_id_);
@@ -75,12 +75,12 @@ void GLVertBuf::duplicate_data(VertBuf *dst_)
   }
 }
 
-void GLVertBuf::upload_data(void)
+void GLVertBuf::upload_data()
 {
   this->bind();
 }
 
-void GLVertBuf::bind(void)
+void GLVertBuf::bind()
 {
   BLI_assert(GLContext::get() != NULL);
 

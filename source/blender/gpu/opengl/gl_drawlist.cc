@@ -88,7 +88,7 @@ GLDrawList::~GLDrawList()
   GLContext::buf_free(buffer_id_);
 }
 
-void GLDrawList::init(void)
+void GLDrawList::init()
 {
   BLI_assert(GLContext::get());
   BLI_assert(MDI_ENABLED);
@@ -169,7 +169,7 @@ void GLDrawList::append(GPUBatch *gpu_batch, int i_first, int i_count)
   }
 }
 
-void GLDrawList::submit(void)
+void GLDrawList::submit()
 {
   if (command_len_ == 0) {
     return;

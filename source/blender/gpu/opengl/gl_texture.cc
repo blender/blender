@@ -63,7 +63,7 @@ GLTexture::~GLTexture()
 }
 
 /* Return true on success. */
-bool GLTexture::init_internal(void)
+bool GLTexture::init_internal()
 {
   if ((format_ == GPU_DEPTH24_STENCIL8) && GPU_depth_blitting_workaround()) {
     /* MacOS + Radeon Pro fails to blit depth on GPU_DEPTH24_STENCIL8
@@ -294,7 +294,7 @@ void GLTexture::update_sub(
  * WARNING: Depth textures are not populated but they have their mips correctly defined.
  * WARNING: This resets the mipmap range.
  */
-void GLTexture::generate_mipmap(void)
+void GLTexture::generate_mipmap()
 {
   this->ensure_mipmaps(9999);
   /* Some drivers have bugs when using glGenerateMipmap with depth textures (see T56789).
@@ -440,7 +440,7 @@ void GLTexture::mip_range_set(int min, int max)
   }
 }
 
-struct GPUFrameBuffer *GLTexture::framebuffer_get(void)
+struct GPUFrameBuffer *GLTexture::framebuffer_get()
 {
   if (framebuffer_) {
     return framebuffer_;
@@ -461,7 +461,7 @@ struct GPUFrameBuffer *GLTexture::framebuffer_get(void)
 
 GLuint GLTexture::samplers_[GPU_SAMPLER_MAX] = {0};
 
-void GLTexture::samplers_init(void)
+void GLTexture::samplers_init()
 {
   glGenSamplers(GPU_SAMPLER_MAX, samplers_);
   for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
@@ -517,7 +517,7 @@ void GLTexture::samplers_init(void)
   debug::object_label(GL_SAMPLER, icon_sampler, "icons");
 }
 
-void GLTexture::samplers_update(void)
+void GLTexture::samplers_update()
 {
   if (!GLContext::texture_filter_anisotropic_support) {
     return;
@@ -536,7 +536,7 @@ void GLTexture::samplers_update(void)
   }
 }
 
-void GLTexture::samplers_free(void)
+void GLTexture::samplers_free()
 {
   glDeleteSamplers(GPU_SAMPLER_MAX, samplers_);
 }
@@ -649,7 +649,7 @@ bool GLTexture::proxy_check(int mip)
 
 /** \} */
 
-void GLTexture::check_feedback_loop(void)
+void GLTexture::check_feedback_loop()
 {
   /* Recursive down sample workaround break this check.
    * See #recursive_downsample() for more information. */
@@ -679,7 +679,7 @@ void GLTexture::check_feedback_loop(void)
 }
 
 /* TODO(fclem): Legacy. Should be removed at some point. */
-uint GLTexture::gl_bindcode_get(void) const
+uint GLTexture::gl_bindcode_get() const
 {
   return tex_id_;
 }

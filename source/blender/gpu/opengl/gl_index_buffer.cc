@@ -33,7 +33,7 @@ GLIndexBuf::~GLIndexBuf()
   GLContext::buf_free(ibo_id_);
 }
 
-void GLIndexBuf::bind(void)
+void GLIndexBuf::bind()
 {
   if (is_subrange_) {
     static_cast<GLIndexBuf *>(src_)->bind();

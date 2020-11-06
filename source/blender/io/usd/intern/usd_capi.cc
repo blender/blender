@@ -59,7 +59,7 @@ struct ExportJobData {
   bool export_ok;
 };
 
-static void ensure_usd_plugin_path_registered(void)
+static void ensure_usd_plugin_path_registered()
 {
   static bool plugin_path_registered = false;
   if (plugin_path_registered) {

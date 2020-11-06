@@ -92,7 +92,7 @@ GLFrameBuffer::~GLFrameBuffer()
   }
 }
 
-void GLFrameBuffer::init(void)
+void GLFrameBuffer::init()
 {
   context_ = GLContext::get();
   state_manager_ = static_cast<GLStateManager *>(context_->state_manager);
@@ -154,7 +154,7 @@ bool GLFrameBuffer::check(char err_out[256])
   return false;
 }
 
-void GLFrameBuffer::update_attachments(void)
+void GLFrameBuffer::update_attachments()
 {
   /* Default frame-buffers cannot have attachments. */
   BLI_assert(immutable_ == false);
@@ -236,7 +236,7 @@ void GLFrameBuffer::update_attachments(void)
   }
 }
 
-void GLFrameBuffer::apply_state(void)
+void GLFrameBuffer::apply_state()
 {
   if (dirty_state_ == false) {
     return;

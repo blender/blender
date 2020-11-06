@@ -48,7 +48,7 @@ void GLQueryPool::reset(GPUQueryType type)
 }
 #endif
 
-void GLQueryPool::begin_query(void)
+void GLQueryPool::begin_query()
 {
   /* TODO add assert about expected usage. */
   while (query_issued_ >= query_ids_.size()) {
@@ -59,7 +59,7 @@ void GLQueryPool::begin_query(void)
   glBeginQuery(gl_type_, query_ids_[query_issued_++]);
 }
 
-void GLQueryPool::end_query(void)
+void GLQueryPool::end_query()
 {
   /* TODO add assert about expected usage. */
   glEndQuery(gl_type_);

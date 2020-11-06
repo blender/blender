@@ -50,7 +50,7 @@ using namespace blender::gpu;
  * TODO(fclem): Could be revisited to avoid so much cross references.
  * \{ */
 
-GLVaoCache::GLVaoCache(void)
+GLVaoCache::GLVaoCache()
 {
   init();
 }
@@ -60,7 +60,7 @@ GLVaoCache::~GLVaoCache()
   this->clear();
 }
 
-void GLVaoCache::init(void)
+void GLVaoCache::init()
 {
   context_ = NULL;
   interface_ = NULL;
@@ -149,7 +149,7 @@ void GLVaoCache::remove(const GLShaderInterface *interface)
   }
 }
 
-void GLVaoCache::clear(void)
+void GLVaoCache::clear()
 {
   GLContext *ctx = GLContext::get();
   const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
@@ -207,7 +207,7 @@ GLuint GLVaoCache::lookup(const GLShaderInterface *interface)
 
 /* The GLVaoCache object is only valid for one GLContext.
  * Reset the cache if trying to draw in another context; */
-void GLVaoCache::context_check(void)
+void GLVaoCache::context_check()
 {
   GLContext *ctx = GLContext::get();
   BLI_assert(ctx);
@@ -282,7 +282,7 @@ GLuint GLVaoCache::vao_get(GPUBatch *batch)
 /** \name Creation & Deletion
  * \{ */
 
-GLBatch::GLBatch(void)
+GLBatch::GLBatch()
 {
 }
 

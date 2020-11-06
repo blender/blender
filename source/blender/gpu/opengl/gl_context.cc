@@ -121,7 +121,7 @@ GLContext::~GLContext()
 /** \name Activate / Deactivate context
  * \{ */
 
-void GLContext::activate(void)
+void GLContext::activate()
 {
   /* Make sure no other context is already bound to this thread. */
   BLI_assert(is_active_ == false);
@@ -160,7 +160,7 @@ void GLContext::activate(void)
   immActivate();
 }
 
-void GLContext::deactivate(void)
+void GLContext::deactivate()
 {
   immDeactivate();
   is_active_ = false;
@@ -172,12 +172,12 @@ void GLContext::deactivate(void)
 /** \name Flush, Finish & sync
  * \{ */
 
-void GLContext::flush(void)
+void GLContext::flush()
 {
   glFlush();
 }
 
-void GLContext::finish(void)
+void GLContext::finish()
 {
   glFinish();
 }
@@ -191,7 +191,7 @@ void GLContext::finish(void)
  * In this case we delay the deletion until the context is bound again.
  * \{ */
 
-void GLSharedOrphanLists::orphans_clear(void)
+void GLSharedOrphanLists::orphans_clear()
 {
   /* Check if any context is active on this thread! */
   BLI_assert(GLContext::get());
@@ -208,7 +208,7 @@ void GLSharedOrphanLists::orphans_clear(void)
   lists_mutex.unlock();
 };
 
-void GLContext::orphans_clear(void)
+void GLContext::orphans_clear()
 {
   /* Check if context has been activated by another thread! */
   BLI_assert(this->is_active_on_thread());

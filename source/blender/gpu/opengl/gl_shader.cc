@@ -53,7 +53,7 @@ GLShader::GLShader(const char *name) : Shader(name)
   debug::object_label(GL_PROGRAM, shader_program_, name);
 }
 
-GLShader::~GLShader(void)
+GLShader::~GLShader()
 {
 #if 0 /* Would be nice to have, but for now the Deferred compilation \
        * does not have a GPUContext. */
@@ -72,7 +72,7 @@ GLShader::~GLShader(void)
 /** \name Shader stage creation
  * \{ */
 
-char *GLShader::glsl_patch_get(void)
+char *GLShader::glsl_patch_get()
 {
   /** Used for shader patching. Init once. */
   static char patch[512] = "\0";
@@ -172,7 +172,7 @@ void GLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
   frag_shader_ = this->create_shader_stage(GL_FRAGMENT_SHADER, sources);
 }
 
-bool GLShader::finalize(void)
+bool GLShader::finalize()
 {
   if (compilation_failed_) {
     return false;
@@ -201,13 +201,13 @@ bool GLShader::finalize(void)
 /** \name Binding
  * \{ */
 
-void GLShader::bind(void)
+void GLShader::bind()
 {
   BLI_assert(shader_program_ != 0);
   glUseProgram(shader_program_);
 }
 
-void GLShader::unbind(void)
+void GLShader::unbind()
 {
 #ifndef NDEBUG
   glUseProgram(0);
@@ -259,7 +259,7 @@ bool GLShader::transform_feedback_enable(GPUVertBuf *buf_)
   return true;
 }
 
-void GLShader::transform_feedback_disable(void)
+void GLShader::transform_feedback_disable()
 {
   glEndTransformFeedback();
 }

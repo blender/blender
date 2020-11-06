@@ -188,7 +188,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
   BKE_main_free(freestyle_bmain);
 }
 
-float BlenderStrokeRenderer::get_stroke_vertex_z(void) const
+float BlenderStrokeRenderer::get_stroke_vertex_z() const
 {
   float z = _z;
   BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this);
@@ -199,7 +199,7 @@ float BlenderStrokeRenderer::get_stroke_vertex_z(void) const
   return -z;
 }
 
-unsigned int BlenderStrokeRenderer::get_stroke_mesh_id(void) const
+unsigned int BlenderStrokeRenderer::get_stroke_mesh_id() const
 {
   unsigned mesh_id = _mesh_id;
   BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this);

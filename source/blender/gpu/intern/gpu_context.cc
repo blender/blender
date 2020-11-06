@@ -80,12 +80,12 @@ Context::~Context()
   delete imm;
 }
 
-bool Context::is_active_on_thread(void)
+bool Context::is_active_on_thread()
 {
   return (this == active_ctx) && pthread_equal(pthread_self(), thread_);
 }
 
-Context *Context::get(void)
+Context *Context::get()
 {
   return active_ctx;
 }
@@ -188,7 +188,7 @@ void GPU_backend_exit(void)
   g_backend = NULL;
 }
 
-GPUBackend *GPUBackend::get(void)
+GPUBackend *GPUBackend::get()
 {
   return g_backend;
 }

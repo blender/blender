@@ -32,12 +32,12 @@
 
 namespace blender::gpu {
 
-ShaderInterface::ShaderInterface(void)
+ShaderInterface::ShaderInterface()
 {
   /* TODO(fclem): add unique ID for debugging. */
 }
 
-ShaderInterface::~ShaderInterface(void)
+ShaderInterface::~ShaderInterface()
 {
   /* Free memory used by name_buffer. */
   MEM_freeN(name_buffer_);
@@ -70,14 +70,14 @@ static void sort_input_list(MutableSpan<ShaderInput> dst)
 /* Sorts all inputs inside their respective array.
  * This is to allow fast hash collision detection.
  * See ShaderInterface::input_lookup for more details. */
-void ShaderInterface::sort_inputs(void)
+void ShaderInterface::sort_inputs()
 {
   sort_input_list(MutableSpan<ShaderInput>(inputs_, attr_len_));
   sort_input_list(MutableSpan<ShaderInput>(inputs_ + attr_len_, ubo_len_));
   sort_input_list(MutableSpan<ShaderInput>(inputs_ + attr_len_ + ubo_len_, uniform_len_));
 }
 
-void ShaderInterface::debug_print(void)
+void ShaderInterface::debug_print()
 {
   Span<ShaderInput> attrs = Span<ShaderInput>(inputs_, attr_len_);
   Span<ShaderInput> ubos = Span<ShaderInput>(inputs_ + attr_len_, ubo_len_);
