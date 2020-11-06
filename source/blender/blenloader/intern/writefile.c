@@ -1317,13 +1317,6 @@ static void write_sequence_modifiers(BlendWriter *writer, ListBase *modbase)
   }
 }
 
-static void write_view_settings(BlendWriter *writer, ColorManagedViewSettings *view_settings)
-{
-  if (view_settings->curve_mapping) {
-    BKE_curvemapping_blend_write(writer, view_settings->curve_mapping);
-  }
-}
-
 static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 {
   if (BLO_write_is_undo(writer)) {
@@ -1521,7 +1514,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
     ntreeBlendWrite(writer, sce->nodetree);
   }
 
-  write_view_settings(writer, &sce->view_settings);
+  BKE_color_managed_view_settings_blend_write(writer, &sce->view_settings);
 
   /* writing RigidBodyWorld data to the blend file */
   if (sce->rigidbody_world) {

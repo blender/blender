@@ -3842,16 +3842,6 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   BKE_previewimg_blend_read(reader, ob->preview);
 }
 
-static void direct_link_view_settings(BlendDataReader *reader,
-                                      ColorManagedViewSettings *view_settings)
-{
-  BLO_read_data_address(reader, &view_settings->curve_mapping);
-
-  if (view_settings->curve_mapping) {
-    BKE_curvemapping_blend_read(reader, view_settings->curve_mapping);
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -4402,7 +4392,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     BLO_read_list(reader, &(srl->freestyleConfig.linesets));
   }
 
-  direct_link_view_settings(reader, &sce->view_settings);
+  BKE_color_managed_view_settings_blend_read_data(reader, &sce->view_settings);
 
   BLO_read_data_address(reader, &sce->rigidbody_world);
   RigidBodyWorld *rbw = sce->rigidbody_world;

@@ -1819,6 +1819,24 @@ void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings)
   }
 }
 
+void BKE_color_managed_view_settings_blend_write(BlendWriter *writer,
+                                                 ColorManagedViewSettings *settings)
+{
+  if (settings->curve_mapping) {
+    BKE_curvemapping_blend_write(writer, settings->curve_mapping);
+  }
+}
+
+void BKE_color_managed_view_settings_blend_read_data(BlendDataReader *reader,
+                                                     ColorManagedViewSettings *settings)
+{
+  BLO_read_data_address(reader, &settings->curve_mapping);
+
+  if (settings->curve_mapping) {
+    BKE_curvemapping_blend_read(reader, settings->curve_mapping);
+  }
+}
+
 void BKE_color_managed_colorspace_settings_init(
     ColorManagedColorspaceSettings *colorspace_settings)
 {
