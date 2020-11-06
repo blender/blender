@@ -87,6 +87,10 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
     stl->effects->taa_render_sample = 1;
   }
 
+  /* WORKAROUND: EEVEE_lookdev_init can reset TAA and needs a stl->effect.
+   * So putting this before EEVEE_temporal_sampling_init for now. */
+  EEVEE_lookdev_init(vedata);
+
   effects = stl->effects;
 
   effects->enabled_effects = 0;
