@@ -100,7 +100,7 @@ void BKE_blender_free(void)
 
   IMB_moviecache_destruct();
 
-  free_nodesystem();
+  BKE_node_system_exit();
 }
 
 /** \} */

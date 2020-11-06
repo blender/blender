@@ -4663,7 +4663,7 @@ static void registerFunctionNodes(void)
   register_node_type_fn_random_float();
 }
 
-void init_nodesystem(void)
+void BKE_node_system_init(void)
 {
   nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
   nodetypes_hash = BLI_ghash_str_new("nodetypes_hash gh");
@@ -4690,7 +4690,7 @@ void init_nodesystem(void)
   registerFunctionNodes();
 }
 
-void free_nodesystem(void)
+void BKE_node_system_exit(void)
 {
   if (nodetypes_hash) {
     NODE_TYPES_BEGIN (nt) {
