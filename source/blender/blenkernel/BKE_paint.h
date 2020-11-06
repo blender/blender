@@ -68,6 +68,7 @@ struct bToolRef;
 struct tPaletteColorHSV;
 struct BlendWriter;
 struct BlendDataReader;
+struct BlendLibReader;
 
 enum eOverlayFlags;
 
@@ -224,6 +225,9 @@ void BKE_paint_blend_write(struct BlendWriter *writer, struct Paint *paint);
 void BKE_paint_blend_read_data(struct BlendDataReader *reader,
                                const struct Scene *scene,
                                struct Paint *paint);
+void BKE_paint_blend_read_lib(struct BlendLibReader *reader,
+                              struct Scene *scene,
+                              struct Paint *paint);
 
 #define SCULPT_FACE_SET_NONE 0
 

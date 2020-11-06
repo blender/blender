@@ -1210,6 +1210,22 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
   BKE_paint_runtime_init(scene->toolsettings, p);
 }
 
+void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *sce, Paint *p)
+{
+  if (p) {
+    BLO_read_id_address(reader, sce->id.lib, &p->brush);
+    for (int i = 0; i < p->tool_slots_len; i++) {
+      if (p->tool_slots[i].brush != NULL) {
+        BLO_read_id_address(reader, sce->id.lib, &p->tool_slots[i].brush);
+      }
+    }
+    BLO_read_id_address(reader, sce->id.lib, &p->palette);
+    p->paint_cursor = NULL;
+
+    BKE_paint_runtime_init(sce->toolsettings, p);
+  }
+}
+
 /* returns non-zero if any of the face's vertices
  * are hidden, zero otherwise */
 bool paint_is_face_hidden(const MLoopTri *lt, const MVert *mvert, const MLoop *mloop)
