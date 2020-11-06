@@ -43,7 +43,9 @@
 
 #include "node_util.h"
 
-/**** Storage Data ****/
+/* -------------------------------------------------------------------- */
+/** \name Storage Data
+ * \{ */
 
 void node_free_curves(bNode *node)
 {
@@ -77,7 +79,11 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context),
   return NULL; /* unused return */
 }
 
-/**** Updates ****/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Updates
+ * \{ */
 
 void node_sock_label(bNodeSocket *sock, const char *name)
 {
@@ -173,7 +179,11 @@ void node_math_update(bNodeTree *UNUSED(ntree), bNode *node)
   }
 }
 
-/**** Labels ****/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Labels
+ * \{ */
 
 void node_blend_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
@@ -222,7 +232,11 @@ void node_filter_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int m
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-/*** Link Insertion ***/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Link Insertion
+ * \{ */
 
 /* test if two sockets are interchangeable */
 static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
@@ -321,12 +335,17 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
   }
 }
 
-/**** Internal Links (mute and disconnect) ****/
+/** \} */
 
-/* common datatype priorities, works for compositor, shader and texture nodes alike
+/* -------------------------------------------------------------------- */
+/** \name Internal Links (mute and disconnect)
+ * \{ */
+
+/**
+ * Common datatype priorities, works for compositor, shader and texture nodes alike
  * defines priority of datatype connection based on output type (to):
- *   < 0  : never connect these types
- *   >= 0 : priority of connection (higher values chosen first)
+ * `<  0`: never connect these types.
+ * `>= 0`: priority of connection (higher values chosen first).
  */
 static int node_datatype_priority(eNodeSocketDatatype from, eNodeSocketDatatype to)
 {
@@ -507,7 +526,11 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
   }
 }
 
-/**** Default value RNA access ****/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Default value RNA access
+ * \{ */
 
 float node_socket_get_float(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *sock)
 {
@@ -556,3 +579,5 @@ void node_socket_set_vector(bNodeTree *ntree,
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
   RNA_float_set_array(&ptr, "default_value", value);
 }
+
+/** \} */

@@ -55,7 +55,9 @@
 #include "NOD_composite.h"
 #include "node_intern.h" /* own include */
 
-/* **************** View All Operator ************** */
+/* -------------------------------------------------------------------- */
+/** \name View All Operator
+ * \{ */
 
 int space_node_view_flag(
     bContext *C, SpaceNode *snode, ARegion *region, const int node_flag, const int smooth_viewtx)
@@ -151,6 +153,12 @@ void NODE_OT_view_all(wmOperatorType *ot)
   ot->flag = 0;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Selected Operator
+ * \{ */
+
 static int node_view_selected_exec(bContext *C, wmOperator *op)
 {
   ARegion *region = CTX_wm_region(C);
@@ -178,7 +186,11 @@ void NODE_OT_view_selected(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-/* **************** Background Image Operators ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Background Image Operators
+ * \{ */
 
 typedef struct NodeViewMove {
   int mvalo[2];
@@ -284,6 +296,12 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Background Image Zoom
+ * \{ */
+
 static int backimage_zoom_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -315,6 +333,12 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
   /* internal */
   RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, "Factor", "", 0.0f, 10.0f);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Background Image Fit
+ * \{ */
 
 static int backimage_fit_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -372,7 +396,11 @@ void NODE_OT_backimage_fit(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING;
 }
 
-/******************** sample backdrop operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sample Backdrop Operator
+ * \{ */
 
 typedef struct ImageSampleInfo {
   ARegionType *art;
@@ -642,3 +670,5 @@ void NODE_OT_backimage_sample(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_BLOCKING;
 }
+
+/** \} */
