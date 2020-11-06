@@ -40,7 +40,6 @@ Checks:  >
   -modernize-use-equals-default,
   -modernize-use-nullptr,
   -modernize-concat-nested-namespaces,
-  -modernize-use-emplace,
   -modernize-use-nodiscard,
   -modernize-use-using,
   -modernize-use-bool-literals,

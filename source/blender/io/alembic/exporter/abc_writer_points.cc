@@ -123,8 +123,8 @@ void ABCPointsWriter::do_write(HierarchyContext &context)
     sub_v3_v3v3(vel, state.co, psys->particles[p].prev_state.co);
 
     /* Convert Z-up to Y-up. */
-    points.push_back(Imath::V3f(pos[0], pos[2], -pos[1]));
-    velocities.push_back(Imath::V3f(vel[0], vel[2], -vel[1]));
+    points.emplace_back(pos[0], pos[2], -pos[1]);
+    velocities.emplace_back(vel[0], vel[2], -vel[1]);
     widths.push_back(psys->particles[p].size);
     ids.push_back(index++);
   }
