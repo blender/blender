@@ -742,9 +742,8 @@ static float seq_cache_timeline_frame_to_frame_index(Sequence *seq, float timeli
   if (type == SEQ_CACHE_STORE_RAW) {
     return seq_give_stripelem_index(seq, timeline_frame);
   }
-  else {
-    return timeline_frame - seq->start;
-  }
+
+  return timeline_frame - seq->start;
 }
 
 static float seq_cache_frame_index_to_timeline_frame(Sequence *seq, float frame_index)
