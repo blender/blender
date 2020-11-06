@@ -4568,13 +4568,13 @@ static void snap_to_pipe_profile(BoundVert *vpipe, bool midline, float co[3])
   sub_v3_v3v3(edir, e->e->v1->co, e->e->v2->co);
   plane_from_point_normal_v3(plane, co, edir);
 
-  float va0[3], vb0[3], vmid0[3];
-  closest_to_plane_v3(va0, plane, pro->start);
-  closest_to_plane_v3(vb0, plane, pro->end);
-  closest_to_plane_v3(vmid0, plane, pro->middle);
+  float start_plane[3], end_plane[3], middle_plane[3];
+  closest_to_plane_v3(start_plane, plane, pro->start);
+  closest_to_plane_v3(end_plane, plane, pro->end);
+  closest_to_plane_v3(middle_plane, plane, pro->middle);
 
   float m[4][4], minv[4][4];
-  if (make_unit_square_map(va0, vmid0, vb0, m) && invert_m4_m4(minv, m)) {
+  if (make_unit_square_map(start_plane, middle_plane, end_plane, m) && invert_m4_m4(minv, m)) {
     /* Transform co and project it onto superellipse. */
     float p[3];
     mul_v3_m4v3(p, minv, co);
@@ -4585,9 +4585,9 @@ static void snap_to_pipe_profile(BoundVert *vpipe, bool midline, float co[3])
     copy_v3_v3(co, snap);
   }
   else {
-    /* Planar case: just snap to line va0--vb0. */
+    /* Planar case: just snap to line start_plane--end_plane. */
     float p[3];
-    closest_to_line_segment_v3(p, co, va0, vb0);
+    closest_to_line_segment_v3(p, co, start_plane, end_plane);
     copy_v3_v3(co, p);
   }
 }
