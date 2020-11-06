@@ -3859,22 +3859,6 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
   }
 }
 
-static void link_paint(BlendLibReader *reader, Scene *sce, Paint *p)
-{
-  if (p) {
-    BLO_read_id_address(reader, sce->id.lib, &p->brush);
-    for (int i = 0; i < p->tool_slots_len; i++) {
-      if (p->tool_slots[i].brush != NULL) {
-        BLO_read_id_address(reader, sce->id.lib, &p->tool_slots[i].brush);
-      }
-    }
-    BLO_read_id_address(reader, sce->id.lib, &p->palette);
-    p->paint_cursor = NULL;
-
-    BKE_paint_runtime_init(sce->toolsettings, p);
-  }
-}
-
 static void lib_link_sequence_modifiers(BlendLibReader *reader, Scene *scene, ListBase *lb)
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, lb) {
@@ -3933,30 +3917,30 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
   BLO_read_id_address(reader, sce->id.lib, &sce->set);
   BLO_read_id_address(reader, sce->id.lib, &sce->gpd);
 
-  link_paint(reader, sce, &sce->toolsettings->imapaint.paint);
+  BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->imapaint.paint);
   if (sce->toolsettings->sculpt) {
-    link_paint(reader, sce, &sce->toolsettings->sculpt->paint);
+    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->sculpt->paint);
   }
   if (sce->toolsettings->vpaint) {
-    link_paint(reader, sce, &sce->toolsettings->vpaint->paint);
+    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->vpaint->paint);
   }
   if (sce->toolsettings->wpaint) {
-    link_paint(reader, sce, &sce->toolsettings->wpaint->paint);
+    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->wpaint->paint);
   }
   if (sce->toolsettings->uvsculpt) {
-    link_paint(reader, sce, &sce->toolsettings->uvsculpt->paint);
+    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->uvsculpt->paint);
   }
   if (sce->toolsettings->gp_paint) {
-    link_paint(reader, sce, &sce->toolsettings->gp_paint->paint);
+    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_paint->paint);
   }
   if (sce->toolsettings->gp_vertexpaint) {
-    link_paint(reader, sce, &sce->toolsettings->gp_vertexpaint->paint);
+    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_vertexpaint->paint);
   }
   if (sce->toolsettings->gp_sculptpaint) {
-    link_paint(reader, sce, &sce->toolsettings->gp_sculptpaint->paint);
+    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_sculptpaint->paint);
   }
   if (sce->toolsettings->gp_weightpaint) {
-    link_paint(reader, sce, &sce->toolsettings->gp_weightpaint->paint);
+    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_weightpaint->paint);
   }
 
   if (sce->toolsettings->sculpt) {
