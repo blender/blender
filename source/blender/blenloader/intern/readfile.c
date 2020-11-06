@@ -3286,49 +3286,12 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
 
   switch (GS(id->name)) {
     case ID_SCR:
-      success = BKE_screen_blend_read_lib(&reader, (bScreen *)id);
+      success = BKE_screen_blend_read_data(&reader, (bScreen *)id);
       break;
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
-    case ID_IP:
-    case ID_OB:
-    case ID_SCE:
-    case ID_WM:
-    case ID_WS:
-    case ID_PA:
-    case ID_GR:
-    case ID_ME:
-    case ID_LT:
-    case ID_AC:
-    case ID_NT:
-    case ID_LS:
-    case ID_TXT:
-    case ID_VF:
-    case ID_MC:
-    case ID_PAL:
-    case ID_PC:
-    case ID_BR:
-    case ID_IM:
-    case ID_LA:
-    case ID_MA:
-    case ID_MB:
-    case ID_CU:
-    case ID_CA:
-    case ID_WO:
-    case ID_MSK:
-    case ID_SPK:
-    case ID_AR:
-    case ID_LP:
-    case ID_KE:
-    case ID_TE:
-    case ID_GD:
-    case ID_HA:
-    case ID_PT:
-    case ID_VO:
-    case ID_SIM:
-    case ID_SO:
-    case ID_CF:
+    default:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -3904,55 +3867,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
       id_type->blend_read_lib(&reader, id);
     }
 
-    /* Note: ID types are processed in reverse order as defined by INDEX_ID_XXX enums in DNA_ID.h.
-     * This ensures handling of most dependencies in proper order, as elsewhere in code.
-     * Please keep order of entries in that switch matching that order, it's easier to quickly see
-     * whether something is wrong then. */
-    switch (GS(id->name)) {
-      case ID_LI:
-        lib_link_library(&reader, (Library *)id); /* Only init users. */
-        break;
-      case ID_IP:
-      case ID_OB:
-      case ID_SCE:
-      case ID_WM:
-      case ID_WS:
-      case ID_SCR:
-      case ID_PA:
-      case ID_GR:
-      case ID_ME:
-      case ID_LT:
-      case ID_AC:
-      case ID_NT:
-      case ID_LS:
-      case ID_TXT:
-      case ID_VF:
-      case ID_MC:
-      case ID_PAL:
-      case ID_PC:
-      case ID_BR:
-      case ID_IM:
-      case ID_LA:
-      case ID_MA:
-      case ID_MB:
-      case ID_CU:
-      case ID_CA:
-      case ID_WO:
-      case ID_MSK:
-      case ID_SPK:
-      case ID_AR:
-      case ID_LP:
-      case ID_KE:
-      case ID_TE:
-      case ID_GD:
-      case ID_HA:
-      case ID_PT:
-      case ID_VO:
-      case ID_SIM:
-      case ID_SO:
-      case ID_CF:
-        /* Do nothing. Handled by IDTypeInfo callback. */
-        break;
+    if (GS(id->name) == ID_LI) {
+      lib_link_library(&reader, (Library *)id); /* Only init users. */
     }
 
     id->tag &= ~LIB_TAG_NEED_LINK;
@@ -4604,11 +4520,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
           const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
           if (id_type->blend_read_expand != NULL) {
             id_type->blend_read_expand(&expander, id);
-          }
-
-          switch (GS(id->name)) {
-            default:
-              break;
           }
 
           do_it = true;
