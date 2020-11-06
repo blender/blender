@@ -28,6 +28,10 @@
 /* XXX, temp feature - campbell */
 #define DURIAN_CAMERA_SWITCH
 
+/* check for cyclic set-scene,
+ * libs can cause this case which is normally prevented, see (T#####) */
+#define USE_SETSCENE_CHECK
+
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_color_types.h" /* color management */
