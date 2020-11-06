@@ -40,7 +40,7 @@ namespace Manta {
 #if defined(WIN32) || defined(_WIN32)
 static wstring stringToWstring(const char *str)
 {
-  const int length_wc = MultiByteToWideChar(CP_UTF8, 0, str, strlen(str), NULL, 0);
+  const int length_wc = MultiByteToWideChar(CP_UTF8, 0, str, strlen(str), nullptr, 0);
   wstring strWide(length_wc, 0);
   MultiByteToWideChar(CP_UTF8, 0, str, strlen(str), &strWide[0], length_wc);
   return strWide;

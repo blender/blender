@@ -82,7 +82,7 @@ class TurbulenceParticleSystem : public ParticleSystem<TurbulenceParticleData> {
           Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "TurbulenceParticleSystem::resetTexCoords", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         int num = _args.get<int>("num", 0, &_lock);
@@ -110,7 +110,7 @@ class TurbulenceParticleSystem : public ParticleSystem<TurbulenceParticleData> {
           Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "TurbulenceParticleSystem::seed", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Shape *source = _args.getPtr<Shape>("source", 0, &_lock);
@@ -144,7 +144,7 @@ class TurbulenceParticleSystem : public ParticleSystem<TurbulenceParticleData> {
           Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "TurbulenceParticleSystem::synthesize", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -177,7 +177,7 @@ class TurbulenceParticleSystem : public ParticleSystem<TurbulenceParticleData> {
           Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "TurbulenceParticleSystem::deleteInObstacle", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);

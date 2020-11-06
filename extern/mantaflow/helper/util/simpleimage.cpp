@@ -35,7 +35,7 @@ bool SimpleImage::writePpm(
   }
 
   FILE *fp = fopen(filename.c_str(), "wb");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     errMsg("SimpleImage::WritePPM Unable to open '" << filename << "' for writing");
     return false;
   }
@@ -96,7 +96,7 @@ bool SimpleImage::initFromPpm(std::string filename)
   }
 
   // 1st line: PPM or PGM
-  if (fgets(line, MAXLINE, fp) == NULL) {
+  if (fgets(line, MAXLINE, fp) == nullptr) {
     if (mAbortOnError)
       debMsg("SimpleImage::initFromPpm fgets failed", 1);
     return 0;
@@ -114,7 +114,7 @@ bool SimpleImage::initFromPpm(std::string filename)
 
   // Read in width and height, & allocate space
   // 2nd line: width height
-  if (fgets(line, MAXLINE, fp) == NULL) {
+  if (fgets(line, MAXLINE, fp) == nullptr) {
     if (mAbortOnError)
       errMsg("SimpleImage::initFromPpm fgets failed");
     return 0;
@@ -156,14 +156,14 @@ bool SimpleImage::initFromPpm(std::string filename)
 
   // Read in maximum value (ignore) , could be scanned with sscanf as well, but this should be
   // 255... 3rd line
-  if (fgets(line, MAXLINE, fp) == NULL) {
+  if (fgets(line, MAXLINE, fp) == nullptr) {
     if (mAbortOnError)
       errMsg("SimpleImage::initFromPpm fgets failed");
     return 0;
   }
 
   // Read in the pixel array row-by-row: 1st row = top scanline */
-  unsigned char *ptr = NULL;
+  unsigned char *ptr = nullptr;
   ptr = &pic[(windH - 1) * rowsize];
   for (int i = windH; i > 0; i--) {
     assertMsg(fread((void *)ptr, 1, rowsize, fp) == rowsize,

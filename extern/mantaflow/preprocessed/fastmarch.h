@@ -181,7 +181,7 @@ template<class T, int TDIR> class FastMarch {
             Grid<int> &fmFlags,
             Grid<Real> &levelset,
             Real maxTime,
-            MACGrid *velTransport = NULL);
+            MACGrid *velTransport = nullptr);
   ~FastMarch()
   {
   }

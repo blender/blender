@@ -168,7 +168,7 @@ class VortexSheetMesh : public Mesh {
       VortexSheetMesh *pbo = dynamic_cast<VortexSheetMesh *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "VortexSheetMesh::calcCirculation", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -193,7 +193,7 @@ class VortexSheetMesh : public Mesh {
       VortexSheetMesh *pbo = dynamic_cast<VortexSheetMesh *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "VortexSheetMesh::calcVorticity", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -218,7 +218,7 @@ class VortexSheetMesh : public Mesh {
       VortexSheetMesh *pbo = dynamic_cast<VortexSheetMesh *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "VortexSheetMesh::reinitTexCoords", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);

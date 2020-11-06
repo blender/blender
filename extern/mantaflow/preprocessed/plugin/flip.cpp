@@ -69,7 +69,7 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "sampleFlagsWithParticles", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -156,7 +156,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "sampleLevelsetWithParticles", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const LevelsetGrid &phi = *_args.getPtr<LevelsetGrid>("phi", 0, &_lock);
@@ -200,7 +200,7 @@ void sampleShapeWithParticles(const Shape &shape,
                               const Real randomness,
                               const bool reset = false,
                               const bool refillEmpty = false,
-                              const LevelsetGrid *exclude = NULL)
+                              const LevelsetGrid *exclude = nullptr)
 {
   const bool is3D = flags.is3D();
   const Real jlen = randomness / discretization;
@@ -243,7 +243,7 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "sampleShapeWithParticles", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const Shape &shape = *_args.getPtr<Shape>("shape", 0, &_lock);
@@ -253,7 +253,7 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const Real randomness = _args.get<Real>("randomness", 4, &_lock);
       const bool reset = _args.getOpt<bool>("reset", 5, false, &_lock);
       const bool refillEmpty = _args.getOpt<bool>("refillEmpty", 6, false, &_lock);
-      const LevelsetGrid *exclude = _args.getPtrOpt<LevelsetGrid>("exclude", 7, NULL, &_lock);
+      const LevelsetGrid *exclude = _args.getPtrOpt<LevelsetGrid>("exclude", 7, nullptr, &_lock);
       _retval = getPyNone();
       sampleShapeWithParticles(
           shape, flags, parts, discretization, randomness, reset, refillEmpty, exclude);
@@ -418,8 +418,8 @@ struct knSetNbObstacle : public KernelBase {
 };
 void markFluidCells(const BasicParticleSystem &parts,
                     FlagGrid &flags,
-                    const Grid<Real> *phiObs = NULL,
-                    const ParticleDataImpl<int> *ptype = NULL,
+                    const Grid<Real> *phiObs = nullptr,
+                    const ParticleDataImpl<int> *ptype = nullptr,
                     const int exclude = 0)
 {
   // remove all fluid cells
@@ -448,14 +448,14 @@ static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "markFluidCells", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const BasicParticleSystem &parts = *_args.getPtr<BasicParticleSystem>("parts", 0, &_lock);
       FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 1, &_lock);
-      const Grid<Real> *phiObs = _args.getPtrOpt<Grid<Real>>("phiObs", 2, NULL, &_lock);
+      const Grid<Real> *phiObs = _args.getPtrOpt<Grid<Real>>("phiObs", 2, nullptr, &_lock);
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-          "ptype", 3, NULL, &_lock);
+          "ptype", 3, nullptr, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 4, 0, &_lock);
       _retval = getPyNone();
       markFluidCells(parts, flags, phiObs, ptype, exclude);
@@ -492,7 +492,7 @@ static PyObject *_W_4(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "testInitGridWithPos", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &grid = *_args.getPtr<Grid<Real>>("grid", 0, &_lock);
@@ -534,7 +534,7 @@ void adjustNumber(BasicParticleSystem &parts,
                   const LevelsetGrid &phi,
                   Real radiusFactor = 1.,
                   Real narrowBand = -1.,
-                  const Grid<Real> *exclude = NULL)
+                  const Grid<Real> *exclude = nullptr)
 {
   // which levelset to use as threshold
   const Real SURFACE_LS = -1.0 * calculateRadiusFactor(phi, radiusFactor);
@@ -610,7 +610,7 @@ static PyObject *_W_5(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "adjustNumber", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       BasicParticleSystem &parts = *_args.getPtr<BasicParticleSystem>("parts", 0, &_lock);
@@ -621,7 +621,7 @@ static PyObject *_W_5(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const LevelsetGrid &phi = *_args.getPtr<LevelsetGrid>("phi", 5, &_lock);
       Real radiusFactor = _args.getOpt<Real>("radiusFactor", 6, 1., &_lock);
       Real narrowBand = _args.getOpt<Real>("narrowBand", 7, -1., &_lock);
-      const Grid<Real> *exclude = _args.getPtrOpt<Grid<Real>>("exclude", 8, NULL, &_lock);
+      const Grid<Real> *exclude = _args.getPtrOpt<Grid<Real>>("exclude", 8, nullptr, &_lock);
       _retval = getPyNone();
       adjustNumber(
           parts, vel, flags, minParticles, maxParticles, phi, radiusFactor, narrowBand, exclude);
@@ -660,7 +660,7 @@ static PyObject *_W_6(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "debugIntToReal", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const Grid<int> &source = *_args.getPtr<Grid<int>>("source", 0, &_lock);
@@ -694,7 +694,7 @@ void gridParticleIndex(const BasicParticleSystem &parts,
                        ParticleIndexSystem &indexSys,
                        const FlagGrid &flags,
                        Grid<int> &index,
-                       Grid<int> *counter = NULL)
+                       Grid<int> *counter = nullptr)
 {
   bool delCounter = false;
   if (!counter) {
@@ -761,14 +761,14 @@ static PyObject *_W_7(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "gridParticleIndex", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const BasicParticleSystem &parts = *_args.getPtr<BasicParticleSystem>("parts", 0, &_lock);
       ParticleIndexSystem &indexSys = *_args.getPtr<ParticleIndexSystem>("indexSys", 1, &_lock);
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 2, &_lock);
       Grid<int> &index = *_args.getPtr<Grid<int>>("index", 3, &_lock);
-      Grid<int> *counter = _args.getPtrOpt<Grid<int>>("counter", 4, NULL, &_lock);
+      Grid<int> *counter = _args.getPtrOpt<Grid<int>>("counter", 4, nullptr, &_lock);
       _retval = getPyNone();
       gridParticleIndex(parts, indexSys, flags, index, counter);
       _args.check();
@@ -932,7 +932,7 @@ void unionParticleLevelset(const BasicParticleSystem &parts,
                            const Grid<int> &index,
                            LevelsetGrid &phi,
                            const Real radiusFactor = 1.,
-                           const ParticleDataImpl<int> *ptype = NULL,
+                           const ParticleDataImpl<int> *ptype = nullptr,
                            const int exclude = 0)
 {
   // use half a cell diagonal as base radius
@@ -949,7 +949,7 @@ static PyObject *_W_8(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "unionParticleLevelset", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const BasicParticleSystem &parts = *_args.getPtr<BasicParticleSystem>("parts", 0, &_lock);
@@ -960,7 +960,7 @@ static PyObject *_W_8(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       LevelsetGrid &phi = *_args.getPtr<LevelsetGrid>("phi", 4, &_lock);
       const Real radiusFactor = _args.getOpt<Real>("radiusFactor", 5, 1., &_lock);
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-          "ptype", 6, NULL, &_lock);
+          "ptype", 6, nullptr, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 7, 0, &_lock);
       _retval = getPyNone();
       unionParticleLevelset(parts, indexSys, flags, index, phi, radiusFactor, ptype, exclude);
@@ -992,8 +992,8 @@ struct ComputeAveragedLevelsetWeight : public KernelBase {
                                 const Real radius,
                                 const ParticleDataImpl<int> *ptype,
                                 const int exclude,
-                                Grid<Vec3> *save_pAcc = NULL,
-                                Grid<Real> *save_rAcc = NULL)
+                                Grid<Vec3> *save_pAcc = nullptr,
+                                Grid<Real> *save_rAcc = nullptr)
       : KernelBase(&index, 0),
         parts(parts),
         index(index),
@@ -1018,8 +1018,8 @@ struct ComputeAveragedLevelsetWeight : public KernelBase {
                  const Real radius,
                  const ParticleDataImpl<int> *ptype,
                  const int exclude,
-                 Grid<Vec3> *save_pAcc = NULL,
-                 Grid<Real> *save_rAcc = NULL) const
+                 Grid<Vec3> *save_pAcc = nullptr,
+                 Grid<Real> *save_rAcc = nullptr) const
   {
     const Vec3 gridPos = Vec3(i, j, k) + Vec3(0.5);  // shifted by half cell
     Real phiv = radius * 1.0;                        // outside
@@ -1312,7 +1312,7 @@ void averagedParticleLevelset(const BasicParticleSystem &parts,
                               const Real radiusFactor = 1.,
                               const int smoothen = 1,
                               const int smoothenNeg = 1,
-                              const ParticleDataImpl<int> *ptype = NULL,
+                              const ParticleDataImpl<int> *ptype = nullptr,
                               const int exclude = 0)
 {
   // use half a cell diagonal as base radius
@@ -1340,7 +1340,7 @@ static PyObject *_W_9(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "averagedParticleLevelset", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const BasicParticleSystem &parts = *_args.getPtr<BasicParticleSystem>("parts", 0, &_lock);
@@ -1353,7 +1353,7 @@ static PyObject *_W_9(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const int smoothen = _args.getOpt<int>("smoothen", 6, 1, &_lock);
       const int smoothenNeg = _args.getOpt<int>("smoothenNeg", 7, 1, &_lock);
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-          "ptype", 8, NULL, &_lock);
+          "ptype", 8, nullptr, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 9, 0, &_lock);
       _retval = getPyNone();
       averagedParticleLevelset(
@@ -1523,7 +1523,7 @@ void improvedParticleLevelset(const BasicParticleSystem &parts,
                               const int smoothenNeg = 1,
                               const Real t_low = 0.4,
                               const Real t_high = 3.5,
-                              const ParticleDataImpl<int> *ptype = NULL,
+                              const ParticleDataImpl<int> *ptype = nullptr,
                               const int exclude = 0)
 {
   // create temporary grids to store values from levelset weight computation
@@ -1557,7 +1557,7 @@ static PyObject *_W_10(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "improvedParticleLevelset", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const BasicParticleSystem &parts = *_args.getPtr<BasicParticleSystem>("parts", 0, &_lock);
@@ -1572,7 +1572,7 @@ static PyObject *_W_10(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const Real t_low = _args.getOpt<Real>("t_low", 8, 0.4, &_lock);
       const Real t_high = _args.getOpt<Real>("t_high", 9, 3.5, &_lock);
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-          "ptype", 10, NULL, &_lock);
+          "ptype", 10, nullptr, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 11, 0, &_lock);
       _retval = getPyNone();
       improvedParticleLevelset(parts,
@@ -1714,7 +1714,7 @@ void pushOutofObs(BasicParticleSystem &parts,
                   const Grid<Real> &phiObs,
                   const Real shift = 0,
                   const Real thresh = 0,
-                  const ParticleDataImpl<int> *ptype = NULL,
+                  const ParticleDataImpl<int> *ptype = nullptr,
                   const int exclude = 0)
 {
   knPushOutofObs(parts, flags, phiObs, shift, thresh, ptype, exclude);
@@ -1726,7 +1726,7 @@ static PyObject *_W_11(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "pushOutofObs", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       BasicParticleSystem &parts = *_args.getPtr<BasicParticleSystem>("parts", 0, &_lock);
@@ -1735,7 +1735,7 @@ static PyObject *_W_11(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const Real shift = _args.getOpt<Real>("shift", 3, 0, &_lock);
       const Real thresh = _args.getOpt<Real>("thresh", 4, 0, &_lock);
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-          "ptype", 5, NULL, &_lock);
+          "ptype", 5, nullptr, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 6, 0, &_lock);
       _retval = getPyNone();
       pushOutofObs(parts, flags, phiObs, shift, thresh, ptype, exclude);
@@ -1917,8 +1917,8 @@ void mapPartsToMAC(const FlagGrid &flags,
                    MACGrid &velOld,
                    const BasicParticleSystem &parts,
                    const ParticleDataImpl<Vec3> &partVel,
-                   Grid<Vec3> *weight = NULL,
-                   const ParticleDataImpl<int> *ptype = NULL,
+                   Grid<Vec3> *weight = nullptr,
+                   const ParticleDataImpl<int> *ptype = nullptr,
                    const int exclude = 0)
 {
   // interpol -> grid. tmpgrid for particle contribution weights
@@ -1949,7 +1949,7 @@ static PyObject *_W_12(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "mapPartsToMAC", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -1958,9 +1958,9 @@ static PyObject *_W_12(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const BasicParticleSystem &parts = *_args.getPtr<BasicParticleSystem>("parts", 3, &_lock);
       const ParticleDataImpl<Vec3> &partVel = *_args.getPtr<ParticleDataImpl<Vec3>>(
           "partVel", 4, &_lock);
-      Grid<Vec3> *weight = _args.getPtrOpt<Grid<Vec3>>("weight", 5, NULL, &_lock);
+      Grid<Vec3> *weight = _args.getPtrOpt<Grid<Vec3>>("weight", 5, nullptr, &_lock);
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-          "ptype", 6, NULL, &_lock);
+          "ptype", 6, nullptr, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 7, 0, &_lock);
       _retval = getPyNone();
       mapPartsToMAC(flags, vel, velOld, parts, partVel, weight, ptype, exclude);
@@ -2076,7 +2076,7 @@ static PyObject *_W_13(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "mapPartsToGrid", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -2118,7 +2118,7 @@ static PyObject *_W_14(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "mapPartsToGridVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -2215,7 +2215,7 @@ static PyObject *_W_15(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "mapGridToParts", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const Grid<Real> &source = *_args.getPtr<Grid<Real>>("source", 0, &_lock);
@@ -2254,7 +2254,7 @@ static PyObject *_W_16(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "mapGridToPartsVec3", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const Grid<Vec3> &source = *_args.getPtr<Grid<Vec3>>("source", 0, &_lock);
@@ -2371,7 +2371,7 @@ void mapMACToParts(const FlagGrid &flags,
                    const MACGrid &vel,
                    const BasicParticleSystem &parts,
                    ParticleDataImpl<Vec3> &partVel,
-                   const ParticleDataImpl<int> *ptype = NULL,
+                   const ParticleDataImpl<int> *ptype = nullptr,
                    const int exclude = 0)
 {
   knMapLinearMACGridToVec3_PIC(parts, flags, vel, partVel, ptype, exclude);
@@ -2383,7 +2383,7 @@ static PyObject *_W_17(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "mapMACToParts", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -2392,7 +2392,7 @@ static PyObject *_W_17(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       ParticleDataImpl<Vec3> &partVel = *_args.getPtr<ParticleDataImpl<Vec3>>(
           "partVel", 3, &_lock);
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-          "ptype", 4, NULL, &_lock);
+          "ptype", 4, nullptr, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 5, 0, &_lock);
       _retval = getPyNone();
       mapMACToParts(flags, vel, parts, partVel, ptype, exclude);
@@ -2526,7 +2526,7 @@ void flipVelocityUpdate(const FlagGrid &flags,
                         const BasicParticleSystem &parts,
                         ParticleDataImpl<Vec3> &partVel,
                         const Real flipRatio,
-                        const ParticleDataImpl<int> *ptype = NULL,
+                        const ParticleDataImpl<int> *ptype = nullptr,
                         const int exclude = 0)
 {
   knMapLinearMACGridToVec3_FLIP(parts, flags, vel, velOld, partVel, flipRatio, ptype, exclude);
@@ -2538,7 +2538,7 @@ static PyObject *_W_18(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "flipVelocityUpdate", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -2549,7 +2549,7 @@ static PyObject *_W_18(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
           "partVel", 4, &_lock);
       const Real flipRatio = _args.get<Real>("flipRatio", 5, &_lock);
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-          "ptype", 6, NULL, &_lock);
+          "ptype", 6, nullptr, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 7, 0, &_lock);
       _retval = getPyNone();
       flipVelocityUpdate(flags, vel, velOld, parts, partVel, flipRatio, ptype, exclude);
@@ -2700,7 +2700,7 @@ struct knCombineVels : public KernelBase {
 void combineGridVel(MACGrid &vel,
                     const Grid<Vec3> &weight,
                     MACGrid &combineVel,
-                    const LevelsetGrid *phi = NULL,
+                    const LevelsetGrid *phi = nullptr,
                     Real narrowBand = 0.0,
                     Real thresh = 0.0)
 {
@@ -2713,13 +2713,13 @@ static PyObject *_W_19(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "combineGridVel", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       MACGrid &vel = *_args.getPtr<MACGrid>("vel", 0, &_lock);
       const Grid<Vec3> &weight = *_args.getPtr<Grid<Vec3>>("weight", 1, &_lock);
       MACGrid &combineVel = *_args.getPtr<MACGrid>("combineVel", 2, &_lock);
-      const LevelsetGrid *phi = _args.getPtrOpt<LevelsetGrid>("phi", 3, NULL, &_lock);
+      const LevelsetGrid *phi = _args.getPtrOpt<LevelsetGrid>("phi", 3, nullptr, &_lock);
       Real narrowBand = _args.getOpt<Real>("narrowBand", 4, 0.0, &_lock);
       Real thresh = _args.getOpt<Real>("thresh", 5, 0.0, &_lock);
       _retval = getPyNone();
@@ -2754,7 +2754,7 @@ static PyObject *_W_20(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "getLaplacian", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &laplacian = *_args.getPtr<Grid<Real>>("laplacian", 0, &_lock);
@@ -2790,7 +2790,7 @@ static PyObject *_W_21(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "getCurvature", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &curv = *_args.getPtr<Grid<Real>>("curv", 0, &_lock);

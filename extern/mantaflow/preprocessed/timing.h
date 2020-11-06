@@ -101,7 +101,7 @@ class Timings : public PbClass {
       Timings *pbo = dynamic_cast<Timings *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "Timings::display", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -128,7 +128,7 @@ class Timings : public PbClass {
       Timings *pbo = dynamic_cast<Timings *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "Timings::saveMean", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         std::string file = _args.get<std::string>("file", 0, &_lock);

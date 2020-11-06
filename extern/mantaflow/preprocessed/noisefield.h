@@ -64,7 +64,7 @@ class WaveletNoiseField : public PbClass {
   {
     if (mNoiseTile && !mNoiseReferenceCount) {
       delete mNoiseTile;
-      mNoiseTile = NULL;
+      mNoiseTile = nullptr;
     }
   };
 

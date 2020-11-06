@@ -43,7 +43,7 @@ struct PbTypeVec {
 //! Base class for all classes exposed to Python
 class PbClass {
  public:
-  PbClass(FluidSolver *parent, const std::string &name = "", PyObject *obj = NULL);
+  PbClass(FluidSolver *parent, const std::string &name = "", PyObject *obj = nullptr);
   PbClass(const PbClass &a);
   virtual ~PbClass();
 

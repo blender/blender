@@ -86,7 +86,7 @@ class ParticleBase : public PbClass {
   virtual ParticleBase *clone()
   {
     assertMsg(false, "Dont use, override...");
-    return NULL;
+    return nullptr;
   }
 
   //! slow virtual function to query size, do not use in kernels! use size() instead
@@ -122,7 +122,7 @@ class ParticleBase : public PbClass {
       ParticleBase *pbo = dynamic_cast<ParticleBase *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleBase::create", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         PbType type = _args.get<PbType>("type", 0, &_lock);
@@ -274,7 +274,7 @@ template<class S> class ParticleSystem : public ParticleBase {
       ParticleSystem *pbo = dynamic_cast<ParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleSystem::pySize", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -342,7 +342,7 @@ template<class S> class ParticleSystem : public ParticleBase {
       ParticleSystem *pbo = dynamic_cast<ParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleSystem::setPos", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const IndexInt idx = _args.get<IndexInt>("idx", 0, &_lock);
@@ -373,7 +373,7 @@ template<class S> class ParticleSystem : public ParticleBase {
       ParticleSystem *pbo = dynamic_cast<ParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleSystem::getPos", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const IndexInt idx = _args.get<IndexInt>("idx", 0, &_lock);
@@ -399,7 +399,7 @@ template<class S> class ParticleSystem : public ParticleBase {
       ParticleSystem *pbo = dynamic_cast<ParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleSystem::getPosPdata", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         ParticleDataImpl<Vec3> &target = *_args.getPtr<ParticleDataImpl<Vec3>>(
@@ -426,7 +426,7 @@ template<class S> class ParticleSystem : public ParticleBase {
       ParticleSystem *pbo = dynamic_cast<ParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleSystem::setPosPdata", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const ParticleDataImpl<Vec3> &source = *_args.getPtr<ParticleDataImpl<Vec3>>(
@@ -477,7 +477,7 @@ template<class S> class ParticleSystem : public ParticleBase {
       ParticleSystem *pbo = dynamic_cast<ParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleSystem::clear", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -501,7 +501,7 @@ template<class S> class ParticleSystem : public ParticleBase {
                     const bool deleteInObstacle = true,
                     const bool stopInObstacle = true,
                     const bool skipNew = false,
-                    const ParticleDataImpl<int> *ptype = NULL,
+                    const ParticleDataImpl<int> *ptype = nullptr,
                     const int exclude = 0);
   static PyObject *_W_9(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
@@ -510,7 +510,7 @@ template<class S> class ParticleSystem : public ParticleBase {
       ParticleSystem *pbo = dynamic_cast<ParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleSystem::advectInGrid", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -520,7 +520,7 @@ template<class S> class ParticleSystem : public ParticleBase {
         const bool stopInObstacle = _args.getOpt<bool>("stopInObstacle", 4, true, &_lock);
         const bool skipNew = _args.getOpt<bool>("skipNew", 5, false, &_lock);
         const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-            "ptype", 6, NULL, &_lock);
+            "ptype", 6, nullptr, &_lock);
         const int exclude = _args.getOpt<int>("exclude", 7, 0, &_lock);
         pbo->_args.copy(_args);
         _retval = getPyNone();
@@ -552,7 +552,7 @@ template<class S> class ParticleSystem : public ParticleBase {
       ParticleSystem *pbo = dynamic_cast<ParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleSystem::projectOutside", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Grid<Vec3> &gradient = *_args.getPtr<Grid<Vec3>>("gradient", 0, &_lock);
@@ -573,7 +573,7 @@ template<class S> class ParticleSystem : public ParticleBase {
   void projectOutOfBnd(const FlagGrid &flags,
                        const Real bnd,
                        const std::string &plane = "xXyYzZ",
-                       const ParticleDataImpl<int> *ptype = NULL,
+                       const ParticleDataImpl<int> *ptype = nullptr,
                        const int exclude = 0);
   static PyObject *_W_11(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
@@ -582,14 +582,14 @@ template<class S> class ParticleSystem : public ParticleBase {
       ParticleSystem *pbo = dynamic_cast<ParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleSystem::projectOutOfBnd", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
         const Real bnd = _args.get<Real>("bnd", 1, &_lock);
         const std::string &plane = _args.getOpt<std::string>("plane", 2, "xXyYzZ", &_lock);
         const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
-            "ptype", 3, NULL, &_lock);
+            "ptype", 3, nullptr, &_lock);
         const int exclude = _args.getOpt<int>("exclude", 4, 0, &_lock);
         pbo->_args.copy(_args);
         _retval = getPyNone();
@@ -685,7 +685,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
       BasicParticleSystem *pbo = dynamic_cast<BasicParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "BasicParticleSystem::save", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
@@ -710,7 +710,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
       BasicParticleSystem *pbo = dynamic_cast<BasicParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "BasicParticleSystem::load", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
@@ -742,7 +742,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
       BasicParticleSystem *pbo = dynamic_cast<BasicParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "BasicParticleSystem::readParticles", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         BasicParticleSystem *from = _args.getPtr<BasicParticleSystem>("from", 0, &_lock);
@@ -772,7 +772,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
       BasicParticleSystem *pbo = dynamic_cast<BasicParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "BasicParticleSystem::addParticle", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Vec3 pos = _args.get<Vec3>("pos", 0, &_lock);
@@ -804,7 +804,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
       BasicParticleSystem *pbo = dynamic_cast<BasicParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "BasicParticleSystem::printParts", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         IndexInt start = _args.getOpt<IndexInt>("start", 0, -1, &_lock);
@@ -833,7 +833,7 @@ class BasicParticleSystem : public ParticleSystem<BasicParticleData> {
       BasicParticleSystem *pbo = dynamic_cast<BasicParticleSystem *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "BasicParticleSystem::getDataPointer", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -1028,7 +1028,7 @@ class ParticleDataBase : public PbClass {
   virtual ParticleDataBase *clone()
   {
     assertMsg(false, "Dont use, override...");
-    return NULL;
+    return nullptr;
   }
   virtual PdataType getType() const
   {
@@ -1139,7 +1139,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::clear", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -1165,7 +1165,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::setSource", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         Grid<T> *grid = _args.getPtr<Grid<T>>("grid", 0, &_lock);
@@ -1213,7 +1213,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::copyFrom", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const ParticleDataImpl<T> &a = *_args.getPtr<ParticleDataImpl<T>>("a", 0, &_lock);
@@ -1238,7 +1238,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::setConst", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const T &s = *_args.getPtr<T>("s", 0, &_lock);
@@ -1264,7 +1264,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::setConstRange", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const T &s = *_args.getPtr<T>("s", 0, &_lock);
@@ -1292,7 +1292,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::add", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const ParticleDataImpl<T> &a = *_args.getPtr<ParticleDataImpl<T>>("a", 0, &_lock);
@@ -1318,7 +1318,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::sub", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const ParticleDataImpl<T> &a = *_args.getPtr<ParticleDataImpl<T>>("a", 0, &_lock);
@@ -1344,7 +1344,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::addConst", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const T &s = *_args.getPtr<T>("s", 0, &_lock);
@@ -1370,7 +1370,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::addScaled", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const ParticleDataImpl<T> &a = *_args.getPtr<ParticleDataImpl<T>>("a", 0, &_lock);
@@ -1397,7 +1397,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::mult", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const ParticleDataImpl<T> &a = *_args.getPtr<ParticleDataImpl<T>>("a", 0, &_lock);
@@ -1423,7 +1423,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::multConst", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const T &s = *_args.getPtr<T>("s", 0, &_lock);
@@ -1449,7 +1449,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::safeDiv", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const ParticleDataImpl<T> &a = *_args.getPtr<ParticleDataImpl<T>>("a", 0, &_lock);
@@ -1475,7 +1475,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::clamp", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const Real vmin = _args.get<Real>("vmin", 0, &_lock);
@@ -1502,7 +1502,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::clampMin", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const Real vmin = _args.get<Real>("vmin", 0, &_lock);
@@ -1528,7 +1528,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::clampMax", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const Real vmax = _args.get<Real>("vmax", 0, &_lock);
@@ -1554,7 +1554,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::getMaxAbs", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -1578,7 +1578,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::getMax", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -1602,7 +1602,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::getMin", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -1618,7 +1618,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
     }
   }
 
-  T sum(const ParticleDataImpl<int> *t = NULL, const int itype = 0) const;
+  T sum(const ParticleDataImpl<int> *t = nullptr, const int itype = 0) const;
   static PyObject *_W_41(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     try {
@@ -1626,11 +1626,11 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::sum", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const ParticleDataImpl<int> *t = _args.getPtrOpt<ParticleDataImpl<int>>(
-            "t", 0, NULL, &_lock);
+            "t", 0, nullptr, &_lock);
         const int itype = _args.getOpt<int>("itype", 1, 0, &_lock);
         pbo->_args.copy(_args);
         _retval = toPy(pbo->sum(t, itype));
@@ -1653,7 +1653,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::sumSquare", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -1677,7 +1677,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::sumMagnitude", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -1702,7 +1702,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::setConstIntFlag", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const T &s = *_args.getPtr<T>("s", 0, &_lock);
@@ -1730,7 +1730,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::printPdata", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         IndexInt start = _args.getOpt<IndexInt>("start", 0, -1, &_lock);
@@ -1759,7 +1759,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::save", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
@@ -1784,7 +1784,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::load", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         const std::string name = _args.get<std::string>("name", 0, &_lock);
@@ -1810,7 +1810,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
       ParticleDataImpl *pbo = dynamic_cast<ParticleDataImpl *>(Pb::objFromPy(_self));
       bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
       pbPreparePlugin(pbo->getParent(), "ParticleDataImpl::getDataPointer", !noTiming);
-      PyObject *_retval = 0;
+      PyObject *_retval = nullptr;
       {
         ArgLocker _lock;
         pbo->_args.copy(_args);
@@ -2152,9 +2152,9 @@ static inline Vec3 bisectBacktracePos(const FlagGrid &flags, const Vec3 &oldp, c
 template<class S> struct KnClampPositions : public KernelBase {
   KnClampPositions(std::vector<S> &p,
                    const FlagGrid &flags,
-                   ParticleDataImpl<Vec3> *posOld = NULL,
+                   ParticleDataImpl<Vec3> *posOld = nullptr,
                    bool stopInObstacle = true,
-                   const ParticleDataImpl<int> *ptype = NULL,
+                   const ParticleDataImpl<int> *ptype = nullptr,
                    const int exclude = 0)
       : KernelBase(p.size()),
         p(p),
@@ -2170,9 +2170,9 @@ template<class S> struct KnClampPositions : public KernelBase {
   inline void op(IndexInt idx,
                  std::vector<S> &p,
                  const FlagGrid &flags,
-                 ParticleDataImpl<Vec3> *posOld = NULL,
+                 ParticleDataImpl<Vec3> *posOld = nullptr,
                  bool stopInObstacle = true,
-                 const ParticleDataImpl<int> *ptype = NULL,
+                 const ParticleDataImpl<int> *ptype = nullptr,
                  const int exclude = 0) const
   {
     if (p[idx].flag & ParticleBase::PDELETE)
@@ -2255,7 +2255,7 @@ void ParticleSystem<S>::advectInGrid(const FlagGrid &flags,
                                      const int exclude)
 {
   // position clamp requires old positions, backup
-  ParticleDataImpl<Vec3> *posOld = NULL;
+  ParticleDataImpl<Vec3> *posOld = nullptr;
   if (!deleteInObstacle) {
     posOld = new ParticleDataImpl<Vec3>(this->getParent());
     posOld->resize(mData.size());

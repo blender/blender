@@ -37,7 +37,7 @@ ParticleBase::~ParticleBase()
 {
   // make sure data fields now parent system is deleted
   for (IndexInt i = 0; i < (IndexInt)mPartData.size(); ++i)
-    mPartData[i]->setParticleSys(NULL);
+    mPartData[i]->setParticleSys(nullptr);
 
   if (mFreePdata) {
     for (IndexInt i = 0; i < (IndexInt)mPartData.size(); ++i)
@@ -93,7 +93,7 @@ PbClass *ParticleBase::create(PbType t, PbTypeVec T, const string &name)
         "Unable to get particle data pointer from newly created object. Only create ParticleData "
         "type with a ParticleSys.creat() call, eg, PdataReal, PdataVec3 etc.");
     delete pyObj;
-    return NULL;
+    return nullptr;
   }
   else {
     this->registerPdata(pdata);
@@ -102,7 +102,7 @@ PbClass *ParticleBase::create(PbType t, PbTypeVec T, const string &name)
   // directly init size of new pdata field:
   pdata->resize(this->getSizeSlow());
 #else
-  PbClass *pyObj = NULL;
+  PbClass *pyObj = nullptr;
 #endif
   return pyObj;
 }
@@ -297,7 +297,7 @@ void BasicParticleSystem::readParticles(BasicParticleSystem *from)
 
 // particle data
 
-ParticleDataBase::ParticleDataBase(FluidSolver *parent) : PbClass(parent), mpParticleSys(NULL)
+ParticleDataBase::ParticleDataBase(FluidSolver *parent) : PbClass(parent), mpParticleSys(nullptr)
 {
 }
 
@@ -312,13 +312,13 @@ ParticleDataBase::~ParticleDataBase()
 
 template<class T>
 ParticleDataImpl<T>::ParticleDataImpl(FluidSolver *parent)
-    : ParticleDataBase(parent), mpGridSource(NULL), mGridSourceMAC(false)
+    : ParticleDataBase(parent), mpGridSource(nullptr), mGridSourceMAC(false)
 {
 }
 
 template<class T>
 ParticleDataImpl<T>::ParticleDataImpl(FluidSolver *parent, ParticleDataImpl<T> *other)
-    : ParticleDataBase(parent), mpGridSource(NULL), mGridSourceMAC(false)
+    : ParticleDataBase(parent), mpGridSource(nullptr), mGridSourceMAC(false)
 {
   this->mData = other->mData;
   setName(other->getName());

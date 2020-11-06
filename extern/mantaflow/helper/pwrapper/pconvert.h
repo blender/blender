@@ -139,9 +139,9 @@ template<> bool isPy<std::vector<float>>(PyObject *obj);
 //! Encapsulation of python arguments
 class PbArgs {
  public:
-  PbArgs(PyObject *linargs = NULL, PyObject *dict = NULL);
+  PbArgs(PyObject *linargs = nullptr, PyObject *dict = nullptr);
   ~PbArgs();
-  void setup(PyObject *linargs = NULL, PyObject *dict = NULL);
+  void setup(PyObject *linargs = nullptr, PyObject *dict = nullptr);
 
   void check();
   FluidSolver *obtainParent();
@@ -153,7 +153,7 @@ class PbArgs {
 
   inline bool has(const std::string &key)
   {
-    return getItem(key, false) != NULL;
+    return getItem(key, false) != nullptr;
   }
   inline void deleteItem(const std::string &key)
   {
@@ -177,7 +177,7 @@ class PbArgs {
     DataElement el = {toPy(arg), false};
     mData[key] = el;
   }
-  template<class T> inline T get(const std::string &key, int number = -1, ArgLocker *lk = NULL)
+  template<class T> inline T get(const std::string &key, int number = -1, ArgLocker *lk = nullptr)
   {
     visit(number, key);
     PyObject *o = getItem(key, false, lk);
@@ -189,7 +189,7 @@ class PbArgs {
     errMsg("Argument '" + key + "' is not defined.");
   }
   template<class T>
-  inline T getOpt(const std::string &key, int number, T defarg, ArgLocker *lk = NULL)
+  inline T getOpt(const std::string &key, int number, T defarg, ArgLocker *lk = nullptr)
   {
     visit(number, key);
     PyObject *o = getItem(key, false, lk);
@@ -200,7 +200,7 @@ class PbArgs {
     return (o) ? fromPy<T>(o) : defarg;
   }
   template<class T>
-  inline T *getPtrOpt(const std::string &key, int number, T *defarg, ArgLocker *lk = NULL)
+  inline T *getPtrOpt(const std::string &key, int number, T *defarg, ArgLocker *lk = nullptr)
   {
     visit(number, key);
     PyObject *o = getItem(key, false, lk);
@@ -210,7 +210,8 @@ class PbArgs {
       o = getItem(number, false, lk);
     return o ? fromPyPtr<T>(o, &mTmpStorage) : defarg;
   }
-  template<class T> inline T *getPtr(const std::string &key, int number = -1, ArgLocker *lk = NULL)
+  template<class T>
+  inline T *getPtr(const std::string &key, int number = -1, ArgLocker *lk = nullptr)
   {
     visit(number, key);
     PyObject *o = getItem(key, false, lk);
@@ -239,8 +240,8 @@ class PbArgs {
   static PbArgs EMPTY;
 
  protected:
-  PyObject *getItem(const std::string &key, bool strict, ArgLocker *lk = NULL);
-  PyObject *getItem(size_t number, bool strict, ArgLocker *lk = NULL);
+  PyObject *getItem(const std::string &key, bool strict, ArgLocker *lk = nullptr);
+  PyObject *getItem(size_t number, bool strict, ArgLocker *lk = nullptr);
 
   struct DataElement {
     PyObject *obj;

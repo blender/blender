@@ -305,7 +305,7 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "KEpsilonComputeProduction", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const MACGrid &vel = *_args.getPtr<MACGrid>("vel", 0, &_lock);
@@ -420,7 +420,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "KEpsilonSources", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &k = *_args.getPtr<Grid<Real>>("k", 0, &_lock);
@@ -469,7 +469,7 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "KEpsilonBcs", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 0, &_lock);
@@ -547,7 +547,7 @@ static PyObject *_W_3(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
     FluidSolver *parent = _args.obtainParent();
     bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
     pbPreparePlugin(parent, "KEpsilonGradientDiffusion", !noTiming);
-    PyObject *_retval = 0;
+    PyObject *_retval = nullptr;
     {
       ArgLocker _lock;
       Grid<Real> &k = *_args.getPtr<Grid<Real>>("k", 0, &_lock);

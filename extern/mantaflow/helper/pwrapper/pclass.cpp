@@ -98,13 +98,13 @@ string PbType::str() const
 vector<PbClass *> PbClass::mInstances;
 
 PbClass::PbClass(FluidSolver *parent, const string &name, PyObject *obj)
-    : mMutex(NULL), mParent(parent), mPyObject(obj), mName(name), mHidden(false)
+    : mMutex(nullptr), mParent(parent), mPyObject(obj), mName(name), mHidden(false)
 {
   mMutex = new QMutex();
 }
 
 PbClass::PbClass(const PbClass &a)
-    : mMutex(NULL), mParent(a.mParent), mPyObject(0), mName("_unnamed"), mHidden(false)
+    : mMutex(nullptr), mParent(a.mParent), mPyObject(0), mName("_unnamed"), mHidden(false)
 {
   mMutex = new QMutex();
 }
@@ -180,7 +180,7 @@ PbClass *PbClass::createPyObject(const string &classname,
 
 void PbClass::checkParent()
 {
-  if (getParent() == NULL) {
+  if (getParent() == nullptr) {
     errMsg("New class " + mName + ": no parent given -- specify using parent=xxx !");
   }
 }

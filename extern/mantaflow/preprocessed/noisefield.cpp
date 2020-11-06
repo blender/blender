@@ -34,7 +34,7 @@ using namespace std;
 namespace Manta {
 
 int WaveletNoiseField::randomSeed = 13322223;
-Real *WaveletNoiseField::mNoiseTile = NULL;
+Real *WaveletNoiseField::mNoiseTile = nullptr;
 std::atomic<int> WaveletNoiseField::mNoiseReferenceCount(0);
 
 static Real _aCoeffs[32] = {

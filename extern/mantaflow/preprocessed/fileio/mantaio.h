@@ -93,8 +93,8 @@ template<class T>
 int readGrid4dUni(const std::string &name,
                   Grid4d<T> *grid,
                   int readTslice = -1,
-                  Grid4d<T> *slice = NULL,
-                  void **fileHandle = NULL);
+                  Grid4d<T> *slice = nullptr,
+                  void **fileHandle = nullptr);
 void readGrid4dUniCleanup(void **fileHandle);
 template<class T> int writeGrid4dRaw(const std::string &name, Grid4d<T> *grid);
 template<class T> int readGrid4dRaw(const std::string &name, Grid4d<T> *grid);
@@ -111,8 +111,12 @@ template<class T> int writeMdataUni(const std::string &name, MeshDataImpl<T> *md
 template<class T> int readMdataUni(const std::string &name, MeshDataImpl<T> *mdata);
 
 // Helpers
-void getUniFileSize(
-    const std::string &name, int &x, int &y, int &z, int *t = NULL, std::string *info = NULL);
+void getUniFileSize(const std::string &name,
+                    int &x,
+                    int &y,
+                    int &z,
+                    int *t = nullptr,
+                    std::string *info = nullptr);
 void *safeGzopen(const char *filename, const char *mode);
 #if OPENVDB == 1
 template<class S, class T> void convertFrom(S &in, T *out);
