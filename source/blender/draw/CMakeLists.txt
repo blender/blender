@@ -450,6 +450,9 @@ endif()
 
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
+# Needed so we can use dna_type_offsets.h for defaults initialization.
+add_dependencies(bf_draw bf_dna)
+
 if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)
     set(TEST_SRC
