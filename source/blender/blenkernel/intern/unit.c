@@ -802,17 +802,12 @@ static char *find_next_negative(const char *str, const char *remaining_str)
 static char *find_next_op(const char *str, char *remaining_str, int len_max)
 {
   int i;
-  bool scientific_notation = false;
   for (i = 0; i < len_max; i++) {
     if (remaining_str[i] == '\0') {
       return remaining_str + i;
     }
 
     if (ch_is_op(remaining_str[i])) {
-      if (scientific_notation) {
-        scientific_notation = false;
-      }
-
       /* Make sure we don't look backwards before the start of the string. */
       if (remaining_str != str && i != 0) {
         /* Check for velocity or acceleration (e.g. '/' in 'ft/s' is not an op). */
@@ -823,7 +818,6 @@ static char *find_next_op(const char *str, char *remaining_str, int len_max)
 
         /* Check for scientific notation. */
         if (ELEM(remaining_str[i - 1], 'e', 'E')) {
-          scientific_notation = true;
           continue;
         }
 
