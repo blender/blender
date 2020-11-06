@@ -809,56 +809,6 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   }
 }
 
-/* update this also to readfile.c */
-static const char *ptcache_data_struct[] = {
-    "",          // BPHYS_DATA_INDEX
-    "",          // BPHYS_DATA_LOCATION
-    "",          // BPHYS_DATA_VELOCITY
-    "",          // BPHYS_DATA_ROTATION
-    "",          // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
-    "",          // BPHYS_DATA_SIZE:
-    "",          // BPHYS_DATA_TIMES:
-    "BoidData",  // case BPHYS_DATA_BOIDS:
-};
-static const char *ptcache_extra_struct[] = {
-    "",
-    "ParticleSpring",
-    "vec3f",
-};
-static void write_pointcaches(BlendWriter *writer, ListBase *ptcaches)
-{
-  LISTBASE_FOREACH (PointCache *, cache, ptcaches) {
-    BLO_write_struct(writer, PointCache, cache);
-
-    if ((cache->flag & PTCACHE_DISK_CACHE) == 0) {
-      LISTBASE_FOREACH (PTCacheMem *, pm, &cache->mem_cache) {
-        BLO_write_struct(writer, PTCacheMem, pm);
-
-        for (int i = 0; i < BPHYS_TOT_DATA; i++) {
-          if (pm->data[i] && pm->data_types & (1 << i)) {
-            if (ptcache_data_struct[i][0] == '\0') {
-              BLO_write_raw(writer, MEM_allocN_len(pm->data[i]), pm->data[i]);
-            }
-            else {
-              BLO_write_struct_array_by_name(
-                  writer, ptcache_data_struct[i], pm->totpoint, pm->data[i]);
-            }
-          }
-        }
-
-        LISTBASE_FOREACH (PTCacheExtra *, extra, &pm->extradata) {
-          if (ptcache_extra_struct[extra->type][0] == '\0') {
-            continue;
-          }
-          BLO_write_struct(writer, PTCacheExtra, extra);
-          BLO_write_struct_array_by_name(
-              writer, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
-        }
-      }
-    }
-  }
-}
-
 static void write_particlesystems(BlendWriter *writer, ListBase *particles)
 {
   LISTBASE_FOREACH (ParticleSystem *, psys, particles) {
@@ -899,7 +849,7 @@ static void write_particlesystems(BlendWriter *writer, ListBase *particles)
       BLO_write_struct(writer, ClothCollSettings, psys->clmd->coll_parms);
     }
 
-    write_pointcaches(writer, &psys->ptcaches);
+    BKE_ptcache_blend_write(writer, &psys->ptcaches);
   }
 }
 
@@ -1055,7 +1005,7 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
       BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
       BLO_write_struct(writer, ClothCollSettings, clmd->coll_parms);
       BLO_write_struct(writer, EffectorWeights, clmd->sim_parms->effector_weights);
-      write_pointcaches(writer, &clmd->ptcaches);
+      BKE_ptcache_blend_write(writer, &clmd->ptcaches);
     }
     else if (md->type == eModifierType_Fluid) {
       FluidModifierData *fmd = (FluidModifierData *)md;
@@ -1064,14 +1014,14 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
         BLO_write_struct(writer, FluidDomainSettings, fmd->domain);
 
         if (fmd->domain) {
-          write_pointcaches(writer, &(fmd->domain->ptcaches[0]));
+          BKE_ptcache_blend_write(writer, &(fmd->domain->ptcaches[0]));
 
           /* create fake pointcache so that old blender versions can read it */
           fmd->domain->point_cache[1] = BKE_ptcache_add(&fmd->domain->ptcaches[1]);
           fmd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE | PTCACHE_FAKE_SMOKE;
           fmd->domain->point_cache[1]->step = 1;
 
-          write_pointcaches(writer, &(fmd->domain->ptcaches[1]));
+          BKE_ptcache_blend_write(writer, &(fmd->domain->ptcaches[1]));
 
           if (fmd->domain->coba) {
             BLO_write_struct(writer, ColorBand, fmd->domain->coba);
@@ -1108,7 +1058,7 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
         }
         /* write caches and effector weights */
         LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
-          write_pointcaches(writer, &(surface->ptcaches));
+          BKE_ptcache_blend_write(writer, &(surface->ptcaches));
 
           BLO_write_struct(writer, EffectorWeights, surface->effector_weights);
         }
@@ -1265,7 +1215,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
       ob->soft->ptcaches = ob->soft->shared->ptcaches;
       BLO_write_struct(writer, SoftBody, ob->soft);
       BLO_write_struct(writer, SoftBody_Shared, ob->soft->shared);
-      write_pointcaches(writer, &(ob->soft->shared->ptcaches));
+      BKE_ptcache_blend_write(writer, &(ob->soft->shared->ptcaches));
       BLO_write_struct(writer, EffectorWeights, ob->soft->effector_weights);
     }
 
@@ -1500,7 +1450,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 
     BLO_write_struct(writer, RigidBodyWorld_Shared, sce->rigidbody_world->shared);
     BLO_write_struct(writer, EffectorWeights, sce->rigidbody_world->effector_weights);
-    write_pointcaches(writer, &(sce->rigidbody_world->shared->ptcaches));
+    BKE_ptcache_blend_write(writer, &(sce->rigidbody_world->shared->ptcaches));
   }
 
   BKE_previewimg_blend_write(writer, sce->preview);
