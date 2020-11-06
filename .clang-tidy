@@ -45,7 +45,6 @@ Checks:  >
   -modernize-loop-convert,
   -modernize-pass-by-value,
   -modernize-use-default-member-init,
-  -modernize-make-unique,
   -modernize-raw-string-literal,
   -modernize-avoid-bind,
   -modernize-use-override,
