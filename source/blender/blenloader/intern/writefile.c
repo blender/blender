@@ -1322,34 +1322,6 @@ static void write_view_settings(BlendWriter *writer, ColorManagedViewSettings *v
   }
 }
 
-static void write_layer_collections(BlendWriter *writer, ListBase *lb)
-{
-  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
-    BLO_write_struct(writer, LayerCollection, lc);
-
-    write_layer_collections(writer, &lc->layer_collections);
-  }
-}
-
-static void write_view_layer(BlendWriter *writer, ViewLayer *view_layer)
-{
-  BLO_write_struct(writer, ViewLayer, view_layer);
-  BLO_write_struct_list(writer, Base, &view_layer->object_bases);
-
-  if (view_layer->id_properties) {
-    IDP_BlendWrite(writer, view_layer->id_properties);
-  }
-
-  LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-    BLO_write_struct(writer, FreestyleModuleConfig, fmc);
-  }
-
-  LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    BLO_write_struct(writer, FreestyleLineSet, fls);
-  }
-  write_layer_collections(writer, &view_layer->layer_collections);
-}
-
 static void write_lightcache_texture(BlendWriter *writer, LightCacheTexture *tex)
 {
   if (tex->data) {
@@ -1600,7 +1572,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   BKE_curvemapping_curves_blend_write(writer, &sce->r.mblur_shutter_curve);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    write_view_layer(writer, view_layer);
+    BKE_view_layer_blend_write(writer, view_layer);
   }
 
   if (sce->master_collection) {

@@ -36,6 +36,7 @@ extern "C" {
 struct Base;
 struct BlendDataReader;
 struct BlendLibReader;
+struct BlendWriter;
 struct Collection;
 struct Depsgraph;
 struct LayerCollection;
@@ -151,6 +152,7 @@ void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
 
 /* .blend file I/O */
 
+void BKE_view_layer_blend_write(struct BlendWriter *writer, struct ViewLayer *view_layer);
 void BKE_view_layer_blend_read_data(struct BlendDataReader *reader, struct ViewLayer *view_layer);
 void BKE_view_layer_blend_read_lib(struct BlendLibReader *reader,
                                    struct Library *lib,
