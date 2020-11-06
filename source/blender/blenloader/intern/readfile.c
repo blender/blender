@@ -4181,39 +4181,13 @@ static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
   }
 }
 
-static void direct_link_paint(BlendDataReader *reader, const Scene *scene, Paint *p)
-{
-  if (p->num_input_samples < 1) {
-    p->num_input_samples = 1;
-  }
-
-  BLO_read_data_address(reader, &p->cavity_curve);
-  if (p->cavity_curve) {
-    BKE_curvemapping_blend_read(reader, p->cavity_curve);
-  }
-  else {
-    BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
-  }
-
-  BLO_read_data_address(reader, &p->tool_slots);
-
-  /* Workaround for invalid data written in older versions. */
-  const size_t expected_size = sizeof(PaintToolSlot) * p->tool_slots_len;
-  if (p->tool_slots && MEM_allocN_len(p->tool_slots) < expected_size) {
-    MEM_freeN(p->tool_slots);
-    p->tool_slots = MEM_callocN(expected_size, "PaintToolSlot");
-  }
-
-  BKE_paint_runtime_init(scene->toolsettings, p);
-}
-
 static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene, Paint **paint)
 {
   /* TODO. is this needed */
   BLO_read_data_address(reader, paint);
 
   if (*paint) {
-    direct_link_paint(reader, scene, *paint);
+    BKE_paint_blend_read_data(reader, scene, *paint);
   }
 }
 
@@ -4280,7 +4254,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_sculptpaint);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_weightpaint);
 
-    direct_link_paint(reader, sce, &sce->toolsettings->imapaint.paint);
+    BKE_paint_blend_read_data(reader, sce, &sce->toolsettings->imapaint.paint);
 
     sce->toolsettings->particle.paintcursor = NULL;
     sce->toolsettings->particle.scene = NULL;
