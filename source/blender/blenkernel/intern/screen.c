@@ -255,7 +255,7 @@ static void screen_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 }
 
 /* Cannot use IDTypeInfo callback yet, because of the return value. */
-bool BKE_screen_blend_read_lib(BlendDataReader *reader, bScreen *screen)
+bool BKE_screen_blend_read_data(BlendDataReader *reader, bScreen *screen)
 {
   bool success = true;
 

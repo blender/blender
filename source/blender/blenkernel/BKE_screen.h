@@ -465,7 +465,7 @@ void BKE_screen_view3d_do_versions_250(struct View3D *v3d, ListBase *regions);
 void BKE_screen_area_blend_read_lib(struct BlendLibReader *reader,
                                     struct ID *parent_id,
                                     struct ScrArea *area);
-bool BKE_screen_blend_read_lib(struct BlendDataReader *reader, struct bScreen *screen);
+bool BKE_screen_blend_read_data(struct BlendDataReader *reader, struct bScreen *screen);
 
 #ifdef __cplusplus
 }

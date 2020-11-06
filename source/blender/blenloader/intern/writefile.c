@@ -1068,60 +1068,6 @@ static bool write_file_handle(Main *mainvar,
           id_type->blend_write(&writer, (ID *)id_buffer, id);
         }
 
-        switch ((ID_Type)GS(id->name)) {
-          case ID_OB:
-          case ID_SCE:
-          case ID_WM:
-          case ID_WS:
-          case ID_SCR:
-          case ID_PA:
-          case ID_GR:
-          case ID_ME:
-          case ID_LT:
-          case ID_AC:
-          case ID_NT:
-          case ID_LS:
-          case ID_TXT:
-          case ID_VF:
-          case ID_MC:
-          case ID_PC:
-          case ID_PAL:
-          case ID_BR:
-          case ID_IM:
-          case ID_LA:
-          case ID_MA:
-          case ID_MB:
-          case ID_CU:
-          case ID_CA:
-          case ID_WO:
-          case ID_MSK:
-          case ID_SPK:
-          case ID_AR:
-          case ID_LP:
-          case ID_KE:
-          case ID_TE:
-          case ID_GD:
-          case ID_HA:
-          case ID_PT:
-          case ID_VO:
-          case ID_SIM:
-          case ID_SO:
-          case ID_CF:
-            /* Do nothing, handled in IDTypeInfo callback. */
-            break;
-          case ID_LI:
-            /* Do nothing, handled below - and should never be reached. */
-            BLI_assert(0);
-            break;
-          case ID_IP:
-            /* Do nothing, deprecated. */
-            break;
-          default:
-            /* Should never be reached. */
-            BLI_assert(0);
-            break;
-        }
-
         if (do_override) {
           BKE_lib_override_library_operations_store_end(override_storage, id);
         }
