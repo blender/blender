@@ -44,13 +44,13 @@ set(INC
 set(SRC
   intern/bake_api.c
   intern/external_engine.c
-  intern/imagetexture.c
   intern/initrender.c
   intern/multires_bake.c
   intern/pipeline.c
-  intern/pointdensity.c
   intern/render_result.c
-  intern/render_texture.c
+  intern/texture_image.c
+  intern/texture_pointdensity.c
+  intern/texture_procedural.c
   intern/zbuf.c
 
   RE_bake.h
@@ -64,7 +64,7 @@ set(SRC
   intern/render_result.h
   intern/render_types.h
   intern/pipeline.h
-  intern/texture.h
+  intern/texture_common.h
   intern/zbuf.h
 )
 
