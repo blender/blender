@@ -73,6 +73,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
+#include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_freestyle.h"
 #include "BKE_gpencil.h"
@@ -1026,6 +1027,339 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BLI_assert(sce->layer_properties == NULL);
 }
 
+static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene, Paint **paint)
+{
+  /* TODO. is this needed */
+  BLO_read_data_address(reader, paint);
+
+  if (*paint) {
+    BKE_paint_blend_read_data(reader, scene, *paint);
+  }
+}
+
+static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
+{
+  BLO_read_list(reader, lb);
+
+  LISTBASE_FOREACH (Sequence *, seq, lb) {
+    if (seq->seqbase.first) {
+      link_recurs_seq(reader, &seq->seqbase);
+    }
+  }
+}
+
+static void scene_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Scene *sce = (Scene *)id;
+
+  sce->depsgraph_hash = NULL;
+  sce->fps_info = NULL;
+
+  memset(&sce->customdata_mask, 0, sizeof(sce->customdata_mask));
+  memset(&sce->customdata_mask_modal, 0, sizeof(sce->customdata_mask_modal));
+
+  BKE_sound_reset_scene_runtime(sce);
+
+  /* set users to one by default, not in lib-link, this will increase it for compo nodes */
+  id_us_ensure_real(&sce->id);
+
+  BLO_read_list(reader, &(sce->base));
+
+  BLO_read_data_address(reader, &sce->adt);
+  BKE_animdata_blend_read_data(reader, sce->adt);
+
+  BLO_read_list(reader, &sce->keyingsets);
+  BKE_keyingsets_blend_read_data(reader, &sce->keyingsets);
+
+  BLO_read_data_address(reader, &sce->basact);
+
+  BLO_read_data_address(reader, &sce->toolsettings);
+  if (sce->toolsettings) {
+
+    /* Reset last_location and last_hit, so they are not remembered across sessions. In some files
+     * these are also NaN, which could lead to crashes in painting. */
+    struct UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
+    zero_v3(ups->last_location);
+    ups->last_hit = 0;
+
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->sculpt);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->vpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->wpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->uvsculpt);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_paint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_vertexpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_sculptpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_weightpaint);
+
+    BKE_paint_blend_read_data(reader, sce, &sce->toolsettings->imapaint.paint);
+
+    sce->toolsettings->particle.paintcursor = NULL;
+    sce->toolsettings->particle.scene = NULL;
+    sce->toolsettings->particle.object = NULL;
+    sce->toolsettings->gp_sculpt.paintcursor = NULL;
+
+    /* relink grease pencil interpolation curves */
+    BLO_read_data_address(reader, &sce->toolsettings->gp_interpolate.custom_ipo);
+    if (sce->toolsettings->gp_interpolate.custom_ipo) {
+      BKE_curvemapping_blend_read(reader, sce->toolsettings->gp_interpolate.custom_ipo);
+    }
+    /* relink grease pencil multiframe falloff curve */
+    BLO_read_data_address(reader, &sce->toolsettings->gp_sculpt.cur_falloff);
+    if (sce->toolsettings->gp_sculpt.cur_falloff) {
+      BKE_curvemapping_blend_read(reader, sce->toolsettings->gp_sculpt.cur_falloff);
+    }
+    /* relink grease pencil primitive curve */
+    BLO_read_data_address(reader, &sce->toolsettings->gp_sculpt.cur_primitive);
+    if (sce->toolsettings->gp_sculpt.cur_primitive) {
+      BKE_curvemapping_blend_read(reader, sce->toolsettings->gp_sculpt.cur_primitive);
+    }
+
+    /* Relink toolsettings curve profile */
+    BLO_read_data_address(reader, &sce->toolsettings->custom_bevel_profile_preset);
+    if (sce->toolsettings->custom_bevel_profile_preset) {
+      BKE_curveprofile_blend_read(reader, sce->toolsettings->custom_bevel_profile_preset);
+    }
+  }
+
+  if (sce->ed) {
+    ListBase *old_seqbasep = &sce->ed->seqbase;
+
+    BLO_read_data_address(reader, &sce->ed);
+    Editing *ed = sce->ed;
+
+    BLO_read_data_address(reader, &ed->act_seq);
+    ed->cache = NULL;
+    ed->prefetch_job = NULL;
+
+    /* recursive link sequences, lb will be correctly initialized */
+    link_recurs_seq(reader, &ed->seqbase);
+
+    Sequence *seq;
+    SEQ_ALL_BEGIN (ed, seq) {
+      /* Do as early as possible, so that other parts of reading can rely on valid session UUID. */
+      BKE_sequence_session_uuid_generate(seq);
+
+      BLO_read_data_address(reader, &seq->seq1);
+      BLO_read_data_address(reader, &seq->seq2);
+      BLO_read_data_address(reader, &seq->seq3);
+
+      /* a patch: after introduction of effects with 3 input strips */
+      if (seq->seq3 == NULL) {
+        seq->seq3 = seq->seq2;
+      }
+
+      BLO_read_data_address(reader, &seq->effectdata);
+      BLO_read_data_address(reader, &seq->stereo3d_format);
+
+      if (seq->type & SEQ_TYPE_EFFECT) {
+        seq->flag |= SEQ_EFFECT_NOT_LOADED;
+      }
+
+      if (seq->type == SEQ_TYPE_SPEED) {
+        SpeedControlVars *s = seq->effectdata;
+        s->frameMap = NULL;
+      }
+
+      if (seq->type == SEQ_TYPE_TEXT) {
+        TextVars *t = seq->effectdata;
+        t->text_blf_id = SEQ_FONT_NOT_LOADED;
+      }
+
+      BLO_read_data_address(reader, &seq->prop);
+      IDP_BlendDataRead(reader, &seq->prop);
+
+      BLO_read_data_address(reader, &seq->strip);
+      if (seq->strip && seq->strip->done == 0) {
+        seq->strip->done = true;
+
+        if (ELEM(seq->type,
+                 SEQ_TYPE_IMAGE,
+                 SEQ_TYPE_MOVIE,
+                 SEQ_TYPE_SOUND_RAM,
+                 SEQ_TYPE_SOUND_HD)) {
+          BLO_read_data_address(reader, &seq->strip->stripdata);
+        }
+        else {
+          seq->strip->stripdata = NULL;
+        }
+        BLO_read_data_address(reader, &seq->strip->crop);
+        BLO_read_data_address(reader, &seq->strip->transform);
+        BLO_read_data_address(reader, &seq->strip->proxy);
+        if (seq->strip->proxy) {
+          seq->strip->proxy->anim = NULL;
+        }
+        else if (seq->flag & SEQ_USE_PROXY) {
+          SEQ_proxy_set(seq, true);
+        }
+
+        /* need to load color balance to it could be converted to modifier */
+        BLO_read_data_address(reader, &seq->strip->color_balance);
+      }
+
+      BKE_sequence_modifier_blend_read_data(reader, &seq->modifiers);
+    }
+    SEQ_ALL_END;
+
+    /* link metastack, slight abuse of structs here,
+     * have to restore pointer to internal part in struct */
+    {
+      Sequence temp;
+      void *poin;
+      intptr_t offset;
+
+      offset = ((intptr_t) & (temp.seqbase)) - ((intptr_t)&temp);
+
+      /* root pointer */
+      if (ed->seqbasep == old_seqbasep) {
+        ed->seqbasep = &ed->seqbase;
+      }
+      else {
+        poin = POINTER_OFFSET(ed->seqbasep, -offset);
+
+        poin = BLO_read_get_new_data_address(reader, poin);
+
+        if (poin) {
+          ed->seqbasep = (ListBase *)POINTER_OFFSET(poin, offset);
+        }
+        else {
+          ed->seqbasep = &ed->seqbase;
+        }
+      }
+      /* stack */
+      BLO_read_list(reader, &(ed->metastack));
+
+      LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
+        BLO_read_data_address(reader, &ms->parseq);
+
+        if (ms->oldbasep == old_seqbasep) {
+          ms->oldbasep = &ed->seqbase;
+        }
+        else {
+          poin = POINTER_OFFSET(ms->oldbasep, -offset);
+          poin = BLO_read_get_new_data_address(reader, poin);
+          if (poin) {
+            ms->oldbasep = (ListBase *)POINTER_OFFSET(poin, offset);
+          }
+          else {
+            ms->oldbasep = &ed->seqbase;
+          }
+        }
+      }
+    }
+  }
+
+#ifdef DURIAN_CAMERA_SWITCH
+  /* Runtime */
+  sce->r.mode &= ~R_NO_CAMERA_SWITCH;
+#endif
+
+  BLO_read_data_address(reader, &sce->r.avicodecdata);
+  if (sce->r.avicodecdata) {
+    BLO_read_data_address(reader, &sce->r.avicodecdata->lpFormat);
+    BLO_read_data_address(reader, &sce->r.avicodecdata->lpParms);
+  }
+  if (sce->r.ffcodecdata.properties) {
+    BLO_read_data_address(reader, &sce->r.ffcodecdata.properties);
+    IDP_BlendDataRead(reader, &sce->r.ffcodecdata.properties);
+  }
+
+  BLO_read_list(reader, &(sce->markers));
+  LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
+    BLO_read_data_address(reader, &marker->prop);
+    IDP_BlendDataRead(reader, &marker->prop);
+  }
+
+  BLO_read_list(reader, &(sce->transform_spaces));
+  BLO_read_list(reader, &(sce->r.layers));
+  BLO_read_list(reader, &(sce->r.views));
+
+  LISTBASE_FOREACH (SceneRenderLayer *, srl, &sce->r.layers) {
+    BLO_read_data_address(reader, &srl->prop);
+    IDP_BlendDataRead(reader, &srl->prop);
+    BLO_read_list(reader, &(srl->freestyleConfig.modules));
+    BLO_read_list(reader, &(srl->freestyleConfig.linesets));
+  }
+
+  BKE_color_managed_view_settings_blend_read_data(reader, &sce->view_settings);
+
+  BLO_read_data_address(reader, &sce->rigidbody_world);
+  RigidBodyWorld *rbw = sce->rigidbody_world;
+  if (rbw) {
+    BLO_read_data_address(reader, &rbw->shared);
+
+    if (rbw->shared == NULL) {
+      /* Link deprecated caches if they exist, so we can use them for versioning.
+       * We should only do this when rbw->shared == NULL, because those pointers
+       * are always set (for compatibility with older Blenders). We mustn't link
+       * the same pointcache twice. */
+      BKE_ptcache_blend_read_data(reader, &rbw->ptcaches, &rbw->pointcache, false);
+
+      /* make sure simulation starts from the beginning after loading file */
+      if (rbw->pointcache) {
+        rbw->ltime = (float)rbw->pointcache->startframe;
+      }
+    }
+    else {
+      /* must nullify the reference to physics sim object, since it no-longer exist
+       * (and will need to be recalculated)
+       */
+      rbw->shared->physics_world = NULL;
+
+      /* link caches */
+      BKE_ptcache_blend_read_data(reader, &rbw->shared->ptcaches, &rbw->shared->pointcache, false);
+
+      /* make sure simulation starts from the beginning after loading file */
+      if (rbw->shared->pointcache) {
+        rbw->ltime = (float)rbw->shared->pointcache->startframe;
+      }
+    }
+    rbw->objects = NULL;
+    rbw->numbodies = 0;
+
+    /* set effector weights */
+    BLO_read_data_address(reader, &rbw->effector_weights);
+    if (!rbw->effector_weights) {
+      rbw->effector_weights = BKE_effector_add_weights(NULL);
+    }
+  }
+
+  BLO_read_data_address(reader, &sce->preview);
+  BKE_previewimg_blend_read(reader, sce->preview);
+
+  BKE_curvemapping_blend_read(reader, &sce->r.mblur_shutter_curve);
+
+#ifdef USE_COLLECTION_COMPAT_28
+  /* this runs before the very first doversion */
+  if (sce->collection) {
+    BLO_read_data_address(reader, &sce->collection);
+    BKE_collection_compat_blend_read_data(reader, sce->collection);
+  }
+#endif
+
+  /* insert into global old-new map for reading without UI (link_global accesses it again) */
+  BLO_read_glob_list(reader, &sce->view_layers);
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
+    BKE_view_layer_blend_read_data(reader, view_layer);
+  }
+
+  if (BLO_read_data_is_undo(reader)) {
+    /* If it's undo do nothing here, caches are handled by higher-level generic calling code. */
+  }
+  else {
+    /* else try to read the cache from file. */
+    BLO_read_data_address(reader, &sce->eevee.light_cache_data);
+    if (sce->eevee.light_cache_data) {
+      EEVEE_lightcache_blend_read_data(reader, sce->eevee.light_cache_data);
+    }
+  }
+  EEVEE_lightcache_info_update(&sce->eevee);
+
+  BKE_screen_view3d_shading_blend_read_data(reader, &sce->display.shading);
+
+  BLO_read_data_address(reader, &sce->layer_properties);
+  IDP_BlendDataRead(reader, &sce->layer_properties);
+}
+
 static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 {
   Scene *scene_new = (Scene *)id_new;
@@ -1062,7 +1396,7 @@ IDTypeInfo IDType_ID_SCE = {
     .foreach_cache = scene_foreach_cache,
 
     .blend_write = scene_blend_write,
-    .blend_read_data = NULL,
+    .blend_read_data = scene_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
 
