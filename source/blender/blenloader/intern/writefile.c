@@ -153,6 +153,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
+#include "BKE_paint.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
@@ -1323,10 +1324,7 @@ static void write_view_settings(BlendWriter *writer, ColorManagedViewSettings *v
 
 static void write_paint(BlendWriter *writer, Paint *p)
 {
-  if (p->cavity_curve) {
-    BKE_curvemapping_blend_write(writer, p->cavity_curve);
-  }
-  BLO_write_struct_array(writer, PaintToolSlot, p->tool_slots_len, p->tool_slots);
+  BKE_paint_blend_write(writer, p);
 }
 
 static void write_layer_collections(BlendWriter *writer, ListBase *lb)
