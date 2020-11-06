@@ -113,6 +113,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
+#include "BKE_anim_visualization.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_brush.h"
@@ -2912,22 +2913,6 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
   }
 }
 
-/* direct data for cache */
-static void direct_link_motionpath(BlendDataReader *reader, bMotionPath *mpath)
-{
-  /* sanity check */
-  if (mpath == NULL) {
-    return;
-  }
-
-  /* relink points cache */
-  BLO_read_data_address(reader, &mpath->points);
-
-  mpath->points_vbo = NULL;
-  mpath->batch_line = NULL;
-  mpath->batch_points = NULL;
-}
-
 static void direct_link_pose(BlendDataReader *reader, bPose *pose)
 {
   if (!pose) {
@@ -2959,7 +2944,7 @@ static void direct_link_pose(BlendDataReader *reader, bPose *pose)
 
     BLO_read_data_address(reader, &pchan->mpath);
     if (pchan->mpath) {
-      direct_link_motionpath(reader, pchan->mpath);
+      animviz_motionpath_blend_read_data(reader, pchan->mpath);
     }
 
     BLI_listbase_clear(&pchan->iktree);
@@ -3005,7 +2990,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
 
   BLO_read_data_address(reader, &ob->mpath);
   if (ob->mpath) {
-    direct_link_motionpath(reader, ob->mpath);
+    animviz_motionpath_blend_read_data(reader, ob->mpath);
   }
 
   BLO_read_list(reader, &ob->defbase);

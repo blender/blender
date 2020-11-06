@@ -129,6 +129,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
+#include "BKE_anim_visualization.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_blender_version.h"
@@ -810,20 +811,6 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   }
 }
 
-static void write_motionpath(BlendWriter *writer, bMotionPath *mpath)
-{
-  /* sanity checks */
-  if (mpath == NULL) {
-    return;
-  }
-
-  /* firstly, just write the motionpath struct */
-  BLO_write_struct(writer, bMotionPath, mpath);
-
-  /* now write the array of data */
-  BLO_write_struct_array(writer, bMotionPathVert, mpath->length, mpath->points);
-}
-
 static void write_constraints(BlendWriter *writer, ListBase *conlist)
 {
   LISTBASE_FOREACH (bConstraint *, con, conlist) {
@@ -895,7 +882,7 @@ static void write_pose(BlendWriter *writer, bPose *pose, bArmature *arm)
 
     write_constraints(writer, &chan->constraints);
 
-    write_motionpath(writer, chan->mpath);
+    animviz_motionpath_blend_write(writer, chan->mpath);
 
     /* Prevent crashes with autosave,
      * when a bone duplicated in edit-mode has not yet been assigned to its pose-channel.
@@ -980,7 +967,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     write_defgroups(writer, &ob->defbase);
     write_fmaps(writer, &ob->fmaps);
     write_constraints(writer, &ob->constraints);
-    write_motionpath(writer, ob->mpath);
+    animviz_motionpath_blend_write(writer, ob->mpath);
 
     BLO_write_struct(writer, PartDeflect, ob->pd);
     if (ob->soft) {
