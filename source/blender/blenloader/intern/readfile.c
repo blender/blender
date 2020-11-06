@@ -2661,8 +2661,8 @@ static void direct_link_constraints(BlendDataReader *reader, ListBase *lb)
       case CONSTRAINT_TYPE_KINEMATIC: {
         bKinematicConstraint *data = con->data;
 
-        con->lin_error = 0.f;
-        con->rot_error = 0.f;
+        con->lin_error = 0.0f;
+        con->rot_error = 0.0f;
 
         /* version patch for runtime flag, was not cleared in some case */
         data->flag &= ~CONSTRAINT_IK_AUTO;

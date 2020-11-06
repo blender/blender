@@ -25,8 +25,8 @@
 
 static bNodeSocketTemplate cmp_node_lensdist_in[] = {
     {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_FLOAT, N_("Distort"), 0.f, 0.f, 0.f, 0.f, -0.999f, 1.f, PROP_NONE},
-    {SOCK_FLOAT, N_("Dispersion"), 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, PROP_NONE},
+    {SOCK_FLOAT, N_("Distort"), 0.0f, 0.0f, 0.0f, 0.0f, -0.999f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Dispersion"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
     {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_lensdist_out[] = {

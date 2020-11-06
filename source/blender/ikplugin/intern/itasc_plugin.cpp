@@ -965,18 +965,18 @@ static int convert_channels(struct Depsgraph *depsgraph,
     /* set DoF flag */
     flag = 0;
     if (!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP) &&
-        (!(pchan->ikflag & BONE_IK_XLIMIT) || pchan->limitmin[0] < 0.f ||
-         pchan->limitmax[0] > 0.f)) {
+        (!(pchan->ikflag & BONE_IK_XLIMIT) || pchan->limitmin[0] < 0.0f ||
+         pchan->limitmax[0] > 0.0f)) {
       flag |= IK_XDOF;
     }
     if (!(pchan->ikflag & BONE_IK_NO_YDOF) && !(pchan->ikflag & BONE_IK_NO_YDOF_TEMP) &&
-        (!(pchan->ikflag & BONE_IK_YLIMIT) || pchan->limitmin[1] < 0.f ||
-         pchan->limitmax[1] > 0.f)) {
+        (!(pchan->ikflag & BONE_IK_YLIMIT) || pchan->limitmin[1] < 0.0f ||
+         pchan->limitmax[1] > 0.0f)) {
       flag |= IK_YDOF;
     }
     if (!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP) &&
-        (!(pchan->ikflag & BONE_IK_ZLIMIT) || pchan->limitmin[2] < 0.f ||
-         pchan->limitmax[2] > 0.f)) {
+        (!(pchan->ikflag & BONE_IK_ZLIMIT) || pchan->limitmin[2] < 0.0f ||
+         pchan->limitmax[2] > 0.0f)) {
       flag |= IK_ZDOF;
     }
 
@@ -1535,7 +1535,7 @@ static IK_Scene *convert_tree(
 
     /* add the end effector
      * estimate the average bone length, used to clamp feedback error */
-    for (bonecnt = 0, bonelen = 0.f, a = iktarget->channel; a >= 0;
+    for (bonecnt = 0, bonelen = 0.0f, a = iktarget->channel; a >= 0;
          a = tree->parent[a], bonecnt++) {
       bonelen += ikscene->blScale * tree->pchan[a]->bone->length;
     }

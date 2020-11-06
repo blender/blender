@@ -4223,7 +4223,7 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  static float default_dir[3] = {0.f, 0.f, 1.f};
+  static float default_dir[3] = {0.0f, 0.0f, 1.0f};
   static float default_col[3] = {0.8f, 0.8f, 0.8f};
 
   srna = RNA_def_struct(brna, "UserSolidLight", NULL);
@@ -4284,26 +4284,26 @@ static void rna_def_userdef_walk_navigation(BlenderRNA *brna)
       "Speed factor for when looking around, high values mean faster mouse movement");
 
   prop = RNA_def_property(srna, "walk_speed", PROP_FLOAT, PROP_VELOCITY);
-  RNA_def_property_range(prop, 0.01f, 100.f);
+  RNA_def_property_range(prop, 0.01f, 100.0f);
   RNA_def_property_ui_text(prop, "Walk Speed", "Base speed for walking and flying");
 
   prop = RNA_def_property(srna, "walk_speed_factor", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_range(prop, 0.01f, 10.f);
+  RNA_def_property_range(prop, 0.01f, 10.0f);
   RNA_def_property_ui_text(
       prop, "Speed Factor", "Multiplication factor when using the fast or slow modifiers");
 
   prop = RNA_def_property(srna, "view_height", PROP_FLOAT, PROP_UNIT_LENGTH);
-  RNA_def_property_ui_range(prop, 0.1f, 10.f, 0.1, 2);
-  RNA_def_property_range(prop, 0.f, 1000.f);
+  RNA_def_property_ui_range(prop, 0.1f, 10.0f, 0.1, 2);
+  RNA_def_property_range(prop, 0.0f, 1000.0f);
   RNA_def_property_ui_text(prop, "View Height", "View distance from the floor when walking");
 
   prop = RNA_def_property(srna, "jump_height", PROP_FLOAT, PROP_UNIT_LENGTH);
-  RNA_def_property_ui_range(prop, 0.1f, 10.f, 0.1, 2);
-  RNA_def_property_range(prop, 0.1f, 100.f);
+  RNA_def_property_ui_range(prop, 0.1f, 10.0f, 0.1, 2);
+  RNA_def_property_range(prop, 0.1f, 100.0f);
   RNA_def_property_ui_text(prop, "Jump Height", "Maximum height of a jump");
 
   prop = RNA_def_property(srna, "teleport_time", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_range(prop, 0.f, 10.f);
+  RNA_def_property_range(prop, 0.0f, 10.0f);
   RNA_def_property_ui_text(
       prop, "Teleport Duration", "Interval of time warp when teleporting in navigation mode");
 

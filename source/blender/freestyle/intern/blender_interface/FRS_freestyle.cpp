@@ -150,10 +150,10 @@ static void init_view(Render *re)
   float thickness = 1.0f;
   switch (re->r.line_thickness_mode) {
     case R_LINE_THICKNESS_ABSOLUTE:
-      thickness = re->r.unit_line_thickness * (re->r.size / 100.f);
+      thickness = re->r.unit_line_thickness * (re->r.size / 100.0f);
       break;
     case R_LINE_THICKNESS_RELATIVE:
-      thickness = height / 480.f;
+      thickness = height / 480.0f;
       break;
   }
 

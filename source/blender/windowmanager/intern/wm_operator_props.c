@@ -284,12 +284,12 @@ void WM_operator_properties_select_random(wmOperatorType *ot)
 {
   RNA_def_float_percentage(ot->srna,
                            "percent",
-                           50.f,
+                           50.0f,
                            0.0f,
                            100.0f,
                            "Percent",
                            "Percentage of objects to select randomly",
-                           0.f,
+                           0.0f,
                            100.0f);
   RNA_def_int(ot->srna,
               "seed",

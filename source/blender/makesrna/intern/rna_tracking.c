@@ -1186,7 +1186,7 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "focal");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.0f, 5000.f, 1, 2);
+  RNA_def_property_ui_range(prop, 0.0f, 5000.0f, 1, 2);
   RNA_def_property_ui_text(prop, "Focal Length", "Camera's focal length");
   RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, NULL);
 

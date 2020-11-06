@@ -88,7 +88,7 @@ static void do_kink_spiral_deform(ParticleKey *state,
 {
   float result[3];
 
-  CLAMP(time, 0.f, 1.f);
+  CLAMP(time, 0.0f, 1.0f);
 
   copy_v3_v3(result, state->co);
 
@@ -426,21 +426,21 @@ void do_kink(ParticleKey *state,
              float obmat[4][4],
              int smooth_start)
 {
-  float kink[3] = {1.f, 0.f, 0.f}, par_vec[3], q1[4] = {1.f, 0.f, 0.f, 0.f};
-  float t, dt = 1.f, result[3];
+  float kink[3] = {1.0f, 0.0f, 0.0f}, par_vec[3], q1[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+  float t, dt = 1.0f, result[3];
 
   if (ELEM(type, PART_KINK_NO, PART_KINK_SPIRAL)) {
     return;
   }
 
-  CLAMP(time, 0.f, 1.f);
+  CLAMP(time, 0.0f, 1.0f);
 
   if (shape != 0.0f && !ELEM(type, PART_KINK_BRAID)) {
     if (shape < 0.0f) {
-      time = (float)pow(time, 1.f + shape);
+      time = (float)pow(time, 1.0f + shape);
     }
     else {
-      time = (float)pow(time, 1.f / (1.f - shape));
+      time = (float)pow(time, 1.0f / (1.0f - shape));
     }
   }
 
@@ -449,14 +449,14 @@ void do_kink(ParticleKey *state,
   if (smooth_start) {
     dt = fabsf(t);
     /* smooth the beginning of kink */
-    CLAMP(dt, 0.f, (float)M_PI);
-    dt = sinf(dt / 2.f);
+    CLAMP(dt, 0.0f, (float)M_PI);
+    dt = sinf(dt / 2.0f);
   }
 
   if (!ELEM(type, PART_KINK_RADIAL)) {
     float temp[3];
 
-    kink[axis] = 1.f;
+    kink[axis] = 1.0f;
 
     if (obmat) {
       mul_mat3_m4_v3(obmat, kink);
@@ -487,7 +487,7 @@ void do_kink(ParticleKey *state,
       break;
     }
     case PART_KINK_RADIAL: {
-      if (flat > 0.f) {
+      if (flat > 0.0f) {
         float proj[3];
         /* flatten along strand */
         project_v3_v3v3(proj, par_vec, par_vel);
@@ -500,7 +500,7 @@ void do_kink(ParticleKey *state,
     case PART_KINK_WAVE: {
       madd_v3_v3fl(result, kink, amplitude * sinf(t));
 
-      if (flat > 0.f) {
+      if (flat > 0.0f) {
         float proj[3];
         /* flatten along wave */
         project_v3_v3v3(proj, par_vec, kink);
@@ -513,8 +513,8 @@ void do_kink(ParticleKey *state,
       break;
     }
     case PART_KINK_BRAID: {
-      float y_vec[3] = {0.f, 1.f, 0.f};
-      float z_vec[3] = {0.f, 0.f, 1.f};
+      float y_vec[3] = {0.0f, 1.0f, 0.0f};
+      float z_vec[3] = {0.0f, 0.0f, 1.0f};
       float vec_one[3], state_co[3];
       float inp_y, inp_z, length;
 
@@ -533,21 +533,21 @@ void do_kink(ParticleKey *state,
         copy_v3_v3(state_co, y_vec);
 
         mul_v3_fl(y_vec, amplitude * cosf(t));
-        mul_v3_fl(z_vec, amplitude / 2.f * sinf(2.f * t));
+        mul_v3_fl(z_vec, amplitude / 2.0f * sinf(2.0f * t));
       }
       else if (inp_z > 0.0f) {
-        mul_v3_v3fl(state_co, z_vec, sinf((float)M_PI / 3.f));
+        mul_v3_v3fl(state_co, z_vec, sinf((float)M_PI / 3.0f));
         madd_v3_v3fl(state_co, y_vec, -0.5f);
 
-        mul_v3_fl(y_vec, -amplitude * cosf(t + (float)M_PI / 3.f));
-        mul_v3_fl(z_vec, amplitude / 2.f * cosf(2.f * t + (float)M_PI / 6.f));
+        mul_v3_fl(y_vec, -amplitude * cosf(t + (float)M_PI / 3.0f));
+        mul_v3_fl(z_vec, amplitude / 2.0f * cosf(2.0f * t + (float)M_PI / 6.0f));
       }
       else {
-        mul_v3_v3fl(state_co, z_vec, -sinf((float)M_PI / 3.f));
+        mul_v3_v3fl(state_co, z_vec, -sinf((float)M_PI / 3.0f));
         madd_v3_v3fl(state_co, y_vec, -0.5f);
 
-        mul_v3_fl(y_vec, amplitude * -sinf(t + (float)M_PI / 6.f));
-        mul_v3_fl(z_vec, amplitude / 2.f * -sinf(2.f * t + (float)M_PI / 3.f));
+        mul_v3_fl(y_vec, amplitude * -sinf(t + (float)M_PI / 6.0f));
+        mul_v3_fl(z_vec, amplitude / 2.0f * -sinf(2.0f * t + (float)M_PI / 3.0f));
       }
 
       mul_v3_fl(state_co, amplitude);
@@ -555,13 +555,13 @@ void do_kink(ParticleKey *state,
       sub_v3_v3v3(par_vec, state->co, state_co);
 
       length = normalize_v3(par_vec);
-      mul_v3_fl(par_vec, MIN2(length, amplitude / 2.f));
+      mul_v3_fl(par_vec, MIN2(length, amplitude / 2.0f));
 
       add_v3_v3v3(state_co, par_co, y_vec);
       add_v3_v3(state_co, z_vec);
       add_v3_v3(state_co, par_vec);
 
-      shape = 2.f * (float)M_PI * (1.f + shape);
+      shape = 2.0f * (float)M_PI * (1.0f + shape);
 
       if (t < shape) {
         shape = t / shape;
@@ -576,7 +576,7 @@ void do_kink(ParticleKey *state,
   }
 
   /* blend the start of the kink */
-  if (dt < 1.f) {
+  if (dt < 1.0f) {
     interp_v3_v3v3(state->co, state->co, result, dt);
   }
   else {
@@ -881,8 +881,8 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
                      part->clump_noise_size,
                      clumpcurve);
 
-    if (kink_freq != 0.f) {
-      kink_amp *= (1.f - kink_amp_clump * clump);
+    if (kink_freq != 0.0f) {
+      kink_amp *= (1.0f - kink_amp_clump * clump);
 
       do_kink(state,
               modifier_ctx->par_co,
@@ -904,17 +904,17 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
     do_rough_curve(modifier_ctx->orco, mat, t, rough1, part->rough1_size, roughcurve, state);
   }
   else {
-    if (rough1 > 0.f) {
+    if (rough1 > 0.0f) {
       do_rough(modifier_ctx->orco, mat, t, rough1, part->rough1_size, 0.0, state);
     }
 
-    if (rough2 > 0.f) {
+    if (rough2 > 0.0f) {
       float vec[3];
       psys_frand_vec(sim->psys, i + 27, vec);
       do_rough(vec, mat, t, rough2, part->rough2_size, part->rough2_thres, state);
     }
 
-    if (rough_end > 0.f) {
+    if (rough_end > 0.0f) {
       float vec[3];
       psys_frand_vec(sim->psys, i + 27, vec);
       do_rough_end(vec, mat, t, rough_end, part->rough_end_shape, state);

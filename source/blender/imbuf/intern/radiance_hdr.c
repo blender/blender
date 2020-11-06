@@ -329,9 +329,9 @@ static int fwritecolrs(
       fcol[BLU] = (channels >= 3) ? fpscan[j + 2] : fpscan[j];
     }
     else {
-      fcol[RED] = (float)ibufscan[j] / 255.f;
-      fcol[GRN] = (float)((channels >= 2) ? ibufscan[j + 1] : ibufscan[j]) / 255.f;
-      fcol[BLU] = (float)((channels >= 3) ? ibufscan[j + 2] : ibufscan[j]) / 255.f;
+      fcol[RED] = (float)ibufscan[j] / 255.0f;
+      fcol[GRN] = (float)((channels >= 2) ? ibufscan[j + 1] : ibufscan[j]) / 255.0f;
+      fcol[BLU] = (float)((channels >= 3) ? ibufscan[j + 2] : ibufscan[j]) / 255.0f;
     }
     FLOAT2RGBE(fcol, rgbe);
     COPY_RGBE(rgbe, rgbe_scan[i]);

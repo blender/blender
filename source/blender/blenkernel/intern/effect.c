@@ -699,8 +699,8 @@ int get_effector_data(EffectorCache *eff,
       copy_v3_v3(efd->loc, state.co);
 
       /* rather than use the velocity use rotated x-axis (defaults to velocity) */
-      efd->nor[0] = 1.f;
-      efd->nor[1] = efd->nor[2] = 0.f;
+      efd->nor[0] = 1.0f;
+      efd->nor[1] = efd->nor[2] = 0.0f;
       mul_qt_v3(state.rot, efd->nor);
 
       if (real_velocity) {

@@ -758,7 +758,7 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
   float aw3 = fabsf(tex->vn_w3);
   float aw4 = fabsf(tex->vn_w4);
   float sc = (aw1 + aw2 + aw3 + aw4);
-  if (sc != 0.f) {
+  if (sc != 0.0f) {
     sc = tex->ns_outscale / sc;
   }
 

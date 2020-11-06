@@ -462,7 +462,7 @@ static void ptcache_particle_interpolate(int index,
   psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
   interp_qt_qtqt(pa->state.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 
-  mul_v3_fl(pa->state.vel, 1.f / (dfra * timestep));
+  mul_v3_fl(pa->state.vel, 1.0f / (dfra * timestep));
 
   pa->state.time = cfra;
 }

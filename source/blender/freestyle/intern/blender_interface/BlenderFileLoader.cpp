@@ -61,7 +61,7 @@ NodeGroup *BlenderFileLoader::Load()
   _viewplane_bottom = _re->viewplane.ymin;
   _viewplane_top = _re->viewplane.ymax;
 
-  if (_re->clip_start < 0.f) {
+  if (_re->clip_start < 0.0f) {
     // Adjust clipping start/end and set up a Z offset when the viewport preview
     // is used with the orthographic view.  In this case, _re->clip_start is negative,
     // while Freestyle assumes that imported mesh data are in the camera coordinate
@@ -73,7 +73,7 @@ NodeGroup *BlenderFileLoader::Load()
   else {
     _z_near = -_re->clip_start;
     _z_far = -_re->clip_end;
-    _z_offset = 0.f;
+    _z_offset = 0.0f;
   }
 
 #if 0
@@ -577,7 +577,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
       tmpMat.setLine(mat->line_col[0], mat->line_col[1], mat->line_col[2], mat->line_col[3]);
       tmpMat.setDiffuse(mat->r, mat->g, mat->b, 1.0f);
       tmpMat.setSpecular(mat->specr, mat->specg, mat->specb, 1.0f);
-      tmpMat.setShininess(128.f);
+      tmpMat.setShininess(128.0f);
       tmpMat.setPriority(mat->line_priority);
     }
 

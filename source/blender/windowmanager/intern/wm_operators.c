@@ -2886,7 +2886,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           case PROP_FACTOR:
             new_value = (WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) / WM_RADIAL_CONTROL_DISPLAY_WIDTH;
             if (snap) {
-              new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
+              new_value = ((int)ceil(new_value * 10.0f) * 10.0f) / 100.0f;
             }
             /* Invert new value to increase the factor moving the mouse to the right */
             new_value = 1 - new_value;

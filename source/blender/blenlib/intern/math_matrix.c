@@ -2920,7 +2920,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
         if (ks == k) {
           break;
         }
-        t = (ks != p ? fabsf(e[ks]) : 0.f) + (ks != k + 1 ? fabsf(e[ks - 1]) : 0.0f);
+        t = (ks != p ? fabsf(e[ks]) : 0.0f) + (ks != k + 1 ? fabsf(e[ks - 1]) : 0.0f);
         if (fabsf(s[ks]) <= eps * t) {
           s[ks] = 0.0f;
           break;

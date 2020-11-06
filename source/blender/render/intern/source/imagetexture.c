@@ -282,9 +282,9 @@ int imagewrap(Tex *tex,
        * the normal used in the renderer points inward. It is generated
        * this way in calc_vertexnormals(). Should this ever change
        * this negate must be removed. */
-      texres->nor[0] = -2.f * (texres->tr - 0.5f);
-      texres->nor[1] = 2.f * (texres->tg - 0.5f);
-      texres->nor[2] = 2.f * (texres->tb - 0.5f);
+      texres->nor[0] = -2.0f * (texres->tr - 0.5f);
+      texres->nor[1] = 2.0f * (texres->tg - 0.5f);
+      texres->nor[2] = 2.0f * (texres->tb - 0.5f);
     }
     else {
       /* bump: take three samples */
@@ -798,7 +798,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
       col[0] = fp[0];
       col[1] = fp[1];
       col[2] = fp[2];
-      col[3] = clip ? 0.f : (ibuf->channels == 4 ? fp[3] : 1.f);
+      col[3] = clip ? 0.0f : (ibuf->channels == 4 ? fp[3] : 1.0f);
     }
   }
   else {
@@ -807,7 +807,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
     col[0] = rect[0] * inv_alpha_fac;
     col[1] = rect[1] * inv_alpha_fac;
     col[2] = rect[2] * inv_alpha_fac;
-    col[3] = clip ? 0.f : rect[3] * (1.f / 255.f);
+    col[3] = clip ? 0.0f : rect[3] * (1.0f / 255.0f);
   }
   return clip;
 }
@@ -820,7 +820,7 @@ static int ibuf_get_color_clip_bilerp(
     float c00[4], c01[4], c10[4], c11[4];
     const float ufl = floorf(u -= 0.5f), vfl = floorf(v -= 0.5f);
     const float uf = u - ufl, vf = v - vfl;
-    const float w00 = (1.f - uf) * (1.f - vf), w10 = uf * (1.f - vf), w01 = (1.f - uf) * vf,
+    const float w00 = (1.0f - uf) * (1.0f - vf), w10 = uf * (1.0f - vf), w01 = (1.0f - uf) * vf,
                 w11 = uf * vf;
     const int x1 = (int)ufl, y1 = (int)vfl, x2 = x1 + 1, y2 = y1 + 1;
     int clip = ibuf_get_color_clip(c00, ibuf, x1, y1, extflag);
@@ -830,7 +830,7 @@ static int ibuf_get_color_clip_bilerp(
     col[0] = w00 * c00[0] + w10 * c10[0] + w01 * c01[0] + w11 * c11[0];
     col[1] = w00 * c00[1] + w10 * c10[1] + w01 * c01[1] + w11 * c11[1];
     col[2] = w00 * c00[2] + w10 * c10[2] + w01 * c01[2] + w11 * c11[2];
-    col[3] = clip ? 0.f : w00 * c00[3] + w10 * c10[3] + w01 * c01[3] + w11 * c11[3];
+    col[3] = clip ? 0.0f : w00 * c00[3] + w10 * c10[3] + w01 * c01[3] + w11 * c11[3];
     return clip;
   }
   return ibuf_get_color_clip(col, ibuf, (int)u, (int)v, extflag);
@@ -839,7 +839,7 @@ static int ibuf_get_color_clip_bilerp(
 static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t *AFD)
 {
   int xs, ys, clip = 0;
-  float tc[4], xsd, ysd, cw = 0.f;
+  float tc[4], xsd, ysd, cw = 0.0f;
   const float ux = ibuf->x * AFD->dxt[0], uy = ibuf->y * AFD->dxt[1];
   const float vx = ibuf->x * AFD->dyt[0], vy = ibuf->y * AFD->dyt[1];
   int xsam = (int)(0.5f * sqrtf(ux * ux + uy * uy) + 0.5f);
@@ -847,9 +847,9 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
   const int minsam = AFD->intpol ? 2 : 4;
   xsam = CLAMPIS(xsam, minsam, ibuf->x * 2);
   ysam = CLAMPIS(ysam, minsam, ibuf->y * 2);
-  xsd = 1.f / xsam;
-  ysd = 1.f / ysam;
-  texr->tr = texr->tg = texr->tb = texr->ta = 0.f;
+  xsd = 1.0f / xsam;
+  ysd = 1.0f / ysam;
+  texr->tr = texr->tg = texr->tb = texr->ta = 0.0f;
   for (ys = 0; ys < ysam; ys++) {
     for (xs = 0; xs < xsam; xs++) {
       const float su = (xs + ((ys & 1) + 0.5f) * 0.5f) * xsd - 0.5f;
@@ -859,11 +859,11 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
       const int out = ibuf_get_color_clip_bilerp(
           tc, ibuf, pu * ibuf->x, pv * ibuf->y, AFD->intpol, AFD->extflag);
       clip |= out;
-      cw += out ? 0.f : 1.f;
+      cw += out ? 0.0f : 1.0f;
       texr->tr += tc[0];
       texr->tg += tc[1];
       texr->tb += tc[2];
-      texr->ta += texr->talpha ? tc[3] : 0.f;
+      texr->ta += texr->talpha ? tc[3] : 0.0f;
     }
   }
   xsd *= ysd;
@@ -871,7 +871,7 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
   texr->tg *= xsd;
   texr->tb *= xsd;
   /* clipping can be ignored if alpha used, texr->ta already includes filtered edge */
-  texr->ta = texr->talpha ? texr->ta * xsd : (clip ? cw * xsd : 1.f);
+  texr->ta = texr->talpha ? texr->ta * xsd : (clip ? cw * xsd : 1.0f);
 }
 
 typedef struct ReadEWAData {
@@ -906,19 +906,19 @@ static void ewa_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t 
 static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t *AFD)
 {
   const int maxn = AFD->iProbes - 1;
-  const float ll = ((AFD->majrad == AFD->minrad) ? 2.f * AFD->majrad :
-                                                   2.f * (AFD->majrad - AFD->minrad)) /
-                   (maxn ? (float)maxn : 1.f);
-  float du = maxn ? cosf(AFD->theta) * ll : 0.f;
-  float dv = maxn ? sinf(AFD->theta) * ll : 0.f;
+  const float ll = ((AFD->majrad == AFD->minrad) ? 2.0f * AFD->majrad :
+                                                   2.0f * (AFD->majrad - AFD->minrad)) /
+                   (maxn ? (float)maxn : 1.0f);
+  float du = maxn ? cosf(AFD->theta) * ll : 0.0f;
+  float dv = maxn ? sinf(AFD->theta) * ll : 0.0f;
   /* const float D = -0.5f*(du*du + dv*dv) / (AFD->majrad*AFD->majrad); */
   const float D = (EWA_MAXIDX + 1) * 0.25f * (du * du + dv * dv) / (AFD->majrad * AFD->majrad);
-  float d; /* TXF alpha: cw = 0.f; */
+  float d; /* TXF alpha: cw = 0.0f; */
   int n;   /* TXF alpha: clip = 0; */
   /* have to use same scaling for du/dv here as for Ux/Vx/Uy/Vy (*after* D calc.) */
   du *= AFD->dusc;
   dv *= AFD->dvsc;
-  d = texr->tr = texr->tb = texr->tg = texr->ta = 0.f;
+  d = texr->tr = texr->tb = texr->tg = texr->ta = 0.0f;
   for (n = -maxn; n <= maxn; n += 2) {
     float tc[4];
     const float hn = n * 0.5f;
@@ -932,20 +932,20 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
     /*const int out =*/ibuf_get_color_clip_bilerp(
         tc, ibuf, ibuf->x * u, ibuf->y * v, AFD->intpol, AFD->extflag);
     /* TXF alpha: clip |= out;
-     * TXF alpha: cw += out ? 0.f : wt; */
+     * TXF alpha: cw += out ? 0.0f : wt; */
     texr->tr += tc[0] * wt;
     texr->tg += tc[1] * wt;
     texr->tb += tc[2] * wt;
-    texr->ta += texr->talpha ? tc[3] * wt : 0.f;
+    texr->ta += texr->talpha ? tc[3] * wt : 0.0f;
     d += wt;
   }
 
-  d = 1.f / d;
+  d = 1.0f / d;
   texr->tr *= d;
   texr->tg *= d;
   texr->tb *= d;
   /* clipping can be ignored if alpha used, texr->ta already includes filtered edge */
-  texr->ta = texr->talpha ? texr->ta * d : 1.f;  // TXF alpha: (clip ? cw*d : 1.f);
+  texr->ta = texr->talpha ? texr->ta * d : 1.0f;  // TXF alpha: (clip ? cw*d : 1.0f);
 }
 #undef EWA_MAXIDX
 
@@ -1032,7 +1032,7 @@ static int imagewraposa_aniso(Tex *tex,
       filterfunc = area_sample;
   }
 
-  texres->tin = texres->ta = texres->tr = texres->tg = texres->tb = 0.f;
+  texres->tin = texres->ta = texres->tr = texres->tg = texres->tb = 0.0f;
 
   /* we need to set retval OK, otherwise texture code generates normals itself... */
   retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
@@ -1102,7 +1102,7 @@ static int imagewraposa_aniso(Tex *tex,
       miny = addval;
     }
   }
-  else if (tex->filtersize != 1.f) {
+  else if (tex->filtersize != 1.0f) {
     minx *= tex->filtersize;
     miny *= tex->filtersize;
     dxt[0] *= tex->filtersize;
@@ -1196,8 +1196,8 @@ static int imagewraposa_aniso(Tex *tex,
       }
     }
     /* scale around center, (0.5, 0.5) */
-    if (tex->checkerdist < 1.f) {
-      const float omcd = 1.f / (1.f - tex->checkerdist);
+    if (tex->checkerdist < 1.0f) {
+      const float omcd = 1.0f / (1.0f - tex->checkerdist);
       fx = (fx - 0.5f) * omcd + 0.5f;
       fy = (fy - 0.5f) * omcd + 0.5f;
       minx *= omcd;
@@ -1206,8 +1206,8 @@ static int imagewraposa_aniso(Tex *tex,
   }
 
   if (tex->extend == TEX_CLIPCUBE) {
-    if ((fx + minx) < 0.f || (fy + miny) < 0.f || (fx - minx) > 1.f || (fy - miny) > 1.f ||
-        texvec[2] < -1.f || texvec[2] > 1.f) {
+    if ((fx + minx) < 0.0f || (fy + miny) < 0.0f || (fx - minx) > 1.0f || (fy - miny) > 1.0f ||
+        texvec[2] < -1.0f || texvec[2] > 1.0f) {
       if (ima) {
         BKE_image_pool_release_ibuf(ima, ibuf, pool);
       }
@@ -1215,7 +1215,7 @@ static int imagewraposa_aniso(Tex *tex,
     }
   }
   else if (tex->extend == TEX_CLIP || tex->extend == TEX_CHECKER) {
-    if ((fx + minx) < 0.f || (fy + miny) < 0.f || (fx - minx) > 1.f || (fy - miny) > 1.f) {
+    if ((fx + minx) < 0.0f || (fy + miny) < 0.0f || (fx - minx) > 1.0f || (fy - miny) > 1.0f) {
       if (ima) {
         BKE_image_pool_release_ibuf(ima, ibuf, pool);
       }
@@ -1224,8 +1224,8 @@ static int imagewraposa_aniso(Tex *tex,
   }
   else {
     if (tex->extend == TEX_EXTEND) {
-      fx = (fx > 1.f) ? 1.f : ((fx < 0.f) ? 0.f : fx);
-      fy = (fy > 1.f) ? 1.f : ((fy < 0.f) ? 0.f : fy);
+      fx = (fx > 1.0f) ? 1.0f : ((fx < 0.0f) ? 0.0f : fx);
+      fy = (fy > 1.0f) ? 1.0f : ((fy < 0.0f) ? 0.0f : fy);
     }
     else {
       fx -= floorf(fx);
@@ -1264,7 +1264,7 @@ static int imagewraposa_aniso(Tex *tex,
     const float ff = sqrtf(ibuf->x), q = ibuf->y / ff;
     const float Ux = dxt[0] * ff, Vx = dxt[1] * q, Uy = dyt[0] * ff, Vy = dyt[1] * q;
     const float A = Vx * Vx + Vy * Vy;
-    const float B = -2.f * (Ux * Vx + Uy * Vy);
+    const float B = -2.0f * (Ux * Vx + Uy * Vy);
     const float C = Ux * Ux + Uy * Uy;
     const float F = A * C - B * B * 0.25f;
     float a, b, th, ecc;
@@ -1275,16 +1275,16 @@ static int imagewraposa_aniso(Tex *tex,
       b *= ff;
       a = max_ff(a, 1.0f);
       b = max_ff(b, 1.0f);
-      fProbes = 2.f * (a / b) - 1.f;
+      fProbes = 2.0f * (a / b) - 1.0f;
       AFD.iProbes = round_fl_to_int(fProbes);
       AFD.iProbes = MIN2(AFD.iProbes, tex->afmax);
       if (AFD.iProbes < fProbes) {
-        b = 2.f * a / (float)(AFD.iProbes + 1);
+        b = 2.0f * a / (float)(AFD.iProbes + 1);
       }
       AFD.majrad = a / ff;
       AFD.minrad = b / ff;
       AFD.theta = th;
-      AFD.dusc = 1.f / ff;
+      AFD.dusc = 1.0f / ff;
       AFD.dvsc = ff / (float)ibuf->y;
     }
     else { /* EWA & area */
@@ -1308,13 +1308,13 @@ static int imagewraposa_aniso(Tex *tex,
     }
 
     /* mipmap level */
-    if (levf < 0.f) { /* original image only */
+    if (levf < 0.0f) { /* original image only */
       previbuf = curibuf = mipmaps[0];
-      levf = 0.f;
+      levf = 0.0f;
     }
     else if (levf >= maxlev - 1) {
       previbuf = curibuf = mipmaps[maxlev - 1];
-      levf = 0.f;
+      levf = 0.0f;
       if (tex->texfilter == TXF_FELINE) {
         AFD.iProbes = 1;
       }
@@ -1377,7 +1377,7 @@ static int imagewraposa_aniso(Tex *tex,
       const float ff = sqrtf(ibuf->x), q = ibuf->y / ff;
       const float Ux = dxt[0] * ff, Vx = dxt[1] * q, Uy = dyt[0] * ff, Vy = dyt[1] * q;
       const float A = Vx * Vx + Vy * Vy;
-      const float B = -2.f * (Ux * Vx + Uy * Vy);
+      const float B = -2.0f * (Ux * Vx + Uy * Vy);
       const float C = Ux * Ux + Uy * Uy;
       const float F = A * C - B * B * 0.25f;
       float a, b, th, ecc, fProbes;
@@ -1386,16 +1386,16 @@ static int imagewraposa_aniso(Tex *tex,
       b *= ff;
       a = max_ff(a, 1.0f);
       b = max_ff(b, 1.0f);
-      fProbes = 2.f * (a / b) - 1.f;
+      fProbes = 2.0f * (a / b) - 1.0f;
       /* no limit to number of Probes here */
       AFD.iProbes = round_fl_to_int(fProbes);
       if (AFD.iProbes < fProbes) {
-        b = 2.f * a / (float)(AFD.iProbes + 1);
+        b = 2.0f * a / (float)(AFD.iProbes + 1);
       }
       AFD.majrad = a / ff;
       AFD.minrad = b / ff;
       AFD.theta = th;
-      AFD.dusc = 1.f / ff;
+      AFD.dusc = 1.0f / ff;
       AFD.dvsc = ff / (float)ibuf->y;
     }
     if (texres->nor && ((tex->imaflag & TEX_NORMALMAP) == 0)) {
@@ -1425,7 +1425,7 @@ static int imagewraposa_aniso(Tex *tex,
     texres->tin = texres->ta;
   }
   if (tex->flag & TEX_NEGALPHA) {
-    texres->ta = 1.f - texres->ta;
+    texres->ta = 1.0f - texres->ta;
   }
 
   if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) { /* normal from color */
@@ -1435,9 +1435,9 @@ static int imagewraposa_aniso(Tex *tex,
      * the normal used in the renderer points inward. It is generated
      * this way in calc_vertexnormals(). Should this ever change
      * this negate must be removed. */
-    texres->nor[0] = -2.f * (texres->tr - 0.5f);
-    texres->nor[1] = 2.f * (texres->tg - 0.5f);
-    texres->nor[2] = 2.f * (texres->tb - 0.5f);
+    texres->nor[0] = -2.0f * (texres->tr - 0.5f);
+    texres->nor[1] = 2.0f * (texres->tg - 0.5f);
+    texres->nor[2] = 2.0f * (texres->tb - 0.5f);
   }
 
   /* de-premul, this is being premulled in shade_input_do_shade()
@@ -1449,7 +1449,7 @@ static int imagewraposa_aniso(Tex *tex,
 
   /* do not de-premul for generated alpha, it is already in straight */
   if (texres->ta != 1.0f && texres->ta > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
-    fx = 1.f / texres->ta;
+    fx = 1.0f / texres->ta;
     texres->tr *= fx;
     texres->tg *= fx;
     texres->tb *= fx;
@@ -1964,9 +1964,9 @@ int imagewraposa(Tex *tex,
      * the normal used in the renderer points inward. It is generated
      * this way in calc_vertexnormals(). Should this ever change
      * this negate must be removed. */
-    texres->nor[0] = -2.f * (texres->tr - 0.5f);
-    texres->nor[1] = 2.f * (texres->tg - 0.5f);
-    texres->nor[2] = 2.f * (texres->tb - 0.5f);
+    texres->nor[0] = -2.0f * (texres->tr - 0.5f);
+    texres->nor[1] = 2.0f * (texres->tg - 0.5f);
+    texres->nor[2] = 2.0f * (texres->tb - 0.5f);
   }
 
   /* de-premul, this is being premulled in shade_input_do_shade() */

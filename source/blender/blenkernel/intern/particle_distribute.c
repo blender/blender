@@ -150,9 +150,9 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
   size[2] = MAX2(size[2], 1);
 
   /* no full offset for flat/thin objects */
-  min[0] += d < delta[0] ? d / 2.f : delta[0] / 2.f;
-  min[1] += d < delta[1] ? d / 2.f : delta[1] / 2.f;
-  min[2] += d < delta[2] ? d / 2.f : delta[2] / 2.f;
+  min[0] += d < delta[0] ? d / 2.0f : delta[0] / 2.0f;
+  min[1] += d < delta[1] ? d / 2.0f : delta[1] / 2.0f;
+  min[2] += d < delta[2] ? d / 2.0f : delta[2] / 2.0f;
 
   for (i = 0, p = 0, pa = psys->particles; i < res; i++) {
     for (j = 0; j < res; j++) {
@@ -220,7 +220,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
 
           pa = psys->particles + a1 * a1mul + a2 * a2mul;
           copy_v3_v3(co1, pa->fuv);
-          co1[a] -= d < delta[a] ? d / 2.f : delta[a] / 2.f;
+          co1[a] -= d < delta[a] ? d / 2.0f : delta[a] / 2.0f;
           copy_v3_v3(co2, co1);
           co2[a] += delta[a] + 0.001f * d;
           co1[a] -= 0.001f * d;
@@ -295,12 +295,12 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
       for (j = 0; j < res; j++) {
         for (k = 0; k < res; k++, p++, pa++) {
           if (j % 2) {
-            pa->fuv[0] += d / 2.f;
+            pa->fuv[0] += d / 2.0f;
           }
 
           if (k % 2) {
-            pa->fuv[0] += d / 2.f;
-            pa->fuv[1] += d / 2.f;
+            pa->fuv[0] += d / 2.0f;
+            pa->fuv[1] += d / 2.0f;
           }
         }
       }
@@ -318,7 +318,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
     }
   }
 
-  if (psys->part->grid_rand > 0.f) {
+  if (psys->part->grid_rand > 0.0f) {
     float rfac = d * psys->part->grid_rand;
     for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) {
       if (pa->flag & PARS_UNEXIST) {
@@ -1052,7 +1052,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   /* Calculate weights from face areas */
   if ((part->flag & PART_EDISTR || children) && from != PART_FROM_VERT) {
     MVert *v1, *v2, *v3, *v4;
-    float totarea = 0.f, co1[3], co2[3], co3[3], co4[3];
+    float totarea = 0.0f, co1[3], co2[3], co3[3], co4[3];
     float(*orcodata)[3];
 
     orcodata = CustomData_get_layer(&mesh->vdata, CD_ORCO);

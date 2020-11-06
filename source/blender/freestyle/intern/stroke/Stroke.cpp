@@ -691,7 +691,7 @@ int Stroke::Resample(float iSampling)
     ++next;
   }
   // add last:
-  if ((it != itend) && (next == itend) /* && (t == 0.f)*/) {
+  if ((it != itend) && (next == itend) /* && (t == 0.0f)*/) {
     newVertices.push_back(&(*it));
   }
 

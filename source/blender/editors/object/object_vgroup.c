@@ -3205,9 +3205,9 @@ void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 
   vgroup_operator_subset_select_props(ot, true);
   RNA_def_float(
-      ot->srna, "offset", 0.f, -1.0, 1.0, "Offset", "Value to add to weights", -1.0f, 1.f);
+      ot->srna, "offset", 0.0f, -1.0, 1.0, "Offset", "Value to add to weights", -1.0f, 1.0f);
   RNA_def_float(
-      ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by", 0.0f, 10.f);
+      ot->srna, "gain", 1.0f, 0.0f, FLT_MAX, "Gain", "Value to multiply weights by", 0.0f, 10.0f);
 }
 
 /** \} */
@@ -3369,7 +3369,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
                 10.0f);
   RNA_def_float(ot->srna,
                 "strength",
-                1.f,
+                1.0f,
                 -2.0f,
                 FLT_MAX,
                 "Strength",
@@ -3385,7 +3385,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
       "Change Sensitivity",
       "Change the amount weights are altered with each iteration: lower values are slower",
       0.05f,
-      1.f);
+      1.0f);
 }
 
 /** \} */

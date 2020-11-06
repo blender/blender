@@ -1993,7 +1993,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
       /* Convert xyz velocities flow settings from world to grid space. */
       float convert_vel[3];
       copy_v3_v3(convert_vel, ffs->vel_coord);
-      float time_mult = 1.0 / (25.f * DT_DEFAULT);
+      float time_mult = 1.0 / (25.0f * DT_DEFAULT);
       float size_mult = MAX3(base_res[0], base_res[1], base_res[2]) /
                         MAX3(global_size[0], global_size[1], global_size[2]);
       mul_v3_v3fl(convert_vel, ffs->vel_coord, size_mult * time_mult);
@@ -3293,7 +3293,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obj
   /* If needed, vertex velocities will be read too. */
   bool use_speedvectors = fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS;
   FluidDomainVertexVelocity *velarray = NULL;
-  float time_mult = 25.f * DT_DEFAULT;
+  float time_mult = 25.0f * DT_DEFAULT;
 
   if (use_speedvectors) {
     if (fds->mesh_velocities) {
@@ -4430,7 +4430,7 @@ float BKE_fluid_get_velocity_at(struct Object *ob, float position[3], float velo
 
   if (fmd && (fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain && fmd->domain->fluid) {
     FluidDomainSettings *fds = fmd->domain;
-    float time_mult = 25.f * DT_DEFAULT;
+    float time_mult = 25.0f * DT_DEFAULT;
     float size_mult = MAX3(fds->global_size[0], fds->global_size[1], fds->global_size[2]) /
                       MAX3(fds->base_res[0], fds->base_res[1], fds->base_res[2]);
     float vel_mag;

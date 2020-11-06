@@ -2884,7 +2884,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
   else {
     /* Animation Mode - Affects current frame (int) */
     CFRA = round_fl_to_int(sum_time / num_keyframes);
-    SUBFRA = 0.f;
+    SUBFRA = 0.0f;
   }
   sipo->cursorVal = sum_value / (float)num_keyframes;
 

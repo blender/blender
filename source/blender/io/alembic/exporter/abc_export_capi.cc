@@ -236,7 +236,7 @@ bool ABC_export(Scene *scene,
   else {
     /* Fake a job context, so that we don't need NULL pointer checks while exporting. */
     short stop = 0, do_update = 0;
-    float progress = 0.f;
+    float progress = 0.0f;
 
     blender::io::alembic::export_startjob(job, &stop, &do_update, &progress);
     blender::io::alembic::export_endjob(job);

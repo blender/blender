@@ -611,7 +611,7 @@ MINLINE int compare_ff_relative(float a, float b, const float max_diff, const in
 
 MINLINE float signf(float f)
 {
-  return (f < 0.f) ? -1.f : 1.f;
+  return (f < 0.0f) ? -1.0f : 1.0f;
 }
 
 MINLINE float compatible_signf(float f)

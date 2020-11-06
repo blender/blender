@@ -251,7 +251,7 @@ float WM_jobs_progress(wmWindowManager *wm, void *owner)
 
 static void wm_jobs_update_progress_bars(wmWindowManager *wm)
 {
-  float total_progress = 0.f;
+  float total_progress = 0.0f;
   float jobs_progress = 0;
 
   LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {

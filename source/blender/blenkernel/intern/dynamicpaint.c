@@ -123,7 +123,7 @@ static int neighStraightY[8] = {0, 1, 0, -1, 1, 1, -1, -1};
 /* paint effect default movement per frame in global units */
 #define EFF_MOVEMENT_PER_FRAME 0.05f
 /* initial wave time factor */
-#define WAVE_TIME_FAC (1.0f / 24.f)
+#define WAVE_TIME_FAC (1.0f / 24.0f)
 #define CANVAS_REL_SIZE 5.0f
 /* drying limits */
 #define MIN_WETNESS 0.001f
@@ -762,7 +762,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
     sub_v3_v3v3(dim, grid->grid_bounds.max, grid->grid_bounds.min);
     copy_v3_v3(td, dim);
     copy_v3_v3(bData->dim, dim);
-    min_dim = max_fff(td[0], td[1], td[2]) / 1000.f;
+    min_dim = max_fff(td[0], td[1], td[2]) / 1000.0f;
 
     /* deactivate zero axises */
     for (i = 0; i < 3; i++) {
@@ -5116,7 +5116,7 @@ static void dynamic_paint_prepare_effect_cb(void *__restrict userdata,
     madd_v3_v3fl(forc,
                  scene->physics_settings.gravity,
                  surface->effector_weights->global_gravity * surface->effector_weights->weight[0] /
-                     10.f);
+                     10.0f);
   }
 
   /* add surface point velocity and acceleration if enabled */
