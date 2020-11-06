@@ -246,7 +246,7 @@ static void noise_vector(float x, float y, float z, int nb, float v[3])
   /* Simply evaluate noise at 3 different positions */
   const float *ofs = state_offset_vector;
   for (int j = 0; j < 3; j++) {
-    v[j] = (2.0f * BLI_noise_generic_noise(1.0f, x + ofs[0], y + ofs[1], z + ofs[2], 0, nb) -
+    v[j] = (2.0f * BLI_noise_generic_noise(1.0f, x + ofs[0], y + ofs[1], z + ofs[2], false, nb) -
             1.0f);
     ofs += 3;
   }
@@ -259,7 +259,7 @@ static float turb(
   float amp, out, t;
   int i;
   amp = 1.f;
-  out = (float)(2.0f * BLI_noise_generic_noise(1.f, x, y, z, 0, nb) - 1.0f);
+  out = (float)(2.0f * BLI_noise_generic_noise(1.f, x, y, z, false, nb) - 1.0f);
   if (hard) {
     out = fabsf(out);
   }
@@ -268,7 +268,7 @@ static float turb(
     x *= freqscale;
     y *= freqscale;
     z *= freqscale;
-    t = (float)(amp * (2.0f * BLI_noise_generic_noise(1.f, x, y, z, 0, nb) - 1.0f));
+    t = (float)(amp * (2.0f * BLI_noise_generic_noise(1.f, x, y, z, false, nb) - 1.0f));
     if (hard) {
       t = fabsf(t);
     }
@@ -451,7 +451,8 @@ static PyObject *M_Noise_noise(PyObject *UNUSED(self), PyObject *args, PyObject 
   }
 
   return PyFloat_FromDouble(
-      (2.0f * BLI_noise_generic_noise(1.0f, vec[0], vec[1], vec[2], 0, noise_basis_enum) - 1.0f));
+      (2.0f * BLI_noise_generic_noise(1.0f, vec[0], vec[1], vec[2], false, noise_basis_enum) -
+       1.0f));
 }
 
 PyDoc_STRVAR(M_Noise_noise_vector_doc,

@@ -27,7 +27,6 @@
 extern "C" {
 #endif
 
-/* noise.h: */
 float BLI_noise_hnoise(float noisesize, float x, float y, float z);
 float BLI_noise_hnoisep(float noisesize, float x, float y, float z);
 float BLI_noise_turbulence(float noisesize, float x, float y, float z, int nr);
@@ -35,9 +34,9 @@ float BLI_noise_turbulence(float noisesize, float x, float y, float z, int nr);
  * to replace the above BLI_noise_hnoise/p & BLI_noise_turbulence/1.
  * This is done so different noise basis functions can be used */
 float BLI_noise_generic_noise(
-    float noisesize, float x, float y, float z, int hard, int noisebasis);
+    float noisesize, float x, float y, float z, bool hard, int noisebasis);
 float BLI_noise_generic_turbulence(
-    float noisesize, float x, float y, float z, int oct, int hard, int noisebasis);
+    float noisesize, float x, float y, float z, int oct, bool hard, int noisebasis);
 /* newnoise: musgrave functions */
 float BLI_noise_mg_fbm(
     float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis);
