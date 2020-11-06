@@ -2485,56 +2485,6 @@ static void direct_link_id_common(
 /** \name Read Animation (legacy for version patching)
  * \{ */
 
-/* XXX deprecated - old animation system */
-static void lib_link_ipo(BlendLibReader *reader, Ipo *ipo)
-{
-  LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
-    if (icu->driver) {
-      BLO_read_id_address(reader, ipo->id.lib, &icu->driver->ob);
-    }
-  }
-}
-
-/* XXX deprecated - old animation system */
-static void direct_link_ipo(BlendDataReader *reader, Ipo *ipo)
-{
-  BLO_read_list(reader, &(ipo->curve));
-
-  LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
-    BLO_read_data_address(reader, &icu->bezt);
-    BLO_read_data_address(reader, &icu->bp);
-    BLO_read_data_address(reader, &icu->driver);
-
-    /* Undo generic endian switching. */
-    if (BLO_read_requires_endian_switch(reader)) {
-      BLI_endian_switch_int16(&icu->blocktype);
-      if (icu->driver != NULL) {
-
-        /* Undo generic endian switching. */
-        if (BLO_read_requires_endian_switch(reader)) {
-          BLI_endian_switch_int16(&icu->blocktype);
-          if (icu->driver != NULL) {
-            BLI_endian_switch_int16(&icu->driver->blocktype);
-          }
-        }
-      }
-
-      /* Undo generic endian switching. */
-      if (BLO_read_requires_endian_switch(reader)) {
-        BLI_endian_switch_int16(&ipo->blocktype);
-        if (icu->driver != NULL) {
-          BLI_endian_switch_int16(&icu->driver->blocktype);
-        }
-      }
-    }
-  }
-
-  /* Undo generic endian switching. */
-  if (BLO_read_requires_endian_switch(reader)) {
-    BLI_endian_switch_int16(&ipo->blocktype);
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3357,12 +3307,10 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_SCR:
       success = direct_link_screen(&reader, (bScreen *)id);
       break;
-    case ID_IP:
-      direct_link_ipo(&reader, (Ipo *)id);
-      break;
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
+    case ID_IP:
     case ID_OB:
     case ID_SCE:
     case ID_WM:
@@ -3980,13 +3928,10 @@ static void lib_link_all(FileData *fd, Main *bmain)
      * Please keep order of entries in that switch matching that order, it's easier to quickly see
      * whether something is wrong then. */
     switch (GS(id->name)) {
-      case ID_IP:
-        /* XXX deprecated... still needs to be maintained for version patches still. */
-        lib_link_ipo(&reader, (Ipo *)id);
-        break;
       case ID_LI:
         lib_link_library(&reader, (Library *)id); /* Only init users. */
         break;
+      case ID_IP:
       case ID_OB:
       case ID_SCE:
       case ID_WM:
@@ -4601,16 +4546,6 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 
 static BLOExpandDoitCallback expand_doit;
 
-// XXX deprecated - old animation system
-static void expand_ipo(BlendExpander *expander, Ipo *ipo)
-{
-  LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
-    if (icu->driver) {
-      BLO_expand(expander, icu->driver->ob);
-    }
-  }
-}
-
 static void expand_id(BlendExpander *expander, ID *id);
 
 static void expand_id_embedded_id(BlendExpander *expander, ID *id)
@@ -4691,9 +4626,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
           }
 
           switch (GS(id->name)) {
-            case ID_IP:
-              expand_ipo(&expander, (Ipo *)id); /* XXX deprecated - old animation system */
-              break;
             default:
               break;
           }
