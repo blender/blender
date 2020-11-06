@@ -527,7 +527,7 @@ static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)
 }
 
 /* Start or resume prefetching*/
-void BKE_sequencer_prefetch_start(const SeqRenderData *context, float cfra, float cost)
+void BKE_sequencer_prefetch_start(const SeqRenderData *context, float timeline_frame, float cost)
 {
   Scene *scene = context->scene;
   Editing *ed = scene->ed;
@@ -547,7 +547,7 @@ void BKE_sequencer_prefetch_start(const SeqRenderData *context, float cfra, floa
         !(playing && cost > 0.9) && ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips &&
         !G.is_rendering && !G.moving) {
 
-      seq_prefetch_start(context, cfra);
+      seq_prefetch_start(context, timeline_frame);
     }
   }
 }
