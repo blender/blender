@@ -161,6 +161,7 @@ file(WRITE buildinfo.h.txt
   "#define BUILD_BRANCH \"${MY_WC_BRANCH}\"\n"
   "#define BUILD_DATE \"${BUILD_DATE}\"\n"
   "#define BUILD_TIME \"${BUILD_TIME}\"\n"
+  "#include \"buildinfo_static.h\"\n"
 )
 
 # cleanup
