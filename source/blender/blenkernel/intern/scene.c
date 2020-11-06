@@ -21,6 +21,9 @@
  * \ingroup bke
  */
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -87,6 +90,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -785,6 +789,243 @@ static void scene_foreach_cache(ID *id,
                     user_data);
 }
 
+static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Scene *sce = (Scene *)id;
+
+  if (BLO_write_is_undo(writer)) {
+    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+    /* XXX This UI data should not be stored in Scene at all... */
+    memset(&sce->cursor, 0, sizeof(sce->cursor));
+  }
+
+  /* write LibData */
+  BLO_write_id_struct(writer, Scene, id_address, &sce->id);
+  BKE_id_blend_write(writer, &sce->id);
+
+  if (sce->adt) {
+    BKE_animdata_blend_write(writer, sce->adt);
+  }
+  BKE_keyingsets_blend_write(writer, &sce->keyingsets);
+
+  /* direct data */
+  ToolSettings *tos = sce->toolsettings;
+  BLO_write_struct(writer, ToolSettings, tos);
+  if (tos->vpaint) {
+    BLO_write_struct(writer, VPaint, tos->vpaint);
+    BKE_paint_blend_write(writer, &tos->vpaint->paint);
+  }
+  if (tos->wpaint) {
+    BLO_write_struct(writer, VPaint, tos->wpaint);
+    BKE_paint_blend_write(writer, &tos->wpaint->paint);
+  }
+  if (tos->sculpt) {
+    BLO_write_struct(writer, Sculpt, tos->sculpt);
+    BKE_paint_blend_write(writer, &tos->sculpt->paint);
+  }
+  if (tos->uvsculpt) {
+    BLO_write_struct(writer, UvSculpt, tos->uvsculpt);
+    BKE_paint_blend_write(writer, &tos->uvsculpt->paint);
+  }
+  if (tos->gp_paint) {
+    BLO_write_struct(writer, GpPaint, tos->gp_paint);
+    BKE_paint_blend_write(writer, &tos->gp_paint->paint);
+  }
+  if (tos->gp_vertexpaint) {
+    BLO_write_struct(writer, GpVertexPaint, tos->gp_vertexpaint);
+    BKE_paint_blend_write(writer, &tos->gp_vertexpaint->paint);
+  }
+  if (tos->gp_sculptpaint) {
+    BLO_write_struct(writer, GpSculptPaint, tos->gp_sculptpaint);
+    BKE_paint_blend_write(writer, &tos->gp_sculptpaint->paint);
+  }
+  if (tos->gp_weightpaint) {
+    BLO_write_struct(writer, GpWeightPaint, tos->gp_weightpaint);
+    BKE_paint_blend_write(writer, &tos->gp_weightpaint->paint);
+  }
+  /* write grease-pencil custom ipo curve to file */
+  if (tos->gp_interpolate.custom_ipo) {
+    BKE_curvemapping_blend_write(writer, tos->gp_interpolate.custom_ipo);
+  }
+  /* write grease-pencil multiframe falloff curve to file */
+  if (tos->gp_sculpt.cur_falloff) {
+    BKE_curvemapping_blend_write(writer, tos->gp_sculpt.cur_falloff);
+  }
+  /* write grease-pencil primitive curve to file */
+  if (tos->gp_sculpt.cur_primitive) {
+    BKE_curvemapping_blend_write(writer, tos->gp_sculpt.cur_primitive);
+  }
+  /* Write the curve profile to the file. */
+  if (tos->custom_bevel_profile_preset) {
+    BKE_curveprofile_blend_write(writer, tos->custom_bevel_profile_preset);
+  }
+
+  BKE_paint_blend_write(writer, &tos->imapaint.paint);
+
+  Editing *ed = sce->ed;
+  if (ed) {
+    Sequence *seq;
+
+    BLO_write_struct(writer, Editing, ed);
+
+    /* reset write flags too */
+
+    SEQ_ALL_BEGIN (ed, seq) {
+      if (seq->strip) {
+        seq->strip->done = false;
+      }
+      BLO_write_struct(writer, Sequence, seq);
+    }
+    SEQ_ALL_END;
+
+    SEQ_ALL_BEGIN (ed, seq) {
+      if (seq->strip && seq->strip->done == 0) {
+        /* write strip with 'done' at 0 because readfile */
+
+        if (seq->effectdata) {
+          switch (seq->type) {
+            case SEQ_TYPE_COLOR:
+              BLO_write_struct(writer, SolidColorVars, seq->effectdata);
+              break;
+            case SEQ_TYPE_SPEED:
+              BLO_write_struct(writer, SpeedControlVars, seq->effectdata);
+              break;
+            case SEQ_TYPE_WIPE:
+              BLO_write_struct(writer, WipeVars, seq->effectdata);
+              break;
+            case SEQ_TYPE_GLOW:
+              BLO_write_struct(writer, GlowVars, seq->effectdata);
+              break;
+            case SEQ_TYPE_TRANSFORM:
+              BLO_write_struct(writer, TransformVars, seq->effectdata);
+              break;
+            case SEQ_TYPE_GAUSSIAN_BLUR:
+              BLO_write_struct(writer, GaussianBlurVars, seq->effectdata);
+              break;
+            case SEQ_TYPE_TEXT:
+              BLO_write_struct(writer, TextVars, seq->effectdata);
+              break;
+            case SEQ_TYPE_COLORMIX:
+              BLO_write_struct(writer, ColorMixVars, seq->effectdata);
+              break;
+          }
+        }
+
+        BLO_write_struct(writer, Stereo3dFormat, seq->stereo3d_format);
+
+        Strip *strip = seq->strip;
+        BLO_write_struct(writer, Strip, strip);
+        if (strip->crop) {
+          BLO_write_struct(writer, StripCrop, strip->crop);
+        }
+        if (strip->transform) {
+          BLO_write_struct(writer, StripTransform, strip->transform);
+        }
+        if (strip->proxy) {
+          BLO_write_struct(writer, StripProxy, strip->proxy);
+        }
+        if (seq->type == SEQ_TYPE_IMAGE) {
+          BLO_write_struct_array(writer,
+                                 StripElem,
+                                 MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem),
+                                 strip->stripdata);
+        }
+        else if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+          BLO_write_struct(writer, StripElem, strip->stripdata);
+        }
+
+        strip->done = true;
+      }
+
+      if (seq->prop) {
+        IDP_BlendWrite(writer, seq->prop);
+      }
+
+      BKE_sequence_modifier_blend_write(writer, &seq->modifiers);
+    }
+    SEQ_ALL_END;
+
+    /* new; meta stack too, even when its nasty restore code */
+    LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
+      BLO_write_struct(writer, MetaStack, ms);
+    }
+  }
+
+  if (sce->r.avicodecdata) {
+    BLO_write_struct(writer, AviCodecData, sce->r.avicodecdata);
+    if (sce->r.avicodecdata->lpFormat) {
+      BLO_write_raw(writer, (size_t)sce->r.avicodecdata->cbFormat, sce->r.avicodecdata->lpFormat);
+    }
+    if (sce->r.avicodecdata->lpParms) {
+      BLO_write_raw(writer, (size_t)sce->r.avicodecdata->cbParms, sce->r.avicodecdata->lpParms);
+    }
+  }
+  if (sce->r.ffcodecdata.properties) {
+    IDP_BlendWrite(writer, sce->r.ffcodecdata.properties);
+  }
+
+  /* writing dynamic list of TimeMarkers to the blend file */
+  LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
+    BLO_write_struct(writer, TimeMarker, marker);
+
+    if (marker->prop != NULL) {
+      IDP_BlendWrite(writer, marker->prop);
+    }
+  }
+
+  /* writing dynamic list of TransformOrientations to the blend file */
+  LISTBASE_FOREACH (TransformOrientation *, ts, &sce->transform_spaces) {
+    BLO_write_struct(writer, TransformOrientation, ts);
+  }
+
+  /* writing MultiView to the blend file */
+  LISTBASE_FOREACH (SceneRenderView *, srv, &sce->r.views) {
+    BLO_write_struct(writer, SceneRenderView, srv);
+  }
+
+  if (sce->nodetree) {
+    BLO_write_struct(writer, bNodeTree, sce->nodetree);
+    ntreeBlendWrite(writer, sce->nodetree);
+  }
+
+  BKE_color_managed_view_settings_blend_write(writer, &sce->view_settings);
+
+  /* writing RigidBodyWorld data to the blend file */
+  if (sce->rigidbody_world) {
+    /* Set deprecated pointers to prevent crashes of older Blenders */
+    sce->rigidbody_world->pointcache = sce->rigidbody_world->shared->pointcache;
+    sce->rigidbody_world->ptcaches = sce->rigidbody_world->shared->ptcaches;
+    BLO_write_struct(writer, RigidBodyWorld, sce->rigidbody_world);
+
+    BLO_write_struct(writer, RigidBodyWorld_Shared, sce->rigidbody_world->shared);
+    BLO_write_struct(writer, EffectorWeights, sce->rigidbody_world->effector_weights);
+    BKE_ptcache_blend_write(writer, &(sce->rigidbody_world->shared->ptcaches));
+  }
+
+  BKE_previewimg_blend_write(writer, sce->preview);
+  BKE_curvemapping_curves_blend_write(writer, &sce->r.mblur_shutter_curve);
+
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
+    BKE_view_layer_blend_write(writer, view_layer);
+  }
+
+  if (sce->master_collection) {
+    BLO_write_struct(writer, Collection, sce->master_collection);
+    BKE_collection_blend_write_nolib(writer, sce->master_collection);
+  }
+
+  /* Eevee Lightcache */
+  if (sce->eevee.light_cache_data && !BLO_write_is_undo(writer)) {
+    BLO_write_struct(writer, LightCache, sce->eevee.light_cache_data);
+    EEVEE_lightcache_blend_write(writer, sce->eevee.light_cache_data);
+  }
+
+  BKE_screen_view3d_shading_blend_write(writer, &sce->display.shading);
+
+  /* Freed on doversion. */
+  BLI_assert(sce->layer_properties == NULL);
+}
+
 static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 {
   Scene *scene_new = (Scene *)id_new;
@@ -820,7 +1061,7 @@ IDTypeInfo IDType_ID_SCE = {
     .foreach_id = scene_foreach_id,
     .foreach_cache = scene_foreach_cache,
 
-    .blend_write = NULL,
+    .blend_write = scene_blend_write,
     .blend_read_data = NULL,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
