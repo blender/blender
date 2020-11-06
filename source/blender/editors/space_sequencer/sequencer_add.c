@@ -315,7 +315,7 @@ static bool seq_effect_add_properties_poll(const bContext *UNUSED(C),
 
   /* Hide start/end frames for effect strips that are locked to their parents' location. */
   if (BKE_sequence_effect_get_num_inputs(type) != 0) {
-    if ((STREQ(prop_id, "frame_start")) || (STREQ(prop_id, "frame_end"))) {
+    if (STR_ELEM(prop_id, "frame_start", "frame_end")) {
       return false;
     }
   }
@@ -639,8 +639,7 @@ static bool sequencer_add_draw_check_fn(PointerRNA *UNUSED(ptr),
 {
   const char *prop_id = RNA_property_identifier(prop);
 
-  return !(STREQ(prop_id, "filepath") || STREQ(prop_id, "directory") ||
-           STREQ(prop_id, "filename"));
+  return !(STR_ELEM(prop_id, "filepath", "directory", "filename"));
 }
 
 static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)

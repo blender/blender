@@ -453,7 +453,7 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
         DRW_shgroup_uniform_texture_ref(
             grp, gpu_grid->sampler_name, fds->tex_color ? &fds->tex_color : &e_data.dummy_one);
       }
-      else if (STREQ(gpu_grid->name, "flame") || STREQ(gpu_grid->name, "temperature")) {
+      else if (STR_ELEM(gpu_grid->name, "flame", "temperature")) {
         DRW_shgroup_uniform_texture_ref(
             grp, gpu_grid->sampler_name, fds->tex_flame ? &fds->tex_flame : &e_data.dummy_flame);
       }

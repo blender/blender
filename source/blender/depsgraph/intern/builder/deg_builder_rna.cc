@@ -209,8 +209,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
         }
       }
       /* Final transform properties go to the Done node for the exit. */
-      else if (STREQ(prop_name, "head") || STREQ(prop_name, "tail") ||
-               STREQ(prop_name, "length") || STRPREFIX(prop_name, "matrix")) {
+      else if (STR_ELEM(prop_name, "head", "tail", "length") || STRPREFIX(prop_name, "matrix")) {
         if (source == RNAPointerSource::EXIT) {
           node_identifier.operation_code = OperationCode::BONE_DONE;
         }
@@ -325,7 +324,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
         node_identifier.type = NodeType::GEOMETRY;
         return node_identifier;
       }
-      if (STREQ(prop_identifier, "hide_viewport") || STREQ(prop_identifier, "hide_render")) {
+      if (STR_ELEM(prop_identifier, "hide_viewport", "hide_render")) {
         node_identifier.type = NodeType::OBJECT_FROM_LAYER;
         return node_identifier;
       }

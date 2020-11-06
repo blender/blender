@@ -521,7 +521,7 @@ static void movieclip_convert_multilayer_add_pass(void *UNUSED(layer),
     MEM_freeN(rect);
     return;
   }
-  if (STREQ(pass_name, RE_PASSNAME_COMBINED) || STREQ(chan_id, "RGBA") || STREQ(chan_id, "RGB")) {
+  if (STREQ(pass_name, RE_PASSNAME_COMBINED) || STR_ELEM(chan_id, "RGBA", "RGB")) {
     ctx->combined_pass = rect;
     ctx->num_combined_channels = num_channels;
   }

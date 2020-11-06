@@ -2100,7 +2100,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 8)) {
     /* Blender Internal removal */
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
-      if (STREQ(scene->r.engine, "BLENDER_RENDER") || STREQ(scene->r.engine, "BLENDER_GAME")) {
+      if (STR_ELEM(scene->r.engine, "BLENDER_RENDER", "BLENDER_GAME")) {
         BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
       }
 
@@ -4079,8 +4079,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (STREQ(view_settings->view_transform, "Default")) {
         STRNCPY(view_settings->view_transform, "Standard");
       }
-      else if (STREQ(view_settings->view_transform, "RRT") ||
-               STREQ(view_settings->view_transform, "Film")) {
+      else if (STR_ELEM(view_settings->view_transform, "RRT", "Film")) {
         STRNCPY(view_settings->view_transform, "Filmic");
       }
       else if (STREQ(view_settings->view_transform, "Log")) {
