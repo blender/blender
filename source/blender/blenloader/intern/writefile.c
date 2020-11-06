@@ -811,58 +811,6 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   }
 }
 
-static void write_pose(BlendWriter *writer, bPose *pose, bArmature *arm)
-{
-  /* Write each channel */
-  if (pose == NULL) {
-    return;
-  }
-
-  BLI_assert(arm != NULL);
-
-  /* Write channels */
-  LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
-    /* Write ID Properties -- and copy this comment EXACTLY for easy finding
-     * of library blocks that implement this.*/
-    if (chan->prop) {
-      IDP_BlendWrite(writer, chan->prop);
-    }
-
-    BKE_constraint_blend_write(writer, &chan->constraints);
-
-    animviz_motionpath_blend_write(writer, chan->mpath);
-
-    /* Prevent crashes with autosave,
-     * when a bone duplicated in edit-mode has not yet been assigned to its pose-channel.
-     * Also needed with memundo, in some cases we can store a step before pose has been
-     * properly rebuilt from previous undo step. */
-    Bone *bone = (pose->flag & POSE_RECALC) ? BKE_armature_find_bone_name(arm, chan->name) :
-                                              chan->bone;
-    if (bone != NULL) {
-      /* gets restored on read, for library armatures */
-      chan->selectflag = bone->flag & BONE_SELECTED;
-    }
-
-    BLO_write_struct(writer, bPoseChannel, chan);
-  }
-
-  /* Write groups */
-  LISTBASE_FOREACH (bActionGroup *, grp, &pose->agroups) {
-    BLO_write_struct(writer, bActionGroup, grp);
-  }
-
-  /* write IK param */
-  if (pose->ikparam) {
-    const char *structname = BKE_pose_ikparam_get_name(pose);
-    if (structname) {
-      BLO_write_struct_by_name(writer, structname, pose->ikparam);
-    }
-  }
-
-  /* Write this pose */
-  BLO_write_struct(writer, bPose, pose);
-}
-
 static void write_defgroups(BlendWriter *writer, ListBase *defbase)
 {
   LISTBASE_FOREACH (bDeformGroup *, defgroup, defbase) {
@@ -911,7 +859,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
       }
     }
 
-    write_pose(writer, ob->pose, arm);
+    BKE_pose_blend_write(writer, ob->pose, arm);
     write_defgroups(writer, &ob->defbase);
     write_fmaps(writer, &ob->fmaps);
     BKE_constraint_blend_write(writer, &ob->constraints);
