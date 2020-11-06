@@ -32,7 +32,7 @@ set(INC
   ../../modifiers
   ../../python
   ../../shader_fx
-  ../../render/extern/include
+  ../../render
   ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/glew-mx

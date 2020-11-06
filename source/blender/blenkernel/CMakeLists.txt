@@ -39,7 +39,7 @@ set(INC
   ../sequencer
   ../shader_fx
   ../simulation
-  ../render/extern/include
+  ../render
   ../../../intern/ghost
   ../../../intern/glew-mx
   ../../../intern/guardedalloc

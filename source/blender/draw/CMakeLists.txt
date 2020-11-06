@@ -36,7 +36,7 @@ set(INC
   ../makesdna
   ../makesrna
   ../nodes
-  ../render/extern/include
+  ../render
   ../render/intern/include
   ../windowmanager
 

@@ -378,7 +378,7 @@ blender_include_dirs(
   ../../simulation
   ../../windowmanager
   ../../editors/include
-  ../../render/extern/include
+  ../../render
   ../../../../intern/cycles/blender
   ../../../../intern/atomic
   ../../../../intern/glew-mx

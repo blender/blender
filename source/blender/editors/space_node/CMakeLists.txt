@@ -27,7 +27,7 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../nodes
-  ../../render/extern/include
+  ../../render
   ../../compositor
   ../../windowmanager
   ../../../../intern/glew-mx

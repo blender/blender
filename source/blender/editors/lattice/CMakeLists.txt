@@ -22,7 +22,7 @@ set(INC
   ../../depsgraph
   ../../makesdna
   ../../makesrna
-  ../../render/extern/include
+  ../../render
   ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/guardedalloc
