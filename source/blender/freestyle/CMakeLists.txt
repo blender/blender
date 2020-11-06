@@ -566,7 +566,7 @@ set(INC
   ../python
   ../python/intern
   ../render
-  ../render/intern/include
+  ../render/intern
   ../../../extern/glew/include
   ../../../intern/guardedalloc
 )

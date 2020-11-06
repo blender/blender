@@ -35,7 +35,7 @@ set(INC
   ../nodes/composite
   ../nodes/intern
   ../render
-  ../render/intern/include
+  ../render/intern
   ../../../extern/clew/include
   ../../../intern/atomic
   ../../../intern/guardedalloc

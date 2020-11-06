@@ -37,7 +37,7 @@ set(INC
   ../makesrna
   ../nodes
   ../render
-  ../render/intern/include
+  ../render/intern
   ../windowmanager
 
   ../../../intern/atomic
