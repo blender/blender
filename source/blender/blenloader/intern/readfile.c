@@ -3764,21 +3764,6 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
 /** \name Read ID: Scene
  * \{ */
 
-/* patch for missing scene IDs, can't be in do-versions */
-static void composite_patch(bNodeTree *ntree, Scene *scene)
-{
-
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->id == NULL && node->type == CMP_NODE_R_LAYERS) {
-      node->id = &scene->id;
-    }
-  }
-}
-
-/* check for cyclic set-scene,
- * libs can cause this case which is normally prevented, see (T#####) */
-#define USE_SETSCENE_CHECK
-
 #ifdef USE_SETSCENE_CHECK
 /**
  * A version of #BKE_scene_validate_setscene with special checks for linked libs.
@@ -3814,182 +3799,6 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
   return true;
 }
 #endif
-
-static void lib_link_scene(BlendLibReader *reader, Scene *sce)
-{
-  BKE_keyingsets_blend_read_lib(reader, &sce->id, &sce->keyingsets);
-
-  BLO_read_id_address(reader, sce->id.lib, &sce->camera);
-  BLO_read_id_address(reader, sce->id.lib, &sce->world);
-  BLO_read_id_address(reader, sce->id.lib, &sce->set);
-  BLO_read_id_address(reader, sce->id.lib, &sce->gpd);
-
-  BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->imapaint.paint);
-  if (sce->toolsettings->sculpt) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->sculpt->paint);
-  }
-  if (sce->toolsettings->vpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->vpaint->paint);
-  }
-  if (sce->toolsettings->wpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->wpaint->paint);
-  }
-  if (sce->toolsettings->uvsculpt) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->uvsculpt->paint);
-  }
-  if (sce->toolsettings->gp_paint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_paint->paint);
-  }
-  if (sce->toolsettings->gp_vertexpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_vertexpaint->paint);
-  }
-  if (sce->toolsettings->gp_sculptpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_sculptpaint->paint);
-  }
-  if (sce->toolsettings->gp_weightpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_weightpaint->paint);
-  }
-
-  if (sce->toolsettings->sculpt) {
-    BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->sculpt->gravity_object);
-  }
-
-  if (sce->toolsettings->imapaint.stencil) {
-    BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->imapaint.stencil);
-  }
-
-  if (sce->toolsettings->imapaint.clone) {
-    BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->imapaint.clone);
-  }
-
-  if (sce->toolsettings->imapaint.canvas) {
-    BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->imapaint.canvas);
-  }
-
-  BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->particle.shape_object);
-
-  BLO_read_id_address(reader, sce->id.lib, &sce->toolsettings->gp_sculpt.guide.reference_object);
-
-  LISTBASE_FOREACH_MUTABLE (Base *, base_legacy, &sce->base) {
-    BLO_read_id_address(reader, sce->id.lib, &base_legacy->object);
-
-    if (base_legacy->object == NULL) {
-      BLO_reportf_wrap(BLO_read_lib_reports(reader),
-                       RPT_WARNING,
-                       TIP_("LIB: object lost from scene: '%s'"),
-                       sce->id.name + 2);
-      BLI_remlink(&sce->base, base_legacy);
-      if (base_legacy == sce->basact) {
-        sce->basact = NULL;
-      }
-      MEM_freeN(base_legacy);
-    }
-  }
-
-  Sequence *seq;
-  SEQ_ALL_BEGIN (sce->ed, seq) {
-    IDP_BlendReadLib(reader, seq->prop);
-
-    if (seq->ipo) {
-      BLO_read_id_address(
-          reader, sce->id.lib, &seq->ipo); /* XXX deprecated - old animation system */
-    }
-    seq->scene_sound = NULL;
-    if (seq->scene) {
-      BLO_read_id_address(reader, sce->id.lib, &seq->scene);
-      seq->scene_sound = NULL;
-    }
-    if (seq->clip) {
-      BLO_read_id_address(reader, sce->id.lib, &seq->clip);
-    }
-    if (seq->mask) {
-      BLO_read_id_address(reader, sce->id.lib, &seq->mask);
-    }
-    if (seq->scene_camera) {
-      BLO_read_id_address(reader, sce->id.lib, &seq->scene_camera);
-    }
-    if (seq->sound) {
-      seq->scene_sound = NULL;
-      if (seq->type == SEQ_TYPE_SOUND_HD) {
-        seq->type = SEQ_TYPE_SOUND_RAM;
-      }
-      else {
-        BLO_read_id_address(reader, sce->id.lib, &seq->sound);
-      }
-      if (seq->sound) {
-        id_us_plus_no_lib((ID *)seq->sound);
-        seq->scene_sound = NULL;
-      }
-    }
-    if (seq->type == SEQ_TYPE_TEXT) {
-      TextVars *t = seq->effectdata;
-      BLO_read_id_address(reader, sce->id.lib, &t->text_font);
-    }
-    BLI_listbase_clear(&seq->anims);
-
-    BKE_sequence_modifier_blend_read_lib(reader, sce, &seq->modifiers);
-  }
-  SEQ_ALL_END;
-
-  LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
-    IDP_BlendReadLib(reader, marker->prop);
-
-    if (marker->camera) {
-      BLO_read_id_address(reader, sce->id.lib, &marker->camera);
-    }
-  }
-
-  /* rigidbody world relies on its linked collections */
-  if (sce->rigidbody_world) {
-    RigidBodyWorld *rbw = sce->rigidbody_world;
-    if (rbw->group) {
-      BLO_read_id_address(reader, sce->id.lib, &rbw->group);
-    }
-    if (rbw->constraints) {
-      BLO_read_id_address(reader, sce->id.lib, &rbw->constraints);
-    }
-    if (rbw->effector_weights) {
-      BLO_read_id_address(reader, sce->id.lib, &rbw->effector_weights->group);
-    }
-  }
-
-  if (sce->nodetree) {
-    composite_patch(sce->nodetree, sce);
-  }
-
-  LISTBASE_FOREACH (SceneRenderLayer *, srl, &sce->r.layers) {
-    BLO_read_id_address(reader, sce->id.lib, &srl->mat_override);
-    LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &srl->freestyleConfig.modules) {
-      BLO_read_id_address(reader, sce->id.lib, &fmc->script);
-    }
-    LISTBASE_FOREACH (FreestyleLineSet *, fls, &srl->freestyleConfig.linesets) {
-      BLO_read_id_address(reader, sce->id.lib, &fls->linestyle);
-      BLO_read_id_address(reader, sce->id.lib, &fls->group);
-    }
-  }
-  /* Motion Tracking */
-  BLO_read_id_address(reader, sce->id.lib, &sce->clip);
-
-#ifdef USE_COLLECTION_COMPAT_28
-  if (sce->collection) {
-    BKE_collection_compat_blend_read_lib(reader, sce->id.lib, sce->collection);
-  }
-#endif
-
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    BKE_view_layer_blend_read_lib(reader, sce->id.lib, view_layer);
-  }
-
-  if (sce->r.bake.cage_object) {
-    BLO_read_id_address(reader, sce->id.lib, &sce->r.bake.cage_object);
-  }
-
-#ifdef USE_SETSCENE_CHECK
-  if (sce->set != NULL) {
-    sce->flag |= SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK;
-  }
-#endif
-}
 
 static void lib_link_scenes_check_set(Main *bmain)
 {
@@ -5382,9 +5191,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
      * Please keep order of entries in that switch matching that order, it's easier to quickly see
      * whether something is wrong then. */
     switch (GS(id->name)) {
-      case ID_SCE:
-        lib_link_scene(&reader, (Scene *)id);
-        break;
       case ID_OB:
         lib_link_object(&reader, (Object *)id);
         break;
@@ -5395,6 +5201,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LI:
         lib_link_library(&reader, (Library *)id); /* Only init users. */
         break;
+      case ID_SCE:
       case ID_WM:
       case ID_WS:
       case ID_SCR:
