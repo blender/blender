@@ -28,7 +28,7 @@ namespace outliner = blender::outliner;
 /* Convenience. */
 using blender::outliner::AbstractTreeView;
 
-TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode)
+TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner)
 {
   AbstractTreeView *tree_view = nullptr;
 
@@ -40,7 +40,7 @@ TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode)
     case SO_ID_ORPHANS:
       break;
     case SO_VIEW_LAYER:
-      tree_view = new outliner::TreeViewViewLayer();
+      tree_view = new outliner::TreeViewViewLayer(*space_outliner);
       break;
   }
 

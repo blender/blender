@@ -25,6 +25,7 @@
 struct bContext;
 struct ListBase;
 struct SpaceOutliner;
+struct TreeElement;
 struct TreeSourceData;
 
 #ifdef __cplusplus
@@ -34,17 +35,40 @@ namespace outliner {
 
 using Tree = ListBase;
 
+/* -------------------------------------------------------------------- */
+/* Tree-View Interface */
+
 class AbstractTreeView {
  public:
+  AbstractTreeView(SpaceOutliner &space_outliner) : _space_outliner(space_outliner)
+  {
+  }
   virtual ~AbstractTreeView() = default;
 
   /** Build a tree for this view and the current context. */
   virtual Tree buildTree(const TreeSourceData &source_data, SpaceOutliner &space_outliner) = 0;
+
+ protected:
+  SpaceOutliner &_space_outliner;
 };
 
-class TreeViewViewLayer : public AbstractTreeView {
+/* -------------------------------------------------------------------- */
+/* View Layer Tree-View */
+
+class TreeViewViewLayer final : public AbstractTreeView {
  public:
-  Tree buildTree(const TreeSourceData &source_data, SpaceOutliner &space_outliner) override final;
+  TreeViewViewLayer(SpaceOutliner &space_outliner);
+
+  Tree buildTree(const TreeSourceData &source_data, SpaceOutliner &space_outliner) override;
+
+ private:
+  ViewLayer *_view_layer;
+  bool _show_objects = true;
+
+  void add_view_layer(ListBase &, TreeElement &);
+  void add_layer_collections_recursive(ListBase &, ListBase &, TreeElement &);
+  void add_layer_collection_objects(ListBase &, LayerCollection &, TreeElement &);
+  void add_layer_collection_objects_children(TreeElement &);
 };
 
 }  // namespace outliner
@@ -67,7 +91,7 @@ typedef struct TreeSourceData {
   struct ViewLayer *view_layer;
 } TreeSourceData;
 
-TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode);
+TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner);
 void outliner_tree_view_destroy(TreeView **tree_view);
 
 ListBase outliner_tree_view_build_tree(TreeView *tree_view,
