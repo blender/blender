@@ -1109,22 +1109,6 @@ static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
   }
 }
 
-static void write_shaderfxs(BlendWriter *writer, ListBase *fxbase)
-{
-  if (fxbase == NULL) {
-    return;
-  }
-
-  LISTBASE_FOREACH (ShaderFxData *, fx, fxbase) {
-    const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(fx->type);
-    if (fxi == NULL) {
-      return;
-    }
-
-    BLO_write_struct_by_name(writer, fxi->struct_name, fx);
-  }
-}
-
 static void write_object(BlendWriter *writer, Object *ob, const void *id_address)
 {
   const bool is_undo = BLO_write_is_undo(writer);
@@ -1191,7 +1175,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     BKE_particle_system_blend_write(writer, &ob->particlesystem);
     write_modifiers(writer, &ob->modifiers);
     write_gpencil_modifiers(writer, &ob->greasepencil_modifiers);
-    write_shaderfxs(writer, &ob->shader_fx);
+    BKE_shaderfx_blend_write(writer, &ob->shader_fx);
 
     BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
 
