@@ -134,16 +134,6 @@ int seq_num_files(struct Scene *scene, char views_format, const bool is_multivie
 void seq_open_anim_file(struct Scene *scene, struct Sequence *seq, bool openfile);
 void seq_proxy_index_dir_set(struct anim *anim, const char *base_dir);
 
-/* **********************************************************************
- * sequencer.c
- *
- * Unused
- * **********************************************************************
- */
-bool BKE_sequence_check_depend(struct Sequence *seq, struct Sequence *cur);
-void BKE_sequencer_clear_scene_in_allseqs(struct Main *bmain, struct Scene *sce);
-int BKE_sequence_effect_get_supports_mask(int seq_type);
-
 #ifdef __cplusplus
 }
 #endif

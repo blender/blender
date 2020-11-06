@@ -4319,10 +4319,3 @@ int BKE_sequence_effect_get_num_inputs(int seq_type)
   }
   return 0;
 }
-
-int BKE_sequence_effect_get_supports_mask(int seq_type)
-{
-  struct SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
-
-  return rval.supports_mask;
-}

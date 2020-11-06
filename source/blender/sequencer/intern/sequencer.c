@@ -111,30 +111,6 @@ static void seq_anim_add_suffix(Scene *scene, struct anim *anim, const int view_
 ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
 
-#if 0 /* unused function */
-static void printf_strip(Sequence *seq)
-{
-  fprintf(stderr,
-          "name: '%s', len:%d, start:%d, (startofs:%d, endofs:%d), "
-          "(startstill:%d, endstill:%d), machine:%d, (startdisp:%d, enddisp:%d)\n",
-          seq->name,
-          seq->len,
-          seq->start,
-          seq->startofs,
-          seq->endofs,
-          seq->startstill,
-          seq->endstill,
-          seq->machine,
-          seq->startdisp,
-          seq->enddisp);
-
-  fprintf(stderr,
-          "\tseq_tx_set_final_left: %d %d\n\n",
-          seq_tx_get_final_left(seq, 0),
-          seq_tx_get_final_right(seq, 0));
-}
-#endif
-
 int BKE_sequencer_base_recursive_apply(ListBase *seqbase,
                                        int (*apply_fn)(Sequence *seq, void *),
                                        void *arg)
@@ -1048,19 +1024,6 @@ static int clear_scene_in_allseqs_fn(Sequence *seq, void *arg_pt)
   return 1;
 }
 
-void BKE_sequencer_clear_scene_in_allseqs(Main *bmain, Scene *scene)
-{
-  Scene *scene_iter;
-
-  /* when a scene is deleted: test all seqs */
-  for (scene_iter = bmain->scenes.first; scene_iter; scene_iter = scene_iter->id.next) {
-    if (scene_iter != scene && scene_iter->ed) {
-      BKE_sequencer_base_recursive_apply(
-          &scene_iter->ed->seqbase, clear_scene_in_allseqs_fn, scene);
-    }
-  }
-}
-
 typedef struct SeqUniqueInfo {
   Sequence *seq;
   char name_src[SEQ_NAME_MAXSTR];
@@ -1376,7 +1339,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 }
 
 /* check whether sequence cur depends on seq */
-bool BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
+static bool BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
 {
   if (cur->seq1 == seq || cur->seq2 == seq || cur->seq3 == seq) {
     return true;
