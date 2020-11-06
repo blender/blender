@@ -254,6 +254,26 @@ static void screen_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   }
 }
 
+/* Cannot use IDTypeInfo callback yet, because of the return value. */
+bool BKE_screen_blend_read_lib(BlendDataReader *reader, bScreen *screen)
+{
+  bool success = true;
+
+  screen->regionbase.first = screen->regionbase.last = NULL;
+  screen->context = NULL;
+  screen->active_region = NULL;
+
+  BLO_read_data_address(reader, &screen->preview);
+  BKE_previewimg_blend_read(reader, screen->preview);
+
+  if (!BKE_screen_area_map_blend_read_data(reader, AREAMAP_FROM_SCREEN(screen))) {
+    printf("Error reading Screen %s... removing it.\n", screen->id.name + 2);
+    success = false;
+  }
+
+  return success;
+}
+
 /* note: file read without screens option G_FILE_NO_UI;
  * check lib pointers in call below */
 static void screen_blend_read_lib(BlendLibReader *reader, ID *id)
