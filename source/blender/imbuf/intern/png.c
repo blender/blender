@@ -521,7 +521,7 @@ static void imb_png_warning(png_structp UNUSED(png_ptr), png_const_charp message
    * and with new libpng it became too much picky, giving a warning on
    * the splash screen even.
    */
-  if ((G.debug & G_DEBUG) == 0 && STREQLEN(message, "iCCP", 4)) {
+  if ((G.debug & G_DEBUG) == 0 && STRPREFIX(message, "iCCP")) {
     return;
   }
   fprintf(stderr, "libpng warning: %s\n", message);

@@ -463,7 +463,7 @@ void ui_block_bounds_calc(uiBlock *block)
 
   /* hardcoded exception... but that one is annoying with larger safety */
   uiBut *bt = block->buttons.first;
-  int xof = (bt && STREQLEN(bt->str, "ERROR", 5)) ? 10 : 40;
+  int xof = (bt && STRPREFIX(bt->str, "ERROR")) ? 10 : 40;
 
   block->safety.xmin = block->rect.xmin - xof;
   block->safety.ymin = block->rect.ymin - xof;

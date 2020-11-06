@@ -246,7 +246,7 @@ static boolean handle_app1(j_decompress_ptr cinfo)
       INPUT_BYTE(cinfo, neogeo[i], return false);
     }
     length = 0;
-    if (STREQLEN(neogeo, "NeoGeo", 6)) {
+    if (STRPREFIX(neogeo, "NeoGeo")) {
       struct NeoGeo_Word *neogeo_word = (struct NeoGeo_Word *)(neogeo + 6);
       ibuf_quality = neogeo_word->quality;
     }
@@ -362,7 +362,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
          * That is why we need split it to the
          * common key/value here.
          */
-        if (!STREQLEN(str, "Blender", 7)) {
+        if (!STRPREFIX(str, "Blender")) {
           /*
            * Maybe the file have text that
            * we don't know "what it's", in that
