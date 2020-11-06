@@ -1450,12 +1450,9 @@ static LayerCollection *find_layer_collection_by_scene_collection(LayerCollectio
 LayerCollection *BKE_layer_collection_first_from_scene_collection(ViewLayer *view_layer,
                                                                   const Collection *collection)
 {
-  for (LayerCollection *layer_collection = view_layer->layer_collections.first;
-       layer_collection != NULL;
-       layer_collection = layer_collection->next) {
+  LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
     LayerCollection *found = find_layer_collection_by_scene_collection(layer_collection,
                                                                        collection);
-
     if (found != NULL) {
       return found;
     }
@@ -1900,9 +1897,7 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLay
     BLO_read_id_address(reader, lib, &fls->group);
   }
 
-  for (Base *base = view_layer->object_bases.first, *base_next = NULL; base; base = base_next) {
-    base_next = base->next;
-
+  LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
     /* we only bump the use count for the collection objects */
     BLO_read_id_address(reader, lib, &base->object);
 
