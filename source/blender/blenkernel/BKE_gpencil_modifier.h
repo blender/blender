@@ -35,6 +35,9 @@ struct Main;
 struct ModifierUpdateDepsgraphContext;
 struct Object;
 struct Scene;
+struct BlendWriter;
+struct BlendDataReader;
+struct BlendLibReader;
 /* NOTE: bakeModifier() called from UI:
  * needs to create new data-blocks, hence the need for this. */
 struct bGPDframe;
@@ -302,6 +305,10 @@ struct bGPDframe *BKE_gpencil_frame_retime_get(struct Depsgraph *depsgraph,
                                                struct Scene *scene,
                                                struct Object *ob,
                                                struct bGPDlayer *gpl);
+
+void BKE_gpencil_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
+void BKE_gpencil_modifier_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);
+void BKE_gpencil_modifier_blend_read_lib(struct BlendLibReader *reader, struct Object *ob);
 
 #ifdef __cplusplus
 }

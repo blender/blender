@@ -942,71 +942,6 @@ static void write_fmaps(BlendWriter *writer, ListBase *fbase)
   }
 }
 
-static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
-{
-  if (modbase == NULL) {
-    return;
-  }
-
-  LISTBASE_FOREACH (GpencilModifierData *, md, modbase) {
-    const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
-    if (mti == NULL) {
-      return;
-    }
-
-    BLO_write_struct_by_name(writer, mti->struct_name, md);
-
-    if (md->type == eGpencilModifierType_Thick) {
-      ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
-
-      if (gpmd->curve_thickness) {
-        BKE_curvemapping_blend_write(writer, gpmd->curve_thickness);
-      }
-    }
-    else if (md->type == eGpencilModifierType_Noise) {
-      NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
-
-      if (gpmd->curve_intensity) {
-        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
-      }
-    }
-    else if (md->type == eGpencilModifierType_Hook) {
-      HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
-
-      if (gpmd->curfalloff) {
-        BKE_curvemapping_blend_write(writer, gpmd->curfalloff);
-      }
-    }
-    else if (md->type == eGpencilModifierType_Tint) {
-      TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
-      if (gpmd->colorband) {
-        BLO_write_struct(writer, ColorBand, gpmd->colorband);
-      }
-      if (gpmd->curve_intensity) {
-        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
-      }
-    }
-    else if (md->type == eGpencilModifierType_Smooth) {
-      SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
-      if (gpmd->curve_intensity) {
-        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
-      }
-    }
-    else if (md->type == eGpencilModifierType_Color) {
-      ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
-      if (gpmd->curve_intensity) {
-        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
-      }
-    }
-    else if (md->type == eGpencilModifierType_Opacity) {
-      OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
-      if (gpmd->curve_intensity) {
-        BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
-      }
-    }
-  }
-}
-
 static void write_object(BlendWriter *writer, Object *ob, const void *id_address)
 {
   const bool is_undo = BLO_write_is_undo(writer);
@@ -1072,7 +1007,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
 
     BKE_particle_system_blend_write(writer, &ob->particlesystem);
     BKE_modifier_blend_write(writer, &ob->modifiers);
-    write_gpencil_modifiers(writer, &ob->greasepencil_modifiers);
+    BKE_gpencil_modifier_blend_write(writer, &ob->greasepencil_modifiers);
     BKE_shaderfx_blend_write(writer, &ob->shader_fx);
 
     BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
