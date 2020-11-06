@@ -3042,25 +3042,6 @@ void blo_lib_link_restore(Main *oldmain,
   BKE_main_idmap_destroy(id_map);
 }
 
-static bool direct_link_screen(BlendDataReader *reader, bScreen *screen)
-{
-  bool success = true;
-
-  screen->regionbase.first = screen->regionbase.last = NULL;
-  screen->context = NULL;
-  screen->active_region = NULL;
-
-  BLO_read_data_address(reader, &screen->preview);
-  BKE_previewimg_blend_read(reader, screen->preview);
-
-  if (!BKE_screen_area_map_blend_read_data(reader, AREAMAP_FROM_SCREEN(screen))) {
-    printf("Error reading Screen %s... removing it.\n", screen->id.name + 2);
-    success = false;
-  }
-
-  return success;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3305,7 +3286,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
 
   switch (GS(id->name)) {
     case ID_SCR:
-      success = direct_link_screen(&reader, (bScreen *)id);
+      success = BKE_screen_blend_read_lib(&reader, (bScreen *)id);
       break;
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
