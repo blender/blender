@@ -95,24 +95,13 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
   }
 }
 
-void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
-                              EEVEE_ViewLayerData *sldata,
-                              DRWPass *pass,
-                              EEVEE_LightProbesInfo *pinfo,
-                              DRWShadingGroup **r_shgrp)
+void EEVEE_lookdev_init(EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = vedata->stl;
-  EEVEE_TextureList *txl = vedata->txl;
   EEVEE_EffectsInfo *effects = stl->effects;
-  EEVEE_PrivateData *g_data = stl->g_data;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   /* The view will be NULL when rendering previews. */
   const View3D *v3d = draw_ctx->v3d;
-  const Scene *scene = draw_ctx->scene;
-
-  const bool probe_render = pinfo != NULL;
-
-  effects->lookdev_view = NULL;
 
   if (eevee_hdri_preview_overlay_enabled(v3d)) {
     /* Viewport / Spheres size. */
@@ -142,9 +131,32 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       effects->sphere_size = sphere_size;
       effects->anchor[0] = rect->xmax;
       effects->anchor[1] = rect->ymin;
+      stl->g_data->valid_double_buffer = false;
       EEVEE_temporal_sampling_reset(vedata);
     }
+  }
+}
 
+void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
+                              EEVEE_ViewLayerData *sldata,
+                              DRWPass *pass,
+                              EEVEE_LightProbesInfo *pinfo,
+                              DRWShadingGroup **r_shgrp)
+{
+  EEVEE_StorageList *stl = vedata->stl;
+  EEVEE_TextureList *txl = vedata->txl;
+  EEVEE_EffectsInfo *effects = stl->effects;
+  EEVEE_PrivateData *g_data = stl->g_data;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  /* The view will be NULL when rendering previews. */
+  const View3D *v3d = draw_ctx->v3d;
+  const Scene *scene = draw_ctx->scene;
+
+  const bool probe_render = pinfo != NULL;
+
+  effects->lookdev_view = NULL;
+
+  if (eevee_hdri_preview_overlay_enabled(v3d)) {
     eevee_lookdev_hdri_preview_init(vedata, sldata);
   }
 

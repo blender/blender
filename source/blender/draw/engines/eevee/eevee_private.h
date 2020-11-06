@@ -1357,6 +1357,7 @@ void EEVEE_render_update_passes(struct RenderEngine *engine,
                                 struct ViewLayer *view_layer);
 
 /** eevee_lookdev.c */
+void EEVEE_lookdev_init(EEVEE_Data *vedata);
 void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
                               EEVEE_ViewLayerData *sldata,
                               DRWPass *pass,
