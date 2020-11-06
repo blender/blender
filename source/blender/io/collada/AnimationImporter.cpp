@@ -228,7 +228,7 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
     }
 
     if (ob->type == OB_ARMATURE) {
-      bActionGroup *grp = NULL;
+      bActionGroup *grp = nullptr;
       const char *bone_name = bc_get_joint_name(animated->node);
 
       if (bone_name) {
@@ -236,7 +236,7 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
         grp = BKE_action_group_find_name(act, bone_name);
 
         /* no matching groups, so add one */
-        if (grp == NULL) {
+        if (grp == nullptr) {
           /* Add a new group, and make it active */
           grp = (bActionGroup *)MEM_callocN(sizeof(bActionGroup), "bActionGroup");
 
@@ -662,7 +662,7 @@ void AnimationImporter::Assign_color_animations(const COLLADAFW::UniqueId &listi
   BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
 
   const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-  if (animlist == NULL) {
+  if (animlist == nullptr) {
     fprintf(stderr,
             "Collada: No animlist found for ID: %s of type %s\n",
             listid.toAscii().c_str(),
@@ -818,7 +818,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
                                             COLLADAFW::Transformation *tm)
 {
   bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
-  const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
+  const char *bone_name = is_joint ? bc_get_joint_name(node) : nullptr;
   char joint_path[200];
   if (is_joint) {
     armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
@@ -847,7 +847,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
   /* new curves to assign matrix transform animation */
   FCurve *newcu[10]; /* if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale */
   unsigned int totcu = 10;
-  const char *tm_str = NULL;
+  const char *tm_str = nullptr;
   char rna_path[200];
   for (int i = 0; i < totcu; i++) {
 
@@ -910,7 +910,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
       float temp[4][4], par[4][4];
 
       /* calc M */
-      calc_joint_parent_mat_rest(par, NULL, root, node);
+      calc_joint_parent_mat_rest(par, nullptr, root, node);
       mul_m4_m4m4(temp, par, matfra);
 
 #if 0
@@ -1218,7 +1218,7 @@ void AnimationImporter::translate_Animations(
       for (unsigned int j = 0; j < matBinds.getCount(); j++) {
         const COLLADAFW::UniqueId &matuid = matBinds[j].getReferencedMaterial();
         const COLLADAFW::Effect *ef = (COLLADAFW::Effect *)(FW_object_map[matuid]);
-        if (ef != NULL) { /* can be NULL T28909. */
+        if (ef != nullptr) { /* can be NULL T28909. */
           Material *ma = uid_material_map[matuid];
           if (!ma) {
             fprintf(stderr,
@@ -1303,7 +1303,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
   /* new curves to assign matrix transform animation */
   FCurve *newcu[10]; /* if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale. */
   unsigned int totcu = 10;
-  const char *tm_str = NULL;
+  const char *tm_str = nullptr;
   char rna_path[200];
   for (int i = 0; i < totcu; i++) {
 
@@ -1358,7 +1358,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
     Matrix temp, par;
 
     /* calc M */
-    calc_joint_parent_mat_rest(par, NULL, root, node);
+    calc_joint_parent_mat_rest(par, nullptr, root, node);
     mul_m4_m4m4(temp, par, matfra);
 
     /* evaluate_joint_world_transform_at_frame(temp, NULL, node, fra); */
@@ -1442,7 +1442,7 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(
   for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
     const COLLADAFW::Camera *camera = (COLLADAFW::Camera *)
         FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
-    if (camera == NULL) {
+    if (camera == nullptr) {
       /* Can happen if the node refers to an unknown camera. */
       continue;
     }
@@ -1476,7 +1476,7 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(
     for (unsigned int j = 0; j < matBinds.getCount(); j++) {
       const COLLADAFW::UniqueId &matuid = matBinds[j].getReferencedMaterial();
       const COLLADAFW::Effect *ef = (COLLADAFW::Effect *)(FW_object_map[matuid]);
-      if (ef != NULL) { /* can be NULL T28909. */
+      if (ef != nullptr) { /* can be NULL T28909. */
         const COLLADAFW::CommonEffectPointerArray &commonEffects = ef->getCommonEffects();
         if (!commonEffects.empty()) {
           COLLADAFW::EffectCommon *efc = commonEffects[0];
@@ -1597,10 +1597,10 @@ Object *AnimationImporter::translate_animation_OLD(
                               root_map[node->getUniqueId()];
   Object *ob = is_joint ? armature_importer->get_armature_for_joint(node) :
                           object_map[node->getUniqueId()];
-  const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
+  const char *bone_name = is_joint ? bc_get_joint_name(node) : nullptr;
   if (!ob) {
     fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
-    return NULL;
+    return nullptr;
   }
 
   /* frames at which to sample */
@@ -1620,7 +1620,7 @@ Object *AnimationImporter::translate_animation_OLD(
     Bone *bone = BKE_armature_find_bone_name((bArmature *)ob->data, bone_name);
     if (!bone) {
       fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
-      return NULL;
+      return nullptr;
     }
 
     unit_m4(rest);
@@ -1628,7 +1628,7 @@ Object *AnimationImporter::translate_animation_OLD(
     invert_m4_m4(irest, rest);
   }
 
-  Object *job = NULL;
+  Object *job = nullptr;
 
 #ifdef ARMATURE_TEST
   FCurve *job_curves[10];
@@ -1641,7 +1641,7 @@ Object *AnimationImporter::translate_animation_OLD(
 
   std::sort(frames.begin(), frames.end());
 
-  const char *tm_str = NULL;
+  const char *tm_str = nullptr;
   switch (tm_type) {
     case COLLADAFW::Transformation::ROTATE:
       tm_str = "rotation_quaternion";
@@ -1726,7 +1726,7 @@ Object *AnimationImporter::translate_animation_OLD(
       float temp[4][4], par[4][4];
 
       /* calc M */
-      calc_joint_parent_mat_rest(par, NULL, root, node);
+      calc_joint_parent_mat_rest(par, nullptr, root, node);
       mul_m4_m4m4(temp, par, matfra);
 
       /* evaluate_joint_world_transform_at_frame(temp, NULL, node, fra); */
@@ -2071,8 +2071,8 @@ void AnimationImporter::get_joint_rest_mat(float mat[4][4],
   if (!armature_importer->get_joint_bind_mat(mat, node)) {
     float par[4][4], m[4][4];
 
-    calc_joint_parent_mat_rest(par, NULL, root, node);
-    get_node_mat(m, node, NULL, NULL);
+    calc_joint_parent_mat_rest(par, nullptr, root, node);
+    get_node_mat(m, node, nullptr, nullptr);
     mul_m4_m4m4(mat, par, m);
   }
 }
@@ -2094,11 +2094,11 @@ bool AnimationImporter::calc_joint_parent_mat_rest(float mat[4][4],
   if (!armature_importer->get_joint_bind_mat(m, node)) {
     if (par) {
       float temp[4][4];
-      get_node_mat(temp, node, NULL, NULL);
+      get_node_mat(temp, node, nullptr, nullptr);
       mul_m4_m4m4(m, par, temp);
     }
     else {
-      get_node_mat(m, node, NULL, NULL);
+      get_node_mat(m, node, nullptr, nullptr);
     }
   }
 
@@ -2202,7 +2202,7 @@ void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurv
   bActionGroup *grp = BKE_action_group_find_name(act, bone_name);
 
   /* no matching groups, so add one */
-  if (grp == NULL) {
+  if (grp == nullptr) {
     /* Add a new group, and make it active */
     grp = (bActionGroup *)MEM_callocN(sizeof(bActionGroup), "bActionGroup");
 

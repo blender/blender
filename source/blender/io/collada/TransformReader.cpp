@@ -33,7 +33,7 @@ void TransformReader::get_node_mat(float mat[4][4],
                                    std::map<COLLADAFW::UniqueId, Animation> *animation_map,
                                    Object *ob)
 {
-  get_node_mat(mat, node, animation_map, ob, NULL);
+  get_node_mat(mat, node, animation_map, ob, nullptr);
 }
 
 void TransformReader::get_node_mat(float mat[4][4],

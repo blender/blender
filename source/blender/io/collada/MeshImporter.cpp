@@ -346,7 +346,7 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
   }
 
   me->totvert = pos.getFloatValues()->getCount() / stride;
-  me->mvert = (MVert *)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+  me->mvert = (MVert *)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, nullptr, me->totvert);
 
   MVert *mvert;
   int i;
@@ -469,8 +469,8 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
   if (total_poly_count > 0) {
     me->totpoly = total_poly_count;
     me->totloop = total_loop_count;
-    me->mpoly = (MPoly *)CustomData_add_layer(&me->pdata, CD_MPOLY, CD_CALLOC, NULL, me->totpoly);
-    me->mloop = (MLoop *)CustomData_add_layer(&me->ldata, CD_MLOOP, CD_CALLOC, NULL, me->totloop);
+    me->mpoly = (MPoly *)CustomData_add_layer(&me->pdata, CD_MPOLY, CD_CALLOC, nullptr, me->totpoly);
+    me->mloop = (MLoop *)CustomData_add_layer(&me->ldata, CD_MLOOP, CD_CALLOC, nullptr, me->totloop);
 
     unsigned int totuvset = collada_mesh->getUVCoords().getInputInfosArray().getCount();
     for (int i = 0; i < totuvset; i++) {
@@ -487,7 +487,7 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
         COLLADAFW::String &uvname = info->mName;
         /* Allocate space for UV_data */
         CustomData_add_layer_named(
-            &me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, uvname.c_str());
+            &me->ldata, CD_MLOOPUV, CD_DEFAULT, nullptr, me->totloop, uvname.c_str());
       }
       /* activate the first uv map */
       me->mloopuv = (MLoopUV *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, 0);
@@ -500,7 +500,7 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
             collada_mesh->getColors().getInputInfosArray()[i];
         COLLADAFW::String colname = extract_vcolname(info->mName);
         CustomData_add_layer_named(
-            &me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, colname.c_str());
+            &me->ldata, CD_MLOOPCOL, CD_DEFAULT, nullptr, me->totloop, colname.c_str());
       }
       me->mloopcol = (MLoopCol *)CustomData_get_layer_n(&me->ldata, CD_MLOOPCOL, 0);
     }
@@ -576,7 +576,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
 
   if (!CustomData_has_layer(&edata, CD_MEDGE)) {
-    CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+    CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, nullptr, totedge);
   }
 
   CustomData_free(&mesh->edata, mesh->totedge);
@@ -744,7 +744,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
           COLLADAFW::IndexList &index_list = *index_list_array_uvcoord[uvset_index];
           MLoopUV *mloopuv = (MLoopUV *)CustomData_get_layer_named(
               &me->ldata, CD_MLOOPUV, index_list.getName().c_str());
-          if (mloopuv == NULL) {
+          if (mloopuv == nullptr) {
             fprintf(stderr,
                     "Collada import: Mesh [%s] : Unknown reference to TEXCOORD [#%s].\n",
                     me->id.name,
@@ -774,7 +774,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
             COLLADAFW::String colname = extract_vcolname(color_index_list.getName());
             MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_named(
                 &me->ldata, CD_MLOOPCOL, colname.c_str());
-            if (mloopcol == NULL) {
+            if (mloopcol == nullptr) {
               fprintf(stderr,
                       "Collada import: Mesh [%s] : Unknown reference to VCOLOR [#%s].\n",
                       me->id.name,
@@ -888,7 +888,7 @@ Object *MeshImporter::get_object_by_geom_uid(const COLLADAFW::UniqueId &geom_uid
   if (uid_object_map.find(geom_uid) != uid_object_map.end()) {
     return uid_object_map[geom_uid];
   }
-  return NULL;
+  return nullptr;
 }
 
 Mesh *MeshImporter::get_mesh_by_geom_uid(const COLLADAFW::UniqueId &geom_uid)
@@ -896,7 +896,7 @@ Mesh *MeshImporter::get_mesh_by_geom_uid(const COLLADAFW::UniqueId &geom_uid)
   if (uid_mesh_map.find(geom_uid) != uid_mesh_map.end()) {
     return uid_mesh_map[geom_uid];
   }
-  return NULL;
+  return nullptr;
 }
 
 std::string *MeshImporter::get_geometry_name(const std::string &mesh_name)
@@ -904,7 +904,7 @@ std::string *MeshImporter::get_geometry_name(const std::string &mesh_name)
   if (this->mesh_geom_map.find(mesh_name) != this->mesh_geom_map.end()) {
     return &this->mesh_geom_map[mesh_name];
   }
-  return NULL;
+  return nullptr;
 }
 
 /**
@@ -959,7 +959,7 @@ static void bc_remove_materials_from_object(Object *ob, Mesh *me)
 {
   for (int index = 0; index < ob->totcol; index++) {
     ob->matbits[index] = 0;
-    ob->mat[index] = NULL;
+    ob->mat[index] = nullptr;
   }
 }
 
@@ -1109,7 +1109,7 @@ Object *MeshImporter::create_mesh_object(
 
     if (!geom_uid) {
       fprintf(stderr, "Couldn't find a mesh UID by controller's UID.\n");
-      return NULL;
+      return nullptr;
     }
   }
   else {
@@ -1118,16 +1118,16 @@ Object *MeshImporter::create_mesh_object(
       /* this could happen if a mesh was not created
        * (e.g. if it contains unsupported geometry) */
       fprintf(stderr, "Couldn't find a mesh by UID.\n");
-      return NULL;
+      return nullptr;
     }
   }
   if (!uid_mesh_map[*geom_uid]) {
-    return NULL;
+    return nullptr;
   }
 
   /* name Object */
   const std::string &id = node->getName().empty() ? node->getOriginalId() : node->getName();
-  const char *name = (id.length()) ? id.c_str() : NULL;
+  const char *name = (id.length()) ? id.c_str() : nullptr;
 
   /* add object */
   Object *ob = bc_add_object(m_bmain, scene, view_layer, OB_MESH, name);

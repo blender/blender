@@ -33,7 +33,7 @@
 KeyingScreenOperation::KeyingScreenOperation()
 {
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_movieClip = NULL;
+  this->m_movieClip = nullptr;
   this->m_framenumber = 0;
   this->m_trackingObject[0] = 0;
   setComplex(true);
@@ -42,7 +42,7 @@ KeyingScreenOperation::KeyingScreenOperation()
 void KeyingScreenOperation::initExecution()
 {
   initMutex();
-  this->m_cachedTriangulation = NULL;
+  this->m_cachedTriangulation = nullptr;
 }
 
 void KeyingScreenOperation::deinitExecution()
@@ -64,7 +64,7 @@ void KeyingScreenOperation::deinitExecution()
 
     MEM_freeN(this->m_cachedTriangulation);
 
-    this->m_cachedTriangulation = NULL;
+    this->m_cachedTriangulation = nullptr;
   }
 }
 
@@ -77,7 +77,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
   VoronoiSite *sites, *site;
   ImBuf *ibuf;
   ListBase *tracksbase;
-  ListBase edges = {NULL, NULL};
+  ListBase edges = {nullptr, nullptr};
   int sites_total;
   int i;
   int width = this->getWidth();
@@ -88,7 +88,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
     MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, this->m_trackingObject);
 
     if (!object) {
-      return NULL;
+      return nullptr;
     }
 
     tracksbase = BKE_tracking_object_get_tracks(tracking, object);
@@ -117,14 +117,14 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
   }
 
   if (!sites_total) {
-    return NULL;
+    return nullptr;
   }
 
   BKE_movieclip_user_set_frame(&user, clip_frame);
   ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, &user);
 
   if (!ibuf) {
-    return NULL;
+    return nullptr;
   }
 
   triangulation = (TriangulationData *)MEM_callocN(sizeof(TriangulationData),
@@ -232,13 +232,13 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect)
   int chunk_size = 20;
   int i;
 
-  if (this->m_movieClip == NULL) {
-    return NULL;
+  if (this->m_movieClip == nullptr) {
+    return nullptr;
   }
 
   if (!this->m_cachedTriangulation) {
     lockMutex();
-    if (this->m_cachedTriangulation == NULL) {
+    if (this->m_cachedTriangulation == nullptr) {
       this->m_cachedTriangulation = buildVoronoiTriangulation();
     }
     unlockMutex();
@@ -247,13 +247,13 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect)
   triangulation = this->m_cachedTriangulation;
 
   if (!triangulation) {
-    return NULL;
+    return nullptr;
   }
 
   tile_data = (TileData *)MEM_callocN(sizeof(TileData), "keying screen tile data");
 
   for (i = 0; i < triangulation->triangles_total; i++) {
-    if (BLI_rcti_isect(rect, &triangulation->triangles_AABB[i], NULL)) {
+    if (BLI_rcti_isect(rect, &triangulation->triangles_AABB[i], nullptr)) {
       tile_data->triangles_total++;
 
       if (tile_data->triangles_total > triangles_allocated) {

@@ -99,7 +99,7 @@ void SeparateColorNode::convertToOperations(NodeConverter &converter,
 
 NodeOperation *SeparateRGBANode::getColorConverter(const CompositorContext & /*context*/) const
 {
-  return NULL; /* no conversion needed */
+  return nullptr; /* no conversion needed */
 }
 
 NodeOperation *SeparateHSVANode::getColorConverter(const CompositorContext & /*context*/) const

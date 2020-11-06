@@ -49,7 +49,7 @@ void MovieClipNode::convertToOperations(NodeConverter &converter,
   MovieClipUser *movieClipUser = (MovieClipUser *)editorNode->storage;
   bool cacheFrame = !context.isRendering();
 
-  ImBuf *ibuf = NULL;
+  ImBuf *ibuf = nullptr;
   if (movieClip) {
     if (cacheFrame) {
       ibuf = BKE_movieclip_get_ibuf(movieClip, movieClipUser);

@@ -33,7 +33,7 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int FrsMaterial_Init(PyObject *module)
 {
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -80,10 +80,10 @@ PyDoc_STRVAR(
 
 static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
+  static const char *kwlist_1[] = {"brother", nullptr};
   static const char *kwlist_2[] = {
-      "line", "diffuse", "ambient", "specular", "emission", "shininess", "priority", NULL};
-  PyObject *brother = 0;
+      "line", "diffuse", "ambient", "specular", "emission", "shininess", "priority", nullptr};
+  PyObject *brother = nullptr;
   float line[4], diffuse[4], ambient[4], specular[4], emission[4], shininess;
   int priority;
 
@@ -456,45 +456,45 @@ static PyGetSetDef BPy_FrsMaterial_getseters[] = {
      (getter)FrsMaterial_line_get,
      (setter)FrsMaterial_line_set,
      FrsMaterial_line_doc,
-     NULL},
+     nullptr},
     {"diffuse",
      (getter)FrsMaterial_diffuse_get,
      (setter)FrsMaterial_diffuse_set,
      FrsMaterial_diffuse_doc,
-     NULL},
+     nullptr},
     {"specular",
      (getter)FrsMaterial_specular_get,
      (setter)FrsMaterial_specular_set,
      FrsMaterial_specular_doc,
-     NULL},
+     nullptr},
     {"ambient",
      (getter)FrsMaterial_ambient_get,
      (setter)FrsMaterial_ambient_set,
      FrsMaterial_ambient_doc,
-     NULL},
+     nullptr},
     {"emission",
      (getter)FrsMaterial_emission_get,
      (setter)FrsMaterial_emission_set,
      FrsMaterial_emission_doc,
-     NULL},
+     nullptr},
     {"shininess",
      (getter)FrsMaterial_shininess_get,
      (setter)FrsMaterial_shininess_set,
      FrsMaterial_shininess_doc,
-     NULL},
+     nullptr},
     {"priority",
      (getter)FrsMaterial_priority_get,
      (setter)FrsMaterial_priority_set,
      FrsMaterial_priority_doc,
-     NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 static PyObject *BPy_FrsMaterial_richcmpr(PyObject *objectA,
                                           PyObject *objectB,
                                           int comparison_type)
 {
-  const BPy_FrsMaterial *matA = NULL, *matB = NULL;
+  const BPy_FrsMaterial *matA = nullptr, *matB = nullptr;
   bool result = false;
 
   if (!BPy_FrsMaterial_Check(objectA) || !BPy_FrsMaterial_Check(objectB)) {
@@ -517,7 +517,7 @@ static PyObject *BPy_FrsMaterial_richcmpr(PyObject *objectA,
       break;
     default:
       PyErr_SetString(PyExc_TypeError, "Material does not support this comparison type");
-      return NULL;
+      return nullptr;
   }
 
   if (result == true) {
@@ -534,42 +534,42 @@ static Py_hash_t FrsMaterial_hash(PyObject *self)
 /*-----------------------BPy_FrsMaterial type definition ------------------------------*/
 
 PyTypeObject FrsMaterial_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Material", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "Material", /* tp_name */
     sizeof(BPy_FrsMaterial),                   /* tp_basicsize */
     0,                                         /* tp_itemsize */
     (destructor)FrsMaterial_dealloc,           /* tp_dealloc */
-    0,                                         /* tp_print */
-    0,                                         /* tp_getattr */
-    0,                                         /* tp_setattr */
-    0,                                         /* tp_reserved */
+    nullptr,                                         /* tp_print */
+    nullptr,                                         /* tp_getattr */
+    nullptr,                                         /* tp_setattr */
+    nullptr,                                         /* tp_reserved */
     (reprfunc)FrsMaterial_repr,                /* tp_repr */
-    0,                                         /* tp_as_number */
-    0,                                         /* tp_as_sequence */
-    0,                                         /* tp_as_mapping */
+    nullptr,                                         /* tp_as_number */
+    nullptr,                                         /* tp_as_sequence */
+    nullptr,                                         /* tp_as_mapping */
     (hashfunc)FrsMaterial_hash,                /* tp_hash  */
-    0,                                         /* tp_call */
-    0,                                         /* tp_str */
-    0,                                         /* tp_getattro */
-    0,                                         /* tp_setattro */
-    0,                                         /* tp_as_buffer */
+    nullptr,                                         /* tp_call */
+    nullptr,                                         /* tp_str */
+    nullptr,                                         /* tp_getattro */
+    nullptr,                                         /* tp_setattro */
+    nullptr,                                         /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags */
     FrsMaterial_doc,                           /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
+    nullptr,                                         /* tp_traverse */
+    nullptr,                                         /* tp_clear */
     (richcmpfunc)BPy_FrsMaterial_richcmpr,     /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
-    0,                                         /* tp_methods */
-    0,                                         /* tp_members */
+    nullptr,                                         /* tp_iter */
+    nullptr,                                         /* tp_iternext */
+    nullptr,                                         /* tp_methods */
+    nullptr,                                         /* tp_members */
     BPy_FrsMaterial_getseters,                 /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
+    nullptr,                                         /* tp_base */
+    nullptr,                                         /* tp_dict */
+    nullptr,                                         /* tp_descr_get */
+    nullptr,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
     (initproc)FrsMaterial_init,                /* tp_init */
-    0,                                         /* tp_alloc */
+    nullptr,                                         /* tp_alloc */
     PyType_GenericNew,                         /* tp_new */
 };
 

@@ -22,7 +22,7 @@
 
 ConvertBaseOperation::ConvertBaseOperation()
 {
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 void ConvertBaseOperation::initExecution()
@@ -32,7 +32,7 @@ void ConvertBaseOperation::initExecution()
 
 void ConvertBaseOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 /* ******** Value to Color ******** */
@@ -401,7 +401,7 @@ SeparateChannelOperation::SeparateChannelOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 void SeparateChannelOperation::initExecution()
 {
@@ -410,7 +410,7 @@ void SeparateChannelOperation::initExecution()
 
 void SeparateChannelOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 void SeparateChannelOperation::executePixelSampled(float output[4],
@@ -433,10 +433,10 @@ CombineChannelsOperation::CombineChannelsOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
   this->setResolutionInputSocketIndex(0);
-  this->m_inputChannel1Operation = NULL;
-  this->m_inputChannel2Operation = NULL;
-  this->m_inputChannel3Operation = NULL;
-  this->m_inputChannel4Operation = NULL;
+  this->m_inputChannel1Operation = nullptr;
+  this->m_inputChannel2Operation = nullptr;
+  this->m_inputChannel3Operation = nullptr;
+  this->m_inputChannel4Operation = nullptr;
 }
 
 void CombineChannelsOperation::initExecution()
@@ -449,10 +449,10 @@ void CombineChannelsOperation::initExecution()
 
 void CombineChannelsOperation::deinitExecution()
 {
-  this->m_inputChannel1Operation = NULL;
-  this->m_inputChannel2Operation = NULL;
-  this->m_inputChannel3Operation = NULL;
-  this->m_inputChannel4Operation = NULL;
+  this->m_inputChannel1Operation = nullptr;
+  this->m_inputChannel2Operation = nullptr;
+  this->m_inputChannel3Operation = nullptr;
+  this->m_inputChannel4Operation = nullptr;
 }
 
 void CombineChannelsOperation::executePixelSampled(float output[4],

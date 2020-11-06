@@ -72,9 +72,9 @@ struct FreestyleGlobals g_freestyle;
 
 // Freestyle configuration
 static bool freestyle_is_initialized = false;
-static Config::Path *pathconfig = NULL;
-static Controller *controller = NULL;
-static AppView *view = NULL;
+static Config::Path *pathconfig = nullptr;
+static Controller *controller = nullptr;
+static AppView *view = nullptr;
 
 // line set buffer for copy & paste
 static FreestyleLineSet lineset_buffer;
@@ -89,10 +89,10 @@ static void load_post_callback(struct Main * /*main*/,
 }
 
 static bCallbackFuncStore load_post_callback_funcstore = {
-    NULL,
-    NULL,               /* next, prev */
+    nullptr,
+    nullptr,               /* next, prev */
     load_post_callback, /* func */
-    NULL,               /* arg */
+    nullptr,               /* arg */
     0                   /* alloc */
 };
 
@@ -111,7 +111,7 @@ void FRS_init()
   view = new AppView;
   controller->setView(view);
   controller->Clear();
-  g_freestyle.scene = NULL;
+  g_freestyle.scene = nullptr;
   lineset_copied = false;
 
   BKE_callback_add(&load_post_callback_funcstore, BKE_CB_EVT_LOAD_POST);
@@ -312,7 +312,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   // load mesh
   re->i.infostr = TIP_("Freestyle: Mesh loading");
   re->stats_draw(re->sdh, &re->i);
-  re->i.infostr = NULL;
+  re->i.infostr = nullptr;
   if (controller->LoadMesh(
           re, view_layer, depsgraph)) {  // returns if scene cannot be loaded or if empty
     return;
@@ -507,7 +507,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   // compute view map
   re->i.infostr = TIP_("Freestyle: View map creation");
   re->stats_draw(re->sdh, &re->i);
-  re->i.infostr = NULL;
+  re->i.infostr = nullptr;
   controller->ComputeViewMap();
 }
 
@@ -517,7 +517,7 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
   float *src, *dest, *pixSrc, *pixDest;
   int x, y, rectx, recty;
 
-  if (freestyle_render == NULL || freestyle_render->result == NULL) {
+  if (freestyle_render == nullptr || freestyle_render->result == nullptr) {
     return;
   }
 
@@ -676,15 +676,15 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
       // render strokes
       re->i.infostr = TIP_("Freestyle: Stroke rendering");
       re->stats_draw(re->sdh, &re->i);
-      re->i.infostr = NULL;
+      re->i.infostr = nullptr;
       g_freestyle.scene = DEG_get_evaluated_scene(depsgraph);
       int strokeCount = controller->DrawStrokes();
-      Render *freestyle_render = NULL;
+      Render *freestyle_render = nullptr;
       if (strokeCount > 0) {
         freestyle_render = controller->RenderStrokes(re, true);
       }
       controller->CloseFile();
-      g_freestyle.scene = NULL;
+      g_freestyle.scene = nullptr;
 
       // composite result
       if (freestyle_render) {
@@ -762,7 +762,7 @@ void FRS_paste_active_lineset(FreestyleConfig *config)
     lineset->exclude_edge_types = lineset_buffer.exclude_edge_types;
     if (lineset->group) {
       id_us_min(&lineset->group->id);
-      lineset->group = NULL;
+      lineset->group = nullptr;
     }
     if (lineset_buffer.group) {
       lineset->group = lineset_buffer.group;
@@ -790,14 +790,14 @@ void FRS_delete_active_lineset(FreestyleConfig *config)
 bool FRS_move_active_lineset(FreestyleConfig *config, int direction)
 {
   FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
-  return (lineset != NULL) && BLI_listbase_link_move(&config->linesets, lineset, direction);
+  return (lineset != nullptr) && BLI_listbase_link_move(&config->linesets, lineset, direction);
 }
 
 // Testing
 
 Material *FRS_create_stroke_material(Main *bmain, struct FreestyleLineStyle *linestyle)
 {
-  bNodeTree *nt = (linestyle->use_nodes) ? linestyle->nodetree : NULL;
+  bNodeTree *nt = (linestyle->use_nodes) ? linestyle->nodetree : nullptr;
   Material *ma = BlenderStrokeRenderer::GetStrokeShader(bmain, nt, true);
   ma->id.us = 0;
   return ma;

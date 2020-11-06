@@ -54,9 +54,9 @@ PyDoc_STRVAR(CurvePointIterator_doc,
 
 static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
-  static const char *kwlist_2[] = {"step", NULL};
-  PyObject *brother = 0;
+  static const char *kwlist_1[] = {"brother", nullptr};
+  static const char *kwlist_2[] = {"step", nullptr};
+  PyObject *brother = nullptr;
   float step;
 
   if (PyArg_ParseTupleAndKeywords(
@@ -92,7 +92,7 @@ static PyObject *CurvePointIterator_object_get(BPy_CurvePointIterator *self, voi
 {
   if (self->cp_it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
-    return NULL;
+    return nullptr;
   }
   return BPy_CurvePoint_from_CurvePoint(self->cp_it->operator*());
 }
@@ -120,54 +120,54 @@ static PyObject *CurvePointIterator_u_get(BPy_CurvePointIterator *self, void *UN
 static PyGetSetDef BPy_CurvePointIterator_getseters[] = {
     {"object",
      (getter)CurvePointIterator_object_get,
-     (setter)NULL,
+     (setter)nullptr,
      CurvePointIterator_object_doc,
-     NULL},
-    {"t", (getter)CurvePointIterator_t_get, (setter)NULL, CurvePointIterator_t_doc, NULL},
-    {"u", (getter)CurvePointIterator_u_get, (setter)NULL, CurvePointIterator_u_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {"t", (getter)CurvePointIterator_t_get, (setter)nullptr, CurvePointIterator_t_doc, nullptr},
+    {"u", (getter)CurvePointIterator_u_get, (setter)nullptr, CurvePointIterator_u_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_CurvePointIterator type definition ------------------------------*/
 
 PyTypeObject CurvePointIterator_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "CurvePointIterator", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "CurvePointIterator", /* tp_name */
     sizeof(BPy_CurvePointIterator),                      /* tp_basicsize */
     0,                                                   /* tp_itemsize */
-    0,                                                   /* tp_dealloc */
-    0,                                                   /* tp_print */
-    0,                                                   /* tp_getattr */
-    0,                                                   /* tp_setattr */
-    0,                                                   /* tp_reserved */
-    0,                                                   /* tp_repr */
-    0,                                                   /* tp_as_number */
-    0,                                                   /* tp_as_sequence */
-    0,                                                   /* tp_as_mapping */
-    0,                                                   /* tp_hash  */
-    0,                                                   /* tp_call */
-    0,                                                   /* tp_str */
-    0,                                                   /* tp_getattro */
-    0,                                                   /* tp_setattro */
-    0,                                                   /* tp_as_buffer */
+    nullptr,                                                   /* tp_dealloc */
+    nullptr,                                                   /* tp_print */
+    nullptr,                                                   /* tp_getattr */
+    nullptr,                                                   /* tp_setattr */
+    nullptr,                                                   /* tp_reserved */
+    nullptr,                                                   /* tp_repr */
+    nullptr,                                                   /* tp_as_number */
+    nullptr,                                                   /* tp_as_sequence */
+    nullptr,                                                   /* tp_as_mapping */
+    nullptr,                                                   /* tp_hash  */
+    nullptr,                                                   /* tp_call */
+    nullptr,                                                   /* tp_str */
+    nullptr,                                                   /* tp_getattro */
+    nullptr,                                                   /* tp_setattro */
+    nullptr,                                                   /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,            /* tp_flags */
     CurvePointIterator_doc,                              /* tp_doc */
-    0,                                                   /* tp_traverse */
-    0,                                                   /* tp_clear */
-    0,                                                   /* tp_richcompare */
+    nullptr,                                                   /* tp_traverse */
+    nullptr,                                                   /* tp_clear */
+    nullptr,                                                   /* tp_richcompare */
     0,                                                   /* tp_weaklistoffset */
-    0,                                                   /* tp_iter */
-    0,                                                   /* tp_iternext */
-    0,                                                   /* tp_methods */
-    0,                                                   /* tp_members */
+    nullptr,                                                   /* tp_iter */
+    nullptr,                                                   /* tp_iternext */
+    nullptr,                                                   /* tp_methods */
+    nullptr,                                                   /* tp_members */
     BPy_CurvePointIterator_getseters,                    /* tp_getset */
     &Iterator_Type,                                      /* tp_base */
-    0,                                                   /* tp_dict */
-    0,                                                   /* tp_descr_get */
-    0,                                                   /* tp_descr_set */
+    nullptr,                                                   /* tp_dict */
+    nullptr,                                                   /* tp_descr_get */
+    nullptr,                                                   /* tp_descr_set */
     0,                                                   /* tp_dictoffset */
     (initproc)CurvePointIterator_init,                   /* tp_init */
-    0,                                                   /* tp_alloc */
-    0,                                                   /* tp_new */
+    nullptr,                                                   /* tp_alloc */
+    nullptr,                                                   /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

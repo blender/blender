@@ -1311,8 +1311,8 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_inputInnerMask = NULL;
-  this->m_inputOuterMask = NULL;
+  this->m_inputInnerMask = nullptr;
+  this->m_inputOuterMask = nullptr;
   this->m_adjecentOnly = false;
   this->m_keepInside = false;
   this->setComplex(true);
@@ -1322,7 +1322,7 @@ bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/,
                                                                ReadBufferOperation *readOperation,
                                                                rcti *output)
 {
-  if (this->m_cachedInstance == NULL) {
+  if (this->m_cachedInstance == nullptr) {
     rcti newInput;
     newInput.xmax = this->getWidth();
     newInput.xmin = 0;
@@ -1339,7 +1339,7 @@ void DoubleEdgeMaskOperation::initExecution()
   this->m_inputInnerMask = this->getInputSocketReader(0);
   this->m_inputOuterMask = this->getInputSocketReader(1);
   initMutex();
-  this->m_cachedInstance = NULL;
+  this->m_cachedInstance = nullptr;
 }
 
 void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
@@ -1349,7 +1349,7 @@ void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
   }
 
   lockMutex();
-  if (this->m_cachedInstance == NULL) {
+  if (this->m_cachedInstance == nullptr) {
     MemoryBuffer *innerMask = (MemoryBuffer *)this->m_inputInnerMask->initializeTileData(rect);
     MemoryBuffer *outerMask = (MemoryBuffer *)this->m_inputOuterMask->initializeTileData(rect);
     float *data = (float *)MEM_mallocN(sizeof(float) * this->getWidth() * this->getHeight(),
@@ -1371,11 +1371,11 @@ void DoubleEdgeMaskOperation::executePixel(float output[4], int x, int y, void *
 
 void DoubleEdgeMaskOperation::deinitExecution()
 {
-  this->m_inputInnerMask = NULL;
-  this->m_inputOuterMask = NULL;
+  this->m_inputInnerMask = nullptr;
+  this->m_inputOuterMask = nullptr;
   deinitMutex();
   if (this->m_cachedInstance) {
     MEM_freeN(this->m_cachedInstance);
-    this->m_cachedInstance = NULL;
+    this->m_cachedInstance = nullptr;
   }
 }

@@ -96,10 +96,10 @@ bNodeTree *MaterialNode::prepare_material_nodetree()
 {
   if (material->nodetree) {
     ntree = material->nodetree;
-    return NULL;
+    return nullptr;
   }
 
-  material->nodetree = ntreeAddTree(NULL, "Shader Nodetree", "ShaderNodeTree");
+  material->nodetree = ntreeAddTree(nullptr, "Shader Nodetree", "ShaderNodeTree");
   material->use_nodes = true;
   ntree = material->nodetree;
   return ntree;
@@ -225,7 +225,7 @@ void MaterialNode::set_diffuse(COLLADAFW::ColorOrTexture &cot)
   }
   else if (cot.isTexture()) {
     bNode *texture_node = add_texture_node(cot, -300, locy, "Base Color");
-    if (texture_node != NULL) {
+    if (texture_node != nullptr) {
       add_link(texture_node, 0, shader_node, 0);
     }
   }
@@ -320,7 +320,7 @@ void MaterialNode::set_emission(COLLADAFW::ColorOrTexture &cot)
   // texture
   else if (cot.isTexture()) {
     bNode *texture_node = add_texture_node(cot, -300, locy, "Emission");
-    if (texture_node != NULL) {
+    if (texture_node != nullptr) {
       add_link(texture_node, 0, shader_node, 0);
     }
   }
@@ -392,7 +392,7 @@ bNode *MaterialNode::add_texture_node(COLLADAFW::ColorOrTexture &cot,
 
   if (image_map.find(ima_uid) == image_map.end()) {
     fprintf(stderr, "Couldn't find an image by UID.\n");
-    return NULL;
+    return nullptr;
   }
 
   Image *ima = image_map[ima_uid];

@@ -31,7 +31,7 @@ ScreenLensDistortionOperation::ScreenLensDistortionOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
   this->setComplex(true);
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
   this->m_distortion = 0.0f;
   this->m_dispersion = 0.0f;
   this->m_distortion_const = false;
@@ -72,7 +72,7 @@ void ScreenLensDistortionOperation::initExecution()
 
 void *ScreenLensDistortionOperation::initializeTileData(rcti * /*rect*/)
 {
-  void *buffer = this->m_inputProgram->initializeTileData(NULL);
+  void *buffer = this->m_inputProgram->initializeTileData(nullptr);
 
   /* get distortion/dispersion values once, by reading inputs at (0,0)
    * XXX this assumes invariable values (no image inputs),
@@ -202,7 +202,7 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 void ScreenLensDistortionOperation::deinitExecution()
 {
   this->deinitMutex();
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
   BLI_rng_free(this->m_rng);
 }
 

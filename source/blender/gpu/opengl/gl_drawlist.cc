@@ -65,13 +65,13 @@ typedef struct GLDrawCommandIndexed {
 GLDrawList::GLDrawList(int length)
 {
   BLI_assert(length > 0);
-  batch_ = NULL;
+  batch_ = nullptr;
   buffer_id_ = 0;
   command_len_ = 0;
   command_offset_ = 0;
   data_offset_ = 0;
   data_size_ = 0;
-  data_ = NULL;
+  data_ = nullptr;
 
   if (GLContext::multi_draw_indirect_support) {
     /* Alloc the biggest possible command list, which is indexed. */
@@ -92,8 +92,8 @@ void GLDrawList::init()
 {
   BLI_assert(GLContext::get());
   BLI_assert(MDI_ENABLED);
-  BLI_assert(data_ == NULL);
-  batch_ = NULL;
+  BLI_assert(data_ == nullptr);
+  batch_ = nullptr;
   command_len_ = 0;
 
   if (buffer_id_ == 0) {
@@ -105,7 +105,7 @@ void GLDrawList::init()
   glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer_id_);
   /* If buffer is full, orphan buffer data and start fresh. */
   // if (command_offset_ >= data_size_) {
-  glBufferData(GL_DRAW_INDIRECT_BUFFER, buffer_size_, NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_DRAW_INDIRECT_BUFFER, buffer_size_, nullptr, GL_DYNAMIC_DRAW);
   data_offset_ = 0;
   // }
   /* Map the remaining range. */
@@ -123,7 +123,7 @@ void GLDrawList::append(GPUBatch *gpu_batch, int i_first, int i_count)
     return;
   }
 
-  if (data_ == NULL) {
+  if (data_ == nullptr) {
     this->init();
   }
 
@@ -177,7 +177,7 @@ void GLDrawList::submit()
   /* Something's wrong if we get here without MDI support. */
   BLI_assert(MDI_ENABLED);
   BLI_assert(data_);
-  BLI_assert(GLContext::get()->shader != NULL);
+  BLI_assert(GLContext::get()->shader != nullptr);
 
   /* Only do multi-draw indirect if doing more than 2 drawcall. This avoids the overhead of
    * buffer mapping if scene is not very instance friendly. BUT we also need to take into
@@ -190,7 +190,7 @@ void GLDrawList::submit()
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer_id_);
     glFlushMappedBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, command_offset_);
     glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
-    data_ = NULL; /* Unmapped */
+    data_ = nullptr; /* Unmapped */
     data_offset_ += command_offset_;
 
     batch_->bind(0);
@@ -227,7 +227,7 @@ void GLDrawList::submit()
   /* Do not submit this buffer again. */
   command_len_ = 0;
   /* Avoid keeping reference to the batch. */
-  batch_ = NULL;
+  batch_ = nullptr;
 }
 
 /** \} */

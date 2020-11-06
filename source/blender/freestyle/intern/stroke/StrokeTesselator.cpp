@@ -30,8 +30,8 @@ namespace Freestyle {
 
 LineRep *StrokeTesselator::Tesselate(Stroke *iStroke)
 {
-  if (0 == iStroke) {
-    return 0;
+  if (nullptr == iStroke) {
+    return nullptr;
   }
 
   LineRep *line;

@@ -219,7 +219,7 @@ void SIM_cloth_solver_free(ClothModifierData *clmd)
 
   if (cloth->implicit) {
     SIM_mass_spring_solver_free(cloth->implicit);
-    cloth->implicit = NULL;
+    cloth->implicit = nullptr;
   }
 }
 
@@ -568,7 +568,7 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
   INIT_MINMAX(gmin, gmax);
   for (i = 0; i < mvert_num; i++) {
     float x[3];
-    SIM_mass_spring_get_motion_state(data, i, x, NULL);
+    SIM_mass_spring_get_motion_state(data, i, x, nullptr);
     DO_MINMAX(x, gmin, gmax);
   }
 }
@@ -624,7 +624,7 @@ static void cloth_calc_force(
   SIM_mass_spring_force_drag(data, drag);
 #endif
   /* handle pressure forces (making sure that this never gets computed for hair). */
-  if ((parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE) && (clmd->hairdata == NULL)) {
+  if ((parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE) && (clmd->hairdata == nullptr)) {
     /* The difference in pressure between the inside and outside of the mesh.*/
     float pressure_difference = 0.0f;
     float volume_factor = 1.0f;
@@ -658,7 +658,7 @@ static void cloth_calc_force(
 
     /* Compute the hydrostatic pressure gradient if enabled. */
     float fluid_density = clmd->sim_parms->fluid_density * 1000; /* kg/l -> kg/m3 */
-    float *hydrostatic_pressure = NULL;
+    float *hydrostatic_pressure = nullptr;
 
     if (fabs(fluid_density) > 1e-6f) {
       float hydrostatic_vector[3];
@@ -711,7 +711,7 @@ static void cloth_calc_force(
 
   /* handle external forces like wind */
   if (effectors) {
-    bool is_not_hair = (clmd->hairdata == NULL) && (cloth->primitive_num > 0);
+    bool is_not_hair = (clmd->hairdata == nullptr) && (cloth->primitive_num > 0);
     bool has_wind = false, has_force = false;
 
     /* cache per-vertex forces to avoid redundant calculation */
@@ -726,12 +726,12 @@ static void cloth_calc_force(
       SIM_mass_spring_get_motion_state(data, i, x, v);
       pd_point_from_loc(scene, x, v, i, &epoint);
       BKE_effectors_apply(effectors,
-                          NULL,
+                          nullptr,
                           clmd->sim_parms->effector_weights,
                           &epoint,
                           forcevec[i],
                           winvec[i],
-                          NULL);
+                          nullptr);
 
       has_wind = has_wind || !is_zero_v3(winvec[i]);
       has_force = has_force || !is_zero_v3(forcevec[i]);
@@ -823,7 +823,7 @@ BLI_INLINE LinkNode *hair_spring_next(LinkNode *spring_link)
       return next;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /* XXX this is nasty: cloth meshes do not explicitly store
@@ -840,15 +840,15 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid,
                                                    LinkNode *spring_link)
 {
   Implicit_Data *data = cloth->implicit;
-  LinkNode *next_spring_link = NULL; /* return value */
+  LinkNode *next_spring_link = nullptr; /* return value */
   ClothSpring *spring1, *spring2, *spring3;
   // ClothVertex *verts = cloth->verts;
   // ClothVertex *vert3, *vert4;
   float x1[3], v1[3], x2[3], v2[3], x3[3], v3[3], x4[3], v4[3];
   float dir1[3], dir2[3], dir3[3];
 
-  spring1 = NULL;
-  spring2 = NULL;
+  spring1 = nullptr;
+  spring2 = nullptr;
   spring3 = (ClothSpring *)spring_link->link;
 
   zero_v3(x1);
@@ -894,7 +894,7 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid,
       normalize_v3(dir3);
     }
     else {
-      spring3 = NULL;
+      spring3 = nullptr;
       // vert4 = NULL;
       zero_v3(x4);
       zero_v3(v4);
@@ -902,7 +902,7 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid,
     }
 
     SIM_hair_volume_add_segment(
-        grid, x1, v1, x2, v2, x3, v3, x4, v4, spring1 ? dir1 : NULL, dir2, spring3 ? dir3 : NULL);
+        grid, x1, v1, x2, v2, x3, v3, x4, v4, spring1 ? dir1 : nullptr, dir2, spring3 ? dir3 : nullptr);
   }
 
   return next_spring_link;
@@ -929,7 +929,7 @@ static void cloth_continuum_fill_grid(HairGrid *grid, Cloth *cloth)
   /* scale and offset for transforming vertex locations into grid space
    * (cell size is 0..1, gmin becomes origin)
    */
-  SIM_hair_volume_grid_geometry(grid, &cellsize, NULL, gmin, NULL);
+  SIM_hair_volume_grid_geometry(grid, &cellsize, nullptr, gmin, nullptr);
   cell_scale = cellsize > 0.0f ? 1.0f / cellsize : 0.0f;
   mul_v3_v3fl(cell_offset, gmin, cell_scale);
   negate_v3(cell_offset);
@@ -1255,7 +1255,7 @@ int SIM_cloth_solve(
    * Bad design, TODO
    */
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  const bool is_hair = (clmd->hairdata != NULL);
+  const bool is_hair = (clmd->hairdata != nullptr);
 
   unsigned int i = 0;
   float step = 0.0f, tf = clmd->sim_parms->timescale;
@@ -1338,7 +1338,7 @@ int SIM_cloth_solve(
         }
       }
 
-      SIM_mass_spring_get_motion_state(id, i, verts[i].txold, NULL);
+      SIM_mass_spring_get_motion_state(id, i, verts[i].txold, nullptr);
     }
 
     step += dt;

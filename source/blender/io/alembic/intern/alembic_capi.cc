@@ -167,7 +167,7 @@ AbcArchiveHandle *ABC_create_handle(struct Main *bmain,
 
   if (!archive->valid()) {
     delete archive;
-    return NULL;
+    return nullptr;
   }
 
   if (object_paths) {
@@ -239,7 +239,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 
   if (!object.valid()) {
     std::cerr << "  - " << full_name << ": object is invalid, skipping it and all its children.\n";
-    return std::make_pair(false, static_cast<AbcObjectReader *>(NULL));
+    return std::make_pair(false, static_cast<AbcObjectReader *>(nullptr));
   }
 
   /* The interpretation of data by the children determine the role of this
@@ -261,7 +261,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
     bool child_claims_this_object = child_result.first;
     AbcObjectReader *child_reader = child_result.second;
 
-    if (child_reader == NULL) {
+    if (child_reader == nullptr) {
       BLI_assert(!child_claims_this_object);
     }
     else {
@@ -277,7 +277,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
   }
   BLI_assert(children_claiming_this_object == claiming_child_readers.size());
 
-  AbcObjectReader *reader = NULL;
+  AbcObjectReader *reader = nullptr;
   const MetaData &md = object.getMetaData();
   bool parent_is_part_of_this_object = false;
 
@@ -544,8 +544,8 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
     const AbcObjectReader *parent_reader = reader->parent_reader;
     Object *ob = reader->object();
 
-    if (parent_reader == NULL || !reader->inherits_xform()) {
-      ob->parent = NULL;
+    if (parent_reader == nullptr || !reader->inherits_xform()) {
+      ob->parent = nullptr;
     }
     else {
       ob->parent = parent_reader->object();
@@ -583,7 +583,7 @@ static void import_endjob(void *user_data)
 
       /* It's possible that cancellation occurred between the creation of
        * the reader and the creation of the Blender object. */
-      if (ob == NULL) {
+      if (ob == nullptr) {
         continue;
       }
 
@@ -685,7 +685,7 @@ bool ABC_import(bContext *C,
   job->settings.validate_meshes = validate_meshes;
   job->error_code = ABC_NO_ERROR;
   job->was_cancelled = false;
-  job->archive = NULL;
+  job->archive = nullptr;
   job->is_background_job = as_background_job;
 
   G.is_break = false;
@@ -702,7 +702,7 @@ bool ABC_import(bContext *C,
     /* setup job */
     WM_jobs_customdata_set(wm_job, job, import_freejob);
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_FRAME, NC_SCENE | ND_FRAME);
-    WM_jobs_callbacks(wm_job, import_startjob, NULL, NULL, import_endjob);
+    WM_jobs_callbacks(wm_job, import_startjob, nullptr, nullptr, import_endjob);
 
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
@@ -762,13 +762,13 @@ static AbcObjectReader *get_abc_reader(CacheReader *reader, Object *ob, const ch
 
   if (!iobject.valid()) {
     *err_str = "Invalid object: verify object path";
-    return NULL;
+    return nullptr;
   }
 
   const ObjectHeader &header = iobject.getHeader();
   if (!abc_reader->accepts_object_type(header, ob, err_str)) {
     /* err_str is set by acceptsObjectType() */
-    return NULL;
+    return nullptr;
   }
 
   return abc_reader;
@@ -789,8 +789,8 @@ Mesh *ABC_read_mesh(CacheReader *reader,
                     int read_flag)
 {
   AbcObjectReader *abc_reader = get_abc_reader(reader, ob, err_str);
-  if (abc_reader == NULL) {
-    return NULL;
+  if (abc_reader == nullptr) {
+    return nullptr;
   }
 
   ISampleSelector sample_sel = sample_selector_for_time(time);
@@ -801,7 +801,7 @@ bool ABC_mesh_topology_changed(
     CacheReader *reader, Object *ob, Mesh *existing_mesh, const float time, const char **err_str)
 {
   AbcObjectReader *abc_reader = get_abc_reader(reader, ob, err_str);
-  if (abc_reader == NULL) {
+  if (abc_reader == nullptr) {
     return false;
   }
 
@@ -851,9 +851,9 @@ CacheReader *CacheReader_open_alembic_object(AbcArchiveHandle *handle,
 
   ImportSettings settings;
   AbcObjectReader *abc_reader = create_reader(iobject, settings);
-  if (abc_reader == NULL) {
+  if (abc_reader == nullptr) {
     /* This object is not supported */
-    return NULL;
+    return nullptr;
   }
   abc_reader->object(object);
   abc_reader->incref();

@@ -38,9 +38,9 @@ PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
 
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
-  this->m_preview = NULL;
-  this->m_outputBuffer = NULL;
-  this->m_input = NULL;
+  this->m_preview = nullptr;
+  this->m_outputBuffer = nullptr;
+  this->m_input = nullptr;
   this->m_divider = 1.0f;
   this->m_viewSettings = viewSettings;
   this->m_displaySettings = displaySettings;
@@ -63,7 +63,7 @@ void PreviewOperation::initExecution()
     this->m_outputBuffer = this->m_preview->rect;
   }
 
-  if (this->m_outputBuffer == NULL) {
+  if (this->m_outputBuffer == nullptr) {
     this->m_outputBuffer = (unsigned char *)MEM_callocN(
         sizeof(unsigned char) * 4 * getWidth() * getHeight(), "PreviewOperation");
     if (this->m_preview->rect) {
@@ -77,8 +77,8 @@ void PreviewOperation::initExecution()
 
 void PreviewOperation::deinitExecution()
 {
-  this->m_outputBuffer = NULL;
-  this->m_input = NULL;
+  this->m_outputBuffer = nullptr;
+  this->m_input = nullptr;
 }
 
 void PreviewOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)

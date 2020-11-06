@@ -27,10 +27,10 @@ ZCombineOperation::ZCombineOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
 
-  this->m_image1Reader = NULL;
-  this->m_depth1Reader = NULL;
-  this->m_image2Reader = NULL;
-  this->m_depth2Reader = NULL;
+  this->m_image1Reader = nullptr;
+  this->m_depth1Reader = nullptr;
+  this->m_image2Reader = nullptr;
+  this->m_depth2Reader = nullptr;
 }
 
 void ZCombineOperation::initExecution()
@@ -88,10 +88,10 @@ void ZCombineAlphaOperation::executePixelSampled(float output[4],
 
 void ZCombineOperation::deinitExecution()
 {
-  this->m_image1Reader = NULL;
-  this->m_depth1Reader = NULL;
-  this->m_image2Reader = NULL;
-  this->m_depth2Reader = NULL;
+  this->m_image1Reader = nullptr;
+  this->m_depth1Reader = nullptr;
+  this->m_image2Reader = nullptr;
+  this->m_depth2Reader = nullptr;
 }
 
 // MASK combine
@@ -102,9 +102,9 @@ ZCombineMaskOperation::ZCombineMaskOperation()
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
 
-  this->m_maskReader = NULL;
-  this->m_image1Reader = NULL;
-  this->m_image2Reader = NULL;
+  this->m_maskReader = nullptr;
+  this->m_image1Reader = nullptr;
+  this->m_image2Reader = nullptr;
 }
 
 void ZCombineMaskOperation::initExecution()
@@ -154,7 +154,7 @@ void ZCombineMaskAlphaOperation::executePixelSampled(float output[4],
 
 void ZCombineMaskOperation::deinitExecution()
 {
-  this->m_image1Reader = NULL;
-  this->m_maskReader = NULL;
-  this->m_image2Reader = NULL;
+  this->m_image1Reader = nullptr;
+  this->m_maskReader = nullptr;
+  this->m_image2Reader = nullptr;
 }

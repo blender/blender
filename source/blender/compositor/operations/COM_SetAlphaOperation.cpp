@@ -24,8 +24,8 @@ SetAlphaOperation::SetAlphaOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
 
-  this->m_inputColor = NULL;
-  this->m_inputAlpha = NULL;
+  this->m_inputColor = nullptr;
+  this->m_inputAlpha = nullptr;
 }
 
 void SetAlphaOperation::initExecution()
@@ -49,6 +49,6 @@ void SetAlphaOperation::executePixelSampled(float output[4],
 
 void SetAlphaOperation::deinitExecution()
 {
-  this->m_inputColor = NULL;
-  this->m_inputAlpha = NULL;
+  this->m_inputColor = nullptr;
+  this->m_inputAlpha = nullptr;
 }

@@ -34,7 +34,7 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int FrsNoise_Init(PyObject *module)
 {
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -63,7 +63,7 @@ PyDoc_STRVAR(FrsNoise_doc,
 
 static int FrsNoise_init(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"seed", NULL};
+  static const char *kwlist[] = {"seed", nullptr};
   long seed = -1;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|l", (char **)kwlist, &seed)) {
@@ -104,11 +104,11 @@ PyDoc_STRVAR(FrsNoise_turbulence1_doc,
 
 static PyObject *FrsNoise_drand(BPy_FrsNoise * /*self*/, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"seed", NULL};
+  static const char *kwlist[] = {"seed", nullptr};
   long seed = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|I", (char **)kwlist, &seed)) {
     PyErr_SetString(PyExc_TypeError, "optional argument 1 must be of type int");
-    return NULL;
+    return nullptr;
   }
   if (seed) {
     RandGen::srand48(seed);
@@ -118,25 +118,25 @@ static PyObject *FrsNoise_drand(BPy_FrsNoise * /*self*/, PyObject *args, PyObjec
 
 static PyObject *FrsNoise_turbulence_smooth(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"v", "oct", NULL};
+  static const char *kwlist[] = {"v", "oct", nullptr};
 
   double x;  // note: this has to be a double (not float)
   unsigned nbOctaves = 8;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|I", (char **)kwlist, &x, &nbOctaves)) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble(self->pn->turbulenceSmooth(x, nbOctaves));
 }
 
 static PyObject *FrsNoise_turbulence1(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"v", "freq", "amp", "oct", NULL};
+  static const char *kwlist[] = {"v", "freq", "amp", "oct", nullptr};
   float f1, f2, f3;
   unsigned int i = 4;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff|I", (char **)kwlist, &f1, &f2, &f3, &i)) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble(self->n->turbulence1(f1, f2, f3, i));
 }
@@ -159,19 +159,19 @@ PyDoc_STRVAR(FrsNoise_turbulence2_doc,
 
 static PyObject *FrsNoise_turbulence2(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"v", "freq", "amp", "oct", NULL};
+  static const char *kwlist[] = {"v", "freq", "amp", "oct", nullptr};
   PyObject *obj1;
   float f2, f3;
   unsigned int i = 4;
   Vec2f vec;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i)) {
-    return NULL;
+    return nullptr;
   }
   if (!Vec2f_ptr_from_PyObject(obj1, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
-    return NULL;
+    return nullptr;
   }
   float t = self->n->turbulence2(vec, f2, f3, i);
   return PyFloat_FromDouble(t);
@@ -195,19 +195,19 @@ PyDoc_STRVAR(FrsNoise_turbulence3_doc,
 
 static PyObject *FrsNoise_turbulence3(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"v", "freq", "amp", "oct", NULL};
+  static const char *kwlist[] = {"v", "freq", "amp", "oct", nullptr};
   PyObject *obj1;
   float f2, f3;
   unsigned int i = 4;
   Vec3f vec;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i)) {
-    return NULL;
+    return nullptr;
   }
   if (!Vec3f_ptr_from_PyObject(obj1, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
-    return NULL;
+    return nullptr;
   }
   float t = self->n->turbulence3(vec, f2, f3, i);
   return PyFloat_FromDouble(t);
@@ -225,11 +225,11 @@ PyDoc_STRVAR(FrsNoise_smoothNoise1_doc,
 
 static PyObject *FrsNoise_smoothNoise1(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"v", NULL};
+  static const char *kwlist[] = {"v", nullptr};
   float f;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist, &f)) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble(self->n->smoothNoise1(f));
 }
@@ -246,17 +246,17 @@ PyDoc_STRVAR(FrsNoise_smoothNoise2_doc,
 
 static PyObject *FrsNoise_smoothNoise2(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"v", NULL};
+  static const char *kwlist[] = {"v", nullptr};
   PyObject *obj;
   Vec2f vec;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj)) {
-    return NULL;
+    return nullptr;
   }
   if (!Vec2f_ptr_from_PyObject(obj, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
-    return NULL;
+    return nullptr;
   }
   float t = self->n->smoothNoise2(vec);
   return PyFloat_FromDouble(t);
@@ -274,17 +274,17 @@ PyDoc_STRVAR(FrsNoise_smoothNoise3_doc,
 
 static PyObject *FrsNoise_smoothNoise3(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"v", NULL};
+  static const char *kwlist[] = {"v", nullptr};
   PyObject *obj;
   Vec3f vec;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj)) {
-    return NULL;
+    return nullptr;
   }
   if (!Vec3f_ptr_from_PyObject(obj, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
-    return NULL;
+    return nullptr;
   }
   float t = self->n->smoothNoise3(vec);
   return PyFloat_FromDouble(t);
@@ -315,53 +315,53 @@ static PyMethodDef BPy_FrsNoise_methods[] = {
      (PyCFunction)FrsNoise_smoothNoise3,
      METH_VARARGS | METH_KEYWORDS,
      FrsNoise_smoothNoise3_doc},
-    {"rand", (PyCFunction)FrsNoise_drand, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"rand", (PyCFunction)FrsNoise_drand, METH_VARARGS | METH_KEYWORDS, nullptr},
     {"turbulence_smooth",
      (PyCFunction)FrsNoise_turbulence_smooth,
      METH_VARARGS | METH_KEYWORDS,
-     NULL},
-    {NULL, NULL, 0, NULL},
+     nullptr},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*-----------------------BPy_FrsNoise type definition ------------------------------*/
 
 PyTypeObject FrsNoise_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Noise",   /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "Noise",   /* tp_name */
     sizeof(BPy_FrsNoise),                     /* tp_basicsize */
     0,                                        /* tp_itemsize */
     (destructor)FrsNoise_dealloc,             /* tp_dealloc */
-    0,                                        /* tp_print */
-    0,                                        /* tp_getattr */
-    0,                                        /* tp_setattr */
-    0,                                        /* tp_reserved */
+    nullptr,                                        /* tp_print */
+    nullptr,                                        /* tp_getattr */
+    nullptr,                                        /* tp_setattr */
+    nullptr,                                        /* tp_reserved */
     (reprfunc)FrsNoise_repr,                  /* tp_repr */
-    0,                                        /* tp_as_number */
-    0,                                        /* tp_as_sequence */
-    0,                                        /* tp_as_mapping */
-    0,                                        /* tp_hash  */
-    0,                                        /* tp_call */
-    0,                                        /* tp_str */
-    0,                                        /* tp_getattro */
-    0,                                        /* tp_setattro */
-    0,                                        /* tp_as_buffer */
+    nullptr,                                        /* tp_as_number */
+    nullptr,                                        /* tp_as_sequence */
+    nullptr,                                        /* tp_as_mapping */
+    nullptr,                                        /* tp_hash  */
+    nullptr,                                        /* tp_call */
+    nullptr,                                        /* tp_str */
+    nullptr,                                        /* tp_getattro */
+    nullptr,                                        /* tp_setattro */
+    nullptr,                                        /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
     FrsNoise_doc,                             /* tp_doc */
-    0,                                        /* tp_traverse */
-    0,                                        /* tp_clear */
-    0,                                        /* tp_richcompare */
+    nullptr,                                        /* tp_traverse */
+    nullptr,                                        /* tp_clear */
+    nullptr,                                        /* tp_richcompare */
     0,                                        /* tp_weaklistoffset */
-    0,                                        /* tp_iter */
-    0,                                        /* tp_iternext */
+    nullptr,                                        /* tp_iter */
+    nullptr,                                        /* tp_iternext */
     BPy_FrsNoise_methods,                     /* tp_methods */
-    0,                                        /* tp_members */
-    0,                                        /* tp_getset */
-    0,                                        /* tp_base */
-    0,                                        /* tp_dict */
-    0,                                        /* tp_descr_get */
-    0,                                        /* tp_descr_set */
+    nullptr,                                        /* tp_members */
+    nullptr,                                        /* tp_getset */
+    nullptr,                                        /* tp_base */
+    nullptr,                                        /* tp_dict */
+    nullptr,                                        /* tp_descr_get */
+    nullptr,                                        /* tp_descr_set */
     0,                                        /* tp_dictoffset */
     (initproc)FrsNoise_init,                  /* tp_init */
-    0,                                        /* tp_alloc */
+    nullptr,                                        /* tp_alloc */
     PyType_GenericNew,                        /* tp_new */
 };
 

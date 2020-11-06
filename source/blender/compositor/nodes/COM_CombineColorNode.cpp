@@ -67,7 +67,7 @@ void CombineColorNode::convertToOperations(NodeConverter &converter,
 
 NodeOperation *CombineRGBANode::getColorConverter(const CompositorContext & /*context*/) const
 {
-  return NULL; /* no conversion needed */
+  return nullptr; /* no conversion needed */
 }
 
 NodeOperation *CombineHSVANode::getColorConverter(const CompositorContext & /*context*/) const

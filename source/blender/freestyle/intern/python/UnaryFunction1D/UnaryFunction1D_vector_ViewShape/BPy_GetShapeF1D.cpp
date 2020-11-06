@@ -51,7 +51,7 @@ static char GetShapeF1D___doc__[] =
 
 static int GetShapeF1D___init__(BPy_GetShapeF1D *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {NULL};
+  static const char *kwlist[] = {nullptr};
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
@@ -63,43 +63,43 @@ static int GetShapeF1D___init__(BPy_GetShapeF1D *self, PyObject *args, PyObject 
 /*-----------------------BPy_GetShapeF1D type definition ------------------------------*/
 
 PyTypeObject GetShapeF1D_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "GetShapeF1D", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "GetShapeF1D", /* tp_name */
     sizeof(BPy_GetShapeF1D),                      /* tp_basicsize */
     0,                                            /* tp_itemsize */
-    0,                                            /* tp_dealloc */
-    0,                                            /* tp_print */
-    0,                                            /* tp_getattr */
-    0,                                            /* tp_setattr */
-    0,                                            /* tp_reserved */
-    0,                                            /* tp_repr */
-    0,                                            /* tp_as_number */
-    0,                                            /* tp_as_sequence */
-    0,                                            /* tp_as_mapping */
-    0,                                            /* tp_hash  */
-    0,                                            /* tp_call */
-    0,                                            /* tp_str */
-    0,                                            /* tp_getattro */
-    0,                                            /* tp_setattro */
-    0,                                            /* tp_as_buffer */
+    nullptr,                                            /* tp_dealloc */
+    nullptr,                                            /* tp_print */
+    nullptr,                                            /* tp_getattr */
+    nullptr,                                            /* tp_setattr */
+    nullptr,                                            /* tp_reserved */
+    nullptr,                                            /* tp_repr */
+    nullptr,                                            /* tp_as_number */
+    nullptr,                                            /* tp_as_sequence */
+    nullptr,                                            /* tp_as_mapping */
+    nullptr,                                            /* tp_hash  */
+    nullptr,                                            /* tp_call */
+    nullptr,                                            /* tp_str */
+    nullptr,                                            /* tp_getattro */
+    nullptr,                                            /* tp_setattro */
+    nullptr,                                            /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,     /* tp_flags */
     GetShapeF1D___doc__,                          /* tp_doc */
-    0,                                            /* tp_traverse */
-    0,                                            /* tp_clear */
-    0,                                            /* tp_richcompare */
+    nullptr,                                            /* tp_traverse */
+    nullptr,                                            /* tp_clear */
+    nullptr,                                            /* tp_richcompare */
     0,                                            /* tp_weaklistoffset */
-    0,                                            /* tp_iter */
-    0,                                            /* tp_iternext */
-    0,                                            /* tp_methods */
-    0,                                            /* tp_members */
-    0,                                            /* tp_getset */
+    nullptr,                                            /* tp_iter */
+    nullptr,                                            /* tp_iternext */
+    nullptr,                                            /* tp_methods */
+    nullptr,                                            /* tp_members */
+    nullptr,                                            /* tp_getset */
     &UnaryFunction1DVectorViewShape_Type,         /* tp_base */
-    0,                                            /* tp_dict */
-    0,                                            /* tp_descr_get */
-    0,                                            /* tp_descr_set */
+    nullptr,                                            /* tp_dict */
+    nullptr,                                            /* tp_descr_get */
+    nullptr,                                            /* tp_descr_set */
     0,                                            /* tp_dictoffset */
     (initproc)GetShapeF1D___init__,               /* tp_init */
-    0,                                            /* tp_alloc */
-    0,                                            /* tp_new */
+    nullptr,                                            /* tp_alloc */
+    nullptr,                                            /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@ FlipOperation::FlipOperation()
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
   this->setResolutionInputSocketIndex(0);
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
   this->m_flipX = true;
   this->m_flipY = false;
 }
@@ -34,7 +34,7 @@ void FlipOperation::initExecution()
 
 void FlipOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 void FlipOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)

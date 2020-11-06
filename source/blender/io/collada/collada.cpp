@@ -109,7 +109,7 @@ int collada_export(bContext *C, ExportSettings *export_settings)
   DocumentExporter exporter(blender_context, export_settings);
   int status = exporter.exportCurrentScene();
 
-  BLI_linklist_free(export_settings->export_set, NULL);
+  BLI_linklist_free(export_settings->export_set, nullptr);
 
   return (status) ? -1 : export_count;
 }

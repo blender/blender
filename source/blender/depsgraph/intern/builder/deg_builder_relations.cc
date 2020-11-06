@@ -2204,7 +2204,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 
       /* Layer parenting need react to the parent object transformation. */
       LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-        if (gpl->parent != NULL) {
+        if (gpl->parent != nullptr) {
           ComponentKey gpd_geom_key(&gpd->id, NodeType::GEOMETRY);
 
           if (gpl->partype == PARBONE) {

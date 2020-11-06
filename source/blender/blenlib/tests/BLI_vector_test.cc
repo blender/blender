@@ -79,11 +79,11 @@ struct TestListValue {
 
 TEST(vector, ListBaseConstructor)
 {
-  TestListValue *value1 = new TestListValue{0, 0, 4};
-  TestListValue *value2 = new TestListValue{0, 0, 5};
-  TestListValue *value3 = new TestListValue{0, 0, 6};
+  TestListValue *value1 = new TestListValue{nullptr, nullptr, 4};
+  TestListValue *value2 = new TestListValue{nullptr, nullptr, 5};
+  TestListValue *value3 = new TestListValue{nullptr, nullptr, 6};
 
-  ListBase list = {NULL, NULL};
+  ListBase list = {nullptr, nullptr};
   BLI_addtail(&list, value1);
   BLI_addtail(&list, value2);
   BLI_addtail(&list, value3);

@@ -69,7 +69,7 @@ void WingedEdgeBuilder::visitNodeTransformAfter(NodeTransform &UNUSED(transform)
   delete _current_matrix;
 
   if (_matrices_stack.empty()) {
-    _current_matrix = NULL;
+    _current_matrix = nullptr;
     return;
   }
 
@@ -133,12 +133,12 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
 
   const unsigned int *vindices = ifs.vindices();
   const unsigned int *nindices = ifs.nindices();
-  const unsigned int *tindices = NULL;
+  const unsigned int *tindices = nullptr;
   if (ifs.tsize()) {
     tindices = ifs.tindices();
   }
 
-  const unsigned int *mindices = NULL;
+  const unsigned int *mindices = nullptr;
   if (ifs.msize()) {
     mindices = ifs.mindices();
   }

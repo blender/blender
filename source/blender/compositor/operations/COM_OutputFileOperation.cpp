@@ -48,25 +48,25 @@ void add_exr_channels(void *exrhandle,
   switch (datatype) {
     case COM_DT_VALUE:
       IMB_exr_add_channel(
-          exrhandle, layerName, "V", viewName, 1, width, buf ? buf : NULL, use_half_float);
+          exrhandle, layerName, "V", viewName, 1, width, buf ? buf : nullptr, use_half_float);
       break;
     case COM_DT_VECTOR:
       IMB_exr_add_channel(
-          exrhandle, layerName, "X", viewName, 3, 3 * width, buf ? buf : NULL, use_half_float);
+          exrhandle, layerName, "X", viewName, 3, 3 * width, buf ? buf : nullptr, use_half_float);
       IMB_exr_add_channel(
-          exrhandle, layerName, "Y", viewName, 3, 3 * width, buf ? buf + 1 : NULL, use_half_float);
+          exrhandle, layerName, "Y", viewName, 3, 3 * width, buf ? buf + 1 : nullptr, use_half_float);
       IMB_exr_add_channel(
-          exrhandle, layerName, "Z", viewName, 3, 3 * width, buf ? buf + 2 : NULL, use_half_float);
+          exrhandle, layerName, "Z", viewName, 3, 3 * width, buf ? buf + 2 : nullptr, use_half_float);
       break;
     case COM_DT_COLOR:
       IMB_exr_add_channel(
-          exrhandle, layerName, "R", viewName, 4, 4 * width, buf ? buf : NULL, use_half_float);
+          exrhandle, layerName, "R", viewName, 4, 4 * width, buf ? buf : nullptr, use_half_float);
       IMB_exr_add_channel(
-          exrhandle, layerName, "G", viewName, 4, 4 * width, buf ? buf + 1 : NULL, use_half_float);
+          exrhandle, layerName, "G", viewName, 4, 4 * width, buf ? buf + 1 : nullptr, use_half_float);
       IMB_exr_add_channel(
-          exrhandle, layerName, "B", viewName, 4, 4 * width, buf ? buf + 2 : NULL, use_half_float);
+          exrhandle, layerName, "B", viewName, 4, 4 * width, buf ? buf + 2 : nullptr, use_half_float);
       IMB_exr_add_channel(
-          exrhandle, layerName, "A", viewName, 4, 4 * width, buf ? buf + 3 : NULL, use_half_float);
+          exrhandle, layerName, "A", viewName, 4, 4 * width, buf ? buf + 3 : nullptr, use_half_float);
       break;
     default:
       break;
@@ -82,7 +82,7 @@ void free_exr_channels(void *exrhandle,
 
   /* check renderdata for amount of views */
   for (srv = (SceneRenderView *)rd->views.first; srv; srv = srv->next) {
-    float *rect = NULL;
+    float *rect = nullptr;
 
     if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
       continue;
@@ -130,7 +130,7 @@ static float *init_buffer(unsigned int width, unsigned int height, DataType data
     return (float *)MEM_callocN(width * height * size * sizeof(float), "OutputFile buffer");
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void write_buffer_rect(rcti *rect,
@@ -187,9 +187,9 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(
 
   this->addInputSocket(datatype);
 
-  this->m_outputBuffer = NULL;
+  this->m_outputBuffer = nullptr;
   this->m_datatype = datatype;
-  this->m_imageInput = NULL;
+  this->m_imageInput = nullptr;
 
   this->m_format = format;
   BLI_strncpy(this->m_path, path, sizeof(this->m_path));
@@ -252,8 +252,8 @@ void OutputSingleLayerOperation::deinitExecution()
 
     IMB_freeImBuf(ibuf);
   }
-  this->m_outputBuffer = NULL;
-  this->m_imageInput = NULL;
+  this->m_outputBuffer = nullptr;
+  this->m_imageInput = nullptr;
 }
 
 /******************************* MultiLayer *******************************/
@@ -265,8 +265,8 @@ OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bo
   this->use_layer = use_layer_;
 
   /* these are created in initExecution */
-  this->outputBuffer = 0;
-  this->imageInput = 0;
+  this->outputBuffer = nullptr;
+  this->imageInput = nullptr;
 }
 
 OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(const RenderData *rd,
@@ -356,7 +356,7 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
     }
 
     /* when the filename has no permissions, this can fail */
-    if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, NULL)) {
+    if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, nullptr)) {
       IMB_exr_write_channels(exrhandle);
     }
     else {
@@ -369,10 +369,10 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
     for (unsigned int i = 0; i < this->m_layers.size(); i++) {
       if (this->m_layers[i].outputBuffer) {
         MEM_freeN(this->m_layers[i].outputBuffer);
-        this->m_layers[i].outputBuffer = NULL;
+        this->m_layers[i].outputBuffer = nullptr;
       }
 
-      this->m_layers[i].imageInput = NULL;
+      this->m_layers[i].imageInput = nullptr;
     }
   }
 }

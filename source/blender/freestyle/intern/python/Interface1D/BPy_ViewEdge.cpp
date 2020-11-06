@@ -54,8 +54,8 @@ PyDoc_STRVAR(
 
 static int ViewEdge_init(BPy_ViewEdge *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"brother", NULL};
-  PyObject *brother = 0;
+  static const char *kwlist[] = {"brother", nullptr};
+  PyObject *brother = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &ViewEdge_Type, &brother)) {
     return -1;
@@ -87,7 +87,7 @@ static PyMethodDef BPy_ViewEdge_methods[] = {
      (PyCFunction)ViewEdge_update_fedges,
      METH_NOARGS,
      ViewEdge_update_fedges_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*----------------------ViewEdge get/setters ----------------------------*/
@@ -333,88 +333,88 @@ static PyGetSetDef BPy_ViewEdge_getseters[] = {
      (getter)ViewEdge_first_viewvertex_get,
      (setter)ViewEdge_first_viewvertex_set,
      ViewEdge_first_viewvertex_doc,
-     NULL},
+     nullptr},
     {"last_viewvertex",
      (getter)ViewEdge_last_viewvertex_get,
      (setter)ViewEdge_last_viewvertex_set,
      ViewEdge_last_viewvertex_doc,
-     NULL},
+     nullptr},
     {"first_fedge",
      (getter)ViewEdge_first_fedge_get,
      (setter)ViewEdge_first_fedge_set,
      ViewEdge_first_fedge_doc,
-     NULL},
+     nullptr},
     {"last_fedge",
      (getter)ViewEdge_last_fedge_get,
      (setter)ViewEdge_last_fedge_set,
      ViewEdge_last_fedge_doc,
-     NULL},
+     nullptr},
     {"viewshape",
      (getter)ViewEdge_viewshape_get,
      (setter)ViewEdge_viewshape_set,
      ViewEdge_viewshape_doc,
-     NULL},
+     nullptr},
     {"occludee",
      (getter)ViewEdge_occludee_get,
      (setter)ViewEdge_occludee_set,
      ViewEdge_occludee_doc,
-     NULL},
-    {"is_closed", (getter)ViewEdge_is_closed_get, (setter)NULL, ViewEdge_is_closed_doc, NULL},
-    {"id", (getter)ViewEdge_id_get, (setter)ViewEdge_id_set, ViewEdge_id_doc, NULL},
+     nullptr},
+    {"is_closed", (getter)ViewEdge_is_closed_get, (setter)nullptr, ViewEdge_is_closed_doc, nullptr},
+    {"id", (getter)ViewEdge_id_get, (setter)ViewEdge_id_set, ViewEdge_id_doc, nullptr},
     {"nature",
      (getter)ViewEdge_nature_get,
      (setter)ViewEdge_nature_set,
      ViewEdge_nature_doc,
-     NULL},
-    {"qi", (getter)ViewEdge_qi_get, (setter)ViewEdge_qi_set, ViewEdge_qi_doc, NULL},
+     nullptr},
+    {"qi", (getter)ViewEdge_qi_get, (setter)ViewEdge_qi_set, ViewEdge_qi_doc, nullptr},
     {"chaining_time_stamp",
      (getter)ViewEdge_chaining_time_stamp_get,
      (setter)ViewEdge_chaining_time_stamp_set,
      ViewEdge_chaining_time_stamp_doc,
-     NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_ViewEdge type definition ------------------------------*/
 
 PyTypeObject ViewEdge_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "ViewEdge", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "ViewEdge", /* tp_name */
     sizeof(BPy_ViewEdge),                      /* tp_basicsize */
     0,                                         /* tp_itemsize */
-    0,                                         /* tp_dealloc */
-    0,                                         /* tp_print */
-    0,                                         /* tp_getattr */
-    0,                                         /* tp_setattr */
-    0,                                         /* tp_reserved */
-    0,                                         /* tp_repr */
-    0,                                         /* tp_as_number */
-    0,                                         /* tp_as_sequence */
-    0,                                         /* tp_as_mapping */
-    0,                                         /* tp_hash  */
-    0,                                         /* tp_call */
-    0,                                         /* tp_str */
-    0,                                         /* tp_getattro */
-    0,                                         /* tp_setattro */
-    0,                                         /* tp_as_buffer */
+    nullptr,                                         /* tp_dealloc */
+    nullptr,                                         /* tp_print */
+    nullptr,                                         /* tp_getattr */
+    nullptr,                                         /* tp_setattr */
+    nullptr,                                         /* tp_reserved */
+    nullptr,                                         /* tp_repr */
+    nullptr,                                         /* tp_as_number */
+    nullptr,                                         /* tp_as_sequence */
+    nullptr,                                         /* tp_as_mapping */
+    nullptr,                                         /* tp_hash  */
+    nullptr,                                         /* tp_call */
+    nullptr,                                         /* tp_str */
+    nullptr,                                         /* tp_getattro */
+    nullptr,                                         /* tp_setattro */
+    nullptr,                                         /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags */
     ViewEdge_doc,                              /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    nullptr,                                         /* tp_traverse */
+    nullptr,                                         /* tp_clear */
+    nullptr,                                         /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
+    nullptr,                                         /* tp_iter */
+    nullptr,                                         /* tp_iternext */
     BPy_ViewEdge_methods,                      /* tp_methods */
-    0,                                         /* tp_members */
+    nullptr,                                         /* tp_members */
     BPy_ViewEdge_getseters,                    /* tp_getset */
     &Interface1D_Type,                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
+    nullptr,                                         /* tp_dict */
+    nullptr,                                         /* tp_descr_get */
+    nullptr,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
     (initproc)ViewEdge_init,                   /* tp_init */
-    0,                                         /* tp_alloc */
-    0,                                         /* tp_new */
+    nullptr,                                         /* tp_alloc */
+    nullptr,                                         /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

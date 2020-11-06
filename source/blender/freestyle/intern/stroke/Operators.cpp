@@ -34,7 +34,7 @@ namespace Freestyle {
 
 Operators::I1DContainer Operators::_current_view_edges_set;
 Operators::I1DContainer Operators::_current_chains_set;
-Operators::I1DContainer *Operators::_current_set = NULL;
+Operators::I1DContainer *Operators::_current_set = nullptr;
 Operators::StrokesContainer Operators::_current_strokes_set;
 
 int Operators::select(UnaryPredicate1D &pred)
@@ -738,7 +738,7 @@ static int __recursiveSplit(Chain *_curve,
 
   // retrieves the current splitting id
   Id *newId = _curve->getSplittingId();
-  if (newId == 0) {
+  if (newId == nullptr) {
     newId = new Id(_curve->getId());
     _curve->setSplittingId(newId);
   }
@@ -810,7 +810,7 @@ int Operators::recursiveSplit(UnaryFunction0D<double> &func,
     return 0;
   }
 
-  Chain *currentChain = 0;
+  Chain *currentChain = nullptr;
   I1DContainer splitted_chains;
   I1DContainer newChains;
   I1DContainer::iterator cit = _current_chains_set.begin(), citend = _current_chains_set.end();
@@ -921,7 +921,7 @@ static int __recursiveSplit(Chain *_curve,
 
   // retrieves the current splitting id
   Id *newId = _curve->getSplittingId();
-  if (newId == NULL) {
+  if (newId == nullptr) {
     newId = new Id(_curve->getId());
     _curve->setSplittingId(newId);
   }
@@ -994,7 +994,7 @@ int Operators::recursiveSplit(UnaryFunction0D<double> &func,
     return 0;
   }
 
-  Chain *currentChain = 0;
+  Chain *currentChain = nullptr;
   I1DContainer splitted_chains;
   I1DContainer newChains;
   I1DContainer::iterator cit = _current_chains_set.begin(), citend = _current_chains_set.end();
@@ -1095,7 +1095,7 @@ static Stroke *createStroke(Interface1D &inter)
   Vec2r previous = current;
   SVertex *sv;
   CurvePoint *cp;
-  StrokeVertex *stroke_vertex = NULL;
+  StrokeVertex *stroke_vertex = nullptr;
   bool hasSingularity = false;
 
   do {
@@ -1152,7 +1152,7 @@ static Stroke *createStroke(Interface1D &inter)
   // Discard the stroke if the number of stroke vertices is less than two
   if (stroke->strokeVerticesSize() < 2) {
     delete stroke;
-    return NULL;
+    return nullptr;
   }
   stroke->setLength(currentCurvilignAbscissa);
   if (hasSingularity) {
@@ -1198,7 +1198,7 @@ static Stroke *createStroke(Interface1D &inter)
         else {
           // Discard the stroke because all stroke vertices are overlapping
           delete stroke;
-          return NULL;
+          return nullptr;
         }
         current = overlapping_vertices.front()->getPoint();
         Vec2r dir(target - current);

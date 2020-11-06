@@ -32,5 +32,5 @@ void CPUDevice::execute(WorkPackage *work)
 
   executionGroup->getOutputOperation()->executeRegion(&rect, chunkNumber);
 
-  executionGroup->finalizeChunkExecution(chunkNumber, NULL);
+  executionGroup->finalizeChunkExecution(chunkNumber, nullptr);
 }

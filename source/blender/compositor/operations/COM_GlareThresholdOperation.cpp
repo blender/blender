@@ -25,7 +25,7 @@ GlareThresholdOperation::GlareThresholdOperation()
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_FIT);
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }
 
 void GlareThresholdOperation::determineResolution(unsigned int resolution[2],
@@ -65,5 +65,5 @@ void GlareThresholdOperation::executePixelSampled(float output[4],
 
 void GlareThresholdOperation::deinitExecution()
 {
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }

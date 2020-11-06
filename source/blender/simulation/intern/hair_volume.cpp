@@ -224,7 +224,7 @@ void SIM_hair_volume_vertex_grid_forces(HairGrid *grid,
                         x,
                         &gdensity,
                         gvelocity,
-                        NULL,
+                        nullptr,
                         ggrad,
                         gvelgrad);
 

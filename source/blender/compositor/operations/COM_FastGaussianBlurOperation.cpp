@@ -24,7 +24,7 @@
 
 FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
-  this->m_iirgaus = NULL;
+  this->m_iirgaus = nullptr;
 }
 
 void FastGaussianBlurOperation::executePixel(float output[4], int x, int y, void *data)
@@ -70,7 +70,7 @@ void FastGaussianBlurOperation::deinitExecution()
 {
   if (this->m_iirgaus) {
     delete this->m_iirgaus;
-    this->m_iirgaus = NULL;
+    this->m_iirgaus = nullptr;
   }
   BlurBaseOperation::deinitMutex();
 }
@@ -260,8 +260,8 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_iirgaus = NULL;
-  this->m_inputprogram = NULL;
+  this->m_iirgaus = nullptr;
+  this->m_inputprogram = nullptr;
   this->m_sigma = 1.0f;
   this->m_overlay = 0;
   setComplex(true);
@@ -300,7 +300,7 @@ void FastGaussianBlurValueOperation::deinitExecution()
 {
   if (this->m_iirgaus) {
     delete this->m_iirgaus;
-    this->m_iirgaus = NULL;
+    this->m_iirgaus = nullptr;
   }
   deinitMutex();
 }

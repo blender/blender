@@ -47,8 +47,8 @@ KeyingOperation::KeyingOperation()
 
   this->m_screenBalance = 0.5f;
 
-  this->m_pixelReader = NULL;
-  this->m_screenReader = NULL;
+  this->m_pixelReader = nullptr;
+  this->m_screenReader = nullptr;
 }
 
 void KeyingOperation::initExecution()
@@ -59,8 +59,8 @@ void KeyingOperation::initExecution()
 
 void KeyingOperation::deinitExecution()
 {
-  this->m_pixelReader = NULL;
-  this->m_screenReader = NULL;
+  this->m_pixelReader = nullptr;
+  this->m_screenReader = nullptr;
 }
 
 void KeyingOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)

@@ -61,7 +61,7 @@ bNodeSocket *NodeGraph::find_b_node_input(bNode *b_node, const char *identifier)
       return b_sock;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 bNodeSocket *NodeGraph::find_b_node_output(bNode *b_node, const char *identifier)
@@ -71,7 +71,7 @@ bNodeSocket *NodeGraph::find_b_node_output(bNode *b_node, const char *identifier
       return b_sock;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void NodeGraph::add_node(Node *node,
@@ -179,7 +179,7 @@ NodeOutput *NodeGraph::find_output(const NodeRange &node_range, bNodeSocket *b_s
       }
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink)

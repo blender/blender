@@ -18,46 +18,46 @@ TEST(path_util, Clean)
   /* "/./" -> "/" */
   {
     char path[FILE_MAX] = "/a/./b/./c/./";
-    BLI_path_normalize(NULL, path);
+    BLI_path_normalize(nullptr, path);
     EXPECT_STREQ("/a/b/c/", path);
   }
 
   {
     char path[FILE_MAX] = "/./././";
-    BLI_path_normalize(NULL, path);
+    BLI_path_normalize(nullptr, path);
     EXPECT_STREQ("/", path);
   }
 
   {
     char path[FILE_MAX] = "/a/./././b/";
-    BLI_path_normalize(NULL, path);
+    BLI_path_normalize(nullptr, path);
     EXPECT_STREQ("/a/b/", path);
   }
 
   /* "//" -> "/" */
   {
     char path[FILE_MAX] = "a////";
-    BLI_path_normalize(NULL, path);
+    BLI_path_normalize(nullptr, path);
     EXPECT_STREQ("a/", path);
   }
 
   if (false) /* FIXME */
   {
     char path[FILE_MAX] = "./a////";
-    BLI_path_normalize(NULL, path);
+    BLI_path_normalize(nullptr, path);
     EXPECT_STREQ("./a/", path);
   }
 
   /* "foo/bar/../" -> "foo/" */
   {
     char path[FILE_MAX] = "/a/b/c/../../../";
-    BLI_path_normalize(NULL, path);
+    BLI_path_normalize(nullptr, path);
     EXPECT_STREQ("/", path);
   }
 
   {
     char path[FILE_MAX] = "/a/../a/b/../b/c/../c/";
-    BLI_path_normalize(NULL, path);
+    BLI_path_normalize(nullptr, path);
     EXPECT_STREQ("/a/b/c/", path);
   }
 
@@ -96,10 +96,10 @@ TEST(path_util, NameAtIndex_Single)
   AT_INDEX("//a//", 0, "a");
   AT_INDEX("a/b", 0, "a");
 
-  AT_INDEX("/a", 1, NULL);
-  AT_INDEX("/a/", 1, NULL);
-  AT_INDEX("a/", 1, NULL);
-  AT_INDEX("//a//", 1, NULL);
+  AT_INDEX("/a", 1, nullptr);
+  AT_INDEX("/a/", 1, nullptr);
+  AT_INDEX("a/", 1, nullptr);
+  AT_INDEX("//a//", 1, nullptr);
 }
 TEST(path_util, NameAtIndex_SingleNeg)
 {
@@ -109,10 +109,10 @@ TEST(path_util, NameAtIndex_SingleNeg)
   AT_INDEX("//a//", -1, "a");
   AT_INDEX("a/b", -1, "b");
 
-  AT_INDEX("/a", -2, NULL);
-  AT_INDEX("/a/", -2, NULL);
-  AT_INDEX("a/", -2, NULL);
-  AT_INDEX("//a//", -2, NULL);
+  AT_INDEX("/a", -2, nullptr);
+  AT_INDEX("/a/", -2, nullptr);
+  AT_INDEX("a/", -2, nullptr);
+  AT_INDEX("//a//", -2, nullptr);
 }
 
 TEST(path_util, NameAtIndex_Double)
@@ -123,10 +123,10 @@ TEST(path_util, NameAtIndex_Double)
   AT_INDEX("//ab//", 0, "ab");
   AT_INDEX("ab/c", 0, "ab");
 
-  AT_INDEX("/ab", 1, NULL);
-  AT_INDEX("/ab/", 1, NULL);
-  AT_INDEX("ab/", 1, NULL);
-  AT_INDEX("//ab//", 1, NULL);
+  AT_INDEX("/ab", 1, nullptr);
+  AT_INDEX("/ab/", 1, nullptr);
+  AT_INDEX("ab/", 1, nullptr);
+  AT_INDEX("//ab//", 1, nullptr);
 }
 
 TEST(path_util, NameAtIndex_DoublNeg)
@@ -137,10 +137,10 @@ TEST(path_util, NameAtIndex_DoublNeg)
   AT_INDEX("//ab//", -1, "ab");
   AT_INDEX("ab/c", -1, "c");
 
-  AT_INDEX("/ab", -2, NULL);
-  AT_INDEX("/ab/", -2, NULL);
-  AT_INDEX("ab/", -2, NULL);
-  AT_INDEX("//ab//", -2, NULL);
+  AT_INDEX("/ab", -2, nullptr);
+  AT_INDEX("/ab/", -2, nullptr);
+  AT_INDEX("ab/", -2, nullptr);
+  AT_INDEX("//ab//", -2, nullptr);
 }
 
 TEST(path_util, NameAtIndex_Misc)
@@ -149,8 +149,8 @@ TEST(path_util, NameAtIndex_Misc)
   AT_INDEX("/how/now/brown/cow", 1, "now");
   AT_INDEX("/how/now/brown/cow", 2, "brown");
   AT_INDEX("/how/now/brown/cow", 3, "cow");
-  AT_INDEX("/how/now/brown/cow", 4, NULL);
-  AT_INDEX("/how/now/brown/cow/", 4, NULL);
+  AT_INDEX("/how/now/brown/cow", 4, nullptr);
+  AT_INDEX("/how/now/brown/cow/", 4, nullptr);
 }
 
 TEST(path_util, NameAtIndex_MiscNeg)
@@ -159,8 +159,8 @@ TEST(path_util, NameAtIndex_MiscNeg)
   AT_INDEX("/how/now/brown/cow", 1, "now");
   AT_INDEX("/how/now/brown/cow", 2, "brown");
   AT_INDEX("/how/now/brown/cow", 3, "cow");
-  AT_INDEX("/how/now/brown/cow", 4, NULL);
-  AT_INDEX("/how/now/brown/cow/", 4, NULL);
+  AT_INDEX("/how/now/brown/cow", 4, nullptr);
+  AT_INDEX("/how/now/brown/cow/", 4, nullptr);
 }
 
 TEST(path_util, NameAtIndex_MiscComplex)
@@ -169,8 +169,8 @@ TEST(path_util, NameAtIndex_MiscComplex)
   AT_INDEX("//how///now\\/brown/cow", 1, "now");
   AT_INDEX("/how/now\\//brown\\/cow", 2, "brown");
   AT_INDEX("/how/now/brown/cow//\\", 3, "cow");
-  AT_INDEX("/how/now/brown/\\cow", 4, NULL);
-  AT_INDEX("how/now/brown/\\cow\\", 4, NULL);
+  AT_INDEX("/how/now/brown/\\cow", 4, nullptr);
+  AT_INDEX("how/now/brown/\\cow\\", 4, nullptr);
 }
 
 TEST(path_util, NameAtIndex_MiscComplexNeg)
@@ -179,24 +179,24 @@ TEST(path_util, NameAtIndex_MiscComplexNeg)
   AT_INDEX("//how///now\\/brown/cow", -3, "now");
   AT_INDEX("/how/now\\//brown\\/cow", -2, "brown");
   AT_INDEX("/how/now/brown/cow//\\", -1, "cow");
-  AT_INDEX("/how/now/brown/\\cow", -5, NULL);
-  AT_INDEX("how/now/brown/\\cow\\", -5, NULL);
+  AT_INDEX("/how/now/brown/\\cow", -5, nullptr);
+  AT_INDEX("how/now/brown/\\cow\\", -5, nullptr);
 }
 
 TEST(path_util, NameAtIndex_NoneComplex)
 {
-  AT_INDEX("", 0, NULL);
-  AT_INDEX("/", 0, NULL);
-  AT_INDEX("//", 0, NULL);
-  AT_INDEX("///", 0, NULL);
+  AT_INDEX("", 0, nullptr);
+  AT_INDEX("/", 0, nullptr);
+  AT_INDEX("//", 0, nullptr);
+  AT_INDEX("///", 0, nullptr);
 }
 
 TEST(path_util, NameAtIndex_NoneComplexNeg)
 {
-  AT_INDEX("", -1, NULL);
-  AT_INDEX("/", -1, NULL);
-  AT_INDEX("//", -1, NULL);
-  AT_INDEX("///", -1, NULL);
+  AT_INDEX("", -1, nullptr);
+  AT_INDEX("/", -1, nullptr);
+  AT_INDEX("//", -1, nullptr);
+  AT_INDEX("///", -1, nullptr);
 }
 
 #undef AT_INDEX
@@ -590,9 +590,9 @@ TEST(path_util, PathFrameGet)
 /* BLI_path_extension */
 TEST(path_util, PathExtension)
 {
-  EXPECT_EQ(NULL, BLI_path_extension("some.def/file"));
-  EXPECT_EQ(NULL, BLI_path_extension("Text"));
-  EXPECT_EQ(NULL, BLI_path_extension("Text…001"));
+  EXPECT_EQ(nullptr, BLI_path_extension("some.def/file"));
+  EXPECT_EQ(nullptr, BLI_path_extension("Text"));
+  EXPECT_EQ(nullptr, BLI_path_extension("Text…001"));
 
   EXPECT_STREQ(".", BLI_path_extension("some/file."));
   EXPECT_STREQ(".gz", BLI_path_extension("some/file.tar.gz"));

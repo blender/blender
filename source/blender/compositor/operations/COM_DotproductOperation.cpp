@@ -24,8 +24,8 @@ DotproductOperation::DotproductOperation()
   this->addInputSocket(COM_DT_VECTOR);
   this->addOutputSocket(COM_DT_VALUE);
   this->setResolutionInputSocketIndex(0);
-  this->m_input1Operation = NULL;
-  this->m_input2Operation = NULL;
+  this->m_input1Operation = nullptr;
+  this->m_input2Operation = nullptr;
 }
 void DotproductOperation::initExecution()
 {
@@ -35,8 +35,8 @@ void DotproductOperation::initExecution()
 
 void DotproductOperation::deinitExecution()
 {
-  this->m_input1Operation = NULL;
-  this->m_input2Operation = NULL;
+  this->m_input1Operation = nullptr;
+  this->m_input2Operation = nullptr;
 }
 
 /** \todo: current implementation is the inverse of a dotproduct. not 'logically' correct

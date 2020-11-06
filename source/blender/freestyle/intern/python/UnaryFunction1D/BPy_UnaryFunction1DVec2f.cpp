@@ -37,7 +37,7 @@ extern "C" {
 
 int UnaryFunction1DVec2f_Init(PyObject *module)
 {
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -83,8 +83,8 @@ static int UnaryFunction1DVec2f___init__(BPy_UnaryFunction1DVec2f *self,
                                          PyObject *args,
                                          PyObject *kwds)
 {
-  static const char *kwlist[] = {"integration", NULL};
-  PyObject *obj = 0;
+  static const char *kwlist[] = {"integration", nullptr};
+  PyObject *obj = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj)) {
@@ -118,23 +118,23 @@ static PyObject *UnaryFunction1DVec2f___call__(BPy_UnaryFunction1DVec2f *self,
                                                PyObject *args,
                                                PyObject *kwds)
 {
-  static const char *kwlist[] = {"inter", NULL};
-  PyObject *obj = 0;
+  static const char *kwlist[] = {"inter", nullptr};
+  PyObject *obj = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &obj)) {
-    return NULL;
+    return nullptr;
   }
 
   if (typeid(*(self->uf1D_vec2f)) == typeid(UnaryFunction1D<Vec2f>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
-    return NULL;
+    return nullptr;
   }
   if (self->uf1D_vec2f->operator()(*(((BPy_Interface1D *)obj)->if1D)) < 0) {
     if (!PyErr_Occurred()) {
       string class_name(Py_TYPE(self)->tp_name);
       PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
     }
-    return NULL;
+    return nullptr;
   }
   return Vector_from_Vec2f(self->uf1D_vec2f->result);
 }
@@ -168,50 +168,50 @@ static PyGetSetDef BPy_UnaryFunction1DVec2f_getseters[] = {
      (getter)integration_type_get,
      (setter)integration_type_set,
      integration_type_doc,
-     NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_UnaryFunction1DVec2f type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DVec2f_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "UnaryFunction1DVec2f", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "UnaryFunction1DVec2f", /* tp_name */
     sizeof(BPy_UnaryFunction1DVec2f),                      /* tp_basicsize */
     0,                                                     /* tp_itemsize */
     (destructor)UnaryFunction1DVec2f___dealloc__,          /* tp_dealloc */
-    0,                                                     /* tp_print */
-    0,                                                     /* tp_getattr */
-    0,                                                     /* tp_setattr */
-    0,                                                     /* tp_reserved */
+    nullptr,                                                     /* tp_print */
+    nullptr,                                                     /* tp_getattr */
+    nullptr,                                                     /* tp_setattr */
+    nullptr,                                                     /* tp_reserved */
     (reprfunc)UnaryFunction1DVec2f___repr__,               /* tp_repr */
-    0,                                                     /* tp_as_number */
-    0,                                                     /* tp_as_sequence */
-    0,                                                     /* tp_as_mapping */
-    0,                                                     /* tp_hash  */
+    nullptr,                                                     /* tp_as_number */
+    nullptr,                                                     /* tp_as_sequence */
+    nullptr,                                                     /* tp_as_mapping */
+    nullptr,                                                     /* tp_hash  */
     (ternaryfunc)UnaryFunction1DVec2f___call__,            /* tp_call */
-    0,                                                     /* tp_str */
-    0,                                                     /* tp_getattro */
-    0,                                                     /* tp_setattro */
-    0,                                                     /* tp_as_buffer */
+    nullptr,                                                     /* tp_str */
+    nullptr,                                                     /* tp_getattro */
+    nullptr,                                                     /* tp_setattro */
+    nullptr,                                                     /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,              /* tp_flags */
     UnaryFunction1DVec2f___doc__,                          /* tp_doc */
-    0,                                                     /* tp_traverse */
-    0,                                                     /* tp_clear */
-    0,                                                     /* tp_richcompare */
+    nullptr,                                                     /* tp_traverse */
+    nullptr,                                                     /* tp_clear */
+    nullptr,                                                     /* tp_richcompare */
     0,                                                     /* tp_weaklistoffset */
-    0,                                                     /* tp_iter */
-    0,                                                     /* tp_iternext */
-    0,                                                     /* tp_methods */
-    0,                                                     /* tp_members */
+    nullptr,                                                     /* tp_iter */
+    nullptr,                                                     /* tp_iternext */
+    nullptr,                                                     /* tp_methods */
+    nullptr,                                                     /* tp_members */
     BPy_UnaryFunction1DVec2f_getseters,                    /* tp_getset */
     &UnaryFunction1D_Type,                                 /* tp_base */
-    0,                                                     /* tp_dict */
-    0,                                                     /* tp_descr_get */
-    0,                                                     /* tp_descr_set */
+    nullptr,                                                     /* tp_dict */
+    nullptr,                                                     /* tp_descr_get */
+    nullptr,                                                     /* tp_descr_set */
     0,                                                     /* tp_dictoffset */
     (initproc)UnaryFunction1DVec2f___init__,               /* tp_init */
-    0,                                                     /* tp_alloc */
-    0,                                                     /* tp_new */
+    nullptr,                                                     /* tp_alloc */
+    nullptr,                                                     /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

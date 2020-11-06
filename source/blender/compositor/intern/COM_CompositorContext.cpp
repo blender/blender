@@ -22,13 +22,13 @@
 
 CompositorContext::CompositorContext()
 {
-  this->m_scene = NULL;
-  this->m_rd = NULL;
+  this->m_scene = nullptr;
+  this->m_rd = nullptr;
   this->m_quality = COM_QUALITY_HIGH;
   this->m_hasActiveOpenCLDevices = false;
   this->m_fastCalculation = false;
-  this->m_viewSettings = NULL;
-  this->m_displaySettings = NULL;
+  this->m_viewSettings = nullptr;
+  this->m_displaySettings = nullptr;
 }
 
 int CompositorContext::getFramenumber() const

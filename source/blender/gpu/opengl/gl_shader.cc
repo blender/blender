@@ -123,14 +123,14 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
   /* Patch the shader code using the first source slot. */
   sources[0] = glsl_patch_get();
 
-  glShaderSource(shader, sources.size(), sources.data(), NULL);
+  glShaderSource(shader, sources.size(), sources.data(), nullptr);
   glCompileShader(shader);
 
   GLint status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
   if (!status || (G.debug & G_DEBUG_GPU)) {
     char log[5000] = "";
-    glGetShaderInfoLog(shader, sizeof(log), NULL, log);
+    glGetShaderInfoLog(shader, sizeof(log), nullptr, log);
     if (log[0] != '\0') {
       switch (gl_stage) {
         case GL_VERTEX_SHADER:
@@ -184,7 +184,7 @@ bool GLShader::finalize()
   glGetProgramiv(shader_program_, GL_LINK_STATUS, &status);
   if (!status) {
     char log[5000];
-    glGetProgramInfoLog(shader_program_, sizeof(log), NULL, log);
+    glGetProgramInfoLog(shader_program_, sizeof(log), nullptr, log);
     Span<const char *> sources;
     this->print_log(sources, log, "Linking", true);
     return false;
@@ -409,7 +409,7 @@ void GLShader::vertformat_from_shader(GPUVertFormat *format) const
     char name[256];
     GLenum gl_type;
     GLint size;
-    glGetActiveAttrib(shader_program_, i, sizeof(name), NULL, &size, &gl_type, name);
+    glGetActiveAttrib(shader_program_, i, sizeof(name), nullptr, &size, &gl_type, name);
 
     /* Ignore OpenGL names like `gl_BaseInstanceARB`, `gl_InstanceID` and `gl_VertexID`. */
     if (glGetAttribLocation(shader_program_, name) == -1) {

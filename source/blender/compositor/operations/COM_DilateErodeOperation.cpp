@@ -28,7 +28,7 @@ DilateErodeThresholdOperation::DilateErodeThresholdOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
   this->setComplex(true);
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
   this->m_inset = 0.0f;
   this->m__switch = 0.5f;
   this->m_distance = 0.0f;
@@ -54,7 +54,7 @@ void DilateErodeThresholdOperation::initExecution()
 
 void *DilateErodeThresholdOperation::initializeTileData(rcti * /*rect*/)
 {
-  void *buffer = this->m_inputProgram->initializeTileData(NULL);
+  void *buffer = this->m_inputProgram->initializeTileData(nullptr);
   return buffer;
 }
 
@@ -142,7 +142,7 @@ void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, 
 
 void DilateErodeThresholdOperation::deinitExecution()
 {
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }
 
 bool DilateErodeThresholdOperation::determineDependingAreaOfInterest(
@@ -164,7 +164,7 @@ DilateDistanceOperation::DilateDistanceOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
   this->setComplex(true);
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
   this->m_distance = 0.0f;
   this->setOpenCL(true);
 }
@@ -179,7 +179,7 @@ void DilateDistanceOperation::initExecution()
 
 void *DilateDistanceOperation::initializeTileData(rcti * /*rect*/)
 {
-  void *buffer = this->m_inputProgram->initializeTileData(NULL);
+  void *buffer = this->m_inputProgram->initializeTileData(nullptr);
   return buffer;
 }
 
@@ -217,7 +217,7 @@ void DilateDistanceOperation::executePixel(float output[4], int x, int y, void *
 
 void DilateDistanceOperation::deinitExecution()
 {
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }
 
 bool DilateDistanceOperation::determineDependingAreaOfInterest(rcti *input,
@@ -241,7 +241,7 @@ void DilateDistanceOperation::executeOpenCL(OpenCLDevice *device,
                                             list<cl_mem> *clMemToCleanUp,
                                             list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
-  cl_kernel dilateKernel = device->COM_clCreateKernel("dilateKernel", NULL);
+  cl_kernel dilateKernel = device->COM_clCreateKernel("dilateKernel", nullptr);
 
   cl_int distanceSquared = this->m_distance * this->m_distance;
   cl_int scope = this->m_scope;
@@ -301,7 +301,7 @@ void ErodeDistanceOperation::executeOpenCL(OpenCLDevice *device,
                                            list<cl_mem> *clMemToCleanUp,
                                            list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
-  cl_kernel erodeKernel = device->COM_clCreateKernel("erodeKernel", NULL);
+  cl_kernel erodeKernel = device->COM_clCreateKernel("erodeKernel", nullptr);
 
   cl_int distanceSquared = this->m_distance * this->m_distance;
   cl_int scope = this->m_scope;
@@ -322,7 +322,7 @@ DilateStepOperation::DilateStepOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
   this->setComplex(true);
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }
 void DilateStepOperation::initExecution()
 {
@@ -351,7 +351,7 @@ static tile_info *create_cache(int xmin, int xmax, int ymin, int ymax)
 
 void *DilateStepOperation::initializeTileData(rcti *rect)
 {
-  MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
+  MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(nullptr);
   int x, y, i;
   int width = tile->getWidth();
   int height = tile->getHeight();
@@ -448,7 +448,7 @@ void DilateStepOperation::executePixel(float output[4], int x, int y, void *data
 
 void DilateStepOperation::deinitExecution()
 {
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }
 
 void DilateStepOperation::deinitializeTileData(rcti * /*rect*/, void *data)
@@ -480,7 +480,7 @@ ErodeStepOperation::ErodeStepOperation() : DilateStepOperation()
 
 void *ErodeStepOperation::initializeTileData(rcti *rect)
 {
-  MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
+  MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(nullptr);
   int x, y, i;
   int width = tile->getWidth();
   int height = tile->getHeight();

@@ -32,12 +32,12 @@ namespace Freestyle {
 
 namespace Config {
 
-Path *Path::_pInstance = 0;
+Path *Path::_pInstance = nullptr;
 Path::Path()
 {
   // get the root directory
   // soc
-  setRootDir(BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS, NULL));
+  setRootDir(BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS, nullptr));
 
   _pInstance = this;
 }
@@ -62,7 +62,7 @@ void Path::setHomeDir(const string &iHomeDir)
 
 Path::~Path()
 {
-  _pInstance = 0;
+  _pInstance = nullptr;
 }
 
 Path *Path::getInstance()

@@ -75,7 +75,7 @@ void firstIntersectionGridVisitor::examineOccluder(Polygon3r *occ)
       }
     }
     else {
-      occ->userdata2 = 0;
+      occ->userdata2 = nullptr;
     }
   }
 }
@@ -321,11 +321,11 @@ void Grid::castInfiniteRay(const Vec3r &orig,
 Polygon3r *Grid::castRayToFindFirstIntersection(
     const Vec3r &orig, const Vec3r &dir, double &t, double &u, double &v, unsigned timestamp)
 {
-  Polygon3r *occluder = 0;
+  Polygon3r *occluder = nullptr;
   Vec3r end = Vec3r(orig + FLT_MAX * dir / dir.norm());
   bool inter = initInfiniteRay(orig, dir, timestamp);
   if (!inter) {
-    return 0;
+    return nullptr;
   }
   firstIntersectionGridVisitor visitor(orig, dir, _cell_size);
   castRayInternal(visitor);

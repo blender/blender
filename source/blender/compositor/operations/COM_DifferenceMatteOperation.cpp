@@ -25,8 +25,8 @@ DifferenceMatteOperation::DifferenceMatteOperation()
   addInputSocket(COM_DT_COLOR);
   addOutputSocket(COM_DT_VALUE);
 
-  this->m_inputImage1Program = NULL;
-  this->m_inputImage2Program = NULL;
+  this->m_inputImage1Program = nullptr;
+  this->m_inputImage2Program = nullptr;
 }
 
 void DifferenceMatteOperation::initExecution()
@@ -36,8 +36,8 @@ void DifferenceMatteOperation::initExecution()
 }
 void DifferenceMatteOperation::deinitExecution()
 {
-  this->m_inputImage1Program = NULL;
-  this->m_inputImage2Program = NULL;
+  this->m_inputImage1Program = nullptr;
+  this->m_inputImage2Program = nullptr;
 }
 
 void DifferenceMatteOperation::executePixelSampled(float output[4],

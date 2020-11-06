@@ -25,7 +25,7 @@ ChangeHSVOperation::ChangeHSVOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 void ChangeHSVOperation::initExecution()
@@ -38,10 +38,10 @@ void ChangeHSVOperation::initExecution()
 
 void ChangeHSVOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
-  this->m_hueOperation = NULL;
-  this->m_saturationOperation = NULL;
-  this->m_valueOperation = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_hueOperation = nullptr;
+  this->m_saturationOperation = nullptr;
+  this->m_valueOperation = nullptr;
 }
 
 void ChangeHSVOperation::executePixelSampled(float output[4],

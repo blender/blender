@@ -41,7 +41,7 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int Iterator_Init(PyObject *module)
 {
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -126,7 +126,7 @@ PyDoc_STRVAR(Iterator_doc,
 
 static int Iterator_init(BPy_Iterator *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {NULL};
+  static const char *kwlist[] = {nullptr};
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
@@ -155,7 +155,7 @@ static PyObject *Iterator_increment(BPy_Iterator *self)
 {
   if (self->it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "cannot increment any more");
-    return NULL;
+    return nullptr;
   }
   self->it->increment();
   Py_RETURN_NONE;
@@ -170,7 +170,7 @@ static PyObject *Iterator_decrement(BPy_Iterator *self)
 {
   if (self->it->isBegin()) {
     PyErr_SetString(PyExc_RuntimeError, "cannot decrement any more");
-    return NULL;
+    return nullptr;
   }
   self->it->decrement();
   Py_RETURN_NONE;
@@ -179,7 +179,7 @@ static PyObject *Iterator_decrement(BPy_Iterator *self)
 static PyMethodDef BPy_Iterator_methods[] = {
     {"increment", (PyCFunction)Iterator_increment, METH_NOARGS, Iterator_increment_doc},
     {"decrement", (PyCFunction)Iterator_decrement, METH_NOARGS, Iterator_decrement_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*----------------------Iterator get/setters ----------------------------*/
@@ -215,51 +215,51 @@ static PyObject *Iterator_is_end_get(BPy_Iterator *self, void *UNUSED(closure))
 }
 
 static PyGetSetDef BPy_Iterator_getseters[] = {
-    {"name", (getter)Iterator_name_get, (setter)NULL, Iterator_name_doc, NULL},
-    {"is_begin", (getter)Iterator_is_begin_get, (setter)NULL, Iterator_is_begin_doc, NULL},
-    {"is_end", (getter)Iterator_is_end_get, (setter)NULL, Iterator_is_end_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+    {"name", (getter)Iterator_name_get, (setter)nullptr, Iterator_name_doc, nullptr},
+    {"is_begin", (getter)Iterator_is_begin_get, (setter)nullptr, Iterator_is_begin_doc, nullptr},
+    {"is_end", (getter)Iterator_is_end_get, (setter)nullptr, Iterator_is_end_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_Iterator type definition ------------------------------*/
 
 PyTypeObject Iterator_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Iterator", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "Iterator", /* tp_name */
     sizeof(BPy_Iterator),                      /* tp_basicsize */
     0,                                         /* tp_itemsize */
     (destructor)Iterator_dealloc,              /* tp_dealloc */
-    0,                                         /* tp_print */
-    0,                                         /* tp_getattr */
-    0,                                         /* tp_setattr */
-    0,                                         /* tp_reserved */
+    nullptr,                                         /* tp_print */
+    nullptr,                                         /* tp_getattr */
+    nullptr,                                         /* tp_setattr */
+    nullptr,                                         /* tp_reserved */
     (reprfunc)Iterator_repr,                   /* tp_repr */
-    0,                                         /* tp_as_number */
-    0,                                         /* tp_as_sequence */
-    0,                                         /* tp_as_mapping */
-    0,                                         /* tp_hash  */
-    0,                                         /* tp_call */
-    0,                                         /* tp_str */
-    0,                                         /* tp_getattro */
-    0,                                         /* tp_setattro */
-    0,                                         /* tp_as_buffer */
+    nullptr,                                         /* tp_as_number */
+    nullptr,                                         /* tp_as_sequence */
+    nullptr,                                         /* tp_as_mapping */
+    nullptr,                                         /* tp_hash  */
+    nullptr,                                         /* tp_call */
+    nullptr,                                         /* tp_str */
+    nullptr,                                         /* tp_getattro */
+    nullptr,                                         /* tp_setattro */
+    nullptr,                                         /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags */
     Iterator_doc,                              /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
-    0,                                         /* tp_richcompare */
+    nullptr,                                         /* tp_traverse */
+    nullptr,                                         /* tp_clear */
+    nullptr,                                         /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
-    0,                                         /* tp_iter */
-    0,                                         /* tp_iternext */
+    nullptr,                                         /* tp_iter */
+    nullptr,                                         /* tp_iternext */
     BPy_Iterator_methods,                      /* tp_methods */
-    0,                                         /* tp_members */
+    nullptr,                                         /* tp_members */
     BPy_Iterator_getseters,                    /* tp_getset */
-    0,                                         /* tp_base */
-    0,                                         /* tp_dict */
-    0,                                         /* tp_descr_get */
-    0,                                         /* tp_descr_set */
+    nullptr,                                         /* tp_base */
+    nullptr,                                         /* tp_dict */
+    nullptr,                                         /* tp_descr_get */
+    nullptr,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
     (initproc)Iterator_init,                   /* tp_init */
-    0,                                         /* tp_alloc */
+    nullptr,                                         /* tp_alloc */
     PyType_GenericNew,                         /* tp_new */
 };
 

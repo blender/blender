@@ -42,9 +42,9 @@ ScaleOperation::ScaleOperation() : BaseScaleOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
   this->setResolutionInputSocketIndex(0);
-  this->m_inputOperation = NULL;
-  this->m_inputXOperation = NULL;
-  this->m_inputYOperation = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_inputXOperation = nullptr;
+  this->m_inputYOperation = nullptr;
 }
 void ScaleOperation::initExecution()
 {
@@ -57,9 +57,9 @@ void ScaleOperation::initExecution()
 
 void ScaleOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
-  this->m_inputXOperation = NULL;
-  this->m_inputYOperation = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_inputXOperation = nullptr;
+  this->m_inputYOperation = nullptr;
 }
 
 void ScaleOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
@@ -117,9 +117,9 @@ ScaleAbsoluteOperation::ScaleAbsoluteOperation() : BaseScaleOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
   this->setResolutionInputSocketIndex(0);
-  this->m_inputOperation = NULL;
-  this->m_inputXOperation = NULL;
-  this->m_inputYOperation = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_inputXOperation = nullptr;
+  this->m_inputYOperation = nullptr;
 }
 void ScaleAbsoluteOperation::initExecution()
 {
@@ -132,9 +132,9 @@ void ScaleAbsoluteOperation::initExecution()
 
 void ScaleAbsoluteOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
-  this->m_inputXOperation = NULL;
-  this->m_inputYOperation = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_inputXOperation = nullptr;
+  this->m_inputYOperation = nullptr;
 }
 
 void ScaleAbsoluteOperation::executePixelSampled(float output[4],
@@ -206,7 +206,7 @@ ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
   this->addOutputSocket(COM_DT_COLOR);
   this->setResolutionInputSocketIndex(0);
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
   this->m_is_offset = false;
 }
 void ScaleFixedSizeOperation::initExecution()
@@ -263,7 +263,7 @@ void ScaleFixedSizeOperation::initExecution()
 
 void ScaleFixedSizeOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 void ScaleFixedSizeOperation::executePixelSampled(float output[4],

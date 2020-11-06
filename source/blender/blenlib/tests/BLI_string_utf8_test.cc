@@ -262,14 +262,14 @@ const char *utf8_invalid_tests[][3] = {
     /* For now, we ignore those, they do not seem to be crucial anyway... */
 /*    5.3.3  U+FDD0 .. U+FDEF
  *    5.3.4  U+nFFFE U+nFFFF (for n = 1..10) */
-    {NULL, NULL, NULL},
+    {nullptr, nullptr, nullptr},
 };
 /* clang-format on */
 
 /* BLI_utf8_invalid_strip (and indirectly, BLI_utf8_invalid_byte). */
 TEST(string, Utf8InvalidBytes)
 {
-  for (int i = 0; utf8_invalid_tests[i][0] != NULL; i++) {
+  for (int i = 0; utf8_invalid_tests[i][0] != nullptr; i++) {
     const char *tst = utf8_invalid_tests[i][0];
     const char *tst_stripped = utf8_invalid_tests[i][1];
     const int num_errors = (int)utf8_invalid_tests[i][2][0];

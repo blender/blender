@@ -227,8 +227,8 @@ bool ABC_export(Scene *scene,
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_FRAME, NC_SCENE | ND_FRAME);
     WM_jobs_callbacks(wm_job,
                       blender::io::alembic::export_startjob,
-                      NULL,
-                      NULL,
+                      nullptr,
+                      nullptr,
                       blender::io::alembic::export_endjob);
 
     WM_jobs_start(CTX_wm_manager(C), wm_job);

@@ -62,7 +62,7 @@
 static void initData(ModifierData *md)
 {
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
-  vdmd->texture = NULL;
+  vdmd->texture = nullptr;
   vdmd->strength = 0.5f;
   copy_v3_fl(vdmd->texture_mid_level, 0.5f);
   vdmd->texture_sample_radius = 1.0f;
@@ -71,11 +71,11 @@ static void initData(ModifierData *md)
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
-  if (vdmd->texture != NULL) {
+  if (vdmd->texture != nullptr) {
     DEG_add_generic_id_relation(ctx->node, &vdmd->texture->id, "Volume Displace Modifier");
   }
   if (vdmd->texture_map_mode == MOD_VOLUME_DISPLACE_MAP_OBJECT) {
-    if (vdmd->texture_map_object != NULL) {
+    if (vdmd->texture_map_object != nullptr) {
       DEG_add_object_relation(
           ctx->node, vdmd->texture_map_object, DEG_OB_COMP_TRANSFORM, "Volume Displace Modifier");
     }
@@ -114,14 +114,14 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
+  uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
   uiItemR(layout, ptr, "texture_map_mode", 0, "Texture Mapping", ICON_NONE);
 
   if (vdmd->texture_map_mode == MOD_VOLUME_DISPLACE_MAP_OBJECT) {
     uiItemR(layout, ptr, "texture_map_object", 0, "Object", ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "strength", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "strength", 0, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "texture_sample_radius", 0, "Sample Radius", ICON_NONE);
   uiItemR(layout, ptr, "texture_mid_level", 0, "Mid Level", ICON_NONE);
 
@@ -166,7 +166,7 @@ template<typename GridType> struct DisplaceOp {
 
   openvdb::Vec3d compute_displace_vector(const openvdb::Coord &coord) const
   {
-    if (this->texture != NULL) {
+    if (this->texture != nullptr) {
       const openvdb::Vec3f texture_pos = coord.asVec3s() * this->index_to_texture;
       const openvdb::Vec3d texture_value = this->evaluate_texture(texture_pos);
       const openvdb::Vec3d displacement = (texture_value - this->texture_mid_level) *
@@ -180,7 +180,7 @@ template<typename GridType> struct DisplaceOp {
   {
     TexResult texture_result = {0};
     BKE_texture_get_value(
-        NULL, this->texture, const_cast<float *>(pos.asV()), &texture_result, false);
+        nullptr, this->texture, const_cast<float *>(pos.asV()), &texture_result, false);
     return {texture_result.tr, texture_result.tg, texture_result.tb};
   }
 };
@@ -270,7 +270,7 @@ struct DisplaceGridOp {
         return index_to_object * object_to_world;
       }
       case MOD_VOLUME_DISPLACE_MAP_OBJECT: {
-        if (vdmd.texture_map_object == NULL) {
+        if (vdmd.texture_map_object == nullptr) {
           return index_to_object;
         }
         const openvdb::Mat4s object_to_world = matrix_to_openvdb(ctx.object->obmat);
@@ -295,7 +295,7 @@ static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Vo
   const int grid_amount = BKE_volume_num_grids(volume);
   for (int grid_index = 0; grid_index < grid_amount; grid_index++) {
     VolumeGrid *volume_grid = BKE_volume_grid_get(volume, grid_index);
-    BLI_assert(volume_grid != NULL);
+    BLI_assert(volume_grid != nullptr);
 
     openvdb::GridBase::Ptr grid = BKE_volume_grid_openvdb_for_write(volume, volume_grid, false);
     VolumeGridType grid_type = BKE_volume_grid_type(volume_grid);
@@ -323,26 +323,26 @@ ModifierTypeInfo modifierType_VolumeDisplace = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ NULL,
-    /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
+    /* modifyMesh */ nullptr,
+    /* modifyHair */ nullptr,
+    /* modifyPointCloud */ nullptr,
     /* modifyVolume */ modifyVolume,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
+    /* requiredDataMask */ nullptr,
+    /* freeData */ nullptr,
+    /* isDisabled */ nullptr,
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,
-    /* freeRuntimeData */ NULL,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

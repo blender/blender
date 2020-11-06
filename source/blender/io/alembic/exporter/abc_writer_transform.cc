@@ -112,7 +112,7 @@ OObject ABCTransformWriter::get_alembic_object() const
 
 bool ABCTransformWriter::check_is_animated(const HierarchyContext &context) const
 {
-  if (context.duplicator != NULL) {
+  if (context.duplicator != nullptr) {
     /* This object is being duplicated, so could be emitted by a particle system and thus
      * influenced by forces. TODO(Sybren): Make this more strict. Probably better to get from the
      * depsgraph whether this object instance has a time source. */

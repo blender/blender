@@ -38,7 +38,6 @@ Checks:  >
   -modernize-deprecated-headers,
   -modernize-avoid-c-arrays,
   -modernize-use-equals-default,
-  -modernize-use-nullptr,
   -modernize-concat-nested-namespaces,
   -modernize-use-nodiscard,
   -modernize-use-using,

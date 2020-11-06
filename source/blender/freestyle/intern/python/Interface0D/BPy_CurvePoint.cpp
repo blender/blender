@@ -69,10 +69,10 @@ PyDoc_STRVAR(CurvePoint_doc,
 
 static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
-  static const char *kwlist_2[] = {"first_vertex", "second_vertex", "t2d", NULL};
-  static const char *kwlist_3[] = {"first_point", "second_point", "t2d", NULL};
-  PyObject *obj1 = 0, *obj2 = 0;
+  static const char *kwlist_1[] = {"brother", nullptr};
+  static const char *kwlist_2[] = {"first_vertex", "second_vertex", "t2d", nullptr};
+  static const char *kwlist_3[] = {"first_point", "second_point", "t2d", nullptr};
+  PyObject *obj1 = nullptr, *obj2 = nullptr;
   float t2d;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &CurvePoint_Type, &obj1)) {
@@ -107,11 +107,11 @@ static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
                                        &t2d)) {
     CurvePoint *cp1 = ((BPy_CurvePoint *)obj1)->cp;
     CurvePoint *cp2 = ((BPy_CurvePoint *)obj2)->cp;
-    if (!cp1 || cp1->A() == 0 || cp1->B() == 0) {
+    if (!cp1 || cp1->A() == nullptr || cp1->B() == nullptr) {
       PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid CurvePoint object");
       return -1;
     }
-    if (!cp2 || cp2->A() == 0 || cp2->B() == 0) {
+    if (!cp2 || cp2->A() == nullptr || cp2->B() == nullptr) {
       PyErr_SetString(PyExc_TypeError, "argument 2 is an invalid CurvePoint object");
       return -1;
     }
@@ -225,56 +225,56 @@ static PyGetSetDef BPy_CurvePoint_getseters[] = {
      (getter)CurvePoint_first_svertex_get,
      (setter)CurvePoint_first_svertex_set,
      CurvePoint_first_svertex_doc,
-     NULL},
+     nullptr},
     {"second_svertex",
      (getter)CurvePoint_second_svertex_get,
      (setter)CurvePoint_second_svertex_set,
      CurvePoint_second_svertex_doc,
-     NULL},
-    {"fedge", (getter)CurvePoint_fedge_get, NULL, CurvePoint_fedge_doc, NULL},
-    {"t2d", (getter)CurvePoint_t2d_get, (setter)CurvePoint_t2d_set, CurvePoint_t2d_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {"fedge", (getter)CurvePoint_fedge_get, nullptr, CurvePoint_fedge_doc, nullptr},
+    {"t2d", (getter)CurvePoint_t2d_get, (setter)CurvePoint_t2d_set, CurvePoint_t2d_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_CurvePoint type definition ------------------------------*/
 PyTypeObject CurvePoint_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "CurvePoint", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "CurvePoint", /* tp_name */
     sizeof(BPy_CurvePoint),                      /* tp_basicsize */
     0,                                           /* tp_itemsize */
-    0,                                           /* tp_dealloc */
-    0,                                           /* tp_print */
-    0,                                           /* tp_getattr */
-    0,                                           /* tp_setattr */
-    0,                                           /* tp_reserved */
-    0,                                           /* tp_repr */
-    0,                                           /* tp_as_number */
-    0,                                           /* tp_as_sequence */
-    0,                                           /* tp_as_mapping */
-    0,                                           /* tp_hash  */
-    0,                                           /* tp_call */
-    0,                                           /* tp_str */
-    0,                                           /* tp_getattro */
-    0,                                           /* tp_setattro */
-    0,                                           /* tp_as_buffer */
+    nullptr,                                           /* tp_dealloc */
+    nullptr,                                           /* tp_print */
+    nullptr,                                           /* tp_getattr */
+    nullptr,                                           /* tp_setattr */
+    nullptr,                                           /* tp_reserved */
+    nullptr,                                           /* tp_repr */
+    nullptr,                                           /* tp_as_number */
+    nullptr,                                           /* tp_as_sequence */
+    nullptr,                                           /* tp_as_mapping */
+    nullptr,                                           /* tp_hash  */
+    nullptr,                                           /* tp_call */
+    nullptr,                                           /* tp_str */
+    nullptr,                                           /* tp_getattro */
+    nullptr,                                           /* tp_setattro */
+    nullptr,                                           /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,    /* tp_flags */
     CurvePoint_doc,                              /* tp_doc */
-    0,                                           /* tp_traverse */
-    0,                                           /* tp_clear */
-    0,                                           /* tp_richcompare */
+    nullptr,                                           /* tp_traverse */
+    nullptr,                                           /* tp_clear */
+    nullptr,                                           /* tp_richcompare */
     0,                                           /* tp_weaklistoffset */
-    0,                                           /* tp_iter */
-    0,                                           /* tp_iternext */
-    0,                                           /* tp_methods */
-    0,                                           /* tp_members */
+    nullptr,                                           /* tp_iter */
+    nullptr,                                           /* tp_iternext */
+    nullptr,                                           /* tp_methods */
+    nullptr,                                           /* tp_members */
     BPy_CurvePoint_getseters,                    /* tp_getset */
     &Interface0D_Type,                           /* tp_base */
-    0,                                           /* tp_dict */
-    0,                                           /* tp_descr_get */
-    0,                                           /* tp_descr_set */
+    nullptr,                                           /* tp_dict */
+    nullptr,                                           /* tp_descr_get */
+    nullptr,                                           /* tp_descr_set */
     0,                                           /* tp_dictoffset */
     (initproc)CurvePoint_init,                   /* tp_init */
-    0,                                           /* tp_alloc */
-    0,                                           /* tp_new */
+    nullptr,                                           /* tp_alloc */
+    nullptr,                                           /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

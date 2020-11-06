@@ -29,7 +29,7 @@
 MaskOperation::MaskOperation()
 {
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_mask = NULL;
+  this->m_mask = nullptr;
   this->m_maskWidth = 0;
   this->m_maskHeight = 0;
   this->m_maskWidthInv = 0.0f;
@@ -42,7 +42,7 @@ MaskOperation::MaskOperation()
 
 void MaskOperation::initExecution()
 {
-  if (this->m_mask && this->m_rasterMaskHandles[0] == NULL) {
+  if (this->m_mask && this->m_rasterMaskHandles[0] == nullptr) {
     if (this->m_rasterMaskHandleTot == 1) {
       this->m_rasterMaskHandles[0] = BKE_maskrasterize_handle_new();
 
@@ -61,7 +61,7 @@ void MaskOperation::initExecution()
       float frame_iter = frame;
 
       Mask *mask_temp = (Mask *)BKE_id_copy_ex(
-          NULL, &this->m_mask->id, NULL, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
+          nullptr, &this->m_mask->id, nullptr, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
 
       /* trick so we can get unkeyed edits to display */
       {
@@ -92,7 +92,7 @@ void MaskOperation::initExecution()
         frame_iter += frame_step;
       }
 
-      BKE_id_free(NULL, &mask_temp->id);
+      BKE_id_free(nullptr, &mask_temp->id);
     }
   }
 }
@@ -102,7 +102,7 @@ void MaskOperation::deinitExecution()
   for (unsigned int i = 0; i < this->m_rasterMaskHandleTot; i++) {
     if (this->m_rasterMaskHandles[i]) {
       BKE_maskrasterize_handle_free(this->m_rasterMaskHandles[i]);
-      this->m_rasterMaskHandles[i] = NULL;
+      this->m_rasterMaskHandles[i] = nullptr;
     }
   }
 }

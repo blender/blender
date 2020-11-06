@@ -118,7 +118,7 @@ static void test_polyfill_topology(const float /*poly*/[][2],
   }
 
   BLI_edgehashIterator_free(ehi);
-  BLI_edgehash_free(edgehash, NULL);
+  BLI_edgehash_free(edgehash, nullptr);
 }
 
 /**
@@ -205,7 +205,7 @@ static void test_polyfill_template(const char *id,
     test_polyfill_template_check(id, is_degenerate, poly, poly_tot, tris, tris_tot);
 
     BLI_memarena_free(pf_arena);
-    BLI_heap_free(pf_heap, NULL);
+    BLI_heap_free(pf_heap, nullptr);
   }
 #endif
 }

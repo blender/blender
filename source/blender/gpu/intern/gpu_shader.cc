@@ -291,7 +291,7 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
                                 const char *shname)
 {
   /* At least a vertex shader and a fragment shader are required. */
-  BLI_assert((fragcode != NULL) && (vertcode != NULL));
+  BLI_assert((fragcode != nullptr) && (vertcode != nullptr));
 
   Shader *shader = GPUBackend::get()->shader_alloc(shname);
 
@@ -342,14 +342,14 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
     shader->geometry_shader_from_glsl(sources);
   }
 
-  if (tf_names != NULL && tf_count > 0) {
+  if (tf_names != nullptr && tf_count > 0) {
     BLI_assert(tf_type != GPU_SHADER_TFB_NONE);
     shader->transform_feedback_names_set(Span<const char *>(tf_names, tf_count), tf_type);
   }
 
   if (!shader->finalize()) {
     delete shader;
-    return NULL;
+    return nullptr;
   };
 
   return wrap(shader);
@@ -374,7 +374,7 @@ GPUShader *GPU_shader_create(const char *vertcode,
                              const char *shname)
 {
   return GPU_shader_create_ex(
-      vertcode, fragcode, geomcode, libcode, defines, GPU_SHADER_TFB_NONE, NULL, 0, shname);
+      vertcode, fragcode, geomcode, libcode, defines, GPU_SHADER_TFB_NONE, nullptr, 0, shname);
 }
 
 GPUShader *GPU_shader_create_from_python(const char *vertcode,
@@ -383,9 +383,9 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
                                          const char *libcode,
                                          const char *defines)
 {
-  char *libcodecat = NULL;
+  char *libcodecat = nullptr;
 
-  if (libcode == NULL) {
+  if (libcode == nullptr) {
     libcode = datatoc_gpu_shader_colorspace_lib_glsl;
   }
   else {
@@ -393,7 +393,7 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
   }
 
   GPUShader *sh = GPU_shader_create_ex(
-      vertcode, fragcode, geomcode, libcode, defines, GPU_SHADER_TFB_NONE, NULL, 0, "pyGPUShader");
+      vertcode, fragcode, geomcode, libcode, defines, GPU_SHADER_TFB_NONE, nullptr, 0, "pyGPUShader");
 
   MEM_SAFE_FREE(libcodecat);
   return sh;
@@ -402,9 +402,9 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
 static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_is_alloc)
 {
   bool is_alloc = false;
-  if (str_arr == NULL) {
+  if (str_arr == nullptr) {
     *r_is_alloc = false;
-    return NULL;
+    return nullptr;
   }
   /* Skip empty strings (avoid alloc if we can). */
   while (str_arr[0] && str_arr[0][0] == '\0') {
@@ -450,7 +450,7 @@ struct GPUShader *GPU_shader_create_from_arrays_impl(
   struct {
     const char *str;
     bool is_alloc;
-  } str_dst[4] = {{0}};
+  } str_dst[4] = {{nullptr}};
   const char **str_src[4] = {params->vert, params->frag, params->geom, params->defs};
 
   for (int i = 0; i < ARRAY_SIZE(str_src); i++) {
@@ -461,7 +461,7 @@ struct GPUShader *GPU_shader_create_from_arrays_impl(
   BLI_snprintf(name, sizeof(name), "%s_%d", func, line);
 
   GPUShader *sh = GPU_shader_create(
-      str_dst[0].str, str_dst[1].str, str_dst[2].str, NULL, str_dst[3].str, name);
+      str_dst[0].str, str_dst[1].str, str_dst[2].str, nullptr, str_dst[3].str, name);
 
   for (int i = 0; i < ARRAY_SIZE(str_dst); i++) {
     if (str_dst[i].is_alloc) {
@@ -502,7 +502,7 @@ void GPU_shader_unbind(void)
   if (ctx->shader) {
     ctx->shader->unbind();
   }
-  ctx->shader = NULL;
+  ctx->shader = nullptr;
 #endif
 }
 

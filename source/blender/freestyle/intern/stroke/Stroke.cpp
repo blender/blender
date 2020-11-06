@@ -47,9 +47,9 @@ StrokeAttribute::StrokeAttribute()
     _color[i] = 0.2f;
   }
   _color[0] = 0.8f;
-  _userAttributesReal = NULL;
-  _userAttributesVec2f = NULL;
-  _userAttributesVec3f = NULL;
+  _userAttributesReal = nullptr;
+  _userAttributesVec2f = nullptr;
+  _userAttributesVec3f = nullptr;
   _visible = true;
 }
 
@@ -66,19 +66,19 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute &iBrother)
     _userAttributesReal = new realMap(*iBrother._userAttributesReal);
   }
   else {
-    _userAttributesReal = NULL;
+    _userAttributesReal = nullptr;
   }
   if (iBrother._userAttributesVec2f) {
     _userAttributesVec2f = new Vec2fMap(*iBrother._userAttributesVec2f);
   }
   else {
-    _userAttributesVec2f = NULL;
+    _userAttributesVec2f = nullptr;
   }
   if (iBrother._userAttributesVec3f) {
     _userAttributesVec3f = new Vec3fMap(*iBrother._userAttributesVec3f);
   }
   else {
-    _userAttributesVec3f = NULL;
+    _userAttributesVec3f = nullptr;
   }
 }
 
@@ -100,9 +100,9 @@ StrokeAttribute::StrokeAttribute(float iRColor,
 
   _visible = true;
 
-  _userAttributesReal = NULL;
-  _userAttributesVec2f = NULL;
-  _userAttributesVec3f = NULL;
+  _userAttributesReal = nullptr;
+  _userAttributesVec2f = nullptr;
+  _userAttributesVec3f = nullptr;
 }
 
 StrokeAttribute::StrokeAttribute(const StrokeAttribute &a1, const StrokeAttribute &a2, float t)
@@ -129,7 +129,7 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute &a1, const StrokeAttribut
     }
   }
   else {
-    _userAttributesReal = NULL;
+    _userAttributesReal = nullptr;
   }
   if ((a1._userAttributesVec2f) && (a2._userAttributesVec2f)) {
     if (a1._userAttributesVec2f->size() == a2._userAttributesVec2f->size()) {
@@ -143,7 +143,7 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute &a1, const StrokeAttribut
     }
   }
   else {
-    _userAttributesVec2f = NULL;
+    _userAttributesVec2f = nullptr;
   }
   if ((a1._userAttributesVec3f) && (a2._userAttributesVec3f)) {
     if (a1._userAttributesVec3f->size() == a2._userAttributesVec3f->size()) {
@@ -157,7 +157,7 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute &a1, const StrokeAttribut
     }
   }
   else {
-    _userAttributesVec3f = NULL;
+    _userAttributesVec3f = nullptr;
   }
 }
 
@@ -194,7 +194,7 @@ StrokeAttribute &StrokeAttribute::operator=(const StrokeAttribute &iBrother)
     _userAttributesReal = new realMap(*(iBrother._userAttributesReal));
   }
   else {
-    _userAttributesReal = NULL;
+    _userAttributesReal = nullptr;
   }
   if (iBrother._userAttributesVec2f) {
     if (!_userAttributesVec2f) {
@@ -203,7 +203,7 @@ StrokeAttribute &StrokeAttribute::operator=(const StrokeAttribute &iBrother)
     _userAttributesVec2f = new Vec2fMap(*(iBrother._userAttributesVec2f));
   }
   else {
-    _userAttributesVec2f = NULL;
+    _userAttributesVec2f = nullptr;
   }
   if (iBrother._userAttributesVec3f) {
     if (!_userAttributesVec3f) {
@@ -212,7 +212,7 @@ StrokeAttribute &StrokeAttribute::operator=(const StrokeAttribute &iBrother)
     _userAttributesVec3f = new Vec3fMap(*(iBrother._userAttributesVec3f));
   }
   else {
-    _userAttributesVec3f = NULL;
+    _userAttributesVec3f = nullptr;
   }
   return *this;
 }
@@ -355,7 +355,7 @@ StrokeVertex::StrokeVertex(const StrokeVertex &iBrother) : CurvePoint(iBrother)
   _StrokeLength = 0.0f;
 }
 
-StrokeVertex::StrokeVertex(SVertex *iSVertex) : CurvePoint(iSVertex, 0, 0.0f)
+StrokeVertex::StrokeVertex(SVertex *iSVertex) : CurvePoint(iSVertex, nullptr, 0.0f)
 {
   _CurvilignAbscissa = 0.0f;
   _StrokeLength = 0.0f;
@@ -376,7 +376,7 @@ StrokeVertex::StrokeVertex(StrokeVertex *iA, StrokeVertex *iB, float t3) : Curve
 }
 
 StrokeVertex::StrokeVertex(SVertex *iSVertex, const StrokeAttribute &iAttribute)
-    : CurvePoint(iSVertex, 0, 0.0f)
+    : CurvePoint(iSVertex, nullptr, 0.0f)
 {
   _Attribute = iAttribute;
   _CurvilignAbscissa = 0.0f;
@@ -416,11 +416,11 @@ Stroke::Stroke()
   _textureId = 0;
   _textureStep = 1.0;
   for (int a = 0; a < MAX_MTEX; a++) {
-    _mtex[a] = NULL;
+    _mtex[a] = nullptr;
   }
-  _nodeTree = NULL;
+  _nodeTree = nullptr;
   _tips = false;
-  _rep = NULL;
+  _rep = nullptr;
 }
 
 Stroke::Stroke(const Stroke &iBrother) : Interface1D(iBrother)
@@ -447,7 +447,7 @@ Stroke::Stroke(const Stroke &iBrother) : Interface1D(iBrother)
     _rep = new StrokeRep(*(iBrother._rep));
   }
   else {
-    _rep = NULL;
+    _rep = nullptr;
   }
 }
 
@@ -464,7 +464,7 @@ Stroke::~Stroke()
   _ViewEdges.clear();
   if (_rep) {
     delete _rep;
-    _rep = NULL;
+    _rep = nullptr;
   }
 }
 
@@ -489,7 +489,7 @@ Stroke &Stroke::operator=(const Stroke &iBrother)
     _rep = new StrokeRep(*(iBrother._rep));
   }
   else {
-    _rep = NULL;
+    _rep = nullptr;
   }
   return *this;
 }
@@ -550,7 +550,7 @@ int Stroke::Resample(int iNPoints)
 
   vertex_container newVertices;
   real t = 0.0f;
-  StrokeVertex *newVertex = NULL;
+  StrokeVertex *newVertex = nullptr;
   vector<StrokeSegment> strokeSegments;
   int N = 0;
   float meanlength = 0;
@@ -661,7 +661,7 @@ int Stroke::Resample(float iSampling)
   vertex_container newVertices;
   real t = 0.0f;
   const real limit = 0.99;
-  StrokeVertex *newVertex = NULL;
+  StrokeVertex *newVertex = nullptr;
   StrokeInternal::StrokeVertexIterator it = strokeVerticesBegin();
   StrokeInternal::StrokeVertexIterator next = it;
   ++next;

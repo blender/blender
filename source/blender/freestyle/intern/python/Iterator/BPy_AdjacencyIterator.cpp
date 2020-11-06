@@ -60,10 +60,10 @@ PyDoc_STRVAR(
 
 static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
+  static const char *kwlist_1[] = {"brother", nullptr};
   static const char *kwlist_2[] = {
-      "vertex", "restrict_to_selection", "restrict_to_unvisited", NULL};
-  PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0;
+      "vertex", "restrict_to_selection", "restrict_to_unvisited", nullptr};
+  PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(
           args, kwds, "|O!", (char **)kwlist_1, &AdjacencyIterator_Type, &obj1)) {
@@ -77,7 +77,7 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
     }
   }
   else if ((void)PyErr_Clear(),
-           (void)(obj2 = obj3 = 0),
+           (void)(obj2 = obj3 = nullptr),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!|O!O!",
@@ -113,7 +113,7 @@ static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
 {
   if (self->a_it->isEnd()) {
     PyErr_SetNone(PyExc_StopIteration);
-    return NULL;
+    return nullptr;
   }
   if (self->at_start) {
     self->at_start = false;
@@ -122,7 +122,7 @@ static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
     self->a_it->increment();
     if (self->a_it->isEnd()) {
       PyErr_SetNone(PyExc_StopIteration);
-      return NULL;
+      return nullptr;
     }
   }
   ViewEdge *ve = self->a_it->operator->();
@@ -140,7 +140,7 @@ static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void 
 {
   if (self->a_it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
-    return NULL;
+    return nullptr;
   }
   ViewEdge *ve = self->a_it->operator*();
   if (ve) {
@@ -160,7 +160,7 @@ static PyObject *AdjacencyIterator_is_incoming_get(BPy_AdjacencyIterator *self,
 {
   if (self->a_it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
-    return NULL;
+    return nullptr;
   }
   return PyBool_from_bool(self->a_it->isIncoming());
 }
@@ -168,57 +168,57 @@ static PyObject *AdjacencyIterator_is_incoming_get(BPy_AdjacencyIterator *self,
 static PyGetSetDef BPy_AdjacencyIterator_getseters[] = {
     {"is_incoming",
      (getter)AdjacencyIterator_is_incoming_get,
-     (setter)NULL,
+     (setter)nullptr,
      AdjacencyIterator_is_incoming_doc,
-     NULL},
+     nullptr},
     {"object",
      (getter)AdjacencyIterator_object_get,
-     (setter)NULL,
+     (setter)nullptr,
      AdjacencyIterator_object_doc,
-     NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_AdjacencyIterator type definition ------------------------------*/
 
 PyTypeObject AdjacencyIterator_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "AdjacencyIterator", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "AdjacencyIterator", /* tp_name */
     sizeof(BPy_AdjacencyIterator),                      /* tp_basicsize */
     0,                                                  /* tp_itemsize */
-    0,                                                  /* tp_dealloc */
-    0,                                                  /* tp_print */
-    0,                                                  /* tp_getattr */
-    0,                                                  /* tp_setattr */
-    0,                                                  /* tp_reserved */
-    0,                                                  /* tp_repr */
-    0,                                                  /* tp_as_number */
-    0,                                                  /* tp_as_sequence */
-    0,                                                  /* tp_as_mapping */
-    0,                                                  /* tp_hash  */
-    0,                                                  /* tp_call */
-    0,                                                  /* tp_str */
-    0,                                                  /* tp_getattro */
-    0,                                                  /* tp_setattro */
-    0,                                                  /* tp_as_buffer */
+    nullptr,                                                  /* tp_dealloc */
+    nullptr,                                                  /* tp_print */
+    nullptr,                                                  /* tp_getattr */
+    nullptr,                                                  /* tp_setattr */
+    nullptr,                                                  /* tp_reserved */
+    nullptr,                                                  /* tp_repr */
+    nullptr,                                                  /* tp_as_number */
+    nullptr,                                                  /* tp_as_sequence */
+    nullptr,                                                  /* tp_as_mapping */
+    nullptr,                                                  /* tp_hash  */
+    nullptr,                                                  /* tp_call */
+    nullptr,                                                  /* tp_str */
+    nullptr,                                                  /* tp_getattro */
+    nullptr,                                                  /* tp_setattro */
+    nullptr,                                                  /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,           /* tp_flags */
     AdjacencyIterator_doc,                              /* tp_doc */
-    0,                                                  /* tp_traverse */
-    0,                                                  /* tp_clear */
-    0,                                                  /* tp_richcompare */
+    nullptr,                                                  /* tp_traverse */
+    nullptr,                                                  /* tp_clear */
+    nullptr,                                                  /* tp_richcompare */
     0,                                                  /* tp_weaklistoffset */
     (getiterfunc)AdjacencyIterator_iter,                /* tp_iter */
     (iternextfunc)AdjacencyIterator_iternext,           /* tp_iternext */
-    0,                                                  /* tp_methods */
-    0,                                                  /* tp_members */
+    nullptr,                                                  /* tp_methods */
+    nullptr,                                                  /* tp_members */
     BPy_AdjacencyIterator_getseters,                    /* tp_getset */
     &Iterator_Type,                                     /* tp_base */
-    0,                                                  /* tp_dict */
-    0,                                                  /* tp_descr_get */
-    0,                                                  /* tp_descr_set */
+    nullptr,                                                  /* tp_dict */
+    nullptr,                                                  /* tp_descr_get */
+    nullptr,                                                  /* tp_descr_set */
     0,                                                  /* tp_dictoffset */
     (initproc)AdjacencyIterator_init,                   /* tp_init */
-    0,                                                  /* tp_alloc */
-    0,                                                  /* tp_new */
+    nullptr,                                                  /* tp_alloc */
+    nullptr,                                                  /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

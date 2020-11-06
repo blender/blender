@@ -152,7 +152,7 @@ static void str_ghash_tests(GHash *ghash, const char *id)
     TIMEIT_END(string_lookup);
   }
 
-  BLI_ghash_free(ghash, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
   MEM_freeN(data);
   MEM_freeN(data_p);
   MEM_freeN(data_w);
@@ -227,7 +227,7 @@ static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr
   }
   EXPECT_EQ(BLI_ghash_len(ghash), 0);
 
-  BLI_ghash_free(ghash, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
 
   printf("========== ENDED %s ==========\n\n", id);
 }
@@ -309,7 +309,7 @@ static void randint_ghash_tests(GHash *ghash, const char *id, const unsigned int
     TIMEIT_END(int_lookup);
   }
 
-  BLI_ghash_free(ghash, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
   MEM_freeN(data);
 
   printf("========== ENDED %s ==========\n\n", id);
@@ -421,7 +421,7 @@ static void int4_ghash_tests(GHash *ghash, const char *id, const unsigned int nb
     TIMEIT_END(int_v4_lookup);
   }
 
-  BLI_ghash_free(ghash, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
   MEM_freeN(data);
 
   printf("========== ENDED %s ==========\n\n", id);
@@ -506,7 +506,7 @@ static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned i
     EXPECT_EQ(POINTER_AS_UINT(v), *dt);
   }
 
-  BLI_ghash_clear(ghash, NULL, NULL);
+  BLI_ghash_clear(ghash, nullptr, nullptr);
   MEM_freeN(data);
 }
 
@@ -538,7 +538,7 @@ static void multi_small_ghash_tests(GHash *ghash, const char *id, const unsigned
 
   TIMEIT_END(multi_small2_ghash);
 
-  BLI_ghash_free(ghash, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
   BLI_rng_free(rng);
 
   printf("========== ENDED %s ==========\n\n", id);

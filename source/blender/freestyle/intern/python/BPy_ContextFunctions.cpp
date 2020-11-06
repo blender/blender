@@ -110,14 +110,14 @@ static char ContextFunctions_load_map___doc__[] =
 
 static PyObject *ContextFunctions_load_map(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"file_name", "map_name", "num_levels", "sigma", NULL};
+  static const char *kwlist[] = {"file_name", "map_name", "num_levels", "sigma", nullptr};
   char *fileName, *mapName;
   unsigned nbLevels = 4;
   float sigma = 1.0;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "ss|If", (char **)kwlist, &fileName, &mapName, &nbLevels, &sigma)) {
-    return NULL;
+    return nullptr;
   }
   ContextFunctions::LoadMapCF(fileName, mapName, nbLevels, sigma);
   Py_RETURN_NONE;
@@ -146,14 +146,14 @@ static PyObject *ContextFunctions_read_map_pixel(PyObject * /*self*/,
                                                  PyObject *args,
                                                  PyObject *kwds)
 {
-  static const char *kwlist[] = {"map_name", "level", "x", "y", NULL};
+  static const char *kwlist[] = {"map_name", "level", "x", "y", nullptr};
   char *mapName;
   int level;
   unsigned x, y;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "siII", (char **)kwlist, &mapName, &level, &x, &y)) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble(ContextFunctions::ReadMapPixelCF(mapName, level, x, y));
 }
@@ -179,12 +179,12 @@ static PyObject *ContextFunctions_read_complete_view_map_pixel(PyObject * /*self
                                                                PyObject *args,
                                                                PyObject *kwds)
 {
-  static const char *kwlist[] = {"level", "x", "y", NULL};
+  static const char *kwlist[] = {"level", "x", "y", nullptr};
   int level;
   unsigned x, y;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "iII", (char **)kwlist, &level, &x, &y)) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble(ContextFunctions::ReadCompleteViewMapPixelCF(level, x, y));
 }
@@ -213,13 +213,13 @@ static PyObject *ContextFunctions_read_directional_view_map_pixel(PyObject * /*s
                                                                   PyObject *args,
                                                                   PyObject *kwds)
 {
-  static const char *kwlist[] = {"orientation", "level", "x", "y", NULL};
+  static const char *kwlist[] = {"orientation", "level", "x", "y", nullptr};
   int orientation, level;
   unsigned x, y;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "iiII", (char **)kwlist, &orientation, &level, &x, &y)) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble(
       ContextFunctions::ReadDirectionalViewMapPixelCF(orientation, level, x, y));
@@ -285,7 +285,7 @@ static PyMethodDef module_functions[] = {
      (PyCFunction)ContextFunctions_get_selected_fedge,
      METH_NOARGS,
      ContextFunctions_get_selected_fedge___doc__},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*-----------------------ContextFunctions module definition--------------------------------*/
@@ -304,12 +304,12 @@ int ContextFunctions_Init(PyObject *module)
 {
   PyObject *m;
 
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
   m = PyModule_Create(&module_definition);
-  if (m == NULL) {
+  if (m == nullptr) {
     return -1;
   }
   Py_INCREF(m);

@@ -79,7 +79,7 @@ Geometry::Vec2r Interface0D::getPoint2D() const
 FEdge *Interface0D::getFEdge(Interface0D &UNUSED(element))
 {
   PyErr_SetString(PyExc_TypeError, "method getFEdge() not properly overridden");
-  return 0;
+  return nullptr;
 }
 
 Id Interface0D::getId() const
@@ -97,25 +97,25 @@ Nature::VertexNature Interface0D::getNature() const
 SVertex *Interface0D::castToSVertex()
 {
   PyErr_SetString(PyExc_TypeError, "method castToSVertex() not properly overridden");
-  return 0;
+  return nullptr;
 }
 
 ViewVertex *Interface0D::castToViewVertex()
 {
   PyErr_SetString(PyExc_TypeError, "method castToViewVertex() not properly overridden");
-  return 0;
+  return nullptr;
 }
 
 NonTVertex *Interface0D::castToNonTVertex()
 {
   PyErr_SetString(PyExc_TypeError, "method castToNonTVertex() not properly overridden");
-  return 0;
+  return nullptr;
 }
 
 TVertex *Interface0D::castToTVertex()
 {
   PyErr_SetString(PyExc_TypeError, "method castToTVertex() not properly overridden");
-  return 0;
+  return nullptr;
 }
 
 } /* namespace Freestyle */

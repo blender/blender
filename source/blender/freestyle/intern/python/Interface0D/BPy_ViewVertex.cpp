@@ -85,7 +85,7 @@ static PyObject *ViewVertex_edges_end(BPy_ViewVertex * /*self*/)
   return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, 1);
 #else
   PyErr_SetString(PyExc_NotImplementedError, "edges_end method currently disabled");
-  return NULL;
+  return nullptr;
 #endif
 }
 
@@ -102,11 +102,11 @@ PyDoc_STRVAR(ViewVertex_edges_iterator_doc,
 
 static PyObject *ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"edge", NULL};
+  static const char *kwlist[] = {"edge", nullptr};
   PyObject *py_ve;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve)) {
-    return NULL;
+    return nullptr;
   }
   ViewEdge *ve = ((BPy_ViewEdge *)py_ve)->ve;
   ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesIterator(ve));
@@ -120,7 +120,7 @@ static PyMethodDef BPy_ViewVertex_methods[] = {
      (PyCFunction)ViewVertex_edges_iterator,
      METH_VARARGS | METH_KEYWORDS,
      ViewVertex_edges_iterator_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*----------------------ViewVertex get/setters ----------------------------*/
@@ -134,7 +134,7 @@ static PyObject *ViewVertex_nature_get(BPy_ViewVertex *self, void *UNUSED(closur
 {
   Nature::VertexNature nature = self->vv->getNature();
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return BPy_Nature_from_Nature(nature);  // return a copy
 }
@@ -154,49 +154,49 @@ static PyGetSetDef BPy_ViewVertex_getseters[] = {
      (getter)ViewVertex_nature_get,
      (setter)ViewVertex_nature_set,
      ViewVertex_nature_doc,
-     NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_ViewVertex type definition ------------------------------*/
 PyTypeObject ViewVertex_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "ViewVertex", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "ViewVertex", /* tp_name */
     sizeof(BPy_ViewVertex),                      /* tp_basicsize */
     0,                                           /* tp_itemsize */
-    0,                                           /* tp_dealloc */
-    0,                                           /* tp_print */
-    0,                                           /* tp_getattr */
-    0,                                           /* tp_setattr */
-    0,                                           /* tp_reserved */
-    0,                                           /* tp_repr */
-    0,                                           /* tp_as_number */
-    0,                                           /* tp_as_sequence */
-    0,                                           /* tp_as_mapping */
-    0,                                           /* tp_hash  */
-    0,                                           /* tp_call */
-    0,                                           /* tp_str */
-    0,                                           /* tp_getattro */
-    0,                                           /* tp_setattro */
-    0,                                           /* tp_as_buffer */
+    nullptr,                                           /* tp_dealloc */
+    nullptr,                                           /* tp_print */
+    nullptr,                                           /* tp_getattr */
+    nullptr,                                           /* tp_setattr */
+    nullptr,                                           /* tp_reserved */
+    nullptr,                                           /* tp_repr */
+    nullptr,                                           /* tp_as_number */
+    nullptr,                                           /* tp_as_sequence */
+    nullptr,                                           /* tp_as_mapping */
+    nullptr,                                           /* tp_hash  */
+    nullptr,                                           /* tp_call */
+    nullptr,                                           /* tp_str */
+    nullptr,                                           /* tp_getattro */
+    nullptr,                                           /* tp_setattro */
+    nullptr,                                           /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,    /* tp_flags */
     ViewVertex_doc,                              /* tp_doc */
-    0,                                           /* tp_traverse */
-    0,                                           /* tp_clear */
-    0,                                           /* tp_richcompare */
+    nullptr,                                           /* tp_traverse */
+    nullptr,                                           /* tp_clear */
+    nullptr,                                           /* tp_richcompare */
     0,                                           /* tp_weaklistoffset */
-    0,                                           /* tp_iter */
-    0,                                           /* tp_iternext */
+    nullptr,                                           /* tp_iter */
+    nullptr,                                           /* tp_iternext */
     BPy_ViewVertex_methods,                      /* tp_methods */
-    0,                                           /* tp_members */
+    nullptr,                                           /* tp_members */
     BPy_ViewVertex_getseters,                    /* tp_getset */
     &Interface0D_Type,                           /* tp_base */
-    0,                                           /* tp_dict */
-    0,                                           /* tp_descr_get */
-    0,                                           /* tp_descr_set */
+    nullptr,                                           /* tp_dict */
+    nullptr,                                           /* tp_descr_get */
+    nullptr,                                           /* tp_descr_set */
     0,                                           /* tp_dictoffset */
     (initproc)ViewVertex_init,                   /* tp_init */
-    0,                                           /* tp_alloc */
-    0,                                           /* tp_new */
+    nullptr,                                           /* tp_alloc */
+    nullptr,                                           /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

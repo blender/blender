@@ -54,7 +54,7 @@ void TransformWriter::add_joint_transform(COLLADASW::Node &node,
   }
   else {
     float loc[3], rot[3], scale[3];
-    bc_decompose(local, loc, rot, NULL, scale);
+    bc_decompose(local, loc, rot, nullptr, scale);
     add_transform(node, loc, rot, scale);
   }
 }
@@ -90,7 +90,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
     }
     case BC_TRANSFORMATION_TYPE_DECOMPOSED: {
       float loc[3], rot[3], scale[3];
-      bc_decompose(f_obmat, loc, rot, NULL, scale);
+      bc_decompose(f_obmat, loc, rot, nullptr, scale);
       if (limit_precision) {
         bc_sanitize_v3(loc, LIMITTED_PRECISION);
         bc_sanitize_v3(rot, LIMITTED_PRECISION);

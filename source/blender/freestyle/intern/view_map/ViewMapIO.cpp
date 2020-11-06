@@ -228,8 +228,8 @@ static int load(istream &in, FEdge *fe)
 
   bool b;
 
-  FEdgeSmooth *fesmooth = NULL;
-  FEdgeSharp *fesharp = NULL;
+  FEdgeSmooth *fesmooth = nullptr;
+  FEdgeSharp *fesharp = nullptr;
   if (fe->isSmooth()) {
     fesmooth = dynamic_cast<FEdgeSmooth *>(fe);
   }
@@ -1239,25 +1239,25 @@ int save(ostream &out, ViewMap *vm, ProgressBar *pb)
   for (vector<ViewShape *>::const_iterator j0 = vm->ViewShapes().begin();
        j0 != vm->ViewShapes().end();
        j0++) {
-    (*j0)->userdata = NULL;
-    (*j0)->sshape()->userdata = NULL;
+    (*j0)->userdata = nullptr;
+    (*j0)->sshape()->userdata = nullptr;
   }
   for (vector<FEdge *>::const_iterator j1 = vm->FEdges().begin(); j1 != vm->FEdges().end(); j1++) {
-    (*j1)->userdata = NULL;
+    (*j1)->userdata = nullptr;
   }
   for (vector<SVertex *>::const_iterator j2 = vm->SVertices().begin(); j2 != vm->SVertices().end();
        j2++) {
-    (*j2)->userdata = NULL;
+    (*j2)->userdata = nullptr;
   }
   for (vector<ViewEdge *>::const_iterator j3 = vm->ViewEdges().begin();
        j3 != vm->ViewEdges().end();
        j3++) {
-    (*j3)->userdata = NULL;
+    (*j3)->userdata = nullptr;
   }
   for (vector<ViewVertex *>::const_iterator j4 = vm->ViewVertices().begin();
        j4 != vm->ViewVertices().end();
        j4++) {
-    (*j4)->userdata = NULL;
+    (*j4)->userdata = nullptr;
   }
   SET_PROGRESS(6);
 

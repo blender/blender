@@ -82,11 +82,11 @@ static void find_nearest_points_test(
   BLI_bvhtree_balance(tree);
 
   /* first find each point */
-  BVHTree_NearestPointCallback callback = optimal ? optimal_check_callback : NULL;
+  BVHTree_NearestPointCallback callback = optimal ? optimal_check_callback : nullptr;
   int flags = optimal ? BVH_NEAREST_OPTIMAL_ORDER : 0;
 
   for (int i = 0; i < points_len; i++) {
-    const int j = BLI_bvhtree_find_nearest_ex(tree, points[i], NULL, callback, points, flags);
+    const int j = BLI_bvhtree_find_nearest_ex(tree, points[i], nullptr, callback, points, flags);
     if (j != i) {
 #if 0
       const float dist = len_v3v3(points[i], points[j]);

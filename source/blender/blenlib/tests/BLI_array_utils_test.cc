@@ -91,7 +91,7 @@ TEST(array_utils, FindIndexInt4_DupeMid)
 
 TEST(array_utils, FindIndexPointer)
 {
-  const char *data[4] = {NULL};
+  const char *data[4] = {nullptr};
   STACK_DECLARE(data);
 
   STACK_INIT(data, ARRAY_SIZE(data));

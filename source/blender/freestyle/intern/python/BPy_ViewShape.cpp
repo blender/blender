@@ -35,7 +35,7 @@ extern "C" {
 
 int ViewShape_Init(PyObject *module)
 {
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -68,14 +68,14 @@ PyDoc_STRVAR(ViewShape_doc,
 
 static int ViewShape_init(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
-  static const char *kwlist_2[] = {"sshape", NULL};
-  PyObject *obj = 0;
+  static const char *kwlist_1[] = {"brother", nullptr};
+  static const char *kwlist_2[] = {"sshape", nullptr};
+  PyObject *obj = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &ViewShape_Type, &obj)) {
     if (!obj) {
       self->vs = new ViewShape();
-      self->py_ss = NULL;
+      self->py_ss = nullptr;
     }
     else {
       self->vs = new ViewShape(*(((BPy_ViewShape *)obj)->vs));
@@ -86,7 +86,7 @@ static int ViewShape_init(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
            PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &SShape_Type, &obj)) {
     BPy_SShape *py_ss = (BPy_SShape *)obj;
     self->vs = new ViewShape(py_ss->ss);
-    self->py_ss = (!py_ss->borrowed) ? py_ss : NULL;
+    self->py_ss = (!py_ss->borrowed) ? py_ss : nullptr;
   }
   else {
     PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
@@ -100,7 +100,7 @@ static int ViewShape_init(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 static void ViewShape_dealloc(BPy_ViewShape *self)
 {
   if (self->py_ss) {
-    self->vs->setSShape((SShape *)NULL);
+    self->vs->setSShape((SShape *)nullptr);
     Py_DECREF(self->py_ss);
   }
   if (self->vs && !self->borrowed) {
@@ -124,11 +124,11 @@ PyDoc_STRVAR(ViewShape_add_edge_doc,
 
 static PyObject *ViewShape_add_edge(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"edge", NULL};
-  PyObject *py_ve = 0;
+  static const char *kwlist[] = {"edge", nullptr};
+  PyObject *py_ve = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve)) {
-    return NULL;
+    return nullptr;
   }
   self->vs->AddEdge(((BPy_ViewEdge *)py_ve)->ve);
   Py_RETURN_NONE;
@@ -144,11 +144,11 @@ PyDoc_STRVAR(ViewShape_add_vertex_doc,
 
 static PyObject *ViewShape_add_vertex(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"vertex", NULL};
-  PyObject *py_vv = 0;
+  static const char *kwlist[] = {"vertex", nullptr};
+  PyObject *py_vv = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewVertex_Type, &py_vv)) {
-    return NULL;
+    return nullptr;
   }
   self->vs->AddVertex(((BPy_ViewVertex *)py_vv)->vv);
   Py_RETURN_NONE;
@@ -165,7 +165,7 @@ static PyMethodDef BPy_ViewShape_methods[] = {
      (PyCFunction)ViewShape_add_vertex,
      METH_VARARGS | METH_KEYWORDS,
      ViewShape_add_vertex_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*----------------------ViewShape get/setters ----------------------------*/
@@ -324,62 +324,62 @@ static PyGetSetDef BPy_ViewShape_getseters[] = {
      (getter)ViewShape_sshape_get,
      (setter)ViewShape_sshape_set,
      ViewShape_sshape_doc,
-     NULL},
+     nullptr},
     {"vertices",
      (getter)ViewShape_vertices_get,
      (setter)ViewShape_vertices_set,
      ViewShape_vertices_doc,
-     NULL},
-    {"edges", (getter)ViewShape_edges_get, (setter)ViewShape_edges_set, ViewShape_edges_doc, NULL},
-    {"name", (getter)ViewShape_name_get, (setter)NULL, ViewShape_name_doc, NULL},
+     nullptr},
+    {"edges", (getter)ViewShape_edges_get, (setter)ViewShape_edges_set, ViewShape_edges_doc, nullptr},
+    {"name", (getter)ViewShape_name_get, (setter)nullptr, ViewShape_name_doc, nullptr},
     {"library_path",
      (getter)ViewShape_library_path_get,
-     (setter)NULL,
+     (setter)nullptr,
      ViewShape_library_path_doc,
-     NULL},
-    {"id", (getter)ViewShape_id_get, (setter)NULL, ViewShape_id_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {"id", (getter)ViewShape_id_get, (setter)nullptr, ViewShape_id_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_ViewShape type definition ------------------------------*/
 
 PyTypeObject ViewShape_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "ViewShape", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "ViewShape", /* tp_name */
     sizeof(BPy_ViewShape),                      /* tp_basicsize */
     0,                                          /* tp_itemsize */
     (destructor)ViewShape_dealloc,              /* tp_dealloc */
-    0,                                          /* tp_print */
-    0,                                          /* tp_getattr */
-    0,                                          /* tp_setattr */
-    0,                                          /* tp_reserved */
+    nullptr,                                          /* tp_print */
+    nullptr,                                          /* tp_getattr */
+    nullptr,                                          /* tp_setattr */
+    nullptr,                                          /* tp_reserved */
     (reprfunc)ViewShape_repr,                   /* tp_repr */
-    0,                                          /* tp_as_number */
-    0,                                          /* tp_as_sequence */
-    0,                                          /* tp_as_mapping */
-    0,                                          /* tp_hash  */
-    0,                                          /* tp_call */
-    0,                                          /* tp_str */
-    0,                                          /* tp_getattro */
-    0,                                          /* tp_setattro */
-    0,                                          /* tp_as_buffer */
+    nullptr,                                          /* tp_as_number */
+    nullptr,                                          /* tp_as_sequence */
+    nullptr,                                          /* tp_as_mapping */
+    nullptr,                                          /* tp_hash  */
+    nullptr,                                          /* tp_call */
+    nullptr,                                          /* tp_str */
+    nullptr,                                          /* tp_getattro */
+    nullptr,                                          /* tp_setattro */
+    nullptr,                                          /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
     ViewShape_doc,                              /* tp_doc */
-    0,                                          /* tp_traverse */
-    0,                                          /* tp_clear */
-    0,                                          /* tp_richcompare */
+    nullptr,                                          /* tp_traverse */
+    nullptr,                                          /* tp_clear */
+    nullptr,                                          /* tp_richcompare */
     0,                                          /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
+    nullptr,                                          /* tp_iter */
+    nullptr,                                          /* tp_iternext */
     BPy_ViewShape_methods,                      /* tp_methods */
-    0,                                          /* tp_members */
+    nullptr,                                          /* tp_members */
     BPy_ViewShape_getseters,                    /* tp_getset */
-    0,                                          /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
+    nullptr,                                          /* tp_base */
+    nullptr,                                          /* tp_dict */
+    nullptr,                                          /* tp_descr_get */
+    nullptr,                                          /* tp_descr_set */
     0,                                          /* tp_dictoffset */
     (initproc)ViewShape_init,                   /* tp_init */
-    0,                                          /* tp_alloc */
+    nullptr,                                          /* tp_alloc */
     PyType_GenericNew,                          /* tp_new */
 };
 

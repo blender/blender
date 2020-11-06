@@ -25,11 +25,11 @@ ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
   this->m_fStop = 128.0f;
-  this->m_cameraObject = NULL;
+  this->m_cameraObject = nullptr;
   this->m_maxRadius = 32.0f;
-  this->m_blurPostOperation = NULL;
+  this->m_blurPostOperation = nullptr;
 }
 
 float ConvertDepthToRadiusOperation::determineFocalDistance()
@@ -46,7 +46,7 @@ float ConvertDepthToRadiusOperation::determineFocalDistance()
 void ConvertDepthToRadiusOperation::initExecution()
 {
   float cam_sensor = DEFAULT_SENSOR_WIDTH;
-  Camera *camera = NULL;
+  Camera *camera = nullptr;
 
   if (this->m_cameraObject && this->m_cameraObject->type == OB_CAMERA) {
     camera = (Camera *)this->m_cameraObject->data;
@@ -111,5 +111,5 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
 
 void ConvertDepthToRadiusOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }

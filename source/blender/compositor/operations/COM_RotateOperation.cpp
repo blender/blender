@@ -25,8 +25,8 @@ RotateOperation::RotateOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
   this->setResolutionInputSocketIndex(0);
-  this->m_imageSocket = NULL;
-  this->m_degreeSocket = NULL;
+  this->m_imageSocket = nullptr;
+  this->m_degreeSocket = nullptr;
   this->m_doDegree2RadConversion = false;
   this->m_isDegreeSet = false;
 }
@@ -40,8 +40,8 @@ void RotateOperation::initExecution()
 
 void RotateOperation::deinitExecution()
 {
-  this->m_imageSocket = NULL;
-  this->m_degreeSocket = NULL;
+  this->m_imageSocket = nullptr;
+  this->m_degreeSocket = nullptr;
 }
 
 inline void RotateOperation::ensureDegree()

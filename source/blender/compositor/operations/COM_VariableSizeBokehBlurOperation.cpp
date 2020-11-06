@@ -35,9 +35,9 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
   this->setComplex(true);
   this->setOpenCL(true);
 
-  this->m_inputProgram = NULL;
-  this->m_inputBokehProgram = NULL;
-  this->m_inputSizeProgram = NULL;
+  this->m_inputProgram = nullptr;
+  this->m_inputBokehProgram = nullptr;
+  this->m_inputSizeProgram = nullptr;
   this->m_maxBlur = 32.0f;
   this->m_threshold = 1.0f;
   this->m_do_size_scale = false;
@@ -188,7 +188,7 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
                                                    list<cl_mem> *clMemToCleanUp,
                                                    list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
-  cl_kernel defocusKernel = device->COM_clCreateKernel("defocusKernel", NULL);
+  cl_kernel defocusKernel = device->COM_clCreateKernel("defocusKernel", nullptr);
 
   cl_int step = this->getStep();
   cl_int maxBlur;
@@ -221,9 +221,9 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
 
 void VariableSizeBokehBlurOperation::deinitExecution()
 {
-  this->m_inputProgram = NULL;
-  this->m_inputBokehProgram = NULL;
-  this->m_inputSizeProgram = NULL;
+  this->m_inputProgram = nullptr;
+  this->m_inputBokehProgram = nullptr;
+  this->m_inputSizeProgram = nullptr;
 #ifdef COM_DEFOCUS_SEARCH
   this->m_inputSearchProgram = NULL;
 #endif

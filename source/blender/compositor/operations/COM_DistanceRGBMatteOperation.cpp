@@ -25,8 +25,8 @@ DistanceRGBMatteOperation::DistanceRGBMatteOperation()
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_VALUE);
 
-  this->m_inputImageProgram = NULL;
-  this->m_inputKeyProgram = NULL;
+  this->m_inputImageProgram = nullptr;
+  this->m_inputKeyProgram = nullptr;
 }
 
 void DistanceRGBMatteOperation::initExecution()
@@ -37,8 +37,8 @@ void DistanceRGBMatteOperation::initExecution()
 
 void DistanceRGBMatteOperation::deinitExecution()
 {
-  this->m_inputImageProgram = NULL;
-  this->m_inputKeyProgram = NULL;
+  this->m_inputImageProgram = nullptr;
+  this->m_inputKeyProgram = nullptr;
 }
 
 float DistanceRGBMatteOperation::calculateDistance(float key[4], float image[4])

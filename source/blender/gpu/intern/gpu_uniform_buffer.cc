@@ -73,7 +73,7 @@ static eGPUType get_padded_gpu_type(LinkData *link)
   GPUInput *input = (GPUInput *)link->data;
   eGPUType gputype = input->type;
   /* Unless the vec3 is followed by a float we need to treat it as a vec4. */
-  if (gputype == GPU_VEC3 && (link->next != NULL) &&
+  if (gputype == GPU_VEC3 && (link->next != nullptr) &&
       (((GPUInput *)link->next->data)->type != GPU_FLOAT)) {
     gputype = GPU_VEC4;
   }
@@ -106,7 +106,7 @@ static void buffer_from_list_inputs_sort(ListBase *inputs)
   BLI_listbase_sort(inputs, inputs_cmp);
 
   /* Creates a lookup table for the different types; */
-  LinkData *inputs_lookup[MAX_UBO_GPU_TYPE + 1] = {NULL};
+  LinkData *inputs_lookup[MAX_UBO_GPU_TYPE + 1] = {nullptr};
   eGPUType cur_type = static_cast<eGPUType>(MAX_UBO_GPU_TYPE + 1);
 
   LISTBASE_FOREACH (LinkData *, link, inputs) {
@@ -131,21 +131,21 @@ static void buffer_from_list_inputs_sort(ListBase *inputs)
   }
 
   /* If there is no GPU_VEC3 there is no need for alignment. */
-  if (inputs_lookup[GPU_VEC3] == NULL) {
+  if (inputs_lookup[GPU_VEC3] == nullptr) {
     return;
   }
 
   LinkData *link = inputs_lookup[GPU_VEC3];
-  while (link != NULL && ((GPUInput *)link->data)->type == GPU_VEC3) {
+  while (link != nullptr && ((GPUInput *)link->data)->type == GPU_VEC3) {
     LinkData *link_next = link->next;
 
     /* If GPU_VEC3 is followed by nothing or a GPU_FLOAT, no need for alignment. */
-    if ((link_next == NULL) || ((GPUInput *)link_next->data)->type == GPU_FLOAT) {
+    if ((link_next == nullptr) || ((GPUInput *)link_next->data)->type == GPU_FLOAT) {
       break;
     }
 
     /* If there is a float, move it next to current vec3. */
-    if (inputs_lookup[GPU_FLOAT] != NULL) {
+    if (inputs_lookup[GPU_FLOAT] != nullptr) {
       LinkData *float_input = inputs_lookup[GPU_FLOAT];
       inputs_lookup[GPU_FLOAT] = float_input->next;
 
@@ -195,7 +195,7 @@ GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const cha
 {
   UniformBuf *ubo = GPUBackend::get()->uniformbuf_alloc(size, name);
   /* Direct init. */
-  if (data != NULL) {
+  if (data != nullptr) {
     ubo->update(data);
   }
   return wrap(ubo);
@@ -211,7 +211,7 @@ GPUUniformBuf *GPU_uniformbuf_create_from_list(ListBase *inputs, const char *nam
 {
   /* There is no point on creating an UBO if there is no arguments. */
   if (BLI_listbase_is_empty(inputs)) {
-    return NULL;
+    return nullptr;
   }
 
   buffer_from_list_inputs_sort(inputs);

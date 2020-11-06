@@ -135,7 +135,7 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
       }
     }
 
-    if (nurbs->knotsu != NULL) {
+    if (nurbs->knotsu != nullptr) {
       const size_t num_knots = KNOTSU(nurbs);
 
       /* Add an extra knot at the beginning and end of the array since most apps
@@ -189,7 +189,7 @@ ABCCurveMeshWriter::ABCCurveMeshWriter(const ABCWriterConstructorArgs &args)
 Mesh *ABCCurveMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
 {
   Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object_eval);
-  if (mesh_eval != NULL) {
+  if (mesh_eval != nullptr) {
     /* Mesh_eval only exists when generative modifiers are in use. */
     r_needsfree = false;
     return mesh_eval;

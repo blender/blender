@@ -36,7 +36,7 @@ NodeOperation::NodeOperation()
   this->m_height = 0;
   this->m_isResolutionSet = false;
   this->m_openCL = false;
-  this->m_btree = NULL;
+  this->m_btree = nullptr;
 }
 
 NodeOperation::~NodeOperation()
@@ -146,7 +146,7 @@ NodeOperation *NodeOperation::getInputOperation(unsigned int inputSocketIndex)
     return &input->getLink()->getOperation();
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void NodeOperation::getConnectedInputSockets(Inputs *sockets)
@@ -199,7 +199,7 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
 NodeOperationInput::NodeOperationInput(NodeOperation *op,
                                        DataType datatype,
                                        InputResizeMode resizeMode)
-    : m_operation(op), m_datatype(datatype), m_resizeMode(resizeMode), m_link(NULL)
+    : m_operation(op), m_datatype(datatype), m_resizeMode(resizeMode), m_link(nullptr)
 {
 }
 
@@ -209,7 +209,7 @@ SocketReader *NodeOperationInput::getReader()
     return &m_link->getOperation();
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void NodeOperationInput::determineResolution(unsigned int resolution[2],

@@ -158,14 +158,14 @@ real SVertex::z_discontinuity() const
 FEdge *SVertex::fedge()
 {
   if (getNature() & Nature::T_VERTEX) {
-    return NULL;
+    return nullptr;
   }
   return _FEdges[0];
 }
 
 FEdge *SVertex::getFEdge(Interface0D &inter)
 {
-  FEdge *result = NULL;
+  FEdge *result = nullptr;
   SVertex *iVertexB = dynamic_cast<SVertex *>(&inter);
   if (!iVertexB) {
     return result;
@@ -177,7 +177,7 @@ FEdge *SVertex::getFEdge(Interface0D &inter)
       result = (*fe);
     }
   }
-  if ((result == 0) && (getNature() & Nature::T_VERTEX)) {
+  if ((result == nullptr) && (getNature() & Nature::T_VERTEX)) {
     SVertex *brother;
     ViewVertex *vvertex = viewvertex();
     TVertex *tvertex = dynamic_cast<TVertex *>(vvertex);
@@ -195,7 +195,7 @@ FEdge *SVertex::getFEdge(Interface0D &inter)
       }
     }
   }
-  if ((result == 0) && (iVertexB->getNature() & Nature::T_VERTEX)) {
+  if ((result == nullptr) && (iVertexB->getNature() & Nature::T_VERTEX)) {
     SVertex *brother;
     ViewVertex *vvertex = iVertexB->viewvertex();
     TVertex *tvertex = dynamic_cast<TVertex *>(vvertex);
@@ -239,8 +239,8 @@ float FEdge::viewedge_length() const
 const SShape *FEdge::occluded_shape() const
 {
   ViewShape *aShape = _ViewEdge->aShape();
-  if (aShape == 0) {
-    return 0;
+  if (aShape == nullptr) {
+    return nullptr;
   }
   return aShape->sshape();
 }

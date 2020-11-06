@@ -53,9 +53,9 @@ PyDoc_STRVAR(Chain_doc,
 
 static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
-  static const char *kwlist_2[] = {"id", NULL};
-  PyObject *obj = 0;
+  static const char *kwlist_1[] = {"brother", nullptr};
+  static const char *kwlist_2[] = {"id", nullptr};
+  PyObject *obj = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &Chain_Type, &obj)) {
     if (!obj) {
@@ -92,12 +92,12 @@ PyDoc_STRVAR(Chain_push_viewedge_back_doc,
 
 static PyObject *Chain_push_viewedge_back(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"viewedge", "orientation", NULL};
-  PyObject *obj1 = 0, *obj2 = 0;
+  static const char *kwlist[] = {"viewedge", "orientation", nullptr};
+  PyObject *obj1 = nullptr, *obj2 = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "O!O!", (char **)kwlist, &ViewEdge_Type, &obj1, &PyBool_Type, &obj2)) {
-    return NULL;
+    return nullptr;
   }
   ViewEdge *ve = ((BPy_ViewEdge *)obj1)->ve;
   bool orientation = bool_from_PyBool(obj2);
@@ -118,12 +118,12 @@ PyDoc_STRVAR(Chain_push_viewedge_front_doc,
 
 static PyObject *Chain_push_viewedge_front(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"viewedge", "orientation", NULL};
-  PyObject *obj1 = 0, *obj2 = 0;
+  static const char *kwlist[] = {"viewedge", "orientation", nullptr};
+  PyObject *obj1 = nullptr, *obj2 = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "O!O!", (char **)kwlist, &ViewEdge_Type, &obj1, &PyBool_Type, &obj2)) {
-    return NULL;
+    return nullptr;
   }
   ViewEdge *ve = ((BPy_ViewEdge *)obj1)->ve;
   bool orientation = bool_from_PyBool(obj2);
@@ -140,49 +140,49 @@ static PyMethodDef BPy_Chain_methods[] = {
      (PyCFunction)Chain_push_viewedge_front,
      METH_VARARGS | METH_KEYWORDS,
      Chain_push_viewedge_front_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*-----------------------BPy_Chain type definition ------------------------------*/
 
 PyTypeObject Chain_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Chain",   /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "Chain",   /* tp_name */
     sizeof(BPy_Chain),                        /* tp_basicsize */
     0,                                        /* tp_itemsize */
-    0,                                        /* tp_dealloc */
-    0,                                        /* tp_print */
-    0,                                        /* tp_getattr */
-    0,                                        /* tp_setattr */
-    0,                                        /* tp_reserved */
-    0,                                        /* tp_repr */
-    0,                                        /* tp_as_number */
-    0,                                        /* tp_as_sequence */
-    0,                                        /* tp_as_mapping */
-    0,                                        /* tp_hash  */
-    0,                                        /* tp_call */
-    0,                                        /* tp_str */
-    0,                                        /* tp_getattro */
-    0,                                        /* tp_setattro */
-    0,                                        /* tp_as_buffer */
+    nullptr,                                        /* tp_dealloc */
+    nullptr,                                        /* tp_print */
+    nullptr,                                        /* tp_getattr */
+    nullptr,                                        /* tp_setattr */
+    nullptr,                                        /* tp_reserved */
+    nullptr,                                        /* tp_repr */
+    nullptr,                                        /* tp_as_number */
+    nullptr,                                        /* tp_as_sequence */
+    nullptr,                                        /* tp_as_mapping */
+    nullptr,                                        /* tp_hash  */
+    nullptr,                                        /* tp_call */
+    nullptr,                                        /* tp_str */
+    nullptr,                                        /* tp_getattro */
+    nullptr,                                        /* tp_setattro */
+    nullptr,                                        /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
     Chain_doc,                                /* tp_doc */
-    0,                                        /* tp_traverse */
-    0,                                        /* tp_clear */
-    0,                                        /* tp_richcompare */
+    nullptr,                                        /* tp_traverse */
+    nullptr,                                        /* tp_clear */
+    nullptr,                                        /* tp_richcompare */
     0,                                        /* tp_weaklistoffset */
-    0,                                        /* tp_iter */
-    0,                                        /* tp_iternext */
+    nullptr,                                        /* tp_iter */
+    nullptr,                                        /* tp_iternext */
     BPy_Chain_methods,                        /* tp_methods */
-    0,                                        /* tp_members */
-    0,                                        /* tp_getset */
+    nullptr,                                        /* tp_members */
+    nullptr,                                        /* tp_getset */
     &FrsCurve_Type,                           /* tp_base */
-    0,                                        /* tp_dict */
-    0,                                        /* tp_descr_get */
-    0,                                        /* tp_descr_set */
+    nullptr,                                        /* tp_dict */
+    nullptr,                                        /* tp_descr_get */
+    nullptr,                                        /* tp_descr_set */
     0,                                        /* tp_dictoffset */
     (initproc)Chain_init,                     /* tp_init */
-    0,                                        /* tp_alloc */
-    0,                                        /* tp_new */
+    nullptr,                                        /* tp_alloc */
+    nullptr,                                        /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

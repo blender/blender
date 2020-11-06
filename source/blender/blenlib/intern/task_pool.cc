@@ -83,11 +83,11 @@ class Task {
         free_taskdata(other.free_taskdata),
         freedata(other.freedata)
   {
-    other.pool = NULL;
-    other.run = NULL;
-    other.taskdata = NULL;
+    other.pool = nullptr;
+    other.run = nullptr;
+    other.taskdata = nullptr;
     other.free_taskdata = false;
-    other.freedata = NULL;
+    other.freedata = nullptr;
   }
 
 #if defined(WITH_TBB) && TBB_INTERFACE_VERSION_MAJOR < 10
@@ -302,7 +302,7 @@ static void *background_task_run(void *userdata)
     task->~Task();
     MEM_freeN(task);
   }
-  return NULL;
+  return nullptr;
 }
 
 static void background_task_pool_create(TaskPool *pool)

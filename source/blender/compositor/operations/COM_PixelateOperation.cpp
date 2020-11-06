@@ -23,7 +23,7 @@ PixelateOperation::PixelateOperation(DataType datatype)
   this->addInputSocket(datatype);
   this->addOutputSocket(datatype);
   this->setResolutionInputSocketIndex(0);
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 void PixelateOperation::initExecution()
@@ -33,7 +33,7 @@ void PixelateOperation::initExecution()
 
 void PixelateOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 void PixelateOperation::executePixelSampled(float output[4],

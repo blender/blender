@@ -28,9 +28,9 @@
 
 MovieClipBaseOperation::MovieClipBaseOperation()
 {
-  this->m_movieClip = NULL;
-  this->m_movieClipBuffer = NULL;
-  this->m_movieClipUser = NULL;
+  this->m_movieClip = nullptr;
+  this->m_movieClipBuffer = nullptr;
+  this->m_movieClipUser = nullptr;
   this->m_movieClipwidth = 0;
   this->m_movieClipheight = 0;
   this->m_framenumber = 0;
@@ -52,7 +52,7 @@ void MovieClipBaseOperation::initExecution()
 
     if (ibuf) {
       this->m_movieClipBuffer = ibuf;
-      if (ibuf->rect_float == NULL || ibuf->userflags & IB_RECT_INVALID) {
+      if (ibuf->rect_float == nullptr || ibuf->userflags & IB_RECT_INVALID) {
         IMB_float_from_rect(ibuf);
         ibuf->userflags &= ~IB_RECT_INVALID;
       }
@@ -65,7 +65,7 @@ void MovieClipBaseOperation::deinitExecution()
   if (this->m_movieClipBuffer) {
     IMB_freeImBuf(this->m_movieClipBuffer);
 
-    this->m_movieClipBuffer = NULL;
+    this->m_movieClipBuffer = nullptr;
   }
 }
 
@@ -92,23 +92,23 @@ void MovieClipBaseOperation::executePixelSampled(float output[4],
 {
   ImBuf *ibuf = this->m_movieClipBuffer;
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     zero_v4(output);
   }
-  else if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+  else if (ibuf->rect == nullptr && ibuf->rect_float == nullptr) {
     /* Happens for multilayer exr, i.e. */
     zero_v4(output);
   }
   else {
     switch (sampler) {
       case COM_PS_NEAREST:
-        nearest_interpolation_color(ibuf, NULL, output, x, y);
+        nearest_interpolation_color(ibuf, nullptr, output, x, y);
         break;
       case COM_PS_BILINEAR:
-        bilinear_interpolation_color(ibuf, NULL, output, x, y);
+        bilinear_interpolation_color(ibuf, nullptr, output, x, y);
         break;
       case COM_PS_BICUBIC:
-        bicubic_interpolation_color(ibuf, NULL, output, x, y);
+        bicubic_interpolation_color(ibuf, nullptr, output, x, y);
         break;
     }
   }

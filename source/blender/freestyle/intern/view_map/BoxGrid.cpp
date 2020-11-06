@@ -157,7 +157,7 @@ void BoxGrid::assignCells(OccluderSource & /*source*/,
       Vec3r point = transform((*f)->center3d());
       unsigned int i, j;
       getCellCoordinates(point, i, j);
-      if (_cells[i * _cellsY + j] == NULL) {
+      if (_cells[i * _cellsY + j] == nullptr) {
         // This is an uninitialized cell
         real x, y, width, height;
 
@@ -181,7 +181,7 @@ void BoxGrid::distributePolygons(OccluderSource &source)
   unsigned long nKeptFaces = 0;
 
   for (source.begin(); source.isValid(); source.next()) {
-    OccluderData *occluder = NULL;
+    OccluderData *occluder = nullptr;
 
     try {
       if (insertOccluder(source, occluder)) {

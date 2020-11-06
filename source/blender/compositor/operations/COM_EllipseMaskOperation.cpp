@@ -25,8 +25,8 @@ EllipseMaskOperation::EllipseMaskOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_inputMask = NULL;
-  this->m_inputValue = NULL;
+  this->m_inputMask = nullptr;
+  this->m_inputValue = nullptr;
   this->m_cosine = 0.0f;
   this->m_sine = 0.0f;
 }
@@ -114,6 +114,6 @@ void EllipseMaskOperation::executePixelSampled(float output[4],
 
 void EllipseMaskOperation::deinitExecution()
 {
-  this->m_inputMask = NULL;
-  this->m_inputValue = NULL;
+  this->m_inputMask = nullptr;
+  this->m_inputValue = nullptr;
 }

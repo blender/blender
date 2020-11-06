@@ -29,7 +29,7 @@ TEST(heap, SimpleEmpty)
   heap = BLI_heapsimple_new();
   EXPECT_TRUE(BLI_heapsimple_is_empty(heap));
   EXPECT_EQ(BLI_heapsimple_len(heap), 0);
-  BLI_heapsimple_free(heap, NULL);
+  BLI_heapsimple_free(heap, nullptr);
 }
 
 TEST(heap, SimpleOne)
@@ -45,7 +45,7 @@ TEST(heap, SimpleOne)
   EXPECT_EQ(in, BLI_heapsimple_pop_min(heap));
   EXPECT_TRUE(BLI_heapsimple_is_empty(heap));
   EXPECT_EQ(BLI_heapsimple_len(heap), 0);
-  BLI_heapsimple_free(heap, NULL);
+  BLI_heapsimple_free(heap, nullptr);
 }
 
 TEST(heap, SimpleRange)
@@ -59,7 +59,7 @@ TEST(heap, SimpleRange)
     EXPECT_EQ(out_test, POINTER_AS_INT(BLI_heapsimple_pop_min(heap)));
   }
   EXPECT_TRUE(BLI_heapsimple_is_empty(heap));
-  BLI_heapsimple_free(heap, NULL);
+  BLI_heapsimple_free(heap, nullptr);
 }
 
 TEST(heap, SimpleRangeReverse)
@@ -73,7 +73,7 @@ TEST(heap, SimpleRangeReverse)
     EXPECT_EQ(-out_test, POINTER_AS_INT(BLI_heapsimple_pop_min(heap)));
   }
   EXPECT_TRUE(BLI_heapsimple_is_empty(heap));
-  BLI_heapsimple_free(heap, NULL);
+  BLI_heapsimple_free(heap, nullptr);
 }
 
 TEST(heap, SimpleDuplicates)
@@ -81,13 +81,13 @@ TEST(heap, SimpleDuplicates)
   const int items_total = SIZE;
   HeapSimple *heap = BLI_heapsimple_new();
   for (int in = 0; in < items_total; in++) {
-    BLI_heapsimple_insert(heap, 1.0f, 0);
+    BLI_heapsimple_insert(heap, 1.0f, nullptr);
   }
   for (int out_test = 0; out_test < items_total; out_test++) {
     EXPECT_EQ(0, POINTER_AS_INT(BLI_heapsimple_pop_min(heap)));
   }
   EXPECT_TRUE(BLI_heapsimple_is_empty(heap));
-  BLI_heapsimple_free(heap, NULL);
+  BLI_heapsimple_free(heap, nullptr);
 }
 
 static void random_heapsimple_helper(const int items_total, const int random_seed)
@@ -103,7 +103,7 @@ static void random_heapsimple_helper(const int items_total, const int random_see
     EXPECT_EQ(out_test, POINTER_AS_INT(BLI_heapsimple_pop_min(heap)));
   }
   EXPECT_TRUE(BLI_heapsimple_is_empty(heap));
-  BLI_heapsimple_free(heap, NULL);
+  BLI_heapsimple_free(heap, nullptr);
   MEM_freeN(values);
 }
 

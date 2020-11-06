@@ -37,7 +37,7 @@ namespace Freestyle {
 /*                                */
 /**********************************/
 
-ViewMap *ViewMap::_pInstance = NULL;
+ViewMap *ViewMap::_pInstance = nullptr;
 
 ViewMap::~ViewMap()
 {
@@ -103,7 +103,7 @@ const FEdge *ViewMap::getClosestFEdge(real x, real y) const
 {
   // find the closest of this candidates:
   real minDist = DBL_MAX;
-  FEdge *winner = NULL;
+  FEdge *winner = nullptr;
   for (fedges_container::const_iterator fe = _FEdges.begin(), feend = _FEdges.end(); fe != feend;
        fe++) {
     Vec2d A((*fe)->vertexA()->point2D()[0], (*fe)->vertexA()->point2D()[1]);
@@ -122,7 +122,7 @@ const ViewEdge *ViewMap::getClosestViewEdge(real x, real y) const
 {
   // find the closest of this candidates:
   real minDist = DBL_MAX;
-  FEdge *winner = NULL;
+  FEdge *winner = nullptr;
   for (fedges_container::const_iterator fe = _FEdges.begin(), feend = _FEdges.end(); fe != feend;
        fe++) {
     Vec2d A((*fe)->vertexA()->point2D()[0], (*fe)->vertexA()->point2D()[1]);
@@ -134,7 +134,7 @@ const ViewEdge *ViewMap::getClosestViewEdge(real x, real y) const
     }
   }
   if (!winner) {
-    return NULL;
+    return nullptr;
   }
 
   return winner->viewedge();
@@ -194,9 +194,9 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
   const vector<FEdge *> &fedges = iVertex->fedges();
   if (fedges.size() != 2) {
     cerr << "ViewMap warning: Can't split the ViewEdge" << endl;
-    return NULL;
+    return nullptr;
   }
-  FEdge *fend(NULL), *fbegin(NULL);
+  FEdge *fend(nullptr), *fbegin(nullptr);
   for (vector<FEdge *>::const_iterator fe = fedges.begin(), feend = fedges.end(); fe != feend;
        ++fe) {
     if ((*fe)->vertexB() == iVertex) {
@@ -205,7 +205,7 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
     if ((*fe)->vertexA() == iVertex) {
       fbegin = (*fe);
     }
-    if ((fbegin != NULL) && (fend != NULL)) {
+    if ((fbegin != nullptr) && (fend != nullptr)) {
       break;
     }
   }
@@ -213,7 +213,7 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
   ViewShape *vshape = ioEdge->viewShape();
   vva = new NonTVertex(iVertex);
   // if the ViewEdge is a closed loop, we don't create a new VEdge
-  if (ioEdge->A() == 0) {
+  if (ioEdge->A() == nullptr) {
     // closed loop
     ioEdge->setA(vva);
     ioEdge->setB(vva);
@@ -225,8 +225,8 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
     ioEdge->setFEdgeB(fend);
 
     // Update FEdges
-    fend->setNextEdge(NULL);
-    fbegin->setPreviousEdge(NULL);
+    fend->setNextEdge(nullptr);
+    fbegin->setPreviousEdge(nullptr);
 
     // update new View Vertex:
     vva->AddOutgoingViewEdge(ioEdge);
@@ -246,8 +246,8 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
     ioEdge->setFEdgeB(fend);
 
     // Update FEdges
-    fend->setNextEdge(NULL);
-    fbegin->setPreviousEdge(NULL);
+    fend->setNextEdge(nullptr);
+    fbegin->setPreviousEdge(nullptr);
 
     // update new View Vertex:
     vva->AddOutgoingViewEdge(newVEdge);
@@ -711,56 +711,56 @@ ViewEdge::const_fedge_iterator ViewEdge::fedge_iterator_last() const
 
 ViewEdge::fedge_iterator ViewEdge::fedge_iterator_end()
 {
-  return fedge_iterator(0, this->_FEdgeB);
+  return fedge_iterator(nullptr, this->_FEdgeB);
 }
 
 ViewEdge::const_fedge_iterator ViewEdge::fedge_iterator_end() const
 {
-  return const_fedge_iterator(0, this->_FEdgeB);
+  return const_fedge_iterator(nullptr, this->_FEdgeB);
 }
 
 //! embedding vertex iterator
 ViewEdge::const_vertex_iterator ViewEdge::vertices_begin() const
 {
-  return const_vertex_iterator(this->_FEdgeA->vertexA(), 0, _FEdgeA);
+  return const_vertex_iterator(this->_FEdgeA->vertexA(), nullptr, _FEdgeA);
 }
 
 ViewEdge::vertex_iterator ViewEdge::vertices_begin()
 {
-  return vertex_iterator(this->_FEdgeA->vertexA(), 0, _FEdgeA);
+  return vertex_iterator(this->_FEdgeA->vertexA(), nullptr, _FEdgeA);
 }
 
 ViewEdge::const_vertex_iterator ViewEdge::vertices_last() const
 {
-  return const_vertex_iterator(this->_FEdgeB->vertexB(), _FEdgeB, 0);
+  return const_vertex_iterator(this->_FEdgeB->vertexB(), _FEdgeB, nullptr);
 }
 
 ViewEdge::vertex_iterator ViewEdge::vertices_last()
 {
-  return vertex_iterator(this->_FEdgeB->vertexB(), _FEdgeB, 0);
+  return vertex_iterator(this->_FEdgeB->vertexB(), _FEdgeB, nullptr);
 }
 
 ViewEdge::const_vertex_iterator ViewEdge::vertices_end() const
 {
-  return const_vertex_iterator(0, _FEdgeB, 0);
+  return const_vertex_iterator(nullptr, _FEdgeB, nullptr);
 }
 
 ViewEdge::vertex_iterator ViewEdge::vertices_end()
 {
-  return vertex_iterator(0, _FEdgeB, 0);
+  return vertex_iterator(nullptr, _FEdgeB, nullptr);
 }
 
 Interface0DIterator ViewEdge::verticesBegin()
 {
   Interface0DIterator ret(new ViewEdgeInternal::SVertexIterator(
-      this->_FEdgeA->vertexA(), this->_FEdgeA->vertexA(), NULL, _FEdgeA, 0.0f));
+      this->_FEdgeA->vertexA(), this->_FEdgeA->vertexA(), nullptr, _FEdgeA, 0.0f));
   return ret;
 }
 
 Interface0DIterator ViewEdge::verticesEnd()
 {
   Interface0DIterator ret(new ViewEdgeInternal::SVertexIterator(
-      NULL, this->_FEdgeA->vertexA(), _FEdgeB, NULL, getLength2D()));
+      nullptr, this->_FEdgeA->vertexA(), _FEdgeB, nullptr, getLength2D()));
   return ret;
 }
 
@@ -795,7 +795,7 @@ ViewShape::~ViewShape()
 
   if (_SShape) {
     delete _SShape;
-    _SShape = NULL;
+    _SShape = nullptr;
   }
 }
 

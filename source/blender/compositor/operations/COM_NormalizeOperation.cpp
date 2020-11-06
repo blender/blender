@@ -22,8 +22,8 @@ NormalizeOperation::NormalizeOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_imageReader = NULL;
-  this->m_cachedInstance = NULL;
+  this->m_imageReader = nullptr;
+  this->m_cachedInstance = nullptr;
   this->setComplex(true);
 }
 void NormalizeOperation::initExecution()
@@ -37,7 +37,7 @@ void NormalizeOperation::executePixel(float output[4], int x, int y, void *data)
   /* using generic two floats struct to store x: min  y: mult */
   NodeTwoFloats *minmult = (NodeTwoFloats *)data;
 
-  this->m_imageReader->read(output, x, y, NULL);
+  this->m_imageReader->read(output, x, y, nullptr);
 
   output[0] = (output[0] - minmult->x) * minmult->y;
 
@@ -52,7 +52,7 @@ void NormalizeOperation::executePixel(float output[4], int x, int y, void *data)
 
 void NormalizeOperation::deinitExecution()
 {
-  this->m_imageReader = NULL;
+  this->m_imageReader = nullptr;
   delete this->m_cachedInstance;
   NodeOperation::deinitMutex();
 }
@@ -85,7 +85,7 @@ bool NormalizeOperation::determineDependingAreaOfInterest(rcti * /*input*/,
 void *NormalizeOperation::initializeTileData(rcti *rect)
 {
   lockMutex();
-  if (this->m_cachedInstance == NULL) {
+  if (this->m_cachedInstance == nullptr) {
     MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
     /* using generic two floats struct to store x: min  y: mult */
     NodeTwoFloats *minmult = new NodeTwoFloats();

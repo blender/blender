@@ -149,7 +149,7 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
   const P3fArraySamplePtr &positions = mesh_data.positions;
 
   if (config.use_vertex_interpolation && config.weight != 0.0f &&
-      mesh_data.ceil_positions != NULL && mesh_data.ceil_positions->size() == positions->size()) {
+      mesh_data.ceil_positions != nullptr && mesh_data.ceil_positions->size() == positions->size()) {
     read_mverts_interp(mverts, positions, mesh_data.ceil_positions, config.weight);
     return;
   }
@@ -383,19 +383,19 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
 
   /* unsupported custom data type -- don't do anything. */
   if (!ELEM(cd_data_type, CD_MLOOPUV, CD_MLOOPCOL)) {
-    return NULL;
+    return nullptr;
   }
 
   loopdata = &mesh->ldata;
   cd_ptr = CustomData_get_layer_named(loopdata, cd_data_type, name);
-  if (cd_ptr != NULL) {
+  if (cd_ptr != nullptr) {
     /* layer already exists, so just return it. */
     return cd_ptr;
   }
 
   /* Create a new layer. */
   numloops = mesh->totloop;
-  cd_ptr = CustomData_add_layer_named(loopdata, cd_data_type, CD_DEFAULT, NULL, numloops, name);
+  cd_ptr = CustomData_add_layer_named(loopdata, cd_data_type, CD_DEFAULT, nullptr, numloops, name);
   return cd_ptr;
 }
 
@@ -552,7 +552,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
   m_object->data = mesh;
 
-  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
+  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, nullptr);
   if (read_mesh != mesh) {
     /* XXX fixme after 2.80; mesh->flag isn't copied by BKE_mesh_nomain_to_mesh() */
     /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
@@ -657,7 +657,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     return existing_mesh;
   }
 
-  Mesh *new_mesh = NULL;
+  Mesh *new_mesh = nullptr;
 
   /* Only read point data when streaming meshes, unless we need to create new ones. */
   ImportSettings settings;
@@ -777,7 +777,7 @@ BLI_INLINE MEdge *find_edge(MEdge *edges, int totedge, int v1, int v2)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void read_subd_sample(const std::string &iobject_full_name,
@@ -867,7 +867,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
   m_object->data = mesh;
 
-  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
+  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, nullptr);
   if (read_mesh != mesh) {
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_MESH, true);
   }
@@ -903,7 +903,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
       }
 
       MEdge *edge = find_edge(edges, totedge, v1, v2);
-      if (edge == NULL) {
+      if (edge == nullptr) {
         edge = find_edge(edges, totedge, v2, v1);
       }
 
@@ -949,7 +949,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
   const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
 
-  Mesh *new_mesh = NULL;
+  Mesh *new_mesh = nullptr;
 
   ImportSettings settings;
   settings.read_flag |= read_flag;

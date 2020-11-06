@@ -82,7 +82,7 @@ bool AbcPointsReader::accepts_object_type(
 void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
   Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
-  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, 0, NULL);
+  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, 0, nullptr);
 
   if (read_mesh != mesh) {
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_MESH, true);
@@ -145,7 +145,7 @@ struct Mesh *AbcPointsReader::read_mesh(struct Mesh *existing_mesh,
 
   const P3fArraySamplePtr &positions = sample.getPositions();
 
-  Mesh *new_mesh = NULL;
+  Mesh *new_mesh = nullptr;
 
   if (existing_mesh->totvert != positions->size()) {
     new_mesh = BKE_mesh_new_nomain(positions->size(), 0, 0, 0, 0);

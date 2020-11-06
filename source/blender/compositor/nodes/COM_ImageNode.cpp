@@ -44,7 +44,7 @@ NodeOperation *ImageNode::doMultilayerCheck(NodeConverter &converter,
                                             DataType datatype) const
 {
   NodeOutput *outputSocket = this->getOutputSocket(outputsocketIndex);
-  MultilayerBaseOperation *operation = NULL;
+  MultilayerBaseOperation *operation = nullptr;
   switch (datatype) {
     case COM_DT_VALUE:
       operation = new MultilayerValueOperation(passindex, view);
@@ -84,7 +84,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
   /* force a load, we assume iuser index will be set OK anyway */
   if (image && image->type == IMA_TYPE_MULTILAYER) {
     bool is_multilayer_ok = false;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(image, imageuser, NULL);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, imageuser, nullptr);
     if (image->rr) {
       RenderLayer *rl = (RenderLayer *)BLI_findlink(&image->rr->layers, imageuser->layer);
       if (rl) {
@@ -94,7 +94,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
         is_multilayer_ok = true;
 
         for (index = 0; index < numberOfOutputs; index++) {
-          NodeOperation *operation = NULL;
+          NodeOperation *operation = nullptr;
           socket = this->getOutputSocket(index);
           bNodeSocket *bnodeSocket = socket->getbNodeSocket();
           NodeImageLayer *storage = (NodeImageLayer *)bnodeSocket->storage;
@@ -196,13 +196,13 @@ void ImageNode::convertToOperations(NodeConverter &converter,
           }
 
           /* In case we can't load the layer. */
-          if (operation == NULL) {
+          if (operation == nullptr) {
             converter.setInvalidOutput(getOutputSocket(index));
           }
         }
       }
     }
-    BKE_image_release_ibuf(image, ibuf, NULL);
+    BKE_image_release_ibuf(image, ibuf, nullptr);
 
     /* without this, multilayer that fail to load will crash blender T32490. */
     if (is_multilayer_ok == false) {
@@ -263,7 +263,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
       /* happens when unlinking image datablock from multilayer node */
       for (int i = 3; i < numberOfOutputs; i++) {
         NodeOutput *output = this->getOutputSocket(i);
-        NodeOperation *operation = NULL;
+        NodeOperation *operation = nullptr;
         switch (output->getDataType()) {
           case COM_DT_VALUE: {
             SetValueOperation *valueoperation = new SetValueOperation();

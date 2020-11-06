@@ -77,7 +77,7 @@ TEST(ghash, InsertLookup)
     EXPECT_EQ(POINTER_AS_UINT(v), *k);
   }
 
-  BLI_ghash_free(ghash, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
 }
 
 /* Here we simply insert and then remove all keys, ensuring we do get an empty,
@@ -98,14 +98,14 @@ TEST(ghash, InsertRemove)
   bkt_size = BLI_ghash_buckets_len(ghash);
 
   for (i = TESTCASE_SIZE, k = keys; i--; k++) {
-    void *v = BLI_ghash_popkey(ghash, POINTER_FROM_UINT(*k), NULL);
+    void *v = BLI_ghash_popkey(ghash, POINTER_FROM_UINT(*k), nullptr);
     EXPECT_EQ(POINTER_AS_UINT(v), *k);
   }
 
   EXPECT_EQ(BLI_ghash_len(ghash), 0);
   EXPECT_EQ(BLI_ghash_buckets_len(ghash), bkt_size);
 
-  BLI_ghash_free(ghash, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
 }
 
 /* Same as above, but this time we allow ghash to shrink. */
@@ -126,14 +126,14 @@ TEST(ghash, InsertRemoveShrink)
   bkt_size = BLI_ghash_buckets_len(ghash);
 
   for (i = TESTCASE_SIZE, k = keys; i--; k++) {
-    void *v = BLI_ghash_popkey(ghash, POINTER_FROM_UINT(*k), NULL);
+    void *v = BLI_ghash_popkey(ghash, POINTER_FROM_UINT(*k), nullptr);
     EXPECT_EQ(POINTER_AS_UINT(v), *k);
   }
 
   EXPECT_EQ(BLI_ghash_len(ghash), 0);
   EXPECT_LT(BLI_ghash_buckets_len(ghash), bkt_size);
 
-  BLI_ghash_free(ghash, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
 }
 
 /* Check copy. */
@@ -152,7 +152,7 @@ TEST(ghash, Copy)
 
   EXPECT_EQ(BLI_ghash_len(ghash), TESTCASE_SIZE);
 
-  ghash_copy = BLI_ghash_copy(ghash, NULL, NULL);
+  ghash_copy = BLI_ghash_copy(ghash, nullptr, nullptr);
 
   EXPECT_EQ(BLI_ghash_len(ghash_copy), TESTCASE_SIZE);
   EXPECT_EQ(BLI_ghash_buckets_len(ghash_copy), BLI_ghash_buckets_len(ghash));
@@ -162,8 +162,8 @@ TEST(ghash, Copy)
     EXPECT_EQ(POINTER_AS_UINT(v), *k);
   }
 
-  BLI_ghash_free(ghash, NULL, NULL);
-  BLI_ghash_free(ghash_copy, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
+  BLI_ghash_free(ghash_copy, nullptr, nullptr);
 }
 
 /* Check pop. */
@@ -205,5 +205,5 @@ TEST(ghash, Pop)
   }
   EXPECT_EQ(BLI_ghash_len(ghash), 0);
 
-  BLI_ghash_free(ghash, NULL, NULL);
+  BLI_ghash_free(ghash, nullptr, nullptr);
 }

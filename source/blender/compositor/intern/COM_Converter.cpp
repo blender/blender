@@ -133,11 +133,11 @@ bool Converter::is_fast_node(bNode *b_node)
 
 Node *Converter::convert(bNode *b_node)
 {
-  Node *node = NULL;
+  Node *node = nullptr;
 
   /* ignore undefined nodes with missing or invalid node data */
   if (!nodeIsRegistered(b_node)) {
-    return NULL;
+    return nullptr;
   }
 
   switch (b_node->type) {
@@ -439,7 +439,7 @@ NodeOperation *Converter::convertDataType(NodeOperationOutput *from, NodeOperati
     return new ConvertVectorToColorOperation();
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void Converter::convertResolution(NodeOperationBuilder &builder,
@@ -498,8 +498,8 @@ void Converter::convertResolution(NodeOperationBuilder &builder,
   }
 
   if (doCenter) {
-    NodeOperation *first = NULL;
-    ScaleOperation *scaleOperation = NULL;
+    NodeOperation *first = nullptr;
+    ScaleOperation *scaleOperation = nullptr;
     if (doScale) {
       scaleOperation = new ScaleOperation();
       scaleOperation->getInputSocket(1)->setResizeMode(COM_SC_NO_RESIZE);

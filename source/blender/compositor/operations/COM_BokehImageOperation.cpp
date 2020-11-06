@@ -113,7 +113,7 @@ void BokehImageOperation::deinitExecution()
   if (this->m_deleteData) {
     if (this->m_data) {
       delete this->m_data;
-      this->m_data = NULL;
+      this->m_data = nullptr;
     }
   }
 }

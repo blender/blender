@@ -40,7 +40,7 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int Interface1D_Init(PyObject *module)
 {
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -113,7 +113,7 @@ PyDoc_STRVAR(Interface1D_doc,
 
 static int Interface1D_init(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {NULL};
+  static const char *kwlist[] = {nullptr};
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
@@ -183,11 +183,11 @@ PyDoc_STRVAR(Interface1D_points_begin_doc,
 
 static PyObject *Interface1D_points_begin(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"t", NULL};
+  static const char *kwlist[] = {"t", nullptr};
   float f = 0.0f;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f)) {
-    return NULL;
+    return nullptr;
   }
   Interface0DIterator if0D_it(self->if1D->pointsBegin(f));
   return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, false);
@@ -209,11 +209,11 @@ PyDoc_STRVAR(Interface1D_points_end_doc,
 
 static PyObject *Interface1D_points_end(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"t", NULL};
+  static const char *kwlist[] = {"t", nullptr};
   float f = 0.0f;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f)) {
-    return NULL;
+    return nullptr;
   }
   Interface0DIterator if0D_it(self->if1D->pointsEnd(f));
   return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, true);
@@ -236,7 +236,7 @@ static PyMethodDef BPy_Interface1D_methods[] = {
      (PyCFunction)Interface1D_points_end,
      METH_VARARGS | METH_KEYWORDS,
      Interface1D_points_end_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*----------------------Interface1D get/setters ----------------------------*/
@@ -260,7 +260,7 @@ static PyObject *Interface1D_id_get(BPy_Interface1D *self, void *UNUSED(closure)
 {
   Id id(self->if1D->getId());
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return BPy_Id_from_Id(id);  // return a copy
 }
@@ -274,7 +274,7 @@ static PyObject *Interface1D_nature_get(BPy_Interface1D *self, void *UNUSED(clos
 {
   Nature::VertexNature nature = self->if1D->getNature();
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return BPy_Nature_from_Nature(nature);
 }
@@ -288,7 +288,7 @@ static PyObject *Interface1D_length_2d_get(BPy_Interface1D *self, void *UNUSED(c
 {
   real length = self->if1D->getLength2D();
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble((double)length);
 }
@@ -318,61 +318,61 @@ static int Interface1D_time_stamp_set(BPy_Interface1D *self,
 }
 
 static PyGetSetDef BPy_Interface1D_getseters[] = {
-    {"name", (getter)Interface1D_name_get, (setter)NULL, Interface1D_name_doc, NULL},
-    {"id", (getter)Interface1D_id_get, (setter)NULL, Interface1D_id_doc, NULL},
-    {"nature", (getter)Interface1D_nature_get, (setter)NULL, Interface1D_nature_doc, NULL},
+    {"name", (getter)Interface1D_name_get, (setter)nullptr, Interface1D_name_doc, nullptr},
+    {"id", (getter)Interface1D_id_get, (setter)nullptr, Interface1D_id_doc, nullptr},
+    {"nature", (getter)Interface1D_nature_get, (setter)nullptr, Interface1D_nature_doc, nullptr},
     {"length_2d",
      (getter)Interface1D_length_2d_get,
-     (setter)NULL,
+     (setter)nullptr,
      Interface1D_length_2d_doc,
-     NULL},
+     nullptr},
     {"time_stamp",
      (getter)Interface1D_time_stamp_get,
      (setter)Interface1D_time_stamp_set,
      Interface1D_time_stamp_doc,
-     NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_Interface1D type definition ------------------------------*/
 
 PyTypeObject Interface1D_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Interface1D", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "Interface1D", /* tp_name */
     sizeof(BPy_Interface1D),                      /* tp_basicsize */
     0,                                            /* tp_itemsize */
     (destructor)Interface1D_dealloc,              /* tp_dealloc */
-    0,                                            /* tp_print */
-    0,                                            /* tp_getattr */
-    0,                                            /* tp_setattr */
-    0,                                            /* tp_reserved */
+    nullptr,                                            /* tp_print */
+    nullptr,                                            /* tp_getattr */
+    nullptr,                                            /* tp_setattr */
+    nullptr,                                            /* tp_reserved */
     (reprfunc)Interface1D_repr,                   /* tp_repr */
-    0,                                            /* tp_as_number */
-    0,                                            /* tp_as_sequence */
-    0,                                            /* tp_as_mapping */
-    0,                                            /* tp_hash  */
-    0,                                            /* tp_call */
-    0,                                            /* tp_str */
-    0,                                            /* tp_getattro */
-    0,                                            /* tp_setattro */
-    0,                                            /* tp_as_buffer */
+    nullptr,                                            /* tp_as_number */
+    nullptr,                                            /* tp_as_sequence */
+    nullptr,                                            /* tp_as_mapping */
+    nullptr,                                            /* tp_hash  */
+    nullptr,                                            /* tp_call */
+    nullptr,                                            /* tp_str */
+    nullptr,                                            /* tp_getattro */
+    nullptr,                                            /* tp_setattro */
+    nullptr,                                            /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,     /* tp_flags */
     Interface1D_doc,                              /* tp_doc */
-    0,                                            /* tp_traverse */
-    0,                                            /* tp_clear */
-    0,                                            /* tp_richcompare */
+    nullptr,                                            /* tp_traverse */
+    nullptr,                                            /* tp_clear */
+    nullptr,                                            /* tp_richcompare */
     0,                                            /* tp_weaklistoffset */
-    0,                                            /* tp_iter */
-    0,                                            /* tp_iternext */
+    nullptr,                                            /* tp_iter */
+    nullptr,                                            /* tp_iternext */
     BPy_Interface1D_methods,                      /* tp_methods */
-    0,                                            /* tp_members */
+    nullptr,                                            /* tp_members */
     BPy_Interface1D_getseters,                    /* tp_getset */
-    0,                                            /* tp_base */
-    0,                                            /* tp_dict */
-    0,                                            /* tp_descr_get */
-    0,                                            /* tp_descr_set */
+    nullptr,                                            /* tp_base */
+    nullptr,                                            /* tp_dict */
+    nullptr,                                            /* tp_descr_get */
+    nullptr,                                            /* tp_descr_set */
     0,                                            /* tp_dictoffset */
     (initproc)Interface1D_init,                   /* tp_init */
-    0,                                            /* tp_alloc */
+    nullptr,                                            /* tp_alloc */
     PyType_GenericNew,                            /* tp_new */
 };
 

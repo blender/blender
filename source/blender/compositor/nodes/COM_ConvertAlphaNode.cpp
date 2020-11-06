@@ -23,7 +23,7 @@
 void ConvertAlphaNode::convertToOperations(NodeConverter &converter,
                                            const CompositorContext & /*context*/) const
 {
-  NodeOperation *operation = NULL;
+  NodeOperation *operation = nullptr;
   bNode *node = this->getbNode();
 
   /* value hardcoded in rna_nodetree.c */

@@ -38,7 +38,7 @@ void GlareNode::convertToOperations(NodeConverter &converter,
   bNode *node = this->getbNode();
   NodeGlare *glare = (NodeGlare *)node->storage;
 
-  GlareBaseOperation *glareoperation = NULL;
+  GlareBaseOperation *glareoperation = nullptr;
   switch (glare->type) {
     default:
     case 3:

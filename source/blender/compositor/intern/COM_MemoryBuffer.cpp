@@ -83,7 +83,7 @@ MemoryBuffer::MemoryBuffer(DataType dataType, rcti *rect)
   this->m_width = BLI_rcti_size_x(&this->m_rect);
   this->m_height = BLI_rcti_size_y(&this->m_rect);
   this->m_height = this->m_rect.ymax - this->m_rect.ymin;
-  this->m_memoryProxy = NULL;
+  this->m_memoryProxy = nullptr;
   this->m_chunkNumber = -1;
   this->m_num_channels = determine_num_channels(dataType);
   this->m_buffer = (float *)MEM_mallocN_aligned(
@@ -145,7 +145,7 @@ MemoryBuffer::~MemoryBuffer()
 {
   if (this->m_buffer) {
     MEM_freeN(this->m_buffer);
-    this->m_buffer = NULL;
+    this->m_buffer = nullptr;
   }
 }
 

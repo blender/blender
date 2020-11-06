@@ -42,7 +42,7 @@ ImBuf *MultilayerBaseOperation::getImBuf()
   }
 
   this->m_imageUser->view = view;
-  return NULL;
+  return nullptr;
 }
 
 void MultilayerColorOperation::executePixelSampled(float output[4],
@@ -50,20 +50,20 @@ void MultilayerColorOperation::executePixelSampled(float output[4],
                                                    float y,
                                                    PixelSampler sampler)
 {
-  if (this->m_imageFloatBuffer == NULL) {
+  if (this->m_imageFloatBuffer == nullptr) {
     zero_v4(output);
   }
   else {
     if (this->m_numberOfChannels == 4) {
       switch (sampler) {
         case COM_PS_NEAREST:
-          nearest_interpolation_color(this->m_buffer, NULL, output, x, y);
+          nearest_interpolation_color(this->m_buffer, nullptr, output, x, y);
           break;
         case COM_PS_BILINEAR:
-          bilinear_interpolation_color(this->m_buffer, NULL, output, x, y);
+          bilinear_interpolation_color(this->m_buffer, nullptr, output, x, y);
           break;
         case COM_PS_BICUBIC:
-          bicubic_interpolation_color(this->m_buffer, NULL, output, x, y);
+          bicubic_interpolation_color(this->m_buffer, nullptr, output, x, y);
           break;
       }
     }
@@ -87,7 +87,7 @@ void MultilayerValueOperation::executePixelSampled(float output[4],
                                                    float y,
                                                    PixelSampler /*sampler*/)
 {
-  if (this->m_imageFloatBuffer == NULL) {
+  if (this->m_imageFloatBuffer == nullptr) {
     output[0] = 0.0f;
   }
   else {
@@ -109,7 +109,7 @@ void MultilayerVectorOperation::executePixelSampled(float output[4],
                                                     float y,
                                                     PixelSampler /*sampler*/)
 {
-  if (this->m_imageFloatBuffer == NULL) {
+  if (this->m_imageFloatBuffer == nullptr) {
     output[0] = 0.0f;
   }
   else {

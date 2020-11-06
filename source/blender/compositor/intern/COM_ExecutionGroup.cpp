@@ -45,8 +45,8 @@ ExecutionGroup::ExecutionGroup()
 {
   this->m_isOutput = false;
   this->m_complex = false;
-  this->m_chunkExecutionStates = NULL;
-  this->m_bTree = NULL;
+  this->m_chunkExecutionStates = nullptr;
+  this->m_bTree = nullptr;
   this->m_height = 0;
   this->m_width = 0;
   this->m_cachedMaxReadBufferOffset = 0;
@@ -121,13 +121,13 @@ NodeOperation *ExecutionGroup::getOutputOperation() const
 
 void ExecutionGroup::initExecution()
 {
-  if (this->m_chunkExecutionStates != NULL) {
+  if (this->m_chunkExecutionStates != nullptr) {
     MEM_freeN(this->m_chunkExecutionStates);
   }
   unsigned int index;
   determineNumberOfChunks();
 
-  this->m_chunkExecutionStates = NULL;
+  this->m_chunkExecutionStates = nullptr;
   if (this->m_numberOfChunks != 0) {
     this->m_chunkExecutionStates = (ChunkExecutionState *)MEM_mallocN(
         sizeof(ChunkExecutionState) * this->m_numberOfChunks, __func__);
@@ -152,15 +152,15 @@ void ExecutionGroup::initExecution()
 
 void ExecutionGroup::deinitExecution()
 {
-  if (this->m_chunkExecutionStates != NULL) {
+  if (this->m_chunkExecutionStates != nullptr) {
     MEM_freeN(this->m_chunkExecutionStates);
-    this->m_chunkExecutionStates = NULL;
+    this->m_chunkExecutionStates = nullptr;
   }
   this->m_numberOfChunks = 0;
   this->m_numberOfXChunks = 0;
   this->m_numberOfYChunks = 0;
   this->m_cachedReadOperations.clear();
-  this->m_bTree = NULL;
+  this->m_bTree = nullptr;
 }
 void ExecutionGroup::determineResolution(unsigned int resolution[2])
 {
@@ -415,7 +415,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
       MemoryBuffer *buffer = memoryBuffers[index];
       if (buffer) {
         if (buffer->isTemporarily()) {
-          memoryBuffers[index] = NULL;
+          memoryBuffers[index] = nullptr;
           delete buffer;
         }
       }
@@ -478,7 +478,7 @@ MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int /*chunkNumber*/, rcti *re
     MemoryBuffer *buffer = new MemoryBuffer(writeOperation->getMemoryProxy(), rect);
     return buffer;
   }
-  return NULL;
+  return nullptr;
 }
 
 bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area)
@@ -562,7 +562,7 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph, int xChun
     determineDependingAreaOfInterest(&rect, readOperation, &area);
     ExecutionGroup *group = memoryProxy->getExecutor();
 
-    if (group != NULL) {
+    if (group != nullptr) {
       if (!group->scheduleAreaWhenPossible(graph, &area)) {
         canBeExecuted = false;
       }

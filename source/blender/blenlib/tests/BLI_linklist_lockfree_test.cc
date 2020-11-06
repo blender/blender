@@ -15,7 +15,7 @@ TEST(LockfreeLinkList, Init)
   BLI_linklist_lockfree_init(&list);
   EXPECT_EQ(list.head, &list.dummy_node);
   EXPECT_EQ(list.tail, &list.dummy_node);
-  BLI_linklist_lockfree_free(&list, NULL);
+  BLI_linklist_lockfree_free(&list, nullptr);
 }
 
 TEST(LockfreeLinkList, InsertSingle)
@@ -27,7 +27,7 @@ TEST(LockfreeLinkList, InsertSingle)
   EXPECT_EQ(list.head, &list.dummy_node);
   EXPECT_EQ(list.head->next, &node);
   EXPECT_EQ(list.tail, &node);
-  BLI_linklist_lockfree_free(&list, NULL);
+  BLI_linklist_lockfree_free(&list, nullptr);
 }
 
 TEST(LockfreeLinkList, InsertMultiple)
@@ -45,7 +45,7 @@ TEST(LockfreeLinkList, InsertMultiple)
   EXPECT_EQ(list.tail, &nodes[num_nodes - 1]);
   /* Check rest of the nodes. */
   int node_index = 0;
-  for (LockfreeLinkNode *node = BLI_linklist_lockfree_begin(&list); node != NULL;
+  for (LockfreeLinkNode *node = BLI_linklist_lockfree_begin(&list); node != nullptr;
        node = node->next, ++node_index) {
     EXPECT_EQ(node, &nodes[node_index]);
     if (node_index != num_nodes - 1) {
@@ -53,7 +53,7 @@ TEST(LockfreeLinkList, InsertMultiple)
     }
   }
   /* Free list. */
-  BLI_linklist_lockfree_free(&list, NULL);
+  BLI_linklist_lockfree_free(&list, nullptr);
 }
 
 namespace {
@@ -84,7 +84,7 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   TaskPool *pool = BLI_task_pool_create_suspended(&list, TASK_PRIORITY_HIGH);
   /* Push tasks to the pool. */
   for (int i = 0; i < num_nodes; ++i) {
-    BLI_task_pool_push(pool, concurrent_insert, POINTER_FROM_INT(i), false, NULL);
+    BLI_task_pool_push(pool, concurrent_insert, POINTER_FROM_INT(i), false, nullptr);
   }
   /* Run all the tasks. */
   BLI_task_pool_work_and_wait(pool);
@@ -92,7 +92,7 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   EXPECT_EQ(list.head, &list.dummy_node);
   bool *visited_nodes = (bool *)MEM_callocN(sizeof(bool) * num_nodes, "visited nodes");
   /* First, we make sure that none of the nodes are added twice. */
-  for (LockfreeLinkNode *node_v = BLI_linklist_lockfree_begin(&list); node_v != NULL;
+  for (LockfreeLinkNode *node_v = BLI_linklist_lockfree_begin(&list); node_v != nullptr;
        node_v = node_v->next) {
     IndexedNode *node = (IndexedNode *)node_v;
     EXPECT_GE(node->index, 0);

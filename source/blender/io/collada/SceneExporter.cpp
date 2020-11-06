@@ -107,7 +107,7 @@ void SceneExporter::writeNode(Object *ob)
   bool armature_exported = false;
   Object *ob_arm = bc_get_assigned_armature(ob);
 
-  if (ob_arm != NULL) {
+  if (ob_arm != nullptr) {
     armature_exported = bc_is_in_Export_set(
         this->export_settings.get_export_set(), ob_arm, view_layer);
     if (armature_exported && bc_is_marked(ob_arm)) {
@@ -207,7 +207,7 @@ void SceneExporter::writeNode(Object *ob)
            * No real mapping in the .dae
            * Need support for multiple target objects also. */
           const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-          ListBase targets = {NULL, NULL};
+          ListBase targets = {nullptr, nullptr};
           if (cti && cti->get_constraint_targets) {
 
             bConstraintTarget *ct;

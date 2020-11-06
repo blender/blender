@@ -654,12 +654,12 @@ template<typename T> inline bool is_border_edge(const CDTEdge<T> *e, const CDT_s
 
 template<typename T> inline bool is_constrained_edge(const CDTEdge<T> *e)
 {
-  return e->input_ids != NULL;
+  return e->input_ids != nullptr;
 }
 
 template<typename T> inline bool is_deleted_edge(const CDTEdge<T> *e)
 {
-  return e->symedges[0].next == NULL;
+  return e->symedges[0].next == nullptr;
 }
 
 template<typename T> inline bool is_original_vert(const CDTVert<T> *v, CDT_state<T> *cdt)
@@ -1386,8 +1386,8 @@ void fill_crossdata_for_through_vert(CDTVert<T> *v,
 
   cd_next->lambda = T(0);
   cd_next->vert = v;
-  cd_next->in = NULL;
-  cd_next->out = NULL;
+  cd_next->in = nullptr;
+  cd_next->out = nullptr;
   if (cd->lambda == 0) {
     cd->out = cd_out;
   }
@@ -1630,10 +1630,10 @@ void add_edge_constraint(
   if (dbg_level > 0) {
     std::cout << "\nADD EDGE CONSTRAINT\n" << vertname(v1) << " " << vertname(v2) << "\n";
   }
-  LinkNodePair edge_list = {NULL, NULL};
+  LinkNodePair edge_list = {nullptr, nullptr};
 
   if (r_edges) {
-    *r_edges = NULL;
+    *r_edges = nullptr;
   }
 
   /*
@@ -1648,7 +1648,7 @@ void add_edge_constraint(
   if (t != nullptr) {
     /* Segment already there. */
     add_to_input_ids(&t->edge->input_ids, input_id);
-    if (r_edges != NULL) {
+    if (r_edges != nullptr) {
       BLI_linklist_append(&edge_list, t->edge);
       *r_edges = edge_list.list;
     }
@@ -1736,15 +1736,15 @@ void add_edge_constraint(
         SymEdge<T> *se;
         if (cd_prev->lambda == 0.0) {
           se = find_symedge_between_verts(cd_prev->vert, v);
-          if (se == NULL) {
+          if (se == nullptr) {
             return;
           }
           cd_prev->out = se;
-          cd->in = NULL;
+          cd->in = nullptr;
         }
         else {
           se = find_symedge_with_face(v, sym(cd_prev->in)->face);
-          if (se == NULL) {
+          if (se == nullptr) {
             return;
           }
           cd->in = se;
@@ -1783,7 +1783,7 @@ void add_edge_constraint(
     if (cd->lambda == -1.0) {
       continue; /* This crossing was deleted. */
     }
-    t = NULL;
+    t = nullptr;
     SymEdge<T> *tnext = t;
     CDTEdge<T> *edge;
     if (cd->lambda != 0.0) {
@@ -1795,7 +1795,7 @@ void add_edge_constraint(
     else if (cd->lambda == 0.0) {
       t = cd->in;
       tnext = cd->out;
-      if (t == NULL) {
+      if (t == nullptr) {
         /* Previous non-deleted crossing must also have been a vert, and segment should exist. */
         int j;
         CrossData<T> *cd_prev;
@@ -1809,12 +1809,12 @@ void add_edge_constraint(
         BLI_assert(cd_prev->out->next->vert == cd->vert);
         edge = cd_prev->out->edge;
         add_to_input_ids(&edge->input_ids, input_id);
-        if (r_edges != NULL) {
+        if (r_edges != nullptr) {
           BLI_linklist_append(&edge_list, edge);
         }
       }
     }
-    if (t != NULL) {
+    if (t != nullptr) {
       if (tstart->next->vert == t->vert) {
         edge = tstart->edge;
       }
@@ -1822,7 +1822,7 @@ void add_edge_constraint(
         edge = cdt_state->cdt.add_diagonal(tstart, t);
       }
       add_to_input_ids(&edge->input_ids, input_id);
-      if (r_edges != NULL) {
+      if (r_edges != nullptr) {
         BLI_linklist_append(&edge_list, edge);
       }
       /* Now retriangulate upper and lower gaps. */
@@ -1830,7 +1830,7 @@ void add_edge_constraint(
       re_delaunay_triangulate(&cdt_state->cdt, &edge->symedges[1]);
     }
     if (i < ncrossings - 1) {
-      if (tnext != NULL) {
+      if (tnext != nullptr) {
         tstart = tnext;
       }
     }
@@ -2011,7 +2011,7 @@ template<typename T> void dissolve_symedge(CDT_state<T> *cdt_state, SymEdge<T> *
   if (ELEM(cdt->outer_face->symedge, se, symse)) {
     /* Advancing by 2 to get past possible 'sym(se)'. */
     if (se->next->next == se) {
-      cdt->outer_face->symedge = NULL;
+      cdt->outer_face->symedge = nullptr;
     }
     else {
       cdt->outer_face->symedge = se->next->next;
@@ -2177,9 +2177,9 @@ template<typename T> void remove_outer_edges_until_constraints(CDT_state<T> *cdt
       }
       se = se->next;
     } while (se != se_start);
-    while (to_dissolve != NULL) {
+    while (to_dissolve != nullptr) {
       se = static_cast<SymEdge<T> *>(BLI_linklist_pop(&to_dissolve));
-      if (se->next != NULL) {
+      if (se->next != nullptr) {
         dissolve_symedge(cdt_state, se);
       }
     }

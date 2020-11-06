@@ -100,7 +100,7 @@ void OutputFileNode::convertToOperations(NodeConverter &converter,
         /* combine file path for the input */
         BLI_join_dirfile(path, FILE_MAX, storage->base_path, sockdata->path);
 
-        NodeOperation *outputOperation = NULL;
+        NodeOperation *outputOperation = nullptr;
 
         if (is_multiview && format->views_format == R_IMF_VIEWS_MULTIVIEW) {
           outputOperation = new OutputOpenExrSingleLayerMultiViewOperation(

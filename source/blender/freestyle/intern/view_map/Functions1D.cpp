@@ -219,8 +219,8 @@ void getOccludeeF1D(Interface1D &inter, set<ViewShape *> &oShapes)
   ViewEdge *ve = dynamic_cast<ViewEdge *>(&inter);
   if (ve) {
     ViewShape *aShape = ve->aShape();
-    if (aShape == 0) {
-      oShapes.insert((ViewShape *)0);
+    if (aShape == nullptr) {
+      oShapes.insert((ViewShape *)nullptr);
       return;
     }
     oShapes.insert(aShape);

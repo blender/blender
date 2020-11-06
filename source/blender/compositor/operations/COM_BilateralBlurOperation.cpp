@@ -28,8 +28,8 @@ BilateralBlurOperation::BilateralBlurOperation()
   this->addOutputSocket(COM_DT_COLOR);
   this->setComplex(true);
 
-  this->m_inputColorProgram = NULL;
-  this->m_inputDeterminatorProgram = NULL;
+  this->m_inputColorProgram = nullptr;
+  this->m_inputDeterminatorProgram = nullptr;
 }
 
 void BilateralBlurOperation::initExecution()
@@ -94,8 +94,8 @@ void BilateralBlurOperation::executePixel(float output[4], int x, int y, void *d
 
 void BilateralBlurOperation::deinitExecution()
 {
-  this->m_inputColorProgram = NULL;
-  this->m_inputDeterminatorProgram = NULL;
+  this->m_inputColorProgram = nullptr;
+  this->m_inputDeterminatorProgram = nullptr;
 }
 
 bool BilateralBlurOperation::determineDependingAreaOfInterest(rcti *input,

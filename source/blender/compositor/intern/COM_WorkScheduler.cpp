@@ -80,7 +80,7 @@ void *WorkScheduler::thread_execute_cpu(void *data)
     delete work;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void *WorkScheduler::thread_execute_gpu(void *data)
@@ -93,7 +93,7 @@ void *WorkScheduler::thread_execute_gpu(void *data)
     delete work;
   }
 
-  return NULL;
+  return nullptr;
 }
 #endif
 
@@ -166,13 +166,13 @@ void WorkScheduler::stop()
   BLI_thread_queue_nowait(g_cpuqueue);
   BLI_threadpool_end(&g_cputhreads);
   BLI_thread_queue_free(g_cpuqueue);
-  g_cpuqueue = NULL;
+  g_cpuqueue = nullptr;
 #  ifdef COM_OPENCL_ENABLED
   if (g_openclActive) {
     BLI_thread_queue_nowait(g_gpuqueue);
     BLI_threadpool_end(&g_gputhreads);
     BLI_thread_queue_free(g_gpuqueue);
-    g_gpuqueue = NULL;
+    g_gpuqueue = nullptr;
   }
 #  endif
 #endif
@@ -234,8 +234,8 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
 #  ifdef COM_OPENCL_ENABLED
   /* deinitialize OpenCL GPU's */
   if (use_opencl && !g_openclInitialized) {
-    g_context = NULL;
-    g_program = NULL;
+    g_context = nullptr;
+    g_program = nullptr;
 
     /* This will check for errors and skip if already initialized. */
     if (clewInit() != CLEW_SUCCESS) {
@@ -245,7 +245,7 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
     if (clCreateContextFromType) {
       cl_uint numberOfPlatforms = 0;
       cl_int error;
-      error = clGetPlatformIDs(0, 0, &numberOfPlatforms);
+      error = clGetPlatformIDs(0, nullptr, &numberOfPlatforms);
       if (error == -1001) {
       } /* GPU not supported */
       else if (error != CL_SUCCESS) {
@@ -256,40 +256,40 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
       }
       cl_platform_id *platforms = (cl_platform_id *)MEM_mallocN(
           sizeof(cl_platform_id) * numberOfPlatforms, __func__);
-      error = clGetPlatformIDs(numberOfPlatforms, platforms, 0);
+      error = clGetPlatformIDs(numberOfPlatforms, platforms, nullptr);
       unsigned int indexPlatform;
       for (indexPlatform = 0; indexPlatform < numberOfPlatforms; indexPlatform++) {
         cl_platform_id platform = platforms[indexPlatform];
         cl_uint numberOfDevices = 0;
-        clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 0, &numberOfDevices);
+        clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, nullptr, &numberOfDevices);
         if (numberOfDevices <= 0) {
           continue;
         }
 
         cl_device_id *cldevices = (cl_device_id *)MEM_mallocN(
             sizeof(cl_device_id) * numberOfDevices, __func__);
-        clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices, 0);
+        clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices, nullptr);
 
         g_context = clCreateContext(
-            NULL, numberOfDevices, cldevices, clContextError, NULL, &error);
+            nullptr, numberOfDevices, cldevices, clContextError, nullptr, &error);
         if (error != CL_SUCCESS) {
           printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
         }
-        const char *cl_str[2] = {datatoc_COM_OpenCLKernels_cl, NULL};
-        g_program = clCreateProgramWithSource(g_context, 1, cl_str, 0, &error);
-        error = clBuildProgram(g_program, numberOfDevices, cldevices, 0, 0, 0);
+        const char *cl_str[2] = {datatoc_COM_OpenCLKernels_cl, nullptr};
+        g_program = clCreateProgramWithSource(g_context, 1, cl_str, nullptr, &error);
+        error = clBuildProgram(g_program, numberOfDevices, cldevices, nullptr, nullptr, nullptr);
         if (error != CL_SUCCESS) {
           cl_int error2;
           size_t ret_val_size = 0;
           printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
           error2 = clGetProgramBuildInfo(
-              g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
+              g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, nullptr, &ret_val_size);
           if (error2 != CL_SUCCESS) {
             printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
           }
           char *build_log = (char *)MEM_mallocN(sizeof(char) * ret_val_size + 1, __func__);
           error2 = clGetProgramBuildInfo(
-              g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
+              g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, nullptr);
           if (error2 != CL_SUCCESS) {
             printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
           }
@@ -303,7 +303,7 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
             cl_device_id device = cldevices[indexDevices];
             cl_int vendorID = 0;
             cl_int error2 = clGetDeviceInfo(
-                device, CL_DEVICE_VENDOR_ID, sizeof(cl_int), &vendorID, NULL);
+                device, CL_DEVICE_VENDOR_ID, sizeof(cl_int), &vendorID, nullptr);
             if (error2 != CL_SUCCESS) {
               printf("CLERROR[%d]: %s\n", error2, clewErrorString(error2));
             }
@@ -351,11 +351,11 @@ void WorkScheduler::deinitialize()
     }
     if (g_program) {
       clReleaseProgram(g_program);
-      g_program = NULL;
+      g_program = nullptr;
     }
     if (g_context) {
       clReleaseContext(g_context);
-      g_context = NULL;
+      g_context = nullptr;
     }
 
     g_openclInitialized = false;

@@ -46,7 +46,7 @@ void BlurNode::convertToOperations(NodeConverter &converter,
   const bool extend_bounds = (editorNode->custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS) != 0;
 
   CompositorQuality quality = context.getQuality();
-  NodeOperation *input_operation = NULL, *output_operation = NULL;
+  NodeOperation *input_operation = nullptr, *output_operation = nullptr;
 
   if (data->filtertype == R_FILTER_FAST_GAUSS) {
     FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();

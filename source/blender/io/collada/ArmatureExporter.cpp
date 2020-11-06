@@ -50,7 +50,7 @@ void ArmatureExporter::add_armature_bones(Object *ob_arm,
   /* write bone nodes */
 
   bArmature *armature = (bArmature *)ob_arm->data;
-  bool is_edited = armature->edbo != NULL;
+  bool is_edited = armature->edbo != nullptr;
 
   if (!is_edited) {
     ED_armature_to_edit(armature);
@@ -315,7 +315,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
     BCMatrix::sanitize(mat, LIMITTED_PRECISION);
   }
 
-  TransformWriter::add_joint_transform(node, mat, NULL, this->export_settings, has_restmat);
+  TransformWriter::add_joint_transform(node, mat, nullptr, this->export_settings, has_restmat);
 }
 
 std::string ArmatureExporter::get_controller_id(Object *ob_arm, Object *ob)

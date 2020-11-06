@@ -228,7 +228,7 @@ void AnimationExporter::export_matrix_animation(Object *ob, BCAnimationSampler &
     if (keep_flat_curves || is_animated) {
       bAction *action = bc_getSceneObjectAction(ob);
       std::string name = encode_xml(id_name(ob));
-      std::string action_name = (action == NULL) ? name + "-action" : id_name(action);
+      std::string action_name = (action == nullptr) ? name + "-action" : id_name(action);
       std::string channel_type = "transform";
       std::string axis;
       std::string id = bc_get_action_id(action_name, name, channel_type, axis);
@@ -290,7 +290,7 @@ BCAnimationCurve *AnimationExporter::get_modified_export_curve(Object *ob,
                                                                BCAnimationCurveMap &curves)
 {
   std::string channel_type = curve.get_channel_type();
-  BCAnimationCurve *mcurve = NULL;
+  BCAnimationCurve *mcurve = nullptr;
   if (channel_type == "lens") {
 
     /* Create an xfov curve */
@@ -302,7 +302,7 @@ BCAnimationCurve *AnimationExporter::get_modified_export_curve(Object *ob,
     BCValueMap lens_values;
     curve.get_value_map(lens_values);
 
-    BCAnimationCurve *sensor_curve = NULL;
+    BCAnimationCurve *sensor_curve = nullptr;
     BCCurveKey sensor_key(BC_ANIMATION_TYPE_CAMERA, "sensor_width", 0);
     BCAnimationCurveMap::iterator cit = curves.find(sensor_key);
     if (cit != curves.end()) {

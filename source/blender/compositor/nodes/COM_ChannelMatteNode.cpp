@@ -36,7 +36,7 @@ void ChannelMatteNode::convertToOperations(NodeConverter &converter,
   NodeOutput *outputSocketImage = this->getOutputSocket(0);
   NodeOutput *outputSocketMatte = this->getOutputSocket(1);
 
-  NodeOperation *convert = NULL, *inv_convert = NULL;
+  NodeOperation *convert = nullptr, *inv_convert = nullptr;
   /* colorspace */
   switch (node->custom1) {
     case CMP_NODE_CHANNEL_MATTE_CS_RGB:
@@ -67,7 +67,7 @@ void ChannelMatteNode::convertToOperations(NodeConverter &converter,
   SetAlphaOperation *operationAlpha = new SetAlphaOperation();
   converter.addOperation(operationAlpha);
 
-  if (convert != NULL) {
+  if (convert != nullptr) {
     converter.addOperation(convert);
 
     converter.mapInputSocket(inputSocketImage, convert->getInputSocket(0));
@@ -82,7 +82,7 @@ void ChannelMatteNode::convertToOperations(NodeConverter &converter,
   converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket(0));
   converter.addLink(operation->getOutputSocket(), operationAlpha->getInputSocket(1));
 
-  if (inv_convert != NULL) {
+  if (inv_convert != nullptr) {
     converter.addOperation(inv_convert);
     converter.addLink(operationAlpha->getOutputSocket(0), inv_convert->getInputSocket(0));
     converter.mapOutputSocket(outputSocketImage, inv_convert->getOutputSocket());
