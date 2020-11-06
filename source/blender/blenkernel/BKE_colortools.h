@@ -139,6 +139,11 @@ void BKE_color_managed_view_settings_copy(struct ColorManagedViewSettings *new_s
                                           const struct ColorManagedViewSettings *settings);
 void BKE_color_managed_view_settings_free(struct ColorManagedViewSettings *settings);
 
+void BKE_color_managed_view_settings_blend_write(struct BlendWriter *writer,
+                                                 struct ColorManagedViewSettings *settings);
+void BKE_color_managed_view_settings_blend_read_data(struct BlendDataReader *reader,
+                                                     struct ColorManagedViewSettings *settings);
+
 void BKE_color_managed_colorspace_settings_init(
     struct ColorManagedColorspaceSettings *colorspace_settings);
 void BKE_color_managed_colorspace_settings_copy(
