@@ -2572,103 +2572,6 @@ static void lib_link_constraint_channels(BlendLibReader *reader, ID *id, ListBas
 /** \name Read ID: Armature
  * \{ */
 
-/* temp struct used to transport needed info to lib_link_constraint_cb() */
-typedef struct tConstraintLinkData {
-  BlendLibReader *reader;
-  ID *id;
-} tConstraintLinkData;
-/* callback function used to relink constraint ID-links */
-static void lib_link_constraint_cb(bConstraint *UNUSED(con),
-                                   ID **idpoin,
-                                   bool UNUSED(is_reference),
-                                   void *userdata)
-{
-  tConstraintLinkData *cld = (tConstraintLinkData *)userdata;
-  BLO_read_id_address(cld->reader, cld->id->lib, idpoin);
-}
-
-static void lib_link_constraints(BlendLibReader *reader, ID *id, ListBase *conlist)
-{
-  tConstraintLinkData cld;
-
-  /* legacy fixes */
-  LISTBASE_FOREACH (bConstraint *, con, conlist) {
-    /* patch for error introduced by changing constraints (dunno how) */
-    /* if con->data type changes, dna cannot resolve the pointer! (ton) */
-    if (con->data == NULL) {
-      con->type = CONSTRAINT_TYPE_NULL;
-    }
-    /* own ipo, all constraints have it */
-    BLO_read_id_address(reader, id->lib, &con->ipo); /* XXX deprecated - old animation system */
-
-    /* If linking from a library, clear 'local' library override flag. */
-    if (id->lib != NULL) {
-      con->flag &= ~CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
-    }
-  }
-
-  /* relink all ID-blocks used by the constraints */
-  cld.reader = reader;
-  cld.id = id;
-
-  BKE_constraints_id_loop(conlist, lib_link_constraint_cb, &cld);
-}
-
-static void direct_link_constraints(BlendDataReader *reader, ListBase *lb)
-{
-  BLO_read_list(reader, lb);
-  LISTBASE_FOREACH (bConstraint *, con, lb) {
-    BLO_read_data_address(reader, &con->data);
-
-    switch (con->type) {
-      case CONSTRAINT_TYPE_PYTHON: {
-        bPythonConstraint *data = con->data;
-
-        BLO_read_list(reader, &data->targets);
-
-        BLO_read_data_address(reader, &data->prop);
-        IDP_BlendDataRead(reader, &data->prop);
-        break;
-      }
-      case CONSTRAINT_TYPE_ARMATURE: {
-        bArmatureConstraint *data = con->data;
-
-        BLO_read_list(reader, &data->targets);
-
-        break;
-      }
-      case CONSTRAINT_TYPE_SPLINEIK: {
-        bSplineIKConstraint *data = con->data;
-
-        BLO_read_data_address(reader, &data->points);
-        break;
-      }
-      case CONSTRAINT_TYPE_KINEMATIC: {
-        bKinematicConstraint *data = con->data;
-
-        con->lin_error = 0.0f;
-        con->rot_error = 0.0f;
-
-        /* version patch for runtime flag, was not cleared in some case */
-        data->flag &= ~CONSTRAINT_IK_AUTO;
-        break;
-      }
-      case CONSTRAINT_TYPE_CHILDOF: {
-        /* XXX version patch, in older code this flag wasn't always set, and is inherent to type */
-        if (con->ownspace == CONSTRAINT_SPACE_POSE) {
-          con->flag |= CONSTRAINT_SPACEONCE;
-        }
-        break;
-      }
-      case CONSTRAINT_TYPE_TRANSFORM_CACHE: {
-        bTransformCacheConstraint *data = con->data;
-        data->reader = NULL;
-        data->reader_object_path[0] = '\0';
-      }
-    }
-  }
-}
-
 static void lib_link_pose(BlendLibReader *reader, Object *ob, bPose *pose)
 {
   bArmature *arm = ob->data;
@@ -2702,7 +2605,7 @@ static void lib_link_pose(BlendLibReader *reader, Object *ob, bPose *pose)
   }
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    lib_link_constraints(reader, (ID *)ob, &pchan->constraints);
+    BKE_constraint_blend_read_lib(reader, (ID *)ob, &pchan->constraints);
 
     pchan->bone = BKE_armature_find_bone_name(arm, pchan->name);
 
@@ -2848,7 +2751,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
 
   /* WARNING! Also check expand_object(), should reflect the stuff below. */
   lib_link_pose(reader, ob, ob->pose);
-  lib_link_constraints(reader, &ob->id, &ob->constraints);
+  BKE_constraint_blend_read_lib(reader, &ob->id, &ob->constraints);
 
   /* XXX deprecated - old animation system <<< */
   lib_link_constraint_channels(reader, &ob->id, &ob->constraintChannels);
@@ -2937,7 +2840,7 @@ static void direct_link_pose(BlendDataReader *reader, bPose *pose)
     BLO_read_data_address(reader, &pchan->bbone_prev);
     BLO_read_data_address(reader, &pchan->bbone_next);
 
-    direct_link_constraints(reader, &pchan->constraints);
+    BKE_constraint_blend_read_data(reader, &pchan->constraints);
 
     BLO_read_data_address(reader, &pchan->prop);
     IDP_BlendDataRead(reader, &pchan->prop);
@@ -3111,7 +3014,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   BLO_read_list(reader, &ob->particlesystem);
   BKE_particle_system_blend_read_data(reader, &ob->particlesystem);
 
-  direct_link_constraints(reader, &ob->constraints);
+  BKE_constraint_blend_read_data(reader, &ob->constraints);
 
   BLO_read_list(reader, &ob->hooks);
   while (ob->hooks.first) {
@@ -5274,28 +5177,6 @@ static void expand_id(BlendExpander *expander, ID *id)
   expand_id_embedded_id(expander, id);
 }
 
-/* callback function used to expand constraint ID-links */
-static void expand_constraint_cb(bConstraint *UNUSED(con),
-                                 ID **idpoin,
-                                 bool UNUSED(is_reference),
-                                 void *userdata)
-{
-  BlendExpander *expander = userdata;
-  BLO_expand(expander, *idpoin);
-}
-
-static void expand_constraints(BlendExpander *expander, ListBase *lb)
-{
-  BKE_constraints_id_loop(lb, expand_constraint_cb, expander);
-
-  /* deprecated manual expansion stuff */
-  LISTBASE_FOREACH (bConstraint *, curcon, lb) {
-    if (curcon->ipo) {
-      BLO_expand(expander, curcon->ipo); /* XXX deprecated - old animation system */
-    }
-  }
-}
-
 static void expand_pose(BlendExpander *expander, bPose *pose)
 {
   if (!pose) {
@@ -5303,7 +5184,7 @@ static void expand_pose(BlendExpander *expander, bPose *pose)
   }
 
   LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
-    expand_constraints(expander, &chan->constraints);
+    BKE_constraint_blend_read_expand(expander, &chan->constraints);
     IDP_BlendReadExpand(expander, chan->prop);
     BLO_expand(expander, chan->custom);
   }
@@ -5339,7 +5220,7 @@ static void expand_object(BlendExpander *expander, Object *ob)
 
   expand_pose(expander, ob->pose);
   BLO_expand(expander, ob->poselib);
-  expand_constraints(expander, &ob->constraints);
+  BKE_constraint_blend_read_expand(expander, &ob->constraints);
 
   BLO_expand(expander, ob->gpd);
 
