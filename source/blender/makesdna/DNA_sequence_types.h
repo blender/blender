@@ -341,17 +341,19 @@ typedef struct TextVars {
   VFont *text_font;
   int text_blf_id;
   int text_size;
-  float color[4], shadow_color[4];
+  float color[4], shadow_color[4], box_color[4];
   float loc[2];
   float wrap_width;
+  float box_margin;
   char flag;
   char align, align_y;
-  char _pad[1];
+  char _pad[5];
 } TextVars;
 
 /* TextVars.flag */
 enum {
   SEQ_TEXT_SHADOW = (1 << 0),
+  SEQ_TEXT_BOX = (1 << 1),
 };
 
 /* TextVars.align */
