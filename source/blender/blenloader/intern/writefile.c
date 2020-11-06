@@ -1627,32 +1627,6 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   BLI_assert(sce->layer_properties == NULL);
 }
 
-static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
-{
-  BKE_screen_view3d_shading_blend_write(writer, &xr_data->session_settings.shading);
-}
-
-static void write_windowmanager(BlendWriter *writer, wmWindowManager *wm, const void *id_address)
-{
-  BLO_write_id_struct(writer, wmWindowManager, id_address, &wm->id);
-  BKE_id_blend_write(writer, &wm->id);
-  write_wm_xr_data(writer, &wm->xr);
-
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    /* update deprecated screen member (for so loading in 2.7x uses the correct screen) */
-    win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
-
-    BLO_write_struct(writer, wmWindow, win);
-    BLO_write_struct(writer, WorkSpaceInstanceHook, win->workspace_hook);
-    BLO_write_struct(writer, Stereo3dFormat, win->stereo3d_format);
-
-    BKE_screen_area_map_blend_write(writer, &win->global_areas);
-
-    /* data is written, clear deprecated data again */
-    win->screen = NULL;
-  }
-}
-
 /* Keep it last of write_foodata functions. */
 static void write_libraries(WriteData *wd, Main *main)
 {
@@ -1911,15 +1885,13 @@ static bool write_file_handle(Main *mainvar,
         }
 
         switch ((ID_Type)GS(id->name)) {
-          case ID_WM:
-            write_windowmanager(&writer, (wmWindowManager *)id_buffer, id);
-            break;
           case ID_SCE:
             write_scene(&writer, (Scene *)id_buffer, id);
             break;
           case ID_OB:
             write_object(&writer, (Object *)id_buffer, id);
             break;
+          case ID_WM:
           case ID_WS:
           case ID_SCR:
           case ID_PA:
