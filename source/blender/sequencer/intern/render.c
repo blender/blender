@@ -655,8 +655,7 @@ static void multibuf(ImBuf *ibuf, const float fmul)
 static ImBuf *input_preprocess(const SeqRenderData *context,
                                Sequence *seq,
                                float timeline_frame,
-                               ImBuf *ibuf,
-                               const bool UNUSED(is_proxy_image))
+                               ImBuf *ibuf)
 {
   Scene *scene = context->scene;
   ImBuf *preprocessed_ibuf = NULL;
@@ -796,9 +795,7 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
   if (use_preprocess) {
     float cost = seq_estimate_render_cost_end(context->scene, begin);
 
-    /* TODO(Richard): It should be possible to store in cache if image is proxy,
-     * but it adds quite a bit of complexity. Since proxies are fast to read, I would
-     * rather simplify existing code a bit. */
+    /* Proxies are not stored in cache. */
     if (!is_proxy_image) {
       BKE_sequencer_cache_put(
           context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf, cost, false);
@@ -806,7 +803,7 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
 
     /* Reset timer so we can get partial render time. */
     begin = seq_estimate_render_cost_begin();
-    ibuf = input_preprocess(context, seq, timeline_frame, ibuf, is_proxy_image);
+    ibuf = input_preprocess(context, seq, timeline_frame, ibuf);
   }
 
   float cost = seq_estimate_render_cost_end(context->scene, begin);
@@ -1865,7 +1862,11 @@ ImBuf *seq_render_strip(const SeqRenderData *context,
     return ibuf;
   }
 
-  ibuf = BKE_sequencer_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, false);
+  /* Proxies are not stored in cache. */
+  if (!SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(context->preview_render_size))) {
+    ibuf = BKE_sequencer_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, false);
+  }
+
   if (ibuf == NULL) {
     ibuf = do_render_strip_uncached(context, state, seq, timeline_frame, &is_proxy_image);
   }
