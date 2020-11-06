@@ -6439,7 +6439,9 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
 
     if (use_orco) {
       if (ss->bm) {
-        copy_v3_v3(val, BM_log_original_vert_co(ss->bm_log, vd.bm_vert));
+        float *co = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, ss->cd_origco_offset);
+        copy_v3_v3(val, co);
+        //copy_v3_v3(val, BM_log_original_vert_co(ss->bm_log, vd.bm_vert));
       }
       else {
         copy_v3_v3(val, orco[vd.i]);
