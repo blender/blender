@@ -73,7 +73,7 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   BKE_modifier_init();
   DEG_register_node_types();
   RNA_init();
-  init_nodesystem();
+  BKE_node_system_init();
 
   G.background = true;
   G.factory_startup = true;

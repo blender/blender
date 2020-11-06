@@ -263,7 +263,7 @@ extern unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];
 extern unsigned int PSYS_FRAND_SEED_MULTIPLIER[PSYS_FRAND_COUNT];
 extern float PSYS_FRAND_BASE[PSYS_FRAND_COUNT];
 
-void psys_init_rng(void);
+void BKE_particle_init_rng(void);
 
 BLI_INLINE float psys_frand(ParticleSystem *psys, unsigned int seed)
 {

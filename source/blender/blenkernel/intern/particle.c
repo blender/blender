@@ -514,7 +514,7 @@ unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];
 unsigned int PSYS_FRAND_SEED_MULTIPLIER[PSYS_FRAND_COUNT];
 float PSYS_FRAND_BASE[PSYS_FRAND_COUNT];
 
-void psys_init_rng(void)
+void BKE_particle_init_rng(void)
 {
   RNG *rng = BLI_rng_new_srandom(5831); /* arbitrary */
   for (int i = 0; i < PSYS_FRAND_COUNT; i++) {
