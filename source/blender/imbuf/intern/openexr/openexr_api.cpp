@@ -1918,7 +1918,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
     // printf("OpenEXR-load: image data window %d %d %d %d\n",
     //     dw.min.x, dw.min.y, dw.max.x, dw.max.y);
 
-    if (0) { /* debug */
+    if (false) { /* debug */
       exr_print_filecontents(*file);
     }
 

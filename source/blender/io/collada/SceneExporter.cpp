@@ -222,7 +222,7 @@ void SceneExporter::writeNode(Object *ob)
             }
 
             if (cti->flush_constraint_targets) {
-              cti->flush_constraint_targets(con, &targets, 1);
+              cti->flush_constraint_targets(con, &targets, true);
             }
           }
 

@@ -648,10 +648,10 @@ static bool float_array_from_PyList(PyObject *obj, float *v, int n)
     v[i] = PyFloat_AsDouble(PyList_GET_ITEM(obj, i));
     if (v[i] == -1.0f && PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "list elements must be a number");
-      return 0;
+      return false;
     }
   }
-  return 1;
+  return true;
 }
 
 bool Vec2f_ptr_from_PyList(PyObject *obj, Vec2f &vec)
@@ -707,10 +707,10 @@ static bool float_array_from_PyTuple(PyObject *obj, float *v, int n)
     v[i] = PyFloat_AsDouble(PyTuple_GET_ITEM(obj, i));
     if (v[i] == -1.0f && PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "tuple elements must be a number");
-      return 0;
+      return false;
     }
   }
-  return 1;
+  return true;
 }
 
 bool Vec2f_ptr_from_PyTuple(PyObject *obj, Vec2f &vec)
@@ -766,21 +766,21 @@ bool float_array_from_PyObject(PyObject *obj, float *v, int n)
 {
   if (VectorObject_Check(obj) && ((VectorObject *)obj)->size == n) {
     if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
-      return 0;
+      return false;
     }
     for (int i = 0; i < n; i++) {
       v[i] = ((VectorObject *)obj)->vec[i];
     }
-    return 1;
+    return true;
   }
   if (ColorObject_Check(obj) && n == 3) {
     if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
-      return 0;
+      return false;
     }
     for (int i = 0; i < n; i++) {
       v[i] = ((ColorObject *)obj)->col[i];
     }
-    return 1;
+    return true;
   }
   if (PyList_Check(obj) && PyList_GET_SIZE(obj) == n) {
     return float_array_from_PyList(obj, v, n);
@@ -788,7 +788,7 @@ bool float_array_from_PyObject(PyObject *obj, float *v, int n)
   if (PyTuple_Check(obj) && PyTuple_GET_SIZE(obj) == n) {
     return float_array_from_PyTuple(obj, v, n);
   }
-  return 0;
+  return false;
 }
 
 int convert_v4(PyObject *obj, void *v)

@@ -42,7 +42,6 @@ Checks:  >
   -modernize-concat-nested-namespaces,
   -modernize-use-nodiscard,
   -modernize-use-using,
-  -modernize-use-bool-literals,
   -modernize-loop-convert,
   -modernize-pass-by-value,
   -modernize-use-default-member-init,

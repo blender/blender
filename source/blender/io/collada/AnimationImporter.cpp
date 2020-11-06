@@ -355,7 +355,7 @@ void AnimationImporter::read_node_transform(COLLADAFW::Node *node, Object *ob)
   TransformReader::get_node_mat(mat, node, &uid_animated_map, ob);
   if (ob) {
     copy_m4_m4(ob->obmat, mat);
-    BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
+    BKE_object_apply_mat4(ob, ob->obmat, false, false);
   }
 }
 
