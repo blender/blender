@@ -68,7 +68,7 @@ void BKE_sequencer_cache_put(const SeqRenderData *context,
                              bool skip_disk_cache);
 bool BKE_sequencer_cache_put_if_possible(const SeqRenderData *context,
                                          struct Sequence *seq,
-                                         float cfra,
+                                         float timeline_frame,
                                          int type,
                                          struct ImBuf *nval,
                                          float cost,
@@ -90,7 +90,7 @@ bool BKE_sequencer_cache_is_full(struct Scene *scene);
  * Sequencer frame prefetching
  * ********************************************************************** */
 
-void BKE_sequencer_prefetch_start(const SeqRenderData *context, float cfra, float cost);
+void BKE_sequencer_prefetch_start(const SeqRenderData *context, float timeline_frame, float cost);
 void BKE_sequencer_prefetch_free(struct Scene *scene);
 bool BKE_sequencer_prefetch_job_is_running(struct Scene *scene);
 void BKE_sequencer_prefetch_get_time_range(struct Scene *scene, int *start, int *end);
@@ -109,7 +109,7 @@ struct SeqEffectHandle BKE_sequence_get_blend(struct Sequence *seq);
 void BKE_sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence *seq, bool force);
 float BKE_sequencer_speed_effect_target_frame_get(const SeqRenderData *context,
                                                   struct Sequence *seq,
-                                                  float cfra,
+                                                  float timeline_frame,
                                                   int input);
 
 /* **********************************************************************

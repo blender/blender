@@ -145,9 +145,11 @@ typedef struct SeqRenderData {
   // bool gpu_full_samples;
 } SeqRenderData;
 
-struct ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float cfra, int chanshown);
+struct ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context,
+                                   float timeline_frame,
+                                   int chanshown);
 struct ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
-                                          float cfra,
+                                          float timeline_frame,
                                           struct Sequence *seq);
 void SEQ_render_init_colorspace(struct Sequence *seq);
 void SEQ_render_new_render_data(struct Main *bmain,
@@ -158,8 +160,8 @@ void SEQ_render_new_render_data(struct Main *bmain,
                                 int preview_render_size,
                                 int for_render,
                                 SeqRenderData *r_context);
-int SEQ_render_evaluate_frame(struct Scene *scene, int cfra);
-struct StripElem *SEQ_render_give_stripelem(struct Sequence *seq, int cfra);
+int SEQ_render_evaluate_frame(struct Scene *scene, int timeline_frame);
+struct StripElem *SEQ_render_give_stripelem(struct Sequence *seq, int timeline_frame);
 
 /* **********************************************************************
  * render.c
@@ -196,7 +198,7 @@ int BKE_sequencer_recursive_apply(struct Sequence *seq,
                                   void *arg);
 float BKE_sequence_get_fps(struct Scene *scene, struct Sequence *seq);
 int BKE_sequencer_find_next_prev_edit(struct Scene *scene,
-                                      int cfra,
+                                      int timeline_frame,
                                       const short side,
                                       const bool do_skip_mute,
                                       const bool do_center,
@@ -355,7 +357,7 @@ void BKE_sequence_invalidate_cache_in_range(struct Scene *scene,
                                             struct Sequence *seq,
                                             struct Sequence *range_mask,
                                             int invalidate_types);
-void BKE_sequencer_all_free_anim_ibufs(struct Scene *scene, int cfra);
+void BKE_sequencer_all_free_anim_ibufs(struct Scene *scene, int timeline_frame);
 
 /* **********************************************************************
  * sequencer.c
@@ -403,7 +405,7 @@ typedef struct SeqLoadInfo {
 /* use as an api function */
 typedef struct Sequence *(*SeqLoadFn)(struct bContext *, ListBase *, struct SeqLoadInfo *);
 
-struct Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine, int type);
+struct Sequence *BKE_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type);
 struct Sequence *BKE_sequencer_add_image_strip(struct bContext *C,
                                                ListBase *seqbasep,
                                                struct SeqLoadInfo *seq_load);
@@ -460,7 +462,7 @@ struct SequenceModifierData *BKE_sequence_modifier_find_by_name(struct Sequence 
 struct ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
                                                 struct Sequence *seq,
                                                 struct ImBuf *ibuf,
-                                                int cfra);
+                                                int timeline_frame);
 void BKE_sequence_modifier_list_copy(struct Sequence *seqn, struct Sequence *seq);
 int BKE_sequence_supports_modifiers(struct Sequence *seq);
 
@@ -509,7 +511,7 @@ struct SeqEffectHandle {
   void (*store_icu_yrange)(struct Sequence *seq, short adrcode, float *ymin, float *ymax);
 
   /* stores the default facf0 and facf1 if no IPO is present */
-  void (*get_default_fac)(struct Sequence *seq, float cfra, float *facf0, float *facf1);
+  void (*get_default_fac)(struct Sequence *seq, float timeline_frame, float *facf0, float *facf1);
 
   /* execute the effect
    * sequence effects are only required to either support
@@ -518,7 +520,7 @@ struct SeqEffectHandle {
 
   struct ImBuf *(*execute)(const SeqRenderData *context,
                            struct Sequence *seq,
-                           float cfra,
+                           float timeline_frame,
                            float facf0,
                            float facf1,
                            struct ImBuf *ibuf1,
@@ -532,7 +534,7 @@ struct SeqEffectHandle {
 
   void (*execute_slice)(const SeqRenderData *context,
                         struct Sequence *seq,
-                        float cfra,
+                        float timeline_frame,
                         float facf0,
                         float facf1,
                         struct ImBuf *ibuf1,

@@ -132,7 +132,7 @@ bool seq_proxy_get_custom_file_fname(Sequence *seq, char *name, const int view_i
 
 static bool seq_proxy_get_fname(Editing *ed,
                                 Sequence *seq,
-                                int cfra,
+                                int timeline_frame,
                                 eSpaceSeq_Proxy_RenderSize render_size,
                                 char *name,
                                 const int view_id)
@@ -186,7 +186,7 @@ static bool seq_proxy_get_fname(Editing *ed,
                "%s/images/%d/%s_proxy%s",
                dir,
                proxy_size_number,
-               SEQ_render_give_stripelem(seq, cfra)->name,
+               SEQ_render_give_stripelem(seq, timeline_frame)->name,
                suffix);
   BLI_path_abs(name, BKE_main_blendfile_path_from_global());
   strcat(name, ".jpg");
@@ -203,7 +203,7 @@ bool SEQ_can_use_proxy(Sequence *seq, int psize)
   return (seq->flag & SEQ_USE_PROXY) != 0 && psize != IMB_PROXY_NONE && (size_flags & psize) != 0;
 }
 
-ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int cfra)
+ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline_frame)
 {
   char name[PROXY_MAXFILE];
   StripProxy *proxy = seq->strip->proxy;
@@ -217,9 +217,9 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int cfra)
   }
 
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
-    int frameno = (int)seq_give_stripelem_index(seq, cfra) + seq->anim_startofs;
+    int frameno = (int)seq_give_frame_index(seq, timeline_frame) + seq->anim_startofs;
     if (proxy->anim == NULL) {
-      if (seq_proxy_get_fname(ed, seq, cfra, psize, name, context->view_id) == 0) {
+      if (seq_proxy_get_fname(ed, seq, timeline_frame, psize, name, context->view_id) == 0) {
         return NULL;
       }
 
@@ -238,7 +238,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int cfra)
     return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
   }
 
-  if (seq_proxy_get_fname(ed, seq, cfra, psize, name, context->view_id) == 0) {
+  if (seq_proxy_get_fname(ed, seq, timeline_frame, psize, name, context->view_id) == 0) {
     return NULL;
   }
 
@@ -258,7 +258,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int cfra)
 static void seq_proxy_build_frame(const SeqRenderData *context,
                                   SeqRenderState *state,
                                   Sequence *seq,
-                                  int cfra,
+                                  int timeline_frame,
                                   int proxy_render_size,
                                   const bool overwrite)
 {
@@ -269,7 +269,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
   ImBuf *ibuf_tmp, *ibuf;
   Editing *ed = context->scene->ed;
 
-  if (!seq_proxy_get_fname(ed, seq, cfra, proxy_render_size, name, context->view_id)) {
+  if (!seq_proxy_get_fname(ed, seq, timeline_frame, proxy_render_size, name, context->view_id)) {
     return;
   }
 
@@ -277,7 +277,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
     return;
   }
 
-  ibuf_tmp = seq_render_strip(context, state, seq, cfra);
+  ibuf_tmp = seq_render_strip(context, state, seq, timeline_frame);
 
   rectx = (proxy_render_size * ibuf_tmp->x) / 100;
   recty = (proxy_render_size * ibuf_tmp->y) / 100;
@@ -471,7 +471,7 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context,
   Sequence *seq = context->seq;
   Scene *scene = context->scene;
   Main *bmain = context->bmain;
-  int cfra;
+  int timeline_frame;
 
   if (seq->type == SEQ_TYPE_MOVIE) {
     if (context->index_context) {
@@ -508,21 +508,23 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context,
   SeqRenderState state;
   seq_render_state_init(&state);
 
-  for (cfra = seq->startdisp + seq->startstill; cfra < seq->enddisp - seq->endstill; cfra++) {
+  for (timeline_frame = seq->startdisp + seq->startstill;
+       timeline_frame < seq->enddisp - seq->endstill;
+       timeline_frame++) {
     if (context->size_flags & IMB_PROXY_25) {
-      seq_proxy_build_frame(&render_context, &state, seq, cfra, 25, overwrite);
+      seq_proxy_build_frame(&render_context, &state, seq, timeline_frame, 25, overwrite);
     }
     if (context->size_flags & IMB_PROXY_50) {
-      seq_proxy_build_frame(&render_context, &state, seq, cfra, 50, overwrite);
+      seq_proxy_build_frame(&render_context, &state, seq, timeline_frame, 50, overwrite);
     }
     if (context->size_flags & IMB_PROXY_75) {
-      seq_proxy_build_frame(&render_context, &state, seq, cfra, 75, overwrite);
+      seq_proxy_build_frame(&render_context, &state, seq, timeline_frame, 75, overwrite);
     }
     if (context->size_flags & IMB_PROXY_100) {
-      seq_proxy_build_frame(&render_context, &state, seq, cfra, 100, overwrite);
+      seq_proxy_build_frame(&render_context, &state, seq, timeline_frame, 100, overwrite);
     }
 
-    *progress = (float)(cfra - seq->startdisp - seq->startstill) /
+    *progress = (float)(timeline_frame - seq->startdisp - seq->startstill) /
                 (seq->enddisp - seq->endstill - seq->startdisp - seq->startstill);
     *do_update = true;
 

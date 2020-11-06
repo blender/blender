@@ -354,7 +354,7 @@ static void do_alphaover_effect_float(
 
 static void do_alphaover_effect(const SeqRenderData *context,
                                 Sequence *UNUSED(seq),
-                                float UNUSED(cfra),
+                                float UNUSED(timeline_frame),
                                 float facf0,
                                 float facf1,
                                 ImBuf *ibuf1,
@@ -561,7 +561,7 @@ static void do_alphaunder_effect_float(
 
 static void do_alphaunder_effect(const SeqRenderData *context,
                                  Sequence *UNUSED(seq),
-                                 float UNUSED(cfra),
+                                 float UNUSED(timeline_frame),
                                  float facf0,
                                  float facf1,
                                  ImBuf *ibuf1,
@@ -696,7 +696,7 @@ static void do_cross_effect_float(
 
 static void do_cross_effect(const SeqRenderData *context,
                             Sequence *UNUSED(seq),
-                            float UNUSED(cfra),
+                            float UNUSED(timeline_frame),
                             float facf0,
                             float facf1,
                             ImBuf *ibuf1,
@@ -994,7 +994,7 @@ static struct ImBuf *gammacross_init_execution(const SeqRenderData *context,
 
 static void do_gammacross_effect(const SeqRenderData *context,
                                  Sequence *UNUSED(seq),
-                                 float UNUSED(cfra),
+                                 float UNUSED(timeline_frame),
                                  float facf0,
                                  float facf1,
                                  ImBuf *ibuf1,
@@ -1129,7 +1129,7 @@ static void do_add_effect_float(
 
 static void do_add_effect(const SeqRenderData *context,
                           Sequence *UNUSED(seq),
-                          float UNUSED(cfra),
+                          float UNUSED(timeline_frame),
                           float facf0,
                           float facf1,
                           ImBuf *ibuf1,
@@ -1264,7 +1264,7 @@ static void do_sub_effect_float(
 
 static void do_sub_effect(const SeqRenderData *context,
                           Sequence *UNUSED(seq),
-                          float UNUSED(cfra),
+                          float UNUSED(timeline_frame),
                           float facf0,
                           float facf1,
                           ImBuf *ibuf1,
@@ -1515,7 +1515,7 @@ static void do_mul_effect_float(
 
 static void do_mul_effect(const SeqRenderData *context,
                           Sequence *UNUSED(seq),
-                          float UNUSED(cfra),
+                          float UNUSED(timeline_frame),
                           float facf0,
                           float facf1,
                           ImBuf *ibuf1,
@@ -1805,7 +1805,7 @@ static void do_blend_effect_byte(float facf0,
 
 static void do_blend_mode_effect(const SeqRenderData *context,
                                  Sequence *seq,
-                                 float UNUSED(cfra),
+                                 float UNUSED(timeline_frame),
                                  float facf0,
                                  float facf1,
                                  ImBuf *ibuf1,
@@ -1846,7 +1846,7 @@ static void init_colormix_effect(Sequence *seq)
 
 static void do_colormix_effect(const SeqRenderData *context,
                                Sequence *seq,
-                               float UNUSED(cfra),
+                               float UNUSED(timeline_frame),
                                float UNUSED(facf0),
                                float UNUSED(facf1),
                                ImBuf *ibuf1,
@@ -2311,7 +2311,7 @@ static void do_wipe_effect_float(Sequence *seq,
 
 static ImBuf *do_wipe_effect(const SeqRenderData *context,
                              Sequence *seq,
-                             float UNUSED(cfra),
+                             float UNUSED(timeline_frame),
                              float facf0,
                              float facf1,
                              ImBuf *ibuf1,
@@ -2442,7 +2442,7 @@ static void transform_image(int x,
 
 static void do_transform_effect(const SeqRenderData *context,
                                 Sequence *seq,
-                                float UNUSED(cfra),
+                                float UNUSED(timeline_frame),
                                 float UNUSED(facf0),
                                 float UNUSED(facf1),
                                 ImBuf *ibuf1,
@@ -2789,7 +2789,7 @@ static void do_glow_effect_float(Sequence *seq,
 
 static ImBuf *do_glow_effect(const SeqRenderData *context,
                              Sequence *seq,
-                             float UNUSED(cfra),
+                             float UNUSED(timeline_frame),
                              float facf0,
                              float facf1,
                              ImBuf *ibuf1,
@@ -2868,7 +2868,7 @@ static int early_out_color(Sequence *UNUSED(seq), float UNUSED(facf0), float UNU
 
 static ImBuf *do_solid_color(const SeqRenderData *context,
                              Sequence *seq,
-                             float UNUSED(cfra),
+                             float UNUSED(timeline_frame),
                              float facf0,
                              float facf1,
                              ImBuf *ibuf1,
@@ -2966,7 +2966,7 @@ static int early_out_multicam(Sequence *UNUSED(seq), float UNUSED(facf0), float 
 
 static ImBuf *do_multicam(const SeqRenderData *context,
                           Sequence *seq,
-                          float cfra,
+                          float timeline_frame,
                           float UNUSED(facf0),
                           float UNUSED(facf1),
                           ImBuf *UNUSED(ibuf1),
@@ -2990,7 +2990,7 @@ static ImBuf *do_multicam(const SeqRenderData *context,
     return NULL;
   }
 
-  out = seq_render_give_ibuf_seqbase(context, cfra, seq->multicam_source, seqbasep);
+  out = seq_render_give_ibuf_seqbase(context, timeline_frame, seq->multicam_source, seqbasep);
 
   return out;
 }
@@ -3008,7 +3008,7 @@ static int early_out_adjustment(Sequence *UNUSED(seq), float UNUSED(facf0), floa
   return EARLY_NO_INPUT;
 }
 
-static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, float cfra)
+static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, float timeline_frame)
 {
   Editing *ed;
   ListBase *seqbasep;
@@ -3019,7 +3019,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
   seqbasep = BKE_sequence_seqbase(&ed->seqbase, seq);
 
   if (seq->machine > 1) {
-    i = seq_render_give_ibuf_seqbase(context, cfra, seq->machine - 1, seqbasep);
+    i = seq_render_give_ibuf_seqbase(context, timeline_frame, seq->machine - 1, seqbasep);
   }
 
   /* found nothing? so let's work the way up the metastrip stack, so
@@ -3033,7 +3033,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
     meta = BKE_sequence_metastrip(&ed->seqbase, NULL, seq);
 
     if (meta) {
-      i = do_adjustment_impl(context, meta, cfra);
+      i = do_adjustment_impl(context, meta, timeline_frame);
     }
   }
 
@@ -3042,7 +3042,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
 
 static ImBuf *do_adjustment(const SeqRenderData *context,
                             Sequence *seq,
-                            float cfra,
+                            float timeline_frame,
                             float UNUSED(facf0),
                             float UNUSED(facf1),
                             ImBuf *UNUSED(ibuf1),
@@ -3058,7 +3058,7 @@ static ImBuf *do_adjustment(const SeqRenderData *context,
     return NULL;
   }
 
-  out = do_adjustment_impl(context, seq, cfra);
+  out = do_adjustment_impl(context, seq, timeline_frame);
 
   return out;
 }
@@ -3146,7 +3146,7 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
 
 void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
 {
-  int cfra;
+  int timeline_frame;
   float fallback_fac = 1.0f;
   SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   FCurve *fcu = NULL;
@@ -3199,9 +3199,9 @@ void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool for
     v->frameMap[0] = 0;
     v->lastValidFrame = 0;
 
-    for (cfra = 1; cfra < v->length; cfra++) {
+    for (timeline_frame = 1; timeline_frame < v->length; timeline_frame++) {
       if (fcu) {
-        facf = evaluate_fcurve(fcu, seq->startdisp + cfra);
+        facf = evaluate_fcurve(fcu, seq->startdisp + timeline_frame);
       }
       else {
         facf = fallback_fac;
@@ -3211,11 +3211,11 @@ void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool for
       cursor += facf;
 
       if (cursor >= seq->seq1->len) {
-        v->frameMap[cfra] = seq->seq1->len - 1;
+        v->frameMap[timeline_frame] = seq->seq1->len - 1;
       }
       else {
-        v->frameMap[cfra] = cursor;
-        v->lastValidFrame = cfra;
+        v->frameMap[timeline_frame] = cursor;
+        v->lastValidFrame = timeline_frame;
       }
     }
   }
@@ -3223,10 +3223,10 @@ void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool for
     float facf;
 
     v->lastValidFrame = 0;
-    for (cfra = 0; cfra < v->length; cfra++) {
+    for (timeline_frame = 0; timeline_frame < v->length; timeline_frame++) {
 
       if (fcu) {
-        facf = evaluate_fcurve(fcu, seq->startdisp + cfra);
+        facf = evaluate_fcurve(fcu, seq->startdisp + timeline_frame);
       }
       else {
         facf = fallback_fac;
@@ -3241,45 +3241,47 @@ void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool for
         facf = seq->seq1->len - 1;
       }
       else {
-        v->lastValidFrame = cfra;
+        v->lastValidFrame = timeline_frame;
       }
-      v->frameMap[cfra] = facf;
+      v->frameMap[timeline_frame] = facf;
     }
   }
 }
 
-/* Override cfra when rendering speed effect input. */
+/* Override timeline_frame when rendering speed effect input. */
 float BKE_sequencer_speed_effect_target_frame_get(const SeqRenderData *context,
                                                   Sequence *seq,
-                                                  float cfra,
+                                                  float timeline_frame,
                                                   int input)
 {
-  int nr = seq_give_stripelem_index(seq, cfra);
+  int frame_index = seq_give_frame_index(seq, timeline_frame);
   SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
   BKE_sequence_effect_speed_rebuild_map(context->scene, seq, false);
 
   /* No interpolation. */
   if ((s->flags & SEQ_SPEED_USE_INTERPOLATION) == 0) {
-    return seq->start + s->frameMap[nr];
+    return seq->start + s->frameMap[frame_index];
   }
 
   /* We need to provide current and next image for interpolation. */
   if (input == 0) { /* Current frame. */
-    return floor(seq->start + s->frameMap[nr]);
+    return floor(seq->start + s->frameMap[frame_index]);
   }
   /* Next frame. */
-  return ceil(seq->start + s->frameMap[nr]);
+  return ceil(seq->start + s->frameMap[frame_index]);
 }
 
-static float speed_effect_interpolation_ratio_get(SpeedControlVars *s, Sequence *seq, float cfra)
+static float speed_effect_interpolation_ratio_get(SpeedControlVars *s,
+                                                  Sequence *seq,
+                                                  float timeline_frame)
 {
-  int nr = seq_give_stripelem_index(seq, cfra);
-  return s->frameMap[nr] - floor(s->frameMap[nr]);
+  int frame_index = seq_give_frame_index(seq, timeline_frame);
+  return s->frameMap[frame_index] - floor(s->frameMap[frame_index]);
 }
 
 static ImBuf *do_speed_effect(const SeqRenderData *context,
                               Sequence *seq,
-                              float cfra,
+                              float timeline_frame,
                               float facf0,
                               float facf1,
                               ImBuf *ibuf1,
@@ -3292,10 +3294,10 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
     out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-    facf0 = facf1 = speed_effect_interpolation_ratio_get(s, seq, cfra);
+    facf0 = facf1 = speed_effect_interpolation_ratio_get(s, seq, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
     out = seq_render_effect_execute_threaded(
-        &cross_effect, context, NULL, cfra, facf0, facf1, ibuf1, ibuf2, ibuf3);
+        &cross_effect, context, NULL, timeline_frame, facf0, facf1, ibuf1, ibuf2, ibuf3);
     return out;
   }
 
@@ -3307,7 +3309,7 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
 
 static void do_overdrop_effect(const SeqRenderData *context,
                                Sequence *UNUSED(seq),
-                               float UNUSED(cfra),
+                               float UNUSED(timeline_frame),
                                float facf0,
                                float facf1,
                                ImBuf *ibuf1,
@@ -3731,7 +3733,7 @@ static void *render_effect_execute_do_y_thread(void *thread_data_v)
 
 static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
                                       Sequence *seq,
-                                      float UNUSED(cfra),
+                                      float UNUSED(timeline_frame),
                                       float UNUSED(facf0),
                                       float UNUSED(facf1),
                                       ImBuf *ibuf1,
@@ -3870,7 +3872,7 @@ static int early_out_text(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1
 
 static ImBuf *do_text_effect(const SeqRenderData *context,
                              Sequence *seq,
-                             float UNUSED(cfra),
+                             float UNUSED(timeline_frame),
                              float UNUSED(facf0),
                              float UNUSED(facf1),
                              ImBuf *ibuf1,
@@ -4044,16 +4046,16 @@ static void store_icu_yrange_noop(Sequence *UNUSED(seq),
 }
 
 static void get_default_fac_noop(Sequence *UNUSED(seq),
-                                 float UNUSED(cfra),
+                                 float UNUSED(timeline_frame),
                                  float *facf0,
                                  float *facf1)
 {
   *facf0 = *facf1 = 1.0;
 }
 
-static void get_default_fac_fade(Sequence *seq, float cfra, float *facf0, float *facf1)
+static void get_default_fac_fade(Sequence *seq, float timeline_frame, float *facf0, float *facf1)
 {
-  *facf0 = (float)(cfra - seq->startdisp);
+  *facf0 = (float)(timeline_frame - seq->startdisp);
   *facf1 = (float)(*facf0 + 0.5f);
   *facf0 /= seq->len;
   *facf1 /= seq->len;

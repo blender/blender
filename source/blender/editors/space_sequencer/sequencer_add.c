@@ -148,7 +148,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   Sequence *seq;
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, true);
-  int cfra = (int)CFRA;
+  int timeline_frame = (int)CFRA;
   int proximity = INT_MAX;
 
   if (!ed || !ed->seqbasep) {
@@ -156,10 +156,10 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((type == -1 || seq->type == type) && (seq->enddisp < cfra) &&
-        (cfra - seq->enddisp < proximity)) {
+    if ((type == -1 || seq->type == type) && (seq->enddisp < timeline_frame) &&
+        (timeline_frame - seq->enddisp < proximity)) {
       tgt = seq;
-      proximity = cfra - seq->enddisp;
+      proximity = timeline_frame - seq->enddisp;
     }
   }
 
@@ -173,17 +173,17 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, i
 {
   Scene *scene = CTX_data_scene(C);
 
-  int cfra = (int)CFRA;
+  int timeline_frame = (int)CFRA;
 
   /* Effect strips don't need a channel initialized from the mouse. */
   if (!(flag & SEQPROP_NOCHAN) && RNA_struct_property_is_set(op->ptr, "channel") == 0) {
     RNA_int_set(op->ptr, "channel", sequencer_generic_invoke_xy_guess_channel(C, type));
   }
 
-  RNA_int_set(op->ptr, "frame_start", cfra);
+  RNA_int_set(op->ptr, "frame_start", timeline_frame);
 
   if ((flag & SEQPROP_ENDFRAME) && RNA_struct_property_is_set(op->ptr, "frame_end") == 0) {
-    RNA_int_set(op->ptr, "frame_end", cfra + 25); /* XXX arbitrary but ok for now. */
+    RNA_int_set(op->ptr, "frame_end", timeline_frame + 25); /* XXX arbitrary but ok for now. */
   }
 
   if (!(flag & SEQPROP_NOPATHS)) {
