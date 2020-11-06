@@ -38,7 +38,7 @@ namespace blender::gpu {
 /** \name Platform
  * \{ */
 
-void GLBackend::platform_init(void)
+void GLBackend::platform_init()
 {
   BLI_assert(!GPG.initialized);
   GPG.initialized = true;
@@ -135,7 +135,7 @@ void GLBackend::platform_init(void)
   GPG.create_gpu_name(vendor, renderer, version);
 }
 
-void GLBackend::platform_exit(void)
+void GLBackend::platform_exit()
 {
   BLI_assert(GPG.initialized);
   GPG.clear();
@@ -147,7 +147,7 @@ void GLBackend::platform_exit(void)
 /** \name Capabilities
  * \{ */
 
-static bool detect_mip_render_workaround(void)
+static bool detect_mip_render_workaround()
 {
   int cube_size = 2;
   float clear_color[4] = {1.0f, 0.5f, 0.0f, 0.0f};
@@ -192,7 +192,7 @@ static bool detect_mip_render_workaround(void)
   return enable_workaround;
 }
 
-static void detect_workarounds(void)
+static void detect_workarounds()
 {
   const char *vendor = (const char *)glGetString(GL_VENDOR);
   const char *renderer = (const char *)glGetString(GL_RENDERER);
@@ -376,7 +376,7 @@ bool GLContext::debug_layer_workaround = false;
 bool GLContext::unused_fb_slot_workaround = false;
 float GLContext::derivative_signs[2] = {1.0f, 1.0f};
 
-void GLBackend::capabilities_init(void)
+void GLBackend::capabilities_init()
 {
   BLI_assert(GLEW_VERSION_3_3);
   /* Common Capabilities. */

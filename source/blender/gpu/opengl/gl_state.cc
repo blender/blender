@@ -42,7 +42,7 @@ namespace blender::gpu {
 /** \name GLStateManager
  * \{ */
 
-GLStateManager::GLStateManager(void)
+GLStateManager::GLStateManager()
 {
   /* Set other states that never change. */
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -71,7 +71,7 @@ GLStateManager::GLStateManager(void)
   set_mutable_state(mutable_state);
 }
 
-void GLStateManager::apply_state(void)
+void GLStateManager::apply_state()
 {
   if (!this->use_bgl) {
     this->set_state(this->state);
@@ -84,7 +84,7 @@ void GLStateManager::apply_state(void)
 };
 
 /* Will set all the states regardless of the current ones. */
-void GLStateManager::force_state(void)
+void GLStateManager::force_state()
 {
   /* Little exception for clip distances since they need to keep the old count correct. */
   uint32_t clip_distances = current_.clip_distances;
@@ -511,7 +511,7 @@ void GLStateManager::texture_unbind(Texture *tex_)
   tex->is_bound_ = false;
 }
 
-void GLStateManager::texture_unbind_all(void)
+void GLStateManager::texture_unbind_all()
 {
   for (int i = 0; i < ARRAY_SIZE(textures_); i++) {
     if (textures_[i] != 0) {
@@ -523,7 +523,7 @@ void GLStateManager::texture_unbind_all(void)
   this->texture_bind_apply();
 }
 
-void GLStateManager::texture_bind_apply(void)
+void GLStateManager::texture_bind_apply()
 {
   if (dirty_texture_binds_ == 0) {
     return;
@@ -555,7 +555,7 @@ void GLStateManager::texture_unpack_row_length_set(uint len)
   glPixelStorei(GL_UNPACK_ROW_LENGTH, len);
 }
 
-uint64_t GLStateManager::bound_texture_slots(void)
+uint64_t GLStateManager::bound_texture_slots()
 {
   uint64_t bound_slots = 0;
   for (int i = 0; i < ARRAY_SIZE(textures_); i++) {
@@ -603,7 +603,7 @@ void GLStateManager::image_unbind(Texture *tex_)
   tex->is_bound_ = false;
 }
 
-void GLStateManager::image_unbind_all(void)
+void GLStateManager::image_unbind_all()
 {
   for (int i = 0; i < ARRAY_SIZE(images_); i++) {
     if (images_[i] != 0) {
@@ -614,7 +614,7 @@ void GLStateManager::image_unbind_all(void)
   this->image_bind_apply();
 }
 
-void GLStateManager::image_bind_apply(void)
+void GLStateManager::image_bind_apply()
 {
   if (dirty_image_binds_ == 0) {
     return;
@@ -638,7 +638,7 @@ void GLStateManager::image_bind_apply(void)
   }
 }
 
-uint8_t GLStateManager::bound_image_slots(void)
+uint8_t GLStateManager::bound_image_slots()
 {
   uint8_t bound_slots = 0;
   for (int i = 0; i < ARRAY_SIZE(images_); i++) {

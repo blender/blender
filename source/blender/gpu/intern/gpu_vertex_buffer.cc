@@ -66,13 +66,13 @@ void VertBuf::init(const GPUVertFormat *format, GPUUsageType usage)
   flag |= GPU_VERTBUF_INIT;
 }
 
-void VertBuf::clear(void)
+void VertBuf::clear()
 {
   this->release_data();
   flag = GPU_VERTBUF_INVALID;
 }
 
-VertBuf *VertBuf::duplicate(void)
+VertBuf *VertBuf::duplicate()
 {
   VertBuf *dst = GPUBackend::get()->vertbuf_alloc();
   /* Full copy. */
@@ -107,7 +107,7 @@ void VertBuf::resize(uint vert_len)
   flag |= GPU_VERTBUF_DATA_DIRTY;
 }
 
-void VertBuf::upload(void)
+void VertBuf::upload()
 {
   this->upload_data();
 }
@@ -125,7 +125,7 @@ using namespace blender::gpu;
 
 /* -------- Creation & deletion -------- */
 
-GPUVertBuf *GPU_vertbuf_calloc(void)
+GPUVertBuf *GPU_vertbuf_calloc()
 {
   return wrap(GPUBackend::get()->vertbuf_alloc());
 }
@@ -313,7 +313,7 @@ GPUVertBufStatus GPU_vertbuf_get_status(const GPUVertBuf *verts)
   return unwrap(verts)->flag;
 }
 
-uint GPU_vertbuf_get_memory_usage(void)
+uint GPU_vertbuf_get_memory_usage()
 {
   return VertBuf::memory_usage;
 }

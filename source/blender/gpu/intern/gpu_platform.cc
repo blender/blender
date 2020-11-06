@@ -77,7 +77,7 @@ void GPUPlatformGlobal::create_gpu_name(const char *vendor,
   BLI_str_replace_char(gpu_name, '\r', ' ');
 }
 
-void GPUPlatformGlobal::clear(void)
+void GPUPlatformGlobal::clear()
 {
   MEM_SAFE_FREE(GPG.support_key);
   MEM_SAFE_FREE(GPG.gpu_name);
@@ -94,12 +94,12 @@ void GPUPlatformGlobal::clear(void)
 
 using namespace blender::gpu;
 
-eGPUSupportLevel GPU_platform_support_level(void)
+eGPUSupportLevel GPU_platform_support_level()
 {
   return GPG.support_level;
 }
 
-const char *GPU_platform_support_level_key(void)
+const char *GPU_platform_support_level_key()
 {
   return GPG.support_key;
 }

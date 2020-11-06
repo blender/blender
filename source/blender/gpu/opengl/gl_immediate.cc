@@ -135,7 +135,7 @@ uchar *GLImmediate::begin()
   return (uchar *)data;
 }
 
-void GLImmediate::end(void)
+void GLImmediate::end()
 {
   BLI_assert(prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 

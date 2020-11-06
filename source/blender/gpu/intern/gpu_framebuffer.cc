@@ -496,7 +496,7 @@ static void gpuPushFrameBuffer(GPUFrameBuffer *fb)
   FrameBufferStack.top++;
 }
 
-static GPUFrameBuffer *gpuPopFrameBuffer(void)
+static GPUFrameBuffer *gpuPopFrameBuffer()
 {
   BLI_assert(FrameBufferStack.top > 0);
   FrameBufferStack.top--;

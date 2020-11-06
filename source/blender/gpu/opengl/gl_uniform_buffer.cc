@@ -55,7 +55,7 @@ GLUniformBuf::~GLUniformBuf()
 /** \name Data upload / update
  * \{ */
 
-void GLUniformBuf::init(void)
+void GLUniformBuf::init()
 {
   BLI_assert(GLContext::get());
 
@@ -111,7 +111,7 @@ void GLUniformBuf::bind(int slot)
 #endif
 }
 
-void GLUniformBuf::unbind(void)
+void GLUniformBuf::unbind()
 {
 #ifdef DEBUG
   /* NOTE: This only unbinds the last bound slot. */

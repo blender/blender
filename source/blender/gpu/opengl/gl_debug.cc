@@ -141,7 +141,7 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
 #undef APIENTRY
 
 /* This function needs to be called once per context. */
-void init_gl_callbacks(void)
+void init_gl_callbacks()
 {
   CLOG_ENSURE(&LOG);
 
@@ -369,7 +369,7 @@ void GLContext::debug_group_begin(const char *name, int index)
   }
 }
 
-void GLContext::debug_group_end(void)
+void GLContext::debug_group_end()
 {
   if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
     glPopDebugGroup();

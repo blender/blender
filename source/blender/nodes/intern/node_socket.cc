@@ -520,7 +520,7 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
 
 extern "C" void ED_init_node_socket_type_virtual(bNodeSocketType *);
 
-static bNodeSocketType *make_socket_type_virtual(void)
+static bNodeSocketType *make_socket_type_virtual()
 {
   const char *socket_idname = "NodeSocketVirtual";
   bNodeSocketType *stype;

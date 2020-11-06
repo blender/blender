@@ -43,7 +43,6 @@ Checks:  >
   -modernize-use-emplace,
   -modernize-use-nodiscard,
   -modernize-use-using,
-  -modernize-redundant-void-arg,
   -modernize-use-bool-literals,
   -modernize-loop-convert,
   -modernize-pass-by-value,
