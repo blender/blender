@@ -24,13 +24,12 @@
 
 #include "BKE_layer.h"
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_listbase_wrapper.hh"
+#include "BLI_map.hh"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "../outliner_intern.h"
 #include "tree_view.hh"
@@ -44,13 +43,16 @@ template<typename T> using List = ListBaseWrapper<T>;
 class ObjectsChildrenBuilder {
  public:
   ObjectsChildrenBuilder(SpaceOutliner &outliner);
-  ~ObjectsChildrenBuilder();
+  ~ObjectsChildrenBuilder() = default;
 
   void operator()(TreeElement &collection_tree_elem);
 
  private:
+  using TreeChildren = Vector<TreeElement *>;
+  using ObjectTreeElementsMap = Map<Object *, TreeChildren>;
+
   SpaceOutliner &_outliner;
-  GHash &_object_tree_elements_hash;
+  ObjectTreeElementsMap _object_tree_elements_map;
 
   void object_tree_elements_lookup_create_recursive(TreeElement *te_parent);
   void make_object_parent_hierarchy_collections();
@@ -187,22 +189,8 @@ void TreeViewViewLayer::add_layer_collection_objects_children(TreeElement &colle
  *
  * \{ */
 
-ObjectsChildrenBuilder::ObjectsChildrenBuilder(SpaceOutliner &outliner)
-    : _outliner(outliner),
-      _object_tree_elements_hash(
-          *BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__))
+ObjectsChildrenBuilder::ObjectsChildrenBuilder(SpaceOutliner &outliner) : _outliner(outliner)
 {
-}
-
-ObjectsChildrenBuilder::~ObjectsChildrenBuilder()
-{
-  GHASH_FOREACH_BEGIN (ListBase *, tree_elements, &_object_tree_elements_hash) {
-    BLI_freelistN(tree_elements);
-    MEM_freeN(tree_elements);
-  }
-  GHASH_FOREACH_END();
-
-  BLI_ghash_free(&_object_tree_elements_hash, nullptr, nullptr);
 }
 
 void ObjectsChildrenBuilder::operator()(TreeElement &collection_tree_elem)
@@ -221,18 +209,15 @@ void ObjectsChildrenBuilder::object_tree_elements_lookup_create_recursive(TreeEl
 
     if (tselem->type == TSE_LAYER_COLLECTION) {
       object_tree_elements_lookup_create_recursive(te);
+      continue;
     }
-    else if (tselem->type == 0 && te->idcode == ID_OB) {
+
+    if (tselem->type == 0 && te->idcode == ID_OB) {
       Object *ob = (Object *)tselem->id;
-      ListBase *tree_elements = static_cast<ListBase *>(
-          BLI_ghash_lookup(&_object_tree_elements_hash, ob));
+      /* Lookup children or add new, empty children vector. */
+      Vector<TreeElement *> &tree_elements = _object_tree_elements_map.lookup_or_add(ob, {});
 
-      if (tree_elements == nullptr) {
-        tree_elements = static_cast<ListBase *>(MEM_callocN(sizeof(ListBase), __func__));
-        BLI_ghash_insert(&_object_tree_elements_hash, ob, tree_elements);
-      }
-
-      BLI_addtail(tree_elements, BLI_genericNodeN(te));
+      tree_elements.append(te);
       object_tree_elements_lookup_create_recursive(te);
     }
   }
@@ -244,24 +229,21 @@ void ObjectsChildrenBuilder::object_tree_elements_lookup_create_recursive(TreeEl
  */
 void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
 {
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, &_object_tree_elements_hash) {
-    Object *child = static_cast<Object *>(BLI_ghashIterator_getKey(&gh_iter));
+  for (ObjectTreeElementsMap::MutableItem item : _object_tree_elements_map.items()) {
+    Object *child = item.key;
 
     if (child->parent == nullptr) {
       continue;
     }
 
-    ListBase *child_ob_tree_elements = static_cast<ListBase *>(
-        BLI_ghashIterator_getValue(&gh_iter));
-    ListBase *parent_ob_tree_elements = static_cast<ListBase *>(
-        BLI_ghash_lookup(&_object_tree_elements_hash, child->parent));
+    Vector<TreeElement *> &child_ob_tree_elements = item.value;
+    Vector<TreeElement *> *parent_ob_tree_elements = _object_tree_elements_map.lookup_ptr(
+        child->parent);
     if (parent_ob_tree_elements == nullptr) {
       continue;
     }
 
-    for (LinkData *link : List<LinkData>(parent_ob_tree_elements)) {
-      TreeElement *parent_ob_tree_element = static_cast<TreeElement *>(link->data);
+    for (TreeElement *parent_ob_tree_element : *parent_ob_tree_elements) {
       TreeElement *parent_ob_collection_tree_element = nullptr;
       bool found = false;
 
@@ -274,9 +256,7 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
         parent_ob_collection_tree_element = parent_ob_collection_tree_element->parent;
       }
 
-      for (LinkData *link_iter : List<LinkData>(child_ob_tree_elements)) {
-        TreeElement *child_ob_tree_element = static_cast<TreeElement *>(link_iter->data);
-
+      for (TreeElement *child_ob_tree_element : child_ob_tree_elements) {
         if (child_ob_tree_element->parent == parent_ob_collection_tree_element) {
           /* Move from the collection subtree into the parent object subtree. */
           BLI_remlink(&parent_ob_collection_tree_element->subtree, child_ob_tree_element);
@@ -294,7 +274,7 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
             &_outliner, &parent_ob_tree_element->subtree, child, parent_ob_tree_element, 0, 0);
         outliner_free_tree(&child_ob_tree_element->subtree);
         child_ob_tree_element->flag |= TE_CHILD_NOT_IN_COLLECTION;
-        BLI_addtail(child_ob_tree_elements, BLI_genericNodeN(child_ob_tree_element));
+        child_ob_tree_elements.append(child_ob_tree_element);
       }
     }
   }
