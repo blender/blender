@@ -421,6 +421,9 @@ void BKE_object_modifiers_lib_link_common(void *userData,
                                           struct ID **idpoin,
                                           int cb_flag);
 
+struct PartEff;
+struct PartEff *BKE_object_do_version_give_parteff_245(struct Object *ob);
+
 #ifdef __cplusplus
 }
 #endif
