@@ -1833,6 +1833,34 @@ void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
   layer_eval_view_layer(depsgraph, scene, view_layer);
 }
 
+static void write_layer_collections(BlendWriter *writer, ListBase *lb)
+{
+  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
+    BLO_write_struct(writer, LayerCollection, lc);
+
+    write_layer_collections(writer, &lc->layer_collections);
+  }
+}
+
+void BKE_view_layer_blend_write(BlendWriter *writer, ViewLayer *view_layer)
+{
+  BLO_write_struct(writer, ViewLayer, view_layer);
+  BLO_write_struct_list(writer, Base, &view_layer->object_bases);
+
+  if (view_layer->id_properties) {
+    IDP_BlendWrite(writer, view_layer->id_properties);
+  }
+
+  LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
+    BLO_write_struct(writer, FreestyleModuleConfig, fmc);
+  }
+
+  LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
+    BLO_write_struct(writer, FreestyleLineSet, fls);
+  }
+  write_layer_collections(writer, &view_layer->layer_collections);
+}
+
 static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb, bool master)
 {
   BLO_read_list(reader, lb);
