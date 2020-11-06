@@ -61,19 +61,19 @@ class GHOST_ContextSDL : public GHOST_Context {
 
   /**
    * Swaps front and back buffers of a window.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   GHOST_TSuccess swapBuffers();
 
   /**
    * Activates the drawing context of this window.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   GHOST_TSuccess activateDrawingContext();
 
   /**
    * Release the drawing context of the calling thread.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   GHOST_TSuccess releaseDrawingContext();
 
@@ -91,15 +91,15 @@ class GHOST_ContextSDL : public GHOST_Context {
   GHOST_TSuccess releaseNativeHandles();
 
   /**
-   * Sets the swap interval for swapBuffers.
-   * \param interval The swap interval to use.
+   * Sets the swap interval for #swapBuffers.
+   * \param interval: The swap interval to use.
    * \return A boolean success indicator.
    */
   GHOST_TSuccess setSwapInterval(int interval);
 
   /**
-   * Gets the current swap interval for swapBuffers.
-   * \param intervalOut Variable to store the swap interval if it can be read.
+   * Gets the current swap interval for #swapBuffers.
+   * \param intervalOut: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
   GHOST_TSuccess getSwapInterval(int &intervalOut);

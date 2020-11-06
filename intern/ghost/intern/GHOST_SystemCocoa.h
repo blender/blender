@@ -85,19 +85,19 @@ class GHOST_SystemCocoa : public GHOST_System {
   /**
    * Create a new window.
    * The new window is added to the list of windows managed.
-   * Never explicitly delete the window, use disposeWindow() instead.
-   * \param   title           The name of the window
+   * Never explicitly delete the window, use #disposeWindow() instead.
+   * \param title: The name of the window.
    * (displayed in the title bar of the window if the OS supports it).
-   * \param   left            The coordinate of the left edge of the window.
-   * \param   top             The coordinate of the top edge of the window.
-   * \param   width           The width the window.
-   * \param   height          The height the window.
-   * \param   state           The state of the window when opened.
-   * \param   type            The type of drawing context installed in this window.
+   * \param left: The coordinate of the left edge of the window.
+   * \param top: The coordinate of the top edge of the window.
+   * \param width: The width the window.
+   * \param height: The height the window.
+   * \param state: The state of the window when opened.
+   * \param type: The type of drawing context installed in this window.
    * \param glSettings: Misc OpenGL settings.
    * \param exclusive: Use to show the window ontop and ignore others (used fullscreen).
-   * \param   parentWindow    Parent (embedder) window
-   * \return  The new window (or 0 if creation failed).
+   * \param parentWindow: Parent (embedder) window.
+   * \return The new window (or 0 if creation failed).
    */
   GHOST_IWindow *createWindow(const char *title,
                               GHOST_TInt32 left,
@@ -114,14 +114,14 @@ class GHOST_SystemCocoa : public GHOST_System {
   /**
    * Create a new offscreen context.
    * Never explicitly delete the context, use disposeContext() instead.
-   * \return  The new context (or 0 if creation failed).
+   * \return The new context (or 0 if creation failed).
    */
   GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings);
 
   /**
    * Dispose of a context.
-   * \param   context Pointer to the context to be disposed.
-   * \return  Indication of success.
+   * \param context: Pointer to the context to be disposed.
+   * \return Indication of success.
    */
   GHOST_TSuccess disposeContext(GHOST_IContext *context);
 
@@ -131,7 +131,7 @@ class GHOST_SystemCocoa : public GHOST_System {
 
   /**
    * Gets events from the system and stores them in the queue.
-   * \param waitForEvent Flag to wait for an event (or return immediately).
+   * \param waitForEvent: Flag to wait for an event (or return immediately).
    * \return Indication of the presence of events.
    */
   bool processEvents(bool waitForEvent);
@@ -150,12 +150,12 @@ class GHOST_SystemCocoa : public GHOST_System {
 
   /**
    * Handles a drag'n'drop destination event. Called by GHOST_WindowCocoa window subclass
-   * \param eventType The type of drag'n'drop event
-   * \param draggedObjectType The type object concerned
-   * (currently array of file names, string, TIFF image)
-   * \param mouseX x mouse coordinate (in cocoa base window coordinates)
-   * \param mouseY y mouse coordinate
-   * \param window The window on which the event occurred
+   * \param eventType: The type of drag'n'drop event.
+   * \param draggedObjectType: The type object concerned.
+   * (currently array of file names, string, TIFF image).
+   * \param mouseX: x mouse coordinate (in cocoa base window coordinates).
+   * \param mouseY: y mouse coordinate.
+   * \param window: The window on which the event occurred.
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleDraggingEvent(GHOST_TEventType eventType,
@@ -171,17 +171,17 @@ class GHOST_SystemCocoa : public GHOST_System {
 
   /**
    * Returns the current location of the cursor (location in screen coordinates)
-   * \param x         The x-coordinate of the cursor.
-   * \param y         The y-coordinate of the cursor.
-   * \return          Indication of success.
+   * \param x: The x-coordinate of the cursor.
+   * \param y: The y-coordinate of the cursor.
+   * \return Indication of success.
    */
   GHOST_TSuccess getCursorPosition(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
 
   /**
    * Updates the location of the cursor (location in screen coordinates).
-   * \param x         The x-coordinate of the cursor.
-   * \param y         The y-coordinate of the cursor.
-   * \return          Indication of success.
+   * \param x: The x-coordinate of the cursor.
+   * \param y: The y-coordinate of the cursor.
+   * \return Indication of success.
    */
   GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
 
@@ -191,36 +191,36 @@ class GHOST_SystemCocoa : public GHOST_System {
 
   /**
    * Returns the state of all modifier keys.
-   * \param keys  The state of all modifier keys (true == pressed).
-   * \return      Indication of success.
+   * \param keys: The state of all modifier keys (true == pressed).
+   * \return Indication of success.
    */
   GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const;
 
   /**
    * Returns the state of the mouse buttons (outside the message queue).
-   * \param buttons   The state of the buttons.
-   * \return          Indication of success.
+   * \param buttons: The state of the buttons.
+   * \return Indication of success.
    */
   GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const;
 
   /**
    * Returns Clipboard data
-   * \param selection     Indicate which buffer to return
-   * \return              Returns the selected buffer
+   * \param selection: Indicate which buffer to return.
+   * \return Returns the selected buffer
    */
   GHOST_TUns8 *getClipboard(bool selection) const;
 
   /**
    * Puts buffer to system clipboard
-   * \param buffer    The buffer to be copied
-   * \param selection Indicates which buffer to copy too, only used on X11
+   * \param buffer: The buffer to be copied.
+   * \param selection: Indicates which buffer to copy too, only used on X11.
    */
   void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
   /**
    * Handles a window event. Called by GHOST_WindowCocoa window delegate
-   * \param eventType The type of window event
-   * \param window The window on which the event occurred
+   * \param eventType: The type of window event.
+   * \param window: The window on which the event occurred.
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleWindowEvent(GHOST_TEventType eventType, GHOST_WindowCocoa *window);
@@ -284,9 +284,9 @@ class GHOST_SystemCocoa : public GHOST_System {
 
   /**
    * Performs the actual cursor position update (location in screen coordinates).
-   * \param x         The x-coordinate of the cursor.
-   * \param y         The y-coordinate of the cursor.
-   * \return          Indication of success.
+   * \param x: The x-coordinate of the cursor.
+   * \param y: The y-coordinate of the cursor.
+   * \return Indication of success.
    */
   GHOST_TSuccess setMouseCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
 

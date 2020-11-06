@@ -325,19 +325,19 @@ void GHOST_SystemX11::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 
 /**
  * Create a new window.
  * The new window is added to the list of windows managed.
- * Never explicitly delete the window, use disposeWindow() instead.
- * \param   title   The name of the window
+ * Never explicitly delete the window, use #disposeWindow() instead.
+ * \param title: The name of the window
  * (displayed in the title bar of the window if the OS supports it).
- * \param   left    The coordinate of the left edge of the window.
- * \param   top     The coordinate of the top edge of the window.
- * \param   width   The width the window.
- * \param   height  The height the window.
- * \param   state   The state of the window when opened.
- * \param   type    The type of drawing context installed in this window.
+ * \param left: The coordinate of the left edge of the window.
+ * \param top: The coordinate of the top edge of the window.
+ * \param width: The width the window.
+ * \param height: The height the window.
+ * \param state: The state of the window when opened.
+ * \param type: The type of drawing context installed in this window.
  * \param glSettings: Misc OpenGL settings.
- * \param exclusive: Use to show the window ontop and ignore others (used fullscreen).
- * \param   parentWindow    Parent window
- * \return  The new window (or 0 if creation failed).
+ * \param exclusive: Use to show the window on top and ignore others (used full-screen).
+ * \param parentWindow: Parent window.
+ * \return The new window (or 0 if creation failed).
  */
 GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                              GHOST_TInt32 left,
@@ -393,7 +393,7 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
 /**
  * Create a new offscreen context.
  * Never explicitly delete the context, use disposeContext() instead.
- * \return  The new context (or 0 if creation failed).
+ * \return The new context (or 0 if creation failed).
  */
 GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSettings)
 {
@@ -505,8 +505,8 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
 
 /**
  * Dispose of a context.
- * \param   context Pointer to the context to be disposed.
- * \return  Indication of success.
+ * \param context: Pointer to the context to be disposed.
+ * \return Indication of success.
  */
 GHOST_TSuccess GHOST_SystemX11::disposeContext(GHOST_IContext *context)
 {

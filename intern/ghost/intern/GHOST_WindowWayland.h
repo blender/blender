@@ -118,7 +118,7 @@ class GHOST_WindowWayland : public GHOST_Window {
   std::string title;
 
   /**
-   * \param type  The type of rendering context create.
+   * \param type: The type of rendering context create.
    * \return Indication of success.
    */
   GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) override;

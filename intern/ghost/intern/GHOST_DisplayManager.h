@@ -52,15 +52,15 @@ class GHOST_DisplayManager {
 
   /**
    * Returns the number of display devices on this system.
-   * \param numDisplays The number of displays on this system.
+   * \param numDisplays: The number of displays on this system.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess getNumDisplays(GHOST_TUns8 &numDisplays) const;
 
   /**
    * Returns the number of display settings for this display device.
-   * \param display The index of the display to query with 0 <= display < getNumDisplays().
-   * \param numSettings The number of settings of the display device with this index.
+   * \param display: The index of the display to query with 0 <= display < getNumDisplays().
+   * \param numSettings: The number of settings of the display device with this index.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess getNumDisplaySettings(GHOST_TUns8 display,
@@ -68,9 +68,9 @@ class GHOST_DisplayManager {
 
   /**
    * Returns the current setting for this display device.
-   * \param display The index of the display to query with 0 <= display < getNumDisplays().
-   * \param index   The setting index to be returned.
-   * \param setting The setting of the display device with this index.
+   * \param display: The index of the display to query with 0 <= display < getNumDisplays().
+   * \param index: The setting index to be returned.
+   * \param setting: The setting of the display device with this index.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess getDisplaySetting(GHOST_TUns8 display,
@@ -79,8 +79,8 @@ class GHOST_DisplayManager {
 
   /**
    * Returns the current setting for this display device.
-   * \param display The index of the display to query with 0 <= display < getNumDisplays().
-   * \param setting The current setting of the display device with this index.
+   * \param display: The index of the display to query with 0 <= display < getNumDisplays().
+   * \param setting: The current setting of the display device with this index.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess getCurrentDisplaySetting(GHOST_TUns8 display,
@@ -90,8 +90,8 @@ class GHOST_DisplayManager {
    * Changes the current setting for this display device.
    * The setting given to this method is matched against the available display settings.
    * The best match is activated (@see findMatch()).
-   * \param display The index of the display to query with 0 <= display < getNumDisplays().
-   * \param setting The setting of the display device to be matched and activated.
+   * \param display: The index of the display to query with 0 <= display < getNumDisplays().
+   * \param setting: The setting of the display device to be matched and activated.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess setCurrentDisplaySetting(GHOST_TUns8 display,
@@ -102,9 +102,9 @@ class GHOST_DisplayManager {
 
   /**
    * Finds the best display settings match.
-   * \param display   The index of the display device.
-   * \param setting   The setting to match.
-   * \param match     The optimal display setting.
+   * \param display: The index of the display device.
+   * \param setting: The setting to match.
+   * \param match: The optimal display setting.
    * \return Indication of success.
    */
   GHOST_TSuccess findMatch(GHOST_TUns8 display,

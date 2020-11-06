@@ -62,7 +62,7 @@ class GHOST_TimerManager {
   /**
    * Adds a timer task to the list.
    * It is only added when it not already present in the list.
-   * \param timer The timer task added to the list.
+   * \param timer: The timer task added to the list.
    * \return Indication as to whether addition has succeeded.
    */
   GHOST_TSuccess addTimer(GHOST_TimerTask *timer);
@@ -70,7 +70,7 @@ class GHOST_TimerManager {
   /**
    * Removes a timer task from the list.
    * It is only removed when it is found in the list.
-   * \param timer The timer task to be removed from the list.
+   * \param timer: The timer task to be removed from the list.
    * \return Indication as to whether removal has succeeded.
    */
   GHOST_TSuccess removeTimer(GHOST_TimerTask *timer);
@@ -84,15 +84,15 @@ class GHOST_TimerManager {
 
   /**
    * Checks all timer tasks to see if they are expired and fires them if needed.
-   * \param time The current time.
+   * \param time: The current time.
    * \return True if any timers were fired.
    */
   bool fireTimers(GHOST_TUns64 time);
 
   /**
    * Checks this timer task to see if they are expired and fires them if needed.
-   * \param time The current time.
-   * \param task The timer task to check and optionally fire.
+   * \param time: The current time.
+   * \param task: The timer task to check and optionally fire.
    * \return True if the timer fired.
    */
   bool fireTimer(GHOST_TUns64 time, GHOST_TimerTask *task);

@@ -46,8 +46,8 @@ class GHOST_IEventConsumer {
   /**
    * This method is called by the system when it has events to dispatch.
    * \see GHOST_ISystem#dispatchEvents
-   * \param   event   The event that can be handled or ignored.
-   * \return  Indication as to whether the event was handled.
+   * \param event: The event that can be handled or ignored.
+   * \return Indication as to whether the event was handled.
    */
   virtual bool processEvent(GHOST_IEvent *event) = 0;
 

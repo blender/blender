@@ -35,7 +35,7 @@ class GHOST_Context : public GHOST_IContext {
  public:
   /**
    * Constructor.
-   * \param stereoVisual      Stereo visual for quad buffered stereo.
+   * \param stereoVisual: Stereo visual for quad buffered stereo.
    */
   GHOST_Context(bool stereoVisual) : m_stereoVisual(stereoVisual)
   {
@@ -50,19 +50,19 @@ class GHOST_Context : public GHOST_IContext {
 
   /**
    * Swaps front and back buffers of a window.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   virtual GHOST_TSuccess swapBuffers() = 0;
 
   /**
    * Activates the drawing context of this window.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   virtual GHOST_TSuccess activateDrawingContext() = 0;
 
   /**
    * Release the drawing context of the calling thread.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   virtual GHOST_TSuccess releaseDrawingContext() = 0;
 
@@ -89,8 +89,8 @@ class GHOST_Context : public GHOST_IContext {
   virtual GHOST_TSuccess releaseNativeHandles() = 0;
 
   /**
-   * Sets the swap interval for swapBuffers.
-   * \param interval The swap interval to use.
+   * Sets the swap interval for #swapBuffers.
+   * \param interval: The swap interval to use.
    * \return A boolean success indicator.
    */
   virtual GHOST_TSuccess setSwapInterval(int /*interval*/)
@@ -99,8 +99,8 @@ class GHOST_Context : public GHOST_IContext {
   }
 
   /**
-   * Gets the current swap interval for swapBuffers.
-   * \param intervalOut Variable to store the swap interval if it can be read.
+   * Gets the current swap interval for #swapBuffers.
+   * \param intervalOut: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
   virtual GHOST_TSuccess getSwapInterval(int &)

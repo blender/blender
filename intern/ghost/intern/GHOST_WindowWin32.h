@@ -262,16 +262,16 @@ class GHOST_WindowWin32 : public GHOST_Window {
   /**
    * Constructor.
    * Creates a new window and opens it.
-   * To check if the window was created properly, use the getValid() method.
-   * \param title     The text shown in the title bar of the window.
-   * \param left      The coordinate of the left edge of the window.
-   * \param top       The coordinate of the top edge of the window.
-   * \param width     The width the window.
-   * \param height    The height the window.
-   * \param state     The state the window is initially opened with.
-   * \param type      The type of drawing context installed in this window.
-   * \param wantStereoVisual   Stereo visual for quad buffered stereo.
-   * \param parentWindowHwnd
+   * To check if the window was created properly, use the #getValid() method.
+   * \param title: The text shown in the title bar of the window.
+   * \param left: The coordinate of the left edge of the window.
+   * \param top: The coordinate of the top edge of the window.
+   * \param width: The width the window.
+   * \param height: The height the window.
+   * \param state: The state the window is initially opened with.
+   * \param type: The type of drawing context installed in this window.
+   * \param wantStereoVisual: Stereo visual for quad buffered stereo.
+   * \param parentWindowHwnd: TODO.
    */
   GHOST_WindowWin32(GHOST_SystemWin32 *system,
                     const char *title,
@@ -307,7 +307,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Sets the title displayed in the title bar.
-   * \param title The title to display in the title bar.
+   * \param title: The title to display in the title bar.
    */
   void setTitle(const char *title);
 
@@ -321,33 +321,33 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * Returns the window rectangle dimensions.
    * The dimensions are given in screen coordinates that are
    * relative to the upper-left corner of the screen.
-   * \param bounds The bounding rectangle of the window.
+   * \param bounds: The bounding rectangle of the window.
    */
   void getWindowBounds(GHOST_Rect &bounds) const;
 
   /**
    * Returns the client rectangle dimensions.
    * The left and top members of the rectangle are always zero.
-   * \param bounds The bounding rectangle of the client area of the window.
+   * \param bounds: The bounding rectangle of the client area of the window.
    */
   void getClientBounds(GHOST_Rect &bounds) const;
 
   /**
    * Resizes client rectangle width.
-   * \param width The new width of the client area of the window.
+   * \param width: The new width of the client area of the window.
    */
   GHOST_TSuccess setClientWidth(GHOST_TUns32 width);
 
   /**
    * Resizes client rectangle height.
-   * \param height The new height of the client area of the window.
+   * \param height: The new height of the client area of the window.
    */
   GHOST_TSuccess setClientHeight(GHOST_TUns32 height);
 
   /**
    * Resizes client rectangle.
-   * \param width     The new width of the client area of the window.
-   * \param height    The new height of the client area of the window.
+   * \param width: The new width of the client area of the window.
+   * \param height: The new height of the client area of the window.
    */
   GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height);
 
@@ -359,10 +359,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
-   * \param inX   The x-coordinate on the screen.
-   * \param inY   The y-coordinate on the screen.
-   * \param outX  The x-coordinate in the client rectangle.
-   * \param outY  The y-coordinate in the client rectangle.
+   * \param inX: The x-coordinate on the screen.
+   * \param inY: The y-coordinate on the screen.
+   * \param outX: The x-coordinate in the client rectangle.
+   * \param outY: The y-coordinate in the client rectangle.
    */
   void screenToClient(GHOST_TInt32 inX,
                       GHOST_TInt32 inY,
@@ -371,10 +371,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
-   * \param inX   The x-coordinate in the client rectangle.
-   * \param inY   The y-coordinate in the client rectangle.
-   * \param outX  The x-coordinate on the screen.
-   * \param outY  The y-coordinate on the screen.
+   * \param inX: The x-coordinate in the client rectangle.
+   * \param inY: The y-coordinate in the client rectangle.
+   * \param outX: The x-coordinate on the screen.
+   * \param outY: The y-coordinate on the screen.
    */
   void clientToScreen(GHOST_TInt32 inX,
                       GHOST_TInt32 inY,
@@ -383,14 +383,14 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Sets the state of the window (normal, minimized, maximized).
-   * \param state The state of the window.
+   * \param state: The state of the window.
    * \return Indication of success.
    */
   GHOST_TSuccess setState(GHOST_TWindowState state);
 
   /**
    * Sets the order of the window (bottom, top).
-   * \param order The order of the window.
+   * \param order: The order of the window.
    * \return Indication of success.
    */
   GHOST_TSuccess setOrder(GHOST_TWindowOrder order);
@@ -402,7 +402,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Sets the progress bar value displayed in the window/application icon
-   * \param progress The progress %
+   * \param progress: The progress percentage (0.0 to 1.0).
    */
   GHOST_TSuccess setProgressBar(float progress);
 
@@ -416,8 +416,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * for any real button press, controls mouse
    * capturing).
    *
-   * \param event Whether mouse was pressed and released, or an operator grabbed or ungrabbed the
-   * mouse
+   * \param event: Whether mouse was pressed and released,
+   * or an operator grabbed or ungrabbed the mouse.
    */
   void updateMouseCapture(GHOST_MouseCaptureEventWin32 event);
 
@@ -431,31 +431,31 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Loads the windows equivalent of a standard GHOST cursor.
-   * \param visible       Flag for cursor visibility.
-   * \param cursorShape   The cursor shape.
+   * \param visible: Flag for cursor visibility.
+   * \param cursorShape: The cursor shape.
    */
   HCURSOR getStandardCursor(GHOST_TStandardCursor shape) const;
   void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
   /**
    * Handle setup and switch between Wintab and Pointer APIs.
-   * \param active    Whether the window is or will be in an active state.
-   * \param visible   Whether the window is currently (or will be) visible).
+   * \param active: Whether the window is or will be in an active state.
+   * \param visible: Whether the window is currently (or will be) visible).
    */
   void updateWintab(bool active, bool visible);
 
   /**
    * Query whether given tablet API should be used.
-   * \param api   Tablet API to test.
+   * \param api: Tablet API to test.
    */
   bool useTabletAPI(GHOST_TTabletAPI api) const;
 
   /**
    * Translate WM_POINTER events into GHOST_PointerInfoWin32 structs.
-   * \param outPointerInfo    Storage to return resulting GHOST_PointerInfoWin32 structs.
-   * \param wParam            WPARAM of the event.
-   * \param lParam            LPARAM of the event.
-   * \return                  True if outPointerInfo was updated.
+   * \param outPointerInfo: Storage to return resulting GHOST_PointerInfoWin32 structs.
+   * \param wParam: WPARAM of the event.
+   * \param lParam: LPARAM of the event.
+   * \return True if #outPointerInfo was updated.
    */
   GHOST_TSuccess getPointerInfo(std::vector<GHOST_PointerInfoWin32> &outPointerInfo,
                                 WPARAM wParam,
@@ -468,20 +468,20 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Set tablet details when a cursor enters range.
-   * \param inRange   Whether the Wintab device is in tracking range.
+   * \param inRange: Whether the Wintab device is in tracking range.
    */
   void processWintabProximityEvent(bool inRange);
 
   /**
    * Handle Wintab info changes such as change in number of connected tablets.
-   * \param lParam   LPARAM of the event.
+   * \param lParam: LPARAM of the event.
    */
   void processWintabInfoChangeEvent(LPARAM lParam);
 
   /**
    * Translate Wintab packets into GHOST_WintabInfoWin32 structs.
-   * \param outWintabInfo   Storage to return resulting GHOST_WintabInfoWin32 structs.
-   * \return                Success if able to read packets, even if there are none.
+   * \param outWintabInfo: Storage to return resulting GHOST_WintabInfoWin32 structs.
+   * \return Success if able to read packets, even if there are none.
    */
   GHOST_TSuccess getWintabInfo(std::vector<GHOST_WintabInfoWin32> &outWintabInfo);
 
@@ -504,20 +504,20 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Get whether there are currently any mouse buttons pressed.
-   * \return    True if there are any currently pressed mouse buttons.
+   * \return True if there are any currently pressed mouse buttons.
    */
   bool getMousePressed() const;
 
   /**
    * Get if there are currently pressed Wintab buttons associated to a Windows mouse button press.
-   * \return    True if there are currently any pressed Wintab buttons associated to a Windows
-   *            mouse button press.
+   * \return True if there are currently any pressed Wintab buttons associated to a Windows
+   * mouse button press.
    */
   bool wintabSysButPressed() const;
 
   /**
    * Register a Wintab button has been associated to a Windows mouse button press.
-   * \param event   Whether the button was pressed or released.
+   * \param event: Whether the button was pressed or released.
    */
   void updateWintabSysBut(GHOST_MouseCaptureEventWin32 event);
 
@@ -540,7 +540,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
  private:
   /**
-   * \param type  The type of rendering context create.
+   * \param type: The type of rendering context create.
    * \return Indication of success.
    */
   GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);
@@ -554,7 +554,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
   /**
    * Sets the cursor grab on the window using native window system calls.
    * Using registerMouseClickEvent.
-   * \param mode  GHOST_TGrabCursorMode.
+   * \param mode: GHOST_TGrabCursorMode.
    */
   GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode);
 
@@ -644,10 +644,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Convert Wintab system mapped (mouse) buttons into Ghost button mask.
-   * \param cursor            The Wintab cursor associated to the button.
-   * \param physicalButton    The physical button ID to inspect.
-   * \param buttonMask        Return pointer for button found.
-   * \return                  Whether an associated button was found.
+   * \param cursor: The Wintab cursor associated to the button.
+   * \param physicalButton: The physical button ID to inspect.
+   * \param buttonMask: Return pointer for button found.
+   * \return Whether an associated button was found.
    */
   GHOST_TSuccess wintabMouseToGhost(UINT cursor,
                                     WORD physicalButton,

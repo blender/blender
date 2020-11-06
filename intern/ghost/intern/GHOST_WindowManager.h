@@ -47,54 +47,54 @@ class GHOST_WindowManager {
   /**
    * Add a window to our list.
    * It is only added if it is not already in the list.
-   * \param   window Pointer to the window to be added.
-   * \return  Indication of success.
+   * \param window: Pointer to the window to be added.
+   * \return Indication of success.
    */
   GHOST_TSuccess addWindow(GHOST_IWindow *window);
 
   /**
    * Remove a window from our list.
-   * \param   window Pointer to the window to be removed.
-   * \return  Indication of success.
+   * \param window: Pointer to the window to be removed.
+   * \return Indication of success.
    */
   GHOST_TSuccess removeWindow(const GHOST_IWindow *window);
 
   /**
    * Returns whether the window is in our list.
-   * \param   window Pointer to the window to query.
-   * \return  A boolean indicator.
+   * \param window: Pointer to the window to query.
+   * \return A boolean indicator.
    */
   bool getWindowFound(const GHOST_IWindow *window) const;
 
   /**
-   * Returns whether one of the windows is fullscreen.
-   * \return  A boolean indicator.
+   * Returns whether one of the windows is full-screen.
+   * \return A boolean indicator.
    */
   bool getFullScreen(void) const;
 
   /**
    * Returns pointer to the full-screen window.
-   * \return  The full-screen window (NULL if not in full-screen).
+   * \return The full-screen window (NULL if not in full-screen).
    */
   GHOST_IWindow *getFullScreenWindow(void) const;
 
   /**
-   * Activates fullscreen mode for a window.
-   * \param window The window displayed fullscreen.
-   * \return  Indication of success.
+   * Activates full-screen mode for a window.
+   * \param window: The window displayed full-screen.
+   * \return Indication of success.
    */
   GHOST_TSuccess beginFullScreen(GHOST_IWindow *window, const bool stereoVisual);
 
   /**
-   * Closes fullscreen mode down.
-   * \return  Indication of success.
+   * Closes full-screen mode down.
+   * \return Indication of success.
    */
   GHOST_TSuccess endFullScreen(void);
 
   /**
    * Sets new window as active window (the window receiving events).
    * There can be only one window active which should be in the current window list.
-   * \param window The new active window.
+   * \param window: The new active window.
    */
   GHOST_TSuccess setActiveWindow(GHOST_IWindow *window);
 
@@ -107,7 +107,7 @@ class GHOST_WindowManager {
 
   /**
    * Set this window to be inactive (not receiving events).
-   * \param window The window to deactivate.
+   * \param window: The window to deactivate.
    */
   void setWindowInactive(const GHOST_IWindow *window);
 
@@ -119,9 +119,9 @@ class GHOST_WindowManager {
   const std::vector<GHOST_IWindow *> &getWindows() const;
 
   /**
-   * Finds the window associated with an OS window object/handle
-   * \param osWindow The OS window object/handle
-   * \return The associated window, null if none corresponds
+   * Finds the window associated with an OS window object/handle.
+   * \param osWindow: The OS window object/handle.
+   * \return The associated window, null if none corresponds.
    */
   GHOST_IWindow *getWindowAssociatedWithOSWindow(void *osWindow);
 

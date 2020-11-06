@@ -763,7 +763,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
 /**
  * Create a new offscreen context.
  * Never explicitly delete the context, use #disposeContext() instead.
- * \return  The new context (or 0 if creation failed).
+ * \return The new context (or 0 if creation failed).
  */
 GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSettings)
 {
@@ -778,8 +778,8 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSet
 
 /**
  * Dispose of a context.
- * \param   context Pointer to the context to be disposed.
- * \return  Indication of success.
+ * \param context Pointer to the context to be disposed.
+ * \return Indication of success.
  */
 GHOST_TSuccess GHOST_SystemCocoa::disposeContext(GHOST_IContext *context)
 {

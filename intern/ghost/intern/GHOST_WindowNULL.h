@@ -168,7 +168,7 @@ class GHOST_WindowNULL : public GHOST_Window {
   GHOST_SystemNULL *m_system;
 
   /**
-   * \param type  The type of rendering context create.
+   * \param type: The type of rendering context create.
    * \return Indication of success.
    */
   GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type)

@@ -73,8 +73,8 @@ class GHOST_DropTargetWin32 : public IDropTarget {
    * With the modifier keys, we want to distinguish left and right keys.
    * Sometimes this is not possible (Windows ME for instance). Then, we want
    * events generated for both keys.
-   * \param window    The window to register as drop target.
-   * \param system    The associated system.
+   * \param window: The window to register as drop target.
+   * \param system: The associated system.
    */
   GHOST_DropTargetWin32(GHOST_WindowWin32 *window, GHOST_SystemWin32 *system);
 
@@ -89,14 +89,14 @@ class GHOST_DropTargetWin32 : public IDropTarget {
 
   /**
    * Base the effect on those allowed by the drop-source.
-   * \param dwAllowed Drop sources allowed drop effect.
+   * \param dwAllowed: Drop sources allowed drop effect.
    * \return The allowed drop effect.
    */
   DWORD allowedDropEffect(DWORD dwAllowed);
 
   /**
    * Query DataObject for the data types it supports.
-   * \param pDataObject Pointer to the DataObject.
+   * \param pDataObject: Pointer to the DataObject.
    * \return GHOST data type.
    */
   GHOST_TDragnDropTypes getGhostType(IDataObject *pDataObject);
@@ -104,21 +104,21 @@ class GHOST_DropTargetWin32 : public IDropTarget {
   /**
    * Get data to pass in event.
    * It checks the type and calls specific functions for each type.
-   * \param pDataObject Pointer to the DataObject.
+   * \param pDataObject: Pointer to the DataObject.
    * \return Pointer to data.
    */
   void *getGhostData(IDataObject *pDataObject);
 
   /**
    * Allocate data as file array to pass in event.
-   * \param pDataObject Pointer to the DataObject.
+   * \param pDataObject: Pointer to the DataObject.
    * \return Pointer to data.
    */
   void *getDropDataAsFilenames(IDataObject *pDataObject);
 
   /**
    * Allocate data as string to pass in event.
-   * \param pDataObject Pointer to the DataObject.
+   * \param pDataObject: Pointer to the DataObject.
    * \return Pointer to data.
    */
   void *getDropDataAsString(IDataObject *pDataObject);
@@ -127,8 +127,8 @@ class GHOST_DropTargetWin32 : public IDropTarget {
    * Convert Unicode to ANSI, replacing uncomfortable chars with '?'.
    * The ANSI codepage is the system default codepage,
    * and can change from system to system.
-   * \param in LPCWSTR.
-   * \param out char *. Is set to NULL on failure.
+   * \param in: LPCWSTR.
+   * \param out: char *. Is set to NULL on failure.
    * \return 0 on failure. Else the size of the string including '\0'.
    */
   int WideCharToANSI(LPCWSTR in, char *&out);
