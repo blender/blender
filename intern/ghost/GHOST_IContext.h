@@ -44,13 +44,13 @@ class GHOST_IContext {
 
   /**
    * Activates the drawing context.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   virtual GHOST_TSuccess activateDrawingContext() = 0;
 
   /**
    * Release the drawing context of the calling thread.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   virtual GHOST_TSuccess releaseDrawingContext() = 0;
 

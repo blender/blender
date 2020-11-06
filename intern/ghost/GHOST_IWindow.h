@@ -73,62 +73,62 @@ class GHOST_IWindow {
 
   /**
    * Tries to install a rendering context in this window.
-   * \param type  The type of rendering context installed.
+   * \param type: The type of rendering context installed.
    * \return Indication as to whether installation has succeeded.
    */
   virtual GHOST_TSuccess setDrawingContextType(GHOST_TDrawingContextType type) = 0;
 
   /**
    * Sets the title displayed in the title bar.
-   * \param title The title to display in the title bar.
+   * \param title: The title to display in the title bar.
    */
   virtual void setTitle(const char *title) = 0;
 
   /**
    * Returns the title displayed in the title bar.
-   * \param title The title displayed in the title bar.
+   * \param title: The title displayed in the title bar.
    */
   virtual std::string getTitle() const = 0;
 
   /**
    * Returns the window rectangle dimensions.
    * These are screen coordinates.
-   * \param bounds The bounding rectangle of the window.
+   * \param bounds: The bounding rectangle of the window.
    */
   virtual void getWindowBounds(GHOST_Rect &bounds) const = 0;
 
   /**
    * Returns the client rectangle dimensions.
    * The left and top members of the rectangle are always zero.
-   * \param bounds The bounding rectangle of the client area of the window.
+   * \param bounds: The bounding rectangle of the client area of the window.
    */
   virtual void getClientBounds(GHOST_Rect &bounds) const = 0;
 
   /**
    * Resizes client rectangle width.
-   * \param width The new width of the client area of the window.
+   * \param width: The new width of the client area of the window.
    */
   virtual GHOST_TSuccess setClientWidth(GHOST_TUns32 width) = 0;
 
   /**
    * Resizes client rectangle height.
-   * \param height The new height of the client area of the window.
+   * \param height: The new height of the client area of the window.
    */
   virtual GHOST_TSuccess setClientHeight(GHOST_TUns32 height) = 0;
 
   /**
    * Resizes client rectangle.
-   * \param width     The new width of the client area of the window.
-   * \param height    The new height of the client area of the window.
+   * \param width: The new width of the client area of the window.
+   * \param height: The new height of the client area of the window.
    */
   virtual GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height) = 0;
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
-   * \param inX   The x-coordinate on the screen.
-   * \param inY   The y-coordinate on the screen.
-   * \param outX  The x-coordinate in the client rectangle.
-   * \param outY  The y-coordinate in the client rectangle.
+   * \param inX: The x-coordinate on the screen.
+   * \param inY: The y-coordinate on the screen.
+   * \param outX: The x-coordinate in the client rectangle.
+   * \param outY: The y-coordinate in the client rectangle.
    */
   virtual void screenToClient(GHOST_TInt32 inX,
                               GHOST_TInt32 inY,
@@ -137,10 +137,10 @@ class GHOST_IWindow {
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
-   * \param inX   The x-coordinate in the client rectangle.
-   * \param inY   The y-coordinate in the client rectangle.
-   * \param outX  The x-coordinate on the screen.
-   * \param outY  The y-coordinate on the screen.
+   * \param inX: The x-coordinate in the client rectangle.
+   * \param inY: The y-coordinate in the client rectangle.
+   * \param outX: The x-coordinate on the screen.
+   * \param outY: The y-coordinate on the screen.
    */
   virtual void clientToScreen(GHOST_TInt32 inX,
                               GHOST_TInt32 inY,
@@ -166,14 +166,14 @@ class GHOST_IWindow {
 
   /**
    * Sets the state of the window (normal, minimized, maximized).
-   * \param state The state of the window.
+   * \param state: The state of the window.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess setState(GHOST_TWindowState state) = 0;
 
   /**
    * Sets the window "modified" status, indicating unsaved changes
-   * \param isUnsavedChanges Unsaved changes or not
+   * \param isUnsavedChanges: Unsaved changes or not.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges) = 0;
@@ -186,27 +186,27 @@ class GHOST_IWindow {
 
   /**
    * Sets the order of the window (bottom, top).
-   * \param order The order of the window.
+   * \param order: The order of the window.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess setOrder(GHOST_TWindowOrder order) = 0;
 
   /**
    * Swaps front and back buffers of a window.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   virtual GHOST_TSuccess swapBuffers() = 0;
 
   /**
-   * Sets the swap interval for swapBuffers.
-   * \param interval The swap interval to use.
+   * Sets the swap interval for #swapBuffers.
+   * \param interval: The swap interval to use.
    * \return A boolean success indicator.
    */
   virtual GHOST_TSuccess setSwapInterval(int interval) = 0;
 
   /**
-   * Gets the current swap interval for swapBuffers.
-   * \param intervalOut pointer to location to return swap interval
+   * Gets the current swap interval for #swapBuffers.
+   * \param intervalOut: pointer to location to return swap interval.
    * (left untouched if there is an error)
    * \return A boolean success indicator of if swap interval was successfully read.
    */
@@ -214,13 +214,13 @@ class GHOST_IWindow {
 
   /**
    * Activates the drawing context of this window.
-   * \return  A boolean success indicator.
+   * \return A boolean success indicator.
    */
   virtual GHOST_TSuccess activateDrawingContext() = 0;
 
   /**
-   * Gets the OpenGL framebuffer associated with the window's contents.
-   * \return The name of an OpenGL framebuffer object.
+   * Gets the OpenGL frame-buffer associated with the window's contents.
+   * \return The name of an OpenGL frame-buffer object.
    */
   virtual unsigned int getDefaultFramebuffer() = 0;
 
@@ -238,7 +238,7 @@ class GHOST_IWindow {
 
   /**
    * Changes the window user data.
-   * \param userData The window user data.
+   * \param userData: The window user data.
    */
   virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
 
@@ -250,7 +250,7 @@ class GHOST_IWindow {
 
   /**
    * Sets the progress bar value displayed in the window/application icon
-   * \param progress The progress %
+   * \param progress: The progress percentage (0.0 to 1.0).
    */
   virtual GHOST_TSuccess setProgressBar(float progress) = 0;
 
@@ -265,13 +265,13 @@ class GHOST_IWindow {
 
   /**
    * Returns the current cursor shape.
-   * \return  The current cursor shape.
+   * \return The current cursor shape.
    */
   virtual GHOST_TStandardCursor getCursorShape() const = 0;
 
   /**
    * Set the shape of the cursor.
-   * \param cursorShape:  The new cursor shape type id.
+   * \param cursorShape: The new cursor shape type id.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape) = 0;
@@ -284,11 +284,11 @@ class GHOST_IWindow {
 
   /**
    * Set the shape of the cursor to a custom cursor.
-   * \param   bitmap  The bitmap data for the cursor.
-   * \param   mask    The mask data for the cursor.
-   * \param   hotX    The X coordinate of the cursor hot-spot.
-   * \param   hotY    The Y coordinate of the cursor hot-spot.
-   * \return  Indication of success.
+   * \param bitmap: The bitmap data for the cursor.
+   * \param mask: The mask data for the cursor.
+   * \param hotX: The X coordinate of the cursor hot-spot.
+   * \param hotY: The Y coordinate of the cursor hot-spot.
+   * \return Indication of success.
    */
   virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 *bitmap,
                                               GHOST_TUns8 *mask,
@@ -300,21 +300,21 @@ class GHOST_IWindow {
 
   /**
    * Returns the visibility state of the cursor.
-   * \return  The visibility state of the cursor.
+   * \return The visibility state of the cursor.
    */
   virtual bool getCursorVisibility() const = 0;
 
   /**
    * Shows or hides the cursor.
-   * \param   visible The new visibility state of the cursor.
-   * \return  Indication of success.
+   * \param visible: The new visibility state of the cursor.
+   * \return Indication of success.
    */
   virtual GHOST_TSuccess setCursorVisibility(bool visible) = 0;
 
   /**
    * Grabs the cursor for a modal operation.
-   * \param   grab The new grab state of the cursor.
-   * \return  Indication of success.
+   * \param grab: The new grab state of the cursor.
+   * \return Indication of success.
    */
   virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode /*mode*/,
                                        GHOST_TAxisFlag /*wrap_axis*/,
@@ -340,13 +340,13 @@ class GHOST_IWindow {
   /**
    * Enable IME attached to the given window, i.e. allows user-input
    * events to be dispatched to the IME.
-   * \param x Requested x-coordinate of the rectangle
-   * \param y Requested y-coordinate of the rectangle
-   * \param w Requested width of the rectangle
-   * \param h Requested height of the rectangle
-   * \param complete Whether or not to complete the ongoing composition
-   * true:  Start a new composition
-   * false: Move the IME windows to the given position without finishing it.
+   * \param x: Requested x-coordinate of the rectangle.
+   * \param y: Requested y-coordinate of the rectangle.
+   * \param w: Requested width of the rectangle.
+   * \param h: Requested height of the rectangle.
+   * \param complete: Whether or not to complete the ongoing composition.
+   * - true:  Start a new composition
+   * - false: Move the IME windows to the given position without finishing it.
    */
   virtual void beginIME(
       GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 w, GHOST_TInt32 h, int completed) = 0;

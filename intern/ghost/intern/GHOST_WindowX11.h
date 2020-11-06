@@ -54,16 +54,16 @@ class GHOST_WindowX11 : public GHOST_Window {
    * Constructor.
    * Creates a new window and opens it.
    * To check if the window was created properly, use the getValid() method.
-   * \param title     The text shown in the title bar of the window.
-   * \param left      The coordinate of the left edge of the window.
-   * \param top       The coordinate of the top edge of the window.
-   * \param width     The width the window.
-   * \param height    The height the window.
-   * \param state     The state the window is initially opened with.
-   * \param parentWindow  Parent (embedder) window
-   * \param type      The type of drawing context installed in this window.
-   * \param stereoVisual  Stereo visual for quad buffered stereo.
-   * \param alphaBackground Enable alpha blending of window with display background
+   * \param title: The text shown in the title bar of the window.
+   * \param left: The coordinate of the left edge of the window.
+   * \param top: The coordinate of the top edge of the window.
+   * \param width: The width the window.
+   * \param height: The height the window.
+   * \param state: The state the window is initially opened with.
+   * \param parentWindow: Parent (embedder) window.
+   * \param type: The type of drawing context installed in this window.
+   * \param stereoVisual: Stereo visual for quad buffered stereo.
+   * \param alphaBackground: Enable alpha blending of window with display background.
    */
   GHOST_WindowX11(GHOST_SystemX11 *system,
                   Display *display,
@@ -186,7 +186,7 @@ class GHOST_WindowX11 : public GHOST_Window {
 
  protected:
   /**
-   * \param type  The type of rendering context create.
+   * \param type: The type of rendering context create.
    * \return Indication of success.
    */
   GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);

@@ -40,15 +40,15 @@ struct GHOST_Buttons {
 
   /**
    * Returns the state of a single button.
-   * \param mask Key button to return.
+   * \param mask: Key button to return.
    * \return The state of the button (pressed == true).
    */
   bool get(GHOST_TButtonMask mask) const;
 
   /**
    * Updates the state of a single button.
-   * \param mask Button state to update.
-   * \param down The new state of the button.
+   * \param mask: Button state to update.
+   * \param down: The new state of the button.
    */
   void set(GHOST_TButtonMask mask, bool down);
 

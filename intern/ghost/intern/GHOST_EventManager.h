@@ -57,7 +57,7 @@ class GHOST_EventManager {
 
   /**
    * Returns the number of events of a certain type currently on the stack.
-   * \param type The type of events to be counted.
+   * \param type: The type of events to be counted.
    * \return The number of events on the stack of this type.
    */
   GHOST_TUns32 getNumEvents(GHOST_TEventType type);
@@ -66,7 +66,7 @@ class GHOST_EventManager {
    * Pushes an event on the stack.
    * To dispatch it, call dispatchEvent() or dispatchEvents().
    * Do not delete the event!
-   * \param event The event to push on the stack.
+   * \param event: The event to push on the stack.
    */
   GHOST_TSuccess pushEvent(GHOST_IEvent *event);
 
@@ -89,30 +89,30 @@ class GHOST_EventManager {
 
   /**
    * Adds a consumer to the list of event consumers.
-   * \param consumer The consumer added to the list.
+   * \param consumer: The consumer added to the list.
    * \return Indication as to whether addition has succeeded.
    */
   GHOST_TSuccess addConsumer(GHOST_IEventConsumer *consumer);
 
   /**
    * Removes a consumer from the list of event consumers.
-   * \param consumer The consumer removed from the list.
+   * \param consumer: The consumer removed from the list.
    * \return Indication as to whether removal has succeeded.
    */
   GHOST_TSuccess removeConsumer(GHOST_IEventConsumer *consumer);
 
   /**
    * Removes all events for a window from the stack.
-   * \param   window  The window to remove events for.
+   * \param window: The window to remove events for.
    */
   void removeWindowEvents(GHOST_IWindow *window);
 
   /**
    * Removes all events of a certain type from the stack.
-   * The window parameter is optional. If non-null, the routine will remove
-   * events only associated with that window.
-   * \param   type    The type of events to be removed.
-   * \param   window  The window to remove the events for.
+   * The window parameter is optional.
+   * If non-null, the routine will remove events only associated with that window.
+   * \param type: The type of events to be removed.
+   * \param window: The window to remove the events for.
    */
   void removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *window = NULL);
 

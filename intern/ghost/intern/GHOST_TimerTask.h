@@ -33,9 +33,9 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
  public:
   /**
    * Constructor.
-   * \param start     The timer start time.
-   * \param interval  The interval between calls to the timerProc
-   * \param timerProc The callback invoked when the interval expires.
+   * \param start: The timer start time.
+   * \param interval: The interval between calls to the #timerProc.
+   * \param timerProc: The callback invoked when the interval expires.
    * \param userData: The timer user data.
    */
   GHOST_TimerTask(GHOST_TUns64 start,
@@ -62,7 +62,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
 
   /**
    * Changes the timer start time.
-   * \param start The timer start time.
+   * \param start: The timer start time.
    */
   void setStart(GHOST_TUns64 start)
   {
@@ -80,7 +80,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
 
   /**
    * Changes the timer interval.
-   * \param interval The timer interval.
+   * \param interval: The timer interval.
    */
   void setInterval(GHOST_TUns64 interval)
   {
@@ -98,7 +98,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
 
   /**
    * Changes the time the timerProc will be called.
-   * \param next The time the timerProc will be called.
+   * \param next: The time the timerProc will be called.
    */
   void setNext(GHOST_TUns64 next)
   {
@@ -152,7 +152,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
 
   /**
    * Changes the auxiliary storage room.
-   * \param auxData The auxiliary storage room.
+   * \param auxData: The auxiliary storage room.
    */
   void setAuxData(GHOST_TUns32 auxData)
   {

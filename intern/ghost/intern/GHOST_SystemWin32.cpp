@@ -422,8 +422,8 @@ finished:
 
 /**
  * Dispose of a context.
- * \param   context Pointer to the context to be disposed.
- * \return  Indication of success.
+ * \param context Pointer to the context to be disposed.
+ * \return Indication of success.
  */
 GHOST_TSuccess GHOST_SystemWin32::disposeContext(GHOST_IContext *context)
 {

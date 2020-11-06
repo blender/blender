@@ -85,7 +85,7 @@ class GHOST_WindowSDL : public GHOST_Window {
 
  protected:
   /**
-   * \param type  The type of rendering context create.
+   * \param type: The type of rendering context create.
    * \return Indication of success.
    */
   GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);

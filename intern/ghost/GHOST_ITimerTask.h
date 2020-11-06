@@ -55,7 +55,7 @@ class GHOST_ITimerTask {
 
   /**
    * Changes the timer callback.
-   * \param timerProc The timer callback.
+   * \param timerProc: The timer callback.
    */
   virtual void setTimerProc(const GHOST_TimerProcPtr timerProc) = 0;
 

@@ -277,7 +277,7 @@ void GHOST_XrContext::setErrorHandler(GHOST_XrErrorHandlerFn handler_fn, void *c
  * \{ */
 
 /**
- * \param layer_name May be NULL for extensions not belonging to a specific layer.
+ * \param layer_name: May be NULL for extensions not belonging to a specific layer.
  */
 void GHOST_XrContext::initExtensionsEx(std::vector<XrExtensionProperties> &extensions,
                                        const char *layer_name)

@@ -121,20 +121,19 @@ class GHOST_SystemX11 : public GHOST_System {
   /**
    * Create a new window.
    * The new window is added to the list of windows managed.
-   * Never explicitly delete the window, use disposeWindow() instead.
-   * \param   title   The name of the window
+   * Never explicitly delete the window, use #disposeWindow() instead.
+   * \param title: The name of the window.
    * (displayed in the title bar of the window if the OS supports it).
-   * \param   left        The coordinate of the left edge of the window.
-   * \param   top     The coordinate of the top edge of the window.
-   * \param   width       The width the window.
-   * \param   height      The height the window.
-   * \param   state       The state of the window when opened.
-   * \param   type        The type of drawing context installed in this window.
-   * \param   stereoVisual    Create a stereo visual for quad buffered stereo.
-   * \param   exclusive   Use to show the window ontop and ignore others
-   *                      (used fullscreen).
-   * \param   parentWindow    Parent (embedder) window
-   * \return  The new window (or 0 if creation failed).
+   * \param left: The coordinate of the left edge of the window.
+   * \param top: The coordinate of the top edge of the window.
+   * \param width: The width the window.
+   * \param height: The height the window.
+   * \param state: The state of the window when opened.
+   * \param type: The type of drawing context installed in this window.
+   * \param stereoVisual: Create a stereo visual for quad buffered stereo.
+   * \param exclusive: Use to show the window ontop and ignore others (used full*screen).
+   * \param parentWindow: Parent (embedder) window.
+   * \return The new window (or 0 if creation failed).
    */
   GHOST_IWindow *createWindow(const char *title,
                               GHOST_TInt32 left,
@@ -151,20 +150,20 @@ class GHOST_SystemX11 : public GHOST_System {
   /**
    * Create a new offscreen context.
    * Never explicitly delete the context, use disposeContext() instead.
-   * \return  The new context (or 0 if creation failed).
+   * \return The new context (or 0 if creation failed).
    */
   GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings);
 
   /**
    * Dispose of a context.
-   * \param   context Pointer to the context to be disposed.
-   * \return  Indication of success.
+   * \param context: Pointer to the context to be disposed.
+   * \return Indication of success.
    */
   GHOST_TSuccess disposeContext(GHOST_IContext *context);
 
   /**
    * Retrieves events from the system and stores them in the queue.
-   * \param waitForEvent Flag to wait for an event (or return immediately).
+   * \param waitForEvent: Flag to wait for an event (or return immediately).
    * \return Indication of the presence of events.
    */
   bool processEvents(bool waitForEvent);
@@ -175,15 +174,15 @@ class GHOST_SystemX11 : public GHOST_System {
 
   /**
    * Returns the state of all modifier keys.
-   * \param keys  The state of all modifier keys (true == pressed).
-   * \return      Indication of success.
+   * \param keys: The state of all modifier keys (true == pressed).
+   * \return Indication of success.
    */
   GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const;
 
   /**
    * Returns the state of the mouse buttons (outside the message queue).
-   * \param buttons   The state of the buttons.
-   * \return          Indication of success.
+   * \param buttons: The state of the buttons.
+   * \return Indication of success.
    */
   GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const;
 
@@ -220,26 +219,26 @@ class GHOST_SystemX11 : public GHOST_System {
 
   /**
    * Returns unsigned char from CUT_BUFFER0
-   * \param selection     Get selection, X11 only feature
-   * \return              Returns the Clipboard indicated by Flag
+   * \param selection: Get selection, X11 only feature.
+   * \return Returns the Clipboard indicated by Flag.
    */
   GHOST_TUns8 *getClipboard(bool selection) const;
 
   /**
    * Puts buffer to system clipboard
-   * \param buffer    The buffer to copy to the clipboard
-   * \param selection Set the selection into the clipboard, X11 only feature
+   * \param buffer: The buffer to copy to the clipboard.
+   * \param selection: Set the selection into the clipboard, X11 only feature.
    */
   void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
   /**
    * Show a system message box
-   * \param title                   The title of the message box
-   * \param message                 The message to display
-   * \param help_label              Help button label
-   * \param continue_label          Continue button label
-   * \param link                    An optional hyperlink
-   * \param dialog_options Options  how to display the message
+   * \param title: The title of the message box.
+   * \param message: The message to display.
+   * \param help_label: Help button label.
+   * \param continue_label: Continue button label.
+   * \param link: An optional hyperlink.
+   * \param dialog_options: Options  how to display the message.
    */
   GHOST_TSuccess showMessageBox(const char *title,
                                 const char *message,
@@ -251,12 +250,12 @@ class GHOST_SystemX11 : public GHOST_System {
   /**
    * Creates a drag'n'drop event and pushes it immediately onto the event queue.
    * Called by GHOST_DropTargetX11 class.
-   * \param eventType The type of drag'n'drop event
-   * \param draggedObjectType The type object concerned
+   * \param eventType: The type of drag'n'drop event.
+   * \param draggedObjectType: The type object concerned.
    * (currently array of file names, string, ?bitmap)
-   * \param mouseX x mouse coordinate (in window coordinates)
-   * \param mouseY y mouse coordinate
-   * \param window The window on which the event occurred
+   * \param mouseX: x mouse coordinate (in window coordinates).
+   * \param mouseY: y mouse coordinate.
+   * \param window: The window on which the event occurred.
    * \return Indication whether the event was handled.
    */
   static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType,

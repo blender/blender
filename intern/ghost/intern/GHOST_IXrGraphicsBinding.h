@@ -44,8 +44,8 @@ class GHOST_IXrGraphicsBinding {
    * Does __not__ require this object is initialized (can be called prior to
    * #initFromGhostContext). It's actually meant to be called first.
    *
-   * \param r_requirement_info Return argument to retrieve an informal string on the requirements
-   *                           to be met. Useful for error/debug messages.
+   * \param r_requirement_info: Return argument to retrieve an informal string on the requirements.
+   * to be met. Useful for error/debug messages.
    */
   virtual bool checkVersionRequirements(class GHOST_Context &ghost_ctx,
                                         XrInstance instance,

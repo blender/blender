@@ -33,11 +33,11 @@ class GHOST_EventCursor : public GHOST_Event {
  public:
   /**
    * Constructor.
-   * \param msec      The time this event was generated.
-   * \param type      The type of this event.
-   * \param x         The x-coordinate of the location the cursor was at the time of the event.
-   * \param y         The y-coordinate of the location the cursor was at the time of the event.
-   * \param tablet    The tablet data associated with this event.
+   * \param msec: The time this event was generated.
+   * \param type: The type of this event.
+   * \param x: The x-coordinate of the location the cursor was at the time of the event.
+   * \param y: The y-coordinate of the location the cursor was at the time of the event.
+   * \param tablet: The tablet data associated with this event.
    */
   GHOST_EventCursor(GHOST_TUns64 msec,
                     GHOST_TEventType type,

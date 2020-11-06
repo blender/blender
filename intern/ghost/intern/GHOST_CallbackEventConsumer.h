@@ -35,8 +35,8 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
  public:
   /**
    * Constructor.
-   * \param   eventCallback   The call-back routine invoked.
-   * \param   userData        The data passed back through the call-back routine.
+   * \param eventCallback: The call-back routine invoked.
+   * \param userData: The data passed back through the call-back routine.
    */
   GHOST_CallbackEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
                               GHOST_TUserDataPtr userData);
@@ -50,7 +50,7 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
 
   /**
    * This method is called by an event producer when an event is available.
-   * \param event The event that can be handled or ignored.
+   * \param event: The event that can be handled or ignored.
    * \return Indication as to whether the event was handled.
    */
   bool processEvent(GHOST_IEvent *event);

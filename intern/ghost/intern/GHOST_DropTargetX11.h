@@ -34,8 +34,8 @@ class GHOST_DropTargetX11 {
   /**
    * Constructor
    *
-   * \param window    The window to register as drop target.
-   * \param system    The associated system.
+   * \param window: The window to register as drop target.
+   * \param system: The associated system.
    */
   GHOST_DropTargetX11(GHOST_WindowX11 *window, GHOST_SystemX11 *system);
 
@@ -52,9 +52,9 @@ class GHOST_DropTargetX11 {
   /**
    * Get data to pass in event.
    * It checks the type and calls specific functions for each type.
-   * \param dropType - type of dropped entity.
-   * \param dropBuffer - buffer returned from source application
-   * \param dropBufferSize - size of returned buffer
+   * \param dropType: Type of dropped entity.
+   * \param dropBuffer: Buffer returned from source application.
+   * \param dropBufferSize: Size of returned buffer.
    * \return Pointer to data.
    */
   void *getGhostData(Atom dropType, unsigned char *dropBuffer, int dropBufferSize);
@@ -73,25 +73,25 @@ class GHOST_DropTargetX11 {
   void Uninitialize(void);
 
   /**
-   * Get data to be passed to event from text/uri-list mime type
-   * \param dropBuffer - buffer returned from source application
-   * \param dropBufferSize - size of dropped buffer
-   * \return pointer to newly created GHOST data
+   * Get data to be passed to event from text/URI-list mime type
+   * \param dropBuffer: Buffer returned from source application.
+   * \param dropBufferSize: Size of dropped buffer.
+   * \return pointer to newly created GHOST data.
    */
   void *getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize);
 
   /**
-   * Decode URL (i.e. converts "file:///a%20b/test" to "file:///a b/test")
-   * \param decodedOut - buffer for decoded URL
-   * \param bufferSize - size of output buffer
-   * \param encodedIn - input encoded buffer to be decoded
+   * Decode URL (i.e. converts `file:///a%20b/test` to `file:///a b/test`)
+   * \param decodedOut: - buffer for decoded URL.
+   * \param bufferSize: - size of output buffer.
+   * \param encodedIn: - input encoded buffer to be decoded.
    */
   void UrlDecode(char *decodedOut, int bufferSize, const char *encodedIn);
 
   /**
-   * Fully decode file URL (i.e. converts "file:///a%20b/test" to "/a b/test")
-   * \param fileUrl - file path URL to be fully decoded
-   * \return decoded file path (result should be free-d)
+   * Fully decode file URL (i.e. converts `file:///a%20b/test` to `/a b/test`)
+   * \param fileUrl: - file path URL to be fully decoded.
+   * \return decoded file path (result should be free-d).
    */
   char *FileUrlDecode(char *fileUrl);
 
