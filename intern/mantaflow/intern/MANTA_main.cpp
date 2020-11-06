@@ -458,8 +458,7 @@ bool MANTA::initObstacle(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    mUsingObstacle = true;
-    return runPythonString(pythonCommands);
+    return (mUsingObstacle = runPythonString(pythonCommands));
   }
   return false;
 }
@@ -473,8 +472,7 @@ bool MANTA::initGuiding(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    mUsingGuiding = true;
-    return runPythonString(pythonCommands);
+    return (mUsingGuiding = runPythonString(pythonCommands));
   }
   return false;
 }
@@ -486,8 +484,7 @@ bool MANTA::initFractions(FluidModifierData *fmd)
   string finalString = parseScript(tmpString, fmd);
   pythonCommands.push_back(finalString);
 
-  mUsingFractions = true;
-  return runPythonString(pythonCommands);
+  return (mUsingFractions = runPythonString(pythonCommands));
 }
 
 bool MANTA::initInVelocity(FluidModifierData *fmd)
@@ -498,8 +495,7 @@ bool MANTA::initInVelocity(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    mUsingInvel = true;
-    return runPythonString(pythonCommands);
+    return (mUsingInvel = runPythonString(pythonCommands));
   }
   return false;
 }
@@ -512,8 +508,7 @@ bool MANTA::initOutflow(FluidModifierData *fmd)
     string finalString = parseScript(tmpString, fmd);
     pythonCommands.push_back(finalString);
 
-    mUsingOutflow = true;
-    return runPythonString(pythonCommands);
+    return (mUsingOutflow = runPythonString(pythonCommands));
   }
   return false;
 }
@@ -565,7 +560,7 @@ MANTA::~MANTA()
   pythonCommands.push_back(finalString);
   result = runPythonString(pythonCommands);
 
-  assert(result);
+  BLI_assert(result);
   UNUSED_VARS(result);
 }
 
@@ -610,7 +605,7 @@ bool MANTA::runPythonString(vector<string> commands)
   }
   PyGILState_Release(gilstate);
 
-  assert(success);
+  BLI_assert(success);
   return success;
 }
 
@@ -1590,7 +1585,7 @@ bool MANTA::updateVariables(FluidModifierData *fmd)
   return runPythonString(pythonCommands);
 }
 
-void MANTA::exportSmokeScript(FluidModifierData *fmd)
+bool MANTA::exportSmokeScript(FluidModifierData *fmd)
 {
   if (with_debug)
     cout << "MANTA::exportSmokeScript()" << endl;
@@ -1696,9 +1691,14 @@ void MANTA::exportSmokeScript(FluidModifierData *fmd)
   myfile.open(cacheDirScript);
   myfile << final_script;
   myfile.close();
+  if (!myfile) {
+    cerr << "Fluid Error -- Could not export standalone Mantaflow smoke domain script";
+    return false;
+  }
+  return true;
 }
 
-void MANTA::exportLiquidScript(FluidModifierData *fmd)
+bool MANTA::exportLiquidScript(FluidModifierData *fmd)
 {
   if (with_debug)
     cout << "MANTA::exportLiquidScript()" << endl;
@@ -1804,6 +1804,11 @@ void MANTA::exportLiquidScript(FluidModifierData *fmd)
   myfile.open(cacheDirScript);
   myfile << final_script;
   myfile.close();
+  if (!myfile) {
+    cerr << "Fluid Error -- Could not export standalone Mantaflow liquid domain script";
+    return false;
+  }
+  return true;
 }
 
 /* Call Mantaflow Python functions through this function. Use isAttribute for object attributes,

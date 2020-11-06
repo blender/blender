@@ -104,8 +104,8 @@ struct MANTA {
   bool bakeGuiding(FluidModifierData *fmd, int framenr);
 
   /* IO for Mantaflow scene script. */
-  void exportSmokeScript(struct FluidModifierData *fmd);
-  void exportLiquidScript(struct FluidModifierData *fmd);
+  bool exportSmokeScript(struct FluidModifierData *fmd);
+  bool exportLiquidScript(struct FluidModifierData *fmd);
 
   /* Check cache status by frame. */
   bool hasConfig(FluidModifierData *fmd, int framenr);

@@ -33,44 +33,44 @@ struct MANTA;
 /* Fluid functions */
 struct MANTA *manta_init(int *res, struct FluidModifierData *fmd);
 void manta_free(struct MANTA *fluid);
-int manta_ensure_obstacle(struct MANTA *fluid, struct FluidModifierData *fmd);
-int manta_ensure_guiding(struct MANTA *fluid, struct FluidModifierData *fmd);
-int manta_ensure_invelocity(struct MANTA *fluid, struct FluidModifierData *fmd);
-int manta_ensure_outflow(struct MANTA *fluid, struct FluidModifierData *fmd);
-int manta_write_config(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_write_data(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_write_noise(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_read_config(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_read_data(struct MANTA *fluid,
-                    struct FluidModifierData *fmd,
-                    int framenr,
-                    bool resumable);
-int manta_read_noise(struct MANTA *fluid,
+bool manta_ensure_obstacle(struct MANTA *fluid, struct FluidModifierData *fmd);
+bool manta_ensure_guiding(struct MANTA *fluid, struct FluidModifierData *fmd);
+bool manta_ensure_invelocity(struct MANTA *fluid, struct FluidModifierData *fmd);
+bool manta_ensure_outflow(struct MANTA *fluid, struct FluidModifierData *fmd);
+bool manta_write_config(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_write_data(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_write_noise(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_read_config(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_read_data(struct MANTA *fluid,
                      struct FluidModifierData *fmd,
                      int framenr,
                      bool resumable);
-int manta_read_mesh(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_read_particles(struct MANTA *fluid,
-                         struct FluidModifierData *fmd,
-                         int framenr,
-                         bool resumable);
-int manta_read_guiding(struct MANTA *fluid,
-                       struct FluidModifierData *fmd,
-                       int framenr,
-                       bool sourceDomain);
-int manta_bake_data(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_bake_noise(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_bake_mesh(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_bake_particles(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_bake_guiding(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_has_data(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_has_noise(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_has_mesh(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_has_particles(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
-int manta_has_guiding(struct MANTA *fluid,
+bool manta_read_noise(struct MANTA *fluid,
                       struct FluidModifierData *fmd,
                       int framenr,
-                      bool domain);
+                      bool resumable);
+bool manta_read_mesh(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_read_particles(struct MANTA *fluid,
+                          struct FluidModifierData *fmd,
+                          int framenr,
+                          bool resumable);
+bool manta_read_guiding(struct MANTA *fluid,
+                        struct FluidModifierData *fmd,
+                        int framenr,
+                        bool sourceDomain);
+bool manta_bake_data(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_bake_noise(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_bake_mesh(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_bake_particles(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_bake_guiding(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_has_data(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_has_noise(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_has_mesh(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_has_particles(struct MANTA *fluid, struct FluidModifierData *fmd, int framenr);
+bool manta_has_guiding(struct MANTA *fluid,
+                       struct FluidModifierData *fmd,
+                       int framenr,
+                       bool domain);
 
 void manta_update_variables(struct MANTA *fluid, struct FluidModifierData *fmd);
 int manta_get_frame(struct MANTA *fluid);
@@ -113,7 +113,7 @@ float *manta_get_phi(struct MANTA *fluid);
 float *manta_get_pressure(struct MANTA *fluid);
 
 /* Smoke functions */
-void manta_smoke_export_script(struct MANTA *smoke, struct FluidModifierData *fmd);
+bool manta_smoke_export_script(struct MANTA *smoke, struct FluidModifierData *fmd);
 void manta_smoke_get_rgba(struct MANTA *smoke, float *data, int sequential);
 void manta_noise_get_rgba(struct MANTA *smoke, float *data, int sequential);
 void manta_smoke_get_rgba_fixed_color(struct MANTA *smoke,
@@ -124,9 +124,9 @@ void manta_noise_get_rgba_fixed_color(struct MANTA *smoke,
                                       float color[3],
                                       float *data,
                                       int sequential);
-int manta_smoke_ensure_heat(struct MANTA *smoke, struct FluidModifierData *fmd);
-int manta_smoke_ensure_fire(struct MANTA *smoke, struct FluidModifierData *fmd);
-int manta_smoke_ensure_colors(struct MANTA *smoke, struct FluidModifierData *fmd);
+bool manta_smoke_ensure_heat(struct MANTA *smoke, struct FluidModifierData *fmd);
+bool manta_smoke_ensure_fire(struct MANTA *smoke, struct FluidModifierData *fmd);
+bool manta_smoke_ensure_colors(struct MANTA *smoke, struct FluidModifierData *fmd);
 
 /* Smoke accessors */
 float *manta_smoke_get_density(struct MANTA *smoke);
@@ -147,9 +147,9 @@ float *manta_smoke_get_color_b_in(struct MANTA *smoke);
 float *manta_smoke_get_fuel_in(struct MANTA *smoke);
 float *manta_smoke_get_react_in(struct MANTA *smoke);
 float *manta_smoke_get_emission_in(struct MANTA *smoke);
-int manta_smoke_has_heat(struct MANTA *smoke);
-int manta_smoke_has_fuel(struct MANTA *smoke);
-int manta_smoke_has_colors(struct MANTA *smoke);
+bool manta_smoke_has_heat(struct MANTA *smoke);
+bool manta_smoke_has_fuel(struct MANTA *smoke);
+bool manta_smoke_has_colors(struct MANTA *smoke);
 float *manta_noise_get_density(struct MANTA *smoke);
 float *manta_noise_get_fuel(struct MANTA *smoke);
 float *manta_noise_get_react(struct MANTA *smoke);
@@ -163,14 +163,14 @@ float *manta_noise_get_texture_u2(struct MANTA *smoke);
 float *manta_noise_get_texture_v2(struct MANTA *smoke);
 float *manta_noise_get_texture_w2(struct MANTA *smoke);
 float *manta_noise_get_flame(struct MANTA *smoke);
-int manta_noise_has_fuel(struct MANTA *smoke);
-int manta_noise_has_colors(struct MANTA *smoke);
+bool manta_noise_has_fuel(struct MANTA *smoke);
+bool manta_noise_has_colors(struct MANTA *smoke);
 void manta_noise_get_res(struct MANTA *smoke, int *res);
 int manta_noise_get_cells(struct MANTA *smoke);
 
 /* Liquid functions */
-void manta_liquid_export_script(struct MANTA *smoke, struct FluidModifierData *fmd);
-int manta_liquid_ensure_sndparts(struct MANTA *fluid, struct FluidModifierData *fmd);
+bool manta_liquid_export_script(struct MANTA *smoke, struct FluidModifierData *fmd);
+bool manta_liquid_ensure_sndparts(struct MANTA *fluid, struct FluidModifierData *fmd);
 
 /* Liquid accessors */
 int manta_liquid_get_particle_res_x(struct MANTA *liquid);
@@ -212,9 +212,6 @@ float manta_liquid_get_snd_particle_position_z_at(struct MANTA *liquid, int i);
 float manta_liquid_get_snd_particle_velocity_x_at(struct MANTA *liquid, int i);
 float manta_liquid_get_snd_particle_velocity_y_at(struct MANTA *liquid, int i);
 float manta_liquid_get_snd_particle_velocity_z_at(struct MANTA *liquid, int i);
-bool manta_liquid_flip_from_file(struct MANTA *liquid);
-bool manta_liquid_mesh_from_file(struct MANTA *liquid);
-bool manta_liquid_particle_from_file(struct MANTA *liquid);
 
 #ifdef __cplusplus
 }
