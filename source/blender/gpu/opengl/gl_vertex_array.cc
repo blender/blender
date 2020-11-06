@@ -76,7 +76,7 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
 
       enabled_attrib |= (1 << input->location);
 
-      if (a->comp_len == 16 || a->comp_len == 12 || a->comp_len == 8) {
+      if (ELEM(a->comp_len, 16, 12, 8)) {
         BLI_assert(a->fetch_mode == GPU_FETCH_FLOAT);
         BLI_assert(a->comp_type == GPU_COMP_F32);
         for (int i = 0; i < a->comp_len / 4; i++) {

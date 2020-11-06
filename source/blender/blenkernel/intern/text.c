@@ -2461,7 +2461,7 @@ int text_check_identifier_nodigit_unicode(const unsigned int ch)
 
 bool text_check_whitespace(const char ch)
 {
-  if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
+  if (ELEM(ch, ' ', '\t', '\r', '\n')) {
     return true;
   }
   return false;

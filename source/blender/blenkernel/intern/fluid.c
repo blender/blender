@@ -4697,9 +4697,11 @@ void BKE_fluid_fields_sanitize(FluidDomainSettings *settings)
   const char data_depth = settings->openvdb_data_depth;
 
   if (settings->type == FLUID_DOMAIN_TYPE_GAS) {
-    if (coba_field == FLUID_DOMAIN_FIELD_PHI || coba_field == FLUID_DOMAIN_FIELD_PHI_IN ||
-        coba_field == FLUID_DOMAIN_FIELD_PHI_OUT ||
-        coba_field == FLUID_DOMAIN_FIELD_PHI_OBSTACLE) {
+    if (ELEM(coba_field,
+             FLUID_DOMAIN_FIELD_PHI,
+             FLUID_DOMAIN_FIELD_PHI_IN,
+             FLUID_DOMAIN_FIELD_PHI_OUT,
+             FLUID_DOMAIN_FIELD_PHI_OBSTACLE)) {
       /* Defaulted to density for gas domain. */
       settings->coba_field = FLUID_DOMAIN_FIELD_DENSITY;
     }
@@ -4710,10 +4712,14 @@ void BKE_fluid_fields_sanitize(FluidDomainSettings *settings)
     }
   }
   else if (settings->type == FLUID_DOMAIN_TYPE_LIQUID) {
-    if (coba_field == FLUID_DOMAIN_FIELD_COLOR_R || coba_field == FLUID_DOMAIN_FIELD_COLOR_G ||
-        coba_field == FLUID_DOMAIN_FIELD_COLOR_B || coba_field == FLUID_DOMAIN_FIELD_DENSITY ||
-        coba_field == FLUID_DOMAIN_FIELD_FLAME || coba_field == FLUID_DOMAIN_FIELD_FUEL ||
-        coba_field == FLUID_DOMAIN_FIELD_HEAT) {
+    if (ELEM(coba_field,
+             FLUID_DOMAIN_FIELD_COLOR_R,
+             FLUID_DOMAIN_FIELD_COLOR_G,
+             FLUID_DOMAIN_FIELD_COLOR_B,
+             FLUID_DOMAIN_FIELD_DENSITY,
+             FLUID_DOMAIN_FIELD_FLAME,
+             FLUID_DOMAIN_FIELD_FUEL,
+             FLUID_DOMAIN_FIELD_HEAT)) {
       /* Defaulted to phi for liquid domain. */
       settings->coba_field = FLUID_DOMAIN_FIELD_PHI;
     }

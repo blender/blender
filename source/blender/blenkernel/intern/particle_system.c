@@ -4151,20 +4151,17 @@ static bool particles_has_tracer(short parttype)
 
 static bool particles_has_spray(short parttype)
 {
-  return ((parttype == PART_FLUID_SPRAY) || (parttype == PART_FLUID_SPRAYFOAM) ||
-          (parttype == PART_FLUID_SPRAYFOAMBUBBLE));
+  return (ELEM(parttype, PART_FLUID_SPRAY, PART_FLUID_SPRAYFOAM, PART_FLUID_SPRAYFOAMBUBBLE));
 }
 
 static bool particles_has_bubble(short parttype)
 {
-  return ((parttype == PART_FLUID_BUBBLE) || (parttype == PART_FLUID_FOAMBUBBLE) ||
-          (parttype == PART_FLUID_SPRAYFOAMBUBBLE));
+  return (ELEM(parttype, PART_FLUID_BUBBLE, PART_FLUID_FOAMBUBBLE, PART_FLUID_SPRAYFOAMBUBBLE));
 }
 
 static bool particles_has_foam(short parttype)
 {
-  return ((parttype == PART_FLUID_FOAM) || (parttype == PART_FLUID_SPRAYFOAM) ||
-          (parttype == PART_FLUID_SPRAYFOAMBUBBLE));
+  return (ELEM(parttype, PART_FLUID_FOAM, PART_FLUID_SPRAYFOAM, PART_FLUID_SPRAYFOAMBUBBLE));
 }
 
 static void particles_fluid_step(ParticleSimulationData *sim,

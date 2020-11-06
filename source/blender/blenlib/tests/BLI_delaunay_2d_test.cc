@@ -667,7 +667,7 @@ template<typename T> void crosssegs_test()
   if (out.vert.size() == 5) {
     int v_intersect = -1;
     for (int i = 0; i < 5; i++) {
-      if (i != v0_out && i != v1_out && i != v2_out && i != v3_out) {
+      if (!ELEM(i, v0_out, v1_out, v2_out, v3_out)) {
         EXPECT_EQ(v_intersect, -1);
         v_intersect = i;
       }

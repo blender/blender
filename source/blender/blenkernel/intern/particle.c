@@ -3997,19 +3997,25 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
       if (psys->part->type == PART_FLUID_FLIP) {
         fmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FLIP;
       }
-      if (psys->part->type == PART_FLUID_SPRAY || psys->part->type == PART_FLUID_SPRAYFOAM ||
-          psys->part->type == PART_FLUID_SPRAYBUBBLE ||
-          psys->part->type == PART_FLUID_SPRAYFOAMBUBBLE) {
+      if (ELEM(psys->part->type,
+               PART_FLUID_SPRAY,
+               PART_FLUID_SPRAYFOAM,
+               PART_FLUID_SPRAYBUBBLE,
+               PART_FLUID_SPRAYFOAMBUBBLE)) {
         fmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_SPRAY;
       }
-      if (psys->part->type == PART_FLUID_FOAM || psys->part->type == PART_FLUID_SPRAYFOAM ||
-          psys->part->type == PART_FLUID_FOAMBUBBLE ||
-          psys->part->type == PART_FLUID_SPRAYFOAMBUBBLE) {
+      if (ELEM(psys->part->type,
+               PART_FLUID_FOAM,
+               PART_FLUID_SPRAYFOAM,
+               PART_FLUID_FOAMBUBBLE,
+               PART_FLUID_SPRAYFOAMBUBBLE)) {
         fmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FOAM;
       }
-      if (psys->part->type == PART_FLUID_BUBBLE || psys->part->type == PART_FLUID_FOAMBUBBLE ||
-          psys->part->type == PART_FLUID_SPRAYBUBBLE ||
-          psys->part->type == PART_FLUID_SPRAYFOAMBUBBLE) {
+      if (ELEM(psys->part->type,
+               PART_FLUID_BUBBLE,
+               PART_FLUID_FOAMBUBBLE,
+               PART_FLUID_SPRAYBUBBLE,
+               PART_FLUID_SPRAYFOAMBUBBLE)) {
         fmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_BUBBLE;
       }
       if (psys->part->type == PART_FLUID_TRACER) {
@@ -4017,9 +4023,11 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
       }
 
       /* Disable combined export if combined particle system was deleted. */
-      if (psys->part->type == PART_FLUID_SPRAYFOAM || psys->part->type == PART_FLUID_SPRAYBUBBLE ||
-          psys->part->type == PART_FLUID_FOAMBUBBLE ||
-          psys->part->type == PART_FLUID_SPRAYFOAMBUBBLE) {
+      if (ELEM(psys->part->type,
+               PART_FLUID_SPRAYFOAM,
+               PART_FLUID_SPRAYBUBBLE,
+               PART_FLUID_FOAMBUBBLE,
+               PART_FLUID_SPRAYFOAMBUBBLE)) {
         fmd->domain->sndparticle_combined_export = SNDPARTICLE_COMBINED_EXPORT_OFF;
       }
     }

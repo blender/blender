@@ -998,7 +998,7 @@ static void add_poly(SkinOutput *so, BMVert *v1, BMVert *v2, BMVert *v3, BMVert 
   BMVert *verts[4] = {v1, v2, v3, v4};
   BMFace *f;
 
-  BLI_assert(v1 != v2 && v1 != v3 && v1 != v4);
+  BLI_assert(!ELEM(v1, v2, v3, v4));
   BLI_assert(!ELEM(v2, v3, v4));
   BLI_assert(v3 != v4);
   BLI_assert(v1 && v2 && v3);
@@ -1414,7 +1414,7 @@ static void quad_from_tris(BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
 
   /* Find what the second tri has that the first doesn't */
   for (i = 0; i < 3; i++) {
-    if (tri[1][i] != tri[0][0] && tri[1][i] != tri[0][1] && tri[1][i] != tri[0][2]) {
+    if (!ELEM(tri[1][i], tri[0][0], tri[0][1], tri[0][2])) {
       opp = tri[1][i];
       break;
     }

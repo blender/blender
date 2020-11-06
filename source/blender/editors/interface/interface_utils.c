@@ -792,7 +792,7 @@ void UI_butstore_update(uiBlock *block)
   /* warning, loop-in-loop, in practice we only store <10 buttons at a time,
    * so this isn't going to be a problem, if that changes old-new mapping can be cached first */
   LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
-    BLI_assert((bs_handle->block == NULL) || (bs_handle->block == block) ||
+    BLI_assert(ELEM(bs_handle->block, NULL, block) ||
                (block->oldblock && block->oldblock == bs_handle->block));
 
     if (bs_handle->block == block->oldblock) {
