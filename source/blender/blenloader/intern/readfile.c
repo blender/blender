@@ -2569,69 +2569,6 @@ static void lib_link_constraint_channels(BlendLibReader *reader, ID *id, ListBas
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Armature
- * \{ */
-
-static void lib_link_pose(BlendLibReader *reader, Object *ob, bPose *pose)
-{
-  bArmature *arm = ob->data;
-
-  if (!pose || !arm) {
-    return;
-  }
-
-  /* always rebuild to match proxy or lib changes, but on Undo */
-  bool rebuild = false;
-
-  if (!BLO_read_lib_is_undo(reader)) {
-    if (ob->proxy || ob->id.lib != arm->id.lib) {
-      rebuild = true;
-    }
-  }
-
-  if (ob->proxy) {
-    /* sync proxy layer */
-    if (pose->proxy_layer) {
-      arm->layer = pose->proxy_layer;
-    }
-
-    /* sync proxy active bone */
-    if (pose->proxy_act_bone[0]) {
-      Bone *bone = BKE_armature_find_bone_name(arm, pose->proxy_act_bone);
-      if (bone) {
-        arm->act_bone = bone;
-      }
-    }
-  }
-
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    BKE_constraint_blend_read_lib(reader, (ID *)ob, &pchan->constraints);
-
-    pchan->bone = BKE_armature_find_bone_name(arm, pchan->name);
-
-    IDP_BlendReadLib(reader, pchan->prop);
-
-    BLO_read_id_address(reader, arm->id.lib, &pchan->custom);
-    if (UNLIKELY(pchan->bone == NULL)) {
-      rebuild = true;
-    }
-    else if ((ob->id.lib == NULL) && arm->id.lib) {
-      /* local pose selection copied to armature, bit hackish */
-      pchan->bone->flag &= ~BONE_SELECTED;
-      pchan->bone->flag |= pchan->selectflag;
-    }
-  }
-
-  if (rebuild) {
-    DEG_id_tag_update_ex(
-        reader->main, &ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
-    BKE_pose_tag_recalc(reader->main, pose);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Shape Keys
  * \{ */
 
@@ -2750,7 +2687,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
   /* if id.us==0 a new base will be created later on */
 
   /* WARNING! Also check expand_object(), should reflect the stuff below. */
-  lib_link_pose(reader, ob, ob->pose);
+  BKE_pose_blend_read_lib(reader, ob, ob->pose);
   BKE_constraint_blend_read_lib(reader, &ob->id, &ob->constraints);
 
   /* XXX deprecated - old animation system <<< */
@@ -2816,54 +2753,6 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
   }
 }
 
-static void direct_link_pose(BlendDataReader *reader, bPose *pose)
-{
-  if (!pose) {
-    return;
-  }
-
-  BLO_read_list(reader, &pose->chanbase);
-  BLO_read_list(reader, &pose->agroups);
-
-  pose->chanhash = NULL;
-  pose->chan_array = NULL;
-
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    BKE_pose_channel_runtime_reset(&pchan->runtime);
-    BKE_pose_channel_session_uuid_generate(pchan);
-
-    pchan->bone = NULL;
-    BLO_read_data_address(reader, &pchan->parent);
-    BLO_read_data_address(reader, &pchan->child);
-    BLO_read_data_address(reader, &pchan->custom_tx);
-
-    BLO_read_data_address(reader, &pchan->bbone_prev);
-    BLO_read_data_address(reader, &pchan->bbone_next);
-
-    BKE_constraint_blend_read_data(reader, &pchan->constraints);
-
-    BLO_read_data_address(reader, &pchan->prop);
-    IDP_BlendDataRead(reader, &pchan->prop);
-
-    BLO_read_data_address(reader, &pchan->mpath);
-    if (pchan->mpath) {
-      animviz_motionpath_blend_read_data(reader, pchan->mpath);
-    }
-
-    BLI_listbase_clear(&pchan->iktree);
-    BLI_listbase_clear(&pchan->siktree);
-
-    /* in case this value changes in future, clamp else we get undefined behavior */
-    CLAMP(pchan->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
-
-    pchan->draw_data = NULL;
-  }
-  pose->ikdata = NULL;
-  if (pose->ikparam != NULL) {
-    BLO_read_data_address(reader, &pose->ikparam);
-  }
-}
-
 static void direct_link_object(BlendDataReader *reader, Object *ob)
 {
   PartEff *paf;
@@ -2889,7 +2778,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   BKE_animdata_blend_read_data(reader, ob->adt);
 
   BLO_read_data_address(reader, &ob->pose);
-  direct_link_pose(reader, ob->pose);
+  BKE_pose_blend_read_data(reader, ob->pose);
 
   BLO_read_data_address(reader, &ob->mpath);
   if (ob->mpath) {
@@ -5177,19 +5066,6 @@ static void expand_id(BlendExpander *expander, ID *id)
   expand_id_embedded_id(expander, id);
 }
 
-static void expand_pose(BlendExpander *expander, bPose *pose)
-{
-  if (!pose) {
-    return;
-  }
-
-  LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
-    BKE_constraint_blend_read_expand(expander, &chan->constraints);
-    IDP_BlendReadExpand(expander, chan->prop);
-    BLO_expand(expander, chan->custom);
-  }
-}
-
 static void expand_object_expandModifiers(void *userData,
                                           Object *UNUSED(ob),
                                           ID **idpoin,
@@ -5218,7 +5094,7 @@ static void expand_object(BlendExpander *expander, Object *ob)
     BKE_shaderfx_foreach_ID_link(ob, expand_object_expandModifiers, expander);
   }
 
-  expand_pose(expander, ob->pose);
+  BKE_pose_blend_read_expand(expander, ob->pose);
   BLO_expand(expander, ob->poselib);
   BKE_constraint_blend_read_expand(expander, &ob->constraints);
 

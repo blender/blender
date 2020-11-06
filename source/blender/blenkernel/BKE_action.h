@@ -30,6 +30,12 @@
 extern "C" {
 #endif
 
+struct BlendWriter;
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendExpander;
+struct bArmature;
+
 /* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
 struct AnimationEvalContext;
 struct FCurve;
@@ -215,6 +221,11 @@ void BKE_pose_rest(struct bPose *pose, bool selected_bones_only);
 
 /* Tag pose for recalc. Also tag all related data to be recalc. */
 void BKE_pose_tag_recalc(struct Main *bmain, struct bPose *pose);
+
+void BKE_pose_blend_write(struct BlendWriter *writer, struct bPose *pose, struct bArmature *arm);
+void BKE_pose_blend_read_data(struct BlendDataReader *reader, struct bPose *pose);
+void BKE_pose_blend_read_lib(struct BlendLibReader *reader, struct Object *ob, struct bPose *pose);
+void BKE_pose_blend_read_expand(struct BlendExpander *expander, struct bPose *pose);
 
 #ifdef __cplusplus
 };
