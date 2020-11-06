@@ -56,12 +56,12 @@ void BKE_sequencer_base_clipboard_pointers_free(struct ListBase *seqbase);
 
 struct ImBuf *BKE_sequencer_cache_get(const SeqRenderData *context,
                                       struct Sequence *seq,
-                                      float cfra,
+                                      float timeline_frame,
                                       int type,
                                       bool skip_disk_cache);
 void BKE_sequencer_cache_put(const SeqRenderData *context,
                              struct Sequence *seq,
-                             float cfra,
+                             float timeline_frame,
                              int type,
                              struct ImBuf *i,
                              float cost,
@@ -74,7 +74,7 @@ bool BKE_sequencer_cache_put_if_possible(const SeqRenderData *context,
                                          float cost,
                                          bool skip_disk_cache);
 bool BKE_sequencer_cache_recycle_item(struct Scene *scene);
-void BKE_sequencer_cache_free_temp_cache(struct Scene *scene, short id, int cfra);
+void BKE_sequencer_cache_free_temp_cache(struct Scene *scene, short id, int timeline_frame);
 void BKE_sequencer_cache_destruct(struct Scene *scene);
 void BKE_sequencer_cache_cleanup_all(struct Main *bmain);
 void BKE_sequencer_cache_cleanup_sequence(struct Scene *scene,
