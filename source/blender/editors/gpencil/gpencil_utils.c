@@ -2982,8 +2982,8 @@ bool ED_gpencil_stroke_check_collision(GP_SpaceConversion *gsc,
  *
  * \param gps: Stroke to check.
  * \param gsc: Space conversion data.
- * \param mouse:  Mouse position.
- * \param diff_mat:  View matrix.
+ * \param mouse: Mouse position.
+ * \param diff_mat: View matrix.
  * \return True if the point is inside.
  */
 bool ED_gpencil_stroke_point_is_inside(bGPDstroke *gps,

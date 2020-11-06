@@ -2011,12 +2011,12 @@ void BKE_gpencil_material_remap(struct bGPdata *gpd,
 
 /**
  * Load a table with material conversion index for merged materials.
- * \param ob: Grease pencil object
- * \param hue_threshold: Threshold for Hue
- * \param sat_threshold: Threshold for Saturation
- * \param val_threshold: Threshold for Value
- * \param r_mat_table : return material table
- * \return True if done
+ * \param ob: Grease pencil object.
+ * \param hue_threshold: Threshold for Hue.
+ * \param sat_threshold: Threshold for Saturation.
+ * \param val_threshold: Threshold for Value.
+ * \param r_mat_table: return material table.
+ * \return True if done.
  */
 bool BKE_gpencil_merge_materials_table_get(Object *ob,
                                            const float hue_threshold,
