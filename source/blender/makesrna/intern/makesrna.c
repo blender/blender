@@ -29,6 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_string.h"
 #include "BLI_system.h" /* for 'BLI_system_backtrace' stub. */
 #include "BLI_utildefines.h"
 
@@ -760,9 +761,10 @@ static char *rna_def_property_get_func(
       fprintf(f, "static PointerRNA %s(CollectionPropertyIterator *iter)\n", func);
       fprintf(f, "{\n");
       if (manualfunc) {
-        if (STREQ(manualfunc, "rna_iterator_listbase_get") ||
-            STREQ(manualfunc, "rna_iterator_array_get") ||
-            STREQ(manualfunc, "rna_iterator_array_dereference_get")) {
+        if (STR_ELEM(manualfunc,
+                     "rna_iterator_listbase_get",
+                     "rna_iterator_array_get",
+                     "rna_iterator_array_dereference_get")) {
           fprintf(f,
                   "    return rna_pointer_inherit_refine(&iter->parent, &RNA_%s, %s(iter));\n",
                   (cprop->item_type) ? (const char *)cprop->item_type : "UnknownType",

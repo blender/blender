@@ -2155,7 +2155,7 @@ bool BKE_scene_multiview_is_render_view_active(const RenderData *rd, const Scene
   }
 
   /* SCE_VIEWS_SETUP_BASIC */
-  if (STREQ(srv->name, STEREO_LEFT_NAME) || STREQ(srv->name, STEREO_RIGHT_NAME)) {
+  if (STR_ELEM(srv->name, STEREO_LEFT_NAME, STEREO_RIGHT_NAME)) {
     return true;
   }
 

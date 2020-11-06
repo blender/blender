@@ -31,6 +31,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.h"
 
@@ -68,10 +69,11 @@ static bool node_group_operator_active(bContext *C)
      * Disabled otherwise to allow pynodes define their own operators
      * with same keymap.
      */
-    if (STREQ(snode->tree_idname, "ShaderNodeTree") ||
-        STREQ(snode->tree_idname, "CompositorNodeTree") ||
-        STREQ(snode->tree_idname, "TextureNodeTree") ||
-        STREQ(snode->tree_idname, "SimulationNodeTree")) {
+    if (STR_ELEM(snode->tree_idname,
+                 "ShaderNodeTree",
+                 "CompositorNodeTree",
+                 "TextureNodeTree",
+                 "SimulationNodeTree")) {
       return true;
     }
   }

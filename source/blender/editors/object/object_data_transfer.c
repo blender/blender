@@ -28,6 +28,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -585,7 +586,7 @@ static bool data_transfer_poll_property(const bContext *UNUSED(C),
     return false;
   }
 
-  if ((STREQ(prop_id, "layers_select_src") || STREQ(prop_id, "layers_select_dst")) &&
+  if (STR_ELEM(prop_id, "layers_select_src", "layers_select_dst") &&
       !DT_DATATYPE_IS_MULTILAYERS(data_type)) {
     return false;
   }
