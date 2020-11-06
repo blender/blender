@@ -277,9 +277,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
     }
 
     dpx->element[i].bitsPerSample = header.imageHeader.element[i].bits_per_sample;
-    if (dpx->element[i].bitsPerSample != 1 && dpx->element[i].bitsPerSample != 8 &&
-        dpx->element[i].bitsPerSample != 10 && dpx->element[i].bitsPerSample != 12 &&
-        dpx->element[i].bitsPerSample != 16) {
+    if (!ELEM(dpx->element[i].bitsPerSample, 1, 8, 10, 12, 16)) {
       if (verbose) {
         printf("DPX: Unsupported bitsPerSample for elements %d: %d\n",
                i,

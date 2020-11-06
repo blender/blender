@@ -2295,7 +2295,7 @@ void uiItemFullR(uiLayout *layout,
     ui_item_enum_expand(layout, block, ptr, prop, name, h, icon_only);
   }
   /* property with separate label */
-  else if (type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
+  else if (ELEM(type, PROP_ENUM, PROP_STRING, PROP_POINTER)) {
     but = ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);
     but = ui_but_add_search(but, ptr, prop, NULL, NULL);
 

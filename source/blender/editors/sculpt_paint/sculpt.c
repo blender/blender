@@ -3922,7 +3922,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
 
   if (brush->elastic_deform_type == BRUSH_ELASTIC_DEFORM_TWIST) {
     int symm = ss->cache->mirror_symmetry_pass;
-    if (symm == 1 || symm == 2 || symm == 4 || symm == 7) {
+    if (ELEM(symm, 1, 2, 4, 7)) {
       dir = -dir;
     }
   }
