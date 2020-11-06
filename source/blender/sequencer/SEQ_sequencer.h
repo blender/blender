@@ -44,6 +44,9 @@ struct StripElem;
 struct TextVars;
 struct bContext;
 struct bSound;
+struct BlendWriter;
+struct BlendDataReader;
+struct BlendLibReader;
 
 /* Wipe effect */
 enum {
@@ -460,6 +463,12 @@ struct ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
                                                 int cfra);
 void BKE_sequence_modifier_list_copy(struct Sequence *seqn, struct Sequence *seq);
 int BKE_sequence_supports_modifiers(struct Sequence *seq);
+
+void BKE_sequence_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
+void BKE_sequence_modifier_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);
+void BKE_sequence_modifier_blend_read_lib(struct BlendLibReader *reader,
+                                          struct Scene *scene,
+                                          struct ListBase *lb);
 
 /* **********************************************************************
  * seqeffects.c

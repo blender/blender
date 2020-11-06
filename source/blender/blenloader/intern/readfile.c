@@ -3859,15 +3859,6 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
   }
 }
 
-static void lib_link_sequence_modifiers(BlendLibReader *reader, Scene *scene, ListBase *lb)
-{
-  LISTBASE_FOREACH (SequenceModifierData *, smd, lb) {
-    if (smd->mask_id) {
-      BLO_read_id_address(reader, scene->id.lib, &smd->mask_id);
-    }
-  }
-}
-
 /* check for cyclic set-scene,
  * libs can cause this case which is normally prevented, see (T#####) */
 #define USE_SETSCENE_CHECK
@@ -4020,7 +4011,7 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
     }
     BLI_listbase_clear(&seq->anims);
 
-    lib_link_sequence_modifiers(reader, sce, &seq->modifiers);
+    BKE_sequence_modifier_blend_read_lib(reader, sce, &seq->modifiers);
   }
   SEQ_ALL_END;
 
@@ -4121,28 +4112,6 @@ static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene
 
   if (*paint) {
     BKE_paint_blend_read_data(reader, scene, *paint);
-  }
-}
-
-static void direct_link_sequence_modifiers(BlendDataReader *reader, ListBase *lb)
-{
-  BLO_read_list(reader, lb);
-
-  LISTBASE_FOREACH (SequenceModifierData *, smd, lb) {
-    if (smd->mask_sequence) {
-      BLO_read_data_address(reader, &smd->mask_sequence);
-    }
-
-    if (smd->type == seqModifierType_Curves) {
-      CurvesModifierData *cmd = (CurvesModifierData *)smd;
-
-      BKE_curvemapping_blend_read(reader, &cmd->curve_mapping);
-    }
-    else if (smd->type == seqModifierType_HueCorrect) {
-      HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
-
-      BKE_curvemapping_blend_read(reader, &hcmd->curve_mapping);
-    }
   }
 }
 
@@ -4292,7 +4261,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
         BLO_read_data_address(reader, &seq->strip->color_balance);
       }
 
-      direct_link_sequence_modifiers(reader, &seq->modifiers);
+      BKE_sequence_modifier_blend_read_data(reader, &seq->modifiers);
     }
     SEQ_ALL_END;
 

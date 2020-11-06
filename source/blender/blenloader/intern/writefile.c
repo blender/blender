@@ -1292,31 +1292,6 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
   }
 }
 
-static void write_sequence_modifiers(BlendWriter *writer, ListBase *modbase)
-{
-  LISTBASE_FOREACH (SequenceModifierData *, smd, modbase) {
-    const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
-
-    if (smti) {
-      BLO_write_struct_by_name(writer, smti->struct_name, smd);
-
-      if (smd->type == seqModifierType_Curves) {
-        CurvesModifierData *cmd = (CurvesModifierData *)smd;
-
-        BKE_curvemapping_blend_write(writer, &cmd->curve_mapping);
-      }
-      else if (smd->type == seqModifierType_HueCorrect) {
-        HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
-
-        BKE_curvemapping_blend_write(writer, &hcmd->curve_mapping);
-      }
-    }
-    else {
-      BLO_write_struct(writer, SequenceModifierData, smd);
-    }
-  }
-}
-
 static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 {
   if (BLO_write_is_undo(writer)) {
@@ -1467,7 +1442,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
         IDP_BlendWrite(writer, seq->prop);
       }
 
-      write_sequence_modifiers(writer, &seq->modifiers);
+      BKE_sequence_modifier_blend_write(writer, &seq->modifiers);
     }
     SEQ_ALL_END;
 
