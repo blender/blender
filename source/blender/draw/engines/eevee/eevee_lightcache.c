@@ -26,6 +26,7 @@
 
 #include "BKE_global.h"
 
+#include "BLI_endian_switch.h"
 #include "BLI_threads.h"
 
 #include "DEG_depsgraph_build.h"
@@ -46,6 +47,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "BLO_read_write.h"
 
 #include "wm_window.h"
 
@@ -507,6 +510,82 @@ void EEVEE_lightcache_free(LightCache *lcache)
   MEM_SAFE_FREE(lcache->cube_data);
   MEM_SAFE_FREE(lcache->grid_data);
   MEM_freeN(lcache);
+}
+
+static void write_lightcache_texture(BlendWriter *writer, LightCacheTexture *tex)
+{
+  if (tex->data) {
+    size_t data_size = tex->components * tex->tex_size[0] * tex->tex_size[1] * tex->tex_size[2];
+    if (tex->data_type == LIGHTCACHETEX_FLOAT) {
+      data_size *= sizeof(float);
+    }
+    else if (tex->data_type == LIGHTCACHETEX_UINT) {
+      data_size *= sizeof(uint);
+    }
+
+    /* FIXME: We can't save more than what 32bit systems can handle.
+     * The solution would be to split the texture but it is too late for 2.90. (see T78529) */
+    if (data_size < INT_MAX) {
+      BLO_write_raw(writer, data_size, tex->data);
+    }
+  }
+}
+
+void EEVEE_lightcache_blend_write(BlendWriter *writer, LightCache *cache)
+{
+  write_lightcache_texture(writer, &cache->grid_tx);
+  write_lightcache_texture(writer, &cache->cube_tx);
+
+  if (cache->cube_mips) {
+    BLO_write_struct_array(writer, LightCacheTexture, cache->mips_len, cache->cube_mips);
+    for (int i = 0; i < cache->mips_len; i++) {
+      write_lightcache_texture(writer, &cache->cube_mips[i]);
+    }
+  }
+
+  BLO_write_struct_array(writer, LightGridCache, cache->grid_len, cache->grid_data);
+  BLO_write_struct_array(writer, LightProbeCache, cache->cube_len, cache->cube_data);
+}
+
+static void direct_link_lightcache_texture(BlendDataReader *reader, LightCacheTexture *lctex)
+{
+  lctex->tex = NULL;
+
+  if (lctex->data) {
+    BLO_read_data_address(reader, &lctex->data);
+    if (lctex->data && BLO_read_requires_endian_switch(reader)) {
+      int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] *
+                      lctex->tex_size[2];
+
+      if (lctex->data_type == LIGHTCACHETEX_FLOAT) {
+        BLI_endian_switch_float_array((float *)lctex->data, data_size * sizeof(float));
+      }
+      else if (lctex->data_type == LIGHTCACHETEX_UINT) {
+        BLI_endian_switch_uint32_array((uint *)lctex->data, data_size * sizeof(uint));
+      }
+    }
+  }
+
+  if (lctex->data == NULL) {
+    zero_v3_int(lctex->tex_size);
+  }
+}
+
+void EEVEE_lightcache_blend_read_data(BlendDataReader *reader, LightCache *cache)
+{
+  cache->flag &= ~LIGHTCACHE_NOT_USABLE;
+  direct_link_lightcache_texture(reader, &cache->cube_tx);
+  direct_link_lightcache_texture(reader, &cache->grid_tx);
+
+  if (cache->cube_mips) {
+    BLO_read_data_address(reader, &cache->cube_mips);
+    for (int i = 0; i < cache->mips_len; i++) {
+      direct_link_lightcache_texture(reader, &cache->cube_mips[i]);
+    }
+  }
+
+  BLO_read_data_address(reader, &cache->cube_data);
+  BLO_read_data_address(reader, &cache->grid_data);
 }
 
 /** \} */

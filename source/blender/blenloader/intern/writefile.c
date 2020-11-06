@@ -170,6 +170,8 @@
 
 #include "SEQ_sequencer.h"
 
+#include "engines/eevee/eevee_lightcache.h"
+
 #include "readfile.h"
 
 #include <errno.h>
@@ -1322,41 +1324,6 @@ static void write_view_settings(BlendWriter *writer, ColorManagedViewSettings *v
   }
 }
 
-static void write_lightcache_texture(BlendWriter *writer, LightCacheTexture *tex)
-{
-  if (tex->data) {
-    size_t data_size = tex->components * tex->tex_size[0] * tex->tex_size[1] * tex->tex_size[2];
-    if (tex->data_type == LIGHTCACHETEX_FLOAT) {
-      data_size *= sizeof(float);
-    }
-    else if (tex->data_type == LIGHTCACHETEX_UINT) {
-      data_size *= sizeof(uint);
-    }
-
-    /* FIXME: We can't save more than what 32bit systems can handle.
-     * The solution would be to split the texture but it is too late for 2.90. (see T78529) */
-    if (data_size < INT_MAX) {
-      BLO_write_raw(writer, data_size, tex->data);
-    }
-  }
-}
-
-static void write_lightcache(BlendWriter *writer, LightCache *cache)
-{
-  write_lightcache_texture(writer, &cache->grid_tx);
-  write_lightcache_texture(writer, &cache->cube_tx);
-
-  if (cache->cube_mips) {
-    BLO_write_struct_array(writer, LightCacheTexture, cache->mips_len, cache->cube_mips);
-    for (int i = 0; i < cache->mips_len; i++) {
-      write_lightcache_texture(writer, &cache->cube_mips[i]);
-    }
-  }
-
-  BLO_write_struct_array(writer, LightGridCache, cache->grid_len, cache->grid_data);
-  BLO_write_struct_array(writer, LightProbeCache, cache->cube_len, cache->cube_data);
-}
-
 static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 {
   if (BLO_write_is_undo(writer)) {
@@ -1583,7 +1550,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   /* Eevee Lightcache */
   if (sce->eevee.light_cache_data && !BLO_write_is_undo(writer)) {
     BLO_write_struct(writer, LightCache, sce->eevee.light_cache_data);
-    write_lightcache(writer, sce->eevee.light_cache_data);
+    EEVEE_lightcache_blend_write(writer, sce->eevee.light_cache_data);
   }
 
   BKE_screen_view3d_shading_blend_write(writer, &sce->display.shading);
