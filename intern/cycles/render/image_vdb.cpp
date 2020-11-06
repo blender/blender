@@ -145,8 +145,7 @@ bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
   }
 
 #  ifdef WITH_NANOVDB
-  /* Add small offset for correct sampling between voxels. */
-  Transform texture_to_index = transform_translate(0.5f, 0.5f, 0.5f);
+  Transform texture_to_index = transform_identity();
 #  else
   Transform texture_to_index = transform_translate(min.x(), min.y(), min.z()) *
                                transform_scale(dim.x(), dim.y(), dim.z());

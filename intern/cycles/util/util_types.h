@@ -53,7 +53,7 @@ typedef unsigned short ushort;
 /* Fixed Bits Types */
 
 #ifdef __KERNEL_OPENCL__
-typedef ulong uint64_t;
+typedef unsigned long uint64_t;
 #endif
 
 #ifndef __KERNEL_GPU__

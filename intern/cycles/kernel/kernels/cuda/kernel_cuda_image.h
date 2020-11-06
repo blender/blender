@@ -24,17 +24,14 @@ ccl_device float cubic_w0(float a)
 {
   return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);
 }
-
 ccl_device float cubic_w1(float a)
 {
   return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 }
-
 ccl_device float cubic_w2(float a)
 {
   return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 }
-
 ccl_device float cubic_w3(float a)
 {
   return (1.0f / 6.0f) * (a * a * a);
@@ -45,7 +42,6 @@ ccl_device float cubic_g0(float a)
 {
   return cubic_w0(a) + cubic_w1(a);
 }
-
 ccl_device float cubic_g1(float a)
 {
   return cubic_w2(a) + cubic_w3(a);
@@ -54,13 +50,11 @@ ccl_device float cubic_g1(float a)
 /* h0 and h1 are the two offset functions */
 ccl_device float cubic_h0(float a)
 {
-  /* Note +0.5 offset to compensate for CUDA linear filtering convention. */
-  return -1.0f + cubic_w1(a) / (cubic_w0(a) + cubic_w1(a)) + 0.5f;
+  return (cubic_w1(a) / cubic_g0(a)) - 1.0f;
 }
-
 ccl_device float cubic_h1(float a)
 {
-  return 1.0f + cubic_w3(a) / (cubic_w2(a) + cubic_w3(a)) + 0.5f;
+  return (cubic_w3(a) / cubic_g1(a)) + 1.0f;
 }
 
 /* Fast bicubic texture lookup using 4 bilinear lookups, adapted from CUDA samples. */
@@ -79,10 +73,11 @@ ccl_device T kernel_tex_image_interp_bicubic(const TextureInfo &info, float x, f
 
   float g0x = cubic_g0(fx);
   float g1x = cubic_g1(fx);
-  float x0 = (px + cubic_h0(fx)) / info.width;
-  float x1 = (px + cubic_h1(fx)) / info.width;
-  float y0 = (py + cubic_h0(fy)) / info.height;
-  float y1 = (py + cubic_h1(fy)) / info.height;
+  /* Note +0.5 offset to compensate for CUDA linear filtering convention. */
+  float x0 = (px + cubic_h0(fx) + 0.5f) / info.width;
+  float x1 = (px + cubic_h1(fx) + 0.5f) / info.width;
+  float y0 = (py + cubic_h0(fy) + 0.5f) / info.height;
+  float y1 = (py + cubic_h1(fy) + 0.5f) / info.height;
 
   return cubic_g0(fy) * (g0x * tex2D<T>(tex, x0, y0) + g1x * tex2D<T>(tex, x1, y0)) +
          cubic_g1(fy) * (g0x * tex2D<T>(tex, x0, y1) + g1x * tex2D<T>(tex, x1, y1));
@@ -90,7 +85,7 @@ ccl_device T kernel_tex_image_interp_bicubic(const TextureInfo &info, float x, f
 
 /* Fast tricubic texture lookup using 8 trilinear lookups. */
 template<typename T>
-ccl_device T kernel_tex_image_interp_bicubic_3d(const TextureInfo &info, float x, float y, float z)
+ccl_device T kernel_tex_image_interp_tricubic(const TextureInfo &info, float x, float y, float z)
 {
   CUtexObject tex = (CUtexObject)info.data;
 
@@ -112,12 +107,13 @@ ccl_device T kernel_tex_image_interp_bicubic_3d(const TextureInfo &info, float x
   float g0z = cubic_g0(fz);
   float g1z = cubic_g1(fz);
 
-  float x0 = (px + cubic_h0(fx)) / info.width;
-  float x1 = (px + cubic_h1(fx)) / info.width;
-  float y0 = (py + cubic_h0(fy)) / info.height;
-  float y1 = (py + cubic_h1(fy)) / info.height;
-  float z0 = (pz + cubic_h0(fz)) / info.depth;
-  float z1 = (pz + cubic_h1(fz)) / info.depth;
+  /* Note +0.5 offset to compensate for CUDA linear filtering convention. */
+  float x0 = (px + cubic_h0(fx) + 0.5f) / info.width;
+  float x1 = (px + cubic_h1(fx) + 0.5f) / info.width;
+  float y0 = (py + cubic_h0(fy) + 0.5f) / info.height;
+  float y1 = (py + cubic_h1(fy) + 0.5f) / info.height;
+  float z0 = (pz + cubic_h0(fz) + 0.5f) / info.depth;
+  float z1 = (pz + cubic_h1(fz) + 0.5f) / info.depth;
 
   return g0z * (g0y * (g0x * tex3D<T>(tex, x0, y0, z0) + g1x * tex3D<T>(tex, x1, y0, z0)) +
                 g1y * (g0x * tex3D<T>(tex, x0, y1, z0) + g1x * tex3D<T>(tex, x1, y1, z0))) +
@@ -126,22 +122,56 @@ ccl_device T kernel_tex_image_interp_bicubic_3d(const TextureInfo &info, float x
 }
 
 #ifdef WITH_NANOVDB
+template<typename T, typename S>
+ccl_device T kernel_tex_image_interp_tricubic_nanovdb(S &s, float x, float y, float z)
+{
+  float px = floor(x);
+  float py = floor(y);
+  float pz = floor(z);
+  float fx = x - px;
+  float fy = y - py;
+  float fz = z - pz;
+
+  float g0x = cubic_g0(fx);
+  float g1x = cubic_g1(fx);
+  float g0y = cubic_g0(fy);
+  float g1y = cubic_g1(fy);
+  float g0z = cubic_g0(fz);
+  float g1z = cubic_g1(fz);
+
+  float x0 = px + cubic_h0(fx);
+  float x1 = px + cubic_h1(fx);
+  float y0 = py + cubic_h0(fy);
+  float y1 = py + cubic_h1(fy);
+  float z0 = pz + cubic_h0(fz);
+  float z1 = pz + cubic_h1(fz);
+
+  using namespace nanovdb;
+
+  return g0z * (g0y * (g0x * s(Vec3f(x0, y0, z0)) + g1x * s(Vec3f(x1, y0, z0))) +
+                g1y * (g0x * s(Vec3f(x0, y1, z0)) + g1x * s(Vec3f(x1, y1, z0)))) +
+         g1z * (g0y * (g0x * s(Vec3f(x0, y0, z1)) + g1x * s(Vec3f(x1, y0, z1))) +
+                g1y * (g0x * s(Vec3f(x0, y1, z1)) + g1x * s(Vec3f(x1, y1, z1))));
+}
+
 template<typename T>
 ccl_device_inline T kernel_tex_image_interp_nanovdb(
     const TextureInfo &info, float x, float y, float z, uint interpolation)
 {
-  const nanovdb::Vec3f xyz(x, y, z);
-  nanovdb::NanoGrid<T> *const grid = (nanovdb::NanoGrid<T> *)info.data;
-  const nanovdb::NanoRoot<T> &root = grid->tree().root();
+  using namespace nanovdb;
+  typedef ReadAccessor<NanoRoot<T>> ReadAccessorT;
 
-  typedef nanovdb::ReadAccessor<nanovdb::NanoRoot<T>> ReadAccessorT;
+  NanoGrid<T> *const grid = (NanoGrid<T> *)info.data;
+  const NanoRoot<T> &root = grid->tree().root();
+
   switch (interpolation) {
     case INTERPOLATION_CLOSEST:
-      return nanovdb::SampleFromVoxels<ReadAccessorT, 0, false>(root)(xyz);
+      return NearestNeighborSampler<ReadAccessorT, false>(root)(Vec3f(x, y, z));
     case INTERPOLATION_LINEAR:
-      return nanovdb::SampleFromVoxels<ReadAccessorT, 1, false>(root)(xyz);
+      return TrilinearSampler<ReadAccessorT, false>(root)(Vec3f(x - 0.5f, y - 0.5f, z - 0.5f));
     default:
-      return nanovdb::SampleFromVoxels<ReadAccessorT, 3, false>(root)(xyz);
+      TrilinearSampler<ReadAccessorT, false> s(root);
+      return kernel_tex_image_interp_tricubic_nanovdb<T>(s, x - 0.5f, y - 0.5f, z - 0.5f);
   }
 }
 #endif
@@ -210,7 +240,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg,
   if (texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 ||
       texture_type == IMAGE_DATA_TYPE_HALF4 || texture_type == IMAGE_DATA_TYPE_USHORT4) {
     if (interpolation == INTERPOLATION_CUBIC) {
-      return kernel_tex_image_interp_bicubic_3d<float4>(info, x, y, z);
+      return kernel_tex_image_interp_tricubic<float4>(info, x, y, z);
     }
     else {
       CUtexObject tex = (CUtexObject)info.data;
@@ -221,7 +251,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg,
     float f;
 
     if (interpolation == INTERPOLATION_CUBIC) {
-      f = kernel_tex_image_interp_bicubic_3d<float>(info, x, y, z);
+      f = kernel_tex_image_interp_tricubic<float>(info, x, y, z);
     }
     else {
       CUtexObject tex = (CUtexObject)info.data;
