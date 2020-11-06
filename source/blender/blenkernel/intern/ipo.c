@@ -52,6 +52,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_endian_switch.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -74,6 +75,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "SEQ_sequencer.h"
+
+#include "BLO_read_write.h"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */
@@ -110,6 +113,69 @@ static void ipo_free_data(ID *id)
   }
 }
 
+static void ipo_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Ipo *ipo = (Ipo *)id;
+
+  BLO_read_list(reader, &(ipo->curve));
+
+  LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
+    BLO_read_data_address(reader, &icu->bezt);
+    BLO_read_data_address(reader, &icu->bp);
+    BLO_read_data_address(reader, &icu->driver);
+
+    /* Undo generic endian switching. */
+    if (BLO_read_requires_endian_switch(reader)) {
+      BLI_endian_switch_int16(&icu->blocktype);
+      if (icu->driver != NULL) {
+
+        /* Undo generic endian switching. */
+        if (BLO_read_requires_endian_switch(reader)) {
+          BLI_endian_switch_int16(&icu->blocktype);
+          if (icu->driver != NULL) {
+            BLI_endian_switch_int16(&icu->driver->blocktype);
+          }
+        }
+      }
+
+      /* Undo generic endian switching. */
+      if (BLO_read_requires_endian_switch(reader)) {
+        BLI_endian_switch_int16(&ipo->blocktype);
+        if (icu->driver != NULL) {
+          BLI_endian_switch_int16(&icu->driver->blocktype);
+        }
+      }
+    }
+  }
+
+  /* Undo generic endian switching. */
+  if (BLO_read_requires_endian_switch(reader)) {
+    BLI_endian_switch_int16(&ipo->blocktype);
+  }
+}
+
+static void ipo_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Ipo *ipo = (Ipo *)id;
+
+  LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
+    if (icu->driver) {
+      BLO_read_id_address(reader, ipo->id.lib, &icu->driver->ob);
+    }
+  }
+}
+
+static void ipo_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Ipo *ipo = (Ipo *)id;
+
+  LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
+    if (icu->driver) {
+      BLO_expand(expander, icu->driver->ob);
+    }
+  }
+}
+
 IDTypeInfo IDType_ID_IP = {
     .id_code = ID_IP,
     .id_filter = 0,
@@ -129,9 +195,9 @@ IDTypeInfo IDType_ID_IP = {
     .foreach_cache = NULL,
 
     .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_read_data = ipo_blend_read_data,
+    .blend_read_lib = ipo_blend_read_lib,
+    .blend_read_expand = ipo_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
 };
