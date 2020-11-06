@@ -44,7 +44,7 @@ namespace blender::gpu {
 
 GLTexture::GLTexture(const char *name) : Texture(name)
 {
-  BLI_assert(GLContext::get() != NULL);
+  BLI_assert(GLContext::get() != nullptr);
 
   glGenTextures(1, &tex_id_);
 }
@@ -55,7 +55,7 @@ GLTexture::~GLTexture()
     GPU_framebuffer_free(framebuffer_);
   }
   GLContext *ctx = GLContext::get();
-  if (ctx != NULL && is_bound_) {
+  if (ctx != nullptr && is_bound_) {
     /* This avoid errors when the texture is still inside the bound texture array. */
     ctx->state_manager->texture_unbind(this);
   }
@@ -148,7 +148,7 @@ void GLTexture::ensure_mipmaps(int miplvl)
     if (type_ == GPU_TEXTURE_CUBE) {
       for (int i = 0; i < d; i++) {
         GLenum target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-        glTexImage2D(target, mip, internal_format, w, h, 0, gl_format, gl_type, NULL);
+        glTexImage2D(target, mip, internal_format, w, h, 0, gl_format, gl_type, nullptr);
       }
     }
     else if (format_flag_ & GPU_FORMAT_COMPRESSED) {
@@ -156,13 +156,13 @@ void GLTexture::ensure_mipmaps(int miplvl)
       switch (dimensions) {
         default:
         case 1:
-          glCompressedTexImage1D(target_, mip, internal_format, w, 0, size, NULL);
+          glCompressedTexImage1D(target_, mip, internal_format, w, 0, size, nullptr);
           break;
         case 2:
-          glCompressedTexImage2D(target_, mip, internal_format, w, h, 0, size, NULL);
+          glCompressedTexImage2D(target_, mip, internal_format, w, h, 0, size, nullptr);
           break;
         case 3:
-          glCompressedTexImage3D(target_, mip, internal_format, w, h, d, 0, size, NULL);
+          glCompressedTexImage3D(target_, mip, internal_format, w, h, d, 0, size, nullptr);
           break;
       }
     }
@@ -170,13 +170,13 @@ void GLTexture::ensure_mipmaps(int miplvl)
       switch (dimensions) {
         default:
         case 1:
-          glTexImage1D(target_, mip, internal_format, w, 0, gl_format, gl_type, NULL);
+          glTexImage1D(target_, mip, internal_format, w, 0, gl_format, gl_type, nullptr);
           break;
         case 2:
-          glTexImage2D(target_, mip, internal_format, w, h, 0, gl_format, gl_type, NULL);
+          glTexImage2D(target_, mip, internal_format, w, h, 0, gl_format, gl_type, nullptr);
           break;
         case 3:
-          glTexImage3D(target_, mip, internal_format, w, h, d, 0, gl_format, gl_type, NULL);
+          glTexImage3D(target_, mip, internal_format, w, h, d, 0, gl_format, gl_type, nullptr);
           break;
       }
     }
@@ -231,7 +231,7 @@ void GLTexture::update_sub(
     int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data)
 {
   BLI_assert(validate_data_format(format_, type));
-  BLI_assert(data != NULL);
+  BLI_assert(data != nullptr);
 
   this->ensure_mipmaps(mip);
 
@@ -617,13 +617,13 @@ bool GLTexture::proxy_check(int mip)
     switch (dimensions) {
       default:
       case 1:
-        glCompressedTexImage1D(gl_proxy, mip, size[0], 0, gl_format, img_size, NULL);
+        glCompressedTexImage1D(gl_proxy, mip, size[0], 0, gl_format, img_size, nullptr);
         break;
       case 2:
-        glCompressedTexImage2D(gl_proxy, mip, UNPACK2(size), 0, gl_format, img_size, NULL);
+        glCompressedTexImage2D(gl_proxy, mip, UNPACK2(size), 0, gl_format, img_size, nullptr);
         break;
       case 3:
-        glCompressedTexImage3D(gl_proxy, mip, UNPACK3(size), 0, gl_format, img_size, NULL);
+        glCompressedTexImage3D(gl_proxy, mip, UNPACK3(size), 0, gl_format, img_size, nullptr);
         break;
     }
   }
@@ -631,13 +631,13 @@ bool GLTexture::proxy_check(int mip)
     switch (dimensions) {
       default:
       case 1:
-        glTexImage1D(gl_proxy, mip, internal_format, size[0], 0, gl_format, gl_type, NULL);
+        glTexImage1D(gl_proxy, mip, internal_format, size[0], 0, gl_format, gl_type, nullptr);
         break;
       case 2:
-        glTexImage2D(gl_proxy, mip, internal_format, UNPACK2(size), 0, gl_format, gl_type, NULL);
+        glTexImage2D(gl_proxy, mip, internal_format, UNPACK2(size), 0, gl_format, gl_type, nullptr);
         break;
       case 3:
-        glTexImage3D(gl_proxy, mip, internal_format, UNPACK3(size), 0, gl_format, gl_type, NULL);
+        glTexImage3D(gl_proxy, mip, internal_format, UNPACK3(size), 0, gl_format, gl_type, nullptr);
         break;
     }
   }

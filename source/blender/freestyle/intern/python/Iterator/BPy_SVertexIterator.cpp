@@ -62,9 +62,9 @@ PyDoc_STRVAR(
 
 static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
-  static const char *kwlist_2[] = {"vertex", "begin", "previous_edge", "next_edge", "t", NULL};
-  PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
+  static const char *kwlist_1[] = {"brother", nullptr};
+  static const char *kwlist_2[] = {"vertex", "begin", "previous_edge", "next_edge", "t", nullptr};
+  PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr, *obj4 = nullptr;
   float t;
 
   if (PyArg_ParseTupleAndKeywords(
@@ -115,7 +115,7 @@ static PyObject *SVertexIterator_object_get(BPy_SVertexIterator *self, void *UNU
 {
   if (self->sv_it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
-    return NULL;
+    return nullptr;
   }
   SVertex *sv = self->sv_it->operator->();
   if (sv) {
@@ -145,52 +145,52 @@ static PyObject *SVertexIterator_u_get(BPy_SVertexIterator *self, void *UNUSED(c
 }
 
 static PyGetSetDef BPy_SVertexIterator_getseters[] = {
-    {"object", (getter)SVertexIterator_object_get, (setter)NULL, SVertexIterator_object_doc, NULL},
-    {"t", (getter)SVertexIterator_t_get, (setter)NULL, SVertexIterator_t_doc, NULL},
-    {"u", (getter)SVertexIterator_u_get, (setter)NULL, SVertexIterator_u_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+    {"object", (getter)SVertexIterator_object_get, (setter)nullptr, SVertexIterator_object_doc, nullptr},
+    {"t", (getter)SVertexIterator_t_get, (setter)nullptr, SVertexIterator_t_doc, nullptr},
+    {"u", (getter)SVertexIterator_u_get, (setter)nullptr, SVertexIterator_u_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_SVertexIterator type definition ------------------------------*/
 
 PyTypeObject SVertexIterator_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "SVertexIterator", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "SVertexIterator", /* tp_name */
     sizeof(BPy_SVertexIterator),                      /* tp_basicsize */
     0,                                                /* tp_itemsize */
-    0,                                                /* tp_dealloc */
-    0,                                                /* tp_print */
-    0,                                                /* tp_getattr */
-    0,                                                /* tp_setattr */
-    0,                                                /* tp_reserved */
-    0,                                                /* tp_repr */
-    0,                                                /* tp_as_number */
-    0,                                                /* tp_as_sequence */
-    0,                                                /* tp_as_mapping */
-    0,                                                /* tp_hash  */
-    0,                                                /* tp_call */
-    0,                                                /* tp_str */
-    0,                                                /* tp_getattro */
-    0,                                                /* tp_setattro */
-    0,                                                /* tp_as_buffer */
+    nullptr,                                                /* tp_dealloc */
+    nullptr,                                                /* tp_print */
+    nullptr,                                                /* tp_getattr */
+    nullptr,                                                /* tp_setattr */
+    nullptr,                                                /* tp_reserved */
+    nullptr,                                                /* tp_repr */
+    nullptr,                                                /* tp_as_number */
+    nullptr,                                                /* tp_as_sequence */
+    nullptr,                                                /* tp_as_mapping */
+    nullptr,                                                /* tp_hash  */
+    nullptr,                                                /* tp_call */
+    nullptr,                                                /* tp_str */
+    nullptr,                                                /* tp_getattro */
+    nullptr,                                                /* tp_setattro */
+    nullptr,                                                /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* tp_flags */
     SVertexIterator_doc,                              /* tp_doc */
-    0,                                                /* tp_traverse */
-    0,                                                /* tp_clear */
-    0,                                                /* tp_richcompare */
+    nullptr,                                                /* tp_traverse */
+    nullptr,                                                /* tp_clear */
+    nullptr,                                                /* tp_richcompare */
     0,                                                /* tp_weaklistoffset */
-    0,                                                /* tp_iter */
-    0,                                                /* tp_iternext */
-    0,                                                /* tp_methods */
-    0,                                                /* tp_members */
+    nullptr,                                                /* tp_iter */
+    nullptr,                                                /* tp_iternext */
+    nullptr,                                                /* tp_methods */
+    nullptr,                                                /* tp_members */
     BPy_SVertexIterator_getseters,                    /* tp_getset */
     &Iterator_Type,                                   /* tp_base */
-    0,                                                /* tp_dict */
-    0,                                                /* tp_descr_get */
-    0,                                                /* tp_descr_set */
+    nullptr,                                                /* tp_dict */
+    nullptr,                                                /* tp_descr_get */
+    nullptr,                                                /* tp_descr_set */
     0,                                                /* tp_dictoffset */
     (initproc)SVertexIterator_init,                   /* tp_init */
-    0,                                                /* tp_alloc */
-    0,                                                /* tp_new */
+    nullptr,                                                /* tp_alloc */
+    nullptr,                                                /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

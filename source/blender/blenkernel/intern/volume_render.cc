@@ -123,7 +123,7 @@ bool BKE_volume_grid_dense_floats(const Volume *volume,
   const int channels = BKE_volume_grid_channels(volume_grid);
   const int elem_size = sizeof(float) * channels;
   float *voxels = static_cast<float *>(MEM_malloc_arrayN(num_voxels, elem_size, __func__));
-  if (voxels == NULL) {
+  if (voxels == nullptr) {
     return false;
   }
 
@@ -143,7 +143,7 @@ bool BKE_volume_grid_dense_floats(const Volume *volume,
 
 void BKE_volume_dense_float_grid_clear(DenseFloatVolumeGrid *dense_grid)
 {
-  if (dense_grid->voxels != NULL) {
+  if (dense_grid->voxels != nullptr) {
     MEM_freeN(dense_grid->voxels);
   }
 }
@@ -339,7 +339,7 @@ void BKE_volume_grid_wireframe(const Volume *volume,
                                void *cb_userdata)
 {
   if (volume->display.wireframe_type == VOLUME_WIREFRAME_NONE) {
-    cb(cb_userdata, NULL, NULL, 0, 0);
+    cb(cb_userdata, nullptr, nullptr, 0, 0);
     return;
   }
 

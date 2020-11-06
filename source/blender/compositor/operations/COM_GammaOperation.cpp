@@ -24,8 +24,8 @@ GammaOperation::GammaOperation()
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_inputProgram = NULL;
-  this->m_inputGammaProgram = NULL;
+  this->m_inputProgram = nullptr;
+  this->m_inputGammaProgram = nullptr;
 }
 void GammaOperation::initExecution()
 {
@@ -51,6 +51,6 @@ void GammaOperation::executePixelSampled(float output[4], float x, float y, Pixe
 
 void GammaOperation::deinitExecution()
 {
-  this->m_inputProgram = NULL;
-  this->m_inputGammaProgram = NULL;
+  this->m_inputProgram = nullptr;
+  this->m_inputGammaProgram = nullptr;
 }

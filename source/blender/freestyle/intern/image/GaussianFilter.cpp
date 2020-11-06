@@ -28,7 +28,7 @@ namespace Freestyle {
 GaussianFilter::GaussianFilter(float iSigma)
 {
   _sigma = iSigma;
-  _mask = 0;
+  _mask = nullptr;
   computeMask();
 }
 

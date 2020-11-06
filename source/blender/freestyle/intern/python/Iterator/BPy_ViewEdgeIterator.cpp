@@ -57,7 +57,7 @@ PyDoc_STRVAR(ViewEdgeIterator_doc,
 
 static int check_begin(PyObject *obj, void *v)
 {
-  if (obj != NULL && obj != Py_None && !BPy_ViewEdge_Check(obj)) {
+  if (obj != nullptr && obj != Py_None && !BPy_ViewEdge_Check(obj)) {
     return 0;
   }
   *((PyObject **)v) = obj;
@@ -66,19 +66,19 @@ static int check_begin(PyObject *obj, void *v)
 
 static int ViewEdgeIterator_init(BPy_ViewEdgeIterator *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
-  static const char *kwlist_2[] = {"begin", "orientation", NULL};
-  PyObject *obj1 = 0, *obj2 = 0;
+  static const char *kwlist_1[] = {"brother", nullptr};
+  static const char *kwlist_2[] = {"begin", "orientation", nullptr};
+  PyObject *obj1 = nullptr, *obj2 = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(
           args, kwds, "O!", (char **)kwlist_1, &ViewEdgeIterator_Type, &obj1)) {
     self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(*(((BPy_ViewEdgeIterator *)obj1)->ve_it));
   }
   else if ((void)PyErr_Clear(),
-           (void)(obj1 = obj2 = 0),
+           (void)(obj1 = obj2 = nullptr),
            PyArg_ParseTupleAndKeywords(
                args, kwds, "|O&O!", (char **)kwlist_2, check_begin, &obj1, &PyBool_Type, &obj2)) {
-    ViewEdge *begin = (!obj1 || obj1 == Py_None) ? NULL : ((BPy_ViewEdge *)obj1)->ve;
+    ViewEdge *begin = (!obj1 || obj1 == Py_None) ? nullptr : ((BPy_ViewEdge *)obj1)->ve;
     bool orientation = (!obj2) ? true : bool_from_PyBool(obj2);
     self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(begin, orientation);
   }
@@ -106,7 +106,7 @@ static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
      (PyCFunction)ViewEdgeIterator_change_orientation,
      METH_NOARGS,
      ViewEdgeIterator_change_orientation_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*----------------------ViewEdgeIterator get/setters ----------------------------*/
@@ -120,7 +120,7 @@ static PyObject *ViewEdgeIterator_object_get(BPy_ViewEdgeIterator *self, void *U
 {
   if (!self->ve_it->isEnd()) {
     PyErr_SetString(PyExc_RuntimeError, "iteration has stopped");
-    return NULL;
+    return nullptr;
   }
   ViewEdge *ve = self->ve_it->operator*();
   if (ve) {
@@ -212,67 +212,67 @@ static int ViewEdgeIterator_begin_set(BPy_ViewEdgeIterator *self,
 static PyGetSetDef BPy_ViewEdgeIterator_getseters[] = {
     {"object",
      (getter)ViewEdgeIterator_object_get,
-     (setter)NULL,
+     (setter)nullptr,
      ViewEdgeIterator_object_doc,
-     NULL},
+     nullptr},
     {"current_edge",
      (getter)ViewEdgeIterator_current_edge_get,
      (setter)ViewEdgeIterator_current_edge_set,
      ViewEdgeIterator_current_edge_doc,
-     NULL},
+     nullptr},
     {"orientation",
      (getter)ViewEdgeIterator_orientation_get,
      (setter)ViewEdgeIterator_orientation_set,
      ViewEdgeIterator_orientation_doc,
-     NULL},
+     nullptr},
     {"begin",
      (getter)ViewEdgeIterator_begin_get,
      (setter)ViewEdgeIterator_begin_set,
      ViewEdgeIterator_begin_doc,
-     NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_ViewEdgeIterator type definition ------------------------------*/
 
 PyTypeObject ViewEdgeIterator_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "ViewEdgeIterator", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "ViewEdgeIterator", /* tp_name */
     sizeof(BPy_ViewEdgeIterator),                      /* tp_basicsize */
     0,                                                 /* tp_itemsize */
-    0,                                                 /* tp_dealloc */
-    0,                                                 /* tp_print */
-    0,                                                 /* tp_getattr */
-    0,                                                 /* tp_setattr */
-    0,                                                 /* tp_reserved */
-    0,                                                 /* tp_repr */
-    0,                                                 /* tp_as_number */
-    0,                                                 /* tp_as_sequence */
-    0,                                                 /* tp_as_mapping */
-    0,                                                 /* tp_hash  */
-    0,                                                 /* tp_call */
-    0,                                                 /* tp_str */
-    0,                                                 /* tp_getattro */
-    0,                                                 /* tp_setattro */
-    0,                                                 /* tp_as_buffer */
+    nullptr,                                                 /* tp_dealloc */
+    nullptr,                                                 /* tp_print */
+    nullptr,                                                 /* tp_getattr */
+    nullptr,                                                 /* tp_setattr */
+    nullptr,                                                 /* tp_reserved */
+    nullptr,                                                 /* tp_repr */
+    nullptr,                                                 /* tp_as_number */
+    nullptr,                                                 /* tp_as_sequence */
+    nullptr,                                                 /* tp_as_mapping */
+    nullptr,                                                 /* tp_hash  */
+    nullptr,                                                 /* tp_call */
+    nullptr,                                                 /* tp_str */
+    nullptr,                                                 /* tp_getattro */
+    nullptr,                                                 /* tp_setattro */
+    nullptr,                                                 /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
     ViewEdgeIterator_doc,                              /* tp_doc */
-    0,                                                 /* tp_traverse */
-    0,                                                 /* tp_clear */
-    0,                                                 /* tp_richcompare */
+    nullptr,                                                 /* tp_traverse */
+    nullptr,                                                 /* tp_clear */
+    nullptr,                                                 /* tp_richcompare */
     0,                                                 /* tp_weaklistoffset */
-    0,                                                 /* tp_iter */
-    0,                                                 /* tp_iternext */
+    nullptr,                                                 /* tp_iter */
+    nullptr,                                                 /* tp_iternext */
     BPy_ViewEdgeIterator_methods,                      /* tp_methods */
-    0,                                                 /* tp_members */
+    nullptr,                                                 /* tp_members */
     BPy_ViewEdgeIterator_getseters,                    /* tp_getset */
     &Iterator_Type,                                    /* tp_base */
-    0,                                                 /* tp_dict */
-    0,                                                 /* tp_descr_get */
-    0,                                                 /* tp_descr_set */
+    nullptr,                                                 /* tp_dict */
+    nullptr,                                                 /* tp_descr_get */
+    nullptr,                                                 /* tp_descr_set */
     0,                                                 /* tp_dictoffset */
     (initproc)ViewEdgeIterator_init,                   /* tp_init */
-    0,                                                 /* tp_alloc */
-    0,                                                 /* tp_new */
+    nullptr,                                                 /* tp_alloc */
+    nullptr,                                                 /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

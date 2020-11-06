@@ -23,8 +23,8 @@ InvertOperation::InvertOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_inputValueProgram = NULL;
-  this->m_inputColorProgram = NULL;
+  this->m_inputValueProgram = nullptr;
+  this->m_inputColorProgram = nullptr;
   this->m_color = true;
   this->m_alpha = false;
   setResolutionInputSocketIndex(1);
@@ -64,6 +64,6 @@ void InvertOperation::executePixelSampled(float output[4], float x, float y, Pix
 
 void InvertOperation::deinitExecution()
 {
-  this->m_inputValueProgram = NULL;
-  this->m_inputColorProgram = NULL;
+  this->m_inputValueProgram = nullptr;
+  this->m_inputColorProgram = nullptr;
 }

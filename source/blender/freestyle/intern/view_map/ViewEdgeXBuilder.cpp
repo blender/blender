@@ -33,13 +33,13 @@ namespace Freestyle {
 
 void ViewEdgeXBuilder::Init(ViewShape *oVShape)
 {
-  if (NULL == oVShape) {
+  if (nullptr == oVShape) {
     return;
   }
 
   // for design convenience, we store the current SShape.
   _pCurrentSShape = oVShape->sshape();
-  if (0 == _pCurrentSShape) {
+  if (nullptr == _pCurrentSShape) {
     return;
   }
 
@@ -164,7 +164,7 @@ ViewEdge *ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer &iFaceLayer)
 
   if (iFaceLayer.fl->nature() & Nature::RIDGE) {
     if (size < 4) {
-      return 0;
+      return nullptr;
     }
   }
 
@@ -176,9 +176,9 @@ ViewEdge *ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer &iFaceLayer)
   _pCurrentVShape->AddEdge(newVEdge);
 
   // build FEdges
-  FEdge *feprevious = NULL;
-  FEdge *fefirst = NULL;
-  FEdge *fe = NULL;
+  FEdge *feprevious = nullptr;
+  FEdge *fefirst = nullptr;
+  FEdge *fe = nullptr;
   for (list<OWXFaceLayer>::iterator fl = facesChain.begin(), flend = facesChain.end(); fl != flend;
        ++fl) {
     fe = BuildSmoothFEdge(feprevious, (*fl));
@@ -201,8 +201,8 @@ ViewEdge *ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer &iFaceLayer)
   if ((first == end) && (size != 1)) {
     fefirst->setPreviousEdge(fe);
     fe->setNextEdge(fefirst);
-    newVEdge->setA(0);
-    newVEdge->setB(0);
+    newVEdge->setA(nullptr);
+    newVEdge->setB(nullptr);
   }
   else {
     ViewVertex *vva = MakeViewVertex(fefirst->vertexA());
@@ -262,9 +262,9 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge &iWEdge)
   firstWEdge = edgesChain.front();
 
   // build FEdges
-  FEdge *feprevious = NULL;
-  FEdge *fefirst = NULL;
-  FEdge *fe = NULL;
+  FEdge *feprevious = nullptr;
+  FEdge *fefirst = nullptr;
+  FEdge *fe = nullptr;
   for (list<OWXEdge>::iterator we = edgesChain.begin(), weend = edgesChain.end(); we != weend;
        ++we) {
     fe = BuildSharpFEdge(feprevious, (*we));
@@ -284,8 +284,8 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge &iWEdge)
   if ((firstWEdge == endWEdge) && (size != 1)) {
     fefirst->setPreviousEdge(fe);
     fe->setNextEdge(fefirst);
-    newVEdge->setA(0);
-    newVEdge->setB(0);
+    newVEdge->setA(nullptr);
+    newVEdge->setB(nullptr);
   }
   else {
     ViewVertex *vva = MakeViewVertex(fefirst->vertexA());
@@ -303,7 +303,7 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge &iWEdge)
 
 OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
 {
-  WXFace *nextFace = NULL;
+  WXFace *nextFace = nullptr;
   WOEdge *woeend;
   real tend;
   if (iFaceLayer.order) {
@@ -324,14 +324,14 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
       nextVertex = woeend->GetbVertex();
     }
     if (nextVertex->isBoundary()) {  // if it's a non-manifold vertex -> ignore
-      return OWXFaceLayer(0, true);
+      return OWXFaceLayer(nullptr, true);
     }
     bool found = false;
     WVertex::face_iterator f = nextVertex->faces_begin();
     WVertex::face_iterator fend = nextVertex->faces_end();
     while ((!found) && (f != fend)) {
       nextFace = dynamic_cast<WXFace *>(*f);
-      if ((0 != nextFace) && (nextFace != iFaceLayer.fl->getFace())) {
+      if ((nullptr != nextFace) && (nextFace != iFaceLayer.fl->getFace())) {
         vector<WXFaceLayer *> sameNatureLayers;
         nextFace->retrieveSmoothEdgesLayers(iFaceLayer.fl->nature(), sameNatureLayers);
         // don't know... Maybe should test whether this face has also a vertex_edge configuration.
@@ -339,7 +339,7 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
           WXFaceLayer *winner = sameNatureLayers[0];
           // check face mark continuity
           if (winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark()) {
-            return OWXFaceLayer(NULL, true);
+            return OWXFaceLayer(nullptr, true);
           }
           if (woeend == winner->getSmoothEdge()->woea()->twin()) {
             return OWXFaceLayer(winner, true);
@@ -354,24 +354,24 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
   else {
     nextFace = dynamic_cast<WXFace *>(iFaceLayer.fl->getFace()->GetBordingFace(woeend));
     if (!nextFace) {
-      return OWXFaceLayer(NULL, true);
+      return OWXFaceLayer(nullptr, true);
     }
     // if the next face layer has either no smooth edge or no smooth edge of same nature, no next
     // face
     if (!nextFace->hasSmoothEdges()) {
-      return OWXFaceLayer(NULL, true);
+      return OWXFaceLayer(nullptr, true);
     }
     vector<WXFaceLayer *> sameNatureLayers;
     nextFace->retrieveSmoothEdgesLayers(iFaceLayer.fl->nature(), sameNatureLayers);
     // don't know how to deal with several edges of same nature on a single face
     if ((sameNatureLayers.empty()) || (sameNatureLayers.size() != 1)) {
-      return OWXFaceLayer(NULL, true);
+      return OWXFaceLayer(nullptr, true);
     }
 
     WXFaceLayer *winner = sameNatureLayers[0];
     // check face mark continuity
     if (winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark()) {
-      return OWXFaceLayer(NULL, true);
+      return OWXFaceLayer(nullptr, true);
     }
     if (woeend == winner->getSmoothEdge()->woea()->twin()) {
       return OWXFaceLayer(winner, true);
@@ -379,12 +379,12 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
 
     return OWXFaceLayer(winner, false);
   }
-  return OWXFaceLayer(NULL, true);
+  return OWXFaceLayer(nullptr, true);
 }
 
 OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLayer)
 {
-  WXFace *previousFace = NULL;
+  WXFace *previousFace = nullptr;
   WOEdge *woebegin;
   real tend;
   if (iFaceLayer.order) {
@@ -406,14 +406,14 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLa
       previousVertex = woebegin->GetbVertex();
     }
     if (previousVertex->isBoundary()) {  // if it's a non-manifold vertex -> ignore
-      return OWXFaceLayer(NULL, true);
+      return OWXFaceLayer(nullptr, true);
     }
     bool found = false;
     WVertex::face_iterator f = previousVertex->faces_begin();
     WVertex::face_iterator fend = previousVertex->faces_end();
     for (; (!found) && (f != fend); ++f) {
       previousFace = dynamic_cast<WXFace *>(*f);
-      if ((0 != previousFace) && (previousFace != iFaceLayer.fl->getFace())) {
+      if ((nullptr != previousFace) && (previousFace != iFaceLayer.fl->getFace())) {
         vector<WXFaceLayer *> sameNatureLayers;
         previousFace->retrieveSmoothEdgesLayers(iFaceLayer.fl->nature(), sameNatureLayers);
         // don't know... Maybe should test whether this face has also a vertex_edge configuration
@@ -421,7 +421,7 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLa
           WXFaceLayer *winner = sameNatureLayers[0];
           // check face mark continuity
           if (winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark()) {
-            return OWXFaceLayer(NULL, true);
+            return OWXFaceLayer(nullptr, true);
           }
           if (woebegin == winner->getSmoothEdge()->woeb()->twin()) {
             return OWXFaceLayer(winner, true);
@@ -434,25 +434,25 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLa
   }
   else {
     previousFace = dynamic_cast<WXFace *>(iFaceLayer.fl->getFace()->GetBordingFace(woebegin));
-    if (0 == previousFace) {
-      return OWXFaceLayer(NULL, true);
+    if (nullptr == previousFace) {
+      return OWXFaceLayer(nullptr, true);
     }
     // if the next face layer has either no smooth edge or no smooth edge of same nature, no next
     // face
     if (!previousFace->hasSmoothEdges()) {
-      return OWXFaceLayer(NULL, true);
+      return OWXFaceLayer(nullptr, true);
     }
     vector<WXFaceLayer *> sameNatureLayers;
     previousFace->retrieveSmoothEdgesLayers(iFaceLayer.fl->nature(), sameNatureLayers);
     // don't know how to deal with several edges of same nature on a single face
     if ((sameNatureLayers.empty()) || (sameNatureLayers.size() != 1)) {
-      return OWXFaceLayer(NULL, true);
+      return OWXFaceLayer(nullptr, true);
     }
 
     WXFaceLayer *winner = sameNatureLayers[0];
     // check face mark continuity
     if (winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark()) {
-      return OWXFaceLayer(NULL, true);
+      return OWXFaceLayer(nullptr, true);
     }
     if (woebegin == winner->getSmoothEdge()->woeb()->twin()) {
       return OWXFaceLayer(winner, true);
@@ -460,7 +460,7 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLa
 
     return OWXFaceLayer(winner, false);
   }
-  return OWXFaceLayer(NULL, true);
+  return OWXFaceLayer(nullptr, true);
 }
 
 FEdge *ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer &ifl)
@@ -487,7 +487,7 @@ FEdge *ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer 
 
   Vec3r normal;
   // Make the 2 Svertices
-  if (feprevious == 0) {  // that means that we don't have any vertex already built for that face
+  if (feprevious == nullptr) {  // that means that we don't have any vertex already built for that face
     Vec3r A1(woea->GetaVertex()->GetVertex());
     Vec3r A2(woea->GetbVertex()->GetVertex());
     Vec3r A(A1 + ta * (A2 - A1));
@@ -543,7 +543,7 @@ FEdge *ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer 
   fe->setFrsMaterialIndex(ifl.fl->getFace()->frs_materialIndex());
   fe->setFace(ifl.fl->getFace());
   fe->setFaceMark(ifl.fl->getFace()->GetMark());
-  if (feprevious == 0) {
+  if (feprevious == nullptr) {
     normal.normalize();
   }
   fe->setNormal(normal);
@@ -562,10 +562,10 @@ FEdge *ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer 
 
 bool ViewEdgeXBuilder::stopSmoothViewEdge(WXFaceLayer *iFaceLayer)
 {
-  if (NULL == iFaceLayer) {
+  if (nullptr == iFaceLayer) {
     return true;
   }
-  if (iFaceLayer->userdata == 0) {
+  if (iFaceLayer->userdata == nullptr) {
     return false;
   }
   return true;
@@ -588,7 +588,7 @@ int ViewEdgeXBuilder::retrieveFaceMarks(WXEdge *iEdge)
 OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge &iEdge)
 {
   if (Nature::NO_FEATURE == iEdge.e->nature()) {
-    return OWXEdge(NULL, true);
+    return OWXEdge(nullptr, true);
   }
 
   WVertex *v;
@@ -600,7 +600,7 @@ OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge &iEdge)
   }
 
   if (((WXVertex *)v)->isFeature()) {
-    return 0; /* XXX eeek? NULL? OWXEdge(NULL, true/false)?*/
+    return nullptr; /* XXX eeek? NULL? OWXEdge(NULL, true/false)?*/
   }
 
   int faceMarks = retrieveFaceMarks(iEdge.e);
@@ -631,13 +631,13 @@ OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge &iEdge)
     return OWXEdge(wxe, false);
   }
   // we did not find:
-  return OWXEdge(NULL, true);
+  return OWXEdge(nullptr, true);
 }
 
 OWXEdge ViewEdgeXBuilder::FindPreviousWEdge(const OWXEdge &iEdge)
 {
   if (Nature::NO_FEATURE == iEdge.e->nature()) {
-    return OWXEdge(NULL, true);
+    return OWXEdge(nullptr, true);
   }
 
   WVertex *v;
@@ -649,7 +649,7 @@ OWXEdge ViewEdgeXBuilder::FindPreviousWEdge(const OWXEdge &iEdge)
   }
 
   if (((WXVertex *)v)->isFeature()) {
-    return 0;
+    return nullptr;
   }
 
   int faceMarks = retrieveFaceMarks(iEdge.e);
@@ -676,7 +676,7 @@ OWXEdge ViewEdgeXBuilder::FindPreviousWEdge(const OWXEdge &iEdge)
     return OWXEdge(wxe, false);
   }
   // we did not find:
-  return OWXEdge(NULL, true);
+  return OWXEdge(nullptr, true);
 }
 
 FEdge *ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge &iwe)
@@ -750,10 +750,10 @@ FEdge *ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge &iwe)
 
 bool ViewEdgeXBuilder::stopSharpViewEdge(WXEdge *iEdge)
 {
-  if (NULL == iEdge) {
+  if (nullptr == iEdge) {
     return true;
   }
-  if (iEdge->userdata == 0) {
+  if (iEdge->userdata == nullptr) {
     return false;
   }
   return true;

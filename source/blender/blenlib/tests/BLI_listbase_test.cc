@@ -22,19 +22,19 @@ static bool listbase_is_valid(const ListBase *listbase)
   if (listbase->first) {
     const Link *prev, *link;
     link = (Link *)listbase->first;
-    TESTFAIL(link->prev == NULL);
+    TESTFAIL(link->prev == nullptr);
 
     link = (Link *)listbase->last;
-    TESTFAIL(link->next == NULL);
+    TESTFAIL(link->next == nullptr);
 
-    prev = NULL;
+    prev = nullptr;
     link = (Link *)listbase->first;
     do {
       TESTFAIL(link->prev == prev);
     } while ((void)(prev = link), (link = link->next));
     TESTFAIL(prev == listbase->last);
 
-    prev = NULL;
+    prev = nullptr;
     link = (Link *)listbase->last;
     do {
       TESTFAIL(link->next == prev);
@@ -42,7 +42,7 @@ static bool listbase_is_valid(const ListBase *listbase)
     TESTFAIL(prev == listbase->first);
   }
   else {
-    TESTFAIL(listbase->last == NULL);
+    TESTFAIL(listbase->last == nullptr);
   }
 #undef TESTFAIL
 
@@ -73,12 +73,12 @@ TEST(listbase, FindLinkOrIndex)
 
   /* Empty list */
   BLI_listbase_clear(&lb);
-  EXPECT_EQ(BLI_findlink(&lb, -1), (void *)NULL);
-  EXPECT_EQ(BLI_findlink(&lb, 0), (void *)NULL);
-  EXPECT_EQ(BLI_findlink(&lb, 1), (void *)NULL);
-  EXPECT_EQ(BLI_rfindlink(&lb, -1), (void *)NULL);
-  EXPECT_EQ(BLI_rfindlink(&lb, 0), (void *)NULL);
-  EXPECT_EQ(BLI_rfindlink(&lb, 1), (void *)NULL);
+  EXPECT_EQ(BLI_findlink(&lb, -1), (void *)nullptr);
+  EXPECT_EQ(BLI_findlink(&lb, 0), (void *)nullptr);
+  EXPECT_EQ(BLI_findlink(&lb, 1), (void *)nullptr);
+  EXPECT_EQ(BLI_rfindlink(&lb, -1), (void *)nullptr);
+  EXPECT_EQ(BLI_rfindlink(&lb, 0), (void *)nullptr);
+  EXPECT_EQ(BLI_rfindlink(&lb, 1), (void *)nullptr);
   EXPECT_EQ(BLI_findindex(&lb, link1), -1);
 
   /* One link */

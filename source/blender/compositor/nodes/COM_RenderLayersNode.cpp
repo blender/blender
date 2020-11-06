@@ -58,17 +58,17 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
   Scene *scene = (Scene *)this->getbNode()->id;
   const short layerId = this->getbNode()->custom1;
   RenderResult *rr = RE_AcquireResultRead(re);
-  if (rr == NULL) {
+  if (rr == nullptr) {
     missingRenderLink(converter);
     return;
   }
   ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene->view_layers, layerId);
-  if (view_layer == NULL) {
+  if (view_layer == nullptr) {
     missingRenderLink(converter);
     return;
   }
   RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
-  if (rl == NULL) {
+  if (rl == nullptr) {
     missingRenderLink(converter);
     return;
   }
@@ -78,7 +78,7 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
     NodeImageLayer *storage = (NodeImageLayer *)output->getbNodeSocket()->storage;
     RenderPass *rpass = (RenderPass *)BLI_findstring(
         &rl->passes, storage->pass_name, offsetof(RenderPass, name));
-    if (rpass == NULL) {
+    if (rpass == nullptr) {
       missingSocketLink(converter, output);
       continue;
     }
@@ -164,9 +164,9 @@ void RenderLayersNode::convertToOperations(NodeConverter &converter,
                                            const CompositorContext &context) const
 {
   Scene *scene = (Scene *)this->getbNode()->id;
-  Render *re = (scene) ? RE_GetSceneRender(scene) : NULL;
+  Render *re = (scene) ? RE_GetSceneRender(scene) : nullptr;
 
-  if (re != NULL) {
+  if (re != nullptr) {
     testRenderLink(converter, context, re);
     RE_ReleaseResult(re);
   }

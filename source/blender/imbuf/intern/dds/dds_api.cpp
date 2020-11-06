@@ -47,10 +47,10 @@ int imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
   return 0; /* todo: finish this function */
 
   /* check image buffer */
-  if (ibuf == 0) {
+  if (ibuf == nullptr) {
     return 0;
   }
-  if (ibuf->rect == 0) {
+  if (ibuf->rect == nullptr) {
     return 0;
   }
 
@@ -91,7 +91,7 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
                            int flags,
                            char colorspace[IM_MAX_SPACE])
 {
-  struct ImBuf *ibuf = NULL;
+  struct ImBuf *ibuf = nullptr;
   DirectDrawSurface dds((unsigned char *)mem, size); /* reads header */
   unsigned char bits_per_pixel;
   unsigned int *rect;
@@ -100,7 +100,7 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
   int col;
   unsigned char *cp = (unsigned char *)&col;
   Color32 pixel;
-  Color32 *pixels = 0;
+  Color32 *pixels = nullptr;
 
   /* OCIO_TODO: never was able to save DDS, so can't test loading
    *            but profile used to be set to sRGB and can't see rect_float here, so
@@ -109,27 +109,27 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
   if (!imb_is_a_dds(mem)) {
-    return 0;
+    return nullptr;
   }
 
   /* check if DDS is valid and supported */
   if (!dds.isValid()) {
     /* no need to print error here, just testing if it is a DDS */
     if (flags & IB_test) {
-      return 0;
+      return nullptr;
     }
 
     printf("DDS: not valid; header follows\n");
     dds.printInfo();
-    return 0;
+    return nullptr;
   }
   if (!dds.isSupported()) {
     printf("DDS: format not supported\n");
-    return 0;
+    return nullptr;
   }
   if ((dds.width() > 65535) || (dds.height() > 65535)) {
     printf("DDS: dimensions too large\n");
-    return 0;
+    return nullptr;
   }
 
   /* convert DDS into ImBuf */
@@ -148,8 +148,8 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
     }
   }
   ibuf = IMB_allocImBuf(dds.width(), dds.height(), bits_per_pixel, 0);
-  if (ibuf == 0) {
-    return 0; /* memory allocation failed */
+  if (ibuf == nullptr) {
+    return nullptr; /* memory allocation failed */
   }
 
   ibuf->ftype = IMB_FTYPE_DDS;
@@ -160,7 +160,7 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
     if (!imb_addrectImBuf(ibuf)) {
       return ibuf;
     }
-    if (ibuf->rect == 0) {
+    if (ibuf->rect == nullptr) {
       return ibuf;
     }
 
@@ -188,7 +188,7 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
       }
     }
     else {
-      ibuf->dds_data.data = NULL;
+      ibuf->dds_data.data = nullptr;
       ibuf->dds_data.size = 0;
     }
 

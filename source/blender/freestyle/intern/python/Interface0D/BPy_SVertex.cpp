@@ -54,9 +54,9 @@ PyDoc_STRVAR(SVertex_doc,
 
 static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
-  static const char *kwlist_2[] = {"point_3d", "id", NULL};
-  PyObject *obj = 0;
+  static const char *kwlist_1[] = {"brother", nullptr};
+  static const char *kwlist_2[] = {"point_3d", "id", nullptr};
+  PyObject *obj = nullptr;
   float v[3];
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &SVertex_Type, &obj)) {
@@ -93,17 +93,17 @@ PyDoc_STRVAR(SVertex_add_normal_doc,
 
 static PyObject *SVertex_add_normal(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"normal", NULL};
+  static const char *kwlist[] = {"normal", nullptr};
   PyObject *py_normal;
   Vec3r n;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &py_normal)) {
-    return NULL;
+    return nullptr;
   }
   if (!Vec3r_ptr_from_PyObject(py_normal, n)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
-    return NULL;
+    return nullptr;
   }
   self->sv->AddNormal(n);
   Py_RETURN_NONE;
@@ -119,11 +119,11 @@ PyDoc_STRVAR(SVertex_add_fedge_doc,
 
 static PyObject *SVertex_add_fedge(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"fedge", NULL};
+  static const char *kwlist[] = {"fedge", nullptr};
   PyObject *py_fe;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &FEdge_Type, &py_fe)) {
-    return NULL;
+    return nullptr;
   }
   self->sv->AddFEdge(((BPy_FEdge *)py_fe)->fe);
   Py_RETURN_NONE;
@@ -140,7 +140,7 @@ static PyMethodDef BPy_SVertex_methods[] = {
      (PyCFunction)SVertex_add_fedge,
      METH_VARARGS | METH_KEYWORDS,
      SVertex_add_fedge_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*----------------------mathutils callbacks ----------------------------*/
@@ -423,63 +423,63 @@ static PyGetSetDef BPy_SVertex_getseters[] = {
      (getter)SVertex_point_3d_get,
      (setter)SVertex_point_3d_set,
      SVertex_point_3d_doc,
-     NULL},
+     nullptr},
     {"point_2d",
      (getter)SVertex_point_2d_get,
      (setter)SVertex_point_2d_set,
      SVertex_point_2d_doc,
-     NULL},
-    {"id", (getter)SVertex_id_get, (setter)SVertex_id_set, SVertex_id_doc, NULL},
-    {"normals", (getter)SVertex_normals_get, (setter)NULL, SVertex_normals_doc, NULL},
+     nullptr},
+    {"id", (getter)SVertex_id_get, (setter)SVertex_id_set, SVertex_id_doc, nullptr},
+    {"normals", (getter)SVertex_normals_get, (setter)nullptr, SVertex_normals_doc, nullptr},
     {"normals_size",
      (getter)SVertex_normals_size_get,
-     (setter)NULL,
+     (setter)nullptr,
      SVertex_normals_size_doc,
-     NULL},
-    {"viewvertex", (getter)SVertex_viewvertex_get, (setter)NULL, SVertex_viewvertex_doc, NULL},
-    {"curvatures", (getter)SVertex_curvatures_get, (setter)NULL, SVertex_curvatures_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {"viewvertex", (getter)SVertex_viewvertex_get, (setter)nullptr, SVertex_viewvertex_doc, nullptr},
+    {"curvatures", (getter)SVertex_curvatures_get, (setter)nullptr, SVertex_curvatures_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_SVertex type definition ------------------------------*/
 PyTypeObject SVertex_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "SVertex", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "SVertex", /* tp_name */
     sizeof(BPy_SVertex),                      /* tp_basicsize */
     0,                                        /* tp_itemsize */
-    0,                                        /* tp_dealloc */
-    0,                                        /* tp_print */
-    0,                                        /* tp_getattr */
-    0,                                        /* tp_setattr */
-    0,                                        /* tp_reserved */
-    0,                                        /* tp_repr */
-    0,                                        /* tp_as_number */
-    0,                                        /* tp_as_sequence */
-    0,                                        /* tp_as_mapping */
-    0,                                        /* tp_hash  */
-    0,                                        /* tp_call */
-    0,                                        /* tp_str */
-    0,                                        /* tp_getattro */
-    0,                                        /* tp_setattro */
-    0,                                        /* tp_as_buffer */
+    nullptr,                                        /* tp_dealloc */
+    nullptr,                                        /* tp_print */
+    nullptr,                                        /* tp_getattr */
+    nullptr,                                        /* tp_setattr */
+    nullptr,                                        /* tp_reserved */
+    nullptr,                                        /* tp_repr */
+    nullptr,                                        /* tp_as_number */
+    nullptr,                                        /* tp_as_sequence */
+    nullptr,                                        /* tp_as_mapping */
+    nullptr,                                        /* tp_hash  */
+    nullptr,                                        /* tp_call */
+    nullptr,                                        /* tp_str */
+    nullptr,                                        /* tp_getattro */
+    nullptr,                                        /* tp_setattro */
+    nullptr,                                        /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
     SVertex_doc,                              /* tp_doc */
-    0,                                        /* tp_traverse */
-    0,                                        /* tp_clear */
-    0,                                        /* tp_richcompare */
+    nullptr,                                        /* tp_traverse */
+    nullptr,                                        /* tp_clear */
+    nullptr,                                        /* tp_richcompare */
     0,                                        /* tp_weaklistoffset */
-    0,                                        /* tp_iter */
-    0,                                        /* tp_iternext */
+    nullptr,                                        /* tp_iter */
+    nullptr,                                        /* tp_iternext */
     BPy_SVertex_methods,                      /* tp_methods */
-    0,                                        /* tp_members */
+    nullptr,                                        /* tp_members */
     BPy_SVertex_getseters,                    /* tp_getset */
     &Interface0D_Type,                        /* tp_base */
-    0,                                        /* tp_dict */
-    0,                                        /* tp_descr_get */
-    0,                                        /* tp_descr_set */
+    nullptr,                                        /* tp_dict */
+    nullptr,                                        /* tp_descr_get */
+    nullptr,                                        /* tp_descr_set */
     0,                                        /* tp_dictoffset */
     (initproc)SVertex_init,                   /* tp_init */
-    0,                                        /* tp_alloc */
-    0,                                        /* tp_new */
+    nullptr,                                        /* tp_alloc */
+    nullptr,                                        /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

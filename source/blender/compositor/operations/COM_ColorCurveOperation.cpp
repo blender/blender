@@ -30,10 +30,10 @@ ColorCurveOperation::ColorCurveOperation()
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
 
-  this->m_inputFacProgram = NULL;
-  this->m_inputImageProgram = NULL;
-  this->m_inputBlackProgram = NULL;
-  this->m_inputWhiteProgram = NULL;
+  this->m_inputFacProgram = nullptr;
+  this->m_inputImageProgram = nullptr;
+  this->m_inputBlackProgram = nullptr;
+  this->m_inputWhiteProgram = nullptr;
 
   this->setResolutionInputSocketIndex(1);
 }
@@ -90,10 +90,10 @@ void ColorCurveOperation::executePixelSampled(float output[4],
 void ColorCurveOperation::deinitExecution()
 {
   CurveBaseOperation::deinitExecution();
-  this->m_inputFacProgram = NULL;
-  this->m_inputImageProgram = NULL;
-  this->m_inputBlackProgram = NULL;
-  this->m_inputWhiteProgram = NULL;
+  this->m_inputFacProgram = nullptr;
+  this->m_inputImageProgram = nullptr;
+  this->m_inputBlackProgram = nullptr;
+  this->m_inputWhiteProgram = nullptr;
 }
 
 // Constant level curve mapping
@@ -104,8 +104,8 @@ ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation()
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
 
-  this->m_inputFacProgram = NULL;
-  this->m_inputImageProgram = NULL;
+  this->m_inputFacProgram = nullptr;
+  this->m_inputImageProgram = nullptr;
 
   this->setResolutionInputSocketIndex(1);
 }
@@ -148,6 +148,6 @@ void ConstantLevelColorCurveOperation::executePixelSampled(float output[4],
 void ConstantLevelColorCurveOperation::deinitExecution()
 {
   CurveBaseOperation::deinitExecution();
-  this->m_inputFacProgram = NULL;
-  this->m_inputImageProgram = NULL;
+  this->m_inputFacProgram = nullptr;
+  this->m_inputImageProgram = nullptr;
 }

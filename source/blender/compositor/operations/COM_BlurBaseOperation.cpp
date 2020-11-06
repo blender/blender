@@ -29,7 +29,7 @@ BlurBaseOperation::BlurBaseOperation(DataType data_type)
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(data_type);
   this->setComplex(true);
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
   memset(&m_data, 0, sizeof(NodeBlurData));
   this->m_size = 1.0f;
   this->m_sizeavailable = false;
@@ -154,8 +154,8 @@ float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff
 
 void BlurBaseOperation::deinitExecution()
 {
-  this->m_inputProgram = NULL;
-  this->m_inputSize = NULL;
+  this->m_inputProgram = nullptr;
+  this->m_inputSize = nullptr;
 }
 
 void BlurBaseOperation::setData(const NodeBlurData *data)

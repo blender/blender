@@ -52,7 +52,7 @@ void GLVertBuf::release_data()
 
 void GLVertBuf::duplicate_data(VertBuf *dst_)
 {
-  BLI_assert(GLContext::get() != NULL);
+  BLI_assert(GLContext::get() != nullptr);
   GLVertBuf *src = this;
   GLVertBuf *dst = static_cast<GLVertBuf *>(dst_);
 
@@ -61,7 +61,7 @@ void GLVertBuf::duplicate_data(VertBuf *dst_)
 
     glGenBuffers(1, &dst->vbo_id_);
     glBindBuffer(GL_COPY_WRITE_BUFFER, dst->vbo_id_);
-    glBufferData(GL_COPY_WRITE_BUFFER, dst->vbo_size_, NULL, to_gl(dst->usage_));
+    glBufferData(GL_COPY_WRITE_BUFFER, dst->vbo_size_, nullptr, to_gl(dst->usage_));
 
     glBindBuffer(GL_COPY_READ_BUFFER, src->vbo_id_);
 
@@ -82,7 +82,7 @@ void GLVertBuf::upload_data()
 
 void GLVertBuf::bind()
 {
-  BLI_assert(GLContext::get() != NULL);
+  BLI_assert(GLContext::get() != nullptr);
 
   if (vbo_id_ == 0) {
     glGenBuffers(1, &vbo_id_);
@@ -93,7 +93,7 @@ void GLVertBuf::bind()
   if (flag & GPU_VERTBUF_DATA_DIRTY) {
     vbo_size_ = this->size_used_get();
     /* Orphan the vbo to avoid sync then upload data. */
-    glBufferData(GL_ARRAY_BUFFER, vbo_size_, NULL, to_gl(usage_));
+    glBufferData(GL_ARRAY_BUFFER, vbo_size_, nullptr, to_gl(usage_));
     glBufferSubData(GL_ARRAY_BUFFER, 0, vbo_size_, data);
 
     memory_usage += vbo_size_;

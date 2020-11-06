@@ -107,7 +107,7 @@ class OpenVDBMeshAdapter {
 static void initData(ModifierData *md)
 {
   MeshToVolumeModifierData *mvmd = reinterpret_cast<MeshToVolumeModifierData *>(md);
-  mvmd->object = NULL;
+  mvmd->object = nullptr;
   mvmd->resolution_mode = MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT;
   mvmd->voxel_size = 0.1f;
   mvmd->voxel_amount = 32;
@@ -139,32 +139,32 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   MeshToVolumeModifierData *mvmd = static_cast<MeshToVolumeModifierData *>(ptr->data);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "density", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "density", 0, nullptr, ICON_NONE);
 
   {
     uiLayout *col = uiLayoutColumn(layout, false);
-    uiItemR(col, ptr, "use_fill_volume", 0, NULL, ICON_NONE);
-    uiItemR(col, ptr, "exterior_band_width", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "use_fill_volume", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "exterior_band_width", 0, nullptr, ICON_NONE);
 
     uiLayout *subcol = uiLayoutColumn(col, false);
     uiLayoutSetActive(subcol, !mvmd->fill_volume);
-    uiItemR(subcol, ptr, "interior_band_width", 0, NULL, ICON_NONE);
+    uiItemR(subcol, ptr, "interior_band_width", 0, nullptr, ICON_NONE);
   }
   {
     uiLayout *col = uiLayoutColumn(layout, false);
-    uiItemR(col, ptr, "resolution_mode", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "resolution_mode", 0, nullptr, ICON_NONE);
     if (mvmd->resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT) {
-      uiItemR(col, ptr, "voxel_amount", 0, NULL, ICON_NONE);
+      uiItemR(col, ptr, "voxel_amount", 0, nullptr, ICON_NONE);
     }
     else {
-      uiItemR(col, ptr, "voxel_size", 0, NULL, ICON_NONE);
+      uiItemR(col, ptr, "voxel_size", 0, nullptr, ICON_NONE);
     }
   }
 
@@ -213,11 +213,11 @@ static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Vo
   MeshToVolumeModifierData *mvmd = reinterpret_cast<MeshToVolumeModifierData *>(md);
   Object *object_to_convert = mvmd->object;
 
-  if (object_to_convert == NULL) {
+  if (object_to_convert == nullptr) {
     return input_volume;
   }
   Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_to_convert, false);
-  if (mesh == NULL) {
+  if (mesh == nullptr) {
     return input_volume;
   }
   BKE_mesh_wrapper_ensure_mdata(mesh);
@@ -290,26 +290,26 @@ ModifierTypeInfo modifierType_MeshToVolume = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ NULL,
-    /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
+    /* modifyMesh */ nullptr,
+    /* modifyHair */ nullptr,
+    /* modifyPointCloud */ nullptr,
     /* modifyVolume */ modifyVolume,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
+    /* requiredDataMask */ nullptr,
+    /* freeData */ nullptr,
+    /* isDisabled */ nullptr,
     /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnTime */ nullptr,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

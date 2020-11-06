@@ -61,8 +61,8 @@ PyDoc_STRVAR(Integrator_integrate_doc,
 
 static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"func", "it", "it_end", "integration_type", NULL};
-  PyObject *obj1, *obj4 = 0;
+  static const char *kwlist[] = {"func", "it", "it_end", "integration_type", nullptr};
+  PyObject *obj1, *obj4 = nullptr;
   BPy_Interface0DIterator *obj2, *obj3;
 
   if (!PyArg_ParseTupleAndKeywords(args,
@@ -77,7 +77,7 @@ static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObj
                                    &obj3,
                                    &IntegrationType_Type,
                                    &obj4)) {
-    return NULL;
+    return nullptr;
   }
 
   Interface0DIterator it(*(obj2->if0D_it)), it_end(*(obj3->if0D_it));
@@ -101,7 +101,7 @@ static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObj
 
   string class_name(Py_TYPE(obj1)->tp_name);
   PyErr_SetString(PyExc_TypeError, ("unsupported function type: " + class_name).c_str());
-  return NULL;
+  return nullptr;
 }
 
 /*-----------------------Integrator module docstring---------------------------------------*/
@@ -115,7 +115,7 @@ static PyMethodDef module_functions[] = {
      (PyCFunction)Integrator_integrate,
      METH_VARARGS | METH_KEYWORDS,
      Integrator_integrate_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*-----------------------Integrator module definition--------------------------------------*/
@@ -149,43 +149,43 @@ PyDoc_STRVAR(IntegrationType_doc,
              "  last of the values obtained for the 0D elements.");
 
 PyTypeObject IntegrationType_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "IntegrationType", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "IntegrationType", /* tp_name */
     sizeof(PyLongObject),                             /* tp_basicsize */
     0,                                                /* tp_itemsize */
-    0,                                                /* tp_dealloc */
-    0,                                                /* tp_print */
-    0,                                                /* tp_getattr */
-    0,                                                /* tp_setattr */
-    0,                                                /* tp_reserved */
-    0,                                                /* tp_repr */
-    0,                                                /* tp_as_number */
-    0,                                                /* tp_as_sequence */
-    0,                                                /* tp_as_mapping */
-    0,                                                /* tp_hash  */
-    0,                                                /* tp_call */
-    0,                                                /* tp_str */
-    0,                                                /* tp_getattro */
-    0,                                                /* tp_setattro */
-    0,                                                /* tp_as_buffer */
+    nullptr,                                                /* tp_dealloc */
+    nullptr,                                                /* tp_print */
+    nullptr,                                                /* tp_getattr */
+    nullptr,                                                /* tp_setattr */
+    nullptr,                                                /* tp_reserved */
+    nullptr,                                                /* tp_repr */
+    nullptr,                                                /* tp_as_number */
+    nullptr,                                                /* tp_as_sequence */
+    nullptr,                                                /* tp_as_mapping */
+    nullptr,                                                /* tp_hash  */
+    nullptr,                                                /* tp_call */
+    nullptr,                                                /* tp_str */
+    nullptr,                                                /* tp_getattro */
+    nullptr,                                                /* tp_setattro */
+    nullptr,                                                /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,                               /* tp_flags */
     IntegrationType_doc,                              /* tp_doc */
-    0,                                                /* tp_traverse */
-    0,                                                /* tp_clear */
-    0,                                                /* tp_richcompare */
+    nullptr,                                                /* tp_traverse */
+    nullptr,                                                /* tp_clear */
+    nullptr,                                                /* tp_richcompare */
     0,                                                /* tp_weaklistoffset */
-    0,                                                /* tp_iter */
-    0,                                                /* tp_iternext */
-    0,                                                /* tp_methods */
-    0,                                                /* tp_members */
-    0,                                                /* tp_getset */
+    nullptr,                                                /* tp_iter */
+    nullptr,                                                /* tp_iternext */
+    nullptr,                                                /* tp_methods */
+    nullptr,                                                /* tp_members */
+    nullptr,                                                /* tp_getset */
     &PyLong_Type,                                     /* tp_base */
-    0,                                                /* tp_dict */
-    0,                                                /* tp_descr_get */
-    0,                                                /* tp_descr_set */
+    nullptr,                                                /* tp_dict */
+    nullptr,                                                /* tp_descr_get */
+    nullptr,                                                /* tp_descr_set */
     0,                                                /* tp_dictoffset */
-    0,                                                /* tp_init */
-    0,                                                /* tp_alloc */
-    0,                                                /* tp_new */
+    nullptr,                                                /* tp_init */
+    nullptr,                                                /* tp_alloc */
+    nullptr,                                                /* tp_new */
 };
 
 /*-----------------------BPy_IntegrationType instance definitions -------------------------*/
@@ -210,7 +210,7 @@ int IntegrationType_Init(PyObject *module)
 {
   PyObject *m, *d, *f;
 
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -227,7 +227,7 @@ int IntegrationType_Init(PyObject *module)
   PyDict_SetItemString(IntegrationType_Type.tp_dict, "LAST", BPy_IntegrationType_LAST);
 
   m = PyModule_Create(&module_definition);
-  if (m == NULL) {
+  if (m == nullptr) {
     return -1;
   }
   Py_INCREF(m);

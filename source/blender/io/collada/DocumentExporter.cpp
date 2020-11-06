@@ -127,7 +127,7 @@ char *bc_CustomData_get_layer_name(const struct CustomData *data, int type, int 
 {
   int layer_index = CustomData_get_layer_index(data, type);
   if (layer_index < 0) {
-    return NULL;
+    return nullptr;
   }
 
   return data->layers[layer_index + n].name;
@@ -138,7 +138,7 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
   /* get the layer index of the active layer of type */
   int layer_index = CustomData_get_active_layer_index(data, type);
   if (layer_index < 0) {
-    return NULL;
+    return nullptr;
   }
 
   return data->layers[layer_index].name;
@@ -155,7 +155,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 {
   char tempfile[FILE_MAX];
 
-  if (name == NULL) {
+  if (name == nullptr) {
     name = "untitled";
   }
 
@@ -184,7 +184,7 @@ int DocumentExporter::exportCurrentScene()
 
   clear_global_id_map();
 
-  COLLADABU::NativeString native_filename = make_temp_filepath(NULL, ".dae");
+  COLLADABU::NativeString native_filename = make_temp_filepath(nullptr, ".dae");
   COLLADASW::StreamWriter *writer = new COLLADASW::StreamWriter(native_filename);
 
   /* open <collada> */

@@ -32,7 +32,7 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int BinaryPredicate0D_Init(PyObject *module)
 {
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -72,7 +72,7 @@ static char BinaryPredicate0D___doc__[] =
 
 static int BinaryPredicate0D___init__(BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {NULL};
+  static const char *kwlist[] = {nullptr};
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
@@ -98,7 +98,7 @@ static PyObject *BinaryPredicate0D___call__(BPy_BinaryPredicate0D *self,
                                             PyObject *args,
                                             PyObject *kwds)
 {
-  static const char *kwlist[] = {"inter1", "inter2", NULL};
+  static const char *kwlist[] = {"inter1", "inter2", nullptr};
   BPy_Interface0D *obj1, *obj2;
 
   if (!PyArg_ParseTupleAndKeywords(args,
@@ -109,18 +109,18 @@ static PyObject *BinaryPredicate0D___call__(BPy_BinaryPredicate0D *self,
                                    &obj1,
                                    &Interface0D_Type,
                                    &obj2)) {
-    return NULL;
+    return nullptr;
   }
   if (typeid(*(self->bp0D)) == typeid(BinaryPredicate0D)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
-    return NULL;
+    return nullptr;
   }
   if (self->bp0D->operator()(*(obj1->if0D), *(obj2->if0D)) < 0) {
     if (!PyErr_Occurred()) {
       string class_name(Py_TYPE(self)->tp_name);
       PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
     }
-    return NULL;
+    return nullptr;
   }
   return PyBool_from_bool(self->bp0D->result);
 }
@@ -138,49 +138,49 @@ static PyObject *BinaryPredicate0D_name_get(BPy_BinaryPredicate0D *self, void *U
 }
 
 static PyGetSetDef BPy_BinaryPredicate0D_getseters[] = {
-    {"name", (getter)BinaryPredicate0D_name_get, (setter)NULL, BinaryPredicate0D_name_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+    {"name", (getter)BinaryPredicate0D_name_get, (setter)nullptr, BinaryPredicate0D_name_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_BinaryPredicate0D type definition ------------------------------*/
 
 PyTypeObject BinaryPredicate0D_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "BinaryPredicate0D", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "BinaryPredicate0D", /* tp_name */
     sizeof(BPy_BinaryPredicate0D),                      /* tp_basicsize */
     0,                                                  /* tp_itemsize */
     (destructor)BinaryPredicate0D___dealloc__,          /* tp_dealloc */
-    0,                                                  /* tp_print */
-    0,                                                  /* tp_getattr */
-    0,                                                  /* tp_setattr */
-    0,                                                  /* tp_reserved */
+    nullptr,                                                  /* tp_print */
+    nullptr,                                                  /* tp_getattr */
+    nullptr,                                                  /* tp_setattr */
+    nullptr,                                                  /* tp_reserved */
     (reprfunc)BinaryPredicate0D___repr__,               /* tp_repr */
-    0,                                                  /* tp_as_number */
-    0,                                                  /* tp_as_sequence */
-    0,                                                  /* tp_as_mapping */
-    0,                                                  /* tp_hash  */
+    nullptr,                                                  /* tp_as_number */
+    nullptr,                                                  /* tp_as_sequence */
+    nullptr,                                                  /* tp_as_mapping */
+    nullptr,                                                  /* tp_hash  */
     (ternaryfunc)BinaryPredicate0D___call__,            /* tp_call */
-    0,                                                  /* tp_str */
-    0,                                                  /* tp_getattro */
-    0,                                                  /* tp_setattro */
-    0,                                                  /* tp_as_buffer */
+    nullptr,                                                  /* tp_str */
+    nullptr,                                                  /* tp_getattro */
+    nullptr,                                                  /* tp_setattro */
+    nullptr,                                                  /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,           /* tp_flags */
     BinaryPredicate0D___doc__,                          /* tp_doc */
-    0,                                                  /* tp_traverse */
-    0,                                                  /* tp_clear */
-    0,                                                  /* tp_richcompare */
+    nullptr,                                                  /* tp_traverse */
+    nullptr,                                                  /* tp_clear */
+    nullptr,                                                  /* tp_richcompare */
     0,                                                  /* tp_weaklistoffset */
-    0,                                                  /* tp_iter */
-    0,                                                  /* tp_iternext */
-    0,                                                  /* tp_methods */
-    0,                                                  /* tp_members */
+    nullptr,                                                  /* tp_iter */
+    nullptr,                                                  /* tp_iternext */
+    nullptr,                                                  /* tp_methods */
+    nullptr,                                                  /* tp_members */
     BPy_BinaryPredicate0D_getseters,                    /* tp_getset */
-    0,                                                  /* tp_base */
-    0,                                                  /* tp_dict */
-    0,                                                  /* tp_descr_get */
-    0,                                                  /* tp_descr_set */
+    nullptr,                                                  /* tp_base */
+    nullptr,                                                  /* tp_dict */
+    nullptr,                                                  /* tp_descr_get */
+    nullptr,                                                  /* tp_descr_set */
     0,                                                  /* tp_dictoffset */
     (initproc)BinaryPredicate0D___init__,               /* tp_init */
-    0,                                                  /* tp_alloc */
+    nullptr,                                                  /* tp_alloc */
     PyType_GenericNew,                                  /* tp_new */
 };
 

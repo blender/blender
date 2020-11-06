@@ -25,9 +25,9 @@ TranslateOperation::TranslateOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
   this->setResolutionInputSocketIndex(0);
-  this->m_inputOperation = NULL;
-  this->m_inputXOperation = NULL;
-  this->m_inputYOperation = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_inputXOperation = nullptr;
+  this->m_inputYOperation = nullptr;
   this->m_isDeltaSet = false;
   this->m_factorX = 1.0f;
   this->m_factorY = 1.0f;
@@ -41,9 +41,9 @@ void TranslateOperation::initExecution()
 
 void TranslateOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
-  this->m_inputXOperation = NULL;
-  this->m_inputYOperation = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_inputXOperation = nullptr;
+  this->m_inputYOperation = nullptr;
 }
 
 void TranslateOperation::executePixelSampled(float output[4],

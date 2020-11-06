@@ -26,13 +26,13 @@ WriteBufferOperation::WriteBufferOperation(DataType datatype)
   this->addInputSocket(datatype);
   this->m_memoryProxy = new MemoryProxy(datatype);
   this->m_memoryProxy->setWriteBufferOperation(this);
-  this->m_memoryProxy->setExecutor(NULL);
+  this->m_memoryProxy->setExecutor(nullptr);
 }
 WriteBufferOperation::~WriteBufferOperation()
 {
   if (this->m_memoryProxy) {
     delete this->m_memoryProxy;
-    this->m_memoryProxy = NULL;
+    this->m_memoryProxy = nullptr;
   }
 }
 
@@ -52,7 +52,7 @@ void WriteBufferOperation::initExecution()
 
 void WriteBufferOperation::deinitExecution()
 {
-  this->m_input = NULL;
+  this->m_input = nullptr;
   this->m_memoryProxy->free();
 }
 
@@ -82,7 +82,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
     }
     if (data) {
       this->m_input->deinitializeTileData(rect, data);
-      data = NULL;
+      data = nullptr;
     }
   }
   else {
@@ -175,8 +175,8 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
                              0,
                              outputFloatBuffer,
                              0,
-                             NULL,
-                             NULL);
+                             nullptr,
+                             nullptr);
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }

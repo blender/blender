@@ -47,7 +47,7 @@
 
 bool ControllerExporter::is_skinned_mesh(Object *ob)
 {
-  return bc_get_assigned_armature(ob) != NULL;
+  return bc_get_assigned_armature(ob) != nullptr;
 }
 
 void ControllerExporter::write_bone_URLs(COLLADASW::InstanceController &ins,
@@ -175,7 +175,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
   bool use_instantiation = this->export_settings.get_use_object_instantiation();
   Mesh *me;
 
-  if (((Mesh *)ob->data)->dvert == NULL) {
+  if (((Mesh *)ob->data)->dvert == nullptr) {
     return;
   }
 
@@ -272,7 +272,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
   add_joints_element(&ob->defbase, joints_source_id, inv_bind_mat_source_id);
   add_vertex_weights_element(weights_source_id, joints_source_id, vcounts, joints);
 
-  BKE_id_free(NULL, me);
+  BKE_id_free(nullptr, me);
 
   closeSkin();
   closeController();
@@ -312,7 +312,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
                        COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, morph_weights_id)));
   targets.add();
 
-  BKE_id_free(NULL, me);
+  BKE_id_free(nullptr, me);
 
   /* support for animations
    * can also try the base element and param alternative */
@@ -530,7 +530,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
           float loc[3];
           float rot[3] = {0, 0, 0};
           float scale[3];
-          bc_decompose(bind_mat, loc, NULL, NULL, scale);
+          bc_decompose(bind_mat, loc, nullptr, nullptr, scale);
 
           /* Only translations, no rotation vs armature */
           loc_eulO_size_to_mat4(bind_mat, loc, rot, scale, 6);
@@ -571,12 +571,12 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
 Bone *ControllerExporter::get_bone_from_defgroup(Object *ob_arm, bDeformGroup *def)
 {
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, def->name);
-  return pchan ? pchan->bone : NULL;
+  return pchan ? pchan->bone : nullptr;
 }
 
 bool ControllerExporter::is_bone_defgroup(Object *ob_arm, bDeformGroup *def)
 {
-  return get_bone_from_defgroup(ob_arm, def) != NULL;
+  return get_bone_from_defgroup(ob_arm, def) != nullptr;
 }
 
 std::string ControllerExporter::add_weights_source(Mesh *me,

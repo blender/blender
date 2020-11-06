@@ -24,7 +24,7 @@ BrightnessOperation::BrightnessOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
   this->m_use_premultiply = false;
 }
 
@@ -85,7 +85,7 @@ void BrightnessOperation::executePixelSampled(float output[4],
 
 void BrightnessOperation::deinitExecution()
 {
-  this->m_inputProgram = NULL;
-  this->m_inputBrightnessProgram = NULL;
-  this->m_inputContrastProgram = NULL;
+  this->m_inputProgram = nullptr;
+  this->m_inputBrightnessProgram = nullptr;
+  this->m_inputContrastProgram = nullptr;
 }

@@ -26,8 +26,8 @@ ColorSpillOperation::ColorSpillOperation()
   addInputSocket(COM_DT_VALUE);
   addOutputSocket(COM_DT_COLOR);
 
-  this->m_inputImageReader = NULL;
-  this->m_inputFacReader = NULL;
+  this->m_inputImageReader = nullptr;
+  this->m_inputFacReader = nullptr;
   this->m_spillChannel = 1;  // GREEN
   this->m_spillMethod = 0;
 }
@@ -77,8 +77,8 @@ void ColorSpillOperation::initExecution()
 
 void ColorSpillOperation::deinitExecution()
 {
-  this->m_inputImageReader = NULL;
-  this->m_inputFacReader = NULL;
+  this->m_inputImageReader = nullptr;
+  this->m_inputFacReader = nullptr;
 }
 
 void ColorSpillOperation::executePixelSampled(float output[4],

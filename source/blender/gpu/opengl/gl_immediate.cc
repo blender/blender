@@ -50,12 +50,12 @@ GLImmediate::GLImmediate()
   buffer.buffer_size = DEFAULT_INTERNAL_BUFFER_SIZE;
   glGenBuffers(1, &buffer.vbo_id);
   glBindBuffer(GL_ARRAY_BUFFER, buffer.vbo_id);
-  glBufferData(GL_ARRAY_BUFFER, buffer.buffer_size, NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, buffer.buffer_size, nullptr, GL_DYNAMIC_DRAW);
 
   buffer_strict.buffer_size = DEFAULT_INTERNAL_BUFFER_SIZE;
   glGenBuffers(1, &buffer_strict.vbo_id);
   glBindBuffer(GL_ARRAY_BUFFER, buffer_strict.vbo_id);
-  glBufferData(GL_ARRAY_BUFFER, buffer_strict.buffer_size, NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, buffer_strict.buffer_size, nullptr, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -112,7 +112,7 @@ uchar *GLImmediate::begin()
   }
   else {
     /* orphan this buffer & start with a fresh one */
-    glBufferData(GL_ARRAY_BUFFER, buffer_size(), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, buffer_size(), nullptr, GL_DYNAMIC_DRAW);
     buffer_offset() = 0;
   }
 
@@ -129,7 +129,7 @@ uchar *GLImmediate::begin()
     access |= GL_MAP_FLUSH_EXPLICIT_BIT;
   }
   void *data = glMapBufferRange(GL_ARRAY_BUFFER, buffer_offset(), bytes_needed, access);
-  BLI_assert(data != NULL);
+  BLI_assert(data != nullptr);
 
   bytes_mapped_ = bytes_needed;
   return (uchar *)data;

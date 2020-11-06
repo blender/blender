@@ -39,7 +39,7 @@ void FEdgeXDetector::processShapes(WingedEdge &we)
   vector<WShape *> wshapes = we.getWShapes();
   WXShape *wxs;
 
-  if (_pProgressBar != NULL) {
+  if (_pProgressBar != nullptr) {
     _pProgressBar->reset();
     _pProgressBar->setLabelText("Detecting feature lines");
     _pProgressBar->setTotalSteps(wshapes.size() * 3);
@@ -228,7 +228,7 @@ void FEdgeXDetector::computeCurvatures(WXVertex *vertex)
   }
   // view dependent
   C = vertex->curvatures();
-  if (C == 0) {
+  if (C == nullptr) {
     return;
   }
 
@@ -370,7 +370,7 @@ void FEdgeXDetector::ProcessBorderEdge(WXEdge *iEdge)
 {
   // first check whether it is a border edge: BORDER ?
   //---------
-  if (iEdge->GetaFace() == 0) {
+  if (iEdge->GetaFace() == nullptr) {
     // it is a border edge
     iEdge->AddNature(Nature::BORDER);
   }

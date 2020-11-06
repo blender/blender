@@ -26,7 +26,7 @@ MapRangeOperation::MapRangeOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
   this->m_useClamp = false;
 }
 
@@ -95,9 +95,9 @@ void MapRangeOperation::executePixelSampled(float output[4],
 
 void MapRangeOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
-  this->m_sourceMinOperation = NULL;
-  this->m_sourceMaxOperation = NULL;
-  this->m_destMinOperation = NULL;
-  this->m_destMaxOperation = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_sourceMinOperation = nullptr;
+  this->m_sourceMaxOperation = nullptr;
+  this->m_destMinOperation = nullptr;
+  this->m_destMaxOperation = nullptr;
 }

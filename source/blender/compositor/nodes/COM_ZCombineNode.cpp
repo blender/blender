@@ -32,7 +32,7 @@ void ZCombineNode::convertToOperations(NodeConverter &converter,
                                        const CompositorContext &context) const
 {
   if ((context.getRenderData()->scemode & R_FULL_SAMPLE) || this->getbNode()->custom2) {
-    ZCombineOperation *operation = NULL;
+    ZCombineOperation *operation = nullptr;
     if (this->getbNode()->custom1) {
       operation = new ZCombineAlphaOperation();
     }

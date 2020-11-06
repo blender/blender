@@ -99,5 +99,5 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)
     this->m_iscalculated = true;
   }
   unlockMutex();
-  return NULL;
+  return nullptr;
 }

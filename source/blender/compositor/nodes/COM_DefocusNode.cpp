@@ -41,7 +41,7 @@ void DefocusNode::convertToOperations(NodeConverter &converter,
   bNode *node = this->getbNode();
   NodeDefocus *data = (NodeDefocus *)node->storage;
   Scene *scene = node->id ? (Scene *)node->id : context.getScene();
-  Object *camob = scene ? scene->camera : NULL;
+  Object *camob = scene ? scene->camera : nullptr;
 
   NodeOperation *radiusOperation;
   if (data->no_zbuf) {

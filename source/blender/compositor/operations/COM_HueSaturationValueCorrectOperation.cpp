@@ -27,7 +27,7 @@ HueSaturationValueCorrectOperation::HueSaturationValueCorrectOperation()
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
 
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }
 void HueSaturationValueCorrectOperation::initExecution()
 {
@@ -68,5 +68,5 @@ void HueSaturationValueCorrectOperation::executePixelSampled(float output[4],
 void HueSaturationValueCorrectOperation::deinitExecution()
 {
   CurveBaseOperation::deinitExecution();
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }

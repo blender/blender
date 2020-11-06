@@ -74,13 +74,13 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
     return _pSmoothEdge;
   }
   float ta, tb;
-  WOEdge *woea(0), *woeb(0);
+  WOEdge *woea(nullptr), *woeb(nullptr);
   bool ok = false;
   vector<int> cuspEdgesIndices;
   int indexStart, indexEnd;
   unsigned nedges = _pWXFace->numberOfEdges();
   if (_nNullDotP == nedges) {
-    _pSmoothEdge = NULL;
+    _pSmoothEdge = nullptr;
     return _pSmoothEdge;
   }
   if ((_nPosDotP != 0) && (_nPosDotP != _DotP.size()) && (_nNullDotP == 0)) {
@@ -89,7 +89,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
     // We retrieve the 2 edges for which we have opposite signs for each extremity
     RetrieveCuspEdgesIndices(cuspEdgesIndices);
     if (cuspEdgesIndices.size() != 2) {  // we necessarly have 2 cusp edges
-      return 0;
+      return nullptr;
     }
 
     // let us determine which cusp edge corresponds to the starting:
@@ -120,7 +120,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
     // that means that we have exactly one of the 2 extremities of our silhouette edge is a vertex
     // of the mesh
     if (ELEM(_nPosDotP, 2, 0)) {
-      _pSmoothEdge = NULL;
+      _pSmoothEdge = nullptr;
       return _pSmoothEdge;
     }
     RetrieveCuspEdgesIndices(cuspEdgesIndices);
@@ -129,8 +129,8 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
       if (G.debug & G_DEBUG_FREESTYLE) {
         cout << "Warning in BuildSmoothEdge: weird WXFace configuration" << endl;
       }
-      _pSmoothEdge = NULL;
-      return NULL;
+      _pSmoothEdge = nullptr;
+      return nullptr;
     }
     unsigned index0 = Get0VertexIndex();  // retrieve the 0 vertex index
     unsigned nedges = _pWXFace->numberOfEdges();
@@ -275,7 +275,7 @@ WFace *WXShape::MakeFace(vector<WVertex *> &iVertexList,
 {
   WFace *face = WShape::MakeFace(iVertexList, iFaceEdgeMarksList, iMaterialIndex);
   if (!face) {
-    return NULL;
+    return nullptr;
   }
 
   Vec3f center;

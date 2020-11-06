@@ -38,19 +38,19 @@ CompositorOperation::CompositorOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);
 
-  this->setRenderData(NULL);
-  this->m_outputBuffer = NULL;
-  this->m_depthBuffer = NULL;
-  this->m_imageInput = NULL;
-  this->m_alphaInput = NULL;
-  this->m_depthInput = NULL;
+  this->setRenderData(nullptr);
+  this->m_outputBuffer = nullptr;
+  this->m_depthBuffer = nullptr;
+  this->m_imageInput = nullptr;
+  this->m_alphaInput = nullptr;
+  this->m_depthInput = nullptr;
 
   this->m_useAlphaInput = false;
   this->m_active = false;
 
-  this->m_scene = NULL;
+  this->m_scene = nullptr;
   this->m_sceneName[0] = '\0';
-  this->m_viewName = NULL;
+  this->m_viewName = nullptr;
 }
 
 void CompositorOperation::initExecution()
@@ -67,7 +67,7 @@ void CompositorOperation::initExecution()
     this->m_outputBuffer = (float *)MEM_callocN(
         sizeof(float[4]) * this->getWidth() * this->getHeight(), "CompositorOperation");
   }
-  if (this->m_depthInput != NULL) {
+  if (this->m_depthInput != nullptr) {
     this->m_depthBuffer = (float *)MEM_callocN(
         sizeof(float) * this->getWidth() * this->getHeight(), "CompositorOperation");
   }
@@ -86,11 +86,11 @@ void CompositorOperation::deinitExecution()
     if (rr) {
       RenderView *rv = RE_RenderViewGetByName(rr, this->m_viewName);
 
-      if (rv->rectf != NULL) {
+      if (rv->rectf != nullptr) {
         MEM_freeN(rv->rectf);
       }
       rv->rectf = this->m_outputBuffer;
-      if (rv->rectz != NULL) {
+      if (rv->rectz != nullptr) {
         MEM_freeN(rv->rectz);
       }
       rv->rectz = this->m_depthBuffer;
@@ -107,13 +107,13 @@ void CompositorOperation::deinitExecution()
 
     if (re) {
       RE_ReleaseResult(re);
-      re = NULL;
+      re = nullptr;
     }
 
     BLI_thread_lock(LOCK_DRAW_IMAGE);
     BKE_image_signal(G.main,
                      BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result"),
-                     NULL,
+                     nullptr,
                      IMA_SIGNAL_FREE);
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
@@ -126,11 +126,11 @@ void CompositorOperation::deinitExecution()
     }
   }
 
-  this->m_outputBuffer = NULL;
-  this->m_depthBuffer = NULL;
-  this->m_imageInput = NULL;
-  this->m_alphaInput = NULL;
-  this->m_depthInput = NULL;
+  this->m_outputBuffer = nullptr;
+  this->m_depthBuffer = nullptr;
+  this->m_imageInput = nullptr;
+  this->m_alphaInput = nullptr;
+  this->m_depthInput = nullptr;
 }
 
 void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)

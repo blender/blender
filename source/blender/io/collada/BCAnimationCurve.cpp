@@ -22,7 +22,7 @@
 BCAnimationCurve::BCAnimationCurve()
 {
   this->curve_key.set_object_type(BC_ANIMATION_TYPE_OBJECT);
-  this->fcurve = NULL;
+  this->fcurve = nullptr;
   this->curve_is_local_copy = false;
 }
 
@@ -53,7 +53,7 @@ BCAnimationCurve::BCAnimationCurve(BCCurveKey key, Object *ob, FCurve *fcu)
 BCAnimationCurve::BCAnimationCurve(const BCCurveKey &key, Object *ob)
 {
   this->curve_key = key;
-  this->fcurve = NULL;
+  this->fcurve = nullptr;
   this->curve_is_local_copy = false;
   init_pointer_rna(ob);
 }
@@ -120,7 +120,7 @@ BCAnimationCurve::~BCAnimationCurve()
   if (curve_is_local_copy && fcurve) {
     // fprintf(stderr, "removed fcurve %s\n", fcurve->rna_path);
     delete_fcurve(fcurve);
-    this->fcurve = NULL;
+    this->fcurve = nullptr;
   }
 }
 
@@ -169,7 +169,7 @@ std::string BCAnimationCurve::get_animation_name(Object *ob) const
     } break;
 
     case BC_ANIMATION_TYPE_BONE: {
-      if (fcurve == NULL || fcurve->rna_path == NULL) {
+      if (fcurve == nullptr || fcurve->rna_path == nullptr) {
         name = "";
       }
       else {
@@ -218,7 +218,7 @@ std::string BCAnimationCurve::get_rna_path() const
 
 int BCAnimationCurve::sample_count() const
 {
-  if (fcurve == NULL) {
+  if (fcurve == nullptr) {
     return 0;
   }
   return fcurve->totvert;
@@ -226,7 +226,7 @@ int BCAnimationCurve::sample_count() const
 
 int BCAnimationCurve::closest_index_above(const float sample_frame, const int start_at) const
 {
-  if (fcurve == NULL) {
+  if (fcurve == nullptr) {
     return -1;
   }
 
@@ -240,7 +240,7 @@ int BCAnimationCurve::closest_index_above(const float sample_frame, const int st
 
 int BCAnimationCurve::closest_index_below(const float sample_frame) const
 {
-  if (fcurve == NULL) {
+  if (fcurve == nullptr) {
     return -1;
   }
 
@@ -304,14 +304,14 @@ FCurve *BCAnimationCurve::get_edit_fcurve()
 
 void BCAnimationCurve::clean_handles()
 {
-  if (fcurve == NULL) {
+  if (fcurve == nullptr) {
     fcurve = get_edit_fcurve();
   }
 
   /* Keep old bezt data for copy)*/
   BezTriple *old_bezts = fcurve->bezt;
   int totvert = fcurve->totvert;
-  fcurve->bezt = NULL;
+  fcurve->bezt = nullptr;
   fcurve->totvert = 0;
 
   for (int i = 0; i < totvert; i++) {
@@ -492,7 +492,7 @@ bool BCAnimationCurve::add_value_from_rna(const int frame_index)
 void BCAnimationCurve::get_value_map(BCValueMap &value_map)
 {
   value_map.clear();
-  if (fcurve == NULL) {
+  if (fcurve == nullptr) {
     return;
   }
 
@@ -533,7 +533,7 @@ bool BCAnimationCurve::is_animated()
 
 bool BCAnimationCurve::is_keyframe(int frame)
 {
-  if (this->fcurve == NULL) {
+  if (this->fcurve == nullptr) {
     return false;
   }
 

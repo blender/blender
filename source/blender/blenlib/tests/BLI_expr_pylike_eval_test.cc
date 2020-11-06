@@ -12,7 +12,7 @@
 
 static void expr_pylike_parse_fail_test(const char *str)
 {
-  ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, NULL, 0);
+  ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, nullptr, 0);
 
   EXPECT_FALSE(BLI_expr_pylike_is_valid(expr));
 
@@ -21,7 +21,7 @@ static void expr_pylike_parse_fail_test(const char *str)
 
 static void expr_pylike_const_test(const char *str, double value, bool force_const)
 {
-  ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, NULL, 0);
+  ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, nullptr, 0);
 
   if (force_const) {
     EXPECT_TRUE(BLI_expr_pylike_is_constant(expr));
@@ -32,7 +32,7 @@ static void expr_pylike_const_test(const char *str, double value, bool force_con
   }
 
   double result;
-  eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, NULL, 0, &result);
+  eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, nullptr, 0, &result);
 
   EXPECT_EQ(status, EXPR_PYLIKE_SUCCESS);
   EXPECT_EQ(result, value);
@@ -344,10 +344,10 @@ TEST_ERROR(Mixed3, "sqrt(x) + 1 / max(0, x)", 1.0, EXPR_PYLIKE_SUCCESS)
 
 TEST(expr_pylike, Error_Invalid)
 {
-  ExprPyLike_Parsed *expr = BLI_expr_pylike_parse("", NULL, 0);
+  ExprPyLike_Parsed *expr = BLI_expr_pylike_parse("", nullptr, 0);
   double result;
 
-  EXPECT_EQ(BLI_expr_pylike_eval(expr, NULL, 0, &result), EXPR_PYLIKE_INVALID);
+  EXPECT_EQ(BLI_expr_pylike_eval(expr, nullptr, 0, &result), EXPR_PYLIKE_INVALID);
 
   BLI_expr_pylike_free(expr);
 }
@@ -357,7 +357,7 @@ TEST(expr_pylike, Error_ArgumentCount)
   ExprPyLike_Parsed *expr = parse_for_eval("x", false);
   double result;
 
-  EXPECT_EQ(BLI_expr_pylike_eval(expr, NULL, 0, &result), EXPR_PYLIKE_FATAL_ERROR);
+  EXPECT_EQ(BLI_expr_pylike_eval(expr, nullptr, 0, &result), EXPR_PYLIKE_FATAL_ERROR);
 
   BLI_expr_pylike_free(expr);
 }

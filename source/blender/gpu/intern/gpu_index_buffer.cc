@@ -69,7 +69,7 @@ void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)
 {
 #if TRUST_NO_ONE
-  assert(builder->data != NULL);
+  assert(builder->data != nullptr);
   assert(builder->index_len < builder->max_index_len);
   assert(v <= builder->max_allowed_index);
 #endif
@@ -79,7 +79,7 @@ void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)
 void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *builder)
 {
 #if TRUST_NO_ONE
-  assert(builder->data != NULL);
+  assert(builder->data != nullptr);
   assert(builder->index_len < builder->max_index_len);
 #endif
   builder->data[builder->index_len++] = RESTART_INDEX;
@@ -336,7 +336,7 @@ GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uin
 
 void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 {
-  BLI_assert(builder->data != NULL);
+  BLI_assert(builder->data != nullptr);
   /* Transfer data ownership to GPUIndexBuf.
    * It will be uploaded upon first use. */
   unwrap(elem)->init(builder->index_len, builder->data);

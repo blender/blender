@@ -20,7 +20,7 @@
 
 SingleThreadedOperation::SingleThreadedOperation()
 {
-  this->m_cachedInstance = NULL;
+  this->m_cachedInstance = nullptr;
   setComplex(true);
 }
 
@@ -39,7 +39,7 @@ void SingleThreadedOperation::deinitExecution()
   deinitMutex();
   if (this->m_cachedInstance) {
     delete this->m_cachedInstance;
-    this->m_cachedInstance = NULL;
+    this->m_cachedInstance = nullptr;
   }
 }
 void *SingleThreadedOperation::initializeTileData(rcti *rect)
@@ -49,7 +49,7 @@ void *SingleThreadedOperation::initializeTileData(rcti *rect)
   }
 
   lockMutex();
-  if (this->m_cachedInstance == NULL) {
+  if (this->m_cachedInstance == nullptr) {
     //
     this->m_cachedInstance = createMemoryBuffer(rect);
   }

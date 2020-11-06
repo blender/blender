@@ -154,7 +154,7 @@ void SphericalGrid::assignCells(OccluderSource & /*source*/,
       Vec3r point = SphericalGrid::Transform::sphericalProjection((*f)->center3d());
       unsigned i, j;
       getCellCoordinates(point, i, j);
-      if (_cells[i * _cellsY + j] == NULL) {
+      if (_cells[i * _cellsY + j] == nullptr) {
         // This is an uninitialized cell
         real x, y, width, height;
 
@@ -178,7 +178,7 @@ void SphericalGrid::distributePolygons(OccluderSource &source)
   unsigned long nKeptFaces = 0;
 
   for (source.begin(); source.isValid(); source.next()) {
-    OccluderData *occluder = NULL;
+    OccluderData *occluder = nullptr;
 
     try {
       if (insertOccluder(source, occluder)) {

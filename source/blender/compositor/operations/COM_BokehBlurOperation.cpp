@@ -34,9 +34,9 @@ BokehBlurOperation::BokehBlurOperation()
 
   this->m_size = 1.0f;
   this->m_sizeavailable = false;
-  this->m_inputProgram = NULL;
-  this->m_inputBokehProgram = NULL;
-  this->m_inputBoundingBoxReader = NULL;
+  this->m_inputProgram = nullptr;
+  this->m_inputBokehProgram = nullptr;
+  this->m_inputBoundingBoxReader = nullptr;
 
   this->m_extend_bounds = false;
 }
@@ -47,7 +47,7 @@ void *BokehBlurOperation::initializeTileData(rcti * /*rect*/)
   if (!this->m_sizeavailable) {
     updateSize();
   }
-  void *buffer = getInputOperation(0)->initializeTileData(NULL);
+  void *buffer = getInputOperation(0)->initializeTileData(nullptr);
   unlockMutex();
   return buffer;
 }
@@ -133,9 +133,9 @@ void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
 void BokehBlurOperation::deinitExecution()
 {
   deinitMutex();
-  this->m_inputProgram = NULL;
-  this->m_inputBokehProgram = NULL;
-  this->m_inputBoundingBoxReader = NULL;
+  this->m_inputProgram = nullptr;
+  this->m_inputBokehProgram = nullptr;
+  this->m_inputBoundingBoxReader = nullptr;
 }
 
 bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input,
@@ -196,7 +196,7 @@ void BokehBlurOperation::executeOpenCL(OpenCLDevice *device,
                                        list<cl_mem> *clMemToCleanUp,
                                        list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
-  cl_kernel kernel = device->COM_clCreateKernel("bokehBlurKernel", NULL);
+  cl_kernel kernel = device->COM_clCreateKernel("bokehBlurKernel", nullptr);
   if (!this->m_sizeavailable) {
     updateSize();
   }

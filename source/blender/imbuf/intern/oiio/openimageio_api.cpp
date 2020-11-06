@@ -101,7 +101,7 @@ static ImBuf *imb_oiio_load_image(
         IMB_freeImBuf(ibuf);
       }
 
-      return NULL;
+      return nullptr;
     }
   }
   catch (const std::exception &exc) {
@@ -110,7 +110,7 @@ static ImBuf *imb_oiio_load_image(
       IMB_freeImBuf(ibuf);
     }
 
-    return NULL;
+    return nullptr;
   }
 
   /* ImBuf always needs 4 channels */
@@ -141,7 +141,7 @@ static ImBuf *imb_oiio_load_image_float(
         IMB_freeImBuf(ibuf);
       }
 
-      return NULL;
+      return nullptr;
     }
   }
   catch (const std::exception &exc) {
@@ -150,7 +150,7 @@ static ImBuf *imb_oiio_load_image_float(
       IMB_freeImBuf(ibuf);
     }
 
-    return NULL;
+    return nullptr;
   }
 
   /* ImBuf always needs 4 channels */
@@ -169,7 +169,7 @@ int imb_is_a_photoshop(const char *filename)
       ".psd",
       ".pdd",
       ".psb",
-      NULL,
+      nullptr,
   };
 
   return BLI_path_extension_check_array(filename, photoshop_extension);
@@ -190,7 +190,7 @@ int imb_save_photoshop(struct ImBuf *ibuf, const char * /*name*/, int flags)
 
 struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspace[IM_MAX_SPACE])
 {
-  struct ImBuf *ibuf = NULL;
+  struct ImBuf *ibuf = nullptr;
   int width, height, components;
   bool is_float, is_alpha, is_half;
   int basesize;
@@ -199,7 +199,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
 
   /* load image from file through OIIO */
   if (imb_is_a_photoshop(filename) == 0) {
-    return NULL;
+    return nullptr;
   }
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
@@ -208,7 +208,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   if (!in) {
     std::cerr << __func__ << ": ImageInput::create() failed:" << std::endl
               << OIIO_NAMESPACE::geterror() << std::endl;
-    return NULL;
+    return nullptr;
   }
 
   ImageSpec spec, config;
@@ -217,7 +217,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   if (!in->open(filename, spec, config)) {
     std::cerr << __func__ << ": ImageInput::open() failed:" << std::endl
               << in->geterror() << std::endl;
-    return NULL;
+    return nullptr;
   }
 
   if (!is_colorspace_manually_set) {
@@ -248,7 +248,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
     if (in) {
       in->close();
     }
-    return NULL;
+    return nullptr;
   }
 
   if (is_float) {
@@ -263,7 +263,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   }
 
   if (!ibuf) {
-    return NULL;
+    return nullptr;
   }
 
   /* ImBuf always needs 4 channels */
@@ -281,7 +281,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
       IMB_freeImBuf(ibuf);
     }
 
-    return NULL;
+    return nullptr;
   }
 }
 

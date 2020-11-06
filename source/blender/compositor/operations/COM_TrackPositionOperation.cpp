@@ -31,7 +31,7 @@
 TrackPositionOperation::TrackPositionOperation()
 {
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_movieClip = NULL;
+  this->m_movieClip = nullptr;
   this->m_framenumber = 0;
   this->m_trackingObjectName[0] = 0;
   this->m_trackName[0] = 0;
@@ -43,7 +43,7 @@ TrackPositionOperation::TrackPositionOperation()
 
 void TrackPositionOperation::initExecution()
 {
-  MovieTracking *tracking = NULL;
+  MovieTracking *tracking = nullptr;
   MovieClipUser user = {0};
   MovieTrackingObject *object;
 
@@ -79,7 +79,7 @@ void TrackPositionOperation::initExecution()
                                                                             this->m_relativeFrame);
 
         marker = BKE_tracking_marker_get_exact(track, relative_clip_framenr);
-        if (marker != NULL && (marker->flag & MARKER_DISABLED) == 0) {
+        if (marker != nullptr && (marker->flag & MARKER_DISABLED) == 0) {
           copy_v2_v2(this->m_relativePos, marker->pos);
         }
         else {

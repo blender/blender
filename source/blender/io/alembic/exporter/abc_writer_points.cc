@@ -131,7 +131,7 @@ void ABCPointsWriter::do_write(HierarchyContext &context)
 
   if (psys->lattice_deform_data) {
     BKE_lattice_deform_data_destroy(psys->lattice_deform_data);
-    psys->lattice_deform_data = NULL;
+    psys->lattice_deform_data = nullptr;
   }
 
   Alembic::Abc::P3fArraySample psample(points);

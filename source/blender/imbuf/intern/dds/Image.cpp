@@ -32,7 +32,7 @@
 
 #include <stdio.h> /* printf */
 
-Image::Image() : m_width(0), m_height(0), m_format(Format_RGB), m_data(NULL)
+Image::Image() : m_width(0), m_height(0), m_format(Format_RGB), m_data(nullptr)
 {
 }
 
@@ -52,7 +52,7 @@ void Image::allocate(uint w, uint h)
 void Image::free()
 {
   delete[] m_data;
-  m_data = NULL;
+  m_data = nullptr;
 }
 
 uint Image::width() const

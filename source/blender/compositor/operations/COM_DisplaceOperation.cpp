@@ -29,10 +29,10 @@ DisplaceOperation::DisplaceOperation()
   this->addOutputSocket(COM_DT_COLOR);
   this->setComplex(true);
 
-  this->m_inputColorProgram = NULL;
-  this->m_inputVectorProgram = NULL;
-  this->m_inputScaleXProgram = NULL;
-  this->m_inputScaleYProgram = NULL;
+  this->m_inputColorProgram = nullptr;
+  this->m_inputVectorProgram = nullptr;
+  this->m_inputScaleXProgram = nullptr;
+  this->m_inputScaleYProgram = nullptr;
 }
 
 void DisplaceOperation::initExecution()
@@ -143,10 +143,10 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
 
 void DisplaceOperation::deinitExecution()
 {
-  this->m_inputColorProgram = NULL;
-  this->m_inputVectorProgram = NULL;
-  this->m_inputScaleXProgram = NULL;
-  this->m_inputScaleYProgram = NULL;
+  this->m_inputColorProgram = nullptr;
+  this->m_inputVectorProgram = nullptr;
+  this->m_inputScaleXProgram = nullptr;
+  this->m_inputScaleYProgram = nullptr;
 }
 
 bool DisplaceOperation::determineDependingAreaOfInterest(rcti *input,
@@ -155,7 +155,7 @@ bool DisplaceOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti colorInput;
   rcti vectorInput;
-  NodeOperation *operation = NULL;
+  NodeOperation *operation = nullptr;
 
   /* the vector buffer only needs a 2x2 buffer. The image needs whole buffer */
   /* image */

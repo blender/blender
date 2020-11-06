@@ -93,10 +93,10 @@ Controller::Controller()
   _DebugNode->addRef();
 #endif
 
-  _winged_edge = NULL;
+  _winged_edge = nullptr;
 
-  _pView = NULL;
-  _pRenderMonitor = NULL;
+  _pView = nullptr;
+  _pRenderMonitor = nullptr;
 
   _edgeTesselationNature = (Nature::SILHOUETTE | Nature::BORDER | Nature::CREASE);
 
@@ -108,9 +108,9 @@ Controller::Controller()
   _EPSILON = 1.0e-6;
   _bboxDiag = 0;
 
-  _ViewMap = 0;
+  _ViewMap = nullptr;
 
-  _Canvas = 0;
+  _Canvas = nullptr;
 
   _VisibilityAlgo = ViewMapBuilder::ray_casting_adaptive_traditional;
   //_VisibilityAlgo = ViewMapBuilder::ray_casting;
@@ -134,7 +134,7 @@ Controller::Controller()
 
 Controller::~Controller()
 {
-  if (NULL != _RootNode) {
+  if (nullptr != _RootNode) {
     int ref = _RootNode->destroy();
     if (0 == ref) {
       delete _RootNode;
@@ -159,27 +159,27 @@ Controller::~Controller()
 
   if (_winged_edge) {
     delete _winged_edge;
-    _winged_edge = NULL;
+    _winged_edge = nullptr;
   }
 
-  if (0 != _ViewMap) {
+  if (nullptr != _ViewMap) {
     delete _ViewMap;
-    _ViewMap = 0;
+    _ViewMap = nullptr;
   }
 
-  if (0 != _Canvas) {
+  if (nullptr != _Canvas) {
     delete _Canvas;
-    _Canvas = 0;
+    _Canvas = nullptr;
   }
 
   if (_inter) {
     delete _inter;
-    _inter = NULL;
+    _inter = nullptr;
   }
 
   if (_ProgressBar) {
     delete _ProgressBar;
-    _ProgressBar = NULL;
+    _ProgressBar = nullptr;
   }
 
   // delete _current_dirs;
@@ -187,7 +187,7 @@ Controller::~Controller()
 
 void Controller::setView(AppView *iView)
 {
-  if (NULL == iView) {
+  if (nullptr == iView) {
     return;
   }
 
@@ -203,14 +203,14 @@ void Controller::setRenderMonitor(RenderMonitor *iRenderMonitor)
 void Controller::setPassDiffuse(float *buf, int width, int height)
 {
   AppCanvas *app_canvas = dynamic_cast<AppCanvas *>(_Canvas);
-  BLI_assert(app_canvas != 0);
+  BLI_assert(app_canvas != nullptr);
   app_canvas->setPassDiffuse(buf, width, height);
 }
 
 void Controller::setPassZ(float *buf, int width, int height)
 {
   AppCanvas *app_canvas = dynamic_cast<AppCanvas *>(_Canvas);
-  BLI_assert(app_canvas != 0);
+  BLI_assert(app_canvas != nullptr);
   app_canvas->setPassZ(buf, width, height);
 }
 
@@ -226,7 +226,7 @@ bool Controller::hitViewMapCache()
     return false;
   }
   if (sceneHashFunc.match()) {
-    return (NULL != _ViewMap);
+    return (nullptr != _ViewMap);
   }
   sceneHashFunc.store();
   return false;
@@ -242,7 +242,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
 
   NodeGroup *blenderScene = loader.Load();
 
-  if (blenderScene == NULL) {
+  if (blenderScene == nullptr) {
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "Cannot load scene" << endl;
     }
@@ -318,7 +318,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
     }
 
     delete _ViewMap;
-    _ViewMap = NULL;
+    _ViewMap = nullptr;
   }
 
   _Chrono.start();
@@ -386,14 +386,14 @@ void Controller::CloseFile()
   _Canvas->Clear();
 
   // soc: reset passes
-  setPassDiffuse(NULL, 0, 0);
-  setPassZ(NULL, 0, 0);
+  setPassDiffuse(nullptr, 0, 0);
+  setPassZ(nullptr, 0, 0);
 }
 
 void Controller::ClearRootNode()
 {
   _pView->DetachModel();
-  if (NULL != _RootNode) {
+  if (nullptr != _RootNode) {
     int ref = _RootNode->destroy();
     if (0 == ref) {
       _RootNode->addRef();
@@ -406,7 +406,7 @@ void Controller::DeleteWingedEdge()
 {
   if (_winged_edge) {
     delete _winged_edge;
-    _winged_edge = NULL;
+    _winged_edge = nullptr;
   }
 
   // clears the grid
@@ -454,10 +454,10 @@ void Controller::DeleteViewMap(bool freeCache)
   }
 #endif
 
-  if (NULL != _ViewMap) {
+  if (nullptr != _ViewMap) {
     if (freeCache || !_EnableViewMapCache) {
       delete _ViewMap;
-      _ViewMap = NULL;
+      _ViewMap = nullptr;
       prevSceneHash = -1.0;
     }
     else {
@@ -877,7 +877,7 @@ bool Controller::getComputeSteerableViewMapFlag() const
 
 int Controller::DrawStrokes()
 {
-  if (_ViewMap == 0) {
+  if (_ViewMap == nullptr) {
     return 0;
   }
 
@@ -1129,8 +1129,8 @@ void Controller::init_options()
   _Canvas->init();
 
   // soc: initialize passes
-  setPassDiffuse(NULL, 0, 0);
-  setPassZ(NULL, 0, 0);
+  setPassDiffuse(nullptr, 0, 0);
+  setPassZ(nullptr, 0, 0);
 }
 
 } /* namespace Freestyle */

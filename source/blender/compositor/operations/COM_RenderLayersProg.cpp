@@ -31,10 +31,10 @@
 RenderLayersProg::RenderLayersProg(const char *passName, DataType type, int elementsize)
     : m_passName(passName)
 {
-  this->setScene(NULL);
-  this->m_inputBuffer = NULL;
+  this->setScene(nullptr);
+  this->m_inputBuffer = nullptr;
   this->m_elementsize = elementsize;
-  this->m_rd = NULL;
+  this->m_rd = nullptr;
 
   this->addOutputSocket(type);
 }
@@ -42,8 +42,8 @@ RenderLayersProg::RenderLayersProg(const char *passName, DataType type, int elem
 void RenderLayersProg::initExecution()
 {
   Scene *scene = this->getScene();
-  Render *re = (scene) ? RE_GetSceneRender(scene) : NULL;
-  RenderResult *rr = NULL;
+  Render *re = (scene) ? RE_GetSceneRender(scene) : nullptr;
+  RenderResult *rr = nullptr;
 
   if (re) {
     rr = RE_AcquireResultRead(re);
@@ -62,7 +62,7 @@ void RenderLayersProg::initExecution()
   }
   if (re) {
     RE_ReleaseResult(re);
-    re = NULL;
+    re = nullptr;
   }
 }
 
@@ -157,7 +157,7 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
   }
 #endif
 
-  if (this->m_inputBuffer == NULL) {
+  if (this->m_inputBuffer == nullptr) {
     int elemsize = this->m_elementsize;
     if (elemsize == 1) {
       output[0] = 0.0f;
@@ -177,15 +177,15 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
 
 void RenderLayersProg::deinitExecution()
 {
-  this->m_inputBuffer = NULL;
+  this->m_inputBuffer = nullptr;
 }
 
 void RenderLayersProg::determineResolution(unsigned int resolution[2],
                                            unsigned int /*preferredResolution*/[2])
 {
   Scene *sce = this->getScene();
-  Render *re = (sce) ? RE_GetSceneRender(sce) : NULL;
-  RenderResult *rr = NULL;
+  Render *re = (sce) ? RE_GetSceneRender(sce) : nullptr;
+  RenderResult *rr = nullptr;
 
   resolution[0] = 0;
   resolution[1] = 0;
@@ -217,7 +217,7 @@ void RenderLayersAOOperation::executePixelSampled(float output[4],
                                                   PixelSampler sampler)
 {
   float *inputBuffer = this->getInputBuffer();
-  if (inputBuffer == NULL) {
+  if (inputBuffer == nullptr) {
     zero_v3(output);
   }
   else {
@@ -234,7 +234,7 @@ void RenderLayersAlphaProg::executePixelSampled(float output[4],
 {
   float *inputBuffer = this->getInputBuffer();
 
-  if (inputBuffer == NULL) {
+  if (inputBuffer == nullptr) {
     output[0] = 0.0f;
   }
   else {
@@ -254,7 +254,7 @@ void RenderLayersDepthProg::executePixelSampled(float output[4],
   int iy = y;
   float *inputBuffer = this->getInputBuffer();
 
-  if (inputBuffer == NULL || ix < 0 || iy < 0 || ix >= (int)this->getWidth() ||
+  if (inputBuffer == nullptr || ix < 0 || iy < 0 || ix >= (int)this->getWidth() ||
       iy >= (int)this->getHeight()) {
     output[0] = 10e10f;
   }

@@ -32,19 +32,19 @@ InpaintSimpleOperation::InpaintSimpleOperation()
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
   this->setComplex(true);
-  this->m_inputImageProgram = NULL;
-  this->m_pixelorder = NULL;
-  this->m_manhattan_distance = NULL;
-  this->m_cached_buffer = NULL;
+  this->m_inputImageProgram = nullptr;
+  this->m_pixelorder = nullptr;
+  this->m_manhattan_distance = nullptr;
+  this->m_cached_buffer = nullptr;
   this->m_cached_buffer_ready = false;
 }
 void InpaintSimpleOperation::initExecution()
 {
   this->m_inputImageProgram = this->getInputSocketReader(0);
 
-  this->m_pixelorder = NULL;
-  this->m_manhattan_distance = NULL;
-  this->m_cached_buffer = NULL;
+  this->m_pixelorder = nullptr;
+  this->m_manhattan_distance = nullptr;
+  this->m_cached_buffer = nullptr;
   this->m_cached_buffer_ready = false;
 
   this->initMutex();
@@ -246,21 +246,21 @@ void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void * 
 
 void InpaintSimpleOperation::deinitExecution()
 {
-  this->m_inputImageProgram = NULL;
+  this->m_inputImageProgram = nullptr;
   this->deinitMutex();
   if (this->m_cached_buffer) {
     MEM_freeN(this->m_cached_buffer);
-    this->m_cached_buffer = NULL;
+    this->m_cached_buffer = nullptr;
   }
 
   if (this->m_pixelorder) {
     MEM_freeN(this->m_pixelorder);
-    this->m_pixelorder = NULL;
+    this->m_pixelorder = nullptr;
   }
 
   if (this->m_manhattan_distance) {
     MEM_freeN(this->m_manhattan_distance);
-    this->m_manhattan_distance = NULL;
+    this->m_manhattan_distance = nullptr;
   }
   this->m_cached_buffer_ready = false;
 }

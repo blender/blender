@@ -25,7 +25,7 @@ VectorCurveOperation::VectorCurveOperation()
   this->addInputSocket(COM_DT_VECTOR);
   this->addOutputSocket(COM_DT_VECTOR);
 
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }
 void VectorCurveOperation::initExecution()
 {
@@ -48,5 +48,5 @@ void VectorCurveOperation::executePixelSampled(float output[4],
 void VectorCurveOperation::deinitExecution()
 {
   CurveBaseOperation::deinitExecution();
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }

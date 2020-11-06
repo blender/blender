@@ -72,7 +72,7 @@ static void task_mempool_iter_func(void *userdata, MempoolIterData *item)
   int *data = (int *)item;
   int *count = (int *)userdata;
 
-  EXPECT_TRUE(data != NULL);
+  EXPECT_TRUE(data != nullptr);
 
   *data += 1;
   atomic_sub_and_fetch_uint32((uint32_t *)count, 1);
@@ -97,12 +97,12 @@ TEST(task, MempoolIter)
 
   for (i = 0; i < NUM_ITEMS; i += 3) {
     BLI_mempool_free(mempool, data[i]);
-    data[i] = NULL;
+    data[i] = nullptr;
     num_items--;
   }
 
   for (i = 0; i < NUM_ITEMS; i += 7) {
-    if (data[i] == NULL) {
+    if (data[i] == nullptr) {
       data[i] = (int *)BLI_mempool_alloc(mempool);
       *data[i] = i - 1;
       num_items++;
@@ -111,9 +111,9 @@ TEST(task, MempoolIter)
 
   for (i = 0; i < NUM_ITEMS - 5; i += 23) {
     for (int j = 0; j < 5; j++) {
-      if (data[i + j] != NULL) {
+      if (data[i + j] != nullptr) {
         BLI_mempool_free(mempool, data[i + j]);
-        data[i + j] = NULL;
+        data[i + j] = nullptr;
         num_items--;
       }
     }
@@ -125,7 +125,7 @@ TEST(task, MempoolIter)
    * expected. */
   EXPECT_EQ(num_items, 0);
   for (i = 0; i < NUM_ITEMS; i++) {
-    if (data[i] != NULL) {
+    if (data[i] != nullptr) {
       EXPECT_EQ(*data[i], i);
     }
   }
@@ -150,7 +150,7 @@ static void task_listbase_iter_func(void *userdata,
 
 TEST(task, ListBaseIter)
 {
-  ListBase list = {NULL, NULL};
+  ListBase list = {nullptr, nullptr};
   LinkData *items_buffer = (LinkData *)MEM_calloc_arrayN(
       NUM_ITEMS, sizeof(*items_buffer), __func__);
   BLI_threadapi_init();
@@ -172,7 +172,7 @@ TEST(task, ListBaseIter)
    * as expected. */
   EXPECT_EQ(num_items, 0);
   LinkData *item;
-  for (i = 0, item = (LinkData *)list.first; i < NUM_ITEMS && item != NULL;
+  for (i = 0, item = (LinkData *)list.first; i < NUM_ITEMS && item != nullptr;
        i++, item = item->next) {
     EXPECT_EQ(POINTER_AS_INT(item->data), i);
   }

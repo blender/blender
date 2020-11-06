@@ -47,7 +47,7 @@ void getFEdges(Interface0DIterator &it, FEdge *&fe1, FEdge *&fe2)
   }
   if (count < 3) {
     // if we only have 2 vertices
-    FEdge *fe = 0;
+    FEdge *fe = nullptr;
     Interface0DIterator tmp = it;
     if (it.isBegin()) {
       ++tmp;
@@ -58,7 +58,7 @@ void getFEdges(Interface0DIterator &it, FEdge *&fe1, FEdge *&fe2)
       fe = it->getFEdge(*tmp);
     }
     fe1 = fe;
-    fe2 = NULL;
+    fe2 = nullptr;
   }
   else {
     // we have more than 2 vertices
@@ -77,11 +77,11 @@ void getFEdges(Interface0DIterator &it, FEdge *&fe1, FEdge *&fe2)
     }
     if (begin) {
       fe1 = it->getFEdge(*next);
-      fe2 = NULL;
+      fe2 = nullptr;
     }
     else if (last) {
       fe1 = previous->getFEdge(*it);
-      fe2 = NULL;
+      fe2 = nullptr;
     }
     else {
       fe1 = previous->getFEdge(*it);
@@ -95,14 +95,14 @@ void getViewEdges(Interface0DIterator &it, ViewEdge *&ve1, ViewEdge *&ve2)
   FEdge *fe1, *fe2;
   getFEdges(it, fe1, fe2);
   ve1 = fe1->viewedge();
-  if (fe2 != NULL) {
+  if (fe2 != nullptr) {
     ve2 = fe2->viewedge();
     if (ve2 == ve1) {
-      ve2 = NULL;
+      ve2 = nullptr;
     }
   }
   else {
-    ve2 = NULL;
+    ve2 = nullptr;
   }
 }
 
@@ -124,7 +124,7 @@ void getOccludersF0D(Interface0DIterator &it, set<ViewShape *> &oOccluders)
     oOccluders.insert((*oit));
   }
 
-  if (ve2 != NULL) {
+  if (ve2 != nullptr) {
     oit = ve2->occluders_begin();
     oitend = ve2->occluders_end();
     for (; oit != oitend; ++oit) {
@@ -280,7 +280,7 @@ int ZDiscontinuityF0D::operator()(Interface0DIterator &iter)
   FEdge *fe1, *fe2;
   getFEdges(iter, fe1, fe2);
   result = fe1->z_discontinuity();
-  if (fe2 != NULL) {
+  if (fe2 != nullptr) {
     result += fe2->z_discontinuity();
     result /= 2.0f;
   }
@@ -294,7 +294,7 @@ int Normal2DF0D::operator()(Interface0DIterator &iter)
   Vec3f e1(fe1->orientation2d());
   Vec2f n1(e1[1], -e1[0]);
   Vec2f n(n1);
-  if (fe2 != NULL) {
+  if (fe2 != nullptr) {
     Vec3f e2(fe2->orientation2d());
     Vec2f n2(e2[1], -e2[0]);
     n += n2;
@@ -308,7 +308,7 @@ int MaterialF0D::operator()(Interface0DIterator &iter)
 {
   FEdge *fe1, *fe2;
   getFEdges(iter, fe1, fe2);
-  if (fe1 == NULL) {
+  if (fe1 == nullptr) {
     return -1;
   }
   if (fe1->isSmooth()) {
@@ -337,7 +337,7 @@ int QuantitativeInvisibilityF0D::operator()(Interface0DIterator &iter)
   getViewEdges(iter, ve1, ve2);
   unsigned int qi1, qi2;
   qi1 = ve1->qi();
-  if (ve2 != NULL) {
+  if (ve2 != nullptr) {
     qi2 = ve2->qi();
     if (qi2 != qi1) {
       if (G.debug & G_DEBUG_FREESTYLE) {
@@ -356,7 +356,7 @@ int CurveNatureF0D::operator()(Interface0DIterator &iter)
   ViewEdge *ve1, *ve2;
   getViewEdges(iter, ve1, ve2);
   nat |= ve1->getNature();
-  if (ve2 != NULL) {
+  if (ve2 != nullptr) {
     nat |= ve2->getNature();
   }
   result = nat;

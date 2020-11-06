@@ -52,16 +52,16 @@ TEST(task, GraphSequential)
   TaskGraph *graph = BLI_task_graph_create();
 
   /* 0 => 1 */
-  TaskNode *node_a = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, NULL);
+  TaskNode *node_a = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, nullptr);
   /* 1 => 2 */
   TaskNode *node_b = BLI_task_graph_node_create(
-      graph, TaskData_multiply_by_two_value, &data, NULL);
+      graph, TaskData_multiply_by_two_value, &data, nullptr);
   /* 2 => 1 */
-  TaskNode *node_c = BLI_task_graph_node_create(graph, TaskData_decrease_value, &data, NULL);
+  TaskNode *node_c = BLI_task_graph_node_create(graph, TaskData_decrease_value, &data, nullptr);
   /* 2 => 1 */
-  TaskNode *node_d = BLI_task_graph_node_create(graph, TaskData_square_value, &data, NULL);
+  TaskNode *node_d = BLI_task_graph_node_create(graph, TaskData_square_value, &data, nullptr);
   /* 1 => 1 */
-  TaskNode *node_e = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, NULL);
+  TaskNode *node_e = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, nullptr);
   /* 1 => 2 */
   const int expected_value = 2;
 
@@ -82,12 +82,12 @@ TEST(task, GraphStartAtAnyNode)
   TaskData data = {4};
   TaskGraph *graph = BLI_task_graph_create();
 
-  TaskNode *node_a = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, NULL);
+  TaskNode *node_a = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, nullptr);
   TaskNode *node_b = BLI_task_graph_node_create(
-      graph, TaskData_multiply_by_two_value, &data, NULL);
-  TaskNode *node_c = BLI_task_graph_node_create(graph, TaskData_decrease_value, &data, NULL);
-  TaskNode *node_d = BLI_task_graph_node_create(graph, TaskData_square_value, &data, NULL);
-  TaskNode *node_e = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, NULL);
+      graph, TaskData_multiply_by_two_value, &data, nullptr);
+  TaskNode *node_c = BLI_task_graph_node_create(graph, TaskData_decrease_value, &data, nullptr);
+  TaskNode *node_d = BLI_task_graph_node_create(graph, TaskData_square_value, &data, nullptr);
+  TaskNode *node_e = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, nullptr);
 
   // ((4 - 1) * (4 - 1)) + 1
   const int expected_value = 10;
@@ -109,11 +109,11 @@ TEST(task, GraphSplit)
   TaskData data = {1};
 
   TaskGraph *graph = BLI_task_graph_create();
-  TaskNode *node_a = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, NULL);
-  TaskNode *node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data, NULL);
-  TaskNode *node_c = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, NULL);
+  TaskNode *node_a = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, nullptr);
+  TaskNode *node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data, nullptr);
+  TaskNode *node_c = BLI_task_graph_node_create(graph, TaskData_increase_value, &data, nullptr);
   TaskNode *node_d = BLI_task_graph_node_create(
-      graph, TaskData_multiply_by_two_store, &data, NULL);
+      graph, TaskData_multiply_by_two_store, &data, nullptr);
   BLI_task_graph_edge_create(node_a, node_b);
   BLI_task_graph_edge_create(node_b, node_c);
   BLI_task_graph_edge_create(node_b, node_d);
@@ -134,12 +134,12 @@ TEST(task, GraphForest)
 
   {
     TaskNode *tree1_node_a = BLI_task_graph_node_create(
-        graph, TaskData_increase_value, &data1, NULL);
-    TaskNode *tree1_node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data1, NULL);
+        graph, TaskData_increase_value, &data1, nullptr);
+    TaskNode *tree1_node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data1, nullptr);
     TaskNode *tree1_node_c = BLI_task_graph_node_create(
-        graph, TaskData_increase_value, &data1, NULL);
+        graph, TaskData_increase_value, &data1, nullptr);
     TaskNode *tree1_node_d = BLI_task_graph_node_create(
-        graph, TaskData_multiply_by_two_store, &data1, NULL);
+        graph, TaskData_multiply_by_two_store, &data1, nullptr);
     BLI_task_graph_edge_create(tree1_node_a, tree1_node_b);
     BLI_task_graph_edge_create(tree1_node_b, tree1_node_c);
     BLI_task_graph_edge_create(tree1_node_b, tree1_node_d);
@@ -148,12 +148,12 @@ TEST(task, GraphForest)
 
   {
     TaskNode *tree2_node_a = BLI_task_graph_node_create(
-        graph, TaskData_increase_value, &data2, NULL);
-    TaskNode *tree2_node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data2, NULL);
+        graph, TaskData_increase_value, &data2, nullptr);
+    TaskNode *tree2_node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data2, nullptr);
     TaskNode *tree2_node_c = BLI_task_graph_node_create(
-        graph, TaskData_increase_value, &data2, NULL);
+        graph, TaskData_increase_value, &data2, nullptr);
     TaskNode *tree2_node_d = BLI_task_graph_node_create(
-        graph, TaskData_multiply_by_two_store, &data2, NULL);
+        graph, TaskData_multiply_by_two_store, &data2, nullptr);
     BLI_task_graph_edge_create(tree2_node_a, tree2_node_b);
     BLI_task_graph_edge_create(tree2_node_b, tree2_node_c);
     BLI_task_graph_edge_create(tree2_node_b, tree2_node_d);
@@ -175,7 +175,7 @@ TEST(task, GraphTaskData)
   TaskGraph *graph = BLI_task_graph_create();
   TaskNode *node_a = BLI_task_graph_node_create(
       graph, TaskData_store_value, &data, TaskData_increase_value);
-  TaskNode *node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data, NULL);
+  TaskNode *node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data, nullptr);
   BLI_task_graph_edge_create(node_a, node_b);
   EXPECT_TRUE(BLI_task_graph_node_push_work(node_a));
   BLI_task_graph_work_and_wait(graph);

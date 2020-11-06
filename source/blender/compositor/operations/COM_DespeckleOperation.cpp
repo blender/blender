@@ -28,7 +28,7 @@ DespeckleOperation::DespeckleOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
   this->setResolutionInputSocketIndex(0);
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
   this->setComplex(true);
 }
 void DespeckleOperation::initExecution()
@@ -39,8 +39,8 @@ void DespeckleOperation::initExecution()
 
 void DespeckleOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
-  this->m_inputValueOperation = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_inputValueOperation = nullptr;
 }
 
 BLI_INLINE int color_diff(const float a[3], const float b[3], const float threshold)
@@ -69,10 +69,10 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*da
   CLAMP(y2, 0, getHeight() - 1);
   CLAMP(y3, 0, getHeight() - 1);
   float value[4];
-  this->m_inputValueOperation->read(value, x2, y2, NULL);
+  this->m_inputValueOperation->read(value, x2, y2, nullptr);
   // const float mval = 1.0f - value[0];
 
-  this->m_inputOperation->read(color_org, x2, y2, NULL);
+  this->m_inputOperation->read(color_org, x2, y2, nullptr);
 
 #define TOT_DIV_ONE 1.0f
 #define TOT_DIV_CNR (float)M_SQRT1_2
@@ -91,13 +91,13 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*da
   zero_v4(color_mid);
   zero_v4(color_mid_ok);
 
-  this->m_inputOperation->read(in1, x1, y1, NULL);
+  this->m_inputOperation->read(in1, x1, y1, nullptr);
   COLOR_ADD(TOT_DIV_CNR)
-  this->m_inputOperation->read(in1, x2, y1, NULL);
+  this->m_inputOperation->read(in1, x2, y1, nullptr);
   COLOR_ADD(TOT_DIV_ONE)
-  this->m_inputOperation->read(in1, x3, y1, NULL);
+  this->m_inputOperation->read(in1, x3, y1, nullptr);
   COLOR_ADD(TOT_DIV_CNR)
-  this->m_inputOperation->read(in1, x1, y2, NULL);
+  this->m_inputOperation->read(in1, x1, y2, nullptr);
   COLOR_ADD(TOT_DIV_ONE)
 
 #if 0
@@ -105,13 +105,13 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*da
   madd_v4_v4fl(color_mid, in2, this->m_filter[4]);
 #endif
 
-  this->m_inputOperation->read(in1, x3, y2, NULL);
+  this->m_inputOperation->read(in1, x3, y2, nullptr);
   COLOR_ADD(TOT_DIV_ONE)
-  this->m_inputOperation->read(in1, x1, y3, NULL);
+  this->m_inputOperation->read(in1, x1, y3, nullptr);
   COLOR_ADD(TOT_DIV_CNR)
-  this->m_inputOperation->read(in1, x2, y3, NULL);
+  this->m_inputOperation->read(in1, x2, y3, nullptr);
   COLOR_ADD(TOT_DIV_ONE)
-  this->m_inputOperation->read(in1, x3, y3, NULL);
+  this->m_inputOperation->read(in1, x3, y3, nullptr);
   COLOR_ADD(TOT_DIV_CNR)
 
   mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * (float)M_SQRT1_2)));

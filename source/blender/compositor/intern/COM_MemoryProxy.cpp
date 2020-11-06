@@ -20,8 +20,8 @@
 
 MemoryProxy::MemoryProxy(DataType datatype)
 {
-  this->m_writeBufferOperation = NULL;
-  this->m_executor = NULL;
+  this->m_writeBufferOperation = nullptr;
+  this->m_executor = nullptr;
   this->m_datatype = datatype;
 }
 
@@ -40,6 +40,6 @@ void MemoryProxy::free()
 {
   if (this->m_buffer) {
     delete this->m_buffer;
-    this->m_buffer = NULL;
+    this->m_buffer = nullptr;
   }
 }

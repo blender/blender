@@ -77,7 +77,7 @@ PyObject *Vector_from_Vec2f(Vec2f &vec)
   float vec_data[2];  // because vec->_coord is protected
   vec_data[0] = vec.x();
   vec_data[1] = vec.y();
-  return Vector_CreatePyObject(vec_data, 2, NULL);
+  return Vector_CreatePyObject(vec_data, 2, nullptr);
 }
 
 PyObject *Vector_from_Vec3f(Vec3f &vec)
@@ -86,7 +86,7 @@ PyObject *Vector_from_Vec3f(Vec3f &vec)
   vec_data[0] = vec.x();
   vec_data[1] = vec.y();
   vec_data[2] = vec.z();
-  return Vector_CreatePyObject(vec_data, 3, NULL);
+  return Vector_CreatePyObject(vec_data, 3, nullptr);
 }
 
 PyObject *Vector_from_Vec3r(Vec3r &vec)
@@ -95,12 +95,12 @@ PyObject *Vector_from_Vec3r(Vec3r &vec)
   vec_data[0] = vec.x();
   vec_data[1] = vec.y();
   vec_data[2] = vec.z();
-  return Vector_CreatePyObject(vec_data, 3, NULL);
+  return Vector_CreatePyObject(vec_data, 3, nullptr);
 }
 
 PyObject *BPy_Id_from_Id(Id &id)
 {
-  PyObject *py_id = Id_Type.tp_new(&Id_Type, 0, 0);
+  PyObject *py_id = Id_Type.tp_new(&Id_Type, nullptr, nullptr);
   ((BPy_Id *)py_id)->id = new Id(id.getFirst(), id.getSecond());
   return py_id;
 }
@@ -130,7 +130,7 @@ PyObject *Any_BPy_Interface0D_from_Interface0D(Interface0D &if0D)
   }
   string msg("unexpected type: " + if0D.getExactTypeName());
   PyErr_SetString(PyExc_TypeError, msg.c_str());
-  return NULL;
+  return nullptr;
 }
 
 PyObject *Any_BPy_Interface1D_from_Interface1D(Interface1D &if1D)
@@ -158,7 +158,7 @@ PyObject *Any_BPy_Interface1D_from_Interface1D(Interface1D &if1D)
   }
   string msg("unexpected type: " + if1D.getExactTypeName());
   PyErr_SetString(PyExc_TypeError, msg.c_str());
-  return NULL;
+  return nullptr;
 }
 
 PyObject *Any_BPy_FEdge_from_FEdge(FEdge &fe)
@@ -174,7 +174,7 @@ PyObject *Any_BPy_FEdge_from_FEdge(FEdge &fe)
   }
   string msg("unexpected type: " + fe.getExactTypeName());
   PyErr_SetString(PyExc_TypeError, msg.c_str());
-  return NULL;
+  return nullptr;
 }
 
 PyObject *Any_BPy_ViewVertex_from_ViewVertex(ViewVertex &vv)
@@ -190,12 +190,12 @@ PyObject *Any_BPy_ViewVertex_from_ViewVertex(ViewVertex &vv)
   }
   string msg("unexpected type: " + vv.getExactTypeName());
   PyErr_SetString(PyExc_TypeError, msg.c_str());
-  return NULL;
+  return nullptr;
 }
 
 PyObject *BPy_Interface0D_from_Interface0D(Interface0D &if0D)
 {
-  PyObject *py_if0D = Interface0D_Type.tp_new(&Interface0D_Type, 0, 0);
+  PyObject *py_if0D = Interface0D_Type.tp_new(&Interface0D_Type, nullptr, nullptr);
   ((BPy_Interface0D *)py_if0D)->if0D = &if0D;
   ((BPy_Interface0D *)py_if0D)->borrowed = true;
   return py_if0D;
@@ -203,7 +203,7 @@ PyObject *BPy_Interface0D_from_Interface0D(Interface0D &if0D)
 
 PyObject *BPy_Interface1D_from_Interface1D(Interface1D &if1D)
 {
-  PyObject *py_if1D = Interface1D_Type.tp_new(&Interface1D_Type, 0, 0);
+  PyObject *py_if1D = Interface1D_Type.tp_new(&Interface1D_Type, nullptr, nullptr);
   ((BPy_Interface1D *)py_if1D)->if1D = &if1D;
   ((BPy_Interface1D *)py_if1D)->borrowed = true;
   return py_if1D;
@@ -211,7 +211,7 @@ PyObject *BPy_Interface1D_from_Interface1D(Interface1D &if1D)
 
 PyObject *BPy_SVertex_from_SVertex(SVertex &sv)
 {
-  PyObject *py_sv = SVertex_Type.tp_new(&SVertex_Type, 0, 0);
+  PyObject *py_sv = SVertex_Type.tp_new(&SVertex_Type, nullptr, nullptr);
   ((BPy_SVertex *)py_sv)->sv = &sv;
   ((BPy_SVertex *)py_sv)->py_if0D.if0D = ((BPy_SVertex *)py_sv)->sv;
   ((BPy_SVertex *)py_sv)->py_if0D.borrowed = true;
@@ -220,7 +220,7 @@ PyObject *BPy_SVertex_from_SVertex(SVertex &sv)
 
 PyObject *BPy_FEdgeSharp_from_FEdgeSharp(FEdgeSharp &fes)
 {
-  PyObject *py_fe = FEdgeSharp_Type.tp_new(&FEdgeSharp_Type, 0, 0);
+  PyObject *py_fe = FEdgeSharp_Type.tp_new(&FEdgeSharp_Type, nullptr, nullptr);
   ((BPy_FEdgeSharp *)py_fe)->fes = &fes;
   ((BPy_FEdgeSharp *)py_fe)->py_fe.fe = ((BPy_FEdgeSharp *)py_fe)->fes;
   ((BPy_FEdgeSharp *)py_fe)->py_fe.py_if1D.if1D = ((BPy_FEdgeSharp *)py_fe)->fes;
@@ -230,7 +230,7 @@ PyObject *BPy_FEdgeSharp_from_FEdgeSharp(FEdgeSharp &fes)
 
 PyObject *BPy_FEdgeSmooth_from_FEdgeSmooth(FEdgeSmooth &fes)
 {
-  PyObject *py_fe = FEdgeSmooth_Type.tp_new(&FEdgeSmooth_Type, 0, 0);
+  PyObject *py_fe = FEdgeSmooth_Type.tp_new(&FEdgeSmooth_Type, nullptr, nullptr);
   ((BPy_FEdgeSmooth *)py_fe)->fes = &fes;
   ((BPy_FEdgeSmooth *)py_fe)->py_fe.fe = ((BPy_FEdgeSmooth *)py_fe)->fes;
   ((BPy_FEdgeSmooth *)py_fe)->py_fe.py_if1D.if1D = ((BPy_FEdgeSmooth *)py_fe)->fes;
@@ -240,7 +240,7 @@ PyObject *BPy_FEdgeSmooth_from_FEdgeSmooth(FEdgeSmooth &fes)
 
 PyObject *BPy_FEdge_from_FEdge(FEdge &fe)
 {
-  PyObject *py_fe = FEdge_Type.tp_new(&FEdge_Type, 0, 0);
+  PyObject *py_fe = FEdge_Type.tp_new(&FEdge_Type, nullptr, nullptr);
   ((BPy_FEdge *)py_fe)->fe = &fe;
   ((BPy_FEdge *)py_fe)->py_if1D.if1D = ((BPy_FEdge *)py_fe)->fe;
   ((BPy_FEdge *)py_fe)->py_if1D.borrowed = true;
@@ -251,14 +251,14 @@ PyObject *BPy_Nature_from_Nature(unsigned short n)
 {
   PyObject *args = PyTuple_New(1);
   PyTuple_SET_ITEM(args, 0, PyLong_FromLong(n));
-  PyObject *py_n = Nature_Type.tp_new(&Nature_Type, args, NULL);
+  PyObject *py_n = Nature_Type.tp_new(&Nature_Type, args, nullptr);
   Py_DECREF(args);
   return py_n;
 }
 
 PyObject *BPy_Stroke_from_Stroke(Stroke &s)
 {
-  PyObject *py_s = Stroke_Type.tp_new(&Stroke_Type, 0, 0);
+  PyObject *py_s = Stroke_Type.tp_new(&Stroke_Type, nullptr, nullptr);
   ((BPy_Stroke *)py_s)->s = &s;
   ((BPy_Stroke *)py_s)->py_if1D.if1D = ((BPy_Stroke *)py_s)->s;
   ((BPy_Stroke *)py_s)->py_if1D.borrowed = true;
@@ -267,7 +267,7 @@ PyObject *BPy_Stroke_from_Stroke(Stroke &s)
 
 PyObject *BPy_StrokeAttribute_from_StrokeAttribute(StrokeAttribute &sa)
 {
-  PyObject *py_sa = StrokeAttribute_Type.tp_new(&StrokeAttribute_Type, 0, 0);
+  PyObject *py_sa = StrokeAttribute_Type.tp_new(&StrokeAttribute_Type, nullptr, nullptr);
   ((BPy_StrokeAttribute *)py_sa)->sa = &sa;
   ((BPy_StrokeAttribute *)py_sa)->borrowed = true;
   return py_sa;
@@ -277,14 +277,14 @@ PyObject *BPy_MediumType_from_MediumType(Stroke::MediumType n)
 {
   PyObject *args = PyTuple_New(1);
   PyTuple_SET_ITEM(args, 0, PyLong_FromLong(n));
-  PyObject *py_mt = MediumType_Type.tp_new(&MediumType_Type, args, NULL);
+  PyObject *py_mt = MediumType_Type.tp_new(&MediumType_Type, args, nullptr);
   Py_DECREF(args);
   return py_mt;
 }
 
 PyObject *BPy_StrokeVertex_from_StrokeVertex(StrokeVertex &sv)
 {
-  PyObject *py_sv = StrokeVertex_Type.tp_new(&StrokeVertex_Type, 0, 0);
+  PyObject *py_sv = StrokeVertex_Type.tp_new(&StrokeVertex_Type, nullptr, nullptr);
   ((BPy_StrokeVertex *)py_sv)->sv = &sv;
   ((BPy_StrokeVertex *)py_sv)->py_cp.cp = ((BPy_StrokeVertex *)py_sv)->sv;
   ((BPy_StrokeVertex *)py_sv)->py_cp.py_if0D.if0D = ((BPy_StrokeVertex *)py_sv)->sv;
@@ -294,7 +294,7 @@ PyObject *BPy_StrokeVertex_from_StrokeVertex(StrokeVertex &sv)
 
 PyObject *BPy_ViewVertex_from_ViewVertex(ViewVertex &vv)
 {
-  PyObject *py_vv = ViewVertex_Type.tp_new(&ViewVertex_Type, 0, 0);
+  PyObject *py_vv = ViewVertex_Type.tp_new(&ViewVertex_Type, nullptr, nullptr);
   ((BPy_ViewVertex *)py_vv)->vv = &vv;
   ((BPy_ViewVertex *)py_vv)->py_if0D.if0D = ((BPy_ViewVertex *)py_vv)->vv;
   ((BPy_ViewVertex *)py_vv)->py_if0D.borrowed = true;
@@ -303,7 +303,7 @@ PyObject *BPy_ViewVertex_from_ViewVertex(ViewVertex &vv)
 
 PyObject *BPy_NonTVertex_from_NonTVertex(NonTVertex &ntv)
 {
-  PyObject *py_ntv = NonTVertex_Type.tp_new(&NonTVertex_Type, 0, 0);
+  PyObject *py_ntv = NonTVertex_Type.tp_new(&NonTVertex_Type, nullptr, nullptr);
   ((BPy_NonTVertex *)py_ntv)->ntv = &ntv;
   ((BPy_NonTVertex *)py_ntv)->py_vv.vv = ((BPy_NonTVertex *)py_ntv)->ntv;
   ((BPy_NonTVertex *)py_ntv)->py_vv.py_if0D.if0D = ((BPy_NonTVertex *)py_ntv)->ntv;
@@ -313,7 +313,7 @@ PyObject *BPy_NonTVertex_from_NonTVertex(NonTVertex &ntv)
 
 PyObject *BPy_TVertex_from_TVertex(TVertex &tv)
 {
-  PyObject *py_tv = TVertex_Type.tp_new(&TVertex_Type, 0, 0);
+  PyObject *py_tv = TVertex_Type.tp_new(&TVertex_Type, nullptr, nullptr);
   ((BPy_TVertex *)py_tv)->tv = &tv;
   ((BPy_TVertex *)py_tv)->py_vv.vv = ((BPy_TVertex *)py_tv)->tv;
   ((BPy_TVertex *)py_tv)->py_vv.py_if0D.if0D = ((BPy_TVertex *)py_tv)->tv;
@@ -323,14 +323,14 @@ PyObject *BPy_TVertex_from_TVertex(TVertex &tv)
 
 PyObject *BPy_BBox_from_BBox(const BBox<Vec3r> &bb)
 {
-  PyObject *py_bb = BBox_Type.tp_new(&BBox_Type, 0, 0);
+  PyObject *py_bb = BBox_Type.tp_new(&BBox_Type, nullptr, nullptr);
   ((BPy_BBox *)py_bb)->bb = new BBox<Vec3r>(bb);
   return py_bb;
 }
 
 PyObject *BPy_ViewEdge_from_ViewEdge(ViewEdge &ve)
 {
-  PyObject *py_ve = ViewEdge_Type.tp_new(&ViewEdge_Type, 0, 0);
+  PyObject *py_ve = ViewEdge_Type.tp_new(&ViewEdge_Type, nullptr, nullptr);
   ((BPy_ViewEdge *)py_ve)->ve = &ve;
   ((BPy_ViewEdge *)py_ve)->py_if1D.if1D = ((BPy_ViewEdge *)py_ve)->ve;
   ((BPy_ViewEdge *)py_ve)->py_if1D.borrowed = true;
@@ -339,7 +339,7 @@ PyObject *BPy_ViewEdge_from_ViewEdge(ViewEdge &ve)
 
 PyObject *BPy_Chain_from_Chain(Chain &c)
 {
-  PyObject *py_c = Chain_Type.tp_new(&Chain_Type, 0, 0);
+  PyObject *py_c = Chain_Type.tp_new(&Chain_Type, nullptr, nullptr);
   ((BPy_Chain *)py_c)->c = &c;
   ((BPy_Chain *)py_c)->py_c.c = ((BPy_Chain *)py_c)->c;
   ((BPy_Chain *)py_c)->py_c.py_if1D.if1D = ((BPy_Chain *)py_c)->c;
@@ -349,7 +349,7 @@ PyObject *BPy_Chain_from_Chain(Chain &c)
 
 PyObject *BPy_SShape_from_SShape(SShape &ss)
 {
-  PyObject *py_ss = SShape_Type.tp_new(&SShape_Type, 0, 0);
+  PyObject *py_ss = SShape_Type.tp_new(&SShape_Type, nullptr, nullptr);
   ((BPy_SShape *)py_ss)->ss = &ss;
   ((BPy_SShape *)py_ss)->borrowed = true;
   return py_ss;
@@ -357,16 +357,16 @@ PyObject *BPy_SShape_from_SShape(SShape &ss)
 
 PyObject *BPy_ViewShape_from_ViewShape(ViewShape &vs)
 {
-  PyObject *py_vs = ViewShape_Type.tp_new(&ViewShape_Type, 0, 0);
+  PyObject *py_vs = ViewShape_Type.tp_new(&ViewShape_Type, nullptr, nullptr);
   ((BPy_ViewShape *)py_vs)->vs = &vs;
   ((BPy_ViewShape *)py_vs)->borrowed = true;
-  ((BPy_ViewShape *)py_vs)->py_ss = NULL;
+  ((BPy_ViewShape *)py_vs)->py_ss = nullptr;
   return py_vs;
 }
 
 PyObject *BPy_FrsMaterial_from_FrsMaterial(const FrsMaterial &m)
 {
-  PyObject *py_m = FrsMaterial_Type.tp_new(&FrsMaterial_Type, 0, 0);
+  PyObject *py_m = FrsMaterial_Type.tp_new(&FrsMaterial_Type, nullptr, nullptr);
   ((BPy_FrsMaterial *)py_m)->m = new FrsMaterial(m);
   return py_m;
 }
@@ -375,14 +375,14 @@ PyObject *BPy_IntegrationType_from_IntegrationType(IntegrationType i)
 {
   PyObject *args = PyTuple_New(1);
   PyTuple_SET_ITEM(args, 0, PyLong_FromLong(i));
-  PyObject *py_it = IntegrationType_Type.tp_new(&IntegrationType_Type, args, NULL);
+  PyObject *py_it = IntegrationType_Type.tp_new(&IntegrationType_Type, args, nullptr);
   Py_DECREF(args);
   return py_it;
 }
 
 PyObject *BPy_CurvePoint_from_CurvePoint(CurvePoint &cp)
 {
-  PyObject *py_cp = CurvePoint_Type.tp_new(&CurvePoint_Type, 0, 0);
+  PyObject *py_cp = CurvePoint_Type.tp_new(&CurvePoint_Type, nullptr, nullptr);
   // CurvePointIterator::operator*() returns a reference of a class data
   // member whose value is mutable upon iteration over different CurvePoints.
   // It is likely that such a mutable reference is passed to this function,
@@ -408,7 +408,7 @@ PyObject *BPy_directedViewEdge_from_directedViewEdge(ViewVertex::directedViewEdg
 
 PyObject *BPy_AdjacencyIterator_from_AdjacencyIterator(AdjacencyIterator &a_it)
 {
-  PyObject *py_a_it = AdjacencyIterator_Type.tp_new(&AdjacencyIterator_Type, 0, 0);
+  PyObject *py_a_it = AdjacencyIterator_Type.tp_new(&AdjacencyIterator_Type, nullptr, nullptr);
   ((BPy_AdjacencyIterator *)py_a_it)->a_it = new AdjacencyIterator(a_it);
   ((BPy_AdjacencyIterator *)py_a_it)->py_it.it = ((BPy_AdjacencyIterator *)py_a_it)->a_it;
   ((BPy_AdjacencyIterator *)py_a_it)->at_start = true;
@@ -418,7 +418,7 @@ PyObject *BPy_AdjacencyIterator_from_AdjacencyIterator(AdjacencyIterator &a_it)
 PyObject *BPy_Interface0DIterator_from_Interface0DIterator(Interface0DIterator &if0D_it,
                                                            bool reversed)
 {
-  PyObject *py_if0D_it = Interface0DIterator_Type.tp_new(&Interface0DIterator_Type, 0, 0);
+  PyObject *py_if0D_it = Interface0DIterator_Type.tp_new(&Interface0DIterator_Type, nullptr, nullptr);
   ((BPy_Interface0DIterator *)py_if0D_it)->if0D_it = new Interface0DIterator(if0D_it);
   ((BPy_Interface0DIterator *)py_if0D_it)->py_it.it =
       ((BPy_Interface0DIterator *)py_if0D_it)->if0D_it;
@@ -429,7 +429,7 @@ PyObject *BPy_Interface0DIterator_from_Interface0DIterator(Interface0DIterator &
 
 PyObject *BPy_CurvePointIterator_from_CurvePointIterator(CurveInternal::CurvePointIterator &cp_it)
 {
-  PyObject *py_cp_it = CurvePointIterator_Type.tp_new(&CurvePointIterator_Type, 0, 0);
+  PyObject *py_cp_it = CurvePointIterator_Type.tp_new(&CurvePointIterator_Type, nullptr, nullptr);
   ((BPy_CurvePointIterator *)py_cp_it)->cp_it = new CurveInternal::CurvePointIterator(cp_it);
   ((BPy_CurvePointIterator *)py_cp_it)->py_it.it = ((BPy_CurvePointIterator *)py_cp_it)->cp_it;
   return py_cp_it;
@@ -438,7 +438,7 @@ PyObject *BPy_CurvePointIterator_from_CurvePointIterator(CurveInternal::CurvePoi
 PyObject *BPy_StrokeVertexIterator_from_StrokeVertexIterator(
     StrokeInternal::StrokeVertexIterator &sv_it, bool reversed)
 {
-  PyObject *py_sv_it = StrokeVertexIterator_Type.tp_new(&StrokeVertexIterator_Type, 0, 0);
+  PyObject *py_sv_it = StrokeVertexIterator_Type.tp_new(&StrokeVertexIterator_Type, nullptr, nullptr);
   ((BPy_StrokeVertexIterator *)py_sv_it)->sv_it = new StrokeInternal::StrokeVertexIterator(sv_it);
   ((BPy_StrokeVertexIterator *)py_sv_it)->py_it.it = ((BPy_StrokeVertexIterator *)py_sv_it)->sv_it;
   ((BPy_StrokeVertexIterator *)py_sv_it)->at_start = true;
@@ -448,7 +448,7 @@ PyObject *BPy_StrokeVertexIterator_from_StrokeVertexIterator(
 
 PyObject *BPy_SVertexIterator_from_SVertexIterator(ViewEdgeInternal::SVertexIterator &sv_it)
 {
-  PyObject *py_sv_it = SVertexIterator_Type.tp_new(&SVertexIterator_Type, 0, 0);
+  PyObject *py_sv_it = SVertexIterator_Type.tp_new(&SVertexIterator_Type, nullptr, nullptr);
   ((BPy_SVertexIterator *)py_sv_it)->sv_it = new ViewEdgeInternal::SVertexIterator(sv_it);
   ((BPy_SVertexIterator *)py_sv_it)->py_it.it = ((BPy_SVertexIterator *)py_sv_it)->sv_it;
   return py_sv_it;
@@ -457,7 +457,7 @@ PyObject *BPy_SVertexIterator_from_SVertexIterator(ViewEdgeInternal::SVertexIter
 PyObject *BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(
     ViewVertexInternal::orientedViewEdgeIterator &ove_it, bool reversed)
 {
-  PyObject *py_ove_it = orientedViewEdgeIterator_Type.tp_new(&orientedViewEdgeIterator_Type, 0, 0);
+  PyObject *py_ove_it = orientedViewEdgeIterator_Type.tp_new(&orientedViewEdgeIterator_Type, nullptr, nullptr);
   ((BPy_orientedViewEdgeIterator *)py_ove_it)->ove_it =
       new ViewVertexInternal::orientedViewEdgeIterator(ove_it);
   ((BPy_orientedViewEdgeIterator *)py_ove_it)->py_it.it =
@@ -469,7 +469,7 @@ PyObject *BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(
 
 PyObject *BPy_ViewEdgeIterator_from_ViewEdgeIterator(ViewEdgeInternal::ViewEdgeIterator &ve_it)
 {
-  PyObject *py_ve_it = ViewEdgeIterator_Type.tp_new(&ViewEdgeIterator_Type, 0, 0);
+  PyObject *py_ve_it = ViewEdgeIterator_Type.tp_new(&ViewEdgeIterator_Type, nullptr, nullptr);
   ((BPy_ViewEdgeIterator *)py_ve_it)->ve_it = new ViewEdgeInternal::ViewEdgeIterator(ve_it);
   ((BPy_ViewEdgeIterator *)py_ve_it)->py_it.it = ((BPy_ViewEdgeIterator *)py_ve_it)->ve_it;
   return py_ve_it;
@@ -477,7 +477,7 @@ PyObject *BPy_ViewEdgeIterator_from_ViewEdgeIterator(ViewEdgeInternal::ViewEdgeI
 
 PyObject *BPy_ChainingIterator_from_ChainingIterator(ChainingIterator &c_it)
 {
-  PyObject *py_c_it = ChainingIterator_Type.tp_new(&ChainingIterator_Type, 0, 0);
+  PyObject *py_c_it = ChainingIterator_Type.tp_new(&ChainingIterator_Type, nullptr, nullptr);
   ((BPy_ChainingIterator *)py_c_it)->c_it = new ChainingIterator(c_it);
   ((BPy_ChainingIterator *)py_c_it)->py_ve_it.py_it.it = ((BPy_ChainingIterator *)py_c_it)->c_it;
   return py_c_it;
@@ -485,7 +485,7 @@ PyObject *BPy_ChainingIterator_from_ChainingIterator(ChainingIterator &c_it)
 
 PyObject *BPy_ChainPredicateIterator_from_ChainPredicateIterator(ChainPredicateIterator &cp_it)
 {
-  PyObject *py_cp_it = ChainPredicateIterator_Type.tp_new(&ChainPredicateIterator_Type, 0, 0);
+  PyObject *py_cp_it = ChainPredicateIterator_Type.tp_new(&ChainPredicateIterator_Type, nullptr, nullptr);
   ((BPy_ChainPredicateIterator *)py_cp_it)->cp_it = new ChainPredicateIterator(cp_it);
   ((BPy_ChainPredicateIterator *)py_cp_it)->py_c_it.py_ve_it.py_it.it =
       ((BPy_ChainPredicateIterator *)py_cp_it)->cp_it;
@@ -494,7 +494,7 @@ PyObject *BPy_ChainPredicateIterator_from_ChainPredicateIterator(ChainPredicateI
 
 PyObject *BPy_ChainSilhouetteIterator_from_ChainSilhouetteIterator(ChainSilhouetteIterator &cs_it)
 {
-  PyObject *py_cs_it = ChainSilhouetteIterator_Type.tp_new(&ChainSilhouetteIterator_Type, 0, 0);
+  PyObject *py_cs_it = ChainSilhouetteIterator_Type.tp_new(&ChainSilhouetteIterator_Type, nullptr, nullptr);
   ((BPy_ChainSilhouetteIterator *)py_cs_it)->cs_it = new ChainSilhouetteIterator(cs_it);
   ((BPy_ChainSilhouetteIterator *)py_cs_it)->py_c_it.py_ve_it.py_it.it =
       ((BPy_ChainSilhouetteIterator *)py_cs_it)->cs_it;

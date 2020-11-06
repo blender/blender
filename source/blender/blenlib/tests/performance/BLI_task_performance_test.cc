@@ -119,7 +119,7 @@ static void task_listbase_test_do(ListBase *list,
     }
     LinkData *item;
     int j;
-    for (j = 0, item = (LinkData *)list->first; j < num_items && item != NULL;
+    for (j = 0, item = (LinkData *)list->first; j < num_items && item != nullptr;
          j++, item = item->next) {
       EXPECT_EQ(POINTER_AS_INT(item->data), j);
       item->data = POINTER_FROM_INT(0);
@@ -139,7 +139,7 @@ static void task_listbase_test(const char *id, const int nbr, const bool use_thr
 {
   printf("\n========== STARTING %s ==========\n", id);
 
-  ListBase list = {NULL, NULL};
+  ListBase list = {nullptr, nullptr};
   LinkData *items_buffer = (LinkData *)MEM_calloc_arrayN(nbr, sizeof(*items_buffer), __func__);
 
   BLI_threadapi_init();

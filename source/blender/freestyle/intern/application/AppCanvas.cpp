@@ -33,7 +33,7 @@ namespace Freestyle {
 
 AppCanvas::AppCanvas()
 {
-  _pViewer = 0;
+  _pViewer = nullptr;
   _MapsPath = Config::Path::getInstance()->getMapsDir().c_str();
 }
 
@@ -49,7 +49,7 @@ AppCanvas::AppCanvas(const AppCanvas &iBrother) : Canvas(iBrother)
 
 AppCanvas::~AppCanvas()
 {
-  _pViewer = 0;
+  _pViewer = nullptr;
 }
 
 void AppCanvas::setViewer(AppView *iViewer)

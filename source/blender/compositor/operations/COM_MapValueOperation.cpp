@@ -22,7 +22,7 @@ MapValueOperation::MapValueOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 void MapValueOperation::initExecution()
@@ -55,5 +55,5 @@ void MapValueOperation::executePixelSampled(float output[4],
 
 void MapValueOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }

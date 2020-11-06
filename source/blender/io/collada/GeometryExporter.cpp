@@ -140,7 +140,7 @@ void GeometryExporter::operator()(Object *ob)
     }
   }
 
-  BKE_id_free(NULL, me);
+  BKE_id_free(nullptr, me);
 }
 
 void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
@@ -350,7 +350,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
     return;
   }
 
-  Material *ma = ob->totcol ? BKE_object_material_get(ob, material_index + 1) : NULL;
+  Material *ma = ob->totcol ? BKE_object_material_get(ob, material_index + 1) : nullptr;
   COLLADASW::PrimitivesBase *primitive_list = create_primitive_list(is_triangulated, mSW);
 
   /* sets count attribute in <polylist> */
@@ -636,7 +636,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
 
   MVert *verts = me->mvert;
   MLoop *mloops = me->mloop;
-  float(*lnors)[3] = NULL;
+  float(*lnors)[3] = nullptr;
   bool use_custom_normals = false;
 
   BKE_mesh_calc_normals_split(me);

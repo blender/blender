@@ -30,7 +30,7 @@ void SetSamplerOperation::initExecution()
 }
 void SetSamplerOperation::deinitExecution()
 {
-  this->m_reader = NULL;
+  this->m_reader = nullptr;
 }
 
 void SetSamplerOperation::executePixelSampled(float output[4],

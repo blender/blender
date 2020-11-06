@@ -29,11 +29,11 @@ TextureBaseOperation::TextureBaseOperation()
 {
   this->addInputSocket(COM_DT_VECTOR);  // offset
   this->addInputSocket(COM_DT_VECTOR);  // size
-  this->m_texture = NULL;
-  this->m_inputSize = NULL;
-  this->m_inputOffset = NULL;
-  this->m_rd = NULL;
-  this->m_pool = NULL;
+  this->m_texture = nullptr;
+  this->m_inputSize = nullptr;
+  this->m_inputOffset = nullptr;
+  this->m_rd = nullptr;
+  this->m_pool = nullptr;
   this->m_sceneColorManage = false;
   setComplex(true);
 }
@@ -51,19 +51,19 @@ void TextureBaseOperation::initExecution()
   this->m_inputOffset = getInputSocketReader(0);
   this->m_inputSize = getInputSocketReader(1);
   this->m_pool = BKE_image_pool_new();
-  if (this->m_texture != NULL && this->m_texture->nodetree != NULL && this->m_texture->use_nodes) {
+  if (this->m_texture != nullptr && this->m_texture->nodetree != nullptr && this->m_texture->use_nodes) {
     ntreeTexBeginExecTree(this->m_texture->nodetree);
   }
   NodeOperation::initExecution();
 }
 void TextureBaseOperation::deinitExecution()
 {
-  this->m_inputSize = NULL;
-  this->m_inputOffset = NULL;
+  this->m_inputSize = nullptr;
+  this->m_inputOffset = nullptr;
   BKE_image_pool_free(this->m_pool);
-  this->m_pool = NULL;
-  if (this->m_texture != NULL && this->m_texture->use_nodes && this->m_texture->nodetree != NULL &&
-      this->m_texture->nodetree->execdata != NULL) {
+  this->m_pool = nullptr;
+  if (this->m_texture != nullptr && this->m_texture->use_nodes && this->m_texture->nodetree != nullptr &&
+      this->m_texture->nodetree->execdata != nullptr) {
     ntreeTexEndExecTree(this->m_texture->nodetree->execdata);
   }
   NodeOperation::deinitExecution();
@@ -99,7 +99,7 @@ void TextureBaseOperation::executePixelSampled(float output[4],
                                                float y,
                                                PixelSampler sampler)
 {
-  TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
+  TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, nullptr};
   float textureSize[4];
   float textureOffset[4];
   float vec[3];
@@ -114,7 +114,7 @@ void TextureBaseOperation::executePixelSampled(float output[4],
    * interpolation and (b) in such configuration multitex() simply floor's the value
    * which often produces artifacts.
    */
-  if (m_texture != NULL && (m_texture->imaflag & TEX_INTERPOL) == 0) {
+  if (m_texture != nullptr && (m_texture->imaflag & TEX_INTERPOL) == 0) {
     u += 0.5f / cx;
     v += 0.5f / cy;
   }
@@ -128,7 +128,7 @@ void TextureBaseOperation::executePixelSampled(float output[4],
 
   const int thread_id = WorkScheduler::current_thread_id();
   retval = multitex_ext(
-      this->m_texture, vec, NULL, NULL, 0, &texres, thread_id, m_pool, m_sceneColorManage, false);
+      this->m_texture, vec, nullptr, nullptr, 0, &texres, thread_id, m_pool, m_sceneColorManage, false);
 
   if (texres.talpha) {
     output[3] = texres.ta;

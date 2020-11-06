@@ -26,7 +26,7 @@ ProjectorLensDistortionOperation::ProjectorLensDistortionOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
   this->setComplex(true);
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
   this->m_dispersionAvailable = false;
   this->m_dispersion = 0.0f;
 }
@@ -39,7 +39,7 @@ void ProjectorLensDistortionOperation::initExecution()
 void *ProjectorLensDistortionOperation::initializeTileData(rcti * /*rect*/)
 {
   updateDispersion();
-  void *buffer = this->m_inputProgram->initializeTileData(NULL);
+  void *buffer = this->m_inputProgram->initializeTileData(nullptr);
   return buffer;
 }
 
@@ -63,7 +63,7 @@ void ProjectorLensDistortionOperation::executePixel(float output[4], int x, int 
 void ProjectorLensDistortionOperation::deinitExecution()
 {
   this->deinitMutex();
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }
 
 bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(

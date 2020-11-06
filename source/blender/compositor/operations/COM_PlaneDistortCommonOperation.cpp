@@ -48,7 +48,7 @@ PlaneDistortWarpImageOperation::PlaneDistortWarpImageOperation()
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_pixelReader = NULL;
+  this->m_pixelReader = nullptr;
   this->m_motion_blur_samples = 1;
   this->m_motion_blur_shutter = 0.5f;
   this->setComplex(true);
@@ -87,7 +87,7 @@ void PlaneDistortWarpImageOperation::initExecution()
 
 void PlaneDistortWarpImageOperation::deinitExecution()
 {
-  this->m_pixelReader = NULL;
+  this->m_pixelReader = nullptr;
 }
 
 void PlaneDistortWarpImageOperation::executePixelSampled(float output[4],

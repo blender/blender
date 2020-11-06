@@ -34,25 +34,25 @@
 
 ViewerOperation::ViewerOperation()
 {
-  this->setImage(NULL);
-  this->setImageUser(NULL);
-  this->m_outputBuffer = NULL;
-  this->m_depthBuffer = NULL;
+  this->setImage(nullptr);
+  this->setImageUser(nullptr);
+  this->m_outputBuffer = nullptr;
+  this->m_depthBuffer = nullptr;
   this->m_active = false;
   this->m_doDepthBuffer = false;
-  this->m_viewSettings = NULL;
-  this->m_displaySettings = NULL;
+  this->m_viewSettings = nullptr;
+  this->m_displaySettings = nullptr;
   this->m_useAlphaInput = false;
 
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);
 
-  this->m_imageInput = NULL;
-  this->m_alphaInput = NULL;
-  this->m_depthInput = NULL;
-  this->m_rd = NULL;
-  this->m_viewName = NULL;
+  this->m_imageInput = nullptr;
+  this->m_alphaInput = nullptr;
+  this->m_depthInput = nullptr;
+  this->m_rd = nullptr;
+  this->m_viewName = nullptr;
 }
 
 void ViewerOperation::initExecution()
@@ -61,7 +61,7 @@ void ViewerOperation::initExecution()
   this->m_imageInput = getInputSocketReader(0);
   this->m_alphaInput = getInputSocketReader(1);
   this->m_depthInput = getInputSocketReader(2);
-  this->m_doDepthBuffer = (this->m_depthInput != NULL);
+  this->m_doDepthBuffer = (this->m_depthInput != nullptr);
 
   if (isActiveViewerOutput()) {
     initImage();
@@ -70,10 +70,10 @@ void ViewerOperation::initExecution()
 
 void ViewerOperation::deinitExecution()
 {
-  this->m_imageInput = NULL;
-  this->m_alphaInput = NULL;
-  this->m_depthInput = NULL;
-  this->m_outputBuffer = NULL;
+  this->m_imageInput = nullptr;
+  this->m_alphaInput = nullptr;
+  this->m_depthInput = nullptr;
+  this->m_outputBuffer = nullptr;
 }
 
 void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
@@ -180,7 +180,7 @@ void ViewerOperation::updateImage(rcti *rect)
 {
   IMB_partial_display_buffer_update(this->m_ibuf,
                                     this->m_outputBuffer,
-                                    NULL,
+                                    nullptr,
                                     getWidth(),
                                     0,
                                     0,

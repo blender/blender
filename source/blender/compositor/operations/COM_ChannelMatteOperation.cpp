@@ -24,7 +24,7 @@ ChannelMatteOperation::ChannelMatteOperation()
   addInputSocket(COM_DT_COLOR);
   addOutputSocket(COM_DT_VALUE);
 
-  this->m_inputImageProgram = NULL;
+  this->m_inputImageProgram = nullptr;
 }
 
 void ChannelMatteOperation::initExecution()
@@ -77,7 +77,7 @@ void ChannelMatteOperation::initExecution()
 
 void ChannelMatteOperation::deinitExecution()
 {
-  this->m_inputImageProgram = NULL;
+  this->m_inputImageProgram = nullptr;
 }
 
 void ChannelMatteOperation::executePixelSampled(float output[4],

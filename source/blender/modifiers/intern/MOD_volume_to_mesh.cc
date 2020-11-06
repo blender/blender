@@ -59,7 +59,7 @@ using blender::Span;
 static void initData(ModifierData *md)
 {
   VolumeToMeshModifierData *vmmd = reinterpret_cast<VolumeToMeshModifierData *>(md);
-  vmmd->object = NULL;
+  vmmd->object = nullptr;
   vmmd->threshold = 0.1f;
   strncpy(vmmd->grid_name, "density", MAX_NAME);
   vmmd->adaptivity = 0.0f;
@@ -91,7 +91,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   VolumeToMeshModifierData *vmmd = static_cast<VolumeToMeshModifierData *>(ptr->data);
 
   uiLayoutSetPropSep(layout, true);
@@ -99,26 +99,26 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   {
     uiLayout *col = uiLayoutColumn(layout, false);
-    uiItemR(col, ptr, "object", 0, NULL, ICON_NONE);
-    uiItemR(col, ptr, "grid_name", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "object", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "grid_name", 0, nullptr, ICON_NONE);
   }
 
   {
     uiLayout *col = uiLayoutColumn(layout, false);
-    uiItemR(col, ptr, "resolution_mode", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "resolution_mode", 0, nullptr, ICON_NONE);
     if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT) {
-      uiItemR(col, ptr, "voxel_amount", 0, NULL, ICON_NONE);
+      uiItemR(col, ptr, "voxel_amount", 0, nullptr, ICON_NONE);
     }
     else if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE) {
-      uiItemR(col, ptr, "voxel_size", 0, NULL, ICON_NONE);
+      uiItemR(col, ptr, "voxel_size", 0, nullptr, ICON_NONE);
     }
   }
 
   {
     uiLayout *col = uiLayoutColumn(layout, false);
-    uiItemR(col, ptr, "threshold", 0, NULL, ICON_NONE);
-    uiItemR(col, ptr, "adaptivity", 0, NULL, ICON_NONE);
-    uiItemR(col, ptr, "use_smooth_shade", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "threshold", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "adaptivity", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_smooth_shade", 0, nullptr, ICON_NONE);
   }
 
   modifier_panel_end(layout, ptr);
@@ -330,26 +330,26 @@ ModifierTypeInfo modifierType_VolumeToMesh = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
-    /* modifyVolume */ NULL,
+    /* modifyHair */ nullptr,
+    /* modifyPointCloud */ nullptr,
+    /* modifyVolume */ nullptr,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
+    /* requiredDataMask */ nullptr,
+    /* freeData */ nullptr,
+    /* isDisabled */ nullptr,
     /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnTime */ nullptr,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

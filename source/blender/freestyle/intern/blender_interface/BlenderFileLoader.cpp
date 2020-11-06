@@ -33,18 +33,18 @@ BlenderFileLoader::BlenderFileLoader(Render *re, ViewLayer *view_layer, Depsgrap
 {
   _re = re;
   _depsgraph = depsgraph;
-  _Scene = NULL;
+  _Scene = nullptr;
   _numFacesRead = 0;
 #if 0
   _minEdgeSize = DBL_MAX;
 #endif
   _smooth = (view_layer->freestyle_config.flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) != 0;
-  _pRenderMonitor = NULL;
+  _pRenderMonitor = nullptr;
 }
 
 BlenderFileLoader::~BlenderFileLoader()
 {
-  _Scene = NULL;
+  _Scene = nullptr;
 }
 
 NodeGroup *BlenderFileLoader::Load()
@@ -104,7 +104,7 @@ NodeGroup *BlenderFileLoader::Load()
       continue;
     }
 
-    Mesh *mesh = BKE_object_to_mesh(NULL, ob, false);
+    Mesh *mesh = BKE_object_to_mesh(nullptr, ob, false);
 
     if (mesh) {
       insertShapeNode(ob, mesh, ++id);
@@ -422,7 +422,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   // Compute loop normals
   BKE_mesh_calc_normals_split(me);
-  float(*lnors)[3] = NULL;
+  float(*lnors)[3] = nullptr;
 
   if (CustomData_has_layer(&me->ldata, CD_NORMAL)) {
     lnors = (float(*)[3])CustomData_get_layer(&me->ldata, CD_NORMAL);
@@ -633,16 +633,16 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   // We might have several times the same vertex. We want a clean
   // shape with no real-vertex. Here, we are making a cleaning pass.
-  float *cleanVertices = NULL;
+  float *cleanVertices = nullptr;
   unsigned int cvSize;
-  unsigned int *cleanVIndices = NULL;
+  unsigned int *cleanVIndices = nullptr;
 
   GeomCleaner::CleanIndexedVertexArray(
       vertices, vSize, VIndices, viSize, &cleanVertices, &cvSize, &cleanVIndices);
 
-  float *cleanNormals = NULL;
+  float *cleanNormals = nullptr;
   unsigned int cnSize;
-  unsigned int *cleanNIndices = NULL;
+  unsigned int *cleanNIndices = nullptr;
 
   GeomCleaner::CleanIndexedVertexArray(
       normals, nSize, NIndices, niSize, &cleanNormals, &cnSize, &cleanNIndices);
@@ -777,7 +777,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
                            cnSize,
                            marray,
                            meshFrsMaterials.size(),
-                           0,
+                           nullptr,
                            0,
                            numFaces,
                            numVertexPerFaces,
@@ -789,7 +789,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
                            niSize,
                            MIndices,
                            viSize,
-                           0,
+                           nullptr,
                            0,
                            0);
   // sets the id of the rep

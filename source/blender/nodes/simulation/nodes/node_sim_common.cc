@@ -33,10 +33,10 @@ void register_node_type_sim_group(void)
   ntype.insert_link = node_insert_link_default;
   ntype.update_internal_links = node_update_internal_links_default;
   ntype.rna_ext.srna = RNA_struct_find("SimulationNodeGroup");
-  BLI_assert(ntype.rna_ext.srna != NULL);
+  BLI_assert(ntype.rna_ext.srna != nullptr);
   RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);
 
-  node_type_socket_templates(&ntype, NULL, NULL);
+  node_type_socket_templates(&ntype, nullptr, nullptr);
   node_type_size(&ntype, 140, 60, 400);
   node_type_label(&ntype, node_group_label);
   node_type_group_update(&ntype, node_group_update);

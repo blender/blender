@@ -563,8 +563,8 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
                                     float texStep)
 {
   vector<StrokeVertex *>::const_iterator v, vend;
-  StrokeVertex *sv = NULL;
-  StrokeVertexRep *tvRep[2] = {NULL};
+  StrokeVertex *sv = nullptr;
+  StrokeVertexRep *tvRep[2] = {nullptr};
 
   float l, fact, t;
   float u = 0, uPrev = 0;
@@ -750,13 +750,13 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
 
 StrokeRep::StrokeRep()
 {
-  _stroke = 0;
+  _stroke = nullptr;
   _strokeType = Stroke::OPAQUE_MEDIUM;
-  _nodeTree = NULL;
+  _nodeTree = nullptr;
   _hasTex = false;
   _textureStep = 1.0;
   for (int a = 0; a < MAX_MTEX; a++) {
-    _mtex[a] = NULL;
+    _mtex[a] = nullptr;
   }
   TextureManager *ptm = TextureManager::getInstance();
   if (ptm) {
@@ -786,7 +786,7 @@ StrokeRep::StrokeRep(Stroke *iStroke)
       _mtex[a] = iStroke->getMTex(a);
     }
     else {
-      _mtex[a] = NULL;
+      _mtex[a] = nullptr;
     }
   }
   if (_textureId == 0) {
@@ -822,7 +822,7 @@ StrokeRep::StrokeRep(const StrokeRep &iBrother)
       _mtex[a] = iBrother._mtex[a];
     }
     else {
-      _mtex[a] = NULL;
+      _mtex[a] = nullptr;
     }
   }
   for (vector<Strip *>::const_iterator s = iBrother._strips.begin(), send = iBrother._strips.end();

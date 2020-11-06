@@ -26,9 +26,9 @@ TonemapOperation::TonemapOperation()
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_imageReader = NULL;
-  this->m_data = NULL;
-  this->m_cachedInstance = NULL;
+  this->m_imageReader = nullptr;
+  this->m_data = nullptr;
+  this->m_cachedInstance = nullptr;
   this->setComplex(true);
 }
 void TonemapOperation::initExecution()
@@ -41,7 +41,7 @@ void TonemapOperation::executePixel(float output[4], int x, int y, void *data)
 {
   AvgLogLum *avg = (AvgLogLum *)data;
 
-  this->m_imageReader->read(output, x, y, NULL);
+  this->m_imageReader->read(output, x, y, nullptr);
   mul_v3_fl(output, avg->al);
   float dr = output[0] + this->m_data->offset;
   float dg = output[1] + this->m_data->offset;
@@ -65,7 +65,7 @@ void PhotoreceptorTonemapOperation::executePixel(float output[4], int x, int y, 
   const float m = (ntm->m > 0.0f) ? ntm->m : (0.3f + 0.7f * powf(avg->auto_key, 1.4f));
   const float ic = 1.0f - ntm->c, ia = 1.0f - ntm->a;
 
-  this->m_imageReader->read(output, x, y, NULL);
+  this->m_imageReader->read(output, x, y, nullptr);
 
   const float L = IMB_colormanagement_get_luminance(output);
   float I_l = output[0] + ic * (L - output[0]);
@@ -84,7 +84,7 @@ void PhotoreceptorTonemapOperation::executePixel(float output[4], int x, int y, 
 
 void TonemapOperation::deinitExecution()
 {
-  this->m_imageReader = NULL;
+  this->m_imageReader = nullptr;
   delete this->m_cachedInstance;
   NodeOperation::deinitMutex();
 }
@@ -109,7 +109,7 @@ bool TonemapOperation::determineDependingAreaOfInterest(rcti * /*input*/,
 void *TonemapOperation::initializeTileData(rcti *rect)
 {
   lockMutex();
-  if (this->m_cachedInstance == NULL) {
+  if (this->m_cachedInstance == nullptr) {
     MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
     AvgLogLum *data = new AvgLogLum();
 

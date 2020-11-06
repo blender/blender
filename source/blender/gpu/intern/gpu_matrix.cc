@@ -606,7 +606,7 @@ const float (*GPU_matrix_projection_get(float m[4][4]))[4]
 
 const float (*GPU_matrix_model_view_projection_get(float m[4][4]))[4]
 {
-  if (m == NULL) {
+  if (m == nullptr) {
     static Mat4 temp;
     m = temp;
   }
@@ -617,12 +617,12 @@ const float (*GPU_matrix_model_view_projection_get(float m[4][4]))[4]
 
 const float (*GPU_matrix_normal_get(float m[3][3]))[3]
 {
-  if (m == NULL) {
+  if (m == nullptr) {
     static Mat3 temp3;
     m = temp3;
   }
 
-  copy_m3_m4(m, (const float(*)[4])GPU_matrix_model_view_get(NULL));
+  copy_m3_m4(m, (const float(*)[4])GPU_matrix_model_view_get(nullptr));
 
   invert_m3(m);
   transpose_m3(m);
@@ -632,7 +632,7 @@ const float (*GPU_matrix_normal_get(float m[3][3]))[3]
 
 const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3]
 {
-  if (m == NULL) {
+  if (m == nullptr) {
     static Mat3 temp3;
     m = temp3;
   }
@@ -658,17 +658,17 @@ void GPU_matrix_bind(GPUShader *shader)
   int32_t P_inv = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_PROJECTION_INV);
 
   if (MV != -1) {
-    GPU_shader_uniform_vector(shader, MV, 16, 1, (const float *)GPU_matrix_model_view_get(NULL));
+    GPU_shader_uniform_vector(shader, MV, 16, 1, (const float *)GPU_matrix_model_view_get(nullptr));
   }
   if (P != -1) {
-    GPU_shader_uniform_vector(shader, P, 16, 1, (const float *)GPU_matrix_projection_get(NULL));
+    GPU_shader_uniform_vector(shader, P, 16, 1, (const float *)GPU_matrix_projection_get(nullptr));
   }
   if (MVP != -1) {
     GPU_shader_uniform_vector(
-        shader, MVP, 16, 1, (const float *)GPU_matrix_model_view_projection_get(NULL));
+        shader, MVP, 16, 1, (const float *)GPU_matrix_model_view_projection_get(nullptr));
   }
   if (N != -1) {
-    GPU_shader_uniform_vector(shader, N, 9, 1, (const float *)GPU_matrix_normal_get(NULL));
+    GPU_shader_uniform_vector(shader, N, 9, 1, (const float *)GPU_matrix_normal_get(nullptr));
   }
   if (MV_inv != -1) {
     Mat4 m;

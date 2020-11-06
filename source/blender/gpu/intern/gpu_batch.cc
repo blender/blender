@@ -73,21 +73,21 @@ void GPU_batch_init_ex(GPUBatch *batch,
                        GPUIndexBuf *elem,
                        eGPUBatchFlag owns_flag)
 {
-  BLI_assert(verts != NULL);
+  BLI_assert(verts != nullptr);
   /* Do not pass any other flag */
   BLI_assert((owns_flag & ~(GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX)) == 0);
 
   batch->verts[0] = verts;
   for (int v = 1; v < GPU_BATCH_VBO_MAX_LEN; v++) {
-    batch->verts[v] = NULL;
+    batch->verts[v] = nullptr;
   }
   for (int v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
-    batch->inst[v] = NULL;
+    batch->inst[v] = nullptr;
   }
   batch->elem = elem;
   batch->prim_type = prim_type;
   batch->flag = owns_flag | GPU_BATCH_INIT | GPU_BATCH_DIRTY;
-  batch->shader = NULL;
+  batch->shader = nullptr;
 }
 
 /* This will share the VBOs with the new batch. */
@@ -171,7 +171,7 @@ int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
   batch->flag |= GPU_BATCH_DIRTY;
 
   for (uint v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
-    if (batch->inst[v] == NULL) {
+    if (batch->inst[v] == nullptr) {
       /* for now all VertexBuffers must have same vertex_len */
       if (batch->inst[0]) {
         /* Allow for different size of vertex buffer (will choose the smallest number of verts). */
@@ -195,9 +195,9 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
   batch->flag |= GPU_BATCH_DIRTY;
 
   for (uint v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
-    if (batch->verts[v] == NULL) {
+    if (batch->verts[v] == nullptr) {
       /* for now all VertexBuffers must have same vertex_len */
-      if (batch->verts[0] != NULL) {
+      if (batch->verts[0] != nullptr) {
         /* This is an issue for the HACK inside DRW_vbo_request(). */
         // BLI_assert(verts->vertex_len == batch->verts[0]->vertex_len);
       }
@@ -246,7 +246,7 @@ void GPU_batch_draw_range(GPUBatch *batch, int v_first, int v_count)
 /* Draw multiple instance of a batch without having any instance attributes. */
 void GPU_batch_draw_instanced(GPUBatch *batch, int i_count)
 {
-  BLI_assert(batch->inst[0] == NULL);
+  BLI_assert(batch->inst[0] == nullptr);
 
   GPU_shader_bind(batch->shader);
   GPU_batch_draw_advanced(batch, 0, 0, 0, i_count);
@@ -255,7 +255,7 @@ void GPU_batch_draw_instanced(GPUBatch *batch, int i_count)
 void GPU_batch_draw_advanced(
     GPUBatch *gpu_batch, int v_first, int v_count, int i_first, int i_count)
 {
-  BLI_assert(Context::get()->shader != NULL);
+  BLI_assert(Context::get()->shader != nullptr);
   Batch *batch = static_cast<Batch *>(gpu_batch);
 
   if (v_count == 0) {
@@ -269,7 +269,7 @@ void GPU_batch_draw_advanced(
   if (i_count == 0) {
     i_count = (batch->inst[0]) ? batch->inst_(0)->vertex_len : 1;
     /* Meh. This is to be able to use different numbers of verts in instance vbos. */
-    if (batch->inst[1] != NULL) {
+    if (batch->inst[1] != nullptr) {
       i_count = min_ii(i_count, batch->inst_(1)->vertex_len);
     }
   }

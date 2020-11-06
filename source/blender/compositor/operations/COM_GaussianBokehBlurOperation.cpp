@@ -24,7 +24,7 @@
 
 GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
-  this->m_gausstab = NULL;
+  this->m_gausstab = nullptr;
 }
 
 void *GaussianBokehBlurOperation::initializeTileData(rcti * /*rect*/)
@@ -33,7 +33,7 @@ void *GaussianBokehBlurOperation::initializeTileData(rcti * /*rect*/)
   if (!this->m_sizeavailable) {
     updateGauss();
   }
-  void *buffer = getInputOperation(0)->initializeTileData(NULL);
+  void *buffer = getInputOperation(0)->initializeTileData(nullptr);
   unlockMutex();
   return buffer;
 }
@@ -51,7 +51,7 @@ void GaussianBokehBlurOperation::initExecution()
 
 void GaussianBokehBlurOperation::updateGauss()
 {
-  if (this->m_gausstab == NULL) {
+  if (this->m_gausstab == nullptr) {
     float radxf;
     float radyf;
     int n;
@@ -156,7 +156,7 @@ void GaussianBokehBlurOperation::deinitExecution()
 
   if (this->m_gausstab) {
     MEM_freeN(this->m_gausstab);
-    this->m_gausstab = NULL;
+    this->m_gausstab = nullptr;
   }
 
   deinitMutex();
@@ -177,7 +177,7 @@ bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(
     return true;
   }
 
-  if (this->m_sizeavailable && this->m_gausstab != NULL) {
+  if (this->m_sizeavailable && this->m_gausstab != nullptr) {
     newInput.xmin = 0;
     newInput.ymin = 0;
     newInput.xmax = this->getWidth();
@@ -197,12 +197,12 @@ bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(
 // reference image
 GaussianBlurReferenceOperation::GaussianBlurReferenceOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
-  this->m_maintabs = NULL;
+  this->m_maintabs = nullptr;
 }
 
 void *GaussianBlurReferenceOperation::initializeTileData(rcti * /*rect*/)
 {
-  void *buffer = getInputOperation(0)->initializeTileData(NULL);
+  void *buffer = getInputOperation(0)->initializeTileData(nullptr);
   return buffer;
 }
 

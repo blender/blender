@@ -127,7 +127,7 @@ bool BlendfileLoadingBaseTest::blendfile_load(const char *filepath)
   char abspath[FILENAME_MAX];
   BLI_path_join(abspath, sizeof(abspath), test_assets_dir.c_str(), filepath, NULL);
 
-  bfile = BLO_read_from_file(abspath, BLO_READ_SKIP_NONE, NULL /* reports */);
+  bfile = BLO_read_from_file(abspath, BLO_READ_SKIP_NONE, nullptr /* reports */);
   if (bfile == nullptr) {
     ADD_FAILURE() << "Unable to load file '" << filepath << "' from test assets dir '"
                   << test_assets_dir << "'";
@@ -144,7 +144,7 @@ void BlendfileLoadingBaseTest::blendfile_free()
 
   wmWindowManager *wm = static_cast<wmWindowManager *>(bfile->main->wm.first);
   if (wm != nullptr) {
-    wm_close_and_free(NULL, wm);
+    wm_close_and_free(nullptr, wm);
   }
   BLO_blendfiledata_free(bfile);
   bfile = nullptr;

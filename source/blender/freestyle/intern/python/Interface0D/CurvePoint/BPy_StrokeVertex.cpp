@@ -70,11 +70,11 @@ PyDoc_STRVAR(
 
 static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
-  static const char *kwlist_2[] = {"first_vertex", "second_vertex", "t3d", NULL};
-  static const char *kwlist_3[] = {"point", NULL};
-  static const char *kwlist_4[] = {"svertex", "attribute", NULL};
-  PyObject *obj1 = 0, *obj2 = 0;
+  static const char *kwlist_1[] = {"brother", nullptr};
+  static const char *kwlist_2[] = {"first_vertex", "second_vertex", "t3d", nullptr};
+  static const char *kwlist_3[] = {"point", nullptr};
+  static const char *kwlist_4[] = {"svertex", "attribute", nullptr};
+  PyObject *obj1 = nullptr, *obj2 = nullptr;
   float t3d;
 
   if (PyArg_ParseTupleAndKeywords(
@@ -102,11 +102,11 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
                                        &t3d)) {
     StrokeVertex *sv1 = ((BPy_StrokeVertex *)obj1)->sv;
     StrokeVertex *sv2 = ((BPy_StrokeVertex *)obj2)->sv;
-    if (!sv1 || (sv1->A() == 0 && sv1->B() == 0)) {
+    if (!sv1 || (sv1->A() == nullptr && sv1->B() == nullptr)) {
       PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid StrokeVertex object");
       return -1;
     }
-    if (!sv2 || (sv2->A() == 0 && sv2->B() == 0)) {
+    if (!sv2 || (sv2->A() == nullptr && sv2->B() == nullptr)) {
       PyErr_SetString(PyExc_TypeError, "argument 2 is an invalid StrokeVertex object");
       return -1;
     }
@@ -116,14 +116,14 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
            PyArg_ParseTupleAndKeywords(
                args, kwds, "O!", (char **)kwlist_3, &CurvePoint_Type, &obj1)) {
     CurvePoint *cp = ((BPy_CurvePoint *)obj1)->cp;
-    if (!cp || cp->A() == 0 || cp->B() == 0) {
+    if (!cp || cp->A() == nullptr || cp->B() == nullptr) {
       PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid CurvePoint object");
       return -1;
     }
     self->sv = new StrokeVertex(cp);
   }
   else if ((void)PyErr_Clear(),
-           (void)(obj2 = 0),
+           (void)(obj2 = nullptr),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!|O!",
@@ -335,65 +335,65 @@ static PyGetSetDef BPy_StrokeVertex_getseters[] = {
      (getter)StrokeVertex_attribute_get,
      (setter)StrokeVertex_attribute_set,
      StrokeVertex_attribute_doc,
-     NULL},
+     nullptr},
     {"curvilinear_abscissa",
      (getter)StrokeVertex_curvilinear_abscissa_get,
      (setter)StrokeVertex_curvilinear_abscissa_set,
      StrokeVertex_curvilinear_abscissa_doc,
-     NULL},
+     nullptr},
     {"point",
      (getter)StrokeVertex_point_get,
      (setter)StrokeVertex_point_set,
      StrokeVertex_point_doc,
-     NULL},
+     nullptr},
     {"stroke_length",
      (getter)StrokeVertex_stroke_length_get,
      (setter)StrokeVertex_stroke_length_set,
      StrokeVertex_stroke_length_doc,
-     NULL},
-    {"u", (getter)StrokeVertex_u_get, (setter)NULL, StrokeVertex_u_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {"u", (getter)StrokeVertex_u_get, (setter)nullptr, StrokeVertex_u_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_StrokeVertex type definition ------------------------------*/
 PyTypeObject StrokeVertex_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "StrokeVertex", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "StrokeVertex", /* tp_name */
     sizeof(BPy_StrokeVertex),                      /* tp_basicsize */
     0,                                             /* tp_itemsize */
-    0,                                             /* tp_dealloc */
-    0,                                             /* tp_print */
-    0,                                             /* tp_getattr */
-    0,                                             /* tp_setattr */
-    0,                                             /* tp_reserved */
-    0,                                             /* tp_repr */
-    0,                                             /* tp_as_number */
-    0,                                             /* tp_as_sequence */
-    0,                                             /* tp_as_mapping */
-    0,                                             /* tp_hash  */
-    0,                                             /* tp_call */
-    0,                                             /* tp_str */
-    0,                                             /* tp_getattro */
-    0,                                             /* tp_setattro */
-    0,                                             /* tp_as_buffer */
+    nullptr,                                             /* tp_dealloc */
+    nullptr,                                             /* tp_print */
+    nullptr,                                             /* tp_getattr */
+    nullptr,                                             /* tp_setattr */
+    nullptr,                                             /* tp_reserved */
+    nullptr,                                             /* tp_repr */
+    nullptr,                                             /* tp_as_number */
+    nullptr,                                             /* tp_as_sequence */
+    nullptr,                                             /* tp_as_mapping */
+    nullptr,                                             /* tp_hash  */
+    nullptr,                                             /* tp_call */
+    nullptr,                                             /* tp_str */
+    nullptr,                                             /* tp_getattro */
+    nullptr,                                             /* tp_setattro */
+    nullptr,                                             /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,      /* tp_flags */
     StrokeVertex_doc,                              /* tp_doc */
-    0,                                             /* tp_traverse */
-    0,                                             /* tp_clear */
-    0,                                             /* tp_richcompare */
+    nullptr,                                             /* tp_traverse */
+    nullptr,                                             /* tp_clear */
+    nullptr,                                             /* tp_richcompare */
     0,                                             /* tp_weaklistoffset */
-    0,                                             /* tp_iter */
-    0,                                             /* tp_iternext */
-    0,                                             /* tp_methods */
-    0,                                             /* tp_members */
+    nullptr,                                             /* tp_iter */
+    nullptr,                                             /* tp_iternext */
+    nullptr,                                             /* tp_methods */
+    nullptr,                                             /* tp_members */
     BPy_StrokeVertex_getseters,                    /* tp_getset */
     &CurvePoint_Type,                              /* tp_base */
-    0,                                             /* tp_dict */
-    0,                                             /* tp_descr_get */
-    0,                                             /* tp_descr_set */
+    nullptr,                                             /* tp_dict */
+    nullptr,                                             /* tp_descr_get */
+    nullptr,                                             /* tp_descr_set */
     0,                                             /* tp_dictoffset */
     (initproc)StrokeVertex_init,                   /* tp_init */
-    0,                                             /* tp_alloc */
-    0,                                             /* tp_new */
+    nullptr,                                             /* tp_alloc */
+    nullptr,                                             /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

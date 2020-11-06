@@ -32,8 +32,8 @@ KeyingDespillOperation::KeyingDespillOperation()
   this->m_despillFactor = 0.5f;
   this->m_colorBalance = 0.5f;
 
-  this->m_pixelReader = NULL;
-  this->m_screenReader = NULL;
+  this->m_pixelReader = nullptr;
+  this->m_screenReader = nullptr;
 }
 
 void KeyingDespillOperation::initExecution()
@@ -44,8 +44,8 @@ void KeyingDespillOperation::initExecution()
 
 void KeyingDespillOperation::deinitExecution()
 {
-  this->m_pixelReader = NULL;
-  this->m_screenReader = NULL;
+  this->m_pixelReader = nullptr;
+  this->m_screenReader = nullptr;
 }
 
 void KeyingDespillOperation::executePixelSampled(float output[4],

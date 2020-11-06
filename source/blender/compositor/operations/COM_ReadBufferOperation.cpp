@@ -25,7 +25,7 @@ ReadBufferOperation::ReadBufferOperation(DataType datatype)
   this->addOutputSocket(datatype);
   this->m_single_value = false;
   this->m_offset = 0;
-  this->m_buffer = NULL;
+  this->m_buffer = nullptr;
 }
 
 void *ReadBufferOperation::initializeTileData(rcti * /*rect*/)
@@ -36,7 +36,7 @@ void *ReadBufferOperation::initializeTileData(rcti * /*rect*/)
 void ReadBufferOperation::determineResolution(unsigned int resolution[2],
                                               unsigned int preferredResolution[2])
 {
-  if (this->m_memoryProxy != NULL) {
+  if (this->m_memoryProxy != nullptr) {
     WriteBufferOperation *operation = this->m_memoryProxy->getWriteBufferOperation();
     operation->determineResolution(resolution, preferredResolution);
     operation->setResolution(resolution);
@@ -120,7 +120,7 @@ bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input,
 
 void ReadBufferOperation::readResolutionFromWriteBuffer()
 {
-  if (this->m_memoryProxy != NULL) {
+  if (this->m_memoryProxy != nullptr) {
     WriteBufferOperation *operation = this->m_memoryProxy->getWriteBufferOperation();
     this->setWidth(operation->getWidth());
     this->setHeight(operation->getHeight());

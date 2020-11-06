@@ -23,8 +23,8 @@ CropBaseOperation::CropBaseOperation()
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_inputOperation = NULL;
-  this->m_settings = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_settings = nullptr;
 }
 
 void CropBaseOperation::updateArea()
@@ -75,7 +75,7 @@ void CropBaseOperation::initExecution()
 
 void CropBaseOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
+  this->m_inputOperation = nullptr;
 }
 
 CropOperation::CropOperation() : CropBaseOperation()

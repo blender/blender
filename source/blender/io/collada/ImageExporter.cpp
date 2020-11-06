@@ -53,7 +53,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
   std::string name(id_name(image));
   std::string translated_name(translate_id(name));
 
-  ImBuf *imbuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+  ImBuf *imbuf = BKE_image_acquire_ibuf(image, nullptr, nullptr);
   if (!imbuf) {
     fprintf(stderr, "Collada export: image does not exist:\n%s\n", image->filepath);
     return;
@@ -106,7 +106,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
     /* make absolute source path */
     BLI_strncpy(source_path, image->filepath, sizeof(source_path));
     BLI_path_abs(source_path, ID_BLEND_PATH_FROM_GLOBAL(&image->id));
-    BLI_path_normalize(NULL, source_path);
+    BLI_path_normalize(nullptr, source_path);
 
     if (use_copies) {
 
@@ -145,7 +145,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
   img.add(mSW);
   fprintf(stdout, "Collada export: Added image: %s\n", export_file);
 
-  BKE_image_release_ibuf(image, imbuf, NULL);
+  BKE_image_release_ibuf(image, imbuf, nullptr);
 }
 
 void ImagesExporter::exportImages(Scene *sce)

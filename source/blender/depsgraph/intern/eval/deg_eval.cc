@@ -71,7 +71,7 @@ void schedule_children(DepsgraphEvalState *state,
 
 void schedule_node_to_pool(OperationNode *node, const int UNUSED(thread_id), TaskPool *pool)
 {
-  BLI_task_pool_push(pool, deg_task_run_func, node, false, NULL);
+  BLI_task_pool_push(pool, deg_task_run_func, node, false, nullptr);
 }
 
 /* Denotes which part of dependency graph is being evaluated. */

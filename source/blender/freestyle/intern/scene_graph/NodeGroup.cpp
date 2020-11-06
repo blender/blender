@@ -27,7 +27,7 @@ namespace Freestyle {
 
 void NodeGroup::AddChild(Node *iChild)
 {
-  if (NULL == iChild) {
+  if (nullptr == iChild) {
     return;
   }
 

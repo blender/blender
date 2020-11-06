@@ -51,7 +51,7 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int StrokeShader_Init(PyObject *module)
 {
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -198,7 +198,7 @@ static char StrokeShader___doc__[] =
 
 static int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {NULL};
+  static const char *kwlist[] = {nullptr};
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
@@ -229,23 +229,23 @@ static char StrokeShader_shade___doc__[] =
 
 static PyObject *StrokeShader_shade(BPy_StrokeShader *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"stroke", NULL};
-  PyObject *py_s = 0;
+  static const char *kwlist[] = {"stroke", nullptr};
+  PyObject *py_s = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Stroke_Type, &py_s)) {
-    return NULL;
+    return nullptr;
   }
 
   if (typeid(*(self->ss)) == typeid(StrokeShader)) {
     PyErr_SetString(PyExc_TypeError, "shade method not properly overridden");
-    return NULL;
+    return nullptr;
   }
   if (self->ss->shade(*(((BPy_Stroke *)py_s)->s)) < 0) {
     if (!PyErr_Occurred()) {
       string class_name(Py_TYPE(self)->tp_name);
       PyErr_SetString(PyExc_RuntimeError, (class_name + " shade method failed").c_str());
     }
-    return NULL;
+    return nullptr;
   }
   Py_RETURN_NONE;
 }
@@ -255,7 +255,7 @@ static PyMethodDef BPy_StrokeShader_methods[] = {
      (PyCFunction)StrokeShader_shade,
      METH_VARARGS | METH_KEYWORDS,
      StrokeShader_shade___doc__},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*----------------------StrokeShader get/setters ----------------------------*/
@@ -271,49 +271,49 @@ static PyObject *StrokeShader_name_get(BPy_StrokeShader *self, void *UNUSED(clos
 }
 
 static PyGetSetDef BPy_StrokeShader_getseters[] = {
-    {"name", (getter)StrokeShader_name_get, (setter)NULL, StrokeShader_name_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+    {"name", (getter)StrokeShader_name_get, (setter)nullptr, StrokeShader_name_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_StrokeShader type definition ------------------------------*/
 
 PyTypeObject StrokeShader_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "StrokeShader", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "StrokeShader", /* tp_name */
     sizeof(BPy_StrokeShader),                      /* tp_basicsize */
     0,                                             /* tp_itemsize */
     (destructor)StrokeShader___dealloc__,          /* tp_dealloc */
-    0,                                             /* tp_print */
-    0,                                             /* tp_getattr */
-    0,                                             /* tp_setattr */
-    0,                                             /* tp_reserved */
+    nullptr,                                             /* tp_print */
+    nullptr,                                             /* tp_getattr */
+    nullptr,                                             /* tp_setattr */
+    nullptr,                                             /* tp_reserved */
     (reprfunc)StrokeShader___repr__,               /* tp_repr */
-    0,                                             /* tp_as_number */
-    0,                                             /* tp_as_sequence */
-    0,                                             /* tp_as_mapping */
-    0,                                             /* tp_hash  */
-    0,                                             /* tp_call */
-    0,                                             /* tp_str */
-    0,                                             /* tp_getattro */
-    0,                                             /* tp_setattro */
-    0,                                             /* tp_as_buffer */
+    nullptr,                                             /* tp_as_number */
+    nullptr,                                             /* tp_as_sequence */
+    nullptr,                                             /* tp_as_mapping */
+    nullptr,                                             /* tp_hash  */
+    nullptr,                                             /* tp_call */
+    nullptr,                                             /* tp_str */
+    nullptr,                                             /* tp_getattro */
+    nullptr,                                             /* tp_setattro */
+    nullptr,                                             /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,      /* tp_flags */
     StrokeShader___doc__,                          /* tp_doc */
-    0,                                             /* tp_traverse */
-    0,                                             /* tp_clear */
-    0,                                             /* tp_richcompare */
+    nullptr,                                             /* tp_traverse */
+    nullptr,                                             /* tp_clear */
+    nullptr,                                             /* tp_richcompare */
     0,                                             /* tp_weaklistoffset */
-    0,                                             /* tp_iter */
-    0,                                             /* tp_iternext */
+    nullptr,                                             /* tp_iter */
+    nullptr,                                             /* tp_iternext */
     BPy_StrokeShader_methods,                      /* tp_methods */
-    0,                                             /* tp_members */
+    nullptr,                                             /* tp_members */
     BPy_StrokeShader_getseters,                    /* tp_getset */
-    0,                                             /* tp_base */
-    0,                                             /* tp_dict */
-    0,                                             /* tp_descr_get */
-    0,                                             /* tp_descr_set */
+    nullptr,                                             /* tp_base */
+    nullptr,                                             /* tp_dict */
+    nullptr,                                             /* tp_descr_get */
+    nullptr,                                             /* tp_descr_set */
     0,                                             /* tp_dictoffset */
     (initproc)StrokeShader___init__,               /* tp_init */
-    0,                                             /* tp_alloc */
+    nullptr,                                             /* tp_alloc */
     PyType_GenericNew,                             /* tp_new */
 };
 

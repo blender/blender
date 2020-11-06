@@ -28,8 +28,8 @@ MovieDistortionOperation::MovieDistortionOperation(bool distortion)
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
   this->setResolutionInputSocketIndex(0);
-  this->m_inputOperation = NULL;
-  this->m_movieClip = NULL;
+  this->m_inputOperation = nullptr;
+  this->m_movieClip = nullptr;
   this->m_apply = distortion;
 }
 
@@ -66,15 +66,15 @@ void MovieDistortionOperation::initExecution()
   }
   else {
     m_margin[0] = m_margin[1] = 0;
-    this->m_distortion = NULL;
+    this->m_distortion = nullptr;
   }
 }
 
 void MovieDistortionOperation::deinitExecution()
 {
-  this->m_inputOperation = NULL;
-  this->m_movieClip = NULL;
-  if (this->m_distortion != NULL) {
+  this->m_inputOperation = nullptr;
+  this->m_movieClip = nullptr;
+  if (this->m_distortion != nullptr) {
     BKE_tracking_distortion_free(this->m_distortion);
   }
 }
@@ -84,7 +84,7 @@ void MovieDistortionOperation::executePixelSampled(float output[4],
                                                    float y,
                                                    PixelSampler /*sampler*/)
 {
-  if (this->m_distortion != NULL) {
+  if (this->m_distortion != nullptr) {
     /* float overscan = 0.0f; */
     const float pixel_aspect = this->m_pixel_aspect;
     const float w = (float)this->m_width /* / (1 + overscan) */;

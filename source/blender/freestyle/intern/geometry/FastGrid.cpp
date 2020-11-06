@@ -40,7 +40,7 @@ void FastGrid::clear()
     }
   }
   delete[] _cells;
-  _cells = NULL;
+  _cells = nullptr;
   _cells_size = 0;
 
   Grid::clear();

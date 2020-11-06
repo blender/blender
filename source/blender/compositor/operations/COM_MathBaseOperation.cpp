@@ -26,9 +26,9 @@ MathBaseOperation::MathBaseOperation()
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
-  this->m_inputValue1Operation = NULL;
-  this->m_inputValue2Operation = NULL;
-  this->m_inputValue3Operation = NULL;
+  this->m_inputValue1Operation = nullptr;
+  this->m_inputValue2Operation = nullptr;
+  this->m_inputValue3Operation = nullptr;
   this->m_useClamp = false;
 }
 
@@ -41,9 +41,9 @@ void MathBaseOperation::initExecution()
 
 void MathBaseOperation::deinitExecution()
 {
-  this->m_inputValue1Operation = NULL;
-  this->m_inputValue2Operation = NULL;
-  this->m_inputValue3Operation = NULL;
+  this->m_inputValue1Operation = nullptr;
+  this->m_inputValue2Operation = nullptr;
+  this->m_inputValue3Operation = nullptr;
 }
 
 void MathBaseOperation::determineResolution(unsigned int resolution[2],

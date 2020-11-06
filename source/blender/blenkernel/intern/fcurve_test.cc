@@ -290,7 +290,7 @@ TEST(fcurve_active_keyframe, ActiveKeyframe)
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 2);
 
   /* Check clearing the index. */
-  BKE_fcurve_active_keyframe_set(fcu, NULL);
+  BKE_fcurve_active_keyframe_set(fcu, nullptr);
   EXPECT_EQ(fcu->active_keyframe_index, FCURVE_ACTIVE_KEYFRAME_NONE);
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
 

@@ -34,7 +34,7 @@ void FilterNode::convertToOperations(NodeConverter &converter,
   NodeInput *inputSocket = this->getInputSocket(0);
   NodeInput *inputImageSocket = this->getInputSocket(1);
   NodeOutput *outputSocket = this->getOutputSocket(0);
-  ConvolutionFilterOperation *operation = NULL;
+  ConvolutionFilterOperation *operation = nullptr;
 
   switch (this->getbNode()->custom1) {
     case CMP_FILT_SOFT:

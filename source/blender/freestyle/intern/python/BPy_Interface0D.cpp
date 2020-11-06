@@ -39,7 +39,7 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int Interface0D_Init(PyObject *module)
 {
-  if (module == NULL) {
+  if (module == nullptr) {
     return -1;
   }
 
@@ -102,7 +102,7 @@ PyDoc_STRVAR(Interface0D_doc,
 
 static int Interface0D_init(BPy_Interface0D *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {NULL};
+  static const char *kwlist[] = {nullptr};
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
@@ -139,16 +139,16 @@ PyDoc_STRVAR(Interface0D_get_fedge_doc,
 
 static PyObject *Interface0D_get_fedge(BPy_Interface0D *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist[] = {"inter", NULL};
+  static const char *kwlist[] = {"inter", nullptr};
   PyObject *py_if0D;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "O!", (char **)kwlist, &Interface0D_Type, &py_if0D)) {
-    return NULL;
+    return nullptr;
   }
   FEdge *fe = self->if0D->getFEdge(*(((BPy_Interface0D *)py_if0D)->if0D));
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   if (fe) {
     return Any_BPy_FEdge_from_FEdge(*fe);
@@ -161,7 +161,7 @@ static PyMethodDef BPy_Interface0D_methods[] = {
      (PyCFunction)Interface0D_get_fedge,
      METH_VARARGS | METH_KEYWORDS,
      Interface0D_get_fedge_doc},
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /*----------------------Interface1D get/setters ----------------------------*/
@@ -185,7 +185,7 @@ static PyObject *Interface0D_point_3d_get(BPy_Interface0D *self, void *UNUSED(cl
 {
   Vec3f p(self->if0D->getPoint3D());
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return Vector_from_Vec3f(p);
 }
@@ -199,7 +199,7 @@ static PyObject *Interface0D_projected_x_get(BPy_Interface0D *self, void *UNUSED
 {
   real x = self->if0D->getProjectedX();
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble(x);
 }
@@ -213,7 +213,7 @@ static PyObject *Interface0D_projected_y_get(BPy_Interface0D *self, void *UNUSED
 {
   real y = self->if0D->getProjectedY();
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble(y);
 }
@@ -227,7 +227,7 @@ static PyObject *Interface0D_projected_z_get(BPy_Interface0D *self, void *UNUSED
 {
   real z = self->if0D->getProjectedZ();
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return PyFloat_FromDouble(z);
 }
@@ -241,7 +241,7 @@ static PyObject *Interface0D_point_2d_get(BPy_Interface0D *self, void *UNUSED(cl
 {
   Vec2f p(self->if0D->getPoint2D());
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return Vector_from_Vec2f(p);
 }
@@ -255,7 +255,7 @@ static PyObject *Interface0D_id_get(BPy_Interface0D *self, void *UNUSED(closure)
 {
   Id id(self->if0D->getId());
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return BPy_Id_from_Id(id);  // return a copy
 }
@@ -269,74 +269,74 @@ static PyObject *Interface0D_nature_get(BPy_Interface0D *self, void *UNUSED(clos
 {
   Nature::VertexNature nature = self->if0D->getNature();
   if (PyErr_Occurred()) {
-    return NULL;
+    return nullptr;
   }
   return BPy_Nature_from_Nature(nature);
 }
 
 static PyGetSetDef BPy_Interface0D_getseters[] = {
-    {"name", (getter)Interface0D_name_get, (setter)NULL, Interface0D_name_doc, NULL},
-    {"point_3d", (getter)Interface0D_point_3d_get, (setter)NULL, Interface0D_point_3d_doc, NULL},
+    {"name", (getter)Interface0D_name_get, (setter)nullptr, Interface0D_name_doc, nullptr},
+    {"point_3d", (getter)Interface0D_point_3d_get, (setter)nullptr, Interface0D_point_3d_doc, nullptr},
     {"projected_x",
      (getter)Interface0D_projected_x_get,
-     (setter)NULL,
+     (setter)nullptr,
      Interface0D_projected_x_doc,
-     NULL},
+     nullptr},
     {"projected_y",
      (getter)Interface0D_projected_y_get,
-     (setter)NULL,
+     (setter)nullptr,
      Interface0D_projected_y_doc,
-     NULL},
+     nullptr},
     {"projected_z",
      (getter)Interface0D_projected_z_get,
-     (setter)NULL,
+     (setter)nullptr,
      Interface0D_projected_z_doc,
-     NULL},
-    {"point_2d", (getter)Interface0D_point_2d_get, (setter)NULL, Interface0D_point_2d_doc, NULL},
-    {"id", (getter)Interface0D_id_get, (setter)NULL, Interface0D_id_doc, NULL},
-    {"nature", (getter)Interface0D_nature_get, (setter)NULL, Interface0D_nature_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {"point_2d", (getter)Interface0D_point_2d_get, (setter)nullptr, Interface0D_point_2d_doc, nullptr},
+    {"id", (getter)Interface0D_id_get, (setter)nullptr, Interface0D_id_doc, nullptr},
+    {"nature", (getter)Interface0D_nature_get, (setter)nullptr, Interface0D_nature_doc, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_Interface0D type definition ------------------------------*/
 
 PyTypeObject Interface0D_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Interface0D", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "Interface0D", /* tp_name */
     sizeof(BPy_Interface0D),                      /* tp_basicsize */
     0,                                            /* tp_itemsize */
     (destructor)Interface0D_dealloc,              /* tp_dealloc */
-    0,                                            /* tp_print */
-    0,                                            /* tp_getattr */
-    0,                                            /* tp_setattr */
-    0,                                            /* tp_reserved */
+    nullptr,                                            /* tp_print */
+    nullptr,                                            /* tp_getattr */
+    nullptr,                                            /* tp_setattr */
+    nullptr,                                            /* tp_reserved */
     (reprfunc)Interface0D_repr,                   /* tp_repr */
-    0,                                            /* tp_as_number */
-    0,                                            /* tp_as_sequence */
-    0,                                            /* tp_as_mapping */
-    0,                                            /* tp_hash  */
-    0,                                            /* tp_call */
-    0,                                            /* tp_str */
-    0,                                            /* tp_getattro */
-    0,                                            /* tp_setattro */
-    0,                                            /* tp_as_buffer */
+    nullptr,                                            /* tp_as_number */
+    nullptr,                                            /* tp_as_sequence */
+    nullptr,                                            /* tp_as_mapping */
+    nullptr,                                            /* tp_hash  */
+    nullptr,                                            /* tp_call */
+    nullptr,                                            /* tp_str */
+    nullptr,                                            /* tp_getattro */
+    nullptr,                                            /* tp_setattro */
+    nullptr,                                            /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,     /* tp_flags */
     Interface0D_doc,                              /* tp_doc */
-    0,                                            /* tp_traverse */
-    0,                                            /* tp_clear */
-    0,                                            /* tp_richcompare */
+    nullptr,                                            /* tp_traverse */
+    nullptr,                                            /* tp_clear */
+    nullptr,                                            /* tp_richcompare */
     0,                                            /* tp_weaklistoffset */
-    0,                                            /* tp_iter */
-    0,                                            /* tp_iternext */
+    nullptr,                                            /* tp_iter */
+    nullptr,                                            /* tp_iternext */
     BPy_Interface0D_methods,                      /* tp_methods */
-    0,                                            /* tp_members */
+    nullptr,                                            /* tp_members */
     BPy_Interface0D_getseters,                    /* tp_getset */
-    0,                                            /* tp_base */
-    0,                                            /* tp_dict */
-    0,                                            /* tp_descr_get */
-    0,                                            /* tp_descr_set */
+    nullptr,                                            /* tp_base */
+    nullptr,                                            /* tp_dict */
+    nullptr,                                            /* tp_descr_get */
+    nullptr,                                            /* tp_descr_set */
     0,                                            /* tp_dictoffset */
     (initproc)Interface0D_init,                   /* tp_init */
-    0,                                            /* tp_alloc */
+    nullptr,                                            /* tp_alloc */
     PyType_GenericNew,                            /* tp_new */
 };
 

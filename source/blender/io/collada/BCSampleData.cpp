@@ -86,7 +86,7 @@ const BCMatrix *BCSample::get_matrix(Bone *bone) const
 {
   BCBoneMatrixMap::const_iterator it = bonemats.find(bone);
   if (it == bonemats.end()) {
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }

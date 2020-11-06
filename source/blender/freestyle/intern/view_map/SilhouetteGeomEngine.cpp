@@ -73,7 +73,7 @@ real SilhouetteGeomEngine::_znear = 0.0;
 real SilhouetteGeomEngine::_zfar = 100.0;
 bool SilhouetteGeomEngine::_isOrthographicProjection = false;
 
-SilhouetteGeomEngine *SilhouetteGeomEngine::_pInstance = NULL;
+SilhouetteGeomEngine *SilhouetteGeomEngine::_pInstance = nullptr;
 
 void SilhouetteGeomEngine::setTransform(const real iModelViewMatrix[4][4],
                                         const real iProjectionMatrix[4][4],

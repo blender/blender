@@ -265,12 +265,12 @@ static struct VolumeFileCache {
 
 struct VolumeGrid {
   VolumeGrid(const VolumeFileCache::Entry &template_entry, const int simplify_level)
-      : entry(NULL), simplify_level(simplify_level), is_loaded(false)
+      : entry(nullptr), simplify_level(simplify_level), is_loaded(false)
   {
     entry = GLOBAL_CACHE.add_metadata_user(template_entry);
   }
 
-  VolumeGrid(const openvdb::GridBase::Ptr &grid) : entry(NULL), local_grid(grid), is_loaded(true)
+  VolumeGrid(const openvdb::GridBase::Ptr &grid) : entry(nullptr), local_grid(grid), is_loaded(true)
   {
   }
 
@@ -295,7 +295,7 @@ struct VolumeGrid {
   void load(const char *volume_name, const char *filepath)
   {
     /* If already loaded or not file-backed, nothing to do. */
-    if (is_loaded || entry == NULL) {
+    if (is_loaded || entry == nullptr) {
       return;
     }
 
@@ -337,7 +337,7 @@ struct VolumeGrid {
   void unload(const char *volume_name)
   {
     /* Not loaded or not file-backed, nothing to do. */
-    if (!is_loaded || entry == NULL) {
+    if (!is_loaded || entry == nullptr) {
       return;
     }
 
@@ -364,7 +364,7 @@ struct VolumeGrid {
     local_grid = grid()->copyGridWithNewTree();
     if (entry) {
       GLOBAL_CACHE.remove_user(*entry, is_loaded);
-      entry = NULL;
+      entry = nullptr;
     }
     is_loaded = true;
   }
@@ -378,7 +378,7 @@ struct VolumeGrid {
     local_grid = grid()->deepCopyGrid();
     if (entry) {
       GLOBAL_CACHE.remove_user(*entry, is_loaded);
-      entry = NULL;
+      entry = nullptr;
     }
     is_loaded = true;
   }
@@ -398,7 +398,7 @@ struct VolumeGrid {
       return entry->error_msg.c_str();
     }
 
-    return NULL;
+    return nullptr;
   }
 
   bool grid_is_loaded() const
@@ -562,7 +562,7 @@ static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   Volume *volume = (Volume *)id;
   if (volume->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    volume->runtime.grids = 0;
+    volume->runtime.grids = nullptr;
 
     /* write LibData */
     BLO_write_id_struct(writer, Volume, id_address, &volume->id);
@@ -634,13 +634,13 @@ IDTypeInfo IDType_ID_VO = {
     /* blend_read_lib */ volume_blend_read_lib,
     /* blend_read_expand */ volume_blend_read_expand,
 
-    /* blend_read_undo_preserve */ NULL,
+    /* blend_read_undo_preserve */ nullptr,
 };
 
 void BKE_volume_init_grids(Volume *volume)
 {
 #ifdef WITH_OPENVDB
-  if (volume->runtime.grids == NULL) {
+  if (volume->runtime.grids == nullptr) {
     volume->runtime.grids = OBJECT_GUARDED_NEW(VolumeGridVector);
   }
 #else
@@ -871,11 +871,11 @@ BoundBox *BKE_volume_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_VOLUME);
 
-  if (ob->runtime.bb != NULL && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
+  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
     return ob->runtime.bb;
   }
 
-  if (ob->runtime.bb == NULL) {
+  if (ob->runtime.bb == nullptr) {
     Volume *volume = (Volume *)ob->data;
 
     ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "volume boundbox");
@@ -1006,7 +1006,7 @@ static Volume *volume_evaluate_modifiers(struct Depsgraph *depsgraph,
       if (volume_next && volume_next != volume) {
         /* If the modifier returned a new volume, release the old one. */
         if (volume != volume_input) {
-          BKE_id_free(NULL, volume);
+          BKE_id_free(nullptr, volume);
         }
         volume = volume_next;
       }
@@ -1057,7 +1057,7 @@ void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, co
   /* Restore grids after datablock was re-copied from original by depsgraph,
    * we don't want to load them again if possible. */
   BLI_assert(volume->id.tag & LIB_TAG_COPIED_ON_WRITE);
-  BLI_assert(volume->runtime.grids != NULL && grids != NULL);
+  BLI_assert(volume->runtime.grids != nullptr && grids != nullptr);
 
   if (!grids->is_loaded()) {
     /* No grids loaded in CoW datablock, nothing lost by discarding. */
@@ -1080,8 +1080,8 @@ void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, co
 
 /* Draw Cache */
 
-void (*BKE_volume_batch_cache_dirty_tag_cb)(Volume *volume, int mode) = NULL;
-void (*BKE_volume_batch_cache_free_cb)(Volume *volume) = NULL;
+void (*BKE_volume_batch_cache_dirty_tag_cb)(Volume *volume, int mode) = nullptr;
+void (*BKE_volume_batch_cache_free_cb)(Volume *volume) = nullptr;
 
 void BKE_volume_batch_cache_dirty_tag(Volume *volume, int mode)
 {
@@ -1138,7 +1138,7 @@ VolumeGrid *BKE_volume_grid_get(const Volume *volume, int grid_index)
       return &grid;
     }
   }
-  return NULL;
+  return nullptr;
 #else
   UNUSED_VARS(volume, grid_index);
   return NULL;
@@ -1149,7 +1149,7 @@ VolumeGrid *BKE_volume_grid_active_get(const Volume *volume)
 {
   const int num_grids = BKE_volume_num_grids(volume);
   if (num_grids == 0) {
-    return NULL;
+    return nullptr;
   }
 
   const int index = clamp_i(volume->active_grid, 0, num_grids - 1);
@@ -1167,7 +1167,7 @@ VolumeGrid *BKE_volume_grid_find(const Volume *volume, const char *name)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* Grid Loading */
@@ -1352,7 +1352,7 @@ bool BKE_volume_grid_bounds(const VolumeGrid *volume_grid, float min[3], float m
 
 Volume *BKE_volume_new_for_eval(const Volume *volume_src)
 {
-  Volume *volume_dst = (Volume *)BKE_id_new_nomain(ID_VO, NULL);
+  Volume *volume_dst = (Volume *)BKE_id_new_nomain(ID_VO, nullptr);
 
   STRNCPY(volume_dst->id.name, volume_src->id.name);
   volume_dst->mat = (Material **)MEM_dupallocN(volume_src->mat);
@@ -1372,7 +1372,7 @@ Volume *BKE_volume_copy_for_eval(Volume *volume_src, bool reference)
     flags |= LIB_ID_COPY_CD_REFERENCE;
   }
 
-  Volume *result = (Volume *)BKE_id_copy_ex(NULL, &volume_src->id, NULL, flags);
+  Volume *result = (Volume *)BKE_id_copy_ex(nullptr, &volume_src->id, nullptr, flags);
 
   return result;
 }
@@ -1395,12 +1395,12 @@ VolumeGrid *BKE_volume_grid_add(Volume *volume, const char *name, VolumeGridType
 {
 #ifdef WITH_OPENVDB
   VolumeGridVector &grids = *volume->runtime.grids;
-  BLI_assert(BKE_volume_grid_find(volume, name) == NULL);
+  BLI_assert(BKE_volume_grid_find(volume, name) == nullptr);
   BLI_assert(type != VOLUME_GRID_UNKNOWN);
 
   openvdb::GridBase::Ptr vdb_grid = BKE_volume_grid_type_operation(type, CreateGridOp{});
   if (!vdb_grid) {
-    return NULL;
+    return nullptr;
   }
 
   vdb_grid->setName(name);

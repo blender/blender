@@ -54,9 +54,9 @@ PyDoc_STRVAR(FEdgeSmooth_doc,
 
 static int FEdgeSmooth_init(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwds)
 {
-  static const char *kwlist_1[] = {"brother", NULL};
-  static const char *kwlist_2[] = {"first_vertex", "second_vertex", NULL};
-  PyObject *obj1 = 0, *obj2 = 0;
+  static const char *kwlist_1[] = {"brother", nullptr};
+  static const char *kwlist_2[] = {"first_vertex", "second_vertex", nullptr};
+  PyObject *obj1 = nullptr, *obj2 = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(
           args, kwds, "|O!", (char **)kwlist_1, &FEdgeSmooth_Type, &obj1)) {
@@ -227,61 +227,61 @@ static PyGetSetDef BPy_FEdgeSmooth_getseters[] = {
      (getter)FEdgeSmooth_normal_get,
      (setter)FEdgeSmooth_normal_set,
      FEdgeSmooth_normal_doc,
-     NULL},
+     nullptr},
     {"material_index",
      (getter)FEdgeSmooth_material_index_get,
      (setter)FEdgeSmooth_material_index_set,
      FEdgeSmooth_material_index_doc,
-     NULL},
-    {"material", (getter)FEdgeSmooth_material_get, (setter)NULL, FEdgeSmooth_material_doc, NULL},
+     nullptr},
+    {"material", (getter)FEdgeSmooth_material_get, (setter)nullptr, FEdgeSmooth_material_doc, nullptr},
     {"face_mark",
      (getter)FEdgeSmooth_face_mark_get,
      (setter)FEdgeSmooth_face_mark_set,
      FEdgeSmooth_face_mark_doc,
-     NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+     nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 /*-----------------------BPy_FEdgeSmooth type definition ------------------------------*/
 
 PyTypeObject FEdgeSmooth_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "FEdgeSmooth", /* tp_name */
+    PyVarObject_HEAD_INIT(nullptr, 0) "FEdgeSmooth", /* tp_name */
     sizeof(BPy_FEdgeSmooth),                      /* tp_basicsize */
     0,                                            /* tp_itemsize */
-    0,                                            /* tp_dealloc */
-    0,                                            /* tp_print */
-    0,                                            /* tp_getattr */
-    0,                                            /* tp_setattr */
-    0,                                            /* tp_reserved */
-    0,                                            /* tp_repr */
-    0,                                            /* tp_as_number */
-    0,                                            /* tp_as_sequence */
-    0,                                            /* tp_as_mapping */
-    0,                                            /* tp_hash  */
-    0,                                            /* tp_call */
-    0,                                            /* tp_str */
-    0,                                            /* tp_getattro */
-    0,                                            /* tp_setattro */
-    0,                                            /* tp_as_buffer */
+    nullptr,                                            /* tp_dealloc */
+    nullptr,                                            /* tp_print */
+    nullptr,                                            /* tp_getattr */
+    nullptr,                                            /* tp_setattr */
+    nullptr,                                            /* tp_reserved */
+    nullptr,                                            /* tp_repr */
+    nullptr,                                            /* tp_as_number */
+    nullptr,                                            /* tp_as_sequence */
+    nullptr,                                            /* tp_as_mapping */
+    nullptr,                                            /* tp_hash  */
+    nullptr,                                            /* tp_call */
+    nullptr,                                            /* tp_str */
+    nullptr,                                            /* tp_getattro */
+    nullptr,                                            /* tp_setattro */
+    nullptr,                                            /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,     /* tp_flags */
     FEdgeSmooth_doc,                              /* tp_doc */
-    0,                                            /* tp_traverse */
-    0,                                            /* tp_clear */
-    0,                                            /* tp_richcompare */
+    nullptr,                                            /* tp_traverse */
+    nullptr,                                            /* tp_clear */
+    nullptr,                                            /* tp_richcompare */
     0,                                            /* tp_weaklistoffset */
-    0,                                            /* tp_iter */
-    0,                                            /* tp_iternext */
-    0,                                            /* tp_methods */
-    0,                                            /* tp_members */
+    nullptr,                                            /* tp_iter */
+    nullptr,                                            /* tp_iternext */
+    nullptr,                                            /* tp_methods */
+    nullptr,                                            /* tp_members */
     BPy_FEdgeSmooth_getseters,                    /* tp_getset */
     &FEdge_Type,                                  /* tp_base */
-    0,                                            /* tp_dict */
-    0,                                            /* tp_descr_get */
-    0,                                            /* tp_descr_set */
+    nullptr,                                            /* tp_dict */
+    nullptr,                                            /* tp_descr_get */
+    nullptr,                                            /* tp_descr_set */
     0,                                            /* tp_dictoffset */
     (initproc)FEdgeSmooth_init,                   /* tp_init */
-    0,                                            /* tp_alloc */
-    0,                                            /* tp_new */
+    nullptr,                                            /* tp_alloc */
+    nullptr,                                            /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -135,7 +135,7 @@ static void verify_socket_template_list(bNodeTree *ntree,
   bNodeSocketTemplate *stemp;
 
   /* no inputs anymore? */
-  if (stemp_first == NULL) {
+  if (stemp_first == nullptr) {
     for (sock = (bNodeSocket *)socklist->first; sock; sock = nextsock) {
       nextsock = sock->next;
       nodeRemoveSocket(ntree, node, sock);
@@ -266,7 +266,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
     case SOCK_OBJECT: {
       bNodeSocketValueObject *dval = (bNodeSocketValueObject *)MEM_callocN(
           sizeof(bNodeSocketValueObject), "node socket value object");
-      dval->value = NULL;
+      dval->value = nullptr;
 
       sock->default_value = dval;
       break;
@@ -274,7 +274,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
     case SOCK_IMAGE: {
       bNodeSocketValueImage *dval = (bNodeSocketValueImage *)MEM_callocN(
           sizeof(bNodeSocketValueImage), "node socket value image");
-      dval->value = NULL;
+      dval->value = nullptr;
 
       sock->default_value = dval;
       break;
@@ -490,13 +490,13 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */
   srna = stype->ext_socket.srna = RNA_struct_find(socket_idname);
-  BLI_assert(srna != NULL);
+  BLI_assert(srna != nullptr);
   /* associate the RNA type with the socket type */
   RNA_struct_blender_type_set(srna, stype);
 
   /* set the interface RNA type */
   srna = stype->ext_interface.srna = RNA_struct_find(interface_idname);
-  BLI_assert(srna != NULL);
+  BLI_assert(srna != nullptr);
   /* associate the RNA type with the socket type */
   RNA_struct_blender_type_set(srna, stype);
 
@@ -533,7 +533,7 @@ static bNodeSocketType *make_socket_type_virtual()
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */
   srna = stype->ext_socket.srna = RNA_struct_find(socket_idname);
-  BLI_assert(srna != NULL);
+  BLI_assert(srna != nullptr);
   /* associate the RNA type with the socket type */
   RNA_struct_blender_type_set(srna, stype);
 

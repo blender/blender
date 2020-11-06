@@ -76,19 +76,19 @@ int ChainingIterator::increment()
   _increment = true;
   ViewVertex *vertex = getVertex();
   if (!vertex) {
-    _edge = 0;
+    _edge = nullptr;
     return 0;
   }
   AdjacencyIterator it = AdjacencyIterator(vertex, _restrictToSelection, _restrictToUnvisited);
   if (it.isEnd()) {
-    _edge = 0;
+    _edge = nullptr;
     return 0;
   }
   if (traverse(it) < 0) {
     return -1;
   }
   _edge = result;
-  if (_edge == 0) {
+  if (_edge == nullptr) {
     return 0;
   }
   if (_edge->A() == vertex) {
@@ -105,19 +105,19 @@ int ChainingIterator::decrement()
   _increment = false;
   ViewVertex *vertex = getVertex();
   if (!vertex) {
-    _edge = 0;
+    _edge = nullptr;
     return 0;
   }
   AdjacencyIterator it = AdjacencyIterator(vertex, _restrictToSelection, _restrictToUnvisited);
   if (it.isEnd()) {
-    _edge = 0;
+    _edge = nullptr;
     return 0;
   }
   if (traverse(it) < 0) {
     return -1;
   }
   _edge = result;
-  if (_edge == 0) {
+  if (_edge == nullptr) {
     return 0;
   }
   if (_edge->B() == vertex) {
@@ -150,12 +150,12 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator &ait)
       }
       ++it;
     }
-    result = 0;
+    result = nullptr;
     return 0;
   }
   if (nextVertex->getNature() & Nature::NON_T_VERTEX) {
     // soc NonTVertex *nontvertex = (NonTVertex*)nextVertex;
-    ViewEdge *newEdge(0);
+    ViewEdge *newEdge(nullptr);
     // we'll try to chain the edges by keeping the same nature...
     // the preseance order is : SILHOUETTE, BORDER, CREASE, MATERIAL_BOUNDARY, EDGE_MARK,
     // SUGGESTIVE, VALLEY, RIDGE
@@ -185,13 +185,13 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator &ait)
           result = newEdge;
         }
         else {
-          result = 0;
+          result = nullptr;
         }
         return 0;
       }
     }
   }
-  result = 0;
+  result = nullptr;
   return 0;
 }
 
@@ -218,7 +218,7 @@ int ChainPredicateIterator::traverse(const AdjacencyIterator &ait)
     }
     ++it;
   }
-  result = 0;
+  result = nullptr;
   return 0;
 }
 

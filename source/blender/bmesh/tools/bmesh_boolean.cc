@@ -121,7 +121,7 @@ static bool face_has_verts_in_order(BMesh *bm, BMFace *bmf, const BMVert *v1, co
 {
   BMIter liter;
   BMLoop *l = static_cast<BMLoop *>(BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, bmf));
-  while (l != NULL) {
+  while (l != nullptr) {
     if (l->v == v1 && l->next->v == v2) {
       return true;
     }
@@ -184,7 +184,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out)
       for (int i = 0; i < 3; ++i) {
         co[i] = static_cast<float>(d_co[i]);
       }
-      BMVert *bmv = BM_vert_create(bm, co, NULL, BM_CREATE_NOP);
+      BMVert *bmv = BM_vert_create(bm, co, nullptr, BM_CREATE_NOP);
       new_bmvs[v] = bmv;
       BM_elem_flag_enable(bmv, KEEP_FLAG);
       any_change = true;
@@ -231,7 +231,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out)
     BMFace *bmf = BM_face_exists(face_bmverts.data(), flen);
     /* #BM_face_exists checks if the face exists with the vertices in either order.
      * We can only reuse the face if the orientations are the same. */
-    if (bmf != NULL && face_has_verts_in_order(bm, bmf, face_bmverts[0], face_bmverts[1])) {
+    if (bmf != nullptr && face_has_verts_in_order(bm, bmf, face_bmverts[0], face_bmverts[1])) {
       BM_elem_flag_enable(bmf, KEEP_FLAG);
     }
     else {
@@ -242,20 +242,20 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out)
         orig_face = old_bmfs[orig];
       }
       else {
-        orig_face = NULL;
+        orig_face = nullptr;
       }
       /* Make or find #BMEdge's. */
       for (int i = 0; i < flen; ++i) {
         BMVert *bmv1 = face_bmverts[i];
         BMVert *bmv2 = face_bmverts[(i + 1) % flen];
         BMEdge *bme = BM_edge_exists(bmv1, bmv2);
-        if (bme == NULL) {
-          BMEdge *orig_edge = NULL;
+        if (bme == nullptr) {
+          BMEdge *orig_edge = nullptr;
           if (face.edge_orig[i] != NO_INDEX) {
             orig_edge = old_edges[face.edge_orig[i]];
           }
           bme = BM_edge_create(bm, bmv1, bmv2, orig_edge, BM_CREATE_NOP);
-          if (orig_edge != NULL) {
+          if (orig_edge != nullptr) {
             BM_elem_select_copy(bm, bme, orig_edge);
           }
         }
@@ -269,15 +269,15 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out)
       }
       BMFace *bmf = BM_face_create(
           bm, face_bmverts.data(), face_bmedges.data(), flen, orig_face, BM_CREATE_NOP);
-      if (orig_face != NULL) {
+      if (orig_face != nullptr) {
         BM_elem_select_copy(bm, bmf, orig_face);
       }
       BM_elem_flag_enable(bmf, KEEP_FLAG);
       /* Now do interpolation of loop data (e.g., UV's) using the example face. */
-      if (orig_face != NULL) {
+      if (orig_face != nullptr) {
         BMIter liter;
         BMLoop *l = static_cast<BMLoop *>(BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, bmf));
-        while (l != NULL) {
+        while (l != nullptr) {
           BM_loop_interp_from_face(bm, l, orig_face, true, true);
           l = static_cast<BMLoop *>(BM_iter_step(&liter));
         }
@@ -290,8 +290,8 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out)
   /* #BM_ITER_MESH_MUTABLE macro needs type casts for C++, so expand here.
    * TODO(howard): make some nice C++ iterators for #BMesh. */
   BMIter iter;
-  BMFace *bmf = static_cast<BMFace *>(BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL));
-  while (bmf != NULL) {
+  BMFace *bmf = static_cast<BMFace *>(BM_iter_new(&iter, bm, BM_FACES_OF_MESH, nullptr));
+  while (bmf != nullptr) {
 #  ifdef DEBUG
     iter.count = BM_iter_mesh_count(BM_FACES_OF_MESH, bm);
 #  endif
@@ -308,8 +308,8 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out)
     }
     bmf = bmf_next;
   }
-  BMVert *bmv = static_cast<BMVert *>(BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL));
-  while (bmv != NULL) {
+  BMVert *bmv = static_cast<BMVert *>(BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, nullptr));
+  while (bmv != nullptr) {
 #  ifdef DEBUG
     iter.count = BM_iter_mesh_count(BM_VERTS_OF_MESH, bm);
 #  endif

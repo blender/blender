@@ -125,7 +125,7 @@ static TestBuffer *testbuffer_list_add(ListBase *lb, const void *data, size_t da
   TestBuffer *tb = (TestBuffer *)MEM_mallocN(sizeof(*tb), __func__);
   tb->data = data;
   tb->data_len = data_len;
-  tb->state = NULL;
+  tb->state = nullptr;
   BLI_addtail(lb, tb);
   return tb;
 }
@@ -244,10 +244,10 @@ static void testbuffer_list_data_randomize(ListBase *lb, unsigned int random_see
 
 static void testbuffer_list_store_populate(BArrayStore *bs, ListBase *lb)
 {
-  for (TestBuffer *tb = (TestBuffer *)lb->first, *tb_prev = NULL; tb;
+  for (TestBuffer *tb = (TestBuffer *)lb->first, *tb_prev = nullptr; tb;
        tb_prev = tb, tb = tb->next) {
     tb->state = BLI_array_store_state_add(
-        bs, tb->data, tb->data_len, (tb_prev ? tb_prev->state : NULL));
+        bs, tb->data, tb->data_len, (tb_prev ? tb_prev->state : nullptr));
   }
 }
 
@@ -255,7 +255,7 @@ static void testbuffer_list_store_clear(BArrayStore *bs, ListBase *lb)
 {
   for (TestBuffer *tb = (TestBuffer *)lb->first; tb; tb = tb->next) {
     BLI_array_store_state_remove(bs, tb->state);
-    tb->state = NULL;
+    tb->state = nullptr;
   }
 }
 
@@ -313,7 +313,7 @@ TEST(array_store, NopState)
 {
   BArrayStore *bs = BLI_array_store_create(1, 32);
   const unsigned char data[] = "test";
-  BArrayState *state = BLI_array_store_state_add(bs, data, sizeof(data) - 1, NULL);
+  BArrayState *state = BLI_array_store_state_add(bs, data, sizeof(data) - 1, nullptr);
   EXPECT_EQ(BLI_array_store_state_size_get(state), sizeof(data) - 1);
   BLI_array_store_state_remove(bs, state);
   BLI_array_store_destroy(bs);
@@ -324,7 +324,7 @@ TEST(array_store, Single)
   BArrayStore *bs = BLI_array_store_create(1, 32);
   const char data_src[] = "test";
   const char *data_dst;
-  BArrayState *state = BLI_array_store_state_add(bs, data_src, sizeof(data_src), NULL);
+  BArrayState *state = BLI_array_store_state_add(bs, data_src, sizeof(data_src), nullptr);
   size_t data_dst_len;
   data_dst = (char *)BLI_array_store_state_data_get_alloc(state, &data_dst_len);
   EXPECT_STREQ(data_src, data_dst);
@@ -339,7 +339,7 @@ TEST(array_store, DoubleNop)
   const char data_src[] = "test";
   const char *data_dst;
 
-  BArrayState *state_a = BLI_array_store_state_add(bs, data_src, sizeof(data_src), NULL);
+  BArrayState *state_a = BLI_array_store_state_add(bs, data_src, sizeof(data_src), nullptr);
   BArrayState *state_b = BLI_array_store_state_add(bs, data_src, sizeof(data_src), state_a);
 
   EXPECT_EQ(BLI_array_store_calc_size_compacted_get(bs), sizeof(data_src));
@@ -366,7 +366,7 @@ TEST(array_store, DoubleDiff)
   const char data_src_b[] = "####";
   const char *data_dst;
 
-  BArrayState *state_a = BLI_array_store_state_add(bs, data_src_a, sizeof(data_src_a), NULL);
+  BArrayState *state_a = BLI_array_store_state_add(bs, data_src_a, sizeof(data_src_a), nullptr);
   BArrayState *state_b = BLI_array_store_state_add(bs, data_src_b, sizeof(data_src_b), state_a);
   size_t data_dst_len;
 
@@ -594,7 +594,7 @@ static void testbuffer_list_state_random_data(ListBase *lb,
   size_t data_len = rand_range_i(rng, data_min_len, data_max_len + stride, stride);
   char *data = (char *)MEM_mallocN(data_len, __func__);
 
-  if (lb->last == NULL) {
+  if (lb->last == nullptr) {
     BLI_rng_get_char_n(rng, data, data_len);
   }
   else {

@@ -1130,7 +1130,7 @@ void *DirectDrawSurface::readData(uint &rsize)
 
   if (stream.failed) {
     free(data);
-    data = NULL;
+    data = nullptr;
     rsize = 0;
   }
 

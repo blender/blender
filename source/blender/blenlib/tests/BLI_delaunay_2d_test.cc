@@ -1513,7 +1513,7 @@ TEST(delaunay_d, CintTwoFace)
   input.edges_len = 0;
   input.faces_len = 2;
   input.vert_coords = vert_coords;
-  input.edges = NULL;
+  input.edges = nullptr;
   input.faces = faces;
   input.faces_len_table = faces_len;
   input.faces_start_table = faces_start;
