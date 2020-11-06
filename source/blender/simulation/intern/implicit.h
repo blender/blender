@@ -20,7 +20,7 @@
 #pragma once
 
 /** \file
- * \ingroup bph
+ * \ingroup sim
  */
 
 #include "stdio.h"

@@ -20,7 +20,7 @@
 #pragma once
 
 /** \file
- * \ingroup bph
+ * \ingroup sim
  */
 
 #if defined(__GNUC__) && !defined(__clang__)
