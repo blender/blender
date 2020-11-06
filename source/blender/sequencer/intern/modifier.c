@@ -46,6 +46,8 @@
 
 #include "SEQ_sequencer.h"
 
+#include "BLO_read_write.h"
+
 #include "render.h"
 #include "sequencer.h"
 
@@ -1483,6 +1485,68 @@ void BKE_sequence_modifier_list_copy(Sequence *seqn, Sequence *seq)
 int BKE_sequence_supports_modifiers(Sequence *seq)
 {
   return !ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name .blend File I/O
+ * \{ */
+
+void BKE_sequence_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
+{
+  LISTBASE_FOREACH (SequenceModifierData *, smd, modbase) {
+    const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+
+    if (smti) {
+      BLO_write_struct_by_name(writer, smti->struct_name, smd);
+
+      if (smd->type == seqModifierType_Curves) {
+        CurvesModifierData *cmd = (CurvesModifierData *)smd;
+
+        BKE_curvemapping_blend_write(writer, &cmd->curve_mapping);
+      }
+      else if (smd->type == seqModifierType_HueCorrect) {
+        HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
+
+        BKE_curvemapping_blend_write(writer, &hcmd->curve_mapping);
+      }
+    }
+    else {
+      BLO_write_struct(writer, SequenceModifierData, smd);
+    }
+  }
+}
+
+void BKE_sequence_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
+{
+  BLO_read_list(reader, lb);
+
+  LISTBASE_FOREACH (SequenceModifierData *, smd, lb) {
+    if (smd->mask_sequence) {
+      BLO_read_data_address(reader, &smd->mask_sequence);
+    }
+
+    if (smd->type == seqModifierType_Curves) {
+      CurvesModifierData *cmd = (CurvesModifierData *)smd;
+
+      BKE_curvemapping_blend_read(reader, &cmd->curve_mapping);
+    }
+    else if (smd->type == seqModifierType_HueCorrect) {
+      HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
+
+      BKE_curvemapping_blend_read(reader, &hcmd->curve_mapping);
+    }
+  }
+}
+
+void BKE_sequence_modifier_blend_read_lib(BlendLibReader *reader, Scene *scene, ListBase *lb)
+{
+  LISTBASE_FOREACH (SequenceModifierData *, smd, lb) {
+    if (smd->mask_id) {
+      BLO_read_id_address(reader, scene->id.lib, &smd->mask_id);
+    }
+  }
 }
 
 /** \} */
