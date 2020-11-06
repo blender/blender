@@ -811,58 +811,6 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   }
 }
 
-static void write_constraints(BlendWriter *writer, ListBase *conlist)
-{
-  LISTBASE_FOREACH (bConstraint *, con, conlist) {
-    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-
-    /* Write the specific data */
-    if (cti && con->data) {
-      /* firstly, just write the plain con->data struct */
-      BLO_write_struct_by_name(writer, cti->structName, con->data);
-
-      /* do any constraint specific stuff */
-      switch (con->type) {
-        case CONSTRAINT_TYPE_PYTHON: {
-          bPythonConstraint *data = con->data;
-
-          /* write targets */
-          LISTBASE_FOREACH (bConstraintTarget *, ct, &data->targets) {
-            BLO_write_struct(writer, bConstraintTarget, ct);
-          }
-
-          /* Write ID Properties -- and copy this comment EXACTLY for easy finding
-           * of library blocks that implement this.*/
-          IDP_BlendWrite(writer, data->prop);
-
-          break;
-        }
-        case CONSTRAINT_TYPE_ARMATURE: {
-          bArmatureConstraint *data = con->data;
-
-          /* write targets */
-          LISTBASE_FOREACH (bConstraintTarget *, ct, &data->targets) {
-            BLO_write_struct(writer, bConstraintTarget, ct);
-          }
-
-          break;
-        }
-        case CONSTRAINT_TYPE_SPLINEIK: {
-          bSplineIKConstraint *data = con->data;
-
-          /* write points array */
-          BLO_write_float_array(writer, data->numpoints, data->points);
-
-          break;
-        }
-      }
-    }
-
-    /* Write the constraint */
-    BLO_write_struct(writer, bConstraint, con);
-  }
-}
-
 static void write_pose(BlendWriter *writer, bPose *pose, bArmature *arm)
 {
   /* Write each channel */
@@ -880,7 +828,7 @@ static void write_pose(BlendWriter *writer, bPose *pose, bArmature *arm)
       IDP_BlendWrite(writer, chan->prop);
     }
 
-    write_constraints(writer, &chan->constraints);
+    BKE_constraint_blend_write(writer, &chan->constraints);
 
     animviz_motionpath_blend_write(writer, chan->mpath);
 
@@ -966,7 +914,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     write_pose(writer, ob->pose, arm);
     write_defgroups(writer, &ob->defbase);
     write_fmaps(writer, &ob->fmaps);
-    write_constraints(writer, &ob->constraints);
+    BKE_constraint_blend_write(writer, &ob->constraints);
     animviz_motionpath_blend_write(writer, ob->mpath);
 
     BLO_write_struct(writer, PartDeflect, ob->pd);
