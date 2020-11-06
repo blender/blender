@@ -153,44 +153,45 @@ if(WITH_BUILDINFO)
   # --------------------------------------------------------------------------
   # These defines could all be moved into the header below
 
-  set(BUILDINFO_CFLAGS "${CMAKE_C_FLAGS}")
-  set(BUILDINFO_CXXFLAGS "${CMAKE_CXX_FLAGS}")
-  set(BUILDINFO_LINKFLAGS "${PLATFORM_LINKFLAGS}")
+  # Write strings into a separate header since we can escape C-strings
+  # in a way that's not practical when passing defines.
+  set(BUILD_PLATFORM "${CMAKE_SYSTEM_NAME}")
+  set(BUILD_TYPE "${CMAKE_BUILD_TYPE}")
+  set(BUILD_CFLAGS "${CMAKE_C_FLAGS}")
+  set(BUILD_CXXFLAGS "${CMAKE_CXX_FLAGS}")
+  set(BUILD_LINKFLAGS "${PLATFORM_LINKFLAGS}")
+  set(BUILD_SYSTEM "CMake")
 
   if(WITH_COMPILER_SHORT_FILE_MACRO)
-    # Needed because currently including quotes isn't supported.
-    # Besides this it's not necessary to include path information
+    # It's not necessary to include path information
     # about the system building Blender in the executable.
-    string(REPLACE "${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}" " " BUILDINFO_CFLAGS "${BUILDINFO_CFLAGS}")
-    string(REPLACE "${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}" " " BUILDINFO_CXXFLAGS "${BUILDINFO_CXXFLAGS}")
+    string(REPLACE "${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}" " " BUILD_CFLAGS "${BUILD_CFLAGS}")
+    string(REPLACE "${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}" " " BUILD_CXXFLAGS "${BUILD_CXXFLAGS}")
   endif()
 
-  string(REPLACE " " "\ " BUILDINFO_CFLAGS "${BUILDINFO_CFLAGS}")
-  string(REPLACE " " "\ " BUILDINFO_CXXFLAGS "${BUILDINFO_CXXFLAGS}")
-  string(REPLACE " " "\ " BUILDINFO_LINKFLAGS "${BUILDINFO_LINKFLAGS}")
-
-  add_definitions(
-    # # define in header now, else these get out of date on rebuilds.
-    # -DBUILD_DATE="${BUILD_DATE}"
-    # -DBUILD_TIME="${BUILD_TIME}"
-    # -DBUILD_COMMIT_TIMESTAMP="${BUILD_COMMIT_TIMESTAMP}"
-    # -DBUILD_COMMIT_TIME="${BUILD_COMMIT_TIME}"
-    # -DBUILD_COMMIT_DATE="${BUILD_COMMIT_DATE}"
-    # -DBUILD_HASH="${BUILD_HASH}"
-    # -DBUILD_BRANCH="${BUILD_BRANCH}"
-    -DWITH_BUILDINFO_HEADER # alternative to lines above
-    -DBUILD_PLATFORM="${CMAKE_SYSTEM_NAME}"
-    -DBUILD_TYPE="${CMAKE_BUILD_TYPE}"
-    -DBUILD_CFLAGS="${BUILDINFO_CFLAGS}"
-    -DBUILD_CXXFLAGS="${BUILDINFO_CXXFLAGS}"
-    -DBUILD_LINKFLAGS="${BUILDINFO_LINKFLAGS}"
-    -DBUILD_SYSTEM="CMake"
+  # Use `configure_file` instead of definitions since properly
+  # escaping the multiple command line arguments which themselves
+  # contain strings and spaces becomes overly error-prone & complicated.
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/build_files/cmake/buildinfo_static.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/buildinfo_static.h"
+    ESCAPE_QUOTES
+    @ONLY
   )
+
+  unset(BUILD_PLATFORM)
+  unset(BUILD_TYPE)
+  unset(BUILD_CFLAGS)
+  unset(BUILD_CXXFLAGS)
+  unset(BUILD_LINKFLAGS)
+  unset(BUILD_SYSTEM)
 
   # --------------------------------------------------------------------------
   # write header for values that change each build
   # note, generaed file is in build dir's source/creator
   #       except when used as an include path.
+
+  add_definitions(-DWITH_BUILDINFO_HEADER)
 
   # include the output directory, where the buildinfo.h file is generated
   include_directories(${CMAKE_CURRENT_BINARY_DIR})
