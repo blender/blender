@@ -988,8 +988,14 @@ int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *heig
       GetChannelsInMultiPartFile(*data->ifile, channels);
 
       for (size_t i = 0; i < channels.size(); i++) {
-        IMB_exr_add_channel(
-            data, nullptr, channels[i].name.c_str(), channels[i].view.c_str(), 0, 0, nullptr, false);
+        IMB_exr_add_channel(data,
+                            nullptr,
+                            channels[i].name.c_str(),
+                            channels[i].view.c_str(),
+                            0,
+                            0,
+                            nullptr,
+                            false);
 
         echan = (ExrChannel *)data->channels.last;
         echan->m->name = channels[i].name;

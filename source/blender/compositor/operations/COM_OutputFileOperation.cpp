@@ -53,20 +53,50 @@ void add_exr_channels(void *exrhandle,
     case COM_DT_VECTOR:
       IMB_exr_add_channel(
           exrhandle, layerName, "X", viewName, 3, 3 * width, buf ? buf : nullptr, use_half_float);
-      IMB_exr_add_channel(
-          exrhandle, layerName, "Y", viewName, 3, 3 * width, buf ? buf + 1 : nullptr, use_half_float);
-      IMB_exr_add_channel(
-          exrhandle, layerName, "Z", viewName, 3, 3 * width, buf ? buf + 2 : nullptr, use_half_float);
+      IMB_exr_add_channel(exrhandle,
+                          layerName,
+                          "Y",
+                          viewName,
+                          3,
+                          3 * width,
+                          buf ? buf + 1 : nullptr,
+                          use_half_float);
+      IMB_exr_add_channel(exrhandle,
+                          layerName,
+                          "Z",
+                          viewName,
+                          3,
+                          3 * width,
+                          buf ? buf + 2 : nullptr,
+                          use_half_float);
       break;
     case COM_DT_COLOR:
       IMB_exr_add_channel(
           exrhandle, layerName, "R", viewName, 4, 4 * width, buf ? buf : nullptr, use_half_float);
-      IMB_exr_add_channel(
-          exrhandle, layerName, "G", viewName, 4, 4 * width, buf ? buf + 1 : nullptr, use_half_float);
-      IMB_exr_add_channel(
-          exrhandle, layerName, "B", viewName, 4, 4 * width, buf ? buf + 2 : nullptr, use_half_float);
-      IMB_exr_add_channel(
-          exrhandle, layerName, "A", viewName, 4, 4 * width, buf ? buf + 3 : nullptr, use_half_float);
+      IMB_exr_add_channel(exrhandle,
+                          layerName,
+                          "G",
+                          viewName,
+                          4,
+                          4 * width,
+                          buf ? buf + 1 : nullptr,
+                          use_half_float);
+      IMB_exr_add_channel(exrhandle,
+                          layerName,
+                          "B",
+                          viewName,
+                          4,
+                          4 * width,
+                          buf ? buf + 2 : nullptr,
+                          use_half_float);
+      IMB_exr_add_channel(exrhandle,
+                          layerName,
+                          "A",
+                          viewName,
+                          4,
+                          4 * width,
+                          buf ? buf + 3 : nullptr,
+                          use_half_float);
       break;
     default:
       break;

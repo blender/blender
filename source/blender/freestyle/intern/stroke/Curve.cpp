@@ -70,8 +70,8 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
   __B = nullptr;
   float t1 = iA->t2d();
   float t2 = iB->t2d();
-  if ((iA->A() == iB->A()) && (iA->B() == iB->B()) && (iA->A() != nullptr) && (iA->B() != nullptr) &&
-      (iB->A() != nullptr) && (iB->B() != nullptr)) {
+  if ((iA->A() == iB->A()) && (iA->B() == iB->B()) && (iA->A() != nullptr) &&
+      (iA->B() != nullptr) && (iB->A() != nullptr) && (iB->B() != nullptr)) {
     __A = iA->A();
     __B = iB->B();
     _t2d = t1 + t2 * t3 - t1 * t3;

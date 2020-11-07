@@ -23,7 +23,8 @@
 
 #include "ExtraHandler.h"
 
-ExtraHandler::ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp) : currentExtraTags(nullptr)
+ExtraHandler::ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp)
+    : currentExtraTags(nullptr)
 {
   this->dimp = dimp;
   this->aimp = aimp;
