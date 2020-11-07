@@ -53,9 +53,7 @@ void outliner_tree_view_destroy(TreeView **tree_view)
   *tree_view = nullptr;
 }
 
-ListBase outliner_tree_view_build_tree(TreeView *tree_view,
-                                       TreeSourceData *source_data,
-                                       SpaceOutliner *space_outliner)
+ListBase outliner_tree_view_build_tree(TreeView *tree_view, TreeSourceData *source_data)
 {
-  return reinterpret_cast<AbstractTreeView *>(tree_view)->buildTree(*source_data, *space_outliner);
+  return reinterpret_cast<AbstractTreeView *>(tree_view)->buildTree(*source_data);
 }

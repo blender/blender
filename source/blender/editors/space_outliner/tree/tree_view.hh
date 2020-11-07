@@ -58,7 +58,7 @@ class AbstractTreeView {
    * Build a tree for this view with the Blender context data given in \a source_data and the view
    * settings in \a space_outliner.
    */
-  virtual Tree buildTree(const TreeSourceData &source_data, SpaceOutliner &space_outliner) = 0;
+  virtual Tree buildTree(const TreeSourceData &source_data) = 0;
 
  protected:
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
@@ -75,7 +75,7 @@ class TreeViewViewLayer final : public AbstractTreeView {
  public:
   TreeViewViewLayer(SpaceOutliner &space_outliner);
 
-  Tree buildTree(const TreeSourceData &source_data, SpaceOutliner &space_outliner) override;
+  Tree buildTree(const TreeSourceData &source_data) override;
 
  private:
   void add_view_layer(ListBase &, TreeElement &);
@@ -108,9 +108,7 @@ typedef struct TreeSourceData {
 TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner);
 void outliner_tree_view_destroy(TreeView **tree_view);
 
-ListBase outliner_tree_view_build_tree(TreeView *tree_view,
-                                       TreeSourceData *source_data,
-                                       struct SpaceOutliner *space_outliner);
+ListBase outliner_tree_view_build_tree(TreeView *tree_view, TreeSourceData *source_data);
 
 /* The following functions are needed to build the tree. These are calls back into C; the way
  * elements are created should be refactored and ported to C++ with a new design/API too. */

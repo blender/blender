@@ -68,20 +68,20 @@ TreeViewViewLayer::TreeViewViewLayer(SpaceOutliner &space_outliner)
 {
 }
 
-Tree TreeViewViewLayer::buildTree(const TreeSourceData &source_data, SpaceOutliner &space_outliner)
+Tree TreeViewViewLayer::buildTree(const TreeSourceData &source_data)
 {
   Tree tree = {nullptr};
 
   _view_layer = source_data.view_layer;
-  _show_objects = !(space_outliner.filter & SO_FILTER_NO_OBJECT);
+  _show_objects = !(_space_outliner.filter & SO_FILTER_NO_OBJECT);
 
-  const bool show_children = (space_outliner.filter & SO_FILTER_NO_CHILDREN) == 0;
+  const bool show_children = (_space_outliner.filter & SO_FILTER_NO_CHILDREN) == 0;
 
-  if (space_outliner.filter & SO_FILTER_NO_COLLECTION) {
+  if (_space_outliner.filter & SO_FILTER_NO_COLLECTION) {
     /* Show objects in the view layer. */
     for (Base *base : List<Base>(_view_layer->object_bases)) {
       TreeElement *te_object = outliner_add_element(
-          &space_outliner, &tree, base->object, nullptr, 0, 0);
+          &_space_outliner, &tree, base->object, nullptr, 0, 0);
       te_object->directdata = base;
     }
 
@@ -92,7 +92,7 @@ Tree TreeViewViewLayer::buildTree(const TreeSourceData &source_data, SpaceOutlin
   else {
     /* Show collections in the view layer. */
     TreeElement &ten = *outliner_add_element(
-        &space_outliner, &tree, source_data.scene, nullptr, TSE_VIEW_COLLECTION_BASE, 0);
+        &_space_outliner, &tree, source_data.scene, nullptr, TSE_VIEW_COLLECTION_BASE, 0);
     ten.name = IFACE_("Scene Collection");
     TREESTORE(&ten)->flag &= ~TSE_CLOSED;
 
