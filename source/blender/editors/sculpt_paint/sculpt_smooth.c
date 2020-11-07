@@ -729,6 +729,8 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
 
   mul_v3_fl(avg, tot);
 
+  //#define SHARPEN_VCOL_BOUNDARY
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -815,7 +817,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
       }
       //colavg[3] = MIN2(colavg[3], 1.0f);
 
-      interp_v4_v4v4(vd.col, vd.col, colavg, fade*0.01);
+      interp_v4_v4v4(vd.col, vd.col, colavg, fade*0.25);
 #endif
 
       //try to avoid perfectly colinear triangles, and the normal discontinuities they create,

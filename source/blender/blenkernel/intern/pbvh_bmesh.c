@@ -693,12 +693,15 @@ static void pbvh_bmesh_vert_ownership_transfer(PBVH *pbvh, PBVHNode *new_owner, 
 {
   PBVHNode *current_owner = pbvh_bmesh_node_from_vert(pbvh, v);
   /* mark node for update */
-  current_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
 
-  BLI_assert(current_owner != new_owner);
+  if (current_owner) {
+    current_owner->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
 
-  /* Remove current ownership */
-  BLI_table_gset_remove(current_owner->bm_unique_verts, v, NULL);
+    BLI_assert(current_owner != new_owner);
+
+    /* Remove current ownership */
+    BLI_table_gset_remove(current_owner->bm_unique_verts, v, NULL);
+  }
 
   /* Set new ownership */
   BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, new_owner - pbvh->nodes);
@@ -1558,6 +1561,19 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
       pbvh, node_index, co_mid, no_mid, eq_ctx->cd_vert_mask_offset);
 
 #ifdef DYNTOPO_CD_INTERP
+  // transfer edge flags
+  
+  BMEdge *e1 = BM_edge_create(pbvh->bm, e->v1, v_new, e, BM_CREATE_NOP);
+  BMEdge *e2 = BM_edge_create(pbvh->bm, v_new, e->v2, e, BM_CREATE_NOP);
+
+  int eflag = e->head.hflag & ~BM_ELEM_HIDDEN;
+  int vflag = (e->v1->head.hflag | e->v2->head.hflag) & ~BM_ELEM_HIDDEN;
+
+  e1->head.hflag = e2->head.hflag = eflag;
+  v_new->head.hflag = vflag;
+
+  /*TODO: is it worth interpolating edge customdata?*/
+
   void *vsrcs[2] = {e->v1->head.data, e->v2->head.data};
   float vws[2] = {0.5f, 0.5f};
   CustomData_bmesh_interp(&pbvh->bm->vdata, vsrcs, vws, NULL, 2, v_new->head.data);
@@ -1825,8 +1841,6 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
 #ifdef DYNTOPO_CD_INTERP
   if (BM_elem_flag_test(e, BM_ELEM_SEAM)) {
-    // return;
-    // only collapse edge if there are two seams in its neighborhood
     for (int step = 0; step < 2; step++) {
       int count = 0;
       BMVert *v = step ? v2 : v1;
@@ -1989,9 +2003,13 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       int ni = n - pbvh->nodes;
       bm_edges_from_tri(pbvh->bm, v_tri, e_tri);
       BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f);
-
+      
 #ifdef DYNTOPO_CD_INTERP
       BMLoop *l2 = f2->l_first;
+
+      // sync edge flags
+      l2->e->head.hflag |= (l->e->head.hflag & ~BM_ELEM_HIDDEN);
+      //l2->prev->e->head.hflag |= (l->prev->e->head.hflag & ~BM_ELEM_HIDDEN);
 
       pbvh_bmesh_copy_facedata(pbvh->bm, f2, f);
 
