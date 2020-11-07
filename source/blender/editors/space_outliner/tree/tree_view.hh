@@ -16,6 +16,9 @@
 
 /** \file
  * \ingroup spoutliner
+ *
+ * For now all sub-class declarations of #AbstractTreeView are in this file. They could be moved
+ * into own headers of course.
  */
 
 #pragma once
@@ -38,6 +41,12 @@ using Tree = ListBase;
 /* -------------------------------------------------------------------- */
 /* Tree-View Interface */
 
+/**
+ * Abstract base class defining the interface for tree-view variants. For each Outliner display
+ * type (e.g View Layer, Scenes, Blender File), a derived class implements a #buildTree() function,
+ * that based on Blender data (#TreeSourceData), builds a custom tree of whatever data it wants to
+ * visualize.
+ */
 class AbstractTreeView {
  public:
   AbstractTreeView(SpaceOutliner &space_outliner) : _space_outliner(space_outliner)
@@ -45,10 +54,14 @@ class AbstractTreeView {
   }
   virtual ~AbstractTreeView() = default;
 
-  /** Build a tree for this view and the current context. */
+  /**
+   * Build a tree for this view with the Blender context data given in \a source_data and the view
+   * settings in \a space_outliner.
+   */
   virtual Tree buildTree(const TreeSourceData &source_data, SpaceOutliner &space_outliner) = 0;
 
  protected:
+  /** All derived classes will need a handle to this, so storing it in the base for convenience. */
   SpaceOutliner &_space_outliner;
 };
 
@@ -56,15 +69,15 @@ class AbstractTreeView {
 /* View Layer Tree-View */
 
 class TreeViewViewLayer final : public AbstractTreeView {
+  ViewLayer *_view_layer = nullptr;
+  bool _show_objects = true;
+
  public:
   TreeViewViewLayer(SpaceOutliner &space_outliner);
 
   Tree buildTree(const TreeSourceData &source_data, SpaceOutliner &space_outliner) override;
 
  private:
-  ViewLayer *_view_layer;
-  bool _show_objects = true;
-
   void add_view_layer(ListBase &, TreeElement &);
   void add_layer_collections_recursive(ListBase &, ListBase &, TreeElement &);
   void add_layer_collection_objects(ListBase &, LayerCollection &, TreeElement &);
@@ -80,6 +93,7 @@ extern "C" {
 /* -------------------------------------------------------------------- */
 /* C-API */
 
+/** There is no actual implementation of this, it's the C name for an #AbstractTreeView handle. */
 typedef struct TreeView TreeView;
 
 /**
@@ -98,8 +112,8 @@ ListBase outliner_tree_view_build_tree(TreeView *tree_view,
                                        TreeSourceData *source_data,
                                        struct SpaceOutliner *space_outliner);
 
-/* The following functions are needed to build the actual tree. Could be moved to a helper class
- * (e.g. TreeBuilder). */
+/* The following functions are needed to build the tree. These are calls back into C; the way
+ * elements are created should be refactored and ported to C++ with a new design/API too. */
 struct TreeElement *outliner_add_element(struct SpaceOutliner *space_outliner,
                                          ListBase *lb,
                                          void *idv,

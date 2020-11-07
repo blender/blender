@@ -41,20 +41,20 @@ namespace outliner {
 template<typename T> using List = ListBaseWrapper<T>;
 
 class ObjectsChildrenBuilder {
- public:
-  ObjectsChildrenBuilder(SpaceOutliner &outliner);
-  ~ObjectsChildrenBuilder() = default;
-
-  void operator()(TreeElement &collection_tree_elem);
-
- private:
   using TreeChildren = Vector<TreeElement *>;
   using ObjectTreeElementsMap = Map<Object *, TreeChildren>;
 
   SpaceOutliner &_outliner;
   ObjectTreeElementsMap _object_tree_elements_map;
 
-  void object_tree_elements_lookup_create_recursive(TreeElement *te_parent);
+ public:
+  ObjectsChildrenBuilder(SpaceOutliner &);
+  ~ObjectsChildrenBuilder() = default;
+
+  void operator()(TreeElement &collection_tree_elem);
+
+ private:
+  void object_tree_elements_lookup_create_recursive(TreeElement *);
   void make_object_parent_hierarchy_collections();
 };
 
