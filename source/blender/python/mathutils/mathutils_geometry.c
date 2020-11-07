@@ -1062,6 +1062,20 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
   return Vector_CreatePyObject(pt_dst, 3, NULL);
 }
 
+struct PointsInPlanes_UserData {
+  PyObject *py_verts;
+  char *planes_used;
+};
+
+static void points_in_planes_fn(const float co[3], int i, int j, int k, void *user_data_p)
+{
+  struct PointsInPlanes_UserData *user_data = user_data_p;
+  PyList_APPEND(user_data->py_verts, Vector_CreatePyObject(co, 3, NULL));
+  user_data->planes_used[i] = true;
+  user_data->planes_used[j] = true;
+  user_data->planes_used[k] = true;
+}
+
 PyDoc_STRVAR(M_Geometry_points_in_planes_doc,
              ".. function:: points_in_planes(planes)\n"
              "\n"
@@ -1073,7 +1087,6 @@ PyDoc_STRVAR(M_Geometry_points_in_planes_doc,
              "   :return: two lists, once containing the vertices inside the planes, another "
              "containing the plane indices used\n"
              "   :rtype: pair of lists\n");
-/* note: this function could be optimized by some spatial structure */
 static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *args)
 {
   PyObject *py_planes;
@@ -1090,81 +1103,37 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
   }
 
   /* note, this could be refactored into plain C easy - py bits are noted */
-  const float eps = 0.0001f;
-  const uint len = (uint)planes_len;
-  uint i, j, k, l;
 
-  float n1n2[3], n2n3[3], n3n1[3];
-  float potentialVertex[3];
-  char *planes_used = PyMem_Malloc(sizeof(char) * len);
+  struct PointsInPlanes_UserData user_data = {
+      .py_verts = PyList_New(0),
+      .planes_used = PyMem_Malloc(sizeof(char) * planes_len),
+  };
 
   /* python */
-  PyObject *py_verts = PyList_New(0);
   PyObject *py_plane_index = PyList_New(0);
 
-  memset(planes_used, 0, sizeof(char) * len);
+  memset(user_data.planes_used, 0, sizeof(char) * planes_len);
 
-  for (i = 0; i < len; i++) {
-    const float *N1 = planes[i];
-    for (j = i + 1; j < len; j++) {
-      const float *N2 = planes[j];
-      cross_v3_v3v3(n1n2, N1, N2);
-      if (len_squared_v3(n1n2) > eps) {
-        for (k = j + 1; k < len; k++) {
-          const float *N3 = planes[k];
-          cross_v3_v3v3(n2n3, N2, N3);
-          if (len_squared_v3(n2n3) > eps) {
-            cross_v3_v3v3(n3n1, N3, N1);
-            if (len_squared_v3(n3n1) > eps) {
-              const float quotient = dot_v3v3(N1, n2n3);
-              if (fabsf(quotient) > eps) {
-                /**
-                 * <pre>
-                 * potentialVertex = (
-                 *     (n2n3 * N1[3] + n3n1 * N2[3] + n1n2 * N3[3]) *
-                 *     (-1.0 / quotient));
-                 * </pre>
-                 */
-                const float quotient_ninv = -1.0f / quotient;
-                potentialVertex[0] = ((n2n3[0] * N1[3]) + (n3n1[0] * N2[3]) + (n1n2[0] * N3[3])) *
-                                     quotient_ninv;
-                potentialVertex[1] = ((n2n3[1] * N1[3]) + (n3n1[1] * N2[3]) + (n1n2[1] * N3[3])) *
-                                     quotient_ninv;
-                potentialVertex[2] = ((n2n3[2] * N1[3]) + (n3n1[2] * N2[3]) + (n1n2[2] * N3[3])) *
-                                     quotient_ninv;
-                for (l = 0; l < len; l++) {
-                  const float *NP = planes[l];
-                  if ((dot_v3v3(NP, potentialVertex) + NP[3]) > 0.000001f) {
-                    break;
-                  }
-                }
+  const float eps_coplanar = 1e-4f;
+  const float eps_isect = 1e-6f;
 
-                if (l == len) { /* ok */
-                  /* python */
-                  PyList_APPEND(py_verts, Vector_CreatePyObject(potentialVertex, 3, NULL));
-                  planes_used[i] = planes_used[j] = planes_used[k] = true;
-                }
-              }
-            }
-          }
-        }
+  const bool has_isect = isect_planes_v3_fn(
+      planes, planes_len, eps_coplanar, eps_isect, points_in_planes_fn, &user_data);
+  PyMem_Free(planes);
+
+  /* Now make user_data list of used planes. */
+  if (has_isect) {
+    for (int i = 0; i < planes_len; i++) {
+      if (user_data.planes_used[i]) {
+        PyList_APPEND(py_plane_index, PyLong_FromLong(i));
       }
     }
   }
-
-  PyMem_Free(planes);
-
-  /* now make a list of used planes */
-  for (i = 0; i < len; i++) {
-    if (planes_used[i]) {
-      PyList_APPEND(py_plane_index, PyLong_FromLong(i));
-    }
-  }
-  PyMem_Free(planes_used);
+  PyMem_Free(user_data.planes_used);
 
   {
     PyObject *ret = PyTuple_New(2);
-    PyTuple_SET_ITEMS(ret, py_verts, py_plane_index);
+    PyTuple_SET_ITEMS(ret, user_data.py_verts, py_plane_index);
     return ret;
   }
 }

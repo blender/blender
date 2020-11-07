@@ -2298,6 +2298,81 @@ bool isect_plane_plane_v3(const float plane_a[4],
 }
 
 /**
+ * Intersect all planes, calling `callback_fn` for each point that intersects
+ * 3 of the planes that isn't outside any of the other planes.
+ *
+ * This can be thought of as calculating a convex-hull from an array of planes.
+ *
+ * \param eps_coplanar: Epsilon for testing if two planes are aligned (co-planar).
+ * \param eps_isect: Epsilon for testing of a point is behind any of the planes.
+ *
+ * \warning As complexity is a little under `O(N^3)`, this is only suitable for small arrays.
+ *
+ * \note This function could be optimized by some spatial structure.
+ */
+bool isect_planes_v3_fn(
+    const float planes[][4],
+    const int planes_len,
+    const float eps_coplanar,
+    const float eps_isect,
+    void (*callback_fn)(const float co[3], int i, int j, int k, void *user_data),
+    void *user_data)
+{
+  bool found = false;
+
+  float n1n2[3], n2n3[3], n3n1[3];
+
+  for (int i = 0; i < planes_len; i++) {
+    const float *n1 = planes[i];
+    for (int j = i + 1; j < planes_len; j++) {
+      const float *n2 = planes[j];
+      cross_v3_v3v3(n1n2, n1, n2);
+      if (len_squared_v3(n1n2) <= eps_coplanar) {
+        continue;
+      }
+      for (int k = j + 1; k < planes_len; k++) {
+        const float *n3 = planes[k];
+        cross_v3_v3v3(n2n3, n2, n3);
+        if (len_squared_v3(n2n3) <= eps_coplanar) {
+          continue;
+        }
+
+        cross_v3_v3v3(n3n1, n3, n1);
+        if (len_squared_v3(n3n1) <= eps_coplanar) {
+          continue;
+        }
+        const float quotient = -dot_v3v3(n1, n2n3);
+        if (fabsf(quotient) < eps_coplanar) {
+          continue;
+        }
+        const float co_test[3] = {
+            ((n2n3[0] * n1[3]) + (n3n1[0] * n2[3]) + (n1n2[0] * n3[3])) / quotient,
+            ((n2n3[1] * n1[3]) + (n3n1[1] * n2[3]) + (n1n2[1] * n3[3])) / quotient,
+            ((n2n3[2] * n1[3]) + (n3n1[2] * n2[3]) + (n1n2[2] * n3[3])) / quotient,
+        };
+        int i_test;
+        for (i_test = 0; i_test < planes_len; i_test++) {
+          const float *np_test = planes[i_test];
+          if (((dot_v3v3(np_test, co_test) + np_test[3]) > eps_isect)) {
+            /* For low epsilon values the point could intersect it's own plane. */
+            if (!ELEM(i_test, i, j, k)) {
+              break;
+            }
+          }
+        }
+
+        if (i_test == planes_len) { /* ok */
+          callback_fn(co_test, i, j, k, user_data);
+          found = true;
+        }
+      }
+    }
+  }
+
+  return found;
+}
+
+/**
  * Intersect two triangles.
  *
  * \param r_i1, r_i2: Retrieve the overlapping edge between the 2 triangles.
