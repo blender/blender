@@ -272,9 +272,8 @@ static double ArHosekSkyModel_CookRadianceConfiguration(ArHosekSkyModel_Radiance
   return res;
 }
 
-static double ArHosekSkyModel_GetRadianceInternal(SKY_ArHosekSkyModelConfiguration configuration,
-                                                  double theta,
-                                                  double gamma)
+static double ArHosekSkyModel_GetRadianceInternal(
+    const SKY_ArHosekSkyModelConfiguration configuration, const double theta, const double gamma)
 {
   const double expM = exp(configuration[4] * gamma);
   const double rayM = cos(gamma) * cos(gamma);

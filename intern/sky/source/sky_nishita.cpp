@@ -87,7 +87,7 @@ static float3 geographical_to_direction(float lat, float lon)
   return make_float3(cosf(lat) * cosf(lon), cosf(lat) * sinf(lon), sinf(lat));
 }
 
-static float3 spec_to_xyz(float *spectrum)
+static float3 spec_to_xyz(const float *spectrum)
 {
   float3 xyz = make_float3(0.0f, 0.0f, 0.0f);
   for (int i = 0; i < num_wavelengths; i++) {

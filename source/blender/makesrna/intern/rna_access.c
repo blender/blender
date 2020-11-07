@@ -1662,7 +1662,7 @@ void RNA_property_enum_items(bContext *C,
 #ifdef WITH_INTERNATIONAL
 static void property_enum_translate(PropertyRNA *prop,
                                     EnumPropertyItem **r_item,
-                                    int *r_totitem,
+                                    const int *totitem,
                                     bool *r_free)
 {
   if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
@@ -1684,8 +1684,8 @@ static void property_enum_translate(PropertyRNA *prop,
       const EnumPropertyItem *item = *r_item;
       int tot;
 
-      if (r_totitem) {
-        tot = *r_totitem;
+      if (totitem) {
+        tot = *totitem;
       }
       else {
         /* count */
