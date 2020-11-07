@@ -358,6 +358,14 @@ bool isect_plane_plane_v3(const float plane_a[4],
                           float r_isect_co[3],
                           float r_isect_no[3]) ATTR_WARN_UNUSED_RESULT;
 
+bool isect_planes_v3_fn(
+    const float planes[][4],
+    const int planes_len,
+    const float eps_coplanar,
+    const float eps_isect,
+    void (*callback_fn)(const float co[3], int i, int j, int k, void *user_data),
+    void *user_data);
+
 /* line/ray triangle */
 bool isect_line_segment_tri_v3(const float p1[3],
                                const float p2[3],
