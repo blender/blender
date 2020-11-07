@@ -124,10 +124,8 @@ static bool parse_int_relative(const char *str,
     *r_err_msg = msg;
     return false;
   }
-  else {
-    *r_value = (int)value;
-    return true;
-  }
+  *r_value = (int)value;
+  return true;
 }
 
 static const char *parse_int_range_sep_search(const char *str, const char *str_end_test)
@@ -230,10 +228,8 @@ static bool parse_int_strict_range(const char *str,
     *r_err_msg = msg;
     return false;
   }
-  else {
-    *r_value = (int)value;
-    return true;
-  }
+  *r_value = (int)value;
+  return true;
 }
 
 static bool parse_int(const char *str,
@@ -1589,10 +1585,8 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
     printf("\nError: frame number must follow '%s'.\n", arg_id);
     return 0;
   }
-  else {
-    printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
-    return 0;
-  }
+  printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_render_animation_doc[] =
@@ -1674,10 +1668,8 @@ static int arg_handle_frame_start_set(int argc, const char **argv, void *data)
     printf("\nError: frame number must follow '%s'.\n", arg_id);
     return 0;
   }
-  else {
-    printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
-    return 0;
-  }
+  printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_frame_end_set_doc[] =
@@ -1709,10 +1701,8 @@ static int arg_handle_frame_end_set(int argc, const char **argv, void *data)
     printf("\nError: frame number must follow '%s'.\n", arg_id);
     return 0;
   }
-  else {
-    printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
-    return 0;
-  }
+  printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_frame_skip_set_doc[] =
@@ -1737,10 +1727,8 @@ static int arg_handle_frame_skip_set(int argc, const char **argv, void *data)
     printf("\nError: number of frames to step must follow '%s'.\n", arg_id);
     return 0;
   }
-  else {
-    printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
-    return 0;
-  }
+  printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_python_file_run_doc[] =

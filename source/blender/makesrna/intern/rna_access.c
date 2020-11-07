@@ -2611,9 +2611,7 @@ int RNA_property_int_get(PointerRNA *ptr, PropertyRNA *prop)
   if (iprop->get_ex) {
     return iprop->get_ex(ptr, prop);
   }
-  else {
-    return iprop->defaultvalue;
-  }
+  return iprop->defaultvalue;
 }
 
 void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
@@ -2947,12 +2945,10 @@ float RNA_property_float_get(PointerRNA *ptr, PropertyRNA *prop)
   if (fprop->get) {
     return fprop->get(ptr);
   }
-  else if (fprop->get_ex) {
+  if (fprop->get_ex) {
     return fprop->get_ex(ptr, prop);
   }
-  else {
-    return fprop->defaultvalue;
-  }
+  return fprop->defaultvalue;
 }
 
 void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
@@ -3386,12 +3382,10 @@ int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop)
   if (sprop->length) {
     return sprop->length(ptr);
   }
-  else if (sprop->length_ex) {
+  if (sprop->length_ex) {
     return sprop->length_ex(ptr, prop);
   }
-  else {
-    return strlen(sprop->defaultvalue);
-  }
+  return strlen(sprop->defaultvalue);
 }
 
 void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *value)
@@ -3552,9 +3546,7 @@ int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
   if (eprop->get_ex) {
     return eprop->get_ex(ptr, prop);
   }
-  else {
-    return eprop->defaultvalue;
-  }
+  return eprop->defaultvalue;
 }
 
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
@@ -3668,15 +3660,13 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
   if (pprop->get) {
     return pprop->get(ptr);
   }
-  else if (prop->flag & PROP_IDPROPERTY) {
+  if (prop->flag & PROP_IDPROPERTY) {
     /* XXX temporary hack to add it automatically, reading should
      * never do any write ops, to ensure thread safety etc .. */
     RNA_property_pointer_add(ptr, prop);
     return RNA_property_pointer_get(ptr, prop);
   }
-  else {
-    return PointerRNA_NULL;
-  }
+  return PointerRNA_NULL;
 }
 
 void RNA_property_pointer_set(PointerRNA *ptr,
