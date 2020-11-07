@@ -28,9 +28,7 @@ using namespace std;
 
 #include "BKE_appdir.h"
 
-namespace Freestyle {
-
-namespace Config {
+namespace Freestyle::Config {
 
 Path *Path::_pInstance = nullptr;
 Path::Path()
@@ -85,6 +83,4 @@ string Path::getEnvVar(const string &iEnvVarName)
   return value;
 }
 
-}  // namespace Config
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::Config

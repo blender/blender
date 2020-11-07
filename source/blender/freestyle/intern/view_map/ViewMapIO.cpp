@@ -50,9 +50,7 @@
   } \
   (void)0
 
-namespace Freestyle {
-
-namespace ViewMapIO {
+namespace Freestyle::ViewMapIO {
 
 namespace Internal {
 
@@ -1307,6 +1305,4 @@ string getModelsPath()
 
 }  // namespace Options
 
-}  // End of namespace ViewMapIO
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::ViewMapIO

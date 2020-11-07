@@ -28,8 +28,7 @@
 
 #include "BLI_utildefines.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 RootPChanMap::RootPChanMap()
 {
@@ -78,5 +77,4 @@ bool RootPChanMap::has_common_root(const char *bone1, const char *bone2) const
   return Set<StringRefNull>::Intersects(*bone1_roots, *bone2_roots);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

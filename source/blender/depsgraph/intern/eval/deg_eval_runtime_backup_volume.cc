@@ -33,8 +33,7 @@
 
 #include <stdio.h>
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 VolumeBackup::VolumeBackup(const Depsgraph * /*depsgraph*/) : grids(nullptr)
 {
@@ -58,5 +57,4 @@ void VolumeBackup::restore_to_volume(Volume *volume)
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

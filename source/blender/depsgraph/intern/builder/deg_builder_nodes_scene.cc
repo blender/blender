@@ -25,8 +25,7 @@
 
 #include "DNA_scene_types.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 void DepsgraphNodeBuilder::build_scene_render(Scene *scene, ViewLayer *view_layer)
 {
@@ -88,5 +87,4 @@ void DepsgraphNodeBuilder::build_scene_compositor(Scene *scene)
   build_nodetree(scene->nodetree);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

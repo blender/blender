@@ -25,13 +25,11 @@
 
 #include "DNA_modifier_types.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 ModifierDataBackup::ModifierDataBackup(ModifierData *modifier_data)
     : type(static_cast<ModifierType>(modifier_data->type)), runtime(modifier_data->runtime)
 {
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

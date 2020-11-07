@@ -101,8 +101,7 @@
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_id.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 #define DEBUG_PRINT \
   if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) \
@@ -1127,5 +1126,4 @@ bool deg_copy_on_write_is_needed(const ID_Type id_type)
   return ID_TYPE_IS_COW(id_type);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

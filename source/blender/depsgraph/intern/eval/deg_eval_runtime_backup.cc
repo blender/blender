@@ -29,8 +29,7 @@
 
 #include "DRW_engine.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 RuntimeBackup::RuntimeBackup(const Depsgraph *depsgraph)
     : have_backup(false),
@@ -117,5 +116,4 @@ void RuntimeBackup::restore_to_id(ID *id)
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

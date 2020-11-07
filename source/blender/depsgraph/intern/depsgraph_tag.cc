@@ -73,8 +73,7 @@ namespace deg = blender::deg;
 /* *********************** */
 /* Update Tagging/Flushing */
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 namespace {
 
@@ -676,8 +675,7 @@ void graph_id_tag_update(
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
 
 const char *DEG_update_tag_as_string(IDRecalcFlag flag)
 {

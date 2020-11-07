@@ -25,8 +25,7 @@
 
 #include "DNA_sequence_types.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 SequenceBackup::SequenceBackup(const Depsgraph * /*depsgraph*/)
 {
@@ -56,5 +55,4 @@ bool SequenceBackup::isEmpty() const
   return (scene_sound == nullptr);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

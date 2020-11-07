@@ -21,9 +21,7 @@
 
 #include "GeomUtils.h"
 
-namespace Freestyle {
-
-namespace GeomUtils {
+namespace Freestyle::GeomUtils {
 
 // This internal procedure is defined below.
 bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n);
@@ -846,6 +844,4 @@ inline void fromCoordAToCoordB(const Vec3r &p, Vec3r &q, const real transform[4]
   }
 }
 
-}  // end of namespace GeomUtils
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::GeomUtils

@@ -120,8 +120,7 @@
 #include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_type.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* ***************** */
 /* Relations Builder */
@@ -2926,5 +2925,4 @@ void DepsgraphRelationBuilder::constraint_walk(bConstraint * /*con*/,
   data->builder->build_id(id);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

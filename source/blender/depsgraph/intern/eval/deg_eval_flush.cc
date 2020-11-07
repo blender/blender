@@ -69,8 +69,7 @@
 // catch usage of invalid state.
 #undef INVALIDATE_ON_FLUSH
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 enum {
   ID_STATE_NONE = 0,
@@ -410,5 +409,4 @@ void deg_graph_clear_tags(Depsgraph *graph)
   graph->time_source->tagged_for_update = false;
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

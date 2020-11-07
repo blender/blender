@@ -32,8 +32,7 @@
 
 #include "BKE_global.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 DepsgraphDebug::DepsgraphDebug()
     : flags(G.debug), is_ever_evaluated(false), graph_evaluation_start_time_(0)
@@ -98,5 +97,4 @@ string color_end()
   return string(TRUECOLOR_ANSI_COLOR_FINISH);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

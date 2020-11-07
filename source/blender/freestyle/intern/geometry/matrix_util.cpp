@@ -33,11 +33,7 @@
 
 #include "BLI_math.h"
 
-namespace Freestyle {
-
-namespace OGF {
-
-namespace MatrixUtil {
+namespace Freestyle::OGF::MatrixUtil {
 
 static const double EPS = 0.00001;
 static int MAX_ITER = 100;
@@ -252,8 +248,4 @@ void semi_definite_symmetric_eigen(const double *mat, int n, double *eigen_vec, 
 
 //_________________________________________________________
 
-}  // namespace MatrixUtil
-
-}  // namespace OGF
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::OGF::MatrixUtil

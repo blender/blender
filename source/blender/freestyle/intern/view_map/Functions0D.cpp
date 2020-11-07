@@ -26,9 +26,7 @@
 
 using namespace std;
 
-namespace Freestyle {
-
-namespace Functions0D {
+namespace Freestyle::Functions0D {
 
 // Internal function
 FEdge *getFEdge(Interface0D &it1, Interface0D &it2)
@@ -388,6 +386,4 @@ int GetOccludeeF0D::operator()(Interface0DIterator &iter)
   return 0;
 }
 
-}  // end of namespace Functions0D
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::Functions0D

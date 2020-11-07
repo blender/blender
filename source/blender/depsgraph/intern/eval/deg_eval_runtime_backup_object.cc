@@ -32,8 +32,7 @@
 #include "BKE_action.h"
 #include "BKE_object.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 ObjectRuntimeBackup::ObjectRuntimeBackup(const Depsgraph * /*depsgraph*/)
     : base_flag(0), base_local_view_bits(0)
@@ -180,5 +179,4 @@ void ObjectRuntimeBackup::restore_pose_channel_runtime_data(Object *object)
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

@@ -32,8 +32,7 @@
 
 #include "intern/depsgraph.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 namespace {
 
@@ -142,5 +141,4 @@ void AnimationBackup::restore_to_id(ID *id)
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

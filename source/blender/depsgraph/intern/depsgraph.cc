@@ -57,8 +57,7 @@
 
 namespace deg = blender::deg;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
     : time_source(nullptr),
@@ -263,8 +262,7 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
   return id_node->id_cow;
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
 
 /* **************** */
 /* Public Graph API */

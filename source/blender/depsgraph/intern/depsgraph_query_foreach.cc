@@ -44,8 +44,7 @@ namespace deg = blender::deg;
 
 /* ************************ DEG TRAVERSAL ********************* */
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 namespace {
 
 typedef deque<OperationNode *> TraversalQueue;
@@ -265,8 +264,7 @@ void deg_foreach_id(const Depsgraph *depsgraph, DEGForeachIDCallback callback, v
 }
 
 }  // namespace
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
 
 void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
                               const ID *id,

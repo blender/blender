@@ -28,8 +28,7 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 SceneBackup::SceneBackup(const Depsgraph *depsgraph) : sequencer_backup(depsgraph)
 {
@@ -86,5 +85,4 @@ void SceneBackup::restore_to_scene(Scene *scene)
   reset();
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

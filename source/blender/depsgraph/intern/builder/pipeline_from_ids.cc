@@ -25,8 +25,7 @@
 #include "intern/builder/deg_builder_relations.h"
 #include "intern/depsgraph.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 namespace {
 
@@ -146,5 +145,4 @@ void FromIDsBuilderPipeline::build_relations(DepsgraphRelationBuilder &relation_
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

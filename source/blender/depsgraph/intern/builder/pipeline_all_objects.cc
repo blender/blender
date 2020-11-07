@@ -25,8 +25,7 @@
 
 #include "DNA_layer_types.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 namespace {
 
@@ -73,5 +72,4 @@ unique_ptr<DepsgraphRelationBuilder> AllObjectsBuilderPipeline::construct_relati
   return std::make_unique<AllObjectsRelationBuilder>(bmain_, deg_graph_, &builder_cache_);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

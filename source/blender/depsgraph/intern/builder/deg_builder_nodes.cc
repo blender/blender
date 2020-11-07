@@ -120,8 +120,7 @@
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* ************ */
 /* Node Builder */
@@ -1930,5 +1929,4 @@ void DepsgraphNodeBuilder::constraint_walk(bConstraint * /*con*/,
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

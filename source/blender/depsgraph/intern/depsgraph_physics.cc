@@ -174,8 +174,7 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 
 /******************************** Internal API ********************************/
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
 {
@@ -245,5 +244,4 @@ void clear_physics_relations(Depsgraph *graph)
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

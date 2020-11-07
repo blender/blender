@@ -30,8 +30,7 @@
 #include "bmesh_boolean.h"
 #include "bmesh_edgesplit.h"
 
-namespace blender {
-namespace meshintersect {
+namespace blender::meshintersect {
 
 #ifdef WITH_GMP
 
@@ -374,8 +373,7 @@ static bool bmesh_boolean(BMesh *bm,
 
 #endif  // WITH_GMP
 
-}  // namespace meshintersect
-}  // namespace blender
+}  // namespace blender::meshintersect
 
 extern "C" {
 /**

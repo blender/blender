@@ -41,8 +41,7 @@
 #include "intern/node/deg_node_factory.h"
 #include "intern/node/deg_node_time.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 const char *linkedStateAsString(eDepsNode_LinkedState_Type linked_state)
 {
@@ -213,5 +212,4 @@ IDComponentsMask IDNode::get_visible_components_mask() const
   return result;
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

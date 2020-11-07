@@ -32,8 +32,7 @@
 
 #include "SEQ_sequencer.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 SequencerBackup::SequencerBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph)
 {
@@ -74,5 +73,4 @@ void SequencerBackup::restore_to_scene(Scene *scene)
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
