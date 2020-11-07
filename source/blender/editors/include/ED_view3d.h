@@ -459,6 +459,8 @@ void ED_view3d_clipping_calc(struct BoundBox *bb,
                              const struct ARegion *region,
                              const struct Object *ob,
                              const struct rcti *rect);
+bool ED_view3d_clipping_clamp_minmax(const struct RegionView3D *rv3d, float min[3], float max[3]);
+
 void ED_view3d_clipping_local(struct RegionView3D *rv3d, const float mat[4][4]);
 bool ED_view3d_clipping_test(const struct RegionView3D *rv3d,
                              const float co[3],
