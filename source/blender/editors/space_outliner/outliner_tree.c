@@ -2322,9 +2322,11 @@ void outliner_build_tree(Main *mainvar,
 
   space_outliner->runtime->tree_view = outliner_tree_view_create(space_outliner->outlinevis,
                                                                  space_outliner);
-  TreeSourceData source_data = {.bmain = mainvar, .scene = scene, .view_layer = view_layer};
-  space_outliner->tree = outliner_tree_view_build_tree(space_outliner->runtime->tree_view,
-                                                       &source_data);
+  if (space_outliner->runtime->tree_view) {
+    TreeSourceData source_data = {.bmain = mainvar, .scene = scene, .view_layer = view_layer};
+    space_outliner->tree = outliner_tree_view_build_tree(space_outliner->runtime->tree_view,
+                                                         &source_data);
+  }
 
   if (!BLI_listbase_is_empty(&space_outliner->tree)) {
     /* Skip. */
