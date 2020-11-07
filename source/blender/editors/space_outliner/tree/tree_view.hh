@@ -25,7 +25,6 @@
 
 #include "DNA_space_types.h"
 
-struct bContext;
 struct ListBase;
 struct SpaceOutliner;
 struct TreeElement;
@@ -34,6 +33,7 @@ struct TreeSourceData;
 #ifdef __cplusplus
 
 namespace blender {
+namespace ed {
 namespace outliner {
 
 using Tree = ListBase;
@@ -42,6 +42,8 @@ using Tree = ListBase;
 /* Tree-View Interface */
 
 /**
+ * \brief Base Class For Tree-Views
+ *
  * Abstract base class defining the interface for tree-view variants. For each Outliner display
  * type (e.g View Layer, Scenes, Blender File), a derived class implements a #buildTree() function,
  * that based on Blender data (#TreeSourceData), builds a custom tree of whatever data it wants to
@@ -68,6 +70,9 @@ class AbstractTreeView {
 /* -------------------------------------------------------------------- */
 /* View Layer Tree-View */
 
+/**
+ * \brief Tree-View for the View Layer display mode.
+ */
 class TreeViewViewLayer final : public AbstractTreeView {
   ViewLayer *_view_layer = nullptr;
   bool _show_objects = true;
@@ -85,6 +90,7 @@ class TreeViewViewLayer final : public AbstractTreeView {
 };
 
 }  // namespace outliner
+}  // namespace ed
 }  // namespace blender
 
 extern "C" {

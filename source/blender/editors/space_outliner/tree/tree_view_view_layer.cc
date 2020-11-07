@@ -35,6 +35,7 @@
 #include "tree_view.hh"
 
 namespace blender {
+namespace ed {
 namespace outliner {
 
 /* Convenience/readability. */
@@ -283,4 +284,5 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
 /** \} */
 
 }  // namespace outliner
+}  // namespace ed
 }  // namespace blender

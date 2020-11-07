@@ -24,9 +24,9 @@
 
 #include "tree_view.hh"
 
-namespace outliner = blender::outliner;
+namespace outliner = blender::ed::outliner;
 /* Convenience. */
-using blender::outliner::AbstractTreeView;
+using outliner::AbstractTreeView;
 
 TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner)
 {
