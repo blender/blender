@@ -34,7 +34,10 @@ TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode, SpaceOutliner *spa
 
   switch (mode) {
     case SO_SCENES:
+      break;
     case SO_LIBRARIES:
+      tree_view = new outliner::TreeViewLibraries(*space_outliner);
+      break;
     case SO_SEQUENCE:
     case SO_DATA_API:
     case SO_ID_ORPHANS:

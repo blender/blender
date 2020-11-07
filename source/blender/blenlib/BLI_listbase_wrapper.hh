@@ -56,7 +56,8 @@ template<typename T> class ListBaseWrapper {
 
     Iterator &operator++()
     {
-      current_ = current_->next;
+      /* Some types store next/prev using `void *`, so cast is necessary. */
+      current_ = static_cast<T *>(current_->next);
       return *this;
     }
 

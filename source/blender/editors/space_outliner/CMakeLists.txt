@@ -44,7 +44,9 @@ set(SRC
   outliner_tree.c
   outliner_utils.c
   space_outliner.c
+  tree/common.cc
   tree/tree_view.cc
+  tree/tree_view_libraries.cc
   tree/tree_view_view_layer.cc
 
   outliner_intern.h

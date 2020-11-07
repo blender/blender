@@ -69,9 +69,9 @@ TreeViewViewLayer::TreeViewViewLayer(SpaceOutliner &space_outliner)
 {
 }
 
-Tree TreeViewViewLayer::buildTree(const TreeSourceData &source_data)
+ListBase TreeViewViewLayer::buildTree(const TreeSourceData &source_data)
 {
-  Tree tree = {nullptr};
+  ListBase tree = {nullptr};
 
   _view_layer = source_data.view_layer;
   _show_objects = !(_space_outliner.filter & SO_FILTER_NO_OBJECT);

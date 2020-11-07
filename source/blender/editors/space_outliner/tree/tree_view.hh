@@ -36,8 +36,6 @@ namespace blender {
 namespace ed {
 namespace outliner {
 
-using Tree = ListBase;
-
 /* -------------------------------------------------------------------- */
 /* Tree-View Interface */
 
@@ -60,7 +58,7 @@ class AbstractTreeView {
    * Build a tree for this view with the Blender context data given in \a source_data and the view
    * settings in \a space_outliner.
    */
-  virtual Tree buildTree(const TreeSourceData &source_data) = 0;
+  virtual ListBase buildTree(const TreeSourceData &source_data) = 0;
 
  protected:
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
@@ -80,13 +78,28 @@ class TreeViewViewLayer final : public AbstractTreeView {
  public:
   TreeViewViewLayer(SpaceOutliner &space_outliner);
 
-  Tree buildTree(const TreeSourceData &source_data) override;
+  ListBase buildTree(const TreeSourceData &source_data) override;
 
  private:
   void add_view_layer(ListBase &, TreeElement &);
   void add_layer_collections_recursive(ListBase &, ListBase &, TreeElement &);
   void add_layer_collection_objects(ListBase &, LayerCollection &, TreeElement &);
   void add_layer_collection_objects_children(TreeElement &);
+};
+
+/* -------------------------------------------------------------------- */
+/* Library Tree-View */
+
+/**
+ * \brief Tree-View for the Libraries display mode.
+ */
+class TreeViewLibraries final : public AbstractTreeView {
+ public:
+  TreeViewLibraries(SpaceOutliner &space_outliner);
+
+  ListBase buildTree(const TreeSourceData &source_data) override;
+
+ private:
 };
 
 }  // namespace outliner
@@ -125,6 +138,8 @@ struct TreeElement *outliner_add_element(struct SpaceOutliner *space_outliner,
                                          short type,
                                          short index);
 void outliner_make_object_parent_hierarchy(ListBase *lb);
+
+const char *outliner_idcode_to_plural(short idcode);
 
 #ifdef __cplusplus
 }
