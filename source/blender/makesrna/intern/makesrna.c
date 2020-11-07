@@ -256,10 +256,10 @@ static const char *rna_safe_id(const char *id)
   if (STREQ(id, "operator")) {
     return "operator_value";
   }
-  else if (STREQ(id, "new")) {
+  if (STREQ(id, "new")) {
     return "create";
   }
-  else if (STREQ(id, "co_return")) {
+  if (STREQ(id, "co_return")) {
     /* MSVC2015, C++ uses for coroutines */
     return "coord_return";
   }

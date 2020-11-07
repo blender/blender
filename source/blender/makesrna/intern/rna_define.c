@@ -513,7 +513,7 @@ static int rna_find_sdna_member(SDNA *sdna,
 
       return 1;
     }
-    else if (cmp == 3) {
+    if (cmp == 3) {
       smember->type = "";
       smember->name = dnaname;
       smember->offset = *offset;
@@ -2199,15 +2199,13 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop,
       dp->dnaoffset = smember.offset;
       return dp;
     }
-    else {
-      CLOG_ERROR(&LOG,
-                 "\"%s.%s\" (identifier \"%s\") not found. Struct must be in DNA.",
-                 structname,
-                 propname,
-                 prop->identifier);
-      DefRNA.error = true;
-      return NULL;
-    }
+    CLOG_ERROR(&LOG,
+               "\"%s.%s\" (identifier \"%s\") not found. Struct must be in DNA.",
+               structname,
+               propname,
+               prop->identifier);
+    DefRNA.error = true;
+    return NULL;
   }
 
   if (smember.arraylength > 1) {
@@ -4363,9 +4361,8 @@ int rna_parameter_size(PropertyRNA *parm)
           }
           return sizeof(PointerRNA *);
         }
-        else {
-          return sizeof(void *);
-        }
+        return sizeof(void *);
+
 #endif
       }
       case PROP_COLLECTION:

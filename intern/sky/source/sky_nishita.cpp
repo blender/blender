@@ -112,10 +112,12 @@ static float density_mie(float height)
 static float density_ozone(float height)
 {
   float den = 0.0f;
-  if (height >= 10000.0f && height < 25000.0f)
+  if (height >= 10000.0f && height < 25000.0f) {
     den = 1.0f / 15000.0f * height - 2.0f / 3.0f;
-  else if (height >= 25000 && height < 40000)
+  }
+  else if (height >= 25000 && height < 40000) {
     den = -(1.0f / 15000.0f * height - 8.0f / 3.0f);
+  }
   return den;
 }
 
@@ -133,15 +135,16 @@ static float phase_mie(float mu)
 /* Intersection helpers */
 static bool surface_intersection(float3 pos, float3 dir)
 {
-  if (dir.z >= 0)
+  if (dir.z >= 0) {
     return false;
+  }
   float b = -2.0f * dot(dir, -pos);
   float c = len_squared(pos) - sqr(earth_radius);
   float t = b * b - 4.0f * c;
-  if (t >= 0.0f)
+  if (t >= 0.0f) {
     return true;
-  else
-    return false;
+  }
+  return false;
 }
 
 static float3 atmosphere_intersection(float3 pos, float3 dir)

@@ -211,7 +211,7 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
   if (ptr_a == NULL || ptr_b == NULL) {
     return false;
   }
-  else if (ptr_a->type != ptr_b->type) {
+  if (ptr_a->type != ptr_b->type) {
     return false;
   }
 
