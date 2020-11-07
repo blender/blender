@@ -859,15 +859,48 @@ typedef struct {
   int cd_face_node_offset;
 } EdgeQueueContext;
 
-static float calc_weighted_edge(EdgeQueueContext *eq_ctx, BMEdge *e)
+BLI_INLINE float calc_weighted_edge_split(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
 {
-  float l = BM_edge_calc_length_squared(e);
+#if 0
+  float l = len_squared_v3v3(v1->co, v2->co);
   float n;
 
-  n = (float)(BM_vert_edge_count(e->v1) + BM_vert_edge_count(e->v2)) * 0.5f;
+  n = (float)(BM_vert_edge_count(v1) + BM_vert_edge_count(v2)) * 0.5f;
+  n = MAX2(n - 6.0f, 1.0f);
+
+  return l * (n);
+#elif 1 //penalize 4-valence verts
+  float l = len_squared_v3v3(v1->co, v2->co);
+  if (BM_vert_edge_count(v1) == 4 || BM_vert_edge_count(v2) == 4) {
+    l *= 0.25f;
+  }
+
+  return l;
+#else
+  return len_squared_v3v3(v1->co, v2->co);
+#endif
+}
+
+BLI_INLINE float calc_weighted_edge_collapse(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
+{
+#if 0
+  float l = len_squared_v3v3(v1->co, v2->co);
+  float n;
+
+  n = (float)(BM_vert_edge_count(v1) + BM_vert_edge_count(v2)) * 0.5f;
   n = MAX2(n - 5.0f, 1.0f);
 
-  return l * powf(n, 5.0f);
+  return l * (n*n*4.0f);
+#elif 1  // penalize 4-valence verts
+  float l = len_squared_v3v3(v1->co, v2->co);
+  if (BM_vert_edge_count(v1) == 4 || BM_vert_edge_count(v2) == 4) {
+    l *= 0.25f;
+  }
+
+  return l;
+#else
+  return len_squared_v3v3(v1->co, v2->co);
+#endif
 }
 
 /* only tag'd edges are in the queue */
@@ -1119,7 +1152,7 @@ static void short_edge_queue_edge_add(EdgeQueueContext *eq_ctx, BMEdge *e)
   if (EDGE_QUEUE_TEST(e) == false)
 #endif
   {
-    const float len_sq = calc_weighted_edge(eq_ctx, e);
+    const float len_sq = calc_weighted_edge_collapse(eq_ctx, e->v1, e->v2);
     if (len_sq < eq_ctx->q->limit_len_squared) {
       edge_queue_insert(eq_ctx, e, len_sq);
     }
@@ -1217,7 +1250,7 @@ static void long_edge_queue_edge_add_recursive_2(
     do {
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
       for (int i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
-        float len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
+        float len_sq_other = calc_weighted_edge_split(tdata->eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2);
         if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
           //                  edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
           long_edge_queue_edge_add_recursive_2(
@@ -1318,13 +1351,13 @@ void short_edge_queue_task_cb(void *__restrict userdata,
       BMLoop *l_iter = l_first;
       do {
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-        const float len_sq = calc_weighted_edge(eq_ctx, l_iter->e);
+        const float len_sq = calc_weighted_edge_collapse(eq_ctx, l_iter->e->v1, l_iter->e->v2);
         if (len_sq < eq_ctx->q->limit_len_squared) {
           long_edge_queue_edge_add_recursive_2(
               tdata, l_iter->radial_next, l_iter, len_sq, eq_ctx->q->limit_len);
         }
 #else
-        const float len_sq = calc_weighted_edge(eq_ctx, l_iter->e);
+        const float len_sq = calc_weighted_edge_split(eq_ctx, l_iter->e->v1, l_iter->e->v2);
         if (len_sq > eq_ctx->q->limit_len_squared) {
           edge_thread_data_insert(tdata, l_iter->e);
         }
@@ -1427,7 +1460,7 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
     for (int j = 0; j < td->totedge; j++) {
       BMEdge *e = edges[j];
       e->head.hflag &= ~BM_ELEM_TAG;
-      edge_queue_insert(eq_ctx, e, -BM_edge_calc_length_squared(e));
+      edge_queue_insert(eq_ctx, e, -calc_weighted_edge_split(eq_ctx, e->v1, e->v2));
     }
 
     if (td->edges) {
@@ -1526,7 +1559,7 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
     for (int j = 0; j < td->totedge; j++) {
       BMEdge *e = edges[j];
       e->head.hflag &= ~BM_ELEM_TAG;
-      edge_queue_insert(eq_ctx, e, calc_weighted_edge(eq_ctx, e));
+      edge_queue_insert(eq_ctx, e, calc_weighted_edge_collapse(eq_ctx, e->v1, e->v2));
     }
 
     if (td->edges) {
@@ -1562,7 +1595,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 
 #ifdef DYNTOPO_CD_INTERP
   // transfer edge flags
-  
+
   BMEdge *e1 = BM_edge_create(pbvh->bm, e->v1, v_new, e, BM_CREATE_NOP);
   BMEdge *e2 = BM_edge_create(pbvh->bm, v_new, e->v2, e, BM_CREATE_NOP);
 
@@ -1790,7 +1823,7 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
       continue;
     }
 #else
-    BLI_assert(len_squared_v3v3(v1->co, v2->co) > eq_ctx->q->limit_len_squared);
+    BLI_assert(calc_weighted_edge_split(eq_ctx, v1->co, v2->co) > eq_ctx->q->limit_len_squared);
 #endif
 
     /* Check that the edge's vertices are still in the PBVH. It's
@@ -2003,13 +2036,13 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       int ni = n - pbvh->nodes;
       bm_edges_from_tri(pbvh->bm, v_tri, e_tri);
       BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f);
-      
+
 #ifdef DYNTOPO_CD_INTERP
       BMLoop *l2 = f2->l_first;
 
       // sync edge flags
       l2->e->head.hflag |= (l->e->head.hflag & ~BM_ELEM_HIDDEN);
-      //l2->prev->e->head.hflag |= (l->prev->e->head.hflag & ~BM_ELEM_HIDDEN);
+      // l2->prev->e->head.hflag |= (l->prev->e->head.hflag & ~BM_ELEM_HIDDEN);
 
       pbvh_bmesh_copy_facedata(pbvh->bm, f2, f);
 
@@ -2156,6 +2189,11 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
   double time = PIL_check_seconds_timer();
   RNG *rng = BLI_rng_new(time * 1000.0f);
 
+//#define TEST_COLLAPSE
+#ifdef TEST_COLLAPSE
+  int _i = 0;
+#endif
+
   while (!BLI_heapsimple_is_empty(eq_ctx->q->heap)) {
     if (PIL_check_seconds_timer() - time > DYNTOPO_TIME_LIMIT) {
       break;
@@ -2192,7 +2230,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
     EDGE_QUEUE_DISABLE(e);
 #endif
 
-    if (len_squared_v3v3(v1->co, v2->co) >= min_len_squared) {
+    if (calc_weighted_edge_collapse(eq_ctx, v1, v2) >= min_len_squared) {
       continue;
     }
 
@@ -2208,6 +2246,12 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
     any_collapsed = true;
 
     pbvh_bmesh_collapse_edge(pbvh, e, v1, v2, deleted_verts, deleted_faces, eq_ctx);
+
+#ifdef TEST_COLLAPSE
+    if (_i++ > 10) {
+      break;
+    }
+#endif
   }
 
 #if !defined(DYNTOPO_USE_HEAP) && defined(USE_EDGEQUEUE_TAG)
@@ -3599,6 +3643,160 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_faceset_offset = CustomData_get_offset(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS);
 }
 
-static void scan_edge_collapse(PBVHNode **nodes)
+static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
 {
+  BMFace **faces = NULL;
+  BMEdge **newedges = NULL;
+  BMVert **newverts = NULL;
+  BMVert **fmap = NULL;  // newverts that maps to faces
+  int *emap = NULL;
+
+  BLI_array_declare(faces);
+  BLI_array_declare(newedges);
+  BLI_array_declare(newverts);
+  BLI_array_declare(fmap);
+  BLI_array_declare(emap);
+
+  // remove e from radial list of e->v2
+  for (int i = 0; i < totedge; i++) {
+    BMEdge *e = edges[i];
+
+    BMDiskLink *prev;
+    BMDiskLink *next;
+
+    if (e->v2_disk_link.prev->v1 == e->v2) {
+      prev = &e->v2_disk_link.prev->v1_disk_link;
+    }
+    else {
+      prev = &e->v2_disk_link.prev->v2_disk_link;
+    }
+
+    if (e->v2_disk_link.next->v1 == e->v2) {
+      next = &e->v2_disk_link.next->v1_disk_link;
+    }
+    else {
+      next = &e->v2_disk_link.next->v2_disk_link;
+    }
+
+    prev->next = e->v2_disk_link.next;
+    next->prev = e->v2_disk_link.prev;
+  }
+
+  for (int i = 0; i < totedge; i++) {
+    BMEdge *e = edges[i];
+
+    BMVert *v2 = BLI_mempool_alloc(bm->vpool);
+    memset(v2, 0, sizeof(*v2));
+    v2->head.data = BLI_mempool_alloc(bm->vdata.pool);
+
+    BLI_array_append(newverts, v2);
+
+    BMEdge *e2 = BLI_mempool_alloc(bm->epool);
+    BLI_array_append(newedges, e2);
+
+    memset(e2, 0, sizeof(*e2));
+    if (bm->edata.pool) {
+      e2->head.data = BLI_mempool_alloc(bm->edata.pool);
+    }
+
+    BMLoop *l = e->l;
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      BLI_array_append(faces, l->f);
+      BMFace *f2 = BLI_mempool_alloc(bm->fpool);
+
+      BLI_array_append(faces, l->f);
+      BLI_array_append(fmap, v2);
+      BLI_array_append(emap, i);
+
+      BLI_array_append(faces, f2);
+      BLI_array_append(fmap, v2);
+      BLI_array_append(emap, i);
+
+      memset(f2, 0, sizeof(*f2));
+      f2->head.data = BLI_mempool_alloc(bm->ldata.pool);
+
+      BMLoop *prev = NULL;
+      BMLoop *l2;
+
+      for (int j = 0; j < 3; j++) {
+        l2 = BLI_mempool_alloc(bm->lpool);
+        memset(l2, 0, sizeof(*l2));
+        l2->head.data = BLI_mempool_alloc(bm->ldata.pool);
+
+        l2->prev = prev;
+
+        if (prev) {
+          prev->next = l2;
+        }
+        else {
+          f2->l_first = l2;
+        }
+      }
+
+      f2->l_first->prev = l2;
+      l2->next = f2->l_first;
+
+      BLI_array_append(faces, f2);
+      l = l->radial_next;
+    } while (l != e->l);
+  }
+
+  for (int i = 0; i < BLI_array_len(newedges); i++) {
+    BMEdge *e1 = edges[i];
+    BMEdge *e2 = newedges[i];
+    BMVert *v = newverts[i];
+
+    add_v3_v3v3(v->co, e1->v1->co, e1->v2->co);
+    mul_v3_fl(v->co, 0.5f);
+
+    e2->v1 = v;
+    e2->v2 = e1->v2;
+    e1->v2 = v;
+
+    v->e = e1;
+
+    e1->v2_disk_link.next = e1->v2_disk_link.prev = e2;
+    e2->v1_disk_link.next = e2->v1_disk_link.prev = e1;
+  }
+
+  for (int i = 0; i < BLI_array_len(faces); i += 2) {
+    BMFace *f1 = faces[i], *f2 = faces[i + 1];
+    BMEdge *e1 = edges[emap[i]];
+    BMEdge *e2 = newedges[emap[i]];
+    BMVert *nv = fmap[i];
+
+    // make sure first loop points to e1->v1
+    BMLoop *l = f1->l_first;
+    do {
+      if (l->v == e1->v1) {
+        break;
+      }
+      l = l->next;
+    } while (l != f1->l_first);
+
+    f1->l_first = l;
+
+    BMLoop *l2 = f2->l_first;
+
+    l2->f = l2->next->f = l2->prev->f = f2;
+    l2->v = nv;
+    l2->next->v = l->next->v;
+    l2->prev->v = l->prev->v;
+    l2->e = e2;
+    l2->next->e = l->next->e;
+    l2->prev->e = l->prev->e;
+
+    l->next->v = nv;
+    l->next->e = e2;
+  }
+
+  BLI_array_free(newedges);
+  BLI_array_free(newverts);
+  BLI_array_free(faces);
+  BLI_array_free(fmap);
 }
