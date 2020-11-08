@@ -26,6 +26,7 @@
 #include "DNA_space_types.h"
 
 struct ListBase;
+struct Main;
 struct SpaceOutliner;
 struct TreeElement;
 struct TreeSourceData;
@@ -100,6 +101,9 @@ class TreeViewLibraries final : public AbstractTreeView {
   ListBase buildTree(const TreeSourceData &source_data) override;
 
  private:
+  TreeElement *add_library_contents(Main &, ListBase &, Library *) const;
+  bool library_id_filter_poll(Library *lib, ID *id) const;
+  short id_filter_get() const;
 };
 
 }  // namespace outliner
