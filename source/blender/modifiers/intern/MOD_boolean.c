@@ -380,7 +380,8 @@ static void BMD_mesh_intersection(BMesh *bm,
 #endif
 
   if (use_exact) {
-    BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, bmd->operation);
+    BM_mesh_boolean(
+        bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, false, bmd->operation);
   }
   else {
     BM_mesh_intersect(bm,
@@ -543,7 +544,7 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
   BM_mesh_boolean(
-      bm, looptris, tottri, bm_face_isect_nary, shape, num_shapes, true, bmd->operation);
+      bm, looptris, tottri, bm_face_isect_nary, shape, num_shapes, true, false, bmd->operation);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
   BM_mesh_free(bm);

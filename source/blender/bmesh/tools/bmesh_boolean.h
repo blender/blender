@@ -31,6 +31,7 @@ bool BM_mesh_boolean(BMesh *bm,
                      void *user_data,
                      const int nshapes,
                      const bool use_self,
+                     const bool keep_hidden,
                      const int boolean_mode);
 
 bool BM_mesh_boolean_knife(BMesh *bm,
@@ -40,7 +41,8 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                            void *user_data,
                            const int nshapes,
                            const bool use_self,
-                           const bool use_separate_all);
+                           const bool use_separate_all,
+                           const bool keep_hidden);
 
 #ifdef __cplusplus
 }
