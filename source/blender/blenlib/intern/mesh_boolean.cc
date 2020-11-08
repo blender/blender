@@ -428,7 +428,9 @@ class Cell {
                                         BoolOpType bool_optype)
   {
     std::copy(from_cell.winding().begin(), from_cell.winding().end(), winding_.begin());
-    winding_[shape] += delta;
+    if (shape >= 0) {
+      winding_[shape] += delta;
+    }
     winding_assigned_ = true;
     in_output_volume_ = apply_bool_op(bool_optype, winding_);
   }
