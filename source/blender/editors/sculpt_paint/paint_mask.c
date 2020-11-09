@@ -400,10 +400,10 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
   ED_view3d_ob_project_mat_get(
       sgcontext->vc.rv3d, sgcontext->vc.obact, sgcontext->lasso.projviewobjmat);
   BLI_lasso_boundbox(&sgcontext->lasso.boundbox, mcoords, mcoords_len);
-  sgcontext->lasso.width = sgcontext->lasso.boundbox.xmax - sgcontext->lasso.boundbox.xmin;
-  sgcontext->lasso.mask_px = BLI_BITMAP_NEW(
-      sgcontext->lasso.width * (sgcontext->lasso.boundbox.ymax - sgcontext->lasso.boundbox.ymin),
-      __func__);
+  const int lasso_width = 1 + sgcontext->lasso.boundbox.xmax - sgcontext->lasso.boundbox.xmin;
+  const int lasso_height = 1 + sgcontext->lasso.boundbox.ymax - sgcontext->lasso.boundbox.ymin;
+  sgcontext->lasso.width = lasso_width;
+  sgcontext->lasso.mask_px = BLI_BITMAP_NEW(lasso_width * lasso_height, __func__);
 
   BLI_bitmap_draw_2d_poly_v2i_n(sgcontext->lasso.boundbox.xmin,
                                 sgcontext->lasso.boundbox.ymin,
