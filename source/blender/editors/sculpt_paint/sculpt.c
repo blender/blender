@@ -2828,9 +2828,12 @@ void SCULPT_tilt_apply_to_normal(float r_normal[3], StrokeCache *cache, const fl
   }
   const float rot_max = M_PI_2 * tilt_strength * SCULPT_TILT_SENSITIVITY;
   mul_v3_mat3_m4v3(r_normal, cache->vc->obact->obmat, r_normal);
-  rotate_v3_v3v3fl(r_normal, r_normal, cache->vc->rv3d->viewinv[0], cache->y_tilt * rot_max);
-  rotate_v3_v3v3fl(r_normal, r_normal, cache->vc->rv3d->viewinv[1], cache->x_tilt * rot_max);
-  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->imat, r_normal);
+  float normal_tilt_y[3];
+  rotate_v3_v3v3fl(normal_tilt_y, r_normal, cache->vc->rv3d->viewinv[0], cache->y_tilt * rot_max);
+  float normal_tilt_xy[3];
+  rotate_v3_v3v3fl(
+      normal_tilt_xy, normal_tilt_y, cache->vc->rv3d->viewinv[1], cache->x_tilt * rot_max);
+  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->imat, normal_tilt_xy);
   normalize_v3(r_normal);
 }
 
