@@ -210,7 +210,7 @@ set(SRC
   intern/pbvh.c
   intern/pbvh_bmesh.c
   intern/pointcache.c
-  intern/pointcloud.c
+  intern/pointcloud.cc
   intern/report.c
   intern/rigidbody.c
   intern/scene.c
