@@ -442,7 +442,8 @@ ccl_device float4 patch_eval_uchar4(KernelGlobals *kg,
     *dv = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
   for (int i = 0; i < num_control; i++) {
-    float4 v = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, offset + indices[i]));
+    float4 v = color_srgb_to_linear_v4(
+        color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, offset + indices[i])));
 
     val += v * weights[i];
     if (du)
