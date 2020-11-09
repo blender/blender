@@ -492,7 +492,7 @@ bool BM_mesh_boolean_knife(BMesh *UNUSED(bm),
                            const int UNUSED(nshapes),
                            const bool UNUSED(use_self),
                            const bool UNUSED(use_separate_all),
-                           const bool UNUSED(keep_boolean))
+                           const bool UNUSED(keep_hidden))
 {
   UNUSED_VARS(looptris, test_fn);
   return false;
