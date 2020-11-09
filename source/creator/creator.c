@@ -72,7 +72,7 @@
 #include "IMB_imbuf.h" /* For #IMB_init. */
 
 #include "RE_engine.h"
-#include "RE_render_ext.h"
+#include "RE_texture.h"
 
 #include "ED_datafiles.h"
 

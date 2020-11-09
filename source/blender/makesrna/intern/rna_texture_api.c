@@ -36,7 +36,7 @@
 #  include "IMB_imbuf.h"
 #  include "IMB_imbuf_types.h"
 #  include "RE_pipeline.h"
-#  include "RE_shader_ext.h"
+#  include "RE_texture.h"
 
 static void texture_evaluate(struct Tex *tex, float value[3], float r_color[4])
 {

@@ -67,7 +67,7 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "BLO_read_write.h"
 

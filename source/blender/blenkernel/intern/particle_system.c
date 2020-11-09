@@ -83,7 +83,7 @@
 
 #include "PIL_time.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 /* FLUID sim particle import */
 #ifdef WITH_FLUID

@@ -48,7 +48,7 @@
 
 #include "RNA_access.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 static void texture_get_from_context(const bContext *C,
                                      bNodeTreeType *UNUSED(treetype),

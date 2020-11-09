@@ -58,7 +58,7 @@
 #include "DEG_depsgraph.h"
 
 #include "RE_pipeline.h"
-#include "RE_render_ext.h"
+#include "RE_texture.h"
 
 #include "SEQ_sequencer.h"
 

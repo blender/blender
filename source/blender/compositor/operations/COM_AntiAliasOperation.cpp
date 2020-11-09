@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "RE_render_ext.h"
+#include "RE_texture.h"
 
 /* An implementation of the Scale3X edge-extrapolation algorithm.
  *

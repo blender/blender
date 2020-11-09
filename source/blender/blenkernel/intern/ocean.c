@@ -47,7 +47,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "RE_render_ext.h"
+#include "RE_texture.h"
 
 #include "BLI_hash.h"
 

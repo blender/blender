@@ -57,7 +57,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "MOD_ui_common.h"
 #include "MOD_util.h"

@@ -56,8 +56,7 @@
 #include "render_types.h"
 #include "texture_common.h"
 
-#include "RE_render_ext.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 static ThreadMutex sample_mutex = PTHREAD_MUTEX_INITIALIZER;
 

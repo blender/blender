@@ -42,8 +42,8 @@ set(INC
 
 
 set(SRC
-  intern/bake_api.c
-  intern/external_engine.c
+  intern/bake.c
+  intern/engine.c
   intern/initrender.c
   intern/multires_bake.c
   intern/pipeline.c
@@ -57,8 +57,7 @@ set(SRC
   RE_engine.h
   RE_multires_bake.h
   RE_pipeline.h
-  RE_render_ext.h
-  RE_shader_ext.h
+  RE_texture.h
 
   intern/initrender.h
   intern/render_result.h

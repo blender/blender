@@ -19,7 +19,7 @@
 
 #include "../node_shader_util.h"
 
-#include "RE_render_ext.h"
+#include "RE_texture.h"
 
 /* **************** OUTPUT ******************** */
 

@@ -86,7 +86,7 @@
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

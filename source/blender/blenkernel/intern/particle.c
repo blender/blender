@@ -83,7 +83,7 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RE_render_ext.h"
+#include "RE_texture.h"
 
 #include "BLO_read_write.h"
 

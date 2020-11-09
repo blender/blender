@@ -50,7 +50,7 @@
 
 #include "GPU_material.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "NOD_common.h"
 

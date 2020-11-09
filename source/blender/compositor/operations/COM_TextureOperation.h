@@ -24,8 +24,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RE_pipeline.h"
-#include "RE_render_ext.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 /**
  * Base class for all renderlayeroperations

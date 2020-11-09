@@ -50,7 +50,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "RE_render_ext.h" /* RE_texture_evaluate */
+#include "RE_texture.h" /* RE_texture_evaluate */
 
 #include "BLO_read_write.h"
 

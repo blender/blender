@@ -45,7 +45,7 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "RNA_access.h"
 

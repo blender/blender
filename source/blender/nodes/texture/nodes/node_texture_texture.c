@@ -24,7 +24,7 @@
 #include "NOD_texture.h"
 #include "node_texture_util.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color1"), 1.0f, 1.0f, 1.0f, 1.0f},

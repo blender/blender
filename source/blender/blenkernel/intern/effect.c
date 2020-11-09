@@ -68,8 +68,7 @@
 #include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RE_render_ext.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 EffectorWeights *BKE_effector_add_weights(Collection *collection)
 {
