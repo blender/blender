@@ -268,6 +268,8 @@ PyTypeObject UnaryFunction1DDouble_Type = {
     sizeof(BPy_UnaryFunction1DDouble),                         /* tp_basicsize */
     0,                                                         /* tp_itemsize */
     (destructor)UnaryFunction1DDouble___dealloc__,             /* tp_dealloc */
+    /* Incompatible with Python3.8+ (deprecated function).
+     * NOLINTNEXTLINE: modernize-use-nullptr. */
     0,                                                         /* tp_print */
     nullptr,                                                   /* tp_getattr */
     nullptr,                                                   /* tp_setattr */

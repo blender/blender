@@ -164,6 +164,8 @@ PyTypeObject ViewVertex_Type = {
     sizeof(BPy_ViewVertex),                         /* tp_basicsize */
     0,                                              /* tp_itemsize */
     nullptr,                                        /* tp_dealloc */
+    /* Incompatible with Python3.8+ (deprecated function).
+     * NOLINTNEXTLINE: modernize-use-nullptr. */
     0,                                              /* tp_print */
     nullptr,                                        /* tp_getattr */
     nullptr,                                        /* tp_setattr */
