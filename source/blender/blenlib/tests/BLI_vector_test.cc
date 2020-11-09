@@ -456,10 +456,10 @@ TEST(vector, AppendNTimes)
 TEST(vector, UniquePtrValue)
 {
   Vector<std::unique_ptr<int>> vec;
-  vec.append(std::unique_ptr<int>(std::make_unique<int>()));
-  vec.append(std::unique_ptr<int>(std::make_unique<int>()));
-  vec.append(std::unique_ptr<int>(std::make_unique<int>()));
-  vec.append(std::unique_ptr<int>(std::make_unique<int>()));
+  vec.append(std::make_unique<int>());
+  vec.append(std::make_unique<int>());
+  vec.append(std::make_unique<int>());
+  vec.append(std::make_unique<int>());
   EXPECT_EQ(vec.size(), 4);
 
   std::unique_ptr<int> &a = vec.last();

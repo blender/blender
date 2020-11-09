@@ -24,6 +24,7 @@
 #  include <algorithm>
 #  include <fstream>
 #  include <iostream>
+#  include <memory>
 
 #  include "BLI_allocator.hh"
 #  include "BLI_array.hh"

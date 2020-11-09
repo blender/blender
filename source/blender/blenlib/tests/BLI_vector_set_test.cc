@@ -142,9 +142,9 @@ TEST(vector_set, AddMultipleTimes)
 TEST(vector_set, UniquePtrValue)
 {
   VectorSet<std::unique_ptr<int>> set;
-  set.add_new(std::unique_ptr<int>(std::make_unique<int>()));
-  set.add(std::unique_ptr<int>(std::make_unique<int>()));
-  set.index_of_try(std::unique_ptr<int>(std::make_unique<int>()));
+  set.add_new(std::make_unique<int>());
+  set.add(std::make_unique<int>());
+  set.index_of_try(std::make_unique<int>());
   std::unique_ptr<int> value = set.pop();
   UNUSED_VARS(value);
 }
