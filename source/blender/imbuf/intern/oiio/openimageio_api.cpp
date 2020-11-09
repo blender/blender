@@ -163,7 +163,7 @@ static ImBuf *imb_oiio_load_image_float(
 
 extern "C" {
 
-int imb_is_a_photoshop(const char *filename)
+int imb_is_a_filepath_photoshop(const char *filename)
 {
   const char *photoshop_extension[] = {
       ".psd",
@@ -198,7 +198,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   const bool is_colorspace_manually_set = (colorspace[0] != '\0');
 
   /* load image from file through OIIO */
-  if (imb_is_a_photoshop(filename) == 0) {
+  if (imb_is_a_filepath_photoshop(filename) == 0) {
     return nullptr;
   }
 
