@@ -78,25 +78,25 @@ PyTypeObject ConstrainedIncreasingThicknessShader_Type = {
     nullptr,                                                                  /* tp_dealloc */
     /* Incompatible with Python3.8+ (deprecated function).
      * NOLINTNEXTLINE: modernize-use-nullptr. */
-    0,                                                                        /* tp_print */
-    nullptr,                                                                  /* tp_getattr */
-    nullptr,                                                                  /* tp_setattr */
-    nullptr,                                                                  /* tp_reserved */
-    nullptr,                                                                  /* tp_repr */
-    nullptr,                                                                  /* tp_as_number */
-    nullptr,                                                                  /* tp_as_sequence */
-    nullptr,                                                                  /* tp_as_mapping */
-    nullptr,                                                                  /* tp_hash  */
-    nullptr,                                                                  /* tp_call */
-    nullptr,                                                                  /* tp_str */
-    nullptr,                                                                  /* tp_getattro */
-    nullptr,                                                                  /* tp_setattro */
-    nullptr,                                                                  /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                                 /* tp_flags */
-    ConstrainedIncreasingThicknessShader___doc__,                             /* tp_doc */
-    nullptr,                                                                  /* tp_traverse */
-    nullptr,                                                                  /* tp_clear */
-    nullptr,                                                                  /* tp_richcompare */
+    0,                                                       /* tp_print */
+    nullptr,                                                 /* tp_getattr */
+    nullptr,                                                 /* tp_setattr */
+    nullptr,                                                 /* tp_reserved */
+    nullptr,                                                 /* tp_repr */
+    nullptr,                                                 /* tp_as_number */
+    nullptr,                                                 /* tp_as_sequence */
+    nullptr,                                                 /* tp_as_mapping */
+    nullptr,                                                 /* tp_hash  */
+    nullptr,                                                 /* tp_call */
+    nullptr,                                                 /* tp_str */
+    nullptr,                                                 /* tp_getattro */
+    nullptr,                                                 /* tp_setattro */
+    nullptr,                                                 /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                /* tp_flags */
+    ConstrainedIncreasingThicknessShader___doc__,            /* tp_doc */
+    nullptr,                                                 /* tp_traverse */
+    nullptr,                                                 /* tp_clear */
+    nullptr,                                                 /* tp_richcompare */
     0,                                                       /* tp_weaklistoffset */
     nullptr,                                                 /* tp_iter */
     nullptr,                                                 /* tp_iternext */

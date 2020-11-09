@@ -270,39 +270,39 @@ PyTypeObject UnaryFunction1DDouble_Type = {
     (destructor)UnaryFunction1DDouble___dealloc__,             /* tp_dealloc */
     /* Incompatible with Python3.8+ (deprecated function).
      * NOLINTNEXTLINE: modernize-use-nullptr. */
-    0,                                                         /* tp_print */
-    nullptr,                                                   /* tp_getattr */
-    nullptr,                                                   /* tp_setattr */
-    nullptr,                                                   /* tp_reserved */
-    (reprfunc)UnaryFunction1DDouble___repr__,                  /* tp_repr */
-    nullptr,                                                   /* tp_as_number */
-    nullptr,                                                   /* tp_as_sequence */
-    nullptr,                                                   /* tp_as_mapping */
-    nullptr,                                                   /* tp_hash  */
-    (ternaryfunc)UnaryFunction1DDouble___call__,               /* tp_call */
-    nullptr,                                                   /* tp_str */
-    nullptr,                                                   /* tp_getattro */
-    nullptr,                                                   /* tp_setattro */
-    nullptr,                                                   /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                  /* tp_flags */
-    UnaryFunction1DDouble___doc__,                             /* tp_doc */
-    nullptr,                                                   /* tp_traverse */
-    nullptr,                                                   /* tp_clear */
-    nullptr,                                                   /* tp_richcompare */
-    0,                                                         /* tp_weaklistoffset */
-    nullptr,                                                   /* tp_iter */
-    nullptr,                                                   /* tp_iternext */
-    nullptr,                                                   /* tp_methods */
-    nullptr,                                                   /* tp_members */
-    BPy_UnaryFunction1DDouble_getseters,                       /* tp_getset */
-    &UnaryFunction1D_Type,                                     /* tp_base */
-    nullptr,                                                   /* tp_dict */
-    nullptr,                                                   /* tp_descr_get */
-    nullptr,                                                   /* tp_descr_set */
-    0,                                                         /* tp_dictoffset */
-    (initproc)UnaryFunction1DDouble___init__,                  /* tp_init */
-    nullptr,                                                   /* tp_alloc */
-    nullptr,                                                   /* tp_new */
+    0,                                           /* tp_print */
+    nullptr,                                     /* tp_getattr */
+    nullptr,                                     /* tp_setattr */
+    nullptr,                                     /* tp_reserved */
+    (reprfunc)UnaryFunction1DDouble___repr__,    /* tp_repr */
+    nullptr,                                     /* tp_as_number */
+    nullptr,                                     /* tp_as_sequence */
+    nullptr,                                     /* tp_as_mapping */
+    nullptr,                                     /* tp_hash  */
+    (ternaryfunc)UnaryFunction1DDouble___call__, /* tp_call */
+    nullptr,                                     /* tp_str */
+    nullptr,                                     /* tp_getattro */
+    nullptr,                                     /* tp_setattro */
+    nullptr,                                     /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,    /* tp_flags */
+    UnaryFunction1DDouble___doc__,               /* tp_doc */
+    nullptr,                                     /* tp_traverse */
+    nullptr,                                     /* tp_clear */
+    nullptr,                                     /* tp_richcompare */
+    0,                                           /* tp_weaklistoffset */
+    nullptr,                                     /* tp_iter */
+    nullptr,                                     /* tp_iternext */
+    nullptr,                                     /* tp_methods */
+    nullptr,                                     /* tp_members */
+    BPy_UnaryFunction1DDouble_getseters,         /* tp_getset */
+    &UnaryFunction1D_Type,                       /* tp_base */
+    nullptr,                                     /* tp_dict */
+    nullptr,                                     /* tp_descr_get */
+    nullptr,                                     /* tp_descr_set */
+    0,                                           /* tp_dictoffset */
+    (initproc)UnaryFunction1DDouble___init__,    /* tp_init */
+    nullptr,                                     /* tp_alloc */
+    nullptr,                                     /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

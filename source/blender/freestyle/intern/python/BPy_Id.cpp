@@ -167,10 +167,10 @@ static PyGetSetDef BPy_Id_getseters[] = {
 /*-----------------------BPy_Id type definition ------------------------------*/
 
 PyTypeObject Id_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "Id",   /* tp_name */
-    sizeof(BPy_Id),                           /* tp_basicsize */
-    0,                                        /* tp_itemsize */
-    (destructor)Id_dealloc,                   /* tp_dealloc */
+    PyVarObject_HEAD_INIT(nullptr, 0) "Id", /* tp_name */
+    sizeof(BPy_Id),                         /* tp_basicsize */
+    0,                                      /* tp_itemsize */
+    (destructor)Id_dealloc,                 /* tp_dealloc */
     /* Incompatible with Python3.8+ (deprecated function).
      * NOLINTNEXTLINE: modernize-use-nullptr. */
     0,                                        /* tp_print */
