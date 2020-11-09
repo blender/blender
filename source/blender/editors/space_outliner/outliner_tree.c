@@ -85,7 +85,7 @@
 #include "UI_interface.h"
 
 #include "outliner_intern.h"
-#include "tree/tree_display.hh"
+#include "tree/tree_display.h"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */

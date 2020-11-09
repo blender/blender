@@ -50,6 +50,7 @@ set(SRC
   tree/tree_display_view_layer.cc
 
   outliner_intern.h
+  tree/tree_display.h
   tree/tree_display.hh
 )
 

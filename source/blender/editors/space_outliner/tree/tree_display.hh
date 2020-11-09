@@ -34,15 +34,13 @@
 
 #pragma once
 
-#include "DNA_space_types.h"
+#include "tree_display.h"
 
 struct ListBase;
 struct Main;
 struct SpaceOutliner;
 struct TreeElement;
 struct TreeSourceData;
-
-#ifdef __cplusplus
 
 namespace blender::ed::outliner {
 
@@ -113,42 +111,3 @@ class TreeDisplayLibraries final : public AbstractTreeDisplay {
 };
 
 }  // namespace blender::ed::outliner
-
-extern "C" {
-#endif
-
-/* -------------------------------------------------------------------- */
-/* C-API */
-
-/** C alias for an #AbstractTreeDisplay handle. */
-typedef struct TreeDisplay TreeDisplay;
-
-/**
- * \brief The data to build the tree from.
- */
-typedef struct TreeSourceData {
-  struct Main *bmain;
-  struct Scene *scene;
-  struct ViewLayer *view_layer;
-} TreeSourceData;
-
-TreeDisplay *outliner_tree_display_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner);
-void outliner_tree_display_destroy(TreeDisplay **tree_display);
-
-ListBase outliner_tree_display_build_tree(TreeDisplay *tree_display, TreeSourceData *source_data);
-
-/* The following functions are needed to build the tree. They are calls back into C; the way
- * elements are created should be refactored and ported to C++ with a new design/API too. */
-struct TreeElement *outliner_add_element(struct SpaceOutliner *space_outliner,
-                                         ListBase *lb,
-                                         void *idv,
-                                         struct TreeElement *parent,
-                                         short type,
-                                         short index);
-void outliner_make_object_parent_hierarchy(ListBase *lb);
-
-const char *outliner_idcode_to_plural(short idcode);
-
-#ifdef __cplusplus
-}
-#endif
