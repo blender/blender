@@ -3196,9 +3196,15 @@ static void update_effectors_task_cb(void *__restrict userdata,
       mul_v3_fl(retvel, mag);
 
       /* Constrain forces to interval -1 to 1. */
-      data->force_x[index] = min_ff(max_ff(-1.0f, retvel[0] * 0.2f), 1.0f);
-      data->force_y[index] = min_ff(max_ff(-1.0f, retvel[1] * 0.2f), 1.0f);
-      data->force_z[index] = min_ff(max_ff(-1.0f, retvel[2] * 0.2f), 1.0f);
+      CLAMP3(retvel, -1.0f, 1.0f);
+      data->force_x[index] = retvel[0];
+      data->force_y[index] = retvel[1];
+      data->force_z[index] = retvel[2];
+
+#  if DEBUG_PRINT
+      /* Debugging: Print forces. */
+      printf("setting force: [%f, %f, %f]\n", data->force_x[index], data->force_y[index], data->force_z[index]);
+#  endif
     }
   }
 }
