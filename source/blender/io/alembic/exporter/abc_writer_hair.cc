@@ -172,7 +172,8 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
           psys_interpolate_uvs(tface, face->v4, pa->fuv, r_uv);
           uv_values.emplace_back(r_uv[0], r_uv[1]);
 
-          psys_interpolate_face(mverts, face, tface, nullptr, mapfw, vec, normal, nullptr, nullptr, nullptr);
+          psys_interpolate_face(
+              mverts, face, tface, nullptr, mapfw, vec, normal, nullptr, nullptr, nullptr);
 
           copy_yup_from_zup(tmp_nor.getValue(), normal);
           norm_values.push_back(tmp_nor);
@@ -279,7 +280,8 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
       psys_interpolate_uvs(tface, face->v4, pc->fuv, r_uv);
       uv_values.emplace_back(r_uv[0], r_uv[1]);
 
-      psys_interpolate_face(mverts, face, tface, nullptr, mapfw, vec, tmpnor, nullptr, nullptr, nullptr);
+      psys_interpolate_face(
+          mverts, face, tface, nullptr, mapfw, vec, tmpnor, nullptr, nullptr, nullptr);
 
       /* Convert Z-up to Y-up. */
       norm_values.emplace_back(tmpnor[0], tmpnor[2], -tmpnor[1]);

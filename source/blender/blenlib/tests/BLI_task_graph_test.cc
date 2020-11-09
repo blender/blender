@@ -135,7 +135,8 @@ TEST(task, GraphForest)
   {
     TaskNode *tree1_node_a = BLI_task_graph_node_create(
         graph, TaskData_increase_value, &data1, nullptr);
-    TaskNode *tree1_node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data1, nullptr);
+    TaskNode *tree1_node_b = BLI_task_graph_node_create(
+        graph, TaskData_store_value, &data1, nullptr);
     TaskNode *tree1_node_c = BLI_task_graph_node_create(
         graph, TaskData_increase_value, &data1, nullptr);
     TaskNode *tree1_node_d = BLI_task_graph_node_create(
@@ -149,7 +150,8 @@ TEST(task, GraphForest)
   {
     TaskNode *tree2_node_a = BLI_task_graph_node_create(
         graph, TaskData_increase_value, &data2, nullptr);
-    TaskNode *tree2_node_b = BLI_task_graph_node_create(graph, TaskData_store_value, &data2, nullptr);
+    TaskNode *tree2_node_b = BLI_task_graph_node_create(
+        graph, TaskData_store_value, &data2, nullptr);
     TaskNode *tree2_node_c = BLI_task_graph_node_create(
         graph, TaskData_increase_value, &data2, nullptr);
     TaskNode *tree2_node_d = BLI_task_graph_node_create(

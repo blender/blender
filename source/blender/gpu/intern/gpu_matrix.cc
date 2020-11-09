@@ -658,7 +658,8 @@ void GPU_matrix_bind(GPUShader *shader)
   int32_t P_inv = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_PROJECTION_INV);
 
   if (MV != -1) {
-    GPU_shader_uniform_vector(shader, MV, 16, 1, (const float *)GPU_matrix_model_view_get(nullptr));
+    GPU_shader_uniform_vector(
+        shader, MV, 16, 1, (const float *)GPU_matrix_model_view_get(nullptr));
   }
   if (P != -1) {
     GPU_shader_uniform_vector(shader, P, 16, 1, (const float *)GPU_matrix_projection_get(nullptr));

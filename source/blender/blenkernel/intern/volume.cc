@@ -270,7 +270,8 @@ struct VolumeGrid {
     entry = GLOBAL_CACHE.add_metadata_user(template_entry);
   }
 
-  VolumeGrid(const openvdb::GridBase::Ptr &grid) : entry(nullptr), local_grid(grid), is_loaded(true)
+  VolumeGrid(const openvdb::GridBase::Ptr &grid)
+      : entry(nullptr), local_grid(grid), is_loaded(true)
   {
   }
 

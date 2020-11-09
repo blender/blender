@@ -392,8 +392,15 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
     libcode = libcodecat = BLI_strdupcat(libcode, datatoc_gpu_shader_colorspace_lib_glsl);
   }
 
-  GPUShader *sh = GPU_shader_create_ex(
-      vertcode, fragcode, geomcode, libcode, defines, GPU_SHADER_TFB_NONE, nullptr, 0, "pyGPUShader");
+  GPUShader *sh = GPU_shader_create_ex(vertcode,
+                                       fragcode,
+                                       geomcode,
+                                       libcode,
+                                       defines,
+                                       GPU_SHADER_TFB_NONE,
+                                       nullptr,
+                                       0,
+                                       "pyGPUShader");
 
   MEM_SAFE_FREE(libcodecat);
   return sh;

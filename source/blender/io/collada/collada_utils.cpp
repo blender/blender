@@ -144,7 +144,8 @@ bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
     mul_m4_m4m4(ob->obmat, par->obmat, ob->obmat);
   }
 
-  bool ok = ED_object_parent_set(nullptr, C, scene, ob, par, partype, xmirror, keep_transform, nullptr);
+  bool ok = ED_object_parent_set(
+      nullptr, C, scene, ob, par, partype, xmirror, keep_transform, nullptr);
   return ok;
 }
 

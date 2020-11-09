@@ -149,7 +149,8 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
   const P3fArraySamplePtr &positions = mesh_data.positions;
 
   if (config.use_vertex_interpolation && config.weight != 0.0f &&
-      mesh_data.ceil_positions != nullptr && mesh_data.ceil_positions->size() == positions->size()) {
+      mesh_data.ceil_positions != nullptr &&
+      mesh_data.ceil_positions->size() == positions->size()) {
     read_mverts_interp(mverts, positions, mesh_data.ceil_positions, config.weight);
     return;
   }

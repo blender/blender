@@ -572,7 +572,8 @@ GPUOffScreen *GPU_offscreen_create(
       "ofs_color", width, height, 1, (high_bitdepth) ? GPU_RGBA16F : GPU_RGBA8, nullptr);
 
   if (depth) {
-    ofs->depth = GPU_texture_create_2d("ofs_depth", width, height, 1, GPU_DEPTH24_STENCIL8, nullptr);
+    ofs->depth = GPU_texture_create_2d(
+        "ofs_depth", width, height, 1, GPU_DEPTH24_STENCIL8, nullptr);
   }
 
   if ((depth && !ofs->depth) || !ofs->color) {

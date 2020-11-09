@@ -487,7 +487,8 @@ FEdge *ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer 
 
   Vec3r normal;
   // Make the 2 Svertices
-  if (feprevious == nullptr) {  // that means that we don't have any vertex already built for that face
+  if (feprevious ==
+      nullptr) {  // that means that we don't have any vertex already built for that face
     Vec3r A1(woea->GetaVertex()->GetVertex());
     Vec3r A2(woea->GetbVertex()->GetVertex());
     Vec3r A(A1 + ta * (A2 - A1));

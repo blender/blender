@@ -51,7 +51,8 @@ void TextureBaseOperation::initExecution()
   this->m_inputOffset = getInputSocketReader(0);
   this->m_inputSize = getInputSocketReader(1);
   this->m_pool = BKE_image_pool_new();
-  if (this->m_texture != nullptr && this->m_texture->nodetree != nullptr && this->m_texture->use_nodes) {
+  if (this->m_texture != nullptr && this->m_texture->nodetree != nullptr &&
+      this->m_texture->use_nodes) {
     ntreeTexBeginExecTree(this->m_texture->nodetree);
   }
   NodeOperation::initExecution();
@@ -62,8 +63,8 @@ void TextureBaseOperation::deinitExecution()
   this->m_inputOffset = nullptr;
   BKE_image_pool_free(this->m_pool);
   this->m_pool = nullptr;
-  if (this->m_texture != nullptr && this->m_texture->use_nodes && this->m_texture->nodetree != nullptr &&
-      this->m_texture->nodetree->execdata != nullptr) {
+  if (this->m_texture != nullptr && this->m_texture->use_nodes &&
+      this->m_texture->nodetree != nullptr && this->m_texture->nodetree->execdata != nullptr) {
     ntreeTexEndExecTree(this->m_texture->nodetree->execdata);
   }
   NodeOperation::deinitExecution();
@@ -127,8 +128,16 @@ void TextureBaseOperation::executePixelSampled(float output[4],
   vec[2] = textureSize[2] * textureOffset[2];
 
   const int thread_id = WorkScheduler::current_thread_id();
-  retval = multitex_ext(
-      this->m_texture, vec, nullptr, nullptr, 0, &texres, thread_id, m_pool, m_sceneColorManage, false);
+  retval = multitex_ext(this->m_texture,
+                        vec,
+                        nullptr,
+                        nullptr,
+                        0,
+                        &texres,
+                        thread_id,
+                        m_pool,
+                        m_sceneColorManage,
+                        false);
 
   if (texres.talpha) {
     output[3] = texres.ta;

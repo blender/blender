@@ -901,8 +901,18 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid,
       zero_v3(dir3);
     }
 
-    SIM_hair_volume_add_segment(
-        grid, x1, v1, x2, v2, x3, v3, x4, v4, spring1 ? dir1 : nullptr, dir2, spring3 ? dir3 : nullptr);
+    SIM_hair_volume_add_segment(grid,
+                                x1,
+                                v1,
+                                x2,
+                                v2,
+                                x3,
+                                v3,
+                                x4,
+                                v4,
+                                spring1 ? dir1 : nullptr,
+                                dir2,
+                                spring3 ? dir3 : nullptr);
   }
 
   return next_spring_link;

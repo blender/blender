@@ -83,8 +83,8 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
 
     /* prepare the file with all the channels */
 
-    if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_format->exr_codec, nullptr) ==
-        0) {
+    if (IMB_exr_begin_write(
+            exrhandle, filename, width, height, this->m_format->exr_codec, nullptr) == 0) {
       printf("Error Writing Singlelayer Multiview Openexr\n");
       IMB_exr_close(exrhandle);
     }

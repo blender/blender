@@ -879,12 +879,12 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
     NSBezierPath *progressPath;
 
     /* Draw white track. */
-    [[[NSColor whiteColor] colorWithAlphaComponent: 0.6] setFill];
+    [[[NSColor whiteColor] colorWithAlphaComponent:0.6] setFill];
     progressPath = [NSBezierPath bezierPathWithRoundedRect:progressRect xRadius:7 yRadius:7];
     [progressPath fill];
 
     /* Black progress fill. */
-    [[[NSColor blackColor] colorWithAlphaComponent: 0.7] setFill];
+    [[[NSColor blackColor] colorWithAlphaComponent:0.7] setFill];
     progressRect = NSInsetRect(progressRect, 2, 2);
     progressRect.size.width *= progress;
     progressPath = [NSBezierPath bezierPathWithRoundedRect:progressRect xRadius:5 yRadius:5];
