@@ -1016,14 +1016,6 @@ int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b)
   return (seq_a->startdisp > seq_b->startdisp);
 }
 
-static int clear_scene_in_allseqs_fn(Sequence *seq, void *arg_pt)
-{
-  if (seq->scene == (Scene *)arg_pt) {
-    seq->scene = NULL;
-  }
-  return 1;
-}
-
 typedef struct SeqUniqueInfo {
   Sequence *seq;
   char name_src[SEQ_NAME_MAXSTR];
