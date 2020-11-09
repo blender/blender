@@ -1716,8 +1716,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         }
         window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 
-        pushEvent(new GHOST_EventTrackpad(
-            [event timestamp] * 1000, window, GHOST_kTrackpadEventScroll, x, y, dx, dy));
+        pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000,
+                                          window,
+                                          GHOST_kTrackpadEventScroll,
+                                          x,
+                                          y,
+                                          dx,
+                                          dy,
+                                          [event isDirectionInvertedFromDevice]));
       }
     } break;
 
@@ -1731,15 +1737,22 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
                                         x,
                                         y,
                                         [event magnification] * 125.0 + 0.1,
-                                        0));
+                                        0,
+                                        false));
     } break;
 
     case NSEventTypeSmartMagnify: {
       NSPoint mousePos = [event locationInWindow];
       GHOST_TInt32 x, y;
       window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
-      pushEvent(new GHOST_EventTrackpad(
-          [event timestamp] * 1000, window, GHOST_kTrackpadEventSmartMagnify, x, y, 0, 0));
+      pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000,
+                                        window,
+                                        GHOST_kTrackpadEventSmartMagnify,
+                                        x,
+                                        y,
+                                        0,
+                                        0,
+                                        false));
     } break;
 
     case NSEventTypeRotate: {
@@ -1752,7 +1765,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
                                         x,
                                         y,
                                         [event rotation] * -5.0,
-                                        0));
+                                        0,
+                                        false));
     }
     default:
       return GHOST_kFailure;

@@ -998,7 +998,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     int event_xy[2];
 
     if (event->type == MOUSEPAN) {
-      if (U.uiflag2 & USER_TRACKPAD_NATURAL) {
+      if (event->is_direction_inverted) {
         event_xy[0] = 2 * event->x - event->prevx;
         event_xy[1] = 2 * event->y - event->prevy;
       }
