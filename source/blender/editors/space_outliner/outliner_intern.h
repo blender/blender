@@ -50,7 +50,7 @@ typedef struct SpaceOutliner_Runtime {
   /**
    * Internal C++ object to create and manage the tree for a specific display type (View Layers,
    * Scenes, Blender File, etc.). */
-  struct TreeView *tree_view;
+  struct TreeDisplay *tree_display;
 } SpaceOutliner_Runtime;
 
 typedef enum TreeElementInsertType {

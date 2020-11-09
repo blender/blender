@@ -85,7 +85,7 @@
 #include "UI_interface.h"
 
 #include "outliner_intern.h"
-#include "tree/tree_view.hh"
+#include "tree/tree_display.hh"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */
@@ -2214,22 +2214,22 @@ void outliner_build_tree(Main *mainvar,
 
   outliner_free_tree(&space_outliner->tree);
   outliner_storage_cleanup(space_outliner);
-  outliner_tree_view_destroy(&space_outliner->runtime->tree_view);
+  outliner_tree_display_destroy(&space_outliner->runtime->tree_display);
 
-  space_outliner->runtime->tree_view = outliner_tree_view_create(space_outliner->outlinevis,
-                                                                 space_outliner);
-  if (space_outliner->runtime->tree_view) {
+  space_outliner->runtime->tree_display = outliner_tree_display_create(space_outliner->outlinevis,
+                                                                       space_outliner);
+  if (space_outliner->runtime->tree_display) {
     TreeSourceData source_data = {.bmain = mainvar, .scene = scene, .view_layer = view_layer};
-    space_outliner->tree = outliner_tree_view_build_tree(space_outliner->runtime->tree_view,
-                                                         &source_data);
+    space_outliner->tree = outliner_tree_display_build_tree(space_outliner->runtime->tree_display,
+                                                            &source_data);
   }
 
-  if (space_outliner->runtime->tree_view) {
-    /* Skip if there's a tree view that's responsible for adding all elements. */
+  if (space_outliner->runtime->tree_display) {
+    /* Skip if there's a tree-display that's responsible for adding all elements. */
   }
   /* options */
   else if (space_outliner->outlinevis == SO_LIBRARIES) {
-    /* Ported to new tree-view, should be built there already. */
+    /* Ported to new tree-display, should be built there already. */
     BLI_assert(false);
   }
   else if (space_outliner->outlinevis == SO_SCENES) {
@@ -2291,7 +2291,7 @@ void outliner_build_tree(Main *mainvar,
     outliner_add_orphaned_datablocks(mainvar, space_outliner);
   }
   else if (space_outliner->outlinevis == SO_VIEW_LAYER) {
-    /* Ported to new tree-view, should be built there already. */
+    /* Ported to new tree-display, should be built there already. */
     BLI_assert(false);
   }
 

@@ -17,14 +17,14 @@
 /** \file
  * \ingroup spoutliner
  *
- * Functions and helpers shared between tree-view types or other tree related code.
+ * Functions and helpers shared between tree-display types or other tree related code.
  */
 
 #include "BKE_idtype.h"
 
 #include "RNA_access.h"
 
-#include "tree_view.hh"
+#include "tree_display.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name ID Helpers.

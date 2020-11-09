@@ -27,19 +27,19 @@
 #include "BLT_translation.h"
 
 #include "../outliner_intern.h"
-#include "tree_view.hh"
+#include "tree_display.hh"
 
 namespace blender::ed::outliner {
 
 /* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
 
-TreeViewLibraries::TreeViewLibraries(SpaceOutliner &space_outliner)
-    : AbstractTreeView(space_outliner)
+TreeDisplayLibraries::TreeDisplayLibraries(SpaceOutliner &space_outliner)
+    : AbstractTreeDisplay(space_outliner)
 {
 }
 
-ListBase TreeViewLibraries::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayLibraries::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 
@@ -103,9 +103,9 @@ ListBase TreeViewLibraries::buildTree(const TreeSourceData &source_data)
   return tree;
 }
 
-TreeElement *TreeViewLibraries::add_library_contents(Main &mainvar,
-                                                     ListBase &lb,
-                                                     Library *lib) const
+TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
+                                                        ListBase &lb,
+                                                        Library *lib) const
 {
   const short filter_id_type = id_filter_get();
 
@@ -176,7 +176,7 @@ TreeElement *TreeViewLibraries::add_library_contents(Main &mainvar,
   return tenlib;
 }
 
-short TreeViewLibraries::id_filter_get() const
+short TreeDisplayLibraries::id_filter_get() const
 {
   if (space_outliner_.filter & SO_FILTER_ID_TYPE) {
     return space_outliner_.filter_id_type;
@@ -184,7 +184,7 @@ short TreeViewLibraries::id_filter_get() const
   return 0;
 }
 
-bool TreeViewLibraries::library_id_filter_poll(Library *lib, ID *id) const
+bool TreeDisplayLibraries::library_id_filter_poll(Library *lib, ID *id) const
 {
   if (id->lib != lib) {
     return false;

@@ -17,8 +17,19 @@
 /** \file
  * \ingroup spoutliner
  *
- * For now all sub-class declarations of #AbstractTreeView are in this file. They could be moved
- * into own headers of course.
+ * \brief Establish and manage Outliner trees for different display modes.
+ *
+ * Each Outliner display mode (e.g View Layer, Scenes, Blender File) is implemented as a
+ * tree-display class with the #AbstractTreeDisplay interface.
+ *
+ * Their main responsibility is building the Outliner tree for a display mode. For that, they
+ * implement the #buildTree() function, which based on Blender data (#TreeSourceData), builds a
+ * custom tree of whatever data it wants to visualize.
+ * Further, they can implement display mode dependent queries and general operations using the
+ * #AbstractTreeDisplay abstraction as common interface.
+ *
+ * Outliners keep the current tree-display object alive until the next full tree rebuild to keep
+ * access to it.
  */
 
 #pragma once
@@ -36,26 +47,23 @@ struct TreeSourceData;
 namespace blender::ed::outliner {
 
 /* -------------------------------------------------------------------- */
-/* Tree-View Interface */
+/* Tree-Display Interface */
 
 /**
- * \brief Base Class For Tree-Views
+ * \brief Base Class For Tree-Displays
  *
- * Abstract base class defining the interface for tree-view variants. For each Outliner display
- * type (e.g View Layer, Scenes, Blender File), a derived class implements a #buildTree() function,
- * that based on Blender data (#TreeSourceData), builds a custom tree of whatever data it wants to
- * visualize.
+ * Abstract base class defining the interface for tree-display variants.
  */
-class AbstractTreeView {
+class AbstractTreeDisplay {
  public:
-  AbstractTreeView(SpaceOutliner &space_outliner) : space_outliner_(space_outliner)
+  AbstractTreeDisplay(SpaceOutliner &space_outliner) : space_outliner_(space_outliner)
   {
   }
-  virtual ~AbstractTreeView() = default;
+  virtual ~AbstractTreeDisplay() = default;
 
   /**
-   * Build a tree for this view with the Blender context data given in \a source_data and the view
-   * settings in \a space_outliner.
+   * Build a tree for this display mode with the Blender context data given in \a source_data and
+   * the view settings in \a space_outliner.
    */
   virtual ListBase buildTree(const TreeSourceData &source_data) = 0;
 
@@ -65,17 +73,17 @@ class AbstractTreeView {
 };
 
 /* -------------------------------------------------------------------- */
-/* View Layer Tree-View */
+/* View Layer Tree-Display */
 
 /**
- * \brief Tree-View for the View Layer display mode.
+ * \brief Tree-Display for the View Layer display mode.
  */
-class TreeViewViewLayer final : public AbstractTreeView {
+class TreeDisplayViewLayer final : public AbstractTreeDisplay {
   ViewLayer *view_layer_ = nullptr;
   bool show_objects_ = true;
 
  public:
-  TreeViewViewLayer(SpaceOutliner &space_outliner);
+  TreeDisplayViewLayer(SpaceOutliner &space_outliner);
 
   ListBase buildTree(const TreeSourceData &source_data) override;
 
@@ -87,14 +95,14 @@ class TreeViewViewLayer final : public AbstractTreeView {
 };
 
 /* -------------------------------------------------------------------- */
-/* Library Tree-View */
+/* Library Tree-Display */
 
 /**
- * \brief Tree-View for the Libraries display mode.
+ * \brief Tree-Display for the Libraries display mode.
  */
-class TreeViewLibraries final : public AbstractTreeView {
+class TreeDisplayLibraries final : public AbstractTreeDisplay {
  public:
-  TreeViewLibraries(SpaceOutliner &space_outliner);
+  TreeDisplayLibraries(SpaceOutliner &space_outliner);
 
   ListBase buildTree(const TreeSourceData &source_data) override;
 
@@ -112,8 +120,8 @@ extern "C" {
 /* -------------------------------------------------------------------- */
 /* C-API */
 
-/** There is no actual implementation of this, it's the C name for an #AbstractTreeView handle. */
-typedef struct TreeView TreeView;
+/** C alias for an #AbstractTreeDisplay handle. */
+typedef struct TreeDisplay TreeDisplay;
 
 /**
  * \brief The data to build the tree from.
@@ -124,12 +132,12 @@ typedef struct TreeSourceData {
   struct ViewLayer *view_layer;
 } TreeSourceData;
 
-TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner);
-void outliner_tree_view_destroy(TreeView **tree_view);
+TreeDisplay *outliner_tree_display_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner);
+void outliner_tree_display_destroy(TreeDisplay **tree_display);
 
-ListBase outliner_tree_view_build_tree(TreeView *tree_view, TreeSourceData *source_data);
+ListBase outliner_tree_display_build_tree(TreeDisplay *tree_display, TreeSourceData *source_data);
 
-/* The following functions are needed to build the tree. These are calls back into C; the way
+/* The following functions are needed to build the tree. They are calls back into C; the way
  * elements are created should be refactored and ported to C++ with a new design/API too. */
 struct TreeElement *outliner_add_element(struct SpaceOutliner *space_outliner,
                                          ListBase *lb,

@@ -32,7 +32,7 @@
 #include "BLT_translation.h"
 
 #include "../outliner_intern.h"
-#include "tree_view.hh"
+#include "tree_display.hh"
 
 namespace blender::ed::outliner {
 
@@ -58,16 +58,16 @@ class ObjectsChildrenBuilder {
 };
 
 /* -------------------------------------------------------------------- */
-/** \name Tree View for a View Layer.
+/** \name Tree-Display for a View Layer.
  *
  * \{ */
 
-TreeViewViewLayer::TreeViewViewLayer(SpaceOutliner &space_outliner)
-    : AbstractTreeView(space_outliner)
+TreeDisplayViewLayer::TreeDisplayViewLayer(SpaceOutliner &space_outliner)
+    : AbstractTreeDisplay(space_outliner)
 {
 }
 
-ListBase TreeViewViewLayer::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayViewLayer::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 
@@ -104,7 +104,7 @@ ListBase TreeViewViewLayer::buildTree(const TreeSourceData &source_data)
   return tree;
 }
 
-void TreeViewViewLayer::add_view_layer(ListBase &tree, TreeElement &parent)
+void TreeDisplayViewLayer::add_view_layer(ListBase &tree, TreeElement &parent)
 {
   /* First layer collection is for master collection, don't show it. */
   LayerCollection *lc = static_cast<LayerCollection *>(view_layer_->layer_collections.first);
@@ -118,9 +118,9 @@ void TreeViewViewLayer::add_view_layer(ListBase &tree, TreeElement &parent)
   }
 }
 
-void TreeViewViewLayer::add_layer_collections_recursive(ListBase &tree,
-                                                        ListBase &layer_collections,
-                                                        TreeElement &parent_ten)
+void TreeDisplayViewLayer::add_layer_collections_recursive(ListBase &tree,
+                                                           ListBase &layer_collections,
+                                                           TreeElement &parent_ten)
 {
   for (LayerCollection *lc : List<LayerCollection>(layer_collections)) {
     const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
@@ -155,9 +155,9 @@ void TreeViewViewLayer::add_layer_collections_recursive(ListBase &tree,
   }
 }
 
-void TreeViewViewLayer::add_layer_collection_objects(ListBase &tree,
-                                                     LayerCollection &lc,
-                                                     TreeElement &ten)
+void TreeDisplayViewLayer::add_layer_collection_objects(ListBase &tree,
+                                                        LayerCollection &lc,
+                                                        TreeElement &ten)
 {
   for (CollectionObject *cob : List<CollectionObject>(lc.collection->gobject)) {
     Base *base = BKE_view_layer_base_find(view_layer_, cob->ob);
@@ -171,7 +171,7 @@ void TreeViewViewLayer::add_layer_collection_objects(ListBase &tree,
   }
 }
 
-void TreeViewViewLayer::add_layer_collection_objects_children(TreeElement &collection_tree_elem)
+void TreeDisplayViewLayer::add_layer_collection_objects_children(TreeElement &collection_tree_elem)
 {
   /* Call helper to add children. */
   ObjectsChildrenBuilder child_builder{space_outliner_};
@@ -181,7 +181,7 @@ void TreeViewViewLayer::add_layer_collection_objects_children(TreeElement &colle
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Object Chilren helper.
+/** \name Object Children helper.
  *
  * Helper to add child objects to the sub-tree of their parent, recursively covering all nested
  * collections.

@@ -22,39 +22,39 @@
 
 #include "DNA_listBase.h"
 
-#include "tree_view.hh"
+#include "tree_display.hh"
 
 using namespace blender::ed::outliner;
 
-TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner)
+TreeDisplay *outliner_tree_display_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner)
 {
-  AbstractTreeView *tree_view = nullptr;
+  AbstractTreeDisplay *tree_display = nullptr;
 
   switch (mode) {
     case SO_SCENES:
       break;
     case SO_LIBRARIES:
-      tree_view = new TreeViewLibraries(*space_outliner);
+      tree_display = new TreeDisplayLibraries(*space_outliner);
       break;
     case SO_SEQUENCE:
     case SO_DATA_API:
     case SO_ID_ORPHANS:
       break;
     case SO_VIEW_LAYER:
-      tree_view = new TreeViewViewLayer(*space_outliner);
+      tree_display = new TreeDisplayViewLayer(*space_outliner);
       break;
   }
 
-  return reinterpret_cast<TreeView *>(tree_view);
+  return reinterpret_cast<TreeDisplay *>(tree_display);
 }
 
-void outliner_tree_view_destroy(TreeView **tree_view)
+void outliner_tree_display_destroy(TreeDisplay **tree_display)
 {
-  delete reinterpret_cast<AbstractTreeView *>(*tree_view);
-  *tree_view = nullptr;
+  delete reinterpret_cast<AbstractTreeDisplay *>(*tree_display);
+  *tree_display = nullptr;
 }
 
-ListBase outliner_tree_view_build_tree(TreeView *tree_view, TreeSourceData *source_data)
+ListBase outliner_tree_display_build_tree(TreeDisplay *tree_display, TreeSourceData *source_data)
 {
-  return reinterpret_cast<AbstractTreeView *>(tree_view)->buildTree(*source_data);
+  return reinterpret_cast<AbstractTreeDisplay *>(tree_display)->buildTree(*source_data);
 }
