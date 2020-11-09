@@ -581,14 +581,14 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals *kg,
     int corners[4];
     subd_triangle_patch_corners(kg, patch, corners);
 
-    float4 f0 = color_uchar4_to_float4(
-        kernel_tex_fetch(__attributes_uchar4, corners[0] + desc.offset));
-    float4 f1 = color_uchar4_to_float4(
-        kernel_tex_fetch(__attributes_uchar4, corners[1] + desc.offset));
-    float4 f2 = color_uchar4_to_float4(
-        kernel_tex_fetch(__attributes_uchar4, corners[2] + desc.offset));
-    float4 f3 = color_uchar4_to_float4(
-        kernel_tex_fetch(__attributes_uchar4, corners[3] + desc.offset));
+    float4 f0 = color_srgb_to_linear_v4(
+        color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[0] + desc.offset)));
+    float4 f1 = color_srgb_to_linear_v4(
+        color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[1] + desc.offset)));
+    float4 f2 = color_srgb_to_linear_v4(
+        color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[2] + desc.offset)));
+    float4 f3 = color_srgb_to_linear_v4(
+        color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[3] + desc.offset)));
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
       f1 = (f1 + f0) * 0.5f;
@@ -614,7 +614,8 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals *kg,
     if (dy)
       *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-    return color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, desc.offset));
+    return color_srgb_to_linear_v4(
+        color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, desc.offset)));
   }
   else {
     if (dx)

@@ -317,9 +317,12 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals *kg,
 
     if (desc.element == ATTR_ELEMENT_CORNER_BYTE) {
       int tri = desc.offset + sd->prim * 3;
-      f0 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 0));
-      f1 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 1));
-      f2 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 2));
+      f0 = color_srgb_to_linear_v4(
+          color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 0)));
+      f1 = color_srgb_to_linear_v4(
+          color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 1)));
+      f2 = color_srgb_to_linear_v4(
+          color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 2)));
     }
     else {
       uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
@@ -343,7 +346,8 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals *kg,
     if (dy)
       *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-    return color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, desc.offset));
+    return color_srgb_to_linear_v4(
+        color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, desc.offset)));
   }
   else {
     if (dx)
