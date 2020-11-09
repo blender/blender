@@ -135,7 +135,7 @@ PyTypeObject UnaryFunction0DVectorViewShape_Type = {
     sizeof(BPy_UnaryFunction0DVectorViewShape),                         /* tp_basicsize */
     0,                                                                  /* tp_itemsize */
     (destructor)UnaryFunction0DVectorViewShape___dealloc__,             /* tp_dealloc */
-    nullptr,                                                            /* tp_print */
+    0,                                                                  /* tp_print */
     nullptr,                                                            /* tp_getattr */
     nullptr,                                                            /* tp_setattr */
     nullptr,                                                            /* tp_reserved */

@@ -187,7 +187,7 @@ PyTypeObject UnaryFunction0DDouble_Type = {
     sizeof(BPy_UnaryFunction0DDouble),                         /* tp_basicsize */
     0,                                                         /* tp_itemsize */
     (destructor)UnaryFunction0DDouble___dealloc__,             /* tp_dealloc */
-    nullptr,                                                   /* tp_print */
+    0,                                                         /* tp_print */
     nullptr,                                                   /* tp_getattr */
     nullptr,                                                   /* tp_setattr */
     nullptr,                                                   /* tp_reserved */

@@ -175,7 +175,7 @@ PyTypeObject UnaryFunction1DUnsigned_Type = {
     sizeof(BPy_UnaryFunction1DUnsigned),                         /* tp_basicsize */
     0,                                                           /* tp_itemsize */
     (destructor)UnaryFunction1DUnsigned___dealloc__,             /* tp_dealloc */
-    nullptr,                                                     /* tp_print */
+    0,                                                           /* tp_print */
     nullptr,                                                     /* tp_getattr */
     nullptr,                                                     /* tp_setattr */
     nullptr,                                                     /* tp_reserved */

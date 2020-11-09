@@ -408,7 +408,7 @@ PyTypeObject FEdgeSharp_Type = {
     sizeof(BPy_FEdgeSharp),                         /* tp_basicsize */
     0,                                              /* tp_itemsize */
     nullptr,                                        /* tp_dealloc */
-    nullptr,                                        /* tp_print */
+    0,                                              /* tp_print */
     nullptr,                                        /* tp_getattr */
     nullptr,                                        /* tp_setattr */
     nullptr,                                        /* tp_reserved */

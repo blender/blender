@@ -175,7 +175,7 @@ PyTypeObject UnaryFunction1DEdgeNature_Type = {
     sizeof(BPy_UnaryFunction1DEdgeNature),                         /* tp_basicsize */
     0,                                                             /* tp_itemsize */
     (destructor)UnaryFunction1DEdgeNature___dealloc__,             /* tp_dealloc */
-    nullptr,                                                       /* tp_print */
+    0,                                                             /* tp_print */
     nullptr,                                                       /* tp_getattr */
     nullptr,                                                       /* tp_setattr */
     nullptr,                                                       /* tp_reserved */

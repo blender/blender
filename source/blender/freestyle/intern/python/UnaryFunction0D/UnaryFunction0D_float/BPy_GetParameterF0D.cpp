@@ -61,13 +61,12 @@ static int GetParameterF0D___init__(BPy_GetParameterF0D *self, PyObject *args, P
 }
 
 /*-----------------------BPy_GetParameterF0D type definition ------------------------------*/
-
 PyTypeObject GetParameterF0D_Type = {
     PyVarObject_HEAD_INIT(nullptr, 0) "GetParameterF0D", /* tp_name */
     sizeof(BPy_GetParameterF0D),                         /* tp_basicsize */
     0,                                                   /* tp_itemsize */
     nullptr,                                             /* tp_dealloc */
-    nullptr,                                             /* tp_print */
+    0,                                                   /* tp_print */
     nullptr,                                             /* tp_getattr */
     nullptr,                                             /* tp_setattr */
     nullptr,                                             /* tp_reserved */
