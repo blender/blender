@@ -512,7 +512,7 @@ static void deformVertsEM(ModifierData *md,
   }
 
   if (mesh && mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
-    BLI_assert(mesh_src->totvert == numVerts);
+    BLI_assert(mesh->totvert == numVerts);
   }
 
   /* TODO(Campbell): use edit-mode data only (remove this line). */
