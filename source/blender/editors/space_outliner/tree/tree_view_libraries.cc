@@ -29,9 +29,7 @@
 #include "../outliner_intern.h"
 #include "tree_view.hh"
 
-namespace blender {
-namespace ed {
-namespace outliner {
+namespace blender::ed::outliner {
 
 /* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
@@ -114,7 +112,7 @@ TreeElement *TreeViewLibraries::add_library_contents(Main &mainvar,
   ListBase *lbarray[MAX_LIBARRAY];
   int tot;
   if (filter_id_type) {
-    lbarray[0] = which_libbase(&mainvar, _space_outliner.filter_id_type);
+    lbarray[0] = which_libbase(&mainvar, space_outliner_.filter_id_type);
     tot = 1;
   }
   else {
@@ -144,10 +142,10 @@ TreeElement *TreeViewLibraries::add_library_contents(Main &mainvar,
       if (!tenlib) {
         /* Create library tree element on demand, depending if there are any data-blocks. */
         if (lib) {
-          tenlib = outliner_add_element(&_space_outliner, &lb, lib, nullptr, 0, 0);
+          tenlib = outliner_add_element(&space_outliner_, &lb, lib, nullptr, 0, 0);
         }
         else {
-          tenlib = outliner_add_element(&_space_outliner, &lb, &mainvar, nullptr, TSE_ID_BASE, 0);
+          tenlib = outliner_add_element(&space_outliner_, &lb, &mainvar, nullptr, TSE_ID_BASE, 0);
           tenlib->name = IFACE_("Current File");
         }
       }
@@ -161,14 +159,14 @@ TreeElement *TreeViewLibraries::add_library_contents(Main &mainvar,
         }
         else {
           ten = outliner_add_element(
-              &_space_outliner, &tenlib->subtree, lbarray[a], nullptr, TSE_ID_BASE, 0);
+              &space_outliner_, &tenlib->subtree, lbarray[a], nullptr, TSE_ID_BASE, 0);
           ten->directdata = lbarray[a];
           ten->name = outliner_idcode_to_plural(GS(id->name));
         }
 
         for (ID *id : List<ID>(lbarray[a])) {
           if (library_id_filter_poll(lib, id)) {
-            outliner_add_element(&_space_outliner, &ten->subtree, id, ten, 0, 0);
+            outliner_add_element(&space_outliner_, &ten->subtree, id, ten, 0, 0);
           }
         }
       }
@@ -180,8 +178,8 @@ TreeElement *TreeViewLibraries::add_library_contents(Main &mainvar,
 
 short TreeViewLibraries::id_filter_get() const
 {
-  if (_space_outliner.filter & SO_FILTER_ID_TYPE) {
-    return _space_outliner.filter_id_type;
+  if (space_outliner_.filter & SO_FILTER_ID_TYPE) {
+    return space_outliner_.filter_id_type;
   }
   return 0;
 }
@@ -212,6 +210,4 @@ bool TreeViewLibraries::library_id_filter_poll(Library *lib, ID *id) const
   return true;
 }
 
-}  // namespace outliner
-}  // namespace ed
-}  // namespace blender
+}  // namespace blender::ed::outliner

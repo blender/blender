@@ -24,9 +24,7 @@
 
 #include "tree_view.hh"
 
-namespace outliner = blender::ed::outliner;
-/* Convenience. */
-using outliner::AbstractTreeView;
+using namespace blender::ed::outliner;
 
 TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner)
 {
@@ -36,14 +34,14 @@ TreeView *outliner_tree_view_create(eSpaceOutliner_Mode mode, SpaceOutliner *spa
     case SO_SCENES:
       break;
     case SO_LIBRARIES:
-      tree_view = new outliner::TreeViewLibraries(*space_outliner);
+      tree_view = new TreeViewLibraries(*space_outliner);
       break;
     case SO_SEQUENCE:
     case SO_DATA_API:
     case SO_ID_ORPHANS:
       break;
     case SO_VIEW_LAYER:
-      tree_view = new outliner::TreeViewViewLayer(*space_outliner);
+      tree_view = new TreeViewViewLayer(*space_outliner);
       break;
   }
 

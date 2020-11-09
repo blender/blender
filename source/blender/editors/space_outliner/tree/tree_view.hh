@@ -33,9 +33,7 @@ struct TreeSourceData;
 
 #ifdef __cplusplus
 
-namespace blender {
-namespace ed {
-namespace outliner {
+namespace blender::ed::outliner {
 
 /* -------------------------------------------------------------------- */
 /* Tree-View Interface */
@@ -50,7 +48,7 @@ namespace outliner {
  */
 class AbstractTreeView {
  public:
-  AbstractTreeView(SpaceOutliner &space_outliner) : _space_outliner(space_outliner)
+  AbstractTreeView(SpaceOutliner &space_outliner) : space_outliner_(space_outliner)
   {
   }
   virtual ~AbstractTreeView() = default;
@@ -63,7 +61,7 @@ class AbstractTreeView {
 
  protected:
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
-  SpaceOutliner &_space_outliner;
+  SpaceOutliner &space_outliner_;
 };
 
 /* -------------------------------------------------------------------- */
@@ -73,8 +71,8 @@ class AbstractTreeView {
  * \brief Tree-View for the View Layer display mode.
  */
 class TreeViewViewLayer final : public AbstractTreeView {
-  ViewLayer *_view_layer = nullptr;
-  bool _show_objects = true;
+  ViewLayer *view_layer_ = nullptr;
+  bool show_objects_ = true;
 
  public:
   TreeViewViewLayer(SpaceOutliner &space_outliner);
@@ -106,9 +104,7 @@ class TreeViewLibraries final : public AbstractTreeView {
   short id_filter_get() const;
 };
 
-}  // namespace outliner
-}  // namespace ed
-}  // namespace blender
+}  // namespace blender::ed::outliner
 
 extern "C" {
 #endif
