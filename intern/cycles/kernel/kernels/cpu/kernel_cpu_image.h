@@ -37,7 +37,7 @@ namespace {
   } \
   (void)0
 
-ccl_always_inline float frac(float x, int *ix)
+ccl_device_inline float frac(float x, int *ix)
 {
   int i = float_to_int(x) - ((x < 0.0f) ? 1 : 0);
   *ix = i;
