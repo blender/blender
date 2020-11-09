@@ -360,7 +360,6 @@ def fluid_pre_step_$ID$():\n\
     \n\
     # Main vel grid is copied in adapt time step function\n\
     \n\
-    # translate obvels (world space) to grid space\n\
     if using_obstacle_s$ID$:\n\
         # Average out velocities from multiple obstacle objects at one cell\n\
         x_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
@@ -368,7 +367,6 @@ def fluid_pre_step_$ID$():\n\
         z_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
         copyRealToVec3(sourceX=x_obvel_s$ID$, sourceY=y_obvel_s$ID$, sourceZ=z_obvel_s$ID$, target=obvelC_s$ID$)\n\
     \n\
-    # translate invels (world space) to grid space\n\
     if using_invel_s$ID$:\n\
         copyRealToVec3(sourceX=x_invel_s$ID$, sourceY=y_invel_s$ID$, sourceZ=z_invel_s$ID$, target=invelC_s$ID$)\n\
     \n\
@@ -378,7 +376,6 @@ def fluid_pre_step_$ID$():\n\
         interpolateMACGrid(source=guidevel_sg$ID$, target=velT_s$ID$)\n\
         velT_s$ID$.multConst(vec3(gamma_sg$ID$))\n\
     \n\
-    # translate external forces (world space) to grid space\n\
     copyRealToVec3(sourceX=x_force_s$ID$, sourceY=y_force_s$ID$, sourceZ=z_force_s$ID$, target=forces_s$ID$)\n\
     \n\
     # If obstacle has velocity, i.e. is a moving obstacle, switch to dynamic preconditioner\n\
