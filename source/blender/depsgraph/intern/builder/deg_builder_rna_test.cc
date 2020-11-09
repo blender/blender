@@ -25,9 +25,7 @@
 
 #include "testing/testing.h"
 
-namespace blender {
-namespace deg {
-namespace tests {
+namespace blender::deg::tests {
 
 class TestableRNANodeQuery : public RNANodeQuery {
  public:
@@ -55,6 +53,4 @@ TEST(deg_builder_rna, contains)
   EXPECT_FALSE(TestableRNANodeQuery::contains("pose.bone[\"location\"].scale[0]", "location"));
 }
 
-}  // namespace tests
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg::tests
