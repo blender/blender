@@ -1740,11 +1740,10 @@ static void DRW_render_gpencil_to_image(RenderEngine *engine,
 
 void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph)
 {
-  /* Early out if there are no grease pencil objects, especially important
-   * to avoid failing in in background renders without OpenGL context. */
-  if (!DRW_render_check_grease_pencil(depsgraph)) {
-    return;
-  }
+  /* This function should only be called if there are are grease pencil objects,
+   * especially important to avoid failing in in background renders without OpenGL
+   * context. */
+  BLI_assert(DRW_render_check_grease_pencil(depsgraph));
 
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);

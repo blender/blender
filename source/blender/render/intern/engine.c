@@ -617,6 +617,8 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
   else {
     BKE_scene_graph_update_for_newframe(engine->depsgraph);
   }
+
+  engine->has_grease_pencil = DRW_render_check_grease_pencil(engine->depsgraph);
 }
 
 static void engine_depsgraph_free(RenderEngine *engine)
@@ -748,10 +750,63 @@ bool RE_bake_engine(Render *re,
 
 /* Render */
 
+static void engine_render_view_layer(Render *re,
+                                     RenderEngine *engine,
+                                     ViewLayer *view_layer_iter,
+                                     const bool use_engine,
+                                     const bool use_grease_pencil)
+{
+  /* Lock UI so scene can't be edited while we read from it in this render thread. */
+  if (re->draw_lock) {
+    re->draw_lock(re->dlh, 1);
+  }
+
+  /* Create depsgraph with scene evaluated at render resolution. */
+  ViewLayer *view_layer = BLI_findstring(
+      &re->scene->view_layers, view_layer_iter->name, offsetof(ViewLayer, name));
+  engine_depsgraph_init(engine, view_layer);
+
+  /* Sync data to engine, within draw lock so scene data can be accessed safely. */
+  if (use_engine) {
+    if (engine->type->update) {
+      engine->type->update(engine, re->main, engine->depsgraph);
+    }
+  }
+
+  if (re->draw_lock) {
+    re->draw_lock(re->dlh, 0);
+  }
+
+  /* Perform render with engine. */
+  if (use_engine) {
+    if (engine->type->flag & RE_USE_GPU_CONTEXT) {
+      DRW_render_context_enable(engine->re);
+    }
+
+    engine->type->render(engine, engine->depsgraph);
+
+    if (engine->type->flag & RE_USE_GPU_CONTEXT) {
+      DRW_render_context_disable(engine->re);
+    }
+  }
+
+  /* Optionally composite grease pencil over render result. */
+  if (engine->has_grease_pencil && use_grease_pencil && !re->result->do_exr_tile) {
+    /* NOTE: External engine might have been requested to free its
+     * dependency graph, which is only allowed if there is no grease
+     * pencil (pipeline is taking care of that). */
+    if (!RE_engine_test_break(engine) && engine->depsgraph != NULL) {
+      DRW_render_gpencil(engine, engine->depsgraph);
+    }
+  }
+
+  /* Free dependency graph, if engine has not done it already. */
+  engine_depsgraph_free(engine);
+}
+
 int RE_engine_render(Render *re, int do_all)
 {
   RenderEngineType *type = RE_engines_find(re->r.engine);
-  RenderEngine *engine;
   bool persistent_data = (re->r.mode & R_PERSISTENT_DATA) != 0;
 
   /* verify if we can render */
@@ -813,7 +868,7 @@ int RE_engine_render(Render *re, int do_all)
   BLI_strncpy(re->i.scene_name, re->scene->id.name + 2, sizeof(re->i.scene_name));
 
   /* render */
-  engine = re->engine;
+  RenderEngine *engine = re->engine;
 
   if (!engine) {
     engine = RE_engine_create(type);
@@ -851,45 +906,16 @@ int RE_engine_render(Render *re, int do_all)
     re->draw_lock(re->dlh, 0);
   }
 
+  /* Render view layers. */
+  bool delay_grease_pencil = false;
+
   if (type->render) {
     FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer_iter) {
-      if (re->draw_lock) {
-        re->draw_lock(re->dlh, 1);
-      }
+      engine_render_view_layer(re, engine, view_layer_iter, true, true);
 
-      ViewLayer *view_layer = BLI_findstring(
-          &re->scene->view_layers, view_layer_iter->name, offsetof(ViewLayer, name));
-      engine_depsgraph_init(engine, view_layer);
-
-      if (type->update) {
-        type->update(engine, re->main, engine->depsgraph);
-      }
-
-      if (re->draw_lock) {
-        re->draw_lock(re->dlh, 0);
-      }
-
-      if (engine->type->flag & RE_USE_GPU_CONTEXT) {
-        DRW_render_context_enable(engine->re);
-      }
-
-      type->render(engine, engine->depsgraph);
-
-      if (engine->type->flag & RE_USE_GPU_CONTEXT) {
-        DRW_render_context_disable(engine->re);
-      }
-
-      /* Grease pencil render over previous render result.
-       *
-       * NOTE: External engine might have been requested to free its
-       * dependency graph, which is only allowed if there is no grease
-       * pencil (pipeline is taking care of that).
-       */
-      if (!RE_engine_test_break(engine) && engine->depsgraph != NULL) {
-        DRW_render_gpencil(engine, engine->depsgraph);
-      }
-
-      engine_depsgraph_free(engine);
+      /* With save buffers there is no render buffer in memory for compositing, delay
+       * grease pencil in that case. */
+      delay_grease_pencil = engine->has_grease_pencil && re->result->do_exr_tile;
 
       if (RE_engine_test_break(engine)) {
         break;
@@ -898,6 +924,7 @@ int RE_engine_render(Render *re, int do_all)
     FOREACH_VIEW_LAYER_TO_RENDER_END;
   }
 
+  /* Clear tile data */
   engine->tile_x = 0;
   engine->tile_y = 0;
   engine->flag &= ~RE_ENGINE_RENDERING;
@@ -906,8 +933,24 @@ int RE_engine_render(Render *re, int do_all)
 
   BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
 
+  /* For save buffers, read back from disk. */
   if (re->result->do_exr_tile) {
     render_result_exr_file_end(re, engine);
+  }
+
+  /* Perform delayed grease pencil rendering. */
+  if (delay_grease_pencil) {
+    BLI_rw_mutex_unlock(&re->partsmutex);
+
+    FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer_iter) {
+      engine_render_view_layer(re, engine, view_layer_iter, false, true);
+      if (RE_engine_test_break(engine)) {
+        break;
+      }
+    }
+    FOREACH_VIEW_LAYER_TO_RENDER_END;
+
+    BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
   }
 
   /* re->engine becomes zero if user changed active render engine during render */
@@ -981,7 +1024,7 @@ void RE_engine_free_blender_memory(RenderEngine *engine)
    *
    * TODO(sergey): Find better solution for this.
    */
-  if (DRW_render_check_grease_pencil(engine->depsgraph)) {
+  if (engine->has_grease_pencil) {
     return;
   }
   DEG_graph_free(engine->depsgraph);
