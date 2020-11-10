@@ -367,7 +367,13 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer)
 
       LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
         if (base->object) {
-          BLI_ghash_insert(hash, base->object, base);
+          /* Some processes, like ID remapping, may lead to having several bases with the same
+           * object. So just take the first one here, and ignore all others
+           * (#BKE_layer_collection_sync will clean this up anyway). */
+          void **val_pp;
+          if (!BLI_ghash_ensure_p(hash, base->object, &val_pp)) {
+            *val_pp = base;
+          }
         }
       }
 
