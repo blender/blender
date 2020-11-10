@@ -639,23 +639,27 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
     }
   }
 
+  SnapObjectContext *snap_context = NULL;
+  bool snap_context_free = false;
+  if ((plane_orient == PLACE_ORIENT_SURFACE) || (plane_depth == PLACE_DEPTH_SURFACE)) {
+    /* Need# snap_context */
+    if (ipd->snap_gizmo) {
+      snap_context = ED_gizmotypes_snap_3d_context_ensure(
+          ipd->scene, ipd->region, ipd->v3d, ipd->snap_gizmo);
+    }
+    else {
+      snap_context = ED_transform_snap_object_context_create_view3d(
+          ipd->scene, 0, ipd->region, ipd->v3d);
+      snap_context_free = true;
+    }
+  }
+
   ipd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
   ED_transform_calc_orientation_from_type(C, ipd->matrix_orient);
 
   /* Set the orientation. */
-  if (plane_orient == PLACE_ORIENT_SURFACE) {
-    bool snap_context_free = false;
-    SnapObjectContext *snap_context =
-        (ipd->snap_gizmo ? ED_gizmotypes_snap_3d_context_ensure(
-                               ipd->scene, ipd->region, ipd->v3d, ipd->snap_gizmo) :
-                           NULL);
-    if (snap_context == NULL) {
-      snap_context = ED_transform_snap_object_context_create_view3d(
-          ipd->scene, 0, ipd->region, ipd->v3d);
-      snap_context_free = true;
-    }
-
+  if (snap_context && (plane_orient == PLACE_ORIENT_SURFACE)) {
     float matrix_orient_surface[3][3];
 
     /* Use the snap normal as a fallback in case the cursor isn't over a surface
@@ -672,10 +676,6 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
                                   use_normal_fallback ? normal_fallback : NULL,
                                   matrix_orient_surface)) {
       copy_m3_m3(ipd->matrix_orient, matrix_orient_surface);
-    }
-
-    if (snap_context_free) {
-      ED_transform_snap_object_context_destroy(snap_context);
     }
   }
 
@@ -751,13 +751,8 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
           ipd->v3d, ipd->region, ipd->scene->cursor.location, mval_fl, ipd->co_src);
       use_depth_fallback = false;
     }
-    else if (plane_depth == PLACE_DEPTH_SURFACE) {
-      SnapObjectContext *snap_context =
-          (ipd->snap_gizmo ? ED_gizmotypes_snap_3d_context_ensure(
-                                 ipd->scene, ipd->region, ipd->v3d, ipd->snap_gizmo) :
-                             NULL);
-      if ((snap_context != NULL) &&
-          ED_transform_snap_object_project_view3d(snap_context,
+    else if (snap_context && (plane_depth == PLACE_DEPTH_SURFACE)) {
+      if (ED_transform_snap_object_project_view3d(snap_context,
                                                   CTX_data_ensure_evaluated_depsgraph(C),
                                                   SCE_SNAP_MODE_FACE,
                                                   &(const struct SnapObjectParams){
@@ -804,6 +799,10 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
       ipd->step[0].plane, ipd->co_src, ipd->matrix_orient[ipd->orient_axis]);
 
   copy_v3_v3(ipd->step[0].co_dst, ipd->co_src);
+
+  if (snap_context_free) {
+    ED_transform_snap_object_context_destroy(snap_context);
+  }
 }
 
 static int view3d_interactive_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
