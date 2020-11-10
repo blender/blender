@@ -679,7 +679,7 @@ while true; do
     --with-oidn)
       WITH_OIDN=true; shift; continue
     ;;
-    --with-nanvdb)
+    --with-nanovdb)
       WITH_NANOVDB=true;
       shift; continue
     ;;
