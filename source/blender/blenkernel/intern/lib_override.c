@@ -884,12 +884,7 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
   FOREACH_MAIN_ID_END;
 
   /* Delete the override IDs. */
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (id->tag & LIB_TAG_DOIT) {
-      BKE_id_delete(bmain, id);
-    }
-  }
-  FOREACH_MAIN_ID_END;
+  BKE_id_multi_tagged_delete(bmain);
 
   /* Should not actually be needed here. */
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
