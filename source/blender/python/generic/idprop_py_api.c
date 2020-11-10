@@ -1197,7 +1197,7 @@ PyTypeObject BPy_IDGroup_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL,                       /* destructor tp_dealloc; */
+    NULL, /* destructor tp_dealloc; */
 #if PY_VERSION_HEX >= 0x03080000
     0, /* tp_vectorcall_offset */
 #else
@@ -1610,7 +1610,7 @@ PyTypeObject BPy_IDArray_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL,                       /* destructor tp_dealloc; */
+    NULL, /* destructor tp_dealloc; */
 #if PY_VERSION_HEX >= 0x03080000
     0, /* tp_vectorcall_offset */
 #else
@@ -1731,7 +1731,7 @@ PyTypeObject BPy_IDGroup_Iter_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL,                        /* destructor tp_dealloc; */
+    NULL, /* destructor tp_dealloc; */
 #if PY_VERSION_HEX >= 0x03080000
     0, /* tp_vectorcall_offset */
 #else

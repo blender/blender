@@ -22,5 +22,6 @@ shader node_clamp(string clamp_type = "minmax",
                   float Max = 1.0,
                   output float Result = 0.0)
 {
-  Result = (clamp_type == "range" && (Min > Max)) ? clamp(Value, Max, Min) : clamp(Value, Min, Max);
+  Result = (clamp_type == "range" && (Min > Max)) ? clamp(Value, Max, Min) :
+                                                    clamp(Value, Min, Max);
 }

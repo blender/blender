@@ -347,10 +347,10 @@ PyTypeObject Py_ImBuf_Type = {
 #else
     (printfunc)NULL, /* printfunc tp_print */
 #endif
-    NULL,                         /* getattrfunc tp_getattr; */
-    NULL,                         /* setattrfunc tp_setattr; */
-    NULL,                         /* cmpfunc tp_compare; */
-    (reprfunc)py_imbuf_repr,      /* reprfunc tp_repr; */
+    NULL,                    /* getattrfunc tp_getattr; */
+    NULL,                    /* setattrfunc tp_setattr; */
+    NULL,                    /* cmpfunc tp_compare; */
+    (reprfunc)py_imbuf_repr, /* reprfunc tp_repr; */
 
     /* Method suites for standard classes */
 

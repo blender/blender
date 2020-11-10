@@ -6403,14 +6403,14 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
 
     0, /* tp_itemsize */
     /* methods */
-    NULL,            /* tp_dealloc */
+    NULL, /* tp_dealloc */
 #if PY_VERSION_HEX >= 0x03080000
     0, /* tp_vectorcall_offset */
 #else
     (printfunc)NULL, /* printfunc tp_print */
 #endif
-    NULL,            /* getattrfunc tp_getattr; */
-    NULL,            /* setattrfunc tp_setattr; */
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */ /* deprecated in Python 3.0! */
     NULL,            /* tp_repr */
@@ -6460,7 +6460,7 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
 #if defined(_MSC_VER)
     NULL, /* defer assignment */
 #else
-    &PyType_Type, /* struct _typeobject *tp_base; */
+    &PyType_Type,    /* struct _typeobject *tp_base; */
 #endif
     NULL, /* PyObject *tp_dict; */
     NULL, /* descrgetfunc tp_descr_get; */
@@ -6494,8 +6494,8 @@ PyTypeObject pyrna_struct_Type = {
 #else
     (printfunc)NULL, /* printfunc tp_print */
 #endif
-    NULL,                             /* getattrfunc tp_getattr; */
-    NULL,                             /* setattrfunc tp_setattr; */
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */             /* DEPRECATED in Python 3.0! */
     (reprfunc)pyrna_struct_repr, /* tp_repr */
@@ -6529,7 +6529,7 @@ PyTypeObject pyrna_struct_Type = {
     /* delete references to contained objects */
     (inquiry)pyrna_struct_clear, /* inquiry tp_clear; */
 #else
-    NULL,         /* traverseproc tp_traverse; */
+    NULL,            /* traverseproc tp_traverse; */
 
     /* delete references to contained objects */
     NULL, /* inquiry tp_clear; */
@@ -6587,8 +6587,8 @@ PyTypeObject pyrna_prop_Type = {
 #else
     (printfunc)NULL, /* printfunc tp_print */
 #endif
-    NULL,                           /* getattrfunc tp_getattr; */
-    NULL,                           /* setattrfunc tp_setattr; */
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */           /* DEPRECATED in Python 3.0! */
     (reprfunc)pyrna_prop_repr, /* tp_repr */
@@ -6675,8 +6675,8 @@ PyTypeObject pyrna_prop_array_Type = {
 #else
     (printfunc)NULL, /* printfunc tp_print */
 #endif
-    NULL,                                 /* getattrfunc tp_getattr; */
-    NULL,                                 /* setattrfunc tp_setattr; */
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */                 /* DEPRECATED in Python 3.0! */
     (reprfunc)pyrna_prop_array_repr, /* tp_repr */
@@ -6762,8 +6762,8 @@ PyTypeObject pyrna_prop_collection_Type = {
 #else
     (printfunc)NULL, /* printfunc tp_print */
 #endif
-    NULL,                           /* getattrfunc tp_getattr; */
-    NULL,                           /* setattrfunc tp_setattr; */
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */ /* DEPRECATED in Python 3.0! */
     NULL,
@@ -6852,8 +6852,8 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
 #else
     (printfunc)NULL, /* printfunc tp_print */
 #endif
-    NULL,                           /* getattrfunc tp_getattr; */
-    NULL,                           /* setattrfunc tp_setattr; */
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */ /* DEPRECATED in Python 3.0! */
     NULL,
@@ -6936,14 +6936,14 @@ PyTypeObject pyrna_func_Type = {
     sizeof(BPy_FunctionRNA),                   /* tp_basicsize */
     0,                                         /* tp_itemsize */
     /* methods */
-    NULL,            /* tp_dealloc */
+    NULL, /* tp_dealloc */
 #if PY_VERSION_HEX >= 0x03080000
     0, /* tp_vectorcall_offset */
 #else
     (printfunc)NULL, /* printfunc tp_print */
 #endif
-    NULL,            /* getattrfunc tp_getattr; */
-    NULL,            /* setattrfunc tp_setattr; */
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */           /* DEPRECATED in Python 3.0! */
     (reprfunc)pyrna_func_repr, /* tp_repr */
@@ -7037,13 +7037,13 @@ static PyTypeObject pyrna_prop_collection_iter_Type = {
     0,                                                         /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_collection_iter_dealloc, /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
+#  if PY_VERSION_HEX >= 0x03080000
     0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
-    NULL,                                           /* getattrfunc tp_getattr; */
-    NULL,                                           /* setattrfunc tp_setattr; */
+#  else
+    (printfunc)NULL,         /* printfunc tp_print */
+#  endif
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */ /* DEPRECATED in Python 3.0! */
     NULL,

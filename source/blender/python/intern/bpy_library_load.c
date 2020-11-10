@@ -97,8 +97,8 @@ static PyTypeObject bpy_lib_Type = {
 #else
     (printfunc)NULL, /* printfunc tp_print */
 #endif
-    NULL,                        /* getattrfunc tp_getattr; */
-    NULL,                        /* setattrfunc tp_setattr; */
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */ /* DEPRECATED in python 3.0! */
     NULL,            /* tp_repr */
