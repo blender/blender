@@ -474,6 +474,8 @@ bool IMB_prepare_write_ImBuf(const bool isfloat, struct ImBuf *ibuf);
  * \attention Defined in util.c
  */
 bool IMB_ispic(const char *name);
+bool IMB_ispic_type_matches(const char *name, int filetype);
+int IMB_ispic_type_from_memory(const unsigned char *mem, const size_t mem_size);
 int IMB_ispic_type(const char *name);
 
 /**

@@ -33,7 +33,6 @@ typedef struct ImFileType {
   void (*exit)(void);
 
   int (*is_a)(const unsigned char *buf);
-  int (*is_a_filepath)(const char *filepath);
   int (*ftype)(const struct ImFileType *type, const struct ImBuf *ibuf);
   struct ImBuf *(*load)(const unsigned char *mem,
                         size_t size,

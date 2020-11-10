@@ -117,13 +117,11 @@ const char *imb_ext_audio[] = {
     NULL,
 };
 
-int IMB_ispic_type(const char *name)
-{
-  /* increased from 32 to 64 because of the bitmaps header size */
+/* Increased from 32 to 64 because of the bitmaps header size. */
 #define HEADER_SIZE 64
 
-  unsigned char buf[HEADER_SIZE];
-  const ImFileType *type;
+static bool imb_ispic_read_header_from_filename(const char *name, unsigned char buf[HEADER_SIZE])
+{
   BLI_stat_t st;
   int fp;
 
@@ -144,31 +142,69 @@ int IMB_ispic_type(const char *name)
     return false;
   }
 
-  memset(buf, 0, sizeof(buf));
+  memset(buf, 0, HEADER_SIZE);
   if (read(fp, buf, HEADER_SIZE) <= 0) {
     close(fp);
     return false;
   }
 
   close(fp);
+  return true;
+}
 
-  for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
+int IMB_ispic_type_from_memory(const unsigned char *mem, const size_t mem_size)
+{
+  unsigned char buf_static[HEADER_SIZE];
+  const unsigned char *buf;
+
+  if (mem_size >= HEADER_SIZE) {
+    buf = buf_static;
+  }
+  else {
+    memset(buf_static, 0, HEADER_SIZE);
+    memcpy(buf_static, mem, mem_size);
+    buf = buf_static;
+  }
+
+  for (const ImFileType *type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
     if (type->is_a) {
       if (type->is_a(buf)) {
-        return type->filetype;
-      }
-    }
-    else if (type->is_a_filepath) {
-      if (type->is_a_filepath(name)) {
         return type->filetype;
       }
     }
   }
 
   return 0;
+}
+
+int IMB_ispic_type(const char *name)
+{
+  unsigned char buf[HEADER_SIZE];
+  if (!imb_ispic_read_header_from_filename(name, buf)) {
+    return false;
+  }
+  return IMB_ispic_type_from_memory(buf, HEADER_SIZE);
+}
+
+bool IMB_ispic_type_matches(const char *name, int filetype)
+{
+  unsigned char buf[HEADER_SIZE];
+  if (!imb_ispic_read_header_from_filename(name, buf)) {
+    return false;
+  }
+
+  for (const ImFileType *type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
+    if (type->filetype == filetype) {
+      /* Requesting to load a type that can't check it's own header doesn't make sense.
+       * Keep the check for developers. */
+      BLI_assert(type->is_a != NULL);
+      return type->is_a ? type->is_a(buf) : false;
+    }
+  }
+  return false;
+}
 
 #undef HEADER_SIZE
-}
 
 bool IMB_ispic(const char *name)
 {
