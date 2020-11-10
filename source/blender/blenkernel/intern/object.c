@@ -4868,8 +4868,10 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
 {
   Object_Runtime *runtime = &object->runtime;
   runtime->data_eval = NULL;
+  runtime->gpd_eval = NULL;
   runtime->mesh_deform_eval = NULL;
   runtime->curve_cache = NULL;
+  runtime->object_as_temp_mesh = NULL;
 }
 
 /**
