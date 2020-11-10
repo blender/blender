@@ -149,6 +149,8 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
 typedef struct UnwrapOptions {
   /** Connectivity based on UV coordinates instead of seams. */
   bool topology_from_uvs;
+  /** Also use seams as well as UV coordinates (only valid when `topology_from_uvs` is enabled). */
+  bool topology_from_uvs_use_seams;
   /** Only affect selected faces. */
   bool only_selected_faces;
   /**
@@ -331,7 +333,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
     construct_param_handle_face_add(handle, scene, efa, i, cd_loop_uv_offset);
   }
 
-  if (!options->topology_from_uvs) {
+  if (!options->topology_from_uvs || options->topology_from_uvs_use_seams) {
     BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
       if (BM_elem_flag_test(eed, BM_ELEM_SEAM)) {
         ParamKey vkeys[2];
@@ -416,7 +418,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
       construct_param_handle_face_add(handle, scene, efa, i + offset, cd_loop_uv_offset);
     }
 
-    if (!options->topology_from_uvs) {
+    if (!options->topology_from_uvs || options->topology_from_uvs_use_seams) {
       BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
         if (BM_elem_flag_test(eed, BM_ELEM_SEAM)) {
           ParamKey vkeys[2];
@@ -2149,6 +2151,10 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     scene->toolsettings->uvcalc_margin = island_margin;
     const UnwrapOptions options = {
         .topology_from_uvs = true,
+        /* Even though the islands are defined by UV's,
+         * split them by seams so users have control over the islands. */
+        .topology_from_uvs_use_seams = true,
+
         .only_selected_faces = true,
         .only_selected_uvs = false,
         .fill_holes = true,
