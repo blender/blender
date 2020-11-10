@@ -478,7 +478,7 @@ template<typename T> struct TextureInterpolator {
 #ifdef WITH_NANOVDB
 template<typename T> struct NanoVDBInterpolator {
 
-  typedef nanovdb::ReadAccessor<nanovdb::NanoRoot<T>> ReadAccessorT;
+  typedef typename nanovdb::NanoGrid<T>::AccessorType AccessorType;
 
   static ccl_always_inline float4 read(float r)
   {
@@ -490,16 +490,22 @@ template<typename T> struct NanoVDBInterpolator {
     return make_float4(r[0], r[1], r[2], 1.0f);
   }
 
-  static ccl_always_inline float4 interp_3d_closest(ReadAccessorT acc, float x, float y, float z)
+  static ccl_always_inline float4 interp_3d_closest(const AccessorType &acc,
+                                                    float x,
+                                                    float y,
+                                                    float z)
   {
     const nanovdb::Vec3f xyz(x, y, z);
-    return read(nanovdb::NearestNeighborSampler<ReadAccessorT, false>(acc)(xyz));
+    return read(nanovdb::SampleFromVoxels<AccessorType, 0, false>(acc)(xyz));
   }
 
-  static ccl_always_inline float4 interp_3d_linear(ReadAccessorT acc, float x, float y, float z)
+  static ccl_always_inline float4 interp_3d_linear(const AccessorType &acc,
+                                                   float x,
+                                                   float y,
+                                                   float z)
   {
     const nanovdb::Vec3f xyz(x - 0.5f, y - 0.5f, z - 0.5f);
-    return read(nanovdb::TrilinearSampler<ReadAccessorT, false>(acc)(xyz));
+    return read(nanovdb::SampleFromVoxels<AccessorType, 1, false>(acc)(xyz));
   }
 
 #  if defined(__GNUC__) || defined(__clang__)
@@ -508,7 +514,7 @@ template<typename T> struct NanoVDBInterpolator {
   static ccl_never_inline
 #  endif
       float4
-      interp_3d_cubic(ReadAccessorT acc, float x, float y, float z)
+      interp_3d_cubic(const AccessorType &acc, float x, float y, float z)
   {
     int ix, iy, iz;
     int nix, niy, niz;
@@ -561,15 +567,15 @@ template<typename T> struct NanoVDBInterpolator {
     using namespace nanovdb;
 
     NanoGrid<T> *const grid = (NanoGrid<T> *)info.data;
-    const NanoRoot<T> &root = grid->tree().root();
+    AccessorType acc = grid->getAccessor();
 
     switch ((interp == INTERPOLATION_NONE) ? info.interpolation : interp) {
       case INTERPOLATION_CLOSEST:
-        return interp_3d_closest(root, x, y, z);
+        return interp_3d_closest(acc, x, y, z);
       case INTERPOLATION_LINEAR:
-        return interp_3d_linear(root, x, y, z);
+        return interp_3d_linear(acc, x, y, z);
       default:
-        return interp_3d_cubic(root, x, y, z);
+        return interp_3d_cubic(acc, x, y, z);
     }
   }
 };

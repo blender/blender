@@ -159,18 +159,18 @@ ccl_device_inline T kernel_tex_image_interp_nanovdb(
     const TextureInfo &info, float x, float y, float z, uint interpolation)
 {
   using namespace nanovdb;
-  typedef ReadAccessor<NanoRoot<T>> ReadAccessorT;
 
   NanoGrid<T> *const grid = (NanoGrid<T> *)info.data;
-  const NanoRoot<T> &root = grid->tree().root();
+  typedef typename nanovdb::NanoGrid<T>::AccessorType AccessorType;
+  AccessorType acc = grid->getAccessor();
 
   switch (interpolation) {
     case INTERPOLATION_CLOSEST:
-      return NearestNeighborSampler<ReadAccessorT, false>(root)(Vec3f(x, y, z));
+      return SampleFromVoxels<AccessorType, 0, false>(acc)(Vec3f(x, y, z));
     case INTERPOLATION_LINEAR:
-      return TrilinearSampler<ReadAccessorT, false>(root)(Vec3f(x - 0.5f, y - 0.5f, z - 0.5f));
+      return SampleFromVoxels<AccessorType, 1, false>(acc)(Vec3f(x - 0.5f, y - 0.5f, z - 0.5f));
     default:
-      TrilinearSampler<ReadAccessorT, false> s(root);
+      SampleFromVoxels<AccessorType, 1, false> s(acc);
       return kernel_tex_image_interp_tricubic_nanovdb<T>(s, x - 0.5f, y - 0.5f, z - 0.5f);
   }
 }
