@@ -1709,7 +1709,7 @@ static TreeElement *find_walk_select_start_element(SpaceOutliner *space_outliner
 }
 
 /* Scroll the outliner when the walk element reaches the top or bottom boundary */
-static void outliner_walk_scroll(ARegion *region, TreeElement *te)
+static void outliner_walk_scroll(SpaceOutliner *space_outliner, ARegion *region, TreeElement *te)
 {
   /* Account for the header height */
   int y_max = region->v2d.cur.ymax - UI_UNIT_Y;
@@ -1717,10 +1717,10 @@ static void outliner_walk_scroll(ARegion *region, TreeElement *te)
 
   /* Scroll if walked position is beyond the border */
   if (te->ys > y_max) {
-    outliner_scroll_view(region, te->ys - y_max);
+    outliner_scroll_view(space_outliner, region, te->ys - y_max);
   }
   else if (te->ys < y_min) {
-    outliner_scroll_view(region, -(y_min - te->ys));
+    outliner_scroll_view(space_outliner, region, -(y_min - te->ys));
   }
 }
 
@@ -1747,7 +1747,7 @@ static int outliner_walk_select_invoke(bContext *C, wmOperator *op, const wmEven
                        OL_ITEM_SELECT | OL_ITEM_ACTIVATE | (extend ? OL_ITEM_EXTEND : 0));
 
   /* Scroll outliner to focus on walk element */
-  outliner_walk_scroll(region, active_te);
+  outliner_walk_scroll(space_outliner, region, active_te);
 
   ED_outliner_select_sync_from_outliner(C, space_outliner);
   outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);

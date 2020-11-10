@@ -109,7 +109,7 @@ static void outliner_tree_dimensions_impl(SpaceOutliner *space_outliner,
   }
 }
 
-static void outliner_tree_dimensions(SpaceOutliner *space_outliner, int *r_width, int *r_height)
+void outliner_tree_dimensions(SpaceOutliner *space_outliner, int *r_width, int *r_height)
 {
   *r_width = 0;
   *r_height = 0;
