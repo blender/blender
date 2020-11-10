@@ -47,24 +47,24 @@ matrix euler_to_mat(point euler)
   return mat;
 }
 
-shader node_mapping(string type = "point",
+shader node_mapping(string mapping_type = "point",
                     point VectorIn = point(0.0, 0.0, 0.0),
                     point Location = point(0.0, 0.0, 0.0),
                     point Rotation = point(0.0, 0.0, 0.0),
                     point Scale = point(1.0, 1.0, 1.0),
                     output point VectorOut = point(0.0, 0.0, 0.0))
 {
-  if (type == "point") {
+  if (mapping_type == "point") {
     VectorOut = transform(euler_to_mat(Rotation), (VectorIn * Scale)) + Location;
   }
-  else if (type == "texture") {
+  else if (mapping_type == "texture") {
     VectorOut = safe_divide(transform(transpose(euler_to_mat(Rotation)), (VectorIn - Location)),
                             Scale);
   }
-  else if (type == "vector") {
+  else if (mapping_type == "vector") {
     VectorOut = transform(euler_to_mat(Rotation), (VectorIn * Scale));
   }
-  else if (type == "normal") {
+  else if (mapping_type == "normal") {
     VectorOut = normalize((vector)transform(euler_to_mat(Rotation), safe_divide(VectorIn, Scale)));
   }
   else {

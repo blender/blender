@@ -279,7 +279,7 @@ color node_mix_clamp(color col)
   return outcol;
 }
 
-shader node_mix(string type = "mix",
+shader node_mix(string mix_type = "mix",
                 int use_clamp = 0,
                 float Fac = 0.5,
                 color Color1 = 0.0,
@@ -288,41 +288,41 @@ shader node_mix(string type = "mix",
 {
   float t = clamp(Fac, 0.0, 1.0);
 
-  if (type == "mix")
+  if (mix_type == "mix")
     Color = node_mix_blend(t, Color1, Color2);
-  if (type == "add")
+  if (mix_type == "add")
     Color = node_mix_add(t, Color1, Color2);
-  if (type == "multiply")
+  if (mix_type == "multiply")
     Color = node_mix_mul(t, Color1, Color2);
-  if (type == "screen")
+  if (mix_type == "screen")
     Color = node_mix_screen(t, Color1, Color2);
-  if (type == "overlay")
+  if (mix_type == "overlay")
     Color = node_mix_overlay(t, Color1, Color2);
-  if (type == "subtract")
+  if (mix_type == "subtract")
     Color = node_mix_sub(t, Color1, Color2);
-  if (type == "divide")
+  if (mix_type == "divide")
     Color = node_mix_div(t, Color1, Color2);
-  if (type == "difference")
+  if (mix_type == "difference")
     Color = node_mix_diff(t, Color1, Color2);
-  if (type == "darken")
+  if (mix_type == "darken")
     Color = node_mix_dark(t, Color1, Color2);
-  if (type == "lighten")
+  if (mix_type == "lighten")
     Color = node_mix_light(t, Color1, Color2);
-  if (type == "dodge")
+  if (mix_type == "dodge")
     Color = node_mix_dodge(t, Color1, Color2);
-  if (type == "burn")
+  if (mix_type == "burn")
     Color = node_mix_burn(t, Color1, Color2);
-  if (type == "hue")
+  if (mix_type == "hue")
     Color = node_mix_hue(t, Color1, Color2);
-  if (type == "saturation")
+  if (mix_type == "saturation")
     Color = node_mix_sat(t, Color1, Color2);
-  if (type == "value")
+  if (mix_type == "value")
     Color = node_mix_val(t, Color1, Color2);
-  if (type == "color")
+  if (mix_type == "color")
     Color = node_mix_color(t, Color1, Color2);
-  if (type == "soft_light")
+  if (mix_type == "soft_light")
     Color = node_mix_soft(t, Color1, Color2);
-  if (type == "linear_light")
+  if (mix_type == "linear_light")
     Color = node_mix_linear(t, Color1, Color2);
 
   if (use_clamp)

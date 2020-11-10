@@ -27,7 +27,7 @@ float smootherstep(float edge0, float edge1, float x)
   return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 }
 
-shader node_map_range(string type = "linear",
+shader node_map_range(string range_type = "linear",
                       float Value = 1.0,
                       float FromMin = 0.0,
                       float FromMax = 1.0,
@@ -38,15 +38,15 @@ shader node_map_range(string type = "linear",
 {
   if (FromMax != FromMin) {
     float Factor = Value;
-    if (type == "stepped") {
+    if (range_type == "stepped") {
       Factor = (Value - FromMin) / (FromMax - FromMin);
       Factor = (Steps > 0) ? floor(Factor * (Steps + 1.0)) / Steps : 0.0;
     }
-    else if (type == "smoothstep") {
+    else if (range_type == "smoothstep") {
       Factor = (FromMin > FromMax) ? 1.0 - smoothstep(FromMax, FromMin, Value) :
                                      smoothstep(FromMin, FromMax, Value);
     }
-    else if (type == "smootherstep") {
+    else if (range_type == "smootherstep") {
       Factor = (FromMin > FromMax) ? 1.0 - smootherstep(FromMax, FromMin, Value) :
                                      smootherstep(FromMin, FromMax, Value);
     }

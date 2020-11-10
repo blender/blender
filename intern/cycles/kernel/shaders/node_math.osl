@@ -18,91 +18,91 @@
 #include "stdcycles.h"
 
 /* OSL asin, acos, and pow functions are safe by default. */
-shader node_math(string type = "add",
+shader node_math(string math_type = "add",
                  float Value1 = 0.5,
                  float Value2 = 0.5,
                  float Value3 = 0.5,
                  output float Value = 0.0)
 {
-  if (type == "add")
+  if (math_type == "add")
     Value = Value1 + Value2;
-  else if (type == "subtract")
+  else if (math_type == "subtract")
     Value = Value1 - Value2;
-  else if (type == "multiply")
+  else if (math_type == "multiply")
     Value = Value1 * Value2;
-  else if (type == "divide")
+  else if (math_type == "divide")
     Value = safe_divide(Value1, Value2);
-  else if (type == "power")
+  else if (math_type == "power")
     Value = pow(Value1, Value2);
-  else if (type == "logarithm")
+  else if (math_type == "logarithm")
     Value = safe_log(Value1, Value2);
-  else if (type == "sqrt")
+  else if (math_type == "sqrt")
     Value = safe_sqrt(Value1);
-  else if (type == "inversesqrt")
+  else if (math_type == "inversesqrt")
     Value = inversesqrt(Value1);
-  else if (type == "absolute")
+  else if (math_type == "absolute")
     Value = fabs(Value1);
-  else if (type == "radians")
+  else if (math_type == "radians")
     Value = radians(Value1);
-  else if (type == "degrees")
+  else if (math_type == "degrees")
     Value = degrees(Value1);
-  else if (type == "minimum")
+  else if (math_type == "minimum")
     Value = min(Value1, Value2);
-  else if (type == "maximum")
+  else if (math_type == "maximum")
     Value = max(Value1, Value2);
-  else if (type == "less_than")
+  else if (math_type == "less_than")
     Value = Value1 < Value2;
-  else if (type == "greater_than")
+  else if (math_type == "greater_than")
     Value = Value1 > Value2;
-  else if (type == "round")
+  else if (math_type == "round")
     Value = floor(Value1 + 0.5);
-  else if (type == "floor")
+  else if (math_type == "floor")
     Value = floor(Value1);
-  else if (type == "ceil")
+  else if (math_type == "ceil")
     Value = ceil(Value1);
-  else if (type == "fraction")
+  else if (math_type == "fraction")
     Value = Value1 - floor(Value1);
-  else if (type == "modulo")
+  else if (math_type == "modulo")
     Value = safe_modulo(Value1, Value2);
-  else if (type == "trunc")
+  else if (math_type == "trunc")
     Value = trunc(Value1);
-  else if (type == "snap")
+  else if (math_type == "snap")
     Value = floor(safe_divide(Value1, Value2)) * Value2;
-  else if (type == "wrap")
+  else if (math_type == "wrap")
     Value = wrap(Value1, Value2, Value3);
-  else if (type == "pingpong")
+  else if (math_type == "pingpong")
     Value = pingpong(Value1, Value2);
-  else if (type == "sine")
+  else if (math_type == "sine")
     Value = sin(Value1);
-  else if (type == "cosine")
+  else if (math_type == "cosine")
     Value = cos(Value1);
-  else if (type == "tangent")
+  else if (math_type == "tangent")
     Value = tan(Value1);
-  else if (type == "sinh")
+  else if (math_type == "sinh")
     Value = sinh(Value1);
-  else if (type == "cosh")
+  else if (math_type == "cosh")
     Value = cosh(Value1);
-  else if (type == "tanh")
+  else if (math_type == "tanh")
     Value = tanh(Value1);
-  else if (type == "arcsine")
+  else if (math_type == "arcsine")
     Value = asin(Value1);
-  else if (type == "arccosine")
+  else if (math_type == "arccosine")
     Value = acos(Value1);
-  else if (type == "arctangent")
+  else if (math_type == "arctangent")
     Value = atan(Value1);
-  else if (type == "arctan2")
+  else if (math_type == "arctan2")
     Value = atan2(Value1, Value2);
-  else if (type == "sign")
+  else if (math_type == "sign")
     Value = sign(Value1);
-  else if (type == "exponent")
+  else if (math_type == "exponent")
     Value = exp(Value1);
-  else if (type == "compare")
+  else if (math_type == "compare")
     Value = ((Value1 == Value2) || (abs(Value1 - Value2) <= max(Value3, 1e-5))) ? 1.0 : 0.0;
-  else if (type == "multiply_add")
+  else if (math_type == "multiply_add")
     Value = Value1 * Value2 + Value3;
-  else if (type == "smoothmin")
+  else if (math_type == "smoothmin")
     Value = smoothmin(Value1, Value2, Value3);
-  else if (type == "smoothmax")
+  else if (math_type == "smoothmax")
     Value = -(smoothmin(-Value1, -Value2, Value3));
   else
     warning("%s", "Unknown math operator!");

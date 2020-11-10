@@ -18,7 +18,7 @@
 #include "stdcycles.h"
 
 shader node_vector_rotate(int invert = 0,
-                          string type = "axis",
+                          string rotate_type = "axis",
                           vector VectorIn = vector(0.0, 0.0, 0.0),
                           point Center = point(0.0, 0.0, 0.0),
                           point Rotation = point(0.0, 0.0, 0.0),
@@ -26,19 +26,19 @@ shader node_vector_rotate(int invert = 0,
                           float Angle = 0.0,
                           output vector VectorOut = vector(0.0, 0.0, 0.0))
 {
-  if (type == "euler_xyz") {
+  if (rotate_type == "euler_xyz") {
     matrix rmat = (invert) ? transpose(euler_to_mat(Rotation)) : euler_to_mat(Rotation);
     VectorOut = transform(rmat, VectorIn - Center) + Center;
   }
   else {
     float a = (invert) ? -Angle : Angle;
-    if (type == "x_axis") {
+    if (rotate_type == "x_axis") {
       VectorOut = rotate(VectorIn - Center, a, point(0.0), vector(1.0, 0.0, 0.0)) + Center;
     }
-    else if (type == "y_axis") {
+    else if (rotate_type == "y_axis") {
       VectorOut = rotate(VectorIn - Center, a, point(0.0), vector(0.0, 1.0, 0.0)) + Center;
     }
-    else if (type == "z_axis") {
+    else if (rotate_type == "z_axis") {
       VectorOut = rotate(VectorIn - Center, a, point(0.0), vector(0.0, 0.0, 1.0)) + Center;
     }
     else {  // axis

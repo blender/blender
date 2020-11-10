@@ -212,7 +212,7 @@ shader node_sky_texture(
     int use_mapping = 0,
     matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
     vector Vector = P,
-    string type = "hosek_wilkie",
+    string sky_type = "hosek_wilkie",
     float theta = 0.0,
     float phi = 0.0,
     string filename = "",
@@ -228,10 +228,10 @@ shader node_sky_texture(
   if (use_mapping)
     p = transform(mapping, p);
 
-  if (type == "nishita_improved")
+  if (sky_type == "nishita_improved")
     Color = sky_radiance_nishita(p, nishita_data, filename);
-  if (type == "hosek_wilkie")
+  if (sky_type == "hosek_wilkie")
     Color = sky_radiance_hosek(p, phi, theta, radiance, config_x, config_y, config_z);
-  if (type == "preetham")
+  if (sky_type == "preetham")
     Color = sky_radiance_preetham(p, phi, theta, radiance, config_x, config_y, config_z);
 }

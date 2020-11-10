@@ -17,7 +17,7 @@
 #include "node_math.h"
 #include "stdcycles.h"
 
-shader node_vector_math(string type = "add",
+shader node_vector_math(string math_type = "add",
                         vector Vector1 = vector(0.0, 0.0, 0.0),
                         vector Vector2 = vector(0.0, 0.0, 0.0),
                         vector Vector3 = vector(0.0, 0.0, 0.0),
@@ -25,76 +25,76 @@ shader node_vector_math(string type = "add",
                         output float Value = 0.0,
                         output vector Vector = vector(0.0, 0.0, 0.0))
 {
-  if (type == "add") {
+  if (math_type == "add") {
     Vector = Vector1 + Vector2;
   }
-  else if (type == "subtract") {
+  else if (math_type == "subtract") {
     Vector = Vector1 - Vector2;
   }
-  else if (type == "multiply") {
+  else if (math_type == "multiply") {
     Vector = Vector1 * Vector2;
   }
-  else if (type == "divide") {
+  else if (math_type == "divide") {
     Vector = safe_divide(Vector1, Vector2);
   }
-  else if (type == "cross_product") {
+  else if (math_type == "cross_product") {
     Vector = cross(Vector1, Vector2);
   }
-  else if (type == "project") {
+  else if (math_type == "project") {
     Vector = project(Vector1, Vector2);
   }
-  else if (type == "reflect") {
+  else if (math_type == "reflect") {
     Vector = reflect(Vector1, normalize(Vector2));
   }
-  else if (type == "dot_product") {
+  else if (math_type == "dot_product") {
     Value = dot(Vector1, Vector2);
   }
-  else if (type == "distance") {
+  else if (math_type == "distance") {
     Value = distance(Vector1, Vector2);
   }
-  else if (type == "length") {
+  else if (math_type == "length") {
     Value = length(Vector1);
   }
-  else if (type == "scale") {
+  else if (math_type == "scale") {
     Vector = Vector1 * Scale;
   }
-  else if (type == "normalize") {
+  else if (math_type == "normalize") {
     Vector = normalize(Vector1);
   }
-  else if (type == "snap") {
+  else if (math_type == "snap") {
     Vector = snap(Vector1, Vector2);
   }
-  else if (type == "floor") {
+  else if (math_type == "floor") {
     Vector = floor(Vector1);
   }
-  else if (type == "ceil") {
+  else if (math_type == "ceil") {
     Vector = ceil(Vector1);
   }
-  else if (type == "modulo") {
+  else if (math_type == "modulo") {
     Vector = fmod(Vector1, Vector2);
   }
-  else if (type == "wrap") {
+  else if (math_type == "wrap") {
     Vector = wrap(Vector1, Vector2, Vector3);
   }
-  else if (type == "fraction") {
+  else if (math_type == "fraction") {
     Vector = Vector1 - floor(Vector1);
   }
-  else if (type == "absolute") {
+  else if (math_type == "absolute") {
     Vector = abs(Vector1);
   }
-  else if (type == "minimum") {
+  else if (math_type == "minimum") {
     Vector = min(Vector1, Vector2);
   }
-  else if (type == "maximum") {
+  else if (math_type == "maximum") {
     Vector = max(Vector1, Vector2);
   }
-  else if (type == "sine") {
+  else if (math_type == "sine") {
     Vector = sin(Vector1);
   }
-  else if (type == "cosine") {
+  else if (math_type == "cosine") {
     Vector = cos(Vector1);
   }
-  else if (type == "tangent") {
+  else if (math_type == "tangent") {
     Vector = tan(Vector1);
   }
   else {
