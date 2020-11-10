@@ -1881,15 +1881,15 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
 
   /* This is fully disabled for now, as it generated very hard to solve issues with Collections and
    * how they reference each-other in their parents/children relations.
-   * Core of the issue is creating and storing those copies in a separate BMain, while collection
-   * copy code re-assign blindly parents/children, even if they do not belong to the same BMain.
+   * Core of the issue is creating and storing those copies in a separate Main, while collection
+   * copy code re-assign blindly parents/children, even if they do not belong to the same Main.
    * One solution could be to implement special flag as discussed below, and prevent any
    * other-ID-reference creation/update in that case (since no differential operation is expected
    * to involve those anyway). */
 #if 0
   /* XXX TODO We may also want a specialized handling of things here too, to avoid copying heavy
    * never-overridable data (like Mesh geometry etc.)? And also maybe avoid lib
-   * reference-counting completely (shallow copy...). */
+   * reference-counting completely (shallow copy). */
   /* This would imply change in handling of user-count all over RNA
    * (and possibly all over Blender code).
    * Not impossible to do, but would rather see first is extra useless usual user handling is
@@ -1928,7 +1928,7 @@ void BKE_lib_override_library_operations_store_end(
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
 
   /* Nothing else to do here really, we need to keep all temp override storage data-blocks in
-   * memory until whole file is written anyway (otherwise we'd get mem pointers overlap...). */
+   * memory until whole file is written anyway (otherwise we'd get mem pointers overlap). */
   local->override_library->storage = NULL;
 }
 
