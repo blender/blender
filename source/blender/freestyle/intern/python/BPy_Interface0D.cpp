@@ -313,9 +313,11 @@ PyTypeObject Interface0D_Type = {
     sizeof(BPy_Interface0D),                         /* tp_basicsize */
     0,                                               /* tp_itemsize */
     (destructor)Interface0D_dealloc,                 /* tp_dealloc */
-    /* Incompatible with Python3.8+ (deprecated function).
-     * NOLINTNEXTLINE: modernize-use-nullptr. */
-    0,                                        /* tp_print */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    nullptr, /* tp_print */
+#endif
     nullptr,                                  /* tp_getattr */
     nullptr,                                  /* tp_setattr */
     nullptr,                                  /* tp_reserved */

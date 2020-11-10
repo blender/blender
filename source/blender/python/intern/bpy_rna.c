@@ -6404,7 +6404,11 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
     0, /* tp_itemsize */
     /* methods */
     NULL,            /* tp_dealloc */
-    (printfunc)NULL, /* printfunc tp_print; */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    (printfunc)NULL, /* printfunc tp_print */
+#endif
     NULL,            /* getattrfunc tp_getattr; */
     NULL,            /* setattrfunc tp_setattr; */
     NULL,
@@ -6485,7 +6489,11 @@ PyTypeObject pyrna_struct_Type = {
     0,                                           /* tp_itemsize */
     /* methods */
     (destructor)pyrna_struct_dealloc, /* tp_dealloc */
-    (printfunc)NULL,                  /* printfunc tp_print; */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    (printfunc)NULL, /* printfunc tp_print */
+#endif
     NULL,                             /* getattrfunc tp_getattr; */
     NULL,                             /* setattrfunc tp_setattr; */
     NULL,
@@ -6574,7 +6582,11 @@ PyTypeObject pyrna_prop_Type = {
     0,                                         /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_dealloc, /* tp_dealloc */
-    (printfunc)NULL,                /* printfunc tp_print; */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    (printfunc)NULL, /* printfunc tp_print */
+#endif
     NULL,                           /* getattrfunc tp_getattr; */
     NULL,                           /* setattrfunc tp_setattr; */
     NULL,
@@ -6658,7 +6670,11 @@ PyTypeObject pyrna_prop_array_Type = {
     0,                                               /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_array_dealloc, /* tp_dealloc */
-    (printfunc)NULL,                      /* printfunc tp_print; */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    (printfunc)NULL, /* printfunc tp_print */
+#endif
     NULL,                                 /* getattrfunc tp_getattr; */
     NULL,                                 /* setattrfunc tp_setattr; */
     NULL,
@@ -6741,7 +6757,11 @@ PyTypeObject pyrna_prop_collection_Type = {
     0,                                                    /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_dealloc, /* tp_dealloc */
-    (printfunc)NULL,                /* printfunc tp_print; */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    (printfunc)NULL, /* printfunc tp_print */
+#endif
     NULL,                           /* getattrfunc tp_getattr; */
     NULL,                           /* setattrfunc tp_setattr; */
     NULL,
@@ -6827,7 +6847,11 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
     0,                                                           /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_dealloc, /* tp_dealloc */
-    (printfunc)NULL,                /* printfunc tp_print; */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    (printfunc)NULL, /* printfunc tp_print */
+#endif
     NULL,                           /* getattrfunc tp_getattr; */
     NULL,                           /* setattrfunc tp_setattr; */
     NULL,
@@ -6913,7 +6937,11 @@ PyTypeObject pyrna_func_Type = {
     0,                                         /* tp_itemsize */
     /* methods */
     NULL,            /* tp_dealloc */
-    (printfunc)NULL, /* printfunc tp_print; */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    (printfunc)NULL, /* printfunc tp_print */
+#endif
     NULL,            /* getattrfunc tp_getattr; */
     NULL,            /* setattrfunc tp_setattr; */
     NULL,
@@ -7009,7 +7037,11 @@ static PyTypeObject pyrna_prop_collection_iter_Type = {
     0,                                                         /* tp_itemsize */
     /* methods */
     (destructor)pyrna_prop_collection_iter_dealloc, /* tp_dealloc */
-    (printfunc)NULL,                                /* printfunc tp_print; */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    (printfunc)NULL, /* printfunc tp_print */
+#endif
     NULL,                                           /* getattrfunc tp_getattr; */
     NULL,                                           /* setattrfunc tp_setattr; */
     NULL,

@@ -100,9 +100,11 @@ PyTypeObject SmoothingShader_Type = {
     sizeof(BPy_SmoothingShader),                         /* tp_basicsize */
     0,                                                   /* tp_itemsize */
     nullptr,                                             /* tp_dealloc */
-    /* Incompatible with Python3.8+ (deprecated function).
-     * NOLINTNEXTLINE: modernize-use-nullptr. */
-    0,                                        /* tp_print */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    nullptr, /* tp_print */
+#endif
     nullptr,                                  /* tp_getattr */
     nullptr,                                  /* tp_setattr */
     nullptr,                                  /* tp_reserved */
