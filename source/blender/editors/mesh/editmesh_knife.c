@@ -1903,8 +1903,15 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd,
 
   if (!f) {
     if (kcd->is_interactive) {
-      /* Try to use back-buffer selection method if ray casting failed. */
-      f = EDBM_face_find_nearest(&kcd->vc, &dist);
+      /* Try to use back-buffer selection method if ray casting failed.
+       *
+       * Apply the mouse coordinates to a copy of the view-context
+       * since we don't want to rely on this being set elsewhere. */
+      ViewContext vc = kcd->vc;
+      vc.mval[0] = (int)kcd->curr.mval[0];
+      vc.mval[1] = (int)kcd->curr.mval[1];
+
+      f = EDBM_face_find_nearest(&vc, &dist);
 
       /* cheat for now; just put in the origin instead
        * of a true coordinate on the face.
