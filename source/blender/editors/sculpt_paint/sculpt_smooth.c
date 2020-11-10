@@ -823,7 +823,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
       //try to avoid perfectly colinear triangles, and the normal discontinuities they create,
       //by blending slightly with unweighted smoothed position
       mul_v3_fl(avg2, 1.0f / tot2);
-      interp_v3_v3v3(avg2, avg2, avg3, 0.01);
+      interp_v3_v3v3(avg2, avg2, avg3, 0.025);
 
       sub_v3_v3v3(val, avg2, vd.co);
       madd_v3_v3v3fl(val, vd.co, val, fade);

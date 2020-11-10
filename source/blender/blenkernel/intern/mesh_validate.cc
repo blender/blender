@@ -18,8 +18,6 @@
  * \ingroup bke
  */
 
-#define NOMINMAX
-
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -33,10 +31,6 @@
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
-
-#if defined(__clang__) && defined(WIN32)
-#define NO_PARALELL
-#endif
 
 namespace blender::bke::calc_edges {
 
@@ -93,50 +87,25 @@ static void reserve_hash_maps(const Mesh *mesh,
                               MutableSpan<EdgeMap> edge_maps)
 {
   const int totedge_guess = std::max(keep_existing_edges ? mesh->totedge : 0, mesh->totpoly * 2);
-
-#ifndef NO_PARALELL
-  parallel_for_each(edge_maps,
-                    [&](EdgeMap &edge_map) {
-#else
-  int ilen = edge_maps.size();
-
-  for (int i = 0; i < ilen; i++) {
-    EdgeMap &edge_map = edge_maps[i];
-#endif
-                      edge_map.reserve(totedge_guess / edge_maps.size());
-                    }
-#ifndef NO_PARALELL
-  );
-#endif
+  parallel_for_each(
+      edge_maps, [&](EdgeMap &edge_map) { edge_map.reserve(totedge_guess / edge_maps.size()); });
 }
 
 static void add_existing_edges_to_hash_maps(Mesh *mesh,
                                             MutableSpan<EdgeMap> edge_maps,
                                             uint32_t parallel_mask)
 {
-#ifndef NO_PARALELL
   /* Assume existing edges are valid. */
-  parallel_for_each(edge_maps,
-                    [&](EdgeMap &edge_map) {
-#else
-  int ilen = edge_maps.size();
-
-  for (int i = 0; i < ilen; i++) {
-    EdgeMap &edge_map = edge_maps[i];
-#endif
-                      const int task_index = &edge_map - &edge_maps[0];
-                      for (const MEdge &edge : Span(mesh->medge, mesh->totedge)) {
-                        OrderedEdge ordered_edge{edge.v1, edge.v2};
-                        /* Only add the edge when it belongs into this map. */
-                        if (task_index == (parallel_mask & ordered_edge.hash2())) {
-                          edge_map.add_new(ordered_edge, {&edge});
-                        }
-                      }
-                    }
-
-#ifndef NO_PARALELL
-  );
-#endif
+  parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
+    const int task_index = &edge_map - &edge_maps[0];
+    for (const MEdge &edge : Span(mesh->medge, mesh->totedge)) {
+      OrderedEdge ordered_edge{edge.v1, edge.v2};
+      /* Only add the edge when it belongs into this map. */
+      if (task_index == (parallel_mask & ordered_edge.hash2())) {
+        edge_map.add_new(ordered_edge, {&edge});
+      }
+    }
+  });
 }
 
 static void add_polygon_edges_to_hash_maps(Mesh *mesh,
@@ -144,36 +113,24 @@ static void add_polygon_edges_to_hash_maps(Mesh *mesh,
                                            uint32_t parallel_mask)
 {
   const Span<MLoop> loops{mesh->mloop, mesh->totloop};
-#ifndef NO_PARALELL
-  parallel_for_each(edge_maps,
-                    [&](EdgeMap &edge_map) {
-#else
-  int ilen = edge_maps.size();
-
-  for (int i = 0; i < ilen; i++) {
-    EdgeMap &edge_map = edge_maps[i];
-
-#endif
-                      const int task_index = &edge_map - &edge_maps[0];
-                      for (const MPoly &poly : Span(mesh->mpoly, mesh->totpoly)) {
-                        Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
-                        const MLoop *prev_loop = &poly_loops.last();
-                        for (const MLoop &next_loop : poly_loops) {
-                          /* Can only be the same when the mesh data is invalid. */
-                          if (prev_loop->v != next_loop.v) {
-                            OrderedEdge ordered_edge{prev_loop->v, next_loop.v};
-                            /* Only add the edge when it belongs into this map. */
-                            if (task_index == (parallel_mask & ordered_edge.hash2())) {
-                              edge_map.lookup_or_add(ordered_edge, {nullptr});
-                            }
-                          }
-                          prev_loop = &next_loop;
-                        }
-                      }
-                    }
-#ifndef NO_PARALELL
-  );
-#endif
+  parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
+    const int task_index = &edge_map - &edge_maps[0];
+    for (const MPoly &poly : Span(mesh->mpoly, mesh->totpoly)) {
+      Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
+      const MLoop *prev_loop = &poly_loops.last();
+      for (const MLoop &next_loop : poly_loops) {
+        /* Can only be the same when the mesh data is invalid. */
+        if (prev_loop->v != next_loop.v) {
+          OrderedEdge ordered_edge{prev_loop->v, next_loop.v};
+          /* Only add the edge when it belongs into this map. */
+          if (task_index == (parallel_mask & ordered_edge.hash2())) {
+            edge_map.lookup_or_add(ordered_edge, {nullptr});
+          }
+        }
+        prev_loop = &next_loop;
+      }
+    }
+  });
 }
 
 static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edge_maps,
@@ -189,38 +146,27 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
     edge_index_offsets[i + 1] = edge_index_offsets[i] + edge_maps[i].size();
   }
 
-#ifndef NO_PARALELL
-  parallel_for_each(edge_maps,
-                    [&](EdgeMap &edge_map) {
-#else
-  int ilen = edge_maps.size();
+  parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
+    const int task_index = &edge_map - &edge_maps[0];
 
-  for (int i = 0; i < ilen; i++) {
-    EdgeMap &edge_map = edge_maps[i];
-#endif
-                      const int task_index = &edge_map - &edge_maps[0];
-
-                      int new_edge_index = edge_index_offsets[task_index];
-                      for (EdgeMap::MutableItem item : edge_map.items()) {
-                        MEdge &new_edge = new_edges[new_edge_index];
-                        const MEdge *orig_edge = item.value.original_edge;
-                        if (orig_edge != nullptr) {
-                          /* Copy values from original edge. */
-                          new_edge = *orig_edge;
-                        }
-                        else {
-                          /* Initialize new edge. */
-                          new_edge.v1 = item.key.v_low;
-                          new_edge.v2 = item.key.v_high;
-                          new_edge.flag = new_edge_flag;
-                        }
-                        item.value.index = new_edge_index;
-                        new_edge_index++;
-                      }
-                    }
-#ifndef NO_PARALELL
-  );
-#endif
+    int new_edge_index = edge_index_offsets[task_index];
+    for (EdgeMap::MutableItem item : edge_map.items()) {
+      MEdge &new_edge = new_edges[new_edge_index];
+      const MEdge *orig_edge = item.value.original_edge;
+      if (orig_edge != nullptr) {
+        /* Copy values from original edge. */
+        new_edge = *orig_edge;
+      }
+      else {
+        /* Initialize new edge. */
+        new_edge.v1 = item.key.v_low;
+        new_edge.v2 = item.key.v_high;
+        new_edge.flag = new_edge_flag;
+      }
+      item.value.index = new_edge_index;
+      new_edge_index++;
+    }
+  });
 }
 
 static void update_edge_indices_in_poly_loops(Mesh *mesh,
@@ -228,46 +174,31 @@ static void update_edge_indices_in_poly_loops(Mesh *mesh,
                                               uint32_t parallel_mask)
 {
   const MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
-#ifndef NO_PARALELL
-  parallel_for(IndexRange(mesh->totpoly),
-               100,
-               [&](IndexRange range) {
-#else
-  int ilen = edge_maps.size();
+  parallel_for(IndexRange(mesh->totpoly), 100, [&](IndexRange range) {
+    for (const int poly_index : range) {
+      MPoly &poly = mesh->mpoly[poly_index];
+      MutableSpan<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
 
-  for (int i = 0; i < ilen; i++) {
-    const EdgeMap &edge_map = edge_maps[i];
-    IndexRange range(i);
-
-#endif
-                 for (const int poly_index : range) {
-                   MPoly &poly = mesh->mpoly[poly_index];
-                   MutableSpan<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
-
-                   MLoop *prev_loop = &poly_loops.last();
-                   for (MLoop &next_loop : poly_loops) {
-                     int edge_index;
-                     if (prev_loop->v != next_loop.v) {
-                       OrderedEdge ordered_edge{prev_loop->v, next_loop.v};
-                       /* Double lookup: First find the map that contains the edge, then lookup the
-                        * edge. */
-                       const EdgeMap &edge_map = edge_maps[parallel_mask & ordered_edge.hash2()];
-                       edge_index = edge_map.lookup(ordered_edge).index;
-                     }
-                     else {
-                       /* This is an invalid edge; normally this does not happen in Blender,
-                        * but it can be part of an imported mesh with invalid geometry. See
-                        * T76514. */
-                       edge_index = 0;
-                     }
-                     prev_loop->e = edge_index;
-                     prev_loop = &next_loop;
-                   }
-                 }
-               }
-#ifndef NO_PARALELL
-  );
-#endif
+      MLoop *prev_loop = &poly_loops.last();
+      for (MLoop &next_loop : poly_loops) {
+        int edge_index;
+        if (prev_loop->v != next_loop.v) {
+          OrderedEdge ordered_edge{prev_loop->v, next_loop.v};
+          /* Double lookup: First find the map that contains the edge, then lookup the edge. */
+          const EdgeMap &edge_map = edge_maps[parallel_mask & ordered_edge.hash2()];
+          edge_index = edge_map.lookup(ordered_edge).index;
+        }
+        else {
+          /* This is an invalid edge; normally this does not happen in Blender,
+           * but it can be part of an imported mesh with invalid geometry. See
+           * T76514. */
+          edge_index = 0;
+        }
+        prev_loop->e = edge_index;
+        prev_loop = &next_loop;
+      }
+    }
+  });
 }
 
 static int get_parallel_maps_count(const Mesh *mesh)
@@ -284,20 +215,7 @@ static int get_parallel_maps_count(const Mesh *mesh)
 
 static void clear_hash_tables(MutableSpan<EdgeMap> edge_maps)
 {
-#ifndef NO_PARALELL
-  parallel_for_each(edge_maps,
-                    [](EdgeMap &edge_map) {
-#else
-  int ilen = edge_maps.size();
-
-  for (int i = 0; i < ilen; i++) {
-    EdgeMap &edge_map = edge_maps[i];
-#endif
-                      edge_map.clear();
-                    }
-#ifndef NO_PARALELL
-  );
-#endif
+  parallel_for_each(edge_maps, [](EdgeMap &edge_map) { edge_map.clear(); });
 }
 
 }  // namespace blender::bke::calc_edges
