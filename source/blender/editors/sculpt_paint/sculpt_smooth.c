@@ -729,6 +729,13 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
 
   mul_v3_fl(avg, tot);
 
+  float exp = brush->vcol_boundary_exponent;
+  //detect bad value
+
+  if (exp == 0.0f) {
+    exp = 1.0f;
+  }
+
   //#define SHARPEN_VCOL_BOUNDARY
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
@@ -775,7 +782,9 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
         sub_v4_v4v4(dv, col, avg);
         float w = (fabs(dv[0]) + fabs(dv[1]) + fabs(dv[2]) + fabs(dv[3])) / 4.0;
 
-        w *= w;
+        w = powf(w, exp);
+
+        //w *= w;
 
 #ifdef SHARPEN_VCOL_BOUNDARY
         float w2 = -1.0f;

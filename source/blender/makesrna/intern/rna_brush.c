@@ -2837,7 +2837,7 @@ static void rna_def_brush(BlenderRNA *brna)
                            "Best used on low-poly meshes as it has a performance impact");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-    prop = RNA_def_property(srna, "vcol_boundary_factor", PROP_FLOAT, PROP_FACTOR);
+  prop = RNA_def_property(srna, "vcol_boundary_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "vcol_boundary_factor");
   RNA_def_property_float_default(prop, 0);
   RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -2846,6 +2846,16 @@ static void rna_def_brush(BlenderRNA *brna)
                            "Boundary Hardening",
                            "Automatically align edges on color boundaries"
                            "to generate sharper features. ");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+    prop = RNA_def_property(srna, "vcol_boundary_exponent", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "vcol_boundary_exponent");
+  RNA_def_property_float_default(prop, 0);
+  RNA_def_property_range(prop, 0.0f, 6.0f);
+  RNA_def_property_ui_range(prop, 0.1f, 3.0f, 0.001, 3);
+  RNA_def_property_ui_text(prop,
+                           "Exponent",
+                           "Hardening exponent (smaller value smoother edges)");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "tilt_strength_factor", PROP_FLOAT, PROP_FACTOR);

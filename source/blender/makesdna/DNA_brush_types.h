@@ -543,7 +543,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[5];
+  char _pad0[1];
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;
@@ -577,6 +577,7 @@ typedef struct Brush {
 
   float topology_rake_factor;
   float vcol_boundary_factor;
+  float vcol_boundary_exponent;
 
   float crease_pinch_factor;
 

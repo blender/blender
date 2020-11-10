@@ -1128,6 +1128,16 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 0)) {
+    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+      if (br->sculpt_tool == SCULPT_TOOL_VCOL_BOUNDARY) {
+        if (br->vcol_boundary_exponent == 0.0f) {
+          br->vcol_boundary_exponent = 1.0f;
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

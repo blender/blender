@@ -571,7 +571,6 @@ def brush_settings(layout, context, brush, popover=False):
         if capabilities.has_vcol_boundary_smooth:
             layout.prop(brush, "vcol_boundary_factor", slider=True)
 
-        # topology_rake_factor
         if (
                 capabilities.has_topology_rake and
                 context.sculpt_object.use_dynamic_topology_sculpting
@@ -636,6 +635,10 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "blend", text="Blend Mode")
 
         # Per sculpt tool options.
+
+        if sculpt_tool == "VCOL_BOUNDARY":
+            row = layout.row()
+            row.prop(brush, "vcol_boundary_exponent")
 
         if sculpt_tool == 'CLAY_STRIPS':
             row = layout.row()
