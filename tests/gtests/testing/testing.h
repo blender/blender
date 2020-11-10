@@ -137,4 +137,22 @@ inline void EXPECT_EQ_ARRAY_ND(const T *expected, const T *actual, const size_t 
   }
 }
 
+#ifdef _WIN32
+#  define ABORT_PREDICATE ::testing::ExitedWithCode(3)
+#else
+#  define ABORT_PREDICATE ::testing::KilledBySignal(SIGABRT)
+#endif
+
+/* Test macro for when BLI_assert() is expected to fail.
+ * Note that the EXPECT_BLI_ASSERT macro is a no-op, unless used in a debug build with
+ * WITH_ASSERT_ABORT=ON. */
+#if defined(WITH_ASSERT_ABORT) && !defined(NDEBUG)
+/* EXPECT_EXIT() is used as that's the only exit-expecting function in GTest that allows us to
+ * check for SIGABRT. */
+#  define EXPECT_BLI_ASSERT(function_call, expect_message) \
+    EXPECT_EXIT(function_call, ABORT_PREDICATE, expect_message)
+#else
+#  define EXPECT_BLI_ASSERT(function_call, expect_message) function_call
+#endif
+
 #endif  // __BLENDER_TESTING_H__

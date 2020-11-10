@@ -5,11 +5,6 @@
 #include "MEM_guardedalloc.h"
 
 /* We expect to abort on integer overflow, to prevent possible exploits. */
-#ifdef _WIN32
-#  define ABORT_PREDICATE ::testing::ExitedWithCode(3)
-#else
-#  define ABORT_PREDICATE ::testing::KilledBySignal(SIGABRT)
-#endif
 
 #if defined(__GNUC__) && !defined(__clang__)
 /* Disable since it's the purpose of this test. */
