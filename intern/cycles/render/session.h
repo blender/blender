@@ -146,6 +146,7 @@ class Session {
   ~Session();
 
   void start();
+  void cancel();
   bool draw(BufferParams &params, DeviceDrawParams &draw_params);
   void wait();
 

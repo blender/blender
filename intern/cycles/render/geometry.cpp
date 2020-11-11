@@ -1275,10 +1275,15 @@ void GeometryManager::device_update(Device *device,
           true_displacement_used = true;
         }
 
-        if (progress.get_cancel())
+        if (progress.get_cancel()) {
           return;
+        }
       }
     }
+  }
+
+  if (progress.get_cancel()) {
+    return;
   }
 
   /* Tessellate meshes that are using subdivision */
@@ -1317,9 +1322,14 @@ void GeometryManager::device_update(Device *device,
 
         i++;
 
-        if (progress.get_cancel())
+        if (progress.get_cancel()) {
           return;
+        }
       }
+    }
+
+    if (progress.get_cancel()) {
+      return;
     }
   }
 
@@ -1350,8 +1360,9 @@ void GeometryManager::device_update(Device *device,
     });
     device_update_mesh(device, dscene, scene, true, progress);
   }
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   {
     scoped_callback_timer timer([scene](double time) {
@@ -1360,8 +1371,9 @@ void GeometryManager::device_update(Device *device,
       }
     });
     device_update_attributes(device, dscene, scene, progress);
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
   }
 
   /* Update displacement. */
@@ -1391,9 +1403,14 @@ void GeometryManager::device_update(Device *device,
         }
       }
 
-      if (progress.get_cancel())
+      if (progress.get_cancel()) {
         return;
+      }
     }
+  }
+
+  if (progress.get_cancel()) {
+    return;
   }
 
   /* Device re-update after displacement. */
@@ -1407,8 +1424,9 @@ void GeometryManager::device_update(Device *device,
     device_free(device, dscene);
 
     device_update_attributes(device, dscene, scene, progress);
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
   }
 
   {
@@ -1455,8 +1473,9 @@ void GeometryManager::device_update(Device *device,
     }
   }
 
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   {
     scoped_callback_timer timer([scene](double time) {
@@ -1465,8 +1484,9 @@ void GeometryManager::device_update(Device *device,
       }
     });
     device_update_bvh(device, dscene, scene, progress);
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
   }
 
   {
@@ -1477,8 +1497,9 @@ void GeometryManager::device_update(Device *device,
       }
     });
     device_update_mesh(device, dscene, scene, false, progress);
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
   }
 
   need_update = false;
