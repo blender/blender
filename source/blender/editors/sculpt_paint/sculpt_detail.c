@@ -329,7 +329,7 @@ static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wm
         return OPERATOR_FINISHED;
       }
       break;
-
+    case EVT_ESCKEY:
     case RIGHTMOUSE: {
       WM_cursor_modal_restore(CTX_wm_window(C));
       ED_workspace_status_text(C, NULL);
