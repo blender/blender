@@ -57,7 +57,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 static const uchar jpeg_default_quality = 75;
 static uchar ibuf_quality;
 
-int imb_is_a_jpeg(const unsigned char *mem)
+bool imb_is_a_jpeg(const unsigned char *mem, const size_t UNUSED(size))
 {
   if ((mem[0] == 0xFF) && (mem[1] == 0xD8)) {
     return 1;
@@ -429,7 +429,7 @@ ImBuf *imb_load_jpeg(const unsigned char *buffer,
   struct my_error_mgr jerr;
   ImBuf *ibuf;
 
-  if (!imb_is_a_jpeg(buffer)) {
+  if (!imb_is_a_jpeg(buffer, size)) {
     return NULL;
   }
 

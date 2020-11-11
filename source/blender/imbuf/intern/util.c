@@ -169,7 +169,7 @@ int IMB_ispic_type_from_memory(const unsigned char *mem, const size_t mem_size)
 
   for (const ImFileType *type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
     if (type->is_a != NULL) {
-      if (type->is_a(buf)) {
+      if (type->is_a(buf, HEADER_SIZE)) {
         return type->filetype;
       }
     }
@@ -200,7 +200,7 @@ bool IMB_ispic_type_matches(const char *filepath, int filetype)
        * Keep the check for developers. */
       BLI_assert(type->is_a != NULL);
       if (type->is_a != NULL) {
-        return type->is_a(buf);
+        return type->is_a(buf, HEADER_SIZE);
       }
     }
   }

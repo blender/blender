@@ -59,9 +59,9 @@ BLI_INLINE unsigned short UPSAMPLE_8_TO_16(const unsigned char _val)
   return (_val << 8) + _val;
 }
 
-int imb_is_a_png(const unsigned char *mem)
+bool imb_is_a_png(const unsigned char *mem, size_t UNUSED(size))
 {
-  int ret_val = 0;
+  bool ret_val = 0;
 
 #if (PNG_LIBPNG_VER_MAJOR == 1) && (PNG_LIBPNG_VER_MINOR == 2)
   /* Older version of libpng doesn't use const pointer to memory. */
@@ -548,7 +548,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
   float *to_float;
   unsigned int channels;
 
-  if (imb_is_a_png(mem) == 0) {
+  if (imb_is_a_png(mem, size) == 0) {
     return NULL;
   }
 

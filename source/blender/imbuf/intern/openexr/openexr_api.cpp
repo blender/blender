@@ -330,7 +330,7 @@ extern "C" {
  * Test presence of OpenEXR file.
  * \param mem: pointer to loaded OpenEXR bitstream
  */
-int imb_is_a_openexr(const unsigned char *mem)
+bool imb_is_a_openexr(const unsigned char *mem, const size_t UNUSED(size))
 {
   return Imf::isImfMagic((const char *)mem);
 }
@@ -1905,7 +1905,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
   IMemStream *membuf = nullptr;
   MultiPartInputFile *file = nullptr;
 
-  if (imb_is_a_openexr(mem) == 0) {
+  if (imb_is_a_openexr(mem, size) == 0) {
     return nullptr;
   }
 

@@ -197,7 +197,7 @@ static void FLOAT2RGBE(const fCOLOR fcol, RGBE rgbe)
 
 /* ImBuf read */
 
-int imb_is_a_hdr(const unsigned char *buf)
+bool imb_is_a_hdr(const unsigned char *buf, size_t UNUSED(size))
 {
   /* NOTE: `#?RADIANCE` is used by other programs such as `ImageMagik`,
    * Although there are some files in the wild that only use `#?` (from looking online).
@@ -226,7 +226,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
   const unsigned char *ptr, *mem_eof = mem + size;
   char oriY[80], oriX[80];
 
-  if (imb_is_a_hdr(mem)) {
+  if (imb_is_a_hdr(mem, size)) {
     colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
     /* find empty line, next line is resolution info */

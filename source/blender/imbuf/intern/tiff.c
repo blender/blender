@@ -316,7 +316,7 @@ static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, const unsigned char *
  * hence my manual comparison. - Jonathan Merritt (lancelet) 4th Sept 2005.
  */
 #define IMB_TIFF_NCB 4 /* number of comparison bytes used */
-int imb_is_a_tiff(const unsigned char *buf)
+bool imb_is_a_tiff(const unsigned char *buf, size_t UNUSED(size))
 {
   const char big_endian[IMB_TIFF_NCB] = {0x4d, 0x4d, 0x00, 0x2a};
   const char lil_endian[IMB_TIFF_NCB] = {0x49, 0x49, 0x2a, 0x00};
@@ -578,7 +578,7 @@ ImBuf *imb_loadtiff(const unsigned char *mem,
     fprintf(stderr, "imb_loadtiff: size < IMB_TIFF_NCB\n");
     return NULL;
   }
-  if (imb_is_a_tiff(mem) == 0) {
+  if (imb_is_a_tiff(mem, size) == 0) {
     return NULL;
   }
 

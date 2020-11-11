@@ -72,13 +72,13 @@ typedef struct BMPHEADER {
    CHECK_HEADER_FIELD(_mem, "CI") || CHECK_HEADER_FIELD(_mem, "CP") || \
    CHECK_HEADER_FIELD(_mem, "IC") || CHECK_HEADER_FIELD(_mem, "PT"))
 
-static int checkbmp(const uchar *mem)
+static bool checkbmp(const uchar *mem)
 {
   if (!CHECK_HEADER_FIELD_BMP(mem)) {
     return 0;
   }
 
-  int ret_val = 0;
+  bool ok = false;
   BMPINFOHEADER bmi;
   uint u;
 
@@ -94,15 +94,15 @@ static int checkbmp(const uchar *mem)
     if (bmi.biCompression == 0) {
       u = LITTLE_SHORT(bmi.biBitCount);
       if (u > 0 && u <= 32) {
-        ret_val = 1;
+        ok = true;
       }
     }
   }
 
-  return ret_val;
+  return ok;
 }
 
-int imb_is_a_bmp(const uchar *buf)
+bool imb_is_a_bmp(const uchar *buf, size_t UNUSED(size))
 {
   return checkbmp(buf);
 }

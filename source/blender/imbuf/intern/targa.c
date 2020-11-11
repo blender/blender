@@ -361,7 +361,7 @@ bool imb_savetarga(struct ImBuf *ibuf, const char *filepath, int UNUSED(flags))
   return ok;
 }
 
-static int checktarga(TARGA *tga, const unsigned char *mem)
+static bool checktarga(TARGA *tga, const unsigned char *mem)
 {
   tga->numid = mem[0];
   tga->maptyp = mem[1];
@@ -378,7 +378,7 @@ static int checktarga(TARGA *tga, const unsigned char *mem)
   tga->imgdes = mem[17];
 
   if (tga->maptyp > 1) {
-    return 0;
+    return false;
   }
   switch (tga->imgtyp) {
     case 1:  /* raw cmap */
@@ -389,27 +389,27 @@ static int checktarga(TARGA *tga, const unsigned char *mem)
     case 11: /* b&w */
       break;
     default:
-      return 0;
+      return false;
   }
   if (tga->mapsize && tga->mapbits > 32) {
-    return 0;
+    return false;
   }
   if (tga->xsize <= 0) {
-    return 0;
+    return false;
   }
   if (tga->ysize <= 0) {
-    return 0;
+    return false;
   }
   if (tga->pixsize > 32) {
-    return 0;
+    return false;
   }
   if (tga->pixsize == 0) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
-int imb_is_a_targa(const unsigned char *buf)
+bool imb_is_a_targa(const unsigned char *buf, size_t UNUSED(size))
 {
   TARGA tga;
 
