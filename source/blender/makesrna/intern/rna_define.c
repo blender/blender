@@ -1303,7 +1303,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
     rna_addtail(&dcont->properties, dprop);
   }
   else {
-#ifdef DEBUG
+#ifndef NDEBUG
     char error[512];
     if (rna_validate_identifier(identifier, error, true) == 0) {
       CLOG_ERROR(&LOG,
