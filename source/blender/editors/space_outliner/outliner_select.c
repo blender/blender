@@ -1494,6 +1494,17 @@ bool outliner_is_co_within_mode_column(SpaceOutliner *space_outliner, const floa
   return space_outliner->flag & SO_MODE_COLUMN && view_mval[0] < UI_UNIT_X;
 }
 
+static bool outliner_is_co_within_active_mode_column(bContext *C,
+                                                     SpaceOutliner *space_outliner,
+                                                     const float view_mval[2])
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *obact = OBACT(view_layer);
+
+  return outliner_is_co_within_mode_column(space_outliner, view_mval) && obact &&
+         obact->mode != OB_MODE_OBJECT;
+}
+
 /**
  * Action to run when clicking in the outliner,
  *
@@ -1516,7 +1527,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
   if (outliner_is_co_within_restrict_columns(space_outliner, region, view_mval[0])) {
     return OPERATOR_CANCELLED;
   }
-  if (outliner_is_co_within_mode_column(space_outliner, view_mval)) {
+  if (outliner_is_co_within_active_mode_column(C, space_outliner, view_mval)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1686,7 +1697,7 @@ static int outliner_box_select_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
-  if (outliner_is_co_within_mode_column(space_outliner, view_mval)) {
+  if (outliner_is_co_within_active_mode_column(C, space_outliner, view_mval)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
