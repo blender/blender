@@ -199,15 +199,17 @@ static void FLOAT2RGBE(const fCOLOR fcol, RGBE rgbe)
 
 int imb_is_a_hdr(const unsigned char *buf)
 {
-  /* For recognition, Blender only loads first 32 bytes, so use #?RADIANCE id instead */
-  /* update: actually, the 'RADIANCE' part is just an optional program name,
-   * the magic word is really only the '#?' part */
-  // if (strstr((char *)buf, "#?RADIANCE")) return 1;
-  if (memcmp((char *)buf, "#?", 2) == 0) {
-    return 1;
-  }
-  // if (strstr((char *)buf, "32-bit_rle_rgbe")) return 1;
-  return 0;
+  /* NOTE: `#?RADIANCE` is used by other programs such as `ImageMagik`,
+   * Although there are some files in the wild that only use `#?` (from looking online).
+   * If this is ever a problem we could check for the longer header since this is part of the spec.
+   *
+   * We could check `32-bit_rle_rgbe` or `32-bit_rle_xyze` too since this is part of the format.
+   * Currently this isn't needed.
+   *
+   * See: http://paulbourke.net/dataformats/pic/
+   */
+  const unsigned char magic[2] = {'#', '?'};
+  return memcmp(buf, magic, sizeof(magic)) == 0;
 }
 
 struct ImBuf *imb_loadhdr(const unsigned char *mem,
@@ -224,7 +226,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
   const unsigned char *ptr, *mem_eof = mem + size;
   char oriY[80], oriX[80];
 
-  if (imb_is_a_hdr((void *)mem)) {
+  if (imb_is_a_hdr(mem)) {
     colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
     /* find empty line, next line is resolution info */

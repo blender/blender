@@ -63,14 +63,13 @@ int imb_is_a_png(const unsigned char *mem)
 {
   int ret_val = 0;
 
-  if (mem) {
 #if (PNG_LIBPNG_VER_MAJOR == 1) && (PNG_LIBPNG_VER_MINOR == 2)
-    /* Older version of libpng doesn't use const pointer to memory. */
-    ret_val = !png_sig_cmp((png_bytep)mem, 0, 8);
+  /* Older version of libpng doesn't use const pointer to memory. */
+  ret_val = !png_sig_cmp((png_bytep)mem, 0, 8);
 #else
-    ret_val = !png_sig_cmp(mem, 0, 8);
+  ret_val = !png_sig_cmp(mem, 0, 8);
 #endif
-  }
+
   return ret_val;
 }
 

@@ -288,7 +288,7 @@ static bool dumptarga(struct ImBuf *ibuf, FILE *file)
 
 int imb_savetarga(struct ImBuf *ibuf, const char *filepath, int flags)
 {
-  char buf[20] = {0};
+  char buf[18] = {0};
   FILE *fildes;
   bool ok = false;
 

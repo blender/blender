@@ -74,31 +74,27 @@ typedef struct BMPHEADER {
 
 static int checkbmp(const uchar *mem)
 {
+  if (!CHECK_HEADER_FIELD_BMP(mem)) {
+    return 0;
+  }
 
   int ret_val = 0;
   BMPINFOHEADER bmi;
   uint u;
 
-  if (mem) {
-    if (CHECK_HEADER_FIELD_BMP(mem)) {
-      /* skip fileheader */
-      mem += BMP_FILEHEADER_SIZE;
-    }
-    else {
-      return 0;
-    }
+  /* skip fileheader */
+  mem += BMP_FILEHEADER_SIZE;
 
-    /* for systems where an int needs to be 4 bytes aligned */
-    memcpy(&bmi, mem, sizeof(bmi));
+  /* for systems where an int needs to be 4 bytes aligned */
+  memcpy(&bmi, mem, sizeof(bmi));
 
-    u = LITTLE_LONG(bmi.biSize);
-    /* we only support uncompressed images for now. */
-    if (u >= sizeof(BMPINFOHEADER)) {
-      if (bmi.biCompression == 0) {
-        u = LITTLE_SHORT(bmi.biBitCount);
-        if (u > 0 && u <= 32) {
-          ret_val = 1;
-        }
+  u = LITTLE_LONG(bmi.biSize);
+  /* we only support uncompressed images for now. */
+  if (u >= sizeof(BMPINFOHEADER)) {
+    if (bmi.biCompression == 0) {
+      u = LITTLE_SHORT(bmi.biBitCount);
+      if (u > 0 && u <= 32) {
+        ret_val = 1;
       }
     }
   }
