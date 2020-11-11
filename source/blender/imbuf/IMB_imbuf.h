@@ -466,7 +466,7 @@ void IMB_scaleImBuf_threaded(struct ImBuf *ibuf, unsigned int newx, unsigned int
  *
  * \attention Defined in writeimage.c
  */
-short IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
+bool IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
 bool IMB_prepare_write_ImBuf(const bool isfloat, struct ImBuf *ibuf);
 
 /**

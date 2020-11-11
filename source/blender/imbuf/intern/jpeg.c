@@ -608,7 +608,7 @@ static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct I
   return 0;
 }
 
-static int save_stdjpeg(const char *name, struct ImBuf *ibuf)
+static bool save_stdjpeg(const char *name, struct ImBuf *ibuf)
 {
   FILE *outfile;
   struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
@@ -642,7 +642,7 @@ static int save_stdjpeg(const char *name, struct ImBuf *ibuf)
   return 1;
 }
 
-int imb_savejpeg(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_savejpeg(struct ImBuf *ibuf, const char *filepath, int flags)
 {
 
   ibuf->flags = flags;

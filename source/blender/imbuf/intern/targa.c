@@ -294,7 +294,7 @@ static bool dumptarga(struct ImBuf *ibuf, FILE *file)
   return 1;
 }
 
-int imb_savetarga(struct ImBuf *ibuf, const char *filepath, int UNUSED(flags))
+bool imb_savetarga(struct ImBuf *ibuf, const char *filepath, int UNUSED(flags))
 {
   char buf[TARGA_HEADER_SIZE] = {0};
   FILE *fildes;

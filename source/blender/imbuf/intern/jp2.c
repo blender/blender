@@ -1194,22 +1194,22 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   return image;
 }
 
-int imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int flags);
+bool imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int flags);
 
-int imb_save_jp2(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_save_jp2(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   opj_stream_t *stream = opj_stream_create_from_file(
       filepath, OPJ_J2K_STREAM_CHUNK_SIZE, false, NULL);
   if (stream == NULL) {
     return 0;
   }
-  int ret = imb_save_jp2_stream(ibuf, stream, flags);
+  const bool ok = imb_save_jp2_stream(ibuf, stream, flags);
   opj_stream_destroy(stream);
-  return ret;
+  return ok;
 }
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-int imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int UNUSED(flags))
+bool imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int UNUSED(flags))
 {
   int quality = ibuf->foptions.quality;
 
@@ -1230,7 +1230,7 @@ int imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int UNUSED(fla
   image = ibuftoimage(ibuf, &parameters);
 
   opj_codec_t *codec = NULL;
-  int ok = false;
+  bool ok = false;
   /* JP2 format output */
   {
     /* get a JP2 compressor handle */

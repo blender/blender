@@ -759,8 +759,7 @@ void imb_loadtiletiff(
  *
  * \return 1 if the function is successful, 0 on failure.
  */
-
-int imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
+bool imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
 {
   TIFF *image = NULL;
   uint16 samplesperpixel, bitspersample;

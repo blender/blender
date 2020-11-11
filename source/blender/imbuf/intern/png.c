@@ -118,7 +118,7 @@ BLI_INLINE unsigned short ftoshort(float val)
   return unit_float_to_ushort_clamp(val);
 }
 
-int imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   png_structp png_ptr;
   png_infop info_ptr;

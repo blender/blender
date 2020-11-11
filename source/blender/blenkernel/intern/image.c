@@ -2953,13 +2953,11 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, const ImageFormatData *imf)
 
 int BKE_imbuf_write(ImBuf *ibuf, const char *name, const ImageFormatData *imf)
 {
-  int ok;
-
   BKE_imbuf_write_prepare(ibuf, imf);
 
   BLI_make_existing_file(name);
 
-  ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
+  const bool ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
   if (ok == 0) {
     perror(name);
   }

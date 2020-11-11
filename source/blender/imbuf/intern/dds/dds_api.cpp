@@ -42,16 +42,16 @@
 
 extern "C" {
 
-int imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
+bool imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
 {
-  return 0; /* todo: finish this function */
+  return false; /* todo: finish this function */
 
   /* check image buffer */
   if (ibuf == nullptr) {
-    return 0;
+    return false;
   }
   if (ibuf->rect == nullptr) {
-    return 0;
+    return false;
   }
 
   /* open file for writing */
@@ -69,7 +69,7 @@ int imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
   fildes << "DDS ";
   fildes.close();
 
-  return 1;
+  return true;
 }
 
 int imb_is_a_dds(const unsigned char *mem) /* note: use at most first 32 bytes */

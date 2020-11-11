@@ -807,7 +807,7 @@ fail:
  * Added: zbuf write
  */
 
-static int output_iris(uint *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
+static bool output_iris(uint *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
 {
   FILE *outf;
   IMAGE *image;
@@ -969,10 +969,9 @@ static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt)
   return optr - (uchar *)rlebuf;
 }
 
-int imb_saveiris(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_saveiris(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   short zsize;
-  int ret;
 
   zsize = (ibuf->planes + 7) >> 3;
   if (flags & IB_zbuf && ibuf->zbuf != NULL) {
@@ -982,11 +981,11 @@ int imb_saveiris(struct ImBuf *ibuf, const char *filepath, int flags)
   IMB_convert_rgba_to_abgr(ibuf);
   test_endian_zbuf(ibuf);
 
-  ret = output_iris(ibuf->rect, ibuf->x, ibuf->y, zsize, filepath, ibuf->zbuf);
+  const bool ok = output_iris(ibuf->rect, ibuf->x, ibuf->y, zsize, filepath, ibuf->zbuf);
 
   /* restore! Quite clumsy, 2 times a switch... maybe better a malloc ? */
   IMB_convert_rgba_to_abgr(ibuf);
   test_endian_zbuf(ibuf);
 
-  return ret;
+  return ok;
 }

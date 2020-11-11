@@ -265,7 +265,6 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
   char name[PROXY_MAXFILE];
   int quality;
   int rectx, recty;
-  int ok;
   ImBuf *ibuf_tmp, *ibuf;
   Editing *ed = context->scene->ed;
 
@@ -305,8 +304,8 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
 
   BLI_make_existing_file(name);
 
-  ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
-  if (ok == 0) {
+  const bool ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
+  if (ok == false) {
     perror(name);
   }
 

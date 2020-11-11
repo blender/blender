@@ -586,7 +586,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
   return true;
 }
 
-int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
+bool imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 {
   if (flags & IB_mem) {
     imb_addencodedbufferImBuf(ibuf);
@@ -594,15 +594,15 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
   }
 
   if (ibuf->foptions.flag & OPENEXR_HALF) {
-    return (int)imb_save_openexr_half(ibuf, name, flags);
+    return imb_save_openexr_half(ibuf, name, flags);
   }
 
   /* when no float rect, we save as half (16 bits is sufficient) */
   if (ibuf->rect_float == nullptr) {
-    return (int)imb_save_openexr_half(ibuf, name, flags);
+    return imb_save_openexr_half(ibuf, name, flags);
   }
 
-  return (int)imb_save_openexr_float(ibuf, name, flags);
+  return imb_save_openexr_float(ibuf, name, flags);
 }
 
 /* ******* Nicer API, MultiLayer and with Tile file support ************************************ */

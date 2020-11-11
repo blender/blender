@@ -411,7 +411,7 @@ static void writeHeader(FILE *file, int width, int height)
   fputc(10, file);
 }
 
-int imb_savehdr(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_savehdr(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   FILE *file = BLI_fopen(filepath, "wb");
   float *fp = NULL;
