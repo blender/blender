@@ -83,6 +83,11 @@
 
 #include "outliner_intern.h"
 
+static void outliner_show_active(SpaceOutliner *space_outliner,
+                                 ARegion *region,
+                                 TreeElement *te,
+                                 ID *id);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -394,6 +399,7 @@ static TreeElement *outliner_item_rename_find_hovered(const SpaceOutliner *space
 static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
+  View2D *v2d = &region->v2d;
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   const bool use_active = RNA_boolean_get(op->ptr, "use_active");
 
@@ -402,6 +408,13 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
   if (!te) {
     return OPERATOR_CANCELLED;
   }
+
+  /* Force element into view. */
+  outliner_show_active(space_outliner, region, te, TREESTORE(te)->id);
+  int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
+  int ytop = (te->ys + (size_y / 2));
+  int delta_y = ytop - v2d->cur.ymax;
+  outliner_scroll_view(space_outliner, region, delta_y);
 
   do_item_rename(region, te, TREESTORE(te), op->reports);
 
@@ -1343,7 +1356,7 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
     int ytop = (active_element->ys + (size_y / 2));
     int delta_y = ytop - v2d->cur.ymax;
 
-    outliner_scroll_view(region, delta_y);
+    outliner_scroll_view(space_outliner, region, delta_y);
   }
   else {
     return OPERATOR_CANCELLED;
@@ -1375,6 +1388,7 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
 
 static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 {
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
   int size_y = BLI_rcti_size_y(&region->v2d.mask) + 1;
 
@@ -1384,7 +1398,7 @@ static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
     size_y = -size_y;
   }
 
-  outliner_scroll_view(region, size_y);
+  outliner_scroll_view(space_outliner, region, size_y);
 
   ED_region_tag_redraw_no_rebuild(region);
 

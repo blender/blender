@@ -251,6 +251,8 @@ TreeTraversalAction outliner_find_selected_objects(struct TreeElement *te, void 
 
 void draw_outliner(const struct bContext *C);
 
+void outliner_tree_dimensions(struct SpaceOutliner *space_outliner, int *r_width, int *r_height);
+
 TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te);
 
 void outliner_collection_isolate_flag(struct Scene *scene,
@@ -525,7 +527,7 @@ bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
 float outliner_restrict_columns_width(const struct SpaceOutliner *space_outliner);
 TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag);
 bool outliner_is_element_visible(const TreeElement *te);
-void outliner_scroll_view(struct ARegion *region, int delta_y);
+void outliner_scroll_view(struct SpaceOutliner *space_outliner, struct ARegion *region, int delta_y);
 void outliner_tag_redraw_avoid_rebuild_on_open_change(const struct SpaceOutliner *space_outliner,
                                                       struct ARegion *region);
 
