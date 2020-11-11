@@ -378,7 +378,7 @@ void BLI_table_gset_insert(TableGSet *ts, void *elem)
 
 void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp)
 {
-  if (!elem) {
+  if (!elem || !ts) {
     return;
   }
 
