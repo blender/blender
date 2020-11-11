@@ -1334,7 +1334,21 @@ static void offset_meet(BevelParams *bp,
       copy_v3_v3(norm_v, f->no);
     }
     else {
-      copy_v3_v3(norm_v, v->no);
+      /* Get average of face norms of faces between e and e2. */
+      int fcount = 0;
+      zero_v3(norm_v);
+      for (EdgeHalf *eloop = e1; eloop != e2; eloop = eloop->next) {
+        if (eloop->fnext != NULL) {
+          add_v3_v3(norm_v, eloop->fnext->no);
+          fcount++;
+        }
+      }
+      if (fcount == 0) {
+        copy_v3_v3(norm_v, v->no);
+      }
+      else {
+        mul_v3_fl(norm_v, 1.0f / fcount);
+      }
     }
     add_v3_v3(dir1, dir2);
     cross_v3_v3v3(norm_perp1, dir1, norm_v);
