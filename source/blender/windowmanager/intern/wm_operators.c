@@ -3987,7 +3987,7 @@ static const EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C),
   int i = 0;
 
   for (; id; id = id->next) {
-    if ((filter_ids != NULL) && filter_ids(user_data, id) == false) {
+    if ((filter_ids != NULL) && filter_ids(id, user_data) == false) {
       i++;
       continue;
     }
