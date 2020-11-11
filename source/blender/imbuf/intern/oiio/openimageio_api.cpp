@@ -163,9 +163,12 @@ static ImBuf *imb_oiio_load_image_float(
 
 extern "C" {
 
-bool imb_is_a_photoshop(const unsigned char *mem, size_t UNUSED(size))
+bool imb_is_a_photoshop(const unsigned char *mem, size_t size)
 {
   const unsigned char magic[4] = {'8', 'B', 'P', 'S'};
+  if (size < sizeof(magic)) {
+    return false;
+  }
   return memcmp(magic, mem, sizeof(magic)) == 0;
 }
 

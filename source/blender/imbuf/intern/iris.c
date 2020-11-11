@@ -243,8 +243,11 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
 /* this one is only def-ed once, strangely... */
 #define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
 
-bool imb_is_a_iris(const uchar *mem, size_t UNUSED(size))
+bool imb_is_a_iris(const uchar *mem, size_t size)
 {
+  if (size < 2) {
+    return false;
+  }
   return ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC));
 }
 

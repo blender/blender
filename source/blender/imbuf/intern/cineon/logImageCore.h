@@ -181,8 +181,8 @@ enum descriptor {
 /* int functions return 0 for OK */
 
 void logImageSetVerbose(int verbosity);
-int logImageIsDpx(const void *buffer);
-int logImageIsCineon(const void *buffer);
+int logImageIsDpx(const void *buffer, unsigned int size);
+int logImageIsCineon(const void *buffer, unsigned int size);
 LogImageFile *logImageOpenFromMemory(const unsigned char *buffer, unsigned int size);
 LogImageFile *logImageOpenFromFile(const char *filename, int cineon);
 void logImageGetSize(LogImageFile *logImage, int *width, int *height, int *depth);

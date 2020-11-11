@@ -188,9 +188,9 @@ bool imb_save_cineon(struct ImBuf *buf, const char *filepath, int flags)
   return imb_save_dpx_cineon(buf, filepath, 1, flags);
 }
 
-bool imb_is_a_cineon(const unsigned char *buf, size_t UNUSED(size))
+bool imb_is_a_cineon(const unsigned char *buf, size_t size)
 {
-  return logImageIsCineon(buf);
+  return logImageIsCineon(buf, size);
 }
 
 ImBuf *imb_load_cineon(const unsigned char *mem,
@@ -209,9 +209,9 @@ bool imb_save_dpx(struct ImBuf *buf, const char *filepath, int flags)
   return imb_save_dpx_cineon(buf, filepath, 0, flags);
 }
 
-bool imb_is_a_dpx(const unsigned char *buf, size_t UNUSED(size))
+bool imb_is_a_dpx(const unsigned char *buf, size_t size)
 {
-  return logImageIsDpx(buf);
+  return logImageIsDpx(buf, size);
 }
 
 ImBuf *imb_load_dpx(const unsigned char *mem,

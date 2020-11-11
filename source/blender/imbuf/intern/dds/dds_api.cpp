@@ -73,8 +73,11 @@ bool imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
 }
 
 /* note: use at most first 32 bytes */
-bool imb_is_a_dds(const unsigned char *mem, size_t UNUSED(size))
+bool imb_is_a_dds(const unsigned char *mem, const size_t size)
 {
+  if (size < 8) {
+    return false;
+  }
   /* heuristic check to see if mem contains a DDS file */
   /* header.fourcc == FOURCC_DDS */
   if ((mem[0] != 'D') || (mem[1] != 'D') || (mem[2] != 'S') || (mem[3] != ' ')) {

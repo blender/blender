@@ -197,7 +197,7 @@ static void FLOAT2RGBE(const fCOLOR fcol, RGBE rgbe)
 
 /* ImBuf read */
 
-bool imb_is_a_hdr(const unsigned char *buf, size_t UNUSED(size))
+bool imb_is_a_hdr(const unsigned char *buf, const size_t size)
 {
   /* NOTE: `#?RADIANCE` is used by other programs such as `ImageMagik`,
    * Although there are some files in the wild that only use `#?` (from looking online).
@@ -209,6 +209,9 @@ bool imb_is_a_hdr(const unsigned char *buf, size_t UNUSED(size))
    * See: http://paulbourke.net/dataformats/pic/
    */
   const unsigned char magic[2] = {'#', '?'};
+  if (size < sizeof(magic)) {
+    return false;
+  }
   return memcmp(buf, magic, sizeof(magic)) == 0;
 }
 

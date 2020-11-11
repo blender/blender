@@ -330,8 +330,12 @@ extern "C" {
  * Test presence of OpenEXR file.
  * \param mem: pointer to loaded OpenEXR bitstream
  */
-bool imb_is_a_openexr(const unsigned char *mem, const size_t UNUSED(size))
+bool imb_is_a_openexr(const unsigned char *mem, const size_t size)
 {
+  /* No define is exposed for this size. */
+  if (size < 4) {
+    return false;
+  }
   return Imf::isImfMagic((const char *)mem);
 }
 

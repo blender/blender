@@ -72,10 +72,14 @@ typedef struct BMPHEADER {
    CHECK_HEADER_FIELD(_mem, "CI") || CHECK_HEADER_FIELD(_mem, "CP") || \
    CHECK_HEADER_FIELD(_mem, "IC") || CHECK_HEADER_FIELD(_mem, "PT"))
 
-static bool checkbmp(const uchar *mem)
+static bool checkbmp(const uchar *mem, const size_t size)
 {
+  if (size < BMP_FILEHEADER_SIZE) {
+    return false;
+  }
+
   if (!CHECK_HEADER_FIELD_BMP(mem)) {
-    return 0;
+    return false;
   }
 
   bool ok = false;
@@ -102,9 +106,9 @@ static bool checkbmp(const uchar *mem)
   return ok;
 }
 
-bool imb_is_a_bmp(const uchar *buf, size_t UNUSED(size))
+bool imb_is_a_bmp(const uchar *buf, size_t size)
 {
-  return checkbmp(buf);
+  return checkbmp(buf, size);
 }
 
 ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
@@ -120,7 +124,7 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
 
   (void)size; /* unused */
 
-  if (checkbmp(mem) == 0) {
+  if (checkbmp(mem, size) == 0) {
     return NULL;
   }
 

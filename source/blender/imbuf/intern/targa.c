@@ -361,8 +361,12 @@ bool imb_savetarga(struct ImBuf *ibuf, const char *filepath, int UNUSED(flags))
   return ok;
 }
 
-static bool checktarga(TARGA *tga, const unsigned char *mem)
+static bool checktarga(TARGA *tga, const unsigned char *mem, const size_t size)
 {
+  if (size < TARGA_HEADER_SIZE) {
+    return false;
+  }
+
   tga->numid = mem[0];
   tga->maptyp = mem[1];
   tga->imgtyp = mem[2];
@@ -409,11 +413,11 @@ static bool checktarga(TARGA *tga, const unsigned char *mem)
   return true;
 }
 
-bool imb_is_a_targa(const unsigned char *buf, size_t UNUSED(size))
+bool imb_is_a_targa(const unsigned char *buf, size_t size)
 {
   TARGA tga;
 
-  return checktarga(&tga, buf);
+  return checktarga(&tga, buf, size);
 }
 
 static void complete_partial_load(struct ImBuf *ibuf, unsigned int *rect)
@@ -633,7 +637,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
   int32_t cp_data;
   uchar *cp = (uchar *)&cp_data;
 
-  if (checktarga(&tga, mem) == 0) {
+  if (checktarga(&tga, mem, mem_size) == 0) {
     return NULL;
   }
 

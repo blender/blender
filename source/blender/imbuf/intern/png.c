@@ -59,18 +59,21 @@ BLI_INLINE unsigned short UPSAMPLE_8_TO_16(const unsigned char _val)
   return (_val << 8) + _val;
 }
 
-bool imb_is_a_png(const unsigned char *mem, size_t UNUSED(size))
+bool imb_is_a_png(const unsigned char *mem, size_t size)
 {
-  bool ret_val = 0;
+  const int num_to_check = 8;
+  if (size < num_to_check) {
+    return false;
+  }
+  bool ok = false;
 
 #if (PNG_LIBPNG_VER_MAJOR == 1) && (PNG_LIBPNG_VER_MINOR == 2)
   /* Older version of libpng doesn't use const pointer to memory. */
-  ret_val = !png_sig_cmp((png_bytep)mem, 0, 8);
+  ok = !png_sig_cmp((png_bytep)mem, 0, num_to_check);
 #else
-  ret_val = !png_sig_cmp(mem, 0, 8);
+  ok = !png_sig_cmp(mem, 0, num_to_check);
 #endif
-
-  return ret_val;
+  return ok;
 }
 
 static void Flush(png_structp png_ptr)

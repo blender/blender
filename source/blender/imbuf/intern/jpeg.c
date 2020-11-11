@@ -57,12 +57,13 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 static const uchar jpeg_default_quality = 75;
 static uchar ibuf_quality;
 
-bool imb_is_a_jpeg(const unsigned char *mem, const size_t UNUSED(size))
+bool imb_is_a_jpeg(const unsigned char *mem, const size_t size)
 {
-  if ((mem[0] == 0xFF) && (mem[1] == 0xD8)) {
-    return 1;
+  const char magic[2] = {0xFF, 0xD8};
+  if (size < sizeof(magic)) {
+    return false;
   }
-  return 0;
+  return memcmp(mem, magic, sizeof(magic)) == 0;
 }
 
 /*----------------------------------------------------------
