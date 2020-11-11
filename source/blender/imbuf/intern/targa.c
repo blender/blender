@@ -60,6 +60,14 @@ typedef struct TARGA {
   unsigned char imgdes;
 } TARGA;
 
+/**
+ * On-disk header size.
+ *
+ * \note In theory it's possible padding would make the struct and on-disk size differ,
+ * so use a constant instead of `sizeof(TARGA)`.
+ */
+#define TARGA_HEADER_SIZE 18
+
 /***/
 
 static int tga_out1(unsigned int data, FILE *file)
@@ -286,13 +294,11 @@ static bool dumptarga(struct ImBuf *ibuf, FILE *file)
   return 1;
 }
 
-int imb_savetarga(struct ImBuf *ibuf, const char *filepath, int flags)
+int imb_savetarga(struct ImBuf *ibuf, const char *filepath, int UNUSED(flags))
 {
-  char buf[18] = {0};
+  char buf[TARGA_HEADER_SIZE] = {0};
   FILE *fildes;
   bool ok = false;
-
-  (void)flags; /* unused */
 
   buf[16] = (ibuf->planes + 0x7) & ~0x7;
   if (ibuf->planes > 8) {
@@ -326,7 +332,7 @@ int imb_savetarga(struct ImBuf *ibuf, const char *filepath, int flags)
     return 0;
   }
 
-  if (fwrite(buf, 1, 18, fildes) != 18) {
+  if (fwrite(buf, 1, TARGA_HEADER_SIZE, fildes) != TARGA_HEADER_SIZE) {
     fclose(fildes);
     return 0;
   }
@@ -647,7 +653,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
   if (tga.imgtyp < 4) {
     ibuf->foptions.flag |= RAWTGA;
   }
-  mem = mem + 18 + tga.numid;
+  mem = mem + TARGA_HEADER_SIZE + tga.numid;
 
   cp[0] = 0xff;
   cp[1] = cp[2] = 0;
