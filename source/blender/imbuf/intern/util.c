@@ -167,7 +167,7 @@ int IMB_ispic_type_from_memory(const unsigned char *mem, const size_t mem_size)
   }
 
   for (const ImFileType *type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
-    if (type->is_a) {
+    if (type->is_a != NULL) {
       if (type->is_a(buf)) {
         return type->filetype;
       }
@@ -181,7 +181,7 @@ int IMB_ispic_type(const char *name)
 {
   unsigned char buf[HEADER_SIZE];
   if (!imb_ispic_read_header_from_filename(name, buf)) {
-    return false;
+    return 0;
   }
   return IMB_ispic_type_from_memory(buf, HEADER_SIZE);
 }
@@ -190,7 +190,7 @@ bool IMB_ispic_type_matches(const char *name, int filetype)
 {
   unsigned char buf[HEADER_SIZE];
   if (!imb_ispic_read_header_from_filename(name, buf)) {
-    return false;
+    return 0;
   }
 
   for (const ImFileType *type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
@@ -198,10 +198,12 @@ bool IMB_ispic_type_matches(const char *name, int filetype)
       /* Requesting to load a type that can't check it's own header doesn't make sense.
        * Keep the check for developers. */
       BLI_assert(type->is_a != NULL);
-      return type->is_a ? type->is_a(buf) : false;
+      if (type->is_a != NULL) {
+        return type->is_a(buf);
+      }
     }
   }
-  return false;
+  return 0;
 }
 
 #undef HEADER_SIZE
@@ -211,7 +213,7 @@ bool IMB_ispic(const char *name)
   return (IMB_ispic_type(name) != 0);
 }
 
-static int isavi(const char *name)
+static bool isavi(const char *name)
 {
 #ifdef WITH_AVI
   return AVI_is_avi(name);
