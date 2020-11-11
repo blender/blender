@@ -203,7 +203,7 @@ int imb_is_a_hdr(const unsigned char *buf)
   /* update: actually, the 'RADIANCE' part is just an optional program name,
    * the magic word is really only the '#?' part */
   // if (strstr((char *)buf, "#?RADIANCE")) return 1;
-  if (strstr((char *)buf, "#?")) {
+  if (memcmp((char *)buf, "#?", 2) == 0) {
     return 1;
   }
   // if (strstr((char *)buf, "32-bit_rle_rgbe")) return 1;
