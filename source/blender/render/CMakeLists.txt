@@ -98,13 +98,5 @@ if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
-if(APPLE)
-  # SSE math is enabled by default on x86_64
-  if(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
-    string(APPEND CMAKE_C_FLAGS_RELEASE " -mfpmath=sse")
-    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -mfpmath=sse")
-  endif()
-endif()
-
 
 blender_add_lib_nolist(bf_render "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
