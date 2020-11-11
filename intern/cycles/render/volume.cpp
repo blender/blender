@@ -495,6 +495,37 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   string msg = string_printf("Computing Volume Mesh %s", volume->name.c_str());
   progress.set_status("Updating Mesh", msg);
 
+  /* Find shader and compute padding based on volume shader interpolation settings. */
+  Shader *volume_shader = NULL;
+  int pad_size = 0;
+
+  foreach (Shader *shader, volume->used_shaders) {
+    if (!shader->has_volume) {
+      continue;
+    }
+
+    volume_shader = shader;
+
+    if (shader->volume_interpolation_method == VOLUME_INTERPOLATION_LINEAR) {
+      pad_size = max(1, pad_size);
+    }
+    else if (shader->volume_interpolation_method == VOLUME_INTERPOLATION_CUBIC) {
+      pad_size = max(2, pad_size);
+    }
+
+    break;
+  }
+
+  /* Clear existing volume mesh, done here in case we early out due to
+   * empty grid or missing volume shader. */
+  volume->clear();
+  volume->need_update_rebuild = true;
+
+  if (!volume_shader) {
+    return;
+  }
+
+  /* Create volume mesh builder. */
   VolumeMeshBuilder builder;
 
 #ifdef WITH_OPENVDB
@@ -541,32 +572,8 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   }
 #endif
 
+  /* If nothing to build, early out. */
   if (builder.empty_grid()) {
-    return;
-  }
-
-  /* Compute padding. */
-  Shader *volume_shader = NULL;
-  int pad_size = 0;
-
-  foreach (Shader *shader, volume->used_shaders) {
-    if (!shader->has_volume) {
-      continue;
-    }
-
-    volume_shader = shader;
-
-    if (shader->volume_interpolation_method == VOLUME_INTERPOLATION_LINEAR) {
-      pad_size = max(1, pad_size);
-    }
-    else if (shader->volume_interpolation_method == VOLUME_INTERPOLATION_CUBIC) {
-      pad_size = max(2, pad_size);
-    }
-
-    break;
-  }
-
-  if (!volume_shader) {
     return;
   }
 
@@ -585,11 +592,8 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   vector<float3> face_normals;
   builder.create_mesh(vertices, indices, face_normals, face_overlap_avoidance);
 
-  volume->clear();
   volume->reserve_mesh(vertices.size(), indices.size() / 3);
   volume->used_shaders.push_back(volume_shader);
-  volume->need_update = true;
-  volume->need_update_rebuild = true;
 
   for (size_t i = 0; i < vertices.size(); ++i) {
     volume->add_vertex(vertices[i]);
