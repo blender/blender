@@ -47,13 +47,13 @@ class ObjectsChildrenBuilder {
   ObjectTreeElementsMap object_tree_elements_map_;
 
  public:
-  ObjectsChildrenBuilder(SpaceOutliner &);
+  ObjectsChildrenBuilder(SpaceOutliner &soutliner);
   ~ObjectsChildrenBuilder() = default;
 
   void operator()(TreeElement &collection_tree_elem);
 
  private:
-  void object_tree_elements_lookup_create_recursive(TreeElement *);
+  void object_tree_elements_lookup_create_recursive(TreeElement *te_parent);
   void make_object_parent_hierarchy_collections();
 };
 
