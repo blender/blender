@@ -138,7 +138,8 @@ struct View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph
   vctrl->ctx_v3d = v3d;
   vctrl->ctx_rv3d = rv3d;
 
-  vctrl->use_parent_root = v3d->camera->transflag & OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK;
+  vctrl->use_parent_root = v3d->camera != NULL &&
+                           v3d->camera->transflag & OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK;
 
   vctrl->persp_backup = rv3d->persp;
   vctrl->dist_backup = rv3d->dist;
