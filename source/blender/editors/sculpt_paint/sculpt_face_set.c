@@ -110,7 +110,10 @@ int ED_sculpt_face_sets_active_update_and_get(bContext *C, Object *ob, const flo
   }
 
   SculptCursorGeometryInfo gi;
-  SCULPT_cursor_geometry_info_update(C, &gi, mval, false);
+  if (!SCULPT_cursor_geometry_info_update(C, &gi, mval, false)) {
+    return SCULPT_FACE_SET_NONE;
+  }
+
   return SCULPT_active_face_set_get(ss);
 }
 
