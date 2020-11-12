@@ -260,6 +260,8 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
 
 void BlenderSession::free_session()
 {
+  session->cancel();
+
   delete sync;
   delete session;
 }

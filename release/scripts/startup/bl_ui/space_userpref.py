@@ -576,6 +576,12 @@ class USERPREF_PT_system_sound(SystemPanel, CenterAlignMixIn, Panel):
 class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Cycles Render Devices"
 
+    @classmethod
+    def poll(cls, context):
+        # No GPU rendering on macOS currently.
+        import sys
+        return bpy.app.build_options.cycles and sys.platform != "darwin"
+
     def draw_centered(self, context, layout):
         prefs = context.preferences
 
