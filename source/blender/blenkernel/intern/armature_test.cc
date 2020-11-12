@@ -136,7 +136,7 @@ TEST(vec_roll_to_mat3_normalized, Rotationmatrix)
   {
     const float expected_roll_mat[3][3] = {{0.000000f, -9.99999975e-06f, 1.000000f},
                                            {9.99999975e-06f, -0.999999881f, 9.99999975e-06f},
-                                           {1.000000f, -9.99999975e-06, 0.000000f}};
+                                           {1.000000f, -9.99999975e-06f, 0.000000f}};
 
     const float normalized_vector[3] = {1e-5f, -0.999999881f, 1e-5f}; /* Corner Case. */
     vec_roll_to_mat3_normalized(normalized_vector, roll, roll_mat);
