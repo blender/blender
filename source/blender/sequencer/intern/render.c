@@ -80,7 +80,7 @@ static ThreadMutex seq_render_mutex = BLI_MUTEX_INITIALIZER;
 SequencerDrawView sequencer_view3d_fn = NULL; /* NULL in background mode */
 
 /* -------------------------------------------------------------------- */
-/** \name Colorspace utility functions
+/** \name Color-space utility functions
  * \{ */
 void seq_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 {
@@ -1778,9 +1778,8 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
           state->scene_parents = &scene_parent;
           /* end check */
 
-          /* Use the Scene Seq's scene for the context when rendering the scene's sequences
-           * (necessary for Multicam Selector among others).
-           */
+          /* Use the Scene sequence-strip's scene for the context when rendering the
+           * scene's sequences (necessary for multi-cam selector among others). */
           SeqRenderData local_context = *context;
           local_context.scene = seq->scene;
           local_context.skip_cache = true;
@@ -2040,11 +2039,11 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
   return out;
 }
 
-/*
- * returned ImBuf is refed!
- * you have to free after usage!
+/**
+ * \return The image buffer or NULL.
+ *
+ * \note The returned #ImBuf is has it's reference increased, free after usage!
  */
-
 ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, int chanshown)
 {
   Scene *scene = context->scene;

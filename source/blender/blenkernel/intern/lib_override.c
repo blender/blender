@@ -528,7 +528,7 @@ static bool lib_override_library_create_do(Main *bmain, ID *id_root)
   }
 
   /* Now tag all non-object/collection IDs 'in-between' two tagged ones, as those are part of an
-   * override chain and therefore alos need to be overridden.
+   * override chain and therefore also need to be overridden.
    * One very common cases are e.g. drivers on geometry or materials of an overridden object, that
    * are using another overridden object as parameter. */
   /* Note that this call will also free the main relations data we created above. */
@@ -1714,7 +1714,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
 
   /* XXX We need a way to get off-Main copies of IDs (similar to localized mats/texts/ etc.)!
    *     However, this is whole bunch of code work in itself, so for now plain stupid ID copy
-   *     will do, as innefficient as it is. :/
+   *     will do, as inefficient as it is. :/
    *     Actually, maybe not! Since we are swapping with original ID's local content, we want to
    *     keep user-count in correct state when freeing tmp_id
    *     (and that user-counts of IDs used by 'new' local data also remain correct). */
@@ -1770,8 +1770,8 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
     tmp_key->from = tmp_id;
   }
 
-  /* Again, horribly innefficient in our case, we need something off-Main (aka more generic nolib
-   * copy/free stuff)! */
+  /* Again, horribly inefficient in our case, we need something off-Main
+   * (aka more generic nolib copy/free stuff)! */
   BKE_id_free_ex(bmain, tmp_id, LIB_ID_FREE_NO_UI_USER, true);
 
   if (GS(local->name) == ID_AR) {

@@ -1275,9 +1275,9 @@ void buf_rectfill_area(unsigned char *rect,
 /**
  * Blend pixels of image area with solid color.
  *
- * For images with `uchar` buffer use color matching image colorspace.
- * For images with float buffer use color display colorspace.
- * If display colorspace can not be referenced, use color in SRGB colorspace.
+ * For images with `uchar` buffer use color matching image color-space.
+ * For images with float buffer use color display color-space.
+ * If display color-space can not be referenced, use color in SRGB color-space.
  *
  * \param ibuf: an image to be filled with color. It must be 4 channel image.
  * \param col: RGBA color.
@@ -1285,7 +1285,7 @@ void buf_rectfill_area(unsigned char *rect,
  * (x2, y2) is the end point. Note that values are allowed to be loosely ordered, which means that
  * x2 is allowed to be lower than x1, as well as y2 is allowed to be lower than y1. No matter the
  * order the area between x1 and x2, and y1 and y2 is filled.
- * \param display: colorspace reference for display space.
+ * \param display: color-space reference for display space.
  */
 void IMB_rectfill_area(ImBuf *ibuf,
                        const float col[4],

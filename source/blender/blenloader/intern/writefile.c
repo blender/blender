@@ -935,7 +935,7 @@ static bool write_file_handle(Main *mainvar,
   write_thumb(wd, thumb);
   write_global(wd, write_flags, mainvar);
 
-  /* The windowmanager and screen often change,
+  /* The window-manager and screen often change,
    * avoid thumbnail detecting changes because of this. */
   mywrite_flush(wd);
 
