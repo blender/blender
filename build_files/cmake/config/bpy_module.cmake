@@ -28,6 +28,7 @@ set(WITH_OPENCOLLADA         OFF CACHE BOOL "" FORCE)
 set(WITH_INTERNATIONAL       OFF CACHE BOOL "" FORCE)
 set(WITH_BULLET              OFF CACHE BOOL "" FORCE)
 set(WITH_OPENVDB             OFF CACHE BOOL "" FORCE)
+set(WITH_NANOVDB             OFF CACHE BOOL "" FORCE)
 set(WITH_ALEMBIC             OFF CACHE BOOL "" FORCE)
 
 # Depends on Python install, do this to quiet warning.
