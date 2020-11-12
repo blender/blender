@@ -1184,7 +1184,27 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
             BKE_gpencil_modifier_panel_expand(te->directdata);
           }
           else {
-            BKE_modifier_panel_expand(te->directdata);
+            ModifierData *md = (ModifierData *)te->directdata;
+
+            switch ((ModifierType)md->type) {
+              case eModifierType_ParticleSystem:
+                context = BCONTEXT_PARTICLE;
+                break;
+              case eModifierType_Cloth:
+              case eModifierType_Softbody:
+              case eModifierType_Collision:
+              case eModifierType_Fluidsim:
+              case eModifierType_DynamicPaint:
+              case eModifierType_Fluid:
+                context = BCONTEXT_PHYSICS;
+                break;
+              default:
+                break;
+            }
+
+            if (context == BCONTEXT_MODIFIER) {
+              BKE_modifier_panel_expand(md);
+            }
           }
         }
         break;
