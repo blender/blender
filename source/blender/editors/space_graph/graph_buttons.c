@@ -423,13 +423,14 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       but_max_width,
                       UI_UNIT_Y,
                       &bezt_ptr,
-                      "co",
+                      "co_ui",
                       0,
                       0,
                       0,
                       0,
                       0,
                       NULL);
+      UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
 
       uiItemL_respect_property_split(col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
@@ -441,7 +442,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       but_max_width,
                       UI_UNIT_Y,
                       &bezt_ptr,
-                      "co",
+                      "co_ui",
                       1,
                       0,
                       0,
@@ -450,8 +451,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       NULL);
       UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
-
-      UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
     }
 
     /* previous handle - only if previous was Bezier interpolation */
