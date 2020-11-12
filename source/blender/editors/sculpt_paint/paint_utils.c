@@ -581,8 +581,12 @@ void paint_sample_color(
     /* Sample from the active image buffer. The sampled color is in
      * Linear Scene Reference Space. */
     float rgba_f[3];
-    if (ED_space_image_color_sample(sima, region, (int[2]){x, y}, rgba_f)) {
-      linearrgb_to_srgb_v3_v3(rgba_f, rgba_f);
+    bool is_data;
+    if (ED_space_image_color_sample(sima, region, (int[2]){x, y}, rgba_f, &is_data)) {
+      if (!is_data) {
+        linearrgb_to_srgb_v3_v3(rgba_f, rgba_f);
+      }
+
       if (use_palette) {
         copy_v3_v3(color->rgb, rgba_f);
       }
