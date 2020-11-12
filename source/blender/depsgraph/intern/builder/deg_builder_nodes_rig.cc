@@ -118,6 +118,11 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
   /* Find the chain's root. */
   bPoseChannel *rootchan = BKE_armature_splineik_solver_find_root(pchan, data);
 
+  if (has_operation_node(
+          &object->id, NodeType::EVAL_POSE, rootchan->name, OperationCode::POSE_SPLINE_IK_SOLVER)) {
+    return;
+  }
+
   /* Operation node for evaluating/running Spline IK Solver.
    * Store the "root bone" of this chain in the solver, so it knows where to
    * start. */
