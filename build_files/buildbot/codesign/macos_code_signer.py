@@ -33,6 +33,7 @@ from buildbot_utils import Builder
 
 from codesign.absolute_and_relative_filename import AbsoluteAndRelativeFileName
 from codesign.base_code_signer import BaseCodeSigner
+from codesign.exception import CodeSignException
 
 logger = logging.getLogger(__name__)
 logger_server = logger.getChild('server')
@@ -43,6 +44,10 @@ EXTENSIONS_TO_BE_SIGNED = {'.dylib', '.so', '.dmg'}
 # Prefixes of a file (not directory) name which are to be signed.
 # Used to sign extra executable files in Contents/Resources.
 NAME_PREFIXES_TO_BE_SIGNED = {'python'}
+
+
+class NotarizationException(CodeSignException):
+    pass
 
 
 def is_file_from_bundle(file: AbsoluteAndRelativeFileName) -> bool:
@@ -186,7 +191,7 @@ class MacOSCodeSigner(BaseCodeSigner):
                    file.absolute_filepath]
         self.run_command_or_mock(command, util.Platform.MACOS)
 
-    def codesign_all_files(self, files: List[AbsoluteAndRelativeFileName]) -> bool:
+    def codesign_all_files(self, files: List[AbsoluteAndRelativeFileName]) -> None:
         """
         Run codesign tool on all eligible files in the given list.
 
@@ -224,8 +229,6 @@ class MacOSCodeSigner(BaseCodeSigner):
                     '- [%d/%d] %s',
                     file_index + 1, num_signed_files,
                     signed_file.relative_filepath)
-
-        return True
 
     def codesign_bundles(
             self, files: List[AbsoluteAndRelativeFileName]) -> None:
@@ -272,8 +275,6 @@ class MacOSCodeSigner(BaseCodeSigner):
                 extra_files.append(bundle_relative_file)
 
         files.extend(extra_files)
-
-        return True
 
     ############################################################################
     # Notarization.
@@ -334,7 +335,40 @@ class MacOSCodeSigner(BaseCodeSigner):
         logger_server.error('xcrun command did not report RequestUUID')
         return None
 
-    def notarize_wait_result(self, request_uuid: str) -> bool:
+    def notarize_review_status(self, xcrun_output: str) -> bool:
+        """
+        Review status returned by xcrun's notarization info
+
+        Returns truth if the notarization process has finished.
+        If there are errors during notarization, a NotarizationException()
+        exception is thrown with status message from the notarial office.
+        """
+
+        # Parse status and message
+        status = xcrun_field_value_from_output('Status', xcrun_output)
+        status_message = xcrun_field_value_from_output(
+            'Status Message', xcrun_output)
+
+        if status == 'success':
+            logger_server.info(
+                'Package successfully notarized: %s', status_message)
+            return True
+
+        if status == 'invalid':
+            logger_server.error(xcrun_output)
+            logger_server.error(
+                'Package notarization has failed: %s', status_message)
+            raise NotarizationException(status_message)
+
+        if status == 'in progress':
+            return False
+
+        logger_server.info(
+            'Unknown notarization status %s (%s)', status, status_message)
+
+        return False
+
+    def notarize_wait_result(self, request_uuid: str) -> None:
         """
         Wait for until notarial office have a reply
         """
@@ -351,29 +385,11 @@ class MacOSCodeSigner(BaseCodeSigner):
         timeout_in_seconds = self.config.MACOS_NOTARIZE_TIMEOUT_IN_SECONDS
 
         while True:
-            output = self.check_output_or_mock(
+            xcrun_output = self.check_output_or_mock(
                 command, util.Platform.MACOS, allow_nonzero_exit_code=True)
-            # Parse status and message
-            status = xcrun_field_value_from_output('Status', output)
-            status_message = xcrun_field_value_from_output(
-                'Status Message', output)
 
-            # Review status.
-            if status:
-                if status == 'success':
-                    logger_server.info(
-                        'Package successfully notarized: %s', status_message)
-                    return True
-                elif status == 'invalid':
-                    logger_server.error(output)
-                    logger_server.error(
-                        'Package notarization has failed: %s', status_message)
-                    return False
-                elif status == 'in progress':
-                    pass
-                else:
-                    logger_server.info(
-                        'Unknown notarization status %s (%s)', status, status_message)
+            if self.notarize_review_status(xcrun_output):
+                break
 
             logger_server.info('Keep waiting for notarization office.')
             time.sleep(30)
@@ -394,8 +410,6 @@ class MacOSCodeSigner(BaseCodeSigner):
         command = ['xcrun', 'stapler', 'staple', '-v', file.absolute_filepath]
         self.check_output_or_mock(command, util.Platform.MACOS)
 
-        return True
-
     def notarize_dmg(self, file: AbsoluteAndRelativeFileName) -> bool:
         """
         Run entire pipeline to get DMG notarized.
@@ -414,10 +428,7 @@ class MacOSCodeSigner(BaseCodeSigner):
             return False
 
         # Staple.
-        if not self.notarize_staple(file):
-            return False
-
-        return True
+        self.notarize_staple(file)
 
     def notarize_all_dmg(
             self, files: List[AbsoluteAndRelativeFileName]) -> bool:
@@ -432,10 +443,7 @@ class MacOSCodeSigner(BaseCodeSigner):
             if not self.check_file_is_to_be_signed(file):
                 continue
 
-            if not self.notarize_dmg(file):
-                return False
-
-        return True
+            self.notarize_dmg(file)
 
     ############################################################################
     # Entry point.
@@ -443,11 +451,6 @@ class MacOSCodeSigner(BaseCodeSigner):
     def sign_all_files(self, files: List[AbsoluteAndRelativeFileName]) -> None:
         # TODO(sergey): Handle errors somehow.
 
-        if not self.codesign_all_files(files):
-            return
-
-        if not self.codesign_bundles(files):
-            return
-
-        if not self.notarize_all_dmg(files):
-            return
+        self.codesign_all_files(files)
+        self.codesign_bundles(files)
+        self.notarize_all_dmg(files)
