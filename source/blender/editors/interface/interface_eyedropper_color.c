@@ -163,7 +163,7 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
         SpaceImage *sima = area->spacedata.first;
         int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
 
-        if (ED_space_image_color_sample(sima, region, mval, r_col)) {
+        if (ED_space_image_color_sample(sima, region, mval, r_col, NULL)) {
           return;
         }
       }
