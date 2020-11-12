@@ -1306,7 +1306,10 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
    * tool without brush cursor. */
   SculptCursorGeometryInfo sgi;
   const float mouse[2] = {event->mval[0], event->mval[1]};
-  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  if (!SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
+      /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
+      return OPERATOR_CANCELLED;
+  }
   const int active_face_set = SCULPT_active_face_set_get(ss);
 
   switch (mode) {
