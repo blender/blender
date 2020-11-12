@@ -70,7 +70,7 @@ void ED_sculpt_init_transform(struct bContext *C)
   copy_v3_v3(ss->init_pivot_pos, ss->pivot_pos);
   copy_v4_v4(ss->init_pivot_rot, ss->pivot_rot);
 
-  SCULPT_undo_push_begin("Transform");
+  SCULPT_undo_push_begin(ob, "Transform");
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   ss->pivot_rot[3] = 1.0f;

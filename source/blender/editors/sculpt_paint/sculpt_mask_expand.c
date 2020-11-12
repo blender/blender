@@ -378,7 +378,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   BKE_pbvh_search_gather(pbvh, NULL, NULL, &ss->filter_cache->nodes, &ss->filter_cache->totnode);
 
-  SCULPT_undo_push_begin("Mask Expand");
+  SCULPT_undo_push_begin(ob, "Mask Expand");
 
   if (create_face_set) {
     SCULPT_undo_push_node(ob, ss->filter_cache->nodes[0], SCULPT_UNDO_FACE_SETS);

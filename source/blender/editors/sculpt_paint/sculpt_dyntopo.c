@@ -291,7 +291,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != NULL) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin("Dynamic topology disable");
+      SCULPT_undo_push_begin(ob, "Dynamic topology disable");
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_END);
     }
     SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, NULL);
@@ -311,7 +311,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != NULL) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin("Dynamic topology enable");
+      SCULPT_undo_push_begin(ob, "Dynamic topology enable");
     }
     SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
     if (use_undo) {

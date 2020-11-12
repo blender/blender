@@ -703,7 +703,7 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
     SCULPT_boundary_info_ensure(ob);
   }
 
-  SCULPT_undo_push_begin("Mesh Filter");
+  SCULPT_undo_push_begin(ob, "Mesh Filter");
 
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
 

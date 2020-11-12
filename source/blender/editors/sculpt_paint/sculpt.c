@@ -7698,7 +7698,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 
     sculpt_update_cache_invariants(C, sd, ss, op, mouse);
 
-    SCULPT_undo_push_begin(sculpt_tool_name(sd));
+    SCULPT_undo_push_begin(ob, sculpt_tool_name(sd));
 
     return true;
   }
@@ -8057,7 +8057,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
        * as deleted, then after symmetrize operation all BMesh elements
        * are logged as added (as opposed to attempting to store just the
        * parts that symmetrize modifies). */
-      SCULPT_undo_push_begin("Dynamic topology symmetrize");
+      SCULPT_undo_push_begin(ob, "Dynamic topology symmetrize");
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
       BM_log_before_all_removed(ss->bm, ss->bm_log);
 
@@ -8297,7 +8297,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       bool has_undo = wm->undo_stack != NULL;
       /* Undo push is needed to prevent memory leak. */
       if (has_undo) {
-        SCULPT_undo_push_begin("Dynamic topology enable");
+        SCULPT_undo_push_begin(ob, "Dynamic topology enable");
       }
       SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
       if (has_undo) {
@@ -8413,7 +8413,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
          * while it works it causes lag when undoing the first undo step, see T71564. */
         wmWindowManager *wm = CTX_wm_manager(C);
         if (wm->op_undo_depth <= 1) {
-          SCULPT_undo_push_begin(op->type->name);
+          SCULPT_undo_push_begin(ob, op->type->name);
         }
       }
     }
@@ -9206,7 +9206,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   mouse[1] = event->mval[1];
   SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
 
-  SCULPT_undo_push_begin("Mask by color");
+  SCULPT_undo_push_begin(ob, "Mask by color");
 
   const int active_vertex = SCULPT_active_vertex_get(ss);
   const float threshold = RNA_float_get(op->ptr, "threshold");

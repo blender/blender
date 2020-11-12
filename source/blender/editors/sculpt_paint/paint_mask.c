@@ -169,7 +169,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
 
-  SCULPT_undo_push_begin("Mask flood fill");
+  SCULPT_undo_push_begin(ob, "Mask flood fill");
 
   MaskTaskData data = {
       .ob = ob,
@@ -707,7 +707,7 @@ static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, P
 static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
 {
   SculptGestureOperation *operation = sgcontext->operation;
-  SCULPT_undo_push_begin("Sculpt Gesture Apply");
+  SCULPT_undo_push_begin(CTX_data_active_object(C), "Sculpt Gesture Apply");
 
   operation->sculpt_gesture_begin(C, sgcontext);
 

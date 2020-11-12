@@ -328,7 +328,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin("face set change");
+  SCULPT_undo_push_begin(ob, "face set change");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
 
   const int next_face_set = SCULPT_face_set_next_available_get(ss);
@@ -684,7 +684,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin("face set change");
+  SCULPT_undo_push_begin(ob, "face set change");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
@@ -829,7 +829,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "mode");
   const int active_face_set = SCULPT_active_face_set_get(ss);
 
-  SCULPT_undo_push_begin("Hide area");
+  SCULPT_undo_push_begin(ob, "Hide area");
 
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
@@ -1276,7 +1276,7 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
   if (!nodes) {
     return;
   }
-  SCULPT_undo_push_begin("face set edit");
+  SCULPT_undo_push_begin(ob, "face set edit");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
   sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, modify_hidden);
   SCULPT_undo_push_end();

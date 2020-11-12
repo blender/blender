@@ -1334,9 +1334,16 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
   return unode;
 }
 
-void SCULPT_undo_push_begin(const char *name)
+void SCULPT_undo_push_begin(Object *ob, const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
+
+  if (ob != NULL) {
+    /* If possible, we need to tag the object and its geometry data as 'changed in the future' in
+     * the previous undo step if it's a memfile one. */
+    ED_undosys_stack_memfile_id_changed_tag(ustack, &ob->id);
+    ED_undosys_stack_memfile_id_changed_tag(ustack, ob->data);
+  }
 
   /* Special case, we never read from this. */
   bContext *C = NULL;
@@ -1525,7 +1532,7 @@ static void sculpt_undosys_step_free(UndoStep *us_p)
 
 void ED_sculpt_undo_geometry_begin(struct Object *ob, const char *name)
 {
-  SCULPT_undo_push_begin(name);
+  SCULPT_undo_push_begin(ob, name);
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
 }
 
@@ -1638,7 +1645,7 @@ void ED_sculpt_undo_push_multires_mesh_begin(bContext *C, const char *str)
 
   Object *object = CTX_data_active_object(C);
 
-  SCULPT_undo_push_begin(str);
+  SCULPT_undo_push_begin(object, str);
 
   SculptUndoNode *geometry_unode = SCULPT_undo_push_node(object, NULL, SCULPT_UNDO_GEOMETRY);
   geometry_unode->geometry_clear_pbvh = false;

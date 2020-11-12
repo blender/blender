@@ -1548,7 +1548,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   /* Needs mask data to be available as it is used when solving the constraints. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
-  SCULPT_undo_push_begin("Cloth filter");
+  SCULPT_undo_push_begin(ob, "Cloth filter");
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
 
   ss->filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
