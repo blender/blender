@@ -538,7 +538,9 @@ bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
 float outliner_restrict_columns_width(const struct SpaceOutliner *space_outliner);
 TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag);
 bool outliner_is_element_visible(const TreeElement *te);
-void outliner_scroll_view(struct SpaceOutliner *space_outliner, struct ARegion *region, int delta_y);
+void outliner_scroll_view(struct SpaceOutliner *space_outliner,
+                          struct ARegion *region,
+                          int delta_y);
 void outliner_tag_redraw_avoid_rebuild_on_open_change(const struct SpaceOutliner *space_outliner,
                                                       struct ARegion *region);
 

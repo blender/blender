@@ -72,7 +72,6 @@ bool imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
   return true;
 }
 
-/* note: use at most first 32 bytes */
 bool imb_is_a_dds(const unsigned char *mem, const size_t size)
 {
   if (size < 8) {
