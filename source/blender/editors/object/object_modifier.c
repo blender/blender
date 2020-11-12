@@ -2327,7 +2327,9 @@ static void skin_armature_bone_create(Object *skin_ob,
     EditBone *bone = ED_armature_ebone_add(arm, "Bone");
 
     bone->parent = parent_bone;
-    bone->flag |= BONE_CONNECTED;
+    if (parent_bone != NULL) {
+      bone->flag |= BONE_CONNECTED;
+    }
 
     copy_v3_v3(bone->head, mvert[parent_v].co);
     copy_v3_v3(bone->tail, mvert[v].co);
