@@ -3201,8 +3201,7 @@ static void update_effectors_task_cb(void *__restrict userdata,
       normalize_v3(retvel);
       mul_v3_fl(retvel, mag);
 
-      /* Constrain forces to interval -1 to 1. */
-      CLAMP3(retvel, -1.0f, 1.0f);
+      /* Copy computed force to fluid solver forces. */
       data->force_x[index] = retvel[0];
       data->force_y[index] = retvel[1];
       data->force_z[index] = retvel[2];
