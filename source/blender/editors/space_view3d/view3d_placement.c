@@ -610,12 +610,128 @@ static void draw_primitive_view(const struct bContext *C, ARegion *UNUSED(region
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Calculate The Initial Placement Plane
+ *
+ * Use by both the operator and placement cursor.
+ * \{ */
+
+static void view3d_interactive_add_calc_plane(bContext *C,
+                                              Scene *scene,
+                                              View3D *v3d,
+                                              ARegion *region,
+                                              wmGizmo *snap_gizmo,
+                                              const float mval_fl[2],
+                                              const enum ePlace_Depth plane_depth,
+                                              const enum ePlace_Orient plane_orient,
+                                              const int plane_axis,
+                                              float r_co_src[3],
+                                              float r_matrix_orient[3][3])
+{
+  const RegionView3D *rv3d = region->regiondata;
+  ED_transform_calc_orientation_from_type(C, r_matrix_orient);
+
+  SnapObjectContext *snap_context = NULL;
+  bool snap_context_free = false;
+
+  /* Set the orientation. */
+  if ((plane_orient == PLACE_ORIENT_SURFACE) || (plane_depth == PLACE_DEPTH_SURFACE)) {
+    snap_context = (snap_gizmo ?
+                        ED_gizmotypes_snap_3d_context_ensure(scene, region, v3d, snap_gizmo) :
+                        NULL);
+    if (snap_context == NULL) {
+      snap_context = ED_transform_snap_object_context_create_view3d(scene, 0, region, v3d);
+      snap_context_free = true;
+    }
+  }
+
+  if (plane_orient == PLACE_ORIENT_SURFACE) {
+    float matrix_orient_surface[3][3];
+
+    /* Use the snap normal as a fallback in case the cursor isn't over a surface
+     * but snapping is enabled. */
+    float normal_fallback[3];
+    bool use_normal_fallback = snap_gizmo ?
+                                   idp_snap_normal_from_gizmo(snap_gizmo, normal_fallback) :
+                                   false;
+
+    if ((snap_context != NULL) &&
+        idp_poject_surface_normal(snap_context,
+                                  CTX_data_ensure_evaluated_depsgraph(C),
+                                  mval_fl,
+                                  use_normal_fallback ? r_matrix_orient : NULL,
+                                  use_normal_fallback ? normal_fallback : NULL,
+                                  matrix_orient_surface)) {
+      copy_m3_m3(r_matrix_orient, matrix_orient_surface);
+    }
+  }
+
+  const bool is_snap_found = snap_gizmo ? idp_snap_point_from_gizmo(snap_gizmo, r_co_src) : false;
+
+  if (is_snap_found) {
+    /* pass */
+  }
+  else {
+    bool use_depth_fallback = true;
+    if (plane_depth == PLACE_DEPTH_CURSOR_VIEW) {
+      /* View plane. */
+      ED_view3d_win_to_3d(v3d, region, scene->cursor.location, mval_fl, r_co_src);
+      use_depth_fallback = false;
+    }
+    else if (plane_depth == PLACE_DEPTH_SURFACE) {
+      if ((snap_context != NULL) &&
+          ED_transform_snap_object_project_view3d(snap_context,
+                                                  CTX_data_ensure_evaluated_depsgraph(C),
+                                                  SCE_SNAP_MODE_FACE,
+                                                  &(const struct SnapObjectParams){
+                                                      .snap_select = SNAP_ALL,
+                                                      .use_object_edit_cage = true,
+                                                  },
+                                                  mval_fl,
+                                                  NULL,
+                                                  NULL,
+                                                  r_co_src,
+                                                  NULL)) {
+        use_depth_fallback = false;
+      }
+    }
+
+    /* Use as fallback to surface. */
+    if (use_depth_fallback || (plane_depth == PLACE_DEPTH_CURSOR_PLANE)) {
+      /* Cursor plane. */
+      float plane[4];
+      plane_from_point_normal_v3(plane, scene->cursor.location, r_matrix_orient[plane_axis]);
+      if (ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, false, r_co_src)) {
+        use_depth_fallback = false;
+      }
+      /* Even if the calculation works, it's possible the point found is behind the view. */
+      if (rv3d->is_persp) {
+        float dir[3];
+        sub_v3_v3v3(dir, rv3d->viewinv[3], r_co_src);
+        if (dot_v3v3(dir, rv3d->viewinv[2]) < v3d->clip_start) {
+          use_depth_fallback = true;
+        }
+      }
+    }
+
+    if (use_depth_fallback) {
+      float co_depth[3];
+      /* Fallback to view center. */
+      negate_v3_v3(co_depth, rv3d->ofs);
+      ED_view3d_win_to_3d(v3d, region, co_depth, mval_fl, r_co_src);
+    }
+  }
+
+  if (snap_context_free) {
+    ED_transform_snap_object_context_destroy(snap_context);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Add Object Modal Operator
  * \{ */
 
-/**
- *
- *  */
 static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEvent *event)
 {
 
@@ -628,8 +744,6 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 
   struct InteractivePlaceData *ipd = op->customdata;
 
-  RegionView3D *rv3d = ipd->region->regiondata;
-
   /* Assign snap gizmo which is may be used as part of the tool. */
   {
     wmGizmoMap *gzmap = ipd->region->gizmo_map;
@@ -639,45 +753,19 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
     }
   }
 
-  SnapObjectContext *snap_context = NULL;
-  bool snap_context_free = false;
-  if ((plane_orient == PLACE_ORIENT_SURFACE) || (plane_depth == PLACE_DEPTH_SURFACE)) {
-    /* Need# snap_context */
-    if (ipd->snap_gizmo) {
-      snap_context = ED_gizmotypes_snap_3d_context_ensure(
-          ipd->scene, ipd->region, ipd->v3d, ipd->snap_gizmo);
-    }
-    else {
-      snap_context = ED_transform_snap_object_context_create_view3d(
-          ipd->scene, 0, ipd->region, ipd->v3d);
-      snap_context_free = true;
-    }
-  }
-
   ipd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
-  ED_transform_calc_orientation_from_type(C, ipd->matrix_orient);
-
-  /* Set the orientation. */
-  if (snap_context && (plane_orient == PLACE_ORIENT_SURFACE)) {
-    float matrix_orient_surface[3][3];
-
-    /* Use the snap normal as a fallback in case the cursor isn't over a surface
-     * but snapping is enabled. */
-    float normal_fallback[3];
-    bool use_normal_fallback = ipd->snap_gizmo ?
-                                   idp_snap_normal_from_gizmo(ipd->snap_gizmo, normal_fallback) :
-                                   false;
-
-    if (idp_poject_surface_normal(snap_context,
-                                  CTX_data_ensure_evaluated_depsgraph(C),
-                                  mval_fl,
-                                  use_normal_fallback ? ipd->matrix_orient : NULL,
-                                  use_normal_fallback ? normal_fallback : NULL,
-                                  matrix_orient_surface)) {
-      copy_m3_m3(ipd->matrix_orient, matrix_orient_surface);
-    }
-  }
+  view3d_interactive_add_calc_plane(C,
+                                    ipd->scene,
+                                    ipd->v3d,
+                                    ipd->region,
+                                    ipd->snap_gizmo,
+                                    mval_fl,
+                                    plane_depth,
+                                    plane_orient,
+                                    plane_axis,
+                                    ipd->co_src,
+                                    ipd->matrix_orient);
 
   ipd->orient_axis = plane_axis;
   ipd->is_centered_init = (plane_origin == PLACE_ORIGIN_CENTER);
@@ -685,6 +773,23 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   ipd->step[1].is_centered = ipd->is_centered_init;
   ipd->step_index = STEP_BASE;
 
+  plane_from_point_normal_v3(ipd->step[0].plane, ipd->co_src, ipd->matrix_orient[plane_axis]);
+
+  copy_v3_v3(ipd->step[0].co_dst, ipd->co_src);
+
+  ipd->is_snap_invert = ipd->snap_gizmo ? ED_gizmotypes_snap_3d_invert_snap_get(ipd->snap_gizmo) :
+                                          false;
+  {
+    const ToolSettings *ts = ipd->scene->toolsettings;
+    ipd->use_snap = (ipd->is_snap_invert == !(ts->snap_flag & SCE_SNAP));
+  }
+
+  ipd->draw_handle_view = ED_region_draw_cb_activate(
+      ipd->region->type, draw_primitive_view, ipd, REGION_DRAW_POST_VIEW);
+
+  ED_region_tag_redraw(ipd->region);
+
+  /* Setup the primitive type. */
   {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "primitive_type");
     if (RNA_property_is_set(op->ptr, prop)) {
@@ -718,90 +823,6 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
         ipd->use_tool = false;
       }
     }
-  }
-
-  UNUSED_VARS(C, event);
-
-  ipd->draw_handle_view = ED_region_draw_cb_activate(
-      ipd->region->type, draw_primitive_view, ipd, REGION_DRAW_POST_VIEW);
-
-  ED_region_tag_redraw(ipd->region);
-
-  plane_from_point_normal_v3(
-      ipd->step[0].plane, ipd->scene->cursor.location, ipd->matrix_orient[ipd->orient_axis]);
-
-  const bool is_snap_found = ipd->snap_gizmo ?
-                                 idp_snap_point_from_gizmo(ipd->snap_gizmo, ipd->co_src) :
-                                 false;
-  ipd->is_snap_invert = ipd->snap_gizmo ? ED_gizmotypes_snap_3d_invert_snap_get(ipd->snap_gizmo) :
-                                          false;
-  {
-    const ToolSettings *ts = ipd->scene->toolsettings;
-    ipd->use_snap = (ipd->is_snap_invert == !(ts->snap_flag & SCE_SNAP));
-  }
-
-  if (is_snap_found) {
-    /* pass */
-  }
-  else {
-    bool use_depth_fallback = true;
-    if (plane_depth == PLACE_DEPTH_CURSOR_VIEW) {
-      /* View plane. */
-      ED_view3d_win_to_3d(
-          ipd->v3d, ipd->region, ipd->scene->cursor.location, mval_fl, ipd->co_src);
-      use_depth_fallback = false;
-    }
-    else if (snap_context && (plane_depth == PLACE_DEPTH_SURFACE)) {
-      if (ED_transform_snap_object_project_view3d(snap_context,
-                                                  CTX_data_ensure_evaluated_depsgraph(C),
-                                                  SCE_SNAP_MODE_FACE,
-                                                  &(const struct SnapObjectParams){
-                                                      .snap_select = SNAP_ALL,
-                                                      .use_object_edit_cage = true,
-                                                  },
-                                                  mval_fl,
-                                                  NULL,
-                                                  NULL,
-                                                  ipd->co_src,
-                                                  NULL)) {
-        use_depth_fallback = false;
-      }
-    }
-
-    /* Use as fallback to surface. */
-    if (use_depth_fallback || (plane_depth == PLACE_DEPTH_CURSOR_PLANE)) {
-      /* Cursor plane. */
-      float plane[4];
-      plane_from_point_normal_v3(
-          plane, ipd->scene->cursor.location, ipd->matrix_orient[ipd->orient_axis]);
-      if (ED_view3d_win_to_3d_on_plane(ipd->region, plane, mval_fl, false, ipd->co_src)) {
-        use_depth_fallback = false;
-      }
-      /* Even if the calculation works, it's possible the point found is behind the view. */
-      if (rv3d->is_persp) {
-        float dir[3];
-        sub_v3_v3v3(dir, rv3d->viewinv[3], ipd->co_src);
-        if (dot_v3v3(dir, rv3d->viewinv[2]) < ipd->v3d->clip_start) {
-          use_depth_fallback = true;
-        }
-      }
-    }
-
-    if (use_depth_fallback) {
-      float co_depth[3];
-      /* Fallback to view center. */
-      negate_v3_v3(co_depth, rv3d->ofs);
-      ED_view3d_win_to_3d(ipd->v3d, ipd->region, co_depth, mval_fl, ipd->co_src);
-    }
-  }
-
-  plane_from_point_normal_v3(
-      ipd->step[0].plane, ipd->co_src, ipd->matrix_orient[ipd->orient_axis]);
-
-  copy_v3_v3(ipd->step[0].co_dst, ipd->co_src);
-
-  if (snap_context_free) {
-    ED_transform_snap_object_context_destroy(snap_context);
   }
 }
 
