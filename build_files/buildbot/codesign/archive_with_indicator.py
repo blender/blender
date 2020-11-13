@@ -76,6 +76,15 @@ class ArchiveState:
         except json.decoder.JSONDecodeError:
             raise ArchiveStateError('Error parsing JSON')
 
+        # NOTE: Compatibility code with older codesign code from times when client
+        # did not use JSON for the archive indicator. After all branches has codesign
+        # merged this code should be removed.
+        if type(object_as_dict) == int:
+            result = cls()
+            result.file_size = int(object_as_dict)
+            result.error_message = ''
+            return result
+
         return cls(**object_as_dict)
 
     @classmethod
