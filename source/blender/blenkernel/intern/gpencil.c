@@ -155,6 +155,11 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
           BLO_write_struct_array(writer, bGPDspoint, gps->totpoints, gps->points);
           BLO_write_struct_array(writer, bGPDtriangle, gps->tot_triangles, gps->triangles);
           BKE_defvert_blend_write(writer, gps->totpoints, gps->dvert);
+          if (gps->editcurve != NULL) {
+            bGPDcurve *gpc = gps->editcurve;
+            BLO_write_struct(writer, bGPDcurve, gpc);
+            BLO_write_struct_array(writer, bGPDcurve_point, gpc->tot_curve_points, gpc->curve_points);
+          }
         }
       }
     }
@@ -221,6 +226,13 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
         BLO_read_data_address(reader, &gps->points);
         /* Relink geometry*/
         BLO_read_data_address(reader, &gps->triangles);
+
+        /* relink stroke edit curve. */
+        BLO_read_data_address(reader, &gps->editcurve);
+        if (gps->editcurve != NULL) {
+          /* relink curve point array */
+          BLO_read_data_address(reader, &gps->editcurve->curve_points);
+        }
 
         /* relink weight data */
         if (gps->dvert) {
@@ -341,6 +353,20 @@ void BKE_gpencil_free_stroke_weights(bGPDstroke *gps)
   }
 }
 
+void BKE_gpencil_free_stroke_editcurve(bGPDstroke *gps)
+{
+  if (gps == NULL) {
+    return;
+  }
+  bGPDcurve *editcurve = gps->editcurve;
+  if (editcurve == NULL) {
+    return;
+  }
+  MEM_freeN(editcurve->curve_points);
+  MEM_freeN(editcurve);
+  gps->editcurve = NULL;
+}
+
 /* free stroke, doesn't unlink from any listbase */
 void BKE_gpencil_free_stroke(bGPDstroke *gps)
 {
@@ -357,6 +383,9 @@ void BKE_gpencil_free_stroke(bGPDstroke *gps)
   }
   if (gps->triangles) {
     MEM_freeN(gps->triangles);
+  }
+  if (gps->editcurve != NULL) {
+    BKE_gpencil_free_stroke_editcurve(gps);
   }
 
   MEM_freeN(gps);
@@ -688,6 +717,13 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
 
   gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
 
+  gpd->curve_edit_resolution = GP_DEFAULT_CURVE_RESOLUTION;
+  gpd->curve_edit_threshold = GP_DEFAULT_CURVE_ERROR;
+  gpd->curve_edit_corner_angle = GP_DEFAULT_CURVE_EDIT_CORNER_ANGLE;
+
+  /* use adaptive curve resolution by default */
+  gpd->flag |= GP_DATA_CURVE_ADAPTIVE_RESOLUTION;
+
   gpd->zdepth_offset = 0.150f;
 
   /* grid settings */
@@ -776,6 +812,8 @@ bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness)
 
   gps->mat_nr = mat_idx;
 
+  gps->editcurve = NULL;
+
   return gps;
 }
 
@@ -827,6 +865,16 @@ bGPDstroke *BKE_gpencil_stroke_add_existing_style(
   return gps;
 }
 
+bGPDcurve *BKE_gpencil_stroke_editcurve_new(const int tot_curve_points)
+{
+  bGPDcurve *new_gp_curve = (bGPDcurve *)MEM_callocN(sizeof(bGPDcurve), __func__);
+  new_gp_curve->tot_curve_points = tot_curve_points;
+  new_gp_curve->curve_points = (bGPDcurve_point *)MEM_callocN(
+      sizeof(bGPDcurve_point) * tot_curve_points, __func__);
+
+  return new_gp_curve;
+}
+
 /* ************************************************** */
 /* Data Duplication */
 
@@ -845,13 +893,28 @@ void BKE_gpencil_stroke_weights_duplicate(bGPDstroke *gps_src, bGPDstroke *gps_d
   BKE_defvert_array_copy(gps_dst->dvert, gps_src->dvert, gps_src->totpoints);
 }
 
+/* Make a copy of a given gpencil stroke editcurve */
+bGPDcurve *BKE_gpencil_stroke_curve_duplicate(bGPDcurve *gpc_src)
+{
+  bGPDcurve *gpc_dst = MEM_dupallocN(gpc_src);
+
+  if (gpc_src->curve_points != NULL) {
+    gpc_dst->curve_points = MEM_dupallocN(gpc_src->curve_points);
+  }
+
+  return gpc_dst;
+}
+
 /**
  * Make a copy of a given grease-pencil stroke.
  * \param gps_src: Source grease pencil strokes.
  * \param dup_points: Duplicate points data.
+ * \param dup_curve: Duplicate curve data.
  * \return Pointer to new stroke.
  */
-bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src, const bool dup_points)
+bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src,
+                                         const bool dup_points,
+                                         const bool dup_curve)
 {
   bGPDstroke *gps_dst = NULL;
 
@@ -869,6 +932,10 @@ bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src, const bool dup_poi
     else {
       gps_dst->dvert = NULL;
     }
+  }
+
+  if (dup_curve && gps_src->editcurve != NULL) {
+    gps_dst->editcurve = BKE_gpencil_stroke_curve_duplicate(gps_src->editcurve);
   }
 
   /* return new stroke */
@@ -898,7 +965,7 @@ bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src)
   BLI_listbase_clear(&gpf_dst->strokes);
   LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
     /* make copy of source stroke */
-    gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true);
+    gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true, true);
     BLI_addtail(&gpf_dst->strokes, gps_dst);
   }
 
@@ -923,7 +990,7 @@ void BKE_gpencil_frame_copy_strokes(bGPDframe *gpf_src, struct bGPDframe *gpf_ds
   BLI_listbase_clear(&gpf_dst->strokes);
   LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
     /* make copy of source stroke */
-    gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true);
+    gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true, true);
     BLI_addtail(&gpf_dst->strokes, gps_dst);
   }
 }
@@ -1034,6 +1101,39 @@ void BKE_gpencil_stroke_sync_selection(bGPDstroke *gps)
       gps->flag |= GP_STROKE_SELECT;
       break;
     }
+  }
+}
+
+void BKE_gpencil_curve_sync_selection(bGPDstroke *gps)
+{
+  bGPDcurve *gpc = gps->editcurve;
+  if (gpc == NULL) {
+    return;
+  }
+
+  gps->flag &= ~GP_STROKE_SELECT;
+  gpc->flag &= ~GP_CURVE_SELECT;
+
+  bool is_selected = false;
+  for (int i = 0; i < gpc->tot_curve_points; i++) {
+    bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
+    BezTriple *bezt = &gpc_pt->bezt;
+
+    if (BEZT_ISSEL_ANY(bezt)) {
+      gpc_pt->flag |= GP_SPOINT_SELECT;
+    }
+    else {
+      gpc_pt->flag &= ~GP_SPOINT_SELECT;
+    }
+
+    if (gpc_pt->flag & GP_SPOINT_SELECT) {
+      is_selected = true;
+    }
+  }
+
+  if (is_selected) {
+    gpc->flag |= GP_CURVE_SELECT;
+    gps->flag |= GP_STROKE_SELECT;
   }
 }
 
@@ -2304,12 +2404,14 @@ void BKE_gpencil_palette_ensure(Main *bmain, Scene *scene)
 /**
  * Create grease pencil strokes from image
  * \param sima: Image
+ * \param gpd: Grease pencil data-block
  * \param gpf: Grease pencil frame
  * \param size: Size
  * \param mask: Mask
  * \return  True if done
  */
-bool BKE_gpencil_from_image(SpaceImage *sima, bGPDframe *gpf, const float size, const bool mask)
+bool BKE_gpencil_from_image(
+    SpaceImage *sima, bGPdata *gpd, bGPDframe *gpf, const float size, const bool mask)
 {
   Image *image = sima->image;
   bool done = false;
@@ -2357,7 +2459,7 @@ bool BKE_gpencil_from_image(SpaceImage *sima, bGPDframe *gpf, const float size, 
           pt->flag |= GP_SPOINT_SELECT;
         }
       }
-      BKE_gpencil_stroke_geometry_update(gps);
+      BKE_gpencil_stroke_geometry_update(gpd, gps);
     }
   }
 

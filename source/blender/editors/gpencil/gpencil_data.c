@@ -580,7 +580,7 @@ static int gpencil_layer_duplicate_object_exec(bContext *C, wmOperator *op)
     LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
 
       /* Make copy of source stroke. */
-      bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true);
+      bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true, true);
 
       /* Check if material is in destination object,
        * otherwise add the slot with the material. */
@@ -1531,6 +1531,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
   const int direction = RNA_enum_get(op->ptr, "direction");
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
+  bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     /* temp listbase to store selected strokes */
     ListBase selected = {NULL};
@@ -1589,7 +1590,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
               break;
             /* Bring Forward */
             case GP_STROKE_MOVE_UP:
-              for (LinkData *link = selected.last; link; link = link->prev) {
+              LISTBASE_FOREACH_BACKWARD (LinkData *, link, &selected) {
                 gps = link->data;
                 BLI_listbase_link_move(&gpf->strokes, gps, 1);
               }
@@ -1603,7 +1604,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
               break;
             /* Send to Back */
             case GP_STROKE_MOVE_BOTTOM:
-              for (LinkData *link = selected.last; link; link = link->prev) {
+              LISTBASE_FOREACH_BACKWARD (LinkData *, link, &selected) {
                 gps = link->data;
                 BLI_remlink(&gpf->strokes, gps);
                 BLI_addhead(&gpf->strokes, gps);
@@ -1612,6 +1613,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
             default:
               BLI_assert(0);
               break;
+              changed = true;
           }
         }
         BLI_freelistN(&selected);
@@ -1625,9 +1627,11 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  /* notifiers */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  if (changed) {
+    /* notifiers */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -1693,6 +1697,7 @@ static int gpencil_stroke_change_color_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  bool changed = false;
   /* loop all strokes */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
@@ -1717,6 +1722,8 @@ static int gpencil_stroke_change_color_exec(bContext *C, wmOperator *op)
 
             /* assign new color */
             gps->mat_nr = idx;
+
+            changed = true;
           }
         }
       }
@@ -1728,9 +1735,11 @@ static int gpencil_stroke_change_color_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  /* notifiers */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  if (changed) {
+    /* notifiers */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -1757,9 +1766,7 @@ void GPENCIL_OT_stroke_change_color(wmOperatorType *ot)
 static int gpencil_material_lock_unsused_exec(bContext *C, wmOperator *UNUSED(op))
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-
   Object *ob = CTX_data_active_object(C);
-
   short *totcol = BKE_object_material_len_p(ob);
 
   /* sanity checks */
@@ -1776,6 +1783,7 @@ static int gpencil_material_lock_unsused_exec(bContext *C, wmOperator *UNUSED(op
     }
   }
 
+  bool changed = false;
   /* loop all selected strokes and unlock any color */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* only editable and visible layers are considered */
@@ -1793,19 +1801,24 @@ static int gpencil_material_lock_unsused_exec(bContext *C, wmOperator *UNUSED(op
             tmp_ma->gp_style->flag &= ~GP_MATERIAL_LOCKED;
             DEG_id_tag_update(&tmp_ma->id, ID_RECALC_COPY_ON_WRITE);
           }
+
+          changed = true;
         }
       }
     }
   }
-  /* updates */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-  /* copy on write tag is needed, or else no refresh happens */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  if (changed) {
+    /* updates */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-  /* notifiers */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    /* copy on write tag is needed, or else no refresh happens */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+
+    /* notifiers */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -3476,7 +3489,6 @@ static int gpencil_set_active_material_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  bool changed = false;
 
   /* Sanity checks. */
   if (gpd == NULL) {
@@ -3484,6 +3496,7 @@ static int gpencil_set_active_material_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  bool changed = false;
   /* Loop all selected strokes. */
   GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
     if (gps->flag & GP_STROKE_SELECT) {

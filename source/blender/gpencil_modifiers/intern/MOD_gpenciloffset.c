@@ -100,6 +100,7 @@ static void deformStroke(GpencilModifierData *md,
                                       mmd->flag & GP_OFFSET_INVERT_MATERIAL)) {
     return;
   }
+  bGPdata *gpd = ob->data;
 
   for (int i = 0; i < gps->totpoints; i++) {
     bGPDspoint *pt = &gps->points[i];
@@ -125,7 +126,7 @@ static void deformStroke(GpencilModifierData *md,
     mul_m4_v3(mat, &pt->x);
   }
   /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(gps);
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
 static void bakeModifier(struct Main *UNUSED(bmain),

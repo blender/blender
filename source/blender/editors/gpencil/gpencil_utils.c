@@ -55,6 +55,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -1144,7 +1145,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
   bGPDstroke *gps_active = gps;
   /* if duplicate, deselect all points. */
   if (keep_original) {
-    gps_active = BKE_gpencil_stroke_duplicate(gps, true);
+    gps_active = BKE_gpencil_stroke_duplicate(gps, true, true);
     gps_active->flag &= ~GP_STROKE_SELECT;
     for (i = 0, pt = gps_active->points; i < gps_active->totpoints; i++, pt++) {
       pt->flag &= ~GP_SPOINT_SELECT;
@@ -1320,10 +1321,11 @@ void ED_gpencil_project_point_to_plane(const Scene *scene,
 
 /**
  * Subdivide a stroke once, by adding a point half way between each pair of existing points
+ * \param gpd: Datablock
  * \param gps: Stroke data
  * \param subdivide: Number of times to subdivide
  */
-void gpencil_subdivide_stroke(bGPDstroke *gps, const int subdivide)
+void gpencil_subdivide_stroke(bGPdata *gpd, bGPDstroke *gps, const int subdivide)
 {
   bGPDspoint *temp_points;
   int totnewpoints, oldtotpoints;
@@ -1413,7 +1415,7 @@ void gpencil_subdivide_stroke(bGPDstroke *gps, const int subdivide)
     MEM_SAFE_FREE(temp_points);
   }
   /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(gps);
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
 /* Reset parent matrix for all layers. */
@@ -2243,8 +2245,12 @@ static void gpencil_copy_points(
   }
 }
 
-static void gpencil_insert_point(
-    bGPDstroke *gps, bGPDspoint *a_pt, bGPDspoint *b_pt, const float co_a[3], const float co_b[3])
+static void gpencil_insert_point(bGPdata *gpd,
+                                 bGPDstroke *gps,
+                                 bGPDspoint *a_pt,
+                                 bGPDspoint *b_pt,
+                                 const float co_a[3],
+                                 float co_b[3])
 {
   bGPDspoint *temp_points;
   int totnewpoints, oldtotpoints;
@@ -2303,8 +2309,8 @@ static void gpencil_insert_point(
 
     i2++;
   }
-  /* Calculate geometry data. */
-  BKE_gpencil_stroke_geometry_update(gps);
+  /* Calc geometry data. */
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
 
   MEM_SAFE_FREE(temp_points);
 }
@@ -2328,7 +2334,8 @@ static float gpencil_calc_factor(const float p2d_a1[2],
 }
 
 /* extend selection to stroke intersections */
-int ED_gpencil_select_stroke_segment(bGPDlayer *gpl,
+int ED_gpencil_select_stroke_segment(bGPdata *gpd,
+                                     bGPDlayer *gpl,
                                      bGPDstroke *gps,
                                      bGPDspoint *pt,
                                      bool select,
@@ -2483,7 +2490,7 @@ int ED_gpencil_select_stroke_segment(bGPDlayer *gpl,
 
   /* insert new point in the collision points */
   if (insert) {
-    gpencil_insert_point(gps, hit_pointa, hit_pointb, r_hita, r_hitb);
+    gpencil_insert_point(gpd, gps, hit_pointa, hit_pointb, r_hita, r_hitb);
   }
 
   /* free memory */
@@ -2608,6 +2615,82 @@ void ED_gpencil_select_toggle_all(bContext *C, int action)
       }
     }
     CTX_DATA_END;
+  }
+}
+
+void ED_gpencil_select_curve_toggle_all(bContext *C, int action)
+{
+  /* if toggle, check if we need to select or deselect */
+  if (action == SEL_TOGGLE) {
+    action = SEL_SELECT;
+    GP_EDITABLE_CURVES_BEGIN(gps_iter, C, gpl, gps, gpc)
+    {
+      if (gpc->flag & GP_CURVE_SELECT) {
+        action = SEL_DESELECT;
+      }
+    }
+    GP_EDITABLE_CURVES_END(gps_iter);
+  }
+
+  if (action == SEL_DESELECT) {
+    GP_EDITABLE_CURVES_BEGIN(gps_iter, C, gpl, gps, gpc)
+    {
+      for (int i = 0; i < gpc->tot_curve_points; i++) {
+        bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
+        BezTriple *bezt = &gpc_pt->bezt;
+        gpc_pt->flag &= ~GP_CURVE_POINT_SELECT;
+        BEZT_DESEL_ALL(bezt);
+      }
+      gpc->flag &= ~GP_CURVE_SELECT;
+      gps->flag &= ~GP_STROKE_SELECT;
+    }
+    GP_EDITABLE_CURVES_END(gps_iter);
+  }
+  else {
+    GP_EDITABLE_STROKES_BEGIN(gps_iter, C, gpl, gps){
+      Object *ob = CTX_data_active_object(C);
+      bGPdata *gpd = ob->data;
+      bool selected = false;
+
+      /* Make sure stroke has an editcurve */
+      if (gps->editcurve == NULL) {
+        BKE_gpencil_stroke_editcurve_update(gpd, gpl, gps);
+        gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
+        BKE_gpencil_stroke_geometry_update(gpd, gps);
+      }
+
+      bGPDcurve *gpc = gps->editcurve;
+      for (int i = 0; i < gpc->tot_curve_points; i++) {
+        bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
+        BezTriple *bezt = &gpc_pt->bezt;
+        switch (action) {
+          case SEL_SELECT:
+            gpc_pt->flag |= GP_CURVE_POINT_SELECT;
+            BEZT_SEL_ALL(bezt);
+            break;
+          case SEL_INVERT:
+            gpc_pt->flag ^= GP_CURVE_POINT_SELECT;
+            BEZT_SEL_INVERT(bezt);
+            break;
+          default:
+            break;
+        }
+
+        if (gpc_pt->flag & GP_CURVE_POINT_SELECT) {
+          selected = true;
+        }
+      }
+
+      if (selected) {
+        gpc->flag |= GP_CURVE_SELECT;
+        gps->flag |= GP_STROKE_SELECT;
+      }
+      else {
+        gpc->flag &= ~GP_CURVE_SELECT;
+        gps->flag &= ~GP_STROKE_SELECT;
+      }
+    }
+    GP_EDITABLE_STROKES_END(gps_iter);
   }
 }
 

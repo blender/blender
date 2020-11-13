@@ -49,6 +49,10 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
   pd->edit_gpencil_wires_grp = NULL;
   psl->edit_gpencil_ps = NULL;
 
+  pd->edit_gpencil_curve_handle_grp = NULL;
+  pd->edit_gpencil_curve_points_grp = NULL;
+  psl->edit_gpencil_curve_ps = NULL;
+
   const DRWContextState *draw_ctx = DRW_context_state_get();
   View3D *v3d = draw_ctx->v3d;
   Object *ob = draw_ctx->obact;
@@ -105,7 +109,8 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
                            (GPENCIL_EDIT_MODE(gpd) &&
                             (ts->gpencil_selectmode_edit != GP_SELECTMODE_STROKE));
 
-  if ((!GPENCIL_VERTEX_MODE(gpd) && !GPENCIL_PAINT_MODE(gpd)) || use_vertex_mask) {
+  if ((!GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) &&
+      ((!GPENCIL_VERTEX_MODE(gpd) && !GPENCIL_PAINT_MODE(gpd)) || use_vertex_mask)) {
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                      DRW_STATE_BLEND_ALPHA;
     DRW_PASS_CREATE(psl->edit_gpencil_ps, state | pd->clipping_state);
@@ -130,6 +135,37 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_float_copy(grp, "gpEditOpacity", v3d->vertex_opacity);
       DRW_shgroup_uniform_texture(grp, "weightTex", G_draw.weight_ramp);
     }
+  }
+
+  /* Handles and curve point for Curve Edit submode. */
+  if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
+    DRWState state = DRW_STATE_WRITE_COLOR;
+    DRW_PASS_CREATE(psl->edit_gpencil_curve_ps, state | pd->clipping_state);
+
+    /* Edit lines. */
+    if (show_lines) {
+      sh = OVERLAY_shader_edit_gpencil_wire();
+      pd->edit_gpencil_wires_grp = grp = DRW_shgroup_create(sh, psl->edit_gpencil_curve_ps);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_bool_copy(grp, "doMultiframe", show_multi_edit_lines);
+      DRW_shgroup_uniform_bool_copy(grp, "doWeightColor", is_weight_paint);
+      DRW_shgroup_uniform_bool_copy(grp, "hideSelect", hide_select);
+      DRW_shgroup_uniform_float_copy(grp, "gpEditOpacity", v3d->vertex_opacity);
+      DRW_shgroup_uniform_texture(grp, "weightTex", G_draw.weight_ramp);
+    }
+
+    sh = OVERLAY_shader_edit_curve_handle();
+    pd->edit_gpencil_curve_handle_grp = grp = DRW_shgroup_create(sh, psl->edit_gpencil_curve_ps);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_bool_copy(grp, "showCurveHandles", pd->edit_curve.show_handles);
+    DRW_shgroup_uniform_int_copy(grp, "curveHandleDisplay", pd->edit_curve.handle_display);
+    DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
+
+    sh = OVERLAY_shader_edit_curve_point();
+    pd->edit_gpencil_curve_points_grp = grp = DRW_shgroup_create(sh, psl->edit_gpencil_curve_ps);
+    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+    DRW_shgroup_uniform_bool_copy(grp, "showCurveHandles", pd->edit_curve.show_handles);
+    DRW_shgroup_uniform_int_copy(grp, "curveHandleDisplay", pd->edit_curve.handle_display);
   }
 
   /* control points for primitives and speed guide */
@@ -182,6 +218,7 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
 void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
   struct GPUShader *sh;
   DRWShadingGroup *grp;
 
@@ -195,6 +232,9 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
   Scene *scene = draw_ctx->scene;
   ToolSettings *ts = scene->toolsettings;
   const View3DCursor *cursor = &scene->cursor;
+
+  pd->edit_curve.show_handles = v3d->overlay.handle_display != CURVE_HANDLE_NONE;
+  pd->edit_curve.handle_display = v3d->overlay.handle_display;
 
   if (gpd == NULL || ob->type != OB_GPENCIL) {
     return;
@@ -303,6 +343,20 @@ static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob
     struct GPUBatch *geom = DRW_cache_gpencil_edit_points_get(ob, pd->cfra);
     DRW_shgroup_call_no_cull(grp, geom, ob);
   }
+
+  if (pd->edit_gpencil_curve_handle_grp) {
+    struct GPUBatch *geom = DRW_cache_gpencil_edit_curve_handles_get(ob, pd->cfra);
+    if (geom) {
+      DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_handle_grp, geom, ob);
+    }
+  }
+
+  if (pd->edit_gpencil_curve_points_grp) {
+    struct GPUBatch *geom = DRW_cache_gpencil_edit_curve_points_get(ob, pd->cfra);
+    if (geom) {
+      DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_points_grp, geom, ob);
+    }
+  }
 }
 
 static void overlay_gpencil_draw_stroke_color_name(bGPDlayer *UNUSED(gpl),
@@ -406,5 +460,10 @@ void OVERLAY_edit_gpencil_draw(OVERLAY_Data *vedata)
 
   if (psl->edit_gpencil_ps) {
     DRW_draw_pass(psl->edit_gpencil_ps);
+  }
+
+  /* Curve edit handles. */
+  if (psl->edit_gpencil_curve_ps) {
+    DRW_draw_pass(psl->edit_gpencil_curve_ps);
   }
 }

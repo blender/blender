@@ -1082,7 +1082,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   }
 
   /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(gps);
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
 
   /* Update evaluated data. */
   ED_gpencil_sbuffer_update_eval(tgpi->gpd, tgpi->ob_eval);
@@ -1323,7 +1323,7 @@ static void gpencil_primitive_interaction_end(bContext *C,
     copy_v2_v2(gps->aspect_ratio, brush_settings->aspect_ratio);
 
     /* Calc geometry data. */
-    BKE_gpencil_stroke_geometry_update(gps);
+    BKE_gpencil_stroke_geometry_update(tgpi->gpd, gps);
   }
 
   /* transfer stroke from temporary buffer to the actual frame */

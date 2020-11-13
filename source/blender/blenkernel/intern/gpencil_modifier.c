@@ -698,7 +698,9 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
   }
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_eval);
-  const bool do_modifiers = (bool)((!is_multiedit) && (ob->greasepencil_modifiers.first != NULL) &&
+  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_eval);
+  const bool do_modifiers = (bool)((!is_multiedit) && (!is_curve_edit) &&
+                                   (ob->greasepencil_modifiers.first != NULL) &&
                                    (!GPENCIL_SIMPLIFY_MODIF(scene)));
   if ((!do_modifiers) && (!do_parent)) {
     return;
@@ -734,8 +736,10 @@ void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd);
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
   const bool is_render = (bool)(DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
-  const bool do_modifiers = (bool)((!is_multiedit) && (ob->greasepencil_modifiers.first != NULL) &&
+  const bool do_modifiers = (bool)((!is_multiedit) && (!is_curve_edit) &&
+                                   (ob->greasepencil_modifiers.first != NULL) &&
                                    (!GPENCIL_SIMPLIFY_MODIF(scene)));
   if (!do_modifiers) {
     return;

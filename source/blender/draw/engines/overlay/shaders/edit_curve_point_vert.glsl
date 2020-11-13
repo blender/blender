@@ -17,16 +17,17 @@ void main()
 {
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
 
+  /* Reuse the FREESTYLE flag to determine is GPencil. */
   if ((data & VERT_SELECTED) != 0) {
     if ((data & VERT_ACTIVE) != 0) {
       finalColor = colorEditMeshActive;
     }
     else {
-      finalColor = colorVertexSelect;
+      finalColor = ((data & EDGE_FREESTYLE) == 0) ? colorVertexSelect : colorGpencilVertexSelect;
     }
   }
   else {
-    finalColor = colorVertex;
+    finalColor = ((data & EDGE_FREESTYLE) == 0) ? colorVertex : colorGpencilVertex;
   }
 
   vec3 world_pos = point_object_to_world(pos);

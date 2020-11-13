@@ -314,7 +314,8 @@ void ED_gpencil_update_color_uv(struct Main *bmain, struct Material *mat);
  * 2 - Hit in point B
  * 3 - Hit in point A and B
  */
-int ED_gpencil_select_stroke_segment(struct bGPDlayer *gpl,
+int ED_gpencil_select_stroke_segment(struct bGPdata *gpd,
+                                     struct bGPDlayer *gpl,
                                      struct bGPDstroke *gps,
                                      struct bGPDspoint *pt,
                                      bool select,
@@ -324,6 +325,7 @@ int ED_gpencil_select_stroke_segment(struct bGPDlayer *gpl,
                                      float r_hitb[3]);
 
 void ED_gpencil_select_toggle_all(struct bContext *C, int action);
+void ED_gpencil_select_curve_toggle_all(struct bContext *C, int action);
 
 /* Ensure stroke sbuffer size is enough */
 struct tGPspoint *ED_gpencil_sbuffer_ensure(struct tGPspoint *buffer_array,

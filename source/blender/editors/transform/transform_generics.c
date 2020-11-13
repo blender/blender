@@ -799,7 +799,7 @@ void postTrans(bContext *C, TransInfo *t)
   if (t->data_len_all != 0) {
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       /* free data malloced per trans-data */
-      if (ELEM(t->obedit_type, OB_CURVE, OB_SURF) || (t->spacetype == SPACE_GRAPH)) {
+      if (ELEM(t->obedit_type, OB_CURVE, OB_SURF, OB_GPENCIL) || (t->spacetype == SPACE_GRAPH)) {
         TransData *td = tc->data;
         for (int a = 0; a < tc->data_len; a++, td++) {
           if (td->flag & TD_BEZTRIPLE) {

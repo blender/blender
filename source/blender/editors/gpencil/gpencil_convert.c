@@ -1855,12 +1855,12 @@ static int image_to_gpencil_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (bGPdata *)ob->data;
   bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, "Image Layer", true);
   bGPDframe *gpf = BKE_gpencil_frame_addnew(gpl, CFRA);
-  done = BKE_gpencil_from_image(sima, gpf, size, is_mask);
+  done = BKE_gpencil_from_image(sima, gpd, gpf, size, is_mask);
 
   if (done) {
     /* Delete any selected point. */
     LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
-      gpencil_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
+      gpencil_stroke_delete_tagged_points(gpd, gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
     }
 
     BKE_reportf(op->reports, RPT_INFO, "Object created");

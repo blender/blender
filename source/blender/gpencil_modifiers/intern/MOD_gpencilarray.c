@@ -255,7 +255,7 @@ static void generate_geometry(GpencilModifierData *md,
       /* Duplicate original strokes to create this instance. */
       LISTBASE_FOREACH_BACKWARD (tmpStrokes *, iter, &stroke_cache) {
         /* Duplicate stroke */
-        bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(iter->gps, true);
+        bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(iter->gps, true, true);
 
         /* Move points */
         for (int i = 0; i < iter->gps->totpoints; i++) {

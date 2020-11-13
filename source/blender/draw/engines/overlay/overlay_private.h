@@ -77,6 +77,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *edit_curve_handle_ps;
   DRWPass *edit_gpencil_ps;
   DRWPass *edit_gpencil_gizmos_ps;
+  DRWPass *edit_gpencil_curve_ps;
   DRWPass *edit_lattice_ps;
   DRWPass *edit_mesh_depth_ps[2];
   DRWPass *edit_mesh_verts_ps[2];
@@ -252,6 +253,8 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_lattice_wires_grp;
   DRWShadingGroup *edit_gpencil_points_grp;
   DRWShadingGroup *edit_gpencil_wires_grp;
+  DRWShadingGroup *edit_gpencil_curve_handle_grp;
+  DRWShadingGroup *edit_gpencil_curve_points_grp;
   DRWShadingGroup *edit_mesh_depth_grp[2];
   DRWShadingGroup *edit_mesh_faces_grp[2];
   DRWShadingGroup *edit_mesh_faces_cage_grp[2];

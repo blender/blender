@@ -486,7 +486,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
          */
         for (gps = gpfs->strokes.first; gps; gps = gps->next) {
           /* make a copy of stroke, then of its points array */
-          gpsn = BKE_gpencil_stroke_duplicate(gps, true);
+          gpsn = BKE_gpencil_stroke_duplicate(gps, true, true);
 
           /* append stroke to frame */
           BLI_addtail(&gpf->strokes, gpsn);

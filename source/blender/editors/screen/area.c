@@ -1738,6 +1738,10 @@ static void ed_default_handlers(
     wmKeyMap *keymap_general = WM_keymap_ensure(wm->defaultconf, "Grease Pencil", 0, 0);
     WM_event_add_keymap_handler(handlers, keymap_general);
 
+    wmKeyMap *keymap_curve_edit = WM_keymap_ensure(
+        wm->defaultconf, "Grease Pencil Stroke Curve Edit Mode", 0, 0);
+    WM_event_add_keymap_handler(handlers, keymap_curve_edit);
+
     wmKeyMap *keymap_edit = WM_keymap_ensure(
         wm->defaultconf, "Grease Pencil Stroke Edit Mode", 0, 0);
     WM_event_add_keymap_handler(handlers, keymap_edit);

@@ -23,6 +23,7 @@
 #include "BLI_math.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -160,6 +161,7 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "BLI_ghash.h"
+#  include "BLI_listbase.h"
 #  include "BLI_string_utils.h"
 
 #  include "WM_api.h"
@@ -167,6 +169,7 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 #  include "BKE_action.h"
 #  include "BKE_animsys.h"
 #  include "BKE_gpencil.h"
+#  include "BKE_gpencil_curve.h"
 #  include "BKE_gpencil_geom.h"
 #  include "BKE_icons.h"
 
@@ -177,6 +180,71 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 {
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+}
+
+static void rna_GPencil_curve_edit_mode_toggle(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  ToolSettings *ts = scene->toolsettings;
+  bGPdata *gpd = (bGPdata *)ptr->owner_id;
+
+  /* Curve edit mode is turned on. */
+  if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
+    /* If the current select mode is segment and the Bezier mode is on, change
+     * to Point because segment is not supported. */
+    if (ts->gpencil_selectmode_edit == GP_SELECTMODE_SEGMENT) {
+      ts->gpencil_selectmode_edit = GP_SELECTMODE_POINT;
+    }
+
+    BKE_gpencil_strokes_selected_update_editcurve(gpd);
+  }
+  /* Curve edit mode is turned off. */
+  else {
+    BKE_gpencil_strokes_selected_sync_selection_editcurve(gpd);
+  }
+
+  /* Standard update. */
+  rna_GPencil_update(bmain, scene, ptr);
+}
+
+static void rna_GPencil_stroke_curve_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  bGPdata *gpd = (bGPdata *)ptr->owner_id;
+
+  if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
+    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+      if (gpl->actframe != NULL) {
+        bGPDframe *gpf = gpl->actframe;
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+          if (gps->editcurve != NULL) {
+            gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
+            BKE_gpencil_stroke_geometry_update(gpd, gps);
+          }
+        }
+      }
+    }
+  }
+
+  rna_GPencil_update(bmain, scene, ptr);
+}
+
+static void rna_GPencil_stroke_curve_resolution_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  bGPdata *gpd = (bGPdata *)ptr->owner_id;
+
+  if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
+    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+      if (gpl->actframe != NULL) {
+        bGPDframe *gpf = gpl->actframe;
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+          if (gps->editcurve != NULL) {
+            gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
+            BKE_gpencil_stroke_geometry_update(gpd, gps);
+          }
+        }
+      }
+    }
+  }
+  rna_GPencil_update(bmain, scene, ptr);
 }
 
 static void rna_GPencil_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -191,11 +259,12 @@ static void rna_GPencil_dependency_update(Main *bmain, Scene *UNUSED(scene), Poi
 
 static void rna_GPencil_uv_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
+  bGPdata *gpd = (bGPdata *)ptr->owner_id;
   /* Force to recalc the UVs. */
   bGPDstroke *gps = (bGPDstroke *)ptr->data;
 
   /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(gps);
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
 
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
@@ -669,7 +738,7 @@ static void rna_GPencil_stroke_point_add(
     stroke->totpoints += count;
 
     /* Calc geometry data. */
-    BKE_gpencil_stroke_geometry_update(stroke);
+    BKE_gpencil_stroke_geometry_update(gpd, stroke);
 
     DEG_id_tag_update(&gpd->id,
                       ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
@@ -730,7 +799,7 @@ static void rna_GPencil_stroke_point_pop(ID *id,
   }
 
   /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(stroke);
+  BKE_gpencil_stroke_geometry_update(gpd, stroke);
 
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 
@@ -804,6 +873,32 @@ static void rna_GPencil_stroke_select_set(PointerRNA *ptr, const bool value)
     }
     else {
       pt->flag &= ~GP_SPOINT_SELECT;
+    }
+  }
+}
+
+static void rna_GPencil_curve_select_set(PointerRNA *ptr, const bool value)
+{
+  bGPDcurve *gpc = ptr->data;
+
+  /* Set new value. */
+  if (value) {
+    gpc->flag |= GP_CURVE_SELECT;
+  }
+  else {
+    gpc->flag &= ~GP_CURVE_SELECT;
+  }
+  /* Ensure that the curves's points are selected in the same way. */
+  for (int i = 0; i < gpc->tot_curve_points; i++) {
+    bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
+    BezTriple *bezt = &gpc_pt->bezt;
+    if (value) {
+      gpc_pt->flag |= GP_CURVE_POINT_SELECT;
+      BEZT_SEL_ALL(bezt);
+    }
+    else {
+      gpc_pt->flag &= ~GP_CURVE_POINT_SELECT;
+      BEZT_DESEL_ALL(bezt);
     }
   }
 }
@@ -969,6 +1064,100 @@ static char *rna_GreasePencilGrid_path(PointerRNA *UNUSED(ptr))
   return BLI_strdup("grid");
 }
 
+static void rna_GpencilCurvePoint_BezTriple_handle1_get(PointerRNA *ptr, float *values)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  copy_v3_v3(values, cpt->bezt.vec[0]);
+}
+
+static void rna_GpencilCurvePoint_BezTriple_handle1_set(PointerRNA *ptr, const float *values)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  copy_v3_v3(cpt->bezt.vec[0], values);
+}
+
+static bool rna_GpencilCurvePoint_BezTriple_handle1_select_get(PointerRNA *ptr)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  return cpt->bezt.f1;
+}
+
+static void rna_GpencilCurvePoint_BezTriple_handle1_select_set(PointerRNA *ptr, const bool value)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  cpt->bezt.f1 = value;
+}
+
+static void rna_GpencilCurvePoint_BezTriple_handle2_get(PointerRNA *ptr, float *values)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  copy_v3_v3(values, cpt->bezt.vec[2]);
+}
+
+static void rna_GpencilCurvePoint_BezTriple_handle2_set(PointerRNA *ptr, const float *values)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  copy_v3_v3(cpt->bezt.vec[2], values);
+}
+
+static bool rna_GpencilCurvePoint_BezTriple_handle2_select_get(PointerRNA *ptr)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  return cpt->bezt.f3;
+}
+
+static void rna_GpencilCurvePoint_BezTriple_handle2_select_set(PointerRNA *ptr, const bool value)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  cpt->bezt.f3 = value;
+}
+
+static void rna_GpencilCurvePoint_BezTriple_ctrlpoint_get(PointerRNA *ptr, float *values)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  copy_v3_v3(values, cpt->bezt.vec[1]);
+}
+
+static void rna_GpencilCurvePoint_BezTriple_ctrlpoint_set(PointerRNA *ptr, const float *values)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  copy_v3_v3(cpt->bezt.vec[1], values);
+}
+
+static bool rna_GpencilCurvePoint_BezTriple_ctrlpoint_select_get(PointerRNA *ptr)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  return cpt->bezt.f2;
+}
+
+static void rna_GpencilCurvePoint_BezTriple_ctrlpoint_select_set(PointerRNA *ptr, const bool value)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  cpt->bezt.f2 = value;
+}
+
+static bool rna_GpencilCurvePoint_BezTriple_hide_get(PointerRNA *ptr)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  return (bool)cpt->bezt.hide;
+}
+
+static void rna_GpencilCurvePoint_BezTriple_hide_set(PointerRNA *ptr, const bool value)
+{
+  bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
+  cpt->bezt.hide = value;
+}
+
+static bool rna_stroke_has_edit_curve_get(PointerRNA *ptr)
+{
+  bGPDstroke *gps = (bGPDstroke *)ptr->data;
+  if (gps->editcurve != NULL) {
+    return true;
+  }
+
+  return false;
+}
+
 #else
 
 static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
@@ -1106,6 +1295,149 @@ static void rna_def_gpencil_triangle(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
+static void rna_def_gpencil_curve_point(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GPencilEditCurvePoint", NULL);
+  RNA_def_struct_sdna(srna, "bGPDcurve_point");
+  RNA_def_struct_ui_text(srna, "Bezier Curve Point", "Bezier curve point with two handles");
+
+  /* Boolean values */
+  prop = RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_GpencilCurvePoint_BezTriple_handle1_select_get",
+                                 "rna_GpencilCurvePoint_BezTriple_handle1_select_set");
+  RNA_def_property_ui_text(prop, "Handle 1 selected", "Handle 1 selection status");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+  prop = RNA_def_property(srna, "select_right_handle", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_GpencilCurvePoint_BezTriple_handle2_select_get",
+                                 "rna_GpencilCurvePoint_BezTriple_handle2_select_set");
+  RNA_def_property_ui_text(prop, "Handle 2 selected", "Handle 2 selection status");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+  prop = RNA_def_property(srna, "select_control_point", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_GpencilCurvePoint_BezTriple_ctrlpoint_select_get",
+                                 "rna_GpencilCurvePoint_BezTriple_ctrlpoint_select_set");
+  RNA_def_property_ui_text(prop, "Control Point selected", "Control point selection status");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+  prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_GpencilCurvePoint_BezTriple_hide_get",
+                                 "rna_GpencilCurvePoint_BezTriple_hide_set");
+  RNA_def_property_ui_text(prop, "Hide", "Visibility status");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+  /* Vector values */
+  prop = RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_TRANSLATION);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_funcs(prop,
+                               "rna_GpencilCurvePoint_BezTriple_handle1_get",
+                               "rna_GpencilCurvePoint_BezTriple_handle1_set",
+                               NULL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_update");
+
+  prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_funcs(prop,
+                               "rna_GpencilCurvePoint_BezTriple_ctrlpoint_get",
+                               "rna_GpencilCurvePoint_BezTriple_ctrlpoint_set",
+                               NULL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_update");
+
+  prop = RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_TRANSLATION);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_funcs(prop,
+                               "rna_GpencilCurvePoint_BezTriple_handle2_get",
+                               "rna_GpencilCurvePoint_BezTriple_handle2_set",
+                               NULL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_update");
+
+  /* Pressure */
+  prop = RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "pressure");
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Pressure", "Pressure of the grease pencil stroke point");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_update");
+
+  /* Strength */
+  prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "strength");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop, "Strength", "Color intensity (alpha factor) of the grease pencil stroke point");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_update");
+
+  /* read-only index */
+  prop = RNA_def_property(srna, "point_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, NULL, "point_index");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop, "Point Index", "Index of the corresponding grease pencil stroke point");
+
+  prop = RNA_def_property(srna, "uv_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "uv_fac");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "UV Factor", "Internal UV factor");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_update");
+
+  prop = RNA_def_property(srna, "uv_rotation", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "uv_rot");
+  RNA_def_property_range(prop, -M_PI_2, M_PI_2);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "UV Rotation", "Internal UV factor for dot mode");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_update");
+
+  prop = RNA_def_property(srna, "vertex_color", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, NULL, "vert_color");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Vertex Color", "Vertex color of the grease pencil stroke point");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_update");
+}
+
+/* Editing Curve data. */
+static void rna_def_gpencil_curve(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GPencilEditCurve", NULL);
+  RNA_def_struct_sdna(srna, "bGPDcurve");
+  RNA_def_struct_ui_text(srna, "Edit Curve", "Edition Curve");
+
+  prop = RNA_def_property(srna, "curve_points", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, NULL, "curve_points", "tot_curve_points");
+  RNA_def_property_struct_type(prop, "GPencilEditCurvePoint");
+  RNA_def_property_ui_text(prop, "Curve Points", "Curve data points");
+
+  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_CURVE_SELECT);
+  RNA_def_property_boolean_funcs(prop, NULL, "rna_GPencil_curve_select_set");
+  RNA_def_property_ui_text(prop, "Select", "Curve is selected for viewport editing");
+  RNA_def_property_update(prop, 0, "rna_GPencil_update");
+}
+
 static void rna_def_gpencil_mvert_group(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -1180,6 +1512,12 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "GPencilTriangle");
   RNA_def_property_ui_text(prop, "Triangles", "Triangulation data for HQ fill");
 
+  /* Edit Curve. */
+  prop = RNA_def_property(srna, "edit_curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "editcurve");
+  RNA_def_property_struct_type(prop, "GPencilEditCurve");
+  RNA_def_property_ui_text(prop, "Edit Curve", "Temporary data for Edit Curve");
+
   /* Material Index */
   prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "mat_nr");
@@ -1204,6 +1542,12 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_STROKE_CYCLIC);
   RNA_def_property_ui_text(prop, "Cyclic", "Enable cyclic drawing, closing the stroke");
   RNA_def_property_update(prop, 0, "rna_GPencil_update");
+
+  /* The stroke has Curve Edit data. */
+  prop = RNA_def_property(srna, "has_edit_curve", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_stroke_has_edit_curve_get", NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Has Curve Data", "Stroke has Curve data to edit shape");
 
   /* Caps mode */
   prop = RNA_def_property(srna, "start_cap_mode", PROP_ENUM, PROP_NONE);
@@ -2017,6 +2361,47 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
       "Scale conversion factor for pixel size (use larger values for thicker lines)");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
+  prop = RNA_def_property(srna, "edit_curve_resolution", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "curve_edit_resolution");
+  RNA_def_property_range(prop, 1, 256);
+  RNA_def_property_ui_range(prop, 1, 64, 1, 1);
+  RNA_def_property_int_default(prop, GP_DEFAULT_CURVE_RESOLUTION);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+  RNA_def_property_ui_text(
+      prop,
+      "Curve Resolution",
+      "Number of segments generated between control points when editing strokes in curve mode");
+  RNA_def_property_update(
+      prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_resolution_update");
+
+  prop = RNA_def_property(srna, "use_adaptive_curve_resolution", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_CURVE_ADAPTIVE_RESOLUTION);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop,
+                           "Adaptive Resolution",
+                           "Set the resolution of each editcurve segment dynamically depending on "
+                           "the length of the segment. The resolution is the number of points "
+                           "generated per unit distance");
+  RNA_def_property_update(
+      prop, NC_GPENCIL | ND_DATA, "rna_GPencil_stroke_curve_resolution_update");
+
+  /* Curve editing error threshold. */
+  prop = RNA_def_property(srna, "curve_edit_threshold", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "curve_edit_threshold");
+  RNA_def_property_range(prop, FLT_MIN, 10.0);
+  RNA_def_property_float_default(prop, GP_DEFAULT_CURVE_ERROR);
+  RNA_def_property_ui_text(prop, "Threshold", "Curve conversion error threshold");
+  RNA_def_property_ui_range(prop, FLT_MIN, 10.0, 2, 5);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  /* Curve editing corner angle. */
+  prop = RNA_def_property(srna, "curve_edit_corner_angle", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "curve_edit_corner_angle");
+  RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
+  RNA_def_property_float_default(prop, DEG2RADF(90.0f));
+  RNA_def_property_ui_text(prop, "Corner Angle", "Angle threshold to be treated as corners");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
   prop = RNA_def_property(srna, "use_multiedit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_STROKE_MULTIEDIT);
   RNA_def_property_ui_text(prop,
@@ -2024,6 +2409,11 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
                            "Edit strokes from multiple grease pencil keyframes at the same time "
                            "(keyframes must be selected to be included)");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+  prop = RNA_def_property(srna, "use_curve_edit", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_CURVE_EDIT_MODE);
+  RNA_def_property_ui_text(prop, "Curve Editing", "Edit strokes using curve handles");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_curve_edit_mode_toggle");
 
   prop = RNA_def_property(srna, "use_autolock_layers", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_AUTOLOCK_LAYERS);
@@ -2176,6 +2566,8 @@ void RNA_def_gpencil(BlenderRNA *brna)
   rna_def_gpencil_stroke(brna);
   rna_def_gpencil_stroke_point(brna);
   rna_def_gpencil_triangle(brna);
+  rna_def_gpencil_curve(brna);
+  rna_def_gpencil_curve_point(brna);
 
   rna_def_gpencil_mvert_group(brna);
 }

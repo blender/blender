@@ -125,10 +125,11 @@ static void deformStroke(GpencilModifierData *md,
   if (!mmd->object) {
     return;
   }
+  bGPdata *gpd = ob->data;
 
   gpencil_deform_verts(mmd, ob, gps);
   /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(gps);
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
 static void bakeModifier(Main *UNUSED(bmain),

@@ -369,6 +369,8 @@ class DATA_PT_gpencil_strokes(DataButtonsPanel, Panel):
         sub.active = gpd.stroke_thickness_space == 'WORLDSPACE'
         sub.prop(gpd, "pixel_factor", text="Thickness Scale")
 
+        col.prop(gpd, "edit_curve_resolution")
+
 
 class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
     bl_label = "Viewport Display"

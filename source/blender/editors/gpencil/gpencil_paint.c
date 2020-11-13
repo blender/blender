@@ -1195,7 +1195,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 
     /* subdivide and smooth the stroke */
     if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) && (subdivide > 0)) {
-      gpencil_subdivide_stroke(gps, subdivide);
+      gpencil_subdivide_stroke(gpd, gps, subdivide);
     }
 
     /* Smooth stroke after subdiv - only if there's something to do for each iteration,
@@ -1226,7 +1226,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     /* Simplify adaptive */
     if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
         (brush->gpencil_settings->simplify_f > 0.0f)) {
-      BKE_gpencil_stroke_simplify_adaptive(gps, brush->gpencil_settings->simplify_f);
+      BKE_gpencil_stroke_simplify_adaptive(gpd, gps, brush->gpencil_settings->simplify_f);
     }
 
     /* reproject to plane (only in 3d space) */
@@ -1279,11 +1279,11 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   /* post process stroke */
   if ((p->brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
       p->brush->gpencil_settings->flag & GP_BRUSH_TRIM_STROKE) {
-    BKE_gpencil_stroke_trim(gps);
+    BKE_gpencil_stroke_trim(gpd, gps);
   }
 
   /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(gps);
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
 
   gpencil_stroke_added_enable(p);
 }
@@ -1652,7 +1652,7 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
         gpencil_stroke_soft_refine(gps);
       }
 
-      gpencil_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+      gpencil_stroke_delete_tagged_points(p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
     }
     gpencil_update_cache(p->gpd);
   }

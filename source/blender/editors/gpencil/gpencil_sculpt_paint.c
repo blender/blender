@@ -303,7 +303,7 @@ static void gpencil_update_geometry(bGPdata *gpd)
 
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         if (gps->flag & GP_STROKE_TAG) {
-          BKE_gpencil_stroke_geometry_update(gps);
+          BKE_gpencil_stroke_geometry_update(gpd, gps);
           gps->flag &= ~GP_STROKE_TAG;
         }
       }
@@ -1021,7 +1021,7 @@ static void gpencil_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
       bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_NEW);
 
       /* Make a new stroke */
-      new_stroke = BKE_gpencil_stroke_duplicate(gps, true);
+      new_stroke = BKE_gpencil_stroke_duplicate(gps, true, true);
 
       new_stroke->next = new_stroke->prev = NULL;
       BLI_addtail(&gpf->strokes, new_stroke);
@@ -1574,6 +1574,7 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
   bool changed = false;
   bool redo_geom = false;
   Object *ob = gso->object;
+  bGPdata *gpd = ob->data;
   char tool = gso->brush->gpencil_sculpt_tool;
 
   LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
@@ -1672,7 +1673,7 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
         MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
         /* Update active frame now, only if material has fill. */
         if (gp_style->flag & GP_MATERIAL_FILL_SHOW) {
-          BKE_gpencil_stroke_geometry_update(gps_active);
+          BKE_gpencil_stroke_geometry_update(gpd, gps_active);
         }
         else {
           gpencil_recalc_geometry_tag(gps_active);
