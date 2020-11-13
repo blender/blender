@@ -223,6 +223,7 @@ typedef struct View3DOverlay {
 
   /** Other settings. */
   float wireframe_threshold;
+  float wireframe_opacity;
 
   /** Grease pencil settings. */
   float gpencil_paper_opacity;
@@ -233,7 +234,6 @@ typedef struct View3DOverlay {
   float gpencil_vertex_paint_opacity;
   /** Handles display type for curves. */
   int handle_display;
-  char _pad[4];
 } View3DOverlay;
 
 /* View3DOverlay->handle_display */

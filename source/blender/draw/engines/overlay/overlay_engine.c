@@ -90,6 +90,7 @@ static void OVERLAY_engine_init(void *vedata)
                        V3D_OVERLAY_HIDE_BONES | V3D_OVERLAY_HIDE_OBJECT_XTRAS |
                        V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
     pd->overlay.wireframe_threshold = v3d->overlay.wireframe_threshold;
+    pd->overlay.wireframe_opacity = v3d->overlay.wireframe_opacity;
   }
 
   if (v3d->shading.type == OB_WIRE) {

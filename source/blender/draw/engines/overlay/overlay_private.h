@@ -140,6 +140,7 @@ typedef struct OVERLAY_ShadingData {
   int zneg_flag;
   /** Wireframe */
   float wire_step_param;
+  float wire_opacity;
   /** Edit Curve */
   float edit_curve_normal_length;
   /** Edit Mesh */

@@ -5,7 +5,7 @@ uniform sampler2D depthTex;
 flat in vec2 edgeStart;
 
 #ifndef SELECT_EDGES
-in vec3 finalColor;
+in vec4 finalColor;
 noperspective in vec2 edgePos;
 
 layout(location = 0) out vec4 fragColor;
@@ -22,8 +22,7 @@ void main()
 
 #ifndef SELECT_EDGES
   lineOutput = pack_line_data(gl_FragCoord.xy, edgeStart, edgePos);
-  fragColor.rgb = finalColor;
-  fragColor.a = 1.0;
+  fragColor = finalColor;
 
 #  ifdef CUSTOM_DEPTH_BIAS
   vec2 dir = lineOutput.xy * 2.0 - 1.0;
