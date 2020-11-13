@@ -604,28 +604,20 @@ static void set_panels_list_data_expand_flag(const bContext *C, const ARegion *r
 
 /**
  * Set flag state for a panel and its sub-panels.
- *
- * \return True if this function changed any of the flags, false if it didn't.
  */
-static bool panel_set_flag_recursive(Panel *panel, int flag, bool value)
+static void panel_set_flag_recursive(Panel *panel, short flag, bool value)
 {
-  const short flag_original = panel->flag;
-
   SET_FLAG_FROM_TEST(panel->flag, value, flag);
 
-  bool changed = (flag_original != panel->flag);
-
   LISTBASE_FOREACH (Panel *, child, &panel->children) {
-    changed |= panel_set_flag_recursive(child, flag, value);
+    panel_set_flag_recursive(child, flag, value);
   }
-
-  return changed;
 }
 
 /**
  * Set runtime flag state for a panel and its sub-panels.
  */
-static void panel_set_runtime_flag_recursive(Panel *panel, int flag, bool value)
+static void panel_set_runtime_flag_recursive(Panel *panel, short flag, bool value)
 {
   SET_FLAG_FROM_TEST(panel->runtime_flag, value, flag);
 
@@ -1836,23 +1828,17 @@ static void ui_do_animate(bContext *C, Panel *panel)
   float fac = (PIL_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
   fac = min_ff(sqrtf(fac), 1.0f);
 
-  /* For max 1 second, interpolate positions. */
   if (uiAlignPanelStep(region, fac, false)) {
     ED_region_tag_redraw(region);
   }
   else {
-    fac = 1.0f;
-  }
-
-  if (fac >= 1.0f) {
     if (UI_panel_is_dragging(panel)) {
       /* Note: doing this in #panel_activate_state would require
-       *  removing `const` for context in many other places. */
+       * removing `const` for context in many other places. */
       reorder_instanced_panel_list(C, region, panel);
     }
 
     panel_activate_state(C, panel, PANEL_STATE_EXIT);
-    return;
   }
 }
 
