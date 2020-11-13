@@ -377,6 +377,10 @@ struct Object **BKE_view_layer_array_selected_objects_params(
     uint *r_len,
     const struct ObjectsInViewLayerParams *params);
 
+struct Object *BKE_view_layer_first_selected_object_by_type(struct ViewLayer *view_layer,
+                                                            const struct View3D *v3d,
+                                                            const short ob_type);
+
 #define BKE_view_layer_array_selected_objects(view_layer, v3d, r_len, ...) \
   BKE_view_layer_array_selected_objects_params( \
       view_layer, v3d, r_len, &(const struct ObjectsInViewLayerParams)__VA_ARGS__)

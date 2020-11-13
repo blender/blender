@@ -192,4 +192,19 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(Object *ob, void *UNUSED(user_dat
   return false;
 }
 
+/** Select first selected object of the type specified. */
+Object *BKE_view_layer_first_selected_object_by_type(struct ViewLayer *view_layer,
+                                                     const struct View3D *v3d,
+                                                     const short ob_type)
+{
+  Object *ob_result = NULL;
+  FOREACH_SELECTED_OBJECT_BEGIN (view_layer, v3d, ob_iter) {
+    if (ob_iter->type == ob_type) {
+      ob_result = ob_iter;
+      break;
+    }
+  }
+  FOREACH_SELECTED_OBJECT_END;
+  return ob_result;
+}
 /** \} */

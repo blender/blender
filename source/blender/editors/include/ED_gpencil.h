@@ -79,6 +79,12 @@ typedef enum eGP_ReprojectModes {
   GP_REPROJECT_KEEP,
 } eGP_ReprojectModes;
 
+/* Target object modes. */
+typedef enum eGP_TargetObjectMode {
+  GP_TARGET_OB_NEW = 0,
+  GP_TARGET_OB_SELECTED = 1,
+} eGP_TargetObjectMode;
+
 /* ------------- Grease-Pencil Runtime Data ---------------- */
 
 /* Temporary 'Stroke Point' data (2D / screen-space)
