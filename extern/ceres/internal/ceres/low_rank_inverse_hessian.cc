@@ -28,10 +28,11 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
+#include "ceres/low_rank_inverse_hessian.h"
+
 #include <list>
 
 #include "ceres/internal/eigen.h"
-#include "ceres/low_rank_inverse_hessian.h"
 #include "glog/logging.h"
 
 namespace ceres {
@@ -84,8 +85,7 @@ LowRankInverseHessian::LowRankInverseHessian(
       approximate_eigenvalue_scale_(1.0),
       delta_x_history_(num_parameters, max_num_corrections),
       delta_gradient_history_(num_parameters, max_num_corrections),
-      delta_x_dot_delta_gradient_(max_num_corrections) {
-}
+      delta_x_dot_delta_gradient_(max_num_corrections) {}
 
 bool LowRankInverseHessian::Update(const Vector& delta_x,
                                    const Vector& delta_gradient) {
@@ -93,12 +93,11 @@ bool LowRankInverseHessian::Update(const Vector& delta_x,
   if (delta_x_dot_delta_gradient <=
       kLBFGSSecantConditionHessianUpdateTolerance) {
     VLOG(2) << "Skipping L-BFGS Update, delta_x_dot_delta_gradient too "
-            << "small: " << delta_x_dot_delta_gradient << ", tolerance: "
-            << kLBFGSSecantConditionHessianUpdateTolerance
+            << "small: " << delta_x_dot_delta_gradient
+            << ", tolerance: " << kLBFGSSecantConditionHessianUpdateTolerance
             << " (Secant condition).";
     return false;
   }
-
 
   int next = indices_.size();
   // Once the size of the list reaches max_num_corrections_, simulate
@@ -132,7 +131,7 @@ void LowRankInverseHessian::RightMultiply(const double* x_ptr,
        it != indices_.rend();
        ++it) {
     const double alpha_i = delta_x_history_.col(*it).dot(search_direction) /
-        delta_x_dot_delta_gradient_(*it);
+                           delta_x_dot_delta_gradient_(*it);
     search_direction -= alpha_i * delta_gradient_history_.col(*it);
     alpha(*it) = alpha_i;
   }
@@ -177,7 +176,7 @@ void LowRankInverseHessian::RightMultiply(const double* x_ptr,
 
   for (const int i : indices_) {
     const double beta = delta_gradient_history_.col(i).dot(search_direction) /
-        delta_x_dot_delta_gradient_(i);
+                        delta_x_dot_delta_gradient_(i);
     search_direction += delta_x_history_.col(i) * (alpha(i) - beta);
   }
 }

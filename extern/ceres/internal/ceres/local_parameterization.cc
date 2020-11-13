@@ -94,6 +94,10 @@ bool IdentityParameterization::MultiplyByJacobian(const double* x,
 SubsetParameterization::SubsetParameterization(
     int size, const vector<int>& constant_parameters)
     : local_size_(size - constant_parameters.size()), constancy_mask_(size, 0) {
+  if (constant_parameters.empty()) {
+    return;
+  }
+
   vector<int> constant = constant_parameters;
   std::sort(constant.begin(), constant.end());
   CHECK_GE(constant.front(), 0) << "Indices indicating constant parameter must "

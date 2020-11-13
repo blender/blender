@@ -139,8 +139,26 @@ bool Problem::EvaluateResidualBlock(ResidualBlockId residual_block_id,
                                     double* cost,
                                     double* residuals,
                                     double** jacobians) const {
-  return impl_->EvaluateResidualBlock(
-      residual_block_id, apply_loss_function, cost, residuals, jacobians);
+  return impl_->EvaluateResidualBlock(residual_block_id,
+                                      apply_loss_function,
+                                      /* new_point = */ true,
+                                      cost,
+                                      residuals,
+                                      jacobians);
+}
+
+bool Problem::EvaluateResidualBlockAssumingParametersUnchanged(
+    ResidualBlockId residual_block_id,
+    bool apply_loss_function,
+    double* cost,
+    double* residuals,
+    double** jacobians) const {
+  return impl_->EvaluateResidualBlock(residual_block_id,
+                                      apply_loss_function,
+                                      /* new_point = */ false,
+                                      cost,
+                                      residuals,
+                                      jacobians);
 }
 
 int Problem::NumParameterBlocks() const { return impl_->NumParameterBlocks(); }

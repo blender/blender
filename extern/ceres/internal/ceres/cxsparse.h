@@ -166,7 +166,7 @@ class CXSparseCholesky : public SparseCholesky {
 }  // namespace internal
 }  // namespace ceres
 
-#else   // CERES_NO_CXSPARSE
+#else
 
 typedef void cs_dis;
 

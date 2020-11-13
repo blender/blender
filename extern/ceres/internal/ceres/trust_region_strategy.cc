@@ -31,6 +31,7 @@
 //         keir@google.com (Keir Mierle)
 
 #include "ceres/trust_region_strategy.h"
+
 #include "ceres/dogleg_strategy.h"
 #include "ceres/levenberg_marquardt_strategy.h"
 

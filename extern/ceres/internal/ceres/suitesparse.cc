@@ -32,13 +32,12 @@
 #include "ceres/internal/port.h"
 
 #ifndef CERES_NO_SUITESPARSE
-#include "ceres/suitesparse.h"
-
 #include <vector>
 
 #include "ceres/compressed_col_sparse_matrix_utils.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/linear_solver.h"
+#include "ceres/suitesparse.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "cholmod.h"
 
@@ -353,7 +352,8 @@ bool SuiteSparse::ConstrainedApproximateMinimumDegreeOrdering(
 
 std::unique_ptr<SparseCholesky> SuiteSparseCholesky::Create(
     const OrderingType ordering_type) {
-  return std::unique_ptr<SparseCholesky>(new SuiteSparseCholesky(ordering_type));
+  return std::unique_ptr<SparseCholesky>(
+      new SuiteSparseCholesky(ordering_type));
 }
 
 SuiteSparseCholesky::SuiteSparseCholesky(const OrderingType ordering_type)

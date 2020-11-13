@@ -32,7 +32,9 @@
 #define CERES_INTERNAL_CONTEXT_IMPL_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clanf-format on
 
 #include "ceres/context.h"
 
@@ -43,7 +45,7 @@
 namespace ceres {
 namespace internal {
 
-class ContextImpl : public Context {
+class CERES_EXPORT_INTERNAL ContextImpl : public Context {
  public:
   ContextImpl() {}
   ContextImpl(const ContextImpl&) = delete;

@@ -101,8 +101,9 @@ void AlternateLinearSolverAndPreconditionerForSchurTypeLinearSolver(
                      LinearSolverTypeToString(linear_solver_type_given),
                      LinearSolverTypeToString(options->linear_solver_type));
   }
-
-  VLOG_IF(1, options->logging_type != SILENT) << message;
+  if (options->logging_type != SILENT) {
+    VLOG(1) << message;
+  }
 }
 
 // Reorder the program to reduce fill-in and increase cache coherency.

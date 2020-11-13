@@ -139,10 +139,8 @@ LinearSolver::Summary SchurComplementSolver::SolveImpl(
     //
     // TODO(sameeragarwal): A more scalable template specialization
     // mechanism that does not cause binary bloat.
-    if (options_.row_block_size == 2 &&
-        options_.e_block_size == 3 &&
-        options_.f_block_size == 6 &&
-        num_f_blocks == 1) {
+    if (options_.row_block_size == 2 && options_.e_block_size == 3 &&
+        options_.f_block_size == 6 && num_f_blocks == 1) {
       eliminator_.reset(new SchurEliminatorForOneFBlock<2, 3, 6>);
     } else {
       eliminator_.reset(SchurEliminatorBase::Create(options_));

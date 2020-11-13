@@ -32,9 +32,12 @@
 #define CERES_INTERNAL_SPARSE_CHOLESKY_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
 
 #include <memory>
+
 #include "ceres/linear_solver.h"
 #include "glog/logging.h"
 
@@ -64,7 +67,7 @@ namespace internal {
 //  CHECK_EQ(sparse_cholesky->Solve(rhs.data(), solution.data(), &message),
 //           LINEAR_SOLVER_SUCCESS);
 
-class SparseCholesky {
+class CERES_EXPORT_INTERNAL SparseCholesky {
  public:
   static std::unique_ptr<SparseCholesky> Create(
       const LinearSolver::Options& options);
@@ -88,8 +91,8 @@ class SparseCholesky {
   // Subsequent calls to Factorize will use that symbolic
   // factorization assuming that the sparsity of the matrix has
   // remained constant.
-  virtual LinearSolverTerminationType Factorize(
-      CompressedRowSparseMatrix* lhs, std::string* message) = 0;
+  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                                std::string* message) = 0;
 
   // Computes the solution to the equation
   //
@@ -106,22 +109,21 @@ class SparseCholesky {
       const double* rhs,
       double* solution,
       std::string* message);
-
 };
 
 class IterativeRefiner;
 
 // Computes an initial solution using the given instance of
 // SparseCholesky, and then refines it using the IterativeRefiner.
-class RefinedSparseCholesky : public SparseCholesky {
+class CERES_EXPORT_INTERNAL RefinedSparseCholesky : public SparseCholesky {
  public:
   RefinedSparseCholesky(std::unique_ptr<SparseCholesky> sparse_cholesky,
                         std::unique_ptr<IterativeRefiner> iterative_refiner);
   virtual ~RefinedSparseCholesky();
 
   virtual CompressedRowSparseMatrix::StorageType StorageType() const;
-  virtual LinearSolverTerminationType Factorize(
-      CompressedRowSparseMatrix* lhs, std::string* message);
+  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                                std::string* message);
   virtual LinearSolverTerminationType Solve(const double* rhs,
                                             double* solution,
                                             std::string* message);

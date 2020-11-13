@@ -153,28 +153,44 @@ template <typename CostFunctor,
           int... Ns>          // Number of parameters in each parameter block.
 class AutoDiffCostFunction : public SizedCostFunction<kNumResiduals, Ns...> {
  public:
-  // Takes ownership of functor. Uses the template-provided value for the
-  // number of residuals ("kNumResiduals").
-  explicit AutoDiffCostFunction(CostFunctor* functor) : functor_(functor) {
+  // Takes ownership of functor by default. Uses the template-provided
+  // value for the number of residuals ("kNumResiduals").
+  explicit AutoDiffCostFunction(CostFunctor* functor,
+                                Ownership ownership = TAKE_OWNERSHIP)
+      : functor_(functor), ownership_(ownership) {
     static_assert(kNumResiduals != DYNAMIC,
                   "Can't run the fixed-size constructor if the number of "
                   "residuals is set to ceres::DYNAMIC.");
   }
 
-  // Takes ownership of functor. Ignores the template-provided
+  // Takes ownership of functor by default. Ignores the template-provided
   // kNumResiduals in favor of the "num_residuals" argument provided.
   //
   // This allows for having autodiff cost functions which return varying
   // numbers of residuals at runtime.
-  AutoDiffCostFunction(CostFunctor* functor, int num_residuals)
-      : functor_(functor) {
+  AutoDiffCostFunction(CostFunctor* functor,
+                       int num_residuals,
+                       Ownership ownership = TAKE_OWNERSHIP)
+      : functor_(functor), ownership_(ownership) {
     static_assert(kNumResiduals == DYNAMIC,
                   "Can't run the dynamic-size constructor if the number of "
                   "residuals is not ceres::DYNAMIC.");
     SizedCostFunction<kNumResiduals, Ns...>::set_num_residuals(num_residuals);
   }
 
-  virtual ~AutoDiffCostFunction() {}
+  explicit AutoDiffCostFunction(AutoDiffCostFunction&& other)
+      : functor_(std::move(other.functor_)), ownership_(other.ownership_) {}
+
+  virtual ~AutoDiffCostFunction() {
+    // Manually release pointer if configured to not take ownership rather than
+    // deleting only if ownership is taken.
+    // This is to stay maximally compatible to old user code which may have
+    // forgotten to implement a virtual destructor, from when the
+    // AutoDiffCostFunction always took ownership.
+    if (ownership_ == DO_NOT_TAKE_OWNERSHIP) {
+      functor_.release();
+    }
+  }
 
   // Implementation details follow; clients of the autodiff cost function should
   // not have to examine below here.
@@ -201,6 +217,7 @@ class AutoDiffCostFunction : public SizedCostFunction<kNumResiduals, Ns...> {
 
  private:
   std::unique_ptr<CostFunctor> functor_;
+  Ownership ownership_;
 };
 
 }  // namespace ceres

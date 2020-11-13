@@ -33,6 +33,8 @@
 #ifndef CERES_INTERNAL_IS_CLOSE_H_
 #define CERES_INTERNAL_IS_CLOSE_H_
 
+#include "ceres/internal/port.h"
+
 namespace ceres {
 namespace internal {
 // Returns true if x and y have a relative (unsigned) difference less than
@@ -40,11 +42,11 @@ namespace internal {
 // difference in relative/absolute_error if non-NULL. If one of the two values
 // is exactly zero, the absolute difference will be compared, and relative_error
 // will be set to the absolute difference.
-bool IsClose(double x,
-             double y,
-             double relative_precision,
-             double *relative_error,
-             double *absolute_error);
+CERES_EXPORT_INTERNAL bool IsClose(double x,
+                                   double y,
+                                   double relative_precision,
+                                   double* relative_error,
+                                   double* absolute_error);
 }  // namespace internal
 }  // namespace ceres
 

@@ -55,8 +55,7 @@ namespace internal {
 
 IterativeSchurComplementSolver::IterativeSchurComplementSolver(
     const LinearSolver::Options& options)
-    : options_(options) {
-}
+    : options_(options) {}
 
 IterativeSchurComplementSolver::~IterativeSchurComplementSolver() {}
 

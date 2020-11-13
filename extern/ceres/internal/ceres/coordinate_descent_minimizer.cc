@@ -64,8 +64,7 @@ CoordinateDescentMinimizer::CoordinateDescentMinimizer(ContextImpl* context)
   CHECK(context_ != nullptr);
 }
 
-CoordinateDescentMinimizer::~CoordinateDescentMinimizer() {
-}
+CoordinateDescentMinimizer::~CoordinateDescentMinimizer() {}
 
 bool CoordinateDescentMinimizer::Init(
     const Program& program,
@@ -82,13 +81,13 @@ bool CoordinateDescentMinimizer::Init(
   map<int, set<double*>> group_to_elements = ordering.group_to_elements();
   for (const auto& g_t_e : group_to_elements) {
     const auto& elements = g_t_e.second;
-    for (double* parameter_block: elements) {
+    for (double* parameter_block : elements) {
       parameter_blocks_.push_back(parameter_map.find(parameter_block)->second);
       parameter_block_index[parameter_blocks_.back()] =
           parameter_blocks_.size() - 1;
     }
-    independent_set_offsets_.push_back(
-        independent_set_offsets_.back() + elements.size());
+    independent_set_offsets_.push_back(independent_set_offsets_.back() +
+                                       elements.size());
   }
 
   // The ordering does not have to contain all parameter blocks, so
@@ -126,10 +125,9 @@ bool CoordinateDescentMinimizer::Init(
   return true;
 }
 
-void CoordinateDescentMinimizer::Minimize(
-    const Minimizer::Options& options,
-    double* parameters,
-    Solver::Summary* summary) {
+void CoordinateDescentMinimizer::Minimize(const Minimizer::Options& options,
+                                          double* parameters,
+                                          Solver::Summary* summary) {
   // Set the state and mark all parameter blocks constant.
   for (int i = 0; i < parameter_blocks_.size(); ++i) {
     ParameterBlock* parameter_block = parameter_blocks_[i];
@@ -202,7 +200,7 @@ void CoordinateDescentMinimizer::Minimize(
         });
   }
 
-  for (int i =  0; i < parameter_blocks_.size(); ++i) {
+  for (int i = 0; i < parameter_blocks_.size(); ++i) {
     parameter_blocks_[i]->SetVarying();
   }
 
@@ -251,10 +249,10 @@ bool CoordinateDescentMinimizer::IsOrderingValid(
   // Verify that each group is an independent set
   for (const auto& g_t_e : group_to_elements) {
     if (!program.IsParameterBlockSetIndependent(g_t_e.second)) {
-      *message =
-          StringPrintf("The user-provided "
-                       "parameter_blocks_for_inner_iterations does not "
-                       "form an independent set. Group Id: %d", g_t_e.first);
+      *message = StringPrintf(
+          "The user-provided parameter_blocks_for_inner_iterations does not "
+          "form an independent set. Group Id: %d",
+          g_t_e.first);
       return false;
     }
   }

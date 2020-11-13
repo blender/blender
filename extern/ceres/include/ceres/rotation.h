@@ -320,8 +320,8 @@ inline void QuaternionToAngleAxis(const T* quaternion, T* angle_axis) {
 }
 
 template <typename T>
-void RotationMatrixToQuaternion(const T* R, T* angle_axis) {
-  RotationMatrixToQuaternion(ColumnMajorAdapter3x3(R), angle_axis);
+void RotationMatrixToQuaternion(const T* R, T* quaternion) {
+  RotationMatrixToQuaternion(ColumnMajorAdapter3x3(R), quaternion);
 }
 
 // This algorithm comes from "Quaternion Calculus and Fast Animation",

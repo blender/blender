@@ -1,3 +1,576 @@
+commit 399cda773035d99eaf1f4a129a666b3c4df9d1b1
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Fri Oct 23 19:36:08 2020 +0100
+
+    Update build documentation to reflect detection of Eigen via config mode
+    
+    Change-Id: I18d5f0fc1eb51ea630164c911d935e9bffea35ce
+
+commit bb127272f9b57672bca48424f2d83bc430a46eb8
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Oct 19 09:28:34 2020 -0700
+
+    Fix typos.
+    
+    Contributed by Ishamis@, IanBoyanZhang@, gkrobner@ & mithunjacob@.
+    
+    Change-Id: Iab3c19a07a6f3db2486e3557dcb55bfe5de2aee5
+
+commit a0ec5c32af5c5f5a52168dc2748be910dba14810
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Oct 18 15:20:36 2020 -0700
+
+    Update version history for 2.0.0RC2
+    
+    Change-Id: I75b7515fbf9880bd8eaea6ecd5e72ce1ae4a3a86
+
+commit 3f6d2736769044e7c08c873c41a184849eea73ab
+Author: Taylor Braun-Jones <taylor@braun-jones.org>
+Date:   Tue Jan 28 12:09:30 2020 -0500
+
+    Unify symbol visibility configuration for all compilers
+    
+    This makes it possible to build unit tests with shared libraries on MSVC.
+    
+    Change-Id: I1db66a80b2c78c4f3d354e35235244d17bac9809
+
+commit 29c2912ee635c77f3ddf2e382a5d6a9cf9805a3d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Oct 13 12:07:06 2020 -0700
+
+    Unbreak the bazel build some more
+    
+    Change-Id: I6bbf3df977a473b9b5e16a9e59da5f535f8cdc24
+
+commit bf47e1a36829f62697b930241d0a353932f34090
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Oct 13 10:00:22 2020 -0700
+
+    Fix the Bazel build.
+    
+    1. Fix the path to eigen, now that it uses gitlab instead of bitbucket.
+    2. Remove an unrecognized compiler option.
+    3. Remove an obsolete benchmark.
+    
+    This CL only unbreaks the build, it is likely that it is still not
+    at par with the cmake build.
+    
+    https://github.com/ceres-solver/ceres-solver/issues/628
+    
+    Change-Id: I470209cbb48b6a4f499564a86b52436e0c8d98ef
+
+commit 600e8c529ebbb4bb89d5baefa3d5ab6ad923706a
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Mon Oct 12 23:00:39 2020 +0200
+
+    fix minor typos
+    
+    all timing values in the summary are initialized to -1, so the one
+    +1 is likely an oversight.
+    
+    Change-Id: Ie355f3b7da08a56d49d19ca9a5bc48fe5581dee3
+
+commit bdcdcc78af61a0cb85317ebee52dc804bf4ea975
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Mon Sep 7 01:48:50 2020 +0200
+
+    update docs for changed cmake usage
+    
+    - update links to cmake docs to version 3.5
+    - highlight difference between dependencies with and without custom
+      find modules
+    - point out removal of CERES_INCLUDE_DIRS
+    - point out that TBB might be linked if SuiteSparseQR is found
+    - added 'Migration' section
+    - fixed typos
+    
+    Change-Id: Icbcc0e723d11f12246fb3cf09b9d7c6206195a82
+
+commit 3f69e5b36a49b44344e96a26b39693a914ba80c6
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Oct 12 11:46:40 2020 -0700
+
+    Corrections from William Rucklidge
+    
+    Change-Id: I0b5d4808be48f68df7829c70ec93ffa67d81315d
+
+commit 8bfdb02fb18551bbd5f222c5472e45eddecd42b9
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Oct 12 10:07:13 2020 -0700
+
+    Rewrite uses of VLOG_IF and LOG_IF.
+    
+    VLOG_IF's evaluation order is ambiguous - does it mean
+    `if (cond) VLOG(lvl)` or `if (VLOG_IS_ON(lvl) && cond) LOG(INFO)`?
+    In particular, the way it works now is inconsistent with the way the
+    rest of the LOG macros evaluate their arguments.
+    Fixing this would be hard, and the macro's behavior would still surprise
+    some people. Replacing it with an if statement is simple, clear, and unambiguous.
+    
+    Change-Id: I97a92d17a932c0a5344a1bf98d676308793ba877
+
+commit d1b35ffc161fd857c7c433574ca82aa9b2db7f98
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Oct 12 10:58:05 2020 -0700
+
+    Corrections from William Rucklidge
+    
+    Change-Id: Ifb50e87aa915d00f9861fe1a6da0acee11bc0a94
+
+commit f34e80e91f600014a3030915cf9ea28bcbc576e7
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Oct 8 12:34:53 2020 -0700
+
+    Add dividers between licenses.
+    
+    Change-Id: I4e4aaa15e0621c5648550cfa622fe0a79f1f4f9f
+
+commit 65c397daeca77da53d16e73720b9a17edd6757ab
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Oct 7 14:34:52 2020 -0700
+
+    Fix formatting
+    
+    Change-Id: Ib4ca8a097059dbb8d2f3a6a888222c0188cb126e
+
+commit f63b1fea9cfa48ae4530c327b10efa4985e69631
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Oct 7 14:30:54 2020 -0700
+
+    Add the MIT license text corresponding to the libmv derived files.
+    
+    Change-Id: Ie72fb45ae96a7892c00411eee6873db7f0e365a8
+
+commit 542613c13d8b7469822aff5eec076f2cad4507ec
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Tue Oct 6 22:48:59 2020 +0200
+
+    minor formatting fix for trust_region_minimizer.cc
+    
+    Change-Id: I18ba27825fc23dd0e9e3e15dc13fc0833db01b5b
+
+commit 6d9e9843d8c61cfb04cc55b9def9518f823a592a
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Sep 28 11:35:37 2020 -0700
+
+    Remove inclusion of ceres/eigen.h
+    
+    The initial reason for this is because of a previous reformatting CL
+    triggered a macro redefinition warning in the schur eliminator. But
+    actually it was worse because the reordering had caused the macro
+    definition to be ignored and caused a performance regression.
+    
+    This simplifies the generated files, fixes some formatting errors
+    and recovers the performance.
+    
+    Change-Id: I9dbeffc38743b3f24b25843feec2e26a73188413
+
+commit eafeca5dcb7af8688d40a9c14b0d2fcb856c96fc
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Sep 28 11:12:59 2020 -0700
+
+    Fix a logging bug in TrustRegionMinimizer.
+    
+    Upon encountering an unsuccessful step (one where the cost goes up)
+    the the trust region minimizer failed to populate the gradient norm
+    in the IterationSummary. This would cause the gradient norm to be
+    logged as zero which is incorrect. Instead it should be the gradient
+    norm at the current point.
+    
+    This CL fixes this issue.
+    
+    Before:
+    iter      cost      cost_change  |gradient|   |step|    tr_ratio  tr_radius  ls_iter  iter_time  total_time
+       0  1.115206e+07    0.00e+00    1.90e+07   0.00e+00   0.00e+00  1.00e+04        0    2.72e-01    1.33e+00
+       1  3.687552e+06    7.46e+06    1.84e+08   2.86e+03   6.91e-01  1.06e+04        1    1.32e+00    2.65e+00
+       2  3.670266e+10   -3.67e+10    0.00e+00   3.27e+03  -1.07e+04  5.30e+03        1    7.52e-01    3.40e+00
+       3  4.335397e+07   -3.97e+07    0.00e+00   2.74e+03  -1.16e+01  1.32e+03        1    7.28e-01    4.13e+00
+       4  1.345488e+06    2.34e+06    4.12e+07   1.55e+03   6.87e-01  1.40e+03        1    9.31e-01    5.06e+00
+       5  5.376653e+05    8.08e+05    9.99e+06   6.64e+02   7.46e-01  1.59e+03        1    9.64e-01    6.03e+00
+    
+    After:
+    iter      cost      cost_change  |gradient|   |step|    tr_ratio  tr_radius  ls_iter  iter_time  total_time
+       0  1.115206e+07    0.00e+00    1.90e+07   0.00e+00   0.00e+00  1.00e+04        0    2.37e-01    1.13e+00
+       1  3.687552e+06    7.46e+06    1.84e+08   2.86e+03   6.91e-01  1.06e+04        1    1.08e+00    2.21e+00
+       2  3.670266e+10   -3.67e+10    1.84e+08   3.27e+03  -1.07e+04  5.30e+03        1    7.50e-01    2.96e+00
+       3  4.335397e+07   -3.97e+07    1.84e+08   2.74e+03  -1.16e+01  1.32e+03        1    7.13e-01    3.67e+00
+       4  1.345488e+06    2.34e+06    4.12e+07   1.55e+03   6.87e-01  1.40e+03        1    9.01e-01    4.57e+00
+       5  5.376653e+05    8.08e+05    9.99e+06   6.64e+02   7.46e-01  1.59e+03        1    9.36e-01    5.51e+00
+    
+    Change-Id: Iae538fe089be07c7bb219337a6f1392f7213acfe
+
+commit 1fd0be916dd4ff4241bd52264b9e9170bc7e4339
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Sep 28 18:54:33 2020 +0100
+
+    Fix default initialisation of IterationCallback::cost
+    
+    Change-Id: I9f529093fc09424c90dbff8e9648b90b16990623
+
+commit 137bbe845577929a87f8eef979196df6a8b30ee4
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Mon Sep 28 02:17:32 2020 +0200
+
+    add info about clang-format to contributing docs
+    
+    Change-Id: I2f4dcbda2e4f36096df217d76de370103ffaa43e
+
+commit d3f66d77f45482b90d01af47938289c32dd2cc08
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Mon Sep 28 02:01:43 2020 +0200
+
+    fix formatting generated files (best effort)
+    
+    - update file generator scripts / templates so generated files adhere
+      to clang-format
+    - A few exceptions are not fixed, where the file generation results in
+      lines of different width. To properly fix this would make the code
+      more complicated and it's not that important for generated files
+      anyway.
+    - note that generated files are excluded in ./scripts/format_all.sh
+    
+    Change-Id: I4f42c83d1fec01242eada5e7ce6c1a5192234d37
+
+commit a9c7361c8dc1d37e78d216754a4c03e8a8f1e74f
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Mon Sep 28 02:14:29 2020 +0200
+
+    minor formatting fix (wrongly updated in earlier commit)
+    
+    Change-Id: I544635fd936cb5b7f7bd9255876641cd5a9590c6
+
+commit 7b8f675bfdb1d924af6a2dcc1f79bda5ace7e886
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Sun Sep 20 21:45:24 2020 +0200
+
+    fix formatting for (non-generated) internal source files
+    
+    - Change formatting standard to Cpp11. Main difference is not having
+      the space between two closing >> for nested templates. We don't
+      choose c++14, because older versions of clang-format (version 9
+      and earlier) don't know this value yet, and it doesn't make a
+      difference in the formatting.
+    - Apply clang-format to all (non generated) internal source files.
+    - Manually fix some code sections (clang-format on/off) and c-strings
+    - Exclude some embedded external files with very different formatting
+      (gtest/gmock)
+    - Add script to format all source files
+    
+    Change-Id: Ic6cea41575ad6e37c9e136dbce176b0d505dc44d
+
+commit 921368ce31c42ee793cf131860abba291a7e39ad
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Sep 9 09:15:37 2020 -0700
+
+    Fix a number of typos in covariance.h
+    
+    Also some minor cleanups in covariance_impl.h
+    
+    Thanks to Lorenzo Lamia for pointing these out.
+    
+    Change-Id: Icb4012a367fdd1f249bc1e7019e0114c868e45b6
+
+commit 7b6b2491cc1be0b3abb67338366d8d69bef3a402
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Tue Sep 8 17:51:32 2020 +0200
+
+    fix formatting for examples
+    
+    This is mostly just applying the existing clang format config, except:
+    - Use NOLINT on overlong comment lines.
+    - Wrap some sections in 'clang-format off' / 'clang format on'.
+    - Manually split or join some multi-line strings.
+    
+    Change-Id: Ia1a40eeb92112e12c3a169309afe087af55b2f4f
+
+commit 82275d8a4eac4fc0bd07e17c3a41a6e429e72bfb
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Tue Sep 8 02:00:21 2020 +0200
+
+    some fixes for Linux and macOS install docs
+    
+    Linux:
+    - Remove workaround for Ubuntu 14.04, which is EOL. libsuitesparse-dev
+      seems to come with a shared library on 16.04 and later, so linking
+      to a shared build of ceres doesn't seem to be an issue any more.
+    - Add missing libgflags-dev.
+    
+    macOS:
+    - OS X is now called macOS.
+    - Update homebrew link.
+    - Mac homebrew the preferred method of installation.
+    - Fix OpenMP instructions.
+    - Remove reference to homebrew/science. Everything is in core.
+    - Add missing gflags.
+    
+    Change-Id: I633b3c7ea84a87886bfd823f8187fdd0a84737c9
+
+commit 9d762d74f06b946bbd2f098de7216032d0e7b51d
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Sun Sep 6 21:04:24 2020 +0200
+
+    fix formatting for public header files
+    
+    - ensure all public headers files adhere to clang-format
+    - preserve one-per-line for enums by adding trailing comma
+    - preserve include order for en/disable_warning.h
+    
+    Change-Id: I78dbd0527a294ab2ec5f074fb426e48b20c393e6
+
+commit c76478c4898f3af11a6a826ac89c261205f4dd96
+Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
+Date:   Sun Sep 6 23:29:56 2020 +0200
+
+    gitignore *.pyc
+    
+    Change-Id: Ic6238a617a3c7ce92df7dcefcc44bae20c32b30b
+
+commit 4e69a475cd7d7cbed983f5aebf79ae13a46e5415
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Tue Sep 1 10:15:23 2020 +0100
+
+    Fix potential for mismatched release/debug TBB libraries
+    
+    - Protect against the case when the user has multiple installs of TBB
+      in their search paths and the first install does not contain debug
+      libraries.  In this case it is possible to get mismatched versions
+      of TBB inserted into TBB_LIBRARIES.
+    - Also suppresses warning about use of TBB_ROOT on modern versions of
+      CMake due to CMP0074.
+    
+    Change-Id: I2eaafdde4a028cbf6c500c63771973d85bc4723d
+
+commit 8e1d8e32ad0d28c0d4d1d7b2b1ce7fc01d90b7b0
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Sep 3 10:49:20 2020 -0700
+
+    A number of small changes.
+    
+    1. Add a move constructor to NumericDiffCostFunction, DynamicAutoDiffCostfunction
+       and DynamicNumericDiffCostFunction.
+    2. Add optional ownership of the underlying functor.
+    3. Update docs to reflect this as well as the variadic templates that allow an
+       arbitrary number of parameter blocks.
+    
+    Change-Id: I57bbb51fb9e75f36ec2a661b603beda270f30a19
+
+commit 368a738e5281039f19587545806b7bc6f35e78f9
+Author: Julian Kent <jkflying@gmail.com>
+Date:   Thu May 7 12:54:35 2020 +0200
+
+    AutoDiffCostFunction: optional ownership
+    
+    Add Ownership semantics to the AutoDiffCostFunction
+    
+    This allows several benefits, such as pointer ordering always being the
+    same for numerical repeatability (due to blocks being ordered by
+    pointer address), memory adjacency for better cache performance, and
+    reduced allocator pressure / overhead.
+    
+    This is then made use of in libmv by preallocating the errors and
+    cost functions into vectors
+    
+    Change-Id: Ia5b97e7249b55a463264b6e26f7a02291927c9f2
+
+commit 8cbd721c199c69f127af6ef7c187ddf7e8f116f9
+Author: Morten Hannemose <morten@hannemose.dk>
+Date:   Thu Sep 3 17:54:20 2020 +0200
+
+    Add erf and erfc to jet.h, including tests in jet_test.cc
+    
+    erf is necessary for evaluating Gaussian functions.
+    erfc was added because it is so similar to erf.
+    
+    Change-Id: I5e470dbe013cc938fabb87cde3b0ebf26a90fff4
+
+commit 31366cff299cf2a8d97b43a7533d953ff28fdc29
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Sep 1 09:23:34 2020 -0700
+
+    Benchmarks for dynamic autodiff.
+    
+    This patch is from Clement Courbet. courbet@google.com
+    
+    Change-Id: I886390663644733bfa5b7b52b0c883079e793726
+
+commit 29fb08aeae1ce691851724af7209fea6127523a9
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Tue Sep 1 10:23:31 2020 +0100
+
+    Use CMAKE_PREFIX_PATH to pass Homebrew install location
+    
+    - Passing HINTS disables the MODULE mode of find_package() which
+      precludes users from creating their own find modules to provide
+      Ceres' dependencies.
+    
+    Change-Id: I6f2edf429331d13fe67bf61ac4b79d17579d9a57
+
+commit 242c703b501ffd64d645f4016d63c8b41c381038
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Aug 4 21:02:11 2020 -0700
+
+    Minor fixes to the documentation
+    
+    Change-Id: I65e6f648d963b8aa640078684ce02dcde6acb87d
+
+commit 79bbf95103672fa4b5485e055ff7692ee4a1f9da
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Aug 4 18:26:02 2020 -0700
+
+    Add changelog for 2.0.0
+    
+    Change-Id: I8acad62bfe629454ae5032732693e43fe37b97ff
+
+commit 41d05f13d0ffb230d7a5a9d67ed31b0cfb35d669
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Aug 4 14:56:33 2020 -0700
+
+    Fix lint errors in evaluation_callback_test.cc
+    
+    Change-Id: I63eb069544ad0d8f495490fe4caa07b9f04f7ec2
+
+commit 4b67903c1f96037048c83a723028c5d0991c09cf
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Aug 4 14:40:50 2020 -0700
+
+    Remove unused variables from problem_test.cc
+    
+    Change-Id: Ia1a13cfc6e462f6d249dcbf169ad34831dd93ec2
+
+commit 10449fc3664c96d4b5454c092195432df79412f8
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Aug 4 14:30:25 2020 -0700
+
+    Add Apache license to the LICENSE file for FixedArray
+    
+    FixedArray implementation comes from ABSL which is Apache
+    licensed.
+    
+    Change-Id: I566dbe9d236814c95945732c6347d3bf7b508283
+
+commit 8c3ecec6db26d7a66f5de8dc654475ec7aa0df14
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue May 26 04:44:11 2020 -0700
+
+    Fix some minor errors in IterationCallback docs
+    
+    Change-Id: Id3d7f21a523ff8466868cdec542921c566bbbfa9
+
+commit 7d3ffcb4234632dc51ee84c8a509d9428263070b
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Sun Jul 26 19:42:16 2020 +0100
+
+    Remove forced CONFIG from find_package(Eigen3)
+    
+    - Ceres will fail to configure if Eigen3::Eigen target is not found, and
+      the minimum required Eigen version specified (3.3) exports Eigen as
+      a CMake package and this is reflected in the default Ubuntu 18.04
+      packages.
+    - This permits users to specify their own Eigen3 detection should they
+      choose to do so, but they must do so via an imported target.
+    
+    Change-Id: I5edff117c8001770004f49012ac1ae63b66ec9c1
+
+commit a029fc0f93817f20b387b707bc578dc1f1a269ae
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Sun Jul 26 18:44:59 2020 +0100
+
+    Use latest FindTBB.cmake from VTK project
+    
+    - Retrieved from [1], SHA: 0d9bbf9beb97f8f696c43a9edf1e52c082b3639b on
+      2020-07-26
+    - [1]: https://gitlab.kitware.com/vtk/vtk/blob/master/CMake/FindTBB.cmake
+    
+    Change-Id: I953a8c87802a974d30ccc7c80f5229683826efbd
+
+commit aa1abbc578797c6b17ee7221db31535dc249ae66
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Sun Jul 26 19:57:31 2020 +0100
+
+    Replace use of GFLAGS_LIBRARIES with export gflags target
+    
+    - As our minimum required version of gflags (2.2) exports itself as
+      a CMake package and this is the case for the default 18.04 package
+      we can use the gflags target directly.
+    - Replaces forced use of CONFIG in find_package(gflags) with a check
+      that the gflags imported target exists to avoid ambiguity with
+      libgflags if installed in a default location.  This permits users to
+      override the gflags detection should they so choose, provided that
+      they do so via an imported target.
+    - Also removes some previously removed legacy GLAGS_ vars from the
+      installation docs.
+    
+    Change-Id: I015f5a751e5b22f956bbf9df692e63a6825c9f0d
+
+commit db2af1be8780bbe88944775400baa2dbd3592b7d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Aug 3 04:57:08 2020 -0700
+
+    Add Problem::EvaluateResidualBlockAssumingParametersUnchanged
+    
+    Simplify the semantics for Problem::EvaluateResidualBlock to
+    not ignore the presence of EvaluationCallback and add another method
+    EvaluateResidualBlockAssumingParametersUnchanged to handle the case
+    where the user has an EvaluationCallback but knows that the parameter
+    blocks do not change between calls.
+    
+    Updated the documentation for the methods and EvaluationCallback to
+    reflect these semantics.
+    
+    Also added tests for Evaluation related methods calling i
+    EvaluationCallback when its present.
+    
+    https://github.com/ceres-solver/ceres-solver/issues/483
+    
+    Change-Id: If0a0c95c2f1f92e9183a90df240104a69a71c46d
+
+commit ab4ed32cda004befd29a0b4b02f1d907e0c4dab7
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Aug 3 04:17:33 2020 -0700
+
+    Replace NULL with nullptr in the documentation.
+    
+    Change-Id: I995f68770e2a4b6027c0a1d3edf5eb5132b081d7
+
+commit ee280e27a6140295ef6258d24c92305628f3d508
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Jul 31 16:48:06 2020 -0700
+
+    Allow SubsetParameterization to accept an empty vector of constant parameters.
+    
+    Thanks to Frédéric Devernay for reporting this and providing an initial fix.
+    
+    Change-Id: Id86a2051ab7841ecafdcfb00f4634b353a7ef3b4
+
+commit 4b8c731d8a4f3fda53c642ff14a25fab6c233918
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Fri Jul 31 10:05:52 2020 -0700
+
+    Fix a bug in DynamicAutoDiffCostFunction
+    
+    DynamicAutoDiffCostFunction::Evaluate when provided with a jacobians
+    array that was non-empty but all its entries are nullptr, would
+    compute num_active_parameters = 0, and then skip over all the loops
+    that evaluated the CostFunctor.
+    
+    The fix is to check if num_active_parameters == 0, and then treat
+    it as the case where jacobians array is null.
+    
+    Thanks to Ky Waegel for reporting and providing a reproduction for this.
+    
+    Change-Id: Ib86930c2c3f722724d249f662bf88238679bbf98
+
+commit 5cb5b35a930c1702278083c75769dbb4e5801045
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Sun Jul 26 20:42:12 2020 +0100
+
+    Fixed incorrect argument name in RotationMatrixToQuaternion()
+    
+    - Raised as: https://github.com/ceres-solver/ceres-solver/pull/607 by
+      Frank Dellaert
+    
+    Change-Id: Id3e9f190e814cf18206e2f8c3b1b67b995c21dd5
+
 commit e39d9ed1d60dfeb58dd2a0df4622c683f87b28e3
 Author: Carl Dehlin <carl@dehlin.com>
 Date:   Tue Jun 16 09:02:05 2020 +0200
@@ -21,567 +594,3 @@ Date:   Mon Jun 15 19:10:12 2020 +0200
     Fix documentation formatting issues
     
     Change-Id: Iea3a6e75dc3a7376eda866ab24e535a6df84f8ea
-
-commit 7ef83e07592ead74eeacc227b642df1959d2a246
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sat May 30 11:30:01 2020 +0100
-
-    Update minimum required C++ version for Ceres to C++14
-    
-    - Removes all workarounds for pre-C++14 versions
-    - Removes '11' qualifier from C++ threading option and associated
-      defines.
-    - Fix missing inclusion of 'Multithreading' in reported Ceres components
-      when C++ threading model is enabled.
-    - Update Sphinx documentation to specify C++14 as minimum requirement.
-    
-    Change-Id: I706c8b367b3221e3c4d1a0aaf669a8f9c911e438
-
-commit 1d75e7568172dc5a4dc97937dcf66e0f5d28272c
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon May 25 18:09:50 2020 -0700
-
-    Improve documentation for LocalParameterization
-    
-    Change-Id: I63fa81206e67bfac56cc42bf2bb4915a3a11332b
-
-commit 763398ca4ed56952f48c48df6a98e277e3e05381
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon May 25 12:12:03 2020 -0700
-
-    Update the section on Preconditioners
-    
-    Re-organize the section, add some more references and details for
-    existing preconditioners and add documentation for the SUBSET
-    precondition.
-    
-    https://github.com/ceres-solver/ceres-solver/issues/490
-    
-    Change-Id: I93d0af819c160f5e4ce48b18202f629ddb92ca7b
-
-commit a614f788a34ea86dd9f679b779ffbf920db45aa6
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri May 22 13:52:53 2020 -0700
-
-    Call EvaluationCallback before evaluating the fixed cost.
-    
-    Fixe a subtle bug in Program::RemoveFixedBlocks, where we call
-    ResidualBlock::Evaluate on residual blocks with all constant parameter
-    blocks without paying attention to the presence of an
-    EvaluationCallback.
-    
-    In the process also run clang-format on some of the files touched by
-    this change.
-    
-    https://github.com/ceres-solver/ceres-solver/issues/482
-    
-    Change-Id: I342b66f6f975fdee2eef139a31f24d4a3e568e84
-
-commit 70308f7bb9cac560db250262079c0f8b030b9d6b
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue May 26 06:12:13 2020 -0700
-
-    Simplify documentation generation.
-    
-    1. The MathJax font configuration is moved into conf.py and removed
-    from make_docs.py along with better font sizing.
-    2. Remove the bread crumb replacement as it is not working anymore.
-    3. Fix a parsing error in nnls_modeling.rst which the new version of
-    sphinx barfed on.
-    
-    Change-Id: Ia3c2e732323a8b5cabafe851ac5ca0f0c82da071
-
-commit e886d7e65368e73e9d35c2ead895d81ced677977
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon May 25 13:09:39 2020 -0700
-
-    Reduce the number of minimizer iterations in evaluation_callback_test.cc
-    
-    This should reduce the probability of the test heuristic failing due
-    to floating point issues.
-    
-    https://github.com/ceres-solver/ceres-solver/issues/562
-    https://github.com/ceres-solver/ceres-solver/issues/392
-    
-    Change-Id: I8ccf4164a8d595f5930d378f464313d4a2cae419
-
-commit 9483e6f2f57bf51bad7cefd155cd5b48ca672c63
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue May 12 05:16:32 2020 -0700
-
-    Simplify DynamicCompressedRowJacobianWriter::Write
-    
-    Change-Id: I67aa2959bd479909b5cada79359c5cfdb8a37ef7
-
-commit 323cc55bb92a513924e566f487b54556052a716f
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon May 25 10:38:35 2020 -0700
-
-    Update the version in package.xml to 2.0.0.
-    
-    Change-Id: Ibac053916520e8c597c875a8c7f5668bb35b6ba1
-
-commit 303b078b50bd3311a9c86fc256be3e9f2f334411
-Author: Bayes Nie <niebayes@gmail.com>
-Date:   Sun May 24 16:08:52 2020 +0800
-
-    Fix few typos and alter a NULL to nullptr.
-    
-    Fix typos in docs/source/features.rst and examples/helloworld.cc. Alter a NULL to nullptr in include/ceres/autodiff_cost_function.h
-    
-    Change-Id: Ibcf00b6ef665ad6be9af14b3add2dd4f3852e7e6
-
-commit cca93fed63dd4117f3d6dd5339131fc7674e6e0a
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun May 24 18:05:05 2020 +0100
-
-    Bypass Ceres' FindGlog.cmake in CeresConfig.cmake if possible
-    
-    - If the version of glog detected and used to build Ceres was built with
-      CMake (i.e. Config mode) then we now use Config mode directly in
-      CeresConfig.cmake and do not install Ceres' FindGlog.cmake module.
-    - This has the benefit of removing any hard-coded paths from
-      CeresConfig.cmake provided that all dependencies were also built with
-      CMake.
-    
-    Change-Id: I85af8a953fd6d300e8bc0cdeb0b3636fec182f68
-
-commit 77fc1d0fc4159ebb3a0a84a16651564eb2ce3c9d
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun May 24 19:07:26 2020 +0100
-
-    Use build_depend for private dependencies in Catkin package.xml
-    
-    Change-Id: If0c0569e7ebbf37c0d8e8daaf7765e20a6282531
-
-commit a09682f00d8e50ada3c7ed16f8c48fa71a423f60
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun May 24 16:49:28 2020 +0100
-
-    Fix MSVC version check to support use of clang-cl front-end
-    
-    - Raised as issue: #521
-    
-    Change-Id: Iaea6b43484b90ec8789bda0447c8a90759974ec1
-
-commit b70687fcc86624c7d5520d25734938fa95d2af73
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun May 24 20:28:12 2020 +0100
-
-    Add namespace qualified Ceres::ceres CMake target
-    
-    - This reflects modern CMake style, and also provides a measure of
-      protection against missing find_package() imports in downstream
-      clients resulting in linker errors when 'ceres' matches the compiled
-      library and not the imported target.
-    - The original 'ceres' target remains, as a local imported interface
-      target created by CeresConfig for backwards compatibility.
-    
-    Change-Id: Ie9ed8de9b7059bc0cae1ae5002bb94d8fe617188
-
-commit 99efa54bdb4e14c3f4382a166baf6772113f74a8
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun May 24 19:18:38 2020 +0100
-
-    Replace type aliases deprecated/removed in C++17/C++20 from FixedArray
-    
-    - Raised as issue #551
-    - Also adds C++20 to the set of ALLOWED_CXX_STANDARDS, although this
-      will require a version of CMake >= 3.12.
-    
-    Change-Id: I0f13c72e93a35391fd2d18590b4243a329a2322c
-
-commit adb973e4a337c372aa81ca1a4f3bb704068c08b7
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu May 21 14:45:28 2020 -0700
-
-    NULL -> nullptr
-    
-    Change-Id: Iaeea2ef7912d328653a76b65976adc8025a5be35
-
-commit 27b717951b58c134b3a5a9f664a66c7480364d6c
-Author: Alastair Harrison <aharrison24@gmail.com>
-Date:   Fri May 15 10:10:12 2020 +0100
-
-    Respect FIND_QUIETLY flag in cmake config file
-    
-    Ensure that Ceres does not print any log messages when somebody has
-    used 'find_package(Ceres QUIET)' in their CMake project.
-    
-    Change-Id: Id6b68859cc8a5857f3fa78f29736cb82fd5a0943
-
-commit 646959ef118a1f10bf93741d97cf64265d42f8c6
-Author: huangqinjin <huangqinjin@gmail.com>
-Date:   Sat Apr 25 02:03:11 2020 +0800
-
-    Do not export class template LineParameterization
-    
-    For MSVC, instantiating a dllimport class template will cause error C2491:
-    definition of dllimport function not allowed.
-    
-    Change-Id: Icc7f7ea84598df0a5436f48ffc2bab5cfab93921
-
-commit 1f128d070a24224d12eb901bc74ba393ccdbd0c3
-Author: huangqinjin <huangqinjin@gmail.com>
-Date:   Mon Mar 4 13:14:43 2019 +0800
-
-    Change the type of parameter index/offset to match their getter/setter
-    
-    Change-Id: If28b795e792f39db9775ada105e9038570195329
-
-commit 072c8f070e16cb32f211473c40196c6b5618d5a9
-Author: huangqinjin <huangqinjin@gmail.com>
-Date:   Sat Apr 25 00:04:58 2020 +0800
-
-    Initialize integer variables with integer instead of double
-    
-    Change-Id: I652aca4ceb3129706a5d5e38afe9f16b61200a5b
-
-commit 8c36bcc81fbd4f78a2faa2c914ef40af264f4c31
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Apr 27 18:33:25 2020 +0100
-
-    Use inline & -inlinehint-threshold in auto-diff benchmarks
-    
-    - This results in the same performance as the original solution of
-      increasing -inline-threshold, but this approach is more viable to
-      incorporate in a large code base as its effects are more targeted.
-    
-    Change-Id: Id798dbca7d3050de0ea847a5ecc69484ac78a2cf
-
-commit 57cf20aa5d3c1b2f25d255814f4fff5260db81c6
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Apr 21 10:10:01 2020 -0700
-
-    static const -> static constexpr where we can.
-    
-    Change-Id: I8a6d26a89c4377dd440fa6dcf23513b7556533fc
-
-commit 40b27482a202c8b0a5f9e8f2b4be0192d34195f5
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Apr 21 09:35:30 2020 -0700
-
-    Add std::numeric_limit specialization for Jets
-    
-    This allows users to use std::numeric_limits on templated functors.
-    
-    Change-Id: I403cec5c9826033ce7dfd6047deb64f66c35f806
-
-commit e751d6e4f0daa9f691c5ed25ca8dc564875d8bef
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Wed Apr 8 10:43:53 2020 +0200
-
-    Remove AutodiffCodegen
-    
-    - Remove Codegen files
-    - Revert Jet and Rotation
-    
-    Change-Id: I005c5f98f2b6dfa5c7fd88d998b6aa83e47dab60
-
-commit e9eb76f8ef9835940659cfb3a312ed6822c48152
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Mon Apr 6 11:11:43 2020 +0200
-
-    Remove AutodiffCodegen CMake integration
-    
-    Change-Id: I403597540df8429378336626b8f748b7821fe6f5
-
-commit 9435e08a7a7c903897e18e1dc24d801caf4f62a4
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Apr 3 11:50:09 2020 -0700
-
-    More clang-tidy and wjr@ comment fixes
-    
-    Change-Id: I5736ae482f736fc56c00d21c659b1f8d41da68e9
-
-commit d93fac4b7ab670a936ce821284a0b9d099b4688c
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Fri Apr 3 09:33:17 2020 +0200
-
-    Remove AutodiffCodegen Tests
-    
-    Change-Id: Icd194db7b22add518844f1b507d0fdd3e0fe17fe
-
-commit 2281c6ed24d2c12f133fa6039f224b3da18cebe3
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Apr 2 16:43:42 2020 -0700
-
-    Fixes for comments from William Rucklidge
-    
-    Change-Id: I64fcc25532cc66dc4cb7e2ea7ccfb220b0cb7e1f
-
-commit d797a87a4091af6ae0063e3c8291429c15318bdc
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Apr 2 13:57:56 2020 -0700
-
-    Use Ridders' method in GradientChecker.
-    
-    Using Ridders' method gives orders of magnitude more accuracy compared
-    to central differences. This will make things slower, but this is
-    primarily a testing/debugging feature and the speed hit is not a
-    concern. This should also reduce the false positive rates when users
-    enable check_gradients. This is reflected the increased sensitivity of
-    the tests for GradientChecker.
-    
-    https://github.com/ceres-solver/ceres-solver/issues/554
-    
-    Change-Id: I6b871c72df55be1c31175ba062cf3c1e94e4b662
-
-commit 41675682dc9df836bf15845064cfe1087619c79d
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Apr 2 07:28:38 2020 -0700
-
-    Fix a MSVC type deduction bug in ComputeHouseholderVector
-    
-    A recent change made this function templated and MSVC 16 has trouble
-    doing automatic argument deduction, so the type of the template is
-    simplified and all callsites are explicitly annotated with the type
-    of the arguments.
-    
-    Change-Id: I83cd0269e6e82c4a8f4e391f5fc03b92c942f74d
-
-commit 947ec0c1fa0f67c89e21daaf8d1648822ae5293a
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Thu Apr 2 09:52:53 2020 +0200
-
-    Remove AutodiffCodegen autodiff benchmarks
-    
-    Change-Id: If1eaad31710cc91d40323ea6cae7cabe6fa64b1f
-
-commit 27183d661ecae246dbce6d03cacf84f39fba1f1e
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Jul 11 16:30:59 2019 +0200
-
-    Allow LocalParameterizations to have zero local size.
-    
-    Local parameterizations with zero tangent/local size will cause the
-    corresponding parameter block to be treated as constant.
-    
-    https://github.com/ceres-solver/ceres-solver/issues/347
-    
-    Change-Id: I554a2acc420f5dd9d0cc7f97b691877eb057b2c0
-
-commit 7ac7d79dca2ac6b482da50fd9ad0227ba8d6c632
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Wed Apr 1 14:51:12 2020 +0200
-
-    Remove HelloWorldCodegen example
-    
-    Change-Id: I2584f41d591a5d648b4832385c2a779bb25fc04d
-
-commit 8c8738bf832f0fc27f0d4a9585fc59b2eaa6a828
-Author: Nikolaus Demmel <nikolaus@nikolaus-demmel.de>
-Date:   Sun Mar 29 13:29:02 2020 +0200
-
-    Add photometric and relative-pose residuals to autodiff benchmarks
-    
-    Change-Id: Id100ff2656ab63bb4fd19a51b95e78281cfd8b4a
-
-commit 9f7fb66d62014ed62ba6aa617364e8591211c797
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Wed Mar 25 11:41:39 2020 +0100
-
-    Add a constant cost function to the autodiff benchmarks
-    
-    The constant cost function is run with a variable number of
-    parameters to test at which point, different compilers fail
-    to optimize the autodiff code.
-    
-    Clang achieves expected performance which fails at >50 parameters.
-    G++ fails already at 20 parameters
-    
-    Change-Id: I75d8c683ef0011d813ec6d966d7ad58f86530f44
-
-commit ab0d373e465f46ce483db640d0fb2f244f48702d
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Mar 24 12:30:46 2020 -0700
-
-    Fix a comment in autodiff.h
-    
-    Change-Id: I613e537c834e3f29cd92808c65ddb74f112974cc
-
-commit 27bb997144d00dd4494d440627f1e782bf4adf43
-Author: Johannes Beck <Jodebo_Beck@gmx.de>
-Date:   Tue Mar 24 08:05:43 2020 +0100
-
-    Change SVD algorithm in covariance computation.
-    
-    Switch from JacobiSVD to BDCSVD in
-    ComputeCovarianceValuesUsingDenseSVD. This should increase
-    the performance for larger covariance matrices. See
-    https://eigen.tuxfamily.org/dox/classEigen_1_1BDCSVD.html
-    
-    Change-Id: Icde4dec89f506b638b0f9f1aee3b7cfc9e4d72fc
-
-commit 84fdac38e033c8f9a63c6e6fca7b44219110f7df
-Author: Johannes Beck <Jodebo_Beck@gmx.de>
-Date:   Tue Mar 24 08:02:21 2020 +0100
-
-    Add const to GetCovarianceMatrix*
-    
-    This CL adds const to the functions GetCovarianceMatrix and
-    GetCovarianceMatrixInTangentSpace.
-    
-    Change-Id: Ibe2cafebede47977a9aabcac8d245f30af184fd1
-
-commit 6bde61d6be9d81a2cd759a6bbb4a8cd3c24a529c
-Author: Johannes Beck <Jodebo_Beck@gmx.de>
-Date:   Sat Dec 28 13:29:19 2019 +0100
-
-    Add line local parameterization.
-    
-    This CL adds a local parameterization for a n-dimensional
-    line, which is represented as an origin point and a direction.
-    The line direction is updated in the same way as a
-    homogeneous vector and the origin point is updated
-    perpendicular to the line direction.
-    
-    Change-Id: I733f395e5cc4250abf9778c26fe0a5ae1de6b624
-
-commit 2c1c0932e9d3f91691e5c5fce46b4440e181a8bc
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Mar 23 11:15:32 2020 -0700
-
-    Update documentation in autodiff.h
-    
-    Change-Id: Icc2753b4f5be95022ffd92e479cdd3d9d7959d4c
-
-commit 8904fa4887ed7b3e6d110ad5a98efbc2df48595e
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Mon Mar 23 14:59:26 2020 +0100
-
-    Inline Jet initialization in Autodiff
-    
-    Inlining the Jet initialzation is mandatory for good performance
-    in autodiff, because all the constants in the dual part can be
-    propagated into the cost functor.
-    
-    This patch unrolls the initialization loop with templates and adds
-    EIGEN_ALWAYS_INLINE to the constructors.
-    
-    Change-Id: Ic89d645984f3e1df6c63948236da823ba60d9620
-
-commit 18a464d4e566e17930005876af19e32cc8796fa3
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Mar 23 07:12:12 2020 -0700
-
-    Remove an errant CR from local_parameterization.cc
-    
-    Change-Id: Iff98a96f06de5755062a1c79523604dca78b298e
-
-commit 5c85f21799804d39cbfd20ec451aa219511e4212
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Mon Mar 23 10:12:00 2020 +0100
-
-    Use ArraySelector in Autodiff
-    
-    The class ArraySelector is now used in autodiff to store the
-    parameters and residuals. This reduces overhead of FixedArray
-    for fixed-sized residuals and allows more optimizations due
-    to inlining and unrolling.
-    
-    Change-Id: Ibadc5644e64d672f7a555e250fb1f8da262f9d4f
-
-commit 80477ff073ab7af03cfb248cab4ef41a87f913d0
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Fri Mar 20 16:26:55 2020 +0100
-
-    Add class ArraySelector
-    
-    The ArraySelector selects the best array implementation based on
-    template arguments.
-    
-    Change-Id: I93c6db1a638e924b85292e63bca9525610ec2e2f
-
-commit e7a30359ee754057f9bd7b349c98c291138d91f4
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Fri Mar 20 15:50:37 2020 +0100
-
-    Pass kNumResiduals to Autodiff
-    
-    The compile-time constant kNumResiduals is now passed to the
-    autodiff functions as a template parameter. This will be used
-    by future patches to optimize autodiff performance.
-    
-    Change-Id: Ia2b2cc99b88752e8f12f4ce2542b1963bda552f5
-
-commit f339d71dd64e4d871cc883f278a153f212f0d1f0
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Mar 19 12:08:28 2020 -0700
-
-    Refactor the automatic differentiation benchmarks.
-    
-    1. Merge them into a single binary.
-    2. All benchmarks now do the Residual and the Residual + Jacobian
-    evaluation.
-    3. Re-organize and simplify the CMake file in this directory.
-    4. Fix a bug in the file where the Clang compiler was not being matched.
-    
-    autodiff_benchmarks
-    ---------------------------------------------------------------------------
-    Benchmark                                 Time             CPU   Iterations
-    ---------------------------------------------------------------------------
-    BM_Linear1CodeGen/0                    3.02 ns         3.01 ns    233870456
-    BM_Linear1CodeGen/1                    3.02 ns         3.01 ns    233059100
-    BM_Linear1AutoDiff/0                   3.78 ns         3.77 ns    185791712
-    BM_Linear1AutoDiff/1                   14.0 ns         13.8 ns     53927875
-    BM_Linear10CodeGen/0                   5.10 ns         5.10 ns    126745007
-    BM_Linear10CodeGen/1                   29.1 ns         29.1 ns     23949310
-    BM_Linear10AutoDiff/0                  6.50 ns         6.49 ns    107516972
-    BM_Linear10AutoDiff/1                   169 ns          169 ns      4153218
-    BM_Rat43AutoDiff/0                     52.7 ns         51.2 ns     16444586
-    BM_Rat43AutoDiff/1                     91.8 ns         91.5 ns      7302316
-    BM_SnavelyReprojectionCodeGen/0        38.0 ns         36.2 ns     21131501
-    BM_SnavelyReprojectionCodeGen/1         113 ns          112 ns      5627779
-    BM_SnavelyReprojectionAutoDiff/0       34.4 ns         34.3 ns     20476937
-    BM_SnavelyReprojectionAutoDiff/1        242 ns          240 ns      2930611
-    BM_BrdfCodeGen/0                       53.9 ns         53.7 ns     11950083
-    BM_BrdfCodeGen/1                        507 ns          505 ns      1396732
-    BM_BrdfAutoDiff/0                      58.3 ns         57.8 ns     12220670
-    BM_BrdfAutoDiff/1                      2034 ns         1999 ns       257003
-    
-    autodiff_benchmarks_fast_math
-    ---------------------------------------------------------------------------
-    Benchmark                                 Time             CPU   Iterations
-    ---------------------------------------------------------------------------
-    BM_Linear1CodeGen/0                    3.19 ns         3.16 ns    215313065
-    BM_Linear1CodeGen/1                    2.78 ns         2.76 ns    201497994
-    BM_Linear1AutoDiff/0                   3.27 ns         3.26 ns    206154598
-    BM_Linear1AutoDiff/1                   13.2 ns         13.1 ns     57257840
-    BM_Linear10CodeGen/0                   5.70 ns         5.51 ns    121849325
-    BM_Linear10CodeGen/1                   33.9 ns         33.3 ns     21829295
-    BM_Linear10AutoDiff/0                  6.85 ns         6.78 ns    106813153
-    BM_Linear10AutoDiff/1                   173 ns          171 ns      3849877
-    BM_Rat43AutoDiff/0                     44.8 ns         44.2 ns     15577017
-    BM_Rat43AutoDiff/1                     96.2 ns         94.6 ns      7374864
-    BM_SnavelyReprojectionCodeGen/0        33.9 ns         33.5 ns     20508373
-    BM_SnavelyReprojectionCodeGen/1        89.7 ns         88.4 ns      7620624
-    BM_SnavelyReprojectionAutoDiff/0       36.5 ns         35.8 ns     20546176
-    BM_SnavelyReprojectionAutoDiff/1        257 ns          252 ns      3044325
-    BM_BrdfCodeGen/0                       61.1 ns         58.5 ns     11334013
-    BM_BrdfCodeGen/1                        265 ns          265 ns      2625459
-    BM_BrdfAutoDiff/0                      52.5 ns         52.5 ns     12938763
-    BM_BrdfAutoDiff/1                      1560 ns         1560 ns       440909
-    
-    Change-Id: I2d1a4293d3245a50f73af6cf5e5138084321ae6f
-
-commit d37b4cb150c4af65268f9ce5739d1c67e73cb358
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Mar 19 07:36:58 2020 -0700
-
-    Fix some include headers in codegen/test_utils.cc/h
-    
-    Change-Id: I769029ce2797eba0de6c7baeb76dc3f2782b6305
-
-commit 550766e6da49dca895a6e2056b0872c557157c5b
-Author: Darius Rueckert <darius.rueckert@fau.de>
-Date:   Wed Mar 18 20:09:20 2020 +0100
-
-    Add Autodiff Brdf Benchmark
-    
-    The disney brdf is a good benchmark cost functor, because it has
-     - 28 parameters in 7 blocks
-     - 3 residuals
-     - Lots of low-level arithmetic
-    
-    Change-Id: I62c8a717d0aecb64639158f971bdccf6afdfae36

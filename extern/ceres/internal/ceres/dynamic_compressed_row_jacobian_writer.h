@@ -47,8 +47,7 @@ class DynamicCompressedRowJacobianWriter {
  public:
   DynamicCompressedRowJacobianWriter(Evaluator::Options /* ignored */,
                                      Program* program)
-    : program_(program) {
-  }
+      : program_(program) {}
 
   // JacobianWriter interface.
 
@@ -70,7 +69,7 @@ class DynamicCompressedRowJacobianWriter {
   // This method is thread-safe over residual blocks (each `residual_id`).
   void Write(int residual_id,
              int residual_offset,
-             double **jacobians,
+             double** jacobians,
              SparseMatrix* base_jacobian);
 
  private:

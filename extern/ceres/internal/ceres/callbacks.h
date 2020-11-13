@@ -32,8 +32,9 @@
 #define CERES_INTERNAL_CALLBACKS_H_
 
 #include <string>
-#include "ceres/iteration_callback.h"
+
 #include "ceres/internal/port.h"
+#include "ceres/iteration_callback.h"
 
 namespace ceres {
 namespace internal {
@@ -47,6 +48,7 @@ class StateUpdatingCallback : public IterationCallback {
   StateUpdatingCallback(Program* program, double* parameters);
   virtual ~StateUpdatingCallback();
   CallbackReturnType operator()(const IterationSummary& summary) final;
+
  private:
   Program* program_;
   double* parameters_;
@@ -61,6 +63,7 @@ class GradientProblemSolverStateUpdatingCallback : public IterationCallback {
                                              double* user_parameters);
   virtual ~GradientProblemSolverStateUpdatingCallback();
   CallbackReturnType operator()(const IterationSummary& summary) final;
+
  private:
   int num_parameters_;
   const double* internal_parameters_;

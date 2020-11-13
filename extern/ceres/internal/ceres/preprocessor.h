@@ -67,7 +67,7 @@ struct PreprocessedProblem;
 //
 // The output of the Preprocessor is stored in a PreprocessedProblem
 // object.
-class Preprocessor {
+class CERES_EXPORT_INTERNAL Preprocessor {
  public:
   // Factory.
   static Preprocessor* Create(MinimizerType minimizer_type);
@@ -80,9 +80,7 @@ class Preprocessor {
 // A PreprocessedProblem is the result of running the Preprocessor on
 // a Problem and Solver::Options object.
 struct PreprocessedProblem {
-  PreprocessedProblem()
-      : fixed_cost(0.0) {
-  }
+  PreprocessedProblem() : fixed_cost(0.0) {}
 
   std::string error;
   Solver::Options options;

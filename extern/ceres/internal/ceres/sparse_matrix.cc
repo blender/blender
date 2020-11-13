@@ -33,8 +33,7 @@
 namespace ceres {
 namespace internal {
 
-SparseMatrix::~SparseMatrix() {
-}
+SparseMatrix::~SparseMatrix() {}
 
 }  // namespace internal
 }  // namespace ceres

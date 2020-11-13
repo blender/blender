@@ -35,6 +35,7 @@
 
 #include <string>
 #include <vector>
+
 #include "ceres/function_sample.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"

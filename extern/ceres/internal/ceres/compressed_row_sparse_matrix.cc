@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <numeric>
 #include <vector>
+
 #include "ceres/crs_matrix.h"
 #include "ceres/internal/port.h"
 #include "ceres/random.h"

@@ -144,8 +144,7 @@ class CostFunctionToFunctor {
 
     // Extract parameter block pointers from params.
     using Indices =
-        std::make_integer_sequence<int,
-                                   ParameterDims::kNumParameterBlocks>;
+        std::make_integer_sequence<int, ParameterDims::kNumParameterBlocks>;
     std::array<const T*, ParameterDims::kNumParameterBlocks> parameter_blocks =
         GetParameterPointers<T>(params, Indices());
 

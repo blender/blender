@@ -29,6 +29,7 @@
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
 #include "ceres/detect_structure.h"
+
 #include "ceres/internal/eigen.h"
 #include "glog/logging.h"
 
@@ -61,8 +62,7 @@ void DetectStructure(const CompressedRowBlockStructure& bs,
     } else if (*row_block_size != Eigen::Dynamic &&
                *row_block_size != row.block.size) {
       VLOG(2) << "Dynamic row block size because the block size changed from "
-              << *row_block_size << " to "
-              << row.block.size;
+              << *row_block_size << " to " << row.block.size;
       *row_block_size = Eigen::Dynamic;
     }
 
@@ -73,8 +73,7 @@ void DetectStructure(const CompressedRowBlockStructure& bs,
     } else if (*e_block_size != Eigen::Dynamic &&
                *e_block_size != bs.cols[e_block_id].size) {
       VLOG(2) << "Dynamic e block size because the block size changed from "
-              << *e_block_size << " to "
-              << bs.cols[e_block_id].size;
+              << *e_block_size << " to " << bs.cols[e_block_id].size;
       *e_block_size = Eigen::Dynamic;
     }
 
@@ -100,9 +99,11 @@ void DetectStructure(const CompressedRowBlockStructure& bs,
       }
     }
 
+    // clang-format off
     const bool is_everything_dynamic = (*row_block_size == Eigen::Dynamic &&
                                         *e_block_size == Eigen::Dynamic &&
                                         *f_block_size == Eigen::Dynamic);
+    // clang-format on
     if (is_everything_dynamic) {
       break;
     }
@@ -110,10 +111,12 @@ void DetectStructure(const CompressedRowBlockStructure& bs,
 
   CHECK_NE(*row_block_size, 0) << "No rows found";
   CHECK_NE(*e_block_size, 0) << "No e type blocks found";
+  // clang-format off
   VLOG(1) << "Schur complement static structure <"
           << *row_block_size << ","
           << *e_block_size << ","
           << *f_block_size << ">.";
+  // clang-format on
 }
 
 }  // namespace internal

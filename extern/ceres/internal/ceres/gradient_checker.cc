@@ -56,7 +56,7 @@ namespace {
 // the local space of the respective local parameterizations.
 bool EvaluateCostFunction(
     const ceres::CostFunction* function,
-    double const* const * parameters,
+    double const* const* parameters,
     const std::vector<const ceres::LocalParameterization*>&
         local_parameterizations,
     Vector* residuals,
@@ -95,8 +95,8 @@ bool EvaluateCostFunction(
   CHECK_NE(0, function->num_residuals());
   residuals->resize(function->num_residuals());
   residuals->setZero();
-  if (!function->Evaluate(parameters, residuals->data(),
-                          jacobian_data.data())) {
+  if (!function->Evaluate(
+          parameters, residuals->data(), jacobian_data.data())) {
     return false;
   }
 
@@ -109,20 +109,20 @@ bool EvaluateCostFunction(
       int local_size = local_parameterizations.at(i)->LocalSize();
       CHECK_EQ(jacobians->at(i).cols(), global_size);
       Matrix global_J_local(global_size, local_size);
-      local_parameterizations.at(i)->ComputeJacobian(
-          parameters[i], global_J_local.data());
+      local_parameterizations.at(i)->ComputeJacobian(parameters[i],
+                                                     global_J_local.data());
       local_jacobians->at(i).noalias() = jacobians->at(i) * global_J_local;
     }
   }
   return true;
 }
-} // namespace
+}  // namespace
 
 GradientChecker::GradientChecker(
-      const CostFunction* function,
-      const vector<const LocalParameterization*>* local_parameterizations,
-      const NumericDiffOptions& options) :
-        function_(function) {
+    const CostFunction* function,
+    const vector<const LocalParameterization*>* local_parameterizations,
+    const NumericDiffOptions& options)
+    : function_(function) {
   CHECK(function != nullptr);
   if (local_parameterizations != NULL) {
     local_parameterizations_ = *local_parameterizations;
@@ -132,8 +132,8 @@ GradientChecker::GradientChecker(
   }
   DynamicNumericDiffCostFunction<CostFunction, RIDDERS>*
       finite_diff_cost_function =
-      new DynamicNumericDiffCostFunction<CostFunction, RIDDERS>(
-          function, DO_NOT_TAKE_OWNERSHIP, options);
+          new DynamicNumericDiffCostFunction<CostFunction, RIDDERS>(
+              function, DO_NOT_TAKE_OWNERSHIP, options);
   finite_diff_cost_function_.reset(finite_diff_cost_function);
 
   const vector<int32_t>& parameter_block_sizes =
@@ -145,7 +145,7 @@ GradientChecker::GradientChecker(
   finite_diff_cost_function->SetNumResiduals(function->num_residuals());
 }
 
-bool GradientChecker::Probe(double const* const * parameters,
+bool GradientChecker::Probe(double const* const* parameters,
                             double relative_precision,
                             ProbeResults* results_param) const {
   int num_residuals = function_->num_residuals();
@@ -171,8 +171,12 @@ bool GradientChecker::Probe(double const* const * parameters,
   // Evaluate the derivative using the user supplied code.
   vector<Matrix>& jacobians = results->jacobians;
   vector<Matrix>& local_jacobians = results->local_jacobians;
-  if (!EvaluateCostFunction(function_, parameters, local_parameterizations_,
-                       &results->residuals, &jacobians, &local_jacobians)) {
+  if (!EvaluateCostFunction(function_,
+                            parameters,
+                            local_parameterizations_,
+                            &results->residuals,
+                            &jacobians,
+                            &local_jacobians)) {
     results->error_log = "Function evaluation with Jacobians failed.";
     results->return_value = false;
   }
@@ -181,10 +185,14 @@ bool GradientChecker::Probe(double const* const * parameters,
   vector<Matrix>& numeric_jacobians = results->numeric_jacobians;
   vector<Matrix>& local_numeric_jacobians = results->local_numeric_jacobians;
   Vector finite_diff_residuals;
-  if (!EvaluateCostFunction(finite_diff_cost_function_.get(), parameters,
-                            local_parameterizations_, &finite_diff_residuals,
-                            &numeric_jacobians, &local_numeric_jacobians)) {
-    results->error_log += "\nFunction evaluation with numerical "
+  if (!EvaluateCostFunction(finite_diff_cost_function_.get(),
+                            parameters,
+                            local_parameterizations_,
+                            &finite_diff_residuals,
+                            &numeric_jacobians,
+                            &local_numeric_jacobians)) {
+    results->error_log +=
+        "\nFunction evaluation with numerical "
         "differentiation failed.";
     results->return_value = false;
   }
@@ -194,13 +202,13 @@ bool GradientChecker::Probe(double const* const * parameters,
   }
 
   for (int i = 0; i < num_residuals; ++i) {
-    if (!IsClose(
-        results->residuals[i],
-        finite_diff_residuals[i],
-        relative_precision,
-        NULL,
-        NULL)) {
-      results->error_log = "Function evaluation with and without Jacobians "
+    if (!IsClose(results->residuals[i],
+                 finite_diff_residuals[i],
+                 relative_precision,
+                 NULL,
+                 NULL)) {
+      results->error_log =
+          "Function evaluation with and without Jacobians "
           "resulted in different residuals.";
       LOG(INFO) << results->residuals.transpose();
       LOG(INFO) << finite_diff_residuals.transpose();
@@ -219,7 +227,7 @@ bool GradientChecker::Probe(double const* const * parameters,
   for (int k = 0; k < function_->parameter_block_sizes().size(); k++) {
     StringAppendF(&error_log,
                   "========== "
-                  "Jacobian for " "block %d: (%ld by %ld)) "
+                  "Jacobian for block %d: (%ld by %ld)) "
                   "==========\n",
                   k,
                   static_cast<long>(local_jacobians[k].rows()),
@@ -234,28 +242,33 @@ bool GradientChecker::Probe(double const* const * parameters,
         double term_jacobian = local_jacobians[k](i, j);
         double finite_jacobian = local_numeric_jacobians[k](i, j);
         double relative_error, absolute_error;
-        bool bad_jacobian_entry =
-            !IsClose(term_jacobian,
-                     finite_jacobian,
-                     relative_precision,
-                     &relative_error,
-                     &absolute_error);
+        bool bad_jacobian_entry = !IsClose(term_jacobian,
+                                           finite_jacobian,
+                                           relative_precision,
+                                           &relative_error,
+                                           &absolute_error);
         worst_relative_error = std::max(worst_relative_error, relative_error);
 
         StringAppendF(&error_log,
                       "%6d %4d %4d %17g %17g %17g %17g %17g %17g",
-                      k, i, j,
-                      term_jacobian, finite_jacobian,
-                      absolute_error, relative_error,
+                      k,
+                      i,
+                      j,
+                      term_jacobian,
+                      finite_jacobian,
+                      absolute_error,
+                      relative_error,
                       parameters[k][j],
                       results->residuals[i]);
 
         if (bad_jacobian_entry) {
           num_bad_jacobian_components++;
-          StringAppendF(
-              &error_log,
-              " ------ (%d,%d,%d) Relative error worse than %g",
-              k, i, j, relative_precision);
+          StringAppendF(&error_log,
+                        " ------ (%d,%d,%d) Relative error worse than %g",
+                        k,
+                        i,
+                        j,
+                        relative_precision);
         }
         error_log += "\n";
       }
@@ -264,11 +277,12 @@ bool GradientChecker::Probe(double const* const * parameters,
 
   // Since there were some bad errors, dump comprehensive debug info.
   if (num_bad_jacobian_components) {
-    string header = StringPrintf("\nDetected %d bad Jacobian component(s). "
+    string header = StringPrintf(
+        "\nDetected %d bad Jacobian component(s). "
         "Worst relative error was %g.\n",
         num_bad_jacobian_components,
         worst_relative_error);
-     results->error_log = header + "\n" + error_log;
+    results->error_log = header + "\n" + error_log;
     return false;
   }
   return true;

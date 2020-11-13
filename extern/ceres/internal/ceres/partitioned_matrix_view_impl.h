@@ -28,14 +28,14 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#include "ceres/partitioned_matrix_view.h"
-
 #include <algorithm>
 #include <cstring>
 #include <vector>
+
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
 #include "ceres/internal/eigen.h"
+#include "ceres/partitioned_matrix_view.h"
 #include "ceres/small_blas.h"
 #include "glog/logging.h"
 
@@ -44,11 +44,8 @@ namespace internal {
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
 PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-PartitionedMatrixView(
-    const BlockSparseMatrix& matrix,
-    int num_col_blocks_e)
-    : matrix_(matrix),
-      num_col_blocks_e_(num_col_blocks_e) {
+    PartitionedMatrixView(const BlockSparseMatrix& matrix, int num_col_blocks_e)
+    : matrix_(matrix), num_col_blocks_e_(num_col_blocks_e) {
   const CompressedRowBlockStructure* bs = matrix_.block_structure();
   CHECK(bs != nullptr);
 
@@ -85,8 +82,7 @@ PartitionedMatrixView(
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
 PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-~PartitionedMatrixView() {
-}
+    ~PartitionedMatrixView() {}
 
 // The next four methods don't seem to be particularly cache
 // friendly. This is an artifact of how the BlockStructure of the
@@ -94,9 +90,8 @@ PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
 // multithreading as well as improved data layout.
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-RightMultiplyE(const double* x, double* y) const {
+void PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    RightMultiplyE(const double* x, double* y) const {
   const CompressedRowBlockStructure* bs = matrix_.block_structure();
 
   // Iterate over the first num_row_blocks_e_ row blocks, and multiply
@@ -109,17 +104,18 @@ RightMultiplyE(const double* x, double* y) const {
     const int col_block_id = cell.block_id;
     const int col_block_pos = bs->cols[col_block_id].position;
     const int col_block_size = bs->cols[col_block_id].size;
+    // clang-format off
     MatrixVectorMultiply<kRowBlockSize, kEBlockSize, 1>(
         values + cell.position, row_block_size, col_block_size,
         x + col_block_pos,
         y + row_block_pos);
+    // clang-format on
   }
 }
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-RightMultiplyF(const double* x, double* y) const {
+void PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    RightMultiplyF(const double* x, double* y) const {
   const CompressedRowBlockStructure* bs = matrix_.block_structure();
 
   // Iterate over row blocks, and if the row block is in E, then
@@ -136,10 +132,12 @@ RightMultiplyF(const double* x, double* y) const {
       const int col_block_id = cells[c].block_id;
       const int col_block_pos = bs->cols[col_block_id].position;
       const int col_block_size = bs->cols[col_block_id].size;
+      // clang-format off
       MatrixVectorMultiply<kRowBlockSize, kFBlockSize, 1>(
           values + cells[c].position, row_block_size, col_block_size,
           x + col_block_pos - num_cols_e_,
           y + row_block_pos);
+      // clang-format on
     }
   }
 
@@ -151,18 +149,19 @@ RightMultiplyF(const double* x, double* y) const {
       const int col_block_id = cells[c].block_id;
       const int col_block_pos = bs->cols[col_block_id].position;
       const int col_block_size = bs->cols[col_block_id].size;
+      // clang-format off
       MatrixVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
           values + cells[c].position, row_block_size, col_block_size,
           x + col_block_pos - num_cols_e_,
           y + row_block_pos);
+      // clang-format on
     }
   }
 }
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-LeftMultiplyE(const double* x, double* y) const {
+void PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    LeftMultiplyE(const double* x, double* y) const {
   const CompressedRowBlockStructure* bs = matrix_.block_structure();
 
   // Iterate over the first num_row_blocks_e_ row blocks, and multiply
@@ -175,17 +174,18 @@ LeftMultiplyE(const double* x, double* y) const {
     const int col_block_id = cell.block_id;
     const int col_block_pos = bs->cols[col_block_id].position;
     const int col_block_size = bs->cols[col_block_id].size;
+    // clang-format off
     MatrixTransposeVectorMultiply<kRowBlockSize, kEBlockSize, 1>(
         values + cell.position, row_block_size, col_block_size,
         x + row_block_pos,
         y + col_block_pos);
+    // clang-format on
   }
 }
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-LeftMultiplyF(const double* x, double* y) const {
+void PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    LeftMultiplyF(const double* x, double* y) const {
   const CompressedRowBlockStructure* bs = matrix_.block_structure();
 
   // Iterate over row blocks, and if the row block is in E, then
@@ -202,10 +202,12 @@ LeftMultiplyF(const double* x, double* y) const {
       const int col_block_id = cells[c].block_id;
       const int col_block_pos = bs->cols[col_block_id].position;
       const int col_block_size = bs->cols[col_block_id].size;
+      // clang-format off
       MatrixTransposeVectorMultiply<kRowBlockSize, kFBlockSize, 1>(
         values + cells[c].position, row_block_size, col_block_size,
         x + row_block_pos,
         y + col_block_pos - num_cols_e_);
+      // clang-format on
     }
   }
 
@@ -217,10 +219,12 @@ LeftMultiplyF(const double* x, double* y) const {
       const int col_block_id = cells[c].block_id;
       const int col_block_pos = bs->cols[col_block_id].position;
       const int col_block_size = bs->cols[col_block_id].size;
+      // clang-format off
       MatrixTransposeVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
         values + cells[c].position, row_block_size, col_block_size,
         x + row_block_pos,
         y + col_block_pos - num_cols_e_);
+      // clang-format on
     }
   }
 }
@@ -233,7 +237,8 @@ LeftMultiplyF(const double* x, double* y) const {
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
 BlockSparseMatrix*
 PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-CreateBlockDiagonalMatrixLayout(int start_col_block, int end_col_block) const {
+    CreateBlockDiagonalMatrixLayout(int start_col_block,
+                                    int end_col_block) const {
   const CompressedRowBlockStructure* bs = matrix_.block_structure();
   CompressedRowBlockStructure* block_diagonal_structure =
       new CompressedRowBlockStructure;
@@ -269,9 +274,10 @@ CreateBlockDiagonalMatrixLayout(int start_col_block, int end_col_block) const {
 }
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-BlockSparseMatrix*
-PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-CreateBlockDiagonalEtE() const {
+BlockSparseMatrix* PartitionedMatrixView<kRowBlockSize,
+                                         kEBlockSize,
+                                         kFBlockSize>::CreateBlockDiagonalEtE()
+    const {
   BlockSparseMatrix* block_diagonal =
       CreateBlockDiagonalMatrixLayout(0, num_col_blocks_e_);
   UpdateBlockDiagonalEtE(block_diagonal);
@@ -279,12 +285,12 @@ CreateBlockDiagonalEtE() const {
 }
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-BlockSparseMatrix*
-PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-CreateBlockDiagonalFtF() const {
-  BlockSparseMatrix* block_diagonal =
-      CreateBlockDiagonalMatrixLayout(
-          num_col_blocks_e_, num_col_blocks_e_ + num_col_blocks_f_);
+BlockSparseMatrix* PartitionedMatrixView<kRowBlockSize,
+                                         kEBlockSize,
+                                         kFBlockSize>::CreateBlockDiagonalFtF()
+    const {
+  BlockSparseMatrix* block_diagonal = CreateBlockDiagonalMatrixLayout(
+      num_col_blocks_e_, num_col_blocks_e_ + num_col_blocks_f_);
   UpdateBlockDiagonalFtF(block_diagonal);
   return block_diagonal;
 }
@@ -295,17 +301,15 @@ CreateBlockDiagonalFtF() const {
 //    block_diagonal = block_diagonal(E'E)
 //
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-UpdateBlockDiagonalEtE(
-    BlockSparseMatrix* block_diagonal) const {
+void PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    UpdateBlockDiagonalEtE(BlockSparseMatrix* block_diagonal) const {
   const CompressedRowBlockStructure* bs = matrix_.block_structure();
   const CompressedRowBlockStructure* block_diagonal_structure =
       block_diagonal->block_structure();
 
   block_diagonal->SetZero();
   const double* values = matrix_.values();
-  for (int r = 0; r < num_row_blocks_e_ ; ++r) {
+  for (int r = 0; r < num_row_blocks_e_; ++r) {
     const Cell& cell = bs->rows[r].cells[0];
     const int row_block_size = bs->rows[r].block.size;
     const int block_id = cell.block_id;
@@ -313,12 +317,14 @@ UpdateBlockDiagonalEtE(
     const int cell_position =
         block_diagonal_structure->rows[block_id].cells[0].position;
 
+    // clang-format off
     MatrixTransposeMatrixMultiply
         <kRowBlockSize, kEBlockSize, kRowBlockSize, kEBlockSize, 1>(
             values + cell.position, row_block_size, col_block_size,
             values + cell.position, row_block_size, col_block_size,
             block_diagonal->mutable_values() + cell_position,
             0, 0, col_block_size, col_block_size);
+    // clang-format on
   }
 }
 
@@ -328,9 +334,8 @@ UpdateBlockDiagonalEtE(
 //   block_diagonal = block_diagonal(F'F)
 //
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
-UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const {
+void PartitionedMatrixView<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const {
   const CompressedRowBlockStructure* bs = matrix_.block_structure();
   const CompressedRowBlockStructure* block_diagonal_structure =
       block_diagonal->block_structure();
@@ -347,12 +352,14 @@ UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const {
       const int cell_position =
           block_diagonal_structure->rows[diagonal_block_id].cells[0].position;
 
+      // clang-format off
       MatrixTransposeMatrixMultiply
           <kRowBlockSize, kFBlockSize, kRowBlockSize, kFBlockSize, 1>(
               values + cells[c].position, row_block_size, col_block_size,
               values + cells[c].position, row_block_size, col_block_size,
               block_diagonal->mutable_values() + cell_position,
               0, 0, col_block_size, col_block_size);
+      // clang-format on
     }
   }
 
@@ -366,12 +373,14 @@ UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const {
       const int cell_position =
           block_diagonal_structure->rows[diagonal_block_id].cells[0].position;
 
+      // clang-format off
       MatrixTransposeMatrixMultiply
           <Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic, 1>(
               values + cells[c].position, row_block_size, col_block_size,
               values + cells[c].position, row_block_size, col_block_size,
               block_diagonal->mutable_values() + cell_position,
               0, 0, col_block_size, col_block_size);
+      // clang-format on
     }
   }
 }

@@ -31,9 +31,9 @@
 #ifndef CERES_INTERNAL_INVERT_PSD_MATRIX_H_
 #define CERES_INTERNAL_INVERT_PSD_MATRIX_H_
 
+#include "Eigen/Dense"
 #include "ceres/internal/eigen.h"
 #include "glog/logging.h"
-#include "Eigen/Dense"
 
 namespace ceres {
 namespace internal {
@@ -76,4 +76,4 @@ typename EigenTypes<kSize, kSize>::Matrix InvertPSDMatrix(
 }  // namespace internal
 }  // namespace ceres
 
-#endif // CERES_INTERNAL_INVERT_PSD_MATRIX_H_
+#endif  // CERES_INTERNAL_INVERT_PSD_MATRIX_H_

@@ -36,31 +36,26 @@
 namespace ceres {
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Vector;
-typedef Eigen::Matrix<double,
-                      Eigen::Dynamic,
-                      Eigen::Dynamic,
-                      Eigen::RowMajor> Matrix;
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+    Matrix;
 typedef Eigen::Map<Vector> VectorRef;
 typedef Eigen::Map<Matrix> MatrixRef;
 typedef Eigen::Map<const Vector> ConstVectorRef;
 typedef Eigen::Map<const Matrix> ConstMatrixRef;
 
 // Column major matrices for DenseSparseMatrix/DenseQRSolver
-typedef Eigen::Matrix<double,
-                      Eigen::Dynamic,
-                      Eigen::Dynamic,
-                      Eigen::ColMajor> ColMajorMatrix;
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
+    ColMajorMatrix;
 
-typedef Eigen::Map<ColMajorMatrix, 0,
-                   Eigen::Stride<Eigen::Dynamic, 1>> ColMajorMatrixRef;
+typedef Eigen::Map<ColMajorMatrix, 0, Eigen::Stride<Eigen::Dynamic, 1>>
+    ColMajorMatrixRef;
 
-typedef Eigen::Map<const ColMajorMatrix,
-                   0,
-                   Eigen::Stride<Eigen::Dynamic, 1>> ConstColMajorMatrixRef;
+typedef Eigen::Map<const ColMajorMatrix, 0, Eigen::Stride<Eigen::Dynamic, 1>>
+    ConstColMajorMatrixRef;
 
 // C++ does not support templated typdefs, thus the need for this
 // struct so that we can support statically sized Matrix and Maps.
- template <int num_rows = Eigen::Dynamic, int num_cols = Eigen::Dynamic>
+template <int num_rows = Eigen::Dynamic, int num_cols = Eigen::Dynamic>
 struct EigenTypes {
   typedef Eigen::Matrix<double,
                         num_rows,

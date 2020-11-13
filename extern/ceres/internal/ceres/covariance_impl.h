@@ -36,7 +36,9 @@
 #include <set>
 #include <utility>
 #include <vector>
+
 #include "ceres/covariance.h"
+#include "ceres/internal/port.h"
 #include "ceres/problem_impl.h"
 #include "ceres/suitesparse.h"
 
@@ -45,19 +47,17 @@ namespace internal {
 
 class CompressedRowSparseMatrix;
 
-class CovarianceImpl {
+class CERES_EXPORT_INTERNAL CovarianceImpl {
  public:
   explicit CovarianceImpl(const Covariance::Options& options);
   ~CovarianceImpl();
 
-  bool Compute(
-      const std::vector<std::pair<const double*,
-                                  const double*>>& covariance_blocks,
-      ProblemImpl* problem);
+  bool Compute(const std::vector<std::pair<const double*, const double*>>&
+                   covariance_blocks,
+               ProblemImpl* problem);
 
-  bool Compute(
-      const std::vector<const double*>& parameter_blocks,
-      ProblemImpl* problem);
+  bool Compute(const std::vector<const double*>& parameter_blocks,
+               ProblemImpl* problem);
 
   bool GetCovarianceBlockInTangentOrAmbientSpace(
       const double* parameter_block1,
@@ -68,11 +68,11 @@ class CovarianceImpl {
   bool GetCovarianceMatrixInTangentOrAmbientSpace(
       const std::vector<const double*>& parameters,
       bool lift_covariance_to_ambient_space,
-      double *covariance_matrix) const;
+      double* covariance_matrix) const;
 
   bool ComputeCovarianceSparsity(
-      const std::vector<std::pair<const double*,
-                                  const double*>>& covariance_blocks,
+      const std::vector<std::pair<const double*, const double*>>&
+          covariance_blocks,
       ProblemImpl* problem);
 
   bool ComputeCovarianceValues();

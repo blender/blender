@@ -30,8 +30,9 @@
 
 #include "ceres/single_linkage_clustering.h"
 
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
+
 #include "ceres/graph.h"
 #include "ceres/graph_algorithms.h"
 

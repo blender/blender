@@ -46,7 +46,9 @@
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 10
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
 
 #include <algorithm>
 #include <map>
@@ -152,7 +154,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::Init(
       ++chunk.size;
     }
 
-    CHECK_GT(chunk.size, 0); // This check will need to be resolved.
+    CHECK_GT(chunk.size, 0);  // This check will need to be resolved.
     r += chunk.size;
   }
   const Chunk& chunk = chunks_.back();
@@ -174,13 +176,12 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::Init(
 }
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
-Eliminate(const BlockSparseMatrixData& A,
-          const double* b,
-          const double* D,
-          BlockRandomAccessMatrix* lhs,
-          double* rhs) {
+void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::Eliminate(
+    const BlockSparseMatrixData& A,
+    const double* b,
+    const double* D,
+    BlockRandomAccessMatrix* lhs,
+    double* rhs) {
   if (lhs->num_rows() > 0) {
     lhs->SetZero();
     if (rhs) {
@@ -193,27 +194,26 @@ Eliminate(const BlockSparseMatrixData& A,
 
   // Add the diagonal to the schur complement.
   if (D != NULL) {
-    ParallelFor(
-        context_,
-        num_eliminate_blocks_,
-        num_col_blocks,
-        num_threads_,
-        [&](int i) {
-          const int block_id = i - num_eliminate_blocks_;
-          int r, c, row_stride, col_stride;
-          CellInfo* cell_info = lhs->GetCell(block_id, block_id, &r, &c,
-                                             &row_stride, &col_stride);
-          if (cell_info != NULL) {
-            const int block_size = bs->cols[i].size;
-            typename EigenTypes<Eigen::Dynamic>::ConstVectorRef diag(
-                D + bs->cols[i].position, block_size);
+    ParallelFor(context_,
+                num_eliminate_blocks_,
+                num_col_blocks,
+                num_threads_,
+                [&](int i) {
+                  const int block_id = i - num_eliminate_blocks_;
+                  int r, c, row_stride, col_stride;
+                  CellInfo* cell_info = lhs->GetCell(
+                      block_id, block_id, &r, &c, &row_stride, &col_stride);
+                  if (cell_info != NULL) {
+                    const int block_size = bs->cols[i].size;
+                    typename EigenTypes<Eigen::Dynamic>::ConstVectorRef diag(
+                        D + bs->cols[i].position, block_size);
 
-            std::lock_guard<std::mutex> l(cell_info->m);
-            MatrixRef m(cell_info->values, row_stride, col_stride);
-            m.block(r, c, block_size, block_size).diagonal() +=
-                diag.array().square().matrix();
-          }
-        });
+                    std::lock_guard<std::mutex> l(cell_info->m);
+                    MatrixRef m(cell_info->values, row_stride, col_stride);
+                    m.block(r, c, block_size, block_size).diagonal() +=
+                        diag.array().square().matrix();
+                  }
+                });
   }
 
   // Eliminate y blocks one chunk at a time.  For each chunk, compute
@@ -242,12 +242,12 @@ Eliminate(const BlockSparseMatrixData& A,
 
         VectorRef(buffer, buffer_size_).setZero();
 
-        typename EigenTypes<kEBlockSize, kEBlockSize>::Matrix
-            ete(e_block_size, e_block_size);
+        typename EigenTypes<kEBlockSize, kEBlockSize>::Matrix ete(e_block_size,
+                                                                  e_block_size);
 
         if (D != NULL) {
-          const typename EigenTypes<kEBlockSize>::ConstVectorRef
-              diag(D + bs->cols[e_block_id].position, e_block_size);
+          const typename EigenTypes<kEBlockSize>::ConstVectorRef diag(
+              D + bs->cols[e_block_id].position, e_block_size);
           ete = diag.array().square().matrix().asDiagonal();
         } else {
           ete.setZero();
@@ -299,31 +299,25 @@ Eliminate(const BlockSparseMatrixData& A,
 
         // S -= F'E(E'E)^{-1}E'F
         ChunkOuterProduct(
-        thread_id, bs, inverse_ete, buffer, chunk.buffer_layout, lhs);
+            thread_id, bs, inverse_ete, buffer, chunk.buffer_layout, lhs);
       });
 
   // For rows with no e_blocks, the schur complement update reduces to
   // S += F'F.
-  NoEBlockRowsUpdate(A, b,  uneliminated_row_begins_, lhs, rhs);
+  NoEBlockRowsUpdate(A, b, uneliminated_row_begins_, lhs, rhs);
 }
 
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
-BackSubstitute(const BlockSparseMatrixData& A,
-               const double* b,
-               const double* D,
-               const double* z,
-               double* y) {
+void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::BackSubstitute(
+    const BlockSparseMatrixData& A,
+    const double* b,
+    const double* D,
+    const double* z,
+    double* y) {
   const CompressedRowBlockStructure* bs = A.block_structure();
   const double* values = A.values();
 
-  ParallelFor(
-      context_,
-      0,
-      int(chunks_.size()),
-      num_threads_,
-      [&](int i) {
+  ParallelFor(context_, 0, int(chunks_.size()), num_threads_, [&](int i) {
     const Chunk& chunk = chunks_[i];
     const int e_block_id = bs->rows[chunk.start].cells.front().block_id;
     const int e_block_size = bs->cols[e_block_id].size;
@@ -331,11 +325,11 @@ BackSubstitute(const BlockSparseMatrixData& A,
     double* y_ptr = y + bs->cols[e_block_id].position;
     typename EigenTypes<kEBlockSize>::VectorRef y_block(y_ptr, e_block_size);
 
-    typename EigenTypes<kEBlockSize, kEBlockSize>::Matrix
-        ete(e_block_size, e_block_size);
+    typename EigenTypes<kEBlockSize, kEBlockSize>::Matrix ete(e_block_size,
+                                                              e_block_size);
     if (D != NULL) {
-      const typename EigenTypes<kEBlockSize>::ConstVectorRef
-          diag(D + bs->cols[e_block_id].position, e_block_size);
+      const typename EigenTypes<kEBlockSize>::ConstVectorRef diag(
+          D + bs->cols[e_block_id].position, e_block_size);
       ete = diag.array().square().matrix().asDiagonal();
     } else {
       ete.setZero();
@@ -357,6 +351,7 @@ BackSubstitute(const BlockSparseMatrixData& A,
         const int f_block_size = bs->cols[f_block_id].size;
         const int r_block = f_block_id - num_eliminate_blocks_;
 
+        // clang-format off
         MatrixVectorMultiply<kRowBlockSize, kFBlockSize, -1>(
             values + row.cells[c].position, row.block.size, f_block_size,
             z + lhs_row_layout_[r_block],
@@ -373,6 +368,7 @@ BackSubstitute(const BlockSparseMatrixData& A,
           values + e_cell.position, row.block.size, e_block_size,
           values + e_cell.position, row.block.size, e_block_size,
           ete.data(), 0, 0, e_block_size, e_block_size);
+      // clang-format on
     }
 
     y_block =
@@ -384,14 +380,13 @@ BackSubstitute(const BlockSparseMatrixData& A,
 //
 //   F'b - F'E(E'E)^(-1) E'b
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
-UpdateRhs(const Chunk& chunk,
-          const BlockSparseMatrixData& A,
-          const double* b,
-          int row_block_counter,
-          const double* inverse_ete_g,
-          double* rhs) {
+void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::UpdateRhs(
+    const Chunk& chunk,
+    const BlockSparseMatrixData& A,
+    const double* b,
+    int row_block_counter,
+    const double* inverse_ete_g,
+    double* rhs) {
   const CompressedRowBlockStructure* bs = A.block_structure();
   const double* values = A.values();
 
@@ -403,22 +398,26 @@ UpdateRhs(const Chunk& chunk,
     const Cell& e_cell = row.cells.front();
 
     typename EigenTypes<kRowBlockSize>::Vector sj =
-        typename EigenTypes<kRowBlockSize>::ConstVectorRef
-        (b + b_pos, row.block.size);
+        typename EigenTypes<kRowBlockSize>::ConstVectorRef(b + b_pos,
+                                                           row.block.size);
 
+    // clang-format off
     MatrixVectorMultiply<kRowBlockSize, kEBlockSize, -1>(
         values + e_cell.position, row.block.size, e_block_size,
         inverse_ete_g, sj.data());
+    // clang-format on
 
     for (int c = 1; c < row.cells.size(); ++c) {
       const int block_id = row.cells[c].block_id;
       const int block_size = bs->cols[block_id].size;
       const int block = block_id - num_eliminate_blocks_;
       std::lock_guard<std::mutex> l(*rhs_locks_[block]);
+      // clang-format off
       MatrixTransposeVectorMultiply<kRowBlockSize, kFBlockSize, 1>(
           values + row.cells[c].position,
           row.block.size, block_size,
           sj.data(), rhs + lhs_row_layout_[block]);
+      // clang-format on
     }
     b_pos += row.block.size;
   }
@@ -444,17 +443,16 @@ UpdateRhs(const Chunk& chunk,
 //
 // and the gradient of the e_block, E'b.
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
-ChunkDiagonalBlockAndGradient(
-    const Chunk& chunk,
-    const BlockSparseMatrixData& A,
-    const double* b,
-    int row_block_counter,
-    typename EigenTypes<kEBlockSize, kEBlockSize>::Matrix* ete,
-    double* g,
-    double* buffer,
-    BlockRandomAccessMatrix* lhs) {
+void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    ChunkDiagonalBlockAndGradient(
+        const Chunk& chunk,
+        const BlockSparseMatrixData& A,
+        const double* b,
+        int row_block_counter,
+        typename EigenTypes<kEBlockSize, kEBlockSize>::Matrix* ete,
+        double* g,
+        double* buffer,
+        BlockRandomAccessMatrix* lhs) {
   const CompressedRowBlockStructure* bs = A.block_structure();
   const double* values = A.values();
 
@@ -474,18 +472,22 @@ ChunkDiagonalBlockAndGradient(
 
     // Extract the e_block, ETE += E_i' E_i
     const Cell& e_cell = row.cells.front();
+    // clang-format off
     MatrixTransposeMatrixMultiply
         <kRowBlockSize, kEBlockSize, kRowBlockSize, kEBlockSize, 1>(
             values + e_cell.position, row.block.size, e_block_size,
             values + e_cell.position, row.block.size, e_block_size,
             ete->data(), 0, 0, e_block_size, e_block_size);
+    // clang-format on
 
     if (b) {
       // g += E_i' b_i
+      // clang-format off
       MatrixTransposeVectorMultiply<kRowBlockSize, kEBlockSize, 1>(
           values + e_cell.position, row.block.size, e_block_size,
           b + b_pos,
           g);
+      // clang-format on
     }
 
     // buffer = E'F. This computation is done by iterating over the
@@ -493,13 +495,14 @@ ChunkDiagonalBlockAndGradient(
     for (int c = 1; c < row.cells.size(); ++c) {
       const int f_block_id = row.cells[c].block_id;
       const int f_block_size = bs->cols[f_block_id].size;
-      double* buffer_ptr =
-          buffer +  FindOrDie(chunk.buffer_layout, f_block_id);
+      double* buffer_ptr = buffer + FindOrDie(chunk.buffer_layout, f_block_id);
+      // clang-format off
       MatrixTransposeMatrixMultiply
           <kRowBlockSize, kEBlockSize, kRowBlockSize, kFBlockSize, 1>(
           values + e_cell.position, row.block.size, e_block_size,
           values + row.cells[c].position, row.block.size, f_block_size,
           buffer_ptr, 0, 0, e_block_size, f_block_size);
+      // clang-format on
     }
     b_pos += row.block.size;
   }
@@ -510,14 +513,13 @@ ChunkDiagonalBlockAndGradient(
 //
 //  S -= F'E(E'E)^{-1}E'F.
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
-ChunkOuterProduct(int thread_id,
-                  const CompressedRowBlockStructure* bs,
-                  const Matrix& inverse_ete,
-                  const double* buffer,
-                  const BufferLayoutType& buffer_layout,
-                  BlockRandomAccessMatrix* lhs) {
+void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    ChunkOuterProduct(int thread_id,
+                      const CompressedRowBlockStructure* bs,
+                      const Matrix& inverse_ete,
+                      const double* buffer,
+                      const BufferLayoutType& buffer_layout,
+                      BlockRandomAccessMatrix* lhs) {
   // This is the most computationally expensive part of this
   // code. Profiling experiments reveal that the bottleneck is not the
   // computation of the right-hand matrix product, but memory
@@ -532,28 +534,31 @@ ChunkOuterProduct(int thread_id,
   for (; it1 != buffer_layout.end(); ++it1) {
     const int block1 = it1->first - num_eliminate_blocks_;
     const int block1_size = bs->cols[it1->first].size;
+    // clang-format off
     MatrixTransposeMatrixMultiply
         <kEBlockSize, kFBlockSize, kEBlockSize, kEBlockSize, 0>(
         buffer + it1->second, e_block_size, block1_size,
         inverse_ete.data(), e_block_size, e_block_size,
         b1_transpose_inverse_ete, 0, 0, block1_size, e_block_size);
+    // clang-format on
 
     BufferLayoutType::const_iterator it2 = it1;
     for (; it2 != buffer_layout.end(); ++it2) {
       const int block2 = it2->first - num_eliminate_blocks_;
 
       int r, c, row_stride, col_stride;
-      CellInfo* cell_info = lhs->GetCell(block1, block2,
-                                         &r, &c,
-                                         &row_stride, &col_stride);
+      CellInfo* cell_info =
+          lhs->GetCell(block1, block2, &r, &c, &row_stride, &col_stride);
       if (cell_info != NULL) {
         const int block2_size = bs->cols[it2->first].size;
         std::lock_guard<std::mutex> l(cell_info->m);
+        // clang-format off
         MatrixMatrixMultiply
             <kFBlockSize, kEBlockSize, kEBlockSize, kFBlockSize, -1>(
                 b1_transpose_inverse_ete, block1_size, e_block_size,
                 buffer  + it2->second, e_block_size, block2_size,
                 cell_info->values, r, c, row_stride, col_stride);
+        // clang-format on
       }
     }
   }
@@ -563,13 +568,12 @@ ChunkOuterProduct(int thread_id,
 // += F'F. This function iterates over the rows of A with no e_block,
 // and calls NoEBlockRowOuterProduct on each row.
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
-NoEBlockRowsUpdate(const BlockSparseMatrixData& A,
-                   const double* b,
-                   int row_block_counter,
-                   BlockRandomAccessMatrix* lhs,
-                   double* rhs) {
+void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    NoEBlockRowsUpdate(const BlockSparseMatrixData& A,
+                       const double* b,
+                       int row_block_counter,
+                       BlockRandomAccessMatrix* lhs,
+                       double* rhs) {
   const CompressedRowBlockStructure* bs = A.block_structure();
   const double* values = A.values();
   for (; row_block_counter < bs->rows.size(); ++row_block_counter) {
@@ -582,14 +586,15 @@ NoEBlockRowsUpdate(const BlockSparseMatrixData& A,
       const int block_id = row.cells[c].block_id;
       const int block_size = bs->cols[block_id].size;
       const int block = block_id - num_eliminate_blocks_;
+      // clang-format off
       MatrixTransposeVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
           values + row.cells[c].position, row.block.size, block_size,
           b + row.block.position,
           rhs + lhs_row_layout_[block]);
+      // clang-format on
     }
   }
 }
-
 
 // A row r of A, which has no e_blocks gets added to the Schur
 // Complement as S += r r'. This function is responsible for computing
@@ -606,11 +611,10 @@ NoEBlockRowsUpdate(const BlockSparseMatrixData& A,
 // dynamic. Since the number of rows without e_blocks is small, the
 // lack of templating is not an issue.
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
-NoEBlockRowOuterProduct(const BlockSparseMatrixData& A,
-                        int row_block_index,
-                        BlockRandomAccessMatrix* lhs) {
+void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    NoEBlockRowOuterProduct(const BlockSparseMatrixData& A,
+                            int row_block_index,
+                            BlockRandomAccessMatrix* lhs) {
   const CompressedRowBlockStructure* bs = A.block_structure();
   const double* values = A.values();
 
@@ -621,18 +625,19 @@ NoEBlockRowOuterProduct(const BlockSparseMatrixData& A,
 
     const int block1_size = bs->cols[row.cells[i].block_id].size;
     int r, c, row_stride, col_stride;
-    CellInfo* cell_info = lhs->GetCell(block1, block1,
-                                       &r, &c,
-                                       &row_stride, &col_stride);
+    CellInfo* cell_info =
+        lhs->GetCell(block1, block1, &r, &c, &row_stride, &col_stride);
     if (cell_info != NULL) {
       std::lock_guard<std::mutex> l(cell_info->m);
       // This multiply currently ignores the fact that this is a
       // symmetric outer product.
+      // clang-format off
       MatrixTransposeMatrixMultiply
           <Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic, 1>(
               values + row.cells[i].position, row.block.size, block1_size,
               values + row.cells[i].position, row.block.size, block1_size,
               cell_info->values, r, c, row_stride, col_stride);
+      // clang-format on
     }
 
     for (int j = i + 1; j < row.cells.size(); ++j) {
@@ -640,17 +645,18 @@ NoEBlockRowOuterProduct(const BlockSparseMatrixData& A,
       DCHECK_GE(block2, 0);
       DCHECK_LT(block1, block2);
       int r, c, row_stride, col_stride;
-      CellInfo* cell_info = lhs->GetCell(block1, block2,
-                                         &r, &c,
-                                         &row_stride, &col_stride);
+      CellInfo* cell_info =
+          lhs->GetCell(block1, block2, &r, &c, &row_stride, &col_stride);
       if (cell_info != NULL) {
         const int block2_size = bs->cols[row.cells[j].block_id].size;
         std::lock_guard<std::mutex> l(cell_info->m);
+        // clang-format off
         MatrixTransposeMatrixMultiply
             <Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic, 1>(
                 values + row.cells[i].position, row.block.size, block1_size,
                 values + row.cells[j].position, row.block.size, block2_size,
                 cell_info->values, r, c, row_stride, col_stride);
+        // clang-format on
       }
     }
   }
@@ -660,11 +666,10 @@ NoEBlockRowOuterProduct(const BlockSparseMatrixData& A,
 // function has the same structure as NoEBlockRowOuterProduct, except
 // that this function uses the template parameters.
 template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
-void
-SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
-EBlockRowOuterProduct(const BlockSparseMatrixData& A,
-                      int row_block_index,
-                      BlockRandomAccessMatrix* lhs) {
+void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
+    EBlockRowOuterProduct(const BlockSparseMatrixData& A,
+                          int row_block_index,
+                          BlockRandomAccessMatrix* lhs) {
   const CompressedRowBlockStructure* bs = A.block_structure();
   const double* values = A.values();
 
@@ -675,17 +680,18 @@ EBlockRowOuterProduct(const BlockSparseMatrixData& A,
 
     const int block1_size = bs->cols[row.cells[i].block_id].size;
     int r, c, row_stride, col_stride;
-    CellInfo* cell_info = lhs->GetCell(block1, block1,
-                                       &r, &c,
-                                       &row_stride, &col_stride);
+    CellInfo* cell_info =
+        lhs->GetCell(block1, block1, &r, &c, &row_stride, &col_stride);
     if (cell_info != NULL) {
       std::lock_guard<std::mutex> l(cell_info->m);
       // block += b1.transpose() * b1;
+      // clang-format off
       MatrixTransposeMatrixMultiply
           <kRowBlockSize, kFBlockSize, kRowBlockSize, kFBlockSize, 1>(
           values + row.cells[i].position, row.block.size, block1_size,
           values + row.cells[i].position, row.block.size, block1_size,
           cell_info->values, r, c, row_stride, col_stride);
+      // clang-format on
     }
 
     for (int j = i + 1; j < row.cells.size(); ++j) {
@@ -694,17 +700,18 @@ EBlockRowOuterProduct(const BlockSparseMatrixData& A,
       DCHECK_LT(block1, block2);
       const int block2_size = bs->cols[row.cells[j].block_id].size;
       int r, c, row_stride, col_stride;
-      CellInfo* cell_info = lhs->GetCell(block1, block2,
-                                         &r, &c,
-                                         &row_stride, &col_stride);
+      CellInfo* cell_info =
+          lhs->GetCell(block1, block2, &r, &c, &row_stride, &col_stride);
       if (cell_info != NULL) {
         // block += b1.transpose() * b2;
         std::lock_guard<std::mutex> l(cell_info->m);
+        // clang-format off
         MatrixTransposeMatrixMultiply
             <kRowBlockSize, kFBlockSize, kRowBlockSize, kFBlockSize, 1>(
                 values + row.cells[i].position, row.block.size, block1_size,
                 values + row.cells[j].position, row.block.size, block2_size,
                 cell_info->values, r, c, row_stride, col_stride);
+        // clang-format on
       }
     }
   }

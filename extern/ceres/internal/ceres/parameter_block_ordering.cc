@@ -50,11 +50,11 @@ using std::set;
 using std::vector;
 
 int ComputeStableSchurOrdering(const Program& program,
-                         vector<ParameterBlock*>* ordering) {
+                               vector<ParameterBlock*>* ordering) {
   CHECK(ordering != nullptr);
   ordering->clear();
   EventLogger event_logger("ComputeStableSchurOrdering");
-  std::unique_ptr<Graph< ParameterBlock*> > graph(CreateHessianGraph(program));
+  std::unique_ptr<Graph<ParameterBlock*>> graph(CreateHessianGraph(program));
   event_logger.AddEvent("CreateHessianGraph");
 
   const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
@@ -86,7 +86,7 @@ int ComputeSchurOrdering(const Program& program,
   CHECK(ordering != nullptr);
   ordering->clear();
 
-  std::unique_ptr<Graph< ParameterBlock*> > graph(CreateHessianGraph(program));
+  std::unique_ptr<Graph<ParameterBlock*>> graph(CreateHessianGraph(program));
   int independent_set_size = IndependentSetOrdering(*graph, ordering);
   const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
 
@@ -106,7 +106,7 @@ void ComputeRecursiveIndependentSetOrdering(const Program& program,
   CHECK(ordering != nullptr);
   ordering->Clear();
   const vector<ParameterBlock*> parameter_blocks = program.parameter_blocks();
-  std::unique_ptr<Graph< ParameterBlock*> > graph(CreateHessianGraph(program));
+  std::unique_ptr<Graph<ParameterBlock*>> graph(CreateHessianGraph(program));
 
   int num_covered = 0;
   int round = 0;

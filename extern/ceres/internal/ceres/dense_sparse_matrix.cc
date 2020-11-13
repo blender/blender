@@ -31,17 +31,17 @@
 #include "ceres/dense_sparse_matrix.h"
 
 #include <algorithm>
-#include "ceres/triplet_sparse_matrix.h"
+
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
+#include "ceres/triplet_sparse_matrix.h"
 #include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
 
 DenseSparseMatrix::DenseSparseMatrix(int num_rows, int num_cols)
-    : has_diagonal_appended_(false),
-      has_diagonal_reserved_(false) {
+    : has_diagonal_appended_(false), has_diagonal_reserved_(false) {
   m_.resize(num_rows, num_cols);
   m_.setZero();
 }
@@ -49,11 +49,10 @@ DenseSparseMatrix::DenseSparseMatrix(int num_rows, int num_cols)
 DenseSparseMatrix::DenseSparseMatrix(int num_rows,
                                      int num_cols,
                                      bool reserve_diagonal)
-    : has_diagonal_appended_(false),
-      has_diagonal_reserved_(reserve_diagonal) {
+    : has_diagonal_appended_(false), has_diagonal_reserved_(reserve_diagonal) {
   if (reserve_diagonal) {
     // Allocate enough space for the diagonal.
-    m_.resize(num_rows +  num_cols, num_cols);
+    m_.resize(num_rows + num_cols, num_cols);
   } else {
     m_.resize(num_rows, num_cols);
   }
@@ -64,9 +63,9 @@ DenseSparseMatrix::DenseSparseMatrix(const TripletSparseMatrix& m)
     : m_(Eigen::MatrixXd::Zero(m.num_rows(), m.num_cols())),
       has_diagonal_appended_(false),
       has_diagonal_reserved_(false) {
-  const double *values = m.values();
-  const int *rows = m.rows();
-  const int *cols = m.cols();
+  const double* values = m.values();
+  const int* rows = m.rows();
+  const int* cols = m.cols();
   int num_nonzeros = m.num_nonzeros();
 
   for (int i = 0; i < num_nonzeros; ++i) {
@@ -75,14 +74,9 @@ DenseSparseMatrix::DenseSparseMatrix(const TripletSparseMatrix& m)
 }
 
 DenseSparseMatrix::DenseSparseMatrix(const ColMajorMatrix& m)
-    : m_(m),
-      has_diagonal_appended_(false),
-      has_diagonal_reserved_(false) {
-}
+    : m_(m), has_diagonal_appended_(false), has_diagonal_reserved_(false) {}
 
-void DenseSparseMatrix::SetZero() {
-  m_.setZero();
-}
+void DenseSparseMatrix::SetZero() { m_.setZero(); }
 
 void DenseSparseMatrix::RightMultiply(const double* x, double* y) const {
   VectorRef(y, num_rows()) += matrix() * ConstVectorRef(x, num_cols());
@@ -105,7 +99,7 @@ void DenseSparseMatrix::ToDenseMatrix(Matrix* dense_matrix) const {
   *dense_matrix = m_.block(0, 0, num_rows(), num_cols());
 }
 
-void DenseSparseMatrix::AppendDiagonal(double *d) {
+void DenseSparseMatrix::AppendDiagonal(double* d) {
   CHECK(!has_diagonal_appended_);
   if (!has_diagonal_reserved_) {
     ColMajorMatrix tmp = m_;
@@ -133,9 +127,7 @@ int DenseSparseMatrix::num_rows() const {
   return m_.rows();
 }
 
-int DenseSparseMatrix::num_cols() const {
-  return m_.cols();
-}
+int DenseSparseMatrix::num_cols() const { return m_.cols(); }
 
 int DenseSparseMatrix::num_nonzeros() const {
   if (has_diagonal_reserved_ && !has_diagonal_appended_) {
@@ -148,33 +140,30 @@ ConstColMajorMatrixRef DenseSparseMatrix::matrix() const {
   return ConstColMajorMatrixRef(
       m_.data(),
       ((has_diagonal_reserved_ && !has_diagonal_appended_)
-       ? m_.rows() - m_.cols()
-       : m_.rows()),
+           ? m_.rows() - m_.cols()
+           : m_.rows()),
       m_.cols(),
       Eigen::Stride<Eigen::Dynamic, 1>(m_.rows(), 1));
 }
 
 ColMajorMatrixRef DenseSparseMatrix::mutable_matrix() {
-  return ColMajorMatrixRef(
-      m_.data(),
-      ((has_diagonal_reserved_ && !has_diagonal_appended_)
-       ? m_.rows() - m_.cols()
-       : m_.rows()),
-      m_.cols(),
-      Eigen::Stride<Eigen::Dynamic, 1>(m_.rows(), 1));
+  return ColMajorMatrixRef(m_.data(),
+                           ((has_diagonal_reserved_ && !has_diagonal_appended_)
+                                ? m_.rows() - m_.cols()
+                                : m_.rows()),
+                           m_.cols(),
+                           Eigen::Stride<Eigen::Dynamic, 1>(m_.rows(), 1));
 }
-
 
 void DenseSparseMatrix::ToTextFile(FILE* file) const {
   CHECK(file != nullptr);
-  const int active_rows =
-      (has_diagonal_reserved_ && !has_diagonal_appended_)
-      ? (m_.rows() - m_.cols())
-      : m_.rows();
+  const int active_rows = (has_diagonal_reserved_ && !has_diagonal_appended_)
+                              ? (m_.rows() - m_.cols())
+                              : m_.rows();
 
   for (int r = 0; r < active_rows; ++r) {
     for (int c = 0; c < m_.cols(); ++c) {
-      fprintf(file,  "% 10d % 10d %17f\n", r, c, m_(r, c));
+      fprintf(file, "% 10d % 10d %17f\n", r, c, m_(r, c));
     }
   }
 }

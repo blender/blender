@@ -32,7 +32,10 @@
 #define CERES_INTERNAL_ITERATIVE_REFINER_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
+
 #include "ceres/internal/eigen.h"
 
 namespace ceres {
@@ -54,7 +57,7 @@ class SparseMatrix;
 // Definite linear systems.
 //
 // The above iterative loop is run until max_num_iterations is reached.
-class IterativeRefiner {
+class CERES_EXPORT_INTERNAL IterativeRefiner {
  public:
   // max_num_iterations is the number of refinement iterations to
   // perform.

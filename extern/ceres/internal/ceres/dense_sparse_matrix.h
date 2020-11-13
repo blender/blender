@@ -34,6 +34,7 @@
 #define CERES_INTERNAL_DENSE_SPARSE_MATRIX_H_
 
 #include "ceres/internal/eigen.h"
+#include "ceres/internal/port.h"
 #include "ceres/sparse_matrix.h"
 #include "ceres/types.h"
 
@@ -42,7 +43,7 @@ namespace internal {
 
 class TripletSparseMatrix;
 
-class DenseSparseMatrix : public SparseMatrix {
+class CERES_EXPORT_INTERNAL DenseSparseMatrix : public SparseMatrix {
  public:
   // Build a matrix with the same content as the TripletSparseMatrix
   // m. This assumes that m does not have any repeated entries.
@@ -92,7 +93,7 @@ class DenseSparseMatrix : public SparseMatrix {
   // Calling RemoveDiagonal removes the block. It is a fatal error to append a
   // diagonal to a matrix that already has an appended diagonal, and it is also
   // a fatal error to remove a diagonal from a matrix that has none.
-  void AppendDiagonal(double *d);
+  void AppendDiagonal(double* d);
   void RemoveDiagonal();
 
  private:

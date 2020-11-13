@@ -31,6 +31,7 @@
 #include "ceres/block_evaluate_preparer.h"
 
 #include <vector>
+
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/casts.h"
 #include "ceres/parameter_block.h"
@@ -53,10 +54,8 @@ void BlockEvaluatePreparer::Prepare(const ResidualBlock* residual_block,
                                     double** jacobians) {
   // If the overall jacobian is not available, use the scratch space.
   if (jacobian == NULL) {
-    scratch_evaluate_preparer_.Prepare(residual_block,
-                                       residual_block_index,
-                                       jacobian,
-                                       jacobians);
+    scratch_evaluate_preparer_.Prepare(
+        residual_block, residual_block_index, jacobian, jacobians);
     return;
   }
 

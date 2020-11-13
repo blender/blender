@@ -89,14 +89,14 @@ HEADER = """// Ceres Solver - A fast non-linear least squares minimizer
 """
 
 DYNAMIC_FILE = """
-
 #include "ceres/partitioned_matrix_view_impl.h"
-#include "ceres/internal/eigen.h"
 
 namespace ceres {
 namespace internal {
 
-template class PartitionedMatrixView<%s, %s, %s>;
+template class PartitionedMatrixView<%s,
+                                     %s,
+                                     %s>;
 
 }  // namespace internal
 }  // namespace ceres
@@ -109,7 +109,6 @@ SPECIALIZATION_FILE = """
 #ifndef CERES_RESTRICT_SCHUR_SPECIALIZATION
 
 #include "ceres/partitioned_matrix_view_impl.h"
-#include "ceres/internal/eigen.h"
 
 namespace ceres {
 namespace internal {
@@ -125,26 +124,26 @@ template class PartitionedMatrixView<%s, %s, %s>;
 FACTORY_FILE_HEADER = """
 #include "ceres/linear_solver.h"
 #include "ceres/partitioned_matrix_view.h"
-#include "ceres/internal/eigen.h"
 
 namespace ceres {
 namespace internal {
 
-PartitionedMatrixViewBase*
-PartitionedMatrixViewBase::Create(const LinearSolver::Options& options,
-                                  const BlockSparseMatrix& matrix) {
+PartitionedMatrixViewBase* PartitionedMatrixViewBase::Create(
+    const LinearSolver::Options& options, const BlockSparseMatrix& matrix) {
 #ifndef CERES_RESTRICT_SCHUR_SPECIALIZATION
 """
-FACTORY = """ return new PartitionedMatrixView<%s, %s, %s>(matrix, options.elimination_groups[0]);"""
+FACTORY = """  return new PartitionedMatrixView<%s, %s, %s>(matrix,
+                                              options.elimination_groups[0]);"""
 
 FACTORY_FOOTER = """
 #endif
   VLOG(1) << "Template specializations not found for <"
-          << options.row_block_size << ","
-          << options.e_block_size << ","
+          << options.row_block_size << "," << options.e_block_size << ","
           << options.f_block_size << ">";
-  return new PartitionedMatrixView<Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic>(
-               matrix, options.elimination_groups[0]);
+  return new PartitionedMatrixView<Eigen::Dynamic,
+                                   Eigen::Dynamic,
+                                   Eigen::Dynamic>(
+      matrix, options.elimination_groups[0]);
 };
 
 }  // namespace internal

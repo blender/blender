@@ -35,7 +35,9 @@
 #define CERES_INTERNAL_DYNAMIC_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
 
 #include "ceres/linear_solver.h"
 
@@ -59,23 +61,19 @@ class DynamicSparseNormalCholeskySolver
   virtual ~DynamicSparseNormalCholeskySolver() {}
 
  private:
-  LinearSolver::Summary SolveImpl(
-      CompressedRowSparseMatrix* A,
-      const double* b,
-      const LinearSolver::PerSolveOptions& options,
-      double* x) final;
+  LinearSolver::Summary SolveImpl(CompressedRowSparseMatrix* A,
+                                  const double* b,
+                                  const LinearSolver::PerSolveOptions& options,
+                                  double* x) final;
 
-  LinearSolver::Summary SolveImplUsingSuiteSparse(
-      CompressedRowSparseMatrix* A,
-      double* rhs_and_solution);
+  LinearSolver::Summary SolveImplUsingSuiteSparse(CompressedRowSparseMatrix* A,
+                                                  double* rhs_and_solution);
 
-  LinearSolver::Summary SolveImplUsingCXSparse(
-      CompressedRowSparseMatrix* A,
-      double* rhs_and_solution);
+  LinearSolver::Summary SolveImplUsingCXSparse(CompressedRowSparseMatrix* A,
+                                               double* rhs_and_solution);
 
-  LinearSolver::Summary SolveImplUsingEigen(
-      CompressedRowSparseMatrix* A,
-      double* rhs_and_solution);
+  LinearSolver::Summary SolveImplUsingEigen(CompressedRowSparseMatrix* A,
+                                            double* rhs_and_solution);
 
   const LinearSolver::Options options_;
 };

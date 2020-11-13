@@ -30,9 +30,9 @@
 
 #include "ceres/block_jacobi_preconditioner.h"
 
+#include "ceres/block_random_access_diagonal_matrix.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
-#include "ceres/block_random_access_diagonal_matrix.h"
 #include "ceres/casts.h"
 #include "ceres/internal/eigen.h"
 
@@ -65,13 +65,11 @@ bool BlockJacobiPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
       const int col_block_size = bs->cols[block_id].size;
 
       int r, c, row_stride, col_stride;
-      CellInfo* cell_info = m_->GetCell(block_id, block_id,
-                                        &r, &c,
-                                        &row_stride, &col_stride);
+      CellInfo* cell_info =
+          m_->GetCell(block_id, block_id, &r, &c, &row_stride, &col_stride);
       MatrixRef m(cell_info->values, row_stride, col_stride);
-      ConstMatrixRef b(values + cells[j].position,
-                       row_block_size,
-                       col_block_size);
+      ConstMatrixRef b(
+          values + cells[j].position, row_block_size, col_block_size);
       m.block(r, c, col_block_size, col_block_size) += b.transpose() * b;
     }
   }
@@ -82,9 +80,7 @@ bool BlockJacobiPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
     for (int i = 0; i < bs->cols.size(); ++i) {
       const int block_size = bs->cols[i].size;
       int r, c, row_stride, col_stride;
-      CellInfo* cell_info = m_->GetCell(i, i,
-                                        &r, &c,
-                                        &row_stride, &col_stride);
+      CellInfo* cell_info = m_->GetCell(i, i, &r, &c, &row_stride, &col_stride);
       MatrixRef m(cell_info->values, row_stride, col_stride);
       m.block(r, c, block_size, block_size).diagonal() +=
           ConstVectorRef(D + position, block_size).array().square().matrix();

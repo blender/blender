@@ -34,11 +34,11 @@
 #define CERES_WARNINGS_DISABLED
 
 #ifdef _MSC_VER
-#pragma warning( push )
+#pragma warning(push)
 // Disable the warning C4251 which is triggered by stl classes in
 // Ceres' public interface. To quote MSDN: "C4251 can be ignored "
 // "if you are deriving from a type in the Standard C++ Library"
-#pragma warning( disable : 4251 )
+#pragma warning(disable : 4251)
 #endif
 
 #endif  // CERES_WARNINGS_DISABLED

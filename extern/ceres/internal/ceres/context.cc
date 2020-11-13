@@ -34,8 +34,6 @@
 
 namespace ceres {
 
-Context* Context::Create() {
-  return new internal::ContextImpl();
-}
+Context* Context::Create() { return new internal::ContextImpl(); }
 
 }  // namespace ceres

@@ -601,7 +601,6 @@ bool ProblemImpl::Evaluate(const Problem::EvaluateOptions& evaluate_options,
                            CRSMatrix* jacobian) {
   if (cost == nullptr && residuals == nullptr && gradient == nullptr &&
       jacobian == nullptr) {
-    LOG(INFO) << "Nothing to do.";
     return true;
   }
 
@@ -686,10 +685,12 @@ bool ProblemImpl::Evaluate(const Problem::EvaluateOptions& evaluate_options,
   // type of linear solver being used.
   evaluator_options.linear_solver_type = SPARSE_NORMAL_CHOLESKY;
 #ifdef CERES_NO_THREADS
-  LOG_IF(WARNING, evaluate_options.num_threads > 1)
-      << "No threading support is compiled into this binary; "
-      << "only evaluate_options.num_threads = 1 is supported. Switching "
-      << "to single threaded mode.";
+  if (evaluate_options.num_threads > 1) {
+    LOG(WARNING)
+        << "No threading support is compiled into this binary; "
+        << "only evaluate_options.num_threads = 1 is supported. Switching "
+        << "to single threaded mode.";
+  }
   evaluator_options.num_threads = 1;
 #else
   evaluator_options.num_threads = evaluate_options.num_threads;
@@ -768,9 +769,15 @@ bool ProblemImpl::Evaluate(const Problem::EvaluateOptions& evaluate_options,
 
 bool ProblemImpl::EvaluateResidualBlock(ResidualBlock* residual_block,
                                         bool apply_loss_function,
+                                        bool new_point,
                                         double* cost,
                                         double* residuals,
                                         double** jacobians) const {
+  auto evaluation_callback = program_->mutable_evaluation_callback();
+  if (evaluation_callback) {
+    evaluation_callback->PrepareForEvaluation(jacobians != nullptr, new_point);
+  }
+
   ParameterBlock* const* parameter_blocks = residual_block->parameter_blocks();
   const int num_parameter_blocks = residual_block->NumParameterBlocks();
   for (int i = 0; i < num_parameter_blocks; ++i) {
@@ -789,7 +796,8 @@ bool ProblemImpl::EvaluateResidualBlock(ResidualBlock* residual_block,
   }
 
   double dummy_cost = 0.0;
-  FixedArray<double> scratch(residual_block->NumScratchDoublesForEvaluate());
+  FixedArray<double, 32> scratch(
+      residual_block->NumScratchDoublesForEvaluate());
   return residual_block->Evaluate(apply_loss_function,
                                   cost ? cost : &dummy_cost,
                                   residuals,

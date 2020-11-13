@@ -162,8 +162,9 @@ class VisibilityBasedPreconditioner : public BlockSparseMatrixPreconditioner {
       std::vector<std::set<int>>* cluster_visibility) const;
   WeightedGraph<int>* CreateClusterGraph(
       const std::vector<std::set<int>>& visibility) const;
-  void ForestToClusterPairs(const WeightedGraph<int>& forest,
-                            std::unordered_set<std::pair<int, int>, pair_hash>* cluster_pairs) const;
+  void ForestToClusterPairs(
+      const WeightedGraph<int>& forest,
+      std::unordered_set<std::pair<int, int>, pair_hash>* cluster_pairs) const;
   void ComputeBlockPairsInPreconditioner(const CompressedRowBlockStructure& bs);
   bool IsBlockPairInPreconditioner(int block1, int block2) const;
   bool IsBlockPairOffDiagonal(int block1, int block2) const;

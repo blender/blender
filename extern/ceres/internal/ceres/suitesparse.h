@@ -41,6 +41,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+
 #include "SuiteSparseQR.hpp"
 #include "ceres/linear_solver.h"
 #include "ceres/sparse_cholesky.h"
@@ -116,20 +117,23 @@ class SuiteSparse {
   // for symmetric scaling which scales both the rows and the columns
   // - diag(scale) * A * diag(scale).
   void Scale(cholmod_dense* scale, int mode, cholmod_sparse* A) {
-     cholmod_scale(scale, mode, A, &cc_);
+    cholmod_scale(scale, mode, A, &cc_);
   }
 
   // Create and return a matrix m = A * A'. Caller owns the
   // result. The matrix A is not modified.
   cholmod_sparse* AATranspose(cholmod_sparse* A) {
-    cholmod_sparse*m =  cholmod_aat(A, NULL, A->nrow, 1, &cc_);
+    cholmod_sparse* m = cholmod_aat(A, NULL, A->nrow, 1, &cc_);
     m->stype = 1;  // Pay attention to the upper triangular part.
     return m;
   }
 
   // y = alpha * A * x + beta * y. Only y is modified.
-  void SparseDenseMultiply(cholmod_sparse* A, double alpha, double beta,
-                           cholmod_dense* x, cholmod_dense* y) {
+  void SparseDenseMultiply(cholmod_sparse* A,
+                           double alpha,
+                           double beta,
+                           cholmod_dense* x,
+                           cholmod_dense* y) {
     double alpha_[2] = {alpha, 0};
     double beta_[2] = {beta, 0};
     cholmod_sdmult(A, 0, alpha_, beta_, x, y, &cc_);
@@ -195,7 +199,9 @@ class SuiteSparse {
   // NULL is returned. Caller owns the result.
   //
   // message contains an explanation of the failures if any.
-  cholmod_dense* Solve(cholmod_factor* L, cholmod_dense* b, std::string* message);
+  cholmod_dense* Solve(cholmod_factor* L,
+                       cholmod_dense* b,
+                       std::string* message);
 
   // By virtue of the modeling layer in Ceres being block oriented,
   // all the matrices used by Ceres are also block oriented. When
@@ -229,7 +235,6 @@ class SuiteSparse {
   // ordering.
   bool ApproximateMinimumDegreeOrdering(cholmod_sparse* matrix, int* ordering);
 
-
   // Before SuiteSparse version 4.2.0, cholmod_camd was only enabled
   // if SuiteSparse was compiled with Metis support. This makes
   // calling and linking into cholmod_camd problematic even though it
@@ -262,7 +267,7 @@ class SuiteSparse {
                                                    int* ordering);
 
   void Free(cholmod_sparse* m) { cholmod_free_sparse(&m, &cc_); }
-  void Free(cholmod_dense* m)  { cholmod_free_dense(&m, &cc_);  }
+  void Free(cholmod_dense* m) { cholmod_free_dense(&m, &cc_); }
   void Free(cholmod_factor* m) { cholmod_free_factor(&m, &cc_); }
 
   void Print(cholmod_sparse* m, const std::string& name) {
@@ -285,17 +290,17 @@ class SuiteSparse {
 
 class SuiteSparseCholesky : public SparseCholesky {
  public:
-  static std::unique_ptr<SparseCholesky> Create(
-      OrderingType ordering_type);
+  static std::unique_ptr<SparseCholesky> Create(OrderingType ordering_type);
 
   // SparseCholesky interface.
   virtual ~SuiteSparseCholesky();
   CompressedRowSparseMatrix::StorageType StorageType() const final;
-  LinearSolverTerminationType Factorize(
-      CompressedRowSparseMatrix* lhs, std::string* message) final;
+  LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                        std::string* message) final;
   LinearSolverTerminationType Solve(const double* rhs,
                                     double* solution,
                                     std::string* message) final;
+
  private:
   SuiteSparseCholesky(const OrderingType ordering_type);
 

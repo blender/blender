@@ -32,9 +32,12 @@
 #define CERES_INTERNAL_FLOAT_SUITESPARSE_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
 
 #include <memory>
+
 #include "ceres/sparse_cholesky.h"
 
 #if !defined(CERES_NO_SUITESPARSE)
@@ -46,8 +49,7 @@ namespace internal {
 // SuiteSparse.
 class FloatSuiteSparseCholesky : public SparseCholesky {
  public:
-  static std::unique_ptr<SparseCholesky> Create(
-      OrderingType ordering_type);
+  static std::unique_ptr<SparseCholesky> Create(OrderingType ordering_type);
 };
 
 }  // namespace internal

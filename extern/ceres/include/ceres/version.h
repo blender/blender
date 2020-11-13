@@ -41,8 +41,9 @@
 #define CERES_TO_STRING(x) CERES_TO_STRING_HELPER(x)
 
 // The Ceres version as a string; for example "1.9.0".
-#define CERES_VERSION_STRING CERES_TO_STRING(CERES_VERSION_MAJOR) "." \
-                             CERES_TO_STRING(CERES_VERSION_MINOR) "." \
-                             CERES_TO_STRING(CERES_VERSION_REVISION)
+#define CERES_VERSION_STRING                                    \
+  CERES_TO_STRING(CERES_VERSION_MAJOR)                          \
+  "." CERES_TO_STRING(CERES_VERSION_MINOR) "." CERES_TO_STRING( \
+      CERES_VERSION_REVISION)
 
 #endif  // CERES_PUBLIC_VERSION_H_

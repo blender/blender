@@ -8,8 +8,8 @@ else
 fi
 
 repo="https://ceres-solver.googlesource.com/ceres-solver"
-branch="master"
-tag=""
+#branch="master"
+tag="2.0.0"
 tmp=`mktemp -d`
 checkout="$tmp/ceres"
 

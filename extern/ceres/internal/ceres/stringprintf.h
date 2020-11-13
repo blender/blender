@@ -55,31 +55,36 @@ namespace internal {
 // have an implicit 'this' argument, the arguments of such methods
 // should be counted from two, not one."
 #define CERES_PRINTF_ATTRIBUTE(string_index, first_to_check) \
-    __attribute__((__format__ (__printf__, string_index, first_to_check)))
+  __attribute__((__format__(__printf__, string_index, first_to_check)))
 #define CERES_SCANF_ATTRIBUTE(string_index, first_to_check) \
-    __attribute__((__format__ (__scanf__, string_index, first_to_check)))
+  __attribute__((__format__(__scanf__, string_index, first_to_check)))
 #else
 #define CERES_PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif
 
 // Return a C++ string.
-extern std::string StringPrintf(const char* format, ...)
+CERES_EXPORT_INTERNAL extern std::string StringPrintf(const char* format, ...)
     // Tell the compiler to do printf format string checking.
     CERES_PRINTF_ATTRIBUTE(1, 2);
 
 // Store result into a supplied string and return it.
-extern const std::string& SStringPrintf(std::string* dst, const char* format, ...)
+CERES_EXPORT_INTERNAL extern const std::string& SStringPrintf(
+    std::string* dst, const char* format, ...)
     // Tell the compiler to do printf format string checking.
     CERES_PRINTF_ATTRIBUTE(2, 3);
 
 // Append result to a supplied string.
-extern void StringAppendF(std::string* dst, const char* format, ...)
+CERES_EXPORT_INTERNAL extern void StringAppendF(std::string* dst,
+                                                const char* format,
+                                                ...)
     // Tell the compiler to do printf format string checking.
     CERES_PRINTF_ATTRIBUTE(2, 3);
 
 // Lower-level routine that takes a va_list and appends to a specified string.
 // All other routines are just convenience wrappers around it.
-extern void StringAppendV(std::string* dst, const char* format, va_list ap);
+CERES_EXPORT_INTERNAL extern void StringAppendV(std::string* dst,
+                                                const char* format,
+                                                va_list ap);
 
 #undef CERES_PRINTF_ATTRIBUTE
 

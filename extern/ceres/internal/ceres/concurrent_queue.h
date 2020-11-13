@@ -152,7 +152,6 @@ class ConcurrentQueue {
   bool wait_;
 };
 
-
 }  // namespace internal
 }  // namespace ceres
 

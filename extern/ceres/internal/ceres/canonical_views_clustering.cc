@@ -31,8 +31,8 @@
 
 #include "ceres/canonical_views_clustering.h"
 
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "ceres/graph.h"
 #include "ceres/map_util.h"
@@ -126,8 +126,7 @@ void CanonicalViewsClustering::ComputeClustering(
 
     // Add canonical view if quality improves, or if minimum is not
     // yet met, otherwise break.
-    if ((best_difference <= 0) &&
-        (centers->size() >= options_.min_views)) {
+    if ((best_difference <= 0) && (centers->size() >= options_.min_views)) {
       break;
     }
 
@@ -141,8 +140,7 @@ void CanonicalViewsClustering::ComputeClustering(
 
 // Return the set of vertices of the graph which have valid vertex
 // weights.
-void CanonicalViewsClustering::FindValidViews(
-    IntSet* valid_views) const {
+void CanonicalViewsClustering::FindValidViews(IntSet* valid_views) const {
   const IntSet& views = graph_->vertices();
   for (const auto& view : views) {
     if (graph_->VertexWeight(view) != WeightedGraph<int>::InvalidWeight()) {
@@ -154,8 +152,7 @@ void CanonicalViewsClustering::FindValidViews(
 // Computes the difference in the quality score if 'candidate' were
 // added to the set of canonical views.
 double CanonicalViewsClustering::ComputeClusteringQualityDifference(
-    const int candidate,
-    const vector<int>& centers) const {
+    const int candidate, const vector<int>& centers) const {
   // View score.
   double difference =
       options_.view_score_weight * graph_->VertexWeight(candidate);
@@ -179,7 +176,7 @@ double CanonicalViewsClustering::ComputeClusteringQualityDifference(
   // Orthogonality.
   for (int i = 0; i < centers.size(); ++i) {
     difference -= options_.similarity_penalty_weight *
-        graph_->EdgeWeight(centers[i], candidate);
+                  graph_->EdgeWeight(centers[i], candidate);
   }
 
   return difference;
@@ -192,8 +189,7 @@ void CanonicalViewsClustering::UpdateCanonicalViewAssignments(
   for (const auto& neighbor : neighbors) {
     const double old_similarity =
         FindWithDefault(view_to_canonical_view_similarity_, neighbor, 0.0);
-    const double new_similarity =
-        graph_->EdgeWeight(neighbor, canonical_view);
+    const double new_similarity = graph_->EdgeWeight(neighbor, canonical_view);
     if (new_similarity > old_similarity) {
       view_to_canonical_view_[neighbor] = canonical_view;
       view_to_canonical_view_similarity_[neighbor] = new_similarity;
@@ -203,8 +199,7 @@ void CanonicalViewsClustering::UpdateCanonicalViewAssignments(
 
 // Assign a cluster id to each view.
 void CanonicalViewsClustering::ComputeClusterMembership(
-    const vector<int>& centers,
-    IntMap* membership) const {
+    const vector<int>& centers, IntMap* membership) const {
   CHECK(membership != nullptr);
   membership->clear();
 

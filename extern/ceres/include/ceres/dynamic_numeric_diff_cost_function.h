@@ -44,6 +44,7 @@
 #include "ceres/internal/numeric_diff.h"
 #include "ceres/internal/parameter_dims.h"
 #include "ceres/numeric_diff_options.h"
+#include "ceres/types.h"
 #include "glog/logging.h"
 
 namespace ceres {
@@ -83,6 +84,10 @@ class DynamicNumericDiffCostFunction : public DynamicCostFunction {
       Ownership ownership = TAKE_OWNERSHIP,
       const NumericDiffOptions& options = NumericDiffOptions())
       : functor_(functor), ownership_(ownership), options_(options) {}
+
+  explicit DynamicNumericDiffCostFunction(
+      DynamicNumericDiffCostFunction&& other)
+      : functor_(std::move(other.functor_)), ownership_(other.ownership_) {}
 
   virtual ~DynamicNumericDiffCostFunction() {
     if (ownership_ != TAKE_OWNERSHIP) {

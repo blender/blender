@@ -62,7 +62,8 @@ class CERES_EXPORT GradientProblemSolver {
     // Minimizer options ----------------------------------------
     LineSearchDirectionType line_search_direction_type = LBFGS;
     LineSearchType line_search_type = WOLFE;
-    NonlinearConjugateGradientType nonlinear_conjugate_gradient_type = FLETCHER_REEVES;
+    NonlinearConjugateGradientType nonlinear_conjugate_gradient_type =
+        FLETCHER_REEVES;
 
     // The LBFGS hessian approximation is a low rank approximation to
     // the inverse of the Hessian matrix. The rank of the

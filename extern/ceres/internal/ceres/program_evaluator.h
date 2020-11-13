@@ -80,7 +80,9 @@
 #define CERES_INTERNAL_PROGRAM_EVALUATOR_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
 
 #include <atomic>
 #include <map>

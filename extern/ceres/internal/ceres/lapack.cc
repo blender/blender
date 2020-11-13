@@ -36,11 +36,7 @@
 
 #ifndef CERES_NO_LAPACK
 // C interface to the LAPACK Cholesky factorization and triangular solve.
-extern "C" void dpotrf_(char* uplo,
-                       int* n,
-                       double* a,
-                       int* lda,
-                       int* info);
+extern "C" void dpotrf_(char* uplo, int* n, double* a, int* lda, int* info);
 
 extern "C" void dpotrs_(char* uplo,
                         int* n,
@@ -92,10 +88,10 @@ LinearSolverTerminationType LAPACK::SolveInPlaceUsingCholesky(
   }
 
   if (info > 0) {
-    *message =
-        StringPrintf(
-            "LAPACK::dpotrf numerical failure. "
-             "The leading minor of order %d is not positive definite.", info);
+    *message = StringPrintf(
+        "LAPACK::dpotrf numerical failure. "
+        "The leading minor of order %d is not positive definite.",
+        info);
     return LINEAR_SOLVER_FAILURE;
   }
 

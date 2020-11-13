@@ -32,6 +32,7 @@
 #define CERES_INTERNAL_CGNR_SOLVER_H_
 
 #include <memory>
+
 #include "ceres/linear_solver.h"
 
 namespace ceres {
@@ -55,11 +56,10 @@ class CgnrSolver : public BlockSparseMatrixSolver {
   void operator=(const CgnrSolver&) = delete;
   virtual ~CgnrSolver();
 
-  Summary SolveImpl(
-      BlockSparseMatrix* A,
-      const double* b,
-      const LinearSolver::PerSolveOptions& per_solve_options,
-      double* x) final;
+  Summary SolveImpl(BlockSparseMatrix* A,
+                    const double* b,
+                    const LinearSolver::PerSolveOptions& per_solve_options,
+                    double* x) final;
 
  private:
   const LinearSolver::Options options_;

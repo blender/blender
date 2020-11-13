@@ -33,18 +33,19 @@
 
 #ifndef CERES_NO_ACCELERATE_SPARSE
 
-#include "ceres/accelerate_sparse.h"
-
 #include <algorithm>
 #include <string>
 #include <vector>
 
+#include "ceres/accelerate_sparse.h"
 #include "ceres/compressed_col_sparse_matrix_utils.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "glog/logging.h"
 
-#define CASESTR(x) case x: return #x
+#define CASESTR(x) \
+  case x:          \
+    return #x
 
 namespace ceres {
 namespace internal {
@@ -68,7 +69,7 @@ const char* SparseStatusToString(SparseStatus_t status) {
 // aligned to kAccelerateRequiredAlignment and returns a pointer to the
 // aligned start.
 void* ResizeForAccelerateAlignment(const size_t required_size,
-                                   std::vector<uint8_t> *workspace) {
+                                   std::vector<uint8_t>* workspace) {
   // As per the Accelerate documentation, all workspace memory passed to the
   // sparse solver functions must be 16-byte aligned.
   constexpr int kAccelerateRequiredAlignment = 16;
@@ -80,29 +81,28 @@ void* ResizeForAccelerateAlignment(const size_t required_size,
   size_t size_from_aligned_start = workspace->size();
   void* aligned_solve_workspace_start =
       reinterpret_cast<void*>(workspace->data());
-  aligned_solve_workspace_start =
-      std::align(kAccelerateRequiredAlignment,
-                 required_size,
-                 aligned_solve_workspace_start,
-                 size_from_aligned_start);
+  aligned_solve_workspace_start = std::align(kAccelerateRequiredAlignment,
+                                             required_size,
+                                             aligned_solve_workspace_start,
+                                             size_from_aligned_start);
   CHECK(aligned_solve_workspace_start != nullptr)
       << "required_size: " << required_size
       << ", workspace size: " << workspace->size();
   return aligned_solve_workspace_start;
 }
 
-template<typename Scalar>
+template <typename Scalar>
 void AccelerateSparse<Scalar>::Solve(NumericFactorization* numeric_factor,
                                      DenseVector* rhs_and_solution) {
   // From SparseSolve() documentation in Solve.h
-  const int required_size =
-      numeric_factor->solveWorkspaceRequiredStatic +
-      numeric_factor->solveWorkspaceRequiredPerRHS;
-  SparseSolve(*numeric_factor, *rhs_and_solution,
+  const int required_size = numeric_factor->solveWorkspaceRequiredStatic +
+                            numeric_factor->solveWorkspaceRequiredPerRHS;
+  SparseSolve(*numeric_factor,
+              *rhs_and_solution,
               ResizeForAccelerateAlignment(required_size, &solve_workspace_));
 }
 
-template<typename Scalar>
+template <typename Scalar>
 typename AccelerateSparse<Scalar>::ASSparseMatrix
 AccelerateSparse<Scalar>::CreateSparseMatrixTransposeView(
     CompressedRowSparseMatrix* A) {
@@ -112,7 +112,7 @@ AccelerateSparse<Scalar>::CreateSparseMatrixTransposeView(
   //
   // Accelerate's columnStarts is a long*, not an int*.  These types might be
   // different (e.g. ARM on iOS) so always make a copy.
-  column_starts_.resize(A->num_rows() +1); // +1 for final column length.
+  column_starts_.resize(A->num_rows() + 1);  // +1 for final column length.
   std::copy_n(A->rows(), column_starts_.size(), &column_starts_[0]);
 
   ASSparseMatrix At;
@@ -136,29 +136,31 @@ AccelerateSparse<Scalar>::CreateSparseMatrixTransposeView(
   return At;
 }
 
-template<typename Scalar>
+template <typename Scalar>
 typename AccelerateSparse<Scalar>::SymbolicFactorization
 AccelerateSparse<Scalar>::AnalyzeCholesky(ASSparseMatrix* A) {
   return SparseFactor(SparseFactorizationCholesky, A->structure);
 }
 
-template<typename Scalar>
+template <typename Scalar>
 typename AccelerateSparse<Scalar>::NumericFactorization
 AccelerateSparse<Scalar>::Cholesky(ASSparseMatrix* A,
                                    SymbolicFactorization* symbolic_factor) {
   return SparseFactor(*symbolic_factor, *A);
 }
 
-template<typename Scalar>
+template <typename Scalar>
 void AccelerateSparse<Scalar>::Cholesky(ASSparseMatrix* A,
                                         NumericFactorization* numeric_factor) {
   // From SparseRefactor() documentation in Solve.h
-  const int required_size = std::is_same<Scalar, double>::value
-      ? numeric_factor->symbolicFactorization.workspaceSize_Double
-      : numeric_factor->symbolicFactorization.workspaceSize_Float;
-  return SparseRefactor(*A, numeric_factor,
-                        ResizeForAccelerateAlignment(required_size,
-                                                     &factorization_workspace_));
+  const int required_size =
+      std::is_same<Scalar, double>::value
+          ? numeric_factor->symbolicFactorization.workspaceSize_Double
+          : numeric_factor->symbolicFactorization.workspaceSize_Float;
+  return SparseRefactor(
+      *A,
+      numeric_factor,
+      ResizeForAccelerateAlignment(required_size, &factorization_workspace_));
 }
 
 // Instantiate only for the specific template types required/supported s/t the
@@ -166,34 +168,33 @@ void AccelerateSparse<Scalar>::Cholesky(ASSparseMatrix* A,
 template class AccelerateSparse<double>;
 template class AccelerateSparse<float>;
 
-template<typename Scalar>
-std::unique_ptr<SparseCholesky>
-AppleAccelerateCholesky<Scalar>::Create(OrderingType ordering_type) {
+template <typename Scalar>
+std::unique_ptr<SparseCholesky> AppleAccelerateCholesky<Scalar>::Create(
+    OrderingType ordering_type) {
   return std::unique_ptr<SparseCholesky>(
       new AppleAccelerateCholesky<Scalar>(ordering_type));
 }
 
-template<typename Scalar>
+template <typename Scalar>
 AppleAccelerateCholesky<Scalar>::AppleAccelerateCholesky(
     const OrderingType ordering_type)
     : ordering_type_(ordering_type) {}
 
-template<typename Scalar>
+template <typename Scalar>
 AppleAccelerateCholesky<Scalar>::~AppleAccelerateCholesky() {
   FreeSymbolicFactorization();
   FreeNumericFactorization();
 }
 
-template<typename Scalar>
+template <typename Scalar>
 CompressedRowSparseMatrix::StorageType
 AppleAccelerateCholesky<Scalar>::StorageType() const {
   return CompressedRowSparseMatrix::LOWER_TRIANGULAR;
 }
 
-template<typename Scalar>
-LinearSolverTerminationType
-AppleAccelerateCholesky<Scalar>::Factorize(CompressedRowSparseMatrix* lhs,
-                                           std::string* message) {
+template <typename Scalar>
+LinearSolverTerminationType AppleAccelerateCholesky<Scalar>::Factorize(
+    CompressedRowSparseMatrix* lhs, std::string* message) {
   CHECK_EQ(lhs->storage_type(), StorageType());
   if (lhs == NULL) {
     *message = "Failure: Input lhs is NULL.";
@@ -234,11 +235,9 @@ AppleAccelerateCholesky<Scalar>::Factorize(CompressedRowSparseMatrix* lhs,
   return LINEAR_SOLVER_SUCCESS;
 }
 
-template<typename Scalar>
-LinearSolverTerminationType
-AppleAccelerateCholesky<Scalar>::Solve(const double* rhs,
-                                       double* solution,
-                                       std::string* message) {
+template <typename Scalar>
+LinearSolverTerminationType AppleAccelerateCholesky<Scalar>::Solve(
+    const double* rhs, double* solution, std::string* message) {
   CHECK_EQ(numeric_factor_->status, SparseStatusOK)
       << "Solve called without a call to Factorize first ("
       << SparseStatusToString(numeric_factor_->status) << ").";
@@ -262,7 +261,7 @@ AppleAccelerateCholesky<Scalar>::Solve(const double* rhs,
   return LINEAR_SOLVER_SUCCESS;
 }
 
-template<typename Scalar>
+template <typename Scalar>
 void AppleAccelerateCholesky<Scalar>::FreeSymbolicFactorization() {
   if (symbolic_factor_) {
     SparseCleanup(*symbolic_factor_);
@@ -270,7 +269,7 @@ void AppleAccelerateCholesky<Scalar>::FreeSymbolicFactorization() {
   }
 }
 
-template<typename Scalar>
+template <typename Scalar>
 void AppleAccelerateCholesky<Scalar>::FreeNumericFactorization() {
   if (numeric_factor_) {
     SparseCleanup(*numeric_factor_);
@@ -283,7 +282,7 @@ void AppleAccelerateCholesky<Scalar>::FreeNumericFactorization() {
 template class AppleAccelerateCholesky<double>;
 template class AppleAccelerateCholesky<float>;
 
-}
-}
+}  // namespace internal
+}  // namespace ceres
 
 #endif  // CERES_NO_ACCELERATE_SPARSE

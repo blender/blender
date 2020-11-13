@@ -360,7 +360,8 @@ class CERES_EXPORT Solver {
     //
     // If Solver::Options::preconditioner_type == SUBSET, then
     // residual_blocks_for_subset_preconditioner must be non-empty.
-    std::unordered_set<ResidualBlockId> residual_blocks_for_subset_preconditioner;
+    std::unordered_set<ResidualBlockId>
+        residual_blocks_for_subset_preconditioner;
 
     // Ceres supports using multiple dense linear algebra libraries
     // for dense matrix factorizations. Currently EIGEN and LAPACK are
@@ -838,7 +839,7 @@ class CERES_EXPORT Solver {
     int num_linear_solves = -1;
 
     // Time (in seconds) spent evaluating the residual vector.
-    double residual_evaluation_time_in_seconds = 1.0;
+    double residual_evaluation_time_in_seconds = -1.0;
 
     // Number of residual only evaluations.
     int num_residual_evaluations = -1;

@@ -63,9 +63,8 @@ BlockRandomAccessDiagonalMatrix::BlockRandomAccessDiagonalMatrix(
     num_nonzeros += blocks_[i] * blocks_[i];
   }
 
-  VLOG(1) << "Matrix Size [" << num_cols
-          << "," << num_cols
-          << "] " << num_nonzeros;
+  VLOG(1) << "Matrix Size [" << num_cols << "," << num_cols << "] "
+          << num_nonzeros;
 
   tsm_.reset(new TripletSparseMatrix(num_cols, num_cols, num_nonzeros));
   tsm_->set_num_nonzeros(num_nonzeros);
@@ -116,8 +115,7 @@ CellInfo* BlockRandomAccessDiagonalMatrix::GetCell(int row_block_id,
 // when they are calling SetZero.
 void BlockRandomAccessDiagonalMatrix::SetZero() {
   if (tsm_->num_nonzeros()) {
-    VectorRef(tsm_->mutable_values(),
-              tsm_->num_nonzeros()).setZero();
+    VectorRef(tsm_->mutable_values(), tsm_->num_nonzeros()).setZero();
   }
 }
 
@@ -126,11 +124,8 @@ void BlockRandomAccessDiagonalMatrix::Invert() {
   for (int i = 0; i < blocks_.size(); ++i) {
     const int block_size = blocks_[i];
     MatrixRef block(values, block_size, block_size);
-    block =
-        block
-        .selfadjointView<Eigen::Upper>()
-        .llt()
-        .solve(Matrix::Identity(block_size, block_size));
+    block = block.selfadjointView<Eigen::Upper>().llt().solve(
+        Matrix::Identity(block_size, block_size));
     values += block_size * block_size;
   }
 }

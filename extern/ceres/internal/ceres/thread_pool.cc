@@ -33,10 +33,10 @@
 
 #ifdef CERES_USE_CXX_THREADS
 
-#include "ceres/thread_pool.h"
-
 #include <cmath>
 #include <limits>
+
+#include "ceres/thread_pool.h"
 
 namespace ceres {
 namespace internal {
@@ -53,16 +53,13 @@ int ThreadPool::MaxNumThreadsAvailable() {
   const int num_hardware_threads = std::thread::hardware_concurrency();
   // hardware_concurrency() can return 0 if the value is not well defined or not
   // computable.
-  return num_hardware_threads == 0
-      ? std::numeric_limits<int>::max()
-      : num_hardware_threads;
+  return num_hardware_threads == 0 ? std::numeric_limits<int>::max()
+                                   : num_hardware_threads;
 }
 
-ThreadPool::ThreadPool() { }
+ThreadPool::ThreadPool() {}
 
-ThreadPool::ThreadPool(int num_threads) {
-  Resize(num_threads);
-}
+ThreadPool::ThreadPool(int num_threads) { Resize(num_threads); }
 
 ThreadPool::~ThreadPool() {
   std::lock_guard<std::mutex> lock(thread_pool_mutex_);
@@ -106,11 +103,9 @@ void ThreadPool::ThreadMainLoop() {
   }
 }
 
-void ThreadPool::Stop() {
-  task_queue_.StopWaiters();
-}
+void ThreadPool::Stop() { task_queue_.StopWaiters(); }
 
 }  // namespace internal
 }  // namespace ceres
 
-#endif // CERES_USE_CXX_THREADS
+#endif  // CERES_USE_CXX_THREADS

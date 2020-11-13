@@ -62,7 +62,7 @@ void StringAppendV(string* dst, const char* format, va_list ap) {
       return;
     }
 
-#if defined (_MSC_VER)
+#if defined(_MSC_VER)
     // Error or MSVC running out of space.  MSVC 8.0 and higher
     // can be asked about space needed with the special idiom below:
     va_copy(backup_ap, ap);
@@ -78,7 +78,7 @@ void StringAppendV(string* dst, const char* format, va_list ap) {
 
   // Increase the buffer size to the size requested by vsnprintf,
   // plus one for the closing \0.
-  int length = result+1;
+  int length = result + 1;
   char* buf = new char[length];
 
   // Restore the va_list before we use it again
@@ -92,7 +92,6 @@ void StringAppendV(string* dst, const char* format, va_list ap) {
   }
   delete[] buf;
 }
-
 
 string StringPrintf(const char* format, ...) {
   va_list ap;

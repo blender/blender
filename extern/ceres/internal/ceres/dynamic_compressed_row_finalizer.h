@@ -40,7 +40,7 @@ namespace internal {
 struct DynamicCompressedRowJacobianFinalizer {
   void operator()(SparseMatrix* base_jacobian, int num_parameters) {
     DynamicCompressedRowSparseMatrix* jacobian =
-      down_cast<DynamicCompressedRowSparseMatrix*>(base_jacobian);
+        down_cast<DynamicCompressedRowSparseMatrix*>(base_jacobian);
     jacobian->Finalize(num_parameters);
   }
 };

@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include "ceres/dynamic_numeric_diff_cost_function.h"
 #include "ceres/gradient_checker.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/parameter_block.h"
@@ -45,7 +46,6 @@
 #include "ceres/problem_impl.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
-#include "ceres/dynamic_numeric_diff_cost_function.h"
 #include "ceres/stringprintf.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
@@ -81,7 +81,7 @@ class GradientCheckingCostFunction : public CostFunction {
     set_num_residuals(function->num_residuals());
   }
 
-  virtual ~GradientCheckingCostFunction() { }
+  virtual ~GradientCheckingCostFunction() {}
 
   bool Evaluate(double const* const* parameters,
                 double* residuals,
@@ -92,9 +92,8 @@ class GradientCheckingCostFunction : public CostFunction {
     }
 
     GradientChecker::ProbeResults results;
-    bool okay = gradient_checker_.Probe(parameters,
-                                        relative_precision_,
-                                        &results);
+    bool okay =
+        gradient_checker_.Probe(parameters, relative_precision_, &results);
 
     // If the cost function returned false, there's nothing we can say about
     // the gradients.
@@ -117,8 +116,9 @@ class GradientCheckingCostFunction : public CostFunction {
     }
 
     if (!okay) {
-      std::string error_log = "Gradient Error detected!\nExtra info for "
-          "this residual: " + extra_info_ + "\n" + results.error_log;
+      std::string error_log =
+          "Gradient Error detected!\nExtra info for this residual: " +
+          extra_info_ + "\n" + results.error_log;
       callback_->SetGradientErrorDetected(error_log);
     }
     return true;
@@ -135,13 +135,12 @@ class GradientCheckingCostFunction : public CostFunction {
 }  // namespace
 
 GradientCheckingIterationCallback::GradientCheckingIterationCallback()
-    : gradient_error_detected_(false) {
-}
+    : gradient_error_detected_(false) {}
 
 CallbackReturnType GradientCheckingIterationCallback::operator()(
     const IterationSummary& summary) {
   if (gradient_error_detected_) {
-    LOG(ERROR)<< "Gradient error detected. Terminating solver.";
+    LOG(ERROR) << "Gradient error detected. Terminating solver.";
     return SOLVER_ABORT;
   }
   return SOLVER_CONTINUE;
@@ -166,7 +165,8 @@ CostFunction* CreateGradientCheckingCostFunction(
   return new GradientCheckingCostFunction(cost_function,
                                           local_parameterizations,
                                           numeric_diff_options,
-                                          relative_precision, extra_info,
+                                          relative_precision,
+                                          extra_info,
                                           callback);
 }
 
@@ -193,8 +193,8 @@ ProblemImpl* CreateGradientCheckingProblemImpl(
   NumericDiffOptions numeric_diff_options;
   numeric_diff_options.relative_step_size = relative_step_size;
 
-  ProblemImpl* gradient_checking_problem_impl = new ProblemImpl(
-      gradient_checking_problem_options);
+  ProblemImpl* gradient_checking_problem_impl =
+      new ProblemImpl(gradient_checking_problem_options);
 
   Program* program = problem_impl->mutable_program();
 
@@ -213,7 +213,7 @@ ProblemImpl* CreateGradientCheckingProblemImpl(
           parameter_block->mutable_user_state());
     }
 
-    for (int i = 0; i <  parameter_block->Size(); ++i) {
+    for (int i = 0; i < parameter_block->Size(); ++i) {
       gradient_checking_problem_impl->SetParameterUpperBound(
           parameter_block->mutable_user_state(),
           i,
@@ -235,8 +235,8 @@ ProblemImpl* CreateGradientCheckingProblemImpl(
     // Build a human readable string which identifies the
     // ResidualBlock. This is used by the GradientCheckingCostFunction
     // when logging debugging information.
-    string extra_info = StringPrintf(
-        "Residual block id %d; depends on parameters [", i);
+    string extra_info =
+        StringPrintf("Residual block id %d; depends on parameters [", i);
     vector<double*> parameter_blocks;
     vector<const LocalParameterization*> local_parameterizations;
     parameter_blocks.reserve(residual_block->NumParameterBlocks());
@@ -277,13 +277,11 @@ ProblemImpl* CreateGradientCheckingProblemImpl(
   // depend on this being the case, so we explicitly call
   // SetParameterBlockStatePtrsToUserStatePtrs to ensure that this is
   // the case.
-  gradient_checking_problem_impl
-      ->mutable_program()
+  gradient_checking_problem_impl->mutable_program()
       ->SetParameterBlockStatePtrsToUserStatePtrs();
 
   return gradient_checking_problem_impl;
 }
-
 
 }  // namespace internal
 }  // namespace ceres
