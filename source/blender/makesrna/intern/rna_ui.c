@@ -26,6 +26,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_idprop.h"
+#include "BKE_screen.h"
 
 #include "BLI_listbase.h"
 

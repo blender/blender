@@ -571,19 +571,6 @@ enum {
   PNL_INSTANCED_LIST_ORDER_CHANGED = (1 << 7),
 };
 
-/* paneltype flag */
-enum {
-  PNL_DEFAULT_CLOSED = (1 << 0),
-  PNL_NO_HEADER = (1 << 1),
-  /** Makes buttons in the header shrink/stretch to fill full layout width. */
-  PNL_LAYOUT_HEADER_EXPAND = (1 << 2),
-  PNL_LAYOUT_VERT_BAR = (1 << 3),
-  /** This panel type represents data external to the UI. */
-  PNL_INSTANCED = (1 << 4),
-  /** Draw panel like a box widget. */
-  PNL_DRAW_BOX = (1 << 6),
-};
-
 /* Fallback panel category (only for old scripts which need updating) */
 #define PNL_CATEGORY_FALLBACK "Misc"
 
