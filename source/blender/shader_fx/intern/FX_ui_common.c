@@ -203,7 +203,7 @@ PanelType *shaderfx_panel_register(ARegionType *region_type, ShaderFxType type, 
 
   /* Give the panel the special flag that says it was built here and corresponds to a
    * shader effect rather than a PanelType. */
-  panel_type->flag = PNL_LAYOUT_HEADER_EXPAND | PNL_DRAW_BOX | PNL_INSTANCED;
+  panel_type->flag = PANEL_TYPE_HEADER_EXPAND | PANEL_TYPE_DRAW_BOX | PANEL_TYPE_INSTANCED;
   panel_type->reorder = shaderfx_reorder;
   panel_type->get_list_data_expand_flag = get_shaderfx_expand_flag;
   panel_type->set_list_data_expand_flag = set_shaderfx_expand_flag;
@@ -240,7 +240,7 @@ PanelType *shaderfx_subpanel_register(ARegionType *region_type,
   panel_type->draw_header = draw_header;
   panel_type->draw = draw;
   panel_type->poll = shaderfx_ui_poll;
-  panel_type->flag = (PNL_DEFAULT_CLOSED | PNL_DRAW_BOX);
+  panel_type->flag = (PANEL_TYPE_DEFAULT_CLOSED | PANEL_TYPE_DRAW_BOX);
 
   BLI_assert(parent != NULL);
   BLI_strncpy(panel_type->parent_id, parent->idname, BKE_ST_MAXNAME);

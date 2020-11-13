@@ -1931,7 +1931,7 @@ void uiTemplateModifiers(uiLayout *UNUSED(layout), bContext *C)
       }
 
       /* Move to the next instanced panel corresponding to the next modifier. */
-      while ((panel->type == NULL) || !(panel->type->flag & PNL_INSTANCED)) {
+      while ((panel->type == NULL) || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {
         panel = panel->next;
         BLI_assert(panel != NULL); /* There shouldn't be fewer panels than modifiers with UIs. */
       }
@@ -2096,7 +2096,7 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
       }
 
       /* Move to the next instanced panel corresponding to the next constraint. */
-      while ((panel->type == NULL) || !(panel->type->flag & PNL_INSTANCED)) {
+      while ((panel->type == NULL) || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {
         panel = panel->next;
         BLI_assert(panel != NULL); /* There shouldn't be fewer panels than constraint panels. */
       }
@@ -2166,7 +2166,7 @@ void uiTemplateGpencilModifiers(uiLayout *UNUSED(layout), bContext *C)
       }
 
       /* Move to the next instanced panel corresponding to the next modifier. */
-      while ((panel->type == NULL) || !(panel->type->flag & PNL_INSTANCED)) {
+      while ((panel->type == NULL) || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {
         panel = panel->next;
         BLI_assert(panel != NULL); /* There shouldn't be fewer panels than modifiers with UIs. */
       }
@@ -2237,7 +2237,7 @@ void uiTemplateShaderFx(uiLayout *UNUSED(layout), bContext *C)
       }
 
       /* Move to the next instanced panel corresponding to the next modifier. */
-      while ((panel->type == NULL) || !(panel->type->flag & PNL_INSTANCED)) {
+      while ((panel->type == NULL) || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {
         panel = panel->next;
         BLI_assert(panel != NULL); /* There shouldn't be fewer panels than modifiers with UIs. */
       }

@@ -609,7 +609,7 @@ static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *reg
 static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *region)
 {
   LISTBASE_FOREACH (PanelType *, pt, &region->type->paneltypes) {
-    pt->flag |= PNL_LAYOUT_VERT_BAR;
+    pt->flag |= PANEL_TYPE_LAYOUT_VERT_BAR;
   }
 
   ED_region_panels_layout(C, region);

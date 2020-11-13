@@ -146,7 +146,7 @@ static void hud_panels_register(ARegionType *art, int space_type, int region_typ
   pt->poll = hud_panel_operator_redo_poll;
   pt->space_type = space_type;
   pt->region_type = region_type;
-  pt->flag |= PNL_DEFAULT_CLOSED;
+  pt->flag |= PANEL_TYPE_DEFAULT_CLOSED;
   BLI_addtail(&art->paneltypes, pt);
 }
 

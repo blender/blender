@@ -336,7 +336,7 @@ void UI_list_panel_unique_str(Panel *panel, char *r_name)
  * and is freed by #UI_panels_free_instanced.
  *
  * \note The only panels that should need to be deleted at runtime are panels with the
- * #PNL_INSTANCED flag set.
+ * #PANEL_TYPE_INSTANCED flag set.
  */
 static void panel_delete(const bContext *C, ARegion *region, ListBase *panels, Panel *panel)
 {
@@ -363,7 +363,7 @@ void UI_panels_free_instanced(const bContext *C, ARegion *region)
 {
   /* Delete panels with the instanced flag. */
   LISTBASE_FOREACH_MUTABLE (Panel *, panel, &region->panels) {
-    if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
+    if ((panel->type != NULL) && (panel->type->flag & PANEL_TYPE_INSTANCED)) {
       /* Make sure the panel's handler is removed before deleting it. */
       if (C != NULL && panel->activedata != NULL) {
         panel_activate_state(C, panel, PANEL_STATE_EXIT);
@@ -407,7 +407,7 @@ bool UI_panel_list_matches_data(ARegion *region,
 
   int i = 0;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    if (panel->type != NULL && panel->type->flag & PNL_INSTANCED) {
+    if (panel->type != NULL && panel->type->flag & PANEL_TYPE_INSTANCED) {
       /* The panels were reordered by drag and drop. */
       if (panel->flag & PNL_INSTANCED_LIST_ORDER_CHANGED) {
         return false;
@@ -458,7 +458,7 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
   int list_panels_len = 0;
   LISTBASE_FOREACH (const Panel *, panel, &region->panels) {
     if (panel->type) {
-      if (panel->type->flag & PNL_INSTANCED) {
+      if (panel->type->flag & PANEL_TYPE_INSTANCED) {
         if (panel_type_context_poll(region, panel->type, context)) {
           list_panels_len++;
         }
@@ -471,7 +471,7 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
   PanelSort *sort_index = panel_sort;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     if (panel->type) {
-      if (panel->type->flag & PNL_INSTANCED) {
+      if (panel->type->flag & PANEL_TYPE_INSTANCED) {
         if (panel_type_context_poll(region, panel->type, context)) {
           sort_index->panel = panel;
           sort_index++;
@@ -524,7 +524,7 @@ static bool panel_set_expand_from_list_data_recursive(Panel *panel, short flag, 
 static void panel_set_expansion_from_list_data(const bContext *C, Panel *panel)
 {
   BLI_assert(panel->type != NULL);
-  BLI_assert(panel->type->flag & PNL_INSTANCED);
+  BLI_assert(panel->type->flag & PANEL_TYPE_INSTANCED);
   if (panel->type->get_list_data_expand_flag == NULL) {
     /* Instanced panel doesn't support loading expansion. */
     return;
@@ -547,7 +547,7 @@ static void region_panels_set_expansion_from_list_data(const bContext *C, ARegio
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     if (panel->runtime_flag & PANEL_ACTIVE) {
       PanelType *panel_type = panel->type;
-      if (panel_type != NULL && panel->type->flag & PNL_INSTANCED) {
+      if (panel_type != NULL && panel->type->flag & PANEL_TYPE_INSTANCED) {
         panel_set_expansion_from_list_data(C, panel);
       }
     }
@@ -585,7 +585,7 @@ static void set_panels_list_data_expand_flag(const bContext *C, const ARegion *r
     }
 
     /* Check for #PANEL_ACTIVE so we only set the expand flag for active panels. */
-    if (panel_type->flag & PNL_INSTANCED && panel->runtime_flag & PANEL_ACTIVE) {
+    if (panel_type->flag & PANEL_TYPE_INSTANCED && panel->runtime_flag & PANEL_ACTIVE) {
       short expand_flag;
       short flag_index = 0;
       get_panel_expand_flag(panel, &expand_flag, &flag_index);
@@ -636,7 +636,7 @@ static void panels_collapse_all(ARegion *region, const Panel *from_panel)
     PanelType *pt = panel->type;
 
     /* Close panels with headers in the same context. */
-    if (pt && from_pt && !(pt->flag & PNL_NO_HEADER)) {
+    if (pt && from_pt && !(pt->flag & PANEL_TYPE_NO_HEADER)) {
       if (!pt->context[0] || !from_pt->context[0] || STREQ(pt->context, from_pt->context)) {
         if ((panel->flag & PNL_PIN) || !category || !pt->category[0] ||
             STREQ(pt->category, category)) {
@@ -690,7 +690,7 @@ Panel *UI_panel_begin(
     panel->type = pt;
     BLI_strncpy(panel->panelname, idname, sizeof(panel->panelname));
 
-    if (pt->flag & PNL_DEFAULT_CLOSED) {
+    if (pt->flag & PANEL_TYPE_DEFAULT_CLOSED) {
       panel->flag |= PNL_CLOSED;
       panel->runtime_flag |= PANEL_WAS_CLOSED;
     }
@@ -920,7 +920,7 @@ static void panel_set_expansion_from_seach_filter_recursive(const bContext *C,
 {
   /* This has to run on inactive panels that may not have a type,
    * but we can prevent running on header-less panels in some cases. */
-  if (panel->type == NULL || !(panel->type->flag & PNL_NO_HEADER)) {
+  if (panel->type == NULL || !(panel->type->flag & PANEL_TYPE_NO_HEADER)) {
     SET_FLAG_FROM_TEST(panel->runtime_flag, use_search_closed, PANEL_USE_CLOSED_FROM_SEARCH);
   }
 
@@ -1002,7 +1002,7 @@ static void region_panels_remove_invisible_layouts(ARegion *region)
 bool UI_panel_is_closed(const Panel *panel)
 {
   /* Header-less panels can never be closed, otherwise they could disappear. */
-  if (panel->type && panel->type->flag & PNL_NO_HEADER) {
+  if (panel->type && panel->type->flag & PANEL_TYPE_NO_HEADER) {
     return false;
   }
 
@@ -1110,7 +1110,7 @@ void ui_draw_aligned_panel(const uiStyle *style,
                            * can't be dragged. This may be changed in future. */
                           show_background);
   const int panel_col = is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK;
-  const bool draw_box_style = (panel->type && panel->type->flag & PNL_DRAW_BOX);
+  const bool draw_box_style = (panel->type && panel->type->flag & PANEL_TYPE_DRAW_BOX);
 
   /* Use the theme for box widgets for box-style panels. */
   uiWidgetColors *box_wcol = NULL;
@@ -1122,7 +1122,7 @@ void ui_draw_aligned_panel(const uiStyle *style,
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  if (panel->type && (panel->type->flag & PNL_NO_HEADER)) {
+  if (panel->type && (panel->type->flag & PANEL_TYPE_NO_HEADER)) {
     if (show_background) {
       immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
       immUniformThemeColor(panel_col);
@@ -1578,7 +1578,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
 static int get_panel_size_y(const Panel *panel)
 {
-  if (panel->type && (panel->type->flag & PNL_NO_HEADER)) {
+  if (panel->type && (panel->type->flag & PANEL_TYPE_NO_HEADER)) {
     return panel->sizey;
   }
 
@@ -1589,7 +1589,7 @@ static int get_panel_real_size_y(const Panel *panel)
 {
   const int sizey = UI_panel_is_closed(panel) ? 0 : panel->sizey;
 
-  if (panel->type && (panel->type->flag & PNL_NO_HEADER)) {
+  if (panel->type && (panel->type->flag & PANEL_TYPE_NO_HEADER)) {
     return sizey;
   }
 
@@ -1633,13 +1633,13 @@ static int find_highest_panel(const void *a, const void *b)
 
   /* Stick uppermost header-less panels to the top of the region -
    * prevent them from being sorted (multiple header-less panels have to be sorted though). */
-  if (panel_a->type->flag & PNL_NO_HEADER && panel_b->type->flag & PNL_NO_HEADER) {
+  if (panel_a->type->flag & PANEL_TYPE_NO_HEADER && panel_b->type->flag & PANEL_TYPE_NO_HEADER) {
     /* Skip and check for `ofsy` and #Panel.sortorder below. */
   }
-  if (panel_a->type->flag & PNL_NO_HEADER) {
+  if (panel_a->type->flag & PANEL_TYPE_NO_HEADER) {
     return -1;
   }
-  if (panel_b->type->flag & PNL_NO_HEADER) {
+  if (panel_b->type->flag & PANEL_TYPE_NO_HEADER) {
     return 1;
   }
 
@@ -1738,7 +1738,7 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   const int region_offset_x = panel_region_offset_x_get(region);
   for (int i = 0; i < active_panels_len; i++) {
     PanelSort *ps = &panel_sort[i];
-    const bool use_box = ps->panel->type->flag & PNL_DRAW_BOX;
+    const bool use_box = ps->panel->type->flag & PANEL_TYPE_DRAW_BOX;
     ps->panel->runtime.region_ofsx = region_offset_x;
     ps->new_offset_x = region_offset_x + ((use_box) ? UI_PANEL_BOX_STYLE_MARGIN : 0);
   }
@@ -1748,7 +1748,7 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
     PanelSort *ps = &panel_sort[i];
     y -= get_panel_real_size_y(ps->panel);
 
-    const bool use_box = ps->panel->type->flag & PNL_DRAW_BOX;
+    const bool use_box = ps->panel->type->flag & PANEL_TYPE_DRAW_BOX;
     if (use_box) {
       y -= UI_PANEL_BOX_STYLE_MARGIN;
     }
@@ -1999,7 +1999,7 @@ static void ui_panel_drag_collapse(const bContext *C,
     float xy_b_block[2] = {UNPACK2(xy_dst)};
     Panel *panel = block->panel;
 
-    if (panel == NULL || (panel->type && (panel->type->flag & PNL_NO_HEADER))) {
+    if (panel == NULL || (panel->type && (panel->type->flag & PANEL_TYPE_NO_HEADER))) {
       continue;
     }
     const int oldflag = panel->flag;
@@ -2102,7 +2102,7 @@ static void ui_handle_panel_header(const bContext *C,
   ARegion *region = CTX_wm_region(C);
 
   BLI_assert(panel->type != NULL);
-  BLI_assert(!(panel->type->flag & PNL_NO_HEADER));
+  BLI_assert(!(panel->type->flag & PANEL_TYPE_NO_HEADER));
 
   const bool is_subpanel = (panel->type->parent != NULL);
   const bool use_pin = UI_panel_category_is_visible(region) && !is_subpanel;
@@ -2401,7 +2401,7 @@ int ui_handler_panel_region(bContext *C,
       continue;
     }
     /* We can't expand or collapse panels without headers, they would disappear. */
-    if (panel->type->flag & PNL_NO_HEADER) {
+    if (panel->type->flag & PANEL_TYPE_NO_HEADER) {
       continue;
     }
 

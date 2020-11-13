@@ -280,15 +280,15 @@ typedef struct PanelType {
 
 /* #PanelType.flag */
 enum {
-  PNL_DEFAULT_CLOSED = (1 << 0),
-  PNL_NO_HEADER = (1 << 1),
+  PANEL_TYPE_DEFAULT_CLOSED = (1 << 0),
+  PANEL_TYPE_NO_HEADER = (1 << 1),
   /** Makes buttons in the header shrink/stretch to fill full layout width. */
-  PNL_LAYOUT_HEADER_EXPAND = (1 << 2),
-  PNL_LAYOUT_VERT_BAR = (1 << 3),
+  PANEL_TYPE_HEADER_EXPAND = (1 << 2),
+  PANEL_TYPE_LAYOUT_VERT_BAR = (1 << 3),
   /** This panel type represents data external to the UI. */
-  PNL_INSTANCED = (1 << 4),
+  PANEL_TYPE_INSTANCED = (1 << 4),
   /** Draw panel like a box widget. */
-  PNL_DRAW_BOX = (1 << 6),
+  PANEL_TYPE_DRAW_BOX = (1 << 6),
 };
 
 /* uilist types */
