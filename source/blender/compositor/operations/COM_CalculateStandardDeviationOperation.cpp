@@ -61,21 +61,18 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)
           case 2: /* red */
           {
             float value = buffer[offset];
-            sum += value;
             sum += (value - mean) * (value - mean);
             break;
           }
           case 3: /* green */
           {
             float value = buffer[offset + 1];
-            sum += value;
             sum += (value - mean) * (value - mean);
             break;
           }
           case 4: /* blue */
           {
             float value = buffer[offset + 2];
-            sum += value;
             sum += (value - mean) * (value - mean);
             break;
           }
