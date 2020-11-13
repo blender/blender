@@ -344,6 +344,31 @@ static void rna_Collection_flag_update(Main *bmain, Scene *scene, PointerRNA *pt
   WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 }
 
+static int rna_Collection_color_tag_get(struct PointerRNA *ptr)
+{
+  Collection *collection = (Collection *)ptr->data;
+
+  return collection->color_tag;
+}
+
+static void rna_Collection_color_tag_set(struct PointerRNA *ptr, int value)
+{
+  Collection *collection = (Collection *)ptr->data;
+
+  if (collection->flag & COLLECTION_IS_MASTER) {
+    return;
+  }
+
+  collection->color_tag = value;
+}
+
+static void rna_Collection_color_tag_update(Main *UNUSED(bmain),
+                                            Scene *scene,
+                                            PointerRNA *UNUSED(ptr))
+{
+  WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, scene);
+}
+
 #else
 
 /* collection.objects */
@@ -494,9 +519,11 @@ void RNA_def_collections(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "color_tag", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "color_tag");
+  RNA_def_property_enum_funcs(
+      prop, "rna_Collection_color_tag_get", "rna_Collection_color_tag_set", NULL);
   RNA_def_property_enum_items(prop, rna_enum_collection_color_items);
   RNA_def_property_ui_text(prop, "Collection Color", "Color tag for a collection");
-  RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_color_tag_update");
 
   RNA_define_lib_overridable(false);
 }
