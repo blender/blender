@@ -1801,7 +1801,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   /* Full rebuild of Depsgraph! */
   /* Note: this is really brute force, in theory updates from RNA should have handled this already,
    * but for now let's play it safe. */
-  DEG_id_tag_update_ex(bmain, local, ID_RECALC_ALL);
+  DEG_id_tag_update_ex(bmain, local, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(bmain);
 }
 
