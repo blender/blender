@@ -57,7 +57,41 @@ static bool ptcache_bake_all_poll(bContext *C)
 static bool ptcache_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
-  return (ptr.data && ptr.owner_id);
+
+  ID *id = ptr.owner_id;
+  PointCache *point_cache = ptr.data;
+
+  if (id == NULL || point_cache == NULL) {
+    return false;
+  }
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id) && (point_cache->flag & PTCACHE_DISK_CACHE) == false) {
+    return false;
+  }
+
+  if (ID_IS_LINKED(id) && (point_cache->flag & PTCACHE_DISK_CACHE) == false) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool ptcache_add_remove_poll(bContext *C)
+{
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
+
+  ID *id = ptr.owner_id;
+  PointCache *point_cache = ptr.data;
+
+  if (id == NULL || point_cache == NULL) {
+    return false;
+  }
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id) || ID_IS_LINKED(id)) {
+    return false;
+  }
+
+  return true;
 }
 
 typedef struct PointCacheJob {
@@ -417,7 +451,7 @@ void PTCACHE_OT_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = ptcache_add_new_exec;
-  ot->poll = ptcache_poll;
+  ot->poll = ptcache_add_remove_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -431,7 +465,7 @@ void PTCACHE_OT_remove(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = ptcache_remove_exec;
-  ot->poll = ptcache_poll;
+  ot->poll = ptcache_add_remove_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
