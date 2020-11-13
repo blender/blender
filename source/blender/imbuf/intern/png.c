@@ -406,6 +406,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
       if (pixels16) {
         MEM_freeN(pixels16);
       }
+      MEM_freeN(row_pointers);
       printf("imb_savepng: Cannot open file for writing: '%s'\n", filepath);
       return 0;
     }
