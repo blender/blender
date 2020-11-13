@@ -1341,7 +1341,7 @@ int BKE_image_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
 
 char BKE_image_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
 {
-  if (ftype == 0) {
+  if (ftype == IMB_FTYPE_NONE) {
     return R_IMF_IMTYPE_TARGA;
   }
   if (ftype == IMB_FTYPE_IMAGIC) {

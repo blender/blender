@@ -159,7 +159,7 @@ int IMB_ispic_type_from_memory(const unsigned char *buf, const size_t buf_size)
     }
   }
 
-  return 0;
+  return IMB_FTYPE_NONE;
 }
 
 int IMB_ispic_type(const char *filepath)
@@ -167,7 +167,7 @@ int IMB_ispic_type(const char *filepath)
   unsigned char buf[HEADER_SIZE];
   const ssize_t buf_size = imb_ispic_read_header_from_filepath(filepath, buf);
   if (buf_size <= 0) {
-    return 0;
+    return IMB_FTYPE_NONE;
   }
   return IMB_ispic_type_from_memory(buf, (size_t)buf_size);
 }
@@ -196,7 +196,7 @@ bool IMB_ispic_type_matches(const char *filepath, int filetype)
 
 bool IMB_ispic(const char *filepath)
 {
-  return (IMB_ispic_type(filepath) != 0);
+  return (IMB_ispic_type(filepath) != IMB_FTYPE_NONE);
 }
 
 static bool isavi(const char *filepath)

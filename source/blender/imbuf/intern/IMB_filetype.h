@@ -29,15 +29,26 @@ struct ImBuf;
 #define IM_FTYPE_FLOAT 1
 
 typedef struct ImFileType {
+  /** Optional, called once when initializing. */
   void (*init)(void);
+  /** Optional, called once when exiting. */
   void (*exit)(void);
 
+  /**
+   * Check if the data matches this file types 'magic',
+   * \note that this may only read in a small part of the files header,
+   * see: #IMB_ispic_type for details.
+   */
   bool (*is_a)(const unsigned char *buf, const size_t size);
+
+  /** Load an image from memory. */
   struct ImBuf *(*load)(const unsigned char *mem,
                         size_t size,
                         int flags,
                         char colorspace[IM_MAX_SPACE]);
+  /** Load an image from a file. */
   struct ImBuf *(*load_filepath)(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
+  /** Save to a file (or memory if #IB_mem is set in `flags` and the format supports it). */
   bool (*save)(struct ImBuf *ibuf, const char *filepath, int flags);
   void (*load_tile)(struct ImBuf *ibuf,
                     const unsigned char *mem,
@@ -47,7 +58,10 @@ typedef struct ImFileType {
                     unsigned int *rect);
 
   int flag;
+
+  /** #eImbFileType */
   int filetype;
+
   int default_save_role;
 } ImFileType;
 

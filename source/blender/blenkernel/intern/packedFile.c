@@ -536,8 +536,8 @@ static void unpack_generate_paths(const char *name,
       ImagePackedFile *imapf = ((Image *)id)->packedfiles.last;
       if (imapf != NULL && imapf->packedfile != NULL) {
         const PackedFile *pf = imapf->packedfile;
-        const int ftype = IMB_ispic_type_from_memory((const uchar *)pf->data, pf->size);
-        if (ftype != 0) {
+        enum eImbFileType ftype = IMB_ispic_type_from_memory((const uchar *)pf->data, pf->size);
+        if (ftype != IMB_FTYPE_NONE) {
           const int imtype = BKE_image_ftype_to_imtype(ftype, NULL);
           BKE_image_path_ensure_ext_from_imtype(tempname, imtype);
         }
