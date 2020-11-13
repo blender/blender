@@ -64,6 +64,7 @@ static int bpygpu_ParseBultinShaderEnum(PyObject *o, void *p)
   MATCH_ID(3D_UNIFORM_COLOR);
   MATCH_ID(3D_FLAT_COLOR);
   MATCH_ID(3D_SMOOTH_COLOR);
+  MATCH_ID(3D_POLYLINE_UNIFORM_COLOR);
 
 #undef MATCH_ID
   PyErr_Format(PyExc_ValueError, "unknown type literal: '%s'", mode_id);
