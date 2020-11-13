@@ -2566,71 +2566,77 @@ static void ui_handler_remove_panel(bContext *C, void *userdata)
   panel_activate_state(C, panel, PANEL_STATE_EXIT);
 }
 
+static void panel_handle_data_ensure(const bContext *C,
+                                     wmWindow *win,
+                                     const ARegion *region,
+                                     Panel *panel,
+                                     const uiHandlePanelState state)
+{
+  if (panel->activedata == NULL) {
+    panel->activedata = MEM_callocN(sizeof(uiHandlePanelData), __func__);
+    WM_event_add_ui_handler(
+        C, &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, panel, 0);
+  }
+
+  uiHandlePanelData *data = panel->activedata;
+
+  data->animtimer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
+
+  data->state = state;
+  data->startx = win->eventstate->x;
+  data->starty = win->eventstate->y;
+  data->startofsx = panel->ofsx;
+  data->startofsy = panel->ofsy;
+  data->start_cur_xmin = region->v2d.cur.xmin;
+  data->start_cur_ymin = region->v2d.cur.ymin;
+  data->starttime = PIL_check_seconds_timer();
+}
+
+/**
+ * \note "select" and "drag drop" flags: First, the panel is "picked up" and both flags are set.
+ * Then when the mouse releases and the panel starts animating to its aligned position, PNL_SELECT
+ * is unset. When the animation finishes, PANEL_IS_DRAG_DROP is cleared.
+ */
 static void panel_activate_state(const bContext *C, Panel *panel, const uiHandlePanelState state)
 {
   uiHandlePanelData *data = panel->activedata;
   wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
 
-  if (data && data->state == state) {
+  if (data != NULL && data->state == state) {
     return;
   }
 
-  /*
-   * Note on "select" and "drag drop" flags:
-   * First, the panel is "picked up" and both flags are set. Then when the mouse releases
-   * and the panel starts animating to its aligned position, PNL_SELECT is unset. When the
-   * animation finishes, PANEL_IS_DRAG_DROP is cleared. */
   if (state == PANEL_STATE_DRAG) {
     panel_set_flag_recursive(panel, PNL_SELECT, true);
     panel_set_runtime_flag_recursive(panel, PANEL_IS_DRAG_DROP, true);
+
+    panel_handle_data_ensure(C, win, region, panel, state);
+
+    /* Initiate edge panning during drags for scrolling beyond the initial region view. */
+    wmOperatorType *ot = WM_operatortype_find("VIEW2D_OT_edge_pan", true);
+    ui_handle_afterfunc_add_operator(ot, WM_OP_INVOKE_DEFAULT, true);
   }
   else if (state == PANEL_STATE_ANIMATION) {
     panel_set_flag_recursive(panel, PNL_SELECT, false);
+
+    panel_handle_data_ensure(C, win, region, panel, state);
   }
   else if (state == PANEL_STATE_EXIT) {
     panel_set_runtime_flag_recursive(panel, PANEL_IS_DRAG_DROP, false);
-  }
 
-  if (data && data->animtimer) {
-    WM_event_remove_timer(CTX_wm_manager(C), win, data->animtimer);
-    data->animtimer = NULL;
-  }
+    BLI_assert(data != NULL);
 
-  if (state == PANEL_STATE_EXIT) {
+    if (data->animtimer) {
+      WM_event_remove_timer(CTX_wm_manager(C), win, data->animtimer);
+      data->animtimer = NULL;
+    }
+
     MEM_freeN(data);
     panel->activedata = NULL;
 
     WM_event_remove_ui_handler(
         &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, panel, false);
-  }
-  else {
-    if (!data) {
-      data = MEM_callocN(sizeof(uiHandlePanelData), "uiHandlePanelData");
-      panel->activedata = data;
-
-      WM_event_add_ui_handler(
-          C, &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, panel, 0);
-    }
-
-    if (ELEM(state, PANEL_STATE_ANIMATION, PANEL_STATE_DRAG)) {
-      data->animtimer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
-    }
-
-    /* Initiate edge panning during drags so we can move beyond the initial region view. */
-    if (state == PANEL_STATE_DRAG) {
-      wmOperatorType *ot = WM_operatortype_find("VIEW2D_OT_edge_pan", true);
-      ui_handle_afterfunc_add_operator(ot, WM_OP_INVOKE_DEFAULT, true);
-    }
-
-    data->state = state;
-    data->startx = win->eventstate->x;
-    data->starty = win->eventstate->y;
-    data->startofsx = panel->ofsx;
-    data->startofsy = panel->ofsy;
-    data->start_cur_xmin = region->v2d.cur.xmin;
-    data->start_cur_ymin = region->v2d.cur.ymin;
-    data->starttime = PIL_check_seconds_timer();
   }
 
   ED_region_tag_redraw(region);
