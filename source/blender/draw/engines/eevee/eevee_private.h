@@ -734,6 +734,7 @@ typedef struct EEVEE_EffectsInfo {
   float prev_persmat[4][4];
   /* Lookdev */
   int sphere_size;
+  eDRWLevelOfDetail sphere_lod;
   int anchor[2];
   struct DRWView *lookdev_view;
   /* Bloom */

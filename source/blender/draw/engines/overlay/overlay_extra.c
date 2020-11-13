@@ -128,7 +128,7 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       cb->empty_plain_axes = BUF_INSTANCE(grp_sub, format, DRW_cache_plain_axes_get());
       cb->empty_single_arrow = BUF_INSTANCE(grp_sub, format, DRW_cache_single_arrow_get());
       cb->empty_sphere = BUF_INSTANCE(grp_sub, format, DRW_cache_empty_sphere_get());
-      cb->empty_sphere_solid = BUF_INSTANCE(grp_sub, format, DRW_cache_sphere_get());
+      cb->empty_sphere_solid = BUF_INSTANCE(grp_sub, format, DRW_cache_sphere_get(DRW_LOD_LOW));
       cb->field_cone_limit = BUF_INSTANCE(grp_sub, format, DRW_cache_field_cone_limit_get());
       cb->field_curve = BUF_INSTANCE(grp_sub, format, DRW_cache_field_curve_get());
       cb->field_force = BUF_INSTANCE(grp_sub, format, DRW_cache_field_force_get());

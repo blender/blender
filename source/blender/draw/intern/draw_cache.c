@@ -66,6 +66,17 @@
 #define VCLASS_EMPTY_AXES_SHADOW (1 << 13)
 #define VCLASS_EMPTY_SIZE (1 << 14)
 
+/* Sphere shape resolution */
+/* Low */
+#define DRW_SPHERE_SHAPE_LATITUDE_LOW 32
+#define DRW_SPHERE_SHAPE_LONGITUDE_LOW 24
+/* Medium */
+#define DRW_SPHERE_SHAPE_LATITUDE_MEDIUM 64
+#define DRW_SPHERE_SHAPE_LONGITUDE_MEDIUM 48
+/* High */
+#define DRW_SPHERE_SHAPE_LATITUDE_HIGH 80
+#define DRW_SPHERE_SHAPE_LONGITUDE_HIGH 60
+
 typedef struct Vert {
   float pos[3];
   int class;
@@ -88,7 +99,6 @@ static struct DRWShapeCache {
   GPUBatch *drw_quad;
   GPUBatch *drw_quad_wires;
   GPUBatch *drw_grid;
-  GPUBatch *drw_sphere;
   GPUBatch *drw_plain_axes;
   GPUBatch *drw_single_arrow;
   GPUBatch *drw_cube;
@@ -140,6 +150,7 @@ static struct DRWShapeCache {
   GPUBatch *drw_particle_circle;
   GPUBatch *drw_particle_axis;
   GPUBatch *drw_gpencil_dummy_quad;
+  GPUBatch *drw_sphere_lod[DRW_LOD_MAX];
 } SHC = {NULL};
 
 void DRW_shape_cache_free(void)
@@ -473,11 +484,30 @@ static void sphere_lat_lon_vert(GPUVertBuf *vbo, int *v_ofs, float lat, float lo
   (*v_ofs)++;
 }
 
-GPUBatch *DRW_cache_sphere_get(void)
+GPUBatch *DRW_cache_sphere_get(const eDRWLevelOfDetail level_of_detail)
 {
-  if (!SHC.drw_sphere) {
-    const int lat_res = 32;
-    const int lon_res = 24;
+  BLI_assert(level_of_detail >= DRW_LOD_LOW && level_of_detail < DRW_LOD_MAX);
+
+  if (!SHC.drw_sphere_lod[level_of_detail]) {
+    int lat_res;
+    int lon_res;
+
+    switch (level_of_detail) {
+      case DRW_LOD_LOW:
+        lat_res = DRW_SPHERE_SHAPE_LATITUDE_LOW;
+        lon_res = DRW_SPHERE_SHAPE_LONGITUDE_LOW;
+        break;
+      case DRW_LOD_MEDIUM:
+        lat_res = DRW_SPHERE_SHAPE_LATITUDE_MEDIUM;
+        lon_res = DRW_SPHERE_SHAPE_LONGITUDE_MEDIUM;
+        break;
+      case DRW_LOD_HIGH:
+        lat_res = DRW_SPHERE_SHAPE_LATITUDE_HIGH;
+        lon_res = DRW_SPHERE_SHAPE_LONGITUDE_HIGH;
+        break;
+      default:
+        return NULL;
+    }
 
     GPUVertFormat format = extra_vert_format();
     GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -508,9 +538,10 @@ GPUBatch *DRW_cache_sphere_get(void)
       }
     }
 
-    SHC.drw_sphere = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
+    SHC.drw_sphere_lod[level_of_detail] = GPU_batch_create_ex(
+        GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
   }
-  return SHC.drw_sphere;
+  return SHC.drw_sphere_lod[level_of_detail];
 }
 
 /** \} */
