@@ -2616,7 +2616,6 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
 
   if (do_colormanagement) {
     bool make_byte = false;
-    const ImFileType *type;
 
     /* for proper check whether byte buffer is required by a format or not
      * should be pretty safe since this image buffer is supposed to be used for
@@ -2629,13 +2628,10 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
      * we need to allocate byte buffer and store color managed
      * image there
      */
-    for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
-      if (type->save && type->ftype(type, colormanaged_ibuf)) {
-        if ((type->flag & IM_FTYPE_FLOAT) == 0) {
-          make_byte = true;
-        }
-
-        break;
+    const ImFileType *type = IMB_file_type_from_ibuf(colormanaged_ibuf);
+    if (type != NULL) {
+      if ((type->save != NULL) && (type->flag & IM_FTYPE_FLOAT) == 0) {
+        make_byte = true;
       }
     }
 
@@ -3238,14 +3234,11 @@ void IMB_colormanagement_colorspace_from_ibuf_ftype(
   }
 
   /* Get color space from file type. */
-  const ImFileType *type;
-
-  for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
-    if (type->save && type->ftype(type, ibuf)) {
-      const char *role_colorspace;
-
-      role_colorspace = IMB_colormanagement_role_colorspace_name_get(type->default_save_role);
-
+  const ImFileType *type = IMB_file_type_from_ibuf(ibuf);
+  if (type != NULL) {
+    if (type->save != NULL) {
+      const char *role_colorspace = IMB_colormanagement_role_colorspace_name_get(
+          type->default_save_role);
       BLI_strncpy(colorspace_settings->name, role_colorspace, sizeof(colorspace_settings->name));
     }
   }

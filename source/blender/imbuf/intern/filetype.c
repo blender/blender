@@ -40,22 +40,11 @@
 #  include "dds/dds_api.h"
 #endif
 
-static int imb_ftype_default(const ImFileType *type, const ImBuf *ibuf)
-{
-  return (ibuf->ftype == type->filetype);
-}
-static int imb_ftype_iris(const ImFileType *type, const ImBuf *ibuf)
-{
-  (void)type;
-  return (ibuf->ftype == IMB_FTYPE_IMAGIC);
-}
-
 const ImFileType IMB_FILE_TYPES[] = {
     {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_jpeg,
-        .ftype = imb_ftype_default,
         .load = imb_load_jpeg,
         .load_filepath = NULL,
         .save = imb_savejpeg,
@@ -68,7 +57,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_png,
-        .ftype = imb_ftype_default,
         .load = imb_loadpng,
         .load_filepath = NULL,
         .save = imb_savepng,
@@ -81,7 +69,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_bmp,
-        .ftype = imb_ftype_default,
         .load = imb_bmp_decode,
         .load_filepath = NULL,
         .save = imb_savebmp,
@@ -94,7 +81,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_targa,
-        .ftype = imb_ftype_default,
         .load = imb_loadtarga,
         .load_filepath = NULL,
         .save = imb_savetarga,
@@ -107,7 +93,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_iris,
-        .ftype = imb_ftype_iris,
         .load = imb_loadiris,
         .load_filepath = NULL,
         .save = imb_saveiris,
@@ -121,7 +106,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_dpx,
-        .ftype = imb_ftype_default,
         .load = imb_load_dpx,
         .load_filepath = NULL,
         .save = imb_save_dpx,
@@ -134,7 +118,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_cineon,
-        .ftype = imb_ftype_default,
         .load = imb_load_cineon,
         .load_filepath = NULL,
         .save = imb_save_cineon,
@@ -149,7 +132,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = imb_inittiff,
         .exit = NULL,
         .is_a = imb_is_a_tiff,
-        .ftype = imb_ftype_default,
         .load = imb_loadtiff,
         .load_filepath = NULL,
         .save = imb_savetiff,
@@ -164,7 +146,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_hdr,
-        .ftype = imb_ftype_default,
         .load = imb_loadhdr,
         .load_filepath = NULL,
         .save = imb_savehdr,
@@ -179,7 +160,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = imb_initopenexr,
         .exit = imb_exitopenexr,
         .is_a = imb_is_a_openexr,
-        .ftype = imb_ftype_default,
         .load = imb_load_openexr,
         .load_filepath = NULL,
         .save = imb_save_openexr,
@@ -194,7 +174,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_jp2,
-        .ftype = imb_ftype_default,
         .load = imb_load_jp2,
         .load_filepath = NULL,
         .save = imb_save_jp2,
@@ -209,7 +188,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_dds,
-        .ftype = imb_ftype_default,
         .load = imb_load_dds,
         .load_filepath = NULL,
         .save = NULL,
@@ -224,7 +202,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_photoshop,
-        .ftype = imb_ftype_default,
         .load = NULL,
         .load_filepath = imb_load_photoshop,
         .save = NULL,
@@ -234,10 +211,25 @@ const ImFileType IMB_FILE_TYPES[] = {
         .default_save_role = COLOR_ROLE_DEFAULT_FLOAT,
     },
 #endif
-    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0},
+    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0},
 };
 
 const ImFileType *IMB_FILE_TYPES_LAST = &IMB_FILE_TYPES[ARRAY_SIZE(IMB_FILE_TYPES) - 1];
+
+const ImFileType *IMB_file_type_from_ftype(int ftype)
+{
+  for (const ImFileType *type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
+    if (ftype == type->filetype) {
+      return type;
+    }
+  }
+  return NULL;
+}
+
+const ImFileType *IMB_file_type_from_ibuf(const ImBuf *ibuf)
+{
+  return IMB_file_type_from_ftype(ibuf->ftype);
+}
 
 void imb_filetypes_init(void)
 {

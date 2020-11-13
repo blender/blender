@@ -33,7 +33,6 @@ typedef struct ImFileType {
   void (*exit)(void);
 
   bool (*is_a)(const unsigned char *buf, const size_t size);
-  int (*ftype)(const struct ImFileType *type, const struct ImBuf *ibuf);
   struct ImBuf *(*load)(const unsigned char *mem,
                         size_t size,
                         int flags,
@@ -54,6 +53,9 @@ typedef struct ImFileType {
 
 extern const ImFileType IMB_FILE_TYPES[];
 extern const ImFileType *IMB_FILE_TYPES_LAST;
+
+const ImFileType *IMB_file_type_from_ftype(int ftype);
+const ImFileType *IMB_file_type_from_ibuf(const struct ImBuf *ibuf);
 
 void imb_filetypes_init(void);
 void imb_filetypes_exit(void);
