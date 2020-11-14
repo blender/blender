@@ -2534,7 +2534,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           data.icon = ICON_SCRIPT;
           break;
         case ID_GR:
-          data.icon = ICON_GROUP;
+          data.icon = ICON_OUTLINER_COLLECTION;
           break;
         case ID_HA:
           data.icon = ICON_OUTLINER_DATA_HAIR;
