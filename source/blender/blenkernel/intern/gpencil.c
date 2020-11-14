@@ -942,6 +942,9 @@ bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src,
   if (dup_curve && gps_src->editcurve != NULL) {
     gps_dst->editcurve = BKE_gpencil_stroke_curve_duplicate(gps_src->editcurve);
   }
+  else {
+    gps_dst->editcurve = NULL;
+  }
 
   /* return new stroke */
   return gps_dst;
