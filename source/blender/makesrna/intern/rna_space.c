@@ -5605,7 +5605,7 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
        ICON_GREASEPENCIL,
        "Grease Pencil",
        "Show Grease pencil data-blocks"},
-      {FILTER_ID_GR, "filter_group", ICON_GROUP, "Collections", "Show Collection data-blocks"},
+      {FILTER_ID_GR, "filter_group", ICON_OUTLINER_COLLECTION, "Collections", "Show Collection data-blocks"},
       {FILTER_ID_HA, "filter_hair", ICON_HAIR_DATA, "Hairs", "Show/hide Hair data-blocks"},
       {FILTER_ID_IM, "filter_image", ICON_IMAGE_DATA, "Images", "Show Image data-blocks"},
       {FILTER_ID_LA, "filter_light", ICON_LIGHT_DATA, "Lights", "Show Light data-blocks"},
@@ -5679,7 +5679,7 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
       {FILTER_ID_AC, "category_animation", ICON_ANIM_DATA, "Animations", "Show animation data"},
       {FILTER_ID_OB | FILTER_ID_GR,
        "category_object",
-       ICON_GROUP,
+       ICON_OUTLINER_COLLECTION,
        "Objects & Collections",
        "Show objects and collections"},
       {FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME | FILTER_ID_HA |

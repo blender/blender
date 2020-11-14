@@ -52,7 +52,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_CU, "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
     {ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
-    {ID_GR, "COLLECTION", ICON_GROUP, "Collection", ""},
+    {ID_GR, "COLLECTION", ICON_OUTLINER_COLLECTION, "Collection", ""},
     {ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
     {ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
     {ID_LA, "LIGHT", ICON_LIGHT_DATA, "Light", ""},

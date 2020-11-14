@@ -347,7 +347,7 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "LayerCollection", NULL);
   RNA_def_struct_ui_text(srna, "Layer Collection", "Layer collection");
-  RNA_def_struct_ui_icon(srna, ICON_GROUP);
+  RNA_def_struct_ui_icon(srna, ICON_OUTLINER_COLLECTION);
 
   prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
