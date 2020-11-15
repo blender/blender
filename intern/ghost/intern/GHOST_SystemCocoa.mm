@@ -415,6 +415,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
     // with a frontmost window but an inactive application.
     [NSApp activateIgnoringOtherApps:YES];
   }
+
+  [NSEvent setMouseCoalescingEnabled:NO];
 }
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
@@ -892,7 +894,6 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
   bool anyProcessed = false;
   NSEvent *event;
 
-  //  SetMouseCoalescingEnabled(false, NULL);
   // TODO : implement timer ??
 #if 0
   do {

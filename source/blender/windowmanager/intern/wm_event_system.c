@@ -180,6 +180,14 @@ void wm_event_free(wmEvent *event)
   MEM_freeN(event);
 }
 
+static void wm_event_free_last(wmWindow *win)
+{
+  wmEvent *event = BLI_poptail(&win->queue);
+  if (event != NULL) {
+    wm_event_free(event);
+  }
+}
+
 void wm_event_free_all(wmWindow *win)
 {
   wmEvent *event;
@@ -4306,6 +4314,26 @@ static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
   return event_new;
 }
 
+static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int deltax, int deltay)
+{
+  /* Ignore in between trackpad events for performance, we only need high accuracy
+   * for painting with mouse moves, for navigation using the accumulated value is ok. */
+  wmEvent *event_last = win->queue.last;
+  if (event_last && event_last->type == event->type) {
+    deltax += event_last->x - event_last->prevx;
+    deltay += event_last->y - event_last->prevy;
+
+    wm_event_free_last(win);
+  }
+
+  /* Set prevx/prevy, the delta is computed from this in operators. */
+  wmEvent *event_new = wm_event_add(win, event);
+  event_new->prevx = event_new->x - deltax;
+  event_new->prevy = event_new->y - deltay;
+
+  return event_new;
+}
+
 /* Windows store own event queues, no bContext here. */
 /* Time is in 1000s of seconds, from Ghost. */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
@@ -4393,14 +4421,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.y = evt->y = pd->y;
       event.val = KM_NOTHING;
 
-      /* Use prevx/prevy so we can calculate the delta later. */
-      event.prevx = event.x - pd->deltaX;
-      event.prevy = event.y - (-pd->deltaY);
-
       /* The direction is inverted from the device due to system preferences. */
       event.is_direction_inverted = pd->isDirectionInverted;
 
-      wm_event_add(win, &event);
+      wm_event_add_trackpad(win, &event, pd->deltaX, -pd->deltaY);
       break;
     }
     /* Mouse button. */
