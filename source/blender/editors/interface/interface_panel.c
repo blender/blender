@@ -1927,20 +1927,16 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
   ARegion *region = CTX_wm_region(C);
 
   /* Keep the drag position in the region with a small pad to keep the panel visible. */
-  const int x = clamp_i(event->x, region->winrct.xmin, region->winrct.xmax + DRAG_REGION_PAD);
   const int y = clamp_i(event->y, region->winrct.ymin, region->winrct.ymax + DRAG_REGION_PAD);
 
-  float dx = (float)(x - data->startx);
   float dy = (float)(y - data->starty);
 
   /* Adjust for region zoom. */
-  dx *= BLI_rctf_size_x(&region->v2d.cur) / (float)BLI_rcti_size_x(&region->winrct);
   dy *= BLI_rctf_size_y(&region->v2d.cur) / (float)BLI_rcti_size_y(&region->winrct);
 
   /* Add the movement of the view due to edge scrolling while dragging. */
-  dx += ((float)region->v2d.cur.xmin - data->start_cur_xmin);
   dy += ((float)region->v2d.cur.ymin - data->start_cur_ymin);
-  panel->ofsx = data->startofsx + round_fl_to_int(dx);
+
   panel->ofsy = data->startofsy + round_fl_to_int(dy);
 
   uiAlignPanelStep(region, 0.2f, true);
