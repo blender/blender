@@ -4038,7 +4038,7 @@ static void curve_mapping_to_ocio_settings(CurveMapping *curve_mapping,
   copy_v3_v3(curve_mapping_settings->black, curve_mapping->black);
   copy_v3_v3(curve_mapping_settings->bwmul, curve_mapping->bwmul);
 
-  curve_mapping_settings->cache_id = (size_t)curve_mapping;
+  curve_mapping_settings->cache_id = (size_t)curve_mapping + curve_mapping->changed_timestamp;
 }
 
 static void update_glsl_display_processor(const ColorManagedViewSettings *view_settings,
