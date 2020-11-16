@@ -1823,13 +1823,6 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 
   switch (prop->type) {
     case PROP_POINTER: {
-      if ((srna->flag & STRUCT_NO_DATABLOCK_IDPROPERTIES) != 0 && (type->flag & STRUCT_ID) != 0) {
-        CLOG_ERROR(&LOG,
-                   "Struct \"%s\" (probably an operator or keymap) does not allow pointer "
-                   "properties to ID datablocks.",
-                   srna->identifier);
-        return;
-      }
       PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
       pprop->type = type;
 
