@@ -267,7 +267,6 @@ static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *
       /*BLI_findindex(&driver->targets, ptr->data) != -1)  */
       RNA_pointer_create(ptr->owner_id, &RNA_Driver, driver, &driverptr);
       rna_ChannelDriver_update_data(bmain, scene, &driverptr);
-      return;
     }
   }
 }
