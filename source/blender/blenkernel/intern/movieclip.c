@@ -274,6 +274,7 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
   MovieTracking *tracking = &clip->tracking;
 
   BLO_read_data_address(reader, &clip->adt);
+  BKE_animdata_blend_read_data(reader, clip->adt);
 
   direct_link_movieTracks(reader, &tracking->tracks);
   direct_link_moviePlaneTracks(reader, &tracking->plane_tracks);
