@@ -224,12 +224,22 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   const int project_type = RNA_enum_get(op->ptr, "project_type");
   eGP_TargetObjectMode target = RNA_enum_get(op->ptr, "target");
 
-  /* Create a new grease pencil object in origin or resuse selected. */
+  /* Create a new grease pencil object in origin or reuse selected. */
   Object *ob_gpencil = NULL;
   bool newob = false;
+
   if (target == GP_TARGET_OB_SELECTED) {
-    ob_gpencil = BKE_view_layer_first_selected_object_by_type(
-        CTX_data_view_layer(C), v3d, OB_GPENCIL);
+    ob_gpencil = BKE_view_layer_non_active_selected_object(CTX_data_view_layer(C), v3d);
+    if (ob_gpencil != NULL) {
+      if (ob_gpencil->type != OB_GPENCIL) {
+        BKE_report(op->reports, RPT_WARNING, "Target object not a grease pencil, ignoring!");
+        ob_gpencil = NULL;
+      }
+      else if (BKE_object_obdata_is_libdata(ob_gpencil)) {
+        BKE_report(op->reports, RPT_WARNING, "Target object library-data, ignoring!");
+        ob_gpencil = NULL;
+      }
+    }
   }
 
   if (ob_gpencil == NULL) {

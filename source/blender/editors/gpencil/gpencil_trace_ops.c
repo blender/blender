@@ -321,12 +321,22 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
   job->image = (Image *)job->ob_active->data;
   job->frame_target = CFRA;
 
-  /* Create a new grease pencil object or resuse selected. */
+  /* Create a new grease pencil object or reuse selected. */
   eGP_TargetObjectMode target = RNA_enum_get(op->ptr, "target");
-  job->ob_gpencil = (target == GP_TARGET_OB_SELECTED) ?
-                        BKE_view_layer_first_selected_object_by_type(
-                            CTX_data_view_layer(C), job->v3d, OB_GPENCIL) :
-                        NULL;
+  job->ob_gpencil = (target == GP_TARGET_OB_SELECTED) ? BKE_view_layer_non_active_selected_object(
+                                                            CTX_data_view_layer(C), job->v3d) :
+                                                        NULL;
+
+  if (job->ob_gpencil != NULL) {
+    if (job->ob_gpencil->type != OB_GPENCIL) {
+      BKE_report(op->reports, RPT_WARNING, "Target object not a grease pencil, ignoring!");
+      job->ob_gpencil = NULL;
+    }
+    else if (BKE_object_obdata_is_libdata(job->ob_gpencil)) {
+      BKE_report(op->reports, RPT_WARNING, "Target object library-data, ignoring!");
+      job->ob_gpencil = NULL;
+    }
+  }
 
   job->was_ob_created = false;
 
