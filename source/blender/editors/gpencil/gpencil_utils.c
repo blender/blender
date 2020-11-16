@@ -2250,7 +2250,7 @@ static void gpencil_insert_point(bGPdata *gpd,
                                  bGPDspoint *a_pt,
                                  bGPDspoint *b_pt,
                                  const float co_a[3],
-                                 float co_b[3])
+                                 const float co_b[3])
 {
   bGPDspoint *temp_points;
   int totnewpoints, oldtotpoints;

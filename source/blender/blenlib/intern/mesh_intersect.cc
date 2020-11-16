@@ -696,7 +696,7 @@ void IMesh::remove_null_faces()
 {
   int64_t nullcount = 0;
   for (Face *f : this->face_) {
-    if (f == NULL) {
+    if (f == nullptr) {
       ++nullcount;
     }
   }

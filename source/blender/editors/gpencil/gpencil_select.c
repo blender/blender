@@ -2279,12 +2279,15 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
   if (toggle) {
     if (hit_curve_point != NULL) {
       BezTriple *bezt = &hit_curve_point->bezt;
-      if (bezt->f1 & SELECT && hit_curve_handle == 0)
+      if ((bezt->f1 & SELECT) && (hit_curve_handle == 0)) {
         deselect = true;
-      if (bezt->f2 & SELECT && hit_curve_handle == 1)
+      }
+      if ((bezt->f2 & SELECT) && (hit_curve_handle == 1)) {
         deselect = true;
-      if (bezt->f3 & SELECT && hit_curve_handle == 2)
+      }
+      if ((bezt->f3 & SELECT) && (hit_curve_handle == 2)) {
         deselect = true;
+      }
     }
     else {
       deselect = (hit_point->flag & GP_SPOINT_SELECT) != 0;
