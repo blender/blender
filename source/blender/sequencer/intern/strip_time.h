@@ -30,7 +30,8 @@ extern "C" {
 struct Scene;
 struct Sequence;
 
-void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq, const bool do_id_user);
+float seq_give_frame_index(struct Sequence *seq, float timeline_frame);
+void seq_update_sound_bounds_recursive(struct Scene *scene, struct Sequence *metaseq);
 
 #ifdef __cplusplus
 }

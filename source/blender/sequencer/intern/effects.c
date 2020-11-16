@@ -62,8 +62,10 @@
 
 #include "BLF_api.h"
 
+#include "effects.h"
 #include "render.h"
-#include "sequencer.h"
+#include "strip_time.h"
+#include "utils.h"
 
 static struct SeqEffectHandle get_sequence_effect_impl(int seq_type);
 

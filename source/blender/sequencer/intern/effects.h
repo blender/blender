@@ -29,8 +29,21 @@ extern "C" {
 
 struct Scene;
 struct Sequence;
+struct SeqRenderData;
 
-void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq, const bool do_id_user);
+/* **********************************************************************
+ * sequencer.c
+ *
+ * Sequencer editing functions
+ * **********************************************************************
+ */
+
+struct SeqEffectHandle BKE_sequence_get_blend(struct Sequence *seq);
+void BKE_sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence *seq, bool force);
+float BKE_sequencer_speed_effect_target_frame_get(const struct SeqRenderData *context,
+                                                  struct Sequence *seq,
+                                                  float timeline_frame,
+                                                  int input);
 
 #ifdef __cplusplus
 }

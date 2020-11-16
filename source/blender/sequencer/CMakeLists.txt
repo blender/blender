@@ -46,16 +46,33 @@ set(INC_SYS
 set(SRC
   SEQ_sequencer.h
 
+  intern/clipboard.c
   intern/effects.c
+  intern/effects.h
   intern/image_cache.c
+  intern/image_cache.h
+  intern/iterator.c
   intern/modifier.c
+  intern/multiview.c
+  intern/multiview.h
   intern/prefetch.c
+  intern/prefetch.h
   intern/proxy.c
   intern/proxy.h
   intern/render.c
   intern/render.h
   intern/sequencer.c
   intern/sequencer.h
+  intern/sound.c
+  intern/strip_add.c
+  intern/strip_edit.c
+  intern/strip_relations.c
+  intern/strip_select.c
+  intern/strip_time.c
+  intern/strip_time.h
+  intern/strip_transform.c
+  intern/utils.c
+  intern/utils.h
 )
 
 set(LIB

@@ -50,8 +50,9 @@
 
 #include "SEQ_sequencer.h"
 
-#include "render.h"
-#include "sequencer.h"
+#include "image_cache.h"
+#include "prefetch.h"
+#include "strip_time.h"
 
 /**
  * Sequencer Cache Design Notes

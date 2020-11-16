@@ -27,10 +27,30 @@
 extern "C" {
 #endif
 
+struct Editing;
+struct ImBuf;
+struct Main;
+struct Mask;
 struct Scene;
 struct Sequence;
+struct StripColorBalance;
+struct StripElem;
 
-void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq, const bool do_id_user);
+/* **********************************************************************
+ * sequencer.c
+ *
+ * Sequencer editing functions
+ * **********************************************************************
+ */
+
+void seq_anim_add_suffix(struct Scene *scene, struct anim *anim, const int view_id);
+void seq_multiview_name(struct Scene *scene,
+                        const int view_id,
+                        const char *prefix,
+                        const char *ext,
+                        char *r_path,
+                        size_t r_size);
+int seq_num_files(struct Scene *scene, char views_format, const bool is_multiview);
 
 #ifdef __cplusplus
 }

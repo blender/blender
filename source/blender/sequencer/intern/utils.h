@@ -28,9 +28,13 @@ extern "C" {
 #endif
 
 struct Scene;
-struct Sequence;
+struct anim;
 
-void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq, const bool do_id_user);
+bool sequencer_seq_generates_image(struct Sequence *seq);
+void seq_open_anim_file(struct Scene *scene, struct Sequence *seq, bool openfile);
+struct Sequence *BKE_sequence_metastrip(ListBase *seqbase /* = ed->seqbase */,
+                                        struct Sequence *meta /* = NULL */,
+                                        struct Sequence *seq);
 
 #ifdef __cplusplus
 }

@@ -1,0 +1,468 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * - Blender Foundation, 2003-2009
+ * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
+ */
+
+/** \file
+ * \ingroup bke
+ */
+
+#include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
+
+#include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_session_uuid.h"
+
+#include "BKE_main.h"
+#include "BKE_report.h"
+#include "BKE_scene.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
+#include "IMB_imbuf.h"
+
+#include "SEQ_sequencer.h"
+
+#include "effects.h"
+#include "image_cache.h"
+#include "utils.h"
+
+/* check whether sequence cur depends on seq */
+static bool BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
+{
+  if (cur->seq1 == seq || cur->seq2 == seq || cur->seq3 == seq) {
+    return true;
+  }
+
+  /* sequences are not intersecting in time, assume no dependency exists between them */
+  if (cur->enddisp < seq->startdisp || cur->startdisp > seq->enddisp) {
+    return false;
+  }
+
+  /* checking sequence is below reference one, not dependent on it */
+  if (cur->machine < seq->machine) {
+    return false;
+  }
+
+  /* sequence is not blending with lower machines, no dependency here occurs
+   * check for non-effects only since effect could use lower machines as input
+   */
+  if ((cur->type & SEQ_TYPE_EFFECT) == 0 &&
+      ((cur->blend_mode == SEQ_BLEND_REPLACE) ||
+       (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f))) {
+    return false;
+  }
+
+  return true;
+}
+
+static void sequence_do_invalidate_dependent(Scene *scene, Sequence *seq, ListBase *seqbase)
+{
+  Sequence *cur;
+
+  for (cur = seqbase->first; cur; cur = cur->next) {
+    if (cur == seq) {
+      continue;
+    }
+
+    if (BKE_sequence_check_depend(seq, cur)) {
+      /* Effect must be invalidated completely if they depend on invalidated seq. */
+      if ((cur->type & SEQ_TYPE_EFFECT) != 0) {
+        BKE_sequencer_cache_cleanup_sequence(scene, cur, seq, SEQ_CACHE_ALL_TYPES, false);
+      }
+      else {
+        /* In case of alpha over for example only invalidate composite image */
+        BKE_sequencer_cache_cleanup_sequence(
+            scene, cur, seq, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT, false);
+      }
+    }
+
+    if (cur->seqbase.first) {
+      sequence_do_invalidate_dependent(scene, seq, &cur->seqbase);
+    }
+  }
+}
+
+static void sequence_invalidate_cache(Scene *scene,
+                                      Sequence *seq,
+                                      bool invalidate_self,
+                                      int invalidate_types)
+{
+  Editing *ed = scene->ed;
+
+  if (invalidate_self) {
+    BKE_sequence_free_anim(seq);
+    BKE_sequencer_cache_cleanup_sequence(scene, seq, seq, invalidate_types, false);
+  }
+
+  if (seq->effectdata && seq->type == SEQ_TYPE_SPEED) {
+    BKE_sequence_effect_speed_rebuild_map(scene, seq, true);
+  }
+
+  sequence_do_invalidate_dependent(scene, seq, &ed->seqbase);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  BKE_sequencer_prefetch_stop(scene);
+}
+
+void BKE_sequence_invalidate_cache_in_range(Scene *scene,
+                                            Sequence *seq,
+                                            Sequence *range_mask,
+                                            int invalidate_types)
+{
+  BKE_sequencer_cache_cleanup_sequence(scene, seq, range_mask, invalidate_types, true);
+}
+
+void BKE_sequence_invalidate_cache_raw(Scene *scene, Sequence *seq)
+{
+  sequence_invalidate_cache(scene, seq, true, SEQ_CACHE_ALL_TYPES);
+}
+
+void BKE_sequence_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
+{
+  sequence_invalidate_cache(scene,
+                            seq,
+                            true,
+                            SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_COMPOSITE |
+                                SEQ_CACHE_STORE_FINAL_OUT);
+}
+
+void BKE_sequence_invalidate_cache_composite(Scene *scene, Sequence *seq)
+{
+  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+    return;
+  }
+
+  sequence_invalidate_cache(
+      scene, seq, true, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
+}
+
+void BKE_sequence_invalidate_dependent(Scene *scene, Sequence *seq)
+{
+  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+    return;
+  }
+
+  sequence_invalidate_cache(
+      scene, seq, false, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
+}
+
+static void invalidate_scene_strips(Scene *scene, Scene *scene_target, ListBase *seqbase)
+{
+  for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
+    if (seq->scene == scene_target) {
+      BKE_sequence_invalidate_cache_raw(scene, seq);
+    }
+
+    if (seq->seqbase.first != NULL) {
+      invalidate_scene_strips(scene, scene_target, &seq->seqbase);
+    }
+  }
+}
+
+void BKE_sequence_invalidate_scene_strips(Main *bmain, Scene *scene_target)
+{
+  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    if (scene->ed != NULL) {
+      invalidate_scene_strips(scene, scene_target, &scene->ed->seqbase);
+    }
+  }
+}
+
+static void invalidate_movieclip_strips(Scene *scene, MovieClip *clip_target, ListBase *seqbase)
+{
+  for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
+    if (seq->clip == clip_target) {
+      BKE_sequence_invalidate_cache_raw(scene, seq);
+    }
+
+    if (seq->seqbase.first != NULL) {
+      invalidate_movieclip_strips(scene, clip_target, &seq->seqbase);
+    }
+  }
+}
+
+void BKE_sequence_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target)
+{
+  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    if (scene->ed != NULL) {
+      invalidate_movieclip_strips(scene, clip_target, &scene->ed->seqbase);
+    }
+  }
+}
+
+void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
+{
+  if (scene->ed == NULL) {
+    return;
+  }
+
+  Sequence *seq;
+
+  BKE_sequencer_cache_cleanup(scene);
+  BKE_sequencer_prefetch_stop(scene);
+
+  for (seq = seqbase->first; seq; seq = seq->next) {
+    if (for_render && CFRA >= seq->startdisp && CFRA <= seq->enddisp) {
+      continue;
+    }
+
+    if (seq->strip) {
+      if (seq->type == SEQ_TYPE_MOVIE) {
+        BKE_sequence_free_anim(seq);
+      }
+      if (seq->type == SEQ_TYPE_SPEED) {
+        BKE_sequence_effect_speed_rebuild_map(scene, seq, true);
+      }
+    }
+    if (seq->type == SEQ_TYPE_META) {
+      BKE_sequencer_free_imbuf(scene, &seq->seqbase, for_render);
+    }
+    if (seq->type == SEQ_TYPE_SCENE) {
+      /* FIXME: recurse downwards,
+       * but do recurse protection somehow! */
+    }
+  }
+}
+
+static bool update_changed_seq_recurs(
+    Scene *scene, Sequence *seq, Sequence *changed_seq, int len_change, int ibuf_change)
+{
+  Sequence *subseq;
+  bool free_imbuf = false;
+
+  /* recurse downwards to see if this seq depends on the changed seq */
+
+  if (seq == NULL) {
+    return false;
+  }
+
+  if (seq == changed_seq) {
+    free_imbuf = true;
+  }
+
+  for (subseq = seq->seqbase.first; subseq; subseq = subseq->next) {
+    if (update_changed_seq_recurs(scene, subseq, changed_seq, len_change, ibuf_change)) {
+      free_imbuf = true;
+    }
+  }
+
+  if (seq->seq1) {
+    if (update_changed_seq_recurs(scene, seq->seq1, changed_seq, len_change, ibuf_change)) {
+      free_imbuf = true;
+    }
+  }
+  if (seq->seq2 && (seq->seq2 != seq->seq1)) {
+    if (update_changed_seq_recurs(scene, seq->seq2, changed_seq, len_change, ibuf_change)) {
+      free_imbuf = true;
+    }
+  }
+  if (seq->seq3 && (seq->seq3 != seq->seq1) && (seq->seq3 != seq->seq2)) {
+    if (update_changed_seq_recurs(scene, seq->seq3, changed_seq, len_change, ibuf_change)) {
+      free_imbuf = true;
+    }
+  }
+
+  if (free_imbuf) {
+    if (ibuf_change) {
+      if (seq->type == SEQ_TYPE_MOVIE) {
+        BKE_sequence_free_anim(seq);
+      }
+      else if (seq->type == SEQ_TYPE_SPEED) {
+        BKE_sequence_effect_speed_rebuild_map(scene, seq, true);
+      }
+    }
+
+    if (len_change) {
+      BKE_sequence_calc(scene, seq);
+    }
+  }
+
+  return free_imbuf;
+}
+
+void BKE_sequencer_update_changed_seq_and_deps(Scene *scene,
+                                               Sequence *changed_seq,
+                                               int len_change,
+                                               int ibuf_change)
+{
+  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Sequence *seq;
+
+  if (ed == NULL) {
+    return;
+  }
+
+  for (seq = ed->seqbase.first; seq; seq = seq->next) {
+    update_changed_seq_recurs(scene, seq, changed_seq, len_change, ibuf_change);
+  }
+}
+
+/* Unused */
+static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
+{
+  for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
+    if (seq->enddisp < timeline_frame || seq->startdisp > timeline_frame) {
+      BKE_sequence_free_anim(seq);
+    }
+    if (seq->type == SEQ_TYPE_META) {
+      sequencer_all_free_anim_ibufs(&seq->seqbase, timeline_frame);
+    }
+  }
+}
+
+/* Unused */
+void BKE_sequencer_all_free_anim_ibufs(Scene *scene, int timeline_frame)
+{
+  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  if (ed == NULL) {
+    return;
+  }
+  sequencer_all_free_anim_ibufs(&ed->seqbase, timeline_frame);
+  BKE_sequencer_cache_cleanup(scene);
+}
+
+static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)
+{
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (seq->type == SEQ_TYPE_SCENE && seq->scene == scene) {
+      return seq;
+    }
+
+    if (seq->type == SEQ_TYPE_SCENE && (seq->flag & SEQ_SCENE_STRIPS)) {
+      if (sequencer_check_scene_recursion(scene, &seq->scene->ed->seqbase)) {
+        return seq;
+      }
+    }
+
+    if (seq->type == SEQ_TYPE_META && sequencer_check_scene_recursion(scene, &seq->seqbase)) {
+      return seq;
+    }
+  }
+
+  return NULL;
+}
+
+bool BKE_sequencer_check_scene_recursion(Scene *scene, ReportList *reports)
+{
+  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  if (ed == NULL) {
+    return false;
+  }
+
+  Sequence *recursive_seq = sequencer_check_scene_recursion(scene, &ed->seqbase);
+
+  if (recursive_seq != NULL) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Recursion detected in video sequencer. Strip %s at frame %d will not be rendered",
+                recursive_seq->name + 2,
+                recursive_seq->startdisp);
+
+    LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
+      if (seq->type != SEQ_TYPE_SCENE && sequencer_seq_generates_image(seq)) {
+        /* There are other strips to render, so render them. */
+        return false;
+      }
+    }
+    /* No other strips to render - cancel operator. */
+    return true;
+  }
+
+  return false;
+}
+
+/* Check if "seq_main" (indirectly) uses strip "seq". */
+bool BKE_sequencer_render_loop_check(Sequence *seq_main, Sequence *seq)
+{
+  if (seq_main == NULL || seq == NULL) {
+    return false;
+  }
+
+  if (seq_main == seq) {
+    return true;
+  }
+
+  if ((seq_main->seq1 && BKE_sequencer_render_loop_check(seq_main->seq1, seq)) ||
+      (seq_main->seq2 && BKE_sequencer_render_loop_check(seq_main->seq2, seq)) ||
+      (seq_main->seq3 && BKE_sequencer_render_loop_check(seq_main->seq3, seq))) {
+    return true;
+  }
+
+  SequenceModifierData *smd;
+  for (smd = seq_main->modifiers.first; smd; smd = smd->next) {
+    if (smd->mask_sequence && BKE_sequencer_render_loop_check(smd->mask_sequence, seq)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/* Function to free imbuf and anim data on changes */
+void BKE_sequence_free_anim(Sequence *seq)
+{
+  while (seq->anims.last) {
+    StripAnim *sanim = seq->anims.last;
+
+    if (sanim->anim) {
+      IMB_free_anim(sanim->anim);
+      sanim->anim = NULL;
+    }
+
+    BLI_freelinkN(&seq->anims, sanim);
+  }
+  BLI_listbase_clear(&seq->anims);
+}
+
+void BKE_sequence_session_uuid_generate(struct Sequence *sequence)
+{
+  sequence->runtime.session_uuid = BLI_session_uuid_generate();
+}
+
+void BKE_sequencer_check_uuids_unique_and_report(const Scene *scene)
+{
+  if (scene->ed == NULL) {
+    return;
+  }
+
+  struct GSet *used_uuids = BLI_gset_new(
+      BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "sequencer used uuids");
+
+  const Sequence *sequence;
+  SEQ_ALL_BEGIN (scene->ed, sequence) {
+    const SessionUUID *session_uuid = &sequence->runtime.session_uuid;
+    if (!BLI_session_uuid_is_generated(session_uuid)) {
+      printf("Sequence %s does not have UUID generated.\n", sequence->name);
+      continue;
+    }
+
+    if (BLI_gset_lookup(used_uuids, session_uuid) != NULL) {
+      printf("Sequence %s has duplicate UUID generated.\n", sequence->name);
+      continue;
+    }
+
+    BLI_gset_insert(used_uuids, (void *)session_uuid);
+  }
+  SEQ_ALL_END;
+
+  BLI_gset_free(used_uuids, NULL);
+}

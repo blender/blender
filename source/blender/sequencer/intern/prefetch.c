@@ -55,8 +55,9 @@
 
 #include "SEQ_sequencer.h"
 
+#include "image_cache.h"
+#include "prefetch.h"
 #include "render.h"
-#include "sequencer.h"
 
 typedef struct PrefetchJob {
   struct PrefetchJob *next, *prev;
