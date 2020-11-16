@@ -274,6 +274,27 @@ static BMesh *BMD_mesh_bm_create(
   return bm;
 }
 
+/* Snap entries that are near 0 or 1 or -1 to those values. */
+static void clean_obmat(float cleaned[4][4], const float mat[4][4])
+{
+  const float fuzz = 1e-6f;
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      float f = mat[i][j];
+      if (fabsf(f) <= fuzz) {
+        f = 0.0f;
+      }
+      else if (fabsf(f - 1.0f) <= fuzz) {
+        f = 1.0f;
+      }
+      else if (fabsf(f + 1.0f) <= fuzz) {
+        f = -1.0f;
+      }
+      cleaned[i][j] = f;
+    }
+  }
+}
+
 static void BMD_mesh_intersection(BMesh *bm,
                                   ModifierData *md,
                                   const ModifierEvalContext *ctx,
@@ -290,6 +311,14 @@ static void BMD_mesh_intersection(BMesh *bm,
   int tottri;
   BMLoop *(*looptris)[3];
 
+#ifdef WITH_GMP
+  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+  const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
+#else
+  const bool use_exact = false;
+  const bool use_self = false;
+#endif
+
   looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
 
   BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
@@ -305,7 +334,18 @@ static void BMD_mesh_intersection(BMesh *bm,
     float imat[4][4];
     float omat[4][4];
 
-    invert_m4_m4(imat, object->obmat);
+    if (use_exact) {
+      /* The user-expected coplanar faces will actually be coplanar more
+       * often if use an object matrix that doesn't multiply by values
+       * other than 0, -1, or 1 in the scaling part of the matrix.
+       */
+      float cleaned_object_obmat[4][4];
+      clean_obmat(cleaned_object_obmat, object->obmat);
+      invert_m4_m4(imat, cleaned_object_obmat);
+    }
+    else {
+      invert_m4_m4(imat, object->obmat);
+    }
     mul_m4_m4m4(omat, imat, operand_ob->obmat);
 
     BMVert *eve;
@@ -370,14 +410,6 @@ static void BMD_mesh_intersection(BMesh *bm,
     use_dissolve = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoDissolve) == 0;
     use_island_connect = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoConnectRegions) == 0;
   }
-
-#ifdef WITH_GMP
-  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
-  const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
-#else
-  const bool use_exact = false;
-  const bool use_self = false;
-#endif
 
   if (use_exact) {
     BM_mesh_boolean(
@@ -493,7 +525,9 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
    * The Exact solver doesn't need normals on the input faces. */
   float imat[4][4];
   float omat[4][4];
-  invert_m4_m4(imat, ctx->object->obmat);
+  float cleaned_object_obmat[4][4];
+  clean_obmat(cleaned_object_obmat, ctx->object->obmat);
+  invert_m4_m4(imat, cleaned_object_obmat);
   int curshape = 0;
   int curshape_vert_end = shape_vert_end[0];
   BMVert *eve;
@@ -503,7 +537,8 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
     if (i == curshape_vert_end) {
       curshape++;
       curshape_vert_end = shape_vert_end[curshape];
-      mul_m4_m4m4(omat, imat, objects[curshape]->obmat);
+      clean_obmat(cleaned_object_obmat, objects[curshape]->obmat);
+      mul_m4_m4m4(omat, imat, cleaned_object_obmat);
     }
     if (curshape > 0) {
       mul_m4_v3(omat, eve->co);

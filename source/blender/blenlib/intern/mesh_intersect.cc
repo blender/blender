@@ -80,11 +80,15 @@ uint64_t Vert::hash() const
 
 std::ostream &operator<<(std::ostream &os, const Vert *v)
 {
+  constexpr int dbg_level = 0;
   os << "v" << v->id;
   if (v->orig != NO_INDEX) {
     os << "o" << v->orig;
   }
   os << v->co;
+  if (dbg_level > 0) {
+    os << "=" << v->co_exact;
+  }
   return os;
 }
 
@@ -258,10 +262,7 @@ std::ostream &operator<<(std::ostream &os, const Face *f)
 {
   os << "f" << f->id << "o" << f->orig << "[";
   for (const Vert *v : *f) {
-    os << "v" << v->id;
-    if (v->orig != NO_INDEX) {
-      os << "o" << v->orig;
-    }
+    os << v;
     if (v != f->vert[f->size() - 1]) {
       os << " ";
     }
@@ -649,7 +650,7 @@ void IMesh::populate_vert(int max_verts)
   vert_populated_ = true;
 }
 
-void IMesh::erase_face_positions(int f_index, Span<bool> face_pos_erase, IMeshArena *arena)
+bool IMesh::erase_face_positions(int f_index, Span<bool> face_pos_erase, IMeshArena *arena)
 {
   const Face *cur_f = this->face(f_index);
   int cur_len = cur_f->size();
@@ -660,12 +661,18 @@ void IMesh::erase_face_positions(int f_index, Span<bool> face_pos_erase, IMeshAr
     }
   }
   if (num_to_erase == 0) {
-    return;
+    return false;
   }
   int new_len = cur_len - num_to_erase;
   if (new_len < 3) {
-    /* Invalid erase. Don't do anything. */
-    return;
+    /* This erase causes removal of whole face.
+     * Because this may be called from a loop over the face array,
+     * we don't want to compress that array right here; instead will
+     * mark with null pointer and caller should call remove_null_faces().
+     * the loop is done.
+     */
+    this->face_[f_index] = NULL;
+    return true;
   }
   Array<const Vert *> new_vert(new_len);
   Array<int> new_edge_orig(new_len);
@@ -681,6 +688,31 @@ void IMesh::erase_face_positions(int f_index, Span<bool> face_pos_erase, IMeshAr
   }
   BLI_assert(new_index == new_len);
   this->face_[f_index] = arena->add_face(new_vert, cur_f->orig, new_edge_orig, new_is_intersect);
+  return false;
+}
+
+void IMesh::remove_null_faces()
+{
+  int64_t nullcount = 0;
+  for (Face *f : this->face_) {
+    if (f == NULL) {
+      ++nullcount;
+    }
+  }
+  if (nullcount == 0) {
+    return;
+  }
+  int64_t new_size = this->face_.size() - nullcount;
+  int64_t copy_to_index = 0;
+  int64_t copy_from_index = 0;
+  Array<Face *> new_face(new_size);
+  while (copy_from_index < face_.size()) {
+    Face *f_from = face_[copy_from_index++];
+    if (f_from) {
+      new_face[copy_to_index++] = f_from;
+    }
+  }
+  this->face_ = new_face;
 }
 
 std::ostream &operator<<(std::ostream &os, const IMesh &mesh)
