@@ -72,12 +72,6 @@ static void wm_block_close(bContext *C, void *arg_block, void *UNUSED(arg))
   UI_popup_block_close(C, win, arg_block);
 }
 
-static void wm_block_splash_refreshmenu(bContext *C, void *UNUSED(arg_block), void *UNUSED(arg))
-{
-  ARegion *region_menu = CTX_wm_menu(C);
-  ED_region_tag_refresh_ui(region_menu);
-}
-
 static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, int y)
 {
   if (!(label && label[0])) {
@@ -217,7 +211,6 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
       block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
 
   UI_but_func_set(but, wm_block_close, block, NULL);
-  UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
 
   wm_block_splash_add_label(
       block, BKE_blender_version_string(), splash_width, splash_height - 13.0 * U.dpi_fac);
