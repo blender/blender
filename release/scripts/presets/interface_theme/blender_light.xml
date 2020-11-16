@@ -1454,6 +1454,40 @@
         >
       </ThemeBoneColorSet>
     </bone_color_sets>
+    <collection_color>
+      <ThemeCollectionColor
+        color="#dd473f"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#e5a057"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#e4d050"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#3fb931"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#3887c7"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#844fcd"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#c169b5"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#7a5441"
+        >
+      </ThemeCollectionColor>
+    </collection_color>
   </Theme>
   <ThemeStyle>
     <panel_title>

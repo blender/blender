@@ -370,7 +370,7 @@ class OUTLINER_PT_filter(Panel):
         col = layout.column(align=True)
 
         row = col.row()
-        row.label(icon='GROUP')
+        row.label(icon='OUTLINER_COLLECTION')
         row.prop(space, "use_filter_collection", text="Collections")
         row = col.row()
         row.label(icon='OBJECT_DATAMODE')
