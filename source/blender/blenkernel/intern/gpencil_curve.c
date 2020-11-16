@@ -560,7 +560,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Editcurve kernel functions
+/** \name Edit-Curve Kernel Functions
  * \{ */
 
 static bGPDcurve *gpencil_stroke_editcurve_generate_edgecases(bGPDstroke *gps,

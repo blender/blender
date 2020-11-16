@@ -54,7 +54,7 @@
 static void seq_free_animdata(Scene *scene, Sequence *seq);
 
 /* -------------------------------------------------------------------- */
-/** \name Alloc / free functions
+/** \name Allocate / Free Functions
  * \{ */
 
 static Strip *seq_strip_alloc(int type)
@@ -304,7 +304,7 @@ static void seq_new_fix_links_recursive(Sequence *seq)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Duplicate functions
+/** \name Duplicate Functions
  * \{ */
 static Sequence *seq_dupli(const Scene *scene_src,
                            Scene *scene_dst,

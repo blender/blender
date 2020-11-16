@@ -312,19 +312,19 @@ struct MemFile *ED_undosys_stack_memfile_get_active(UndoStack *ustack)
 }
 
 /**
- * If the last undo step is a memfile one, find the first memchunk matching given ID (using its
- * seesion uuid), and tag it as 'changed in the future'.
+ * If the last undo step is a memfile one, find the first #MemFileChunk matching given ID
+ * (using its session UUID), and tag it as "changed in the future".
  *
  * Since non-memfile undos cannot automatically set this flag in the previous step as done with
  * memfile ones, this has to be called manually by relevant undo code.
  *
- * \note Only current known case for this is undoing a switch from Pbject to Sculpt mode (see
+ * \note Only current known case for this is undoing a switch from Object to Sculpt mode (see
  * T82388).
  *
- * \note Calling this ID by ID is not optimal, as it will loop over all memchunks until it find
- * expected one. If this becomes an issue we'll have to add a mapping from session uuid to first
- * memchunk in #MemFile itself (currently we only do that in #MemFileWriteData when writing a new
- * step).
+ * \note Calling this ID by ID is not optimal, as it will loop over all #MemFile.chunks until it
+ * finds the expected one. If this becomes an issue we'll have to add a mapping from session UUID
+ * to first #MemFileChunk in #MemFile itself
+ * (currently we only do that in #MemFileWriteData when writing a new step).
  */
 void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id)
 {

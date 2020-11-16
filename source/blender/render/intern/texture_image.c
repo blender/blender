@@ -327,7 +327,7 @@ int imagewrap(Tex *tex,
     texres->ta = 1.0f - texres->ta;
   }
 
-  /* de-premul, this is being premulled in shade_input_do_shade()
+  /* de-premul, this is being pre-multiplied in shade_input_do_shade()
    * do not de-premul for generated alpha, it is already in straight */
   if (texres->ta != 1.0f && texres->ta > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
     fx = 1.0f / texres->ta;
@@ -1441,7 +1441,7 @@ static int imagewraposa_aniso(Tex *tex,
     texres->nor[2] = 2.0f * (texres->tb - 0.5f);
   }
 
-  /* de-premul, this is being premulled in shade_input_do_shade()
+  /* de-premul, this is being pre-multiplied in shade_input_do_shade()
    * TXF: this currently does not (yet?) work properly, destroys edge AA in clip/checker mode,
    * so for now commented out also disabled in imagewraposa()
    * to be able to compare results with blender's default texture filtering */
@@ -1970,7 +1970,7 @@ int imagewraposa(Tex *tex,
     texres->nor[2] = 2.0f * (texres->tb - 0.5f);
   }
 
-  /* de-premul, this is being premulled in shade_input_do_shade() */
+  /* de-premul, this is being pre-multiplied in shade_input_do_shade() */
   /* do not de-premul for generated alpha, it is already in straight */
   if (texres->ta != 1.0f && texres->ta > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
     mul_v3_fl(&texres->tr, 1.0f / texres->ta);

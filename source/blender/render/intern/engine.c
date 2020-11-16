@@ -376,8 +376,8 @@ void RE_engine_end_result(
       pa->status = (!cancel && merge_results) ? PART_STATUS_MERGED : PART_STATUS_RENDERED;
     }
     else if (re->result->do_exr_tile) {
-      /* if written result does not match any tile and we are using save
-       * buffers, we are going to get openexr save errors */
+      /* If written result does not match any tile and we are using save
+       * buffers, we are going to get OpenEXR save errors. */
       fprintf(stderr, "RenderEngine.end_result: dimensions do not match any OpenEXR tile.\n");
     }
   }

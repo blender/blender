@@ -23,7 +23,7 @@
  * \ingroup GHOST
  */
 
-#include <X11/XKBlib.h> /* allow detectable autorepeate */
+#include <X11/XKBlib.h> /* Allow detectable auto-repeate. */
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
@@ -130,10 +130,9 @@ GHOST_SystemX11::GHOST_SystemX11() : GHOST_System(), m_xkb_descr(NULL), m_start_
 #endif
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-  /* note -- don't open connection to XIM server here, because the locale
-   * has to be set before opening the connection but setlocale() has not
-   * been called yet.  the connection will be opened after entering
-   * the event loop. */
+  /* NOTE: Don't open connection to XIM server here, because the locale has to be
+   * set before opening the connection but `setlocale()` has not been called yet.
+   * the connection will be opened after entering the event loop. */
   m_xim = NULL;
 #endif
 
@@ -189,7 +188,7 @@ GHOST_SystemX11::GHOST_SystemX11() : GHOST_System(), m_xkb_descr(NULL), m_start_
   /* Taking care not to overflow the tv.tv_sec * 1000 */
   m_start_time = GHOST_TUns64(tv.tv_sec) * 1000 + tv.tv_usec / 1000;
 
-  /* use detectable autorepeate, mac and windows also do this */
+  /* Use detectable auto-repeate, mac and windows also do this. */
   int use_xkb;
   int xkb_opcode, xkb_event, xkb_error;
   int xkb_major = XkbMajorVersion, xkb_minor = XkbMinorVersion;

@@ -61,9 +61,9 @@ typedef struct CurveMap {
   /** Display and evaluate table. */
   CurveMapPoint *table;
 
-  /** For RGB curves, premulled table. */
+  /** For RGB curves, pre-multiplied table. */
   CurveMapPoint *premultable;
-  /** For RGB curves, premulled extrapolation vector. */
+  /** For RGB curves, pre-multiplied extrapolation vector. */
   float premul_ext_in[2];
   float premul_ext_out[2];
 } CurveMap;
