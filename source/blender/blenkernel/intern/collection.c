@@ -1864,15 +1864,23 @@ bool BKE_collection_move(Main *bmain,
   }
 
   /* Make sure we store the flag of the layer collections before we remove and re-create them.
-   * Otherwise they will get lost and everything will be copied from the new parent collection. */
+   * Otherwise they will get lost and everything will be copied from the new parent collection.
+   * Don't use flag syncing when moving a collection to a different scene, as it no longer exists
+   * in the same view layers anyway. */
+  const bool do_flag_sync = BKE_scene_find_from_collection(bmain, to_parent) ==
+                            BKE_scene_find_from_collection(bmain, collection);
   ListBase layer_flags;
-  layer_collection_flags_store(bmain, collection, &layer_flags);
+  if (do_flag_sync) {
+    layer_collection_flags_store(bmain, collection, &layer_flags);
+  }
 
   /* Create and remove layer collections. */
   BKE_main_collection_sync(bmain);
 
   /* Restore the original layer collection flags. */
-  layer_collection_flags_restore(&layer_flags, collection);
+  if (do_flag_sync) {
+    layer_collection_flags_restore(&layer_flags, collection);
+  }
 
   /* We need to sync it again to pass the correct flags to the collections objects. */
   BKE_main_collection_sync(bmain);
