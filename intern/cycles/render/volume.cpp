@@ -285,6 +285,10 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
   vector<int3> vertices_is;
   vector<QuadData> quads;
 
+  /* make sure we only have leaf nodes in the tree, as tiles are not handled by
+   * this algorithm */
+  topology_grid->tree().voxelizeActiveTiles();
+
   generate_vertices_and_quads(vertices_is, quads);
 
   convert_object_space(vertices_is, vertices, face_overlap_avoidance);

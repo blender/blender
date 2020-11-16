@@ -2791,7 +2791,7 @@ void PrincipledBsdfNode::expand(ShaderGraph *graph)
   ShaderInput *emission_strength_in = input("Emission Strength");
   if ((emission_in->link || emission != make_float3(0.0f, 0.0f, 0.0f)) &&
       (emission_strength_in->link || emission_strength != 0.0f)) {
-    /* Create add closure and emission. */
+    /* Create add closure and emission, and relink inputs. */
     AddClosureNode *add = graph->create_node<AddClosureNode>();
     EmissionNode *emission_node = graph->create_node<EmissionNode>();
     ShaderOutput *new_out = add->output("Closure");
@@ -2806,6 +2806,16 @@ void PrincipledBsdfNode::expand(ShaderGraph *graph)
     graph->connect(principled_out, add->input("Closure2"));
 
     principled_out = new_out;
+  }
+  else {
+    /* Disconnect unused links if the other value is zero, required before
+     * we remove the input from the node entirely. */
+    if (emission_in->link) {
+      emission_in->disconnect();
+    }
+    if (emission_strength_in->link) {
+      emission_strength_in->disconnect();
+    }
   }
 
   ShaderInput *alpha_in = input("Alpha");
@@ -2824,6 +2834,7 @@ void PrincipledBsdfNode::expand(ShaderGraph *graph)
   }
 
   remove_input(emission_in);
+  remove_input(emission_strength_in);
   remove_input(alpha_in);
 }
 
