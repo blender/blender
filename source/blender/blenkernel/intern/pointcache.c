@@ -1387,7 +1387,7 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
     idname = (pid->owner_id->name + 2);
     /* convert chars to hex so they are always a valid filename */
     while ('\0' != *idname) {
-      BLI_snprintf(newname, MAX_PTCACHE_FILE, "%02X", (unsigned int)(*idname++));
+      BLI_snprintf(newname, MAX_PTCACHE_FILE - len, "%02X", (unsigned int)(*idname++));
       newname += 2;
       len += 2;
     }
@@ -1410,16 +1410,16 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
     if (pid->cache->flag & PTCACHE_EXTERNAL) {
       if (pid->cache->index >= 0) {
         /* Always 6 chars. */
-        BLI_snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02u%s", cfra, pid->stack_index, ext);
+        BLI_snprintf(newname, MAX_PTCACHE_FILE - len, "_%06d_%02u%s", cfra, pid->stack_index, ext);
       }
       else {
         /* Always 6 chars. */
-        BLI_snprintf(newname, MAX_PTCACHE_FILE, "_%06d%s", cfra, ext);
+        BLI_snprintf(newname, MAX_PTCACHE_FILE - len, "_%06d%s", cfra, ext);
       }
     }
     else {
       /* Always 6 chars. */
-      BLI_snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02u%s", cfra, pid->stack_index, ext);
+      BLI_snprintf(newname, MAX_PTCACHE_FILE - len, "_%06d_%02u%s", cfra, pid->stack_index, ext);
     }
     len += 16;
   }
@@ -1434,7 +1434,7 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 {
   PTCacheFile *pf;
   FILE *fp = NULL;
-  char filename[FILE_MAX * 2];
+  char filename[MAX_PTCACHE_FILE];
 
 #ifndef DURIAN_POINTCACHE_LIB_OK
   /* don't allow writing for linked objects */
