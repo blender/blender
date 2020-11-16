@@ -763,7 +763,10 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
         ipd->snap_gizmo = gzgroup->gizmos.first;
       }
 
-      preview_plane_cursor_visible_set(gzgroup, false);
+      /* Can be NULL when gizmos are disabled. */
+      if (gzgroup->customdata != NULL) {
+        preview_plane_cursor_visible_set(gzgroup, false);
+      }
     }
   }
 
