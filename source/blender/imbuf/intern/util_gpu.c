@@ -222,7 +222,7 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
                                    bool use_premult)
 {
   GPUTexture *tex = NULL;
-  const int size[2] = {GPU_texture_size_with_limit(ibuf->x), GPU_texture_size_with_limit(ibuf->y)};
+  int size[2] = {GPU_texture_size_with_limit(ibuf->x), GPU_texture_size_with_limit(ibuf->y)};
   bool do_rescale = (ibuf->x != size[0]) || (ibuf->y != size[1]);
 
 #ifdef WITH_DDS
@@ -263,10 +263,16 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
   const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
   bool freebuf = false;
 
-  void *data = imb_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
-
   /* Create Texture. */
   tex = GPU_texture_create_2d(name, UNPACK2(size), 9999, tex_format, NULL);
+  if (tex == NULL) {
+    size[0] = max_ii(1, size[0] / 2);
+    size[1] = max_ii(1, size[1] / 2);
+    tex = GPU_texture_create_2d(name, UNPACK2(size), 9999, tex_format, NULL);
+    do_rescale = true;
+  }
+  BLI_assert(tex != NULL);
+  void *data = imb_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
   GPU_texture_update(tex, data_format, data);
 
   GPU_texture_anisotropic_filter(tex, true);
