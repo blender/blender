@@ -1634,12 +1634,12 @@ static int find_highest_panel(const void *a, const void *b)
   /* Stick uppermost header-less panels to the top of the region -
    * prevent them from being sorted (multiple header-less panels have to be sorted though). */
   if (panel_a->type->flag & PANEL_TYPE_NO_HEADER && panel_b->type->flag & PANEL_TYPE_NO_HEADER) {
-    /* Skip and check for `ofsy` and #Panel.sortorder below. */
+    /* Pass the no-header checks and check for `ofsy` and #Panel.sortorder below. */
   }
-  if (panel_a->type->flag & PANEL_TYPE_NO_HEADER) {
+  else if (panel_a->type->flag & PANEL_TYPE_NO_HEADER) {
     return -1;
   }
-  if (panel_b->type->flag & PANEL_TYPE_NO_HEADER) {
+  else if (panel_b->type->flag & PANEL_TYPE_NO_HEADER) {
     return 1;
   }
 
