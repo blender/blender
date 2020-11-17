@@ -1713,9 +1713,6 @@ void OBJECT_OT_hair_add(wmOperatorType *ot)
 
 static bool object_pointcloud_add_poll(bContext *C)
 {
-  if (!U.experimental.use_new_point_cloud_type) {
-    return false;
-  }
   return ED_operator_objectmode(C);
 }
 
