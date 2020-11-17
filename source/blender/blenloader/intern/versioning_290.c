@@ -483,6 +483,13 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
       }
     }
   }
+
+  /* Wet Paint Radius Factor */
+  for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+    if (br->ob_mode & OB_MODE_SCULPT && br->wet_paint_radius_factor == 0.0f) {
+      br->wet_paint_radius_factor = 1.0f;
+    }
+  }
 }
 
 static void panels_remove_x_closed_flag_recursive(Panel *panel)

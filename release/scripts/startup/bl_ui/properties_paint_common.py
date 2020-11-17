@@ -717,6 +717,9 @@ def brush_settings(layout, context, brush, popover=False):
             row.prop(brush, "use_wet_persistence_pressure", text="")
 
             row = layout.row(align=True)
+            row.prop(brush, "wet_paint_radius_factor")
+
+            row = layout.row(align=True)
             row.prop(brush, "density")
             row.prop(brush, "invert_density_pressure", text="")
             row.prop(brush, "use_density_pressure", text="")

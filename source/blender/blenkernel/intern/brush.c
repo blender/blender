@@ -446,6 +446,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(topology_rake_factor);
   FROM_DEFAULT(crease_pinch_factor);
   FROM_DEFAULT(normal_radius_factor);
+  FROM_DEFAULT(wet_paint_radius_factor);
   FROM_DEFAULT(area_radius_factor);
   FROM_DEFAULT(disconnected_distance_max);
   FROM_DEFAULT(sculpt_plane);

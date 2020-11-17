@@ -573,7 +573,7 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1[6];
+  char _pad1[2];
 
   float autosmooth_factor;
 
@@ -585,6 +585,7 @@ typedef struct Brush {
 
   float normal_radius_factor;
   float area_radius_factor;
+  float wet_paint_radius_factor;
 
   float plane_trim;
   /** Affectable height of brush (layer height for layer tool, i.e.). */

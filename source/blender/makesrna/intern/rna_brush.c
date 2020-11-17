@@ -2854,6 +2854,16 @@ static void rna_def_brush(BlenderRNA *brna)
                            "used to sample the area center");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "wet_paint_radius_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "wet_paint_radius_factor");
+  RNA_def_property_range(prop, 0.0f, 2.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 2.0f, 0.001, 3);
+  RNA_def_property_ui_text(prop,
+                           "Wet Paint Radius",
+                           "Ratio between the brush radius and the radius that is going to be "
+                           "used to sample the color to blend in wet paint");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "stencil_pos", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "stencil_pos");
   RNA_def_property_array(prop, 2);

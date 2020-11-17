@@ -220,6 +220,9 @@ static void do_sample_wet_paint_task_cb(void *__restrict userdata,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
 
+  test.radius *= data->brush->wet_paint_radius_factor;
+  test.radius_squared = test.radius * test.radius;
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
