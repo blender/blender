@@ -2263,10 +2263,9 @@ static int pycon_get_tars(bConstraint *con, ListBase *list)
 static void pycon_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
   bPythonConstraint *data = con->data;
-  bConstraintTarget *ct;
 
   /* targets */
-  for (ct = data->targets.first; ct; ct = ct->next) {
+  LISTBASE_FOREACH (bConstraintTarget *, ct, &data->targets) {
     func(con, (ID **)&ct->tar, false, userdata);
   }
 
@@ -2381,10 +2380,9 @@ static int armdef_get_tars(bConstraint *con, ListBase *list)
 static void armdef_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
   bArmatureConstraint *data = con->data;
-  bConstraintTarget *ct;
 
   /* Target list. */
-  for (ct = data->targets.first; ct; ct = ct->next) {
+  LISTBASE_FOREACH (bConstraintTarget *, ct, &data->targets) {
     func(con, (ID **)&ct->tar, false, userdata);
   }
 }
@@ -5370,10 +5368,8 @@ void BKE_constraint_free_data(bConstraint *con)
 /* Free all constraints from a constraint-stack */
 void BKE_constraints_free_ex(ListBase *list, bool do_id_user)
 {
-  bConstraint *con;
-
   /* Free constraint data and also any extra data */
-  for (con = list->first; con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, list) {
     BKE_constraint_free_data_ex(con, do_id_user);
   }
 
@@ -5554,9 +5550,7 @@ bConstraint *BKE_constraint_add_for_object(Object *ob, const char *name, short t
 /* Run the given callback on all ID-blocks in list of constraints */
 void BKE_constraints_id_loop(ListBase *conlist, ConstraintIDFunc func, void *userdata)
 {
-  bConstraint *con;
-
-  for (con = conlist->first; con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, conlist) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 
     if (cti) {
@@ -5686,11 +5680,10 @@ bConstraint *BKE_constraints_find_name(ListBase *list, const char *name)
 /* finds the 'active' constraint in a constraint stack */
 bConstraint *BKE_constraints_active_get(ListBase *list)
 {
-  bConstraint *con;
 
   /* search for the first constraint with the 'active' flag set */
   if (list) {
-    for (con = list->first; con; con = con->next) {
+    LISTBASE_FOREACH (bConstraint *, con, list) {
       if (con->flag & CONSTRAINT_ACTIVE) {
         return con;
       }
@@ -5704,15 +5697,14 @@ bConstraint *BKE_constraints_active_get(ListBase *list)
 /* Set the given constraint as the active one (clearing all the others) */
 void BKE_constraints_active_set(ListBase *list, bConstraint *con)
 {
-  bConstraint *c;
 
   if (list) {
-    for (c = list->first; c; c = c->next) {
-      if (c == con) {
-        c->flag |= CONSTRAINT_ACTIVE;
+    LISTBASE_FOREACH (bConstraint *, con_iter, list) {
+      if (con_iter == con) {
+        con_iter->flag |= CONSTRAINT_ACTIVE;
       }
       else {
-        c->flag &= ~CONSTRAINT_ACTIVE;
+        con_iter->flag &= ~CONSTRAINT_ACTIVE;
       }
     }
   }
