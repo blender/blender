@@ -37,6 +37,9 @@ extern "C" {
 /* Needed for eSpaceImage_UVDT_Stretch */
 #include "DNA_space_types.h"
 
+/* Forward declarations */
+struct ImBuf;
+
 typedef struct OVERLAY_FramebufferList {
   struct GPUFrameBuffer *overlay_default_fb;
   struct GPUFrameBuffer *overlay_line_fb;
@@ -95,6 +98,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *edit_uv_faces_ps;
   DRWPass *edit_uv_stretching_ps;
   DRWPass *edit_uv_tiled_image_borders_ps;
+  DRWPass *edit_uv_stencil_ps;
   DRWPass *extra_ps[2];
   DRWPass *extra_blend_ps;
   DRWPass *extra_centers_ps;
@@ -363,6 +367,7 @@ typedef struct OVERLAY_PrivateData {
     bool do_uv_stretching_overlay;
     bool do_tiled_image_overlay;
     bool do_tiled_image_border_overlay;
+    bool do_stencil_overlay;
 
     bool do_faces;
     bool do_face_dots;
@@ -380,6 +385,10 @@ typedef struct OVERLAY_PrivateData {
     float total_area_ratio;
     float total_area_ratio_inv;
 
+    /* stencil overlay */
+    struct Image *stencil_image;
+    struct ImBuf *stencil_ibuf;
+    void * stencil_lock;
   } edit_uv;
   struct {
     bool transparent;
@@ -680,6 +689,7 @@ GPUShader *OVERLAY_shader_edit_uv_verts_get(void);
 GPUShader *OVERLAY_shader_edit_uv_stretching_area_get(void);
 GPUShader *OVERLAY_shader_edit_uv_stretching_angle_get(void);
 GPUShader *OVERLAY_shader_edit_uv_tiled_image_borders_get(void);
+GPUShader *OVERLAY_shader_edit_uv_stencil_image(void);
 GPUShader *OVERLAY_shader_extra(bool is_select);
 GPUShader *OVERLAY_shader_extra_groundline(void);
 GPUShader *OVERLAY_shader_extra_wire(bool use_object, bool is_select);
