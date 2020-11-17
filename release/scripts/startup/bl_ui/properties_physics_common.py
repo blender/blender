@@ -126,6 +126,7 @@ def point_cache_ui(self, cache, enabled, cachetype):
     layout.context_pointer_set("point_cache", cache)
 
     is_saved = bpy.data.is_saved
+    is_liboverride = cache.id_data.override_library is not None
 
     # NOTE: TODO temporarily used until the animate properties are properly skipped.
     layout.use_property_decorate = False  # No animation (remove this later on).
@@ -221,7 +222,9 @@ def point_cache_ui(self, cache, enabled, cachetype):
         col = flow.column()
         col.active = can_bake
 
-        if cache.is_baked is True:
+        if is_liboverride and not cache.use_disk_cache:
+            col.operator("ptcache.bake", icon='ERROR', text="Bake (Disk Cache mandatory)")
+        elif cache.is_baked is True:
             col.operator("ptcache.free_bake", text="Delete Bake")
         else:
             col.operator("ptcache.bake", text="Bake").bake = True
