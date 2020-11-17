@@ -3915,7 +3915,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* Compensate text size for preview render size. */
   proxy_size_comp = context->scene->r.size / 100.0;
   if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
-    proxy_size_comp *= SEQ_rendersize_to_scale_factor(context->preview_render_size);
+    proxy_size_comp = SEQ_rendersize_to_scale_factor(context->preview_render_size);
   }
 
   /* set before return */

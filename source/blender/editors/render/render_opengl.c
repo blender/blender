@@ -490,13 +490,13 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
     int chanshown = sseq ? sseq->chanshown : 0;
 
     SEQ_render_new_render_data(oglrender->bmain,
-                               oglrender->depsgraph,
-                               scene,
-                               oglrender->sizex,
-                               oglrender->sizey,
-                               100,
-                               false,
-                               &context);
+                                  oglrender->depsgraph,
+                                  scene,
+                                  oglrender->sizex,
+                                  oglrender->sizey,
+                                  SEQ_RENDER_SIZE_SCENE,
+                                  false,
+                                  &context);
 
     for (view_id = 0; view_id < oglrender->views_len; view_id++) {
       context.view_id = view_id;

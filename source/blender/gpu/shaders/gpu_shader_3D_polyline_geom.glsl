@@ -5,6 +5,7 @@ layout(triangle_strip, max_vertices = 4) out;
 uniform vec4 color;
 uniform vec2 viewportSize;
 uniform float lineWidth;
+uniform bool lineSmooth = true;
 
 #if !defined(UNIFORM)
 in vec4 finalColor_g[];
@@ -53,12 +54,12 @@ void do_vertex(const int i, vec4 pos, vec2 ofs)
   clip = clip_g[i];
 #endif
 
-  smoothline = (lineWidth + SMOOTH_WIDTH) * 0.5;
+  smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy += ofs * pos.w;
   EmitVertex();
 
-  smoothline = -(lineWidth + SMOOTH_WIDTH) * 0.5;
+  smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy -= ofs * pos.w;
   EmitVertex();
@@ -77,7 +78,7 @@ void main(void)
   vec2 ofs = vec2(-e.y, e.x);
 #endif
   ofs /= viewportSize.xy;
-  ofs *= lineWidth + SMOOTH_WIDTH;
+  ofs *= lineWidth + SMOOTH_WIDTH * float(lineSmooth);
 
   do_vertex(0, p0, ofs);
   do_vertex(1, p1, ofs);

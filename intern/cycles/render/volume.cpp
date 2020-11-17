@@ -72,6 +72,7 @@ enum {
   QUAD_Z_MAX = 5,
 };
 
+#ifdef WITH_OPENVDB
 const int quads_indices[6][4] = {
     /* QUAD_X_MIN */
     {4, 0, 3, 7},
@@ -136,6 +137,7 @@ static void create_quad(int3 corners[8],
 
   quads.push_back(quad);
 }
+#endif
 
 /* Create a mesh from a volume.
  *
@@ -280,6 +282,7 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
                                     vector<float3> &face_normals,
                                     const float face_overlap_avoidance)
 {
+#ifdef WITH_OPENVDB
   /* We create vertices in index space (is), and only convert them to object
    * space when done. */
   vector<int3> vertices_is;
@@ -294,6 +297,12 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
   convert_object_space(vertices_is, vertices, face_overlap_avoidance);
 
   convert_quads_to_tris(quads, indices, face_normals);
+#else
+  (void)vertices;
+  (void)indices;
+  (void)face_normals;
+  (void)face_overlap_avoidance;
+#endif
 }
 
 void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,

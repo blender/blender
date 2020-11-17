@@ -180,6 +180,11 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
   immUniform2fv("viewportSize", &viewport[2]);
   immUniform1f("lineWidth", line_width);
 
+  if (GPU_blend_get() == GPU_BLEND_NONE) {
+    /* Disable line smoothing when blending is disabled (see T81827). */
+    immUniform1i("lineSmooth", 0);
+  }
+
   if (ELEM(polyline_sh,
            GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR,
            GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR)) {
@@ -190,6 +195,10 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
 static void wide_line_workaround_end()
 {
   if (imm->prev_shader) {
+    if (GPU_blend_get() == GPU_BLEND_NONE) {
+      /* Restore default. */
+      immUniform1i("lineSmooth", 1);
+    }
     immUnbindProgram();
 
     immBindShader(imm->prev_shader);
