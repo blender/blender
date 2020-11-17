@@ -4,6 +4,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "guardedalloc_test_base.h"
+
 /* We expect to abort on integer overflow, to prevent possible exploits. */
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -31,7 +33,7 @@ void CallocArray(size_t len, size_t size)
 
 }  // namespace
 
-TEST(guardedalloc, LockfreeIntegerOverflow)
+TEST_F(LockFreeAllocatorTest, LockfreeIntegerOverflow)
 {
   MallocArray(1, SIZE_MAX);
   CallocArray(SIZE_MAX, 1);
@@ -44,10 +46,8 @@ TEST(guardedalloc, LockfreeIntegerOverflow)
   EXPECT_EXIT(CallocArray(SIZE_MAX, SIZE_MAX), ABORT_PREDICATE, "");
 }
 
-TEST(guardedalloc, GuardedIntegerOverflow)
+TEST_F(GuardedAllocatorTest, GuardedIntegerOverflow)
 {
-  MEM_use_guarded_allocator();
-
   MallocArray(1, SIZE_MAX);
   CallocArray(SIZE_MAX, 1);
   MallocArray(SIZE_MAX / 2, 2);
