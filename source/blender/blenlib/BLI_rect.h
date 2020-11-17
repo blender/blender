@@ -65,6 +65,7 @@ void BLI_rcti_resize(struct rcti *rect, int x, int y);
 void BLI_rcti_resize_x(struct rcti *rect, int x);
 void BLI_rcti_resize_y(struct rcti *rect, int y);
 void BLI_rcti_pad(struct rcti *rect, int pad_x, int pad_y);
+void BLI_rctf_pad(struct rctf *rect, float pad_x, float pad_y);
 void BLI_rctf_resize(struct rctf *rect, float x, float y);
 void BLI_rctf_resize_x(struct rctf *rect, float x);
 void BLI_rctf_resize_y(struct rctf *rect, float y);
