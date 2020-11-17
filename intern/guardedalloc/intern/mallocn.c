@@ -96,12 +96,27 @@ void aligned_free(void *ptr)
 #endif
 }
 
+/* Perform assert checks on allocator type change.
+ *
+ * Helps catching issues (in debug build) caused by an unintended allocator type change when there
+ * are allocation happenned. */
+static void assert_for_allocator_change(void)
+{
+  /* NOTE: Assume that there is no "sticky" internal state which would make switching allocator
+   * type after all allocations are freed unsafe. In fact, it should be safe to change allocator
+   * type after all blocks has been freed: some regression tests do rely on this property of
+   * allocators. */
+  assert(MEM_get_memory_blocks_in_use() == 0);
+}
+
 void MEM_use_lockfree_allocator(void)
 {
   /* NOTE: Keep in sync with static initialization of the variables. */
 
   /* TODO(sergey): Find a way to de-duplicate the logic. Maybe by requiring an explicit call
    * to guarded allocator initialization at an application startup. */
+
+  assert_for_allocator_change();
 
   MEM_allocN_len = MEM_lockfree_allocN_len;
   MEM_freeN = MEM_lockfree_freeN;
@@ -132,6 +147,8 @@ void MEM_use_lockfree_allocator(void)
 
 void MEM_use_guarded_allocator(void)
 {
+  assert_for_allocator_change();
+
   MEM_allocN_len = MEM_guarded_allocN_len;
   MEM_freeN = MEM_guarded_freeN;
   MEM_dupallocN = MEM_guarded_dupallocN;
