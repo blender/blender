@@ -29,7 +29,6 @@ Checks:  >
   -bugprone-sizeof-expression,
   -bugprone-integer-division,
 
-  -bugprone-exception-escape,
   -bugprone-redundant-branch-condition,
 
   modernize-*,

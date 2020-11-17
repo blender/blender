@@ -41,11 +41,6 @@ PSStrokeRenderer::PSStrokeRenderer(const char *iFileName)
   _ofstream << "%%EndComments" << endl;
 }
 
-PSStrokeRenderer::~PSStrokeRenderer()
-{
-  Close();
-}
-
 void PSStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 {
   RenderStrokeRepBasic(iStrokeRep);
@@ -87,13 +82,6 @@ void PSStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
       ++v[1];
       ++v[2];
     }
-  }
-}
-
-void PSStrokeRenderer::Close()
-{
-  if (_ofstream.is_open()) {
-    _ofstream.close();
   }
 }
 
