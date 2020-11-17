@@ -965,6 +965,12 @@ static void uvedit_pack_islands(const Scene *scene, Object *ob, BMesh *bm)
   param_delete(handle);
 }
 
+/**
+ * \warning Since this uses #ParamHandle it doesn't work with non-manifold meshes (see T82637).
+ * Use #ED_uvedit_pack_islands_multi for a more general solution.
+ *
+ * TODO: remove this function, in favor of #ED_uvedit_pack_islands_multi.
+ */
 static void uvedit_pack_islands_multi(const Scene *scene,
                                       Object **objects,
                                       const uint objects_len,
@@ -999,7 +1005,6 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   };
 
   bool rotate = RNA_boolean_get(op->ptr, "rotate");
-  bool ignore_pinned = false;
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -1017,7 +1022,16 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
     RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
   }
 
-  uvedit_pack_islands_multi(scene, objects, objects_len, &options, rotate, ignore_pinned);
+  ED_uvedit_pack_islands_multi(scene,
+                               objects,
+                               objects_len,
+                               &(struct UVPackIsland_Params){
+                                   .rotate = rotate,
+                                   .rotate_align_axis = -1,
+                                   .only_selected_uvs = true,
+                                   .only_selected_faces = true,
+                                   .correct_aspect = true,
+                               });
 
   MEM_freeN(objects);
 
@@ -2149,20 +2163,19 @@ static int smart_project_exec(bContext *C, wmOperator *op)
   if (object_changed_len > 0) {
 
     scene->toolsettings->uvcalc_margin = island_margin;
-    const UnwrapOptions options = {
-        .topology_from_uvs = true,
-        /* Even though the islands are defined by UV's,
-         * split them by seams so users have control over the islands. */
-        .topology_from_uvs_use_seams = true,
-
-        .only_selected_faces = true,
-        .only_selected_uvs = false,
-        .fill_holes = true,
-        .correct_aspect = false,
-    };
 
     /* Depsgraph refresh functions are called here. */
-    uvedit_pack_islands_multi(scene, objects_changed, object_changed_len, &options, true, false);
+    ED_uvedit_pack_islands_multi(scene,
+                                 objects_changed,
+                                 object_changed_len,
+                                 &(struct UVPackIsland_Params){
+                                     .rotate = true,
+                                     /* We could make this optional. */
+                                     .rotate_align_axis = 1,
+                                     .only_selected_faces = true,
+                                     .correct_aspect = true,
+                                 });
+
     uv_map_clip_correct_multi(objects_changed, object_changed_len, op);
   }
 
