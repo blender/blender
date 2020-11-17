@@ -1182,7 +1182,7 @@ void buttons_context_register(ARegionType *art)
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->poll = buttons_panel_context_poll;
   pt->draw = buttons_panel_context_draw;
-  pt->flag = PNL_NO_HEADER;
+  pt->flag = PNL_NO_HEADER | PNL_NO_SEARCH;
   BLI_addtail(&art->paneltypes, pt);
 }
 

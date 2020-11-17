@@ -568,6 +568,8 @@ enum {
   PNL_INSTANCED = (1 << 4),
   /** Draw panel like a box widget. */
   PNL_DRAW_BOX = (1 << 6),
+  /** Don't search this panel for property search. */
+  PNL_NO_SEARCH = (1 << 7),
 };
 
 /* Fallback panel category (only for old scripts which need updating) */

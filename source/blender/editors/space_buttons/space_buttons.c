@@ -402,6 +402,9 @@ static void property_search_all_tabs(const bContext *C,
   ScrArea *area_original = CTX_wm_area(C);
   ScrArea area_copy = *area_original;
   ARegion *region_copy = BKE_area_region_copy(area_copy.type, region_original);
+  /* Set the region visible field. Otherwise some layout code thinks we're drawing in a popup.
+   * This likely isn't necessary, but it's nice to emulate a "real" region where possible. */
+  region_copy->visible = true;
   CTX_wm_area_set((bContext *)C, &area_copy);
   CTX_wm_region_set((bContext *)C, region_copy);
 
