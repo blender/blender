@@ -630,14 +630,13 @@ typedef struct UserDef_Experimental {
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
-  char use_new_geometry_nodes;
   char use_new_hair_type;
   char use_new_point_cloud_type;
   char use_sculpt_vertex_colors;
   char use_switch_object_operator;
   char use_sculpt_tools_tilt;
   char use_object_add_tool;
-  char _pad[6];
+  char _pad[7];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
