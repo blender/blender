@@ -226,7 +226,22 @@ void MEM_use_memleak_detection(bool enabled);
  * tests. */
 void MEM_enable_fail_on_memleak(void);
 
-/* Switch allocator to slower but fully guarded mode. */
+/* Switch allocator to fast mode, with less tracking.
+ *
+ * Use in the production code where performance is the priority, and exact details about allocation
+ * is not. This allocator keeps track of number of allocation and amount of allocated bytes, but it
+ * does not track of names of allocated blocks.
+ *
+ * NOTE: The switch between allocator types can only happen before any allocation did happen. */
+void MEM_use_lockfree_allocator(void);
+
+/* Switch allocator to slow fully guarded mode.
+ *
+ * Use for debug purposes. This allocator contains lock section around every allocator call, which
+ * makes it slow. What is gained with this is the ability to have list of allocated blocks (in an
+ * addition to the trackign of number of allocations and amount of allocated bytes).
+ *
+ * NOTE: The switch between allocator types can only happen before any allocation did happen. */
 void MEM_use_guarded_allocator(void);
 
 #ifdef __cplusplus
