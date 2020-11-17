@@ -390,6 +390,7 @@ typedef bool (*BMVertFilterFunc)(const BMVert *, void *user_data);
 typedef bool (*BMEdgeFilterFunc)(const BMEdge *, void *user_data);
 typedef bool (*BMFaceFilterFunc)(const BMFace *, void *user_data);
 typedef bool (*BMLoopFilterFunc)(const BMLoop *, void *user_data);
+typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_data);
 
 /* defines */
 #define BM_ELEM_CD_SET_INT(ele, offset, f) \
