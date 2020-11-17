@@ -1340,7 +1340,7 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
         offset = ceilf(nls->end - strip->start);
 
         /* apply necessary offset to ensure that the strip has enough space */
-        for (; nls; nls = nls->next) {
+        for (; nls; nls = nls->prev) {
           nls->start -= offset;
           nls->end -= offset;
         }
