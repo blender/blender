@@ -464,6 +464,9 @@ void CLOSURE_NAME(vec3 N
   float btdf = get_btdf_lut(NV, roughness, ior);
 
   out_refr += refr_accum.rgb * btdf;
+
+  /* Global toggle for lightprobe baking. */
+  out_refr *= float(specToggle);
 #  endif
 
 #  ifdef CLOSURE_CLEARCOAT

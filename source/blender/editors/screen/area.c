@@ -3089,6 +3089,11 @@ static bool panel_property_search(const bContext *C,
   uiBlock *block = UI_block_begin(C, region, panel_type->idname, UI_EMBOSS);
   UI_block_set_search_only(block, true);
 
+  /* Skip panels that give meaningless search results. */
+  if (panel_type->flag & PANEL_TYPE_NO_SEARCH) {
+    return false;
+  }
+
   if (panel == NULL) {
     bool open; /* Dummy variable. */
     panel = UI_panel_begin(region, &region->panels, block, panel_type, panel, &open);

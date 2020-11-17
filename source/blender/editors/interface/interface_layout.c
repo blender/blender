@@ -5169,6 +5169,10 @@ bool UI_block_apply_search_filter(uiBlock *block, const char *search_filter)
     return false;
   }
 
+  if (block->panel && block->panel->type && block->panel->type->flag & PANEL_TYPE_NO_SEARCH) {
+    return false;
+  }
+
   const bool panel_label_matches = block_search_panel_label_matches(block, search_filter);
 
   const bool has_result = (panel_label_matches) ?
