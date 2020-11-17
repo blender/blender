@@ -529,6 +529,9 @@ static void box_select_graphkeys(bAnimContext *ac,
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
+  if (sipo->flag & SIPO_SELCUVERTSONLY) {
+    filter |= ANIMFILTER_FOREDIT | ANIMFILTER_SELEDIT;
+  }
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* get beztriple editing/validation funcs  */
