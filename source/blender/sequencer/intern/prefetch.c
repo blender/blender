@@ -505,8 +505,6 @@ static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)
       seq_prefetch_init_depsgraph(pfjob);
     }
   }
-  seq_prefetch_update_scene(context->scene);
-  seq_prefetch_update_context(context);
   pfjob->bmain = context->bmain;
 
   pfjob->cfra = cfra;
@@ -515,6 +513,9 @@ static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)
   pfjob->waiting = false;
   pfjob->stop = false;
   pfjob->running = true;
+
+  seq_prefetch_update_scene(context->scene);
+  seq_prefetch_update_context(context);
 
   BLI_threadpool_remove(&pfjob->threads, pfjob);
   BLI_threadpool_insert(&pfjob->threads, pfjob);
