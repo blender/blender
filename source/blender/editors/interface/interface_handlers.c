@@ -10232,8 +10232,7 @@ static int ui_but_pie_menu_apply(bContext *C,
       menu->menuretval = UI_RETURN_CANCEL;
     }
     else {
-      ui_apply_but(C, but->block, but, but->active, false);
-      button_activate_exit((bContext *)C, but, but->active, false, true);
+      button_activate_exit((bContext *)C, but, but->active, false, false);
 
       menu->menuretval = UI_RETURN_OK;
     }
