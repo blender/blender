@@ -4733,7 +4733,7 @@ static bool constructive_modifier_is_deform_modified(ModifierData *md)
   if (md->type == eModifierType_MeshSequenceCache) {
     /* NOTE: Not ideal because it's unknown whether topology changes or not.
      * This will be detected later, so by assuming it's only deformation
-     * going on here we allow to bake deform-only mesh to Alembic and have
+     * going on here we allow baking deform-only mesh to Alembic and have
      * proper motion blur after that.
      */
     return true;

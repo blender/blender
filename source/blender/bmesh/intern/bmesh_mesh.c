@@ -501,7 +501,7 @@ void BM_mesh_normals_update(BMesh *bm)
 {
   float(*edgevec)[3] = MEM_mallocN(sizeof(*edgevec) * bm->totedge, __func__);
 
-  /* Parallel mempool iteration does not allow to generate indices inline anymore... */
+  /* Parallel mempool iteration does not allow generating indices inline anymore... */
   BM_mesh_elem_index_ensure(bm, (BM_EDGE | BM_FACE));
 
   /* calculate all face normals */

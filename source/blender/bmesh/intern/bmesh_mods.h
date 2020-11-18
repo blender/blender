@@ -80,13 +80,13 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 
 /** Flags for #BM_edge_rotate */
 enum {
-  /** Disallow to rotate when the new edge matches an existing one. */
+  /** Disallow rotating when the new edge matches an existing one. */
   BM_EDGEROT_CHECK_EXISTS = (1 << 0),
   /** Overrides existing check, if the edge already, rotate and merge them. */
   BM_EDGEROT_CHECK_SPLICE = (1 << 1),
   /** Disallow creating bow-tie, concave or zero area faces */
   BM_EDGEROT_CHECK_DEGENERATE = (1 << 2),
-  /** Disallow to rotate into ugly topology. */
+  /** Disallow rotating into ugly topology. */
   BM_EDGEROT_CHECK_BEAUTY = (1 << 3),
 };
 

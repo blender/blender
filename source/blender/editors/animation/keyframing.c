@@ -430,7 +430,7 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
         }
       }
     }
-    /* keyframing modes allow to not replace keyframe */
+    /* Keyframing modes allow not replacing the keyframe. */
     else if ((flag & INSERTKEY_REPLACE) == 0) {
       /* insert new - if we're not restricted to replacing keyframes only */
       BezTriple *newb = MEM_callocN((fcu->totvert + 1) * sizeof(BezTriple), "beztriple");

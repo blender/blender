@@ -1281,7 +1281,7 @@ void NODE_OT_find_node(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Find Node";
-  ot->description = "Search for named node and allow to select and activate it";
+  ot->description = "Search for a node by name and focus and select it";
   ot->idname = "NODE_OT_find_node";
 
   /* api callbacks */
