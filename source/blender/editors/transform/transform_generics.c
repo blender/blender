@@ -506,7 +506,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     short orient_types[3];
     float custom_matrix[3][3];
 
-    short orient_type_default = V3D_ORIENT_GLOBAL;
     short orient_type_scene = V3D_ORIENT_GLOBAL;
     short orient_type_set = V3D_ORIENT_GLOBAL;
     short orient_type_matrix_set = -1;
@@ -519,6 +518,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         orient_type_scene += index_custom;
       }
     }
+
+    short orient_type_default = orient_type_scene;
 
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
       t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
@@ -535,7 +536,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       orient_type_default = orient_type_set;
     }
     else if (t->con.mode & CON_APPLY) {
-      orient_type_set = orient_type_default = orient_type_scene;
+      orient_type_set = orient_type_scene;
     }
     else {
       if (orient_type_set == orient_type_scene) {
