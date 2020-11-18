@@ -171,7 +171,7 @@ static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEve
 /* pixels to move the cursor to get out of keyboard navigation */
 #define BUTTON_KEYNAV_PX_LIMIT 8
 
-#define MENU_TOWARDS_MARGIN 20      /* margin in pixels */
+#define MENU_TOWARDS_MARGIN 20 /* margin in pixels */
 #define MENU_TOWARDS_WIGGLE_ROOM 64 /* tolerance in pixels */
 /* drag-lock distance threshold in pixels */
 #define BUTTON_DRAGLOCK_THRESH 3
@@ -818,21 +818,25 @@ static void ui_apply_but_undo(uiBut *but)
 {
   if (but->flag & UI_BUT_UNDO) {
     const char *str = NULL;
+    size_t str_len_clip = SIZE_MAX - 1;
     bool skip_undo = false;
 
     /* define which string to use for undo */
     if (but->type == UI_BTYPE_MENU) {
       str = but->drawstr;
+      str_len_clip = ui_but_drawstr_len_without_sep_char(but);
     }
     else if (but->drawstr[0]) {
       str = but->drawstr;
+      str_len_clip = ui_but_drawstr_len_without_sep_char(but);
     }
     else {
       str = but->tip;
+      str_len_clip = ui_but_tip_len_only_first_line(but);
     }
 
     /* fallback, else we don't get an undo! */
-    if (str == NULL || str[0] == '\0') {
+    if (str == NULL || str[0] == '\0' || str_len_clip == 0) {
       str = "Unknown Action";
     }
 
@@ -869,7 +873,7 @@ static void ui_apply_but_undo(uiBut *but)
 
     /* delayed, after all other funcs run, popups are closed, etc */
     uiAfterFunc *after = ui_afterfunc_new();
-    BLI_strncpy(after->undostr, str, sizeof(after->undostr));
+    BLI_strncpy(after->undostr, str, min_zz(str_len_clip + 1, sizeof(after->undostr)));
   }
 }
 
