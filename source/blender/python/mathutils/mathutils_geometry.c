@@ -1311,11 +1311,11 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
   return tri_list;
 }
 
-static int boxPack_FromPyObject(PyObject *value, BoxPack **boxarray)
+static int boxPack_FromPyObject(PyObject *value, BoxPack **r_boxarray)
 {
   Py_ssize_t len, i;
   PyObject *list_item, *item_1, *item_2;
-  BoxPack *box;
+  BoxPack *boxarray;
 
   /* Error checking must already be done */
   if (!PyList_Check(value)) {
@@ -1325,17 +1325,17 @@ static int boxPack_FromPyObject(PyObject *value, BoxPack **boxarray)
 
   len = PyList_GET_SIZE(value);
 
-  *boxarray = MEM_mallocN(len * sizeof(BoxPack), "BoxPack box");
+  boxarray = MEM_mallocN(sizeof(BoxPack) * len, __func__);
 
   for (i = 0; i < len; i++) {
     list_item = PyList_GET_ITEM(value, i);
     if (!PyList_Check(list_item) || PyList_GET_SIZE(list_item) < 4) {
-      MEM_freeN(*boxarray);
+      MEM_freeN(boxarray);
       PyErr_SetString(PyExc_TypeError, "can only pack a list of [x, y, w, h]");
       return -1;
     }
 
-    box = (*boxarray) + i;
+    BoxPack *box = &boxarray[i];
 
     item_1 = PyList_GET_ITEM(list_item, 2);
     item_2 = PyList_GET_ITEM(list_item, 3);
@@ -1346,7 +1346,7 @@ static int boxPack_FromPyObject(PyObject *value, BoxPack **boxarray)
 
     /* accounts for error case too and overwrites with own error */
     if (box->w < 0.0f || box->h < 0.0f) {
-      MEM_freeN(*boxarray);
+      MEM_freeN(boxarray);
       PyErr_SetString(PyExc_TypeError,
                       "error parsing width and height values from list: "
                       "[x, y, w, h], not numbers or below zero");
@@ -1355,24 +1355,24 @@ static int boxPack_FromPyObject(PyObject *value, BoxPack **boxarray)
 
     /* verts will be added later */
   }
+
+  *r_boxarray = boxarray;
   return 0;
 }
 
-static void boxPack_ToPyObject(PyObject *value, BoxPack **boxarray)
+static void boxPack_ToPyObject(PyObject *value, const BoxPack *boxarray)
 {
   Py_ssize_t len, i;
   PyObject *list_item;
-  BoxPack *box;
 
   len = PyList_GET_SIZE(value);
 
   for (i = 0; i < len; i++) {
-    box = (*boxarray) + i;
+    const BoxPack *box = &boxarray[i];
     list_item = PyList_GET_ITEM(value, box->index);
     PyList_SET_ITEM(list_item, 0, PyFloat_FromDouble(box->x));
     PyList_SET_ITEM(list_item, 1, PyFloat_FromDouble(box->y));
   }
-  MEM_freeN(*boxarray);
 }
 
 PyDoc_STRVAR(M_Geometry_box_pack_2d_doc,
@@ -1407,7 +1407,8 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
     /* Non Python function */
     BLI_box_pack_2d(boxarray, len, &tot_width, &tot_height);
 
-    boxPack_ToPyObject(boxlist, &boxarray);
+    boxPack_ToPyObject(boxlist, boxarray);
+    MEM_freeN(boxarray);
   }
 
   ret = PyTuple_New(2);
