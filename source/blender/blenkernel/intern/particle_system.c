@@ -1418,7 +1418,7 @@ static void integrate_particle(
 
   ParticleKey states[5];
   float force[3], acceleration[3], impulse[3], dx[4][3] = ZERO_F43, dv[4][3] = ZERO_F43, oldpos[3];
-  float pa_mass = (part->flag & PART_SIZEMASS ? part->mass * pa->size : part->mass);
+  float pa_mass = (part->flag & PART_SIZEMASS) ? (part->mass * pa->size) : part->mass;
   int i, steps = 1;
   int integrator = part->integrator;
 
@@ -2201,7 +2201,7 @@ static void sph_integrate(ParticleSimulationData *sim,
 {
   ParticleSettings *part = sim->psys->part;
   // float timestep = psys_get_timestep(sim); // UNUSED
-  float pa_mass = part->mass * (part->flag & PART_SIZEMASS ? pa->size : 1.0f);
+  float pa_mass = part->mass * ((part->flag & PART_SIZEMASS) ? pa->size : 1.0f);
   float dtime = dfra * psys_get_timestep(sim);
   // int steps = 1; // UNUSED
   float effector_acceleration[3];

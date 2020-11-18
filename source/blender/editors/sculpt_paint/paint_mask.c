@@ -531,7 +531,7 @@ static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperat
       sgcontext, line_points, plane_points, offset_plane_points);
 
   /* Calculate line plane and normal. */
-  const bool flip = sgcontext->line.flip ^ !sgcontext->vc.rv3d->is_persp;
+  const bool flip = sgcontext->line.flip ^ (!sgcontext->vc.rv3d->is_persp);
   sculpt_gesture_line_plane_from_tri(sgcontext->line.true_plane,
                                      sgcontext,
                                      flip,

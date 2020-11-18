@@ -956,7 +956,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
 #endif
 
   const bool is_keymapitem_ptr = RNA_struct_is_a(ptr->type, &RNA_KeyMapItem);
-  if ((flag & flag & UI_ITEM_R_FULL_EVENT) && !is_keymapitem_ptr) {
+  if ((flag & UI_ITEM_R_FULL_EVENT) && !is_keymapitem_ptr) {
     RNA_warning("Data is not a keymap item struct: %s. Ignoring 'full_event' option.",
                 RNA_struct_identifier(ptr->type));
   }
