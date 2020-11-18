@@ -2275,6 +2275,8 @@ typedef enum eGPencil_Flags {
   GP_TOOL_FLAG_THUMBNAIL_LIST = (1 << 3),
   /* Generate wheight data for new strokes */
   GP_TOOL_FLAG_CREATE_WEIGHTS = (1 << 4),
+  /* Automerge with last stroke */
+  GP_TOOL_FLAG_AUTOMERGE_STROKE = (1 << 5),
 } eGPencil_Flags;
 
 /* scene->r.simplify_gpencil */

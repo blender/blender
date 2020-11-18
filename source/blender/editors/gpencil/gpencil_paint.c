@@ -1282,6 +1282,25 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     BKE_gpencil_stroke_trim(gpd, gps);
   }
 
+  /* Join with existing strokes. */
+  if (ts->gpencil_flags & GP_TOOL_FLAG_AUTOMERGE_STROKE) {
+    if (gps->prev != NULL) {
+      int pt_index = 0;
+      bool doit = true;
+      while (doit && gps) {
+        bGPDstroke *gps_target = ED_gpencil_stroke_nearest_to_ends(
+            p->C, &p->gsc, gpl, gpl->actframe, gps, GPENCIL_MINIMUM_JOIN_DIST, &pt_index);
+        if (gps_target != NULL) {
+          gps = ED_gpencil_stroke_join_and_trim(p->gpd, p->gpf, gps, gps_target, pt_index);
+        }
+        else {
+          doit = false;
+        }
+      }
+    }
+    ED_gpencil_stroke_close_by_distance(gps, 0.02f);
+  }
+
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 
@@ -1652,7 +1671,8 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
         gpencil_stroke_soft_refine(gps);
       }
 
-      gpencil_stroke_delete_tagged_points(p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+      BKE_gpencil_stroke_delete_tagged_points(
+          p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
     }
     gpencil_update_cache(p->gpd);
   }

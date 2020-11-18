@@ -99,8 +99,6 @@
 /** \name Stroke Edit Mode Management
  * \{ */
 
-static void gpencil_flip_stroke(bGPDstroke *gps);
-
 /* poll callback for all stroke editing operators */
 static bool gpencil_stroke_edit_poll(bContext *C)
 {
@@ -1181,7 +1179,7 @@ static void gpencil_add_move_points(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gp
 
     /* Flip stroke if it was only one point to consider extrude point as last point. */
     if (gps->totpoints == 2) {
-      gpencil_flip_stroke(gps);
+      BKE_gpencil_stroke_flip(gps);
     }
 
     /* Calc geometry data. */
@@ -2584,372 +2582,6 @@ static int gpencil_dissolve_selected_points(bContext *C, eGP_DissolveMode mode)
 
 /* ----------------------------------- */
 
-/* Temp data for storing information about an "island" of points
- * that should be kept when splitting up a stroke. Used in:
- * gpencil_stroke_delete_tagged_points()
- */
-typedef struct tGPDeleteIsland {
-  int start_idx;
-  int end_idx;
-} tGPDeleteIsland;
-
-static void gpencil_stroke_join_islands(bGPdata *gpd,
-                                        bGPDframe *gpf,
-                                        bGPDstroke *gps_first,
-                                        bGPDstroke *gps_last)
-{
-  bGPDspoint *pt = NULL;
-  bGPDspoint *pt_final = NULL;
-  const int totpoints = gps_first->totpoints + gps_last->totpoints;
-
-  /* create new stroke */
-  bGPDstroke *join_stroke = BKE_gpencil_stroke_duplicate(gps_first, false, true);
-
-  join_stroke->points = MEM_callocN(sizeof(bGPDspoint) * totpoints, __func__);
-  join_stroke->totpoints = totpoints;
-  join_stroke->flag &= ~GP_STROKE_CYCLIC;
-
-  /* copy points (last before) */
-  int e1 = 0;
-  int e2 = 0;
-  float delta = 0.0f;
-
-  for (int i = 0; i < totpoints; i++) {
-    pt_final = &join_stroke->points[i];
-    if (i < gps_last->totpoints) {
-      pt = &gps_last->points[e1];
-      e1++;
-    }
-    else {
-      pt = &gps_first->points[e2];
-      e2++;
-    }
-
-    /* copy current point */
-    copy_v3_v3(&pt_final->x, &pt->x);
-    pt_final->pressure = pt->pressure;
-    pt_final->strength = pt->strength;
-    pt_final->time = delta;
-    pt_final->flag = pt->flag;
-    copy_v4_v4(pt_final->vert_color, pt->vert_color);
-
-    /* retiming with fixed time interval (we cannot determine real time) */
-    delta += 0.01f;
-  }
-
-  /* Copy over vertex weight data (if available) */
-  if ((gps_first->dvert != NULL) || (gps_last->dvert != NULL)) {
-    join_stroke->dvert = MEM_callocN(sizeof(MDeformVert) * totpoints, __func__);
-    MDeformVert *dvert_src = NULL;
-    MDeformVert *dvert_dst = NULL;
-
-    /* Copy weights (last before)*/
-    e1 = 0;
-    e2 = 0;
-    for (int i = 0; i < totpoints; i++) {
-      dvert_dst = &join_stroke->dvert[i];
-      dvert_src = NULL;
-      if (i < gps_last->totpoints) {
-        if (gps_last->dvert) {
-          dvert_src = &gps_last->dvert[e1];
-          e1++;
-        }
-      }
-      else {
-        if (gps_first->dvert) {
-          dvert_src = &gps_first->dvert[e2];
-          e2++;
-        }
-      }
-
-      if ((dvert_src) && (dvert_src->dw)) {
-        dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
-      }
-    }
-  }
-
-  /* add new stroke at head */
-  BLI_addhead(&gpf->strokes, join_stroke);
-  /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(gpd, join_stroke);
-
-  /* remove first stroke */
-  BLI_remlink(&gpf->strokes, gps_first);
-  BKE_gpencil_free_stroke(gps_first);
-
-  /* remove last stroke */
-  BLI_remlink(&gpf->strokes, gps_last);
-  BKE_gpencil_free_stroke(gps_last);
-}
-
-/* Split the given stroke into several new strokes, partitioning
- * it based on whether the stroke points have a particular flag
- * is set (e.g. "GP_SPOINT_SELECT" in most cases, but not always)
- *
- * The algorithm used here is as follows:
- * 1) We firstly identify the number of "islands" of non-tagged points
- *    which will all end up being in new strokes.
- *    - In the most extreme case (i.e. every other vert is a 1-vert island),
- *      we have at most n / 2 islands
- *    - Once we start having larger islands than that, the number required
- *      becomes much less
- * 2) Each island gets converted to a new stroke
- * If the number of points is <= limit, the stroke is deleted
- */
-void gpencil_stroke_delete_tagged_points(bGPdata *gpd,
-                                         bGPDframe *gpf,
-                                         bGPDstroke *gps,
-                                         bGPDstroke *next_stroke,
-                                         int tag_flags,
-                                         bool select,
-                                         int limit)
-{
-  tGPDeleteIsland *islands = MEM_callocN(sizeof(tGPDeleteIsland) * (gps->totpoints + 1) / 2,
-                                         "gp_point_islands");
-  bool in_island = false;
-  int num_islands = 0;
-
-  bGPDstroke *gps_first = NULL;
-  const bool is_cyclic = (bool)(gps->flag & GP_STROKE_CYCLIC);
-
-  /* First Pass: Identify start/end of islands */
-  bGPDspoint *pt = gps->points;
-  for (int i = 0; i < gps->totpoints; i++, pt++) {
-    if (pt->flag & tag_flags) {
-      /* selected - stop accumulating to island */
-      in_island = false;
-    }
-    else {
-      /* unselected - start of a new island? */
-      int idx;
-
-      if (in_island) {
-        /* extend existing island */
-        idx = num_islands - 1;
-        islands[idx].end_idx = i;
-      }
-      else {
-        /* start of new island */
-        in_island = true;
-        num_islands++;
-
-        idx = num_islands - 1;
-        islands[idx].start_idx = islands[idx].end_idx = i;
-      }
-    }
-  }
-
-  /* Watch out for special case where No islands = All points selected = Delete Stroke only */
-  if (num_islands) {
-    /* There are islands, so create a series of new strokes,
-     * adding them before the "next" stroke. */
-    int idx;
-    bGPDstroke *new_stroke = NULL;
-
-    /* Create each new stroke... */
-    for (idx = 0; idx < num_islands; idx++) {
-      tGPDeleteIsland *island = &islands[idx];
-      new_stroke = BKE_gpencil_stroke_duplicate(gps, false, true);
-
-      /* if cyclic and first stroke, save to join later */
-      if ((is_cyclic) && (gps_first == NULL)) {
-        gps_first = new_stroke;
-      }
-
-      new_stroke->flag &= ~GP_STROKE_CYCLIC;
-
-      /* Compute new buffer size (+ 1 needed as the endpoint index is "inclusive") */
-      new_stroke->totpoints = island->end_idx - island->start_idx + 1;
-
-      /* Copy over the relevant point data */
-      new_stroke->points = MEM_callocN(sizeof(bGPDspoint) * new_stroke->totpoints,
-                                       "gp delete stroke fragment");
-      memcpy(new_stroke->points,
-             gps->points + island->start_idx,
-             sizeof(bGPDspoint) * new_stroke->totpoints);
-
-      /* Copy over vertex weight data (if available) */
-      if (gps->dvert != NULL) {
-        /* Copy over the relevant vertex-weight points */
-        new_stroke->dvert = MEM_callocN(sizeof(MDeformVert) * new_stroke->totpoints,
-                                        "gp delete stroke fragment weight");
-        memcpy(new_stroke->dvert,
-               gps->dvert + island->start_idx,
-               sizeof(MDeformVert) * new_stroke->totpoints);
-
-        /* Copy weights */
-        int e = island->start_idx;
-        for (int i = 0; i < new_stroke->totpoints; i++) {
-          MDeformVert *dvert_src = &gps->dvert[e];
-          MDeformVert *dvert_dst = &new_stroke->dvert[i];
-          if (dvert_src->dw) {
-            dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
-          }
-          e++;
-        }
-      }
-      /* Each island corresponds to a new stroke.
-       * We must adjust the timings of these new strokes:
-       *
-       * Each point's timing data is a delta from stroke's inittime, so as we erase some points
-       * from the start of the stroke, we have to offset this inittime and all remaining points'
-       * delta values. This way we get a new stroke with exactly the same timing as if user had
-       * started drawing from the first non-removed point.
-       */
-      {
-        bGPDspoint *pts;
-        float delta = gps->points[island->start_idx].time;
-        int j;
-
-        new_stroke->inittime += (double)delta;
-
-        pts = new_stroke->points;
-        for (j = 0; j < new_stroke->totpoints; j++, pts++) {
-          pts->time -= delta;
-          /* set flag for select again later */
-          if (select == true) {
-            pts->flag &= ~GP_SPOINT_SELECT;
-            pts->flag |= GP_SPOINT_TAG;
-          }
-        }
-      }
-
-      /* Add new stroke to the frame or delete if below limit */
-      if ((limit > 0) && (new_stroke->totpoints <= limit)) {
-        BKE_gpencil_free_stroke(new_stroke);
-      }
-      else {
-        /* Calc geometry data. */
-        BKE_gpencil_stroke_geometry_update(gpd, new_stroke);
-
-        if (next_stroke) {
-          BLI_insertlinkbefore(&gpf->strokes, next_stroke, new_stroke);
-        }
-        else {
-          BLI_addtail(&gpf->strokes, new_stroke);
-        }
-      }
-    }
-    /* if cyclic, need to join last stroke with first stroke */
-    if ((is_cyclic) && (gps_first != NULL) && (gps_first != new_stroke)) {
-      gpencil_stroke_join_islands(gpd, gpf, gps_first, new_stroke);
-    }
-  }
-
-  /* free islands */
-  MEM_freeN(islands);
-
-  /* Delete the old stroke */
-  BLI_remlink(&gpf->strokes, gps);
-  BKE_gpencil_free_stroke(gps);
-}
-
-static void gpencil_curve_delete_tagged_points(bGPdata *gpd,
-                                               bGPDframe *gpf,
-                                               bGPDstroke *gps,
-                                               bGPDstroke *next_stroke,
-                                               bGPDcurve *gpc,
-                                               int tag_flags)
-{
-  if (gpc == NULL) {
-    return;
-  }
-  const bool is_cyclic = gps->flag & GP_STROKE_CYCLIC;
-  const int idx_last = gpc->tot_curve_points - 1;
-  bGPDstroke *gps_first = NULL;
-  bGPDstroke *gps_last = NULL;
-
-  int idx_start = 0;
-  int idx_end = 0;
-  bool prev_selected = gpc->curve_points[0].flag & tag_flags;
-  for (int i = 1; i < gpc->tot_curve_points; i++) {
-    bool selected = gpc->curve_points[i].flag & tag_flags;
-    if (prev_selected == true && selected == false) {
-      idx_start = i;
-    }
-    /* Island ends if the current point is selected or if we reached the end of the stroke */
-    if ((prev_selected == false && selected == true) || (selected == false && i == idx_last)) {
-
-      idx_end = selected ? i - 1 : i;
-      int island_length = idx_end - idx_start + 1;
-
-      /* If an island has only a single curve point, there is no curve segment, so skip island */
-      if (island_length == 1) {
-        if (is_cyclic) {
-          if (idx_start > 0 && idx_end < idx_last) {
-            prev_selected = selected;
-            continue;
-          }
-        }
-        else {
-          prev_selected = selected;
-          continue;
-        }
-      }
-
-      bGPDstroke *new_stroke = BKE_gpencil_stroke_duplicate(gps, false, false);
-      new_stroke->points = NULL;
-      new_stroke->flag &= ~GP_STROKE_CYCLIC;
-      new_stroke->editcurve = BKE_gpencil_stroke_editcurve_new(island_length);
-
-      if (gps_first == NULL) {
-        gps_first = new_stroke;
-      }
-
-      bGPDcurve *new_gpc = new_stroke->editcurve;
-      memcpy(new_gpc->curve_points,
-             gpc->curve_points + idx_start,
-             sizeof(bGPDcurve_point) * island_length);
-
-      BKE_gpencil_editcurve_recalculate_handles(new_stroke);
-      new_stroke->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
-
-      /* Calc geometry data. */
-      BKE_gpencil_stroke_geometry_update(gpd, new_stroke);
-
-      if (next_stroke) {
-        BLI_insertlinkbefore(&gpf->strokes, next_stroke, new_stroke);
-      }
-      else {
-        BLI_addtail(&gpf->strokes, new_stroke);
-      }
-
-      gps_last = new_stroke;
-    }
-    prev_selected = selected;
-  }
-
-  /* join first and last stroke if cyclic */
-  if (is_cyclic && gps_first != NULL && gps_last != NULL && gps_first != gps_last) {
-    bGPDcurve *gpc_first = gps_first->editcurve;
-    bGPDcurve *gpc_last = gps_last->editcurve;
-    int first_tot_points = gpc_first->tot_curve_points;
-    int old_tot_points = gpc_last->tot_curve_points;
-
-    gpc_last->tot_curve_points = first_tot_points + old_tot_points;
-    gpc_last->curve_points = MEM_recallocN(gpc_last->curve_points,
-                                           sizeof(bGPDcurve_point) * gpc_last->tot_curve_points);
-    /* copy data from first to last */
-    memcpy(gpc_last->curve_points + old_tot_points,
-           gpc_first->curve_points,
-           sizeof(bGPDcurve_point) * first_tot_points);
-
-    BKE_gpencil_editcurve_recalculate_handles(gps_last);
-    gps_last->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
-
-    /* Calc geometry data. */
-    BKE_gpencil_stroke_geometry_update(gpd, gps_last);
-
-    /* remove first one */
-    BLI_remlink(&gpf->strokes, gps_first);
-    BKE_gpencil_free_stroke(gps_first);
-  }
-
-  /* Delete the old stroke */
-  BLI_remlink(&gpf->strokes, gps);
-  BKE_gpencil_free_stroke(gps);
-}
-
 /* Split selected strokes into segments, splitting on selected points */
 static int gpencil_delete_selected_points(bContext *C)
 {
@@ -2987,12 +2619,12 @@ static int gpencil_delete_selected_points(bContext *C)
 
             if (is_curve_edit) {
               bGPDcurve *gpc = gps->editcurve;
-              gpencil_curve_delete_tagged_points(
+              BKE_gpencil_curve_delete_tagged_points(
                   gpd, gpf, gps, gps->next, gpc, GP_CURVE_POINT_SELECT);
             }
             else {
               /* delete unwanted points by splitting stroke into several smaller ones */
-              gpencil_stroke_delete_tagged_points(
+              BKE_gpencil_stroke_delete_tagged_points(
                   gpd, gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
             }
 
@@ -3828,188 +3460,6 @@ void GPENCIL_OT_stroke_caps_set(wmOperatorType *ot)
 /** \name Stroke Join Operator
  * \{ */
 
-/* Helper: flip stroke */
-static void gpencil_flip_stroke(bGPDstroke *gps)
-{
-  int end = gps->totpoints - 1;
-
-  for (int i = 0; i < gps->totpoints / 2; i++) {
-    bGPDspoint *point, *point2;
-    bGPDspoint pt;
-
-    /* save first point */
-    point = &gps->points[i];
-    pt.x = point->x;
-    pt.y = point->y;
-    pt.z = point->z;
-    pt.flag = point->flag;
-    pt.pressure = point->pressure;
-    pt.strength = point->strength;
-    pt.time = point->time;
-    copy_v4_v4(pt.vert_color, point->vert_color);
-
-    /* replace first point with last point */
-    point2 = &gps->points[end];
-    point->x = point2->x;
-    point->y = point2->y;
-    point->z = point2->z;
-    point->flag = point2->flag;
-    point->pressure = point2->pressure;
-    point->strength = point2->strength;
-    point->time = point2->time;
-    copy_v4_v4(point->vert_color, point2->vert_color);
-
-    /* replace last point with first saved before */
-    point = &gps->points[end];
-    point->x = pt.x;
-    point->y = pt.y;
-    point->z = pt.z;
-    point->flag = pt.flag;
-    point->pressure = pt.pressure;
-    point->strength = pt.strength;
-    point->time = pt.time;
-    copy_v4_v4(point->vert_color, pt.vert_color);
-
-    end--;
-  }
-}
-
-/* Helper: copy point between strokes */
-static void gpencil_stroke_copy_point(bGPDstroke *gps,
-                                      MDeformVert *dvert,
-                                      bGPDspoint *point,
-                                      const float delta[3],
-                                      float pressure,
-                                      float strength,
-                                      float deltatime)
-{
-  bGPDspoint *newpoint;
-
-  gps->points = MEM_reallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1));
-  if (gps->dvert != NULL) {
-    gps->dvert = MEM_reallocN(gps->dvert, sizeof(MDeformVert) * (gps->totpoints + 1));
-  }
-  else {
-    /* If destination has weight add weight to origin. */
-    if (dvert != NULL) {
-      gps->dvert = MEM_callocN(sizeof(MDeformVert) * (gps->totpoints + 1), __func__);
-    }
-  }
-
-  gps->totpoints++;
-  newpoint = &gps->points[gps->totpoints - 1];
-
-  newpoint->x = point->x * delta[0];
-  newpoint->y = point->y * delta[1];
-  newpoint->z = point->z * delta[2];
-  newpoint->flag = point->flag;
-  newpoint->pressure = pressure;
-  newpoint->strength = strength;
-  newpoint->time = point->time + deltatime;
-  copy_v4_v4(newpoint->vert_color, point->vert_color);
-
-  if (gps->dvert != NULL) {
-    MDeformVert *newdvert = &gps->dvert[gps->totpoints - 1];
-
-    if (dvert != NULL) {
-      newdvert->totweight = dvert->totweight;
-      newdvert->dw = MEM_dupallocN(dvert->dw);
-    }
-    else {
-      newdvert->totweight = 0;
-      newdvert->dw = NULL;
-    }
-  }
-}
-
-/* Helper: join two strokes using the shortest distance (reorder stroke if necessary ) */
-static void gpencil_stroke_join_strokes(bGPDstroke *gps_a,
-                                        bGPDstroke *gps_b,
-                                        const bool leave_gaps)
-{
-  bGPDspoint point;
-  bGPDspoint *pt;
-  int i;
-  const float delta[3] = {1.0f, 1.0f, 1.0f};
-  float deltatime = 0.0f;
-
-  /* sanity checks */
-  if (ELEM(NULL, gps_a, gps_b)) {
-    return;
-  }
-
-  if ((gps_a->totpoints == 0) || (gps_b->totpoints == 0)) {
-    return;
-  }
-
-  /* define start and end points of each stroke */
-  float start_a[3], start_b[3], end_a[3], end_b[3];
-  pt = &gps_a->points[0];
-  copy_v3_v3(start_a, &pt->x);
-
-  pt = &gps_a->points[gps_a->totpoints - 1];
-  copy_v3_v3(end_a, &pt->x);
-
-  pt = &gps_b->points[0];
-  copy_v3_v3(start_b, &pt->x);
-
-  pt = &gps_b->points[gps_b->totpoints - 1];
-  copy_v3_v3(end_b, &pt->x);
-
-  /* Check if need flip strokes. */
-  float dist = len_squared_v3v3(end_a, start_b);
-  bool flip_a = false;
-  bool flip_b = false;
-  float lowest = dist;
-
-  dist = len_squared_v3v3(end_a, end_b);
-  if (dist < lowest) {
-    lowest = dist;
-    flip_a = false;
-    flip_b = true;
-  }
-
-  dist = len_squared_v3v3(start_a, start_b);
-  if (dist < lowest) {
-    lowest = dist;
-    flip_a = true;
-    flip_b = false;
-  }
-
-  dist = len_squared_v3v3(start_a, end_b);
-  if (dist < lowest) {
-    lowest = dist;
-    flip_a = true;
-    flip_b = true;
-  }
-
-  if (flip_a) {
-    gpencil_flip_stroke(gps_a);
-  }
-  if (flip_b) {
-    gpencil_flip_stroke(gps_b);
-  }
-
-  /* don't visibly link the first and last points? */
-  if (leave_gaps) {
-    /* 1st: add one tail point to start invisible area */
-    point = gps_a->points[gps_a->totpoints - 1];
-    deltatime = point.time;
-
-    gpencil_stroke_copy_point(gps_a, NULL, &point, delta, 0.0f, 0.0f, 0.0f);
-
-    /* 2nd: add one head point to finish invisible area */
-    point = gps_b->points[0];
-    gpencil_stroke_copy_point(gps_a, NULL, &point, delta, 0.0f, 0.0f, deltatime);
-  }
-
-  /* 3rd: add all points */
-  for (i = 0, pt = gps_b->points; i < gps_b->totpoints && pt; i++, pt++) {
-    MDeformVert *dvert = (gps_b->dvert) ? &gps_b->dvert[i] : NULL;
-    gpencil_stroke_copy_point(gps_a, dvert, pt, delta, pt->pressure, pt->strength, deltatime);
-  }
-}
-
 typedef struct tJoinStrokes {
   bGPDframe *gpf;
   bGPDstroke *gps;
@@ -4159,7 +3609,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
     }
     elem = &strokes_list[i];
     /* Join new_stroke and stroke B. */
-    gpencil_stroke_join_strokes(gps_new, elem->gps, leave_gaps);
+    BKE_gpencil_stroke_join(gps_new, elem->gps, leave_gaps, true);
     elem->used = true;
   }
 
@@ -4254,8 +3704,8 @@ static int gpencil_stroke_flip_exec(bContext *C, wmOperator *op)
           BKE_report(op->reports, RPT_ERROR, "Not implemented!");
         }
         else {
-          /* flip stroke */
-          gpencil_flip_stroke(gps);
+          /* Flip stroke. */
+          BKE_gpencil_stroke_flip(gps);
         }
 
         changed = true;
@@ -5108,11 +4558,11 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
                   }
 
                   /* delete selected points from destination stroke */
-                  gpencil_stroke_delete_tagged_points(
+                  BKE_gpencil_stroke_delete_tagged_points(
                       gpd_dst, gpf_dst, gps_dst, NULL, GP_SPOINT_SELECT, false, 0);
 
                   /* delete selected points from origin stroke */
-                  gpencil_stroke_delete_tagged_points(
+                  BKE_gpencil_stroke_delete_tagged_points(
                       gpd_src, gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
                 }
               }
@@ -5287,11 +4737,11 @@ static int gpencil_stroke_split_exec(bContext *C, wmOperator *op)
               }
 
               /* delete selected points from destination stroke */
-              gpencil_stroke_delete_tagged_points(
+              BKE_gpencil_stroke_delete_tagged_points(
                   gpd, gpf, gps_dst, NULL, GP_SPOINT_SELECT, true, 0);
 
               /* delete selected points from origin stroke */
-              gpencil_stroke_delete_tagged_points(
+              BKE_gpencil_stroke_delete_tagged_points(
                   gpd, gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
             }
           }
@@ -5487,7 +4937,7 @@ static void gpencil_cutter_dissolve(bGPdata *gpd,
       }
     }
 
-    gpencil_stroke_delete_tagged_points(
+    BKE_gpencil_stroke_delete_tagged_points(
         gpd, hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, 1);
   }
 }

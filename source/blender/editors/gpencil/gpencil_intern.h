@@ -152,6 +152,31 @@ typedef struct tGPDinterpolate {
   NumInput num; /* numeric input */
 } tGPDinterpolate;
 
+/* Modal Operator Drawing Callbacks ------------------------ */
+void ED_gpencil_draw_fill(struct tGPDdraw *tgpw);
+
+/* ***************************************************** */
+/* Internal API */
+
+/* Stroke Coordinates API ------------------------------ */
+/* gpencil_utils.c */
+
+typedef struct GP_SpaceConversion {
+  struct Scene *scene;
+  struct Object *ob;
+  struct bGPdata *gpd;
+  struct bGPDlayer *gpl;
+
+  struct ScrArea *area;
+  struct ARegion *region;
+  struct View2D *v2d;
+
+  rctf *subrect; /* for using the camera rect within the 3d view */
+  rctf subrect_data;
+
+  float mat[4][4]; /* transform matrix on the strokes (introduced in [b770964]) */
+} GP_SpaceConversion;
+
 /* Temporary primitive operation data */
 typedef struct tGPDprimitive {
   /** main database pointer */
@@ -179,6 +204,9 @@ typedef struct tGPDprimitive {
   struct Material *material;
   /** current brush */
   struct Brush *brush;
+
+  /** Settings to pass to gp_points_to_xy(). */
+  GP_SpaceConversion gsc;
 
   /** current frame number */
   int cframe;
@@ -247,31 +275,6 @@ typedef struct tGPDprimitive {
   GpRandomSettings random_settings;
 
 } tGPDprimitive;
-
-/* Modal Operator Drawing Callbacks ------------------------ */
-void ED_gpencil_draw_fill(struct tGPDdraw *tgpw);
-
-/* ***************************************************** */
-/* Internal API */
-
-/* Stroke Coordinates API ------------------------------ */
-/* gpencil_utils.c */
-
-typedef struct GP_SpaceConversion {
-  struct Scene *scene;
-  struct Object *ob;
-  struct bGPdata *gpd;
-  struct bGPDlayer *gpl;
-
-  struct ScrArea *area;
-  struct ARegion *region;
-  struct View2D *v2d;
-
-  rctf *subrect; /* for using the camera rect within the 3d view */
-  rctf subrect_data;
-
-  float mat[4][4]; /* transform matrix on the strokes (introduced in [b770964]) */
-} GP_SpaceConversion;
 
 bool gpencil_stroke_inside_circle(const float mval[2], int rad, int x0, int y0, int x1, int y1);
 
@@ -343,13 +346,6 @@ struct GHash *gpencil_copybuf_validate_colormap(struct bContext *C);
 
 /* Stroke Editing ------------------------------------ */
 
-void gpencil_stroke_delete_tagged_points(bGPdata *gpd,
-                                         bGPDframe *gpf,
-                                         bGPDstroke *gps,
-                                         bGPDstroke *next_stroke,
-                                         int tag_flags,
-                                         bool select,
-                                         int limit);
 int gpencil_delete_selected_point_wrap(bContext *C);
 
 void gpencil_subdivide_stroke(bGPdata *gpd, bGPDstroke *gps, const int subdivide);

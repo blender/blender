@@ -42,6 +42,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -1198,7 +1199,8 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
 
     /* Second Pass: Remove any points that are tagged */
     if (do_cull) {
-      gpencil_stroke_delete_tagged_points(p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+      BKE_gpencil_stroke_delete_tagged_points(
+          p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
     }
   }
 }

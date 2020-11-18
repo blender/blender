@@ -3105,3 +3105,181 @@ bool ED_gpencil_stroke_point_is_inside(bGPDstroke *gps,
 
   return hit;
 }
+
+bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
+                                              GP_SpaceConversion *gsc,
+                                              bGPDlayer *gpl,
+                                              bGPDframe *gpf,
+                                              bGPDstroke *gps,
+                                              const float radius,
+                                              int *r_index)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *ob = CTX_data_active_object(C);
+  bGPDstroke *gps_rtn = NULL;
+  const float radius_sqr = radius * radius;
+
+  /* calculate difference matrix object */
+  float diff_mat[4][4];
+  BKE_gpencil_parent_matrix_get(depsgraph, ob, gpl, diff_mat);
+
+  /* Calculate the extremes of the stroke in 2D. */
+  bGPDspoint pt_parent;
+  float pt2d_start[2], pt2d_end[2];
+
+  bGPDspoint *pt = &gps->points[0];
+  gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+  gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_start[0], &pt2d_start[1]);
+
+  pt = &gps->points[gps->totpoints - 1];
+  gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+  gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_end[0], &pt2d_end[1]);
+
+  /* Loop all strokes of the active frame. */
+  float dist_min = FLT_MAX;
+  LISTBASE_FOREACH (bGPDstroke *, gps_target, &gpf->strokes) {
+    /* Check if the color is editable. */
+    if ((gps_target == gps) || (ED_gpencil_stroke_color_use(ob, gpl, gps) == false)) {
+      continue;
+    }
+
+    /* Check if one of the ends is inside target stroke bounding box. */
+    if (!ED_gpencil_stroke_check_collision(gsc, gps, pt2d_start, radius, diff_mat)) {
+      continue;
+    }
+    if (!ED_gpencil_stroke_check_collision(gsc, gps, pt2d_end, radius, diff_mat)) {
+      continue;
+    }
+    /* Check the distance of the ends with the ends of target stroke to avoid middle contact.
+     * All is done in 2D plane. */
+    float pt2d_target_start[2], pt2d_target_end[2];
+
+    pt = &gps_target->points[0];
+    gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+    gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_target_start[0], &pt2d_target_start[1]);
+
+    pt = &gps_target->points[gps_target->totpoints - 1];
+    gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+    gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_target_end[0], &pt2d_target_end[1]);
+
+    if ((len_squared_v2v2(pt2d_start, pt2d_target_start) > radius_sqr) &&
+        (len_squared_v2v2(pt2d_start, pt2d_target_end) > radius_sqr) &&
+        (len_squared_v2v2(pt2d_end, pt2d_target_start) > radius_sqr) &&
+        (len_squared_v2v2(pt2d_end, pt2d_target_end) > radius_sqr)) {
+      continue;
+    }
+
+    /* Loop all points and check what is the nearest point. */
+    int i;
+    for (i = 0, pt = gps_target->points; i < gps_target->totpoints; i++, pt++) {
+      /* Convert point to 2D. */
+      float pt2d[2];
+      gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
+      gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d[0], &pt2d[1]);
+
+      /* Check with Start point. */
+      float dist = len_squared_v2v2(pt2d, pt2d_start);
+      if ((dist <= radius_sqr) && (dist < dist_min)) {
+        *r_index = i;
+        dist_min = dist;
+        gps_rtn = gps_target;
+      }
+      /* Check with End point. */
+      dist = len_squared_v2v2(pt2d, pt2d_end);
+      if ((dist <= radius_sqr) && (dist < dist_min)) {
+        *r_index = i;
+        dist_min = dist;
+        gps_rtn = gps_target;
+      }
+    }
+  }
+
+  return gps_rtn;
+}
+
+/* Join two stroke using a contact point index and trimming the rest.  */
+bGPDstroke *ED_gpencil_stroke_join_and_trim(
+    bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps, bGPDstroke *gps_dst, const int pt_index)
+{
+  if ((gps->totpoints < 1) || (gps_dst->totpoints < 1)) {
+    return false;
+  }
+  BLI_assert(pt_index >= 0 && pt_index < gps_dst->totpoints);
+
+  bGPDspoint *pt = NULL;
+
+  /* Cannot be cyclic. */
+  gps->flag &= ~GP_STROKE_CYCLIC;
+  gps_dst->flag &= ~GP_STROKE_CYCLIC;
+
+  /* Trim stroke. */
+  bGPDstroke *gps_final = gps_dst;
+  if ((pt_index > 0) && (pt_index < gps_dst->totpoints - 2)) {
+    /* Untag any pending operation. */
+    gps_dst->flag &= ~GP_STROKE_TAG;
+    for (int i = 0; i < gps_dst->totpoints; i++) {
+      gps_dst->points[i].flag &= ~GP_SPOINT_TAG;
+    }
+
+    /* Delete points of the shorter extreme */
+    pt = &gps_dst->points[0];
+    float dist_to_start = BKE_gpencil_stroke_segment_length(gps_dst, 0, pt_index, true);
+    pt = &gps_dst->points[gps_dst->totpoints - 1];
+    float dist_to_end = BKE_gpencil_stroke_segment_length(
+        gps_dst, pt_index, gps_dst->totpoints - 1, true);
+
+    if (dist_to_start < dist_to_end) {
+      for (int i = 0; i < pt_index; i++) {
+        gps_dst->points[i].flag |= GP_SPOINT_TAG;
+      }
+    }
+    else {
+      for (int i = pt_index + 1; i < gps_dst->totpoints; i++) {
+        gps_dst->points[i].flag |= GP_SPOINT_TAG;
+      }
+    }
+    /* Remove tagged points to trim stroke. */
+    gps_final = BKE_gpencil_stroke_delete_tagged_points(
+        gpd, gpf, gps_dst, gps_dst->next, GP_SPOINT_TAG, false, 0);
+  }
+
+  /* Join both strokes. */
+  int totpoint = gps_final->totpoints;
+  BKE_gpencil_stroke_join(gps_final, gps, false, true);
+
+  /* Select the join points and merge if the distance is very small. */
+  pt = &gps_final->points[totpoint - 1];
+  pt->flag |= GP_SPOINT_SELECT;
+
+  pt = &gps_final->points[totpoint];
+  pt->flag |= GP_SPOINT_SELECT;
+  BKE_gpencil_stroke_merge_distance(gpd, gpf, gps_final, 0.01f, false);
+
+  /* Unselect all points. */
+  for (int i = 0; i < gps_final->totpoints; i++) {
+    gps_final->points[i].flag &= ~GP_SPOINT_SELECT;
+  }
+
+  /* Delete old stroke. */
+  BLI_remlink(&gpf->strokes, gps);
+  BKE_gpencil_free_stroke(gps);
+
+  return gps_final;
+}
+
+/* Close if the distance between extremes is below threshold. */
+void ED_gpencil_stroke_close_by_distance(bGPDstroke *gps, const float threshold)
+{
+  if (gps == NULL) {
+    return;
+  }
+  bGPDspoint *pt_start = &gps->points[0];
+  bGPDspoint *pt_end = &gps->points[gps->totpoints - 1];
+
+  const float threshold_sqr = threshold * threshold;
+  float dist_to_close = len_squared_v3v3(&pt_start->x, &pt_end->x);
+  if (dist_to_close < threshold_sqr) {
+    gps->flag |= GP_STROKE_CYCLIC;
+    BKE_gpencil_stroke_close(gps);
+  }
+}
