@@ -64,6 +64,7 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
+#include "UI_view2d.h"
 
 #include "IMB_imbuf.h"
 
@@ -286,11 +287,12 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
     }
   }
 
+  const float view_scale_x = UI_view2d_scale_get_x(&region->v2d);
   const float segment_width = region_width / (float)sepr_flex_len;
   float offset = 0, remaining_space = region_width - buttons_width;
   i = 0;
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    BLI_rctf_translate(&but->rect, offset, 0);
+    BLI_rctf_translate(&but->rect, offset / view_scale_x, 0);
     if (but->type == UI_BTYPE_SEPR_SPACER) {
       /* How much the next block overlap with the current segment */
       int overlap = ((i == sepr_flex_len - 1) ? buttons_width - spacers_pos[i] :
