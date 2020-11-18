@@ -26,6 +26,7 @@ namespace blender::fn {
 MAKE_CPP_TYPE(bool, bool)
 
 MAKE_CPP_TYPE(float, float)
+MAKE_CPP_TYPE(float2, blender::float2)
 MAKE_CPP_TYPE(float3, blender::float3)
 MAKE_CPP_TYPE(float4x4, blender::float4x4)
 
