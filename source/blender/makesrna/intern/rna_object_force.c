@@ -197,7 +197,6 @@ static char *rna_PointCache_path(PointerRNA *ptr)
       }
       default: {
         return BLI_sprintfN("modifiers[\"%s\"].point_cache", name_esc);
-        break;
       }
     }
   }

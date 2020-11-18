@@ -148,7 +148,6 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
       case SPACE_INFO:       /* header info */
       {
         return NULL;
-        break;
       }
 
       case SPACE_TOPBAR: /* Top-bar */

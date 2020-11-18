@@ -299,7 +299,6 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
 
           eyedropper_gpencil_exit(C, op);
           return OPERATOR_FINISHED;
-          break;
         }
         default: {
           break;
