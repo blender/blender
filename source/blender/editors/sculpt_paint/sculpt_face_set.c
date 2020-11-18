@@ -1213,7 +1213,7 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
 {
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     /* Dyntopo is not supported. */
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   if (mode == SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY) {
