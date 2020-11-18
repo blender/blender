@@ -1990,7 +1990,7 @@ static int pyrna_py_to_prop(
           }
         }
 
-        /* Another exception, allow to pass a collection as an RNA property. */
+        /* Another exception, allow passing a collection as an RNA property. */
         if (Py_TYPE(value) == &pyrna_prop_collection_Type) { /* Ok to ignore idprop collections. */
           PointerRNA c_ptr;
           BPy_PropertyRNA *value_prop = (BPy_PropertyRNA *)value;

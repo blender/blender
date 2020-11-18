@@ -171,7 +171,7 @@ static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEve
 /* pixels to move the cursor to get out of keyboard navigation */
 #define BUTTON_KEYNAV_PX_LIMIT 8
 
-#define MENU_TOWARDS_MARGIN 20 /* margin in pixels */
+#define MENU_TOWARDS_MARGIN 20      /* margin in pixels */
 #define MENU_TOWARDS_WIGGLE_ROOM 64 /* tolerance in pixels */
 /* drag-lock distance threshold in pixels */
 #define BUTTON_DRAGLOCK_THRESH 3
@@ -365,7 +365,7 @@ typedef struct uiHandleButtonData {
   /* Button text selection:
    * extension direction, selextend, inside ui_do_but_TEX */
   int sel_pos_init;
-  /* allow to realloc str/editstr and use 'maxlen' to track alloc size (maxlen + 1) */
+  /* Allow reallocating str/editstr and using 'maxlen' to track alloc size (maxlen + 1) */
   bool is_str_dynamic;
 
   /* number editing / dragging */

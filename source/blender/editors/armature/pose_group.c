@@ -159,7 +159,7 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
     pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
     layout = UI_popup_menu_layout(pup);
 
-    /* special entry - allow to create new group, then use that
+    /* special entry - allow creating a new group, then using that
      * (not to be used for removing though)
      */
     if (strstr(op->idname, "assign")) {

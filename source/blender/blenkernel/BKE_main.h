@@ -99,7 +99,7 @@ typedef struct Main {
    */
   char is_memfile_undo_flush_needed;
   /**
-   * Indicates that next memfile undo step should not allow to re-use old bmain when re-read, but
+   * Indicates that next memfile undo step should not allow reusing old bmain when re-read, but
    * instead do a complete full re-read/update from stored memfile.
    */
   char use_memfile_full_barrier;

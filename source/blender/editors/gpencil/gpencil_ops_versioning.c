@@ -22,7 +22,7 @@
  * \ingroup edgpencil
  */
 
-/* allow to use deprecated functionality */
+/* Allow using deprecated functionality. */
 #define DNA_DEPRECATED_ALLOW
 
 #include <stdio.h>
