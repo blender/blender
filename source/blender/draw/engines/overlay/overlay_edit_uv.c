@@ -268,11 +268,13 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
     if (pd->edit_uv.do_tiled_image_overlay) {
       /* Active tile border */
       ImageTile *active_tile = BLI_findlink(&image->tiles, image->active_tile_index);
-      obmat[3][0] = (float)((active_tile->tile_number - 1001) % 10);
-      obmat[3][1] = (float)((active_tile->tile_number - 1001) / 10);
-      grp = DRW_shgroup_create(sh, psl->edit_uv_tiled_image_borders_ps);
-      DRW_shgroup_uniform_vec4_copy(grp, "color", selected_color);
-      DRW_shgroup_call_obmat(grp, geom, obmat);
+      if (active_tile) {
+        obmat[3][0] = (float)((active_tile->tile_number - 1001) % 10);
+        obmat[3][1] = (float)((active_tile->tile_number - 1001) / 10);
+        grp = DRW_shgroup_create(sh, psl->edit_uv_tiled_image_borders_ps);
+        DRW_shgroup_uniform_vec4_copy(grp, "color", selected_color);
+        DRW_shgroup_call_obmat(grp, geom, obmat);
+      }
     }
   }
 
