@@ -1166,6 +1166,10 @@ static void panel_draw_aligned_backdrop(const Panel *panel,
   const bool is_subpanel = panel->type->parent != NULL;
   const bool is_open = !UI_panel_is_closed(panel);
 
+  if (is_subpanel && !is_open) {
+    return;
+  }
+
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
