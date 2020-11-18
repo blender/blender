@@ -1401,16 +1401,16 @@ void GHOST_WindowWin32::updatePendingWintabEvents()
   if (!(m_wintab.packetsGet && m_wintab.context)) {
     return;
   }
-  GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)GHOST_System::getSystem();
 
   auto &pendingEvents = m_wintab.pendingEvents;
 
   /* Clear outdated events from queue. */
-  GHOST_TUns64 currTime = system->getMilliSeconds();
-  GHOST_TUns64 timeout = 300;
+  DWORD currTime = ::GetTickCount();
+  DWORD millisTimeout = 500;
   while (!pendingEvents.empty()) {
-    GHOST_TUns64 pktTime = system->millisSinceStart(pendingEvents.front().pkTime);
-    if (currTime - pktTime > timeout) {
+    DWORD pkTime = pendingEvents.front().pkTime;
+
+    if (currTime > pkTime + millisTimeout) {
       pendingEvents.pop();
     }
     else {
@@ -1426,8 +1426,9 @@ void GHOST_WindowWin32::updatePendingWintabEvents()
   /* Don't queue outdated packets, such events can include packets that occurred before the current
    * window lost and regained focus. */
   for (; i < numPackets; i++) {
-    GHOST_TUns64 pktTime = system->millisSinceStart(m_wintab.pkts[i].pkTime);
-    if (currTime - pktTime < timeout) {
+    DWORD pkTime = m_wintab.pkts[i].pkTime;
+
+    if (currTime < pkTime + millisTimeout) {
       break;
     }
   }
