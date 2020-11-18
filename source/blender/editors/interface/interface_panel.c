@@ -138,29 +138,6 @@ static bool panel_type_context_poll(ARegion *region,
 /** \name Local Functions
  * \{ */
 
-static void panel_title_color_get(const Panel *panel,
-                                  const bool show_background,
-                                  const bool region_search_filter_active,
-                                  uchar r_color[4])
-{
-  if (!show_background) {
-    /* Use menu colors for floating panels. */
-    bTheme *btheme = UI_GetTheme();
-    const uiWidgetColors *wcol = &btheme->tui.wcol_menu_back;
-    copy_v4_v4_uchar(r_color, (const uchar *)wcol->text);
-    return;
-  }
-
-  const bool search_match = UI_panel_matches_search_filter(panel);
-
-  UI_GetThemeColor4ubv(TH_TITLE, r_color);
-  if (region_search_filter_active && !search_match) {
-    r_color[0] *= 0.5;
-    r_color[1] *= 0.5;
-    r_color[2] *= 0.5;
-  }
-}
-
 static bool panel_active_animation_changed(ListBase *lb,
                                            Panel **r_panel_animation,
                                            bool *r_no_animation)
@@ -1059,6 +1036,29 @@ void UI_panel_label_offset(const uiBlock *block, int *r_x, int *r_y)
 
   if (is_subpanel) {
     *r_x += (0.7f * UI_UNIT_X);
+  }
+}
+
+static void panel_title_color_get(const Panel *panel,
+                                  const bool show_background,
+                                  const bool region_search_filter_active,
+                                  uchar r_color[4])
+{
+  if (!show_background) {
+    /* Use menu colors for floating panels. */
+    bTheme *btheme = UI_GetTheme();
+    const uiWidgetColors *wcol = &btheme->tui.wcol_menu_back;
+    copy_v4_v4_uchar(r_color, (const uchar *)wcol->text);
+    return;
+  }
+
+  const bool search_match = UI_panel_matches_search_filter(panel);
+
+  UI_GetThemeColor4ubv(TH_TITLE, r_color);
+  if (region_search_filter_active && !search_match) {
+    r_color[0] *= 0.5;
+    r_color[1] *= 0.5;
+    r_color[2] *= 0.5;
   }
 }
 
