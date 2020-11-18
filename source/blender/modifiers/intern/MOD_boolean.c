@@ -340,13 +340,16 @@ static void BMD_mesh_intersection(BMesh *bm,
        * other than 0, -1, or 1 in the scaling part of the matrix.
        */
       float cleaned_object_obmat[4][4];
+      float cleaned_operand_obmat[4][4];
       clean_obmat(cleaned_object_obmat, object->obmat);
       invert_m4_m4(imat, cleaned_object_obmat);
+      clean_obmat(cleaned_operand_obmat, operand_ob->obmat);
+      mul_m4_m4m4(omat, imat, cleaned_operand_obmat);
     }
     else {
       invert_m4_m4(imat, object->obmat);
+      mul_m4_m4m4(omat, imat, operand_ob->obmat);
     }
-    mul_m4_m4m4(omat, imat, operand_ob->obmat);
 
     BMVert *eve;
     i = 0;
