@@ -59,7 +59,7 @@ void param_face_add(ParamHandle *handle,
 
 void param_edge_set_seam(ParamHandle *handle, ParamKey *vkeys);
 
-void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl);
+void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool topology_from_uvs);
 void param_delete(ParamHandle *handle);
 
 /* Least Squares Conformal Maps:
