@@ -9851,7 +9851,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
       {NTREE_SHADER, "SHADER", ICON_MATERIAL, "Shader", "Shader nodes"},
       {NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes"},
       {NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes"},
-      {NTREE_GEOMETRY, "GEOMETRY", ICON_MESH_DATA, "Geometry", "Geometry nodes"},
+      {NTREE_GEOMETRY, "GEOMETRY", ICON_NODETREE, "Geometry", "Geometry nodes"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -10083,7 +10083,7 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Geometry Node Tree", "Node tree consisting of linked nodes used for geometries");
   RNA_def_struct_sdna(srna, "bNodeTree");
-  RNA_def_struct_ui_icon(srna, ICON_MESH_DATA); /* TODO: Use correct icon. */
+  RNA_def_struct_ui_icon(srna, ICON_NODETREE);
 }
 
 static StructRNA *define_specific_node(BlenderRNA *brna,

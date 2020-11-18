@@ -5658,7 +5658,7 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
       {FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME | FILTER_ID_HA |
            FILTER_ID_PT | FILTER_ID_VO,
        "category_geometry",
-       ICON_MESH_DATA,
+       ICON_NODETREE,
        "Geometry",
        "Show meshes, curves, lattice, armatures and metaballs data"},
       {FILTER_ID_LS | FILTER_ID_MA | FILTER_ID_NT | FILTER_ID_TE,

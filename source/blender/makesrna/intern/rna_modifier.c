@@ -6972,7 +6972,7 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "NodesModifier", "Modifier");
   RNA_def_struct_ui_text(srna, "Nodes Modifier", "");
   RNA_def_struct_sdna(srna, "NodesModifierData");
-  RNA_def_struct_ui_icon(srna, ICON_MESH_DATA); /* TODO: Use correct icon. */
+  RNA_def_struct_ui_icon(srna, ICON_NODETREE);
 
   RNA_define_lib_overridable(true);
 

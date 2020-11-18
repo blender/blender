@@ -1053,7 +1053,7 @@ ModifierTypeInfo modifierType_Nodes = {
     static_cast<ModifierTypeFlag>(eModifierTypeFlag_AcceptsMesh |
                                   eModifierTypeFlag_SupportsEditmode |
                                   eModifierTypeFlag_EnableInEditmode),
-    /* icon */ ICON_MESH_DATA, /* TODO: Use correct icon. */
+    /* icon */ ICON_NODETREE,
 
     /* copyData */ copyData,
 
