@@ -1062,34 +1062,191 @@ void UI_panel_label_offset(const uiBlock *block, int *r_x, int *r_y)
   }
 }
 
-static void ui_draw_aligned_panel_header(const uiStyle *style,
-                                         const uiBlock *block,
-                                         const rcti *rect,
-                                         const bool show_background,
-                                         const bool region_search_filter_active)
+static void panel_draw_aligned_widgets(const uiStyle *style,
+                                       const Panel *panel,
+                                       const rcti *header_rect,
+                                       const float aspect,
+                                       const bool show_pin,
+                                       const bool show_background,
+                                       const bool region_search_filter_active)
 {
-  const Panel *panel = block->panel;
-  const bool is_subpanel = (panel->type && panel->type->parent);
+  const bool is_subpanel = panel->type->parent != NULL;
   const uiFontStyle *fontstyle = (is_subpanel) ? &style->widgetlabel : &style->paneltitle;
 
-  /* + 0.001f to avoid flirting with float inaccuracy .*/
-  const int pnl_icons = (panel->labelofs + (1.1f * PNL_ICON)) / block->aspect + 0.001f;
+  const int header_height = BLI_rcti_size_y(header_rect);
+  const int scaled_unit = round_fl_to_int(UI_UNIT_X / aspect);
 
-  /* Draw text labels. */
-  uchar col_title[4];
-  panel_title_color_get(panel, show_background, region_search_filter_active, col_title);
-  col_title[3] = 255;
+  /* Offset triangle and text to the right for subpanels. */
+  const rcti widget_rect = {
+      .xmin = header_rect->xmin + (is_subpanel ? scaled_unit * 0.7f : 0),
+      .xmax = header_rect->xmax,
+      .ymin = header_rect->ymin,
+      .ymax = header_rect->ymax,
+  };
 
-  rcti hrect = *rect;
-  hrect.xmin = rect->xmin + pnl_icons;
-  hrect.ymin -= 2.0f / block->aspect;
-  UI_fontstyle_draw(fontstyle,
-                    &hrect,
-                    panel->drawname,
-                    col_title,
-                    &(struct uiFontStyleDraw_Params){
-                        .align = UI_STYLE_TEXT_LEFT,
-                    });
+  uchar title_color[4];
+  panel_title_color_get(panel, show_background, region_search_filter_active, title_color);
+  title_color[3] = 255;
+
+  /* Draw collapse icon. */
+  {
+    rctf collapse_rect = {
+        .xmin = widget_rect.xmin,
+        .xmax = widget_rect.xmin + header_height,
+        .ymin = widget_rect.ymin,
+        .ymax = widget_rect.ymax,
+    };
+    BLI_rctf_scale(&collapse_rect, 0.25f);
+
+    float triangle_color[4];
+    rgba_uchar_to_float(triangle_color, title_color);
+
+    ui_draw_anti_tria_rect(&collapse_rect, UI_panel_is_closed(panel) ? 'h' : 'v', triangle_color);
+  }
+
+  /* Draw text label. */
+  if (panel->drawname[0] != '\0') {
+    /* + 0.001f to avoid flirting with float inaccuracy .*/
+    const rcti title_rect = {
+        .xmin = widget_rect.xmin + panel->labelofs + scaled_unit * 1.1f,
+        .xmax = widget_rect.xmax,
+        .ymin = widget_rect.ymin - 2.0f / aspect,
+        .ymax = widget_rect.ymax,
+    };
+    UI_fontstyle_draw(fontstyle,
+                      &title_rect,
+                      panel->drawname,
+                      title_color,
+                      &(struct uiFontStyleDraw_Params){
+                          .align = UI_STYLE_TEXT_LEFT,
+                      });
+  }
+
+  /* Draw the pin icon. */
+  if (show_pin && (panel->flag & PNL_PIN)) {
+    GPU_blend(GPU_BLEND_ALPHA);
+    UI_icon_draw_ex(widget_rect.xmax - scaled_unit * 2.2f,
+                    widget_rect.ymin + 5.0f / aspect,
+                    ICON_PINNED,
+                    aspect * U.inv_dpi_fac,
+                    1.0f,
+                    0.0f,
+                    title_color,
+                    false);
+    GPU_blend(GPU_BLEND_NONE);
+  }
+
+  /* Draw drag widget. */
+  if (!is_subpanel) {
+    const int drag_widget_size = header_height * 0.7f;
+    GPU_matrix_push();
+    /* The magic numbers here center the widget vertically and offset it to the left.
+     * Currently this depends on the height of the header, although it could be independent. */
+    GPU_matrix_translate_2f(widget_rect.xmax - scaled_unit * 1.15,
+                            widget_rect.ymin + (header_height - drag_widget_size) * 0.5f);
+
+    const int col_tint = 84;
+    float color_high[4], color_dark[4];
+    UI_GetThemeColorShade4fv(TH_PANEL_HEADER, col_tint, color_high);
+    UI_GetThemeColorShade4fv(TH_PANEL_BACK, -col_tint, color_dark);
+
+    GPUBatch *batch = GPU_batch_preset_panel_drag_widget(
+        U.pixelsize, color_high, color_dark, drag_widget_size);
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_FLAT_COLOR);
+    GPU_batch_draw(batch);
+    GPU_matrix_pop();
+  }
+}
+
+static void panel_draw_aligned_backdrop(const Panel *panel,
+                                        const rcti *rect,
+                                        const rcti *header_rect)
+{
+  const bool draw_box_style = panel->type->flag & PANEL_TYPE_DRAW_BOX;
+  const bool is_subpanel = panel->type->parent != NULL;
+  const bool is_open = !UI_panel_is_closed(panel);
+
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  /* Draw with an opaque box backdrop for box style panels. */
+  if (draw_box_style) {
+    /* Use the theme for box widgets. */
+    const uiWidgetColors *box_wcol = &UI_GetTheme()->tui.wcol_box;
+
+    if (is_subpanel) {
+      /* Use rounded bottom corners for the last subpanel. */
+      if (panel->next == NULL) {
+        UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
+        float color[4];
+        UI_GetThemeColor4fv(TH_PANEL_SUB_BACK, color);
+        /* Change the width a little bit to line up with sides. */
+        UI_draw_roundbox_aa(true,
+                            rect->xmin + U.pixelsize,
+                            rect->ymin + U.pixelsize,
+                            rect->xmax - U.pixelsize,
+                            rect->ymax,
+                            box_wcol->roundness * U.widget_unit,
+                            color);
+      }
+      else {
+        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+        immUniformThemeColor(TH_PANEL_SUB_BACK);
+        immRectf(pos, rect->xmin + U.pixelsize, rect->ymin, rect->xmax - U.pixelsize, rect->ymax);
+        immUnbindProgram();
+      }
+    }
+    else {
+      /* Expand the top a tiny bit to give header buttons equal size above and below. */
+      rcti box_rect = {
+          .xmin = rect->xmin,
+          .xmax = rect->xmax,
+          .ymin = is_open ? rect->ymin : header_rect->ymin,
+          .ymax = header_rect->ymax + U.pixelsize,
+      };
+      ui_draw_box_opaque(&box_rect, UI_CNR_ALL);
+
+      /* Mimic the border between aligned box widgets for the bottom of the header. */
+      if (is_open) {
+        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+        GPU_blend(GPU_BLEND_ALPHA);
+
+        /* Top line. */
+        immUniformColor4ubv(box_wcol->outline);
+        immRectf(pos, rect->xmin, header_rect->ymin - U.pixelsize, rect->xmax, header_rect->ymin);
+
+        /* Bottom "shadow" line. */
+        immUniformThemeColor(TH_WIDGET_EMBOSS);
+        immRectf(pos,
+                 rect->xmin,
+                 header_rect->ymin - U.pixelsize,
+                 rect->xmax,
+                 header_rect->ymin - U.pixelsize - 1);
+
+        GPU_blend(GPU_BLEND_NONE);
+        immUnbindProgram();
+      }
+    }
+  }
+  else {
+    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    GPU_blend(GPU_BLEND_ALPHA);
+
+    /* Panel backdrop. */
+    if (is_open || panel->type->flag & PANEL_TYPE_NO_HEADER) {
+      immUniformThemeColor(is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK);
+      immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+    }
+
+    /* Panel header backdrops for non sub-panels. */
+    if (!is_subpanel) {
+      immUniformThemeColor(UI_panel_matches_search_filter(panel) ? TH_MATCH : TH_PANEL_HEADER);
+      immRectf(pos, rect->xmin, header_rect->ymin, rect->xmax, header_rect->ymax);
+    }
+
+    GPU_blend(GPU_BLEND_NONE);
+    immUnbindProgram();
+  }
 }
 
 /**
@@ -1103,224 +1260,28 @@ void ui_draw_aligned_panel(const uiStyle *style,
                            const bool region_search_filter_active)
 {
   const Panel *panel = block->panel;
-  float color[4];
-  const bool is_subpanel = (panel->type && panel->type->parent);
-  const bool show_drag = (!is_subpanel &&
-                          /* FIXME(campbell): currently no background means floating panel which
-                           * can't be dragged. This may be changed in future. */
-                          show_background);
-  const int panel_col = is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK;
-  const bool draw_box_style = (panel->type && panel->type->flag & PANEL_TYPE_DRAW_BOX);
 
-  /* Use the theme for box widgets for box-style panels. */
-  uiWidgetColors *box_wcol = NULL;
-  if (draw_box_style) {
-    bTheme *btheme = UI_GetTheme();
-    box_wcol = &btheme->tui.wcol_box;
+  /* Add 0.001f to prevent flicker frpm float inaccuracy. */
+  const rcti header_rect = {
+      rect->xmin,
+      rect->xmax,
+      rect->ymax,
+      rect->ymax + floor(PNL_HEADER / block->aspect + 0.001f),
+  };
+
+  if (show_background) {
+    panel_draw_aligned_backdrop(panel, rect, &header_rect);
   }
 
-  const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-  if (panel->type && (panel->type->flag & PANEL_TYPE_NO_HEADER)) {
-    if (show_background) {
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-      immUniformThemeColor(panel_col);
-      immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-      immUnbindProgram();
-    }
-    return;
-  }
-
-  /* Calculate header rectangle with + 0.001f to prevent flicker due to float inaccuracy. */
-  rcti headrect = {
-      rect->xmin, rect->xmax, rect->ymax, rect->ymax + floor(PNL_HEADER / block->aspect + 0.001f)};
-
-  /* Draw a panel and header backdrops with an opaque box backdrop for box style panels. */
-  if (draw_box_style && !is_subpanel) {
-    /* Expand the top a tiny bit to give header buttons equal size above and below. */
-    rcti box_rect = {rect->xmin,
-                     rect->xmax,
-                     UI_panel_is_closed(panel) ? headrect.ymin : rect->ymin,
-                     headrect.ymax + U.pixelsize};
-    ui_draw_box_opaque(&box_rect, UI_CNR_ALL);
-
-    /* Mimic the border between aligned box widgets for the bottom of the header. */
-    if (!UI_panel_is_closed(panel)) {
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-      GPU_blend(GPU_BLEND_ALPHA);
-
-      immUniformColor4ubv(box_wcol->outline);
-      immRectf(pos, rect->xmin, headrect.ymin - U.pixelsize, rect->xmax, headrect.ymin);
-      uchar emboss_col[4];
-      UI_GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss_col);
-      immUniformColor4ubv(emboss_col);
-      immRectf(pos,
-               rect->xmin,
-               headrect.ymin - U.pixelsize,
-               rect->xmax,
-               headrect.ymin - U.pixelsize - 1);
-
-      GPU_blend(GPU_BLEND_NONE);
-      immUnbindProgram();
-    }
-  }
-
-  /* Draw the header backdrop. */
-  if (show_background && !is_subpanel && !draw_box_style) {
-    const float minx = rect->xmin;
-    const float y = headrect.ymax;
-
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    GPU_blend(GPU_BLEND_ALPHA);
-
-    /* Draw with background color. */
-    immUniformThemeColor(UI_panel_matches_search_filter(panel) ? TH_MATCH : TH_PANEL_HEADER);
-    immRectf(pos, minx, headrect.ymin, rect->xmax, y);
-
-    immBegin(GPU_PRIM_LINES, 4);
-
-    immVertex2f(pos, minx, y);
-    immVertex2f(pos, rect->xmax, y);
-
-    immVertex2f(pos, minx, y);
-    immVertex2f(pos, rect->xmax, y);
-
-    immEnd();
-
-    GPU_blend(GPU_BLEND_NONE);
-    immUnbindProgram();
-  }
-
-  /* draw optional pin icon */
-  if (show_pin && (block->panel->flag & PNL_PIN)) {
-    uchar col_title[4];
-    panel_title_color_get(panel, show_background, region_search_filter_active, col_title);
-
-    GPU_blend(GPU_BLEND_ALPHA);
-    UI_icon_draw_ex(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect),
-                    headrect.ymin + (5.0f / block->aspect),
-                    (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
-                    (block->aspect * U.inv_dpi_fac),
-                    1.0f,
-                    0.0f,
-                    col_title,
-                    false);
-    GPU_blend(GPU_BLEND_NONE);
-  }
-
-  /* Draw the title. */
-  rcti titlerect = headrect;
-  if (is_subpanel) {
-    titlerect.xmin += (0.7f * UI_UNIT_X) / block->aspect + 0.001f;
-  }
-  ui_draw_aligned_panel_header(
-      style, block, &titlerect, show_background, region_search_filter_active);
-
-  if (show_drag) {
-    /* Make `itemrect` smaller. */
-    const float scale = 0.7;
-    rctf itemrect;
-    itemrect.xmax = headrect.xmax - (0.2f * UI_UNIT_X);
-    itemrect.xmin = itemrect.xmax - BLI_rcti_size_y(&headrect);
-    itemrect.ymin = headrect.ymin;
-    itemrect.ymax = headrect.ymax;
-    BLI_rctf_scale(&itemrect, scale);
-
-    GPU_matrix_push();
-    GPU_matrix_translate_2f(itemrect.xmin, itemrect.ymin);
-
-    const int col_tint = 84;
-    float col_high[4], col_dark[4];
-    UI_GetThemeColorShade4fv(TH_PANEL_HEADER, col_tint, col_high);
-    UI_GetThemeColorShade4fv(TH_PANEL_BACK, -col_tint, col_dark);
-
-    GPUBatch *batch = GPU_batch_preset_panel_drag_widget(
-        U.pixelsize, col_high, col_dark, BLI_rcti_size_y(&headrect) * scale);
-    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_FLAT_COLOR);
-    GPU_batch_draw(batch);
-    GPU_matrix_pop();
-  }
-
-  /* Draw panel backdrop. */
-  if (!UI_panel_is_closed(panel)) {
-    /* in some occasions, draw a border */
-    if (panel->flag & PNL_SELECT && !is_subpanel) {
-      float radius;
-      if (draw_box_style) {
-        UI_draw_roundbox_corner_set(UI_CNR_ALL);
-        radius = box_wcol->roundness * U.widget_unit;
-      }
-      else {
-        UI_draw_roundbox_corner_set(UI_CNR_NONE);
-        radius = 0.0f;
-      }
-
-      UI_GetThemeColorShade4fv(TH_BACK, -120, color);
-      UI_draw_roundbox_aa(false,
-                          0.5f + rect->xmin,
-                          0.5f + rect->ymin,
-                          0.5f + rect->xmax,
-                          0.5f + headrect.ymax + 1,
-                          radius,
-                          color);
-    }
-
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    GPU_blend(GPU_BLEND_ALPHA);
-
-    /* Draw panel backdrop if it wasn't already been drawn by the single opaque round box earlier.
-     * Note: Sub-panels blend with panels, so they can't be opaque. */
-    if (show_background && !(draw_box_style && !is_subpanel)) {
-      /* Draw the bottom sub-panels. */
-      if (draw_box_style) {
-        if (panel->next) {
-          immUniformThemeColor(panel_col);
-          immRectf(
-              pos, rect->xmin + U.pixelsize, rect->ymin, rect->xmax - U.pixelsize, rect->ymax);
-        }
-        else {
-          /* Change the width a little bit to line up with sides. */
-          UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
-          UI_GetThemeColor4fv(panel_col, color);
-          UI_draw_roundbox_aa(true,
-                              rect->xmin + U.pixelsize,
-                              rect->ymin + U.pixelsize,
-                              rect->xmax - U.pixelsize,
-                              rect->ymax,
-                              box_wcol->roundness * U.widget_unit,
-                              color);
-        }
-      }
-      else {
-        immUniformThemeColor(panel_col);
-        immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-      }
-    }
-
-    immUnbindProgram();
-  }
-
-  /* Draw collapse icon. */
-  {
-    rctf itemrect = {.xmin = titlerect.xmin,
-                     .xmax = itemrect.xmin + BLI_rcti_size_y(&titlerect),
-                     .ymin = titlerect.ymin,
-                     .ymax = titlerect.ymax};
-    BLI_rctf_scale(&itemrect, 0.25f);
-
-    uchar col_title[4];
-    panel_title_color_get(panel, show_background, region_search_filter_active, col_title);
-    float tria_color[4];
-    rgb_uchar_to_float(tria_color, col_title);
-    tria_color[3] = 1.0f;
-
-    if (UI_panel_is_closed(panel)) {
-      ui_draw_anti_tria_rect(&itemrect, 'h', tria_color);
-    }
-    else {
-      ui_draw_anti_tria_rect(&itemrect, 'v', tria_color);
-    }
+  /* Draw the widgets and text in the panel header. */
+  if (!(panel->type->flag & PANEL_TYPE_NO_HEADER)) {
+    panel_draw_aligned_widgets(style,
+                               panel,
+                               &header_rect,
+                               block->aspect,
+                               show_pin,
+                               show_background,
+                               region_search_filter_active);
   }
 }
 
