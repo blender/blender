@@ -2610,39 +2610,18 @@ typedef struct tEulerFilter {
   const char *rna_path;
 } tEulerFilter;
 
-static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
+/* Find groups of `rotation_euler` channels. */
+static ListBase /*tEulerFilter*/ euler_filter_group_channels(
+    const ListBase /*bAnimListElem*/ *anim_data, ReportList *reports, int *r_num_groups)
 {
-  bAnimContext ac;
+  ListBase euler_groups = {NULL, NULL};
+  tEulerFilter *euf;
+  *r_num_groups = 0;
 
-  ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
+  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
+    FCurve *const fcu = (FCurve *)ale->data;
 
-  ListBase eulers = {NULL, NULL};
-  tEulerFilter *euf = NULL;
-  int groups = 0, failed = 0;
-
-  /* Get editor data. */
-  if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return OPERATOR_CANCELLED;
-  }
-
-  /* The process is done in two passes:
-   * 1) Sets of three related rotation curves are identified from the selected channels,
-   *    and are stored as a single 'operation unit' for the next step.
-   * 2) Each set of three F-Curves is processed for each keyframe, with the values being
-   *    processed as necessary.
-   */
-
-  /* Step 1: extract only the rotation f-curves. */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVE_VISIBLE |
-            ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
-  for (ale = anim_data.first; ale; ale = ale->next) {
-    FCurve *fcu = (FCurve *)ale->data;
-
-    /* Check if this is an appropriate F-Curve
+    /* Check if this is an appropriate F-Curve:
      * - Only rotation curves.
      * - For pchan curves, make sure we're only using the euler curves.
      */
@@ -2650,7 +2629,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
       continue;
     }
     if (ELEM(fcu->array_index, 0, 1, 2) == 0) {
-      BKE_reportf(op->reports,
+      BKE_reportf(reports,
                   RPT_WARNING,
                   "Euler Rotation F-Curve has invalid index (ID='%s', Path='%s', Index=%d)",
                   (ale->id) ? ale->id->name : TIP_("<No ID>"),
@@ -2659,6 +2638,10 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    /* Assume that this animation channel will be touched by the Euler filter. Doing this here
+     * saves another loop over the animation data. */
+    ale->update |= ANIM_UPDATE_DEFAULT;
+
     /* Optimization: assume that xyz curves will always be stored consecutively,
      * so if the paths or the ID's don't match up, then a curve needs to be added
      * to a new group.
@@ -2666,40 +2649,34 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
     if ((euf) && (euf->id == ale->id) && (STREQ(euf->rna_path, fcu->rna_path))) {
       /* This should be fine to add to the existing group then. */
       euf->fcurves[fcu->array_index] = fcu;
-    }
-    else {
-      /* Just add to a new block. */
-      euf = MEM_callocN(sizeof(tEulerFilter), "tEulerFilter");
-      BLI_addtail(&eulers, euf);
-      groups++;
-
-      euf->id = ale->id;
-      /* This should be safe, since we're only using it for a short time. */
-      euf->rna_path = fcu->rna_path;
-      euf->fcurves[fcu->array_index] = fcu;
+      continue;
     }
 
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    /* Just add to a new block. */
+    euf = MEM_callocN(sizeof(tEulerFilter), "tEulerFilter");
+    BLI_addtail(&euler_groups, euf);
+    ++*r_num_groups;
+
+    euf->id = ale->id;
+    /* This should be safe, since we're only using it for a short time. */
+    euf->rna_path = fcu->rna_path;
+    euf->fcurves[fcu->array_index] = fcu;
   }
 
-  if (groups == 0) {
-    ANIM_animdata_freelist(&anim_data);
-    BKE_report(op->reports, RPT_WARNING, "No Euler Rotation F-Curves to fix up");
-    return OPERATOR_CANCELLED;
-  }
+  return euler_groups;
+}
 
-  /* Step 2: go through each set of curves, processing the values at each keyframe.
-   * - It is assumed that there must be a full set of keyframes at each keyframe position.
-   */
-  for (euf = eulers.first; euf; euf = euf->next) {
-    int f;
+static int euler_filter_perform_filter(ListBase /*tEulerFilter*/ *eulers, ReportList *reports)
+{
+  int failed = 0;
 
+  LISTBASE_FOREACH (tEulerFilter *, euf, eulers) {
     /* Sanity check: ensure that there are enough F-Curves to work on in this group. */
     /* TODO: also enforce assumption that there be a full set of keyframes
      * at each position by ensuring that totvert counts are same? (Joshua Leung 2011) */
     if (ELEM(NULL, euf->fcurves[0], euf->fcurves[1], euf->fcurves[2])) {
       /* Report which components are missing. */
-      BKE_reportf(op->reports,
+      BKE_reportf(reports,
                   RPT_WARNING,
                   "Missing %s%s%s component(s) of euler rotation for ID='%s' and RNA-Path='%s'",
                   (euf->fcurves[0] == NULL) ? "X" : "",
@@ -2717,7 +2694,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
      * keys of greater than 180 degrees as being a flip. */
     /* FIXME: there are more complicated methods that
      * will be needed to fix more cases than just some */
-    for (f = 0; f < 3; f++) {
+    for (int f = 0; f < 3; f++) {
       FCurve *fcu = euf->fcurves[f];
       BezTriple *bezt, *prev;
       uint i;
@@ -2732,21 +2709,62 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
       for (i = 1, prev = fcu->bezt, bezt = fcu->bezt + 1; i < fcu->totvert; i++, prev = bezt++) {
         const float sign = (prev->vec[1][1] > bezt->vec[1][1]) ? 1.0f : -1.0f;
 
-        /* > 180 degree flip? */
-        if ((sign * (prev->vec[1][1] - bezt->vec[1][1])) >= (float)M_PI) {
-          /* 360 degrees to add/subtract frame value until difference
-           * is acceptably small that there's no more flip. */
-          const float fac = sign * 2.0f * (float)M_PI;
+        /* >= 180 degree flip? */
+        if ((sign * (prev->vec[1][1] - bezt->vec[1][1])) < (float)M_PI) {
+          continue;
+        }
 
-          while ((sign * (prev->vec[1][1] - bezt->vec[1][1])) >= (float)M_PI) {
-            bezt->vec[0][1] += fac;
-            bezt->vec[1][1] += fac;
-            bezt->vec[2][1] += fac;
-          }
+        /* 360 degrees to add/subtract frame value until difference
+         * is acceptably small that there's no more flip. */
+        const float fac = sign * 2.0f * (float)M_PI;
+
+        while ((sign * (prev->vec[1][1] - bezt->vec[1][1])) >= (float)M_PI) {
+          bezt->vec[0][1] += fac;
+          bezt->vec[1][1] += fac;
+          bezt->vec[2][1] += fac;
         }
       }
     }
   }
+
+  return failed;
+}
+
+static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
+{
+  /* Get editor data. */
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* The process is done in two passes:
+   * 1) Sets of three related rotation curves are identified from the selected channels,
+   *    and are stored as a single 'operation unit' for the next step.
+   * 2) Each set of three F-Curves is processed for each keyframe, with the values being
+   *    processed as necessary.
+   */
+
+  /* Step 1: extract only the rotation f-curves. */
+  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVE_VISIBLE |
+                      ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+  ListBase anim_data = {NULL, NULL};
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  int groups = 0;
+  ListBase eulers = euler_filter_group_channels(&anim_data, op->reports, &groups);
+  BLI_assert(BLI_listbase_count(&eulers) == groups);
+
+  if (groups == 0) {
+    ANIM_animdata_freelist(&anim_data);
+    BKE_report(op->reports, RPT_WARNING, "No Euler Rotation F-Curves to fix up");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Step 2: go through each set of curves, processing the values at each keyframe.
+   * - It is assumed that there must be a full set of keyframes at each keyframe position.
+   */
+  const int failed = euler_filter_perform_filter(&eulers, op->reports);
   BLI_freelistN(&eulers);
 
   ANIM_animdata_update(&ac, &anim_data);
