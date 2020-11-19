@@ -89,7 +89,9 @@ static Sequence *alloc_generic_sequence(
 
   Strip *strip = seq->strip;
 
-  if (file) {
+  /* Don't allocate StripElem for clip, mask and scene types. This struct is not handled in
+   * seq_dupli() function. */
+  if (file && !ELEM(type, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK, SEQ_TYPE_SCENE)) {
     strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
     BLI_split_dirfile(file, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
