@@ -2615,7 +2615,7 @@ static ListBase /*tEulerFilter*/ euler_filter_group_channels(
     const ListBase /*bAnimListElem*/ *anim_data, ReportList *reports, int *r_num_groups)
 {
   ListBase euler_groups = {NULL, NULL};
-  tEulerFilter *euf;
+  tEulerFilter *euf = NULL;
   *r_num_groups = 0;
 
   LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
