@@ -64,8 +64,6 @@ typedef struct PTCacheMem {
 
   /** BPHYS_TOT_DATA. */
   void *data[8];
-  /** BPHYS_TOT_DATA. */
-  void *cur[8];
 
   struct ListBase extradata;
 } PTCacheMem;

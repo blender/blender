@@ -1727,27 +1727,27 @@ int BKE_ptcache_mem_index_find(PTCacheMem *pm, unsigned int index)
   return (index < pm->totpoint ? index : -1);
 }
 
-void BKE_ptcache_mem_pointers_init(PTCacheMem *pm)
+void BKE_ptcache_mem_pointers_init(PTCacheMem *pm, void *cur[BPHYS_TOT_DATA])
 {
   int data_types = pm->data_types;
   int i;
 
   for (i = 0; i < BPHYS_TOT_DATA; i++) {
-    pm->cur[i] = ((data_types & (1 << i)) ? pm->data[i] : NULL);
+    cur[i] = ((data_types & (1 << i)) ? pm->data[i] : NULL);
   }
 }
 
-void BKE_ptcache_mem_pointers_incr(PTCacheMem *pm)
+void BKE_ptcache_mem_pointers_incr(void *cur[BPHYS_TOT_DATA])
 {
   int i;
 
   for (i = 0; i < BPHYS_TOT_DATA; i++) {
-    if (pm->cur[i]) {
-      pm->cur[i] = (char *)pm->cur[i] + ptcache_data_size[i];
+    if (cur[i]) {
+      cur[i] = (char *)cur[i] + ptcache_data_size[i];
     }
   }
 }
-int BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm)
+int BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm, void *cur[BPHYS_TOT_DATA])
 {
   int data_types = pm->data_types;
   int i, index = BKE_ptcache_mem_index_find(pm, point_index);
@@ -1762,7 +1762,7 @@ int BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm)
   }
 
   for (i = 0; i < BPHYS_TOT_DATA; i++) {
-    pm->cur[i] = data_types & (1 << i) ? (char *)pm->data[i] + index * ptcache_data_size[i] : NULL;
+    cur[i] = data_types & (1 << i) ? (char *)pm->data[i] + index * ptcache_data_size[i] : NULL;
   }
 
   return 1;
@@ -1932,7 +1932,8 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
       }
     }
     else {
-      BKE_ptcache_mem_pointers_init(pm);
+      void *cur[BPHYS_TOT_DATA];
+      BKE_ptcache_mem_pointers_init(pm, cur);
       ptcache_file_pointers_init(pf);
 
       for (i = 0; i < pm->totpoint; i++) {
@@ -1940,8 +1941,8 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
           error = 1;
           break;
         }
-        ptcache_data_copy(pf->cur, pm->cur);
-        BKE_ptcache_mem_pointers_incr(pm);
+        ptcache_data_copy(pf->cur, cur);
+        BKE_ptcache_mem_pointers_incr(cur);
       }
     }
   }
@@ -2033,16 +2034,17 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
       }
     }
     else {
-      BKE_ptcache_mem_pointers_init(pm);
+      void *cur[BPHYS_TOT_DATA];
+      BKE_ptcache_mem_pointers_init(pm, cur);
       ptcache_file_pointers_init(pf);
 
       for (i = 0; i < pm->totpoint; i++) {
-        ptcache_data_copy(pm->cur, pf->cur);
+        ptcache_data_copy(cur, pf->cur);
         if (!ptcache_file_data_write(pf)) {
           error = 1;
           break;
         }
-        BKE_ptcache_mem_pointers_incr(pm);
+        BKE_ptcache_mem_pointers_incr(cur);
       }
     }
   }
@@ -2160,16 +2162,17 @@ static int ptcache_read(PTCacheID *pid, int cfra)
       }
     }
 
-    BKE_ptcache_mem_pointers_init(pm);
+    void *cur[BPHYS_TOT_DATA];
+    BKE_ptcache_mem_pointers_init(pm, cur);
 
     for (i = 0; i < totpoint; i++) {
       if (pm->data_types & (1 << BPHYS_DATA_INDEX)) {
-        index = pm->cur[BPHYS_DATA_INDEX];
+        index = cur[BPHYS_DATA_INDEX];
       }
 
-      pid->read_point(*index, pid->calldata, pm->cur, (float)pm->frame, NULL);
+      pid->read_point(*index, pid->calldata, cur, (float)pm->frame, NULL);
 
-      BKE_ptcache_mem_pointers_incr(pm);
+      BKE_ptcache_mem_pointers_incr(cur);
     }
 
     if (pid->read_extra_data && pm->extradata.first) {
@@ -2216,16 +2219,16 @@ static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
       }
     }
 
-    BKE_ptcache_mem_pointers_init(pm);
+    void *cur[BPHYS_TOT_DATA];
+    BKE_ptcache_mem_pointers_init(pm, cur);
 
     for (i = 0; i < totpoint; i++) {
       if (pm->data_types & (1 << BPHYS_DATA_INDEX)) {
-        index = pm->cur[BPHYS_DATA_INDEX];
+        index = cur[BPHYS_DATA_INDEX];
       }
 
-      pid->interpolate_point(
-          *index, pid->calldata, pm->cur, cfra, (float)cfra1, (float)cfra2, NULL);
-      BKE_ptcache_mem_pointers_incr(pm);
+      pid->interpolate_point(*index, pid->calldata, cur, cfra, (float)cfra1, (float)cfra2, NULL);
+      BKE_ptcache_mem_pointers_incr(cur);
     }
 
     if (pid->interpolate_extra_data && pm->extradata.first) {
@@ -2389,7 +2392,8 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
   pm->data_types = cfra ? pid->data_types : pid->info_types;
 
   ptcache_data_alloc(pm);
-  BKE_ptcache_mem_pointers_init(pm);
+  void *cur[BPHYS_TOT_DATA];
+  BKE_ptcache_mem_pointers_init(pm, cur);
 
   if (overwrite) {
     if (cache->flag & PTCACHE_DISK_CACHE) {
@@ -2408,13 +2412,14 @@ static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 
   if (pid->write_point) {
     for (i = 0; i < totpoint; i++) {
-      int write = pid->write_point(i, pid->calldata, pm->cur, cfra);
+      int write = pid->write_point(i, pid->calldata, cur, cfra);
       if (write) {
-        BKE_ptcache_mem_pointers_incr(pm);
+        BKE_ptcache_mem_pointers_incr(cur);
 
+        void *cur2[BPHYS_TOT_DATA];
         /* newly born particles have to be copied to previous cached frame */
-        if (overwrite && write == 2 && pm2 && BKE_ptcache_mem_pointers_seek(i, pm2)) {
-          pid->write_point(i, pid->calldata, pm2->cur, cfra);
+        if (overwrite && write == 2 && pm2 && BKE_ptcache_mem_pointers_seek(i, pm2, cur2)) {
+          pid->write_point(i, pid->calldata, cur2, cfra);
         }
       }
     }
@@ -3085,8 +3090,6 @@ static PointCache *ptcache_copy(PointCache *cache, const bool copy_data)
           pmn->data[i] = MEM_dupallocN(pm->data[i]);
         }
       }
-
-      BKE_ptcache_mem_pointers_init(pm);
 
       BLI_addtail(&ncache->mem_cache, pmn);
     }
