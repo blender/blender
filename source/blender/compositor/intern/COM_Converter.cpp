@@ -136,7 +136,7 @@ Node *Converter::convert(bNode *b_node)
   Node *node = nullptr;
 
   /* ignore undefined nodes with missing or invalid node data */
-  if (!nodeIsRegistered(b_node)) {
+  if (nodeTypeUndefined(b_node)) {
     return nullptr;
   }
 

@@ -1204,9 +1204,11 @@ void nodeUnregisterType(bNodeType *nt)
   BLI_ghash_remove(nodetypes_hash, nt->idname, NULL, node_free_type);
 }
 
-bool nodeIsRegistered(bNode *node)
+bool nodeTypeUndefined(bNode *node)
 {
-  return (node->typeinfo != &NodeTypeUndefined);
+  return (node->typeinfo == &NodeTypeUndefined) ||
+         (node->type == NODE_GROUP && node->id && ID_IS_LINKED(node->id) &&
+          (node->id->tag & LIB_TAG_MISSING));
 }
 
 GHashIterator *nodeTypeGetIterator(void)

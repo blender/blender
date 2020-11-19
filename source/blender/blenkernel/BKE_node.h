@@ -501,7 +501,7 @@ void ntreeInterfaceTypeUpdate(struct bNodeTree *ntree);
 struct bNodeType *nodeTypeFind(const char *idname);
 void nodeRegisterType(struct bNodeType *ntype);
 void nodeUnregisterType(struct bNodeType *ntype);
-bool nodeIsRegistered(struct bNode *node);
+bool nodeTypeUndefined(struct bNode *node);
 struct GHashIterator *nodeTypeGetIterator(void);
 
 /* helper macros for iterating over node types */
