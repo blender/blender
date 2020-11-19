@@ -47,9 +47,9 @@
 /* Own include. */
 #include "sequencer_intern.h"
 
-/*--------------------------------------------------------------------* /
-    /** \name Proxy Job Manager
-     * \{ */
+/*--------------------------------------------------------------------*/
+/** \name Proxy Job Manager
+ * \{ */
 
 typedef struct ProxyBuildJob {
   struct Main *main;
