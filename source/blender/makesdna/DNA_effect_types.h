@@ -23,6 +23,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* don't forget, new effects also in writefile.c for dna!!! */
 
 #define PAF_MAXMULT 4
@@ -129,3 +133,7 @@ typedef struct WaveEff {
   float timeoffs, lifetime;
 
 } WaveEff;
+
+#ifdef __cplusplus
+}
+#endif

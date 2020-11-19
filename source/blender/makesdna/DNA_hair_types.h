@@ -23,6 +23,10 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct HairCurve {
   /* Index of first point of hair curve. */
   int firstpoint;
@@ -75,3 +79,7 @@ enum {
 
 /* Only one material supported currently. */
 #define HAIR_MATERIAL_NR 1
+
+#ifdef __cplusplus
+}
+#endif

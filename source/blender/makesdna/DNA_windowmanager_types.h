@@ -31,6 +31,10 @@
 
 #include "DNA_ID.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* defined here: */
 struct wmWindow;
 struct wmWindowManager;
@@ -569,3 +573,7 @@ enum {
    * (the regiontype is maintained to prevent errors) */
   OP_IS_MODAL_CURSOR_REGION = (1 << 3),
 };
+
+#ifdef __cplusplus
+}
+#endif

@@ -25,6 +25,10 @@
 
 #include "DNA_defs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * This struct contains all the global data required to run a simulation.
  * At the time of this writing, this structure contains data appropriate
@@ -250,3 +254,7 @@ typedef enum {
   CLOTH_COLLSETTINGS_FLAG_ENABLED = (1 << 1), /* enables cloth - object collisions */
   CLOTH_COLLSETTINGS_FLAG_SELF = (1 << 2),    /* enables selfcollisions */
 } CLOTH_COLLISIONSETTINGS_FLAGS;
+
+#ifdef __cplusplus
+}
+#endif

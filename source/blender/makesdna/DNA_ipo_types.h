@@ -36,6 +36,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* -------------------------- Type Defines --------------------------- */
 
 /* --- IPO Curve Driver --- */
@@ -516,3 +520,7 @@ typedef struct Ipo {
 /* driver->flag */
 /* invalid flag: currently only used for buggy pydriver expressions */
 #define IPO_DRIVER_FLAG_INVALID (1 << 0)
+
+#ifdef __cplusplus
+}
+#endif

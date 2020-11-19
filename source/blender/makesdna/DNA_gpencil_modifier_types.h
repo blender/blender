@@ -23,6 +23,10 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct LatticeDeformData;
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
@@ -801,3 +805,7 @@ typedef enum eTextureGpencil_Mode {
   FILL = 1,
   STROKE_AND_FILL = 2,
 } eTextureGpencil_Mode;
+
+#ifdef __cplusplus
+}
+#endif

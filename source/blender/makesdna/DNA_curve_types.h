@@ -28,6 +28,10 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
 
 struct AnimData;
@@ -606,3 +610,7 @@ enum {
 
 /* indicates point has been seen during surface duplication */
 #define SURF_SEEN 4
+
+#ifdef __cplusplus
+}
+#endif

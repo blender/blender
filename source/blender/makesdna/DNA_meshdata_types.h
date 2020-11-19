@@ -26,6 +26,10 @@
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Geometry Elements
  * \{ */
@@ -519,3 +523,7 @@ typedef struct MRecast {
 } MRecast;
 
 /** \} */
+
+#ifdef __cplusplus
+}
+#endif

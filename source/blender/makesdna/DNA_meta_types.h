@@ -27,6 +27,10 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct BoundBox;
 struct Ipo;
@@ -138,3 +142,7 @@ typedef struct MetaBall {
 #define MB_NEGATIVE 2
 #define MB_HIDE 8
 #define MB_SCALE_RAD 16
+
+#ifdef __cplusplus
+}
+#endif

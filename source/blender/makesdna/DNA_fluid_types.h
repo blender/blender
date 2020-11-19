@@ -25,6 +25,10 @@
 
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * #FluidDomainSettings.flags
  * Domain flags.
@@ -860,3 +864,7 @@ typedef struct FluidEffectorSettings {
   short guide_mode;
   char _pad2[2];
 } FluidEffectorSettings;
+
+#ifdef __cplusplus
+}
+#endif

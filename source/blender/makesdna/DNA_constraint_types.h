@@ -28,6 +28,10 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Action;
 struct Ipo;
 struct Text;
@@ -1172,3 +1176,7 @@ typedef enum eStretchTo_Flags {
 #define CONSTRAINT_RB_CONETWIST 4
 #define CONSTRAINT_RB_VEHICLE 11
 #define CONSTRAINT_RB_GENERIC6DOF 12
+
+#ifdef __cplusplus
+}
+#endif

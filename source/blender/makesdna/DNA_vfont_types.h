@@ -28,6 +28,10 @@
 
 #include "DNA_ID.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct PackedFile;
 struct VFontData;
 
@@ -59,3 +63,7 @@ typedef struct VFont {
 #define FO_CURS_IS_MOTION(mode) (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN))
 
 #define FO_BUILTIN_NAME "<builtin>"
+
+#ifdef __cplusplus
+}
+#endif

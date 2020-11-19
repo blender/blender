@@ -22,6 +22,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** #Object.mode */
 typedef enum eObjectMode {
   OB_MODE_OBJECT = 0,
@@ -71,3 +75,7 @@ typedef enum eDrawType {
   (OB_MODE_EDIT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_SCULPT | OB_MODE_POSE | \
    OB_MODE_PAINT_GPENCIL | OB_MODE_EDIT_GPENCIL | OB_MODE_SCULPT_GPENCIL | \
    OB_MODE_WEIGHT_GPENCIL | OB_MODE_VERTEX_GPENCIL)
+
+#ifdef __cplusplus
+}
+#endif

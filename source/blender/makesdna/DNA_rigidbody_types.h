@@ -27,6 +27,10 @@
 #include "DNA_listBase.h"
 #include "DNA_object_force_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Collection;
 
 struct EffectorWeights;
@@ -368,3 +372,7 @@ typedef enum eRigidBodyCon_Flag {
 } eRigidBodyCon_Flag;
 
 /* ******************************** */
+
+#ifdef __cplusplus
+}
+#endif

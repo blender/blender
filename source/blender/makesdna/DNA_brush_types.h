@@ -27,6 +27,10 @@
 #include "DNA_curve_types.h"
 #include "DNA_texture_types.h" /* for MTex */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CurveMapping;
 struct Image;
 struct MTex;
@@ -980,3 +984,7 @@ enum {
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 #define GP_MAX_BRUSH_PIXEL_RADIUS 1000
+
+#ifdef __cplusplus
+}
+#endif

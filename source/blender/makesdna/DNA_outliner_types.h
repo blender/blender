@@ -25,6 +25,10 @@
 
 #include "DNA_defs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ID;
 
 typedef struct TreeStoreElem {
@@ -128,3 +132,7 @@ enum {
          TSE_KEYMAP_ITEM, \
          TSE_ID_BASE, \
          TSE_GP_LAYER))
+
+#ifdef __cplusplus
+}
+#endif

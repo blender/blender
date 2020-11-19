@@ -26,6 +26,10 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef MAX_MTEX
 #  define MAX_MTEX 18
 #endif
@@ -154,3 +158,7 @@ typedef struct Light {
 /* #define LA_AREA_BOX  3 */ /* UNUSED */
 #define LA_AREA_DISK 4
 #define LA_AREA_ELLIPSE 5
+
+#ifdef __cplusplus
+}
+#endif

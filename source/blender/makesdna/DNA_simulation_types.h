@@ -23,6 +23,10 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct Simulation {
   ID id;
   struct AnimData *adt; /* animation data (must be immediately after id) */
@@ -38,3 +42,7 @@ typedef struct Simulation {
 enum {
   SIM_DS_EXPAND = (1 << 0),
 };
+
+#ifdef __cplusplus
+}
+#endif

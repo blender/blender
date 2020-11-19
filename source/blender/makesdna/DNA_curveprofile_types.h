@@ -25,6 +25,10 @@
 
 #include "DNA_vec_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Number of points in high resolution table is dynamic up to a maximum. */
 #define PROF_TABLE_MAX 512
 /** Number of table points per control point. */
@@ -98,3 +102,7 @@ typedef enum eCurveProfilePresets {
   PROF_PRESET_CROWN = 3,    /* Second molding example. */
   PROF_PRESET_STEPS = 4,    /* Dynamic number of steps defined by segments_len. */
 } eCurveProfilePresets;
+
+#ifdef __cplusplus
+}
+#endif

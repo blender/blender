@@ -25,6 +25,10 @@
 
 #include "DNA_vec_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ---------------------------------- */
 
 /* View 2D data - stored per region */
@@ -173,3 +177,7 @@ enum {
   V2D_ALIGN_NO_POS_Y = (1 << 2),
   V2D_ALIGN_NO_NEG_Y = (1 << 3),
 };
+
+#ifdef __cplusplus
+}
+#endif

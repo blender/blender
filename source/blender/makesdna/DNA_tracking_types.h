@@ -28,6 +28,10 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* match-moving data */
 
 struct Image;
@@ -624,3 +628,7 @@ enum {
   PLANE_TRACK_LOCKED = (1 << 2),
   PLANE_TRACK_AUTOKEY = (1 << 3),
 };
+
+#ifdef __cplusplus
+}
+#endif

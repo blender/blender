@@ -26,6 +26,10 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct BPoint;
 struct Ipo;
@@ -82,3 +86,7 @@ typedef struct Lattice {
 #define LT_DS_EXPAND 4
 
 #define LT_ACTBP_NONE -1
+
+#ifdef __cplusplus
+}
+#endif

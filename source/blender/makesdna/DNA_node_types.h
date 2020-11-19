@@ -29,6 +29,10 @@
 #include "DNA_texture_types.h"
 #include "DNA_vec_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct ID;
 struct Image;
@@ -1443,3 +1447,7 @@ typedef enum NodeSimInputTimeType {
   NODE_SIM_INPUT_SIMULATION_TIME = 0,
   NODE_SIM_INPUT_SCENE_TIME = 1,
 } NodeSimInputTimeType;
+
+#ifdef __cplusplus
+}
+#endif

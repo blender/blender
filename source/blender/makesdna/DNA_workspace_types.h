@@ -24,6 +24,10 @@
 
 #include "DNA_scene_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #
 #
 typedef struct bToolRef_Runtime {
@@ -188,3 +192,7 @@ typedef struct WorkSpaceInstanceHook {
 typedef enum eWorkSpaceFlags {
   WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
 } eWorkSpaceFlags;
+
+#ifdef __cplusplus
+}
+#endif

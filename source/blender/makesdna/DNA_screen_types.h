@@ -30,6 +30,10 @@
 
 #include "DNA_ID.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct ARegionType;
 struct PanelType;
@@ -723,3 +727,7 @@ enum {
   /* Only editor overlays (currently gizmos only!) should be redrawn. */
   RGN_DRAW_EDITOR_OVERLAYS = 32,
 };
+
+#ifdef __cplusplus
+}
+#endif
