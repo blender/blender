@@ -463,6 +463,10 @@ size_t ui_but_drawstr_len_without_sep_char(const uiBut *but)
 
 size_t ui_but_tip_len_only_first_line(const uiBut *but)
 {
+  if (but->tip == NULL) {
+    return 0;
+  }
+
   const char *str_sep = strchr(but->tip, '\n');
   if (str_sep != NULL) {
     return (str_sep - but->tip);
