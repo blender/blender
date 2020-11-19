@@ -33,6 +33,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_scene.h"
 #include "BKE_sound.h"
@@ -193,4 +194,128 @@ void BKE_sequencer_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
       BKE_sequence_free(scene, seq, true);
     }
   }
+}
+
+static void seq_split_set_left_hold_offset(Sequence *seq, int timeline_frame)
+{
+  /* Adjust within range of extended stillframes before strip. */
+  if (timeline_frame < seq->start) {
+    seq->start = timeline_frame - 1;
+    seq->anim_endofs += seq->len - 1;
+    seq->startstill = timeline_frame - seq->startdisp - 1;
+    seq->endstill = 0;
+  }
+  /* Adjust within range of strip contents. */
+  else if ((timeline_frame >= seq->start) && (timeline_frame <= (seq->start + seq->len))) {
+    seq->endofs = 0;
+    seq->endstill = 0;
+    seq->anim_endofs += (seq->start + seq->len) - timeline_frame;
+  }
+  /* Adjust within range of extended stillframes after strip. */
+  else if ((seq->start + seq->len) < timeline_frame) {
+    seq->endstill = timeline_frame - seq->start - seq->len;
+  }
+}
+
+static void seq_split_set_right_hold_offset(Sequence *seq, int timeline_frame)
+{
+  /* Adjust within range of extended stillframes before strip. */
+  if (timeline_frame < seq->start) {
+    seq->startstill = seq->start - timeline_frame;
+  }
+  /* Adjust within range of strip contents. */
+  else if ((timeline_frame >= seq->start) && (timeline_frame <= (seq->start + seq->len))) {
+    seq->anim_startofs += timeline_frame - seq->start;
+    seq->start = timeline_frame;
+    seq->startstill = 0;
+    seq->startofs = 0;
+  }
+  /* Adjust within range of extended stillframes after strip. */
+  else if ((seq->start + seq->len) < timeline_frame) {
+    seq->start = timeline_frame;
+    seq->startofs = 0;
+    seq->anim_startofs += seq->len - 1;
+    seq->endstill = seq->enddisp - timeline_frame - 1;
+    seq->startstill = 0;
+  }
+}
+
+static void seq_split_set_right_offset(Sequence *seq, int timeline_frame)
+{
+  /* Adjust within range of extended stillframes before strip. */
+  if (timeline_frame < seq->start) {
+    seq->start = timeline_frame - 1;
+    seq->startstill = timeline_frame - seq->startdisp - 1;
+    seq->endofs = seq->len - 1;
+  }
+  /* Adjust within range of extended stillframes after strip. */
+  else if ((seq->start + seq->len) < timeline_frame) {
+    seq->endstill -= seq->enddisp - timeline_frame;
+  }
+  BKE_sequence_tx_set_final_right(seq, timeline_frame);
+}
+
+static void seq_split_set_left_offset(Sequence *seq, int timeline_frame)
+{
+  /* Adjust within range of extended stillframes before strip. */
+  if (timeline_frame < seq->start) {
+    seq->startstill = seq->start - timeline_frame;
+  }
+  /* Adjust within range of extended stillframes after strip. */
+  if ((seq->start + seq->len) < timeline_frame) {
+    seq->start = timeline_frame - seq->len + 1;
+    seq->endstill = seq->enddisp - timeline_frame - 1;
+  }
+  BKE_sequence_tx_set_final_left(seq, timeline_frame);
+}
+
+/**
+ * Split Sequence at timeline_frame in two.
+ *
+ * \param bmain: Main in which Sequence is located
+ * \param scene: Scene in which Sequence is located
+ * \param seqbase: ListBase in which Sequence is located
+ * \param seq: Sequence to be split
+ * \param timeline_frame: frame at which seq is split.
+ * \param method: affects type of offset to be applied to resize Sequence
+ * \return poitner to created Sequence. This is always Sequence on right side.
+ */
+Sequence *SEQ_edit_strip_split(Main *bmain,
+                               Scene *scene,
+                               ListBase *seqbase,
+                               Sequence *seq,
+                               const int timeline_frame,
+                               const eSeqSplitMethod method)
+{
+  if (timeline_frame <= seq->startdisp || timeline_frame >= seq->enddisp) {
+    return NULL;
+  }
+
+  if (method == SEQ_SPLIT_HARD) {
+    /* Precaution, needed because the length saved on-disk may not match the length saved in the
+     * blend file, or our code may have minor differences reading file length between versions.
+     * This causes hard-split to fail, see: T47862. */
+    BKE_sequence_reload_new_file(bmain, scene, seq, true);
+    BKE_sequence_calc(scene, seq);
+  }
+
+  Sequence *left_seq = seq;
+  Sequence *right_seq = BKE_sequence_dupli_recursive(
+      scene, scene, seqbase, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
+
+  switch (method) {
+    case SEQ_SPLIT_SOFT:
+      seq_split_set_left_offset(right_seq, timeline_frame);
+      seq_split_set_right_offset(left_seq, timeline_frame);
+      break;
+    case SEQ_SPLIT_HARD:
+      seq_split_set_right_hold_offset(left_seq, timeline_frame);
+      seq_split_set_left_hold_offset(right_seq, timeline_frame);
+      BKE_sequence_reload_new_file(bmain, scene, left_seq, false);
+      BKE_sequence_reload_new_file(bmain, scene, right_seq, false);
+      break;
+  }
+  BKE_sequence_calc(scene, left_seq);
+  BKE_sequence_calc(scene, right_seq);
+  return right_seq;
 }

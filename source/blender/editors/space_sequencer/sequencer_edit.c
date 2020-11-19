@@ -692,299 +692,6 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Split (Hard) Utility
- * \{ */
-
-static Sequence *split_seq_hard(
-    Main *bmain, Scene *scene, Sequence *seq, ListBase *new_seq_list, int split_frame)
-{
-  TransSeq ts;
-  Sequence *seqn = NULL;
-  bool skip_dup = false;
-
-  /* Unlike soft-split, it's important to use the same value for both strips. */
-  const bool is_end_exact = ((seq->start + seq->len) == split_frame);
-
-  /* Backup values. */
-  ts.start = seq->start;
-  ts.machine = seq->machine;
-  ts.startstill = seq->startstill;
-  ts.endstill = seq->endstill;
-  ts.startdisp = seq->startdisp;
-  ts.enddisp = seq->enddisp;
-  ts.startofs = seq->startofs;
-  ts.endofs = seq->endofs;
-  ts.anim_startofs = seq->anim_startofs;
-  ts.anim_endofs = seq->anim_endofs;
-  ts.len = seq->len;
-
-  if (seq->type != SEQ_TYPE_META) {
-    /* Precaution, needed because the length saved on-disk may not match the length saved in the
-     * blend file, or our code may have minor differences reading file length between versions.
-     * This causes hard-split to fail, see: T47862. */
-    BKE_sequence_reload_new_file(bmain, scene, seq, true);
-    BKE_sequence_calc(scene, seq);
-  }
-
-  /* First Strip. */
-  /* Important to offset the start when 'split_frame == seq->start'
-   * because we need at least one frame of content after start/end still have clipped it. */
-  if ((seq->startstill) && (split_frame <= seq->start)) {
-    /* Don't do funny things with METAs. */
-    if (seq->type == SEQ_TYPE_META) {
-      skip_dup = true;
-      seq->startstill = seq->start - split_frame;
-    }
-    else {
-      seq->start = split_frame - 1;
-      seq->startstill = split_frame - seq->startdisp - 1;
-      seq->anim_endofs += seq->len - 1;
-      seq->endstill = 0;
-    }
-  }
-  /* Normal strip. */
-  else if ((is_end_exact == false) &&
-           ((split_frame >= seq->start) && (split_frame <= (seq->start + seq->len)))) {
-    seq->endofs = 0;
-    seq->endstill = 0;
-    seq->anim_endofs += (seq->start + seq->len) - split_frame;
-  }
-  /* Strips with extended stillframes. */
-  else if ((is_end_exact == true) ||
-           (((seq->start + seq->len) < split_frame) && (seq->endstill))) {
-    seq->endstill -= seq->enddisp - split_frame;
-    /* Don't do funny things with METAs. */
-    if (seq->type == SEQ_TYPE_META) {
-      skip_dup = true;
-    }
-  }
-
-  BKE_sequence_reload_new_file(bmain, scene, seq, false);
-  BKE_sequence_calc(scene, seq);
-
-  if (!skip_dup) {
-    /* Duplicate AFTER the first change. */
-    seqn = BKE_sequence_dupli_recursive(
-        scene, scene, new_seq_list, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
-  }
-
-  if (seqn) {
-    seqn->flag |= SELECT;
-
-#if 0
-    is_end_exact = ((seqn->start + seqn->len) == split_frame);
-#endif
-    /* Second Strip. */
-    /* strips with extended stillframes. */
-    if ((seqn->startstill) && (split_frame == seqn->start + 1)) {
-      seqn->start = ts.start;
-      seqn->startstill = ts.start - split_frame;
-      seqn->anim_endofs = ts.anim_endofs;
-      seqn->endstill = ts.endstill;
-    }
-
-    /* Normal strip. */
-    else if ((is_end_exact == false) &&
-             ((split_frame >= seqn->start) && (split_frame <= (seqn->start + seqn->len)))) {
-      seqn->start = split_frame;
-      seqn->startstill = 0;
-      seqn->startofs = 0;
-      seqn->endofs = ts.endofs;
-      seqn->anim_startofs += split_frame - ts.start;
-      seqn->anim_endofs = ts.anim_endofs;
-      seqn->endstill = ts.endstill;
-    }
-
-    /* Strips with extended stillframes after. */
-    else if ((is_end_exact == true) ||
-             (((seqn->start + seqn->len) < split_frame) && (seqn->endstill))) {
-      seqn->start = split_frame;
-      seqn->startofs = 0;
-      seqn->anim_startofs += ts.len - 1;
-      seqn->endstill = ts.enddisp - split_frame - 1;
-      seqn->startstill = 0;
-    }
-
-    BKE_sequence_reload_new_file(bmain, scene, seqn, false);
-    BKE_sequence_calc(scene, seqn);
-    BKE_sequence_invalidate_cache_in_range(scene, seq, seqn, SEQ_CACHE_ALL_TYPES);
-  }
-  return seqn;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Split (Soft) Utility
- * \{ */
-
-static Sequence *split_seq_soft(
-    Main *UNUSED(bmain), Scene *scene, Sequence *seq, ListBase *new_seq_list, int split_frame)
-{
-  TransSeq ts;
-  Sequence *seqn = NULL;
-  bool skip_dup = false;
-
-  bool is_end_exact = ((seq->start + seq->len) == split_frame);
-
-  /* Backup values. */
-  ts.start = seq->start;
-  ts.machine = seq->machine;
-  ts.startstill = seq->startstill;
-  ts.endstill = seq->endstill;
-  ts.startdisp = seq->startdisp;
-  ts.enddisp = seq->enddisp;
-  ts.startofs = seq->startofs;
-  ts.endofs = seq->endofs;
-  ts.anim_startofs = seq->anim_startofs;
-  ts.anim_endofs = seq->anim_endofs;
-  ts.len = seq->len;
-
-  /* First Strip. */
-  /* Strips with extended stillfames. */
-  /* Important to offset the start when 'split_frame == seq->start'
-   * because we need at least one frame of content after start/end still have clipped it. */
-  if ((seq->startstill) && (split_frame <= seq->start)) {
-    /* don't do funny things with METAs ... */
-    if (seq->type == SEQ_TYPE_META) {
-      skip_dup = true;
-      seq->startstill = seq->start - split_frame;
-    }
-    else {
-      seq->start = split_frame - 1;
-      seq->startstill = split_frame - seq->startdisp - 1;
-      seq->endofs = seq->len - 1;
-      seq->endstill = 0;
-    }
-  }
-  /* Normal strip. */
-  else if ((is_end_exact == false) && (split_frame >= seq->start) &&
-           (split_frame <= (seq->start + seq->len))) {
-    seq->endofs = (seq->start + seq->len) - split_frame;
-  }
-  /* Strips with extended stillframes. */
-  else if ((is_end_exact == true) ||
-           (((seq->start + seq->len) < split_frame) && (seq->endstill))) {
-    seq->endstill -= seq->enddisp - split_frame;
-    /* Don't do funny things with METAs. */
-    if (seq->type == SEQ_TYPE_META) {
-      skip_dup = true;
-    }
-  }
-
-  BKE_sequence_calc(scene, seq);
-
-  if (!skip_dup) {
-    /* Duplicate AFTER the first change. */
-    seqn = BKE_sequence_dupli_recursive(
-        scene, scene, new_seq_list, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
-  }
-
-  if (seqn) {
-    seqn->flag |= SELECT;
-
-    is_end_exact = ((seqn->start + seqn->len) == split_frame);
-
-    /* Second Strip. */
-    /* Strips with extended stillframes. */
-    if ((seqn->startstill) && (split_frame == seqn->start + 1)) {
-      seqn->start = ts.start;
-      seqn->startstill = ts.start - split_frame;
-      seqn->endofs = ts.endofs;
-      seqn->endstill = ts.endstill;
-    }
-
-    /* Normal strip. */
-    else if ((is_end_exact == false) && (split_frame >= seqn->start) &&
-             (split_frame <= (seqn->start + seqn->len))) {
-      seqn->startstill = 0;
-      seqn->startofs = split_frame - ts.start;
-      seqn->endofs = ts.endofs;
-      seqn->endstill = ts.endstill;
-    }
-
-    /* Strips with extended stillframes. */
-    else if ((is_end_exact == true) ||
-             (((seqn->start + seqn->len) < split_frame) && (seqn->endstill))) {
-      seqn->start = split_frame - ts.len + 1;
-      seqn->startofs = ts.len - 1;
-      seqn->endstill = ts.enddisp - split_frame - 1;
-      seqn->startstill = 0;
-    }
-
-    BKE_sequence_calc(scene, seqn);
-    BKE_sequence_invalidate_cache_in_range(scene, seq, seqn, SEQ_CACHE_ALL_TYPES);
-  }
-  return seqn;
-}
-
-/* Like duplicate, but only duplicate and split overlapping strips,
- * strips to the left of the split_frame are ignored and strips to the right
- * are moved to the end of slist.
- * We have to work on the same slist (not using a separate list), since
- * otherwise dupli_seq can't check for duplicate names properly and
- * may generate strips with the same name which will mess up animdata.
- */
-
-static bool split_seq_list(
-    Main *bmain,
-    Scene *scene,
-    ListBase *slist,
-    int split_frame,
-    int channel,
-    bool use_cursor_position,
-    Sequence *(*split_seq)(Main *bmain, Scene *, Sequence *, ListBase *, int))
-
-{
-  Sequence *seq, *seq_next_iter;
-  Sequence *seq_first_new = NULL;
-
-  seq = slist->first;
-
-  while (seq && seq != seq_first_new) {
-    seq_next_iter = seq->next; /* We need this because we may remove seq. */
-    seq->tmp = NULL;
-    if (use_cursor_position) {
-      if (seq->machine == channel && seq->startdisp < split_frame && seq->enddisp > split_frame) {
-        Sequence *seqn = split_seq(bmain, scene, seq, slist, split_frame);
-        if (seqn) {
-          if (seq_first_new == NULL) {
-            seq_first_new = seqn;
-          }
-        }
-      }
-    }
-    else {
-      if (seq->flag & SELECT) {
-        if (split_frame > seq->startdisp && split_frame < seq->enddisp) {
-          Sequence *seqn = split_seq(bmain, scene, seq, slist, split_frame);
-          if (seqn) {
-            if (seq_first_new == NULL) {
-              seq_first_new = seqn;
-            }
-          }
-        }
-        else if (seq->enddisp <= split_frame) {
-          /* Pass. */
-        }
-        else if (seq->startdisp >= split_frame) {
-          /* Move to tail. */
-          BLI_remlink(slist, seq);
-          BLI_addtail(slist, seq);
-
-          if (seq_first_new == NULL) {
-            seq_first_new = seq;
-          }
-        }
-      }
-    }
-    seq = seq_next_iter;
-  }
-
-  return (seq_first_new != NULL);
-}
-
 static bool sequence_offset_after_frame(Scene *scene, const int delta, const int timeline_frame)
 {
   Sequence *seq;
@@ -2242,11 +1949,6 @@ void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot)
 /** \name Split Strips Operator
  * \{ */
 
-enum {
-  SEQ_SPLIT_SOFT,
-  SEQ_SPLIT_HARD,
-};
-
 static const EnumPropertyItem prop_split_types[] = {
     {SEQ_SPLIT_SOFT, "SOFT", 0, "Soft", ""},
     {SEQ_SPLIT_HARD, "HARD", 0, "Hard", ""},
@@ -2258,37 +1960,30 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
-  int split_side, split_hard, split_frame, split_channel;
-  bool changed, use_cursor_position, ignore_selection;
+  bool changed = false;
   bool seq_selected = false;
 
-  split_frame = RNA_int_get(op->ptr, "frame");
-  split_channel = RNA_int_get(op->ptr, "channel");
-  use_cursor_position = RNA_boolean_get(op->ptr, "use_cursor_position");
-  split_hard = RNA_enum_get(op->ptr, "type");
-  split_side = RNA_enum_get(op->ptr, "side");
-  ignore_selection = RNA_boolean_get(op->ptr, "ignore_selection");
+  const int split_frame = RNA_int_get(op->ptr, "frame");
+  const int split_channel = RNA_int_get(op->ptr, "channel");
+  const bool use_cursor_position = RNA_boolean_get(op->ptr, "use_cursor_position");
+  const eSeqSplitMethod method = RNA_enum_get(op->ptr, "type");
+  const int split_side = RNA_enum_get(op->ptr, "side");
+  const bool ignore_selection = RNA_boolean_get(op->ptr, "ignore_selection");
 
   BKE_sequencer_prefetch_stop(scene);
 
-  if (split_hard == SEQ_SPLIT_HARD) {
-    changed = split_seq_list(bmain,
-                             scene,
-                             ed->seqbasep,
-                             split_frame,
-                             split_channel,
-                             use_cursor_position,
-                             split_seq_hard);
+  LISTBASE_FOREACH_BACKWARD (Sequence *, seq, ed->seqbasep) {
+    if (use_cursor_position && seq->machine != split_channel) {
+      continue;
+    }
+
+    if (ignore_selection || seq->flag & SELECT) {
+      if (SEQ_edit_strip_split(bmain, scene, ed->seqbasep, seq, split_frame, method) != NULL) {
+        changed = true;
+      }
+    }
   }
-  else {
-    changed = split_seq_list(bmain,
-                             scene,
-                             ed->seqbasep,
-                             split_frame,
-                             split_channel,
-                             use_cursor_position,
-                             split_seq_soft);
-  }
+
   if (changed) { /* Got new strips? */
     Sequence *seq;
     if (ignore_selection) {
@@ -2326,12 +2021,6 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
         SEQ_CURRENT_END;
       }
     }
-    SEQ_CURRENT_BEGIN (ed, seq) {
-      if (seq->seq1 || seq->seq2 || seq->seq3) {
-        BKE_sequence_calc(scene, seq);
-      }
-    }
-    SEQ_CURRENT_END;
 
     BKE_sequencer_sort(scene);
   }
