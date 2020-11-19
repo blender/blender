@@ -48,6 +48,39 @@
 #include "atomic_ops.h"
 #include "subdiv_converter.h"
 
+
+bool debug_invert_m3_m3(float m1[3][3], const float m2[3][3], const char *func, int line)
+{
+  float det;
+  int a, b;
+  bool success;
+
+  /* calc adjoint */
+  adjoint_m3_m3(m1, m2);
+
+  /* then determinant old matrix! */
+  det = determinant_m3_array(m2);
+
+  if (det > -0.0001 && det < 0.0001) {
+    fprintf(stderr, "matrix inverse error %s:%i\n\n", func, line);
+  }
+
+  success = (det != 0.0f);
+
+  if (LIKELY(det != 0.0f)) {
+    det = 1.0f / det;
+    for (a = 0; a < 3; a++) {
+      for (b = 0; b < 3; b++) {
+        m1[a][b] *= det;
+      }
+    }
+  }
+
+  return success;
+}
+
+//#define invert_m3_m3(m1, m2) debug_invert_m3_m3(m1, m2, __func__, __LINE__)
+
 /* -------------------------------------------------------------------- */
 /** \name Local Structs
  * \{ */

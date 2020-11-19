@@ -6936,6 +6936,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Paint Brush";
     case SCULPT_TOOL_SMEAR:
       return "Smear Brush";
+    case SCULPT_TOOL_VCOL_BOUNDARY:
+      return "Color Boundary";
   }
 
   return "Sculpting";

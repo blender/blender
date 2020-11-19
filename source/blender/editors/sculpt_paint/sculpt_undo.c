@@ -183,14 +183,14 @@ static bool sculpt_undo_restore_deformed(
   return false;
 }
 
-static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, SculptUndoNode *unode)
+__attribute__((optnone)) static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, SculptUndoNode *unode)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
   MVert *mvert;
-  int *index;
+  SculptVertRef *index;
 
   if (unode->maxvert) {
     /* Regular mesh restore. */
@@ -224,18 +224,18 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       if (unode->orig_co) {
         if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
-            sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
+            sculpt_undo_restore_deformed(ss, unode, i, index[i].i, vertCos[index[i].i]);
           }
         }
         else {
           for (int i = 0; i < unode->totvert; i++) {
-            swap_v3_v3(vertCos[index[i]], unode->orig_co[i]);
+            swap_v3_v3(vertCos[index[i].i], unode->orig_co[i]);
           }
         }
       }
       else {
         for (int i = 0; i < unode->totvert; i++) {
-          swap_v3_v3(vertCos[index[i]], unode->co[i]);
+          swap_v3_v3(vertCos[index[i].i], unode->co[i]);
         }
       }
 
@@ -252,21 +252,21 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       if (unode->orig_co) {
         if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
-            sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
-            mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+            sculpt_undo_restore_deformed(ss, unode, i, index[i].i, mvert[index[i].i].co);
+            mvert[index[i].i].flag |= ME_VERT_PBVH_UPDATE;
           }
         }
         else {
           for (int i = 0; i < unode->totvert; i++) {
-            swap_v3_v3(mvert[index[i]].co, unode->orig_co[i]);
-            mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+            swap_v3_v3(mvert[index[i].i].co, unode->orig_co[i]);
+            mvert[index[i].i].flag |= ME_VERT_PBVH_UPDATE;
           }
         }
       }
       else {
         for (int i = 0; i < unode->totvert; i++) {
-          swap_v3_v3(mvert[index[i]].co, unode->co[i]);
-          mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+          swap_v3_v3(mvert[index[i].i].co, unode->co[i]);
+          mvert[index[i].i].flag |= ME_VERT_PBVH_UPDATE;
         }
       }
     }
@@ -1072,7 +1072,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
   else {
     /* Regular mesh. */
     unode->maxvert = ss->totvert;
-    unode->index = MEM_callocN(sizeof(int) * allvert, "SculptUndoNode.index");
+    unode->index = MEM_callocN(sizeof(SculptVertRef) * allvert, "SculptUndoNode.index");
   }
 
   if (ss->deform_modifiers_active) {
@@ -1418,7 +1418,11 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     int allvert;
     BKE_pbvh_node_num_verts(ss->pbvh, node, NULL, &allvert);
     BKE_pbvh_node_get_verts(ss->pbvh, node, &vert_indices, NULL);
-    memcpy(unode->index, vert_indices, sizeof(int) * unode->totvert);
+
+    for (int i=0; i<unode->totvert; i++) {
+      unode->index[i].i = vert_indices[i];
+    }
+    //memcpy(unode->index, vert_indices, sizeof(int) * unode->totvert);
   }
 
   switch (type) {

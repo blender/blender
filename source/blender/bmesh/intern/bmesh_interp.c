@@ -326,8 +326,8 @@ static bool quad_co(const float v1[3],
   }
 
   // expand quad a bit
-#if 1
-  float eps = FLT_EPSILON * 400000;
+#if 0
+  float eps = FLT_EPSILON * 40000;
   float c[3];
 
   mid_v3_v3v3v3v3(c, projverts[0], projverts[1], projverts[2], projverts[3]);
@@ -352,9 +352,12 @@ static bool quad_co(const float v1[3],
 
   resolve_quad_uv_v2(r_uv, origin, projverts[0], projverts[3], projverts[2], projverts[1]);
 
-  // if (r_uv[0] < -eps || r_uv[1] < -eps || r_uv[0] > 1.0+eps || r_uv[1] > 1.0+eps) {
-  //  return false;
-  //}
+#if 0
+  float eps2 = FLT_EPSILON * 4000;
+  if (r_uv[0] < -eps2 || r_uv[1] < -eps2 || r_uv[0] > 1.0 + eps2 || r_uv[1] > 1.0 + eps2) {
+    return false;
+  }
+#endif
 
   CLAMP(r_uv[0], 0.0f, 0.99999f);
   CLAMP(r_uv[1], 0.0f, 0.99999f);
@@ -943,12 +946,12 @@ void bmo_test_mres_smooth_exec(BMesh *bm, BMOperator *op)
       continue;
     }
 
-    //bm_multires_smooth(bm, f, true);
+    // bm_multires_smooth(bm, f, true);
     // BM_multires_smooth(bm, f, false);
     // BM_multires_smooth(bm, f, false);
-    //for (int i=0; i<5; i++) {
+    // for (int i=0; i<5; i++) {
     BM_face_multires_bounds_smooth(bm, f);
-   // }
+    // }
   }
 
   multires_dump_grids_bmesh(NULL, bm);
@@ -960,9 +963,8 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
   if (bm->multiresSpace == MULTIRES_SPACE_ABSOLUTE) {
     BM_face_multires_stitch(bm, f);
 
-
-    //for (int i=0; i<5; i++) {
-      //bm_multires_smooth(bm, f, true);
+    // for (int i=0; i<5; i++) {
+    // bm_multires_smooth(bm, f, true);
     //}
   }
 }
