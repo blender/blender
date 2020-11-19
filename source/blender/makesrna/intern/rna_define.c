@@ -3458,6 +3458,13 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop,
 
 void RNA_def_property_srna(PropertyRNA *prop, const char *type)
 {
+  char error[512];
+  if (rna_validate_identifier(type, error, false) == 0) {
+    CLOG_ERROR(&LOG, "struct identifier \"%s\" error - %s", type, error);
+    DefRNA.error = true;
+    return;
+  }
+
   prop->srna = (StructRNA *)type;
 }
 
