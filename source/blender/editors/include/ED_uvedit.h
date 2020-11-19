@@ -241,6 +241,7 @@ struct UVPackIsland_Params {
   int rotate_align_axis : 2;
   uint only_selected_uvs : 1;
   uint only_selected_faces : 1;
+  uint use_seams : 1;
   uint correct_aspect : 1;
 };
 void ED_uvedit_pack_islands_multi(const Scene *scene,
