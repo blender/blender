@@ -249,11 +249,19 @@ struct FaceIsland {
 
 struct SharedUVLoopData {
   uint cd_loop_uv_offset;
+  bool use_seams;
 };
 
 static bool bm_loop_uv_shared_edge_check(const BMLoop *l_a, const BMLoop *l_b, void *user_data)
 {
   const struct SharedUVLoopData *data = user_data;
+
+  if (data->use_seams) {
+    if (BM_elem_flag_test(l_a->e, BM_ELEM_SEAM)) {
+      return false;
+    }
+  }
+
   return BM_loop_uv_share_edge_check((BMLoop *)l_a, (BMLoop *)l_b, data->cd_loop_uv_offset);
 }
 
@@ -265,6 +273,7 @@ static int bm_mesh_calc_uv_islands(const Scene *scene,
                                    ListBase *island_list,
                                    const bool only_selected_faces,
                                    const bool only_selected_uvs,
+                                   const bool use_seams,
                                    const float aspect_y,
                                    const uint cd_loop_uv_offset)
 {
@@ -273,6 +282,7 @@ static int bm_mesh_calc_uv_islands(const Scene *scene,
 
   struct SharedUVLoopData user_data = {
       .cd_loop_uv_offset = cd_loop_uv_offset,
+      .use_seams = use_seams,
   };
 
   int *groups_array = MEM_mallocN(sizeof(*groups_array) * (size_t)bm->totface, __func__);
@@ -377,6 +387,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
                                                &island_list,
                                                params->only_selected_faces,
                                                params->only_selected_uvs,
+                                               params->use_seams,
                                                aspect_y,
                                                cd_loop_uv_offset);
   }

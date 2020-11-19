@@ -2174,6 +2174,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
                                      .rotate_align_axis = 1,
                                      .only_selected_faces = true,
                                      .correct_aspect = true,
+                                     .use_seams = true,
                                  });
 
     uv_map_clip_correct_multi(objects_changed, object_changed_len, op);
