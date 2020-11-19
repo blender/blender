@@ -60,6 +60,7 @@ enum {
 
 /* RNA enums, just to be more readable */
 enum {
+  SEQ_SIDE_MOUSE = -1,
   SEQ_SIDE_NONE = 0,
   SEQ_SIDE_LEFT,
   SEQ_SIDE_RIGHT,
