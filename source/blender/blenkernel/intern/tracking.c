@@ -585,36 +585,33 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking,
                                            int width,
                                            int height)
 {
+  const MovieTrackingSettings *settings = &tracking->settings;
+
+  const float half_pattern_px = settings->default_pattern_size / 2.0f;
+  const float half_search_px = settings->default_search_size / 2.0f;
+
+  const float pattern_size[2] = {half_pattern_px / width, half_pattern_px / height};
+  const float search_size[2] = {half_search_px / width, half_search_px / height};
+
   MovieTrackingTrack *track = BKE_tracking_track_add_empty(tracking, tracksbase);
+
   MovieTrackingMarker marker;
-  MovieTrackingSettings *settings = &tracking->settings;
-
-  float half_pattern = (float)settings->default_pattern_size / 2.0f;
-  float half_search = (float)settings->default_search_size / 2.0f;
-  float pat[2], search[2];
-
-  pat[0] = half_pattern / (float)width;
-  pat[1] = half_pattern / (float)height;
-
-  search[0] = half_search / (float)width;
-  search[1] = half_search / (float)height;
-
   memset(&marker, 0, sizeof(marker));
   marker.pos[0] = x;
   marker.pos[1] = y;
   marker.framenr = framenr;
 
-  marker.pattern_corners[0][0] = -pat[0];
-  marker.pattern_corners[0][1] = -pat[1];
+  marker.pattern_corners[0][0] = -pattern_size[0];
+  marker.pattern_corners[0][1] = -pattern_size[1];
 
-  marker.pattern_corners[1][0] = pat[0];
-  marker.pattern_corners[1][1] = -pat[1];
+  marker.pattern_corners[1][0] = pattern_size[0];
+  marker.pattern_corners[1][1] = -pattern_size[1];
 
   negate_v2_v2(marker.pattern_corners[2], marker.pattern_corners[0]);
   negate_v2_v2(marker.pattern_corners[3], marker.pattern_corners[1]);
 
-  copy_v2_v2(marker.search_max, search);
-  negate_v2_v2(marker.search_min, search);
+  copy_v2_v2(marker.search_max, search_size);
+  negate_v2_v2(marker.search_min, search_size);
 
   BKE_tracking_marker_insert(track, &marker);
 
