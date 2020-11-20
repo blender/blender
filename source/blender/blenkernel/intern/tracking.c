@@ -541,6 +541,34 @@ void BKE_tracking_clipboard_paste_tracks(MovieTracking *tracking, MovieTrackingO
 
 /*********************** Tracks *************************/
 
+/* Add new empty track to the given list of tracks.
+ *
+ * It is required that caller will append at least one marker to avoid degenerate tracks.
+ */
+MovieTrackingTrack *BKE_tracking_track_add_empty(MovieTracking *tracking, ListBase *tracks_list)
+{
+  const MovieTrackingSettings *settings = &tracking->settings;
+
+  MovieTrackingTrack *track = MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
+  strcpy(track->name, "Track");
+
+  /* Fill track's settings from default settings. */
+  track->motion_model = settings->default_motion_model;
+  track->minimum_correlation = settings->default_minimum_correlation;
+  track->margin = settings->default_margin;
+  track->pattern_match = settings->default_pattern_match;
+  track->frames_limit = settings->default_frames_limit;
+  track->flag = settings->default_flag;
+  track->algorithm_flag = settings->default_algorithm_flag;
+  track->weight = settings->default_weight;
+  track->weight_stab = settings->default_weight;
+
+  BLI_addtail(tracks_list, track);
+  BKE_tracking_track_unique_name(tracks_list, track);
+
+  return track;
+}
+
 /* Add new track to a specified tracks base.
  *
  * Coordinates are expected to be in normalized 0..1 space,
@@ -557,7 +585,7 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking,
                                            int width,
                                            int height)
 {
-  MovieTrackingTrack *track;
+  MovieTrackingTrack *track = BKE_tracking_track_add_empty(tracking, tracksbase);
   MovieTrackingMarker marker;
   MovieTrackingSettings *settings = &tracking->settings;
 
@@ -570,20 +598,6 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking,
 
   search[0] = half_search / (float)width;
   search[1] = half_search / (float)height;
-
-  track = MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
-  strcpy(track->name, "Track");
-
-  /* fill track's settings from default settings */
-  track->motion_model = settings->default_motion_model;
-  track->minimum_correlation = settings->default_minimum_correlation;
-  track->margin = settings->default_margin;
-  track->pattern_match = settings->default_pattern_match;
-  track->frames_limit = settings->default_frames_limit;
-  track->flag = settings->default_flag;
-  track->algorithm_flag = settings->default_algorithm_flag;
-  track->weight = settings->default_weight;
-  track->weight_stab = settings->default_weight;
 
   memset(&marker, 0, sizeof(marker));
   marker.pos[0] = x;
@@ -603,9 +617,6 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking,
   negate_v2_v2(marker.search_min, search);
 
   BKE_tracking_marker_insert(track, &marker);
-
-  BLI_addtail(tracksbase, track);
-  BKE_tracking_track_unique_name(tracksbase, track);
 
   return track;
 }
