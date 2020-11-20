@@ -1763,7 +1763,7 @@ struct PlacementCursor {
 
   /* Check if we need to re-calculate the plane matrix. */
   int mval_prev[2];
-  float viewmat_prev[4][4];
+  float persmat_prev[4][4];
 };
 
 static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
@@ -1802,7 +1802,7 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
 
   /* Update matrix? */
   if ((plc->mval_prev[0] != mval[0]) || (plc->mval_prev[1] != mval[1]) ||
-      !equals_m4m4(plc->viewmat_prev, rv3d->viewmat)) {
+      !equals_m4m4(plc->persmat_prev, rv3d->persmat)) {
     plc->mval_prev[0] = mval[0];
     plc->mval_prev[1] = mval[1];
 
@@ -1812,7 +1812,7 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
     copy_m4_m3(plc->matrix, orient_matrix);
     copy_v3_v3(plc->matrix[3], co);
 
-    copy_m4_m4(plc->viewmat_prev, rv3d->viewmat);
+    copy_m4_m4(plc->persmat_prev, rv3d->persmat);
   }
 
   /* Draw */
