@@ -1166,5 +1166,20 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Replace object hidden filter with inverted object visible filter.  */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          if (space->spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = (SpaceOutliner *)space;
+            if (space_outliner->filter_state == SO_FILTER_OB_HIDDEN) {
+              space_outliner->filter_state = SO_FILTER_OB_VISIBLE;
+              space_outliner->filter |= SO_FILTER_OB_STATE_INVERSE;
+            }
+          }
+        }
+      }
+    }
   }
 }

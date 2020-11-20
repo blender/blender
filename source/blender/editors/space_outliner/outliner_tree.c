@@ -1913,9 +1913,6 @@ static int outliner_exclude_filter_get(const SpaceOutliner *space_outliner)
     case SO_FILTER_OB_VISIBLE:
       exclude_filter |= SO_FILTER_OB_STATE_VISIBLE;
       break;
-    case SO_FILTER_OB_HIDDEN:
-      exclude_filter |= SO_FILTER_OB_STATE_HIDDEN;
-      break;
     case SO_FILTER_OB_SELECTED:
       exclude_filter |= SO_FILTER_OB_STATE_SELECTED;
       break;
@@ -1992,32 +1989,34 @@ static bool outliner_element_visible_get(ViewLayer *view_layer,
         }
       }
 
+      bool is_visible = true;
       if (exclude_filter & SO_FILTER_OB_STATE_VISIBLE) {
         if ((base->flag & BASE_VISIBLE_VIEWLAYER) == 0) {
-          return false;
-        }
-      }
-      else if (exclude_filter & SO_FILTER_OB_STATE_HIDDEN) {
-        if ((base->flag & BASE_VISIBLE_VIEWLAYER) != 0) {
-          return false;
+          is_visible = false;
         }
       }
       else if (exclude_filter & SO_FILTER_OB_STATE_SELECTED) {
         if ((base->flag & BASE_SELECTED) == 0) {
-          return false;
+          is_visible = false;
         }
       }
       else if (exclude_filter & SO_FILTER_OB_STATE_SELECTABLE) {
         if ((base->flag & BASE_SELECTABLE) == 0) {
-          return false;
+          is_visible = false;
         }
       }
       else {
         BLI_assert(exclude_filter & SO_FILTER_OB_STATE_ACTIVE);
         if (base != BASACT(view_layer)) {
-          return false;
+          is_visible = false;
         }
       }
+
+      if (exclude_filter & SO_FILTER_OB_STATE_INVERSE) {
+        is_visible = !is_visible;
+      }
+
+      return is_visible;
     }
 
     if ((te->parent != NULL) && (TREESTORE(te->parent)->type == 0) &&
