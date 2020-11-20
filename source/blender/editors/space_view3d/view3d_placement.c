@@ -152,6 +152,33 @@ struct InteractivePlaceData {
 /** \name Internal Utilities
  * \{ */
 
+/**
+ * Re-order \a mat so \a axis_align uses it's own axis which is closest to \a v.
+ */
+static bool mat3_align_axis_to_v3(float mat[3][3], const int axis_align, const float v[3])
+{
+  float dot_best = -1.0f;
+  int axis_found = axis_align;
+  for (int i = 0; i < 3; i++) {
+    const float dot_test = fabsf(dot_v3v3(mat[i], v));
+    if (dot_test > dot_best) {
+      dot_best = dot_test;
+      axis_found = i;
+    }
+  }
+
+  if (axis_align != axis_found) {
+    float tmat[3][3];
+    copy_m3_m3(tmat, mat);
+    const int offset = mod_i(axis_found - axis_align, 3);
+    for (int i = 0; i < 3; i++) {
+      copy_v3_v3(mat[i], tmat[(i + offset) % 3]);
+    }
+    return true;
+  }
+  return false;
+}
+
 /* On-screen snap distance. */
 #define MVAL_MAX_PX_DIST 12.0f
 
@@ -656,6 +683,7 @@ static void view3d_interactive_add_calc_plane(bContext *C,
   }
 
   if (plane_orient == PLACE_ORIENT_SURFACE) {
+    bool found_surface_or_normal = false;
     float matrix_orient_surface[3][3];
 
     /* Use the snap normal as a fallback in case the cursor isn't over a surface
@@ -673,6 +701,12 @@ static void view3d_interactive_add_calc_plane(bContext *C,
                                   use_normal_fallback ? normal_fallback : NULL,
                                   matrix_orient_surface)) {
       copy_m3_m3(r_matrix_orient, matrix_orient_surface);
+      found_surface_or_normal = true;
+    }
+
+    if (!found_surface_or_normal) {
+      /* Drawing into empty mspace, draw onto the plane most aligned to the view direction. */
+      mat3_align_axis_to_v3(r_matrix_orient, plane_axis, rv3d->viewinv[2]);
     }
   }
 
