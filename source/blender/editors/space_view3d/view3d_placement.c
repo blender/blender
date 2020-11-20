@@ -23,7 +23,6 @@
  * including library assets & non-mesh types.
  */
 
-#include "BLI_math_vector.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
@@ -67,6 +66,13 @@ static const char *view3d_gzgt_placement_id = "VIEW3D_GGT_placement";
 
 static void preview_plane_cursor_setup(wmGizmoGroup *gzgroup);
 static void preview_plane_cursor_visible_set(wmGizmoGroup *gzgroup, bool do_draw);
+
+/**
+ * Dot products below this will be considered view aligned.
+ * In this case we can't usefully project the mouse cursor onto the plane,
+ * so use a fall-back plane instead.
+ */
+const float eps_view_align = 1e-2f;
 
 /* -------------------------------------------------------------------- */
 /** \name Local Types
@@ -114,7 +120,41 @@ struct InteractivePlaceData {
     bool is_fixed_aspect;
     float plane[4];
     float co_dst[3];
+
+    /**
+     * We can't project the mouse cursor onto `plane`,
+     * in this case #view3d_win_to_3d_on_plane_maybe_fallback is used.
+     *
+     * - For #STEP_BASE we're drawing from the side, where the X/Y axis can't be projected.
+     * - For #STEP_DEPTH we're drawing from the top (2D), where the depth can't be projected.
+     */
+    bool is_degenerate_view_align;
+    /**
+     * When view aligned, use a diagonal offset (cavalier projection)
+     * to give user feedback about the depth being set.
+     *
+     * Currently this is only used for orthogonal views since perspective views
+     * nearly always show some depth, even when view aligned.
+     *
+     * - Drag to the bottom-left to move away from the view.
+     * - Drag to the top-right to move towards the view.
+     */
+    float degenerate_diagonal[3];
+    /**
+     * Corrected for display, so what's shown on-screen doesn't loop to be reversed
+     * in relation to cursor-motion.
+     */
+    float degenerate_diagonal_display[3];
+
+    /**
+     * Index into `matrix_orient` which is degenerate.
+     */
+    int degenerate_axis;
+
   } step[2];
+
+  /** When we can't project onto the real plane, use this in it's place. */
+  float view_plane[4];
 
   float matrix_orient[3][3];
   int orient_axis;
@@ -151,6 +191,47 @@ struct InteractivePlaceData {
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
+
+/**
+ * Convenience wrapper to avoid duplicating arguments.
+ */
+static bool view3d_win_to_3d_on_plane_maybe_fallback(const ARegion *region,
+                                                     const float plane[4],
+                                                     const float mval[2],
+                                                     const float *plane_fallback,
+                                                     float r_out[3])
+{
+  RegionView3D *rv3d = region->regiondata;
+  bool do_clip = rv3d->is_persp;
+  if (plane_fallback != NULL) {
+    return ED_view3d_win_to_3d_on_plane_with_fallback(
+        region, plane, mval, do_clip, plane_fallback, r_out);
+  }
+  return ED_view3d_win_to_3d_on_plane(region, plane, mval, do_clip, r_out);
+}
+
+/**
+ * Return the index of \a dirs with the largest dot product compared to \a dir_test.
+ */
+static int dot_v3_array_find_max_index(const float dirs[][3],
+                                       const int dirs_len,
+                                       const float dir_test[3],
+                                       bool is_signed)
+{
+  int index_found = -1;
+  float dot_best = -1.0f;
+  for (int i = 0; i < dirs_len; i++) {
+    float dot_test = dot_v3v3(dirs[i], dir_test);
+    if (is_signed == false) {
+      dot_test = fabsf(dot_test);
+    }
+    if ((index_found == -1) || (dot_test > dot_best)) {
+      dot_best = dot_test;
+      index_found = i;
+    }
+  }
+  return index_found;
+}
 
 /**
  * Re-order \a mat so \a axis_align uses it's own axis which is closest to \a v.
@@ -556,12 +637,50 @@ static void draw_circle_in_quad(const float v1[2],
 
 static void draw_primitive_view_impl(const struct bContext *C,
                                      struct InteractivePlaceData *ipd,
-                                     const float color[4])
+                                     const float color[4],
+                                     int flatten_axis)
 {
   UNUSED_VARS(C);
 
   BoundBox bounds;
   calc_bbox(ipd, &bounds);
+
+  /* Use cavalier projection, since it maps the scale usefully to the cursor. */
+  if (flatten_axis == STEP_BASE) {
+    /* Calculate the plane that would be defined by the side of the cube vertices
+     * if the plane had any volume. */
+
+    float no[3];
+
+    cross_v3_v3v3(
+        no, ipd->matrix_orient[ipd->orient_axis], ipd->matrix_orient[(ipd->orient_axis + 1) % 3]);
+
+    RegionView3D *rv3d = ipd->region->regiondata;
+    copy_v3_v3(no, rv3d->viewinv[2]);
+    normalize_v3(no);
+
+    float base_plane[4];
+
+    plane_from_point_normal_v3(base_plane, bounds.vec[0], no);
+
+    /* Offset all vertices even though we only need to offset the half of them.
+     * This is harmless as `dist` will be zero for the `base_plane` aligned side of the cube. */
+    for (int i = 0; i < ARRAY_SIZE(bounds.vec); i++) {
+      const float dist = dist_signed_to_plane_v3(bounds.vec[i], base_plane);
+      madd_v3_v3fl(bounds.vec[i], base_plane, -dist);
+      madd_v3_v3fl(bounds.vec[i], ipd->step[STEP_BASE].degenerate_diagonal_display, dist);
+    }
+  }
+
+  if (flatten_axis == STEP_DEPTH) {
+    const float *base_plane = ipd->step[0].plane;
+    for (int i = 0; i < 4; i++) {
+      const float dist = dist_signed_to_plane_v3(bounds.vec[i + 4], base_plane);
+      madd_v3_v3fl(bounds.vec[i + 4], base_plane, -dist);
+      madd_v3_v3fl(bounds.vec[i + 4], ipd->step[STEP_DEPTH].degenerate_diagonal_display, dist);
+    }
+  }
+
   draw_line_bounds(&bounds, color);
 
   if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CUBE) {
@@ -629,14 +748,22 @@ static void draw_primitive_view(const struct bContext *C, ARegion *UNUSED(region
   if (use_depth) {
     GPU_depth_test(GPU_DEPTH_NONE);
     color[3] = 0.15f;
-    draw_primitive_view_impl(C, ipd, color);
+    draw_primitive_view_impl(C, ipd, color, -1);
+  }
+
+  /* Show a flattened projection if the current step is aligned to the view. */
+  if (ipd->step[ipd->step_index].is_degenerate_view_align) {
+    const RegionView3D *rv3d = ipd->region->regiondata;
+    if (!rv3d->is_persp) {
+      draw_primitive_view_impl(C, ipd, color, ipd->step_index);
+    }
   }
 
   if (use_depth) {
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
   color[3] = 1.0f;
-  draw_primitive_view_impl(C, ipd, color);
+  draw_primitive_view_impl(C, ipd, color, -1);
 
   if (use_depth) {
     if (depth_test_enabled == false) {
@@ -744,15 +871,30 @@ static void view3d_interactive_add_calc_plane(bContext *C,
     if (use_depth_fallback || (plane_depth == PLACE_DEPTH_CURSOR_PLANE)) {
       /* Cursor plane. */
       float plane[4];
-      plane_from_point_normal_v3(plane, scene->cursor.location, r_matrix_orient[plane_axis]);
-      if (ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, false, r_co_src)) {
+      const float *plane_normal = r_matrix_orient[plane_axis];
+
+      const float view_axis_dot = fabsf(dot_v3v3(rv3d->viewinv[2], r_matrix_orient[plane_axis]));
+      if (view_axis_dot < eps_view_align) {
+        /* In this case, just project onto the view plane as it's important the location
+         * is _always_ under the mouse cursor, even if it turns out that wont lie on
+         * the original 'plane' that's been calculated for us. */
+        plane_normal = rv3d->viewinv[2];
+      }
+
+      plane_from_point_normal_v3(plane, scene->cursor.location, plane_normal);
+
+      if (view3d_win_to_3d_on_plane_maybe_fallback(region, plane, mval_fl, NULL, r_co_src)) {
         use_depth_fallback = false;
       }
-      /* Even if the calculation works, it's possible the point found is behind the view. */
+
+      /* Even if the calculation works, it's possible the point found is behind the view,
+       * or very far away (past the far clipping).
+       * In either case creating objects wont be useful. */
       if (rv3d->is_persp) {
         float dir[3];
         sub_v3_v3v3(dir, rv3d->viewinv[3], r_co_src);
-        if (dot_v3v3(dir, rv3d->viewinv[2]) < v3d->clip_start) {
+        const float dot = dot_v3v3(dir, rv3d->viewinv[2]);
+        if (dot < v3d->clip_start || dot > v3d->clip_end) {
           use_depth_fallback = true;
         }
       }
@@ -827,6 +969,67 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   plane_from_point_normal_v3(ipd->step[0].plane, ipd->co_src, ipd->matrix_orient[plane_axis]);
 
   copy_v3_v3(ipd->step[0].co_dst, ipd->co_src);
+
+  {
+    RegionView3D *rv3d = ipd->region->regiondata;
+    const float view_axis_dot = fabsf(dot_v3v3(rv3d->viewinv[2], ipd->matrix_orient[plane_axis]));
+    ipd->step[STEP_BASE].is_degenerate_view_align = view_axis_dot < eps_view_align;
+    ipd->step[STEP_DEPTH].is_degenerate_view_align = fabsf(view_axis_dot - 1.0f) < eps_view_align;
+
+    float view_axis[3];
+    normalize_v3_v3(view_axis, rv3d->viewinv[2]);
+    plane_from_point_normal_v3(ipd->view_plane, ipd->co_src, view_axis);
+  }
+
+  if (ipd->step[STEP_BASE].is_degenerate_view_align ||
+      ipd->step[STEP_DEPTH].is_degenerate_view_align) {
+    RegionView3D *rv3d = ipd->region->regiondata;
+    float axis_view[3];
+    add_v3_v3v3(axis_view, rv3d->viewinv[0], rv3d->viewinv[1]);
+    normalize_v3(axis_view);
+
+    /* Setup fallback axes. */
+    for (int i = 0; i < 2; i++) {
+      if (ipd->step[i].is_degenerate_view_align) {
+        const int degenerate_axis =
+            (i == STEP_BASE) ?
+                /* For #STEP_BASE find the orient axis that align to the view. */
+                dot_v3_array_find_max_index(ipd->matrix_orient, 3, rv3d->viewinv[2], false) :
+                /* For #STEP_DEPTH the orient axis is always view aligned when degenerate. */
+                ipd->orient_axis;
+
+        float axis_fallback[4][3];
+        const int x_axis = (degenerate_axis + 1) % 3;
+        const int y_axis = (degenerate_axis + 2) % 3;
+
+        /* Assign 4x diagonal axes, find which one is closest to the viewport diagonal
+         * bottom left to top right, for a predictable direction from a user perspective. */
+        add_v3_v3v3(axis_fallback[0], ipd->matrix_orient[x_axis], ipd->matrix_orient[y_axis]);
+        sub_v3_v3v3(axis_fallback[1], ipd->matrix_orient[x_axis], ipd->matrix_orient[y_axis]);
+        negate_v3_v3(axis_fallback[2], axis_fallback[0]);
+        negate_v3_v3(axis_fallback[3], axis_fallback[1]);
+
+        const int axis_best = dot_v3_array_find_max_index(axis_fallback, 4, axis_view, true);
+        normalize_v3_v3(ipd->step[i].degenerate_diagonal, axis_fallback[axis_best]);
+        ipd->step[i].degenerate_axis = degenerate_axis;
+
+        /* `degenerate_view_plane_fallback` is used to map cursor motion from a view aligned
+         * plane back onto the view aligned plane.
+         *
+         * The dot product check below ensures cursor motion
+         * isn't inverted from a user perspective. */
+        const bool degenerate_axis_is_flip = dot_v3v3(ipd->matrix_orient[degenerate_axis],
+                                                      ((i == STEP_BASE) ?
+                                                           ipd->step[i].degenerate_diagonal :
+                                                           rv3d->viewinv[2])) < 0.0f;
+
+        copy_v3_v3(ipd->step[i].degenerate_diagonal_display, ipd->step[i].degenerate_diagonal);
+        if (degenerate_axis_is_flip) {
+          negate_v3(ipd->step[i].degenerate_diagonal_display);
+        }
+      }
+    }
+  }
 
   ipd->is_snap_invert = ipd->snap_gizmo ? ED_gizmotypes_snap_3d_invert_snap_get(ipd->snap_gizmo) :
                                           false;
@@ -1039,10 +1242,16 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         /* Create normal. */
         {
           RegionView3D *rv3d = region->regiondata;
-          float no_temp[3];
-          float no[3];
-          cross_v3_v3v3(no_temp, ipd->step[0].plane, rv3d->viewinv[2]);
-          cross_v3_v3v3(no, no_temp, ipd->step[0].plane);
+          float no[3], no_temp[3];
+
+          if (ipd->step[STEP_DEPTH].is_degenerate_view_align) {
+            cross_v3_v3v3(no_temp, ipd->step[0].plane, ipd->step[STEP_DEPTH].degenerate_diagonal);
+            cross_v3_v3v3(no, no_temp, ipd->step[0].plane);
+          }
+          else {
+            cross_v3_v3v3(no_temp, ipd->step[0].plane, rv3d->viewinv[2]);
+            cross_v3_v3v3(no, no_temp, ipd->step[0].plane);
+          }
           normalize_v3(no);
 
           plane_from_point_normal_v3(ipd->step[1].plane, ipd->step[0].co_dst, no);
@@ -1175,31 +1384,42 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
 
     if (ipd->step_index == STEP_BASE) {
       if (ipd->is_snap_found) {
-        closest_to_plane_normalized_v3(ipd->step[0].co_dst, ipd->step[0].plane, ipd->snap_co);
+        closest_to_plane_normalized_v3(
+            ipd->step[STEP_BASE].co_dst, ipd->step[STEP_BASE].plane, ipd->snap_co);
       }
       else {
-        if (ED_view3d_win_to_3d_on_plane(
-                region, ipd->step[0].plane, mval_fl, false, ipd->step[0].co_dst)) {
+        if (view3d_win_to_3d_on_plane_maybe_fallback(
+                region,
+                ipd->step[STEP_BASE].plane,
+                mval_fl,
+                ipd->step[STEP_BASE].is_degenerate_view_align ? ipd->view_plane : NULL,
+                ipd->step[STEP_BASE].co_dst)) {
           /* pass */
         }
       }
     }
     else if (ipd->step_index == STEP_DEPTH) {
       if (ipd->is_snap_found) {
-        closest_to_plane_normalized_v3(ipd->step[1].co_dst, ipd->step[1].plane, ipd->snap_co);
+        closest_to_plane_normalized_v3(
+            ipd->step[STEP_DEPTH].co_dst, ipd->step[STEP_DEPTH].plane, ipd->snap_co);
       }
       else {
-        if (ED_view3d_win_to_3d_on_plane(
-                region, ipd->step[1].plane, mval_fl, false, ipd->step[1].co_dst)) {
+        if (view3d_win_to_3d_on_plane_maybe_fallback(
+                region,
+                ipd->step[STEP_DEPTH].plane,
+                mval_fl,
+                ipd->step[STEP_DEPTH].is_degenerate_view_align ? ipd->view_plane : NULL,
+                ipd->step[STEP_DEPTH].co_dst)) {
           /* pass */
         }
       }
 
       /* Correct the point so it's aligned with the 'ipd->step[0].co_dst'. */
       float close[3], delta[3];
-      closest_to_plane_normalized_v3(close, ipd->step[0].plane, ipd->step[1].co_dst);
-      sub_v3_v3v3(delta, close, ipd->step[0].co_dst);
-      sub_v3_v3(ipd->step[1].co_dst, delta);
+      closest_to_plane_normalized_v3(
+          close, ipd->step[STEP_BASE].plane, ipd->step[STEP_DEPTH].co_dst);
+      sub_v3_v3v3(delta, close, ipd->step[STEP_BASE].co_dst);
+      sub_v3_v3(ipd->step[STEP_DEPTH].co_dst, delta);
     }
     do_redraw = true;
   }

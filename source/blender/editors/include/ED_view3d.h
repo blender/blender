@@ -364,6 +364,12 @@ bool ED_view3d_win_to_3d_on_plane(const struct ARegion *region,
                                   const float mval[2],
                                   const bool do_clip,
                                   float r_out[3]);
+bool ED_view3d_win_to_3d_on_plane_with_fallback(const struct ARegion *region,
+                                                const float plane[4],
+                                                const float mval[2],
+                                                const bool do_clip,
+                                                const float plane_fallback[4],
+                                                float r_out[3]);
 bool ED_view3d_win_to_3d_on_plane_int(const struct ARegion *region,
                                       const float plane[4],
                                       const int mval[2],
