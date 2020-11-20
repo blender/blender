@@ -157,7 +157,7 @@ class StringRefBase {
    * Copy the string into a char array. The copied string will be null-terminated. This invokes
    * undefined behavior when dst is too small.
    */
-  template<size_t N> void copy(char (&dst)[N])
+  template<size_t N> void copy(char (&dst)[N]) const
   {
     this->copy(dst, N);
   }
