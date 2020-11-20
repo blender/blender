@@ -388,7 +388,7 @@ typedef struct OVERLAY_PrivateData {
     /* stencil overlay */
     struct Image *stencil_image;
     struct ImBuf *stencil_ibuf;
-    void * stencil_lock;
+    void *stencil_lock;
   } edit_uv;
   struct {
     bool transparent;
