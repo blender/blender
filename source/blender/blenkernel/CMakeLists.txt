@@ -720,6 +720,7 @@ if(WITH_GTESTS)
     intern/armature_test.cc
     intern/fcurve_test.cc
     intern/lattice_deform_test.cc
+    intern/tracking_test.cc
   )
   set(TEST_INC
     ../editors/include
