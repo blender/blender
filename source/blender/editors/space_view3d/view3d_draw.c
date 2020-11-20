@@ -1675,11 +1675,28 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   RegionView3D *rv3d = region->regiondata;
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, drawtype);
 
-  /* set temporary new size */
-  int bwinx = region->winx;
-  int bwiny = region->winy;
-  rcti brect = region->winrct;
+  /* Store `orig` variables. */
+  struct {
+    struct bThemeState theme_state;
 
+    /* #View3D */
+    eDrawType v3d_shading_type;
+
+    /* #Region */
+    int region_winx, region_winy;
+    rcti region_winrct;
+  } orig = {
+      .v3d_shading_type = v3d->shading.type,
+
+      .region_winx = region->winx,
+      .region_winy = region->winy,
+      .region_winrct = region->winrct,
+  };
+
+  UI_Theme_Store(&orig.theme_state);
+  UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
+
+  /* Set temporary new size. */
   region->winx = winx;
   region->winy = winy;
   region->winrct.xmin = 0;
@@ -1687,17 +1704,12 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   region->winrct.xmax = winx;
   region->winrct.ymax = winy;
 
-  struct bThemeState theme_state;
-  UI_Theme_Store(&theme_state);
-  UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
-
-  /* set flags */
-  G.f |= G_FLAG_RENDER_VIEWPORT;
-
   /* There are too many functions inside the draw manager that check the shading type,
    * so use a temporary override instead. */
-  const eDrawType drawtype_orig = v3d->shading.type;
   v3d->shading.type = drawtype;
+
+  /* Set flags. */
+  G.f |= G_FLAG_RENDER_VIEWPORT;
 
   {
     /* free images which can have changed on frame-change
@@ -1728,18 +1740,18 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                                  do_color_management,
                                  ofs,
                                  viewport);
-
-  /* restore size */
-  region->winx = bwinx;
-  region->winy = bwiny;
-  region->winrct = brect;
-
   GPU_matrix_pop_projection();
   GPU_matrix_pop();
 
-  UI_Theme_Restore(&theme_state);
+  /* Restore all `orig` members. */
+  region->winx = orig.region_winx;
+  region->winy = orig.region_winy;
+  region->winrct = orig.region_winrct;
 
-  v3d->shading.type = drawtype_orig;
+  UI_Theme_Restore(&orig.theme_state);
+
+  v3d->shading.type = orig.v3d_shading_type;
+
   G.f &= ~G_FLAG_RENDER_VIEWPORT;
 }
 
