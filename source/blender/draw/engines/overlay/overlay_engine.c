@@ -555,6 +555,11 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_extra_blend_draw(vedata);
   OVERLAY_volume_draw(vedata);
 
+  if (pd->ctx_mode == CTX_MODE_SCULPT) {
+    /* Sculpt overlays are drawn here to avoid artifacts with wireframe opacity. */
+    OVERLAY_sculpt_draw(vedata);
+  }
+
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_line_fb);
   }
@@ -632,9 +637,6 @@ static void OVERLAY_draw_scene(void *vedata)
       break;
     case CTX_MODE_PARTICLE:
       OVERLAY_edit_particle_draw(vedata);
-      break;
-    case CTX_MODE_SCULPT:
-      OVERLAY_sculpt_draw(vedata);
       break;
     case CTX_MODE_EDIT_GPENCIL:
     case CTX_MODE_PAINT_GPENCIL:
