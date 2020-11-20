@@ -40,7 +40,7 @@ static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node
   NodeColorspill *ncs = MEM_callocN(sizeof(NodeColorspill), "node colorspill");
   node->storage = ncs;
   node->custom1 = 2;    /* green channel */
-  node->custom2 = 0;    /* simple limit algo*/
+  node->custom2 = 0;    /* simple limit algorithm */
   ncs->limchan = 0;     /* limit by red */
   ncs->limscale = 1.0f; /* limit scaling factor */
   ncs->unspill = 0;     /* do not use unspill */

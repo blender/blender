@@ -239,7 +239,7 @@ void MEM_use_lockfree_allocator(void);
  *
  * Use for debug purposes. This allocator contains lock section around every allocator call, which
  * makes it slow. What is gained with this is the ability to have list of allocated blocks (in an
- * addition to the trackign of number of allocations and amount of allocated bytes).
+ * addition to the tracking of number of allocations and amount of allocated bytes).
  *
  * NOTE: The switch between allocator types can only happen before any allocation did happen. */
 void MEM_use_guarded_allocator(void);
@@ -249,7 +249,7 @@ void MEM_use_guarded_allocator(void);
 #endif /* __cplusplus */
 
 #ifdef __cplusplus
-/* alloc funcs for C++ only */
+/* Allocation functions (for C++ only). */
 #  define MEM_CXX_CLASS_ALLOC_FUNCS(_id) \
    public: \
     void *operator new(size_t num_bytes) \

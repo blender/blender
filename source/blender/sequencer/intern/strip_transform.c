@@ -140,8 +140,10 @@ bool BKE_sequence_base_isolated_sel_check(ListBase *seqbase)
   return true;
 }
 
-/* use to impose limits when dragging/extending - so impossible situations don't happen
- * Cant use the SEQ_LEFTSEL and SEQ_LEFTSEL directly because the strip may be in a metastrip */
+/**
+ * Use to impose limits when dragging/extending - so impossible situations don't happen.
+ * Cant use the #SEQ_LEFTSEL and #SEQ_LEFTSEL directly because the strip may be in a meta-strip.
+ */
 void BKE_sequence_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 {
   if (leftflag) {
@@ -214,7 +216,7 @@ bool BKE_sequence_tx_test(Sequence *seq)
 /**
  * Return \a true if given \a seq needs a complete cleanup of its cache when it is transformed.
  *
- * Some (effect) strip types need a complete recache of themselves when they are transformed,
+ * Some (effect) strip types need a complete re-cache of themselves when they are transformed,
  * because they do not 'contain' anything and do not have any explicit relations to other strips.
  */
 bool BKE_sequence_tx_fullupdate_test(Sequence *seq)

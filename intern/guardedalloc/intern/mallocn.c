@@ -99,7 +99,7 @@ void aligned_free(void *ptr)
 /* Perform assert checks on allocator type change.
  *
  * Helps catching issues (in debug build) caused by an unintended allocator type change when there
- * are allocation happenned. */
+ * are allocation happened. */
 static void assert_for_allocator_change(void)
 {
   /* NOTE: Assume that there is no "sticky" internal state which would make switching allocator

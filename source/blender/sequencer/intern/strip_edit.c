@@ -278,7 +278,7 @@ static void seq_split_set_left_offset(Sequence *seq, int timeline_frame)
  * \param seq: Sequence to be split
  * \param timeline_frame: frame at which seq is split.
  * \param method: affects type of offset to be applied to resize Sequence
- * \return poitner to created Sequence. This is always Sequence on right side.
+ * \return The newly created sequence strip. This is always Sequence on right side.
  */
 Sequence *SEQ_edit_strip_split(Main *bmain,
                                Scene *scene,
