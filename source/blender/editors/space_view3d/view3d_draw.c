@@ -1685,12 +1685,21 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
     /* #Region */
     int region_winx, region_winy;
     rcti region_winrct;
+
+    /* #RegionView3D */
+    /**
+     * Needed so the value won't be left overwritten,
+     * Without this the #wmPaintCursor can't use the pixel size & view matrices for drawing.
+     */
+    struct RV3DMatrixStore *rv3d_mats;
   } orig = {
       .v3d_shading_type = v3d->shading.type,
 
       .region_winx = region->winx,
       .region_winy = region->winy,
       .region_winrct = region->winrct,
+
+      .rv3d_mats = ED_view3d_mats_rv3d_backup(region->regiondata),
   };
 
   UI_Theme_Store(&orig.theme_state);
@@ -1747,6 +1756,9 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   region->winx = orig.region_winx;
   region->winy = orig.region_winy;
   region->winrct = orig.region_winrct;
+
+  ED_view3d_mats_rv3d_restore(region->regiondata, orig.rv3d_mats);
+  MEM_freeN(orig.rv3d_mats);
 
   UI_Theme_Restore(&orig.theme_state);
 
