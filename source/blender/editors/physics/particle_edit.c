@@ -5200,7 +5200,8 @@ void PE_create_particle_edit(
 
       for (pm = cache->mem_cache.first; pm; pm = pm->next) {
         LOOP_POINTS {
-          if (BKE_ptcache_mem_pointers_seek(p, pm) == 0) {
+          void *cur[BPHYS_TOT_DATA];
+          if (BKE_ptcache_mem_pointers_seek(p, pm, cur) == 0) {
             continue;
           }
 
@@ -5212,12 +5213,12 @@ void PE_create_particle_edit(
             key = point->keys + point->totkey;
           }
 
-          key->co = pm->cur[BPHYS_DATA_LOCATION];
-          key->vel = pm->cur[BPHYS_DATA_VELOCITY];
-          key->rot = pm->cur[BPHYS_DATA_ROTATION];
+          key->co = cur[BPHYS_DATA_LOCATION];
+          key->vel = cur[BPHYS_DATA_VELOCITY];
+          key->rot = cur[BPHYS_DATA_ROTATION];
           key->ftime = (float)pm->frame;
           key->time = &key->ftime;
-          BKE_ptcache_mem_pointers_incr(pm);
+          BKE_ptcache_mem_pointers_incr(cur);
 
           point->totkey++;
         }
