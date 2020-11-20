@@ -1137,7 +1137,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   }
 
   /* Draw drag widget. */
-  if (!is_subpanel) {
+  if (!is_subpanel && show_background) {
     const int drag_widget_size = header_height * 0.7f;
     GPU_matrix_push();
     /* The magic numbers here center the widget vertically and offset it to the left.
