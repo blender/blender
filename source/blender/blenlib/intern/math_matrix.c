@@ -180,6 +180,21 @@ void copy_m4_m2(float m1[4][4], const float m2[2][2])
   m1[3][3] = 1.0f;
 }
 
+void copy_m3d_m3(double m1[3][3], const float m2[3][3])
+{
+  m1[0][0] = m2[0][0];
+  m1[0][1] = m2[0][1];
+  m1[0][2] = m2[0][2];
+
+  m1[1][0] = m2[1][0];
+  m1[1][1] = m2[1][1];
+  m1[1][2] = m2[1][2];
+
+  m1[2][0] = m2[2][0];
+  m1[2][1] = m2[2][1];
+  m1[2][2] = m2[2][2];
+}
+
 void copy_m4d_m4(double m1[4][4], const float m2[4][4])
 {
   m1[0][0] = m2[0][0];
@@ -1107,6 +1122,13 @@ float determinant_m3_array(const float m[3][3])
 }
 
 float determinant_m4_mat3_array(const float m[4][4])
+{
+  return (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+          m[1][0] * (m[0][1] * m[2][2] - m[0][2] * m[2][1]) +
+          m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]));
+}
+
+double determinant_m3_array_db(const double m[3][3])
 {
   return (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
           m[1][0] * (m[0][1] * m[2][2] - m[0][2] * m[2][1]) +
