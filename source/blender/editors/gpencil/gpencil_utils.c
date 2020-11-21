@@ -2343,6 +2343,9 @@ int ED_gpencil_select_stroke_segment(bGPdata *gpd,
                                      float r_hita[3],
                                      float r_hitb[3])
 {
+  if (gps->totpoints < 2) {
+    return 0;
+  }
   const float min_factor = 0.0015f;
   bGPDspoint *pta1 = NULL;
   bGPDspoint *pta2 = NULL;
