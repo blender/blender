@@ -185,12 +185,12 @@ static double find_flip_boundary(double x, double z)
 
 TEST(vec_roll_to_mat3_normalized, FlippedBoundary1)
 {
-  EXPECT_NEAR(find_flip_boundary(0, 1), 2.40e-4, 0.01e-4);
+  EXPECT_NEAR(find_flip_boundary(0, 1), 2.50e-4, 0.01e-4);
 }
 
 TEST(vec_roll_to_mat3_normalized, FlippedBoundary2)
 {
-  EXPECT_NEAR(find_flip_boundary(1, 1), 3.39e-4, 0.01e-4);
+  EXPECT_NEAR(find_flip_boundary(1, 1), 2.50e-4, 0.01e-4);
 }
 
 /* Test cases close to the -Y axis. */
@@ -218,9 +218,9 @@ TEST(vec_roll_to_mat3_normalized, Flipped3)
 {
   /* If normalized_vector is in a critical range close to -Y, apply the special case. */
   const float input[3] = {2.5e-4f, -0.999999881f, 2.5e-4f}; /* Corner Case. */
-  const float expected_roll_mat[3][3] = {{0.000000f, -2.5e-4f, 1.000000f},
+  const float expected_roll_mat[3][3] = {{0.000000f, -2.5e-4f, -1.000000f},
                                          {2.5e-4f, -0.999999881f, 2.5e-4f},
-                                         {1.000000f, -2.5e-4f, 0.000000f}};
+                                         {-1.000000f, -2.5e-4f, 0.000000f}};
   test_vec_roll_to_mat3_normalized(input, 0.0f, expected_roll_mat, false);
 }
 
@@ -303,6 +303,65 @@ TEST(vec_roll_to_mat3_normalized, Roll1)
                                          {0.788675129f, -0.577350259f, -0.211324856f}};
   test_vec_roll_to_mat3_normalized(input, float(M_PI * 0.5), expected_roll_mat);
 }
+
+/** Test that the matrix is orthogonal for an input close to -Y. */
+static double test_vec_roll_to_mat3_orthogonal(double s, double x, double z)
+{
+  const float input[3] = {float(x), float(s * sqrt(1 - x * x - z * z)), float(z)};
+
+  return test_vec_roll_to_mat3_normalized(input, 0.0f, NULL);
+}
+
+/** Test that the matrix is orthogonal for a range of inputs close to -Y. */
+static void test_vec_roll_to_mat3_orthogonal(double s, double x1, double x2, double y1, double y2)
+{
+  const int count = 5000;
+  double delta = 0;
+  double tmax = 0;
+
+  for (int i = 0; i <= count; i++) {
+    double t = double(i) / count;
+    double det = test_vec_roll_to_mat3_orthogonal(s, interpd(x2, x1, t), interpd(y2, y1, t));
+
+    /* Find and report maximum error in the matrix determinant. */
+    double curdelta = abs(det - 1);
+    if (curdelta > delta) {
+      delta = curdelta;
+      tmax = t;
+    }
+  }
+
+  printf("             Max determinant error %.10f at %f.\n", delta, tmax);
+}
+
+#define TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(name, s, x1, x2, y1, y2) \
+  TEST(vec_roll_to_mat3_normalized, name) \
+  { \
+    test_vec_roll_to_mat3_orthogonal(s, x1, x2, y1, y2); \
+  }
+
+/* Moving from -Y towards X. */
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_000_005, -1, 0, 0, 3e-4, 0.005)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_000_010, -1, 0, 0, 0.005, 0.010)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_000_050, -1, 0, 0, 0.010, 0.050)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_000_100, -1, 0, 0, 0.050, 0.100)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_000_200, -1, 0, 0, 0.100, 0.200)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_000_300, -1, 0, 0, 0.200, 0.300)
+
+/* Moving from -Y towards X and Y. */
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_005_005, -1, 3e-4, 0.005, 3e-4, 0.005)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_010_010, -1, 0.005, 0.010, 0.005, 0.010)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_050_050, -1, 0.010, 0.050, 0.010, 0.050)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_100_100, -1, 0.050, 0.100, 0.050, 0.100)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoN_200_200, -1, 0.100, 0.200, 0.100, 0.200)
+
+/* Moving from +Y towards X. */
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoP_000_005, 1, 0, 0, 0, 0.005)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoP_000_100, 1, 0, 0, 0.005, 0.100)
+
+/* Moving from +Y towards X and Y. */
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoP_005_005, 1, 0, 0.005, 0, 0.005)
+TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoP_100_100, 1, 0.005, 0.100, 0.005, 0.100)
 
 class BKE_armature_find_selected_bones_test : public testing::Test {
  protected:
