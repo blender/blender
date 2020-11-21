@@ -647,7 +647,7 @@ typedef struct QuadriFlowJob {
 
   int target_faces;
   int seed;
-  bool use_paint_symmetry;
+  bool use_mesh_symmetry;
   eSymmetryAxes symmetry_axes;
 
   bool use_preserve_sharp;
@@ -849,7 +849,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
       qj->target_faces,
       qj->seed,
       qj->use_preserve_sharp,
-      (qj->use_preserve_boundary || qj->use_paint_symmetry),
+      (qj->use_preserve_boundary || qj->use_mesh_symmetry),
 #ifdef USE_MESH_CURVATURE
       qj->use_mesh_curvature,
 #else
@@ -885,7 +885,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
 
   if (qj->smooth_normals) {
-    if (qj->use_paint_symmetry) {
+    if (qj->use_mesh_symmetry) {
       BKE_mesh_calc_normals(ob->data);
     }
     BKE_mesh_smooth_flag_set(ob->data, true);
@@ -939,7 +939,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   job->target_faces = RNA_int_get(op->ptr, "target_faces");
   job->seed = RNA_int_get(op->ptr, "seed");
 
-  job->use_paint_symmetry = RNA_boolean_get(op->ptr, "use_paint_symmetry");
+  job->use_mesh_symmetry = RNA_boolean_get(op->ptr, "use_mesh_symmetry");
 
   job->use_preserve_sharp = RNA_boolean_get(op->ptr, "use_preserve_sharp");
   job->use_preserve_boundary = RNA_boolean_get(op->ptr, "use_preserve_boundary");
@@ -953,7 +953,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
 
   /* Update the target face count if symmetry is enabled */
   Object *ob = CTX_data_active_object(C);
-  if (ob && job->use_paint_symmetry) {
+  if (ob && job->use_mesh_symmetry) {
     Mesh *mesh = BKE_mesh_from_object(ob);
     job->symmetry_axes = (eSymmetryAxes)mesh->symmetry;
     for (char i = 0; i < 3; i++) {
@@ -964,7 +964,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    job->use_paint_symmetry = false;
+    job->use_mesh_symmetry = false;
     job->symmetry_axes = 0;
   }
 
@@ -1105,10 +1105,10 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
 
   /* properties */
   RNA_def_boolean(ot->srna,
-                  "use_paint_symmetry",
+                  "use_mesh_symmetry",
                   true,
-                  "Use Paint Symmetry",
-                  "Generates a symmetrical mesh using the paint symmetry configuration");
+                  "Use Mesh Symmetry",
+                  "Generates a symmetrical mesh using the mesh symmetry configuration");
 
   RNA_def_boolean(ot->srna,
                   "use_preserve_sharp",
