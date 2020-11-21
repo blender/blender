@@ -337,7 +337,7 @@ if(WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
   # Increase stack size for Embree, only works for executables.
   if(NOT WITH_PYTHON_MODULE)
-    string(APPEND PLATFORM_LINKFLAGS " -Xlinker -stack_size -Xlinker 0x100000")
+    string(APPEND PLATFORM_LINKFLAGS " -Wl,-stack_size,0x100000")
   endif()
 
   # Embree static library linking can mix up SSE and AVX symbols, causing
@@ -450,7 +450,7 @@ endif()
 # Avoid conflicts with Luxrender, and other plug-ins that may use the same
 # libraries as Blender with a different version or build options.
 set(PLATFORM_LINKFLAGS
-  "${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker '${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map'"
+  "${PLATFORM_LINKFLAGS} -Wl,-unexported_symbols_list,'${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map'"
 )
 
 string(APPEND CMAKE_CXX_FLAGS " -stdlib=libc++")
