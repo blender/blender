@@ -131,7 +131,6 @@ struct double2 {
       LINE_LINE_CROSS = 2,
     } kind;
     double lambda;
-    double mu;
   };
 
   static isect_result isect_seg_seg(const double2 &v1,
