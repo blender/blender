@@ -125,7 +125,9 @@ template<typename T> struct FatCo {
   vec2<double> abs_approx;
 
   FatCo();
+#ifdef WITH_GMP
   FatCo(const vec2<mpq_class> &v);
+#endif
   FatCo(const vec2<double> &v);
 };
 
@@ -165,12 +167,14 @@ template<> struct FatCo<double> {
   {
   }
 
+#ifdef WITH_GMP
   FatCo(const vec2<mpq_class> &v)
   {
     exact = vec2<double>(v.x.get_d(), v.y.get_d());
     approx = exact;
     abs_approx = vec2<double>(fabs(approx.x), fabs(approx.y));
   }
+#endif
 
   FatCo(const vec2<double> &v)
   {
