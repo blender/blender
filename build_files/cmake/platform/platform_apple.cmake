@@ -449,8 +449,8 @@ endif()
 
 # Avoid conflicts with Luxrender, and other plug-ins that may use the same
 # libraries as Blender with a different version or build options.
-set(PLATFORM_LINKFLAGS
-  "${PLATFORM_LINKFLAGS} -Wl,-unexported_symbols_list,'${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map'"
+string(APPEND PLATFORM_LINKFLAGS
+  " -Wl,-unexported_symbols_list,'${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map'"
 )
 
 string(APPEND CMAKE_CXX_FLAGS " -stdlib=libc++")
