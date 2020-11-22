@@ -534,6 +534,8 @@ typedef struct bRotLimitConstraint {
   float zmin, zmax;
   short flag;
   short flag2;
+  char euler_order;
+  char _pad[3];
 } bRotLimitConstraint;
 
 /* Limit Scale Constraint */
