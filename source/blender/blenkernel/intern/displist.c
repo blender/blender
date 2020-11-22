@@ -1290,20 +1290,18 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
   BKE_nurbList_free(&nubase);
 }
 
-static void rotateBevelPiece(Curve *cu,
-                             BevPoint *bevp,
-                             BevPoint *nbevp,
-                             DispList *dlb,
-                             float bev_blend,
-                             float widfac,
-                             float fac,
+static void rotateBevelPiece(const Curve *cu,
+                             const BevPoint *bevp,
+                             const BevPoint *nbevp,
+                             const DispList *dlb,
+                             const float bev_blend,
+                             const float widfac,
+                             const float radius_factor,
                              float **r_data)
 {
-  float *fp, *data = *r_data;
-  int b;
-
-  fp = dlb->verts;
-  for (b = 0; b < dlb->nr; b++, fp += 3, data += 3) {
+  float *data = *r_data;
+  const float *fp = dlb->verts;
+  for (int b = 0; b < dlb->nr; b++, fp += 3, data += 3) {
     if (cu->flag & CU_3D) {
       float vec[3], quat[4];
 
@@ -1322,9 +1320,9 @@ static void rotateBevelPiece(Curve *cu,
 
       mul_qt_v3(quat, vec);
 
-      data[0] += fac * vec[0];
-      data[1] += fac * vec[1];
-      data[2] += fac * vec[2];
+      data[0] += radius_factor * vec[0];
+      data[1] += radius_factor * vec[1];
+      data[2] += radius_factor * vec[2];
     }
     else {
       float sina, cosa;
@@ -1344,9 +1342,9 @@ static void rotateBevelPiece(Curve *cu,
         cosa = nbevp->cosa * bev_blend + bevp->cosa * (1.0f - bev_blend);
       }
 
-      data[0] += fac * (widfac + fp[1]) * sina;
-      data[1] += fac * (widfac + fp[1]) * cosa;
-      data[2] += fac * fp[2];
+      data[0] += radius_factor * (widfac + fp[1]) * sina;
+      data[1] += radius_factor * (widfac + fp[1]) * cosa;
+      data[2] += radius_factor * fp[2];
     }
   }
 
@@ -1568,7 +1566,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
       curve_to_displist(cu, &nubase, dispbase, for_render);
     }
     else {
-      float widfac = cu->width - 1.0f;
+      const float widfac = cu->width - 1.0f;
       BevList *bl = ob->runtime.curve_cache->bev.first;
       Nurb *nu = nubase.first;
 
