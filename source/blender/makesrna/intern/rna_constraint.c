@@ -2510,7 +2510,7 @@ static void rna_def_constraint_location_limit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_transform_limit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", LIMIT_TRANSFORM);
   RNA_def_property_ui_text(
-      prop, "Affect Transform", "Transforms are affected by this constraint as well");
+      prop, "Affect Transform", "Transform tools are affected by this constraint as well");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   RNA_define_lib_overridable(false);
@@ -2583,7 +2583,7 @@ static void rna_def_constraint_rotation_limit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_transform_limit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", LIMIT_TRANSFORM);
   RNA_def_property_ui_text(
-      prop, "Affect Transform", "Transforms are affected by this constraint as well");
+      prop, "Affect Transform", "Transform tools are affected by this constraint as well");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   RNA_define_lib_overridable(false);
@@ -2671,7 +2671,7 @@ static void rna_def_constraint_size_limit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_transform_limit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", LIMIT_TRANSFORM);
   RNA_def_property_ui_text(
-      prop, "Affect Transform", "Transforms are affected by this constraint as well");
+      prop, "Affect Transform", "Transform tools are affected by this constraint as well");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   RNA_define_lib_overridable(false);
