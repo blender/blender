@@ -2785,6 +2785,25 @@ static bool blend_save_check(bContext *UNUSED(C), wmOperator *op)
   return false;
 }
 
+static const char *wm_save_as_mainfile_get_name(wmOperatorType *ot, PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "copy")) {
+    return CTX_IFACE_(ot->translation_context, "Save Copy");
+  }
+  return NULL;
+}
+
+static char *wm_save_as_mainfile_get_description(bContext *UNUSED(C),
+                                                 wmOperatorType *UNUSED(ot),
+                                                 PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "copy")) {
+    return BLI_strdup(
+        "Save the current file in the desired location but do not make the saved file active");
+  }
+  return NULL;
+}
+
 void WM_OT_save_as_mainfile(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -2795,6 +2814,8 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
 
   ot->invoke = wm_save_as_mainfile_invoke;
   ot->exec = wm_save_as_mainfile_exec;
+  ot->get_name = wm_save_as_mainfile_get_name;
+  ot->get_description = wm_save_as_mainfile_get_description;
   ot->check = blend_save_check;
   /* omit window poll so this can work in background mode */
 
