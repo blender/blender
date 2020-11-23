@@ -331,4 +331,35 @@ TEST(fcurve_active_keyframe, ActiveKeyframe)
   BKE_fcurve_free(fcu);
 }
 
+TEST(BKE_fcurve, BKE_fcurve_keyframe_move_value_with_handles)
+{
+  FCurve *fcu = BKE_fcurve_create();
+
+  insert_vert_fcurve(fcu, 1.0f, 7.5f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, 8.0f, 15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, 14.0f, 8.2f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 5.2671194f);
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][1], 15.0f);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][0], 8.0f);
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][1], 15.0f);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][0], 10.342469f);
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][1], 15.0f);
+
+  BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[1], 47.0f);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 5.2671194f) << "Left handle should not move in time";
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][1], 47.0f) << "Left handle value should have been updated";
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][0], 8.0f) << "Frame should not move in time";
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][1], 47.0f) << "Frame value should have been updated";
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][0], 10.342469f) << "Right handle should not move in time";
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][1], 47.0f) << "Right handle value should have been updated";
+
+  BKE_fcurve_free(fcu);
+}
+
 }  // namespace blender::bke::tests

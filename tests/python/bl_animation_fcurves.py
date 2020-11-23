@@ -25,11 +25,13 @@ blender -b -noaudio --factory-startup --python tests/python/bl_animation_fcurves
 import pathlib
 import sys
 import unittest
+from math import degrees, radians
+from typing import List
 
 import bpy
 
 
-class FCurveEvaluationTest(unittest.TestCase):
+class AbstractAnimationTest:
     @classmethod
     def setUpClass(cls):
         cls.testdir = args.testdir
@@ -38,6 +40,7 @@ class FCurveEvaluationTest(unittest.TestCase):
         self.assertTrue(self.testdir.exists(),
                         'Test dir %s should exist' % self.testdir)
 
+class FCurveEvaluationTest(AbstractAnimationTest, unittest.TestCase):
     def test_fcurve_versioning_291(self):
         # See D8752.
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "fcurve-versioning-291.blend"))
@@ -71,6 +74,97 @@ class FCurveEvaluationTest(unittest.TestCase):
         self.assertAlmostEqual(0.9776642322540283, fcurve.evaluate(8))
         self.assertAlmostEqual(0.9952865839004517, fcurve.evaluate(9))
         self.assertAlmostEqual(1.0, fcurve.evaluate(10))
+
+
+class EulerFilterTest(AbstractAnimationTest, unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "euler-filter.blend"))
+
+    def test_multi_channel_filter(self):
+        """Test fixing discontinuities that require all X/Y/Z rotations to work."""
+
+        self.activate_object('Three-Channel-Jump')
+        fcu_rot = self.active_object_rotation_channels()
+
+        ## Check some pre-filter values to make sure the file is as we expect.
+        # Keyframes before the "jump". These shouldn't be touched by the filter.
+        self.assertEqualAngle(-87.5742, fcu_rot[0], 22)
+        self.assertEqualAngle(69.1701, fcu_rot[1], 22)
+        self.assertEqualAngle(-92.3918, fcu_rot[2], 22)
+        # Keyframes after the "jump". These should be updated by the filter.
+        self.assertEqualAngle(81.3266, fcu_rot[0], 23)
+        self.assertEqualAngle(111.422, fcu_rot[1], 23)
+        self.assertEqualAngle(76.5996, fcu_rot[2], 23)
+
+        bpy.ops.graph.euler_filter(self.get_context())
+
+        # Keyframes before the "jump". These shouldn't be touched by the filter.
+        self.assertEqualAngle(-87.5742, fcu_rot[0], 22)
+        self.assertEqualAngle(69.1701, fcu_rot[1], 22)
+        self.assertEqualAngle(-92.3918, fcu_rot[2], 22)
+        # Keyframes after the "jump". These should be updated by the filter.
+        self.assertEqualAngle(-98.6734, fcu_rot[0], 23)
+        self.assertEqualAngle(68.5783, fcu_rot[1], 23)
+        self.assertEqualAngle(-103.4, fcu_rot[2], 23)
+
+    def test_single_channel_filter(self):
+        """Test fixing discontinuities in single channels."""
+
+        self.activate_object('One-Channel-Jumps')
+        fcu_rot = self.active_object_rotation_channels()
+
+        ## Check some pre-filter values to make sure the file is as we expect.
+        # Keyframes before the "jump". These shouldn't be touched by the filter.
+        self.assertEqualAngle(360, fcu_rot[0], 15)
+        self.assertEqualAngle(396, fcu_rot[1], 21)  # X and Y are keyed on different frames.
+        # Keyframes after the "jump". These should be updated by the filter.
+        self.assertEqualAngle(720, fcu_rot[0], 16)
+        self.assertEqualAngle(72, fcu_rot[1], 22)
+
+        bpy.ops.graph.euler_filter(self.get_context())
+
+        # Keyframes before the "jump". These shouldn't be touched by the filter.
+        self.assertEqualAngle(360, fcu_rot[0], 15)
+        self.assertEqualAngle(396, fcu_rot[1], 21)  # X and Y are keyed on different frames.
+        # Keyframes after the "jump". These should be updated by the filter.
+        self.assertEqualAngle(360, fcu_rot[0], 16)
+        self.assertEqualAngle(432, fcu_rot[1], 22)
+
+    def assertEqualAngle(self, angle_degrees: float, fcurve: bpy.types.FCurve, frame: int) -> None:
+        self.assertAlmostEqual(
+            radians(angle_degrees),
+            fcurve.evaluate(frame),
+            4,
+            "Expected %.3f degrees, but FCurve %s[%d] evaluated to %.3f on frame %d" % (
+                angle_degrees, fcurve.data_path, fcurve.array_index, degrees(fcurve.evaluate(frame)), frame,
+            )
+        )
+
+    @staticmethod
+    def get_context():
+        ctx = bpy.context.copy()
+
+        for area in bpy.context.window.screen.areas:
+            if area.type != 'GRAPH_EDITOR':
+                continue
+
+            ctx['area'] = area
+            ctx['space'] = area.spaces.active
+            break
+
+        return ctx
+
+    @staticmethod
+    def activate_object(object_name: str) -> None:
+        ob = bpy.data.objects[object_name]
+        bpy.context.view_layer.objects.active = ob
+
+    @staticmethod
+    def active_object_rotation_channels() -> List[bpy.types.FCurve]:
+        ob = bpy.context.view_layer.objects.active
+        action = ob.animation_data.action
+        return [action.fcurves.find('rotation_euler', index=idx) for idx in range(3)]
 
 
 def main():

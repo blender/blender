@@ -884,6 +884,14 @@ int BKE_fcurve_active_keyframe_index(const FCurve *fcu)
 
 /** \} */
 
+void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, const float new_value)
+{
+  const float value_delta = new_value - keyframe->vec[1][1];
+  keyframe->vec[0][1] += value_delta;
+  keyframe->vec[1][1] = new_value;
+  keyframe->vec[2][1] += value_delta;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Status Checks
  * \{ */
