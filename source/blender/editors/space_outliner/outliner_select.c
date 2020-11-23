@@ -1387,8 +1387,6 @@ static void do_outliner_item_activate_tree_element(bContext *C,
                              extend ? OL_SETSEL_EXTEND : OL_SETSEL_NORMAL,
                              recursive);
   }
-
-  outliner_set_properties_tab(C, te, tselem);
 }
 
 /* Select the item using the set flags */
@@ -1568,6 +1566,9 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
     TreeElement *activate_te = outliner_find_item_at_x_in_row(
         space_outliner, te, view_mval[0], &merged_elements);
 
+    /* If `outliner_find_item_at_x_in_row` returned a different element a row icon was selected. */
+    const bool is_row_icon = te != activate_te;
+
     /* If the selected icon was an aggregate of multiple elements, run the search popup */
     if (merged_elements) {
       merged_element_search_menu_invoke(C, te, activate_te);
@@ -1591,6 +1592,11 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
                                 (extend ? OL_ITEM_EXTEND : 0);
 
       outliner_item_select(C, space_outliner, activate_te, select_flag);
+
+      /* Only switch properties editor tabs when icons are selected. */
+      if (is_row_icon || outliner_item_is_co_over_icon(activate_te, view_mval[0])) {
+        outliner_set_properties_tab(C, activate_te, activate_tselem);
+      }
     }
 
     changed = true;
