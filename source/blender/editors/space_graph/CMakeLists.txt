@@ -34,8 +34,10 @@ set(SRC
   graph_draw.c
   graph_edit.c
   graph_ops.c
+  graph_slider_ops.c
   graph_select.c
   graph_utils.c
+  graph_view.c
   space_graph.c
 
   graph_intern.h
