@@ -3694,12 +3694,20 @@ typedef struct DynamicStepSolverTaskData {
 } DynamicStepSolverTaskData;
 
 static void dynamics_step_sphdata_reduce(const void *__restrict UNUSED(userdata),
-                                         void *__restrict UNUSED(join_v),
+                                         void *__restrict join_v,
                                          void *__restrict chunk_v)
 {
-  SPHData *sphdata = chunk_v;
+  SPHData *sphdata_to = join_v;
+  SPHData *sphdata_from = chunk_v;
 
-  psys_sph_flush_springs(sphdata);
+  if (sphdata_from->new_springs.count > 0) {
+    BLI_buffer_append_array(&sphdata_to->new_springs,
+                            ParticleSpring,
+                            &BLI_buffer_at(&sphdata_from->new_springs, ParticleSpring, 0),
+                            sphdata_from->new_springs.count);
+  }
+
+  BLI_buffer_field_free(&sphdata_from->new_springs);
 }
 
 static void dynamics_step_sph_ddr_task_cb_ex(void *__restrict userdata,
@@ -4020,7 +4028,6 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
           settings.use_threading = (psys->totpart > 100);
           settings.userdata_chunk = &sphdata;
           settings.userdata_chunk_size = sizeof(sphdata);
-          settings.func_reduce = dynamics_step_sphdata_reduce;
           BLI_task_parallel_range(0,
                                   psys->totpart,
                                   &task_data,
@@ -4035,7 +4042,6 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
           settings.use_threading = (psys->totpart > 100);
           settings.userdata_chunk = &sphdata;
           settings.userdata_chunk_size = sizeof(sphdata);
-          settings.func_reduce = dynamics_step_sphdata_reduce;
           BLI_task_parallel_range(0,
                                   psys->totpart,
                                   &task_data,
