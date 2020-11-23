@@ -375,13 +375,10 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
         /* does this constraint have a subtarget in
          * this armature?
          */
-        const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
         ListBase targets = {NULL, NULL};
         bConstraintTarget *ct;
 
-        if (cti && cti->get_constraint_targets) {
-          cti->get_constraint_targets(curcon, &targets);
-
+        if (BKE_constraint_targets_get(curcon, &targets)) {
           for (ct = targets.first; ct; ct = ct->next) {
             if ((ct->tar == ob) && (ct->subtarget[0])) {
               oldtarget = get_named_editbone(editbones, ct->subtarget);
@@ -409,9 +406,7 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
             }
           }
 
-          if (cti->flush_constraint_targets) {
-            cti->flush_constraint_targets(curcon, &targets, 0);
-          }
+          BKE_constraint_targets_flush(curcon, &targets, 0);
         }
       }
     }

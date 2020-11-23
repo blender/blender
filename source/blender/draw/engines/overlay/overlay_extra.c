@@ -1310,12 +1310,11 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
       }
       else {
         const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
+        ListBase targets = {NULL, NULL};
 
-        if ((cti && cti->get_constraint_targets) && (curcon->ui_expand_flag & (1 << 0))) {
-          ListBase targets = {NULL, NULL};
+        if ((curcon->ui_expand_flag & (1 << 0)) && BKE_constraint_targets_get(curcon, &targets)) {
           bConstraintTarget *ct;
 
-          cti->get_constraint_targets(curcon, &targets);
 
           for (ct = targets.first; ct; ct = ct->next) {
             /* calculate target's matrix */
@@ -1328,9 +1327,7 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
             OVERLAY_extra_line_dashed(cb, ct->matrix[3], ob->obmat[3], constraint_color);
           }
 
-          if (cti->flush_constraint_targets) {
-            cti->flush_constraint_targets(curcon, &targets, 1);
-          }
+          BKE_constraint_targets_flush(curcon, &targets, 1);
         }
       }
     }
