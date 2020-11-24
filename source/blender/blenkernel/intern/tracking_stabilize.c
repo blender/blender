@@ -270,21 +270,8 @@ static bool is_effectively_disabled(StabContext *ctx,
 
 static int search_closest_marker_index(MovieTrackingTrack *track, int ref_frame)
 {
-  MovieTrackingMarker *markers = track->markers;
-  int end = track->markersnr;
-  int i = track->last_marker;
-
-  i = MAX2(0, i);
-  i = MIN2(i, end - 1);
-  for (; i < end - 1 && markers[i].framenr <= ref_frame; i++) {
-    /* pass */
-  }
-  for (; 0 < i && markers[i].framenr > ref_frame; i--) {
-    /* pass */
-  }
-
-  track->last_marker = i;
-  return i;
+  const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, ref_frame);
+  return marker - track->markers;
 }
 
 static void retrieve_next_higher_usable_frame(
