@@ -117,7 +117,7 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
   int defgrp_index = -1;
   const MDeformVert *dvert = BKE_lattice_deform_verts_get(oblatt);
   if (lt->vgroup[0] && dvert) {
-    defgrp_index = BKE_object_defgroup_name_index(ob, lt->vgroup);
+    defgrp_index = BKE_object_defgroup_name_index(oblatt, lt->vgroup);
 
     if (defgrp_index != -1) {
       lattice_weights = MEM_malloc_arrayN(sizeof(float), num_points, "lattice_weights");
