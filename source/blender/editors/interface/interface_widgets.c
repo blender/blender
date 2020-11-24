@@ -4831,11 +4831,11 @@ static void ui_draw_clip_tri(uiBlock *block, rcti *rect, uiWidgetType *wt)
 
     if (block->flag & UI_BLOCK_CLIPTOP) {
       /* XXX no scaling for UI here yet */
-      UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymax - 8, 't', draw_color);
+      UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymax - 6 * U.dpi_fac, 't', draw_color);
     }
     if (block->flag & UI_BLOCK_CLIPBOTTOM) {
       /* XXX no scaling for UI here yet */
-      UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymin + 10, 'v', draw_color);
+      UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymin + 10 * U.dpi_fac, 'v', draw_color);
     }
   }
 }

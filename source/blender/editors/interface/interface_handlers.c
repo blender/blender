@@ -9327,26 +9327,26 @@ static void ui_menu_scroll_apply_offset_y(ARegion *region, uiBlock *block, float
 {
   BLI_assert(dy != 0.0f);
 
-  if (ui_block_is_menu(block)) {
-    if (dy < 0.0f) {
-      /* Stop at top item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
-      float ymax = -FLT_MAX;
-      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
-        ymax = max_ff(ymax, bt->rect.ymax);
-      }
-      if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD) {
-        dy = block->rect.ymax - ymax - UI_MENU_SCROLL_PAD;
-      }
+  const int scroll_pad = ui_block_is_menu(block) ? UI_MENU_SCROLL_PAD : UI_UNIT_Y * 0.5f;
+
+  if (dy < 0.0f) {
+    /* Stop at top item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
+    float ymax = -FLT_MAX;
+    LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+      ymax = max_ff(ymax, bt->rect.ymax);
     }
-    else {
-      /* Stop at bottom item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
-      float ymin = FLT_MAX;
-      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
-        ymin = min_ff(ymin, bt->rect.ymin);
-      }
-      if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD) {
-        dy = block->rect.ymin - ymin + UI_MENU_SCROLL_PAD;
-      }
+    if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - scroll_pad) {
+      dy = block->rect.ymax - ymax - scroll_pad;
+    }
+  }
+  else {
+    /* Stop at bottom item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
+    float ymin = FLT_MAX;
+    LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+      ymin = min_ff(ymin, bt->rect.ymin);
+    }
+    if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + scroll_pad) {
+      dy = block->rect.ymin - ymin + scroll_pad;
     }
   }
 
@@ -9697,30 +9697,41 @@ static int ui_handle_menu_event(bContext *C,
           retval = WM_UI_HANDLER_BREAK;
           break;
 
-        case WHEELUPMOUSE:
-        case WHEELDOWNMOUSE:
+        /* Smooth scrolling for popovers. */
         case MOUSEPAN: {
           if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
             /* pass */
           }
           else if (!ui_block_is_menu(block)) {
-            int type = event->type;
-            int val = event->val;
+            if (block->flag & (UI_BLOCK_CLIPTOP | UI_BLOCK_CLIPBOTTOM)) {
+              const float dy = event->y - event->prevy;
+              if (dy != 0.0f) {
+                ui_menu_scroll_apply_offset_y(region, block, dy);
 
-            /* Convert pan to scroll-wheel. */
-            if (type == MOUSEPAN) {
-              ui_pan_to_scroll(event, &type, &val);
-            }
-
-            if (type != MOUSEPAN) {
-              const int scroll_dir = (type == WHEELUPMOUSE) ? 1 : -1;
-              if (ui_menu_scroll_step(region, block, scroll_dir)) {
                 if (but) {
                   but->active->cancel = true;
                   button_activate_exit(C, but, but->active, false, false);
                 }
                 WM_event_add_mousemove(CTX_wm_window(C));
               }
+            }
+            break;
+          }
+          ATTR_FALLTHROUGH;
+        }
+        case WHEELUPMOUSE:
+        case WHEELDOWNMOUSE: {
+          if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
+            /* pass */
+          }
+          else if (!ui_block_is_menu(block)) {
+            const int scroll_dir = (event->type == WHEELUPMOUSE) ? 1 : -1;
+            if (ui_menu_scroll_step(region, block, scroll_dir)) {
+              if (but) {
+                but->active->cancel = true;
+                button_activate_exit(C, but, but->active, false, false);
+              }
+              WM_event_add_mousemove(CTX_wm_window(C));
             }
             break;
           }

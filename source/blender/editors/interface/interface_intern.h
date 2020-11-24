@@ -62,9 +62,9 @@ struct wmTimer;
 #define UI_MENU_SUBMENU_PADDING (6 * UI_DPI_FAC)
 
 /* menu scrolling */
-#define UI_MENU_SCROLL_ARROW 12
-#define UI_MENU_SCROLL_MOUSE (UI_MENU_SCROLL_ARROW + 2)
-#define UI_MENU_SCROLL_PAD 4
+#define UI_MENU_SCROLL_ARROW (12 * UI_DPI_FAC)
+#define UI_MENU_SCROLL_MOUSE (UI_MENU_SCROLL_ARROW + 2 * UI_DPI_FAC)
+#define UI_MENU_SCROLL_PAD (4 * UI_DPI_FAC)
 
 /* panel limits */
 #define UI_PANEL_MINX 100
