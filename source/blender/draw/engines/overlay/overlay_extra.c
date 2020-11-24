@@ -871,7 +871,6 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_select = DRW_state_is_select();
-  const Object *orig_camera_object = DEG_get_original_object(camera_object);
 
   MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
   if (clip == NULL) {
@@ -945,7 +944,7 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
       }
 
       if (is_select) {
-        DRW_select_load_id(orig_camera_object->runtime.select_id | (track_index << 16));
+        DRW_select_load_id(camera_object->runtime.select_id | (track_index << 16));
         track_index++;
       }
 

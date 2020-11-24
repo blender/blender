@@ -154,6 +154,7 @@ bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
         dupli_parent->runtime.local_collections_bits;
     temp_dupli_object->dt = MIN2(temp_dupli_object->dt, dupli_parent->dt);
     copy_v4_v4(temp_dupli_object->color, dupli_parent->color);
+    temp_dupli_object->runtime.select_id = dupli_parent->runtime.select_id;
 
     /* Duplicated elements shouldn't care whether their original collection is visible or not. */
     temp_dupli_object->base_flag |= BASE_VISIBLE_DEPSGRAPH;
@@ -224,6 +225,7 @@ void deg_iterator_objects_step(BLI_Iterator *iter, deg::IDNode *id_node)
     }
   }
 
+  object->runtime.select_id = DEG_get_original_object(object)->runtime.select_id;
   if (ob_visibility & OB_VISIBLE_INSTANCES) {
     if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) && (object->transflag & OB_DUPLI)) {
       data->dupli_parent = object;

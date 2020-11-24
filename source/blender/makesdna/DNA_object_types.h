@@ -126,7 +126,10 @@ typedef struct Object_Runtime {
   /** Only used for drawing the parent/child help-line. */
   float parent_display_origin[3];
 
-  /** Selection id of this object; only available in the original object */
+  /**
+   * Selection id of this object. It might differ between an evaluated and its original object,
+   * when the object is being instanced.
+   */
   int select_id;
   char _pad1[3];
 
