@@ -2291,32 +2291,57 @@ class WM_OT_batch_rename(Operator):
 
         layout = self.layout
 
-        split = layout.split(factor=0.5)
-        split.label(text="Data Type:")
+        split = layout.split(align=True)
+        split.row(align=True).prop(self, "data_source", expand=True)
         split.prop(self, "data_type", text="")
-
-        split = layout.split(factor=0.5)
-        split.label(text="Rename %d %s:" % (len(self._data[0]), self._data[2]))
-        split.row().prop(self, "data_source", expand=True)
 
         for action in self.actions:
             box = layout.box()
+            split = box.split(factor=0.87)
 
-            row = box.row(align=True)
+            # Column 1: main content.
+            col = split.column()
+
+            # Label's width.
+            fac = 0.25
+
+            # Row 1: type.
+            row = col.split(factor=fac)
+            row.alignment = 'RIGHT'
+            row.label(text="Type")
             row.prop(action, "type", text="")
-            row.prop(action, "op_add", text="", icon='ADD')
-            row.prop(action, "op_remove", text="", icon='REMOVE')
 
             ty = action.type
             if ty == 'SET':
-                box.prop(action, "set_method")
-                box.prop(action, "set_name")
-            elif ty == 'STRIP':
-                box.row().prop(action, "strip_chars")
-                box.row().prop(action, "strip_part")
-            elif ty == 'REPLACE':
+                # Row 2: method.
+                row = col.split(factor=fac)
+                row.alignment = 'RIGHT'
+                row.label(text="Method")
+                row.row().prop(action, "set_method", expand=True)
 
-                row = box.row(align=True)
+                # Row 3: name.
+                row = col.split(factor=fac)
+                row.alignment = 'RIGHT'
+                row.label(text="Name")
+                row.prop(action, "set_name", text="")
+
+            elif ty == 'STRIP':
+                # Row 2: chars.
+                row = col.split(factor=fac)
+                row.alignment = 'RIGHT'
+                row.label(text="Characters")
+                row.row().prop(action, "strip_chars")
+
+                # Row 3: part.
+                row = col.split(factor=fac)
+                row.alignment = 'RIGHT'
+                row.label(text="Strip From")
+                row.row().prop(action, "strip_part")
+
+            elif ty == 'REPLACE':
+                # Row 2: find.
+                row = col.split(factor=fac)
+
                 re_error_src = None
                 if action.use_replace_regex_src:
                     try:
@@ -2324,13 +2349,24 @@ class WM_OT_batch_rename(Operator):
                     except Exception as ex:
                         re_error_src = str(ex)
                         row.alert = True
-                row.prop(action, "replace_src")
-                row.prop(action, "use_replace_regex_src", text="", icon='SORTBYEXT')
+
+                row.alignment = 'RIGHT'
+                row.label(text="Find")
+                sub = row.row(align=True)
+                sub.prop(action, "replace_src", text="")
+                sub.prop(action, "use_replace_regex_src", text="", icon='SORTBYEXT')
+
+                # Row.
                 if re_error_src is not None:
-                    box.label(text=re_error_src)
+                    row = col.split(factor=fac)
+                    row.label(text="")
+                    row.alert = True
+                    row.label(text=re_error_src)
+
+                # Row 3: replace.
+                row = col.split(factor=fac)
 
                 re_error_dst = None
-                row = box.row(align=True)
                 if action.use_replace_regex_src:
                     if action.use_replace_regex_dst:
                         if re_error_src is None:
@@ -2340,17 +2376,39 @@ class WM_OT_batch_rename(Operator):
                                 re_error_dst = str(ex)
                                 row.alert = True
 
-                row.prop(action, "replace_dst")
-                rowsub = row.row(align=True)
-                rowsub.active = action.use_replace_regex_src
-                rowsub.prop(action, "use_replace_regex_dst", text="", icon='SORTBYEXT')
-                if re_error_dst is not None:
-                    box.label(text=re_error_dst)
+                row.alignment = 'RIGHT'
+                row.label(text="Replace")
+                sub = row.row(align=True)
+                sub.prop(action, "replace_dst", text="")
+                subsub = sub.row(align=True)
+                subsub.active = action.use_replace_regex_src
+                subsub.prop(action, "use_replace_regex_dst", text="", icon='SORTBYEXT')
 
-                row = box.row()
+                # Row.
+                if re_error_dst is not None:
+                    row = col.split(factor=fac)
+                    row.label(text="")
+                    row.alert = True
+                    row.label(text=re_error_dst)
+
+                # Row 4: case.
+                row = col.split(factor=fac)
+                row.label(text="")
                 row.prop(action, "replace_match_case")
+
             elif ty == 'CASE':
-                box.row().prop(action, "case_method", expand=True)
+                # Row 2: method.
+                row = col.split(factor=fac)
+                row.alignment = 'RIGHT'
+                row.label(text="Convert To")
+                row.row().prop(action, "case_method", expand=True)
+
+            # Column 2: add-remove.
+            row = split.split(align=True)
+            row.prop(action, "op_remove", text="", icon='REMOVE')
+            row.prop(action, "op_add", text="", icon='ADD')
+
+        layout.label(text="Rename %d %s" % (len(self._data[0]), self._data[2]))
 
     def check(self, context):
         changed = False
