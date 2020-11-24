@@ -1518,8 +1518,13 @@ static int mouse_graph_keys(bAnimContext *ac,
         something_was_selected = true;
       }
 
-      if (!run_modal && BEZT_ISSEL_ANY(bezt) && !already_selected) {
-        BKE_fcurve_active_keyframe_set(nvi->fcu, bezt);
+      if (!run_modal && BEZT_ISSEL_ANY(bezt)) {
+        const bool may_activate = !already_selected ||
+                                  BKE_fcurve_active_keyframe_index(nvi->fcu) ==
+                                      FCURVE_ACTIVE_KEYFRAME_NONE;
+        if (may_activate) {
+          BKE_fcurve_active_keyframe_set(nvi->fcu, bezt);
+        }
       }
     }
     else if (nvi->fpt) {
