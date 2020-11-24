@@ -52,7 +52,7 @@ static IMesh mesh_from_bm(BMesh *bm,
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
   BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
   /* Account for triangulation and intersects. */
-  const int estimate_num_outv = (3 * bm->totvert) / 2;
+  const int estimate_num_outv = 3 * bm->totvert;
   const int estimate_num_outf = 4 * bm->totface;
   arena->reserve(estimate_num_outv, estimate_num_outf);
   Array<const Vert *> vert(bm->totvert);

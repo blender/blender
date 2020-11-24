@@ -39,6 +39,7 @@
 #  include "BLI_math_mpq.hh"
 #  include "BLI_mpq2.hh"
 #  include "BLI_mpq3.hh"
+#  include "BLI_set.hh"
 #  include "BLI_span.hh"
 #  include "BLI_task.h"
 #  include "BLI_threads.h"
@@ -76,7 +77,13 @@ bool Vert::operator==(const Vert &other) const
 
 uint64_t Vert::hash() const
 {
-  return co_exact.hash();
+  uint64_t x = *reinterpret_cast<const uint64_t *>(&co.x);
+  uint64_t y = *reinterpret_cast<const uint64_t *>(&co.y);
+  uint64_t z = *reinterpret_cast<const uint64_t *>(&co.z);
+  x = (x >> 56) ^ (x >> 46) ^ x;
+  y = (y >> 55) ^ (y >> 45) ^ y;
+  z = (z >> 54) ^ (z >> 44) ^ z;
+  return x ^ y ^ z;
 }
 
 std::ostream &operator<<(std::ostream &os, const Vert *v)
@@ -145,15 +152,15 @@ bool Plane::exact_populated() const
 
 uint64_t Plane::hash() const
 {
-  constexpr uint64_t h1 = 33;
-  constexpr uint64_t h2 = 37;
-  constexpr uint64_t h3 = 39;
-  uint64_t hashx = hash_mpq_class(this->norm_exact.x);
-  uint64_t hashy = hash_mpq_class(this->norm_exact.y);
-  uint64_t hashz = hash_mpq_class(this->norm_exact.z);
-  uint64_t hashd = hash_mpq_class(this->d_exact);
-  uint64_t ans = hashx ^ (hashy * h1) ^ (hashz * h1 * h2) ^ (hashd * h1 * h2 * h3);
-  return ans;
+  uint64_t x = *reinterpret_cast<const uint64_t *>(&this->norm.x);
+  uint64_t y = *reinterpret_cast<const uint64_t *>(&this->norm.y);
+  uint64_t z = *reinterpret_cast<const uint64_t *>(&this->norm.z);
+  uint64_t d = *reinterpret_cast<const uint64_t *>(&this->d);
+  x = (x >> 56) ^ (x >> 46) ^ x;
+  y = (y >> 55) ^ (y >> 45) ^ y;
+  z = (z >> 54) ^ (z >> 44) ^ z;
+  d = (d >> 53) ^ (d >> 43) ^ d;
+  return x ^ y ^ z ^ d;
 }
 
 std::ostream &operator<<(std::ostream &os, const Plane *plane)
@@ -315,7 +322,7 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
     {
     }
 
-    uint32_t hash() const
+    uint64_t hash() const
     {
       return vert->hash();
     }
@@ -326,7 +333,7 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
     }
   };
 
-  VectorSet<VSetKey> vset_; /* TODO: replace with Set */
+  Set<VSetKey> vset_;
 
   /**
    * Ownership of the Vert memory is here, so destroying this reclaims that memory.
@@ -434,8 +441,7 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
 
   const Vert *find_vert(const mpq3 &co)
   {
-    const Vert *ans;
-    Vert vtry(co, double3(), NO_INDEX, NO_INDEX);
+    Vert vtry(co, double3(co[0].get_d(), co[1].get_d(), co[2].get_d()), NO_INDEX, NO_INDEX);
     VSetKey vskey(&vtry);
     if (intersect_use_threading) {
 #  ifdef USE_SPINLOCK
@@ -444,13 +450,7 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
       BLI_mutex_lock(mutex_);
 #  endif
     }
-    int i = vset_.index_of_try(vskey);
-    if (i == -1) {
-      ans = nullptr;
-    }
-    else {
-      ans = vset_[i].vert;
-    }
+    const VSetKey *lookup = vset_.lookup_key_ptr(vskey);
     if (intersect_use_threading) {
 #  ifdef USE_SPINLOCK
       BLI_spin_unlock(&lock_);
@@ -458,7 +458,10 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
       BLI_mutex_unlock(mutex_);
 #  endif
     }
-    return ans;
+    if (!lookup) {
+      return nullptr;
+    }
+    return lookup->vert;
   }
 
   /**
@@ -493,8 +496,8 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
       BLI_mutex_lock(mutex_);
 #  endif
     }
-    int i = vset_.index_of_try(vskey);
-    if (i == -1) {
+    const VSetKey *lookup = vset_.lookup_key_ptr(vskey);
+    if (!lookup) {
       vskey.vert = new Vert(mco, dco, next_vert_id_++, orig);
       vset_.add_new(vskey);
       allocated_verts_.append(std::unique_ptr<Vert>(vskey.vert));
@@ -506,7 +509,7 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
        * This is the intended semantics: if the Vert already
        * exists then we are merging verts and using the first-seen
        * one as the canonical one. */
-      ans = vset_[i].vert;
+      ans = lookup->vert;
     }
     if (intersect_use_threading) {
 #  ifdef USE_SPINLOCK

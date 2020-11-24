@@ -623,17 +623,21 @@ TEST(mesh_intersect, TetTet)
   const Vert *v1 = mb.arena.find_vert(mpq3(2, 0, 0));
   const Vert *v8 = mb.arena.find_vert(mpq3(0.5, 0.5, 1));
   const Vert *v9 = mb.arena.find_vert(mpq3(1.5, 0.5, 1));
-  EXPECT_TRUE(v1 != nullptr && v8 != nullptr && v9 != nullptr);
-  const Face *f = mb.arena.find_face({v1, v8, v9});
-  EXPECT_NE(f, nullptr);
-  EXPECT_EQ(f->orig, 1);
-  int v1pos = f->vert[0] == v1 ? 0 : (f->vert[1] == v1 ? 1 : 2);
-  EXPECT_EQ(f->edge_orig[v1pos], NO_INDEX);
-  EXPECT_EQ(f->edge_orig[(v1pos + 1) % 3], NO_INDEX);
-  EXPECT_EQ(f->edge_orig[(v1pos + 2) % 3], 1001);
-  EXPECT_EQ(f->is_intersect[v1pos], false);
-  EXPECT_EQ(f->is_intersect[(v1pos + 1) % 3], true);
-  EXPECT_EQ(f->is_intersect[(v1pos + 2) % 3], false);
+  EXPECT_TRUE(v1 && v8 && v9);
+  if (v1 && v8 && v9) {
+    const Face *f = mb.arena.find_face({v1, v8, v9});
+    EXPECT_NE(f, nullptr);
+    if (f != nullptr) {
+      EXPECT_EQ(f->orig, 1);
+      int v1pos = f->vert[0] == v1 ? 0 : (f->vert[1] == v1 ? 1 : 2);
+      EXPECT_EQ(f->edge_orig[v1pos], NO_INDEX);
+      EXPECT_EQ(f->edge_orig[(v1pos + 1) % 3], NO_INDEX);
+      EXPECT_EQ(f->edge_orig[(v1pos + 2) % 3], 1001);
+      EXPECT_EQ(f->is_intersect[v1pos], false);
+      EXPECT_EQ(f->is_intersect[(v1pos + 1) % 3], true);
+      EXPECT_EQ(f->is_intersect[(v1pos + 2) % 3], false);
+    }
+  }
   if (DO_OBJ) {
     write_obj_mesh(out, "test_tc_3");
   }
@@ -908,7 +912,7 @@ static void spheresphere_test(int nrings, double y_offset, bool use_self)
   int num_sphere_tris;
   get_sphere_params(nrings, nsegs, true, &num_sphere_verts, &num_sphere_tris);
   Array<Face *> tris(2 * num_sphere_tris);
-  arena.reserve(2 * num_sphere_verts, 2 * num_sphere_tris);
+  arena.reserve(6 * num_sphere_verts / 2, 8 * num_sphere_tris);
   double3 center1(0.0, 0.0, 0.0);
   fill_sphere_data(nrings,
                    nsegs,
@@ -1052,7 +1056,8 @@ static void spheregrid_test(int nrings, int grid_level, double z_offset, bool us
   get_sphere_params(nrings, nsegs, true, &num_sphere_verts, &num_sphere_tris);
   get_grid_params(subdivs, subdivs, true, &num_grid_verts, &num_grid_tris);
   Array<Face *> tris(num_sphere_tris + num_grid_tris);
-  arena.reserve(num_sphere_verts + num_grid_verts, num_sphere_tris + num_grid_tris);
+  arena.reserve(3 * (num_sphere_verts + num_grid_verts) / 2,
+                4 * (num_sphere_tris + num_grid_tris));
   double3 center(0.0, 0.0, z_offset);
   fill_sphere_data(nrings,
                    nsegs,
@@ -1120,7 +1125,8 @@ static void gridgrid_test(int x_level_1,
   get_grid_params(x_subdivs_1, y_subdivs_1, true, &num_grid_verts_1, &num_grid_tris_1);
   get_grid_params(x_subdivs_2, y_subdivs_2, true, &num_grid_verts_2, &num_grid_tris_2);
   Array<Face *> tris(num_grid_tris_1 + num_grid_tris_2);
-  arena.reserve(num_grid_verts_1 + num_grid_verts_2, num_grid_tris_1 + num_grid_tris_2);
+  arena.reserve(3 * (num_grid_verts_1 + num_grid_verts_2) / 2,
+                4 * (num_grid_tris_1 + num_grid_tris_2));
   fill_grid_data(x_subdivs_1,
                  y_subdivs_1,
                  true,
