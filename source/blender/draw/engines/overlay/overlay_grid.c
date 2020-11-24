@@ -59,7 +59,7 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   shd->zpos_flag = 0;
   shd->grid_line_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
 
-  if (pd->is_image_editor) {
+  if (pd->space_type == SPACE_IMAGE) {
     SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
     shd->grid_flag = ED_space_image_has_buffer(sima) ? 0 : PLANE_IMAGE | SHOW_GRID;
     shd->grid_distance = 1.0f;
@@ -205,7 +205,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
   GPUShader *sh;
   struct GPUBatch *geom = DRW_cache_grid_get();
 
-  if (pd->is_image_editor) {
+  if (pd->space_type == SPACE_IMAGE) {
     float mat[4][4];
 
     /* add quad background */
@@ -255,7 +255,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_call(grp, geom, NULL);
   }
 
-  if (pd->is_image_editor) {
+  if (pd->space_type == SPACE_IMAGE) {
     float theme_color[4];
     UI_GetThemeColorShade4fv(TH_BACK, 60, theme_color);
     srgb_to_linearrgb_v4(theme_color, theme_color);

@@ -42,6 +42,8 @@ typedef struct IMAGE_PassList {
 typedef struct IMAGE_PrivateData {
   void *lock;
   struct ImBuf *ibuf;
+  struct Image *image;
+  struct DRWView* view;
 
   struct GPUTexture *texture;
   bool owns_texture;

@@ -47,10 +47,13 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
+#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_platform.h"
 #include "GPU_state.h"
+
+#include "DRW_engine.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -3534,8 +3537,6 @@ void draw_nodespace_back_pix(const bContext *C,
   Main *bmain = CTX_data_main(C);
   bNodeInstanceKey active_viewer_key = (snode->nodetree ? snode->nodetree->active_viewer_key :
                                                           NODE_INSTANCE_KEY_NONE);
-  float shuffle[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-
   GPU_matrix_push_projection();
   GPU_matrix_push();
   wmOrtho2_region_pixelspace(region);
@@ -3552,73 +3553,26 @@ void draw_nodespace_back_pix(const bContext *C,
     return;
   }
 
+  GPU_matrix_push_projection();
+  GPU_matrix_push();
+
+  /* The draw manager is used to draw the backdrop image. */
+  GPUFrameBuffer *old_fb = GPU_framebuffer_active_get();
+  GPU_framebuffer_restore();
+  DRW_draw_view(C);
+  GPU_framebuffer_bind_no_srgb(old_fb);
+  /* Draw manager changes the depth state. Set it back to NONE. Without this the node preview
+   * images aren't drawn correctly. */
+  GPU_depth_test(GPU_DEPTH_NONE);
+
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
   if (ibuf) {
-    GPU_matrix_push_projection();
-    GPU_matrix_push();
-
     /* somehow the offset has to be calculated inverse */
     wmOrtho2_region_pixelspace(region);
-
     const float x = (region->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
     const float y = (region->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
-
-    if (ibuf->rect || ibuf->rect_float) {
-      uchar *display_buffer = NULL;
-      void *cache_handle = NULL;
-
-      if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B | SNODE_SHOW_ALPHA)) {
-
-        display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
-
-        if (snode->flag & SNODE_SHOW_R) {
-          shuffle[0] = 1.0f;
-        }
-        else if (snode->flag & SNODE_SHOW_G) {
-          shuffle[1] = 1.0f;
-        }
-        else if (snode->flag & SNODE_SHOW_B) {
-          shuffle[2] = 1.0f;
-        }
-        else {
-          shuffle[3] = 1.0f;
-        }
-
-        IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-        GPU_shader_uniform_vector(
-            state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, shuffle);
-
-        immDrawPixelsTex(&state,
-                         x,
-                         y,
-                         ibuf->x,
-                         ibuf->y,
-                         GPU_RGBA8,
-                         false,
-                         display_buffer,
-                         snode->zoom,
-                         snode->zoom,
-                         NULL);
-
-        GPU_shader_unbind();
-      }
-      else if (snode->flag & SNODE_USE_ALPHA) {
-        GPU_blend(GPU_BLEND_ALPHA);
-
-        ED_draw_imbuf_ctx(C, ibuf, x, y, false, snode->zoom, snode->zoom);
-
-        GPU_blend(GPU_BLEND_NONE);
-      }
-      else {
-        ED_draw_imbuf_ctx(C, ibuf, x, y, false, snode->zoom, snode->zoom);
-      }
-
-      if (cache_handle) {
-        IMB_display_buffer_release(cache_handle);
-      }
-    }
 
     /** \note draw selected info on backdrop */
     if (snode->edittree) {
@@ -3652,12 +3606,11 @@ void draw_nodespace_back_pix(const bContext *C,
         immUnbindProgram();
       }
     }
-
-    GPU_matrix_pop_projection();
-    GPU_matrix_pop();
   }
 
   BKE_image_release_ibuf(ima, ibuf, lock);
+  GPU_matrix_pop_projection();
+  GPU_matrix_pop();
 }
 
 /* return quadratic beziers points for a given nodelink and clip if v2d is not NULL. */

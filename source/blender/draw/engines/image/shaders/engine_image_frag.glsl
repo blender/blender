@@ -1,11 +1,11 @@
 #pragma BLENDER_REQUIRE(common_colormanagement_lib.glsl)
 
 /* Keep in sync with image_engine.c */
-#define SIMA_DRAW_FLAG_SHOW_ALPHA (1 << 0)
-#define SIMA_DRAW_FLAG_APPLY_ALPHA (1 << 1)
-#define SIMA_DRAW_FLAG_SHUFFLING (1 << 2)
-#define SIMA_DRAW_FLAG_DEPTH (1 << 3)
-#define SIMA_DRAW_FLAG_DO_REPEAT (1 << 4)
+#define IMAGE_DRAW_FLAG_SHOW_ALPHA (1 << 0)
+#define IMAGE_DRAW_FLAG_APPLY_ALPHA (1 << 1)
+#define IMAGE_DRAW_FLAG_SHUFFLING (1 << 2)
+#define IMAGE_DRAW_FLAG_DEPTH (1 << 3)
+#define IMAGE_DRAW_FLAG_DO_REPEAT (1 << 4)
 
 #ifdef TILED_IMAGE
 uniform sampler2DArray imageTileArray;
@@ -68,25 +68,25 @@ void main()
     tex_color = vec4(1.0, 0.0, 1.0, 1.0);
   }
 #else
-  vec2 uvs_clamped = ((drawFlags & SIMA_DRAW_FLAG_DO_REPEAT) != 0) ?
+  vec2 uvs_clamped = ((drawFlags & IMAGE_DRAW_FLAG_DO_REPEAT) != 0) ?
                          fract(uvs) :
                          clamp(uvs, vec2(0.0), vec2(1.0));
   tex_color = texture(imageTexture, uvs_clamped);
 #endif
 
-  if ((drawFlags & SIMA_DRAW_FLAG_APPLY_ALPHA) != 0) {
+  if ((drawFlags & IMAGE_DRAW_FLAG_APPLY_ALPHA) != 0) {
     if (!imgPremultiplied) {
       tex_color.rgb *= tex_color.a;
     }
   }
-  if ((drawFlags & SIMA_DRAW_FLAG_DEPTH) != 0) {
+  if ((drawFlags & IMAGE_DRAW_FLAG_DEPTH) != 0) {
     tex_color = smoothstep(FAR_DISTANCE, NEAR_DISTANCE, tex_color);
   }
 
-  if ((drawFlags & SIMA_DRAW_FLAG_SHUFFLING) != 0) {
+  if ((drawFlags & IMAGE_DRAW_FLAG_SHUFFLING) != 0) {
     tex_color = color * dot(tex_color, shuffle);
   }
-  if ((drawFlags & SIMA_DRAW_FLAG_SHOW_ALPHA) == 0) {
+  if ((drawFlags & IMAGE_DRAW_FLAG_SHOW_ALPHA) == 0) {
     tex_color.a = 1.0;
   }
 

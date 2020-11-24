@@ -25,9 +25,11 @@
 #include "DRW_render.h"
 
 #include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_screen_types.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -38,32 +40,118 @@
 #include "image_engine.h"
 #include "image_private.h"
 
-#define SIMA_DRAW_FLAG_SHOW_ALPHA (1 << 0)
-#define SIMA_DRAW_FLAG_APPLY_ALPHA (1 << 1)
-#define SIMA_DRAW_FLAG_SHUFFLING (1 << 2)
-#define SIMA_DRAW_FLAG_DEPTH (1 << 3)
-#define SIMA_DRAW_FLAG_DO_REPEAT (1 << 4)
+#define IMAGE_DRAW_FLAG_SHOW_ALPHA (1 << 0)
+#define IMAGE_DRAW_FLAG_APPLY_ALPHA (1 << 1)
+#define IMAGE_DRAW_FLAG_SHUFFLING (1 << 2)
+#define IMAGE_DRAW_FLAG_DEPTH (1 << 3)
+#define IMAGE_DRAW_FLAG_DO_REPEAT (1 << 4)
+#define IMAGE_DRAW_FLAG_USE_WORLD_POS (1 << 5)
 
-static void image_cache_image_add(DRWShadingGroup *grp, Image *image)
+static void image_cache_image_add(DRWShadingGroup *grp, Image *image, ImBuf *ibuf)
 {
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const ARegion *region = draw_ctx->region;
+  const char space_type = draw_ctx->space_data->spacetype;
+
+  float zoom_x = 1.0f;
+  float zoom_y = 1.0f;
+  float translate_x = 0.0f;
+  float translate_y = 0.0f;
+
+  /* User can freely move the backdrop in the space of the node editor */
+  if (space_type == SPACE_NODE) {
+    SpaceNode *snode = (SpaceNode *)draw_ctx->space_data;
+    const float ibuf_width = ibuf->x;
+    const float ibuf_height = ibuf->y;
+    const float x = (region->winx - snode->zoom * ibuf_width) / 2 + snode->xof;
+    const float y = (region->winy - snode->zoom * ibuf_height) / 2 + snode->yof;
+
+    zoom_x = ibuf_width * snode->zoom;
+    zoom_y = ibuf_height * snode->zoom;
+    translate_x = x;
+    translate_y = y;
+  }
+
   const bool is_tiled_texture = image && image->source == IMA_SRC_TILED;
   float obmat[4][4];
   unit_m4(obmat);
 
   GPUBatch *geom = DRW_cache_quad_get();
 
+  obmat[0][0] = zoom_x;
+  obmat[1][1] = zoom_y;
+  obmat[3][1] = translate_y;
+  obmat[3][0] = translate_x;
+
   if (is_tiled_texture) {
     LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
       const int tile_x = ((tile->tile_number - 1001) % 10);
       const int tile_y = ((tile->tile_number - 1001) / 10);
-      obmat[3][1] = (float)tile_y;
-      obmat[3][0] = (float)tile_x;
+      obmat[3][1] = (float)tile_y + translate_y;
+      obmat[3][0] = (float)tile_x + translate_x;
       DRW_shgroup_call_obmat(grp, geom, obmat);
     }
   }
   else {
     DRW_shgroup_call_obmat(grp, geom, obmat);
   }
+}
+
+static void space_image_gpu_texture_get(Image *image,
+                                        ImageUser *iuser,
+                                        ImBuf *ibuf,
+                                        GPUTexture **r_gpu_texture,
+                                        bool *r_owns_texture,
+                                        GPUTexture **r_tex_tile_data)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
+  if (BKE_image_is_multilayer(image)) {
+    /* update multiindex and pass for the current eye */
+    BKE_image_multilayer_index(image->rr, &sima->iuser);
+  }
+  else {
+    BKE_image_multiview_index(image, &sima->iuser);
+  }
+
+  if (ibuf) {
+    if (sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
+      if (ibuf->zbuf) {
+        BLI_assert(!"Integer based depth buffers not supported");
+      }
+      else if (ibuf->zbuf_float) {
+        *r_gpu_texture = GPU_texture_create_2d(
+            __func__, ibuf->x, ibuf->y, 0, GPU_R16F, ibuf->zbuf_float);
+        *r_owns_texture = true;
+      }
+      else if (ibuf->rect_float && ibuf->channels == 1) {
+        *r_gpu_texture = GPU_texture_create_2d(
+            __func__, ibuf->x, ibuf->y, 0, GPU_R16F, ibuf->rect_float);
+        *r_owns_texture = true;
+      }
+    }
+    else if (image->source == IMA_SRC_TILED) {
+      *r_gpu_texture = BKE_image_get_gpu_tiles(image, iuser, ibuf);
+      *r_tex_tile_data = BKE_image_get_gpu_tilemap(image, iuser, NULL);
+      *r_owns_texture = false;
+    }
+    else {
+      *r_gpu_texture = BKE_image_get_gpu_texture(image, iuser, ibuf);
+      *r_owns_texture = false;
+    }
+  }
+}
+
+static void space_node_gpu_texture_get(Image *image,
+                                       ImageUser *iuser,
+                                       ImBuf *ibuf,
+                                       GPUTexture **r_gpu_texture,
+                                       bool *r_owns_texture,
+                                       GPUTexture **r_tex_tile_data)
+{
+  *r_gpu_texture = BKE_image_get_gpu_texture(image, iuser, ibuf);
+  *r_owns_texture = false;
+  *r_tex_tile_data = NULL;
 }
 
 static void image_gpu_texture_get(Image *image,
@@ -73,45 +161,19 @@ static void image_gpu_texture_get(Image *image,
                                   bool *r_owns_texture,
                                   GPUTexture **r_tex_tile_data)
 {
+  if (!image) {
+    return;
+  }
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
+  const char space_type = draw_ctx->space_data->spacetype;
 
-  if (image) {
-    if (BKE_image_is_multilayer(image)) {
-      /* update multiindex and pass for the current eye */
-      BKE_image_multilayer_index(image->rr, &sima->iuser);
-    }
-    else {
-      BKE_image_multiview_index(image, &sima->iuser);
-    }
-
-    if (ibuf) {
-      if (sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
-        if (ibuf->zbuf) {
-          BLI_assert(!"Integer based depth buffers not supported");
-        }
-        else if (ibuf->zbuf_float) {
-          *r_gpu_texture = GPU_texture_create_2d(
-              __func__, ibuf->x, ibuf->y, 0, GPU_R16F, ibuf->zbuf_float);
-          *r_owns_texture = true;
-        }
-        else if (ibuf->rect_float && ibuf->channels == 1) {
-          *r_gpu_texture = GPU_texture_create_2d(
-              __func__, ibuf->x, ibuf->y, 0, GPU_R16F, ibuf->rect_float);
-          *r_owns_texture = true;
-        }
-      }
-      else if (image->source == IMA_SRC_TILED) {
-        *r_gpu_texture = BKE_image_get_gpu_tiles(image, iuser, ibuf);
-        *r_tex_tile_data = BKE_image_get_gpu_tilemap(image, iuser, NULL);
-        *r_owns_texture = false;
-      }
-      else {
-        *r_gpu_texture = BKE_image_get_gpu_texture(image, iuser, ibuf);
-        *r_owns_texture = false;
-      }
-    }
+  if (space_type == SPACE_IMAGE) {
+    space_image_gpu_texture_get(
+        image, iuser, ibuf, r_gpu_texture, r_owns_texture, r_tex_tile_data);
+  }
+  else if (space_type == SPACE_NODE) {
+    space_node_gpu_texture_get(image, iuser, ibuf, r_gpu_texture, r_owns_texture, r_tex_tile_data);
   }
 }
 
@@ -122,8 +184,8 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
   IMAGE_PrivateData *pd = stl->pd;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  const char space_type = draw_ctx->space_data->spacetype;
   const Scene *scene = draw_ctx->scene;
-  SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
 
   GPUTexture *tex_tile_data = NULL;
   image_gpu_texture_get(image, iuser, ibuf, &pd->texture, &pd->owns_texture, &tex_tile_data);
@@ -140,36 +202,66 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
 
     const bool use_premul_alpha = BKE_image_has_gpu_texture_premultiplied_alpha(image, ibuf);
     const bool is_tiled_texture = tex_tile_data != NULL;
-    const bool do_repeat = (!is_tiled_texture) && ((sima->flag & SI_DRAW_TILE) != 0);
 
     int draw_flags = 0;
-    SET_FLAG_FROM_TEST(draw_flags, do_repeat, SIMA_DRAW_FLAG_DO_REPEAT);
-    if ((sima->flag & SI_USE_ALPHA) != 0) {
-      /* Show RGBA */
-      draw_flags |= SIMA_DRAW_FLAG_SHOW_ALPHA | SIMA_DRAW_FLAG_APPLY_ALPHA;
+    if (space_type == SPACE_IMAGE) {
+      SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
+      const bool do_repeat = (!is_tiled_texture) && ((sima->flag & SI_DRAW_TILE) != 0);
+      SET_FLAG_FROM_TEST(draw_flags, do_repeat, IMAGE_DRAW_FLAG_DO_REPEAT);
+      SET_FLAG_FROM_TEST(draw_flags, is_tiled_texture, IMAGE_DRAW_FLAG_USE_WORLD_POS);
+      if ((sima->flag & SI_USE_ALPHA) != 0) {
+        /* Show RGBA */
+        draw_flags |= IMAGE_DRAW_FLAG_SHOW_ALPHA | IMAGE_DRAW_FLAG_APPLY_ALPHA;
+      }
+      else if ((sima->flag & SI_SHOW_ALPHA) != 0) {
+        draw_flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+        copy_v4_fl4(shuffle, 0.0f, 0.0f, 0.0f, 1.0f);
+      }
+      else if ((sima->flag & SI_SHOW_ZBUF) != 0) {
+        draw_flags |= IMAGE_DRAW_FLAG_DEPTH | IMAGE_DRAW_FLAG_SHUFFLING;
+        copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
+      }
+      else if ((sima->flag & SI_SHOW_R) != 0) {
+        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
+      }
+      else if ((sima->flag & SI_SHOW_G) != 0) {
+        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        copy_v4_fl4(shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
+      }
+      else if ((sima->flag & SI_SHOW_B) != 0) {
+        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        copy_v4_fl4(shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
+      }
+      else /* RGB */ {
+        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+      }
     }
-    else if ((sima->flag & SI_SHOW_ALPHA) != 0) {
-      draw_flags |= SIMA_DRAW_FLAG_SHUFFLING;
-      copy_v4_fl4(shuffle, 0.0f, 0.0f, 0.0f, 1.0f);
-    }
-    else if ((sima->flag & SI_SHOW_ZBUF) != 0) {
-      draw_flags |= SIMA_DRAW_FLAG_DEPTH | SIMA_DRAW_FLAG_SHUFFLING;
-      copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
-    }
-    else if ((sima->flag & SI_SHOW_R) != 0) {
-      draw_flags |= SIMA_DRAW_FLAG_APPLY_ALPHA | SIMA_DRAW_FLAG_SHUFFLING;
-      copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
-    }
-    else if ((sima->flag & SI_SHOW_G) != 0) {
-      draw_flags |= SIMA_DRAW_FLAG_APPLY_ALPHA | SIMA_DRAW_FLAG_SHUFFLING;
-      copy_v4_fl4(shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
-    }
-    else if ((sima->flag & SI_SHOW_B) != 0) {
-      draw_flags |= SIMA_DRAW_FLAG_APPLY_ALPHA | SIMA_DRAW_FLAG_SHUFFLING;
-      copy_v4_fl4(shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
-    }
-    else /* RGB */ {
-      draw_flags |= SIMA_DRAW_FLAG_APPLY_ALPHA;
+    if (space_type == SPACE_NODE) {
+      SpaceNode *snode = (SpaceNode *)draw_ctx->space_data;
+      if ((snode->flag & SNODE_USE_ALPHA) != 0) {
+        /* Show RGBA */
+        draw_flags |= IMAGE_DRAW_FLAG_SHOW_ALPHA | IMAGE_DRAW_FLAG_APPLY_ALPHA;
+      }
+      else if ((snode->flag & SNODE_SHOW_ALPHA) != 0) {
+        draw_flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+        copy_v4_fl4(shuffle, 0.0f, 0.0f, 0.0f, 1.0f);
+      }
+      else if ((snode->flag & SNODE_SHOW_R) != 0) {
+        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
+      }
+      else if ((snode->flag & SNODE_SHOW_G) != 0) {
+        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        copy_v4_fl4(shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
+      }
+      else if ((snode->flag & SNODE_SHOW_B) != 0) {
+        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        copy_v4_fl4(shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
+      }
+      else /* RGB */ {
+        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+      }
     }
 
     GPUShader *shader = IMAGE_shader_image_get(is_tiled_texture);
@@ -186,7 +278,7 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
     DRW_shgroup_uniform_vec4_copy(shgrp, "shuffle", shuffle);
     DRW_shgroup_uniform_int_copy(shgrp, "drawFlags", draw_flags);
     DRW_shgroup_uniform_bool_copy(shgrp, "imgPremultiplied", use_premul_alpha);
-    image_cache_image_add(shgrp, image);
+    image_cache_image_add(shgrp, image, ibuf);
   }
 }
 
@@ -214,9 +306,7 @@ static void IMAGE_cache_init(void *ved)
   IMAGE_StorageList *stl = vedata->stl;
   IMAGE_PrivateData *pd = stl->pd;
   IMAGE_PassList *psl = vedata->psl;
-
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
 
   {
     /* Write depth is needed for background overlay rendering. Near depth is used for
@@ -226,15 +316,31 @@ static void IMAGE_cache_init(void *ved)
     psl->image_pass = DRW_pass_create("Image", state);
   }
 
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-  GPU_framebuffer_bind(dfbl->default_fb);
-  static float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  GPU_framebuffer_clear_color_depth(dfbl->default_fb, clear_col, 1.0);
-
-  {
+  const SpaceLink *space_link = draw_ctx->space_data;
+  const char space_type = space_link->spacetype;
+  pd->view = NULL;
+  if (space_type == SPACE_IMAGE) {
+    SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
     Image *image = ED_space_image(sima);
     ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &pd->lock, 0);
     image_cache_image(vedata, image, &sima->iuser, ibuf);
+    pd->image = image;
+    pd->ibuf = ibuf;
+  }
+  else if (space_type == SPACE_NODE) {
+    ARegion *region = draw_ctx->region;
+    Main *bmain = CTX_data_main(draw_ctx->evil_C);
+    Image *image = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &pd->lock);
+    {
+      /* Setup a screen pixel view. The backdrop of the node editor doesn't follow the region. */
+      float winmat[4][4], viewmat[4][4];
+      orthographic_m4(viewmat, 0.0, region->winx, 0.0, region->winy, 0.0, 1.0);
+      unit_m4(winmat);
+      pd->view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+    }
+    image_cache_image(vedata, image, NULL, ibuf);
+    pd->image = image;
     pd->ibuf = ibuf;
   }
 }
@@ -250,9 +356,16 @@ static void image_draw_finish(IMAGE_Data *ved)
   IMAGE_StorageList *stl = vedata->stl;
   IMAGE_PrivateData *pd = stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
-
-  ED_space_image_release_buffer(sima, pd->ibuf, pd->lock);
+  const char space_type = draw_ctx->space_data->spacetype;
+  if (space_type == SPACE_IMAGE) {
+    SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
+    ED_space_image_release_buffer(sima, pd->ibuf, pd->lock);
+  }
+  else if (space_type == SPACE_NODE) {
+    BKE_image_release_ibuf(pd->image, pd->ibuf, pd->lock);
+  }
+  pd->image = NULL;
+  pd->ibuf = NULL;
 
   if (pd->texture && pd->owns_texture) {
     GPU_texture_free(pd->texture);
@@ -265,9 +378,16 @@ static void IMAGE_draw_scene(void *ved)
 {
   IMAGE_Data *vedata = (IMAGE_Data *)ved;
   IMAGE_PassList *psl = vedata->psl;
+  IMAGE_PrivateData *pd = vedata->stl->pd;
 
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  GPU_framebuffer_bind(dfbl->default_fb);
+  static float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  GPU_framebuffer_clear_color_depth(dfbl->default_fb, clear_col, 1.0);
+
+  DRW_view_set_active(pd->view);
   DRW_draw_pass(psl->image_pass);
-
+  DRW_view_set_active(NULL);
   image_draw_finish(vedata);
 }
 
