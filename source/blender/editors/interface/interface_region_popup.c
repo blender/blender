@@ -308,43 +308,46 @@ static void ui_popup_block_position(wmWindow *window,
 
     /* when you are outside parent button, safety there should be smaller */
 
+    const int s1 = 40 * U.dpi_fac;
+    const int s2 = 3 * U.dpi_fac;
+
     /* parent button to left */
     if (midx < block->rect.xmin) {
-      block->safety.xmin = block->rect.xmin - 3;
+      block->safety.xmin = block->rect.xmin - s2;
     }
     else {
-      block->safety.xmin = block->rect.xmin - 40;
+      block->safety.xmin = block->rect.xmin - s1;
     }
     /* parent button to right */
     if (midx > block->rect.xmax) {
-      block->safety.xmax = block->rect.xmax + 3;
+      block->safety.xmax = block->rect.xmax + s2;
     }
     else {
-      block->safety.xmax = block->rect.xmax + 40;
+      block->safety.xmax = block->rect.xmax + s1;
     }
 
     /* parent button on bottom */
     if (midy < block->rect.ymin) {
-      block->safety.ymin = block->rect.ymin - 3;
+      block->safety.ymin = block->rect.ymin - s2;
     }
     else {
-      block->safety.ymin = block->rect.ymin - 40;
+      block->safety.ymin = block->rect.ymin - s1;
     }
     /* parent button on top */
     if (midy > block->rect.ymax) {
-      block->safety.ymax = block->rect.ymax + 3;
+      block->safety.ymax = block->rect.ymax + s2;
     }
     else {
-      block->safety.ymax = block->rect.ymax + 40;
+      block->safety.ymax = block->rect.ymax + s1;
     }
 
     /* exception for switched pulldowns... */
     if (dir1 && (dir1 & block->direction) == 0) {
       if (dir2 == UI_DIR_RIGHT) {
-        block->safety.xmax = block->rect.xmax + 3;
+        block->safety.xmax = block->rect.xmax + s2;
       }
       if (dir2 == UI_DIR_LEFT) {
-        block->safety.xmin = block->rect.xmin - 3;
+        block->safety.xmin = block->rect.xmin - s2;
       }
     }
     block->direction = dir1;
