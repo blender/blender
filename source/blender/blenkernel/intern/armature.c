@@ -2440,17 +2440,42 @@ static void pose_proxy_sync(Object *ob, Object *from, int layer_protected)
   }
 }
 
-static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int counter)
+/**
+ * \param r_last_visited_bone_p the last bone handled by the last call to this function.
+ */
+static int rebuild_pose_bone(
+    bPose *pose, Bone *bone, bPoseChannel *parchan, int counter, Bone **r_last_visited_bone_p)
 {
   bPoseChannel *pchan = BKE_pose_channel_verify(pose, bone->name); /* verify checks and/or adds */
 
   pchan->bone = bone;
   pchan->parent = parchan;
 
+  /* We ensure the current pchan is immediately after the one we just generated/updated in the
+   * previous call to `rebuild_pose_bone`.
+   *
+   * It may be either the parent, the previous sibling, or the last
+   * (grand-(grand-(...)))-child (as processed by the recursive, depth-first nature of this
+   * function) of the previous sibling.
+   *
+   * Note: In most cases there is nothing to do here, but pose list may get out of order when some
+   * bones are added, removed or moved in the armature data. */
+  bPoseChannel *pchan_prev = pchan->prev;
+  const Bone *last_visited_bone = *r_last_visited_bone_p;
+  if ((pchan_prev == NULL && last_visited_bone != NULL) ||
+      (pchan_prev != NULL && pchan_prev->bone != last_visited_bone)) {
+    pchan_prev = last_visited_bone != NULL ?
+                     BKE_pose_channel_find_name(pose, last_visited_bone->name) :
+                     NULL;
+    BLI_remlink(&pose->chanbase, pchan);
+    BLI_insertlinkafter(&pose->chanbase, pchan_prev, pchan);
+  }
+
+  *r_last_visited_bone_p = pchan->bone;
   counter++;
 
   for (bone = bone->childbase.first; bone; bone = bone->next) {
-    counter = rebuild_pose_bone(pose, bone, pchan, counter);
+    counter = rebuild_pose_bone(pose, bone, pchan, counter, r_last_visited_bone_p);
     /* for quick detecting of next bone in chain, only b-bone uses it now */
     if (bone->flag & BONE_CONNECTED) {
       pchan->child = BKE_pose_channel_find_name(pose, bone->name);
@@ -2520,8 +2545,9 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   BKE_pose_clear_pointers(pose);
 
   /* first step, check if all channels are there */
+  Bone *prev_bone = NULL;
   for (bone = arm->bonebase.first; bone; bone = bone->next) {
-    counter = rebuild_pose_bone(pose, bone, NULL, counter);
+    counter = rebuild_pose_bone(pose, bone, NULL, counter, &prev_bone);
   }
 
   /* and a check for garbage */

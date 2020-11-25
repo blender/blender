@@ -49,6 +49,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_fcurve.h"
@@ -472,8 +473,15 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
    * \note Keep this message at the bottom of the function.
    */
   {
-
     /* Keep this block, even when empty. */
+
+    /* Systematically rebuild posebones to ensure consistent ordering matching the one of bones in
+     * Armature obdata. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type == OB_ARMATURE) {
+        BKE_pose_rebuild(bmain, ob, ob->data, true);
+      }
+    }
   }
 }
 
