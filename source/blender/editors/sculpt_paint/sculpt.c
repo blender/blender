@@ -2632,7 +2632,8 @@ void SCULPT_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
       continue;
     }
 
-    if ((ss->cache->flag & (CLIP_X << i)) && (fabsf(co[i]) <= ss->cache->clip_tolerance[i])) {
+    if (ss->cache && (ss->cache->flag & (CLIP_X << i)) &&
+        (fabsf(co[i]) <= ss->cache->clip_tolerance[i])) {
       co[i] = 0.0f;
     }
     else {

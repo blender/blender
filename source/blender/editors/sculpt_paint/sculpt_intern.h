@@ -1015,6 +1015,14 @@ typedef enum SculptFilterOrientation {
   SCULPT_FILTER_ORIENTATION_VIEW = 2,
 } SculptFilterOrientation;
 
+/* Defines how transform tools are going to apply its displacement. */
+typedef enum SculptTransformDisplacementMode {
+  /* Displaces the elements from their original coordinates. */
+  SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL = 0,
+  /* Displaces the elements incrementally from their previous position. */
+  SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL = 1,
+} SculptTransformDisplacementMode;
+
 void SCULPT_filter_to_orientation_space(float r_v[3], struct FilterCache *filter_cache);
 void SCULPT_filter_to_object_space(float r_v[3], struct FilterCache *filter_cache);
 void SCULPT_filter_zero_disabled_axis_components(float r_v[3], struct FilterCache *filter_cache);
@@ -1071,6 +1079,9 @@ typedef struct FilterCache {
   int *prev_face_set;
 
   int active_face_set;
+
+  /* Transform. */
+  SculptTransformDisplacementMode transform_displacement_mode;
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
