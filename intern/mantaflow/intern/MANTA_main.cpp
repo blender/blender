@@ -871,6 +871,7 @@ void MANTA::initializeRNAMap(FluidModifierData *fmd)
   mRNAMap["CACHE_DIR"] = cacheDirectory;
   mRNAMap["COMPRESSION_OPENVDB"] = vdbCompressionMethod;
   mRNAMap["PRECISION_OPENVDB"] = vdbPrecisionHalf;
+	mRNAMap["CLIP_OPENVDB"] = to_string(fds->clipping);
   mRNAMap["PP_PARTICLE_MAXIMUM"] = to_string(fds->sys_particle_maximum);
 
   /* Fluid object names. */

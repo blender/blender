@@ -60,7 +60,7 @@ template<> inline GridBase::GridType typeList<Vec3>()
 }
 
 template<class T>
-Grid<T>::Grid(FluidSolver *parent, bool show) : GridBase(parent), externalData(false)
+Grid<T>::Grid(FluidSolver *parent, bool show, bool sparse) : GridBase(parent), mExternalData(false)
 {
   mType = typeList<T>();
   mSize = parent->getGridSize();
@@ -70,22 +70,23 @@ Grid<T>::Grid(FluidSolver *parent, bool show) : GridBase(parent), externalData(f
   mDx = 1.0 / mSize.max();
   clear();
   setHidden(!show);
+
+#if OPENVDB == 1
+  mSaveSparse = sparse;
+#else
+  if (sparse)
+    debMsg("Cannot enable sparse save option without OpenVDB", 1);
+  mSaveSparse = false;
+#endif
 }
 
 template<class T>
-Grid<T>::Grid(FluidSolver *parent, T *data, bool show)
-    : GridBase(parent), mData(data), externalData(true)
+Grid<T>::Grid(FluidSolver *parent, T *data, bool show) : Grid<T>::Grid(parent, show)
 {
-  mType = typeList<T>();
-  mSize = parent->getGridSize();
-
-  mStrideZ = parent->is2D() ? 0 : (mSize.x * mSize.y);
-  mDx = 1.0 / mSize.max();
-
-  setHidden(!show);
+  mData = data;
 }
 
-template<class T> Grid<T>::Grid(const Grid<T> &a) : GridBase(a.getParent()), externalData(false)
+template<class T> Grid<T>::Grid(const Grid<T> &a) : GridBase(a.getParent()), mExternalData(false)
 {
   mSize = a.mSize;
   mType = a.mType;
@@ -98,7 +99,7 @@ template<class T> Grid<T>::Grid(const Grid<T> &a) : GridBase(a.getParent()), ext
 
 template<class T> Grid<T>::~Grid()
 {
-  if (!externalData) {
+  if (!mExternalData) {
     mParent->freeGridPointer<T>(mData);
   }
 }
@@ -114,8 +115,8 @@ template<class T> void Grid<T>::swap(Grid<T> &other)
       other.getSizeZ() != getSizeZ())
     errMsg("Grid::swap(): Grid dimensions mismatch.");
 
-  if (externalData || other.externalData)
-    errMsg("Grid::swap(): Cannot swap if one grid stores externalData.");
+  if (mExternalData || other.mExternalData)
+    errMsg("Grid::swap(): Cannot swap if one grid stores mExternalData.");
 
   T *dswap = other.mData;
   other.mData = mData;
