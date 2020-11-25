@@ -59,7 +59,6 @@
 /******************************************************************************/
 /* Function prototypes. */
 
-#if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
 ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x);
 ATOMIC_INLINE uint64_t atomic_sub_and_fetch_uint64(uint64_t *p, uint64_t x);
 ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x);
@@ -71,7 +70,6 @@ ATOMIC_INLINE int64_t atomic_sub_and_fetch_int64(int64_t *p, int64_t x);
 ATOMIC_INLINE int64_t atomic_fetch_and_add_int64(int64_t *p, int64_t x);
 ATOMIC_INLINE int64_t atomic_fetch_and_sub_int64(int64_t *p, int64_t x);
 ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new);
-#endif
 
 ATOMIC_INLINE uint32_t atomic_add_and_fetch_uint32(uint32_t *p, uint32_t x);
 ATOMIC_INLINE uint32_t atomic_sub_and_fetch_uint32(uint32_t *p, uint32_t x);

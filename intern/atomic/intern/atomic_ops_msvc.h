@@ -46,7 +46,6 @@
 #endif
 
 /* 64-bit operations. */
-#if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
 /* Unsigned */
 ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x)
 {
@@ -98,7 +97,6 @@ ATOMIC_INLINE int64_t atomic_fetch_and_sub_int64(int64_t *p, int64_t x)
 {
   return InterlockedExchangeAdd64(p, -x);
 }
-#endif
 
 /******************************************************************************/
 /* 32-bit operations. */

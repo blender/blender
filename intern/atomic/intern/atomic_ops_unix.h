@@ -61,8 +61,7 @@
 
 /******************************************************************************/
 /* 64-bit operations. */
-#if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
-#  if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_8))
+#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_8))
 /* Unsigned */
 ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x)
 {
@@ -115,7 +114,7 @@ ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new)
   return __sync_val_compare_and_swap(v, old, _new);
 }
 
-#  elif (defined(__amd64__) || defined(__x86_64__))
+#elif (defined(__amd64__) || defined(__x86_64__))
 /* Unsigned */
 ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x)
 {
@@ -189,9 +188,8 @@ ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new)
   asm volatile("lock; cmpxchgq %2,%1" : "=a"(ret), "+m"(*v) : "r"(_new), "0"(old) : "memory");
   return ret;
 }
-#  else
-#    error "Missing implementation for 64-bit atomic operations"
-#  endif
+#else
+#  error "Missing implementation for 64-bit atomic operations"
 #endif
 
 /******************************************************************************/

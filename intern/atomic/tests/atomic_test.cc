@@ -14,11 +14,6 @@
 #  endif
 #endif
 
-/* NOTE: it is suboptimal to duplicate same check as in API, but this check is
- * planned to be removed, making it so 64bit intrinsics are available on 32bit
- * platforms. */
-#if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
-
 /* -------------------------------------------------------------------- */
 /** \name 64 bit unsigned int atomics
  * \{ */
@@ -283,8 +278,6 @@ TEST(atomic, atomic_cas_int64)
 }
 
 /** \} */
-
-#endif
 
 /* -------------------------------------------------------------------- */
 /** \name 32 bit unsigned int atomics
