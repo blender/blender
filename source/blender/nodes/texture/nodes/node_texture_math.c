@@ -282,12 +282,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
     }
 
     case NODE_MATH_PINGPONG: {
-      if (in1 == 0.0f) {
-        *out = 0.0f;
-      }
-      else {
-        *out = fabsf(fractf((in0 - in1) / (in1 * 2.0f)) * in1 * 2.0f - in1);
-      }
+      *out = pingpongf(in0, in1);
       break;
     }
 

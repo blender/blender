@@ -387,6 +387,14 @@ MINLINE float wrapf(float value, float max, float min)
   return (range != 0.0f) ? value - (range * floorf((value - min) / range)) : min;
 }
 
+MINLINE float pingpongf(float value, float scale)
+{
+  if (scale == 0.0f) {
+    return 0.0f;
+  }
+  return fabsf(fractf((value - scale) / (scale * 2.0f)) * scale * 2.0f - scale);
+}
+
 // Square.
 
 MINLINE int square_s(short a)

@@ -671,9 +671,7 @@ void MathPingpongOperation::executePixelSampled(float output[4],
   this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
   this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 
-  output[0] = fabsf(fractf((inputValue1[0] - inputValue2[0]) / (inputValue2[0] * 2.0f)) *
-                        inputValue2[0] * 2.0f -
-                    inputValue2[0]);
+  output[0] = pingpongf(inputValue1[0], inputValue2[0]);
 
   clampIfNeeded(output);
 }
