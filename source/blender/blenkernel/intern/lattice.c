@@ -664,16 +664,33 @@ static bool calc_curve_deform(
   if (is_neg_axis) {
     index = axis - 3;
     if (cu->flag & CU_STRETCH) {
-      fac = -(co[index] - cd->dmax[index]) / (cd->dmax[index] - cd->dmin[index]);
+      const float divisor = cd->dmax[index] - cd->dmin[index];
+      if (LIKELY(divisor > FLT_EPSILON)) {
+        fac = -(co[index] - cd->dmax[index]) / divisor;
+      }
+      else {
+        fac = 0.0f;
+      }
     }
     else {
-      fac = -(co[index] - cd->dmax[index]) / (par->runtime.curve_cache->path->totdist);
+      if (LIKELY(par->runtime.curve_cache->path->totdist > FLT_EPSILON)) {
+        fac = -(co[index] - cd->dmax[index]) / (par->runtime.curve_cache->path->totdist);
+      }
+      else {
+        fac = 0.0f;
+      }
     }
   }
   else {
     index = axis;
     if (cu->flag & CU_STRETCH) {
-      fac = (co[index] - cd->dmin[index]) / (cd->dmax[index] - cd->dmin[index]);
+      const float divisor = cd->dmax[index] - cd->dmin[index];
+      if (LIKELY(divisor > FLT_EPSILON)) {
+        fac = (co[index] - cd->dmin[index]) / divisor;
+      }
+      else {
+        fac = 0.0f;
+      }
     }
     else {
       if (LIKELY(par->runtime.curve_cache->path->totdist > FLT_EPSILON)) {
