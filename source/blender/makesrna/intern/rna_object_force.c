@@ -801,11 +801,12 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
       }
     }
 
-    /* check smoke modifier */
+    /* check fluid modifier */
     md = (ModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
     if (md) {
-      FluidModifierData *mmd = (FluidModifierData *)md;
-      if (mmd->domain->effector_weights == ew) {
+      FluidModifierData *fmd = (FluidModifierData *)md;
+      if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain &&
+          fmd->domain->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
         BLI_strescape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].domain_settings.effector_weights", name_esc);
