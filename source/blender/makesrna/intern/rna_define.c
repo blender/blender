@@ -87,7 +87,7 @@ static struct {
  */
 static bool debugSRNA_defaults = false;
 
-static void print_defult_info(const PropertyDefRNA *dp)
+static void print_default_info(const PropertyDefRNA *dp)
 {
   fprintf(stderr,
           "dna_type=%s, dna_offset=%d, dna_struct=%s, dna_name=%s, id=%s\n",
@@ -2327,7 +2327,7 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop,
 
               if (debugSRNA_defaults) {
                 fprintf(stderr, "value=%d, ", bprop->defaultvalue);
-                print_defult_info(dp);
+                print_default_info(dp);
               }
             }
           }
@@ -2465,7 +2465,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
                   fprintf(stderr, "%d, ", iprop->defaultarray[i]);
                 }
                 fprintf(stderr, "), ");
-                print_defult_info(dp);
+                print_default_info(dp);
               }
             }
           }
@@ -2492,7 +2492,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
             if (has_default) {
               if (debugSRNA_defaults) {
                 fprintf(stderr, "value=%d, ", iprop->defaultvalue);
-                print_defult_info(dp);
+                print_default_info(dp);
               }
             }
           }
@@ -2576,7 +2576,7 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
                   fprintf(stderr, "%g, ", fprop->defaultarray[i]);
                 }
                 fprintf(stderr, "), ");
-                print_defult_info(dp);
+                print_default_info(dp);
               }
             }
           }
@@ -2598,7 +2598,7 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
             if (has_default) {
               if (debugSRNA_defaults) {
                 fprintf(stderr, "value=%g, ", fprop->defaultvalue);
-                print_defult_info(dp);
+                print_default_info(dp);
               }
             }
           }
@@ -2667,7 +2667,7 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
           if (has_default) {
             if (debugSRNA_defaults) {
               fprintf(stderr, "value=%d, ", eprop->defaultvalue);
-              print_defult_info(dp);
+              print_default_info(dp);
             }
           }
         }
@@ -2741,7 +2741,7 @@ void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, con
 
           if (debugSRNA_defaults) {
             fprintf(stderr, "value=\"%s\", ", sprop->defaultvalue);
-            print_defult_info(dp);
+            print_default_info(dp);
           }
         }
       }
