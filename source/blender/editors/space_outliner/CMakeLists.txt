@@ -48,6 +48,7 @@ set(SRC
   tree/tree_display.cc
   tree/tree_display_libraries.cc
   tree/tree_display_view_layer.cc
+  tree/tree_display_sequencer.cc
 
   outliner_intern.h
   tree/tree_display.h

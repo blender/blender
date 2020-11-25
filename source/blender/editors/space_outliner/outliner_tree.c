@@ -80,8 +80,6 @@
 
 #include "RNA_access.h"
 
-#include "SEQ_sequencer.h"
-
 #include "UI_interface.h"
 
 #include "outliner_intern.h"
@@ -1314,73 +1312,6 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 }
 
 /* ======================================================= */
-/* Sequencer mode tree building */
-
-/* Helped function to put duplicate sequence in the same tree. */
-static int need_add_seq_dup(Sequence *seq)
-{
-  Sequence *p;
-
-  if ((!seq->strip) || (!seq->strip->stripdata)) {
-    return 1;
-  }
-
-  /*
-   * First check backward, if we found a duplicate
-   * sequence before this, don't need it, just return.
-   */
-  p = seq->prev;
-  while (p) {
-    if ((!p->strip) || (!p->strip->stripdata)) {
-      p = p->prev;
-      continue;
-    }
-
-    if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) {
-      return 2;
-    }
-    p = p->prev;
-  }
-
-  p = seq->next;
-  while (p) {
-    if ((!p->strip) || (!p->strip->stripdata)) {
-      p = p->next;
-      continue;
-    }
-
-    if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) {
-      return 0;
-    }
-    p = p->next;
-  }
-  return 1;
-}
-
-static void outliner_add_seq_dup(SpaceOutliner *space_outliner,
-                                 Sequence *seq,
-                                 TreeElement *te,
-                                 short index)
-{
-  /* TreeElement *ch; */ /* UNUSED */
-  Sequence *p;
-
-  p = seq;
-  while (p) {
-    if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->name[0] == '\0')) {
-      p = p->next;
-      continue;
-    }
-
-    if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) {
-      /* ch = */ /* UNUSED */ outliner_add_element(
-          space_outliner, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
-    }
-    p = p->next;
-  }
-}
-
-/* ----------------------------------------------- */
 
 static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOutliner *space_outliner)
 {
@@ -2246,32 +2177,8 @@ void outliner_build_tree(Main *mainvar,
     }
   }
   else if (space_outliner->outlinevis == SO_SEQUENCE) {
-    Sequence *seq;
-    Editing *ed = BKE_sequencer_editing_get(scene, false);
-    int op;
-
-    if (ed == NULL) {
-      return;
-    }
-
-    seq = ed->seqbasep->first;
-    if (!seq) {
-      return;
-    }
-
-    while (seq) {
-      op = need_add_seq_dup(seq);
-      if (op == 1) {
-        /* ten = */ outliner_add_element(
-            space_outliner, &space_outliner->tree, (void *)seq, NULL, TSE_SEQUENCE, 0);
-      }
-      else if (op == 0) {
-        ten = outliner_add_element(
-            space_outliner, &space_outliner->tree, (void *)seq, NULL, TSE_SEQUENCE_DUP, 0);
-        outliner_add_seq_dup(space_outliner, seq, ten, 0);
-      }
-      seq = seq->next;
-    }
+    /* Ported to new tree-display, should be built there already. */
+    BLI_assert(false);
   }
   else if (space_outliner->outlinevis == SO_DATA_API) {
     PointerRNA mainptr;

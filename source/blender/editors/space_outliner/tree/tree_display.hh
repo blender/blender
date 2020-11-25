@@ -110,4 +110,28 @@ class TreeDisplayLibraries final : public AbstractTreeDisplay {
   short id_filter_get() const;
 };
 
+/* -------------------------------------------------------------------- */
+/* Video Sequencer Tree-Display */
+
+enum SequenceAddOp {
+  SEQUENCE_DUPLICATE_NOOP = 0,
+  SEQUENCE_DUPLICATE_ADD,
+  SEQUENCE_DUPLICATE_NONE
+};
+
+/**
+ * \brief Tree-Display for the Video Sequencer display mode
+ */
+class TreeDisplaySequencer final : public AbstractTreeDisplay {
+ public:
+  TreeDisplaySequencer(SpaceOutliner &space_outliner);
+
+  ListBase buildTree(const TreeSourceData &source_data) override;
+
+ private:
+  TreeElement *add_sequencer_contents() const;
+  SequenceAddOp need_add_seq_dup(Sequence *seq) const;
+  void add_seq_dup(Sequence *seq, TreeElement *te, short index) const;
+};
+
 }  // namespace blender::ed::outliner
