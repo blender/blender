@@ -311,11 +311,7 @@ static void retrieve_next_lower_usable_frame(
  * translation stabilization, which has an enabled tracking marker at this very
  * frame. We search both for the next lower and next higher position, to allow
  * the caller to interpolate gaps and to extrapolate at the ends of the
- * definition range.
- *
- * NOTE: Regarding performance note that the individual tracks will cache the
- *       last search position.
- */
+ * definition range. */
 static void find_next_working_frames(StabContext *ctx,
                                      int framenr,
                                      int *next_lower,

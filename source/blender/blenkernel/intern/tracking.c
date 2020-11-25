@@ -1224,8 +1224,6 @@ MovieTrackingMarker *BKE_tracking_marker_insert(MovieTrackingTrack *track,
   /* put new marker */
   track->markers[a + 1] = *marker;
 
-  track->last_marker = a + 1;
-
   return &track->markers[a + 1];
 }
 
@@ -1314,51 +1312,44 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
   }
 }
 
+/* Get marker closest to the given frame number.
+ *
+ * If there is maker with exact frame number it returned.
+ * Otherwise, marker with higherst frame number but lower than the requested
+ * frame is returned if such marker exists. Otherwise, the marker with lowest
+ * frame number greater than the requested frame number is returned.
+ *
+ * This function has complexity of O(log number_of_markers). */
 MovieTrackingMarker *BKE_tracking_marker_get(MovieTrackingTrack *track, int framenr)
 {
-  int a = track->markersnr - 1;
+  const int num_markers = track->markersnr;
 
-  if (!track->markersnr) {
+  if (num_markers == 0) {
+    BLI_assert(!"Detected degenerated track, should never happen.");
     return NULL;
   }
 
-  /* approximate pre-first framenr marker with first marker */
-  if (framenr < track->markers[0].framenr) {
-    return &track->markers[0];
-  }
+  int left_boundary = 0;
+  int right_boundary = num_markers;
+  while (left_boundary < right_boundary) {
+    const int median_index = (left_boundary + right_boundary) / 2;
+    MovieTrackingMarker *marker = &track->markers[median_index];
 
-  if (track->last_marker < track->markersnr) {
-    a = track->last_marker;
-  }
-
-  if (track->markers[a].framenr <= framenr) {
-    while (a < track->markersnr && track->markers[a].framenr <= framenr) {
-      if (track->markers[a].framenr == framenr) {
-        track->last_marker = a;
-
-        return &track->markers[a];
-      }
-      a++;
+    if (marker->framenr == framenr) {
+      return marker;
     }
-
-    /* if there's no marker for exact position, use nearest marker from left side */
-    return &track->markers[a - 1];
-  }
-
-  while (a >= 0 && track->markers[a].framenr >= framenr) {
-    if (track->markers[a].framenr == framenr) {
-      track->last_marker = a;
-
-      return &track->markers[a];
+    else if (marker->framenr < framenr) {
+      left_boundary = median_index + 1;
     }
-
-    a--;
+    else {
+      BLI_assert(marker->framenr > framenr);
+      right_boundary = median_index - 1;
+    }
   }
 
-  /* if there's no marker for exact position, use nearest marker from left side */
-  return &track->markers[a];
+  const int closest_index = clamp_i(right_boundary, 0, num_markers - 1);
 
-  return NULL;
+  return &track->markers[closest_index];
 }
 
 MovieTrackingMarker *BKE_tracking_marker_get_exact(MovieTrackingTrack *track, int framenr)
@@ -1683,7 +1674,6 @@ MovieTrackingPlaneMarker *BKE_tracking_plane_marker_insert(MovieTrackingPlaneTra
 
   /* Put new marker to an array. */
   plane_track->markers[a + 1] = *plane_marker;
-  plane_track->last_marker = a + 1;
 
   return &plane_track->markers[a + 1];
 }
