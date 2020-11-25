@@ -260,6 +260,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     for (int i = 0; i < COLLECTION_COLOR_TOT; ++i) {
       FROM_DEFAULT_V4_UCHAR(collection_color[i].color);
     }
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.row_alternate);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

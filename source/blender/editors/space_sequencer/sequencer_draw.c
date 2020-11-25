@@ -566,8 +566,7 @@ static void draw_seq_outline(Sequence *seq,
   }
   else {
     /* Color for unselected strips is a bit darker than the background. */
-    UI_GetThemeColor3ubv(TH_BACK, col);
-    UI_GetColorPtrShade3ubv(col, col, -40);
+    UI_GetThemeColorShade3ubv(TH_BACK, -40, col);
   }
 
   /* Outline while translating strips:
@@ -1859,16 +1858,19 @@ static void draw_seq_backdrop(View2D *v2d)
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  /* Darker gray overlay over the view backdrop. */
+  /* Darker overlay over the view backdrop. */
   immUniformThemeColorShade(TH_BACK, -20);
   immRectf(pos, v2d->cur.xmin, -1.0, v2d->cur.xmax, 1.0);
 
   /* Alternating horizontal stripes. */
   i = max_ii(1, ((int)v2d->cur.ymin) - 1);
 
+  float col_alternating[4];
+  UI_GetThemeColor4fv(TH_ROW_ALTERNATE, col_alternating);
+
   while (i < v2d->cur.ymax) {
     if (i & 1) {
-      immUniformThemeColorShade(TH_BACK, -15);
+      immUniformThemeColorBlendShade(TH_BACK, TH_ROW_ALTERNATE, col_alternating[3], -25);
     }
     else {
       immUniformThemeColorShade(TH_BACK, -25);
@@ -1879,7 +1881,7 @@ static void draw_seq_backdrop(View2D *v2d)
     i++;
   }
 
-  /* Darker lines separating the horizontal bands. */
+  /* Lines separating the horizontal bands. */
   i = max_ii(1, ((int)v2d->cur.ymin) - 1);
   int line_len = (int)v2d->cur.ymax - i + 1;
   immUniformThemeColor(TH_GRID);
