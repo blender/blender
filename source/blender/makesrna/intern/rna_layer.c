@@ -306,7 +306,7 @@ static void rna_LayerCollection_exclude_update(Main *bmain, Scene *UNUSED(scene)
 
   BKE_layer_collection_sync(scene, view_layer);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS | ID_RECALC_ANIMATION);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   if (!exclude) {
     /* We need to update animation of objects added back to the scene through enabling this view
      * layer. */
