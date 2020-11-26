@@ -150,16 +150,22 @@ static TreeElement *outliner_find_item_at_x_in_row_recursive(const TreeElement *
  * \return a hovered child item or \a parent_te (if no hovered child found).
  */
 TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
-                                            const TreeElement *parent_te,
+                                            TreeElement *parent_te,
                                             float view_co_x,
-                                            bool *row_merged)
+                                            bool *row_merged,
+                                            bool *r_is_over_icon)
 {
   /* if parent_te is opened, it doesn't show children in row */
+  TreeElement *te = parent_te;
   if (!TSELEM_OPEN(TREESTORE(parent_te), space_outliner)) {
-    return outliner_find_item_at_x_in_row_recursive(parent_te, view_co_x, row_merged);
+    te = outliner_find_item_at_x_in_row_recursive(parent_te, view_co_x, row_merged);
   }
 
-  return (TreeElement *)parent_te;
+  if ((te != parent_te) || outliner_item_is_co_over_icon(parent_te, view_co_x)) {
+    *r_is_over_icon = true;
+  }
+
+  return te;
 }
 
 /* Find specific item from the treestore */
