@@ -117,17 +117,25 @@ static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const 
   TreeElement *hovered_te = outliner_find_item_at_y(
       space_outliner, &space_outliner->tree, view_mval[1]);
 
+  TreeElement *icon_te = NULL;
   bool is_over_icon;
   if (hovered_te) {
-    hovered_te = outliner_find_item_at_x_in_row(
+    icon_te = outliner_find_item_at_x_in_row(
         space_outliner, hovered_te, view_mval[0], NULL, &is_over_icon);
   }
+
   bool changed = false;
 
-  if (!hovered_te || !(hovered_te->store_elem->flag & TSE_HIGHLIGHTED)) {
-    changed = outliner_flag_set(&space_outliner->tree, TSE_HIGHLIGHTED | TSE_DRAG_ANY, false);
+  if (!hovered_te || !is_over_icon || !(hovered_te->store_elem->flag & TSE_HIGHLIGHTED) ||
+      !(icon_te->store_elem->flag & TSE_HIGHLIGHTED_ICON)) {
+    /* Clear highlights when nothing is hovered or when a new item is hovered. */
+    changed = outliner_flag_set(&space_outliner->tree, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
     if (hovered_te) {
       hovered_te->store_elem->flag |= TSE_HIGHLIGHTED;
+      changed = true;
+    }
+    if (is_over_icon) {
+      icon_te->store_elem->flag |= TSE_HIGHLIGHTED_ICON;
       changed = true;
     }
   }

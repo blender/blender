@@ -2782,7 +2782,7 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
                                    icon_border);
   }
 
-  if (tselem->flag & TSE_HIGHLIGHTED) {
+  if (tselem->flag & TSE_HIGHLIGHTED_ICON) {
     alpha_fac += 0.5;
   }
   tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, alpha_fac, false);
@@ -3078,8 +3078,14 @@ static void outliner_draw_tree_element(bContext *C,
 
     /* datatype icon */
     if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE))) {
-      tselem_draw_icon(
-          block, xmax, (float)startx + offsx, (float)*starty, tselem, te, alpha_fac, true);
+      tselem_draw_icon(block,
+                       xmax,
+                       (float)startx + offsx,
+                       (float)*starty,
+                       tselem,
+                       te,
+                       (tselem->flag & TSE_HIGHLIGHTED_ICON) ? alpha_fac + 0.5f : alpha_fac,
+                       true);
       offsx += UI_UNIT_X + 4 * ufac;
     }
     else {

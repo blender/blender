@@ -66,7 +66,9 @@ enum {
   /* Needed because outliner-only elements can be active */
   TSE_ACTIVE = (1 << 9),
   /* TSE_ACTIVE_WALK = (1 << 10), */ /* Unused */
+  TSE_HIGHLIGHTED_ICON = (1 << 11),
   TSE_DRAG_ANY = (TSE_DRAG_INTO | TSE_DRAG_BEFORE | TSE_DRAG_AFTER),
+  TSE_HIGHLIGHTED_ANY = (TSE_HIGHLIGHTED | TSE_HIGHLIGHTED_ICON),
 };
 
 /* TreeStoreElem->types */
