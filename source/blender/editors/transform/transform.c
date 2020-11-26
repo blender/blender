@@ -1203,7 +1203,24 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
+      case EVENT_NONE:
+      case INBETWEEN_MOUSEMOVE:
+      case INPUTCHANGE:
+      case WINDEACTIVATE:
+      case TIMER:
+      case TIMERJOBS:
+      case TIMERAUTOSAVE:
+      case TIMERREPORT:
+      case TIMERREGION:
+      case TIMERNOTIFIER:
+      case TIMERF:
+        /* Although rare, prevent these events from affecting the state of the modifiers. */
+        break;
       default: {
+        if (event->type == t->launch_event) {
+          /* The user can hold the launch button and release it here. */
+          break;
+        }
         /* Disable modifiers. */
         int modifiers = t->modifiers;
         modifiers &= ~MOD_CONSTRAINT_SELECT;
