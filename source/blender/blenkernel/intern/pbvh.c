@@ -1707,6 +1707,12 @@ int BKE_pbvh_get_grid_num_vertices(const PBVH *pbvh)
   return pbvh->totgrid * pbvh->gridkey.grid_area;
 }
 
+int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh)
+{
+  BLI_assert(pbvh->type == PBVH_GRIDS);
+  return pbvh->totgrid * (pbvh->gridkey.grid_size - 1) * (pbvh->gridkey.grid_size - 1);
+}
+
 BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh)
 {
   BLI_assert(pbvh->type == PBVH_BMESH);
