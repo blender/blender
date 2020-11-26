@@ -1486,6 +1486,7 @@ static void rna_def_ID(BlenderRNA *brna)
       "Actual data-block from .blend file (Main database) that generated that evaluated one");
   RNA_def_property_pointer_funcs(prop, "rna_ID_original_get", NULL, NULL, NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
 
   prop = RNA_def_property(srna, "users", PROP_INT, PROP_UNSIGNED);
