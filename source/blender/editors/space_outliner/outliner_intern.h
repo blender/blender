@@ -517,7 +517,7 @@ TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
 TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
                                             TreeElement *parent_te,
                                             float view_co_x,
-                                            bool *row_merged,
+                                            bool *r_is_merged_icon,
                                             bool *r_is_over_icon);
 TreeElement *outliner_find_tse(struct SpaceOutliner *space_outliner, const TreeStoreElem *tse);
 TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);

@@ -113,7 +113,7 @@ TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
 
 static TreeElement *outliner_find_item_at_x_in_row_recursive(const TreeElement *parent_te,
                                                              float view_co_x,
-                                                             bool *row_merged)
+                                                             bool *r_is_merged_icon)
 {
   TreeElement *child_te = parent_te->subtree.first;
 
@@ -125,13 +125,14 @@ static TreeElement *outliner_find_item_at_x_in_row_recursive(const TreeElement *
       return child_te;
     }
     if ((child_te->flag & TE_ICONROW_MERGED) && over_element) {
-      if (row_merged) {
-        *row_merged = true;
+      if (r_is_merged_icon) {
+        *r_is_merged_icon = true;
       }
       return child_te;
     }
 
-    TreeElement *te = outliner_find_item_at_x_in_row_recursive(child_te, view_co_x, row_merged);
+    TreeElement *te = outliner_find_item_at_x_in_row_recursive(
+        child_te, view_co_x, r_is_merged_icon);
     if (te != child_te) {
       return te;
     }
@@ -152,13 +153,13 @@ static TreeElement *outliner_find_item_at_x_in_row_recursive(const TreeElement *
 TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
                                             TreeElement *parent_te,
                                             float view_co_x,
-                                            bool *row_merged,
+                                            bool *r_is_merged_icon,
                                             bool *r_is_over_icon)
 {
   /* if parent_te is opened, it doesn't show children in row */
   TreeElement *te = parent_te;
   if (!TSELEM_OPEN(TREESTORE(parent_te), space_outliner)) {
-    te = outliner_find_item_at_x_in_row_recursive(parent_te, view_co_x, row_merged);
+    te = outliner_find_item_at_x_in_row_recursive(parent_te, view_co_x, r_is_merged_icon);
   }
 
   if ((te != parent_te) || outliner_item_is_co_over_icon(parent_te, view_co_x)) {
