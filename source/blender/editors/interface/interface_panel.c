@@ -1108,7 +1108,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   if (panel->drawname[0] != '\0') {
     /* + 0.001f to avoid flirting with float inaccuracy .*/
     const rcti title_rect = {
-        .xmin = widget_rect.xmin + panel->labelofs + scaled_unit * 1.1f,
+        .xmin = widget_rect.xmin + (panel->labelofs / aspect) + scaled_unit * 1.1f,
         .xmax = widget_rect.xmax,
         .ymin = widget_rect.ymin - 2.0f / aspect,
         .ymax = widget_rect.ymax,
