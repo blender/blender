@@ -1083,25 +1083,32 @@ int transformEvent(TransInfo *t, const wmEvent *event)
       case TFM_MODAL_AUTOCONSTRAINT:
       case TFM_MODAL_AUTOCONSTRAINTPLANE:
         if ((t->flag & T_NO_CONSTRAINT) == 0) {
-          /* exception for switching to dolly, or trackball, in camera view */
-          if (t->flag & T_CAMERA) {
-            if (t->mode == TFM_TRANSLATION) {
-              setLocalConstraint(t, (CON_AXIS2), TIP_("along local Z"));
-            }
-            else if (t->mode == TFM_ROTATION) {
-              restoreTransObjects(t);
-              transform_mode_init(t, NULL, TFM_TRACKBALL);
-            }
+          if (t->modifiers & (MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE)) {
+            /* Confirm. */
+            postSelectConstraint(t);
+            t->modifiers &= ~(MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE);
           }
           else {
-            t->modifiers |= (event->val == TFM_MODAL_AUTOCONSTRAINT) ? MOD_CONSTRAINT_SELECT :
-                                                                       MOD_CONSTRAINT_PLANE;
-            if (t->con.mode & CON_APPLY) {
-              stopConstraint(t);
+            if (t->flag & T_CAMERA) {
+              /* Exception for switching to dolly, or trackball, in camera view. */
+              if (t->mode == TFM_TRANSLATION) {
+                setLocalConstraint(t, (CON_AXIS2), TIP_("along local Z"));
+              }
+              else if (t->mode == TFM_ROTATION) {
+                restoreTransObjects(t);
+                transform_mode_init(t, NULL, TFM_TRACKBALL);
+              }
             }
             else {
-              initSelectConstraint(t);
-              postSelectConstraint(t);
+              t->modifiers |= (event->val == TFM_MODAL_AUTOCONSTRAINT) ? MOD_CONSTRAINT_SELECT :
+                                                                         MOD_CONSTRAINT_PLANE;
+              if (t->con.mode & CON_APPLY) {
+                stopConstraint(t);
+              }
+              else {
+                initSelectConstraint(t);
+                postSelectConstraint(t);
+              }
             }
           }
           t->redraw |= TREDRAW_HARD;
@@ -1203,38 +1210,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case EVENT_NONE:
-      case INBETWEEN_MOUSEMOVE:
-      case INPUTCHANGE:
-      case WINDEACTIVATE:
-      case TIMER:
-      case TIMERJOBS:
-      case TIMERAUTOSAVE:
-      case TIMERREPORT:
-      case TIMERREGION:
-      case TIMERNOTIFIER:
-      case TIMERF:
-        /* Although rare, prevent these events from affecting the state of the modifiers. */
-        break;
-      default: {
-        if (event->type == t->launch_event) {
-          /* The user can hold the launch button and release it here. */
-          break;
-        }
-        /* Disable modifiers. */
-        int modifiers = t->modifiers;
-        modifiers &= ~MOD_CONSTRAINT_SELECT;
-        modifiers &= ~MOD_CONSTRAINT_PLANE;
-        if (modifiers != t->modifiers) {
-          if (t->modifiers & (MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE)) {
-            postSelectConstraint(t);
-          }
-          t->modifiers = modifiers;
-          t->redraw |= TREDRAW_HARD;
-          handled = true;
-        }
-        break;
-      }
     }
 
     /* confirm transform if launch key is released after mouse move */
