@@ -112,7 +112,6 @@ static void panel_draw(const bContext *C, Panel *panel)
   VolumeDisplaceModifierData *vdmd = static_cast<VolumeDisplaceModifierData *>(ptr->data);
 
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
 
   uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
   uiItemR(layout, ptr, "texture_map_mode", 0, "Texture Mapping", ICON_NONE);

@@ -95,7 +95,6 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   VolumeToMeshModifierData *vmmd = static_cast<VolumeToMeshModifierData *>(ptr->data);
 
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
 
   {
     uiLayout *col = uiLayoutColumn(layout, false);
