@@ -3723,9 +3723,11 @@ void RNA_property_pointer_set(PointerRNA *ptr,
     }
   }
   /* RNA property. */
-  else if (pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
-           !((prop->flag & PROP_ID_SELF_CHECK) && ptr->owner_id == ptr_value.owner_id)) {
-    pprop->set(ptr, ptr_value, reports);
+  else if (pprop->set) {
+    if (!((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
+        !((prop->flag & PROP_ID_SELF_CHECK) && ptr->owner_id == ptr_value.owner_id)) {
+      pprop->set(ptr, ptr_value, reports);
+    }
   }
   /* IDProperty desguised as RNA property (and not yet defined in ptr). */
   else if (prop->flag & PROP_EDITABLE) {
