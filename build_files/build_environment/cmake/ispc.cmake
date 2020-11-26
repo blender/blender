@@ -25,8 +25,13 @@ if(WIN32)
 elseif(APPLE)
   # Use bison installed via Homebrew.
   # The one which comes which Xcode toolset is too old.
+  if("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64")
+    set(HOMEBREW_LOCATION "/opt/homebrew")
+  else()
+    set(HOMEBREW_LOCATION "/usr/local")
+  endif()
   set(ISPC_EXTRA_ARGS_APPLE
-    -DBISON_EXECUTABLE=/usr/local/opt/bison/bin/bison
+    -DBISON_EXECUTABLE=${HOMEBREW_LOCATION}/opt/bison/bin/bison
   )
 elseif(UNIX)
   set(ISPC_EXTRA_ARGS_UNIX
