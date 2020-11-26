@@ -1817,7 +1817,7 @@ void BKE_lib_override_library_main_update(Main *bmain)
   G_MAIN = bmain;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (id->override_library != NULL && id->lib == NULL) {
+    if (id->override_library != NULL) {
       BKE_lib_override_library_update(bmain, id);
     }
   }
