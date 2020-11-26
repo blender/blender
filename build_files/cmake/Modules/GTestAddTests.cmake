@@ -1,7 +1,10 @@
 # Distributed under the OSI-approved BSD 3-Clause License,
 # see accompanying file BSD-3-Clause-license.txt for details.
 
-# Blender: disable ASAN leak detection when trying to discover tests.
+# Changes made to this script have been marked with "BLENDER".
+
+
+# BLENDER: disable ASAN leak detection when trying to discover tests.
 set(ENV{ASAN_OPTIONS} "detect_leaks=0")
 
 cmake_minimum_required(VERSION ${CMAKE_VERSION})
