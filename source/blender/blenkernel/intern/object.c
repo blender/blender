@@ -3473,7 +3473,11 @@ void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *o
   workob->par2 = ob->par2;
   workob->par3 = ob->par3;
 
-  workob->constraints = ob->constraints;
+  /* The effects of constraints should NOT be included in the parent-inverse matrix. Constraints
+   * are supposed to be applied after the object's local loc/rot/scale. If the (inverted) effect of
+   * constraints would be included in the parent inverse matrix, these would be applied before the
+   * object's local loc/rot/scale instead of after. For example, a "Copy Rotation" constraint would
+   * rotate the object's local translation as well. See T82156. */
 
   BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 
