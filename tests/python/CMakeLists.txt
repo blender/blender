@@ -602,7 +602,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
     if(WITH_CYCLES)
       foreach(_cycles_device ${CYCLES_TEST_DEVICES})
         string(TOLOWER "${_cycles_device}" _cycles_device_lower)
-        set(_cycles_render_tests bake;${render_tests})
+        set(_cycles_render_tests bake;${render_tests};osl)
 
         foreach(render_test ${_cycles_render_tests})
           add_python_test(

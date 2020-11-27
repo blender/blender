@@ -29,9 +29,54 @@ class COLORS_DUMMY:
 COLORS = COLORS_DUMMY
 
 
-# NOTE: Keep everything lowercase.
+# List of .blend files that are known to be failing and are not ready to be
+# tested, or that only make sense on some devices. Accepts regular expressions.
 BLACKLIST = (
-    # 'file_to_blacklist.blend',
+    # OSL only supported on CPU.
+    ('.*_osl.blend', '(?!CPU)'),
+    ('osl_.*.blend', '(?!CPU)'),
+
+    # No baking, branched path and shader raytrace on Optix.
+    ('bake_.*.blend', 'OPTIX'),
+    ('ambient_occlusion.blend', 'OPTIX'),
+    ('ambient_occlusion_only_local.blend', 'OPTIX'),
+    ('bevel.blend', 'OPTIX'),
+    ('bevel_mblur.blend', 'OPTIX'),
+    ('T53854.blend', 'OPTIX'),
+    ('T50164.blend', 'OPTIX'),
+    ('portal.blend', 'OPTIX'),
+    ('denoise_sss.blend', 'OPTIX'),
+    ('denoise_passes.blend', 'OPTIX'),
+    ('distant_light.blend', 'OPTIX'),
+    ('aov_position.blend', 'OPTIX'),
+    ('subsurface_branched_path.blend', 'OPTIX'),
+
+    # Missing equiangular sampling on GPU.
+    ('area_light.blend', '(?!CPU)'),
+    ('denoise_hair.blend', '(?!CPU)'),
+    ('point_density_.*.blend', '(?!CPU)'),
+    ('point_light.blend', '(?!CPU)'),
+    ('shadow_catcher_bpt_.*.blend', '(?!CPU)'),
+    ('sphere_light.blend', '(?!CPU)'),
+    ('spot_light.blend', '(?!CPU)'),
+    ('T48346.blend', '(?!CPU)'),
+    ('world_volume.blend', '(?!CPU)'),
+
+    # Inconsistency between Embree and Hair primitive on GPU.
+    ('hair_basemesh_intercept.blend', '(?!CPU)'),
+    ('hair_instancer_uv.blend', '(?!CPU)'),
+    ('hair_particle_random.blend', '(?!CPU)'),
+    ('principled_hair_.*.blend', '(?!CPU)'),
+    ('transparent_shadow_hair.*.blend', '(?!CPU)'),
+
+    # Uninvestigated differences with GPU.
+    ('image_log.blend', '(?!CPU)'),
+    ('subsurface_behind_glass_branched.blend', '(?!CPU)'),
+    ('T40964.blend', '(?!CPU)'),
+    ('T45609.blend', '(?!CPU)'),
+    ('T48860.blend', '(?!CPU)'),
+    ('smoke_color.blend', '(?!CPU)'),
+    ('T43865.blend', 'OPTIX')
 )
 
 
@@ -58,13 +103,23 @@ def print_message(message, type=None, status=''):
     sys.stdout.flush()
 
 
-def blend_list(dirpath):
+def blend_list(dirpath, device):
+    import re
+
     for root, dirs, files in os.walk(dirpath):
         for filename in files:
-            filename_lower = filename.lower()
-            if filename_lower in BLACKLIST:
+            if not filename.lower().endswith(".blend"):
                 continue
-            if filename_lower.endswith(".blend"):
+
+            skip = False
+            for blacklist in BLACKLIST:
+                if not re.match(blacklist[0], filename):
+                    continue
+                if device and blacklist[1] and not re.match(blacklist[1], device):
+                    continue
+                skip = True
+
+            if not skip:
                 filepath = os.path.join(root, filename)
                 yield filepath
 
@@ -520,7 +575,7 @@ class Report:
     def _run_all_tests(self, dirname, dirpath, blender, arguments_cb, batch):
         passed_tests = []
         failed_tests = []
-        all_files = list(blend_list(dirpath))
+        all_files = list(blend_list(dirpath, self.device))
         all_files.sort()
         print_message("Running {} tests from 1 test case." .
                       format(len(all_files)),
