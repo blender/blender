@@ -153,6 +153,7 @@ class NodeRef : NonCopyable, NonMovable {
   bool is_group_node() const;
   bool is_group_input_node() const;
   bool is_group_output_node() const;
+  bool is_muted() const;
 };
 
 class NodeTreeRef : NonCopyable, NonMovable {
@@ -400,6 +401,11 @@ inline bool NodeRef::is_group_input_node() const
 inline bool NodeRef::is_group_output_node() const
 {
   return bnode_->type == NODE_GROUP_OUTPUT;
+}
+
+inline bool NodeRef::is_muted() const
+{
+  return (bnode_->flag & NODE_MUTED) != 0;
 }
 
 /* --------------------------------------------------------------------

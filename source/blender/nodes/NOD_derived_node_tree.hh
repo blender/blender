@@ -238,6 +238,8 @@ class DerivedNodeTree : NonCopyable, NonMovable {
                             DNode &group_node);
   void remove_expanded_group_interfaces(Vector<DNode *> &all_nodes);
   void remove_unused_group_inputs(Vector<DGroupInput *> &all_group_inputs);
+  void relink_and_remove_muted_nodes(Vector<DNode *> &all_nodes);
+  void relink_muted_node(DNode &muted_node);
   void store_in_this_and_init_ids(Vector<DNode *> &&all_nodes,
                                   Vector<DGroupInput *> &&all_group_inputs,
                                   Vector<DParentNode *> &&all_parent_nodes);
