@@ -4025,13 +4025,13 @@ void SCULPT_flip_v3_by_symm_area(float v[3],
                                  const ePaintSymmetryAreas symmarea,
                                  const float pivot[3])
 {
-  for (char i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
     ePaintSymmetryFlags symm_it = 1 << i;
     if (symm & symm_it) {
       if (symmarea & symm_it) {
         flip_v3(v, symm_it);
       }
-      if (pivot[0] < 0) {
+      if (pivot[i] < 0.0f) {
         flip_v3(v, symm_it);
       }
     }
@@ -4043,13 +4043,13 @@ void SCULPT_flip_quat_by_symm_area(float quat[3],
                                    const ePaintSymmetryAreas symmarea,
                                    const float pivot[3])
 {
-  for (char i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
     ePaintSymmetryFlags symm_it = 1 << i;
     if (symm & symm_it) {
       if (symmarea & symm_it) {
         flip_qt(quat, symm_it);
       }
-      if (pivot[0] < 0) {
+      if (pivot[i] < 0.0f) {
         flip_qt(quat, symm_it);
       }
     }
