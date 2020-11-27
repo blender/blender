@@ -23,6 +23,7 @@ libmv/base/scoped_ptr_test.cc
 libmv/base/vector.h
 libmv/base/vector_test.cc
 libmv/base/vector_utils.h
+libmv/build/build_config.h
 libmv/image/array_nd.cc
 libmv/image/array_nd.h
 libmv/image/array_nd_test.cc
