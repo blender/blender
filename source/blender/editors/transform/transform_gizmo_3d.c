@@ -1331,7 +1331,7 @@ void drawDial3d(const TransInfo *t)
     }
     else {
       axis_idx = MAN_AXIS_ROT_C;
-      copy_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
+      negate_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
       scale *= 1.2f;
       line_with -= 1.0f;
     }
@@ -1379,7 +1379,7 @@ void drawDial3d(const TransInfo *t)
                                     false,
                                     &(struct Dial3dParams){
                                         .draw_options = ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE,
-                                        .angle_delta = t->values[0],
+                                        .angle_delta = t->values_final[0],
                                         .angle_increment = increment,
                                     });
 
