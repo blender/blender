@@ -400,6 +400,7 @@ if(WITH_GTESTS)
     tests/BLI_math_color_test.cc
     tests/BLI_math_geom_test.cc
     tests/BLI_math_matrix_test.cc
+    tests/BLI_math_solvers_test.cc
     tests/BLI_math_vector_test.cc
     tests/BLI_memiter_test.cc
     tests/BLI_memory_utils_test.cc
