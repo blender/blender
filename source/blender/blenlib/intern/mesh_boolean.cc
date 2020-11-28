@@ -1242,6 +1242,7 @@ static Vector<Vector<int>> find_patch_components(const CellsInfo &cinfo, Patches
     return Vector<Vector<int>>();
   }
   int current_component = 0;
+  Array<bool> cell_processed(cinfo.tot_cell(), false);
   Stack<int> stack; /* Patch indices to visit. */
   Vector<Vector<int>> ans;
   for (int pstart : pinfo.index_range()) {
@@ -1258,6 +1259,10 @@ static Vector<Vector<int>> find_patch_components(const CellsInfo &cinfo, Patches
       Patch &patch = pinfo.patch(p);
       BLI_assert(patch.component == current_component);
       for (int c : {patch.cell_above, patch.cell_below}) {
+        if (cell_processed[c]) {
+          continue;
+        }
+        cell_processed[c] = true;
         for (int pn : cinfo.cell(c).patches()) {
           Patch &patch_neighbor = pinfo.patch(pn);
           if (patch_neighbor.component == NO_INDEX) {
