@@ -371,6 +371,11 @@ class PatchesInfo {
   {
     return pp_edge_.lookup_default(std::pair<int, int>(p1, p2), Edge());
   }
+
+  const Map<std::pair<int, int>, Edge> &patch_patch_edge_map()
+  {
+    return pp_edge_;
+  }
 };
 
 static bool apply_bool_op(BoolOpType bool_optype, const Array<int> &winding);
@@ -381,7 +386,7 @@ static bool apply_bool_op(BoolOpType bool_optype, const Array<int> &winding);
  * One cell, the Ambient cell, contains all other cells.
  */
 class Cell {
-  Vector<int> patches_;
+  Set<int> patches_;
   Array<int> winding_;
   int merged_to_{NO_INDEX};
   bool winding_assigned_{false};
@@ -396,17 +401,31 @@ class Cell {
 
   void add_patch(int p)
   {
-    patches_.append(p);
+    patches_.add_new(p);
   }
 
   void add_patch_non_duplicates(int p)
   {
-    patches_.append_non_duplicates(p);
+    patches_.add(p);
   }
 
-  Span<int> patches() const
+  const Set<int> &patches() const
   {
-    return Span<int>(patches_);
+    return patches_;
+  }
+
+  /** In a set of 2, which is patch that is not p? */
+  int patch_other(int p) const
+  {
+    if (patches_.size() != 2) {
+      return NO_INDEX;
+    }
+    for (int pother : patches_) {
+      if (pother != p) {
+        return pother;
+      }
+    }
+    return NO_INDEX;
   }
 
   Span<int> winding() const
@@ -472,12 +491,16 @@ class Cell {
 
 static std::ostream &operator<<(std::ostream &os, const Cell &cell)
 {
-  os << "Cell patches " << cell.patches();
+  os << "Cell patches";
+  for (int p : cell.patches()) {
+    std::cout << " " << p;
+  }
   if (cell.winding().size() > 0) {
     os << " winding=" << cell.winding();
     os << " in_output_volume=" << cell.in_output_volume();
   }
   os << " zv=" << cell.zero_volume();
+  std::cout << "\n";
   return os;
 }
 
@@ -509,8 +532,19 @@ static bool tris_have_same_verts(const IMesh &mesh, int t1, int t2)
 void Cell::check_for_zero_volume(const PatchesInfo &pinfo, const IMesh &mesh)
 {
   if (patches_.size() == 2) {
-    const Patch &p1 = pinfo.patch(patches_[0]);
-    const Patch &p2 = pinfo.patch(patches_[1]);
+    int p1_index = NO_INDEX;
+    int p2_index = NO_INDEX;
+    for (int p : patches_) {
+      if (p1_index == NO_INDEX) {
+        p1_index = p;
+      }
+      else {
+        p2_index = p;
+      }
+    }
+    BLI_assert(p1_index != NO_INDEX && p2_index != NO_INDEX);
+    const Patch &p1 = pinfo.patch(p1_index);
+    const Patch &p2 = pinfo.patch(p2_index);
     if (p1.tot_tri() == 1 && p2.tot_tri() == 1) {
       if (tris_have_same_verts(mesh, p1.tri(0), p2.tri(0))) {
         zero_volume_ = true;
@@ -658,16 +692,15 @@ static void merge_cells(int merge_to, int merge_from, CellsInfo &cinfo, PatchesI
     final_merge_to = merge_to_cell.merged_to();
     merge_to_cell = cinfo.cell(final_merge_to);
   }
-  for (Patch &patch : pinfo) {
-    if (patch.cell_above == merge_from) {
-      patch.cell_above = final_merge_to;
-    }
-    if (patch.cell_below == merge_from) {
-      patch.cell_below = final_merge_to;
-    }
-  }
   for (int cell_p : merge_from_cell.patches()) {
     merge_to_cell.add_patch_non_duplicates(cell_p);
+    Patch &patch = pinfo.patch(cell_p);
+    if (patch.cell_above == merge_from) {
+      patch.cell_above = merge_to;
+    }
+    if (patch.cell_below == merge_from) {
+      patch.cell_below = merge_to;
+    }
   }
   merge_from_cell.set_merged_to(final_merge_to);
 }
@@ -1113,11 +1146,22 @@ static void find_cells_from_edge(const IMesh &tm,
     }
     else {
       if (*r_follow_cell != *rnext_prev_cell) {
+        int follow_cell_num_patches = cinfo.cell(*r_follow_cell).patches().size();
+        int prev_cell_num_patches = cinfo.cell(*rnext_prev_cell).patches().size();
+        if (follow_cell_num_patches >= prev_cell_num_patches) {
+          if (dbg_level > 0) {
+            std::cout << " merge cell " << *rnext_prev_cell << " into cell " << *r_follow_cell
+                      << "\n";
+          }
+          merge_cells(*r_follow_cell, *rnext_prev_cell, cinfo, pinfo);
+        }
+      }
+      else {
         if (dbg_level > 0) {
-          std::cout << " merge cell " << *rnext_prev_cell << " into cell " << *r_follow_cell
+          std::cout << " merge cell " << *r_follow_cell << " into cell " << *rnext_prev_cell
                     << "\n";
         }
-        merge_cells(*r_follow_cell, *rnext_prev_cell, cinfo, pinfo);
+        merge_cells(*rnext_prev_cell, *r_follow_cell, cinfo, pinfo);
       }
     }
   }
@@ -1136,15 +1180,14 @@ static CellsInfo find_cells(const IMesh &tm, const TriMeshTopology &tmtopo, Patc
   CellsInfo cinfo;
   /* For each unique edge shared between patch pairs, process it. */
   Set<Edge> processed_edges;
-  int np = pinfo.tot_patch();
-  for (int p = 0; p < np; ++p) {
-    for (int q = p + 1; q < np; ++q) {
-      Edge e = pinfo.patch_patch_edge(p, q);
-      if (e.v0() != nullptr) {
-        if (!processed_edges.contains(e)) {
-          processed_edges.add_new(e);
-          find_cells_from_edge(tm, tmtopo, pinfo, cinfo, e);
-        }
+  for (const auto item : pinfo.patch_patch_edge_map().items()) {
+    int p = item.key.first;
+    int q = item.key.second;
+    if (p < q) {
+      const Edge &e = item.value;
+      if (!processed_edges.contains(e)) {
+        processed_edges.add_new(e);
+        find_cells_from_edge(tm, tmtopo, pinfo, cinfo, e);
       }
     }
   }
@@ -2134,7 +2177,7 @@ static void extract_zero_volume_cell_tris(Vector<Face *> &r_tris,
     while (cell->zero_volume()) {
       /* In zero-volume cells, the cell should have exactly two patches. */
       BLI_assert(cell->patches().size() == 2);
-      int pother = cell->patches()[0] == pwalk ? cell->patches()[1] : cell->patches()[0];
+      int pother = cell->patch_other(pwalk);
       bool flip = pinfo.patch(pother).cell_above == c;
       flipped.append(flip);
       stack.append(pother);
@@ -2152,7 +2195,7 @@ static void extract_zero_volume_cell_tris(Vector<Face *> &r_tris,
     cell = &cinfo.cell(c);
     while (cell->zero_volume()) {
       BLI_assert(cell->patches().size() == 2);
-      int pother = cell->patches()[0] == pwalk ? cell->patches()[1] : cell->patches()[0];
+      int pother = cell->patch_other(pwalk);
       bool flip = pinfo.patch(pother).cell_below == c;
       flipped.append(flip);
       stack.append(pother);
