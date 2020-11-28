@@ -3886,7 +3886,15 @@ static void bezier_handle_calc_smooth_fcurve(
 
   /* ratio of x intervals */
 
-  l[0] = l[count - 1] = 1.0f;
+  if (full_cycle) {
+    dx[0] = dx[count - 1];
+    dy[0] = dy[count - 1];
+
+    l[0] = l[count - 1] = dx[1] / dx[0];
+  }
+  else {
+    l[0] = l[count - 1] = 1.0f;
+  }
 
   for (int i = 1; i < count - 1; i++) {
     l[i] = dx[i + 1] / dx[i];
@@ -3921,11 +3929,6 @@ static void bezier_handle_calc_smooth_fcurve(
   if (full_cycle) {
     /* reduce the number of unknowns by one */
     int i = solve_count = count - 1;
-
-    dx[0] = dx[i];
-    dy[0] = dy[i];
-
-    l[0] = l[i] = dx[1] / dx[0];
 
     hmin[0] = max_ff(hmin[0], hmin[i]);
     hmax[0] = min_ff(hmax[0], hmax[i]);
