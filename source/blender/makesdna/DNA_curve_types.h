@@ -133,8 +133,8 @@ typedef struct BezTriple {
   /** BEZT_IPO_ELASTIC. */
   float amplitude, period;
 
-  /** F5: used for auto handle to distinguish between normal handle and exception (extrema). */
-  char f5;
+  /** Used during auto handle calculation to mark special cases (local extremes). */
+  char auto_handle_type;
   char _pad[3];
 } BezTriple;
 
@@ -465,10 +465,14 @@ typedef enum eBezTriple_Handle {
   HD_ALIGN_DOUBLESIDE = 5, /* align handles, displayed both of them. used for masks */
 } eBezTriple_Handle;
 
-/* f5 (beztriple) */
+/* auto_handle_type (beztriple) */
 typedef enum eBezTriple_Auto_Type {
+  /* Normal automatic handle that can be refined further. */
   HD_AUTOTYPE_NORMAL = 0,
-  HD_AUTOTYPE_SPECIAL = 1,
+  /* Handle locked horizontal due to being an Auto Clamped local
+   * extreme or a curve endpoint with Constant extrapolation.
+   * Further smoothing is disabled. */
+  HD_AUTOTYPE_LOCKED_FINAL = 1,
 } eBezTriple_Auto_Type;
 
 /* interpolation modes (used only for BezTriple->ipo) */
