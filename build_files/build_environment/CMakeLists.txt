@@ -94,11 +94,7 @@ include(cmake/usd.cmake)
 include(cmake/potrace.cmake)
 # Boost needs to be included after python.cmake due to the PYTHON_BINARY variable being needed.
 include(cmake/boost.cmake)
-if(UNIX)
-  # Rely on PugiXML compiled with OpenImageIO
-else()
-  include(cmake/pugixml.cmake)
-endif()
+include(cmake/pugixml.cmake)
 if((NOT APPLE) OR ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64"))
   include(cmake/ispc.cmake)
   include(cmake/openimagedenoise.cmake)

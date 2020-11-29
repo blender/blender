@@ -30,13 +30,13 @@ ExternalProject_Add(external_pugixml
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_pugixml after_install
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/pugixml/lib/pugixml.lib ${HARVEST_TARGET}/osl/lib/pugixml.lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/pugixml ${HARVEST_TARGET}/pugixml
       DEPENDEES install
     )
   endif()
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_pugixml after_install
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/pugixml/lib/pugixml.lib ${HARVEST_TARGET}/osl/lib/pugixml_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/pugixml/lib/pugixml.lib ${HARVEST_TARGET}/pugixml/lib/pugixml_d.lib
       DEPENDEES install
     )
   endif()

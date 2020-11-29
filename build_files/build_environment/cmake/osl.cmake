@@ -78,14 +78,10 @@ set(OSL_EXTRA_ARGS
   -DINSTALL_DOCS=OFF
   ${OSL_SIMD_FLAGS}
   -DPARTIO_LIBRARIES=
+  -DPUGIXML_HOME=${LIBDIR}/pugixml
 )
 
-if(WIN32)
-  set(OSL_EXTRA_ARGS
-    ${OSL_EXTRA_ARGS}
-    -DPUGIXML_HOME=${LIBDIR}/pugixml
-  )
-elseif(APPLE)
+if(APPLE)
   # Make symbol hiding consistent with OIIO which defaults to OFF,
   # avoids linker warnings on macOS
   set(OSL_EXTRA_ARGS
@@ -114,16 +110,8 @@ add_dependencies(
   external_zlib
   external_flexbison
   external_openimageio
+  external_pugixml
 )
-
-if(UNIX)
-  # Rely on PugiXML compiled with OpenImageIO
-else()
-  add_dependencies(
-    external_osl
-    external_pugixml
-  )
-endif()
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
