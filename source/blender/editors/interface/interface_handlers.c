@@ -8363,8 +8363,8 @@ uiBut *UI_context_active_but_get(const bContext *C)
  */
 uiBut *UI_context_active_but_get_respect_menu(const bContext *C)
 {
-  ARegion *ar_menu = CTX_wm_menu(C);
-  return ui_context_button_active(ar_menu ? ar_menu : CTX_wm_region(C), NULL);
+  ARegion *region_menu = CTX_wm_menu(C);
+  return ui_context_button_active(region_menu ? region_menu : CTX_wm_region(C), NULL);
 }
 
 uiBut *UI_region_active_but_get(ARegion *region)

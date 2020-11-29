@@ -9392,9 +9392,9 @@ static void dyntopo_detail_size_edit_cancel(bContext *C, wmOperator *op)
 {
   Object *active_object = CTX_data_active_object(C);
   SculptSession *ss = active_object->sculpt;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   DyntopoDetailSizeEditCustomData *cd = op->customdata;
-  ED_region_draw_cb_exit(ar->type, cd->draw_handle);
+  ED_region_draw_cb_exit(region->type, cd->draw_handle);
   ss->draw_faded_cursor = false;
   MEM_freeN(op->customdata);
   ED_workspace_status_text(C, NULL);
@@ -9457,7 +9457,7 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
 {
   Object *active_object = CTX_data_active_object(C);
   SculptSession *ss = active_object->sculpt;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   DyntopoDetailSizeEditCustomData *cd = op->customdata;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
@@ -9465,7 +9465,7 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
       (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
     dyntopo_detail_size_edit_cancel(C, op);
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
     return OPERATOR_FINISHED;
   }
 
@@ -9473,16 +9473,16 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
   if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
       (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
       (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
-    ED_region_draw_cb_exit(ar->type, cd->draw_handle);
+    ED_region_draw_cb_exit(region->type, cd->draw_handle);
     sd->constant_detail = cd->detail_size;
     ss->draw_faded_cursor = false;
     MEM_freeN(op->customdata);
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
     ED_workspace_status_text(C, NULL);
     return OPERATOR_FINISHED;
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   if (event->type == EVT_LEFTCTRLKEY && event->val == KM_PRESS) {
     cd->sample_mode = true;
@@ -9504,7 +9504,7 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
 
 static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Object *active_object = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -9514,7 +9514,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
 
   /* Initial operator Custom Data setup. */
   cd->draw_handle = ED_region_draw_cb_activate(
-      ar->type, dyntopo_detail_size_edit_draw, cd, REGION_DRAW_POST_VIEW);
+      region->type, dyntopo_detail_size_edit_draw, cd, REGION_DRAW_POST_VIEW);
   cd->active_object = active_object;
   cd->init_mval[0] = event->mval[0];
   cd->init_mval[1] = event->mval[1];
@@ -9558,7 +9558,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   SCULPT_vertex_random_access_ensure(ss);
 
   WM_event_add_modal_handler(C, op);
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   ss->draw_faded_cursor = true;
 

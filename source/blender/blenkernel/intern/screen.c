@@ -516,8 +516,8 @@ static void region_copylist(SpaceType *st, ListBase *lb1, ListBase *lb2)
   BLI_listbase_clear(lb1);
 
   for (region = lb2->first; region; region = region->next) {
-    ARegion *arnew = BKE_area_region_copy(st, region);
-    BLI_addtail(lb1, arnew);
+    ARegion *region_new = BKE_area_region_copy(st, region);
+    BLI_addtail(lb1, region_new);
   }
 }
 

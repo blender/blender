@@ -423,7 +423,7 @@ static bool object_switch_object_poll(bContext *C)
 
 static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -464,7 +464,7 @@ static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEven
     /* Update the viewport rotation origin to the mouse cursor. */
     if (last_mode & OB_MODE_ALL_PAINT) {
       float global_loc[3];
-      if (ED_view3d_autodist_simple(ar, event->mval, global_loc, 0, NULL)) {
+      if (ED_view3d_autodist_simple(region, event->mval, global_loc, 0, NULL)) {
         UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
         copy_v3_v3(ups->average_stroke_accum, global_loc);
         ups->average_stroke_counter = 1;

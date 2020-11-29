@@ -369,10 +369,10 @@ static void voxel_size_edit_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar),
 
 static void voxel_size_edit_cancel(bContext *C, wmOperator *op)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   VoxelSizeEditCustomData *cd = op->customdata;
 
-  ED_region_draw_cb_exit(ar->type, cd->draw_handle);
+  ED_region_draw_cb_exit(region->type, cd->draw_handle);
 
   MEM_freeN(op->customdata);
 
@@ -381,7 +381,7 @@ static void voxel_size_edit_cancel(bContext *C, wmOperator *op)
 
 static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   VoxelSizeEditCustomData *cd = op->customdata;
   Object *active_object = cd->active_object;
   Mesh *mesh = (Mesh *)active_object->data;
@@ -390,7 +390,7 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
       (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
     voxel_size_edit_cancel(C, op);
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
     return OPERATOR_FINISHED;
   }
 
@@ -398,10 +398,10 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
   if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
       (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
       (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
-    ED_region_draw_cb_exit(ar->type, cd->draw_handle);
+    ED_region_draw_cb_exit(region->type, cd->draw_handle);
     mesh->remesh_voxel_size = cd->voxel_size;
     MEM_freeN(op->customdata);
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
     ED_workspace_status_text(C, NULL);
     return OPERATOR_FINISHED;
   }
@@ -443,13 +443,13 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
   cd->voxel_size = clamp_f(cd->voxel_size, 0.0001f, 1.0f);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
   return OPERATOR_RUNNING_MODAL;
 }
 
 static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Object *active_object = CTX_data_active_object(C);
   Mesh *mesh = (Mesh *)active_object->data;
 
@@ -458,7 +458,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   /* Initial operator Custom Data setup. */
   cd->draw_handle = ED_region_draw_cb_activate(
-      ar->type, voxel_size_edit_draw, cd, REGION_DRAW_POST_VIEW);
+      region->type, voxel_size_edit_draw, cd, REGION_DRAW_POST_VIEW);
   cd->active_object = active_object;
   cd->init_mval[0] = event->mval[0];
   cd->init_mval[1] = event->mval[1];
@@ -533,7 +533,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   for (int i = 0; i < 4; i++) {
     float preview_plane_world_space[3];
     mul_v3_m4v3(preview_plane_world_space, active_object->obmat, cd->preview_plane[i]);
-    ED_view3d_project(ar, preview_plane_world_space, preview_plane_proj[i]);
+    ED_view3d_project(region, preview_plane_world_space, preview_plane_proj[i]);
   }
 
   /* Get the initial X and Y axis of the basis from the edges of the Bounding Box face. */
@@ -589,7 +589,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   WM_event_add_modal_handler(C, op);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   const char *status_str = TIP_(
       "Move the mouse to change the voxel size. LMB: confirm size, ESC/RMB: cancel");

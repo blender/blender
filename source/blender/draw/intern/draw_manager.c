@@ -1512,10 +1512,10 @@ void DRW_draw_view(const bContext *C)
   }
   else {
     Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-    ARegion *ar = CTX_wm_region(C);
-    GPUViewport *viewport = WM_draw_region_get_bound_viewport(ar);
+    ARegion *region = CTX_wm_region(C);
+    GPUViewport *viewport = WM_draw_region_get_bound_viewport(region);
     drw_state_prepare_clean_for_draw(&DST);
-    DRW_draw_render_loop_2d_ex(depsgraph, ar, viewport, C);
+    DRW_draw_render_loop_2d_ex(depsgraph, region, viewport, C);
   }
 }
 

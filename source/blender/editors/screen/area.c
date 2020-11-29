@@ -1167,20 +1167,20 @@ static int rct_fits(const rcti *rect, char dir, int size)
 static void region_overlap_fix(ScrArea *area, ARegion *region)
 {
   /* find overlapping previous region on same place */
-  ARegion *ar1;
+  ARegion *region_iter;
   int align1 = 0;
   const int align = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
-  for (ar1 = region->prev; ar1; ar1 = ar1->prev) {
-    if (ar1->flag & RGN_FLAG_HIDDEN) {
+  for (region_iter = region->prev; region_iter; region_iter = region_iter->prev) {
+    if (region_iter->flag & RGN_FLAG_HIDDEN) {
       continue;
     }
 
-    if (ar1->overlap && ((ar1->alignment & RGN_SPLIT_PREV) == 0)) {
-      if (ELEM(ar1->alignment, RGN_ALIGN_FLOAT)) {
+    if (region_iter->overlap && ((region_iter->alignment & RGN_SPLIT_PREV) == 0)) {
+      if (ELEM(region_iter->alignment, RGN_ALIGN_FLOAT)) {
         continue;
       }
-      align1 = ar1->alignment;
-      if (BLI_rcti_isect(&ar1->winrct, &region->winrct, NULL)) {
+      align1 = region_iter->alignment;
+      if (BLI_rcti_isect(&region_iter->winrct, &region->winrct, NULL)) {
         if (align1 != align) {
           /* Left overlapping right or vice-versa, forbid this! */
           region->flag |= RGN_FLAG_TOO_SMALL;
@@ -1196,35 +1196,36 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
   BLI_assert(align1 == RGN_ALIGN_ENUM_FROM_MASK(align1));
 
   /* translate or close */
-  if (ar1) {
+  if (region_iter) {
     if (align1 == RGN_ALIGN_LEFT) {
-      if (region->winrct.xmax + ar1->winx > area->winx - U.widget_unit) {
+      if (region->winrct.xmax + region_iter->winx > area->winx - U.widget_unit) {
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
       }
-      BLI_rcti_translate(&region->winrct, ar1->winx, 0);
+      BLI_rcti_translate(&region->winrct, region_iter->winx, 0);
     }
     else if (align1 == RGN_ALIGN_RIGHT) {
-      if (region->winrct.xmin - ar1->winx < U.widget_unit) {
+      if (region->winrct.xmin - region_iter->winx < U.widget_unit) {
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
       }
-      BLI_rcti_translate(&region->winrct, -ar1->winx, 0);
+      BLI_rcti_translate(&region->winrct, -region_iter->winx, 0);
     }
   }
 
   /* At this point, 'region' is in its final position and still open.
    * Make a final check it does not overlap any previous 'other side' region. */
-  for (ar1 = region->prev; ar1; ar1 = ar1->prev) {
-    if (ar1->flag & RGN_FLAG_HIDDEN) {
+  for (region_iter = region->prev; region_iter; region_iter = region_iter->prev) {
+    if (region_iter->flag & RGN_FLAG_HIDDEN) {
       continue;
     }
-    if (ELEM(ar1->alignment, RGN_ALIGN_FLOAT)) {
+    if (ELEM(region_iter->alignment, RGN_ALIGN_FLOAT)) {
       continue;
     }
 
-    if (ar1->overlap && (ar1->alignment & RGN_SPLIT_PREV) == 0) {
-      if ((ar1->alignment != align) && BLI_rcti_isect(&ar1->winrct, &region->winrct, NULL)) {
+    if (region_iter->overlap && (region_iter->alignment & RGN_SPLIT_PREV) == 0) {
+      if ((region_iter->alignment != align) &&
+          BLI_rcti_isect(&region_iter->winrct, &region->winrct, NULL)) {
         /* Left overlapping right or vice-versa, forbid this! */
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
@@ -1465,12 +1466,12 @@ static void region_rect_recursive(
 
     /* test if there's still 4 regions left */
     if (quad == 0) {
-      ARegion *artest = region->next;
+      ARegion *region_test = region->next;
       int count = 1;
 
-      while (artest) {
-        artest->alignment = RGN_ALIGN_QSPLIT;
-        artest = artest->next;
+      while (region_test) {
+        region_test->alignment = RGN_ALIGN_QSPLIT;
+        region_test = region_test->next;
         count++;
       }
 
@@ -3901,39 +3902,39 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
 /* rect gets returned in local region coordinates */
 static void region_visible_rect_calc(ARegion *region, rcti *rect)
 {
-  ARegion *arn = region;
+  ARegion *region_iter = region;
 
   /* allow function to be called without area */
-  while (arn->prev) {
-    arn = arn->prev;
+  while (region_iter->prev) {
+    region_iter = region_iter->prev;
   }
 
   *rect = region->winrct;
 
   /* check if a region overlaps with the current one */
-  for (; arn; arn = arn->next) {
-    if (region != arn && arn->overlap) {
-      if (BLI_rcti_isect(rect, &arn->winrct, NULL)) {
-        int alignment = RGN_ALIGN_ENUM_FROM_MASK(arn->alignment);
+  for (; region_iter; region_iter = region_iter->next) {
+    if (region != region_iter && region_iter->overlap) {
+      if (BLI_rcti_isect(rect, &region_iter->winrct, NULL)) {
+        int alignment = RGN_ALIGN_ENUM_FROM_MASK(region_iter->alignment);
 
         if (ELEM(alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
           /* Overlap left, also check 1 pixel offset (2 regions on one side). */
-          if (abs(rect->xmin - arn->winrct.xmin) < 2) {
-            rect->xmin = arn->winrct.xmax;
+          if (abs(rect->xmin - region_iter->winrct.xmin) < 2) {
+            rect->xmin = region_iter->winrct.xmax;
           }
 
           /* Overlap right. */
-          if (abs(rect->xmax - arn->winrct.xmax) < 2) {
-            rect->xmax = arn->winrct.xmin;
+          if (abs(rect->xmax - region_iter->winrct.xmax) < 2) {
+            rect->xmax = region_iter->winrct.xmin;
           }
         }
         else if (ELEM(alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
           /* Same logic as above for vertical regions. */
-          if (abs(rect->ymin - arn->winrct.ymin) < 2) {
-            rect->ymin = arn->winrct.ymax;
+          if (abs(rect->ymin - region_iter->winrct.ymin) < 2) {
+            rect->ymin = region_iter->winrct.ymax;
           }
-          if (abs(rect->ymax - arn->winrct.ymax) < 2) {
-            rect->ymax = arn->winrct.ymin;
+          if (abs(rect->ymax - region_iter->winrct.ymax) < 2) {
+            rect->ymax = region_iter->winrct.ymin;
           }
         }
         else if (alignment == RGN_ALIGN_FLOAT) {
