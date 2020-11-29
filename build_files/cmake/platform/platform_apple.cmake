@@ -73,15 +73,16 @@ endif()
 
 if(NOT DEFINED LIBDIR)
   set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
-  # Prefer lib directory paths
-  file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
-  set(CMAKE_PREFIX_PATH ${LIB_SUBDIRS})
 else()
   message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 endif()
 if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
 endif()
+
+# Prefer lib directory paths
+file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
+set(CMAKE_PREFIX_PATH ${LIB_SUBDIRS})
 
 # -------------------------------------------------------------------------
 # Find precompiled libraries, and avoid system or user-installed ones.
