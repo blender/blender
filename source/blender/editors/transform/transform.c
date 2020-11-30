@@ -818,9 +818,15 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     t->redraw |= handleSnapping(t, event);
     handled = true;
   }
-  /* handle modal keymap first */
-  /* enforce redraw of transform when modifiers are used */
+  else if (event->val == t->release_confirm_event_val &&
+           event->type == t->release_confirm_event_type) {
+    /* Confirm transform if launch key is released after mouse move. */
+    BLI_assert(t->flag & T_RELEASE_CONFIRM);
+    t->state = TRANS_CONFIRM;
+  }
   else if (event->type == EVT_MODAL_MAP) {
+    /* Handle modal keymap first. */
+    /* Enforce redraw of transform when modifiers are used */
     switch (event->val) {
       case TFM_MODAL_CANCEL:
         t->state = TRANS_CANCEL;
@@ -1122,8 +1128,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
     }
   }
-  /* Else do non-mapped events. */
   else if (event->val == KM_PRESS) {
+    /* Do non-mapped events. */
     switch (event->type) {
       case EVT_CKEY:
         if (event->is_repeat) {
@@ -1210,11 +1216,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-    }
-
-    /* confirm transform if launch key is released after mouse move */
-    if ((t->flag & T_RELEASE_CONFIRM) && event->type == t->launch_event) {
-      t->state = TRANS_CONFIRM;
     }
   }
 
@@ -1687,17 +1688,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->mode = mode;
 
-  /* Needed to translate tweak events to mouse buttons. */
-  t->launch_event = event ? WM_userdef_event_type_from_keymap_type(event->type) : -1;
-  t->is_launch_event_tweak = event ? ISTWEAK(event->type) : false;
-
-  /* XXX Remove this when wm_operator_call_internal doesn't use window->eventstate
-   * (which can have type = 0) */
-  /* For gizmo only, so assume LEFTMOUSE. */
-  if (t->launch_event == 0) {
-    t->launch_event = LEFTMOUSE;
-  }
-
   unit_m3(t->spacemtx);
 
   initTransInfo(C, t, op, event);
@@ -1768,37 +1758,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if (!has_selected_any) {
       postTrans(C, t);
       return 0;
-    }
-  }
-
-  if (event) {
-    /* keymap for shortcut header prints */
-    t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
-
-    /* Stupid code to have Ctrl-Click on gizmo work ok.
-     *
-     * Do this only for translation/rotation/resize because only these
-     * modes are available from gizmo and doing such check could
-     * lead to keymap conflicts for other modes (see T31584)
-     */
-    if (ELEM(mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
-      wmKeyMapItem *kmi;
-
-      for (kmi = t->keymap->items.first; kmi; kmi = kmi->next) {
-        if (kmi->flag & KMI_INACTIVE) {
-          continue;
-        }
-
-        if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS) {
-          if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && event->ctrl) ||
-              (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && event->shift) ||
-              (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && event->alt) ||
-              ((kmi->type == EVT_OSKEY) && event->oskey)) {
-            t->modifiers |= MOD_SNAP_INVERT;
-          }
-          break;
-        }
-      }
     }
   }
 

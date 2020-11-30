@@ -47,6 +47,7 @@ struct ImBuf;
 struct ImageFormatData;
 struct Main;
 struct MenuType;
+struct Operator;
 struct PointerRNA;
 struct PropertyRNA;
 struct ScrArea;
@@ -255,6 +256,9 @@ void WM_event_set_keymap_handler_post_callback(struct wmEventHandler_Keymap *han
 wmKeyMap *WM_event_get_keymap_from_handler(wmWindowManager *wm,
                                            struct wmEventHandler_Keymap *handler);
 
+wmKeyMapItem *WM_event_match_modal_keymap_item(const wmKeyMap *keymap,
+                                               struct wmOperator *op,
+                                               const struct wmEvent *event);
 wmKeyMapItem *WM_event_match_keymap_item(struct bContext *C,
                                          wmKeyMap *keymap,
                                          const struct wmEvent *event);
