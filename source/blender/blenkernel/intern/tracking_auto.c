@@ -59,7 +59,7 @@ typedef struct AutoTrackOptions {
 
 typedef struct AutoTrackContext {
   /* Frame at which tracking process started.
-   * TODO(sergey): Disambiguate whether it is a scene or clip frame. */
+   * NOTE: Measured in scene time frames, */
   int start_frame;
 
   /* True when tracking backwards (from higher frame number to lower frame number.) */
@@ -554,6 +554,8 @@ void BKE_autotrack_context_finish(AutoTrackContext *context)
   for (int clip_index = 0; clip_index < context->num_clips; clip_index++) {
     MovieClip *clip = context->clips[clip_index];
     ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
+    const int start_clip_frame = BKE_movieclip_remap_scene_to_clip_frame(clip,
+                                                                         context->start_frame);
 
     LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
       if ((plane_track->flag & PLANE_TRACK_AUTOKEY)) {
@@ -563,7 +565,7 @@ void BKE_autotrack_context_finish(AutoTrackContext *context)
         const AutoTrackOptions *track_options = &context->track_options[i];
         MovieTrackingTrack *track = track_options->track;
         if (BKE_tracking_plane_track_has_point_track(plane_track, track)) {
-          BKE_tracking_track_plane_from_existing_motion(plane_track, context->start_frame);
+          BKE_tracking_track_plane_from_existing_motion(plane_track, start_clip_frame);
           break;
         }
       }
