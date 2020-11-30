@@ -1205,7 +1205,6 @@ static void rearrange_driver_channels(bAnimContext *ac,
 /* make sure all action-channels belong to a group (and clear action's list) */
 static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
 {
-  bActionGroup *agrp;
   FCurve *fcu;
 
   if (act == NULL) {
@@ -1213,7 +1212,7 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
   }
 
   /* Separate F-Curves into lists per group */
-  for (agrp = act->groups.first; agrp; agrp = agrp->next) {
+  LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
     if (agrp->channels.first) {
       fcu = agrp->channels.last;
       act->curves.first = fcu->next;
@@ -1263,12 +1262,10 @@ static void join_groups_action_temp(bAction *act)
   bActionGroup *agrp;
 
   for (agrp = act->groups.first; agrp; agrp = agrp->next) {
-    ListBase tempGroup;
-
     /* add list of channels to action's channels */
-    tempGroup = agrp->channels;
+    const ListBase group_channels = agrp->channels;
     BLI_movelisttolist(&act->curves, &agrp->channels);
-    agrp->channels = tempGroup;
+    agrp->channels = group_channels;
 
     /* clear moved flag */
     agrp->flag &= ~AGRP_MOVED;
@@ -1278,9 +1275,7 @@ static void join_groups_action_temp(bAction *act)
      * - remove from list (but don't free as it's on the stack!)
      */
     if (agrp->flag & AGRP_TEMP) {
-      FCurve *fcu;
-
-      for (fcu = agrp->channels.first; fcu; fcu = fcu->next) {
+      LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
         fcu->grp = NULL;
       }
 
