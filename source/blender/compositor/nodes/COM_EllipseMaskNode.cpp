@@ -52,12 +52,14 @@ void EllipseMaskNode::convertToOperations(NodeConverter &converter,
 
     /* Scale that image up to render resolution */
     const RenderData *rd = context.getRenderData();
+    const float render_size_factor = context.getRenderPercentageAsFactor();
     ScaleFixedSizeOperation *scaleOperation = new ScaleFixedSizeOperation();
+
     scaleOperation->setIsAspect(false);
     scaleOperation->setIsCrop(false);
     scaleOperation->setOffset(0.0f, 0.0f);
-    scaleOperation->setNewWidth(rd->xsch * rd->size / 100.0f);
-    scaleOperation->setNewHeight(rd->ysch * rd->size / 100.0f);
+    scaleOperation->setNewWidth(rd->xsch * render_size_factor);
+    scaleOperation->setNewHeight(rd->ysch * render_size_factor);
     scaleOperation->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
     converter.addOperation(scaleOperation);
 

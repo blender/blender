@@ -54,7 +54,7 @@ void ScaleNode::convertToOperations(NodeConverter &converter,
     }
     case CMP_SCALE_SCENEPERCENT: {
       SetValueOperation *scaleFactorOperation = new SetValueOperation();
-      scaleFactorOperation->setValue(context.getRenderData()->size / 100.0f);
+      scaleFactorOperation->setValue(context.getRenderPercentageAsFactor());
       converter.addOperation(scaleFactorOperation);
 
       ScaleOperation *operation = new ScaleOperation();
@@ -71,13 +71,14 @@ void ScaleNode::convertToOperations(NodeConverter &converter,
     }
     case CMP_SCALE_RENDERPERCENT: {
       const RenderData *rd = context.getRenderData();
+      const float render_size_factor = context.getRenderPercentageAsFactor();
       ScaleFixedSizeOperation *operation = new ScaleFixedSizeOperation();
       /* framing options */
       operation->setIsAspect((bnode->custom2 & CMP_SCALE_RENDERSIZE_FRAME_ASPECT) != 0);
       operation->setIsCrop((bnode->custom2 & CMP_SCALE_RENDERSIZE_FRAME_CROP) != 0);
       operation->setOffset(bnode->custom3, bnode->custom4);
-      operation->setNewWidth(rd->xsch * rd->size / 100.0f);
-      operation->setNewHeight(rd->ysch * rd->size / 100.0f);
+      operation->setNewWidth(rd->xsch * render_size_factor);
+      operation->setNewHeight(rd->ysch * render_size_factor);
       operation->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
       converter.addOperation(operation);
 

@@ -31,6 +31,7 @@ void MaskNode::convertToOperations(NodeConverter &converter,
                                    const CompositorContext &context) const
 {
   const RenderData *rd = context.getRenderData();
+  const float render_size_factor = context.getRenderPercentageAsFactor();
 
   NodeOutput *outputMask = this->getOutputSocket(0);
 
@@ -46,12 +47,12 @@ void MaskNode::convertToOperations(NodeConverter &converter,
     operation->setMaskHeight(data->size_y);
   }
   else if (editorNode->custom1 & CMP_NODEFLAG_MASK_FIXED_SCENE) {
-    operation->setMaskWidth(data->size_x * (rd->size / 100.0f));
-    operation->setMaskHeight(data->size_y * (rd->size / 100.0f));
+    operation->setMaskWidth(data->size_x * render_size_factor);
+    operation->setMaskHeight(data->size_y * render_size_factor);
   }
   else {
-    operation->setMaskWidth(rd->xsch * rd->size / 100.0f);
-    operation->setMaskHeight(rd->ysch * rd->size / 100.0f);
+    operation->setMaskWidth(rd->xsch * render_size_factor);
+    operation->setMaskHeight(rd->ysch * render_size_factor);
   }
 
   operation->setMask(mask);
