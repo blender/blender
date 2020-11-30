@@ -856,7 +856,7 @@ static const EnumPropertyItem tracker_motion_model[] = {
 
 static const EnumPropertyItem pattern_match_items[] = {
     {TRACK_MATCH_KEYFRAME, "KEYFRAME", 0, "Keyframe", "Track pattern from keyframe to next frame"},
-    {TRACK_MATCH_PREVFRAME,
+    {TRACK_MATCH_PREVIOS_FRAME,
      "PREV_FRAME",
      0,
      "Previous frame",

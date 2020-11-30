@@ -165,7 +165,8 @@ typedef struct MovieTrackingTrack {
   short frames_limit;
   /** Margin from frame boundaries. */
   short margin;
-  /** Re-adjust every N frames. */
+  /** Denotes which frame is used for the reference during tracking.
+   * An enumerator of `eTrackFrameMatch`. */
   short pattern_match;
 
   /* tracking parameters */
@@ -268,7 +269,8 @@ typedef struct MovieTrackingSettings {
   short default_frames_limit;
   /** Margin from frame boundaries. */
   short default_margin;
-  /** Re-adjust every N frames. */
+  /** Denotes which frame is used for the reference during tracking.
+   * An enumerator of `eTrackFrameMatch`. */
   short default_pattern_match;
   /** Default flags like color channels used by default. */
   short default_flag;
@@ -518,11 +520,11 @@ enum {
   TRACK_ALGORITHM_FLAG_USE_MASK = (1 << 3),
 };
 
-/* MovieTrackingTrack->adjframes */
-enum {
+/* MovieTrackingTrack->pattern_match */
+typedef enum eTrackFrameMatch {
   TRACK_MATCH_KEYFRAME = 0,
-  TRACK_MATCH_PREVFRAME = 1,
-};
+  TRACK_MATCH_PREVIOS_FRAME = 1,
+} eTrackFrameMatch;
 
 /* MovieTrackingSettings->flag */
 enum {
