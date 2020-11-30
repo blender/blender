@@ -1213,15 +1213,29 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
 
   /* Separate F-Curves into lists per group */
   LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
-    if (agrp->channels.first) {
-      fcu = agrp->channels.last;
-      act->curves.first = fcu->next;
+    FCurve *const group_fcurves_first = agrp->channels.first;
+    FCurve *const group_fcurves_last = agrp->channels.last;
+    if (group_fcurves_first == NULL) {
+      /* Empty group. */
+      continue;
+    }
 
-      fcu = agrp->channels.first;
-      fcu->prev = NULL;
+    if (group_fcurves_first == act->curves.first) {
+      /* First of the action curves, update the start of the action curves. */
+      BLI_assert(group_fcurves_first->prev == NULL);
+      act->curves.first = group_fcurves_last->next;
+    }
+    else {
+      group_fcurves_first->prev->next = group_fcurves_last->next;
+    }
 
-      fcu = agrp->channels.last;
-      fcu->next = NULL;
+    if (group_fcurves_last == act->curves.last) {
+      /* Last of the action curves, update the end of the action curves. */
+      BLI_assert(group_fcurves_last->next == NULL);
+      act->curves.last = group_fcurves_first->prev;
+    }
+    else {
+      group_fcurves_last->next->prev = group_fcurves_first->prev;
     }
   }
 
@@ -1277,12 +1291,22 @@ static void join_groups_action_temp(bAction *act)
     if (agrp->flag & AGRP_TEMP) {
       LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
         fcu->grp = NULL;
+        if (fcu == agrp->channels.last) {
+          break;
+        }
       }
 
       BLI_remlink(&act->groups, agrp);
       break;
     }
   }
+
+  /* BLI_movelisttolist() doesn't touch first->prev and last->next pointers in its "dst" list.
+   * Ensure that after the reshuffling the list is properly terminated. */
+  FCurve *act_fcurves_first = act->curves.first;
+  act_fcurves_first->prev = NULL;
+  FCurve *act_fcurves_last = act->curves.last;
+  act_fcurves_last->next = NULL;
 }
 
 /* Change the order of anim-channels within action
