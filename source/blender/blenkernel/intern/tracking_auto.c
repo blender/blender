@@ -76,19 +76,13 @@ typedef struct AutoTrackContext {
   MovieClip *clips[MAX_ACCESSOR_CLIP];
 
   /* Tracks for which the context has been created for.
-   * Most usually this is all track selected in the interface when tracking in initialized.
-   *
-   * NOTE: Actually being-tracked tracks is a subset of those, as the tracker might loose track of
-   * where markers are. For example, if feature gets occluded, corresponding marker can not be
-   * tracked, and hence track is considered finished.
-   *
-   * The need of knowledge of all tracks which might potentially be modified during tracking comes
-   * form plane tracks: plane tracks needs adjustment if any of their tracks changed during
-   * tracking.
+   * This is a flat array of all tracks coming from all clips, regardless of whether track is
+   * actually being tracked or not. This allows the AutoTrack to see a big picture of hat is going
+   * on in the scene, and request information it needs.
    *
    * Indexed by AutoTrackOptions::track_index. */
-  int num_input_tracks;
-  MovieTrackingTrack **input_tracks;
+  int num_all_tracks;
+  MovieTrackingTrack **all_tracks;
 
   /* Dimensions of movie frame, in pixels.
    *
@@ -107,6 +101,7 @@ typedef struct AutoTrackContext {
    * NOTE: Is accessed from multiple threads at once. */
   struct libmv_AutoTrack *autotrack;
 
+  int num_track_options;
   AutoTrackOptions *track_options; /* Per-tracking track options. */
 
   int sync_frame;
@@ -340,15 +335,17 @@ static void create_per_track_tracking_options(const MovieClip *clip,
   /* Count number of trackable tracks. */
   LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
     if (check_track_trackable(clip, track, user)) {
-      context->num_input_tracks++;
+      context->num_track_options++;
     }
   }
   /* Allocate required memory. */
-  context->track_options = MEM_callocN(sizeof(AutoTrackOptions) * context->num_input_tracks,
+  context->track_options = MEM_callocN(sizeof(AutoTrackOptions) * context->num_track_options,
                                        "auto track options");
   /* Fill in all the settings. */
   int i = 0, track_index = 0;
   LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+    context->all_tracks[track_index] = track;
+
     if (!check_track_trackable(clip, track, user)) {
       track_index++;
       continue;
@@ -364,7 +361,6 @@ static void create_per_track_tracking_options(const MovieClip *clip,
 
     tracking_configure_tracker(track, NULL, &track_options->track_region_options);
 
-    context->input_tracks[track_index] = track;
     track_index++;
   }
 }
@@ -390,19 +386,19 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
   context->sync_frame = user->framenr;
   context->first_sync = true;
   BLI_spin_init(&context->spin_lock);
-  const int num_total_tracks = BLI_listbase_count(tracksbase);
-  context->input_tracks = MEM_callocN(sizeof(MovieTrackingTrack *) * num_total_tracks,
-                                      "auto track pointers");
+  context->num_all_tracks = BLI_listbase_count(tracksbase);
+  context->all_tracks = MEM_callocN(sizeof(MovieTrackingTrack *) * context->num_all_tracks,
+                                    "auto track pointers");
+  /* Create per-track tracking options. */
+  create_per_track_tracking_options(clip, user, tracksbase, context);
   /* Initialize image accessor. */
   context->image_accessor = tracking_image_accessor_new(
-      context->clips, 1, context->input_tracks, num_total_tracks);
+      context->clips, 1, context->all_tracks, context->num_all_tracks);
   /* Initialize auto track context and provide all information about currently
    * tracked markers.
    */
   context->autotrack = libmv_autoTrackNew(context->image_accessor->libmv_accessor);
   fill_autotrack_tracks(frame_width, frame_height, tracksbase, is_backwards, context->autotrack);
-  /* Create per-track tracking options. */
-  create_per_track_tracking_options(clip, user, tracksbase, context);
   return context;
 }
 
@@ -485,9 +481,9 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (context->num_input_tracks > 1);
+  settings.use_threading = (context->num_track_options > 1);
   BLI_task_parallel_range(
-      0, context->num_input_tracks, context, autotrack_context_step_cb, &settings);
+      0, context->num_track_options, context, autotrack_context_step_cb, &settings);
 
   /* Advance the frame. */
   BLI_spin_lock(&context->spin_lock);
@@ -508,7 +504,7 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
     MovieTrackingMarker marker;
     libmv_Marker libmv_marker;
     int clip = 0;
-    for (int i = 0; i < context->num_input_tracks; i++) {
+    for (int i = 0; i < context->num_track_options; i++) {
       AutoTrackOptions *track_options = &context->track_options[i];
       MovieTrackingTrack *track = track_options->track;
       const int clip_index = track_options->clip_index;
@@ -574,7 +570,7 @@ void BKE_autotrack_context_finish(AutoTrackContext *context)
       if ((plane_track->flag & PLANE_TRACK_AUTOKEY)) {
         continue;
       }
-      for (int i = 0; i < context->num_input_tracks; i++) {
+      for (int i = 0; i < context->num_track_options; i++) {
         const AutoTrackOptions *track_options = &context->track_options[i];
         MovieTrackingTrack *track = track_options->track;
         if (BKE_tracking_plane_track_has_point_track(plane_track, track)) {
@@ -591,7 +587,7 @@ void BKE_autotrack_context_free(AutoTrackContext *context)
   libmv_autoTrackDestroy(context->autotrack);
   tracking_image_accessor_destroy(context->image_accessor);
   MEM_freeN(context->track_options);
-  MEM_freeN(context->input_tracks);
+  MEM_freeN(context->all_tracks);
   BLI_spin_end(&context->spin_lock);
   MEM_freeN(context);
 }
