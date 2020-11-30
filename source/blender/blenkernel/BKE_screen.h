@@ -234,6 +234,8 @@ typedef struct PanelType {
   char category[BKE_ST_MAXNAME];  /* for category tabs */
   char owner_id[BKE_ST_MAXNAME];  /* for work-spaces to selectively show. */
   char parent_id[BKE_ST_MAXNAME]; /* parent idname for sub-panels */
+  /** Boolean property identifier of the panel custom data. Used to draw a highlighted border. */
+  char active_property[BKE_ST_MAXNAME];
   short space_type;
   short region_type;
   /* For popovers, 0 for default. */
@@ -250,11 +252,6 @@ typedef struct PanelType {
   void (*draw_header_preset)(const struct bContext *C, struct Panel *panel);
   /* draw entirely, view changes should be handled here */
   void (*draw)(const struct bContext *C, struct Panel *panel);
-
-  /**
-   * Identifier of a boolean property of the panel custom data. Used to draw a highlighted border.
-   */
-  const char *active_property;
 
   /* For instanced panels corresponding to a list: */
 

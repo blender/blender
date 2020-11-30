@@ -589,7 +589,7 @@ static bool panel_use_active_highlight(const Panel *panel)
   BLI_assert(UI_panel_is_active(panel));
   BLI_assert(panel->type != NULL);
 
-  if (panel->type->active_property) {
+  if (panel->type->active_property[0] != '\0') {
     PointerRNA *ptr = UI_panel_custom_data_get(panel);
     if (ptr != NULL && !RNA_pointer_is_null(ptr)) {
       return RNA_boolean_get(ptr, panel->type->active_property);

@@ -409,6 +409,7 @@ PanelType *modifier_panel_register(ARegionType *region_type, ModifierType type, 
   BLI_strncpy(panel_type->label, "", BKE_ST_MAXNAME);
   BLI_strncpy(panel_type->context, "modifier", BKE_ST_MAXNAME);
   BLI_strncpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
+  BLI_strncpy(panel_type->active_property, "is_active", BKE_ST_MAXNAME);
 
   panel_type->draw_header = modifier_panel_header;
   panel_type->draw = draw;
@@ -417,7 +418,6 @@ PanelType *modifier_panel_register(ARegionType *region_type, ModifierType type, 
   /* Give the panel the special flag that says it was built here and corresponds to a
    * modifier rather than a #PanelType. */
   panel_type->flag = PANEL_TYPE_HEADER_EXPAND | PANEL_TYPE_DRAW_BOX | PANEL_TYPE_INSTANCED;
-  panel_type->active_property = "is_active";
   panel_type->reorder = modifier_reorder;
   panel_type->get_list_data_expand_flag = get_modifier_expand_flag;
   panel_type->set_list_data_expand_flag = set_modifier_expand_flag;
