@@ -452,7 +452,7 @@ void BKE_collection_add_from_collection(Main *bmain,
   bool is_instantiated = false;
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-    if (!ID_IS_LINKED(collection) && BKE_collection_has_collection(collection, collection_src)) {
+    if (!ID_IS_LINKED(collection) && collection_find_child(collection, collection_src)) {
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
