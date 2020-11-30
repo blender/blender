@@ -426,7 +426,7 @@ void GLShader::vertformat_from_shader(GPUVertFormat *format) const
   }
 }
 
-int GLShader::program_handle_get(void) const
+int GLShader::program_handle_get() const
 {
   return (int)this->shader_program_;
 }
