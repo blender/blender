@@ -62,6 +62,10 @@ typedef struct AutoTrackContext {
    * NOTE: Measured in scene time frames, */
   int start_scene_frame;
 
+  /* Scene frame number from which tracker will perform the trackign step.
+   * The direction of the step is denoted by `is_backwards`. */
+  int current_scene_frame;
+
   /* True when tracking backwards (from higher frame number to lower frame number.) */
   bool is_backwards;
 
@@ -87,7 +91,6 @@ typedef struct AutoTrackContext {
   int num_input_tracks;
   MovieTrackingTrack **input_tracks;
 
-  MovieClipUser user;
   int frame_width, frame_height;
 
   struct libmv_AutoTrack *autotrack;
@@ -368,9 +371,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
   /* TODO(sergey): Currently using only a single clip. */
   context->clips[0] = clip;
   context->num_clips = 1;
-  context->user = *user;
-  context->user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
-  context->user.render_flag = 0;
+  context->current_scene_frame = user->framenr;
   context->frame_width = frame_width;
   context->frame_height = frame_height;
   context->is_backwards = is_backwards;
@@ -413,7 +414,7 @@ static void autotrack_context_step_cb(void *__restrict userdata,
   libmv_TrackRegionResult libmv_result;
 
   MovieClip *clip = context->clips[clip_index];
-  const int frame = BKE_movieclip_remap_scene_to_clip_frame(clip, context->user.framenr);
+  const int frame = BKE_movieclip_remap_scene_to_clip_frame(clip, context->current_scene_frame);
   BLI_spin_lock(&context->spin_lock);
   const bool has_marker = libmv_autoTrackGetMarker(
       context->autotrack, clip_index, frame, track_index, &libmv_current_marker);
@@ -478,7 +479,7 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 
   /* Advance the frame. */
   BLI_spin_lock(&context->spin_lock);
-  context->user.framenr += frame_delta;
+  context->current_scene_frame += frame_delta;
   BLI_spin_unlock(&context->spin_lock);
   return context->step_ok;
 }
@@ -488,7 +489,7 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
   int newframe, frame_delta = context->is_backwards ? -1 : 1;
 
   BLI_spin_lock(&context->spin_lock);
-  newframe = context->user.framenr;
+  newframe = context->current_scene_frame;
   for (int frame = context->sync_frame;
        frame != (context->is_backwards ? newframe - 1 : newframe + 1);
        frame += frame_delta) {
