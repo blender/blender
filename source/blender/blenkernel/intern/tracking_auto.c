@@ -46,7 +46,9 @@ typedef struct AutoTrackOptions {
   int track_index;           /* Index of the track in AutoTrack tracks structure. */
   MovieTrackingTrack *track; /* Pointer to an original track/ */
   libmv_TrackRegionOptions track_region_options; /* Options for the region tracker. */
-  bool use_keyframe_match;                       /* Keyframe pattern matching. */
+
+  /* Define which frame is used for reference marker. */
+  eTrackFrameMatch frame_match;
 
   /* TODO(sergey): A bit awkward to keep it in here, only used to
    * place a disabled marker once the tracking fails,
@@ -361,7 +363,7 @@ static void create_per_track_tracking_options(const MovieClip *clip,
     track_options->clip_index = 0;
     track_options->track_index = track_index;
     track_options->track = track;
-    track_options->use_keyframe_match = (track->pattern_match == TRACK_MATCH_KEYFRAME);
+    track_options->frame_match = track->pattern_match;
 
     tracking_configure_tracker(track, NULL, &track_options->track_region_options);
 
@@ -445,7 +447,7 @@ static void autotrack_context_step_cb(void *__restrict userdata,
   libmv_tracked_marker = libmv_current_marker;
   libmv_tracked_marker.frame = frame + frame_delta;
   /* Update reference frame. */
-  if (track_options->use_keyframe_match) {
+  if (track_options->frame_match == TRACK_MATCH_KEYFRAME) {
     libmv_tracked_marker.reference_frame = libmv_current_marker.reference_frame;
     libmv_autoTrackGetMarker(context->autotrack,
                              track_options->clip_index,
@@ -454,6 +456,7 @@ static void autotrack_context_step_cb(void *__restrict userdata,
                              &libmv_reference_marker);
   }
   else {
+    BLI_assert(track_options->frame_match == TRACK_MATCH_PREVIOS_FRAME);
     libmv_tracked_marker.reference_frame = frame;
     libmv_reference_marker = libmv_current_marker;
   }
