@@ -1165,11 +1165,9 @@ static void rna_NodeTree_link_clear(bNodeTree *ntree, Main *bmain, ReportList *r
 static int rna_NodeTree_active_input_get(PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->data;
-  bNodeSocket *gsock;
-  int index;
-
-  for (gsock = ntree->inputs.first, index = 0; gsock; gsock = gsock->next, index++) {
-    if (gsock->flag & SELECT) {
+  int index = 0;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &ntree->inputs, index) {
+    if (socket->flag & SELECT) {
       return index;
     }
   }
@@ -1179,30 +1177,22 @@ static int rna_NodeTree_active_input_get(PointerRNA *ptr)
 static void rna_NodeTree_active_input_set(PointerRNA *ptr, int value)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->data;
-  bNodeSocket *gsock;
-  int index;
 
-  for (gsock = ntree->inputs.first, index = 0; gsock; gsock = gsock->next, index++) {
-    if (index == value) {
-      gsock->flag |= SELECT;
-    }
-    else {
-      gsock->flag &= ~SELECT;
-    }
+  int index = 0;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &ntree->inputs, index) {
+    SET_FLAG_FROM_TEST(socket->flag, index == value, SELECT);
   }
-  for (gsock = ntree->outputs.first; gsock; gsock = gsock->next) {
-    gsock->flag &= ~SELECT;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->outputs) {
+    socket->flag &= ~SELECT;
   }
 }
 
 static int rna_NodeTree_active_output_get(PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->data;
-  bNodeSocket *gsock;
-  int index;
-
-  for (gsock = ntree->outputs.first, index = 0; gsock; gsock = gsock->next, index++) {
-    if (gsock->flag & SELECT) {
+  int index = 0;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &ntree->outputs, index) {
+    if (socket->flag & SELECT) {
       return index;
     }
   }
@@ -1212,32 +1202,24 @@ static int rna_NodeTree_active_output_get(PointerRNA *ptr)
 static void rna_NodeTree_active_output_set(PointerRNA *ptr, int value)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->data;
-  bNodeSocket *gsock;
-  int index;
 
-  for (gsock = ntree->inputs.first; gsock; gsock = gsock->next) {
-    gsock->flag &= ~SELECT;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->inputs) {
+    socket->flag &= ~SELECT;
   }
-  for (gsock = ntree->outputs.first, index = 0; gsock; gsock = gsock->next, index++) {
-    if (index == value) {
-      gsock->flag |= SELECT;
-    }
-    else {
-      gsock->flag &= ~SELECT;
-    }
+  int index = 0;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &ntree->outputs, index) {
+    SET_FLAG_FROM_TEST(socket->flag, index == value, SELECT);
   }
 }
 
 static bNodeSocket *rna_NodeTree_inputs_new(
     bNodeTree *ntree, Main *bmain, ReportList *reports, const char *type, const char *name)
 {
-  bNodeSocket *sock;
-
   if (!rna_NodeTree_check(ntree, reports)) {
     return NULL;
   }
 
-  sock = ntreeAddSocketInterface(ntree, SOCK_IN, type, name);
+  bNodeSocket *sock = ntreeAddSocketInterface(ntree, SOCK_IN, type, name);
 
   ntreeUpdateTree(bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
@@ -1248,13 +1230,11 @@ static bNodeSocket *rna_NodeTree_inputs_new(
 static bNodeSocket *rna_NodeTree_outputs_new(
     bNodeTree *ntree, Main *bmain, ReportList *reports, const char *type, const char *name)
 {
-  bNodeSocket *sock;
-
   if (!rna_NodeTree_check(ntree, reports)) {
     return NULL;
   }
 
-  sock = ntreeAddSocketInterface(ntree, SOCK_OUT, type, name);
+  bNodeSocket *sock = ntreeAddSocketInterface(ntree, SOCK_OUT, type, name);
 
   ntreeUpdateTree(bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
@@ -1284,15 +1264,12 @@ static void rna_NodeTree_socket_remove(bNodeTree *ntree,
 
 static void rna_NodeTree_inputs_clear(bNodeTree *ntree, Main *bmain, ReportList *reports)
 {
-  bNodeSocket *sock, *nextsock;
-
   if (!rna_NodeTree_check(ntree, reports)) {
     return;
   }
 
-  for (sock = ntree->inputs.first; sock; sock = nextsock) {
-    nextsock = sock->next;
-    ntreeRemoveSocketInterface(ntree, sock);
+  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, socket, &ntree->inputs) {
+    ntreeRemoveSocketInterface(ntree, socket);
   }
 
   ntreeUpdateTree(bmain, ntree);
@@ -1301,15 +1278,12 @@ static void rna_NodeTree_inputs_clear(bNodeTree *ntree, Main *bmain, ReportList 
 
 static void rna_NodeTree_outputs_clear(bNodeTree *ntree, Main *bmain, ReportList *reports)
 {
-  bNodeSocket *sock, *nextsock;
-
   if (!rna_NodeTree_check(ntree, reports)) {
     return;
   }
 
-  for (sock = ntree->outputs.first; sock; sock = nextsock) {
-    nextsock = sock->next;
-    ntreeRemoveSocketInterface(ntree, sock);
+  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, socket, &ntree->outputs) {
+    ntreeRemoveSocketInterface(ntree, socket);
   }
 
   ntreeUpdateTree(bmain, ntree);
@@ -1318,8 +1292,6 @@ static void rna_NodeTree_outputs_clear(bNodeTree *ntree, Main *bmain, ReportList
 
 static void rna_NodeTree_inputs_move(bNodeTree *ntree, Main *bmain, int from_index, int to_index)
 {
-  bNodeSocket *sock;
-
   if (from_index == to_index) {
     return;
   }
@@ -1327,7 +1299,7 @@ static void rna_NodeTree_inputs_move(bNodeTree *ntree, Main *bmain, int from_ind
     return;
   }
 
-  sock = BLI_findlink(&ntree->inputs, from_index);
+  bNodeSocket *sock = BLI_findlink(&ntree->inputs, from_index);
   if (to_index < from_index) {
     bNodeSocket *nextsock = BLI_findlink(&ntree->inputs, to_index);
     if (nextsock) {
@@ -1351,8 +1323,6 @@ static void rna_NodeTree_inputs_move(bNodeTree *ntree, Main *bmain, int from_ind
 
 static void rna_NodeTree_outputs_move(bNodeTree *ntree, Main *bmain, int from_index, int to_index)
 {
-  bNodeSocket *sock;
-
   if (from_index == to_index) {
     return;
   }
@@ -1360,7 +1330,7 @@ static void rna_NodeTree_outputs_move(bNodeTree *ntree, Main *bmain, int from_in
     return;
   }
 
-  sock = BLI_findlink(&ntree->outputs, from_index);
+  bNodeSocket *sock = BLI_findlink(&ntree->outputs, from_index);
   if (to_index < from_index) {
     bNodeSocket *nextsock = BLI_findlink(&ntree->outputs, to_index);
     if (nextsock) {
