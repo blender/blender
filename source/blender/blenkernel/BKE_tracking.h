@@ -326,8 +326,7 @@ void BKE_tracking_refine_marker(struct MovieClip *clip,
 
 struct AutoTrackContext *BKE_autotrack_context_new(struct MovieClip *clip,
                                                    struct MovieClipUser *user,
-                                                   const bool backwards,
-                                                   const bool sequence);
+                                                   const bool backwards);
 bool BKE_autotrack_context_step(struct AutoTrackContext *context);
 void BKE_autotrack_context_sync(struct AutoTrackContext *context);
 void BKE_autotrack_context_sync_user(struct AutoTrackContext *context, struct MovieClipUser *user);

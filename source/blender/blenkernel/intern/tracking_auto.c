@@ -74,7 +74,6 @@ typedef struct AutoTrackContext {
   MovieTrackingTrack **tracks;
 
   bool backwards;
-  bool sequence;
   int first_frame;
   int sync_frame;
   bool first_sync;
@@ -334,8 +333,7 @@ static void create_per_track_tracking_options(const MovieClip *clip,
 
 AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
                                             MovieClipUser *user,
-                                            const bool backwards,
-                                            const bool sequence)
+                                            const bool backwards)
 {
   AutoTrackContext *context = MEM_callocN(sizeof(AutoTrackContext), "autotrack context");
   MovieTracking *tracking = &clip->tracking;
@@ -352,7 +350,6 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
   context->frame_width = frame_width;
   context->frame_height = frame_height;
   context->backwards = backwards;
-  context->sequence = sequence;
   context->first_frame = user->framenr;
   context->sync_frame = user->framenr;
   context->first_sync = true;
