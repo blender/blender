@@ -71,9 +71,6 @@ typedef struct AutoTrackContext {
   /* True when tracking backwards (from higher frame number to lower frame number.) */
   bool is_backwards;
 
-  /* True when entire sequence is being tracked. */
-  bool is_sequence;
-
   /* Movie clips used during the trackign process. */
   int num_clips;
   MovieClip *clips[MAX_ACCESSOR_CLIP];
