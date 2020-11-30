@@ -501,7 +501,76 @@ void GRAPH_OT_select_all(wmOperatorType *ot)
  * The selection backend is also reused for the Lasso and Circle select operators.
  */
 
-/* Box Select only selects keyframes now, as overshooting handles often get caught too,
+
+static rctf initialize_box_select_coords(const bAnimContext *ac, const rctf *rectf_view)
+{
+  const View2D *v2d = &ac->region->v2d;
+  rctf rectf;
+
+  /* Convert mouse coordinates to frame ranges and
+   * channel coordinates corrected for view pan/zoom. */
+  UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
+  return rectf;
+}
+
+static ListBase initialize_box_select_anim_data(const SpaceGraph *sipo, bAnimContext *ac)
+{
+  ListBase anim_data = {NULL, NULL};
+
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
+  if (sipo->flag & SIPO_SELCUVERTSONLY) {
+    filter |= ANIMFILTER_FOREDIT | ANIMFILTER_SELEDIT;
+  }
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+  return anim_data;
+}
+
+static void initialize_box_select_key_editing_data(const SpaceGraph *sipo,
+                                                   const bool incl_handles,
+                                                   const short mode,
+                                                   bAnimContext *ac,
+                                                   void *data,
+                                                   rctf *scaled_rectf,
+                                                   KeyframeEditData *r_ked,
+                                                   int *r_mapping_flag)
+{
+  memset(r_ked, 0, sizeof(KeyframeEditData));
+  switch (mode) {
+    case BEZT_OK_REGION_LASSO: {
+      KeyframeEdit_LassoData *data_lasso = data;
+      data_lasso->rectf_scaled = scaled_rectf;
+      r_ked->data = data_lasso;
+      break;
+    }
+    case BEZT_OK_REGION_CIRCLE: {
+      KeyframeEdit_CircleData *data_circle = data;
+      data_circle->rectf_scaled = scaled_rectf;
+      r_ked->data = data_circle;
+      break;
+    }
+    default:
+      r_ked->data = scaled_rectf;
+      break;
+  }
+
+  if (sipo->flag & SIPO_SELVHANDLESONLY) {
+    r_ked->iterflags |= KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE;
+  }
+
+  /* Enable handles selection. (used in keyframes_edit.c > KEYFRAME_OK_CHECKS macro) */
+  if (incl_handles) {
+    r_ked->iterflags |= KEYFRAME_ITER_INCL_HANDLES;
+    *r_mapping_flag = 0;
+  }
+  else {
+    *r_mapping_flag = ANIM_UNITCONV_ONLYKEYS;
+  }
+
+  *r_mapping_flag |= ANIM_get_normalization_flags(ac);
+}
+
+/* Box Select only selects keyframes, as overshooting handles often get caught too,
  * which means that they may be inadvertently moved as well. However, incl_handles overrides
  * this, and allow handles to be considered independently too.
  * Also, for convenience, handles should get same status as keyframe (if it was within bounds).
@@ -513,72 +582,32 @@ static void box_select_graphkeys(bAnimContext *ac,
                                  bool incl_handles,
                                  void *data)
 {
-  ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter, mapping_flag;
-
+  const rctf rectf = initialize_box_select_coords(ac, rectf_view);
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
+  ListBase anim_data = initialize_box_select_anim_data(sipo, ac);
+  rctf scaled_rectf;
   KeyframeEditData ked;
-  KeyframeEditFunc ok_cb, select_cb;
-  View2D *v2d = &ac->region->v2d;
-  rctf rectf, scaled_rectf;
+  int mapping_flag;
+  initialize_box_select_key_editing_data(
+      sipo, incl_handles, mode, ac, data, &scaled_rectf, &ked, &mapping_flag);
 
-  /* Convert mouse coordinates to frame ranges and
-   * channel coordinates corrected for view pan/zoom. */
-  UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
+  /* Get beztriple editing/validation funcs.  */
+  const KeyframeEditFunc select_cb = ANIM_editkeyframes_select(selectmode);
+  const KeyframeEditFunc ok_cb = ANIM_editkeyframes_ok(mode);
 
-  /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
-  if (sipo->flag & SIPO_SELCUVERTSONLY) {
-    filter |= ANIMFILTER_FOREDIT | ANIMFILTER_SELEDIT;
-  }
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  /* Try selecting the keyframes. */
+  bAnimListElem *ale = NULL;
 
-  /* get beztriple editing/validation funcs  */
-  select_cb = ANIM_editkeyframes_select(selectmode);
-  ok_cb = ANIM_editkeyframes_ok(mode);
-
-  /* init editing data */
-  memset(&ked, 0, sizeof(KeyframeEditData));
-  if (mode == BEZT_OK_REGION_LASSO) {
-    KeyframeEdit_LassoData *data_lasso = data;
-    data_lasso->rectf_scaled = &scaled_rectf;
-    ked.data = data_lasso;
-  }
-  else if (mode == BEZT_OK_REGION_CIRCLE) {
-    KeyframeEdit_CircleData *data_circle = data;
-    data_circle->rectf_scaled = &scaled_rectf;
-    ked.data = data;
-  }
-  else {
-    ked.data = &scaled_rectf;
-  }
-
-  if (sipo->flag & SIPO_SELVHANDLESONLY) {
-    ked.iterflags |= KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE;
-  }
-
-  /* treat handles separately? */
-  if (incl_handles) {
-    ked.iterflags |= KEYFRAME_ITER_INCL_HANDLES;
-    mapping_flag = 0;
-  }
-  else {
-    mapping_flag = ANIM_UNITCONV_ONLYKEYS;
-  }
-
-  mapping_flag |= ANIM_get_normalization_flags(ac);
-
-  /* loop over data, doing box select */
+  /* First loop over data, doing box select. try selecting keys only. */
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
     FCurve *fcu = (FCurve *)ale->key_data;
     float offset;
-    float unit_scale = ANIM_unit_mapping_get_factor(
+    const float unit_scale = ANIM_unit_mapping_get_factor(
         ac->scene, ale->id, fcu, mapping_flag, &offset);
 
-    /* apply NLA mapping to all the keyframes, since it's easier than trying to
-     * guess when a callback might use something different
+    /* Apply NLA mapping to all the keyframes, since it's easier than trying to
+     * guess when a callback might use something different.
      */
     if (adt) {
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, incl_handles == 0);
@@ -589,7 +618,7 @@ static void box_select_graphkeys(bAnimContext *ac,
     scaled_rectf.ymin = rectf.ymin / unit_scale - offset;
     scaled_rectf.ymax = rectf.ymax / unit_scale - offset;
 
-    /* set horizontal range (if applicable)
+    /* Set horizontal range (if applicable).
      * NOTE: these values are only used for x-range and y-range but not region
      *      (which uses ked.data, i.e. rectf)
      */
@@ -602,7 +631,7 @@ static void box_select_graphkeys(bAnimContext *ac,
       ked.f2 = rectf.ymax;
     }
 
-    /* firstly, check if any keyframes will be hit by this */
+    /* Firstly, check if any keyframes will be hit by this. */
     if (ANIM_fcurve_keyframes_loop(&ked, fcu, NULL, ok_cb, NULL)) {
       /* select keyframes that are in the appropriate places */
       ANIM_fcurve_keyframes_loop(&ked, fcu, ok_cb, select_cb, NULL);
@@ -617,13 +646,13 @@ static void box_select_graphkeys(bAnimContext *ac,
       }
     }
 
-    /* un-apply NLA mapping from all the keyframes */
+    /* Un-apply NLA mapping from all the keyframes. */
     if (adt) {
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, incl_handles == 0);
     }
   }
 
-  /* cleanup */
+  /* Cleanup. */
   ANIM_animdata_freelist(&anim_data);
 }
 
@@ -672,12 +701,12 @@ static int graphkeys_box_select_exec(bContext *C, wmOperator *op)
   /* 'include_handles' from the operator specifies whether to include handles in the selection. */
   const bool incl_handles = RNA_boolean_get(op->ptr, "include_handles");
 
-  /* get settings from operator */
+  /* Get settings from operator. */
   WM_operator_properties_border_to_rcti(op, &rect);
 
-  /* selection 'mode' depends on whether box_select region only matters on one axis */
+  /* Selection 'mode' depends on whether box_select region only matters on one axis. */
   if (RNA_boolean_get(op->ptr, "axis_range")) {
-    /* mode depends on which axis of the range is larger to determine which axis to use
+    /* Mode depends on which axis of the range is larger to determine which axis to use
      * - Checking this in region-space is fine, as it's fundamentally still going to be a
      *   different rect size.
      * - The frame-range select option is favored over the channel one (x over y),
@@ -697,10 +726,9 @@ static int graphkeys_box_select_exec(bContext *C, wmOperator *op)
 
   BLI_rctf_rcti_copy(&rect_fl, &rect);
 
-  /* apply box_select action */
+  /* Apply box_select action. */
   box_select_graphkeys(&ac, &rect_fl, mode, selectmode, incl_handles, NULL);
-
-  /* send notifier that keyframe selection has changed */
+  /* Send notifier that keyframe selection has changed. */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
 
   return OPERATOR_FINISHED;
@@ -708,12 +736,12 @@ static int graphkeys_box_select_exec(bContext *C, wmOperator *op)
 
 void GRAPH_OT_select_box(wmOperatorType *ot)
 {
-  /* identifiers */
+  /* Identifiers. */
   ot->name = "Box Select";
   ot->idname = "GRAPH_OT_select_box";
   ot->description = "Select all keyframes within the specified region";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = graphkeys_box_select_invoke;
   ot->exec = graphkeys_box_select_exec;
   ot->modal = WM_gesture_box_modal;
@@ -721,10 +749,10 @@ void GRAPH_OT_select_box(wmOperatorType *ot)
 
   ot->poll = graphop_visible_keyframes_poll;
 
-  /* flags */
+  /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* properties */
+  /* Properties. */
   ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
@@ -756,7 +784,7 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 
   bool incl_handles;
 
-  /* get editor data */
+  /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
@@ -783,16 +811,16 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* get settings from operator */
+  /* Get settings from operator. */
   BLI_lasso_boundbox(&rect, data_lasso.mcoords, data_lasso.mcoords_len);
   BLI_rctf_rcti_copy(&rect_fl, &rect);
 
-  /* apply box_select action */
+  /* Apply box_select action. */
   box_select_graphkeys(&ac, &rect_fl, BEZT_OK_REGION_LASSO, selectmode, incl_handles, &data_lasso);
 
   MEM_freeN((void *)data_lasso.mcoords);
 
-  /* send notifier that keyframe selection has changed */
+  /* Send notifier that keyframe selection has changed. */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
 
   return OPERATOR_FINISHED;
@@ -800,22 +828,22 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 
 void GRAPH_OT_select_lasso(wmOperatorType *ot)
 {
-  /* identifiers */
+  /* Identifiers. */
   ot->name = "Lasso Select";
   ot->description = "Select keyframe points using lasso selection";
   ot->idname = "GRAPH_OT_select_lasso";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = graphkeys_lassoselect_exec;
   ot->poll = graphop_visible_keyframes_poll;
   ot->cancel = WM_gesture_lasso_cancel;
 
-  /* flags */
+  /* Flags. */
   ot->flag = OPTYPE_UNDO;
 
-  /* properties */
+  /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
   WM_operator_properties_select_operation_simple(ot);
 }
@@ -834,7 +862,7 @@ static int graph_circle_select_exec(bContext *C, wmOperator *op)
   float y = RNA_int_get(op->ptr, "y");
   float radius = RNA_int_get(op->ptr, "radius");
 
-  /* get editor data */
+  /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
@@ -866,10 +894,10 @@ static int graph_circle_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* apply box_select action */
+  /* Apply box_select action. */
   box_select_graphkeys(&ac, &rect_fl, BEZT_OK_REGION_CIRCLE, selectmode, incl_handles, &data);
 
-  /* send notifier that keyframe selection has changed */
+  /* Send notifier that keyframe selection has changed. */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
 
   return OPERATOR_FINISHED;
