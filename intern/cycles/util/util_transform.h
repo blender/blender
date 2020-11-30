@@ -288,6 +288,126 @@ ccl_device_inline void transform_set_column(Transform *t, int column, float3 val
   t->z[column] = value.z;
 }
 
+
+ccl_device_inline bool transform_negative_scale(const Transform &tfm)
+{
+  float3 c0 = transform_get_column(&tfm, 0);
+  float3 c1 = transform_get_column(&tfm, 1);
+  float3 c2 = transform_get_column(&tfm, 2);
+
+  return (dot(cross(c0, c1), c2) < 0.0f);
+}
+
+ccl_device_inline float3 transform_decompose_scale(const Transform &tfm)
+{
+  /* extract rotation */
+  Transform M = tfm;
+  M.x.w = 0.0f;
+  M.y.w = 0.0f;
+  M.z.w = 0.0f;
+
+  float3 colx = transform_get_column(&M, 0);
+  float3 coly = transform_get_column(&M, 1);
+  float3 colz = transform_get_column(&M, 2);
+
+  /* extract scale and shear first */
+  float3 scale, shear;
+  scale.x = len(colx);
+  colx /= scale.x;
+  shear.z = dot(colx, coly);
+  coly -= shear.z * colx;
+  scale.y = len(coly);
+  coly /= scale.y;
+  shear.y = dot(colx, colz);
+  colz -= shear.y * colx;
+  shear.x = dot(coly, colz);
+  colz -= shear.x * coly;
+  scale.z = len(colz);
+  colz /= scale.z;
+
+  if (dot(cross(colx, coly), colz) < 0.0f) {
+    scale *= -1.0f;
+  }
+
+  return scale;
+}
+
+
+ccl_device_inline Transform transform_decompose_rotation(const Transform &tfm)
+{
+  /* extract rotation */
+  Transform M = tfm;
+  M.x.w = 0.0f;
+  M.y.w = 0.0f;
+  M.z.w = 0.0f;
+
+  float3 colx = transform_get_column(&M, 0);
+  float3 coly = transform_get_column(&M, 1);
+  float3 colz = transform_get_column(&M, 2);
+
+  /* extract scale and shear first */
+  float3 scale, shear;
+  scale.x = len(colx);
+  colx /= scale.x;
+  shear.z = dot(colx, coly);
+  coly -= shear.z * colx;
+  scale.y = len(coly);
+  coly /= scale.y;
+  shear.y = dot(colx, colz);
+  colz -= shear.y * colx;
+  shear.x = dot(coly, colz);
+  colz -= shear.x * coly;
+  scale.z = len(colz);
+  colz /= scale.z;
+
+  transform_set_column(&M, 0, colx);
+  transform_set_column(&M, 1, coly);
+  transform_set_column(&M, 2, colz);
+
+  if (transform_negative_scale(M)) {
+    M = M * transform_scale(-1.0f, -1.0f, -1.0f);
+  }
+
+  return M;
+}
+
+/* Euler is assumed to be in XYZ order. */
+ccl_device_inline float3 transform_to_euler(const Transform &tfm)
+{
+  Transform M = transform_decompose_rotation(tfm);
+
+  float3 mx = normalize(transform_get_column(&M, 0));
+  float3 my = normalize(transform_get_column(&M, 1));
+  float3 mz = normalize(transform_get_column(&M, 2));
+
+  float3 euler1, euler2;
+  float cy = len(make_float2(mx.x, mx.y));
+
+  if (fabsf(cy) > 0.005f) {
+    euler1.x = atan2f(my.z, mz.z);
+    euler1.y = atan2f(-mx.z, cy);
+    euler1.z = atan2f(mx.y, mx.x);
+
+    euler2.x = atan2f(-my.z, -mz.z);
+    euler2.y = atan2f(-mx.z, -cy);
+    euler2.z = atan2f(-mx.y, -mx.x);
+  }
+  else {
+    euler1.x = atan2f(-mz.y, my.y);
+    euler1.y = atan2f(-mx.z, cy);
+    euler1.z = 0.0f;
+    euler2 = euler1;
+  }
+
+  if (fabsf(euler1.x) + fabsf(euler1.y) + fabsf(euler1.z) >
+      fabsf(euler2.x) + fabsf(euler2.y) + fabsf(euler2.z)) {
+    return euler2;
+  }
+  else {
+    return euler1;
+  }
+}
+
 Transform transform_inverse(const Transform &a);
 Transform transform_transposed_inverse(const Transform &a);
 
@@ -313,14 +433,14 @@ ccl_device_inline bool transform_uniform_scale(const Transform &tfm, float &scal
   return false;
 }
 
-ccl_device_inline bool transform_negative_scale(const Transform &tfm)
-{
-  float3 c0 = transform_get_column(&tfm, 0);
-  float3 c1 = transform_get_column(&tfm, 1);
-  float3 c2 = transform_get_column(&tfm, 2);
+// ccl_device_inline bool transform_negative_scale(const Transform &tfm)
+// {
+//   float3 c0 = transform_get_column(&tfm, 0);
+//   float3 c1 = transform_get_column(&tfm, 1);
+//   float3 c2 = transform_get_column(&tfm, 2);
 
-  return (dot(cross(c0, c1), c2) < 0.0f);
-}
+//   return (dot(cross(c0, c1), c2) < 0.0f);
+// }
 
 ccl_device_inline Transform transform_clear_scale(const Transform &tfm)
 {

@@ -84,6 +84,10 @@ ustring OSLRenderServices::u_screen("screen");
 ustring OSLRenderServices::u_raster("raster");
 ustring OSLRenderServices::u_ndc("NDC");
 ustring OSLRenderServices::u_object_location("object:location");
+
+ustring OSLRenderServices::u_object_rotation("object:rotation");
+ustring OSLRenderServices::u_object_scale("object:scale");
+
 ustring OSLRenderServices::u_object_color("object:color");
 ustring OSLRenderServices::u_object_index("object:index");
 ustring OSLRenderServices::u_geom_dupli_generated("geom:dupli_generated");
@@ -737,6 +741,16 @@ bool OSLRenderServices::get_object_standard_attribute(
     float3 f = object_location(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
   }
+
+  else if (name == u_object_rotation) {
+    float3 f = object_rotation(kg, sd);
+    return set_attribute_float3(f, type, derivatives, val);
+  }
+  else if (name == u_object_scale) {
+    float3 f = object_scale(kg, sd);
+    return set_attribute_float3(f, type, derivatives, val);
+  }
+
   else if (name == u_object_color) {
     float3 f = object_color(kg, sd->object);
     return set_attribute_float3(f, type, derivatives, val);

@@ -111,6 +111,17 @@ ccl_device void svm_node_object_info(
       stack_store_float3(stack, out_offset, object_location(kg, sd));
       return;
     }
+
+    case NODE_INFO_OB_ROTATION: {
+      stack_store_float3(stack, out_offset, object_rotation(kg, sd));
+      return;
+    }
+    case NODE_INFO_OB_SCALE: {
+      stack_store_float3(stack, out_offset, object_scale(kg, sd));
+      return;
+    }
+
+
     case NODE_INFO_OB_COLOR: {
       stack_store_float3(stack, out_offset, object_color(kg, sd->object));
       return;

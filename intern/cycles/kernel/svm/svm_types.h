@@ -176,6 +176,10 @@ typedef enum NodeGeometry {
 
 typedef enum NodeObjectInfo {
   NODE_INFO_OB_LOCATION,
+  
+  NODE_INFO_OB_ROTATION,
+  NODE_INFO_OB_SCALE,
+
   NODE_INFO_OB_COLOR,
   NODE_INFO_OB_INDEX,
   NODE_INFO_MAT_INDEX,

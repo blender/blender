@@ -214,6 +214,37 @@ ccl_device_inline float3 object_location(KernelGlobals *kg, const ShaderData *sd
 #endif
 }
 
+/* Object rotation from transform */
+
+ccl_device_inline float3 object_rotation(KernelGlobals *kg, const ShaderData *sd)
+{
+  if (sd->object == OBJECT_NONE)
+    return make_float3(0.0f, 0.0f, 0.0f);
+
+#ifdef __OBJECT_MOTION__
+  return transform_to_euler(sd->ob_tfm);
+#else
+  Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
+  return transform_to_euler(tfm);
+#endif
+}
+
+/* Object scale from transform */
+
+ccl_device_inline float3 object_scale(KernelGlobals *kg, const ShaderData *sd)
+{
+  if (sd->object == OBJECT_NONE)
+    return make_float3(0.0f, 0.0f, 0.0f);
+
+#ifdef __OBJECT_MOTION__
+  return transform_decompose_scale(sd->ob_tfm);
+#else
+  Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
+  return transform_decompose_scale(tfm);
+#endif
+}
+
+
 /* Total surface area of object */
 
 ccl_device_inline float object_surface_area(KernelGlobals *kg, int object)
