@@ -136,7 +136,6 @@ typedef struct TrackingImageAccessor {
   int num_clips;
   struct MovieTrackingTrack **tracks;
   int num_tracks;
-  int start_frame;
   struct libmv_FrameAccessor *libmv_accessor;
   SpinLock cache_lock;
 } TrackingImageAccessor;
@@ -144,8 +143,7 @@ typedef struct TrackingImageAccessor {
 TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR_CLIP],
                                                    int num_clips,
                                                    MovieTrackingTrack **tracks,
-                                                   int num_tracks,
-                                                   int start_frame);
+                                                   int num_tracks);
 void tracking_image_accessor_destroy(TrackingImageAccessor *accessor);
 
 #ifdef __cplusplus

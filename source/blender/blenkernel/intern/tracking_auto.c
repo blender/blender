@@ -395,7 +395,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
                                       "auto track pointers");
   /* Initialize image accessor. */
   context->image_accessor = tracking_image_accessor_new(
-      context->clips, 1, context->input_tracks, num_total_tracks, user->framenr);
+      context->clips, 1, context->input_tracks, num_total_tracks);
   /* Initialize auto track context and provide all information about currently
    * tracked markers.
    */
