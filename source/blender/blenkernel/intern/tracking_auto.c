@@ -91,10 +91,22 @@ typedef struct AutoTrackContext {
   int num_input_tracks;
   MovieTrackingTrack **input_tracks;
 
+  /* Dimensions of movie frame, in pixels.
+   *
+   * NOTE: All clips and frames within a clip are expected to have match3ed dimensions.
+   *
+   * TODO(sergey): Make it more flexible to fully support multiple-clip tracking. Could either be
+   * stored as a `pair<MovieClip, Dimensions>` or even be replaced with actual frame size access
+   * to support variadic frame dimensions. */
   int frame_width, frame_height;
 
-  struct libmv_AutoTrack *autotrack;
+  /* Accessor for images of clip. Used by the autotrack context. */
   TrackingImageAccessor *image_accessor;
+
+  /* Auto-track context.
+   *
+   * NOTE: Is accessed from multiple threads at once. */
+  struct libmv_AutoTrack *autotrack;
 
   AutoTrackOptions *track_options; /* Per-tracking track options. */
 
