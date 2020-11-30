@@ -551,17 +551,19 @@ static void background_cdf(
                                       cond_cdf[i * cdf_width + j - 1].x / res_x;
     }
 
-    float cdf_total = cond_cdf[i * cdf_width + res_x - 1].y +
-                      cond_cdf[i * cdf_width + res_x - 1].x / res_x;
-    float cdf_total_inv = 1.0f / cdf_total;
+    const float cdf_total = cond_cdf[i * cdf_width + res_x - 1].y +
+                            cond_cdf[i * cdf_width + res_x - 1].x / res_x;
 
     /* stuff the total into the brightness value for the last entry, because
      * we are going to normalize the CDFs to 0.0 to 1.0 afterwards */
     cond_cdf[i * cdf_width + res_x].x = cdf_total;
 
-    if (cdf_total > 0.0f)
-      for (int j = 1; j < res_x; j++)
+    if (cdf_total > 0.0f) {
+      const float cdf_total_inv = 1.0f / cdf_total;
+      for (int j = 1; j < res_x; j++) {
         cond_cdf[i * cdf_width + j].y *= cdf_total_inv;
+      }
+    }
 
     cond_cdf[i * cdf_width + res_x].y = 1.0f;
   }
