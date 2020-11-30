@@ -60,7 +60,7 @@ typedef struct AutoTrackOptions {
 typedef struct AutoTrackContext {
   /* Frame at which tracking process started.
    * NOTE: Measured in scene time frames, */
-  int start_frame;
+  int start_scene_frame;
 
   /* True when tracking backwards (from higher frame number to lower frame number.) */
   bool is_backwards;
@@ -374,7 +374,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
   context->frame_width = frame_width;
   context->frame_height = frame_height;
   context->is_backwards = is_backwards;
-  context->start_frame = user->framenr;
+  context->start_scene_frame = user->framenr;
   context->sync_frame = user->framenr;
   context->first_sync = true;
   BLI_spin_init(&context->spin_lock);
@@ -554,8 +554,8 @@ void BKE_autotrack_context_finish(AutoTrackContext *context)
   for (int clip_index = 0; clip_index < context->num_clips; clip_index++) {
     MovieClip *clip = context->clips[clip_index];
     ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
-    const int start_clip_frame = BKE_movieclip_remap_scene_to_clip_frame(clip,
-                                                                         context->start_frame);
+    const int start_clip_frame = BKE_movieclip_remap_scene_to_clip_frame(
+        clip, context->start_scene_frame);
 
     LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
       if ((plane_track->flag & PLANE_TRACK_AUTOKEY)) {
