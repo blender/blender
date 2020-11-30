@@ -591,11 +591,10 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 /** \name Getters
  * \{ */
 
-/* Clement : Temp */
-int GPU_shader_get_program(GPUShader *UNUSED(shader))
+/* DEPRECATED: Kept only because of BGL API */
+int GPU_shader_get_program(GPUShader *shader)
 {
-  /* TODO fixme */
-  return (int)0;
+  return unwrap(shader)->program_handle_get();
 }
 
 /** \} */

@@ -64,6 +64,9 @@ class Shader {
 
   virtual void vertformat_from_shader(GPUVertFormat *) const = 0;
 
+  /* DEPRECATED: Kept only because of BGL API. */
+  virtual int program_handle_get(void) const = 0;
+
   inline const char *const name_get(void) const
   {
     return name;
