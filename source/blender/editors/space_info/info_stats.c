@@ -351,9 +351,13 @@ static void stats_object_pose(Object *ob, SceneStats *stats)
   }
 }
 
-static bool stats_is_object_dynamic_topology_sculpt(Object *ob, const eObjectMode object_mode)
+static bool stats_is_object_dynamic_topology_sculpt(Object *ob)
 {
-  return (ob && (object_mode & OB_MODE_SCULPT) && ob->sculpt && ob->sculpt->bm);
+  if (ob == NULL) {
+    return false;
+  }
+  const eObjectMode object_mode = ob->mode;
+  return ((object_mode & OB_MODE_SCULPT) && ob->sculpt && ob->sculpt->bm);
 }
 
 static void stats_object_sculpt(Object *ob, SceneStats *stats)
@@ -405,7 +409,7 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
     /* Pose Mode */
     stats_object_pose(ob, &stats);
   }
-  else if (ob && stats_is_object_dynamic_topology_sculpt(ob, ob->mode)) {
+  else if (stats_is_object_dynamic_topology_sculpt(ob)) {
     /* Dynamic topology. Do not count all vertices, dynamic topology stats are initialized later as
      * part of sculpt stats. */
   }
@@ -555,7 +559,7 @@ static void get_stats_string(
                          stats_fmt->totgpstroke,
                          stats_fmt->totgppoint);
   }
-  else if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
+  else if (stats_is_object_dynamic_topology_sculpt(ob)) {
     *ofs += BLI_snprintf(info + *ofs,
                          len - *ofs,
                          TIP_("Verts:%s | Tris:%s"),
@@ -756,7 +760,7 @@ void ED_info_draw_stats(
     stats_row(col1, labels[POINTS], col2, stats_fmt.totgppoint, NULL, y, height);
   }
   else if (ob && (object_mode & OB_MODE_SCULPT)) {
-    if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
+    if (stats_is_object_dynamic_topology_sculpt(ob)) {
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, NULL, y, height);
       stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
     }
