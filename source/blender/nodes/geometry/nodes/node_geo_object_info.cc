@@ -87,7 +87,7 @@ void register_node_type_geo_object_info()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_OBJECT_INFO, "Object Info", 0, 0);
+  geo_node_type_base(&ntype, GEO_NODE_OBJECT_INFO, "Object Info", NODE_CLASS_INPUT, 0);
   node_type_socket_templates(&ntype, geo_node_object_info_in, geo_node_object_info_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_object_info_exec;
   nodeRegisterType(&ntype);

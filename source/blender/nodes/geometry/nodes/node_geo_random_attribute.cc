@@ -151,7 +151,8 @@ void register_node_type_geo_random_attribute()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_RANDOM_ATTRIBUTE, "Random Attribute", 0, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_RANDOM_ATTRIBUTE, "Random Attribute", NODE_CLASS_ATTRIBUTE, 0);
   node_type_socket_templates(&ntype, geo_node_random_attribute_in, geo_node_random_attribute_out);
   node_type_init(&ntype, geo_node_random_attribute_init);
   node_type_update(&ntype, geo_node_random_attribute_update);

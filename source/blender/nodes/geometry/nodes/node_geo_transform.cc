@@ -138,7 +138,7 @@ void register_node_type_geo_transform()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_TRANSFORM, "Transform", 0, 0);
+  geo_node_type_base(&ntype, GEO_NODE_TRANSFORM, "Transform", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(&ntype, geo_node_transform_in, geo_node_transform_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_transform_exec;
   nodeRegisterType(&ntype);

@@ -269,7 +269,7 @@ void register_node_type_geo_join_geometry()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_JOIN_GEOMETRY, "Join Geometry", 0, 0);
+  geo_node_type_base(&ntype, GEO_NODE_JOIN_GEOMETRY, "Join Geometry", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(&ntype, geo_node_join_geometry_in, geo_node_join_geometry_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_join_geometry_exec;
   nodeRegisterType(&ntype);

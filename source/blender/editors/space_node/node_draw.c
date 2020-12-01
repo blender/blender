@@ -679,6 +679,10 @@ int node_get_colorid(bNode *node)
       return TH_NODE_PATTERN;
     case NODE_CLASS_LAYOUT:
       return TH_NODE_LAYOUT;
+    case NODE_CLASS_GEOMETRY:
+      return TH_NODE_GEOMETRY;
+    case NODE_CLASS_ATTRIBUTE:
+      return TH_NODE_ATTRIBUTE;
     default:
       return TH_NODE;
   }
