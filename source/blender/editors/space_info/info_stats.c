@@ -405,7 +405,7 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
     /* Pose Mode */
     stats_object_pose(ob, &stats);
   }
-  else if (stats_is_object_dynamic_topology_sculpt(ob, ob->mode)) {
+  else if (ob && stats_is_object_dynamic_topology_sculpt(ob, ob->mode)) {
     /* Dynamic topology. Do not count all vertices, dynamic topology stats are initialized later as
      * part of sculpt stats. */
   }
