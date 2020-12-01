@@ -42,10 +42,10 @@ def geometry_modifier_poll(context) -> bool:
 
     return True
 
-class NewGeometryNodeModifier(bpy.types.Operator):
+class NewGeometryNodesModifier(bpy.types.Operator):
     """Create a new modifier with a new geometry node group"""
 
-    bl_idname = "node.new_geometry_node_modifier"
+    bl_idname = "node.new_geometry_nodes_modifier"
     bl_label = "New Geometry Node Modifier"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -54,7 +54,7 @@ class NewGeometryNodeModifier(bpy.types.Operator):
         return geometry_modifier_poll(context)
 
     def execute(self, context):
-        modifier = context.object.modifiers.new("Empty", "NODES")
+        modifier = context.object.modifiers.new("GeometryNodes", "NODES")
 
         if not modifier:
             return {'CANCELLED'}
@@ -89,6 +89,6 @@ class NewGeometryNodeTreeAssign(bpy.types.Operator):
 
 
 classes = (
-    NewGeometryNodeModifier,
+    NewGeometryNodesModifier,
     NewGeometryNodeTreeAssign,
 )
