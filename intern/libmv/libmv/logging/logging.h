@@ -24,8 +24,5 @@
 #include <glog/logging.h>
 
 #define LG LOG(INFO)
-#define V0 LOG(INFO)
-#define V1 LOG(INFO)
-#define V2 LOG(INFO)
 
 #endif  // LIBMV_LOGGING_LOGGING_H
