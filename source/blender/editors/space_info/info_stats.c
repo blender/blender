@@ -559,12 +559,23 @@ static void get_stats_string(
                          stats_fmt->totgpstroke,
                          stats_fmt->totgppoint);
   }
-  else if (stats_is_object_dynamic_topology_sculpt(ob)) {
-    *ofs += BLI_snprintf(info + *ofs,
-                         len - *ofs,
-                         TIP_("Verts:%s | Tris:%s"),
-                         stats_fmt->totvert,
-                         stats_fmt->tottri);
+  else if (ob && (object_mode & OB_MODE_SCULPT)) {
+    if (stats_is_object_dynamic_topology_sculpt(ob)) {
+      *ofs += BLI_snprintf(info + *ofs,
+                           len - *ofs,
+                           TIP_("Verts:%s | Tris:%s"),
+                           stats_fmt->totvert,
+                           stats_fmt->tottri);
+    }
+    else {
+      *ofs += BLI_snprintf(info + *ofs,
+                           len - *ofs,
+                           TIP_("Verts:%s/%s | Faces:%s/%s"),
+                           stats_fmt->totvertsculpt,
+                           stats_fmt->totvert,
+                           stats_fmt->totfacesculpt,
+                           stats_fmt->totface);
+    }
   }
   else {
     *ofs += BLI_snprintf(info + *ofs,
