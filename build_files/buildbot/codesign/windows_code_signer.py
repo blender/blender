@@ -64,7 +64,12 @@ class WindowsCodeSigner(BaseCodeSigner):
 
     def run_codesign_tool(self, filepath: Path) -> None:
         command = self.get_sign_command_prefix() + [filepath]
-        codesign_output = self.check_output_or_mock(command, util.Platform.WINDOWS)
+
+        try:
+            codesign_output = self.check_output_or_mock(command, util.Platform.WINDOWS)
+        except subprocess.CalledProcessError as e:
+            raise SigntoolException(f'Error running signtool {e}')
+
         logger_server.info(f'signtool output:\n{codesign_output}')
 
         got_number_of_success = False
