@@ -143,6 +143,11 @@ typedef enum {
   eModifierFlag_OverrideLibrary_Local = (1 << 0),
   /* This modifier does not own its caches, but instead shares them with another modifier. */
   eModifierFlag_SharedCaches = (1 << 1),
+  /**
+   * This modifier is the object's active modifier. Used for context in the node editor.
+   * Only one modifier on an object should have this flag set.
+   */
+  eModifierFlag_Active = (1 << 2),
 } ModifierFlag;
 
 /* not a real modifier */

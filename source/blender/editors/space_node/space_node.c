@@ -408,6 +408,14 @@ static void node_area_listener(wmWindow *UNUSED(win),
           ED_area_tag_refresh(area);
         }
       }
+      else if (ED_node_is_geometry(snode)) {
+        /* Rather strict check: only redraw when the reference matches the current editor's ID. */
+        if (wmn->data == ND_MODIFIER) {
+          if (wmn->reference == snode->id || snode->id == NULL) {
+            ED_area_tag_refresh(area);
+          }
+        }
+      }
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_NODE) {

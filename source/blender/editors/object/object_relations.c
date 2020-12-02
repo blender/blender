@@ -550,7 +550,7 @@ static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
 
       /* free modifier if match */
       if (free) {
-        BLI_remlink(&ob->modifiers, md);
+        BKE_modifier_remove_from_list(ob, md);
         BKE_modifier_free(md);
       }
     }

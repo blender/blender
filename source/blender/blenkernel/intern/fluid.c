@@ -4559,7 +4559,7 @@ void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_typ
     if (psys->part->type == particle_type) {
       /* clear modifier */
       pfmd = psys_get_modifier(ob, psys);
-      BLI_remlink(&ob->modifiers, (ModifierData *)pfmd);
+      BKE_modifier_remove_from_list(ob, (ModifierData *)pfmd);
       BKE_modifier_free((ModifierData *)pfmd);
 
       /* clear particle system */

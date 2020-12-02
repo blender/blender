@@ -36,6 +36,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_listbase.h"
@@ -239,6 +240,8 @@ ModifierData *ED_object_modifier_add(
     }
   }
 
+  BKE_object_modifier_set_active(ob, new_md);
+
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
 
@@ -384,7 +387,7 @@ static bool object_modifier_remove(
     ob->mode &= ~OB_MODE_PARTICLE_EDIT;
   }
 
-  BLI_remlink(&ob->modifiers, md);
+  BKE_modifier_remove_from_list(ob, md);
   BKE_modifier_free(md);
   BKE_object_free_derived_caches(ob);
 
@@ -444,8 +447,7 @@ bool ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *m
       }
     }
 
-    BLI_remlink(&ob->modifiers, md);
-    BLI_insertlinkbefore(&ob->modifiers, md->prev, md);
+    BLI_listbase_swaplinks(&ob->modifiers, md, md->prev);
   }
   else {
     BKE_report(reports, RPT_WARNING, "Cannot move modifier beyond the start of the list");
@@ -469,8 +471,7 @@ bool ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData 
       }
     }
 
-    BLI_remlink(&ob->modifiers, md);
-    BLI_insertlinkafter(&ob->modifiers, md->next, md);
+    BLI_listbase_swaplinks(&ob->modifiers, md, md->next);
   }
   else {
     BKE_report(reports, RPT_WARNING, "Cannot move modifier beyond the end of the list");
@@ -896,7 +897,7 @@ bool ED_object_modifier_apply(Main *bmain,
   md_eval->mode = prev_mode;
 
   if (!keep_modifier) {
-    BLI_remlink(&ob->modifiers, md);
+    BKE_modifier_remove_from_list(ob, md);
     BKE_modifier_free(md);
   }
 
@@ -914,6 +915,7 @@ int ED_object_modifier_copy(
     nmd = object_copy_particle_system(bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
     BLI_remlink(&ob->modifiers, nmd);
     BLI_insertlinkafter(&ob->modifiers, md, nmd);
+    BKE_object_modifier_set_active(ob, nmd);
     return true;
   }
 
@@ -921,6 +923,7 @@ int ED_object_modifier_copy(
   BKE_modifier_copydata(md, nmd);
   BLI_insertlinkafter(&ob->modifiers, md, nmd);
   BKE_modifier_unique_name(&ob->modifiers, nmd);
+  BKE_object_modifier_set_active(ob, nmd);
 
   nmd->flag |= eModifierFlag_OverrideLibrary_Local;
 
@@ -1024,7 +1027,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 /** \} */
 
 /* ------------------------------------------------------------------- */
-/** \name Generic Functions For Operators
+/** \name Generic Poll Function and Properties
  *
  * Using modifier names and data context.
  * \{ */
@@ -1090,16 +1093,15 @@ static void edit_modifier_report_property(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-/**
- * \param event: If this isn't NULL, the operator will also look for panels underneath
- * the cursor with customdata set to a modifier.
- * \param r_retval: This should be used if #event is used in order to to return
- * #OPERATOR_PASS_THROUGH to check other operators with the same key set.
- */
-bool edit_modifier_invoke_properties(bContext *C,
-                                     wmOperator *op,
-                                     const wmEvent *event,
-                                     int *r_retval)
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Generic Invoke Functions
+ *
+ * Using modifier names and data context.
+ * \{ */
+
+bool edit_modifier_invoke_properties(bContext *C, wmOperator *op)
 {
   if (RNA_struct_property_is_set(op->ptr, "modifier")) {
     return true;
@@ -1112,27 +1114,6 @@ bool edit_modifier_invoke_properties(bContext *C,
     return true;
   }
 
-  /* Check the custom data of panels under the mouse for a modifier. */
-  if (event != NULL) {
-    PointerRNA *panel_ptr = UI_region_panel_custom_data_under_cursor(C, event);
-
-    if (!(panel_ptr == NULL || RNA_pointer_is_null(panel_ptr))) {
-      if (RNA_struct_is_a(panel_ptr->type, &RNA_Modifier)) {
-        ModifierData *md = panel_ptr->data;
-        RNA_string_set(op->ptr, "modifier", md->name);
-        return true;
-      }
-      BLI_assert(r_retval != NULL); /* We need the return value in this case. */
-      if (r_retval != NULL) {
-        *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
-      }
-      return false;
-    }
-  }
-
-  if (r_retval != NULL) {
-    *r_retval = OPERATOR_CANCELLED;
-  }
   return false;
 }
 
@@ -1195,13 +1176,14 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_remove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int modifier_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  int retval;
-  if (edit_modifier_invoke_properties(C, op, event, &retval)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return modifier_remove_exec(C, op);
   }
-  return retval;
+
+  /* Work around multiple operators using the same shortcut. */
+  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
 }
 
 void OBJECT_OT_modifier_remove(wmOperatorType *ot)
@@ -1241,13 +1223,13 @@ static int modifier_move_up_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_move_up_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int modifier_move_up_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  int retval;
-  if (edit_modifier_invoke_properties(C, op, event, &retval)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return modifier_move_up_exec(C, op);
   }
-  return retval;
+  /* Work around multiple operators using the same shortcut. */
+  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
 }
 
 void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
@@ -1286,13 +1268,13 @@ static int modifier_move_down_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_move_down_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int modifier_move_down_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  int retval;
-  if (edit_modifier_invoke_properties(C, op, event, &retval)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return modifier_move_down_exec(C, op);
   }
-  return retval;
+  /* Work around multiple operators using the same shortcut. */
+  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
 }
 
 void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
@@ -1329,13 +1311,12 @@ static int modifier_move_to_index_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_move_to_index_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int modifier_move_to_index_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  int retval;
-  if (edit_modifier_invoke_properties(C, op, event, &retval)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return modifier_move_to_index_exec(C, op);
   }
-  return retval;
+  return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_modifier_move_to_index(wmOperatorType *ot)
@@ -1434,13 +1415,13 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
   return modifier_apply_exec_ex(C, op, MODIFIER_APPLY_DATA, false);
 }
 
-static int modifier_apply_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int modifier_apply_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  int retval;
-  if (edit_modifier_invoke_properties(C, op, event, &retval)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return modifier_apply_exec(C, op);
   }
-  return retval;
+  /* Work around multiple operators using the same shortcut. */
+  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
 }
 
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
@@ -1478,13 +1459,15 @@ static int modifier_apply_as_shapekey_exec(bContext *C, wmOperator *op)
   return modifier_apply_exec_ex(C, op, MODIFIER_APPLY_SHAPE, keep);
 }
 
-static int modifier_apply_as_shapekey_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int modifier_apply_as_shapekey_invoke(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent *UNUSED(event))
 {
-  int retval;
-  if (edit_modifier_invoke_properties(C, op, event, &retval)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return modifier_apply_as_shapekey_exec(C, op);
   }
-  return retval;
+  /* Work around multiple operators using the same shortcut. */
+  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
 }
 
 static char *modifier_apply_as_shapekey_get_description(struct bContext *UNUSED(C),
@@ -1546,7 +1529,7 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
 
 static int modifier_convert_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return modifier_convert_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -1590,13 +1573,13 @@ static int modifier_copy_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_copy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int modifier_copy_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  int retval;
-  if (edit_modifier_invoke_properties(C, op, event, &retval)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return modifier_copy_exec(C, op);
   }
-  return retval;
+  /* Work around multiple operators using the same shortcut. */
+  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
 }
 
 void OBJECT_OT_modifier_copy(wmOperatorType *ot)
@@ -1607,6 +1590,91 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 
   ot->invoke = modifier_copy_invoke;
   ot->exec = modifier_copy_exec;
+  ot->poll = edit_modifier_liboverride_allowed_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Set Active Modifier Operator
+ * \{ */
+
+static int modifier_set_active_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+  ModifierData *md = edit_modifier_property_get(op, ob, 0);
+
+  /* If there is no modifier set for this operator, clear the active modifier field. */
+  BKE_object_modifier_set_active(ob, md);
+
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+/**
+ * Get the modifier below the mouse cursor modifier without checking the context pointer.
+ * Used in order to set the active modifier on mouse click. If this checked the context
+ * pointer then it would always set the active modifier to the already active modifier.
+ *
+ * \param event: If this isn't NULL, the operator will also look for panels underneath
+ * the cursor with customdata set to a modifier.
+ * \param r_retval: This should be used if #event is used in order to to return
+ * #OPERATOR_PASS_THROUGH to check other operators with the same key set.
+ */
+bool edit_modifier_invoke_properties_with_hover_no_active(bContext *C,
+                                                          wmOperator *op,
+                                                          const wmEvent *event,
+                                                          int *r_retval)
+{
+  if (RNA_struct_property_is_set(op->ptr, "modifier")) {
+    return true;
+  }
+
+  PointerRNA *panel_ptr = UI_region_panel_custom_data_under_cursor(C, event);
+
+  if (!(panel_ptr == NULL || RNA_pointer_is_null(panel_ptr))) {
+    if (RNA_struct_is_a(panel_ptr->type, &RNA_Modifier)) {
+      ModifierData *md = panel_ptr->data;
+      RNA_string_set(op->ptr, "modifier", md->name);
+      return true;
+    }
+    BLI_assert(r_retval != NULL); /* We need the return value in this case. */
+    if (r_retval != NULL) {
+      *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+    }
+    return false;
+  }
+
+  if (r_retval != NULL) {
+    *r_retval = OPERATOR_CANCELLED;
+  }
+
+  return false;
+}
+
+static int modifier_set_active_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  int retval;
+  if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
+    return modifier_set_active_exec(C, op);
+  }
+
+  return retval;
+}
+
+void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
+{
+  ot->name = "Set Active Modifier";
+  ot->description = "Activate the modifier to use as the context";
+  ot->idname = "OBJECT_OT_modifier_set_active";
+
+  ot->invoke = modifier_set_active_invoke;
+  ot->exec = modifier_set_active_exec;
   ot->poll = edit_modifier_liboverride_allowed_poll;
 
   /* flags */
@@ -1650,7 +1718,7 @@ static int multires_higher_levels_delete_invoke(bContext *C,
                                                 wmOperator *op,
                                                 const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return multires_higher_levels_delete_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -1726,7 +1794,7 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 
 static int multires_subdivide_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return multires_subdivide_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -1801,7 +1869,7 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 
 static int multires_reshape_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return multires_reshape_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -1862,7 +1930,7 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, const wmEv
   Mesh *me = ob->data;
   char path[FILE_MAX];
 
-  if (!edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (!edit_modifier_invoke_properties(C, op)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1980,7 +2048,7 @@ static int multires_base_apply_exec(bContext *C, wmOperator *op)
 
 static int multires_base_apply_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return multires_base_apply_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -2032,7 +2100,7 @@ static int multires_unsubdivide_exec(bContext *C, wmOperator *op)
 
 static int multires_unsubdivide_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return multires_unsubdivide_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -2088,7 +2156,7 @@ static int multires_rebuild_subdiv_invoke(bContext *C,
                                           wmOperator *op,
                                           const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return multires_rebuild_subdiv_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -2451,7 +2519,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 
 static int skin_armature_create_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return skin_armature_create_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -2527,7 +2595,7 @@ static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
 
 static int correctivesmooth_bind_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return correctivesmooth_bind_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -2602,7 +2670,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 
 static int meshdeform_bind_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return meshdeform_bind_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -2656,7 +2724,7 @@ static int explode_refresh_exec(bContext *C, wmOperator *op)
 
 static int explode_refresh_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return explode_refresh_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -2857,7 +2925,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 
 static int ocean_bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return ocean_bake_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -2934,7 +3002,7 @@ static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
 
 static int laplaciandeform_bind_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return laplaciandeform_bind_exec(C, op);
   }
   return OPERATOR_CANCELLED;
@@ -3001,7 +3069,7 @@ static int surfacedeform_bind_exec(bContext *C, wmOperator *op)
 
 static int surfacedeform_bind_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+  if (edit_modifier_invoke_properties(C, op)) {
     return surfacedeform_bind_exec(C, op);
   }
   return OPERATOR_CANCELLED;

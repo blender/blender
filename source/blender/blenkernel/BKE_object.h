@@ -77,6 +77,10 @@ bool BKE_object_shaderfx_use_time(struct Object *ob, struct ShaderFxData *md);
 
 bool BKE_object_support_modifier_type_check(const struct Object *ob, int modifier_type);
 
+/* Active modifier. */
+void BKE_object_modifier_set_active(struct Object *ob, struct ModifierData *md);
+struct ModifierData *BKE_object_active_modifier(const struct Object *ob);
+
 bool BKE_object_copy_modifier(struct Object *ob_dst,
                               const struct Object *ob_src,
                               struct ModifierData *md);

@@ -407,6 +407,7 @@ struct ModifierData *BKE_modifier_new(int type);
 
 void BKE_modifier_free_ex(struct ModifierData *md, const int flag);
 void BKE_modifier_free(struct ModifierData *md);
+void BKE_modifier_remove_from_list(struct Object *ob, struct ModifierData *md);
 
 /* Generate new UUID for the given modifier. */
 void BKE_modifier_session_uuid_generate(struct ModifierData *md);

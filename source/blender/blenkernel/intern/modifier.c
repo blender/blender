@@ -212,6 +212,26 @@ void BKE_modifier_free(ModifierData *md)
   BKE_modifier_free_ex(md, 0);
 }
 
+/**
+ * Use instead of `BLI_remlink` when the object's active modifier should change.
+ */
+void BKE_modifier_remove_from_list(Object *ob, ModifierData *md)
+{
+  BLI_assert(BLI_findindex(&ob->modifiers, md) != -1);
+
+  if (md->flag & eModifierFlag_Active) {
+    /* Prefer the previous modifier but use the next if this modifier is the first in the list. */
+    if (md->next != NULL) {
+      BKE_object_modifier_set_active(ob, md->next);
+    }
+    else if (md->prev != NULL) {
+      BKE_object_modifier_set_active(ob, md->prev);
+    }
+  }
+
+  BLI_remlink(&ob->modifiers, md);
+}
+
 void BKE_modifier_session_uuid_generate(ModifierData *md)
 {
   md->session_uuid = BLI_session_uuid_generate();

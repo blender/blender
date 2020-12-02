@@ -20,15 +20,48 @@
 
 #include "NOD_geometry.h"
 
+#include "BKE_context.h"
 #include "BKE_node.h"
+#include "BKE_object.h"
 
 #include "BLT_translation.h"
 
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
+#include "DNA_space_types.h"
 
 #include "RNA_access.h"
 
 bNodeTreeType *ntreeType_Geometry;
+
+static void geometry_node_tree_get_from_context(const bContext *C,
+                                                bNodeTreeType *UNUSED(treetype),
+                                                bNodeTree **r_ntree,
+                                                ID **r_id,
+                                                ID **r_from)
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *ob = OBACT(view_layer);
+
+  if (ob == nullptr) {
+    return;
+  }
+
+  const ModifierData *md = BKE_object_active_modifier(ob);
+
+  if (md == nullptr) {
+    return;
+  }
+
+  if (md->type == eModifierType_Nodes) {
+    NodesModifierData *nmd = (NodesModifierData *)md;
+    if (nmd->node_group != nullptr) {
+      *r_from = &ob->id;
+      *r_id = &ob->id;
+      *r_ntree = nmd->node_group;
+    }
+  }
+}
 
 void register_node_tree_type_geo(void)
 {
@@ -40,6 +73,8 @@ void register_node_tree_type_geo(void)
   tt->ui_icon = 0; /* defined in drawnode.c */
   strcpy(tt->ui_description, N_("Geometry nodes"));
   tt->rna_ext.srna = &RNA_GeometryNodeTree;
+
+  tt->get_from_context = geometry_node_tree_get_from_context;
 
   ntreeTypeAdd(tt);
 }

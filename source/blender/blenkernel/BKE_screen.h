@@ -251,6 +251,11 @@ typedef struct PanelType {
   /* draw entirely, view changes should be handled here */
   void (*draw)(const struct bContext *C, struct Panel *panel);
 
+  /**
+   * Identifier of a boolean property of the panel custom data. Used to draw a highlighted border.
+   */
+  const char *active_property;
+
   /* For instanced panels corresponding to a list: */
 
   /** Reorder function, called when drag and drop finishes. */

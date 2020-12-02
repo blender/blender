@@ -45,6 +45,8 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "RNA_access.h"
+
 #include "BLF_api.h"
 
 #include "WM_api.h"
@@ -90,6 +92,8 @@ typedef enum uiPanelRuntimeFlag {
    * position. Unlike #PANEL_STATE_ANIMATION, this is applied to sub-panels as well.
    */
   PANEL_IS_DRAG_DROP = (1 << 10),
+  /** Draw a border with the active color around the panel. */
+  PANEL_ACTIVE_BORDER = (1 << 11),
 } uiPanelRuntimeFlag;
 
 /* The state of the mouse position relative to the panel. */
@@ -579,6 +583,22 @@ static void set_panels_list_data_expand_flag(const bContext *C, const ARegion *r
 /** \name Panels
  * \{ */
 
+static bool panel_use_active_highlight(const Panel *panel)
+{
+  /* The caller should make sure the panel is active and has a type. */
+  BLI_assert(UI_panel_is_active(panel));
+  BLI_assert(panel->type != NULL);
+
+  if (panel->type->active_property) {
+    PointerRNA *ptr = UI_panel_custom_data_get(panel);
+    if (ptr != NULL && !RNA_pointer_is_null(ptr)) {
+      return RNA_boolean_get(ptr, panel->type->active_property);
+    }
+  }
+
+  return false;
+}
+
 /**
  * Set flag state for a panel and its sub-panels.
  */
@@ -1062,6 +1082,40 @@ static void panel_title_color_get(const Panel *panel,
   }
 }
 
+static void panel_draw_highlight_border(const Panel *panel,
+                                        const rcti *rect,
+                                        const rcti *header_rect)
+{
+  const bool draw_box_style = panel->type->flag & PANEL_TYPE_DRAW_BOX;
+  const bool is_subpanel = panel->type->parent != NULL;
+  if (is_subpanel) {
+    return;
+  }
+
+  float radius;
+  if (draw_box_style) {
+    /* Use the theme for box widgets. */
+    const uiWidgetColors *box_wcol = &UI_GetTheme()->tui.wcol_box;
+    UI_draw_roundbox_corner_set(UI_CNR_ALL);
+    radius = box_wcol->roundness * U.widget_unit;
+  }
+  else {
+    UI_draw_roundbox_corner_set(UI_CNR_NONE);
+    radius = 0.0f;
+  }
+
+  /* Abuse the property search theme color for now. */
+  float color[4];
+  UI_GetThemeColor4fv(TH_MATCH, color);
+  UI_draw_roundbox_aa(false,
+                      rect->xmin,
+                      UI_panel_is_closed(panel) ? header_rect->ymin : rect->ymin,
+                      rect->xmax,
+                      header_rect->ymax,
+                      radius,
+                      color);
+}
+
 static void panel_draw_aligned_widgets(const uiStyle *style,
                                        const Panel *panel,
                                        const rcti *header_rect,
@@ -1286,6 +1340,10 @@ void ui_draw_aligned_panel(const uiStyle *style,
                                show_pin,
                                show_background,
                                region_search_filter_active);
+  }
+
+  if (panel_use_active_highlight(panel)) {
+    panel_draw_highlight_border(panel, rect, &header_rect);
   }
 }
 
@@ -2392,20 +2450,13 @@ int ui_handler_panel_region(bContext *C,
       continue;
     }
 
-    /* All mouse clicks inside panels should return in break, but continue handling
-     * in case there is a sub-panel header at the mouse location. */
-    if (event->type == LEFTMOUSE &&
-        ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
-      retval = WM_UI_HANDLER_BREAK;
-    }
-
     if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
+      /* All mouse clicks inside panel headers should return in break. */
+      retval = WM_UI_HANDLER_BREAK;
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
-        retval = WM_UI_HANDLER_BREAK;
         ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
       }
       else if (event->type == RIGHTMOUSE) {
-        retval = WM_UI_HANDLER_BREAK;
         ui_popup_context_menu_for_panel(C, region, block->panel);
       }
       break;
