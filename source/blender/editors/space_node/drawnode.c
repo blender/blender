@@ -3323,17 +3323,17 @@ void ED_init_custom_node_socket_type(bNodeSocketType *stype)
 
 /* maps standard socket integer type to a color */
 static const float std_node_socket_colors[][4] = {
-    {0.63, 0.63, 0.63, 1.0}, /* SOCK_FLOAT */
+    {0.75, 0.75, 0.59, 1.0}, /* SOCK_FLOAT */
     {0.39, 0.39, 0.78, 1.0}, /* SOCK_VECTOR */
     {0.78, 0.78, 0.16, 1.0}, /* SOCK_RGBA */
-    {0.39, 0.78, 0.39, 1.0}, /* SOCK_SHADER */
-    {0.70, 0.65, 0.19, 1.0}, /* SOCK_BOOLEAN */
+    {0.88, 0.43, 0.46, 1.0}, /* SOCK_SHADER */
+    {0.80, 0.65, 0.84, 1.0}, /* SOCK_BOOLEAN */
     {0.0, 0.0, 0.0, 1.0},    /*__SOCK_MESH (deprecated) */
-    {0.06, 0.52, 0.15, 1.0}, /* SOCK_INT */
-    {0.39, 0.39, 0.39, 1.0}, /* SOCK_STRING */
-    {0.40, 0.10, 0.10, 1.0}, /* SOCK_OBJECT */
-    {0.10, 0.40, 0.10, 1.0}, /* SOCK_IMAGE */
-    {0.00, 0.00, 0.00, 1.0}, /* SOCK_GEOMETRY, TODO: Choose color. */
+    {0.25, 0.75, 0.26, 1.0}, /* SOCK_INT */
+    {0.44, 0.70, 1.00, 1.0}, /* SOCK_STRING */
+    {0.93, 0.62, 0.36, 1.0}, /* SOCK_OBJECT */
+    {0.89, 0.76, 0.43, 1.0}, /* SOCK_IMAGE */
+    {0.00, 0.84, 0.64, 1.0}, /* SOCK_GEOMETRY */
 };
 
 /* common color callbacks for standard types */
