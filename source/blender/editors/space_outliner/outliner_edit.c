@@ -118,7 +118,7 @@ static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const 
       space_outliner, &space_outliner->tree, view_mval[1]);
 
   TreeElement *icon_te = NULL;
-  bool is_over_icon;
+  bool is_over_icon = false;
   if (hovered_te) {
     icon_te = outliner_find_item_at_x_in_row(
         space_outliner, hovered_te, view_mval[0], NULL, &is_over_icon);
