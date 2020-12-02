@@ -270,6 +270,14 @@ if(WITH_INTERNATIONAL OR WITH_CODEC_FFMPEG)
   string(APPEND PLATFORM_LINKFLAGS " -liconv") # boost_locale and ffmpeg needs it !
 endif()
 
+if(WITH_PUGIXML)
+  find_package(PugiXML)
+  if(NOT PUGIXML_FOUND)
+    message(WARNING "PugiXML not found, disabling WITH_PUGIXML")
+    set(WITH_PUGIXML OFF)
+  endif()
+endif()
+
 if(WITH_OPENIMAGEIO)
   find_package(OpenImageIO)
   list(APPEND OPENIMAGEIO_LIBRARIES
