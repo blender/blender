@@ -528,8 +528,10 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   }
 
   /* Clear existing volume mesh, done here in case we early out due to
-   * empty grid or missing volume shader. */
-  volume->clear();
+   * empty grid or missing volume shader.
+   * Also keep the shaders to avoid infinite loops when synchronizing, as this will tag the shaders
+   * as having changed. */
+  volume->clear(true);
   volume->need_update_rebuild = true;
 
   if (!volume_shader) {
