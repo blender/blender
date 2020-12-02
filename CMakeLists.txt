@@ -883,7 +883,7 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
 
     if(APPLE AND COMPILER_ASAN_LIBRARY)
       string(REPLACE " " ";" _list_COMPILER_ASAN_CFLAGS ${COMPILER_ASAN_CFLAGS})
-      set(_is_CONFIG_DEBUG "$<OR:$<CONFIG:Debug>, $<CONFIG:RelWithDebInfo>>")
+      set(_is_CONFIG_DEBUG "$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>")
       add_compile_options("$<${_is_CONFIG_DEBUG}:${_list_COMPILER_ASAN_CFLAGS}>")
       add_link_options("$<${_is_CONFIG_DEBUG}:-fno-omit-frame-pointer;-fsanitize=address>")
       unset(_list_COMPILER_ASAN_CFLAGS)
