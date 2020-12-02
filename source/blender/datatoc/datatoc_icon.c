@@ -72,6 +72,27 @@ static void endian_switch_uint32(unsigned int *val)
   *val = ((tval >> 24)) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | ((tval << 24));
 }
 
+static const char *path_slash_rfind(const char *string)
+{
+  const char *const lfslash = strrchr(string, '/');
+  const char *const lbslash = strrchr(string, '\\');
+
+  if (!lfslash) {
+    return lbslash;
+  }
+  if (!lbslash) {
+    return lfslash;
+  }
+
+  return (lfslash > lbslash) ? lfslash : lbslash;
+}
+
+static const char *path_basename(const char *path)
+{
+  const char *const filename = path_slash_rfind(path);
+  return filename ? filename + 1 : path;
+}
+
 /* -------------------------------------------------------------------- */
 /* Write a PNG from RGBA pixels */
 
@@ -183,6 +204,71 @@ struct IconHead {
   unsigned int canvas_w, canvas_h;
 };
 
+struct IconInfo {
+  struct IconHead head;
+  char *file_name;
+};
+
+struct IconMergeContext {
+  /* Information about all icons read from disk.
+   * Is used for sanity checks like prevention of two files defining icon for
+   * the same position on canvas. */
+  int num_read_icons;
+  struct IconInfo *read_icons;
+};
+
+static void icon_merge_context_init(struct IconMergeContext *context)
+{
+  context->num_read_icons = 0;
+  context->read_icons = NULL;
+}
+
+/* Get icon information from the context which matches given icon head.
+ * Is used to check whether icon is re-defined, and to provide useful information about which
+ * files are conflicting. */
+static struct IconInfo *icon_merge_context_info_for_icon_head(struct IconMergeContext *context,
+                                                              struct IconHead *icon_head)
+{
+  if (context->read_icons == NULL) {
+    return NULL;
+  }
+
+  for (int i = 0; i < context->num_read_icons; i++) {
+    struct IconInfo *read_icon_info = &context->read_icons[i];
+    const struct IconHead *read_icon_head = &read_icon_info->head;
+    if (read_icon_head->orig_x == icon_head->orig_x &&
+        read_icon_head->orig_y == icon_head->orig_y) {
+      return read_icon_info;
+    }
+  }
+
+  return NULL;
+}
+
+static void icon_merge_context_register_icon(struct IconMergeContext *context,
+                                             const char *file_name,
+                                             struct IconHead *icon_head)
+{
+  context->read_icons = realloc(context->read_icons,
+                                sizeof(struct IconInfo) * (context->num_read_icons + 1));
+
+  struct IconInfo *icon_info = &context->read_icons[context->num_read_icons];
+  icon_info->head = *icon_head;
+  icon_info->file_name = strdup(path_basename(file_name));
+
+  context->num_read_icons++;
+}
+
+static void icon_merge_context_free(struct IconMergeContext *context)
+{
+  if (context->read_icons != NULL) {
+    for (int i = 0; i < context->num_read_icons; i++) {
+      free(context->read_icons[i].file_name);
+    }
+    free(context->read_icons);
+  }
+}
+
 static bool icon_decode_head(FILE *f_src, struct IconHead *r_head)
 {
   if (fread(r_head, 1, sizeof(*r_head), f_src) == sizeof(*r_head)) {
@@ -247,7 +333,8 @@ static bool icon_read(const char *file_src, struct IconHead *r_head, unsigned in
   return success;
 }
 
-static bool icon_merge(const char *file_src,
+static bool icon_merge(struct IconMergeContext *context,
+                       const char *file_src,
                        unsigned int **r_pixels_canvas,
                        unsigned int *r_canvas_w,
                        unsigned int *r_canvas_h)
@@ -264,6 +351,15 @@ static bool icon_merge(const char *file_src,
   if (!icon_read(file_src, &head, &pixels)) {
     return false;
   }
+
+  struct IconInfo *read_icon_info = icon_merge_context_info_for_icon_head(context, &head);
+  if (read_icon_info != NULL) {
+    printf(
+        "Conflicting icon files %s and %s\n", path_basename(file_src), read_icon_info->file_name);
+    free(pixels);
+    return false;
+  }
+  icon_merge_context_register_icon(context, file_src, &head);
 
   if (*r_canvas_w == 0) {
     /* init once */
@@ -315,8 +411,12 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
   int path_str_len;
   int found = 0, fail = 0;
 
+  struct IconMergeContext context;
+
   unsigned int *pixels_canvas = NULL;
   unsigned int canvas_w = 0, canvas_h = 0;
+
+  icon_merge_context_init(&context);
 
   errno = 0;
   dir = opendir(path_src);
@@ -335,7 +435,7 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
 
       strcpy(filename, fname->d_name);
 
-      if (icon_merge(filepath, &pixels_canvas, &canvas_w, &canvas_h)) {
+      if (icon_merge(&context, filepath, &pixels_canvas, &canvas_w, &canvas_h)) {
         found++;
       }
       else {
@@ -343,6 +443,8 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
       }
     }
   }
+
+  icon_merge_context_free(&context);
 
   closedir(dir);
 
@@ -359,7 +461,7 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
 
   free(pixels_canvas);
 
-  return true;
+  return (fail == 0);
 }
 
 /* -------------------------------------------------------------------- */
