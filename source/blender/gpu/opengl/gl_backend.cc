@@ -130,6 +130,20 @@ void GLBackend::platform_init()
         GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
+
+    /* Since Blender 2.91 AMD TeraScale 2 GPUs crashes during startup. */
+    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+      if (strstr(renderer, "Radeon HD 4") || strstr(renderer, "Radeon HD 5") ||
+          strstr(renderer, "Radeon HD 6") || strstr(renderer, "ATI FirePro V4") ||
+          strstr(renderer, "AMD Radeon R5 2")) {
+        GPG.support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+      }
+    }
+    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
+      if (strstr(renderer, "AMD CEDAR")) {
+        GPG.support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+      }
+    }
   }
   GPG.create_key(GPG.support_level, vendor, renderer, version);
   GPG.create_gpu_name(vendor, renderer, version);
