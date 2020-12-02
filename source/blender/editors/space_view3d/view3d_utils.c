@@ -574,11 +574,11 @@ bool ED_view3d_persp_ensure(const Depsgraph *depsgraph, View3D *v3d, ARegion *re
 /* -------------------------------------------------------------------- */
 /** \name Camera Lock API
  *
- * Lock the camera to the view-port, allowing view manipulation to transform the camera.
+ * Lock the camera to the 3D Viewport, allowing view manipulation to transform the camera.
  * \{ */
 
 /**
- * \return true when the view-port is locked to its camera.
+ * \return true when the 3D Viewport is locked to its camera.
  */
 bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
@@ -587,8 +587,8 @@ bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 }
 
 /**
- * Apply the camera object transformation to the view-port.
- * (needed so we can use regular view-port manipulation operators, that sync back to the camera).
+ * Apply the camera object transformation to the 3D Viewport.
+ * (needed so we can use regular 3D Viewport manipulation operators, that sync back to the camera).
  */
 void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph,
                                    View3D *v3d,
@@ -612,7 +612,7 @@ void ED_view3d_camera_lock_init(const Depsgraph *depsgraph, View3D *v3d, RegionV
 }
 
 /**
- * Apply the view-port transformation back to the camera object.
+ * Apply the 3D Viewport transformation back to the camera object.
  *
  * \return true if the camera is moved.
  */

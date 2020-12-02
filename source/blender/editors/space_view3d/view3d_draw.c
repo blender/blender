@@ -848,7 +848,7 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *region, View3D *v3d, bo
   /* get surface depth without bias */
   rv3d->rflag |= RV3D_ZOFFSET_DISABLED;
 
-  /* Needed in cases the view-port isn't already setup. */
+  /* Needed in cases the 3D Viewport isn't already setup. */
   WM_draw_region_viewport_ensure(region, SPACE_VIEW3D);
   WM_draw_region_viewport_bind(region);
 

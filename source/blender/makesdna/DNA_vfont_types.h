@@ -20,7 +20,7 @@
 /** \file
  * \ingroup DNA
  *
- * Vector Fonts used for text in the 3D view-port
+ * Vector Fonts used for text in the 3D Viewport
  * (unrelated to text used to render the GUI).
  */
 

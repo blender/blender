@@ -340,7 +340,7 @@ enum {
 };
 
 /**
- * \note While alpha is currently is not in the view-port,
+ * \note While alpha is not currently in the 3D Viewport,
  * this may eventually be added back, keep this value set to 255.
  */
 typedef struct MLoopCol {

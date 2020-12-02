@@ -3574,7 +3574,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   /* To support redo. */
   {
-    /* Note that the `base_index` can't be used as the index depends on the view-port
+    /* Note that the `base_index` can't be used as the index depends on the 3D Viewport
      * which might not be available on redo. */
     BM_mesh_elem_index_ensure(bm, ele->head.htype);
     int object_index;

@@ -171,7 +171,7 @@ bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d,
 bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const struct BoundBox *bb);
 
 /**
- * Parameters for setting the new view-port state.
+ * Parameters for setting the new 3D Viewport state.
  *
  * Each of the struct members may be NULL to signify they aren't to be adjusted.
  */

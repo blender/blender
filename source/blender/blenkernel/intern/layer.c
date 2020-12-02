@@ -1261,7 +1261,7 @@ void BKE_layer_collection_local_sync(ViewLayer *view_layer, const View3D *v3d)
 }
 
 /**
- * Sync the local collection for all the view-ports.
+ * Sync the local collection for all the 3D Viewports.
  */
 void BKE_layer_collection_local_sync_all(const Main *bmain)
 {
