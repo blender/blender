@@ -48,8 +48,8 @@
 #include "BKE_pointcache.h"
 #include "BKE_simulation.h"
 
+#include "NOD_geometry.h"
 #include "NOD_node_tree_multi_function.hh"
-#include "NOD_simulation.h"
 
 #include "BLI_map.hh"
 #include "BLT_translation.h"
@@ -70,7 +70,7 @@ static void simulation_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(simulation, DNA_struct_default_get(Simulation), id);
 
-  bNodeTree *ntree = ntreeAddTree(nullptr, "Simulation Nodetree", ntreeType_Simulation->idname);
+  bNodeTree *ntree = ntreeAddTree(nullptr, "Geometry Nodetree", ntreeType_Geometry->idname);
   simulation->nodetree = ntree;
 }
 

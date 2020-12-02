@@ -16,22 +16,28 @@
 
 #pragma once
 
-#include <string.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "BLI_utildefines.h"
+extern struct bNodeTreeType *ntreeType_Geometry;
 
-#include "MEM_guardedalloc.h"
+void register_node_tree_type_geo(void);
 
-#include "DNA_node_types.h"
+void register_node_type_geo_group(void);
 
-#include "BKE_node.h"
+void register_node_type_geo_boolean(void);
+void register_node_type_geo_edge_split(void);
+void register_node_type_geo_transform(void);
+void register_node_type_geo_subdivision_surface(void);
+void register_node_type_geo_triangulate(void);
+void register_node_type_geo_point_distribute(void);
+void register_node_type_geo_point_instance(void);
+void register_node_type_geo_object_info(void);
+void register_node_type_geo_random_attribute(void);
+void register_node_type_geo_attribute_math(void);
+void register_node_type_geo_join_geometry(void);
 
-#include "BLT_translation.h"
-
-#include "NOD_simulation.h"
-
-#include "node_util.h"
-
-void sim_node_type_base(
-    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
-bool sim_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
+#ifdef __cplusplus
+}
+#endif

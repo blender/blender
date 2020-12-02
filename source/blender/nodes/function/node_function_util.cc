@@ -20,7 +20,7 @@
 bool fn_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
   /* Function nodes are only supported in simulation node trees so far. */
-  return STREQ(ntree->idname, "SimulationNodeTree");
+  return STREQ(ntree->idname, "GeometryNodeTree");
 }
 
 void fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)

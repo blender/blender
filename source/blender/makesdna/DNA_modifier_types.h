@@ -94,7 +94,7 @@ typedef enum ModifierType {
   eModifierType_WeightedNormal = 54,
   eModifierType_Weld = 55,
   eModifierType_Fluid = 56,
-  eModifierType_Simulation = 57,
+  eModifierType_Nodes = 57,
   eModifierType_MeshToVolume = 58,
   eModifierType_VolumeDisplace = 59,
   eModifierType_VolumeToMesh = 60,
@@ -2224,9 +2224,16 @@ enum {
 #define MOD_MESHSEQ_READ_ALL \
   (MOD_MESHSEQ_READ_VERT | MOD_MESHSEQ_READ_POLY | MOD_MESHSEQ_READ_UV | MOD_MESHSEQ_READ_COLOR)
 
-typedef struct SimulationModifierData {
+typedef struct NodesModifierSettings {
+  /* This stores data that is passed into the node group. */
+  struct IDProperty *properties;
+} NodesModifierSettings;
+
+typedef struct NodesModifierData {
   ModifierData modifier;
-} SimulationModifierData;
+  struct bNodeTree *node_group;
+  struct NodesModifierSettings settings;
+} NodesModifierData;
 
 typedef struct MeshToVolumeModifierData {
   ModifierData modifier;

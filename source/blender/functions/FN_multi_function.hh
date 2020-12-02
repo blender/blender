@@ -122,4 +122,17 @@ inline MFParamsBuilder::MFParamsBuilder(const class MultiFunction &fn, int64_t m
 
 extern const MultiFunction &dummy_multi_function;
 
+namespace multi_function_types {
+using fn::CPPType;
+using fn::GMutableSpan;
+using fn::GSpan;
+using fn::MFContext;
+using fn::MFContextBuilder;
+using fn::MFDataType;
+using fn::MFParams;
+using fn::MFParamsBuilder;
+using fn::MFParamType;
+using fn::MultiFunction;
+}  // namespace multi_function_types
+
 }  // namespace blender::fn

@@ -29,7 +29,6 @@
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_simulation_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -43,6 +42,7 @@
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"
 #include "BKE_fluid.h" /* For BKE_fluid_modifier_free & BKE_fluid_modifier_create_type_data */
+#include "BKE_idprop.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
@@ -56,6 +56,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "MOD_nodes.h"
 
 const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
     {0, "", 0, N_("Modify"), ""},
@@ -141,6 +143,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_EDGESPLIT,
      "Edge Split",
      "Split away joined faces at the edges"},
+    {eModifierType_Nodes, "NODES", ICON_NODETREE, "Geometry Nodes", ""},
     {eModifierType_Mask,
      "MASK",
      ICON_MOD_MASK,
@@ -305,11 +308,6 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "Spawn particles from the shape"},
     {eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
     {eModifierType_Surface, "SURFACE", ICON_MODIFIER, "Surface", ""},
-    {eModifierType_Simulation,
-     "SIMULATION",
-     ICON_PHYSICS,
-     "Simulation",
-     ""}, /* TODO: Use correct icon. */
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1586,6 +1584,37 @@ static int rna_MeshSequenceCacheModifier_read_velocity_get(PointerRNA *ptr)
   return false;
   UNUSED_VARS(ptr);
 #  endif
+}
+
+static bool rna_NodesModifier_node_group_poll(PointerRNA *ptr, PointerRNA value)
+{
+  NodesModifierData *nmd = ptr->data;
+  bNodeTree *ntree = value.data;
+  UNUSED_VARS(nmd, ntree);
+  return true;
+}
+
+static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  NodesModifierData *nmd = ptr->data;
+  rna_Modifier_dependency_update(bmain, scene, ptr);
+  MOD_nodes_update_interface(object, nmd);
+}
+
+static IDProperty *rna_NodesModifierSettings_properties(PointerRNA *ptr, bool create)
+{
+  NodesModifierSettings *settings = ptr->data;
+  if (create && settings->properties == NULL) {
+    IDPropertyTemplate val = {0};
+    settings->properties = IDP_New(IDP_GROUP, &val, "Nodes Modifier Settings");
+  }
+  return settings->properties;
+}
+
+static char *rna_NodesModifierSettings_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("settings");
 }
 
 #else
@@ -6907,18 +6936,43 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
 }
 
 #  ifdef WITH_GEOMETRY_NODES
-static void rna_def_modifier_simulation(BlenderRNA *brna)
+static void rna_def_modifier_nodes_settings(BlenderRNA *brna)
 {
   StructRNA *srna;
 
-  srna = RNA_def_struct(brna, "SimulationModifier", "Modifier");
-  RNA_def_struct_ui_text(srna, "Simulation Modifier", "");
-  RNA_def_struct_sdna(srna, "SimulationModifierData");
-  RNA_def_struct_ui_icon(srna, ICON_PHYSICS); /* TODO: Use correct icon. */
+  srna = RNA_def_struct(brna, "NodesModifierSettings", NULL);
+  RNA_def_struct_nested(brna, srna, "NodesModifier");
+  RNA_def_struct_path_func(srna, "rna_NodesModifierSettings_path");
+  RNA_def_struct_ui_text(
+      srna, "Nodes Modifier Settings", "Settings that are passed into the node group");
+  RNA_def_struct_idprops_func(srna, "rna_NodesModifierSettings_properties");
+}
+
+static void rna_def_modifier_nodes(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "NodesModifier", "Modifier");
+  RNA_def_struct_ui_text(srna, "Nodes Modifier", "");
+  RNA_def_struct_sdna(srna, "NodesModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_MESH_DATA); /* TODO: Use correct icon. */
 
   RNA_define_lib_overridable(true);
 
+  prop = RNA_def_property(srna, "node_group", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Node Group", "Node group that controls what this modifier does");
+  RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_NodesModifier_node_group_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_update(prop, 0, "rna_NodesModifier_node_group_update");
+
+  prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_ui_text(prop, "Settings", "Settings that are passed into the node group");
+
   RNA_define_lib_overridable(false);
+
+  rna_def_modifier_nodes_settings(brna);
 }
 #  endif
 
@@ -7277,7 +7331,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_surfacedeform(brna);
   rna_def_modifier_weightednormal(brna);
 #  ifdef WITH_GEOMETRY_NODES
-  rna_def_modifier_simulation(brna);
+  rna_def_modifier_nodes(brna);
 #  endif
   rna_def_modifier_mesh_to_volume(brna);
   rna_def_modifier_volume_displace(brna);

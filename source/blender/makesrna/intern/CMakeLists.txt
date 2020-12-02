@@ -373,6 +373,7 @@ blender_include_dirs(
   ../../ikplugin
   ../../imbuf
   ../../makesdna
+  ../../modifiers
   ../../nodes/
   ../../sequencer
   ../../simulation

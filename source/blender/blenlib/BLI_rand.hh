@@ -118,6 +118,7 @@ class RandomNumberGenerator {
   float2 get_unit_float2();
   float3 get_unit_float3();
   float2 get_triangle_sample(float2 v1, float2 v2, float2 v3);
+  float3 get_triangle_sample_3d(float3 v1, float3 v2, float3 v3);
   void get_bytes(MutableSpan<char> r_bytes);
 
   /**

@@ -16,15 +16,26 @@
 
 #pragma once
 
+/** \file
+ * \ingroup bke
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern struct bNodeTreeType *ntreeType_Simulation;
+struct Object;
+struct GeometrySet;
 
-void register_node_tree_type_sim(void);
+void BKE_geometry_set_free(struct GeometrySet *geometry_set);
 
-void register_node_type_sim_group(void);
+bool BKE_geometry_set_has_instances(const struct GeometrySet *geometry_set);
+
+int BKE_geometry_set_instances(const struct GeometrySet *geometry_set,
+                               float (**r_positions)[3],
+                               float (**r_rotations)[3],
+                               float (**r_scales)[3],
+                               struct Object ***r_objects);
 
 #ifdef __cplusplus
 }

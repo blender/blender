@@ -94,6 +94,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_font.h"
+#include "BKE_geometry_set.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
@@ -1284,8 +1285,7 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
     return (mti->modifyHair != NULL) || (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
   }
   if (ob->type == OB_POINTCLOUD) {
-    return (mti->modifyPointCloud != NULL) ||
-           (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
+    return (mti->modifyPointCloud != NULL);
   }
   if (ob->type == OB_VOLUME) {
     return (mti->modifyVolume != NULL);
@@ -1507,6 +1507,9 @@ void BKE_object_eval_assign_data(Object *object_eval, ID *data_eval, bool is_own
       object_eval->data = data_eval;
     }
   }
+
+  /* Is set separately currently. */
+  object_eval->runtime.geometry_set_eval = NULL;
 }
 
 /**
@@ -1550,6 +1553,11 @@ void BKE_object_free_derived_caches(Object *ob)
   if (ob->runtime.gpd_eval != NULL) {
     BKE_gpencil_eval_delete(ob->runtime.gpd_eval);
     ob->runtime.gpd_eval = NULL;
+  }
+
+  if (ob->runtime.geometry_set_eval != NULL) {
+    BKE_geometry_set_free(ob->runtime.geometry_set_eval);
+    ob->runtime.geometry_set_eval = NULL;
   }
 }
 
@@ -1768,6 +1776,10 @@ int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
     visibility |= OB_VISIBLE_INSTANCES | OB_VISIBLE_PARTICLES;
   }
   else if (ob->transflag & OB_DUPLI) {
+    visibility |= OB_VISIBLE_INSTANCES;
+  }
+
+  if (ob->runtime.geometry_set_eval != NULL) {
     visibility |= OB_VISIBLE_INSTANCES;
   }
 
@@ -4880,6 +4892,7 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
   runtime->mesh_deform_eval = NULL;
   runtime->curve_cache = NULL;
   runtime->object_as_temp_mesh = NULL;
+  runtime->geometry_set_eval = NULL;
 }
 
 /**

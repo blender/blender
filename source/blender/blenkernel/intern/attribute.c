@@ -63,8 +63,8 @@ static void get_domains(ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
     }
     case ID_ME: {
       Mesh *mesh = (Mesh *)id;
-      info[ATTR_DOMAIN_VERTEX].customdata = &mesh->vdata;
-      info[ATTR_DOMAIN_VERTEX].length = mesh->totvert;
+      info[ATTR_DOMAIN_POINT].customdata = &mesh->vdata;
+      info[ATTR_DOMAIN_POINT].length = mesh->totvert;
       info[ATTR_DOMAIN_EDGE].customdata = &mesh->edata;
       info[ATTR_DOMAIN_EDGE].length = mesh->totedge;
       info[ATTR_DOMAIN_CORNER].customdata = &mesh->ldata;

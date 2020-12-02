@@ -655,7 +655,7 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
   }
   ntree->is_updating = false;
 
-  do_tag_update |= ED_node_is_simulation(snode);
+  do_tag_update |= ED_node_is_geometry(snode);
 
   ntreeUpdateTree(bmain, ntree);
   snode_notify(C, snode);
@@ -1052,7 +1052,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
       }
     }
 
-    do_tag_update |= ED_node_is_simulation(snode);
+    do_tag_update |= ED_node_is_geometry(snode);
 
     if (found) {
       ntreeUpdateTree(CTX_data_main(C), snode->edittree);
@@ -1932,6 +1932,7 @@ void ED_node_link_insert(Main *bmain, ScrArea *area)
 
       ntreeUpdateTree(bmain, snode->edittree); /* needed for pointers */
       snode_update(snode, select);
+      ED_node_tag_update_id((ID *)snode->edittree);
       ED_node_tag_update_id(snode->id);
     }
   }

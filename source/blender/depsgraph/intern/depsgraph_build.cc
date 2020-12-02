@@ -32,6 +32,7 @@
 #include "PIL_time_utildefines.h"
 
 #include "DNA_cachefile_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_simulation_types.h"
@@ -114,6 +115,17 @@ void DEG_add_simulation_relation(DepsNodeHandle *node_handle,
       &simulation->id, deg::NodeType::SIMULATION, deg::OperationCode::SIMULATION_EVAL);
   deg::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
   deg_node_handle->builder->add_node_handle_relation(operation_key, deg_node_handle, description);
+}
+
+void DEG_add_node_tree_relation(DepsNodeHandle *node_handle,
+                                bNodeTree *node_tree,
+                                const char *description)
+{
+  /* Using shading key, because that's the one that exists right now. Should use something else in
+   * the future. */
+  deg::ComponentKey shading_key(&node_tree->id, deg::NodeType::SHADING);
+  deg::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+  deg_node_handle->builder->add_node_handle_relation(shading_key, deg_node_handle, description);
 }
 
 void DEG_add_object_cache_relation(DepsNodeHandle *node_handle,

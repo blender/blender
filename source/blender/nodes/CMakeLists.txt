@@ -24,11 +24,12 @@ set(INC
   function
   intern
   shader
-  simulation
+  geometry
   texture
   ../blenkernel
   ../blenlib
   ../blentranslation
+  ../bmesh
   ../depsgraph
   ../functions
   ../gpu
@@ -137,6 +138,22 @@ set(SRC
   function/nodes/node_fn_switch.cc
   function/node_function_util.cc
 
+  geometry/nodes/node_geo_attribute_math.cc
+  geometry/nodes/node_geo_common.cc
+  geometry/nodes/node_geo_boolean.cc
+  geometry/nodes/node_geo_edge_split.cc
+  geometry/nodes/node_geo_join_geometry.cc
+  geometry/nodes/node_geo_object_info.cc
+  geometry/nodes/node_geo_subdivision_surface.cc
+  geometry/nodes/node_geo_point_distribute.cc
+  geometry/nodes/node_geo_point_instance.cc
+  geometry/nodes/node_geo_random_attribute.cc
+  geometry/nodes/node_geo_transform.cc
+  geometry/nodes/node_geo_triangulate.cc
+  geometry/node_geometry_exec.cc
+  geometry/node_geometry_tree.cc
+  geometry/node_geometry_util.cc
+
   shader/nodes/node_shader_add_shader.c
   shader/nodes/node_shader_ambient_occlusion.c
   shader/nodes/node_shader_attribute.c
@@ -230,10 +247,6 @@ set(SRC
   shader/node_shader_tree.c
   shader/node_shader_util.c
 
-  simulation/nodes/node_sim_common.cc
-  simulation/node_simulation_tree.cc
-  simulation/node_simulation_util.cc
-
   texture/nodes/node_texture_at.c
   texture/nodes/node_texture_bricks.c
   texture/nodes/node_texture_checker.c
@@ -261,18 +274,21 @@ set(SRC
   texture/node_texture_util.c
 
   intern/derived_node_tree.cc
+  intern/math_functions.cc
   intern/node_common.c
   intern/node_exec.c
+  intern/node_geometry_exec.cc
   intern/node_socket.cc
   intern/node_tree_dependencies.cc
   intern/node_tree_multi_function.cc
   intern/node_tree_ref.cc
   intern/node_util.c
+  intern/type_callbacks.cc
 
   composite/node_composite_util.h
   function/node_function_util.hh
   shader/node_shader_util.h
-  simulation/node_simulation_util.h
+  geometry/node_geometry_util.hh
   texture/node_texture_util.h
 
   NOD_common.h
@@ -283,10 +299,12 @@ set(SRC
   NOD_node_tree_multi_function.hh
   NOD_node_tree_ref.hh
   NOD_shader.h
-  NOD_simulation.h
+  NOD_geometry.h
+  NOD_math_functions.hh
   NOD_socket.h
   NOD_static_types.h
   NOD_texture.h
+  NOD_type_callbacks.hh
   intern/node_common.h
   intern/node_exec.h
   intern/node_util.h
@@ -295,6 +313,7 @@ set(SRC
 set(LIB
   bf_functions
   bf_intern_sky
+  bf_bmesh
 )
 
 if(WITH_PYTHON)
@@ -326,9 +345,12 @@ if(WITH_COMPOSITOR)
   add_definitions(-DWITH_COMPOSITOR)
 endif()
 
-
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
+endif()
+
+if(WITH_OPENSUBDIV)
+  add_definitions(-DWITH_OPENSUBDIV)
 endif()
 
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -34,7 +34,7 @@ bool sh_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 
 static bool sh_fn_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
-  return STREQ(ntree->idname, "ShaderNodeTree") || STREQ(ntree->idname, "SimulationNodeTree");
+  return STREQ(ntree->idname, "ShaderNodeTree") || STREQ(ntree->idname, "GeometryNodeTree");
 }
 
 void sh_node_type_base(

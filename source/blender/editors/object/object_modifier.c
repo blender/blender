@@ -90,6 +90,8 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 
+#include "MOD_nodes.h"
+
 #include "UI_interface.h"
 
 #include "WM_api.h"
@@ -231,6 +233,9 @@ ModifierData *ED_object_modifier_add(
     else if (type == eModifierType_Skin) {
       /* ensure skin-node customdata exists */
       BKE_mesh_ensure_skin_customdata(ob->data);
+    }
+    else if (type == eModifierType_Nodes) {
+      MOD_nodes_init(bmain, (NodesModifierData *)new_md);
     }
   }
 

@@ -26,20 +26,11 @@
 #include "FN_multi_function_network.hh"
 
 #include "NOD_derived_node_tree.hh"
+#include "NOD_type_callbacks.hh"
 
 #include "BLI_resource_collector.hh"
 
 namespace blender::nodes {
-
-/* Maybe this should be moved to BKE_node.h. */
-inline bool is_multi_function_data_socket(const bNodeSocket *bsocket)
-{
-  if (bsocket->typeinfo->get_mf_data_type != nullptr) {
-    BLI_assert(bsocket->typeinfo->expand_in_mf_network != nullptr);
-    return true;
-  }
-  return false;
-}
 
 /**
  * A MFNetworkTreeMap maps various components of a DerivedNodeTree to components of a
@@ -149,7 +140,7 @@ class MFNetworkTreeMap {
       if (!dsocket->is_available()) {
         continue;
       }
-      if (!is_multi_function_data_socket(dsocket->bsocket())) {
+      if (!socket_is_mf_data_socket(*dsocket->bsocket()->typeinfo)) {
         continue;
       }
       fn::MFSocket *socket = sockets[used_sockets];
@@ -299,6 +290,11 @@ class SocketMFNetworkBuilder : public MFNetworkBuilderBase {
   {
     this->construct_generator_fn<fn::CustomMF_Constant<T>>(std::move(value));
   }
+  void set_constant_value(const CPPType &type, const void *value)
+  {
+    /* The value has live as long as the generated mf network. */
+    this->construct_generator_fn<fn::CustomMF_GenericConstant>(type, value);
+  }
 
   template<typename T, typename... Args> void construct_generator_fn(Args &&... args)
   {
@@ -396,5 +392,38 @@ class NodeMFNetworkBuilder : public MFNetworkBuilderBase {
 MFNetworkTreeMap insert_node_tree_into_mf_network(fn::MFNetwork &network,
                                                   const DerivedNodeTree &tree,
                                                   ResourceCollector &resources);
+
+using MultiFunctionByNode = Map<const DNode *, const fn::MultiFunction *>;
+MultiFunctionByNode get_multi_function_per_node(const DerivedNodeTree &tree,
+                                                ResourceCollector &resources);
+
+class DataTypeConversions {
+ private:
+  Map<std::pair<fn::MFDataType, fn::MFDataType>, const fn::MultiFunction *> conversions_;
+
+ public:
+  void add(fn::MFDataType from_type, fn::MFDataType to_type, const fn::MultiFunction &fn)
+  {
+    conversions_.add_new({from_type, to_type}, &fn);
+  }
+
+  const fn::MultiFunction *get_conversion(fn::MFDataType from, fn::MFDataType to) const
+  {
+    return conversions_.lookup_default({from, to}, nullptr);
+  }
+
+  bool is_convertible(const CPPType &from_type, const CPPType &to_type) const
+  {
+    return conversions_.contains(
+        {fn::MFDataType::ForSingle(from_type), fn::MFDataType::ForSingle(to_type)});
+  }
+
+  void convert(const CPPType &from_type,
+               const CPPType &to_type,
+               const void *from_value,
+               void *to_value) const;
+};
+
+const DataTypeConversions &get_implicit_type_conversions();
 
 }  // namespace blender::nodes

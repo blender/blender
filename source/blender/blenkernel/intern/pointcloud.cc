@@ -33,12 +33,14 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_customdata.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
@@ -53,8 +55,8 @@
 
 static void pointcloud_random(PointCloud *pointcloud);
 
-const char *POINTCLOUD_ATTR_POSITION = "Position";
-const char *POINTCLOUD_ATTR_RADIUS = "Radius";
+const char *POINTCLOUD_ATTR_POSITION = "position";
+const char *POINTCLOUD_ATTR_RADIUS = "radius";
 
 static void pointcloud_init_data(ID *id)
 {
@@ -86,6 +88,8 @@ static void pointcloud_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_s
                   alloc_type,
                   pointcloud_dst->totpoint);
   BKE_pointcloud_update_customdata_pointers(pointcloud_dst);
+
+  pointcloud_dst->batch_cache = nullptr;
 }
 
 static void pointcloud_free_data(ID *id)
@@ -230,10 +234,46 @@ void *BKE_pointcloud_add_default(Main *bmain, const char *name)
   return pointcloud;
 }
 
+PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
+{
+  PointCloud *pointcloud = static_cast<PointCloud *>(BKE_libblock_alloc(
+      nullptr, ID_PT, BKE_idtype_idcode_to_name(ID_PT), LIB_ID_CREATE_LOCALIZE));
+
+  pointcloud_init_data(&pointcloud->id);
+
+  pointcloud->totpoint = totpoint;
+
+  CustomData_add_layer_named(&pointcloud->pdata,
+                             CD_PROP_FLOAT,
+                             CD_CALLOC,
+                             nullptr,
+                             pointcloud->totpoint,
+                             POINTCLOUD_ATTR_RADIUS);
+
+  pointcloud->totpoint = totpoint;
+  CustomData_realloc(&pointcloud->pdata, pointcloud->totpoint);
+  BKE_pointcloud_update_customdata_pointers(pointcloud);
+
+  return pointcloud;
+}
+
+void BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], float r_max[3])
+{
+  float(*pointcloud_co)[3] = pointcloud->co;
+  float *pointcloud_radius = pointcloud->radius;
+  for (int a = 0; a < pointcloud->totpoint; a++) {
+    float *co = pointcloud_co[a];
+    float radius = (pointcloud_radius) ? pointcloud_radius[a] : 0.0f;
+    const float co_min[3] = {co[0] - radius, co[1] - radius, co[2] - radius};
+    const float co_max[3] = {co[0] + radius, co[1] + radius, co[2] + radius};
+    DO_MIN(co_min, r_min);
+    DO_MAX(co_max, r_max);
+  }
+}
+
 BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_POINTCLOUD);
-  PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
 
   if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
     return ob->runtime.bb;
@@ -241,23 +281,18 @@ BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
 
   if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "pointcloud boundbox"));
-
-    float min[3], max[3];
-    INIT_MINMAX(min, max);
-
-    float(*pointcloud_co)[3] = pointcloud->co;
-    float *pointcloud_radius = pointcloud->radius;
-    for (int a = 0; a < pointcloud->totpoint; a++) {
-      float *co = pointcloud_co[a];
-      float radius = (pointcloud_radius) ? pointcloud_radius[a] : 0.0f;
-      const float co_min[3] = {co[0] - radius, co[1] - radius, co[2] - radius};
-      const float co_max[3] = {co[0] + radius, co[1] + radius, co[2] + radius};
-      DO_MIN(co_min, min);
-      DO_MAX(co_max, max);
-    }
-
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
   }
+
+  blender::float3 min, max;
+  INIT_MINMAX(min, max);
+  if (ob->runtime.geometry_set_eval != nullptr) {
+    ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max);
+  }
+  else {
+    const PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
+    BKE_pointcloud_minmax(pointcloud, min, max);
+  }
+  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
 
   return ob->runtime.bb;
 }
@@ -306,13 +341,11 @@ PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool
   return result;
 }
 
-static PointCloud *pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
-                                                 struct Scene *scene,
-                                                 Object *object,
-                                                 PointCloud *pointcloud_input)
+static void pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
+                                          struct Scene *scene,
+                                          Object *object,
+                                          GeometrySet &geometry_set)
 {
-  PointCloud *pointcloud = pointcloud_input;
-
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   const int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
@@ -332,40 +365,10 @@ static PointCloud *pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    if ((mti->type == eModifierTypeType_OnlyDeform) &&
-        (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly)) {
-      /* Ensure we are not modifying the input. */
-      if (pointcloud == pointcloud_input) {
-        pointcloud = BKE_pointcloud_copy_for_eval(pointcloud, true);
-      }
-
-      /* Ensure we are not overwriting referenced data. */
-      CustomData_duplicate_referenced_layer_named(
-          &pointcloud->pdata, CD_PROP_FLOAT3, POINTCLOUD_ATTR_POSITION, pointcloud->totpoint);
-      BKE_pointcloud_update_customdata_pointers(pointcloud);
-
-      /* Created deformed coordinates array on demand. */
-      mti->deformVerts(md, &mectx, nullptr, pointcloud->co, pointcloud->totpoint);
-    }
-    else if (mti->modifyPointCloud) {
-      /* Ensure we are not modifying the input. */
-      if (pointcloud == pointcloud_input) {
-        pointcloud = BKE_pointcloud_copy_for_eval(pointcloud, true);
-      }
-
-      PointCloud *pointcloud_next = mti->modifyPointCloud(md, &mectx, pointcloud);
-
-      if (pointcloud_next && pointcloud_next != pointcloud) {
-        /* If the modifier returned a new pointcloud, release the old one. */
-        if (pointcloud != pointcloud_input) {
-          BKE_id_free(nullptr, pointcloud);
-        }
-        pointcloud = pointcloud_next;
-      }
+    if (mti->modifyPointCloud) {
+      mti->modifyPointCloud(md, &mectx, &geometry_set);
     }
   }
-
-  return pointcloud;
 }
 
 void BKE_pointcloud_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Object *object)
@@ -375,12 +378,14 @@ void BKE_pointcloud_data_update(struct Depsgraph *depsgraph, struct Scene *scene
 
   /* Evaluate modifiers. */
   PointCloud *pointcloud = static_cast<PointCloud *>(object->data);
-  PointCloud *pointcloud_eval = pointcloud_evaluate_modifiers(
-      depsgraph, scene, object, pointcloud);
+  GeometrySet geometry_set = GeometrySet::create_with_pointcloud(pointcloud,
+                                                                 GeometryOwnershipType::ReadOnly);
+  pointcloud_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   /* Assign evaluated object. */
-  const bool is_owned = (pointcloud != pointcloud_eval);
-  BKE_object_eval_assign_data(object, &pointcloud_eval->id, is_owned);
+  PointCloud *dummy_pointcloud = BKE_pointcloud_new_nomain(0);
+  BKE_object_eval_assign_data(object, &dummy_pointcloud->id, true);
+  object->runtime.geometry_set_eval = new GeometrySet(geometry_set);
 }
 
 /* Draw Cache */

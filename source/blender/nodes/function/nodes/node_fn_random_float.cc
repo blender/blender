@@ -21,7 +21,7 @@
 static bNodeSocketTemplate fn_node_random_float_in[] = {
     {SOCK_FLOAT, N_("Min"), 0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_NONE},
     {SOCK_FLOAT, N_("Max"), 1.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_INT, N_("Seed")},
+    {SOCK_INT, N_("Seed"), 0, 0, 0, 0, -10000, 10000},
     {-1, ""},
 };
 

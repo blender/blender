@@ -138,6 +138,9 @@ void ED_node_tag_update_id(ID *id)
     DEG_id_tag_update(id, 0);
     WM_main_add_notifier(NC_TEXTURE | ND_NODES, id);
   }
+  else if (ntree->type == NTREE_GEOMETRY) {
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
+  }
   else if (id == &ntree->id) {
     /* node groups */
     DEG_id_tag_update(id, 0);

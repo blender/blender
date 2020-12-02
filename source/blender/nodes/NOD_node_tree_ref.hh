@@ -101,6 +101,7 @@ class SocketRef : NonCopyable, NonMovable {
 
   StringRefNull idname() const;
   StringRefNull name() const;
+  StringRefNull identifier() const;
 
   bNodeSocket *bsocket() const;
   bNode *bnode() const;
@@ -175,6 +176,8 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Span<const SocketRef *> sockets() const;
   Span<const InputSocketRef *> input_sockets() const;
   Span<const OutputSocketRef *> output_sockets() const;
+
+  bool has_link_cycles() const;
 
   bNodeTree *btree() const;
 
@@ -270,6 +273,11 @@ inline StringRefNull SocketRef::idname() const
 inline StringRefNull SocketRef::name() const
 {
   return bsocket_->name;
+}
+
+inline StringRefNull SocketRef::identifier() const
+{
+  return bsocket_->identifier;
 }
 
 inline bNodeSocket *SocketRef::bsocket() const

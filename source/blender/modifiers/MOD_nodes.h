@@ -14,32 +14,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <string.h>
+#pragma once
 
-#include "MEM_guardedalloc.h"
+struct Main;
+struct Object;
+struct NodesModifierData;
 
-#include "NOD_simulation.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "BKE_node.h"
+void MOD_nodes_update_interface(struct Object *object, struct NodesModifierData *nmd);
 
-#include "BLT_translation.h"
+void MOD_nodes_init(struct Main *bmain, struct NodesModifierData *nmd);
 
-#include "DNA_node_types.h"
-
-#include "RNA_access.h"
-
-bNodeTreeType *ntreeType_Simulation;
-
-void register_node_tree_type_sim(void)
-{
-  bNodeTreeType *tt = ntreeType_Simulation = static_cast<bNodeTreeType *>(
-      MEM_callocN(sizeof(bNodeTreeType), "simulation node tree type"));
-  tt->type = NTREE_SIMULATION;
-  strcpy(tt->idname, "SimulationNodeTree");
-  strcpy(tt->ui_name, N_("Simulation Editor"));
-  tt->ui_icon = 0; /* defined in drawnode.c */
-  strcpy(tt->ui_description, N_("Simulation nodes"));
-  tt->rna_ext.srna = &RNA_SimulationNodeTree;
-
-  ntreeTypeAdd(tt);
+#ifdef __cplusplus
 }
+#endif
