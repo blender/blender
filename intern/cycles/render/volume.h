@@ -32,7 +32,7 @@ class Volume : public Mesh {
   float step_size;
   bool object_space;
 
-  virtual void clear() override;
+  virtual void clear(bool preserve_shaders = false) override;
 };
 
 CCL_NAMESPACE_END

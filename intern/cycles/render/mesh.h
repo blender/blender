@@ -174,8 +174,7 @@ class Mesh : public Geometry {
   void reserve_mesh(int numverts, int numfaces);
   void resize_subd_faces(int numfaces, int num_ngons, int numcorners);
   void reserve_subd_faces(int numfaces, int num_ngons, int numcorners);
-  void clear(bool preserve_voxel_data);
-  void clear() override;
+  void clear(bool preserve_shaders = false) override;
   void add_vertex(float3 P);
   void add_vertex_slow(float3 P);
   void add_triangle(int v0, int v1, int v2, int shader, bool smooth);
@@ -202,6 +201,9 @@ class Mesh : public Geometry {
   void pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset);
 
   void tessellate(DiagSplit *split);
+
+ protected:
+  void clear(bool preserve_shaders, bool preserve_voxel_data);
 };
 
 CCL_NAMESPACE_END
