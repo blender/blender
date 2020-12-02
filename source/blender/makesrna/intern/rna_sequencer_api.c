@@ -375,7 +375,7 @@ static Sequence *rna_Sequences_new_sound(ID *id,
 }
 #  else  /* WITH_AUDASPACE */
 static Sequence *rna_Sequences_new_sound(ID *UNUSED(id),
-                                         Editing *UNUSED(seqbase),
+                                         ListBase *UNUSED(seqbase),
                                          Main *UNUSED(bmain),
                                          ReportList *reports,
                                          const char *UNUSED(name),
