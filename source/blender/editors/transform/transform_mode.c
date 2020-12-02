@@ -228,7 +228,7 @@ static void protectedAxisAngleBits(
   }
 }
 
-static void protectedSizeBits(short protectflag, float size[3])
+void protectedSizeBits(short protectflag, float size[3])
 {
   if (protectflag & OB_LOCK_SCALEX) {
     size[0] = 1.0f;
@@ -431,7 +431,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
   }
 }
 
-static void constraintSizeLim(TransInfo *t, TransData *td)
+void constraintSizeLim(TransInfo *t, TransData *td)
 {
   if (td->con && td->ext) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_SIZELIMIT);
