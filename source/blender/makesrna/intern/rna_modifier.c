@@ -5293,7 +5293,7 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 
   static const EnumPropertyItem weightvg_proximity_falloff_type_items[] = {
       {MOD_WVG_MAPPING_NONE, "LINEAR", ICON_LINCURVE, "Linear", "Null action"},
-      /* No curve mapping here! */
+      {MOD_WVG_MAPPING_CURVE, "CURVE", ICON_RNDCURVE, "Custom Curve", ""},
       {MOD_WVG_MAPPING_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
       {MOD_WVG_MAPPING_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
       {MOD_WVG_MAPPING_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
@@ -5379,6 +5379,11 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
       prop,
       "Normalize Weights",
       "Normalize the resulting weights (otherwise they are only clamped within [0.0, 1.0] range)");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "map_curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "cmap_curve");
+  RNA_def_property_ui_text(prop, "Mapping Curve", "Custom mapping curve");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   RNA_define_lib_overridable(false);

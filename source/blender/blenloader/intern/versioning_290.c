@@ -1189,5 +1189,17 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_WeightVGProximity) {
+          WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+          if (wmd->cmap_curve == NULL) {
+            wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
+            BKE_curvemapping_init(wmd->cmap_curve);
+          }
+        }
+      }
+    }
   }
 }

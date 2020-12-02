@@ -1583,6 +1583,10 @@ typedef struct WeightVGProximityModifierData {
 
   /** Name of vertex group to modify/weight. MAX_VGROUP_NAME. */
   char defgrp_name[64];
+  
+  /* Mapping stuff. */
+  /** The custom mapping curve!. */
+  struct CurveMapping *cmap_curve;
 
   /* Proximity modes. */
   int proximity_mode;

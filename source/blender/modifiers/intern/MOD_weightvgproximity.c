@@ -31,6 +31,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_color_types.h" /* CurveMapping. */
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -39,6 +40,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_bvhutils.h"
+#include "BKE_colortools.h" /* CurveMapping. */
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
@@ -53,6 +55,8 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "BLO_read_write.h"
 
 #include "RNA_access.h"
 
@@ -258,7 +262,8 @@ static void do_map(Object *ob,
                    const float min_d,
                    const float max_d,
                    short mode,
-                   const bool do_invert_mapping)
+                   const bool do_invert_mapping,
+                   CurveMapping *cmap)
 {
   const float range_inv = 1.0f / (max_d - min_d); /* invert since multiplication is faster */
   uint i = nidx;
@@ -294,7 +299,6 @@ static void do_map(Object *ob,
     }
   }
 
-  BLI_assert(mode != MOD_WVG_MAPPING_CURVE);
   if (do_invert_mapping || mode != MOD_WVG_MAPPING_NONE) {
     RNG *rng = NULL;
 
@@ -302,7 +306,7 @@ static void do_map(Object *ob,
       rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ob->id.name + 2));
     }
 
-    weightvg_do_map(nidx, weights, mode, do_invert_mapping, NULL, rng);
+    weightvg_do_map(nidx, weights, mode, do_invert_mapping, cmap, rng);
 
     if (rng) {
       BLI_rng_free(rng);
@@ -320,6 +324,25 @@ static void initData(ModifierData *md)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
 
   MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeightVGProximityModifierData), modifier);
+
+  wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
+  BKE_curvemapping_init(wmd->cmap_curve);
+}
+
+static void freeData(ModifierData *md)
+{
+  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  BKE_curvemapping_free(wmd->cmap_curve);
+}
+
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+{
+  const WeightVGProximityModifierData *wmd = (const WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *twmd = (WeightVGProximityModifierData *)target;
+
+  BKE_modifier_copydata_generic(md, target, flag);
+
+  twmd->cmap_curve = BKE_curvemapping_copy(wmd->cmap_curve);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -587,7 +610,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
          wmd->min_dist,
          wmd->max_dist,
          wmd->falloff_type,
-         (wmd->proximity_flags & MOD_WVG_PROXIMITY_INVERT_FALLOFF) != 0);
+         (wmd->proximity_flags & MOD_WVG_PROXIMITY_INVERT_FALLOFF) != 0,
+         wmd->cmap_curve);
 
   /* Do masking. */
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -680,6 +704,9 @@ static void falloff_panel_draw(const bContext *UNUSED(C), Panel *panel)
   sub = uiLayoutRow(row, true);
   uiLayoutSetPropSep(sub, false);
   uiItemR(row, ptr, "invert_falloff", 0, "", ICON_ARROW_LEFTRIGHT);
+  if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
+    uiTemplateCurveMapping(layout, ptr, "map_curve", 0, false, false, false, false);
+  }
   modifier_panel_end(layout, ptr);
 }
 
@@ -703,6 +730,25 @@ static void panelRegister(ARegionType *region_type)
       region_type, "influence", "Influence", NULL, influence_panel_draw, panel_type);
 }
 
+static void blendWrite(BlendWriter *writer, const ModifierData *md)
+{
+  const WeightVGProximityModifierData *wmd = (const WeightVGProximityModifierData *)md;
+
+  if (wmd->cmap_curve) {
+    BKE_curvemapping_blend_write(writer, wmd->cmap_curve);
+  }
+}
+
+static void blendRead(BlendDataReader *reader, ModifierData *md)
+{
+  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+
+  BLO_read_data_address(reader, &wmd->cmap_curve);
+  if (wmd->cmap_curve) {
+    BKE_curvemapping_blend_read(reader, wmd->cmap_curve);
+  }
+}
+
 ModifierTypeInfo modifierType_WeightVGProximity = {
     /* name */ "VertexWeightProximity",
     /* structName */ "WeightVGProximityModifierData",
@@ -713,7 +759,7 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
     /* icon */ ICON_MOD_VERTEX_WEIGHT,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /* copyData */ copyData,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,
@@ -726,7 +772,7 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
-    /* freeData */ NULL,
+    /* freeData */ freeData,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ dependsOnTime,
@@ -735,6 +781,6 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ blendWrite,
+    /* blendRead */ blendRead,
 };
