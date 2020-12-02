@@ -1910,7 +1910,7 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
 
   edbo_compute_bbone_child(arm);
 
-  for (eBone = arm->edbo->first, index = ob->runtime.select_id; eBone;
+  for (eBone = arm->edbo->first, index = ob_orig->runtime.select_id; eBone;
        eBone = eBone->next, index += 0x10000) {
     if (eBone->layer & arm->layer) {
       if ((eBone->flag & BONE_HIDDEN_A) == 0) {
@@ -2005,7 +2005,8 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
         DRW_state_is_select();
 
     if (is_pose_select) {
-      index = ob->runtime.select_id;
+      const Object *ob_orig = DEG_get_original_object(ob);
+      index = ob_orig->runtime.select_id;
     }
   }
 
