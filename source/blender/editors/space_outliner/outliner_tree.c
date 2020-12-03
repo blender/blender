@@ -2054,7 +2054,6 @@ static void outliner_filter_tree(SpaceOutliner *space_outliner, ViewLayer *view_
 /* Main Tree Building API */
 
 /* Main entry point for building the tree data-structure that the outliner represents. */
-/* TODO: split each mode into its own function? */
 void outliner_build_tree(Main *mainvar,
                          Scene *scene,
                          ViewLayer *view_layer,
@@ -2091,40 +2090,13 @@ void outliner_build_tree(Main *mainvar,
 
   space_outliner->runtime->tree_display = outliner_tree_display_create(space_outliner->outlinevis,
                                                                        space_outliner);
-  if (space_outliner->runtime->tree_display) {
-    TreeSourceData source_data = {.bmain = mainvar, .scene = scene, .view_layer = view_layer};
-    space_outliner->tree = outliner_tree_display_build_tree(space_outliner->runtime->tree_display,
-                                                            &source_data);
-  }
 
-  if (space_outliner->runtime->tree_display) {
-    /* Skip if there's a tree-display that's responsible for adding all elements. */
-  }
-  /* options */
-  else if (space_outliner->outlinevis == SO_LIBRARIES) {
-    /* Ported to new tree-display, should be built there already. */
-    BLI_assert(false);
-  }
-  else if (space_outliner->outlinevis == SO_SCENES) {
-    /* Ported to new tree-display, should be built there already. */
-    BLI_assert(false);
-  }
-  else if (space_outliner->outlinevis == SO_SEQUENCE) {
-    /* Ported to new tree-display, should be built there already. */
-    BLI_assert(false);
-  }
-  else if (space_outliner->outlinevis == SO_DATA_API) {
-    /* Ported to new tree-display, should be built there already. */
-    BLI_assert(false);
-  }
-  else if (space_outliner->outlinevis == SO_ID_ORPHANS) {
-    /* Ported to new tree-display, should be built there already. */
-    BLI_assert(false);
-  }
-  else if (space_outliner->outlinevis == SO_VIEW_LAYER) {
-    /* Ported to new tree-display, should be built there already. */
-    BLI_assert(false);
-  }
+  /* All tree displays should be created as sub-classes of AbstractTreeDisplay. */
+  BLI_assert(space_outliner->runtime->tree_display != NULL);
+
+  TreeSourceData source_data = {.bmain = mainvar, .scene = scene, .view_layer = view_layer};
+  space_outliner->tree = outliner_tree_display_build_tree(space_outliner->runtime->tree_display,
+                                                          &source_data);
 
   if ((space_outliner->flag & SO_SKIP_SORT_ALPHA) == 0) {
     outliner_sort(&space_outliner->tree);
