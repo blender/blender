@@ -31,6 +31,9 @@ namespace blender::bke {
 
 using fn::CPPType;
 
+const CPPType *custom_data_type_to_cpp_type(const CustomDataType type);
+CustomDataType cpp_type_to_custom_data_type(const CPPType &type);
+
 /**
  * This class offers an indirection for reading an attribute.
  * This is useful for the following reasons:
@@ -47,6 +50,7 @@ class ReadAttribute {
  protected:
   const AttributeDomain domain_;
   const CPPType &cpp_type_;
+  const CustomDataType custom_data_type_;
   const int64_t size_;
 
   /* Protects the span below, so that no two threads initialize it at the same time. */
@@ -59,7 +63,10 @@ class ReadAttribute {
 
  public:
   ReadAttribute(AttributeDomain domain, const CPPType &cpp_type, const int64_t size)
-      : domain_(domain), cpp_type_(cpp_type), size_(size)
+      : domain_(domain),
+        cpp_type_(cpp_type),
+        custom_data_type_(cpp_type_to_custom_data_type(cpp_type)),
+        size_(size)
   {
   }
 
@@ -73,6 +80,11 @@ class ReadAttribute {
   const CPPType &cpp_type() const
   {
     return cpp_type_;
+  }
+
+  CustomDataType custom_data_type() const
+  {
+    return custom_data_type_;
   }
 
   int64_t size() const
@@ -104,6 +116,7 @@ class WriteAttribute {
  protected:
   const AttributeDomain domain_;
   const CPPType &cpp_type_;
+  const CustomDataType custom_data_type_;
   const int64_t size_;
 
   /* When not null, this points either to the attribute array or to a temporary array. */
@@ -115,7 +128,10 @@ class WriteAttribute {
 
  public:
   WriteAttribute(AttributeDomain domain, const CPPType &cpp_type, const int64_t size)
-      : domain_(domain), cpp_type_(cpp_type), size_(size)
+      : domain_(domain),
+        cpp_type_(cpp_type),
+        custom_data_type_(cpp_type_to_custom_data_type(cpp_type)),
+        size_(size)
   {
   }
 
@@ -129,6 +145,11 @@ class WriteAttribute {
   const CPPType &cpp_type() const
   {
     return cpp_type_;
+  }
+
+  CustomDataType custom_data_type() const
+  {
+    return custom_data_type_;
   }
 
   int64_t size() const
