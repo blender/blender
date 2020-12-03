@@ -301,6 +301,80 @@ class ObjectSolverTest(AbstractConstraintTests):
         self.matrix_test('Object Solver.owner', initial_matrix)
 
 
+class CustomSpaceTest(AbstractConstraintTests):
+    layer_collection = 'Custom Space'
+
+    def test_loc_like_object(self):
+        """Custom Space: basic custom space evaluation for objects"""
+        loc_like_constraint = bpy.data.objects["Custom Space.object.owner"].constraints["Copy Location"]
+        loc_like_constraint.use_x = True
+        loc_like_constraint.use_y = True
+        loc_like_constraint.use_z = True
+        self.matrix_test('Custom Space.object.owner', Matrix((
+            (1.0, 0.0, -2.9802322387695312e-08, -0.01753106713294983),
+            (0.0, 1.0, 0.0, -0.08039519190788269),
+            (-2.9802322387695312e-08, 5.960464477539063e-08, 1.0, 0.1584688425064087),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+        loc_like_constraint.use_x = False
+        self.matrix_test('Custom Space.object.owner', Matrix((
+            (1.0, 0.0, -2.9802322387695312e-08, 0.18370598554611206),
+            (0.0, 1.0, 0.0, 0.47120195627212524),
+            (-2.9802322387695312e-08, 5.960464477539063e-08, 1.0, -0.16521614789962769),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+        loc_like_constraint.use_y = False
+        self.matrix_test('Custom Space.object.owner', Matrix((
+            (1.0, 0.0, -2.9802322387695312e-08, -0.46946945786476135),
+            (0.0, 1.0, 0.0, 0.423120379447937),
+            (-2.9802322387695312e-08, 5.960464477539063e-08, 1.0, -0.6532361507415771),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+        loc_like_constraint.use_z = False
+        loc_like_constraint.use_y = True
+        self.matrix_test('Custom Space.object.owner', Matrix((
+            (1.0, 0.0, -2.9802322387695312e-08, -0.346824586391449),
+            (0.0, 1.0, 0.0, 1.0480815172195435),
+            (-2.9802322387695312e-08, 5.960464477539063e-08, 1.0, 0.48802000284194946),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+
+    def test_loc_like_armature(self):
+        """Custom Space: basic custom space evaluation for bones"""
+        loc_like_constraint = bpy.data.objects["Custom Space.armature.owner"].pose.bones["Bone"].constraints["Copy Location"]
+        loc_like_constraint.use_x = True
+        loc_like_constraint.use_y = True
+        loc_like_constraint.use_z = True
+        self.bone_matrix_test('Custom Space.armature.owner', 'Bone', Matrix((
+            (0.4556015729904175, -0.03673229366540909, -0.8894257545471191, -0.01753103733062744),
+            (-0.45956411957740784, -0.8654094934463501, -0.19966775178909302, -0.08039522171020508),
+            (-0.762383222579956, 0.49971696734428406, -0.4111628830432892, 0.1584688425064087),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+        loc_like_constraint.use_x = False
+        self.bone_matrix_test('Custom Space.armature.owner', 'Bone', Matrix((
+            (0.4556015729904175, -0.03673229366540909, -0.8894257545471191, -0.310153603553772),
+            (-0.45956411957740784, -0.8654094934463501, -0.19966775178909302, -0.8824828863143921),
+            (-0.762383222579956, 0.49971696734428406, -0.4111628830432892, 0.629145085811615),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+        loc_like_constraint.use_y = False
+        self.bone_matrix_test('Custom Space.armature.owner', 'Bone', Matrix((
+            (0.4556015729904175, -0.03673229366540909, -0.8894257545471191, -1.0574829578399658),
+            (-0.45956411957740784, -0.8654094934463501, -0.19966775178909302, -0.937495231628418),
+            (-0.762383222579956, 0.49971696734428406, -0.4111628830432892, 0.07077804207801819),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+        loc_like_constraint.use_z = False
+        loc_like_constraint.use_y = True
+        self.bone_matrix_test('Custom Space.armature.owner', 'Bone', Matrix((
+            (0.4556015729904175, -0.03673229366540909, -0.8894257545471191, -0.25267064571380615),
+            (-0.45956411957740784, -0.8654094934463501, -0.19966775178909302, -0.9449876546859741),
+            (-0.762383222579956, 0.49971696734428406, -0.4111628830432892, 0.5583670735359192),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+
+
 def main():
     global args
     import argparse

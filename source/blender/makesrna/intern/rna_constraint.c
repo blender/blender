@@ -200,6 +200,12 @@ static const EnumPropertyItem target_space_pchan_items[] = {
      "World Space",
      "The transformation of the target is evaluated relative to the world "
      "coordinate system"},
+    {CONSTRAINT_SPACE_CUSTOM,
+     "CUSTOM",
+     0,
+     "Custom Space",
+     "The transformation of the target is evaluated relative to a custom object/bone/vertex "
+     "group"},
     {CONSTRAINT_SPACE_POSE,
      "POSE",
      0,
@@ -227,6 +233,11 @@ static const EnumPropertyItem owner_space_pchan_items[] = {
      0,
      "World Space",
      "The constraint is applied relative to the world coordinate system"},
+    {CONSTRAINT_SPACE_CUSTOM,
+     "CUSTOM",
+     0,
+     "Custom Space",
+     "The constraint is applied in local space of a custom object/bone/vertex group"},
     {CONSTRAINT_SPACE_POSE,
      "POSE",
      0,
@@ -275,6 +286,12 @@ static const EnumPropertyItem space_object_items[] = {
      0,
      "World Space",
      "The transformation of the target is evaluated relative to the world coordinate system"},
+    {CONSTRAINT_SPACE_CUSTOM,
+     "CUSTOM",
+     0,
+     "Custom Space",
+     "The transformation of the target is evaluated relative to a custom object/bone/vertex "
+     "group"},
     {CONSTRAINT_SPACE_LOCAL,
      "LOCAL",
      0,
@@ -3397,6 +3414,18 @@ void RNA_def_constraint(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Constraint_target_space_itemf");
   RNA_def_property_ui_text(prop, "Target Space", "Space that target is evaluated in");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+  prop = RNA_def_property(srna, "space_object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "space_object");
+  RNA_def_property_ui_text(prop, "Object", "Object for Custom Space");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+  prop = RNA_def_property(srna, "space_subtarget", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "space_subtarget");
+  RNA_def_property_ui_text(prop, "Sub-Target", "Armature bone, mesh or lattice vertex group, ...");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   /* flags */
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);

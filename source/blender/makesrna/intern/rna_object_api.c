@@ -324,8 +324,27 @@ static void rna_Object_mat_convert_space(Object *ob,
       return;
     }
   }
+  /* These checks are extra security, they should never occur. */
+  if (from == CONSTRAINT_SPACE_CUSTOM) {
+    const char *identifier = NULL;
+    RNA_enum_identifier(space_items, from, &identifier);
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "'from_space' '%s' is invalid when no custom space is given!",
+                identifier);
+    return;
+  }
+  if (to == CONSTRAINT_SPACE_CUSTOM) {
+    const char *identifier = NULL;
+    RNA_enum_identifier(space_items, to, &identifier);
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "'to_space' '%s' is invalid when no custom space is given!",
+                identifier);
+    return;
+  }
 
-  BKE_constraint_mat_convertspace(ob, pchan, (float(*)[4])mat_ret, from, to, false);
+  BKE_constraint_mat_convertspace(ob, pchan, NULL, (float(*)[4])mat_ret, from, to, false);
 }
 
 static void rna_Object_calc_matrix_camera(Object *ob,

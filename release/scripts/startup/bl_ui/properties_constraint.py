@@ -85,13 +85,22 @@ class ConstraintButtonsPanel(Panel):
             row.operator("constraint.disable_keep_transform", text="", icon='CANCEL')
 
     @staticmethod
-    def space_template(layout, con, target=True, owner=True):
+    def space_template(layout, con, target=True, owner=True, separator=True):
         if target or owner:
-            layout.separator()
+            if separator:
+                layout.separator()
             if target:
                 layout.prop(con, "target_space", text="Target")
             if owner:
                 layout.prop(con, "owner_space", text="Owner")
+
+            if con.target_space == 'CUSTOM' or con.owner_space == 'CUSTOM':
+                col = layout.column()
+                col.prop(con, "space_object")
+                if con.space_object and con.space_object.type == 'ARMATURE':
+                    col.prop_search(con, "space_subtarget", con.space_object.data, "bones", text="Bone")
+                elif con.space_object and con.space_object.type in {'MESH', 'LATTICE'}:
+                    col.prop_search(con, "space_subtarget", con.space_object, "vertex_groups", text="Vertex Group")
 
     @staticmethod
     def target_template(layout, con, subtargets=True):
@@ -237,7 +246,7 @@ class ConstraintButtonsPanel(Panel):
         row.label(icon="BLANK1")
 
         layout.prop(con, "use_transform_limit")
-        layout.prop(con, "owner_space")
+        self.space_template(layout, con, target=False, owner=True)
 
         self.draw_influence(layout, con)
 
@@ -306,7 +315,7 @@ class ConstraintButtonsPanel(Panel):
         row.prop_decorator(con, "max_z")
 
         layout.prop(con, "use_transform_limit")
-        layout.prop(con, "owner_space")
+        self.space_template(layout, con, target=False, owner=True)
 
         self.draw_influence(layout, con)
 
@@ -375,7 +384,7 @@ class ConstraintButtonsPanel(Panel):
         row.prop_decorator(con, "max_z")
 
         layout.prop(con, "use_transform_limit")
-        layout.prop(con, "owner_space")
+        self.space_template(layout, con, target=False, owner=True)
 
         self.draw_influence(layout, con)
 
@@ -483,7 +492,7 @@ class ConstraintButtonsPanel(Panel):
 
         layout.prop(con, "volume")
 
-        layout.prop(con, "owner_space")
+        self.space_template(layout, con, target=False, owner=True)
 
         self.draw_influence(layout, con)
 
@@ -1117,7 +1126,7 @@ class ConstraintButtonsSubPanel(Panel):
         col = layout.column()
         col.active = not con.use_eval_time
         col.prop(con, "transform_channel", text="Channel")
-        col.prop(con, "target_space")
+        ConstraintButtonsPanel.space_template(col, con, target=True, owner=False, separator=False)
 
         sub = col.column(align=True)
         sub.prop(con, "min", text="Range Min")

@@ -453,10 +453,13 @@ static void updateDuplicateActionConstraintSettings(EditBone *dup_bone,
 
   float mat[4][4];
 
+  bConstraintOb cob = {.depsgraph = NULL, .scene = NULL, .ob = ob, .pchan = NULL};
+  BKE_constraint_custom_object_space_get(cob.space_obj_world_matrix, curcon);
+
   unit_m4(mat);
   bPoseChannel *target_pchan = BKE_pose_channel_find_name(ob->pose, act_con->subtarget);
   BKE_constraint_mat_convertspace(
-      ob, target_pchan, mat, curcon->tarspace, CONSTRAINT_SPACE_LOCAL, false);
+      ob, target_pchan, &cob, mat, curcon->tarspace, CONSTRAINT_SPACE_LOCAL, false);
 
   float max_axis_val = 0;
   int max_axis = 0;
@@ -605,8 +608,11 @@ static void updateDuplicateLocRotConstraintSettings(Object *ob,
 
   unit_m4(local_mat);
 
+  bConstraintOb cob = {.depsgraph = NULL, .scene = NULL, .ob = ob, .pchan = pchan};
+  BKE_constraint_custom_object_space_get(cob.space_obj_world_matrix, curcon);
+
   BKE_constraint_mat_convertspace(
-      ob, pchan, local_mat, curcon->ownspace, CONSTRAINT_SPACE_LOCAL, false);
+      ob, pchan, &cob, local_mat, curcon->ownspace, CONSTRAINT_SPACE_LOCAL, false);
 
   if (curcon->type == CONSTRAINT_TYPE_ROTLIMIT) {
     /* Zero out any location translation */
@@ -657,9 +663,12 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
 
   float target_mat[4][4], own_mat[4][4], imat[4][4];
 
+  bConstraintOb cob = {.depsgraph = NULL, .scene = NULL, .ob = ob, .pchan = pchan};
+  BKE_constraint_custom_object_space_get(cob.space_obj_world_matrix, curcon);
+
   unit_m4(own_mat);
   BKE_constraint_mat_convertspace(
-      ob, pchan, own_mat, curcon->ownspace, CONSTRAINT_SPACE_LOCAL, false);
+      ob, pchan, &cob, own_mat, curcon->ownspace, CONSTRAINT_SPACE_LOCAL, false);
 
   /* ###Source map mirroring### */
   float old_min, old_max;
@@ -717,7 +726,7 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
   bPoseChannel *target_pchan = BKE_pose_channel_find_name(ob->pose, trans->subtarget);
   unit_m4(target_mat);
   BKE_constraint_mat_convertspace(
-      ob, target_pchan, target_mat, curcon->tarspace, CONSTRAINT_SPACE_LOCAL, false);
+      ob, target_pchan, &cob, target_mat, curcon->tarspace, CONSTRAINT_SPACE_LOCAL, false);
 
   invert_m4_m4(imat, target_mat);
   /* convert values into local object space */
