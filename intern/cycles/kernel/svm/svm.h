@@ -217,12 +217,26 @@ CCL_NAMESPACE_END
 CCL_NAMESPACE_BEGIN
 
 /* Main Interpreter Loop */
-ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
-                                        ShaderData *sd,
-                                        ccl_addr_space PathState *state,
-                                        ccl_global float *buffer,
-                                        ShaderType type,
-                                        int path_flag)
+#if defined(__KERNEL_OPTIX__) && defined(__SHADER_RAYTRACE__)
+ccl_device_inline void svm_eval_nodes(KernelGlobals *kg,
+                                      ShaderData *sd,
+                                      ccl_addr_space PathState *state,
+                                      ccl_global float *buffer,
+                                      ShaderType type,
+                                      int path_flag)
+{
+  optixDirectCall<void>(0, kg, sd, state, buffer, type, path_flag);
+}
+extern "C" __device__ void __direct_callable__svm_eval_nodes(
+#else
+ccl_device_noinline void svm_eval_nodes(
+#endif
+    KernelGlobals *kg,
+    ShaderData *sd,
+    ccl_addr_space PathState *state,
+    ccl_global float *buffer,
+    ShaderType type,
+    int path_flag)
 {
   float stack[SVM_STACK_SIZE];
   int offset = sd->shader & SHADER_MASK;

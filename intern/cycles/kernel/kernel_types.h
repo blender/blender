@@ -139,8 +139,6 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_OPTIX__
 #  undef __BAKING__
 #  undef __BRANCHED_PATH__
-/* TODO(pmours): Cannot use optixTrace in non-inlined functions */
-#  undef __SHADER_RAYTRACE__
 #endif /* __KERNEL_OPTIX__ */
 
 #ifdef __KERNEL_OPENCL__

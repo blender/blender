@@ -281,13 +281,28 @@ ccl_device_inline int subsurface_scatter_disk(KernelGlobals *kg,
   return num_eval_hits;
 }
 
-ccl_device_noinline void subsurface_scatter_multi_setup(KernelGlobals *kg,
-                                                        LocalIntersection *ss_isect,
-                                                        int hit,
-                                                        ShaderData *sd,
-                                                        ccl_addr_space PathState *state,
-                                                        ClosureType type,
-                                                        float roughness)
+#if defined(__KERNEL_OPTIX__) && defined(__SHADER_RAYTRACE__)
+ccl_device_inline void subsurface_scatter_multi_setup(KernelGlobals *kg,
+                                                      LocalIntersection *ss_isect,
+                                                      int hit,
+                                                      ShaderData *sd,
+                                                      ccl_addr_space PathState *state,
+                                                      ClosureType type,
+                                                      float roughness)
+{
+  optixDirectCall<void>(2, kg, ss_isect, hit, sd, state, type, roughness);
+}
+extern "C" __device__ void __direct_callable__subsurface_scatter_multi_setup(
+#else
+ccl_device_noinline void subsurface_scatter_multi_setup(
+#endif
+    KernelGlobals *kg,
+    LocalIntersection *ss_isect,
+    int hit,
+    ShaderData *sd,
+    ccl_addr_space PathState *state,
+    ClosureType type,
+    float roughness)
 {
 #ifdef __SPLIT_KERNEL__
   Ray ray_object = ss_isect->ray;
