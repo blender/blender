@@ -23,6 +23,7 @@
 
 #include "BKE_attribute.h"
 
+#include "BLI_color.hh"
 #include "BLI_float3.hh"
 
 struct Mesh;
@@ -267,10 +268,9 @@ template<typename T> class TypedWriteAttribute {
 
 using FloatReadAttribute = TypedReadAttribute<float>;
 using Float3ReadAttribute = TypedReadAttribute<float3>;
+using Color4fReadAttribute = TypedReadAttribute<Color4f>;
 using FloatWriteAttribute = TypedWriteAttribute<float>;
 using Float3WriteAttribute = TypedWriteAttribute<float3>;
-
-const CPPType *custom_data_type_to_cpp_type(const CustomDataType type);
-CustomDataType cpp_type_to_custom_data_type(const CPPType &type);
+using Color4fWriteAttribute = TypedWriteAttribute<Color4f>;
 
 }  // namespace blender::bke
