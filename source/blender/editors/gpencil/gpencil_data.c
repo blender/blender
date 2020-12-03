@@ -1586,6 +1586,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
                 gps = link->data;
                 BLI_remlink(&gpf->strokes, gps);
                 BLI_addtail(&gpf->strokes, gps);
+                changed = true;
               }
               break;
             /* Bring Forward */
@@ -1593,6 +1594,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
               LISTBASE_FOREACH_BACKWARD (LinkData *, link, &selected) {
                 gps = link->data;
                 BLI_listbase_link_move(&gpf->strokes, gps, 1);
+                changed = true;
               }
               break;
             /* Send Backward */
@@ -1600,6 +1602,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
               LISTBASE_FOREACH (LinkData *, link, &selected) {
                 gps = link->data;
                 BLI_listbase_link_move(&gpf->strokes, gps, -1);
+                changed = true;
               }
               break;
             /* Send to Back */
@@ -1608,12 +1611,12 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
                 gps = link->data;
                 BLI_remlink(&gpf->strokes, gps);
                 BLI_addhead(&gpf->strokes, gps);
+                changed = true;
               }
               break;
             default:
               BLI_assert(0);
               break;
-              changed = true;
           }
         }
         BLI_freelistN(&selected);
