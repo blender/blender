@@ -615,88 +615,6 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
 
 /*********************** Frame accessr *************************/
 
-typedef struct AccessCacheKey {
-  int clip_index;
-  int frame;
-  int downscale;
-  libmv_InputMode input_mode;
-  bool has_region;
-  float region_min[2], region_max[2];
-  int64_t transform_key;
-} AccessCacheKey;
-
-static unsigned int accesscache_hashhash(const void *key_v)
-{
-  const AccessCacheKey *key = (const AccessCacheKey *)key_v;
-  /* TODP(sergey): Need better hashing here for faster frame access. */
-  return key->clip_index << 16 | key->frame;
-}
-
-static bool accesscache_hashcmp(const void *a_v, const void *b_v)
-{
-  const AccessCacheKey *a = (const AccessCacheKey *)a_v;
-  const AccessCacheKey *b = (const AccessCacheKey *)b_v;
-  if (a->clip_index != b->clip_index || a->frame != b->frame || a->downscale != b->downscale ||
-      a->input_mode != b->input_mode || a->has_region != b->has_region ||
-      a->transform_key != b->transform_key) {
-    return true;
-  }
-  /* If there is region applied, compare it. */
-  if (a->has_region) {
-    if (!equals_v2v2(a->region_min, b->region_min) || !equals_v2v2(a->region_max, b->region_max)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-static void accesscache_construct_key(AccessCacheKey *key,
-                                      int clip_index,
-                                      int frame,
-                                      libmv_InputMode input_mode,
-                                      int downscale,
-                                      const libmv_Region *region,
-                                      int64_t transform_key)
-{
-  key->clip_index = clip_index;
-  key->frame = frame;
-  key->input_mode = input_mode;
-  key->downscale = downscale;
-  key->has_region = (region != NULL);
-  if (key->has_region) {
-    copy_v2_v2(key->region_min, region->min);
-    copy_v2_v2(key->region_max, region->max);
-  }
-  key->transform_key = transform_key;
-}
-
-static void accesscache_put(TrackingImageAccessor *accessor,
-                            int clip_index,
-                            int frame,
-                            libmv_InputMode input_mode,
-                            int downscale,
-                            const libmv_Region *region,
-                            int64_t transform_key,
-                            ImBuf *ibuf)
-{
-  AccessCacheKey key;
-  accesscache_construct_key(&key, clip_index, frame, input_mode, downscale, region, transform_key);
-  IMB_moviecache_put(accessor->cache, &key, ibuf);
-}
-
-static ImBuf *accesscache_get(TrackingImageAccessor *accessor,
-                              int clip_index,
-                              int frame,
-                              libmv_InputMode input_mode,
-                              int downscale,
-                              const libmv_Region *region,
-                              int64_t transform_key)
-{
-  AccessCacheKey key;
-  accesscache_construct_key(&key, clip_index, frame, input_mode, downscale, region, transform_key);
-  return IMB_moviecache_get(accessor->cache, &key);
-}
-
 static ImBuf *accessor_get_preprocessed_ibuf(TrackingImageAccessor *accessor,
                                              int clip_index,
                                              int frame)
@@ -776,33 +694,14 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
                                 const libmv_Region *region,
                                 const libmv_FrameTransform *transform)
 {
-  ImBuf *ibuf, *orig_ibuf, *final_ibuf;
-  int64_t transform_key = 0;
-  if (transform != NULL) {
-    transform_key = libmv_frameAccessorgetTransformKey(transform);
-  }
   /* First try to get fully processed image from the cache. */
-  BLI_spin_lock(&accessor->cache_lock);
-  ibuf = accesscache_get(
-      accessor, clip_index, frame, input_mode, downscale, region, transform_key);
-  BLI_spin_unlock(&accessor->cache_lock);
-  if (ibuf != NULL) {
-    CACHE_PRINTF("Used cached buffer for frame %d\n", frame);
-    /* This is a little heuristic here: if we re-used image once, this is
-     * a high probability of the image to be related to a keyframe matched
-     * reference image. Those images we don't want to be thrown away because
-     * if we toss them out we'll be re-calculating them at the next
-     * iteration.
-     */
-    ibuf->userflags |= IB_PERSISTENT;
-    return ibuf;
-  }
   CACHE_PRINTF("Calculate new buffer for frame %d\n", frame);
   /* And now we do postprocessing of the original frame. */
-  orig_ibuf = accessor_get_preprocessed_ibuf(accessor, clip_index, frame);
+  ImBuf *orig_ibuf = accessor_get_preprocessed_ibuf(accessor, clip_index, frame);
   if (orig_ibuf == NULL) {
     return NULL;
   }
+  ImBuf *final_ibuf;
   /* Cut a region if requested. */
   if (region != NULL) {
     int width = region->max[0] - region->min[0], height = region->max[1] - region->min[1];
@@ -902,11 +801,6 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
     final_ibuf = IMB_dupImBuf(orig_ibuf);
   }
   IMB_freeImBuf(orig_ibuf);
-  BLI_spin_lock(&accessor->cache_lock);
-  /* Put final buffer to cache. */
-  accesscache_put(
-      accessor, clip_index, frame, input_mode, downscale, region, transform_key, final_ibuf);
-  BLI_spin_unlock(&accessor->cache_lock);
   return final_ibuf;
 }
 
@@ -1016,9 +910,6 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
 
   BLI_assert(num_clips <= MAX_ACCESSOR_CLIP);
 
-  accessor->cache = IMB_moviecache_create(
-      "frame access cache", sizeof(AccessCacheKey), accesscache_hashhash, accesscache_hashcmp);
-
   memcpy(accessor->clips, clips, num_clips * sizeof(MovieClip *));
   accessor->num_clips = num_clips;
 
@@ -1040,7 +931,6 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
 
 void tracking_image_accessor_destroy(TrackingImageAccessor *accessor)
 {
-  IMB_moviecache_free(accessor->cache);
   libmv_FrameAccessorDestroy(accessor->libmv_accessor);
   BLI_spin_end(&accessor->cache_lock);
   MEM_freeN(accessor->tracks);

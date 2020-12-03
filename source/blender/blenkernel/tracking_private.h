@@ -131,8 +131,6 @@ struct libmv_FrameAccessor;
 
 #define MAX_ACCESSOR_CLIP 64
 typedef struct TrackingImageAccessor {
-  struct MovieCache *cache;
-
   struct MovieClip *clips[MAX_ACCESSOR_CLIP];
   int num_clips;
 
