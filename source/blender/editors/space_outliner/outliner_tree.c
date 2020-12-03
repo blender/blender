@@ -2061,7 +2061,7 @@ void outliner_build_tree(Main *mainvar,
                          SpaceOutliner *space_outliner,
                          ARegion *region)
 {
-  TreeElement *te = NULL, *ten;
+  TreeElement *ten;
   TreeStoreElem *tselem;
   /* on first view, we open scenes */
   int show_opened = !space_outliner->treestore || !BLI_mempool_len(space_outliner->treestore);
@@ -2111,18 +2111,8 @@ void outliner_build_tree(Main *mainvar,
     BLI_assert(false);
   }
   else if (space_outliner->outlinevis == SO_SCENES) {
-    Scene *sce;
-    for (sce = mainvar->scenes.first; sce; sce = sce->id.next) {
-      te = outliner_add_element(space_outliner, &space_outliner->tree, sce, NULL, 0, 0);
-      tselem = TREESTORE(te);
-
-      /* New scene elements open by default */
-      if ((sce == scene && show_opened) || !tselem->used) {
-        tselem->flag &= ~TSE_CLOSED;
-      }
-
-      outliner_make_object_parent_hierarchy(&te->subtree);
-    }
+    /* Ported to new tree-display, should be built there already. */
+    BLI_assert(false);
   }
   else if (space_outliner->outlinevis == SO_SEQUENCE) {
     /* Ported to new tree-display, should be built there already. */

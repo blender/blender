@@ -32,6 +32,7 @@ TreeDisplay *outliner_tree_display_create(eSpaceOutliner_Mode mode, SpaceOutline
 
   switch (mode) {
     case SO_SCENES:
+      tree_display = new TreeDisplayScenes(*space_outliner);
       break;
     case SO_LIBRARIES:
       tree_display = new TreeDisplayLibraries(*space_outliner);

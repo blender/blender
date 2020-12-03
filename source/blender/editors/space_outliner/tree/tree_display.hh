@@ -150,4 +150,17 @@ class TreeDisplayIDOrphans final : public AbstractTreeDisplay {
   bool datablock_has_orphans(ListBase &) const;
 };
 
+/* -------------------------------------------------------------------- */
+/* Scenes Tree-Display */
+
+/**
+ * \brief Tree-Display for the Scenes display mode
+ */
+class TreeDisplayScenes final : public AbstractTreeDisplay {
+ public:
+  TreeDisplayScenes(SpaceOutliner &space_outliner);
+
+  ListBase buildTree(const TreeSourceData &source_data) override;
+};
+
 }  // namespace blender::ed::outliner
