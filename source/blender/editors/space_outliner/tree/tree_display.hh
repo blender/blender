@@ -134,4 +134,20 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
   void add_seq_dup(Sequence *seq, TreeElement *te, short index) const;
 };
 
+/* -------------------------------------------------------------------- */
+/* Orphaned Data Tree-Display */
+
+/**
+ * \brief Tree-Display for the Orphaned Data display mode
+ */
+class TreeDisplayIDOrphans final : public AbstractTreeDisplay {
+ public:
+  TreeDisplayIDOrphans(SpaceOutliner &space_outliner);
+
+  ListBase buildTree(const TreeSourceData &source_data) override;
+
+ private:
+  bool datablock_has_orphans(ListBase &) const;
+};
+
 }  // namespace blender::ed::outliner

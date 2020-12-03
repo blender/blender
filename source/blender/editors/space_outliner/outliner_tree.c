@@ -1313,58 +1313,6 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 
 /* ======================================================= */
 
-static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOutliner *space_outliner)
-{
-  TreeElement *ten;
-  ListBase *lbarray[MAX_LIBARRAY];
-  int a, tot;
-  short filter_id_type = (space_outliner->filter & SO_FILTER_ID_TYPE) ?
-                             space_outliner->filter_id_type :
-                             0;
-
-  if (filter_id_type) {
-    lbarray[0] = which_libbase(mainvar, space_outliner->filter_id_type);
-    tot = 1;
-  }
-  else {
-    tot = set_listbasepointers(mainvar, lbarray);
-  }
-
-  for (a = 0; a < tot; a++) {
-    if (lbarray[a] && lbarray[a]->first) {
-      ID *id = lbarray[a]->first;
-
-      /* check if there are any data-blocks of this type which are orphans */
-      for (; id; id = id->next) {
-        if (ID_REAL_USERS(id) <= 0) {
-          break;
-        }
-      }
-
-      if (id) {
-        /* header for this type of data-block */
-        if (filter_id_type) {
-          ten = NULL;
-        }
-        else {
-          ten = outliner_add_element(
-              space_outliner, &space_outliner->tree, lbarray[a], NULL, TSE_ID_BASE, 0);
-          ten->directdata = lbarray[a];
-          ten->name = outliner_idcode_to_plural(GS(id->name));
-        }
-
-        /* add the orphaned data-blocks - these will not be added with any subtrees attached */
-        for (id = lbarray[a]->first; id; id = id->next) {
-          if (ID_REAL_USERS(id) <= 0) {
-            outliner_add_element(
-                space_outliner, (ten) ? &ten->subtree : &space_outliner->tree, id, ten, 0, 0);
-          }
-        }
-      }
-    }
-  }
-}
-
 BLI_INLINE void outliner_add_collection_init(TreeElement *te, Collection *collection)
 {
   te->name = BKE_collection_ui_name_get(collection);
@@ -2194,7 +2142,8 @@ void outliner_build_tree(Main *mainvar,
     }
   }
   else if (space_outliner->outlinevis == SO_ID_ORPHANS) {
-    outliner_add_orphaned_datablocks(mainvar, space_outliner);
+    /* Ported to new tree-display, should be built there already. */
+    BLI_assert(false);
   }
   else if (space_outliner->outlinevis == SO_VIEW_LAYER) {
     /* Ported to new tree-display, should be built there already. */
