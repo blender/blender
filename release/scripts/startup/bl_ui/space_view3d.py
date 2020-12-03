@@ -1828,7 +1828,13 @@ class VIEW3D_MT_paint_gpencil(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("gpencil.vertex_color_set", text="Set Vertex Colors")
         layout.operator("gpencil.stroke_reset_vertex_color")
+        layout.separator()
+        layout.operator("gpencil.vertex_color_invert", text="Invert")
+        layout.operator("gpencil.vertex_color_levels", text="Levels")
+        layout.operator("gpencil.vertex_color_hsv", text="Hue Saturation Value")
+        layout.operator("gpencil.vertex_color_brightness_contrast", text="Bright/Contrast")
 
 
 class VIEW3D_MT_select_gpencil(Menu):
@@ -5044,22 +5050,6 @@ class VIEW3D_MT_weight_gpencil(Menu):
         layout.menu("VIEW3D_MT_gpencil_autoweights")
 
 
-class VIEW3D_MT_vertex_gpencil(Menu):
-    bl_label = "Paint"
-
-    def draw(self, _context):
-        layout = self.layout
-        layout.operator("gpencil.vertex_color_set", text="Set Vertex Colors")
-        layout.separator()
-        layout.operator("gpencil.vertex_color_invert", text="Invert")
-        layout.operator("gpencil.vertex_color_levels", text="Levels")
-        layout.operator("gpencil.vertex_color_hsv", text="Hue Saturation Value")
-        layout.operator("gpencil.vertex_color_brightness_contrast", text="Bright/Contrast")
-
-        layout.separator()
-        layout.menu("VIEW3D_MT_join_palette")
-
-
 class VIEW3D_MT_gpencil_animation(Menu):
     bl_label = "Animation"
 
@@ -7606,7 +7596,6 @@ classes = (
     VIEW3D_MT_edit_gpencil_delete,
     VIEW3D_MT_edit_gpencil_showhide,
     VIEW3D_MT_weight_gpencil,
-    VIEW3D_MT_vertex_gpencil,
     VIEW3D_MT_gpencil_animation,
     VIEW3D_MT_gpencil_simplify,
     VIEW3D_MT_gpencil_copy_layer,
