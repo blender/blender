@@ -26,7 +26,7 @@ void register_node_type_geo_group(void)
 {
   static bNodeType ntype;
 
-  node_type_base_custom(&ntype, "GeometryNodeGroup", "Group", 0, 0);
+  node_type_base_custom(&ntype, "GeometryNodeGroup", "Group", NODE_CLASS_GROUP, 0);
   ntype.type = NODE_GROUP;
   ntype.poll = geo_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
