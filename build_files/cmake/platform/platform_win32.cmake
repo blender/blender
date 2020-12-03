@@ -239,9 +239,24 @@ if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "\n\nWindows requires pre-compiled libs at: '${LIBDIR}'. Please run `make update` in the blender source folder to obtain them.")
 endif()
 
+if(CMAKE_GENERATOR MATCHES "^Visual Studio.+" AND # Only supported in the VS IDE
+   MSVC_VERSION GREATER_EQUAL 1924            AND # Supported for 16.4+
+   WITH_CLANG_TIDY                                # And Clang Tidy needs to be on
+  )
+  set(CMAKE_VS_GLOBALS
+    "RunCodeAnalysis=false"
+    "EnableMicrosoftCodeAnalysis=false"
+    "EnableClangTidyCodeAnalysis=true"
+  )
+  set(VS_CLANG_TIDY On)
+endif()
+
 # Mark libdir as system headers with a lower warn level, to resolve some warnings
 # that we have very little control over
-if(MSVC_VERSION GREATER_EQUAL 1914 AND NOT MSVC_CLANG AND NOT WITH_WINDOWS_SCCACHE)
+if(MSVC_VERSION GREATER_EQUAL 1914 AND # Available with 15.7+
+   NOT MSVC_CLANG                  AND # But not for clang
+   NOT WITH_WINDOWS_SCCACHE        AND # And not when sccache is enabled
+   NOT VS_CLANG_TIDY)                  # Clang-tidy does not like these options
   add_compile_options(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)
 endif()
 
