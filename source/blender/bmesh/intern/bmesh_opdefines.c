@@ -1168,7 +1168,7 @@ static BMOpDefine bmo_dissolve_degenerate_def = {
    {{'\0'}},
   },
   /* slots_out */
-  {{{'\0'}}},dissolve_degenerate
+  {{{'\0'}}},
   bmo_dissolve_degenerate_exec,
   (BMO_OPTYPE_FLAG_UNTAN_MULTIRES |
    BMO_OPTYPE_FLAG_NORMALS_CALC |
@@ -2046,7 +2046,7 @@ static BMOpDefine bmo_convex_hull_def = {
   {{"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
    {"geom_interior.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
    {"geom_unused.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
-   {"geom_holes.out", BMO_OP_SLOT_ELEMENT_BUF,convex_hull {BM_VERT | BM_EDGE | BM_FACE}},
+   {"geom_holes.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
    {{'\0'}},
   },
   bmo_convex_hull_exec,
