@@ -781,7 +781,7 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
   prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "factor");
   RNA_def_property_range(prop, 0, 100.0);
-  RNA_def_property_ui_range(prop, 0, 100.0, 1.0f, 3);
+  RNA_def_property_ui_range(prop, 0, 5.0f, 1.0f, 3);
   RNA_def_property_ui_text(prop, "Factor", "Factor of Simplify");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
