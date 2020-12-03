@@ -51,6 +51,7 @@ set(SRC
   tree/tree_display_sequencer.cc
   tree/tree_display_orphaned.cc
   tree/tree_display_scenes.cc
+  tree/tree_display_data.cc
 
   outliner_intern.h
   tree/tree_display.h

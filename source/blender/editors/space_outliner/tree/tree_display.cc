@@ -41,6 +41,7 @@ TreeDisplay *outliner_tree_display_create(eSpaceOutliner_Mode mode, SpaceOutline
       tree_display = new TreeDisplaySequencer(*space_outliner);
       break;
     case SO_DATA_API:
+      tree_display = new TreeDisplayDataAPI(*space_outliner);
       break;
     case SO_ID_ORPHANS:
       tree_display = new TreeDisplayIDOrphans(*space_outliner);

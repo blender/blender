@@ -163,4 +163,17 @@ class TreeDisplayScenes final : public AbstractTreeDisplay {
   ListBase buildTree(const TreeSourceData &source_data) override;
 };
 
+/* -------------------------------------------------------------------- */
+/* Data API Tree-Display */
+
+/**
+ * \brief Tree-Display for the Scenes display mode
+ */
+class TreeDisplayDataAPI final : public AbstractTreeDisplay {
+ public:
+  TreeDisplayDataAPI(SpaceOutliner &space_outliner);
+
+  ListBase buildTree(const TreeSourceData &source_data) override;
+};
+
 }  // namespace blender::ed::outliner

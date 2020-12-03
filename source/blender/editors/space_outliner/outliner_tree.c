@@ -2061,11 +2061,6 @@ void outliner_build_tree(Main *mainvar,
                          SpaceOutliner *space_outliner,
                          ARegion *region)
 {
-  TreeElement *ten;
-  TreeStoreElem *tselem;
-  /* on first view, we open scenes */
-  int show_opened = !space_outliner->treestore || !BLI_mempool_len(space_outliner->treestore);
-
   /* Are we looking for something - we want to tag parents to filter child matches
    * - NOT in data-blocks view - searching all data-blocks takes way too long to be useful
    * - this variable is only set once per tree build */
@@ -2119,17 +2114,8 @@ void outliner_build_tree(Main *mainvar,
     BLI_assert(false);
   }
   else if (space_outliner->outlinevis == SO_DATA_API) {
-    PointerRNA mainptr;
-
-    RNA_main_pointer_create(mainvar, &mainptr);
-
-    ten = outliner_add_element(
-        space_outliner, &space_outliner->tree, (void *)&mainptr, NULL, TSE_RNA_STRUCT, -1);
-
-    if (show_opened) {
-      tselem = TREESTORE(ten);
-      tselem->flag &= ~TSE_CLOSED;
-    }
+    /* Ported to new tree-display, should be built there already. */
+    BLI_assert(false);
   }
   else if (space_outliner->outlinevis == SO_ID_ORPHANS) {
     /* Ported to new tree-display, should be built there already. */
