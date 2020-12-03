@@ -1004,6 +1004,11 @@ static eContextResult screen_ctx_selected_editable_keyframes(const bContext *C,
       }
 
       fcurve = (FCurve *)ale->data;
+      if (fcurve->bezt == NULL) {
+        /* Skip baked FCurves. */
+        continue;
+      }
+
       for (i = 0, bezt = fcurve->bezt; i < fcurve->totvert; i++, bezt++) {
         if ((bezt->f2 & SELECT) == 0) {
           continue;
