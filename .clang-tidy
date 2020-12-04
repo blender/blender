@@ -43,7 +43,6 @@ Checks:  >
   -modernize-use-default-member-init,
   -modernize-raw-string-literal,
   -modernize-avoid-bind,
-  -modernize-use-override,
   -modernize-use-transparent-functors,
 
 WarningsAsErrors: '*'
