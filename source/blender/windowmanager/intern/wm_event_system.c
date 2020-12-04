@@ -2249,7 +2249,7 @@ static int wm_handler_fileselect_do(bContext *C,
 
         wmWindow *temp_win = NULL;
         LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-          bScreen *screen = WM_window_get_active_screen(temp_win);
+          bScreen *screen = WM_window_get_active_screen(win);
           ScrArea *file_area = screen->areabase.first;
 
           if (screen->temp && (file_area->spacetype == SPACE_FILE)) {
