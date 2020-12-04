@@ -19,7 +19,7 @@
  * \brief Functions to manage I/O for the view map
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "ViewMapIO.h"
 

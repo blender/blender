@@ -23,8 +23,8 @@
 
 #include "intern/node/deg_node_id.h"
 
+#include <cstdio>
 #include <cstring> /* required for STREQ later on. */
-#include <stdio.h>
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

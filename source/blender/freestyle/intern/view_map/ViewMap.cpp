@@ -19,7 +19,7 @@
  * \brief Classes to define a View Map (ViewVertex, ViewEdge, etc.)
  */
 
-#include <float.h>
+#include <cfloat>
 
 #include "ViewMap.h"
 #include "ViewMapAdvancedIterators.h"

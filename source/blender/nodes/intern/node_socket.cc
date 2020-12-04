@@ -21,7 +21,7 @@
  * \ingroup nodes
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "DNA_node_types.h"
 

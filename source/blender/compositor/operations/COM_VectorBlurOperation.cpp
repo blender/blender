@@ -16,7 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

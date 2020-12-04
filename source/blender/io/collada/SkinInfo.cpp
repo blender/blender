@@ -21,7 +21,7 @@
 #include <algorithm>
 
 #if !defined(WIN32)
-#  include <stdint.h>
+#  include <cstdint>
 #endif
 
 /* COLLADABU_ASSERT, may be able to remove later */

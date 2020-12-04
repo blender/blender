@@ -19,7 +19,7 @@
  */
 
 #include "BLI_string.h"
-#include <stddef.h>
+#include <cstddef>
 
 #include "ExtraHandler.h"
 

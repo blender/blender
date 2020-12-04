@@ -23,8 +23,8 @@
 
 #include "intern/builder/deg_builder_pchanmap.h"
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 

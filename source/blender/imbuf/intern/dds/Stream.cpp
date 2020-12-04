@@ -20,8 +20,8 @@
 
 #include <Stream.h>
 
-#include <stdio.h>  /* printf */
-#include <string.h> /* memcpy */
+#include <cstdio>  /* printf */
+#include <cstring> /* memcpy */
 
 static const char *msg_error_seek = "DDS: trying to seek beyond end of stream (corrupt file?)";
 static const char *msg_error_read = "DDS: trying to read beyond end of stream (corrupt file?)";

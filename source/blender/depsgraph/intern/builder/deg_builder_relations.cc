@@ -25,9 +25,9 @@
 
 #include "intern/builder/deg_builder_relations.h"
 
+#include <cstdio>
+#include <cstdlib>
 #include <cstring> /* required for STREQ later on. */
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 

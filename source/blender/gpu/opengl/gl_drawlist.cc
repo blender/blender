@@ -39,7 +39,7 @@
 #include "gl_drawlist.hh"
 #include "gl_primitive.hh"
 
-#include <limits.h>
+#include <climits>
 
 using namespace blender::gpu;
 

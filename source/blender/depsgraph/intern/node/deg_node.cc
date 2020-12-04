@@ -23,7 +23,7 @@
 
 #include "intern/node/deg_node.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_utildefines.h"
 

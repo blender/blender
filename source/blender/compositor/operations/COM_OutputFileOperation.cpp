@@ -18,7 +18,7 @@
 
 #include "COM_OutputFileOperation.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"

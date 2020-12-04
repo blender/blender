@@ -19,8 +19,8 @@
  */
 
 #include "BLI_string.h"
-#include <stddef.h>
-#include <stdlib.h>
+#include <cstddef>
+#include <cstdlib>
 
 #include <iostream>
 

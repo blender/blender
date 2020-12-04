@@ -24,7 +24,7 @@
  * similar to glRenderMode(GL_SELECT) since the goal is to maintain compatibility.
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "GPU_debug.h"
 #include "GPU_framebuffer.h"

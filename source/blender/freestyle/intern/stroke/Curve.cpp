@@ -19,7 +19,7 @@
  * \brief Class to define a container for curves
  */
 
-#include <stdio.h> /* printf */
+#include <cstdio> /* printf */
 
 #include "Curve.h"
 #include "CurveAdvancedIterators.h"

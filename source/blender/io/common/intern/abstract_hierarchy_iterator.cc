@@ -19,10 +19,10 @@
 #include "IO_abstract_hierarchy_iterator.h"
 #include "dupli_parent_finder.hh"
 
+#include <climits>
+#include <cstdio>
 #include <iostream>
-#include <limits.h>
 #include <sstream>
-#include <stdio.h>
 #include <string>
 
 #include "BKE_anim_data.h"

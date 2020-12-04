@@ -19,7 +19,7 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_OpenCLDevice.h"
 #include "COM_defines.h"
-#include <stdio.h>
+#include <cstdio>
 
 WriteBufferOperation::WriteBufferOperation(DataType datatype)
 {

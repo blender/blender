@@ -21,9 +21,9 @@
  * \ingroup bli
  */
 
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

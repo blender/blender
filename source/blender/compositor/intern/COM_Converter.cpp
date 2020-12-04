@@ -16,7 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_node_types.h"
 

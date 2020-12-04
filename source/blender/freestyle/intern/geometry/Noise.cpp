@@ -19,10 +19,10 @@
  * \brief Class to define Perlin noise
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_rand.h"

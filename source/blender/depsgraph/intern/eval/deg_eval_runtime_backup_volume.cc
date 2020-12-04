@@ -31,7 +31,7 @@
 
 #include "BKE_volume.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace blender::deg {
 

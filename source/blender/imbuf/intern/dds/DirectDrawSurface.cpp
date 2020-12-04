@@ -52,9 +52,9 @@
 #include <DirectDrawSurface.h>
 #include <PixelFormat.h>
 
-#include <math.h>   /* sqrt */
-#include <stdio.h>  /* printf */
-#include <stdlib.h> /* malloc */
+#include <cmath>   /* sqrt */
+#include <cstdio>  /* printf */
+#include <cstdlib> /* malloc */
 #include <sys/types.h>
 
 /*** declarations ***/

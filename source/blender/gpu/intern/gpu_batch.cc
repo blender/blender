@@ -42,7 +42,7 @@
 
 #include "gpu_batch_private.hh"
 
-#include <string.h>
+#include <cstring>
 
 using namespace blender::gpu;
 

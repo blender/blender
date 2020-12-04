@@ -34,7 +34,6 @@ Checks:  >
   modernize-*,
   -modernize-use-auto,
   -modernize-use-trailing-return-type,
-  -modernize-deprecated-headers,
   -modernize-avoid-c-arrays,
   -modernize-use-equals-default,
   -modernize-use-nodiscard,

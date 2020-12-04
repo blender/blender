@@ -25,8 +25,8 @@
 
 #include "intern/builder/deg_builder_nodes.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 

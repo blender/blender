@@ -17,7 +17,7 @@
  */
 
 #include "COM_ChunkOrderHotspot.h"
-#include <math.h>
+#include <cmath>
 
 ChunkOrderHotspot::ChunkOrderHotspot(int x, int y, float addition)
 {

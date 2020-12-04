@@ -18,7 +18,7 @@
  */
 #include "abc_subdiv_disabler.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_listbase.h"
 

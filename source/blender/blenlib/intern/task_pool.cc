@@ -20,8 +20,8 @@
  * Task pool to run tasks in parallel.
  */
 
+#include <cstdlib>
 #include <memory>
-#include <stdlib.h>
 #include <utility>
 
 #include "MEM_guardedalloc.h"

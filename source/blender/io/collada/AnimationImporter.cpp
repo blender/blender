@@ -18,7 +18,7 @@
  * \ingroup collada
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"

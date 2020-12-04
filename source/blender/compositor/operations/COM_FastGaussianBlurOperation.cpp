@@ -16,7 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "BLI_utildefines.h"
 #include "COM_FastGaussianBlurOperation.h"

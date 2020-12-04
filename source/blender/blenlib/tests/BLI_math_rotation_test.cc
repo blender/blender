@@ -4,7 +4,7 @@
 
 #include "BLI_math_rotation.h"
 
-#include <math.h>
+#include <cmath>
 
 /* Test that quaternion converts to itself via matrix. */
 static void test_quat_to_mat_to_quat(float w, float x, float y, float z)

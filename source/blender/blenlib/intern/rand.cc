@@ -21,10 +21,10 @@
  * \ingroup bli
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 #include "MEM_guardedalloc.h"
 

@@ -25,7 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <string.h> /* XXX: memcpy */
+#include <cstring> /* XXX: memcpy */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"

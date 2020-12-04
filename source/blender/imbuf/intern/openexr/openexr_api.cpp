@@ -22,14 +22,14 @@
  */
 
 #include <algorithm>
-#include <errno.h>
+#include <cerrno>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <set>
-#include <stddef.h>
 #include <stdexcept>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 
 #include <Iex.h>

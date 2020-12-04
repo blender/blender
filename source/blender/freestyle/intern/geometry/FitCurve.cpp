@@ -20,9 +20,9 @@
  * \brief from "Graphics Gems", Academic Press, 1990
  */
 
+#include <cmath>
+#include <cstdio>
 #include <cstdlib>  // for malloc and free
-#include <math.h>
-#include <stdio.h>
 
 #include "FitCurve.h"
 

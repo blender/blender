@@ -23,10 +23,10 @@
 #include <DirectDrawSurface.h>
 #include <FlipDXT.h>
 #include <Stream.h>
+#include <cstddef>
+#include <cstdio> /* printf */
 #include <dds_api.h>
 #include <fstream>
-#include <stddef.h>
-#include <stdio.h> /* printf */
 
 #if defined(WIN32)
 #  include "utfconv.h"

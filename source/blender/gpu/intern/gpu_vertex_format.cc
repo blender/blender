@@ -27,8 +27,8 @@
 #include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.h"
 
-#include <stddef.h>
-#include <string.h>
+#include <cstddef>
+#include <cstring>
 
 #include "BLI_ghash.h"
 #include "BLI_string.h"

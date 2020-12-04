@@ -25,9 +25,9 @@
 
 #include "intern/depsgraph_tag.h"
 
+#include <cstdio>
 #include <cstring> /* required for memset */
 #include <queue>
-#include <stdio.h>
 
 #include "BLI_math_bits.h"
 #include "BLI_task.h"

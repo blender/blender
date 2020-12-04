@@ -21,7 +21,7 @@
 #include "BKE_duplilist.h"
 
 extern "C" {
-#include <limits.h> /* For INT_MAX. */
+#include <climits> /* For INT_MAX. */
 }
 #include <cstring>
 #include <sstream>
