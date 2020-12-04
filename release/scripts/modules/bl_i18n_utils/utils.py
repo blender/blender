@@ -181,6 +181,36 @@ def get_po_files_from_dir(root_dir, langs=set()):
         yield uid, po_file
 
 
+def list_po_dir(root_path, settings):
+    """
+    Generator. List given directory (expecting one sub-directory per languages)
+    and return all files matching languages listed in settings.
+    
+    Yield tuples (can_use, uid, num_id, name, isocode, po_path)
+    
+    Note that po_path may not actually exists.
+    """
+    isocodes = ((e, os.path.join(root_path, e, e + ".po")) for e in os.listdir(root_path))
+    isocodes = dict(e for e in isocodes if os.path.isfile(e[1]))
+    for num_id, name, uid in settings.LANGUAGES[2:]:  # Skip "default" and "en" languages!
+        best_po = find_best_isocode_matches(uid, isocodes)
+        #print(uid, "->", best_po)
+        if best_po:
+            isocode = best_po[0]
+            yield (True, uid, num_id, name, isocode, isocodes[isocode])
+        else:
+            yielded = False
+            language, _1, _2, language_country, language_variant = locale_explode(uid)
+            for isocode in (language, language_variant, language_country, uid):
+                p = os.path.join(root_path, isocode, isocode + ".po")
+                if not os.path.exists(p):
+                    yield (True, uid, num_id, name, isocode, p)
+                    yielded = True
+                    break
+            if not yielded:
+                yield (False, uid, num_id, name, None, None)
+
+
 def enable_addons(addons=None, support=None, disable=False, check_only=False):
     """
     Enable (or disable) addons based either on a set of names, or a set of 'support' types.
