@@ -33,11 +33,11 @@ class Prefs(bpy.types.KeyConfigPreferences):
     )
 
     def draw(self, layout):
-        split = layout.split()
-        col = split.column()
-        col.label(text="Select With:")
-        col.row().prop(self, "select_mouse", expand=True)
-        split.column()
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        col.row().prop(self, "select_mouse", text="Select with Mouse Button", expand=True)
 
 
 blender_default = bpy.utils.execfile(os.path.join(DIRNAME, "keymap_data", "blender_default.py"))

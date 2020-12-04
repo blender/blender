@@ -168,6 +168,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
 
     def draw(self, layout):
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         is_select_left = (self.select_mouse == 'LEFT')
 
