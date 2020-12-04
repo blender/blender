@@ -178,22 +178,17 @@ bool wm_file_or_image_is_modified(const Main *bmain, const wmWindowManager *wm)
  */
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
-  wmWindowManager *wm;
-  wmWindow *win, *active_win;
-
   *wmlist = G_MAIN->wm;
   BLI_listbase_clear(&G_MAIN->wm);
 
-  active_win = CTX_wm_window(C);
+  wmWindow *active_win = CTX_wm_window(C);
 
   /* first wrap up running stuff */
   /* code copied from wm_init_exit.c */
-  for (wm = wmlist->first; wm; wm = wm->id.next) {
-
+  LISTBASE_FOREACH (wmWindowManager *, wm, wmlist) {
     WM_jobs_kill_all(wm);
 
-    for (win = wm->windows.first; win; win = win->next) {
-
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       CTX_wm_window_set(C, win); /* needed by operator close callbacks */
       WM_event_remove_handlers(C, &win->handlers);
       WM_event_remove_handlers(C, &win->modalhandlers);
@@ -519,11 +514,9 @@ void WM_file_autoexec_init(const char *filepath)
 void wm_file_read_report(bContext *C, Main *bmain)
 {
   ReportList *reports = NULL;
-  Scene *sce;
-
-  for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
-    if (sce->r.engine[0] &&
-        BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    if (scene->r.engine[0] &&
+        BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
       if (reports == NULL) {
         reports = CTX_wm_reports(C);
       }
@@ -532,8 +525,8 @@ void wm_file_read_report(bContext *C, Main *bmain)
                   RPT_ERROR,
                   "Engine '%s' not available for scene '%s' (an add-on may need to be installed "
                   "or enabled)",
-                  sce->r.engine,
-                  sce->id.name + 2);
+                  scene->r.engine,
+                  scene->id.name + 2);
     }
   }
 
@@ -1136,7 +1129,7 @@ void wm_homefile_read(bContext *C,
   if (use_userdef) {
     /* Clear keymaps because the current default keymap may have been initialized
      * from user preferences, which have been reset. */
-    for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
       if (wm->defaultconf) {
         wm->defaultconf->flag &= ~KEYCONF_INIT_DEFAULT;
       }
@@ -1236,8 +1229,7 @@ static void wm_history_file_write(void)
 
   fp = BLI_fopen(name, "w");
   if (fp) {
-    struct RecentFile *recent;
-    for (recent = G.recent_files.first; recent; recent = recent->next) {
+    LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
       fprintf(fp, "%s\n", recent->filepath);
     }
     fclose(fp);
@@ -1430,7 +1422,6 @@ static bool wm_file_write(bContext *C,
                           ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
-  Library *li;
   int len;
   int ok = false;
   BlendThumbnail *thumb, *main_thumb;
@@ -1459,7 +1450,7 @@ static bool wm_file_write(bContext *C,
    * its handy for scripts to save to a predefined name without blender editing it */
 
   /* send the OnSave event */
-  for (li = bmain->libraries.first; li; li = li->id.next) {
+  LISTBASE_FOREACH (Library *, li, &bmain->libraries) {
     if (BLI_path_cmp(li->filepath_abs, filepath) == 0) {
       BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
       return ok;

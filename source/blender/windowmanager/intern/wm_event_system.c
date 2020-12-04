@@ -376,10 +376,9 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
   /* Cached: editor refresh callbacks now, they get context. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     const bScreen *screen = WM_window_get_active_screen(win);
-    ScrArea *area;
 
     CTX_wm_window_set(C, win);
-    for (area = screen->areabase.first; area; area = area->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area->do_refresh) {
         CTX_wm_area_set(C, area);
         ED_area_do_refresh(C, area);
@@ -516,7 +515,7 @@ void wm_event_do_notifiers(bContext *C)
       bScreen *screen = WM_window_get_active_screen(win);
       WorkSpace *workspace = WM_window_get_active_workspace(win);
 
-      /* Dilter out notifiers. */
+      /* Filter out notifiers. */
       if (note->category == NC_SCREEN && note->reference && note->reference != screen &&
           note->reference != workspace && note->reference != WM_window_get_active_layout(win)) {
         /* Pass. */
@@ -525,8 +524,6 @@ void wm_event_do_notifiers(bContext *C)
         /* Pass. */
       }
       else {
-        ARegion *region;
-
         /* XXX context in notifiers? */
         CTX_wm_window_set(C, win);
 
@@ -538,13 +535,13 @@ void wm_event_do_notifiers(bContext *C)
 #  endif
         ED_screen_do_listen(C, note);
 
-        for (region = screen->regionbase.first; region; region = region->next) {
+        LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
           ED_region_do_listen(win, NULL, region, note, scene);
         }
 
         ED_screen_areas_iter (win, screen, area) {
           ED_area_do_listen(win, area, note, scene);
-          for (region = area->regionbase.first; region; region = region->next) {
+          LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
             ED_region_do_listen(win, area, region, note, scene);
           }
         }
@@ -1708,7 +1705,8 @@ static void wm_handler_op_context(bContext *C, wmEventHandler_Op *handler, const
       }
 
       if (region == NULL) {
-        for (region = area->regionbase.first; region; region = region->next) {
+        LISTBASE_FOREACH (ARegion *, region_iter, &area->regionbase) {
+          region = region_iter;
           if (region == handler->context.region) {
             break;
           }
@@ -2247,23 +2245,23 @@ static int wm_handler_fileselect_do(bContext *C,
         }
       }
       else {
-        wmWindow *temp_win;
         ScrArea *ctx_area = CTX_wm_area(C);
 
-        for (temp_win = wm->windows.first; temp_win; temp_win = temp_win->next) {
+        wmWindow *temp_win = NULL;
+        LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
           bScreen *screen = WM_window_get_active_screen(temp_win);
           ScrArea *file_area = screen->areabase.first;
 
           if (screen->temp && (file_area->spacetype == SPACE_FILE)) {
             int win_size[2];
             bool is_maximized;
-            ED_fileselect_window_params_get(temp_win, win_size, &is_maximized);
+            ED_fileselect_window_params_get(win, win_size, &is_maximized);
             ED_fileselect_params_to_userdef(file_area->spacedata.first, win_size, is_maximized);
 
             if (BLI_listbase_is_single(&file_area->spacedata)) {
-              BLI_assert(ctx_win != temp_win);
+              BLI_assert(ctx_win != win);
 
-              wm_window_close(C, wm, temp_win);
+              wm_window_close(C, wm, win);
 
               CTX_wm_window_set(C, ctx_win); /* #wm_window_close() NULLs. */
               /* Some operators expect a drawable context (for EVT_FILESELECT_EXEC). */
@@ -2272,7 +2270,7 @@ static int wm_handler_fileselect_do(bContext *C,
                * opening (UI_BLOCK_MOVEMOUSE_QUIT). */
               wm_get_cursor_position(ctx_win, &ctx_win->eventstate->x, &ctx_win->eventstate->y);
               wm->winactive = ctx_win; /* Reports use this... */
-              if (handler->context.win == temp_win) {
+              if (handler->context.win == win) {
                 handler->context.win = NULL;
               }
             }
@@ -2283,6 +2281,7 @@ static int wm_handler_fileselect_do(bContext *C,
               ED_area_prevspace(C, file_area);
             }
 
+            temp_win = win;
             break;
           }
         }
@@ -2485,14 +2484,13 @@ static int wm_handlers_do_keymap_with_gizmo_handler(
 {
   int action = WM_HANDLER_CONTINUE;
   bool keymap_poll = false;
-  wmKeyMapItem *kmi;
 
   PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
 
   if (WM_keymap_poll(C, keymap)) {
     keymap_poll = true;
     PRINT("pass\n");
-    for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
       if (wm_eventmatch(event, kmi)) {
         PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
