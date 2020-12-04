@@ -6795,7 +6795,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 
   va_start(args, but);
   while ((si = (uiStringInfo *)va_arg(args, void *))) {
-    int type = si->type;
+    uiStringInfoType type = si->type;
     char *tmp = NULL;
 
     if (type == BUT_GET_LABEL) {

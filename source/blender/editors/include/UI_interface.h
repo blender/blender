@@ -1351,7 +1351,7 @@ struct PointerRNA *UI_but_operator_ptr_get(uiBut *but);
 void UI_but_unit_type_set(uiBut *but, const int unit_type);
 int UI_but_unit_type_get(const uiBut *but);
 
-enum {
+typedef enum uiStringInfoType {
   BUT_GET_RNAPROP_IDENTIFIER = 1,
   BUT_GET_RNASTRUCT_IDENTIFIER,
   BUT_GET_RNAENUM_IDENTIFIER,
@@ -1364,10 +1364,10 @@ enum {
   BUT_GET_RNAENUM_TIP,
   BUT_GET_OP_KEYMAP,
   BUT_GET_PROP_KEYMAP,
-};
+} uiStringInfoType;
 
 typedef struct uiStringInfo {
-  int type;
+  uiStringInfoType type;
   char *strinfo;
 } uiStringInfo;
 
