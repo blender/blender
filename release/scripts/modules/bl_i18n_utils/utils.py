@@ -39,9 +39,6 @@ import bpy
 
 
 ##### Misc Utils #####
-from bpy.app.translations import locale_explode
-
-
 _valid_po_path_re = re.compile(r"^\S+:[0-9]+$")
 
 
@@ -77,6 +74,28 @@ def get_best_similar(data):
                     tmp = x
                     use_similar = sratio
     return key, tmp
+
+
+_locale_explode_re = re.compile(r"^([a-z]{2,})(?:_([A-Z]{2,}))?(?:@([a-z]{2,}))?$")
+
+
+def locale_explode(locale):
+    """Copies behavior of `BLT_lang_locale_explode`, keep them in sync."""
+    ret = (None, None, None, None, None)
+    m = _locale_explode_re.match(locale)
+    if m:
+        lang, country, variant = m.groups()
+        return (lang, country, variant,
+                "%s_%s" % (lang, country) if country else None,
+                "%s@%s" % (lang, variant) if variant else None)
+
+    try:
+        import bpy.app.translations as bpy_translations
+        assert(ret == bpy_translations.locale_explode(locale))
+    except ModuleNotFoundError:
+        pass
+
+    return ret
 
 
 def locale_match(loc1, loc2):
