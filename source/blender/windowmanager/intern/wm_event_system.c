@@ -1911,13 +1911,6 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
   return NULL;
 }
 
-wmKeyMapItem *WM_event_match_modal_keymap_item(const wmKeyMap *keymap,
-                                               wmOperator *op,
-                                               const wmEvent *event)
-{
-  return wm_eventmatch_modal_keymap_items(keymap, op, event);
-}
-
 /**
  * This function prepares events for use with #wmOperatorType.modal by:
  *

@@ -593,60 +593,18 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     transform_orientations_current_set(t, (t->con.mode & CON_APPLY) ? 2 : 0);
   }
 
-  if (event) {
-    t->release_confirm_event_type = WM_userdef_event_type_from_keymap_type(event->type);
-    t->is_launch_event_tweak = ISTWEAK(event->type);
-
-    /* XXX Remove this when wm_operator_call_internal doesn't use window->eventstate
-     * (which can have type = 0) */
-    /* For gizmo only, so assume LEFTMOUSE. */
-    if (t->release_confirm_event_type == 0) {
-      t->release_confirm_event_type = LEFTMOUSE;
-    }
-  }
-  else {
-    /* Needed to translate tweak events to mouse buttons. */
-    t->release_confirm_event_type = -1;
-  }
-
-  t->release_confirm_event_val = -2;
-
   if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
              RNA_property_is_set(op->ptr, prop))) {
     if (RNA_property_boolean_get(op->ptr, prop)) {
       t->flag |= T_RELEASE_CONFIRM;
-      t->release_confirm_event_val = KM_RELEASE;
     }
   }
   else {
     /* Release confirms preference should not affect node editor (T69288, T70504). */
-    if (ISMOUSE(t->release_confirm_event_type) &&
+    if (ISMOUSE(t->launch_event) &&
         ((U.flag & USER_RELEASECONFIRM) || (t->spacetype == SPACE_NODE))) {
       /* Global "release confirm" on mouse bindings */
       t->flag |= T_RELEASE_CONFIRM;
-      t->release_confirm_event_val = KM_RELEASE;
-    }
-  }
-
-  if (op && event) {
-    /* Keymap for shortcut header prints. */
-    t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
-
-    /* Stupid code to have Relase confirm and Ctrl-Click on gizmo work ok. */
-    wmKeyMapItem *kmi = WM_event_match_modal_keymap_item(t->keymap, op, event);
-    if (kmi) {
-      if ((t->flag & T_RELEASE_CONFIRM) && (event->val == KM_PRESS) && (kmi->val != KM_PRESS)) {
-        t->release_confirm_event_type = EVT_MODAL_MAP;
-        t->release_confirm_event_val = kmi->propvalue;
-      }
-
-      if ((kmi->propvalue == TFM_MODAL_SNAP_INV_ON) &&
-          ELEM(t->mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
-        /* Do this only for translation/rotation/resize because only these
-         * modes are available from gizmo and doing such check could
-         * lead to keymap conflicts for other modes (see T31584) */
-        t->modifiers |= MOD_SNAP_INVERT;
-      }
     }
   }
 

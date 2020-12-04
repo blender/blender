@@ -376,7 +376,7 @@ static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int retval = 1;
   if (op->customdata == NULL) {
-    TransInfo *t = op->customdata = MEM_callocN(sizeof(TransInfo), "TransInfo data2");
+    TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data2");
     TransformModeItem *tmode;
     int mode = -1;
 
@@ -396,10 +396,10 @@ static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
     /* store data */
     if (retval) {
       G.moving = special_transform_moving(t);
+      op->customdata = t;
     }
     else {
       MEM_freeN(t);
-      op->customdata = NULL;
     }
   }
 

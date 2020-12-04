@@ -351,8 +351,7 @@ typedef struct TransInfo {
 
   /*************** NEW STUFF *********************/
   /** event type used to launch transform. */
-  short release_confirm_event_type;
-  short release_confirm_event_val;
+  short launch_event;
   /** Is the actual launch event a tweak event? (launch_event above is set to the corresponding
    * mouse button then.) */
   bool is_launch_event_tweak;
