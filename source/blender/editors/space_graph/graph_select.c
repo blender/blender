@@ -501,7 +501,6 @@ void GRAPH_OT_select_all(wmOperatorType *ot)
  * The selection backend is also reused for the Lasso and Circle select operators.
  */
 
-
 static rctf initialize_box_select_coords(const bAnimContext *ac, const rctf *rectf_view)
 {
   const View2D *v2d = &ac->region->v2d;

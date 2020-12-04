@@ -163,7 +163,8 @@ static void rna_ViewLayer_update_render_passes(ID *id)
     }
     RE_engine_free(engine);
     engine = NULL;
-  }}
+  }
+}
 
 static PointerRNA rna_ViewLayer_objects_get(CollectionPropertyIterator *iter)
 {

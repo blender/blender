@@ -1627,7 +1627,7 @@ static bConstraintTypeInfo CTI_LOCLIMIT = {
     "Limit Location",            /* name */
     "bLocLimitConstraint",       /* struct name */
     NULL,                        /* free data */
-    custom_space_id_looper,             /* id looper */
+    custom_space_id_looper,      /* id looper */
     NULL,                        /* copy data */
     NULL,                        /* new data */
     get_space_tar,               /* get constraint targets */
@@ -1690,7 +1690,7 @@ static bConstraintTypeInfo CTI_ROTLIMIT = {
     "Limit Rotation",            /* name */
     "bRotLimitConstraint",       /* struct name */
     NULL,                        /* free data */
-    custom_space_id_looper,             /* id looper */
+    custom_space_id_looper,      /* id looper */
     NULL,                        /* copy data */
     NULL,                        /* new data */
     get_space_tar,               /* get constraint targets */
@@ -1757,7 +1757,7 @@ static bConstraintTypeInfo CTI_SIZELIMIT = {
     "Limit Scale",                /* name */
     "bSizeLimitConstraint",       /* struct name */
     NULL,                         /* free data */
-    custom_space_id_looper,              /* id looper */
+    custom_space_id_looper,       /* id looper */
     NULL,                         /* copy data */
     NULL,                         /* new data */
     get_space_tar,                /* get constraint targets */
@@ -2318,7 +2318,7 @@ static bConstraintTypeInfo CTI_SAMEVOL = {
     "Maintain Volume",             /* name */
     "bSameVolumeConstraint",       /* struct name */
     NULL,                          /* free data */
-    custom_space_id_looper,               /* id looper */
+    custom_space_id_looper,        /* id looper */
     NULL,                          /* copy data */
     samevolume_new_data,           /* new data */
     get_space_tar,                 /* get constraint targets */
