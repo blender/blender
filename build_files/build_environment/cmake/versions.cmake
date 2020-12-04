@@ -120,6 +120,9 @@ set(LLVM_HASH 31eb9ce73dd2a0f8dcab8319fb03f8fc)
 set(CLANG_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang-${LLVM_VERSION}.src.tar.xz)
 set(CLANG_HASH 13468e4a44940efef1b75e8641752f90)
 
+set(CLANG_TOOLS_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang-tools-extra-${LLVM_VERSION}.src.tar.xz)
+set(CLANG_TOOLS_HASH c76293870b564c6a7968622b475b7646)
+
 set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/openmp-${LLVM_VERSION}.src.tar.xz)
 set(OPENMP_HASH 6eade16057edbdecb3c4eef9daa2bfcf)
 
