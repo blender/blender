@@ -62,6 +62,15 @@ def strip_po(args, settings):
     po.write(kind="PO_COMPACT", dest=args.dst)
 
 
+def rtl_process_po(args, settings):
+    uid = os.path.splitext(os.path.basename(args.src))[0]
+    if not args.dst:
+        args.dst = args.src
+    po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=args.src, settings=settings)
+    po.rtl_process()
+    po.write(kind="PO", dest=args.dst)
+
+
 def language_menu(args, settings):
     # 'DEFAULT' and en_US are always valid, fully-translated "languages"!
     stats = {"DEFAULT": 1.0, "en_US": 1.0}
@@ -110,6 +119,12 @@ def main():
     sub_parser.add_argument('--src', metavar='src.po', required=True, help="The source po file to strip.")
     sub_parser.add_argument('--dst', metavar='dst.po', help="The destination po to write to.")
     sub_parser.set_defaults(func=strip_po) 
+
+    sub_parser = sub_parsers.add_parser('rtl_process_po',
+                                        help="Pre-process PO files for RTL languages.")
+    sub_parser.add_argument('--src', metavar='src.po', required=True, help="The source po file to process.")
+    sub_parser.add_argument('--dst', metavar='dst.po', help="The destination po to write to.")
+    sub_parser.set_defaults(func=rtl_process_po)
 
     sub_parser = sub_parsers.add_parser('language_menu',
                                         help="Generate the text file used by Blender to create its language menu.")
