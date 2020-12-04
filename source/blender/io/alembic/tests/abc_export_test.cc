@@ -23,7 +23,7 @@ class AlembicExportTest : public testing::Test {
   Depsgraph *depsgraph;
   Main *bmain;
 
-  virtual void SetUp()
+  void SetUp() override
   {
     abc_archive = nullptr;
 
@@ -41,7 +41,7 @@ class AlembicExportTest : public testing::Test {
     depsgraph = DEG_graph_new(bmain, &scene, view_layer, DAG_EVAL_RENDER);
   }
 
-  virtual void TearDown()
+  void TearDown() override
   {
     BKE_main_free(bmain);
     DEG_graph_free(depsgraph);

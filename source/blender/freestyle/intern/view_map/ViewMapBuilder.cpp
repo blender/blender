@@ -2326,7 +2326,7 @@ struct silhouette_binary_rule : public binary_rule<segment, segment> {
   {
   }
 
-  virtual bool operator()(segment &s1, segment &s2)
+  bool operator()(segment &s1, segment &s2) override
   {
     FEdge *f1 = s1.edge();
     FEdge *f2 = s2.edge();

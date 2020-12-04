@@ -73,7 +73,7 @@ class TestingHierarchyIterator : public AbstractHierarchyIterator {
   explicit TestingHierarchyIterator(Depsgraph *depsgraph) : AbstractHierarchyIterator(depsgraph)
   {
   }
-  virtual ~TestingHierarchyIterator()
+  ~TestingHierarchyIterator() override
   {
     release_writers();
   }
@@ -106,13 +106,13 @@ class AbstractHierarchyIteratorTest : public BlendfileLoadingBaseTest {
  protected:
   TestingHierarchyIterator *iterator;
 
-  virtual void SetUp()
+  void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
     iterator = nullptr;
   }
 
-  virtual void TearDown()
+  void TearDown() override
   {
     iterator_free();
     BlendfileLoadingBaseTest::TearDown();

@@ -55,7 +55,7 @@ class DepsgraphFromIDsNodeBuilder : public DepsgraphNodeBuilder {
   {
   }
 
-  virtual bool need_pull_base_into_graph(Base *base) override
+  bool need_pull_base_into_graph(Base *base) override
   {
     if (!filter_.contains(&base->object->id)) {
       return false;
@@ -63,7 +63,7 @@ class DepsgraphFromIDsNodeBuilder : public DepsgraphNodeBuilder {
     return DepsgraphNodeBuilder::need_pull_base_into_graph(base);
   }
 
-  virtual void build_object_proxy_group(Object *object, bool is_visible) override
+  void build_object_proxy_group(Object *object, bool is_visible) override
   {
     if (object->proxy_group == nullptr) {
       return;
@@ -88,7 +88,7 @@ class DepsgraphFromIDsRelationBuilder : public DepsgraphRelationBuilder {
   {
   }
 
-  virtual bool need_pull_base_into_graph(Base *base) override
+  bool need_pull_base_into_graph(Base *base) override
   {
     if (!filter_.contains(&base->object->id)) {
       return false;
@@ -96,7 +96,7 @@ class DepsgraphFromIDsRelationBuilder : public DepsgraphRelationBuilder {
     return DepsgraphRelationBuilder::need_pull_base_into_graph(base);
   }
 
-  virtual void build_object_proxy_group(Object *object) override
+  void build_object_proxy_group(Object *object) override
   {
     if (object->proxy_group == nullptr) {
       return;

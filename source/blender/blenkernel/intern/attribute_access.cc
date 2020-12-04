@@ -325,7 +325,7 @@ class ConstantReadAttribute final : public ReadAttribute {
     type.copy_to_uninitialized(value, value_);
   }
 
-  ~ConstantReadAttribute()
+  ~ConstantReadAttribute() override
   {
     this->cpp_type_.destruct(value_);
     MEM_freeN(value_);

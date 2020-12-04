@@ -120,11 +120,11 @@ class IMemStream : public Imf::IStream {
     _exrbuf = exrbuf;
   }
 
-  virtual ~IMemStream()
+  ~IMemStream() override
   {
   }
 
-  virtual bool read(char c[], int n)
+  bool read(char c[], int n) override
   {
     if (n + _exrpos <= _exrsize) {
       memcpy(c, (void *)(&_exrbuf[_exrpos]), n);
@@ -135,17 +135,17 @@ class IMemStream : public Imf::IStream {
     return false;
   }
 
-  virtual Int64 tellg()
+  Int64 tellg() override
   {
     return _exrpos;
   }
 
-  virtual void seekg(Int64 pos)
+  void seekg(Int64 pos) override
   {
     _exrpos = pos;
   }
 
-  virtual void clear()
+  void clear() override
   {
   }
 
@@ -175,7 +175,7 @@ class IFileStream : public Imf::IStream {
     }
   }
 
-  virtual bool read(char c[], int n)
+  bool read(char c[], int n) override
   {
     if (!ifs) {
       throw Iex::InputExc("Unexpected end of file.");
@@ -186,18 +186,18 @@ class IFileStream : public Imf::IStream {
     return check_error();
   }
 
-  virtual Int64 tellg()
+  Int64 tellg() override
   {
     return std::streamoff(ifs.tellg());
   }
 
-  virtual void seekg(Int64 pos)
+  void seekg(Int64 pos) override
   {
     ifs.seekg(pos);
     check_error();
   }
 
-  virtual void clear()
+  void clear() override
   {
     ifs.clear();
   }
@@ -227,7 +227,7 @@ class OMemStream : public OStream {
   {
   }
 
-  virtual void write(const char c[], int n)
+  void write(const char c[], int n) override
   {
     ensure_size(offset + n);
     memcpy(ibuf->encodedbuffer + offset, c, n);
@@ -235,12 +235,12 @@ class OMemStream : public OStream {
     ibuf->encodedsize += n;
   }
 
-  virtual Int64 tellp()
+  Int64 tellp() override
   {
     return offset;
   }
 
-  virtual void seekp(Int64 pos)
+  void seekp(Int64 pos) override
   {
     offset = pos;
     ensure_size(offset);
@@ -281,19 +281,19 @@ class OFileStream : public OStream {
     }
   }
 
-  virtual void write(const char c[], int n)
+  void write(const char c[], int n) override
   {
     errno = 0;
     ofs.write(c, n);
     check_error();
   }
 
-  virtual Int64 tellp()
+  Int64 tellp() override
   {
     return std::streamoff(ofs.tellp());
   }
 
-  virtual void seekp(Int64 pos)
+  void seekp(Int64 pos) override
   {
     ofs.seekp(pos);
     check_error();
