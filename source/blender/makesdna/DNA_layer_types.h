@@ -48,19 +48,29 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_AO = (1 << 13),
   EEVEE_RENDER_PASS_BLOOM = (1 << 14),
   EEVEE_RENDER_PASS_AOV = (1 << 15),
+  EEVEE_RENDER_PASS_CRYPTOMATTE = (1 << 16),
 } eViewLayerEEVEEPassType;
-#define EEVEE_RENDER_PASS_MAX_BIT 16
+#define EEVEE_RENDER_PASS_MAX_BIT 17
 
-/* ViewLayerAOV.type */
+/* #ViewLayerAOV.type */
 typedef enum eViewLayerAOVType {
   AOV_TYPE_VALUE = 0,
   AOV_TYPE_COLOR = 1,
 } eViewLayerAOVType;
 
-/* ViewLayerAOV.type */
+/* #ViewLayerAOV.flag */
 typedef enum eViewLayerAOVFlag {
   AOV_CONFLICT = (1 << 0),
 } eViewLayerAOVFlag;
+
+/* #ViewLayer.cryptomatte_flag */
+typedef enum eViewLayerCryptomatteFlags {
+  VIEW_LAYER_CRYPTOMATTE_OBJECT = (1<<0),
+  VIEW_LAYER_CRYPTOMATTE_MATERIAL = (1<<1),
+  VIEW_LAYER_CRYPTOMATTE_ASSET = (1<<2),
+  VIEW_LAYER_CRYPTOMATTE_ACCURATE = (1<<3),
+} eViewLayerCryptomatteFlags;
+#define VIEW_LAYER_CRYPTOMATTE_ALL (VIEW_LAYER_CRYPTOMATTE_OBJECT | VIEW_LAYER_CRYPTOMATTE_MATERIAL | VIEW_LAYER_CRYPTOMATTE_ASSET)
 
 typedef struct Base {
   struct Base *next, *prev;
@@ -150,6 +160,10 @@ typedef struct ViewLayer {
   /** Pass_xor has to be after passflag. */
   int passflag;
   float pass_alpha_threshold;
+  short cryptomatte_flag;
+  short cryptomatte_levels;
+  char _pad1[4];
+
   int samples;
 
   struct Material *mat_override;

@@ -191,6 +191,7 @@ void EEVEE_render_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_subsurface_cache_init(sldata, vedata);
   EEVEE_temporal_sampling_cache_init(sldata, vedata);
   EEVEE_volumes_cache_init(sldata, vedata);
+  EEVEE_cryptomatte_cache_init(sldata, vedata);
 }
 
 /* Used by light cache. in this case engine is NULL. */
@@ -200,8 +201,14 @@ void EEVEE_render_cache(void *vedata,
                         struct Depsgraph *depsgraph)
 {
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
+  EEVEE_Data *data = vedata;
+  EEVEE_StorageList *stl = data->stl;
+  EEVEE_PrivateData *g_data = stl->g_data;
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
   bool cast_shadow = false;
+
+  const bool do_cryptomatte = (engine != NULL) &&
+                              ((g_data->render_passes & EEVEE_RENDER_PASS_CRYPTOMATTE) != 0);
 
   eevee_id_update(vedata, &ob->id);
 
@@ -227,14 +234,23 @@ void EEVEE_render_cache(void *vedata,
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   if (ob_visibility & OB_VISIBLE_PARTICLES) {
     EEVEE_particle_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
+    if (do_cryptomatte) {
+      EEVEE_cryptomatte_particle_hair_cache_populate(data, sldata, ob);
+    }
   }
 
   if (ob_visibility & OB_VISIBLE_SELF) {
     if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
       EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
+      if (do_cryptomatte) {
+        EEVEE_cryptomatte_cache_populate(data, sldata, ob);
+      }
     }
     else if (ob->type == OB_HAIR) {
       EEVEE_object_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
+      if (do_cryptomatte) {
+        EEVEE_cryptomatte_object_hair_cache_populate(data, sldata, ob);
+      }
     }
     else if (ob->type == OB_VOLUME) {
       Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -493,6 +509,18 @@ static void eevee_render_result_aovs(RenderLayer *rl,
 
 #undef EEVEE_RENDER_RESULT_MATERIAL_PASS
 
+static void eevee_render_result_cryptomatte(RenderLayer *rl,
+                                            const char *viewname,
+                                            const rcti *rect,
+                                            EEVEE_Data *vedata,
+                                            EEVEE_ViewLayerData *sldata)
+{
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_CRYPTOMATTE) != 0) {
+    EEVEE_cryptomatte_render_result(rl, viewname, rect, vedata, sldata);
+  }
+  EEVEE_cryptomatte_free(vedata);
+}
+
 static void eevee_render_draw_background(EEVEE_Data *vedata)
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -671,6 +699,7 @@ void EEVEE_render_read_result(EEVEE_Data *vedata,
   eevee_render_result_volume_scatter(rl, viewname, rect, vedata, sldata);
   eevee_render_result_volume_transmittance(rl, viewname, rect, vedata, sldata);
   eevee_render_result_aovs(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_cryptomatte(rl, viewname, rect, vedata, sldata);
 }
 
 void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
@@ -720,6 +749,7 @@ void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *v
         break;
     }
   }
+  EEVEE_cryptomatte_update_passes(engine, scene, view_layer);
 
 #undef CHECK_PASS_LEGACY
 #undef CHECK_PASS_EEVEE

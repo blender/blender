@@ -80,6 +80,7 @@ set(SRC
   engines/image/image_engine.c
   engines/image/image_shader.c
   engines/eevee/eevee_bloom.c
+  engines/eevee/eevee_cryptomatte.c
   engines/eevee/eevee_data.c
   engines/eevee/eevee_depth_of_field.c
   engines/eevee/eevee_effects.c
@@ -250,6 +251,7 @@ data_to_c_simple(engines/eevee/shaders/bsdf_sampling_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/raytrace_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/renderpass_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/renderpass_postprocess_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/cryptomatte_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/ltc_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/ssr_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/surface_frag.glsl SRC)

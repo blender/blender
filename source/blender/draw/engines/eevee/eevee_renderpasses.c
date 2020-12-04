@@ -144,6 +144,7 @@ void EEVEE_renderpasses_init(EEVEE_Data *vedata)
                             EEVEE_RENDER_PASS_COMBINED;
   }
   EEVEE_material_renderpasses_init(vedata);
+  EEVEE_cryptomatte_renderpasses_init(vedata);
 }
 
 void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
@@ -202,6 +203,11 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
     /* Free unneeded memory */
     DRW_TEXTURE_FREE_SAFE(txl->renderpass);
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->renderpass_fb);
+  }
+
+  /* Cryptomatte doesn't use the GPU shader for post processing */
+  if ((g_data->render_passes & (EEVEE_RENDER_PASS_CRYPTOMATTE)) != 0) {
+    EEVEE_cryptomatte_output_init(sldata, vedata, tot_samples);
   }
 }
 
@@ -384,6 +390,9 @@ void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata,
     if ((render_pass &
          (EEVEE_RENDER_PASS_VOLUME_TRANSMITTANCE | EEVEE_RENDER_PASS_VOLUME_SCATTER)) != 0) {
       EEVEE_volumes_output_accumulate(sldata, vedata);
+    }
+    if ((render_pass & EEVEE_RENDER_PASS_CRYPTOMATTE) != 0) {
+      EEVEE_cryptomatte_output_accumulate(sldata, vedata);
     }
   }
   else {

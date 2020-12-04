@@ -171,12 +171,38 @@ class VIEWLAYER_PT_layer_passes_aov(ViewLayerButtonsPanel, Panel):
             layout.label(text="Conflicts with another render pass with the same name", icon='ERROR')
 
 
+class VIEWLAYER_PT_layer_passes_cryptomatte(ViewLayerButtonsPanel, Panel):
+    bl_label = "Cryptomatte"
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        view_layer = context.view_layer
+
+        col = layout.column()
+        col.prop(view_layer, "use_pass_cryptomatte_object", text="Object")
+        col.prop(view_layer, "use_pass_cryptomatte_material", text="Material")
+        col.prop(view_layer, "use_pass_cryptomatte_asset", text="Asset")
+        col = layout.column()
+        col.active = any((view_layer.use_pass_cryptomatte_object, 
+                          view_layer.use_pass_cryptomatte_material, 
+                          view_layer.use_pass_cryptomatte_asset))
+        col.prop(view_layer, "pass_cryptomatte_depth", text="Levels")
+        col.prop(view_layer, "use_pass_cryptomatte_accurate", text="Accurate Mode")
+
+
 classes = (
     VIEWLAYER_PT_layer,
     VIEWLAYER_PT_layer_passes,
     VIEWLAYER_PT_eevee_layer_passes_data,
     VIEWLAYER_PT_eevee_layer_passes_light,
     VIEWLAYER_PT_eevee_layer_passes_effects,
+    VIEWLAYER_PT_layer_passes_cryptomatte,
     VIEWLAYER_PT_layer_passes_aov,
     VIEWLAYER_UL_aov,
 )

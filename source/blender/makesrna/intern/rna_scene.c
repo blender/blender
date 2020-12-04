@@ -4107,6 +4107,46 @@ void rna_def_view_layer_common(StructRNA *srna, const bool scene)
                                "rna_ViewLayer_active_aov_index_range");
     RNA_def_property_ui_text(prop, "Active AOV Index", "Index of active aov");
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+    prop = RNA_def_property(srna, "use_pass_cryptomatte_object", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "cryptomatte_flag", VIEW_LAYER_CRYPTOMATTE_OBJECT);
+    RNA_def_property_ui_text(
+        prop,
+        "Cryptomatte Object",
+        "Render cryptomatte object pass, for isolating objects in compositing");
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
+
+    prop = RNA_def_property(srna, "use_pass_cryptomatte_material", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "cryptomatte_flag", VIEW_LAYER_CRYPTOMATTE_MATERIAL);
+    RNA_def_property_ui_text(
+        prop,
+        "Cryptomatte Material",
+        "Render cryptomatte material pass, for isolating materials in compositing");
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
+
+    prop = RNA_def_property(srna, "use_pass_cryptomatte_asset", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "cryptomatte_flag", VIEW_LAYER_CRYPTOMATTE_ASSET);
+    RNA_def_property_ui_text(
+        prop,
+        "Cryptomatte Asset",
+        "Render cryptomatte asset pass, for isolating groups of objects with the same parent");
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
+
+    prop = RNA_def_property(srna, "pass_cryptomatte_depth", PROP_INT, PROP_NONE);
+    RNA_def_property_int_sdna(prop, NULL, "cryptomatte_levels");
+    RNA_def_property_int_default(prop, 6);
+    RNA_def_property_range(prop, 2.0, 16.0);
+    RNA_def_property_ui_text(
+        prop, "Cryptomatte Levels", "Sets how many unique objects can be distinguished per pixel");
+    RNA_def_property_ui_range(prop, 2.0, 16.0, 2.0, 0.0);
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
+
+    prop = RNA_def_property(srna, "use_pass_cryptomatte_accurate", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "cryptomatte_flag", VIEW_LAYER_CRYPTOMATTE_ACCURATE);
+    RNA_def_property_boolean_default(prop, true);
+    RNA_def_property_ui_text(
+        prop, "Cryptomatte Accurate", "Generate a more accurate cryptomatte pass");
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
   }
 
   /* layer options */

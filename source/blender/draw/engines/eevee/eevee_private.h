@@ -167,6 +167,8 @@ BLI_INLINE bool eevee_hdri_preview_overlay_enabled(const View3D *v3d)
    EEVEE_RENDER_PASS_ENVIRONMENT | EEVEE_RENDER_PASS_AOV)
 #define EEVEE_AOV_HASH_ALL -1
 #define EEVEE_AOV_HASH_COLOR_TYPE_MASK 1
+#define MAX_CRYPTOMATTE_LAYERS 3
+
 /* Material shader variations */
 enum {
   VAR_MAT_MESH = (1 << 0),
@@ -295,6 +297,7 @@ typedef struct EEVEE_PassList {
   /* Renderpass Accumulation. */
   struct DRWPass *material_accum_ps;
   struct DRWPass *background_accum_ps;
+  struct DRWPass *cryptomatte_ps;
 
   struct DRWPass *depth_ps;
   struct DRWPass *depth_cull_ps;
@@ -327,6 +330,7 @@ typedef struct EEVEE_FramebufferList {
   struct GPUFrameBuffer *bloom_down_fb[MAX_BLOOM_STEP];
   struct GPUFrameBuffer *bloom_accum_fb[MAX_BLOOM_STEP - 1];
   struct GPUFrameBuffer *bloom_pass_accum_fb;
+  struct GPUFrameBuffer *cryptomatte_fb;
   struct GPUFrameBuffer *shadow_accum_fb;
   struct GPUFrameBuffer *ssr_accum_fb;
   struct GPUFrameBuffer *sss_blur_fb;
@@ -383,6 +387,7 @@ typedef struct EEVEE_TextureList {
   struct GPUTexture *bloom_accum;
   struct GPUTexture *ssr_accum;
   struct GPUTexture *shadow_accum;
+  struct GPUTexture *cryptomatte;
   struct GPUTexture *refract_color;
   struct GPUTexture *taa_history;
 
@@ -910,6 +915,11 @@ typedef struct EEVEE_WorldEngineData {
   DrawData dd;
 } EEVEE_WorldEngineData;
 
+typedef struct EEVEE_CryptomatteSample {
+  float hash;
+  float weight;
+} EEVEE_CryptomatteSample;
+
 /* *********************************** */
 
 typedef struct EEVEE_Data {
@@ -967,6 +977,9 @@ typedef struct EEVEE_PrivateData {
   eViewLayerEEVEEPassType render_passes;
   int aov_hash;
   int num_aovs_used;
+  bool cryptomatte_accurate_mode;
+  EEVEE_CryptomatteSample *cryptomatte_accum_buffer;
+  float *cryptomatte_download_buffer;
 
   /* Uniform references that are referenced inside the `renderpass_pass`. They are updated
    * to reuse the drawing pass and the shading group. */
@@ -1120,6 +1133,7 @@ struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_layer_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_screen_raytrace_sh_get(EEVEE_SSRShaderOptions options);
 struct GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void);
+struct GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair);
 struct GPUShader *EEVEE_shaders_shadow_sh_get(void);
 struct GPUShader *EEVEE_shaders_shadow_accum_sh_get(void);
 struct GPUShader *EEVEE_shaders_subsurface_first_pass_sh_get(void);
@@ -1223,6 +1237,30 @@ void EEVEE_bloom_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_bloom_draw(EEVEE_Data *vedata);
 void EEVEE_bloom_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, uint tot_samples);
 void EEVEE_bloom_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+
+/* eevee_cryptomatte.c */
+void EEVEE_cryptomatte_renderpasses_init(EEVEE_Data *vedata);
+void EEVEE_cryptomatte_output_init(EEVEE_ViewLayerData *sldata,
+                                   EEVEE_Data *vedata,
+                                   int tot_samples);
+void EEVEE_cryptomatte_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_cryptomatte_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob);
+void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
+                                                    EEVEE_ViewLayerData *sldata,
+                                                    Object *ob);
+void EEVEE_cryptomatte_object_hair_cache_populate(EEVEE_Data *vedata,
+                                                  EEVEE_ViewLayerData *sldata,
+                                                  Object *ob);
+void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_cryptomatte_update_passes(struct RenderEngine *engine,
+                                     struct Scene *scene,
+                                     struct ViewLayer *view_layer);
+void EEVEE_cryptomatte_render_result(struct RenderLayer *rl,
+                                     const char *viewname,
+                                     const rcti *rect,
+                                     EEVEE_Data *vedata,
+                                     EEVEE_ViewLayerData *sldata);
+void EEVEE_cryptomatte_free(EEVEE_Data *vedata);
 
 /* eevee_occlusion.c */
 int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
