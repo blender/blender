@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -278,11 +278,6 @@ typedef struct SpaceOutliner {
   char filter_state;
   char show_restrict_flags;
   short filter_id_type;
-
-  /**
-   * Pointers to treestore elements, grouped by (id, type, nr)
-   * in hashtable for faster searching */
-  void *treehash;
 
   SpaceOutliner_Runtime *runtime;
 } SpaceOutliner;

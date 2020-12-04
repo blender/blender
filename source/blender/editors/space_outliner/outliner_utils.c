@@ -212,7 +212,8 @@ TreeElement *outliner_find_tse(SpaceOutliner *space_outliner, const TreeStoreEle
   }
 
   /* check if 'tse' is in treestore */
-  tselem = BKE_outliner_treehash_lookup_any(space_outliner->treehash, tse->type, tse->nr, tse->id);
+  tselem = BKE_outliner_treehash_lookup_any(
+      space_outliner->runtime->treehash, tse->type, tse->nr, tse->id);
   if (tselem) {
     return outliner_find_tree_element(&space_outliner->tree, tselem);
   }

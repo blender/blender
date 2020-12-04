@@ -132,9 +132,9 @@ static void outliner_storage_cleanup(SpaceOutliner *space_outliner)
         if (BLI_mempool_len(ts) == unused) {
           BLI_mempool_destroy(ts);
           space_outliner->treestore = NULL;
-          if (space_outliner->treehash) {
-            BKE_outliner_treehash_free(space_outliner->treehash);
-            space_outliner->treehash = NULL;
+          if (space_outliner->runtime->treehash) {
+            BKE_outliner_treehash_free(space_outliner->runtime->treehash);
+            space_outliner->runtime->treehash = NULL;
           }
         }
         else {
@@ -150,16 +150,16 @@ static void outliner_storage_cleanup(SpaceOutliner *space_outliner)
           }
           BLI_mempool_destroy(ts);
           space_outliner->treestore = new_ts;
-          if (space_outliner->treehash) {
+          if (space_outliner->runtime->treehash) {
             /* update hash table to fix broken pointers */
-            BKE_outliner_treehash_rebuild_from_treestore(space_outliner->treehash,
+            BKE_outliner_treehash_rebuild_from_treestore(space_outliner->runtime->treehash,
                                                          space_outliner->treestore);
           }
         }
       }
     }
-    else if (space_outliner->treehash) {
-      BKE_outliner_treehash_clear_used(space_outliner->treehash);
+    else if (space_outliner->runtime->treehash) {
+      BKE_outliner_treehash_clear_used(space_outliner->runtime->treehash);
     }
   }
 }
@@ -174,14 +174,14 @@ static void check_persistent(
     space_outliner->treestore = BLI_mempool_create(
         sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
   }
-  if (space_outliner->treehash == NULL) {
-    space_outliner->treehash = BKE_outliner_treehash_create_from_treestore(
+  if (space_outliner->runtime->treehash == NULL) {
+    space_outliner->runtime->treehash = BKE_outliner_treehash_create_from_treestore(
         space_outliner->treestore);
   }
 
   /* find any unused tree element in treestore and mark it as used
    * (note that there may be multiple unused elements in case of linked objects) */
-  tselem = BKE_outliner_treehash_lookup_unused(space_outliner->treehash, type, nr, id);
+  tselem = BKE_outliner_treehash_lookup_unused(space_outliner->runtime->treehash, type, nr, id);
   if (tselem) {
     te->store_elem = tselem;
     tselem->used = 1;
@@ -196,7 +196,7 @@ static void check_persistent(
   tselem->used = 0;
   tselem->flag = TSE_CLOSED;
   te->store_elem = tselem;
-  BKE_outliner_treehash_add_element(space_outliner->treehash, tselem);
+  BKE_outliner_treehash_add_element(space_outliner->runtime->treehash, tselem);
 }
 
 /* ********************************************************* */
@@ -2197,12 +2197,12 @@ void outliner_build_tree(Main *mainvar,
     space_outliner->search_flags &= ~SO_SEARCH_RECURSIVE;
   }
 
-  if (space_outliner->treehash && (space_outliner->storeflag & SO_TREESTORE_REBUILD) &&
+  if (space_outliner->runtime->treehash && (space_outliner->storeflag & SO_TREESTORE_REBUILD) &&
       space_outliner->treestore) {
-    space_outliner->storeflag &= ~SO_TREESTORE_REBUILD;
-    BKE_outliner_treehash_rebuild_from_treestore(space_outliner->treehash,
+    BKE_outliner_treehash_rebuild_from_treestore(space_outliner->runtime->treehash,
                                                  space_outliner->treestore);
   }
+  space_outliner->storeflag &= ~SO_TREESTORE_REBUILD;
 
   if (region->do_draw & RGN_DRAW_NO_REBUILD) {
     return;

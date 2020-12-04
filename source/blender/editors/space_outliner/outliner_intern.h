@@ -47,10 +47,13 @@ struct wmKeyConfig;
 struct wmOperatorType;
 
 typedef struct SpaceOutliner_Runtime {
-  /**
-   * Internal C++ object to create and manage the tree for a specific display type (View Layers,
-   * Scenes, Blender File, etc.). */
+  /** Internal C++ object to create and manage the tree for a specific display type (View Layers,
+   *  Scenes, Blender File, etc.). */
   struct TreeDisplay *tree_display;
+
+  /** Pointers to treestore elements, grouped by (id, type, nr)
+   *  in hashtable for faster searching */
+  struct GHash *treehash;
 } SpaceOutliner_Runtime;
 
 typedef enum TreeElementInsertType {

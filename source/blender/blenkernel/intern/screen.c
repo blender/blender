@@ -1561,7 +1561,6 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
         /* we only saved what was used */
         space_outliner->storeflag |= SO_TREESTORE_CLEANUP; /* at first draw */
       }
-      space_outliner->treehash = NULL;
       space_outliner->tree.first = space_outliner->tree.last = NULL;
       space_outliner->runtime = NULL;
     }
@@ -1825,10 +1824,8 @@ void BKE_screen_area_blend_read_lib(BlendLibReader *reader, ID *parent_id, ScrAr
           while ((tselem = BLI_mempool_iterstep(&iter))) {
             BLO_read_id_address(reader, NULL, &tselem->id);
           }
-          if (space_outliner->treehash) {
-            /* rebuild hash table, because it depends on ids too */
-            space_outliner->storeflag |= SO_TREESTORE_REBUILD;
-          }
+          /* rebuild hash table, because it depends on ids too */
+          space_outliner->storeflag |= SO_TREESTORE_REBUILD;
         }
         break;
       }

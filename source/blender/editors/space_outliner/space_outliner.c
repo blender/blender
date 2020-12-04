@@ -349,12 +349,12 @@ static void outliner_free(SpaceLink *sl)
   if (space_outliner->treestore) {
     BLI_mempool_destroy(space_outliner->treestore);
   }
-  if (space_outliner->treehash) {
-    BKE_outliner_treehash_free(space_outliner->treehash);
-  }
 
   if (space_outliner->runtime) {
     outliner_tree_display_destroy(&space_outliner->runtime->tree_display);
+    if (space_outliner->runtime->treehash) {
+      BKE_outliner_treehash_free(space_outliner->runtime->treehash);
+    }
     MEM_freeN(space_outliner->runtime);
   }
 }
@@ -377,13 +377,13 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 
   BLI_listbase_clear(&space_outliner_new->tree);
   space_outliner_new->treestore = NULL;
-  space_outliner_new->treehash = NULL;
 
   space_outliner_new->sync_select_dirty = WM_OUTLINER_SYNC_SELECT_FROM_ALL;
 
   if (space_outliner->runtime) {
     space_outliner_new->runtime = MEM_dupallocN(space_outliner->runtime);
     space_outliner_new->runtime->tree_display = NULL;
+    space_outliner_new->runtime->treehash = NULL;
   }
 
   return (SpaceLink *)space_outliner_new;
@@ -414,7 +414,7 @@ static void outliner_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_i
         changed = true;
       }
     }
-    if (space_outliner->treehash && changed) {
+    if (space_outliner->runtime->treehash && changed) {
       /* rebuild hash table, because it depends on ids too */
       /* postpone a full rebuild because this can be called many times on-free */
       space_outliner->storeflag |= SO_TREESTORE_REBUILD;
