@@ -559,6 +559,39 @@ TEST(atomic, atomic_fetch_and_and_int32)
 
 /** \} */
 
+/** \name 16 bit signed int atomics
+ * \{ */
+
+TEST(atomic, atomic_fetch_and_or_int16)
+{
+  {
+    int16_t value = 12;
+    EXPECT_EQ(atomic_fetch_and_or_int16(&value, 5), 12);
+    EXPECT_EQ(value, 13);
+  }
+
+  {
+    int16_t value = 0x1234;
+    EXPECT_EQ(atomic_fetch_and_or_int16(&value, -0x5678), 0x1234);
+    EXPECT_EQ(value, -0x4444);
+  }
+}
+
+TEST(atomic, atomic_fetch_and_and_int16)
+{
+  {
+    int16_t value = 12;
+    EXPECT_EQ(atomic_fetch_and_and_int16(&value, 5), 12);
+    EXPECT_EQ(value, 4);
+  }
+
+  {
+    int16_t value = 0x1234;
+    EXPECT_EQ(atomic_fetch_and_and_int16(&value, -0x789A), 0x1234);
+    EXPECT_EQ(value, 0x224);
+  }
+}
+
 /** \name 8 bit unsigned int atomics
  * \{ */
 

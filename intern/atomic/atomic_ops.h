@@ -87,6 +87,9 @@ ATOMIC_INLINE int32_t atomic_fetch_and_add_int32(int32_t *p, int32_t x);
 ATOMIC_INLINE int32_t atomic_fetch_and_or_int32(int32_t *p, int32_t x);
 ATOMIC_INLINE int32_t atomic_fetch_and_and_int32(int32_t *p, int32_t x);
 
+ATOMIC_INLINE int16_t atomic_fetch_and_or_int16(int16_t *p, int16_t b);
+ATOMIC_INLINE int16_t atomic_fetch_and_and_int16(int16_t *p, int16_t b);
+
 ATOMIC_INLINE uint8_t atomic_fetch_and_or_uint8(uint8_t *p, uint8_t b);
 ATOMIC_INLINE uint8_t atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b);
 

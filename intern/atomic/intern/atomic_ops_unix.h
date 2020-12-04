@@ -55,6 +55,7 @@
  * its gcc doesn't have __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n defined.
  */
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_1
+#  define JE_FORCE_SYNC_COMPARE_AND_SWAP_2
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_4
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_8
 #endif
@@ -323,6 +324,24 @@ ATOMIC_INLINE int32_t atomic_fetch_and_and_int32(int32_t *p, int32_t x)
 
 #else
 #  error "Missing implementation for 32-bit atomic operations"
+#endif
+
+/******************************************************************************/
+/* 16-bit operations. */
+#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_2) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_2))
+
+/* Signed */
+ATOMIC_INLINE int16_t atomic_fetch_and_and_int16(int16_t *p, int16_t b)
+{
+  return __sync_fetch_and_and(p, b);
+}
+ATOMIC_INLINE int16_t atomic_fetch_and_or_int16(int16_t *p, int16_t b)
+{
+  return __sync_fetch_and_or(p, b);
+}
+
+#else
+#  error "Missing implementation for 16-bit atomic operations"
 #endif
 
 /******************************************************************************/
