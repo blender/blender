@@ -35,8 +35,6 @@ from bl_i18n_utils import (
     utils_rtl,
 )
 
-import bpy
-
 
 ##### Misc Utils #####
 _valid_po_path_re = re.compile(r"^\S+:[0-9]+$")
@@ -190,6 +188,12 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
     If "check_only" is set, no addon will be enabled nor disabled.
     """
     import addon_utils
+
+    try:
+        import bpy
+    except ModuleNotFoundError:
+        print("Could not import bpy, enable_addons must be run from whithin Blender.")
+        return
 
     if addons is None:
         addons = {}
@@ -744,6 +748,13 @@ class I18nMessages:
                 rna_ctxt: the labels' i18n context.
                 rna_struct_name, rna_prop_name, rna_enum_name: should be self-explanatory!
         """
+        try:
+            import bpy
+        except ModuleNotFoundError:
+            print("Could not import bpy, find_best_messages_matches must be run from whithin Blender.")
+            return
+
+
         # Build helper mappings.
         # Note it's user responsibility to know when to invalidate (and hence force rebuild) this cache!
         if self._reverse_cache is None:
@@ -1294,7 +1305,7 @@ class I18n:
                 msgs.print_stats(prefix=msgs_prefix)
                 print(prefix)
 
-        nbr_contexts = len(self.contexts - {bpy.app.translations.contexts.default})
+        nbr_contexts = len(self.contexts - {self.settings.DEFAULT_CONTEXT})
         if nbr_contexts != 1:
             if nbr_contexts == 0:
                 nbr_contexts = "No"
@@ -1312,7 +1323,7 @@ class I18n:
             "    The org msgids are currently made of {} signs.\n".format(self.nbr_signs),
             "    All processed translations are currently made of {} signs.\n".format(self.nbr_trans_signs),
             "    {} specific context{} present:\n".format(self.nbr_contexts, _ctx_txt)) +
-            tuple("            " + c + "\n" for c in self.contexts - {bpy.app.translations.contexts.default}) +
+            tuple("            " + c + "\n" for c in self.contexts - {self.settings.DEFAULT_CONTEXT}) +
             ("\n",)
         )
         print(prefix.join(lines))
