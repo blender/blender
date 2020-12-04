@@ -597,7 +597,7 @@ void NodeOperationBuilder::add_complex_operation_buffers()
   }
 }
 
-typedef std::set<NodeOperation *> Tags;
+using Tags = std::set<NodeOperation *>;
 
 static void find_reachable_operations_recursive(Tags &reachable, NodeOperation *op)
 {

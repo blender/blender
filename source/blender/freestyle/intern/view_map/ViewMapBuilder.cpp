@@ -2299,8 +2299,8 @@ struct less_SVertex2D {
   }
 };
 
-typedef Segment<FEdge *, Vec3r> segment;
-typedef Intersection<segment> intersection;
+using segment = Segment<FEdge *, Vec3r>;
+using intersection = Intersection<segment>;
 
 struct less_Intersection {
   segment *edge;

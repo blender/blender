@@ -37,7 +37,6 @@ Checks:  >
   -modernize-avoid-c-arrays,
   -modernize-use-equals-default,
   -modernize-use-nodiscard,
-  -modernize-use-using,
   -modernize-loop-convert,
   -modernize-pass-by-value,
   -modernize-use-default-member-init,

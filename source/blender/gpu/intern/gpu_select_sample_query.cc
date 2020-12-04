@@ -47,7 +47,7 @@
 using namespace blender;
 using namespace blender::gpu;
 
-typedef struct GPUSelectQueryState {
+struct GPUSelectQueryState {
   /* Tracks whether a query has been issued so that gpu_load_id can end the previous one */
   bool query_issued;
   /* GPU queries abstraction. Contains an array of queries. */
@@ -68,7 +68,7 @@ typedef struct GPUSelectQueryState {
   int scissor[4];
   eGPUWriteMask write_mask;
   eGPUDepthTest depth_test;
-} GPUSelectQueryState;
+};
 
 static GPUSelectQueryState g_query_state = {false};
 

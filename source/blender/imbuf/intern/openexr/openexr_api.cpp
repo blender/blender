@@ -620,7 +620,7 @@ bool imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 
 static ListBase exrhandles = {nullptr, nullptr};
 
-typedef struct ExrHandle {
+struct ExrHandle {
   struct ExrHandle *next, *prev;
   char name[FILE_MAX];
 
@@ -645,10 +645,10 @@ typedef struct ExrHandle {
   ListBase layers;   /* hierarchical, pointing in end to ExrChannel */
 
   int num_half_channels; /* used during filr save, allows faster temporary buffers allocation */
-} ExrHandle;
+};
 
 /* flattened out channel */
-typedef struct ExrChannel {
+struct ExrChannel {
   struct ExrChannel *next, *prev;
 
   char name[EXR_TOT_MAXNAME + 1]; /* full name with everything */
@@ -658,10 +658,10 @@ typedef struct ExrChannel {
   char chan_id;                   /* quick lookup of channel char */
   int view_id;                    /* quick lookup of channel view */
   bool use_half_float;            /* when saving use half float for file storage */
-} ExrChannel;
+};
 
 /* hierarchical; layers -> passes -> channels[] */
-typedef struct ExrPass {
+struct ExrPass {
   struct ExrPass *next, *prev;
   char name[EXR_PASS_MAXNAME];
   int totchan;
@@ -672,13 +672,13 @@ typedef struct ExrPass {
   char internal_name[EXR_PASS_MAXNAME]; /* name with no view */
   char view[EXR_VIEW_MAXNAME];
   int view_id;
-} ExrPass;
+};
 
-typedef struct ExrLayer {
+struct ExrLayer {
   struct ExrLayer *next, *prev;
   char name[EXR_LAY_MAXNAME + 1];
   ListBase passes;
-} ExrLayer;
+};
 
 /* ********************** */
 

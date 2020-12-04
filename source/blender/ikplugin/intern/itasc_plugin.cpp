@@ -73,8 +73,8 @@ struct IK_Data {
   struct IK_Scene *first;
 };
 
-typedef float Vector3[3];
-typedef float Vector4[4];
+using Vector3 = float[3];
+using Vector4 = float[4];
 struct IK_Target;
 typedef void (*ErrorCallback)(const iTaSC::ConstraintValues *values,
                               unsigned int nvalues,

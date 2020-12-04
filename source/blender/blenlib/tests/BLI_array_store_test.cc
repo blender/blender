@@ -32,11 +32,11 @@ static void print_mem_saved(const char *id, const BArrayStore *bs)
 /* -------------------------------------------------------------------- */
 /* Test Chunks (building data from list of chunks) */
 
-typedef struct TestChunk {
+struct TestChunk {
   struct TestChunk *next, *prev;
   const void *data;
   size_t data_len;
-} TestChunk;
+};
 
 static TestChunk *testchunk_list_add(ListBase *lb, const void *data, size_t data_len)
 {
@@ -111,14 +111,14 @@ static char *testchunk_as_data_array(TestChunk **tc_array, int tc_array_len, siz
 /* Test Buffer */
 
 /* API to handle local allocation of data so we can compare it with the data in the array_store */
-typedef struct TestBuffer {
+struct TestBuffer {
   struct TestBuffer *next, *prev;
   const void *data;
   size_t data_len;
 
   /* for reference */
   BArrayState *state;
-} TestBuffer;
+};
 
 static TestBuffer *testbuffer_list_add(ListBase *lb, const void *data, size_t data_len)
 {

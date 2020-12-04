@@ -43,20 +43,20 @@
 
 using namespace blender::gpu;
 
-typedef struct GLDrawCommand {
+struct GLDrawCommand {
   GLuint v_count;
   GLuint i_count;
   GLuint v_first;
   GLuint i_first;
-} GLDrawCommand;
+};
 
-typedef struct GLDrawCommandIndexed {
+struct GLDrawCommandIndexed {
   GLuint v_count;
   GLuint i_count;
   GLuint v_first;
   GLuint base_index;
   GLuint i_first;
-} GLDrawCommandIndexed;
+};
 
 #define MDI_ENABLED (buffer_size_ != 0)
 #define MDI_DISABLED (buffer_size_ == 0)

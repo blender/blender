@@ -49,7 +49,7 @@ namespace {
 
 typedef deque<OperationNode *> TraversalQueue;
 
-typedef void (*DEGForeachOperation)(OperationNode *op_node, void *user_data);
+using DEGForeachOperation = void (*)(OperationNode *, void *);
 
 bool deg_foreach_needs_visit(const OperationNode *op_node, const int flags)
 {
