@@ -429,9 +429,22 @@ class UpdateAnimatedTransformConstraint(Operator):
         return {'FINISHED'}
 
 
+class ANIM_OT_show_group_colors_deprecated(Operator):
+    """This option moved to Preferences > Animation"""
+
+    bl_idname = "anim.show_group_colors_deprecated"
+    bl_label = "Show Group Colors"
+    bl_options = {'REGISTER'}
+
+    @classmethod
+    def poll(cls, context) -> bool:
+        return False
+
+
 classes = (
     ANIM_OT_keying_set_export,
     NLA_OT_bake,
     ClearUselessActions,
     UpdateAnimatedTransformConstraint,
+    ANIM_OT_show_group_colors_deprecated,
 )
