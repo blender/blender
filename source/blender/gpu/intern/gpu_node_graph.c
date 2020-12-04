@@ -805,6 +805,7 @@ void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
 /* Free both node graph and requested attributes and textures. */
 void gpu_node_graph_free(GPUNodeGraph *graph)
 {
+  BLI_freelistN(&graph->outlink_aovs);
   gpu_node_graph_free_nodes(graph);
 
   LISTBASE_FOREACH (GPUMaterialVolumeGrid *, grid, &graph->volume_grids) {
@@ -847,6 +848,9 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
   }
 
   gpu_nodes_tag(graph->outlink);
+  LISTBASE_FOREACH (GPUNodeGraphOutputLink *, aovlink, &graph->outlink_aovs) {
+    gpu_nodes_tag(aovlink->outlink);
+  }
 
   for (GPUNode *node = graph->nodes.first, *next = NULL; node; node = next) {
     next = node->next;

@@ -17,7 +17,16 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-from bpy.types import Panel
+from bpy.types import Panel, UIList
+
+
+class VIEWLAYER_UL_aov(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        row = layout.row()
+        split = row.split(factor=0.65)
+        icon = 'NONE' if item.is_valid else 'ERROR'
+        split.row().prop(item, "name", text="", icon=icon, emboss=False)
+        split.row().prop(item, "type", text="", emboss=False)
 
 
 class ViewLayerButtonsPanel:
@@ -49,7 +58,7 @@ class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
         col.prop(rd, "use_single_layer", text="Render Single Layer")
 
 
-class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
+class VIEWLAYER_PT_layer_passes(ViewLayerButtonsPanel, Panel):
     bl_label = "Passes"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
@@ -59,7 +68,7 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
 
 class VIEWLAYER_PT_eevee_layer_passes_data(ViewLayerButtonsPanel, Panel):
     bl_label = "Data"
-    bl_parent_id = "VIEWLAYER_PT_eevee_layer_passes"
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
 
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
@@ -81,7 +90,7 @@ class VIEWLAYER_PT_eevee_layer_passes_data(ViewLayerButtonsPanel, Panel):
 
 class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
     bl_label = "Light"
-    bl_parent_id = "VIEWLAYER_PT_eevee_layer_passes"
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
@@ -116,7 +125,7 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
 
 class VIEWLAYER_PT_eevee_layer_passes_effects(ViewLayerButtonsPanel, Panel):
     bl_label = "Effects"
-    bl_parent_id = "VIEWLAYER_PT_eevee_layer_passes"
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
@@ -135,12 +144,41 @@ class VIEWLAYER_PT_eevee_layer_passes_effects(ViewLayerButtonsPanel, Panel):
         col.active = scene_eevee.use_bloom
 
 
+class VIEWLAYER_PT_layer_passes_aov(ViewLayerButtonsPanel, Panel):
+    bl_label = "Shader AOV"
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        view_layer = context.view_layer
+
+        row = layout.row()
+        col = row.column()
+        col.template_list("VIEWLAYER_UL_aov", "aovs", view_layer, "aovs", view_layer, "active_aov_index", rows=2)
+
+        col = row.column()
+        sub = col.column(align=True)
+        sub.operator("scene.view_layer_add_aov", icon='ADD', text="")
+        sub.operator("scene.view_layer_remove_aov", icon='REMOVE', text="")
+
+        aov = view_layer.active_aov
+        if aov and not aov.is_valid:
+            layout.label(text="Conflicts with another render pass with the same name", icon='ERROR')
+
+
 classes = (
     VIEWLAYER_PT_layer,
-    VIEWLAYER_PT_eevee_layer_passes,
+    VIEWLAYER_PT_layer_passes,
     VIEWLAYER_PT_eevee_layer_passes_data,
     VIEWLAYER_PT_eevee_layer_passes_light,
     VIEWLAYER_PT_eevee_layer_passes_effects,
+    VIEWLAYER_PT_layer_passes_aov,
+    VIEWLAYER_UL_aov,
 )
 
 if __name__ == "__main__":  # only for live edit.

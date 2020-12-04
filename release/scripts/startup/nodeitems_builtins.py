@@ -165,11 +165,6 @@ def object_cycles_shader_nodes_poll(context):
             cycles_shader_nodes_poll(context))
 
 
-def cycles_aov_node_poll(context):
-    return (object_cycles_shader_nodes_poll(context) or
-            world_shader_nodes_poll(context))
-
-
 def object_eevee_shader_nodes_poll(context):
     return (object_shader_nodes_poll(context) and
             eevee_shader_nodes_poll(context))
@@ -210,7 +205,7 @@ shader_node_categories = [
     ShaderNodeCategory("SH_NEW_OUTPUT", "Output", items=[
         NodeItem("ShaderNodeOutputMaterial", poll=object_eevee_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeOutputLight", poll=object_cycles_shader_nodes_poll),
-        NodeItem("ShaderNodeOutputAOV", poll=cycles_aov_node_poll),
+        NodeItem("ShaderNodeOutputAOV"),
         NodeItem("ShaderNodeOutputWorld", poll=world_shader_nodes_poll),
         NodeItem("ShaderNodeOutputLineStyle", poll=line_style_shader_nodes_poll),
         NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),

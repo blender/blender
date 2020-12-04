@@ -345,6 +345,10 @@ void rna_ViewLayer_material_override_update(struct Main *bmain,
 void rna_ViewLayer_pass_update(struct Main *bmain,
                                struct Scene *activescene,
                                struct PointerRNA *ptr);
+void rna_ViewLayer_active_aov_index_range(
+    PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax);
+int rna_ViewLayer_active_aov_index_get(PointerRNA *ptr);
+void rna_ViewLayer_active_aov_index_set(PointerRNA *ptr, int value);
 
 /* named internal so as not to conflict with obj.update() rna func */
 void rna_Object_internal_update_data(struct Main *bmain,

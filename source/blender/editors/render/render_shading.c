@@ -90,6 +90,7 @@
 
 #include "UI_interface.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 #include "engines/eevee/eevee_lightcache.h"
@@ -1006,6 +1007,93 @@ void SCENE_OT_view_layer_remove(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = view_layer_remove_exec;
   ot->poll = view_layer_remove_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Layer Add AOV Operator
+ * \{ */
+
+static int view_layer_add_aov_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  BKE_view_layer_add_aov(view_layer);
+
+  RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
+  if (engine_type->update_render_passes) {
+    RenderEngine *engine = RE_engine_create(engine_type);
+    if (engine) {
+      BKE_view_layer_verify_aov(engine, scene, view_layer);
+    }
+    RE_engine_free(engine);
+    engine = NULL;
+  }
+
+  DEG_id_tag_update(&scene->id, 0);
+  DEG_relations_tag_update(CTX_data_main(C));
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_view_layer_add_aov(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add AOV";
+  ot->idname = "SCENE_OT_view_layer_add_aov";
+  ot->description = "Add a Shader AOV";
+
+  /* api callbacks */
+  ot->exec = view_layer_add_aov_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Layer Remove AOV Operator
+ * \{ */
+
+static int view_layer_remove_aov_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_remove_aov(view_layer, view_layer->active_aov);
+
+  RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
+  if (engine_type->update_render_passes) {
+    RenderEngine *engine = RE_engine_create(engine_type);
+    if (engine) {
+      BKE_view_layer_verify_aov(engine, scene, view_layer);
+    }
+    RE_engine_free(engine);
+    engine = NULL;
+  }
+
+  DEG_id_tag_update(&scene->id, 0);
+  DEG_relations_tag_update(CTX_data_main(C));
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_view_layer_remove_aov(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove AOV";
+  ot->idname = "SCENE_OT_view_layer_remove_aov";
+  ot->description = "Remove Active AOV";
+
+  /* api callbacks */
+  ot->exec = view_layer_remove_aov_exec;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

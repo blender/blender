@@ -103,7 +103,7 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
   BKE_blender_atexit();
 
   BKE_tempdir_session_purge();
-
+  BKE_appdir_exit();
   CLG_exit();
 
   testing::Test::TearDownTestCase();

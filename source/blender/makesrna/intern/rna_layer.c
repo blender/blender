@@ -152,7 +152,18 @@ static void rna_ViewLayer_update_render_passes(ID *id)
   if (scene->nodetree) {
     ntreeCompositUpdateRLayers(scene->nodetree);
   }
-}
+
+  RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
+  if (engine_type->update_render_passes) {
+    RenderEngine *engine = RE_engine_create(engine_type);
+    if (engine) {
+      LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+        BKE_view_layer_verify_aov(engine, scene, view_layer);
+      }
+    }
+    RE_engine_free(engine);
+    engine = NULL;
+  }}
 
 static PointerRNA rna_ViewLayer_objects_get(CollectionPropertyIterator *iter)
 {

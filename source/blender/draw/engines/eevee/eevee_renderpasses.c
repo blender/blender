@@ -27,6 +27,7 @@
 
 #include "BKE_global.h" /* for G.debug_value */
 
+#include "BLI_hash.h"
 #include "BLI_string_utils.h"
 
 #include "DEG_depsgraph_query.h"
@@ -36,12 +37,13 @@
 typedef enum eRenderPassPostProcessType {
   PASS_POST_UNDEFINED = 0,
   PASS_POST_ACCUMULATED_COLOR = 1,
-  PASS_POST_ACCUMULATED_LIGHT = 2,
-  PASS_POST_ACCUMULATED_VALUE = 3,
-  PASS_POST_DEPTH = 4,
-  PASS_POST_AO = 5,
-  PASS_POST_NORMAL = 6,
-  PASS_POST_TWO_LIGHT_BUFFERS = 7,
+  PASS_POST_ACCUMULATED_COLOR_ALPHA = 2,
+  PASS_POST_ACCUMULATED_LIGHT = 3,
+  PASS_POST_ACCUMULATED_VALUE = 4,
+  PASS_POST_DEPTH = 5,
+  PASS_POST_AO = 6,
+  PASS_POST_NORMAL = 7,
+  PASS_POST_TWO_LIGHT_BUFFERS = 8,
 } eRenderPassPostProcessType;
 
 /* bitmask containing all renderpasses that need post-processing */
@@ -70,6 +72,15 @@ bool EEVEE_renderpasses_only_first_sample_pass_active(EEVEE_Data *vedata)
   return (g_data->render_passes & ~EEVEE_RENDERPASSES_POST_PROCESS_ON_FIRST_SAMPLE) == 0;
 }
 
+/* Calculate the hash for an AOV. The least significant bit is used to store the AOV
+ * type the rest of the bits are used for the name hash. */
+int EEVEE_renderpasses_aov_hash(const ViewLayerAOV *aov)
+{
+  int hash = BLI_hash_string(aov->name);
+  SET_FLAG_FROM_TEST(hash, aov->type == AOV_TYPE_COLOR, EEVEE_AOV_HASH_COLOR_TYPE_MASK);
+  return hash;
+}
+
 void EEVEE_renderpasses_init(EEVEE_Data *vedata)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -81,10 +92,24 @@ void EEVEE_renderpasses_init(EEVEE_Data *vedata)
   if (v3d) {
     const Scene *scene = draw_ctx->scene;
     eViewLayerEEVEEPassType render_pass = v3d->shading.render_pass;
+    g_data->aov_hash = 0;
+
     if (render_pass == EEVEE_RENDER_PASS_BLOOM &&
         ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
       render_pass = EEVEE_RENDER_PASS_COMBINED;
     }
+    if (render_pass == EEVEE_RENDER_PASS_AOV) {
+      ViewLayerAOV *aov = BLI_findstring(
+          &view_layer->aovs, v3d->shading.aov_name, offsetof(ViewLayerAOV, name));
+      if (aov != NULL) {
+        g_data->aov_hash = EEVEE_renderpasses_aov_hash(aov);
+      }
+      else {
+        /* AOV not found in view layer. */
+        render_pass = EEVEE_RENDER_PASS_COMBINED;
+      }
+    }
+
     g_data->render_passes = render_pass;
   }
   else {
@@ -110,10 +135,14 @@ void EEVEE_renderpasses_init(EEVEE_Data *vedata)
     ENABLE_FROM_LEGACY(ENVIRONMENT, ENVIRONMENT)
 
 #undef ENABLE_FROM_LEGACY
+    if (DRW_state_is_image_render() && !BLI_listbase_is_empty(&view_layer->aovs)) {
+      enabled_render_passes |= EEVEE_RENDER_PASS_AOV;
+      g_data->aov_hash = EEVEE_AOV_HASH_ALL;
+    }
+
     g_data->render_passes = (enabled_render_passes & EEVEE_RENDERPASSES_ALL) |
                             EEVEE_RENDER_PASS_COMBINED;
   }
-
   EEVEE_material_renderpasses_init(vedata);
 }
 
@@ -216,7 +245,8 @@ void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
  * After invoking this function the active frame-buffer is set to `vedata->fbl->renderpass_fb`. */
 void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
                                     EEVEE_Data *vedata,
-                                    eViewLayerEEVEEPassType renderpass_type)
+                                    eViewLayerEEVEEPassType renderpass_type,
+                                    int aov_index)
 {
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_TextureList *txl = vedata->txl;
@@ -311,6 +341,11 @@ void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
       }
       break;
     }
+    case EEVEE_RENDER_PASS_AOV: {
+      g_data->renderpass_postprocess = PASS_POST_ACCUMULATED_COLOR_ALPHA;
+      g_data->renderpass_input = txl->aov_surface_accum[aov_index];
+      break;
+    }
     case EEVEE_RENDER_PASS_BLOOM: {
       g_data->renderpass_postprocess = PASS_POST_ACCUMULATED_COLOR;
       g_data->renderpass_input = txl->bloom_accum;
@@ -392,7 +427,7 @@ void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   if (is_valid) {
-    EEVEE_renderpasses_postprocess(sldata, vedata, render_pass);
+    EEVEE_renderpasses_postprocess(sldata, vedata, render_pass, 0);
     GPU_framebuffer_bind(dfbl->default_fb);
     DRW_transform_none(txl->renderpass);
   }

@@ -130,6 +130,9 @@ void WM_windows_scene_data_sync(const ListBase *win_lb, struct Scene *scene) ATT
 struct Scene *WM_windows_scene_get_from_screen(const struct wmWindowManager *wm,
                                                const struct bScreen *screen)
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+struct ViewLayer *WM_windows_view_layer_get_from_screen(const struct wmWindowManager *wm,
+                                                        const struct bScreen *screen)
+    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 struct WorkSpace *WM_windows_workspace_get_from_screen(const wmWindowManager *wm,
                                                        const struct bScreen *screen)
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;

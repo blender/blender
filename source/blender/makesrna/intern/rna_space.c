@@ -426,6 +426,9 @@ static const EnumPropertyItem rna_enum_view3dshading_render_pass_type_items[] = 
     {EEVEE_RENDER_PASS_NORMAL, "NORMAL", 0, "Normal", ""},
     {EEVEE_RENDER_PASS_MIST, "MIST", 0, "Mist", ""},
 
+    {0, "", ICON_NONE, "Shader AOV", ""},
+    {EEVEE_RENDER_PASS_AOV, "AOV", 0, "AOV", ""},
+
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1065,6 +1068,19 @@ static Scene *rna_3DViewShading_scene(PointerRNA *ptr)
   }
 }
 
+static ViewLayer *rna_3DViewShading_view_layer(PointerRNA *ptr)
+{
+  /* Get scene, depends if using 3D view or OpenGL render settings. */
+  ID *id = ptr->owner_id;
+  if (GS(id->name) == ID_SCE) {
+    return NULL;
+  }
+  else {
+    bScreen *screen = (bScreen *)ptr->owner_id;
+    return WM_windows_view_layer_get_from_screen(G_MAIN->wm.first, screen);
+  }
+}
+
 static int rna_3DViewShading_type_get(PointerRNA *ptr)
 {
   /* Available shading types depend on render engine. */
@@ -1292,15 +1308,33 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
                                                                    bool *r_free)
 {
   Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
   const bool bloom_enabled = scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED;
+  const bool aov_available = BKE_view_layer_has_valid_aov(view_layer);
 
   int totitem = 0;
   EnumPropertyItem *result = NULL;
+  EnumPropertyItem aov_template;
   for (int i = 0; rna_enum_view3dshading_render_pass_type_items[i].identifier != NULL; i++) {
     const EnumPropertyItem *item = &rna_enum_view3dshading_render_pass_type_items[i];
-    if (!((!bloom_enabled &&
-           (item->value == EEVEE_RENDER_PASS_BLOOM || STREQ(item->name, "Effects"))))) {
+    if (item->value == EEVEE_RENDER_PASS_AOV) {
+      aov_template.value = item->value;
+      aov_template.icon = 0;
+      aov_template.description = item->description;
+      LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
+        if ((aov->flag & AOV_CONFLICT) != 0) {
+          continue;
+        }
+        aov_template.name = aov->name;
+        aov_template.identifier = aov->name;
+        RNA_enum_item_add(&result, &totitem, &aov_template);
+        aov_template.value++;
+      }
+    }
+    else if (!((!bloom_enabled &&
+                (item->value == EEVEE_RENDER_PASS_BLOOM || STREQ(item->name, "Effects"))) ||
+               (!aov_available && STREQ(item->name, "Shader AOV")))) {
       RNA_enum_item_add(&result, &totitem, item);
     }
   }
@@ -1314,12 +1348,56 @@ static int rna_3DViewShading_render_pass_get(PointerRNA *ptr)
   View3DShading *shading = (View3DShading *)ptr->data;
   eViewLayerEEVEEPassType result = shading->render_pass;
   Scene *scene = rna_3DViewShading_scene(ptr);
+  ViewLayer *view_layer = rna_3DViewShading_view_layer(ptr);
 
   if (result == EEVEE_RENDER_PASS_BLOOM && ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
-    result = EEVEE_RENDER_PASS_COMBINED;
+    return EEVEE_RENDER_PASS_COMBINED;
+  }
+  else if (result == EEVEE_RENDER_PASS_AOV) {
+    if (!view_layer) {
+      return EEVEE_RENDER_PASS_COMBINED;
+    }
+    const int aov_index = BLI_findstringindex(
+        &view_layer->aovs, shading->aov_name, offsetof(ViewLayerAOV, name));
+    if (aov_index == -1) {
+      return EEVEE_RENDER_PASS_COMBINED;
+    }
+    return result + aov_index;
   }
 
   return result;
+}
+
+static void rna_3DViewShading_render_pass_set(PointerRNA *ptr, int value)
+{
+  View3DShading *shading = (View3DShading *)ptr->data;
+  Scene *scene = rna_3DViewShading_scene(ptr);
+  ViewLayer *view_layer = rna_3DViewShading_view_layer(ptr);
+  shading->aov_name[0] = 0;
+
+  if ((value & EEVEE_RENDER_PASS_AOV) != 0) {
+    if (!view_layer) {
+      shading->render_pass = EEVEE_RENDER_PASS_COMBINED;
+      return;
+    }
+    const int aov_index = value & ~EEVEE_RENDER_PASS_AOV;
+    ViewLayerAOV *aov = BLI_findlink(&view_layer->aovs, aov_index);
+    if (!aov) {
+      /* AOV not found, cannot select AOV. */
+      shading->render_pass = EEVEE_RENDER_PASS_COMBINED;
+      return;
+    }
+
+    shading->render_pass = EEVEE_RENDER_PASS_AOV;
+    BLI_strncpy(shading->aov_name, aov->name, sizeof(aov->name));
+  }
+  else if (value == EEVEE_RENDER_PASS_BLOOM &&
+           ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
+    shading->render_pass = EEVEE_RENDER_PASS_COMBINED;
+  }
+  else {
+    shading->render_pass = value;
+  }
 }
 
 static void rna_SpaceView3D_use_local_collections_update(bContext *C, PointerRNA *ptr)
@@ -3488,9 +3566,17 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "render_pass");
   RNA_def_property_enum_items(prop, rna_enum_view3dshading_render_pass_type_items);
   RNA_def_property_ui_text(prop, "Render Pass", "Render Pass to show in the viewport");
-  RNA_def_property_enum_funcs(
-      prop, "rna_3DViewShading_render_pass_get", NULL, "rna_3DViewShading_render_pass_itemf");
+  RNA_def_property_enum_funcs(prop,
+                              "rna_3DViewShading_render_pass_get",
+                              "rna_3DViewShading_render_pass_set",
+                              "rna_3DViewShading_render_pass_itemf");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
+
+  prop = RNA_def_property(srna, "aov_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "aov_name");
+  RNA_def_property_ui_text(prop, "Shader AOV Name", "Name of the active Shader AOV");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
 static void rna_def_space_view3d_overlay(BlenderRNA *brna)

@@ -192,6 +192,7 @@ typedef struct View3DShading {
 
   /* Render pass displayed in the viewport. Is an `eScenePassType` where one bit is set */
   int render_pass;
+  char aov_name[64];
 
   struct IDProperty *prop;
   void *_pad2;

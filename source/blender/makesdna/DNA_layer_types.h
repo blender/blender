@@ -47,8 +47,20 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_SHADOW = (1 << 12),
   EEVEE_RENDER_PASS_AO = (1 << 13),
   EEVEE_RENDER_PASS_BLOOM = (1 << 14),
+  EEVEE_RENDER_PASS_AOV = (1 << 15),
 } eViewLayerEEVEEPassType;
-#define EEVEE_RENDER_PASS_MAX_BIT 15
+#define EEVEE_RENDER_PASS_MAX_BIT 16
+
+/* ViewLayerAOV.type */
+typedef enum eViewLayerAOVType {
+  AOV_TYPE_VALUE = 0,
+  AOV_TYPE_COLOR = 1,
+} eViewLayerAOVType;
+
+/* ViewLayerAOV.type */
+typedef enum eViewLayerAOVFlag {
+  AOV_CONFLICT = (1 << 0),
+} eViewLayerAOVFlag;
 
 typedef struct Base {
   struct Base *next, *prev;
@@ -104,6 +116,17 @@ typedef struct ViewLayerEEVEE {
   int _pad[1];
 } ViewLayerEEVEE;
 
+/* AOV Renderpass definition. */
+typedef struct ViewLayerAOV {
+  struct ViewLayerAOV *next, *prev;
+
+  /* Name of the AOV */
+  char name[64];
+  int flag;
+  /* Type of AOV (color/value)
+   * matches `eViewLayerAOVType` */
+  int type;
+} ViewLayerAOV;
 typedef struct ViewLayer {
   struct ViewLayer *next, *prev;
   /** MAX_NAME. */
@@ -135,6 +158,10 @@ typedef struct ViewLayer {
 
   struct FreestyleConfig freestyle_config;
   struct ViewLayerEEVEE eevee;
+
+  /* List containing the `ViewLayerAOV`s */
+  ListBase aovs;
+  ViewLayerAOV *active_aov;
 
   /* Runtime data */
   /** ViewLayerEngineData. */

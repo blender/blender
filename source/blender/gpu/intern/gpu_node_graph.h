@@ -141,12 +141,20 @@ typedef struct GPUInput {
   };
 } GPUInput;
 
+typedef struct GPUNodeGraphOutputLink {
+  struct GPUNodeGraphOutputLink *next, *prev;
+  int hash;
+  GPUNodeLink *outlink;
+} GPUNodeGraphOutputLink;
+
 typedef struct GPUNodeGraph {
   /* Nodes */
   ListBase nodes;
 
-  /* Output. */
+  /* Main Output. */
   GPUNodeLink *outlink;
+  /* List of GPUNodeGraphOutputLink */
+  ListBase outlink_aovs;
 
   /* Requested attributes and textures. */
   ListBase attributes;

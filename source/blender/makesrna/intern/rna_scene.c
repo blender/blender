@@ -529,6 +529,12 @@ const EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_view_layer_aov_type_items[] = {
+    {AOV_TYPE_COLOR, "COLOR", 0, "Color", ""},
+    {AOV_TYPE_VALUE, "VALUE", 0, "Value", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem rna_enum_gpencil_interpolation_mode_items[] = {
     /* interpolation */
@@ -1779,6 +1785,27 @@ void rna_ViewLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
     ntreeCompositUpdateRLayers(scene->nodetree);
   }
 
+  ViewLayer *view_layer = NULL;
+  if (ptr->type == &RNA_ViewLayer) {
+    view_layer = (ViewLayer *)ptr->data;
+  }
+  else if (ptr->type == &RNA_AOV) {
+    ViewLayerAOV *aov = (ViewLayerAOV *)ptr->data;
+    view_layer = BKE_view_layer_find_with_aov(scene, aov);
+  }
+
+  if (view_layer) {
+    RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
+    if (engine_type->update_render_passes) {
+      RenderEngine *engine = RE_engine_create(engine_type);
+      if (engine) {
+        BKE_view_layer_verify_aov(engine, scene, view_layer);
+      }
+      RE_engine_free(engine);
+      engine = NULL;
+    }
+  }
+
   rna_Scene_glsl_update(bmain, activescene, ptr);
 }
 
@@ -2395,6 +2422,28 @@ static void rna_ViewLayer_remove(
   if (ED_scene_view_layer_delete(bmain, scene, view_layer, reports)) {
     RNA_POINTER_INVALIDATE(sl_ptr);
   }
+}
+
+void rna_ViewLayer_active_aov_index_range(
+    PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
+{
+  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+
+  *min = 0;
+  *max = max_ii(0, BLI_listbase_count(&view_layer->aovs) - 1);
+}
+
+int rna_ViewLayer_active_aov_index_get(PointerRNA *ptr)
+{
+  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  return BLI_findindex(&view_layer->aovs, view_layer->active_aov);
+}
+
+void rna_ViewLayer_active_aov_index_set(PointerRNA *ptr, int value)
+{
+  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  ViewLayerAOV *aov = BLI_findlink(&view_layer->aovs, value);
+  view_layer->active_aov = aov;
 }
 
 /* Fake value, used internally (not saved to DNA). */
@@ -3963,6 +4012,33 @@ static void rna_def_view_layer_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
 }
 
+static void rna_def_view_layer_aov(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+  srna = RNA_def_struct(brna, "AOV", NULL);
+  RNA_def_struct_sdna(srna, "ViewLayerAOV");
+  RNA_def_struct_ui_text(srna, "Shader AOV", "");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "name");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Name", "Name of the AOV");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
+  RNA_def_struct_name_property(srna, prop);
+
+  prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", AOV_CONFLICT);
+  RNA_def_property_ui_text(prop, "Valid", "Is the name of the AOV conflicting");
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "type");
+  RNA_def_property_enum_items(prop, rna_enum_view_layer_aov_type_items);
+  RNA_def_property_enum_default(prop, AOV_TYPE_COLOR);
+  RNA_def_property_ui_text(prop, "Type", "Data type of the AOV");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
+}
+
 void rna_def_view_layer_common(StructRNA *srna, const bool scene)
 {
   PropertyRNA *prop;
@@ -4013,6 +4089,24 @@ void rna_def_view_layer_common(StructRNA *srna, const bool scene)
     RNA_def_property_flag(prop, PROP_NEVER_NULL);
     RNA_def_property_struct_type(prop, "ViewLayerEEVEE");
     RNA_def_property_ui_text(prop, "EEVEE Settings", "View layer settings for EEVEE");
+
+    prop = RNA_def_property(srna, "aovs", PROP_COLLECTION, PROP_NONE);
+    RNA_def_property_collection_sdna(prop, NULL, "aovs", NULL);
+    RNA_def_property_struct_type(prop, "AOV");
+    RNA_def_property_ui_text(prop, "Shader AOV", "");
+
+    prop = RNA_def_property(srna, "active_aov", PROP_POINTER, PROP_NONE);
+    RNA_def_property_struct_type(prop, "AOV");
+    RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+    RNA_def_property_ui_text(prop, "Shader AOV", "Active AOV");
+
+    prop = RNA_def_property(srna, "active_aov_index", PROP_INT, PROP_UNSIGNED);
+    RNA_def_property_int_funcs(prop,
+                               "rna_ViewLayer_active_aov_index_get",
+                               "rna_ViewLayer_active_aov_index_set",
+                               "rna_ViewLayer_active_aov_index_range");
+    RNA_def_property_ui_text(prop, "Active AOV Index", "Index of active aov");
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
   }
 
   /* layer options */
@@ -7848,6 +7942,7 @@ void RNA_def_scene(BlenderRNA *brna)
   rna_def_display_safe_areas(brna);
   rna_def_scene_display(brna);
   rna_def_scene_eevee(brna);
+  rna_def_view_layer_aov(brna);
   rna_def_view_layer_eevee(brna);
   rna_def_scene_gpencil(brna);
   RNA_define_animate_sdna(true);

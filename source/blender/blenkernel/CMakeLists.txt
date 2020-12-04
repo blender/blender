@@ -726,6 +726,7 @@ if(WITH_GTESTS)
     intern/fcurve_test.cc
     intern/lattice_deform_test.cc
     intern/tracking_test.cc
+    intern/layer_test.cc
   )
   set(TEST_INC
     ../editors/include

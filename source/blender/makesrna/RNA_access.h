@@ -60,6 +60,7 @@ extern StructRNA RNA_AnimData;
 extern StructRNA RNA_AnimViz;
 extern StructRNA RNA_AnimVizMotionPaths;
 extern StructRNA RNA_AnyType;
+extern StructRNA RNA_AOV;
 extern StructRNA RNA_Area;
 extern StructRNA RNA_AreaLight;
 extern StructRNA RNA_Armature;
