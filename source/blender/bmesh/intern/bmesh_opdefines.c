@@ -1787,8 +1787,8 @@ static BMOpDefine bmo_bevel_def = {
    {"spread", BMO_OP_SLOT_FLT},           /* amount to offset beveled edge */
    {"smoothresh", BMO_OP_SLOT_FLT},       /* for passing mesh's smoothresh, used in hardening */
    {"custom_profile", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_STRUCT}}, /* CurveProfile */
-   {"vmesh_method", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, /* the method to use to create meshes at intersections */
-    bmo_enum_bevel_vmesh_method},
+   {"vmesh_method", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM},
+    bmo_enum_bevel_vmesh_method},         /* The method to use to create meshes at intersections. */
    {{'\0'}},
   },
   /* slots_out */
