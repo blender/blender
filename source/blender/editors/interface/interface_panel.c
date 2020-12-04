@@ -2452,11 +2452,12 @@ int ui_handler_panel_region(bContext *C,
 
     if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
       /* All mouse clicks inside panel headers should return in break. */
-      retval = WM_UI_HANDLER_BREAK;
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
+        retval = WM_UI_HANDLER_BREAK;
         ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
       }
       else if (event->type == RIGHTMOUSE) {
+        retval = WM_UI_HANDLER_BREAK;
         ui_popup_context_menu_for_panel(C, region, block->panel);
       }
       break;
