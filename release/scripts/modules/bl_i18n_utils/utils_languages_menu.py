@@ -40,7 +40,7 @@ def gen_menu_file(stats, settings):
     # Generate languages file used by Blender's i18n system.
     # First, match all entries in LANGUAGES to a lang in stats, if possible!
     tmp = []
-    for uid_num, label, uid, in settings.LANGUAGES:
+    for uid_num, label, uid in settings.LANGUAGES:
         if uid in stats:
             if uid in settings.IMPORT_LANGUAGES_SKIP:
                 tmp.append((stats[uid], uid_num, label, uid, FORBIDDEN))
