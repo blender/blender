@@ -1082,7 +1082,12 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_AUTOCONSTRAINT:
       case TFM_MODAL_AUTOCONSTRAINTPLANE:
-        if ((t->flag & T_NO_CONSTRAINT) == 0) {
+        if ((t->flag & T_RELEASE_CONFIRM) && (event->prevval == KM_RELEASE) &&
+            event->prevtype == t->launch_event) {
+          /* Confirm transform if launch key is released after mouse move. */
+          t->state = TRANS_CONFIRM;
+        }
+        else if ((t->flag & T_NO_CONSTRAINT) == 0) {
           if (t->modifiers & (MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE)) {
             /* Confirm. */
             postSelectConstraint(t);
