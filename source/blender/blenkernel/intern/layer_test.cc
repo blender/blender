@@ -43,7 +43,7 @@ TEST(view_layer, aov_unique_names)
   IMB_init();
   RE_engines_init();
 
-  Scene scene = {{NULL}};
+  Scene scene = {{nullptr}};
   IDType_ID_SCE.init_data(&scene.id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(scene.view_layers.first);
 
@@ -81,7 +81,7 @@ TEST(view_layer, aov_unique_names)
 
   /* Resolve by removing AOV resolution */
   BKE_view_layer_remove_aov(view_layer, aov2);
-  aov2 = NULL;
+  aov2 = nullptr;
   BKE_view_layer_verify_aov(engine, &scene, view_layer);
   EXPECT_TRUE(BKE_view_layer_has_valid_aov(view_layer));
   EXPECT_FALSE((aov1->flag & AOV_CONFLICT) != 0);
@@ -136,7 +136,7 @@ TEST(view_layer, aov_conflict)
   IMB_init();
   RE_engines_init();
 
-  Scene scene = {{NULL}};
+  Scene scene = {{nullptr}};
   IDType_ID_SCE.init_data(&scene.id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(scene.view_layers.first);
 
