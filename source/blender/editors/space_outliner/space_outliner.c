@@ -414,7 +414,10 @@ static void outliner_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_i
         changed = true;
       }
     }
-    if (space_outliner->runtime->treehash && changed) {
+
+    /* Note that the Outliner may not be the active editor of the area, and hence not initialized.
+     * So runtime data might not have been created yet. */
+    if (space_outliner->runtime && space_outliner->runtime->treehash && changed) {
       /* rebuild hash table, because it depends on ids too */
       /* postpone a full rebuild because this can be called many times on-free */
       space_outliner->storeflag |= SO_TREESTORE_REBUILD;
