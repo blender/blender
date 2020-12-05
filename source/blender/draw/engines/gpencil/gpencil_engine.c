@@ -498,7 +498,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
   bool hide_onion = gpl && gpf && gpf->runtime.onion_id != 0 &&
                     ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0);
 
-  if (hide_material || (!show_stroke && !show_fill) || only_lines || hide_onion) {
+  if (hide_material || (!show_stroke && !show_fill) || (only_lines && hide_onion) || hide_onion) {
     return;
   }
 
