@@ -2178,8 +2178,8 @@ static void calc_overlap_itts_range_func(void *__restrict userdata,
 }
 
 /**
- * Fill in itt_map with the vector of ITT_values that result from intersecting the triangles in ov.
- * Use a canonical order for triangles: (a,b) where  a < b.
+ * Fill in itt_map with the vector of ITT_values that result from intersecting the triangles in
+ * ov. Use a canonical order for triangles: (a,b) where  a < b.
  */
 static void calc_overlap_itts(Map<std::pair<int, int>, ITT_value> &itt_map,
                               const IMesh &tm,

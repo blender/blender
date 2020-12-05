@@ -630,7 +630,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
     Object *operand_ob = bmd->object;
 
+#ifdef DEBUG_TIME
+    TIMEIT_BLOCK_INIT(operand_get_evaluated_mesh);
+    TIMEIT_BLOCK_START(operand_get_evaluated_mesh);
+#endif
     mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob, false);
+#ifdef DEBUG_TIME
+    TIMEIT_BLOCK_END(operand_get_evaluated_mesh);
+    TIMEIT_BLOCK_STATS(operand_get_evaluated_mesh);
+#endif
 
     if (mesh_operand_ob) {
       /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
@@ -642,11 +650,35 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       result = get_quick_mesh(object, mesh, operand_ob, mesh_operand_ob, bmd->operation);
 
       if (result == NULL) {
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_INIT(object_BMD_mesh_bm_create);
+        TIMEIT_BLOCK_START(object_BMD_mesh_bm_create);
+#endif
         bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_END(object_BMD_mesh_bm_create);
+        TIMEIT_BLOCK_STATS(object_BMD_mesh_bm_create);
+#endif
 
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_INIT(BMD_mesh_intersection);
+        TIMEIT_BLOCK_START(BMD_mesh_intersection);
+#endif
         BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_END(BMD_mesh_intersection);
+        TIMEIT_BLOCK_STATS(BMD_mesh_intersection);
+#endif
 
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_INIT(BKE_mesh_from_bmesh_for_eval_nomain);
+        TIMEIT_BLOCK_START(BKE_mesh_from_bmesh_for_eval_nomain);
+#endif
         result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_END(BKE_mesh_from_bmesh_for_eval_nomain);
+        TIMEIT_BLOCK_STATS(BKE_mesh_from_bmesh_for_eval_nomain);
+#endif
         BM_mesh_free(bm);
         result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
       }

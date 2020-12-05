@@ -30,6 +30,10 @@
 #include "bmesh_boolean.h"
 #include "bmesh_edgesplit.h"
 
+#include "PIL_time.h"
+
+// #define PERF_DEBUG
+
 namespace blender::meshintersect {
 
 #ifdef WITH_GMP
@@ -354,7 +358,14 @@ static bool bmesh_boolean(BMesh *bm,
 {
   IMeshArena arena;
   IMesh m_triangulated;
+#  ifdef PERF_DEBUG
+  double start_time = PIL_check_seconds_timer();
+#  endif
   IMesh m_in = mesh_from_bm(bm, looptris, looptris_tot, &m_triangulated, &arena);
+#  ifdef PERF_DEBUG
+  double mesh_time = PIL_check_seconds_timer();
+  std::cout << "bmesh_boolean, imesh_from_bm done, time = " << mesh_time - start_time << "\n";
+#  endif
   std::function<int(int)> shape_fn;
   if (use_self && boolean_mode == BoolOpType::None) {
     /* Unary knife operation. Want every face where test_fn doesn't return -1. */
@@ -379,7 +390,16 @@ static bool bmesh_boolean(BMesh *bm,
   }
   IMesh m_out = boolean_mesh(
       m_in, boolean_mode, nshapes, shape_fn, use_self, &m_triangulated, &arena);
+#  ifdef PERF_DEBUG
+  double boolean_time = PIL_check_seconds_timer();
+  std::cout << "boolean done, time = " << boolean_time - mesh_time << "\n";
+#  endif
   bool any_change = apply_mesh_output_to_bmesh(bm, m_out, keep_hidden);
+#  ifdef PERF_DEBUG
+  double apply_mesh_time = PIL_check_seconds_timer();
+  std::cout << "applied boolean output to bmesh, time = " << apply_mesh_time - boolean_time
+            << "\n";
+#  endif
   if (use_separate_all) {
     /* We are supposed to separate all faces that are incident on intersection edges. */
     BM_mesh_edgesplit(bm, false, true, false);
