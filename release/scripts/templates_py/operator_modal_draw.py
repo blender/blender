@@ -1,9 +1,16 @@
+###################################################
+# How to test?                                    #
+# 1. Run this script in text editor               #
+# 2. Go to View3D                                 #
+# 3. Press N key then click Template tap          #
+# 4. Click "Simple Modal View3D Operator" button  #
+###################################################
+
 import bpy
 import bgl
 import blf
 import gpu
 from gpu_extras.batch import batch_for_shader
-
 
 def draw_callback_px(self, context):
     print("mouse points", len(self.mouse_path))
@@ -66,14 +73,24 @@ class ModalDrawOperator(bpy.types.Operator):
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
 
-
+class TemplatePanel(bpy.types.Panel):
+    bl_label = "for template test"
+    bl_idname = "Template_PT_Panel"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Template"
+    
+    def draw(self, context):
+        row = self.layout.row()
+        row.operator("view3d.modal_operator")
+        
 def register():
     bpy.utils.register_class(ModalDrawOperator)
-
+    bpy.utils.register_class(TemplatePanel)
 
 def unregister():
     bpy.utils.unregister_class(ModalDrawOperator)
-
+    bpy.utils.unregister_class(TemplatePanel)
 
 if __name__ == "__main__":
     register()
