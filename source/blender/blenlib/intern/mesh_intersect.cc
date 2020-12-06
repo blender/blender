@@ -1055,36 +1055,36 @@ static std::ostream &operator<<(std::ostream &os, const CoplanarClusterInfo &cli
 enum ITT_value_kind { INONE, IPOINT, ISEGMENT, ICOPLANAR };
 
 struct ITT_value {
-  enum ITT_value_kind kind;
   mpq3 p1;      /* Only relevant for IPOINT and ISEGMENT kind. */
   mpq3 p2;      /* Only relevant for ISEGMENT kind. */
   int t_source; /* Index of the source triangle that intersected the target one. */
+  enum ITT_value_kind kind;
 
-  ITT_value() : kind(INONE), t_source(-1)
+  ITT_value() : t_source(-1), kind(INONE)
   {
   }
-  ITT_value(ITT_value_kind k) : kind(k), t_source(-1)
+  ITT_value(ITT_value_kind k) : t_source(-1), kind(k)
   {
   }
-  ITT_value(ITT_value_kind k, int tsrc) : kind(k), t_source(tsrc)
+  ITT_value(ITT_value_kind k, int tsrc) : t_source(tsrc), kind(k)
   {
   }
-  ITT_value(ITT_value_kind k, const mpq3 &p1) : kind(k), p1(p1), t_source(-1)
+  ITT_value(ITT_value_kind k, const mpq3 &p1) : p1(p1), t_source(-1), kind(k)
   {
   }
   ITT_value(ITT_value_kind k, const mpq3 &p1, const mpq3 &p2)
-      : kind(k), p1(p1), p2(p2), t_source(-1)
+      : p1(p1), p2(p2), t_source(-1), kind(k)
   {
   }
   ITT_value(const ITT_value &other)
-      : kind(other.kind), p1(other.p1), p2(other.p2), t_source(other.t_source)
+      : p1(other.p1), p2(other.p2), t_source(other.t_source), kind(other.kind)
   {
   }
   ITT_value(ITT_value &&other) noexcept
-      : kind(other.kind),
-        p1(std::move(other.p1)),
+      : p1(std::move(other.p1)),
         p2(std::move(other.p2)),
-        t_source(other.t_source)
+        t_source(other.t_source),
+        kind(other.kind)
   {
   }
   ~ITT_value()
