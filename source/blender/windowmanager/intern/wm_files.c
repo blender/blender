@@ -115,7 +115,6 @@
 #include "GHOST_Path-api.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -3197,40 +3196,13 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
 {
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
-  const uiStyle *style = UI_style_get_dpi();
-  const short icon_size = 64 * U.dpi_fac;
-  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
-  const int dialog_width = icon_size + (text_points_max * 34 * U.dpi_fac);
-
-  /* By default, the space between icon and text/buttons will be equal to the 'columnspace',
-     this extra padding will add some space by increasing the left column width,
-     making the icon placement more symmetrical, between the block edge and the text. */
-  const float icon_padding = 6.0f * U.dpi_fac;
-  /* Calculate icon column factor. */
-  const float split_factor = ((float)icon_size + icon_padding) /
-                             (float)(dialog_width - style->columnspace);
 
   uiBlock *block = UI_block_begin(C, region, close_file_dialog_name, UI_EMBOSS);
-
   UI_block_flag_enable(
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-  UI_block_emboss_set(block, UI_EMBOSS);
 
-  uiLayout *block_layout = UI_block_layout(
-      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, dialog_width, 0, 0, style);
-
-  /* Split layout to put alert icon on left side. */
-  uiLayout *split_block = uiLayoutSplit(block_layout, split_factor, false);
-
-  /* Alert Icon. */
-  uiLayout *layout = uiLayoutRow(split_block, false);
-  /* Using 'align_left' with 'row' avoids stretching the icon along the width of column. */
-  uiLayoutSetAlignment(layout, UI_LAYOUT_ALIGN_LEFT);
-  uiDefButAlert(block, ALERT_ICON_QUESTION, 0, 0, icon_size, icon_size);
-
-  /* The rest of the content on the right. */
-  layout = uiLayoutColumn(split_block, false);
+  uiLayout *layout = uiItemsAlertBox(block, 34, ALERT_ICON_QUESTION);
 
   /* Title. */
   uiItemL_ex(layout, TIP_("Save changes before closing?"), ICON_NONE, true, false);

@@ -26,6 +26,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h" /* size_t */
 #include "RNA_types.h"
+#include "UI_interface_icons.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -2430,6 +2431,9 @@ void uiItemTabsEnumR_prop(uiLayout *layout,
 
 /* Only for testing, inspecting layouts. */
 const char *UI_layout_introspect(uiLayout *layout);
+
+/* Helper to add a big icon and create a split layout for alert boxes. */
+uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon);
 
 /* UI Operators */
 typedef struct uiDragColorHandle {
