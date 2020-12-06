@@ -671,6 +671,8 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
     ARRAY_SET_ITEMS(gpl->color, 0.2f, 0.2f, 0.2f);
     /* Default vertex mix. */
     gpl->vertex_paint_opacity = 1.0f;
+    /* Enable onion skin. */
+    gpl->onion_flag |= GP_LAYER_ONIONSKIN;
   }
 
   /* auto-name */
