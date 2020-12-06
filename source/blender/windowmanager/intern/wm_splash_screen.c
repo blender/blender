@@ -256,71 +256,62 @@ void WM_OT_splash(wmOperatorType *ot)
 static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void *UNUSED(arg))
 {
   const uiStyle *style = UI_style_get_dpi();
-  const short logo_size = 128 * U.dpi_fac;
   const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
-  const int dialog_width = logo_size + (text_points_max * 32 * U.dpi_fac);
-
-  /* Calculate icon column factor. */
-  const float split_factor = (float)logo_size / (float)(dialog_width - style->columnspace);
+  const int dialog_width = text_points_max * 42 * U.dpi_fac;
 
   uiBlock *block = UI_block_begin(C, region, "about", UI_EMBOSS);
 
-  UI_block_flag_enable(
-      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
+  UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-  UI_block_emboss_set(block, UI_EMBOSS);
 
-  uiLayout *block_layout = UI_block_layout(
+  uiLayout *layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, dialog_width, 0, 0, style);
 
-  /* Split layout to put Blender logo on left side. */
-  uiLayout *split_block = uiLayoutSplit(block_layout, split_factor, false);
+  /* Blender logo. */
+#ifndef WITH_HEADLESS
+  extern char datatoc_blender_logo_png[];
+  extern int datatoc_blender_logo_png_size;
 
-  /* Blender Logo. */
-  uiLayout *layout = uiLayoutColumn(split_block, false);
-  uiDefButAlert(block, ALERT_ICON_BLENDER, 0, 0, 0, logo_size);
+  const uchar *blender_logo_data = (const uchar *)datatoc_blender_logo_png;
+  size_t blender_logo_data_size = datatoc_blender_logo_png_size;
+  ImBuf *ibuf = IMB_ibImageFromMemory(
+      blender_logo_data, blender_logo_data_size, IB_rect, NULL, "blender_logo");
 
-  /* The rest of the content on the right. */
-  layout = uiLayoutColumn(split_block, false);
+  if (ibuf) {
+    int width = 0.5 * dialog_width;
+    int height = (width * ibuf->y) / ibuf->x;
 
-  uiLayoutSetScaleY(layout, 0.7f);
+    IMB_premultiply_alpha(ibuf);
+    IMB_scaleImBuf(ibuf, width, height);
 
-  uiItemS_ex(layout, 1.0f);
+    bTheme *btheme = UI_GetTheme();
+    const uchar *color = btheme->tui.wcol_menu_back.text_sel;
 
-  /* Title. */
-  uiItemL_ex(layout, "Blender", ICON_NONE, true, false);
+    /* The top margin. */
+    uiLayout *row = uiLayoutRow(layout, false);
+    uiItemS_ex(row, 0.2f);
 
-  /* Version. */
-  uiItemL(layout, BKE_blender_version_string(), ICON_NONE);
+    /* The logo image. */
+    row = uiLayoutRow(layout, false);
+    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+    uiDefButImage(block, ibuf, 0, U.widget_unit, width, height, color);
 
-  uiItemS_ex(layout, 3.0f);
+    /* Padding below the logo. */
+    row = uiLayoutRow(layout, false);
+    uiItemS_ex(row, 2.7f);
+  }
+#endif /* WITH_HEADLESS */
 
-#ifdef WITH_BUILDINFO
+  uiLayout *col = uiLayoutColumn(layout, true);
 
-  extern char build_hash[], build_commit_date[], build_commit_time[], build_branch[];
-
-  char str_buf[256] = "\0";
-  BLI_snprintf(str_buf, sizeof(str_buf), "Date: %s %s", build_commit_date, build_commit_time);
-  uiItemL(layout, str_buf, ICON_NONE);
-
-  BLI_snprintf(str_buf, sizeof(str_buf), "Hash: %s", build_hash);
-  uiItemL(layout, str_buf, ICON_NONE);
-
-  BLI_snprintf(str_buf, sizeof(str_buf), "Branch: %s", build_branch);
-  uiItemL(layout, str_buf, ICON_NONE);
-
-#endif /* WITH_BUILDINFO */
-
-  uiItemS_ex(layout, 1.5f);
+  uiItemL_ex(col, N_("Blender"), ICON_NONE, true, false);
 
   MenuType *mt = WM_menutype_find("WM_MT_splash_about", true);
   if (mt) {
-    UI_menutype_draw(C, mt, layout);
+    UI_menutype_draw(C, mt, col);
   }
 
-  uiItemS_ex(layout, 2.0f);
-
-  UI_block_bounds_set_centered(block, 14 * U.dpi_fac);
+  UI_block_bounds_set_centered(block, 22 * U.dpi_fac);
 
   return block;
 }
