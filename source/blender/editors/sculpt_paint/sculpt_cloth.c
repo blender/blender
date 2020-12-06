@@ -119,6 +119,43 @@ static void cloth_brush_simulation_location_get(SculptSession *ss,
   copy_v3_v3(r_location, ss->cache->location);
 }
 
+PBVHNode **SCULPT_cloth_brush_affected_nodes_gather(SculptSession *ss,
+                                                    Brush *brush,
+                                                    int *r_totnode)
+{
+  BLI_assert(ss->cache);
+  BLI_assert(brush->sculpt_tool == SCULPT_TOOL_CLOTH);
+  PBVHNode **nodes = NULL;
+
+  switch (brush->cloth_simulation_area_type) {
+    case BRUSH_CLOTH_SIMULATION_AREA_LOCAL: {
+      SculptSearchSphereData data = {
+          .ss = ss,
+          .radius_squared = square_f(ss->cache->initial_radius * (1.0 + brush->cloth_sim_limit)),
+          .original = false,
+          .ignore_fully_ineffective = false,
+          .center = ss->cache->initial_location,
+      };
+      BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode);
+    } break;
+    case BRUSH_CLOTH_SIMULATION_AREA_GLOBAL:
+      BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, r_totnode);
+      break;
+    case BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC: {
+      SculptSearchSphereData data = {
+          .ss = ss,
+          .radius_squared = square_f(ss->cache->radius * (1.0 + brush->cloth_sim_limit)),
+          .original = false,
+          .ignore_fully_ineffective = false,
+          .center = ss->cache->location,
+      };
+      BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode);
+    } break;
+  }
+
+  return nodes;
+}
+
 static float cloth_brush_simulation_falloff_get(const Brush *brush,
                                                 const float radius,
                                                 const float location[3],

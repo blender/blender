@@ -5742,32 +5742,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
-    if (brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
-      SculptSearchSphereData data = {
-          .ss = ss,
-          .sd = sd,
-          .radius_squared = square_f(ss->cache->initial_radius * (1.0 + brush->cloth_sim_limit)),
-          .original = false,
-          .ignore_fully_ineffective = false,
-          .center = ss->cache->initial_location,
-      };
-      BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, &totnode);
-    }
-    if (brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC) {
-      SculptSearchSphereData data = {
-          .ss = ss,
-          .sd = sd,
-          .radius_squared = square_f(ss->cache->radius * (1.0 + brush->cloth_sim_limit)),
-          .original = false,
-          .ignore_fully_ineffective = false,
-          .center = ss->cache->location,
-      };
-      BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, &totnode);
-    }
-    else {
-      /* Gobal simulation, get all nodes. */
-      BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-    }
+    nodes = SCULPT_cloth_brush_affected_nodes_gather(ss, brush, &totnode);
   }
   else {
     const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
