@@ -84,6 +84,7 @@
 
 #include "outliner_intern.h"
 #include "tree/tree_display.h"
+#include "tree/tree_element.h"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */
@@ -230,6 +231,7 @@ void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree)
   if (element->flag & TE_FREE_NAME) {
     MEM_freeN((void *)element->name);
   }
+  outliner_tree_element_type_free(&element->type);
   MEM_freeN(element);
 }
 
@@ -959,6 +961,11 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 
   te->parent = parent;
   te->index = index; /* For data arrays. */
+
+  /* New C++ based type handle (`TreeElementType` in C, `AbstractTreeElement` in C++). Only some
+   * support this, eventually this should replace `TreeElement` entirely. */
+  te->type = outliner_tree_element_type_create(type, te, idv);
+
   if (ELEM(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
     /* pass */
   }
@@ -994,7 +1001,10 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     te->idcode = GS(id->name);
   }
 
-  if (type == 0) {
+  if (te->type) {
+    outliner_tree_element_type_expand(te->type, space_outliner);
+  }
+  else if (type == 0) {
     TreeStoreElem *tsepar = parent ? TREESTORE(parent) : NULL;
 
     /* ID data-block. */
@@ -1002,68 +1012,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
       outliner_add_id_contents(space_outliner, te, tselem, id);
     }
   }
-  else if (type == TSE_ANIM_DATA) {
-    IdAdtTemplate *iat = (IdAdtTemplate *)idv;
-    AnimData *adt = (AnimData *)iat->adt;
-
-    /* this element's info */
-    te->name = IFACE_("Animation");
-
-    /* Action */
-    outliner_add_element(space_outliner, &te->subtree, adt->action, te, 0, 0);
-
-    /* Drivers */
-    if (adt->drivers.first) {
-      TreeElement *ted = outliner_add_element(
-          space_outliner, &te->subtree, adt, te, TSE_DRIVER_BASE, 0);
-      ID *lastadded = NULL;
-      FCurve *fcu;
-
-      ted->name = IFACE_("Drivers");
-
-      for (fcu = adt->drivers.first; fcu; fcu = fcu->next) {
-        if (fcu->driver && fcu->driver->variables.first) {
-          ChannelDriver *driver = fcu->driver;
-          DriverVar *dvar;
-
-          for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-            /* loop over all targets used here */
-            DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-              if (lastadded != dtar->id) {
-                /* XXX this lastadded check is rather lame, and also fails quite badly... */
-                outliner_add_element(
-                    space_outliner, &ted->subtree, dtar->id, ted, TSE_LINKED_OB, 0);
-                lastadded = dtar->id;
-              }
-            }
-            DRIVER_TARGETS_LOOPER_END;
-          }
-        }
-      }
-    }
-
-    /* NLA Data */
-    if (adt->nla_tracks.first) {
-      TreeElement *tenla = outliner_add_element(space_outliner, &te->subtree, adt, te, TSE_NLA, 0);
-      NlaTrack *nlt;
-      int a = 0;
-
-      tenla->name = IFACE_("NLA Tracks");
-
-      for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
-        TreeElement *tenlt = outliner_add_element(
-            space_outliner, &tenla->subtree, nlt, tenla, TSE_NLA_TRACK, a);
-        NlaStrip *strip;
-        int b = 0;
-
-        tenlt->name = nlt->name;
-
-        for (strip = nlt->strips.first; strip; strip = strip->next, b++) {
-          outliner_add_element(
-              space_outliner, &tenlt->subtree, strip->act, tenlt, TSE_NLA_ACTION, b);
-        }
-      }
-    }
+  else if (ELEM(type, TSE_ANIM_DATA, TSE_DRIVER_BASE, TSE_NLA, TSE_NLA_ACTION, TSE_NLA_TRACK)) {
+    /* Should already use new AbstractTreeElement design. */
+    BLI_assert(0);
   }
   else if (type == TSE_GP_LAYER) {
     bGPDlayer *gpl = (bGPDlayer *)idv;
