@@ -869,7 +869,7 @@ BLI_INLINE float calc_weighted_edge_split(EdgeQueueContext *eq_ctx, BMVert *v1, 
   n = MAX2(n - 6.0f, 1.0f);
 
   return l * (n);
-#elif 1 //penalize 4-valence verts
+#elif 1  // penalize 4-valence verts
   float l = len_squared_v3v3(v1->co, v2->co);
   if (BM_vert_edge_count(v1) == 4 || BM_vert_edge_count(v2) == 4) {
     l *= 0.25f;
@@ -1250,7 +1250,8 @@ static void long_edge_queue_edge_add_recursive_2(
     do {
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
       for (int i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
-        float len_sq_other = calc_weighted_edge_split(tdata->eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2);
+        float len_sq_other = calc_weighted_edge_split(
+            tdata->eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2);
         if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
           //                  edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
           long_edge_queue_edge_add_recursive_2(
@@ -2823,7 +2824,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     float radius,
                                     const bool use_frontface,
                                     const bool use_projected,
-                                    int sym_axis)
+                                    int sym_axis,
+                                    bool updatePBVH)
 {
   if (sym_axis >= 0 &&
       PIL_check_seconds_timer() - last_update_time[sym_axis] < DYNTOPO_RUN_INTERVAL) {
@@ -2913,7 +2915,9 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
         /* Recursively split nodes that have gotten too many
          * elements */
-        pbvh_bmesh_node_limit_ensure(pbvh, i);
+        if (updatePBVH) {
+          pbvh_bmesh_node_limit_ensure(pbvh, i);
+        }
       }
     }
   }

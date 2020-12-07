@@ -6017,7 +6017,7 @@ static void sculpt_topology_update(Sculpt *sd,
                                      ss->cache->radius,
                                      (brush->flag & BRUSH_FRONTFACE) != 0,
                                      (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
-                                     symidx);
+                                     symidx, brush->sculpt_tool != SCULPT_TOOL_DRAW_SHARP);
     }
 
     MEM_SAFE_FREE(nodes);

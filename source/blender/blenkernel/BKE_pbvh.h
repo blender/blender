@@ -365,7 +365,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     float radius,
                                     const bool use_frontface,
                                     const bool use_projected,
-                                    int symaxis);
+                                    int symaxis,
+                                    bool updatePBVH);
 
 /* Node Access */
 

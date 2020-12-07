@@ -126,7 +126,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
 
   while (BKE_pbvh_bmesh_update_topology(
-      ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, NULL, size, false, false, -1)) {
+      ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, NULL, size, false, false, -1, false)) {
     for (int i = 0; i < totnodes; i++) {
       BKE_pbvh_node_mark_topology_update(nodes[i]);
     }
