@@ -1008,7 +1008,6 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 
     /* this element's info */
     te->name = IFACE_("Animation");
-    te->directdata = adt;
 
     /* Action */
     outliner_add_element(space_outliner, &te->subtree, adt->action, te, 0, 0);
@@ -1055,17 +1054,13 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
         TreeElement *tenlt = outliner_add_element(
             space_outliner, &tenla->subtree, nlt, tenla, TSE_NLA_TRACK, a);
         NlaStrip *strip;
-        TreeElement *ten;
         int b = 0;
 
         tenlt->name = nlt->name;
 
         for (strip = nlt->strips.first; strip; strip = strip->next, b++) {
-          ten = outliner_add_element(
+          outliner_add_element(
               space_outliner, &tenlt->subtree, strip->act, tenlt, TSE_NLA_ACTION, b);
-          if (ten) {
-            ten->directdata = strip;
-          }
         }
       }
     }
