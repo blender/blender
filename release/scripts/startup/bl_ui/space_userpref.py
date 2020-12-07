@@ -207,10 +207,14 @@ class USERPREF_PT_interface_display(InterfacePanel, CenterAlignMixIn, Panel):
         col.prop(view, "ui_line_width", text="Line Width")
         col.prop(view, "show_splash", text="Splash Screen")
         col.prop(view, "show_developer_ui")
+        
+        col.separator()
 
-        col = layout.column(heading="Tooltips")
-        col.prop(view, "show_tooltips")
-        col.prop(view, "show_tooltips_python")
+        col = layout.column(heading="Tooltips", align=True)
+        col.prop(view, "show_tooltips", text = "User Tooltips")
+        sub = col.column()
+        sub.active = view.show_tooltips
+        sub.prop(view, "show_tooltips_python")
 
 
 class USERPREF_PT_interface_text(InterfacePanel, CenterAlignMixIn, Panel):
