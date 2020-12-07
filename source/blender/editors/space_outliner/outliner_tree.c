@@ -965,7 +965,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
     /* pass */
   }
-  else if (type == TSE_ANIM_DATA) {
+  else if (ELEM(type, TSE_ANIM_DATA, TSE_NLA, TSE_NLA_TRACK, TSE_DRIVER_BASE)) {
     /* pass */
   }
   else if (type == TSE_GP_LAYER) {
@@ -977,7 +977,13 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_ID_BASE) {
     /* pass */
   }
+  else if (ELEM(type, TSE_KEYMAP, TSE_KEYMAP_ITEM)) {
+    /* pass */
+  }
   else {
+    /* Other cases must be caught above. */
+    BLI_assert(TSE_IS_REAL_ID(tselem));
+
     /* do here too, for blend file viewer, own ID_LI then shows file name */
     if (GS(id->name) == ID_LI) {
       te->name = ((Library *)id)->filepath;
