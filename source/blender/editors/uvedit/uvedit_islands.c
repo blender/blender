@@ -144,18 +144,20 @@ static float (*bm_face_array_calc_unique_uv_coords(
       BMEdge *e_first = v_pivot->e;
       const BMEdge *e = e_first;
       do {
-        const BMLoop *l_radial = e->l;
-        do {
-          if (l_radial->v == l_iter->v) {
-            if (BM_elem_flag_test(l_radial, BM_ELEM_TAG)) {
-              const MLoopUV *luv_radial = BM_ELEM_CD_GET_VOID_P(l_radial, cd_loop_uv_offset);
-              if (equals_v2v2(luv->uv, luv_radial->uv)) {
-                /* Don't add this UV when met in another face in `faces`. */
-                BM_elem_flag_disable(l_iter, BM_ELEM_TAG);
+        if (e->l != NULL) {
+          const BMLoop *l_radial = e->l;
+          do {
+            if (l_radial->v == l_iter->v) {
+              if (BM_elem_flag_test(l_radial, BM_ELEM_TAG)) {
+                const MLoopUV *luv_radial = BM_ELEM_CD_GET_VOID_P(l_radial, cd_loop_uv_offset);
+                if (equals_v2v2(luv->uv, luv_radial->uv)) {
+                  /* Don't add this UV when met in another face in `faces`. */
+                  BM_elem_flag_disable(l_iter, BM_ELEM_TAG);
+                }
               }
             }
-          }
-        } while ((l_radial = l_radial->radial_next) != e->l);
+          } while ((l_radial = l_radial->radial_next) != e->l);
+        }
       } while ((e = BM_DISK_EDGE_NEXT(e, v_pivot)) != e_first);
     } while ((l_iter = l_iter->next) != l_first);
   }
