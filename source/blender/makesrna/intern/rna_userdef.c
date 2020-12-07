@@ -5026,7 +5026,6 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
       prop,
       "Channel Group Colors",
       "Use animation channel group colors; generally this is used to show bone group colors");
-  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_update(prop, 0, "rna_userdef_anim_update");
 
   prop = RNA_def_property(srna, "fcurve_new_auto_smoothing", PROP_ENUM, PROP_NONE);
