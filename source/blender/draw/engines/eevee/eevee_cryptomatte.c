@@ -25,7 +25,7 @@
  * for reference to the cryptomatte specification.
  *
  * The challenge with cryptomatte in EEVEE is the merging and sorting of the samples.
- * User can enable upto 3 cryptomatte layers (Object, Material and Asset).
+ * User can enable up to 3 cryptomatte layers (Object, Material and Asset).
  *
  * Process
  *

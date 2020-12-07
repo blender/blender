@@ -99,7 +99,7 @@ typedef struct AutoTrackContext {
   /* True when tracking backwards (from higher frame number to lower frame number.) */
   bool is_backwards;
 
-  /* Movie clips used during the trackign process. */
+  /* Movie clips used during the tracking process. */
   int num_clips;
   AutoTrackClip autotrack_clips[MAX_ACCESSOR_CLIP];
 
@@ -182,7 +182,7 @@ static void libmv_frame_to_normalized_relative(const float frame_coord[2],
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Coversion of markers between Blender's DNA and Libmv.
+/** \name Conversion of markers between Blender's DNA and Libmv.
  * \{ */
 
 static void dna_marker_to_libmv_marker(/*const*/ MovieTrackingTrack *track,
@@ -704,7 +704,7 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 /* -------------------------------------------------------------------- */
 /** \name Context data synchronization.
  *
- * Used to copy trackign result to Blender side, while the trackign is still happening in its
+ * Used to copy tracking result to Blender side, while the tracking is still happening in its
  * thread.
  *
  * \{ */
@@ -740,7 +740,7 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
     }
     BKE_tracking_marker_insert(track, &marker);
 
-    /* Insetr disabled marker at the end of tracked segment.
+    /* Insert disabled marker at the end of tracked segment.
      * When tracking forward the disabled marker is added at the next frame from the result,
      * when tracking backwards the marker is added at the previous frame. */
     tracking_marker_insert_disabled(track, &marker, context->is_backwards, false);

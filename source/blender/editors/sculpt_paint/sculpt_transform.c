@@ -212,8 +212,8 @@ static void sculpt_transform_all_vertices(Sculpt *sd, Object *ob)
   sculpt_transform_matrices_init(
       ss, symm, ss->filter_cache->transform_displacement_mode, data.transform_mats);
 
-  /* Regular transform applies all symmetry passes at once as it is split by symmetry areas (each
-   * vertex can only be transformed once by the transform matix of its area). */
+  /* Regular transform applies all symmetry passes at once as it is split by symmetry areas
+   * (each vertex can only be transformed once by the transform matrix of its area). */
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
   BLI_task_parallel_range(

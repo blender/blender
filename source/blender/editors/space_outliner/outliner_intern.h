@@ -51,8 +51,8 @@ typedef struct SpaceOutliner_Runtime {
    *  Scenes, Blender File, etc.). */
   struct TreeDisplay *tree_display;
 
-  /** Pointers to treestore elements, grouped by (id, type, nr)
-   *  in hashtable for faster searching */
+  /** Pointers to tree-store elements, grouped by `(id, type, nr)`
+   *  in hash-table for faster searching. */
   struct GHash *treehash;
 } SpaceOutliner_Runtime;
 
