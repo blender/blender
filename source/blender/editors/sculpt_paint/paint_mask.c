@@ -335,7 +335,7 @@ static void sculpt_gesture_operator_properties(wmOperatorType *ot)
                   false,
                   "Limit to Segment",
                   "Apply the gesture action only to the area that is contained within the "
-                  "segement without extending its effect to the entire line");
+                  "segment without extending its effect to the entire line");
 }
 
 static void sculpt_gesture_context_init_common(bContext *C,

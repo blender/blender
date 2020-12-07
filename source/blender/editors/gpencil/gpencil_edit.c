@@ -3577,7 +3577,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
         if (tot_strokes == max_join_strokes) {
           BKE_reportf(op->reports,
                       RPT_WARNING,
-                      "Too many strokes selected. Only joined first %d strokes.",
+                      "Too many strokes selected, only joined first %d strokes",
                       max_join_strokes);
           break;
         }

@@ -1197,7 +1197,7 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
         quat_to_mat4(ik_chain->segments[i].trans_mat[symm_it], symm_rot);
       }
 
-      /* Apply segement scale to the transform. */
+      /* Apply segment scale to the transform. */
       for (int scale_i = 0; scale_i < 3; scale_i++) {
         mul_v3_fl(ik_chain->segments[i].trans_mat[symm_it][scale_i],
                   ik_chain->segments[i].scale[scale_i]);

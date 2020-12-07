@@ -1903,7 +1903,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
     if (curves_seen < 3) {
       /* Showing the entire error message makes no sense when the artist is only trying to filter
        * one or two curves. */
-      BKE_report(op->reports, RPT_WARNING, "No Euler Rotations could be corrected.");
+      BKE_report(op->reports, RPT_WARNING, "No Euler Rotations could be corrected");
     }
     else {
       BKE_report(op->reports,
@@ -1919,15 +1919,15 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
     BLI_assert(curves_filtered < curves_seen);
     BKE_reportf(op->reports,
                 RPT_INFO,
-                "%d of %d rotation channels were filtered. See the Info window for details.",
+                "%d of %d rotation channels were filtered (see the Info window for details)",
                 curves_filtered,
                 curves_seen);
   }
   else if (curves_seen == 1) {
-    BKE_report(op->reports, RPT_INFO, "The rotation channel was filtered.");
+    BKE_report(op->reports, RPT_INFO, "The rotation channel was filtered");
   }
   else {
-    BKE_reportf(op->reports, RPT_INFO, "All %d rotation channels were filtered.", curves_seen);
+    BKE_reportf(op->reports, RPT_INFO, "All %d rotation channels were filtered", curves_seen);
   }
 
   /* Set notifier that keyframes have changed. */

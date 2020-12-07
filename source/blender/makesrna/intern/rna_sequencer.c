@@ -1408,7 +1408,7 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "rotation");
-  RNA_def_property_ui_text(prop, "Rotation", "Rotate around image centr");
+  RNA_def_property_ui_text(prop, "Rotation", "Rotate around image center");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
   RNA_def_struct_path_func(srna, "rna_SequenceTransform_path");
