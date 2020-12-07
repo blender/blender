@@ -447,6 +447,13 @@ def km_property_editor(params):
          {"properties": [("direction", 'PREV'), ], },),
         ("screen.space_context_cycle", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "ctrl": True},
          {"properties": [("direction", 'NEXT'), ], },),
+        ("buttons.start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("buttons.clear_filter", {"type": 'ESC', "value": 'PRESS'}, None),
+        # Modifier panels
+        ("object.modifier_set_active", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("object.modifier_remove", {"type": 'BACK_SPACE', "value": 'PRESS'}, {"properties": [("report", True)]}),
+        ("object.modifier_remove", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("report", True)]}),
+        ("object.modifier_copy", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap
