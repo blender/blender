@@ -27,6 +27,7 @@
 extern "C" {
 #endif
 
+struct ARegion;
 struct ARegionType;
 struct BMEditMesh;
 struct BMFace;
@@ -232,6 +233,21 @@ void ED_image_draw_cursor(struct ARegion *region, const float cursor[2]);
 
 /* uvedit_buttons.c */
 void ED_uvedit_buttons_register(struct ARegionType *art);
+
+/* uvedit_islands.c */
+struct UVPackIsland_Params {
+  uint rotate : 1;
+  /** -1 not to align to axis, otherwise 0,1 for X,Y. */
+  int rotate_align_axis : 2;
+  uint only_selected_uvs : 1;
+  uint only_selected_faces : 1;
+  uint use_seams : 1;
+  uint correct_aspect : 1;
+};
+void ED_uvedit_pack_islands_multi(const Scene *scene,
+                                  Object **objects,
+                                  const uint objects_len,
+                                  const struct UVPackIsland_Params *params);
 
 #ifdef __cplusplus
 }

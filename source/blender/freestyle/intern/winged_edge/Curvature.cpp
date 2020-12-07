@@ -33,7 +33,7 @@
  * \brief OGF/Graphite: Geometry and Graphics Programming Library + Utilities
  */
 
-#include <assert.h>
+#include <cassert>
 #include <cstdlib>  // for malloc and free
 #include <set>
 #include <stack>

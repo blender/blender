@@ -42,6 +42,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -910,7 +911,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
         int totarrowpoints = runtime.arrow_end_style;
 
         /* Setting up arrow stroke. */
-        bGPDstroke *e_arrow_gps = BKE_gpencil_stroke_duplicate(gps, false);
+        bGPDstroke *e_arrow_gps = BKE_gpencil_stroke_duplicate(gps, false, false);
         annotation_stroke_arrow_allocate(e_arrow_gps, totarrowpoints);
 
         /* Set pointer to first non-initialized point. */
@@ -931,7 +932,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
         int totarrowpoints = runtime.arrow_start_style;
 
         /* Setting up arrow stroke. */
-        bGPDstroke *s_arrow_gps = BKE_gpencil_stroke_duplicate(gps, false);
+        bGPDstroke *s_arrow_gps = BKE_gpencil_stroke_duplicate(gps, false, false);
         annotation_stroke_arrow_allocate(s_arrow_gps, totarrowpoints);
 
         /* Set pointer to first non-initialized point. */
@@ -1198,7 +1199,8 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
 
     /* Second Pass: Remove any points that are tagged */
     if (do_cull) {
-      gpencil_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+      BKE_gpencil_stroke_delete_tagged_points(
+          p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
     }
   }
 }

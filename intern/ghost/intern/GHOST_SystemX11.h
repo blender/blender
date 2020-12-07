@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <X11/XKBlib.h> /* allow detectable autorepeate */
+#include <X11/XKBlib.h> /* Allow detectable auto-repeate. */
 #include <X11/Xlib.h>
 
 #include "../GHOST_Types.h"

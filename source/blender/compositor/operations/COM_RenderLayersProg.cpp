@@ -23,8 +23,7 @@
 #include "DNA_scene_types.h"
 
 #include "RE_pipeline.h"
-#include "RE_render_ext.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 /* ******** Render Layers Base Prog ******** */
 

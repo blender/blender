@@ -597,6 +597,14 @@ void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link)
   }
 }
 
+void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, int hash)
+{
+  GPUNodeGraphOutputLink *aov_link = MEM_callocN(sizeof(GPUNodeGraphOutputLink), __func__);
+  aov_link->outlink = link;
+  aov_link->hash = hash;
+  BLI_addtail(&material->graph.outlink_aovs, aov_link);
+}
+
 GPUNodeGraph *gpu_material_node_graph(GPUMaterial *material)
 {
   return &material->graph;

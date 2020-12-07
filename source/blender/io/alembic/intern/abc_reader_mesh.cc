@@ -149,7 +149,8 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
   const P3fArraySamplePtr &positions = mesh_data.positions;
 
   if (config.use_vertex_interpolation && config.weight != 0.0f &&
-      mesh_data.ceil_positions != nullptr && mesh_data.ceil_positions->size() == positions->size()) {
+      mesh_data.ceil_positions != nullptr &&
+      mesh_data.ceil_positions->size() == positions->size()) {
     read_mverts_interp(mverts, positions, mesh_data.ceil_positions, config.weight);
     return;
   }
@@ -723,9 +724,7 @@ void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
 
   int current_mat = 0;
 
-  for (int i = 0; i < face_sets.size(); i++) {
-    const std::string &grp_name = face_sets[i];
-
+  for (const std::string &grp_name : face_sets) {
     if (r_mat_map.find(grp_name) == r_mat_map.end()) {
       r_mat_map[grp_name] = ++current_mat;
     }

@@ -132,13 +132,8 @@ LinearSolver::Summary DenseNormalCholeskySolver::SolveUsingLAPACK(
   //
   // Note: This is a bit delicate, it assumes that the stride on this
   // matrix is the same as the number of rows.
-  BLAS::SymmetricRankKUpdate(A->num_rows(),
-                             num_cols,
-                             A->values(),
-                             true,
-                             1.0,
-                             0.0,
-                             lhs.data());
+  BLAS::SymmetricRankKUpdate(
+      A->num_rows(), num_cols, A->values(), true, 1.0, 0.0, lhs.data());
 
   if (per_solve_options.D != NULL) {
     // Undo the modifications to the matrix A.
@@ -153,13 +148,10 @@ LinearSolver::Summary DenseNormalCholeskySolver::SolveUsingLAPACK(
 
   LinearSolver::Summary summary;
   summary.num_iterations = 1;
-  summary.termination_type =
-      LAPACK::SolveInPlaceUsingCholesky(num_cols,
-                                        lhs.data(),
-                                        x,
-                                        &summary.message);
+  summary.termination_type = LAPACK::SolveInPlaceUsingCholesky(
+      num_cols, lhs.data(), x, &summary.message);
   event_logger.AddEvent("Solve");
   return summary;
 }
-}   // namespace internal
-}   // namespace ceres
+}  // namespace internal
+}  // namespace ceres

@@ -138,6 +138,9 @@ void ED_node_tag_update_id(ID *id)
     DEG_id_tag_update(id, 0);
     WM_main_add_notifier(NC_TEXTURE | ND_NODES, id);
   }
+  else if (ntree->type == NTREE_GEOMETRY) {
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
+  }
   else if (id == &ntree->id) {
     /* node groups */
     DEG_id_tag_update(id, 0);
@@ -300,7 +303,6 @@ static void do_node_internal_buttons(bContext *C, void *UNUSED(node_v), int even
 
 static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 {
-
   /* add node uiBlocks in drawing order - prevents events going to overlapping nodes */
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -677,6 +679,10 @@ int node_get_colorid(bNode *node)
       return TH_NODE_PATTERN;
     case NODE_CLASS_LAYOUT:
       return TH_NODE_LAYOUT;
+    case NODE_CLASS_GEOMETRY:
+      return TH_NODE_GEOMETRY;
+    case NODE_CLASS_ATTRIBUTE:
+      return TH_NODE_ATTRIBUTE;
     default:
       return TH_NODE;
   }
@@ -995,8 +1001,7 @@ void node_draw_sockets(View2D *v2d,
 
   /* socket inputs */
   short selected_input_len = 0;
-  bNodeSocket *sock;
-  for (sock = node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (nodeSocketIsHidden(sock)) {
       continue;
     }
@@ -1021,7 +1026,7 @@ void node_draw_sockets(View2D *v2d,
   /* socket outputs */
   short selected_output_len = 0;
   if (draw_outputs) {
-    for (sock = node->outputs.first; sock; sock = sock->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
       if (nodeSocketIsHidden(sock)) {
         continue;
       }
@@ -1058,7 +1063,7 @@ void node_draw_sockets(View2D *v2d,
 
     if (selected_input_len) {
       /* socket inputs */
-      for (sock = node->inputs.first; sock; sock = sock->next) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         if (nodeSocketIsHidden(sock)) {
           continue;
         }
@@ -1083,7 +1088,7 @@ void node_draw_sockets(View2D *v2d,
 
     if (selected_output_len) {
       /* socket outputs */
-      for (sock = node->outputs.first; sock; sock = sock->next) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         if (nodeSocketIsHidden(sock)) {
           continue;
         }
@@ -1162,23 +1167,22 @@ static void node_draw_basis(const bContext *C,
 
   /* preview */
   if (node->typeinfo->flag & NODE_PREVIEW) {
-    uiBut *but;
     iconofs -= iconbutw;
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
-    but = uiDefIconBut(node->block,
-                       UI_BTYPE_BUT_TOGGLE,
-                       B_REDR,
-                       ICON_MATERIAL,
-                       iconofs,
-                       rct->ymax - NODE_DY,
-                       iconbutw,
-                       UI_UNIT_Y,
-                       NULL,
-                       0,
-                       0,
-                       0,
-                       0,
-                       "");
+    uiBut *but = uiDefIconBut(node->block,
+                              UI_BTYPE_BUT_TOGGLE,
+                              B_REDR,
+                              ICON_MATERIAL,
+                              iconofs,
+                              rct->ymax - NODE_DY,
+                              iconbutw,
+                              UI_UNIT_Y,
+                              NULL,
+                              0,
+                              0,
+                              0,
+                              0,
+                              "");
     UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_preview_toggle");
     /* XXX this does not work when node is activated and the operator called right afterwards,
      * since active ID is not updated yet (needs to process the notifier).
@@ -1190,23 +1194,22 @@ static void node_draw_basis(const bContext *C,
   }
   /* group edit */
   if (node->type == NODE_GROUP) {
-    uiBut *but;
     iconofs -= iconbutw;
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
-    but = uiDefIconBut(node->block,
-                       UI_BTYPE_BUT_TOGGLE,
-                       B_REDR,
-                       ICON_NODETREE,
-                       iconofs,
-                       rct->ymax - NODE_DY,
-                       iconbutw,
-                       UI_UNIT_Y,
-                       NULL,
-                       0,
-                       0,
-                       0,
-                       0,
-                       "");
+    uiBut *but = uiDefIconBut(node->block,
+                              UI_BTYPE_BUT_TOGGLE,
+                              B_REDR,
+                              ICON_NODETREE,
+                              iconofs,
+                              rct->ymax - NODE_DY,
+                              iconbutw,
+                              UI_UNIT_Y,
+                              NULL,
+                              0,
+                              0,
+                              0,
+                              0,
+                              "");
     UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_group_edit");
     UI_block_emboss_set(node->block, UI_EMBOSS);
   }
@@ -1240,24 +1243,23 @@ static void node_draw_basis(const bContext *C,
 
   /* open/close entirely? */
   {
-    uiBut *but;
     int but_size = U.widget_unit * 0.8f;
     /* XXX button uses a custom triangle draw below, so make it invisible without icon */
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
-    but = uiDefBut(node->block,
-                   UI_BTYPE_BUT_TOGGLE,
-                   B_REDR,
-                   "",
-                   rct->xmin + 0.35f * U.widget_unit,
-                   rct->ymax - NODE_DY / 2.2f - but_size / 2,
-                   but_size,
-                   but_size,
-                   NULL,
-                   0,
-                   0,
-                   0,
-                   0,
-                   "");
+    uiBut *but = uiDefBut(node->block,
+                          UI_BTYPE_BUT_TOGGLE,
+                          B_REDR,
+                          "",
+                          rct->xmin + 0.35f * U.widget_unit,
+                          rct->ymax - NODE_DY / 2.2f - but_size / 2,
+                          but_size,
+                          but_size,
+                          NULL,
+                          0,
+                          0,
+                          0,
+                          0,
+                          "");
     UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
     UI_block_emboss_set(node->block, UI_EMBOSS);
 
@@ -1288,7 +1290,7 @@ static void node_draw_basis(const bContext *C,
   }
 
   /* body */
-  if (!nodeIsRegistered(node)) {
+  if (nodeTypeUndefined(node)) {
     /* use warning color to indicate undefined types */
     UI_GetThemeColor4fv(TH_REDALERT, color);
   }
@@ -1412,24 +1414,23 @@ static void node_draw_hidden(const bContext *C,
 
   /* open entirely icon */
   {
-    uiBut *but;
     int but_size = U.widget_unit * 0.8f;
     /* XXX button uses a custom triangle draw below, so make it invisible without icon */
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
-    but = uiDefBut(node->block,
-                   UI_BTYPE_BUT_TOGGLE,
-                   B_REDR,
-                   "",
-                   rct->xmin + 0.35f * U.widget_unit,
-                   centy - but_size / 2,
-                   but_size,
-                   but_size,
-                   NULL,
-                   0,
-                   0,
-                   0,
-                   0,
-                   "");
+    uiBut *but = uiDefBut(node->block,
+                          UI_BTYPE_BUT_TOGGLE,
+                          B_REDR,
+                          "",
+                          rct->xmin + 0.35f * U.widget_unit,
+                          centy - but_size / 2,
+                          but_size,
+                          but_size,
+                          NULL,
+                          0,
+                          0,
+                          0,
+                          0,
+                          "");
     UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
     UI_block_emboss_set(node->block, UI_EMBOSS);
 
@@ -1609,11 +1610,8 @@ void node_draw_nodetree(const bContext *C,
 #endif
 
   /* draw background nodes, last nodes in front */
-  int a;
-  bNode *node;
-  for (a = 0, node = ntree->nodes.first; node; node = node->next, a++) {
-    bNodeInstanceKey key;
-
+  int a = 0;
+  LISTBASE_FOREACH_INDEX (bNode *, node, &ntree->nodes, a) {
 #ifdef USE_DRAW_TOT_UPDATE
     /* unrelated to background nodes, update the v2d->tot,
      * can be anywhere before we draw the scroll bars */
@@ -1624,7 +1622,7 @@ void node_draw_nodetree(const bContext *C,
       continue;
     }
 
-    key = BKE_node_instance_key(parent_key, ntree, node);
+    bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
     node->nr = a; /* index of node in list, used for exec event code */
     node_draw(C, region, snode, ntree, node, key);
   }
@@ -1641,13 +1639,13 @@ void node_draw_nodetree(const bContext *C,
   GPU_blend(GPU_BLEND_NONE);
 
   /* draw foreground nodes, last nodes in front */
-  for (a = 0, node = ntree->nodes.first; node; node = node->next, a++) {
-    bNodeInstanceKey key;
+  a = 0;
+  LISTBASE_FOREACH_INDEX (bNode *, node, &ntree->nodes, a) {
     if (node->flag & NODE_BACKGROUND) {
       continue;
     }
 
-    key = BKE_node_instance_key(parent_key, ntree, node);
+    bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
     node->nr = a; /* index of node in list, used for exec event code */
     node_draw(C, region, snode, ntree, node, key);
   }
@@ -1695,7 +1693,6 @@ static void draw_group_overlay(const bContext *C, ARegion *region)
 {
   View2D *v2d = &region->v2d;
   rctf rect = v2d->cur;
-  uiBlock *block;
   float color[4];
 
   /* shade node groups to separate them visually */
@@ -1707,7 +1704,7 @@ static void draw_group_overlay(const bContext *C, ARegion *region)
   GPU_blend(GPU_BLEND_NONE);
 
   /* set the block bounds to clip mouse events from underlying nodes */
-  block = UI_block_begin(C, region, "node tree bounds block", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "node tree bounds block", UI_EMBOSS);
   UI_block_bounds_set_explicit(block, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
   UI_block_flag_enable(block, UI_BLOCK_CLIP_EVENTS);
   UI_block_end(C, block);
@@ -1752,14 +1749,8 @@ void node_draw_space(const bContext *C, ARegion *region)
   /* draw parent node trees */
   if (snode->treepath.last) {
     static const int max_depth = 2;
-    bNodeTreePath *path;
-    int depth, curdepth;
-    float center[2];
-    bNodeTree *ntree;
-    bNodeLinkDrag *nldrag;
-    LinkData *linkdata;
 
-    path = snode->treepath.last;
+    bNodeTreePath *path = snode->treepath.last;
 
     /* update tree path name (drawn in the bottom left) */
     ID *name_id = (path->nodetree && path->nodetree != snode->nodetree) ? &path->nodetree->id :
@@ -1770,6 +1761,7 @@ void node_draw_space(const bContext *C, ARegion *region)
     }
 
     /* current View2D center, will be set temporarily for parent node trees */
+    float center[2];
     UI_view2d_center_get(v2d, &center[0], &center[1]);
 
     /* store new view center in path and current edittree */
@@ -1778,15 +1770,15 @@ void node_draw_space(const bContext *C, ARegion *region)
       copy_v2_v2(snode->edittree->view_center, center);
     }
 
-    depth = 0;
+    int depth = 0;
     while (path->prev && depth < max_depth) {
       path = path->prev;
       depth++;
     }
 
     /* parent node trees in the background */
-    for (curdepth = depth; curdepth > 0; path = path->next, curdepth--) {
-      ntree = path->nodetree;
+    for (int curdepth = depth; curdepth > 0; path = path->next, curdepth--) {
+      bNodeTree *ntree = path->nodetree;
       if (ntree) {
         snode_setup_v2d(snode, region, path->view_center);
 
@@ -1797,7 +1789,7 @@ void node_draw_space(const bContext *C, ARegion *region)
     }
 
     /* top-level edit tree */
-    ntree = path->nodetree;
+    bNodeTree *ntree = path->nodetree;
     if (ntree) {
       snode_setup_v2d(snode, region, center);
 
@@ -1832,8 +1824,8 @@ void node_draw_space(const bContext *C, ARegion *region)
     /* temporary links */
     GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
-    for (nldrag = snode->linkdrag.first; nldrag; nldrag = nldrag->next) {
-      for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
+    LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->linkdrag) {
+      LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
         node_draw_link(v2d, snode, (bNodeLink *)linkdata->data);
       }
     }

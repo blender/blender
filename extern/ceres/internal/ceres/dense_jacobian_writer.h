@@ -35,21 +35,19 @@
 
 #include "ceres/casts.h"
 #include "ceres/dense_sparse_matrix.h"
+#include "ceres/internal/eigen.h"
 #include "ceres/parameter_block.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
 #include "ceres/scratch_evaluate_preparer.h"
-#include "ceres/internal/eigen.h"
 
 namespace ceres {
 namespace internal {
 
 class DenseJacobianWriter {
  public:
-  DenseJacobianWriter(Evaluator::Options /* ignored */,
-                      Program* program)
-    : program_(program) {
-  }
+  DenseJacobianWriter(Evaluator::Options /* ignored */, Program* program)
+      : program_(program) {}
 
   // JacobianWriter interface.
 
@@ -61,14 +59,13 @@ class DenseJacobianWriter {
   }
 
   SparseMatrix* CreateJacobian() const {
-    return new DenseSparseMatrix(program_->NumResiduals(),
-                                 program_->NumEffectiveParameters(),
-                                 true);
+    return new DenseSparseMatrix(
+        program_->NumResiduals(), program_->NumEffectiveParameters(), true);
   }
 
   void Write(int residual_id,
              int residual_offset,
-             double **jacobians,
+             double** jacobians,
              SparseMatrix* jacobian) {
     DenseSparseMatrix* dense_jacobian = down_cast<DenseSparseMatrix*>(jacobian);
     const ResidualBlock* residual_block =
@@ -86,15 +83,14 @@ class DenseJacobianWriter {
       }
 
       const int parameter_block_size = parameter_block->LocalSize();
-      ConstMatrixRef parameter_jacobian(jacobians[j],
-                                        num_residuals,
-                                        parameter_block_size);
+      ConstMatrixRef parameter_jacobian(
+          jacobians[j], num_residuals, parameter_block_size);
 
-      dense_jacobian->mutable_matrix().block(
-          residual_offset,
-          parameter_block->delta_offset(),
-          num_residuals,
-          parameter_block_size) = parameter_jacobian;
+      dense_jacobian->mutable_matrix().block(residual_offset,
+                                             parameter_block->delta_offset(),
+                                             num_residuals,
+                                             parameter_block_size) =
+          parameter_jacobian;
     }
   }
 

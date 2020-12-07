@@ -28,6 +28,10 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Action;
 struct Ipo;
 struct Text;
@@ -57,11 +61,16 @@ typedef struct bConstraint {
   /** Space that target should be evaluated in (only used if 1 target). */
   char tarspace;
 
-  /** Constraint name, MAX_NAME. */
-  char name[64];
-
   /* An "expand" bit for each of the constraint's (sub)panels (uiPanelDataExpansion). */
   short ui_expand_flag;
+
+  /** Object to use as target for Custom Space of owner. */
+  struct Object *space_object;
+  /** Subtarget for Custom Space of owner - pchan or vgroup name, MAX_ID_NAME-2. */
+  char space_subtarget[64];
+
+  /** Constraint name, MAX_NAME. */
+  char name[64];
 
   /** Amount of influence exherted by constraint (0.0-1.0). */
   float enforce;
@@ -718,6 +727,8 @@ typedef enum eBConstraint_Flags {
 typedef enum eBConstraint_SpaceTypes {
   /** Default for all - worldspace. */
   CONSTRAINT_SPACE_WORLD = 0,
+  /** For all - custom space. */
+  CONSTRAINT_SPACE_CUSTOM = 5,
   /**
    * For objects (relative to parent/without parent influence),
    * for bones (along normals of bone, without parent/rest-positions).
@@ -1172,3 +1183,7 @@ typedef enum eStretchTo_Flags {
 #define CONSTRAINT_RB_CONETWIST 4
 #define CONSTRAINT_RB_VEHICLE 11
 #define CONSTRAINT_RB_GENERIC6DOF 12
+
+#ifdef __cplusplus
+}
+#endif

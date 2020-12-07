@@ -19,9 +19,9 @@
  */
 
 #include <algorithm> /* std::find */
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <vector>
 
 #include "COLLADASWAsset.h"
@@ -121,7 +121,7 @@ extern "C" char build_hash[];
 #include "MaterialExporter.h"
 #include "SceneExporter.h"
 
-#include <errno.h>
+#include <cerrno>
 
 char *bc_CustomData_get_layer_name(const struct CustomData *data, int type, int n)
 {

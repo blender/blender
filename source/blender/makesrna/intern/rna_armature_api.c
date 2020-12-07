@@ -196,7 +196,9 @@ void RNA_api_bone(StructRNA *srna)
 
   func = RNA_def_function(srna, "AxisRollFromMatrix", "rna_Bone_AxisRollFromMatrix");
   RNA_def_function_ui_description(func,
-                                  "Convert a rotational matrix to the axis + roll representation");
+                                  "Convert a rotational matrix to the axis + roll representation. "
+                                  "Note that the resulting value of the roll may not be as "
+                                  "expected if the matrix has shear or negative determinant.");
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_3x3);

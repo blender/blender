@@ -1167,20 +1167,20 @@ static int rct_fits(const rcti *rect, char dir, int size)
 static void region_overlap_fix(ScrArea *area, ARegion *region)
 {
   /* find overlapping previous region on same place */
-  ARegion *ar1;
+  ARegion *region_iter;
   int align1 = 0;
   const int align = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
-  for (ar1 = region->prev; ar1; ar1 = ar1->prev) {
-    if (ar1->flag & RGN_FLAG_HIDDEN) {
+  for (region_iter = region->prev; region_iter; region_iter = region_iter->prev) {
+    if (region_iter->flag & RGN_FLAG_HIDDEN) {
       continue;
     }
 
-    if (ar1->overlap && ((ar1->alignment & RGN_SPLIT_PREV) == 0)) {
-      if (ELEM(ar1->alignment, RGN_ALIGN_FLOAT)) {
+    if (region_iter->overlap && ((region_iter->alignment & RGN_SPLIT_PREV) == 0)) {
+      if (ELEM(region_iter->alignment, RGN_ALIGN_FLOAT)) {
         continue;
       }
-      align1 = ar1->alignment;
-      if (BLI_rcti_isect(&ar1->winrct, &region->winrct, NULL)) {
+      align1 = region_iter->alignment;
+      if (BLI_rcti_isect(&region_iter->winrct, &region->winrct, NULL)) {
         if (align1 != align) {
           /* Left overlapping right or vice-versa, forbid this! */
           region->flag |= RGN_FLAG_TOO_SMALL;
@@ -1196,35 +1196,36 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
   BLI_assert(align1 == RGN_ALIGN_ENUM_FROM_MASK(align1));
 
   /* translate or close */
-  if (ar1) {
+  if (region_iter) {
     if (align1 == RGN_ALIGN_LEFT) {
-      if (region->winrct.xmax + ar1->winx > area->winx - U.widget_unit) {
+      if (region->winrct.xmax + region_iter->winx > area->winx - U.widget_unit) {
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
       }
-      BLI_rcti_translate(&region->winrct, ar1->winx, 0);
+      BLI_rcti_translate(&region->winrct, region_iter->winx, 0);
     }
     else if (align1 == RGN_ALIGN_RIGHT) {
-      if (region->winrct.xmin - ar1->winx < U.widget_unit) {
+      if (region->winrct.xmin - region_iter->winx < U.widget_unit) {
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
       }
-      BLI_rcti_translate(&region->winrct, -ar1->winx, 0);
+      BLI_rcti_translate(&region->winrct, -region_iter->winx, 0);
     }
   }
 
   /* At this point, 'region' is in its final position and still open.
    * Make a final check it does not overlap any previous 'other side' region. */
-  for (ar1 = region->prev; ar1; ar1 = ar1->prev) {
-    if (ar1->flag & RGN_FLAG_HIDDEN) {
+  for (region_iter = region->prev; region_iter; region_iter = region_iter->prev) {
+    if (region_iter->flag & RGN_FLAG_HIDDEN) {
       continue;
     }
-    if (ELEM(ar1->alignment, RGN_ALIGN_FLOAT)) {
+    if (ELEM(region_iter->alignment, RGN_ALIGN_FLOAT)) {
       continue;
     }
 
-    if (ar1->overlap && (ar1->alignment & RGN_SPLIT_PREV) == 0) {
-      if ((ar1->alignment != align) && BLI_rcti_isect(&ar1->winrct, &region->winrct, NULL)) {
+    if (region_iter->overlap && (region_iter->alignment & RGN_SPLIT_PREV) == 0) {
+      if ((region_iter->alignment != align) &&
+          BLI_rcti_isect(&region_iter->winrct, &region->winrct, NULL)) {
         /* Left overlapping right or vice-versa, forbid this! */
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
@@ -1465,12 +1466,12 @@ static void region_rect_recursive(
 
     /* test if there's still 4 regions left */
     if (quad == 0) {
-      ARegion *artest = region->next;
+      ARegion *region_test = region->next;
       int count = 1;
 
-      while (artest) {
-        artest->alignment = RGN_ALIGN_QSPLIT;
-        artest = artest->next;
+      while (region_test) {
+        region_test->alignment = RGN_ALIGN_QSPLIT;
+        region_test = region_test->next;
         count++;
       }
 
@@ -1737,6 +1738,10 @@ static void ed_default_handlers(
      */
     wmKeyMap *keymap_general = WM_keymap_ensure(wm->defaultconf, "Grease Pencil", 0, 0);
     WM_event_add_keymap_handler(handlers, keymap_general);
+
+    wmKeyMap *keymap_curve_edit = WM_keymap_ensure(
+        wm->defaultconf, "Grease Pencil Stroke Curve Edit Mode", 0, 0);
+    WM_event_add_keymap_handler(handlers, keymap_curve_edit);
 
     wmKeyMap *keymap_edit = WM_keymap_ensure(
         wm->defaultconf, "Grease Pencil Stroke Edit Mode", 0, 0);
@@ -2631,7 +2636,7 @@ static void ed_panel_draw(const bContext *C,
   int headerend = w - UI_UNIT_X;
 
   UI_panel_header_buttons_begin(panel);
-  if (pt->draw_header_preset && !(pt->flag & PNL_NO_HEADER)) {
+  if (pt->draw_header_preset && !(pt->flag & PANEL_TYPE_NO_HEADER)) {
     /* for preset menu */
     panel->layout = UI_block_layout(block,
                                     UI_LAYOUT_HORIZONTAL,
@@ -2651,12 +2656,12 @@ static void ed_panel_draw(const bContext *C,
     panel->layout = NULL;
   }
 
-  if (pt->draw_header && !(pt->flag & PNL_NO_HEADER)) {
+  if (pt->draw_header && !(pt->flag & PANEL_TYPE_NO_HEADER)) {
     int labelx, labely;
     UI_panel_label_offset(block, &labelx, &labely);
 
     /* Unusual case: Use expanding layout (buttons stretch to available width). */
-    if (pt->flag & PNL_LAYOUT_HEADER_EXPAND) {
+    if (pt->flag & PANEL_TYPE_HEADER_EXPAND) {
       uiLayout *layout = UI_block_layout(block,
                                          UI_LAYOUT_VERTICAL,
                                          UI_LAYOUT_PANEL,
@@ -2690,7 +2695,7 @@ static void ed_panel_draw(const bContext *C,
     short panelContext;
 
     /* panel context can either be toolbar region or normal panels region */
-    if (pt->flag & PNL_LAYOUT_VERT_BAR) {
+    if (pt->flag & PANEL_TYPE_LAYOUT_VERT_BAR) {
       panelContext = UI_LAYOUT_VERT_BAR;
     }
     else if (region->regiontype == RGN_TYPE_TOOLS) {
@@ -2700,16 +2705,16 @@ static void ed_panel_draw(const bContext *C,
       panelContext = UI_LAYOUT_PANEL;
     }
 
-    panel->layout = UI_block_layout(block,
-                                    UI_LAYOUT_VERTICAL,
-                                    panelContext,
-                                    (pt->flag & PNL_LAYOUT_VERT_BAR) ? 0 : style->panelspace,
-                                    0,
-                                    (pt->flag & PNL_LAYOUT_VERT_BAR) ? 0 :
-                                                                       w - 2 * style->panelspace,
-                                    em,
-                                    0,
-                                    style);
+    panel->layout = UI_block_layout(
+        block,
+        UI_LAYOUT_VERTICAL,
+        panelContext,
+        (pt->flag & PANEL_TYPE_LAYOUT_VERT_BAR) ? 0 : style->panelspace,
+        0,
+        (pt->flag & PANEL_TYPE_LAYOUT_VERT_BAR) ? 0 : w - 2 * style->panelspace,
+        em,
+        0,
+        style);
 
     pt->draw(C, panel);
 
@@ -2888,7 +2893,7 @@ void ED_region_panels_layout_ex(const bContext *C,
   for (LinkNode *pt_link = panel_types_stack; pt_link; pt_link = pt_link->next) {
     PanelType *pt = pt_link->link;
 
-    if (pt->flag & PNL_INSTANCED) {
+    if (pt->flag & PANEL_TYPE_INSTANCED) {
       has_instanced_panel = true;
       continue;
     }
@@ -2910,7 +2915,7 @@ void ED_region_panels_layout_ex(const bContext *C,
                   &region->panels,
                   pt,
                   panel,
-                  (pt->flag & PNL_DRAW_BOX) ? w_box_panel : w,
+                  (pt->flag & PANEL_TYPE_DRAW_BOX) ? w_box_panel : w,
                   em,
                   NULL,
                   search_filter);
@@ -2922,7 +2927,7 @@ void ED_region_panels_layout_ex(const bContext *C,
       if (panel->type == NULL) {
         continue; /* Some panels don't have a type. */
       }
-      if (!(panel->type->flag & PNL_INSTANCED)) {
+      if (!(panel->type->flag & PANEL_TYPE_INSTANCED)) {
         continue;
       }
       if (use_category_tabs && panel->type->category[0] &&
@@ -2944,7 +2949,7 @@ void ED_region_panels_layout_ex(const bContext *C,
                     &region->panels,
                     panel->type,
                     panel,
-                    (panel->type->flag & PNL_DRAW_BOX) ? w_box_panel : w,
+                    (panel->type->flag & PANEL_TYPE_DRAW_BOX) ? w_box_panel : w,
                     em,
                     unique_panel_str,
                     search_filter);
@@ -3085,6 +3090,11 @@ static bool panel_property_search(const bContext *C,
   uiBlock *block = UI_block_begin(C, region, panel_type->idname, UI_EMBOSS);
   UI_block_set_search_only(block, true);
 
+  /* Skip panels that give meaningless search results. */
+  if (panel_type->flag & PANEL_TYPE_NO_SEARCH) {
+    return false;
+  }
+
   if (panel == NULL) {
     bool open; /* Dummy variable. */
     panel = UI_panel_begin(region, &region->panels, block, panel_type, panel, &open);
@@ -3165,7 +3175,7 @@ bool ED_region_property_search(const bContext *C,
   for (LinkNode *pt_link = panel_types_stack; pt_link; pt_link = pt_link->next) {
     PanelType *panel_type = pt_link->link;
     /* Note that these checks are duplicated from #ED_region_panels_layout_ex. */
-    if (panel_type->flag & PNL_INSTANCED) {
+    if (panel_type->flag & PANEL_TYPE_INSTANCED) {
       has_instanced_panel = true;
       continue;
     }
@@ -3188,7 +3198,7 @@ bool ED_region_property_search(const bContext *C,
   if (!has_result && has_instanced_panel) {
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
       /* Note that these checks are duplicated from #ED_region_panels_layout_ex. */
-      if (panel->type == NULL || !(panel->type->flag & PNL_INSTANCED)) {
+      if (panel->type == NULL || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {
         continue;
       }
       if (use_category_tabs) {
@@ -3892,39 +3902,39 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
 /* rect gets returned in local region coordinates */
 static void region_visible_rect_calc(ARegion *region, rcti *rect)
 {
-  ARegion *arn = region;
+  ARegion *region_iter = region;
 
   /* allow function to be called without area */
-  while (arn->prev) {
-    arn = arn->prev;
+  while (region_iter->prev) {
+    region_iter = region_iter->prev;
   }
 
   *rect = region->winrct;
 
   /* check if a region overlaps with the current one */
-  for (; arn; arn = arn->next) {
-    if (region != arn && arn->overlap) {
-      if (BLI_rcti_isect(rect, &arn->winrct, NULL)) {
-        int alignment = RGN_ALIGN_ENUM_FROM_MASK(arn->alignment);
+  for (; region_iter; region_iter = region_iter->next) {
+    if (region != region_iter && region_iter->overlap) {
+      if (BLI_rcti_isect(rect, &region_iter->winrct, NULL)) {
+        int alignment = RGN_ALIGN_ENUM_FROM_MASK(region_iter->alignment);
 
         if (ELEM(alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
           /* Overlap left, also check 1 pixel offset (2 regions on one side). */
-          if (abs(rect->xmin - arn->winrct.xmin) < 2) {
-            rect->xmin = arn->winrct.xmax;
+          if (abs(rect->xmin - region_iter->winrct.xmin) < 2) {
+            rect->xmin = region_iter->winrct.xmax;
           }
 
           /* Overlap right. */
-          if (abs(rect->xmax - arn->winrct.xmax) < 2) {
-            rect->xmax = arn->winrct.xmin;
+          if (abs(rect->xmax - region_iter->winrct.xmax) < 2) {
+            rect->xmax = region_iter->winrct.xmin;
           }
         }
         else if (ELEM(alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
           /* Same logic as above for vertical regions. */
-          if (abs(rect->ymin - arn->winrct.ymin) < 2) {
-            rect->ymin = arn->winrct.ymax;
+          if (abs(rect->ymin - region_iter->winrct.ymin) < 2) {
+            rect->ymin = region_iter->winrct.ymax;
           }
-          if (abs(rect->ymax - arn->winrct.ymax) < 2) {
-            rect->ymax = arn->winrct.ymin;
+          if (abs(rect->ymax - region_iter->winrct.ymax) < 2) {
+            rect->ymax = region_iter->winrct.ymin;
           }
         }
         else if (alignment == RGN_ALIGN_FLOAT) {

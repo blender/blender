@@ -168,10 +168,9 @@ bNodeTree *ED_node_tree_get(SpaceNode *snode, int level)
 
 int ED_node_tree_path_length(SpaceNode *snode)
 {
-  bNodeTreePath *path;
   int length = 0;
-  int i;
-  for (path = snode->treepath.first, i = 0; path; path = path->next, i++) {
+  int i = 0;
+  LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
     length += strlen(path->node_name);
     if (i > 0) {
       length += 1; /* for separator char */
@@ -182,11 +181,10 @@ int ED_node_tree_path_length(SpaceNode *snode)
 
 void ED_node_tree_path_get(SpaceNode *snode, char *value)
 {
-  bNodeTreePath *path;
-  int i;
+  int i = 0;
 
   value[0] = '\0';
-  for (path = snode->treepath.first, i = 0; path; path = path->next, i++) {
+  LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
     if (i == 0) {
       strcpy(value, path->node_name);
       value += strlen(path->node_name);
@@ -200,11 +198,11 @@ void ED_node_tree_path_get(SpaceNode *snode, char *value)
 
 void ED_node_tree_path_get_fixedbuf(SpaceNode *snode, char *value, int max_length)
 {
-  bNodeTreePath *path;
-  int size, i;
+  int size;
 
   value[0] = '\0';
-  for (path = snode->treepath.first, i = 0; path; path = path->next, i++) {
+  int i = 0;
+  LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
     if (i == 0) {
       size = BLI_strncpy_rlen(value, path->node_name, max_length);
     }
@@ -319,10 +317,8 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 static void node_free(SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
-  bNodeTreePath *path, *path_next;
 
-  for (path = snode->treepath.first; path; path = path_next) {
-    path_next = path->next;
+  LISTBASE_FOREACH_MUTABLE (bNodeTreePath *, path, &snode->treepath) {
     MEM_freeN(path);
   }
 }
@@ -410,6 +406,14 @@ static void node_area_listener(wmWindow *UNUSED(win),
       if (ED_node_is_shader(snode)) {
         if (wmn->data == ND_OB_SHADING) {
           ED_area_tag_refresh(area);
+        }
+      }
+      else if (ED_node_is_geometry(snode)) {
+        /* Rather strict check: only redraw when the reference matches the current editor's ID. */
+        if (wmn->data == ND_MODIFIER) {
+          if (wmn->reference == snode->id || snode->id == NULL) {
+            ED_area_tag_refresh(area);
+          }
         }
       }
       break;
@@ -934,13 +938,7 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
 {
   bool free;
   const EnumPropertyItem *item_src = RNA_enum_node_tree_types_itemf_impl(C, &free);
-  for (const EnumPropertyItem *item_iter = item_src; item_iter->identifier; item_iter++) {
-    if (!U.experimental.use_new_geometry_nodes &&
-        STREQ(item_iter->identifier, "SimulationNodeTree")) {
-      continue;
-    }
-    RNA_enum_item_add(item, totitem, item_iter);
-  }
+  RNA_enum_items_add(item, totitem, item_src);
   if (free) {
     MEM_freeN((void *)item_src);
   }

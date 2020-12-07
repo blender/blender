@@ -23,10 +23,10 @@
 #include <DirectDrawSurface.h>
 #include <FlipDXT.h>
 #include <Stream.h>
+#include <cstddef>
+#include <cstdio> /* printf */
 #include <dds_api.h>
 #include <fstream>
-#include <stddef.h>
-#include <stdio.h> /* printf */
 
 #if defined(WIN32)
 #  include "utfconv.h"
@@ -42,16 +42,16 @@
 
 extern "C" {
 
-int imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
+bool imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
 {
-  return 0; /* todo: finish this function */
+  return false; /* todo: finish this function */
 
   /* check image buffer */
   if (ibuf == nullptr) {
-    return 0;
+    return false;
   }
   if (ibuf->rect == nullptr) {
-    return 0;
+    return false;
   }
 
   /* open file for writing */
@@ -69,21 +69,24 @@ int imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
   fildes << "DDS ";
   fildes.close();
 
-  return 1;
+  return true;
 }
 
-int imb_is_a_dds(const unsigned char *mem) /* note: use at most first 32 bytes */
+bool imb_is_a_dds(const unsigned char *mem, const size_t size)
 {
+  if (size < 8) {
+    return false;
+  }
   /* heuristic check to see if mem contains a DDS file */
   /* header.fourcc == FOURCC_DDS */
   if ((mem[0] != 'D') || (mem[1] != 'D') || (mem[2] != 'S') || (mem[3] != ' ')) {
-    return 0;
+    return false;
   }
   /* header.size == 124 */
   if ((mem[4] != 124) || mem[5] || mem[6] || mem[7]) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 struct ImBuf *imb_load_dds(const unsigned char *mem,
@@ -108,7 +111,7 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
    */
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
-  if (!imb_is_a_dds(mem)) {
+  if (!imb_is_a_dds(mem, size)) {
     return nullptr;
   }
 

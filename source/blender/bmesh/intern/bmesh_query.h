@@ -254,6 +254,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
                              int *r_groups_array,
                              int (**r_group_index)[2],
                              BMLoopFilterFunc filter_fn,
+                             BMLoopPairFilterFunc filter_pair_fn,
                              void *user_data,
                              const char hflag_test,
                              const char htype_step) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);

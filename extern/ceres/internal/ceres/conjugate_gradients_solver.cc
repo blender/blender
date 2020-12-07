@@ -41,6 +41,7 @@
 
 #include <cmath>
 #include <cstddef>
+
 #include "ceres/internal/eigen.h"
 #include "ceres/linear_operator.h"
 #include "ceres/stringprintf.h"
@@ -51,16 +52,13 @@ namespace ceres {
 namespace internal {
 namespace {
 
-bool IsZeroOrInfinity(double x) {
-  return ((x == 0.0) || std::isinf(x));
-}
+bool IsZeroOrInfinity(double x) { return ((x == 0.0) || std::isinf(x)); }
 
 }  // namespace
 
 ConjugateGradientsSolver::ConjugateGradientsSolver(
     const LinearSolver::Options& options)
-    : options_(options) {
-}
+    : options_(options) {}
 
 LinearSolver::Summary ConjugateGradientsSolver::Solve(
     LinearOperator* A,
@@ -137,7 +135,10 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
         summary.termination_type = LINEAR_SOLVER_FAILURE;
         summary.message = StringPrintf(
             "Numerical failure. beta = rho_n / rho_{n-1} = %e, "
-            "rho_n = %e, rho_{n-1} = %e", beta, rho, last_rho);
+            "rho_n = %e, rho_{n-1} = %e",
+            beta,
+            rho,
+            last_rho);
         break;
       }
       p = z + beta * p;
@@ -152,16 +153,20 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
       summary.message = StringPrintf(
           "Matrix is indefinite, no more progress can be made. "
           "p'q = %e. |p| = %e, |q| = %e",
-          pq, p.norm(), q.norm());
+          pq,
+          p.norm(),
+          q.norm());
       break;
     }
 
     const double alpha = rho / pq;
     if (std::isinf(alpha)) {
       summary.termination_type = LINEAR_SOLVER_FAILURE;
-      summary.message =
-          StringPrintf("Numerical failure. alpha = rho / pq = %e, "
-                       "rho = %e, pq = %e.", alpha, rho, pq);
+      summary.message = StringPrintf(
+          "Numerical failure. alpha = rho / pq = %e, rho = %e, pq = %e.",
+          alpha,
+          rho,
+          pq);
       break;
     }
 
@@ -223,7 +228,7 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
     Q0 = Q1;
 
     // Residual based termination.
-    norm_r = r. norm();
+    norm_r = r.norm();
     if (norm_r <= tol_r &&
         summary.num_iterations >= options_.min_num_iterations) {
       summary.termination_type = LINEAR_SOLVER_SUCCESS;

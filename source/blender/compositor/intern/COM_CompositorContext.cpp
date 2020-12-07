@@ -18,7 +18,7 @@
 
 #include "COM_CompositorContext.h"
 #include "COM_defines.h"
-#include <stdio.h>
+#include <cstdio>
 
 CompositorContext::CompositorContext()
 {

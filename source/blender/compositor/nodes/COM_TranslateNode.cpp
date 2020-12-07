@@ -42,8 +42,9 @@ void TranslateNode::convertToOperations(NodeConverter &converter,
   TranslateOperation *operation = new TranslateOperation();
   if (data->relative) {
     const RenderData *rd = context.getRenderData();
-    float fx = rd->xsch * rd->size / 100.0f;
-    float fy = rd->ysch * rd->size / 100.0f;
+    const float render_size_factor = context.getRenderPercentageAsFactor();
+    float fx = rd->xsch * render_size_factor;
+    float fy = rd->ysch * render_size_factor;
 
     operation->setFactorXY(fx, fy);
   }

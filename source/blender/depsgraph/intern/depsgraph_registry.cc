@@ -27,8 +27,7 @@
 
 #include "intern/depsgraph.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 using GraphRegistry = Map<Main *, VectorSet<Depsgraph *>>;
 static GraphRegistry &get_graph_registry()
@@ -65,5 +64,4 @@ Span<Depsgraph *> get_all_registered_graphs(Main *bmain)
   return {};
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

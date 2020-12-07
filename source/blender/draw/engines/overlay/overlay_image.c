@@ -346,9 +346,9 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
       mul_m4_m4m4(mat, modelmat, mat);
       const bool is_foreground = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != 0;
-      /* Alpha is clamped just below 1.0 to fix background images to intefere with foreground
+      /* Alpha is clamped just below 1.0 to fix background images to interfere with foreground
        * images. Without this a background image with 1.0 will be rendered on top of a transparent
-       * foreground image due to the differnet blending modes they use. */
+       * foreground image due to the different blending modes they use. */
       const float color_premult_alpha[4] = {1.0f, 1.0f, 1.0f, MIN2(bgpic->alpha, 0.999999)};
 
       DRWPass *pass = is_foreground ? (use_view_transform ? psl->image_foreground_scene_ps :

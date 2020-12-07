@@ -1634,7 +1634,8 @@ float BLI_noise_mg_ridged_multi_fractal(float x,
     }
   }
 
-  float result, signal = powf(offset - fabsf(noisefunc(x, y, z)), 2);
+  float signal = powf(offset - fabsf(noisefunc(x, y, z)), 2);
+  float result = signal;
   for (int i = 1; i < (int)octaves; i++) {
     float pwHL = powf(lacunarity, -H);
     float pwr = pwHL; /* starts with i=1 instead of 0 */

@@ -60,6 +60,7 @@ enum {
 
 /* RNA enums, just to be more readable */
 enum {
+  SEQ_SIDE_MOUSE = -1,
   SEQ_SIDE_NONE = 0,
   SEQ_SIDE_LEFT,
   SEQ_SIDE_RIGHT,
@@ -575,6 +576,25 @@ void BKE_sequencer_free_clipboard(void);
 void BKE_sequencer_check_uuids_unique_and_report(const struct Scene *scene);
 /* Generate new UUID for the given sequence. */
 void BKE_sequence_session_uuid_generate(struct Sequence *sequence);
+
+/* **********************************************************************
+ * strip_edit.c
+ *
+ * Editing functions
+ * **********************************************************************
+ */
+
+typedef enum eSeqSplitMethod {
+  SEQ_SPLIT_SOFT,
+  SEQ_SPLIT_HARD,
+} eSeqSplitMethod;
+
+struct Sequence *SEQ_edit_strip_split(struct Main *bmain,
+                                      struct Scene *scene,
+                                      struct ListBase *seqbase,
+                                      struct Sequence *seq,
+                                      const int timeline_frame,
+                                      const eSeqSplitMethod method);
 
 #ifdef __cplusplus
 }

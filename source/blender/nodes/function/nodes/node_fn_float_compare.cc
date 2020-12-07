@@ -100,7 +100,7 @@ void register_node_type_fn_float_compare()
 {
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_FLOAT_COMPARE, "Boolean Math", 0, 0);
+  fn_node_type_base(&ntype, FN_NODE_FLOAT_COMPARE, "Float Compare", NODE_CLASS_CONVERTOR, 0);
   node_type_socket_templates(&ntype, fn_node_float_compare_in, fn_node_float_compare_out);
   node_type_label(&ntype, node_float_compare_label);
   node_type_update(&ntype, node_float_compare_update);

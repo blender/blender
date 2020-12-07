@@ -1391,7 +1391,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     while (ps.picture) {
       int hasevent;
 #ifndef USE_IMB_CACHE
-      if (ibuf != NULL && ibuf->ftype == 0) {
+      if (ibuf != NULL && ibuf->ftype == IMB_FTYPE_NONE) {
         IMB_freeImBuf(ibuf);
       }
 #endif

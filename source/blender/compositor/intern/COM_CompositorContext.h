@@ -267,4 +267,13 @@ class CompositorContext {
   {
     return (this->getbNodeTree()->flag & NTREE_COM_GROUPNODE_BUFFER) != 0;
   }
+
+  /**
+   * \brief Get the render percentage as a factor.
+   * The compositor uses a factor i.o. a percentage.
+   */
+  float getRenderPercentageAsFactor() const
+  {
+    return m_rd->size * 0.01f;
+  }
 };

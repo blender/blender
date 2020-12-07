@@ -163,16 +163,13 @@ static ImBuf *imb_oiio_load_image_float(
 
 extern "C" {
 
-int imb_is_a_photoshop(const char *filename)
+bool imb_is_a_photoshop(const unsigned char *mem, size_t size)
 {
-  const char *photoshop_extension[] = {
-      ".psd",
-      ".pdd",
-      ".psb",
-      nullptr,
-  };
-
-  return BLI_path_extension_check_array(filename, photoshop_extension);
+  const unsigned char magic[4] = {'8', 'B', 'P', 'S'};
+  if (size < sizeof(magic)) {
+    return false;
+  }
+  return memcmp(magic, mem, sizeof(magic)) == 0;
 }
 
 int imb_save_photoshop(struct ImBuf *ibuf, const char * /*name*/, int flags)
@@ -198,7 +195,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   const bool is_colorspace_manually_set = (colorspace[0] != '\0');
 
   /* load image from file through OIIO */
-  if (imb_is_a_photoshop(filename) == 0) {
+  if (IMB_ispic_type_matches(filename, IMB_FTYPE_PSD) == 0) {
     return nullptr;
   }
 

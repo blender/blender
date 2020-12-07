@@ -60,6 +60,14 @@ typedef struct TARGA {
   unsigned char imgdes;
 } TARGA;
 
+/**
+ * On-disk header size.
+ *
+ * \note In theory it's possible padding would make the struct and on-disk size differ,
+ * so use a constant instead of `sizeof(TARGA)`.
+ */
+#define TARGA_HEADER_SIZE 18
+
 /***/
 
 static int tga_out1(unsigned int data, FILE *file)
@@ -286,13 +294,11 @@ static bool dumptarga(struct ImBuf *ibuf, FILE *file)
   return 1;
 }
 
-int imb_savetarga(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_savetarga(struct ImBuf *ibuf, const char *filepath, int UNUSED(flags))
 {
-  char buf[20] = {0};
+  char buf[TARGA_HEADER_SIZE] = {0};
   FILE *fildes;
   bool ok = false;
-
-  (void)flags; /* unused */
 
   buf[16] = (ibuf->planes + 0x7) & ~0x7;
   if (ibuf->planes > 8) {
@@ -326,7 +332,7 @@ int imb_savetarga(struct ImBuf *ibuf, const char *filepath, int flags)
     return 0;
   }
 
-  if (fwrite(buf, 1, 18, fildes) != 18) {
+  if (fwrite(buf, 1, TARGA_HEADER_SIZE, fildes) != TARGA_HEADER_SIZE) {
     fclose(fildes);
     return 0;
   }
@@ -355,8 +361,12 @@ int imb_savetarga(struct ImBuf *ibuf, const char *filepath, int flags)
   return ok;
 }
 
-static int checktarga(TARGA *tga, const unsigned char *mem)
+static bool checktarga(TARGA *tga, const unsigned char *mem, const size_t size)
 {
+  if (size < TARGA_HEADER_SIZE) {
+    return false;
+  }
+
   tga->numid = mem[0];
   tga->maptyp = mem[1];
   tga->imgtyp = mem[2];
@@ -372,7 +382,7 @@ static int checktarga(TARGA *tga, const unsigned char *mem)
   tga->imgdes = mem[17];
 
   if (tga->maptyp > 1) {
-    return 0;
+    return false;
   }
   switch (tga->imgtyp) {
     case 1:  /* raw cmap */
@@ -383,31 +393,31 @@ static int checktarga(TARGA *tga, const unsigned char *mem)
     case 11: /* b&w */
       break;
     default:
-      return 0;
+      return false;
   }
   if (tga->mapsize && tga->mapbits > 32) {
-    return 0;
+    return false;
   }
   if (tga->xsize <= 0) {
-    return 0;
+    return false;
   }
   if (tga->ysize <= 0) {
-    return 0;
+    return false;
   }
   if (tga->pixsize > 32) {
-    return 0;
+    return false;
   }
   if (tga->pixsize == 0) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
-int imb_is_a_targa(const unsigned char *buf)
+bool imb_is_a_targa(const unsigned char *buf, size_t size)
 {
   TARGA tga;
 
-  return checktarga(&tga, buf);
+  return checktarga(&tga, buf, size);
 }
 
 static void complete_partial_load(struct ImBuf *ibuf, unsigned int *rect)
@@ -627,7 +637,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
   int32_t cp_data;
   uchar *cp = (uchar *)&cp_data;
 
-  if (checktarga(&tga, mem) == 0) {
+  if (checktarga(&tga, mem, mem_size) == 0) {
     return NULL;
   }
 
@@ -647,7 +657,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
   if (tga.imgtyp < 4) {
     ibuf->foptions.flag |= RAWTGA;
   }
-  mem = mem + 18 + tga.numid;
+  mem = mem + TARGA_HEADER_SIZE + tga.numid;
 
   cp[0] = 0xff;
   cp[1] = cp[2] = 0;

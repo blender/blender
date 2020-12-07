@@ -101,7 +101,8 @@ static int ChainPredicateIterator_init(BPy_ChainPredicateIterator *self,
                                    "begin",
                                    "orientation",
                                    nullptr};
-  PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr, *obj4 = nullptr, *obj5 = nullptr, *obj6 = nullptr;
+  PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr, *obj4 = nullptr, *obj5 = nullptr,
+           *obj6 = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(
           args, kwds, "O!", (char **)kwlist_1, &ChainPredicateIterator_Type, &obj1)) {
@@ -163,42 +164,46 @@ static void ChainPredicateIterator_dealloc(BPy_ChainPredicateIterator *self)
 
 PyTypeObject ChainPredicateIterator_Type = {
     PyVarObject_HEAD_INIT(nullptr, 0) "ChainPredicateIterator", /* tp_name */
-    sizeof(BPy_ChainPredicateIterator),                      /* tp_basicsize */
-    0,                                                       /* tp_itemsize */
-    (destructor)ChainPredicateIterator_dealloc,              /* tp_dealloc */
-    nullptr,                                                       /* tp_print */
-    nullptr,                                                       /* tp_getattr */
-    nullptr,                                                       /* tp_setattr */
-    nullptr,                                                       /* tp_reserved */
-    nullptr,                                                       /* tp_repr */
-    nullptr,                                                       /* tp_as_number */
-    nullptr,                                                       /* tp_as_sequence */
-    nullptr,                                                       /* tp_as_mapping */
-    nullptr,                                                       /* tp_hash  */
-    nullptr,                                                       /* tp_call */
-    nullptr,                                                       /* tp_str */
-    nullptr,                                                       /* tp_getattro */
-    nullptr,                                                       /* tp_setattro */
-    nullptr,                                                       /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                /* tp_flags */
-    ChainPredicateIterator_doc,                              /* tp_doc */
-    nullptr,                                                       /* tp_traverse */
-    nullptr,                                                       /* tp_clear */
-    nullptr,                                                       /* tp_richcompare */
-    0,                                                       /* tp_weaklistoffset */
-    nullptr,                                                       /* tp_iter */
-    nullptr,                                                       /* tp_iternext */
-    nullptr,                                                       /* tp_methods */
-    nullptr,                                                       /* tp_members */
-    nullptr,                                                       /* tp_getset */
-    &ChainingIterator_Type,                                  /* tp_base */
-    nullptr,                                                       /* tp_dict */
-    nullptr,                                                       /* tp_descr_get */
-    nullptr,                                                       /* tp_descr_set */
-    0,                                                       /* tp_dictoffset */
-    (initproc)ChainPredicateIterator_init,                   /* tp_init */
-    nullptr,                                                       /* tp_alloc */
-    nullptr,                                                       /* tp_new */
+    sizeof(BPy_ChainPredicateIterator),                         /* tp_basicsize */
+    0,                                                          /* tp_itemsize */
+    (destructor)ChainPredicateIterator_dealloc,                 /* tp_dealloc */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    nullptr, /* tp_print */
+#endif
+    nullptr,                                  /* tp_getattr */
+    nullptr,                                  /* tp_setattr */
+    nullptr,                                  /* tp_reserved */
+    nullptr,                                  /* tp_repr */
+    nullptr,                                  /* tp_as_number */
+    nullptr,                                  /* tp_as_sequence */
+    nullptr,                                  /* tp_as_mapping */
+    nullptr,                                  /* tp_hash  */
+    nullptr,                                  /* tp_call */
+    nullptr,                                  /* tp_str */
+    nullptr,                                  /* tp_getattro */
+    nullptr,                                  /* tp_setattro */
+    nullptr,                                  /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+    ChainPredicateIterator_doc,               /* tp_doc */
+    nullptr,                                  /* tp_traverse */
+    nullptr,                                  /* tp_clear */
+    nullptr,                                  /* tp_richcompare */
+    0,                                        /* tp_weaklistoffset */
+    nullptr,                                  /* tp_iter */
+    nullptr,                                  /* tp_iternext */
+    nullptr,                                  /* tp_methods */
+    nullptr,                                  /* tp_members */
+    nullptr,                                  /* tp_getset */
+    &ChainingIterator_Type,                   /* tp_base */
+    nullptr,                                  /* tp_dict */
+    nullptr,                                  /* tp_descr_get */
+    nullptr,                                  /* tp_descr_set */
+    0,                                        /* tp_dictoffset */
+    (initproc)ChainPredicateIterator_init,    /* tp_init */
+    nullptr,                                  /* tp_alloc */
+    nullptr,                                  /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

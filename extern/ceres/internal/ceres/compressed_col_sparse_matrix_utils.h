@@ -32,6 +32,7 @@
 #define CERES_INTERNAL_COMPRESSED_COL_SPARSE_MATRIX_UTILS_H_
 
 #include <vector>
+
 #include "ceres/internal/port.h"
 
 namespace ceres {
@@ -47,7 +48,7 @@ namespace internal {
 // and column block j, then it is expected that A contains at least
 // one non-zero entry corresponding to the top left entry of c_ij,
 // as that entry is used to detect the presence of a non-zero c_ij.
-void CompressedColumnScalarMatrixToBlockMatrix(
+CERES_EXPORT_INTERNAL void CompressedColumnScalarMatrixToBlockMatrix(
     const int* scalar_rows,
     const int* scalar_cols,
     const std::vector<int>& row_blocks,
@@ -58,7 +59,7 @@ void CompressedColumnScalarMatrixToBlockMatrix(
 // Given a set of blocks and a permutation of these blocks, compute
 // the corresponding "scalar" ordering, where the scalar ordering of
 // size sum(blocks).
-void BlockOrderingToScalarOrdering(
+CERES_EXPORT_INTERNAL void BlockOrderingToScalarOrdering(
     const std::vector<int>& blocks,
     const std::vector<int>& block_ordering,
     std::vector<int>* scalar_ordering);
@@ -101,7 +102,7 @@ void SolveUpperTriangularTransposeInPlace(IntegerType num_cols,
       const double v = values[idx];
       rhs_and_solution[c] -= v * rhs_and_solution[r];
     }
-    rhs_and_solution[c] =  rhs_and_solution[c] / values[cols[c + 1] - 1];
+    rhs_and_solution[c] = rhs_and_solution[c] / values[cols[c + 1] - 1];
   }
 }
 
@@ -132,7 +133,7 @@ void SolveRTRWithSparseRHS(IntegerType num_cols,
       const double v = values[idx];
       solution[c] -= v * solution[r];
     }
-    solution[c] =  solution[c] / values[cols[c + 1] - 1];
+    solution[c] = solution[c] / values[cols[c + 1] - 1];
   }
 
   SolveUpperTriangularInPlace(num_cols, rows, cols, values, solution);

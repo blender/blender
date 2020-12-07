@@ -143,7 +143,6 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   MeshToVolumeModifierData *mvmd = static_cast<MeshToVolumeModifierData *>(ptr->data);
 
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
 
   uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "density", 0, nullptr, ICON_NONE);

@@ -298,6 +298,7 @@ static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
     return;
   }
 
+  RE_FreeAllPersistentData();
   RNA_struct_free_extension(type, &et->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
   BLI_freelinkN(&R_engines, et);
@@ -760,7 +761,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   parm = RNA_def_int(func, "pixel_size", 0, 1, 8, "Pixel Size", "", 1, 8);
   RNA_def_function_return(func, parm);
 
-  RNA_def_function(srna, "free_blender_memory", "RE_engine_free_blender_memory");
+  func = RNA_def_function(srna, "free_blender_memory", "RE_engine_free_blender_memory");
   RNA_def_function_ui_description(func, "Free Blender side memory of render engine");
 
   RNA_define_verify_sdna(0);

@@ -69,6 +69,13 @@ static bool gpencil_stroke_editmode_poll(bContext *C)
   return (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 }
 
+/* Poll callback for stroke curve editing mode */
+static bool gpencil_stroke_editmode_curve_poll(bContext *C)
+{
+  bGPdata *gpd = CTX_data_gpencil_data(C);
+  return (GPENCIL_EDIT_MODE(gpd) && GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
+}
+
 /* Poll callback for stroke painting mode */
 static bool gpencil_stroke_paintmode_poll(bContext *C)
 {
@@ -315,6 +322,15 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
   keymap->poll = gpencil_stroke_editmode_poll;
 }
 
+/* Stroke Curve Editing Keymap - Only when editmode is enabled and in curve edit mode */
+static void ed_keymap_gpencil_curve_editing(wmKeyConfig *keyconf)
+{
+  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Curve Edit Mode", 0, 0);
+
+  /* set poll callback - so that this keymap only gets enabled when curve editmode is enabled */
+  keymap->poll = gpencil_stroke_editmode_curve_poll;
+}
+
 /* keys for draw with a drawing brush (no fill) */
 static void ed_keymap_gpencil_painting_draw(wmKeyConfig *keyconf)
 {
@@ -471,6 +487,7 @@ static void ed_keymap_gpencil_weightpainting_draw(wmKeyConfig *keyconf)
 void ED_keymap_gpencil(wmKeyConfig *keyconf)
 {
   ed_keymap_gpencil_general(keyconf);
+  ed_keymap_gpencil_curve_editing(keyconf);
   ed_keymap_gpencil_editing(keyconf);
   ed_keymap_gpencil_painting(keyconf);
   ed_keymap_gpencil_painting_draw(keyconf);
@@ -568,6 +585,11 @@ void ED_operatortypes_gpencil(void)
   WM_operatortype_append(GPENCIL_OT_sculpt_paint);
   WM_operatortype_append(GPENCIL_OT_weight_paint);
 
+  /* Edit stroke editcurve */
+
+  WM_operatortype_append(GPENCIL_OT_stroke_enter_editcurve_mode);
+  WM_operatortype_append(GPENCIL_OT_stroke_editcurve_set_handle_type);
+
   /* Editing (Buttons) ------------ */
 
   WM_operatortype_append(GPENCIL_OT_annotation_add);
@@ -629,6 +651,7 @@ void ED_operatortypes_gpencil(void)
   WM_operatortype_append(GPENCIL_OT_stroke_trim);
   WM_operatortype_append(GPENCIL_OT_stroke_merge_by_distance);
   WM_operatortype_append(GPENCIL_OT_stroke_merge_material);
+  WM_operatortype_append(GPENCIL_OT_stroke_reset_vertex_color);
 
   WM_operatortype_append(GPENCIL_OT_material_to_vertex_color);
   WM_operatortype_append(GPENCIL_OT_extract_palette_vertex);

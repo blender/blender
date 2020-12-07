@@ -30,8 +30,9 @@
 
 #include "ceres/corrector.h"
 
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
+
 #include "ceres/internal/eigen.h"
 #include "glog/logging.h"
 
@@ -147,9 +148,9 @@ void Corrector::CorrectJacobian(const int num_rows,
     }
 
     for (int r = 0; r < num_rows; ++r) {
-      jacobian[r * num_cols + c] = sqrt_rho1_ *
-          (jacobian[r * num_cols + c] -
-           alpha_sq_norm_ * residuals[r] * r_transpose_j);
+      jacobian[r * num_cols + c] =
+          sqrt_rho1_ * (jacobian[r * num_cols + c] -
+                        alpha_sq_norm_ * residuals[r] * r_transpose_j);
     }
   }
 }

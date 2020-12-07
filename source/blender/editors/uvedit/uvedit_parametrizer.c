@@ -895,7 +895,7 @@ static PBool p_edge_implicit_seam(PEdge *e, PEdge *ep)
   return P_FALSE;
 }
 
-static PBool p_edge_has_pair(PHandle *handle, PEdge *e, PBool impl, PEdge **r_pair)
+static PBool p_edge_has_pair(PHandle *handle, PEdge *e, PBool topology_from_uvs, PEdge **r_pair)
 {
   PHashKey key;
   PEdge *pe;
@@ -920,7 +920,8 @@ static PBool p_edge_has_pair(PHandle *handle, PEdge *e, PBool impl, PEdge **r_pa
           ((v1->u.key == key2) && (v2->u.key == key1))) {
 
         /* don't connect seams and t-junctions */
-        if ((pe->flag & PEDGE_SEAM) || *r_pair || (impl && p_edge_implicit_seam(e, pe))) {
+        if ((pe->flag & PEDGE_SEAM) || *r_pair ||
+            (topology_from_uvs && p_edge_implicit_seam(e, pe))) {
           *r_pair = NULL;
           return P_FALSE;
         }
@@ -943,11 +944,14 @@ static PBool p_edge_has_pair(PHandle *handle, PEdge *e, PBool impl, PEdge **r_pa
   return (*r_pair != NULL);
 }
 
-static PBool p_edge_connect_pair(PHandle *handle, PEdge *e, PBool impl, PEdge ***stack)
+static PBool p_edge_connect_pair(PHandle *handle,
+                                 PEdge *e,
+                                 PBool topology_from_uvs,
+                                 PEdge ***stack)
 {
   PEdge *pair = NULL;
 
-  if (!e->pair && p_edge_has_pair(handle, e, impl, &pair)) {
+  if (!e->pair && p_edge_has_pair(handle, e, topology_from_uvs, &pair)) {
     if (e->vert == pair->vert) {
       p_face_flip(pair->face);
     }
@@ -964,7 +968,7 @@ static PBool p_edge_connect_pair(PHandle *handle, PEdge *e, PBool impl, PEdge **
   return (e->pair != NULL);
 }
 
-static int p_connect_pairs(PHandle *handle, PBool impl)
+static int p_connect_pairs(PHandle *handle, PBool topology_from_uvs)
 {
   PEdge **stackbase = MEM_mallocN(sizeof(*stackbase) * phash_size(handle->hash_faces),
                                   "Pstackbase");
@@ -995,13 +999,13 @@ static int p_connect_pairs(PHandle *handle, PBool impl)
       /* assign verts to charts so we can sort them later */
       f->u.chart = ncharts;
 
-      if (!p_edge_connect_pair(handle, e, impl, &stack)) {
+      if (!p_edge_connect_pair(handle, e, topology_from_uvs, &stack)) {
         e->vert->edge = e;
       }
-      if (!p_edge_connect_pair(handle, e1, impl, &stack)) {
+      if (!p_edge_connect_pair(handle, e1, topology_from_uvs, &stack)) {
         e1->vert->edge = e1;
       }
-      if (!p_edge_connect_pair(handle, e2, impl, &stack)) {
+      if (!p_edge_connect_pair(handle, e2, topology_from_uvs, &stack)) {
         e2->vert->edge = e2;
       }
     }
@@ -4542,7 +4546,7 @@ void param_edge_set_seam(ParamHandle *handle, ParamKey *vkeys)
   }
 }
 
-void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl)
+void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool topology_from_uvs)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart = phandle->construction_chart;
@@ -4551,7 +4555,7 @@ void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl)
 
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
 
-  phandle->ncharts = p_connect_pairs(phandle, (PBool)impl);
+  phandle->ncharts = p_connect_pairs(phandle, (PBool)topology_from_uvs);
   phandle->charts = p_split_charts(phandle, chart, phandle->ncharts);
 
   p_chart_delete(phandle->construction_chart);
@@ -4568,7 +4572,7 @@ void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl)
 
     p_chart_boundaries(chart, &nboundaries, &outer);
 
-    if (!impl && nboundaries == 0) {
+    if (!topology_from_uvs && nboundaries == 0) {
       p_chart_delete(chart);
       continue;
     }

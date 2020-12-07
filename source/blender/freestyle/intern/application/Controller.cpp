@@ -22,7 +22,7 @@ extern "C" {
 #include <Python.h>
 }
 
-#include <float.h>
+#include <cfloat>
 #include <fstream>
 #include <string>
 

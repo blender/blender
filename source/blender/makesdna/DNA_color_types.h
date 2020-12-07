@@ -26,6 +26,10 @@
 #include "DNA_defs.h"
 #include "DNA_vec_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* general defines for kernel functions */
 #define CM_RESOL 32
 #define CM_TABLE 256
@@ -61,9 +65,9 @@ typedef struct CurveMap {
   /** Display and evaluate table. */
   CurveMapPoint *table;
 
-  /** For RGB curves, premulled table. */
+  /** For RGB curves, pre-multiplied table. */
   CurveMapPoint *premultable;
-  /** For RGB curves, premulled extrapolation vector. */
+  /** For RGB curves, pre-multiplied extrapolation vector. */
   float premul_ext_in[2];
   float premul_ext_out[2];
 } CurveMap;
@@ -214,3 +218,7 @@ typedef struct ColorManagedColorspaceSettings {
 enum {
   COLORMANAGE_VIEW_USE_CURVES = (1 << 0),
 };
+
+#ifdef __cplusplus
+}
+#endif

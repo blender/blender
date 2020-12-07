@@ -90,8 +90,8 @@ namespace ceres {
 //
 // An example that occurs commonly in Structure from Motion problems
 // is when camera rotations are parameterized using Quaternion. There,
-// it is useful only make updates orthogonal to that 4-vector defining
-// the quaternion. One way to do this is to let delta be a 3
+// it is useful to only make updates orthogonal to that 4-vector
+// defining the quaternion. One way to do this is to let delta be a 3
 // dimensional vector and define Plus to be
 //
 //   Plus(x, delta) = [cos(|delta|), sin(|delta|) delta / |delta|] * x
@@ -99,7 +99,7 @@ namespace ceres {
 // The multiplication between the two 4-vectors on the RHS is the
 // standard quaternion product.
 //
-// Given g and a point x, optimizing f can now be restated as
+// Given f and a point x, optimizing f can now be restated as
 //
 //     min  f(Plus(x, delta))
 //    delta
@@ -306,6 +306,7 @@ class CERES_EXPORT ProductParameterization : public LocalParameterization {
  public:
   ProductParameterization(const ProductParameterization&) = delete;
   ProductParameterization& operator=(const ProductParameterization&) = delete;
+  virtual ~ProductParameterization() {}
   //
   // NOTE: The constructor takes ownership of the input local
   // parameterizations.
@@ -341,7 +342,8 @@ class CERES_EXPORT ProductParameterization : public LocalParameterization {
   bool Plus(const double* x,
             const double* delta,
             double* x_plus_delta) const override;
-  bool ComputeJacobian(const double* x, double* jacobian) const override;
+  bool ComputeJacobian(const double* x,
+                       double* jacobian) const override;
   int GlobalSize() const override { return global_size_; }
   int LocalSize() const override { return local_size_; }
 
@@ -354,8 +356,8 @@ class CERES_EXPORT ProductParameterization : public LocalParameterization {
 
 }  // namespace ceres
 
+// clang-format off
 #include "ceres/internal/reenable_warnings.h"
 #include "ceres/internal/line_parameterization.h"
 
 #endif  // CERES_PUBLIC_LOCAL_PARAMETERIZATION_H_
-

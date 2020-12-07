@@ -46,7 +46,7 @@
 
 #include "RE_multires_bake.h"
 #include "RE_pipeline.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -110,6 +110,11 @@ typedef struct {
 typedef struct {
   const int *orig_index_mp_to_orig;
 } MNormalBakeData;
+
+typedef struct BakeImBufuserData {
+  float *displacement_buffer;
+  char *mask_buffer;
+} BakeImBufuserData;
 
 static void multiresbake_get_normal(const MResolvePixelData *data,
                                     float norm[],

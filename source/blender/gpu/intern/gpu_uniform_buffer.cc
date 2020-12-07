@@ -22,7 +22,7 @@
  */
 
 #include "MEM_guardedalloc.h"
-#include <string.h>
+#include <cstring>
 
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"

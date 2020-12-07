@@ -345,11 +345,9 @@ class OUTLINER_PT_filter(Panel):
         if display_mode != 'DATA_API':
             col = layout.column(align=True)
             col.prop(space, "use_sort_alpha")
-            layout.separator()
 
         row = layout.row(align=True)
         row.prop(space, "use_sync_select", text="Sync Selection")
-        layout.separator()
 
         row = layout.row(align=True)
         row.prop(space, "show_mode_column", text="Show Mode Column")
@@ -370,12 +368,18 @@ class OUTLINER_PT_filter(Panel):
         col = layout.column(align=True)
 
         row = col.row()
-        row.label(icon='GROUP')
+        row.label(icon='OUTLINER_COLLECTION')
         row.prop(space, "use_filter_collection", text="Collections")
+
         row = col.row()
         row.label(icon='OBJECT_DATAMODE')
         row.prop(space, "use_filter_object", text="Objects")
+        row = col.row(align=True)
+        row.label(icon="BLANK1")
         row.prop(space, "filter_state", text="")
+        sub = row.row(align=True)
+        sub.enabled = space.filter_state != 'ALL'
+        sub.prop(space, "filter_invert", text="", icon="ARROW_LEFTRIGHT")
 
         sub = col.column(align=True)
         sub.active = space.use_filter_object

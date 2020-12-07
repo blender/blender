@@ -46,8 +46,7 @@
 
 #include "BKE_image.h"
 
-#include "RE_render_ext.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "render_types.h"
 #include "texture_common.h"
@@ -328,7 +327,7 @@ int imagewrap(Tex *tex,
     texres->ta = 1.0f - texres->ta;
   }
 
-  /* de-premul, this is being premulled in shade_input_do_shade()
+  /* de-premul, this is being pre-multiplied in shade_input_do_shade()
    * do not de-premul for generated alpha, it is already in straight */
   if (texres->ta != 1.0f && texres->ta > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
     fx = 1.0f / texres->ta;
@@ -743,8 +742,10 @@ typedef struct afdata_t {
 /* this only used here to make it easier to pass extend flags as single int */
 enum { TXC_XMIR = 1, TXC_YMIR, TXC_REPT, TXC_EXTD };
 
-/* similar to ibuf_get_color() but clips/wraps coords according to repeat/extend flags
- * returns true if out of range in clipmode */
+/**
+ * Similar to `ibuf_get_color()` but clips/wraps coords according to repeat/extend flags
+ * returns true if out of range in clip-mode.
+ */
 static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extflag)
 {
   int clip = 0;
@@ -1115,7 +1116,7 @@ static int imagewraposa_aniso(Tex *tex,
     float t;
     SWAP(float, minx, miny);
     /* must rotate dxt/dyt 90 deg
-     * yet another blender problem is that swapping X/Y axes (or any tex proj switches)
+     * yet another blender problem is that swapping X/Y axes (or any tex projection switches)
      * should do something similar, but it doesn't, it only swaps coords,
      * so filter area will be incorrect in those cases. */
     t = dxt[0];
@@ -1258,9 +1259,9 @@ static int imagewraposa_aniso(Tex *tex,
     int maxlev;
     ImBuf *mipmaps[IMB_MIPMAP_LEVELS + 1];
 
-    /* modify ellipse minor axis if too eccentric, use for area sampling as well
-     * scaling dxt/dyt as done in pbrt is not the same
-     * (as in ewa_eval(), scale by sqrt(ibuf->x) to maximize precision) */
+    /* Modify ellipse minor axis if too eccentric, use for area sampling as well
+     * scaling `dxt/dyt` as done in PBRT is not the same
+     * (as in `ewa_eval()`, scale by `sqrt(ibuf->x)` to maximize precision). */
     const float ff = sqrtf(ibuf->x), q = ibuf->y / ff;
     const float Ux = dxt[0] * ff, Vx = dxt[1] * q, Uy = dyt[0] * ff, Vy = dyt[1] * q;
     const float A = Vx * Vx + Vy * Vy;
@@ -1440,7 +1441,7 @@ static int imagewraposa_aniso(Tex *tex,
     texres->nor[2] = 2.0f * (texres->tb - 0.5f);
   }
 
-  /* de-premul, this is being premulled in shade_input_do_shade()
+  /* de-premul, this is being pre-multiplied in shade_input_do_shade()
    * TXF: this currently does not (yet?) work properly, destroys edge AA in clip/checker mode,
    * so for now commented out also disabled in imagewraposa()
    * to be able to compare results with blender's default texture filtering */
@@ -1969,7 +1970,7 @@ int imagewraposa(Tex *tex,
     texres->nor[2] = 2.0f * (texres->tb - 0.5f);
   }
 
-  /* de-premul, this is being premulled in shade_input_do_shade() */
+  /* de-premul, this is being pre-multiplied in shade_input_do_shade() */
   /* do not de-premul for generated alpha, it is already in straight */
   if (texres->ta != 1.0f && texres->ta > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
     mul_v3_fl(&texres->tr, 1.0f / texres->ta);

@@ -190,14 +190,14 @@ static PyObject *Interface0DIterator_at_last_get(BPy_Interface0DIterator *self,
 static PyGetSetDef BPy_Interface0DIterator_getseters[] = {
     {"object",
      (getter)Interface0DIterator_object_get,
-     (setter)nullptr,
+     (setter) nullptr,
      Interface0DIterator_object_doc,
      nullptr},
-    {"t", (getter)Interface0DIterator_t_get, (setter)nullptr, Interface0DIterator_t_doc, nullptr},
-    {"u", (getter)Interface0DIterator_u_get, (setter)nullptr, Interface0DIterator_u_doc, nullptr},
+    {"t", (getter)Interface0DIterator_t_get, (setter) nullptr, Interface0DIterator_t_doc, nullptr},
+    {"u", (getter)Interface0DIterator_u_get, (setter) nullptr, Interface0DIterator_u_doc, nullptr},
     {"at_last",
      (getter)Interface0DIterator_at_last_get,
-     (setter)nullptr,
+     (setter) nullptr,
      Interface0DIterator_at_last_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
@@ -207,42 +207,46 @@ static PyGetSetDef BPy_Interface0DIterator_getseters[] = {
 
 PyTypeObject Interface0DIterator_Type = {
     PyVarObject_HEAD_INIT(nullptr, 0) "Interface0DIterator", /* tp_name */
-    sizeof(BPy_Interface0DIterator),                      /* tp_basicsize */
-    0,                                                    /* tp_itemsize */
-    nullptr,                                                    /* tp_dealloc */
-    nullptr,                                                    /* tp_print */
-    nullptr,                                                    /* tp_getattr */
-    nullptr,                                                    /* tp_setattr */
-    nullptr,                                                    /* tp_reserved */
-    nullptr,                                                    /* tp_repr */
-    nullptr,                                                    /* tp_as_number */
-    nullptr,                                                    /* tp_as_sequence */
-    nullptr,                                                    /* tp_as_mapping */
-    nullptr,                                                    /* tp_hash  */
-    nullptr,                                                    /* tp_call */
-    nullptr,                                                    /* tp_str */
-    nullptr,                                                    /* tp_getattro */
-    nullptr,                                                    /* tp_setattro */
-    nullptr,                                                    /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,             /* tp_flags */
-    Interface0DIterator_doc,                              /* tp_doc */
-    nullptr,                                                    /* tp_traverse */
-    nullptr,                                                    /* tp_clear */
-    nullptr,                                                    /* tp_richcompare */
-    0,                                                    /* tp_weaklistoffset */
-    (getiterfunc)Interface0DIterator_iter,                /* tp_iter */
-    (iternextfunc)Interface0DIterator_iternext,           /* tp_iternext */
-    nullptr,                                                    /* tp_methods */
-    nullptr,                                                    /* tp_members */
-    BPy_Interface0DIterator_getseters,                    /* tp_getset */
-    &Iterator_Type,                                       /* tp_base */
-    nullptr,                                                    /* tp_dict */
-    nullptr,                                                    /* tp_descr_get */
-    nullptr,                                                    /* tp_descr_set */
-    0,                                                    /* tp_dictoffset */
-    (initproc)Interface0DIterator_init,                   /* tp_init */
-    nullptr,                                                    /* tp_alloc */
-    nullptr,                                                    /* tp_new */
+    sizeof(BPy_Interface0DIterator),                         /* tp_basicsize */
+    0,                                                       /* tp_itemsize */
+    nullptr,                                                 /* tp_dealloc */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    nullptr, /* tp_print */
+#endif
+    nullptr,                                    /* tp_getattr */
+    nullptr,                                    /* tp_setattr */
+    nullptr,                                    /* tp_reserved */
+    nullptr,                                    /* tp_repr */
+    nullptr,                                    /* tp_as_number */
+    nullptr,                                    /* tp_as_sequence */
+    nullptr,                                    /* tp_as_mapping */
+    nullptr,                                    /* tp_hash  */
+    nullptr,                                    /* tp_call */
+    nullptr,                                    /* tp_str */
+    nullptr,                                    /* tp_getattro */
+    nullptr,                                    /* tp_setattro */
+    nullptr,                                    /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
+    Interface0DIterator_doc,                    /* tp_doc */
+    nullptr,                                    /* tp_traverse */
+    nullptr,                                    /* tp_clear */
+    nullptr,                                    /* tp_richcompare */
+    0,                                          /* tp_weaklistoffset */
+    (getiterfunc)Interface0DIterator_iter,      /* tp_iter */
+    (iternextfunc)Interface0DIterator_iternext, /* tp_iternext */
+    nullptr,                                    /* tp_methods */
+    nullptr,                                    /* tp_members */
+    BPy_Interface0DIterator_getseters,          /* tp_getset */
+    &Iterator_Type,                             /* tp_base */
+    nullptr,                                    /* tp_dict */
+    nullptr,                                    /* tp_descr_get */
+    nullptr,                                    /* tp_descr_set */
+    0,                                          /* tp_dictoffset */
+    (initproc)Interface0DIterator_init,         /* tp_init */
+    nullptr,                                    /* tp_alloc */
+    nullptr,                                    /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

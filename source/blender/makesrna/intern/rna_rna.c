@@ -1879,7 +1879,7 @@ int rna_property_override_diff_default(Main *bmain,
             BKE_lib_override_library_property_operation_get(op,
                                                             IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
                                                             NULL,
-                                                            prev_propname_a,
+                                                            no_prop_name ? NULL : prev_propname_a,
                                                             -1,
                                                             idx_a - 1,
                                                             true,
@@ -2598,7 +2598,6 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
           IDP_CopyPropertyContent(item_idprop_dst, item_idprop_src);
 
           return RNA_property_collection_move(ptr_dst, prop_dst, item_index_added, item_index_dst);
-          break;
         }
         default:
           BLI_assert(0 && "Unsupported RNA override operation on collection");

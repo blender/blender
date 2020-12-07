@@ -98,21 +98,7 @@ Session::Session(const SessionParams &params_)
 
 Session::~Session()
 {
-  if (session_thread) {
-    /* wait for session thread to end */
-    progress.set_cancel("Exiting");
-
-    gpu_need_display_buffer_update = false;
-    gpu_need_display_buffer_update_cond.notify_all();
-
-    {
-      thread_scoped_lock pause_lock(pause_mutex);
-      pause = false;
-    }
-    pause_cond.notify_all();
-
-    wait();
-  }
+  cancel();
 
   if (buffers && params.write_render_cb) {
     /* Copy to display buffer and write out image if requested */
@@ -143,6 +129,25 @@ void Session::start()
 {
   if (!session_thread) {
     session_thread = new thread(function_bind(&Session::run, this));
+  }
+}
+
+void Session::cancel()
+{
+  if (session_thread) {
+    /* wait for session thread to end */
+    progress.set_cancel("Exiting");
+
+    gpu_need_display_buffer_update = false;
+    gpu_need_display_buffer_update_cond.notify_all();
+
+    {
+      thread_scoped_lock pause_lock(pause_mutex);
+      pause = false;
+    }
+    pause_cond.notify_all();
+
+    wait();
   }
 }
 

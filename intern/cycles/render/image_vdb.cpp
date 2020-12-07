@@ -48,7 +48,6 @@ bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
 
   /* Set dimensions. */
   openvdb::Coord dim = bbox.dim();
-  openvdb::Coord min = bbox.min();
   metadata.width = dim.x();
   metadata.height = dim.y();
   metadata.depth = dim.z();
@@ -145,9 +144,9 @@ bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
   }
 
 #  ifdef WITH_NANOVDB
-  /* Add small offset for correct sampling between voxels. */
-  Transform texture_to_index = transform_translate(0.5f, 0.5f, 0.5f);
+  Transform texture_to_index = transform_identity();
 #  else
+  openvdb::Coord min = bbox.min();
   Transform texture_to_index = transform_translate(min.x(), min.y(), min.z()) *
                                transform_scale(dim.x(), dim.y(), dim.z());
 #  endif

@@ -56,6 +56,8 @@ typedef struct bConstraintOb {
   float matrix[4][4];
   /** original matrix (before constraint solving) */
   float startmat[4][4];
+  /** space matrix for custom object space */
+  float space_obj_world_matrix[4][4];
 
   /** type of owner  */
   short type;
@@ -175,6 +177,9 @@ struct bConstraint *BKE_constraint_find_from_target(struct Object *ob,
                                                     struct bConstraintTarget *tgt,
                                                     struct bPoseChannel **r_pchan);
 
+bool BKE_constraint_is_local_in_liboverride(const struct Object *ob,
+                                            const struct bConstraint *con);
+
 struct bConstraint *BKE_constraint_add_for_object(struct Object *ob, const char *name, short type);
 struct bConstraint *BKE_constraint_add_for_pose(struct Object *ob,
                                                 struct bPoseChannel *pchan,
@@ -203,6 +208,7 @@ void BKE_constraints_clear_evalob(struct bConstraintOb *cob);
 
 void BKE_constraint_mat_convertspace(struct Object *ob,
                                      struct bPoseChannel *pchan,
+                                     struct bConstraintOb *cob,
                                      float mat[4][4],
                                      short from,
                                      short to,
@@ -221,6 +227,7 @@ void BKE_constraint_targets_for_solving_get(struct Depsgraph *depsgraph,
                                             struct bConstraintOb *ob,
                                             struct ListBase *targets,
                                             float ctime);
+void BKE_constraint_custom_object_space_get(float r_mat[4][4], struct bConstraint *con);
 void BKE_constraints_solve(struct Depsgraph *depsgraph,
                            struct ListBase *conlist,
                            struct bConstraintOb *cob,

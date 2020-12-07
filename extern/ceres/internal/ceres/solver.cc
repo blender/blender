@@ -56,34 +56,34 @@
 namespace ceres {
 namespace {
 
+using internal::StringAppendF;
+using internal::StringPrintf;
 using std::map;
 using std::string;
 using std::vector;
-using internal::StringAppendF;
-using internal::StringPrintf;
 
-#define OPTION_OP(x, y, OP)                                             \
-  if (!(options.x OP y)) {                                              \
-    std::stringstream ss;                                               \
-    ss << "Invalid configuration. ";                                    \
-    ss << string("Solver::Options::" #x " = ") << options.x << ". ";    \
-    ss << "Violated constraint: ";                                      \
-    ss << string("Solver::Options::" #x " " #OP " "#y);                 \
-    *error = ss.str();                                                  \
-    return false;                                                       \
+#define OPTION_OP(x, y, OP)                                          \
+  if (!(options.x OP y)) {                                           \
+    std::stringstream ss;                                            \
+    ss << "Invalid configuration. ";                                 \
+    ss << string("Solver::Options::" #x " = ") << options.x << ". "; \
+    ss << "Violated constraint: ";                                   \
+    ss << string("Solver::Options::" #x " " #OP " " #y);             \
+    *error = ss.str();                                               \
+    return false;                                                    \
   }
 
-#define OPTION_OP_OPTION(x, y, OP)                                      \
-  if (!(options.x OP options.y)) {                                      \
-    std::stringstream ss;                                               \
-    ss << "Invalid configuration. ";                                    \
-    ss << string("Solver::Options::" #x " = ") << options.x << ". ";    \
-    ss << string("Solver::Options::" #y " = ") << options.y << ". ";    \
-    ss << "Violated constraint: ";                                      \
-    ss << string("Solver::Options::" #x);                               \
-    ss << string(#OP " Solver::Options::" #y ".");                      \
-    *error = ss.str();                                                  \
-    return false;                                                       \
+#define OPTION_OP_OPTION(x, y, OP)                                   \
+  if (!(options.x OP options.y)) {                                   \
+    std::stringstream ss;                                            \
+    ss << "Invalid configuration. ";                                 \
+    ss << string("Solver::Options::" #x " = ") << options.x << ". "; \
+    ss << string("Solver::Options::" #y " = ") << options.y << ". "; \
+    ss << "Violated constraint: ";                                   \
+    ss << string("Solver::Options::" #x);                            \
+    ss << string(#OP " Solver::Options::" #y ".");                   \
+    *error = ss.str();                                               \
+    return false;                                                    \
   }
 
 #define OPTION_GE(x, y) OPTION_OP(x, y, >=);
@@ -135,7 +135,8 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
   if (options.linear_solver_type == ITERATIVE_SCHUR &&
       options.use_explicit_schur_complement &&
       options.preconditioner_type != SCHUR_JACOBI) {
-    *error =  "use_explicit_schur_complement only supports "
+    *error =
+        "use_explicit_schur_complement only supports "
         "SCHUR_JACOBI as the preconditioner.";
     return false;
   }
@@ -174,7 +175,8 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
         *error = StringPrintf(
             "Can't use %s with "
             "Solver::Options::sparse_linear_algebra_library_type = %s.",
-            name, sparse_linear_algebra_library_name);
+            name,
+            sparse_linear_algebra_library_name);
         return false;
       } else if (!IsSparseLinearAlgebraLibraryTypeAvailable(
                      options.sparse_linear_algebra_library_type)) {
@@ -182,7 +184,8 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
             "Can't use %s with "
             "Solver::Options::sparse_linear_algebra_library_type = %s, "
             "because support was not enabled when Ceres Solver was built.",
-            name, sparse_linear_algebra_library_name);
+            name,
+            sparse_linear_algebra_library_name);
         return false;
       }
     }
@@ -191,7 +194,8 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
   if (options.trust_region_strategy_type == DOGLEG) {
     if (options.linear_solver_type == ITERATIVE_SCHUR ||
         options.linear_solver_type == CGNR) {
-      *error = "DOGLEG only supports exact factorization based linear "
+      *error =
+          "DOGLEG only supports exact factorization based linear "
           "solvers. If you want to use an iterative solver please "
           "use LEVENBERG_MARQUARDT as the trust_region_strategy_type";
       return false;
@@ -207,12 +211,13 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
 
   if (options.dynamic_sparsity) {
     if (options.linear_solver_type != SPARSE_NORMAL_CHOLESKY) {
-      *error = "Dynamic sparsity is only supported with SPARSE_NORMAL_CHOLESKY.";
+      *error =
+          "Dynamic sparsity is only supported with SPARSE_NORMAL_CHOLESKY.";
       return false;
     }
     if (options.sparse_linear_algebra_library_type == ACCELERATE_SPARSE) {
-      *error = "ACCELERATE_SPARSE is not currently supported with dynamic "
-          "sparsity.";
+      *error =
+          "ACCELERATE_SPARSE is not currently supported with dynamic sparsity.";
       return false;
     }
   }
@@ -250,10 +255,11 @@ bool LineSearchOptionsAreValid(const Solver::Options& options, string* error) {
        options.line_search_direction_type == ceres::LBFGS) &&
       options.line_search_type != ceres::WOLFE) {
     *error =
-        string("Invalid configuration: Solver::Options::line_search_type = ")
-        + string(LineSearchTypeToString(options.line_search_type))
-        + string(". When using (L)BFGS, "
-                 "Solver::Options::line_search_type must be set to WOLFE.");
+        string("Invalid configuration: Solver::Options::line_search_type = ") +
+        string(LineSearchTypeToString(options.line_search_type)) +
+        string(
+            ". When using (L)BFGS, "
+            "Solver::Options::line_search_type must be set to WOLFE.");
     return false;
   }
 
@@ -261,17 +267,18 @@ bool LineSearchOptionsAreValid(const Solver::Options& options, string* error) {
   // on max/min step size change during line search prevent bisection scaling
   // from occurring. Warn only, as this is likely a user mistake, but one which
   // does not prevent us from continuing.
-  LOG_IF(WARNING,
-         (options.line_search_interpolation_type == ceres::BISECTION &&
-          (options.max_line_search_step_contraction > 0.5 ||
-           options.min_line_search_step_contraction < 0.5)))
-      << "Line search interpolation type is BISECTION, but specified "
-      << "max_line_search_step_contraction: "
-      << options.max_line_search_step_contraction << ", and "
-      << "min_line_search_step_contraction: "
-      << options.min_line_search_step_contraction
-      << ", prevent bisection (0.5) scaling, continuing with solve regardless.";
-
+  if (options.line_search_interpolation_type == ceres::BISECTION &&
+      (options.max_line_search_step_contraction > 0.5 ||
+       options.min_line_search_step_contraction < 0.5)) {
+    LOG(WARNING)
+        << "Line search interpolation type is BISECTION, but specified "
+        << "max_line_search_step_contraction: "
+        << options.max_line_search_step_contraction << ", and "
+        << "min_line_search_step_contraction: "
+        << options.min_line_search_step_contraction
+        << ", prevent bisection (0.5) scaling, continuing with solve "
+           "regardless.";
+  }
   return true;
 }
 
@@ -298,20 +305,24 @@ void StringifyOrdering(const vector<int>& ordering, string* report) {
 
 void SummarizeGivenProgram(const internal::Program& program,
                            Solver::Summary* summary) {
+  // clang-format off
   summary->num_parameter_blocks     = program.NumParameterBlocks();
   summary->num_parameters           = program.NumParameters();
   summary->num_effective_parameters = program.NumEffectiveParameters();
   summary->num_residual_blocks      = program.NumResidualBlocks();
   summary->num_residuals            = program.NumResiduals();
+  // clang-format on
 }
 
 void SummarizeReducedProgram(const internal::Program& program,
                              Solver::Summary* summary) {
+  // clang-format off
   summary->num_parameter_blocks_reduced     = program.NumParameterBlocks();
   summary->num_parameters_reduced           = program.NumParameters();
   summary->num_effective_parameters_reduced = program.NumEffectiveParameters();
   summary->num_residual_blocks_reduced      = program.NumResidualBlocks();
   summary->num_residuals_reduced            = program.NumResiduals();
+  // clang-format on
 }
 
 void PreSolveSummarize(const Solver::Options& options,
@@ -323,6 +334,7 @@ void PreSolveSummarize(const Solver::Options& options,
   internal::OrderingToGroupSizes(options.inner_iteration_ordering.get(),
                                  &(summary->inner_iteration_ordering_given));
 
+  // clang-format off
   summary->dense_linear_algebra_library_type  = options.dense_linear_algebra_library_type;  //  NOLINT
   summary->dogleg_type                        = options.dogleg_type;
   summary->inner_iteration_time_in_seconds    = 0.0;
@@ -344,6 +356,7 @@ void PreSolveSummarize(const Solver::Options& options,
   summary->sparse_linear_algebra_library_type = options.sparse_linear_algebra_library_type; //  NOLINT
   summary->trust_region_strategy_type         = options.trust_region_strategy_type;         //  NOLINT
   summary->visibility_clustering_type         = options.visibility_clustering_type;         //  NOLINT
+  // clang-format on
 }
 
 void PostSolveSummarize(const internal::PreprocessedProblem& pp,
@@ -353,10 +366,12 @@ void PostSolveSummarize(const internal::PreprocessedProblem& pp,
   internal::OrderingToGroupSizes(pp.options.inner_iteration_ordering.get(),
                                  &(summary->inner_iteration_ordering_used));
 
+  // clang-format off
   summary->inner_iterations_used          = pp.inner_iteration_minimizer.get() != NULL;     // NOLINT
   summary->linear_solver_type_used        = pp.linear_solver_options.type;
   summary->num_threads_used               = pp.options.num_threads;
   summary->preconditioner_type_used       = pp.options.preconditioner_type;
+  // clang-format on
 
   internal::SetSummaryFinalCost(summary);
 
@@ -402,17 +417,19 @@ void PostSolveSummarize(const internal::PreprocessedProblem& pp,
   }
 }
 
-void Minimize(internal::PreprocessedProblem* pp,
-              Solver::Summary* summary) {
-  using internal::Program;
+void Minimize(internal::PreprocessedProblem* pp, Solver::Summary* summary) {
   using internal::Minimizer;
+  using internal::Program;
 
   Program* program = pp->reduced_program.get();
   if (pp->reduced_program->NumParameterBlocks() == 0) {
-    summary->message = "Function tolerance reached. "
+    summary->message =
+        "Function tolerance reached. "
         "No non-constant parameter blocks found.";
     summary->termination_type = CONVERGENCE;
-    VLOG_IF(1, pp->options.logging_type != SILENT) << summary->message;
+    if (pp->options.logging_type != SILENT) {
+      VLOG(1) << summary->message;
+    }
     summary->initial_cost = summary->fixed_cost;
     summary->final_cost = summary->fixed_cost;
     return;
@@ -421,31 +438,29 @@ void Minimize(internal::PreprocessedProblem* pp,
   const Vector original_reduced_parameters = pp->reduced_parameters;
   std::unique_ptr<Minimizer> minimizer(
       Minimizer::Create(pp->options.minimizer_type));
-  minimizer->Minimize(pp->minimizer_options,
-                      pp->reduced_parameters.data(),
-                      summary);
+  minimizer->Minimize(
+      pp->minimizer_options, pp->reduced_parameters.data(), summary);
 
   program->StateVectorToParameterBlocks(
-      summary->IsSolutionUsable()
-      ? pp->reduced_parameters.data()
-      : original_reduced_parameters.data());
+      summary->IsSolutionUsable() ? pp->reduced_parameters.data()
+                                  : original_reduced_parameters.data());
   program->CopyParameterBlockStateToUserState();
 }
 
 std::string SchurStructureToString(const int row_block_size,
                                    const int e_block_size,
                                    const int f_block_size) {
-  const std::string row =
-      (row_block_size == Eigen::Dynamic)
-      ? "d" : internal::StringPrintf("%d", row_block_size);
+  const std::string row = (row_block_size == Eigen::Dynamic)
+                              ? "d"
+                              : internal::StringPrintf("%d", row_block_size);
 
-  const std::string e =
-      (e_block_size == Eigen::Dynamic)
-      ? "d" : internal::StringPrintf("%d", e_block_size);
+  const std::string e = (e_block_size == Eigen::Dynamic)
+                            ? "d"
+                            : internal::StringPrintf("%d", e_block_size);
 
-  const std::string f =
-      (f_block_size == Eigen::Dynamic)
-      ? "d" : internal::StringPrintf("%d", f_block_size);
+  const std::string f = (f_block_size == Eigen::Dynamic)
+                            ? "d"
+                            : internal::StringPrintf("%d", f_block_size);
 
   return internal::StringPrintf("%s,%s,%s", row.c_str(), e.c_str(), f.c_str());
 }
@@ -503,12 +518,11 @@ void Solver::Solve(const Solver::Options& options,
   Solver::Options modified_options = options;
   if (options.check_gradients) {
     modified_options.callbacks.push_back(&gradient_checking_callback);
-    gradient_checking_problem.reset(
-        CreateGradientCheckingProblemImpl(
-            problem_impl,
-            options.gradient_check_numeric_derivative_relative_step_size,
-            options.gradient_check_relative_precision,
-            &gradient_checking_callback));
+    gradient_checking_problem.reset(CreateGradientCheckingProblemImpl(
+        problem_impl,
+        options.gradient_check_numeric_derivative_relative_step_size,
+        options.gradient_check_relative_precision,
+        &gradient_checking_callback));
     problem_impl = gradient_checking_problem.get();
     program = problem_impl->mutable_program();
   }
@@ -524,7 +538,8 @@ void Solver::Solve(const Solver::Options& options,
       Preprocessor::Create(modified_options.minimizer_type));
   PreprocessedProblem pp;
 
-  const bool status = preprocessor->Preprocess(modified_options, problem_impl, &pp);
+  const bool status =
+      preprocessor->Preprocess(modified_options, problem_impl, &pp);
 
   // We check the linear_solver_options.type rather than
   // modified_options.linear_solver_type because, depending on the
@@ -538,17 +553,16 @@ void Solver::Solve(const Solver::Options& options,
     int e_block_size;
     int f_block_size;
     DetectStructure(*static_cast<internal::BlockSparseMatrix*>(
-                        pp.minimizer_options.jacobian.get())
-                    ->block_structure(),
+                         pp.minimizer_options.jacobian.get())
+                         ->block_structure(),
                     pp.linear_solver_options.elimination_groups[0],
                     &row_block_size,
                     &e_block_size,
                     &f_block_size);
     summary->schur_structure_given =
         SchurStructureToString(row_block_size, e_block_size, f_block_size);
-    internal::GetBestSchurTemplateSpecialization(&row_block_size,
-                                                 &e_block_size,
-                                                 &f_block_size);
+    internal::GetBestSchurTemplateSpecialization(
+        &row_block_size, &e_block_size, &f_block_size);
     summary->schur_structure_used =
         SchurStructureToString(row_block_size, e_block_size, f_block_size);
   }
@@ -595,15 +609,16 @@ void Solve(const Solver::Options& options,
 }
 
 string Solver::Summary::BriefReport() const {
-  return StringPrintf("Ceres Solver Report: "
-                      "Iterations: %d, "
-                      "Initial cost: %e, "
-                      "Final cost: %e, "
-                      "Termination: %s",
-                      num_successful_steps + num_unsuccessful_steps,
-                      initial_cost,
-                      final_cost,
-                      TerminationTypeToString(termination_type));
+  return StringPrintf(
+      "Ceres Solver Report: "
+      "Iterations: %d, "
+      "Initial cost: %e, "
+      "Final cost: %e, "
+      "Termination: %s",
+      num_successful_steps + num_unsuccessful_steps,
+      initial_cost,
+      final_cost,
+      TerminationTypeToString(termination_type));
 }
 
 string Solver::Summary::FullReport() const {
@@ -612,28 +627,39 @@ string Solver::Summary::FullReport() const {
   string report = string("\nSolver Summary (v " + VersionString() + ")\n\n");
 
   StringAppendF(&report, "%45s    %21s\n", "Original", "Reduced");
-  StringAppendF(&report, "Parameter blocks    % 25d% 25d\n",
-                num_parameter_blocks, num_parameter_blocks_reduced);
-  StringAppendF(&report, "Parameters          % 25d% 25d\n",
-                num_parameters, num_parameters_reduced);
+  StringAppendF(&report,
+                "Parameter blocks    % 25d% 25d\n",
+                num_parameter_blocks,
+                num_parameter_blocks_reduced);
+  StringAppendF(&report,
+                "Parameters          % 25d% 25d\n",
+                num_parameters,
+                num_parameters_reduced);
   if (num_effective_parameters_reduced != num_parameters_reduced) {
-    StringAppendF(&report, "Effective parameters% 25d% 25d\n",
-                  num_effective_parameters, num_effective_parameters_reduced);
+    StringAppendF(&report,
+                  "Effective parameters% 25d% 25d\n",
+                  num_effective_parameters,
+                  num_effective_parameters_reduced);
   }
-  StringAppendF(&report, "Residual blocks     % 25d% 25d\n",
-                num_residual_blocks, num_residual_blocks_reduced);
-  StringAppendF(&report, "Residuals           % 25d% 25d\n",
-                num_residuals, num_residuals_reduced);
+  StringAppendF(&report,
+                "Residual blocks     % 25d% 25d\n",
+                num_residual_blocks,
+                num_residual_blocks_reduced);
+  StringAppendF(&report,
+                "Residuals           % 25d% 25d\n",
+                num_residuals,
+                num_residuals_reduced);
 
   if (minimizer_type == TRUST_REGION) {
     // TRUST_SEARCH HEADER
-    StringAppendF(&report, "\nMinimizer                 %19s\n",
-                  "TRUST_REGION");
+    StringAppendF(
+        &report, "\nMinimizer                 %19s\n", "TRUST_REGION");
 
     if (linear_solver_type_used == DENSE_NORMAL_CHOLESKY ||
         linear_solver_type_used == DENSE_SCHUR ||
         linear_solver_type_used == DENSE_QR) {
-      StringAppendF(&report, "\nDense linear algebra library  %15s\n",
+      StringAppendF(&report,
+                    "\nDense linear algebra library  %15s\n",
                     DenseLinearAlgebraLibraryTypeToString(
                         dense_linear_algebra_library_type));
     }
@@ -643,14 +669,15 @@ string Solver::Summary::FullReport() const {
         (linear_solver_type_used == ITERATIVE_SCHUR &&
          (preconditioner_type_used == CLUSTER_JACOBI ||
           preconditioner_type_used == CLUSTER_TRIDIAGONAL))) {
-      StringAppendF(&report, "\nSparse linear algebra library %15s\n",
+      StringAppendF(&report,
+                    "\nSparse linear algebra library %15s\n",
                     SparseLinearAlgebraLibraryTypeToString(
                         sparse_linear_algebra_library_type));
     }
 
-    StringAppendF(&report, "Trust region strategy     %19s",
-                  TrustRegionStrategyTypeToString(
-                      trust_region_strategy_type));
+    StringAppendF(&report,
+                  "Trust region strategy     %19s",
+                  TrustRegionStrategyTypeToString(trust_region_strategy_type));
     if (trust_region_strategy_type == DOGLEG) {
       if (dogleg_type == TRADITIONAL_DOGLEG) {
         StringAppendF(&report, " (TRADITIONAL)");
@@ -661,28 +688,32 @@ string Solver::Summary::FullReport() const {
     StringAppendF(&report, "\n");
     StringAppendF(&report, "\n");
 
-    StringAppendF(&report, "%45s    %21s\n", "Given",  "Used");
-    StringAppendF(&report, "Linear solver       %25s%25s\n",
+    StringAppendF(&report, "%45s    %21s\n", "Given", "Used");
+    StringAppendF(&report,
+                  "Linear solver       %25s%25s\n",
                   LinearSolverTypeToString(linear_solver_type_given),
                   LinearSolverTypeToString(linear_solver_type_used));
 
     if (linear_solver_type_given == CGNR ||
         linear_solver_type_given == ITERATIVE_SCHUR) {
-      StringAppendF(&report, "Preconditioner      %25s%25s\n",
+      StringAppendF(&report,
+                    "Preconditioner      %25s%25s\n",
                     PreconditionerTypeToString(preconditioner_type_given),
                     PreconditionerTypeToString(preconditioner_type_used));
     }
 
     if (preconditioner_type_used == CLUSTER_JACOBI ||
         preconditioner_type_used == CLUSTER_TRIDIAGONAL) {
-      StringAppendF(&report, "Visibility clustering%24s%25s\n",
-                    VisibilityClusteringTypeToString(
-                        visibility_clustering_type),
-                    VisibilityClusteringTypeToString(
-                        visibility_clustering_type));
+      StringAppendF(
+          &report,
+          "Visibility clustering%24s%25s\n",
+          VisibilityClusteringTypeToString(visibility_clustering_type),
+          VisibilityClusteringTypeToString(visibility_clustering_type));
     }
-    StringAppendF(&report, "Threads             % 25d% 25d\n",
-                  num_threads_given, num_threads_used);
+    StringAppendF(&report,
+                  "Threads             % 25d% 25d\n",
+                  num_threads_given,
+                  num_threads_used);
 
     string given;
     StringifyOrdering(linear_solver_ordering_given, &given);
@@ -711,68 +742,71 @@ string Solver::Summary::FullReport() const {
       StringifyOrdering(inner_iteration_ordering_given, &given);
       string used;
       StringifyOrdering(inner_iteration_ordering_used, &used);
-    StringAppendF(&report,
-                  "Inner iteration ordering %20s %24s\n",
-                  given.c_str(),
-                  used.c_str());
+      StringAppendF(&report,
+                    "Inner iteration ordering %20s %24s\n",
+                    given.c_str(),
+                    used.c_str());
     }
   } else {
     // LINE_SEARCH HEADER
     StringAppendF(&report, "\nMinimizer                 %19s\n", "LINE_SEARCH");
 
-
     string line_search_direction_string;
     if (line_search_direction_type == LBFGS) {
       line_search_direction_string = StringPrintf("LBFGS (%d)", max_lbfgs_rank);
     } else if (line_search_direction_type == NONLINEAR_CONJUGATE_GRADIENT) {
-      line_search_direction_string =
-          NonlinearConjugateGradientTypeToString(
-              nonlinear_conjugate_gradient_type);
+      line_search_direction_string = NonlinearConjugateGradientTypeToString(
+          nonlinear_conjugate_gradient_type);
     } else {
       line_search_direction_string =
           LineSearchDirectionTypeToString(line_search_direction_type);
     }
 
-    StringAppendF(&report, "Line search direction     %19s\n",
+    StringAppendF(&report,
+                  "Line search direction     %19s\n",
                   line_search_direction_string.c_str());
 
-    const string line_search_type_string =
-        StringPrintf("%s %s",
-                     LineSearchInterpolationTypeToString(
-                         line_search_interpolation_type),
-                     LineSearchTypeToString(line_search_type));
-    StringAppendF(&report, "Line search type          %19s\n",
+    const string line_search_type_string = StringPrintf(
+        "%s %s",
+        LineSearchInterpolationTypeToString(line_search_interpolation_type),
+        LineSearchTypeToString(line_search_type));
+    StringAppendF(&report,
+                  "Line search type          %19s\n",
                   line_search_type_string.c_str());
     StringAppendF(&report, "\n");
 
-    StringAppendF(&report, "%45s    %21s\n", "Given",  "Used");
-    StringAppendF(&report, "Threads             % 25d% 25d\n",
-                  num_threads_given, num_threads_used);
+    StringAppendF(&report, "%45s    %21s\n", "Given", "Used");
+    StringAppendF(&report,
+                  "Threads             % 25d% 25d\n",
+                  num_threads_given,
+                  num_threads_used);
   }
 
   StringAppendF(&report, "\nCost:\n");
   StringAppendF(&report, "Initial        % 30e\n", initial_cost);
-  if (termination_type != FAILURE &&
-      termination_type != USER_FAILURE) {
+  if (termination_type != FAILURE && termination_type != USER_FAILURE) {
     StringAppendF(&report, "Final          % 30e\n", final_cost);
-    StringAppendF(&report, "Change         % 30e\n",
-                  initial_cost - final_cost);
+    StringAppendF(&report, "Change         % 30e\n", initial_cost - final_cost);
   }
 
-  StringAppendF(&report, "\nMinimizer iterations         % 16d\n",
+  StringAppendF(&report,
+                "\nMinimizer iterations         % 16d\n",
                 num_successful_steps + num_unsuccessful_steps);
 
   // Successful/Unsuccessful steps only matter in the case of the
   // trust region solver. Line search terminates when it encounters
   // the first unsuccessful step.
   if (minimizer_type == TRUST_REGION) {
-    StringAppendF(&report, "Successful steps               % 14d\n",
+    StringAppendF(&report,
+                  "Successful steps               % 14d\n",
                   num_successful_steps);
-    StringAppendF(&report, "Unsuccessful steps             % 14d\n",
+    StringAppendF(&report,
+                  "Unsuccessful steps             % 14d\n",
                   num_unsuccessful_steps);
   }
   if (inner_iterations_used) {
-    StringAppendF(&report, "Steps with inner iterations    % 14d\n",
+    StringAppendF(&report,
+                  "Steps with inner iterations    % 14d\n",
                   num_inner_iteration_steps);
   }
 
@@ -781,53 +815,66 @@ string Solver::Summary::FullReport() const {
        (minimizer_type == TRUST_REGION && is_constrained));
 
   if (line_search_used) {
-    StringAppendF(&report, "Line search steps              % 14d\n",
+    StringAppendF(&report,
+                  "Line search steps              % 14d\n",
                   num_line_search_steps);
   }
 
   StringAppendF(&report, "\nTime (in seconds):\n");
-  StringAppendF(&report, "Preprocessor        %25.6f\n",
-                preprocessor_time_in_seconds);
+  StringAppendF(
+      &report, "Preprocessor        %25.6f\n", preprocessor_time_in_seconds);
 
-  StringAppendF(&report, "\n  Residual only evaluation %18.6f (%d)\n",
-                residual_evaluation_time_in_seconds, num_residual_evaluations);
+  StringAppendF(&report,
+                "\n  Residual only evaluation %18.6f (%d)\n",
+                residual_evaluation_time_in_seconds,
+                num_residual_evaluations);
   if (line_search_used) {
-    StringAppendF(&report, "    Line search cost evaluation    %10.6f\n",
+    StringAppendF(&report,
+                  "    Line search cost evaluation    %10.6f\n",
                   line_search_cost_evaluation_time_in_seconds);
   }
-  StringAppendF(&report, "  Jacobian & residual evaluation %12.6f (%d)\n",
-                jacobian_evaluation_time_in_seconds, num_jacobian_evaluations);
+  StringAppendF(&report,
+                "  Jacobian & residual evaluation %12.6f (%d)\n",
+                jacobian_evaluation_time_in_seconds,
+                num_jacobian_evaluations);
   if (line_search_used) {
-    StringAppendF(&report, "    Line search gradient evaluation   %6.6f\n",
+    StringAppendF(&report,
+                  "    Line search gradient evaluation   %6.6f\n",
                   line_search_gradient_evaluation_time_in_seconds);
   }
 
   if (minimizer_type == TRUST_REGION) {
-    StringAppendF(&report, "  Linear solver       %23.6f (%d)\n",
-                  linear_solver_time_in_seconds, num_linear_solves);
+    StringAppendF(&report,
+                  "  Linear solver       %23.6f (%d)\n",
+                  linear_solver_time_in_seconds,
+                  num_linear_solves);
   }
 
   if (inner_iterations_used) {
-    StringAppendF(&report, "  Inner iterations    %23.6f\n",
+    StringAppendF(&report,
+                  "  Inner iterations    %23.6f\n",
                   inner_iteration_time_in_seconds);
   }
 
   if (line_search_used) {
-    StringAppendF(&report, "  Line search polynomial minimization  %.6f\n",
+    StringAppendF(&report,
+                  "  Line search polynomial minimization  %.6f\n",
                   line_search_polynomial_minimization_time_in_seconds);
   }
 
-  StringAppendF(&report, "Minimizer           %25.6f\n\n",
-                minimizer_time_in_seconds);
+  StringAppendF(
+      &report, "Minimizer           %25.6f\n\n", minimizer_time_in_seconds);
 
-  StringAppendF(&report, "Postprocessor        %24.6f\n",
-                postprocessor_time_in_seconds);
+  StringAppendF(
+      &report, "Postprocessor        %24.6f\n", postprocessor_time_in_seconds);
 
-  StringAppendF(&report, "Total               %25.6f\n\n",
-                total_time_in_seconds);
+  StringAppendF(
+      &report, "Total               %25.6f\n\n", total_time_in_seconds);
 
-  StringAppendF(&report, "Termination:        %25s (%s)\n",
-                TerminationTypeToString(termination_type), message.c_str());
+  StringAppendF(&report,
+                "Termination:        %25s (%s)\n",
+                TerminationTypeToString(termination_type),
+                message.c_str());
   return report;
 }
 

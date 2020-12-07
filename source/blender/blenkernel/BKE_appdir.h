@@ -26,6 +26,7 @@ extern "C" {
 struct ListBase;
 
 void BKE_appdir_init(void);
+void BKE_appdir_exit(void);
 
 /* note on naming: typical _get() suffix is omitted here,
  * since its the main purpose of the API. */

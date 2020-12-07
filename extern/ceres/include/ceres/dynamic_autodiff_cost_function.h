@@ -40,6 +40,7 @@
 #include "ceres/dynamic_cost_function.h"
 #include "ceres/internal/fixed_array.h"
 #include "ceres/jet.h"
+#include "ceres/types.h"
 #include "glog/logging.h"
 
 namespace ceres {
@@ -78,10 +79,24 @@ namespace ceres {
 template <typename CostFunctor, int Stride = 4>
 class DynamicAutoDiffCostFunction : public DynamicCostFunction {
  public:
-  explicit DynamicAutoDiffCostFunction(CostFunctor* functor)
-      : functor_(functor) {}
+  // Takes ownership by default.
+  DynamicAutoDiffCostFunction(CostFunctor* functor,
+                              Ownership ownership = TAKE_OWNERSHIP)
+      : functor_(functor), ownership_(ownership) {}
 
-  virtual ~DynamicAutoDiffCostFunction() {}
+  explicit DynamicAutoDiffCostFunction(DynamicAutoDiffCostFunction&& other)
+      : functor_(std::move(other.functor_)), ownership_(other.ownership_) {}
+
+  virtual ~DynamicAutoDiffCostFunction() {
+    // Manually release pointer if configured to not take ownership
+    // rather than deleting only if ownership is taken.  This is to
+    // stay maximally compatible to old user code which may have
+    // forgotten to implement a virtual destructor, from when the
+    // AutoDiffCostFunction always took ownership.
+    if (ownership_ == DO_NOT_TAKE_OWNERSHIP) {
+      functor_.release();
+    }
+  }
 
   bool Evaluate(double const* const* parameters,
                 double* residuals,
@@ -151,6 +166,9 @@ class DynamicAutoDiffCostFunction : public DynamicCostFunction {
       }
     }
 
+    if (num_active_parameters == 0) {
+      return (*functor_)(parameters, residuals);
+    }
     // When `num_active_parameters % Stride != 0` then it can be the case
     // that `active_parameter_count < Stride` while parameter_cursor is less
     // than the total number of parameters and with no remaining non-constant
@@ -248,6 +266,7 @@ class DynamicAutoDiffCostFunction : public DynamicCostFunction {
 
  private:
   std::unique_ptr<CostFunctor> functor_;
+  Ownership ownership_;
 };
 
 }  // namespace ceres

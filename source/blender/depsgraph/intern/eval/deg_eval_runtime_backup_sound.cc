@@ -27,8 +27,7 @@
 
 #include "DNA_sound_types.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 SoundBackup::SoundBackup(const Depsgraph * /*depsgraph*/)
 {
@@ -62,5 +61,4 @@ void SoundBackup::restore_to_sound(bSound *sound)
   reset();
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

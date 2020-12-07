@@ -609,7 +609,7 @@ bPoseChannel *BKE_pose_channel_find_name(const bPose *pose, const char *name)
     return BLI_ghash_lookup(pose->chanhash, (const void *)name);
   }
 
-  return BLI_findstring(&((const bPose *)pose)->chanbase, name, offsetof(bPoseChannel, name));
+  return BLI_findstring(&pose->chanbase, name, offsetof(bPoseChannel, name));
 }
 
 /**

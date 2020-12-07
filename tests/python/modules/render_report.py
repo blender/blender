@@ -29,9 +29,54 @@ class COLORS_DUMMY:
 COLORS = COLORS_DUMMY
 
 
-# NOTE: Keep everything lowercase.
+# List of .blend files that are known to be failing and are not ready to be
+# tested, or that only make sense on some devices. Accepts regular expressions.
 BLACKLIST = (
-    # 'file_to_blacklist.blend',
+    # OSL only supported on CPU.
+    ('.*_osl.blend', '(?!CPU)'),
+    ('osl_.*.blend', '(?!CPU)'),
+
+    # No baking, branched path and shader raytrace on Optix.
+    ('bake_.*.blend', 'OPTIX'),
+    ('ambient_occlusion.blend', 'OPTIX'),
+    ('ambient_occlusion_only_local.blend', 'OPTIX'),
+    ('bevel.blend', 'OPTIX'),
+    ('bevel_mblur.blend', 'OPTIX'),
+    ('T53854.blend', 'OPTIX'),
+    ('T50164.blend', 'OPTIX'),
+    ('portal.blend', 'OPTIX'),
+    ('denoise_sss.blend', 'OPTIX'),
+    ('denoise_passes.blend', 'OPTIX'),
+    ('distant_light.blend', 'OPTIX'),
+    ('aov_position.blend', 'OPTIX'),
+    ('subsurface_branched_path.blend', 'OPTIX'),
+
+    # Missing equiangular sampling on GPU.
+    ('area_light.blend', '(?!CPU)'),
+    ('denoise_hair.blend', '(?!CPU)'),
+    ('point_density_.*.blend', '(?!CPU)'),
+    ('point_light.blend', '(?!CPU)'),
+    ('shadow_catcher_bpt_.*.blend', '(?!CPU)'),
+    ('sphere_light.blend', '(?!CPU)'),
+    ('spot_light.blend', '(?!CPU)'),
+    ('T48346.blend', '(?!CPU)'),
+    ('world_volume.blend', '(?!CPU)'),
+
+    # Inconsistency between Embree and Hair primitive on GPU.
+    ('hair_basemesh_intercept.blend', '(?!CPU)'),
+    ('hair_instancer_uv.blend', '(?!CPU)'),
+    ('hair_particle_random.blend', '(?!CPU)'),
+    ('principled_hair_.*.blend', '(?!CPU)'),
+    ('transparent_shadow_hair.*.blend', '(?!CPU)'),
+
+    # Uninvestigated differences with GPU.
+    ('image_log.blend', '(?!CPU)'),
+    ('subsurface_behind_glass_branched.blend', '(?!CPU)'),
+    ('T40964.blend', '(?!CPU)'),
+    ('T45609.blend', '(?!CPU)'),
+    ('T48860.blend', '(?!CPU)'),
+    ('smoke_color.blend', '(?!CPU)'),
+    ('T43865.blend', 'OPTIX')
 )
 
 
@@ -58,13 +103,23 @@ def print_message(message, type=None, status=''):
     sys.stdout.flush()
 
 
-def blend_list(dirpath):
+def blend_list(dirpath, device):
+    import re
+
     for root, dirs, files in os.walk(dirpath):
         for filename in files:
-            filename_lower = filename.lower()
-            if filename_lower in BLACKLIST:
+            if not filename.lower().endswith(".blend"):
                 continue
-            if filename_lower.endswith(".blend"):
+
+            skip = False
+            for blacklist in BLACKLIST:
+                if not re.match(blacklist[0], filename):
+                    continue
+                if device and blacklist[1] and not re.match(blacklist[1], device):
+                    continue
+                skip = True
+
+            if not skip:
                 filepath = os.path.join(root, filename)
                 yield filepath
 
@@ -102,6 +157,7 @@ class Report:
     __slots__ = (
         'title',
         'output_dir',
+        'global_dir',
         'reference_dir',
         'idiff',
         'pixelated',
@@ -112,17 +168,24 @@ class Report:
         'failed_tests',
         'passed_tests',
         'compare_tests',
-        'compare_engines'
+        'compare_engine',
+        'device'
     )
 
-    def __init__(self, title, output_dir, idiff):
+    def __init__(self, title, output_dir, idiff, device=None):
         self.title = title
         self.output_dir = output_dir
+        self.global_dir = os.path.dirname(output_dir)
         self.reference_dir = 'reference_renders'
         self.idiff = idiff
-        self.compare_engines = None
+        self.compare_engine = None
         self.fail_threshold = 0.016
         self.fail_percent = 1
+        self.device = device
+
+        if device:
+            self.title = self._engine_title(title, device)
+            self.output_dir = self._engine_path(self.output_dir, device.lower())
 
         self.pixelated = False
         self.verbose = os.environ.get("BLENDER_VERBOSE") is not None
@@ -147,8 +210,8 @@ class Report:
     def set_reference_dir(self, reference_dir):
         self.reference_dir = reference_dir
 
-    def set_compare_engines(self, engine, other_engine):
-        self.compare_engines = (engine, other_engine)
+    def set_compare_engine(self, other_engine, other_device=None):
+        self.compare_engine = (other_engine, other_device)
 
     def run(self, dirpath, blender, arguments_cb, batch=False):
         # Run tests and output report.
@@ -156,7 +219,7 @@ class Report:
         ok = self._run_all_tests(dirname, dirpath, blender, arguments_cb, batch)
         self._write_data(dirname)
         self._write_html()
-        if self.compare_engines:
+        if self.compare_engine:
             self._write_html(comparison=True)
         return ok
 
@@ -171,7 +234,7 @@ class Report:
         filepath = os.path.join(outdir, "passed.data")
         pathlib.Path(filepath).write_text(self.passed_tests)
 
-        if self.compare_engines:
+        if self.compare_engine:
             filepath = os.path.join(outdir, "compare.data")
             pathlib.Path(filepath).write_text(self.compare_tests)
 
@@ -181,12 +244,26 @@ class Report:
         else:
             return """<li class="breadcrumb-item"><a href="%s">%s</a></li>""" % (href, title)
 
+    def _engine_title(self, engine, device):
+        if device:
+            return engine.title() + ' ' + device
+        else:
+            return engine.title()
+
+    def _engine_path(self, path, device):
+        if device:
+            return os.path.join(path, device.lower())
+        else:
+            return path
+
     def _navigation_html(self, comparison):
         html = """<nav aria-label="breadcrumb"><ol class="breadcrumb">"""
-        html += self._navigation_item("Test Reports", "../report.html", False)
+        base_path = os.path.relpath(self.global_dir, self.output_dir)
+        global_report_path = os.path.join(base_path, "report.html")
+        html += self._navigation_item("Test Reports", global_report_path, False)
         html += self._navigation_item(self.title, "report.html", not comparison)
-        if self.compare_engines:
-            compare_title = "Compare with %s" % self.compare_engines[1].capitalize()
+        if self.compare_engine:
+            compare_title = "Compare with %s" % self._engine_title(*self.compare_engine)
             html += self._navigation_item(compare_title, "compare.html", comparison)
         html += """</ol></nav>"""
 
@@ -233,8 +310,8 @@ class Report:
 
         if comparison:
             title = self.title + " Test Compare"
-            engine_self = self.compare_engines[0].capitalize()
-            engine_other = self.compare_engines[1].capitalize()
+            engine_self = self.title
+            engine_other = self._engine_title(*self.compare_engine)
             columns_html = "<tr><th>Name</th><th>%s</th><th>%s</th>" % (engine_self, engine_other)
         else:
             title = self.title + " Test Report"
@@ -300,9 +377,8 @@ class Report:
 
         # Update global report
         if not comparison:
-            global_output_dir = os.path.dirname(self.output_dir)
             global_failed = failed if not comparison else None
-            global_report.add(global_output_dir, "Render", self.title, filepath, global_failed)
+            global_report.add(self.global_dir, "Render", self.title, filepath, global_failed)
 
     def _relative_url(self, filepath):
         relpath = os.path.relpath(filepath, self.output_dir)
@@ -340,8 +416,9 @@ class Report:
         else:
             self.passed_tests += test_html
 
-        if self.compare_engines:
-            ref_url = os.path.join("..", self.compare_engines[1], new_url)
+        if self.compare_engine:
+            base_path = os.path.relpath(self.global_dir, self.output_dir)
+            ref_url = os.path.join(base_path, self._engine_path(*self.compare_engine), new_url)
 
             test_html = """
                 <tr{tr_style}>
@@ -445,6 +522,9 @@ class Report:
                 if not batch:
                     break
 
+            if self.device:
+                command.extend(['--', '--cycles-device', self.device])
+
             # Run process
             crash = False
             output = None
@@ -495,7 +575,7 @@ class Report:
     def _run_all_tests(self, dirname, dirpath, blender, arguments_cb, batch):
         passed_tests = []
         failed_tests = []
-        all_files = list(blend_list(dirpath))
+        all_files = list(blend_list(dirpath, self.device))
         all_files.sort()
         print_message("Running {} tests from 1 test case." .
                       format(len(all_files)),

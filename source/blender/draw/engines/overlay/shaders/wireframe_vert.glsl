@@ -1,5 +1,6 @@
 
 uniform float wireStepParam;
+uniform float wireOpacity;
 uniform bool useColoring;
 uniform bool isTransform;
 uniform bool isObjectColor;
@@ -14,7 +15,7 @@ in float wd; /* wiredata */
 flat out vec2 edgeStart;
 
 #ifndef SELECT_EDGES
-out vec3 finalColor;
+out vec4 finalColor;
 noperspective out vec2 edgePos;
 #endif
 
@@ -156,8 +157,10 @@ void main()
   rim_col = pow(rim_col, vec3(1.0 / 2.2));
   wire_col = pow(wire_col, vec3(1.0 / 2.2));
   vec3 final_front_col = mix(rim_col, wire_col, 0.35);
-  finalColor = mix(rim_col, final_front_col, facing);
-  finalColor = pow(finalColor, vec3(2.2));
+  finalColor.rgb = mix(rim_col, final_front_col, facing);
+  finalColor.rgb = pow(finalColor.rgb, vec3(2.2));
+  finalColor.a = wireOpacity;
+  finalColor.rgb *= wireOpacity;
 #endif
 
   /* Cull flat edges below threshold. */

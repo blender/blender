@@ -40,8 +40,11 @@
 #  include "BLI_vector.hh"
 #  include "BLI_vector_set.hh"
 
+#  include "PIL_time.h"
+
 #  include "BLI_mesh_boolean.hh"
 
+// #  define PERFDEBUG
 namespace blender::meshintersect {
 
 /**
@@ -368,6 +371,11 @@ class PatchesInfo {
   {
     return pp_edge_.lookup_default(std::pair<int, int>(p1, p2), Edge());
   }
+
+  const Map<std::pair<int, int>, Edge> &patch_patch_edge_map()
+  {
+    return pp_edge_;
+  }
 };
 
 static bool apply_bool_op(BoolOpType bool_optype, const Array<int> &winding);
@@ -378,7 +386,7 @@ static bool apply_bool_op(BoolOpType bool_optype, const Array<int> &winding);
  * One cell, the Ambient cell, contains all other cells.
  */
 class Cell {
-  Vector<int> patches_;
+  Set<int> patches_;
   Array<int> winding_;
   int merged_to_{NO_INDEX};
   bool winding_assigned_{false};
@@ -393,17 +401,31 @@ class Cell {
 
   void add_patch(int p)
   {
-    patches_.append(p);
+    patches_.add_new(p);
   }
 
   void add_patch_non_duplicates(int p)
   {
-    patches_.append_non_duplicates(p);
+    patches_.add(p);
   }
 
-  Span<int> patches() const
+  const Set<int> &patches() const
   {
-    return Span<int>(patches_);
+    return patches_;
+  }
+
+  /** In a set of 2, which is patch that is not p? */
+  int patch_other(int p) const
+  {
+    if (patches_.size() != 2) {
+      return NO_INDEX;
+    }
+    for (int pother : patches_) {
+      if (pother != p) {
+        return pother;
+      }
+    }
+    return NO_INDEX;
   }
 
   Span<int> winding() const
@@ -428,7 +450,9 @@ class Cell {
                                         BoolOpType bool_optype)
   {
     std::copy(from_cell.winding().begin(), from_cell.winding().end(), winding_.begin());
-    winding_[shape] += delta;
+    if (shape >= 0) {
+      winding_[shape] += delta;
+    }
     winding_assigned_ = true;
     in_output_volume_ = apply_bool_op(bool_optype, winding_);
   }
@@ -467,12 +491,16 @@ class Cell {
 
 static std::ostream &operator<<(std::ostream &os, const Cell &cell)
 {
-  os << "Cell patches " << cell.patches();
+  os << "Cell patches";
+  for (int p : cell.patches()) {
+    std::cout << " " << p;
+  }
   if (cell.winding().size() > 0) {
     os << " winding=" << cell.winding();
     os << " in_output_volume=" << cell.in_output_volume();
   }
   os << " zv=" << cell.zero_volume();
+  std::cout << "\n";
   return os;
 }
 
@@ -504,8 +532,19 @@ static bool tris_have_same_verts(const IMesh &mesh, int t1, int t2)
 void Cell::check_for_zero_volume(const PatchesInfo &pinfo, const IMesh &mesh)
 {
   if (patches_.size() == 2) {
-    const Patch &p1 = pinfo.patch(patches_[0]);
-    const Patch &p2 = pinfo.patch(patches_[1]);
+    int p1_index = NO_INDEX;
+    int p2_index = NO_INDEX;
+    for (int p : patches_) {
+      if (p1_index == NO_INDEX) {
+        p1_index = p;
+      }
+      else {
+        p2_index = p;
+      }
+    }
+    BLI_assert(p1_index != NO_INDEX && p2_index != NO_INDEX);
+    const Patch &p1 = pinfo.patch(p1_index);
+    const Patch &p2 = pinfo.patch(p2_index);
     if (p1.tot_tri() == 1 && p2.tot_tri() == 1) {
       if (tris_have_same_verts(mesh, p1.tri(0), p2.tri(0))) {
         zero_volume_ = true;
@@ -653,16 +692,15 @@ static void merge_cells(int merge_to, int merge_from, CellsInfo &cinfo, PatchesI
     final_merge_to = merge_to_cell.merged_to();
     merge_to_cell = cinfo.cell(final_merge_to);
   }
-  for (Patch &patch : pinfo) {
-    if (patch.cell_above == merge_from) {
-      patch.cell_above = final_merge_to;
-    }
-    if (patch.cell_below == merge_from) {
-      patch.cell_below = final_merge_to;
-    }
-  }
   for (int cell_p : merge_from_cell.patches()) {
     merge_to_cell.add_patch_non_duplicates(cell_p);
+    Patch &patch = pinfo.patch(cell_p);
+    if (patch.cell_above == merge_from) {
+      patch.cell_above = merge_to;
+    }
+    if (patch.cell_below == merge_from) {
+      patch.cell_below = merge_to;
+    }
   }
   merge_from_cell.set_merged_to(final_merge_to);
 }
@@ -749,7 +787,7 @@ static PatchesInfo find_patches(const IMesh &tm, const TriMeshTopology &tmtopo)
     if (dbg_level > 1) {
       std::cout << "\ntriangle map\n";
       for (int t : tm.face_index_range()) {
-        std::cout << t << ": patch " << pinfo.tri_patch(t) << "\n";
+        std::cout << t << ": " << tm.face(t) << " patch " << pinfo.tri_patch(t) << "\n";
       }
     }
     std::cout << "\npatch-patch incidences\n";
@@ -1108,11 +1146,22 @@ static void find_cells_from_edge(const IMesh &tm,
     }
     else {
       if (*r_follow_cell != *rnext_prev_cell) {
+        int follow_cell_num_patches = cinfo.cell(*r_follow_cell).patches().size();
+        int prev_cell_num_patches = cinfo.cell(*rnext_prev_cell).patches().size();
+        if (follow_cell_num_patches >= prev_cell_num_patches) {
+          if (dbg_level > 0) {
+            std::cout << " merge cell " << *rnext_prev_cell << " into cell " << *r_follow_cell
+                      << "\n";
+          }
+          merge_cells(*r_follow_cell, *rnext_prev_cell, cinfo, pinfo);
+        }
+      }
+      else {
         if (dbg_level > 0) {
-          std::cout << " merge cell " << *rnext_prev_cell << " into cell " << *r_follow_cell
+          std::cout << " merge cell " << *r_follow_cell << " into cell " << *rnext_prev_cell
                     << "\n";
         }
-        merge_cells(*r_follow_cell, *rnext_prev_cell, cinfo, pinfo);
+        merge_cells(*rnext_prev_cell, *r_follow_cell, cinfo, pinfo);
       }
     }
   }
@@ -1131,15 +1180,14 @@ static CellsInfo find_cells(const IMesh &tm, const TriMeshTopology &tmtopo, Patc
   CellsInfo cinfo;
   /* For each unique edge shared between patch pairs, process it. */
   Set<Edge> processed_edges;
-  int np = pinfo.tot_patch();
-  for (int p = 0; p < np; ++p) {
-    for (int q = p + 1; q < np; ++q) {
-      Edge e = pinfo.patch_patch_edge(p, q);
-      if (e.v0() != nullptr) {
-        if (!processed_edges.contains(e)) {
-          processed_edges.add_new(e);
-          find_cells_from_edge(tm, tmtopo, pinfo, cinfo, e);
-        }
+  for (const auto item : pinfo.patch_patch_edge_map().items()) {
+    int p = item.key.first;
+    int q = item.key.second;
+    if (p < q) {
+      const Edge &e = item.value;
+      if (!processed_edges.contains(e)) {
+        processed_edges.add_new(e);
+        find_cells_from_edge(tm, tmtopo, pinfo, cinfo, e);
       }
     }
   }
@@ -1194,6 +1242,7 @@ static Vector<Vector<int>> find_patch_components(const CellsInfo &cinfo, Patches
     return Vector<Vector<int>>();
   }
   int current_component = 0;
+  Array<bool> cell_processed(cinfo.tot_cell(), false);
   Stack<int> stack; /* Patch indices to visit. */
   Vector<Vector<int>> ans;
   for (int pstart : pinfo.index_range()) {
@@ -1210,6 +1259,10 @@ static Vector<Vector<int>> find_patch_components(const CellsInfo &cinfo, Patches
       Patch &patch = pinfo.patch(p);
       BLI_assert(patch.component == current_component);
       for (int c : {patch.cell_above, patch.cell_below}) {
+        if (cell_processed[c]) {
+          continue;
+        }
+        cell_processed[c] = true;
         for (int pn : cinfo.cell(c).patches()) {
           Patch &patch_neighbor = pinfo.patch(pn);
           if (patch_neighbor.component == NO_INDEX) {
@@ -2129,7 +2182,7 @@ static void extract_zero_volume_cell_tris(Vector<Face *> &r_tris,
     while (cell->zero_volume()) {
       /* In zero-volume cells, the cell should have exactly two patches. */
       BLI_assert(cell->patches().size() == 2);
-      int pother = cell->patches()[0] == pwalk ? cell->patches()[1] : cell->patches()[0];
+      int pother = cell->patch_other(pwalk);
       bool flip = pinfo.patch(pother).cell_above == c;
       flipped.append(flip);
       stack.append(pother);
@@ -2147,7 +2200,7 @@ static void extract_zero_volume_cell_tris(Vector<Face *> &r_tris,
     cell = &cinfo.cell(c);
     while (cell->zero_volume()) {
       BLI_assert(cell->patches().size() == 2);
-      int pother = cell->patches()[0] == pwalk ? cell->patches()[1] : cell->patches()[0];
+      int pother = cell->patch_other(pwalk);
       bool flip = pinfo.patch(pother).cell_below == c;
       flipped.append(flip);
       stack.append(pother);
@@ -3133,6 +3186,7 @@ static void dissolve_verts(IMesh *imesh, const Array<bool> dissolve, IMeshArena 
 {
   constexpr int inline_face_size = 100;
   Vector<bool, inline_face_size> face_pos_erase;
+  bool any_faces_erased = false;
   for (int f : imesh->face_index_range()) {
     const Face &face = *imesh->face(f);
     face_pos_erase.clear();
@@ -3149,10 +3203,13 @@ static void dissolve_verts(IMesh *imesh, const Array<bool> dissolve, IMeshArena 
       }
     }
     if (num_erase > 0) {
-      imesh->erase_face_positions(f, face_pos_erase, arena);
+      any_faces_erased |= imesh->erase_face_positions(f, face_pos_erase, arena);
     }
   }
   imesh->set_dirty_verts();
+  if (any_faces_erased) {
+    imesh->remove_null_faces();
+  }
 }
 
 /**
@@ -3262,31 +3319,69 @@ IMesh boolean_trimesh(IMesh &tm_in,
   if (tm_in.face_size() == 0) {
     return IMesh(tm_in);
   }
+#  ifdef PERFDEBUG
+  double start_time = PIL_check_seconds_timer();
+  std::cout << "  boolean_trimesh, timing begins\n";
+#  endif
+
   IMesh tm_si = trimesh_nary_intersect(tm_in, nshapes, shape_fn, use_self, arena);
   if (dbg_level > 1) {
     write_obj_mesh(tm_si, "boolean_tm_si");
     std::cout << "\nboolean_tm_input after intersection:\n" << tm_si;
   }
+#  ifdef PERFDEBUG
+  double intersect_time = PIL_check_seconds_timer();
+  std::cout << "  intersected, time = " << intersect_time - start_time << "\n";
+#  endif
+
   /* It is possible for tm_si to be empty if all the input triangles are bogus/degenerate. */
   if (tm_si.face_size() == 0 || op == BoolOpType::None) {
     return tm_si;
   }
   auto si_shape_fn = [shape_fn, tm_si](int t) { return shape_fn(tm_si.face(t)->orig); };
   TriMeshTopology tm_si_topo(tm_si);
+#  ifdef PERFDEBUG
+  double topo_time = PIL_check_seconds_timer();
+  std::cout << "  topology built, time = " << topo_time - intersect_time << "\n";
+#  endif
   PatchesInfo pinfo = find_patches(tm_si, tm_si_topo);
+#  ifdef PERFDEBUG
+  double patch_time = PIL_check_seconds_timer();
+  std::cout << "  patches found, time = " << patch_time - topo_time << "\n";
+#  endif
   IMesh tm_out;
   if (!is_pwn(tm_si, tm_si_topo)) {
+#  ifdef PERFDEBUG
+    double pwn_check_time = PIL_check_seconds_timer();
+    std::cout << "  pwn checked (not pwn), time = " << pwn_check_time - patch_time << "\n";
+#  endif
     if (dbg_level > 0) {
       std::cout << "Input is not PWN, using gwn method\n";
     }
     tm_out = gwn_boolean(tm_si, op, nshapes, shape_fn, pinfo, arena);
+#  ifdef PERFDEBUG
+    double gwn_time = PIL_check_seconds_timer();
+    std::cout << "  gwn, time = " << gwn_time - pwn_check_time << "\n";
+#  endif
   }
   else {
+#  ifdef PERFDEBUG
+    double pwn_time = PIL_check_seconds_timer();
+    std::cout << "  pwn checked (ok), time = " << pwn_time - patch_time << "\n";
+#  endif
     CellsInfo cinfo = find_cells(tm_si, tm_si_topo, pinfo);
     if (dbg_level > 0) {
       std::cout << "Input is PWN\n";
     }
+#  ifdef PERFDEBUG
+    double cell_time = PIL_check_seconds_timer();
+    std::cout << "  cells found, time = " << cell_time - pwn_time << "\n";
+#  endif
     finish_patch_cell_graph(tm_si, cinfo, pinfo, tm_si_topo, arena);
+#  ifdef PERFDEBUG
+    double finish_pc_time = PIL_check_seconds_timer();
+    std::cout << "  finished patch-cell graph, time = " << finish_pc_time - cell_time << "\n";
+#  endif
     bool pc_ok = patch_cell_graph_ok(cinfo, pinfo);
     if (!pc_ok) {
       /* TODO: if bad input can lead to this, diagnose the problem. */
@@ -3295,13 +3390,25 @@ IMesh boolean_trimesh(IMesh &tm_in,
     }
     cinfo.init_windings(nshapes);
     int c_ambient = find_ambient_cell(tm_si, nullptr, tm_si_topo, pinfo, arena);
+#  ifdef PERFDEBUG
+    double amb_time = PIL_check_seconds_timer();
+    std::cout << "  ambient cell found, time = " << amb_time - finish_pc_time << "\n";
+#  endif
     if (c_ambient == NO_INDEX) {
       /* TODO: find a way to propagate this error to user properly. */
       std::cout << "Could not find an ambient cell; input not valid?\n";
       return IMesh(tm_si);
     }
     propagate_windings_and_in_output_volume(pinfo, cinfo, c_ambient, op, nshapes, si_shape_fn);
+#  ifdef PERFDEBUG
+    double propagate_time = PIL_check_seconds_timer();
+    std::cout << "  windings propagated, time = " << propagate_time - amb_time << "\n";
+#  endif
     tm_out = extract_from_in_output_volume_diffs(tm_si, pinfo, cinfo, arena);
+#  ifdef PERFDEBUG
+    double extract_time = PIL_check_seconds_timer();
+    std::cout << "  extracted, time = " << extract_time - propagate_time << "\n";
+#  endif
     if (dbg_level > 0) {
       /* Check if output is PWN. */
       TriMeshTopology tm_out_topo(tm_out);
@@ -3314,6 +3421,10 @@ IMesh boolean_trimesh(IMesh &tm_in,
     write_obj_mesh(tm_out, "boolean_tm_output");
     std::cout << "boolean tm output:\n" << tm_out;
   }
+#  ifdef PERFDEBUG
+  double end_time = PIL_check_seconds_timer();
+  std::cout << "  boolean_trimesh done, total time = " << end_time - start_time << "\n";
+#  endif
   return tm_out;
 }
 
@@ -3359,22 +3470,46 @@ IMesh boolean_mesh(IMesh &imesh,
   }
   IMesh *tm_in = imesh_triangulated;
   IMesh our_triangulation;
+#  ifdef PERFDEBUG
+  double start_time = PIL_check_seconds_timer();
+  std::cout << "boolean_mesh, timing begins\n";
+#  endif
   if (tm_in == nullptr) {
     our_triangulation = triangulate_polymesh(imesh, arena);
     tm_in = &our_triangulation;
   }
+#  ifdef PERFDEBUG
+  double tri_time = PIL_check_seconds_timer();
+  std::cout << "triangulated, time = " << tri_time - start_time << "\n";
+#  endif
   if (dbg_level > 1) {
     write_obj_mesh(*tm_in, "boolean_tm_in");
   }
   IMesh tm_out = boolean_trimesh(*tm_in, op, nshapes, shape_fn, use_self, arena);
+#  ifdef PERFDEBUG
+  double bool_tri_time = PIL_check_seconds_timer();
+  std::cout << "boolean_trimesh done, time = " << bool_tri_time - tri_time << "\n";
+#  endif
   if (dbg_level > 1) {
     std::cout << "bool_trimesh_output:\n" << tm_out;
     write_obj_mesh(tm_out, "bool_trimesh_output");
   }
   IMesh ans = polymesh_from_trimesh_with_dissolve(tm_out, imesh, arena);
+#  ifdef PERFDEBUG
+  double dissolve_time = PIL_check_seconds_timer();
+  std::cout << "polymesh from dissolving, time = " << dissolve_time - bool_tri_time << "\n";
+#  endif
   if (dbg_level > 0) {
     std::cout << "boolean_mesh output:\n" << ans;
+    if (dbg_level > 2) {
+      ans.populate_vert();
+      dump_test_spec(ans);
+    }
   }
+#  ifdef PERFDEBUG
+  double end_time = PIL_check_seconds_timer();
+  std::cout << "boolean_mesh done, total time = " << end_time - start_time << "\n";
+#  endif
   return ans;
 }
 

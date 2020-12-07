@@ -42,6 +42,7 @@
 
 #include "ceres/block_structure.h"
 #include "ceres/internal/eigen.h"
+#include "ceres/internal/port.h"
 #include "ceres/linear_solver.h"
 #include "ceres/small_blas.h"
 #include "glog/logging.h"
@@ -59,7 +60,7 @@ namespace internal {
 // block structure of the matrix does not satisfy the requirements of
 // the Schur complement solver it will result in unpredictable and
 // wrong output.
-class PartitionedMatrixViewBase {
+class CERES_EXPORT_INTERNAL PartitionedMatrixViewBase {
  public:
   virtual ~PartitionedMatrixViewBase() {}
 
@@ -98,12 +99,14 @@ class PartitionedMatrixViewBase {
   virtual void UpdateBlockDiagonalFtF(
       BlockSparseMatrix* block_diagonal) const = 0;
 
+  // clang-format off
   virtual int num_col_blocks_e() const = 0;
   virtual int num_col_blocks_f() const = 0;
   virtual int num_cols_e()       const = 0;
   virtual int num_cols_f()       const = 0;
   virtual int num_rows()         const = 0;
   virtual int num_cols()         const = 0;
+  // clang-format on
 
   static PartitionedMatrixViewBase* Create(const LinearSolver::Options& options,
                                            const BlockSparseMatrix& matrix);
@@ -111,7 +114,7 @@ class PartitionedMatrixViewBase {
 
 template <int kRowBlockSize = Eigen::Dynamic,
           int kEBlockSize = Eigen::Dynamic,
-          int kFBlockSize = Eigen::Dynamic >
+          int kFBlockSize = Eigen::Dynamic>
 class PartitionedMatrixView : public PartitionedMatrixViewBase {
  public:
   // matrix = [E F], where the matrix E contains the first
@@ -127,12 +130,14 @@ class PartitionedMatrixView : public PartitionedMatrixViewBase {
   BlockSparseMatrix* CreateBlockDiagonalFtF() const final;
   void UpdateBlockDiagonalEtE(BlockSparseMatrix* block_diagonal) const final;
   void UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const final;
+  // clang-format off
   int num_col_blocks_e() const final { return num_col_blocks_e_;  }
   int num_col_blocks_f() const final { return num_col_blocks_f_;  }
   int num_cols_e()       const final { return num_cols_e_;        }
   int num_cols_f()       const final { return num_cols_f_;        }
   int num_rows()         const final { return matrix_.num_rows(); }
   int num_cols()         const final { return matrix_.num_cols(); }
+  // clang-format on
 
  private:
   BlockSparseMatrix* CreateBlockDiagonalMatrixLayout(int start_col_block,

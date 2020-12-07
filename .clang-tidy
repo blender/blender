@@ -29,24 +29,19 @@ Checks:  >
   -bugprone-sizeof-expression,
   -bugprone-integer-division,
 
-  -bugprone-exception-escape,
   -bugprone-redundant-branch-condition,
 
   modernize-*,
   -modernize-use-auto,
   -modernize-use-trailing-return-type,
-  -modernize-deprecated-headers,
   -modernize-avoid-c-arrays,
   -modernize-use-equals-default,
-  -modernize-concat-nested-namespaces,
   -modernize-use-nodiscard,
-  -modernize-use-using,
   -modernize-loop-convert,
   -modernize-pass-by-value,
   -modernize-use-default-member-init,
   -modernize-raw-string-literal,
   -modernize-avoid-bind,
-  -modernize-use-override,
   -modernize-use-transparent-functors,
 
 WarningsAsErrors: '*'

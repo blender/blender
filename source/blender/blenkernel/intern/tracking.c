@@ -541,6 +541,34 @@ void BKE_tracking_clipboard_paste_tracks(MovieTracking *tracking, MovieTrackingO
 
 /*********************** Tracks *************************/
 
+/* Add new empty track to the given list of tracks.
+ *
+ * It is required that caller will append at least one marker to avoid degenerate tracks.
+ */
+MovieTrackingTrack *BKE_tracking_track_add_empty(MovieTracking *tracking, ListBase *tracks_list)
+{
+  const MovieTrackingSettings *settings = &tracking->settings;
+
+  MovieTrackingTrack *track = MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
+  strcpy(track->name, "Track");
+
+  /* Fill track's settings from default settings. */
+  track->motion_model = settings->default_motion_model;
+  track->minimum_correlation = settings->default_minimum_correlation;
+  track->margin = settings->default_margin;
+  track->pattern_match = settings->default_pattern_match;
+  track->frames_limit = settings->default_frames_limit;
+  track->flag = settings->default_flag;
+  track->algorithm_flag = settings->default_algorithm_flag;
+  track->weight = settings->default_weight;
+  track->weight_stab = settings->default_weight;
+
+  BLI_addtail(tracks_list, track);
+  BKE_tracking_track_unique_name(tracks_list, track);
+
+  return track;
+}
+
 /* Add new track to a specified tracks base.
  *
  * Coordinates are expected to be in normalized 0..1 space,
@@ -557,55 +585,35 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking,
                                            int width,
                                            int height)
 {
-  MovieTrackingTrack *track;
+  const MovieTrackingSettings *settings = &tracking->settings;
+
+  const float half_pattern_px = settings->default_pattern_size / 2.0f;
+  const float half_search_px = settings->default_search_size / 2.0f;
+
+  const float pattern_size[2] = {half_pattern_px / width, half_pattern_px / height};
+  const float search_size[2] = {half_search_px / width, half_search_px / height};
+
+  MovieTrackingTrack *track = BKE_tracking_track_add_empty(tracking, tracksbase);
+
   MovieTrackingMarker marker;
-  MovieTrackingSettings *settings = &tracking->settings;
-
-  float half_pattern = (float)settings->default_pattern_size / 2.0f;
-  float half_search = (float)settings->default_search_size / 2.0f;
-  float pat[2], search[2];
-
-  pat[0] = half_pattern / (float)width;
-  pat[1] = half_pattern / (float)height;
-
-  search[0] = half_search / (float)width;
-  search[1] = half_search / (float)height;
-
-  track = MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
-  strcpy(track->name, "Track");
-
-  /* fill track's settings from default settings */
-  track->motion_model = settings->default_motion_model;
-  track->minimum_correlation = settings->default_minimum_correlation;
-  track->margin = settings->default_margin;
-  track->pattern_match = settings->default_pattern_match;
-  track->frames_limit = settings->default_frames_limit;
-  track->flag = settings->default_flag;
-  track->algorithm_flag = settings->default_algorithm_flag;
-  track->weight = settings->default_weight;
-  track->weight_stab = settings->default_weight;
-
   memset(&marker, 0, sizeof(marker));
   marker.pos[0] = x;
   marker.pos[1] = y;
   marker.framenr = framenr;
 
-  marker.pattern_corners[0][0] = -pat[0];
-  marker.pattern_corners[0][1] = -pat[1];
+  marker.pattern_corners[0][0] = -pattern_size[0];
+  marker.pattern_corners[0][1] = -pattern_size[1];
 
-  marker.pattern_corners[1][0] = pat[0];
-  marker.pattern_corners[1][1] = -pat[1];
+  marker.pattern_corners[1][0] = pattern_size[0];
+  marker.pattern_corners[1][1] = -pattern_size[1];
 
   negate_v2_v2(marker.pattern_corners[2], marker.pattern_corners[0]);
   negate_v2_v2(marker.pattern_corners[3], marker.pattern_corners[1]);
 
-  copy_v2_v2(marker.search_max, search);
-  negate_v2_v2(marker.search_min, search);
+  copy_v2_v2(marker.search_max, search_size);
+  negate_v2_v2(marker.search_min, search_size);
 
   BKE_tracking_marker_insert(track, &marker);
-
-  BLI_addtail(tracksbase, track);
-  BKE_tracking_track_unique_name(tracksbase, track);
 
   return track;
 }

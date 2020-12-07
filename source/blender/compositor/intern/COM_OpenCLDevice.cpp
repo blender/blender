@@ -196,7 +196,8 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemo
       (size_t)outputMemoryBuffer->getHeight(),
   };
 
-  error = clEnqueueNDRangeKernel(this->m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
+  error = clEnqueueNDRangeKernel(
+      this->m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
@@ -243,7 +244,8 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel,
       if (error != CL_SUCCESS) {
         printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
       }
-      error = clEnqueueNDRangeKernel(this->m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
+      error = clEnqueueNDRangeKernel(
+          this->m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
       if (error != CL_SUCCESS) {
         printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
       }

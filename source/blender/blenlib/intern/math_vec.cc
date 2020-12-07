@@ -70,14 +70,13 @@ double2::isect_result double2::isect_seg_seg(const double2 &v1,
   double div = (v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]);
   if (div == 0.0) {
     ans.lambda = 0.0;
-    ans.mu = 0.0;
     ans.kind = double2::isect_result::LINE_LINE_COLINEAR;
   }
   else {
     ans.lambda = ((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
-    ans.mu = ((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
-    if (ans.lambda >= 0.0 && ans.lambda <= 1.0 && ans.mu >= 0.0 && ans.mu <= 1.0) {
-      if (ans.lambda == 0.0 || ans.lambda == 1.0 || ans.mu == 0.0 || ans.mu == 1.0) {
+    double mu = ((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
+    if (ans.lambda >= 0.0 && ans.lambda <= 1.0 && mu >= 0.0 && mu <= 1.0) {
+      if (ans.lambda == 0.0 || ans.lambda == 1.0 || mu == 0.0 || mu == 1.0) {
         ans.kind = double2::isect_result::LINE_LINE_EXACT;
       }
       else {
@@ -101,14 +100,15 @@ mpq2::isect_result mpq2::isect_seg_seg(const mpq2 &v1,
   mpq_class div = (v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]);
   if (div == 0.0) {
     ans.lambda = 0.0;
-    ans.mu = 0.0;
     ans.kind = mpq2::isect_result::LINE_LINE_COLINEAR;
   }
   else {
     ans.lambda = ((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
-    ans.mu = ((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
-    if (ans.lambda >= 0 && ans.lambda <= 1 && ans.mu >= 0 && ans.mu <= 1) {
-      if (ans.lambda == 0 || ans.lambda == 1 || ans.mu == 0 || ans.mu == 1) {
+    /* Avoid dividing mu by div: it is expensive in multiprecision. */
+    mpq_class mudiv = ((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1]));
+    if (ans.lambda >= 0 && ans.lambda <= 1 &&
+        ((div > 0 && mudiv >= 0 && mudiv <= div) || (div < 0 && mudiv <= 0 && mudiv >= div))) {
+      if (ans.lambda == 0 || ans.lambda == 1 || mudiv == 0 || mudiv == div) {
         ans.kind = mpq2::isect_result::LINE_LINE_EXACT;
       }
       else {

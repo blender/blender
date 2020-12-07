@@ -25,6 +25,7 @@
 
 #include "BKE_multires.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3],
                                                       const float dPdu[3],
@@ -50,6 +51,9 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3]
     copy_v3_v3(tangent_matrix[0], dPdu);
     copy_v3_v3(tangent_matrix[1], dPdv);
     mul_v3_fl(tangent_matrix[0], -1.0f);
+  }
+  else {
+    BLI_assert(!"Unhandled corner index");
   }
   cross_v3_v3v3(tangent_matrix[2], dPdu, dPdv);
   normalize_v3(tangent_matrix[0]);

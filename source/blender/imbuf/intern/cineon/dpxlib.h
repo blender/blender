@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <math.h>
+
 #include "logImageCore.h"
 
 #ifdef __cplusplus
@@ -34,7 +36,8 @@ extern "C" {
 #define DPX_UNDEFINED_U8 0xFF
 #define DPX_UNDEFINED_U16 0xFFFF
 #define DPX_UNDEFINED_U32 0xFFFFFFFF
-#define DPX_UNDEFINED_R32 0xFFFFFFFF
+#define DPX_UNDEFINED_R32 NAN
+#define IS_DPX_UNDEFINED_R32(x) isnan(x)
 #define DPX_UNDEFINED_CHAR 0
 
 typedef struct {

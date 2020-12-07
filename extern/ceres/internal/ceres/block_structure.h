@@ -40,6 +40,7 @@
 
 #include <cstdint>
 #include <vector>
+
 #include "ceres/internal/port.h"
 
 namespace ceres {

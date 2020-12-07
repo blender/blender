@@ -24,10 +24,7 @@
 
 #include "../view_map/SteerableViewMap.h"
 
-namespace Freestyle {
-
-// FIXME
-namespace Functions1D {
+namespace Freestyle::Functions1D {
 
 int GetSteerableViewMapDensityF1D::operator()(Interface1D &inter)
 {
@@ -127,6 +124,4 @@ int GetViewMapGradientNormF1D::operator()(Interface1D &inter)
   return 0;
 }
 
-}  // namespace Functions1D
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::Functions1D

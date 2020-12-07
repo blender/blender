@@ -161,7 +161,7 @@ void gather_blur(vec2 screen_uv,
 
   for (i = 0, t = ofs * inc; i < KERNEL; i++, t += inc) {
     /* Also sample in center motion direction.
-     * Allow to recover motion where there is conflicting
+     * Allow recovering motion where there is conflicting
      * motion between foreground and background. */
     gather_sample(screen_uv,
                   center_depth,

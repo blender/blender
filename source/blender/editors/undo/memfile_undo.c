@@ -24,7 +24,9 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 
+#include "DNA_ID.h"
 #include "DNA_node_types.h"
 #include "DNA_object_enums.h"
 #include "DNA_object_types.h"
@@ -51,6 +53,8 @@
 #include "../blenloader/BLO_undofile.h"
 
 #include "undo_intern.h"
+
+#include <stdio.h>
 
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
@@ -305,6 +309,37 @@ struct MemFile *ED_undosys_stack_memfile_get_active(UndoStack *ustack)
     return ed_undosys_step_get_memfile(us);
   }
   return NULL;
+}
+
+/**
+ * If the last undo step is a memfile one, find the first #MemFileChunk matching given ID
+ * (using its session UUID), and tag it as "changed in the future".
+ *
+ * Since non-memfile undos cannot automatically set this flag in the previous step as done with
+ * memfile ones, this has to be called manually by relevant undo code.
+ *
+ * \note Only current known case for this is undoing a switch from Object to Sculpt mode (see
+ * T82388).
+ *
+ * \note Calling this ID by ID is not optimal, as it will loop over all #MemFile.chunks until it
+ * finds the expected one. If this becomes an issue we'll have to add a mapping from session UUID
+ * to first #MemFileChunk in #MemFile itself
+ * (currently we only do that in #MemFileWriteData when writing a new step).
+ */
+void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id)
+{
+  UndoStep *us = ustack->step_active;
+  if (id == NULL || us == NULL || us->type != BKE_UNDOSYS_TYPE_MEMFILE) {
+    return;
+  }
+
+  MemFile *memfile = &((MemFileUndoStep *)us)->data->memfile;
+  LISTBASE_FOREACH (MemFileChunk *, mem_chunk, &memfile->chunks) {
+    if (mem_chunk->id_session_uuid == id->session_uuid) {
+      mem_chunk->is_identical_future = false;
+      break;
+    }
+  }
 }
 
 /** \} */

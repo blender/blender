@@ -623,17 +623,21 @@ TEST(mesh_intersect, TetTet)
   const Vert *v1 = mb.arena.find_vert(mpq3(2, 0, 0));
   const Vert *v8 = mb.arena.find_vert(mpq3(0.5, 0.5, 1));
   const Vert *v9 = mb.arena.find_vert(mpq3(1.5, 0.5, 1));
-  EXPECT_TRUE(v1 != nullptr && v8 != nullptr && v9 != nullptr);
-  const Face *f = mb.arena.find_face({v1, v8, v9});
-  EXPECT_NE(f, nullptr);
-  EXPECT_EQ(f->orig, 1);
-  int v1pos = f->vert[0] == v1 ? 0 : (f->vert[1] == v1 ? 1 : 2);
-  EXPECT_EQ(f->edge_orig[v1pos], NO_INDEX);
-  EXPECT_EQ(f->edge_orig[(v1pos + 1) % 3], NO_INDEX);
-  EXPECT_EQ(f->edge_orig[(v1pos + 2) % 3], 1001);
-  EXPECT_EQ(f->is_intersect[v1pos], false);
-  EXPECT_EQ(f->is_intersect[(v1pos + 1) % 3], true);
-  EXPECT_EQ(f->is_intersect[(v1pos + 2) % 3], false);
+  EXPECT_TRUE(v1 && v8 && v9);
+  if (v1 && v8 && v9) {
+    const Face *f = mb.arena.find_face({v1, v8, v9});
+    EXPECT_NE(f, nullptr);
+    if (f != nullptr) {
+      EXPECT_EQ(f->orig, 1);
+      int v1pos = f->vert[0] == v1 ? 0 : (f->vert[1] == v1 ? 1 : 2);
+      EXPECT_EQ(f->edge_orig[v1pos], NO_INDEX);
+      EXPECT_EQ(f->edge_orig[(v1pos + 1) % 3], NO_INDEX);
+      EXPECT_EQ(f->edge_orig[(v1pos + 2) % 3], 1001);
+      EXPECT_EQ(f->is_intersect[v1pos], false);
+      EXPECT_EQ(f->is_intersect[(v1pos + 1) % 3], true);
+      EXPECT_EQ(f->is_intersect[(v1pos + 2) % 3], false);
+    }
+  }
   if (DO_OBJ) {
     write_obj_mesh(out, "test_tc_3");
   }
@@ -908,7 +912,7 @@ static void spheresphere_test(int nrings, double y_offset, bool use_self)
   int num_sphere_tris;
   get_sphere_params(nrings, nsegs, true, &num_sphere_verts, &num_sphere_tris);
   Array<Face *> tris(2 * num_sphere_tris);
-  arena.reserve(2 * num_sphere_verts, 2 * num_sphere_tris);
+  arena.reserve(6 * num_sphere_verts / 2, 8 * num_sphere_tris);
   double3 center1(0.0, 0.0, 0.0);
   fill_sphere_data(nrings,
                    nsegs,
@@ -968,6 +972,7 @@ static void fill_grid_data(int x_subdiv,
                            bool triangulate,
                            double size,
                            const double3 &center,
+                           double rot_deg,
                            MutableSpan<Face *> face,
                            int vid_start,
                            int fid_start,
@@ -991,11 +996,19 @@ static void fill_grid_data(int x_subdiv,
   double delta_x = size / (x_subdiv - 1);
   double delta_y = size / (y_subdiv - 1);
   int vid = vid_start;
+  double cos_rot = cosf(rot_deg * M_PI / 180.0);
+  double sin_rot = sinf(rot_deg * M_PI / 180.0);
   for (int iy = 0; iy < y_subdiv; ++iy) {
+    double yy = iy * delta_y - r;
     for (int ix = 0; ix < x_subdiv; ++ix) {
-      double x = center[0] - r + ix * delta_x;
-      double y = center[1] - r + iy * delta_y;
+      double xx = ix * delta_x - r;
+      double x = center[0] + xx;
+      double y = center[1] + yy;
       double z = center[2];
+      if (rot_deg != 0.0) {
+        x = center[0] + xx * cos_rot - yy * sin_rot;
+        y = center[1] + xx * sin_rot + yy * cos_rot;
+      }
       const Vert *v = arena->add_or_find_vert(mpq3(x, y, z), vid++);
       vert[vert_index_fn(ix, iy)] = v;
     }
@@ -1043,7 +1056,8 @@ static void spheregrid_test(int nrings, int grid_level, double z_offset, bool us
   get_sphere_params(nrings, nsegs, true, &num_sphere_verts, &num_sphere_tris);
   get_grid_params(subdivs, subdivs, true, &num_grid_verts, &num_grid_tris);
   Array<Face *> tris(num_sphere_tris + num_grid_tris);
-  arena.reserve(num_sphere_verts + num_grid_verts, num_sphere_tris + num_grid_tris);
+  arena.reserve(3 * (num_sphere_verts + num_grid_verts) / 2,
+                4 * (num_sphere_tris + num_grid_tris));
   double3 center(0.0, 0.0, z_offset);
   fill_sphere_data(nrings,
                    nsegs,
@@ -1059,6 +1073,7 @@ static void spheregrid_test(int nrings, int grid_level, double z_offset, bool us
                  true,
                  4.0,
                  double3(0, 0, 0),
+                 0.0,
                  MutableSpan<Face *>(tris.begin() + num_sphere_tris, num_grid_tris),
                  num_sphere_verts,
                  num_sphere_tris,
@@ -1085,14 +1100,103 @@ static void spheregrid_test(int nrings, int grid_level, double z_offset, bool us
   BLI_task_scheduler_exit();
 }
 
+static void gridgrid_test(int x_level_1,
+                          int y_level_1,
+                          int x_level_2,
+                          int y_level_2,
+                          double x_off,
+                          double y_off,
+                          double rot_deg,
+                          bool use_self)
+{
+  /* Make two grids, each 4x4, with given subdivision levels in x and y,
+   * and the second offset from the first by x_off, y_off, and rotated by rot_deg degrees. */
+  BLI_task_scheduler_init(); /* Without this, no parallelism. */
+  double time_start = PIL_check_seconds_timer();
+  IMeshArena arena;
+  int x_subdivs_1 = 1 << x_level_1;
+  int y_subdivs_1 = 1 << y_level_1;
+  int x_subdivs_2 = 1 << x_level_2;
+  int y_subdivs_2 = 1 << y_level_2;
+  int num_grid_verts_1;
+  int num_grid_verts_2;
+  int num_grid_tris_1;
+  int num_grid_tris_2;
+  get_grid_params(x_subdivs_1, y_subdivs_1, true, &num_grid_verts_1, &num_grid_tris_1);
+  get_grid_params(x_subdivs_2, y_subdivs_2, true, &num_grid_verts_2, &num_grid_tris_2);
+  Array<Face *> tris(num_grid_tris_1 + num_grid_tris_2);
+  arena.reserve(3 * (num_grid_verts_1 + num_grid_verts_2) / 2,
+                4 * (num_grid_tris_1 + num_grid_tris_2));
+  fill_grid_data(x_subdivs_1,
+                 y_subdivs_1,
+                 true,
+                 4.0,
+                 double3(0, 0, 0),
+                 0.0,
+                 MutableSpan<Face *>(tris.begin(), num_grid_tris_1),
+                 0,
+                 0,
+                 &arena);
+  fill_grid_data(x_subdivs_2,
+                 y_subdivs_2,
+                 true,
+                 4.0,
+                 double3(x_off, y_off, 0),
+                 rot_deg,
+                 MutableSpan<Face *>(tris.begin() + num_grid_tris_1, num_grid_tris_2),
+                 num_grid_verts_1,
+                 num_grid_tris_1,
+                 &arena);
+  IMesh mesh(tris);
+  double time_create = PIL_check_seconds_timer();
+  // write_obj_mesh(mesh, "gridgrid_in");
+  IMesh out;
+  if (use_self) {
+    out = trimesh_self_intersect(mesh, &arena);
+  }
+  else {
+    int nf = num_grid_tris_1;
+    out = trimesh_nary_intersect(
+        mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
+  }
+  double time_intersect = PIL_check_seconds_timer();
+  std::cout << "Create time: " << time_create - time_start << "\n";
+  std::cout << "Intersect time: " << time_intersect - time_create << "\n";
+  std::cout << "Total time: " << time_intersect - time_start << "\n";
+  if (DO_OBJ) {
+    write_obj_mesh(out, "gridgrid");
+  }
+  BLI_task_scheduler_exit();
+}
+
 TEST(mesh_intersect_perf, SphereSphere)
 {
   spheresphere_test(512, 0.5, false);
 }
 
+TEST(mesh_intersect_perf, SphereSphereSelf)
+{
+  spheresphere_test(64, 0.5, true);
+}
+
 TEST(mesh_intersect_perf, SphereGrid)
 {
   spheregrid_test(512, 4, 0.1, false);
+}
+
+TEST(mesh_intersect_perf, SphereGridSelf)
+{
+  spheregrid_test(64, 4, 0.1, true);
+}
+
+TEST(mesh_intersect_perf, GridGrid)
+{
+  gridgrid_test(8, 2, 4, 2, 0.1, 0.1, 0.0, false);
+}
+
+TEST(mesh_intersect_perf, GridGridTilt)
+{
+  gridgrid_test(8, 2, 4, 2, 0.0, 0.0, 1.0, false);
 }
 
 #  endif

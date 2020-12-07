@@ -35,8 +35,8 @@
 #ifndef CERES_INTERNAL_SMALL_BLAS_H_
 #define CERES_INTERNAL_SMALL_BLAS_H_
 
-#include "ceres/internal/port.h"
 #include "ceres/internal/eigen.h"
+#include "ceres/internal/port.h"
 #include "glog/logging.h"
 #include "small_blas_generic.h"
 
@@ -46,7 +46,7 @@ namespace internal {
 // The following three macros are used to share code and reduce
 // template junk across the various GEMM variants.
 #define CERES_GEMM_BEGIN(name)                                          \
-  template<int kRowA, int kColA, int kRowB, int kColB, int kOperation>  \
+  template <int kRowA, int kColA, int kRowB, int kColB, int kOperation> \
   inline void name(const double* A,                                     \
                    const int num_row_a,                                 \
                    const int num_col_a,                                 \
@@ -59,56 +59,58 @@ namespace internal {
                    const int row_stride_c,                              \
                    const int col_stride_c)
 
-#define CERES_GEMM_NAIVE_HEADER                                         \
-  DCHECK_GT(num_row_a, 0);                                              \
-  DCHECK_GT(num_col_a, 0);                                              \
-  DCHECK_GT(num_row_b, 0);                                              \
-  DCHECK_GT(num_col_b, 0);                                              \
-  DCHECK_GE(start_row_c, 0);                                            \
-  DCHECK_GE(start_col_c, 0);                                            \
-  DCHECK_GT(row_stride_c, 0);                                           \
-  DCHECK_GT(col_stride_c, 0);                                           \
-  DCHECK((kRowA == Eigen::Dynamic) || (kRowA == num_row_a));            \
-  DCHECK((kColA == Eigen::Dynamic) || (kColA == num_col_a));            \
-  DCHECK((kRowB == Eigen::Dynamic) || (kRowB == num_row_b));            \
-  DCHECK((kColB == Eigen::Dynamic) || (kColB == num_col_b));            \
-  const int NUM_ROW_A = (kRowA != Eigen::Dynamic ? kRowA : num_row_a);  \
-  const int NUM_COL_A = (kColA != Eigen::Dynamic ? kColA : num_col_a);  \
-  const int NUM_ROW_B = (kRowB != Eigen::Dynamic ? kRowB : num_row_b);  \
+#define CERES_GEMM_NAIVE_HEADER                                        \
+  DCHECK_GT(num_row_a, 0);                                             \
+  DCHECK_GT(num_col_a, 0);                                             \
+  DCHECK_GT(num_row_b, 0);                                             \
+  DCHECK_GT(num_col_b, 0);                                             \
+  DCHECK_GE(start_row_c, 0);                                           \
+  DCHECK_GE(start_col_c, 0);                                           \
+  DCHECK_GT(row_stride_c, 0);                                          \
+  DCHECK_GT(col_stride_c, 0);                                          \
+  DCHECK((kRowA == Eigen::Dynamic) || (kRowA == num_row_a));           \
+  DCHECK((kColA == Eigen::Dynamic) || (kColA == num_col_a));           \
+  DCHECK((kRowB == Eigen::Dynamic) || (kRowB == num_row_b));           \
+  DCHECK((kColB == Eigen::Dynamic) || (kColB == num_col_b));           \
+  const int NUM_ROW_A = (kRowA != Eigen::Dynamic ? kRowA : num_row_a); \
+  const int NUM_COL_A = (kColA != Eigen::Dynamic ? kColA : num_col_a); \
+  const int NUM_ROW_B = (kRowB != Eigen::Dynamic ? kRowB : num_row_b); \
   const int NUM_COL_B = (kColB != Eigen::Dynamic ? kColB : num_col_b);
 
-#define CERES_GEMM_EIGEN_HEADER                                         \
-  const typename EigenTypes<kRowA, kColA>::ConstMatrixRef               \
-  Aref(A, num_row_a, num_col_a);                                        \
-  const typename EigenTypes<kRowB, kColB>::ConstMatrixRef               \
-  Bref(B, num_row_b, num_col_b);                                        \
-  MatrixRef Cref(C, row_stride_c, col_stride_c);                        \
+#define CERES_GEMM_EIGEN_HEADER                                 \
+  const typename EigenTypes<kRowA, kColA>::ConstMatrixRef Aref( \
+      A, num_row_a, num_col_a);                                 \
+  const typename EigenTypes<kRowB, kColB>::ConstMatrixRef Bref( \
+      B, num_row_b, num_col_b);                                 \
+  MatrixRef Cref(C, row_stride_c, col_stride_c);
 
+// clang-format off
 #define CERES_CALL_GEMM(name)                                           \
   name<kRowA, kColA, kRowB, kColB, kOperation>(                         \
       A, num_row_a, num_col_a,                                          \
       B, num_row_b, num_col_b,                                          \
       C, start_row_c, start_col_c, row_stride_c, col_stride_c);
+// clang-format on
 
-#define CERES_GEMM_STORE_SINGLE(p, index, value)                        \
-  if (kOperation > 0) {                                                 \
-    p[index] += value;                                                  \
-  } else if (kOperation < 0) {                                          \
-    p[index] -= value;                                                  \
-  } else {                                                              \
-    p[index] = value;                                                   \
+#define CERES_GEMM_STORE_SINGLE(p, index, value) \
+  if (kOperation > 0) {                          \
+    p[index] += value;                           \
+  } else if (kOperation < 0) {                   \
+    p[index] -= value;                           \
+  } else {                                       \
+    p[index] = value;                            \
   }
 
-#define CERES_GEMM_STORE_PAIR(p, index, v1, v2)                         \
-  if (kOperation > 0) {                                                 \
-    p[index] += v1;                                                     \
-    p[index + 1] += v2;                                                 \
-  } else if (kOperation < 0) {                                          \
-    p[index] -= v1;                                                     \
-    p[index + 1] -= v2;                                                 \
-  } else {                                                              \
-    p[index] = v1;                                                      \
-    p[index + 1] = v2;                                                  \
+#define CERES_GEMM_STORE_PAIR(p, index, v1, v2) \
+  if (kOperation > 0) {                         \
+    p[index] += v1;                             \
+    p[index + 1] += v2;                         \
+  } else if (kOperation < 0) {                  \
+    p[index] -= v1;                             \
+    p[index + 1] -= v2;                         \
+  } else {                                      \
+    p[index] = v1;                              \
+    p[index + 1] = v2;                          \
   }
 
 // For the matrix-matrix functions below, there are three variants for
@@ -161,8 +163,8 @@ namespace internal {
 //
 CERES_GEMM_BEGIN(MatrixMatrixMultiplyEigen) {
   CERES_GEMM_EIGEN_HEADER
-  Eigen::Block<MatrixRef, kRowA, kColB>
-    block(Cref, start_row_c, start_col_c, num_row_a, num_col_b);
+  Eigen::Block<MatrixRef, kRowA, kColB> block(
+      Cref, start_row_c, start_col_c, num_row_a, num_col_b);
 
   if (kOperation > 0) {
     block.noalias() += Aref * Bref;
@@ -208,7 +210,7 @@ CERES_GEMM_BEGIN(MatrixMatrixMultiplyNaive) {
 
   // Process the couple columns in remainder if present.
   if (NUM_COL_C & 2) {
-    int col = NUM_COL_C & (int)(~(span - 1)) ;
+    int col = NUM_COL_C & (int)(~(span - 1));
     const double* pa = &A[0];
     for (int row = 0; row < NUM_ROW_C; ++row, pa += NUM_COL_A) {
       const double* pb = &B[col];
@@ -234,11 +236,12 @@ CERES_GEMM_BEGIN(MatrixMatrixMultiplyNaive) {
   for (int col = 0; col < col_m; col += span) {
     for (int row = 0; row < NUM_ROW_C; ++row) {
       const int index = (row + start_row_c) * col_stride_c + start_col_c + col;
+      // clang-format off
       MMM_mat1x4(NUM_COL_A, &A[row * NUM_COL_A],
                  &B[col], NUM_COL_B, &C[index], kOperation);
+      // clang-format on
     }
   }
-
 }
 
 CERES_GEMM_BEGIN(MatrixMatrixMultiply) {
@@ -261,9 +264,11 @@ CERES_GEMM_BEGIN(MatrixMatrixMultiply) {
 
 CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiplyEigen) {
   CERES_GEMM_EIGEN_HEADER
+  // clang-format off
   Eigen::Block<MatrixRef, kColA, kColB> block(Cref,
                                               start_row_c, start_col_c,
                                               num_col_a, num_col_b);
+  // clang-format on
   if (kOperation > 0) {
     block.noalias() += Aref.transpose() * Bref;
   } else if (kOperation < 0) {
@@ -310,7 +315,7 @@ CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiplyNaive) {
 
   // Process the couple columns in remainder if present.
   if (NUM_COL_C & 2) {
-    int col = NUM_COL_C & (int)(~(span - 1)) ;
+    int col = NUM_COL_C & (int)(~(span - 1));
     for (int row = 0; row < NUM_ROW_C; ++row) {
       const double* pa = &A[row];
       const double* pb = &B[col];
@@ -338,11 +343,12 @@ CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiplyNaive) {
   for (int col = 0; col < col_m; col += span) {
     for (int row = 0; row < NUM_ROW_C; ++row) {
       const int index = (row + start_row_c) * col_stride_c + start_col_c + col;
+      // clang-format off
       MTM_mat1x4(NUM_ROW_A, &A[row], NUM_COL_A,
                  &B[col], NUM_COL_B, &C[index], kOperation);
+      // clang-format on
     }
   }
-
 }
 
 CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiply) {
@@ -376,15 +382,15 @@ CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiply) {
 // kOperation =  1  -> c += A' * b
 // kOperation = -1  -> c -= A' * b
 // kOperation =  0  -> c  = A' * b
-template<int kRowA, int kColA, int kOperation>
+template <int kRowA, int kColA, int kOperation>
 inline void MatrixVectorMultiply(const double* A,
                                  const int num_row_a,
                                  const int num_col_a,
                                  const double* b,
                                  double* c) {
 #ifdef CERES_NO_CUSTOM_BLAS
-  const typename EigenTypes<kRowA, kColA>::ConstMatrixRef
-      Aref(A, num_row_a, num_col_a);
+  const typename EigenTypes<kRowA, kColA>::ConstMatrixRef Aref(
+      A, num_row_a, num_col_a);
   const typename EigenTypes<kColA>::ConstVectorRef bref(b, num_col_a);
   typename EigenTypes<kRowA>::VectorRef cref(c, num_row_a);
 
@@ -412,7 +418,7 @@ inline void MatrixVectorMultiply(const double* A,
 
   // Process the last odd row if present.
   if (NUM_ROW_A & 1) {
-    int row  = NUM_ROW_A - 1;
+    int row = NUM_ROW_A - 1;
     const double* pa = &A[row * NUM_COL_A];
     const double* pb = &b[0];
     double tmp = 0.0;
@@ -450,8 +456,10 @@ inline void MatrixVectorMultiply(const double* A,
   // Calculate the main part with multiples of 4.
   int row_m = NUM_ROW_A & (int)(~(span - 1));
   for (int row = 0; row < row_m; row += span) {
+    // clang-format off
     MVM_mat4x1(NUM_COL_A, &A[row * NUM_COL_A], NUM_COL_A,
                &b[0], &c[row], kOperation);
+    // clang-format on
   }
 
 #endif  // CERES_NO_CUSTOM_BLAS
@@ -460,15 +468,15 @@ inline void MatrixVectorMultiply(const double* A,
 // Similar to MatrixVectorMultiply, except that A is transposed, i.e.,
 //
 // c op A' * b;
-template<int kRowA, int kColA, int kOperation>
+template <int kRowA, int kColA, int kOperation>
 inline void MatrixTransposeVectorMultiply(const double* A,
                                           const int num_row_a,
                                           const int num_col_a,
                                           const double* b,
                                           double* c) {
 #ifdef CERES_NO_CUSTOM_BLAS
-  const typename EigenTypes<kRowA, kColA>::ConstMatrixRef
-      Aref(A, num_row_a, num_col_a);
+  const typename EigenTypes<kRowA, kColA>::ConstMatrixRef Aref(
+      A, num_row_a, num_col_a);
   const typename EigenTypes<kRowA>::ConstVectorRef bref(b, num_row_a);
   typename EigenTypes<kColA>::VectorRef cref(c, num_col_a);
 
@@ -496,7 +504,7 @@ inline void MatrixTransposeVectorMultiply(const double* A,
 
   // Process the last odd column if present.
   if (NUM_COL_A & 1) {
-    int row  = NUM_COL_A - 1;
+    int row = NUM_COL_A - 1;
     const double* pa = &A[row];
     const double* pb = &b[0];
     double tmp = 0.0;
@@ -519,10 +527,12 @@ inline void MatrixTransposeVectorMultiply(const double* A,
     const double* pb = &b[0];
     double tmp1 = 0.0, tmp2 = 0.0;
     for (int col = 0; col < NUM_ROW_A; ++col) {
+      // clang-format off
       double bv = *pb++;
       tmp1 += *(pa    ) * bv;
       tmp2 += *(pa + 1) * bv;
       pa += NUM_COL_A;
+      // clang-format on
     }
     CERES_GEMM_STORE_PAIR(c, row, tmp1, tmp2);
 
@@ -535,8 +545,10 @@ inline void MatrixTransposeVectorMultiply(const double* A,
   // Calculate the main part with multiples of 4.
   int row_m = NUM_COL_A & (int)(~(span - 1));
   for (int row = 0; row < row_m; row += span) {
+    // clang-format off
     MTV_mat4x1(NUM_ROW_A, &A[row], NUM_COL_A,
                &b[0], &c[row], kOperation);
+    // clang-format on
   }
 
 #endif  // CERES_NO_CUSTOM_BLAS

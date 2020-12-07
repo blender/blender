@@ -22,7 +22,7 @@ if(WITH_LEGACY_OPENGL)
   add_definitions(-DWITH_LEGACY_OPENGL)
 endif()
 
-if(WITH_CLANG_TIDY)
+if(WITH_CLANG_TIDY AND NOT MSVC)
   if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
     message(WARNING "Currently Clang-Tidy might fail with GCC toolchain, switch to Clang toolchain if that happens")
   endif()

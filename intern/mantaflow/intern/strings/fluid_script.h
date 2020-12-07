@@ -118,6 +118,7 @@ timePerFrame_s$ID$ = $TIME_PER_FRAME$\n\
 # In Blender fluid.c: frame_length = DT_DEFAULT * (25.0 / fps) * time_scale\n\
 # with DT_DEFAULT = 0.1\n\
 frameLength_s$ID$ = $FRAME_LENGTH$\n\
+frameLengthUnscaled_s$ID$ = frameLength_s$ID$ / timeScale_s$ID$\n\
 frameLengthRaw_s$ID$ = 0.1 * 25 # dt = 0.1 at 25 fps\n\
 \n\
 dt0_s$ID$          = $DT$\n\
@@ -144,14 +145,21 @@ mantaMsg('1 Blender length unit is ' + str(ratioResToBLength_s$ID$) + ' Mantaflo
 ratioBTimeToTimestep_s$ID$ = float(1) / float(frameLengthRaw_s$ID$) # the time within 1 blender time unit, see also fluid.c\n\
 mantaMsg('1 Blender time unit is ' + str(ratioBTimeToTimestep_s$ID$) + ' Mantaflow time units long.')\n\
 \n\
+ratioFrameToFramelength_s$ID$ = float(1) / float(frameLengthUnscaled_s$ID$ ) # the time within 1 frame\n\
+mantaMsg('frame / frameLength is ' + str(ratioFrameToFramelength_s$ID$) + ' Mantaflow time units long.')\n\
+\n\
 scaleAcceleration_s$ID$ = ratioResToBLength_s$ID$ * (ratioBTimeToTimestep_s$ID$**2)# [meters/btime^2] to [cells/timestep^2] (btime: sec, min, or h, ...)\n\
 mantaMsg('scaleAcceleration is ' + str(scaleAcceleration_s$ID$))\n\
+\n\
+scaleSpeedFrames_s$ID$ = ratioResToBLength_s$ID$ * ratioFrameToFramelength_s$ID$ # [blength/frame] to [cells/frameLength]\n\
+mantaMsg('scaleSpeed is ' + str(scaleSpeedFrames_s$ID$))\n\
 \n\
 gravity_s$ID$ *= scaleAcceleration_s$ID$ # scale from world acceleration to cell based acceleration\n\
 \n\
 # OpenVDB options\n\
 vdbCompression_s$ID$ = $COMPRESSION_OPENVDB$\n\
 vdbPrecision_s$ID$ = $PRECISION_OPENVDB$\n\
+vdbClip_s$ID$ = $CLIP_OPENVDB$\n\
 \n\
 # Cache file names\n\
 file_data_s$ID$ = '$NAME_DATA$'\n\
@@ -257,8 +265,8 @@ const std::string fluid_alloc =
     "\n\
 mantaMsg('Fluid alloc data')\n\
 flags_s$ID$       = s$ID$.create(FlagGrid, name='$NAME_FLAGS$')\n\
-vel_s$ID$         = s$ID$.create(MACGrid, name='$NAME_VELOCITY$')\n\
-velTmp_s$ID$      = s$ID$.create(MACGrid, name='$NAME_VELOCITYTMP$')\n\
+vel_s$ID$         = s$ID$.create(MACGrid, name='$NAME_VELOCITY$', sparse=True)\n\
+velTmp_s$ID$      = s$ID$.create(MACGrid, name='$NAME_VELOCITYTMP$', sparse=True)\n\
 x_vel_s$ID$       = s$ID$.create(RealGrid, name='$NAME_VELOCITY_X$')\n\
 y_vel_s$ID$       = s$ID$.create(RealGrid, name='$NAME_VELOCITY_Y$')\n\
 z_vel_s$ID$       = s$ID$.create(RealGrid, name='$NAME_VELOCITY_Z$')\n\
@@ -360,7 +368,6 @@ def fluid_pre_step_$ID$():\n\
     \n\
     # Main vel grid is copied in adapt time step function\n\
     \n\
-    # translate obvels (world space) to grid space\n\
     if using_obstacle_s$ID$:\n\
         # Average out velocities from multiple obstacle objects at one cell\n\
         x_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
@@ -368,7 +375,6 @@ def fluid_pre_step_$ID$():\n\
         z_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
         copyRealToVec3(sourceX=x_obvel_s$ID$, sourceY=y_obvel_s$ID$, sourceZ=z_obvel_s$ID$, target=obvelC_s$ID$)\n\
     \n\
-    # translate invels (world space) to grid space\n\
     if using_invel_s$ID$:\n\
         copyRealToVec3(sourceX=x_invel_s$ID$, sourceY=y_invel_s$ID$, sourceZ=z_invel_s$ID$, target=invelC_s$ID$)\n\
     \n\
@@ -378,7 +384,9 @@ def fluid_pre_step_$ID$():\n\
         interpolateMACGrid(source=guidevel_sg$ID$, target=velT_s$ID$)\n\
         velT_s$ID$.multConst(vec3(gamma_sg$ID$))\n\
     \n\
-    # translate external forces (world space) to grid space\n\
+    x_force_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
+    y_force_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
+    z_force_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
     copyRealToVec3(sourceX=x_force_s$ID$, sourceY=y_force_s$ID$, sourceZ=z_force_s$ID$, target=forces_s$ID$)\n\
     \n\
     # If obstacle has velocity, i.e. is a moving obstacle, switch to dynamic preconditioner\n\
@@ -675,7 +683,7 @@ def fluid_load_vel_$ID$(path, framenr, file_format):\n\
 
 const std::string fluid_file_export =
     "\n\
-def fluid_file_export_s$ID$(framenr, file_format, path, dict, file_name=None, mode_override=True, skip_subframes=True):\n\
+def fluid_file_export_s$ID$(framenr, file_format, path, dict, file_name=None, mode_override=True, skip_subframes=True, clipGrid=None):\n\
     if skip_subframes and ((timePerFrame_s$ID$ + dt0_s$ID$) < frameLength_s$ID$):\n\
         return\n\
     mantaMsg('Fluid file export, frame: ' + str(framenr))\n\
@@ -690,7 +698,7 @@ def fluid_file_export_s$ID$(framenr, file_format, path, dict, file_name=None, mo
             file = os.path.join(path, file_name + '_' + framenr + file_format)\n\
             if not os.path.isfile(file) or mode_override:\n\
                 if file_format == '.vdb':\n\
-                    saveCombined = save(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$, skipDeletedParts=True, compression=vdbCompression_s$ID$, precision=vdbPrecision_s$ID$)\n\
+                    saveCombined = save(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$, skipDeletedParts=True, compression=vdbCompression_s$ID$, precision=vdbPrecision_s$ID$, clip=vdbClip_s$ID$, clipGrid=clipGrid)\n\
                 elif file_format == '.bobj.gz' or file_format == '.obj':\n\
                     for name, object in dict.items():\n\
                         if not os.path.isfile(file) or mode_override:\n\

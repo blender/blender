@@ -1524,7 +1524,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 /* helper for screen_animation_play() - only to be used for TimeLine */
 static ARegion *time_top_left_3dwindow(bScreen *screen)
 {
-  ARegion *aret = NULL;
+  ARegion *region_top_left = NULL;
   int min = 10000;
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -1532,7 +1532,7 @@ static ARegion *time_top_left_3dwindow(bScreen *screen)
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         if (region->regiontype == RGN_TYPE_WINDOW) {
           if (region->winrct.xmin - region->winrct.ymin < min) {
-            aret = region;
+            region_top_left = region;
             min = region->winrct.xmin - region->winrct.ymin;
           }
         }
@@ -1540,7 +1540,7 @@ static ARegion *time_top_left_3dwindow(bScreen *screen)
     }
   }
 
-  return aret;
+  return region_top_left;
 }
 
 void ED_screen_animation_timer_update(bScreen *screen, int redraws)

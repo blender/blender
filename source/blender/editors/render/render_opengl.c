@@ -494,7 +494,7 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
                                scene,
                                oglrender->sizex,
                                oglrender->sizey,
-                               100,
+                               SEQ_RENDER_SIZE_SCENE,
                                false,
                                &context);
 

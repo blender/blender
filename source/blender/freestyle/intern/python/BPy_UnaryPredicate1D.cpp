@@ -210,7 +210,11 @@ static PyObject *UnaryPredicate1D_name_get(BPy_UnaryPredicate1D *self, void *UNU
 }
 
 static PyGetSetDef BPy_UnaryPredicate1D_getseters[] = {
-    {"name", (getter)UnaryPredicate1D_name_get, (setter)nullptr, UnaryPredicate1D_name_doc, nullptr},
+    {"name",
+     (getter)UnaryPredicate1D_name_get,
+     (setter) nullptr,
+     UnaryPredicate1D_name_doc,
+     nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
@@ -218,42 +222,46 @@ static PyGetSetDef BPy_UnaryPredicate1D_getseters[] = {
 
 PyTypeObject UnaryPredicate1D_Type = {
     PyVarObject_HEAD_INIT(nullptr, 0) "UnaryPredicate1D", /* tp_name */
-    sizeof(BPy_UnaryPredicate1D),                      /* tp_basicsize */
-    0,                                                 /* tp_itemsize */
-    (destructor)UnaryPredicate1D___dealloc__,          /* tp_dealloc */
-    nullptr,                                                 /* tp_print */
-    nullptr,                                                 /* tp_getattr */
-    nullptr,                                                 /* tp_setattr */
-    nullptr,                                                 /* tp_reserved */
-    (reprfunc)UnaryPredicate1D___repr__,               /* tp_repr */
-    nullptr,                                                 /* tp_as_number */
-    nullptr,                                                 /* tp_as_sequence */
-    nullptr,                                                 /* tp_as_mapping */
-    nullptr,                                                 /* tp_hash  */
-    (ternaryfunc)UnaryPredicate1D___call__,            /* tp_call */
-    nullptr,                                                 /* tp_str */
-    nullptr,                                                 /* tp_getattro */
-    nullptr,                                                 /* tp_setattro */
-    nullptr,                                                 /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
-    UnaryPredicate1D___doc__,                          /* tp_doc */
-    nullptr,                                                 /* tp_traverse */
-    nullptr,                                                 /* tp_clear */
-    nullptr,                                                 /* tp_richcompare */
-    0,                                                 /* tp_weaklistoffset */
-    nullptr,                                                 /* tp_iter */
-    nullptr,                                                 /* tp_iternext */
-    nullptr,                                                 /* tp_methods */
-    nullptr,                                                 /* tp_members */
-    BPy_UnaryPredicate1D_getseters,                    /* tp_getset */
-    nullptr,                                                 /* tp_base */
-    nullptr,                                                 /* tp_dict */
-    nullptr,                                                 /* tp_descr_get */
-    nullptr,                                                 /* tp_descr_set */
-    0,                                                 /* tp_dictoffset */
-    (initproc)UnaryPredicate1D___init__,               /* tp_init */
-    nullptr,                                                 /* tp_alloc */
-    PyType_GenericNew,                                 /* tp_new */
+    sizeof(BPy_UnaryPredicate1D),                         /* tp_basicsize */
+    0,                                                    /* tp_itemsize */
+    (destructor)UnaryPredicate1D___dealloc__,             /* tp_dealloc */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    nullptr, /* tp_print */
+#endif
+    nullptr,                                  /* tp_getattr */
+    nullptr,                                  /* tp_setattr */
+    nullptr,                                  /* tp_reserved */
+    (reprfunc)UnaryPredicate1D___repr__,      /* tp_repr */
+    nullptr,                                  /* tp_as_number */
+    nullptr,                                  /* tp_as_sequence */
+    nullptr,                                  /* tp_as_mapping */
+    nullptr,                                  /* tp_hash  */
+    (ternaryfunc)UnaryPredicate1D___call__,   /* tp_call */
+    nullptr,                                  /* tp_str */
+    nullptr,                                  /* tp_getattro */
+    nullptr,                                  /* tp_setattro */
+    nullptr,                                  /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+    UnaryPredicate1D___doc__,                 /* tp_doc */
+    nullptr,                                  /* tp_traverse */
+    nullptr,                                  /* tp_clear */
+    nullptr,                                  /* tp_richcompare */
+    0,                                        /* tp_weaklistoffset */
+    nullptr,                                  /* tp_iter */
+    nullptr,                                  /* tp_iternext */
+    nullptr,                                  /* tp_methods */
+    nullptr,                                  /* tp_members */
+    BPy_UnaryPredicate1D_getseters,           /* tp_getset */
+    nullptr,                                  /* tp_base */
+    nullptr,                                  /* tp_dict */
+    nullptr,                                  /* tp_descr_get */
+    nullptr,                                  /* tp_descr_set */
+    0,                                        /* tp_dictoffset */
+    (initproc)UnaryPredicate1D___init__,      /* tp_init */
+    nullptr,                                  /* tp_alloc */
+    PyType_GenericNew,                        /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

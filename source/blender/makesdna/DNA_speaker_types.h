@@ -22,6 +22,10 @@
 
 #include "DNA_ID.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct bSound;
 
@@ -57,3 +61,7 @@ typedef struct Speaker {
 #define SPK_DS_EXPAND (1 << 0)
 #define SPK_MUTED (1 << 1)
 // #define SPK_RELATIVE    (1 << 2)  /* UNUSED */
+
+#ifdef __cplusplus
+}
+#endif

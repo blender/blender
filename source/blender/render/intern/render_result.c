@@ -737,8 +737,10 @@ static int order_render_passes(const void *a, const void *b)
   return (rpa->view_id < rpb->view_id);
 }
 
-/* From imbuf, if a handle was returned and
- * it's not a singlelayer multiview we convert this to render result. */
+/**
+ * From imbuf, if a handle was returned and
+ * it's not a single-layer multi-view we convert this to render result.
+ */
 RenderResult *render_result_new_from_exr(
     void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {

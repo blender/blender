@@ -21,7 +21,7 @@
 #include <algorithm>
 
 #if !defined(WIN32)
-#  include <stdint.h>
+#  include <cstdint>
 #endif
 
 /* COLLADABU_ASSERT, may be able to remove later */
@@ -228,7 +228,8 @@ void SkinInfo::link_armature(bContext *C,
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  ModifierData *md = ED_object_modifier_add(nullptr, bmain, scene, ob, nullptr, eModifierType_Armature);
+  ModifierData *md = ED_object_modifier_add(
+      nullptr, bmain, scene, ob, nullptr, eModifierType_Armature);
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
   amd->object = ob_arm;
 

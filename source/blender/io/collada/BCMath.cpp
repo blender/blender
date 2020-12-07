@@ -157,20 +157,20 @@ void BCMatrix::transpose(Matrix &mat)
 
 void BCMatrix::sanitize(Matrix &mat, int precision)
 {
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      double val = (double)mat[i][j];
+  for (auto &row : mat) {
+    for (float &cell : row) {
+      double val = (double)cell;
       val = double_round(val, precision);
-      mat[i][j] = (float)val;
+      cell = (float)val;
     }
   }
 }
 
 void BCMatrix::sanitize(DMatrix &mat, int precision)
 {
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      mat[i][j] = double_round(mat[i][j], precision);
+  for (auto &row : mat) {
+    for (double &cell : row) {
+      cell = double_round(cell, precision);
     }
   }
 }

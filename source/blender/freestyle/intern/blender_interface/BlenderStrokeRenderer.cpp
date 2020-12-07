@@ -64,7 +64,7 @@
 
 #include "render_types.h"
 
-#include <limits.h>
+#include <climits>
 
 namespace Freestyle {
 

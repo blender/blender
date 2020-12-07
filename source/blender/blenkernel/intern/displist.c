@@ -1290,20 +1290,18 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
   BKE_nurbList_free(&nubase);
 }
 
-static void rotateBevelPiece(Curve *cu,
-                             BevPoint *bevp,
-                             BevPoint *nbevp,
-                             DispList *dlb,
-                             float bev_blend,
-                             float widfac,
-                             float fac,
+static void rotateBevelPiece(const Curve *cu,
+                             const BevPoint *bevp,
+                             const BevPoint *nbevp,
+                             const DispList *dlb,
+                             const float bev_blend,
+                             const float widfac,
+                             const float radius_factor,
                              float **r_data)
 {
-  float *fp, *data = *r_data;
-  int b;
-
-  fp = dlb->verts;
-  for (b = 0; b < dlb->nr; b++, fp += 3, data += 3) {
+  float *data = *r_data;
+  const float *fp = dlb->verts;
+  for (int b = 0; b < dlb->nr; b++, fp += 3, data += 3) {
     if (cu->flag & CU_3D) {
       float vec[3], quat[4];
 
@@ -1322,9 +1320,9 @@ static void rotateBevelPiece(Curve *cu,
 
       mul_qt_v3(quat, vec);
 
-      data[0] += fac * vec[0];
-      data[1] += fac * vec[1];
-      data[2] += fac * vec[2];
+      data[0] += radius_factor * vec[0];
+      data[1] += radius_factor * vec[1];
+      data[2] += radius_factor * vec[2];
     }
     else {
       float sina, cosa;
@@ -1344,9 +1342,9 @@ static void rotateBevelPiece(Curve *cu,
         cosa = nbevp->cosa * bev_blend + bevp->cosa * (1.0f - bev_blend);
       }
 
-      data[0] += fac * (widfac + fp[1]) * sina;
-      data[1] += fac * (widfac + fp[1]) * cosa;
-      data[2] += fac * fp[2];
+      data[0] += radius_factor * (widfac + fp[1]) * sina;
+      data[1] += radius_factor * (widfac + fp[1]) * cosa;
+      data[2] += radius_factor * fp[2];
     }
   }
 
@@ -1568,37 +1566,88 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
       curve_to_displist(cu, &nubase, dispbase, for_render);
     }
     else {
-      float widfac = cu->width - 1.0f;
+      const float widfac = cu->width - 1.0f;
       BevList *bl = ob->runtime.curve_cache->bev.first;
       Nurb *nu = nubase.first;
 
       for (; bl && nu; bl = bl->next, nu = nu->next) {
-        DispList *dl;
         float *data;
-        int a;
 
-        if (bl->nr) { /* blank bevel lists can happen */
+        if (bl->nr == 0) { /* blank bevel lists can happen */
+          continue;
+        }
 
-          /* exception handling; curve without bevel or extrude, with width correction */
-          if (BLI_listbase_is_empty(&dlbev)) {
-            BevPoint *bevp;
-            dl = MEM_callocN(sizeof(DispList), "makeDispListbev");
-            dl->verts = MEM_mallocN(sizeof(float[3]) * bl->nr, "dlverts");
+        /* exception handling; curve without bevel or extrude, with width correction */
+        if (BLI_listbase_is_empty(&dlbev)) {
+          DispList *dl = MEM_callocN(sizeof(DispList), "makeDispListbev");
+          dl->verts = MEM_mallocN(sizeof(float[3]) * bl->nr, "dlverts");
+          BLI_addtail(dispbase, dl);
+
+          if (bl->poly != -1) {
+            dl->type = DL_POLY;
+          }
+          else {
+            dl->type = DL_SEGM;
+            dl->flag = (DL_FRONT_CURVE | DL_BACK_CURVE);
+          }
+
+          dl->parts = 1;
+          dl->nr = bl->nr;
+          dl->col = nu->mat_nr;
+          dl->charidx = nu->charidx;
+
+          /* dl->rt will be used as flag for render face and */
+          /* CU_2D conflicts with R_NOPUNOFLIP */
+          dl->rt = nu->flag & ~CU_2D;
+
+          int a = dl->nr;
+          BevPoint *bevp = bl->bevpoints;
+          data = dl->verts;
+          while (a--) {
+            data[0] = bevp->vec[0] + widfac * bevp->sina;
+            data[1] = bevp->vec[1] + widfac * bevp->cosa;
+            data[2] = bevp->vec[2];
+            bevp++;
+            data += 3;
+          }
+        }
+        else {
+          ListBase bottom_capbase = {NULL, NULL};
+          ListBase top_capbase = {NULL, NULL};
+          float bottom_no[3] = {0.0f};
+          float top_no[3] = {0.0f};
+          float first_blend = 0.0f, last_blend = 0.0f;
+          int start, steps = 0;
+
+          if (nu->flagu & CU_NURB_CYCLIC) {
+            calc_bevfac_mapping_default(bl, &start, &first_blend, &steps, &last_blend);
+          }
+          else {
+            if (fabsf(cu->bevfac2 - cu->bevfac1) < FLT_EPSILON) {
+              continue;
+            }
+
+            calc_bevfac_mapping(cu, bl, nu, &start, &first_blend, &steps, &last_blend);
+          }
+
+          LISTBASE_FOREACH (DispList *, dlb, &dlbev) {
+            /* for each part of the bevel use a separate displblock */
+            DispList *dl = MEM_callocN(sizeof(DispList), "makeDispListbev1");
+            dl->verts = data = MEM_mallocN(sizeof(float[3]) * dlb->nr * steps, "dlverts");
             BLI_addtail(dispbase, dl);
 
-            if (bl->poly != -1) {
-              dl->type = DL_POLY;
+            dl->type = DL_SURF;
+
+            dl->flag = dlb->flag & (DL_FRONT_CURVE | DL_BACK_CURVE);
+            if (dlb->type == DL_POLY) {
+              dl->flag |= DL_CYCL_U;
             }
-            else {
-              dl->type = DL_SEGM;
+            if ((bl->poly >= 0) && (steps > 2)) {
+              dl->flag |= DL_CYCL_V;
             }
 
-            if (dl->type == DL_SEGM) {
-              dl->flag = (DL_FRONT_CURVE | DL_BACK_CURVE);
-            }
-
-            dl->parts = 1;
-            dl->nr = bl->nr;
+            dl->parts = steps;
+            dl->nr = dlb->nr;
             dl->col = nu->mat_nr;
             dl->charidx = nu->charidx;
 
@@ -1606,146 +1655,87 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
             /* CU_2D conflicts with R_NOPUNOFLIP */
             dl->rt = nu->flag & ~CU_2D;
 
-            a = dl->nr;
-            bevp = bl->bevpoints;
-            data = dl->verts;
-            while (a--) {
-              data[0] = bevp->vec[0] + widfac * bevp->sina;
-              data[1] = bevp->vec[1] + widfac * bevp->cosa;
-              data[2] = bevp->vec[2];
-              bevp++;
-              data += 3;
-            }
-          }
-          else {
-            DispList *dlb;
-            ListBase bottom_capbase = {NULL, NULL};
-            ListBase top_capbase = {NULL, NULL};
-            float bottom_no[3] = {0.0f};
-            float top_no[3] = {0.0f};
-            float firstblend = 0.0f, lastblend = 0.0f;
-            int i, start, steps = 0;
+            dl->bevel_split = BLI_BITMAP_NEW(steps, "bevel_split");
 
-            if (nu->flagu & CU_NURB_CYCLIC) {
-              calc_bevfac_mapping_default(bl, &start, &firstblend, &steps, &lastblend);
-            }
-            else {
-              if (fabsf(cu->bevfac2 - cu->bevfac1) < FLT_EPSILON) {
-                continue;
+            /* for each point of poly make a bevel piece */
+            BevPoint *bevp_first = bl->bevpoints;
+            BevPoint *bevp_last = &bl->bevpoints[bl->nr - 1];
+            BevPoint *bevp = &bl->bevpoints[start];
+            for (int i = start, a = 0; a < steps; i++, bevp++, a++) {
+              float radius_factor = 1.0;
+              float *cur_data = data;
+
+              if (cu->taperobj == NULL) {
+                radius_factor = bevp->radius;
               }
+              else {
+                float taper_factor;
+                if (cu->flag & CU_MAP_TAPER) {
+                  float len = (steps - 3) + first_blend + last_blend;
 
-              calc_bevfac_mapping(cu, bl, nu, &start, &firstblend, &steps, &lastblend);
-            }
-
-            for (dlb = dlbev.first; dlb; dlb = dlb->next) {
-              BevPoint *bevp_first, *bevp_last;
-              BevPoint *bevp;
-
-              /* for each part of the bevel use a separate displblock */
-              dl = MEM_callocN(sizeof(DispList), "makeDispListbev1");
-              dl->verts = data = MEM_mallocN(sizeof(float[3]) * dlb->nr * steps, "dlverts");
-              BLI_addtail(dispbase, dl);
-
-              dl->type = DL_SURF;
-
-              dl->flag = dlb->flag & (DL_FRONT_CURVE | DL_BACK_CURVE);
-              if (dlb->type == DL_POLY) {
-                dl->flag |= DL_CYCL_U;
-              }
-              if ((bl->poly >= 0) && (steps > 2)) {
-                dl->flag |= DL_CYCL_V;
-              }
-
-              dl->parts = steps;
-              dl->nr = dlb->nr;
-              dl->col = nu->mat_nr;
-              dl->charidx = nu->charidx;
-
-              /* dl->rt will be used as flag for render face and */
-              /* CU_2D conflicts with R_NOPUNOFLIP */
-              dl->rt = nu->flag & ~CU_2D;
-
-              dl->bevel_split = BLI_BITMAP_NEW(steps, "bevel_split");
-
-              /* for each point of poly make a bevel piece */
-              bevp_first = bl->bevpoints;
-              bevp_last = &bl->bevpoints[bl->nr - 1];
-              bevp = &bl->bevpoints[start];
-              for (i = start, a = 0; a < steps; i++, bevp++, a++) {
-                float fac = 1.0;
-                float *cur_data = data;
-
-                if (cu->taperobj == NULL) {
-                  fac = bevp->radius;
-                }
-                else {
-                  float len, taper_fac;
-
-                  if (cu->flag & CU_MAP_TAPER) {
-                    len = (steps - 3) + firstblend + lastblend;
-
-                    if (a == 0) {
-                      taper_fac = 0.0f;
-                    }
-                    else if (a == steps - 1) {
-                      taper_fac = 1.0f;
-                    }
-                    else {
-                      taper_fac = ((float)a - (1.0f - firstblend)) / len;
-                    }
+                  if (a == 0) {
+                    taper_factor = 0.0f;
+                  }
+                  else if (a == steps - 1) {
+                    taper_factor = 1.0f;
                   }
                   else {
-                    len = bl->nr - 1;
-                    taper_fac = (float)i / len;
-
-                    if (a == 0) {
-                      taper_fac += (1.0f - firstblend) / len;
-                    }
-                    else if (a == steps - 1) {
-                      taper_fac -= (1.0f - lastblend) / len;
-                    }
+                    taper_factor = ((float)a - (1.0f - first_blend)) / len;
                   }
-
-                  fac = displist_calc_taper(depsgraph, scene, cu->taperobj, taper_fac);
-                }
-
-                if (bevp->split_tag) {
-                  BLI_BITMAP_ENABLE(dl->bevel_split, a);
-                }
-
-                /* rotate bevel piece and write in data */
-                if ((a == 0) && (bevp != bevp_last)) {
-                  rotateBevelPiece(cu, bevp, bevp + 1, dlb, 1.0f - firstblend, widfac, fac, &data);
-                }
-                else if ((a == steps - 1) && (bevp != bevp_first)) {
-                  rotateBevelPiece(cu, bevp, bevp - 1, dlb, 1.0f - lastblend, widfac, fac, &data);
                 }
                 else {
-                  rotateBevelPiece(cu, bevp, NULL, dlb, 0.0f, widfac, fac, &data);
+                  float len = bl->nr - 1;
+                  taper_factor = (float)i / len;
+
+                  if (a == 0) {
+                    taper_factor += (1.0f - first_blend) / len;
+                  }
+                  else if (a == steps - 1) {
+                    taper_factor -= (1.0f - last_blend) / len;
+                  }
                 }
 
-                if ((cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
-                  if (a == 1) {
-                    fillBevelCap(nu, dlb, cur_data - 3 * dlb->nr, &bottom_capbase);
-                    copy_v3_v3(bottom_no, bevp->dir);
-                  }
-                  if (a == steps - 1) {
-                    fillBevelCap(nu, dlb, cur_data, &top_capbase);
-                    negate_v3_v3(top_no, bevp->dir);
-                  }
-                }
+                radius_factor = displist_calc_taper(depsgraph, scene, cu->taperobj, taper_factor);
               }
 
-              /* gl array drawing: using indices */
-              displist_surf_indices(dl);
+              if (bevp->split_tag) {
+                BLI_BITMAP_ENABLE(dl->bevel_split, a);
+              }
+
+              /* rotate bevel piece and write in data */
+              if ((a == 0) && (bevp != bevp_last)) {
+                rotateBevelPiece(
+                    cu, bevp, bevp + 1, dlb, 1.0f - first_blend, widfac, radius_factor, &data);
+              }
+              else if ((a == steps - 1) && (bevp != bevp_first)) {
+                rotateBevelPiece(
+                    cu, bevp, bevp - 1, dlb, 1.0f - last_blend, widfac, radius_factor, &data);
+              }
+              else {
+                rotateBevelPiece(cu, bevp, NULL, dlb, 0.0f, widfac, radius_factor, &data);
+              }
+
+              if ((cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
+                if (a == 1) {
+                  fillBevelCap(nu, dlb, cur_data - 3 * dlb->nr, &bottom_capbase);
+                  copy_v3_v3(bottom_no, bevp->dir);
+                }
+                if (a == steps - 1) {
+                  fillBevelCap(nu, dlb, cur_data, &top_capbase);
+                  negate_v3_v3(top_no, bevp->dir);
+                }
+              }
             }
 
-            if (bottom_capbase.first) {
-              BKE_displist_fill(&bottom_capbase, dispbase, bottom_no, false);
-              BKE_displist_fill(&top_capbase, dispbase, top_no, false);
-              BKE_displist_free(&bottom_capbase);
-              BKE_displist_free(&top_capbase);
-            }
+            /* gl array drawing: using indices */
+            displist_surf_indices(dl);
+          }
+
+          if (bottom_capbase.first) {
+            BKE_displist_fill(&bottom_capbase, dispbase, bottom_no, false);
+            BKE_displist_fill(&top_capbase, dispbase, top_no, false);
+            BKE_displist_free(&bottom_capbase);
+            BKE_displist_free(&top_capbase);
           }
         }
       }
@@ -1761,9 +1751,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
           DEG_get_eval_flags_for_id(depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH) {
         calc_curvepath(ob, &nubase);
       }
-    }
 
-    if (!for_orco) {
       BKE_nurbList_duplicate(&ob->runtime.curve_cache->deformed_nurbs, &nubase);
       curve_calc_modifiers_post(
           depsgraph, scene, ob, &nubase, dispbase, r_final, for_render, force_mesh_conversion);

@@ -34,3 +34,24 @@ diff -Naur orig/src/include/OpenImageIO/platform.h external_openimageio/src/incl
  #    include <windows.h>
  #endif
  
+diff -Naur orig/src/libutil/ustring.cpp external_openimageio/src/libutil/ustring.cpp
+--- orig/src/libutil/ustring.cpp	2020-05-11 05:43:52.000000000 +0200
++++ external_openimageio/src/libutil/ustring.cpp	2020-11-26 12:06:08.000000000 +0100
+@@ -337,6 +337,8 @@
+     // the std::string to make it point to our chars!  In such a case, the
+     // destructor will be careful not to allow a deallocation.
+ 
++    // Disable internal std::string for Apple silicon based Macs
++#if !(defined(__APPLE__) && defined(__arm64__))
+ #if defined(__GNUC__) && !defined(_LIBCPP_VERSION)                             \
+     && defined(_GLIBCXX_USE_CXX11_ABI) && _GLIBCXX_USE_CXX11_ABI
+     // NEW gcc ABI
+@@ -382,7 +384,7 @@
+         return;
+     }
+ #endif
+-
++#endif
+     // Remaining cases - just assign the internal string.  This may result
+     // in double allocation for the chars.  If you care about that, do
+     // something special for your platform, much like we did for gcc and

@@ -245,13 +245,13 @@ static void do_version_action_editor_properties_region(ListBase *regionbase)
     }
     if (region->regiontype == RGN_TYPE_WINDOW) {
       /* add new region here */
-      ARegion *arnew = MEM_callocN(sizeof(ARegion), "buttons for action");
+      ARegion *region_new = MEM_callocN(sizeof(ARegion), "buttons for action");
 
-      BLI_insertlinkbefore(regionbase, region, arnew);
+      BLI_insertlinkbefore(regionbase, region, region_new);
 
-      arnew->regiontype = RGN_TYPE_UI;
-      arnew->alignment = RGN_ALIGN_RIGHT;
-      arnew->flag = RGN_FLAG_HIDDEN;
+      region_new->regiontype = RGN_TYPE_UI;
+      region_new->alignment = RGN_ALIGN_RIGHT;
+      region_new->flag = RGN_FLAG_HIDDEN;
 
       return;
     }

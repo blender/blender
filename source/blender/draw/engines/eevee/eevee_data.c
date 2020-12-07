@@ -240,6 +240,9 @@ void EEVEE_view_layer_data_free(void *storage)
   DRW_UBO_FREE_SAFE(sldata->renderpass_ubo.spec_light);
   DRW_UBO_FREE_SAFE(sldata->renderpass_ubo.emit);
   DRW_UBO_FREE_SAFE(sldata->renderpass_ubo.environment);
+  for (int aov_index = 0; aov_index < MAX_AOVS; aov_index++) {
+    DRW_UBO_FREE_SAFE(sldata->renderpass_ubo.aovs[aov_index]);
+  }
 
   if (sldata->material_cache) {
     BLI_memblock_destroy(sldata->material_cache, NULL);

@@ -1147,26 +1147,18 @@ void solvePressureSystem(Grid<Real> &rhs,
   gcg->setAccuracy(cgAccuracy);
   gcg->setUseL2Norm(useL2Norm);
 
-  int maxIter = 0;
+  int maxIter = (int)(cgMaxIterFac * flags.getSize().max()) * (flags.is3D() ? 1 : 4);
 
   Grid<Real> *pca0 = nullptr, *pca1 = nullptr, *pca2 = nullptr, *pca3 = nullptr;
   GridMg *pmg = nullptr;
 
   // optional preconditioning
-  if (preconditioner == PcNone || preconditioner == PcMIC) {
-    maxIter = (int)(cgMaxIterFac * flags.getSize().max()) * (flags.is3D() ? 1 : 4);
-
+  if (preconditioner == PcMIC) {
     pca0 = new Grid<Real>(parent);
     pca1 = new Grid<Real>(parent);
     pca2 = new Grid<Real>(parent);
     pca3 = new Grid<Real>(parent);
-
-    gcg->setICPreconditioner(preconditioner == PcMIC ? GridCgInterface::PC_mICP :
-                                                       GridCgInterface::PC_None,
-                             pca0,
-                             pca1,
-                             pca2,
-                             pca3);
+    gcg->setICPreconditioner(GridCgInterface::PC_mICP, pca0, pca1, pca2, pca3);
   }
   else if (preconditioner == PcMGDynamic || preconditioner == PcMGStatic) {
     maxIter = 100;

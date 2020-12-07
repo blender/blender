@@ -1218,8 +1218,11 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
 }
 
 void IMB_anim_index_rebuild(struct IndexBuildContext *context,
+                            /* NOLINTNEXTLINE: readability-non-const-parameter. */
                             short *stop,
+                            /* NOLINTNEXTLINE: readability-non-const-parameter. */
                             short *do_update,
+                            /* NOLINTNEXTLINE: readability-non-const-parameter. */
                             float *progress)
 {
   switch (context->anim_type) {

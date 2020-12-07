@@ -36,8 +36,9 @@
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 #include <utility>
+#include <vector>
+
 #include "ceres/graph.h"
 #include "ceres/wall_time.h"
 #include "glog/logging.h"
@@ -50,8 +51,7 @@ namespace internal {
 template <typename Vertex>
 class VertexTotalOrdering {
  public:
-  explicit VertexTotalOrdering(const Graph<Vertex>& graph)
-      : graph_(graph) {}
+  explicit VertexTotalOrdering(const Graph<Vertex>& graph) : graph_(graph) {}
 
   bool operator()(const Vertex& lhs, const Vertex& rhs) const {
     if (graph_.Neighbors(lhs).size() == graph_.Neighbors(rhs).size()) {
@@ -67,8 +67,7 @@ class VertexTotalOrdering {
 template <typename Vertex>
 class VertexDegreeLessThan {
  public:
-  explicit VertexDegreeLessThan(const Graph<Vertex>& graph)
-      : graph_(graph) {}
+  explicit VertexDegreeLessThan(const Graph<Vertex>& graph) : graph_(graph) {}
 
   bool operator()(const Vertex& lhs, const Vertex& rhs) const {
     return graph_.Neighbors(lhs).size() < graph_.Neighbors(rhs).size();
@@ -177,8 +176,9 @@ int StableIndependentSetOrdering(const Graph<Vertex>& graph,
 
   std::vector<Vertex> vertex_queue(*ordering);
 
-  std::stable_sort(vertex_queue.begin(), vertex_queue.end(),
-                  VertexDegreeLessThan<Vertex>(graph));
+  std::stable_sort(vertex_queue.begin(),
+                   vertex_queue.end(),
+                   VertexDegreeLessThan<Vertex>(graph));
 
   // Mark all vertices white.
   std::unordered_map<Vertex, char> vertex_color;
@@ -257,8 +257,8 @@ Vertex FindConnectedComponent(const Vertex& vertex,
 // spanning forest, or a collection of linear paths that span the
 // graph G.
 template <typename Vertex>
-WeightedGraph<Vertex>*
-Degree2MaximumSpanningForest(const WeightedGraph<Vertex>& graph) {
+WeightedGraph<Vertex>* Degree2MaximumSpanningForest(
+    const WeightedGraph<Vertex>& graph) {
   // Array of edges sorted in decreasing order of their weights.
   std::vector<std::pair<double, std::pair<Vertex, Vertex>>> weighted_edges;
   WeightedGraph<Vertex>* forest = new WeightedGraph<Vertex>();
@@ -294,7 +294,7 @@ Degree2MaximumSpanningForest(const WeightedGraph<Vertex>& graph) {
 
   // Greedily add edges to the spanning tree/forest as long as they do
   // not violate the degree/cycle constraint.
-  for (int i =0; i < weighted_edges.size(); ++i) {
+  for (int i = 0; i < weighted_edges.size(); ++i) {
     const std::pair<Vertex, Vertex>& edge = weighted_edges[i].second;
     const Vertex vertex1 = edge.first;
     const Vertex vertex2 = edge.second;

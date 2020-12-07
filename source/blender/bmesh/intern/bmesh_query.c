@@ -2612,6 +2612,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
                              int *r_groups_array,
                              int (**r_group_index)[2],
                              BMLoopFilterFunc filter_fn,
+                             BMLoopPairFilterFunc filter_pair_fn,
                              void *user_data,
                              const char hflag_test,
                              const char htype_step)
@@ -2707,10 +2708,12 @@ int BM_mesh_calc_face_groups(BMesh *bm,
           BMLoop *l_radial_iter = l_iter->radial_next;
           if ((l_radial_iter != l_iter) && ((filter_fn == NULL) || filter_fn(l_iter, user_data))) {
             do {
-              BMFace *f_other = l_radial_iter->f;
-              if (BM_elem_flag_test(f_other, BM_ELEM_TAG) == false) {
-                BM_elem_flag_enable(f_other, BM_ELEM_TAG);
-                STACK_PUSH(stack, f_other);
+              if ((filter_pair_fn == NULL) || filter_pair_fn(l_iter, l_radial_iter, user_data)) {
+                BMFace *f_other = l_radial_iter->f;
+                if (BM_elem_flag_test(f_other, BM_ELEM_TAG) == false) {
+                  BM_elem_flag_enable(f_other, BM_ELEM_TAG);
+                  STACK_PUSH(stack, f_other);
+                }
               }
             } while ((l_radial_iter = l_radial_iter->radial_next) != l_iter);
           }
@@ -2725,10 +2728,12 @@ int BM_mesh_calc_face_groups(BMesh *bm,
           if ((filter_fn == NULL) || filter_fn(l_iter, user_data)) {
             BMLoop *l_other;
             BM_ITER_ELEM (l_other, &liter, l_iter, BM_LOOPS_OF_LOOP) {
-              BMFace *f_other = l_other->f;
-              if (BM_elem_flag_test(f_other, BM_ELEM_TAG) == false) {
-                BM_elem_flag_enable(f_other, BM_ELEM_TAG);
-                STACK_PUSH(stack, f_other);
+              if ((filter_pair_fn == NULL) || filter_pair_fn(l_iter, l_other, user_data)) {
+                BMFace *f_other = l_other->f;
+                if (BM_elem_flag_test(f_other, BM_ELEM_TAG) == false) {
+                  BM_elem_flag_enable(f_other, BM_ELEM_TAG);
+                  STACK_PUSH(stack, f_other);
+                }
               }
             }
           }

@@ -248,6 +248,10 @@ bool BKE_fcurve_calc_bounds(struct FCurve *fcu,
 void BKE_fcurve_active_keyframe_set(struct FCurve *fcu, const struct BezTriple *active_bezt);
 int BKE_fcurve_active_keyframe_index(const struct FCurve *fcu);
 
+/* Move the indexed keyframe to the given value, and move the handles with it to ensure the slope
+ * remains the same. */
+void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, float new_value);
+
 /* .............. */
 
 /* Are keyframes on F-Curve of any use (to final result, and to show in editors)? */

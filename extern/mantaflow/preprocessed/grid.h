@@ -402,7 +402,7 @@ class GridBase : public PbClass {
 template<class T> class Grid : public GridBase {
  public:
   //! init new grid, values are set to zero
-  Grid(FluidSolver *parent, bool show = true);
+  Grid(FluidSolver *parent, bool show = true, bool sparse = false);
   static int _W_10(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     PbClass *obj = Pb::objFromPy(_self);
@@ -416,7 +416,8 @@ template<class T> class Grid : public GridBase {
         ArgLocker _lock;
         FluidSolver *parent = _args.getPtr<FluidSolver>("parent", 0, &_lock);
         bool show = _args.getOpt<bool>("show", 1, true, &_lock);
-        obj = new Grid(parent, show);
+        bool sparse = _args.getOpt<bool>("sparse", 2, false, &_lock);
+        obj = new Grid(parent, show, sparse);
         obj->registerObject(_self, &_args);
         _args.check();
       }
@@ -580,6 +581,16 @@ template<class T> class Grid : public GridBase {
   {
     DEBUG_ONLY(checkIndex(idx));
     return mData[idx];
+  }
+  //! raw data access
+  inline T *getData() const
+  {
+    return mData;
+  }
+  //! query if this grid should be saved as a sparse grid
+  inline bool saveSparse()
+  {
+    return mSaveSparse;
   }
 
   //! set data
@@ -1290,7 +1301,8 @@ template<class T> class Grid : public GridBase {
 
  protected:
   T *mData;
-  bool externalData;  // True if mData is managed outside of the Fluidsolver
+  bool mExternalData;  // True if mData is managed outside of the Fluidsolver
+  bool mSaveSparse;    // True if this grid may be cached in a sparse structure
  public:
   PbArgs _args;
 }
@@ -1302,7 +1314,8 @@ template<class T> class Grid : public GridBase {
 //! Special function for staggered grids
 class MACGrid : public Grid<Vec3> {
  public:
-  MACGrid(FluidSolver *parent, bool show = true) : Grid<Vec3>(parent, show)
+  MACGrid(FluidSolver *parent, bool show = true, bool sparse = false)
+      : Grid<Vec3>(parent, show, sparse)
   {
     mType = (GridType)(TypeMAC | TypeVec3);
   }
@@ -1319,7 +1332,8 @@ class MACGrid : public Grid<Vec3> {
         ArgLocker _lock;
         FluidSolver *parent = _args.getPtr<FluidSolver>("parent", 0, &_lock);
         bool show = _args.getOpt<bool>("show", 1, true, &_lock);
-        obj = new MACGrid(parent, show);
+        bool sparse = _args.getOpt<bool>("sparse", 2, false, &_lock);
+        obj = new MACGrid(parent, show, sparse);
         obj->registerObject(_self, &_args);
         _args.check();
       }
@@ -1425,7 +1439,8 @@ class MACGrid : public Grid<Vec3> {
 //! Special functions for FlagGrid
 class FlagGrid : public Grid<int> {
  public:
-  FlagGrid(FluidSolver *parent, int dim = 3, bool show = true) : Grid<int>(parent, show)
+  FlagGrid(FluidSolver *parent, int dim = 3, bool show = true, bool sparse = false)
+      : Grid<int>(parent, show, sparse)
   {
     mType = (GridType)(TypeFlags | TypeInt);
   }
@@ -1443,7 +1458,8 @@ class FlagGrid : public Grid<int> {
         FluidSolver *parent = _args.getPtr<FluidSolver>("parent", 0, &_lock);
         int dim = _args.getOpt<int>("dim", 1, 3, &_lock);
         bool show = _args.getOpt<bool>("show", 2, true, &_lock);
-        obj = new FlagGrid(parent, dim, show);
+        bool sparse = _args.getOpt<bool>("sparse", 3, false, &_lock);
+        obj = new FlagGrid(parent, dim, show, sparse);
         obj->registerObject(_self, &_args);
         _args.check();
       }

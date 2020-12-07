@@ -166,10 +166,14 @@ static PyTypeObject bmesh_op_Type = {
     sizeof(BPy_BMeshOpFunc),                      /* tp_basicsize */
     0,                                            /* tp_itemsize */
     /* methods */
-    NULL,            /* tp_dealloc */
-    (printfunc)NULL, /* printfunc tp_print; */
-    NULL,            /* getattrfunc tp_getattr; */
-    NULL,            /* setattrfunc tp_setattr; */
+    NULL, /* tp_dealloc */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    (printfunc)NULL, /* printfunc tp_print */
+#endif
+    NULL, /* getattrfunc tp_getattr; */
+    NULL, /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */             /* DEPRECATED in python 3.0! */
     (reprfunc)bpy_bmesh_op_repr, /* tp_repr */

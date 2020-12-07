@@ -21,6 +21,7 @@ extern "C" {
 
 #include "BLI_array.hh"
 #include "BLI_double2.hh"
+#include "BLI_math_boolean.hh"
 #include "BLI_math_mpq.hh"
 #include "BLI_mpq2.hh"
 #include "BLI_vector.hh"
@@ -1696,7 +1697,7 @@ void rand_delaunay_test(int test_kind,
             in.vert[ic][1] = T((param * sin(angle3)));
             /* Put the coordinates in ccw order. */
             in.face[i].append(ia);
-            int orient = vec2<T>::orient2d(in.vert[ia], in.vert[ib], in.vert[ic]);
+            int orient = orient2d(in.vert[ia], in.vert[ib], in.vert[ic]);
             if (orient >= 0) {
               in.face[i].append(ib);
               in.face[i].append(ic);

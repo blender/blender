@@ -222,7 +222,7 @@ typedef struct ViewOpsData {
   /** Current state. */
   struct {
     /** Working copy of #RegionView3D.viewquat, needed for rotation calculation
-     * so we can apply snap to the view-port while keeping the unsnapped rotation
+     * so we can apply snap to the 3D Viewport while keeping the unsnapped rotation
      * here to use when snap is disabled and for continued calculation. */
     float viewquat[4];
   } curr;
@@ -998,7 +998,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     int event_xy[2];
 
     if (event->type == MOUSEPAN) {
-      if (U.uiflag2 & USER_TRACKPAD_NATURAL) {
+      if (event->is_direction_inverted) {
         event_xy[0] = 2 * event->x - event->prevx;
         event_xy[1] = 2 * event->y - event->prevy;
       }

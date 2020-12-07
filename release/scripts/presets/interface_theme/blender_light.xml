@@ -818,6 +818,7 @@
         metadatabg="#000000"
         metadatatext="#ffffff"
         preview_range="#a14d0066"
+        row_alternate="#ffffff0d"
         >
         <space>
           <ThemeSpaceGeneric
@@ -953,15 +954,17 @@
         distor_node="#749797"
         noodle_curving="0"
         grid_levels="2"
-        input_node="#ff6675"
-        output_node="#ff6675"
+        input_node="#cb3d4a"
+        output_node="#cb3d4a"
         filter_node="#6c696f"
         vector_node="#9999ff"
         texture_node="#ffc399"
-        shader_node="#a7ff99"
+        shader_node="#ea7581"
         script_node="#6c696f"
         pattern_node="#6c696f"
         layout_node="#6c696f"
+        geometry_node="#00d7a4"
+        attribute_node="#3f5980"
         >
         <space>
           <ThemeSpaceGeneric
@@ -1454,6 +1457,40 @@
         >
       </ThemeBoneColorSet>
     </bone_color_sets>
+    <collection_color>
+      <ThemeCollectionColor
+        color="#dd473f"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#e5a057"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#e4d050"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#3fb931"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#3887c7"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#844fcd"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#c169b5"
+        >
+      </ThemeCollectionColor>
+      <ThemeCollectionColor
+        color="#7a5441"
+        >
+      </ThemeCollectionColor>
+    </collection_color>
   </Theme>
   <ThemeStyle>
     <panel_title>

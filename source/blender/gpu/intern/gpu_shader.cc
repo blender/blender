@@ -392,8 +392,15 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
     libcode = libcodecat = BLI_strdupcat(libcode, datatoc_gpu_shader_colorspace_lib_glsl);
   }
 
-  GPUShader *sh = GPU_shader_create_ex(
-      vertcode, fragcode, geomcode, libcode, defines, GPU_SHADER_TFB_NONE, nullptr, 0, "pyGPUShader");
+  GPUShader *sh = GPU_shader_create_ex(vertcode,
+                                       fragcode,
+                                       geomcode,
+                                       libcode,
+                                       defines,
+                                       GPU_SHADER_TFB_NONE,
+                                       nullptr,
+                                       0,
+                                       "pyGPUShader");
 
   MEM_SAFE_FREE(libcodecat);
   return sh;
@@ -463,9 +470,9 @@ struct GPUShader *GPU_shader_create_from_arrays_impl(
   GPUShader *sh = GPU_shader_create(
       str_dst[0].str, str_dst[1].str, str_dst[2].str, nullptr, str_dst[3].str, name);
 
-  for (int i = 0; i < ARRAY_SIZE(str_dst); i++) {
-    if (str_dst[i].is_alloc) {
-      MEM_freeN((void *)str_dst[i].str);
+  for (auto &i : str_dst) {
+    if (i.is_alloc) {
+      MEM_freeN((void *)i.str);
     }
   }
   return sh;
@@ -584,11 +591,10 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 /** \name Getters
  * \{ */
 
-/* Clement : Temp */
-int GPU_shader_get_program(GPUShader *UNUSED(shader))
+/* DEPRECATED: Kept only because of BGL API */
+int GPU_shader_get_program(GPUShader *shader)
 {
-  /* TODO fixme */
-  return (int)0;
+  return unwrap(shader)->program_handle_get();
 }
 
 /** \} */

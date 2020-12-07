@@ -31,6 +31,10 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct Mask {
   ID id;
   struct AnimData *adt;
@@ -263,3 +267,7 @@ enum {
 enum {
   MASK_ANIMF_EXPAND = (1 << 4),
 };
+
+#ifdef __cplusplus
+}
+#endif

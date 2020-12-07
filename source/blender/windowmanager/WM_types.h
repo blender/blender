@@ -595,6 +595,10 @@ typedef struct wmEvent {
   /** Ascii, unicode, mouse coords, angles, vectors, dragdrop info. */
   void *customdata;
 
+  /* True if the operating system inverted the delta x/y values and resulting
+   * prev x/y values, for natural scroll direction. For absolute scroll direction,
+   * the delta must be negated again. */
+  char is_direction_inverted;
 } wmEvent;
 
 /**

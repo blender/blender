@@ -16,7 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <stdio.h>
+#include <cstdio>
 #include <typeinfo>
 
 #include "COM_ExecutionSystem.h"

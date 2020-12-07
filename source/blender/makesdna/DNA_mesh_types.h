@@ -220,6 +220,8 @@ typedef struct Mesh {
   float remesh_voxel_adaptivity;
   char remesh_mode;
 
+  /* Indicates the symmetry that a mesh has, according to the artist, so that tools can
+   * consistently ensure that this symmetry is maintained. */
   char symmetry;
 
   char _pad1[2];

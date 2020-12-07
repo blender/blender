@@ -27,8 +27,7 @@
 
 #include "BLI_utildefines.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 MovieClipBackup::MovieClipBackup(const Depsgraph * /*depsgraph*/)
 {
@@ -59,5 +58,4 @@ void MovieClipBackup::restore_to_movieclip(MovieClip *movieclip)
   reset();
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

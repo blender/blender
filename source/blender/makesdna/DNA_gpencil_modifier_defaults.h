@@ -52,7 +52,7 @@
     .layer_pass = 0, \
   }
 
-/* Deliberately set this range to the half the default frame-range 
+/* Deliberately set this range to the half the default frame-range
  * to have an immediate effect to suggest use-cases. */
 #define _DNA_DEFAULT_BuildGpencilModifierData \
   { \
@@ -138,7 +138,6 @@
     .fading_center = 0.5f, \
     .fading_thickness = 0.5f, \
     .fading_opacity = 0.5f, \
-    .split_angle = DEG2RADF(1.0f), \
   }
 
 #define _DNA_DEFAULT_NoiseGpencilModifierData \

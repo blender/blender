@@ -543,8 +543,6 @@ static Text *rna_Main_texts_load(Main *bmain,
 
   errno = 0;
   txt = BKE_text_load_ex(bmain, filepath, BKE_main_blendfile_path(bmain), is_internal);
-  /* Texts have no user by default... Only the 'real' user flag. */
-  id_us_min(&txt->id);
 
   if (!txt) {
     BKE_reportf(reports,
@@ -680,7 +678,6 @@ static Hair *rna_Main_hairs_new(Main *bmain, const char *name)
 }
 #  endif
 
-#  ifdef WITH_POINT_CLOUD
 static PointCloud *rna_Main_pointclouds_new(Main *bmain, const char *name)
 {
   char safe_name[MAX_ID_NAME - 2];
@@ -690,7 +687,6 @@ static PointCloud *rna_Main_pointclouds_new(Main *bmain, const char *name)
   id_us_min(&pointcloud->id);
   return pointcloud;
 }
-#  endif
 
 static Volume *rna_Main_volumes_new(Main *bmain, const char *name)
 {
@@ -759,9 +755,7 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(lightprobes, lightprobes, ID_LP)
 #  ifdef WITH_HAIR_NODES
 RNA_MAIN_ID_TAG_FUNCS_DEF(hairs, hairs, ID_HA)
 #  endif
-#  ifdef WITH_POINT_CLOUD
 RNA_MAIN_ID_TAG_FUNCS_DEF(pointclouds, pointclouds, ID_PT)
-#  endif
 RNA_MAIN_ID_TAG_FUNCS_DEF(volumes, volumes, ID_VO)
 #  ifdef WITH_GEOMETRY_NODES
 RNA_MAIN_ID_TAG_FUNCS_DEF(simulations, simulations, ID_SIM)
@@ -2212,7 +2206,6 @@ void RNA_def_main_hairs(BlenderRNA *brna, PropertyRNA *cprop)
 }
 #  endif
 
-#  ifdef WITH_POINT_CLOUD
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
@@ -2259,7 +2252,6 @@ void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_boolean(func, "value", 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
-#  endif
 
 void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop)
 {

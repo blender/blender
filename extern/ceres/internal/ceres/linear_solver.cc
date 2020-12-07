@@ -33,9 +33,9 @@
 #include "ceres/cgnr_solver.h"
 #include "ceres/dense_normal_cholesky_solver.h"
 #include "ceres/dense_qr_solver.h"
+#include "ceres/dynamic_sparse_normal_cholesky_solver.h"
 #include "ceres/iterative_schur_complement_solver.h"
 #include "ceres/schur_complement_solver.h"
-#include "ceres/dynamic_sparse_normal_cholesky_solver.h"
 #include "ceres/sparse_normal_cholesky_solver.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
@@ -43,8 +43,7 @@
 namespace ceres {
 namespace internal {
 
-LinearSolver::~LinearSolver() {
-}
+LinearSolver::~LinearSolver() {}
 
 LinearSolverType LinearSolver::LinearSolverForZeroEBlocks(
     LinearSolverType linear_solver_type) {
@@ -112,8 +111,7 @@ LinearSolver* LinearSolver::Create(const LinearSolver::Options& options) {
       return new DenseNormalCholeskySolver(options);
 
     default:
-      LOG(FATAL) << "Unknown linear solver type :"
-                 << options.type;
+      LOG(FATAL) << "Unknown linear solver type :" << options.type;
       return NULL;  // MSVC doesn't understand that LOG(FATAL) never returns.
   }
 }

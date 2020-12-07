@@ -192,4 +192,32 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(Object *ob, void *UNUSED(user_dat
   return false;
 }
 
+/**
+ * Use this in rare cases we need to detect a pair of objects (active, selected).
+ * This returns the other non-active selected object.
+ *
+ * Returns NULL with it finds multiple other selected objects
+ * as behavior in this case would be random from the user perspective.
+ */
+Object *BKE_view_layer_non_active_selected_object(struct ViewLayer *view_layer,
+                                                  const struct View3D *v3d)
+{
+  Object *ob_active = OBACT(view_layer);
+  Object *ob_result = NULL;
+  FOREACH_SELECTED_OBJECT_BEGIN (view_layer, v3d, ob_iter) {
+    if (ob_iter == ob_active) {
+      continue;
+    }
+
+    if (ob_result == NULL) {
+      ob_result = ob_iter;
+    }
+    else {
+      ob_result = NULL;
+      break;
+    }
+  }
+  FOREACH_SELECTED_OBJECT_END;
+  return ob_result;
+}
 /** \} */

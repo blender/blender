@@ -75,7 +75,7 @@
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 
-#include "RE_render_ext.h"
+#include "RE_texture.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

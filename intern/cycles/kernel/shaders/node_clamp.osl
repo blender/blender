@@ -16,11 +16,12 @@
 
 #include "stdcycles.h"
 
-shader node_clamp(string type = "minmax",
+shader node_clamp(string clamp_type = "minmax",
                   float Value = 1.0,
                   float Min = 0.0,
                   float Max = 1.0,
                   output float Result = 0.0)
 {
-  Result = (type == "range" && (Min > Max)) ? clamp(Value, Max, Min) : clamp(Value, Min, Max);
+  Result = (clamp_type == "range" && (Min > Max)) ? clamp(Value, Max, Min) :
+                                                    clamp(Value, Min, Max);
 }

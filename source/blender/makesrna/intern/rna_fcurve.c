@@ -267,7 +267,6 @@ static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *
       /*BLI_findindex(&driver->targets, ptr->data) != -1)  */
       RNA_pointer_create(ptr->owner_id, &RNA_Driver, driver, &driverptr);
       rna_ChannelDriver_update_data(bmain, scene, &driverptr);
-      return;
     }
   }
 }
@@ -461,6 +460,27 @@ static void rna_FKeyframe_ctrlpoint_set(PointerRNA *ptr, const float *values)
 
   bezt->vec[1][0] = values[0];
   bezt->vec[1][1] = values[1];
+}
+
+static void rna_FKeyframe_ctrlpoint_ui_set(PointerRNA *ptr, const float *values)
+{
+  BezTriple *bezt = (BezTriple *)ptr->data;
+
+  const float frame_delta = values[0] - bezt->vec[1][0];
+  const float value_delta = values[1] - bezt->vec[1][1];
+
+  /** To match the behavior of transforming the keyframe Co using the Graph Editor
+   * (transform_convert_graph.c) flushTransGraphData(), we will also move the handles by
+   * the same amount as the Co delta. */
+
+  bezt->vec[0][0] += frame_delta;
+  bezt->vec[0][1] += value_delta;
+
+  bezt->vec[1][0] = values[0];
+  bezt->vec[1][1] = values[1];
+
+  bezt->vec[2][0] += frame_delta;
+  bezt->vec[2][1] += value_delta;
 }
 
 /* ****************************** */
@@ -2096,6 +2116,18 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
   RNA_def_property_float_funcs(
       prop, "rna_FKeyframe_ctrlpoint_get", "rna_FKeyframe_ctrlpoint_set", NULL);
   RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_Keyframe_update");
+
+  prop = RNA_def_property(
+      srna, "co_ui", PROP_FLOAT, PROP_COORDS); /* keyframes are dimensionless */
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_float_funcs(
+      prop, "rna_FKeyframe_ctrlpoint_get", "rna_FKeyframe_ctrlpoint_ui_set", NULL);
+  RNA_def_property_ui_text(
+      prop,
+      "Control Point",
+      "Coordinates of the control point. Note: Changing this value also updates the handles "
+      "similar to using the graph editor transform operator");
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_Keyframe_update");
 
   prop = RNA_def_property(

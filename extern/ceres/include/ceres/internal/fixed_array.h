@@ -30,14 +30,13 @@
 #ifndef CERES_PUBLIC_INTERNAL_FIXED_ARRAY_H_
 #define CERES_PUBLIC_INTERNAL_FIXED_ARRAY_H_
 
+#include <Eigen/Core>  // For Eigen::aligned_allocator
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <memory>
 #include <tuple>
 #include <type_traits>
-
-#include <Eigen/Core> // For Eigen::aligned_allocator
 
 #include "ceres/internal/memory.h"
 #include "glog/logging.h"

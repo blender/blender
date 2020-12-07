@@ -37,6 +37,7 @@
 #if !defined(CERES_NO_CXSPARSE)
 
 #include <memory>
+
 #include "ceres/sparse_cholesky.h"
 
 namespace ceres {
@@ -46,8 +47,7 @@ namespace internal {
 // CXSparse.
 class FloatCXSparseCholesky : public SparseCholesky {
  public:
-  static std::unique_ptr<SparseCholesky> Create(
-      OrderingType ordering_type);
+  static std::unique_ptr<SparseCholesky> Create(OrderingType ordering_type);
 };
 
 }  // namespace internal

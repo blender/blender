@@ -167,7 +167,6 @@ struct mpq2 {
       LINE_LINE_CROSS = 2,
     } kind;
     mpq_class lambda;
-    mpq_class mu;
   };
 
   static isect_result isect_seg_seg(const mpq2 &v1,

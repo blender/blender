@@ -19,11 +19,12 @@
  */
 
 #include "BLI_string.h"
-#include <stddef.h>
+#include <cstddef>
 
 #include "ExtraHandler.h"
 
-ExtraHandler::ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp) : currentExtraTags(nullptr)
+ExtraHandler::ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp)
+    : currentExtraTags(nullptr)
 {
   this->dimp = dimp;
   this->aimp = aimp;

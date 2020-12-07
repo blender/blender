@@ -28,6 +28,10 @@
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct TextLine {
   struct TextLine *next, *prev;
 
@@ -84,3 +88,7 @@ enum {
   /** Use space instead of tabs. */
   TXT_TABSTOSPACES = 1 << 10,
 };
+
+#ifdef __cplusplus
+}
+#endif

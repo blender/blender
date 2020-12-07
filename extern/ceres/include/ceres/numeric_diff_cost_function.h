@@ -192,7 +192,10 @@ class NumericDiffCostFunction : public SizedCostFunction<kNumResiduals, Ns...> {
     }
   }
 
-  ~NumericDiffCostFunction() {
+  explicit NumericDiffCostFunction(NumericDiffCostFunction&& other)
+      : functor_(std::move(other.functor_)), ownership_(other.ownership_) {}
+
+  virtual ~NumericDiffCostFunction() {
     if (ownership_ != TAKE_OWNERSHIP) {
       functor_.release();
     }

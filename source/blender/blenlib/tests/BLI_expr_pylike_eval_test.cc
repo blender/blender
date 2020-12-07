@@ -2,7 +2,7 @@
 
 #include "testing/testing.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_expr_pylike_eval.h"
 #include "BLI_math.h"

@@ -506,7 +506,8 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
     ED_armature_to_edit(armature);
     armature->layer = 0; /* layer is set according to imported bone set in create_bone() */
 
-    create_bone(nullptr, node, nullptr, node->getChildNodes().getCount(), nullptr, armature, layer_labels);
+    create_bone(
+        nullptr, node, nullptr, node->getChildNodes().getCount(), nullptr, armature, layer_labels);
     if (this->import_settings->find_chains) {
       connect_bone_chains(armature, (Bone *)armature->bonebase.first, UNLIMITED_CHAIN_MAX);
     }

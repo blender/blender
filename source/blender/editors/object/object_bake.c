@@ -53,7 +53,7 @@
 
 #include "RE_multires_bake.h"
 #include "RE_pipeline.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "PIL_time.h"
 

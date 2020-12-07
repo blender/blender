@@ -76,6 +76,8 @@ void BKE_tracking_clipboard_paste_tracks(struct MovieTracking *tracking,
                                          struct MovieTrackingObject *object);
 
 /* **** Track **** */
+struct MovieTrackingTrack *BKE_tracking_track_add_empty(struct MovieTracking *tracking,
+                                                        struct ListBase *tracks_list);
 struct MovieTrackingTrack *BKE_tracking_track_add(struct MovieTracking *tracking,
                                                   struct ListBase *tracksbase,
                                                   float x,
@@ -324,8 +326,7 @@ void BKE_tracking_refine_marker(struct MovieClip *clip,
 
 struct AutoTrackContext *BKE_autotrack_context_new(struct MovieClip *clip,
                                                    struct MovieClipUser *user,
-                                                   const bool backwards,
-                                                   const bool sequence);
+                                                   const bool is_backwards);
 bool BKE_autotrack_context_step(struct AutoTrackContext *context);
 void BKE_autotrack_context_sync(struct AutoTrackContext *context);
 void BKE_autotrack_context_sync_user(struct AutoTrackContext *context, struct MovieClipUser *user);

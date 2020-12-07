@@ -3321,7 +3321,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
     bp->vec[0] = bp->vec[1] = bp->vec[2] = 0.0f;
 
     /* the bp->prev*'s are for rolling back from a canceled try to propagate in time
-     * adaptive step size algo in a nutshell:
+     * adaptive step size algorithm in a nutshell:
      * 1.  set scheduled time step to new dtime
      * 2.  try to advance the scheduled time step, being optimistic execute it
      * 3.  check for success

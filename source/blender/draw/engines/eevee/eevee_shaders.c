@@ -121,6 +121,7 @@ static struct {
 
   /* Render Passes */
   struct GPUShader *postprocess_sh;
+  struct GPUShader *cryptomatte_sh[2];
 
   /* Screen Space Reflection */
   struct GPUShader *ssr_sh[SSR_MAX_SHADER];
@@ -186,6 +187,7 @@ extern char datatoc_btdf_lut_frag_glsl[];
 extern char datatoc_closure_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_common_utiltex_lib_glsl[];
+extern char datatoc_cryptomatte_frag_glsl[];
 extern char datatoc_cubemap_lib_glsl[];
 extern char datatoc_default_frag_glsl[];
 extern char datatoc_lookdev_world_frag_glsl[];
@@ -690,6 +692,34 @@ GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void)
         datatoc_renderpass_postprocess_frag_glsl, e_data.lib, NULL);
   }
   return e_data.postprocess_sh;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cryptomatte
+ * \{ */
+
+GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair)
+{
+  const int index = is_hair ? 1 : 0;
+  if (e_data.cryptomatte_sh[index] == NULL) {
+    DynStr *ds = BLI_dynstr_new();
+    BLI_dynstr_append(ds, SHADER_DEFINES);
+
+    if (is_hair) {
+      BLI_dynstr_append(ds, "#define HAIR_SHADER\n");
+    }
+    else {
+      BLI_dynstr_append(ds, "#define MESH_SHADER\n");
+    }
+    char *defines = BLI_dynstr_get_cstring(ds);
+    e_data.cryptomatte_sh[index] = DRW_shader_create_with_shaderlib(
+        datatoc_surface_vert_glsl, NULL, datatoc_cryptomatte_frag_glsl, e_data.lib, defines);
+    BLI_dynstr_free(ds);
+    MEM_freeN(defines);
+  }
+  return e_data.cryptomatte_sh[index];
 }
 
 /** \} */
@@ -1428,6 +1458,8 @@ void EEVEE_shaders_free(void)
   DRW_SHADER_FREE_SAFE(e_data.velocity_resolve_sh);
   DRW_SHADER_FREE_SAFE(e_data.taa_resolve_sh);
   DRW_SHADER_FREE_SAFE(e_data.taa_resolve_reproject_sh);
+  DRW_SHADER_FREE_SAFE(e_data.cryptomatte_sh[0]);
+  DRW_SHADER_FREE_SAFE(e_data.cryptomatte_sh[1]);
   for (int i = 0; i < 2; i++) {
     DRW_SHADER_FREE_SAFE(e_data.bloom_blit_sh[i]);
     DRW_SHADER_FREE_SAFE(e_data.bloom_downsample_sh[i]);

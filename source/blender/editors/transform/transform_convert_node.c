@@ -25,6 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
@@ -70,8 +71,6 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
   td2d->loc[2] = 0.0f;
   td2d->loc2d = td2d->loc; /* current location */
 
-  td->flag = 0;
-
   td->loc = td2d->loc;
   copy_v3_v3(td->iloc, td->loc);
   /* use node center instead of origin (top-left corner) */
@@ -85,8 +84,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
   td->ext = NULL;
   td->val = NULL;
 
-  td->flag |= TD_SELECTED;
-  td->dist = 0.0;
+  td->flag = TD_SELECTED;
+  td->dist = 0.0f;
 
   unit_m3(td->mtx);
   unit_m3(td->smtx);
@@ -107,10 +106,7 @@ static bool is_node_parent_select(bNode *node)
 void createTransNodeData(TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
-  TransData *td;
-  TransData2D *td2d;
   SpaceNode *snode = t->area->spacedata.first;
-  bNode *node;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
@@ -124,7 +120,7 @@ void createTransNodeData(TransInfo *t)
   t->flag &= ~T_PROP_EDIT_ALL;
 
   /* set transform flags on nodes */
-  for (node = snode->edittree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & NODE_SELECT && is_node_parent_select(node) == false) {
       node->flag |= NODE_TRANSFORM;
       tc->data_len++;
@@ -134,10 +130,11 @@ void createTransNodeData(TransInfo *t)
     }
   }
 
-  td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransNode TransData");
-  td2d = tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D), "TransNode TransData2D");
+  TransData *td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransNode TransData");
+  TransData2D *td2d = tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D),
+                                                "TransNode TransData2D");
 
-  for (node = snode->edittree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & NODE_TRANSFORM) {
       NodeToTransData(td++, td2d++, node, dpi_fac);
     }
@@ -156,24 +153,21 @@ void flushTransNodes(TransInfo *t)
   const float dpi_fac = UI_DPI_FAC;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    int a;
-    TransData *td;
-    TransData2D *td2d;
-
     applyGridAbsolute(t);
 
     /* flush to 2d vector from internally used 3d vector */
-    for (a = 0, td = tc->data, td2d = tc->data_2d; a < tc->data_len; a++, td++, td2d++) {
+    for (int i = 0; i < tc->data_len; i++) {
+      TransData *td = &tc->data[i];
+      TransData2D *td2d = &tc->data_2d[i];
       bNode *node = td->extra;
-      float locx, locy;
 
       /* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
 #ifdef USE_NODE_CENTER
-      locx = (td2d->loc[0] - (BLI_rctf_size_x(&node->totr)) * +0.5f) / dpi_fac;
-      locy = (td2d->loc[1] - (BLI_rctf_size_y(&node->totr)) * -0.5f) / dpi_fac;
+      float locx = (td2d->loc[0] - (BLI_rctf_size_x(&node->totr)) * +0.5f) / dpi_fac;
+      float locy = (td2d->loc[1] - (BLI_rctf_size_y(&node->totr)) * -0.5f) / dpi_fac;
 #else
-      locx = td2d->loc[0] / dpi_fac;
-      locy = td2d->loc[1] / dpi_fac;
+      float locx = td2d->loc[0] / dpi_fac;
+      float locy = td2d->loc[1] / dpi_fac;
 #endif
 
       /* account for parents (nested nodes) */
@@ -209,9 +203,7 @@ void special_aftertrans_update__node(bContext *C, TransInfo *t)
     /* remove selected nodes on cancel */
     bNodeTree *ntree = snode->edittree;
     if (ntree) {
-      bNode *node, *node_next;
-      for (node = ntree->nodes.first; node; node = node_next) {
-        node_next = node->next;
+      LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
         if (node->flag & NODE_SELECT) {
           nodeRemoveNode(bmain, ntree, node, true);
         }

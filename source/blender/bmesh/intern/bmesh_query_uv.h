@@ -37,6 +37,9 @@ void BM_face_uv_calc_center_median(const BMFace *f, const int cd_loop_uv_offset,
 float BM_face_uv_calc_cross(const BMFace *f, const int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 
+void BM_face_uv_minmax(const BMFace *f, float min[2], float max[2], const int cd_loop_uv_offset);
+void BM_face_uv_transform(BMFace *f, const float matrix[2][2], const int cd_loop_uv_offset);
+
 bool BM_loop_uv_share_edge_check_with_limit(BMLoop *l_a,
                                             BMLoop *l_b,
                                             const float limit[2],

@@ -56,8 +56,8 @@ class EigenSparseCholesky : public SparseCholesky {
 
   // SparseCholesky interface.
   virtual ~EigenSparseCholesky();
-  virtual LinearSolverTerminationType Factorize(
-      CompressedRowSparseMatrix* lhs, std::string* message) = 0;
+  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                                std::string* message) = 0;
   virtual CompressedRowSparseMatrix::StorageType StorageType() const = 0;
   virtual LinearSolverTerminationType Solve(const double* rhs,
                                             double* solution,
@@ -74,8 +74,8 @@ class FloatEigenSparseCholesky : public SparseCholesky {
 
   // SparseCholesky interface.
   virtual ~FloatEigenSparseCholesky();
-  virtual LinearSolverTerminationType Factorize(
-      CompressedRowSparseMatrix* lhs, std::string* message) = 0;
+  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                                std::string* message) = 0;
   virtual CompressedRowSparseMatrix::StorageType StorageType() const = 0;
   virtual LinearSolverTerminationType Solve(const double* rhs,
                                             double* solution,

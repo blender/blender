@@ -453,13 +453,15 @@ class CERES_EXPORT Problem {
   //   problem.AddResidualBlock(new MyCostFunction, nullptr, &x);
   //
   //   double cost = 0.0;
-  //   problem.Evaluate(Problem::EvaluateOptions(), &cost, nullptr, nullptr, nullptr);
+  //   problem.Evaluate(Problem::EvaluateOptions(), &cost,
+  //                    nullptr, nullptr, nullptr);
   //
   // The cost is evaluated at x = 1. If you wish to evaluate the
   // problem at x = 2, then
   //
   //   x = 2;
-  //   problem.Evaluate(Problem::EvaluateOptions(), &cost, nullptr, nullptr, nullptr);
+  //   problem.Evaluate(Problem::EvaluateOptions(), &cost,
+  //                    nullptr, nullptr, nullptr);
   //
   // is the way to do so.
   //
@@ -475,7 +477,7 @@ class CERES_EXPORT Problem {
   // at the end of an iteration during a solve.
   //
   // Note 4: If an EvaluationCallback is associated with the problem,
-  // then its PrepareForEvaluation method will be called everytime
+  // then its PrepareForEvaluation method will be called every time
   // this method is called with new_point = true.
   bool Evaluate(const EvaluateOptions& options,
                 double* cost,
@@ -509,22 +511,40 @@ class CERES_EXPORT Problem {
   // apply_loss_function as the name implies allows the user to switch
   // the application of the loss function on and off.
   //
-  // WARNING: If an EvaluationCallback is associated with the problem
-  // then it is the user's responsibility to call it before calling
-  // this method.
-  //
-  // This is because, if the user calls this method multiple times, we
-  // cannot tell if the underlying parameter blocks have changed
-  // between calls or not. So if EvaluateResidualBlock was responsible
-  // for calling the EvaluationCallback, it will have to do it
-  // everytime it is called. Which makes the common case where the
-  // parameter blocks do not change, inefficient. So we leave it to
-  // the user to call the EvaluationCallback as needed.
+  // If an EvaluationCallback is associated with the problem, then its
+  // PrepareForEvaluation method will be called every time this method
+  // is called with new_point = true. This conservatively assumes that
+  // the user may have changed the parameter values since the previous
+  // call to evaluate / solve.  For improved efficiency, and only if
+  // you know that the parameter values have not changed between
+  // calls, see EvaluateResidualBlockAssumingParametersUnchanged().
   bool EvaluateResidualBlock(ResidualBlockId residual_block_id,
                              bool apply_loss_function,
                              double* cost,
                              double* residuals,
                              double** jacobians) const;
+
+  // Same as EvaluateResidualBlock except that if an
+  // EvaluationCallback is associated with the problem, then its
+  // PrepareForEvaluation method will be called every time this method
+  // is called with new_point = false.
+  //
+  // This means, if an EvaluationCallback is associated with the
+  // problem then it is the user's responsibility to call
+  // PrepareForEvaluation before calling this method if necessary,
+  // i.e. iff the parameter values have been changed since the last
+  // call to evaluate / solve.'
+  //
+  // This is because, as the name implies, we assume that the
+  // parameter blocks did not change since the last time
+  // PrepareForEvaluation was called (via Solve, Evaluate or
+  // EvaluateResidualBlock).
+  bool EvaluateResidualBlockAssumingParametersUnchanged(
+      ResidualBlockId residual_block_id,
+      bool apply_loss_function,
+      double* cost,
+      double* residuals,
+      double** jacobians) const;
 
  private:
   friend class Solver;

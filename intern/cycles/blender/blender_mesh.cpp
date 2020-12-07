@@ -347,7 +347,7 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
         for (int i = 0; i < n; i++) {
           float4 color = get_float4(l->data[p->loop_start() + i].color());
           /* Compress/encode vertex color using the sRGB curve. */
-          *(cdata++) = color_float4_to_uchar4(color_srgb_to_linear_v4(color));
+          *(cdata++) = color_float4_to_uchar4(color);
         }
       }
     }
@@ -369,9 +369,10 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
         float4 c3 = get_float4(l->data[li[2]].color());
 
         /* Compress/encode vertex color using the sRGB curve. */
-        cdata[0] = color_float4_to_uchar4(color_srgb_to_linear_v4(c1));
-        cdata[1] = color_float4_to_uchar4(color_srgb_to_linear_v4(c2));
-        cdata[2] = color_float4_to_uchar4(color_srgb_to_linear_v4(c3));
+        cdata[0] = color_float4_to_uchar4(c1);
+        cdata[1] = color_float4_to_uchar4(c2);
+        cdata[2] = color_float4_to_uchar4(c3);
+
         cdata += 3;
       }
     }
@@ -1072,10 +1073,12 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *me
     mesh->set_value(socket, new_mesh, socket);
   }
 
+  mesh->attributes.clear();
   foreach (Attribute &attr, new_mesh.attributes.attributes) {
     mesh->attributes.attributes.push_back(std::move(attr));
   }
 
+  mesh->subd_attributes.clear();
   foreach (Attribute &attr, new_mesh.subd_attributes.attributes) {
     mesh->subd_attributes.attributes.push_back(std::move(attr));
   }

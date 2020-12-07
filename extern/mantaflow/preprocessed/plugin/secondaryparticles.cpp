@@ -479,7 +479,8 @@ struct knFlipSampleSecondaryParticlesMoreCylinders : public KernelBase {
                                               const Real k_ta,
                                               const Real k_wc,
                                               const Real dt,
-                                              const int itype = FlagGrid::TypeFluid)
+                                              const int itype,
+                                              RandomStream &rand)
       : KernelBase(&flags, 0),
         flags(flags),
         v(v),
@@ -497,7 +498,8 @@ struct knFlipSampleSecondaryParticlesMoreCylinders : public KernelBase {
         k_ta(k_ta),
         k_wc(k_wc),
         dt(dt),
-        itype(itype)
+        itype(itype),
+        rand(rand)
   {
     runMessage();
     run();
@@ -521,13 +523,13 @@ struct knFlipSampleSecondaryParticlesMoreCylinders : public KernelBase {
                  const Real k_ta,
                  const Real k_wc,
                  const Real dt,
-                 const int itype = FlagGrid::TypeFluid)
+                 const int itype,
+                 RandomStream &rand)
   {
 
     if (!(flags(i, j, k) & itype))
       return;
 
-    static RandomStream mRand(9832);
     Real radius =
         0.25;  // diameter=0.5 => sampling with two cylinders in each dimension since cell size=1
     for (Real x = i - radius; x <= i + radius; x += 2 * radius) {
@@ -549,9 +551,9 @@ struct knFlipSampleSecondaryParticlesMoreCylinders : public KernelBase {
               cross(e1, dir));  // perpendicular to dir and e1, so e1 and e1 create reference plane
 
           for (int di = 0; di < n; di++) {
-            const Real r = radius * sqrt(mRand.getReal());        // distance to cylinder axis
-            const Real theta = mRand.getReal() * Real(2) * M_PI;  // azimuth
-            const Real h = mRand.getReal() * norm(dt * vi);       // distance to reference plane
+            const Real r = radius * sqrt(rand.getReal());        // distance to cylinder axis
+            const Real theta = rand.getReal() * Real(2) * M_PI;  // azimuth
+            const Real h = rand.getReal() * norm(dt * vi);       // distance to reference plane
             Vec3 xd = xi + r * cos(theta) * e1 + r * sin(theta) * e2 + h * getNormalized(vi);
             if (!flags.is3D())
               xd.z = 0;
@@ -561,7 +563,7 @@ struct knFlipSampleSecondaryParticlesMoreCylinders : public KernelBase {
                                       vi;  // init velocity of new particle
             Real temp = (KE + TA + WC) / 3;
             l_sec[l_sec.size() - 1] = ((lMax - lMin) * temp) + lMin +
-                                      mRand.getReal() * 0.1;  // init lifetime of new particle
+                                      rand.getReal() * 0.1;  // init lifetime of new particle
 
             // init type of new particle
             if (neighborRatio(i, j, k) < c_s) {
@@ -663,6 +665,11 @@ struct knFlipSampleSecondaryParticlesMoreCylinders : public KernelBase {
     return itype;
   }
   typedef int type16;
+  inline RandomStream &getArg17()
+  {
+    return rand;
+  }
+  typedef RandomStream type17;
   void runMessage()
   {
     debMsg("Executing kernel knFlipSampleSecondaryParticlesMoreCylinders ", 3);
@@ -696,7 +703,8 @@ struct knFlipSampleSecondaryParticlesMoreCylinders : public KernelBase {
              k_ta,
              k_wc,
              dt,
-             itype);
+             itype,
+             rand);
   }
   const FlagGrid &flags;
   const MACGrid &v;
@@ -715,6 +723,7 @@ struct knFlipSampleSecondaryParticlesMoreCylinders : public KernelBase {
   const Real k_wc;
   const Real dt;
   const int itype;
+  RandomStream &rand;
 };
 
 // adds secondary particles to &pts_sec for every fluid cell in &flags according to the potential
@@ -738,7 +747,8 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
                                  const Real k_ta,
                                  const Real k_wc,
                                  const Real dt,
-                                 const int itype = FlagGrid::TypeFluid)
+                                 const int itype,
+                                 RandomStream &rand)
       : KernelBase(&flags, 0),
         flags(flags),
         v(v),
@@ -756,7 +766,8 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
         k_ta(k_ta),
         k_wc(k_wc),
         dt(dt),
-        itype(itype)
+        itype(itype),
+        rand(rand)
   {
     runMessage();
     run();
@@ -780,7 +791,8 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
                  const Real k_ta,
                  const Real k_wc,
                  const Real dt,
-                 const int itype = FlagGrid::TypeFluid)
+                 const int itype,
+                 RandomStream &rand)
   {
 
     if (!(flags(i, j, k) & itype))
@@ -793,9 +805,8 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
     const int n = KE * (k_ta * TA + k_wc * WC) * dt;  // number of secondary particles
     if (n == 0)
       return;
-    static RandomStream mRand(9832);
 
-    Vec3 xi = Vec3(i, j, k) + mRand.getVec3();  // randomized offset uniform in cell
+    Vec3 xi = Vec3(i, j, k) + rand.getVec3();  // randomized offset uniform in cell
     Vec3 vi = v.getInterpolated(xi);
     Vec3 dir = dt * vi;                               // direction of movement of current particle
     Vec3 e1 = getNormalized(Vec3(dir.z, 0, -dir.x));  // perpendicular to dir
@@ -803,9 +814,9 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
         cross(e1, dir));  // perpendicular to dir and e1, so e1 and e1 create reference plane
 
     for (int di = 0; di < n; di++) {
-      const Real r = Real(0.5) * sqrt(mRand.getReal());     // distance to cylinder axis
-      const Real theta = mRand.getReal() * Real(2) * M_PI;  // azimuth
-      const Real h = mRand.getReal() * norm(dt * vi);       // distance to reference plane
+      const Real r = Real(0.5) * sqrt(rand.getReal());     // distance to cylinder axis
+      const Real theta = rand.getReal() * Real(2) * M_PI;  // azimuth
+      const Real h = rand.getReal() * norm(dt * vi);       // distance to reference plane
       Vec3 xd = xi + r * cos(theta) * e1 + r * sin(theta) * e2 + h * getNormalized(vi);
       if (!flags.is3D())
         xd.z = 0;
@@ -815,7 +826,7 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
                                 vi;  // init velocity of new particle
       Real temp = (KE + TA + WC) / 3;
       l_sec[l_sec.size() - 1] = ((lMax - lMin) * temp) + lMin +
-                                mRand.getReal() * 0.1;  // init lifetime of new particle
+                                rand.getReal() * 0.1;  // init lifetime of new particle
 
       // init type of new particle
       if (neighborRatio(i, j, k) < c_s) {
@@ -914,6 +925,11 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
     return itype;
   }
   typedef int type16;
+  inline RandomStream &getArg17()
+  {
+    return rand;
+  }
+  typedef RandomStream type17;
   void runMessage()
   {
     debMsg("Executing kernel knFlipSampleSecondaryParticles ", 3);
@@ -947,7 +963,8 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
              k_ta,
              k_wc,
              dt,
-             itype);
+             itype,
+             rand);
   }
   const FlagGrid &flags;
   const MACGrid &v;
@@ -966,6 +983,7 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
   const Real k_wc;
   const Real dt;
   const int itype;
+  RandomStream &rand;
 };
 
 void flipSampleSecondaryParticles(const std::string mode,
@@ -992,6 +1010,9 @@ void flipSampleSecondaryParticles(const std::string mode,
   if (dt <= 0)
     timestep = flags.getParent()->getDt();
 
+  /* Every particle needs to get a different random offset. */
+  RandomStream rand(pts_sec.getSeed());
+
   if (mode == "single") {
     knFlipSampleSecondaryParticles(flags,
                                    v,
@@ -1009,7 +1030,8 @@ void flipSampleSecondaryParticles(const std::string mode,
                                    k_ta,
                                    k_wc,
                                    timestep,
-                                   itype);
+                                   itype,
+                                   rand);
   }
   else if (mode == "multiple") {
     knFlipSampleSecondaryParticlesMoreCylinders(flags,
@@ -1028,7 +1050,8 @@ void flipSampleSecondaryParticles(const std::string mode,
                                                 k_ta,
                                                 k_wc,
                                                 timestep,
-                                                itype);
+                                                itype,
+                                                rand);
   }
   else {
     throw std::invalid_argument("Unknown mode: use \"single\" or \"multiple\" instead!");

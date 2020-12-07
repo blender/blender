@@ -526,6 +526,11 @@ void stroke_vertex()
   vec4 stroke_col = MATERIAL(m).stroke_color;
   float mix_tex = MATERIAL(m).stroke_texture_mix;
 
+  /* Special case: We don't use vertex color if material Holdout. */
+  if (GP_FLAG_TEST(GP_FLAG(m), GP_STROKE_HOLDOUT)) {
+    vert_col = vec4(0.0);
+  }
+
   color_output(stroke_col, vert_col, vert_strength * small_line_opacity, mix_tex);
 
   matFlag = GP_FLAG(m) & ~GP_FILL_FLAGS;
@@ -575,6 +580,11 @@ void fill_vertex()
   vec4 fcol_decode = vec4(fcol1.rgb, floor(fcol1.a / 10.0));
   float fill_opacity = fcol1.a - (fcol_decode.a * 10);
   fcol_decode.a /= 10000.0;
+
+  /* Special case: We don't use vertex color if material Holdout. */
+  if (GP_FLAG_TEST(GP_FLAG(m), GP_FILL_HOLDOUT)) {
+    fcol_decode = vec4(0.0);
+  }
 
   /* Apply opacity. */
   fill_col.a *= fill_opacity;

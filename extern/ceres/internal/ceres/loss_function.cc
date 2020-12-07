@@ -52,7 +52,7 @@ void HuberLoss::Evaluate(double s, double rho[3]) const {
     const double r = sqrt(s);
     rho[0] = 2.0 * a_ * r - b_;
     rho[1] = std::max(std::numeric_limits<double>::min(), a_ / r);
-    rho[2] = - rho[1] / (2.0 * s);
+    rho[2] = -rho[1] / (2.0 * s);
   } else {
     // Inlier region.
     rho[0] = s;
@@ -67,7 +67,7 @@ void SoftLOneLoss::Evaluate(double s, double rho[3]) const {
   // 'sum' and 'tmp' are always positive, assuming that 's' is.
   rho[0] = 2.0 * b_ * (tmp - 1.0);
   rho[1] = std::max(std::numeric_limits<double>::min(), 1.0 / tmp);
-  rho[2] = - (c_ * rho[1]) / (2.0 * sum);
+  rho[2] = -(c_ * rho[1]) / (2.0 * sum);
 }
 
 void CauchyLoss::Evaluate(double s, double rho[3]) const {
@@ -76,7 +76,7 @@ void CauchyLoss::Evaluate(double s, double rho[3]) const {
   // 'sum' and 'inv' are always positive, assuming that 's' is.
   rho[0] = b_ * log(sum);
   rho[1] = std::max(std::numeric_limits<double>::min(), inv);
-  rho[2] = - c_ * (inv * inv);
+  rho[2] = -c_ * (inv * inv);
 }
 
 void ArctanLoss::Evaluate(double s, double rho[3]) const {
@@ -89,9 +89,7 @@ void ArctanLoss::Evaluate(double s, double rho[3]) const {
 }
 
 TolerantLoss::TolerantLoss(double a, double b)
-    : a_(a),
-      b_(b),
-      c_(b * log(1.0 + exp(-a / b))) {
+    : a_(a), b_(b), c_(b * log(1.0 + exp(-a / b))) {
   CHECK_GE(a, 0.0);
   CHECK_GT(b, 0.0);
 }
@@ -133,12 +131,11 @@ void TukeyLoss::Evaluate(double s, double* rho) const {
   }
 }
 
-ComposedLoss::ComposedLoss(const LossFunction* f, Ownership ownership_f,
-                           const LossFunction* g, Ownership ownership_g)
-    : f_(f),
-      g_(g),
-      ownership_f_(ownership_f),
-      ownership_g_(ownership_g) {
+ComposedLoss::ComposedLoss(const LossFunction* f,
+                           Ownership ownership_f,
+                           const LossFunction* g,
+                           Ownership ownership_g)
+    : f_(f), g_(g), ownership_f_(ownership_f), ownership_g_(ownership_g) {
   CHECK(f_ != nullptr);
   CHECK(g_ != nullptr);
 }

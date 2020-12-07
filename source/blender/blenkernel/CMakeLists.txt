@@ -78,6 +78,7 @@ set(SRC
   intern/armature_deform.c
   intern/armature_update.c
   intern/attribute.c
+  intern/attribute_access.cc
   intern/autoexec.c
   intern/blender.c
   intern/blender_copybuffer.c
@@ -100,6 +101,7 @@ set(SRC
   intern/constraint.c
   intern/context.c
   intern/crazyspace.c
+  intern/cryptomatte.c
   intern/curve.c
   intern/curve_bevel.c
   intern/curve_decimate.c
@@ -124,6 +126,7 @@ set(SRC
   intern/fmodifier.c
   intern/font.c
   intern/freestyle.c
+  intern/geometry_set.cc
   intern/gpencil.c
   intern/gpencil_curve.c
   intern/gpencil_geom.c
@@ -210,7 +213,7 @@ set(SRC
   intern/pbvh.c
   intern/pbvh_bmesh.c
   intern/pointcache.c
-  intern/pointcloud.c
+  intern/pointcloud.cc
   intern/report.c
   intern/rigidbody.c
   intern/scene.c
@@ -266,6 +269,7 @@ set(SRC
   BKE_appdir.h
   BKE_armature.h
   BKE_attribute.h
+  BKE_attribute_access.hh
   BKE_autoexec.h
   BKE_blender.h
   BKE_blender_copybuffer.h
@@ -311,6 +315,8 @@ set(SRC
   BKE_fluid.h
   BKE_font.h
   BKE_freestyle.h
+  BKE_geometry_set.h
+  BKE_geometry_set.hh
   BKE_global.h
   BKE_gpencil.h
   BKE_gpencil_curve.h
@@ -720,6 +726,8 @@ if(WITH_GTESTS)
     intern/armature_test.cc
     intern/fcurve_test.cc
     intern/lattice_deform_test.cc
+    intern/tracking_test.cc
+    intern/layer_test.cc
   )
   set(TEST_INC
     ../editors/include

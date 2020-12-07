@@ -221,10 +221,10 @@ TEST(set, OftenAddRemoveContained)
 TEST(set, UniquePtrValues)
 {
   Set<std::unique_ptr<int>> set;
-  set.add_new(std::unique_ptr<int>(std::make_unique<int>()));
-  auto value1 = std::unique_ptr<int>(std::make_unique<int>());
+  set.add_new(std::make_unique<int>());
+  auto value1 = std::make_unique<int>();
   set.add_new(std::move(value1));
-  set.add(std::unique_ptr<int>(std::make_unique<int>()));
+  set.add(std::make_unique<int>());
 
   EXPECT_EQ(set.size(), 3);
 }

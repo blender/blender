@@ -327,8 +327,14 @@ class IMesh {
    * Replace face at given index with one that elides the
    * vertices at the positions in face_pos_erase that are true.
    * Use arena to allocate the new face in.
+   * This may end up setting the face at f_index to NULL.
+   * Return true if that is so, else return false.
+   * The caller may want to use remove_null_faces if any face
+   * was removed, to avoid the need to check for null faces later.
    */
-  void erase_face_positions(int f_index, Span<bool> face_pos_erase, IMeshArena *arena);
+  bool erase_face_positions(int f_index, Span<bool> face_pos_erase, IMeshArena *arena);
+
+  void remove_null_faces();
 };
 
 std::ostream &operator<<(std::ostream &os, const IMesh &mesh);

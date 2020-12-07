@@ -240,7 +240,7 @@
  *      - SMAA::detectMSAAOrder and
  *      - SMAA::msaaReorder
  *
- *    These functions allow to match the standard multisample patterns by
+ *    These functions allow matching the standard multisample patterns by
  *    detecting the subsample order for a specific GPU, and reordering
  *    them appropriately.
  *
@@ -1258,8 +1258,8 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
           SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].zw, offset[2].y);
       d.y = coords.z;
 
-      // We want the distances to be in pixel units (doing this here allow to
-      // better interleave arithmetic and memory accesses):
+      // We want the distances to be in pixel units (doing this here allows
+      // better interleaving of arithmetic and memory accesses):
       d = abs(round(mad(SMAA_RT_METRICS.zz, d, -pixcoord.xx)));
 
       // SMAAArea below needs a sqrt, as the areas texture is compressed

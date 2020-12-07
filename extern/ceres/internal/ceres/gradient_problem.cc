@@ -29,6 +29,7 @@
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
 #include "ceres/gradient_problem.h"
+
 #include "ceres/local_parameterization.h"
 #include "glog/logging.h"
 
@@ -38,14 +39,13 @@ GradientProblem::GradientProblem(FirstOrderFunction* function)
     : function_(function),
       parameterization_(
           new IdentityParameterization(function_->NumParameters())),
-      scratch_(new double[function_->NumParameters()]) {
-}
+      scratch_(new double[function_->NumParameters()]) {}
 
 GradientProblem::GradientProblem(FirstOrderFunction* function,
                                  LocalParameterization* parameterization)
-      : function_(function),
-        parameterization_(parameterization),
-        scratch_(new double[function_->NumParameters()]) {
+    : function_(function),
+      parameterization_(parameterization),
+      scratch_(new double[function_->NumParameters()]) {
   CHECK_EQ(function_->NumParameters(), parameterization_->GlobalSize());
 }
 
@@ -57,7 +57,6 @@ int GradientProblem::NumLocalParameters() const {
   return parameterization_->LocalSize();
 }
 
-
 bool GradientProblem::Evaluate(const double* parameters,
                                double* cost,
                                double* gradient) const {
@@ -66,10 +65,8 @@ bool GradientProblem::Evaluate(const double* parameters,
   }
 
   return (function_->Evaluate(parameters, cost, scratch_.get()) &&
-          parameterization_->MultiplyByJacobian(parameters,
-                                                1,
-                                                scratch_.get(),
-                                                gradient));
+          parameterization_->MultiplyByJacobian(
+              parameters, 1, scratch_.get(), gradient));
 }
 
 bool GradientProblem::Plus(const double* x,

@@ -397,7 +397,7 @@ static void cuboid_do(CastModifierData *cmd,
       facm = 1.0f - fac;
     }
 
-    /* The algo used to project the vertices to their
+    /* The algorithm used to project the vertices to their
      * bounding box (bb) is pretty simple:
      * for each vertex v:
      * 1) find in which octant v is in;
@@ -512,7 +512,7 @@ static void deformVertsEM(ModifierData *md,
   }
 
   if (mesh && mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
-    BLI_assert(mesh_src->totvert == numVerts);
+    BLI_assert(mesh->totvert == numVerts);
   }
 
   /* TODO(Campbell): use edit-mode data only (remove this line). */

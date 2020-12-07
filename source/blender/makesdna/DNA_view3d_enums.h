@@ -20,6 +20,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Settings for offscreen rendering */
 typedef enum eV3DOffscreenDrawFlag {
   V3D_OFSDRAW_NONE = (0),
@@ -51,3 +55,7 @@ typedef enum eV3DShadingBackgroundType {
   V3D_SHADING_BACKGROUND_WORLD = 1,
   V3D_SHADING_BACKGROUND_VIEWPORT = 2,
 } eV3DShadingBackgroundType;
+
+#ifdef __cplusplus
+}
+#endif

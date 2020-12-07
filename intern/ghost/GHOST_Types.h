@@ -470,6 +470,8 @@ typedef struct {
   GHOST_TInt32 deltaX;
   /** The y-delta (currently only for scroll subtype) of the trackpad event */
   GHOST_TInt32 deltaY;
+  /** The delta is inverted from the device due to system preferences. */
+  char isDirectionInverted;
 } GHOST_TEventTrackpadData;
 
 typedef enum {

@@ -39,15 +39,15 @@ using namespace blender::gpu;
 
 #define MATRIX_STACK_DEPTH 32
 
-typedef float Mat4[4][4];
-typedef float Mat3[3][3];
+using Mat4 = float[4][4];
+using Mat3 = float[3][3];
 
-typedef struct MatrixStack {
+struct MatrixStack {
   Mat4 stack[MATRIX_STACK_DEPTH];
   uint top;
-} MatrixStack;
+};
 
-typedef struct GPUMatrixState {
+struct GPUMatrixState {
   MatrixStack model_view_stack;
   MatrixStack projection_stack;
 
@@ -59,7 +59,7 @@ typedef struct GPUMatrixState {
    * TODO: separate Model from View transform? Batches/objects have model,
    * camera/eye has view & projection
    */
-} GPUMatrixState;
+};
 
 #define ModelViewStack Context::get()->matrix_state->model_view_stack
 #define ModelView ModelViewStack.stack[ModelViewStack.top]
@@ -658,7 +658,8 @@ void GPU_matrix_bind(GPUShader *shader)
   int32_t P_inv = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_PROJECTION_INV);
 
   if (MV != -1) {
-    GPU_shader_uniform_vector(shader, MV, 16, 1, (const float *)GPU_matrix_model_view_get(nullptr));
+    GPU_shader_uniform_vector(
+        shader, MV, 16, 1, (const float *)GPU_matrix_model_view_get(nullptr));
   }
   if (P != -1) {
     GPU_shader_uniform_vector(shader, P, 16, 1, (const float *)GPU_matrix_projection_get(nullptr));

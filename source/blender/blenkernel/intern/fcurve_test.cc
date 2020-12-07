@@ -22,6 +22,7 @@
 #include "BKE_fcurve.h"
 
 #include "ED_keyframing.h"
+#include "ED_types.h" /* For SELECT. */
 
 #include "DNA_anim_types.h"
 
@@ -295,16 +296,68 @@ TEST(fcurve_active_keyframe, ActiveKeyframe)
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
 
   /* Check a "normal" action. */
+  fcu->bezt[2].f2 |= SELECT;
   BKE_fcurve_active_keyframe_set(fcu, &fcu->bezt[2]);
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 2);
 
-  /* Check out of bounds. */
-  BKE_fcurve_active_keyframe_set(fcu, fcu->bezt - 20);
+  /* Check setting an unselected keyframe as active. */
+  fcu->bezt[2].f1 = fcu->bezt[2].f2 = fcu->bezt[2].f3 = 0;
+  EXPECT_BLI_ASSERT(BKE_fcurve_active_keyframe_set(fcu, &fcu->bezt[2]),
+                    "active keyframe must be selected");
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
 
-  /* Check out of bounds again. */
-  BKE_fcurve_active_keyframe_set(fcu, fcu->bezt + 4);
+  /* Check out of bounds (lower). */
+  BKE_fcurve_active_keyframe_set(fcu, fcu->bezt - 20);
+  EXPECT_EQ(fcu->active_keyframe_index, FCURVE_ACTIVE_KEYFRAME_NONE)
+      << "Setting out-of-bounds value via the API should result in valid active_keyframe_index";
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
+
+  fcu->active_keyframe_index = -20;
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE)
+      << "Even with active_keyframe_index out of bounds, getting it via the API should produce a "
+         "valid value";
+
+  /* Check out of bounds (higher). */
+  BKE_fcurve_active_keyframe_set(fcu, fcu->bezt + 4);
+  EXPECT_EQ(fcu->active_keyframe_index, FCURVE_ACTIVE_KEYFRAME_NONE)
+      << "Setting out-of-bounds value via the API should result in valid active_keyframe_index";
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
+
+  fcu->active_keyframe_index = fcu->totvert;
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE)
+      << "Even with active_keyframe_index out of bounds, getting it via the API should produce a "
+         "valid value";
+
+  BKE_fcurve_free(fcu);
+}
+
+TEST(BKE_fcurve, BKE_fcurve_keyframe_move_value_with_handles)
+{
+  FCurve *fcu = BKE_fcurve_create();
+
+  insert_vert_fcurve(fcu, 1.0f, 7.5f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, 8.0f, 15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, 14.0f, 8.2f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 5.2671194f);
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][1], 15.0f);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][0], 8.0f);
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][1], 15.0f);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][0], 10.342469f);
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][1], 15.0f);
+
+  BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[1], 47.0f);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 5.2671194f) << "Left handle should not move in time";
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][1], 47.0f) << "Left handle value should have been updated";
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][0], 8.0f) << "Frame should not move in time";
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][1], 47.0f) << "Frame value should have been updated";
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][0], 10.342469f) << "Right handle should not move in time";
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][1], 47.0f) << "Right handle value should have been updated";
 
   BKE_fcurve_free(fcu);
 }

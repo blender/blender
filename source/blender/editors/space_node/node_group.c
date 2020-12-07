@@ -77,7 +77,7 @@ static bool node_group_operator_active_poll(bContext *C)
                  "ShaderNodeTree",
                  "CompositorNodeTree",
                  "TextureNodeTree",
-                 "SimulationNodeTree")) {
+                 "GeometryNodeTree")) {
       return true;
     }
   }
@@ -94,7 +94,7 @@ static bool node_group_operator_editable(bContext *C)
      * with same keymap.
      */
     if (ED_node_is_shader(snode) || ED_node_is_compositor(snode) || ED_node_is_texture(snode) ||
-        ED_node_is_simulation(snode)) {
+        ED_node_is_geometry(snode)) {
       return true;
     }
   }
@@ -120,8 +120,8 @@ static const char *group_node_idname(bContext *C)
   if (ED_node_is_texture(snode)) {
     return "TextureNodeGroup";
   }
-  if (ED_node_is_simulation(snode)) {
-    return "SimulationNodeGroup";
+  if (ED_node_is_geometry(snode)) {
+    return "GeometryNodeGroup";
   }
 
   return "";

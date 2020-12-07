@@ -350,15 +350,12 @@ if(WITH_BOOST)
   endif()
 endif()
 
+if(WITH_PUGIXML)
+  find_package_wrapper(PugiXML)
+endif()
+
 if(WITH_OPENIMAGEIO)
   find_package_wrapper(OpenImageIO)
-  if(NOT OPENIMAGEIO_PUGIXML_FOUND AND WITH_CYCLES_STANDALONE)
-    find_package_wrapper(PugiXML)
-  else()
-    set(PUGIXML_INCLUDE_DIR "${OPENIMAGEIO_INCLUDE_DIR/OpenImageIO}")
-    set(PUGIXML_LIBRARIES "")
-  endif()
-
   set(OPENIMAGEIO_LIBRARIES
     ${OPENIMAGEIO_LIBRARIES}
     ${PNG_LIBRARIES}

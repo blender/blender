@@ -50,7 +50,7 @@
 
 #include "GPU_material.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "NOD_common.h"
 
@@ -903,6 +903,16 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree,
   /* Duplicate bump height branches for manual derivatives.
    */
   nodeChainIterBackwards(localtree, output, ntree_shader_bump_branches, localtree, 0);
+  LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
+    if (node->type == SH_NODE_OUTPUT_AOV) {
+      nodeChainIterBackwards(localtree, node, ntree_shader_bump_branches, localtree, 0);
+      nTreeTags tags = {
+          .ssr_id = 1.0,
+          .sss_id = 1.0,
+      };
+      ntree_shader_tag_nodes(localtree, node, &tags);
+    }
+  }
 
   /* TODO(fclem): consider moving this to the gpu shader tree evaluation. */
   nTreeTags tags = {
@@ -913,6 +923,11 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree,
 
   exec = ntreeShaderBeginExecTree(localtree);
   ntreeExecGPUNodes(exec, mat, output);
+  LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
+    if (node->type == SH_NODE_OUTPUT_AOV) {
+      ntreeExecGPUNodes(exec, mat, node);
+    }
+  }
   ntreeShaderEndExecTree(exec);
 
   /* EEVEE: Find which material domain was used (volume, surface ...). */

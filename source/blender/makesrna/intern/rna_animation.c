@@ -1160,7 +1160,7 @@ static void rna_api_animdata_nla_tracks(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_pointer_funcs(
       prop, "rna_NlaTrack_active_get", "rna_NlaTrack_active_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Active Constraint", "Active Object constraint");
+  RNA_def_property_ui_text(prop, "Active Track", "Active NLA Track");
   /* XXX: should (but doesn't) update the active track in the NLA window */
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA | NA_SELECTED, NULL);
 }

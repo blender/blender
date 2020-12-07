@@ -78,11 +78,21 @@ typedef struct SnapGizmo3D {
 } SnapGizmo3D;
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-static bool invert_snap(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm, const wmEvent *event)
+static bool invert_snap(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
 {
-  wmKeyMap *keymap = WM_keymap_active(wm, snap_gizmo->keymap);
+  if (!wm || !wm->winactive) {
+    return false;
+  }
 
+  if (snap_gizmo->keymap == NULL) {
+    /* Lazy initialization. */
+    snap_gizmo->keymap = WM_modalkeymap_find(wm->defaultconf, "Generic Gizmo Tweak Modal Map");
+    RNA_enum_value_from_id(snap_gizmo->keymap->modal_items, "SNAP_ON", &snap_gizmo->snap_on);
+  }
   const int snap_on = snap_gizmo->snap_on;
+
+  wmKeyMap *keymap = WM_keymap_active(wm, snap_gizmo->keymap);
+  const wmEvent *event = wm->winactive->eventstate;
   for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
     if (kmi->flag & KMI_INACTIVE) {
       continue;
@@ -254,9 +264,7 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
   }
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-  if (wm && wm->winactive) {
-    snap_gizmo->invert_snap = invert_snap(snap_gizmo, wm, wm->winactive->eventstate);
-  }
+  snap_gizmo->invert_snap = invert_snap(snap_gizmo, wm);
 
   if (snap_gizmo->use_snap_override == -1) {
     const ToolSettings *ts = scene->toolsettings;
@@ -413,13 +421,7 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   wmWindowManager *wm = CTX_wm_manager(C);
-  if (snap_gizmo->keymap == NULL) {
-    snap_gizmo->keymap = WM_modalkeymap_find(wm->defaultconf, "Generic Gizmo Tweak Modal Map");
-    RNA_enum_value_from_id(snap_gizmo->keymap->modal_items, "SNAP_ON", &snap_gizmo->snap_on);
-  }
-
-  const bool invert = wm->winactive ? invert_snap(snap_gizmo, wm, wm->winactive->eventstate) :
-                                      false;
+  const bool invert = invert_snap(snap_gizmo, wm);
   if (snap_gizmo->invert_snap == invert && snap_gizmo->mval[0] == mval[0] &&
       snap_gizmo->mval[1] == mval[1]) {
     /* Performance, do not update. */

@@ -37,9 +37,8 @@
 namespace ceres {
 namespace internal {
 
-ScratchEvaluatePreparer* ScratchEvaluatePreparer::Create(
-    const Program &program,
-    int num_threads) {
+ScratchEvaluatePreparer* ScratchEvaluatePreparer::Create(const Program& program,
+                                                         int num_threads) {
   ScratchEvaluatePreparer* preparers = new ScratchEvaluatePreparer[num_threads];
   int max_derivatives_per_residual_block =
       program.MaxDerivativesPerResidualBlock();
@@ -50,8 +49,7 @@ ScratchEvaluatePreparer* ScratchEvaluatePreparer::Create(
 }
 
 void ScratchEvaluatePreparer::Init(int max_derivatives_per_residual_block) {
-  jacobian_scratch_.reset(
-      new double[max_derivatives_per_residual_block]);
+  jacobian_scratch_.reset(new double[max_derivatives_per_residual_block]);
 }
 
 // Point the jacobian blocks into the scratch area of this evaluate preparer.

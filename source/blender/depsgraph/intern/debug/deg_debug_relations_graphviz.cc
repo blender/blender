@@ -47,8 +47,7 @@ namespace dot = blender::dot;
 /* ****************** */
 /* Graphviz Debugging */
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* Only one should be enabled, defines whether graphviz nodes
  * get colored by individual types or classes.
@@ -510,8 +509,7 @@ static void deg_debug_graphviz_graph_relations(DotExportContext &ctx, const Deps
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
 
 void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *fp, const char *label)
 {

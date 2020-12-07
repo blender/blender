@@ -469,8 +469,10 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
   if (total_poly_count > 0) {
     me->totpoly = total_poly_count;
     me->totloop = total_loop_count;
-    me->mpoly = (MPoly *)CustomData_add_layer(&me->pdata, CD_MPOLY, CD_CALLOC, nullptr, me->totpoly);
-    me->mloop = (MLoop *)CustomData_add_layer(&me->ldata, CD_MLOOP, CD_CALLOC, nullptr, me->totloop);
+    me->mpoly = (MPoly *)CustomData_add_layer(
+        &me->pdata, CD_MPOLY, CD_CALLOC, nullptr, me->totpoly);
+    me->mloop = (MLoop *)CustomData_add_layer(
+        &me->ldata, CD_MLOOP, CD_CALLOC, nullptr, me->totloop);
 
     unsigned int totuvset = collada_mesh->getUVCoords().getInputInfosArray().getCount();
     for (int i = 0; i < totuvset; i++) {
@@ -971,9 +973,7 @@ static void bc_remove_materials_from_object(Object *ob, Mesh *me)
 std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
 {
   std::vector<Object *> mesh_users;
-  for (std::vector<Object *>::iterator it = imported_objects.begin(); it != imported_objects.end();
-       ++it) {
-    Object *ob = (*it);
+  for (Object *ob : imported_objects) {
     if (bc_is_marked(ob)) {
       bc_remove_mark(ob);
       Mesh *me = (Mesh *)ob->data;
@@ -1005,9 +1005,7 @@ std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
  */
 void MeshImporter::optimize_material_assignements()
 {
-  for (std::vector<Object *>::iterator it = imported_objects.begin(); it != imported_objects.end();
-       ++it) {
-    Object *ob = (*it);
+  for (Object *ob : imported_objects) {
     Mesh *me = (Mesh *)ob->data;
     if (ID_REAL_USERS(&me->id) == 1) {
       bc_copy_materials_to_data(ob, me);
@@ -1027,8 +1025,7 @@ void MeshImporter::optimize_material_assignements()
         }
         if (can_move) {
           bc_copy_materials_to_data(ref_ob, me);
-          for (int index = 0; index < mesh_users.size(); index++) {
-            Object *object = mesh_users[index];
+          for (Object *object : mesh_users) {
             bc_remove_materials_from_object(object, me);
             bc_remove_mark(object);
           }

@@ -62,7 +62,7 @@ float gradient(point p, string type)
 shader node_gradient_texture(
     int use_mapping = 0,
     matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-    string type = "linear",
+    string gradient_type = "linear",
     point Vector = P,
     output float Fac = 0.0,
     output color Color = 0.0)
@@ -72,6 +72,6 @@ shader node_gradient_texture(
   if (use_mapping)
     p = transform(mapping, p);
 
-  Fac = gradient(p, type);
+  Fac = gradient(p, gradient_type);
   Color = color(Fac, Fac, Fac);
 }

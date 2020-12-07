@@ -63,7 +63,7 @@ namespace internal {
 class Program;
 class ResidualBlock;
 
-class ProblemImpl {
+class CERES_EXPORT_INTERNAL ProblemImpl {
  public:
   typedef std::map<double*, ParameterBlock*> ParameterMap;
   typedef std::unordered_set<ResidualBlock*> ResidualBlockSet;
@@ -124,6 +124,7 @@ class ProblemImpl {
 
   bool EvaluateResidualBlock(ResidualBlock* residual_block,
                              bool apply_loss_function,
+                             bool new_point,
                              double* cost,
                              double* residuals,
                              double** jacobians) const;

@@ -49,16 +49,19 @@
 
 #include "DEG_depsgraph.h"
 
-#include "SEQ_sequencer.h"
-
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
+#include "SEQ_sequencer.h"
+
+#include "multiview.h"
 #include "proxy.h"
 #include "render.h"
 #include "sequencer.h"
+#include "strip_time.h"
+#include "utils.h"
 
 typedef struct SeqIndexBuildContext {
   struct IndexBuildContext *index_context;
@@ -265,7 +268,6 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
   char name[PROXY_MAXFILE];
   int quality;
   int rectx, recty;
-  int ok;
   ImBuf *ibuf_tmp, *ibuf;
   Editing *ed = context->scene->ed;
 
@@ -305,8 +307,8 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
 
   BLI_make_existing_file(name);
 
-  ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
-  if (ok == 0) {
+  const bool ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
+  if (ok == false) {
     perror(name);
   }
 
@@ -568,5 +570,24 @@ void SEQ_proxy_set(struct Sequence *seq, bool value)
   }
   else {
     seq->flag &= ~SEQ_USE_PROXY;
+  }
+}
+
+void seq_proxy_index_dir_set(struct anim *anim, const char *base_dir)
+{
+  char dir[FILE_MAX];
+  char fname[FILE_MAXFILE];
+
+  IMB_anim_get_fname(anim, fname, FILE_MAXFILE);
+  BLI_strncpy(dir, base_dir, sizeof(dir));
+  BLI_path_append(dir, sizeof(dir), fname);
+  IMB_anim_set_index_dir(anim, dir);
+}
+
+void free_proxy_seq(Sequence *seq)
+{
+  if (seq->strip && seq->strip->proxy && seq->strip->proxy->anim) {
+    IMB_free_anim(seq->strip->proxy->anim);
+    seq->strip->proxy->anim = NULL;
   }
 }

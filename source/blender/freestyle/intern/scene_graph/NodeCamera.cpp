@@ -19,8 +19,8 @@
  * \brief Class to represent a light node
  */
 
-#include <math.h>
-#include <string.h>  // for memcpy
+#include <cmath>
+#include <cstring>  // for memcpy
 
 #include "NodeCamera.h"
 

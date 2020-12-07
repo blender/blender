@@ -76,12 +76,12 @@ typedef struct HairGridVert {
   float velocity_smooth[3];
 } HairGridVert;
 
-typedef struct HairGrid {
+struct HairGrid {
   HairGridVert *verts;
   int res[3];
   float gmin[3], gmax[3];
   float cellsize, inv_cellsize;
-} HairGrid;
+};
 
 #define HAIR_GRID_INDEX_AXIS(vec, res, gmin, scale, axis) \
   (min_ii(max_ii((int)((vec[axis] - gmin[axis]) * scale), 0), res[axis] - 2))

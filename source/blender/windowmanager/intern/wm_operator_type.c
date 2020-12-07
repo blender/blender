@@ -572,9 +572,7 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 
 static void wm_operatortype_free_macro(wmOperatorType *ot)
 {
-  wmOperatorTypeMacro *otmacro;
-
-  for (otmacro = ot->macro.first; otmacro; otmacro = otmacro->next) {
+  LISTBASE_FOREACH (wmOperatorTypeMacro *, otmacro, &ot->macro) {
     if (otmacro->ptr) {
       WM_operator_properties_free(otmacro->ptr);
       MEM_freeN(otmacro->ptr);

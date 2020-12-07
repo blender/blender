@@ -1,3 +1,4 @@
+#pragma BLENDER_REQUIRE(common_colormanagement_lib.glsl)
 
 uniform sampler2D imgTexture;
 uniform bool imgPremultiplied;

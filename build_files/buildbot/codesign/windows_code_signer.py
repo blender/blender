@@ -29,6 +29,7 @@ from buildbot_utils import Builder
 
 from codesign.absolute_and_relative_filename import AbsoluteAndRelativeFileName
 from codesign.base_code_signer import BaseCodeSigner
+from codesign.exception import CodeSignException
 
 logger = logging.getLogger(__name__)
 logger_server = logger.getChild('server')
@@ -40,6 +41,9 @@ BLACKLIST_FILE_PREFIXES = (
     'api-ms-', 'concrt', 'msvcp', 'ucrtbase', 'vcomp', 'vcruntime')
 
 
+class SigntoolException(CodeSignException):
+    pass
+
 class WindowsCodeSigner(BaseCodeSigner):
     def check_file_is_to_be_signed(
             self, file: AbsoluteAndRelativeFileName) -> bool:
@@ -50,11 +54,45 @@ class WindowsCodeSigner(BaseCodeSigner):
 
         return file.relative_filepath.suffix in EXTENSIONS_TO_BE_SIGNED
 
+
     def get_sign_command_prefix(self) -> List[str]:
         return [
             'signtool', 'sign', '/v',
             '/f', self.config.WIN_CERTIFICATE_FILEPATH,
             '/tr', self.config.WIN_TIMESTAMP_AUTHORITY_URL]
+
+
+    def run_codesign_tool(self, filepath: Path) -> None:
+        command = self.get_sign_command_prefix() + [filepath]
+
+        try:
+            codesign_output = self.check_output_or_mock(command, util.Platform.WINDOWS)
+        except subprocess.CalledProcessError as e:
+            raise SigntoolException(f'Error running signtool {e}')
+
+        logger_server.info(f'signtool output:\n{codesign_output}')
+
+        got_number_of_success = False
+
+        for line in codesign_output.split('\n'):
+            line_clean = line.strip()
+            line_clean_lower = line_clean.lower()
+
+            if line_clean_lower.startswith('number of warnings') or \
+               line_clean_lower.startswith('number of errors'):
+                 number = int(line_clean_lower.split(':')[1])
+                 if number != 0:
+                     raise SigntoolException('Non-clean success of signtool')
+
+            if line_clean_lower.startswith('number of files successfully signed'):
+                 got_number_of_success = True
+                 number = int(line_clean_lower.split(':')[1])
+                 if number != 1:
+                     raise SigntoolException('Signtool did not consider codesign a success')
+
+        if not got_number_of_success:
+            raise SigntoolException('Signtool did not report number of files signed')
+
 
     def sign_all_files(self, files: List[AbsoluteAndRelativeFileName]) -> None:
         # NOTE: Sign files one by one to avoid possible command line length
@@ -73,12 +111,7 @@ class WindowsCodeSigner(BaseCodeSigner):
                     file_index + 1, num_files, file.relative_filepath)
                 continue
 
-            command = self.get_sign_command_prefix()
-            command.append(file.absolute_filepath)
             logger_server.info(
                 'Running signtool command for file [%d/%d] %s...',
                 file_index + 1, num_files, file.relative_filepath)
-            # TODO(sergey): Check the status somehow. With a missing certificate
-            # the command still exists with a zero code.
-            self.run_command_or_mock(command, util.Platform.WINDOWS)
-        # TODO(sergey): Report number of signed and ignored files.
+            self.run_codesign_tool(file.absolute_filepath)

@@ -23,8 +23,7 @@
 #include "intern/builder/deg_builder_relations.h"
 #include "intern/depsgraph.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 RenderBuilderPipeline::RenderBuilderPipeline(::Depsgraph *graph) : AbstractBuilderPipeline(graph)
 {
@@ -41,5 +40,4 @@ void RenderBuilderPipeline::build_relations(DepsgraphRelationBuilder &relation_b
   relation_builder.build_scene_render(scene_, view_layer_);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

@@ -319,6 +319,8 @@ int ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModi
   BLI_insertlinkafter(&ob->greasepencil_modifiers, md, nmd);
   BKE_gpencil_modifier_unique_name(&ob->greasepencil_modifiers, nmd);
 
+  nmd->flag |= eGpencilModifierFlag_OverrideLibrary_Local;
+
   return 1;
 }
 
@@ -422,7 +424,10 @@ void OBJECT_OT_gpencil_modifier_add(wmOperatorType *ot)
 
 /********** generic functions for operators using mod names and data context *********************/
 
-static bool gpencil_edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, int obtype_flag)
+static bool gpencil_edit_modifier_poll_generic(bContext *C,
+                                               StructRNA *rna_type,
+                                               int obtype_flag,
+                                               const bool is_liboverride_allowed)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
@@ -438,11 +443,10 @@ static bool gpencil_edit_modifier_poll_generic(bContext *C, StructRNA *rna_type,
     return false;
   }
 
-  if (ID_IS_OVERRIDE_LIBRARY(ob)) {
-    if ((mod == NULL) || (mod->flag & eGpencilModifierFlag_OverrideLibrary_Local) == 0) {
-      CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from library override");
-      return false;
-    }
+  if (!is_liboverride_allowed &&
+      (mod == NULL || !BKE_gpencil_modifier_is_local_in_liboverride(ob, mod))) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from library override");
+    return false;
   }
 
   return true;
@@ -450,7 +454,14 @@ static bool gpencil_edit_modifier_poll_generic(bContext *C, StructRNA *rna_type,
 
 static bool gpencil_edit_modifier_poll(bContext *C)
 {
-  return gpencil_edit_modifier_poll_generic(C, &RNA_GpencilModifier, 0);
+  return gpencil_edit_modifier_poll_generic(C, &RNA_GpencilModifier, 0, false);
+}
+
+/* Used by operators performing actions allowed also on modifiers from the overridden linked object
+ * (not only from added 'local' ones). */
+static bool gpencil_edit_modifier_liboverride_allowed_poll(bContext *C)
+{
+  return gpencil_edit_modifier_poll_generic(C, &RNA_Modifier, 0, true);
 }
 
 static void gpencil_edit_modifier_properties(wmOperatorType *ot)
@@ -669,11 +680,6 @@ void OBJECT_OT_gpencil_modifier_move_down(wmOperatorType *ot)
 
 /* ************************* Move to Index Gpencil Modifier Operator ************************* */
 
-static bool gpencil_modifier_move_to_index_poll(bContext *C)
-{
-  return gpencil_edit_modifier_poll(C);
-}
-
 static int gpencil_modifier_move_to_index_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_active_context(C);
@@ -706,7 +712,7 @@ void OBJECT_OT_gpencil_modifier_move_to_index(wmOperatorType *ot)
 
   ot->invoke = gpencil_modifier_move_to_index_invoke;
   ot->exec = gpencil_modifier_move_to_index_exec;
-  ot->poll = gpencil_modifier_move_to_index_poll;
+  ot->poll = gpencil_edit_modifier_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -823,7 +829,7 @@ void OBJECT_OT_gpencil_modifier_copy(wmOperatorType *ot)
 
   ot->invoke = gpencil_modifier_copy_invoke;
   ot->exec = gpencil_modifier_copy_exec;
-  ot->poll = gpencil_edit_modifier_poll;
+  ot->poll = gpencil_edit_modifier_liboverride_allowed_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

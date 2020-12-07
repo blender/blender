@@ -73,7 +73,7 @@ struct CERES_EXPORT IterationSummary {
   bool step_is_successful = false;
 
   // Value of the objective function.
-  double cost = 0.90;
+  double cost = 0.0;
 
   // Change in the value of the objective function in this
   // iteration. This can be positive or negative.

@@ -31,7 +31,7 @@ extern "C" {
 
 struct ImBuf;
 
-int imb_is_a_photoshop(const char *name);
+bool imb_is_a_photoshop(const unsigned char *mem, const size_t size);
 
 int imb_save_photoshop(struct ImBuf *ibuf, const char *name, int flags);
 

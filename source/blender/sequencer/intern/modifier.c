@@ -49,7 +49,6 @@
 #include "BLO_read_write.h"
 
 #include "render.h"
-#include "sequencer.h"
 
 static SequenceModifierTypeInfo *modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES];
 static bool modifierTypesInit = false;

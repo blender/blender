@@ -62,7 +62,8 @@ struct SumImpl;
 // Strip of and sum the first number.
 template <typename T, T N, T... Ns>
 struct SumImpl<std::integer_sequence<T, N, Ns...>> {
-  static constexpr T Value = N + SumImpl<std::integer_sequence<T, Ns...>>::Value;
+  static constexpr T Value =
+      N + SumImpl<std::integer_sequence<T, Ns...>>::Value;
 };
 
 // Strip of and sum the first two numbers.
@@ -129,10 +130,14 @@ template <typename T, T Sum, typename SeqIn, typename SeqOut>
 struct ExclusiveScanImpl;
 
 template <typename T, T Sum, T N, T... Ns, T... Rs>
-struct ExclusiveScanImpl<T, Sum, std::integer_sequence<T, N, Ns...>,
+struct ExclusiveScanImpl<T,
+                         Sum,
+                         std::integer_sequence<T, N, Ns...>,
                          std::integer_sequence<T, Rs...>> {
   using Type =
-      typename ExclusiveScanImpl<T, Sum + N, std::integer_sequence<T, Ns...>,
+      typename ExclusiveScanImpl<T,
+                                 Sum + N,
+                                 std::integer_sequence<T, Ns...>,
                                  std::integer_sequence<T, Rs..., Sum>>::Type;
 };
 

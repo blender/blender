@@ -24,9 +24,7 @@
 #include "StringUtils.h"
 #include "FreestyleConfig.h"
 
-namespace Freestyle {
-
-namespace StringUtils {
+namespace Freestyle::StringUtils {
 
 void getPathName(const string &path, const string &base, vector<string> &pathnames)
 {
@@ -57,6 +55,4 @@ void getPathName(const string &path, const string &base, vector<string> &pathnam
   }
 }
 
-}  // end of namespace StringUtils
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::StringUtils

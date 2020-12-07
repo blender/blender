@@ -25,9 +25,9 @@
 
 #include "intern/depsgraph_tag.h"
 
+#include <cstdio>
 #include <cstring> /* required for memset */
 #include <queue>
-#include <stdio.h>
 
 #include "BLI_math_bits.h"
 #include "BLI_task.h"
@@ -73,8 +73,7 @@ namespace deg = blender::deg;
 /* *********************** */
 /* Update Tagging/Flushing */
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 namespace {
 
@@ -676,8 +675,7 @@ void graph_id_tag_update(
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
 
 const char *DEG_update_tag_as_string(IDRecalcFlag flag)
 {

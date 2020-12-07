@@ -35,9 +35,12 @@
 #define CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
 
 #include <vector>
+
 #include "ceres/linear_solver.h"
 
 namespace ceres {
@@ -58,11 +61,10 @@ class SparseNormalCholeskySolver : public BlockSparseMatrixSolver {
   virtual ~SparseNormalCholeskySolver();
 
  private:
-  LinearSolver::Summary SolveImpl(
-      BlockSparseMatrix* A,
-      const double* b,
-      const LinearSolver::PerSolveOptions& options,
-      double* x) final;
+  LinearSolver::Summary SolveImpl(BlockSparseMatrix* A,
+                                  const double* b,
+                                  const LinearSolver::PerSolveOptions& options,
+                                  double* x) final;
 
   const LinearSolver::Options options_;
   Vector rhs_;

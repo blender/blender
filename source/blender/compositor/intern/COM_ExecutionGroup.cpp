@@ -17,9 +17,9 @@
  */
 
 #include <algorithm>
-#include <math.h>
+#include <cmath>
+#include <cstdlib>
 #include <sstream>
-#include <stdlib.h>
 
 #include "atomic_ops.h"
 

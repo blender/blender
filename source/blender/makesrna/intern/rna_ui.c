@@ -26,6 +26,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_idprop.h"
+#include "BKE_screen.h"
 
 #include "BLI_listbase.h"
 
@@ -375,7 +376,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
 
   for (; pt_iter; pt_iter = pt_iter->prev) {
     /* No header has priority. */
-    if ((pt->flag & PNL_NO_HEADER) && !(pt_iter->flag & PNL_NO_HEADER)) {
+    if ((pt->flag & PANEL_TYPE_NO_HEADER) && !(pt_iter->flag & PANEL_TYPE_NO_HEADER)) {
       continue;
     }
     if (pt_iter->order <= pt->order) {
@@ -1299,29 +1300,29 @@ static void rna_def_panel(BlenderRNA *brna)
   FunctionRNA *func;
 
   static const EnumPropertyItem panel_flag_items[] = {
-      {PNL_DEFAULT_CLOSED,
+      {PANEL_TYPE_DEFAULT_CLOSED,
        "DEFAULT_CLOSED",
        0,
        "Default Closed",
        "Defines if the panel has to be open or collapsed at the time of its creation"},
-      {PNL_NO_HEADER,
+      {PANEL_TYPE_NO_HEADER,
        "HIDE_HEADER",
        0,
        "Hide Header",
        "If set to False, the panel shows a header, which contains a clickable "
        "arrow to collapse the panel and the label (see bl_label)"},
-      {PNL_INSTANCED,
+      {PANEL_TYPE_INSTANCED,
        "INSTANCED",
        0,
        "Instanced Panel",
        "Multiple panels with this type can be used as part of a list depending on data external "
        "to the UI. Used to create panels for the modifiers and other stacks"},
-      {PNL_LAYOUT_HEADER_EXPAND,
+      {PANEL_TYPE_HEADER_EXPAND,
        "HEADER_LAYOUT_EXPAND",
        0,
        "Expand Header Layout",
        "Allow buttons in the header to stretch and shrink to fill the entire layout width"},
-      {PNL_DRAW_BOX, "DRAW_BOX", 0, "Box Style", "Draw panel with the box widget theme"},
+      {PANEL_TYPE_DRAW_BOX, "DRAW_BOX", 0, "Box Style", "Draw panel with the box widget theme"},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -570,6 +570,8 @@ static void eevee_render_to_image(void *vedata,
   EEVEE_motion_blur_data_free(&ved->stl->effects->motion_blur);
 
   if (RE_engine_test_break(engine)) {
+    /* Cryptomatte buffers are freed during render_read_result */
+    EEVEE_cryptomatte_free(vedata);
     return;
   }
 

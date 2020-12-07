@@ -1184,7 +1184,27 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
             BKE_gpencil_modifier_panel_expand(te->directdata);
           }
           else {
-            BKE_modifier_panel_expand(te->directdata);
+            ModifierData *md = (ModifierData *)te->directdata;
+
+            switch ((ModifierType)md->type) {
+              case eModifierType_ParticleSystem:
+                context = BCONTEXT_PARTICLE;
+                break;
+              case eModifierType_Cloth:
+              case eModifierType_Softbody:
+              case eModifierType_Collision:
+              case eModifierType_Fluidsim:
+              case eModifierType_DynamicPaint:
+              case eModifierType_Fluid:
+                context = BCONTEXT_PHYSICS;
+                break;
+              default:
+                break;
+            }
+
+            if (context == BCONTEXT_MODIFIER) {
+              BKE_modifier_panel_expand(md);
+            }
           }
         }
         break;
@@ -1367,8 +1387,6 @@ static void do_outliner_item_activate_tree_element(bContext *C,
                              extend ? OL_SETSEL_EXTEND : OL_SETSEL_NORMAL,
                              recursive);
   }
-
-  outliner_set_properties_tab(C, te, tselem);
 }
 
 /* Select the item using the set flags */
@@ -1494,6 +1512,17 @@ bool outliner_is_co_within_mode_column(SpaceOutliner *space_outliner, const floa
   return space_outliner->flag & SO_MODE_COLUMN && view_mval[0] < UI_UNIT_X;
 }
 
+static bool outliner_is_co_within_active_mode_column(bContext *C,
+                                                     SpaceOutliner *space_outliner,
+                                                     const float view_mval[2])
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *obact = OBACT(view_layer);
+
+  return outliner_is_co_within_mode_column(space_outliner, view_mval) && obact &&
+         obact->mode != OB_MODE_OBJECT;
+}
+
 /**
  * Action to run when clicking in the outliner,
  *
@@ -1516,7 +1545,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
   if (outliner_is_co_within_restrict_columns(space_outliner, region, view_mval[0])) {
     return OPERATOR_CANCELLED;
   }
-  if (outliner_is_co_within_mode_column(space_outliner, view_mval)) {
+  if (outliner_is_co_within_active_mode_column(C, space_outliner, view_mval)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1534,8 +1563,9 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
   else {
     /* The row may also contain children, if one is hovered we want this instead of current te. */
     bool merged_elements = false;
+    bool is_over_icon = false;
     TreeElement *activate_te = outliner_find_item_at_x_in_row(
-        space_outliner, te, view_mval[0], &merged_elements);
+        space_outliner, te, view_mval[0], &merged_elements, &is_over_icon);
 
     /* If the selected icon was an aggregate of multiple elements, run the search popup */
     if (merged_elements) {
@@ -1560,6 +1590,11 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
                                 (extend ? OL_ITEM_EXTEND : 0);
 
       outliner_item_select(C, space_outliner, activate_te, select_flag);
+
+      /* Only switch properties editor tabs when icons are selected. */
+      if (is_over_icon) {
+        outliner_set_properties_tab(C, activate_te, activate_tselem);
+      }
     }
 
     changed = true;
@@ -1686,7 +1721,7 @@ static int outliner_box_select_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
-  if (outliner_is_co_within_mode_column(space_outliner, view_mval)) {
+  if (outliner_is_co_within_active_mode_column(C, space_outliner, view_mval)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -1880,7 +1915,7 @@ static TreeElement *find_walk_select_start_element(SpaceOutliner *space_outliner
 }
 
 /* Scroll the outliner when the walk element reaches the top or bottom boundary */
-static void outliner_walk_scroll(ARegion *region, TreeElement *te)
+static void outliner_walk_scroll(SpaceOutliner *space_outliner, ARegion *region, TreeElement *te)
 {
   /* Account for the header height */
   int y_max = region->v2d.cur.ymax - UI_UNIT_Y;
@@ -1888,10 +1923,10 @@ static void outliner_walk_scroll(ARegion *region, TreeElement *te)
 
   /* Scroll if walked position is beyond the border */
   if (te->ys > y_max) {
-    outliner_scroll_view(region, te->ys - y_max);
+    outliner_scroll_view(space_outliner, region, te->ys - y_max);
   }
   else if (te->ys < y_min) {
-    outliner_scroll_view(region, -(y_min - te->ys));
+    outliner_scroll_view(space_outliner, region, -(y_min - te->ys));
   }
 }
 
@@ -1918,7 +1953,7 @@ static int outliner_walk_select_invoke(bContext *C, wmOperator *op, const wmEven
                        OL_ITEM_SELECT | OL_ITEM_ACTIVATE | (extend ? OL_ITEM_EXTEND : 0));
 
   /* Scroll outliner to focus on walk element */
-  outliner_walk_scroll(region, active_te);
+  outliner_walk_scroll(space_outliner, region, active_te);
 
   ED_outliner_select_sync_from_outliner(C, space_outliner);
   outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);

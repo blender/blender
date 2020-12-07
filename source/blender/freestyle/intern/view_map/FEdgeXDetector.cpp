@@ -19,7 +19,7 @@
  * \brief Detects/flags/builds extended features edges on the WXEdge structure
  */
 
-#include <float.h>
+#include <cfloat>
 
 #include "FEdgeXDetector.h"
 

@@ -277,6 +277,27 @@ static BMesh *BMD_mesh_bm_create(
   return bm;
 }
 
+/* Snap entries that are near 0 or 1 or -1 to those values. */
+static void clean_obmat(float cleaned[4][4], const float mat[4][4])
+{
+  const float fuzz = 1e-6f;
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      float f = mat[i][j];
+      if (fabsf(f) <= fuzz) {
+        f = 0.0f;
+      }
+      else if (fabsf(f - 1.0f) <= fuzz) {
+        f = 1.0f;
+      }
+      else if (fabsf(f + 1.0f) <= fuzz) {
+        f = -1.0f;
+      }
+      cleaned[i][j] = f;
+    }
+  }
+}
+
 static void BMD_mesh_intersection(BMesh *bm,
                                   ModifierData *md,
                                   const ModifierEvalContext *ctx,
@@ -293,6 +314,14 @@ static void BMD_mesh_intersection(BMesh *bm,
   int tottri;
   BMLoop *(*looptris)[3];
 
+#ifdef WITH_GMP
+  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+  const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
+#else
+  const bool use_exact = false;
+  const bool use_self = false;
+#endif
+
   looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
 
   BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
@@ -308,8 +337,22 @@ static void BMD_mesh_intersection(BMesh *bm,
     float imat[4][4];
     float omat[4][4];
 
-    invert_m4_m4(imat, object->obmat);
-    mul_m4_m4m4(omat, imat, operand_ob->obmat);
+    if (use_exact) {
+      /* The user-expected coplanar faces will actually be coplanar more
+       * often if use an object matrix that doesn't multiply by values
+       * other than 0, -1, or 1 in the scaling part of the matrix.
+       */
+      float cleaned_object_obmat[4][4];
+      float cleaned_operand_obmat[4][4];
+      clean_obmat(cleaned_object_obmat, object->obmat);
+      invert_m4_m4(imat, cleaned_object_obmat);
+      clean_obmat(cleaned_operand_obmat, operand_ob->obmat);
+      mul_m4_m4m4(omat, imat, cleaned_operand_obmat);
+    }
+    else {
+      invert_m4_m4(imat, object->obmat);
+      mul_m4_m4m4(omat, imat, operand_ob->obmat);
+    }
 
     BMVert *eve;
     i = 0;
@@ -374,16 +417,9 @@ static void BMD_mesh_intersection(BMesh *bm,
     use_island_connect = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoConnectRegions) == 0;
   }
 
-#ifdef WITH_GMP
-  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
-  const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
-#else
-  const bool use_exact = false;
-  const bool use_self = false;
-#endif
-
   if (use_exact) {
-    BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, bmd->operation);
+    BM_mesh_boolean(
+        bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, false, bmd->operation);
   }
   else {
     BM_mesh_intersect(bm,
@@ -496,7 +532,9 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
    * The Exact solver doesn't need normals on the input faces. */
   float imat[4][4];
   float omat[4][4];
-  invert_m4_m4(imat, ctx->object->obmat);
+  float cleaned_object_obmat[4][4];
+  clean_obmat(cleaned_object_obmat, ctx->object->obmat);
+  invert_m4_m4(imat, cleaned_object_obmat);
   int curshape = 0;
   int curshape_vert_end = shape_vert_end[0];
   BMVert *eve;
@@ -506,7 +544,8 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
     if (i == curshape_vert_end) {
       curshape++;
       curshape_vert_end = shape_vert_end[curshape];
-      mul_m4_m4m4(omat, imat, objects[curshape]->obmat);
+      clean_obmat(cleaned_object_obmat, objects[curshape]->obmat);
+      mul_m4_m4m4(omat, imat, cleaned_object_obmat);
     }
     if (curshape > 0) {
       mul_m4_v3(omat, eve->co);
@@ -547,7 +586,7 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
   BM_mesh_boolean(
-      bm, looptris, tottri, bm_face_isect_nary, shape, num_shapes, true, bmd->operation);
+      bm, looptris, tottri, bm_face_isect_nary, shape, num_shapes, true, false, bmd->operation);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
   BM_mesh_free(bm);
@@ -595,7 +634,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
     Object *operand_ob = bmd->object;
 
+#ifdef DEBUG_TIME
+    TIMEIT_BLOCK_INIT(operand_get_evaluated_mesh);
+    TIMEIT_BLOCK_START(operand_get_evaluated_mesh);
+#endif
     mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob, false);
+#ifdef DEBUG_TIME
+    TIMEIT_BLOCK_END(operand_get_evaluated_mesh);
+    TIMEIT_BLOCK_STATS(operand_get_evaluated_mesh);
+#endif
 
     if (mesh_operand_ob) {
       /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
@@ -607,11 +654,35 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       result = get_quick_mesh(object, mesh, operand_ob, mesh_operand_ob, bmd->operation);
 
       if (result == NULL) {
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_INIT(object_BMD_mesh_bm_create);
+        TIMEIT_BLOCK_START(object_BMD_mesh_bm_create);
+#endif
         bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_END(object_BMD_mesh_bm_create);
+        TIMEIT_BLOCK_STATS(object_BMD_mesh_bm_create);
+#endif
 
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_INIT(BMD_mesh_intersection);
+        TIMEIT_BLOCK_START(BMD_mesh_intersection);
+#endif
         BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_END(BMD_mesh_intersection);
+        TIMEIT_BLOCK_STATS(BMD_mesh_intersection);
+#endif
 
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_INIT(BKE_mesh_from_bmesh_for_eval_nomain);
+        TIMEIT_BLOCK_START(BKE_mesh_from_bmesh_for_eval_nomain);
+#endif
         result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+#ifdef DEBUG_TIME
+        TIMEIT_BLOCK_END(BKE_mesh_from_bmesh_for_eval_nomain);
+        TIMEIT_BLOCK_STATS(BKE_mesh_from_bmesh_for_eval_nomain);
+#endif
         BM_mesh_free(bm);
         result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
       }

@@ -579,11 +579,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_ID;
 #  endif
     case OB_POINTCLOUD:
-#  ifdef WITH_POINT_CLOUD
       return &RNA_PointCloud;
-#  else
-      return &RNA_ID;
-#  endif
     case OB_VOLUME:
       return &RNA_Volume;
     default:
@@ -1616,6 +1612,32 @@ static void rna_Object_modifier_clear(Object *object, bContext *C)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
+static PointerRNA rna_Object_active_modifier_get(PointerRNA *ptr)
+{
+  Object *ob = (Object *)ptr->owner_id;
+  ModifierData *md = BKE_object_active_modifier(ob);
+  return rna_pointer_inherit_refine(ptr, &RNA_Modifier, md);
+}
+
+static void rna_Object_active_modifier_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
+{
+  Object *ob = (Object *)ptr->owner_id;
+  ModifierData *md = value.data;
+
+  if (RNA_pointer_is_null(&value)) {
+    BKE_object_modifier_set_active(ob, NULL);
+    return;
+  }
+
+  if (BLI_findindex(&ob->modifiers, md) == -1) {
+    BKE_reportf(
+        reports, RPT_ERROR, "Modifier \"%s\" is not in the object's modifier list", md->name);
+    return;
+  }
+
+  BKE_object_modifier_set_active(ob, md);
+}
+
 bool rna_Object_modifiers_override_apply(Main *bmain,
                                          PointerRNA *ptr_dst,
                                          PointerRNA *ptr_src,
@@ -2287,6 +2309,7 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 
   FunctionRNA *func;
   PropertyRNA *parm;
+  PropertyRNA *prop;
 
   RNA_def_property_srna(cprop, "ObjectModifiers");
   srna = RNA_def_struct(brna, "ObjectModifiers", NULL);
@@ -2333,6 +2356,17 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "clear", "rna_Object_modifier_clear");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Remove all modifiers from the object");
+
+  /* Active modifier. */
+  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Modifier");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_Object_active_modifier_get", "rna_Object_active_modifier_set", NULL, NULL);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Active Modifier", "The active modifier in the list");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 }
 
 /* object.grease_pencil_modifiers */

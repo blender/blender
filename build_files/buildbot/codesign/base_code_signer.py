@@ -58,6 +58,7 @@ import codesign.util as util
 
 from codesign.absolute_and_relative_filename import AbsoluteAndRelativeFileName
 from codesign.archive_with_indicator import ArchiveWithIndicator
+from codesign.exception import CodeSignException
 
 
 logger = logging.getLogger(__name__)
@@ -145,13 +146,13 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
     def cleanup_environment_for_builder(self) -> None:
         # TODO(sergey): Revisit need of cleaning up the existing files.
         # In practice it wasn't so helpful, and with multiple clients
-        # talking to the same server it becomes even mor etricky.
+        # talking to the same server it becomes even more tricky.
         pass
 
     def cleanup_environment_for_signing_server(self) -> None:
         # TODO(sergey): Revisit need of cleaning up the existing files.
         # In practice it wasn't so helpful, and with multiple clients
-        # talking to the same server it becomes even mor etricky.
+        # talking to the same server it becomes even more tricky.
         pass
 
     def generate_request_id(self) -> str:
@@ -220,9 +221,15 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
         """
         Wait until archive with signed files is available.
 
+        Will only return if the archive with signed files is available. If there
+        was an error during code sign procedure the SystemExit exception is
+        raised, with the message set to the error reported by the codesign
+        server.
+
         Will only wait for the configured time. If that time exceeds and there
         is still no responce from the signing server the application will exit
         with a non-zero exit code.
+
         """
 
         signed_archive_info = self.signed_archive_info_for_request_id(
@@ -236,9 +243,17 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
             time.sleep(1)
             time_slept_in_seconds = time.monotonic() - time_start
             if time_slept_in_seconds > timeout_in_seconds:
+                signed_archive_info.clean()
                 unsigned_archive_info.clean()
                 raise SystemExit("Signing server didn't finish signing in "
-                                 f"{timeout_in_seconds} seconds, dying :(")
+                                 f'{timeout_in_seconds} seconds, dying :(')
+
+        archive_state = signed_archive_info.get_state()
+        if archive_state.has_error():
+            signed_archive_info.clean()
+            unsigned_archive_info.clean()
+            raise SystemExit(
+                f'Error happenned during codesign procedure: {archive_state.error_message}')
 
     def copy_signed_files_to_directory(
             self, signed_dir: Path, destination_dir: Path) -> None:
@@ -396,7 +411,13 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
                 temp_dir)
 
             logger_server.info('Signing all requested files...')
-            self.sign_all_files(files)
+            try:
+                self.sign_all_files(files)
+            except CodeSignException as error:
+                signed_archive_info.tag_ready(error_message=error.message)
+                unsigned_archive_info.clean()
+                logger_server.info('Signing is complete with errors.')
+                return
 
             logger_server.info('Packing signed files...')
             pack_files(files=files,

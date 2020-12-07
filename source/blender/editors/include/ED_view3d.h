@@ -99,24 +99,6 @@ typedef struct ViewDepths {
   bool damaged;
 } ViewDepths;
 
-typedef struct ViewDrawOffscreenContext {
-  struct Depsgraph *depsgraph;
-  struct Scene *scene;
-  int drawtype;
-  struct View3D *v3d;
-  struct ARegion *region;
-  int winx;
-  int winy;
-  float viewmat[4][4];
-  float winmat[4][4];
-  bool do_sky;
-  bool is_persp;
-  const char *viewname;
-  const bool do_color_management;
-  struct GPUOffScreen *ofs;
-  struct GPUViewport *viewport;
-} ViewDrawOffscreenContext;
-
 /* Rotate 3D cursor on placement. */
 enum eV3DCursorOrient {
   V3D_CURSOR_ORIENT_NONE = 0,
@@ -382,6 +364,12 @@ bool ED_view3d_win_to_3d_on_plane(const struct ARegion *region,
                                   const float mval[2],
                                   const bool do_clip,
                                   float r_out[3]);
+bool ED_view3d_win_to_3d_on_plane_with_fallback(const struct ARegion *region,
+                                                const float plane[4],
+                                                const float mval[2],
+                                                const bool do_clip,
+                                                const float plane_fallback[4],
+                                                float r_out[3]);
 bool ED_view3d_win_to_3d_on_plane_int(const struct ARegion *region,
                                       const float plane[4],
                                       const int mval[2],

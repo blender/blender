@@ -83,7 +83,7 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RE_render_ext.h"
+#include "RE_texture.h"
 
 #include "BLO_read_write.h"
 
@@ -4046,7 +4046,7 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
   /* Clear modifier, skip empty ones. */
   psmd = psys_get_modifier(ob, psys);
   if (psmd) {
-    BLI_remlink(&ob->modifiers, psmd);
+    BKE_modifier_remove_from_list(ob, (ModifierData *)psmd);
     BKE_modifier_free((ModifierData *)psmd);
   }
 
@@ -5401,7 +5401,7 @@ void BKE_particle_system_blend_read_lib(BlendLibReader *reader,
     else {
       /* particle modifier must be removed before particle system */
       ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
-      BLI_remlink(&ob->modifiers, psmd);
+      BKE_modifier_remove_from_list(ob, (ModifierData *)psmd);
       BKE_modifier_free((ModifierData *)psmd);
 
       BLI_remlink(particles, psys);

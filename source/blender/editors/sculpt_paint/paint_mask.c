@@ -169,7 +169,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
 
-  SCULPT_undo_push_begin("Mask flood fill");
+  SCULPT_undo_push_begin(ob, "Mask flood fill");
 
   MaskTaskData data = {
       .ob = ob,
@@ -335,7 +335,7 @@ static void sculpt_gesture_operator_properties(wmOperatorType *ot)
                   false,
                   "Limit to Segment",
                   "Apply the gesture action only to the area that is contained within the "
-                  "segement without extending its effect to the entire line");
+                  "segment without extending its effect to the entire line");
 }
 
 static void sculpt_gesture_context_init_common(bContext *C,
@@ -400,10 +400,10 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
   ED_view3d_ob_project_mat_get(
       sgcontext->vc.rv3d, sgcontext->vc.obact, sgcontext->lasso.projviewobjmat);
   BLI_lasso_boundbox(&sgcontext->lasso.boundbox, mcoords, mcoords_len);
-  sgcontext->lasso.width = sgcontext->lasso.boundbox.xmax - sgcontext->lasso.boundbox.xmin;
-  sgcontext->lasso.mask_px = BLI_BITMAP_NEW(
-      sgcontext->lasso.width * (sgcontext->lasso.boundbox.ymax - sgcontext->lasso.boundbox.ymin),
-      __func__);
+  const int lasso_width = 1 + sgcontext->lasso.boundbox.xmax - sgcontext->lasso.boundbox.xmin;
+  const int lasso_height = 1 + sgcontext->lasso.boundbox.ymax - sgcontext->lasso.boundbox.ymin;
+  sgcontext->lasso.width = lasso_width;
+  sgcontext->lasso.mask_px = BLI_BITMAP_NEW(lasso_width * lasso_height, __func__);
 
   BLI_bitmap_draw_2d_poly_v2i_n(sgcontext->lasso.boundbox.xmin,
                                 sgcontext->lasso.boundbox.ymin,
@@ -531,7 +531,7 @@ static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperat
       sgcontext, line_points, plane_points, offset_plane_points);
 
   /* Calculate line plane and normal. */
-  const bool flip = sgcontext->line.flip ^ !sgcontext->vc.rv3d->is_persp;
+  const bool flip = sgcontext->line.flip ^ (!sgcontext->vc.rv3d->is_persp);
   sculpt_gesture_line_plane_from_tri(sgcontext->line.true_plane,
                                      sgcontext,
                                      flip,
@@ -707,7 +707,7 @@ static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, P
 static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
 {
   SculptGestureOperation *operation = sgcontext->operation;
-  SCULPT_undo_push_begin("Sculpt Gesture Apply");
+  SCULPT_undo_push_begin(CTX_data_active_object(C), "Sculpt Gesture Apply");
 
   operation->sculpt_gesture_begin(C, sgcontext);
 
@@ -1295,7 +1295,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
         BLI_assert(false);
         break;
     }
-    BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, true, boolean_mode);
+    BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, true, true, boolean_mode);
   }
 
   MEM_freeN(looptris);

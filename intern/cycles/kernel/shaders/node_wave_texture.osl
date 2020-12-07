@@ -86,7 +86,7 @@ float wave(point p_input,
 
 shader node_wave_texture(int use_mapping = 0,
                          matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         string type = "bands",
+                         string wave_type = "bands",
                          string bands_direction = "x",
                          string rings_direction = "x",
                          string profile = "sine",
@@ -106,7 +106,7 @@ shader node_wave_texture(int use_mapping = 0,
     p = transform(mapping, p);
 
   Fac = wave(p * Scale,
-             type,
+             wave_type,
              bands_direction,
              rings_direction,
              profile,

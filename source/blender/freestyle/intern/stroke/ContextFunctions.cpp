@@ -26,9 +26,7 @@
 
 #include "../system/TimeStamp.h"
 
-namespace Freestyle {
-
-namespace ContextFunctions {
+namespace Freestyle::ContextFunctions {
 
 unsigned GetTimeStampCF()
 {
@@ -78,6 +76,4 @@ FEdge *GetSelectedFEdgeCF()
   return Canvas::getInstance()->selectedFEdge();
 }
 
-}  // namespace ContextFunctions
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::ContextFunctions

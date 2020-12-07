@@ -228,7 +228,8 @@ void KeyingNode::convertToOperations(NodeConverter &converter,
   NodeOutput *outputImage = this->getOutputSocket(0);
   NodeOutput *outputMatte = this->getOutputSocket(1);
   NodeOutput *outputEdges = this->getOutputSocket(2);
-  NodeOperationOutput *postprocessedMatte = nullptr, *postprocessedImage = nullptr, *edgesMatte = nullptr;
+  NodeOperationOutput *postprocessedMatte = nullptr, *postprocessedImage = nullptr,
+                      *edgesMatte = nullptr;
 
   /* keying operation */
   KeyingOperation *keyingOperation = new KeyingOperation();

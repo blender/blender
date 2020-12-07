@@ -56,15 +56,15 @@ struct identity_ {
 //
 // base::identity_ is used to make a non-deduced context, which
 // forces all callers to explicitly specify the template argument.
-template<typename To>
+template <typename To>
 inline To implicit_cast(typename identity_<To>::type to) {
   return to;
 }
 
 // This version of implicit_cast is used when two template arguments
 // are specified. It's obsolete and should not be used.
-template<typename To, typename From>
-inline To implicit_cast(typename identity_<From>::type const &f) {
+template <typename To, typename From>
+inline To implicit_cast(typename identity_<From>::type const& f) {
   return f;
 }
 
@@ -86,8 +86,8 @@ inline To implicit_cast(typename identity_<From>::type const &f) {
 //    if (dynamic_cast<Subclass2>(foo)) HandleASubclass2Object(foo);
 // You should design the code some other way not to need this.
 
-template<typename To, typename From>     // use like this: down_cast<T*>(foo);
-inline To down_cast(From* f) {                   // so we only accept pointers
+template <typename To, typename From>  // use like this: down_cast<T*>(foo);
+inline To down_cast(From* f) {         // so we only accept pointers
   // Ensures that To is a sub-type of From *.  This test is here only
   // for compile-time type checking, and has no overhead in an
   // optimized build at run-time, as it will be optimized away

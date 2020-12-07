@@ -1,7 +1,7 @@
 /* Apache License, Version 2.0 */
 
 #include "testing/testing.h"
-#include <string.h>
+#include <cstring>
 
 #include "BLI_array.h"
 #include "BLI_stack.h"

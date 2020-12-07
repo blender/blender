@@ -108,7 +108,7 @@ def do_versions(self):
         library_versions.setdefault(library.version, []).append(library)
 
     # Do versioning per library, since they might have different versions.
-    max_need_versioning = (2, 80, 41)
+    max_need_versioning = (2, 92, 4)
     for version, libraries in library_versions.items():
         if version > max_need_versioning:
             continue
@@ -193,6 +193,16 @@ def do_versions(self):
                     cscene.blur_glossy = 0.0
                 if not cscene.is_property_set("sample_clamp_indirect"):
                     cscene.sample_clamp_indirect = 0.0
+
+            if version <= (2, 92, 4):
+                if scene.render.engine == 'CYCLES':
+                  for view_layer in scene.view_layers:
+                    cview_layer = view_layer.cycles
+                    view_layer.use_pass_cryptomatte_object = cview_layer.get("use_pass_crypto_object", False)
+                    view_layer.use_pass_cryptomatte_material = cview_layer.get("use_pass_crypto_material", False)
+                    view_layer.use_pass_cryptomatte_asset = cview_layer.get("use_pass_crypto_asset", False)
+                    view_layer.pass_cryptomatte_depth = cview_layer.get("pass_crypto_depth", 6)
+                    view_layer.use_pass_cryptomatte_accurate = cview_layer.get("pass_crypto_accurate", True)
 
         # Lamps
         for light in bpy.data.lights:

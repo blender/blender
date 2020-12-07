@@ -447,6 +447,36 @@ bool ui_but_contains_password(const uiBut *but)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Button (#uiBut) Text
+ * \{ */
+
+size_t ui_but_drawstr_len_without_sep_char(const uiBut *but)
+{
+  if (but->flag & UI_BUT_HAS_SEP_CHAR) {
+    const char *str_sep = strrchr(but->drawstr, UI_SEP_CHAR);
+    if (str_sep != NULL) {
+      return (str_sep - but->drawstr);
+    }
+  }
+  return strlen(but->drawstr);
+}
+
+size_t ui_but_tip_len_only_first_line(const uiBut *but)
+{
+  if (but->tip == NULL) {
+    return 0;
+  }
+
+  const char *str_sep = strchr(but->tip, '\n');
+  if (str_sep != NULL) {
+    return (str_sep - but->tip);
+  }
+  return strlen(but->tip);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Block (#uiBlock) State
  * \{ */
 

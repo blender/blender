@@ -96,15 +96,23 @@ void logImageSetVerbose(int verbosity)
  * IO stuff
  */
 
-int logImageIsDpx(const void *buffer)
+int logImageIsDpx(const void *buffer, const unsigned int size)
 {
-  unsigned int magicNum = *(unsigned int *)buffer;
+  unsigned int magicNum;
+  if (size < sizeof(magicNum)) {
+    return 0;
+  }
+  magicNum = *(unsigned int *)buffer;
   return (magicNum == DPX_FILE_MAGIC || magicNum == swap_uint(DPX_FILE_MAGIC, 1));
 }
 
-int logImageIsCineon(const void *buffer)
+int logImageIsCineon(const void *buffer, const unsigned int size)
 {
-  unsigned int magicNum = *(unsigned int *)buffer;
+  unsigned int magicNum;
+  if (size < sizeof(magicNum)) {
+    return 0;
+  }
+  magicNum = *(unsigned int *)buffer;
   return (magicNum == CINEON_FILE_MAGIC || magicNum == swap_uint(CINEON_FILE_MAGIC, 1));
 }
 
@@ -119,17 +127,17 @@ LogImageFile *logImageOpenFromFile(const char *filename, int cineon)
     return NULL;
   }
 
-  if (fread(&magicNum, sizeof(unsigned int), 1, f) != 1) {
+  if (fread(&magicNum, sizeof(magicNum), 1, f) != 1) {
     fclose(f);
     return NULL;
   }
 
   fclose(f);
 
-  if (logImageIsDpx(&magicNum)) {
+  if (logImageIsDpx(&magicNum, sizeof(magicNum))) {
     return dpxOpen((const unsigned char *)filename, 0, 0);
   }
-  if (logImageIsCineon(&magicNum)) {
+  if (logImageIsCineon(&magicNum, sizeof(magicNum))) {
     return cineonOpen((const unsigned char *)filename, 0, 0);
   }
 
@@ -138,10 +146,10 @@ LogImageFile *logImageOpenFromFile(const char *filename, int cineon)
 
 LogImageFile *logImageOpenFromMemory(const unsigned char *buffer, unsigned int size)
 {
-  if (logImageIsDpx(buffer)) {
+  if (logImageIsDpx(buffer, size)) {
     return dpxOpen(buffer, 1, size);
   }
-  if (logImageIsCineon(buffer)) {
+  if (logImageIsCineon(buffer, size)) {
     return cineonOpen(buffer, 1, size);
   }
 

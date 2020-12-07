@@ -717,7 +717,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 
   /* remove functionality */
 
-  BLI_remlink(&ob->modifiers, (ModifierData *)hmd);
+  BKE_modifier_remove_from_list(ob, (ModifierData *)hmd);
   BKE_modifier_free((ModifierData *)hmd);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

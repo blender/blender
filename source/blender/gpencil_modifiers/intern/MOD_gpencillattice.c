@@ -85,6 +85,7 @@ static void deformStroke(GpencilModifierData *md,
                          bGPDframe *UNUSED(gpf),
                          bGPDstroke *gps)
 {
+  bGPdata *gpd = ob->data;
   LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
   const int def_nr = BKE_object_defgroup_name_index(ob, mmd->vgname);
 
@@ -121,7 +122,7 @@ static void deformStroke(GpencilModifierData *md,
         (struct LatticeDeformData *)mmd->cache_data, &pt->x, mmd->strength * weight);
   }
   /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(gps);
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
 /* FIXME: Ideally we be doing this on a copy of the main depsgraph

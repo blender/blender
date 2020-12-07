@@ -32,6 +32,7 @@
 
 #include <memory>
 #include <string>
+
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/inner_product_computer.h"
 #include "ceres/linear_solver.h"
@@ -50,8 +51,7 @@ SubsetPreconditioner::SubsetPreconditioner(
   LinearSolver::Options sparse_cholesky_options;
   sparse_cholesky_options.sparse_linear_algebra_library_type =
       options_.sparse_linear_algebra_library_type;
-  sparse_cholesky_options.use_postordering =
-      options_.use_postordering;
+  sparse_cholesky_options.use_postordering = options_.use_postordering;
   sparse_cholesky_ = SparseCholesky::Create(sparse_cholesky_options);
 }
 

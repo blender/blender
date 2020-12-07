@@ -627,10 +627,14 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals *kg,
     float4 f0, f1, f2, f3;
 
     if (desc.element == ATTR_ELEMENT_CORNER_BYTE) {
-      f0 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[0] + desc.offset));
-      f1 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[1] + desc.offset));
-      f2 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[2] + desc.offset));
-      f3 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[3] + desc.offset));
+      f0 = color_srgb_to_linear_v4(
+          color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[0] + desc.offset)));
+      f1 = color_srgb_to_linear_v4(
+          color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[1] + desc.offset)));
+      f2 = color_srgb_to_linear_v4(
+          color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[2] + desc.offset)));
+      f3 = color_srgb_to_linear_v4(
+          color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[3] + desc.offset)));
     }
     else {
       f0 = kernel_tex_fetch(__attributes_float3, corners[0] + desc.offset);

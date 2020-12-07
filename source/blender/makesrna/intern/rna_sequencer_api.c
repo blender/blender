@@ -77,19 +77,21 @@ static void rna_Sequence_swap_internal(Sequence *seq_self,
 }
 
 static Sequence *alloc_generic_sequence(
-    Editing *ed, const char *name, int frame_start, int channel, int type, const char *file)
+    ListBase *seqbase, const char *name, int frame_start, int channel, int type, const char *file)
 {
   Sequence *seq;
   StripElem *se;
 
-  seq = BKE_sequence_alloc(ed->seqbasep, frame_start, channel, type);
+  seq = BKE_sequence_alloc(seqbase, frame_start, channel, type);
 
   BLI_strncpy(seq->name + 2, name, sizeof(seq->name) - 2);
-  BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
+  BKE_sequence_base_unique_name_recursive(seqbase, seq);
 
   Strip *strip = seq->strip;
 
-  if (file) {
+  /* Don't allocate StripElem for clip, mask and scene types. This struct is not handled in
+   * seq_dupli() function. */
+  if (file && !ELEM(type, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK, SEQ_TYPE_SCENE)) {
     strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
     BLI_split_dirfile(file, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
@@ -103,7 +105,7 @@ static Sequence *alloc_generic_sequence(
 }
 
 static Sequence *rna_Sequences_new_clip(ID *id,
-                                        Editing *ed,
+                                        ListBase *seqbase,
                                         Main *bmain,
                                         const char *name,
                                         MovieClip *clip,
@@ -113,7 +115,8 @@ static Sequence *rna_Sequences_new_clip(ID *id,
   Scene *scene = (Scene *)id;
   Sequence *seq;
 
-  seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_MOVIECLIP, clip->filepath);
+  seq = alloc_generic_sequence(
+      seqbase, name, frame_start, channel, SEQ_TYPE_MOVIECLIP, clip->filepath);
   seq->clip = clip;
   seq->len = BKE_movieclip_get_duration(clip);
   id_us_plus((ID *)clip);
@@ -127,13 +130,40 @@ static Sequence *rna_Sequences_new_clip(ID *id,
   return seq;
 }
 
-static Sequence *rna_Sequences_new_mask(
-    ID *id, Editing *ed, Main *bmain, const char *name, Mask *mask, int channel, int frame_start)
+static Sequence *rna_Sequences_editing_new_clip(ID *id,
+                                                Editing *ed,
+                                                Main *bmain,
+                                                const char *name,
+                                                MovieClip *clip,
+                                                int channel,
+                                                int frame_start)
+{
+  return rna_Sequences_new_clip(id, &ed->seqbase, bmain, name, clip, channel, frame_start);
+}
+
+static Sequence *rna_Sequences_meta_new_clip(ID *id,
+                                             Sequence *seq,
+                                             Main *bmain,
+                                             const char *name,
+                                             MovieClip *clip,
+                                             int channel,
+                                             int frame_start)
+{
+  return rna_Sequences_new_clip(id, &seq->seqbase, bmain, name, clip, channel, frame_start);
+}
+
+static Sequence *rna_Sequences_new_mask(ID *id,
+                                        ListBase *seqbase,
+                                        Main *bmain,
+                                        const char *name,
+                                        Mask *mask,
+                                        int channel,
+                                        int frame_start)
 {
   Scene *scene = (Scene *)id;
   Sequence *seq;
 
-  seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_MASK, mask->id.name);
+  seq = alloc_generic_sequence(seqbase, name, frame_start, channel, SEQ_TYPE_MASK, mask->id.name);
   seq->mask = mask;
   seq->len = BKE_mask_get_duration(mask);
   id_us_plus((ID *)mask);
@@ -147,9 +177,20 @@ static Sequence *rna_Sequences_new_mask(
 
   return seq;
 }
+static Sequence *rna_Sequences_editing_new_mask(
+    ID *id, Editing *ed, Main *bmain, const char *name, Mask *mask, int channel, int frame_start)
+{
+  return rna_Sequences_new_mask(id, &ed->seqbase, bmain, name, mask, channel, frame_start);
+}
+
+static Sequence *rna_Sequences_meta_new_mask(
+    ID *id, Sequence *seq, Main *bmain, const char *name, Mask *mask, int channel, int frame_start)
+{
+  return rna_Sequences_new_mask(id, &seq->seqbase, bmain, name, mask, channel, frame_start);
+}
 
 static Sequence *rna_Sequences_new_scene(ID *id,
-                                         Editing *ed,
+                                         ListBase *seqbase,
                                          Main *bmain,
                                          const char *name,
                                          Scene *sce_seq,
@@ -159,7 +200,7 @@ static Sequence *rna_Sequences_new_scene(ID *id,
   Scene *scene = (Scene *)id;
   Sequence *seq;
 
-  seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_SCENE, NULL);
+  seq = alloc_generic_sequence(seqbase, name, frame_start, channel, SEQ_TYPE_SCENE, NULL);
   seq->scene = sce_seq;
   seq->len = sce_seq->r.efra - sce_seq->r.sfra + 1;
   id_us_plus((ID *)sce_seq);
@@ -174,8 +215,30 @@ static Sequence *rna_Sequences_new_scene(ID *id,
   return seq;
 }
 
+static Sequence *rna_Sequences_editing_new_scene(ID *id,
+                                                 Editing *ed,
+                                                 Main *bmain,
+                                                 const char *name,
+                                                 Scene *sce_seq,
+                                                 int channel,
+                                                 int frame_start)
+{
+  return rna_Sequences_new_scene(id, &ed->seqbase, bmain, name, sce_seq, channel, frame_start);
+}
+
+static Sequence *rna_Sequences_meta_new_scene(ID *id,
+                                              Sequence *seq,
+                                              Main *bmain,
+                                              const char *name,
+                                              Scene *sce_seq,
+                                              int channel,
+                                              int frame_start)
+{
+  return rna_Sequences_new_scene(id, &seq->seqbase, bmain, name, sce_seq, channel, frame_start);
+}
+
 static Sequence *rna_Sequences_new_image(ID *id,
-                                         Editing *ed,
+                                         ListBase *seqbase,
                                          Main *bmain,
                                          ReportList *reports,
                                          const char *name,
@@ -186,12 +249,12 @@ static Sequence *rna_Sequences_new_image(ID *id,
   Scene *scene = (Scene *)id;
   Sequence *seq;
 
-  seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_IMAGE, file);
+  seq = alloc_generic_sequence(seqbase, name, frame_start, channel, SEQ_TYPE_IMAGE, file);
   seq->len = 1;
 
   if (seq->strip->stripdata->name[0] == '\0') {
     BKE_report(reports, RPT_ERROR, "Sequences.new_image: unable to open image file");
-    BLI_remlink(&ed->seqbase, seq);
+    BLI_remlink(seqbase, seq);
     BKE_sequence_free(scene, seq, true);
     return NULL;
   }
@@ -206,14 +269,40 @@ static Sequence *rna_Sequences_new_image(ID *id,
   return seq;
 }
 
+static Sequence *rna_Sequences_editing_new_image(ID *id,
+                                                 Editing *ed,
+                                                 Main *bmain,
+                                                 ReportList *reports,
+                                                 const char *name,
+                                                 const char *file,
+                                                 int channel,
+                                                 int frame_start)
+{
+  return rna_Sequences_new_image(
+      id, &ed->seqbase, bmain, reports, name, file, channel, frame_start);
+}
+
+static Sequence *rna_Sequences_meta_new_image(ID *id,
+                                              Sequence *seq,
+                                              Main *bmain,
+                                              ReportList *reports,
+                                              const char *name,
+                                              const char *file,
+                                              int channel,
+                                              int frame_start)
+{
+  return rna_Sequences_new_image(
+      id, &seq->seqbase, bmain, reports, name, file, channel, frame_start);
+}
+
 static Sequence *rna_Sequences_new_movie(
-    ID *id, Editing *ed, const char *name, const char *file, int channel, int frame_start)
+    ID *id, ListBase *seqbase, const char *name, const char *file, int channel, int frame_start)
 {
   Scene *scene = (Scene *)id;
   Sequence *seq;
   StripAnim *sanim;
 
-  seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_MOVIE, file);
+  seq = alloc_generic_sequence(seqbase, name, frame_start, channel, SEQ_TYPE_MOVIE, file);
 
   struct anim *an = openanim(file, IB_rect, 0, NULL);
   if (an == NULL) {
@@ -238,9 +327,21 @@ static Sequence *rna_Sequences_new_movie(
   return seq;
 }
 
+static Sequence *rna_Sequences_editing_new_movie(
+    ID *id, Editing *ed, const char *name, const char *file, int channel, int frame_start)
+{
+  return rna_Sequences_new_movie(id, &ed->seqbase, name, file, channel, frame_start);
+}
+
+static Sequence *rna_Sequences_meta_new_movie(
+    ID *id, Sequence *seq, const char *name, const char *file, int channel, int frame_start)
+{
+  return rna_Sequences_new_movie(id, &seq->seqbase, name, file, channel, frame_start);
+}
+
 #  ifdef WITH_AUDASPACE
 static Sequence *rna_Sequences_new_sound(ID *id,
-                                         Editing *ed,
+                                         ListBase *seqbase,
                                          Main *bmain,
                                          ReportList *reports,
                                          const char *name,
@@ -260,7 +361,7 @@ static Sequence *rna_Sequences_new_sound(ID *id,
     return NULL;
   }
   seq = alloc_generic_sequence(
-      ed, name, frame_start, channel, SEQ_TYPE_SOUND_RAM, sound->filepath);
+      seqbase, name, frame_start, channel, SEQ_TYPE_SOUND_RAM, sound->filepath);
   seq->sound = sound;
   seq->len = ceil((double)info.length * FPS);
 
@@ -274,7 +375,7 @@ static Sequence *rna_Sequences_new_sound(ID *id,
 }
 #  else  /* WITH_AUDASPACE */
 static Sequence *rna_Sequences_new_sound(ID *UNUSED(id),
-                                         Editing *UNUSED(ed),
+                                         ListBase *UNUSED(seqbase),
                                          Main *UNUSED(bmain),
                                          ReportList *reports,
                                          const char *UNUSED(name),
@@ -287,8 +388,34 @@ static Sequence *rna_Sequences_new_sound(ID *UNUSED(id),
 }
 #  endif /* WITH_AUDASPACE */
 
+static Sequence *rna_Sequences_editing_new_sound(ID *id,
+                                                 Editing *ed,
+                                                 Main *bmain,
+                                                 ReportList *reports,
+                                                 const char *name,
+                                                 const char *file,
+                                                 int channel,
+                                                 int frame_start)
+{
+  return rna_Sequences_new_sound(
+      id, &ed->seqbase, bmain, reports, name, file, channel, frame_start);
+}
+
+static Sequence *rna_Sequences_meta_new_sound(ID *id,
+                                              Sequence *seq,
+                                              Main *bmain,
+                                              ReportList *reports,
+                                              const char *name,
+                                              const char *file,
+                                              int channel,
+                                              int frame_start)
+{
+  return rna_Sequences_new_sound(
+      id, &seq->seqbase, bmain, reports, name, file, channel, frame_start);
+}
+
 static Sequence *rna_Sequences_new_effect(ID *id,
-                                          Editing *ed,
+                                          ListBase *seqbase,
                                           ReportList *reports,
                                           const char *name,
                                           int type,
@@ -338,7 +465,7 @@ static Sequence *rna_Sequences_new_effect(ID *id,
       return NULL;
   }
 
-  seq = alloc_generic_sequence(ed, name, frame_start, channel, type, NULL);
+  seq = alloc_generic_sequence(seqbase, name, frame_start, channel, type, NULL);
 
   sh = BKE_sequence_get_effect(seq);
 
@@ -365,25 +492,69 @@ static Sequence *rna_Sequences_new_effect(ID *id,
   return seq;
 }
 
+static Sequence *rna_Sequences_editing_new_effect(ID *id,
+                                                  Editing *ed,
+                                                  ReportList *reports,
+                                                  const char *name,
+                                                  int type,
+                                                  int channel,
+                                                  int frame_start,
+                                                  int frame_end,
+                                                  Sequence *seq1,
+                                                  Sequence *seq2,
+                                                  Sequence *seq3)
+{
+  return rna_Sequences_new_effect(
+      id, &ed->seqbase, reports, name, type, channel, frame_start, frame_end, seq1, seq2, seq3);
+}
+
+static Sequence *rna_Sequences_meta_new_effect(ID *id,
+                                               Sequence *seq,
+                                               ReportList *reports,
+                                               const char *name,
+                                               int type,
+                                               int channel,
+                                               int frame_start,
+                                               int frame_end,
+                                               Sequence *seq1,
+                                               Sequence *seq2,
+                                               Sequence *seq3)
+{
+  return rna_Sequences_new_effect(
+      id, &seq->seqbase, reports, name, type, channel, frame_start, frame_end, seq1, seq2, seq3);
+}
+
 static void rna_Sequences_remove(
-    ID *id, Editing *ed, Main *bmain, ReportList *reports, PointerRNA *seq_ptr)
+    ID *id, ListBase *seqbase, Main *bmain, ReportList *reports, PointerRNA *seq_ptr)
 {
   Sequence *seq = seq_ptr->data;
   Scene *scene = (Scene *)id;
 
-  if (BLI_findindex(&ed->seqbase, seq) == -1) {
+  if (BLI_findindex(seqbase, seq) == -1) {
     BKE_reportf(
         reports, RPT_ERROR, "Sequence '%s' not in scene '%s'", seq->name + 2, scene->id.name + 2);
     return;
   }
 
-  BKE_sequencer_flag_for_removal(scene, &ed->seqbase, seq);
-  BKE_sequencer_remove_flagged_sequences(scene, &ed->seqbase);
+  BKE_sequencer_flag_for_removal(scene, seqbase, seq);
+  BKE_sequencer_remove_flagged_sequences(scene, seqbase);
   RNA_POINTER_INVALIDATE(seq_ptr);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+}
+
+static void rna_Sequences_editing_remove(
+    ID *id, Editing *ed, Main *bmain, ReportList *reports, PointerRNA *seq_ptr)
+{
+  rna_Sequences_remove(id, &ed->seqbase, bmain, reports, seq_ptr);
+}
+
+static void rna_Sequences_meta_remove(
+    ID *id, Sequence *seq, Main *bmain, ReportList *reports, PointerRNA *seq_ptr)
+{
+  rna_Sequences_remove(id, &seq->seqbase, bmain, reports, seq_ptr);
 }
 
 static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char *filename)
@@ -534,7 +705,7 @@ void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
-void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
+void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastrip)
 {
   StructRNA *srna;
   PropertyRNA *parm;
@@ -562,12 +733,38 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
       {0, NULL, 0, NULL, NULL},
   };
 
-  RNA_def_property_srna(cprop, "Sequences");
-  srna = RNA_def_struct(brna, "Sequences", NULL);
-  RNA_def_struct_sdna(srna, "Editing");
+  const char *new_clip_func_name = "rna_Sequences_editing_new_clip";
+  const char *new_mask_func_name = "rna_Sequences_editing_new_mask";
+  const char *new_scene_func_name = "rna_Sequences_editing_new_scene";
+  const char *new_image_func_name = "rna_Sequences_editing_new_image";
+  const char *new_movie_func_name = "rna_Sequences_editing_new_movie";
+  const char *new_sound_func_name = "rna_Sequences_editing_new_sound";
+  const char *new_effect_func_name = "rna_Sequences_editing_new_effect";
+  const char *remove_func_name = "rna_Sequences_editing_remove";
+
+  if (metastrip) {
+    RNA_def_property_srna(cprop, "SequencesMeta");
+    srna = RNA_def_struct(brna, "SequencesMeta", NULL);
+    RNA_def_struct_sdna(srna, "Sequence");
+
+    new_clip_func_name = "rna_Sequences_meta_new_clip";
+    new_mask_func_name = "rna_Sequences_meta_new_mask";
+    new_scene_func_name = "rna_Sequences_meta_new_scene";
+    new_image_func_name = "rna_Sequences_meta_new_image";
+    new_movie_func_name = "rna_Sequences_meta_new_movie";
+    new_sound_func_name = "rna_Sequences_meta_new_sound";
+    new_effect_func_name = "rna_Sequences_meta_new_effect";
+    remove_func_name = "rna_Sequences_meta_remove";
+  }
+  else {
+    RNA_def_property_srna(cprop, "SequencesTopLevel");
+    srna = RNA_def_struct(brna, "SequencesTopLevel", NULL);
+    RNA_def_struct_sdna(srna, "Editing");
+  }
+
   RNA_def_struct_ui_text(srna, "Sequences", "Collection of Sequences");
 
-  func = RNA_def_function(srna, "new_clip", "rna_Sequences_new_clip");
+  func = RNA_def_function(srna, "new_clip", new_clip_func_name);
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new movie clip sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
@@ -591,7 +788,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "new_mask", "rna_Sequences_new_mask");
+  func = RNA_def_function(srna, "new_mask", new_mask_func_name);
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new mask sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
@@ -615,7 +812,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "new_scene", "rna_Sequences_new_scene");
+  func = RNA_def_function(srna, "new_scene", new_scene_func_name);
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new scene sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
@@ -639,7 +836,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "new_image", "rna_Sequences_new_image");
+  func = RNA_def_function(srna, "new_image", new_image_func_name);
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new image sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
@@ -663,7 +860,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "new_movie", "rna_Sequences_new_movie");
+  func = RNA_def_function(srna, "new_movie", new_movie_func_name);
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   RNA_def_function_ui_description(func, "Add a new movie sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
@@ -687,7 +884,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "new_sound", "rna_Sequences_new_sound");
+  func = RNA_def_function(srna, "new_sound", new_sound_func_name);
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new sound sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
@@ -711,7 +908,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "new_effect", "rna_Sequences_new_effect");
+  func = RNA_def_function(srna, "new_effect", new_effect_func_name);
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
   RNA_def_function_ui_description(func, "Add a new effect sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
@@ -748,7 +945,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "remove", "rna_Sequences_remove");
+  func = RNA_def_function(srna, "remove", remove_func_name);
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Remove a Sequence");
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "Sequence to remove");

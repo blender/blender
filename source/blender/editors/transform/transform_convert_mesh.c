@@ -98,7 +98,7 @@ static void editmesh_islands_info_calc(BMEditMesh *em,
   else { /* (bm->selectmode & SCE_SELECT_FACE) */
     groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totfacesel, __func__);
     group_tot = BM_mesh_calc_face_groups(
-        bm, groups_array, &group_index, NULL, NULL, BM_ELEM_SELECT, BM_VERT);
+        bm, groups_array, &group_index, NULL, NULL, NULL, BM_ELEM_SELECT, BM_VERT);
 
     htype = BM_FACE;
     itype = BM_VERTS_OF_FACE;

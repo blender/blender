@@ -151,13 +151,23 @@ class NODE_HT_header(Header):
             if snode_id:
                 layout.prop(snode_id, "use_nodes")
 
-        elif snode.tree_type == 'SimulationNodeTree':
-            row = layout.row(align=True)
-            row.prop(snode, "simulation", text="")
-            row.operator("simulation.new", text="", icon='ADD')
-            simulation = snode.simulation
-            if simulation:
-                row.prop(snode.simulation, "use_fake_user", text="")
+        elif snode.tree_type == 'GeometryNodeTree':
+            NODE_MT_editor_menus.draw_collapsible(context, layout)
+            layout.separator_spacer()
+
+            ob = context.object
+
+            row = layout.row()
+            if snode.pin:
+                row.enabled = False
+                row.template_ID(snode, "node_tree", new="node.new_geometry_node_group_assign")
+            elif ob:
+                active_modifier = ob.modifiers.active
+                if active_modifier and active_modifier.type == "NODES":
+                    row.template_ID(active_modifier, "node_group", new="node.new_geometry_node_group_assign")
+                else:
+                    row.template_ID(snode, "node_tree", new="node.new_geometry_nodes_modifier")
+
 
         else:
             # Custom node tree is edited as independent ID block

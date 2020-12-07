@@ -28,9 +28,15 @@
 using namespace std;
 namespace Manta {
 
-ParticleBase::ParticleBase(FluidSolver *parent)
-    : PbClass(parent), mMaxParticles(0), mAllowCompress(true), mFreePdata(false)
+int ParticleBase::globalSeed = 9832;
+
+ParticleBase::ParticleBase(FluidSolver *parent, int fixedSeed)
+    : PbClass(parent), mMaxParticles(0), mAllowCompress(true), mFreePdata(false), mSeed(fixedSeed)
 {
+  // use global random seed if none is given
+  if (fixedSeed == -1) {
+    mSeed = globalSeed;
+  }
 }
 
 ParticleBase::~ParticleBase()

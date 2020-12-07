@@ -270,7 +270,8 @@ struct VolumeGrid {
     entry = GLOBAL_CACHE.add_metadata_user(template_entry);
   }
 
-  VolumeGrid(const openvdb::GridBase::Ptr &grid) : entry(nullptr), local_grid(grid), is_loaded(true)
+  VolumeGrid(const openvdb::GridBase::Ptr &grid)
+      : entry(nullptr), local_grid(grid), is_loaded(true)
   {
   }
 
@@ -1141,7 +1142,7 @@ VolumeGrid *BKE_volume_grid_get(const Volume *volume, int grid_index)
   return nullptr;
 #else
   UNUSED_VARS(volume, grid_index);
-  return NULL;
+  return nullptr;
 #endif
 }
 
@@ -1408,7 +1409,7 @@ VolumeGrid *BKE_volume_grid_add(Volume *volume, const char *name, VolumeGridType
   return &grids.back();
 #else
   UNUSED_VARS(volume, name, type);
-  return NULL;
+  return nullptr;
 #endif
 }
 

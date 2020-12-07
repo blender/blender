@@ -1082,7 +1082,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   }
 
   /* Calc geometry data. */
-  BKE_gpencil_stroke_geometry_update(gps);
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
 
   /* Update evaluated data. */
   ED_gpencil_sbuffer_update_eval(tgpi->gpd, tgpi->ob_eval);
@@ -1196,6 +1196,9 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
 
   /* set GP datablock */
   tgpi->gpd = gpd;
+
+  /* Setup space conversions. */
+  gpencil_point_conversion_init(C, &tgpi->gsc);
 
   /* if brush doesn't exist, create a new set (fix damaged files from old versions) */
   if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
@@ -1323,7 +1326,7 @@ static void gpencil_primitive_interaction_end(bContext *C,
     copy_v2_v2(gps->aspect_ratio, brush_settings->aspect_ratio);
 
     /* Calc geometry data. */
-    BKE_gpencil_stroke_geometry_update(gps);
+    BKE_gpencil_stroke_geometry_update(tgpi->gpd, gps);
   }
 
   /* transfer stroke from temporary buffer to the actual frame */
@@ -1345,6 +1348,28 @@ static void gpencil_primitive_interaction_end(bContext *C,
         dw->weight = ts->vgroup_weight;
       }
     }
+  }
+
+  /* Join previous stroke. */
+  if (ts->gpencil_flags & GP_TOOL_FLAG_AUTOMERGE_STROKE) {
+    if (ELEM(tgpi->type, GP_STROKE_ARC, GP_STROKE_LINE, GP_STROKE_CURVE, GP_STROKE_POLYLINE)) {
+      if (gps->prev != NULL) {
+        int pt_index = 0;
+        bool doit = true;
+        while (doit && gps) {
+          bGPDstroke *gps_target = ED_gpencil_stroke_nearest_to_ends(
+              C, &tgpi->gsc, tgpi->gpl, gpf, gps, GPENCIL_MINIMUM_JOIN_DIST, &pt_index);
+          if (gps_target != NULL) {
+            gps = ED_gpencil_stroke_join_and_trim(tgpi->gpd, gpf, gps, gps_target, pt_index);
+          }
+          else {
+            doit = false;
+          }
+        }
+      }
+      ED_gpencil_stroke_close_by_distance(gps, 0.02f);
+    }
+    BKE_gpencil_stroke_geometry_update(tgpi->gpd, gps);
   }
 
   DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_COPY_ON_WRITE);

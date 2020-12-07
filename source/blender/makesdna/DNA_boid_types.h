@@ -25,6 +25,10 @@
 
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum eBoidRuleType {
   eBoidRuleType_None = 0,
   /** go to goal assigned object or loudest assigned signal source */
@@ -222,3 +226,7 @@ typedef struct BoidSettings {
 //#define BOID_RULE_LAND            (1 << 3)        /* goal */
 //#define BOID_RULE_WITH_BOIDS      (1 << 4)        /* avoid collision */
 //#define BOID_RULE_WITH_DEFLECTORS (1 << 5)    /* avoid collision */
+
+#ifdef __cplusplus
+}
+#endif

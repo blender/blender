@@ -29,8 +29,10 @@ set(INC
   ../bmesh
   ../depsgraph
   ../editors/include
+  ../functions
   ../makesdna
   ../makesrna
+  ../nodes
   ../render
   ../windowmanager
   ../../../intern/eigen
@@ -86,7 +88,7 @@ set(SRC
   intern/MOD_shapekey.c
   intern/MOD_shrinkwrap.c
   intern/MOD_simpledeform.c
-  intern/MOD_simulation.cc
+  intern/MOD_nodes.cc
   intern/MOD_skin.c
   intern/MOD_smooth.c
   intern/MOD_softbody.c
@@ -114,6 +116,7 @@ set(SRC
   intern/MOD_wireframe.c
 
   MOD_modifiertypes.h
+  MOD_nodes.h
   intern/MOD_meshcache_util.h
   intern/MOD_solidify_util.h
   intern/MOD_ui_common.h
@@ -196,7 +199,6 @@ endif()
 
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_GEOMETRY_NODES)
-  add_definitions(-DWITH_POINT_CLOUD)
   add_definitions(-DWITH_HAIR_NODES)
 endif()
 

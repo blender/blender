@@ -16,7 +16,6 @@
 
 #ifdef WITH_NANOVDB
 #  include "nanovdb/CNanoVDB.h"
-#  include "nanovdb/util/CSampleFromVoxels.h"
 #endif
 
 /* For OpenCL we do manual lookup and interpolation. */
@@ -47,95 +46,128 @@ ccl_device_inline int svm_image_texture_wrap_clamp(int x, int width)
   return clamp(x, 0, width - 1);
 }
 
-ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg,
-                                                const ccl_global TextureInfo *info,
-                                                int id,
-                                                int offset)
+ccl_device_inline float4 svm_image_texture_read(
+    KernelGlobals *kg, const ccl_global TextureInfo *info, void *acc, int x, int y, int z)
 {
+  const int data_offset = x + info->width * y + info->width * info->height * z;
   const int texture_type = info->data_type;
 
   /* Float4 */
   if (texture_type == IMAGE_DATA_TYPE_FLOAT4) {
-    return tex_fetch(float4, info, offset);
+    return tex_fetch(float4, info, data_offset);
   }
   /* Byte4 */
   else if (texture_type == IMAGE_DATA_TYPE_BYTE4) {
-    uchar4 r = tex_fetch(uchar4, info, offset);
+    uchar4 r = tex_fetch(uchar4, info, data_offset);
     float f = 1.0f / 255.0f;
     return make_float4(r.x * f, r.y * f, r.z * f, r.w * f);
   }
   /* Ushort4 */
   else if (texture_type == IMAGE_DATA_TYPE_USHORT4) {
-    ushort4 r = tex_fetch(ushort4, info, offset);
+    ushort4 r = tex_fetch(ushort4, info, data_offset);
     float f = 1.0f / 65535.f;
     return make_float4(r.x * f, r.y * f, r.z * f, r.w * f);
   }
   /* Float */
   else if (texture_type == IMAGE_DATA_TYPE_FLOAT) {
-    float f = tex_fetch(float, info, offset);
+    float f = tex_fetch(float, info, data_offset);
     return make_float4(f, f, f, 1.0f);
   }
   /* UShort */
   else if (texture_type == IMAGE_DATA_TYPE_USHORT) {
-    ushort r = tex_fetch(ushort, info, offset);
+    ushort r = tex_fetch(ushort, info, data_offset);
     float f = r * (1.0f / 65535.0f);
     return make_float4(f, f, f, 1.0f);
   }
-  /* Byte */
+#ifdef WITH_NANOVDB
+  /* NanoVDB Float */
+  else if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT) {
+    cnanovdb_coord coord;
+    coord.mVec[0] = x;
+    coord.mVec[1] = y;
+    coord.mVec[2] = z;
+    float f = cnanovdb_readaccessor_getValueF((cnanovdb_readaccessor *)acc, &coord);
+    return make_float4(f, f, f, 1.0f);
+  }
+  /* NanoVDB Float3 */
+  else if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
+    cnanovdb_coord coord;
+    coord.mVec[0] = x;
+    coord.mVec[1] = y;
+    coord.mVec[2] = z;
+    cnanovdb_Vec3F f = cnanovdb_readaccessor_getValueF3((cnanovdb_readaccessor *)acc, &coord);
+    return make_float4(f.mVec[0], f.mVec[1], f.mVec[2], 1.0f);
+  }
+#endif
 #ifdef __KERNEL_CL_KHR_FP16__
-  /* half and half4 are optional in OpenCL */
+  /* Half and Half4 are optional in OpenCL */
   else if (texture_type == IMAGE_DATA_TYPE_HALF) {
-    float f = tex_fetch(half, info, offset);
+    float f = tex_fetch(half, info, data_offset);
     return make_float4(f, f, f, 1.0f);
   }
   else if (texture_type == IMAGE_DATA_TYPE_HALF4) {
-    half4 r = tex_fetch(half4, info, offset);
+    half4 r = tex_fetch(half4, info, data_offset);
     return make_float4(r.x, r.y, r.z, r.w);
   }
 #endif
+  /* Byte */
   else {
-    uchar r = tex_fetch(uchar, info, offset);
+    uchar r = tex_fetch(uchar, info, data_offset);
     float f = r * (1.0f / 255.0f);
     return make_float4(f, f, f, 1.0f);
   }
 }
 
-ccl_device_inline float4 svm_image_texture_read_2d(KernelGlobals *kg, int id, int x, int y)
+ccl_device_inline float4
+svm_image_texture_read_2d(KernelGlobals *kg, int id, void *acc, int x, int y)
 {
   const ccl_global TextureInfo *info = kernel_tex_info(kg, id);
 
-  /* Wrap */
-  if (info->extension == EXTENSION_REPEAT) {
-    x = svm_image_texture_wrap_periodic(x, info->width);
-    y = svm_image_texture_wrap_periodic(y, info->height);
+#ifdef WITH_NANOVDB
+  if (info->data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
+      info->data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
+#endif
+    /* Wrap */
+    if (info->extension == EXTENSION_REPEAT) {
+      x = svm_image_texture_wrap_periodic(x, info->width);
+      y = svm_image_texture_wrap_periodic(y, info->height);
+    }
+    else {
+      x = svm_image_texture_wrap_clamp(x, info->width);
+      y = svm_image_texture_wrap_clamp(y, info->height);
+    }
+#ifdef WITH_NANOVDB
   }
-  else {
-    x = svm_image_texture_wrap_clamp(x, info->width);
-    y = svm_image_texture_wrap_clamp(y, info->height);
-  }
+#endif
 
-  int offset = x + info->width * y;
-  return svm_image_texture_read(kg, info, id, offset);
+  return svm_image_texture_read(kg, info, acc, x, y, 0);
 }
 
-ccl_device_inline float4 svm_image_texture_read_3d(KernelGlobals *kg, int id, int x, int y, int z)
+ccl_device_inline float4
+svm_image_texture_read_3d(KernelGlobals *kg, int id, void *acc, int x, int y, int z)
 {
   const ccl_global TextureInfo *info = kernel_tex_info(kg, id);
 
-  /* Wrap */
-  if (info->extension == EXTENSION_REPEAT) {
-    x = svm_image_texture_wrap_periodic(x, info->width);
-    y = svm_image_texture_wrap_periodic(y, info->height);
-    z = svm_image_texture_wrap_periodic(z, info->depth);
+#ifdef WITH_NANOVDB
+  if (info->data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
+      info->data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
+#endif
+    /* Wrap */
+    if (info->extension == EXTENSION_REPEAT) {
+      x = svm_image_texture_wrap_periodic(x, info->width);
+      y = svm_image_texture_wrap_periodic(y, info->height);
+      z = svm_image_texture_wrap_periodic(z, info->depth);
+    }
+    else {
+      x = svm_image_texture_wrap_clamp(x, info->width);
+      y = svm_image_texture_wrap_clamp(y, info->height);
+      z = svm_image_texture_wrap_clamp(z, info->depth);
+    }
+#ifdef WITH_NANOVDB
   }
-  else {
-    x = svm_image_texture_wrap_clamp(x, info->width);
-    y = svm_image_texture_wrap_clamp(y, info->height);
-    z = svm_image_texture_wrap_clamp(z, info->depth);
-  }
+#endif
 
-  int offset = x + info->width * y + info->width * info->height * z;
-  return svm_image_texture_read(kg, info, id, offset);
+  return svm_image_texture_read(kg, info, acc, x, y, z);
 }
 
 ccl_device_inline float svm_image_texture_frac(float x, int *ix)
@@ -170,7 +202,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
     svm_image_texture_frac(x * info->width, &ix);
     svm_image_texture_frac(y * info->height, &iy);
 
-    return svm_image_texture_read_2d(kg, id, ix, iy);
+    return svm_image_texture_read_2d(kg, id, NULL, ix, iy);
   }
   else if (info->interpolation == INTERPOLATION_LINEAR) {
     /* Bilinear interpolation. */
@@ -179,10 +211,10 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
     float ty = svm_image_texture_frac(y * info->height - 0.5f, &iy);
 
     float4 r;
-    r = (1.0f - ty) * (1.0f - tx) * svm_image_texture_read_2d(kg, id, ix, iy);
-    r += (1.0f - ty) * tx * svm_image_texture_read_2d(kg, id, ix + 1, iy);
-    r += ty * (1.0f - tx) * svm_image_texture_read_2d(kg, id, ix, iy + 1);
-    r += ty * tx * svm_image_texture_read_2d(kg, id, ix + 1, iy + 1);
+    r = (1.0f - ty) * (1.0f - tx) * svm_image_texture_read_2d(kg, id, NULL, ix, iy);
+    r += (1.0f - ty) * tx * svm_image_texture_read_2d(kg, id, NULL, ix + 1, iy);
+    r += ty * (1.0f - tx) * svm_image_texture_read_2d(kg, id, NULL, ix, iy + 1);
+    r += ty * tx * svm_image_texture_read_2d(kg, id, NULL, ix + 1, iy + 1);
     return r;
   }
   else {
@@ -200,7 +232,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
     for (int y = 0; y < 4; y++) {
       for (int x = 0; x < 4; x++) {
         float weight = u[x] * v[y];
-        r += weight * svm_image_texture_read_2d(kg, id, ix + x - 1, iy + y - 1);
+        r += weight * svm_image_texture_read_2d(kg, id, NULL, ix + x - 1, iy + y - 1);
       }
     }
     return r;
@@ -216,102 +248,78 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float3 P
     P = transform_point(&tfm, P);
   }
 
-  const float x = P.x;
-  const float y = P.y;
-  const float z = P.z;
-
-  if (info->extension == EXTENSION_CLIP) {
-    if (x < 0.0f || y < 0.0f || z < 0.0f || x > 1.0f || y > 1.0f || z > 1.0f) {
-      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    }
-  }
+  float x = P.x;
+  float y = P.y;
+  float z = P.z;
 
   uint interpolation = (interp == INTERPOLATION_NONE) ? info->interpolation : interp;
 
 #ifdef WITH_NANOVDB
-  cnanovdb_Vec3F xyz;
-  xyz.mVec[0] = x;
-  xyz.mVec[1] = y;
-  xyz.mVec[2] = z;
-
-  if (info->data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT) {
+  cnanovdb_readaccessor acc;
+  if (info->data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
+      info->data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
     ccl_global cnanovdb_griddata *grid =
         (ccl_global cnanovdb_griddata *)(kg->buffers[info->cl_buffer] + info->data);
-    const ccl_global cnanovdb_rootdataF *root = cnanovdb_treedata_rootF(
-        cnanovdb_griddata_tree(grid));
-
-    cnanovdb_readaccessor acc;
-    cnanovdb_readaccessor_init(&acc, root);
-
-    float value;
-    switch (interpolation) {
-      case INTERPOLATION_CLOSEST:
-        value = cnanovdb_sampleF_nearest(&acc, &xyz);
-        break;
-      default:
-      case INTERPOLATION_LINEAR:
-        value = cnanovdb_sampleF_trilinear(&acc, &xyz);
-        break;
-    }
-    return make_float4(value, value, value, 1.0f);
+    cnanovdb_readaccessor_init(&acc, cnanovdb_treedata_rootF(cnanovdb_griddata_tree(grid)));
   }
-  if (info->data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
-    ccl_global cnanovdb_griddata *grid =
-        (ccl_global cnanovdb_griddata *)(kg->buffers[info->cl_buffer] + info->data);
-    const ccl_global cnanovdb_rootdataF3 *root = cnanovdb_treedata_rootF3(
-        cnanovdb_griddata_tree(grid));
-
-    cnanovdb_readaccessor acc;
-    cnanovdb_readaccessor_init(&acc, root);
-
-    cnanovdb_Vec3F value;
-    switch (interpolation) {
-      default:
-      case INTERPOLATION_LINEAR:
-        value = cnanovdb_sampleF3_trilinear(&acc, &xyz);
-        break;
-      case INTERPOLATION_CLOSEST:
-        value = cnanovdb_sampleF3_nearest(&acc, &xyz);
-        break;
+  else {
+    if (info->extension == EXTENSION_CLIP) {
+      if (x < 0.0f || y < 0.0f || z < 0.0f || x > 1.0f || y > 1.0f || z > 1.0f) {
+        return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      }
     }
-    return make_float4(value.mVec[0], value.mVec[1], value.mVec[2], 1.0f);
+
+    x *= info->width;
+    y *= info->height;
+    z *= info->depth;
   }
+#  define NANOVDB_ACCESS_POINTER &acc
+#else
+#  define NANOVDB_ACCESS_POINTER NULL
 #endif
 
   if (interpolation == INTERPOLATION_CLOSEST) {
     /* Closest interpolation. */
     int ix, iy, iz;
-    svm_image_texture_frac(x * info->width, &ix);
-    svm_image_texture_frac(y * info->height, &iy);
-    svm_image_texture_frac(z * info->depth, &iz);
+    svm_image_texture_frac(x, &ix);
+    svm_image_texture_frac(y, &iy);
+    svm_image_texture_frac(z, &iz);
 
-    return svm_image_texture_read_3d(kg, id, ix, iy, iz);
+    return svm_image_texture_read_3d(kg, id, NANOVDB_ACCESS_POINTER, ix, iy, iz);
   }
   else if (interpolation == INTERPOLATION_LINEAR) {
-    /* Bilinear interpolation. */
+    /* Trilinear interpolation. */
     int ix, iy, iz;
-    float tx = svm_image_texture_frac(x * info->width - 0.5f, &ix);
-    float ty = svm_image_texture_frac(y * info->height - 0.5f, &iy);
-    float tz = svm_image_texture_frac(z * info->depth - 0.5f, &iz);
+    float tx = svm_image_texture_frac(x - 0.5f, &ix);
+    float ty = svm_image_texture_frac(y - 0.5f, &iy);
+    float tz = svm_image_texture_frac(z - 0.5f, &iz);
 
     float4 r;
-    r = (1.0f - tz) * (1.0f - ty) * (1.0f - tx) * svm_image_texture_read_3d(kg, id, ix, iy, iz);
-    r += (1.0f - tz) * (1.0f - ty) * tx * svm_image_texture_read_3d(kg, id, ix + 1, iy, iz);
-    r += (1.0f - tz) * ty * (1.0f - tx) * svm_image_texture_read_3d(kg, id, ix, iy + 1, iz);
-    r += (1.0f - tz) * ty * tx * svm_image_texture_read_3d(kg, id, ix + 1, iy + 1, iz);
+    r = (1.0f - tz) * (1.0f - ty) * (1.0f - tx) *
+        svm_image_texture_read_3d(kg, id, NANOVDB_ACCESS_POINTER, ix, iy, iz);
+    r += (1.0f - tz) * (1.0f - ty) * tx *
+         svm_image_texture_read_3d(kg, id, NANOVDB_ACCESS_POINTER, ix + 1, iy, iz);
+    r += (1.0f - tz) * ty * (1.0f - tx) *
+         svm_image_texture_read_3d(kg, id, NANOVDB_ACCESS_POINTER, ix, iy + 1, iz);
+    r += (1.0f - tz) * ty * tx *
+         svm_image_texture_read_3d(kg, id, NANOVDB_ACCESS_POINTER, ix + 1, iy + 1, iz);
 
-    r += tz * (1.0f - ty) * (1.0f - tx) * svm_image_texture_read_3d(kg, id, ix, iy, iz + 1);
-    r += tz * (1.0f - ty) * tx * svm_image_texture_read_3d(kg, id, ix + 1, iy, iz + 1);
-    r += tz * ty * (1.0f - tx) * svm_image_texture_read_3d(kg, id, ix, iy + 1, iz + 1);
-    r += tz * ty * tx * svm_image_texture_read_3d(kg, id, ix + 1, iy + 1, iz + 1);
+    r += tz * (1.0f - ty) * (1.0f - tx) *
+         svm_image_texture_read_3d(kg, id, NANOVDB_ACCESS_POINTER, ix, iy, iz + 1);
+    r += tz * (1.0f - ty) * tx *
+         svm_image_texture_read_3d(kg, id, NANOVDB_ACCESS_POINTER, ix + 1, iy, iz + 1);
+    r += tz * ty * (1.0f - tx) *
+         svm_image_texture_read_3d(kg, id, NANOVDB_ACCESS_POINTER, ix, iy + 1, iz + 1);
+    r += tz * ty * tx *
+         svm_image_texture_read_3d(kg, id, NANOVDB_ACCESS_POINTER, ix + 1, iy + 1, iz + 1);
     return r;
   }
   else {
-    /* Bicubic interpolation. */
+    /* Tricubic interpolation. */
     int ix, iy, iz;
-    float tx = svm_image_texture_frac(x * info->width - 0.5f, &ix);
-    float ty = svm_image_texture_frac(y * info->height - 0.5f, &iy);
-    float tz = svm_image_texture_frac(z * info->depth - 0.5f, &iz);
+    float tx = svm_image_texture_frac(x - 0.5f, &ix);
+    float ty = svm_image_texture_frac(y - 0.5f, &iy);
+    float tz = svm_image_texture_frac(z - 0.5f, &iz);
 
     float u[4], v[4], w[4];
     SET_CUBIC_SPLINE_WEIGHTS(u, tx);
@@ -324,12 +332,14 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float3 P
       for (int y = 0; y < 4; y++) {
         for (int x = 0; x < 4; x++) {
           float weight = u[x] * v[y] * w[z];
-          r += weight * svm_image_texture_read_3d(kg, id, ix + x - 1, iy + y - 1, iz + z - 1);
+          r += weight * svm_image_texture_read_3d(
+                            kg, id, NANOVDB_ACCESS_POINTER, ix + x - 1, iy + y - 1, iz + z - 1);
         }
       }
     }
     return r;
   }
+#undef NANOVDB_ACCESS_POINTER
 }
 
 #undef SET_CUBIC_SPLINE_WEIGHTS

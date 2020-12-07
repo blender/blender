@@ -582,7 +582,7 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg,
 
 ccl_device int light_distribution_sample(KernelGlobals *kg, float *randu)
 {
-  /* This is basically std::upper_bound as used by pbrt, to find a point light or
+  /* This is basically std::upper_bound as used by PBRT, to find a point light or
    * triangle to emit from, proportional to area. a good improvement would be to
    * also sample proportional to power, though it's not so well defined with
    * arbitrary shaders. */

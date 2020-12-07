@@ -23,7 +23,7 @@
 
 #include "intern/node/deg_node.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_utildefines.h"
 
@@ -36,8 +36,7 @@
 #include "intern/node/deg_node_operation.h"
 #include "intern/node/deg_node_time.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 const char *nodeClassAsString(NodeClass node_class)
 {
@@ -340,5 +339,4 @@ void deg_register_base_depsnodes()
   register_node_typeinfo(&DNTI_ID_REF);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

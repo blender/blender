@@ -25,9 +25,7 @@
 #include "../view_map/Functions0D.h"
 #include "../view_map/SteerableViewMap.h"
 
-namespace Freestyle {
-
-namespace Functions0D {
+namespace Freestyle::Functions0D {
 
 int DensityF0D::operator()(Interface0DIterator &iter)
 {
@@ -114,6 +112,4 @@ int GetViewMapGradientNormF0D::operator()(Interface0DIterator &iter)
   return 0;
 }
 
-}  // end of namespace Functions0D
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::Functions0D

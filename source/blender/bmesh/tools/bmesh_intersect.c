@@ -1533,7 +1533,7 @@ bool BM_mesh_intersect(BMesh *bm,
 
     groups_array = MEM_mallocN(sizeof(*groups_array) * (size_t)bm->totface, __func__);
     group_tot = BM_mesh_calc_face_groups(
-        bm, groups_array, &group_index, bm_loop_filter_fn, &user_data_wrap, 0, BM_EDGE);
+        bm, groups_array, &group_index, bm_loop_filter_fn, NULL, &user_data_wrap, 0, BM_EDGE);
 
 #ifdef USE_DUMP
     printf("%s: Total face-groups: %d\n", __func__, group_tot);

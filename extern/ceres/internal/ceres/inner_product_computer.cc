@@ -31,11 +31,11 @@
 #include "ceres/inner_product_computer.h"
 
 #include <algorithm>
+
 #include "ceres/small_blas.h"
 
 namespace ceres {
 namespace internal {
-
 
 // Create the CompressedRowSparseMatrix matrix that will contain the
 // inner product.
@@ -297,7 +297,7 @@ void InnerProductComputer::Compute() {
       const Cell& cell1 = m_row.cells[c1];
       const int c1_size = bs->cols[cell1.block_id].size;
       const int row_nnz = rows[bs->cols[cell1.block_id].position + 1] -
-          rows[bs->cols[cell1.block_id].position];
+                          rows[bs->cols[cell1.block_id].position];
 
       int c2_begin, c2_end;
       if (storage_type == CompressedRowSparseMatrix::LOWER_TRIANGULAR) {
@@ -311,6 +311,7 @@ void InnerProductComputer::Compute() {
       for (int c2 = c2_begin; c2 < c2_end; ++c2, ++cursor) {
         const Cell& cell2 = m_row.cells[c2];
         const int c2_size = bs->cols[cell2.block_id].size;
+        // clang-format off
         MatrixTransposeMatrixMultiply<Eigen::Dynamic, Eigen::Dynamic,
                                       Eigen::Dynamic, Eigen::Dynamic, 1>(
                                           m_values + cell1.position,
@@ -319,6 +320,7 @@ void InnerProductComputer::Compute() {
                                           m_row.block.size, c2_size,
                                           values + result_offsets_[cursor],
                                           0, 0, c1_size, row_nnz);
+        // clang-format on
       }
     }
   }

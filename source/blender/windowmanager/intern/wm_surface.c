@@ -116,8 +116,7 @@ void wm_surfaces_free(void)
 {
   wm_surface_clear_drawable();
 
-  for (wmSurface *surf = global_surface_list.first, *surf_next; surf; surf = surf_next) {
-    surf_next = surf->next;
+  LISTBASE_FOREACH_MUTABLE (wmSurface *, surf, &global_surface_list) {
     wm_surface_remove(surf);
   }
 

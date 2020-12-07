@@ -65,7 +65,8 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
   Scene *scene = draw_ctx->scene;
   DRWShadingGroup *grp;
 
-  struct GPUBatch *sphere = DRW_cache_sphere_get();
+  const EEVEE_EffectsInfo *effects = vedata->stl->effects;
+  struct GPUBatch *sphere = DRW_cache_sphere_get(effects->sphere_lod);
   int mat_options = VAR_MAT_MESH | VAR_MAT_LOOKDEV;
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
@@ -126,6 +127,19 @@ void EEVEE_lookdev_init(EEVEE_Data *vedata)
 
     if (sphere_size != effects->sphere_size || rect->xmax != effects->anchor[0] ||
         rect->ymin != effects->anchor[1]) {
+      /* Make sphere resolution adaptive to viewport_scale, dpi and lookdev_sphere_size */
+      float res_scale = clamp_f(
+          (U.lookdev_sphere_size / 400.0f) * viewport_scale * U.dpi_fac, 0.1f, 1.0f);
+
+      if (res_scale > 0.7f) {
+        effects->sphere_lod = DRW_LOD_HIGH;
+      }
+      else if (res_scale > 0.25f) {
+        effects->sphere_lod = DRW_LOD_MEDIUM;
+      }
+      else {
+        effects->sphere_lod = DRW_LOD_LOW;
+      }
       /* If sphere size or anchor point moves, reset TAA to avoid ghosting issue.
        * This needs to happen early because we are changing taa_current_sample. */
       effects->sphere_size = sphere_size;

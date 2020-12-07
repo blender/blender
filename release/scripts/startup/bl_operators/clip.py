@@ -414,8 +414,8 @@ class CLIP_OT_delete_proxy(Operator):
 
 
 class CLIP_OT_set_viewport_background(Operator):
-    """Set current movie clip as a camera background in 3D view-port """ \
-        """(works only when a 3D view-port is visible)"""
+    """Set current movie clip as a camera background in 3D Viewport """ \
+        """(works only when a 3D Viewport is visible)"""
 
     bl_idname = "clip.set_viewport_background"
     bl_label = "Set as Background"

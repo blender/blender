@@ -36,7 +36,7 @@
 
 #include "IMB_imbuf_types.h"
 
-#include <string.h>
+#include <cstring>
 
 #include <BlockDXT.h>
 #include <ColorBlock.h>

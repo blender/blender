@@ -61,7 +61,7 @@
 #include "MOD_ui_common.h"
 #include "MOD_util.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 /* Displace */
 

@@ -27,6 +27,7 @@
 extern "C" {
 #endif
 
+struct anim;
 struct ImBuf;
 struct SeqRenderData;
 struct Sequence;
@@ -36,6 +37,8 @@ struct ImBuf *seq_proxy_fetch(const struct SeqRenderData *context,
                               struct Sequence *seq,
                               int timeline_frame);
 bool seq_proxy_get_custom_file_fname(struct Sequence *seq, char *name, const int view_id);
+void free_proxy_seq(Sequence *seq);
+void seq_proxy_index_dir_set(struct anim *anim, const char *base_dir);
 
 #ifdef __cplusplus
 }

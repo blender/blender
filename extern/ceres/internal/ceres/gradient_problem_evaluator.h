@@ -76,9 +76,7 @@ class GradientProblemEvaluator : public Evaluator {
     return problem_.Plus(state, delta, state_plus_delta);
   }
 
-  int NumParameters() const final {
-    return problem_.NumParameters();
-  }
+  int NumParameters() const final { return problem_.NumParameters(); }
 
   int NumEffectiveParameters() const final {
     return problem_.NumLocalParameters();

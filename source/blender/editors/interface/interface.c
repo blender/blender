@@ -64,6 +64,7 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
+#include "UI_view2d.h"
 
 #include "IMB_imbuf.h"
 
@@ -286,11 +287,12 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
     }
   }
 
+  const float view_scale_x = UI_view2d_scale_get_x(&region->v2d);
   const float segment_width = region_width / (float)sepr_flex_len;
   float offset = 0, remaining_space = region_width - buttons_width;
   i = 0;
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    BLI_rctf_translate(&but->rect, offset, 0);
+    BLI_rctf_translate(&but->rect, offset / view_scale_x, 0);
     if (but->type == UI_BTYPE_SEPR_SPACER) {
       /* How much the next block overlap with the current segment */
       int overlap = ((i == sepr_flex_len - 1) ? buttons_width - spacers_pos[i] :
@@ -463,7 +465,7 @@ void ui_block_bounds_calc(uiBlock *block)
 
   /* hardcoded exception... but that one is annoying with larger safety */
   uiBut *bt = block->buttons.first;
-  int xof = (bt && STRPREFIX(bt->str, "ERROR")) ? 10 : 40;
+  int xof = ((bt && STRPREFIX(bt->str, "ERROR")) ? 10 : 40) * U.dpi_fac;
 
   block->safety.xmin = block->rect.xmin - xof;
   block->safety.ymin = block->rect.ymin - xof;
@@ -1997,7 +1999,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
   else if (block->panel) {
     bool show_background = region->alignment != RGN_ALIGN_FLOAT;
     if (show_background) {
-      if (block->panel->type && (block->panel->type->flag & PNL_NO_HEADER)) {
+      if (block->panel->type && (block->panel->type->flag & PANEL_TYPE_NO_HEADER)) {
         if (region->regiontype == RGN_TYPE_TOOLS) {
           /* We never want a background around active tools. */
           show_background = false;
@@ -6793,7 +6795,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 
   va_start(args, but);
   while ((si = (uiStringInfo *)va_arg(args, void *))) {
-    int type = si->type;
+    uiStringInfoType type = si->type;
     char *tmp = NULL;
 
     if (type == BUT_GET_LABEL) {

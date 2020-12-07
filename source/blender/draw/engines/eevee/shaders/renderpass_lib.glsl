@@ -1,3 +1,4 @@
+#define EEVEE_AOV_HASH_COLOR_TYPE_MASK 1
 
 /* ---------------------------------------------------------------------- */
 /** \name Resources
@@ -12,6 +13,8 @@ layout(std140) uniform renderpass_block
   bool renderPassEmit;
   bool renderPassSSSColor;
   bool renderPassEnvironment;
+  bool renderPassAOV;
+  int renderPassAOVActive;
 };
 
 /** \} */
@@ -38,6 +41,16 @@ vec3 render_pass_glossy_mask(vec3 specular_color, vec3 specular_light)
 vec3 render_pass_emission_mask(vec3 emission_light)
 {
   return renderPassEmit ? emission_light : vec3(0.0);
+}
+
+bool render_pass_aov_is_color()
+{
+  return (renderPassAOVActive & EEVEE_AOV_HASH_COLOR_TYPE_MASK) != 0;
+}
+
+int render_pass_aov_hash()
+{
+  return renderPassAOVActive & ~EEVEE_AOV_HASH_COLOR_TYPE_MASK;
 }
 
 /** \} */

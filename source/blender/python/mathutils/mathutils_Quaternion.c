@@ -95,7 +95,7 @@ static PyObject *Quaternion_to_euler(QuaternionObject *self, PyObject *args)
   }
 
   if (order_str) {
-    order = euler_order_from_string(order_str, "Matrix.to_euler()");
+    order = euler_order_from_string(order_str, "Quaternion.to_euler()");
 
     if (order == -1) {
       return NULL;

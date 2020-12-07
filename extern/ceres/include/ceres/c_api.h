@@ -38,8 +38,10 @@
 #ifndef CERES_PUBLIC_C_API_H_
 #define CERES_PUBLIC_C_API_H_
 
+// clang-format off
 #include "ceres/internal/port.h"
 #include "ceres/internal/disable_warnings.h"
+// clang-format on
 
 #ifdef __cplusplus
 extern "C" {

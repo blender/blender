@@ -16,7 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -294,10 +294,10 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
 
 /* ******************** VECBLUR ACCUM BUF ************************* */
 
-typedef struct DrawBufPixel {
+struct DrawBufPixel {
   const float *colpoin;
   float alpha;
-} DrawBufPixel;
+};
 
 static void zbuf_fill_in_rgba(
     ZSpan *zspan, DrawBufPixel *col, float *v1, float *v2, float *v3, float *v4)

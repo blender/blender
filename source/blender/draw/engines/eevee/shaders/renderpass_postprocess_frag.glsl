@@ -4,12 +4,13 @@
 
 #define PASS_POST_UNDEFINED 0
 #define PASS_POST_ACCUMULATED_COLOR 1
-#define PASS_POST_ACCUMULATED_LIGHT 2
-#define PASS_POST_ACCUMULATED_VALUE 3
-#define PASS_POST_DEPTH 4
-#define PASS_POST_AO 5
-#define PASS_POST_NORMAL 6
-#define PASS_POST_TWO_LIGHT_BUFFERS 7
+#define PASS_POST_ACCUMULATED_COLOR_ALPHA 2
+#define PASS_POST_ACCUMULATED_LIGHT 3
+#define PASS_POST_ACCUMULATED_VALUE 4
+#define PASS_POST_DEPTH 5
+#define PASS_POST_AO 6
+#define PASS_POST_NORMAL 7
+#define PASS_POST_TWO_LIGHT_BUFFERS 8
 
 uniform int postProcessType;
 uniform int currentSample;
@@ -55,7 +56,7 @@ vec3 safe_divide_even_color(vec3 a, vec3 b)
 
 void main()
 {
-  vec3 color;
+  vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
   if (postProcessType == PASS_POST_DEPTH) {
@@ -66,11 +67,11 @@ void main()
     else {
       depth = -get_view_z_from_depth(depth);
     }
-    color = vec3(depth);
+    color.rgb = vec3(depth);
   }
   else if (postProcessType == PASS_POST_AO) {
     float ao_accum = texelFetch(inputBuffer, texel, 0).r;
-    color = vec3(min(1.0, ao_accum / currentSample));
+    color.rgb = vec3(min(1.0, ao_accum / currentSample));
   }
   else if (postProcessType == PASS_POST_NORMAL) {
     float depth = texelFetch(depthBuffer, texel, 0).r;
@@ -80,35 +81,39 @@ void main()
     if (depth != 1.0 && any(notEqual(encoded_normal, vec2(0.0)))) {
       vec3 decoded_normal = normal_decode(texelFetch(inputBuffer, texel, 0).rg, vec3(0.0));
       vec3 world_normal = mat3(ViewMatrixInverse) * decoded_normal;
-      color = world_normal;
+      color.rgb = world_normal;
     }
     else {
-      color = vec3(0.0);
+      color.rgb = vec3(0.0);
     }
   }
   else if (postProcessType == PASS_POST_ACCUMULATED_VALUE) {
     float accumulated_value = texelFetch(inputBuffer, texel, 0).r;
-    color = vec3(accumulated_value / currentSample);
+    color.rgb = vec3(accumulated_value / currentSample);
   }
   else if (postProcessType == PASS_POST_ACCUMULATED_COLOR) {
     vec3 accumulated_color = texelFetch(inputBuffer, texel, 0).rgb;
+    color.rgb = (accumulated_color / currentSample);
+  }
+  else if (postProcessType == PASS_POST_ACCUMULATED_COLOR_ALPHA) {
+    vec4 accumulated_color = texelFetch(inputBuffer, texel, 0);
     color = (accumulated_color / currentSample);
   }
   else if (postProcessType == PASS_POST_ACCUMULATED_LIGHT) {
     vec3 accumulated_light = texelFetch(inputBuffer, texel, 0).rgb;
     vec3 accumulated_color = texelFetch(inputColorBuffer, texel, 0).rgb;
-    color = safe_divide_even_color(accumulated_light, accumulated_color);
+    color.rgb = safe_divide_even_color(accumulated_light, accumulated_color);
   }
   else if (postProcessType == PASS_POST_TWO_LIGHT_BUFFERS) {
     vec3 accumulated_light = texelFetch(inputBuffer, texel, 0).rgb +
                              texelFetch(inputSecondLightBuffer, texel, 0).rgb;
     vec3 accumulated_color = texelFetch(inputColorBuffer, texel, 0).rgb;
-    color = safe_divide_even_color(accumulated_light, accumulated_color);
+    color.rgb = safe_divide_even_color(accumulated_light, accumulated_color);
   }
   else {
     /* Output error color: Unknown how to post process this pass. */
-    color = vec3(1.0, 0.0, 1.0);
+    color.rgb = vec3(1.0, 0.0, 1.0);
   }
 
-  fragColor = vec4(color, 1.0);
+  fragColor = color;
 }

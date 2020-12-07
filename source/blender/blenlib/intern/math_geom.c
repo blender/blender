@@ -5537,7 +5537,7 @@ void vcloud_estimate_transform_v3(const int list_size,
       /* build 'projection' matrix */
       for (a = 0; a < list_size; a++) {
         sub_v3_v3v3(va, rpos[a], accu_rcom);
-        /* mul_v3_fl(va, bp->mass);  mass needs renormalzation here ?? */
+        /* mul_v3_fl(va, bp->mass);  mass needs re-normalization here ?? */
         sub_v3_v3v3(vb, pos[a], accu_com);
         /* mul_v3_fl(va, rp->mass); */
         m[0][0] += va[0] * vb[0];
@@ -5571,11 +5571,11 @@ void vcloud_estimate_transform_v3(const int list_size,
       stunt[0] = q[0][0];
       stunt[1] = q[1][1];
       stunt[2] = q[2][2];
-      /* renormalizing for numeric stability */
+      /* Re-normalizing for numeric stability. */
       mul_m3_fl(q, 1.0f / len_v3(stunt));
 
-      /* this is pretty much Polardecompose 'inline' the algo based on Higham's thesis */
-      /* without the far case ... but seems to work here pretty neat                   */
+      /* This is pretty much Polar-decompose 'inline' the algorithm based on Higham's thesis
+       * without the far case ... but seems to work here pretty neat. */
       odet = 0.0f;
       ndet = determinant_m3_array(q);
       while ((odet - ndet) * (odet - ndet) > eps && i < imax) {

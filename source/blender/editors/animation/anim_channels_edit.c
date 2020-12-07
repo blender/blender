@@ -1205,7 +1205,6 @@ static void rearrange_driver_channels(bAnimContext *ac,
 /* make sure all action-channels belong to a group (and clear action's list) */
 static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
 {
-  bActionGroup *agrp;
   FCurve *fcu;
 
   if (act == NULL) {
@@ -1213,16 +1212,30 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
   }
 
   /* Separate F-Curves into lists per group */
-  for (agrp = act->groups.first; agrp; agrp = agrp->next) {
-    if (agrp->channels.first) {
-      fcu = agrp->channels.last;
-      act->curves.first = fcu->next;
+  LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
+    FCurve *const group_fcurves_first = agrp->channels.first;
+    FCurve *const group_fcurves_last = agrp->channels.last;
+    if (group_fcurves_first == NULL) {
+      /* Empty group. */
+      continue;
+    }
 
-      fcu = agrp->channels.first;
-      fcu->prev = NULL;
+    if (group_fcurves_first == act->curves.first) {
+      /* First of the action curves, update the start of the action curves. */
+      BLI_assert(group_fcurves_first->prev == NULL);
+      act->curves.first = group_fcurves_last->next;
+    }
+    else {
+      group_fcurves_first->prev->next = group_fcurves_last->next;
+    }
 
-      fcu = agrp->channels.last;
-      fcu->next = NULL;
+    if (group_fcurves_last == act->curves.last) {
+      /* Last of the action curves, update the end of the action curves. */
+      BLI_assert(group_fcurves_last->next == NULL);
+      act->curves.last = group_fcurves_first->prev;
+    }
+    else {
+      group_fcurves_last->next->prev = group_fcurves_first->prev;
     }
   }
 
@@ -1263,12 +1276,10 @@ static void join_groups_action_temp(bAction *act)
   bActionGroup *agrp;
 
   for (agrp = act->groups.first; agrp; agrp = agrp->next) {
-    ListBase tempGroup;
-
     /* add list of channels to action's channels */
-    tempGroup = agrp->channels;
+    const ListBase group_channels = agrp->channels;
     BLI_movelisttolist(&act->curves, &agrp->channels);
-    agrp->channels = tempGroup;
+    agrp->channels = group_channels;
 
     /* clear moved flag */
     agrp->flag &= ~AGRP_MOVED;
@@ -1278,16 +1289,24 @@ static void join_groups_action_temp(bAction *act)
      * - remove from list (but don't free as it's on the stack!)
      */
     if (agrp->flag & AGRP_TEMP) {
-      FCurve *fcu;
-
-      for (fcu = agrp->channels.first; fcu; fcu = fcu->next) {
+      LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
         fcu->grp = NULL;
+        if (fcu == agrp->channels.last) {
+          break;
+        }
       }
 
       BLI_remlink(&act->groups, agrp);
       break;
     }
   }
+
+  /* BLI_movelisttolist() doesn't touch first->prev and last->next pointers in its "dst" list.
+   * Ensure that after the reshuffling the list is properly terminated. */
+  FCurve *act_fcurves_first = act->curves.first;
+  act_fcurves_first->prev = NULL;
+  FCurve *act_fcurves_last = act->curves.last;
+  act_fcurves_last->next = NULL;
 }
 
 /* Change the order of anim-channels within action
@@ -2683,11 +2702,7 @@ static int animchannels_box_select_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rcti(op, &rect);
 
   if (!extend) {
-    printf("\n\n\n\033[92mBox-selecting channels without extend!\033[0m\n");
     ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_CLEAR);
-  }
-  else {
-    printf("\n\n\n\033[91mBox-selecting channels WITH extend!\033[0m\n");
   }
 
   if (select) {

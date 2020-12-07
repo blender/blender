@@ -50,7 +50,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "RE_render_ext.h" /* RE_texture_evaluate */
+#include "RE_texture.h" /* RE_texture_evaluate */
 
 #include "BLO_read_write.h"
 
@@ -446,6 +446,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(topology_rake_factor);
   FROM_DEFAULT(crease_pinch_factor);
   FROM_DEFAULT(normal_radius_factor);
+  FROM_DEFAULT(wet_paint_radius_factor);
   FROM_DEFAULT(area_radius_factor);
   FROM_DEFAULT(disconnected_distance_max);
   FROM_DEFAULT(sculpt_plane);

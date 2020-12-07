@@ -1127,16 +1127,6 @@ int constraintModeToIndex(const TransInfo *t)
   }
 }
 
-char constraintModeToChar(const TransInfo *t)
-{
-  int index = constraintModeToIndex(t);
-  if (index == -1) {
-    return '\0';
-  }
-  BLI_assert((uint)index < 3);
-  return 'X' + index;
-}
-
 bool isLockConstraint(TransInfo *t)
 {
   int mode = t->con.mode;

@@ -408,7 +408,7 @@ static int face_set_extract_modal(bContext *C, wmOperator *op, const wmEvent *ev
         return geometry_extract_apply(C, op, geometry_extract_tag_face_set, &params);
       }
       break;
-
+    case EVT_ESCKEY:
     case RIGHTMOUSE: {
       WM_cursor_modal_restore(CTX_wm_window(C));
       ED_workspace_status_text(C, NULL);

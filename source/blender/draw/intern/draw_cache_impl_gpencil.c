@@ -21,6 +21,7 @@
  * \ingroup draw
  */
 
+#include "DNA_curve_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
@@ -43,6 +44,9 @@
 #include "draw_cache.h"
 #include "draw_cache_impl.h"
 
+#define BEZIER_HANDLE 1 << 3
+#define COLOR_SHIFT 5
+
 /* ---------------------------------------------------------------------- */
 typedef struct GpencilBatchCache {
   /** Instancing Data */
@@ -59,6 +63,10 @@ typedef struct GpencilBatchCache {
   GPUVertBuf *edit_vbo;
   GPUBatch *edit_lines_batch;
   GPUBatch *edit_points_batch;
+  /** Edit Curve Mode */
+  GPUVertBuf *edit_curve_vbo;
+  GPUBatch *edit_curve_handles_batch;
+  GPUBatch *edit_curve_points_batch;
 
   /** Cache is dirty */
   bool is_dirty;
@@ -122,6 +130,10 @@ static void gpencil_batch_cache_clear(GpencilBatchCache *cache)
   GPU_BATCH_DISCARD_SAFE(cache->edit_lines_batch);
   GPU_BATCH_DISCARD_SAFE(cache->edit_points_batch);
   GPU_VERTBUF_DISCARD_SAFE(cache->edit_vbo);
+
+  GPU_BATCH_DISCARD_SAFE(cache->edit_curve_handles_batch);
+  GPU_BATCH_DISCARD_SAFE(cache->edit_curve_points_batch);
+  GPU_VERTBUF_DISCARD_SAFE(cache->edit_curve_vbo);
 
   cache->is_dirty = true;
 }
@@ -197,6 +209,23 @@ static GPUVertFormat *gpencil_edit_stroke_format(void)
 }
 
 /* MUST match the format below. */
+typedef struct gpEditCurveVert {
+  float pos[3];
+  int data;
+} gpEditCurveVert;
+
+static GPUVertFormat *gpencil_edit_curve_format(void)
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    /* initialize vertex formats */
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
+  }
+  return &format;
+}
+
+/* MUST match the format below. */
 typedef struct gpColorVert {
   float vcol[4]; /* Vertex color */
   float fcol[4]; /* Fill color */
@@ -228,6 +257,7 @@ typedef struct gpIterData {
   GPUIndexBufBuilder ibo;
   int vert_len;
   int tri_len;
+  int curve_len;
 } gpIterData;
 
 static GPUVertBuf *gpencil_dummy_buffer_get(void)
@@ -383,6 +413,7 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
         .ibo = {0},
         .vert_len = 1, /* Start at 1 for the gl_InstanceID trick to work (see vert shader). */
         .tri_len = 0,
+        .curve_len = 0,
     };
     BKE_gpencil_visible_stroke_iter(
         NULL, ob, NULL, gpencil_object_verts_count_cb, &iter, do_onion, cfra);
@@ -653,6 +684,11 @@ typedef struct gpEditIterData {
   int vgindex;
 } gpEditIterData;
 
+typedef struct gpEditCurveIterData {
+  gpEditCurveVert *verts;
+  int vgindex;
+} gpEditCurveIterData;
+
 static uint32_t gpencil_point_edit_flag(const bool layer_lock,
                                         const bGPDspoint *pt,
                                         int v,
@@ -698,6 +734,92 @@ static void gpencil_edit_stroke_iter_cb(bGPDlayer *gpl,
   vert_ptr->weight = gpencil_point_edit_weight(dvert, 0, iter->vgindex);
 }
 
+static void gpencil_edit_curve_stroke_count_cb(bGPDlayer *gpl,
+                                               bGPDframe *UNUSED(gpf),
+                                               bGPDstroke *gps,
+                                               void *thunk)
+{
+  if (gpl->flag & GP_LAYER_LOCKED) {
+    return;
+  }
+
+  gpIterData *iter = (gpIterData *)thunk;
+
+  if (gps->editcurve == NULL) {
+    return;
+  }
+
+  /* Store first index offset */
+  gps->runtime.curve_start = iter->curve_len;
+  iter->curve_len += gps->editcurve->tot_curve_points * 4;
+}
+
+static char gpencil_beztriple_vflag_get(char flag,
+                                        char col_id,
+                                        bool handle_point,
+                                        const bool handle_selected)
+{
+  char vflag = 0;
+  SET_FLAG_FROM_TEST(vflag, (flag & SELECT), VFLAG_VERT_SELECTED);
+  SET_FLAG_FROM_TEST(vflag, handle_point, BEZIER_HANDLE);
+  SET_FLAG_FROM_TEST(vflag, handle_selected, VFLAG_VERT_SELECTED_BEZT_HANDLE);
+  /* Reuse flag of Freestyle to indicate is GPencil data. */
+  vflag |= VFLAG_EDGE_FREESTYLE;
+
+  /* Handle color id. */
+  vflag |= col_id << COLOR_SHIFT;
+  return vflag;
+}
+
+static void gpencil_edit_curve_stroke_iter_cb(bGPDlayer *gpl,
+                                              bGPDframe *UNUSED(gpf),
+                                              bGPDstroke *gps,
+                                              void *thunk)
+{
+  if (gpl->flag & GP_LAYER_LOCKED) {
+    return;
+  }
+
+  if (gps->editcurve == NULL) {
+    return;
+  }
+  bGPDcurve *editcurve = gps->editcurve;
+  gpEditCurveIterData *iter = (gpEditCurveIterData *)thunk;
+  const int v = gps->runtime.curve_start;
+  gpEditCurveVert *vert_ptr = iter->verts + v;
+  /* Hide points when the curve is unselected. Passing the control point
+   * as handle produces the point shader skip it if you are not in ALL mode. */
+  const bool hide = !(editcurve->flag & GP_CURVE_SELECT);
+
+  for (int i = 0; i < editcurve->tot_curve_points; i++) {
+    BezTriple *bezt = &editcurve->curve_points[i].bezt;
+    const bool handle_selected = BEZT_ISSEL_ANY(bezt);
+    const char vflag[3] = {
+        gpencil_beztriple_vflag_get(bezt->f1, bezt->h1, true, handle_selected),
+        gpencil_beztriple_vflag_get(bezt->f2, bezt->h1, hide, handle_selected),
+        gpencil_beztriple_vflag_get(bezt->f3, bezt->h2, true, handle_selected),
+    };
+
+    /* First segment. */
+    copy_v3_v3(vert_ptr->pos, bezt->vec[0]);
+    vert_ptr->data = vflag[0];
+    vert_ptr++;
+
+    copy_v3_v3(vert_ptr->pos, bezt->vec[1]);
+    vert_ptr->data = vflag[1];
+    vert_ptr++;
+
+    /* Second segment. */
+    copy_v3_v3(vert_ptr->pos, bezt->vec[1]);
+    vert_ptr->data = vflag[1];
+    vert_ptr++;
+
+    copy_v3_v3(vert_ptr->pos, bezt->vec[2]);
+    vert_ptr->data = vflag[2];
+    vert_ptr++;
+  }
+}
+
 static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfra)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -737,6 +859,46 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
 
     cache->edit_lines_batch = GPU_batch_create(GPU_PRIM_LINE_STRIP, cache->vbo, NULL);
     GPU_batch_vertbuf_add(cache->edit_lines_batch, cache->edit_vbo);
+  }
+
+  /* Curve Handles and Points for Editing. */
+  if (cache->edit_curve_vbo == NULL) {
+    gpIterData iterdata = {
+        .gpd = gpd,
+        .verts = NULL,
+        .ibo = {0},
+        .vert_len = 0,
+        .tri_len = 0,
+        .curve_len = 0,
+    };
+
+    /* Create VBO. */
+    GPUVertFormat *format = gpencil_edit_curve_format();
+    cache->edit_curve_vbo = GPU_vertbuf_create_with_format(format);
+
+    /* Count data. */
+    BKE_gpencil_visible_stroke_iter(
+        NULL, ob, NULL, gpencil_edit_curve_stroke_count_cb, &iterdata, false, cfra);
+
+    gpEditCurveIterData iter;
+    int vert_len = iterdata.curve_len;
+    if (vert_len > 0) {
+
+      GPU_vertbuf_data_alloc(cache->edit_curve_vbo, vert_len);
+      iter.verts = (gpEditCurveVert *)GPU_vertbuf_get_data(cache->edit_curve_vbo);
+
+      /* Fill buffers with data. */
+      BKE_gpencil_visible_stroke_iter(
+          NULL, ob, NULL, gpencil_edit_curve_stroke_iter_cb, &iter, false, cfra);
+
+      cache->edit_curve_handles_batch = GPU_batch_create(
+          GPU_PRIM_LINES, cache->edit_curve_vbo, NULL);
+      GPU_batch_vertbuf_add(cache->edit_curve_handles_batch, cache->edit_curve_vbo);
+
+      cache->edit_curve_points_batch = GPU_batch_create(
+          GPU_PRIM_POINTS, cache->edit_curve_vbo, NULL);
+      GPU_batch_vertbuf_add(cache->edit_curve_points_batch, cache->edit_curve_vbo);
+    }
 
     gpd->flag &= ~GP_DATA_CACHE_IS_DIRTY;
     cache->is_dirty = false;
@@ -759,6 +921,24 @@ GPUBatch *DRW_cache_gpencil_edit_points_get(Object *ob, int cfra)
   gpencil_edit_batches_ensure(ob, cache, cfra);
 
   return cache->edit_points_batch;
+}
+
+GPUBatch *DRW_cache_gpencil_edit_curve_handles_get(Object *ob, int cfra)
+{
+  GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
+  gpencil_batches_ensure(ob, cache, cfra);
+  gpencil_edit_batches_ensure(ob, cache, cfra);
+
+  return cache->edit_curve_handles_batch;
+}
+
+GPUBatch *DRW_cache_gpencil_edit_curve_points_get(Object *ob, int cfra)
+{
+  GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
+  gpencil_batches_ensure(ob, cache, cfra);
+  gpencil_edit_batches_ensure(ob, cache, cfra);
+
+  return cache->edit_curve_points_batch;
 }
 
 /** \} */

@@ -37,8 +37,7 @@
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_relation.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 namespace {
 
@@ -235,5 +234,4 @@ void deg_graph_detect_cycles(Depsgraph *graph)
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

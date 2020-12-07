@@ -61,8 +61,7 @@ LevenbergMarquardtStrategy::LevenbergMarquardtStrategy(
   CHECK_GT(max_radius_, 0.0);
 }
 
-LevenbergMarquardtStrategy::~LevenbergMarquardtStrategy() {
-}
+LevenbergMarquardtStrategy::~LevenbergMarquardtStrategy() {}
 
 TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
     const TrustRegionStrategy::PerSolveOptions& per_solve_options,
@@ -81,8 +80,8 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
 
     jacobian->SquaredColumnNorm(diagonal_.data());
     for (int i = 0; i < num_parameters; ++i) {
-      diagonal_[i] = std::min(std::max(diagonal_[i], min_diagonal_),
-                              max_diagonal_);
+      diagonal_[i] =
+          std::min(std::max(diagonal_[i], min_diagonal_), max_diagonal_);
     }
   }
 
@@ -112,7 +111,7 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
   if (linear_solver_summary.termination_type == LINEAR_SOLVER_FATAL_ERROR) {
     LOG(WARNING) << "Linear solver fatal error: "
                  << linear_solver_summary.message;
-  } else if (linear_solver_summary.termination_type == LINEAR_SOLVER_FAILURE)  {
+  } else if (linear_solver_summary.termination_type == LINEAR_SOLVER_FAILURE) {
     LOG(WARNING) << "Linear solver failure. Failed to compute a step: "
                  << linear_solver_summary.message;
   } else if (!IsArrayValid(num_parameters, step)) {
@@ -138,7 +137,6 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
     }
   }
 
-
   TrustRegionStrategy::Summary summary;
   summary.residual_norm = linear_solver_summary.residual_norm;
   summary.num_iterations = linear_solver_summary.num_iterations;
@@ -148,8 +146,8 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
 
 void LevenbergMarquardtStrategy::StepAccepted(double step_quality) {
   CHECK_GT(step_quality, 0.0);
-  radius_ = radius_ / std::max(1.0 / 3.0,
-                               1.0 - pow(2.0 * step_quality - 1.0, 3));
+  radius_ =
+      radius_ / std::max(1.0 / 3.0, 1.0 - pow(2.0 * step_quality - 1.0, 3));
   radius_ = std::min(max_radius_, radius_);
   decrease_factor_ = 2.0;
   reuse_diagonal_ = false;
@@ -161,9 +159,7 @@ void LevenbergMarquardtStrategy::StepRejected(double step_quality) {
   reuse_diagonal_ = true;
 }
 
-double LevenbergMarquardtStrategy::Radius() const {
-  return radius_;
-}
+double LevenbergMarquardtStrategy::Radius() const { return radius_; }
 
 }  // namespace internal
 }  // namespace ceres

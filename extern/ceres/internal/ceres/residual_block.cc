@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <vector>
+
 #include "ceres/corrector.h"
 #include "ceres/cost_function.h"
 #include "ceres/internal/eigen.h"
@@ -50,8 +51,10 @@ namespace ceres {
 namespace internal {
 
 ResidualBlock::ResidualBlock(
-    const CostFunction* cost_function, const LossFunction* loss_function,
-    const std::vector<ParameterBlock*>& parameter_blocks, int index)
+    const CostFunction* cost_function,
+    const LossFunction* loss_function,
+    const std::vector<ParameterBlock*>& parameter_blocks,
+    int index)
     : cost_function_(cost_function),
       loss_function_(loss_function),
       parameter_blocks_(
@@ -111,22 +114,18 @@ bool ResidualBlock::Evaluate(const bool apply_loss_function,
     return false;
   }
 
-  if (!IsEvaluationValid(*this,
-                         parameters.data(),
-                         cost,
-                         residuals,
-                         eval_jacobians)) {
+  if (!IsEvaluationValid(
+          *this, parameters.data(), cost, residuals, eval_jacobians)) {
+    // clang-format off
     std::string message =
         "\n\n"
         "Error in evaluating the ResidualBlock.\n\n"
         "There are two possible reasons. Either the CostFunction did not evaluate and fill all    \n"  // NOLINT
         "residual and jacobians that were requested or there was a non-finite value (nan/infinite)\n"  // NOLINT
         "generated during the or jacobian computation. \n\n" +
-        EvaluationToString(*this,
-                           parameters.data(),
-                           cost,
-                           residuals,
-                           eval_jacobians);
+        EvaluationToString(
+            *this, parameters.data(), cost, residuals, eval_jacobians);
+    // clang-format on
     LOG(WARNING) << message;
     return false;
   }
@@ -149,7 +148,11 @@ bool ResidualBlock::Evaluate(const bool apply_loss_function,
               parameter_block->LocalParameterizationJacobian(),
               parameter_block->Size(),
               parameter_block->LocalSize(),
-              jacobians[i], 0, 0,  num_residuals, parameter_block->LocalSize());
+              jacobians[i],
+              0,
+              0,
+              num_residuals,
+              parameter_block->LocalSize());
         }
       }
     }

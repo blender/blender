@@ -34,9 +34,10 @@
 
 #include "ceres/c_api.h"
 
-#include <vector>
 #include <iostream>
 #include <string>
+#include <vector>
+
 #include "ceres/cost_function.h"
 #include "ceres/loss_function.h"
 #include "ceres/problem.h"
@@ -70,8 +71,7 @@ class CallbackCostFunction : public ceres::CostFunction {
                        int num_residuals,
                        int num_parameter_blocks,
                        int* parameter_block_sizes)
-      : cost_function_(cost_function),
-        user_data_(user_data) {
+      : cost_function_(cost_function), user_data_(user_data) {
     set_num_residuals(num_residuals);
     for (int i = 0; i < num_parameter_blocks; ++i) {
       mutable_parameter_block_sizes()->push_back(parameter_block_sizes[i]);
@@ -81,12 +81,10 @@ class CallbackCostFunction : public ceres::CostFunction {
   virtual ~CallbackCostFunction() {}
 
   bool Evaluate(double const* const* parameters,
-                        double* residuals,
-                        double** jacobians) const final {
-    return (*cost_function_)(user_data_,
-                             const_cast<double**>(parameters),
-                             residuals,
-                             jacobians);
+                double* residuals,
+                double** jacobians) const final {
+    return (*cost_function_)(
+        user_data_, const_cast<double**>(parameters), residuals, jacobians);
   }
 
  private:
@@ -100,7 +98,7 @@ class CallbackLossFunction : public ceres::LossFunction {
  public:
   explicit CallbackLossFunction(ceres_loss_function_t loss_function,
                                 void* user_data)
-    : loss_function_(loss_function), user_data_(user_data) {}
+      : loss_function_(loss_function), user_data_(user_data) {}
   void Evaluate(double sq_norm, double* rho) const final {
     (*loss_function_)(user_data_, sq_norm, rho);
   }
@@ -134,8 +132,8 @@ void ceres_free_stock_loss_function_data(void* loss_function_data) {
 void ceres_stock_loss_function(void* user_data,
                                double squared_norm,
                                double out[3]) {
-  reinterpret_cast<ceres::LossFunction*>(user_data)
-      ->Evaluate(squared_norm, out);
+  reinterpret_cast<ceres::LossFunction*>(user_data)->Evaluate(squared_norm,
+                                                              out);
 }
 
 ceres_residual_block_id_t* ceres_problem_add_residual_block(
@@ -159,16 +157,15 @@ ceres_residual_block_id_t* ceres_problem_add_residual_block(
 
   ceres::LossFunction* callback_loss_function = NULL;
   if (loss_function != NULL) {
-    callback_loss_function = new CallbackLossFunction(loss_function,
-                                                      loss_function_data);
+    callback_loss_function =
+        new CallbackLossFunction(loss_function, loss_function_data);
   }
 
   std::vector<double*> parameter_blocks(parameters,
                                         parameters + num_parameter_blocks);
   return reinterpret_cast<ceres_residual_block_id_t*>(
-      ceres_problem->AddResidualBlock(callback_cost_function,
-                                      callback_loss_function,
-                                      parameter_blocks));
+      ceres_problem->AddResidualBlock(
+          callback_cost_function, callback_loss_function, parameter_blocks));
 }
 
 void ceres_solve(ceres_problem_t* c_problem) {

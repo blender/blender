@@ -119,15 +119,13 @@ static bool parse_int_relative(const char *str,
     *r_err_msg = msg;
     return false;
   }
-  else if ((errno == ERANGE) || ((value < INT_MIN || value > INT_MAX))) {
+  if ((errno == ERANGE) || ((value < INT_MIN || value > INT_MAX))) {
     static const char *msg = "exceeds range";
     *r_err_msg = msg;
     return false;
   }
-  else {
-    *r_value = (int)value;
-    return true;
-  }
+  *r_value = (int)value;
+  return true;
 }
 
 static const char *parse_int_range_sep_search(const char *str, const char *str_end_test)
@@ -166,9 +164,7 @@ static bool parse_int_range_relative(const char *str,
           str_end_range + 2, str_end_test, pos, neg, &r_value_range[1], r_err_msg)) {
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static bool parse_int_relative_clamp(const char *str,
@@ -184,9 +180,7 @@ static bool parse_int_relative_clamp(const char *str,
     CLAMP(*r_value, min, max);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static bool parse_int_range_relative_clamp(const char *str,
@@ -205,9 +199,7 @@ static bool parse_int_range_relative_clamp(const char *str,
     CLAMP(r_value_range[1], min, max);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /**
@@ -231,15 +223,13 @@ static bool parse_int_strict_range(const char *str,
     *r_err_msg = msg;
     return false;
   }
-  else if ((errno == ERANGE) || ((value < min || value > max))) {
+  if ((errno == ERANGE) || ((value < min || value > max))) {
     static const char *msg = "exceeds range";
     *r_err_msg = msg;
     return false;
   }
-  else {
-    *r_value = (int)value;
-    return true;
-  }
+  *r_value = (int)value;
+  return true;
 }
 
 static bool parse_int(const char *str,
@@ -261,9 +251,7 @@ static bool parse_int_clamp(const char *str,
     CLAMP(*r_value, min, max);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 #  if 0
@@ -802,10 +790,8 @@ static int arg_handle_log_level_set(int argc, const char **argv, void *UNUSED(da
     }
     return 1;
   }
-  else {
-    printf("\nError: '%s' no args given.\n", arg_id);
-    return 0;
-  }
+  printf("\nError: '%s' no args given.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_log_show_basename_set_doc[] =
@@ -865,10 +851,8 @@ static int arg_handle_log_file_set(int argc, const char **argv, void *UNUSED(dat
     }
     return 1;
   }
-  else {
-    printf("\nError: '%s' no args given.\n", arg_id);
-    return 0;
-  }
+  printf("\nError: '%s' no args given.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_log_set_doc[] =
@@ -908,10 +892,8 @@ static int arg_handle_log_set(int argc, const char **argv, void *UNUSED(data))
     }
     return 1;
   }
-  else {
-    printf("\nError: '%s' no args given.\n", arg_id);
-    return 0;
-  }
+  printf("\nError: '%s' no args given.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_debug_mode_set_doc[] =
@@ -1094,10 +1076,8 @@ static int arg_handle_debug_value_set(int argc, const char **argv, void *UNUSED(
 
     return 1;
   }
-  else {
-    printf("\nError: you must specify debug value to set.\n");
-    return 0;
-  }
+  printf("\nError: you must specify debug value to set.\n");
+  return 0;
 }
 
 static const char arg_handle_debug_fpe_set_doc[] =
@@ -1121,10 +1101,8 @@ static int arg_handle_app_template(int argc, const char **argv, void *UNUSED(dat
     WM_init_state_app_template_set(app_template);
     return 1;
   }
-  else {
-    printf("\nError: App template must follow '--app-template'.\n");
-    return 0;
-  }
+  printf("\nError: App template must follow '--app-template'.\n");
+  return 0;
 }
 
 static const char arg_handle_factory_startup_set_doc[] =
@@ -1382,10 +1360,8 @@ static int arg_handle_output_set(int argc, const char **argv, void *data)
     }
     return 1;
   }
-  else {
-    printf("\nError: you must specify a path after '-o  / --render-output'.\n");
-    return 0;
-  }
+  printf("\nError: you must specify a path after '-o  / --render-output'.\n");
+  return 0;
 }
 
 static const char arg_handle_engine_set_doc[] =
@@ -1425,10 +1401,8 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
 
     return 1;
   }
-  else {
-    printf("\nEngine not specified, give 'help' for a list of available engines.\n");
-    return 0;
-  }
+  printf("\nEngine not specified, give 'help' for a list of available engines.\n");
+  return 0;
 }
 
 static const char arg_handle_image_type_set_doc[] =
@@ -1465,10 +1439,8 @@ static int arg_handle_image_type_set(int argc, const char **argv, void *data)
     }
     return 1;
   }
-  else {
-    printf("\nError: you must specify a format after '-F  / --render-format'.\n");
-    return 0;
-  }
+  printf("\nError: you must specify a format after '-F  / --render-format'.\n");
+  return 0;
 }
 
 static const char arg_handle_threads_set_doc[] =
@@ -1495,10 +1467,8 @@ static int arg_handle_threads_set(int argc, const char **argv, void *UNUSED(data
     BLI_system_num_threads_override_set(threads);
     return 1;
   }
-  else {
-    printf("\nError: you must specify a number of threads in [%d..%d] '%s'.\n", min, max, arg_id);
-    return 0;
-  }
+  printf("\nError: you must specify a number of threads in [%d..%d] '%s'.\n", min, max, arg_id);
+  return 0;
 }
 
 static const char arg_handle_verbosity_set_doc[] =
@@ -1524,10 +1494,8 @@ static int arg_handle_verbosity_set(int argc, const char **argv, void *UNUSED(da
 
     return 1;
   }
-  else {
-    printf("\nError: you must specify a verbosity level.\n");
-    return 0;
-  }
+  printf("\nError: you must specify a verbosity level.\n");
+  return 0;
 }
 
 static const char arg_handle_extension_set_doc[] =
@@ -1558,10 +1526,8 @@ static int arg_handle_extension_set(int argc, const char **argv, void *data)
     }
     return 1;
   }
-  else {
-    printf("\nError: you must specify a path after '- '.\n");
-    return 0;
-  }
+  printf("\nError: you must specify a path after '- '.\n");
+  return 0;
 }
 
 static const char arg_handle_render_frame_doc[] =
@@ -1616,15 +1582,11 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
       MEM_freeN(frame_range_arr);
       return 1;
     }
-    else {
-      printf("\nError: frame number must follow '%s'.\n", arg_id);
-      return 0;
-    }
-  }
-  else {
-    printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+    printf("\nError: frame number must follow '%s'.\n", arg_id);
     return 0;
   }
+  printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_render_animation_doc[] =
@@ -1673,10 +1635,8 @@ static int arg_handle_scene_set(int argc, const char **argv, void *data)
     }
     return 1;
   }
-  else {
-    printf("\nError: Scene name must follow '-S / --scene'.\n");
-    return 0;
-  }
+  printf("\nError: Scene name must follow '-S / --scene'.\n");
+  return 0;
 }
 
 static const char arg_handle_frame_start_set_doc[] =
@@ -1705,15 +1665,11 @@ static int arg_handle_frame_start_set(int argc, const char **argv, void *data)
       }
       return 1;
     }
-    else {
-      printf("\nError: frame number must follow '%s'.\n", arg_id);
-      return 0;
-    }
-  }
-  else {
-    printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+    printf("\nError: frame number must follow '%s'.\n", arg_id);
     return 0;
   }
+  printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_frame_end_set_doc[] =
@@ -1742,15 +1698,11 @@ static int arg_handle_frame_end_set(int argc, const char **argv, void *data)
       }
       return 1;
     }
-    else {
-      printf("\nError: frame number must follow '%s'.\n", arg_id);
-      return 0;
-    }
-  }
-  else {
-    printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+    printf("\nError: frame number must follow '%s'.\n", arg_id);
     return 0;
   }
+  printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_frame_skip_set_doc[] =
@@ -1772,15 +1724,11 @@ static int arg_handle_frame_skip_set(int argc, const char **argv, void *data)
       }
       return 1;
     }
-    else {
-      printf("\nError: number of frames to step must follow '%s'.\n", arg_id);
-      return 0;
-    }
-  }
-  else {
-    printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+    printf("\nError: number of frames to step must follow '%s'.\n", arg_id);
     return 0;
   }
+  printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_python_file_run_doc[] =
@@ -1807,10 +1755,9 @@ static int arg_handle_python_file_run(int argc, const char **argv, void *data)
     }
     return 1;
   }
-  else {
-    printf("\nError: you must specify a filepath after '%s'.\n", argv[0]);
-    return 0;
-  }
+  printf("\nError: you must specify a filepath after '%s'.\n", argv[0]);
+  return 0;
+
 #  else
   UNUSED_VARS(argc, argv, data);
   printf("This Blender was built without Python support\n");
@@ -1849,10 +1796,9 @@ static int arg_handle_python_text_run(int argc, const char **argv, void *data)
 
     return 1;
   }
-  else {
-    printf("\nError: you must specify a text block after '%s'.\n", argv[0]);
-    return 0;
-  }
+  printf("\nError: you must specify a text block after '%s'.\n", argv[0]);
+  return 0;
+
 #  else
   UNUSED_VARS(argc, argv, data);
   printf("This Blender was built without Python support\n");
@@ -1879,10 +1825,9 @@ static int arg_handle_python_expr_run(int argc, const char **argv, void *data)
     }
     return 1;
   }
-  else {
-    printf("\nError: you must specify a Python expression after '%s'.\n", argv[0]);
-    return 0;
-  }
+  printf("\nError: you must specify a Python expression after '%s'.\n", argv[0]);
+  return 0;
+
 #  else
   UNUSED_VARS(argc, argv, data);
   printf("This Blender was built without Python support\n");
@@ -1932,10 +1877,8 @@ static int arg_handle_python_exit_code_set(int argc, const char **argv, void *UN
     app_state.exit_code_on_error.python = (unsigned char)exit_code;
     return 1;
   }
-  else {
-    printf("\nError: you must specify an exit code number '%s'.\n", arg_id);
-    return 0;
-  }
+  printf("\nError: you must specify an exit code number '%s'.\n", arg_id);
+  return 0;
 }
 
 static const char arg_handle_python_use_system_env_set_doc[] =
@@ -1978,10 +1921,8 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
 #  endif /* WITH_PYTHON */
     return 1;
   }
-  else {
-    printf("\nError: you must specify a comma separated list after '--addons'.\n");
-    return 0;
-  }
+  printf("\nError: you must specify a comma separated list after '--addons'.\n");
+  return 0;
 }
 
 static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)

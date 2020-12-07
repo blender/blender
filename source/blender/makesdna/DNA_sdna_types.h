@@ -22,6 +22,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct MemArena;
 
 #
@@ -118,3 +122,7 @@ typedef struct BHead8 {
   uint64_t old;
   int SDNAnr, nr;
 } BHead8;
+
+#ifdef __cplusplus
+}
+#endif

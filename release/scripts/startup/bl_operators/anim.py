@@ -247,6 +247,11 @@ class NLA_OT_bake(Operator):
         "(useful for baking only part of bones in an armature)",
         default=False,
     )
+    clean_curves: BoolProperty(
+        name="Clean Curves",
+        description="After baking curves, remove redundant keys",
+        default=False,
+    )
     bake_types: EnumProperty(
         name="Bake Data",
         description="Which data's transformations to bake",
@@ -282,7 +287,7 @@ class NLA_OT_bake(Operator):
             do_visual_keying=self.visual_keying,
             do_constraint_clear=self.clear_constraints,
             do_parents_clear=self.clear_parents,
-            do_clean=True,
+            do_clean=self.clean_curves,
         )
 
         if not any(actions):
@@ -424,9 +429,22 @@ class UpdateAnimatedTransformConstraint(Operator):
         return {'FINISHED'}
 
 
+class ANIM_OT_show_group_colors_deprecated(Operator):
+    """This option moved to Preferences > Animation"""
+
+    bl_idname = "anim.show_group_colors_deprecated"
+    bl_label = "Show Group Colors"
+    bl_options = {'REGISTER'}
+
+    @classmethod
+    def poll(cls, context) -> bool:
+        return False
+
+
 classes = (
     ANIM_OT_keying_set_export,
     NLA_OT_bake,
     ClearUselessActions,
     UpdateAnimatedTransformConstraint,
+    ANIM_OT_show_group_colors_deprecated,
 )

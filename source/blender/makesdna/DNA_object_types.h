@@ -51,6 +51,7 @@ struct RigidBodyOb;
 struct SculptSession;
 struct SoftBody;
 struct bGPdata;
+struct GeometrySet;
 
 /* Vertex Groups - Name Info */
 typedef struct bDeformGroup {
@@ -126,7 +127,10 @@ typedef struct Object_Runtime {
   /** Only used for drawing the parent/child help-line. */
   float parent_display_origin[3];
 
-  /** Selection id of this object; only available in the original object */
+  /**
+   * Selection id of this object. It might differ between an evaluated and its original object,
+   * when the object is being instanced.
+   */
   int select_id;
   char _pad1[3];
 
@@ -150,6 +154,13 @@ typedef struct Object_Runtime {
    * It has all modifiers applied.
    */
   struct ID *data_eval;
+
+  /**
+   * Some objects support evaluating to a geometry set instead of a single ID. In those cases the
+   * evaluated geometry will be stored here instead of in #data_eval.
+   */
+  struct GeometrySet *geometry_set_eval;
+
   /**
    * Mesh structure created during object evaluation.
    * It has deformation only modifiers applied on it.
@@ -419,6 +430,8 @@ typedef struct ObHook {
 
 /* used many places... should be specialized  */
 #define SELECT 1
+
+#define OBJECT_ACTIVE_MODIFIER_NONE -1
 
 /* type */
 enum {

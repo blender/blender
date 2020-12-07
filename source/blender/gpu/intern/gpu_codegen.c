@@ -411,7 +411,7 @@ static void codegen_declare_tmps(DynStr *ds, GPUNodeGraph *graph)
   BLI_dynstr_append(ds, "\n");
 }
 
-static void codegen_call_functions(DynStr *ds, GPUNodeGraph *graph, GPUOutput *finaloutput)
+static void codegen_call_functions(DynStr *ds, GPUNodeGraph *graph)
 {
   LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
     BLI_dynstr_appendf(ds, "  %s(", node->name);
@@ -509,8 +509,11 @@ static void codegen_call_functions(DynStr *ds, GPUNodeGraph *graph, GPUOutput *f
 
     BLI_dynstr_append(ds, ");\n");
   }
+}
 
-  BLI_dynstr_appendf(ds, "\n  return tmp%d;\n", finaloutput->id);
+static void codegen_final_output(DynStr *ds, GPUOutput *finaloutput)
+{
+  BLI_dynstr_appendf(ds, "return tmp%d;\n", finaloutput->id);
 }
 
 static char *code_generate_fragment(GPUMaterial *material,
@@ -593,7 +596,35 @@ static char *code_generate_fragment(GPUMaterial *material,
   }
 
   codegen_declare_tmps(ds, graph);
-  codegen_call_functions(ds, graph, graph->outlink->output);
+  codegen_call_functions(ds, graph);
+
+  BLI_dynstr_append(ds, "  #ifndef VOLUMETRICS\n");
+  BLI_dynstr_append(ds, "  if (renderPassAOV) {\n");
+  BLI_dynstr_append(ds, "    switch (render_pass_aov_hash()) {\n");
+  GSet *aovhashes_added = BLI_gset_int_new(__func__);
+  LISTBASE_FOREACH (GPUNodeGraphOutputLink *, aovlink, &graph->outlink_aovs) {
+    void *aov_key = POINTER_FROM_INT(aovlink->hash);
+    if (BLI_gset_haskey(aovhashes_added, aov_key)) {
+      continue;
+    }
+    BLI_dynstr_appendf(ds, "      case %d: {\n        ", aovlink->hash);
+    codegen_final_output(ds, aovlink->outlink->output);
+    BLI_dynstr_append(ds, "      }\n");
+    BLI_gset_add(aovhashes_added, aov_key);
+  }
+  BLI_gset_free(aovhashes_added, NULL);
+  BLI_dynstr_append(ds, "      default: {\n");
+  BLI_dynstr_append(ds, "        Closure no_aov = CLOSURE_DEFAULT;\n");
+  BLI_dynstr_append(ds, "        no_aov.holdout = 1.0;\n");
+  BLI_dynstr_append(ds, "        return no_aov;\n");
+  BLI_dynstr_append(ds, "      }\n");
+  BLI_dynstr_append(ds, "    }\n");
+  BLI_dynstr_append(ds, "  } else {\n");
+  BLI_dynstr_append(ds, "  #else /* VOLUMETRICS */\n");
+  BLI_dynstr_append(ds, "  {\n");
+  BLI_dynstr_append(ds, "  #endif /* VOLUMETRICS */\n    ");
+  codegen_final_output(ds, graph->outlink->output);
+  BLI_dynstr_append(ds, "  }\n");
 
   BLI_dynstr_append(ds, "}\n");
 

@@ -32,6 +32,7 @@
 #define CERES_INTERNAL_DETECT_STRUCTURE_H_
 
 #include "ceres/block_structure.h"
+#include "ceres/internal/port.h"
 
 namespace ceres {
 namespace internal {
@@ -55,11 +56,11 @@ namespace internal {
 // Note: The structure of rows without any e-blocks has no effect on
 // the values returned by this function. It is entirely possible that
 // the f_block_size and row_blocks_size is not constant in such rows.
-void DetectStructure(const CompressedRowBlockStructure& bs,
-                     const int num_eliminate_blocks,
-                     int* row_block_size,
-                     int* e_block_size,
-                     int* f_block_size);
+void CERES_EXPORT DetectStructure(const CompressedRowBlockStructure& bs,
+                                  const int num_eliminate_blocks,
+                                  int* row_block_size,
+                                  int* e_block_size,
+                                  int* f_block_size);
 
 }  // namespace internal
 }  // namespace ceres

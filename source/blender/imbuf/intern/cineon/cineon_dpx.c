@@ -183,14 +183,14 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
   return rvalue;
 }
 
-int imb_save_cineon(struct ImBuf *buf, const char *filepath, int flags)
+bool imb_save_cineon(struct ImBuf *buf, const char *filepath, int flags)
 {
   return imb_save_dpx_cineon(buf, filepath, 1, flags);
 }
 
-int imb_is_cineon(const unsigned char *buf)
+bool imb_is_a_cineon(const unsigned char *buf, size_t size)
 {
-  return logImageIsCineon(buf);
+  return logImageIsCineon(buf, size);
 }
 
 ImBuf *imb_load_cineon(const unsigned char *mem,
@@ -198,20 +198,20 @@ ImBuf *imb_load_cineon(const unsigned char *mem,
                        int flags,
                        char colorspace[IM_MAX_SPACE])
 {
-  if (imb_is_cineon(mem)) {
+  if (imb_is_a_cineon(mem, size)) {
     return imb_load_dpx_cineon(mem, size, 1, flags, colorspace);
   }
   return NULL;
 }
 
-int imb_save_dpx(struct ImBuf *buf, const char *filepath, int flags)
+bool imb_save_dpx(struct ImBuf *buf, const char *filepath, int flags)
 {
   return imb_save_dpx_cineon(buf, filepath, 0, flags);
 }
 
-int imb_is_dpx(const unsigned char *buf)
+bool imb_is_a_dpx(const unsigned char *buf, size_t size)
 {
-  return logImageIsDpx(buf);
+  return logImageIsDpx(buf, size);
 }
 
 ImBuf *imb_load_dpx(const unsigned char *mem,
@@ -219,7 +219,7 @@ ImBuf *imb_load_dpx(const unsigned char *mem,
                     int flags,
                     char colorspace[IM_MAX_SPACE])
 {
-  if (imb_is_dpx(mem)) {
+  if (imb_is_a_dpx(mem, size)) {
     return imb_load_dpx_cineon(mem, size, 0, flags, colorspace);
   }
   return NULL;

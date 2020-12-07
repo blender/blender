@@ -51,7 +51,6 @@ void BKE_mesh_runtime_reset(Mesh *mesh)
   memset(&mesh->runtime, 0, sizeof(mesh->runtime));
   mesh->runtime.eval_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime eval_mutex");
   BLI_mutex_init(mesh->runtime.eval_mutex);
-  mesh->runtime.bvh_cache = NULL;
 }
 
 /* Clear all pointers which we don't want to be shared on copying the datablock.

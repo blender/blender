@@ -24,7 +24,7 @@
 #include "NOD_texture.h"
 #include "node_texture_util.h"
 
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 /*
  * In this file: wrappers to use procedural textures as nodes

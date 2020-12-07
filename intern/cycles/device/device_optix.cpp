@@ -141,7 +141,8 @@ class OptiXDevice : public CUDADevice {
     PG_BAKE,  // kernel_bake_evaluate
     PG_DISP,  // kernel_displace_evaluate
     PG_BACK,  // kernel_background_evaluate
-    NUM_PROGRAM_GROUPS
+    PG_CALL,
+    NUM_PROGRAM_GROUPS = PG_CALL + 3
   };
 
   // List of OptiX pipelines
@@ -334,11 +335,6 @@ class OptiXDevice : public CUDADevice {
       set_error("OptiX backend does not support baking yet");
       return false;
     }
-    // Disable shader raytracing support for now, since continuation callables are slow
-    if (requested_features.use_shader_raytrace) {
-      set_error("OptiX backend does not support 'Ambient Occlusion' and 'Bevel' shader nodes yet");
-      return false;
-    }
 
     const CUDAContextScope scope(cuContext);
 
@@ -410,7 +406,9 @@ class OptiXDevice : public CUDADevice {
     }
 
     {  // Load and compile PTX module with OptiX kernels
-      string ptx_data, ptx_filename = path_get("lib/kernel_optix.ptx");
+      string ptx_data, ptx_filename = path_get(requested_features.use_shader_raytrace ?
+                                                   "lib/kernel_optix_shader_raytrace.ptx" :
+                                                   "lib/kernel_optix.ptx");
       if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
         if (!getenv("OPTIX_ROOT_DIR")) {
           set_error(
@@ -525,6 +523,21 @@ class OptiXDevice : public CUDADevice {
       group_descs[PG_BACK].raygen.entryFunctionName = "__raygen__kernel_optix_background";
     }
 
+    // Shader raytracing replaces some functions with direct callables
+    if (requested_features.use_shader_raytrace) {
+      group_descs[PG_CALL + 0].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+      group_descs[PG_CALL + 0].callables.moduleDC = optix_module;
+      group_descs[PG_CALL + 0].callables.entryFunctionNameDC = "__direct_callable__svm_eval_nodes";
+      group_descs[PG_CALL + 1].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+      group_descs[PG_CALL + 1].callables.moduleDC = optix_module;
+      group_descs[PG_CALL + 1].callables.entryFunctionNameDC =
+          "__direct_callable__kernel_volume_shadow";
+      group_descs[PG_CALL + 2].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+      group_descs[PG_CALL + 2].callables.moduleDC = optix_module;
+      group_descs[PG_CALL + 2].callables.entryFunctionNameDC =
+          "__direct_callable__subsurface_scatter_multi_setup";
+    }
+
     check_result_optix_ret(optixProgramGroupCreate(
         context, group_descs, NUM_PROGRAM_GROUPS, &group_options, nullptr, 0, groups));
 
@@ -564,33 +577,51 @@ class OptiXDevice : public CUDADevice {
 #  endif
 
     {  // Create path tracing pipeline
-      OptixProgramGroup pipeline_groups[] = {
-        groups[PG_RGEN],
-        groups[PG_MISS],
-        groups[PG_HITD],
-        groups[PG_HITS],
-        groups[PG_HITL],
+      vector<OptixProgramGroup> pipeline_groups;
+      pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
+      pipeline_groups.push_back(groups[PG_RGEN]);
+      pipeline_groups.push_back(groups[PG_MISS]);
+      pipeline_groups.push_back(groups[PG_HITD]);
+      pipeline_groups.push_back(groups[PG_HITS]);
+      pipeline_groups.push_back(groups[PG_HITL]);
 #  if OPTIX_ABI_VERSION >= 36
-        groups[PG_HITD_MOTION],
-        groups[PG_HITS_MOTION],
+      if (motion_blur) {
+        pipeline_groups.push_back(groups[PG_HITD_MOTION]);
+        pipeline_groups.push_back(groups[PG_HITS_MOTION]);
+      }
 #  endif
-      };
-      check_result_optix_ret(
-          optixPipelineCreate(context,
-                              &pipeline_options,
-                              &link_options,
-                              pipeline_groups,
-                              (sizeof(pipeline_groups) / sizeof(pipeline_groups[0])),
-                              nullptr,
-                              0,
-                              &pipelines[PIP_PATH_TRACE]));
+      if (requested_features.use_shader_raytrace) {
+        pipeline_groups.push_back(groups[PG_CALL + 0]);
+        pipeline_groups.push_back(groups[PG_CALL + 1]);
+        pipeline_groups.push_back(groups[PG_CALL + 2]);
+      }
+
+      check_result_optix_ret(optixPipelineCreate(context,
+                                                 &pipeline_options,
+                                                 &link_options,
+                                                 pipeline_groups.data(),
+                                                 pipeline_groups.size(),
+                                                 nullptr,
+                                                 0,
+                                                 &pipelines[PIP_PATH_TRACE]));
 
       // Combine ray generation and trace continuation stack size
       const unsigned int css = stack_size[PG_RGEN].cssRG + link_options.maxTraceDepth * trace_css;
+      // Max direct callable depth is one of the following, so combine accordingly
+      // - __raygen__ -> svm_eval_nodes
+      // - __raygen__ -> kernel_volume_shadow -> svm_eval_nodes
+      // - __raygen__ -> subsurface_scatter_multi_setup -> svm_eval_nodes
+      const unsigned int dss = stack_size[PG_CALL + 0].dssDC +
+                               std::max(stack_size[PG_CALL + 1].dssDC,
+                                        stack_size[PG_CALL + 2].dssDC);
 
       // Set stack size depending on pipeline options
       check_result_optix_ret(
-          optixPipelineSetStackSize(pipelines[PIP_PATH_TRACE], 0, 0, css, (motion_blur ? 3 : 2)));
+          optixPipelineSetStackSize(pipelines[PIP_PATH_TRACE],
+                                    0,
+                                    requested_features.use_shader_raytrace ? dss : 0,
+                                    css,
+                                    motion_blur ? 3 : 2));
     }
 
     // Only need to create shader evaluation pipeline if one of these features is used:
@@ -599,37 +630,51 @@ class OptiXDevice : public CUDADevice {
                                           requested_features.use_true_displacement;
 
     if (use_shader_eval_pipeline) {  // Create shader evaluation pipeline
-      OptixProgramGroup pipeline_groups[] = {
-        groups[PG_BAKE],
-        groups[PG_DISP],
-        groups[PG_BACK],
-        groups[PG_MISS],
-        groups[PG_HITD],
-        groups[PG_HITS],
-        groups[PG_HITL],
+      vector<OptixProgramGroup> pipeline_groups;
+      pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
+      pipeline_groups.push_back(groups[PG_BAKE]);
+      pipeline_groups.push_back(groups[PG_DISP]);
+      pipeline_groups.push_back(groups[PG_BACK]);
+      pipeline_groups.push_back(groups[PG_MISS]);
+      pipeline_groups.push_back(groups[PG_HITD]);
+      pipeline_groups.push_back(groups[PG_HITS]);
+      pipeline_groups.push_back(groups[PG_HITL]);
 #  if OPTIX_ABI_VERSION >= 36
-        groups[PG_HITD_MOTION],
-        groups[PG_HITS_MOTION],
+      if (motion_blur) {
+        pipeline_groups.push_back(groups[PG_HITD_MOTION]);
+        pipeline_groups.push_back(groups[PG_HITS_MOTION]);
+      }
 #  endif
-      };
-      check_result_optix_ret(
-          optixPipelineCreate(context,
-                              &pipeline_options,
-                              &link_options,
-                              pipeline_groups,
-                              (sizeof(pipeline_groups) / sizeof(pipeline_groups[0])),
-                              nullptr,
-                              0,
-                              &pipelines[PIP_SHADER_EVAL]));
+      if (requested_features.use_shader_raytrace) {
+        pipeline_groups.push_back(groups[PG_CALL + 0]);
+        pipeline_groups.push_back(groups[PG_CALL + 1]);
+        pipeline_groups.push_back(groups[PG_CALL + 2]);
+      }
+
+      check_result_optix_ret(optixPipelineCreate(context,
+                                                 &pipeline_options,
+                                                 &link_options,
+                                                 pipeline_groups.data(),
+                                                 pipeline_groups.size(),
+                                                 nullptr,
+                                                 0,
+                                                 &pipelines[PIP_SHADER_EVAL]));
 
       // Calculate continuation stack size based on the maximum of all ray generation stack sizes
       const unsigned int css = std::max(stack_size[PG_BAKE].cssRG,
                                         std::max(stack_size[PG_DISP].cssRG,
                                                  stack_size[PG_BACK].cssRG)) +
                                link_options.maxTraceDepth * trace_css;
+      const unsigned int dss = stack_size[PG_CALL + 0].dssDC +
+                               std::max(stack_size[PG_CALL + 1].dssDC,
+                                        stack_size[PG_CALL + 2].dssDC);
 
-      check_result_optix_ret(optixPipelineSetStackSize(
-          pipelines[PIP_SHADER_EVAL], 0, 0, css, (pipeline_options.usesMotionBlur ? 3 : 2)));
+      check_result_optix_ret(
+          optixPipelineSetStackSize(pipelines[PIP_SHADER_EVAL],
+                                    0,
+                                    requested_features.use_shader_raytrace ? dss : 0,
+                                    css,
+                                    motion_blur ? 3 : 2));
     }
 
     // Clean up program group objects
@@ -734,6 +779,9 @@ class OptiXDevice : public CUDADevice {
 #  else
       sbt_params.hitgroupRecordCount = 3;  // PG_HITD, PG_HITS, PG_HITL
 #  endif
+      sbt_params.callablesRecordBase = sbt_data.device_pointer + PG_CALL * sizeof(SbtRecord);
+      sbt_params.callablesRecordCount = 3;
+      sbt_params.callablesRecordStrideInBytes = sizeof(SbtRecord);
 
       // Launch the ray generation program
       check_result_optix(optixLaunch(pipelines[PIP_PATH_TRACE],
@@ -1061,6 +1109,9 @@ class OptiXDevice : public CUDADevice {
 #  else
       sbt_params.hitgroupRecordCount = 3;  // PG_HITD, PG_HITS, PG_HITL
 #  endif
+      sbt_params.callablesRecordBase = sbt_data.device_pointer + PG_CALL * sizeof(SbtRecord);
+      sbt_params.callablesRecordCount = 3;
+      sbt_params.callablesRecordStrideInBytes = sizeof(SbtRecord);
 
       check_result_optix(optixLaunch(pipelines[PIP_SHADER_EVAL],
                                      cuda_stream[thread_index],

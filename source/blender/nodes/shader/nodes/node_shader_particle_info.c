@@ -18,7 +18,7 @@
  */
 
 #include "../node_shader_util.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 static bNodeSocketTemplate outputs[] = {
     {SOCK_FLOAT, "Index"},

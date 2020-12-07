@@ -239,9 +239,24 @@ if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "\n\nWindows requires pre-compiled libs at: '${LIBDIR}'. Please run `make update` in the blender source folder to obtain them.")
 endif()
 
+if(CMAKE_GENERATOR MATCHES "^Visual Studio.+" AND # Only supported in the VS IDE
+   MSVC_VERSION GREATER_EQUAL 1924            AND # Supported for 16.4+
+   WITH_CLANG_TIDY                                # And Clang Tidy needs to be on
+  )
+  set(CMAKE_VS_GLOBALS
+    "RunCodeAnalysis=false"
+    "EnableMicrosoftCodeAnalysis=false"
+    "EnableClangTidyCodeAnalysis=true"
+  )
+  set(VS_CLANG_TIDY On)
+endif()
+
 # Mark libdir as system headers with a lower warn level, to resolve some warnings
 # that we have very little control over
-if(MSVC_VERSION GREATER_EQUAL 1914 AND NOT MSVC_CLANG AND NOT WITH_WINDOWS_SCCACHE)
+if(MSVC_VERSION GREATER_EQUAL 1914 AND # Available with 15.7+
+   NOT MSVC_CLANG                  AND # But not for clang
+   NOT WITH_WINDOWS_SCCACHE        AND # And not when sccache is enabled
+   NOT VS_CLANG_TIDY)                  # Clang-tidy does not like these options
   add_compile_options(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)
 endif()
 
@@ -252,6 +267,11 @@ foreach(child ${children})
     list(APPEND CMAKE_PREFIX_PATH  ${LIBDIR}/${child})
   endif()
 endforeach()
+
+if(WITH_PUGIXML)
+  set(PUGIXML_LIBRARIES optimized ${LIBDIR}/pugixml/lib/pugixml.lib debug ${LIBDIR}/pugixml/lib/pugixml_d.lib)
+  set(PUGIXML_INCLUDE_DIR ${LIBDIR}/pugixml/include)
+endif()
 
 set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
 set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz_st.lib)
@@ -651,11 +671,10 @@ if(WITH_CYCLES_OSL)
     optimized ${OSL_LIB_COMP}
     optimized ${OSL_LIB_EXEC}
     optimized ${OSL_LIB_QUERY}
-    optimized ${CYCLES_OSL}/lib/pugixml.lib
     debug ${OSL_LIB_EXEC_DEBUG}
     debug ${OSL_LIB_COMP_DEBUG}
     debug ${OSL_LIB_QUERY_DEBUG}
-    debug ${CYCLES_OSL}/lib/pugixml_d.lib
+    ${PUGIXML_LIBRARIES}
   )
   find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
   find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)

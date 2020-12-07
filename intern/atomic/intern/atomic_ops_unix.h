@@ -49,10 +49,20 @@
 
 #include "atomic_ops_utils.h"
 
+#if defined(__arm__)
+/* Attempt to fix compilation error on Debian armel kernel.
+ * arm7 architecture does have both 32 and 64bit atomics, however
+ * its gcc doesn't have __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n defined.
+ */
+#  define JE_FORCE_SYNC_COMPARE_AND_SWAP_1
+#  define JE_FORCE_SYNC_COMPARE_AND_SWAP_2
+#  define JE_FORCE_SYNC_COMPARE_AND_SWAP_4
+#  define JE_FORCE_SYNC_COMPARE_AND_SWAP_8
+#endif
+
 /******************************************************************************/
 /* 64-bit operations. */
-#if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
-#  if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_8))
+#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_8))
 /* Unsigned */
 ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x)
 {
@@ -105,7 +115,7 @@ ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new)
   return __sync_val_compare_and_swap(v, old, _new);
 }
 
-#  elif (defined(__amd64__) || defined(__x86_64__))
+#elif (defined(__amd64__) || defined(__x86_64__))
 /* Unsigned */
 ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x)
 {
@@ -179,9 +189,8 @@ ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new)
   asm volatile("lock; cmpxchgq %2,%1" : "=a"(ret), "+m"(*v) : "r"(_new), "0"(old) : "memory");
   return ret;
 }
-#  else
-#    error "Missing implementation for 64-bit atomic operations"
-#  endif
+#else
+#  error "Missing implementation for 64-bit atomic operations"
 #endif
 
 /******************************************************************************/
@@ -315,6 +324,24 @@ ATOMIC_INLINE int32_t atomic_fetch_and_and_int32(int32_t *p, int32_t x)
 
 #else
 #  error "Missing implementation for 32-bit atomic operations"
+#endif
+
+/******************************************************************************/
+/* 16-bit operations. */
+#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_2) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_2))
+
+/* Signed */
+ATOMIC_INLINE int16_t atomic_fetch_and_and_int16(int16_t *p, int16_t b)
+{
+  return __sync_fetch_and_and(p, b);
+}
+ATOMIC_INLINE int16_t atomic_fetch_and_or_int16(int16_t *p, int16_t b)
+{
+  return __sync_fetch_and_or(p, b);
+}
+
+#else
+#  error "Missing implementation for 16-bit atomic operations"
 #endif
 
 /******************************************************************************/

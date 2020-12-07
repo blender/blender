@@ -3205,7 +3205,7 @@ static void calchandleNurb_intern(BezTriple *bezt,
   const float eps = 1e-5;
 
   /* assume normal handle until we check */
-  bezt->f5 = HD_AUTOTYPE_NORMAL;
+  bezt->auto_handle_type = HD_AUTOTYPE_NORMAL;
 
   if (bezt->h1 == 0 && bezt->h2 == 0) {
     return;
@@ -3298,7 +3298,7 @@ static void calchandleNurb_intern(BezTriple *bezt,
           float ydiff2 = next->vec[1][1] - bezt->vec[1][1];
           if ((ydiff1 <= 0.0f && ydiff2 <= 0.0f) || (ydiff1 >= 0.0f && ydiff2 >= 0.0f)) {
             bezt->vec[0][1] = bezt->vec[1][1];
-            bezt->f5 = HD_AUTOTYPE_SPECIAL;
+            bezt->auto_handle_type = HD_AUTOTYPE_LOCKED_FINAL;
           }
           else { /* handles should not be beyond y coord of two others */
             if (ydiff1 <= 0.0f) {
@@ -3325,7 +3325,7 @@ static void calchandleNurb_intern(BezTriple *bezt,
           float ydiff2 = next->vec[1][1] - bezt->vec[1][1];
           if ((ydiff1 <= 0.0f && ydiff2 <= 0.0f) || (ydiff1 >= 0.0f && ydiff2 >= 0.0f)) {
             bezt->vec[2][1] = bezt->vec[1][1];
-            bezt->f5 = HD_AUTOTYPE_SPECIAL;
+            bezt->auto_handle_type = HD_AUTOTYPE_LOCKED_FINAL;
           }
           else { /* handles should not be beyond y coord of two others */
             if (ydiff1 <= 0.0f) {
@@ -3673,24 +3673,33 @@ static bool tridiagonal_solve_with_limits(float *a,
  * |    |      |          |            |        |
  * |    |      |          |            |        |
  * |    |      |          |            |        |
- * |-------t1---------t2--------- ~ --------tN-------------------> time (co 0)
+ * |------dx1--------dx2--------- ~ -------dxN-------------------> time (co 0)
+ *
+ * Notation:
+ *
+ *   x[i], y[i] - keyframe coordinates
+ *   h[i]       - right handle y offset from y[i]
+ *
+ *   dx[i] = x[i] - x[i-1]
+ *   dy[i] = y[i] - y[i-1]
+ *
  * Mathematical basis:
  *
  * 1. Handle lengths on either side of each point are connected by a factor
  *    ensuring continuity of the first derivative:
  *
- *    l[i] = t[i+1]/t[i]
+ *    l[i] = dx[i+1]/dx[i]
  *
  * 2. The tridiagonal system is formed by the following equation, which is derived
  *    by differentiating the bezier curve and specifies second derivative continuity
  *    at every point:
  *
- *    l[i]^2 * h[i-1] + (2*l[i]+2) * h[i] + 1/l[i+1] * h[i+1] = (y[i]-y[i-1])*l[i]^2 + y[i+1]-y[i]
+ *    l[i]^2 * h[i-1] + (2*l[i]+2) * h[i] + 1/l[i+1] * h[i+1] = dy[i]*l[i]^2 + dy[i+1]
  *
  * 3. If this point is adjacent to a manually set handle with X size not equal to 1/3
  *    of the horizontal interval, this equation becomes slightly more complex:
  *
- *    l[i]^2 * h[i-1] + (3*(1-R[i-1])*l[i] + 3*(1-L[i+1])) * h[i] + 1/l[i+1] * h[i+1] = (y[i]-y[i-1])*l[i]^2 + y[i+1]-y[i]
+ *    l[i]^2 * h[i-1] + (3*(1-R[i-1])*l[i] + 3*(1-L[i+1])) * h[i] + 1/l[i+1] * h[i+1] = dy[i]*l[i]^2 + dy[i+1]
  *
  *    The difference between equations amounts to this, and it's obvious that when R[i-1]
  *    and L[i+1] are both 1/3, it becomes zero:
@@ -3699,6 +3708,14 @@ static bool tridiagonal_solve_with_limits(float *a,
  *
  * 4. The equations for zero acceleration border conditions are basically the above
  *    equation with parts omitted, so the handle size correction also applies.
+ *
+ * 5. The fully cyclic curve case is handled by eliminating one of the end points,
+ *    and instead of border conditions connecting the curve via a set of equations:
+ *
+ *    l[0] = l[N] = dx[1] / dx[N]
+ *    dy[0] = dy[N]
+ *    Continuity equation (item 2) for i = 0.
+ *    Substitute h[0] for h[N] and h[N-1] for h[-1]
  */
 /* clang-format on */
 
@@ -3801,8 +3818,8 @@ static void bezier_output_handle(BezTriple *bezt, bool right, float dy, bool end
 
 static bool bezier_check_solve_end_handle(BezTriple *bezt, char htype, bool end)
 {
-  return (htype == HD_VECT) ||
-         (end && ELEM(htype, HD_AUTO, HD_AUTO_ANIM) && bezt->f5 == HD_AUTOTYPE_NORMAL);
+  return (htype == HD_VECT) || (end && ELEM(htype, HD_AUTO, HD_AUTO_ANIM) &&
+                                bezt->auto_handle_type == HD_AUTOTYPE_NORMAL);
 }
 
 static float bezier_calc_handle_adj(float hsize[2], float dx)
@@ -3869,7 +3886,15 @@ static void bezier_handle_calc_smooth_fcurve(
 
   /* ratio of x intervals */
 
-  l[0] = l[count - 1] = 1.0f;
+  if (full_cycle) {
+    dx[0] = dx[count - 1];
+    dy[0] = dy[count - 1];
+
+    l[0] = l[count - 1] = dx[1] / dx[0];
+  }
+  else {
+    l[0] = l[count - 1] = 1.0f;
+  }
 
   for (int i = 1; i < count - 1; i++) {
     l[i] = dx[i + 1] / dx[i];
@@ -3904,11 +3929,6 @@ static void bezier_handle_calc_smooth_fcurve(
   if (full_cycle) {
     /* reduce the number of unknowns by one */
     int i = solve_count = count - 1;
-
-    dx[0] = dx[i];
-    dy[0] = dy[i];
-
-    l[0] = l[i] = dx[1] / dx[0];
 
     hmin[0] = max_ff(hmin[0], hmin[i]);
     hmax[0] = min_ff(hmax[0], hmax[i]);
@@ -3995,7 +4015,7 @@ static void bezier_handle_calc_smooth_fcurve(
 
 static bool is_free_auto_point(BezTriple *bezt)
 {
-  return BEZT_IS_AUTOH(bezt) && bezt->f5 == HD_AUTOTYPE_NORMAL;
+  return BEZT_IS_AUTOH(bezt) && bezt->auto_handle_type == HD_AUTOTYPE_NORMAL;
 }
 
 void BKE_nurb_handle_smooth_fcurve(BezTriple *bezt, int total, bool cyclic)

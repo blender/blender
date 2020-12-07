@@ -598,20 +598,28 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
       list(APPEND render_tests grease_pencil)
     endif()
 
+    # Cycles
     if(WITH_CYCLES)
-      foreach(render_test bake;${render_tests})
-        add_python_test(
-          cycles_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
-          -blender "${TEST_BLENDER_EXE}"
-          -testdir "${TEST_SRC_DIR}/render/${render_test}"
-          -idiff "${OPENIMAGEIO_IDIFF}"
-          -outdir "${TEST_OUT_DIR}/cycles"
-        )
+      foreach(_cycles_device ${CYCLES_TEST_DEVICES})
+        string(TOLOWER "${_cycles_device}" _cycles_device_lower)
+        set(_cycles_render_tests bake;${render_tests};osl)
+
+        foreach(render_test ${_cycles_render_tests})
+          add_python_test(
+            cycles_${render_test}_${_cycles_device_lower}
+            ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
+            -blender "${TEST_BLENDER_EXE}"
+            -testdir "${TEST_SRC_DIR}/render/${render_test}"
+            -idiff "${OPENIMAGEIO_IDIFF}"
+            -outdir "${TEST_OUT_DIR}/cycles"
+            -device ${_cycles_device}
+          )
+        endforeach()
       endforeach()
     endif()
 
     if(WITH_OPENGL_RENDER_TESTS)
+      # Eevee
       foreach(render_test ${render_tests})
         add_python_test(
           eevee_${render_test}_test
@@ -624,6 +632,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
       endforeach()
 
       foreach(render_test ${render_tests})
+        # Workbench
         add_python_test(
           workbench_${render_test}_test
           ${CMAKE_CURRENT_LIST_DIR}/workbench_render_tests.py

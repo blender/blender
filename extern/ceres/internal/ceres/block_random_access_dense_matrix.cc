@@ -31,6 +31,7 @@
 #include "ceres/block_random_access_dense_matrix.h"
 
 #include <vector>
+
 #include "ceres/internal/eigen.h"
 #include "glog/logging.h"
 
@@ -59,8 +60,7 @@ BlockRandomAccessDenseMatrix::BlockRandomAccessDenseMatrix(
 
 // Assume that the user does not hold any locks on any cell blocks
 // when they are calling SetZero.
-BlockRandomAccessDenseMatrix::~BlockRandomAccessDenseMatrix() {
-}
+BlockRandomAccessDenseMatrix::~BlockRandomAccessDenseMatrix() {}
 
 CellInfo* BlockRandomAccessDenseMatrix::GetCell(const int row_block_id,
                                                 const int col_block_id,

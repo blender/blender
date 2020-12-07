@@ -30,13 +30,14 @@
 
 #include "ceres/visibility.h"
 
+#include <algorithm>
 #include <cmath>
 #include <ctime>
-#include <algorithm>
 #include <set>
-#include <vector>
 #include <unordered_map>
 #include <utility>
+#include <vector>
+
 #include "ceres/block_structure.h"
 #include "ceres/graph.h"
 #include "ceres/pair_hash.h"
@@ -138,9 +139,10 @@ WeightedGraph<int>* CreateSchurComplementGraph(
     const int count = camera_pair_count.second;
     DCHECK_NE(camera1, camera2);
     // Static cast necessary for Windows.
-    const double weight = static_cast<double>(count) /
-        (sqrt(static_cast<double>(
-                  visibility[camera1].size() * visibility[camera2].size())));
+    const double weight =
+        static_cast<double>(count) /
+        (sqrt(static_cast<double>(visibility[camera1].size() *
+                                  visibility[camera2].size())));
     graph->AddEdge(camera1, camera2, weight);
   }
 

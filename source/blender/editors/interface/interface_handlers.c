@@ -365,7 +365,7 @@ typedef struct uiHandleButtonData {
   /* Button text selection:
    * extension direction, selextend, inside ui_do_but_TEX */
   int sel_pos_init;
-  /* allow to realloc str/editstr and use 'maxlen' to track alloc size (maxlen + 1) */
+  /* Allow reallocating str/editstr and using 'maxlen' to track alloc size (maxlen + 1) */
   bool is_str_dynamic;
 
   /* number editing / dragging */
@@ -504,7 +504,7 @@ bool ui_but_is_editing(const uiBut *but)
 void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 {
   static int lastdy = 0;
-  int dy = event->prevy - event->y;
+  int dy = WM_event_absolute_delta_y(event);
 
   /* This event should be originally from event->type,
    * converting wrong event into wheel is bad, see T33803. */
@@ -518,10 +518,6 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
     lastdy += dy;
 
     if (abs(lastdy) > (int)UI_UNIT_Y) {
-      if (U.uiflag2 & USER_TRACKPAD_NATURAL) {
-        dy = -dy;
-      }
-
       *val = KM_PRESS;
 
       if (dy > 0) {
@@ -822,22 +818,27 @@ static void ui_apply_but_undo(uiBut *but)
 {
   if (but->flag & UI_BUT_UNDO) {
     const char *str = NULL;
+    size_t str_len_clip = SIZE_MAX - 1;
     bool skip_undo = false;
 
     /* define which string to use for undo */
     if (but->type == UI_BTYPE_MENU) {
       str = but->drawstr;
+      str_len_clip = ui_but_drawstr_len_without_sep_char(but);
     }
     else if (but->drawstr[0]) {
       str = but->drawstr;
+      str_len_clip = ui_but_drawstr_len_without_sep_char(but);
     }
     else {
       str = but->tip;
+      str_len_clip = ui_but_tip_len_only_first_line(but);
     }
 
     /* fallback, else we don't get an undo! */
-    if (str == NULL || str[0] == '\0') {
+    if (str == NULL || str[0] == '\0' || str_len_clip == 0) {
       str = "Unknown Action";
+      str_len_clip = strlen(str);
     }
 
     /* Optionally override undo when undo system doesn't support storing properties. */
@@ -873,7 +874,7 @@ static void ui_apply_but_undo(uiBut *but)
 
     /* delayed, after all other funcs run, popups are closed, etc */
     uiAfterFunc *after = ui_afterfunc_new();
-    BLI_strncpy(after->undostr, str, sizeof(after->undostr));
+    BLI_strncpy(after->undostr, str, min_zz(str_len_clip + 1, sizeof(after->undostr)));
   }
 }
 
@@ -8363,8 +8364,8 @@ uiBut *UI_context_active_but_get(const bContext *C)
  */
 uiBut *UI_context_active_but_get_respect_menu(const bContext *C)
 {
-  ARegion *ar_menu = CTX_wm_menu(C);
-  return ui_context_button_active(ar_menu ? ar_menu : CTX_wm_region(C), NULL);
+  ARegion *region_menu = CTX_wm_menu(C);
+  return ui_context_button_active(region_menu ? region_menu : CTX_wm_region(C), NULL);
 }
 
 uiBut *UI_region_active_but_get(ARegion *region)
@@ -9327,26 +9328,26 @@ static void ui_menu_scroll_apply_offset_y(ARegion *region, uiBlock *block, float
 {
   BLI_assert(dy != 0.0f);
 
-  if (ui_block_is_menu(block)) {
-    if (dy < 0.0f) {
-      /* Stop at top item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
-      float ymax = -FLT_MAX;
-      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
-        ymax = max_ff(ymax, bt->rect.ymax);
-      }
-      if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD) {
-        dy = block->rect.ymax - ymax - UI_MENU_SCROLL_PAD;
-      }
+  const int scroll_pad = ui_block_is_menu(block) ? UI_MENU_SCROLL_PAD : UI_UNIT_Y * 0.5f;
+
+  if (dy < 0.0f) {
+    /* Stop at top item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
+    float ymax = -FLT_MAX;
+    LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+      ymax = max_ff(ymax, bt->rect.ymax);
     }
-    else {
-      /* Stop at bottom item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
-      float ymin = FLT_MAX;
-      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
-        ymin = min_ff(ymin, bt->rect.ymin);
-      }
-      if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD) {
-        dy = block->rect.ymin - ymin + UI_MENU_SCROLL_PAD;
-      }
+    if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - scroll_pad) {
+      dy = block->rect.ymax - ymax - scroll_pad;
+    }
+  }
+  else {
+    /* Stop at bottom item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
+    float ymin = FLT_MAX;
+    LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
+      ymin = min_ff(ymin, bt->rect.ymin);
+    }
+    if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + scroll_pad) {
+      dy = block->rect.ymin - ymin + scroll_pad;
     }
   }
 
@@ -9697,30 +9698,41 @@ static int ui_handle_menu_event(bContext *C,
           retval = WM_UI_HANDLER_BREAK;
           break;
 
-        case WHEELUPMOUSE:
-        case WHEELDOWNMOUSE:
+        /* Smooth scrolling for popovers. */
         case MOUSEPAN: {
           if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
             /* pass */
           }
           else if (!ui_block_is_menu(block)) {
-            int type = event->type;
-            int val = event->val;
+            if (block->flag & (UI_BLOCK_CLIPTOP | UI_BLOCK_CLIPBOTTOM)) {
+              const float dy = event->y - event->prevy;
+              if (dy != 0.0f) {
+                ui_menu_scroll_apply_offset_y(region, block, dy);
 
-            /* Convert pan to scroll-wheel. */
-            if (type == MOUSEPAN) {
-              ui_pan_to_scroll(event, &type, &val);
-            }
-
-            if (type != MOUSEPAN) {
-              const int scroll_dir = (type == WHEELUPMOUSE) ? 1 : -1;
-              if (ui_menu_scroll_step(region, block, scroll_dir)) {
                 if (but) {
                   but->active->cancel = true;
                   button_activate_exit(C, but, but->active, false, false);
                 }
                 WM_event_add_mousemove(CTX_wm_window(C));
               }
+            }
+            break;
+          }
+          ATTR_FALLTHROUGH;
+        }
+        case WHEELUPMOUSE:
+        case WHEELDOWNMOUSE: {
+          if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
+            /* pass */
+          }
+          else if (!ui_block_is_menu(block)) {
+            const int scroll_dir = (event->type == WHEELUPMOUSE) ? 1 : -1;
+            if (ui_menu_scroll_step(region, block, scroll_dir)) {
+              if (but) {
+                but->active->cancel = true;
+                button_activate_exit(C, but, but->active, false, false);
+              }
+              WM_event_add_mousemove(CTX_wm_window(C));
             }
             break;
           }
@@ -10232,8 +10244,7 @@ static int ui_but_pie_menu_apply(bContext *C,
       menu->menuretval = UI_RETURN_CANCEL;
     }
     else {
-      ui_apply_but(C, but->block, but, but->active, false);
-      button_activate_exit((bContext *)C, but, but->active, false, true);
+      button_activate_exit((bContext *)C, but, but->active, false, false);
 
       menu->menuretval = UI_RETURN_OK;
     }

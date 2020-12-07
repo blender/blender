@@ -31,8 +31,7 @@
 
 #include "BKE_animsys.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* Animated property storage. */
 
@@ -178,5 +177,4 @@ AnimatedPropertyStorage *DepsgraphBuilderCache::ensureInitializedAnimatedPropert
   return animated_property_storage;
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

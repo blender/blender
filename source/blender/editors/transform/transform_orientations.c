@@ -552,6 +552,7 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
       if (rv3d != NULL) {
         copy_m3_m4(r_mat, rv3d->viewinv);
         normalize_m3(r_mat);
+        negate_v3(r_mat[2]);
       }
       else {
         unit_m3(r_mat);
@@ -572,7 +573,7 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
       TransformOrientation *custom_orientation = BKE_scene_transform_orientation_find(
           scene, orientation_index_custom);
       applyTransformOrientation(custom_orientation, r_mat, NULL);
-      break;
+      return V3D_ORIENT_CUSTOM + orientation_index_custom;
     }
   }
 

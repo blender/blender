@@ -28,8 +28,7 @@
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_relation.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 void TimeSourceNode::tag_update(Depsgraph * /*graph*/, eUpdateSource /*source*/)
 {
@@ -47,5 +46,4 @@ void TimeSourceNode::flush_update_tag(Depsgraph *graph)
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

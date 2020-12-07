@@ -52,16 +52,24 @@ static void image_free_gpu(Image *ima, const bool immediate);
 /* Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied. */
 bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
 {
-  const bool type_is_premultiplied = (image == NULL) || ELEM(image->type,
-                                                             IMA_TYPE_R_RESULT,
-                                                             IMA_TYPE_COMPOSITE,
-                                                             IMA_TYPE_UV_TEST);
-  const bool store_premultiplied =
-      type_is_premultiplied ||
-      ((ibuf != NULL) &&
-       (ibuf->rect_float ? (image ? (image->alpha_mode != IMA_ALPHA_STRAIGHT) : false) :
-                           (image ? (image->alpha_mode == IMA_ALPHA_PREMUL) : true)));
-  return store_premultiplied;
+  if (image) {
+    /* Render result and compositor output are always premultiplied */
+    if (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+      return true;
+    }
+    /* Generated images use pre multiplied float buffer, but straight alpha for byte buffers. */
+    if (image->type == IMA_TYPE_UV_TEST && ibuf) {
+      return ibuf->rect_float != NULL;
+    }
+  }
+  else if (ibuf) {
+    if (ibuf->rect_float) {
+      return image ? (image->alpha_mode != IMA_ALPHA_STRAIGHT) : false;
+    }
+
+    return image ? (image->alpha_mode == IMA_ALPHA_PREMUL) : true;
+  }
+  return false;
 }
 
 /* -------------------------------------------------------------------- */

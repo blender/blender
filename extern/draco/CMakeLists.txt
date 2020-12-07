@@ -19,20 +19,24 @@
 # ***** END GPL LICENSE BLOCK *****
 
 # Build Draco library.
-add_subdirectory(dracoenc)
+add_subdirectory(draco)
 
-# Build blender-draco-exporter module.
+# Build Draco-Blender bridging module.
 set(SRC
-  src/draco-compressor.cpp
-  src/draco-compressor.h
+  src/common.cpp
+  src/common.h
+  src/decoder.cpp
+  src/decoder.h
+  src/encoder.cpp
+  src/encoder.h
 )
 
 set(INC
-  dracoenc/src
+  draco/src
 )
 
 set(LIB
-  dracoenc
+  draco
 )
 
 add_library(extern_draco SHARED "${SRC}")

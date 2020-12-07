@@ -619,6 +619,12 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_NODE_LAYOUT:
           cp = ts->nodeclass_layout;
           break;
+        case TH_NODE_GEOMETRY:
+          cp = ts->nodeclass_geometry;
+          break;
+        case TH_NODE_ATTRIBUTE:
+          cp = ts->nodeclass_attribute;
+          break;
         case TH_NODE_SHADER:
           cp = ts->nodeclass_shader;
           break;

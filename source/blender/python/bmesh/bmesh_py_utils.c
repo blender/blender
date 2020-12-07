@@ -109,6 +109,9 @@ PyDoc_STRVAR(bpy_bm_utils_vert_collapse_faces_doc,
              "   :type edge: :class:`bmesh.types.BMEdge`\n"
              "   :arg fac: The factor to use when merging customdata [0 - 1].\n"
              "   :type fac: float\n"
+             "   :arg join_faces: When true the faces around the vertex will be joined otherwise "
+             "collapse the vertex by merging the 2 edges this vertex connects to into one.\n"
+             "   :type join_faces: bool\n"
              "   :return: The resulting edge from the collapse operation.\n"
              "   :rtype: :class:`bmesh.types.BMEdge`\n");
 static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObject *args)

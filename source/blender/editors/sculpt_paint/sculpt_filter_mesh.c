@@ -448,7 +448,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         mul_v3_v3fl(disp, ss->filter_cache->detail_directions[vd.index], -fabsf(fade));
       } break;
       case MESH_FILTER_ERASE_DISPLACEMENT: {
-        fade = clamp_f(fade, 0.0f, 1.0f);
+        fade = clamp_f(fade, -1.0f, 1.0f);
         sub_v3_v3v3(disp, ss->filter_cache->limit_surface_co[vd.index], orig_co);
         mul_v3_fl(disp, fade);
         break;
@@ -710,7 +710,7 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
     SCULPT_boundary_info_ensure(ob);
   }
 
-  SCULPT_undo_push_begin("Mesh Filter");
+  SCULPT_undo_push_begin(ob, "Mesh Filter");
 
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
 

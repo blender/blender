@@ -145,6 +145,16 @@ typedef struct DEGObjectIterData {
 
   eEvaluationMode eval_mode;
 
+  /* **** Iteration over geometry components **** */
+
+  /* The object whose components we currently iterate over.
+   * This might point to #temp_dupli_object. */
+  struct Object *geometry_component_owner;
+  /* Some identifier that is used to determine which geometry component should be returned next. */
+  int geometry_component_id;
+  /* Temporary storage for an object that is created from a component. */
+  struct Object temp_geometry_component_object;
+
   /* **** Iteration over dupli-list. *** */
 
   /* Object which created the dupli-list. */

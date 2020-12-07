@@ -66,9 +66,14 @@
 
 #include "SEQ_sequencer.h"
 
+#include "effects.h"
+#include "image_cache.h"
+#include "multiview.h"
+#include "prefetch.h"
 #include "proxy.h"
 #include "render.h"
-#include "sequencer.h"
+#include "strip_time.h"
+#include "utils.h"
 
 static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
                                      SeqRenderState *state,
@@ -80,7 +85,7 @@ static ThreadMutex seq_render_mutex = BLI_MUTEX_INITIALIZER;
 SequencerDrawView sequencer_view3d_fn = NULL; /* NULL in background mode */
 
 /* -------------------------------------------------------------------- */
-/** \name Colorspace utility functions
+/** \name Color-space utility functions
  * \{ */
 void seq_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 {
@@ -255,55 +260,6 @@ void SEQ_render_new_render_data(Main *bmain,
 void seq_render_state_init(SeqRenderState *state)
 {
   state->scene_parents = NULL;
-}
-
-float seq_give_frame_index(Sequence *seq, float timeline_frame)
-{
-  float frame_index;
-  int sta = seq->start;
-  int end = seq->start + seq->len - 1;
-
-  if (seq->type & SEQ_TYPE_EFFECT) {
-    end = seq->enddisp;
-  }
-
-  if (end < sta) {
-    return -1;
-  }
-
-  if (seq->flag & SEQ_REVERSE_FRAMES) {
-    /*reverse frame in this sequence */
-    if (timeline_frame <= sta) {
-      frame_index = end - sta;
-    }
-    else if (timeline_frame >= end) {
-      frame_index = 0;
-    }
-    else {
-      frame_index = end - timeline_frame;
-    }
-  }
-  else {
-    if (timeline_frame <= sta) {
-      frame_index = 0;
-    }
-    else if (timeline_frame >= end) {
-      frame_index = end - sta;
-    }
-    else {
-      frame_index = timeline_frame - sta;
-    }
-  }
-
-  if (seq->strobe < 1.0f) {
-    seq->strobe = 1.0f;
-  }
-
-  if (seq->strobe > 1.0f) {
-    frame_index -= fmodf((double)frame_index, (double)seq->strobe);
-  }
-
-  return frame_index;
 }
 
 StripElem *SEQ_render_give_stripelem(Sequence *seq, int timeline_frame)
@@ -1778,9 +1734,8 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
           state->scene_parents = &scene_parent;
           /* end check */
 
-          /* Use the Scene Seq's scene for the context when rendering the scene's sequences
-           * (necessary for Multicam Selector among others).
-           */
+          /* Use the Scene sequence-strip's scene for the context when rendering the
+           * scene's sequences (necessary for multi-cam selector among others). */
           SeqRenderData local_context = *context;
           local_context.scene = seq->scene;
           local_context.skip_cache = true;
@@ -2040,11 +1995,11 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
   return out;
 }
 
-/*
- * returned ImBuf is refed!
- * you have to free after usage!
+/**
+ * \return The image buffer or NULL.
+ *
+ * \note The returned #ImBuf is has it's reference increased, free after usage!
  */
-
 ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, int chanshown)
 {
   Scene *scene = context->scene;

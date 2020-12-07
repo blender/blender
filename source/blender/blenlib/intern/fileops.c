@@ -357,7 +357,12 @@ void *BLI_gzopen(const char *filename, const char *mode)
 
   /* xxx Creates file before transcribing the path */
   if (mode[0] == 'w') {
-    fclose(ufopen(filename, "a"));
+    FILE *file = ufopen(filename, "a");
+    if (file == NULL) {
+      /* File couldn't be opened, e.g. due to permission error. */
+      return NULL;
+    }
+    fclose(file);
   }
 
   /* temporary #if until we update all libraries to 1.2.7

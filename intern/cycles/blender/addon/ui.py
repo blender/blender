@@ -23,6 +23,7 @@ from bl_ui.utils import PresetPanel
 from bpy.types import Panel
 
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
+from bl_ui.properties_view_layer import ViewLayerCryptomattePanel
 
 
 class CYCLES_PT_sampling_presets(PresetPanel, Panel):
@@ -885,30 +886,10 @@ class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
 
 
-class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, Panel):
+class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, ViewLayerCryptomattePanel):
     bl_label = "Cryptomatte"
     bl_context = "view_layer"
     bl_parent_id = "CYCLES_RENDER_PT_passes"
-
-    def draw(self, context):
-        import _cycles
-
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        cycles_view_layer = context.view_layer.cycles
-
-        col = layout.column(heading="Include", align=True)
-        col.prop(cycles_view_layer, "use_pass_crypto_object", text="Object")
-        col.prop(cycles_view_layer, "use_pass_crypto_material", text="Material")
-        col.prop(cycles_view_layer, "use_pass_crypto_asset", text="Asset")
-
-        layout.prop(cycles_view_layer, "pass_crypto_depth", text="Levels")
-
-        row = layout.row(align=True)
-        row.active = use_cpu(context)
-        row.prop(cycles_view_layer, "pass_crypto_accurate", text="Accurate Mode")
 
 
 class CYCLES_RENDER_PT_passes_debug(CyclesButtonsPanel, Panel):

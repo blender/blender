@@ -23,8 +23,7 @@
 #include "intern/builder/deg_builder_relations.h"
 #include "intern/depsgraph.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 CompositorBuilderPipeline::CompositorBuilderPipeline(::Depsgraph *graph, bNodeTree *nodetree)
     : AbstractBuilderPipeline(graph), nodetree_(nodetree)
@@ -44,5 +43,4 @@ void CompositorBuilderPipeline::build_relations(DepsgraphRelationBuilder &relati
   relation_builder.build_nodetree(nodetree_);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

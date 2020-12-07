@@ -2834,10 +2834,8 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
                 tselem->id = NULL;
               }
             }
-            if (space_outliner->treehash) {
-              /* rebuild hash table, because it depends on ids too */
-              space_outliner->storeflag |= SO_TREESTORE_REBUILD;
-            }
+            /* rebuild hash table, because it depends on ids too */
+            space_outliner->storeflag |= SO_TREESTORE_REBUILD;
           }
         }
         else if (sl->spacetype == SPACE_NODE) {

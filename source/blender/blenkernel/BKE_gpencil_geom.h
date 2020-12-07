@@ -37,6 +37,7 @@ struct bGPDlayer;
 struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
+struct bGPDcurve;
 
 /* Object boundbox. */
 bool BKE_gpencil_data_minmax(const struct bGPdata *gpd, float r_min[3], float r_max[3]);
@@ -51,11 +52,17 @@ void BKE_gpencil_stroke_boundingbox_calc(struct bGPDstroke *gps);
 
 /* stroke geometry utilities */
 void BKE_gpencil_stroke_normal(const struct bGPDstroke *gps, float r_normal[3]);
-void BKE_gpencil_stroke_simplify_adaptive(struct bGPDstroke *gps, float epsilon);
-void BKE_gpencil_stroke_simplify_fixed(struct bGPDstroke *gps);
-void BKE_gpencil_stroke_subdivide(struct bGPDstroke *gps, int level, int type);
-bool BKE_gpencil_stroke_trim(struct bGPDstroke *gps);
-void BKE_gpencil_stroke_merge_distance(struct bGPDframe *gpf,
+void BKE_gpencil_stroke_simplify_adaptive(struct bGPdata *gpd,
+                                          struct bGPDstroke *gps,
+                                          float epsilon);
+void BKE_gpencil_stroke_simplify_fixed(struct bGPdata *gpd, struct bGPDstroke *gps);
+void BKE_gpencil_stroke_subdivide(struct bGPdata *gpd,
+                                  struct bGPDstroke *gps,
+                                  int level,
+                                  int type);
+bool BKE_gpencil_stroke_trim(struct bGPdata *gpd, struct bGPDstroke *gps);
+void BKE_gpencil_stroke_merge_distance(struct bGPdata *gpd,
+                                       struct bGPDframe *gpf,
                                        struct bGPDstroke *gps,
                                        const float threshold,
                                        const bool use_unselected);
@@ -72,7 +79,7 @@ void BKE_gpencil_stroke_2d_flat_ref(const struct bGPDspoint *ref_points,
                                     const float scale,
                                     int *r_direction);
 void BKE_gpencil_stroke_fill_triangulate(struct bGPDstroke *gps);
-void BKE_gpencil_stroke_geometry_update(struct bGPDstroke *gps);
+void BKE_gpencil_stroke_geometry_update(struct bGPdata *gpd, struct bGPDstroke *gps);
 void BKE_gpencil_stroke_uv_update(struct bGPDstroke *gps);
 
 void BKE_gpencil_transform(struct bGPdata *gpd, const float mat[4][4]);
@@ -91,27 +98,58 @@ void BKE_gpencil_point_coords_apply_with_mat4(struct bGPdata *gpd,
                                               const GPencilPointCoordinates *elem_data,
                                               const float mat[4][4]);
 
-bool BKE_gpencil_stroke_sample(struct bGPDstroke *gps, const float dist, const bool select);
+bool BKE_gpencil_stroke_sample(struct bGPdata *gpd,
+                               struct bGPDstroke *gps,
+                               const float dist,
+                               const bool select);
 bool BKE_gpencil_stroke_smooth(struct bGPDstroke *gps, int i, float inf);
 bool BKE_gpencil_stroke_smooth_strength(struct bGPDstroke *gps, int point_index, float influence);
 bool BKE_gpencil_stroke_smooth_thickness(struct bGPDstroke *gps, int point_index, float influence);
 bool BKE_gpencil_stroke_smooth_uv(struct bGPDstroke *gps, int point_index, float influence);
 bool BKE_gpencil_stroke_close(struct bGPDstroke *gps);
-void BKE_gpencil_dissolve_points(struct bGPDframe *gpf, struct bGPDstroke *gps, const short tag);
+void BKE_gpencil_dissolve_points(struct bGPdata *gpd,
+                                 struct bGPDframe *gpf,
+                                 struct bGPDstroke *gps,
+                                 const short tag);
 
 bool BKE_gpencil_stroke_stretch(struct bGPDstroke *gps, const float dist, const float tip_length);
 bool BKE_gpencil_stroke_trim_points(struct bGPDstroke *gps,
                                     const int index_from,
                                     const int index_to);
-bool BKE_gpencil_stroke_split(struct bGPDframe *gpf,
+struct bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(struct bGPdata *gpd,
+                                                           struct bGPDframe *gpf,
+                                                           struct bGPDstroke *gps,
+                                                           struct bGPDstroke *next_stroke,
+                                                           int tag_flags,
+                                                           bool select,
+                                                           int limit);
+void BKE_gpencil_curve_delete_tagged_points(struct bGPdata *gpd,
+                                            struct bGPDframe *gpf,
+                                            struct bGPDstroke *gps,
+                                            struct bGPDstroke *next_stroke,
+                                            struct bGPDcurve *gpc,
+                                            int tag_flags);
+
+void BKE_gpencil_stroke_flip(struct bGPDstroke *gps);
+bool BKE_gpencil_stroke_split(struct bGPdata *gpd,
+                              struct bGPDframe *gpf,
                               struct bGPDstroke *gps,
                               const int before_index,
                               struct bGPDstroke **remaining_gps);
 bool BKE_gpencil_stroke_shrink(struct bGPDstroke *gps, const float dist);
 
 float BKE_gpencil_stroke_length(const struct bGPDstroke *gps, bool use_3d);
+float BKE_gpencil_stroke_segment_length(const struct bGPDstroke *gps,
+                                        const int start_index,
+                                        const int end_index,
+                                        bool use_3d);
 
 void BKE_gpencil_stroke_set_random_color(struct bGPDstroke *gps);
+
+void BKE_gpencil_stroke_join(struct bGPDstroke *gps_a,
+                             struct bGPDstroke *gps_b,
+                             const bool leave_gaps,
+                             const bool fit_thickness);
 
 bool BKE_gpencil_convert_mesh(struct Main *bmain,
                               struct Depsgraph *depsgraph,

@@ -651,6 +651,14 @@ void BLI_rcti_pad(rcti *rect, int pad_x, int pad_y)
   rect->ymax += pad_y;
 }
 
+void BLI_rctf_pad(rctf *rect, float pad_x, float pad_y)
+{
+  rect->xmin -= pad_x;
+  rect->ymin -= pad_y;
+  rect->xmax += pad_x;
+  rect->ymax += pad_y;
+}
+
 void BLI_rctf_resize_x(rctf *rect, float x)
 {
   rect->xmin = BLI_rctf_cent_x(rect) - (x * 0.5f);

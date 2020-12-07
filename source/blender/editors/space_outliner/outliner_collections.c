@@ -346,7 +346,7 @@ void outliner_collection_delete(
 
     /* Test in case collection got deleted as part of another one. */
     if (BLI_findindex(&bmain->collections, collection) != -1) {
-      /* We cannot allow to delete collections that are indirectly linked,
+      /* We cannot allow deleting collections that are indirectly linked,
        * or that are used by (linked to...) other linked scene/collection. */
       bool skip = false;
       if (ID_IS_LINKED(collection)) {

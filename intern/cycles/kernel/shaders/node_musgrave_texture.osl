@@ -684,7 +684,7 @@ float noise_musgrave_ridged_multi_fractal_4d(
 shader node_musgrave_texture(
     int use_mapping = 0,
     matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-    string type = "fBM",
+    string musgrave_type = "fBM",
     string dimensions = "3D",
     point Vector = P,
     float W = 0.0,
@@ -707,21 +707,21 @@ shader node_musgrave_texture(
 
   if (dimensions == "1D") {
     float p = W * Scale;
-    if (type == "multifractal") {
+    if (musgrave_type == "multifractal") {
       Fac = noise_musgrave_multi_fractal_1d(p, dimension, lacunarity, octaves);
     }
-    else if (type == "fBM") {
+    else if (musgrave_type == "fBM") {
       Fac = noise_musgrave_fBm_1d(p, dimension, lacunarity, octaves);
     }
-    else if (type == "hybrid_multifractal") {
+    else if (musgrave_type == "hybrid_multifractal") {
       Fac = noise_musgrave_hybrid_multi_fractal_1d(
           p, dimension, lacunarity, octaves, Offset, Gain);
     }
-    else if (type == "ridged_multifractal") {
+    else if (musgrave_type == "ridged_multifractal") {
       Fac = noise_musgrave_ridged_multi_fractal_1d(
           p, dimension, lacunarity, octaves, Offset, Gain);
     }
-    else if (type == "hetero_terrain") {
+    else if (musgrave_type == "hetero_terrain") {
       Fac = noise_musgrave_hetero_terrain_1d(p, dimension, lacunarity, octaves, Offset);
     }
     else {
@@ -730,21 +730,21 @@ shader node_musgrave_texture(
   }
   else if (dimensions == "2D") {
     vector2 p = vector2(s[0], s[1]) * Scale;
-    if (type == "multifractal") {
+    if (musgrave_type == "multifractal") {
       Fac = noise_musgrave_multi_fractal_2d(p, dimension, lacunarity, octaves);
     }
-    else if (type == "fBM") {
+    else if (musgrave_type == "fBM") {
       Fac = noise_musgrave_fBm_2d(p, dimension, lacunarity, octaves);
     }
-    else if (type == "hybrid_multifractal") {
+    else if (musgrave_type == "hybrid_multifractal") {
       Fac = noise_musgrave_hybrid_multi_fractal_2d(
           p, dimension, lacunarity, octaves, Offset, Gain);
     }
-    else if (type == "ridged_multifractal") {
+    else if (musgrave_type == "ridged_multifractal") {
       Fac = noise_musgrave_ridged_multi_fractal_2d(
           p, dimension, lacunarity, octaves, Offset, Gain);
     }
-    else if (type == "hetero_terrain") {
+    else if (musgrave_type == "hetero_terrain") {
       Fac = noise_musgrave_hetero_terrain_2d(p, dimension, lacunarity, octaves, Offset);
     }
     else {
@@ -753,21 +753,21 @@ shader node_musgrave_texture(
   }
   else if (dimensions == "3D") {
     vector3 p = s * Scale;
-    if (type == "multifractal") {
+    if (musgrave_type == "multifractal") {
       Fac = noise_musgrave_multi_fractal_3d(p, dimension, lacunarity, octaves);
     }
-    else if (type == "fBM") {
+    else if (musgrave_type == "fBM") {
       Fac = noise_musgrave_fBm_3d(p, dimension, lacunarity, octaves);
     }
-    else if (type == "hybrid_multifractal") {
+    else if (musgrave_type == "hybrid_multifractal") {
       Fac = noise_musgrave_hybrid_multi_fractal_3d(
           p, dimension, lacunarity, octaves, Offset, Gain);
     }
-    else if (type == "ridged_multifractal") {
+    else if (musgrave_type == "ridged_multifractal") {
       Fac = noise_musgrave_ridged_multi_fractal_3d(
           p, dimension, lacunarity, octaves, Offset, Gain);
     }
-    else if (type == "hetero_terrain") {
+    else if (musgrave_type == "hetero_terrain") {
       Fac = noise_musgrave_hetero_terrain_3d(p, dimension, lacunarity, octaves, Offset);
     }
     else {
@@ -776,21 +776,21 @@ shader node_musgrave_texture(
   }
   else if (dimensions == "4D") {
     vector4 p = vector4(s[0], s[1], s[2], W) * Scale;
-    if (type == "multifractal") {
+    if (musgrave_type == "multifractal") {
       Fac = noise_musgrave_multi_fractal_4d(p, dimension, lacunarity, octaves);
     }
-    else if (type == "fBM") {
+    else if (musgrave_type == "fBM") {
       Fac = noise_musgrave_fBm_4d(p, dimension, lacunarity, octaves);
     }
-    else if (type == "hybrid_multifractal") {
+    else if (musgrave_type == "hybrid_multifractal") {
       Fac = noise_musgrave_hybrid_multi_fractal_4d(
           p, dimension, lacunarity, octaves, Offset, Gain);
     }
-    else if (type == "ridged_multifractal") {
+    else if (musgrave_type == "ridged_multifractal") {
       Fac = noise_musgrave_ridged_multi_fractal_4d(
           p, dimension, lacunarity, octaves, Offset, Gain);
     }
-    else if (type == "hetero_terrain") {
+    else if (musgrave_type == "hetero_terrain") {
       Fac = noise_musgrave_hetero_terrain_4d(p, dimension, lacunarity, octaves, Offset);
     }
     else {

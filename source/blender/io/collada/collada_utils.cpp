@@ -144,7 +144,8 @@ bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
     mul_m4_m4m4(ob->obmat, par->obmat, ob->obmat);
   }
 
-  bool ok = ED_object_parent_set(nullptr, C, scene, ob, par, partype, xmirror, keep_transform, nullptr);
+  bool ok = ED_object_parent_set(
+      nullptr, C, scene, ob, par, partype, xmirror, keep_transform, nullptr);
   return ok;
 }
 
@@ -378,11 +379,9 @@ void bc_match_scale(std::vector<Object *> *objects_done,
                     UnitConverter &bc_unit,
                     bool scale_to_scene)
 {
-  for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end();
-       ++it) {
-    Object *ob = *it;
+  for (Object *ob : *objects_done) {
     if (ob->parent == nullptr) {
-      bc_match_scale(*it, bc_unit, scale_to_scene);
+      bc_match_scale(ob, bc_unit, scale_to_scene);
     }
   }
 }
@@ -449,12 +448,12 @@ void bc_triangulate_mesh(Mesh *me)
   BMesh *bm = BM_mesh_create(&bm_mesh_allocsize_default, &bm_create_params);
   BMeshFromMeshParams bm_from_me_params = {0};
   bm_from_me_params.calc_face_normal = true;
-  BM_mesh_bm_from_me(nullptr, bm, me, &bm_from_me_params);
+  BM_mesh_bm_from_me(bm, me, &bm_from_me_params);
   BM_mesh_triangulate(bm, quad_method, use_beauty, 4, tag_only, nullptr, nullptr, nullptr);
 
   BMeshToMeshParams bm_to_me_params = {0};
   bm_to_me_params.calc_object_remap = false;
-  BM_mesh_bm_to_me(nullptr, nullptr, bm, me, &bm_to_me_params);
+  BM_mesh_bm_to_me(nullptr, bm, me, &bm_to_me_params);
   BM_mesh_free(bm);
 }
 
@@ -523,10 +522,8 @@ BoneExtensionManager::~BoneExtensionManager()
   std::map<std::string, BoneExtensionMap *>::iterator map_it;
   for (map_it = extended_bone_maps.begin(); map_it != extended_bone_maps.end(); ++map_it) {
     BoneExtensionMap *extended_bones = map_it->second;
-    for (BoneExtensionMap::iterator ext_it = extended_bones->begin();
-         ext_it != extended_bones->end();
-         ++ext_it) {
-      delete ext_it->second;
+    for (auto &extended_bone : *extended_bones) {
+      delete extended_bone.second;
     }
     extended_bones->clear();
     delete extended_bones;

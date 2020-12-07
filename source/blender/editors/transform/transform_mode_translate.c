@@ -60,13 +60,18 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   char autoik[NUM_STR_REP_LEN];
   float dist;
 
+  UnitSettings *unit = NULL;
+  if (!(t->flag & T_2D_EDIT)) {
+    unit = &t->scene->unit;
+  }
+
   if (hasNumInput(&t->num)) {
     outputNumInput(&(t->num), tvec, &t->scene->unit);
     dist = len_v3(t->num.val);
   }
   else {
     float dvec[3];
-    if (!(t->flag & T_2D_EDIT) && t->con.mode & CON_APPLY) {
+    if (t->con.mode & CON_APPLY) {
       int i = 0;
       zero_v3(dvec);
       if (t->con.mode & CON_AXIS0) {
@@ -81,18 +86,22 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     }
     else {
       copy_v3_v3(dvec, vec);
+    }
+
+    if (t->flag & T_2D_EDIT) {
       applyAspectRatio(t, dvec);
     }
 
-    dist = len_v3(vec);
-    if (!(t->flag & T_2D_EDIT) && t->scene->unit.system) {
+    dist = len_v3(dvec);
+
+    if (unit) {
       for (int i = 0; i < 3; i++) {
         BKE_unit_value_as_string(&tvec[NUM_STR_REP_LEN * i],
                                  NUM_STR_REP_LEN,
-                                 dvec[i] * t->scene->unit.scale_length,
+                                 dvec[i] * unit->scale_length,
                                  4,
                                  B_UNIT_LENGTH,
-                                 &t->scene->unit,
+                                 unit,
                                  true);
       }
     }
@@ -103,14 +112,9 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     }
   }
 
-  if (!(t->flag & T_2D_EDIT) && t->scene->unit.system) {
-    BKE_unit_value_as_string(distvec,
-                             sizeof(distvec),
-                             dist * t->scene->unit.scale_length,
-                             4,
-                             B_UNIT_LENGTH,
-                             &t->scene->unit,
-                             false);
+  if (unit) {
+    BKE_unit_value_as_string(
+        distvec, sizeof(distvec), dist * unit->scale_length, 4, B_UNIT_LENGTH, unit, false);
   }
   else if (dist > 1e10f || dist < -1e10f) {
     /* prevent string buffer overflow */
@@ -389,7 +393,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 
     float incr_dir[3];
     mul_v3_m3v3(incr_dir, t->spacemtx_inv, global_dir);
-    if (transform_snap_increment(t, incr_dir)) {
+    if (!(activeSnap(t) && validSnap(t)) && transform_snap_increment(t, incr_dir)) {
       mul_v3_m3v3(incr_dir, t->spacemtx, incr_dir);
 
       /* Test for mixed snap with grid. */

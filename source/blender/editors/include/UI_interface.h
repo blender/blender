@@ -26,6 +26,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h" /* size_t */
 #include "RNA_types.h"
+#include "UI_interface_icons.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1351,7 +1352,7 @@ struct PointerRNA *UI_but_operator_ptr_get(uiBut *but);
 void UI_but_unit_type_set(uiBut *but, const int unit_type);
 int UI_but_unit_type_get(const uiBut *but);
 
-enum {
+typedef enum uiStringInfoType {
   BUT_GET_RNAPROP_IDENTIFIER = 1,
   BUT_GET_RNASTRUCT_IDENTIFIER,
   BUT_GET_RNAENUM_IDENTIFIER,
@@ -1364,10 +1365,10 @@ enum {
   BUT_GET_RNAENUM_TIP,
   BUT_GET_OP_KEYMAP,
   BUT_GET_PROP_KEYMAP,
-};
+} uiStringInfoType;
 
 typedef struct uiStringInfo {
-  int type;
+  uiStringInfoType type;
   char *strinfo;
 } uiStringInfo;
 
@@ -2430,6 +2431,9 @@ void uiItemTabsEnumR_prop(uiLayout *layout,
 
 /* Only for testing, inspecting layouts. */
 const char *UI_layout_introspect(uiLayout *layout);
+
+/* Helper to add a big icon and create a split layout for alert boxes. */
+uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon);
 
 /* UI Operators */
 typedef struct uiDragColorHandle {

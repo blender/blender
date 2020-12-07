@@ -55,6 +55,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_pbvh.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 
@@ -69,9 +70,9 @@
 #define MAX_INFO_NUM_LEN 16
 
 typedef struct SceneStats {
-  uint64_t totvert, totvertsel;
+  uint64_t totvert, totvertsel, totvertsculpt;
   uint64_t totedge, totedgesel;
-  uint64_t totface, totfacesel;
+  uint64_t totface, totfacesel, totfacesculpt;
   uint64_t totbone, totbonesel;
   uint64_t totobj, totobjsel;
   uint64_t totlamp, totlampsel;
@@ -81,9 +82,9 @@ typedef struct SceneStats {
 
 typedef struct SceneStatsFmt {
   /* Totals */
-  char totvert[MAX_INFO_NUM_LEN], totvertsel[MAX_INFO_NUM_LEN];
+  char totvert[MAX_INFO_NUM_LEN], totvertsel[MAX_INFO_NUM_LEN], totvertsculpt[MAX_INFO_NUM_LEN];
   char totface[MAX_INFO_NUM_LEN], totfacesel[MAX_INFO_NUM_LEN];
-  char totedge[MAX_INFO_NUM_LEN], totedgesel[MAX_INFO_NUM_LEN];
+  char totedge[MAX_INFO_NUM_LEN], totedgesel[MAX_INFO_NUM_LEN], totfacesculpt[MAX_INFO_NUM_LEN];
   char totbone[MAX_INFO_NUM_LEN], totbonesel[MAX_INFO_NUM_LEN];
   char totobj[MAX_INFO_NUM_LEN], totobjsel[MAX_INFO_NUM_LEN];
   char totlamp[MAX_INFO_NUM_LEN], totlampsel[MAX_INFO_NUM_LEN];
@@ -350,15 +351,38 @@ static void stats_object_pose(Object *ob, SceneStats *stats)
   }
 }
 
-static void stats_object_sculpt_dynamic_topology(Object *ob, SceneStats *stats)
+static bool stats_is_object_dynamic_topology_sculpt(Object *ob)
 {
-  stats->totvert = ob->sculpt->bm->totvert;
-  stats->tottri = ob->sculpt->bm->totface;
+  if (ob == NULL) {
+    return false;
+  }
+  const eObjectMode object_mode = ob->mode;
+  return ((object_mode & OB_MODE_SCULPT) && ob->sculpt && ob->sculpt->bm);
 }
 
-static bool stats_is_object_dynamic_topology_sculpt(Object *ob, const eObjectMode object_mode)
+static void stats_object_sculpt(Object *ob, SceneStats *stats)
 {
-  return (ob && (object_mode & OB_MODE_SCULPT) && ob->sculpt && ob->sculpt->bm);
+
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss) {
+    return;
+  }
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      stats->totvertsculpt = ss->totvert;
+      stats->totfacesculpt = ss->totfaces;
+      break;
+    case PBVH_BMESH:
+      stats->totvertsculpt = ob->sculpt->bm->totvert;
+      stats->tottri = ob->sculpt->bm->totface;
+      break;
+    case PBVH_GRIDS:
+      stats->totvertsculpt = BKE_pbvh_get_grid_num_vertices(ss->pbvh);
+      stats->totfacesculpt = BKE_pbvh_get_grid_num_faces(ss->pbvh);
+      break;
+  }
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
@@ -385,9 +409,9 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
     /* Pose Mode */
     stats_object_pose(ob, &stats);
   }
-  else if (ob && stats_is_object_dynamic_topology_sculpt(ob, ob->mode)) {
-    /* Dynamic-topology sculpt mode */
-    stats_object_sculpt_dynamic_topology(ob, &stats);
+  else if (stats_is_object_dynamic_topology_sculpt(ob)) {
+    /* Dynamic topology. Do not count all vertices, dynamic topology stats are initialized later as
+     * part of sculpt stats. */
   }
   else {
     /* Objects */
@@ -397,6 +421,12 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
     }
     DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
     BLI_gset_free(objects_gset, NULL);
+  }
+
+  if (ob && (ob->mode & OB_MODE_SCULPT)) {
+    /* Sculpt Mode. When dynamic topology is not enabled both sculpt stats and scene stats are
+     * collected. */
+    stats_object_sculpt(ob, &stats);
   }
 
   if (!view_layer->stats) {
@@ -437,12 +467,14 @@ static bool format_stats(Main *bmain,
 
   SCENE_STATS_FMT_INT(totvert);
   SCENE_STATS_FMT_INT(totvertsel);
+  SCENE_STATS_FMT_INT(totvertsculpt);
 
   SCENE_STATS_FMT_INT(totedge);
   SCENE_STATS_FMT_INT(totedgesel);
 
   SCENE_STATS_FMT_INT(totface);
   SCENE_STATS_FMT_INT(totfacesel);
+  SCENE_STATS_FMT_INT(totfacesculpt);
 
   SCENE_STATS_FMT_INT(totbone);
   SCENE_STATS_FMT_INT(totbonesel);
@@ -527,12 +559,23 @@ static void get_stats_string(
                          stats_fmt->totgpstroke,
                          stats_fmt->totgppoint);
   }
-  else if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
-    *ofs += BLI_snprintf(info + *ofs,
-                         len - *ofs,
-                         TIP_("Verts:%s | Tris:%s"),
-                         stats_fmt->totvert,
-                         stats_fmt->tottri);
+  else if (ob && (object_mode & OB_MODE_SCULPT)) {
+    if (stats_is_object_dynamic_topology_sculpt(ob)) {
+      *ofs += BLI_snprintf(info + *ofs,
+                           len - *ofs,
+                           TIP_("Verts:%s | Tris:%s"),
+                           stats_fmt->totvert,
+                           stats_fmt->tottri);
+    }
+    else {
+      *ofs += BLI_snprintf(info + *ofs,
+                           len - *ofs,
+                           TIP_("Verts:%s/%s | Faces:%s/%s"),
+                           stats_fmt->totvertsculpt,
+                           stats_fmt->totvert,
+                           stats_fmt->totfacesculpt,
+                           stats_fmt->totface);
+    }
   }
   else {
     *ofs += BLI_snprintf(info + *ofs,
@@ -727,9 +770,15 @@ void ED_info_draw_stats(
     stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, NULL, y, height);
     stats_row(col1, labels[POINTS], col2, stats_fmt.totgppoint, NULL, y, height);
   }
-  else if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
-    stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, NULL, y, height);
-    stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
+  else if (ob && (object_mode & OB_MODE_SCULPT)) {
+    if (stats_is_object_dynamic_topology_sculpt(ob)) {
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, NULL, y, height);
+      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
+    }
+    else {
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, stats_fmt.totvert, y, height);
+      stats_row(col1, labels[FACES], col2, stats_fmt.totfacesculpt, stats_fmt.totface, y, height);
+    }
   }
   else {
     stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, NULL, y, height);

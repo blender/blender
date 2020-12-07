@@ -53,6 +53,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
 #define MAX_SHADOW_CASCADE 8
 #define MAX_SHADOW_CUBE (MAX_SHADOW - MAX_CASCADE_NUM * MAX_SHADOW_CASCADE)
 #define MAX_BLOOM_STEP 16
+#define MAX_AOVS 64
 
 // #define DEBUG_SHADOW_DISTRIBUTION
 
@@ -163,7 +164,10 @@ BLI_INLINE bool eevee_hdri_preview_overlay_enabled(const View3D *v3d)
 #define EEVEE_RENDERPASSES_MATERIAL \
   (EEVEE_RENDER_PASS_EMIT | EEVEE_RENDER_PASS_DIFFUSE_COLOR | EEVEE_RENDER_PASS_DIFFUSE_LIGHT | \
    EEVEE_RENDER_PASS_SPECULAR_COLOR | EEVEE_RENDER_PASS_SPECULAR_LIGHT | \
-   EEVEE_RENDER_PASS_ENVIRONMENT)
+   EEVEE_RENDER_PASS_ENVIRONMENT | EEVEE_RENDER_PASS_AOV)
+#define EEVEE_AOV_HASH_ALL -1
+#define EEVEE_AOV_HASH_COLOR_TYPE_MASK 1
+#define MAX_CRYPTOMATTE_LAYERS 3
 
 /* Material shader variations */
 enum {
@@ -293,6 +297,7 @@ typedef struct EEVEE_PassList {
   /* Renderpass Accumulation. */
   struct DRWPass *material_accum_ps;
   struct DRWPass *background_accum_ps;
+  struct DRWPass *cryptomatte_ps;
 
   struct DRWPass *depth_ps;
   struct DRWPass *depth_cull_ps;
@@ -325,6 +330,7 @@ typedef struct EEVEE_FramebufferList {
   struct GPUFrameBuffer *bloom_down_fb[MAX_BLOOM_STEP];
   struct GPUFrameBuffer *bloom_accum_fb[MAX_BLOOM_STEP - 1];
   struct GPUFrameBuffer *bloom_pass_accum_fb;
+  struct GPUFrameBuffer *cryptomatte_fb;
   struct GPUFrameBuffer *shadow_accum_fb;
   struct GPUFrameBuffer *ssr_accum_fb;
   struct GPUFrameBuffer *sss_blur_fb;
@@ -376,10 +382,12 @@ typedef struct EEVEE_TextureList {
   struct GPUTexture *diff_light_accum;
   struct GPUTexture *spec_color_accum;
   struct GPUTexture *spec_light_accum;
+  struct GPUTexture *aov_surface_accum[MAX_AOVS];
   struct GPUTexture *emit_accum;
   struct GPUTexture *bloom_accum;
   struct GPUTexture *ssr_accum;
   struct GPUTexture *shadow_accum;
+  struct GPUTexture *cryptomatte;
   struct GPUTexture *refract_color;
   struct GPUTexture *taa_history;
 
@@ -430,7 +438,9 @@ typedef struct EEVEE_RenderPassData {
   int renderPassEmit;
   int renderPassSSSColor;
   int renderPassEnvironment;
-  int _pad[1];
+  int renderPassAOV;
+  int renderPassAOVActive;
+  int _pad[3];
 } EEVEE_RenderPassData;
 
 /* ************ LIGHT UBO ************* */
@@ -734,6 +744,7 @@ typedef struct EEVEE_EffectsInfo {
   float prev_persmat[4][4];
   /* Lookdev */
   int sphere_size;
+  eDRWLevelOfDetail sphere_lod;
   int anchor[2];
   struct DRWView *lookdev_view;
   /* Bloom */
@@ -859,6 +870,7 @@ typedef struct EEVEE_ViewLayerData {
     struct GPUUniformBuf *spec_color;
     struct GPUUniformBuf *spec_light;
     struct GPUUniformBuf *emit;
+    struct GPUUniformBuf *aovs[MAX_AOVS];
   } renderpass_ubo;
 
   /* Common Uniform Buffer */
@@ -902,6 +914,11 @@ typedef struct EEVEE_ObjectEngineData {
 typedef struct EEVEE_WorldEngineData {
   DrawData dd;
 } EEVEE_WorldEngineData;
+
+typedef struct EEVEE_CryptomatteSample {
+  float hash;
+  float weight;
+} EEVEE_CryptomatteSample;
 
 /* *********************************** */
 
@@ -958,6 +975,12 @@ typedef struct EEVEE_PrivateData {
   /* Renderpasses */
   /* Bitmask containing the active render_passes */
   eViewLayerEEVEEPassType render_passes;
+  int aov_hash;
+  int num_aovs_used;
+  bool cryptomatte_accurate_mode;
+  EEVEE_CryptomatteSample *cryptomatte_accum_buffer;
+  float *cryptomatte_download_buffer;
+
   /* Uniform references that are referenced inside the `renderpass_pass`. They are updated
    * to reuse the drawing pass and the shading group. */
   int renderpass_type;
@@ -1110,6 +1133,7 @@ struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_layer_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_screen_raytrace_sh_get(EEVEE_SSRShaderOptions options);
 struct GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void);
+struct GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair);
 struct GPUShader *EEVEE_shaders_shadow_sh_get(void);
 struct GPUShader *EEVEE_shaders_shadow_accum_sh_get(void);
 struct GPUShader *EEVEE_shaders_subsurface_first_pass_sh_get(void);
@@ -1214,6 +1238,30 @@ void EEVEE_bloom_draw(EEVEE_Data *vedata);
 void EEVEE_bloom_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, uint tot_samples);
 void EEVEE_bloom_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 
+/* eevee_cryptomatte.c */
+void EEVEE_cryptomatte_renderpasses_init(EEVEE_Data *vedata);
+void EEVEE_cryptomatte_output_init(EEVEE_ViewLayerData *sldata,
+                                   EEVEE_Data *vedata,
+                                   int tot_samples);
+void EEVEE_cryptomatte_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_cryptomatte_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob);
+void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
+                                                    EEVEE_ViewLayerData *sldata,
+                                                    Object *ob);
+void EEVEE_cryptomatte_object_hair_cache_populate(EEVEE_Data *vedata,
+                                                  EEVEE_ViewLayerData *sldata,
+                                                  Object *ob);
+void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_cryptomatte_update_passes(struct RenderEngine *engine,
+                                     struct Scene *scene,
+                                     struct ViewLayer *view_layer);
+void EEVEE_cryptomatte_render_result(struct RenderLayer *rl,
+                                     const char *viewname,
+                                     const rcti *rect,
+                                     EEVEE_Data *vedata,
+                                     EEVEE_ViewLayerData *sldata);
+void EEVEE_cryptomatte_free(EEVEE_Data *vedata);
+
 /* eevee_occlusion.c */
 int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata,
@@ -1283,10 +1331,12 @@ void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata,
                                           bool post_effect);
 void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *sldata,
                                     EEVEE_Data *vedata,
-                                    eViewLayerEEVEEPassType renderpass_type);
+                                    eViewLayerEEVEEPassType renderpass_type,
+                                    int aov_index);
 void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_renderpasses_draw_debug(EEVEE_Data *vedata);
 bool EEVEE_renderpasses_only_first_sample_pass_active(EEVEE_Data *vedata);
+int EEVEE_renderpasses_aov_hash(const ViewLayerAOV *aov);
 
 /* eevee_temporal_sampling.c */
 void EEVEE_temporal_sampling_reset(EEVEE_Data *vedata);

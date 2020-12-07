@@ -53,6 +53,7 @@
 
 #include "GPU_framebuffer.h"
 #include "outliner_intern.h"
+#include "tree/tree_display.h"
 
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -348,14 +349,25 @@ static void outliner_free(SpaceLink *sl)
   if (space_outliner->treestore) {
     BLI_mempool_destroy(space_outliner->treestore);
   }
-  if (space_outliner->treehash) {
-    BKE_outliner_treehash_free(space_outliner->treehash);
+
+  if (space_outliner->runtime) {
+    outliner_tree_display_destroy(&space_outliner->runtime->tree_display);
+    if (space_outliner->runtime->treehash) {
+      BKE_outliner_treehash_free(space_outliner->runtime->treehash);
+    }
+    MEM_freeN(space_outliner->runtime);
   }
 }
 
 /* spacetype; init callback */
-static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
+static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
+  SpaceOutliner *space_outliner = area->spacedata.first;
+
+  if (space_outliner->runtime == NULL) {
+    space_outliner->runtime = MEM_callocN(sizeof(*space_outliner->runtime),
+                                          "SpaceOutliner_Runtime");
+  }
 }
 
 static SpaceLink *outliner_duplicate(SpaceLink *sl)
@@ -365,9 +377,14 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 
   BLI_listbase_clear(&space_outliner_new->tree);
   space_outliner_new->treestore = NULL;
-  space_outliner_new->treehash = NULL;
 
   space_outliner_new->sync_select_dirty = WM_OUTLINER_SYNC_SELECT_FROM_ALL;
+
+  if (space_outliner->runtime) {
+    space_outliner_new->runtime = MEM_dupallocN(space_outliner->runtime);
+    space_outliner_new->runtime->tree_display = NULL;
+    space_outliner_new->runtime->treehash = NULL;
+  }
 
   return (SpaceLink *)space_outliner_new;
 }
@@ -397,7 +414,10 @@ static void outliner_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_i
         changed = true;
       }
     }
-    if (space_outliner->treehash && changed) {
+
+    /* Note that the Outliner may not be the active editor of the area, and hence not initialized.
+     * So runtime data might not have been created yet. */
+    if (space_outliner->runtime && space_outliner->runtime->treehash && changed) {
       /* rebuild hash table, because it depends on ids too */
       /* postpone a full rebuild because this can be called many times on-free */
       space_outliner->storeflag |= SO_TREESTORE_REBUILD;
@@ -409,7 +429,7 @@ static void outliner_deactivate(struct ScrArea *area)
 {
   /* Remove hover highlights */
   SpaceOutliner *space_outliner = area->spacedata.first;
-  outliner_flag_set(&space_outliner->tree, TSE_HIGHLIGHTED, false);
+  outliner_flag_set(&space_outliner->tree, TSE_HIGHLIGHTED_ANY, false);
   ED_region_tag_redraw_no_rebuild(BKE_area_find_region_type(area, RGN_TYPE_WINDOW));
 }
 

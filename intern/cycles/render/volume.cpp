@@ -72,6 +72,7 @@ enum {
   QUAD_Z_MAX = 5,
 };
 
+#ifdef WITH_OPENVDB
 const int quads_indices[6][4] = {
     /* QUAD_X_MIN */
     {4, 0, 3, 7},
@@ -136,6 +137,7 @@ static void create_quad(int3 corners[8],
 
   quads.push_back(quad);
 }
+#endif
 
 /* Create a mesh from a volume.
  *
@@ -280,16 +282,27 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
                                     vector<float3> &face_normals,
                                     const float face_overlap_avoidance)
 {
+#ifdef WITH_OPENVDB
   /* We create vertices in index space (is), and only convert them to object
    * space when done. */
   vector<int3> vertices_is;
   vector<QuadData> quads;
+
+  /* make sure we only have leaf nodes in the tree, as tiles are not handled by
+   * this algorithm */
+  topology_grid->tree().voxelizeActiveTiles();
 
   generate_vertices_and_quads(vertices_is, quads);
 
   convert_object_space(vertices_is, vertices, face_overlap_avoidance);
 
   convert_quads_to_tris(quads, indices, face_normals);
+#else
+  (void)vertices;
+  (void)indices;
+  (void)face_normals;
+  (void)face_overlap_avoidance;
+#endif
 }
 
 void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
@@ -491,6 +504,41 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   string msg = string_printf("Computing Volume Mesh %s", volume->name.c_str());
   progress.set_status("Updating Mesh", msg);
 
+  /* Find shader and compute padding based on volume shader interpolation settings. */
+  Shader *volume_shader = NULL;
+  int pad_size = 0;
+
+  foreach (Node *node, volume->get_used_shaders()) {
+    Shader *shader = static_cast<Shader *>(node);
+
+    if (!shader->has_volume) {
+      continue;
+    }
+
+    volume_shader = shader;
+
+    if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_LINEAR) {
+      pad_size = max(1, pad_size);
+    }
+    else if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_CUBIC) {
+      pad_size = max(2, pad_size);
+    }
+
+    break;
+  }
+
+  /* Clear existing volume mesh, done here in case we early out due to
+   * empty grid or missing volume shader.
+   * Also keep the shaders to avoid infinite loops when synchronizing, as this will tag the shaders
+   * as having changed. */
+  volume->clear(true);
+  volume->need_update_rebuild = true;
+
+  if (!volume_shader) {
+    return;
+  }
+
+  /* Create volume mesh builder. */
   VolumeMeshBuilder builder;
 
 #ifdef WITH_OPENVDB
@@ -537,34 +585,8 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   }
 #endif
 
+  /* If nothing to build, early out. */
   if (builder.empty_grid()) {
-    return;
-  }
-
-  /* Compute padding. */
-  Shader *volume_shader = NULL;
-  int pad_size = 0;
-
-  foreach (Node *node, volume->get_used_shaders()) {
-    Shader *shader = static_cast<Shader *>(node);
-
-    if (!shader->has_volume) {
-      continue;
-    }
-
-    volume_shader = shader;
-
-    if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_LINEAR) {
-      pad_size = max(1, pad_size);
-    }
-    else if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_CUBIC) {
-      pad_size = max(2, pad_size);
-    }
-
-    break;
-  }
-
-  if (!volume_shader) {
     return;
   }
 
@@ -583,11 +605,9 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   vector<float3> face_normals;
   builder.create_mesh(vertices, indices, face_normals, face_overlap_avoidance);
 
-  volume->clear();
   volume->reserve_mesh(vertices.size(), indices.size() / 3);
+  volume->used_shaders.clear();
   volume->used_shaders.push_back_slow(volume_shader);
-  volume->tag_modified();
-  volume->need_update_rebuild = true;
 
   for (size_t i = 0; i < vertices.size(); ++i) {
     volume->add_vertex(vertices[i]);

@@ -25,8 +25,7 @@
 
 #include "DNA_layer_types.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 namespace {
 
@@ -37,7 +36,7 @@ class AllObjectsNodeBuilder : public DepsgraphNodeBuilder {
   {
   }
 
-  virtual bool need_pull_base_into_graph(Base * /*base*/) override
+  bool need_pull_base_into_graph(Base * /*base*/) override
   {
     return true;
   }
@@ -50,7 +49,7 @@ class AllObjectsRelationBuilder : public DepsgraphRelationBuilder {
   {
   }
 
-  virtual bool need_pull_base_into_graph(Base * /*base*/) override
+  bool need_pull_base_into_graph(Base * /*base*/) override
   {
     return true;
   }
@@ -73,5 +72,4 @@ unique_ptr<DepsgraphRelationBuilder> AllObjectsBuilderPipeline::construct_relati
   return std::make_unique<AllObjectsRelationBuilder>(bmain_, deg_graph_, &builder_cache_);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

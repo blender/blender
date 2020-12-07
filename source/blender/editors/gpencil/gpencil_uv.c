@@ -273,7 +273,7 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
         changed = true;
 
         /* Calc geometry data. */
-        BKE_gpencil_stroke_geometry_update(gps);
+        BKE_gpencil_stroke_geometry_update(gpd, gps);
         i++;
       }
     }
@@ -291,7 +291,7 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
           gps->uv_rotation = opdata->array_rot[i] - uv_rotation;
 
           /* Calc geometry data. */
-          BKE_gpencil_stroke_geometry_update(gps);
+          BKE_gpencil_stroke_geometry_update(gpd, gps);
           i++;
         }
       }
@@ -316,7 +316,7 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
         if (gps->flag & GP_STROKE_SELECT) {
           gps->uv_scale = opdata->array_scale[i] + scale;
           /* Calc geometry data. */
-          BKE_gpencil_stroke_geometry_update(gps);
+          BKE_gpencil_stroke_geometry_update(gpd, gps);
           i++;
         }
       }
@@ -512,7 +512,7 @@ static int gpencil_reset_transform_fill_exec(bContext *C, wmOperator *op)
         gps->uv_scale = 1.0f;
       }
       /* Calc geometry data. */
-      BKE_gpencil_stroke_geometry_update(gps);
+      BKE_gpencil_stroke_geometry_update(gpd, gps);
       changed = true;
     }
   }

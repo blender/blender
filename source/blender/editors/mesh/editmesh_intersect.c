@@ -204,8 +204,15 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
 
     if (exact) {
       int nshapes = use_self ? 1 : 2;
-      has_isect = BM_mesh_boolean_knife(
-          em->bm, em->looptris, em->tottri, test_fn, NULL, nshapes, use_self, use_separate_all);
+      has_isect = BM_mesh_boolean_knife(em->bm,
+                                        em->looptris,
+                                        em->tottri,
+                                        test_fn,
+                                        NULL,
+                                        nshapes,
+                                        use_self,
+                                        use_separate_all,
+                                        true);
     }
     else {
       has_isect = BM_mesh_intersect(em->bm,
@@ -369,7 +376,7 @@ static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 
     if (use_exact) {
       has_isect = BM_mesh_boolean(
-          em->bm, em->looptris, em->tottri, test_fn, NULL, 2, use_self, boolean_operation);
+          em->bm, em->looptris, em->tottri, test_fn, NULL, 2, use_self, true, boolean_operation);
     }
     else {
       has_isect = BM_mesh_intersect(em->bm,

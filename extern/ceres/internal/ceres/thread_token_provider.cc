@@ -44,7 +44,6 @@ ThreadTokenProvider::ThreadTokenProvider(int num_threads) {
     pool_.Push(i);
   }
 #endif
-
 }
 
 int ThreadTokenProvider::Acquire() {
@@ -61,7 +60,6 @@ int ThreadTokenProvider::Acquire() {
   CHECK(pool_.Wait(&thread_id));
   return thread_id;
 #endif
-
 }
 
 void ThreadTokenProvider::Release(int thread_id) {
@@ -69,7 +67,6 @@ void ThreadTokenProvider::Release(int thread_id) {
 #ifdef CERES_USE_CXX_THREADS
   pool_.Push(thread_id);
 #endif
-
 }
 
 }  // namespace internal

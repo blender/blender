@@ -51,6 +51,9 @@
 #include "BKE_sound.h"
 #include "BKE_volume.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
 #include "BLO_read_write.h"
 
 int BKE_packedfile_seek(PackedFile *pf, int offset, int whence)
@@ -517,15 +520,30 @@ static void unpack_generate_paths(const char *name,
                                   size_t abspathlen,
                                   size_t relpathlen)
 {
+  const short id_type = GS(id->name);
   char tempname[FILE_MAX];
   char tempdir[FILE_MAXDIR];
 
   BLI_split_dirfile(name, tempdir, tempname, sizeof(tempdir), sizeof(tempname));
 
   if (tempname[0] == '\0') {
-    /* Note: we do not have any real way to re-create extension out of data... */
+    /* Note: we generally do not have any real way to re-create extension out of data. */
     BLI_strncpy(tempname, id->name + 2, sizeof(tempname));
     printf("%s\n", tempname);
+
+    /* For images we can add the file extension based on the file magic. */
+    if (id_type == ID_IM) {
+      ImagePackedFile *imapf = ((Image *)id)->packedfiles.last;
+      if (imapf != NULL && imapf->packedfile != NULL) {
+        const PackedFile *pf = imapf->packedfile;
+        enum eImbFileType ftype = IMB_ispic_type_from_memory((const uchar *)pf->data, pf->size);
+        if (ftype != IMB_FTYPE_NONE) {
+          const int imtype = BKE_image_ftype_to_imtype(ftype, NULL);
+          BKE_image_path_ensure_ext_from_imtype(tempname, imtype);
+        }
+      }
+    }
+
     BLI_filename_make_safe(tempname);
     printf("%s\n", tempname);
   }
@@ -535,7 +553,7 @@ static void unpack_generate_paths(const char *name,
     BLI_strncpy(tempdir, "//", sizeof(tempdir));
   }
 
-  switch (GS(id->name)) {
+  switch (id_type) {
     case ID_VF:
       BLI_snprintf(r_relpath, relpathlen, "//fonts/%s", tempname);
       break;

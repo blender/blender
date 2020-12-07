@@ -653,6 +653,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   Object *ob = OBACT(view_layer);
   bGPdata *gpd = CTX_data_gpencil_data(C);
   const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
+  const bool is_curve_edit = GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
   int a, totsel = 0;
 
   const int pivot_point = scene->toolsettings->transform_pivot_point;
@@ -711,16 +712,39 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
             continue;
           }
 
-          /* we're only interested in selected points here... */
-          if (gps->flag & GP_STROKE_SELECT) {
-            bGPDspoint *pt;
-            int i;
+          if (is_curve_edit) {
+            if (gps->editcurve == NULL) {
+              continue;
+            }
 
-            /* Change selection status of all points, then make the stroke match */
-            for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-              if (pt->flag & GP_SPOINT_SELECT) {
-                calc_tw_center_with_matrix(tbounds, &pt->x, use_mat_local, diff_mat);
-                totsel++;
+            bGPDcurve *gpc = gps->editcurve;
+            if (gpc->flag & GP_CURVE_SELECT) {
+              for (uint32_t i = 0; i < gpc->tot_curve_points; i++) {
+                bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
+                BezTriple *bezt = &gpc_pt->bezt;
+                if (gpc_pt->flag & GP_CURVE_POINT_SELECT) {
+                  for (uint32_t j = 0; j < 3; j++) {
+                    if (BEZT_ISSEL_IDX(bezt, j)) {
+                      calc_tw_center_with_matrix(tbounds, bezt->vec[j], use_mat_local, diff_mat);
+                      totsel++;
+                    }
+                  }
+                }
+              }
+            }
+          }
+          else {
+            /* we're only interested in selected points here... */
+            if (gps->flag & GP_STROKE_SELECT) {
+              bGPDspoint *pt;
+              int i;
+
+              /* Change selection status of all points, then make the stroke match */
+              for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+                if (pt->flag & GP_SPOINT_SELECT) {
+                  calc_tw_center_with_matrix(tbounds, &pt->x, use_mat_local, diff_mat);
+                  totsel++;
+                }
               }
             }
           }
@@ -1307,7 +1331,7 @@ void drawDial3d(const TransInfo *t)
     }
     else {
       axis_idx = MAN_AXIS_ROT_C;
-      copy_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
+      negate_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
       scale *= 1.2f;
       line_with -= 1.0f;
     }
@@ -1355,7 +1379,7 @@ void drawDial3d(const TransInfo *t)
                                     false,
                                     &(struct Dial3dParams){
                                         .draw_options = ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE,
-                                        .angle_delta = t->values[0],
+                                        .angle_delta = t->values_final[0],
                                         .angle_increment = increment,
                                     });
 

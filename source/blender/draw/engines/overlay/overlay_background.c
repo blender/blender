@@ -32,6 +32,7 @@
 #define BG_CHECKER 2
 #define BG_RADIAL 3
 #define BG_SOLID_CHECKER 4
+#define BG_MASK 5
 
 void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
 {
@@ -46,6 +47,7 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
   bool draw_clipping_bounds = (pd->clipping_state != 0);
 
   {
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_BACKGROUND;
     float color_override[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     int background_type;
 
@@ -53,8 +55,12 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
       background_type = BG_SOLID;
       color_override[3] = 1.0f;
     }
-    else if (pd->is_image_editor) {
+    else if (pd->space_type == SPACE_IMAGE) {
       background_type = BG_SOLID_CHECKER;
+    }
+    else if (pd->space_type == SPACE_NODE) {
+      background_type = BG_MASK;
+      state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_MUL;
     }
     else if (!DRW_state_draw_background()) {
       background_type = BG_CHECKER;
@@ -87,7 +93,6 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
       }
     }
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_BACKGROUND;
     DRW_PASS_CREATE(psl->background_ps, state);
 
     GPUShader *sh = OVERLAY_shader_background();

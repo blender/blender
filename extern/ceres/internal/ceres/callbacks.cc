@@ -28,8 +28,10 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#include <iostream>  // NO LINT
 #include "ceres/callbacks.h"
+
+#include <iostream>  // NO LINT
+
 #include "ceres/program.h"
 #include "ceres/stringprintf.h"
 #include "glog/logging.h"
@@ -76,8 +78,7 @@ CallbackReturnType GradientProblemSolverStateUpdatingCallback::operator()(
 
 LoggingCallback::LoggingCallback(const MinimizerType minimizer_type,
                                  const bool log_to_stdout)
-    : minimizer_type(minimizer_type),
-      log_to_stdout_(log_to_stdout) {}
+    : minimizer_type(minimizer_type), log_to_stdout_(log_to_stdout) {}
 
 LoggingCallback::~LoggingCallback() {}
 
@@ -99,11 +100,13 @@ CallbackReturnType LoggingCallback::operator()(
                           summary.iteration_time_in_seconds,
                           summary.cumulative_time_in_seconds);
   } else if (minimizer_type == TRUST_REGION) {
+    // clang-format off
     if (summary.iteration == 0) {
       output = "iter      cost      cost_change  |gradient|   |step|    tr_ratio  tr_radius  ls_iter  iter_time  total_time\n";  // NOLINT
     }
     const char* kReportRowFormat =
         "% 4d % 8e   % 3.2e   % 3.2e  % 3.2e  % 3.2e % 3.2e     % 4d   % 3.2e   % 3.2e";  // NOLINT
+    // clang-format on
     output += StringPrintf(kReportRowFormat,
                            summary.iteration,
                            summary.cost,

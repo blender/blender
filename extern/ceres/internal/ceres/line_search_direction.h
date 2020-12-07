@@ -47,8 +47,7 @@ class LineSearchDirection {
           nonlinear_conjugate_gradient_type(FLETCHER_REEVES),
           function_tolerance(1e-12),
           max_lbfgs_rank(20),
-          use_approximate_eigenvalue_bfgs_scaling(true) {
-    }
+          use_approximate_eigenvalue_bfgs_scaling(true) {}
 
     int num_parameters;
     LineSearchDirectionType type;

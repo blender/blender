@@ -38,6 +38,7 @@
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -320,7 +321,23 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
   job->image = (Image *)job->ob_active->data;
   job->frame_target = CFRA;
 
-  job->ob_gpencil = (Object *)RNA_pointer_get(op->ptr, "target").data;
+  /* Create a new grease pencil object or reuse selected. */
+  eGP_TargetObjectMode target = RNA_enum_get(op->ptr, "target");
+  job->ob_gpencil = (target == GP_TARGET_OB_SELECTED) ? BKE_view_layer_non_active_selected_object(
+                                                            CTX_data_view_layer(C), job->v3d) :
+                                                        NULL;
+
+  if (job->ob_gpencil != NULL) {
+    if (job->ob_gpencil->type != OB_GPENCIL) {
+      BKE_report(op->reports, RPT_WARNING, "Target object not a grease pencil, ignoring!");
+      job->ob_gpencil = NULL;
+    }
+    else if (BKE_object_obdata_is_libdata(job->ob_gpencil)) {
+      BKE_report(op->reports, RPT_WARNING, "Target object library-data, ignoring!");
+      job->ob_gpencil = NULL;
+    }
+  }
+
   job->was_ob_created = false;
 
   job->threshold = RNA_float_get(op->ptr, "threshold");
@@ -368,15 +385,8 @@ static int gpencil_trace_image_invoke(bContext *C, wmOperator *op, const wmEvent
   return WM_operator_props_dialog_popup(C, op, 250);
 }
 
-static bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
-{
-  return ((Object *)value.owner_id)->type == OB_GPENCIL;
-}
-
 void GPENCIL_OT_trace_image(wmOperatorType *ot)
 {
-  PropertyRNA *prop;
-
   static const EnumPropertyItem turnpolicy_type[] = {
       {POTRACE_TURNPOLICY_BLACK,
        "BLACK",
@@ -412,6 +422,12 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem target_object_modes[] = {
+      {GP_TARGET_OB_NEW, "NEW", 0, "New Object", ""},
+      {GP_TARGET_OB_SELECTED, "SELECTED", 0, "Selected Object", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* identifiers */
   ot->name = "Trace Image to Grease Pencil";
   ot->idname = "GPENCIL_OT_trace_image";
@@ -426,15 +442,13 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_pointer_runtime(
-      ot->srna,
-      "target",
-      &RNA_Object,
-      "Target Object",
-      "Target grease pencil object name. Leave empty to create a new object");
-  RNA_def_property_poll_runtime(prop, rna_GPencil_object_poll);
-
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  ot->prop = RNA_def_enum(ot->srna,
+                          "target",
+                          target_object_modes,
+                          GP_TARGET_OB_NEW,
+                          "Target Object",
+                          "Target grease pencil");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
   RNA_def_int(ot->srna, "thickness", 10, 1, 1000, "Thickness", "", 1, 1000);
   RNA_def_int(

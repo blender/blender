@@ -388,6 +388,8 @@ using std::cbrt;
 using std::ceil;
 using std::cos;
 using std::cosh;
+using std::erf;
+using std::erfc;
 using std::exp;
 using std::exp2;
 using std::floor;
@@ -571,6 +573,21 @@ inline Jet<T, N> fmax(const Jet<T, N>& x, const Jet<T, N>& y) {
 template <typename T, int N>
 inline Jet<T, N> fmin(const Jet<T, N>& x, const Jet<T, N>& y) {
   return y < x ? y : x;
+}
+
+// erf is defined as an integral that cannot be expressed analyticaly
+// however, the derivative is trivial to compute
+// erf(x + h) = erf(x) + h * 2*exp(-x^2)/sqrt(pi)
+template <typename T, int N>
+inline Jet<T, N> erf(const Jet<T, N>& x) {
+  return Jet<T, N>(erf(x.a), x.v * M_2_SQRTPI * exp(-x.a * x.a));
+}
+
+// erfc(x) = 1-erf(x)
+// erfc(x + h) = erfc(x) + h * (-2*exp(-x^2)/sqrt(pi))
+template <typename T, int N>
+inline Jet<T, N> erfc(const Jet<T, N>& x) {
+  return Jet<T, N>(erfc(x.a), -x.v * M_2_SQRTPI * exp(-x.a * x.a));
 }
 
 // Bessel functions of the first kind with integer order equal to 0, 1, n.

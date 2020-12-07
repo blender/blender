@@ -48,7 +48,7 @@
 #define ccl_align(n) __attribute__((aligned(n)))
 #define ccl_optional_struct_init
 
-#if __OPENCL_VERSION__ >= 200
+#if __OPENCL_VERSION__ >= 200 && !defined(__NV_CL_C_VERSION)
 #  define ccl_loop_no_unroll __attribute__((opencl_unroll_hint(1)))
 #else
 #  define ccl_loop_no_unroll
@@ -162,7 +162,9 @@
 #define kernel_tex_fetch(tex, index) kernel_tex_array(tex)[(index)]
 
 /* define NULL */
-#define NULL 0
+#ifndef NULL
+#  define NULL ((void *)0)
+#endif
 
 /* enable extensions */
 #ifdef __KERNEL_CL_KHR_FP16__

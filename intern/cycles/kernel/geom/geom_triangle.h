@@ -282,9 +282,12 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals *kg,
         f2 = kernel_tex_fetch(__attributes_float3, tri + 2);
       }
       else {
-        f0 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 0));
-        f1 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 1));
-        f2 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 2));
+        f0 = color_srgb_to_linear_v4(
+            color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 0)));
+        f1 = color_srgb_to_linear_v4(
+            color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 1)));
+        f2 = color_srgb_to_linear_v4(
+            color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, tri + 2)));
       }
     }
 

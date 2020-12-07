@@ -50,8 +50,7 @@
 
 #include "DEG_depsgraph.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 bool deg_check_id_in_depsgraph(const Depsgraph *graph, ID *id_orig)
 {
@@ -241,5 +240,4 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
   }
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

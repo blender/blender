@@ -156,10 +156,12 @@ bool edit_modifier_poll_generic(struct bContext *C,
                                 const bool is_editmode_allowed,
                                 const bool is_liboverride_allowed);
 void edit_modifier_properties(struct wmOperatorType *ot);
-bool edit_modifier_invoke_properties(struct bContext *C,
-                                     struct wmOperator *op,
-                                     const struct wmEvent *event,
-                                     int *r_retval);
+bool edit_modifier_invoke_properties(struct bContext *C, struct wmOperator *op);
+bool edit_modifier_invoke_properties_with_hover_no_active(struct bContext *C,
+                                                          struct wmOperator *op,
+                                                          const struct wmEvent *event,
+                                                          int *r_retval);
+
 struct ModifierData *edit_modifier_property_get(struct wmOperator *op,
                                                 struct Object *ob,
                                                 int type);
@@ -173,6 +175,7 @@ void OBJECT_OT_modifier_apply(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_apply_as_shapekey(wmOperatorType *ot);
 void OBJECT_OT_modifier_convert(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_copy(struct wmOperatorType *ot);
+void OBJECT_OT_modifier_set_active(struct wmOperatorType *ot);
 void OBJECT_OT_multires_subdivide(struct wmOperatorType *ot);
 void OBJECT_OT_multires_reshape(struct wmOperatorType *ot);
 void OBJECT_OT_multires_higher_levels_delete(struct wmOperatorType *ot);

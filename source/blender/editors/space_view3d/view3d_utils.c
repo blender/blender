@@ -574,11 +574,11 @@ bool ED_view3d_persp_ensure(const Depsgraph *depsgraph, View3D *v3d, ARegion *re
 /* -------------------------------------------------------------------- */
 /** \name Camera Lock API
  *
- * Lock the camera to the view-port, allowing view manipulation to transform the camera.
+ * Lock the camera to the 3D Viewport, allowing view manipulation to transform the camera.
  * \{ */
 
 /**
- * \return true when the view-port is locked to its camera.
+ * \return true when the 3D Viewport is locked to its camera.
  */
 bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
@@ -587,8 +587,8 @@ bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 }
 
 /**
- * Apply the camera object transformation to the view-port.
- * (needed so we can use regular view-port manipulation operators, that sync back to the camera).
+ * Apply the camera object transformation to the 3D Viewport.
+ * (needed so we can use regular 3D Viewport manipulation operators, that sync back to the camera).
  */
 void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph,
                                    View3D *v3d,
@@ -612,7 +612,7 @@ void ED_view3d_camera_lock_init(const Depsgraph *depsgraph, View3D *v3d, RegionV
 }
 
 /**
- * Apply the view-port transformation back to the camera object.
+ * Apply the 3D Viewport transformation back to the camera object.
  *
  * \return true if the camera is moved.
  */
@@ -898,20 +898,19 @@ static void view3d_boxview_sync_axis(RegionView3D *rv3d_dst, RegionView3D *rv3d_
 /* sync center/zoom view of region to others, for view transforms */
 void view3d_boxview_sync(ScrArea *area, ARegion *region)
 {
-  ARegion *artest;
   RegionView3D *rv3d = region->regiondata;
   short clip = 0;
 
-  for (artest = area->regionbase.first; artest; artest = artest->next) {
-    if (artest != region && artest->regiontype == RGN_TYPE_WINDOW) {
-      RegionView3D *rv3dtest = artest->regiondata;
+  LISTBASE_FOREACH (ARegion *, region_test, &area->regionbase) {
+    if (region_test != region && region_test->regiontype == RGN_TYPE_WINDOW) {
+      RegionView3D *rv3dtest = region_test->regiondata;
 
       if (RV3D_LOCK_FLAGS(rv3dtest) & RV3D_LOCK_ROTATION) {
         rv3dtest->dist = rv3d->dist;
         view3d_boxview_sync_axis(rv3dtest, rv3d);
         clip |= RV3D_LOCK_FLAGS(rv3dtest) & RV3D_BOXCLIP;
 
-        ED_region_tag_redraw(artest);
+        ED_region_tag_redraw(region_test);
       }
     }
   }
@@ -924,18 +923,17 @@ void view3d_boxview_sync(ScrArea *area, ARegion *region)
 /* for home, center etc */
 void view3d_boxview_copy(ScrArea *area, ARegion *region)
 {
-  ARegion *artest;
   RegionView3D *rv3d = region->regiondata;
   bool clip = false;
 
-  for (artest = area->regionbase.first; artest; artest = artest->next) {
-    if (artest != region && artest->regiontype == RGN_TYPE_WINDOW) {
-      RegionView3D *rv3dtest = artest->regiondata;
+  LISTBASE_FOREACH (ARegion *, region_test, &area->regionbase) {
+    if (region_test != region && region_test->regiontype == RGN_TYPE_WINDOW) {
+      RegionView3D *rv3dtest = region_test->regiondata;
 
       if (RV3D_LOCK_FLAGS(rv3dtest)) {
         rv3dtest->dist = rv3d->dist;
         copy_v3_v3(rv3dtest->ofs, rv3d->ofs);
-        ED_region_tag_redraw(artest);
+        ED_region_tag_redraw(region_test);
 
         clip |= ((RV3D_LOCK_FLAGS(rv3dtest) & RV3D_BOXCLIP) != 0);
       }

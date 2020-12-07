@@ -18,10 +18,70 @@
 
 # <pep8 compliant>
 
+import dataclasses
+import json
 import os
+
 from pathlib import Path
+from typing import Optional
 
 import codesign.util as util
+
+
+class ArchiveStateError(Exception):
+    message: str
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
+@dataclasses.dataclass
+class ArchiveState:
+    """
+    Additional information (state) of the archive
+
+    Includes information like expected file size of the archive file in the case
+    the archive file is expected to be successfully created.
+
+    If the archive can not be created, this state will contain error message
+    indicating details of error.
+    """
+
+    # Size in bytes of the corresponding archive.
+    file_size: Optional[int] = None
+
+    # Non-empty value indicates that error has happenned.
+    error_message: str = ''
+
+    def has_error(self) -> bool:
+        """
+        Check whether the archive is at error state
+        """
+
+        return self.error_message
+
+    def serialize_to_string(self) -> str:
+        payload = dataclasses.asdict(self)
+        return json.dumps(payload, sort_keys=True, indent=4)
+
+    def serialize_to_file(self, filepath: Path) -> None:
+        string = self.serialize_to_string()
+        filepath.write_text(string)
+
+    @classmethod
+    def deserialize_from_string(cls, string: str) -> 'ArchiveState':
+        try:
+            object_as_dict = json.loads(string)
+        except json.decoder.JSONDecodeError:
+            raise ArchiveStateError('Error parsing JSON')
+
+        return cls(**object_as_dict)
+
+    @classmethod
+    def deserialize_from_file(cls, filepath: Path):
+        string = filepath.read_text()
+        return cls.deserialize_from_string(string)
 
 
 class ArchiveWithIndicator:
@@ -79,6 +139,19 @@ class ArchiveWithIndicator:
         if not self.ready_indicator_filepath.exists():
             return False
 
+        try:
+            archive_state = ArchiveState.deserialize_from_file(
+                self.ready_indicator_filepath)
+        except ArchiveStateError as error:
+            print(f'Error deserializing archive state: {error.message}')
+            return False
+
+        if archive_state.has_error():
+            # If the error did happen during codesign procedure there will be no
+            # corresponding archive file.
+            # The caller code will deal with the error check further.
+            return True
+
         # Sometimes on macOS indicator file appears prior to the actual archive
         # despite the order of creation and os.sync() used in tag_ready().
         # So consider archive not ready if there is an indicator without an
@@ -88,23 +161,11 @@ class ArchiveWithIndicator:
                   f'({self.archive_filepath}) to appear.')
             return False
 
-        # Read archive size from indicator/
-        #
-        # Assume that file is either empty or is fully written. This is being checked
-        # by performing ValueError check since empty string will throw this exception
-        # when attempted to be converted to int.
-        expected_archive_size_str = self.ready_indicator_filepath.read_text()
-        try:
-            expected_archive_size = int(expected_archive_size_str)
-        except ValueError:
-            print(f'Invalid archive size "{expected_archive_size_str}"')
-            return False
-
         # Wait for until archive is fully stored.
         actual_archive_size = self.archive_filepath.stat().st_size
-        if actual_archive_size != expected_archive_size:
+        if actual_archive_size != archive_state.file_size:
             print('Partial/invalid archive size (expected '
-                  f'{expected_archive_size} got {actual_archive_size})')
+                  f'{archive_state.file_size} got {actual_archive_size})')
             return False
 
         return True
@@ -129,7 +190,7 @@ class ArchiveWithIndicator:
             print(f'Exception checking archive: {e}')
             return False
 
-    def tag_ready(self) -> None:
+    def tag_ready(self, error_message='') -> None:
         """
         Tag the archive as ready by creating the corresponding indication file.
 
@@ -138,13 +199,34 @@ class ArchiveWithIndicator:
               If it is violated, an assert will fail.
         """
         assert not self.is_ready()
+
         # Try the best to make sure everything is synced to the file system,
         # to avoid any possibility of stamp appearing on a network share prior to
         # an actual file.
         if util.get_current_platform() != util.Platform.WINDOWS:
             os.sync()
-        archive_size = self.archive_filepath.stat().st_size
-        self.ready_indicator_filepath.write_text(str(archive_size))
+
+        archive_size = -1
+        if self.archive_filepath.exists():
+            archive_size = self.archive_filepath.stat().st_size
+
+        archive_info = ArchiveState(
+            file_size=archive_size, error_message=error_message)
+
+        self.ready_indicator_filepath.write_text(
+            archive_info.serialize_to_string())
+
+    def get_state(self) -> ArchiveState:
+        """
+        Get state object for this archive
+
+        The state is read from the corresponding state file.
+        """
+
+        try:
+            return ArchiveState.deserialize_from_file(self.ready_indicator_filepath)
+        except ArchiveStateError as error:
+            return ArchiveState(error_message=f'Error in information format: {error}')
 
     def clean(self) -> None:
         """

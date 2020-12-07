@@ -43,13 +43,9 @@ namespace internal {
 
 ImplicitSchurComplement::ImplicitSchurComplement(
     const LinearSolver::Options& options)
-    : options_(options),
-      D_(NULL),
-      b_(NULL) {
-}
+    : options_(options), D_(NULL), b_(NULL) {}
 
-ImplicitSchurComplement::~ImplicitSchurComplement() {
-}
+ImplicitSchurComplement::~ImplicitSchurComplement() {}
 
 void ImplicitSchurComplement::Init(const BlockSparseMatrix& A,
                                    const double* D,
@@ -88,7 +84,7 @@ void ImplicitSchurComplement::Init(const BlockSparseMatrix& A,
   // the block diagonals and invert them.
   AddDiagonalAndInvert(D_, block_diagonal_EtE_inverse_.get());
   if (options_.preconditioner_type == JACOBI) {
-    AddDiagonalAndInvert((D_ ==  NULL) ? NULL : D_ + A_->num_cols_e(),
+    AddDiagonalAndInvert((D_ == NULL) ? NULL : D_ + A_->num_cols_e(),
                          block_diagonal_FtF_inverse_.get());
   }
 
@@ -125,8 +121,8 @@ void ImplicitSchurComplement::RightMultiply(const double* x, double* y) const {
   if (D_ != NULL) {
     ConstVectorRef Dref(D_ + A_->num_cols_e(), num_cols());
     VectorRef(y, num_cols()) =
-        (Dref.array().square() *
-         ConstVectorRef(x, num_cols()).array()).matrix();
+        (Dref.array().square() * ConstVectorRef(x, num_cols()).array())
+            .matrix();
   } else {
     VectorRef(y, num_cols()).setZero();
   }
@@ -139,8 +135,7 @@ void ImplicitSchurComplement::RightMultiply(const double* x, double* y) const {
 // entries D, add them to the diagonal of the matrix and compute the
 // inverse of each diagonal block.
 void ImplicitSchurComplement::AddDiagonalAndInvert(
-    const double* D,
-    BlockSparseMatrix* block_diagonal) {
+    const double* D, BlockSparseMatrix* block_diagonal) {
   const CompressedRowBlockStructure* block_diagonal_structure =
       block_diagonal->block_structure();
   for (int r = 0; r < block_diagonal_structure->rows.size(); ++r) {
@@ -148,17 +143,16 @@ void ImplicitSchurComplement::AddDiagonalAndInvert(
     const int row_block_size = block_diagonal_structure->rows[r].block.size;
     const Cell& cell = block_diagonal_structure->rows[r].cells[0];
     MatrixRef m(block_diagonal->mutable_values() + cell.position,
-                row_block_size, row_block_size);
+                row_block_size,
+                row_block_size);
 
     if (D != NULL) {
       ConstVectorRef d(D + row_block_pos, row_block_size);
       m += d.array().square().matrix().asDiagonal();
     }
 
-    m = m
-        .selfadjointView<Eigen::Upper>()
-        .llt()
-        .solve(Matrix::Identity(row_block_size, row_block_size));
+    m = m.selfadjointView<Eigen::Upper>().llt().solve(
+        Matrix::Identity(row_block_size, row_block_size));
   }
 }
 
@@ -167,7 +161,7 @@ void ImplicitSchurComplement::AddDiagonalAndInvert(
 void ImplicitSchurComplement::BackSubstitute(const double* x, double* y) {
   const int num_cols_e = A_->num_cols_e();
   const int num_cols_f = A_->num_cols_f();
-  const int num_cols =  A_->num_cols();
+  const int num_cols = A_->num_cols();
   const int num_rows = A_->num_rows();
 
   // y1 = F x
@@ -190,7 +184,7 @@ void ImplicitSchurComplement::BackSubstitute(const double* x, double* y) {
   // computed via back substitution. The second block of variables
   // corresponds to the Schur complement system, so we just copy those
   // values from the solution to the Schur complement.
-  VectorRef(y + num_cols_e, num_cols_f) =  ConstVectorRef(x, num_cols_f);
+  VectorRef(y + num_cols_e, num_cols_f) = ConstVectorRef(x, num_cols_f);
 }
 
 // Compute the RHS of the Schur complement system.

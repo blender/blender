@@ -26,11 +26,11 @@
 
 void *IMB_exr_get_handle(void)
 {
-  return NULL;
+  return nullptr;
 }
 void *IMB_exr_get_handle_name(const char * /*name*/)
 {
-  return NULL;
+  return nullptr;
 }
 void IMB_exr_add_channel(void * /*handle*/,
                          const char * /*layname*/,
@@ -82,7 +82,7 @@ float *IMB_exr_channel_rect(void * /*handle*/,
                             const char * /*passname*/,
                             const char * /*view*/)
 {
-  return NULL;
+  return nullptr;
 }
 
 void IMB_exr_read_channels(void * /*handle*/)

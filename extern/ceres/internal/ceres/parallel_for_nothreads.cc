@@ -72,7 +72,7 @@ void ParallelFor(ContextImpl* context,
   }
 }
 
-}
-}
+}  // namespace internal
+}  // namespace ceres
 
 #endif  // CERES_NO_THREADS

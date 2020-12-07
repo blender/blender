@@ -42,7 +42,7 @@
 
 #include "gl_debug.hh"
 
-#include <stdio.h>
+#include <cstdio>
 
 static CLG_LogRef LOG = {"gpu.debug"};
 

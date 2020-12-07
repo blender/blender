@@ -1408,7 +1408,7 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "rotation");
-  RNA_def_property_ui_text(prop, "Rotation", "Rotate around image centr");
+  RNA_def_property_ui_text(prop, "Rotation", "Rotate around image center");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
   RNA_def_struct_path_func(srna, "rna_SequenceTransform_path");
@@ -1967,7 +1967,7 @@ static void rna_def_editor(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
   RNA_def_property_struct_type(prop, "Sequence");
   RNA_def_property_ui_text(prop, "Sequences", "Top-level strips only");
-  RNA_api_sequences(brna, prop);
+  RNA_api_sequences(brna, prop, false);
 
   prop = RNA_def_property(srna, "sequences_all", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
@@ -2339,7 +2339,8 @@ static void rna_def_meta(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
   RNA_def_property_struct_type(prop, "Sequence");
-  RNA_def_property_ui_text(prop, "Sequences", "");
+  RNA_def_property_ui_text(prop, "Sequences", "Sequences nested in meta strip");
+  RNA_api_sequences(brna, prop, true);
 
   rna_def_filter_video(srna);
   rna_def_proxy(srna);

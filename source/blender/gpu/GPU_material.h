@@ -173,6 +173,7 @@ GPUNodeLink *GPU_uniformbuf_link_out(struct GPUMaterial *mat,
                                      const int index);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
+void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, int hash);
 
 void GPU_material_sss_profile_create(GPUMaterial *material,
                                      float radii[3],

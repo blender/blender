@@ -21,9 +21,9 @@
  * \ingroup bli
  */
 
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -132,13 +132,13 @@ static int num_threads_override = 0;
 /* just a max for security reasons */
 #define RE_MAX_THREAD BLENDER_MAX_THREADS
 
-typedef struct ThreadSlot {
+struct ThreadSlot {
   struct ThreadSlot *next, *prev;
   void *(*do_thread)(void *);
   void *callerdata;
   pthread_t pthread;
   int avail;
-} ThreadSlot;
+};
 
 void BLI_threadapi_init(void)
 {

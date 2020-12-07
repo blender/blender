@@ -73,15 +73,16 @@ endif()
 
 if(NOT DEFINED LIBDIR)
   set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
-  # Prefer lib directory paths
-  file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
-  set(CMAKE_PREFIX_PATH ${LIB_SUBDIRS})
 else()
   message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 endif()
 if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
 endif()
+
+# Prefer lib directory paths
+file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
+set(CMAKE_PREFIX_PATH ${LIB_SUBDIRS})
 
 # -------------------------------------------------------------------------
 # Find precompiled libraries, and avoid system or user-installed ones.
@@ -269,6 +270,14 @@ if(WITH_INTERNATIONAL OR WITH_CODEC_FFMPEG)
   string(APPEND PLATFORM_LINKFLAGS " -liconv") # boost_locale and ffmpeg needs it !
 endif()
 
+if(WITH_PUGIXML)
+  find_package(PugiXML)
+  if(NOT PUGIXML_FOUND)
+    message(WARNING "PugiXML not found, disabling WITH_PUGIXML")
+    set(WITH_PUGIXML OFF)
+  endif()
+endif()
+
 if(WITH_OPENIMAGEIO)
   find_package(OpenImageIO)
   list(APPEND OPENIMAGEIO_LIBRARIES
@@ -337,7 +346,7 @@ if(WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
   # Increase stack size for Embree, only works for executables.
   if(NOT WITH_PYTHON_MODULE)
-    string(APPEND PLATFORM_LINKFLAGS " -Xlinker -stack_size -Xlinker 0x100000")
+    string(APPEND PLATFORM_LINKFLAGS " -Wl,-stack_size,0x100000")
   endif()
 
   # Embree static library linking can mix up SSE and AVX symbols, causing
@@ -449,8 +458,8 @@ endif()
 
 # Avoid conflicts with Luxrender, and other plug-ins that may use the same
 # libraries as Blender with a different version or build options.
-set(PLATFORM_LINKFLAGS
-  "${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker '${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map'"
+string(APPEND PLATFORM_LINKFLAGS
+  " -Wl,-unexported_symbols_list,'${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map'"
 )
 
 string(APPEND CMAKE_CXX_FLAGS " -stdlib=libc++")

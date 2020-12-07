@@ -115,7 +115,6 @@
 #include "GHOST_Path-api.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -178,22 +177,17 @@ bool wm_file_or_image_is_modified(const Main *bmain, const wmWindowManager *wm)
  */
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
-  wmWindowManager *wm;
-  wmWindow *win, *active_win;
-
   *wmlist = G_MAIN->wm;
   BLI_listbase_clear(&G_MAIN->wm);
 
-  active_win = CTX_wm_window(C);
+  wmWindow *active_win = CTX_wm_window(C);
 
   /* first wrap up running stuff */
   /* code copied from wm_init_exit.c */
-  for (wm = wmlist->first; wm; wm = wm->id.next) {
-
+  LISTBASE_FOREACH (wmWindowManager *, wm, wmlist) {
     WM_jobs_kill_all(wm);
 
-    for (win = wm->windows.first; win; win = win->next) {
-
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       CTX_wm_window_set(C, win); /* needed by operator close callbacks */
       WM_event_remove_handlers(C, &win->handlers);
       WM_event_remove_handlers(C, &win->modalhandlers);
@@ -519,11 +513,9 @@ void WM_file_autoexec_init(const char *filepath)
 void wm_file_read_report(bContext *C, Main *bmain)
 {
   ReportList *reports = NULL;
-  Scene *sce;
-
-  for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
-    if (sce->r.engine[0] &&
-        BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    if (scene->r.engine[0] &&
+        BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) == NULL) {
       if (reports == NULL) {
         reports = CTX_wm_reports(C);
       }
@@ -532,8 +524,8 @@ void wm_file_read_report(bContext *C, Main *bmain)
                   RPT_ERROR,
                   "Engine '%s' not available for scene '%s' (an add-on may need to be installed "
                   "or enabled)",
-                  sce->r.engine,
-                  sce->id.name + 2);
+                  scene->r.engine,
+                  scene->id.name + 2);
     }
   }
 
@@ -1136,7 +1128,7 @@ void wm_homefile_read(bContext *C,
   if (use_userdef) {
     /* Clear keymaps because the current default keymap may have been initialized
      * from user preferences, which have been reset. */
-    for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
       if (wm->defaultconf) {
         wm->defaultconf->flag &= ~KEYCONF_INIT_DEFAULT;
       }
@@ -1236,8 +1228,7 @@ static void wm_history_file_write(void)
 
   fp = BLI_fopen(name, "w");
   if (fp) {
-    struct RecentFile *recent;
-    for (recent = G.recent_files.first; recent; recent = recent->next) {
+    LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
       fprintf(fp, "%s\n", recent->filepath);
     }
     fclose(fp);
@@ -1430,7 +1421,6 @@ static bool wm_file_write(bContext *C,
                           ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
-  Library *li;
   int len;
   int ok = false;
   BlendThumbnail *thumb, *main_thumb;
@@ -1459,7 +1449,7 @@ static bool wm_file_write(bContext *C,
    * its handy for scripts to save to a predefined name without blender editing it */
 
   /* send the OnSave event */
-  for (li = bmain->libraries.first; li; li = li->id.next) {
+  LISTBASE_FOREACH (Library *, li, &bmain->libraries) {
     if (BLI_path_cmp(li->filepath_abs, filepath) == 0) {
       BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
       return ok;
@@ -2785,6 +2775,25 @@ static bool blend_save_check(bContext *UNUSED(C), wmOperator *op)
   return false;
 }
 
+static const char *wm_save_as_mainfile_get_name(wmOperatorType *ot, PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "copy")) {
+    return CTX_IFACE_(ot->translation_context, "Save Copy");
+  }
+  return NULL;
+}
+
+static char *wm_save_as_mainfile_get_description(bContext *UNUSED(C),
+                                                 wmOperatorType *UNUSED(ot),
+                                                 PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "copy")) {
+    return BLI_strdup(
+        "Save the current file in the desired location but do not make the saved file active");
+  }
+  return NULL;
+}
+
 void WM_OT_save_as_mainfile(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -2795,6 +2804,8 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
 
   ot->invoke = wm_save_as_mainfile_invoke;
   ot->exec = wm_save_as_mainfile_exec;
+  ot->get_name = wm_save_as_mainfile_get_name;
+  ot->get_description = wm_save_as_mainfile_get_description;
   ot->check = blend_save_check;
   /* omit window poll so this can work in background mode */
 
@@ -3185,40 +3196,13 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
 {
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
-  const uiStyle *style = UI_style_get_dpi();
-  const short icon_size = 64 * U.dpi_fac;
-  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
-  const int dialog_width = icon_size + (text_points_max * 34 * U.dpi_fac);
-
-  /* By default, the space between icon and text/buttons will be equal to the 'columnspace',
-     this extra padding will add some space by increasing the left column width,
-     making the icon placement more symmetrical, between the block edge and the text. */
-  const float icon_padding = 6.0f * U.dpi_fac;
-  /* Calculate icon column factor. */
-  const float split_factor = ((float)icon_size + icon_padding) /
-                             (float)(dialog_width - style->columnspace);
 
   uiBlock *block = UI_block_begin(C, region, close_file_dialog_name, UI_EMBOSS);
-
   UI_block_flag_enable(
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-  UI_block_emboss_set(block, UI_EMBOSS);
 
-  uiLayout *block_layout = UI_block_layout(
-      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, dialog_width, 0, 0, style);
-
-  /* Split layout to put alert icon on left side. */
-  uiLayout *split_block = uiLayoutSplit(block_layout, split_factor, false);
-
-  /* Alert Icon. */
-  uiLayout *layout = uiLayoutRow(split_block, false);
-  /* Using 'align_left' with 'row' avoids stretching the icon along the width of column. */
-  uiLayoutSetAlignment(layout, UI_LAYOUT_ALIGN_LEFT);
-  uiDefButAlert(block, ALERT_ICON_QUESTION, 0, 0, icon_size, icon_size);
-
-  /* The rest of the content on the right. */
-  layout = uiLayoutColumn(split_block, false);
+  uiLayout *layout = uiItemsAlertBox(block, 34, ALERT_ICON_QUESTION);
 
   /* Title. */
   uiItemL_ex(layout, TIP_("Save changes before closing?"), ICON_NONE, true, false);

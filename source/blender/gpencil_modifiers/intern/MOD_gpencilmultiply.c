@@ -129,6 +129,7 @@ static void duplicateStroke(Object *ob,
                             float fading_thickness,
                             float fading_opacity)
 {
+  bGPdata *gpd = ob->data;
   int i;
   bGPDstroke *new_gps = NULL;
   float stroke_normal[3];
@@ -172,7 +173,7 @@ static void duplicateStroke(Object *ob,
    * to be processed, since we duplicate its data. */
   for (i = count - 1; i >= 0; i--) {
     if (i != 0) {
-      new_gps = BKE_gpencil_stroke_duplicate(gps, true);
+      new_gps = BKE_gpencil_stroke_duplicate(gps, true, true);
       BLI_addtail(results, new_gps);
     }
     else {
@@ -199,7 +200,7 @@ static void duplicateStroke(Object *ob,
   }
   /* Calc geometry data. */
   if (new_gps != NULL) {
-    BKE_gpencil_stroke_geometry_update(new_gps);
+    BKE_gpencil_stroke_geometry_update(gpd, new_gps);
   }
   MEM_freeN(t1_array);
   MEM_freeN(t2_array);

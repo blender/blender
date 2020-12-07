@@ -31,6 +31,7 @@
 #include "ceres/gradient_problem_solver.h"
 
 #include <memory>
+
 #include "ceres/callbacks.h"
 #include "ceres/gradient_problem.h"
 #include "ceres/gradient_problem_evaluator.h"
@@ -45,8 +46,8 @@
 #include "ceres/wall_time.h"
 
 namespace ceres {
-using internal::StringPrintf;
 using internal::StringAppendF;
+using internal::StringPrintf;
 using std::string;
 
 namespace {
@@ -83,7 +84,6 @@ Solver::Options GradientProblemSolverOptionsToSolverOptions(
 #undef COPY_OPTION
 }
 
-
 }  // namespace
 
 bool GradientProblemSolver::Options::IsValid(std::string* error) const {
@@ -92,8 +92,7 @@ bool GradientProblemSolver::Options::IsValid(std::string* error) const {
   return solver_options.IsValid(error);
 }
 
-GradientProblemSolver::~GradientProblemSolver() {
-}
+GradientProblemSolver::~GradientProblemSolver() {}
 
 void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
                                   const GradientProblem& problem,
@@ -111,6 +110,7 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
 
   CHECK(summary != nullptr);
   *summary = Summary();
+  // clang-format off
   summary->num_parameters                    = problem.NumParameters();
   summary->num_local_parameters              = problem.NumLocalParameters();
   summary->line_search_direction_type        = options.line_search_direction_type;         //  NOLINT
@@ -118,6 +118,7 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
   summary->line_search_type                  = options.line_search_type;
   summary->max_lbfgs_rank                    = options.max_lbfgs_rank;
   summary->nonlinear_conjugate_gradient_type = options.nonlinear_conjugate_gradient_type;  //  NOLINT
+  // clang-format on
 
   // Check validity
   if (!options.IsValid(&summary->message)) {
@@ -163,11 +164,13 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
 
   minimizer->Minimize(minimizer_options, solution.data(), &solver_summary);
 
+  // clang-format off
   summary->termination_type = solver_summary.termination_type;
   summary->message          = solver_summary.message;
   summary->initial_cost     = solver_summary.initial_cost;
   summary->final_cost       = solver_summary.final_cost;
   summary->iterations       = solver_summary.iterations;
+  // clang-format on
   summary->line_search_polynomial_minimization_time_in_seconds =
       solver_summary.line_search_polynomial_minimization_time_in_seconds;
 
@@ -200,15 +203,16 @@ bool GradientProblemSolver::Summary::IsSolutionUsable() const {
 }
 
 string GradientProblemSolver::Summary::BriefReport() const {
-  return StringPrintf("Ceres GradientProblemSolver Report: "
-                      "Iterations: %d, "
-                      "Initial cost: %e, "
-                      "Final cost: %e, "
-                      "Termination: %s",
-                      static_cast<int>(iterations.size()),
-                      initial_cost,
-                      final_cost,
-                      TerminationTypeToString(termination_type));
+  return StringPrintf(
+      "Ceres GradientProblemSolver Report: "
+      "Iterations: %d, "
+      "Initial cost: %e, "
+      "Final cost: %e, "
+      "Termination: %s",
+      static_cast<int>(iterations.size()),
+      initial_cost,
+      final_cost,
+      TerminationTypeToString(termination_type));
 }
 
 string GradientProblemSolver::Summary::FullReport() const {
@@ -218,60 +222,63 @@ string GradientProblemSolver::Summary::FullReport() const {
 
   StringAppendF(&report, "Parameters          % 25d\n", num_parameters);
   if (num_local_parameters != num_parameters) {
-    StringAppendF(&report, "Local parameters    % 25d\n",
-                  num_local_parameters);
+    StringAppendF(&report, "Local parameters    % 25d\n", num_local_parameters);
   }
 
   string line_search_direction_string;
   if (line_search_direction_type == LBFGS) {
     line_search_direction_string = StringPrintf("LBFGS (%d)", max_lbfgs_rank);
   } else if (line_search_direction_type == NONLINEAR_CONJUGATE_GRADIENT) {
-    line_search_direction_string =
-        NonlinearConjugateGradientTypeToString(
-            nonlinear_conjugate_gradient_type);
+    line_search_direction_string = NonlinearConjugateGradientTypeToString(
+        nonlinear_conjugate_gradient_type);
   } else {
     line_search_direction_string =
         LineSearchDirectionTypeToString(line_search_direction_type);
   }
 
-  StringAppendF(&report, "Line search direction     %19s\n",
+  StringAppendF(&report,
+                "Line search direction     %19s\n",
                 line_search_direction_string.c_str());
 
-  const string line_search_type_string =
-      StringPrintf("%s %s",
-                   LineSearchInterpolationTypeToString(
-                       line_search_interpolation_type),
-                   LineSearchTypeToString(line_search_type));
-  StringAppendF(&report, "Line search type          %19s\n",
+  const string line_search_type_string = StringPrintf(
+      "%s %s",
+      LineSearchInterpolationTypeToString(line_search_interpolation_type),
+      LineSearchTypeToString(line_search_type));
+  StringAppendF(&report,
+                "Line search type          %19s\n",
                 line_search_type_string.c_str());
   StringAppendF(&report, "\n");
 
   StringAppendF(&report, "\nCost:\n");
   StringAppendF(&report, "Initial        % 30e\n", initial_cost);
-  if (termination_type != FAILURE &&
-      termination_type != USER_FAILURE) {
+  if (termination_type != FAILURE && termination_type != USER_FAILURE) {
     StringAppendF(&report, "Final          % 30e\n", final_cost);
-    StringAppendF(&report, "Change         % 30e\n",
-                  initial_cost - final_cost);
+    StringAppendF(&report, "Change         % 30e\n", initial_cost - final_cost);
   }
 
-  StringAppendF(&report, "\nMinimizer iterations         % 16d\n",
+  StringAppendF(&report,
+                "\nMinimizer iterations         % 16d\n",
                 static_cast<int>(iterations.size()));
 
   StringAppendF(&report, "\nTime (in seconds):\n");
-  StringAppendF(&report, "\n  Cost evaluation     %23.6f (%d)\n",
+  StringAppendF(&report,
+                "\n  Cost evaluation     %23.6f (%d)\n",
                 cost_evaluation_time_in_seconds,
                 num_cost_evaluations);
-  StringAppendF(&report, "  Gradient & cost evaluation %16.6f (%d)\n",
+  StringAppendF(&report,
+                "  Gradient & cost evaluation %16.6f (%d)\n",
                 gradient_evaluation_time_in_seconds,
                 num_gradient_evaluations);
-  StringAppendF(&report, "  Polynomial minimization   %17.6f\n",
+  StringAppendF(&report,
+                "  Polynomial minimization   %17.6f\n",
                 line_search_polynomial_minimization_time_in_seconds);
-  StringAppendF(&report, "Total               %25.6f\n\n",
-                total_time_in_seconds);
+  StringAppendF(
+      &report, "Total               %25.6f\n\n", total_time_in_seconds);
 
-  StringAppendF(&report, "Termination:        %25s (%s)\n",
-                TerminationTypeToString(termination_type), message.c_str());
+  StringAppendF(&report,
+                "Termination:        %25s (%s)\n",
+                TerminationTypeToString(termination_type),
+                message.c_str());
   return report;
 }
 

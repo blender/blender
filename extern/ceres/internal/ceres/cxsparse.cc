@@ -33,13 +33,12 @@
 
 #ifndef CERES_NO_CXSPARSE
 
-#include "ceres/cxsparse.h"
-
 #include <string>
 #include <vector>
 
 #include "ceres/compressed_col_sparse_matrix_utils.h"
 #include "ceres/compressed_row_sparse_matrix.h"
+#include "ceres/cxsparse.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "glog/logging.h"
 

@@ -468,7 +468,7 @@ static ID *view3d_drop_id_in_main_region_poll_id(bContext *C,
 {
   ScrArea *area = CTX_wm_area(C);
   if (ED_region_overlap_isect_any_xy(area, &event->x)) {
-    return false;
+    return NULL;
   }
   return WM_drag_ID(drag, id_type);
 }

@@ -242,13 +242,6 @@ class BlenderVolumeLoader : public VDBImageLoader {
 #endif
   }
 
-  bool equals(const ImageLoader &other) const override
-  {
-    /* TODO: detect multiple volume datablocks with the same filepath. */
-    const BlenderVolumeLoader &other_loader = (const BlenderVolumeLoader &)other;
-    return b_volume == other_loader.b_volume && grid_name == other_loader.grid_name;
-  }
-
   BL::Volume b_volume;
 };
 
@@ -307,23 +300,8 @@ static void sync_volume_object(BL::BlendData &b_data,
   }
 }
 
-/* If the voxel attributes change, we need to rebuild the bounding mesh. */
-static vector<int> get_voxel_image_slots(Mesh *mesh)
-{
-  vector<int> slots;
-  for (const Attribute &attr : mesh->attributes.attributes) {
-    if (attr.element == ATTR_ELEMENT_VOXEL) {
-      slots.push_back(attr.data_voxel().svm_slot());
-    }
-  }
-
-  return slots;
-}
-
 void BlenderSync::sync_volume(BL::Object &b_ob, Volume *volume)
 {
-  vector<int> old_voxel_slots = get_voxel_image_slots(volume);
-
   volume->clear(true);
 
   if (view_layer.use_volumes) {
@@ -339,8 +317,7 @@ void BlenderSync::sync_volume(BL::Object &b_ob, Volume *volume)
   }
 
   /* Tag update. */
-  bool rebuild = (old_voxel_slots != get_voxel_image_slots(volume));
-  volume->tag_update(scene, rebuild);
+  volume->tag_update(scene, true);
 }
 
 CCL_NAMESPACE_END

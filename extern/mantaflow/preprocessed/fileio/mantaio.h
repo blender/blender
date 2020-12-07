@@ -75,7 +75,9 @@ int writeObjectsVDB(const std::string &filename,
                     float scale = 1.0,
                     bool skipDeletedParts = false,
                     int compression = COMPRESSION_ZIP,
-                    int precision = PRECISION_HALF);
+                    int precision = PRECISION_HALF,
+                    float clip = 1e-4,
+                    const Grid<Real> *clipGrid = nullptr);
 int readObjectsVDB(const std::string &filename,
                    std::vector<PbClass *> *objects,
                    float scale = 1.0);

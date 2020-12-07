@@ -117,11 +117,84 @@ template<typename T> inline SymEdge<T> *prev(const SymEdge<T> *se)
   return se->rot->next->rot;
 }
 
-template<typename Arith_t> struct CDTVert {
+/** A coordinate class with extra information for fast filtered orient tests. */
+
+template<typename T> struct FatCo {
+  vec2<T> exact;
+  vec2<double> approx;
+  vec2<double> abs_approx;
+
+  FatCo();
+#ifdef WITH_GMP
+  FatCo(const vec2<mpq_class> &v);
+#endif
+  FatCo(const vec2<double> &v);
+};
+
+#ifdef WITH_GMP
+template<> struct FatCo<mpq_class> {
+  vec2<mpq_class> exact;
+  vec2<double> approx;
+  vec2<double> abs_approx;
+
+  FatCo()
+      : exact(vec2<mpq_class>(0, 0)), approx(vec2<double>(0, 0)), abs_approx(vec2<double>(0, 0))
+  {
+  }
+
+  FatCo(const vec2<mpq_class> &v)
+  {
+    exact = v;
+    approx = vec2<double>(v.x.get_d(), v.y.get_d());
+    abs_approx = vec2<double>(fabs(approx.x), fabs(approx.y));
+  }
+
+  FatCo(const vec2<double> &v)
+  {
+    exact = vec2<mpq_class>(v.x, v.y);
+    approx = v;
+    abs_approx = vec2<double>(fabs(approx.x), fabs(approx.y));
+  }
+};
+#endif
+
+template<> struct FatCo<double> {
+  vec2<double> exact;
+  vec2<double> approx;
+  vec2<double> abs_approx;
+
+  FatCo() : exact(vec2<double>(0, 0)), approx(vec2<double>(0, 0)), abs_approx(vec2<double>(0, 0))
+  {
+  }
+
+#ifdef WITH_GMP
+  FatCo(const vec2<mpq_class> &v)
+  {
+    exact = vec2<double>(v.x.get_d(), v.y.get_d());
+    approx = exact;
+    abs_approx = vec2<double>(fabs(approx.x), fabs(approx.y));
+  }
+#endif
+
+  FatCo(const vec2<double> &v)
+  {
+    exact = v;
+    approx = v;
+    abs_approx = vec2<double>(fabs(approx.x), fabs(approx.y));
+  }
+};
+
+template<typename T> std::ostream &operator<<(std::ostream &stream, const FatCo<T> &co)
+{
+  stream << "(" << co.approx.x << ", " << co.approx.y << ")";
+  return stream;
+}
+
+template<typename T> struct CDTVert {
   /** Coordinate. */
-  vec2<Arith_t> co;
+  FatCo<T> co;
   /** Some edge attached to it. */
-  SymEdge<Arith_t> *symedge{nullptr};
+  SymEdge<T> *symedge{nullptr};
   /** List of corresponding vertex input ids. */
   LinkNode *input_ids{nullptr};
   /** Index into array that #CDTArrangement keeps. */
@@ -132,7 +205,7 @@ template<typename Arith_t> struct CDTVert {
   int visit_index{0};
 
   CDTVert() = default;
-  explicit CDTVert(const vec2<Arith_t> &pt);
+  explicit CDTVert(const vec2<T> &pt);
 };
 
 template<typename Arith_t> struct CDTEdge {
@@ -431,7 +504,7 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
   vec2<double> vmax(-DBL_MAX, -DBL_MAX);
   for (const CDTVert<T> *v : cdt.verts) {
     for (int i = 0; i < 2; ++i) {
-      double dvi = math_to_double(v->co[i]);
+      double dvi = v->co.approx[i];
       if (dvi < vmin[i]) {
         vmin[i] = dvi;
       }
@@ -457,8 +530,8 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
   }
   double scale = view_width / width;
 
-#  define SX(x) ((math_to_double(x) - minx) * scale)
-#  define SY(y) ((maxy - math_to_double(y)) * scale)
+#  define SX(x) (((x)-minx) * scale)
+#  define SY(y) ((maxy - (y)) * scale)
 
   std::ofstream f;
   if (append) {
@@ -485,8 +558,8 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
     }
     const CDTVert<T> *u = e->symedges[0].vert;
     const CDTVert<T> *v = e->symedges[1].vert;
-    const vec2<T> &uco = u->co;
-    const vec2<T> &vco = v->co;
+    const vec2<double> &uco = u->co.approx;
+    const vec2<double> &vco = v->co.approx;
     int strokew = e->input_ids == nullptr ? thin_line : thick_line;
     f << "<line fill=\"none\" stroke=\"black\" stroke-width=\"" << strokew << "\" x1=\""
       << SX(uco[0]) << "\" y1=\"" << SY(uco[1]) << "\" x2=\"" << SX(vco[0]) << "\" y2=\""
@@ -503,13 +576,13 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
 
   int i = 0;
   for (const CDTVert<T> *v : cdt.verts) {
-    f << "<circle fill=\"black\" cx=\"" << SX(v->co[0]) << "\" cy=\"" << SY(v->co[1]) << "\" r=\""
-      << vert_radius << "\">\n";
-    f << "  <title>[" << i << "]" << v->co << "</title>\n";
+    f << "<circle fill=\"black\" cx=\"" << SX(v->co.approx[0]) << "\" cy=\"" << SY(v->co.approx[1])
+      << "\" r=\"" << vert_radius << "\">\n";
+    f << "  <title>[" << i << "]" << v->co.approx << "</title>\n";
     f << "</circle>\n";
     if (draw_vert_labels) {
-      f << "<text x=\"" << SX(v->co[0]) + vert_radius << "\" y=\"" << SY(v->co[1]) - vert_radius
-        << "\" font-size=\"small\">[" << i << "]</text>\n";
+      f << "<text x=\"" << SX(v->co.approx[0]) + vert_radius << "\" y=\""
+        << SY(v->co.approx[1]) - vert_radius << "\" font-size=\"small\">[" << i << "]</text>\n";
     }
     ++i;
   }
@@ -521,30 +594,187 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
 #endif
 
 /**
+ * A filtered version of orient2d, which will usually be much faster when using exact arithmetic.
+ * See EXACT GEOMETRIC COMPUTATION USING CASCADING, by Burnikel, Funke, and Seel.
+ */
+template<typename T>
+static int filtered_orient2d(const FatCo<T> &a, const FatCo<T> &b, const FatCo<T> &c);
+
+#ifdef WITH_GMP
+template<>
+int filtered_orient2d<mpq_class>(const FatCo<mpq_class> &a,
+                                 const FatCo<mpq_class> &b,
+                                 const FatCo<mpq_class> &c)
+{
+  double det = (a.approx[0] - c.approx[0]) * (b.approx[1] - c.approx[1]) -
+               (a.approx[1] - c.approx[1]) * (b.approx[0] - c.approx[0]);
+  double supremum = (a.abs_approx[0] + c.abs_approx[0]) * (b.abs_approx[1] + c.abs_approx[1]) +
+                    (a.abs_approx[1] + c.abs_approx[1]) * (b.abs_approx[0] + c.abs_approx[0]);
+  constexpr double index_orient2d = 6;
+  double err_bound = supremum * index_orient2d * DBL_EPSILON;
+  if (fabs(det) > err_bound) {
+    return det > 0 ? 1 : -1;
+  }
+  return orient2d(a.exact, b.exact, c.exact);
+}
+#endif
+
+template<>
+int filtered_orient2d<double>(const FatCo<double> &a,
+                              const FatCo<double> &b,
+                              const FatCo<double> &c)
+{
+  return orient2d(a.approx, b.approx, c.approx);
+}
+
+/**
+ * A filtered version of incircle.
+ */
+template<typename T>
+static int filtered_incircle(const FatCo<T> &a,
+                             const FatCo<T> &b,
+                             const FatCo<T> &c,
+                             const FatCo<T> &d);
+
+#ifdef WITH_GMP
+template<>
+int filtered_incircle<mpq_class>(const FatCo<mpq_class> &a,
+                                 const FatCo<mpq_class> &b,
+                                 const FatCo<mpq_class> &c,
+                                 const FatCo<mpq_class> &d)
+{
+  double adx = a.approx[0] - d.approx[0];
+  double bdx = b.approx[0] - d.approx[0];
+  double cdx = c.approx[0] - d.approx[0];
+  double ady = a.approx[1] - d.approx[1];
+  double bdy = b.approx[1] - d.approx[1];
+  double cdy = c.approx[1] - d.approx[1];
+  double bdxcdy = bdx * cdy;
+  double cdxbdy = cdx * bdy;
+  double alift = adx * adx + ady * ady;
+  double cdxady = cdx * ady;
+  double adxcdy = adx * cdy;
+  double blift = bdx * bdx + bdy * bdy;
+  double adxbdy = adx * bdy;
+  double bdxady = bdx * ady;
+  double clift = cdx * cdx + cdy * cdy;
+  double det = alift * (bdxcdy - cdxbdy) + blift * (cdxady - adxcdy) + clift * (adxbdy - bdxady);
+
+  double sup_adx = a.abs_approx[0] + d.abs_approx[0]; /* index 2. */
+  double sup_bdx = b.abs_approx[0] + d.abs_approx[0];
+  double sup_cdx = c.abs_approx[0] + d.abs_approx[0];
+  double sup_ady = a.abs_approx[1] + d.abs_approx[1];
+  double sup_bdy = b.abs_approx[1] + d.abs_approx[1];
+  double sup_cdy = c.abs_approx[1] + d.abs_approx[1];
+  double sup_bdxcdy = sup_bdx * sup_cdy; /* index 5. */
+  double sup_cdxbdy = sup_cdx * sup_bdy;
+  double sup_alift = sup_adx * sup_adx + sup_ady * sup_ady; /* index 6. */
+  double sup_cdxady = sup_cdx * sup_ady;
+  double sup_adxcdy = sup_adx * sup_cdy;
+  double sup_blift = sup_bdx * sup_bdx + sup_bdy * sup_bdy;
+  double sup_adxbdy = sup_adx * sup_bdy;
+  double sup_bdxady = sup_bdx * sup_ady;
+  double sup_clift = sup_cdx * sup_cdx + sup_cdy * sup_cdy;
+  double sup_det = sup_alift * (sup_bdxcdy + sup_cdxbdy) + sup_blift * (sup_cdxady + sup_adxcdy) +
+                   sup_clift * (sup_adxbdy + sup_bdxady);
+  int index = 14;
+  double err_bound = sup_det * index * DBL_EPSILON;
+  if (fabs(det) > err_bound) {
+    return det < 0.0 ? -1 : (det > 0.0 ? 1 : 0);
+  }
+  return incircle(a.exact, b.exact, c.exact, d.exact);
+}
+#endif
+
+template<>
+int filtered_incircle<double>(const FatCo<double> &a,
+                              const FatCo<double> &b,
+                              const FatCo<double> &c,
+                              const FatCo<double> &d)
+{
+  return incircle(a.approx, b.approx, c.approx, d.approx);
+}
+
+/**
  * Return true if `a -- b -- c` are in that order, assuming they are on a straight line according
  * to #orient2d and we know the order is either `abc` or `bac`.
  * This means `ab . ac` and `bc . ac` must both be non-negative.
+ * Use filtering to speed this up when using exact arithmetic.
  */
-template<typename T> bool in_line(const vec2<T> &a, const vec2<T> &b, const vec2<T> &c)
+template<typename T> static bool in_line(const FatCo<T> &a, const FatCo<T> &b, const FatCo<T> &c);
+
+#ifdef WITH_GMP
+template<>
+bool in_line<mpq_class>(const FatCo<mpq_class> &a,
+                        const FatCo<mpq_class> &b,
+                        const FatCo<mpq_class> &c)
 {
-  vec2<T> ab = b - a;
-  vec2<T> bc = c - b;
-  vec2<T> ac = c - a;
-  if (vec2<T>::dot(ab, ac) < 0) {
+  vec2<double> ab = b.approx - a.approx;
+  vec2<double> bc = c.approx - b.approx;
+  vec2<double> ac = c.approx - a.approx;
+  vec2<double> supremum_ab = b.abs_approx + a.abs_approx;
+  vec2<double> supremum_bc = c.abs_approx + b.abs_approx;
+  vec2<double> supremum_ac = c.abs_approx + a.abs_approx;
+  double dot_ab_ac = ab.x * ac.x + ab.y * ac.y;
+  double supremum_dot_ab_ac = supremum_ab.x * supremum_ac.x + supremum_ab.y * supremum_ac.y;
+  constexpr double index = 6;
+  double err_bound = supremum_dot_ab_ac * index * DBL_EPSILON;
+  if (dot_ab_ac < -err_bound) {
     return false;
   }
-  return vec2<T>::dot(bc, ac) >= 0;
+  double dot_bc_ac = bc.x * ac.x + bc.y * ac.y;
+  double supremum_dot_bc_ac = supremum_bc.x * supremum_ac.x + supremum_bc.y * supremum_ac.y;
+  err_bound = supremum_dot_bc_ac * index * DBL_EPSILON;
+  if (dot_bc_ac < -err_bound) {
+    return false;
+  }
+  vec2<mpq_class> exact_ab = b.exact - a.exact;
+  vec2<mpq_class> exact_ac = c.exact - a.exact;
+  if (vec2<mpq_class>::dot(exact_ab, exact_ac) < 0) {
+    return false;
+  }
+  vec2<mpq_class> exact_bc = c.exact - b.exact;
+  return vec2<mpq_class>::dot(exact_bc, exact_ac) >= 0;
+}
+#endif
+
+template<>
+bool in_line<double>(const FatCo<double> &a, const FatCo<double> &b, const FatCo<double> &c)
+{
+  vec2<double> ab = b.approx - a.approx;
+  vec2<double> ac = c.approx - a.approx;
+  if (vec2<double>::dot(ab, ac) < 0) {
+    return false;
+  }
+  vec2<double> bc = c.approx - b.approx;
+  return vec2<double>::dot(bc, ac) >= 0;
 }
 
-template<typename T> CDTVert<T>::CDTVert(const vec2<T> &pt)
+template<> CDTVert<double>::CDTVert(const vec2<double> &pt)
 {
-  this->co = pt;
+  this->co.exact = pt;
+  this->co.approx = pt;
+  this->co.abs_approx = pt; /* Not used, so does't matter. */
   this->input_ids = nullptr;
   this->symedge = nullptr;
   this->index = -1;
   this->merge_to_index = -1;
   this->visit_index = 0;
 }
+
+#ifdef WITH_GMP
+template<> CDTVert<mpq_class>::CDTVert(const vec2<mpq_class> &pt)
+{
+  this->co.exact = pt;
+  this->co.approx = double2(pt.x.get_d(), pt.y.get_d());
+  this->co.abs_approx = double2(fabs(this->co.approx.x), fabs(this->co.approx.y));
+  this->input_ids = nullptr;
+  this->symedge = nullptr;
+  this->index = -1;
+  this->merge_to_index = -1;
+  this->visit_index = 0;
+}
+#endif
 
 template<typename T> CDTVert<T> *CDTArrangement<T>::add_vert(const vec2<T> &pt)
 {
@@ -805,8 +1035,8 @@ CDTEdge<T> *CDTArrangement<T>::connect_separate_parts(SymEdge<T> *se1, SymEdge<T
 template<typename T> CDTEdge<T> *CDTArrangement<T>::split_edge(SymEdge<T> *se, T lambda)
 {
   /* Split e at lambda. */
-  const vec2<T> *a = &se->vert->co;
-  const vec2<T> *b = &se->next->vert->co;
+  const vec2<T> *a = &se->vert->co.exact;
+  const vec2<T> *b = &se->next->vert->co.exact;
   SymEdge<T> *sesym = sym(se);
   SymEdge<T> *sesymprev = prev(sesym);
   SymEdge<T> *sesymprevsym = sym(sesymprev);
@@ -918,8 +1148,8 @@ template<typename T> class SiteInfo {
  */
 template<typename T> bool site_lexicographic_sort(const SiteInfo<T> &a, const SiteInfo<T> &b)
 {
-  const vec2<T> &co_a = a.v->co;
-  const vec2<T> &co_b = b.v->co;
+  const vec2<T> &co_a = a.v->co.exact;
+  const vec2<T> &co_b = b.v->co.exact;
   if (co_a[0] < co_b[0]) {
     return true;
   }
@@ -945,7 +1175,7 @@ template<typename T> void find_site_merges(Array<SiteInfo<T>> &sites)
   int n = sites.size();
   for (int i = 0; i < n - 1; ++i) {
     int j = i + 1;
-    while (j < n && sites[j].v->co == sites[i].v->co) {
+    while (j < n && sites[j].v->co.exact == sites[i].v->co.exact) {
       sites[j].v->merge_to_index = sites[i].orig_index;
       ++j;
     }
@@ -957,19 +1187,19 @@ template<typename T> void find_site_merges(Array<SiteInfo<T>> &sites)
 
 template<typename T> inline bool vert_left_of_symedge(CDTVert<T> *v, SymEdge<T> *se)
 {
-  return orient2d(v->co, se->vert->co, se->next->vert->co) > 0;
+  return filtered_orient2d(v->co, se->vert->co, se->next->vert->co) > 0;
 }
 
 template<typename T> inline bool vert_right_of_symedge(CDTVert<T> *v, SymEdge<T> *se)
 {
-  return orient2d(v->co, se->next->vert->co, se->vert->co) > 0;
+  return filtered_orient2d(v->co, se->next->vert->co, se->vert->co) > 0;
 }
 
 /* Is se above basel? */
 template<typename T>
 inline bool dc_tri_valid(SymEdge<T> *se, SymEdge<T> *basel, SymEdge<T> *basel_sym)
 {
-  return orient2d(se->next->vert->co, basel_sym->vert->co, basel->vert->co) > 0;
+  return filtered_orient2d(se->next->vert->co, basel_sym->vert->co, basel->vert->co) > 0;
 }
 
 /**
@@ -1013,7 +1243,7 @@ void dc_tri(CDTArrangement<T> *cdt,
     }
     CDTVert<T> *v3 = sites[start + 2].v;
     CDTEdge<T> *eb = cdt->add_vert_to_symedge_edge(v3, &ea->symedges[1]);
-    int orient = orient2d(v1->co, v2->co, v3->co);
+    int orient = filtered_orient2d(v1->co, v2->co, v3->co);
     if (orient > 0) {
       cdt->add_diagonal(&eb->symedges[0], &ea->symedges[0]);
       *r_le = &ea->symedges[0];
@@ -1101,10 +1331,10 @@ void dc_tri(CDTArrangement<T> *cdt,
         std::cout << "found valid lcand\n";
         std::cout << "  lcand" << lcand << "\n";
       }
-      while (incircle(basel_sym->vert->co,
-                      basel->vert->co,
-                      lcand->next->vert->co,
-                      lcand->rot->next->vert->co) > 0.0) {
+      while (filtered_incircle(basel_sym->vert->co,
+                               basel->vert->co,
+                               lcand->next->vert->co,
+                               lcand->rot->next->vert->co) > 0.0) {
         if (dbg_level > 1) {
           std::cout << "incircle says to remove lcand\n";
           std::cout << "  lcand" << lcand << "\n";
@@ -1120,10 +1350,10 @@ void dc_tri(CDTArrangement<T> *cdt,
         std::cout << "found valid rcand\n";
         std::cout << "  rcand" << rcand << "\n";
       }
-      while (incircle(basel_sym->vert->co,
-                      basel->vert->co,
-                      rcand->next->vert->co,
-                      sym(rcand)->next->next->vert->co) > 0.0) {
+      while (filtered_incircle(basel_sym->vert->co,
+                               basel->vert->co,
+                               rcand->next->vert->co,
+                               sym(rcand)->next->next->vert->co) > 0.0) {
         if (dbg_level > 0) {
           std::cout << "incircle says to remove rcand\n";
           std::cout << "  rcand" << rcand << "\n";
@@ -1147,10 +1377,10 @@ void dc_tri(CDTArrangement<T> *cdt,
     }
     /* The next cross edge to be connected is to either `lcand->next->vert` or `rcand->next->vert`;
      * if both are valid, choose the appropriate one using the #incircle test. */
-    if (!valid_lcand ||
-        (valid_rcand &&
-         incircle(lcand->next->vert->co, lcand->vert->co, rcand->vert->co, rcand->next->vert->co) >
-             0)) {
+    if (!valid_lcand || (valid_rcand && filtered_incircle(lcand->next->vert->co,
+                                                          lcand->vert->co,
+                                                          rcand->vert->co,
+                                                          rcand->next->vert->co) > 0)) {
       if (dbg_level > 0) {
         std::cout << "connecting rcand\n";
         std::cout << "  se1=basel_sym" << basel_sym << "\n";
@@ -1265,7 +1495,7 @@ template<typename T> static void re_delaunay_triangulate(CDTArrangement<T> *cdt,
   SymEdge<T> *cse = first;
   for (SymEdge<T> *ss = first->next; ss != se; ss = ss->next) {
     CDTVert<T> *v = ss->vert;
-    if (incircle(a->co, b->co, c->co, v->co) > 0) {
+    if (filtered_incircle(a->co, b->co, c->co, v->co) > 0) {
       c = v;
       cse = ss;
     }
@@ -1290,7 +1520,7 @@ template<typename T> static void re_delaunay_triangulate(CDTArrangement<T> *cdt,
 
 template<typename T> inline int tri_orient(const SymEdge<T> *t)
 {
-  return orient2d(t->vert->co, t->next->vert->co, t->next->next->vert->co);
+  return filtered_orient2d(t->vert->co, t->next->vert->co, t->next->next->vert->co);
 }
 
 /**
@@ -1419,7 +1649,7 @@ void fill_crossdata_for_through_vert(CDTVert<T> *v,
  * case. We need to fill in cd's 'out' edge if it was a vert case.
  */
 template<typename T>
-void fill_crossdata_for_intersect(const vec2<T> &curco,
+void fill_crossdata_for_intersect(const FatCo<T> &curco,
                                   const CDTVert<T> *v2,
                                   SymEdge<T> *t,
                                   CrossData<T> *cd,
@@ -1434,7 +1664,7 @@ void fill_crossdata_for_intersect(const vec2<T> &curco,
   BLI_assert(se_vcva->vert == vc && se_vcva->next->vert == va);
   BLI_assert(se_vcvb->vert == vc && se_vcvb->next->vert == vb);
   UNUSED_VARS_NDEBUG(vc);
-  auto isect = vec2<T>::isect_seg_seg(va->co, vb->co, curco, v2->co);
+  auto isect = vec2<T>::isect_seg_seg(va->co.exact, vb->co.exact, curco.exact, v2->co.exact);
   T &lambda = isect.lambda;
   switch (isect.kind) {
     case vec2<T>::isect_result::LINE_LINE_CROSS: {
@@ -1443,7 +1673,7 @@ void fill_crossdata_for_intersect(const vec2<T> &curco,
 #else
       if (true) {
 #endif
-        T len_ab = vec2<T>::distance(va->co, vb->co);
+        double len_ab = vec2<double>::distance(va->co.approx, vb->co.approx);
         if (lambda * len_ab <= epsilon) {
           fill_crossdata_for_through_vert(va, se_vcva, cd, cd_next);
         }
@@ -1497,7 +1727,8 @@ void fill_crossdata_for_intersect(const vec2<T> &curco,
       break;
     }
     case vec2<T>::isect_result::LINE_LINE_COLINEAR: {
-      if (vec2<T>::distance_squared(va->co, v2->co) <= vec2<T>::distance_squared(vb->co, v2->co)) {
+      if (vec2<double>::distance_squared(va->co.approx, v2->co.approx) <=
+          vec2<double>::distance_squared(vb->co.approx, v2->co.approx)) {
         fill_crossdata_for_through_vert(va, se_vcva, cd, cd_next);
       }
       else {
@@ -1537,14 +1768,14 @@ bool get_next_crossing_from_vert(CDT_state<T> *cdt_state,
     }
     CDTVert<T> *va = t->next->vert;
     CDTVert<T> *vb = t->next->next->vert;
-    int orient1 = orient2d(t->vert->co, va->co, v2->co);
+    int orient1 = filtered_orient2d(t->vert->co, va->co, v2->co);
     if (orient1 == 0 && in_line<T>(vcur->co, va->co, v2->co)) {
       fill_crossdata_for_through_vert(va, t, cd, cd_next);
       ok = true;
       break;
     }
     if (t->face != cdt_state->cdt.outer_face) {
-      int orient2 = orient2d(vcur->co, vb->co, v2->co);
+      int orient2 = filtered_orient2d(vcur->co, vb->co, v2->co);
       /* Don't handle orient2 == 0 case here: next rotation will get it. */
       if (orient1 > 0 && orient2 < 0) {
         /* Segment intersection. */
@@ -1574,15 +1805,16 @@ void get_next_crossing_from_edge(CrossData<T> *cd,
 {
   CDTVert<T> *va = cd->in->vert;
   CDTVert<T> *vb = cd->in->next->vert;
-  vec2<T> curco = vec2<T>::interpolate(va->co, vb->co, cd->lambda);
+  vec2<T> curco = vec2<T>::interpolate(va->co.exact, vb->co.exact, cd->lambda);
+  FatCo<T> fat_curco(curco);
   SymEdge<T> *se_ac = sym(cd->in)->next;
   CDTVert<T> *vc = se_ac->next->vert;
-  int orient = orient2d(curco, v2->co, vc->co);
+  int orient = filtered_orient2d(fat_curco, v2->co, vc->co);
   if (orient < 0) {
-    fill_crossdata_for_intersect<T>(curco, v2, se_ac->next, cd, cd_next, epsilon);
+    fill_crossdata_for_intersect<T>(fat_curco, v2, se_ac->next, cd, cd_next, epsilon);
   }
   else if (orient > 0.0) {
-    fill_crossdata_for_intersect(curco, v2, se_ac, cd, cd_next, epsilon);
+    fill_crossdata_for_intersect(fat_curco, v2, se_ac, cd, cd_next, epsilon);
   }
   else {
     *cd_next = CrossData<T>{0.0, vc, se_ac->next, nullptr};
@@ -1682,7 +1914,7 @@ void add_edge_constraint(
       ok = get_next_crossing_from_vert(cdt_state, cd, cd_next, v2);
     }
     else {
-      get_next_crossing_from_edge(cd, cd_next, v2, cdt_state->epsilon);
+      get_next_crossing_from_edge<T>(cd, cd_next, v2, cdt_state->epsilon);
       ok = true;
     }
     constexpr int unreasonably_large_crossings = 100000;
@@ -2057,7 +2289,7 @@ template<typename T> void remove_non_constraint_edges(CDT_state<T> *cdt_state)
  * For sorting edges by decreasing length (squared).
  */
 template<typename T> struct EdgeToSort {
-  T len_squared = T(0);
+  double len_squared = 0.0;
   CDTEdge<T> *e{nullptr};
 
   EdgeToSort() = default;
@@ -2098,9 +2330,9 @@ template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_stat
     if (!is_deleted_edge(e) && !is_constrained_edge(e)) {
       dissolvable_edges.append(EdgeToSort<T>());
       dissolvable_edges[i].e = e;
-      const vec2<T> &co1 = e->symedges[0].vert->co;
-      const vec2<T> &co2 = e->symedges[1].vert->co;
-      dissolvable_edges[i].len_squared = vec2<T>::distance_squared(co1, co2);
+      const vec2<double> &co1 = e->symedges[0].vert->co.approx;
+      const vec2<double> &co2 = e->symedges[1].vert->co.approx;
+      dissolvable_edges[i].len_squared = vec2<double>::distance_squared(co1, co2);
       i++;
     }
   }
@@ -2268,7 +2500,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
   for (int i = 0; i < verts_size; ++i) {
     CDTVert<T> *v = cdt->verts[i];
     if (v->merge_to_index == -1) {
-      result.vert[i_out] = v->co;
+      result.vert[i_out] = v->co.exact;
       if (i < cdt_state->input_vert_tot) {
         result.vert_orig[i_out].append(i);
       }

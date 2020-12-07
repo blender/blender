@@ -52,8 +52,6 @@ static void OVERLAY_engine_init(void *vedata)
   const View3D *v3d = draw_ctx->v3d;
   const Scene *scene = draw_ctx->scene;
   const ToolSettings *ts = scene->toolsettings;
-  const SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
-  BLI_assert(v3d || sima);
 
   OVERLAY_shader_library_ensure();
 
@@ -63,13 +61,19 @@ static void OVERLAY_engine_init(void *vedata)
   }
 
   OVERLAY_PrivateData *pd = stl->pd;
-  pd->is_image_editor = sima != NULL;
+  pd->space_type = v3d != NULL ? SPACE_VIEW3D : draw_ctx->space_data->spacetype;
 
-  if (pd->is_image_editor) {
+  if (pd->space_type == SPACE_IMAGE) {
+    const SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
     pd->hide_overlays = (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) == 0;
     pd->clipping_state = 0;
     OVERLAY_grid_init(data);
     OVERLAY_edit_uv_init(data);
+    return;
+  }
+  if (pd->space_type == SPACE_NODE) {
+    pd->hide_overlays = true;
+    pd->clipping_state = 0;
     return;
   }
 
@@ -90,6 +94,7 @@ static void OVERLAY_engine_init(void *vedata)
                        V3D_OVERLAY_HIDE_BONES | V3D_OVERLAY_HIDE_OBJECT_XTRAS |
                        V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
     pd->overlay.wireframe_threshold = v3d->overlay.wireframe_threshold;
+    pd->overlay.wireframe_opacity = v3d->overlay.wireframe_opacity;
   }
 
   if (v3d->shading.type == OB_WIRE) {
@@ -139,10 +144,14 @@ static void OVERLAY_cache_init(void *vedata)
   OVERLAY_StorageList *stl = data->stl;
   OVERLAY_PrivateData *pd = stl->pd;
 
-  if (pd->is_image_editor) {
+  if (pd->space_type == SPACE_IMAGE) {
     OVERLAY_background_cache_init(vedata);
     OVERLAY_grid_cache_init(vedata);
     OVERLAY_edit_uv_cache_init(vedata);
+    return;
+  }
+  if (pd->space_type == SPACE_NODE) {
+    OVERLAY_background_cache_init(vedata);
     return;
   }
 
@@ -288,7 +297,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   OVERLAY_Data *data = vedata;
   OVERLAY_PrivateData *pd = data->stl->pd;
 
-  if (pd->is_image_editor) {
+  if (pd->space_type == SPACE_IMAGE) {
     if (ob->type == OB_MESH) {
       OVERLAY_edit_uv_cache_populate(vedata, ob);
     }
@@ -480,7 +489,7 @@ static void OVERLAY_cache_finish(void *vedata)
 {
   OVERLAY_Data *data = vedata;
   OVERLAY_PrivateData *pd = data->stl->pd;
-  if (pd->is_image_editor) {
+  if (ELEM(pd->space_type, SPACE_IMAGE, SPACE_NODE)) {
     return;
   }
 
@@ -510,23 +519,31 @@ static void OVERLAY_draw_scene(void *vedata)
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   /* Needs to be done first as it modifies the scene color and depth buffer. */
-  if (!pd->is_image_editor) {
+  if (pd->space_type == SPACE_VIEW3D) {
     OVERLAY_image_scene_background_draw(vedata);
   }
 
   if (DRW_state_is_fbo()) {
-    const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     GPU_framebuffer_bind(dfbl->overlay_only_fb);
-    GPU_framebuffer_clear_color(dfbl->overlay_only_fb, clear_col);
+    /* Don't clear background for the node editor. The node editor draws the background and we
+     * need to mask out the image from the already drawn overlay color buffer. */
+    if (pd->space_type != SPACE_NODE) {
+      const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+      GPU_framebuffer_clear_color(dfbl->overlay_only_fb, clear_col);
+    }
   }
 
-  if (pd->is_image_editor) {
+  if (pd->space_type == SPACE_IMAGE) {
     OVERLAY_background_draw(data);
     OVERLAY_grid_draw(data);
     if (DRW_state_is_fbo()) {
       GPU_framebuffer_bind(dfbl->overlay_fb);
     }
     OVERLAY_edit_uv_draw(data);
+    return;
+  }
+  if (pd->space_type == SPACE_NODE) {
+    OVERLAY_background_draw(data);
     return;
   }
 
@@ -553,6 +570,11 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_facing_draw(vedata);
   OVERLAY_extra_blend_draw(vedata);
   OVERLAY_volume_draw(vedata);
+
+  if (pd->ctx_mode == CTX_MODE_SCULPT) {
+    /* Sculpt overlays are drawn here to avoid artifacts with wireframe opacity. */
+    OVERLAY_sculpt_draw(vedata);
+  }
 
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_line_fb);
@@ -631,9 +653,6 @@ static void OVERLAY_draw_scene(void *vedata)
       break;
     case CTX_MODE_PARTICLE:
       OVERLAY_edit_particle_draw(vedata);
-      break;
-    case CTX_MODE_SCULPT:
-      OVERLAY_sculpt_draw(vedata);
       break;
     case CTX_MODE_EDIT_GPENCIL:
     case CTX_MODE_PAINT_GPENCIL:

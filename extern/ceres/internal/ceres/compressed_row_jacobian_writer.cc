@@ -44,23 +44,21 @@
 namespace ceres {
 namespace internal {
 
+using std::adjacent_find;
 using std::make_pair;
 using std::pair;
 using std::vector;
-using std::adjacent_find;
 
 void CompressedRowJacobianWriter::PopulateJacobianRowAndColumnBlockVectors(
     const Program* program, CompressedRowSparseMatrix* jacobian) {
-  const vector<ParameterBlock*>& parameter_blocks =
-      program->parameter_blocks();
+  const vector<ParameterBlock*>& parameter_blocks = program->parameter_blocks();
   vector<int>& col_blocks = *(jacobian->mutable_col_blocks());
   col_blocks.resize(parameter_blocks.size());
   for (int i = 0; i < parameter_blocks.size(); ++i) {
     col_blocks[i] = parameter_blocks[i]->LocalSize();
   }
 
-  const vector<ResidualBlock*>& residual_blocks =
-      program->residual_blocks();
+  const vector<ResidualBlock*>& residual_blocks = program->residual_blocks();
   vector<int>& row_blocks = *(jacobian->mutable_row_blocks());
   row_blocks.resize(residual_blocks.size());
   for (int i = 0; i < residual_blocks.size(); ++i) {
@@ -69,11 +67,10 @@ void CompressedRowJacobianWriter::PopulateJacobianRowAndColumnBlockVectors(
 }
 
 void CompressedRowJacobianWriter::GetOrderedParameterBlocks(
-      const Program* program,
-      int residual_id,
-      vector<pair<int, int>>* evaluated_jacobian_blocks) {
-  const ResidualBlock* residual_block =
-      program->residual_blocks()[residual_id];
+    const Program* program,
+    int residual_id,
+    vector<pair<int, int>>* evaluated_jacobian_blocks) {
+  const ResidualBlock* residual_block = program->residual_blocks()[residual_id];
   const int num_parameter_blocks = residual_block->NumParameterBlocks();
 
   for (int j = 0; j < num_parameter_blocks; ++j) {
@@ -88,8 +85,7 @@ void CompressedRowJacobianWriter::GetOrderedParameterBlocks(
 }
 
 SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
-  const vector<ResidualBlock*>& residual_blocks =
-      program_->residual_blocks();
+  const vector<ResidualBlock*>& residual_blocks = program_->residual_blocks();
 
   int total_num_residuals = program_->NumResiduals();
   int total_num_effective_parameters = program_->NumEffectiveParameters();
@@ -112,11 +108,10 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
   // Allocate more space than needed to store the jacobian so that when the LM
   // algorithm adds the diagonal, no reallocation is necessary. This reduces
   // peak memory usage significantly.
-  CompressedRowSparseMatrix* jacobian =
-      new CompressedRowSparseMatrix(
-          total_num_residuals,
-          total_num_effective_parameters,
-          num_jacobian_nonzeros + total_num_effective_parameters);
+  CompressedRowSparseMatrix* jacobian = new CompressedRowSparseMatrix(
+      total_num_residuals,
+      total_num_effective_parameters,
+      num_jacobian_nonzeros + total_num_effective_parameters);
 
   // At this stage, the CompressedRowSparseMatrix is an invalid state. But this
   // seems to be the only way to construct it without doing a memory copy.
@@ -148,8 +143,7 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
       std::string parameter_block_description;
       for (int j = 0; j < num_parameter_blocks; ++j) {
         ParameterBlock* parameter_block = residual_block->parameter_blocks()[j];
-        parameter_block_description +=
-            parameter_block->ToString() + "\n";
+        parameter_block_description += parameter_block->ToString() + "\n";
       }
       LOG(FATAL) << "Ceres internal error: "
                  << "Duplicate parameter blocks detected in a cost function. "
@@ -196,7 +190,7 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
 
 void CompressedRowJacobianWriter::Write(int residual_id,
                                         int residual_offset,
-                                        double **jacobians,
+                                        double** jacobians,
                                         SparseMatrix* base_jacobian) {
   CompressedRowSparseMatrix* jacobian =
       down_cast<CompressedRowSparseMatrix*>(base_jacobian);

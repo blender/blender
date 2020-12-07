@@ -137,6 +137,48 @@ void NodeTreeRef::find_targets_skipping_reroutes(OutputSocketRef &socket,
   }
 }
 
+static bool has_link_cycles_recursive(const NodeRef &node,
+                                      MutableSpan<bool> visited,
+                                      MutableSpan<bool> is_in_stack)
+{
+  const int node_id = node.id();
+  if (is_in_stack[node_id]) {
+    return true;
+  }
+  if (visited[node_id]) {
+    return false;
+  }
+
+  visited[node_id] = true;
+  is_in_stack[node_id] = true;
+
+  for (const OutputSocketRef *from_socket : node.outputs()) {
+    for (const InputSocketRef *to_socket : from_socket->directly_linked_sockets()) {
+      const NodeRef &to_node = to_socket->node();
+      if (has_link_cycles_recursive(to_node, visited, is_in_stack)) {
+        return true;
+      }
+    }
+  }
+
+  is_in_stack[node_id] = false;
+  return false;
+}
+
+bool NodeTreeRef::has_link_cycles() const
+{
+  const int node_amount = nodes_by_id_.size();
+  Array<bool> visited(node_amount, false);
+  Array<bool> is_in_stack(node_amount, false);
+
+  for (const NodeRef *node : nodes_by_id_) {
+    if (has_link_cycles_recursive(*node, visited, is_in_stack)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 std::string NodeTreeRef::to_dot() const
 {
   dot::DirectedGraph digraph;

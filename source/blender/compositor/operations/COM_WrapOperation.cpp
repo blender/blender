@@ -16,7 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "COM_WrapOperation.h"
 

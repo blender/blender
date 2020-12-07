@@ -25,8 +25,7 @@
 
 #include "intern/builder/deg_builder_relations.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Time source.
@@ -193,5 +192,4 @@ string RNAPathKey::identifier() const
   return string("RnaPathKey(") + "id: " + id_name + ", prop: '" + prop_name + "')";
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

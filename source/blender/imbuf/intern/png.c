@@ -59,19 +59,21 @@ BLI_INLINE unsigned short UPSAMPLE_8_TO_16(const unsigned char _val)
   return (_val << 8) + _val;
 }
 
-int imb_is_a_png(const unsigned char *mem)
+bool imb_is_a_png(const unsigned char *mem, size_t size)
 {
-  int ret_val = 0;
-
-  if (mem) {
-#if (PNG_LIBPNG_VER_MAJOR == 1) && (PNG_LIBPNG_VER_MINOR == 2)
-    /* Older version of libpng doesn't use const pointer to memory. */
-    ret_val = !png_sig_cmp((png_bytep)mem, 0, 8);
-#else
-    ret_val = !png_sig_cmp(mem, 0, 8);
-#endif
+  const int num_to_check = 8;
+  if (size < num_to_check) {
+    return false;
   }
-  return ret_val;
+  bool ok = false;
+
+#if (PNG_LIBPNG_VER_MAJOR == 1) && (PNG_LIBPNG_VER_MINOR == 2)
+  /* Older version of libpng doesn't use const pointer to memory. */
+  ok = !png_sig_cmp((png_bytep)mem, 0, num_to_check);
+#else
+  ok = !png_sig_cmp(mem, 0, num_to_check);
+#endif
+  return ok;
 }
 
 static void Flush(png_structp png_ptr)
@@ -119,7 +121,7 @@ BLI_INLINE unsigned short ftoshort(float val)
   return unit_float_to_ushort_clamp(val);
 }
 
-int imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   png_structp png_ptr;
   png_infop info_ptr;
@@ -406,6 +408,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
       if (pixels16) {
         MEM_freeN(pixels16);
       }
+      MEM_freeN(row_pointers);
       printf("imb_savepng: Cannot open file for writing: '%s'\n", filepath);
       return 0;
     }
@@ -549,7 +552,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
   float *to_float;
   unsigned int channels;
 
-  if (imb_is_a_png(mem) == 0) {
+  if (imb_is_a_png(mem, size) == 0) {
     return NULL;
   }
 

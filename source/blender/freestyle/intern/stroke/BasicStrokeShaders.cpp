@@ -40,9 +40,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-namespace Freestyle {
-
-namespace StrokeShaders {
+namespace Freestyle::StrokeShaders {
 
 //
 //  Thickness modifiers
@@ -697,6 +695,4 @@ int TipRemoverShader::shade(Stroke &stroke) const
   return 0;
 }
 
-}  // end of namespace StrokeShaders
-
-} /* namespace Freestyle */
+}  // namespace Freestyle::StrokeShaders

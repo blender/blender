@@ -28,8 +28,9 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#include <string>
 #include "ceres/iterative_refiner.h"
+
+#include <string>
 
 #include "Eigen/Core"
 #include "ceres/sparse_cholesky.h"

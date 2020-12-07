@@ -91,3 +91,79 @@ c42a6b77b52560d257279de2cb624b4ef2c0d24c
 
 # Cleanup: use doxy sections for imbuf
 c207f7c22e1439e0b285fba5d2c072bdae23f981
+
+# Cleanup: Clang-Tidy, modernize-use-bool-literals
+af35ada2f3fa8da4d46b3a71de724d353d716820
+
+# Cleanup: Use nullptr everywhere in fluid code
+311031ecd03dbfbf43e1df672a395f24b2e7d4d3
+
+# Cleanup: Clang-Tidy, modernize-redundant-void-arg
+a331d5c99299c4514ca33c843b1c79b872f2728d
+
+# Cleanup: Clang-Tidy modernize-use-nullptr
+16732def37c5a66f3ea28dbe247b09cc6bca6677
+
+# Cleanup: Clang-tidy, modernize-concat-nested-namespaces
+4525049aa0cf818f6483dce589ac9791eb562338
+
+# Cleanup: Clang-tidy else-after-return
+ae342ed4511cf2e144dcd27ce2c635d3d536f9ad
+
+# Cleanup: Clang-Tidy, readability-redundant-member-init
+190170d4cc92ff34abe1744a10474ac4f1074086
+
+# Cleanup: use 'filepath' instead of 'name' for ImBuf utilities
+99f56b4c16323f96c0cbf54e392fb509fcac5bda
+
+# Cleanup: clang-format
+c4d8f6a4a8ddc29ed27311ed7578b3c8c31399d2
+b5d310b569e07a937798a2d38539cfd290149f1c
+8c846cccd6bdfd3e90a695fabbf05f53e5466a57
+40d4a4cb1a6b4c3c2a486e8f2868f547530e0811
+4eac03d821fa17546f562485f7d073813a5e5943
+
+# Cleanup: use preprocessor version check for PyTypeObject declaration
+cd9acfed4f7674b84be965d469a367aef96f8af3
+
+# Cycles: fix compilation of OSL shaders following API change
+b980cd163a9d5d77eeffc2e353333e739fa9e719
+
+# Cleanup: clang-tidy suppress warnings for PyTypeObject.tp_print
+efd71aad4f22ec0073d80b8dd296015d3f395aa8
+
+# Cleanup: fix wrong merge, remove extra unique_ptr.
+6507449e54a167c63a72229e4d0119dd2af68ae5
+
+# Cleanup: fix some clang tidy issues
+525a042c5c7513c41240b118acca002f6c60cc12
+
+# Fix T82520: error building freestyle with Python3.8
+e118426e4695a97d67e65d69677f3c4e2db50a56
+
+# Cleanup: Clang-tidy, readability-else-after-return
+7be47dadea5066ae095c644e0b4f1f10d75f5ab3
+
+# Cleanup: Add `r_` to return parameter
+45dca05b1cd2a5ead59144c93d790fdfe7c35ee6
+
+# Cleanup: Typo in `print_default_info` function name.
+41a73909dec716642f044e60b40a28335c9fdb10
+
+# Cleanup: Reduce indentation
+1cc3a0e2cf73a5ff4f9e0a7f5338eda77266b300
+
+# Build-system: Force C linkage for all DNA type headers
+ad4b7741dba45a2be210942c18af6b6e4438f129
+
+# Cleanup: Move function to proper section
+c126e27cdc8b28365a9d5f9fafc4d521d1eb83df
+
+# Cleanup: remove break after return statements
+bbdfeb751e16d939482d2e4b95c4d470f53f18a5
+
+# Cleanup: clang-tidy
+af013ff76feef7e8b8ba642279c62a5dc275d59f
+
+# Cleanup: Make panel type flag names more clear
+9d28353b525ecfbcca1501be72e4276dfb2bbc2a

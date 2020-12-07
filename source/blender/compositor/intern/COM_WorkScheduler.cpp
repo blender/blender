@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
+#include <cstdio>
 #include <list>
-#include <stdio.h>
 
 #include "COM_CPUDevice.h"
 #include "COM_OpenCLDevice.h"

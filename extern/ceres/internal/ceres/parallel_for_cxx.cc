@@ -33,14 +33,13 @@
 
 #ifdef CERES_USE_CXX_THREADS
 
-#include "ceres/parallel_for.h"
-
 #include <cmath>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
 
 #include "ceres/concurrent_queue.h"
+#include "ceres/parallel_for.h"
 #include "ceres/scoped_thread_token.h"
 #include "ceres/thread_token_provider.h"
 #include "glog/logging.h"
@@ -117,9 +116,7 @@ struct SharedState {
 
 }  // namespace
 
-int MaxNumThreadsAvailable() {
-  return ThreadPool::MaxNumThreadsAvailable();
-}
+int MaxNumThreadsAvailable() { return ThreadPool::MaxNumThreadsAvailable(); }
 
 // See ParallelFor (below) for more details.
 void ParallelFor(ContextImpl* context,
@@ -141,8 +138,10 @@ void ParallelFor(ContextImpl* context,
     return;
   }
 
-  ParallelFor(context, start, end, num_threads,
-              [&function](int /*thread_id*/, int i) { function(i); });
+  ParallelFor(
+      context, start, end, num_threads, [&function](int /*thread_id*/, int i) {
+        function(i);
+      });
 }
 
 // This implementation uses a fixed size max worker pool with a shared task
@@ -213,8 +212,7 @@ void ParallelFor(ContextImpl* context,
     const int thread_id = scoped_thread_token.token();
 
     // Perform each task.
-    for (int j = shared_state->start + i;
-         j < shared_state->end;
+    for (int j = shared_state->start + i; j < shared_state->end;
          j += shared_state->num_work_items) {
       function(thread_id, j);
     }
@@ -244,4 +242,4 @@ void ParallelFor(ContextImpl* context,
 }  // namespace internal
 }  // namespace ceres
 
-#endif // CERES_USE_CXX_THREADS
+#endif  // CERES_USE_CXX_THREADS

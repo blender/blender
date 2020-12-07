@@ -5,6 +5,7 @@
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
+#include "guardedalloc_test_base.h"
 
 #define CHECK_ALIGNMENT(ptr, align) EXPECT_EQ((size_t)ptr % align, 0)
 
@@ -32,90 +33,26 @@ void DoBasicAlignmentChecks(const int alignment)
 
 }  // namespace
 
-TEST(guardedalloc, LockfreeAlignedAlloc1)
+TEST_F(LockFreeAllocatorTest, MEM_mallocN_aligned)
 {
   DoBasicAlignmentChecks(1);
-}
-
-TEST(guardedalloc, GuardedAlignedAlloc1)
-{
-  MEM_use_guarded_allocator();
-  DoBasicAlignmentChecks(1);
-}
-
-TEST(guardedalloc, LockfreeAlignedAlloc2)
-{
   DoBasicAlignmentChecks(2);
-}
-
-TEST(guardedalloc, GuardedAlignedAlloc2)
-{
-  MEM_use_guarded_allocator();
-  DoBasicAlignmentChecks(2);
-}
-
-TEST(guardedalloc, LockfreeAlignedAlloc4)
-{
   DoBasicAlignmentChecks(4);
-}
-
-TEST(guardedalloc, GuardedAlignedAlloc4)
-{
-  MEM_use_guarded_allocator();
-  DoBasicAlignmentChecks(4);
-}
-
-TEST(guardedalloc, LockfreeAlignedAlloc8)
-{
   DoBasicAlignmentChecks(8);
-}
-
-TEST(guardedalloc, GuardedAlignedAlloc8)
-{
-  MEM_use_guarded_allocator();
-  DoBasicAlignmentChecks(8);
-}
-
-TEST(guardedalloc, LockfreeAlignedAlloc16)
-{
   DoBasicAlignmentChecks(16);
-}
-
-TEST(guardedalloc, GuardedAlignedAlloc16)
-{
-  MEM_use_guarded_allocator();
-  DoBasicAlignmentChecks(16);
-}
-
-TEST(guardedalloc, LockfreeAlignedAlloc32)
-{
   DoBasicAlignmentChecks(32);
-}
-
-TEST(guardedalloc, GuardedAlignedAlloc32)
-{
-  MEM_use_guarded_allocator();
-  DoBasicAlignmentChecks(32);
-}
-
-TEST(guardedalloc, LockfreeAlignedAlloc256)
-{
   DoBasicAlignmentChecks(256);
-}
-
-TEST(guardedalloc, GuardedAlignedAlloc256)
-{
-  MEM_use_guarded_allocator();
-  DoBasicAlignmentChecks(256);
-}
-
-TEST(guardedalloc, LockfreeAlignedAlloc512)
-{
   DoBasicAlignmentChecks(512);
 }
 
-TEST(guardedalloc, GuardedAlignedAlloc512)
+TEST_F(GuardedAllocatorTest, MEM_mallocN_aligned)
 {
-  MEM_use_guarded_allocator();
+  DoBasicAlignmentChecks(1);
+  DoBasicAlignmentChecks(2);
+  DoBasicAlignmentChecks(4);
+  DoBasicAlignmentChecks(8);
+  DoBasicAlignmentChecks(16);
+  DoBasicAlignmentChecks(32);
+  DoBasicAlignmentChecks(256);
   DoBasicAlignmentChecks(512);
 }

@@ -45,7 +45,6 @@
 #ifndef CERES_RESTRICT_SCHUR_SPECIALIZATION
 
 #include "ceres/schur_eliminator_impl.h"
-#include "ceres/internal/eigen.h"
 
 namespace ceres {
 namespace internal {

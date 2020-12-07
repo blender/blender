@@ -63,7 +63,7 @@
 #include "IMB_colormanagement.h"
 
 #include "RE_pipeline.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 #include "GPU_material.h"
 #include "GPU_texture.h"

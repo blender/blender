@@ -114,6 +114,14 @@ void BKE_appdir_init(void)
 #endif
 }
 
+void BKE_appdir_exit(void)
+{
+#ifndef NDEBUG
+  BLI_assert(is_appdir_init == true);
+  is_appdir_init = false;
+#endif
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

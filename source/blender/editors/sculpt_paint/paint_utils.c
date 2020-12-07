@@ -64,8 +64,9 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "RE_render_ext.h"
+#include "RE_texture.h"
 
+#include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -458,8 +459,6 @@ void paint_sample_color(
   Palette *palette = BKE_paint_palette(paint);
   PaletteColor *color = NULL;
   Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-  uint col;
-  const uchar *cp;
 
   CLAMP(x, 0, region->winx);
   CLAMP(y, 0, region->winy);
@@ -474,12 +473,14 @@ void paint_sample_color(
     palette->active_color = BLI_listbase_count(&palette->colors) - 1;
   }
 
-  if (CTX_wm_view3d(C) && texpaint_proj) {
+  SpaceImage *sima = CTX_wm_space_image(C);
+  const View3D *v3d = CTX_wm_view3d(C);
+
+  if (v3d && texpaint_proj) {
     /* first try getting a color directly from the mesh faces if possible */
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Object *ob = OBACT(view_layer);
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    bool sample_success = false;
     ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
     bool use_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
 
@@ -539,8 +540,6 @@ void paint_sample_color(
 
             ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, NULL);
             if (ibuf && (ibuf->rect || ibuf->rect_float)) {
-              sample_success = true;
-
               u = u * ibuf->x;
               v = v * ibuf->y;
 
@@ -568,6 +567,8 @@ void paint_sample_color(
                   BKE_brush_color_set(scene, br, rgba_f);
                 }
               }
+              BKE_image_release_ibuf(image, ibuf, NULL);
+              return;
             }
 
             BKE_image_release_ibuf(image, ibuf, NULL);
@@ -575,28 +576,39 @@ void paint_sample_color(
         }
       }
     }
+  }
+  else if (sima != NULL) {
+    /* Sample from the active image buffer. The sampled color is in
+     * Linear Scene Reference Space. */
+    float rgba_f[3];
+    bool is_data;
+    if (ED_space_image_color_sample(sima, region, (int[2]){x, y}, rgba_f, &is_data)) {
+      if (!is_data) {
+        linearrgb_to_srgb_v3_v3(rgba_f, rgba_f);
+      }
 
-    if (!sample_success) {
-      GPU_frontbuffer_read_pixels(
-          x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, 4, GPU_DATA_UNSIGNED_BYTE, &col);
-    }
-    else {
+      if (use_palette) {
+        copy_v3_v3(color->rgb, rgba_f);
+      }
+      else {
+        BKE_brush_color_set(scene, br, rgba_f);
+      }
       return;
     }
   }
-  else {
-    GPU_frontbuffer_read_pixels(
-        x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, 4, GPU_DATA_UNSIGNED_BYTE, &col);
-  }
-  cp = (uchar *)&col;
 
-  if (use_palette) {
-    rgb_uchar_to_float(color->rgb, cp);
-  }
-  else {
-    float rgba_f[3];
-    rgb_uchar_to_float(rgba_f, cp);
-    BKE_brush_color_set(scene, br, rgba_f);
+  /* No sample found; sample directly from the GPU front buffer. */
+  {
+    float rgba_f[4];
+    GPU_frontbuffer_read_pixels(
+        x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, 4, GPU_DATA_FLOAT, &rgba_f);
+
+    if (use_palette) {
+      copy_v3_v3(color->rgb, rgba_f);
+    }
+    else {
+      BKE_brush_color_set(scene, br, rgba_f);
+    }
   }
 }
 

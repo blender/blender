@@ -28,6 +28,10 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
 
 struct AnimData;
@@ -129,8 +133,8 @@ typedef struct BezTriple {
   /** BEZT_IPO_ELASTIC. */
   float amplitude, period;
 
-  /** F5: used for auto handle to distinguish between normal handle and exception (extrema). */
-  char f5;
+  /** Used during auto handle calculation to mark special cases (local extremes). */
+  char auto_handle_type;
   char _pad[3];
 } BezTriple;
 
@@ -461,10 +465,14 @@ typedef enum eBezTriple_Handle {
   HD_ALIGN_DOUBLESIDE = 5, /* align handles, displayed both of them. used for masks */
 } eBezTriple_Handle;
 
-/* f5 (beztriple) */
+/* auto_handle_type (beztriple) */
 typedef enum eBezTriple_Auto_Type {
+  /* Normal automatic handle that can be refined further. */
   HD_AUTOTYPE_NORMAL = 0,
-  HD_AUTOTYPE_SPECIAL = 1,
+  /* Handle locked horizontal due to being an Auto Clamped local
+   * extreme or a curve endpoint with Constant extrapolation.
+   * Further smoothing is disabled. */
+  HD_AUTOTYPE_LOCKED_FINAL = 1,
 } eBezTriple_Auto_Type;
 
 /* interpolation modes (used only for BezTriple->ipo) */
@@ -519,6 +527,10 @@ typedef enum eBezTriple_KeyframeType {
        (bezt)->f2 & SELECT : \
        BEZT_ISSEL_ANY(bezt))
 
+#define BEZT_ISSEL_IDX(bezt, i) \
+  ((i == 0 && (bezt)->f1 & SELECT) || (i == 1 && (bezt)->f2 & SELECT) || \
+   (i == 2 && (bezt)->f3 & SELECT))
+
 #define BEZT_SEL_ALL(bezt) \
   { \
     (bezt)->f1 |= SELECT; \
@@ -531,6 +543,49 @@ typedef enum eBezTriple_KeyframeType {
     (bezt)->f1 &= ~SELECT; \
     (bezt)->f2 &= ~SELECT; \
     (bezt)->f3 &= ~SELECT; \
+  } \
+  ((void)0)
+#define BEZT_SEL_INVERT(bezt) \
+  { \
+    (bezt)->f1 ^= SELECT; \
+    (bezt)->f2 ^= SELECT; \
+    (bezt)->f3 ^= SELECT; \
+  } \
+  ((void)0)
+
+#define BEZT_SEL_IDX(bezt, i) \
+  { \
+    switch (i) { \
+      case 0: \
+        (bezt)->f1 |= SELECT; \
+        break; \
+      case 1: \
+        (bezt)->f2 |= SELECT; \
+        break; \
+      case 2: \
+        (bezt)->f3 |= SELECT; \
+        break; \
+      default: \
+        break; \
+    } \
+  } \
+  ((void)0)
+
+#define BEZT_DESEL_IDX(bezt, i) \
+  { \
+    switch (i) { \
+      case 0: \
+        (bezt)->f1 &= ~SELECT; \
+        break; \
+      case 1: \
+        (bezt)->f2 &= ~SELECT; \
+        break; \
+      case 2: \
+        (bezt)->f3 &= ~SELECT; \
+        break; \
+      default: \
+        break; \
+    } \
   } \
   ((void)0)
 
@@ -559,3 +614,7 @@ enum {
 
 /* indicates point has been seen during surface duplication */
 #define SURF_SEEN 4
+
+#ifdef __cplusplus
+}
+#endif

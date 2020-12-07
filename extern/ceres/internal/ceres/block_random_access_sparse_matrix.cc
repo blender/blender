@@ -50,10 +50,8 @@ using std::set;
 using std::vector;
 
 BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
-    const vector<int>& blocks,
-    const set<pair<int, int>>& block_pairs)
-    : kMaxRowBlocks(10 * 1000 * 1000),
-      blocks_(blocks) {
+    const vector<int>& blocks, const set<pair<int, int>>& block_pairs)
+    : kMaxRowBlocks(10 * 1000 * 1000), blocks_(blocks) {
   CHECK_LT(blocks.size(), kMaxRowBlocks);
 
   // Build the row/column layout vector and count the number of scalar
@@ -75,9 +73,8 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
     num_nonzeros += row_block_size * col_block_size;
   }
 
-  VLOG(1) << "Matrix Size [" << num_cols
-          << "," << num_cols
-          << "] " << num_nonzeros;
+  VLOG(1) << "Matrix Size [" << num_cols << "," << num_cols << "] "
+          << num_nonzeros;
 
   tsm_.reset(new TripletSparseMatrix(num_cols, num_cols, num_nonzeros));
   tsm_->set_num_nonzeros(num_nonzeros);
@@ -105,11 +102,11 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
         layout_[IntPairToLong(row_block_id, col_block_id)]->values - values;
     for (int r = 0; r < row_block_size; ++r) {
       for (int c = 0; c < col_block_size; ++c, ++pos) {
-          rows[pos] = block_positions_[row_block_id] + r;
-          cols[pos] = block_positions_[col_block_id] + c;
-          values[pos] = 1.0;
-          DCHECK_LT(rows[pos], tsm_->num_rows());
-          DCHECK_LT(cols[pos], tsm_->num_rows());
+        rows[pos] = block_positions_[row_block_id] + r;
+        cols[pos] = block_positions_[col_block_id] + c;
+        values[pos] = 1.0;
+        DCHECK_LT(rows[pos], tsm_->num_rows());
+        DCHECK_LT(cols[pos], tsm_->num_rows());
       }
     }
   }
@@ -129,7 +126,7 @@ CellInfo* BlockRandomAccessSparseMatrix::GetCell(int row_block_id,
                                                  int* col,
                                                  int* row_stride,
                                                  int* col_stride) {
-  const LayoutType::iterator it  =
+  const LayoutType::iterator it =
       layout_.find(IntPairToLong(row_block_id, col_block_id));
   if (it == layout_.end()) {
     return NULL;
@@ -147,8 +144,7 @@ CellInfo* BlockRandomAccessSparseMatrix::GetCell(int row_block_id,
 // when they are calling SetZero.
 void BlockRandomAccessSparseMatrix::SetZero() {
   if (tsm_->num_nonzeros()) {
-    VectorRef(tsm_->mutable_values(),
-              tsm_->num_nonzeros()).setZero();
+    VectorRef(tsm_->mutable_values(), tsm_->num_nonzeros()).setZero();
   }
 }
 
@@ -164,7 +160,9 @@ void BlockRandomAccessSparseMatrix::SymmetricRightMultiply(const double* x,
     const int col_block_pos = block_positions_[col];
 
     MatrixVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
-        cell_position_and_data.second, row_block_size, col_block_size,
+        cell_position_and_data.second,
+        row_block_size,
+        col_block_size,
         x + col_block_pos,
         y + row_block_pos);
 
@@ -174,7 +172,9 @@ void BlockRandomAccessSparseMatrix::SymmetricRightMultiply(const double* x,
     // triangular multiply also.
     if (row != col) {
       MatrixTransposeVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
-          cell_position_and_data.second, row_block_size, col_block_size,
+          cell_position_and_data.second,
+          row_block_size,
+          col_block_size,
           x + row_block_pos,
           y + col_block_pos);
     }

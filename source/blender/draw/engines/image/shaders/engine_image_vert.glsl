@@ -1,7 +1,7 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-#define SIMA_DRAW_FLAG_DO_REPEAT (1 << 4)
-
+#define IMAGE_DRAW_FLAG_DO_REPEAT (1 << 4)
+#define IMAGE_DRAW_FLAG_USE_WORLD_POS (1 << 5)
 #define IMAGE_Z_DEPTH 0.75
 
 uniform int drawFlags;
@@ -15,7 +15,7 @@ void main()
    * plane (0..1) */
   vec3 image_pos = pos * 0.5 + 0.5;
 
-  if ((drawFlags & SIMA_DRAW_FLAG_DO_REPEAT) != 0) {
+  if ((drawFlags & IMAGE_DRAW_FLAG_DO_REPEAT) != 0) {
     gl_Position = vec4(pos.xy, IMAGE_Z_DEPTH, 1.0);
     uvs = point_view_to_object(image_pos).xy;
   }
@@ -28,6 +28,7 @@ void main()
      * actual pixels are at 0.75, 1.0 is used for the background. */
     position.z = IMAGE_Z_DEPTH;
     gl_Position = position;
-    uvs = world_pos.xy;
+    /* UDIM texture uses the world position for tile selection. */
+    uvs = ((drawFlags & IMAGE_DRAW_FLAG_USE_WORLD_POS) != 0) ? world_pos.xy : image_pos.xy;
   }
 }

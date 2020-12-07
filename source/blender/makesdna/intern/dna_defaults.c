@@ -271,7 +271,7 @@ SDNA_DEFAULT_DECL_STRUCT(ScrewModifierData);
 /* Shape key modifier has no items. */
 SDNA_DEFAULT_DECL_STRUCT(ShrinkwrapModifierData);
 SDNA_DEFAULT_DECL_STRUCT(SimpleDeformModifierData);
-SDNA_DEFAULT_DECL_STRUCT(SimulationModifierData);
+SDNA_DEFAULT_DECL_STRUCT(NodesModifierData);
 SDNA_DEFAULT_DECL_STRUCT(SkinModifierData);
 SDNA_DEFAULT_DECL_STRUCT(SmoothModifierData);
 /* Softbody modifier skipped for now. */
@@ -491,7 +491,7 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     /* Shape key modifier has no items. */
     SDNA_DEFAULT_DECL(ShrinkwrapModifierData),
     SDNA_DEFAULT_DECL(SimpleDeformModifierData),
-    SDNA_DEFAULT_DECL(SimulationModifierData),
+    SDNA_DEFAULT_DECL(NodesModifierData),
     SDNA_DEFAULT_DECL(SkinModifierData),
     SDNA_DEFAULT_DECL(SmoothModifierData),
     /* Softbody modifier skipped for now. */

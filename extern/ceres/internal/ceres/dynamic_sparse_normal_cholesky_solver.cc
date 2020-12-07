@@ -95,7 +95,7 @@ LinearSolver::Summary DynamicSparseNormalCholeskySolver::SolveImpl(
       LOG(FATAL) << "Unsupported sparse linear algebra library for "
                  << "dynamic sparsity: "
                  << SparseLinearAlgebraLibraryTypeToString(
-                     options_.sparse_linear_algebra_library_type);
+                        options_.sparse_linear_algebra_library_type);
   }
 
   if (per_solve_options.D != nullptr) {

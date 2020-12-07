@@ -113,3 +113,21 @@ TEST(math_base, Log2CeilU)
   EXPECT_EQ(log2_ceil_u(9), 4);
   EXPECT_EQ(log2_ceil_u(123456), 17);
 }
+
+TEST(math_base, CeilPowerOf10)
+{
+  EXPECT_EQ(ceil_power_of_10(0), 0);
+  EXPECT_EQ(ceil_power_of_10(1), 1);
+  EXPECT_EQ(ceil_power_of_10(1e-6f), 1e-6f);
+  EXPECT_NEAR(ceil_power_of_10(100.1f), 1000.0f, 1e-4f);
+  EXPECT_NEAR(ceil_power_of_10(99.9f), 100.0f, 1e-4f);
+}
+
+TEST(math_base, FloorPowerOf10)
+{
+  EXPECT_EQ(floor_power_of_10(0), 0);
+  EXPECT_EQ(floor_power_of_10(1), 1);
+  EXPECT_EQ(floor_power_of_10(1e-6f), 1e-6f);
+  EXPECT_NEAR(floor_power_of_10(100.1f), 100.0f, 1e-4f);
+  EXPECT_NEAR(floor_power_of_10(99.9f), 10.0f, 1e-4f);
+}

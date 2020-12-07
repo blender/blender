@@ -23,8 +23,8 @@
 
 #include "intern/node/deg_node_component.h"
 
+#include <cstdio>
 #include <cstring> /* required for STREQ later on. */
-#include <stdio.h>
 
 #include "BLI_ghash.h"
 #include "BLI_hash.hh"
@@ -38,8 +38,7 @@
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* *********** */
 /* Outer Nodes */
@@ -376,5 +375,4 @@ void deg_register_component_depsnodes()
   register_node_typeinfo(&DNTI_SIMULATION);
 }
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

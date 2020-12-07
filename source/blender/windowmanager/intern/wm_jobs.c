@@ -222,10 +222,8 @@ wmJob *WM_jobs_get(
 /* returns true if job runs, for UI (progress) indicators */
 bool WM_jobs_test(wmWindowManager *wm, void *owner, int job_type)
 {
-  wmJob *wm_job;
-
   /* job can be running or about to run (suspended) */
-  for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner == owner) {
       if (ELEM(job_type, WM_JOB_TYPE_ANY, wm_job->job_type)) {
         if (wm_job->running || wm_job->suspended) {
@@ -266,17 +264,14 @@ static void wm_jobs_update_progress_bars(wmWindowManager *wm)
 
   /* if there are running jobs, set the global progress indicator */
   if (jobs_progress > 0) {
-    wmWindow *win;
     float progress = total_progress / (float)jobs_progress;
 
-    for (win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WM_progress_set(win, progress);
     }
   }
   else {
-    wmWindow *win;
-
-    for (win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WM_progress_clear(win);
     }
   }
@@ -400,7 +395,6 @@ static void *do_job_thread(void *job_v)
 /* don't allow same startjob to be executed twice */
 static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 {
-  wmJob *wm_job;
   bool suspend = false;
 
   /* job added with suspend flag, we wait 1 timer step before activating it */
@@ -410,7 +404,7 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
   }
   else {
     /* check other jobs */
-    for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+    LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
       /* obvious case, no test needed */
       if (wm_job == test || !wm_job->running) {
         continue;
@@ -568,11 +562,7 @@ void WM_jobs_kill_all(wmWindowManager *wm)
 /* wait until every job ended, except for one owner (used in undo to keep screen job alive) */
 void WM_jobs_kill_all_except(wmWindowManager *wm, void *owner)
 {
-  wmJob *wm_job, *next_job;
-
-  for (wm_job = wm->jobs.first; wm_job; wm_job = next_job) {
-    next_job = wm_job->next;
-
+  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner != owner) {
       wm_jobs_kill_job(wm, wm_job);
     }
@@ -581,11 +571,7 @@ void WM_jobs_kill_all_except(wmWindowManager *wm, void *owner)
 
 void WM_jobs_kill_type(struct wmWindowManager *wm, void *owner, int job_type)
 {
-  wmJob *wm_job, *next_job;
-
-  for (wm_job = wm->jobs.first; wm_job; wm_job = next_job) {
-    next_job = wm_job->next;
-
+  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
     if (!owner || wm_job->owner == owner) {
       if (ELEM(job_type, WM_JOB_TYPE_ANY, wm_job->job_type)) {
         wm_jobs_kill_job(wm, wm_job);
@@ -597,9 +583,7 @@ void WM_jobs_kill_type(struct wmWindowManager *wm, void *owner, int job_type)
 /* signal job(s) from this owner or callback to stop, timer is required to get handled */
 void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)
 {
-  wmJob *wm_job;
-
-  for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner == owner || wm_job->startjob == startjob) {
       if (wm_job->running) {
         wm_job->stop = true;
@@ -613,17 +597,9 @@ void WM_jobs_kill(wmWindowManager *wm,
                   void *owner,
                   void (*startjob)(void *, short int *, short int *, float *))
 {
-  wmJob *wm_job;
-
-  wm_job = wm->jobs.first;
-  while (wm_job) {
+  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner == owner || wm_job->startjob == startjob) {
-      wmJob *wm_job_kill = wm_job;
-      wm_job = wm_job->next;
-      wm_jobs_kill_job(wm, wm_job_kill);
-    }
-    else {
-      wm_job = wm_job->next;
+      wm_jobs_kill_job(wm, wm_job);
     }
   }
 }
@@ -631,9 +607,7 @@ void WM_jobs_kill(wmWindowManager *wm,
 /* kill job entirely, also removes timer itself */
 void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
 {
-  wmJob *wm_job;
-
-  for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->wt == wt) {
       wm_jobs_kill_job(wm, wm_job);
       return;
@@ -644,13 +618,8 @@ void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
 /* hardcoded to event TIMERJOBS */
 void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
 {
-  wmJob *wm_job, *wm_jobnext;
-
-  for (wm_job = wm->jobs.first; wm_job; wm_job = wm_jobnext) {
-    wm_jobnext = wm_job->next;
-
+  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->wt == wt) {
-
       /* running threads */
       if (wm_job->threads.first) {
 
@@ -735,9 +704,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
 
 bool WM_jobs_has_running(wmWindowManager *wm)
 {
-  wmJob *wm_job;
-
-  for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->running) {
       return true;
     }

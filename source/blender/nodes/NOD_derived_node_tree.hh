@@ -31,6 +31,8 @@
 
 #include "NOD_node_tree_ref.hh"
 
+#include "BLI_vector_set.hh"
+
 namespace blender::nodes {
 
 class DSocket;
@@ -65,6 +67,8 @@ class DSocket : NonCopyable, NonMovable {
   PointerRNA *rna() const;
   StringRefNull idname() const;
   StringRefNull name() const;
+  StringRefNull identifier() const;
+  bNodeSocketType *typeinfo() const;
 
   const SocketRef &socket_ref() const;
   bNodeSocket *bsocket() const;
@@ -147,6 +151,8 @@ class DNode : NonCopyable, NonMovable {
   PointerRNA *rna() const;
   StringRefNull idname() const;
   StringRefNull name() const;
+  bNode *bnode() const;
+  bNodeType *typeinfo() const;
 
  private:
   void destruct_with_sockets();
@@ -180,10 +186,14 @@ class DerivedNodeTree : NonCopyable, NonMovable {
   Vector<DOutputSocket *> output_sockets_;
 
   MultiValueMap<const bNodeType *, DNode *> nodes_by_type_;
+  VectorSet<const NodeTreeRef *> used_node_tree_refs_;
+  bNodeTree *btree_;
 
  public:
   DerivedNodeTree(bNodeTree *btree, NodeTreeRefMap &node_tree_refs);
   ~DerivedNodeTree();
+
+  bNodeTree *btree() const;
 
   Span<const DNode *> nodes() const;
   Span<const DNode *> nodes_by_type(StringRefNull idname) const;
@@ -194,6 +204,10 @@ class DerivedNodeTree : NonCopyable, NonMovable {
   Span<const DOutputSocket *> output_sockets() const;
 
   Span<const DGroupInput *> group_inputs() const;
+
+  Span<const NodeTreeRef *> used_node_tree_refs() const;
+
+  bool has_link_cycles() const;
 
   std::string to_dot() const;
 
@@ -224,10 +238,21 @@ class DerivedNodeTree : NonCopyable, NonMovable {
                             DNode &group_node);
   void remove_expanded_group_interfaces(Vector<DNode *> &all_nodes);
   void remove_unused_group_inputs(Vector<DGroupInput *> &all_group_inputs);
+  void relink_and_remove_muted_nodes(Vector<DNode *> &all_nodes);
+  void relink_muted_node(DNode &muted_node);
   void store_in_this_and_init_ids(Vector<DNode *> &&all_nodes,
                                   Vector<DGroupInput *> &&all_group_inputs,
                                   Vector<DParentNode *> &&all_parent_nodes);
 };
+
+namespace derived_node_tree_types {
+using nodes::DerivedNodeTree;
+using nodes::DGroupInput;
+using nodes::DInputSocket;
+using nodes::DNode;
+using nodes::DOutputSocket;
+using nodes::DParentNode;
+};  // namespace derived_node_tree_types
 
 /* --------------------------------------------------------------------
  * DSocket inline methods.
@@ -286,6 +311,16 @@ inline StringRefNull DSocket::idname() const
 inline StringRefNull DSocket::name() const
 {
   return socket_ref_->name();
+}
+
+inline StringRefNull DSocket::identifier() const
+{
+  return socket_ref_->identifier();
+}
+
+inline bNodeSocketType *DSocket::typeinfo() const
+{
+  return socket_ref_->bsocket()->typeinfo;
 }
 
 inline const SocketRef &DSocket::socket_ref() const
@@ -445,6 +480,16 @@ inline StringRefNull DNode::name() const
   return node_ref_->name();
 }
 
+inline bNode *DNode::bnode() const
+{
+  return node_ref_->bnode();
+}
+
+inline bNodeType *DNode::typeinfo() const
+{
+  return node_ref_->bnode()->typeinfo;
+}
+
 /* --------------------------------------------------------------------
  * DParentNode inline methods.
  */
@@ -467,6 +512,11 @@ inline int DParentNode::id() const
 /* --------------------------------------------------------------------
  * DerivedNodeTree inline methods.
  */
+
+inline bNodeTree *DerivedNodeTree::btree() const
+{
+  return btree_;
+}
 
 inline Span<const DNode *> DerivedNodeTree::nodes() const
 {
@@ -502,6 +552,11 @@ inline Span<const DOutputSocket *> DerivedNodeTree::output_sockets() const
 inline Span<const DGroupInput *> DerivedNodeTree::group_inputs() const
 {
   return group_inputs_;
+}
+
+inline Span<const NodeTreeRef *> DerivedNodeTree::used_node_tree_refs() const
+{
+  return used_node_tree_refs_;
 }
 
 }  // namespace blender::nodes

@@ -23,9 +23,20 @@
 
 #include <glog/logging.h>
 
-#define LG LOG(INFO)
-#define V0 LOG(INFO)
-#define V1 LOG(INFO)
-#define V2 LOG(INFO)
+// Note on logging severity and verbosity level.
+//
+// Reserve LOG(INFO) for messages which are always to be put to log and don't
+// use the INFO severity for the debugging/troubleshooting type of messages.
+// Some reasoning behind:
+//
+//   - Library integration would want to disable "noisy" messages coming from
+//     algorithms.
+//
+//   - It is not possible to disable INFO severity entirely: there is enough
+//     of preparation being done for the message stream. What is even worse
+//     is that such stream preparation causes measurable time spent in spin
+//     lock, ruining multi-threading.
+
+#define LG VLOG(1)
 
 #endif  // LIBMV_LOGGING_LOGGING_H

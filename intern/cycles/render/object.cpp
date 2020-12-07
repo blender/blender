@@ -171,7 +171,7 @@ void Object::compute_bounds(bool motion_blur)
 
     bounds = BoundBox::empty;
 
-    /* todo: this is really terrible. according to pbrt there is a better
+    /* TODO: this is really terrible. according to PBRT there is a better
      * way to find this iteratively, but did not find implementation yet
      * or try to implement myself */
     for (float t = 0.0f; t < 1.0f; t += (1.0f / 128.0f)) {

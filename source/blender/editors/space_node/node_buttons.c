@@ -68,23 +68,20 @@ static bool node_sockets_poll(const bContext *C, PanelType *UNUSED(pt))
 
 static void node_sockets_panel(const bContext *C, Panel *panel)
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeTree *ntree = (snode) ? snode->edittree : NULL;
-  bNode *node = (ntree) ? nodeGetActive(ntree) : NULL;
-  bNodeSocket *sock;
-  uiLayout *layout = panel->layout, *split;
-  char name[UI_MAX_NAME_STR];
-
-  if (ELEM(NULL, ntree, node)) {
+  SpaceNode *snode = CTX_wm_space_node(C); /* NULL checked in poll function. */
+  bNodeTree *ntree = snode->edittree;      /* NULL checked in poll function. */
+  bNode *node = nodeGetActive(ntree);
+  if (node == NULL) {
     return;
   }
 
-  for (sock = node->inputs.first; sock; sock = sock->next) {
-    BLI_snprintf(name, sizeof(name), "%s:", sock->name);
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+    char name[UI_MAX_NAME_STR];
+    BLI_snprintf(name, sizeof(name), "%s:", socket->name);
 
-    split = uiLayoutSplit(layout, 0.35f, false);
+    uiLayout *split = uiLayoutSplit(panel->layout, 0.35f, false);
     uiItemL(split, name, ICON_NONE);
-    uiTemplateNodeLink(split, (bContext *)C, ntree, node, sock);
+    uiTemplateNodeLink(split, (bContext *)C, ntree, node, socket);
   }
 }
 
@@ -96,19 +93,20 @@ static bool node_tree_interface_poll(const bContext *C, PanelType *UNUSED(pt))
           (snode->edittree->inputs.first || snode->edittree->outputs.first));
 }
 
-static bool node_tree_find_active_socket(bNodeTree *ntree, bNodeSocket **r_sock, int *r_in_out)
+static bool node_tree_find_active_socket(bNodeTree *ntree,
+                                         bNodeSocket **r_sock,
+                                         eNodeSocketInOut *r_in_out)
 {
-  bNodeSocket *sock;
-  for (sock = ntree->inputs.first; sock; sock = sock->next) {
-    if (sock->flag & SELECT) {
-      *r_sock = sock;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->inputs) {
+    if (socket->flag & SELECT) {
+      *r_sock = socket;
       *r_in_out = SOCK_IN;
       return true;
     }
   }
-  for (sock = ntree->outputs.first; sock; sock = sock->next) {
-    if (sock->flag & SELECT) {
-      *r_sock = sock;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->outputs) {
+    if (socket->flag & SELECT) {
+      *r_sock = socket;
       *r_in_out = SOCK_OUT;
       return true;
     }
@@ -121,28 +119,24 @@ static bool node_tree_find_active_socket(bNodeTree *ntree, bNodeSocket **r_sock,
 
 static void node_tree_interface_panel(const bContext *C, Panel *panel)
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeTree *ntree = (snode) ? snode->edittree : NULL;
-  bNodeSocket *sock;
-  int in_out;
-  uiLayout *layout = panel->layout, *row, *split, *col;
-  PointerRNA ptr, sockptr, opptr;
-  wmOperatorType *ot;
+  SpaceNode *snode = CTX_wm_space_node(C); /* NULL checked in poll function. */
+  bNodeTree *ntree = snode->edittree;      /* NULL checked in poll function. */
+  uiLayout *layout = panel->layout;
 
-  if (!ntree) {
-    return;
-  }
-
+  PointerRNA ptr;
   RNA_id_pointer_create((ID *)ntree, &ptr);
 
-  node_tree_find_active_socket(ntree, &sock, &in_out);
-  RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, sock, &sockptr);
+  bNodeSocket *socket;
+  eNodeSocketInOut in_out;
+  node_tree_find_active_socket(ntree, &socket, &in_out);
+  PointerRNA sockptr;
+  RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, socket, &sockptr);
 
-  row = uiLayoutRow(layout, false);
+  uiLayout *row = uiLayoutRow(layout, false);
 
-  split = uiLayoutRow(row, true);
-  col = uiLayoutColumn(split, true);
-  ot = WM_operatortype_find("NODE_OT_tree_socket_add", false);
+  uiLayout *split = uiLayoutRow(row, true);
+  uiLayout *col = uiLayoutColumn(split, true);
+  wmOperatorType *ot = WM_operatortype_find("NODE_OT_tree_socket_add", false);
   uiItemL(col, IFACE_("Inputs:"), ICON_NONE);
   uiTemplateList(col,
                  (bContext *)C,
@@ -159,6 +153,7 @@ static void node_tree_interface_panel(const bContext *C, Panel *panel)
                  0,
                  false,
                  false);
+  PointerRNA opptr;
   uiItemFullO_ptr(col, ot, "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
   RNA_enum_set(&opptr, "in_out", SOCK_IN);
 
@@ -189,14 +184,14 @@ static void node_tree_interface_panel(const bContext *C, Panel *panel)
   uiItemFullO_ptr(col, ot, "", ICON_TRIA_DOWN, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
   RNA_enum_set(&opptr, "direction", 2);
 
-  if (sock) {
+  if (socket) {
     row = uiLayoutRow(layout, true);
     uiItemR(row, &sockptr, "name", 0, NULL, ICON_NONE);
     uiItemO(row, "", ICON_X, "NODE_OT_tree_socket_remove");
 
-    if (sock->typeinfo->interface_draw) {
+    if (socket->typeinfo->interface_draw) {
       uiItemS(layout);
-      sock->typeinfo->interface_draw((bContext *)C, layout, &sockptr);
+      socket->typeinfo->interface_draw((bContext *)C, layout, &sockptr);
     }
   }
 }
@@ -214,7 +209,7 @@ void node_buttons_register(ARegionType *art)
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = node_sockets_panel;
   pt->poll = node_sockets_poll;
-  pt->flag |= PNL_DEFAULT_CLOSED;
+  pt->flag |= PANEL_TYPE_DEFAULT_CLOSED;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype node panel tree interface");

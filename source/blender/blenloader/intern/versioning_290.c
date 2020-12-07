@@ -49,6 +49,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_fcurve.h"
@@ -472,8 +473,22 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
    * \note Keep this message at the bottom of the function.
    */
   {
-
     /* Keep this block, even when empty. */
+
+    /* Systematically rebuild posebones to ensure consistent ordering matching the one of bones in
+     * Armature obdata. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type == OB_ARMATURE) {
+        BKE_pose_rebuild(bmain, ob, ob->data, true);
+      }
+    }
+  }
+
+  /* Wet Paint Radius Factor */
+  for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+    if (br->ob_mode & OB_MODE_SCULPT && br->wet_paint_radius_factor == 0.0f) {
+      br->wet_paint_radius_factor = 1.0f;
+    }
   }
 }
 
@@ -507,6 +522,20 @@ static void do_versions_point_attributes(CustomData *pdata)
     else if (layer->type == CD_RADIUS) {
       STRNCPY(layer->name, "Radius");
       layer->type = CD_PROP_FLOAT;
+    }
+  }
+}
+
+static void do_versions_point_attribute_names(CustomData *pdata)
+{
+  /* Change from capital initial letter to lower case (T82693). */
+  for (int i = 0; i < pdata->totlayer; i++) {
+    CustomDataLayer *layer = &pdata->layers[i];
+    if (layer->type == CD_PROP_FLOAT3 && STREQ(layer->name, "Position")) {
+      STRNCPY(layer->name, "position");
+    }
+    else if (layer->type == CD_PROP_FLOAT && STREQ(layer->name, "Radius")) {
+      STRNCPY(layer->name, "radius");
     }
   }
 }
@@ -1067,6 +1096,20 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         part->phystype = PART_PHYS_NO;
       }
     }
+    /* Init grease pencil default curve resolution. */
+    if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "int", "curve_edit_resolution")) {
+      LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
+        gpd->curve_edit_resolution = GP_DEFAULT_CURVE_RESOLUTION;
+        gpd->flag |= GP_DATA_CURVE_ADAPTIVE_RESOLUTION;
+      }
+    }
+    /* Init grease pencil curve editing error threshold. */
+    if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "float", "curve_edit_threshold")) {
+      LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
+        gpd->curve_edit_threshold = GP_DEFAULT_CURVE_ERROR;
+        gpd->curve_edit_corner_angle = GP_DEFAULT_CURVE_EDIT_CORNER_ANGLE;
+      }
+    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 291, 9)) {
@@ -1133,6 +1176,67 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (br->sculpt_tool == SCULPT_TOOL_VCOL_BOUNDARY) {
         if (br->vcol_boundary_exponent == 0.0f) {
           br->vcol_boundary_exponent = 1.0f;
+        }
+      }
+    }
+  }
+  
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 5)) {
+    /* Initialize the opacity of the overlay wireframe */
+    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "wireframe_opacity")) {
+      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype == SPACE_VIEW3D) {
+              View3D *v3d = (View3D *)sl;
+              v3d->overlay.wireframe_opacity = 1.0f;
+            }
+          }
+        }
+      }
+    }
+
+    /* Replace object hidden filter with inverted object visible filter.  */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          if (space->spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = (SpaceOutliner *)space;
+            if (space_outliner->filter_state == SO_FILTER_OB_HIDDEN) {
+              space_outliner->filter_state = SO_FILTER_OB_VISIBLE;
+              space_outliner->filter |= SO_FILTER_OB_STATE_INVERSE;
+            }
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_WeightVGProximity) {
+          WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+          if (wmd->cmap_curve == NULL) {
+            wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
+            BKE_curvemapping_init(wmd->cmap_curve);
+          }
+        }
+      }
+    }
+
+    /* Hair and PointCloud attributes names. */
+    LISTBASE_FOREACH (Hair *, hair, &bmain->hairs) {
+      do_versions_point_attribute_names(&hair->pdata);
+    }
+    LISTBASE_FOREACH (PointCloud *, pointcloud, &bmain->pointclouds) {
+      do_versions_point_attribute_names(&pointcloud->pdata);
+    }
+
+    /* Cryptomatte render pass */
+    if (!DNA_struct_elem_find(fd->filesdna, "ViewLayer", "short", "cryptomatte_levels")) {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+          view_layer->cryptomatte_levels = 6;
+          view_layer->cryptomatte_flag = VIEW_LAYER_CRYPTOMATTE_ACCURATE;
         }
       }
     }

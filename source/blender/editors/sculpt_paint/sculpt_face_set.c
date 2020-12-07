@@ -111,7 +111,10 @@ int ED_sculpt_face_sets_active_update_and_get(bContext *C, Object *ob, const flo
   }
 
   SculptCursorGeometryInfo gi;
-  SCULPT_cursor_geometry_info_update(C, &gi, mval, false);
+  if (!SCULPT_cursor_geometry_info_update(C, &gi, mval, false)) {
+    return SCULPT_FACE_SET_NONE;
+  }
+
   return SCULPT_active_face_set_get(ss);
 }
 
@@ -133,6 +136,8 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
   const int active_fset = abs(ss->cache->paint_face_set);
+
+  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
 
@@ -357,7 +362,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin("face set change");
+  SCULPT_undo_push_begin(ob, "face set change");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
 
   const int next_face_set = SCULPT_face_set_next_available_get(ss);
@@ -725,7 +730,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin("face set change");
+  SCULPT_undo_push_begin(ob, "face set change");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
@@ -870,7 +875,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "mode");
   const int active_face_set = SCULPT_active_face_set_get(ss);
 
-  SCULPT_undo_push_begin("Hide area");
+  SCULPT_undo_push_begin(ob, "Hide area");
 
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
@@ -1308,7 +1313,7 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
 {
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     /* Dyntopo is not supported. */
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   if (mode == SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY) {
@@ -1374,7 +1379,7 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
   if (!nodes) {
     return;
   }
-  SCULPT_undo_push_begin("face set edit");
+  SCULPT_undo_push_begin(ob, "face set edit");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
   sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, modify_hidden);
   SCULPT_undo_push_end();
@@ -1401,7 +1406,10 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
    * tool without brush cursor. */
   SculptCursorGeometryInfo sgi;
   const float mouse[2] = {event->mval[0], event->mval[1]};
-  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  if (!SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
+    /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
+    return OPERATOR_CANCELLED;
+  }
   const int active_face_set = SCULPT_active_face_set_get(ss);
 
   switch (mode) {

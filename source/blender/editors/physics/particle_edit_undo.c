@@ -166,18 +166,19 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
       for (i = 0; i < BPHYS_TOT_DATA; i++) {
         pm->data[i] = MEM_dupallocN(pm->data[i]);
       }
-      BKE_ptcache_mem_pointers_init(pm);
+      void *cur[BPHYS_TOT_DATA];
+      BKE_ptcache_mem_pointers_init(pm, cur);
 
       LOOP_POINTS {
         LOOP_KEYS {
           if ((int)key->ftime == (int)pm->frame) {
-            key->co = pm->cur[BPHYS_DATA_LOCATION];
-            key->vel = pm->cur[BPHYS_DATA_VELOCITY];
-            key->rot = pm->cur[BPHYS_DATA_ROTATION];
+            key->co = cur[BPHYS_DATA_LOCATION];
+            key->vel = cur[BPHYS_DATA_VELOCITY];
+            key->rot = cur[BPHYS_DATA_ROTATION];
             key->time = &key->ftime;
           }
         }
-        BKE_ptcache_mem_pointers_incr(pm);
+        BKE_ptcache_mem_pointers_incr(cur);
       }
     }
   }

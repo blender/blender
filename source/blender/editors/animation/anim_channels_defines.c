@@ -54,6 +54,7 @@
 #include "DNA_simulation_types.h"
 #include "DNA_space_types.h"
 #include "DNA_speaker_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
@@ -170,28 +171,9 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac,
 }
 
 /* helper method to test if group colors should be drawn */
-static bool acf_show_channel_colors(bAnimContext *ac)
+static bool acf_show_channel_colors(void)
 {
-  bool showGroupColors = false;
-
-  if (ac->sl) {
-    switch (ac->spacetype) {
-      case SPACE_ACTION: {
-        SpaceAction *saction = (SpaceAction *)ac->sl;
-        showGroupColors = !(saction->flag & SACTION_NODRAWGCOLORS);
-
-        break;
-      }
-      case SPACE_GRAPH: {
-        SpaceGraph *sipo = (SpaceGraph *)ac->sl;
-        showGroupColors = !(sipo->flag & SIPO_NODRAWGCOLORS);
-
-        break;
-      }
-    }
-  }
-
-  return showGroupColors;
+  return (U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS) != 0;
 }
 
 /* get backdrop color for generic channels */
@@ -200,7 +182,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
   const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
   bActionGroup *grp = NULL;
   short indent = (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
-  bool showGroupColors = acf_show_channel_colors(ac);
+  bool showGroupColors = acf_show_channel_colors();
 
   if (ale->type == ANIMTYPE_FCURVE) {
     FCurve *fcu = (FCurve *)ale->data;
@@ -240,7 +222,7 @@ static void acf_gpencil_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 {
   const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
   short indent = (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
-  bool showGroupColors = acf_show_channel_colors(ac);
+  bool showGroupColors = acf_show_channel_colors();
 
   if ((showGroupColors) && (ale->type == ANIMTYPE_GPLAYER)) {
     bGPDlayer *gpl = (bGPDlayer *)ale->data;
@@ -848,10 +830,10 @@ static bAnimChannelType ACF_OBJECT = {
 /* Group ------------------------------------------- */
 
 /* get backdrop color for group widget */
-static void acf_group_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
+static void acf_group_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float r_color[3])
 {
   bActionGroup *agrp = (bActionGroup *)ale->data;
-  bool showGroupColors = acf_show_channel_colors(ac);
+  bool showGroupColors = acf_show_channel_colors();
 
   if (showGroupColors && agrp->customCol) {
     uchar cp[3];

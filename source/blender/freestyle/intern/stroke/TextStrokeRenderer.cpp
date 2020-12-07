@@ -38,11 +38,6 @@ TextStrokeRenderer::TextStrokeRenderer(const char *iFileName)
   _ofstream << "%u x y z tleft tright r g b ..." << endl;
 }
 
-TextStrokeRenderer::~TextStrokeRenderer()
-{
-  Close();
-}
-
 void TextStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 {
   RenderStrokeRepBasic(iStrokeRep);
@@ -66,13 +61,6 @@ void TextStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
     ++v;
   }
   _ofstream << endl;
-}
-
-void TextStrokeRenderer::Close()
-{
-  if (_ofstream.is_open()) {
-    _ofstream.close();
-  }
 }
 
 } /* namespace Freestyle */

@@ -43,6 +43,7 @@ struct ModifierData;
 struct Object;
 struct Scene;
 struct bArmature;
+struct GeometrySet;
 
 typedef enum {
   /* Should not be used, only for None modifier type */
@@ -246,9 +247,9 @@ typedef struct ModifierTypeInfo {
   struct Hair *(*modifyHair)(struct ModifierData *md,
                              const struct ModifierEvalContext *ctx,
                              struct Hair *hair);
-  struct PointCloud *(*modifyPointCloud)(struct ModifierData *md,
-                                         const struct ModifierEvalContext *ctx,
-                                         struct PointCloud *pointcloud);
+  void (*modifyPointCloud)(struct ModifierData *md,
+                           const struct ModifierEvalContext *ctx,
+                           struct GeometrySet *geometry_set);
   struct Volume *(*modifyVolume)(struct ModifierData *md,
                                  const struct ModifierEvalContext *ctx,
                                  struct Volume *volume);
@@ -406,6 +407,7 @@ struct ModifierData *BKE_modifier_new(int type);
 
 void BKE_modifier_free_ex(struct ModifierData *md, const int flag);
 void BKE_modifier_free(struct ModifierData *md);
+void BKE_modifier_remove_from_list(struct Object *ob, struct ModifierData *md);
 
 /* Generate new UUID for the given modifier. */
 void BKE_modifier_session_uuid_generate(struct ModifierData *md);
@@ -429,6 +431,7 @@ bool BKE_modifier_is_non_geometrical(ModifierData *md);
 bool BKE_modifier_is_enabled(const struct Scene *scene,
                              struct ModifierData *md,
                              int required_mode);
+bool BKE_modifier_is_local_in_liboverride(const struct Object *ob, const struct ModifierData *md);
 void BKE_modifier_set_error(const struct Object *ob,
                             struct ModifierData *md,
                             const char *format,

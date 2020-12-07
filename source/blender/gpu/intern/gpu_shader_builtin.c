@@ -128,8 +128,6 @@ extern char datatoc_gpu_shader_gpencil_stroke_vert_glsl[];
 extern char datatoc_gpu_shader_gpencil_stroke_frag_glsl[];
 extern char datatoc_gpu_shader_gpencil_stroke_geom_glsl[];
 
-extern char datatoc_gpu_shader_gpencil_fill_vert_glsl[];
-extern char datatoc_gpu_shader_gpencil_fill_frag_glsl[];
 extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 
 extern char datatoc_gpu_shader_colorspace_lib_glsl[];
@@ -512,13 +510,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .vert = datatoc_gpu_shader_gpencil_stroke_vert_glsl,
             .geom = datatoc_gpu_shader_gpencil_stroke_geom_glsl,
             .frag = datatoc_gpu_shader_gpencil_stroke_frag_glsl,
-        },
-
-    [GPU_SHADER_GPENCIL_FILL] =
-        {
-            .name = "GPU_SHADER_GPENCIL_FILL",
-            .vert = datatoc_gpu_shader_gpencil_fill_vert_glsl,
-            .frag = datatoc_gpu_shader_gpencil_fill_frag_glsl,
         },
 };
 

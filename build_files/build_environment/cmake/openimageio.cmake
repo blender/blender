@@ -112,6 +112,9 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DOPENEXR_IEX_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}Iex${OPENEXR_VERSION_POSTFIX}${LIBEXT}
   -DOPENEXR_ILMIMF_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf${OPENEXR_VERSION_POSTFIX}${LIBEXT}
   -DSTOP_ON_WARNING=OFF
+  -DUSE_EXTERNAL_PUGIXML=ON
+  -DPUGIXML_LIBRARY=${LIBDIR}/pugixml/lib/${LIBPREFIX}pugixml${LIBEXT}
+  -DPUGIXML_INCLUDE_DIR=${LIBDIR}/pugixml/include/
   ${WEBP_FLAGS}
   ${OIIO_SIMD_FLAGS}
 )
@@ -134,6 +137,7 @@ add_dependencies(
   external_jpeg
   external_boost
   external_tiff
+  external_pugixml
   external_openjpeg${OPENJPEG_POSTFIX}
   ${WEBP_DEP}
 )

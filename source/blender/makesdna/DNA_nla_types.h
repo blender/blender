@@ -25,6 +25,10 @@
 
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Ipo;
 struct Object;
 struct bAction;
@@ -105,3 +109,7 @@ typedef enum eActStrip_Flag {
   ACTSTRIP_REVERSE = (1 << 7),
   ACTSTRIP_AUTO_BLENDS = (1 << 11),
 } eActStrip_Flag;
+
+#ifdef __cplusplus
+}
+#endif

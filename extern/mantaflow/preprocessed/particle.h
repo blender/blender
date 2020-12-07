@@ -47,7 +47,7 @@ class ParticleBase : public PbClass {
     PINVALID = (1 << 30),  // unused
   };
 
-  ParticleBase(FluidSolver *parent);
+  ParticleBase(FluidSolver *parent, int fixedSeed = -1);
   static int _W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
   {
     PbClass *obj = Pb::objFromPy(_self);
@@ -60,7 +60,8 @@ class ParticleBase : public PbClass {
       {
         ArgLocker _lock;
         FluidSolver *parent = _args.getPtr<FluidSolver>("parent", 0, &_lock);
-        obj = new ParticleBase(parent);
+        int fixedSeed = _args.getOpt<int>("fixedSeed", 1, -1, &_lock);
+        obj = new ParticleBase(parent, fixedSeed);
         obj->registerObject(_self, &_args);
         _args.check();
       }
@@ -109,6 +110,11 @@ class ParticleBase : public PbClass {
   {
     assertMsg(false, "Dont use, override...");
     return;
+  }
+
+  inline int getSeed()
+  {
+    return mSeed;
   }
 
   //! particle data functions
@@ -192,9 +198,13 @@ class ParticleBase : public PbClass {
   //! per particle)
   std::vector<ParticleDataImpl<Real> *> mPdataReal;
   std::vector<ParticleDataImpl<Vec3> *> mPdataVec3;
-  std::vector<ParticleDataImpl<int> *>
-      mPdataInt;  //! indicate that pdata of this particle system is copied, and needs to be freed
+  std::vector<ParticleDataImpl<int> *> mPdataInt;
+  //! indicate that pdata of this particle system is copied, and needs to be freed
   bool mFreePdata;
+
+  //! custom seed for particle systems, used by plugins
+  int mSeed;  //! fix global random seed storage, used mainly by functions in this class
+  static int globalSeed;
  public:
   PbArgs _args;
 }
@@ -2285,15 +2295,14 @@ void ParticleSystem<S>::advectInGrid(const FlagGrid &flags,
 }
 
 template<class S> struct KnProjectParticles : public KernelBase {
-  KnProjectParticles(ParticleSystem<S> &part, Grid<Vec3> &gradient)
-      : KernelBase(part.size()), part(part), gradient(gradient)
+  KnProjectParticles(ParticleSystem<S> &part, Grid<Vec3> &gradient, RandomStream &rand)
+      : KernelBase(part.size()), part(part), gradient(gradient), rand(rand)
   {
     runMessage();
     run();
   }
-  inline void op(IndexInt idx, ParticleSystem<S> &part, Grid<Vec3> &gradient)
+  inline void op(IndexInt idx, ParticleSystem<S> &part, Grid<Vec3> &gradient, RandomStream &rand)
   {
-    static RandomStream rand(3123984);
     const double jlen = 0.1;
 
     if (part.isActive(idx)) {
@@ -2321,6 +2330,11 @@ template<class S> struct KnProjectParticles : public KernelBase {
     return gradient;
   }
   typedef Grid<Vec3> type1;
+  inline RandomStream &getArg2()
+  {
+    return rand;
+  }
+  typedef RandomStream type2;
   void runMessage()
   {
     debMsg("Executing kernel KnProjectParticles ", 3);
@@ -2332,15 +2346,17 @@ template<class S> struct KnProjectParticles : public KernelBase {
   {
     const IndexInt _sz = size;
     for (IndexInt i = 0; i < _sz; i++)
-      op(i, part, gradient);
+      op(i, part, gradient, rand);
   }
   ParticleSystem<S> &part;
   Grid<Vec3> &gradient;
+  RandomStream &rand;
 };
 
 template<class S> void ParticleSystem<S>::projectOutside(Grid<Vec3> &gradient)
 {
-  KnProjectParticles<S>(*this, gradient);
+  RandomStream rand(globalSeed);
+  KnProjectParticles<S>(*this, gradient, rand);
 }
 
 template<class S> struct KnProjectOutOfBnd : public KernelBase {
@@ -2531,14 +2547,14 @@ template<class S> void ParticleSystem<S>::insertBufferedParticles()
 
   int insertFlag;
   Vec3 insertPos;
-  static RandomStream mRand(9832);
+  RandomStream rand(globalSeed);
   for (IndexInt i = 0; i < numNewParts; ++i) {
 
     // get random index in newBuffer vector
     // we are inserting particles randomly so that they are sampled uniformly in the fluid region
     // otherwise, regions of fluid can remain completely empty once mData.size() == maxParticles is
     // reached.
-    int randIndex = floor(mRand.getReal() * mNewBufferPos.size());
+    int randIndex = floor(rand.getReal() * mNewBufferPos.size());
 
     // get elements from new buffers with random index
     std::swap(mNewBufferPos[randIndex], mNewBufferPos.back());

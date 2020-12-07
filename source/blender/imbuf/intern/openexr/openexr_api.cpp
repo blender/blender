@@ -22,14 +22,14 @@
  */
 
 #include <algorithm>
-#include <errno.h>
+#include <cerrno>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <set>
-#include <stddef.h>
 #include <stdexcept>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 
 #include <Iex.h>
@@ -120,11 +120,11 @@ class IMemStream : public Imf::IStream {
     _exrbuf = exrbuf;
   }
 
-  virtual ~IMemStream()
+  ~IMemStream() override
   {
   }
 
-  virtual bool read(char c[], int n)
+  bool read(char c[], int n) override
   {
     if (n + _exrpos <= _exrsize) {
       memcpy(c, (void *)(&_exrbuf[_exrpos]), n);
@@ -135,17 +135,17 @@ class IMemStream : public Imf::IStream {
     return false;
   }
 
-  virtual Int64 tellg()
+  Int64 tellg() override
   {
     return _exrpos;
   }
 
-  virtual void seekg(Int64 pos)
+  void seekg(Int64 pos) override
   {
     _exrpos = pos;
   }
 
-  virtual void clear()
+  void clear() override
   {
   }
 
@@ -175,7 +175,7 @@ class IFileStream : public Imf::IStream {
     }
   }
 
-  virtual bool read(char c[], int n)
+  bool read(char c[], int n) override
   {
     if (!ifs) {
       throw Iex::InputExc("Unexpected end of file.");
@@ -186,18 +186,18 @@ class IFileStream : public Imf::IStream {
     return check_error();
   }
 
-  virtual Int64 tellg()
+  Int64 tellg() override
   {
     return std::streamoff(ifs.tellg());
   }
 
-  virtual void seekg(Int64 pos)
+  void seekg(Int64 pos) override
   {
     ifs.seekg(pos);
     check_error();
   }
 
-  virtual void clear()
+  void clear() override
   {
     ifs.clear();
   }
@@ -227,7 +227,7 @@ class OMemStream : public OStream {
   {
   }
 
-  virtual void write(const char c[], int n)
+  void write(const char c[], int n) override
   {
     ensure_size(offset + n);
     memcpy(ibuf->encodedbuffer + offset, c, n);
@@ -235,12 +235,12 @@ class OMemStream : public OStream {
     ibuf->encodedsize += n;
   }
 
-  virtual Int64 tellp()
+  Int64 tellp() override
   {
     return offset;
   }
 
-  virtual void seekp(Int64 pos)
+  void seekp(Int64 pos) override
   {
     offset = pos;
     ensure_size(offset);
@@ -281,19 +281,19 @@ class OFileStream : public OStream {
     }
   }
 
-  virtual void write(const char c[], int n)
+  void write(const char c[], int n) override
   {
     errno = 0;
     ofs.write(c, n);
     check_error();
   }
 
-  virtual Int64 tellp()
+  Int64 tellp() override
   {
     return std::streamoff(ofs.tellp());
   }
 
-  virtual void seekp(Int64 pos)
+  void seekp(Int64 pos) override
   {
     ofs.seekp(pos);
     check_error();
@@ -330,8 +330,12 @@ extern "C" {
  * Test presence of OpenEXR file.
  * \param mem: pointer to loaded OpenEXR bitstream
  */
-int imb_is_a_openexr(const unsigned char *mem)
+bool imb_is_a_openexr(const unsigned char *mem, const size_t size)
 {
+  /* No define is exposed for this size. */
+  if (size < 4) {
+    return false;
+  }
   return Imf::isImfMagic((const char *)mem);
 }
 
@@ -586,7 +590,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
   return true;
 }
 
-int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
+bool imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 {
   if (flags & IB_mem) {
     imb_addencodedbufferImBuf(ibuf);
@@ -594,15 +598,15 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
   }
 
   if (ibuf->foptions.flag & OPENEXR_HALF) {
-    return (int)imb_save_openexr_half(ibuf, name, flags);
+    return imb_save_openexr_half(ibuf, name, flags);
   }
 
   /* when no float rect, we save as half (16 bits is sufficient) */
   if (ibuf->rect_float == nullptr) {
-    return (int)imb_save_openexr_half(ibuf, name, flags);
+    return imb_save_openexr_half(ibuf, name, flags);
   }
 
-  return (int)imb_save_openexr_float(ibuf, name, flags);
+  return imb_save_openexr_float(ibuf, name, flags);
 }
 
 /* ******* Nicer API, MultiLayer and with Tile file support ************************************ */
@@ -616,7 +620,7 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 
 static ListBase exrhandles = {nullptr, nullptr};
 
-typedef struct ExrHandle {
+struct ExrHandle {
   struct ExrHandle *next, *prev;
   char name[FILE_MAX];
 
@@ -641,10 +645,10 @@ typedef struct ExrHandle {
   ListBase layers;   /* hierarchical, pointing in end to ExrChannel */
 
   int num_half_channels; /* used during filr save, allows faster temporary buffers allocation */
-} ExrHandle;
+};
 
 /* flattened out channel */
-typedef struct ExrChannel {
+struct ExrChannel {
   struct ExrChannel *next, *prev;
 
   char name[EXR_TOT_MAXNAME + 1]; /* full name with everything */
@@ -654,10 +658,10 @@ typedef struct ExrChannel {
   char chan_id;                   /* quick lookup of channel char */
   int view_id;                    /* quick lookup of channel view */
   bool use_half_float;            /* when saving use half float for file storage */
-} ExrChannel;
+};
 
 /* hierarchical; layers -> passes -> channels[] */
-typedef struct ExrPass {
+struct ExrPass {
   struct ExrPass *next, *prev;
   char name[EXR_PASS_MAXNAME];
   int totchan;
@@ -668,13 +672,13 @@ typedef struct ExrPass {
   char internal_name[EXR_PASS_MAXNAME]; /* name with no view */
   char view[EXR_VIEW_MAXNAME];
   int view_id;
-} ExrPass;
+};
 
-typedef struct ExrLayer {
+struct ExrLayer {
   struct ExrLayer *next, *prev;
   char name[EXR_LAY_MAXNAME + 1];
   ListBase passes;
-} ExrLayer;
+};
 
 /* ********************** */
 
@@ -729,8 +733,8 @@ static void imb_exr_get_views(MultiPartInputFile &file, StringVector &views)
   if (exr_has_multipart_file(file) == false) {
     if (exr_has_multiview(file)) {
       StringVector sv = multiView(file.header(0));
-      for (StringVector::const_iterator i = sv.begin(); i != sv.end(); ++i) {
-        views.push_back(*i);
+      for (const std::string &view_name : sv) {
+        views.push_back(view_name);
       }
     }
   }
@@ -987,15 +991,15 @@ int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *heig
       std::vector<MultiViewChannelName> channels;
       GetChannelsInMultiPartFile(*data->ifile, channels);
 
-      for (size_t i = 0; i < channels.size(); i++) {
+      for (const MultiViewChannelName &channel : channels) {
         IMB_exr_add_channel(
-            data, nullptr, channels[i].name.c_str(), channels[i].view.c_str(), 0, 0, nullptr, false);
+            data, nullptr, channel.name.c_str(), channel.view.c_str(), 0, 0, nullptr, false);
 
         echan = (ExrChannel *)data->channels.last;
-        echan->m->name = channels[i].name;
-        echan->m->view = channels[i].view;
-        echan->m->part_number = channels[i].part_number;
-        echan->m->internal_name = channels[i].internal_name;
+        echan->m->name = channel.name;
+        echan->m->view = channel.view;
+        echan->m->part_number = channel.part_number;
+        echan->m->internal_name = channel.internal_name;
       }
 
       return 1;
@@ -1301,9 +1305,8 @@ void IMB_exr_multilayer_convert(void *handle,
   }
   else {
     /* add views to RenderResult */
-    for (StringVector::const_iterator i = data->multiView->begin(); i != data->multiView->end();
-         ++i) {
-      addview(base, (*i).c_str());
+    for (const std::string &view_name : *data->multiView) {
+      addview(base, view_name.c_str());
     }
   }
 
@@ -1544,15 +1547,15 @@ static ExrHandle *imb_exr_begin_read_mem(IStream &file_stream,
 
   imb_exr_get_views(*data->ifile, *data->multiView);
 
-  for (size_t i = 0; i < channels.size(); i++) {
+  for (const MultiViewChannelName &channel : channels) {
     IMB_exr_add_channel(
-        data, nullptr, channels[i].name.c_str(), channels[i].view.c_str(), 0, 0, nullptr, false);
+        data, nullptr, channel.name.c_str(), channel.view.c_str(), 0, 0, nullptr, false);
 
     echan = (ExrChannel *)data->channels.last;
-    echan->m->name = channels[i].name;
-    echan->m->view = channels[i].view;
-    echan->m->part_number = channels[i].part_number;
-    echan->m->internal_name = channels[i].internal_name;
+    echan->m->name = channel.name;
+    echan->m->view = channel.view;
+    echan->m->part_number = channel.part_number;
+    echan->m->internal_name = channel.internal_name;
   }
 
   /* now try to sort out how to assign memory to the channels */
@@ -1679,8 +1682,8 @@ static void exr_print_filecontents(MultiPartInputFile &file)
     const StringVector views = multiView(file.header(0));
     printf("OpenEXR-load: MultiView file\n");
     printf("OpenEXR-load: Default view: %s\n", defaultViewName(views).c_str());
-    for (StringVector::const_iterator i = views.begin(); i != views.end(); ++i) {
-      printf("OpenEXR-load: Found view %s\n", (*i).c_str());
+    for (const std::string &view : views) {
+      printf("OpenEXR-load: Found view %s\n", view.c_str());
     }
   }
   else if (numparts > 1) {
@@ -1825,10 +1828,10 @@ static void imb_exr_type_by_channels(ChannelList &channels,
      * with non-empty ones in the file.
      */
     for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); i++) {
-      for (std::set<string>::iterator i = layerNames.begin(); i != layerNames.end(); i++) {
+      for (const std::string &layer_name : layerNames) {
         /* see if any layername differs from a viewname */
-        if (imb_exr_get_multiView_id(views, *i) == -1) {
-          std::string layerName = *i;
+        if (imb_exr_get_multiView_id(views, layer_name) == -1) {
+          std::string layerName = layer_name;
           size_t pos = layerName.rfind('.');
 
           if (pos == std::string::npos) {
@@ -1899,7 +1902,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
   IMemStream *membuf = nullptr;
   MultiPartInputFile *file = nullptr;
 
-  if (imb_is_a_openexr(mem) == 0) {
+  if (imb_is_a_openexr(mem, size) == 0) {
     return nullptr;
   }
 

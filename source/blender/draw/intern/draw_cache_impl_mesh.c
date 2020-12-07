@@ -51,6 +51,8 @@
 #include "BKE_mesh_tangent.h"
 #include "BKE_modifier.h"
 #include "BKE_object_deform.h"
+#include "BKE_paint.h"
+#include "BKE_pbvh.h"
 
 #include "atomic_ops.h"
 
@@ -1308,6 +1310,17 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
     drw_mesh_batch_cache_check_available(task_graph, me);
 #endif
     return;
+  }
+
+  /* TODO(pablodp606): This always updates the sculpt normals for regular drawing (non-PBVH).
+   * This makes tools that sample the surface per step get wrong normals until a redraw happens.
+   * Normal updates should be part of the brush loop and only run during the stroke when the
+   * brush needs to sample the surface. The drawing code should only update the normals
+   * per redraw when smooth shading is enabled. */
+  const bool do_update_sculpt_normals = ob->sculpt && ob->sculpt->pbvh;
+  if (do_update_sculpt_normals) {
+    Mesh *mesh = ob->data;
+    BKE_pbvh_update_normals(ob->sculpt->pbvh, mesh->runtime.subdiv_ccg);
   }
 
   cache->batch_ready |= batch_requested;

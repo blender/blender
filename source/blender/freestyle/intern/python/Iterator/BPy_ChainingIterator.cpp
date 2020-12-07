@@ -232,17 +232,17 @@ static PyObject *ChainingIterator_is_incrementing_get(BPy_ChainingIterator *self
 static PyGetSetDef BPy_ChainingIterator_getseters[] = {
     {"object",
      (getter)ChainingIterator_object_get,
-     (setter)nullptr,
+     (setter) nullptr,
      ChainingIterator_object_doc,
      nullptr},
     {"next_vertex",
      (getter)ChainingIterator_next_vertex_get,
-     (setter)nullptr,
+     (setter) nullptr,
      ChainingIterator_next_vertex_doc,
      nullptr},
     {"is_incrementing",
      (getter)ChainingIterator_is_incrementing_get,
-     (setter)nullptr,
+     (setter) nullptr,
      ChainingIterator_is_incrementing_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
@@ -252,42 +252,46 @@ static PyGetSetDef BPy_ChainingIterator_getseters[] = {
 
 PyTypeObject ChainingIterator_Type = {
     PyVarObject_HEAD_INIT(nullptr, 0) "ChainingIterator", /* tp_name */
-    sizeof(BPy_ChainingIterator),                      /* tp_basicsize */
-    0,                                                 /* tp_itemsize */
-    nullptr,                                                 /* tp_dealloc */
-    nullptr,                                                 /* tp_print */
-    nullptr,                                                 /* tp_getattr */
-    nullptr,                                                 /* tp_setattr */
-    nullptr,                                                 /* tp_reserved */
-    nullptr,                                                 /* tp_repr */
-    nullptr,                                                 /* tp_as_number */
-    nullptr,                                                 /* tp_as_sequence */
-    nullptr,                                                 /* tp_as_mapping */
-    nullptr,                                                 /* tp_hash  */
-    nullptr,                                                 /* tp_call */
-    nullptr,                                                 /* tp_str */
-    nullptr,                                                 /* tp_getattro */
-    nullptr,                                                 /* tp_setattro */
-    nullptr,                                                 /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
-    ChainingIterator_doc,                              /* tp_doc */
-    nullptr,                                                 /* tp_traverse */
-    nullptr,                                                 /* tp_clear */
-    nullptr,                                                 /* tp_richcompare */
-    0,                                                 /* tp_weaklistoffset */
-    nullptr,                                                 /* tp_iter */
-    nullptr,                                                 /* tp_iternext */
-    BPy_ChainingIterator_methods,                      /* tp_methods */
-    nullptr,                                                 /* tp_members */
-    BPy_ChainingIterator_getseters,                    /* tp_getset */
-    &ViewEdgeIterator_Type,                            /* tp_base */
-    nullptr,                                                 /* tp_dict */
-    nullptr,                                                 /* tp_descr_get */
-    nullptr,                                                 /* tp_descr_set */
-    0,                                                 /* tp_dictoffset */
-    (initproc)ChainingIterator___init__,               /* tp_init */
-    nullptr,                                                 /* tp_alloc */
-    nullptr,                                                 /* tp_new */
+    sizeof(BPy_ChainingIterator),                         /* tp_basicsize */
+    0,                                                    /* tp_itemsize */
+    nullptr,                                              /* tp_dealloc */
+#if PY_VERSION_HEX >= 0x03080000
+    0, /* tp_vectorcall_offset */
+#else
+    nullptr, /* tp_print */
+#endif
+    nullptr,                                  /* tp_getattr */
+    nullptr,                                  /* tp_setattr */
+    nullptr,                                  /* tp_reserved */
+    nullptr,                                  /* tp_repr */
+    nullptr,                                  /* tp_as_number */
+    nullptr,                                  /* tp_as_sequence */
+    nullptr,                                  /* tp_as_mapping */
+    nullptr,                                  /* tp_hash  */
+    nullptr,                                  /* tp_call */
+    nullptr,                                  /* tp_str */
+    nullptr,                                  /* tp_getattro */
+    nullptr,                                  /* tp_setattro */
+    nullptr,                                  /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+    ChainingIterator_doc,                     /* tp_doc */
+    nullptr,                                  /* tp_traverse */
+    nullptr,                                  /* tp_clear */
+    nullptr,                                  /* tp_richcompare */
+    0,                                        /* tp_weaklistoffset */
+    nullptr,                                  /* tp_iter */
+    nullptr,                                  /* tp_iternext */
+    BPy_ChainingIterator_methods,             /* tp_methods */
+    nullptr,                                  /* tp_members */
+    BPy_ChainingIterator_getseters,           /* tp_getset */
+    &ViewEdgeIterator_Type,                   /* tp_base */
+    nullptr,                                  /* tp_dict */
+    nullptr,                                  /* tp_descr_get */
+    nullptr,                                  /* tp_descr_set */
+    0,                                        /* tp_dictoffset */
+    (initproc)ChainingIterator___init__,      /* tp_init */
+    nullptr,                                  /* tp_alloc */
+    nullptr,                                  /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

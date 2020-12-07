@@ -51,8 +51,6 @@ if(WITH_LIBMV)
   list(APPEND INC
     ${GFLAGS_INCLUDE_DIRS}
     ${GLOG_INCLUDE_DIRS}
-    ../../extern/ceres/include
-    ../../extern/ceres/config
     ../guardedalloc
   )
 
@@ -60,6 +58,8 @@ if(WITH_LIBMV)
     ${EIGEN3_INCLUDE_DIRS}
     ${PNG_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
+    ../../extern/ceres/include
+    ../../extern/ceres/config
   )
 
   list(APPEND LIB

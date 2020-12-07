@@ -57,8 +57,7 @@
 #include "render_types.h"
 #include "texture_common.h"
 
-#include "RE_render_ext.h"
-#include "RE_shader_ext.h"
+#include "RE_texture.h"
 
 static RNG_THREAD_ARRAY *random_tex_array;
 

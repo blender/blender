@@ -16,18 +16,18 @@
 
 #include "stdcycles.h"
 
-shader node_vector_transform(string type = "vector",
+shader node_vector_transform(string transform_type = "vector",
                              string convert_from = "world",
                              string convert_to = "object",
                              vector VectorIn = vector(0.0, 0.0, 0.0),
                              output vector VectorOut = vector(0.0, 0.0, 0.0))
 {
-  if (type == "vector" || type == "normal") {
+  if (transform_type == "vector" || transform_type == "normal") {
     VectorOut = transform(convert_from, convert_to, VectorIn);
-    if (type == "normal")
+    if (transform_type == "normal")
       VectorOut = normalize(VectorOut);
   }
-  else if (type == "point") {
+  else if (transform_type == "point") {
     point Point = (point)VectorIn;
     VectorOut = transform(convert_from, convert_to, Point);
   }

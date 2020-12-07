@@ -197,7 +197,6 @@ static char *rna_PointCache_path(PointerRNA *ptr)
       }
       default: {
         return BLI_sprintfN("modifiers[\"%s\"].point_cache", name_esc);
-        break;
       }
     }
   }
@@ -814,11 +813,12 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
       }
     }
 
-    /* check smoke modifier */
+    /* check fluid modifier */
     md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
     if (md) {
       FluidModifierData *fmd = (FluidModifierData *)md;
-      if (fmd->domain->effector_weights == ew) {
+      if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain &&
+          fmd->domain->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
         BLI_strescape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].domain_settings.effector_weights", name_esc);
@@ -944,6 +944,8 @@ static void rna_def_pointcache_common(StructRNA *srna)
 
   RNA_def_struct_path_func(srna, "rna_PointCache_path");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "startframe");
   RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
@@ -1038,6 +1040,8 @@ static void rna_def_pointcache_common(StructRNA *srna)
       "Use this file's path for the disk cache when library linked into another file "
       "(for local bakes per scene file, disable this option)");
   RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_ptcache_point_caches(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1099,6 +1103,7 @@ static void rna_def_pointcache_active(BlenderRNA *brna)
                                     NULL);
   RNA_def_property_struct_type(prop, "PointCacheItem");
   RNA_def_property_ui_text(prop, "Point Cache List", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   rna_def_ptcache_point_caches(brna, prop);
 }
 
