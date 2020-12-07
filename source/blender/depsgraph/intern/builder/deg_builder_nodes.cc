@@ -1247,8 +1247,7 @@ void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *particle_se
       &particle_settings->id, NodeType::PARTICLE_SETTINGS, OperationCode::PARTICLE_SETTINGS_EVAL);
   op_node->set_as_exit();
   /* Texture slots. */
-  for (int mtex_index = 0; mtex_index < MAX_MTEX; mtex_index++) {
-    MTex *mtex = particle_settings->mtex[mtex_index];
+  for (MTex *mtex : particle_settings->mtex) {
     if (mtex == nullptr || mtex->tex == nullptr) {
       continue;
     }

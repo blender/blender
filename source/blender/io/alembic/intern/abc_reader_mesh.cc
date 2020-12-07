@@ -724,9 +724,7 @@ void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
 
   int current_mat = 0;
 
-  for (int i = 0; i < face_sets.size(); i++) {
-    const std::string &grp_name = face_sets[i];
-
+  for (const std::string &grp_name : face_sets) {
     if (r_mat_map.find(grp_name) == r_mat_map.end()) {
       r_mat_map[grp_name] = ++current_mat;
     }

@@ -37,8 +37,8 @@ TEST(LockfreeLinkList, InsertMultiple)
   LockfreeLinkNode nodes[num_nodes];
   BLI_linklist_lockfree_init(&list);
   /* Insert all the nodes. */
-  for (int i = 0; i < num_nodes; ++i) {
-    BLI_linklist_lockfree_insert(&list, &nodes[i]);
+  for (LockfreeLinkNode &node : nodes) {
+    BLI_linklist_lockfree_insert(&list, &node);
   }
   /* Check head and tail. */
   EXPECT_EQ(list.head, &list.dummy_node);

@@ -241,10 +241,8 @@ void DocumentImporter::finish()
   armature_importer.fix_animation();
 #endif
 
-  for (std::vector<const COLLADAFW::VisualScene *>::iterator vsit = vscenes.begin();
-       vsit != vscenes.end();
-       vsit++) {
-    const COLLADAFW::NodePointerArray &roots = (*vsit)->getRootNodes();
+  for (const COLLADAFW::VisualScene *vscene : vscenes) {
+    const COLLADAFW::NodePointerArray &roots = vscene->getRootNodes();
 
     for (unsigned int i = 0; i < roots.getCount(); i++) {
       translate_anim_recursive(roots[i], nullptr, nullptr);
@@ -665,9 +663,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
       goto finally;
     }
 
-    for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end();
-         ++it) {
-      ob = *it;
+    for (Object *ob : *objects_done) {
       std::string nodename = node->getName().empty() ? node->getOriginalId() : node->getName();
       BKE_libblock_rename(bmain, &ob->id, (char *)nodename.c_str());
       object_map.insert(std::pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), ob));
@@ -681,10 +677,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
     /* create_constraints(et,ob); */
   }
 
-  for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end();
-       ++it) {
-    ob = *it;
-
+  for (Object *ob : *objects_done) {
     if (read_transform) {
       anim_importer.read_node_transform(node, ob); /* overwrites location set earlier */
     }

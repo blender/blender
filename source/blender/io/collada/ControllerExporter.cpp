@@ -245,9 +245,9 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
       if (sumw > 0.0f) {
         float invsumw = 1.0f / sumw;
         vcounts.push_back(jw.size());
-        for (std::map<int, float>::iterator m = jw.begin(); m != jw.end(); ++m) {
-          joints.push_back((*m).first);
-          weights.push_back(invsumw * (*m).second);
+        for (auto &index_and_weight : jw) {
+          joints.push_back(index_and_weight.first);
+          weights.push_back(invsumw * index_and_weight.second);
         }
       }
       else {
@@ -596,8 +596,8 @@ std::string ControllerExporter::add_weights_source(Mesh *me,
 
   source.prepareToAppendValues();
 
-  for (std::list<float>::const_iterator i = weights.begin(); i != weights.end(); ++i) {
-    source.appendValues(*i);
+  for (float weight : weights) {
+    source.appendValues(weight);
   }
 
   source.finish();
@@ -638,8 +638,8 @@ void ControllerExporter::add_vertex_weights_element(const std::string &weights_s
 
   /* write deformer index - weight index pairs */
   int weight_index = 0;
-  for (std::list<int>::const_iterator i = joints.begin(); i != joints.end(); ++i) {
-    weightselem.appendValues(*i, weight_index++);
+  for (int joint_index : joints) {
+    weightselem.appendValues(joint_index, weight_index++);
   }
 
   weightselem.finish();

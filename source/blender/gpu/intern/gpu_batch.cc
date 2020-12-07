@@ -81,8 +81,8 @@ void GPU_batch_init_ex(GPUBatch *batch,
   for (int v = 1; v < GPU_BATCH_VBO_MAX_LEN; v++) {
     batch->verts[v] = nullptr;
   }
-  for (int v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
-    batch->inst[v] = nullptr;
+  for (auto & v : batch->inst) {
+    v = nullptr;
   }
   batch->elem = elem;
   batch->prim_type = prim_type;

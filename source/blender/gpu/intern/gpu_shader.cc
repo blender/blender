@@ -470,9 +470,9 @@ struct GPUShader *GPU_shader_create_from_arrays_impl(
   GPUShader *sh = GPU_shader_create(
       str_dst[0].str, str_dst[1].str, str_dst[2].str, nullptr, str_dst[3].str, name);
 
-  for (int i = 0; i < ARRAY_SIZE(str_dst); i++) {
-    if (str_dst[i].is_alloc) {
-      MEM_freeN((void *)str_dst[i].str);
+  for (auto &i : str_dst) {
+    if (i.is_alloc) {
+      MEM_freeN((void *)i.str);
     }
   }
   return sh;

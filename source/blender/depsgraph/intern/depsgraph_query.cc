@@ -90,8 +90,8 @@ bool DEG_id_type_any_updated(const Depsgraph *graph)
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
 
   /* Loop over all ID types. */
-  for (int id_type_index = 0; id_type_index < MAX_LIBARRAY; id_type_index++) {
-    if (deg_graph->id_type_updated[id_type_index]) {
+  for (char id_type_index : deg_graph->id_type_updated) {
+    if (id_type_index) {
       return true;
     }
   }

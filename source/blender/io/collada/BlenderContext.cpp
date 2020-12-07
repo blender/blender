@@ -81,8 +81,8 @@ bool bc_is_in_Export_set(LinkNode *export_set, Object *ob, ViewLayer *view_layer
 
     std::vector<Object *> children;
     bc_get_children(children, ob, view_layer);
-    for (int i = 0; i < children.size(); i++) {
-      if (bc_is_in_Export_set(export_set, children[i], view_layer)) {
+    for (Object *child : children) {
+      if (bc_is_in_Export_set(export_set, child, view_layer)) {
         to_export = true;
         break;
       }

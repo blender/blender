@@ -280,8 +280,7 @@ std::string encode_xml(std::string xml)
   std::map<char, std::string>::const_iterator it;
   std::string encoded_xml;
 
-  for (unsigned int i = 0; i < xml.size(); i++) {
-    char c = xml.at(i);
+  for (char c : xml) {
     it = escape.find(c);
 
     if (it == escape.end()) {

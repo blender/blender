@@ -272,9 +272,8 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
 AnimationImporter::~AnimationImporter()
 {
   /* free unused FCurves */
-  for (std::vector<FCurve *>::iterator it = unused_curves.begin(); it != unused_curves.end();
-       it++) {
-    BKE_fcurve_free(*it);
+  for (FCurve *unused_curve : unused_curves) {
+    BKE_fcurve_free(unused_curve);
   }
 
   if (!unused_curves.empty()) {
@@ -2035,8 +2034,8 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
         COLLADABU::Math::Matrix4 matrix;
         int mi = 0, mj = 0;
 
-        for (std::vector<FCurve *>::iterator it = curves.begin(); it != curves.end(); it++) {
-          matrix.setElement(mi, mj, evaluate_fcurve(*it, fra));
+        for (FCurve *curve : curves) {
+          matrix.setElement(mi, mj, evaluate_fcurve(curve, fra));
           mj++;
           if (mj == 4) {
             mi++;

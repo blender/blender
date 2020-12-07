@@ -733,8 +733,8 @@ static void imb_exr_get_views(MultiPartInputFile &file, StringVector &views)
   if (exr_has_multipart_file(file) == false) {
     if (exr_has_multiview(file)) {
       StringVector sv = multiView(file.header(0));
-      for (StringVector::const_iterator i = sv.begin(); i != sv.end(); ++i) {
-        views.push_back(*i);
+      for (const std::string &view_name : sv) {
+        views.push_back(view_name);
       }
     }
   }
@@ -991,21 +991,15 @@ int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *heig
       std::vector<MultiViewChannelName> channels;
       GetChannelsInMultiPartFile(*data->ifile, channels);
 
-      for (size_t i = 0; i < channels.size(); i++) {
-        IMB_exr_add_channel(data,
-                            nullptr,
-                            channels[i].name.c_str(),
-                            channels[i].view.c_str(),
-                            0,
-                            0,
-                            nullptr,
-                            false);
+      for (const MultiViewChannelName &channel : channels) {
+        IMB_exr_add_channel(
+            data, nullptr, channel.name.c_str(), channel.view.c_str(), 0, 0, nullptr, false);
 
         echan = (ExrChannel *)data->channels.last;
-        echan->m->name = channels[i].name;
-        echan->m->view = channels[i].view;
-        echan->m->part_number = channels[i].part_number;
-        echan->m->internal_name = channels[i].internal_name;
+        echan->m->name = channel.name;
+        echan->m->view = channel.view;
+        echan->m->part_number = channel.part_number;
+        echan->m->internal_name = channel.internal_name;
       }
 
       return 1;
@@ -1311,9 +1305,8 @@ void IMB_exr_multilayer_convert(void *handle,
   }
   else {
     /* add views to RenderResult */
-    for (StringVector::const_iterator i = data->multiView->begin(); i != data->multiView->end();
-         ++i) {
-      addview(base, (*i).c_str());
+    for (const std::string &view_name : *data->multiView) {
+      addview(base, view_name.c_str());
     }
   }
 
@@ -1554,15 +1547,15 @@ static ExrHandle *imb_exr_begin_read_mem(IStream &file_stream,
 
   imb_exr_get_views(*data->ifile, *data->multiView);
 
-  for (size_t i = 0; i < channels.size(); i++) {
+  for (const MultiViewChannelName &channel : channels) {
     IMB_exr_add_channel(
-        data, nullptr, channels[i].name.c_str(), channels[i].view.c_str(), 0, 0, nullptr, false);
+        data, nullptr, channel.name.c_str(), channel.view.c_str(), 0, 0, nullptr, false);
 
     echan = (ExrChannel *)data->channels.last;
-    echan->m->name = channels[i].name;
-    echan->m->view = channels[i].view;
-    echan->m->part_number = channels[i].part_number;
-    echan->m->internal_name = channels[i].internal_name;
+    echan->m->name = channel.name;
+    echan->m->view = channel.view;
+    echan->m->part_number = channel.part_number;
+    echan->m->internal_name = channel.internal_name;
   }
 
   /* now try to sort out how to assign memory to the channels */
@@ -1689,8 +1682,8 @@ static void exr_print_filecontents(MultiPartInputFile &file)
     const StringVector views = multiView(file.header(0));
     printf("OpenEXR-load: MultiView file\n");
     printf("OpenEXR-load: Default view: %s\n", defaultViewName(views).c_str());
-    for (StringVector::const_iterator i = views.begin(); i != views.end(); ++i) {
-      printf("OpenEXR-load: Found view %s\n", (*i).c_str());
+    for (const std::string &view : views) {
+      printf("OpenEXR-load: Found view %s\n", view.c_str());
     }
   }
   else if (numparts > 1) {
@@ -1835,10 +1828,10 @@ static void imb_exr_type_by_channels(ChannelList &channels,
      * with non-empty ones in the file.
      */
     for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); i++) {
-      for (std::set<string>::iterator i = layerNames.begin(); i != layerNames.end(); i++) {
+      for (const std::string &layer_name : layerNames) {
         /* see if any layername differs from a viewname */
-        if (imb_exr_get_multiView_id(views, *i) == -1) {
-          std::string layerName = *i;
+        if (imb_exr_get_multiView_id(views, layer_name) == -1) {
+          std::string layerName = layer_name;
           size_t pos = layerName.rfind('.');
 
           if (pos == std::string::npos) {

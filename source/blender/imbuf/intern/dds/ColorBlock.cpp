@@ -150,12 +150,12 @@ static inline uint8 component(Color32 c, uint i)
 
 void ColorBlock::swizzle(uint x, uint y, uint z, uint w)
 {
-  for (int i = 0; i < 16; i++) {
-    Color32 c = m_color[i];
-    m_color[i].r = component(c, x);
-    m_color[i].g = component(c, y);
-    m_color[i].b = component(c, z);
-    m_color[i].a = component(c, w);
+  for (Color32 &color : m_color) {
+    const Color32 c = color;
+    color.r = component(c, x);
+    color.g = component(c, y);
+    color.b = component(c, z);
+    color.a = component(c, w);
   }
 }
 
@@ -243,8 +243,8 @@ Color32 ColorBlock::averageColor() const
 /** Return true if the block is not fully opaque. */
 bool ColorBlock::hasAlpha() const
 {
-  for (uint i = 0; i < 16; i++) {
-    if (m_color[i].a != 255) {
+  for (const auto &i : m_color) {
+    if (i.a != 255) {
       return true;
     }
   }

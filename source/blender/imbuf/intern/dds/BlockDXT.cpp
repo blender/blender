@@ -608,8 +608,8 @@ void mem_read(Stream &mem, BlockDXT1 &block)
 
 void mem_read(Stream &mem, AlphaBlockDXT3 &block)
 {
-  for (unsigned int i = 0; i < 4; i++) {
-    mem_read(mem, block.row[i]);
+  for (unsigned short &alpha : block.row) {
+    mem_read(mem, alpha);
   }
 }
 

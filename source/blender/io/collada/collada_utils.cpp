@@ -379,11 +379,9 @@ void bc_match_scale(std::vector<Object *> *objects_done,
                     UnitConverter &bc_unit,
                     bool scale_to_scene)
 {
-  for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end();
-       ++it) {
-    Object *ob = *it;
+  for (Object *ob : *objects_done) {
     if (ob->parent == nullptr) {
-      bc_match_scale(*it, bc_unit, scale_to_scene);
+      bc_match_scale(ob, bc_unit, scale_to_scene);
     }
   }
 }
@@ -524,10 +522,8 @@ BoneExtensionManager::~BoneExtensionManager()
   std::map<std::string, BoneExtensionMap *>::iterator map_it;
   for (map_it = extended_bone_maps.begin(); map_it != extended_bone_maps.end(); ++map_it) {
     BoneExtensionMap *extended_bones = map_it->second;
-    for (BoneExtensionMap::iterator ext_it = extended_bones->begin();
-         ext_it != extended_bones->end();
-         ++ext_it) {
-      delete ext_it->second;
+    for (auto &extended_bone : *extended_bones) {
+      delete extended_bone.second;
     }
     extended_bones->clear();
     delete extended_bones;

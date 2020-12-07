@@ -57,18 +57,18 @@ FrameBuffer::FrameBuffer(const char *name)
   dirty_attachments_ = true;
   dirty_state_ = true;
 
-  for (int i = 0; i < ARRAY_SIZE(attachments_); i++) {
-    attachments_[i].tex = nullptr;
-    attachments_[i].mip = -1;
-    attachments_[i].layer = -1;
+  for (GPUAttachment &attachment : attachments_) {
+    attachment.tex = nullptr;
+    attachment.mip = -1;
+    attachment.layer = -1;
   }
 }
 
 FrameBuffer::~FrameBuffer()
 {
-  for (int i = 0; i < ARRAY_SIZE(attachments_); i++) {
-    if (attachments_[i].tex != nullptr) {
-      reinterpret_cast<Texture *>(attachments_[i].tex)->detach_from(this);
+  for (GPUAttachment &attachment : attachments_) {
+    if (attachment.tex != nullptr) {
+      reinterpret_cast<Texture *>(attachment.tex)->detach_from(this);
     }
   }
 }
@@ -148,8 +148,8 @@ void FrameBuffer::recursive_downsample(int max_lvl,
 
   for (int mip_lvl = 1; mip_lvl <= max_lvl; mip_lvl++) {
     /* Replace attached mip-level for each attachment. */
-    for (int att = 0; att < ARRAY_SIZE(attachments_); att++) {
-      Texture *tex = reinterpret_cast<Texture *>(attachments_[att].tex);
+    for (GPUAttachment &attachment : attachments_) {
+      Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
       if (tex != nullptr) {
         /* Some Intel HDXXX have issue with rendering to a mipmap that is below
          * the texture GL_TEXTURE_MAX_LEVEL. So even if it not correct, in this case
@@ -158,7 +158,7 @@ void FrameBuffer::recursive_downsample(int max_lvl,
         /* Restrict fetches only to previous level. */
         tex->mip_range_set(mip_lvl - 1, mip_max);
         /* Bind next level. */
-        attachments_[att].mip = mip_lvl;
+        attachment.mip = mip_lvl;
       }
     }
     /* Update the internal attachments and viewport size. */
@@ -168,12 +168,12 @@ void FrameBuffer::recursive_downsample(int max_lvl,
     callback(userData, mip_lvl);
   }
 
-  for (int att = 0; att < ARRAY_SIZE(attachments_); att++) {
-    if (attachments_[att].tex != nullptr) {
+  for (GPUAttachment &attachment : attachments_) {
+    if (attachment.tex != nullptr) {
       /* Reset mipmap level range. */
-      reinterpret_cast<Texture *>(attachments_[att].tex)->mip_range_set(0, max_lvl);
+      reinterpret_cast<Texture *>(attachment.tex)->mip_range_set(0, max_lvl);
       /* Reset base level. NOTE: might not be the one bound at the start of this function. */
-      attachments_[att].mip = 0;
+      attachment.mip = 0;
     }
   }
   dirty_attachments_ = true;
@@ -525,18 +525,18 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
   Context *ctx = Context::get();
   BLI_assert(ctx);
 
-  for (int i = 0; i < MAX_CTX_FB_LEN; i++) {
-    if (ofs->framebuffers[i].fb == nullptr) {
-      ofs->framebuffers[i].ctx = ctx;
-      GPU_framebuffer_ensure_config(&ofs->framebuffers[i].fb,
+  for (auto &framebuffer : ofs->framebuffers) {
+    if (framebuffer.fb == nullptr) {
+      framebuffer.ctx = ctx;
+      GPU_framebuffer_ensure_config(&framebuffer.fb,
                                     {
                                         GPU_ATTACHMENT_TEXTURE(ofs->depth),
                                         GPU_ATTACHMENT_TEXTURE(ofs->color),
                                     });
     }
 
-    if (ofs->framebuffers[i].ctx == ctx) {
-      return ofs->framebuffers[i].fb;
+    if (framebuffer.ctx == ctx) {
+      return framebuffer.fb;
     }
   }
 
@@ -550,9 +550,9 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
       "Warning: GPUOffscreen used in more than 3 GPUContext. "
       "This may create performance drop.\n");
 
-  for (int i = 0; i < MAX_CTX_FB_LEN; i++) {
-    GPU_framebuffer_free(ofs->framebuffers[i].fb);
-    ofs->framebuffers[i].fb = nullptr;
+  for (auto &framebuffer : ofs->framebuffers) {
+    GPU_framebuffer_free(framebuffer.fb);
+    framebuffer.fb = nullptr;
   }
 
   return gpu_offscreen_fb_get(ofs);
@@ -595,9 +595,9 @@ GPUOffScreen *GPU_offscreen_create(
 
 void GPU_offscreen_free(GPUOffScreen *ofs)
 {
-  for (int i = 0; i < MAX_CTX_FB_LEN; i++) {
-    if (ofs->framebuffers[i].fb) {
-      GPU_framebuffer_free(ofs->framebuffers[i].fb);
+  for (auto &framebuffer : ofs->framebuffers) {
+    if (framebuffer.fb) {
+      GPU_framebuffer_free(framebuffer.fb);
     }
   }
   if (ofs->color) {

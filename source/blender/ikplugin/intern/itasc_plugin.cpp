@@ -194,8 +194,8 @@ struct IK_Scene {
   {
     /* delete scene first */
     delete scene;
-    for (std::vector<IK_Target *>::iterator it = targets.begin(); it != targets.end(); ++it) {
-      delete (*it);
+    for (IK_Target *target : targets) {
+      delete target;
     }
     targets.clear();
     delete[] channels;
