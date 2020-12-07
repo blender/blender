@@ -1618,6 +1618,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   Object *ob = ED_object_add_type(C, OB_SPEAKER, NULL, loc, rot, false, local_view_bits);
+  const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(ob);
 
   /* to make it easier to start using this immediately in NLA, a default sound clip is created
    * ready to be moved around to retime the sound and/or make new sound clips
@@ -1625,13 +1626,13 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
   {
     /* create new data for NLA hierarchy */
     AnimData *adt = BKE_animdata_add_id(&ob->id);
-    NlaTrack *nlt = BKE_nlatrack_add(adt, NULL);
+    NlaTrack *nlt = BKE_nlatrack_add(adt, NULL, is_liboverride);
     NlaStrip *strip = BKE_nla_add_soundstrip(bmain, scene, ob->data);
     strip->start = CFRA;
     strip->end += strip->start;
 
     /* hook them up */
-    BKE_nlatrack_add_strip(nlt, strip);
+    BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
 
     /* auto-name the strip, and give the track an interesting name  */
     BLI_strncpy(nlt->name, DATA_("SoundTrack"), sizeof(nlt->name));

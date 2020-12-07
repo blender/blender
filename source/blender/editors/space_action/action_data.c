@@ -240,7 +240,7 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
     /* Perform stashing operation - But only if there is an action */
     if (adt && oldact) {
       /* stash the action */
-      if (BKE_nla_action_stash(adt)) {
+      if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(ptr.owner_id))) {
         /* The stash operation will remove the user already
          * (and unlink the action from the AnimData action slot).
          * Hence, we must unset the ref to the action in the
@@ -339,7 +339,8 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
     }
 
     /* action can be safely added */
-    BKE_nla_action_pushdown(adt);
+    const Object *ob = CTX_data_active_object(C);
+    BKE_nla_action_pushdown(adt, ID_IS_OVERRIDE_LIBRARY(ob));
 
     /* Stop displaying this action in this editor
      * NOTE: The editor itself doesn't set a user...
@@ -384,7 +385,8 @@ static int action_stash_exec(bContext *C, wmOperator *op)
     }
 
     /* stash the action */
-    if (BKE_nla_action_stash(adt)) {
+    Object *ob = CTX_data_active_object(C);
+    if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(ob))) {
       /* The stash operation will remove the user already,
        * so the flushing step later shouldn't double up
        * the user-count fixes. Hence, we must unset this ref
@@ -486,7 +488,8 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
     }
 
     /* stash the action */
-    if (BKE_nla_action_stash(adt)) {
+    Object *ob = CTX_data_active_object(C);
+    if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(ob))) {
       bAction *new_action = NULL;
 
       /* Create new action not based on the old one

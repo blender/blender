@@ -1858,7 +1858,7 @@ int rna_property_override_diff_default(Main *bmain,
                 is_id,
                 is_valid_for_diffing,
                 is_valid_for_insertion,
-                (RNA_property_override_flag(prop_a) & PROPOVERRIDE_LIBRARY_INSERTION) != 0,
+                use_collection_insertion,
                 do_create);
           }
 #  endif

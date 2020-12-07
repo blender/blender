@@ -2113,7 +2113,7 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
      *      and the user then uses the browse menu to get back to this action,
      *      assigning it as the active action (i.e. the stash strip gets out of sync)
      */
-    BKE_nla_action_stash(adt);
+    BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(id));
   }
 
   BKE_animdata_set_action(NULL, id, saction->action);
