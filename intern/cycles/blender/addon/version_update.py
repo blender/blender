@@ -108,7 +108,7 @@ def do_versions(self):
         library_versions.setdefault(library.version, []).append(library)
 
     # Do versioning per library, since they might have different versions.
-    max_need_versioning = (2, 90, 0)
+    max_need_versioning = (2, 92, 4)
     for version, libraries in library_versions.items():
         if version > max_need_versioning:
             continue
@@ -194,7 +194,7 @@ def do_versions(self):
                 if not cscene.is_property_set("sample_clamp_indirect"):
                     cscene.sample_clamp_indirect = 0.0
 
-            if version <= (2, 91, 0):
+            if version <= (2, 92, 4):
                 if scene.render.engine == 'CYCLES':
                   for view_layer in scene.view_layers:
                     cview_layer = view_layer.cycles
