@@ -838,6 +838,7 @@ static void ui_apply_but_undo(uiBut *but)
     /* fallback, else we don't get an undo! */
     if (str == NULL || str[0] == '\0' || str_len_clip == 0) {
       str = "Unknown Action";
+      str_len_clip = strlen(str);
     }
 
     /* Optionally override undo when undo system doesn't support storing properties. */
