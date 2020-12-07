@@ -171,10 +171,8 @@ class VIEWLAYER_PT_layer_passes_aov(ViewLayerButtonsPanel, Panel):
             layout.label(text="Conflicts with another render pass with the same name", icon='ERROR')
 
 
-class VIEWLAYER_PT_layer_passes_cryptomatte(ViewLayerButtonsPanel, Panel):
+class ViewLayerCryptomattePanel(ViewLayerButtonsPanel, Panel):
     bl_label = "Cryptomatte"
-    bl_parent_id = "VIEWLAYER_PT_layer_passes"
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -194,6 +192,11 @@ class VIEWLAYER_PT_layer_passes_cryptomatte(ViewLayerButtonsPanel, Panel):
                           view_layer.use_pass_cryptomatte_asset))
         col.prop(view_layer, "pass_cryptomatte_depth", text="Levels")
         col.prop(view_layer, "use_pass_cryptomatte_accurate", text="Accurate Mode")
+
+
+class VIEWLAYER_PT_layer_passes_cryptomatte(ViewLayerCryptomattePanel):
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
 
 classes = (

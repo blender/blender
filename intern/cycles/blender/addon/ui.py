@@ -23,7 +23,7 @@ from bl_ui.utils import PresetPanel
 from bpy.types import Panel
 
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
-from bl_ui.properties_view_layer import VIEWLAYER_PT_layer_passes_cryptomatte
+from bl_ui.properties_view_layer import ViewLayerCryptomattePanel
 
 
 class CYCLES_PT_sampling_presets(PresetPanel, Panel):
@@ -886,7 +886,7 @@ class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
 
 
-class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, VIEWLAYER_PT_layer_passes_cryptomatte):
+class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, ViewLayerCryptomattePanel):
     bl_label = "Cryptomatte"
     bl_context = "view_layer"
     bl_parent_id = "CYCLES_RENDER_PT_passes"
