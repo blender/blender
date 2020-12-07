@@ -32,6 +32,7 @@
 #include "ED_screen.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "UI_interface.h"
 
@@ -44,6 +45,18 @@
 /* -------------------------------------------------------------------- */
 /** \name Transform (Sequencer Slide)
  * \{ */
+
+static eRedrawFlag seq_slide_handleEvent(struct TransInfo *t, const wmEvent *event)
+{
+  BLI_assert(t->mode == TFM_SEQ_SLIDE);
+  wmKeyMapItem *kmi = t->custom.mode.data;
+  if (event->type == kmi->type && event->val == kmi->val) {
+    /* Allows the 'Expand to fit' effect to be enabled as a toogle. */
+    t->flag ^= T_ALT_TRANSFORM;
+    return TREDRAW_HARD;
+  }
+  return TREDRAW_NOTHING;
+}
 
 static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRAW_STR])
 {
@@ -61,7 +74,7 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
       str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Sequence Slide: %s%s, ("), &tvec[0], t->con.text);
 
   if (t->keymap) {
-    wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
+    wmKeyMapItem *kmi = t->custom.mode.data;
     if (kmi) {
       ofs += WM_keymap_item_to_string(kmi, false, str + ofs, UI_MAX_DRAW_STR - ofs);
     }
@@ -91,7 +104,7 @@ static void applySeqSlideValue(TransInfo *t, const float val[2])
 static void applySeqSlide(TransInfo *t, const int mval[2])
 {
   char str[UI_MAX_DRAW_STR];
-  float values_final[2] = {0.0f};
+  float values_final[3] = {0.0f};
 
   snapSequenceBounds(t, mval);
   if (applyNumInput(&t->num, values_final)) {
@@ -126,6 +139,7 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
 void initSeqSlide(TransInfo *t)
 {
   t->transform = applySeqSlide;
+  t->handleEvent = seq_slide_handleEvent;
 
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
 
@@ -142,5 +156,8 @@ void initSeqSlide(TransInfo *t)
    * (supporting frames in addition to "natural" time...). */
   t->num.unit_type[0] = B_UNIT_NONE;
   t->num.unit_type[1] = B_UNIT_NONE;
+
+  /* Workaround to use the same key as the modal keymap. */
+  t->custom.mode.data = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
 }
 /** \} */

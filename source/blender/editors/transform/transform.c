@@ -637,6 +637,14 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
+    case TFM_MODAL_TRANSLATE:
+    case TFM_MODAL_ROTATE:
+    case TFM_MODAL_RESIZE: {
+      if (!transform_mode_is_changeable(t->mode)) {
+        return false;
+      }
+      break;
+    }
   }
   return true;
 }
@@ -876,11 +884,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             handled = true;
           }
         }
-        else if (t->mode == TFM_SEQ_SLIDE) {
-          t->flag ^= T_ALT_TRANSFORM;
-          t->redraw |= TREDRAW_HARD;
-          handled = true;
-        }
         else if (transform_mode_is_changeable(t->mode)) {
           restoreTransObjects(t);
           resetTransModal(t);
@@ -921,11 +924,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             t->redraw |= TREDRAW_HARD;
             handled = true;
           }
-        }
-        else if (t->mode == TFM_SHRINKFATTEN) {
-          t->flag ^= T_ALT_TRANSFORM;
-          t->redraw |= TREDRAW_HARD;
-          handled = true;
         }
         else if (transform_mode_is_changeable(t->mode)) {
           /* Scale isn't normally very useful after extrude along normals, see T39756 */
