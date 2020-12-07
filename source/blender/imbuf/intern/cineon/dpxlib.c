@@ -123,16 +123,16 @@ static void fillDpxMainHeader(LogImageFile *dpx,
   header->televisionHeader.field_number = DPX_UNDEFINED_U8;
   header->televisionHeader.video_signal = DPX_UNDEFINED_U8;
   header->televisionHeader.padding = DPX_UNDEFINED_U8;
-  header->televisionHeader.horizontal_sample_rate = DPX_UNDEFINED_R32;
-  header->televisionHeader.vertical_sample_rate = DPX_UNDEFINED_R32;
-  header->televisionHeader.frame_rate = DPX_UNDEFINED_R32;
-  header->televisionHeader.time_offset = DPX_UNDEFINED_R32;
+  header->televisionHeader.horizontal_sample_rate = swap_float(DPX_UNDEFINED_R32, dpx->isMSB);
+  header->televisionHeader.vertical_sample_rate = swap_float(DPX_UNDEFINED_R32, dpx->isMSB);
+  header->televisionHeader.frame_rate = swap_float(DPX_UNDEFINED_R32, dpx->isMSB);
+  header->televisionHeader.time_offset = swap_float(DPX_UNDEFINED_R32, dpx->isMSB);
   header->televisionHeader.gamma = swap_float(dpx->gamma, dpx->isMSB);
   header->televisionHeader.black_level = swap_float(dpx->referenceBlack, dpx->isMSB);
-  header->televisionHeader.black_gain = DPX_UNDEFINED_R32;
-  header->televisionHeader.breakpoint = DPX_UNDEFINED_R32;
+  header->televisionHeader.black_gain = swap_float(DPX_UNDEFINED_R32, dpx->isMSB);
+  header->televisionHeader.breakpoint = swap_float(DPX_UNDEFINED_R32, dpx->isMSB);
   header->televisionHeader.white_level = swap_float(dpx->referenceWhite, dpx->isMSB);
-  header->televisionHeader.integration_times = DPX_UNDEFINED_R32;
+  header->televisionHeader.integration_times = swap_float(DPX_UNDEFINED_R32, dpx->isMSB);
 }
 
 LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t bufferSize)
@@ -339,13 +339,11 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
           dpx->element[i].refHighData = (unsigned int)dpx->element[i].maxValue;
         }
 
-        if (dpx->element[i].refLowQuantity == DPX_UNDEFINED_R32 ||
-            isnan(dpx->element[i].refLowQuantity)) {
+        if (IS_DPX_UNDEFINED_R32(dpx->element[i].refLowQuantity)) {
           dpx->element[i].refLowQuantity = 0.0f;
         }
 
-        if (dpx->element[i].refHighQuantity == DPX_UNDEFINED_R32 ||
-            isnan(dpx->element[i].refHighQuantity)) {
+        if (IS_DPX_UNDEFINED_R32(dpx->element[i].refHighQuantity)) {
           if (ELEM(dpx->element[i].transfer, transfer_PrintingDensity, transfer_Logarithmic)) {
             dpx->element[i].refHighQuantity = 2.048f;
           }
@@ -370,13 +368,11 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
           dpx->element[i].refHighData = 235.0f / 255.0f * dpx->element[i].maxValue;
         }
 
-        if (dpx->element[i].refLowQuantity == DPX_UNDEFINED_R32 ||
-            isnan(dpx->element[i].refLowQuantity)) {
+        if (IS_DPX_UNDEFINED_R32(dpx->element[i].refLowQuantity)) {
           dpx->element[i].refLowQuantity = 0.0f;
         }
 
-        if (dpx->element[i].refHighQuantity == DPX_UNDEFINED_R32 ||
-            isnan(dpx->element[i].refHighQuantity)) {
+        if (IS_DPX_UNDEFINED_R32(dpx->element[i].refHighQuantity)) {
           dpx->element[i].refHighQuantity = 0.7f;
         }
 
@@ -391,10 +387,9 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
   dpx->referenceWhite = swap_float(header.televisionHeader.white_level, dpx->isMSB);
   dpx->gamma = swap_float(header.televisionHeader.gamma, dpx->isMSB);
 
-  if ((dpx->referenceBlack == DPX_UNDEFINED_R32 || isnan(dpx->referenceBlack)) ||
-      (dpx->referenceWhite == DPX_UNDEFINED_R32 || dpx->referenceWhite <= dpx->referenceBlack ||
-       isnan(dpx->referenceWhite)) ||
-      (dpx->gamma == DPX_UNDEFINED_R32 || dpx->gamma <= 0 || isnan(dpx->gamma))) {
+  if (IS_DPX_UNDEFINED_R32(dpx->referenceBlack) ||
+      (dpx->referenceWhite <= dpx->referenceBlack || IS_DPX_UNDEFINED_R32(dpx->referenceWhite)) ||
+      (dpx->gamma <= 0 || IS_DPX_UNDEFINED_R32(dpx->gamma))) {
     dpx->referenceBlack = 95.0f / 1023.0f * dpx->element[0].maxValue;
     dpx->referenceWhite = 685.0f / 1023.0f * dpx->element[0].maxValue;
     dpx->gamma = 1.7f;
