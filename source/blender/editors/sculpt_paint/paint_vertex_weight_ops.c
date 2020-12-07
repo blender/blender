@@ -120,13 +120,8 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
   Mesh *me = ob->data;
   int type = RNA_enum_get(op->ptr, "type");
 
-  ED_object_vgroup_calc_from_armature(op->reports,
-                                      depsgraph,
-                                      scene,
-                                      ob,
-                                      armob,
-                                      type,
-                                      (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY));
+  ED_object_vgroup_calc_from_armature(
+      op->reports, depsgraph, scene, ob, armob, type, (me->symmetry & ME_SYMMETRY_X));
 
   DEG_id_tag_update(&me->id, 0);
   DEG_relations_tag_update(CTX_data_main(C));
