@@ -5273,12 +5273,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem audio_format_items[] = {
-      {0x01, "U8", 0, "8-bit Unsigned", "Set audio sample format to 8 bit unsigned integer"},
-      {0x12, "S16", 0, "16-bit Signed", "Set audio sample format to 16 bit signed integer"},
-      {0x13, "S24", 0, "24-bit Signed", "Set audio sample format to 24 bit signed integer"},
-      {0x14, "S32", 0, "32-bit Signed", "Set audio sample format to 32 bit signed integer"},
-      {0x24, "FLOAT", 0, "32-bit Float", "Set audio sample format to 32 bit float"},
-      {0x28, "DOUBLE", 0, "64-bit Float", "Set audio sample format to 64 bit float"},
+      {0x01, "U8", 0, "8-bit Unsigned", "Set audio sample format to 8-bit unsigned integer"},
+      {0x12, "S16", 0, "16-bit Signed", "Set audio sample format to 16-bit signed integer"},
+      {0x13, "S24", 0, "24-bit Signed", "Set audio sample format to 24-bit signed integer"},
+      {0x14, "S32", 0, "32-bit Signed", "Set audio sample format to 32-bit signed integer"},
+      {0x24, "FLOAT", 0, "32-bit Float", "Set audio sample format to 32-bit float"},
+      {0x28, "DOUBLE", 0, "64-bit Float", "Set audio sample format to 64-bit float"},
       {0, NULL, 0, NULL, NULL},
   };
 

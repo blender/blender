@@ -518,27 +518,27 @@ static bool sound_mixdown_draw_check_prop(PointerRNA *UNUSED(ptr),
 static void sound_mixdown_draw(bContext *C, wmOperator *op)
 {
   static const EnumPropertyItem pcm_format_items[] = {
-      {AUD_FORMAT_U8, "U8", 0, "U8", "8 bit unsigned"},
-      {AUD_FORMAT_S16, "S16", 0, "S16", "16 bit signed"},
+      {AUD_FORMAT_U8, "U8", 0, "U8", "8-bit unsigned"},
+      {AUD_FORMAT_S16, "S16", 0, "S16", "16-bit signed"},
 #  ifdef WITH_SNDFILE
-      {AUD_FORMAT_S24, "S24", 0, "S24", "24 bit signed"},
+      {AUD_FORMAT_S24, "S24", 0, "S24", "24-bit signed"},
 #  endif
-      {AUD_FORMAT_S32, "S32", 0, "S32", "32 bit signed"},
-      {AUD_FORMAT_FLOAT32, "F32", 0, "F32", "32 bit floating point"},
-      {AUD_FORMAT_FLOAT64, "F64", 0, "F64", "64 bit floating point"},
+      {AUD_FORMAT_S32, "S32", 0, "S32", "32-bit signed"},
+      {AUD_FORMAT_FLOAT32, "F32", 0, "F32", "32-bit floating-point"},
+      {AUD_FORMAT_FLOAT64, "F64", 0, "F64", "64-bit floating-point"},
       {0, NULL, 0, NULL, NULL},
   };
 
   static const EnumPropertyItem mp3_format_items[] = {
-      {AUD_FORMAT_S16, "S16", 0, "S16", "16 bit signed"},
-      {AUD_FORMAT_S32, "S32", 0, "S32", "32 bit signed"},
+      {AUD_FORMAT_S16, "S16", 0, "S16", "16-bit signed"},
+      {AUD_FORMAT_S32, "S32", 0, "S32", "32-bit signed"},
       {0, NULL, 0, NULL, NULL},
   };
 
 #  ifdef WITH_SNDFILE
   static const EnumPropertyItem flac_format_items[] = {
-      {AUD_FORMAT_S16, "S16", 0, "S16", "16 bit signed"},
-      {AUD_FORMAT_S24, "S24", 0, "S24", "24 bit signed"},
+      {AUD_FORMAT_S16, "S16", 0, "S16", "16-bit signed"},
+      {AUD_FORMAT_S24, "S24", 0, "S24", "24-bit signed"},
       {0, NULL, 0, NULL, NULL},
   };
 #  endif
@@ -672,12 +672,12 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 {
 #ifdef WITH_AUDASPACE
   static const EnumPropertyItem format_items[] = {
-      {AUD_FORMAT_U8, "U8", 0, "U8", "8 bit unsigned"},
-      {AUD_FORMAT_S16, "S16", 0, "S16", "16 bit signed"},
-      {AUD_FORMAT_S24, "S24", 0, "S24", "24 bit signed"},
-      {AUD_FORMAT_S32, "S32", 0, "S32", "32 bit signed"},
-      {AUD_FORMAT_FLOAT32, "F32", 0, "F32", "32 bit floating point"},
-      {AUD_FORMAT_FLOAT64, "F64", 0, "F64", "64 bit floating point"},
+      {AUD_FORMAT_U8, "U8", 0, "U8", "8-bit unsigned"},
+      {AUD_FORMAT_S16, "S16", 0, "S16", "16-bit signed"},
+      {AUD_FORMAT_S24, "S24", 0, "S24", "24-bit signed"},
+      {AUD_FORMAT_S32, "S32", 0, "S32", "32-bit signed"},
+      {AUD_FORMAT_FLOAT32, "F32", 0, "F32", "32-bit floating-point"},
+      {AUD_FORMAT_FLOAT64, "F64", 0, "F64", "64-bit floating-point"},
       {0, NULL, 0, NULL, NULL},
   };
 

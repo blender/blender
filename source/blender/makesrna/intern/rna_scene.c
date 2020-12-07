@@ -390,7 +390,7 @@ const EnumPropertyItem rna_enum_image_color_mode_items[] = {
      "BW",
      0,
      "BW",
-     "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
+     "Images get saved in 8-bit grayscale (only PNG, JPEG, TGA, TIF)"},
     {R_IMF_PLANES_RGB, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
     {R_IMF_PLANES_RGBA,
      "RGBA",
@@ -408,12 +408,12 @@ const EnumPropertyItem rna_enum_image_color_mode_items[] = {
 
 const EnumPropertyItem rna_enum_image_color_depth_items[] = {
     /* 1 (monochrome) not used */
-    {R_IMF_CHAN_DEPTH_8, "8", 0, "8", "8 bit color channels"},
-    {R_IMF_CHAN_DEPTH_10, "10", 0, "10", "10 bit color channels"},
-    {R_IMF_CHAN_DEPTH_12, "12", 0, "12", "12 bit color channels"},
-    {R_IMF_CHAN_DEPTH_16, "16", 0, "16", "16 bit color channels"},
+    {R_IMF_CHAN_DEPTH_8, "8", 0, "8", "8-bit color channels"},
+    {R_IMF_CHAN_DEPTH_10, "10", 0, "10", "10-bit color channels"},
+    {R_IMF_CHAN_DEPTH_12, "12", 0, "12", "12-bit color channels"},
+    {R_IMF_CHAN_DEPTH_16, "16", 0, "16", "16-bit color channels"},
     /* 24 not used */
-    {R_IMF_CHAN_DEPTH_32, "32", 0, "32", "32 bit color channels"},
+    {R_IMF_CHAN_DEPTH_32, "32", 0, "32", "32-bit color channels"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -5487,7 +5487,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", R_IMF_FLAG_ZBUF);
   RNA_def_property_ui_text(
-      prop, "Z Buffer", "Save the z-depth per pixel (32 bit unsigned int z-buffer)");
+      prop, "Z Buffer", "Save the z-depth per pixel (32-bit unsigned integer z-buffer)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "use_preview", PROP_BOOLEAN, PROP_NONE);
@@ -5723,26 +5723,26 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "video_bitrate", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "video_bitrate");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kb/s)");
+  RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kbit/s)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "minrate", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "rc_min_rate");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate (kb/s)");
+  RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate (kbit/s)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "maxrate", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "rc_max_rate");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate (kb/s)");
+  RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate (kbit/s)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "muxrate", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "mux_rate");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0, 100000000);
-  RNA_def_property_ui_text(prop, "Mux Rate", "Mux rate (bits/s(!))");
+  RNA_def_property_ui_text(prop, "Mux Rate", "Mux rate (bits/second)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "gopsize", PROP_INT, PROP_NONE);
@@ -7423,7 +7423,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_shadow_high_bitdepth", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SHADOW_HIGH_BITDEPTH);
-  RNA_def_property_ui_text(prop, "High Bitdepth", "Use 32bit shadows");
+  RNA_def_property_ui_text(prop, "High Bit Depth", "Use 32-bit shadows");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 

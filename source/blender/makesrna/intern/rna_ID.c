@@ -1188,7 +1188,7 @@ static void rna_def_image_preview(BlenderRNA *brna)
   prop = RNA_def_property(srna, "image_pixels", PROP_INT, PROP_NONE);
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_multi_array(prop, 1, NULL);
-  RNA_def_property_ui_text(prop, "Image Pixels", "Image pixels, as bytes (always RGBA 32bits)");
+  RNA_def_property_ui_text(prop, "Image Pixels", "Image pixels, as bytes (always 32-bit RGBA)");
   RNA_def_property_dynamic_array_funcs(prop, "rna_ImagePreview_image_pixels_get_length");
   RNA_def_property_int_funcs(
       prop, "rna_ImagePreview_image_pixels_get", "rna_ImagePreview_image_pixels_set", NULL);
@@ -1221,7 +1221,7 @@ static void rna_def_image_preview(BlenderRNA *brna)
   prop = RNA_def_property(srna, "icon_pixels", PROP_INT, PROP_NONE);
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_multi_array(prop, 1, NULL);
-  RNA_def_property_ui_text(prop, "Icon Pixels", "Icon pixels, as bytes (always RGBA 32bits)");
+  RNA_def_property_ui_text(prop, "Icon Pixels", "Icon pixels, as bytes (always 32-bit RGBA)");
   RNA_def_property_dynamic_array_funcs(prop, "rna_ImagePreview_icon_pixels_get_length");
   RNA_def_property_int_funcs(
       prop, "rna_ImagePreview_icon_pixels_get", "rna_ImagePreview_icon_pixels_set", NULL);

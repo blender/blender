@@ -2649,7 +2649,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
                "Generated Type",
                "Fill the image with a grid for UV map testing");
   RNA_def_boolean(
-      ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
+      ot->srna, "float", 0, "32-bit Float", "Create image with 32-bit floating-point bit depth");
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_boolean(
       ot->srna, "use_stereo_3d", 0, "Stereo 3D", "Create an image with left and right views");
@@ -3737,7 +3737,7 @@ static void def_fill_tile(StructOrFunctionRNA *srna)
 
   /* Only needed when filling the first tile. */
   RNA_def_boolean(
-      srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
+      srna, "float", 0, "32-bit Float", "Create image with 32-bit floating-point bit depth");
   RNA_def_boolean(srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
 }
 

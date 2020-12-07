@@ -38,10 +38,10 @@
 #include "WM_types.h"
 
 const EnumPropertyItem rna_enum_attribute_type_items[] = {
-    {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating point value"},
-    {CD_PROP_INT32, "INT", 0, "Integer", "32 bit integer"},
-    {CD_PROP_FLOAT3, "FLOAT_VECTOR", 0, "Vector", "3D vector with floating point values"},
-    {CD_PROP_COLOR, "FLOAT_COLOR", 0, "Float Color", "RGBA color with floating point precisions"},
+    {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating-point value"},
+    {CD_PROP_INT32, "INT", 0, "Integer", "32-bit integer"},
+    {CD_PROP_FLOAT3, "FLOAT_VECTOR", 0, "Vector", "3D vector with floating-point values"},
+    {CD_PROP_COLOR, "FLOAT_COLOR", 0, "Float Color", "RGBA color with floating-point precisions"},
     {CD_MLOOPCOL, "BYTE_COLOR", 0, "Byte Color", "RGBA color with 8-bit precision"},
     {CD_PROP_STRING, "STRING", 0, "String", "Text string"},
     {0, NULL, 0, NULL, NULL},
