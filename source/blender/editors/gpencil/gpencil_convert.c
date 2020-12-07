@@ -1312,7 +1312,7 @@ static void gpencil_layer_to_curve(bContext *C,
   Scene *scene = CTX_data_scene(C);
 
   bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV);
-  bGPDstroke *gps, *prev_gps = NULL;
+  bGPDstroke *prev_gps = NULL;
   Object *ob;
   Curve *cu;
   Nurb *nu = NULL;
@@ -1353,7 +1353,10 @@ static void gpencil_layer_to_curve(bContext *C,
   gtd->inittime = ((bGPDstroke *)gpf->strokes.first)->inittime;
 
   /* add points to curve */
-  for (gps = gpf->strokes.first; gps; gps = gps->next) {
+  LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+    if (gps->totpoints < 1) {
+      continue;
+    }
     const bool add_start_point = (link_strokes && !(prev_gps));
     const bool add_end_point = (link_strokes && !(gps->next));
 
