@@ -169,7 +169,7 @@ void BCMatrix::sanitize(Matrix &mat, int precision)
 void BCMatrix::sanitize(DMatrix &mat, int precision)
 {
   for (auto &row : mat) {
-    for (float &cell : row) {
+    for (double &cell : row) {
       cell = double_round(cell, precision);
     }
   }
