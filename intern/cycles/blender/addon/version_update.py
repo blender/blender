@@ -198,11 +198,11 @@ def do_versions(self):
                 if scene.render.engine == 'CYCLES':
                   for view_layer in scene.view_layers:
                     cview_layer = view_layer.cycles
-                    view_layer.use_pass_cryptomatte_object = cview_layer.get("use_pass_crypto_object")
-                    view_layer.use_pass_cryptomatte_material = cview_layer.get("use_pass_crypto_material")
-                    view_layer.use_pass_cryptomatte_asset = cview_layer.get("use_pass_crypto_asset")
-                    view_layer.pass_cryptomatte_depth = cview_layer.get("pass_crypto_depth")
-                    view_layer.use_pass_cryptomatte_accurate = cview_layer.get("pass_crypto_accurate")
+                    view_layer.use_pass_cryptomatte_object = cview_layer.get("use_pass_crypto_object", False)
+                    view_layer.use_pass_cryptomatte_material = cview_layer.get("use_pass_crypto_material", False)
+                    view_layer.use_pass_cryptomatte_asset = cview_layer.get("use_pass_crypto_asset", False)
+                    view_layer.pass_cryptomatte_depth = cview_layer.get("pass_crypto_depth", 6)
+                    view_layer.use_pass_cryptomatte_accurate = cview_layer.get("pass_crypto_accurate", True)
 
         # Lamps
         for light in bpy.data.lights:
