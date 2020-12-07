@@ -1052,11 +1052,9 @@ bool edit_modifier_poll_generic(bContext *C,
     return false;
   }
 
-  if (ID_IS_OVERRIDE_LIBRARY(ob) && !is_liboverride_allowed) {
-    if ((mod == NULL) || (mod->flag & eModifierFlag_OverrideLibrary_Local) == 0) {
-      CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from library override");
-      return false;
-    }
+  if (!is_liboverride_allowed && !BKE_modifier_is_local_in_liboverride(ob, mod)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from library override");
+    return false;
   }
 
   if (!is_editmode_allowed && CTX_data_edit_object(C) != NULL) {

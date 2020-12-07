@@ -431,6 +431,7 @@ bool BKE_modifier_is_non_geometrical(ModifierData *md);
 bool BKE_modifier_is_enabled(const struct Scene *scene,
                              struct ModifierData *md,
                              int required_mode);
+bool BKE_modifier_is_local_in_liboverride(const struct Object *ob, const struct ModifierData *md);
 void BKE_modifier_set_error(const struct Object *ob,
                             struct ModifierData *md,
                             const char *format,
