@@ -529,7 +529,7 @@ const EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_view_layer_aov_type_items[] = {
+static const EnumPropertyItem rna_enum_view_layer_aov_type_items[] = {
     {AOV_TYPE_COLOR, "COLOR", 0, "Color", ""},
     {AOV_TYPE_VALUE, "VALUE", 0, "Value", ""},
     {0, NULL, 0, NULL, NULL},

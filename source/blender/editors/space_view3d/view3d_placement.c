@@ -72,7 +72,7 @@ static void preview_plane_cursor_visible_set(wmGizmoGroup *gzgroup, bool do_draw
  * In this case we can't usefully project the mouse cursor onto the plane,
  * so use a fall-back plane instead.
  */
-const float eps_view_align = 1e-2f;
+static const float eps_view_align = 1e-2f;
 
 /* -------------------------------------------------------------------- */
 /** \name Local Types
