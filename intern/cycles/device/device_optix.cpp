@@ -297,6 +297,10 @@ class OptiXDevice : public CUDADevice {
 
   BVHLayoutMask get_bvh_layout_mask() const override
   {
+    // CUDA kernels are used when doing baking, so need to build a BVH those can understand too!
+    if (optix_module == NULL)
+      return CUDADevice::get_bvh_layout_mask();
+
     // OptiX has its own internal acceleration structure format
     return BVH_LAYOUT_OPTIX;
   }
@@ -330,10 +334,9 @@ class OptiXDevice : public CUDADevice {
       return false;
     }
 
-    // Disable baking for now, since its kernel is not well-suited for inlining and is very slow
+    // Baking is currently performed using CUDA, so no need to load OptiX kernels
     if (requested_features.use_baking) {
-      set_error("OptiX backend does not support baking yet");
-      return false;
+      return true;
     }
 
     const CUDAContextScope scope(cuContext);
@@ -700,6 +703,11 @@ class OptiXDevice : public CUDADevice {
       while (task.acquire_tile(this, tile, task.tile_types)) {
         if (tile.task == RenderTile::PATH_TRACE)
           launch_render(task, tile, thread_index);
+        else if (tile.task == RenderTile::BAKE) {
+          // Perform baking using CUDA, since it is not currently implemented in OptiX
+          device_vector<WorkTile> work_tiles(this, "work_tiles", MEM_READ_ONLY);
+          CUDADevice::render(task, tile, work_tiles);
+        }
         else if (tile.task == RenderTile::DENOISE)
           launch_denoise(task, tile);
         task.release_tile(tile);
