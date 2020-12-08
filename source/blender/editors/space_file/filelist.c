@@ -2620,7 +2620,7 @@ static int filelist_readjob_list_lib(const char *root, ListBase *entries, const 
     nbr_entries++;
   }
 
-  BLI_linklist_free(names, free);
+  BLI_linklist_free(names, MEM_freeN);
 
   return nbr_entries;
 }

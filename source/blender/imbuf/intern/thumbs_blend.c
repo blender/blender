@@ -68,7 +68,7 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
         printf("%s: error, found %d items, %d previews\n", __func__, nnames, nprevs);
       }
       BLI_linklist_free(previews, BKE_previewimg_freefunc);
-      BLI_linklist_free(names, free);
+      BLI_linklist_free(names, MEM_freeN);
       return ima;
     }
 
@@ -93,7 +93,7 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
     }
 
     BLI_linklist_free(previews, BKE_previewimg_freefunc);
-    BLI_linklist_free(names, free);
+    BLI_linklist_free(names, MEM_freeN);
   }
   else {
     BlendThumbnail *data;
