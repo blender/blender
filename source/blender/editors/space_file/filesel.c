@@ -90,7 +90,7 @@ FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
 /**
  * \note RNA_struct_property_is_set_ex is used here because we want
  *       the previously used settings to be used here rather than overriding them */
-static void fileselect_ensure_file_params(SpaceFile *sfile)
+static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 {
   FileSelectParams *params;
   wmOperator *op = sfile->op;
@@ -323,12 +323,14 @@ static void fileselect_ensure_file_params(SpaceFile *sfile)
   if (sfile->layout) {
     sfile->layout->dirty = true;
   }
+
+  return params;
 }
 
 FileSelectParams *ED_fileselect_ensure_active_params(SpaceFile *sfile)
 {
   if (!sfile->params) {
-    fileselect_ensure_file_params(sfile);
+    fileselect_ensure_updated_file_params(sfile);
   }
   return sfile->params;
 }
@@ -369,7 +371,7 @@ void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
   wmOperator *op = sfile->op;
   UserDef_FileSpaceData *sfile_udata = &U.file_space_data;
 
-  FileSelectParams *params = ED_fileselect_ensure_active_params(sfile);
+  FileSelectParams *params = fileselect_ensure_updated_file_params(sfile);
   if (!op) {
     return;
   }
