@@ -142,7 +142,11 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
     list(APPEND INC_SYS
       ${SDL_INCLUDE_DIR}
     )
-    if(NOT WITH_SDL_DYNLOAD)
+    if(WITH_SDL_DYNLOAD)
+      list(APPEND LIB
+        extern_sdlew
+      )
+    else()
       list(APPEND LIB
         ${SDL_LIBRARY}
       )
