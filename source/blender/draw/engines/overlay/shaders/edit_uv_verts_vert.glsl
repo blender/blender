@@ -26,7 +26,7 @@ void main()
   /* Move selected vertices to the top
    * Vertices are between 0.0 and 0.2, Edges between 0.2 and 0.4
    * actual pixels are at 0.75, 1.0 is used for the background. */
-  float depth = is_selected ? 0.05 : 0.15;
+  float depth = is_selected ? (is_pinned ? 0.05 : 0.10) : 0.15;
   gl_Position = vec4(point_world_to_ndc(world_pos).xy, depth, 1.0);
   gl_PointSize = pointSize;
 
