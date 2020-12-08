@@ -1,6 +1,6 @@
 Project: Google Flags
 URL: https://github.com/gflags/gflags
-License: New BSD
+License: BSD 3-Clause
 Upstream version: 2.2.1 (46f73f88b18)
 Local modifications:
 
