@@ -227,7 +227,7 @@ static PyObject *_bpy_names(BPy_Library *self, int blocktype)
       PyList_SET_ITEM(list, counter, PyUnicode_FromString((char *)l->link));
       counter++;
     }
-    BLI_linklist_free(names, MEM_freeN); /* free linklist *and* each node's data */
+    BLI_linklist_freeN(names); /* free linklist *and* each node's data */
   }
 
   return list;

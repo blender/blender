@@ -2621,7 +2621,7 @@ static int filelist_readjob_list_lib(const char *root, ListBase *entries, const 
     nbr_entries++;
   }
 
-  BLI_linklist_free(names, MEM_freeN);
+  BLI_linklist_freeN(names);
 
   return nbr_entries;
 }
