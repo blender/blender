@@ -551,7 +551,7 @@ def example_extract_docstring(filepath):
         file.close()
         return "", 0
 
-    for line in file.readlines():
+    for line in file:
         line_no += 1
         if line.startswith('"""'):
             break
@@ -559,6 +559,13 @@ def example_extract_docstring(filepath):
             text.append(line.rstrip())
 
     line_no += 1
+
+    # Skip over blank lines so the Python code doesn't have blank lines at the top.
+    for line in file:
+        if line.strip():
+            break
+        line_no += 1
+
     file.close()
     return "\n".join(text), line_no
 
