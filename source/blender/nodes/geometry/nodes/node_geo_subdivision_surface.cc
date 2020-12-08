@@ -16,6 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_mesh.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_mesh.h"
 
@@ -90,6 +91,7 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
   }
 
   Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
+  BKE_mesh_calc_normals(mesh_out);
 
   geometry_set.replace_mesh(mesh_out);
 
