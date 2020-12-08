@@ -264,6 +264,11 @@ void BLI_path_normalize(const char *relabase, char *path)
  */
 void BLI_path_normalize_dir(const char *relabase, char *dir)
 {
+  /* Would just create an unexpected "/" path, just early exit entirely. */
+  if (dir[0] == '\0') {
+    return;
+  }
+
   BLI_path_normalize(relabase, dir);
   BLI_path_slash_ensure(dir);
 }
