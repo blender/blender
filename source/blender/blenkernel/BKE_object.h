@@ -288,7 +288,6 @@ void BKE_object_eval_uber_data(struct Depsgraph *depsgraph,
                                struct Object *ob);
 void BKE_object_eval_assign_data(struct Object *object, struct ID *data, bool is_owned);
 
-void BKE_object_eval_boundbox(struct Depsgraph *depsgraph, struct Object *object);
 void BKE_object_sync_to_original(struct Depsgraph *depsgraph, struct Object *object);
 
 void BKE_object_eval_ptcache_reset(struct Depsgraph *depsgraph,
