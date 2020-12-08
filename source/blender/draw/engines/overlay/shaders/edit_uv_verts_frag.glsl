@@ -1,6 +1,5 @@
 
-uniform vec4 outlineColor;
-
+in vec4 outlineColor;
 in vec4 radii;
 in vec4 fillColor;
 out vec4 fragColor;
