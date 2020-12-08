@@ -575,11 +575,10 @@ bool BKE_modifier_is_enabled(const struct Scene *scene, ModifierData *md, int re
 }
 
 /**
- * Check whether given modifier is local when the object is a library override.
+ * Check whether given modifier is not local (i.e. from linked data) when the object is a library
+ * override.
  *
  * \param md May be NULL, in which case we consider it as a non-local modifier case.
- *
- * \note This check is only valid for a liboverride data-block, it always return \a true otherwise.
  */
 bool BKE_modifier_is_nonlocal_in_liboverride(const Object *ob, const ModifierData *md)
 {
