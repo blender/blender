@@ -68,7 +68,7 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
   const bool do_split_all = do_split_angle && emd->split_angle < FLT_EPSILON;
   const bool calc_face_normals = do_split_angle && !do_split_all;
 
-  bm = BKE_mesh_to_bmesh_ex(ob,
+  bm = BKE_mesh_to_bmesh_ex(NULL,
                             mesh,
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
@@ -138,7 +138,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     return mesh;
   }
 
-  result = doEdgeSplit(ctx->object, mesh, emd);
+  result = doEdgeSplit(mesh, emd);
 
   return result;
 }

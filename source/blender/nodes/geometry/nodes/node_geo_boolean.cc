@@ -61,8 +61,8 @@ static Mesh *mesh_boolean_calc(const Mesh *mesh_a, const Mesh *mesh_b, int boole
   {
     struct BMeshFromMeshParams bmesh_from_mesh_params = {0};
     bmesh_from_mesh_params.calc_face_normal = true;
-    BM_mesh_bm_from_me(bm, mesh_b, &bmesh_from_mesh_params);
-    BM_mesh_bm_from_me(bm, mesh_a, &bmesh_from_mesh_params);
+    BM_mesh_bm_from_me(NULL, bm, mesh_b, &bmesh_from_mesh_params);
+    BM_mesh_bm_from_me(NULL, bm, mesh_a, &bmesh_from_mesh_params);
   }
 
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);

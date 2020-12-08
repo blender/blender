@@ -139,8 +139,6 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
 
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {

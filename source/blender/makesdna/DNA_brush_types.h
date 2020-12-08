@@ -673,8 +673,8 @@ typedef struct Brush {
   float mask_stencil_pos[2];
   float mask_stencil_dimension[2];
 
+  int _pad11;
   struct BrushGpencilSettings *gpencil_settings;
-
 } Brush;
 
 /* Struct to hold palette colors for sorting. */

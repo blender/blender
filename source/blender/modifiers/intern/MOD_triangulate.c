@@ -76,7 +76,7 @@ Mesh *triangulate_mesh(Mesh *mesh,
     cd_mask_extra.lmask |= CD_MASK_NORMAL;
   }
 
-  bm = BKE_mesh_to_bmesh_ex(ob,
+  bm = BKE_mesh_to_bmesh_ex(NULL,
                             mesh, 
                             &((struct BMeshCreateParams){0}),
                             &((struct BMeshFromMeshParams){
@@ -129,8 +129,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
   Mesh *result;
-  if (!(result = triangulate_mesh(ctx->object,
-            mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag))) {
+  if (!(result = triangulate_mesh(mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag))) {
     return mesh;
   }
 
