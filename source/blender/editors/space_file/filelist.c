@@ -149,6 +149,7 @@ const char *folderlist_peeklastdir(ListBase *folderlist)
 
 int folderlist_clear_next(struct SpaceFile *sfile)
 {
+  const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   struct FolderList *folder;
 
   /* if there is no folder_next there is nothing we can clear */
@@ -159,7 +160,7 @@ int folderlist_clear_next(struct SpaceFile *sfile)
   /* if previous_folder, next_folder or refresh_folder operators are executed
    * it doesn't clear folder_next */
   folder = sfile->folders_prev->last;
-  if ((!folder) || (BLI_path_cmp(folder->foldername, sfile->params->dir) == 0)) {
+  if ((!folder) || (BLI_path_cmp(folder->foldername, params->dir) == 0)) {
     return 0;
   }
 

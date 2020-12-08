@@ -270,7 +270,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_params(sfile);
+  FileSelectParams *params = ED_fileselect_ensure_active_params(sfile);
   struct FSMenu *fsmenu = ED_fsmenu_get();
 
   if (!sfile->folders_prev) {
@@ -413,7 +413,7 @@ static void file_main_region_message_subscribe(const struct bContext *UNUSED(C),
                                                struct wmMsgBus *mbus)
 {
   SpaceFile *sfile = area->spacedata.first;
-  FileSelectParams *params = ED_fileselect_get_params(sfile);
+  FileSelectParams *params = ED_fileselect_ensure_active_params(sfile);
   /* This is a bit odd that a region owns the subscriber for an area,
    * keep for now since all subscribers for WM are regions.
    * May be worth re-visiting later. */
@@ -446,7 +446,7 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_params(sfile);
+  FileSelectParams *params = ED_fileselect_ensure_active_params(sfile);
 
   View2D *v2d = &region->v2d;
 

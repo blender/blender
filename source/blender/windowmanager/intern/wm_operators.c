@@ -84,6 +84,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "ED_fileselect.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
@@ -496,7 +497,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
           }
           case SPACE_FILE: {
             const SpaceFile *sfile = (SpaceFile *)space_data;
-            const FileSelectParams *params = sfile->params;
+            const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
             TEST_PTR_DATA_TYPE("space_data", RNA_FileSelectParams, ptr, params);
             break;
           }

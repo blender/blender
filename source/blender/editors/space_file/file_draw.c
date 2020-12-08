@@ -400,11 +400,12 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
   ARegion *region = CTX_wm_region(C);
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
-  BLI_join_dirfile(orgname, sizeof(orgname), sfile->params->dir, oldname);
-  BLI_strncpy(filename, sfile->params->renamefile, sizeof(filename));
+  BLI_join_dirfile(orgname, sizeof(orgname), params->dir, oldname);
+  BLI_strncpy(filename, params->renamefile, sizeof(filename));
   BLI_filename_make_safe(filename);
-  BLI_join_dirfile(newname, sizeof(newname), sfile->params->dir, filename);
+  BLI_join_dirfile(newname, sizeof(newname), params->dir, filename);
 
   if (!STREQ(orgname, newname)) {
     if (!BLI_exists(newname)) {
@@ -415,8 +416,8 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
       }
       else {
         /* If rename is successful, scroll to newly renamed entry. */
-        BLI_strncpy(sfile->params->renamefile, filename, sizeof(sfile->params->renamefile));
-        sfile->params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_PENDING;
+        BLI_strncpy(params->renamefile, filename, sizeof(params->renamefile));
+        params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_PENDING;
 
         if (sfile->smoothscroll_timer != NULL) {
           WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
@@ -688,7 +689,7 @@ static void draw_details_columns(const FileSelectParams *params,
 void file_draw_list(const bContext *C, ARegion *region)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_params(sfile);
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   FileLayout *layout = ED_fileselect_get_layout(sfile, region);
   View2D *v2d = &region->v2d;
   struct FileList *files = sfile->files;
@@ -847,26 +848,25 @@ void file_draw_list(const bContext *C, ARegion *region)
     }
 
     if (file_selflag & FILE_SEL_EDITING) {
-      uiBut *but;
       const short width = (params->display == FILE_IMGDISPLAY) ?
                               textwidth :
                               layout->attribute_columns[COLUMN_NAME].width -
                                   ATTRIBUTE_COLUMN_PADDING;
 
-      but = uiDefBut(block,
-                     UI_BTYPE_TEXT,
-                     1,
-                     "",
-                     sx + icon_ofs,
-                     sy - layout->tile_h - 0.15f * UI_UNIT_X,
-                     width - icon_ofs,
-                     textheight,
-                     sfile->params->renamefile,
-                     1.0f,
-                     (float)sizeof(sfile->params->renamefile),
-                     0,
-                     0,
-                     "");
+      uiBut *but = uiDefBut(block,
+                            UI_BTYPE_TEXT,
+                            1,
+                            "",
+                            sx + icon_ofs,
+                            sy - layout->tile_h - 0.15f * UI_UNIT_X,
+                            width - icon_ofs,
+                            textheight,
+                            params->renamefile,
+                            1.0f,
+                            (float)sizeof(params->renamefile),
+                            0,
+                            0,
+                            "");
       UI_but_func_rename_set(but, renamebutton_cb, file);
       UI_but_flag_enable(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
       UI_but_flag_disable(but, UI_BUT_UNDO);

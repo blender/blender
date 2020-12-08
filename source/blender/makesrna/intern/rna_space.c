@@ -2467,6 +2467,18 @@ static PointerRNA rna_FileSelectParams_filter_id_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_FileSelectIDFilter, ptr->data);
 }
 
+static PointerRNA rna_FileBrowser_params_get(PointerRNA *ptr)
+{
+  SpaceFile *sfile = ptr->data;
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  if (params) {
+    return rna_pointer_inherit_refine(ptr, &RNA_FileSelectParams, params);
+  }
+
+  return rna_pointer_inherit_refine(ptr, NULL, NULL);
+}
+
 static void rna_FileBrowser_FSMenuEntry_path_get(PointerRNA *ptr, char *value)
 {
   char *path = ED_fsmenu_entry_get_path(ptr->data);
@@ -6043,7 +6055,8 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
   rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI));
 
   prop = RNA_def_property(srna, "params", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "params");
+  RNA_def_property_struct_type(prop, "FileSelectParams");
+  RNA_def_property_pointer_funcs(prop, "rna_FileBrowser_params_get", NULL, NULL, NULL);
   RNA_def_property_ui_text(
       prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser");
 

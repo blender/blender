@@ -132,7 +132,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
 {
   bScreen *screen = CTX_wm_screen(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_params(sfile);
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   uiBlock *block = uiLayoutGetBlock(panel->layout);
   uiBut *but;
   uiLayout *row;

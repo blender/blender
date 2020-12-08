@@ -101,9 +101,9 @@ typedef struct FileSelection {
 struct View2D;
 struct rcti;
 
-struct FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile);
+struct FileSelectParams *ED_fileselect_ensure_active_params(struct SpaceFile *sfile);
+struct FileSelectParams *ED_fileselect_get_active_params(const struct SpaceFile *sfile);
 
-short ED_fileselect_set_params(struct SpaceFile *sfile);
 void ED_fileselect_set_params_from_userdef(struct SpaceFile *sfile);
 void ED_fileselect_params_to_userdef(struct SpaceFile *sfile,
                                      const int temp_win_size[],
