@@ -278,8 +278,8 @@ void BKE_gpencil_modifiers_foreach_tex_link(struct Object *ob,
                                             GreasePencilTexWalkFunc walk,
                                             void *userData);
 
-bool BKE_gpencil_modifier_is_local_in_liboverride(const struct Object *ob,
-                                                  const struct GpencilModifierData *gmd);
+bool BKE_gpencil_modifier_is_nonlocal_in_liboverride(const struct Object *ob,
+                                                     const struct GpencilModifierData *gmd);
 
 typedef struct GpencilVirtualModifierData {
   ArmatureGpencilModifierData amd;

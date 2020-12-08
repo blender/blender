@@ -581,10 +581,10 @@ bool BKE_modifier_is_enabled(const struct Scene *scene, ModifierData *md, int re
  *
  * \note This check is only valid for a liboverride data-block, it always return \a true otherwise.
  */
-bool BKE_modifier_is_local_in_liboverride(const Object *ob, const ModifierData *md)
+bool BKE_modifier_is_nonlocal_in_liboverride(const Object *ob, const ModifierData *md)
 {
-  return (!ID_IS_OVERRIDE_LIBRARY(ob) ||
-          (md != NULL && (md->flag & eModifierFlag_OverrideLibrary_Local) != 0));
+  return (ID_IS_OVERRIDE_LIBRARY(ob) &&
+          (md == NULL || (md->flag & eModifierFlag_OverrideLibrary_Local) == 0));
 }
 
 CDMaskLink *BKE_modifier_calc_data_masks(struct Scene *scene,

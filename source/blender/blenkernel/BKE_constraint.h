@@ -177,8 +177,8 @@ struct bConstraint *BKE_constraint_find_from_target(struct Object *ob,
                                                     struct bConstraintTarget *tgt,
                                                     struct bPoseChannel **r_pchan);
 
-bool BKE_constraint_is_local_in_liboverride(const struct Object *ob,
-                                            const struct bConstraint *con);
+bool BKE_constraint_is_nonlocal_in_liboverride(const struct Object *ob,
+                                               const struct bConstraint *con);
 
 struct bConstraint *BKE_constraint_add_for_object(struct Object *ob, const char *name, short type);
 struct bConstraint *BKE_constraint_add_for_pose(struct Object *ob,
