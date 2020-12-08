@@ -25,7 +25,7 @@ static bNodeSocketTemplate geo_node_subdivision_surface_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_INT, N_("Level"), 1, 0, 0, 0, 0, 6},
     {SOCK_BOOLEAN, N_("Use Creases")},
-    {SOCK_BOOLEAN, N_("Boundary Smooth")},
+    {SOCK_BOOLEAN, N_("Boundary Smooth"), true},
     {SOCK_BOOLEAN, N_("Smooth UVs")},
     {-1, ""},
 };
@@ -76,7 +76,7 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
   subdiv_settings.level = subdiv_level;
 
   subdiv_settings.vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
-      boundary_smooth);
+      !boundary_smooth);
   subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
       smooth_uvs);
 
