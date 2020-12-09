@@ -131,14 +131,6 @@ void GLBackend::platform_init()
       }
     }
 
-    /* Since Blender 2.91 AMD TeraScale 2 GPUs crashes during startup. */
-    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY)) {
-      if (strstr(renderer, "Radeon HD 4") || strstr(renderer, "Radeon HD 5") ||
-          strstr(renderer, "Radeon HD 6") || strstr(renderer, "ATI FirePro V4") ||
-          strstr(renderer, "AMD Radeon R5 2")) {
-        GPG.support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
-      }
-    }
     /* Driver 20.11.2 fixes a lot of issues for the Navi cards, but introduces new ones
      * for Polaris based cards cards. The viewport has glitches but doesn't crash.
      * See T82856 */
