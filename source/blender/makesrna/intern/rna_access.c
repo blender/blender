@@ -4993,7 +4993,9 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
       len++;
       p++;
       while (*p && (*p != quote || escape)) {
-        escape = (*p == '\\');
+        /* A pair of back-slashes represents a single back-slash,
+         * only use a single back-slash for escaping. */
+        escape = (escape == 0) && (*p == '\\');
         len++;
         p++;
       }
@@ -5033,11 +5035,17 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
   /* copy string, taking into account escaped ] */
   if (bracket) {
     for (p = *path, i = 0, j = 0; i < len; i++, p++) {
-      if (*p == '\\' && ELEM(*(p + 1), quote, '\\')) {
+      if (*p == '\\') {
+        if (*(p + 1) == '\\') {
+          /* Un-escape pairs of back-slashes into a single back-slash. */
+          p++;
+          i += 1;
+        }
+        else if (*(p + 1) == quote) {
+          continue;
+        }
       }
-      else {
-        buf[j++] = *p;
-      }
+      buf[j++] = *p;
     }
 
     buf[j] = 0;
