@@ -247,10 +247,6 @@ static void detect_workarounds()
     return;
   }
 
-  /* Some Intel drivers have issues with using mips as framebuffer targets if
-   * GL_TEXTURE_MAX_LEVEL is higher than the target mip.
-   * Only check at the end after all other workarounds because this uses the drawing code. */
-  GCaps.mip_render_workaround = detect_mip_render_workaround();
   /* Limit support for GLEW_ARB_base_instance to OpenGL 4.0 and higher. NVIDIA Quadro FX 4800
    * (TeraScale) report that they support GLEW_ARB_base_instance, but the driver does not support
    * GLEW_ARB_draw_indirect as it has an OpenGL3 context what also matches the minimum needed
@@ -271,6 +267,7 @@ static void detect_workarounds()
       (strstr(version, "4.5.13399") || strstr(version, "4.5.13417") ||
        strstr(version, "4.5.13422"))) {
     GLContext::unused_fb_slot_workaround = true;
+    GCaps.mip_render_workaround = true;
     GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
   }
@@ -362,6 +359,13 @@ static void detect_workarounds()
     }
   }
 
+  /* Some Intel drivers have issues with using mips as framebuffer targets if
+   * GL_TEXTURE_MAX_LEVEL is higher than the target mip.
+   * Only check at the end after all other workarounds because this uses the drawing code.
+   * Also after device/driver flags to avoid the check that causes pre GCN Radeon to crash. */
+  if (GCaps.mip_render_workaround == false) {
+    GCaps.mip_render_workaround = detect_mip_render_workaround();
+  }
   /* Disable multidraw if the base instance cannot be read. */
   if (GLContext::shader_draw_parameters_support == false) {
     GLContext::multi_draw_indirect_support = false;
