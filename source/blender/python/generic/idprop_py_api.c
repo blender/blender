@@ -365,7 +365,7 @@ static const char *idp_try_read_name(PyObject *name_obj)
       return NULL;
     }
 
-    if (name_size > MAX_IDPROP_NAME) {
+    if (name_size >= MAX_IDPROP_NAME) {
       PyErr_SetString(PyExc_KeyError,
                       "the length of IDProperty names is limited to 63 characters");
       return NULL;
