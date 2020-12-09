@@ -95,7 +95,7 @@ static DRWShadingGroup *gpencil_vfx_pass_create(const char *name,
 
 static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *iter)
 {
-  if (fx->radius[0] == 0.0f && fx->radius[1] == 0.0f) {
+  if ((fx->samples == 0.0f) || (fx->radius[0] == 0.0f && fx->radius[1] == 0.0f)) {
     return;
   }
 
