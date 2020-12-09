@@ -30,7 +30,7 @@
 
 #include "gl_debug.hh"
 
-typedef void *GPUvoidptr;
+using GPUvoidptr = void *;
 
 #define GPUvoidptr_set void *ret =
 #define GPUvoidptr_ret return ret

@@ -202,7 +202,7 @@ void GeomCleaner::CleanIndexedVertexArray(const float *iVertices,
                                           unsigned *oVSize,
                                           unsigned **oIndices)
 {
-  typedef map<Vec3f, unsigned> cleanHashTable;
+  using cleanHashTable = map<Vec3f, unsigned>;
   vector<Vec3f> vertices;
   unsigned i;
   for (i = 0; i < iVSize; i += 3) {

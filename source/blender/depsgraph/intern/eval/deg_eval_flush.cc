@@ -82,7 +82,7 @@ enum {
   COMPONENT_STATE_DONE = 2,
 };
 
-typedef deque<OperationNode *> FlushQueue;
+using FlushQueue = deque<OperationNode *>;
 
 namespace {
 

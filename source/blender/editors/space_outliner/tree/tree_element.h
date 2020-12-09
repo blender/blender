@@ -36,7 +36,7 @@ extern "C" {
 typedef struct TreeElementType TreeElementType;
 
 TreeElementType *outliner_tree_element_type_create(int type, TreeElement *legacy_te, void *idv);
-void outliner_tree_element_type_free(TreeElementType **element);
+void outliner_tree_element_type_free(TreeElementType **type);
 
 void outliner_tree_element_type_expand(TreeElementType *type, SpaceOutliner *space_outliner);
 

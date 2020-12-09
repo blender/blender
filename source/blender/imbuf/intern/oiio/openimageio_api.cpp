@@ -48,7 +48,7 @@ OIIO_NAMESPACE_USING
 using std::string;
 using std::unique_ptr;
 
-typedef unsigned char uchar;
+using uchar = unsigned char;
 
 template<class T, class Q>
 static void fill_all_channels(T *pixels, int width, int height, int components, Q alpha)

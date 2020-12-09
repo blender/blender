@@ -76,10 +76,10 @@ struct OrderedEdge {
 };
 
 /* The map first contains an edge pointer and later an index. */
-typedef union OrigEdgeOrIndex {
+union OrigEdgeOrIndex {
   const MEdge *original_edge;
   int index;
-} OrigEdgeOrIndex;
+};
 using EdgeMap = Map<OrderedEdge, OrigEdgeOrIndex>;
 
 static void reserve_hash_maps(const Mesh *mesh,
