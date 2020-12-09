@@ -630,7 +630,7 @@ void filelist_setsorting(struct FileList *filelist, const short sort, bool inver
 /* ********** Filter helpers ********** */
 
 /* True if filename is meant to be hidden, eg. starting with period. */
-static bool is_hidden_dot_filename(const char *filename, FileListInternEntry *file)
+static bool is_hidden_dot_filename(const char *filename, const FileListInternEntry *file)
 {
   if (filename[0] == '.' && !ELEM(filename[1], '.', '\0')) {
     return true; /* ignore .file */
@@ -671,8 +671,8 @@ static bool is_hidden_dot_filename(const char *filename, FileListInternEntry *fi
 
 /* True if should be hidden, based on current filtering. */
 static bool is_filtered_hidden(const char *filename,
-                               FileListFilter *filter,
-                               FileListInternEntry *file)
+                               const FileListFilter *filter,
+                               const FileListInternEntry *file)
 {
   if ((filename[0] == '.') && (filename[1] == '\0')) {
     return true; /* Ignore . */
