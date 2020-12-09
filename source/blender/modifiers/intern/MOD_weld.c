@@ -1567,7 +1567,7 @@ static bool bvhtree_weld_overlap_cb(void *userdata, int index_a, int index_b, in
 }
 #endif
 
-/** Use for #MOD_WELD_CONNECTED_MODE calculation. */
+/** Use for #MOD_WELD_MODE_CONNECTED calculation. */
 struct WeldVertexCluster {
   float co[3];
   uint merged_verts;
@@ -1612,7 +1612,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
    * This indicates which vert it is or is going to be merged. */
   uint *vert_dest_map = MEM_malloc_arrayN(totvert, sizeof(*vert_dest_map), __func__);
   uint vert_kill_len = 0;
-  if (wmd->mode == MOD_WELD_ALL_MODE)
+  if (wmd->mode == MOD_WELD_MODE_ALL)
 #ifdef USE_BVHTREEKDOP
   {
     /* Get overlap map. */
@@ -1709,7 +1709,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   }
 #endif
   else {
-    BLI_assert(wmd->mode == MOD_WELD_CONNECTED_MODE);
+    BLI_assert(wmd->mode == MOD_WELD_MODE_CONNECTED);
 
     MEdge *medge, *me;
 

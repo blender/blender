@@ -6232,8 +6232,8 @@ static void rna_def_modifier_weld(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem mode_items[] = {
-      {MOD_WELD_ALL_MODE, "ALL", 0, "All", "Full merge by distance"},
-      {MOD_WELD_CONNECTED_MODE, "CONNECTED", 0, "Connected", "Only merge along the edges"},
+      {MOD_WELD_MODE_ALL, "ALL", 0, "All", "Full merge by distance"},
+      {MOD_WELD_MODE_CONNECTED, "CONNECTED", 0, "Connected", "Only merge along the edges"},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -2016,8 +2016,8 @@ enum {
 
 /* #WeldModifierData.mode */
 enum {
-  MOD_WELD_ALL_MODE = 0,
-  MOD_WELD_CONNECTED_MODE = 1,
+  MOD_WELD_MODE_ALL = 0,
+  MOD_WELD_MODE_CONNECTED = 1,
 };
 
 typedef struct DataTransferModifierData {
