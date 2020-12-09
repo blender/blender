@@ -131,11 +131,11 @@ void GLBackend::platform_init()
       }
     }
 
-    /* Driver 20.11.2 fixes a lot of issues for the Navi cards, but introduces new ones
+    /* Driver 20.11.2/3 fixes a lot of issues for the Navi cards, but introduces new ones
      * for Polaris based cards cards. The viewport has glitches but doesn't crash.
-     * See T82856 */
+     * See T82856,T83574.  */
     if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
-        strstr(version, " 20.11.2 ")) {
+        (strstr(version, " 20.11.2 ") || strstr(version, " 20.11.3 "))) {
       if (strstr(renderer, "Radeon RX 460 ") || strstr(renderer, "Radeon RX 470 ") ||
           strstr(renderer, "Radeon RX 480 ") || strstr(renderer, "Radeon RX 490 ") ||
           strstr(renderer, "Radeon RX 560 ") || strstr(renderer, "Radeon RX 570 ") ||
