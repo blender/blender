@@ -50,7 +50,7 @@ static eRedrawFlag seq_slide_handleEvent(struct TransInfo *t, const wmEvent *eve
 {
   BLI_assert(t->mode == TFM_SEQ_SLIDE);
   wmKeyMapItem *kmi = t->custom.mode.data;
-  if (event->type == kmi->type && event->val == kmi->val) {
+  if (kmi && event->type == kmi->type && event->val == kmi->val) {
     /* Allows the 'Expand to fit' effect to be enabled as a toogle. */
     t->flag ^= T_ALT_TRANSFORM;
     return TREDRAW_HARD;
@@ -73,12 +73,11 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
   ofs += BLI_snprintf(
       str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Sequence Slide: %s%s, ("), &tvec[0], t->con.text);
 
-  if (t->keymap) {
-    wmKeyMapItem *kmi = t->custom.mode.data;
-    if (kmi) {
-      ofs += WM_keymap_item_to_string(kmi, false, str + ofs, UI_MAX_DRAW_STR - ofs);
-    }
+  wmKeyMapItem *kmi = t->custom.mode.data;
+  if (kmi) {
+    ofs += WM_keymap_item_to_string(kmi, false, str + ofs, UI_MAX_DRAW_STR - ofs);
   }
+
   ofs += BLI_snprintf(str + ofs,
                       UI_MAX_DRAW_STR - ofs,
                       TIP_(" or Alt) Expand to fit %s"),
@@ -157,7 +156,9 @@ void initSeqSlide(TransInfo *t)
   t->num.unit_type[0] = B_UNIT_NONE;
   t->num.unit_type[1] = B_UNIT_NONE;
 
-  /* Workaround to use the same key as the modal keymap. */
-  t->custom.mode.data = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
+  if (t->keymap) {
+    /* Workaround to use the same key as the modal keymap. */
+    t->custom.mode.data = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
+  }
 }
 /** \} */
