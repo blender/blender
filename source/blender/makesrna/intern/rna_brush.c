@@ -2072,6 +2072,20 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem brush_snake_hook_deform_type_items[] = {
+      {BRUSH_SNAKE_HOOK_DEFORM_FALLOFF,
+       "FALLOFF",
+       0,
+       "Radius Falloff",
+       "Applies the brush falloff in the tip of the brush"},
+      {BRUSH_SNAKE_HOOK_DEFORM_ELASTIC,
+       "ELASTIC",
+       0,
+       "Elastic",
+       "Modifies the entire mesh using elastic deform"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem brush_cloth_deform_type_items[] = {
       {BRUSH_CLOTH_DEFORM_DRAG, "DRAG", 0, "Drag", ""},
       {BRUSH_CLOTH_DEFORM_PUSH, "PUSH", 0, "Push", ""},
@@ -2306,6 +2320,11 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "elastic_deform_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_elastic_deform_type_items);
+  RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "snake_hook_deform_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_snake_hook_deform_type_items);
   RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 

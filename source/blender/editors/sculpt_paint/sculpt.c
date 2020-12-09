@@ -4232,6 +4232,8 @@ static void do_snake_hook_brush_task_cb_ex(void *__restrict userdata,
                                   (len_v3(grab_delta) / ss->cache->radius)) :
                                  0.0f;
 
+  const bool do_elastic = brush->snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC;
+
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
   SculptBrushTest test;
@@ -4239,18 +4241,28 @@ static void do_snake_hook_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  KelvinletParams params;
+  BKE_kelvinlet_init_params(&params, ss->cache->radius, bstrength, 1.0f, 0.4f);
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  vd.co,
-                                                                  sqrtf(test.dist),
-                                                                  vd.no,
-                                                                  vd.fno,
-                                                                  vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
-                                                                  thread_id);
+    if (do_elastic || sculpt_brush_test_sq_fn(&test, vd.co)) {
+
+      float fade;
+      if (do_elastic) {
+        fade = 1.0f;
+      }
+      else {
+        fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                        brush,
+                                                        vd.co,
+                                                        sqrtf(test.dist),
+                                                        vd.no,
+                                                        vd.fno,
+                                                        vd.mask ? *vd.mask : 0.0f,
+                                                        vd.index,
+                                                        thread_id);
+      }
 
       mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -4287,6 +4299,17 @@ static void do_snake_hook_brush_task_cb_ex(void *__restrict userdata,
         float delta_rotate[3];
         sculpt_rake_rotate(ss, test.location, vd.co, fade, delta_rotate);
         add_v3_v3(proxy[vd.i], delta_rotate);
+      }
+
+      if (do_elastic) {
+        float disp[3];
+        BKE_kelvinlet_grab_triscale(disp, &params, vd.co, ss->cache->location, proxy[vd.i]);
+        mul_v3_fl(disp, bstrength * 20.0f);
+        if (vd.mask) {
+          mul_v3_fl(disp, 1.0f - *vd.mask);
+        }
+        mul_v3_fl(disp, SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index));
+        copy_v3_v3(proxy[vd.i], disp);
       }
 
       if (vd.mvert) {
@@ -5714,16 +5737,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
 
-  /* These brushes need to update all nodes as they are not constrained by the brush radius */
-  /* Elastic deform needs all nodes to avoid artifacts as the effect of the brush is not
-   * constrained by the radius. */
-  /* Pose needs all nodes because it applies all symmetry iterations at the same time and the IK
-   * chain can grow to any area of the model. */
-  /* This can be optimized by filtering the nodes after calculating the chain. */
-  if (ELEM(brush->sculpt_tool,
-           SCULPT_TOOL_ELASTIC_DEFORM,
-           SCULPT_TOOL_POSE,
-           SCULPT_TOOL_BOUNDARY)) {
+  if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
+    /* These brushes need to update all nodes as they are not constrained by the brush radius */
     BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {

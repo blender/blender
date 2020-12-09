@@ -402,6 +402,11 @@ typedef enum eBrushBoundaryFalloffType {
   BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT = 3,
 } eBrushBoundaryFalloffType;
 
+typedef enum eBrushSnakeHookDeformType {
+  BRUSH_SNAKE_HOOK_DEFORM_FALLOFF = 0,
+  BRUSH_SNAKE_HOOK_DEFORM_ELASTIC = 1,
+} eBrushSnakeHookDeformType;
+
 /* Gpencilsettings.Vertex_mode */
 typedef enum eGp_Vertex_Mode {
   /* Affect to Stroke only. */
@@ -573,7 +578,7 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1[2];
+  char _pad1[6];
 
   float autosmooth_factor;
 
@@ -606,6 +611,9 @@ typedef struct Brush {
 
   int elastic_deform_type;
   float elastic_deform_volume_preservation;
+
+  /* snake hook */
+  int snake_hook_deform_type;
 
   /* pose */
   int pose_deform_type;
