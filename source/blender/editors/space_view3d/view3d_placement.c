@@ -35,6 +35,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 
 #include "RNA_access.h"
@@ -1068,7 +1069,6 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
     const float mval_fl[2] = {UNPACK2(event->mval)};
 
     /* Calculate the snap location on mouse-move or when toggling snap. */
-    bool is_snap_found_prev = ipd->is_snap_found;
     ipd->is_snap_found = false;
     if (ipd->use_snap) {
       if (ipd->snap_gizmo != NULL) {
@@ -1077,7 +1077,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
                                          CTX_data_ensure_evaluated_depsgraph(C),
                                          ipd->region,
                                          ipd->v3d,
-                                         NULL,
+                                         G_MAIN->wm.first,
                                          mval_fl,
                                          ipd->snap_co,
                                          NULL)) {
@@ -1085,12 +1085,6 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         }
         ED_gizmotypes_snap_3d_toggle_clear(ipd->snap_gizmo);
       }
-    }
-
-    /* Workaround because test_select doesn't run at the same time as the modal operator. */
-    if (is_snap_found_prev != ipd->is_snap_found) {
-      wmGizmoMap *gzmap = ipd->region->gizmo_map;
-      WM_gizmo_highlight_set(gzmap, ipd->is_snap_found ? ipd->snap_gizmo : NULL);
     }
 
     if (ipd->step_index == STEP_BASE) {

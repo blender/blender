@@ -50,7 +50,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-#include "wm.h"
 
 /* own includes */
 #include "../gizmo_geometry.h"
@@ -66,7 +65,13 @@ typedef struct SnapGizmo3D {
 
   /* We could have other snap contexts, for now only support 3D view. */
   SnapObjectContext *snap_context_v3d;
-  int mval[2];
+
+  /* Copy of the parameters of the last event state in order to detect updates. */
+  struct {
+    int x;
+    int y;
+    short shift, ctrl, alt, oskey;
+  } last_eventstate;
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   wmKeyMap *keymap;
@@ -77,11 +82,51 @@ typedef struct SnapGizmo3D {
   short snap_elem;
 } SnapGizmo3D;
 
+/* Checks if the current event is different from the one captured in the last update. */
+static bool eventstate_has_changed(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
+{
+  if (wm && wm->winactive) {
+    const wmEvent *event = wm->winactive->eventstate;
+    if ((event->x != snap_gizmo->last_eventstate.x) ||
+        (event->y != snap_gizmo->last_eventstate.y) ||
+        (event->ctrl != snap_gizmo->last_eventstate.ctrl) ||
+        (event->shift != snap_gizmo->last_eventstate.shift) ||
+        (event->alt != snap_gizmo->last_eventstate.alt) ||
+        (event->oskey != snap_gizmo->last_eventstate.oskey)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/* Copies the current eventstate. */
+static void eventstate_save(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
+{
+  if (wm && wm->winactive) {
+    const wmEvent *event = wm->winactive->eventstate;
+    snap_gizmo->last_eventstate.x = event->x;
+    snap_gizmo->last_eventstate.y = event->y;
+    snap_gizmo->last_eventstate.ctrl = event->ctrl;
+    snap_gizmo->last_eventstate.shift = event->shift;
+    snap_gizmo->last_eventstate.alt = event->alt;
+    snap_gizmo->last_eventstate.oskey = event->oskey;
+  }
+}
+
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
 static bool invert_snap(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
 {
   if (!wm || !wm->winactive) {
     return false;
+  }
+
+  const wmEvent *event = wm->winactive->eventstate;
+  if ((event->ctrl == snap_gizmo->last_eventstate.ctrl) &&
+      (event->shift == snap_gizmo->last_eventstate.shift) &&
+      (event->alt == snap_gizmo->last_eventstate.alt) &&
+      (event->oskey == snap_gizmo->last_eventstate.oskey)) {
+    /* Nothing has changed. */
+    return snap_gizmo->invert_snap;
   }
 
   if (snap_gizmo->keymap == NULL) {
@@ -92,7 +137,6 @@ static bool invert_snap(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
   const int snap_on = snap_gizmo->snap_on;
 
   wmKeyMap *keymap = WM_keymap_active(wm, snap_gizmo->keymap);
-  const wmEvent *event = wm->winactive->eventstate;
   for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
     if (kmi->flag & KMI_INACTIVE) {
       continue;
@@ -250,12 +294,6 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
                                    float r_nor[3])
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  Scene *scene = DEG_get_input_scene(depsgraph);
-  float co[3], no[3];
-  short snap_elem = 0;
-  int snap_elem_index[3] = {-1, -1, -1};
-  int index = -1;
-
   if (snap_gizmo->use_snap_override != -1) {
     if (snap_gizmo->use_snap_override == false) {
       snap_gizmo->snap_elem = 0;
@@ -265,7 +303,12 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   snap_gizmo->invert_snap = invert_snap(snap_gizmo, wm);
+#endif
 
+  eventstate_save(snap_gizmo, wm);
+  Scene *scene = DEG_get_input_scene(depsgraph);
+
+#ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   if (snap_gizmo->use_snap_override == -1) {
     const ToolSettings *ts = scene->toolsettings;
     if (snap_gizmo->invert_snap != !(ts->snap_flag & SCE_SNAP)) {
@@ -273,9 +316,12 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
       return 0;
     }
   }
-#else
-  UNUSED_VARS(wm);
 #endif
+
+  float co[3], no[3];
+  short snap_elem = 0;
+  int snap_elem_index[3] = {-1, -1, -1};
+  int index = -1;
 
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "snap_elements");
   int snap_elements = RNA_property_enum_get(&gz_prop->ptr, gz_prop->prop);
@@ -381,14 +427,17 @@ static void snap_gizmo_draw(const bContext *C, wmGizmo *gz)
     return;
   }
 
-  ARegion *region = CTX_wm_region(C);
-  RegionView3D *rv3d = region->regiondata;
+  wmWindowManager *wm = CTX_wm_manager(C);
+  if (eventstate_has_changed(snap_gizmo, wm)) {
+    /* The eventstate has changed but the snap has not been updated.
+     * This means that the current position is no longer valid. */
+    snap_gizmo->snap_elem = 0;
+    return;
+  }
 
-  /* Ideally, we shouldn't assign values here.
-   * But `test_select` is not called during navigation.
-   * And `snap_elem` is not really useful in this case. */
-  if ((rv3d->rflag & RV3D_NAVIGATING) ||
-      (!(gz->state & WM_GIZMO_STATE_HIGHLIGHT) && !wm_gizmomap_modal_get(region->gizmo_map))) {
+  RegionView3D *rv3d = CTX_wm_region_data(C);
+  if (rv3d->rflag & RV3D_NAVIGATING) {
+    /* Don't draw the gizmo while navigating. It can be distracting. */
     snap_gizmo->snap_elem = 0;
     return;
   }
@@ -418,30 +467,17 @@ static void snap_gizmo_draw(const bContext *C, wmGizmo *gz)
 static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-
-#ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   wmWindowManager *wm = CTX_wm_manager(C);
-  const bool invert = invert_snap(snap_gizmo, wm);
-  if (snap_gizmo->invert_snap == invert && snap_gizmo->mval[0] == mval[0] &&
-      snap_gizmo->mval[1] == mval[1]) {
+  if (!eventstate_has_changed(snap_gizmo, wm)) {
     /* Performance, do not update. */
     return snap_gizmo->snap_elem ? 0 : -1;
   }
-
-  snap_gizmo->invert_snap = invert;
-#else
-  if (snap_gizmo->mval[0] == mval[0] && snap_gizmo->mval[1] == mval[1]) {
-    /* Performance, do not update. */
-    return snap_gizmo->snap_elem ? 0 : -1;
-  }
-#endif
-  copy_v2_v2_int(snap_gizmo->mval, mval);
 
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   const float mval_fl[2] = {UNPACK2(mval)};
   short snap_elem = ED_gizmotypes_snap_3d_update(
-      gz, CTX_data_ensure_evaluated_depsgraph(C), region, v3d, NULL, mval_fl, NULL, NULL);
+      gz, CTX_data_ensure_evaluated_depsgraph(C), region, v3d, wm, mval_fl, NULL, NULL);
 
   if (snap_elem) {
     ED_region_tag_redraw_editor_overlays(region);
