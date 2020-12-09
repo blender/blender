@@ -1265,6 +1265,7 @@ class WM_OT_properties_edit(Operator):
 
         data_path = self.data_path
         prop = self.property
+        prop_escape = bpy.utils.escape_identifier(prop)
 
         prop_old = getattr(self, "_last_prop", [None])[0]
 
@@ -1289,7 +1290,7 @@ class WM_OT_properties_edit(Operator):
 
         # Reassign
         item[prop] = value_eval
-        item.property_overridable_library_set('["%s"]' % prop, self.is_overridable_library)
+        item.property_overridable_library_set('["%s"]' % prop_escape, self.is_overridable_library)
         rna_idprop_ui_prop_update(item, prop)
 
         self._last_prop[:] = [prop]
@@ -1322,7 +1323,7 @@ class WM_OT_properties_edit(Operator):
 
         # If we have changed the type of the property, update its potential anim curves!
         if prop_type_old != prop_type_new:
-            data_path = '["%s"]' % bpy.utils.escape_identifier(prop)
+            data_path = '["%s"]' % prop_escape
             done = set()
 
             def _update(fcurves):
@@ -1364,13 +1365,16 @@ class WM_OT_properties_edit(Operator):
             rna_idprop_value_item_type
         )
 
+        prop = self.property
+        prop_escape = bpy.utils.escape_identifier(prop)
+
         data_path = self.data_path
 
         if not data_path:
             self.report({'ERROR'}, "Data path not set")
             return {'CANCELLED'}
 
-        self._last_prop = [self.property]
+        self._last_prop = [prop]
 
         item = eval("context.%s" % data_path)
 
@@ -1379,7 +1383,7 @@ class WM_OT_properties_edit(Operator):
             return {'CANCELLED'}
 
         # retrieve overridable static
-        is_overridable = item.is_property_overridable_library('["%s"]' % self.property)
+        is_overridable = item.is_property_overridable_library('["%s"]' % prop_escape)
         self.is_overridable_library = bool(is_overridable)
 
         # default default value
@@ -1390,7 +1394,7 @@ class WM_OT_properties_edit(Operator):
             self.default = ""
 
         # setup defaults
-        prop_ui = rna_idprop_ui_prop_get(item, self.property, False)  # don't create
+        prop_ui = rna_idprop_ui_prop_get(item, prop, False)  # don't create
         if prop_ui:
             self.min = prop_ui.get("min", -1000000000)
             self.max = prop_ui.get("max", 1000000000)
