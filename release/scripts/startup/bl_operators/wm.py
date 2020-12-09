@@ -1147,10 +1147,11 @@ rna_default = StringProperty(
     maxlen=1024,
 )
 
-rna_property = StringProperty(
+rna_custom_property = StringProperty(
     name="Property Name",
     description="Property name edit",
-    maxlen=1024,
+    # Match `MAX_IDPROP_NAME - 1` in Blender's source.
+    maxlen=63,
 )
 
 rna_min = FloatProperty(
@@ -1196,7 +1197,7 @@ class WM_OT_properties_edit(Operator):
     bl_options = {'REGISTER', 'INTERNAL'}
 
     data_path: rna_path
-    property: rna_property
+    property: rna_custom_property
     value: rna_value
     default: rna_default
     min: rna_min
@@ -1552,7 +1553,7 @@ class WM_OT_properties_remove(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path: rna_path
-    property: rna_property
+    property: rna_custom_property
 
     def execute(self, context):
         from rna_prop_ui import (
