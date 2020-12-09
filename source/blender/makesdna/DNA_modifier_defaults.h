@@ -801,6 +801,7 @@
 #define _DNA_DEFAULT_WeldModifierData \
   { \
     .merge_dist = 0.001f, \
+    .mode = MOD_WELD_ALL_MODE, \
     .defgrp_name = "", \
   }
 

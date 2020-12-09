@@ -6231,12 +6231,23 @@ static void rna_def_modifier_weld(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem mode_items[] = {
+      {MOD_WELD_ALL_MODE, "ALL", 0, "All", "Full merge by distance"},
+      {MOD_WELD_CONNECTED_MODE, "CONNECTED", 0, "Connected", "Only merge along the edges"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "WeldModifier", "Modifier");
   RNA_def_struct_ui_text(srna, "Weld Modifier", "Weld modifier");
   RNA_def_struct_sdna(srna, "WeldModifierData");
   RNA_def_struct_ui_icon(srna, ICON_AUTOMERGE_OFF);
 
   RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "Mode defines the merge rule");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "merge_threshold", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "merge_dist");
