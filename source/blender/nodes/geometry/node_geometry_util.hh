@@ -37,3 +37,9 @@
 void geo_node_type_base(
     struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
 bool geo_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
+
+namespace blender::nodes {
+void update_attribute_input_socket_availabilities(bNode &node,
+                                                  const StringRef name,
+                                                  const GeometryNodeAttributeInputMode mode);
+}

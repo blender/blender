@@ -19,6 +19,47 @@
 
 namespace blender::nodes {
 
+ReadAttributePtr GeoNodeExecParams::get_input_attribute(const StringRef name,
+                                                        const GeometryComponent &component,
+                                                        const AttributeDomain domain,
+                                                        const CustomDataType type,
+                                                        const void *default_value) const
+{
+  const bNodeSocket *found_socket = nullptr;
+  LISTBASE_FOREACH (const bNodeSocket *, socket, &node_.inputs) {
+    if ((socket->flag & SOCK_UNAVAIL) != 0) {
+      continue;
+    }
+    if (name == socket->name) {
+      found_socket = socket;
+      break;
+    }
+  }
+  BLI_assert(found_socket != nullptr);
+
+  if (found_socket->type == SOCK_STRING) {
+    const std::string name = this->get_input<std::string>(found_socket->identifier);
+    return component.attribute_get_for_read(name, domain, type, default_value);
+  }
+  if (found_socket->type == SOCK_FLOAT) {
+    const float value = this->get_input<float>(found_socket->identifier);
+    return component.attribute_get_constant_for_read_converted(
+        domain, CD_PROP_FLOAT, type, &value);
+  }
+  if (found_socket->type == SOCK_VECTOR) {
+    const float3 value = this->get_input<float3>(found_socket->identifier);
+    return component.attribute_get_constant_for_read_converted(
+        domain, CD_PROP_FLOAT3, type, &value);
+  }
+  if (found_socket->type == SOCK_RGBA) {
+    const Color4f value = this->get_input<Color4f>(found_socket->identifier);
+    return component.attribute_get_constant_for_read_converted(
+        domain, CD_PROP_COLOR, type, &value);
+  }
+  BLI_assert(false);
+  return component.attribute_get_constant_for_read(domain, type, default_value);
+}
+
 void GeoNodeExecParams::check_extract_input(StringRef identifier,
                                             const CPPType *requested_type) const
 {

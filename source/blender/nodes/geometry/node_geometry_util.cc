@@ -17,6 +17,27 @@
 #include "node_geometry_util.hh"
 #include "node_util.h"
 
+namespace blender::nodes {
+
+void update_attribute_input_socket_availabilities(bNode &node,
+                                                  const StringRef name,
+                                                  const GeometryNodeAttributeInputMode mode)
+{
+  const GeometryNodeAttributeInputMode mode_ = (GeometryNodeAttributeInputMode)mode;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+    if (name == socket->name) {
+      const bool is_available =
+          ((socket->type == SOCK_STRING && mode_ == GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE) ||
+           (socket->type == SOCK_FLOAT && mode_ == GEO_NODE_ATTRIBUTE_INPUT_FLOAT) ||
+           (socket->type == SOCK_VECTOR && mode_ == GEO_NODE_ATTRIBUTE_INPUT_VECTOR) ||
+           (socket->type == SOCK_RGBA && mode_ == GEO_NODE_ATTRIBUTE_INPUT_COLOR));
+      nodeSetSocketAvailability(socket, is_available);
+    }
+  }
+}
+
+}  // namespace blender::nodes
+
 bool geo_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {
   return STREQ(ntree->idname, "GeometryNodeTree");

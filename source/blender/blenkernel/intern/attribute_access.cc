@@ -668,6 +668,39 @@ blender::bke::ReadAttributePtr GeometryComponent::attribute_get_constant_for_rea
       domain, domain_size, *cpp_type, value);
 }
 
+blender::bke::ReadAttributePtr GeometryComponent::attribute_get_constant_for_read_converted(
+    const AttributeDomain domain,
+    const CustomDataType in_data_type,
+    const CustomDataType out_data_type,
+    const void *value) const
+{
+  BLI_assert(this->attribute_domain_supported(domain));
+  if (value == nullptr || in_data_type == out_data_type) {
+    return this->attribute_get_constant_for_read(domain, out_data_type, value);
+  }
+
+  const blender::fn::CPPType *in_cpp_type = blender::bke::custom_data_type_to_cpp_type(
+      in_data_type);
+  const blender::fn::CPPType *out_cpp_type = blender::bke::custom_data_type_to_cpp_type(
+      out_data_type);
+  BLI_assert(in_cpp_type != nullptr);
+  BLI_assert(out_cpp_type != nullptr);
+
+  const blender::nodes::DataTypeConversions &conversions =
+      blender::nodes::get_implicit_type_conversions();
+  BLI_assert(conversions.is_convertible(*in_cpp_type, *out_cpp_type));
+
+  void *out_value = alloca(out_cpp_type->size());
+  conversions.convert(*in_cpp_type, *out_cpp_type, value, out_value);
+
+  const int domain_size = this->attribute_domain_size(domain);
+  blender::bke::ReadAttributePtr attribute = std::make_unique<blender::bke::ConstantReadAttribute>(
+      domain, domain_size, *out_cpp_type, out_value);
+
+  out_cpp_type->destruct(out_value);
+  return attribute;
+}
+
 WriteAttributePtr GeometryComponent::attribute_try_ensure_for_write(const StringRef attribute_name,
                                                                     const AttributeDomain domain,
                                                                     const CustomDataType data_type)

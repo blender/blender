@@ -148,6 +148,26 @@ class GeoNodeExecParams {
     return self_object_;
   }
 
+  /**
+   * Creates a read-only attribute based on node inputs. The method automatically detects which
+   * input with the given name is available.
+   */
+  ReadAttributePtr get_input_attribute(const StringRef name,
+                                       const GeometryComponent &component,
+                                       const AttributeDomain domain,
+                                       const CustomDataType type,
+                                       const void *default_value) const;
+
+  template<typename T>
+  bke::TypedReadAttribute<T> get_input_attribute(const StringRef name,
+                                                 const GeometryComponent &component,
+                                                 const AttributeDomain domain,
+                                                 const T &default_value) const
+  {
+    const CustomDataType type = bke::cpp_type_to_custom_data_type(CPPType::get<T>());
+    return this->get_input_attribute(name, component, domain, type, &default_value);
+  }
+
  private:
   /* Utilities for detecting common errors at when using this class. */
   void check_extract_input(StringRef identifier, const CPPType *requested_type = nullptr) const;
