@@ -255,6 +255,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_attribute);
   }
 
+  if (!USER_VERSION_ATLEAST(292, 6)) {
+    FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_shader);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
