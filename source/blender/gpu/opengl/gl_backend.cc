@@ -152,8 +152,10 @@ void GLBackend::platform_init()
       }
     }
     if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
+      /* Platform seems to work when SB backend is disabled. This can be done
+       * by adding the environment variable `R600_DEBUG=nosb`. */
       if (strstr(renderer, "AMD CEDAR")) {
-        GPG.support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+        GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
   }
