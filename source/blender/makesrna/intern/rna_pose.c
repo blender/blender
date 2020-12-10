@@ -132,7 +132,7 @@ static char *rna_PoseBone_path(PointerRNA *ptr)
   bPoseChannel *pchan = ptr->data;
   char name_esc[sizeof(pchan->name) * 2];
 
-  BLI_strescape(name_esc, pchan->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, pchan->name, sizeof(name_esc));
   return BLI_sprintfN("pose.bones[\"%s\"]", name_esc);
 }
 

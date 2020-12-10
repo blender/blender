@@ -1457,7 +1457,7 @@ static char *rna_Node_path(PointerRNA *ptr)
   bNode *node = (bNode *)ptr->data;
   char name_esc[sizeof(node->name) * 2];
 
-  BLI_strescape(name_esc, node->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, node->name, sizeof(name_esc));
   return BLI_sprintfN("nodes[\"%s\"]", name_esc);
 }
 
@@ -1484,7 +1484,7 @@ char *rna_Node_ImageUser_path(PointerRNA *ptr)
       continue;
     }
 
-    BLI_strescape(name_esc, node->name, sizeof(name_esc));
+    BLI_str_escape(name_esc, node->name, sizeof(name_esc));
     return BLI_sprintfN("nodes[\"%s\"].image_user", name_esc);
   }
 
@@ -2463,7 +2463,7 @@ static char *rna_NodeSocket_path(PointerRNA *ptr)
     return NULL;
   }
 
-  BLI_strescape(name_esc, node->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, node->name, sizeof(name_esc));
 
   if (sock->in_out == SOCK_IN) {
     return BLI_sprintfN("nodes[\"%s\"].inputs[%d]", name_esc, socketindex);

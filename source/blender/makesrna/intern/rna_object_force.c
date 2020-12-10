@@ -154,7 +154,7 @@ static char *rna_PointCache_path(PointerRNA *ptr)
     }
 
     char name_esc[sizeof(md->name) * 2];
-    BLI_strescape(name_esc, md->name, sizeof(name_esc));
+    BLI_str_escape(name_esc, md->name, sizeof(name_esc));
 
     switch (md->type) {
       case eModifierType_ParticleSystem: {
@@ -171,7 +171,7 @@ static char *rna_PointCache_path(PointerRNA *ptr)
           for (; surface; surface = surface->next) {
             if (surface->pointcache == cache) {
               char name_surface_esc[sizeof(surface->name) * 2];
-              BLI_strescape(name_surface_esc, surface->name, sizeof(name_surface_esc));
+              BLI_str_escape(name_surface_esc, surface->name, sizeof(name_surface_esc));
               return BLI_sprintfN(
                   "modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"].point_cache",
                   name_esc,
@@ -436,7 +436,7 @@ static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
   if (md) {
     char name_esc[sizeof(md->name) * 2];
 
-    BLI_strescape(name_esc, md->name, sizeof(name_esc));
+    BLI_str_escape(name_esc, md->name, sizeof(name_esc));
     return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
   }
   else {
@@ -608,7 +608,7 @@ static char *rna_SoftBodySettings_path(PointerRNA *ptr)
   ModifierData *md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Softbody);
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_strescape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
 }
 
@@ -797,7 +797,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
       /* no pointer from modifier data to actual softbody storage, would be good to add */
       if (ob->soft->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
-        BLI_strescape(name_esc, md->name, sizeof(name_esc));
+        BLI_str_escape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
       }
     }
@@ -808,7 +808,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
       ClothModifierData *cmd = (ClothModifierData *)md;
       if (cmd->sim_parms->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
-        BLI_strescape(name_esc, md->name, sizeof(name_esc));
+        BLI_str_escape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
       }
     }
@@ -820,7 +820,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
       if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain &&
           fmd->domain->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
-        BLI_strescape(name_esc, md->name, sizeof(name_esc));
+        BLI_str_escape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].domain_settings.effector_weights", name_esc);
       }
     }
@@ -838,8 +838,8 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
             char name_esc[sizeof(md->name) * 2];
             char name_esc_surface[sizeof(surface->name) * 2];
 
-            BLI_strescape(name_esc, md->name, sizeof(name_esc));
-            BLI_strescape(name_esc_surface, surface->name, sizeof(name_esc_surface));
+            BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+            BLI_str_escape(name_esc_surface, surface->name, sizeof(name_esc_surface));
             return BLI_sprintfN(
                 "modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]"
                 ".effector_weights",

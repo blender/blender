@@ -989,8 +989,8 @@ char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
     char *name_old_esc = BLI_array_alloca(name_old_esc, (name_old_len * 2) + 1);
     char *name_new_esc = BLI_array_alloca(name_new_esc, (name_new_len * 2) + 1);
 
-    BLI_strescape(name_old_esc, oldName, (name_old_len * 2) + 1);
-    BLI_strescape(name_new_esc, newName, (name_new_len * 2) + 1);
+    BLI_str_escape(name_old_esc, oldName, (name_old_len * 2) + 1);
+    BLI_str_escape(name_new_esc, newName, (name_new_len * 2) + 1);
     oldN = BLI_sprintfN("[\"%s\"]", name_old_esc);
     newN = BLI_sprintfN("[\"%s\"]", name_new_esc);
   }
@@ -1048,8 +1048,8 @@ void BKE_action_fix_paths_rename(ID *owner_id,
     char *name_old_esc = BLI_array_alloca(name_old_esc, (name_old_len * 2) + 1);
     char *name_new_esc = BLI_array_alloca(name_new_esc, (name_new_len * 2) + 1);
 
-    BLI_strescape(name_old_esc, oldName, (name_old_len * 2) + 1);
-    BLI_strescape(name_new_esc, newName, (name_new_len * 2) + 1);
+    BLI_str_escape(name_old_esc, oldName, (name_old_len * 2) + 1);
+    BLI_str_escape(name_new_esc, newName, (name_new_len * 2) + 1);
     oldN = BLI_sprintfN("[\"%s\"]", name_old_esc);
     newN = BLI_sprintfN("[\"%s\"]", name_new_esc);
   }
@@ -1096,8 +1096,8 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
     char *name_old_esc = BLI_array_alloca(name_old_esc, (name_old_len * 2) + 1);
     char *name_new_esc = BLI_array_alloca(name_new_esc, (name_new_len * 2) + 1);
 
-    BLI_strescape(name_old_esc, oldName, (name_old_len * 2) + 1);
-    BLI_strescape(name_new_esc, newName, (name_new_len * 2) + 1);
+    BLI_str_escape(name_old_esc, oldName, (name_old_len * 2) + 1);
+    BLI_str_escape(name_new_esc, newName, (name_new_len * 2) + 1);
     oldN = BLI_sprintfN("[\"%s\"]", name_old_esc);
     newN = BLI_sprintfN("[\"%s\"]", name_new_esc);
   }

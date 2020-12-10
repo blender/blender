@@ -1360,7 +1360,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
           BLI_assert(STREQ(rna_itemname_a, rna_itemname_b));
 
           char esc_item_name[RNA_PATH_BUFFSIZE];
-          const size_t esc_item_name_len = BLI_strescape(
+          const size_t esc_item_name_len = BLI_str_escape(
               esc_item_name, rna_itemname_a, RNA_PATH_BUFFSIZE);
           extended_rna_path_len = rna_path_len + 2 + esc_item_name_len + 2;
           if (extended_rna_path_len >= RNA_PATH_BUFFSIZE) {

@@ -181,7 +181,7 @@ static void seq_convert_transform_crop(const Scene *scene,
   /* Convert offset animation, but only if crop is not used. */
   if ((seq->flag & use_transform_flag) != 0 && (seq->flag & use_crop_flag) == 0) {
     char name_esc[(sizeof(seq->name) - 2) * 2], *path;
-    BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
 
     path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
     seq_convert_transform_animation(scene, path, image_size_x);
@@ -408,7 +408,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
             const size_t node_name_escaped_max_length = (node_name_length * 2);
             char *node_name_escaped = MEM_mallocN(node_name_escaped_max_length + 1,
                                                   "escaped name");
-            BLI_strescape(node_name_escaped, node->name, node_name_escaped_max_length);
+            BLI_str_escape(node_name_escaped, node->name, node_name_escaped_max_length);
             char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
 
             BKE_animdata_fix_paths_rename_all_ex(

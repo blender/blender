@@ -308,7 +308,7 @@ static char *rna_GPencilLayer_path(PointerRNA *ptr)
   bGPDlayer *gpl = (bGPDlayer *)ptr->data;
   char name_esc[sizeof(gpl->info) * 2];
 
-  BLI_strescape(name_esc, gpl->info, sizeof(name_esc));
+  BLI_str_escape(name_esc, gpl->info, sizeof(name_esc));
 
   return BLI_sprintfN("layers[\"%s\"]", name_esc);
 }
@@ -406,8 +406,8 @@ static char *rna_GPencilLayerMask_path(PointerRNA *ptr)
   char name_layer[sizeof(gpl->info) * 2];
   char name_mask[sizeof(mask->name) * 2];
 
-  BLI_strescape(name_layer, gpl->info, sizeof(name_layer));
-  BLI_strescape(name_mask, mask->name, sizeof(name_mask));
+  BLI_str_escape(name_layer, gpl->info, sizeof(name_layer));
+  BLI_str_escape(name_mask, mask->name, sizeof(name_mask));
 
   return BLI_sprintfN("layers[\"%s\"].mask_layers[\"%s\"]", name_layer, name_mask);
 }

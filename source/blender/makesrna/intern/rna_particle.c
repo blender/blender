@@ -1490,7 +1490,7 @@ static char *rna_ParticleSystem_path(PointerRNA *ptr)
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
   char name_esc[sizeof(psys->name) * 2];
 
-  BLI_strescape(name_esc, psys->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, psys->name, sizeof(name_esc));
   return BLI_sprintfN("particle_systems[\"%s\"]", name_esc);
 }
 

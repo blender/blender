@@ -57,7 +57,7 @@ static char *rna_DynamicPaintCanvasSettings_path(PointerRNA *ptr)
   ModifierData *md = (ModifierData *)settings->pmd;
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_strescape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].canvas_settings", name_esc);
 }
 
@@ -67,7 +67,7 @@ static char *rna_DynamicPaintBrushSettings_path(PointerRNA *ptr)
   ModifierData *md = (ModifierData *)settings->pmd;
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_strescape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].brush_settings", name_esc);
 }
 
@@ -78,8 +78,8 @@ static char *rna_DynamicPaintSurface_path(PointerRNA *ptr)
   char name_esc[sizeof(md->name) * 2];
   char name_esc_surface[sizeof(surface->name) * 2];
 
-  BLI_strescape(name_esc, md->name, sizeof(name_esc));
-  BLI_strescape(name_esc_surface, surface->name, sizeof(name_esc_surface));
+  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc_surface, surface->name, sizeof(name_esc_surface));
   return BLI_sprintfN(
       "modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]", name_esc, name_esc_surface);
 }

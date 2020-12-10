@@ -433,13 +433,13 @@ static char *rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
   if (pchan) {
     char name_esc_pchan[sizeof(pchan->name) * 2];
     char name_esc_const[sizeof(con->name) * 2];
-    BLI_strescape(name_esc_pchan, pchan->name, sizeof(name_esc_pchan));
-    BLI_strescape(name_esc_const, con->name, sizeof(name_esc_const));
+    BLI_str_escape(name_esc_pchan, pchan->name, sizeof(name_esc_pchan));
+    BLI_str_escape(name_esc_const, con->name, sizeof(name_esc_const));
     return BLI_sprintfN("pose.bones[\"%s\"].constraints[\"%s\"]", name_esc_pchan, name_esc_const);
   }
   else {
     char name_esc_const[sizeof(con->name) * 2];
-    BLI_strescape(name_esc_const, con->name, sizeof(name_esc_const));
+    BLI_str_escape(name_esc_const, con->name, sizeof(name_esc_const));
     return BLI_sprintfN("constraints[\"%s\"]", name_esc_const);
   }
 }

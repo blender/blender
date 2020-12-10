@@ -6016,7 +6016,7 @@ char *RNA_path_from_ID_to_property_index(PointerRNA *ptr,
     }
     else {
       char propname_esc[MAX_IDPROP_NAME * 2];
-      BLI_strescape(propname_esc, propname, sizeof(propname_esc));
+      BLI_str_escape(propname_esc, propname, sizeof(propname_esc));
       path = BLI_sprintfN("%s[\"%s\"]%s", ptrpath, propname_esc, index_str);
     }
     MEM_freeN(ptrpath);
@@ -6027,7 +6027,7 @@ char *RNA_path_from_ID_to_property_index(PointerRNA *ptr,
     }
     else {
       char propname_esc[MAX_IDPROP_NAME * 2];
-      BLI_strescape(propname_esc, propname, sizeof(propname_esc));
+      BLI_str_escape(propname_esc, propname, sizeof(propname_esc));
       path = BLI_sprintfN("[\"%s\"]%s", propname_esc, index_str);
     }
   }
@@ -6113,7 +6113,7 @@ char *RNA_path_full_ID_py(Main *bmain, ID *id)
 
   char id_esc[(sizeof(id->name) - 2) * 2];
 
-  BLI_strescape(id_esc, id->name + 2, sizeof(id_esc));
+  BLI_str_escape(id_esc, id->name + 2, sizeof(id_esc));
 
   return BLI_sprintfN("bpy.data.%s[\"%s\"]%s%s",
                       BKE_idtype_idcode_to_name_plural(GS(id->name)),
@@ -7067,7 +7067,7 @@ char *RNA_property_as_string(
       buf = MEM_mallocN(sizeof(char) * (length + 1), "RNA_property_as_string");
       buf_esc = MEM_mallocN(sizeof(char) * (length * 2 + 1), "RNA_property_as_string esc");
       RNA_property_string_get(ptr, prop, buf);
-      BLI_strescape(buf_esc, buf, length * 2 + 1);
+      BLI_str_escape(buf_esc, buf, length * 2 + 1);
       MEM_freeN(buf);
       BLI_dynstr_appendf(dynstr, "\"%s\"", buf_esc);
       MEM_freeN(buf_esc);

@@ -161,7 +161,7 @@ static char *rna_ShaderFx_path(PointerRNA *ptr)
   ShaderFxData *gmd = ptr->data;
   char name_esc[sizeof(gmd->name) * 2];
 
-  BLI_strescape(name_esc, gmd->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));
   return BLI_sprintfN("shader_effects[\"%s\"]", name_esc);
 }
 

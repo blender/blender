@@ -506,7 +506,7 @@ static char *rna_SequenceTransform_path(PointerRNA *ptr)
   if (seq && seq->name + 2) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
 
-    BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
     return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform", name_esc);
   }
   else {
@@ -558,7 +558,7 @@ static char *rna_SequenceCrop_path(PointerRNA *ptr)
   if (seq && seq->name + 2) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
 
-    BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
     return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop", name_esc);
   }
   else {
@@ -704,7 +704,7 @@ static char *rna_Sequence_path(PointerRNA *ptr)
   if (seq->name + 2) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
 
-    BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
     return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"]", name_esc);
   }
   else {
@@ -1023,7 +1023,7 @@ static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
   if (seq && seq->name + 2) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
 
-    BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
 
     if (!smd) {
       /* path to old filter color balance */
@@ -1033,7 +1033,7 @@ static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
       /* path to modifier */
       char name_esc_smd[sizeof(smd->name) * 2];
 
-      BLI_strescape(name_esc_smd, smd->name, sizeof(name_esc_smd));
+      BLI_str_escape(name_esc_smd, smd->name, sizeof(name_esc_smd));
       return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"].color_balance",
                           name_esc,
                           name_esc_smd);
@@ -1168,8 +1168,8 @@ static char *rna_SequenceModifier_path(PointerRNA *ptr)
     char name_esc[(sizeof(seq->name) - 2) * 2];
     char name_esc_smd[sizeof(smd->name) * 2];
 
-    BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
-    BLI_strescape(name_esc_smd, smd->name, sizeof(name_esc_smd));
+    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc_smd, smd->name, sizeof(name_esc_smd));
     return BLI_sprintfN(
         "sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"]", name_esc, name_esc_smd);
   }

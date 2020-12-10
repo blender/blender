@@ -2708,7 +2708,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
   char propname_esc[MAX_IDPROP_NAME * 2];
   char prefix[MAX_IDPROP_NAME * 2];
 
-  BLI_strescape(propname_esc, node->name, sizeof(propname_esc));
+  BLI_str_escape(propname_esc, node->name, sizeof(propname_esc));
   BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
 
   if (BKE_animdata_fix_paths_remove((ID *)ntree, prefix)) {

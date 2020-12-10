@@ -660,7 +660,7 @@ static char *rna_Modifier_path(PointerRNA *ptr)
   ModifierData *md = ptr->data;
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_strescape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"]", name_esc);
 }
 

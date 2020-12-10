@@ -277,7 +277,7 @@ static PyObject *bpy_escape_identifier(PyObject *UNUSED(self), PyObject *value)
 
   size = (value_str_len * 2) + 1;
   value_escape_str = PyMem_MALLOC(size);
-  value_escape_str_len = BLI_strescape(value_escape_str, value_str, size);
+  value_escape_str_len = BLI_str_escape(value_escape_str, value_str, size);
 
   if (value_escape_str_len == value_str_len) {
     Py_INCREF(value);

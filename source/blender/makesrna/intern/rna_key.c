@@ -676,7 +676,7 @@ static char *rna_ShapeKey_path(PointerRNA *ptr)
   ID *id = ptr->owner_id;
   char name_esc[sizeof(kb->name) * 2];
 
-  BLI_strescape(name_esc, kb->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, kb->name, sizeof(name_esc));
 
   if ((id) && (GS(id->name) != ID_KE)) {
     return BLI_sprintfN("shape_keys.key_blocks[\"%s\"]", name_esc);
@@ -774,7 +774,7 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
       index = rna_ShapeKey_curve_find_index(key, index);
     }
 
-    BLI_strescape(name_esc_kb, kb->name, sizeof(name_esc_kb));
+    BLI_str_escape(name_esc_kb, kb->name, sizeof(name_esc_kb));
 
     if (GS(id->name) == ID_KE) {
       return BLI_sprintfN("key_blocks[\"%s\"].data[%d]", name_esc_kb, index);

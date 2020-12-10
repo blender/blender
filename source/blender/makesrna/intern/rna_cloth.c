@@ -439,7 +439,7 @@ static char *rna_ClothSettings_path(PointerRNA *ptr)
 
   if (md) {
     char name_esc[sizeof(md->name) * 2];
-    BLI_strescape(name_esc, md->name, sizeof(name_esc));
+    BLI_str_escape(name_esc, md->name, sizeof(name_esc));
     return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
   }
   else {
@@ -454,7 +454,7 @@ static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
 
   if (md) {
     char name_esc[sizeof(md->name) * 2];
-    BLI_strescape(name_esc, md->name, sizeof(name_esc));
+    BLI_str_escape(name_esc, md->name, sizeof(name_esc));
     return BLI_sprintfN("modifiers[\"%s\"].collision_settings", name_esc);
   }
   else {

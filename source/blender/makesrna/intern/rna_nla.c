@@ -88,8 +88,8 @@ static char *rna_NlaStrip_path(PointerRNA *ptr)
           char name_esc_nlt[sizeof(nlt->name) * 2];
           char name_esc_strip[sizeof(strip->name) * 2];
 
-          BLI_strescape(name_esc_nlt, nlt->name, sizeof(name_esc_nlt));
-          BLI_strescape(name_esc_strip, strip->name, sizeof(name_esc_strip));
+          BLI_str_escape(name_esc_nlt, nlt->name, sizeof(name_esc_nlt));
+          BLI_str_escape(name_esc_strip, strip->name, sizeof(name_esc_strip));
           return BLI_sprintfN(
               "animation_data.nla_tracks[\"%s\"].strips[\"%s\"]", name_esc_nlt, name_esc_strip);
         }

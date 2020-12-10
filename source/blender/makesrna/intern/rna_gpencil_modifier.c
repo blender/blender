@@ -276,7 +276,7 @@ static char *rna_GpencilModifier_path(PointerRNA *ptr)
   GpencilModifierData *gmd = ptr->data;
   char name_esc[sizeof(gmd->name) * 2];
 
-  BLI_strescape(name_esc, gmd->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));
   return BLI_sprintfN("grease_pencil_modifiers[\"%s\"]", name_esc);
 }
 

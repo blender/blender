@@ -322,7 +322,7 @@ char *BLI_sprintfN(const char *__restrict format, ...)
  * TODO: support more fancy string escaping. current code is primitive
  *    this basically is an ascii version of PyUnicode_EncodeUnicodeEscape()
  *    which is a useful reference. */
-size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
+size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
   size_t len = 0;
 

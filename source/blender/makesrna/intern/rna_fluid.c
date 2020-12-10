@@ -872,7 +872,7 @@ static char *rna_FluidDomainSettings_path(PointerRNA *ptr)
   ModifierData *md = (ModifierData *)settings->fmd;
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_strescape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].domain_settings", name_esc);
 }
 
@@ -882,7 +882,7 @@ static char *rna_FluidFlowSettings_path(PointerRNA *ptr)
   ModifierData *md = (ModifierData *)settings->fmd;
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_strescape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].flow_settings", name_esc);
 }
 
@@ -892,7 +892,7 @@ static char *rna_FluidEffectorSettings_path(PointerRNA *ptr)
   ModifierData *md = (ModifierData *)settings->fmd;
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_strescape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].effector_settings", name_esc);
 }
 

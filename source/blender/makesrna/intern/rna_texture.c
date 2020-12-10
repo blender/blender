@@ -324,7 +324,7 @@ char *rna_TextureSlot_path(PointerRNA *ptr)
   if (mtex->tex) {
     char name_esc[(sizeof(mtex->tex->id.name) - 2) * 2];
 
-    BLI_strescape(name_esc, mtex->tex->id.name + 2, sizeof(name_esc));
+    BLI_str_escape(name_esc, mtex->tex->id.name + 2, sizeof(name_esc));
     return BLI_sprintfN("texture_slots[\"%s\"]", name_esc);
   }
   else {
