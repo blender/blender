@@ -802,3 +802,69 @@ TEST_F(StringCasecmpNatural, TextAndNumbers)
   testReturnsLessThanZeroForAll(negative);
   testReturnsMoreThanZeroForAll(positive);
 }
+
+/* BLI_str_escape */
+
+class StringEscape : public testing::Test {
+ protected:
+  StringEscape()
+  {
+  }
+
+  using CompareWordsArray = vector<std::array<const char *, 2>>;
+
+  void testEscapeWords(const CompareWordsArray &items)
+  {
+    size_t dst_test_len;
+    char dst_test[64];
+    for (const auto &item : items) {
+      /* Escape the string. */
+      dst_test_len = BLI_str_escape(dst_test, item[0], SIZE_MAX);
+      EXPECT_STREQ(dst_test, item[1]);
+      EXPECT_EQ(dst_test_len, strlen(dst_test));
+    }
+  }
+};
+
+TEST_F(StringEscape, Simple)
+{
+  const CompareWordsArray equal{
+      {"", ""},
+      {"/", "/"},
+      {"'", "'"},
+      {"?", "?"},
+  };
+
+  const CompareWordsArray escaped{
+      {"\\", "\\\\"},
+      {"A\\", "A\\\\"},
+      {"\\A", "\\\\A"},
+      {"A\\B", "A\\\\B"},
+      {"?", "?"},
+      {"\"\\", "\\\"\\\\"},
+      {"\\\"", "\\\\\\\""},
+      {"\"\\\"", "\\\"\\\\\\\""},
+
+      {"\"\"\"", "\\\"\\\"\\\""},
+      {"\\\\\\", "\\\\\\\\\\\\"},
+  };
+
+  testEscapeWords(equal);
+  testEscapeWords(escaped);
+}
+
+TEST_F(StringEscape, Control)
+{
+  const CompareWordsArray escaped{
+      {"\n", "\\n"},
+      {"\r", "\\r"},
+      {"\t", "\\t"},
+      {"A\n", "A\\n"},
+      {"\nA", "\\nA"},
+      {"\n\r\t", "\\n\\r\\t"},
+      {"\n_\r_\t", "\\n_\\r_\\t"},
+      {"\n\\\r\\\t", "\\n\\\\\\r\\\\\\t"},
+  };
+
+  testEscapeWords(escaped);
+}

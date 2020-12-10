@@ -317,49 +317,40 @@ char *BLI_sprintfN(const char *__restrict format, ...)
   return n;
 }
 
-/* match pythons string escaping, assume double quotes - (")
- * TODO: should be used to create RNA animation paths.
- * TODO: support more fancy string escaping. current code is primitive
- *    this basically is an ascii version of PyUnicode_EncodeUnicodeEscape()
- *    which is a useful reference. */
-size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
+/**
+ * This roughly matches C and Python's string escaping with double quotes - `"`.
+ *
+ * Since every character may need escaping,
+ * it's common to create a buffer twice as large as the input.
+ *
+ * \param dst: The destination string, at least \a dst_maxncpy, typically `(strlen(src) * 2) + 1`.
+ * \param src: The un-escaped source string.
+ * \param dst_maxncpy: The maximum number of bytes allowable to copy.
+ *
+ * \note This is used for creating animation paths in blend files.
+ */
+size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
 {
+
+  BLI_assert(dst_maxncpy != 0);
+
   size_t len = 0;
-
-  BLI_assert(maxncpy != 0);
-
-  while (len < maxncpy) {
-    switch (*src) {
-      case '\0':
-        goto escape_finish;
-      case '\\':
-      case '"':
-        ATTR_FALLTHROUGH;
-
-      /* less common but should also be support */
-      case '\t':
-      case '\n':
-      case '\r':
-        if (len + 1 < maxncpy) {
-          *dst++ = '\\';
-          len++;
-        }
-        else {
-          /* not enough space to escape */
-          break;
-        }
-        ATTR_FALLTHROUGH;
-      default:
-        *dst = *src;
+  for (; (len < dst_maxncpy) && (*src != '\0'); dst++, src++, len++) {
+    char c = *src;
+    if (ELEM(c, '\\', '"') ||                       /* Use as-is. */
+        ((c == '\t') && ((void)(c = 't'), true)) || /* Tab. */
+        ((c == '\n') && ((void)(c = 'n'), true)) || /* Newline. */
+        ((c == '\r') && ((void)(c = 'r'), true)))   /* Carriage return. */
+    {
+      if (UNLIKELY(len + 1 >= dst_maxncpy)) {
+        /* Not enough space to escape. */
         break;
+      }
+      *dst++ = '\\';
+      len++;
     }
-    dst++;
-    src++;
-    len++;
+    *dst = c;
   }
-
-escape_finish:
-
   *dst = '\0';
 
   return len;
