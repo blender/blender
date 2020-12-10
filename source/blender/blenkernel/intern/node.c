@@ -3960,9 +3960,9 @@ void ntreeUpdateAllNew(Main *main)
   FOREACH_NODETREE_END;
 }
 
-void ntreeUpdateAllUsers(Main *main, bNodeTree *ngroup)
+void ntreeUpdateAllUsers(Main *main, ID *id)
 {
-  if (ngroup == NULL) {
+  if (id == NULL) {
     return;
   }
 
@@ -3971,7 +3971,7 @@ void ntreeUpdateAllUsers(Main *main, bNodeTree *ngroup)
     bool need_update = false;
 
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->id == &ngroup->id) {
+      if (node->id == id) {
         if (node->typeinfo->group_update_func) {
           node->typeinfo->group_update_func(ntree, node);
         }
@@ -3986,13 +3986,16 @@ void ntreeUpdateAllUsers(Main *main, bNodeTree *ngroup)
   }
   FOREACH_NODETREE_END;
 
-  if (ngroup->type == NTREE_GEOMETRY) {
-    LISTBASE_FOREACH (Object *, object, &main->objects) {
-      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-        if (md->type == eModifierType_Nodes) {
-          NodesModifierData *nmd = (NodesModifierData *)md;
-          if (nmd->node_group == ngroup) {
-            MOD_nodes_update_interface(object, nmd);
+  if (GS(id->name) == ID_NT) {
+    bNodeTree *ngroup = (bNodeTree *)id;
+    if (ngroup->type == NTREE_GEOMETRY) {
+      LISTBASE_FOREACH (Object *, object, &main->objects) {
+        LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+          if (md->type == eModifierType_Nodes) {
+            NodesModifierData *nmd = (NodesModifierData *)md;
+            if (nmd->node_group == ngroup) {
+              MOD_nodes_update_interface(object, nmd);
+            }
           }
         }
       }
@@ -4041,7 +4044,7 @@ void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
   }
 
   if (bmain) {
-    ntreeUpdateAllUsers(bmain, ntree);
+    ntreeUpdateAllUsers(bmain, &ntree->id);
   }
 
   if (ntree->update & (NTREE_UPDATE_LINKS | NTREE_UPDATE_NODES)) {

@@ -451,7 +451,7 @@ bool ntreeHasType(const struct bNodeTree *ntree, int type);
 bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
 void ntreeUpdateAllNew(struct Main *main);
-void ntreeUpdateAllUsers(struct Main *main, struct bNodeTree *ngroup);
+void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
 void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes);
 
