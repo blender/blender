@@ -414,16 +414,14 @@ const char *BLI_str_escape_find_quote(const char *str)
 }
 
 /**
- * Makes a copy of the text within the "" that appear after some text 'blahblah'
- * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
+ * Makes a copy of the text within the "" that appear after some text `blahblah`.
+ * i.e. for string `pose["apples"]` with prefix `pose[`, it will return `apples`.
  *
- * - str: is the entire string to chop
- * - prefix: is the part of the string to leave out
+ * \param str: is the entire string to chop.
+ * \param prefix: is the part of the string to step over.
  *
- * Assume that the strings returned must be freed afterwards, and that the inputs will contain
- * data we want...
- *
- * \return the offset and a length so as to avoid doing an allocation.
+ * Assume that the strings returned must be freed afterwards,
+ * and that the inputs will contain data we want.
  */
 char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 {
@@ -436,18 +434,15 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
     const size_t prefix_len = strlen(prefix);
     start_match += prefix_len + 1;
     /* get the end point (i.e. where the next occurrence of " is after the starting point) */
-
-    end_match = start_match;
-    while ((end_match = strchr(end_match, '"'))) {
-      if (LIKELY(*(end_match - 1) != '\\')) {
-        break;
-      }
-      end_match++;
-    }
-
+    end_match = BLI_str_escape_find_quote(start_match);
     if (end_match) {
-      /* return the slice indicated */
-      return BLI_strdupn(start_match, (size_t)(end_match - start_match));
+      const size_t unescaped_len = (size_t)(end_match - start_match);
+      char *result = MEM_mallocN(sizeof(char) * (unescaped_len + 1), __func__);
+      const size_t escaped_len = BLI_str_unescape(result, start_match, unescaped_len);
+      if (escaped_len != unescaped_len) {
+        result = MEM_reallocN(result, sizeof(char) * (escaped_len + 1));
+      }
+      return result;
     }
   }
   return BLI_strdupn("", 0);
