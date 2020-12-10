@@ -590,6 +590,15 @@ Set<std::string> GeometryComponent::attribute_names() const
   return {};
 }
 
+bool GeometryComponent::attribute_exists(const blender::StringRef attribute_name) const
+{
+  ReadAttributePtr attribute = this->attribute_try_get_for_read(attribute_name);
+  if (attribute) {
+    return true;
+  }
+  return false;
+}
+
 static ReadAttributePtr try_adapt_data_type(ReadAttributePtr attribute,
                                             const blender::fn::CPPType &to_type)
 {

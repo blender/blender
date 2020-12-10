@@ -88,6 +88,9 @@ class GeometryComponent {
 
   GeometryComponentType type() const;
 
+  /* Return true when any attribute with this name exists, including built in attributes. */
+  bool attribute_exists(const blender::StringRef attribute_name) const;
+
   /* Returns true when the geometry component supports this attribute domain. */
   virtual bool attribute_domain_supported(const AttributeDomain domain) const;
   /* Returns true when the given data type is supported in the given domain. */
