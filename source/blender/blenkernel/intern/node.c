@@ -4682,6 +4682,7 @@ static void registerGeometryNodes(void)
 {
   register_node_type_geo_group();
 
+  register_node_type_geo_attribute_fill();
   register_node_type_geo_triangulate();
   register_node_type_geo_edge_split();
   register_node_type_geo_transform();

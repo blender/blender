@@ -1879,6 +1879,30 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeRandom_domain_itemf(
   return itemf_function_check(rna_enum_attribute_domain_items, attribute_random_domain_supported);
 }
 
+static bool attribute_fill_type_supported(const EnumPropertyItem *item)
+{
+  return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_COLOR);
+}
+static const EnumPropertyItem *rna_GeometryNodeAttributeFill_type_itemf(bContext *UNUSED(C),
+                                                                        PointerRNA *UNUSED(ptr),
+                                                                        PropertyRNA *UNUSED(prop),
+                                                                        bool *r_free)
+{
+  *r_free = true;
+  return itemf_function_check(rna_enum_attribute_type_items, attribute_fill_type_supported);
+}
+
+static bool attribute_fill_domain_supported(const EnumPropertyItem *item)
+{
+  return item->value == ATTR_DOMAIN_POINT;
+}
+static const EnumPropertyItem *rna_GeometryNodeAttributeFill_domain_itemf(
+    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+  *r_free = true;
+  return itemf_function_check(rna_enum_attribute_domain_items, attribute_fill_domain_supported);
+}
+
 static bool attribute_math_operation_supported(const EnumPropertyItem *item)
 {
   return ELEM(item->value,
@@ -8341,6 +8365,13 @@ static void def_geo_random_attribute(StructRNA *srna)
   def_geo_attribute_create_common(srna,
                                   "rna_GeometryNodeAttributeRandom_type_itemf",
                                   "rna_GeometryNodeAttributeRandom_domain_itemf");
+}
+
+static void def_geo_attribute_fill(StructRNA *srna)
+{
+  def_geo_attribute_create_common(srna,
+                                  "rna_GeometryNodeAttributeFill_type_itemf",
+                                  "rna_GeometryNodeAttributeFill_domain_itemf");
 }
 
 static void def_geo_attribute_math(StructRNA *srna)

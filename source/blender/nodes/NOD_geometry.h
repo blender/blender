@@ -26,6 +26,7 @@ void register_node_tree_type_geo(void);
 
 void register_node_type_geo_group(void);
 
+void register_node_type_geo_attribute_fill(void);
 void register_node_type_geo_boolean(void);
 void register_node_type_geo_edge_split(void);
 void register_node_type_geo_transform(void);
