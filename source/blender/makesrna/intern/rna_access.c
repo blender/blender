@@ -31,6 +31,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
@@ -4960,7 +4961,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
   int len = 0;
 
   if (bracket) {
-    /* get data between [], check escaping ] with \] */
+    /* get data between [], check escaping quotes and back-slashes with #BLI_str_unescape. */
     if (**path == '[') {
       (*path)++;
     }
@@ -5527,8 +5528,7 @@ char *RNA_path_append(
     const char *path, PointerRNA *UNUSED(ptr), PropertyRNA *prop, int intkey, const char *strkey)
 {
   DynStr *dynstr;
-  const char *s;
-  char appendstr[128], *result;
+  char *result;
 
   dynstr = BLI_dynstr_new();
 
@@ -5547,22 +5547,15 @@ char *RNA_path_append(
     BLI_dynstr_append(dynstr, "[");
 
     if (strkey) {
+      const int strkey_esc_max_size = (strlen(strkey) * 2) + 1;
+      char *strkey_esc = BLI_array_alloca(strkey_esc, strkey_esc_max_size);
+      BLI_str_escape(strkey_esc, strkey, strkey_esc_max_size);
       BLI_dynstr_append(dynstr, "\"");
-      for (s = strkey; *s; s++) {
-        if (*s == '[') {
-          appendstr[0] = '\\';
-          appendstr[1] = *s;
-          appendstr[2] = 0;
-        }
-        else {
-          appendstr[0] = *s;
-          appendstr[1] = 0;
-        }
-        BLI_dynstr_append(dynstr, appendstr);
-      }
+      BLI_dynstr_append(dynstr, strkey_esc);
       BLI_dynstr_append(dynstr, "\"");
     }
     else {
+      char appendstr[128];
       BLI_snprintf(appendstr, sizeof(appendstr), "%d", intkey);
       BLI_dynstr_append(dynstr, appendstr);
     }
