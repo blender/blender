@@ -1554,6 +1554,7 @@ enum {
   MAKE_LINKS_DUPLICOLLECTION = 5,
   MAKE_LINKS_MODIFIERS = 6,
   MAKE_LINKS_FONTS = 7,
+  MAKE_LINKS_SHADERFX = 8,
 };
 
 /* Return true if make link data is allowed, false otherwise */
@@ -1586,6 +1587,11 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
     case MAKE_LINKS_FONTS:
       if ((ob_src->data != ob_dst->data) && (ob_src->type == OB_FONT) &&
           (ob_dst->type == OB_FONT)) {
+        return true;
+      }
+      break;
+    case MAKE_LINKS_SHADERFX:
+      if ((ob_src->type == OB_GPENCIL) && (ob_dst->type == OB_GPENCIL)) {
         return true;
       }
       break;
@@ -1720,6 +1726,11 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
                               ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
             break;
           }
+          case MAKE_LINKS_SHADERFX:
+            ED_object_shaderfx_link(ob_dst, ob_src);
+            DEG_id_tag_update(&ob_dst->id,
+                              ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+            break;
         }
       }
     }
@@ -1782,6 +1793,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
       {MAKE_LINKS_DUPLICOLLECTION, "DUPLICOLLECTION", 0, "Instance Collection", ""},
       {MAKE_LINKS_MODIFIERS, "MODIFIERS", 0, "Modifiers", ""},
       {MAKE_LINKS_FONTS, "FONTS", 0, "Fonts", ""},
+      {MAKE_LINKS_SHADERFX, "EFFECTS", 0, "Effects", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
