@@ -357,6 +357,41 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
 }
 
 /**
+ * This roughly matches C and Python's string escaping with double quotes - `"`.
+ *
+ * The destination will never be larger than the source, it will either be the same
+ * or up to half when all characters are escaped.
+ *
+ * \param dst: The destination string, at least the size of `strlen(src) + 1`.
+ * \param src: The escaped source string.
+ * \param dst_maxncpy: The maximum number of bytes allowable to copy.
+ *
+ * \note This is used for for parsing animation paths in blend files.
+ */
+size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
+{
+  size_t len = 0;
+  for (size_t i = 0; i < src_maxncpy && (*src != '\0'); i++, src++) {
+    char c = *src;
+    if (c == '\\') {
+      char c_next = *(src + 1);
+      if (((c_next == '"') && ((void)(c = '"'), true)) ||   /* Quote. */
+          ((c_next == '\\') && ((void)(c = '\\'), true)) || /* Backslash. */
+          ((c_next == 't') && ((void)(c = '\t'), true)) ||  /* Tab. */
+          ((c_next == 'n') && ((void)(c = '\n'), true)))    /* Newline. */
+      {
+        i++;
+        src++;
+      }
+    }
+
+    dst[len++] = c;
+  }
+  dst[len] = 0;
+  return len;
+}
+
+/**
  * Makes a copy of the text within the "" that appear after some text 'blahblah'
  * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
  *

@@ -803,7 +803,7 @@ TEST_F(StringCasecmpNatural, TextAndNumbers)
   testReturnsMoreThanZeroForAll(positive);
 }
 
-/* BLI_str_escape */
+/* BLI_str_escape, BLI_str_unescape */
 
 class StringEscape : public testing::Test {
  protected:
@@ -821,6 +821,10 @@ class StringEscape : public testing::Test {
       /* Escape the string. */
       dst_test_len = BLI_str_escape(dst_test, item[0], SIZE_MAX);
       EXPECT_STREQ(dst_test, item[1]);
+      EXPECT_EQ(dst_test_len, strlen(dst_test));
+      /* Escape back. */
+      dst_test_len = BLI_str_unescape(dst_test, item[1], strlen(item[1]));
+      EXPECT_STREQ(dst_test, item[0]);
       EXPECT_EQ(dst_test_len, strlen(dst_test));
     }
   }
