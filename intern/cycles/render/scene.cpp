@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 
+#include "bvh/bvh.h"
 #include "device/device.h"
 #include "render/background.h"
 #include "render/bake.h"
@@ -100,6 +101,7 @@ Scene::Scene(const SceneParams &params_, Device *device)
 {
   memset((void *)&dscene.data, 0, sizeof(dscene.data));
 
+  bvh = NULL;
   camera = create_node<Camera>();
   dicing_camera = create_node<Camera>();
   lookup_tables = new LookupTables();
@@ -135,6 +137,9 @@ Scene::~Scene()
 
 void Scene::free_memory(bool final)
 {
+  delete bvh;
+  bvh = NULL;
+
   foreach (Shader *s, shaders)
     delete s;
   foreach (Geometry *g, geometry)

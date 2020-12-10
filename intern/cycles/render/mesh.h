@@ -184,9 +184,8 @@ class Mesh : public Geometry {
   unordered_multimap<int, int>
       vert_stitching_map; /* stitching index -> multiple real vert indices */
 
-  friend class BVH;
+  friend class BVH2;
   friend class BVHBuild;
-  friend class BVHEmbree;
   friend class BVHSpatialSplit;
   friend class DiagSplit;
   friend class EdgeDice;
@@ -232,6 +231,8 @@ class Mesh : public Geometry {
                   size_t vert_offset,
                   size_t tri_offset);
   void pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset);
+
+  void pack_primitives(PackedBVH &pack, int object, uint visibility) override;
 
   void tessellate(DiagSplit *split);
 

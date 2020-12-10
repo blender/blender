@@ -17,11 +17,14 @@
 #include <sstream>
 #include <stdlib.h>
 
+#include "bvh/bvh_multi.h"
+
 #include "device/device.h"
 #include "device/device_intern.h"
 #include "device/device_network.h"
 
 #include "render/buffers.h"
+#include "render/geometry.h"
 
 #include "util/util_foreach.h"
 #include "util/util_list.h"
@@ -164,9 +167,24 @@ class MultiDevice : public Device {
   virtual BVHLayoutMask get_bvh_layout_mask() const
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;
+    BVHLayoutMask bvh_layout_mask_all = BVH_LAYOUT_NONE;
     foreach (const SubDevice &sub_device, devices) {
-      bvh_layout_mask &= sub_device.device->get_bvh_layout_mask();
+      BVHLayoutMask device_bvh_layout_mask = sub_device.device->get_bvh_layout_mask();
+      bvh_layout_mask &= device_bvh_layout_mask;
+      bvh_layout_mask_all |= device_bvh_layout_mask;
     }
+
+    /* With multiple OptiX devices, every device needs its own acceleration structure */
+    if (bvh_layout_mask == BVH_LAYOUT_OPTIX) {
+      return BVH_LAYOUT_MULTI_OPTIX;
+    }
+
+    /* When devices do not share a common BVH layout, fall back to creating one for each */
+    const BVHLayoutMask BVH_LAYOUT_OPTIX_EMBREE = (BVH_LAYOUT_OPTIX | BVH_LAYOUT_EMBREE);
+    if ((bvh_layout_mask_all & BVH_LAYOUT_OPTIX_EMBREE) == BVH_LAYOUT_OPTIX_EMBREE) {
+      return BVH_LAYOUT_MULTI_OPTIX_EMBREE;
+    }
+
     return bvh_layout_mask;
   }
 
@@ -227,21 +245,58 @@ class MultiDevice : public Device {
     return result;
   }
 
-  bool build_optix_bvh(BVH *bvh)
+  void build_bvh(BVH *bvh, Progress &progress, bool refit) override
   {
-    /* Broadcast acceleration structure build to all render devices */
-    foreach (SubDevice &sub, devices) {
-      if (!sub.device->build_optix_bvh(bvh))
-        return false;
+    /* Try to build and share a single acceleration structure, if possible */
+    if (bvh->params.bvh_layout == BVH_LAYOUT_BVH2) {
+      devices.back().device->build_bvh(bvh, progress, refit);
+      return;
     }
-    return true;
-  }
 
-  virtual void *bvh_device() const
-  {
-    /* CPU devices will always be at the back, so simply choose the last one.
-       There should only ever be one CPU device anyway and we need the Embree device for it. */
-    return devices.back().device->bvh_device();
+    BVHMulti *const bvh_multi = static_cast<BVHMulti *>(bvh);
+    bvh_multi->sub_bvhs.resize(devices.size());
+
+    vector<BVHMulti *> geom_bvhs;
+    geom_bvhs.reserve(bvh->geometry.size());
+    foreach (Geometry *geom, bvh->geometry) {
+      geom_bvhs.push_back(static_cast<BVHMulti *>(geom->bvh));
+    }
+
+    /* Broadcast acceleration structure build to all render devices */
+    size_t i = 0;
+    foreach (SubDevice &sub, devices) {
+      /* Change geometry BVH pointers to the sub BVH */
+      for (size_t k = 0; k < bvh->geometry.size(); ++k) {
+        bvh->geometry[k]->bvh = geom_bvhs[k]->sub_bvhs[i];
+      }
+
+      if (!bvh_multi->sub_bvhs[i]) {
+        BVHParams params = bvh->params;
+        if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX)
+          params.bvh_layout = BVH_LAYOUT_OPTIX;
+        else if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE)
+          params.bvh_layout = sub.device->info.type == DEVICE_OPTIX ? BVH_LAYOUT_OPTIX :
+                                                                      BVH_LAYOUT_EMBREE;
+
+        /* Skip building a bottom level acceleration structure for non-instanced geometry on Embree
+         * (since they are put into the top level directly, see bvh_embree.cpp) */
+        if (!params.top_level && params.bvh_layout == BVH_LAYOUT_EMBREE &&
+            !bvh->geometry[0]->is_instanced()) {
+          i++;
+          continue;
+        }
+
+        bvh_multi->sub_bvhs[i] = BVH::create(params, bvh->geometry, bvh->objects, sub.device);
+      }
+
+      sub.device->build_bvh(bvh_multi->sub_bvhs[i], progress, refit);
+      i++;
+    }
+
+    /* Change geomtry BVH pointers back to the multi BVH */
+    for (size_t k = 0; k < bvh->geometry.size(); ++k) {
+      bvh->geometry[k]->bvh = geom_bvhs[k];
+    }
   }
 
   virtual void *osl_memory()

@@ -1570,7 +1570,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif entry.type == 'CPU':
                 cpu_devices.append(entry)
         # Extend all GPU devices with CPU.
-        if compute_device_type in {'CUDA', 'OPENCL'}:
+        if compute_device_type in {'CUDA', 'OPTIX', 'OPENCL'}:
             devices.extend(cpu_devices)
         return devices
 

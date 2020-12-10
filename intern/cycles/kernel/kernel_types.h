@@ -1397,10 +1397,12 @@ typedef enum KernelBVHLayout {
   BVH_LAYOUT_BVH2 = (1 << 0),
   BVH_LAYOUT_EMBREE = (1 << 1),
   BVH_LAYOUT_OPTIX = (1 << 2),
+  BVH_LAYOUT_MULTI_OPTIX = (1 << 3),
+  BVH_LAYOUT_MULTI_OPTIX_EMBREE = (1 << 4),
 
   /* Default BVH layout to use for CPU. */
   BVH_LAYOUT_AUTO = BVH_LAYOUT_EMBREE,
-  BVH_LAYOUT_ALL = (unsigned int)(~0u),
+  BVH_LAYOUT_ALL = BVH_LAYOUT_BVH2 | BVH_LAYOUT_EMBREE | BVH_LAYOUT_OPTIX,
 } KernelBVHLayout;
 
 typedef struct KernelBVH {

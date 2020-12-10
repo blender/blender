@@ -90,8 +90,7 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
         mask |= DEVICE_MASK_CUDA;
       }
       else if (compute_device == COMPUTE_DEVICE_OPTIX) {
-        /* Cannot use CPU and OptiX device at the same time right now, so replace mask. */
-        mask = DEVICE_MASK_OPTIX;
+        mask |= DEVICE_MASK_OPTIX;
       }
       else if (compute_device == COMPUTE_DEVICE_OPENCL) {
         mask |= DEVICE_MASK_OPENCL;

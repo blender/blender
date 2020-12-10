@@ -1,6 +1,5 @@
 /*
- * Copyright 2019, NVIDIA Corporation.
- * Copyright 2019, Blender Foundation.
+ * Copyright 2020, Blender Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +14,26 @@
  * limitations under the License.
  */
 
-#ifndef __BVH_OPTIX_H__
-#define __BVH_OPTIX_H__
+#ifndef __BVH_MULTI_H__
+#define __BVH_MULTI_H__
 
-#ifdef WITH_OPTIX
-
-#  include "bvh/bvh.h"
-#  include "bvh/bvh_params.h"
-#  include "device/device_memory.h"
+#include "bvh/bvh.h"
+#include "bvh/bvh_params.h"
 
 CCL_NAMESPACE_BEGIN
 
-class BVHOptiX : public BVH {
+class BVHMulti : public BVH {
  public:
-  uint64_t traversable_handle;
-  device_only_memory<char> as_data;
-  device_only_memory<char> motion_transform_data;
+  vector<BVH *> sub_bvhs;
 
  protected:
   friend class BVH;
-  BVHOptiX(const BVHParams &params,
+  BVHMulti(const BVHParams &params,
            const vector<Geometry *> &geometry,
-           const vector<Object *> &objects,
-           Device *device);
-  virtual ~BVHOptiX();
+           const vector<Object *> &objects);
+  virtual ~BVHMulti();
 };
 
 CCL_NAMESPACE_END
 
-#endif /* WITH_OPTIX */
-
-#endif /* __BVH_OPTIX_H__ */
+#endif /* __BVH_MULTI_H__ */

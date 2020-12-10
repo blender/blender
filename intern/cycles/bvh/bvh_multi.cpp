@@ -1,6 +1,5 @@
 /*
- * Copyright 2019, NVIDIA Corporation.
- * Copyright 2019, Blender Foundation.
+ * Copyright 2020, Blender Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +14,24 @@
  * limitations under the License.
  */
 
-#ifdef WITH_OPTIX
+#include "bvh/bvh_multi.h"
 
-#  include "bvh/bvh_optix.h"
+#include "util/util_foreach.h"
 
 CCL_NAMESPACE_BEGIN
 
-BVHOptiX::BVHOptiX(const BVHParams &params_,
+BVHMulti::BVHMulti(const BVHParams &params_,
                    const vector<Geometry *> &geometry_,
-                   const vector<Object *> &objects_,
-                   Device *device)
-    : BVH(params_, geometry_, objects_),
-      traversable_handle(0),
-      as_data(device, params_.top_level ? "optix tlas" : "optix blas"),
-      motion_transform_data(device, "optix motion transform")
+                   const vector<Object *> &objects_)
+    : BVH(params_, geometry_, objects_)
 {
 }
 
-BVHOptiX::~BVHOptiX()
+BVHMulti::~BVHMulti()
 {
-  // Acceleration structure memory is freed via the 'as_data' destructor
+  foreach (BVH *bvh, sub_bvhs) {
+    delete bvh;
+  }
 }
 
 CCL_NAMESPACE_END
-
-#endif /* WITH_OPTIX */

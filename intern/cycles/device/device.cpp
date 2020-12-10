@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bvh/bvh2.h"
+
 #include "device/device.h"
 #include "device/device_intern.h"
 
@@ -361,6 +363,19 @@ void Device::draw_pixels(device_memory &rgba,
 
   if (transparent) {
     glDisable(GL_BLEND);
+  }
+}
+
+void Device::build_bvh(BVH *bvh, Progress &progress, bool refit)
+{
+  assert(bvh->params.bvh_layout == BVH_LAYOUT_BVH2);
+
+  BVH2 *const bvh2 = static_cast<BVH2 *>(bvh);
+  if (refit) {
+    bvh2->refit(progress);
+  }
+  else {
+    bvh2->build(progress, &stats);
   }
 }
 

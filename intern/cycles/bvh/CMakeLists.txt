@@ -25,6 +25,7 @@ set(SRC
   bvh_binning.cpp
   bvh_build.cpp
   bvh_embree.cpp
+  bvh_multi.cpp
   bvh_node.cpp
   bvh_optix.cpp
   bvh_sort.cpp
@@ -38,6 +39,7 @@ set(SRC_HEADERS
   bvh_binning.h
   bvh_build.h
   bvh_embree.h
+  bvh_multi.h
   bvh_node.h
   bvh_optix.h
   bvh_params.h

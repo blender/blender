@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "bvh/bvh.h"
+
 #include "render/hair.h"
 #include "render/curves.h"
 #include "render/scene.h"
@@ -489,6 +491,37 @@ void Hair::pack_curves(Scene *scene,
                                 __int_as_float(curve.num_keys),
                                 __int_as_float(shader_id),
                                 0.0f);
+  }
+}
+
+void Hair::pack_primitives(PackedBVH &pack, int object, uint visibility)
+{
+  if (curve_first_key.empty())
+    return;
+
+  const size_t num_prims = num_segments();
+  pack.prim_tri_index.reserve(pack.prim_tri_index.size() + num_prims);
+  pack.prim_type.reserve(pack.prim_type.size() + num_prims);
+  pack.prim_visibility.reserve(pack.prim_visibility.size() + num_prims);
+  pack.prim_index.reserve(pack.prim_index.size() + num_prims);
+  pack.prim_object.reserve(pack.prim_object.size() + num_prims);
+  // 'pack.prim_time' is unused by Embree and OptiX
+
+  uint type = has_motion_blur() ?
+                  ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
+                                                   PRIMITIVE_MOTION_CURVE_THICK) :
+                  ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON : PRIMITIVE_CURVE_THICK);
+
+  for (size_t j = 0; j < num_curves(); ++j) {
+    Curve curve = get_curve(j);
+    for (size_t k = 0; k < curve.num_segments(); ++k) {
+      pack.prim_tri_index.push_back_reserved(-1);
+      pack.prim_type.push_back_reserved(PRIMITIVE_PACK_SEGMENT(type, k));
+      pack.prim_visibility.push_back_reserved(visibility);
+      // Each curve segment points back to its curve index
+      pack.prim_index.push_back_reserved(j + prim_offset);
+      pack.prim_object.push_back_reserved(object);
+    }
   }
 }
 

@@ -805,4 +805,35 @@ void Mesh::pack_patches(uint *patch_data, uint vert_offset, uint face_offset, ui
   }
 }
 
+void Mesh::pack_primitives(PackedBVH &pack, int object, uint visibility)
+{
+  if (triangles.empty())
+    return;
+
+  const size_t num_prims = num_triangles();
+  pack.prim_tri_index.reserve(pack.prim_tri_index.size() + num_prims);
+  pack.prim_tri_verts.reserve(pack.prim_tri_verts.size() + num_prims * 3);
+  pack.prim_type.reserve(pack.prim_type.size() + num_prims);
+  pack.prim_visibility.reserve(pack.prim_visibility.size() + num_prims);
+  pack.prim_index.reserve(pack.prim_index.size() + num_prims);
+  pack.prim_object.reserve(pack.prim_object.size() + num_prims);
+  // 'pack.prim_time' is unused by Embree and OptiX
+
+  uint type = has_motion_blur() ? PRIMITIVE_MOTION_TRIANGLE : PRIMITIVE_TRIANGLE;
+
+  for (size_t k = 0; k < num_prims; ++k) {
+    pack.prim_tri_index.push_back_reserved(pack.prim_tri_verts.size());
+
+    const Mesh::Triangle t = get_triangle(k);
+    pack.prim_tri_verts.push_back_reserved(float3_to_float4(verts[t.v[0]]));
+    pack.prim_tri_verts.push_back_reserved(float3_to_float4(verts[t.v[1]]));
+    pack.prim_tri_verts.push_back_reserved(float3_to_float4(verts[t.v[2]]));
+
+    pack.prim_type.push_back_reserved(type);
+    pack.prim_visibility.push_back_reserved(visibility);
+    pack.prim_index.push_back_reserved(k + prim_offset);
+    pack.prim_object.push_back_reserved(object);
+  }
+}
+
 CCL_NAMESPACE_END
