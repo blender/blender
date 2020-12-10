@@ -399,6 +399,21 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const 
 }
 
 /**
+ * Find the first un-escaped quote in the string (to find the end of the string).
+ */
+const char *BLI_str_escape_find_quote(const char *str)
+{
+  bool escape = false;
+  while (*str && (*str != '"' || escape)) {
+    /* A pair of back-slashes represents a single back-slash,
+     * only use a single back-slash for escaping. */
+    escape = (escape == false) && (*str == '\\');
+    str++;
+  }
+  return (*str == '"') ? str : NULL;
+}
+
+/**
  * Makes a copy of the text within the "" that appear after some text 'blahblah'
  * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
  *

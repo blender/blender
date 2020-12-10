@@ -4978,21 +4978,16 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
       }
     }
     else {
-      bool escape = false;
-      /* Skip the first quote. */
-      len++;
-      p++;
-      while (*p && (*p != '"' || escape)) {
-        /* A pair of back-slashes represents a single back-slash,
-         * only use a single back-slash for escaping. */
-        escape = (escape == false) && (*p == '\\');
-        len++;
-        p++;
+      const char *p_end = BLI_str_escape_find_quote(p + 1);
+      if (p_end == NULL) {
+        /* No Matching quote. */
+        return NULL;
       }
-
       /* Skip the last quoted char to get the `]`. */
-      len++;
-      p++;
+      p_end += 1;
+
+      len += (p_end - p);
+      p = p_end;
     }
 
     if (*p != ']') {
