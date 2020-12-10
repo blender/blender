@@ -340,7 +340,10 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
     if (ELEM(c, '\\', '"') ||                       /* Use as-is. */
         ((c == '\t') && ((void)(c = 't'), true)) || /* Tab. */
         ((c == '\n') && ((void)(c = 'n'), true)) || /* Newline. */
-        ((c == '\r') && ((void)(c = 'r'), true)))   /* Carriage return. */
+        ((c == '\r') && ((void)(c = 'r'), true)) || /* Carriage return. */
+        ((c == '\a') && ((void)(c = 'a'), true)) || /* Bell. */
+        ((c == '\b') && ((void)(c = 'b'), true)) || /* Backspace. */
+        ((c == '\f') && ((void)(c = 'f'), true)))   /* Form-feed. */
     {
       if (UNLIKELY(len + 1 >= dst_maxncpy)) {
         /* Not enough space to escape. */
@@ -378,7 +381,11 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const 
       if (((c_next == '"') && ((void)(c = '"'), true)) ||   /* Quote. */
           ((c_next == '\\') && ((void)(c = '\\'), true)) || /* Backslash. */
           ((c_next == 't') && ((void)(c = '\t'), true)) ||  /* Tab. */
-          ((c_next == 'n') && ((void)(c = '\n'), true)))    /* Newline. */
+          ((c_next == 'n') && ((void)(c = '\n'), true)) ||  /* Newline. */
+          ((c_next == 'r') && ((void)(c = '\r'), true)) ||  /* Carriage return. */
+          ((c_next == 'a') && ((void)(c = '\a'), true)) ||  /* Bell. */
+          ((c_next == 'b') && ((void)(c = '\b'), true)) ||  /* Backspace. */
+          ((c_next == 'f') && ((void)(c = '\f'), true)))    /* Form-feed. */
       {
         i++;
         src++;
