@@ -277,6 +277,20 @@ void Mesh::reserve_subd_creases(size_t num_creases)
   subd_creases_weight.reserve(num_creases);
 }
 
+void Mesh::clear_non_sockets()
+{
+  Geometry::clear(true);
+
+  num_subd_verts = 0;
+  num_subd_faces = 0;
+
+  vert_to_stitching_key_map.clear();
+  vert_stitching_map.clear();
+
+  delete patch_table;
+  patch_table = NULL;
+}
+
 void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)
 {
   Geometry::clear(preserve_shaders);
@@ -297,22 +311,15 @@ void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)
   subd_ptex_offset.clear();
   subd_face_corners.clear();
 
-  num_subd_verts = 0;
-  num_subd_faces = 0;
-
   subd_creases_edge.clear();
   subd_creases_weight.clear();
 
   subd_attributes.clear();
   attributes.clear(preserve_voxel_data);
 
-  vert_to_stitching_key_map.clear();
-  vert_stitching_map.clear();
-
   subdivision_type = SubdivisionType::SUBDIVISION_NONE;
 
-  delete patch_table;
-  patch_table = NULL;
+  clear_non_sockets();
 }
 
 void Mesh::clear(bool preserve_shaders)
@@ -662,7 +669,7 @@ void Mesh::add_undisplaced()
   float3 *data = attr->data_float3();
 
   /* copy verts */
-  size_t size = attr->buffer_size(this, attrs.prim);
+  size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY);
 
   /* Center points for ngons aren't stored in Mesh::verts but are included in size since they will
    * be calculated later, we subtract them from size here so we don't have an overflow while

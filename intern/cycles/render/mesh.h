@@ -205,6 +205,7 @@ class Mesh : public Geometry {
   void resize_subd_faces(int numfaces, int num_ngons, int numcorners);
   void reserve_subd_faces(int numfaces, int num_ngons, int numcorners);
   void reserve_subd_creases(size_t num_creases);
+  void clear_non_sockets();
   void clear(bool preserve_shaders = false) override;
   void add_vertex(float3 P);
   void add_vertex_slow(float3 P);

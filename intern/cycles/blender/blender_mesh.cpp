@@ -1064,6 +1064,8 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *me
 
   /* update original sockets */
 
+  mesh->clear_non_sockets();
+
   for (const SocketType &socket : new_mesh.type->inputs) {
     /* Those sockets are updated in sync_object, so do not modify them. */
     if (socket.name == "use_motion_blur" || socket.name == "motion_steps" ||
