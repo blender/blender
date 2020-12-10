@@ -4957,11 +4957,7 @@ PointerRNA rna_array_lookup_int(
 static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int bracket)
 {
   const char *p;
-  char *buf;
-  char quote = '\0';
-  int len, escape;
-
-  len = 0;
+  int len = 0;
 
   if (bracket) {
     /* get data between [], check escaping ] with \] */
@@ -4975,9 +4971,9 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
     p = *path;
 
     /* 2 kinds of lookups now, quoted or unquoted */
-    quote = *p;
+    char quote = *p;
 
-    if (quote != '"') { /* " - this comment is hack for Aligorith's text editor's sanity */
+    if (quote != '"') {
       quote = 0;
     }
 
@@ -4988,14 +4984,14 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
       }
     }
     else {
-      escape = 0;
+      bool escape = false;
       /* skip the first quote */
       len++;
       p++;
       while (*p && (*p != quote || escape)) {
         /* A pair of back-slashes represents a single back-slash,
          * only use a single back-slash for escaping. */
-        escape = (escape == 0) && (*p == '\\');
+        escape = (escape == false) && (*p == '\\');
         len++;
         p++;
       }
@@ -5024,13 +5020,8 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
     return NULL;
   }
 
-  /* try to use fixed buffer if possible */
-  if (len + 1 < fixedlen) {
-    buf = fixedbuf;
-  }
-  else {
-    buf = MEM_mallocN(sizeof(char) * (len + 1), "rna_path_token");
-  }
+  /* Try to use fixed buffer if possible. */
+  char *buf = (len + 1 < fixedlen) ? fixedbuf : MEM_mallocN(sizeof(char) * (len + 1), __func__);
 
   /* copy string, taking into account escaped ] */
   if (bracket) {
