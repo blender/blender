@@ -412,27 +412,27 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const 
  */
 char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 {
-  const char *startMatch, *endMatch;
+  const char *start_match, *end_match;
 
-  /* get the starting point (i.e. where prefix starts, and add prefixLen+1
+  /* get the starting point (i.e. where prefix starts, and add prefix_len+1
    * to it to get be after the first " */
-  startMatch = strstr(str, prefix);
-  if (startMatch) {
-    const size_t prefixLen = strlen(prefix);
-    startMatch += prefixLen + 1;
+  start_match = strstr(str, prefix);
+  if (start_match) {
+    const size_t prefix_len = strlen(prefix);
+    start_match += prefix_len + 1;
     /* get the end point (i.e. where the next occurrence of " is after the starting point) */
 
-    endMatch = startMatch;
-    while ((endMatch = strchr(endMatch, '"'))) {
-      if (LIKELY(*(endMatch - 1) != '\\')) {
+    end_match = start_match;
+    while ((end_match = strchr(end_match, '"'))) {
+      if (LIKELY(*(end_match - 1) != '\\')) {
         break;
       }
-      endMatch++;
+      end_match++;
     }
 
-    if (endMatch) {
+    if (end_match) {
       /* return the slice indicated */
-      return BLI_strdupn(startMatch, (size_t)(endMatch - startMatch));
+      return BLI_strdupn(start_match, (size_t)(end_match - start_match));
     }
   }
   return BLI_strdupn("", 0);
