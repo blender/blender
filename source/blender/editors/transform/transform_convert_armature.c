@@ -164,21 +164,21 @@ static void autokeyframe_pose(
           /* only if bone name matches too...
            * NOTE: this will do constraints too, but those are ok to do here too?
            */
-          if (pchanName && STREQ(pchanName, pchan->name)) {
-            insert_keyframe(bmain,
-                            reports,
-                            id,
-                            act,
-                            ((fcu->grp) ? (fcu->grp->name) : (NULL)),
-                            fcu->rna_path,
-                            fcu->array_index,
-                            &anim_eval_context,
-                            ts->keyframe_type,
-                            &nla_cache,
-                            flag);
-          }
-
           if (pchanName) {
+            if (STREQ(pchanName, pchan->name)) {
+              insert_keyframe(bmain,
+                              reports,
+                              id,
+                              act,
+                              ((fcu->grp) ? (fcu->grp->name) : (NULL)),
+                              fcu->rna_path,
+                              fcu->array_index,
+                              &anim_eval_context,
+                              ts->keyframe_type,
+                              &nla_cache,
+                              flag);
+            }
+
             MEM_freeN(pchanName);
           }
         }

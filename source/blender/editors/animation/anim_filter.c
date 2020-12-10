@@ -1063,13 +1063,12 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
     /* only consider if F-Curve involves pose.bones */
     if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones")) {
-      bPoseChannel *pchan;
-      char *bone_name;
 
       /* get bone-name, and check if this bone is selected */
-      bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
-      pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+      bPoseChannel *pchan = NULL;
+      char *bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
       if (bone_name) {
+        pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
         MEM_freeN(bone_name);
       }
 
@@ -1106,13 +1105,12 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
     if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
       Editing *ed = BKE_sequencer_editing_get(scene, false);
       Sequence *seq = NULL;
-      char *seq_name;
 
       if (ed) {
         /* get strip name, and check if this strip is selected */
-        seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-        seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, false);
+        char *seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
         if (seq_name) {
+          seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, false);
           MEM_freeN(seq_name);
         }
       }
@@ -1130,13 +1128,12 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
     /* check for selected nodes */
     if ((fcu->rna_path) && strstr(fcu->rna_path, "nodes")) {
-      bNode *node;
-      char *node_name;
+      bNode *node = NULL;
 
       /* get strip name, and check if this strip is selected */
-      node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes[");
-      node = nodeFindNodebyName(ntree, node_name);
+      char *node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes[");
       if (node_name) {
+        node = nodeFindNodebyName(ntree, node_name);
         MEM_freeN(node_name);
       }
 

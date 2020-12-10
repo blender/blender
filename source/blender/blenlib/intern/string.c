@@ -445,7 +445,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
       return result;
     }
   }
-  return BLI_strdupn("", 0);
+  return NULL;
 }
 
 /**

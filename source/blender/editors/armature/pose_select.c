@@ -1090,6 +1090,7 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
 
           if (boneName) {
             bPoseChannel *pchan = BKE_pose_channel_find_name(pose, boneName);
+            MEM_freeN(boneName);
 
             if (pchan) {
               /* select if bone is visible and can be affected */
@@ -1098,9 +1099,6 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
                 changed = true;
               }
             }
-
-            /* free temp memory */
-            MEM_freeN(boneName);
           }
         }
       }
