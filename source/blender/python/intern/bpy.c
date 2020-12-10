@@ -260,25 +260,19 @@ PyDoc_STRVAR(bpy_escape_identifier_doc,
              "   :rtype: string\n");
 static PyObject *bpy_escape_identifier(PyObject *UNUSED(self), PyObject *value)
 {
-  const char *value_str;
   Py_ssize_t value_str_len;
-
-  char *value_escape_str;
-  Py_ssize_t value_escape_str_len;
-  PyObject *value_escape;
-  size_t size;
-
-  value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
+  const char *value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
 
   if (value_str == NULL) {
     PyErr_SetString(PyExc_TypeError, "expected a string");
     return NULL;
   }
 
-  size = (value_str_len * 2) + 1;
-  value_escape_str = PyMem_MALLOC(size);
-  value_escape_str_len = BLI_str_escape(value_escape_str, value_str, size);
+  const size_t size = (value_str_len * 2) + 1;
+  char *value_escape_str = PyMem_MALLOC(size);
+  const Py_ssize_t value_escape_str_len = BLI_str_escape(value_escape_str, value_str, size);
 
+  PyObject *value_escape;
   if (value_escape_str_len == value_str_len) {
     Py_INCREF(value);
     value_escape = value;
@@ -304,25 +298,19 @@ PyDoc_STRVAR(bpy_unescape_identifier_doc,
              "   :rtype: string\n");
 static PyObject *bpy_unescape_identifier(PyObject *UNUSED(self), PyObject *value)
 {
-  const char *value_str;
   Py_ssize_t value_str_len;
-
-  char *value_unescape_str;
-  Py_ssize_t value_unescape_str_len;
-  PyObject *value_unescape;
-  size_t size;
-
-  value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
+  const char *value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
 
   if (value_str == NULL) {
     PyErr_SetString(PyExc_TypeError, "expected a string");
     return NULL;
   }
 
-  size = value_str_len + 1;
-  value_unescape_str = PyMem_MALLOC(size);
-  value_unescape_str_len = BLI_str_unescape(value_unescape_str, value_str, size);
+  const size_t size = value_str_len + 1;
+  char *value_unescape_str = PyMem_MALLOC(size);
+  const Py_ssize_t value_unescape_str_len = BLI_str_unescape(value_unescape_str, value_str, size);
 
+  PyObject *value_unescape;
   if (value_unescape_str_len == value_str_len) {
     Py_INCREF(value);
     value_unescape = value;
