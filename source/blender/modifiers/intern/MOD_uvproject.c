@@ -370,7 +370,7 @@ ModifierTypeInfo modifierType_UVProject = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

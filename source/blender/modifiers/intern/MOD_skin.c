@@ -2043,7 +2043,7 @@ ModifierTypeInfo modifierType_Skin = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

@@ -365,8 +365,8 @@ static void pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    if (mti->modifyPointCloud) {
-      mti->modifyPointCloud(md, &mectx, &geometry_set);
+    if (mti->modifyGeometrySet) {
+      mti->modifyGeometrySet(md, &mectx, &geometry_set);
     }
   }
 }

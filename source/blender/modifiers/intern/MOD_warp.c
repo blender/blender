@@ -538,7 +538,7 @@ ModifierTypeInfo modifierType_Warp = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

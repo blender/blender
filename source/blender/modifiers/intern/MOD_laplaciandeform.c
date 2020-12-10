@@ -888,7 +888,7 @@ ModifierTypeInfo modifierType_LaplacianDeform = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

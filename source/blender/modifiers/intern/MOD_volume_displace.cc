@@ -328,7 +328,7 @@ ModifierTypeInfo modifierType_VolumeDisplace = {
     /* deformMatricesEM */ nullptr,
     /* modifyMesh */ nullptr,
     /* modifyHair */ nullptr,
-    /* modifyPointCloud */ nullptr,
+    /* modifyGeometrySet */ nullptr,
     /* modifyVolume */ modifyVolume,
 
     /* initData */ initData,

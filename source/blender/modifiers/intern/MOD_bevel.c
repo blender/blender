@@ -447,7 +447,7 @@ ModifierTypeInfo modifierType_Bevel = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

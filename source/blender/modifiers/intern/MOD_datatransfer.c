@@ -494,7 +494,7 @@ ModifierTypeInfo modifierType_DataTransfer = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

@@ -1325,7 +1325,7 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
     return (mti->modifyHair != NULL) || (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
   }
   if (ob->type == OB_POINTCLOUD) {
-    return (mti->modifyPointCloud != NULL);
+    return (mti->modifyGeometrySet != NULL);
   }
   if (ob->type == OB_VOLUME) {
     return (mti->modifyVolume != NULL);

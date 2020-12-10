@@ -934,9 +934,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return new_mesh;
 }
 
-static void modifyPointCloud(ModifierData *md,
-                             const ModifierEvalContext *ctx,
-                             GeometrySet *geometry_set)
+static void modifyGeometrySet(ModifierData *md,
+                              const ModifierEvalContext *ctx,
+                              GeometrySet *geometry_set)
 {
   modifyGeometry(md, ctx, *geometry_set);
 }
@@ -1063,7 +1063,7 @@ ModifierTypeInfo modifierType_Nodes = {
     /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ nullptr,
-    /* modifyPointCloud */ modifyPointCloud,
+    /* modifyGeometrySet */ modifyGeometrySet,
     /* modifyVolume */ nullptr,
 
     /* initData */ initData,

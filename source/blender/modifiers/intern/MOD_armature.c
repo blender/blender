@@ -295,7 +295,7 @@ ModifierTypeInfo modifierType_Armature = {
     /* deformMatricesEM */ deformMatricesEM,
     /* modifyMesh */ NULL,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

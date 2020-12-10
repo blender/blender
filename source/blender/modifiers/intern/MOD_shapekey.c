@@ -139,7 +139,7 @@ ModifierTypeInfo modifierType_ShapeKey = {
     /* deformMatricesEM */ deformMatricesEM,
     /* modifyMesh */ NULL,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ NULL,
