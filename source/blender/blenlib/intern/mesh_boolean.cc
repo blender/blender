@@ -401,11 +401,6 @@ class Cell {
 
   void add_patch(int p)
   {
-    patches_.add_new(p);
-  }
-
-  void add_patch_non_duplicates(int p)
-  {
     patches_.add(p);
   }
 
@@ -693,7 +688,7 @@ static void merge_cells(int merge_to, int merge_from, CellsInfo &cinfo, PatchesI
     merge_to_cell = cinfo.cell(final_merge_to);
   }
   for (int cell_p : merge_from_cell.patches()) {
-    merge_to_cell.add_patch_non_duplicates(cell_p);
+    merge_to_cell.add_patch(cell_p);
     Patch &patch = pinfo.patch(cell_p);
     if (patch.cell_above == merge_from) {
       patch.cell_above = merge_to;
