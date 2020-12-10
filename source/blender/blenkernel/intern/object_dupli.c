@@ -829,13 +829,18 @@ static void make_duplis_instances_component(const DupliContext *ctx)
     size_to_mat4(scale_matrix, scales[i]);
     float rotation_matrix[4][4];
     eul_to_mat4(rotation_matrix, rotations[i]);
-    float matrix[4][4];
-    mul_m4_m4m4(matrix, rotation_matrix, scale_matrix);
-    copy_v3_v3(matrix[3], positions[i]);
-    mul_m4_m4_pre(matrix, ctx->object->obmat);
+    float instance_offset_matrix[4][4];
+    mul_m4_m4m4(instance_offset_matrix, rotation_matrix, scale_matrix);
+    copy_v3_v3(instance_offset_matrix[3], positions[i]);
 
+    float matrix[4][4];
+    mul_m4_m4m4(matrix, ctx->object->obmat, instance_offset_matrix);
     make_dupli(ctx, object, matrix, i);
-    make_recursive_duplis(ctx, object, matrix, i);
+
+    float space_matrix[4][4];
+    mul_m4_m4m4(space_matrix, instance_offset_matrix, object->imat);
+    mul_m4_m4_pre(space_matrix, ctx->object->obmat);
+    make_recursive_duplis(ctx, object, space_matrix, i);
   }
 }
 
