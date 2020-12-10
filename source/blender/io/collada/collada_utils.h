@@ -146,8 +146,6 @@ extern void bc_bubble_sort_by_Object_name(LinkNode *export_set);
 extern bool bc_is_root_bone(Bone *aBone, bool deform_bones_only);
 extern int bc_get_active_UVLayer(Object *ob);
 
-std::string bc_find_bonename_in_path(std::string path, std::string probe);
-
 inline std::string bc_string_after(const std::string &s, const std::string probe)
 {
   size_t i = s.rfind(probe);

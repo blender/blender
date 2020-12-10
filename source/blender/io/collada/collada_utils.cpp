@@ -1176,17 +1176,6 @@ static std::string bc_get_uvlayer_name(Mesh *me, int layer)
   return "";
 }
 
-std::string bc_find_bonename_in_path(std::string path, std::string probe)
-{
-  std::string result;
-  char *boneName = BLI_str_quoted_substrN(path.c_str(), probe.c_str());
-  if (boneName) {
-    result = std::string(boneName);
-    MEM_freeN(boneName);
-  }
-  return result;
-}
-
 static bNodeTree *prepare_material_nodetree(Material *ma)
 {
   if (ma->nodetree == nullptr) {
