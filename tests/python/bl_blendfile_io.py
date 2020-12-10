@@ -20,7 +20,9 @@ class TestBlendFileSaveLoadBasic(TestHelper):
 
         output_dir = self.args.output_dir
         self.ensure_path(output_dir)
-        output_path = os.path.join(output_dir, "blendfile.blend")
+
+        # Take care to keep the name unique so multiple test jobs can run at once.
+        output_path = os.path.join(output_dir, "blendfile_io.blend")
 
         orig_data = self.blender_data_to_tuple(bpy.data, "orig_data 1")
 
