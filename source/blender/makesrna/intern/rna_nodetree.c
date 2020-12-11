@@ -8178,7 +8178,7 @@ static void def_cmp_sunbeams(StructRNA *srna)
   RNA_def_property_range(prop, -100.0f, 100.0f);
   RNA_def_property_ui_range(prop, -10.0f, 10.0f, 10, 3);
   RNA_def_property_ui_text(
-      prop, "Source", "Source point of rays as a factor of the image width & height");
+      prop, "Source", "Source point of rays as a factor of the image width and height");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "ray_length", PROP_FLOAT, PROP_UNSIGNED);

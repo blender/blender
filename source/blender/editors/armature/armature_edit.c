@@ -1014,7 +1014,7 @@ void ARMATURE_OT_switch_direction(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Switch Direction";
   ot->idname = "ARMATURE_OT_switch_direction";
-  ot->description = "Change the direction that a chain of bones points in (head <-> tail swap)";
+  ot->description = "Change the direction that a chain of bones points in (head and tail swap)";
 
   /* api callbacks */
   ot->exec = armature_switch_direction_exec;

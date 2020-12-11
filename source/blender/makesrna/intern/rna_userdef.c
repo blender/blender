@@ -4575,7 +4575,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Navigation Controls",
-      "Show navigation controls in 2D & 3D views which do not have scroll bars");
+      "Show navigation controls in 2D and 3D views which do not have scroll bars");
   RNA_def_property_update(prop, 0, "rna_userdef_gizmo_update");
 
   /* menus */
@@ -5984,7 +5984,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
       {2, "DJV", 0, "DJV", "Open source frame player: http://djv.sourceforge.net"},
       {3, "FRAMECYCLER", 0, "FrameCycler", "Frame player from IRIDAS"},
       {4, "RV", 0, "RV", "Frame player from Tweak Software"},
-      {5, "MPLAYER", 0, "MPlayer", "Media player for video & png/jpeg/sgi image sequences"},
+      {5, "MPLAYER", 0, "MPlayer", "Media player for video and PNG/JPEG/SGI image sequences"},
       {50, "CUSTOM", 0, "Custom", "Custom animation player executable path"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -6069,8 +6069,8 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "pythondir");
   RNA_def_property_ui_text(prop,
                            "Python Scripts Directory",
-                           "Alternate script path, matching the default layout with subdirs: "
-                           "startup, add-ons & modules (requires restart)");
+                           "Alternate script path, matching the default layout with subdirectories: "
+                           "startup, add-ons and modules (requires restart)");
   /* TODO, editing should reset sys.path! */
 
   prop = RNA_def_property(srna, "i18n_branches_directory", PROP_STRING, PROP_DIRPATH);
@@ -6125,7 +6125,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Auto Save Temporary Files",
                            "Automatic saving of temporary files in temp directory, "
-                           "uses process ID (sculpt & edit-mode data won't be saved!)");
+                           "uses process ID (sculpt and edit mode data won't be saved)");
   RNA_def_property_update(prop, 0, "rna_userdef_autosave_update");
 
   prop = RNA_def_property(srna, "auto_save_time", PROP_INT, PROP_NONE);

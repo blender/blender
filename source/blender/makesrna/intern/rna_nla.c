@@ -784,7 +784,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_animated_time_cyclic", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_TIME_CYCLIC);
   RNA_def_property_ui_text(
-      prop, "Cyclic Strip Time", "Cycle the animated time within the action start & end");
+      prop, "Cyclic Strip Time", "Cycle the animated time within the action start and end");
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
 

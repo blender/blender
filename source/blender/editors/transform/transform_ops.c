@@ -717,7 +717,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
                            "use_automerge_and_split",
                            0,
                            "Auto Merge & Split",
-                           "Forces the use of Auto Merge & Split");
+                           "Forces the use of Auto Merge and Split");
     RNA_def_property_flag(prop, PROP_HIDDEN);
   }
 }

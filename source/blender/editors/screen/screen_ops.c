@@ -3918,7 +3918,7 @@ static void SCREEN_OT_region_quadview(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Toggle Quad View";
-  ot->description = "Split selected area into camera, front, right & top views";
+  ot->description = "Split selected area into camera, front, right, and top views";
   ot->idname = "SCREEN_OT_region_quadview";
 
   /* api callbacks */

@@ -337,7 +337,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
         items=(
             ('SMOKE', "Smoke", ""),
             ('FIRE', "Fire", ""),
-            ('BOTH', "Smoke + Fire", ""),
+            ('BOTH', "Smoke & Fire", ""),
         ),
         default='SMOKE',
     )

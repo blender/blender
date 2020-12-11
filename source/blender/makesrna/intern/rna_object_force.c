@@ -1488,7 +1488,7 @@ static void rna_def_field(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, texture_items);
   RNA_def_property_ui_text(prop,
                            "Texture Mode",
-                           "How the texture effect is calculated (RGB & Curl need a RGB texture, "
+                           "How the texture effect is calculated (RGB and Curl need a RGB texture, "
                            "else Gradient will be used instead)");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
