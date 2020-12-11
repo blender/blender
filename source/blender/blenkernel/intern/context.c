@@ -123,7 +123,7 @@ void CTX_free(bContext *C)
 
 /* store */
 
-bContextStore *CTX_store_add(ListBase *contexts, const char *name, PointerRNA *ptr)
+bContextStore *CTX_store_add(ListBase *contexts, const char *name, const PointerRNA *ptr)
 {
   /* ensure we have a context to put the entry in, if it was already used
    * we have to copy the context to ensure */
@@ -176,6 +176,11 @@ bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context)
   }
 
   return ctx;
+}
+
+bContextStore *CTX_store_get(bContext *C)
+{
+  return C->wm.store;
 }
 
 void CTX_store_set(bContext *C, bContextStore *store)

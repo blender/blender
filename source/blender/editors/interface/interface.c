@@ -4552,6 +4552,15 @@ static uiBut *ui_def_but_rna(uiBlock *block,
     UI_but_disable(but, info);
   }
 
+  if (proptype == PROP_POINTER) {
+    /* If the button shows an ID, automatically set it as focused in context so operators can
+     * access it.*/
+    const PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
+    if (pptr.data && RNA_struct_is_ID(pptr.type)) {
+      but->context = CTX_store_add(&block->contexts, "id", &pptr);
+    }
+  }
+
   if (but->flag & UI_BUT_UNDO && (ui_but_is_rna_undo(but) == false)) {
     but->flag &= ~UI_BUT_UNDO;
   }

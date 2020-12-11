@@ -42,6 +42,9 @@ class MATERIAL_UL_matslots(UIList):
         # ob = data
         slot = item
         ma = slot.material
+
+        layout.context_pointer_set("id", ma)
+
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             if ma:
                 layout.prop(ma, "name", text="", emboss=False, icon_value=icon)

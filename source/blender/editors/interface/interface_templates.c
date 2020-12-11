@@ -895,6 +895,9 @@ static void template_ID(const bContext *C,
   idfrom = template_ui->ptr.owner_id;
   // lb = template_ui->idlb;
 
+  /* Allow opertators to take the ID from context. */
+  uiLayoutSetContextPointer(layout, "id", &idptr);
+
   block = uiLayoutGetBlock(layout);
   UI_block_align_begin(block);
 
@@ -6169,6 +6172,10 @@ void uiTemplateList(uiLayout *layout,
                     active_propname,
                     org_i,
                     flt_flag);
+
+          /* Items should be able to set context pointers for the layout. But the listrow button
+           * swallows events, so it needs the context storage too for handlers to see it. */
+          but->context = uiLayoutGetContextStore(sub);
 
           /* If we are "drawing" active item, set all labels as active. */
           if (i == activei) {

@@ -5663,6 +5663,11 @@ void uiLayoutSetContextPointer(uiLayout *layout, const char *name, PointerRNA *p
   layout->context = CTX_store_add(&block->contexts, name, ptr);
 }
 
+bContextStore *uiLayoutGetContextStore(uiLayout *layout)
+{
+  return layout->context;
+}
+
 void uiLayoutContextCopy(uiLayout *layout, bContextStore *context)
 {
   uiBlock *block = layout->root->block;
