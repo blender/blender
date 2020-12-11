@@ -1349,6 +1349,9 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
     if (mbut_state == NULL) {
       /* Highly unlikely. */
       printf("%s: Can't find button\n", __func__);
+      /* While this avoids crashing, multi-button dragging will fail,
+       * which is still a bug from the user perspective. See T83651. */
+      continue;
     }
 
     void *active_back;
