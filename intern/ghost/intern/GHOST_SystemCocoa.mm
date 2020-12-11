@@ -1730,13 +1730,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         }
         window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 
+        NSPoint delta = [[cocoawindow contentView] convertPointToBacking:NSMakePoint(dx, dy)];
         pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000,
                                           window,
                                           GHOST_kTrackpadEventScroll,
                                           x,
                                           y,
-                                          dx,
-                                          dy,
+                                          delta.x,
+                                          delta.y,
                                           [event isDirectionInvertedFromDevice]));
       }
     } break;
