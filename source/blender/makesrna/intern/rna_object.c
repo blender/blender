@@ -2751,8 +2751,8 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Track Axis",
-      "Axis that points in 'forward' direction (applies to InstanceFrame when "
-      "parent 'Follow' is enabled)");
+      "Axis that points in the 'forward' direction (applies to Instance Vertices when "
+      "Align to Vertex Normal is enabled)");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
   prop = RNA_def_property(srna, "up_axis", PROP_ENUM, PROP_NONE);
@@ -2761,8 +2761,8 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Up Axis",
-      "Axis that points in the upward direction (applies to InstanceFrame when "
-      "parent 'Follow' is enabled)");
+      "Axis that points in the upward direction (applies to Instance Vertices when "
+      "Align to Vertex Normal is enabled)");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
   /* proxy */
