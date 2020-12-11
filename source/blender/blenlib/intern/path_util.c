@@ -1322,12 +1322,14 @@ const char *BLI_getenv(const char *env)
     if (GetEnvironmentVariableW(env_16, buffer, ARRAY_SIZE(buffer))) {
       char *res_utf8 = alloc_utf_8_from_16(buffer, 0);
       // make sure the result is valid, and will fit into our temporary storage buffer
-      if (res_utf8 && (strlen(res_utf8) + 1) < sizeof(buffer)) {
-        // We are re-using the utf16 buffer here, since allocating a second static buffer to
-        // contain the UTF-8 version to return would be wasteful.
-        memcpy(buffer, res_utf8, strlen(res_utf8) + 1);
+      if (res_utf8) {
+        if (strlen(res_utf8) + 1 < sizeof(buffer)) {
+          // We are re-using the utf16 buffer here, since allocating a second static buffer to
+          // contain the UTF-8 version to return would be wasteful.
+          memcpy(buffer, res_utf8, strlen(res_utf8) + 1);
+          result = (const char *)buffer;
+        }
         free(res_utf8);
-        result = (const char *)buffer;
       }
     }
   }
@@ -1529,7 +1531,8 @@ bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
 }
 
 /**
- * Does basic validation of the given glob string, to prevent common issues from string truncation.
+ * Does basic validation of the given glob string, to prevent common issues from string
+ * truncation.
  *
  * For now, only forbids last group to be a wildcard-only one, if there are more than one group
  * (i.e. things like "*.txt;*.cpp;*" are changed to "*.txt;*.cpp;")
