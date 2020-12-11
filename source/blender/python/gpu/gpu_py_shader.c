@@ -638,7 +638,7 @@ static PyObject *py_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  struct PyC_StringEnum pygpu_bultinshader = {&pygpu_bultinshader_items};
+  struct PyC_StringEnum pygpu_bultinshader = {pygpu_bultinshader_items};
   if (!PyC_ParseStringEnum(arg, &pygpu_bultinshader)) {
     return NULL;
   }
@@ -673,7 +673,7 @@ static PyObject *py_shader_code_from_builtin(BPyGPUShader *UNUSED(self), PyObjec
 
   PyObject *item, *r_dict;
 
-  struct PyC_StringEnum pygpu_bultinshader = {&pygpu_bultinshader_items};
+  struct PyC_StringEnum pygpu_bultinshader = {pygpu_bultinshader_items};
   if (!PyC_ParseStringEnum(arg, &pygpu_bultinshader)) {
     return NULL;
   }
