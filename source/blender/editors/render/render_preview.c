@@ -1304,7 +1304,7 @@ static void icon_preview_endjob(void *customdata)
     prv_img->tag &= ~PRV_TAG_DEFFERED_RENDERING;
     if (prv_img->tag & PRV_TAG_DEFFERED_DELETE) {
       BLI_assert(prv_img->tag & PRV_TAG_DEFFERED);
-      BKE_previewimg_cached_release_pointer(prv_img);
+      BKE_previewimg_deferred_release(prv_img);
     }
   }
 }

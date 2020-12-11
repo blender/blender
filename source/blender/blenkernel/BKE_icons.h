@@ -130,6 +130,9 @@ void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
 /* get the preview from any pointer */
 struct PreviewImage **BKE_previewimg_id_get_p(const struct ID *id);
 
+/* Trigger deferred loading of a custom image file into the preview buffer. */
+void BKE_previewimg_id_custom_set(struct ID *id, const char *path);
+
 /* free the preview image belonging to the id */
 void BKE_previewimg_id_free(struct ID *id);
 
@@ -156,7 +159,8 @@ struct PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
                                                           bool force_update);
 
 void BKE_previewimg_cached_release(const char *name);
-void BKE_previewimg_cached_release_pointer(struct PreviewImage *prv);
+
+void BKE_previewimg_deferred_release(struct PreviewImage *prv);
 
 void BKE_previewimg_blend_write(struct BlendWriter *writer, const struct PreviewImage *prv);
 void BKE_previewimg_blend_read(struct BlendDataReader *reader, struct PreviewImage *prv);

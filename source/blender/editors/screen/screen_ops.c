@@ -5510,6 +5510,7 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(ED_OT_undo_history);
 
   WM_operatortype_append(ED_OT_flush_edits);
+  WM_operatortype_append(ED_OT_lib_id_load_custom_preview);
 }
 
 /** \} */
