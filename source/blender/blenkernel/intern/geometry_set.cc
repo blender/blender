@@ -460,31 +460,54 @@ GeometryComponent *InstancesComponent::copy() const
   new_component->positions_ = positions_;
   new_component->rotations_ = rotations_;
   new_component->scales_ = scales_;
-  new_component->objects_ = objects_;
+  new_component->instanced_data_ = instanced_data_;
   return new_component;
 }
 
 void InstancesComponent::clear()
 {
-  objects_.clear();
+  instanced_data_.clear();
   positions_.clear();
   rotations_.clear();
   scales_.clear();
 }
-void InstancesComponent::add_instance(const Object *object,
+
+void InstancesComponent::add_instance(Object *object,
                                       blender::float3 position,
                                       blender::float3 rotation,
                                       blender::float3 scale)
 {
-  objects_.append(object);
+  InstancedData data;
+  data.type = INSTANCE_DATA_TYPE_OBJECT;
+  data.data.object = object;
+  this->add_instance(data, position, rotation, scale);
+}
+
+void InstancesComponent::add_instance(Collection *collection,
+                                      blender::float3 position,
+                                      blender::float3 rotation,
+                                      blender::float3 scale)
+{
+  InstancedData data;
+  data.type = INSTANCE_DATA_TYPE_COLLECTION;
+  data.data.collection = collection;
+  this->add_instance(data, position, rotation, scale);
+}
+
+void InstancesComponent::add_instance(InstancedData data,
+                                      blender::float3 position,
+                                      blender::float3 rotation,
+                                      blender::float3 scale)
+{
+  instanced_data_.append(data);
   positions_.append(position);
   rotations_.append(rotation);
   scales_.append(scale);
 }
 
-Span<const Object *> InstancesComponent::objects() const
+Span<InstancedData> InstancesComponent::instanced_data() const
 {
-  return objects_;
+  return instanced_data_;
 }
 
 Span<float3> InstancesComponent::positions() const
@@ -509,8 +532,11 @@ MutableSpan<float3> InstancesComponent::positions()
 
 int InstancesComponent::instances_amount() const
 {
-  BLI_assert(positions_.size() == objects_.size());
-  return objects_.size();
+  const int size = instanced_data_.size();
+  BLI_assert(positions_.size() == size);
+  BLI_assert(rotations_.size() == size);
+  BLI_assert(scales_.size() == size);
+  return size;
 }
 
 bool InstancesComponent::is_empty() const
@@ -538,7 +564,7 @@ int BKE_geometry_set_instances(const GeometrySet *geometry_set,
                                float (**r_positions)[3],
                                float (**r_rotations)[3],
                                float (**r_scales)[3],
-                               Object ***r_objects)
+                               InstancedData **r_instanced_data)
 {
   const InstancesComponent *component = geometry_set->get_component_for_read<InstancesComponent>();
   if (component == nullptr) {
@@ -547,7 +573,7 @@ int BKE_geometry_set_instances(const GeometrySet *geometry_set,
   *r_positions = (float(*)[3])component->positions().data();
   *r_rotations = (float(*)[3])component->rotations().data();
   *r_scales = (float(*)[3])component->scales().data();
-  *r_objects = (Object **)component->objects().data();
+  *r_instanced_data = (InstancedData *)component->instanced_data().data();
   return component->instances_amount();
 }
 

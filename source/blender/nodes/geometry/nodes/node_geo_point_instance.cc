@@ -25,6 +25,7 @@
 static bNodeSocketTemplate geo_node_point_instance_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_OBJECT, N_("Object")},
+    {SOCK_COLLECTION, N_("Collection")},
     {-1, ""},
 };
 
@@ -35,9 +36,21 @@ static bNodeSocketTemplate geo_node_point_instance_out[] = {
 
 namespace blender::nodes {
 
+static void geo_node_point_instance_update(bNodeTree *UNUSED(tree), bNode *node)
+{
+  bNodeSocket *object_socket = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
+  bNodeSocket *collection_socket = object_socket->next;
+
+  GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)node->custom1;
+
+  nodeSetSocketAvailability(object_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_OBJECT);
+  nodeSetSocketAvailability(collection_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION);
+}
+
 static void add_instances_from_geometry_component(InstancesComponent &instances,
                                                   const GeometryComponent &src_geometry,
-                                                  Object *object)
+                                                  Object *object,
+                                                  Collection *collection)
 {
   Float3ReadAttribute positions = src_geometry.attribute_get_for_read<float3>(
       "position", ATTR_DOMAIN_POINT, {0, 0, 0});
@@ -47,29 +60,50 @@ static void add_instances_from_geometry_component(InstancesComponent &instances,
       "scale", ATTR_DOMAIN_POINT, {1, 1, 1});
 
   for (const int i : IndexRange(positions.size())) {
-    instances.add_instance(object, positions[i], rotations[i], scales[i]);
+    if (object != nullptr) {
+      instances.add_instance(object, positions[i], rotations[i], scales[i]);
+    }
+    if (collection != nullptr) {
+      instances.add_instance(collection, positions[i], rotations[i], scales[i]);
+    }
   }
 }
 
 static void geo_node_point_instance_exec(GeoNodeExecParams params)
 {
+  GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)params.node().custom1;
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet geometry_set_out;
 
-  bke::PersistentObjectHandle object_handle = params.extract_input<bke::PersistentObjectHandle>(
-      "Object");
-  Object *object = params.handle_map().lookup(object_handle);
+  Object *object = nullptr;
+  Collection *collection = nullptr;
 
-  if (object != nullptr && object != params.self_object()) {
-    InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
-    if (geometry_set.has<MeshComponent>()) {
-      add_instances_from_geometry_component(
-          instances, *geometry_set.get_component_for_read<MeshComponent>(), object);
+  if (type == GEO_NODE_POINT_INSTANCE_TYPE_OBJECT) {
+    bke::PersistentObjectHandle object_handle = params.extract_input<bke::PersistentObjectHandle>(
+        "Object");
+    object = params.handle_map().lookup(object_handle);
+    /* Avoid accidental recursion of instances. */
+    if (object == params.self_object()) {
+      object = nullptr;
     }
-    if (geometry_set.has<PointCloudComponent>()) {
-      add_instances_from_geometry_component(
-          instances, *geometry_set.get_component_for_read<PointCloudComponent>(), object);
-    }
+  }
+  else if (type == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION) {
+    bke::PersistentCollectionHandle collection_handle =
+        params.extract_input<bke::PersistentCollectionHandle>("Collection");
+    collection = params.handle_map().lookup(collection_handle);
+  }
+
+  InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
+  if (geometry_set.has<MeshComponent>()) {
+    add_instances_from_geometry_component(
+        instances, *geometry_set.get_component_for_read<MeshComponent>(), object, collection);
+  }
+  if (geometry_set.has<PointCloudComponent>()) {
+    add_instances_from_geometry_component(
+        instances,
+        *geometry_set.get_component_for_read<PointCloudComponent>(),
+        object,
+        collection);
   }
 
   params.set_output("Geometry", std::move(geometry_set_out));
@@ -82,6 +116,7 @@ void register_node_type_geo_point_instance()
 
   geo_node_type_base(&ntype, GEO_NODE_POINT_INSTANCE, "Point Instance", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(&ntype, geo_node_point_instance_in, geo_node_point_instance_out);
+  node_type_update(&ntype, blender::nodes::geo_node_point_instance_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_instance_exec;
   nodeRegisterType(&ntype);
 }

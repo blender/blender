@@ -8415,6 +8415,32 @@ static void def_geo_attribute_math(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_point_instance(StructRNA *srna)
+{
+  static const EnumPropertyItem instance_type_items[] = {
+      {GEO_NODE_POINT_INSTANCE_TYPE_OBJECT,
+       "OBJECT",
+       ICON_NONE,
+       "Object",
+       "Instance an individual object on all points"},
+      {GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION,
+       "COLLECTION",
+       ICON_NONE,
+       "Collection",
+       "Instance an entire collection on all points"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "instance_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, instance_type_items);
+  RNA_def_property_enum_default(prop, GEO_NODE_POINT_INSTANCE_TYPE_OBJECT);
+  RNA_def_property_ui_text(prop, "Instance Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
 static void def_geo_attribute_mix(StructRNA *srna)
 {
   PropertyRNA *prop;
