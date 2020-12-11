@@ -2791,7 +2791,7 @@ static int do_outliner_operation_event(bContext *C,
     }
     if (datalevel == TSE_ID_BASE) {
       /* do nothing... there are no ops needed here yet */
-      return 0;
+      return OPERATOR_CANCELLED;
     }
     if (datalevel == TSE_CONSTRAINT) {
       return outliner_operator_menu(C, "OUTLINER_OT_constraint_operation");
@@ -2802,7 +2802,7 @@ static int do_outliner_operation_event(bContext *C,
     return outliner_operator_menu(C, "OUTLINER_OT_data_operation");
   }
 
-  return 0;
+  return OPERATOR_CANCELLED;
 }
 
 static int outliner_operation(bContext *C, wmOperator *op, const wmEvent *event)
