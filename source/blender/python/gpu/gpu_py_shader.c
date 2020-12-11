@@ -39,41 +39,17 @@
 /** \name Enum Conversion.
  * \{ */
 
-static int bpygpu_ParseBultinShaderEnum(PyObject *o, void *p)
-{
-  Py_ssize_t mode_id_len;
-  const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
-  if (mode_id == NULL) {
-    PyErr_Format(PyExc_ValueError, "expected a string, got %s", Py_TYPE(o)->tp_name);
-    return 0;
-  }
-#define MATCH_ID(id) \
-  if (mode_id_len == (Py_ssize_t)strlen(STRINGIFY(id))) { \
-    if (STREQ(mode_id, STRINGIFY(id))) { \
-      mode = GPU_SHADER_##id; \
-      goto success; \
-    } \
-  } \
-  ((void)0)
-
-  eGPUBuiltinShader mode;
-  MATCH_ID(2D_UNIFORM_COLOR);
-  MATCH_ID(2D_FLAT_COLOR);
-  MATCH_ID(2D_SMOOTH_COLOR);
-  MATCH_ID(2D_IMAGE);
-  MATCH_ID(3D_UNIFORM_COLOR);
-  MATCH_ID(3D_FLAT_COLOR);
-  MATCH_ID(3D_SMOOTH_COLOR);
-  MATCH_ID(3D_POLYLINE_UNIFORM_COLOR);
-
-#undef MATCH_ID
-  PyErr_Format(PyExc_ValueError, "unknown type literal: '%s'", mode_id);
-  return 0;
-
-success:
-  (*(eGPUBuiltinShader *)p) = mode;
-  return 1;
-}
+static const struct PyC_StringEnumItems pygpu_bultinshader_items[] = {
+    {GPU_SHADER_2D_UNIFORM_COLOR, "2D_UNIFORM_COLOR"},
+    {GPU_SHADER_2D_FLAT_COLOR, "2D_FLAT_COLOR"},
+    {GPU_SHADER_2D_SMOOTH_COLOR, "2D_SMOOTH_COLOR"},
+    {GPU_SHADER_2D_IMAGE, "2D_IMAGE"},
+    {GPU_SHADER_3D_UNIFORM_COLOR, "3D_UNIFORM_COLOR"},
+    {GPU_SHADER_3D_FLAT_COLOR, "3D_FLAT_COLOR"},
+    {GPU_SHADER_3D_SMOOTH_COLOR, "3D_SMOOTH_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR, "3D_POLYLINE_UNIFORM_COLOR"},
+    {0, NULL},
+};
 
 static int bpygpu_uniform_location_get(GPUShader *shader,
                                        const char *name,
@@ -672,13 +648,12 @@ static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *ar
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  eGPUBuiltinShader shader_id;
-
-  if (!bpygpu_ParseBultinShaderEnum(arg, &shader_id)) {
+  const struct PyC_StringEnum pygpu_bultinshader = {&pygpu_bultinshader_items, -1};
+  if (!PyC_ParseStringEnum(arg, &pygpu_bultinshader)) {
     return NULL;
   }
 
-  GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
+  GPUShader *shader = GPU_shader_get_builtin_shader(pygpu_bultinshader.value_found);
 
   return BPyGPUShader_CreatePyObject(shader, true);
 }
@@ -701,8 +676,6 @@ PyDoc_STRVAR(bpygpu_shader_code_from_builtin_doc,
              "   :rtype: dict\n");
 static PyObject *bpygpu_shader_code_from_builtin(BPyGPUShader *UNUSED(self), PyObject *arg)
 {
-  eGPUBuiltinShader shader_id;
-
   const char *vert;
   const char *frag;
   const char *geom;
@@ -710,11 +683,13 @@ static PyObject *bpygpu_shader_code_from_builtin(BPyGPUShader *UNUSED(self), PyO
 
   PyObject *item, *r_dict;
 
-  if (!bpygpu_ParseBultinShaderEnum(arg, &shader_id)) {
+  const struct PyC_StringEnum pygpu_bultinshader = {&pygpu_bultinshader_items, -1};
+  if (!PyC_ParseStringEnum(arg, &pygpu_bultinshader)) {
     return NULL;
   }
 
-  GPU_shader_get_builtin_shader_code(shader_id, &vert, &frag, &geom, &defines);
+  GPU_shader_get_builtin_shader_code(
+      pygpu_bultinshader.value_found, &vert, &frag, &geom, &defines);
 
   r_dict = PyDict_New();
 
