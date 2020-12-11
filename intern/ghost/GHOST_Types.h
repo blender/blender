@@ -565,6 +565,16 @@ typedef struct {
   char is_repeat;
 } GHOST_TEventKeyData;
 
+typedef enum {
+  GHOST_kUserSpecialDirDesktop,
+  GHOST_kUserSpecialDirDocuments,
+  GHOST_kUserSpecialDirDownloads,
+  GHOST_kUserSpecialDirMusic,
+  GHOST_kUserSpecialDirPictures,
+  GHOST_kUserSpecialDirVideos,
+  /* Can be extended as needed. */
+} GHOST_TUserSpecialDirTypes;
+
 typedef struct {
   /** Number of pixels on a line. */
   GHOST_TUns32 xPixels;

@@ -78,6 +78,12 @@ class GHOST_ISystemPaths {
   virtual const GHOST_TUns8 *getUserDir(int version, const char *versionstr) const = 0;
 
   /**
+   * Determine a special ("well known") and easy to reach user directory.
+   * \return Unsigned char string pointing to user dir (eg `~/Documents/`).
+   */
+  virtual const GHOST_TUns8 *getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const = 0;
+
+  /**
    * Determine the directory of the current binary
    * \return Unsigned char string pointing to the binary dir
    */

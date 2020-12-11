@@ -21,6 +21,7 @@
 
 #import <Foundation/Foundation.h>
 
+#include "GHOST_Debug.h"
 #include "GHOST_SystemPathsCocoa.h"
 
 #pragma mark initialization/finalization
@@ -84,6 +85,57 @@ const GHOST_TUns8 *GHOST_SystemPathsCocoa::getUserDir(int, const char *versionst
            "%s/Blender/%s",
            [basePath cStringUsingEncoding:NSASCIIStringEncoding],
            versionstr);
+
+  [pool drain];
+  return (GHOST_TUns8 *)tempPath;
+}
+
+const GHOST_TUns8 *GHOST_SystemPathsCocoa::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
+{
+  static char tempPath[512] = "";
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  NSString *basePath;
+  NSArray *paths;
+  NSSearchPathDirectory ns_directory;
+
+  switch (type) {
+    case GHOST_kUserSpecialDirDesktop:
+      ns_directory = NSDesktopDirectory;
+      break;
+    case GHOST_kUserSpecialDirDocuments:
+      ns_directory = NSDocumentDirectory;
+      break;
+    case GHOST_kUserSpecialDirDownloads:
+      ns_directory = NSDownloadsDirectory;
+      break;
+    case GHOST_kUserSpecialDirMusic:
+      ns_directory = NSMusicDirectory;
+      break;
+    case GHOST_kUserSpecialDirPictures:
+      ns_directory = NSPicturesDirectory;
+      break;
+    case GHOST_kUserSpecialDirVideos:
+      ns_directory = NSMoviesDirectory;
+      break;
+    default:
+      GHOST_ASSERT(
+          false,
+          "GHOST_SystemPathsCocoa::getUserSpecialDir(): Invalid enum value for type parameter");
+      [pool drain];
+      return NULL;
+  }
+
+  paths = NSSearchPathForDirectoriesInDomains(ns_directory, NSUserDomainMask, YES);
+
+  if ([paths count] > 0)
+    basePath = [paths objectAtIndex:0];
+  else {
+    [pool drain];
+    return NULL;
+  }
+
+  strncpy(
+      (char *)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding], sizeof(tempPath));
 
   [pool drain];
   return (GHOST_TUns8 *)tempPath;
