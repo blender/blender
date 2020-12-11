@@ -1243,5 +1243,20 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Make all IDProperties used as interface of geometry node trees overridable. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Nodes) {
+          NodesModifierData *nmd = (NodesModifierData *)md;
+          IDProperty *nmd_properties = nmd->settings.properties;
+
+          BLI_assert(nmd_properties->type == IDP_GROUP);
+          LISTBASE_FOREACH (IDProperty *, nmd_socket_idprop, &nmd_properties->data.group) {
+            nmd_socket_idprop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY;
+          }
+        }
+      }
+    }
   }
 }

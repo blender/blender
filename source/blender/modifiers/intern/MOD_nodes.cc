@@ -439,6 +439,8 @@ static IDProperty *socket_add_property(IDProperty *settings_prop_group,
   IDProperty *prop = property_type.create_prop(socket, new_prop_name);
   IDP_AddToGroup(settings_prop_group, prop);
 
+  prop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY;
+
   /* Make the group in the ui container group to hold the property's UI settings. */
   IDProperty *prop_ui_group;
   {
