@@ -187,8 +187,8 @@ class ViewLayerCryptomattePanel(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_cryptomatte_material", text="Material")
         col.prop(view_layer, "use_pass_cryptomatte_asset", text="Asset")
         col = layout.column()
-        col.active = any((view_layer.use_pass_cryptomatte_object, 
-                          view_layer.use_pass_cryptomatte_material, 
+        col.active = any((view_layer.use_pass_cryptomatte_object,
+                          view_layer.use_pass_cryptomatte_material,
                           view_layer.use_pass_cryptomatte_asset))
         col.prop(view_layer, "pass_cryptomatte_depth", text="Levels")
         col.prop(view_layer, "use_pass_cryptomatte_accurate", text="Accurate Mode")

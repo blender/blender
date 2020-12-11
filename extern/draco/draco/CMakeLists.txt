@@ -268,4 +268,3 @@ set(INC
 )
 
 blender_add_lib(draco "${SRC}" "${INC}" "" "${LIB}")
-
