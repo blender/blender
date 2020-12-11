@@ -282,6 +282,16 @@ int PyC_ParseStringEnum(PyObject *o, void *p)
   return 0;
 }
 
+const char *PyC_StringEnum_find_id(struct PyC_StringEnum *e, const int value)
+{
+  for (int i = 0; e->items[i].id; i++) {
+    if (e->items[i].value == value) {
+      return e->items[i].id;
+    }
+  }
+  return NULL;
+}
+
 /* silly function, we dont use arg. just check its compatible with __deepcopy__ */
 int PyC_CheckArgs_DeepCopy(PyObject *args)
 {

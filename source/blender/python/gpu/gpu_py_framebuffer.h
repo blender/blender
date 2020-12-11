@@ -20,13 +20,15 @@
 
 #pragma once
 
-#include "gpu_py_batch.h"
-#include "gpu_py_element.h"
-#include "gpu_py_framebuffer.h"
-#include "gpu_py_offscreen.h"
-#include "gpu_py_shader.h"
-#include "gpu_py_texture.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_vertex_format.h"
+#include "BLI_compiler_attrs.h"
 
-PyObject *BPyInit_gpu_types(void);
+extern PyTypeObject BPyGPUFrameBuffer_Type;
+
+#define BPyGPUFrameBuffer_Check(v) (Py_TYPE(v) == &BPyGPUFrameBuffer_Type)
+
+typedef struct BPyGPUFrameBuffer {
+  PyObject_HEAD struct GPUFrameBuffer *fb;
+} BPyGPUFrameBuffer;
+
+PyObject *BPyGPUFrameBuffer_CreatePyObject(struct GPUFrameBuffer *fb) ATTR_NONNULL(1);
+PyObject *BPyInit_gpu_framebuffer(void);

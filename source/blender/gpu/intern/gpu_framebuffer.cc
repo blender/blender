@@ -476,10 +476,8 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *gpu_fb,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name GPUOffScreen
+/** \name Framebuffer Push/Pop
  *
- * Container that holds a frame-buffer and its textures.
- * Might be bound to multiple contexts.
  * \{ */
 
 #define FRAMEBUFFER_STACK_DEPTH 16
@@ -489,21 +487,35 @@ static struct {
   uint top;
 } FrameBufferStack = {{nullptr}};
 
-static void gpuPushFrameBuffer(GPUFrameBuffer *fb)
+void GPU_framebuffer_push(GPUFrameBuffer *fb)
 {
   BLI_assert(FrameBufferStack.top < FRAMEBUFFER_STACK_DEPTH);
   FrameBufferStack.framebuffers[FrameBufferStack.top] = fb;
   FrameBufferStack.top++;
 }
 
-static GPUFrameBuffer *gpuPopFrameBuffer()
+GPUFrameBuffer *GPU_framebuffer_pop(void)
 {
   BLI_assert(FrameBufferStack.top > 0);
   FrameBufferStack.top--;
   return FrameBufferStack.framebuffers[FrameBufferStack.top];
 }
 
+uint GPU_framebuffer_stack_level_get(void)
+{
+  return FrameBufferStack.top;
+}
+
 #undef FRAMEBUFFER_STACK_DEPTH
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GPUOffScreen
+ *
+ * Container that holds a frame-buffer and its textures.
+ * Might be bound to multiple contexts.
+ * \{ */
 
 #define MAX_CTX_FB_LEN 3
 
@@ -614,7 +626,7 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
 {
   if (save) {
     GPUFrameBuffer *fb = GPU_framebuffer_active_get();
-    gpuPushFrameBuffer(fb);
+    GPU_framebuffer_push(fb);
   }
   unwrap(gpu_offscreen_fb_get(ofs))->bind(false);
 }
@@ -623,7 +635,7 @@ void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)
 {
   GPUFrameBuffer *fb = nullptr;
   if (restore) {
-    fb = gpuPopFrameBuffer();
+    fb = GPU_framebuffer_pop();
   }
 
   if (fb) {

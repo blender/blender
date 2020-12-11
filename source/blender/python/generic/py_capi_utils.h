@@ -142,6 +142,7 @@ struct PyC_StringEnum {
 };
 
 int PyC_ParseStringEnum(PyObject *o, void *p);
+const char *PyC_StringEnum_find_id(struct PyC_StringEnum *e, const int value);
 
 int PyC_CheckArgs_DeepCopy(PyObject *args);
 
