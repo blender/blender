@@ -452,7 +452,7 @@ BLI_INLINE bool SCULPT_tool_needs_all_pbvh_nodes(const Brush *brush)
   if (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) {
     /* Boundary needs all nodes because it is not possible to know where the boundary
      * deformation is going to be propagated before calculating it. */
-    /* TODO: after calculating the boudnary info in the first iteration, it should be
+    /* TODO: after calculating the boundary info in the first iteration, it should be
      * possible to get the nodes that have vertices included in any boundary deformation
      * and cache them. */
     return true;

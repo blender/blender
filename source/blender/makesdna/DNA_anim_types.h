@@ -612,9 +612,13 @@ typedef struct FCurve {
   char _pad[3];
 
   /* RNA - data link */
-  /** If applicable, the index of the RNA-array item to get. */
+  /** When the RNA property from `rna_path` is an array, use this to access the array index. */
   int array_index;
-  /** RNA-path to resolve data-access. */
+  /**
+   * RNA-path to resolve data-access, see: #RNA_path_resolve_property.
+   *
+   * \note String look-ups for collection and custom-properties are escaped using #BLI_str_escape.
+   */
   char *rna_path;
 
   /* curve coloring (for editor) */
