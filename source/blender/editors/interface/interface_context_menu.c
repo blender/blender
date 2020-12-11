@@ -38,6 +38,7 @@
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
 
+#include "ED_asset.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
 
@@ -950,6 +951,22 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
       ui_but_menu_add_path_operators(layout, ptr, prop);
       uiItemS(layout);
     }
+  }
+
+  /* If the button reprents an id, it can set the "id" context pointer. */
+  if (ED_asset_can_make_single_from_context(C)) {
+    ID *id = CTX_data_pointer_get_type(C, "id", &RNA_ID).data;
+
+    /* Gray out items depending on if data-block is an asset. Preferably this could be done via
+     * operator poll, but that doesn't work since the operator also works with "selected_ids",
+     * which isn't cheap to check. */
+    uiLayout *sub = uiLayoutColumn(layout, true);
+    uiLayoutSetEnabled(sub, !id->asset_data);
+    uiItemO(sub, NULL, ICON_NONE, "ASSET_OT_mark");
+    sub = uiLayoutColumn(layout, true);
+    uiLayoutSetEnabled(sub, id->asset_data);
+    uiItemO(sub, NULL, ICON_NONE, "ASSET_OT_clear");
+    uiItemS(layout);
   }
 
   /* Pointer properties and string properties with

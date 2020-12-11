@@ -121,6 +121,10 @@
  *  \ingroup editors
  */
 
+/** \defgroup edasset asset
+ *  \ingroup editors
+ */
+
 /** \defgroup edcurve curve
  *  \ingroup editors
  */

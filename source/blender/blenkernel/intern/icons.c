@@ -344,7 +344,7 @@ PreviewImage **BKE_previewimg_id_get_p(const ID *id)
     ID_PRV_CASE(ID_LA, Light);
     ID_PRV_CASE(ID_IM, Image);
     ID_PRV_CASE(ID_BR, Brush);
-    ID_PRV_CASE(ID_OB, Object);
+    // ID_PRV_CASE(ID_OB, Object);
     ID_PRV_CASE(ID_GR, Collection);
     ID_PRV_CASE(ID_SCE, Scene);
     ID_PRV_CASE(ID_SCR, bScreen);
@@ -354,6 +354,12 @@ PreviewImage **BKE_previewimg_id_get_p(const ID *id)
   }
 
   return NULL;
+}
+
+PreviewImage *BKE_previewimg_id_get(const ID *id)
+{
+  PreviewImage **prv_p = BKE_previewimg_id_get_p(id);
+  return prv_p ? *prv_p : NULL;
 }
 
 void BKE_previewimg_id_free(ID *id)

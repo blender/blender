@@ -40,6 +40,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
+#include "ED_asset.h"
 #include "ED_clip.h"
 #include "ED_curve.h"
 #include "ED_fileselect.h"
@@ -105,6 +106,7 @@ void ED_spacetypes_init(void)
   ED_operatortypes_screen();
   ED_operatortypes_anim();
   ED_operatortypes_animchannels();
+  ED_operatortypes_asset();
   ED_operatortypes_gpencil();
   ED_operatortypes_object();
   ED_operatortypes_lattice();

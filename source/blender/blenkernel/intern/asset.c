@@ -110,6 +110,14 @@ void BKE_asset_metadata_tag_remove(AssetMetaData *asset_data, AssetTag *tag)
   BLI_assert(BLI_listbase_count(&asset_data->tags) == asset_data->tot_tags);
 }
 
+/* Queries -------------------------------------------- */
+
+PreviewImage *BKE_asset_metadata_preview_get_from_id(const AssetMetaData *UNUSED(asset_data),
+                                                     const ID *id)
+{
+  return BKE_previewimg_id_get(id);
+}
+
 /* .blend file API -------------------------------------------- */
 
 void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)

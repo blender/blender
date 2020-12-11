@@ -298,6 +298,8 @@ void BKE_id_tag_clear_atomic(struct ID *id, int tag);
 
 bool BKE_id_is_in_global_main(struct ID *id);
 
+bool BKE_id_can_be_asset(const struct ID *id);
+
 void BKE_id_ordered_list(struct ListBase *ordered_lb, const struct ListBase *lb);
 void BKE_id_reorder(const struct ListBase *lb, struct ID *id, struct ID *relative, bool after);
 

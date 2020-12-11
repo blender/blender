@@ -46,6 +46,9 @@ struct AssetTagEnsureResult BKE_asset_metadata_tag_ensure(struct AssetMetaData *
                                                           const char *name);
 void BKE_asset_metadata_tag_remove(struct AssetMetaData *asset_data, struct AssetTag *tag);
 
+struct PreviewImage *BKE_asset_metadata_preview_get_from_id(const struct AssetMetaData *asset_data,
+                                                            const struct ID *owner_id);
+
 void BKE_asset_metadata_write(struct BlendWriter *writer, struct AssetMetaData *asset_data);
 void BKE_asset_metadata_read(struct BlendDataReader *reader, struct AssetMetaData *asset_data);
 

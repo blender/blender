@@ -129,6 +129,8 @@ void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
 
 /* get the preview from any pointer */
 struct PreviewImage **BKE_previewimg_id_get_p(const struct ID *id);
+struct PreviewImage *BKE_previewimg_id_get(const struct ID *id);
+
 
 /* Trigger deferred loading of a custom image file into the preview buffer. */
 void BKE_previewimg_id_custom_set(struct ID *id, const char *path);

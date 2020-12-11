@@ -2266,6 +2266,12 @@ bool BKE_id_is_in_global_main(ID *id)
   return (id == NULL || BLI_findindex(which_libbase(G_MAIN, GS(id->name)), id) != -1);
 }
 
+bool BKE_id_can_be_asset(const ID *id)
+{
+  return !ID_IS_LINKED(id) && !ID_IS_OVERRIDE_LIBRARY(id) &&
+         BKE_idtype_idcode_is_linkable(GS(id->name));
+}
+
 /************************* Datablock order in UI **************************/
 
 static int *id_order_get(ID *id)
