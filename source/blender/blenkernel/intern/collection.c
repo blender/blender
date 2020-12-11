@@ -1773,6 +1773,15 @@ static void layer_collection_flags_store(Main *bmain,
   }
 }
 
+static void layer_collection_flags_free_recursive(LayerCollectionFlag *flag)
+{
+  LISTBASE_FOREACH (LayerCollectionFlag *, child, &flag->children) {
+    layer_collection_flags_free_recursive(child);
+  }
+
+  BLI_freelistN(&flag->children);
+}
+
 static void layer_collection_flags_restore_recursive(LayerCollection *layer_collection,
                                                      LayerCollectionFlag *flag)
 {
@@ -1788,7 +1797,6 @@ static void layer_collection_flags_restore_recursive(LayerCollection *layer_coll
 
     child_flag = child_flag->next;
   }
-  BLI_freelistN(&flag->children);
 
   /* We treat exclude as a special case.
    *
@@ -1814,10 +1822,15 @@ static void layer_collection_flags_restore(ListBase *flags, const Collection *co
 
     LayerCollection *layer_collection = BKE_layer_collection_first_from_scene_collection(
         view_layer, collection);
-    /* The flags should only be added if the collection is in the view layer. */
-    BLI_assert(layer_collection != NULL);
-
-    layer_collection_flags_restore_recursive(layer_collection, flag);
+    /* Check that the collection is still in the scene (and therefore its view layers). In most
+     * cases this is true, but if we move a sub-collection shared by several scenes to a collection
+     * local to the target scene, it is effectively removed from every other scene's hierarchy
+     * (e.g. moving into current scene's master collection). Then the other scene's view layers
+     * won't contain a matching layer collection anymore, so there is nothing to restore to. */
+    if (layer_collection != NULL) {
+      layer_collection_flags_restore_recursive(layer_collection, flag);
+    }
+    layer_collection_flags_free_recursive(flag);
   }
 
   BLI_freelistN(flags);
@@ -1877,7 +1890,7 @@ bool BKE_collection_move(Main *bmain,
   /* Create and remove layer collections. */
   BKE_main_collection_sync(bmain);
 
-  /* Restore the original layer collection flags. */
+  /* Restore the original layer collection flags and free their temporary storage. */
   if (do_flag_sync) {
     layer_collection_flags_restore(&layer_flags, collection);
   }
