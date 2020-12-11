@@ -144,7 +144,7 @@ class MultiDevice : public Device {
       delete sub.device;
   }
 
-  const string &error_message()
+  const string &error_message() override
   {
     error_msg.clear();
 
@@ -156,7 +156,7 @@ class MultiDevice : public Device {
     return error_msg;
   }
 
-  virtual bool show_samples() const
+  virtual bool show_samples() const override
   {
     if (devices.size() > 1) {
       return false;
@@ -164,7 +164,7 @@ class MultiDevice : public Device {
     return devices.front().device->show_samples();
   }
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const
+  virtual BVHLayoutMask get_bvh_layout_mask() const override
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;
     BVHLayoutMask bvh_layout_mask_all = BVH_LAYOUT_NONE;
@@ -188,7 +188,7 @@ class MultiDevice : public Device {
     return bvh_layout_mask;
   }
 
-  bool load_kernels(const DeviceRequestedFeatures &requested_features)
+  bool load_kernels(const DeviceRequestedFeatures &requested_features) override
   {
     foreach (SubDevice &sub, devices)
       if (!sub.device->load_kernels(requested_features))
@@ -206,7 +206,7 @@ class MultiDevice : public Device {
     return true;
   }
 
-  bool wait_for_availability(const DeviceRequestedFeatures &requested_features)
+  bool wait_for_availability(const DeviceRequestedFeatures &requested_features) override
   {
     foreach (SubDevice &sub, devices)
       if (!sub.device->wait_for_availability(requested_features))
@@ -221,7 +221,7 @@ class MultiDevice : public Device {
     return true;
   }
 
-  DeviceKernelStatus get_active_kernel_switch_state()
+  DeviceKernelStatus get_active_kernel_switch_state() override
   {
     DeviceKernelStatus result = DEVICE_KERNEL_USING_FEATURE_KERNEL;
 
@@ -299,7 +299,7 @@ class MultiDevice : public Device {
     }
   }
 
-  virtual void *osl_memory()
+  virtual void *osl_memory() override
   {
     if (devices.size() > 1) {
       return NULL;
@@ -307,7 +307,7 @@ class MultiDevice : public Device {
     return devices.front().device->osl_memory();
   }
 
-  bool is_resident(device_ptr key, Device *sub_device)
+  bool is_resident(device_ptr key, Device *sub_device) override
   {
     foreach (SubDevice &sub, devices) {
       if (sub.device == sub_device) {
@@ -354,7 +354,7 @@ class MultiDevice : public Device {
     return find_matching_mem_device(key, sub)->ptr_map[key];
   }
 
-  void mem_alloc(device_memory &mem)
+  void mem_alloc(device_memory &mem) override
   {
     device_ptr key = unique_key++;
 
@@ -390,7 +390,7 @@ class MultiDevice : public Device {
     stats.mem_alloc(mem.device_size);
   }
 
-  void mem_copy_to(device_memory &mem)
+  void mem_copy_to(device_memory &mem) override
   {
     device_ptr existing_key = mem.device_pointer;
     device_ptr key = (existing_key) ? existing_key : unique_key++;
@@ -433,7 +433,7 @@ class MultiDevice : public Device {
     stats.mem_alloc(mem.device_size - existing_size);
   }
 
-  void mem_copy_from(device_memory &mem, int y, int w, int h, int elem)
+  void mem_copy_from(device_memory &mem, int y, int w, int h, int elem) override
   {
     device_ptr key = mem.device_pointer;
     int i = 0, sub_h = h / devices.size();
@@ -454,7 +454,7 @@ class MultiDevice : public Device {
     mem.device_pointer = key;
   }
 
-  void mem_zero(device_memory &mem)
+  void mem_zero(device_memory &mem) override
   {
     device_ptr existing_key = mem.device_pointer;
     device_ptr key = (existing_key) ? existing_key : unique_key++;
@@ -509,7 +509,7 @@ class MultiDevice : public Device {
     stats.mem_alloc(mem.device_size - existing_size);
   }
 
-  void mem_free(device_memory &mem)
+  void mem_free(device_memory &mem) override
   {
     device_ptr key = mem.device_pointer;
     size_t existing_size = mem.device_size;
@@ -565,7 +565,7 @@ class MultiDevice : public Device {
     stats.mem_free(existing_size);
   }
 
-  void const_copy_to(const char *name, void *host, size_t size)
+  void const_copy_to(const char *name, void *host, size_t size) override
   {
     foreach (SubDevice &sub, devices)
       sub.device->const_copy_to(name, host, size);
@@ -582,7 +582,7 @@ class MultiDevice : public Device {
                    int dw,
                    int dh,
                    bool transparent,
-                   const DeviceDrawParams &draw_params)
+                   const DeviceDrawParams &draw_params) override
   {
     assert(rgba.type == MEM_PIXELS);
 
@@ -606,7 +606,7 @@ class MultiDevice : public Device {
     rgba.device_pointer = key;
   }
 
-  void map_tile(Device *sub_device, RenderTile &tile)
+  void map_tile(Device *sub_device, RenderTile &tile) override
   {
     if (!tile.buffer) {
       return;
@@ -627,7 +627,7 @@ class MultiDevice : public Device {
     }
   }
 
-  int device_number(Device *sub_device)
+  int device_number(Device *sub_device) override
   {
     int i = 0;
 
@@ -646,7 +646,7 @@ class MultiDevice : public Device {
     return -1;
   }
 
-  void map_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors)
+  void map_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors) override
   {
     for (int i = 0; i < RenderTileNeighbors::SIZE; i++) {
       RenderTile &tile = neighbors.tiles[i];
@@ -698,7 +698,7 @@ class MultiDevice : public Device {
     }
   }
 
-  void unmap_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors)
+  void unmap_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors) override
   {
     RenderTile &target_tile = neighbors.target;
     device_vector<float> &mem = target_tile.buffers->buffer;
@@ -732,7 +732,7 @@ class MultiDevice : public Device {
     }
   }
 
-  int get_split_task_count(DeviceTask &task)
+  int get_split_task_count(DeviceTask &task) override
   {
     int total_tasks = 0;
     list<DeviceTask> tasks;
@@ -748,7 +748,7 @@ class MultiDevice : public Device {
     return total_tasks;
   }
 
-  void task_add(DeviceTask &task)
+  void task_add(DeviceTask &task) override
   {
     list<SubDevice> task_devices = devices;
     if (!denoising_devices.empty()) {
@@ -798,7 +798,7 @@ class MultiDevice : public Device {
     }
   }
 
-  void task_wait()
+  void task_wait() override
   {
     foreach (SubDevice &sub, devices)
       sub.device->task_wait();
@@ -806,7 +806,7 @@ class MultiDevice : public Device {
       sub.device->task_wait();
   }
 
-  void task_cancel()
+  void task_cancel() override
   {
     foreach (SubDevice &sub, devices)
       sub.device->task_cancel();
