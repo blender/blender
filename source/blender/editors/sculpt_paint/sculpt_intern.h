@@ -926,6 +926,10 @@ typedef struct StrokeCache {
 
   float (*prev_colors)[4];
 
+  /* Multires Displacement Smear. */
+  float (*prev_displacement)[3];
+  float (*limit_surface_co)[3];
+
   /* The rest is temporary storage that isn't saved as a property */
 
   bool first_time; /* Beginning of stroke may do some things special */

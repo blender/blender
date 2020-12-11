@@ -1227,6 +1227,7 @@ static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
               SCULPT_TOOL_SMOOTH,
               SCULPT_TOOL_LAYER,
               SCULPT_TOOL_POSE,
+              SCULPT_TOOL_DISPLACEMENT_SMEAR,
               SCULPT_TOOL_BOUNDARY,
               SCULPT_TOOL_CLOTH,
               SCULPT_TOOL_PAINT,
@@ -2362,6 +2363,7 @@ static float brush_strength(const Sculpt *sd,
       final_pressure = pressure * pressure;
       return final_pressure * overlap * feather;
     case SCULPT_TOOL_SMEAR:
+    case SCULPT_TOOL_DISPLACEMENT_SMEAR:
       return alpha * pressure * overlap * feather;
     case SCULPT_TOOL_CLAY_STRIPS:
       /* Clay Strips needs less strength to compensate the curve. */
@@ -3099,6 +3101,147 @@ static void do_displacement_eraser_brush(Sculpt *sd, Object *ob, PBVHNode **node
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_displacement_eraser_brush_task_cb_ex, &settings);
+}
+
+/** \} */
+
+/** \name Sculpt Multires Displacement Smear Brush
+ * \{ */
+
+static void do_displacement_smear_brush_task_cb_ex(void *__restrict userdata,
+                                                   const int n,
+                                                   const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  const float bstrength = clamp_f(ss->cache->bstrength, 0.0f, 1.0f);
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                sqrtf(test.dist),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.index,
+                                                                thread_id);
+
+    float current_disp[3];
+    float current_disp_norm[3];
+    float interp_limit_surface_disp[3];
+
+    copy_v3_v3(interp_limit_surface_disp, ss->cache->prev_displacement[vd.index]);
+
+    switch (brush->smear_deform_type) {
+      case BRUSH_SMEAR_DEFORM_DRAG:
+        sub_v3_v3v3(current_disp, ss->cache->location, ss->cache->last_location);
+        break;
+      case BRUSH_SMEAR_DEFORM_PINCH:
+        sub_v3_v3v3(current_disp, ss->cache->location, vd.co);
+        break;
+      case BRUSH_SMEAR_DEFORM_EXPAND:
+        sub_v3_v3v3(current_disp, vd.co, ss->cache->location);
+        break;
+    }
+
+    normalize_v3_v3(current_disp_norm, current_disp);
+    mul_v3_v3fl(current_disp, current_disp_norm, ss->cache->bstrength);
+
+    float weights_accum = 1.0f;
+
+    SculptVertexNeighborIter ni;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+      float vertex_disp[3];
+      float vertex_disp_norm[3];
+      float neighbor_limit_co[3];
+      SCULPT_vertex_limit_surface_get(ss, ni.index, neighbor_limit_co);
+      sub_v3_v3v3(vertex_disp,
+                  ss->cache->limit_surface_co[ni.index],
+                  ss->cache->limit_surface_co[vd.index]);
+      const float *neighbor_limit_surface_disp = ss->cache->prev_displacement[ni.index];
+      normalize_v3_v3(vertex_disp_norm, vertex_disp);
+      if (dot_v3v3(current_disp_norm, vertex_disp_norm) < 0.0f) {
+        const float disp_interp = clamp_f(
+            -dot_v3v3(current_disp_norm, vertex_disp_norm), 0.0f, 1.0f);
+        madd_v3_v3fl(interp_limit_surface_disp, neighbor_limit_surface_disp, disp_interp);
+        weights_accum += disp_interp;
+      }
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    mul_v3_fl(interp_limit_surface_disp, 1.0f / weights_accum);
+
+    float new_co[3];
+    add_v3_v3v3(new_co, ss->cache->limit_surface_co[vd.index], interp_limit_surface_disp);
+    interp_v3_v3v3(vd.co, vd.co, new_co, fade);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void do_displacement_smear_store_prev_disp_task_cb_ex(
+    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    sub_v3_v3v3(ss->cache->prev_displacement[vd.index],
+                SCULPT_vertex_co_get(ss, vd.index),
+                ss->cache->limit_surface_co[vd.index]);
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void do_displacement_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  SculptSession *ss = ob->sculpt;
+
+  BKE_curvemapping_init(brush->curve);
+
+  const int totvert = SCULPT_vertex_count_get(ss);
+  if (!ss->cache->prev_displacement) {
+    ss->cache->prev_displacement = MEM_malloc_arrayN(
+        totvert, sizeof(float[3]), "prev displacement");
+    ss->cache->limit_surface_co = MEM_malloc_arrayN(totvert, sizeof(float[3]), "limit surface co");
+    for (int i = 0; i < totvert; i++) {
+      SCULPT_vertex_limit_surface_get(ss, i, ss->cache->limit_surface_co[i]);
+      sub_v3_v3v3(ss->cache->prev_displacement[i],
+                  SCULPT_vertex_co_get(ss, i),
+                  ss->cache->limit_surface_co[i]);
+    }
+  }
+  /* Threaded loop over nodes. */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(
+      0, totnode, &data, do_displacement_smear_store_prev_disp_task_cb_ex, &settings);
+  BLI_task_parallel_range(0, totnode, &data, do_displacement_smear_brush_task_cb_ex, &settings);
 }
 
 /** \} */
@@ -5927,6 +6070,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       case SCULPT_TOOL_DISPLACEMENT_ERASER:
         do_displacement_eraser_brush(sd, ob, nodes, totnode);
         break;
+      case SCULPT_TOOL_DISPLACEMENT_SMEAR:
+        do_displacement_smear_brush(sd, ob, nodes, totnode);
+        break;
       case SCULPT_TOOL_PAINT:
         SCULPT_do_paint_brush(sd, ob, nodes, totnode);
         break;
@@ -6490,6 +6636,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Draw Face Sets";
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
       return "Multires Displacement Eraser";
+    case SCULPT_TOOL_DISPLACEMENT_SMEAR:
+      return "Multires Displacement Smear";
     case SCULPT_TOOL_PAINT:
       return "Paint Brush";
     case SCULPT_TOOL_SMEAR:
@@ -6510,6 +6658,8 @@ void SCULPT_cache_free(StrokeCache *cache)
   MEM_SAFE_FREE(cache->layer_displacement_factor);
   MEM_SAFE_FREE(cache->prev_colors);
   MEM_SAFE_FREE(cache->detail_directions);
+  MEM_SAFE_FREE(cache->prev_displacement);
+  MEM_SAFE_FREE(cache->limit_surface_co);
 
   if (cache->pose_ik_chain) {
     SCULPT_pose_ik_chain_free(cache->pose_ik_chain);
@@ -6681,6 +6831,7 @@ static void sculpt_update_cache_invariants(
                                    SCULPT_TOOL_MASK,
                                    SCULPT_TOOL_SMOOTH,
                                    SCULPT_TOOL_SIMPLIFY,
+                                   SCULPT_TOOL_DISPLACEMENT_SMEAR,
                                    SCULPT_TOOL_DISPLACEMENT_ERASER) &&
                              (sd->gravity_factor > 0.0f));
   /* Get gravity vector in world space. */

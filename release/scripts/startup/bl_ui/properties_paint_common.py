@@ -764,6 +764,10 @@ def brush_settings(layout, context, brush, popover=False):
                 col.prop(brush, "surface_smooth_current_vertex")
                 col.prop(brush, "surface_smooth_iterations")
 
+        elif sculpt_tool == 'DISPLACEMENT_SMEAR':
+            col = layout.column()
+            col.prop(brush, "smear_deform_type")
+
         elif sculpt_tool == 'MASK':
             layout.row().prop(brush, "mask_tool", expand=True)
 

@@ -1834,6 +1834,14 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_SPHERE;
       break;
+    case SCULPT_TOOL_DISPLACEMENT_SMEAR:
+      br->alpha = 1.0f;
+      br->spacing = 5;
+      br->hardness = 0.7f;
+      br->flag &= ~BRUSH_ALPHA_PRESSURE;
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      br->curve_preset = BRUSH_CURVE_SMOOTHER;
+      break;
     default:
       break;
   }
@@ -1898,6 +1906,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_MASK:
     case SCULPT_TOOL_DRAW_FACE_SETS:
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
+    case SCULPT_TOOL_DISPLACEMENT_SMEAR:
       br->add_col[0] = 0.75f;
       br->add_col[1] = 0.75f;
       br->add_col[2] = 0.75f;
