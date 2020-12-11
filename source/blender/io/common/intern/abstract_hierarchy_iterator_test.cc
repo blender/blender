@@ -36,7 +36,7 @@ namespace {
 
 /* Mapping from ID.name to set of export hierarchy path. Duplicated objects can be exported
  * multiple times with different export paths, hence the set. */
-typedef std::map<std::string, std::set<std::string>> used_writers;
+using used_writers = std::map<std::string, std::set<std::string>>;
 
 class TestHierarchyWriter : public AbstractHierarchyWriter {
  public:
