@@ -44,6 +44,7 @@ struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
 struct uiBlock;
+struct Collection;
 
 #define NODE_MAXSTR 64
 
@@ -160,6 +161,7 @@ typedef enum eNodeSocketDatatype {
   SOCK_OBJECT = 8,
   SOCK_IMAGE = 9,
   SOCK_GEOMETRY = 10,
+  SOCK_COLLECTION = 11,
 } eNodeSocketDatatype;
 
 /* socket shape */
@@ -579,6 +581,10 @@ typedef struct bNodeSocketValueObject {
 typedef struct bNodeSocketValueImage {
   struct Image *value;
 } bNodeSocketValueImage;
+
+typedef struct bNodeSocketValueCollection {
+  struct Collection *value;
+} bNodeSocketValueCollection;
 
 /* data structs, for node->storage */
 enum {

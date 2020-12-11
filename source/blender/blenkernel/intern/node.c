@@ -274,6 +274,11 @@ static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket 
       BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
       break;
     }
+    case SOCK_COLLECTION: {
+      bNodeSocketValueCollection *default_value = sock->default_value;
+      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      break;
+    }
     case SOCK_FLOAT:
     case SOCK_VECTOR:
     case SOCK_RGBA:
@@ -372,6 +377,9 @@ static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *so
       break;
     case SOCK_IMAGE:
       BLO_write_struct(writer, bNodeSocketValueImage, sock->default_value);
+      break;
+    case SOCK_COLLECTION:
+      BLO_write_struct(writer, bNodeSocketValueCollection, sock->default_value);
       break;
     case __SOCK_MESH:
     case SOCK_CUSTOM:
@@ -709,6 +717,11 @@ static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSock
       BLO_read_id_address(reader, lib, &default_value->value);
       break;
     }
+    case SOCK_COLLECTION: {
+      bNodeSocketValueImage *default_value = sock->default_value;
+      BLO_read_id_address(reader, lib, &default_value->value);
+      break;
+    }
     case SOCK_FLOAT:
     case SOCK_VECTOR:
     case SOCK_RGBA:
@@ -785,6 +798,11 @@ static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
       }
       case SOCK_IMAGE: {
         bNodeSocketValueImage *default_value = sock->default_value;
+        BLO_expand(expander, default_value->value);
+        break;
+      }
+      case SOCK_COLLECTION: {
+        bNodeSocketValueCollection *default_value = sock->default_value;
         BLO_expand(expander, default_value->value);
         break;
       }
@@ -1345,6 +1363,11 @@ static void socket_id_user_increment(bNodeSocket *sock)
       id_us_plus((ID *)default_value->value);
       break;
     }
+    case SOCK_COLLECTION: {
+      bNodeSocketValueCollection *default_value = sock->default_value;
+      id_us_plus((ID *)default_value->value);
+      break;
+    }
     case SOCK_FLOAT:
     case SOCK_VECTOR:
     case SOCK_RGBA:
@@ -1369,6 +1392,11 @@ static void socket_id_user_decrement(bNodeSocket *sock)
     }
     case SOCK_IMAGE: {
       bNodeSocketValueImage *default_value = sock->default_value;
+      id_us_min(&default_value->value->id);
+      break;
+    }
+    case SOCK_COLLECTION: {
+      bNodeSocketValueCollection *default_value = sock->default_value;
       id_us_min(&default_value->value->id);
       break;
     }
@@ -1511,6 +1539,8 @@ const char *nodeStaticSocketType(int type, int subtype)
       return "NodeSocketImage";
     case SOCK_GEOMETRY:
       return "NodeSocketGeometry";
+    case SOCK_COLLECTION:
+      return "NodeSocketCollection";
   }
   return NULL;
 }
@@ -1578,6 +1608,8 @@ const char *nodeStaticSocketInterfaceType(int type, int subtype)
       return "NodeSocketInterfaceImage";
     case SOCK_GEOMETRY:
       return "NodeSocketInterfaceGeometry";
+    case SOCK_COLLECTION:
+      return "NodeSocketInterfaceCollection";
   }
   return NULL;
 }

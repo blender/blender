@@ -451,6 +451,14 @@ static int node_datatype_priority(eNodeSocketDatatype from, eNodeSocketDatatype 
           return -1;
       }
     }
+    case SOCK_COLLECTION: {
+      switch (from) {
+        case SOCK_COLLECTION:
+          return 1;
+        default:
+          return -1;
+      }
+    }
     default:
       return -1;
   }

@@ -3414,6 +3414,7 @@ static const float std_node_socket_colors[][4] = {
     {0.93, 0.62, 0.36, 1.0}, /* SOCK_OBJECT */
     {0.89, 0.76, 0.43, 1.0}, /* SOCK_IMAGE */
     {0.00, 0.84, 0.64, 1.0}, /* SOCK_GEOMETRY */
+    {0.96, 0.96, 0.96, 1.0}, /* SOCK_COLLECTION */
 };
 
 /* common color callbacks for standard types */
@@ -3534,6 +3535,10 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_IMAGE: {
+      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      break;
+    }
+    case SOCK_COLLECTION: {
       uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
       break;
     }

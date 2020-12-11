@@ -280,6 +280,15 @@ void node_socket_init_default_value(bNodeSocket *sock)
       sock->default_value = dval;
       break;
     }
+    case SOCK_COLLECTION: {
+      bNodeSocketValueCollection *dval = (bNodeSocketValueCollection *)MEM_callocN(
+          sizeof(bNodeSocketValueCollection), "node socket value object");
+      dval->value = nullptr;
+
+      sock->default_value = dval;
+      break;
+      break;
+    }
   }
 }
 
@@ -348,6 +357,13 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
     case SOCK_IMAGE: {
       bNodeSocketValueImage *toval = (bNodeSocketValueImage *)to->default_value;
       bNodeSocketValueImage *fromval = (bNodeSocketValueImage *)from->default_value;
+      *toval = *fromval;
+      id_us_plus(&toval->value->id);
+      break;
+    }
+    case SOCK_COLLECTION: {
+      bNodeSocketValueCollection *toval = (bNodeSocketValueCollection *)to->default_value;
+      bNodeSocketValueCollection *fromval = (bNodeSocketValueCollection *)from->default_value;
       *toval = *fromval;
       id_us_plus(&toval->value->id);
       break;
@@ -673,6 +689,12 @@ static bNodeSocketType *make_socket_type_geometry()
   return socktype;
 }
 
+static bNodeSocketType *make_socket_type_collection()
+{
+  bNodeSocketType *socktype = make_standard_socket_type(SOCK_COLLECTION, PROP_NONE);
+  return socktype;
+}
+
 void register_standard_node_socket_types(void)
 {
   /* draw callbacks are set in drawnode.c to avoid bad-level calls */
@@ -710,6 +732,8 @@ void register_standard_node_socket_types(void)
   nodeRegisterSocketType(make_standard_socket_type(SOCK_IMAGE, PROP_NONE));
 
   nodeRegisterSocketType(make_socket_type_geometry());
+
+  nodeRegisterSocketType(make_socket_type_collection());
 
   nodeRegisterSocketType(make_socket_type_virtual());
 }

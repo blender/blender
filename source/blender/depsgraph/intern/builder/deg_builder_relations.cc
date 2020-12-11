@@ -2316,6 +2316,12 @@ void DepsgraphRelationBuilder::build_nodetree_socket(bNodeSocket *socket)
       build_image(image);
     }
   }
+  else if (socket->type == SOCK_COLLECTION) {
+    Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value;
+    if (collection != nullptr) {
+      build_collection(nullptr, nullptr, collection);
+    }
+  }
 }
 
 void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
