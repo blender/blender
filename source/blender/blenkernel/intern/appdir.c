@@ -36,6 +36,8 @@
 #include "BKE_appdir.h" /* own include */
 #include "BKE_blender_version.h"
 
+#include "BLT_translation.h"
+
 #include "GHOST_Path-api.h"
 
 #include "MEM_guardedalloc.h"
@@ -146,47 +148,74 @@ static char *blender_version_decimal(const int version)
  * \{ */
 
 /**
- * This is now only used to really get the user's default document folder.
+ * Get the folder that's the "natural" starting point for browsing files on an OS. On Unix that is
+ * $HOME, on Windows it is %userprofile%/Documents.
  *
- * \note On Windows `Users/{MyUserName}/Documents` is used
- * as it's the default location to save documents.
+ * \note On Windows `Users/{MyUserName}/Documents` is used as it's the default location to save
+ *       documents.
  */
 const char *BKE_appdir_folder_default(void)
 {
 #ifndef WIN32
-  const char *const xdg_documents_dir = BLI_getenv("XDG_DOCUMENTS_DIR");
-
-  if (xdg_documents_dir) {
-    return xdg_documents_dir;
-  }
-
   return BLI_getenv("HOME");
 #else  /* Windows */
   static char documentfolder[MAXPATHLEN];
-  HRESULT hResult;
 
-  /* Check for `%HOME%` environment variable. */
-  if (uput_getenv("HOME", documentfolder, MAXPATHLEN)) {
-    if (BLI_is_dir(documentfolder)) {
-      return documentfolder;
-    }
-  }
-
-  /* Add user profile support for WIN 2K / NT.
-   * This is `%APPDATA%`, which translates to either:
-   * - `%USERPROFILE%\Application Data` or...
-   * - `%USERPROFILE%\AppData\Roaming` (since Vista).
-   */
-  hResult = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documentfolder);
-
-  if (hResult == S_OK) {
-    if (BLI_is_dir(documentfolder)) {
-      return documentfolder;
-    }
+  if (BKE_appdir_folder_documents(documentfolder)) {
+    return documentfolder;
   }
 
   return NULL;
 #endif /* WIN32 */
+}
+
+/**
+ * Get the user's home directory, i.e. $HOME on UNIX, %userprofile% on Windows.
+ */
+const char *BKE_appdir_folder_home(void)
+{
+#ifndef WIN32
+  return BLI_getenv("HOME");
+#else /* Windows */
+  return BLI_getenv("userprofile");
+#endif
+}
+
+/**
+ * Get the user's document directory, i.e. $HOME/Documents on Linux, %userprofile%/Documents on
+ * Windows. If this can't be found using OS queries (via Ghost), try manually finding it.
+ *
+ * \returns True if the path is valid and points to an existing directory.
+ */
+bool BKE_appdir_folder_documents(char *dir)
+{
+  dir[0] = '\0';
+
+  const char *documents_path = (const char *)GHOST_getUserSpecialDir(
+      GHOST_kUserSpecialDirDocuments);
+
+  /* Usual case: Ghost gave us the documents path. We're done here. */
+  if (documents_path && BLI_is_dir(documents_path)) {
+    BLI_strncpy(dir, documents_path, FILE_MAXDIR);
+    return true;
+  }
+
+  /* Ghost couldn't give us a documents path, let's try if we can find it ourselves.*/
+
+  const char *home_path = BKE_appdir_folder_home();
+  if (!home_path || !BLI_is_dir(home_path)) {
+    return false;
+  }
+
+  char try_documents_path[FILE_MAXDIR];
+  /* Own attempt at getting a valid Documents path. */
+  BLI_path_join(try_documents_path, sizeof(try_documents_path), home_path, N_("Documents"), NULL);
+  if (!BLI_is_dir(try_documents_path)) {
+    return false;
+  }
+
+  BLI_strncpy(dir, try_documents_path, FILE_MAXDIR);
+  return true;
 }
 
 /**
