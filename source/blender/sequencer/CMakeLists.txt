@@ -21,6 +21,7 @@
 set(INC
   .
   intern
+  ../blenfont
   ../blenkernel
   ../blenlib
   ../blenloader
@@ -30,7 +31,6 @@ set(INC
   ../makesdna
   ../makesrna
   ../render
-  ../blenfont
   ../windowmanager
   ../../../intern/atomic
   ../../../intern/guardedalloc

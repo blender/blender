@@ -29,11 +29,11 @@ blender_include_dirs(
   ../blender/blenloader
   ../blender/depsgraph
   ../blender/editors/include
+  ../blender/gpu
   ../blender/imbuf
+  ../blender/makesdna
   ../blender/makesrna
   ../blender/render
-  ../blender/gpu
-  ../blender/makesdna
   ../blender/windowmanager
 )
 

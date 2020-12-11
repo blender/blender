@@ -35,11 +35,11 @@ set(INC
 set(SRC
   uvedit_buttons.c
   uvedit_draw.c
+  uvedit_islands.c
   uvedit_ops.c
   uvedit_parametrizer.c
   uvedit_path.c
   uvedit_rip.c
-  uvedit_islands.c
   uvedit_select.c
   uvedit_smart_stitch.c
   uvedit_unwrap_ops.c

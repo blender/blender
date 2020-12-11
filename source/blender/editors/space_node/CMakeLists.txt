@@ -21,6 +21,7 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../blentranslation
+  ../../compositor
   ../../depsgraph
   ../../draw
   ../../gpu
@@ -29,7 +30,6 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../render
-  ../../compositor
   ../../windowmanager
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc

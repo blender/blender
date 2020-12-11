@@ -22,12 +22,12 @@ set(INC
   ../../blenlib
   ../../blentranslation
   ../../bmesh
+  ../../depsgraph
   ../../gpu
   ../../ikplugin
   ../../makesdna
   ../../makesrna
   ../../render
-  ../../depsgraph
   ../../sequencer
   ../../windowmanager
   ../../../../intern/glew-mx
