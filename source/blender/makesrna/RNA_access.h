@@ -70,6 +70,8 @@ extern StructRNA RNA_ArrayGpencilModifier;
 extern StructRNA RNA_ArrayModifier;
 extern StructRNA RNA_Attribute;
 extern StructRNA RNA_AttributeGroup;
+extern StructRNA RNA_AssetMetaData;
+extern StructRNA RNA_AssetTag;
 extern StructRNA RNA_BackgroundImage;
 extern StructRNA RNA_BevelModifier;
 extern StructRNA RNA_BezierSplinePoint;

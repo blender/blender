@@ -23,6 +23,7 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_action_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_anim_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_armature_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_asset_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_boid_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_brush_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_brush_types.h

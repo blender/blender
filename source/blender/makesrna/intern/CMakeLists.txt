@@ -31,6 +31,7 @@ set(DEFSRC
   rna_animviz.c
   rna_armature.c
   rna_attribute.c
+  rna_asset.c
   rna_boid.c
   rna_brush.c
   rna_cachefile.c

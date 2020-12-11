@@ -138,6 +138,7 @@ set(SRC
   ../../blenlib/intern/hash_mm2a.c
   ../../blenlib/intern/listbase.c
 
+  ../DNA_asset_defaults.h
   ../DNA_brush_defaults.h
   ../DNA_cachefile_defaults.h
   ../DNA_camera_defaults.h

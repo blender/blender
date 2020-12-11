@@ -56,6 +56,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_armature.h"
+#include "BKE_asset.h"
 #include "BKE_bpath.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -2362,6 +2363,10 @@ void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after)
 
 void BKE_id_blend_write(BlendWriter *writer, ID *id)
 {
+  if (id->asset_data) {
+    BKE_asset_metadata_write(writer, id->asset_data);
+  }
+
   /* ID_WM's id->properties are considered runtime only, and never written in .blend file. */
   if (id->properties && !ELEM(GS(id->name), ID_WM)) {
     IDP_BlendWrite(writer, id->properties);

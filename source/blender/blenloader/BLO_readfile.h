@@ -119,12 +119,20 @@ void BLO_blendfiledata_free(BlendFileData *bfd);
 /** \name BLO Blend File Handle API
  * \{ */
 
+struct BLODataBlockInfo {
+  char name[64]; /* MAX_NAME */
+  struct AssetMetaData *asset_data;
+};
+
 BlendHandle *BLO_blendhandle_from_file(const char *filepath, struct ReportList *reports);
 BlendHandle *BLO_blendhandle_from_memory(const void *mem, int memsize);
 
 struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
                                                      int ofblocktype,
                                                      int *tot_names);
+struct LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
+                                                    int ofblocktype,
+                                                    int *tot_info_items);
 struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *tot_prev);
 struct LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
 
