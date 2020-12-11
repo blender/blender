@@ -1486,10 +1486,11 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "texture_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "tex_mode");
   RNA_def_property_enum_items(prop, texture_items);
-  RNA_def_property_ui_text(prop,
-                           "Texture Mode",
-                           "How the texture effect is calculated (RGB and Curl need a RGB texture, "
-                           "else Gradient will be used instead)");
+  RNA_def_property_ui_text(
+      prop,
+      "Texture Mode",
+      "How the texture effect is calculated (RGB and Curl need a RGB texture, "
+      "else Gradient will be used instead)");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "z_direction", PROP_ENUM, PROP_NONE);

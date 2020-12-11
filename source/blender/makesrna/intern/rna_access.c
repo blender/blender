@@ -1105,8 +1105,11 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports,
   const bool failure = false;
 #endif
   if (p == NULL || p == identifier || p + len_sep >= identifier + len_id) {
-    BKE_reportf(
-        reports, report_level, "'%s' does not contain '%s' with prefix and suffix", identifier, sep);
+    BKE_reportf(reports,
+                report_level,
+                "'%s' does not contain '%s' with prefix and suffix",
+                identifier,
+                sep);
     return failure;
   }
 

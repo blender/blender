@@ -6067,10 +6067,11 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "script_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, NULL, "pythondir");
-  RNA_def_property_ui_text(prop,
-                           "Python Scripts Directory",
-                           "Alternate script path, matching the default layout with subdirectories: "
-                           "startup, add-ons and modules (requires restart)");
+  RNA_def_property_ui_text(
+      prop,
+      "Python Scripts Directory",
+      "Alternate script path, matching the default layout with subdirectories: "
+      "startup, add-ons and modules (requires restart)");
   /* TODO, editing should reset sys.path! */
 
   prop = RNA_def_property(srna, "i18n_branches_directory", PROP_STRING, PROP_DIRPATH);
