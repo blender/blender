@@ -1552,7 +1552,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_dynamic_array_funcs(prop, "rna_FluidModifier_grid_get_length");
   RNA_def_property_float_funcs(prop, "rna_FluidModifier_temperature_grid_get", NULL, NULL);
   RNA_def_property_ui_text(
-      prop, "Temperature Grid", "Smoke temperature grid, range 0..1 represents 0..1000K");
+      prop, "Temperature Grid", "Smoke temperature grid, range 0 to 1 represents 0 to 1000K");
 #  endif /* WITH_FLUID */
 
   /* domain object data */

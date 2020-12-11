@@ -4319,7 +4319,7 @@ void rna_def_view_layer_common(StructRNA *srna, const bool scene)
 
   prop = RNA_def_property(srna, "use_pass_mist", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_MIST);
-  RNA_def_property_ui_text(prop, "Mist", "Deliver mist factor pass (0.0-1.0)");
+  RNA_def_property_ui_text(prop, "Mist", "Deliver mist factor pass (0.0 to 1.0)");
   if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
   }
@@ -6366,7 +6366,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0, 1000.0);
   RNA_def_property_ui_text(prop,
                            "Scale",
-                           "Instead of automatically normalizing to 0..1, "
+                           "Instead of automatically normalizing to the range 0 to 1, "
                            "apply a user scale to the derivative map");
 
   /* stamp */

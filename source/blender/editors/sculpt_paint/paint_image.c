@@ -934,7 +934,7 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
                        -FLT_MAX,
                        FLT_MAX,
                        "Delta",
-                       "Delta offset of clone image in 0.0..1.0 coordinates",
+                       "Delta offset of clone image in 0.0 to 1.0 coordinates",
                        -1.0f,
                        1.0f);
 }

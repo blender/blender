@@ -180,7 +180,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
                   "ngon",
                   true,
                   "Create N-Gons",
-                  "When disabled, newly created faces are limited to 3-4 sided faces");
+                  "When disabled, newly created faces are limited to 3 and 4 sided faces");
   RNA_def_enum(
       ot->srna,
       "quadcorner",

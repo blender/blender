@@ -1551,14 +1551,13 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Feedback",
-      "Feedback coefficient for error correction, average response time is 1/feedback "
-      "(default=20)");
+      "Feedback coefficient for error correction, average response time is 1/feedback");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
   prop = RNA_def_property(srna, "velocity_max", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "maxvel");
   RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(prop, "Max Velocity", "Maximum joint velocity in rad/s (default=50)");
+  RNA_def_property_ui_text(prop, "Max Velocity", "Maximum joint velocity in radians/second");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
   prop = RNA_def_property(srna, "solver", PROP_ENUM, PROP_NONE);
@@ -1574,7 +1573,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Damp",
                            "Maximum damping coefficient when singular value is nearly 0 "
-                           "(higher values=more stability, less reactivity - default=0.5)");
+                           "(higher values produce results with more stability, less reactivity)");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
   prop = RNA_def_property(srna, "damping_epsilon", PROP_FLOAT, PROP_FACTOR);
@@ -1583,7 +1582,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Epsilon",
                            "Singular value under which damping is progressively applied "
-                           "(higher values=more stability, less reactivity - default=0.1)");
+                           "(higher values produce results with more stability, less reactivity)");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 }
 

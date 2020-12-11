@@ -4884,13 +4884,13 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_stretch_u", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_UV_STRETCH_U);
   RNA_def_property_ui_text(
-      prop, "Stretch U", "Stretch the U coordinates between 0-1 when UV's are present");
+      prop, "Stretch U", "Stretch the U coordinates between 0 and 1 when UV's are present");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_stretch_v", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_UV_STRETCH_V);
   RNA_def_property_ui_text(
-      prop, "Stretch V", "Stretch the V coordinates between 0-1 when UV's are present");
+      prop, "Stretch V", "Stretch the V coordinates between 0 and 1 when UV's are present");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 #  if 0
@@ -5135,7 +5135,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Normalize Weights",
-      "Normalize the resulting weights (otherwise they are only clamped within [0.0, 1.0] range)");
+      "Normalize the resulting weights (otherwise they are only clamped within 0.0 to 1.0 range)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "map_curve", PROP_POINTER, PROP_NONE);
@@ -5300,7 +5300,7 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Normalize Weights",
-      "Normalize the resulting weights (otherwise they are only clamped within [0.0, 1.0] range)");
+      "Normalize the resulting weights (otherwise they are only clamped within 0.0 to 1.0 range)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   RNA_define_lib_overridable(false);
@@ -5424,7 +5424,7 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Normalize Weights",
-      "Normalize the resulting weights (otherwise they are only clamped within [0.0, 1.0] range)");
+      "Normalize the resulting weights (otherwise they are only clamped within 0.0 to 1.0 range)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "map_curve", PROP_POINTER, PROP_NONE);
@@ -5973,7 +5973,7 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
        "FACTOR",
        0,
        "Factor",
-       "Control playback using a value between [0, 1]"},
+       "Control playback using a value between 0 and 1"},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -5491,7 +5491,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_NORMALIZE);
   RNA_def_property_ui_text(prop,
                            "Use Normalization",
-                           "Display curves in normalized to -1..1 range, "
+                           "Display curves in normalized range from -1 to 1, "
                            "for easier editing of multiple curves with different ranges");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 

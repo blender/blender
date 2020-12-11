@@ -223,7 +223,7 @@ class SelectHierarchy(Operator):
 
 
 class SubdivisionSet(Operator):
-    """Sets a Subdivision Surface Level (1-5)"""
+    """Sets a Subdivision Surface level (1 to 5)"""
 
     bl_idname = "object.subdivision_set"
     bl_label = "Subdivision Set"

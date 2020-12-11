@@ -4306,7 +4306,7 @@ static void def_math(StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom2", SHD_MATH_CLAMP);
-  RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0..1 range");
+  RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0.0 to 1.0 range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -4425,7 +4425,7 @@ static void def_mix_rgb(StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom2", SHD_MIXRGB_CLAMP);
-  RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0..1 range");
+  RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0.0 to 1.0 range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -5177,12 +5177,12 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
        "PARTICLE_AGE",
        0,
        "Particle Age",
-       "Lifetime mapped as 0.0 - 1.0 intensity"},
+       "Lifetime mapped as 0.0 to 1.0 intensity"},
       {SHD_POINTDENSITY_COLOR_PARTSPEED,
        "PARTICLE_SPEED",
        0,
        "Particle Speed",
-       "Particle speed (absolute magnitude of velocity) mapped as 0.0-1.0 intensity"},
+       "Particle speed (absolute magnitude of velocity) mapped as 0.0 to 1.0 intensity"},
       {SHD_POINTDENSITY_COLOR_PARTVEL,
        "PARTICLE_VELOCITY",
        0,
@@ -5937,7 +5937,7 @@ static void def_cmp_map_range(StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0..1 range");
+  RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0.0 to 1.0 range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
