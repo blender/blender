@@ -4190,7 +4190,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
       ParticleSettings *part = psys->part;
       ParticleData *pa = NULL;
 
-      int p, totpart, tottypepart = 0;
+      int p, totpart = 0, tottypepart = 0;
       int flagActivePart, activeParts = 0;
       float posX, posY, posZ, velX, velY, velZ;
       float resX, resY, resZ;
@@ -4971,6 +4971,24 @@ void particle_system_update(struct Depsgraph *depsgraph,
 
 /* ID looper */
 
+/* unfortunately PSys and modifier ID loopers are not directly compatible, so we need this struct
+ * and the callback below to map the former to the latter (thanks to psys embedding a Cloth
+ * modifier data struct now, for Hair physics simulations). */
+typedef struct ParticleSystemIDLoopForModifier {
+  ParticleSystem *psys;
+  ParticleSystemIDFunc func;
+  void *userdata;
+} ParticleSystemIDLoopForModifier;
+
+static void particlesystem_modifiersForeachIDLink(void *user_data,
+                                                  Object *UNUSED(object),
+                                                  ID **id_pointer,
+                                                  int cb_flag)
+{
+  ParticleSystemIDLoopForModifier *data = (ParticleSystemIDLoopForModifier *)user_data;
+  data->func(data->psys, id_pointer, data->userdata, cb_flag);
+}
+
 void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func, void *userdata)
 {
   ParticleTarget *pt;
@@ -4978,6 +4996,16 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
   func(psys, (ID **)&psys->part, userdata, IDWALK_CB_USER | IDWALK_CB_NEVER_NULL);
   func(psys, (ID **)&psys->target_ob, userdata, IDWALK_CB_NOP);
   func(psys, (ID **)&psys->parent, userdata, IDWALK_CB_NOP);
+
+  if (psys->clmd != NULL) {
+    const ModifierTypeInfo *mti = modifierType_getInfo(psys->clmd->modifier.type);
+
+    if (mti->foreachIDLink != NULL) {
+      ParticleSystemIDLoopForModifier data = {.psys = psys, .func = func, .userdata = userdata};
+      mti->foreachIDLink(
+          &psys->clmd->modifier, NULL, particlesystem_modifiersForeachIDLink, &data);
+    }
+  }
 
   for (pt = psys->targets.first; pt; pt = pt->next) {
     func(psys, (ID **)&pt->ob, userdata, IDWALK_CB_NOP);
