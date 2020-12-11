@@ -86,12 +86,13 @@ typedef struct Bone {
 
   /** Curved bones settings - these define the "rest-pose" for a curved bone. */
   float roll1, roll2;
-  float curve_in_x, curve_in_y;
-  float curve_out_x, curve_out_y;
+  float curve_in_x, curve_in_z;
+  float curve_out_x, curve_out_z;
   /** Length of bezier handles. */
   float ease1, ease2;
-  float scale_in_x, scale_in_y;
-  float scale_out_x, scale_out_y;
+  float scale_in_x DNA_DEPRECATED, scale_in_z DNA_DEPRECATED;
+  float scale_out_x DNA_DEPRECATED, scale_out_z DNA_DEPRECATED;
+  float scale_in[3], scale_out[3];
 
   /** Patch for upward compatibility, UNUSED! */
   float size[3];
@@ -103,6 +104,10 @@ typedef struct Bone {
   /** Type of next/prev bone handles. */
   char bbone_prev_type;
   char bbone_next_type;
+  /** B-Bone flags. */
+  int bbone_flag;
+  short bbone_prev_flag;
+  short bbone_next_flag;
   /** Next/prev bones to use as handle references when calculating bbones (optional). */
   struct Bone *bbone_prev;
   struct Bone *bbone_next;
@@ -259,8 +264,10 @@ typedef enum eBone_Flag {
   BONE_NO_LOCAL_LOCATION = (1 << 22),
   /** object child will use relative transform (like deform) */
   BONE_RELATIVE_PARENTING = (1 << 23),
+#ifdef DNA_DEPRECATED_ALLOW
   /** it will add the parent end roll to the inroll */
   BONE_ADD_PARENT_END_ROLL = (1 << 24),
+#endif
   /** this bone was transformed by the mirror function */
   BONE_TRANSFORM_MIRROR = (1 << 25),
   /** this bone is associated with a locked vertex group, ONLY USE FOR DRAWING */
@@ -290,6 +297,12 @@ typedef enum eBone_BBoneHandleType {
   BBONE_HANDLE_RELATIVE = 2, /* Custom handle in relative position mode. */
   BBONE_HANDLE_TANGENT = 3,  /* Custom handle in tangent mode (use direction, not location). */
 } eBone_BBoneHandleType;
+
+/* bone->bbone_flag */
+typedef enum eBone_BBoneFlag {
+  /** Add the parent Out roll to the In roll. */
+  BBONE_ADD_PARENT_END_ROLL = (1 << 0),
+} eBone_BBoneFlag;
 
 #define MAXBONENAME 64
 

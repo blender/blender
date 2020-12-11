@@ -1103,7 +1103,7 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
     param->roll1 = bone->roll1 + (!rest ? pchan->roll1 : 0.0f);
     param->roll2 = bone->roll2 + (!rest ? pchan->roll2 : 0.0f);
 
-    if (bone->flag & BONE_ADD_PARENT_END_ROLL) {
+    if (bone->bbone_flag & BBONE_ADD_PARENT_END_ROLL) {
       if (prev) {
         if (prev->bone) {
           param->roll1 += prev->bone->roll2;
@@ -1115,17 +1115,20 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
       }
     }
 
-    param->scale_in_x = bone->scale_in_x * (!rest ? pchan->scale_in_x : 1.0f);
-    param->scale_in_y = bone->scale_in_y * (!rest ? pchan->scale_in_y : 1.0f);
-    param->scale_out_x = bone->scale_out_x * (!rest ? pchan->scale_out_x : 1.0f);
-    param->scale_out_y = bone->scale_out_y * (!rest ? pchan->scale_out_y : 1.0f);
+    copy_v3_v3(param->scale_in, bone->scale_in);
+    copy_v3_v3(param->scale_out, bone->scale_out);
 
-    /* Extra curve x / y */
+    if (!rest) {
+      mul_v3_v3(param->scale_in, pchan->scale_in);
+      mul_v3_v3(param->scale_out, pchan->scale_out);
+    }
+
+    /* Extra curve x / z */
     param->curve_in_x = bone->curve_in_x + (!rest ? pchan->curve_in_x : 0.0f);
-    param->curve_in_y = bone->curve_in_y + (!rest ? pchan->curve_in_y : 0.0f);
+    param->curve_in_z = bone->curve_in_z + (!rest ? pchan->curve_in_z : 0.0f);
 
     param->curve_out_x = bone->curve_out_x + (!rest ? pchan->curve_out_x : 0.0f);
-    param->curve_out_y = bone->curve_out_y + (!rest ? pchan->curve_out_y : 0.0f);
+    param->curve_out_z = bone->curve_out_z + (!rest ? pchan->curve_out_z : 0.0f);
   }
 }
 
@@ -1250,13 +1253,13 @@ void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param,
      * in the bone length getting scaled up too (from 1 to 8), causing the curve to flatten out.
      */
     const float xscale_correction = (param->do_scale) ? param->scale[0] : 1.0f;
-    const float yscale_correction = (param->do_scale) ? param->scale[2] : 1.0f;
+    const float zscale_correction = (param->do_scale) ? param->scale[2] : 1.0f;
 
     h1[0] += param->curve_in_x * xscale_correction;
-    h1[2] += param->curve_in_y * yscale_correction;
+    h1[2] += param->curve_in_z * zscale_correction;
 
     h2[0] += param->curve_out_x * xscale_correction;
-    h2[2] += param->curve_out_y * yscale_correction;
+    h2[2] += param->curve_out_z * zscale_correction;
   }
 }
 
@@ -1266,7 +1269,7 @@ static void make_bbone_spline_matrix(BBoneSplineParameters *param,
                                      const float axis[3],
                                      float roll,
                                      float scalex,
-                                     float scaley,
+                                     float scalez,
                                      float result[4][4])
 {
   float mat3[3][3];
@@ -1283,7 +1286,7 @@ static void make_bbone_spline_matrix(BBoneSplineParameters *param,
 
   /* BBone scale... */
   mul_v3_fl(result[0], scalex);
-  mul_v3_fl(result[2], scaley);
+  mul_v3_fl(result[2], scalez);
 }
 
 /* Fade from first to second derivative when the handle is very short. */
@@ -1352,8 +1355,8 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param,
                              bezt_controls[0],
                              axis,
                              roll1,
-                             param->scale_in_x,
-                             param->scale_in_y,
+                             param->scale_in[0],
+                             param->scale_in[2],
                              result_array[0].mat);
 
     for (int a = 1; a < param->segments; a++) {
@@ -1361,11 +1364,11 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param,
 
       float fac = ((float)a) / param->segments;
       float roll = interpf(roll2, roll1, fac);
-      float scalex = interpf(param->scale_out_x, param->scale_in_x, fac);
-      float scaley = interpf(param->scale_out_y, param->scale_in_y, fac);
+      float scalex = interpf(param->scale_out[0], param->scale_in[0], fac);
+      float scalez = interpf(param->scale_out[2], param->scale_in[2], fac);
 
       make_bbone_spline_matrix(
-          param, scalemats, cur, axis, roll, scalex, scaley, result_array[a].mat);
+          param, scalemats, cur, axis, roll, scalex, scalez, result_array[a].mat);
     }
 
     negate_v3(bezt_deriv2[1]);
@@ -1375,8 +1378,8 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param,
                              bezt_controls[3],
                              axis,
                              roll2,
-                             param->scale_out_x,
-                             param->scale_out_y,
+                             param->scale_out[0],
+                             param->scale_out[2],
                              result_array[param->segments].mat);
   }
   /* Other code (e.g. display) uses matrices for the segments themselves. */
@@ -1390,11 +1393,11 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param,
 
       float fac = (a + 0.5f) / param->segments;
       float roll = interpf(roll2, roll1, fac);
-      float scalex = interpf(param->scale_out_x, param->scale_in_x, fac);
-      float scaley = interpf(param->scale_out_y, param->scale_in_y, fac);
+      float scalex = interpf(param->scale_out[0], param->scale_in[0], fac);
+      float scalez = interpf(param->scale_out[2], param->scale_in[2], fac);
 
       make_bbone_spline_matrix(
-          param, scalemats, prev, axis, roll, scalex, scaley, result_array[a].mat);
+          param, scalemats, prev, axis, roll, scalex, scalez, result_array[a].mat);
       copy_v3_v3(prev, cur);
     }
   }

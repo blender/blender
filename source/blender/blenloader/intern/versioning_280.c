@@ -709,8 +709,8 @@ static void do_versions_area_ensure_tool_region(Main *bmain,
 static void do_version_bones_split_bbone_scale(ListBase *lb)
 {
   LISTBASE_FOREACH (Bone *, bone, lb) {
-    bone->scale_in_y = bone->scale_in_x;
-    bone->scale_out_y = bone->scale_out_x;
+    bone->scale_in_z = bone->scale_in_x;
+    bone->scale_out_z = bone->scale_out_x;
 
     do_version_bones_split_bbone_scale(&bone->childbase);
   }
@@ -3969,8 +3969,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         if (ob->pose) {
           LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-            pchan->scale_in_y = pchan->scale_in_x;
-            pchan->scale_out_y = pchan->scale_out_x;
+            pchan->scale_in_z = pchan->scale_in_x;
+            pchan->scale_out_z = pchan->scale_out_x;
           }
         }
       }

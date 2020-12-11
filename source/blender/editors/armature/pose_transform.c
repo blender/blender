@@ -144,26 +144,25 @@ static void applyarmature_transfer_properties(EditBone *curbone,
   if (pchan->bone->segments > 1) {
     /* Combine rest/pose values. */
     curbone->curve_in_x += pchan_eval->curve_in_x;
-    curbone->curve_in_y += pchan_eval->curve_in_y;
+    curbone->curve_in_z += pchan_eval->curve_in_z;
     curbone->curve_out_x += pchan_eval->curve_out_x;
-    curbone->curve_out_y += pchan_eval->curve_out_y;
+    curbone->curve_out_z += pchan_eval->curve_out_z;
     curbone->roll1 += pchan_eval->roll1;
     curbone->roll2 += pchan_eval->roll2;
     curbone->ease1 += pchan_eval->ease1;
     curbone->ease2 += pchan_eval->ease2;
 
-    curbone->scale_in_x *= pchan_eval->scale_in_x;
-    curbone->scale_in_y *= pchan_eval->scale_in_y;
-    curbone->scale_out_x *= pchan_eval->scale_out_x;
-    curbone->scale_out_y *= pchan_eval->scale_out_y;
+    mul_v3_v3(curbone->scale_in, pchan_eval->scale_in);
+    mul_v3_v3(curbone->scale_out, pchan_eval->scale_out);
 
     /* Reset pose values. */
     pchan->curve_in_x = pchan->curve_out_x = 0.0f;
-    pchan->curve_in_y = pchan->curve_out_y = 0.0f;
+    pchan->curve_in_z = pchan->curve_out_z = 0.0f;
     pchan->roll1 = pchan->roll2 = 0.0f;
     pchan->ease1 = pchan->ease2 = 0.0f;
-    pchan->scale_in_x = pchan->scale_in_y = 1.0f;
-    pchan->scale_out_x = pchan->scale_out_y = 1.0f;
+
+    copy_v3_fl(pchan->scale_in, 1.0f);
+    copy_v3_fl(pchan->scale_out, 1.0f);
   }
 
   /* Clear transform values for pchan. */
@@ -699,18 +698,17 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
 
   /* B-Bone posing options should also be included... */
   pchan->curve_in_x = chan->curve_in_x;
-  pchan->curve_in_y = chan->curve_in_y;
+  pchan->curve_in_z = chan->curve_in_z;
   pchan->curve_out_x = chan->curve_out_x;
-  pchan->curve_out_y = chan->curve_out_y;
+  pchan->curve_out_z = chan->curve_out_z;
 
   pchan->roll1 = chan->roll1;
   pchan->roll2 = chan->roll2;
   pchan->ease1 = chan->ease1;
   pchan->ease2 = chan->ease2;
-  pchan->scale_in_x = chan->scale_in_x;
-  pchan->scale_in_y = chan->scale_in_y;
-  pchan->scale_out_x = chan->scale_out_x;
-  pchan->scale_out_y = chan->scale_out_y;
+
+  copy_v3_v3(pchan->scale_in, chan->scale_in);
+  copy_v3_v3(pchan->scale_out, chan->scale_out);
 
   /* paste flipped pose? */
   if (flip) {
@@ -972,8 +970,9 @@ static void pchan_clear_scale(bPoseChannel *pchan)
 
   pchan->ease1 = 0.0f;
   pchan->ease2 = 0.0f;
-  pchan->scale_in_x = pchan->scale_in_y = 1.0f;
-  pchan->scale_out_x = pchan->scale_out_y = 1.0f;
+
+  copy_v3_fl(pchan->scale_in, 1.0f);
+  copy_v3_fl(pchan->scale_out, 1.0f);
 }
 /* Clear the scale. When X-mirror is enabled,
  * also clear the scale of the mirrored pose channel. */
@@ -1136,9 +1135,9 @@ static void pchan_clear_rot(bPoseChannel *pchan)
   pchan->roll2 = 0.0f;
 
   pchan->curve_in_x = 0.0f;
-  pchan->curve_in_y = 0.0f;
+  pchan->curve_in_z = 0.0f;
   pchan->curve_out_x = 0.0f;
-  pchan->curve_out_y = 0.0f;
+  pchan->curve_out_z = 0.0f;
 }
 /* Clear the rotation. When X-mirror is enabled,
  * also clear the rotation of the mirrored pose channel. */
