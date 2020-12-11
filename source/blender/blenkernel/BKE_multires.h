@@ -23,13 +23,12 @@
  * \ingroup bke
  */
 
+#include "BKE_subsurf.h"
 #include "BLI_compiler_compat.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-enum MultiresModifiedFlags;
 
 struct Depsgraph;
 struct DerivedMesh;

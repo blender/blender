@@ -25,6 +25,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
+#include "DNA_brush_enums.h"
 #include "DNA_object_enums.h"
 
 #ifdef __cplusplus
@@ -69,8 +70,6 @@ struct tPaletteColorHSV;
 struct BlendWriter;
 struct BlendDataReader;
 struct BlendLibReader;
-
-enum eOverlayFlags;
 
 extern const char PAINT_CURSOR_SCULPT[3];
 extern const char PAINT_CURSOR_VERTEX_PAINT[3];
