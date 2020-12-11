@@ -1059,6 +1059,16 @@ typedef struct NodeDenoise {
   char _pad[7];
 } NodeDenoise;
 
+typedef struct NodeAttributeMix {
+  /* e.g. MA_RAMP_BLEND. */
+  uint8_t blend_type;
+
+  /* GeometryNodeAttributeInputMode */
+  uint8_t input_type_factor;
+  uint8_t input_type_a;
+  uint8_t input_type_b;
+} NodeAttributeMix;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1

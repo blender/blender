@@ -3190,6 +3190,17 @@ static void node_geometry_buts_attribute_fill(uiLayout *layout,
   // uiItemR(layout, ptr, "domain", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
+static void node_geometry_buts_attribute_mix(uiLayout *layout,
+                                             bContext *UNUSED(C),
+                                             PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "blend_type", DEFAULT_FLAGS, "", ICON_NONE);
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "input_type_factor", DEFAULT_FLAGS, IFACE_("Factor"), ICON_NONE);
+  uiItemR(col, ptr, "input_type_a", DEFAULT_FLAGS, IFACE_("A"), ICON_NONE);
+  uiItemR(col, ptr, "input_type_b", DEFAULT_FLAGS, IFACE_("B"), ICON_NONE);
+}
+
 static void node_geometry_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -3210,6 +3221,9 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_ATTRIBUTE_FILL:
       ntype->draw_buttons = node_geometry_buts_attribute_fill;
+      break;
+    case GEO_NODE_ATTRIBUTE_MIX:
+      ntype->draw_buttons = node_geometry_buts_attribute_mix;
       break;
   }
 }

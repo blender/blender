@@ -435,6 +435,20 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_b_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem rna_node_geometry_attribute_factor_input_type_items[] = {
+    {GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE, "ATTRIBUTE", 0, "Attribute", ""},
+    {GEO_NODE_ATTRIBUTE_INPUT_FLOAT, "FLOAT", 0, "Float", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static const EnumPropertyItem rna_node_geometry_attribute_input_type_items[] = {
+    {GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE, "ATTRIBUTE", 0, "Attribute", ""},
+    {GEO_NODE_ATTRIBUTE_INPUT_FLOAT, "FLOAT", 0, "Float", ""},
+    {GEO_NODE_ATTRIBUTE_INPUT_VECTOR, "VECTOR", 0, "Vector", ""},
+    {GEO_NODE_ATTRIBUTE_INPUT_COLOR, "COLOR", 0, "Color", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #endif
 
 #ifdef RNA_RUNTIME
@@ -8395,6 +8409,34 @@ static void def_geo_attribute_math(StructRNA *srna)
   prop = RNA_def_property(srna, "input_type_b", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "custom2");
   RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_b_items);
+  RNA_def_property_ui_text(prop, "Input Type B", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_attribute_mix(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeAttributeMix", "storage");
+
+  prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
+  RNA_def_property_enum_default(prop, MA_RAMP_BLEND);
+  RNA_def_property_ui_text(prop, "Blending Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "input_type_factor", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_factor_input_type_items);
+  RNA_def_property_ui_text(prop, "Input Type Factor", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_a", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items);
+  RNA_def_property_ui_text(prop, "Input Type A", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_b", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items);
   RNA_def_property_ui_text(prop, "Input Type B", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
