@@ -664,6 +664,7 @@ class ObjectSocketMultiFunction : public blender::fn::MultiFunction {
 };
 
 MAKE_CPP_TYPE(PersistentObjectHandle, blender::bke::PersistentObjectHandle);
+MAKE_CPP_TYPE(PersistentCollectionHandle, blender::bke::PersistentCollectionHandle);
 
 static bNodeSocketType *make_socket_type_object()
 {
@@ -692,6 +693,10 @@ static bNodeSocketType *make_socket_type_geometry()
 static bNodeSocketType *make_socket_type_collection()
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_COLLECTION, PROP_NONE);
+  socktype->get_cpp_type = []() {
+    /* Objects are not passed along as raw pointers, but as handles. */
+    return &blender::fn::CPPType::get<blender::bke::PersistentCollectionHandle>();
+  };
   return socktype;
 }
 

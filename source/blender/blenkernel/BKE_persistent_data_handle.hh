@@ -27,6 +27,7 @@
 
 #include "DNA_ID.h"
 
+struct Collection;
 struct Object;
 
 namespace blender::bke {
@@ -82,6 +83,11 @@ class PersistentObjectHandle : public PersistentIDHandle {
   using PersistentIDHandle::PersistentIDHandle;
 };
 
+class PersistentCollectionHandle : public PersistentIDHandle {
+  friend PersistentDataHandleMap;
+  using PersistentIDHandle::PersistentIDHandle;
+};
+
 class PersistentDataHandleMap {
  private:
   Map<int32_t, ID *> id_by_handle_;
@@ -107,6 +113,12 @@ class PersistentDataHandleMap {
     return PersistentObjectHandle(handle);
   }
 
+  PersistentCollectionHandle lookup(Collection *collection) const
+  {
+    const int handle = handle_by_id_.lookup_default((ID *)collection, -1);
+    return PersistentCollectionHandle(handle);
+  }
+
   ID *lookup(const PersistentIDHandle &handle) const
   {
     ID *id = id_by_handle_.lookup_default(handle.handle_, nullptr);
@@ -123,6 +135,18 @@ class PersistentDataHandleMap {
       return nullptr;
     }
     return (Object *)id;
+  }
+
+  Collection *lookup(const PersistentCollectionHandle &handle) const
+  {
+    ID *id = this->lookup((const PersistentIDHandle &)handle);
+    if (id == nullptr) {
+      return nullptr;
+    }
+    if (GS(id->name) != ID_GR) {
+      return nullptr;
+    }
+    return (Collection *)id;
   }
 };
 

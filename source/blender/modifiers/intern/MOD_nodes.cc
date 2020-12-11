@@ -104,6 +104,12 @@ static void addIdsUsedBySocket(const ListBase *sockets, Set<ID *> &ids)
         ids.add(&object->id);
       }
     }
+    else if (socket->type == SOCK_COLLECTION) {
+      Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value;
+      if (collection != nullptr) {
+        ids.add(&collection->id);
+      }
+    }
   }
 }
 
@@ -398,6 +404,11 @@ class GeometryNodesEvaluator {
       Object *object = ((bNodeSocketValueObject *)bsocket->default_value)->value;
       blender::bke::PersistentObjectHandle object_handle = handle_map_.lookup(object);
       new (buffer) blender::bke::PersistentObjectHandle(object_handle);
+    }
+    else if (bsocket->type == SOCK_COLLECTION) {
+      Collection *collection = ((bNodeSocketValueCollection *)bsocket->default_value)->value;
+      blender::bke::PersistentCollectionHandle collection_handle = handle_map_.lookup(collection);
+      new (buffer) blender::bke::PersistentCollectionHandle(collection_handle);
     }
     else {
       blender::nodes::socket_cpp_value_get(*bsocket, buffer);
@@ -849,6 +860,9 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
       }
       else if (socket->type == SOCK_GEOMETRY) {
         BKE_modifier_set_error(ob, md, "Node group can only have one geometry input");
+      }
+      else if (socket->type == SOCK_COLLECTION) {
+        BKE_modifier_set_error(ob, md, "Collection socket can not be exposed in the modifier");
       }
       else {
         BKE_modifier_set_error(ob, md, "Missing property for input socket \"%s\"", socket->name);
