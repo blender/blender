@@ -303,7 +303,7 @@ void EEVEE_cryptomatte_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *s
     GPUBatch *geom = DRW_cache_object_surface_get(ob);
     if (geom) {
       DRWShadingGroup *grp = eevee_cryptomatte_shading_group_create(
-          vedata, sldata, ob, false, NULL);
+          vedata, sldata, ob, NULL, false);
       DRW_shgroup_call(grp, geom, ob);
     }
   }
