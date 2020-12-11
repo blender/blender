@@ -34,6 +34,7 @@ set(INC
 
 set(SRC
   outliner_collections.c
+  outliner_context.c
   outliner_dragdrop.c
   outliner_draw.c
   outliner_edit.c

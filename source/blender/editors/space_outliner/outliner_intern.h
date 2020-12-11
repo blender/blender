@@ -32,6 +32,7 @@ extern "C" {
 /* internal exports only */
 
 struct ARegion;
+struct bContextDataResult;
 struct EditBone;
 struct ID;
 struct ListBase;
@@ -560,6 +561,12 @@ void outliner_tag_redraw_avoid_rebuild_on_open_change(const struct SpaceOutliner
 /* outliner_sync.c ---------------------------------------------- */
 
 void outliner_sync_selection(const struct bContext *C, struct SpaceOutliner *space_outliner);
+
+/* outliner_context.c ------------------------------------------- */
+
+int outliner_context(const struct bContext *C,
+                     const char *member,
+                     struct bContextDataResult *result);
 
 #ifdef __cplusplus
 }

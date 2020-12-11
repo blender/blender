@@ -1202,6 +1202,11 @@ ToolSettings *CTX_data_tool_settings(const bContext *C)
   return NULL;
 }
 
+int CTX_data_selected_ids(const bContext *C, ListBase *list)
+{
+  return ctx_data_collection_get(C, "selected_ids", list);
+}
+
 int CTX_data_selected_nodes(const bContext *C, ListBase *list)
 {
   return ctx_data_collection_get(C, "selected_nodes", list);

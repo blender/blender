@@ -451,6 +451,7 @@ void ED_spacetype_outliner(void)
   st->dropboxes = outliner_dropboxes;
   st->id_remap = outliner_id_remap;
   st->deactivate = outliner_deactivate;
+  st->context = outliner_context;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype outliner region");
