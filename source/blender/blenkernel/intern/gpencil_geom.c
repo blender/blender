@@ -34,6 +34,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
+#include "BLI_heap.h"
 #include "BLI_math_vector.h"
 #include "BLI_polyfill_2d.h"
 
@@ -3224,4 +3225,197 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
         gps_a, dvert, pt, delta, pt->pressure * ratio, pt->strength, deltatime);
   }
 }
+
+/* Stroke Uniform Subdivide  ------------------------------------- */
+
+typedef struct tSamplePoint {
+  struct tSamplePoint *next, *prev;
+  float x, y, z;
+  float pressure, strength, time;
+  float vertex_color[4];
+  struct MDeformWeight *dw;
+  int totweight;
+} tSamplePoint;
+
+typedef struct tSampleEdge {
+  float length_sq;
+  tSamplePoint *from;
+  tSamplePoint *to;
+} tSampleEdge;
+
+/* Helper: creates a tSamplePoint from a bGPDspoint and (optionally) a MDeformVert. */
+static tSamplePoint *new_sample_point_from_gp_point(const bGPDspoint *pt, const MDeformVert *dvert)
+{
+  tSamplePoint *new_pt = MEM_callocN(sizeof(tSamplePoint), __func__);
+  copy_v3_v3(&new_pt->x, &pt->x);
+  new_pt->pressure = pt->pressure;
+  new_pt->strength = pt->strength;
+  new_pt->time = pt->time;
+  copy_v4_v4((float *)&new_pt->vertex_color, (float *)&pt->vert_color);
+  if (dvert != NULL) {
+    new_pt->totweight = dvert->totweight;
+    new_pt->dw = MEM_callocN(sizeof(MDeformWeight) * new_pt->totweight, __func__);
+    for (uint i = 0; i < new_pt->totweight; ++i) {
+      MDeformWeight *dw = &new_pt->dw[i];
+      MDeformWeight *dw_from = &dvert->dw[i];
+      dw->def_nr = dw_from->def_nr;
+      dw->weight = dw_from->weight;
+    }
+  }
+  return new_pt;
+}
+
+/* Helper: creates a tSampleEdge from two tSamplePoints. Also calculates the length (squared) of
+ * the edge. */
+static tSampleEdge *new_sample_edge_from_sample_points(tSamplePoint *from, tSamplePoint *to)
+{
+  tSampleEdge *new_edge = MEM_callocN(sizeof(tSampleEdge), __func__);
+  new_edge->from = from;
+  new_edge->to = to;
+  new_edge->length_sq = len_squared_v3v3(&from->x, &to->x);
+  return new_edge;
+}
+
+/**
+ * Subdivide the grease pencil stroke so the number of points is target_number.
+ * Does not change the shape of the stroke. The new points will be distributed as
+ * uniformly as possible by repeatedly subdividing the current longest edge.
+ *
+ * \param gps: The stroke to be upsampled.
+ * \param target_number: The number of points the upsampled stroke should have.
+ * \param select: Select/Deselect the stroke.
+ */
+void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
+                                          bGPDstroke *gps,
+                                          const uint32_t target_number,
+                                          const bool select)
+{
+  /* Stroke needs at least two points and strictly less points than the target number. */
+  if (gps == NULL || gps->totpoints < 2 || gps->totpoints >= target_number) {
+    return;
+  }
+
+  const int totpoints = gps->totpoints;
+  const bool has_dverts = (gps->dvert != NULL);
+  const bool is_cyclic = (gps->flag & GP_STROKE_CYCLIC);
+
+  ListBase points = {NULL, NULL};
+  Heap *edges = BLI_heap_new();
+
+  /* Add all points into list. */
+  for (uint32_t i = 0; i < totpoints; ++i) {
+    bGPDspoint *pt = &gps->points[i];
+    MDeformVert *dvert = has_dverts ? &gps->dvert[i] : NULL;
+    tSamplePoint *sp = new_sample_point_from_gp_point(pt, dvert);
+    BLI_addtail(&points, sp);
+  }
+
+  /* Iterate over edges and insert them into the heap. */
+  for (tSamplePoint *pt = ((tSamplePoint *)points.first)->next; pt != NULL; pt = pt->next) {
+    tSampleEdge *se = new_sample_edge_from_sample_points(pt->prev, pt);
+    /* BLI_heap is a min-heap, but we need the largest key to be at the top, so we take the
+     * negative of the squared length. */
+    BLI_heap_insert(edges, -(se->length_sq), se);
+  }
+
+  if (is_cyclic) {
+    tSamplePoint *sp_first = points.first;
+    tSamplePoint *sp_last = points.last;
+    tSampleEdge *se = new_sample_edge_from_sample_points(sp_last, sp_first);
+    BLI_heap_insert(edges, -(se->length_sq), se);
+  }
+
+  int num_points_needed = target_number - totpoints;
+  BLI_assert(num_points_needed > 0);
+
+  while (num_points_needed > 0) {
+    tSampleEdge *se = BLI_heap_pop_min(edges);
+    tSamplePoint *sp = se->from;
+    tSamplePoint *sp_next = se->to;
+
+    /* Subdivide the edge. */
+    tSamplePoint *new_sp = MEM_callocN(sizeof(tSamplePoint), __func__);
+    interp_v3_v3v3(&new_sp->x, &sp->x, &sp_next->x, 0.5f);
+    new_sp->pressure = interpf(sp->pressure, sp_next->pressure, 0.5f);
+    new_sp->strength = interpf(sp->strength, sp_next->strength, 0.5f);
+    new_sp->time = interpf(sp->time, sp_next->time, 0.5f);
+    interp_v4_v4v4((float *)&new_sp->vertex_color,
+                   (float *)&sp->vertex_color,
+                   (float *)&sp_next->vertex_color,
+                   0.5f);
+    if (sp->dw && sp_next->dw) {
+      new_sp->totweight = MIN2(sp->totweight, sp_next->totweight);
+      new_sp->dw = MEM_callocN(sizeof(MDeformWeight) * new_sp->totweight, __func__);
+      for (uint32_t i = 0; i < new_sp->totweight; ++i) {
+        MDeformWeight *dw = &new_sp->dw[i];
+        MDeformWeight *dw_from = &sp->dw[i];
+        MDeformWeight *dw_to = &sp_next->dw[i];
+        dw->def_nr = dw_from->def_nr;
+        dw->weight = interpf(dw_from->weight, dw_to->weight, 0.5f);
+      }
+    }
+    BLI_insertlinkafter(&points, sp, new_sp);
+
+    tSampleEdge *se_prev = new_sample_edge_from_sample_points(sp, new_sp);
+    tSampleEdge *se_next = new_sample_edge_from_sample_points(new_sp, sp_next);
+    BLI_heap_insert(edges, -(se_prev->length_sq), se_prev);
+    BLI_heap_insert(edges, -(se_next->length_sq), se_next);
+
+    MEM_freeN(se);
+    num_points_needed--;
+  }
+
+  /* Edges are no longer needed. Heap is freed. */
+  BLI_heap_free(edges, (HeapFreeFP)MEM_freeN);
+
+  gps->totpoints = target_number;
+  gps->points = MEM_recallocN(gps->points, sizeof(bGPDspoint) * gps->totpoints);
+  if (has_dverts) {
+    gps->dvert = MEM_recallocN(gps->dvert, sizeof(MDeformVert) * gps->totpoints);
+  }
+
+  /* Convert list back to stroke point array. */
+  tSamplePoint *sp = points.first;
+  for (uint32_t i = 0; i < gps->totpoints && sp; ++i, sp = sp->next) {
+    bGPDspoint *pt = &gps->points[i];
+    MDeformVert *dvert = &gps->dvert[i];
+
+    copy_v3_v3(&pt->x, &sp->x);
+    pt->pressure = sp->pressure;
+    pt->strength = sp->strength;
+    pt->time = sp->time;
+    copy_v4_v4((float *)&pt->vert_color, (float *)&sp->vertex_color);
+
+    if (sp->dw) {
+      dvert->totweight = sp->totweight;
+      dvert->dw = MEM_callocN(sizeof(MDeformWeight) * dvert->totweight, __func__);
+      for (uint32_t j = 0; j < dvert->totweight; ++j) {
+        MDeformWeight *dw = &dvert->dw[j];
+        MDeformWeight *dw_from = &sp->dw[j];
+        dw->def_nr = dw_from->def_nr;
+        dw->weight = dw_from->weight;
+      }
+    }
+    if (select) {
+      pt->flag |= GP_SPOINT_SELECT;
+    }
+  }
+
+  if (select) {
+    gps->flag |= GP_STROKE_SELECT;
+  }
+
+  /* Free the sample points. Important to use the mutable loop here because we are erasing the list
+   * elements. */
+  LISTBASE_FOREACH_MUTABLE (tSamplePoint *, temp, &points) {
+    if (temp->dw != NULL) {
+      MEM_freeN(temp->dw);
+    }
+    MEM_SAFE_FREE(temp);
+  }
+
+  /* Update the geometry of the stroke. */
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
+}
+
 /** \} */

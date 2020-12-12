@@ -164,6 +164,11 @@ bool BKE_gpencil_convert_mesh(struct Main *bmain,
                               const bool use_seams,
                               const bool use_faces);
 
+void BKE_gpencil_stroke_uniform_subdivide(struct bGPdata *gpd,
+                                          struct bGPDstroke *gps,
+                                          const uint32_t target_number,
+                                          const bool select);
+
 #ifdef __cplusplus
 }
 #endif
