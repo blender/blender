@@ -62,7 +62,7 @@ int /*eContextResult*/ outliner_context(const bContext *C,
     CTX_data_dir_set(result, outliner_context_dir);
     return CTX_RESULT_OK;
   }
-  else if (CTX_data_equals(member, "selected_ids")) {
+  if (CTX_data_equals(member, "selected_ids")) {
     outliner_context_selected_ids(space_outliner, result);
     return CTX_RESULT_OK;
   }
