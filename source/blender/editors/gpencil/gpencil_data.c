@@ -1330,19 +1330,24 @@ static int gpencil_merge_layer_exec(bContext *C, wmOperator *op)
     BLI_ghash_insert(gh_frames_dst, POINTER_FROM_INT(gpf_dst->framenum), gpf_dst);
   }
 
-  /* Read all frames from merge layer and add any missing in destination layer. */
+  /* Read all frames from merge layer and add any missing in destination layer,
+   * copying all previous strokes to keep the image equals. Need to do it in a separated
+   * loop to avoid strokes acumulation. */
   LISTBASE_FOREACH (bGPDframe *, gpf_src, &gpl_src->frames) {
     /* Try to find frame in destination layer hash table. */
     bGPDframe *gpf_dst = BLI_ghash_lookup(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum));
     if (!gpf_dst) {
-      gpf_dst = BKE_gpencil_frame_addnew(gpl_dst, gpf_src->framenum);
-      /* Duplicate strokes into destination frame. */
-      if (gpf_dst) {
-        BKE_gpencil_frame_copy_strokes(gpf_src, gpf_dst);
-      }
+      gpf_dst = BKE_gpencil_layer_frame_get(gpl_dst, gpf_src->framenum, GP_GETFRAME_ADD_COPY);
+      BLI_ghash_insert(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum), gpf_dst);
     }
-    else {
-      /* Add to tail all strokes. */
+  }
+
+  /* Read all frames from merge layer and add strokes. */
+  LISTBASE_FOREACH (bGPDframe *, gpf_src, &gpl_src->frames) {
+    /* Try to find frame in destination layer hash table. */
+    bGPDframe *gpf_dst = BLI_ghash_lookup(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum));
+    /* Add to tail all strokes. */
+    if (gpf_dst) {
       BLI_movelisttolist(&gpf_dst->strokes, &gpf_src->strokes);
     }
   }
