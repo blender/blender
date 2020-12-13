@@ -2556,7 +2556,7 @@ static int convert_proxy_to_override_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_convert_proxy_to_override(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Convert Proxy To Override";
+  ot->name = "Convert Proxy to Override";
   ot->description = "Convert a proxy to a local library override";
   ot->idname = "OBJECT_OT_convert_proxy_to_override";
 

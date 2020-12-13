@@ -3076,7 +3076,7 @@ static void rna_def_string_property(StructRNA *srna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_string_funcs(
       prop, "rna_StringProperty_default_get", "rna_StringProperty_default_length", NULL);
-  RNA_def_property_ui_text(prop, "Default", "string default value");
+  RNA_def_property_ui_text(prop, "Default", "String default value");
 
   prop = RNA_def_property(srna, "length_max", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

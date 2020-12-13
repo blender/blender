@@ -8685,7 +8685,7 @@ static int sculpt_sample_color_invoke(bContext *C,
 static void SCULPT_OT_sample_color(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Sample color";
+  ot->name = "Sample Color";
   ot->idname = "SCULPT_OT_sample_color";
   ot->description = "Sample the vertex color of the active vertex";
 

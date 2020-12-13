@@ -888,7 +888,7 @@ class LoadImageAsEmpty:
     filter_folder: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
 
     view_align: BoolProperty(
-        name="Align to view",
+        name="Align to View",
         default=True,
     )
 

@@ -396,7 +396,7 @@ void INFO_OT_report_copy(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Copy Reports to Clipboard";
-  ot->description = "Copy selected reports to Clipboard";
+  ot->description = "Copy selected reports to clipboard";
   ot->idname = "INFO_OT_report_copy";
 
   /* api callbacks */

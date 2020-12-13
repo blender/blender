@@ -283,7 +283,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Background Image Move";
-  ot->description = "Move Node backdrop";
+  ot->description = "Move node backdrop";
   ot->idname = "NODE_OT_backimage_move";
 
   /* api callbacks */

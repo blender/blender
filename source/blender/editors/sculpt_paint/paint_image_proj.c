@@ -6781,7 +6781,7 @@ static bool add_simple_uvs_poll(bContext *C)
 void PAINT_OT_add_simple_uvs(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add simple UVs";
+  ot->name = "Add Simple UVs";
   ot->description = "Add cube map uvs on mesh";
   ot->idname = "PAINT_OT_add_simple_uvs";
 

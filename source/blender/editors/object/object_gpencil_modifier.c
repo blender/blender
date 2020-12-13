@@ -789,7 +789,7 @@ void OBJECT_OT_gpencil_modifier_apply(wmOperatorType *ot)
                "apply_as",
                gpencil_modifier_apply_as_items,
                MODIFIER_APPLY_DATA,
-               "Apply as",
+               "Apply As",
                "How to apply the modifier to the geometry");
   gpencil_edit_modifier_properties(ot);
   gpencil_edit_modifier_report_property(ot);

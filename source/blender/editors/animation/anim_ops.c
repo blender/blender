@@ -503,7 +503,7 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Preview Range";
   ot->idname = "ANIM_OT_previewrange_clear";
-  ot->description = "Clear Preview Range";
+  ot->description = "Clear preview range";
 
   /* api callbacks */
   ot->exec = previewrange_clear_exec;

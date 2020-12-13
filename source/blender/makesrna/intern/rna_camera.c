@@ -662,7 +662,7 @@ void RNA_def_camera(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_safe_center", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOW_SAFE_CENTER);
   RNA_def_property_ui_text(prop,
-                           "Show Center-cut safe areas",
+                           "Show Center-Cut Safe Areas",
                            "Show safe areas to fit content in a different aspect ratio");
   RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 

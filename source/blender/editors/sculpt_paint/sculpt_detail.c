@@ -363,7 +363,7 @@ void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
                     0,
                     SHRT_MAX,
                     "Location",
-                    "Screen Coordinates of sampling",
+                    "Screen coordinates of sampling",
                     0,
                     SHRT_MAX);
   RNA_def_enum(ot->srna,

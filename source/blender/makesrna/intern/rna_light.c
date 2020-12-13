@@ -127,7 +127,7 @@ static void rna_def_light(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_light_type_items);
-  RNA_def_property_ui_text(prop, "Type", "Type of Light");
+  RNA_def_property_ui_text(prop, "Type", "Type of light");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
   RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
