@@ -1543,8 +1543,6 @@ class USERPREF_PT_navigation_zoom(NavigationPanel, CenterAlignMixIn, Panel):
             col.prop(inputs, "use_zoom_to_mouse")
             col.prop(inputs, "invert_zoom_wheel", text="Invert Wheel Zoom Direction")
 
-        # sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
-
 
 class USERPREF_PT_navigation_fly_walk(NavigationPanel, CenterAlignMixIn, Panel):
     bl_label = "Fly & Walk"

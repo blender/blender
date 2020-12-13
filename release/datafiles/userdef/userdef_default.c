@@ -55,7 +55,6 @@ const UserDef U_default = {
     .timecode_style = USER_TIMECODE_MINIMAL,
     .versions = 1,
     .dbl_click_time = 350,
-    .wheellinescroll = 3,
     .mini_axis_type = USER_MINI_AXIS_TYPE_GIZMO,
     .uiflag = (USER_FILTERFILEEXTS | USER_DRAWVIEWINFO | USER_PLAINMENUS |
                USER_LOCK_CURSOR_ADJUST | USER_DEPTH_CURSOR | USER_AUTOPERSP | USER_GLOBALUNDO |
