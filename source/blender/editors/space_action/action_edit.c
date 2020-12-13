@@ -1827,7 +1827,7 @@ static const EnumPropertyItem prop_actkeys_mirror_types[] = {
     {ACTKEYS_MIRROR_XAXIS,
      "XAXIS",
      0,
-     "By Values Over Value=0",
+     "By Values Over Zero Value",
      "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"},
     {ACTKEYS_MIRROR_MARKER,
      "MARKER",

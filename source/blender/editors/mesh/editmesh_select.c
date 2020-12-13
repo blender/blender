@@ -4552,7 +4552,8 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
   /* edges */
   RNA_def_boolean(ot->srna, "use_wire", true, "Wire", "Wire edges");
   RNA_def_boolean(ot->srna, "use_boundary", true, "Boundaries", "Boundary edges");
-  RNA_def_boolean(ot->srna, "use_multi_face", true, "Multiple Faces", "Edges shared by 3+ faces");
+  RNA_def_boolean(
+      ot->srna, "use_multi_face", true, "Multiple Faces", "Edges shared by more than two faces");
   RNA_def_boolean(ot->srna,
                   "use_non_contiguous",
                   true,

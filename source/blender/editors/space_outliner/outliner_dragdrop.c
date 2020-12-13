@@ -445,7 +445,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Drop to Set Parent [+Alt keeps transforms]";
+  ot->name = "Drop to Set Parent (hold Alt to keep transforms)";
   ot->description = "Drag to parent in Outliner";
   ot->idname = "OUTLINER_OT_parent_drop";
 
@@ -531,7 +531,7 @@ static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEven
 void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Drop to Clear Parent [+Alt keeps transforms]";
+  ot->name = "Drop to Clear Parent (hold Alt to keep transforms)";
   ot->description = "Drag to clear parent in Outliner";
   ot->idname = "OUTLINER_OT_parent_clear";
 

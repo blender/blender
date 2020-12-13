@@ -1383,7 +1383,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
                              "rna_PoseChannel_bone_group_index_set",
                              "rna_PoseChannel_bone_group_index_range");
   RNA_def_property_ui_text(
-      prop, "Bone Group Index", "Bone Group this pose channel belongs to (0=no group)");
+      prop, "Bone Group Index", "Bone group this pose channel belongs to (0 means no group)");
   RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
