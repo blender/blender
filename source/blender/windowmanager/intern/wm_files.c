@@ -2959,30 +2959,25 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                                              void *UNUSED(arg1))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  const uiStyle *style = UI_style_get_dpi();
-  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
-  const int dialog_width = text_points_max * 44 * U.dpi_fac;
 
   uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
-
   UI_block_flag_enable(
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
   UI_block_emboss_set(block, UI_EMBOSS);
 
-  uiLayout *layout = UI_block_layout(
-      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, dialog_width, 0, 0, style);
+  uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_ERROR);
 
-  /* Text and some vertical space */
+  /* Title and explanation text. */
   uiLayout *col = uiLayoutColumn(layout, true);
   uiItemL_ex(col,
              TIP_("For security reasons, automatic execution of Python scripts "
                   "in this file was disabled:"),
-             ICON_ERROR,
+             ICON_NONE,
              true,
              false);
-  uiItemL_ex(col, G.autoexec_fail, ICON_BLANK1, false, true);
-  uiItemL(col, TIP_("This may lead to unexpected behavior"), ICON_BLANK1);
+  uiItemL_ex(col, G.autoexec_fail, ICON_NONE, false, true);
+  uiItemL(col, TIP_("This may lead to unexpected behavior"), ICON_NONE);
 
   uiItemS(layout);
 
@@ -2995,7 +2990,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
           TIP_("Permanently allow execution of scripts"),
           ICON_NONE);
 
-  uiItemS(layout);
+  uiItemS_ex(layout, 3.0f);
 
   /* Buttons */
   uiBut *but;
