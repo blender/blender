@@ -34,6 +34,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_mask_types.h"

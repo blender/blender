@@ -37,6 +37,7 @@
 /* all types are needed here, in order to do memory operations */
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_node_types.h"

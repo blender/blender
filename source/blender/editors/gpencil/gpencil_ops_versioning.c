@@ -33,6 +33,7 @@
 #include "BLI_math.h"
 
 #include "DNA_gpencil_types.h"
+#include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

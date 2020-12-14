@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include "DNA_simulation_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,6 +23,7 @@ extern "C" {
 struct Depsgraph;
 struct Main;
 struct Scene;
+struct Simulation;
 
 void *BKE_simulation_add(struct Main *bmain, const char *name);
 

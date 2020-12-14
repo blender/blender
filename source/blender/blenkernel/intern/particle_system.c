@@ -34,6 +34,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_boid_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"

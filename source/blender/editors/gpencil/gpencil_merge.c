@@ -31,6 +31,7 @@
 #include "BLI_math.h"
 
 #include "DNA_gpencil_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"

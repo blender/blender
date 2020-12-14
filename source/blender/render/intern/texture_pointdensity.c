@@ -44,6 +44,7 @@
 
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
+#include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_lattice.h"
 #include "BKE_object.h"

@@ -37,6 +37,8 @@
 #include "BKE_node.h"
 #include "BKE_persistent_data_handle.hh"
 
+#include "DNA_collection_types.h"
+
 #include "RNA_access.h"
 #include "RNA_types.h"
 

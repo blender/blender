@@ -34,6 +34,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_linestyle_types.h"

@@ -20,6 +20,7 @@
 
 #include <iostream>
 
+#include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_layer.h"

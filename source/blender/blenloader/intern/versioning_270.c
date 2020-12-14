@@ -64,6 +64,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
+#include "DNA_material_types.h"
 
 #include "SEQ_sequencer.h"
 

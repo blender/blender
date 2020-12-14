@@ -42,6 +42,7 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_light_types.h"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"

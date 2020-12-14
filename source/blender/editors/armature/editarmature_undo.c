@@ -26,7 +26,9 @@
 #include "CLG_log.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_array_utils.h"
 #include "BLI_listbase.h"

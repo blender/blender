@@ -26,6 +26,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_ID.h"
+
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 

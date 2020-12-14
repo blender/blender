@@ -52,7 +52,7 @@ int SIM_cloth_solve(struct Depsgraph *depsgraph,
                     struct ClothModifierData *clmd,
                     struct ListBase *effectors);
 void SIM_cloth_solver_set_positions(struct ClothModifierData *clmd);
-void SIM_cloth_solver_set_volume(ClothModifierData *clmd);
+void SIM_cloth_solver_set_volume(struct ClothModifierData *clmd);
 
 #ifdef __cplusplus
 }

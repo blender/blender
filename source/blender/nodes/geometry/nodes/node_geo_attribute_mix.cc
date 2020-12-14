@@ -16,6 +16,8 @@
 
 #include "BKE_material.h"
 
+#include "DNA_material_types.h"
+
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_attribute_mix_in[] = {

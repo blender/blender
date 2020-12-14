@@ -25,6 +25,7 @@
 #include "BLI_noise.h"
 
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_particle.h"

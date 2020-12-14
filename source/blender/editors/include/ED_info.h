@@ -38,8 +38,12 @@ const char *ED_info_statistics_string(struct Main *bmain,
                                       struct Scene *scene,
                                       struct ViewLayer *view_layer);
 
-void ED_info_draw_stats(
-    struct Main *bmain, Scene *scene, ViewLayer *view_layer, int x, int *y, int height);
+void ED_info_draw_stats(struct Main *bmain,
+                        struct Scene *scene,
+                        struct ViewLayer *view_layer,
+                        int x,
+                        int *y,
+                        int height);
 
 #ifdef __cplusplus
 }

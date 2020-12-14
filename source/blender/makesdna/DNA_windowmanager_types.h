@@ -24,10 +24,8 @@
 #pragma once
 
 #include "DNA_listBase.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_vec_types.h"
-#include "DNA_xr_types.h"
+#include "DNA_screen_types.h" /* for #ScrAreaMap */
+#include "DNA_xr_types.h"     /* for #XrSessionSettings */
 
 #include "DNA_ID.h"
 

@@ -3998,7 +3998,7 @@ static const EnumPropertyItem *rna_id_itemf(bool *r_free,
 
         /* Show collection color tag icons in menus. */
         if (id_type == ID_GR) {
-          item_tmp.icon = UI_icon_color_from_collection((Collection *)id);
+          item_tmp.icon = UI_icon_color_from_collection((struct Collection *)id);
         }
 
         RNA_enum_item_add(&item, &totitem, &item_tmp);

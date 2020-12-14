@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "DNA_cloth_types.h"
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"

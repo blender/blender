@@ -43,6 +43,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h" /* MAX_IDPROP_NAME */
+
 #include "../generic/py_capi_utils.h"
 
 /* initial definition of callback slots we'll probably have more than 1 */

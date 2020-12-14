@@ -35,6 +35,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"

@@ -5808,7 +5808,7 @@ ID *RNA_find_real_ID_and_path(Main *bmain, ID *id, const char **r_path)
         if (r_path) {
           *r_path = "collection";
         }
-        return (ID *)BKE_collection_master_scene_search(bmain, (Collection *)id);
+        return (ID *)BKE_collection_master_scene_search(bmain, (struct Collection *)id);
 
       default:
         return NULL;

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "DNA_scene_types.h"
+#include "DNA_ID.h"
 
 #ifdef __cplusplus
 extern "C" {

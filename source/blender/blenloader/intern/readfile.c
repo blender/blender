@@ -45,6 +45,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_genfile.h"
 #include "DNA_key_types.h"
@@ -53,6 +54,7 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_volume_types.h"
 #include "DNA_workspace_types.h"
 

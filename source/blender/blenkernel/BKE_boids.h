@@ -23,13 +23,16 @@
  * \ingroup bke
  */
 
-#include "DNA_boid_types.h"
-#include "DNA_particle_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct BoidSettings;
+struct BoidState;
+struct Object;
+struct ParticleData;
+struct ParticleSettings;
+struct ParticleSimulationData;
 struct RNG;
 
 typedef struct BoidBrainData {
@@ -50,13 +53,13 @@ typedef struct BoidBrainData {
 void boids_precalc_rules(struct ParticleSettings *part, float cfra);
 void boid_brain(BoidBrainData *bbd, int p, struct ParticleData *pa);
 void boid_body(BoidBrainData *bbd, struct ParticleData *pa);
-void boid_default_settings(BoidSettings *boids);
-BoidRule *boid_new_rule(int type);
-BoidState *boid_new_state(BoidSettings *boids);
-BoidState *boid_duplicate_state(BoidSettings *boids, BoidState *state);
-void boid_free_settings(BoidSettings *boids);
-BoidSettings *boid_copy_settings(const BoidSettings *boids);
-BoidState *boid_get_current_state(BoidSettings *boids);
+void boid_default_settings(struct BoidSettings *boids);
+struct BoidRule *boid_new_rule(int type);
+struct BoidState *boid_new_state(struct BoidSettings *boids);
+struct BoidState *boid_duplicate_state(struct BoidSettings *boids, struct BoidState *state);
+void boid_free_settings(struct BoidSettings *boids);
+struct BoidSettings *boid_copy_settings(const struct BoidSettings *boids);
+struct BoidState *boid_get_current_state(struct BoidSettings *boids);
 
 #ifdef __cplusplus
 }

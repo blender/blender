@@ -38,6 +38,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_cloth_types.h"
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_mesh_types.h"

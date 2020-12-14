@@ -32,6 +32,8 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 
+#include "DNA_ID.h" /* ID property definitions. */
+
 #include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf.h"

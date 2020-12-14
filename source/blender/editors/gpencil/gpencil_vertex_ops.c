@@ -32,6 +32,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"

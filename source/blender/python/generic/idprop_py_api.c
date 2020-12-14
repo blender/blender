@@ -28,6 +28,8 @@
 
 #include "BKE_idprop.h"
 
+#include "DNA_ID.h" /* ID property definitions. */
+
 #define USE_STRING_COERCE
 
 #ifdef USE_STRING_COERCE

@@ -24,6 +24,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_armature.h"

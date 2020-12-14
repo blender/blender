@@ -34,6 +34,7 @@
 #include "BKE_material.h"
 #include "BKE_report.h"
 
+#include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "WM_api.h"

@@ -25,8 +25,6 @@
 
 #include "BLI_sys_types.h"
 
-#include "DNA_layer_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
