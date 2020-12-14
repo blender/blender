@@ -344,8 +344,6 @@ void node_from_view(struct bNode *node, float x, float y, float *rx, float *ry)
 /* based on settings in node, sets drawing rect info. each redraw! */
 static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 {
-  uiLayout *layout, *row;
-
   PointerRNA nodeptr;
   RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
 
@@ -374,15 +372,15 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     PointerRNA sockptr;
     RNA_pointer_create(&ntree->id, &RNA_NodeSocket, nsock, &sockptr);
 
-    layout = UI_block_layout(node->block,
-                             UI_LAYOUT_VERTICAL,
-                             UI_LAYOUT_PANEL,
-                             locx + NODE_DYS,
-                             dy,
-                             NODE_WIDTH(node) - NODE_DY,
-                             NODE_DY,
-                             0,
-                             UI_style_get_dpi());
+    uiLayout *layout = UI_block_layout(node->block,
+                                       UI_LAYOUT_VERTICAL,
+                                       UI_LAYOUT_PANEL,
+                                       locx + NODE_DYS,
+                                       dy,
+                                       NODE_WIDTH(node) - NODE_DY,
+                                       NODE_DY,
+                                       0,
+                                       UI_style_get_dpi());
 
     if (node->flag & NODE_MUTED) {
       uiLayoutSetActive(layout, false);
@@ -393,7 +391,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     uiLayoutSetContextPointer(layout, "socket", &sockptr);
 
     /* align output buttons to the right */
-    row = uiLayoutRow(layout, 1);
+    uiLayout *row = uiLayoutRow(layout, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
     const char *socket_label = nodeSocketLabel(nsock);
     nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(socket_label));
@@ -469,15 +467,15 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     node->butr.ymin = 0;
     node->butr.ymax = 0;
 
-    layout = UI_block_layout(node->block,
-                             UI_LAYOUT_VERTICAL,
-                             UI_LAYOUT_PANEL,
-                             locx + NODE_DYS,
-                             dy,
-                             node->butr.xmax,
-                             0,
-                             0,
-                             UI_style_get_dpi());
+    uiLayout *layout = UI_block_layout(node->block,
+                                       UI_LAYOUT_VERTICAL,
+                                       UI_LAYOUT_PANEL,
+                                       locx + NODE_DYS,
+                                       dy,
+                                       node->butr.xmax,
+                                       0,
+                                       0,
+                                       UI_style_get_dpi());
 
     if (node->flag & NODE_MUTED) {
       uiLayoutSetActive(layout, false);
@@ -502,15 +500,15 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     PointerRNA sockptr;
     RNA_pointer_create(&ntree->id, &RNA_NodeSocket, nsock, &sockptr);
 
-    layout = UI_block_layout(node->block,
-                             UI_LAYOUT_VERTICAL,
-                             UI_LAYOUT_PANEL,
-                             locx + NODE_DYS,
-                             dy,
-                             NODE_WIDTH(node) - NODE_DY,
-                             NODE_DY,
-                             0,
-                             UI_style_get_dpi());
+    uiLayout *layout = UI_block_layout(node->block,
+                                       UI_LAYOUT_VERTICAL,
+                                       UI_LAYOUT_PANEL,
+                                       locx + NODE_DYS,
+                                       dy,
+                                       NODE_WIDTH(node) - NODE_DY,
+                                       NODE_DY,
+                                       0,
+                                       UI_style_get_dpi());
 
     if (node->flag & NODE_MUTED) {
       uiLayoutSetActive(layout, false);
@@ -520,7 +518,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     uiLayoutSetContextPointer(layout, "node", &nodeptr);
     uiLayoutSetContextPointer(layout, "socket", &sockptr);
 
-    row = uiLayoutRow(layout, 1);
+    uiLayout *row = uiLayoutRow(layout, true);
 
     const char *socket_label = nodeSocketLabel(nsock);
     nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(socket_label));
@@ -771,7 +769,6 @@ void node_socket_color_get(
     bContext *C, bNodeTree *ntree, PointerRNA *node_ptr, bNodeSocket *sock, float r_color[4])
 {
   PointerRNA ptr;
-
   BLI_assert(RNA_struct_is_a(node_ptr->type, &RNA_Node));
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 
