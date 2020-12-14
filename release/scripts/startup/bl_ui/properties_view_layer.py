@@ -113,8 +113,7 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_glossy_color", text="Color")
 
         col = layout.column(heading="Volume", align=True)
-        col.prop(view_layer_eevee, "use_pass_volume_transmittance", text="Transmittance")
-        col.prop(view_layer_eevee, "use_pass_volume_scatter", text="Scatter")
+        col.prop(view_layer_eevee, "use_pass_volume_direct", text="Light")
 
         col = layout.column(heading="Other", align=True)
         col.prop(view_layer, "use_pass_emit", text="Emission")

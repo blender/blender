@@ -1258,5 +1258,27 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* EEVEE/Cycles Volumes consistency */
+    for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+      /* Remove Volume Transmittance render pass from each view layer. */
+      LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+        view_layer->eevee.render_passes &= ~EEVEE_RENDER_PASS_UNUSED_8;
+      }
+
+      /* Rename Renderlayer Socket `VolumeScatterCol` to `VolumeDir` */
+      if (scene->nodetree) {
+        LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
+          if (node->type == CMP_NODE_R_LAYERS) {
+            LISTBASE_FOREACH (bNodeSocket *, output_socket, &node->outputs) {
+              const static char *volume_scatter = "VolumeScatterCol";
+              if (STREQLEN(output_socket->name, volume_scatter, MAX_NAME)) {
+                BLI_strncpy(output_socket->name, RE_PASSNAME_VOLUME_LIGHT, MAX_NAME);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

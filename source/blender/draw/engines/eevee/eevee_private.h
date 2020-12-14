@@ -989,6 +989,7 @@ typedef struct EEVEE_PrivateData {
   GPUTexture *renderpass_input;
   GPUTexture *renderpass_col_input;
   GPUTexture *renderpass_light_input;
+  GPUTexture *renderpass_transmittance_input;
   /* Renderpass ubo reference used by material pass. */
   struct GPUUniformBuf *renderpass_ubo;
   /** For rendering shadows. */

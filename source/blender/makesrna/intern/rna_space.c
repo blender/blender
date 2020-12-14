@@ -412,12 +412,7 @@ static const EnumPropertyItem rna_enum_view3dshading_render_pass_type_items[] = 
     {EEVEE_RENDER_PASS_DIFFUSE_COLOR, "DIFFUSE_COLOR", 0, "Diffuse Color", ""},
     {EEVEE_RENDER_PASS_SPECULAR_LIGHT, "SPECULAR_LIGHT", 0, "Specular Light", ""},
     {EEVEE_RENDER_PASS_SPECULAR_COLOR, "SPECULAR_COLOR", 0, "Specular Color", ""},
-    {EEVEE_RENDER_PASS_VOLUME_TRANSMITTANCE,
-     "VOLUME_TRANSMITTANCE",
-     0,
-     "Volume Transmittance",
-     ""},
-    {EEVEE_RENDER_PASS_VOLUME_SCATTER, "VOLUME_SCATTER", 0, "Volume Scattering", ""},
+    {EEVEE_RENDER_PASS_VOLUME_LIGHT, "VOLUME_LIGHT", 0, "Volume Light", ""},
 
     {0, "", ICON_NONE, "Effects", ""},
     {EEVEE_RENDER_PASS_BLOOM, "BLOOM", 0, "Bloom", ""},
