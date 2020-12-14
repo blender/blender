@@ -1632,7 +1632,7 @@ if(WITH_PYTHON)
   if(WIN32 OR APPLE)
     # pass, we have this in lib/python/site-packages
   elseif(WITH_PYTHON_INSTALL_REQUESTS)
-    find_python_package(requests "")
+    find_python_package(requests)
   endif()
 endif()
 
