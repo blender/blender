@@ -2,6 +2,7 @@
 
 #include "testing/testing.h"
 
+#include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 
 #include <cmath>
