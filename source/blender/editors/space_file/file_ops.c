@@ -930,6 +930,7 @@ void FILE_OT_select_all(wmOperatorType *ot)
 
 /* Note we could get rid of this one, but it's used by some addon so...
  * Does not hurt keeping it around for now. */
+/* TODO disallow bookmark editing in assets mode? */
 static int bookmark_select_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1836,10 +1837,6 @@ static int file_previous_exec(bContext *C, wmOperator *UNUSED(op))
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
   if (params) {
-    if (!sfile->folders_next) {
-      sfile->folders_next = folderlist_new();
-    }
-
     folderlist_pushdir(sfile->folders_next, params->dir);
     folderlist_popdir(sfile->folders_prev, params->dir);
     folderlist_pushdir(sfile->folders_next, params->dir);
@@ -1874,10 +1871,6 @@ static int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   if (params) {
-    if (!sfile->folders_next) {
-      sfile->folders_next = folderlist_new();
-    }
-
     folderlist_pushdir(sfile->folders_prev, params->dir);
     folderlist_popdir(sfile->folders_next, params->dir);
 

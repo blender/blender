@@ -90,6 +90,7 @@ void file_sfile_to_operator(struct Main *bmain, struct wmOperator *op, struct Sp
 void file_operator_to_sfile(struct Main *bmain, struct SpaceFile *sfile, struct wmOperator *op);
 
 /* filesel.c */
+void fileselect_refresh_params(struct SpaceFile *sfile);
 void fileselect_file_set(SpaceFile *sfile, const int index);
 bool file_attribute_column_type_enabled(const FileSelectParams *params,
                                         FileAttributeColumnType column);

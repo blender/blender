@@ -29,6 +29,7 @@ extern "C" {
 
 struct ARegion;
 struct FileSelectParams;
+struct FileAssetSelectParams;
 struct Scene;
 struct ScrArea;
 struct SpaceFile;
@@ -103,13 +104,13 @@ struct rcti;
 
 struct FileSelectParams *ED_fileselect_ensure_active_params(struct SpaceFile *sfile);
 struct FileSelectParams *ED_fileselect_get_active_params(const struct SpaceFile *sfile);
+struct FileSelectParams *ED_fileselect_get_file_params(const struct SpaceFile *sfile);
+struct FileAssetSelectParams *ED_fileselect_get_asset_params(const struct SpaceFile *sfile);
 
 void ED_fileselect_set_params_from_userdef(struct SpaceFile *sfile);
 void ED_fileselect_params_to_userdef(struct SpaceFile *sfile,
                                      const int temp_win_size[],
                                      const bool is_maximized);
-
-void ED_fileselect_reset_params(struct SpaceFile *sfile);
 
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *region);
 
@@ -141,6 +142,8 @@ void ED_fileselect_clear(struct wmWindowManager *wm,
 void ED_fileselect_exit(struct wmWindowManager *wm,
                         struct Scene *owner_scene,
                         struct SpaceFile *sfile);
+
+bool ED_fileselect_is_asset_browser(const struct SpaceFile *sfile);
 
 void ED_fileselect_window_params_get(const struct wmWindow *win,
                                      int win_size[2],

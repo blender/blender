@@ -35,6 +35,8 @@
 #include "BKE_screen.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_message.h"
@@ -149,22 +151,10 @@ static void file_free(SpaceLink *sl)
     sfile->files = NULL;
   }
 
-  if (sfile->folders_prev) {
-    folderlist_free(sfile->folders_prev);
-    MEM_freeN(sfile->folders_prev);
-    sfile->folders_prev = NULL;
-  }
+  folder_history_list_free(sfile);
 
-  if (sfile->folders_next) {
-    folderlist_free(sfile->folders_next);
-    MEM_freeN(sfile->folders_next);
-    sfile->folders_next = NULL;
-  }
-
-  if (sfile->params) {
-    MEM_freeN(sfile->params);
-    sfile->params = NULL;
-  }
+  MEM_SAFE_FREE(sfile->params);
+  MEM_SAFE_FREE(sfile->asset_params);
 
   if (sfile->layout) {
     MEM_freeN(sfile->layout);
@@ -205,19 +195,20 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
   sfilen->previews_timer = NULL;
   sfilen->smoothscroll_timer = NULL;
 
+  FileSelectParams *active_params_old = ED_fileselect_get_active_params(sfileo);
+  if (active_params_old) {
+    sfilen->files = filelist_new(active_params_old->type);
+    filelist_setdir(sfilen->files, active_params_old->dir);
+  }
+
   if (sfileo->params) {
-    sfilen->files = filelist_new(sfileo->params->type);
     sfilen->params = MEM_dupallocN(sfileo->params);
-    filelist_setdir(sfilen->files, sfilen->params->dir);
+  }
+  if (sfileo->asset_params) {
+    sfilen->asset_params = MEM_dupallocN(sfileo->asset_params);
   }
 
-  if (sfileo->folders_prev) {
-    sfilen->folders_prev = folderlist_duplicate(sfileo->folders_prev);
-  }
-
-  if (sfileo->folders_next) {
-    sfilen->folders_next = folderlist_duplicate(sfileo->folders_next);
-  }
+  sfilen->folder_histories = folder_history_list_duplicate(&sfileo->folder_histories);
 
   if (sfileo->layout) {
     sfilen->layout = MEM_dupallocN(sfileo->layout);
@@ -265,24 +256,42 @@ static void file_ensure_valid_region_state(bContext *C,
   }
 }
 
+/**
+ * Tag the space to recreate the file-list.
+ */
+static void file_tag_reset_list(ScrArea *area, SpaceFile *sfile)
+{
+  filelist_tag_force_reset(sfile->files);
+  ED_area_tag_refresh(area);
+}
+
 static void file_refresh(const bContext *C, ScrArea *area)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_ensure_active_params(sfile);
+  FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
   struct FSMenu *fsmenu = ED_fsmenu_get();
 
-  if (!sfile->folders_prev) {
-    sfile->folders_prev = folderlist_new();
+  fileselect_refresh_params(sfile);
+  folder_history_list_ensure_for_active_browse_mode(sfile);
+
+  if (sfile->files && (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES) &&
+      filelist_needs_reset_on_main_changes(sfile->files)) {
+    filelist_tag_force_reset(sfile->files);
   }
+  sfile->tags &= ~FILE_TAG_REBUILD_MAIN_FILES;
+
   if (!sfile->files) {
     sfile->files = filelist_new(params->type);
     params->highlight_file = -1; /* added this so it opens nicer (ton) */
   }
+  filelist_settype(sfile->files, params->type);
   filelist_setdir(sfile->files, params->dir);
   filelist_setrecursion(sfile->files, params->recursion_level);
   filelist_setsorting(sfile->files, params->sort, params->flag & FILE_SORT_INVERT);
+  filelist_setlibrary(sfile->files, asset_params ? &asset_params->asset_library : NULL);
   filelist_setfilter_options(
       sfile->files,
       (params->flag & FILE_FILTER) != 0,
@@ -290,6 +299,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
       true, /* Just always hide parent, prefer to not add an extra user option for this. */
       params->filter,
       params->filter_id,
+      (params->flag & FILE_ASSETS_ONLY) != 0,
       params->filter_glob,
       params->filter_search);
 
@@ -300,12 +310,12 @@ static void file_refresh(const bContext *C, ScrArea *area)
   sfile->bookmarknr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir);
   sfile->recentnr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_RECENT, params->dir);
 
-  if (filelist_force_reset(sfile->files)) {
+  if (filelist_needs_force_reset(sfile->files)) {
     filelist_readjob_stop(wm, CTX_data_scene(C));
     filelist_clear(sfile->files);
   }
 
-  if (filelist_empty(sfile->files)) {
+  if (filelist_needs_reading(sfile->files)) {
     if (!filelist_pending(sfile->files)) {
       filelist_readjob_start(sfile->files, C);
     }
@@ -365,6 +375,14 @@ static void file_listener(wmWindow *UNUSED(win),
           break;
       }
       break;
+    case NC_ASSET: {
+      if (sfile->files && filelist_needs_reset_on_main_changes(sfile->files)) {
+        /* Full refresh of the file list if local asset data was changed. Refreshing this view is
+         * cheap and users expect this to be updated immediately. */
+        file_tag_reset_list(area, sfile);
+      }
+      break;
+    }
   }
 }
 
@@ -442,6 +460,22 @@ static void file_main_region_message_subscribe(const struct bContext *UNUSED(C),
   }
 }
 
+static bool file_main_region_needs_refresh_before_draw(SpaceFile *sfile)
+{
+  /* Needed, because filelist is not initialized on loading */
+  if (!sfile->files || filelist_needs_reading(sfile->files)) {
+    return true;
+  }
+
+  /* File reading tagged the space because main data changed that may require a filelist reset. */
+  if (filelist_needs_reset_on_main_changes(sfile->files) &&
+      (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES)) {
+    return true;
+  }
+
+  return false;
+}
+
 static void file_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
@@ -450,8 +484,7 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
 
   View2D *v2d = &region->v2d;
 
-  /* Needed, because filelist is not initialized on loading */
-  if (!sfile->files || filelist_empty(sfile->files)) {
+  if (file_main_region_needs_refresh_before_draw(sfile)) {
     file_refresh(C, NULL);
   }
 
@@ -681,6 +714,52 @@ static void file_dropboxes(void)
   WM_dropbox_add(lb, "FILE_OT_filepath_drop", filepath_drop_poll, filepath_drop_copy);
 }
 
+const char *file_context_dir[] = {"active_file", "active_id", NULL};
+
+static int /*eContextResult*/ file_context(const bContext *C,
+                                           const char *member,
+                                           bContextDataResult *result)
+{
+  bScreen *screen = CTX_wm_screen(C);
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  BLI_assert(!ED_area_is_global(CTX_wm_area(C)));
+
+  if (CTX_data_dir(member)) {
+    CTX_data_dir_set(result, file_context_dir);
+    return CTX_RESULT_OK;
+  }
+  else if (CTX_data_equals(member, "active_file")) {
+    FileDirEntry *file = filelist_file(sfile->files, params->active_file);
+    CTX_data_pointer_set(result, &screen->id, &RNA_FileSelectEntry, file);
+    return CTX_RESULT_OK;
+  }
+  else if (CTX_data_equals(member, "active_id")) {
+    const FileDirEntry *file = filelist_file(sfile->files, params->active_file);
+
+    ID *id = filelist_file_get_id(file);
+    if (id) {
+      CTX_data_id_pointer_set(result, id);
+    }
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_MEMBER_NOT_FOUND;
+}
+
+static void file_id_remap(ScrArea *area, SpaceLink *sl, ID *UNUSED(old_id), ID *UNUSED(new_id))
+{
+  SpaceFile *sfile = (SpaceFile *)sl;
+
+  /* If the file shows main data (IDs), tag it for reset. */
+  if (sfile->files && filelist_needs_reset_on_main_changes(sfile->files)) {
+    /* Full refresh of the file list if main data was changed, don't even attempt remap pointers.
+     * We could give file list types a id-remap callback, but it's probably not worth it.
+     * Refreshing local file lists is relatively cheap. */
+    file_tag_reset_list(area, sfile);
+  }
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_file(void)
 {
@@ -700,6 +779,8 @@ void ED_spacetype_file(void)
   st->operatortypes = file_operatortypes;
   st->keymap = file_keymap;
   st->dropboxes = file_dropboxes;
+  st->context = file_context;
+  st->id_remap = file_id_remap;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype file region");

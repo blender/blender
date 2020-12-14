@@ -56,7 +56,9 @@
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"
+#include "BKE_idtype.h"
 #include "BKE_main.h"
+#include "BKE_preferences.h"
 
 #include "BLF_api.h"
 
@@ -77,14 +79,66 @@
 
 #define VERTLIST_MAJORCOLUMN_WIDTH (25 * UI_UNIT_X)
 
-FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
+static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectParams *params)
 {
-  if (!sfile) {
-    /* Sometimes called in poll before space type was checked. */
-    return NULL;
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
+
+  /* operator has no setting for this */
+  params->active_file = -1;
+
+  if (!params->dir[0]) {
+    if (blendfile_path[0] != '\0') {
+      BLI_split_dir_part(blendfile_path, params->dir, sizeof(params->dir));
+    }
+    else {
+      const char *doc_path = BKE_appdir_folder_default();
+      if (doc_path) {
+        BLI_strncpy(params->dir, doc_path, sizeof(params->dir));
+      }
+    }
   }
 
-  return sfile->params;
+  folder_history_list_ensure_for_active_browse_mode(sfile);
+  folderlist_pushdir(sfile->folders_prev, params->dir);
+
+  /* Switching thumbnails needs to recalc layout T28809. */
+  if (sfile->layout) {
+    sfile->layout->dirty = true;
+  }
+}
+
+static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
+{
+  BLI_assert(sfile->browse_mode == FILE_BROWSE_MODE_ASSETS);
+  BLI_assert(sfile->op == NULL);
+
+  FileAssetSelectParams *asset_params = sfile->asset_params;
+
+  if (!asset_params) {
+    asset_params = sfile->asset_params = MEM_callocN(sizeof(*asset_params),
+                                                     "FileAssetSelectParams");
+    asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
+    asset_params->asset_library.type = FILE_ASSET_LIBRARY_LOCAL;
+  }
+
+  FileSelectParams *base_params = &asset_params->base_params;
+  base_params->file[0] = '\0';
+  base_params->filter_glob[0] = '\0';
+  /* TODO this way of using filters to form categories is notably slower than specifying a
+   * "group" to read. That's because all types are read and filtering is applied afterwards. Would
+   * be nice if we could lazy-read individual groups. */
+  base_params->flag |= U_default.file_space_data.flag | FILE_ASSETS_ONLY | FILE_FILTER;
+  base_params->flag &= ~FILE_DIRSEL_ONLY;
+  base_params->filter |= FILE_TYPE_BLENDERLIB;
+  base_params->filter_id = FILTER_ID_OB | FILTER_ID_GR;
+  base_params->display = FILE_IMGDISPLAY;
+  base_params->sort = FILE_SORT_ALPHA;
+  base_params->recursion_level = 1;
+  /* 'SMALL' size by default. More reasonable since this is typically used as regular editor,
+   * space is more of an issue here. */
+  base_params->thumbnail_size = 96;
+
+  fileselect_initialize_params_common(sfile, base_params);
 }
 
 /**
@@ -92,6 +146,8 @@ FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
  *       the previously used settings to be used here rather than overriding them */
 static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 {
+  BLI_assert(sfile->browse_mode == FILE_BROWSE_MODE_FILES);
+
   FileSelectParams *params;
   wmOperator *op = sfile->op;
 
@@ -297,42 +353,102 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     params->filter_glob[0] = '\0';
   }
 
-  /* operator has no setting for this */
-  params->active_file = -1;
-
-  /* initialize the list with previous folders */
-  if (!sfile->folders_prev) {
-    sfile->folders_prev = folderlist_new();
-  }
-
-  if (!params->dir[0]) {
-    if (blendfile_path[0] != '\0') {
-      BLI_split_dir_part(blendfile_path, params->dir, sizeof(params->dir));
-    }
-    else {
-      const char *doc_path = BKE_appdir_folder_default();
-      if (doc_path) {
-        BLI_strncpy(params->dir, doc_path, sizeof(params->dir));
-      }
-    }
-  }
-
-  folderlist_pushdir(sfile->folders_prev, params->dir);
-
-  /* Switching thumbnails needs to recalc layout T28809. */
-  if (sfile->layout) {
-    sfile->layout->dirty = true;
-  }
+  fileselect_initialize_params_common(sfile, params);
 
   return params;
 }
 
+/**
+ * If needed, create and return the file select parameters for the active browse mode.
+ */
 FileSelectParams *ED_fileselect_ensure_active_params(SpaceFile *sfile)
 {
-  if (!sfile->params) {
-    fileselect_ensure_updated_file_params(sfile);
+  switch ((eFileBrowse_Mode)sfile->browse_mode) {
+    case FILE_BROWSE_MODE_FILES:
+      if (!sfile->params) {
+        fileselect_ensure_updated_file_params(sfile);
+      }
+      return sfile->params;
+    case FILE_BROWSE_MODE_ASSETS:
+      if (!sfile->asset_params) {
+        fileselect_ensure_updated_asset_params(sfile);
+      }
+      return &sfile->asset_params->base_params;
   }
-  return sfile->params;
+
+  BLI_assert(!"Invalid browse mode set in file space.");
+  return NULL;
+}
+
+/**
+ * Get the file select parameters for the active browse mode.
+ */
+FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
+{
+  if (!sfile) {
+    /* Sometimes called in poll before space type was checked. */
+    return NULL;
+  }
+
+  switch ((eFileBrowse_Mode)sfile->browse_mode) {
+    case FILE_BROWSE_MODE_FILES:
+      return sfile->params;
+    case FILE_BROWSE_MODE_ASSETS:
+      return (FileSelectParams *)sfile->asset_params;
+  }
+
+  BLI_assert(!"Invalid browse mode set in file space.");
+  return NULL;
+}
+
+FileSelectParams *ED_fileselect_get_file_params(const SpaceFile *sfile)
+{
+  return (sfile->browse_mode == FILE_BROWSE_MODE_FILES) ? sfile->params : NULL;
+}
+
+FileAssetSelectParams *ED_fileselect_get_asset_params(const SpaceFile *sfile)
+{
+  return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) ? sfile->asset_params : NULL;
+}
+
+static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
+{
+  FileSelectAssetLibraryUID *library = &asset_params->asset_library;
+  FileSelectParams *base_params = &asset_params->base_params;
+  bUserAssetLibrary *user_library = NULL;
+
+  /* Ensure valid repo, or fall-back to local one. */
+  if (library->type == FILE_ASSET_LIBRARY_CUSTOM) {
+    user_library = BKE_preferences_asset_library_find_from_name(
+        &U, library->custom_library_identifier);
+    if (!user_library) {
+      library->type = FILE_ASSET_LIBRARY_LOCAL;
+    }
+  }
+
+  switch (library->type) {
+    case FILE_ASSET_LIBRARY_LOCAL:
+      base_params->dir[0] = '\0';
+      break;
+    case FILE_ASSET_LIBRARY_CUSTOM:
+      BLI_assert(user_library);
+      BLI_strncpy(base_params->dir, user_library->path, sizeof(base_params->dir));
+      break;
+  }
+  base_params->type = (library->type == FILE_ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET : FILE_LOADLIB;
+}
+
+void fileselect_refresh_params(SpaceFile *sfile)
+{
+  FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+  if (asset_params) {
+    fileselect_refresh_asset_params(asset_params);
+  }
+}
+
+bool ED_fileselect_is_asset_browser(const SpaceFile *sfile)
+{
+  return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS);
 }
 
 /* The subset of FileSelectParams.flag items we store into preferences. Note that FILE_SORT_ALPHA
@@ -370,6 +486,8 @@ void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
 {
   wmOperator *op = sfile->op;
   UserDef_FileSpaceData *sfile_udata = &U.file_space_data;
+
+  BLI_assert(sfile->browse_mode == FILE_BROWSE_MODE_FILES);
 
   FileSelectParams *params = fileselect_ensure_updated_file_params(sfile);
   if (!op) {
@@ -436,15 +554,6 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile,
   if (memcmp(sfile_udata_new, &sfile_udata_old, sizeof(sfile_udata_old)) != 0) {
     U.runtime.is_dirty = true;
   }
-}
-
-void ED_fileselect_reset_params(SpaceFile *sfile)
-{
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  params->type = FILE_UNIX;
-  params->flag = 0;
-  params->title[0] = '\0';
-  params->active_file = -1;
 }
 
 /**
@@ -1046,8 +1155,7 @@ void ED_fileselect_exit(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfil
     sfile->op = NULL;
   }
 
-  folderlist_free(sfile->folders_prev);
-  folderlist_free(sfile->folders_next);
+  folder_history_list_free(sfile);
 
   if (sfile->files) {
     ED_fileselect_clear(wm, owner_scene, sfile);
