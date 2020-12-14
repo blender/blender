@@ -38,6 +38,7 @@ struct View2D;
 
 void file_calc_previews(const bContext *C, ARegion *region);
 void file_draw_list(const bContext *C, ARegion *region);
+bool file_draw_hint_if_invalid(const SpaceFile *sfile, const ARegion *region);
 
 void file_draw_check_ex(bContext *C, struct ScrArea *area);
 void file_draw_check(bContext *C);
@@ -117,3 +118,5 @@ void file_execute_region_panels_register(struct ARegionType *art);
 
 /* file_utils.c */
 void file_tile_boundbox(const ARegion *region, FileLayout *layout, const int file, rcti *r_bounds);
+
+void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);

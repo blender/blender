@@ -24,6 +24,7 @@ Utility modules associated with the bpy module.
 
 __all__ = (
     "anim_utils",
+    "asset_utils",
     "object_utils",
     "io_utils",
     "image_utils",

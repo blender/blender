@@ -270,6 +270,8 @@ static void rna_Area_ui_type_update(bContext *C, PointerRNA *ptr)
     st->space_subtype_set(area, area->butspacetype_subtype);
   }
   area->butspacetype_subtype = 0;
+
+  ED_area_tag_refresh(area);
 }
 
 static void rna_View2D_region_to_view(struct View2D *v2d, float x, float y, float result[2])

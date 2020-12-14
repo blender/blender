@@ -17,27 +17,79 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+
+import bpy
+
 from bpy.types import Header, Panel, Menu, UIList
+
+from bpy_extras import (
+    asset_utils,
+)
 
 
 class FILEBROWSER_HT_header(Header):
     bl_space_type = 'FILE_BROWSER'
 
-    def draw(self, context):
+    def draw_asset_browser_buttons(self, context):
         layout = self.layout
 
-        st = context.space_data
+        space_data = context.space_data
+        params = space_data.params
 
-        if st.active_operator is None:
+        row = layout.row(align=True)
+        row.prop(params, "asset_library", text="")
+        # External libraries don't auto-refresh, add refresh button.
+        if params.asset_library != 'LOCAL':
+            row.operator("file.refresh", text="", icon="FILE_REFRESH")
+
+        layout.separator_spacer()
+
+        # Uses prop_with_popover() as popover() only adds the triangle icon in headers.
+        layout.prop_with_popover(
+            params,
+            "display_type",
+            panel="FILEBROWSER_PT_display",
+            text="",
+            icon_only=True,
+        )
+        layout.prop_with_popover(
+            params,
+            "display_type",
+            panel="FILEBROWSER_PT_filter",
+            text="",
+            icon='FILTER',
+            icon_only=True,
+        )
+
+        layout.prop(params, "filter_search", text="", icon='VIEWZOOM')
+
+        layout.operator(
+            "screen.region_toggle",
+            text="",
+            icon='PREFERENCES',
+            depress=is_option_region_visible(context, space_data)
+        ).region_type = 'TOOL_PROPS'
+
+    def draw(self, context):
+        from bpy_extras.asset_utils import SpaceAssetInfo
+
+        layout = self.layout
+
+        space_data = context.space_data
+
+        if space_data.active_operator is None:
             layout.template_header()
 
         FILEBROWSER_MT_editor_menus.draw_collapsible(context, layout)
 
-        # can be None when save/reload with a file selector open
+        if SpaceAssetInfo.is_asset_browser(space_data):
+            layout.separator()
+            self.draw_asset_browser_buttons(context)
+        else:
+            layout.separator_spacer()
 
-        layout.separator_spacer()
-
-        layout.template_running_jobs()
+        if not context.screen.show_statusbar:
+            layout.template_running_jobs()
 
 
 class FILEBROWSER_PT_display(Panel):
@@ -144,6 +196,9 @@ class FILEBROWSER_PT_filter(Panel):
                 row.label(icon='BLANK1')  # Indentation
 
                 sub = row.column(align=True)
+
+                sub.prop(params, "use_filter_asset_only")
+
                 filter_id = params.filter_id
                 for identifier in dir(filter_id):
                     if identifier.startswith("category_"):
@@ -158,6 +213,11 @@ def panel_poll_is_upper_region(region):
     # The upper region is left-aligned, the lower is split into it then.
     # Note that after "Flip Regions" it's right-aligned.
     return region.alignment in {'LEFT', 'RIGHT'}
+
+
+def panel_poll_is_asset_browsing(context):
+    from bpy_extras.asset_utils import SpaceAssetInfo
+    return SpaceAssetInfo.is_asset_browser_poll(context)
 
 
 class FILEBROWSER_UL_dir(UIList):
@@ -187,7 +247,7 @@ class FILEBROWSER_PT_bookmarks_volumes(Panel):
 
     @classmethod
     def poll(cls, context):
-        return panel_poll_is_upper_region(context.region)
+        return panel_poll_is_upper_region(context.region) and not panel_poll_is_asset_browsing(context)
 
     def draw(self, context):
         layout = self.layout
@@ -207,7 +267,7 @@ class FILEBROWSER_PT_bookmarks_system(Panel):
 
     @classmethod
     def poll(cls, context):
-        return not context.preferences.filepaths.hide_system_bookmarks and panel_poll_is_upper_region(context.region)
+        return not context.preferences.filepaths.hide_system_bookmarks and panel_poll_is_upper_region(context.region) and not panel_poll_is_asset_browsing(context)
 
     def draw(self, context):
         layout = self.layout
@@ -241,7 +301,7 @@ class FILEBROWSER_PT_bookmarks_favorites(Panel):
 
     @classmethod
     def poll(cls, context):
-        return panel_poll_is_upper_region(context.region)
+        return panel_poll_is_upper_region(context.region) and not panel_poll_is_asset_browsing(context)
 
     def draw(self, context):
         layout = self.layout
@@ -278,7 +338,7 @@ class FILEBROWSER_PT_bookmarks_recents(Panel):
 
     @classmethod
     def poll(cls, context):
-        return not context.preferences.filepaths.hide_recent_locations and panel_poll_is_upper_region(context.region)
+        return not context.preferences.filepaths.hide_recent_locations and panel_poll_is_upper_region(context.region) and not panel_poll_is_asset_browsing(context)
 
     def draw(self, context):
         layout = self.layout
@@ -302,7 +362,7 @@ class FILEBROWSER_PT_advanced_filter(Panel):
     @classmethod
     def poll(cls, context):
         # only useful in append/link (library) context currently...
-        return context.space_data.params.use_library_browsing and panel_poll_is_upper_region(context.region)
+        return context.space_data.params.use_library_browsing and panel_poll_is_upper_region(context.region) and not panel_poll_is_asset_browsing(context)
 
     def draw(self, context):
         layout = self.layout
@@ -314,10 +374,24 @@ class FILEBROWSER_PT_advanced_filter(Panel):
             if params.use_filter_blendid:
                 layout.separator()
                 col = layout.column(align=True)
+
+                col.prop(params, "use_filter_asset_only")
+
                 filter_id = params.filter_id
                 for identifier in dir(filter_id):
                     if identifier.startswith("filter_"):
                         col.prop(filter_id, identifier, toggle=True)
+
+
+def is_option_region_visible(context, space):
+    if not space.active_operator:
+        return False
+
+    for region in context.area.regions:
+        if region.type == 'TOOL_PROPS' and region.width <= 1:
+            return False
+
+    return True
 
 
 class FILEBROWSER_PT_directory_path(Panel):
@@ -330,16 +404,6 @@ class FILEBROWSER_PT_directory_path(Panel):
     def is_header_visible(self, context):
         for region in context.area.regions:
             if region.type == 'HEADER' and region.height <= 1:
-                return False
-
-        return True
-
-    def is_option_region_visible(self, context, space):
-        if not space.active_operator:
-            return False
-
-        for region in context.area.regions:
-            if region.type == 'TOOL_PROPS' and region.width <= 1:
                 return False
 
         return True
@@ -388,7 +452,7 @@ class FILEBROWSER_PT_directory_path(Panel):
                 "screen.region_toggle",
                 text="",
                 icon='PREFERENCES',
-                depress=self.is_option_region_visible(context, space)
+                depress=is_option_region_visible(context, space)
             ).region_type = 'TOOL_PROPS'
 
 
@@ -482,6 +546,89 @@ class FILEBROWSER_MT_context_menu(Menu):
         layout.prop_menu_enum(params, "sort_method")
 
 
+class ASSETBROWSER_PT_navigation_bar(asset_utils.AssetBrowserPanel, Panel):
+    bl_label = "Asset Navigation"
+    bl_region_type = 'TOOLS'
+    bl_options = {'HIDE_HEADER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        space_file = context.space_data
+
+        col = layout.column()
+
+        col.scale_x = 1.3
+        col.scale_y = 1.3
+        col.prop(space_file.params, "asset_category", expand=True)
+
+
+class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Asset Metadata"
+    bl_options = {'HIDE_HEADER'}
+
+    def draw(self, context):
+        layout = self.layout
+        active_file = context.active_file
+        active_asset = asset_utils.SpaceAssetInfo.get_active_asset(context)
+
+        layout.use_property_split = True
+
+        if not active_file or not active_asset:
+            layout.label(text="No asset selected.")
+            return
+
+        box = layout.box()
+        box.template_icon(icon_value=active_file.preview_icon_id, scale=5.0)
+        if bpy.ops.ed.lib_id_load_custom_preview.poll():
+            box.operator("ed.lib_id_load_custom_preview", icon='FILEBROWSER', text="Load Custom")
+        layout.prop(active_file, "name")
+
+
+class ASSETBROWSER_PT_metadata_details(asset_utils.AssetBrowserPanel, Panel):
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Details"
+    bl_parent_id = "ASSETBROWSER_PT_metadata"
+
+    def draw(self, context):
+        layout = self.layout
+        active_asset = asset_utils.SpaceAssetInfo.get_active_asset(context)
+
+        layout.use_property_split = True
+
+        if active_asset:
+            layout.prop(active_asset, "description")
+
+
+class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
+    bl_label = "Tags"
+
+    def draw(self, context):
+        layout = self.layout
+        asset_data = asset_utils.SpaceAssetInfo.get_active_asset(context)
+
+        row = layout.row()
+        row.template_list("ASSETBROWSER_UL_metadata_tags", "asset_tags", asset_data, "tags",
+                          asset_data, "active_tag", rows=4)
+
+        col = row.column(align=True)
+        col.operator("asset.tag_add", icon='ADD', text="")
+        col.operator("asset.tag_remove", icon='REMOVE', text="")
+
+
+class ASSETBROWSER_UL_metadata_tags(UIList):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+        tag = item
+
+        row = layout.row(align=True)
+        # Non-editable entries would show grayed-out, which is bad in this specific case, so switch to mere label.
+        if tag.is_property_readonly("name"):
+            row.label(text=tag.name, icon_value=icon)
+        else:
+            row.prop(tag, "name", text="", emboss=False, icon_value=icon)
+
+
 classes = (
     FILEBROWSER_HT_header,
     FILEBROWSER_PT_display,
@@ -498,6 +645,11 @@ classes = (
     FILEBROWSER_MT_view,
     FILEBROWSER_MT_select,
     FILEBROWSER_MT_context_menu,
+    ASSETBROWSER_PT_navigation_bar,
+    ASSETBROWSER_PT_metadata,
+    ASSETBROWSER_PT_metadata_details,
+    ASSETBROWSER_PT_metadata_tags,
+    ASSETBROWSER_UL_metadata_tags,
 )
 
 if __name__ == "__main__":  # only for live edit.

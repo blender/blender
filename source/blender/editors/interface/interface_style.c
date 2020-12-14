@@ -206,8 +206,12 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
 
   BLF_disable(fs->uifont_id, font_flag);
 
-  *r_xofs = xofs;
-  *r_yofs = yofs;
+  if (r_xofs) {
+    *r_xofs = xofs;
+  }
+  if (r_yofs) {
+    *r_yofs = yofs;
+  }
 }
 
 void UI_fontstyle_draw(const uiFontStyle *fs,

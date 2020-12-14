@@ -27,6 +27,7 @@ if "bpy" in locals():
 _modules = [
     "add_mesh_torus",
     "anim",
+    "assets",
     "clip",
     "console",
     "constraint",
