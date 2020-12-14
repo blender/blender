@@ -467,7 +467,7 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
   }
 
   if (!prv) {
-    previewimg_deferred_create(path, source);
+    prv = previewimg_deferred_create(path, source);
     force_update = true;
   }
 
