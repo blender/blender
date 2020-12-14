@@ -184,6 +184,7 @@ static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
 #  include "BKE_mesh_runtime.h"
 #  include "BKE_paint.h"
 #  include "BKE_pbvh.h"
+#  include "BKE_preferences.h"
 #  include "BKE_screen.h"
 
 #  include "DEG_depsgraph.h"
@@ -333,6 +334,12 @@ static void rna_userdef_language_update(Main *UNUSED(bmain),
   }
 
   USERDEF_TAG_DIRTY;
+}
+
+static void rna_userdef_asset_library_name_set(PointerRNA *ptr, const char *value)
+{
+  bUserAssetLibrary *library = (bUserAssetLibrary *)ptr->data;
+  BKE_preferences_asset_library_name_set(&U, library, value);
 }
 
 static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain),
@@ -5968,6 +5975,29 @@ static void rna_def_userdef_keymap(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Key Config", "The name of the active key configuration");
 }
 
+static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "UserAssetLibrary", NULL);
+  RNA_def_struct_sdna(srna, "bUserAssetLibrary");
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+  RNA_def_struct_ui_text(
+      srna, "Asset Library", "Settings to define a reusable library for Asset Browsers to use");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Name", "Identifier (not necessarily unique) for the asset library");
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_userdef_asset_library_name_set");
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "path", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_ui_text(prop, "Path", "Path to a .blend file to use as an asset library");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+}
+
 static void rna_def_userdef_filepaths(BlenderRNA *brna)
 {
   PropertyRNA *prop;
@@ -6140,6 +6170,12 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Save Preview Images",
                            "Enables automatic saving of preview images in the .blend file");
+
+  rna_def_userdef_filepaths_asset_library(brna);
+
+  prop = RNA_def_property(srna, "asset_libraries", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "UserAssetLibrary");
+  RNA_def_property_ui_text(prop, "Asset Libraries", "");
 }
 
 static void rna_def_userdef_experimental(BlenderRNA *brna)

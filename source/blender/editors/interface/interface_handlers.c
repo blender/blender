@@ -626,7 +626,11 @@ static bool ui_rna_is_userdef(PointerRNA *ptr, PropertyRNA *prop)
     if (base == NULL) {
       base = ptr->type;
     }
-    if (ELEM(base, &RNA_AddonPreferences, &RNA_KeyConfigPreferences, &RNA_KeyMapItem)) {
+    if (ELEM(base,
+             &RNA_AddonPreferences,
+             &RNA_KeyConfigPreferences,
+             &RNA_KeyMapItem,
+             &RNA_UserAssetLibrary)) {
       tag = true;
     }
   }

@@ -215,6 +215,7 @@ set(SRC
   intern/pbvh_bmesh.c
   intern/pointcache.c
   intern/pointcloud.cc
+  intern/preferences.c
   intern/report.c
   intern/rigidbody.c
   intern/scene.c
@@ -376,6 +377,7 @@ set(SRC
   BKE_persistent_data_handle.hh
   BKE_pointcache.h
   BKE_pointcloud.h
+  BKE_preferences.h
   BKE_report.h
   BKE_rigidbody.h
   BKE_scene.h

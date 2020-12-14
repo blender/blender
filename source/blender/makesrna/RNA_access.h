@@ -697,6 +697,7 @@ extern StructRNA RNA_UVProjector;
 extern StructRNA RNA_UVWarpModifier;
 extern StructRNA RNA_UnitSettings;
 extern StructRNA RNA_UnknownType;
+extern StructRNA RNA_UserAssetLibrary;
 extern StructRNA RNA_UserSolidLight;
 extern StructRNA RNA_VertexcolorGpencilModifier;
 extern StructRNA RNA_VectorFont;
