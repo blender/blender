@@ -66,7 +66,7 @@ set(SRC
   intern/CCGSubSurf.c
   intern/CCGSubSurf_legacy.c
   intern/CCGSubSurf_util.c
-  intern/DerivedMesh.c
+  intern/DerivedMesh.cc
   intern/action.c
   intern/addon.c
   intern/anim_data.c

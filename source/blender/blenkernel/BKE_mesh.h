@@ -678,7 +678,7 @@ void BKE_mesh_calc_edges_loose(struct Mesh *mesh);
 void BKE_mesh_calc_edges(struct Mesh *mesh, bool keep_existing_edges, const bool select_new_edges);
 void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
 
-/* In DerivedMesh.c */
+/* In DerivedMesh.cc */
 void BKE_mesh_wrapper_deferred_finalize(struct Mesh *me_eval,
                                         const CustomData_MeshMasks *cd_mask_finalize);
 

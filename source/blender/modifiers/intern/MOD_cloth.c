@@ -116,7 +116,7 @@ static void deformVerts(ModifierData *md,
     mesh_src = (Mesh *)BKE_id_copy_ex(NULL, (ID *)mesh, NULL, LIB_ID_COPY_LOCALIZE);
   }
 
-  /* TODO(sergey): For now it actually duplicates logic from DerivedMesh.c
+  /* TODO(sergey): For now it actually duplicates logic from DerivedMesh.cc
    * and needs some more generic solution. But starting experimenting with
    * this so close to the release is not that nice..
    *
