@@ -354,13 +354,15 @@ static ID *duplicate_ids(ID *id, const bool allow_failure)
     case ID_TE:
     case ID_LA:
     case ID_WO: {
+      BLI_assert(BKE_previewimg_id_supports_jobs(id));
       ID *id_copy = BKE_id_copy_ex(
           NULL, id, NULL, LIB_ID_CREATE_LOCAL | LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
       return id_copy;
     }
+    /* These support threading, but don't need duplicating. */
     case ID_IM:
     case ID_BR:
-    case ID_SCR:
+      BLI_assert(BKE_previewimg_id_supports_jobs(id));
       return NULL;
     default:
       if (!allow_failure) {
@@ -1374,6 +1376,24 @@ static void other_id_types_preview_render(IconPreview *ip,
   shader_preview_free(sp);
 }
 
+/* exported functions */
+
+/**
+ * Find the index to map \a icon_size to data in \a preview_image.
+ */
+static int icon_previewimg_size_index_get(const IconPreviewSize *icon_size,
+                                          const PreviewImage *preview_image)
+{
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
+    if ((preview_image->w[i] == icon_size->sizex) && (preview_image->h[i] == icon_size->sizey)) {
+      return i;
+    }
+  }
+
+  BLI_assert(!"The searched icon size does not match any in the preview image");
+  return -1;
+}
+
 static void icon_preview_startjob_all_sizes(void *customdata,
                                             short *stop,
                                             short *do_update,
@@ -1397,6 +1417,13 @@ static void icon_preview_startjob_all_sizes(void *customdata,
     if (!check_engine_supports_preview(ip->scene)) {
       continue;
     }
+
+#ifndef NDEBUG
+    {
+      int size_index = icon_previewimg_size_index_get(cur_size, prv);
+      BLI_assert(!BKE_previewimg_is_finished(prv, size_index));
+    }
+#endif
 
     if (ip->id && ELEM(GS(ip->id->name), ID_OB)) {
       /* Much simpler than the ShaderPreview mess used for other ID types. */
@@ -1460,6 +1487,12 @@ static void icon_preview_endjob(void *customdata)
   if (ip->owner) {
     PreviewImage *prv_img = ip->owner;
     prv_img->tag &= ~PRV_TAG_DEFFERED_RENDERING;
+
+    LISTBASE_FOREACH (IconPreviewSize *, icon_size, &ip->sizes) {
+      int size_index = icon_previewimg_size_index_get(icon_size, prv_img);
+      BKE_previewimg_finish(prv_img, size_index);
+    }
+
     if (prv_img->tag & PRV_TAG_DEFFERED_DELETE) {
       BLI_assert(prv_img->tag & PRV_TAG_DEFFERED);
       BKE_previewimg_deferred_release(prv_img);
@@ -1575,6 +1608,8 @@ void ED_preview_shader_job(const bContext *C,
   ShaderPreview *sp;
   Scene *scene = CTX_data_scene(C);
   short id_type = GS(id->name);
+
+  BLI_assert(BKE_previewimg_id_supports_jobs(id));
 
   /* Use workspace render only for buttons Window,
    * since the other previews are related to the datablock. */

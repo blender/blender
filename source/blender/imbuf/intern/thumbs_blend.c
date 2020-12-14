@@ -78,15 +78,7 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
 
       if (STREQ(blockname, blen_id)) {
         if (img) {
-          unsigned int w = img->w[ICON_SIZE_PREVIEW];
-          unsigned int h = img->h[ICON_SIZE_PREVIEW];
-          unsigned int *rect = img->rect[ICON_SIZE_PREVIEW];
-
-          if (w > 0 && h > 0 && rect) {
-            /* first allocate imbuf for copying preview into it */
-            ima = IMB_allocImBuf(w, h, 32, IB_rect);
-            memcpy(ima->rect, rect, w * h * sizeof(unsigned int));
-          }
+          ima = BKE_previewimg_to_imbuf(img, ICON_SIZE_PREVIEW);
         }
         break;
       }

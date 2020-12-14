@@ -40,6 +40,7 @@
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 
+#include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 
@@ -248,6 +249,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
       if (looking) {
         if (bhead->SDNAnr == DNA_struct_find_nr(fd->filesdna, "PreviewImage")) {
           prv = BLO_library_read_struct(fd, bhead, "PreviewImage");
+
           if (prv) {
             memcpy(new_prv, prv, sizeof(PreviewImage));
             if (prv->rect[0] && prv->w[0] && prv->h[0]) {
@@ -262,6 +264,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
               new_prv->rect[0] = NULL;
               new_prv->w[0] = new_prv->h[0] = 0;
             }
+            BKE_previewimg_finish(new_prv, 0);
 
             if (prv->rect[1] && prv->w[1] && prv->h[1]) {
               bhead = blo_bhead_next(fd, bhead);
@@ -275,6 +278,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
               new_prv->rect[1] = NULL;
               new_prv->w[1] = new_prv->h[1] = 0;
             }
+            BKE_previewimg_finish(new_prv, 1);
             MEM_freeN(prv);
           }
         }

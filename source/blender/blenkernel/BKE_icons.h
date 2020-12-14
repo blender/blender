@@ -23,17 +23,26 @@
  * \ingroup bke
  *
  * Resizable Icons for Blender
+ *
+ * There is some thread safety for this API but it is rather weak. Registering or unregistering
+ * icons is thread safe, changing data of icons from multiple threads is not. Practically this
+ * should be fine since only the main thread modifies icons. Should that change, more locks or a
+ * different design need to be introduced.
  */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "BLI_compiler_attrs.h"
+
 typedef void (*DrawInfoFreeFP)(void *drawinfo);
 
 enum {
   /** ID preview: obj is #ID. */
   ICON_DATA_ID = 0,
+  /** Arbitrary Image buffer: obj is #ImBuf */
+  ICON_DATA_IMBUF,
   /** Preview: obj is #PreviewImage */
   ICON_DATA_PREVIEW,
   /** 2D triangles: obj is #Icon_Geom */
@@ -44,6 +53,9 @@ enum {
   ICON_DATA_GPLAYER,
 };
 
+/**
+ * \note See comment at the top regarding thread safety.
+ */
 struct Icon {
   void *drawinfo;
   /**
@@ -93,6 +105,9 @@ int BKE_icon_gplayer_color_ensure(struct bGPDlayer *gpl);
 
 int BKE_icon_preview_ensure(struct ID *id, struct PreviewImage *preview);
 
+int BKE_icon_imbuf_create(struct ImBuf *ibuf) ATTR_WARN_UNUSED_RESULT;
+struct ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
+
 /* retrieve icon for id */
 struct Icon *BKE_icon_get(const int icon_id);
 
@@ -131,6 +146,9 @@ void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
 struct PreviewImage **BKE_previewimg_id_get_p(const struct ID *id);
 struct PreviewImage *BKE_previewimg_id_get(const struct ID *id);
 
+void BKE_previewimg_id_custom_set(struct ID *id, const char *path);
+
+bool BKE_previewimg_id_supports_jobs(const struct ID *id);
 
 /* Trigger deferred loading of a custom image file into the preview buffer. */
 void BKE_previewimg_id_custom_set(struct ID *id, const char *path);
@@ -151,6 +169,11 @@ struct PreviewImage *BKE_previewimg_id_ensure(struct ID *id);
 
 void BKE_previewimg_ensure(struct PreviewImage *prv, const int size);
 
+struct ImBuf *BKE_previewimg_to_imbuf(struct PreviewImage *prv, const int size);
+
+void BKE_previewimg_finish(struct PreviewImage *prv, const int size);
+bool BKE_previewimg_is_finished(const struct PreviewImage *prv, const int size);
+
 struct PreviewImage *BKE_previewimg_cached_get(const char *name);
 
 struct PreviewImage *BKE_previewimg_cached_ensure(const char *name);
@@ -168,7 +191,7 @@ void BKE_previewimg_blend_write(struct BlendWriter *writer, const struct Preview
 void BKE_previewimg_blend_read(struct BlendDataReader *reader, struct PreviewImage *prv);
 
 int BKE_icon_geom_ensure(struct Icon_Geom *geom);
-struct Icon_Geom *BKE_icon_geom_from_memory(const uchar *data, size_t data_len);
+struct Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len);
 struct Icon_Geom *BKE_icon_geom_from_file(const char *filename);
 
 struct ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom,

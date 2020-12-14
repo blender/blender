@@ -546,7 +546,7 @@ static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
 
   BKE_previewimg_id_custom_set(id, path);
 
-  // WM_event_add_notifier(C, NC_ASSET, NULL);
+  WM_event_add_notifier(C, NC_ASSET, NULL);
 
   return OPERATOR_FINISHED;
 }

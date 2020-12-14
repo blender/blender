@@ -133,7 +133,7 @@ set(SRC
   intern/gpencil_geom.c
   intern/gpencil_modifier.c
   intern/hair.c
-  intern/icons.c
+  intern/icons.cc
   intern/icons_rasterize.c
   intern/idprop.c
   intern/idprop_utils.c
