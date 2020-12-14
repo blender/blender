@@ -41,6 +41,8 @@ const FloatMathOperationInfo *get_float_math_operation_info(const int operation)
       RETURN_OPERATION_INFO("Sine", "math_sine");
     case NODE_MATH_COSINE:
       RETURN_OPERATION_INFO("Cosine", "math_cosine");
+    case NODE_MATH_TANGENT:
+      RETURN_OPERATION_INFO("Tangent", "math_tangent");
     case NODE_MATH_ARCSINE:
       RETURN_OPERATION_INFO("Arc Sine", "math_arcsine");
     case NODE_MATH_ARCCOSINE:
