@@ -1201,6 +1201,28 @@ static int nlaevalchan_validate_index(NlaEvalChannel *nec, int index)
   return 0;
 }
 
+static bool nlaevalchan_validate_index_ex(const NlaEvalChannel *nec, const int array_index)
+{
+  /** Although array_index comes from fcurve, that doesn't necessarily mean the property has that
+   * many elements. */
+  const int index = nlaevalchan_validate_index(nec, array_index);
+
+  if (index < 0) {
+    if (G.debug & G_DEBUG) {
+      ID *id = nec->key.ptr.owner_id;
+      CLOG_WARN(&LOG,
+                "Animation: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
+                id ? (id->name + 2) : "<No ID>",
+                nec->rna_path,
+                array_index,
+                nec->base_snapshot.length);
+    }
+
+    return false;
+  }
+  return true;
+}
+
 /* Initialize default values for NlaEvalChannel from the property data. */
 static void nlaevalchan_get_default_values(NlaEvalChannel *nec, float *r_values)
 {
@@ -1612,19 +1634,7 @@ static bool nlaeval_blend_value(NlaBlendData *blend,
     return false;
   }
 
-  int index = nlaevalchan_validate_index(nec, array_index);
-
-  if (index < 0) {
-    if (G.debug & G_DEBUG) {
-      ID *id = nec->key.ptr.owner_id;
-      CLOG_WARN(&LOG,
-                "Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
-                id ? (id->name + 2) : "<No ID>",
-                nec->rna_path,
-                array_index,
-                nec->base_snapshot.length);
-    }
-
+  if (!nlaevalchan_validate_index_ex(nec, array_index)) {
     return false;
   }
 
@@ -1633,21 +1643,21 @@ static bool nlaeval_blend_value(NlaBlendData *blend,
     BLI_bitmap_set_all(nec->valid.ptr, true, 4);
   }
   else {
-    BLI_BITMAP_ENABLE(nec->valid.ptr, index);
+    BLI_BITMAP_ENABLE(nec->valid.ptr, array_index);
   }
 
   NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_ensure_channel(blend->snapshot, nec);
-  float *p_value = &nec_snapshot->values[index];
+  float *p_value = &nec_snapshot->values[array_index];
 
   if (blend->mode == NLASTRIP_MODE_COMBINE) {
     /* Quaternion blending is deferred until all sub-channel values are known. */
     if (nec->mix_mode == NEC_MIX_QUATERNION) {
       NlaEvalChannelSnapshot *blend_snapshot = nlaevalchan_queue_blend(blend, nec);
 
-      blend_snapshot->values[index] = value;
+      blend_snapshot->values[array_index] = value;
     }
     else {
-      float base_value = nec->base_snapshot.values[index];
+      float base_value = nec->base_snapshot.values[array_index];
 
       *p_value = nla_combine_value(nec->mix_mode, base_value, *p_value, value, blend->influence);
     }
