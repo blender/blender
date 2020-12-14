@@ -1189,7 +1189,7 @@ static void nlaeval_free(NlaEvalData *nlaeval)
 
 /* ---------------------- */
 
-static int nlaevalchan_validate_index(NlaEvalChannel *nec, int index)
+static int nlaevalchan_validate_index(const NlaEvalChannel *nec, int index)
 {
   if (nec->is_array) {
     if (index >= 0 && index < nec->base_snapshot.length) {
@@ -1494,7 +1494,7 @@ static bool nla_invert_blend_value(
     int blend_mode, float old_value, float target_value, float influence, float *r_value)
 {
   /** No solution if strip had 0 influence. */
-  if (IS_EQF(0, influence)) {
+  if (IS_EQF(influence, 0.0f)) {
     return false;
   }
 
@@ -1542,7 +1542,7 @@ static bool nla_invert_combine_value(int mix_mode,
                                      float *r_value)
 {
   /* No solution if strip had no influence. */
-  if (IS_EQF(influence, 0)) {
+  if (IS_EQF(influence, 0.0f)) {
     return false;
   }
 
@@ -1597,7 +1597,7 @@ static bool nla_invert_combine_quaternion(const float old_values[4],
                                           float influence,
                                           float result[4])
 {
-  if (IS_EQF(influence, 0)) {
+  if (IS_EQF(influence, 0.0f)) {
     return false;
   }
   float tmp_old[4], tmp_new[4];
