@@ -663,7 +663,7 @@ static eContextResult screen_ctx_selected_nla_strips(const bContext *C, bContext
       NlaTrack *nlt = (NlaTrack *)ale->data;
       LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
         if (strip->flag & NLASTRIP_FLAG_SELECT) {
-          CTX_data_list_add(result, &scene->id, &RNA_NlaStrip, strip);
+          CTX_data_list_add(result, ale->id, &RNA_NlaStrip, strip);
         }
       }
     }
