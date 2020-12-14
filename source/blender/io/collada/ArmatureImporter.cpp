@@ -1037,7 +1037,7 @@ void ArmatureImporter::get_rna_path_for_joint(COLLADAFW::Node *node,
                                               char *joint_path,
                                               size_t count)
 {
-  char bone_name_esc[sizeof(((Bone *)NULL)->name) * 2];
+  char bone_name_esc[sizeof(((Bone *)nullptr)->name) * 2];
   BLI_str_escape(bone_name_esc, bc_get_joint_name(node), sizeof(bone_name_esc));
   BLI_snprintf(joint_path, count, "pose.bones[\"%s\"]", bone_name_esc);
 }
