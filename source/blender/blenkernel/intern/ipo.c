@@ -1118,7 +1118,7 @@ static char *get_rna_access(ID *id,
           propname = "speed_fader";
           break;
         case SEQ_FAC_OPACITY:
-          propname = "blend_opacity";
+          propname = "blend_alpha";
           break;
       }
       /* XXX this doesn't seem to be included anywhere in sequencer RNA... */
