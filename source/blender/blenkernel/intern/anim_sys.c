@@ -1477,7 +1477,7 @@ static float nla_combine_value(
       return old_value + (value - base_value) * inf;
 
     case NEC_MIX_MULTIPLY:
-      if (base_value == 0.0f) {
+      if (IS_EQF(base_value, 0.0f)) {
         base_value = 1.0f;
       }
       return old_value * powf(value / base_value, inf);
@@ -1493,6 +1493,11 @@ static float nla_combine_value(
 static bool nla_invert_blend_value(
     int blend_mode, float old_value, float target_value, float influence, float *r_value)
 {
+  /** No solution if strip had 0 influence. */
+  if (IS_EQF(0, influence)) {
+    return false;
+  }
+
   switch (blend_mode) {
     case NLASTRIP_MODE_ADD:
       *r_value = (target_value - old_value) / influence;
@@ -1503,9 +1508,9 @@ static bool nla_invert_blend_value(
       return true;
 
     case NLASTRIP_MODE_MULTIPLY:
-      if (old_value == 0.0f) {
+      if (IS_EQF(old_value, 0.0f)) {
         /* Resolve 0/0 to 1. */
-        if (target_value == 0.0f) {
+        if (IS_EQF(target_value, 0.0f)) {
           *r_value = 1.0f;
           return true;
         }
@@ -1536,6 +1541,11 @@ static bool nla_invert_combine_value(int mix_mode,
                                      float influence,
                                      float *r_value)
 {
+  /* No solution if strip had no influence. */
+  if (IS_EQF(influence, 0)) {
+    return false;
+  }
+
   switch (mix_mode) {
     case NEC_MIX_ADD:
     case NEC_MIX_AXIS_ANGLE:
@@ -1543,12 +1553,12 @@ static bool nla_invert_combine_value(int mix_mode,
       return true;
 
     case NEC_MIX_MULTIPLY:
-      if (base_value == 0.0f) {
+      if (IS_EQF(base_value, 0.0f)) {
         base_value = 1.0f;
       }
-      if (old_value == 0.0f) {
+      if (IS_EQF(old_value, 0.0f)) {
         /* Resolve 0/0 to 1. */
-        if (target_value == 0.0f) {
+        if (IS_EQF(target_value, 0.0f)) {
           *r_value = base_value;
           return true;
         }
@@ -1582,11 +1592,14 @@ static void nla_combine_quaternion(const float old_values[4],
 }
 
 /* invert accumulation of quaternion channels for Combine mode according to influence */
-static void nla_invert_combine_quaternion(const float old_values[4],
+static bool nla_invert_combine_quaternion(const float old_values[4],
                                           const float values[4],
                                           float influence,
                                           float result[4])
 {
+  if (IS_EQF(influence, 0)) {
+    return false;
+  }
   float tmp_old[4], tmp_new[4];
 
   normalize_qt_qt(tmp_old, old_values);
@@ -1595,6 +1608,8 @@ static void nla_invert_combine_quaternion(const float old_values[4],
 
   mul_qt_qtqt(result, tmp_old, tmp_new);
   pow_qt_fl_normalized(result, 1.0f / influence);
+
+  return true;
 }
 
 /* Data about the current blend mode. */
@@ -2512,7 +2527,9 @@ bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
 
       *r_force_all = true;
 
-      nla_invert_combine_quaternion(old_values, values, influence, values);
+      if (!nla_invert_combine_quaternion(old_values, values, influence, values)) {
+        return false;
+      }
     }
     else {
       float *base_values = nec->base_snapshot.values;
