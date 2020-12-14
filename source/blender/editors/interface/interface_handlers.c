@@ -1987,6 +1987,8 @@ static bool ui_but_drag_init(bContext *C,
     else {
       wmDrag *drag = WM_event_start_drag(
           C, but->icon, but->dragtype, but->dragpoin, ui_but_value_get(but), WM_DRAG_NOP);
+      /* wmDrag has ownership over dragpoin now, stop messing with it. */
+      but->dragpoin = NULL;
 
       if (but->imb) {
         WM_event_drag_image(drag,
@@ -2259,10 +2261,11 @@ static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleB
   ListBase *drags = event->customdata; /* drop event type has listbase customdata by default */
 
   LISTBASE_FOREACH (wmDrag *, wmd, drags) {
+    /* TODO asset dropping. */
     if (wmd->type == WM_DRAG_ID) {
       /* align these types with UI_but_active_drop_name */
       if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
-        ID *id = WM_drag_ID(wmd, 0);
+        ID *id = WM_drag_get_local_ID(wmd, 0);
 
         button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 

@@ -645,7 +645,7 @@ static bool node_ima_drop_poll(bContext *UNUSED(C),
     /* rule might not work? */
     return (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE));
   }
-  return WM_drag_ID(drag, ID_IM) != NULL;
+  return WM_drag_get_local_ID(drag, ID_IM) != NULL;
 }
 
 static bool node_mask_drop_poll(bContext *UNUSED(C),
@@ -653,19 +653,19 @@ static bool node_mask_drop_poll(bContext *UNUSED(C),
                                 const wmEvent *UNUSED(event),
                                 const char **UNUSED(r_tooltip))
 {
-  return WM_drag_ID(drag, ID_MSK) != NULL;
+  return WM_drag_get_local_ID(drag, ID_MSK) != NULL;
 }
 
 static void node_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-  ID *id = WM_drag_ID(drag, 0);
+  ID *id = WM_drag_get_local_ID(drag, 0);
 
   RNA_string_set(drop->ptr, "name", id->name + 2);
 }
 
 static void node_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-  ID *id = WM_drag_ID(drag, 0);
+  ID *id = WM_drag_get_local_ID(drag, 0);
 
   if (id) {
     RNA_string_set(drop->ptr, "name", id->name + 2);

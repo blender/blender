@@ -836,12 +836,13 @@ typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata
 /* *************** Drag and drop *************** */
 
 #define WM_DRAG_ID 0
-#define WM_DRAG_RNA 1
-#define WM_DRAG_PATH 2
-#define WM_DRAG_NAME 3
-#define WM_DRAG_VALUE 4
-#define WM_DRAG_COLOR 5
-#define WM_DRAG_DATASTACK 6
+#define WM_DRAG_ASSET 1
+#define WM_DRAG_RNA 2
+#define WM_DRAG_PATH 3
+#define WM_DRAG_NAME 4
+#define WM_DRAG_VALUE 5
+#define WM_DRAG_COLOR 6
+#define WM_DRAG_DATASTACK 7
 
 typedef enum wmDragFlags {
   WM_DRAG_NOP = 0,
@@ -855,6 +856,13 @@ typedef struct wmDragID {
   struct ID *id;
   struct ID *from_parent;
 } wmDragID;
+
+typedef struct wmDragAsset {
+  char name[64]; /* MAX_NAME */
+  /* Always freed. */
+  const char *path;
+  int id_type;
+} wmDragAsset;
 
 typedef struct wmDrag {
   struct wmDrag *next, *prev;

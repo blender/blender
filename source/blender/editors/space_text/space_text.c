@@ -357,7 +357,7 @@ static bool text_drop_paste_poll(bContext *UNUSED(C),
 static void text_drop_paste(wmDrag *drag, wmDropBox *drop)
 {
   char *text;
-  ID *id = WM_drag_ID(drag, 0);
+  ID *id = WM_drag_get_local_ID(drag, 0);
 
   /* copy drag path to properties */
   text = RNA_path_full_ID_py(G_MAIN, id);

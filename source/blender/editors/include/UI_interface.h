@@ -727,6 +727,13 @@ void UI_block_translate(uiBlock *block, int x, int y);
 int UI_but_return_value_get(uiBut *but);
 
 void UI_but_drag_set_id(uiBut *but, struct ID *id);
+void UI_but_drag_set_asset(uiBut *but,
+                           const char *name,
+                           const char *path,
+                           int id_type,
+                           int icon,
+                           struct ImBuf *imb,
+                           float scale);
 void UI_but_drag_set_rna(uiBut *but, struct PointerRNA *ptr);
 void UI_but_drag_set_path(uiBut *but, const char *path, const bool use_free);
 void UI_but_drag_set_name(uiBut *but, const char *name);
