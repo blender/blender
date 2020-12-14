@@ -301,7 +301,9 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
   /* Take care of possible animation. */
   AnimData *adt = BKE_animdata_from_id(&ntree->id);
   if (adt != NULL && adt->action != NULL) {
-    const char *prefix = BLI_sprintfN("nodes[\"%s\"]", node->name);
+    char node_name_esc[sizeof(node->name) * 2];
+    BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
+    const char *prefix = BLI_sprintfN("nodes[\"%s\"]", node_name_esc);
     for (FCurve *fcu = adt->action->curves.first; fcu != NULL; fcu = fcu->next) {
       if (STRPREFIX(fcu->rna_path, prefix)) {
         anim_change_prop_name(fcu, prefix, "color_hue", "inputs[1].default_value");

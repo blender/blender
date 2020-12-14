@@ -976,8 +976,12 @@ static void draw_property_for_socket(uiLayout *layout,
   /* IDProperties can be removed with python, so there could be a situation where
    * there isn't a property for a socket or it doesn't have the correct type. */
   if (property != nullptr && property_type->is_correct_type(*property)) {
-    char rna_path[128];
-    BLI_snprintf(rna_path, ARRAY_SIZE(rna_path), "[\"%s\"]", socket.identifier);
+
+    char socket_id_esc[sizeof(socket.identifier) * 2];
+    BLI_str_escape(socket_id_esc, socket.identifier, sizeof(socket_id_esc));
+
+    char rna_path[sizeof(socket_id_esc) + 4];
+    BLI_snprintf(rna_path, ARRAY_SIZE(rna_path), "[\"%s\"]", socket_id_esc);
     uiItemR(layout, settings_ptr, rna_path, 0, socket.name, ICON_NONE);
   }
 }

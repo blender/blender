@@ -832,7 +832,9 @@ void bc_enable_fcurves(bAction *act, char *bone_name)
   char prefix[200];
 
   if (bone_name) {
-    BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone_name);
+    char bone_name_esc[sizeof(((Bone *)NULL)->name) * 2];
+    BLI_str_escape(bone_name_esc, bone_name, sizeof(bone_name_esc));
+    BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone_name_esc);
   }
 
   for (fcu = (FCurve *)act->curves.first; fcu; fcu = fcu->next) {

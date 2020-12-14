@@ -403,13 +403,13 @@ static char *rna_GPencilLayerMask_path(PointerRNA *ptr)
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
   bGPDlayer_Mask *mask = (bGPDlayer_Mask *)ptr->data;
 
-  char name_layer[sizeof(gpl->info) * 2];
-  char name_mask[sizeof(mask->name) * 2];
+  char gpl_info_esc[sizeof(gpl->info) * 2];
+  char mask_name_esc[sizeof(mask->name) * 2];
 
-  BLI_str_escape(name_layer, gpl->info, sizeof(name_layer));
-  BLI_str_escape(name_mask, mask->name, sizeof(name_mask));
+  BLI_str_escape(gpl_info_esc, gpl->info, sizeof(gpl_info_esc));
+  BLI_str_escape(mask_name_esc, mask->name, sizeof(mask_name_esc));
 
-  return BLI_sprintfN("layers[\"%s\"].mask_layers[\"%s\"]", name_layer, name_mask);
+  return BLI_sprintfN("layers[\"%s\"].mask_layers[\"%s\"]", gpl_info_esc, mask_name_esc);
 }
 
 static int rna_GPencil_active_mask_index_get(PointerRNA *ptr)

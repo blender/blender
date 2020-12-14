@@ -467,7 +467,9 @@ static char *shapekey_adrcodes_to_paths(ID *id, int adrcode, int *UNUSED(array_i
     /* setting that we alter is the "value" (i.e. keyblock.curval) */
     if (kb) {
       /* Use the keyblock name, escaped, so that path lookups for this will work */
-      BLI_snprintf(buf, sizeof(buf), "key_blocks[\"%s\"].value", kb->name);
+      char kb_name_esc[sizeof(kb->name) * 2];
+      BLI_str_escape(kb_name_esc, kb->name, sizeof(kb_name_esc));
+      BLI_snprintf(buf, sizeof(buf), "key_blocks[\"%s\"].value", kb_name_esc);
     }
     else {
       /* Fallback - Use the adrcode as index directly, so that this can be manually fixed */
@@ -1160,7 +1162,12 @@ static char *get_rna_access(ID *id,
   /* note, strings are not escapted and they should be! */
   if ((actname && actname[0]) && (constname && constname[0])) {
     /* Constraint in Pose-Channel */
-    BLI_snprintf(buf, sizeof(buf), "pose.bones[\"%s\"].constraints[\"%s\"]", actname, constname);
+    char actname_esc[sizeof(((bActionChannel *)NULL)->name) * 2];
+    char constname_esc[sizeof(((bConstraint *)NULL)->name) * 2];
+    BLI_str_escape(actname_esc, actname, sizeof(actname_esc));
+    BLI_str_escape(constname_esc, constname, sizeof(constname_esc));
+    BLI_snprintf(
+        buf, sizeof(buf), "pose.bones[\"%s\"].constraints[\"%s\"]", actname_esc, constname_esc);
   }
   else if (actname && actname[0]) {
     if ((blocktype == ID_OB) && STREQ(actname, "Object")) {
@@ -1174,16 +1181,22 @@ static char *get_rna_access(ID *id,
     }
     else {
       /* Pose-Channel */
-      BLI_snprintf(buf, sizeof(buf), "pose.bones[\"%s\"]", actname);
+      char actname_esc[sizeof(((bActionChannel *)NULL)->name) * 2];
+      BLI_str_escape(actname_esc, actname, sizeof(actname_esc));
+      BLI_snprintf(buf, sizeof(buf), "pose.bones[\"%s\"]", actname_esc);
     }
   }
   else if (constname && constname[0]) {
     /* Constraint in Object */
-    BLI_snprintf(buf, sizeof(buf), "constraints[\"%s\"]", constname);
+    char constname_esc[sizeof(((bConstraint *)NULL)->name) * 2];
+    BLI_str_escape(constname_esc, constname, sizeof(constname_esc));
+    BLI_snprintf(buf, sizeof(buf), "constraints[\"%s\"]", constname_esc);
   }
   else if (seq) {
     /* Sequence names in Scene */
-    BLI_snprintf(buf, sizeof(buf), "sequence_editor.sequences_all[\"%s\"]", seq->name + 2);
+    char seq_name_esc[(sizeof(seq->name) - 2) * 2];
+    BLI_str_escape(seq_name_esc, seq->name + 2, sizeof(seq_name_esc));
+    BLI_snprintf(buf, sizeof(buf), "sequence_editor.sequences_all[\"%s\"]", seq_name_esc);
   }
   else {
     buf[0] = '\0'; /* empty string */
