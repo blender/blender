@@ -1603,12 +1603,10 @@ static int rna_MeshSequenceCacheModifier_read_velocity_get(PointerRNA *ptr)
 #  endif
 }
 
-static bool rna_NodesModifier_node_group_poll(PointerRNA *ptr, PointerRNA value)
+static bool rna_NodesModifier_node_group_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
-  NodesModifierData *nmd = ptr->data;
   bNodeTree *ntree = value.data;
-  UNUSED_VARS(nmd, ntree);
-  return true;
+  return ntree->type == NTREE_GEOMETRY;
 }
 
 static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, PointerRNA *ptr)
