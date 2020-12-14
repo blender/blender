@@ -1052,10 +1052,20 @@ typedef struct NodeSunBeams {
   float ray_length;
 } NodeSunBeams;
 
+typedef struct CryptomatteEntry {
+  struct CryptomatteEntry *next, *prev;
+  float encoded_hash;
+  /** MAX_NAME. */
+  char name[64];
+  char _pad[4];
+} CryptomatteEntry;
+
 typedef struct NodeCryptomatte {
   float add[3];
   float remove[3];
-  char *matte_id;
+  char *matte_id DNA_DEPRECATED;
+  /* Contains `CryptomatteEntry`. */
+  ListBase entries;
   int num_inputs;
   char _pad[4];
 } NodeCryptomatte;

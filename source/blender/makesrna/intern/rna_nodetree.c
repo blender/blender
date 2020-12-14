@@ -37,6 +37,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_attribute.h"
+#include "BKE_cryptomatte.h"
 #include "BKE_image.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
@@ -3626,33 +3627,26 @@ static void rna_NodeCryptomatte_matte_get(PointerRNA *ptr, char *value)
 {
   bNode *node = (bNode *)ptr->data;
   NodeCryptomatte *nc = node->storage;
-
-  strcpy(value, (nc->matte_id) ? nc->matte_id : "");
+  char *matte_id = BKE_cryptomatte_entries_to_matte_id(nc);
+  strcpy(value, matte_id);
+  MEM_freeN(matte_id);
 }
 
 static int rna_NodeCryptomatte_matte_length(PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   NodeCryptomatte *nc = node->storage;
-
-  return (nc->matte_id) ? strlen(nc->matte_id) : 0;
+  char *matte_id = BKE_cryptomatte_entries_to_matte_id(nc);
+  int result = strlen(matte_id);
+  MEM_freeN(matte_id);
+  return result;
 }
 
 static void rna_NodeCryptomatte_matte_set(PointerRNA *ptr, const char *value)
 {
   bNode *node = (bNode *)ptr->data;
   NodeCryptomatte *nc = node->storage;
-
-  if (nc->matte_id) {
-    MEM_freeN(nc->matte_id);
-  }
-
-  if (value && value[0]) {
-    nc->matte_id = BLI_strdup(value);
-  }
-  else {
-    nc->matte_id = NULL;
-  }
+  BKE_cryptomatte_matte_id_to_entries(NULL, nc, value);
 }
 
 static void rna_NodeCryptomatte_update_add(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -8205,6 +8199,24 @@ static void def_cmp_sunbeams(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_cryptomatte_entry(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "CryptomatteEntry", NULL);
+  RNA_def_struct_sdna(srna, "CryptomatteEntry");
+
+  prop = RNA_def_property(srna, "encoded_hash", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_sdna(prop, NULL, "encoded_hash");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Name", "");
+  RNA_def_struct_name_property(srna, prop);
+}
+
 static void def_cmp_cryptomatte(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -8494,6 +8506,8 @@ static void rna_def_compositor_node(BlenderRNA *brna)
   /* compositor node need_exec flag */
   func = RNA_def_function(srna, "tag_need_exec", "rna_CompositorNode_tag_need_exec");
   RNA_def_function_ui_description(func, "Tag the node for compositor update");
+
+  def_cmp_cryptomatte_entry(brna);
 }
 
 static void rna_def_texture_node(BlenderRNA *brna)

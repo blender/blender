@@ -202,6 +202,7 @@ extern StructRNA RNA_CopyRotationConstraint;
 extern StructRNA RNA_CopyScaleConstraint;
 extern StructRNA RNA_CopyTransformsConstraint;
 extern StructRNA RNA_CorrectiveSmoothModifier;
+extern StructRNA RNA_CryptomatteEntry;
 extern StructRNA RNA_Curve;
 extern StructRNA RNA_CurveMap;
 extern StructRNA RNA_CurveMapPoint;

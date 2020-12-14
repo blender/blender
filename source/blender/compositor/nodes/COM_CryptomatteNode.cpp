@@ -17,35 +17,20 @@
  */
 
 #include "COM_CryptomatteNode.h"
-#include "BLI_assert.h"
-#include "BLI_hash_mm3.h"
-#include "BLI_string.h"
 #include "COM_ConvertOperation.h"
 #include "COM_CryptomatteOperation.h"
 #include "COM_SetAlphaOperation.h"
+
+#include "BLI_assert.h"
+#include "BLI_hash_mm3.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+
 #include <iterator>
 
 CryptomatteNode::CryptomatteNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
-}
-
-/* This is taken from the Cryptomatte specification 1.0. */
-static inline float hash_to_float(uint32_t hash)
-{
-  uint32_t mantissa = hash & ((1 << 23) - 1);
-  uint32_t exponent = (hash >> 23) & ((1 << 8) - 1);
-  exponent = max(exponent, (uint32_t)1);
-  exponent = min(exponent, (uint32_t)254);
-  exponent = exponent << 23;
-  uint32_t sign = (hash >> 31);
-  sign = sign << 31;
-  uint32_t float_bits = sign | exponent | mantissa;
-  float f;
-  /* Bit casting relies on equal size for both types. */
-  BLI_STATIC_ASSERT(sizeof(float) == sizeof(uint32_t), "float and uint32_t are not the same size")
-  ::memcpy(&f, &float_bits, sizeof(float));
-  return f;
 }
 
 void CryptomatteNode::convertToOperations(NodeConverter &converter,
@@ -61,30 +46,8 @@ void CryptomatteNode::convertToOperations(NodeConverter &converter,
 
   CryptomatteOperation *operation = new CryptomatteOperation(getNumberOfInputSockets() - 1);
   if (cryptoMatteSettings) {
-    if (cryptoMatteSettings->matte_id) {
-      /* Split the string by commas, ignoring white space. */
-      std::string input = cryptoMatteSettings->matte_id;
-      std::istringstream ss(input);
-      while (ss.good()) {
-        std::string token;
-        getline(ss, token, ',');
-        /* Ignore empty tokens. */
-        if (token.length() > 0) {
-          size_t first = token.find_first_not_of(' ');
-          size_t last = token.find_last_not_of(' ');
-          if (first == std::string::npos || last == std::string::npos) {
-            break;
-          }
-          token = token.substr(first, (last - first + 1));
-          if (*token.begin() == '<' && *(--token.end()) == '>') {
-            operation->addObjectIndex(atof(token.substr(1, token.length() - 2).c_str()));
-          }
-          else {
-            uint32_t hash = BLI_hash_mm3((const unsigned char *)token.c_str(), token.length(), 0);
-            operation->addObjectIndex(hash_to_float(hash));
-          }
-        }
-      }
+    LISTBASE_FOREACH (CryptomatteEntry *, cryptomatte_entry, &cryptoMatteSettings->entries) {
+      operation->addObjectIndex(cryptomatte_entry->encoded_hash);
     }
   }
 
