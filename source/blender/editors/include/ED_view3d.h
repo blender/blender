@@ -141,6 +141,11 @@ void ED_view3d_to_object(const struct Depsgraph *depsgraph,
                          const float quat[4],
                          const float dist);
 
+bool ED_view3d_camera_to_view_selected(struct Main *bmain,
+                                       struct Depsgraph *depsgraph,
+                                       const struct Scene *scene,
+                                       struct Object *camera_ob);
+
 void ED_view3d_lastview_store(struct RegionView3D *rv3d);
 
 /* Depth buffer */
