@@ -790,12 +790,18 @@ static int /*eContextResult*/ file_context(const bContext *C,
     CTX_data_dir_set(result, file_context_dir);
     return CTX_RESULT_OK;
   }
-  else if (CTX_data_equals(member, "active_file")) {
+
+  /* The following member checks return file-list data, check if that needs refreshing first. */
+  if (file_main_region_needs_refresh_before_draw(sfile)) {
+    return CTX_RESULT_NO_DATA;
+  }
+
+  if (CTX_data_equals(member, "active_file")) {
     FileDirEntry *file = filelist_file(sfile->files, params->active_file);
     CTX_data_pointer_set(result, &screen->id, &RNA_FileSelectEntry, file);
     return CTX_RESULT_OK;
   }
-  else if (CTX_data_equals(member, "active_id")) {
+  if (CTX_data_equals(member, "active_id")) {
     const FileDirEntry *file = filelist_file(sfile->files, params->active_file);
 
     ID *id = filelist_file_get_id(file);
@@ -804,6 +810,7 @@ static int /*eContextResult*/ file_context(const bContext *C,
     }
     return CTX_RESULT_OK;
   }
+
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
