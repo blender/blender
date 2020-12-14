@@ -461,7 +461,7 @@ static bool gpencil_edit_modifier_poll(bContext *C)
  * (not only from added 'local' ones). */
 static bool gpencil_edit_modifier_liboverride_allowed_poll(bContext *C)
 {
-  return gpencil_edit_modifier_poll_generic(C, &RNA_Modifier, 0, true);
+  return gpencil_edit_modifier_poll_generic(C, &RNA_GpencilModifier, 0, true);
 }
 
 static void gpencil_edit_modifier_properties(wmOperatorType *ot)
