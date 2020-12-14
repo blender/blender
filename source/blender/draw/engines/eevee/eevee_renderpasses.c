@@ -283,9 +283,8 @@ void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
   g_data->renderpass_type = renderpass_type;
   g_data->renderpass_postprocess = PASS_POST_UNDEFINED;
   const bool volumetric_active = eevee_renderpasses_volumetric_active(effects, g_data);
-  eViewLayerEEVEEPassType default_color_pass_type = volumetric_active ?
-                                                        PASS_POST_ACCUMULATED_TRANSMITTANCE_COLOR :
-                                                        PASS_POST_ACCUMULATED_COLOR;
+  eRenderPassPostProcessType default_color_pass_type =
+      volumetric_active ? PASS_POST_ACCUMULATED_TRANSMITTANCE_COLOR : PASS_POST_ACCUMULATED_COLOR;
   g_data->renderpass_transmittance_input = volumetric_active ? txl->volume_transmittance_accum :
                                                                txl->color;
 
