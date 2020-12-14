@@ -135,12 +135,18 @@ static void sound_foreach_cache(ID *id,
 static void sound_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   bSound *sound = (bSound *)id;
-  if (sound->id.us > 0 || BLO_write_is_undo(writer)) {
+  const bool is_undo = BLO_write_is_undo(writer);
+  if (sound->id.us > 0 || is_undo) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     sound->tags = 0;
     sound->handle = NULL;
     sound->playback_handle = NULL;
     sound->spinlock = NULL;
+
+    /* Do not store packed files in case this is a library override ID. */
+    if (ID_IS_OVERRIDE_LIBRARY(sound) && !is_undo) {
+      sound->packedfile = NULL;
+    }
 
     /* write LibData */
     BLO_write_id_struct(writer, bSound, id_address, &sound->id);

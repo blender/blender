@@ -561,9 +561,15 @@ static void volume_foreach_cache(ID *id,
 static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Volume *volume = (Volume *)id;
-  if (volume->id.us > 0 || BLO_write_is_undo(writer)) {
+  const bool is_undo = BLO_write_is_undo(writer);
+  if (volume->id.us > 0 || is_undo) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     volume->runtime.grids = nullptr;
+
+    /* Do not store packed files in case this is a library override ID. */
+    if (ID_IS_OVERRIDE_LIBRARY(volume) && !is_undo) {
+      volume->packedfile = nullptr;
+    }
 
     /* write LibData */
     BLO_write_id_struct(writer, Volume, id_address, &volume->id);

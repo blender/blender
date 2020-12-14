@@ -225,14 +225,21 @@ static void image_foreach_cache(ID *id,
 static void image_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Image *ima = (Image *)id;
-  if (ima->id.us > 0 || BLO_write_is_undo(writer)) {
+  const bool is_undo = BLO_write_is_undo(writer);
+  if (ima->id.us > 0 || is_undo) {
     ImagePackedFile *imapf;
 
-    /* Some trickery to keep forward compatibility of packed images. */
     BLI_assert(ima->packedfile == NULL);
-    if (ima->packedfiles.first != NULL) {
-      imapf = ima->packedfiles.first;
-      ima->packedfile = imapf->packedfile;
+    /* Do not store packed files in case this is a library override ID. */
+    if (ID_IS_OVERRIDE_LIBRARY(ima) && !is_undo) {
+      BLI_listbase_clear(&ima->packedfiles);
+    }
+    else {
+      /* Some trickery to keep forward compatibility of packed images. */
+      if (ima->packedfiles.first != NULL) {
+        imapf = ima->packedfiles.first;
+        ima->packedfile = imapf->packedfile;
+      }
     }
 
     /* write LibData */

@@ -108,7 +108,8 @@ static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
 static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Key *key = (Key *)id;
-  if (key->id.us > 0 || BLO_write_is_undo(writer)) {
+  const bool is_undo = BLO_write_is_undo(writer);
+  if (key->id.us > 0 || is_undo) {
     /* write LibData */
     BLO_write_id_struct(writer, Key, id_address, &key->id);
     BKE_id_blend_write(writer, &key->id);
@@ -119,9 +120,15 @@ static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
     /* direct data */
     LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-      BLO_write_struct(writer, KeyBlock, kb);
-      if (kb->data) {
-        BLO_write_raw(writer, kb->totelem * key->elemsize, kb->data);
+      KeyBlock tmp_kb = *kb;
+      /* Do not store actual geometry data in case this is a library override ID. */
+      if (ID_IS_OVERRIDE_LIBRARY(key) && !is_undo) {
+        tmp_kb.totelem = 0;
+        tmp_kb.data = NULL;
+      }
+      BLO_write_struct_at_address(writer, KeyBlock, kb, &tmp_kb);
+      if (tmp_kb.data != NULL) {
+        BLO_write_raw(writer, tmp_kb.totelem * key->elemsize, tmp_kb.data);
       }
     }
   }
