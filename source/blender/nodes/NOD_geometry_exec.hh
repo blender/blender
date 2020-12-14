@@ -168,10 +168,21 @@ class GeoNodeExecParams {
     return this->get_input_attribute(name, component, domain, type, &default_value);
   }
 
+  /**
+   * Get the type of an input property or the associated constant socket types with the
+   * same names. Fall back to the default value if no attribute exists with the name.
+   */
+  CustomDataType get_input_attribute_data_type(const StringRef name,
+                                               const GeometryComponent &component,
+                                               const CustomDataType default_type) const;
+
  private:
   /* Utilities for detecting common errors at when using this class. */
   void check_extract_input(StringRef identifier, const CPPType *requested_type = nullptr) const;
   void check_set_output(StringRef identifier, const CPPType &value_type) const;
+
+  /* Find the active socket socket with the input name (not the identifier). */
+  const bNodeSocket *find_available_socket(const StringRef name) const;
 };
 
 }  // namespace blender::nodes
