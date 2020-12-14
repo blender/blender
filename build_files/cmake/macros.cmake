@@ -1139,6 +1139,7 @@ endfunction()
 
 function(find_python_package
   package
+  relative_include_dir
   )
 
   string(TOUPPER ${package} _upper_package)
@@ -1170,7 +1171,10 @@ function(find_python_package
         dist-packages
         vendor-packages
        NO_DEFAULT_PATH
+       DOC
+         "Path to python site-packages or dist-packages containing '${package}' module"
     )
+    mark_as_advanced(PYTHON_${_upper_package}_PATH)
 
     if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}")
       message(WARNING
@@ -1188,6 +1192,50 @@ function(find_python_package
       set(WITH_PYTHON_INSTALL_${_upper_package} OFF PARENT_SCOPE)
     else()
       message(STATUS "${package} found at '${PYTHON_${_upper_package}_PATH}'")
+      
+      if(NOT "${relative_include_dir}" STREQUAL "")
+        set(_relative_include_dir "${package}/${relative_include_dir}")
+        unset(PYTHON_${_upper_package}_INCLUDE_DIRS CACHE)
+        find_path(PYTHON_${_upper_package}_INCLUDE_DIRS
+          NAMES
+            "${_relative_include_dir}"
+          HINTS
+            "${PYTHON_LIBPATH}/"
+            "${PYTHON_LIBPATH}/python${PYTHON_VERSION}/"
+            "${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/"
+          PATH_SUFFIXES
+            "site-packages/"
+            "dist-packages/"
+            "vendor-packages/"
+          NO_DEFAULT_PATH
+          DOC
+            "Path to python site-packages or dist-packages containing '${package}' module header files"
+        )
+        mark_as_advanced(PYTHON_${_upper_package}_INCLUDE_DIRS)
+
+        if(NOT EXISTS "${PYTHON_${_upper_package}_INCLUDE_DIRS}")
+          message(WARNING
+            "Python package '${package}' include dir path could not be found in:\n"
+            "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/${_relative_include_dir}', "
+            "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/site-packages/${_relative_include_dir}', "
+            "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/dist-packages/${_relative_include_dir}', "
+            "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/dist-packages/${_relative_include_dir}', "
+            "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/vendor-packages/${_relative_include_dir}', "
+            "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/vendor-packages/${_relative_include_dir}', "
+            "\n"
+            "The 'WITH_PYTHON_${_upper_package}' option will be disabled.\n"
+            "The build will be usable, only add-ons that depend on this package won't be functional."
+          )
+          set(WITH_PYTHON_${_upper_package} OFF PARENT_SCOPE)
+        else()
+          set(_temp "${PYTHON_${_upper_package}_INCLUDE_DIRS}/${package}/${relative_include_dir}")
+          unset(PYTHON_${_upper_package}_INCLUDE_DIRS CACHE)
+          set(PYTHON_${_upper_package}_INCLUDE_DIRS "${_temp}"
+              CACHE PATH "Path to the include directory of the ${package} module")
+
+          message(STATUS "${package} include files found at '${PYTHON_${_upper_package}_INCLUDE_DIRS}'")
+        endif()
+      endif()
     endif()
   endif()
 endfunction()
