@@ -288,7 +288,7 @@ void BLI_path_normalize_dir(const char *relabase, char *dir)
  * (good practice anyway).
  * REMOVED based on popular demand (see T45900).
  * Percent '%' char is a bit same case - not recommended to use it,
- * but supported by all decent FS/OS around.
+ * but supported by all decent file-systems/operating-systems around.
  *
  * \note On Windows, it also ensures there is no '.' (dot char) at the end of the file,
  * this can lead to issues.
@@ -513,8 +513,8 @@ void BLI_path_normalize_unc_16(wchar_t *path_16)
 #endif
 
 /**
- * Replaces *file with a relative version (prefixed by "//") such that BLI_path_abs, given
- * the same *relfile, will convert it back to its original value.
+ * Replaces `file` with a relative version (prefixed by "//") such that #BLI_path_abs, given
+ * the same `relfile`, will convert it back to its original value.
  */
 void BLI_path_rel(char *file, const char *relfile)
 {
@@ -664,7 +664,7 @@ void BLI_path_rel(char *file, const char *relfile)
  * \param maxlen: Maximum length of string
  * \param suffix: String to append to the original string
  * \param sep: Optional separator character
- * \return  true if succeeded
+ * \return true if succeeded
  */
 bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep)
 {
@@ -703,7 +703,7 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 
 /**
  * Replaces path with the path of its parent directory, returning true if
- * it was able to find a parent directory within the pathname.
+ * it was able to find a parent directory within the path.
  */
 bool BLI_path_parent_dir(char *path)
 {
@@ -722,7 +722,7 @@ bool BLI_path_parent_dir(char *path)
 }
 
 /**
- * Strips off nonexistent (or non-accessible) subdirectories from the end of *dir,
+ * Strips off nonexistent (or non-accessible) sub-directories from the end of `dir`,
  * leaving the path of the lowest-level directory that does exist and we can read.
  */
 bool BLI_path_parent_dir_until_exists(char *dir)
@@ -737,9 +737,9 @@ bool BLI_path_parent_dir_until_exists(char *dir)
 }
 
 /**
- * Looks for a sequence of "#" characters in the last slash-separated component of *path,
+ * Looks for a sequence of "#" characters in the last slash-separated component of `path`,
  * returning the indexes of the first and one past the last character in the sequence in
- * *char_start and *char_end respectively. Returns true if such a sequence was found.
+ * `char_start` and `char_end` respectively. Returns true if such a sequence was found.
  */
 static bool stringframe_chars(const char *path, int *char_start, int *char_end)
 {
@@ -774,7 +774,7 @@ static bool stringframe_chars(const char *path, int *char_start, int *char_end)
 }
 
 /**
- * Ensure *path contains at least one "#" character in its last slash-separated
+ * Ensure `path` contains at least one "#" character in its last slash-separated
  * component, appending one digits long if not.
  */
 static void ensure_digits(char *path, int digits)
@@ -796,7 +796,7 @@ static void ensure_digits(char *path, int digits)
 }
 
 /**
- * Replaces "#" character sequence in last slash-separated component of *path
+ * Replaces "#" character sequence in last slash-separated component of `path`
  * with frame as decimal integer, with leading zeroes as necessary, to make digits digits.
  */
 bool BLI_path_frame(char *path, int frame, int digits)
@@ -818,7 +818,7 @@ bool BLI_path_frame(char *path, int frame, int digits)
 }
 
 /**
- * Replaces "#" character sequence in last slash-separated component of *path
+ * Replaces "#" character sequence in last slash-separated component of `path`
  * with sta and end as decimal integers, with leading zeroes as necessary, to make digits
  * digits each, with a hyphen in-between.
  */
@@ -963,7 +963,7 @@ bool BLI_path_frame_check_chars(const char *path)
 
 /**
  * Creates a display string from path to be used menus and the user interface.
- * Like bpy.path.display_name().
+ * Like `bpy.path.display_name()`.
  */
 void BLI_path_to_display_name(char *display_name, int maxlen, const char *name)
 {
@@ -1004,7 +1004,7 @@ void BLI_path_to_display_name(char *display_name, int maxlen, const char *name)
 }
 
 /**
- * If path begins with "//", strips that and replaces it with basepath directory.
+ * If path begins with "//", strips that and replaces it with `basepath` directory.
  *
  * \note Also converts drive-letter prefix to something more sensible
  * if this is a non-drive-letter-based system.
@@ -1162,7 +1162,7 @@ bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
 #ifdef _WIN32
 /**
  * Tries appending each of the semicolon-separated extensions in the PATHEXT
- * environment variable (Windows-only) onto *name in turn until such a file is found.
+ * environment variable (Windows-only) onto `name` in turn until such a file is found.
  * Returns success/failure.
  */
 bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
@@ -1269,7 +1269,7 @@ bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *na
 
 /**
  * Sets the specified environment variable to the specified value,
- * and clears it if val == NULL.
+ * and clears it if `val == NULL`.
  */
 void BLI_setenv(const char *env, const char *val)
 {
@@ -1305,27 +1305,27 @@ void BLI_setenv_if_new(const char *env, const char *val)
 /**
  * Get an env var, result has to be used immediately.
  *
- * On windows getenv gets its variables from a static copy of the environment variables taken at
+ * On windows #getenv gets its variables from a static copy of the environment variables taken at
  * process start-up, causing it to not pick up on environment variables created during runtime.
  * This function uses an alternative method to get environment variables that does pick up on
  * runtime environment variables. The result will be UTF-8 encoded.
  */
-
 const char *BLI_getenv(const char *env)
 {
 #ifdef _MSC_VER
   const char *result = NULL;
-  static wchar_t buffer[32768]; /* 32767 is the maximum size of the environment variable on
-                                   windows, reserve one more character for the zero terminator. */
+  /* 32767 is the maximum size of the environment variable on windows,
+   * reserve one more character for the zero terminator. */
+  static wchar_t buffer[32768];
   wchar_t *env_16 = alloc_utf16_from_8(env, 0);
   if (env_16) {
     if (GetEnvironmentVariableW(env_16, buffer, ARRAY_SIZE(buffer))) {
       char *res_utf8 = alloc_utf_8_from_16(buffer, 0);
-      // make sure the result is valid, and will fit into our temporary storage buffer
+      /* Make sure the result is valid, and will fit into our temporary storage buffer. */
       if (res_utf8) {
         if (strlen(res_utf8) + 1 < sizeof(buffer)) {
-          // We are re-using the utf16 buffer here, since allocating a second static buffer to
-          // contain the UTF-8 version to return would be wasteful.
+          /* We are re-using the utf16 buffer here, since allocating a second static buffer to
+           * contain the UTF-8 version to return would be wasteful. */
           memcpy(buffer, res_utf8, strlen(res_utf8) + 1);
           result = (const char *)buffer;
         }
@@ -1340,9 +1340,9 @@ const char *BLI_getenv(const char *env)
 }
 
 /**
- * Ensures that the parent directory of *name exists.
+ * Ensures that the parent directory of `name` exists.
  *
- * \return true on success (i.e. given path now exists on FS), false otherwise.
+ * \return true on success (i.e. given path now exists on file-system), false otherwise.
  */
 bool BLI_make_existing_file(const char *name)
 {
@@ -1354,13 +1354,13 @@ bool BLI_make_existing_file(const char *name)
 }
 
 /**
- * Returns in *string the concatenation of *dir and *file (also with *relabase on the
- * front if specified and *dir begins with "//"). Normalizes all occurrences of path
- * separators, including ensuring there is exactly one between the copies of *dir and *file,
- * and between the copies of *relabase and *dir.
+ * Returns in `string` the concatenation of `dir` and `file` (also with `relabase` on the
+ * front if specified and `dir` begins with "//"). Normalizes all occurrences of path
+ * separators, including ensuring there is exactly one between the copies of `dir` and `file`,
+ * and between the copies of `relabase` and `dir`.
  *
- * \param relabase: Optional prefix to substitute for "//" on front of *dir
- * \param string: Area to return result
+ * \param relabase: Optional prefix to substitute for "//" on front of `dir`.
+ * \param string: Area to return result.
  */
 void BLI_make_file_string(const char *relabase, char *string, const char *dir, const char *file)
 {
@@ -1500,9 +1500,8 @@ bool BLI_path_extension_check_array(const char *str, const char **ext_array)
 }
 
 /**
- * Semicolon separated wildcards, eg:
- *  '*.zip;*.py;*.exe'
- * does str match any of the semicolon-separated glob patterns in fnmatch.
+ * Semicolon separated wildcards, eg: `*.zip;*.py;*.exe`
+ * does str match any of the semicolon-separated glob patterns in #fnmatch.
  */
 bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
 {
@@ -1535,7 +1534,7 @@ bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
  * truncation.
  *
  * For now, only forbids last group to be a wildcard-only one, if there are more than one group
- * (i.e. things like "*.txt;*.cpp;*" are changed to "*.txt;*.cpp;")
+ * (i.e. things like `*.txt;*.cpp;*` are changed to `*.txt;*.cpp;`)
  *
  * \returns true if it had to modify given \a ext_fnmatch pattern.
  */
@@ -1645,7 +1644,7 @@ bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filenam
 }
 
 /**
- * Converts `/foo/bar.txt` to "/foo/" and `bar.txt`
+ * Converts `/foo/bar.txt` to `/foo/` and `bar.txt`
  *
  * - Wont change \a string.
  * - Wont create any directories.
@@ -1678,7 +1677,7 @@ void BLI_split_dirfile(
 }
 
 /**
- * Copies the parent directory part of string into *dir, max length dirlen.
+ * Copies the parent directory part of string into `dir`, max length `dirlen`.
  */
 void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen)
 {
@@ -1686,7 +1685,7 @@ void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen)
 }
 
 /**
- * Copies the leaf filename part of string into *file, max length filelen.
+ * Copies the leaf filename part of string into `file`, max length `filelen`.
  */
 void BLI_split_file_part(const char *string, char *file, const size_t filelen)
 {
@@ -1733,7 +1732,7 @@ void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__re
 
 /**
  * Simple appending of filename to dir, does not check for valid path!
- * Puts result into *dst, which may be same area as *dir.
+ * Puts result into `dst`, which may be same area as `dir`.
  */
 void BLI_join_dirfile(char *__restrict dst,
                       const size_t maxlen,
@@ -1777,7 +1776,7 @@ void BLI_join_dirfile(char *__restrict dst,
  * Join multiple strings into a path, ensuring only a single path separator between each,
  * and trailing slash is kept.
  *
- * \note If you want a trailing slash, add ``SEP_STR`` as the last path argument,
+ * \note If you want a trailing slash, add `SEP_STR` as the last path argument,
  * duplicate slashes will be cleaned up.
  */
 size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *path, ...)
@@ -1861,7 +1860,7 @@ size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *pat
 }
 
 /**
- * like pythons os.path.basename()
+ * like Python's `os.path.basename()`
  *
  * \return The pointer into \a path string immediately after last slash,
  * or start of \a path if none found.
