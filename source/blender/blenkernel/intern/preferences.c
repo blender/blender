@@ -102,18 +102,18 @@ int BKE_preferences_asset_library_get_index(const UserDef *userdef,
 
 void BKE_preferences_asset_library_default_add(UserDef *userdef)
 {
-  const char *asset_blend_name = "assets.blend";
-  const char *doc_path = BKE_appdir_folder_default();
+  char documents_path[FILE_MAXDIR];
 
   /* No home or documents path found, not much we can do. */
-  if (!doc_path || !doc_path[0]) {
+  if (!BKE_appdir_folder_documents(documents_path) || !documents_path[0]) {
     return;
   }
 
-  /* Add new "Default" library under '[doc_path]/assets.blend'. */
-
   bUserAssetLibrary *library = BKE_preferences_asset_library_add(userdef, DATA_("Default"), NULL);
-  BLI_join_dirfile(library->path, sizeof(library->path), doc_path, asset_blend_name);
+
+  /* Add new "Default" library under '[doc_path]/Blender/Assets'. */
+  BLI_path_join(
+      library->path, sizeof(library->path), documents_path, N_("Blender"), N_("Assets"), NULL);
 }
 
 /** \} */
