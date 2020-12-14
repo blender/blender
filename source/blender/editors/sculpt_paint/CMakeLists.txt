@@ -32,6 +32,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/atomic
   ../../../../intern/clog
+  ../../../../intern/eigen
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
 )

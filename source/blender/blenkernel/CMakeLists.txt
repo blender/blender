@@ -42,6 +42,7 @@ set(INC
   ../simulation
   ../../../intern/ghost
   ../../../intern/glew-mx
+  ../../../intern/eigen
   ../../../intern/guardedalloc
   ../../../intern/iksolver/extern
   ../../../intern/atomic
@@ -170,6 +171,7 @@ set(SRC
   intern/mesh.c
   intern/mesh_convert.c
   intern/mesh_evaluate.c
+  intern/mesh_fair.cc
   intern/mesh_iterators.c
   intern/mesh_mapping.c
   intern/mesh_merge.c
@@ -353,6 +355,7 @@ set(SRC
   BKE_mball_tessellate.h
   BKE_mesh.h
   BKE_mesh_iterators.h
+  BKE_mesh_fair.h
   BKE_mesh_mapping.h
   BKE_mesh_mirror.h
   BKE_mesh_remap.h
