@@ -658,7 +658,9 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
       BLO_read_data_address(reader, &prv->rect[i]);
     }
     prv->gputexture[i] = NULL;
-    prv->flag[i] |= PRV_UNFINISHED;
+    /* For now consider previews read from file as finished to not confuse File Browser preview
+     * loading. That could be smarter and check if there's a preview job running instead. */
+    prv->flag[i] &= ~PRV_UNFINISHED;
   }
   prv->icon_id = 0;
   prv->tag = 0;
