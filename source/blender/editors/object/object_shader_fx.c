@@ -640,3 +640,57 @@ void OBJECT_OT_shaderfx_move_to_index(wmOperatorType *ot)
   RNA_def_int(
       ot->srna, "index", 0, 0, INT_MAX, "Index", "The index to move the effect to", 0, INT_MAX);
 }
+
+/************************ copy shader operator *********************/
+
+static int shaderfx_copy_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+  ShaderFxData *fx = edit_shaderfx_property_get(op, ob, 0);
+
+  ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
+  if (!nfx) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BLI_strncpy(nfx->name, fx->name, sizeof(nfx->name));
+  /* Make sure effect data has unique name. */
+  BKE_shaderfx_unique_name(&ob->shader_fx, nfx);
+
+  BKE_shaderfx_copydata(fx, nfx);
+  BLI_insertlinkafter(&ob->shader_fx, fx, nfx);
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_SHADERFX, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int shaderfx_copy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  int retval;
+  if (edit_shaderfx_invoke_properties(C, op, event, &retval)) {
+    return shaderfx_copy_exec(C, op);
+  }
+  return retval;
+}
+
+static bool shaderfx_copy_poll(bContext *C)
+{
+  return edit_shaderfx_poll_generic(C, &RNA_ShaderFx, 0);
+}
+
+void OBJECT_OT_shaderfx_copy(wmOperatorType *ot)
+{
+  ot->name = "Copy Effect";
+  ot->description = "Duplicate effect at the same position in the stack";
+  ot->idname = "OBJECT_OT_shaderfx_copy";
+
+  ot->invoke = shaderfx_copy_invoke;
+  ot->exec = shaderfx_copy_exec;
+  ot->poll = shaderfx_copy_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_shaderfx_properties(ot);
+}

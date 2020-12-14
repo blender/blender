@@ -755,6 +755,7 @@ def km_property_editor(_params):
         # ShaderFX panels
         ("object.shaderfx_remove", {"type": 'X', "value": 'PRESS'}, {"properties": [("report", True)]}),
         ("object.shaderfx_remove", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("report", True)]}),
+        ("object.shaderfx_copy", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         # Constraint panels
         ("constraint.delete", {"type": 'X', "value": 'PRESS'}, {"properties": [("report", True)]}),
         ("constraint.delete", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("report", True)]}),
