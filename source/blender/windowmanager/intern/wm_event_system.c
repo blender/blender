@@ -2293,6 +2293,11 @@ static int wm_handler_fileselect_do(bContext *C,
       }
 
       wm_handler_op_context(C, handler, ctx_win->eventstate);
+      ScrArea *handler_area = CTX_wm_area(C);
+      /* Make sure new context area is ready, the operator callback may operate on it. */
+      if (handler_area) {
+        ED_area_do_refresh(C, handler_area);
+      }
 
       /* Needed for #UI_popup_menu_reports. */
 
