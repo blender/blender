@@ -1374,6 +1374,11 @@ void BLO_write_float_array(BlendWriter *writer, uint num, const float *data_ptr)
   BLO_write_raw(writer, sizeof(float) * (size_t)num, data_ptr);
 }
 
+void BLO_write_double_array(BlendWriter *writer, uint num, const double *data_ptr)
+{
+  BLO_write_raw(writer, sizeof(double) * (size_t)num, data_ptr);
+}
+
 void BLO_write_pointer_array(BlendWriter *writer, uint num, const void *data_ptr)
 {
   BLO_write_raw(writer, sizeof(void *) * (size_t)num, data_ptr);
