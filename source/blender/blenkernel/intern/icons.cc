@@ -78,7 +78,7 @@ enum {
 static CLG_LogRef LOG = {"bke.icons"};
 
 /* Protected by gIconMutex. */
-static GHash *gIcons = NULL;
+static GHash *gIcons = nullptr;
 
 /* Protected by gIconMutex. */
 static int gNextIconId = 1;
@@ -89,7 +89,7 @@ static int gFirstIconId = 1;
 std::mutex gIconMutex;
 
 /* Not mutex-protected! */
-static GHash *gCachedPreviews = NULL;
+static GHash *gCachedPreviews = nullptr;
 
 /* Queue of icons for deferred deletion. */
 typedef struct DeferredIconDeleteNode {
@@ -149,7 +149,7 @@ static void icon_free_data(int icon_id, Icon *icon)
   }
   else if (icon->obj_type == ICON_DATA_STUDIOLIGHT) {
     StudioLight *sl = (StudioLight *)icon->obj;
-    if (sl != NULL) {
+    if (sl != nullptr) {
       BKE_studiolight_unset_icon_id(sl, icon_id);
     }
   }
@@ -166,7 +166,7 @@ static Icon *icon_ghash_lookup(int icon_id)
 
 /* create an id for a new icon and make sure that ids from deleted icons get reused
  * after the integer number range is used up */
-static int get_next_free_id(void)
+static int get_next_free_id()
 {
   std::scoped_lock lock(gIconMutex);
   int startId = gFirstIconId;
@@ -214,13 +214,13 @@ void BKE_icons_free(void)
   BLI_assert(BLI_thread_is_main());
 
   if (gIcons) {
-    BLI_ghash_free(gIcons, NULL, icon_free);
-    gIcons = NULL;
+    BLI_ghash_free(gIcons, nullptr, icon_free);
+    gIcons = nullptr;
   }
 
   if (gCachedPreviews) {
     BLI_ghash_free(gCachedPreviews, MEM_freeN, BKE_previewimg_freefunc);
-    gCachedPreviews = NULL;
+    gCachedPreviews = nullptr;
   }
 
   BLI_linklist_lockfree_free(&g_icon_delete_queue, MEM_freeN);
@@ -232,9 +232,9 @@ void BKE_icons_deferred_free(void)
 
   for (DeferredIconDeleteNode *node =
            (DeferredIconDeleteNode *)BLI_linklist_lockfree_begin(&g_icon_delete_queue);
-       node != NULL;
+       node != nullptr;
        node = node->next) {
-    BLI_ghash_remove(gIcons, POINTER_FROM_INT(node->icon_id), NULL, icon_free);
+    BLI_ghash_remove(gIcons, POINTER_FROM_INT(node->icon_id), nullptr, icon_free);
   }
   BLI_linklist_lockfree_clear(&g_icon_delete_queue, MEM_freeN);
 }
@@ -296,7 +296,7 @@ void BKE_previewimg_free(PreviewImage **prv)
 {
   if (prv && (*prv)) {
     BKE_previewimg_freefunc(*prv);
-    *prv = NULL;
+    *prv = nullptr;
   }
 }
 
@@ -321,7 +321,7 @@ void BKE_previewimg_clear(struct PreviewImage *prv)
 
 PreviewImage *BKE_previewimg_copy(const PreviewImage *prv)
 {
-  PreviewImage *prv_img = NULL;
+  PreviewImage *prv_img = nullptr;
 
   if (prv) {
     prv_img = (PreviewImage *)MEM_dupallocN(prv);
@@ -329,7 +329,7 @@ PreviewImage *BKE_previewimg_copy(const PreviewImage *prv)
       if (prv->rect[i]) {
         prv_img->rect[i] = (uint *)MEM_dupallocN(prv->rect[i]);
       }
-      prv_img->gputexture[i] = NULL;
+      prv_img->gputexture[i] = nullptr;
     }
   }
   return prv_img;
@@ -345,7 +345,7 @@ void BKE_previewimg_id_copy(ID *new_id, const ID *old_id)
   PreviewImage **new_prv_p = BKE_previewimg_id_get_p(new_id);
 
   if (old_prv_p && *old_prv_p) {
-    BLI_assert(new_prv_p != NULL && ELEM(*new_prv_p, NULL, *old_prv_p));
+    BLI_assert(new_prv_p != nullptr && ELEM(*new_prv_p, nullptr, *old_prv_p));
     //      const int new_icon_id = get_next_free_id();
 
     //      if (new_icon_id == 0) {
@@ -379,13 +379,13 @@ PreviewImage **BKE_previewimg_id_get_p(const ID *id)
       break;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 PreviewImage *BKE_previewimg_id_get(const ID *id)
 {
   PreviewImage **prv_p = BKE_previewimg_id_get_p(id);
-  return prv_p ? *prv_p : NULL;
+  return prv_p ? *prv_p : nullptr;
 }
 
 void BKE_previewimg_id_free(ID *id)
@@ -401,13 +401,13 @@ PreviewImage *BKE_previewimg_id_ensure(ID *id)
   PreviewImage **prv_p = BKE_previewimg_id_get_p(id);
 
   if (prv_p) {
-    if (*prv_p == NULL) {
+    if (*prv_p == nullptr) {
       *prv_p = BKE_previewimg_create();
     }
     return *prv_p;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void BKE_previewimg_id_custom_set(ID *id, const char *path)
@@ -464,7 +464,7 @@ PreviewImage *BKE_previewimg_cached_ensure(const char *name)
 {
   BLI_assert(BLI_thread_is_main());
 
-  PreviewImage *prv = NULL;
+  PreviewImage *prv = nullptr;
   void **key_p, **prv_p;
 
   if (!BLI_ghash_ensure_p_ex(gCachedPreviews, name, &key_p, &prv_p)) {
@@ -488,7 +488,7 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
 {
   BLI_assert(BLI_thread_is_main());
 
-  PreviewImage *prv = NULL;
+  PreviewImage *prv = nullptr;
   void **prv_p;
 
   prv_p = BLI_ghash_lookup_p(gCachedPreviews, name);
@@ -599,7 +599,7 @@ ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, const int size)
   const unsigned int h = prv->h[size];
   const unsigned int *rect = prv->rect[size];
 
-  ImBuf *ima = NULL;
+  ImBuf *ima = nullptr;
 
   if (w > 0 && h > 0 && rect) {
     /* first allocate imbuf for copying preview into it */
@@ -627,7 +627,7 @@ void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
    * but not doing so would causes all previews to be re-rendered after
    * undo which is too expensive. */
 
-  if (prv == NULL) {
+  if (prv == nullptr) {
     return;
   }
 
@@ -636,7 +636,7 @@ void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
   if (!(U.flag & USER_SAVE_PREVIEWS)) {
     prv_copy.w[1] = 0;
     prv_copy.h[1] = 0;
-    prv_copy.rect[1] = NULL;
+    prv_copy.rect[1] = nullptr;
   }
   BLO_write_struct_at_address(writer, PreviewImage, prv, &prv_copy);
   if (prv_copy.rect[0]) {
@@ -649,7 +649,7 @@ void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
 
 void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
 {
-  if (prv == NULL) {
+  if (prv == nullptr) {
     return;
   }
 
@@ -657,7 +657,7 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
     if (prv->rect[i]) {
       BLO_read_data_address(reader, &prv->rect[i]);
     }
-    prv->gputexture[i] = NULL;
+    prv->gputexture[i] = nullptr;
     /* For now consider previews read from file as finished to not confuse File Browser preview
      * loading. That could be smarter and check if there's a preview job running instead.
      * If the preview is tagged as changed, it needs to be updated anyway, so don't remove the tag.
@@ -676,7 +676,7 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
 
 void BKE_icon_changed(const int icon_id)
 {
-  Icon *icon = NULL;
+  Icon *icon = nullptr;
 
   if (!icon_id || G.background) {
     return;
@@ -714,8 +714,8 @@ static Icon *icon_create(int icon_id, int obj_type, void *obj)
   new_icon->flag = 0;
 
   /* next two lines make sure image gets created */
-  new_icon->drawinfo = NULL;
-  new_icon->drawinfo_free = NULL;
+  new_icon->drawinfo = nullptr;
+  new_icon->drawinfo_free = nullptr;
 
   {
     std::scoped_lock lock(gIconMutex);
@@ -867,11 +867,11 @@ ImBuf *BKE_icon_imbuf_get_buffer(int icon_id)
   Icon *icon = icon_ghash_lookup(icon_id);
   if (!icon) {
     CLOG_ERROR(&LOG, "no icon for icon ID: %d", icon_id);
-    return NULL;
+    return nullptr;
   }
   if (icon->obj_type != ICON_DATA_IMBUF) {
     CLOG_ERROR(&LOG, "icon ID does not refer to an imbuf icon: %d", icon_id);
-    return NULL;
+    return nullptr;
   }
 
   return (ImBuf *)icon->obj;
@@ -881,13 +881,13 @@ Icon *BKE_icon_get(const int icon_id)
 {
   BLI_assert(BLI_thread_is_main());
 
-  Icon *icon = NULL;
+  Icon *icon = nullptr;
 
   icon = icon_ghash_lookup(icon_id);
 
   if (!icon) {
     CLOG_ERROR(&LOG, "no icon for icon ID: %d", icon_id);
-    return NULL;
+    return nullptr;
   }
 
   return icon;
@@ -930,7 +930,7 @@ void BKE_icon_id_delete(struct ID *id)
 
   BKE_icons_deferred_free();
   std::scoped_lock lock(gIconMutex);
-  BLI_ghash_remove(gIcons, POINTER_FROM_INT(icon_id), NULL, icon_free);
+  BLI_ghash_remove(gIcons, POINTER_FROM_INT(icon_id), nullptr, icon_free);
 }
 
 /**
@@ -944,7 +944,7 @@ bool BKE_icon_delete(const int icon_id)
   }
 
   std::scoped_lock lock(gIconMutex);
-  if (Icon *icon = (Icon *)BLI_ghash_popkey(gIcons, POINTER_FROM_INT(icon_id), NULL)) {
+  if (Icon *icon = (Icon *)BLI_ghash_popkey(gIcons, POINTER_FROM_INT(icon_id), nullptr)) {
     icon_free_data(icon_id, icon);
     icon_free(icon);
     return true;
@@ -962,7 +962,7 @@ bool BKE_icon_delete_unmanaged(const int icon_id)
 
   std::scoped_lock lock(gIconMutex);
 
-  Icon *icon = (Icon *)BLI_ghash_popkey(gIcons, POINTER_FROM_INT(icon_id), NULL);
+  Icon *icon = (Icon *)BLI_ghash_popkey(gIcons, POINTER_FROM_INT(icon_id), nullptr);
   if (icon) {
     if (UNLIKELY(icon->flag & ICON_FLAG_MANAGED)) {
       BLI_ghash_insert(gIcons, POINTER_FROM_INT(icon_id), icon);
@@ -1041,8 +1041,8 @@ struct Icon_Geom *BKE_icon_geom_from_file(const char *filename)
   BLI_assert(BLI_thread_is_main());
   size_t data_len;
   uchar *data = (uchar *)BLI_file_read_binary_as_mem(filename, 0, &data_len);
-  if (data == NULL) {
-    return NULL;
+  if (data == nullptr) {
+    return nullptr;
   }
   return BKE_icon_geom_from_memory(data, data_len);
 }
