@@ -673,12 +673,13 @@ typedef enum eSpaceSeq_OverlayType {
  */
 typedef struct FileSelectAssetLibraryUID {
   short type;
-  char _pad[6];
+  char _pad[2];
   /**
-   * If showing a custom asset library (#FILE_ASSET_LIBRARY_CUSTOM), this name has to be set to
-   * define which. Can be empty otherwise.
+   * If showing a custom asset library (#FILE_ASSET_LIBRARY_CUSTOM), this is the index of the
+   * #bUserAssetLibrary within #UserDef.asset_libraries.
+   * Should be ignored otherwise (but better set to -1 then, for sanity and debugging).
    */
-  char custom_library_identifier[64]; /* MAX_NAME */
+  int custom_library_index;
 } FileSelectAssetLibraryUID;
 
 /* Config and Input for File Selector */

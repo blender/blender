@@ -412,6 +412,11 @@ static void file_listener(wmWindow *UNUSED(win),
             ED_area_tag_refresh(area);
           }
           break;
+        case ND_SPACE_ASSET_PARAMS:
+          if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) {
+            ED_area_tag_refresh(area);
+          }
+          break;
       }
       break;
     case NC_ASSET: {

@@ -119,6 +119,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
                                                      "FileAssetSelectParams");
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
     asset_params->asset_library.type = FILE_ASSET_LIBRARY_LOCAL;
+    asset_params->asset_library.custom_library_index = -1;
   }
 
   FileSelectParams *base_params = &asset_params->base_params;
@@ -419,8 +420,10 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 
   /* Ensure valid repo, or fall-back to local one. */
   if (library->type == FILE_ASSET_LIBRARY_CUSTOM) {
-    user_library = BKE_preferences_asset_library_find_from_name(
-        &U, library->custom_library_identifier);
+    BLI_assert(library->custom_library_index >= 0);
+
+    user_library = BKE_preferences_asset_library_find_from_index(&U,
+                                                                 library->custom_library_index);
     if (!user_library) {
       library->type = FILE_ASSET_LIBRARY_LOCAL;
     }

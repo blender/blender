@@ -61,6 +61,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_main_idmap.h"
+#include "BKE_preferences.h"
 #include "BLO_readfile.h"
 
 #include "DNA_asset_types.h"
@@ -1050,7 +1051,11 @@ static bool filelist_compare_asset_libraries(const FileSelectAssetLibraryUID *li
     return false;
   }
   if (library_a->type == FILE_ASSET_LIBRARY_CUSTOM) {
-    return STREQ(library_a->custom_library_identifier, library_b->custom_library_identifier);
+    /* Don't only check the index, also check that it's valid. */
+    bUserAssetLibrary *library_ptr_a = BKE_preferences_asset_library_find_from_index(
+        &U, library_a->custom_library_index);
+    return (library_ptr_a != NULL) &&
+           (library_a->custom_library_index == library_b->custom_library_index);
   }
 
   return true;

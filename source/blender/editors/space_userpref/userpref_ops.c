@@ -170,6 +170,8 @@ static int preferences_asset_library_remove_exec(bContext *UNUSED(C), wmOperator
   if (library) {
     BKE_preferences_asset_library_remove(&U, library);
     U.runtime.is_dirty = true;
+    /* Trigger refresh for the Asset Browser. */
+    WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
   }
   return OPERATOR_FINISHED;
 }
