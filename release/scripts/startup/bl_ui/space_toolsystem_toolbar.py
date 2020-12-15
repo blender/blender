@@ -1335,6 +1335,7 @@ class _defs_sculpt:
     def project_line():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.project_line_gesture")
+            layout.prop(props, "deformation_mode", expand=False)
             layout.prop(props, "use_limit_to_segment", expand=False)
 
         return dict(
