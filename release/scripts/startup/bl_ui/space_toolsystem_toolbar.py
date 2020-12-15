@@ -2903,10 +2903,10 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sequencer_generic.blade,
         ],
         'SEQUENCER_PREVIEW': [
-            _defs_sequencer_generic.sample,
             *_tools_select,
-            *_tools_annotate,
             _defs_sequencer_generic.blade,
+            _defs_sequencer_generic.sample,
+            *_tools_annotate,
         ],
     }
 
