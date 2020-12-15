@@ -47,6 +47,9 @@
 #include "blf_internal.h"
 #include "blf_internal_types.h"
 
+#include "BKE_global.h"
+#include "BKE_main.h"
+
 static ListBase global_font_dir = {NULL, NULL};
 
 static DirBLF *blf_dir_find(const char *path)
@@ -137,9 +140,11 @@ char *blf_dir_search(const char *file)
   }
 
   if (!s) {
-    /* check the current directory, why not ? */
-    if (BLI_exists(file)) {
-      s = BLI_strdup(file);
+    /* Assume file is either an abslute path, or a relative path to current directory. */
+    BLI_strncpy(full_path, file, sizeof(full_path));
+    BLI_path_abs(full_path, BKE_main_blendfile_path(G_MAIN));
+    if (BLI_exists(full_path)) {
+      s = BLI_strdup(full_path);
     }
   }
 
