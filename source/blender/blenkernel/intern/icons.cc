@@ -659,8 +659,16 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
     }
     prv->gputexture[i] = NULL;
     /* For now consider previews read from file as finished to not confuse File Browser preview
-     * loading. That could be smarter and check if there's a preview job running instead. */
-    prv->flag[i] &= ~PRV_UNFINISHED;
+     * loading. That could be smarter and check if there's a preview job running instead.
+     * If the preview is tagged as changed, it needs to be updated anyway, so don't remove the tag.
+     */
+    if ((prv->flag[i] & PRV_CHANGED) == 0) {
+      BKE_previewimg_finish(prv, i);
+    }
+    else {
+      /* Only for old files that didn't write the flag . */
+      prv->flag[i] |= PRV_UNFINISHED;
+    }
   }
   prv->icon_id = 0;
   prv->tag = 0;
