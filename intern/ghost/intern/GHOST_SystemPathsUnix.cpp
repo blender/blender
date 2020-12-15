@@ -153,7 +153,7 @@ const GHOST_TUns8 *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDi
     char c = fgetc(fstream);
     /* xdg-user-dir ends the path with '\n'. */
     if (c == '\n') {
-        break;
+      break;
     }
     path_stream << c;
   }

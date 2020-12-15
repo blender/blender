@@ -482,7 +482,7 @@ typedef struct ImageFormatData {
 #define R_IMF_IMTYPE_INVALID 255
 
 /* ImageFormatData.flag */
-#define R_IMF_FLAG_ZBUF (1 << 0) /* was R_OPENEXR_ZBUF */
+#define R_IMF_FLAG_ZBUF (1 << 0)        /* was R_OPENEXR_ZBUF */
 #define R_IMF_FLAG_PREVIEW_JPG (1 << 1) /* was R_PREVIEW_JPG */
 
 /* return values from BKE_imtype_valid_depths, note this is depts per channel */
@@ -524,8 +524,8 @@ typedef enum eImageFormatDepth {
 
 /* ImageFormatData.jp2_flag */
 #define R_IMF_JP2_FLAG_YCC (1 << 0) /* when disabled use RGB */ /* was R_JPEG2K_YCC */
-#define R_IMF_JP2_FLAG_CINE_PRESET (1 << 1) /* was R_JPEG2K_CINE_PRESET */
-#define R_IMF_JP2_FLAG_CINE_48 (1 << 2) /* was R_JPEG2K_CINE_48FPS */
+#define R_IMF_JP2_FLAG_CINE_PRESET (1 << 1)                     /* was R_JPEG2K_CINE_PRESET */
+#define R_IMF_JP2_FLAG_CINE_48 (1 << 2)                         /* was R_JPEG2K_CINE_48FPS */
 
 /* ImageFormatData.jp2_codec */
 #define R_IMF_JP2_CODEC_JP2 0
@@ -1824,12 +1824,12 @@ typedef struct Scene {
 
 #define R_MODE_UNUSED_20 (1 << 20) /* cleared */
 #define R_MODE_UNUSED_21 (1 << 21) /* cleared */
-#define R_NO_OVERWRITE (1 << 22) /* skip existing files */
-#define R_TOUCH (1 << 23) /* touch files before rendering */
+#define R_NO_OVERWRITE (1 << 22)   /* skip existing files */
+#define R_TOUCH (1 << 23)          /* touch files before rendering */
 #define R_SIMPLIFY (1 << 24)
-#define R_EDGE_FRS (1 << 25) /* R_EDGE reserved for Freestyle */
+#define R_EDGE_FRS (1 << 25)        /* R_EDGE reserved for Freestyle */
 #define R_PERSISTENT_DATA (1 << 26) /* keep data around for re-render */
-#define R_MODE_UNUSED_27 (1 << 27) /* cleared */
+#define R_MODE_UNUSED_27 (1 << 27)  /* cleared */
 
 /** #RenderData.seq_flag */
 enum {

@@ -16,8 +16,8 @@
 
 #include "bvh/bvh.h"
 
-#include "render/hair.h"
 #include "render/curves.h"
+#include "render/hair.h"
 #include "render/scene.h"
 
 CCL_NAMESPACE_BEGIN
