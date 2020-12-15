@@ -189,7 +189,7 @@ typedef struct IconPreview {
   Main *bmain;
   Scene *scene;
   void *owner;
-  ID *id, *id_copy;
+  ID *id, *id_copy; /* May be NULL! (see ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()) */
   ListBase sizes;
 } IconPreview;
 
@@ -1235,6 +1235,8 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
     ID *id = sp->id;
     short idtype = GS(id->name);
 
+    BLI_assert(id != NULL);
+
     if (idtype == ID_IM) {
       Image *ima = (Image *)id;
       ImBuf *ibuf = NULL;
@@ -1337,7 +1339,7 @@ static void other_id_types_preview_render(IconPreview *ip,
   const bool is_render = !is_deferred;
 
   /* These types don't use the ShaderPreview mess, they have their own types and functions. */
-  BLI_assert(!ELEM(GS(ip->id->name), ID_OB));
+  BLI_assert(!ip->id || !ELEM(GS(ip->id->name), ID_OB));
 
   /* construct shader preview from image size and previewcustomdata */
   sp->scene = ip->scene;
@@ -1396,7 +1398,7 @@ static void icon_preview_startjob_all_sizes(void *customdata,
       continue;
     }
 
-    if (ELEM(GS(ip->id->name), ID_OB)) {
+    if (ip->id && ELEM(GS(ip->id->name), ID_OB)) {
       /* Much simpler than the ShaderPreview mess used for other ID types. */
       object_preview_render(ip, cur_size);
     }
