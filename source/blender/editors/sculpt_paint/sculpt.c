@@ -50,6 +50,7 @@
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_mesh_fair.h"
 #include "BKE_image.h"
 #include "BKE_kelvinlet.h"
 #include "BKE_key.h"
@@ -1218,6 +1219,7 @@ static bool sculpt_tool_needs_original(const char sculpt_tool)
               SCULPT_TOOL_ELASTIC_DEFORM,
               SCULPT_TOOL_SMOOTH,
               SCULPT_TOOL_BOUNDARY,
+              SCULPT_TOOL_FAIRING,
               SCULPT_TOOL_POSE);
 }
 
@@ -1226,6 +1228,7 @@ static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
   return ELEM(sculpt_tool,
               SCULPT_TOOL_SMOOTH,
               SCULPT_TOOL_LAYER,
+              SCULPT_TOOL_FAIRING,
               SCULPT_TOOL_POSE,
               SCULPT_TOOL_BOUNDARY,
               SCULPT_TOOL_CLOTH,
@@ -2336,6 +2339,8 @@ static float brush_strength(const Sculpt *sd,
       return alpha * flip * pressure * overlap * feather;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
       return alpha * pressure * overlap * feather;
+    case SCULPT_TOOL_FAIRING:
+      return alpha * pressure * overlap * feather;
     case SCULPT_TOOL_CLOTH:
       if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
         /* Grab deform uses the same falloff as a regular grab brush. */
@@ -3099,6 +3104,165 @@ static void do_displacement_eraser_brush(Sculpt *sd, Object *ob, PBVHNode **node
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_displacement_eraser_brush_task_cb_ex, &settings);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Multires Displacement Eraser Brush
+ * \{ */
+
+static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
+                                                    const int n,
+                                                    const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  PBVHVertexIter vd;
+
+  const float bstrength = clamp_f(ss->cache->bstrength, 0.0f, 1.0f);
+  const Brush *brush = data->brush;
+
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+        continue;
+    }
+
+    if (SCULPT_vertex_is_boundary(ss, vd.index)) {
+        continue;
+    }
+
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                  brush,
+                                                                  ss->cache->prefairing_co[vd.index],
+                                                                  sqrtf(test.dist),
+                                                                  vd.no,
+                                                                  vd.fno,
+                                                                  vd.mask ? *vd.mask : 0.0f,
+                                                                  vd.index,
+                                                                  thread_id);
+
+    if (fade == 0.0f) {
+        continue;
+    }
+
+    ss->cache->fairing_fade[vd.index] = max_ff(fade, ss->cache->fairing_fade[vd.index]);
+    ss->cache->fairing_mask[vd.index] = true;
+
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  const int totvert = SCULPT_vertex_count_get(ss);
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+      return;
+  }
+
+  if (!ss->cache->fairing_mask) {
+      ss->cache->fairing_mask = MEM_malloc_arrayN(totvert, sizeof(bool), "fairing_mask");
+      ss->cache->fairing_fade = MEM_malloc_arrayN(totvert, sizeof(float), "fairing_fade");
+      ss->cache->prefairing_co = MEM_malloc_arrayN(totvert, sizeof(float) * 3, "prefairing_co");
+  }
+
+  if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
+    for (int i = 0; i < totvert; i++) {
+      ss->cache->fairing_mask[i] = false;
+      ss->cache->fairing_fade[i] = 0.0f;
+      copy_v3_v3(ss->cache->prefairing_co[i], SCULPT_vertex_co_get(ss, i));
+    }
+  }
+
+  SCULPT_boundary_info_ensure(ob);
+
+  /* Threaded loop over nodes. */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_fairing_brush_tag_store_task_cb_ex, &settings);
+}
+
+static void do_fairing_brush_displace_task_cb_ex(void *__restrict userdata,
+                                                    const int n,
+                                                    const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+      if (!ss->cache->fairing_mask[vd.index]) {
+          continue;
+      }
+      float disp[3];
+      sub_v3_v3v3(disp, vd.co, ss->cache->prefairing_co[vd.index]);
+      mul_v3_fl(disp, ss->cache->fairing_fade[vd.index]);
+      copy_v3_v3(vd.co, ss->cache->prefairing_co[vd.index]);
+      add_v3_v3(vd.co, disp);
+      if (vd.mvert) {
+        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void sculpt_fairing_brush_exec_fairing_for_cache(Sculpt *sd, Object *ob) {
+  BLI_assert(BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS);
+  BLI_assert(ss->cache);
+
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  Mesh *mesh = ob->data;
+
+  if (!ss->cache->fairing_mask) {
+      return;
+  }
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+  case PBVH_FACES: {
+        MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+        BKE_mesh_prefair_and_fair_vertices(mesh, mvert, ss->cache->fairing_mask, MESH_FAIRING_DEPTH_TANGENCY);
+      }
+      break;
+  case PBVH_BMESH: {
+      BKE_bmesh_prefair_and_fair_vertices(ss->bm, ss->cache->fairing_mask, MESH_FAIRING_DEPTH_TANGENCY);
+       }
+      break;
+   case PBVH_GRIDS:
+      BLI_assert(false);
+  }
+
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_fairing_brush_displace_task_cb_ex, &settings);
+  MEM_freeN(nodes);
 }
 
 /** \} */
@@ -5933,6 +6097,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       case SCULPT_TOOL_SMEAR:
         SCULPT_do_smear_brush(sd, ob, nodes, totnode);
         break;
+      case SCULPT_TOOL_FAIRING:
+        do_fairing_brush(sd, ob, nodes, totnode);
+        break;
     }
 
     if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
@@ -6494,6 +6661,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Paint Brush";
     case SCULPT_TOOL_SMEAR:
       return "Smear Brush";
+    case SCULPT_TOOL_FAIRING:
+      return "Fairing Brush";
   }
 
   return "Sculpting";
@@ -6510,6 +6679,9 @@ void SCULPT_cache_free(StrokeCache *cache)
   MEM_SAFE_FREE(cache->layer_displacement_factor);
   MEM_SAFE_FREE(cache->prev_colors);
   MEM_SAFE_FREE(cache->detail_directions);
+  MEM_SAFE_FREE(cache->prefairing_co);
+  MEM_SAFE_FREE(cache->fairing_fade);
+  MEM_SAFE_FREE(cache->fairing_mask);
 
   if (cache->pose_ik_chain) {
     SCULPT_pose_ik_chain_free(cache->pose_ik_chain);
@@ -7100,6 +7272,7 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
           ((brush->sculpt_tool == SCULPT_TOOL_MASK) && (brush->mask_tool == BRUSH_MASK_SMOOTH)) ||
           (brush->sculpt_tool == SCULPT_TOOL_POSE) ||
           (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) ||
+          (brush->sculpt_tool == SCULPT_TOOL_FAIRING) ||
           (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||
           (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
           (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS));
@@ -7729,6 +7902,10 @@ static void sculpt_stroke_update_step(bContext *C,
 
   do_symmetrical_brush_actions(sd, ob, do_brush_action, ups);
   sculpt_combine_proxies(sd, ob);
+
+  if (brush->sculpt_tool == SCULPT_TOOL_FAIRING) {
+     sculpt_fairing_brush_exec_fairing_for_cache(sd, ob);
+  }
 
   /* Hack to fix noise texture tearing mesh. */
   sculpt_fix_noise_tear(sd, ob);

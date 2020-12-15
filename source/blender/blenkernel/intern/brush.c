@@ -1698,6 +1698,12 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->spacing = 10;
       br->alpha = 1.0f;
       break;
+    case SCULPT_TOOL_FAIRING:
+      br->curve_preset = BRUSH_CURVE_SMOOTHER;
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      br->spacing = 10;
+      br->alpha = 1.0f;
+      break;
     case SCULPT_TOOL_SLIDE_RELAX:
       br->spacing = 10;
       br->alpha = 1.0f;

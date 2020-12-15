@@ -457,6 +457,7 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_SMEAR = 29,
   SCULPT_TOOL_BOUNDARY = 30,
   SCULPT_TOOL_DISPLACEMENT_ERASER = 31,
+  SCULPT_TOOL_FAIRING = 32,
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */
@@ -495,6 +496,7 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_THUMB, \
         SCULPT_TOOL_LAYER, \
         SCULPT_TOOL_DISPLACEMENT_ERASER, \
+        SCULPT_TOOL_FAIRING, \
         SCULPT_TOOL_DRAW_SHARP, \
         SCULPT_TOOL_SLIDE_RELAX, \
         SCULPT_TOOL_ELASTIC_DEFORM, \

@@ -977,6 +977,11 @@ typedef struct StrokeCache {
   bool original;
   float anchored_location[3];
 
+  /* Fairing. */
+  bool *fairing_mask;
+  float *fairing_fade;
+  float (*prefairing_co)[3];
+
   /* Paint Brush. */
   struct {
     float hardness;
