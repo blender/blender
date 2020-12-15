@@ -968,6 +968,9 @@ typedef struct Sculpt {
   // float pivot[3]; XXX not used?
   int flags;
 
+  /* Transform tool. */
+  int transform_mode;
+
   int automasking_flags;
 
   /* Control tablet input */
@@ -987,6 +990,8 @@ typedef struct Sculpt {
   /** Constant detail resolution (Blender unit / constant_detail). */
   float constant_detail;
   float detail_percent;
+
+  char _pad[4];
 
   struct Object *gravity_object;
 } Sculpt;
@@ -2203,6 +2208,12 @@ typedef enum eSculptFlags {
   /* Don't display face sets in viewport. */
   SCULPT_HIDE_FACE_SETS = (1 << 17),
 } eSculptFlags;
+
+/* Sculpt.transform_mode */
+typedef enum eSculptTransformMode {
+  SCULPT_TRANSFORM_MODE_ALL_VERTICES = 0,
+  SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC = 1,
+} eSculptTrasnformMode;
 
 /* ImagePaintSettings.mode */
 typedef enum eImagePaintMode {

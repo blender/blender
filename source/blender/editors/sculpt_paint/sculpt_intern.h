@@ -706,6 +706,10 @@ typedef struct SculptThreadedTaskData {
   float (*mat)[4];
   float (*vertCos)[3];
 
+  /* When true, the displacement stored in the proxies will be aplied to the original coordinates
+   * instead of to the current coordinates. */
+  bool use_proxies_orco;
+
   /* X and Z vectors aligned to the stroke direction for operations where perpendicular vectors to
    * the stroke direction are needed. */
   float (*stroke_xz)[3];
@@ -749,6 +753,9 @@ typedef struct SculptThreadedTaskData {
   bool mask_expand_create_face_set;
 
   float transform_mats[8][4][4];
+  float elastic_transform_mat[4][4];
+  float elastic_transform_pivot[3];
+  float elastic_transform_radius;
 
   /* Boundary brush */
   float boundary_deform_strength;
@@ -832,6 +839,8 @@ bool SCULPT_brush_test_cube(SculptBrushTest *test,
 bool SCULPT_brush_test_circle_sq(SculptBrushTest *test, const float co[3]);
 bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v);
 bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v);
+
+void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob);
 
 SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
                                                             SculptBrushTest *test,

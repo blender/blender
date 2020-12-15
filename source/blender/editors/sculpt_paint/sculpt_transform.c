@@ -32,6 +32,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_kelvinlet.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
@@ -83,7 +84,12 @@ void ED_sculpt_init_transform(struct bContext *C)
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
 
-  ss->filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL;
+  if (sd->transform_mode == SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC) {
+    ss->filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL;
+  }
+  else {
+    ss->filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL;
+  }
 }
 
 static void sculpt_transform_matrices_init(SculptSession *ss,
@@ -123,13 +129,13 @@ static void sculpt_transform_matrices_init(SculptSession *ss,
 
     /* Translation matrix. */
     sub_v3_v3v3(d_t, ss->pivot_pos, start_pivot_pos);
-    SCULPT_flip_v3_by_symm_area(d_t, symm, v_symm, ss->init_pivot_pos);
+    SCULPT_flip_v3_by_symm_area(d_t, symm, v_symm, start_pivot_pos);
     translate_m4(t_mat, d_t[0], d_t[1], d_t[2]);
 
     /* Rotation matrix. */
     sub_qt_qtqt(d_r, ss->pivot_rot, start_pivot_rot);
     normalize_qt(d_r);
-    SCULPT_flip_quat_by_symm_area(d_r, symm, v_symm, ss->init_pivot_pos);
+    SCULPT_flip_quat_by_symm_area(d_r, symm, v_symm, start_pivot_pos);
     quat_to_mat4(r_mat, d_r);
 
     /* Scale matrix. */
@@ -220,6 +226,94 @@ static void sculpt_transform_all_vertices(Sculpt *sd, Object *ob)
       0, ss->filter_cache->totnode, &data, sculpt_transform_task_cb, &settings);
 }
 
+static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
+                                             const int i,
+                                             const TaskParallelTLS *__restrict UNUSED(tls))
+{
+
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHNode *node = data->nodes[i];
+
+  float(*proxy)[3] = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[i])->co;
+
+  SculptOrigVertData orig_data;
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
+
+  KelvinletParams params;
+  /* TODO(pablodp606): These parameters can be exposed if needed as transform strength and volume
+   * preservation like in the elastic deform brushes. Setting them to the same default as elastic
+   * deform triscale grab because they work well in most cases. */
+  const float force = 1.0f;
+  const float shear_modulus = 1.0f;
+  const float poisson_ratio = 0.4f;
+  BKE_kelvinlet_init_params(
+      &params, data->elastic_transform_radius, force, shear_modulus, poisson_ratio);
+
+  SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_COORDS);
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    float transformed_co[3], orig_co[3], disp[3];
+    const float fade = vd.mask ? *vd.mask : 0.0f;
+    copy_v3_v3(orig_co, orig_data.co);
+
+    copy_v3_v3(transformed_co, vd.co);
+    mul_m4_v3(data->elastic_transform_mat, transformed_co);
+    sub_v3_v3v3(disp, transformed_co, vd.co);
+
+    float final_disp[3];
+    BKE_kelvinlet_grab_triscale(final_disp, &params, vd.co, data->elastic_transform_pivot, disp);
+    mul_v3_fl(final_disp, 20.0f * (1.0f - fade));
+
+    copy_v3_v3(proxy[vd.i], final_disp);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_update(node);
+}
+
+static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float transform_radius)
+{
+  BLI_assert(ss->filter_cache->transform_displacement_mode ==
+             SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL);
+
+  SculptSession *ss = ob->sculpt;
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = ss->filter_cache->nodes,
+      .elastic_transform_radius = transform_radius,
+  };
+
+  sculpt_transform_matrices_init(
+      ss, symm, ss->filter_cache->transform_displacement_mode, data.transform_mats);
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
+
+  /* Elastic transform needs to apply all transform matrices to all vertices and then combine the
+   * displacement proxies as all vertices are modified by all symmetry passes. */
+  for (ePaintSymmetryFlags symmpass = 0; symmpass <= symm; symmpass++) {
+    if (SCULPT_is_symmetry_iteration_valid(symmpass, symm)) {
+      flip_v3_v3(data.elastic_transform_pivot, ss->pivot_pos, symmpass);
+      const int symm_area = SCULPT_get_vertex_symm_area(data.elastic_transform_pivot);
+      copy_m4_m4(data.elastic_transform_mat, data.transform_mats[symm_area]);
+      BLI_task_parallel_range(
+          0, ss->filter_cache->totnode, &data, sculpt_elastic_transform_task_cb, &settings);
+    }
+  }
+  SCULPT_combine_transform_proxies(sd, ob);
+}
+
 void ED_sculpt_update_modal_transform(struct bContext *C)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -230,7 +324,19 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
   SCULPT_vertex_random_access_ensure(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
-  sculpt_transform_all_vertices(sd, ob);
+  switch (sd->transform_mode) {
+    case SCULPT_TRANSFORM_MODE_ALL_VERTICES: {
+      sculpt_transform_all_vertices(sd, ob);
+      break;
+    }
+    case SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC: {
+      Brush *brush = BKE_paint_brush(&sd->paint);
+      Scene *scene = CTX_data_scene(C);
+      const float transform_radius = BKE_brush_unprojected_radius_get(scene, brush);
+      sculpt_transform_radius_elastic(sd, ob, transform_radius);
+      break;
+    }
+  }
 
   copy_v3_v3(ss->prev_pivot_pos, ss->pivot_pos);
   copy_v4_v4(ss->prev_pivot_rot, ss->pivot_rot);
