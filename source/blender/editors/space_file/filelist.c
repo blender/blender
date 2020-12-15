@@ -3450,22 +3450,21 @@ void filelist_readjob_start(FileList *filelist, const bContext *C)
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
     return;
   }
-  else {
-    /* setup job */
-    wm_job = WM_jobs_get(CTX_wm_manager(C),
-                         CTX_wm_window(C),
-                         CTX_data_scene(C),
-                         "Listing Dirs...",
-                         WM_JOB_PROGRESS,
-                         WM_JOB_TYPE_FILESEL_READDIR);
-    WM_jobs_customdata_set(wm_job, flrj, filelist_readjob_free);
-    WM_jobs_timer(wm_job, 0.01, NC_SPACE | ND_SPACE_FILE_LIST, NC_SPACE | ND_SPACE_FILE_LIST);
-    WM_jobs_callbacks(
-        wm_job, filelist_readjob_startjob, NULL, filelist_readjob_update, filelist_readjob_endjob);
 
-    /* start the job */
-    WM_jobs_start(CTX_wm_manager(C), wm_job);
-  }
+  /* setup job */
+  wm_job = WM_jobs_get(CTX_wm_manager(C),
+                       CTX_wm_window(C),
+                       CTX_data_scene(C),
+                       "Listing Dirs...",
+                       WM_JOB_PROGRESS,
+                       WM_JOB_TYPE_FILESEL_READDIR);
+  WM_jobs_customdata_set(wm_job, flrj, filelist_readjob_free);
+  WM_jobs_timer(wm_job, 0.01, NC_SPACE | ND_SPACE_FILE_LIST, NC_SPACE | ND_SPACE_FILE_LIST);
+  WM_jobs_callbacks(
+      wm_job, filelist_readjob_startjob, NULL, filelist_readjob_update, filelist_readjob_endjob);
+
+  /* start the job */
+  WM_jobs_start(CTX_wm_manager(C), wm_job);
 }
 
 void filelist_readjob_stop(wmWindowManager *wm, Scene *owner_scene)
