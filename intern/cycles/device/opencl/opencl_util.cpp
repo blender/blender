@@ -789,7 +789,7 @@ bool OpenCLInfo::device_supported(const string &platform_name, const cl_device_i
     }
 
 #  ifdef __APPLE__
-    /* Apple uses own framework, which can also put Iris onto AMD framerwork.
+    /* Apple uses own framework, which can also put Iris onto AMD frame-work.
      * This isn't supported configuration. */
     return false;
 #  else

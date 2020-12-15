@@ -1332,8 +1332,8 @@ static int gpencil_merge_layer_exec(bContext *C, wmOperator *op)
   }
 
   /* Read all frames from merge layer and add any missing in destination layer,
-   * copying all previous strokes to keep the image equals. Need to do it in a separated
-   * loop to avoid strokes acumulation. */
+   * copying all previous strokes to keep the image equals.
+   * Need to do it in a separated loop to avoid strokes accumulation. */
   LISTBASE_FOREACH (bGPDframe *, gpf_src, &gpl_src->frames) {
     /* Try to find frame in destination layer hash table. */
     bGPDframe *gpf_dst = BLI_ghash_lookup(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum));

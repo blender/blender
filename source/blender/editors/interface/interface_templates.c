@@ -6173,7 +6173,7 @@ void uiTemplateList(uiLayout *layout,
                     org_i,
                     flt_flag);
 
-          /* Items should be able to set context pointers for the layout. But the listrow button
+          /* Items should be able to set context pointers for the layout. But the list-row button
            * swallows events, so it needs the context storage too for handlers to see it. */
           but->context = uiLayoutGetContextStore(sub);
 

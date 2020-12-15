@@ -718,7 +718,7 @@ void CUDADevice::init_host_memory()
 void CUDADevice::load_texture_info()
 {
   if (need_texture_info) {
-    /* Unset flag before copying, so this does not loop indenfinetly if the copy below calls
+    /* Unset flag before copying, so this does not loop indefinitely if the copy below calls
      * into 'move_textures_to_host' (which calls 'load_texture_info' again). */
     need_texture_info = false;
     texture_info.copy_to_device();
