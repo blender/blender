@@ -3223,10 +3223,9 @@ static void do_fairing_brush_displace_task_cb_ex(void *__restrict userdata,
 
 static void sculpt_fairing_brush_exec_fairing_for_cache(Sculpt *sd, Object *ob)
 {
+  SculptSession *ss = ob->sculpt;
   BLI_assert(BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS);
   BLI_assert(ss->cache);
-
-  SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   Mesh *mesh = ob->data;
 
