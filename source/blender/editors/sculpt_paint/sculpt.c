@@ -50,13 +50,13 @@
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_mesh_fair.h"
 #include "BKE_image.h"
 #include "BKE_kelvinlet.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_fair.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
@@ -3113,8 +3113,8 @@ static void do_displacement_eraser_brush(Sculpt *sd, Object *ob, PBVHNode **node
  * \{ */
 
 static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
-                                                    const int n,
-                                                    const TaskParallelTLS *__restrict tls)
+                                                  const int n,
+                                                  const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -3131,30 +3131,29 @@ static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
-        continue;
+      continue;
     }
 
     if (SCULPT_vertex_is_boundary(ss, vd.index)) {
-        continue;
+      continue;
     }
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  ss->cache->prefairing_co[vd.index],
-                                                                  sqrtf(test.dist),
-                                                                  vd.no,
-                                                                  vd.fno,
-                                                                  vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
-                                                                  thread_id);
+                                                                brush,
+                                                                ss->cache->prefairing_co[vd.index],
+                                                                sqrtf(test.dist),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.index,
+                                                                thread_id);
 
     if (fade == 0.0f) {
-        continue;
+      continue;
     }
 
     ss->cache->fairing_fade[vd.index] = max_ff(fade, ss->cache->fairing_fade[vd.index]);
     ss->cache->fairing_mask[vd.index] = true;
-
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -3166,13 +3165,13 @@ static void do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   const int totvert = SCULPT_vertex_count_get(ss);
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-      return;
+    return;
   }
 
   if (!ss->cache->fairing_mask) {
-      ss->cache->fairing_mask = MEM_malloc_arrayN(totvert, sizeof(bool), "fairing_mask");
-      ss->cache->fairing_fade = MEM_malloc_arrayN(totvert, sizeof(float), "fairing_fade");
-      ss->cache->prefairing_co = MEM_malloc_arrayN(totvert, sizeof(float) * 3, "prefairing_co");
+    ss->cache->fairing_mask = MEM_malloc_arrayN(totvert, sizeof(bool), "fairing_mask");
+    ss->cache->fairing_fade = MEM_malloc_arrayN(totvert, sizeof(float), "fairing_fade");
+    ss->cache->prefairing_co = MEM_malloc_arrayN(totvert, sizeof(float) * 3, "prefairing_co");
   }
 
   if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
@@ -3199,30 +3198,31 @@ static void do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 }
 
 static void do_fairing_brush_displace_task_cb_ex(void *__restrict userdata,
-                                                    const int n,
-                                                    const TaskParallelTLS *__restrict UNUSED(tls))
+                                                 const int n,
+                                                 const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-      if (!ss->cache->fairing_mask[vd.index]) {
-          continue;
-      }
-      float disp[3];
-      sub_v3_v3v3(disp, vd.co, ss->cache->prefairing_co[vd.index]);
-      mul_v3_fl(disp, ss->cache->fairing_fade[vd.index]);
-      copy_v3_v3(vd.co, ss->cache->prefairing_co[vd.index]);
-      add_v3_v3(vd.co, disp);
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-      }
+    if (!ss->cache->fairing_mask[vd.index]) {
+      continue;
+    }
+    float disp[3];
+    sub_v3_v3v3(disp, vd.co, ss->cache->prefairing_co[vd.index]);
+    mul_v3_fl(disp, ss->cache->fairing_fade[vd.index]);
+    copy_v3_v3(vd.co, ss->cache->prefairing_co[vd.index]);
+    add_v3_v3(vd.co, disp);
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-static void sculpt_fairing_brush_exec_fairing_for_cache(Sculpt *sd, Object *ob) {
+static void sculpt_fairing_brush_exec_fairing_for_cache(Sculpt *sd, Object *ob)
+{
   BLI_assert(BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS);
   BLI_assert(ss->cache);
 
@@ -3231,20 +3231,20 @@ static void sculpt_fairing_brush_exec_fairing_for_cache(Sculpt *sd, Object *ob) 
   Mesh *mesh = ob->data;
 
   if (!ss->cache->fairing_mask) {
-      return;
+    return;
   }
 
   switch (BKE_pbvh_type(ss->pbvh)) {
-  case PBVH_FACES: {
-        MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-        BKE_mesh_prefair_and_fair_vertices(mesh, mvert, ss->cache->fairing_mask, MESH_FAIRING_DEPTH_TANGENCY);
-      }
-      break;
-  case PBVH_BMESH: {
-      BKE_bmesh_prefair_and_fair_vertices(ss->bm, ss->cache->fairing_mask, MESH_FAIRING_DEPTH_TANGENCY);
-       }
-      break;
-   case PBVH_GRIDS:
+    case PBVH_FACES: {
+      MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+      BKE_mesh_prefair_and_fair_vertices(
+          mesh, mvert, ss->cache->fairing_mask, MESH_FAIRING_DEPTH_TANGENCY);
+    } break;
+    case PBVH_BMESH: {
+      BKE_bmesh_prefair_and_fair_vertices(
+          ss->bm, ss->cache->fairing_mask, MESH_FAIRING_DEPTH_TANGENCY);
+    } break;
+    case PBVH_GRIDS:
       BLI_assert(false);
   }
 
@@ -7904,7 +7904,7 @@ static void sculpt_stroke_update_step(bContext *C,
   sculpt_combine_proxies(sd, ob);
 
   if (brush->sculpt_tool == SCULPT_TOOL_FAIRING) {
-     sculpt_fairing_brush_exec_fairing_for_cache(sd, ob);
+    sculpt_fairing_brush_exec_fairing_for_cache(sd, ob);
   }
 
   /* Hack to fix noise texture tearing mesh. */
