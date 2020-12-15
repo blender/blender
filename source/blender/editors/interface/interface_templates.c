@@ -2014,7 +2014,7 @@ static void set_constraint_expand_flag(const bContext *UNUSED(C), Panel *panel, 
 /**
  * Function with void * argument for #uiListPanelIDFromDataFunc.
  *
- * \note: Constraint panel types are assumed to be named with the struct name field
+ * \note Constraint panel types are assumed to be named with the struct name field
  * concatenated to the defined prefix.
  */
 static void object_constraint_panel_id(void *md_link, char *r_name)

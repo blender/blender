@@ -82,8 +82,8 @@ static GHOST_TButtonMask convertButton(int button)
 /**
  * Converts Mac rawkey codes (same for Cocoa & Carbon)
  * into GHOST key codes
- * \param rawCode The raw physical key code
- * \param recvChar the character ignoring modifiers (except for shift)
+ * \param rawCode: The raw physical key code
+ * \param recvChar: the character ignoring modifiers (except for shift)
  * \return Ghost key code
  */
 static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
@@ -783,7 +783,7 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSet
 
 /**
  * Dispose of a context.
- * \param context Pointer to the context to be disposed.
+ * \param context: Pointer to the context to be disposed.
  * \return Indication of success.
  */
 GHOST_TSuccess GHOST_SystemCocoa::disposeContext(GHOST_IContext *context)

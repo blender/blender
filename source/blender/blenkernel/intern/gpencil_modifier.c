@@ -534,7 +534,7 @@ void BKE_gpencil_modifier_set_error(GpencilModifierData *md, const char *_format
  * Check whether given modifier is not local (i.e. from linked data) when the object is a library
  * override.
  *
- * \param gmd May be NULL, in which case we consider it as a non-local modifier case.
+ * \param gmd: May be NULL, in which case we consider it as a non-local modifier case.
  */
 bool BKE_gpencil_modifier_is_nonlocal_in_liboverride(const Object *ob,
                                                      const GpencilModifierData *gmd)

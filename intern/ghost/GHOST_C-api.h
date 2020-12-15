@@ -1052,7 +1052,7 @@ int GHOST_XrSessionIsRunning(const GHOST_XrContextHandle xr_context);
 /**
  * Check if \a xr_context has a session that requires an upside-down frame-buffer (compared to
  * OpenGL). If true, the render result should be flipped vertically for correct output.
- * \note: Only to be called after session start, may otherwise result in a false negative.
+ * \note Only to be called after session start, may otherwise result in a false negative.
  */
 int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_XrContextHandle xr_context);
 

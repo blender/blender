@@ -908,9 +908,9 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
 /**
  * TODO: this function needs to be split up! It's getting a bit too large...
  *
- * \note: "ID" is not always a real ID
- * \note: If child items are only added to the tree if the item is open, the TSE_ type _must_ be
- *        added to #outliner_element_needs_rebuild_on_open_change().
+ * \note "ID" is not always a real ID.
+ * \note If child items are only added to the tree if the item is open,
+ * the `TSE_` type _must_ be added to #outliner_element_needs_rebuild_on_open_change().
  */
 TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                   ListBase *lb,

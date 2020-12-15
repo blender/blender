@@ -459,12 +459,14 @@ bool BKE_text_reload(Text *text)
   return true;
 }
 
-/** Load a text file.
+/**
+ * Load a text file.
  *
- * \param is_internal If \a true, this text data-block only exists in memory, not as a file on
- * disk.
+ * \param is_internal: If \a true, this text data-block only exists in memory,
+ * not as a file on disk.
  *
- * \note: text data-blocks have no user by default, only the 'real user' flag. */
+ * \note text data-blocks have no user by default, only the 'real user' flag.
+ */
 Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const bool is_internal)
 {
   unsigned char *buffer;
@@ -520,7 +522,8 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 
 /** Load a text file.
  *
- * \note: text data-blocks have no user by default, only the 'real user' flag. */
+ * \note Text data-blocks have no user by default, only the 'real user' flag.
+ */
 Text *BKE_text_load(Main *bmain, const char *file, const char *relpath)
 {
   return BKE_text_load_ex(bmain, file, relpath, false);

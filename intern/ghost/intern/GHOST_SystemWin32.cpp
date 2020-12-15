@@ -422,7 +422,7 @@ finished:
 
 /**
  * Dispose of a context.
- * \param context Pointer to the context to be disposed.
+ * \param context: Pointer to the context to be disposed.
  * \return Indication of success.
  */
 GHOST_TSuccess GHOST_SystemWin32::disposeContext(GHOST_IContext *context)
@@ -2093,10 +2093,9 @@ GHOST_TSuccess GHOST_SystemWin32::showMessageBox(const char *title,
   config.cbSize = sizeof(config);
   config.hInstance = 0;
   config.dwCommonButtons = 0;
-  config.pszMainIcon = (dialog_options & GHOST_DialogError ?
-                            TD_ERROR_ICON :
-                            dialog_options & GHOST_DialogWarning ? TD_WARNING_ICON :
-                                                                   TD_INFORMATION_ICON);
+  config.pszMainIcon = (dialog_options & GHOST_DialogError   ? TD_ERROR_ICON :
+                        dialog_options & GHOST_DialogWarning ? TD_WARNING_ICON :
+                                                               TD_INFORMATION_ICON);
   config.pszWindowTitle = L"Blender";
   config.pszMainInstruction = title_16;
   config.pszContent = message_16;

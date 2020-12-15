@@ -1192,7 +1192,7 @@ bool BKE_nlatrack_get_bounds(NlaTrack *nlt, float bounds[2])
  * Check whether given NLA track is not local (i.e. from linked data) when the object is a library
  * override.
  *
- * \param nlt May be NULL, in which case we consider it as a non-local track case.
+ * \param nlt: May be NULL, in which case we consider it as a non-local track case.
  */
 bool BKE_nlatrack_is_nonlocal_in_liboverride(const ID *id, const NlaTrack *nlt)
 {
