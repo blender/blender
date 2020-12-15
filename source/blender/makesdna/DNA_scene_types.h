@@ -970,6 +970,7 @@ typedef struct Sculpt {
 
   /* Transform tool. */
   int transform_mode;
+  int transform_deform_target;
 
   int automasking_flags;
 
@@ -990,8 +991,6 @@ typedef struct Sculpt {
   /** Constant detail resolution (Blender unit / constant_detail). */
   float constant_detail;
   float detail_percent;
-
-  char _pad[4];
 
   struct Object *gravity_object;
 } Sculpt;
@@ -2214,6 +2213,12 @@ typedef enum eSculptTransformMode {
   SCULPT_TRANSFORM_MODE_ALL_VERTICES = 0,
   SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC = 1,
 } eSculptTrasnformMode;
+
+/* Sculpt.transform_deform_target */
+typedef enum eSculptTransformDeformTarget {
+  SCULPT_TRANSFORM_DEFORM_TARGET_GEOMETRY = 0,
+  SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM = 1,
+} eSculptTransformDeformTarget;
 
 /* ImagePaintSettings.mode */
 typedef enum eImagePaintMode {

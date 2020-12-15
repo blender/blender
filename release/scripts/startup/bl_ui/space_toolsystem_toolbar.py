@@ -269,6 +269,7 @@ class _defs_transform:
     def draw_transform_sculpt_tool_settings(context, layout):
         if context.mode != 'SCULPT':
             return
+        layout.prop(context.tool_settings.sculpt, "transform_deform_target")
         layout.prop(context.tool_settings.sculpt, "transform_mode")
 
     @ToolDef.from_fn

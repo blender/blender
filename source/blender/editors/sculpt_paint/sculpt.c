@@ -6210,7 +6210,14 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
       add_v3_v3(val, proxies[p].co[vd.i]);
     }
 
-    SCULPT_clip(sd, ss, vd.co, val);
+    if (ss->filter_cache->cloth_sim) {
+      /* When there is a simulation running in the filter cache that was created by a tool, combine
+       * the proxies into the simulation instead of directly into the mesh. */
+      SCULPT_clip(sd, ss, ss->filter_cache->cloth_sim->pos[vd.index], val);
+    }
+    else {
+      SCULPT_clip(sd, ss, vd.co, val);
+    }
 
     if (ss->deform_modifiers_active) {
       sculpt_flush_pbvhvert_deform(ob, &vd);

@@ -748,6 +748,20 @@ static void rna_def_sculpt(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem sculpt_transform_deform_target_items[] = {
+      {SCULPT_TRANSFORM_DEFORM_TARGET_GEOMETRY,
+       "GEOMETRY",
+       0,
+       "Geometry",
+       "Transform displaces the vertices of the mesh"},
+      {SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM,
+       "CLOTH_SIM",
+       0,
+       "Cloth Simulation",
+       "Transform displaces the positions of the cloth simulation"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
 
@@ -889,6 +903,12 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, sculpt_transform_mode_items);
   RNA_def_property_ui_text(
       prop, "Transform Mode", "How the transformation is going to be applied to the target");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "transform_deform_target", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, sculpt_transform_deform_target_items);
+  RNA_def_property_ui_text(
+      prop, "Deformation Target", "Target for the displacement of the transformation");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "gravity_object", PROP_POINTER, PROP_NONE);
