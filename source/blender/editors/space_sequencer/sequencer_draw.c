@@ -2292,7 +2292,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 
   UI_view2d_view_ortho(v2d);
   /* Get timeline bound-box, needed for the scroll-bars. */
-  boundbox_seq(scene, &v2d->tot);
+  SEQ_timeline_boundbox(scene, ed->seqbasep, &v2d->tot);
   draw_seq_backdrop(v2d);
   UI_view2d_constant_grid_draw(v2d, FPS);
 

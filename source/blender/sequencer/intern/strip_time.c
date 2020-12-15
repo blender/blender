@@ -351,3 +351,87 @@ float BKE_sequence_get_fps(Scene *scene, Sequence *seq)
   }
   return 0.0f;
 }
+
+/**
+ * Define boundary rectangle of sequencer timeline and fill in rect data
+ *
+ * \param scene: Scene in which strips are located
+ * \param seqbase: ListBase in which strips are located
+ * \param rect: data structure describing rectangle, that will be filled in by this function
+ */
+void SEQ_timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *rect)
+{
+  float min[2], max[2];
+  min[0] = scene->r.sfra;
+  max[0] = scene->r.efra + 1;
+  min[1] = 0.0;
+  max[1] = 8.0;
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (min[0] > seq->startdisp - 1) {
+      min[0] = seq->startdisp - 1;
+    }
+    if (max[0] < seq->enddisp + 1) {
+      max[0] = seq->enddisp + 1;
+    }
+    if (max[1] < seq->machine + 2) {
+      max[1] = seq->machine + 2;
+    }
+  }
+
+  rect->xmin = min[0];
+  rect->xmax = max[0];
+  rect->ymin = min[1];
+  rect->ymax = max[1];
+}
+
+/**
+ * Find first gap between strips after initial_frame and describe it by filling data of r_gap_info
+ *
+ * \param scene: Scene in which strips are located
+ * \param seqbase: ListBase in which strips are located
+ * \param initial_frame: frame on timeline from where gaps are searched for
+ * \param r_gap_info: data structure describing gap, that will be filled in by this function
+ */
+void seq_time_gap_info_get(const Scene *scene,
+                           ListBase *seqbase,
+                           const int initial_frame,
+                           GapInfo *r_gap_info)
+{
+  rctf rectf;
+  /* Get first and last frame. */
+  SEQ_timeline_boundbox(scene, seqbase, &rectf);
+  const int sfra = (int)rectf.xmin;
+  const int efra = (int)rectf.xmax;
+  int timeline_frame = initial_frame;
+  r_gap_info->gap_exists = false;
+
+  if (SEQ_render_evaluate_frame(seqbase, initial_frame) == 0) {
+    /* Search backward for gap_start_frame. */
+    for (; timeline_frame >= sfra; timeline_frame--) {
+      if (SEQ_render_evaluate_frame(seqbase, timeline_frame) != 0) {
+        break;
+      }
+    }
+    r_gap_info->gap_start_frame = timeline_frame + 1;
+    timeline_frame = initial_frame;
+  }
+  else {
+    /* Search forward for gap_start_frame. */
+    for (; timeline_frame <= efra; timeline_frame++) {
+      if (SEQ_render_evaluate_frame(seqbase, timeline_frame) == 0) {
+        r_gap_info->gap_start_frame = timeline_frame;
+        break;
+      }
+    }
+  }
+  /* Search forward for gap_end_frame. */
+  for (; timeline_frame <= efra; timeline_frame++) {
+    if (SEQ_render_evaluate_frame(seqbase, timeline_frame) != 0) {
+      const int gap_end_frame = timeline_frame;
+      r_gap_info->gap_length = gap_end_frame - r_gap_info->gap_start_frame;
+      r_gap_info->gap_exists = true;
+      break;
+    }
+  }
+}

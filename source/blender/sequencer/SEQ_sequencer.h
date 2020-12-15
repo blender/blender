@@ -161,7 +161,7 @@ void SEQ_render_new_render_data(struct Main *bmain,
                                 int preview_render_size,
                                 int for_render,
                                 SeqRenderData *r_context);
-int SEQ_render_evaluate_frame(struct Scene *scene, int timeline_frame);
+int SEQ_render_evaluate_frame(struct ListBase *seqbase, int timeline_frame);
 struct StripElem *SEQ_render_give_stripelem(struct Sequence *seq, int timeline_frame);
 
 /* **********************************************************************
@@ -595,6 +595,33 @@ struct Sequence *SEQ_edit_strip_split(struct Main *bmain,
                                       struct Sequence *seq,
                                       const int timeline_frame,
                                       const eSeqSplitMethod method);
+bool SEQ_edit_remove_gaps(struct Scene *scene,
+                          struct ListBase *seqbase,
+                          const int initial_frame,
+                          const bool remove_all_gaps);
+
+/* **********************************************************************
+ * strip_time.c
+ *
+ * Editing functions
+ * **********************************************************************
+ */
+
+void SEQ_timeline_boundbox(const struct Scene *scene,
+                           const struct ListBase *seqbase,
+                           struct rctf *rect);
+
+/* **********************************************************************
+ * strip_transform.c
+ *
+ * Editing functions
+ * **********************************************************************
+ */
+
+void SEQ_offset_after_frame(struct Scene *scene,
+                            struct ListBase *seqbase,
+                            const int delta,
+                            const int timeline_frame);
 
 #ifdef __cplusplus
 }
