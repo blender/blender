@@ -756,6 +756,17 @@ static void cloth_brush_solve_collision(Object *object,
     }
   }
 }
+static void cloth_simulation_noise_get(float *r_noise,
+                                       SculptSession *ss,
+                                       const int index,
+                                       const float strength)
+{
+  const uint *hash_co = (const uint *)SCULPT_vertex_co_get(ss, index);
+  for (int i = 0; i < 3; i++) {
+    const uint hash = BLI_hash_int_2d(hash_co[0], hash_co[1]) ^ BLI_hash_int_2d(hash_co[2], i);
+    r_noise[i] = (hash * (1.0f / 0xFFFFFFFF) - 0.5f) * strength;
+  }
+}
 
 static void do_cloth_brush_solve_simulation_task_cb_ex(
     void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
@@ -800,6 +811,12 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
 
       madd_v3_v3fl(cloth_sim->pos[i], pos_diff, mask_v);
       madd_v3_v3fl(cloth_sim->pos[i], cloth_sim->acceleration[i], mask_v);
+
+      /* Prevents the vertices from sliding without creating folds when all vertices and forces are
+       * in the same plane. */
+      float noise[3];
+      cloth_simulation_noise_get(noise, ss, vd.index, 0.000001f);
+      add_v3_v3(cloth_sim->pos[i], noise);
 
       if (cloth_sim->collider_list != NULL) {
         cloth_brush_solve_collision(data->ob, cloth_sim, i);
