@@ -1139,8 +1139,10 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
 
     if (use_topology) {
       v_mirr = cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, i);
-      if (respecthide && BM_elem_flag_test(v_mirr, BM_ELEM_HIDDEN)) {
-        v_mirr = NULL;
+      if (v_mirr != NULL) {
+        if (respecthide && BM_elem_flag_test(v_mirr, BM_ELEM_HIDDEN)) {
+          v_mirr = NULL;
+        }
       }
     }
     else {
