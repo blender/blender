@@ -6160,6 +6160,11 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "Undo Legacy",
       "Use legacy undo (slower than the new default one, but may be more stable in some cases)");
 
+  prop = RNA_def_property(srna, "use_new_point_cloud_type", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_new_point_cloud_type", 1);
+  RNA_def_property_ui_text(
+      prop, "New Point Cloud Type", "Enable the new point cloud type in the ui");
+
   prop = RNA_def_property(srna, "use_new_hair_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_hair_type", 1);
   RNA_def_property_ui_text(prop, "New Hair Type", "Enable the new hair type in the ui");
