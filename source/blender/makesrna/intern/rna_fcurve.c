@@ -2341,7 +2341,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_ANIMATION, "rna_FCurve_update_data_relations");
 
   /* called 'index' when given as function arg */
-  prop = RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "array_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_ui_text(
       prop, "RNA Array Index", "Index to the specific property affected by F-Curve if applicable");
   /* XXX need an update callback for this so that animation gets evaluated */

@@ -612,7 +612,12 @@ typedef struct FCurve {
   char _pad[3];
 
   /* RNA - data link */
-  /** When the RNA property from `rna_path` is an array, use this to access the array index. */
+  /**
+   * When the RNA property from `rna_path` is an array, use this to access the array index.
+   *
+   * \note This may be negative (as it wasn't prevented in 2.91 and older).
+   * Currently it silently fails to resolve the data-path in this case.
+   */
   int array_index;
   /**
    * RNA-path to resolve data-access, see: #RNA_path_resolve_property.
