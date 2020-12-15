@@ -603,7 +603,7 @@ static void draw_seq_outline(Sequence *seq,
   }
 }
 
-const char *draw_seq_text_get_name(SpaceSeq *sseq, Sequence *seq)
+static const char *draw_seq_text_get_name(Sequence *seq)
 {
   const char *name = seq->name + 2;
   if (name[0] == '\0') {
@@ -612,10 +612,7 @@ const char *draw_seq_text_get_name(SpaceSeq *sseq, Sequence *seq)
   return name;
 }
 
-static void draw_seq_text_get_source(SpaceSeq *sseq,
-                                     Sequence *seq,
-                                     char *r_source,
-                                     size_t source_len)
+static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t source_len)
 {
   /* Set source for the most common types. */
   if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
@@ -661,10 +658,10 @@ static size_t draw_seq_text_get_overlay_string(SpaceSeq *sseq,
                                                char *r_overlay_string,
                                                size_t overlay_string_len)
 {
-  const char *name = draw_seq_text_get_name(sseq, seq);
+  const char *name = draw_seq_text_get_name(seq);
   char source[FILE_MAX];
   int strip_duration = seq->enddisp - seq->startdisp;
-  draw_seq_text_get_source(sseq, seq, source, sizeof(source));
+  draw_seq_text_get_source(seq, source, sizeof(source));
 
   bool show_name = sseq->flag & SEQ_SHOW_STRIP_NAME;
   bool show_source = (sseq->flag & (SEQ_SHOW_STRIP_SOURCE)) && source[0] != '\0';
