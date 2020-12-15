@@ -537,16 +537,13 @@ static int slip_add_sequences_recursive(
   for (seq = seqbasep->first; seq; seq = seq->next) {
     if (!do_trim || (!(seq->type & SEQ_TYPE_EFFECT) && (seq->flag & SELECT))) {
       seq_array[offset + num_items] = seq;
-      trim[offset + num_items] = do_trim;
+      trim[offset + num_items] = do_trim && ((seq->type & SEQ_TYPE_EFFECT) == 0);
       num_items++;
 
       if (seq->type == SEQ_TYPE_META) {
         /* Trim the sub-sequences. */
         num_items += slip_add_sequences_recursive(
             &seq->seqbase, seq_array, trim, num_items + offset, false);
-      }
-      else if (seq->type & SEQ_TYPE_EFFECT) {
-        trim[offset + num_items] = false;
       }
     }
   }
