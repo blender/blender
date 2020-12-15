@@ -1571,7 +1571,15 @@ static void sculpt_gesture_init_project_properties(SculptGestureContext *sgconte
   SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
                                                          sgcontext->operation;
 
-  project_operation->deformation_mode = RNA_enum_get(op->ptr, "deformation_mode");
+  if (sgcontext->shape_type == SCULPT_GESTURE_SHAPE_LINE) {
+    project_operation->deformation_mode = RNA_enum_get(op->ptr, "deformation_mode");
+  }
+  else {
+    /* All gesture shapes that are not a line need to be deformed by fairing as they can't be
+     * projected to a plane. */
+    project_operation->deformation_mode = SCULPT_GESTURE_PROJECT_DEFORM_FAIR;
+  }
+
   project_operation->operation.sculpt_gesture_begin = sculpt_gesture_project_begin;
   project_operation->operation.sculpt_gesture_apply_for_symmetry_pass =
       sculpt_gesture_project_apply_for_symmetry_pass;
@@ -1743,6 +1751,44 @@ static int project_gesture_line_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int project_gesture_lasso_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    /* Fairing operations are not supported in Multires. */
+    return OPERATOR_CANCELLED;
+  }
+
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_lasso(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
+  }
+  sculpt_gesture_init_project_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
+}
+
+static int project_gesture_box_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    /* Fairing operations are not supported in Multires. */
+    return OPERATOR_CANCELLED;
+  }
+
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_box(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
+  }
+  sculpt_gesture_init_project_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
+}
+
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 {
   ot->name = "Mask Lasso Gesture";
@@ -1898,6 +1944,48 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
 
   /* Properties. */
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
+  sculpt_gesture_operator_properties(ot);
+
+  sculpt_project_gesture_operator_properties(ot);
+}
+
+void SCULPT_OT_project_lasso_gesture(wmOperatorType *ot)
+{
+  ot->name = "Project Lasso Gesture";
+  ot->idname = "SCULPT_OT_project_lasso_gesture";
+  ot->description = "Project by fairing the geometry to the curve defined by the lasso gesture";
+
+  ot->invoke = WM_gesture_lasso_invoke;
+  ot->modal = WM_gesture_lasso_modal;
+  ot->exec = project_gesture_lasso_exec;
+
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_gesture_lasso(ot);
+  sculpt_gesture_operator_properties(ot);
+
+  sculpt_project_gesture_operator_properties(ot);
+}
+
+void SCULPT_OT_project_box_gesture(wmOperatorType *ot)
+{
+  ot->name = "Project Box Gesture";
+  ot->idname = "SCULPT_OT_project_box_gesture";
+  ot->description = "Project by fairing the geometry to the box defined by the gesture";
+
+  ot->invoke = WM_gesture_box_invoke;
+  ot->modal = WM_gesture_box_modal;
+  ot->exec = project_gesture_box_exec;
+
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_border(ot);
   sculpt_gesture_operator_properties(ot);
 
   sculpt_project_gesture_operator_properties(ot);

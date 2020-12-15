@@ -1348,6 +1348,26 @@ class _defs_sculpt:
         )
 
     @ToolDef.from_fn
+    def project_lasso():
+        return dict(
+            idname="builtin.lasso_project",
+            label="Lasso Project",
+            icon="ops.sculpt.lasso_project",
+            widget=None,
+            keymap=(),
+        )
+
+    @ToolDef.from_fn
+    def project_box():
+        return dict(
+            idname="builtin.box_project",
+            label="Box Project",
+            icon="ops.sculpt.box_project",
+            widget=None,
+            keymap=(),
+        )
+
+    @ToolDef.from_fn
     def mesh_filter():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.mesh_filter")
@@ -2714,7 +2734,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_sculpt.trim_box,
                 _defs_sculpt.trim_lasso,
             ),
+            (
             _defs_sculpt.project_line,
+            _defs_sculpt.project_box,
+            _defs_sculpt.project_lasso,
+            ),
             None,
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,

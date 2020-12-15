@@ -1160,6 +1160,8 @@ void SCULPT_OT_trim_lasso_gesture(struct wmOperatorType *ot);
 void SCULPT_OT_trim_box_gesture(struct wmOperatorType *ot);
 
 void SCULPT_OT_project_line_gesture(struct wmOperatorType *ot);
+void SCULPT_OT_project_lasso_gesture(struct wmOperatorType *ot);
+void SCULPT_OT_project_box_gesture(struct wmOperatorType *ot);
 
 /* Face Sets. */
 void SCULPT_OT_face_sets_randomize_colors(struct wmOperatorType *ot);

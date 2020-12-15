@@ -9787,6 +9787,8 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_trim_box_gesture);
   WM_operatortype_append(SCULPT_OT_trim_lasso_gesture);
   WM_operatortype_append(SCULPT_OT_project_line_gesture);
+  WM_operatortype_append(SCULPT_OT_project_lasso_gesture);
+  WM_operatortype_append(SCULPT_OT_project_box_gesture);
 
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(SCULPT_OT_loop_to_vertex_colors);
