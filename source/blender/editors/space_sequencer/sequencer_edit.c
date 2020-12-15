@@ -2527,7 +2527,7 @@ void ED_sequencer_deselect_all(Scene *scene)
   SEQ_CURRENT_END;
 }
 
-static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_paste_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -2536,8 +2536,25 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
   int ofs;
   Sequence *iseq, *iseq_first;
 
+  if (BLI_listbase_count(&seqbase_clipboard) == 0) {
+    BKE_report(op->reports, RPT_INFO, "No strips to paste");
+    return OPERATOR_CANCELLED;
+  }
+
   ED_sequencer_deselect_all(scene);
-  ofs = scene->r.cfra - seqbase_clipboard_frame;
+  if (RNA_boolean_get(op->ptr, "keep_offset")) {
+    ofs = scene->r.cfra - seqbase_clipboard_frame;
+  }
+  else {
+    int min_seq_startdisp = INT_MAX;
+    LISTBASE_FOREACH (Sequence *, seq, &seqbase_clipboard) {
+      if (seq->startdisp < min_seq_startdisp) {
+        min_seq_startdisp = seq->startdisp;
+      }
+    }
+    /* Paste strips after playhead. */
+    ofs = scene->r.cfra - min_seq_startdisp;
+  }
 
   /* Copy strips, temporarily restoring pointers to actual data-blocks. This
    * must happen on the clipboard itself, so that copying does user counting
@@ -2585,6 +2602,11 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties. */
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "keep_offset", false, "Keep Offset", "Keep strip offset to playhead when pasting");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
