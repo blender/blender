@@ -490,7 +490,7 @@ void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
   wmOperator *op = sfile->op;
   UserDef_FileSpaceData *sfile_udata = &U.file_space_data;
 
-  BLI_assert(sfile->browse_mode == FILE_BROWSE_MODE_FILES);
+  sfile->browse_mode = FILE_BROWSE_MODE_FILES;
 
   FileSelectParams *params = fileselect_ensure_updated_file_params(sfile);
   if (!op) {

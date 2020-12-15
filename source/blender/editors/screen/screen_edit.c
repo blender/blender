@@ -1369,6 +1369,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     newa->full = oldscreen;
 
     ED_screen_change(C, screen);
+    ED_area_tag_refresh(newa);
   }
 
   /* XXX bad code: setscreen() ends with first area active. fullscreen render assumes this too */
