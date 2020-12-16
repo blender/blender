@@ -28,8 +28,8 @@ extern "C" {
 #endif
 
 struct Scene;
-struct Sequence;
 struct SeqRenderData;
+struct Sequence;
 
 /* **********************************************************************
  * sequencer.c

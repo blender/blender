@@ -32,10 +32,10 @@
 #include "BKE_attribute_access.hh"
 #include "BKE_geometry_set.h"
 
-struct Mesh;
-struct PointCloud;
-struct Object;
 struct Collection;
+struct Mesh;
+struct Object;
+struct PointCloud;
 
 /* Each geometry component has a specific type. The type determines what kind of data the component
  * stores. Functions modifying a geometry will usually just modify a subset of the component types.

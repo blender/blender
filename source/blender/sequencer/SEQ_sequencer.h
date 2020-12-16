@@ -27,6 +27,9 @@
 extern "C" {
 #endif
 
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendWriter;
 struct Depsgraph;
 struct Editing;
 struct GPUOffScreen;
@@ -44,9 +47,6 @@ struct StripElem;
 struct TextVars;
 struct bContext;
 struct bSound;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
 
 /* Wipe effect */
 enum {

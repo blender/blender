@@ -42,11 +42,11 @@ struct SpaceImage;
 struct ToolSettings;
 struct ViewLayer;
 struct bDeformGroup;
+struct bGPDcurve;
 struct bGPDframe;
 struct bGPDlayer;
 struct bGPDlayer_Mask;
 struct bGPDstroke;
-struct bGPDcurve;
 struct bGPdata;
 
 #define GPENCIL_SIMPLIFY(scene) ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE))

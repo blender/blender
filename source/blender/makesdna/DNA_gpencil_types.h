@@ -32,8 +32,8 @@ extern "C" {
 #endif
 
 struct AnimData;
-struct MDeformVert;
 struct Curve;
+struct MDeformVert;
 
 #define GP_DEFAULT_PIX_FACTOR 1.0f
 #define GP_DEFAULT_GRID_LINES 4

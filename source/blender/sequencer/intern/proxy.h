@@ -27,10 +27,10 @@
 extern "C" {
 #endif
 
-struct anim;
 struct ImBuf;
 struct SeqRenderData;
 struct Sequence;
+struct anim;
 
 #define PROXY_MAXFILE (2 * FILE_MAXDIR + FILE_MAXFILE)
 struct ImBuf *seq_proxy_fetch(const struct SeqRenderData *context,

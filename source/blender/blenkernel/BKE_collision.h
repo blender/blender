@@ -26,9 +26,9 @@
 extern "C" {
 #endif
 
+struct BVHTree;
 struct Collection;
 struct CollisionModifierData;
-struct BVHTree;
 struct Depsgraph;
 struct MVert;
 struct MVertTri;

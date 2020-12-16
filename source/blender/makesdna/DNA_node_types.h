@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 struct AnimData;
+struct Collection;
 struct ID;
 struct Image;
 struct ListBase;
@@ -43,7 +44,6 @@ struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
 struct uiBlock;
-struct Collection;
 
 #define NODE_MAXSTR 64
 

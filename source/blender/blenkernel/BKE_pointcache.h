@@ -77,7 +77,10 @@ extern "C" {
 #define PTCACHE_READ_OLD 3
 
 /* Structs */
+struct BlendDataReader;
+struct BlendWriter;
 struct ClothModifierData;
+struct DynamicPaintSurface;
 struct FluidModifierData;
 struct ListBase;
 struct Main;
@@ -89,9 +92,6 @@ struct RigidBodyWorld;
 struct Scene;
 struct SoftBody;
 struct ViewLayer;
-struct BlendWriter;
-struct BlendDataReader;
-struct DynamicPaintSurface;
 
 /* temp structure for read/write */
 typedef struct PTCacheData {

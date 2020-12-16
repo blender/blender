@@ -27,8 +27,8 @@
 extern "C" {
 #endif
 
-struct BlendWriter;
 struct BlendDataReader;
+struct BlendWriter;
 struct ID;
 struct PreviewImage;
 

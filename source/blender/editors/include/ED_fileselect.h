@@ -28,8 +28,8 @@ extern "C" {
 #endif
 
 struct ARegion;
-struct FileSelectParams;
 struct FileAssetSelectParams;
+struct FileSelectParams;
 struct Scene;
 struct ScrArea;
 struct SpaceFile;

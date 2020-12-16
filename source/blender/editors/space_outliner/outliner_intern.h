@@ -32,7 +32,6 @@ extern "C" {
 /* internal exports only */
 
 struct ARegion;
-struct bContextDataResult;
 struct EditBone;
 struct ID;
 struct ListBase;
@@ -43,6 +42,7 @@ struct TreeElement;
 struct TreeStoreElem;
 struct ViewLayer;
 struct bContext;
+struct bContextDataResult;
 struct bPoseChannel;
 struct wmKeyConfig;
 struct wmOperatorType;

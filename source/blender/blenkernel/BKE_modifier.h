@@ -35,6 +35,7 @@ struct BlendWriter;
 struct CustomData_MeshMasks;
 struct DepsNodeHandle;
 struct Depsgraph;
+struct GeometrySet;
 struct ID;
 struct ListBase;
 struct Main;
@@ -43,7 +44,6 @@ struct ModifierData;
 struct Object;
 struct Scene;
 struct bArmature;
-struct GeometrySet;
 
 typedef enum {
   /* Should not be used, only for None modifier type */
