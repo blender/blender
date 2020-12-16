@@ -507,7 +507,7 @@ void ED_OT_flush_edits(wmOperatorType *ot)
 
 static bool lib_id_load_custom_preview_poll(bContext *C)
 {
-  const PointerRNA idptr = CTX_data_pointer_get(C, "active_id");
+  const PointerRNA idptr = CTX_data_pointer_get(C, "id");
   BLI_assert(!idptr.data || RNA_struct_is_ID(idptr.type));
 
   const ID *id = idptr.data;
@@ -541,7 +541,7 @@ static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  PointerRNA idptr = CTX_data_pointer_get(C, "active_id");
+  PointerRNA idptr = CTX_data_pointer_get(C, "id");
   ID *id = idptr.data;
 
   BKE_previewimg_id_custom_set(id, path);

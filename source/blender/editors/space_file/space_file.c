@@ -806,7 +806,7 @@ static int /*eContextResult*/ file_context(const bContext *C,
     CTX_data_pointer_set(result, &screen->id, &RNA_FileSelectEntry, file);
     return CTX_RESULT_OK;
   }
-  if (CTX_data_equals(member, "active_id")) {
+  if (CTX_data_equals(member, "id")) {
     const FileDirEntry *file = filelist_file(sfile->files, params->active_file);
 
     ID *id = filelist_file_get_id(file);
