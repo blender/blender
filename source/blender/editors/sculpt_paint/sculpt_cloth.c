@@ -644,7 +644,14 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
           float final_disp[3];
           sub_v3_v3v3(brush_disp, ss->cache->location, ss->cache->last_location);
           mul_v3_v3fl(final_disp, brush_disp, ss->cache->bstrength);
-          BKE_kelvinlet_grab_triscale(final_disp, &params, vd.co, ss->cache->location, brush_disp);
+          float location[3];
+          if (use_falloff_plane) {
+            closest_to_plane_v3(location, deform_plane, vd.co);
+          }
+          else {
+            copy_v3_v3(location, ss->cache->location);
+          }
+          BKE_kelvinlet_grab_triscale(final_disp, &params, vd.co, location, brush_disp);
           mul_v3_fl(final_disp, 20.0f * (1.0f - fade));
           add_v3_v3(cloth_sim->pos[vd.index], final_disp);
           zero_v3(force);
