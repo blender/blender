@@ -28,6 +28,7 @@
 #include "node_geometry_util.hh"
 
 #include <iostream>
+#include <string.h>
 
 namespace blender::nodes {
 
@@ -245,9 +246,9 @@ static void progressive_sampling_reorder(Vector<float3> *output_points,
         source_points, source_size, dest_points, dest_size, maximum_density, boundbox, true);
 
     if (dest_points != output_points->data()) {
-      mempcpy((*output_points)[dest_size],
-              dest_points[dest_size],
-              (source_size - dest_size) * sizeof(float3));
+      memcpy((*output_points)[dest_size],
+             dest_points[dest_size],
+             (source_size - dest_size) * sizeof(float3));
     }
 
     /* Swap the arrays around. */
