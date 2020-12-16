@@ -377,6 +377,9 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
     else {
       mul_v3_m3v3(global_dir, t->spacemtx, global_dir);
     }
+    if (t->flag & T_2D_EDIT) {
+      removeAspectRatio(t, global_dir);
+    }
   }
   else {
     copy_v3_v3(global_dir, t->values);
