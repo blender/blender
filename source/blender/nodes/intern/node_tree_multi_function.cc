@@ -208,6 +208,10 @@ static DataTypeConversions create_implicit_conversions()
       conversions, "float to Color4f", [](float a) { return Color4f(a, a, a, 1.0f); });
   add_implicit_conversion<Color4f, float>(
       conversions, "Color4f to float", [](Color4f a) { return rgb_to_grayscale(a); });
+  add_implicit_conversion<float3, bool>(
+      conversions, "float3 to boolean", [](float3 a) { return a.length_squared() == 0.0f; });
+  add_implicit_conversion<bool, float3>(
+      conversions, "boolean to float3", [](bool a) { return (a) ? float3(1.0f) : float3(0.0f); });
   return conversions;
 }
 

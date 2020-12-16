@@ -392,6 +392,8 @@ const blender::fn::CPPType *custom_data_type_to_cpp_type(const CustomDataType ty
       return &CPPType::get<int>();
     case CD_PROP_COLOR:
       return &CPPType::get<Color4f>();
+    case CD_PROP_BOOL:
+      return &CPPType::get<bool>();
     default:
       return nullptr;
   }
@@ -414,6 +416,9 @@ CustomDataType cpp_type_to_custom_data_type(const blender::fn::CPPType &type)
   }
   if (type.is<Color4f>()) {
     return CD_PROP_COLOR;
+  }
+  if (type.is<bool>()) {
+    return CD_PROP_BOOL;
   }
   return static_cast<CustomDataType>(-1);
 }
@@ -449,6 +454,9 @@ static ReadAttributePtr read_attribute_from_custom_data(const CustomData &custom
         case CD_PROP_COLOR:
           return std::make_unique<ArrayReadAttribute<Color4f>>(
               domain, Span(static_cast<Color4f *>(layer.data), size));
+        case CD_PROP_BOOL:
+          return std::make_unique<ArrayReadAttribute<bool>>(
+              domain, Span(static_cast<bool *>(layer.data), size));
       }
     }
   }
@@ -490,6 +498,9 @@ static WriteAttributePtr write_attribute_from_custom_data(
         case CD_PROP_COLOR:
           return std::make_unique<ArrayWriteAttribute<Color4f>>(
               domain, MutableSpan(static_cast<Color4f *>(layer.data), size));
+        case CD_PROP_BOOL:
+          return std::make_unique<ArrayWriteAttribute<bool>>(
+              domain, MutableSpan(static_cast<bool *>(layer.data), size));
       }
     }
   }
@@ -751,6 +762,7 @@ bool PointCloudComponent::attribute_domain_with_type_supported(
     const AttributeDomain domain, const CustomDataType data_type) const
 {
   return domain == ATTR_DOMAIN_POINT && ELEM(data_type,
+                                             CD_PROP_BOOL,
                                              CD_PROP_FLOAT,
                                              CD_PROP_FLOAT2,
                                              CD_PROP_FLOAT3,
@@ -874,8 +886,13 @@ bool MeshComponent::attribute_domain_with_type_supported(const AttributeDomain d
   if (!this->attribute_domain_supported(domain)) {
     return false;
   }
-  return ELEM(
-      data_type, CD_PROP_FLOAT, CD_PROP_FLOAT2, CD_PROP_FLOAT3, CD_PROP_INT32, CD_PROP_COLOR);
+  return ELEM(data_type,
+              CD_PROP_BOOL,
+              CD_PROP_FLOAT,
+              CD_PROP_FLOAT2,
+              CD_PROP_FLOAT3,
+              CD_PROP_INT32,
+              CD_PROP_COLOR);
 }
 
 int MeshComponent::attribute_domain_size(const AttributeDomain domain) const

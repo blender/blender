@@ -59,6 +59,16 @@ static void geo_node_attribute_randomize_update(bNodeTree *UNUSED(ntree), bNode 
 
 namespace blender::nodes {
 
+static void randomize_attribute(BooleanWriteAttribute &attribute, RandomNumberGenerator &rng)
+{
+  MutableSpan<bool> attribute_span = attribute.get_span();
+  for (const int i : IndexRange(attribute.size())) {
+    const bool value = rng.get_float() > 0.5f;
+    attribute_span[i] = value;
+  }
+  attribute.apply_span();
+}
+
 static void randomize_attribute(FloatWriteAttribute &attribute,
                                 float min,
                                 float max,
@@ -119,6 +129,11 @@ static void randomize_attribute(GeometryComponent &component,
       const float3 min_value = params.get_input<float3>("Min");
       const float3 max_value = params.get_input<float3>("Max");
       randomize_attribute(float3_attribute, min_value, max_value, rng);
+      break;
+    }
+    case CD_PROP_BOOL: {
+      BooleanWriteAttribute boolean_attribute = std::move(attribute);
+      randomize_attribute(boolean_attribute, rng);
       break;
     }
     default:

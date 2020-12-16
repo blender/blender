@@ -96,6 +96,9 @@ CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
   if (found_socket->type == SOCK_RGBA) {
     return CD_PROP_COLOR;
   }
+  if (found_socket->type == SOCK_BOOLEAN) {
+    return CD_PROP_BOOL;
+  }
 
   BLI_assert(false);
   return default_type;

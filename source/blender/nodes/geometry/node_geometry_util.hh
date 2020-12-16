@@ -42,4 +42,10 @@ namespace blender::nodes {
 void update_attribute_input_socket_availabilities(bNode &node,
                                                   const StringRef name,
                                                   const GeometryNodeAttributeInputMode mode);
-}
+
+void poisson_disk_point_elimination(Vector<float3> const *input_points,
+                                    Vector<float3> *output_points,
+                                    float maximum_distance,
+                                    float3 boundbox);
+
+}  // namespace blender::nodes

@@ -1204,7 +1204,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
       RNA_STRUCT_END;
     }
     else {
-      LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &op->opm->type->macro) {
+      LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
         wmOperatorType *otm = WM_operatortype_find(macro->idname, 0);
         wmOperator *opm = wm_operator_create(wm, otm, macro->ptr, NULL);
 

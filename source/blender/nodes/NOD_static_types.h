@@ -271,7 +271,7 @@ DefNode(GeometryNode, GEO_NODE_EDGE_SPLIT, 0, "EDGE_SPLIT", EdgeSplit, "Edge Spl
 DefNode(GeometryNode, GEO_NODE_TRANSFORM, 0, "TRANSFORM", Transform, "Transform", "")
 DefNode(GeometryNode, GEO_NODE_SUBDIVISION_SURFACE, 0, "SUBDIVISION_SURFACE", SubdivisionSurface, "Subdivision Surface", "")
 DefNode(GeometryNode, GEO_NODE_BOOLEAN, def_geo_boolean, "BOOLEAN", Boolean, "Boolean", "")
-DefNode(GeometryNode, GEO_NODE_POINT_DISTRIBUTE, 0, "POINT_DISTRIBUTE", PointDistribute, "Point Distribute", "")
+DefNode(GeometryNode, GEO_NODE_POINT_DISTRIBUTE, def_geo_point_distribute, "POINT_DISTRIBUTE", PointDistribute, "Point Distribute", "")
 DefNode(GeometryNode, GEO_NODE_POINT_INSTANCE, def_geo_point_instance, "POINT_INSTANCE", PointInstance, "Point Instance", "")
 DefNode(GeometryNode, GEO_NODE_OBJECT_INFO, 0, "OBJECT_INFO", ObjectInfo, "Object Info", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_RANDOMIZE, def_geo_attribute_randomize, "ATTRIBUTE_RANDOMIZE", AttributeRandomize, "Attribute Randomize", "")
