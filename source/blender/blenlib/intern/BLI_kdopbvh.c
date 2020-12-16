@@ -1076,6 +1076,25 @@ float BLI_bvhtree_get_epsilon(const BVHTree *tree)
   return tree->epsilon;
 }
 
+/**
+ * This function returns the bounding box of the BVH tree.
+ */
+void BLI_bvhtree_get_bounding_box(BVHTree *tree, float r_bb_min[3], float r_bb_max[3])
+{
+  BVHNode *root = tree->nodes[tree->totleaf];
+  if (root != NULL) {
+    const float bb_min[3] = {root->bv[0], root->bv[2], root->bv[4]};
+    const float bb_max[3] = {root->bv[1], root->bv[3], root->bv[5]};
+    copy_v3_v3(r_bb_min, bb_min);
+    copy_v3_v3(r_bb_max, bb_max);
+  }
+  else {
+    BLI_assert(false);
+    zero_v3(r_bb_min);
+    zero_v3(r_bb_max);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -452,6 +452,20 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem rna_node_geometry_point_distribute_method_items[] = {
+    {GEO_NODE_POINT_DISTRIBUTE_RANDOM,
+     "RANDOM",
+     0,
+     "Random",
+     "Distribute points randomly on the surface"},
+    {GEO_NODE_POINT_DISTRIBUTE_POISSON,
+     "POISSON",
+     0,
+     "Poisson Disk",
+     "Project points on the surface evenly with a Poisson disk distribution"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #endif
 
 #ifdef RNA_RUNTIME
@@ -8478,6 +8492,18 @@ static void def_geo_attribute_mix(StructRNA *srna)
   prop = RNA_def_property(srna, "input_type_b", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items);
   RNA_def_property_ui_text(prop, "Input Type B", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_point_distribute(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "distribute_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_node_geometry_point_distribute_method_items);
+  RNA_def_property_enum_default(prop, GEO_NODE_POINT_DISTRIBUTE_RANDOM);
+  RNA_def_property_ui_text(prop, "Distribution Method", "Method to use for scattering points");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
