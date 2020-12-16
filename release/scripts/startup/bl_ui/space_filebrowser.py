@@ -609,6 +609,8 @@ class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
         if bpy.ops.ed.lib_id_load_custom_preview.poll():
             col = row.column(align=True)
             col.operator("ed.lib_id_load_custom_preview", icon='FILEBROWSER', text="")
+            col.separator()
+            col.operator("ed.lib_id_generate_preview", icon='FILE_REFRESH', text="")
 
 
 class ASSETBROWSER_PT_metadata_details(asset_utils.AssetMetaDataPanel, Panel):
