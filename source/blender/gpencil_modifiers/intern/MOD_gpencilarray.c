@@ -241,7 +241,7 @@ static void generate_geometry(GpencilModifierData *md,
           float rand_value;
           rand_value = fmodf(r[0] * 2.0 - 1.0 + rand_offset, 1.0f);
           rand_value = fmodf(sin(rand_value * 12.9898 + j * 78.233) * 43758.5453, 1.0f);
-          copy_v3_fl(rand[j] , rand_value);
+          copy_v3_fl(rand[j], rand_value);
         }
         else {
           for (int i = 0; i < 3; i++) {

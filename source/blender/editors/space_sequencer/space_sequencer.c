@@ -707,7 +707,8 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   SpaceSeq *sseq = area->spacedata.first;
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
-  const bool draw_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) && (sseq->flag & SEQ_SHOW_STRIP_OVERLAY));
+  const bool draw_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) &&
+                             (sseq->flag & SEQ_SHOW_STRIP_OVERLAY));
 
   /* XXX temp fix for wrong setting in sseq->mainb */
   if (sseq->mainb == SEQ_DRAW_SEQUENCE) {

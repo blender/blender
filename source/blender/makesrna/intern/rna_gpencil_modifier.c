@@ -1563,7 +1563,8 @@ static void rna_def_modifier_gpencilarray(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_uniform_random_scale", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_ARRAY_UNIFORM_RANDOM_SCALE);
-  RNA_def_property_ui_text(prop, "Uniform Scale", "Use the same random seed for each scale axis for a uniform scale");
+  RNA_def_property_ui_text(
+      prop, "Uniform Scale", "Use the same random seed for each scale axis for a uniform scale");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
 
