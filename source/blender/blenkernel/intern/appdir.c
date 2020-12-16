@@ -906,14 +906,20 @@ bool BKE_appdir_program_python_search(char *fullpath,
   const char *python_build_def = STRINGIFY(PYTHON_EXECUTABLE_NAME);
 #endif
   const char *basename = "python";
+#if defined(WIN32) && !defined(NDEBUG)
+  const char *basename_debug = "python_d";
+#endif
   char python_version[16];
   /* Check both possible names. */
   const char *python_names[] = {
 #ifdef PYTHON_EXECUTABLE_NAME
-      python_build_def,
+    python_build_def,
 #endif
-      python_version,
-      basename,
+#if defined(WIN32) && !defined(NDEBUG)
+    basename_debug,
+#endif
+    python_version,
+    basename,
   };
   bool is_found = false;
 
