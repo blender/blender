@@ -1,0 +1,17 @@
+"appbuild"
+{
+  "appid"  "[APPID]"
+  "desc" "Blender [VERSION]" // description for this build
+  "buildoutput" "./[OUTPUT]" // build output folder for .log, .csm & .csd files, relative to location of this file
+  "contentroot" "./[CONTENT]" // root content folder, relative to location of this file
+  "setlive"  "" // branch to set live after successful build, non if empty
+  "preview" "[DRYRUN]" // 1 to enable preview builds, 0 to commit build to steampipe
+  "local"  ""  // set to flie path of local content server
+
+  "depots"
+  {
+    "[WINID]" "depot_build_win.vdf"
+    "[LINUXID]" "depot_build_linux.vdf"
+    "[MACOSID]" "depot_build_macos.vdf"
+  }
+}
