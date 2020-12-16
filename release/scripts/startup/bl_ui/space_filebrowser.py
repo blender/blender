@@ -598,7 +598,8 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         box.template_icon(icon_value=active_file.preview_icon_id, scale=5.0)
         if bpy.ops.ed.lib_id_load_custom_preview.poll():
             box.operator("ed.lib_id_load_custom_preview", icon='FILEBROWSER', text="Load Custom")
-        layout.prop(active_file, "name")
+        # If the active file is an ID, use its name directly so renaming is possible from right here.
+        layout.prop(context.id if not None else active_file, "name")
 
 
 class ASSETBROWSER_PT_metadata_details(asset_utils.AssetBrowserPanel, Panel):
