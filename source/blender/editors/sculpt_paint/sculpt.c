@@ -5923,6 +5923,17 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     }
   }
 
+  /* Initialize automasking cache. For anchored brushes with spherical falloff, we start off with
+   * zero radius, thus we have no pbvh nodes on the first brush step. */
+  if (totnode ||
+      ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED))) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+      if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
+        ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
+      }
+    }
+  }
+
   /* Only act if some verts are inside the brush area. */
   if (totnode) {
     float location[3];
@@ -5944,12 +5955,6 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
     if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA) {
       update_brush_local_mat(sd, ob);
-    }
-
-    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
-        ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
-      }
     }
 
     if (brush->sculpt_tool == SCULPT_TOOL_POSE && SCULPT_stroke_is_first_brush_step(ss->cache)) {
