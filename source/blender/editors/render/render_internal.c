@@ -150,31 +150,31 @@ static void image_buffer_rect_update(RenderJob *rj,
     }
 
     /* xmin here is first subrect x coord, xmax defines subrect width */
-    xmin = renrect->xmin + rr->crop;
-    xmax = renrect->xmax - xmin + rr->crop;
+    xmin = renrect->xmin;
+    xmax = renrect->xmax - xmin;
     if (xmax < 2) {
       return;
     }
 
-    ymin = renrect->ymin + rr->crop;
-    ymax = renrect->ymax - ymin + rr->crop;
+    ymin = renrect->ymin;
+    ymax = renrect->ymax - ymin;
     if (ymax < 2) {
       return;
     }
     renrect->ymin = renrect->ymax;
   }
   else {
-    xmin = ymin = rr->crop;
-    xmax = rr->rectx - 2 * rr->crop;
-    ymax = rr->recty - 2 * rr->crop;
+    xmin = ymin = 0;
+    xmax = rr->rectx;
+    ymax = rr->recty;
   }
 
   /* xmin ymin is in tile coords. transform to ibuf */
-  rxmin = rr->tilerect.xmin + xmin;
+  rxmin = rr->tilerect.xmin;
   if (rxmin >= ibuf->x) {
     return;
   }
-  rymin = rr->tilerect.ymin + ymin;
+  rymin = rr->tilerect.ymin;
   if (rymin >= ibuf->y) {
     return;
   }

@@ -285,12 +285,8 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
 /* will read info from Render *re to define layers */
 /* called in threads */
 /* re->winx,winy is coordinate space of entire image, partrct the part within */
-RenderResult *render_result_new(Render *re,
-                                rcti *partrct,
-                                int crop,
-                                int savebuffers,
-                                const char *layername,
-                                const char *viewname)
+RenderResult *render_result_new(
+    Render *re, rcti *partrct, int savebuffers, const char *layername, const char *viewname)
 {
   RenderResult *rr;
   RenderLayer *rl;
@@ -308,9 +304,7 @@ RenderResult *render_result_new(Render *re,
   rr->rectx = rectx;
   rr->recty = recty;
   rr->renrect.xmin = 0;
-  rr->renrect.xmax = rectx - 2 * crop;
-  /* crop is one or two extra pixels rendered for filtering, is used for merging and display too */
-  rr->crop = crop;
+  rr->renrect.xmax = rectx;
 
   /* tilerect is relative coordinates within render disprect. do not subtract crop yet */
   rr->tilerect.xmin = partrct->xmin - re->disprect.xmin;
@@ -827,20 +821,8 @@ static void do_merge_tile(
   copylen = tilex = rrpart->rectx;
   tiley = rrpart->recty;
 
-  if (rrpart->crop) { /* filters add pixel extra */
-    tile += pixsize * (rrpart->crop + ((size_t)rrpart->crop) * tilex);
-
-    copylen = tilex - 2 * rrpart->crop;
-    tiley -= 2 * rrpart->crop;
-
-    ofs = (((size_t)rrpart->tilerect.ymin) + rrpart->crop) * rr->rectx +
-          (rrpart->tilerect.xmin + rrpart->crop);
-    target += pixsize * ofs;
-  }
-  else {
-    ofs = (((size_t)rrpart->tilerect.ymin) * rr->rectx + rrpart->tilerect.xmin);
-    target += pixsize * ofs;
-  }
+  ofs = (((size_t)rrpart->tilerect.ymin) * rr->rectx + rrpart->tilerect.xmin);
+  target += pixsize * ofs;
 
   copylen *= sizeof(float) * pixsize;
   tilex *= pixsize;
@@ -1107,7 +1089,7 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
 {
   RenderLayer *rlp, *rl;
   RenderPass *rpassp;
-  int offs, partx, party;
+  int partx, party;
 
   BLI_thread_lock(LOCK_IMAGE);
 
@@ -1118,13 +1100,6 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
     BLI_assert(rl);
     if (UNLIKELY(rl == NULL)) {
       continue;
-    }
-
-    if (rrpart->crop) { /* filters add pixel extra */
-      offs = (rrpart->crop + rrpart->crop * rrpart->rectx);
-    }
-    else {
-      offs = 0;
     }
 
     /* passes are allocated in sync */
@@ -1141,13 +1116,13 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
                             fullname,
                             xstride,
                             xstride * rrpart->rectx,
-                            rpassp->rect + a + xstride * offs);
+                            rpassp->rect + a);
       }
     }
   }
 
-  party = rrpart->tilerect.ymin + rrpart->crop;
-  partx = rrpart->tilerect.xmin + rrpart->crop;
+  party = rrpart->tilerect.ymin;
+  partx = rrpart->tilerect.xmin;
 
   for (rlp = rrpart->layers.first; rlp; rlp = rlp->next) {
     rl = RE_GetRenderLayer(rr, rlp->name);
@@ -1267,7 +1242,7 @@ void render_result_exr_file_end(Render *re, RenderEngine *engine)
   /* Create new render result in memory instead of on disk. */
   BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
   render_result_free_list(&re->fullresult, re->result);
-  re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+  re->result = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
   BLI_rw_mutex_unlock(&re->resultmutex);
 
   LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {
@@ -1429,7 +1404,7 @@ bool render_result_exr_file_cache_read(Render *re)
   char *root = U.render_cachedir;
 
   RE_FreeRenderResult(re->result);
-  re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+  re->result = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
 
   /* First try cache. */
   render_result_exr_file_cache_path(re->scene, root, str);
