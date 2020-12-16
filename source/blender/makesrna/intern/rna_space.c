@@ -2602,7 +2602,7 @@ static int rna_FileBrowser_FileSelectEntry_name_length(PointerRNA *ptr)
 static int rna_FileBrowser_FileSelectEntry_preview_icon_id_get(PointerRNA *ptr)
 {
   const FileDirEntry *entry = ptr->data;
-  return entry->preview_icon_id;
+  return ED_file_icon(entry);
 }
 
 static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr)

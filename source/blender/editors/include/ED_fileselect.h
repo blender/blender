@@ -30,6 +30,7 @@ extern "C" {
 struct ARegion;
 struct FileAssetSelectParams;
 struct FileSelectParams;
+struct FileDirEntry;
 struct Scene;
 struct ScrArea;
 struct SpaceFile;
@@ -154,6 +155,7 @@ struct ScrArea *ED_fileselect_handler_area_find(const struct wmWindow *win,
 
 int ED_path_extension_type(const char *path);
 int ED_file_extension_icon(const char *path);
+int ED_file_icon(const struct FileDirEntry *file);
 
 void ED_file_read_bookmarks(void);
 
