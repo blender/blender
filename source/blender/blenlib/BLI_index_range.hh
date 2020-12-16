@@ -73,21 +73,22 @@ class IndexRange {
   int64_t size_ = 0;
 
  public:
-  IndexRange() = default;
+  constexpr IndexRange() = default;
 
-  explicit IndexRange(int64_t size) : start_(0), size_(size)
+  constexpr explicit IndexRange(int64_t size) : start_(0), size_(size)
   {
     BLI_assert(size >= 0);
   }
 
-  IndexRange(int64_t start, int64_t size) : start_(start), size_(size)
+  constexpr IndexRange(int64_t start, int64_t size) : start_(start), size_(size)
   {
     BLI_assert(start >= 0);
     BLI_assert(size >= 0);
   }
 
   template<typename T>
-  IndexRange(const tbb::blocked_range<T> &range) : start_(range.begin()), size_(range.size())
+  constexpr IndexRange(const tbb::blocked_range<T> &range)
+      : start_(range.begin()), size_(range.size())
   {
   }
 
@@ -96,33 +97,33 @@ class IndexRange {
     int64_t current_;
 
    public:
-    Iterator(int64_t current) : current_(current)
+    constexpr Iterator(int64_t current) : current_(current)
     {
     }
 
-    Iterator &operator++()
+    constexpr Iterator &operator++()
     {
       current_++;
       return *this;
     }
 
-    bool operator!=(const Iterator &iterator) const
+    constexpr bool operator!=(const Iterator &iterator) const
     {
       return current_ != iterator.current_;
     }
 
-    int64_t operator*() const
+    constexpr int64_t operator*() const
     {
       return current_;
     }
   };
 
-  Iterator begin() const
+  constexpr Iterator begin() const
   {
     return Iterator(start_);
   }
 
-  Iterator end() const
+  constexpr Iterator end() const
   {
     return Iterator(start_ + size_);
   }
@@ -130,7 +131,7 @@ class IndexRange {
   /**
    * Access an element in the range.
    */
-  int64_t operator[](int64_t index) const
+  constexpr int64_t operator[](int64_t index) const
   {
     BLI_assert(index >= 0);
     BLI_assert(index < this->size());
@@ -140,7 +141,7 @@ class IndexRange {
   /**
    * Two ranges compare equal when they contain the same numbers.
    */
-  friend bool operator==(IndexRange a, IndexRange b)
+  constexpr friend bool operator==(IndexRange a, IndexRange b)
   {
     return (a.size_ == b.size_) && (a.start_ == b.start_ || a.size_ == 0);
   }
@@ -148,7 +149,7 @@ class IndexRange {
   /**
    * Get the amount of numbers in the range.
    */
-  int64_t size() const
+  constexpr int64_t size() const
   {
     return size_;
   }
@@ -156,7 +157,7 @@ class IndexRange {
   /**
    * Create a new range starting at the end of the current one.
    */
-  IndexRange after(int64_t n) const
+  constexpr IndexRange after(int64_t n) const
   {
     BLI_assert(n >= 0);
     return IndexRange(start_ + size_, n);
@@ -165,7 +166,7 @@ class IndexRange {
   /**
    * Create a new range that ends at the start of the current one.
    */
-  IndexRange before(int64_t n) const
+  constexpr IndexRange before(int64_t n) const
   {
     BLI_assert(n >= 0);
     return IndexRange(start_ - n, n);
@@ -175,7 +176,7 @@ class IndexRange {
    * Get the first element in the range.
    * Asserts when the range is empty.
    */
-  int64_t first() const
+  constexpr int64_t first() const
   {
     BLI_assert(this->size() > 0);
     return start_;
@@ -185,7 +186,7 @@ class IndexRange {
    * Get the last element in the range.
    * Asserts when the range is empty.
    */
-  int64_t last() const
+  constexpr int64_t last() const
   {
     BLI_assert(this->size() > 0);
     return start_ + size_ - 1;
@@ -194,7 +195,7 @@ class IndexRange {
   /**
    * Get the element one after the end. The returned value is undefined when the range is empty.
    */
-  int64_t one_after_last() const
+  constexpr int64_t one_after_last() const
   {
     return start_ + size_;
   }
@@ -202,7 +203,7 @@ class IndexRange {
   /**
    * Get the first element in the range. The returned value is undefined when the range is empty.
    */
-  int64_t start() const
+  constexpr int64_t start() const
   {
     return start_;
   }
@@ -210,7 +211,7 @@ class IndexRange {
   /**
    * Returns true when the range contains a certain number, otherwise false.
    */
-  bool contains(int64_t value) const
+  constexpr bool contains(int64_t value) const
   {
     return value >= start_ && value < start_ + size_;
   }
@@ -218,7 +219,7 @@ class IndexRange {
   /**
    * Returns a new range, that contains a sub-interval of the current one.
    */
-  IndexRange slice(int64_t start, int64_t size) const
+  constexpr IndexRange slice(int64_t start, int64_t size) const
   {
     BLI_assert(start >= 0);
     BLI_assert(size >= 0);
@@ -226,7 +227,7 @@ class IndexRange {
     BLI_assert(new_start + size <= start_ + size_ || size == 0);
     return IndexRange(new_start, size);
   }
-  IndexRange slice(IndexRange range) const
+  constexpr IndexRange slice(IndexRange range) const
   {
     return this->slice(range.start(), range.size());
   }

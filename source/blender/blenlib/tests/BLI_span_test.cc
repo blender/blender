@@ -337,4 +337,19 @@ TEST(span, MutableReverseIterator)
   EXPECT_EQ_ARRAY(src.data(), Span({14, 15, 16, 17}).data(), 4);
 }
 
+TEST(span, constexpr_)
+{
+  static constexpr std::array<int, 3> src = {3, 2, 1};
+  constexpr Span<int> span(src);
+  BLI_STATIC_ASSERT(span[2] == 1, "");
+  BLI_STATIC_ASSERT(span.size() == 3, "");
+  BLI_STATIC_ASSERT(span.slice(1, 2).size() == 2, "");
+  BLI_STATIC_ASSERT(span.has_duplicates__linear_search() == false, "");
+
+  std::integral_constant<bool, span.first_index(1) == 2> ic;
+  BLI_STATIC_ASSERT(ic.value, "");
+
+  EXPECT_EQ(span.slice(1, 2).size(), 2);
+}
+
 }  // namespace blender::tests
