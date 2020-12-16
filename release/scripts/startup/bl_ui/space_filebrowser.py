@@ -267,7 +267,11 @@ class FILEBROWSER_PT_bookmarks_system(Panel):
 
     @classmethod
     def poll(cls, context):
-        return not context.preferences.filepaths.hide_system_bookmarks and panel_poll_is_upper_region(context.region) and not panel_poll_is_asset_browsing(context)
+        return (
+            not context.preferences.filepaths.hide_system_bookmarks and
+            panel_poll_is_upper_region(context.region) and
+            not panel_poll_is_asset_browsing(context)
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -301,7 +305,10 @@ class FILEBROWSER_PT_bookmarks_favorites(Panel):
 
     @classmethod
     def poll(cls, context):
-        return panel_poll_is_upper_region(context.region) and not panel_poll_is_asset_browsing(context)
+        return (
+            panel_poll_is_upper_region(context.region) and
+            not panel_poll_is_asset_browsing(context)
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -338,7 +345,11 @@ class FILEBROWSER_PT_bookmarks_recents(Panel):
 
     @classmethod
     def poll(cls, context):
-        return not context.preferences.filepaths.hide_recent_locations and panel_poll_is_upper_region(context.region) and not panel_poll_is_asset_browsing(context)
+        return (
+            not context.preferences.filepaths.hide_recent_locations and
+            panel_poll_is_upper_region(context.region) and
+            not panel_poll_is_asset_browsing(context)
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -362,7 +373,11 @@ class FILEBROWSER_PT_advanced_filter(Panel):
     @classmethod
     def poll(cls, context):
         # only useful in append/link (library) context currently...
-        return context.space_data.params.use_library_browsing and panel_poll_is_upper_region(context.region) and not panel_poll_is_asset_browsing(context)
+        return (
+            context.space_data.params.use_library_browsing and
+            panel_poll_is_upper_region(context.region) and
+            not panel_poll_is_asset_browsing(context)
+        )
 
     def draw(self, context):
         layout = self.layout

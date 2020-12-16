@@ -966,6 +966,7 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
         row.active = mesh.use_mirror_vertex_group_x
         row.prop(mesh, "use_mirror_topology")
 
+
 class VIEW3D_PT_tools_weightpaint_symmetry_for_topbar(Panel):
     bl_space_type = 'TOPBAR'
     bl_region_type = 'HEADER'

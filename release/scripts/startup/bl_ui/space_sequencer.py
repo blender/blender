@@ -156,7 +156,6 @@ class SEQUENCER_HT_header(Header):
                 if tool_settings.use_proportional_edit:
                     row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
-
         row = layout.row(align=True)
         row.prop(st, "show_strip_overlay", text="", icon='OVERLAY')
         sub = row.row(align=True)
@@ -213,7 +212,6 @@ class SEQUENCER_PT_preview_overlay(Panel):
         st = context.space_data
         return st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'} and st.display_mode == 'IMAGE'
 
-
     def draw(self, context):
         ed = context.scene.sequence_editor
         st = context.space_data
@@ -224,7 +222,7 @@ class SEQUENCER_PT_preview_overlay(Panel):
         layout.prop(st, "show_safe_areas", text="Safe Areas")
         layout.prop(st, "show_metadata", text="Metadata")
         layout.prop(st, "show_annotation", text="Annotations")
-           
+
 
 class SEQUENCER_PT_sequencer_overlay(Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
@@ -236,7 +234,6 @@ class SEQUENCER_PT_sequencer_overlay(Panel):
     def poll(cls, context):
         st = context.space_data
         return st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}
-
 
     def draw(self, context):
         st = context.space_data
@@ -256,7 +253,6 @@ class SEQUENCER_PT_sequencer_overlay(Panel):
         layout.separator()
 
         layout.prop_menu_enum(st, "waveform_display_type")
-
 
 
 class SEQUENCER_MT_view_cache(Menu):

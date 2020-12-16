@@ -211,7 +211,7 @@ class USERPREF_PT_interface_display(InterfacePanel, CenterAlignMixIn, Panel):
         col.separator()
 
         col = layout.column(heading="Tooltips", align=True)
-        col.prop(view, "show_tooltips", text = "User Tooltips")
+        col.prop(view, "show_tooltips", text="User Tooltips")
         sub = col.column()
         sub.active = view.show_tooltips
         sub.prop(view, "show_tooltips_python")

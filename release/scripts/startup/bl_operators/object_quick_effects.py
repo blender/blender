@@ -573,6 +573,7 @@ class QuickLiquid(Operator):
 
         return {'FINISHED'}
 
+
 classes = (
     QuickExplode,
     QuickFur,
