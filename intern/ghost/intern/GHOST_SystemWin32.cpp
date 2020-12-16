@@ -1614,7 +1614,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         }
         case WT_PACKET:
-          window->updatePendingWintabEvents();
+          window->updateWintabEventsSyncTime();
           break;
         ////////////////////////////////////////////////////////////////////////
         // Pointer events, processed
