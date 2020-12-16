@@ -588,24 +588,31 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         active_file = context.active_file
         active_asset = asset_utils.SpaceAssetInfo.get_active_asset(context)
 
-        layout.use_property_split = True
-
         if not active_file or not active_asset:
-            layout.label(text="No asset selected.")
+            layout.label(text="No asset selected.", icon='INFO')
             return
 
-        box = layout.box()
+        # If the active file is an ID, use its name directly so renaming is possible from right here.
+        layout.prop(context.id if not None else active_file, "name", text="")
+
+
+class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
+    bl_label = "Preview"
+
+    def draw(self, context):
+        layout = self.layout
+        active_file = context.active_file
+
+        row = layout.row()
+        box = row.box()
         box.template_icon(icon_value=active_file.preview_icon_id, scale=5.0)
         if bpy.ops.ed.lib_id_load_custom_preview.poll():
-            box.operator("ed.lib_id_load_custom_preview", icon='FILEBROWSER', text="Load Custom")
-        # If the active file is an ID, use its name directly so renaming is possible from right here.
-        layout.prop(context.id if not None else active_file, "name")
+            col = row.column(align=True)
+            col.operator("ed.lib_id_load_custom_preview", icon='FILEBROWSER', text="")
 
 
-class ASSETBROWSER_PT_metadata_details(asset_utils.AssetBrowserPanel, Panel):
-    bl_region_type = 'TOOL_PROPS'
+class ASSETBROWSER_PT_metadata_details(asset_utils.AssetMetaDataPanel, Panel):
     bl_label = "Details"
-    bl_parent_id = "ASSETBROWSER_PT_metadata"
 
     def draw(self, context):
         layout = self.layout
@@ -663,6 +670,7 @@ classes = (
     FILEBROWSER_MT_context_menu,
     ASSETBROWSER_PT_navigation_bar,
     ASSETBROWSER_PT_metadata,
+    ASSETBROWSER_PT_metadata_preview,
     ASSETBROWSER_PT_metadata_details,
     ASSETBROWSER_PT_metadata_tags,
     ASSETBROWSER_UL_metadata_tags,
