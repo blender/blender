@@ -3220,7 +3220,7 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
     case GEO_NODE_TRIANGULATE:
       ntype->draw_buttons = node_geometry_buts_triangulate;
       break;
-    case GEO_NODE_RANDOM_ATTRIBUTE:
+    case GEO_NODE_ATTRIBUTE_RANDOMIZE:
       ntype->draw_buttons = node_geometry_buts_random_attribute;
       break;
     case GEO_NODE_ATTRIBUTE_MATH:

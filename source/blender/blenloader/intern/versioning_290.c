@@ -1316,5 +1316,13 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (STREQ(node->idname, "GeometryNodeRandomAttribute")) {
+          STRNCPY(node->idname, "GeometryNodeAttributeRandomize");
+        }
+      }
+    }
   }
 }
