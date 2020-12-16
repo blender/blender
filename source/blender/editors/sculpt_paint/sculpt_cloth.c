@@ -512,6 +512,15 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
     plane_from_point_normal_v3(deform_plane, data->area_co, plane_normal);
   }
 
+  KelvinletParams params;
+  const float kv_force = 1.0f;
+  const float kv_shear_modulus = 1.0f;
+  const float kv_poisson_ratio = 0.4f;
+  if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_ELASTIC_DRAG) {
+    BKE_kelvinlet_init_params(
+        &params, ss->cache->radius, kv_force, kv_shear_modulus, kv_poisson_ratio);
+  }
+
   /* Gravity */
   float gravity[3] = {0.0f};
   if (ss->cache->supports_gravity) {
@@ -627,6 +636,17 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
           cloth_sim->length_constraint_tweak[vd.index] += fade * 0.1f;
           zero_v3(force);
           break;
+        case BRUSH_CLOTH_DEFORM_ELASTIC_DRAG: {
+          float final_disp[3];
+          sub_v3_v3v3(brush_disp, ss->cache->location, ss->cache->last_location);
+          mul_v3_v3fl(final_disp, brush_disp, ss->cache->bstrength);
+          BKE_kelvinlet_grab_triscale(final_disp, &params, vd.co, ss->cache->location, brush_disp);
+          mul_v3_fl(final_disp, 20.0f * (1.0f - fade));
+          add_v3_v3(cloth_sim->pos[vd.index], final_disp);
+          zero_v3(force);
+        }
+
+        break;
       }
 
       cloth_brush_apply_force_to_vertex(ss, ss->cache->cloth_sim, force, vd.index);

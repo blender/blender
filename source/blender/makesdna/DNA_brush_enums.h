@@ -224,6 +224,7 @@ typedef enum eBrushClothDeformType {
   BRUSH_CLOTH_DEFORM_INFLATE = 5,
   BRUSH_CLOTH_DEFORM_EXPAND = 6,
   BRUSH_CLOTH_DEFORM_SNAKE_HOOK = 7,
+  BRUSH_CLOTH_DEFORM_ELASTIC_DRAG = 8,
 } eBrushClothDeformType;
 
 typedef enum eBrushSmoothDeformType {
