@@ -26,14 +26,14 @@
 extern "C" {
 #endif
 
+struct BlendDataReader;
+struct BlendWriter;
 struct Object;
 struct ReportList;
 struct Scene;
 struct bAnimVizSettings;
 struct bMotionPath;
 struct bPoseChannel;
-struct BlendWriter;
-struct BlendDataReader;
 
 /* ---------------------------------------------------- */
 /* Animation Visualization */

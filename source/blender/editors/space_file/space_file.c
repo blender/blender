@@ -779,7 +779,7 @@ static void file_space_subtype_item_extend(bContext *UNUSED(C),
   RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
 }
 
-const char *file_context_dir[] = {"active_file", "active_id", NULL};
+static const char *file_context_dir[] = {"active_file", "active_id", NULL};
 
 static int /*eContextResult*/ file_context(const bContext *C,
                                            const char *member,
@@ -806,7 +806,7 @@ static int /*eContextResult*/ file_context(const bContext *C,
     CTX_data_pointer_set(result, &screen->id, &RNA_FileSelectEntry, file);
     return CTX_RESULT_OK;
   }
-  if (CTX_data_equals(member, "active_id")) {
+  if (CTX_data_equals(member, "id")) {
     const FileDirEntry *file = filelist_file(sfile->files, params->active_file);
 
     ID *id = filelist_file_get_id(file);

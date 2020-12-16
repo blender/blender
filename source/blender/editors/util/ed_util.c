@@ -67,6 +67,7 @@
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_paint.h"
+#include "ED_render.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
 
@@ -505,9 +506,9 @@ void ED_OT_flush_edits(wmOperatorType *ot)
   ot->flag = OPTYPE_INTERNAL;
 }
 
-static bool lib_id_load_custom_preview_poll(bContext *C)
+static bool lib_id_preview_editing_poll(bContext *C)
 {
-  const PointerRNA idptr = CTX_data_pointer_get(C, "active_id");
+  const PointerRNA idptr = CTX_data_pointer_get(C, "id");
   BLI_assert(!idptr.data || RNA_struct_is_ID(idptr.type));
 
   const ID *id = idptr.data;
@@ -541,7 +542,7 @@ static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  PointerRNA idptr = CTX_data_pointer_get(C, "active_id");
+  PointerRNA idptr = CTX_data_pointer_get(C, "id");
   ID *id = idptr.data;
 
   BKE_previewimg_id_custom_set(id, path);
@@ -558,7 +559,7 @@ void ED_OT_lib_id_load_custom_preview(wmOperatorType *ot)
   ot->idname = "ED_OT_lib_id_load_custom_preview";
 
   /* api callbacks */
-  ot->poll = lib_id_load_custom_preview_poll;
+  ot->poll = lib_id_preview_editing_poll;
   ot->exec = lib_id_load_custom_preview_exec;
   ot->invoke = WM_operator_filesel;
 
@@ -572,4 +573,36 @@ void ED_OT_lib_id_load_custom_preview(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+}
+
+static int lib_id_generate_preview_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  ID *id = idptr.data;
+
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+
+  PreviewImage *preview = BKE_previewimg_id_get(id);
+  if (preview) {
+    BKE_previewimg_clear(preview);
+  }
+  UI_icon_render_id(C, NULL, id, true, true);
+
+  WM_event_add_notifier(C, NC_ASSET, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void ED_OT_lib_id_generate_preview(wmOperatorType *ot)
+{
+  ot->name = "Generate Preview";
+  ot->description = "Create an automatic preview for the selected data-block";
+  ot->idname = "ED_OT_lib_id_generate_preview";
+
+  /* api callbacks */
+  ot->poll = lib_id_preview_editing_poll;
+  ot->exec = lib_id_generate_preview_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_INTERNAL;
 }

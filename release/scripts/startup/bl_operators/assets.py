@@ -22,6 +22,7 @@ from bpy_extras.asset_utils import (
     SpaceAssetInfo,
 )
 
+
 class ASSET_OT_tag_add(bpy.types.Operator):
     """Add a new keyword tag to the active asset"""
 

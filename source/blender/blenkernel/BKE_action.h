@@ -30,10 +30,10 @@
 extern "C" {
 #endif
 
-struct BlendWriter;
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendExpander;
+struct BlendLibReader;
+struct BlendWriter;
 struct bArmature;
 
 /* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */

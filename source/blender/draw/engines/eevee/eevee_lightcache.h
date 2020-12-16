@@ -24,14 +24,14 @@
 
 #include "BLI_sys_types.h" /* for bool */
 
+struct BlendDataReader;
+struct BlendWriter;
 struct EEVEE_Data;
 struct EEVEE_ViewLayerData;
 struct LightCache;
 struct Scene;
 struct SceneEEVEE;
 struct ViewLayer;
-struct BlendWriter;
-struct BlendDataReader;
 
 /* Light Bake */
 struct wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,

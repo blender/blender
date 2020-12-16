@@ -39,7 +39,6 @@ struct Main;
 struct Object;
 struct Scene;
 struct Simulation;
-struct ViewLayer;
 struct bNodeTree;
 
 #include "BLI_sys_types.h"

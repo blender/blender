@@ -54,6 +54,7 @@ void ED_spacedata_id_remap(struct ScrArea *area,
 
 void ED_OT_flush_edits(struct wmOperatorType *ot);
 void ED_OT_lib_id_load_custom_preview(struct wmOperatorType *ot);
+void ED_OT_lib_id_generate_preview(struct wmOperatorType *ot);
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 

@@ -23,6 +23,10 @@
  * \ingroup bke
  */
 
+struct BlendDataReader;
+struct BlendExpander;
+struct BlendLibReader;
+struct BlendWriter;
 struct Depsgraph;
 struct ID;
 struct ListBase;
@@ -31,10 +35,6 @@ struct Scene;
 struct bConstraint;
 struct bConstraintTarget;
 struct bPoseChannel;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
-struct BlendExpander;
 
 /* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus

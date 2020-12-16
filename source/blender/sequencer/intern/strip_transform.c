@@ -397,3 +397,33 @@ bool BKE_sequence_base_shuffle_time(ListBase *seqbasep,
 
   return offset ? false : true;
 }
+
+/**
+ * Move strips and markers (if not locked) that start after timeline_frame by delta frames
+ *
+ * \param scene: Scene in which strips are located
+ * \param seqbase: ListBase in which strips are located
+ * \param delta: offset in frames to be applied
+ * \param timeline_frame: frame on timeline from where strips are moved
+ */
+void SEQ_offset_after_frame(Scene *scene,
+                            ListBase *seqbase,
+                            const int delta,
+                            const int timeline_frame)
+{
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (seq->startdisp >= timeline_frame) {
+      BKE_sequence_translate(scene, seq, delta);
+      BKE_sequence_calc(scene, seq);
+      BKE_sequence_invalidate_cache_preprocessed(scene, seq);
+    }
+  }
+
+  if (!scene->toolsettings->lock_markers) {
+    LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+      if (marker->frame >= timeline_frame) {
+        marker->frame += delta;
+      }
+    }
+  }
+}

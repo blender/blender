@@ -32,12 +32,11 @@ struct Depsgraph;
 struct Main;
 struct Object;
 struct Scene;
+struct bGPDcurve;
 struct bGPDframe;
-struct bGPDlayer;
 struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
-struct bGPDcurve;
 
 /* Object boundbox. */
 bool BKE_gpencil_data_minmax(const struct bGPdata *gpd, float r_min[3], float r_max[3]);

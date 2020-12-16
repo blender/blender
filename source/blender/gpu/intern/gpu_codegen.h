@@ -31,10 +31,7 @@ extern "C" {
 
 struct GPUMaterial;
 struct GPUNodeGraph;
-struct GPUOutput;
 struct GPUShader;
-struct GSet;
-struct ListBase;
 
 typedef struct GPUPass {
   struct GPUPass *next;

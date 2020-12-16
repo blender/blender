@@ -140,6 +140,7 @@ set(SRC
 
   geometry/nodes/node_geo_attribute_fill.cc
   geometry/nodes/node_geo_attribute_math.cc
+  geometry/nodes/node_geo_attribute_randomize.cc
   geometry/nodes/node_geo_boolean.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_edge_split.cc
@@ -148,7 +149,6 @@ set(SRC
   geometry/nodes/node_geo_object_info.cc
   geometry/nodes/node_geo_point_distribute.cc
   geometry/nodes/node_geo_point_instance.cc
-  geometry/nodes/node_geo_random_attribute.cc
   geometry/nodes/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_transform.cc
   geometry/nodes/node_geo_triangulate.cc

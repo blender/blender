@@ -1234,18 +1234,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 7)) {
     /* Make all IDProperties used as interface of geometry node trees overridable. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -1298,6 +1287,40 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
               MEM_SAFE_FREE(storage->matte_id);
             }
           }
+        }
+      }
+    }
+
+    /* Overlay elements in the sequencer. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            SpaceSeq *sseq = (SpaceSeq *)sl;
+            sseq->flag |= (SEQ_SHOW_STRIP_OVERLAY | SEQ_SHOW_STRIP_NAME | SEQ_SHOW_STRIP_SOURCE |
+                           SEQ_SHOW_STRIP_DURATION);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (STREQ(node->idname, "GeometryNodeRandomAttribute")) {
+          STRNCPY(node->idname, "GeometryNodeAttributeRandomize");
         }
       }
     }

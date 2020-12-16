@@ -337,16 +337,17 @@ static int evaluate_seq_frame_gen(Sequence **seq_arr,
   return totseq;
 }
 
-int SEQ_render_evaluate_frame(Scene *scene, int timeline_frame)
+/**
+ * Count number of strips in timeline at timeline_frame
+ *
+ * \param seqbase: ListBase in which strips are located
+ * \param timeline_frame: frame on timeline from where gaps are searched for
+ * \return number of strips
+ */
+int SEQ_render_evaluate_frame(ListBase *seqbase, int timeline_frame)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
   Sequence *seq_arr[MAXSEQ + 1];
-
-  if (ed == NULL) {
-    return 0;
-  }
-
-  return evaluate_seq_frame_gen(seq_arr, ed->seqbasep, timeline_frame, 0);
+  return evaluate_seq_frame_gen(seq_arr, seqbase, timeline_frame, 0);
 }
 
 static bool video_seq_is_rendered(Sequence *seq)

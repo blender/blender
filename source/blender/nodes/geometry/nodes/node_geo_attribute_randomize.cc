@@ -21,7 +21,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
-static bNodeSocketTemplate geo_node_random_attribute_in[] = {
+static bNodeSocketTemplate geo_node_attribute_randomize_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Attribute")},
     {SOCK_VECTOR, N_("Min"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
@@ -32,17 +32,17 @@ static bNodeSocketTemplate geo_node_random_attribute_in[] = {
     {-1, ""},
 };
 
-static bNodeSocketTemplate geo_node_random_attribute_out[] = {
+static bNodeSocketTemplate geo_node_attribute_randomize_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
 
-static void geo_node_random_attribute_init(bNodeTree *UNUSED(tree), bNode *node)
+static void geo_node_attribute_randomize_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   node->custom1 = CD_PROP_FLOAT;
 }
 
-static void geo_node_random_attribute_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_randomize_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   bNodeSocket *sock_min_vector = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
   bNodeSocket *sock_max_vector = sock_min_vector->next;
@@ -147,15 +147,16 @@ static void geo_node_random_attribute_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_random_attribute()
+void register_node_type_geo_attribute_randomize()
 {
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_RANDOM_ATTRIBUTE, "Random Attribute", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(&ntype, geo_node_random_attribute_in, geo_node_random_attribute_out);
-  node_type_init(&ntype, geo_node_random_attribute_init);
-  node_type_update(&ntype, geo_node_random_attribute_update);
+      &ntype, GEO_NODE_ATTRIBUTE_RANDOMIZE, "Attribute Randomize", NODE_CLASS_ATTRIBUTE, 0);
+  node_type_socket_templates(
+      &ntype, geo_node_attribute_randomize_in, geo_node_attribute_randomize_out);
+  node_type_init(&ntype, geo_node_attribute_randomize_init);
+  node_type_update(&ntype, geo_node_attribute_randomize_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_random_attribute_exec;
   nodeRegisterType(&ntype);
 }

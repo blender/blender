@@ -211,7 +211,7 @@ class USERPREF_PT_interface_display(InterfacePanel, CenterAlignMixIn, Panel):
         col.separator()
 
         col = layout.column(heading="Tooltips", align=True)
-        col.prop(view, "show_tooltips", text = "User Tooltips")
+        col.prop(view, "show_tooltips", text="User Tooltips")
         sub = col.column()
         sub.active = view.show_tooltips
         sub.prop(view, "show_tooltips_python")
@@ -1362,14 +1362,15 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         row.separator()
         row.label(text="Path")
 
-        subrow = row.row()
-        subrow.operator("preferences.asset_library_add", text="", icon='ADD', emboss=False)
 
         for i, library in enumerate(paths.asset_libraries):
             name_col.prop(library, "name", text="")
             row = path_col.row()
             row.prop(library, "path", text="")
             row.operator("preferences.asset_library_remove", text="", icon='X', emboss=False).index = i
+        row = box.row()
+        row.alignment = 'LEFT'
+        row.operator("preferences.asset_library_add", text="", icon='ADD', emboss=False)
 
 
 # -----------------------------------------------------------------------------
@@ -1881,12 +1882,12 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 is_visible = is_visible and is_enabled
 
             if is_visible:
-                if search and search not in info["name"].lower():
-                    if info["author"]:
-                        if search not in info["author"].lower():
-                            continue
-                    else:
-                        continue
+                if search and not (
+                        (search in info["name"].lower()) or
+                        (info["author"] and (search in info["author"].lower())) or
+                        ((filter == "All") and (search in info["category"].lower()))
+                ):
+                    continue
 
                 # Skip 2.7x add-ons included with Blender, unless in debug mode.
                 is_addon_27x = info.get("blender", (0,)) < (2, 80)

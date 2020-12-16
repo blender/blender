@@ -1416,7 +1416,7 @@ static void icon_set_image(const bContext *C,
   const bool delay = prv_img->rect[size] != NULL;
   icon_create_rect(prv_img, size);
 
-  if (use_job && BKE_previewimg_id_supports_jobs(id)) {
+  if (use_job && (!id || BKE_previewimg_id_supports_jobs(id))) {
     /* Job (background) version */
     ED_preview_icon_job(
         C, prv_img, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size], delay);
@@ -2198,6 +2198,9 @@ int UI_icon_from_library(const ID *id)
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     return ICON_LIBRARY_DATA_OVERRIDE;
+  }
+  if (ID_IS_ASSET(id)) {
+    return ICON_MAT_SPHERE_SKY;
   }
 
   return ICON_NONE;

@@ -38,7 +38,6 @@ struct Main;
 struct Mesh;
 struct Object;
 struct Scene;
-struct bGPDstroke;
 
 void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
 struct Lattice *BKE_lattice_add(struct Main *bmain, const char *name);

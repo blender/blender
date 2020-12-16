@@ -23,9 +23,6 @@
 #include <Alembic/AbcGeom/OCurves.h>
 #include <vector>
 
-struct ParticleSettings;
-struct ParticleSystem;
-
 namespace blender::io::alembic {
 
 class ABCHairWriter : public ABCAbstractWriter {

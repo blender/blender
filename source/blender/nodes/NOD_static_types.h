@@ -274,7 +274,7 @@ DefNode(GeometryNode, GEO_NODE_BOOLEAN, def_geo_boolean, "BOOLEAN", Boolean, "Bo
 DefNode(GeometryNode, GEO_NODE_POINT_DISTRIBUTE, 0, "POINT_DISTRIBUTE", PointDistribute, "Point Distribute", "")
 DefNode(GeometryNode, GEO_NODE_POINT_INSTANCE, def_geo_point_instance, "POINT_INSTANCE", PointInstance, "Point Instance", "")
 DefNode(GeometryNode, GEO_NODE_OBJECT_INFO, 0, "OBJECT_INFO", ObjectInfo, "Object Info", "")
-DefNode(GeometryNode, GEO_NODE_RANDOM_ATTRIBUTE, def_geo_random_attribute, "RANDOM_ATTRIBUTE", RandomAttribute, "Random Attribute", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_RANDOMIZE, def_geo_attribute_randomize, "ATTRIBUTE_RANDOMIZE", AttributeRandomize, "Attribute Randomize", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_MATH, def_geo_attribute_math, "ATTRIBUTE_MATH", AttributeMath, "Attribute Math", "")
 DefNode(GeometryNode, GEO_NODE_JOIN_GEOMETRY, 0, "JOIN_GEOMETRY", JoinGeometry, "Join Geometry", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_FILL, def_geo_attribute_fill, "ATTRIBUTE_FILL", AttributeFill, "Attribute Fill", "")

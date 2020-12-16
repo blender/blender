@@ -237,9 +237,17 @@ static void generate_geometry(GpencilModifierData *md,
         /* To ensure a nice distribution, we use halton sequence and offset using the seed. */
         BLI_halton_3d(primes, offset, x, r);
 
-        for (int i = 0; i < 3; i++) {
-          rand[j][i] = fmodf(r[i] * 2.0 - 1.0 + rand_offset, 1.0f);
-          rand[j][i] = fmodf(sin(rand[j][i] * 12.9898 + j * 78.233) * 43758.5453, 1.0f);
+        if ((mmd->flag & GP_ARRAY_UNIFORM_RANDOM_SCALE) && j == 2) {
+          float rand_value;
+          rand_value = fmodf(r[0] * 2.0 - 1.0 + rand_offset, 1.0f);
+          rand_value = fmodf(sin(rand_value * 12.9898 + j * 78.233) * 43758.5453, 1.0f);
+          copy_v3_fl(rand[j], rand_value);
+        }
+        else {
+          for (int i = 0; i < 3; i++) {
+            rand[j][i] = fmodf(r[i] * 2.0 - 1.0 + rand_offset, 1.0f);
+            rand[j][i] = fmodf(sin(rand[j][i] * 12.9898 + j * 78.233) * 43758.5453, 1.0f);
+          }
         }
       }
       /* Calculate Random matrix. */
@@ -425,6 +433,7 @@ static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "random_offset", 0, IFACE_("Offset"), ICON_NONE);
   uiItemR(layout, ptr, "random_rotation", 0, IFACE_("Rotation"), ICON_NONE);
   uiItemR(layout, ptr, "random_scale", 0, IFACE_("Scale"), ICON_NONE);
+  uiItemR(layout, ptr, "use_uniform_random_scale", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "seed", 0, NULL, ICON_NONE);
 }
 

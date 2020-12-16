@@ -34,6 +34,9 @@ extern "C" {
 
 struct BMFace;
 struct BMesh;
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendWriter;
 struct Brush;
 struct CurveMapping;
 struct Depsgraph;
@@ -55,7 +58,6 @@ struct Paint;
 struct PaintCurve;
 struct Palette;
 struct PaletteColor;
-struct ReportList;
 struct Scene;
 struct StrokeCache;
 struct SubdivCCG;
@@ -67,9 +69,6 @@ struct ViewLayer;
 struct bContext;
 struct bToolRef;
 struct tPaletteColorHSV;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
 
 extern const char PAINT_CURSOR_SCULPT[3];
 extern const char PAINT_CURSOR_VERTEX_PAINT[3];

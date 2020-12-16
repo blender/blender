@@ -24,7 +24,6 @@
 #include <pxr/usd/usd/common.h>
 
 struct Depsgraph;
-struct Object;
 
 namespace blender::io::usd {
 

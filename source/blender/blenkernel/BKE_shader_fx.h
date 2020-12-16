@@ -27,14 +27,14 @@ extern "C" {
 #endif
 
 struct ARegionType;
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendWriter;
 struct ID;
 struct ListBase;
 struct ModifierUpdateDepsgraphContext;
 struct Object;
 struct ShaderFxData;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
 
 #define SHADER_FX_ACTIVE(_fx, _is_render) \
   ((((_fx)->mode & eShaderFxMode_Realtime) && (_is_render == false)) || \

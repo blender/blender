@@ -25,11 +25,9 @@ extern "C" {
 #endif
 
 /* Forward declarations */
-struct GPUBatch;
 struct GPUTexture;
 struct ImBuf;
 struct Image;
-struct rcti;
 
 /* *********** LISTS *********** */
 

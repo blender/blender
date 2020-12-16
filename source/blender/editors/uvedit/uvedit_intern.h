@@ -25,7 +25,6 @@
 
 struct BMFace;
 struct BMLoop;
-struct Image;
 struct Object;
 struct Scene;
 struct SpaceImage;

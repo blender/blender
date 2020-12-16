@@ -428,6 +428,25 @@ inline constexpr bool is_convertible_pointer_v =
     std::is_convertible_v<From, To> &&std::is_pointer_v<From> &&std::is_pointer_v<To>;
 
 /**
+ * Helper variable that checks if a Span<From> can be converted to Span<To> safely, whereby From
+ * and To are pointers. Adding const and casting to a void pointer is allowed.
+ * Casting up and down a class hierarchy generally is not allowed, because this might change the
+ * pointer under some circumstances.
+ */
+template<typename From, typename To>
+inline constexpr bool is_span_convertible_pointer_v =
+    /* Make sure we are working with pointers. */
+    std::is_pointer_v<From> &&std::is_pointer_v<To> &&
+    (/* No casting is necessary when both types are the same. */
+     std::is_same_v<From, To> ||
+     /* Allow adding const to the underlying type. */
+     std::is_same_v<const std::remove_pointer_t<From>, std::remove_pointer_t<To>> ||
+     /* Allow casting non-const pointers to void pointers. */
+     (!std::is_const_v<std::remove_pointer_t<From>> && std::is_same_v<To, void *>) ||
+     /* Allow casting any pointer to const void pointers. */
+     std::is_same_v<To, const void *>);
+
+/**
  * Inline buffers for small-object-optimization should be disable by default. Otherwise we might
  * get large unexpected allocations on the stack.
  */

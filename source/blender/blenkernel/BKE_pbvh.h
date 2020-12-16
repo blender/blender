@@ -48,7 +48,6 @@ struct PBVH;
 struct PBVHNode;
 struct SubdivCCG;
 struct TaskParallelSettings;
-struct TaskParallelTLS;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;

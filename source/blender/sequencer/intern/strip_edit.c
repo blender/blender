@@ -38,6 +38,8 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
+#include "strip_time.h"
+
 #include "SEQ_sequencer.h"
 
 int BKE_sequence_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
@@ -318,4 +320,37 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   BKE_sequence_calc(scene, left_seq);
   BKE_sequence_calc(scene, right_seq);
   return right_seq;
+}
+
+/**
+ * Find gap after initial_frame and move strips on right side to close the gap
+ *
+ * \param scene: Scene in which strips are located
+ * \param seqbase: ListBase in which strips are located
+ * \param initial_frame: frame on timeline from where gaps are searched for
+ * \param remove_all_gaps: remove all gaps instead of one gap
+ * \return true if gap is removed, otherwise false
+ */
+bool SEQ_edit_remove_gaps(Scene *scene,
+                          ListBase *seqbase,
+                          const int initial_frame,
+                          const bool remove_all_gaps)
+{
+  GapInfo gap_info = {0};
+  seq_time_gap_info_get(scene, seqbase, initial_frame, &gap_info);
+
+  if (!gap_info.gap_exists) {
+    return false;
+  }
+
+  if (remove_all_gaps) {
+    while (gap_info.gap_exists) {
+      SEQ_offset_after_frame(scene, seqbase, -gap_info.gap_length, gap_info.gap_start_frame);
+      seq_time_gap_info_get(scene, seqbase, initial_frame, &gap_info);
+    }
+  }
+  else {
+    SEQ_offset_after_frame(scene, seqbase, -gap_info.gap_length, gap_info.gap_start_frame);
+  }
+  return true;
 }

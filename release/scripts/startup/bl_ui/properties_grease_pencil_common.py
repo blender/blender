@@ -893,6 +893,7 @@ class GreasePencilLayerDisplayPanel:
         row = layout.row(align=True)
         row.prop(gpl, "use_solo_mode", text="Show Only on Keyframed")
 
+
 class GreasePencilFlipTintColors(Operator):
     bl_label = "Flip Colors"
     bl_idname = "gpencil.tint_flip"

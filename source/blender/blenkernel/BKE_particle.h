@@ -42,9 +42,9 @@ struct ParticleSystemModifierData;
 
 struct BVHTreeRay;
 struct BVHTreeRayHit;
-struct BlendWriter;
 struct BlendDataReader;
 struct BlendLibReader;
+struct BlendWriter;
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EdgeHash;

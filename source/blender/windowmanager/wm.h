@@ -23,7 +23,6 @@
 
 #pragma once
 
-struct ARegion;
 struct ReportList;
 struct wmWindow;
 

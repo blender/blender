@@ -27,14 +27,7 @@
 extern "C" {
 #endif
 
-struct Editing;
-struct ImBuf;
-struct Main;
-struct Mask;
 struct Scene;
-struct Sequence;
-struct StripColorBalance;
-struct StripElem;
 
 /* **********************************************************************
  * sequencer.c

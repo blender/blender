@@ -27,11 +27,9 @@
 extern "C" {
 #endif
 
-struct ImBuf;
-struct Main;
 struct Scene;
-struct Sequence;
 struct SeqRenderData;
+struct Sequence;
 
 #ifdef __cplusplus
 }

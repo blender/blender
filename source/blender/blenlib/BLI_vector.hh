@@ -315,13 +315,13 @@ class Vector {
     return MutableSpan<T>(begin_, this->size());
   }
 
-  template<typename U, typename std::enable_if_t<is_convertible_pointer_v<T, U>> * = nullptr>
+  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<T, U>> * = nullptr>
   operator Span<U>() const
   {
     return Span<U>(begin_, this->size());
   }
 
-  template<typename U, typename std::enable_if_t<is_convertible_pointer_v<T, U>> * = nullptr>
+  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<T, U>> * = nullptr>
   operator MutableSpan<U>()
   {
     return MutableSpan<U>(begin_, this->size());

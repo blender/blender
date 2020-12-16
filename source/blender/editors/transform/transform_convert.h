@@ -29,12 +29,9 @@ struct FCurve;
 struct ListBase;
 struct Object;
 struct TransData;
-struct TransDataContainer;
 struct TransDataCurveHandleFlags;
 struct TransInfo;
 struct bContext;
-struct bKinematicConstraint;
-struct bPoseChannel;
 
 /* transform_convert.c */
 void transform_autoik_update(TransInfo *t, short mode);

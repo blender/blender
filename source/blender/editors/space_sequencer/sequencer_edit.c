@@ -183,117 +183,13 @@ bool sequencer_view_strips_poll(bContext *C)
 /** \name Remove Gaps Operator
  * \{ */
 
-static bool sequence_offset_after_frame(Scene *scene, const int delta, const int timeline_frame)
-{
-  Sequence *seq;
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
-  bool done = false;
-  TimeMarker *marker;
-
-  /* All strips >= timeline_frame are shifted. */
-
-  if (ed == NULL) {
-    return 0;
-  }
-
-  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (seq->startdisp >= timeline_frame) {
-      BKE_sequence_translate(scene, seq, delta);
-      BKE_sequence_calc(scene, seq);
-      BKE_sequence_invalidate_cache_preprocessed(scene, seq);
-      done = true;
-    }
-  }
-
-  if (!scene->toolsettings->lock_markers) {
-    for (marker = scene->markers.first; marker; marker = marker->next) {
-      if (marker->frame >= timeline_frame) {
-        marker->frame += delta;
-      }
-    }
-  }
-
-  return done;
-}
-
-void boundbox_seq(Scene *scene, rctf *rect)
-{
-  Sequence *seq;
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
-  float min[2], max[2];
-
-  if (ed == NULL) {
-    return;
-  }
-
-  min[0] = SFRA;
-  max[0] = EFRA + 1;
-  min[1] = 0.0;
-  max[1] = 8.0;
-
-  seq = ed->seqbasep->first;
-  while (seq) {
-
-    if (min[0] > seq->startdisp - 1) {
-      min[0] = seq->startdisp - 1;
-    }
-    if (max[0] < seq->enddisp + 1) {
-      max[0] = seq->enddisp + 1;
-    }
-    if (max[1] < seq->machine + 2) {
-      max[1] = seq->machine + 2;
-    }
-
-    seq = seq->next;
-  }
-
-  rect->xmin = min[0];
-  rect->xmax = max[0];
-  rect->ymin = min[1];
-  rect->ymax = max[1];
-}
-
 static int sequencer_gap_remove_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  rctf rectf;
-  int timeline_frame, efra, sfra;
-  bool first = false, done;
-  bool do_all = RNA_boolean_get(op->ptr, "all");
+  const bool do_all = RNA_boolean_get(op->ptr, "all");
+  const Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-  /* Get first and last frame. */
-  boundbox_seq(scene, &rectf);
-  sfra = (int)rectf.xmin;
-  efra = (int)rectf.xmax;
-
-  /* Check if the current frame has a gap already. */
-  for (timeline_frame = CFRA; timeline_frame >= sfra; timeline_frame--) {
-    if (SEQ_render_evaluate_frame(scene, timeline_frame)) {
-      first = true;
-      break;
-    }
-  }
-
-  for (; timeline_frame < efra; timeline_frame++) {
-    /* There's still no strip to remove a gap for. */
-    if (first == false) {
-      if (SEQ_render_evaluate_frame(scene, timeline_frame)) {
-        first = true;
-      }
-    }
-    else if (SEQ_render_evaluate_frame(scene, timeline_frame) == 0) {
-      done = true;
-      while (SEQ_render_evaluate_frame(scene, timeline_frame) == 0) {
-        done = sequence_offset_after_frame(scene, -1, timeline_frame);
-        if (done == false) {
-          break;
-        }
-      }
-      if (done == false || do_all == false) {
-        break;
-      }
-    }
-  }
+  SEQ_edit_remove_gaps(scene, ed->seqbasep, CFRA, do_all);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -330,9 +226,9 @@ void SEQUENCER_OT_gap_remove(struct wmOperatorType *ot)
 static int sequencer_gap_insert_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  int frames = RNA_int_get(op->ptr, "frames");
-
-  sequence_offset_after_frame(scene, frames, CFRA);
+  const int frames = RNA_int_get(op->ptr, "frames");
+  const Editing *ed = BKE_sequencer_editing_get(scene, false);
+  SEQ_offset_after_frame(scene, ed->seqbasep, frames, CFRA);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2631,7 +2527,7 @@ void ED_sequencer_deselect_all(Scene *scene)
   SEQ_CURRENT_END;
 }
 
-static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_paste_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -2640,8 +2536,25 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
   int ofs;
   Sequence *iseq, *iseq_first;
 
+  if (BLI_listbase_count(&seqbase_clipboard) == 0) {
+    BKE_report(op->reports, RPT_INFO, "No strips to paste");
+    return OPERATOR_CANCELLED;
+  }
+
   ED_sequencer_deselect_all(scene);
-  ofs = scene->r.cfra - seqbase_clipboard_frame;
+  if (RNA_boolean_get(op->ptr, "keep_offset")) {
+    ofs = scene->r.cfra - seqbase_clipboard_frame;
+  }
+  else {
+    int min_seq_startdisp = INT_MAX;
+    LISTBASE_FOREACH (Sequence *, seq, &seqbase_clipboard) {
+      if (seq->startdisp < min_seq_startdisp) {
+        min_seq_startdisp = seq->startdisp;
+      }
+    }
+    /* Paste strips after playhead. */
+    ofs = scene->r.cfra - min_seq_startdisp;
+  }
 
   /* Copy strips, temporarily restoring pointers to actual data-blocks. This
    * must happen on the clipboard itself, so that copying does user counting
@@ -2689,6 +2602,11 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties. */
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "keep_offset", false, "Keep Offset", "Keep strip offset to playhead when pasting");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */

@@ -139,12 +139,11 @@ class SEQUENCER_HT_header(Header):
 
         SEQUENCER_MT_editor_menus.draw_collapsible(context, layout)
 
+        layout.separator_spacer()
+
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
 
-            layout.separator_spacer()
-
             layout.prop(st, "display_mode", text="", icon_only=True)
-
             layout.prop(st, "preview_channels", text="", icon_only=True)
 
             gpd = context.gpencil_data
@@ -156,6 +155,12 @@ class SEQUENCER_HT_header(Header):
                 row.prop(tool_settings, "use_proportional_edit", icon_only=True)
                 if tool_settings.use_proportional_edit:
                     row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+
+        row = layout.row(align=True)
+        row.prop(st, "show_strip_overlay", text="", icon='OVERLAY')
+        sub = row.row(align=True)
+        sub.popover(panel="SEQUENCER_PT_overlay", text="")
+        sub.active = st.show_strip_overlay
 
 
 class SEQUENCER_MT_editor_menus(Menu):
@@ -174,6 +179,80 @@ class SEQUENCER_MT_editor_menus(Menu):
                 layout.menu("SEQUENCER_MT_marker")
             layout.menu("SEQUENCER_MT_add")
             layout.menu("SEQUENCER_MT_strip")
+
+
+class SEQUENCER_PT_overlay(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Overlays"
+    bl_ui_units_x = 7
+
+    def draw(self, _context):
+        pass
+
+
+class SEQUENCER_PT_overlay(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Overlays"
+    bl_ui_units_x = 7
+
+    def draw(self, _context):
+        pass
+
+
+class SEQUENCER_PT_preview_overlay(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'SEQUENCER_PT_overlay'
+    bl_label = "Preview Overlays"
+
+    @classmethod
+    def poll(cls, context):
+        st = context.space_data
+        return st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'} and st.display_mode == 'IMAGE'
+
+    def draw(self, context):
+        ed = context.scene.sequence_editor
+        st = context.space_data
+        layout = self.layout
+
+        layout.active = st.show_strip_overlay
+        layout.prop(ed, "show_overlay", text="Frame Overlay")
+        layout.prop(st, "show_safe_areas", text="Safe Areas")
+        layout.prop(st, "show_metadata", text="Metadata")
+        layout.prop(st, "show_annotation", text="Annotations")
+
+
+class SEQUENCER_PT_sequencer_overlay(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'SEQUENCER_PT_overlay'
+    bl_label = "Sequencer Overlays"
+
+    @classmethod
+    def poll(cls, context):
+        st = context.space_data
+        return st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}
+
+    def draw(self, context):
+        st = context.space_data
+        layout = self.layout
+
+        layout.active = st.show_strip_overlay
+
+        layout.prop(st, "show_strip_name", text="Name")
+        layout.prop(st, "show_strip_source", text="Source")
+        layout.prop(st, "show_strip_duration", text="Duration")
+
+        layout.separator()
+
+        layout.prop(st, "show_strip_offset", text="Offsets")
+        layout.prop(st, "show_fcurves", text="F-Curves")
+
+        layout.separator()
+
+        layout.prop_menu_enum(st, "waveform_display_type")
 
 
 class SEQUENCER_MT_view_cache(Menu):
@@ -294,6 +373,12 @@ class SEQUENCER_MT_view(Menu):
                 layout.operator("view2d.zoom_border", text="Zoom")
                 layout.menu("SEQUENCER_MT_preview_zoom")
 
+            if st.display_mode == 'IMAGE':
+                layout.prop(st, "use_zoom_to_fit")
+            elif st.display_mode == 'WAVEFORM':
+                layout.separator()
+                layout.prop(st, "show_separate_color", text="Show Separate Color Channels")
+
             layout.separator()
 
             layout.menu("SEQUENCER_MT_proxy")
@@ -318,22 +403,8 @@ class SEQUENCER_MT_view(Menu):
 
             layout.separator()
             layout.prop(st, "show_seconds")
-            layout.prop(st, "show_strip_offset")
-            layout.prop(st, "show_fcurves")
             layout.prop(st, "show_markers")
             layout.menu("SEQUENCER_MT_view_cache", text="Show Cache")
-            layout.prop_menu_enum(st, "waveform_display_type", text="Show Waveforms")
-
-        if is_preview:
-            layout.separator()
-            if st.display_mode == 'IMAGE':
-                layout.prop(st, "use_zoom_to_fit")
-                layout.prop(ed, "show_overlay", text="Show Frame Overlay")
-                layout.prop(st, "show_safe_areas", text="Show Safe Areas")
-                layout.prop(st, "show_metadata", text="Show Metadata")
-                layout.prop(st, "show_annotation", text="Show Annotations")
-            elif st.display_mode == 'WAVEFORM':
-                layout.prop(st, "show_separate_color", text="Show Separate Color Channels")
 
         layout.separator()
 
@@ -2221,6 +2292,10 @@ classes = (
 
     SEQUENCER_PT_active_tool,
     SEQUENCER_PT_strip,
+
+    SEQUENCER_PT_overlay,
+    SEQUENCER_PT_preview_overlay,
+    SEQUENCER_PT_sequencer_overlay,
 
     SEQUENCER_PT_effect,
     SEQUENCER_PT_scene,

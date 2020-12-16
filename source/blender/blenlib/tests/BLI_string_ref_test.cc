@@ -298,4 +298,12 @@ TEST(string_ref, ToStringView)
   EXPECT_EQ(view, "hello");
 }
 
+TEST(string_ref, constexpr_)
+{
+  constexpr StringRef sref("World");
+  BLI_STATIC_ASSERT(sref[2] == 'r', "");
+  BLI_STATIC_ASSERT(sref.size() == 5, "");
+  std::array<int, static_cast<std::size_t>(sref.find_first_of('o'))> compiles = {1};
+  EXPECT_EQ(compiles[0], 1);
+}
 }  // namespace blender::tests

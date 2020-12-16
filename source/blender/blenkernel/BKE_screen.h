@@ -51,7 +51,6 @@ struct View3D;
 struct View3DShading;
 struct WorkSpace;
 struct bContext;
-struct bContextDataResult;
 struct bScreen;
 struct uiLayout;
 struct uiList;

@@ -29,10 +29,9 @@
 extern "C" {
 #endif
 
-struct Object;
-struct Material;
-struct ID;
 struct Main;
+struct Material;
+struct Object;
 
 uint32_t BKE_cryptomatte_hash(const char *name, int name_len);
 uint32_t BKE_cryptomatte_object_hash(const struct Object *object);

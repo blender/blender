@@ -1178,7 +1178,7 @@ ImBuf *filelist_geticon_image(struct FileList *filelist, const int index)
   return filelist_geticon_image_ex(file);
 }
 
-static int filelist_geticon_ex(FileDirEntry *file,
+static int filelist_geticon_ex(const FileDirEntry *file,
                                const char *root,
                                const bool is_main,
                                const bool ignore_libdir)
@@ -1217,7 +1217,7 @@ static int filelist_geticon_ex(FileDirEntry *file,
       if (file->redirection_path) {
         target = file->redirection_path;
       }
-      else {
+      else if (root) {
         BLI_join_dirfile(fullpath, sizeof(fullpath), root, file->relpath);
         BLI_path_slash_ensure(fullpath);
       }
@@ -1299,6 +1299,12 @@ int filelist_geticon(struct FileList *filelist, const int index, const bool is_m
   FileDirEntry *file = filelist_geticon_get_file(filelist, index);
 
   return filelist_geticon_ex(file, filelist->filelist.root, is_main, false);
+}
+
+int ED_file_icon(const FileDirEntry *file)
+{
+  return file->preview_icon_id ? file->preview_icon_id :
+                                 filelist_geticon_ex(file, NULL, false, false);
 }
 
 /* ********** Main ********** */
@@ -1511,7 +1517,9 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
      * in case user switch to a bigger preview size. */
     ImBuf *imbuf = IMB_thumb_manage(preview->path, THB_LARGE, source);
     IMB_thumb_path_unlock(preview->path);
-    preview->icon_id = BKE_icon_imbuf_create(imbuf);
+    if (imbuf) {
+      preview->icon_id = BKE_icon_imbuf_create(imbuf);
+    }
 
     done = true;
   }

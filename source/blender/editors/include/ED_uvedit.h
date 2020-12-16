@@ -33,7 +33,6 @@ struct BMEditMesh;
 struct BMFace;
 struct BMLoop;
 struct BMesh;
-struct Depsgraph;
 struct Image;
 struct ImageUser;
 struct Main;

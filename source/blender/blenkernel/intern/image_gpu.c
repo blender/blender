@@ -62,7 +62,7 @@ bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
       return ibuf->rect_float != NULL;
     }
   }
-  else if (ibuf) {
+  if (ibuf) {
     if (ibuf->rect_float) {
       return image ? (image->alpha_mode != IMA_ALPHA_STRAIGHT) : false;
     }

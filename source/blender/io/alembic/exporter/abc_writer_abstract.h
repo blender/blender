@@ -29,7 +29,6 @@
 #include "DNA_material_types.h"
 
 struct IDProperty;
-struct Material;
 struct Object;
 
 namespace blender::io::alembic {

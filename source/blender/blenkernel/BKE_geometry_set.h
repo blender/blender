@@ -24,9 +24,9 @@
 extern "C" {
 #endif
 
-struct Object;
-struct GeometrySet;
 struct Collection;
+struct GeometrySet;
+struct Object;
 
 void BKE_geometry_set_free(struct GeometrySet *geometry_set);
 

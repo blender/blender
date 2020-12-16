@@ -35,7 +35,6 @@ struct bContext;
 struct bContextDataResult;
 struct bNode;
 struct bNodeTree;
-struct uiLayout;
 struct wmOperatorType;
 
 struct SpaceProperties_Runtime {

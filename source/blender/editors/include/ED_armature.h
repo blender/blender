@@ -31,7 +31,6 @@ struct Base;
 struct Bone;
 struct Depsgraph;
 struct EditBone;
-struct IDProperty;
 struct ListBase;
 struct Main;
 struct Mesh;

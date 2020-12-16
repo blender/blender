@@ -8388,7 +8388,7 @@ static void def_geo_attribute_create_common(StructRNA *srna,
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_geo_random_attribute(StructRNA *srna)
+static void def_geo_attribute_randomize(StructRNA *srna)
 {
   def_geo_attribute_create_common(srna,
                                   "rna_GeometryNodeAttributeRandom_type_itemf",

@@ -27,8 +27,6 @@
 extern "C" {
 #endif
 
-struct GPUTexture;
-struct GPUUniformBuf;
 struct GPUVertBuf;
 
 /** Opaque type hidding blender::gpu::Shader */

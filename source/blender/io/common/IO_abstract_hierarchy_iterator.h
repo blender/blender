@@ -43,13 +43,11 @@
 #include <set>
 #include <string>
 
-struct Base;
 struct Depsgraph;
 struct DupliObject;
 struct ID;
 struct Object;
 struct ParticleSystem;
-struct ViewLayer;
 
 namespace blender::io {
 

@@ -509,6 +509,8 @@ typedef enum ID_Type {
 #define ID_IS_OVERRIDE_LIBRARY_TEMPLATE(_id) \
   (((ID *)(_id))->override_library != NULL && ((ID *)(_id))->override_library->reference == NULL)
 
+#define ID_IS_ASSET(_id) (((const ID *)(_id))->asset_data != NULL)
+
 /* Check whether datablock type is covered by copy-on-write. */
 #define ID_TYPE_IS_COW(_id_type) (!ELEM(_id_type, ID_BR, ID_PAL, ID_IM))
 

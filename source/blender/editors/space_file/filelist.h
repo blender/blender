@@ -29,8 +29,8 @@ extern "C" {
 
 struct BlendHandle;
 struct FileList;
-struct FileSelection;
 struct FileSelectAssetLibraryUID;
+struct FileSelection;
 struct wmWindowManager;
 
 struct FileDirEntry;

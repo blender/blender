@@ -22,10 +22,8 @@
 
 #pragma once
 
-struct DRWPass;
 struct DRWShadingGroup;
 struct FluidModifierData;
-struct GPUMaterial;
 struct ModifierData;
 struct Object;
 struct ParticleSystem;

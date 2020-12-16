@@ -38,9 +38,8 @@ extern "C" {
 
 struct AnimData;
 struct BoundBox;
-struct DerivedMesh;
 struct FluidsimSettings;
-struct GpencilBatchCache;
+struct GeometrySet;
 struct Ipo;
 struct Material;
 struct Mesh;
@@ -51,7 +50,6 @@ struct RigidBodyOb;
 struct SculptSession;
 struct SoftBody;
 struct bGPdata;
-struct GeometrySet;
 
 /* Vertex Groups - Name Info */
 typedef struct bDeformGroup {

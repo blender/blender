@@ -29,7 +29,6 @@
 #include <Alembic/Abc/OObject.h>
 
 struct Depsgraph;
-struct ID;
 struct Object;
 
 namespace blender::io::alembic {

@@ -17,8 +17,8 @@
 #pragma once
 
 struct Main;
-struct Object;
 struct NodesModifierData;
+struct Object;
 
 #ifdef __cplusplus
 extern "C" {

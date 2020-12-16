@@ -72,6 +72,7 @@ void BKE_lib_override_library_dependencies_tag(struct Main *bmain,
 void BKE_lib_override_library_override_group_tag(struct Main *bmain,
                                                  struct ID *id_root,
                                                  const uint tag,
+                                                 const uint missing_tag,
                                                  const bool do_create_main_relashionships);
 bool BKE_lib_override_library_create(struct Main *bmain,
                                      struct Scene *scene,
