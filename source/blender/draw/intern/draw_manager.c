@@ -2073,7 +2073,6 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
    * for the image editor this is when showing UV's.*/
   const bool do_populate_loop = (DST.draw_ctx.space_data->spacetype == SPACE_IMAGE);
   const bool do_annotations = drw_draw_show_annotation();
-  const bool do_region_callbacks = (DST.draw_ctx.space_data->spacetype != SPACE_IMAGE);
   const bool do_draw_gizmos = (DST.draw_ctx.space_data->spacetype != SPACE_IMAGE);
 
   /* Get list of enabled engines */
@@ -2125,7 +2124,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
   /* Start Drawing */
   DRW_state_reset();
 
-  if (do_region_callbacks && DST.draw_ctx.evil_C) {
+  if (DST.draw_ctx.evil_C) {
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_PRE_VIEW);
   }
 
@@ -2147,10 +2146,8 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
     if (do_annotations) {
       ED_annotation_draw_view2d(DST.draw_ctx.evil_C, true);
     }
-    if (do_region_callbacks) {
-      GPU_depth_test(GPU_DEPTH_NONE);
-      ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_POST_VIEW);
-    }
+    GPU_depth_test(GPU_DEPTH_NONE);
+    ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_POST_VIEW);
     GPU_matrix_pop_projection();
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
