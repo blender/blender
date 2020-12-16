@@ -195,7 +195,7 @@ static float cloth_brush_simulation_falloff_get(const Brush *brush,
 #define CLOTH_MAX_CONSTRAINTS_PER_VERTEX 1024
 #define CLOTH_SIMULATION_TIME_STEP 0.01f
 #define CLOTH_DEFORMATION_SNAKEHOOK_STRENGTH 0.35f
-#define CLOTH_DEFORMATION_TARGET_STRENGTH 0.01f
+#define CLOTH_DEFORMATION_TARGET_STRENGTH 0.5f
 #define CLOTH_DEFORMATION_GRAB_STRENGTH 0.1f
 
 static bool cloth_brush_sim_has_length_constraint(SculptClothSimulation *cloth_sim,
