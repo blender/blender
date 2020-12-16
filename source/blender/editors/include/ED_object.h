@@ -53,7 +53,6 @@ struct uiLayout;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
-struct wmWindowManager;
 
 /* object_edit.c */
 /* context.object */

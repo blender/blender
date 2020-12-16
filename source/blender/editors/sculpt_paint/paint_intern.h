@@ -43,7 +43,6 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
-struct wmWindowManager;
 enum ePaintMode;
 enum ePaintSymmetryFlags;
 

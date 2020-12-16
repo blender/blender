@@ -28,7 +28,6 @@
 #include <fstream>
 
 struct Main;
-struct Scene;
 
 namespace blender::io::alembic {
 

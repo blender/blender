@@ -52,12 +52,12 @@ struct SnapObjectContext;
 struct TransDataContainer;
 struct TransInfo;
 struct TransSnap;
-struct TransformOrientation;
 struct ViewLayer;
 struct bContext;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
+struct wmOperator;
 struct wmTimer;
 
 /** #TransInfo.redraw */

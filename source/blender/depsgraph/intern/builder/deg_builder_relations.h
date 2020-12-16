@@ -45,7 +45,6 @@
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
-struct Base;
 struct CacheFile;
 struct Camera;
 struct Collection;

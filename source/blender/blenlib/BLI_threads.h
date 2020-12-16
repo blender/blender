@@ -35,7 +35,6 @@ extern "C" {
 #define BLENDER_MAX_THREADS 1024
 
 struct ListBase;
-struct TaskScheduler;
 
 /* Threading API */
 

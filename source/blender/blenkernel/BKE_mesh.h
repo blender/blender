@@ -26,7 +26,6 @@
 #include "BLI_utildefines.h"
 
 struct BLI_Stack;
-struct BMEditMesh;
 struct BMesh;
 struct BMeshCreateParams;
 struct BMeshFromMeshParams;

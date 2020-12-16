@@ -23,7 +23,6 @@
 #include "tree_element.hh"
 
 struct NlaTrack;
-struct NlaStrip;
 
 namespace blender::ed::outliner {
 

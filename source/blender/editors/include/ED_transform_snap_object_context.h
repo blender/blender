@@ -31,7 +31,6 @@ struct BMVert;
 struct ARegion;
 struct Depsgraph;
 struct ListBase;
-struct Main;
 struct Object;
 struct Scene;
 struct View3D;

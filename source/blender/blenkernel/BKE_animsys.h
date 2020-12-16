@@ -45,8 +45,6 @@ struct NlaKeyframingContext;
 struct PathResolvedRNA;
 struct PointerRNA;
 struct PropertyRNA;
-struct ReportList;
-struct Scene;
 struct bAction;
 struct bActionGroup;
 struct bContext;

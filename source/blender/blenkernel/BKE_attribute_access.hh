@@ -26,8 +26,6 @@
 #include "BLI_color.hh"
 #include "BLI_float3.hh"
 
-struct Mesh;
-
 namespace blender::bke {
 
 using fn::CPPType;

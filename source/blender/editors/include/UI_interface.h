@@ -50,7 +50,6 @@ struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;
 struct ResultBLF;
-struct ScrArea;
 struct bContext;
 struct bContextStore;
 struct bNode;

@@ -32,7 +32,6 @@ extern "C" {
 struct Object;
 struct bContext;
 struct wmKeyConfig;
-struct wmMsgBus;
 struct wmOperatorType;
 
 void ED_keymap_transform(struct wmKeyConfig *keyconf);
@@ -108,7 +107,6 @@ bool calculateTransformCenter(struct bContext *C,
 
 struct Object;
 struct Scene;
-struct wmGizmoGroup;
 struct wmGizmoGroupType;
 
 /* UNUSED */

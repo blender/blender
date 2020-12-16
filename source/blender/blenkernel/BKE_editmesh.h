@@ -35,9 +35,7 @@ struct BMLoop;
 struct BMesh;
 struct BoundBox;
 struct Depsgraph;
-struct EditMeshData;
 struct Mesh;
-struct MeshStatVis;
 struct Object;
 struct Scene;
 

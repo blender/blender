@@ -51,7 +51,6 @@
 extern "C" {
 #endif
 
-struct BlendDataReader;
 struct BlendWriter;
 struct GHash;
 struct ID;

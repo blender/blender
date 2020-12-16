@@ -31,7 +31,6 @@ extern "C" {
 
 struct Object;
 struct Material;
-struct ID;
 struct Main;
 
 uint32_t BKE_cryptomatte_hash(const char *name, int name_len);

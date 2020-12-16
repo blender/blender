@@ -33,8 +33,6 @@
 
 struct GPUNode;
 struct GPUOutput;
-struct GPUShader;
-struct GPUVertAttrLayers;
 struct ListBase;
 
 typedef enum eGPUDataSource {

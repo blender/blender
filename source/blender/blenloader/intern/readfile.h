@@ -34,16 +34,13 @@
 #include "zlib.h"
 
 struct BLOCacheStorage;
-struct GSet;
 struct IDNameLib_Map;
 struct Key;
 struct MemFile;
 struct Object;
 struct OldNewMap;
-struct PartEff;
 struct ReportList;
 struct UserDef;
-struct View3D;
 
 typedef struct IDNameLib_Map IDNameLib_Map;
 

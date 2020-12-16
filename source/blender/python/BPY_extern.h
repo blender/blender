@@ -26,7 +26,6 @@ struct ID;            /* DNA_ID.h */
 struct ListBase;      /* DNA_listBase.h */
 struct Object;        /* DNA_object_types.h */
 struct PathResolvedRNA;
-struct ReportList;
 struct Text;              /* defined in DNA_text_types.h */
 struct bConstraint;       /* DNA_constraint_types.h */
 struct bConstraintOb;     /* DNA_constraint_types.h */

@@ -28,14 +28,6 @@
 #include "GPU_state.h"
 
 struct GPUVertBuf;
-struct ImBuf;
-struct Image;
-struct ImageUser;
-struct MovieClip;
-struct MovieClipUser;
-struct PreviewImage;
-
-struct GPUFrameBuffer;
 
 /** Opaque type hiding blender::gpu::Texture. */
 typedef struct GPUTexture GPUTexture;

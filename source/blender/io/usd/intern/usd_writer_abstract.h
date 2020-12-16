@@ -33,7 +33,6 @@
 #include "DNA_material_types.h"
 
 struct Material;
-struct Object;
 
 namespace blender::io::usd {
 

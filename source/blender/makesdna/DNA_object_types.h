@@ -38,9 +38,7 @@ extern "C" {
 
 struct AnimData;
 struct BoundBox;
-struct DerivedMesh;
 struct FluidsimSettings;
-struct GpencilBatchCache;
 struct Ipo;
 struct Material;
 struct Mesh;

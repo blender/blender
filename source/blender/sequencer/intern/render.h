@@ -27,7 +27,6 @@
 extern "C" {
 #endif
 
-struct Editing;
 struct ImBuf;
 struct ListBase;
 struct Scene;

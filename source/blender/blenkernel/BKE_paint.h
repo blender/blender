@@ -55,7 +55,6 @@ struct Paint;
 struct PaintCurve;
 struct Palette;
 struct PaletteColor;
-struct ReportList;
 struct Scene;
 struct StrokeCache;
 struct SubdivCCG;
