@@ -1511,7 +1511,9 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
      * in case user switch to a bigger preview size. */
     ImBuf *imbuf = IMB_thumb_manage(preview->path, THB_LARGE, source);
     IMB_thumb_path_unlock(preview->path);
-    preview->icon_id = BKE_icon_imbuf_create(imbuf);
+    if (imbuf) {
+      preview->icon_id = BKE_icon_imbuf_create(imbuf);
+    }
 
     done = true;
   }
