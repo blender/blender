@@ -100,7 +100,7 @@ template<typename T> class Span {
     BLI_assert(size >= 0);
   }
 
-  template<typename U, typename std::enable_if_t<is_convertible_pointer_v<U, T>> * = nullptr>
+  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<U, T>> * = nullptr>
   constexpr Span(const U *start, int64_t size) : data_(static_cast<const T *>(start)), size_(size)
   {
     BLI_assert(size >= 0);
@@ -135,7 +135,8 @@ template<typename T> class Span {
    * Support implicit conversions like the ones below:
    *   Span<T *> -> Span<const T *>
    */
-  template<typename U, typename std::enable_if_t<is_convertible_pointer_v<U, T>> * = nullptr>
+
+  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<U, T>> * = nullptr>
   constexpr Span(Span<U> array) : data_(static_cast<const T *>(array.data())), size_(array.size())
   {
   }
