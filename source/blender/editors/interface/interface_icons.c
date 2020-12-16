@@ -2199,6 +2199,9 @@ int UI_icon_from_library(const ID *id)
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     return ICON_LIBRARY_DATA_OVERRIDE;
   }
+  if (ID_IS_ASSET(id)) {
+    return ICON_MAT_SPHERE_SKY;
+  }
 
   return ICON_NONE;
 }
