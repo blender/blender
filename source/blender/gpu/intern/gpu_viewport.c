@@ -616,8 +616,8 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
   GPU_framebuffer_ensure_config(&dfbl->stereo_comp_fb,
                                 {
                                     GPU_ATTACHMENT_NONE,
-                                    GPU_ATTACHMENT_TEXTURE(dtxl->color),
                                     GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->color),
                                 });
 
   GPUVertFormat *vert_format = immVertexFormat();
@@ -628,8 +628,8 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
   GPU_matrix_identity_set();
   GPU_matrix_identity_projection_set();
   immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE);
-  immUniform1i("imageTexture", 0);
-  immUniform1i("overlayTexture", 1);
+  immUniform1i("overlayTexture", 0);
+  immUniform1i("imageTexture", 1);
   int settings = stereo_format->display_mode;
   if (settings == S3D_DISPLAY_ANAGLYPH) {
     switch (stereo_format->anaglyph_type) {
