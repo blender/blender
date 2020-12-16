@@ -516,9 +516,11 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   const float kv_force = 1.0f;
   const float kv_shear_modulus = 1.0f;
   const float kv_poisson_ratio = 0.4f;
+  bool use_elastic_drag = false;
   if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_ELASTIC_DRAG) {
     BKE_kelvinlet_init_params(
         &params, ss->cache->radius, kv_force, kv_shear_modulus, kv_poisson_ratio);
+    use_elastic_drag = true;
   }
 
   /* Gravity */
@@ -549,7 +551,9 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
     cloth_brush_apply_force_to_vertex(ss, ss->cache->cloth_sim, vertex_gravity, vd.index);
 
     /* When using the plane falloff mode the falloff is not constrained by the brush radius. */
-    if (sculpt_brush_test_sq_fn(&test, current_vertex_location) || use_falloff_plane) {
+    /* Brushes that use elastic deformation are also not constrained by radius. */
+    if (sculpt_brush_test_sq_fn(&test, current_vertex_location) || use_falloff_plane ||
+        use_elastic_drag) {
 
       float dist = sqrtf(test.dist);
 
