@@ -1362,14 +1362,15 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         row.separator()
         row.label(text="Path")
 
-        subrow = row.row()
-        subrow.operator("preferences.asset_library_add", text="", icon='ADD', emboss=False)
 
         for i, library in enumerate(paths.asset_libraries):
             name_col.prop(library, "name", text="")
             row = path_col.row()
             row.prop(library, "path", text="")
             row.operator("preferences.asset_library_remove", text="", icon='X', emboss=False).index = i
+        row = box.row()
+        row.alignment = 'LEFT'
+        row.operator("preferences.asset_library_add", text="", icon='ADD', emboss=False)
 
 
 # -----------------------------------------------------------------------------
