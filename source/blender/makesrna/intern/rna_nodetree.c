@@ -1890,7 +1890,7 @@ static const EnumPropertyItem *itemf_function_check(
 
 static bool attribute_random_type_supported(const EnumPropertyItem *item)
 {
-  return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3);
+  return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_BOOL);
 }
 static const EnumPropertyItem *rna_GeometryNodeAttributeRandom_type_itemf(
     bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
@@ -1912,7 +1912,7 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeRandom_domain_itemf(
 
 static bool attribute_fill_type_supported(const EnumPropertyItem *item)
 {
-  return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_COLOR);
+  return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_PROP_BOOL);
 }
 static const EnumPropertyItem *rna_GeometryNodeAttributeFill_type_itemf(bContext *UNUSED(C),
                                                                         PointerRNA *UNUSED(ptr),

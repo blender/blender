@@ -26,6 +26,8 @@
 
 namespace blender::nodes {
 
+using bke::BooleanReadAttribute;
+using bke::BooleanWriteAttribute;
 using bke::Color4fReadAttribute;
 using bke::Color4fWriteAttribute;
 using bke::Float3ReadAttribute;

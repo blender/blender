@@ -44,6 +44,7 @@ const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {CD_PROP_COLOR, "FLOAT_COLOR", 0, "Float Color", "RGBA color with floating-point precisions"},
     {CD_MLOOPCOL, "BYTE_COLOR", 0, "Byte Color", "RGBA color with 8-bit precision"},
     {CD_PROP_STRING, "STRING", 0, "String", "Text string"},
+    {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
     {0, NULL, 0, NULL, NULL},
 };
 
