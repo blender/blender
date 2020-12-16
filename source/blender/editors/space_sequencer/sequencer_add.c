@@ -81,8 +81,17 @@ typedef struct SequencerAddData {
 #define SEQPROP_ENDFRAME (1 << 1)
 #define SEQPROP_NOPATHS (1 << 2)
 #define SEQPROP_NOCHAN (1 << 3)
+#define SEQPROP_FIT_METHOD (1 << 4)
 
 #define SELECT 1
+
+static const EnumPropertyItem scale_fit_methods[] = {
+    {SEQ_SCALE_TO_FIT, "FIT", 0, "Scale to Fit", "Scale image to fit within the canvas"},
+    {SEQ_SCALE_TO_FILL, "FILL", 0, "Scale to Fill", "Scale image to completely fill the canvas"},
+    {SEQ_STRETCH_TO_FILL, "STRETCH", 0, "Stretch to Fill", "Stretch image to fill the canvas"},
+    {SEQ_USE_ORIGINAL_SIZE, "ORIGINAL", 0, "Use Original Size", "Keep image at its original size"},
+    {0, NULL, 0, NULL, NULL},
+};
 
 static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 {
@@ -123,6 +132,15 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
   prop = RNA_def_boolean(
       ot->srna, "overlap", 0, "Allow Overlap", "Don't correct overlap on new sequence strips");
   RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  if (flag & SEQPROP_FIT_METHOD) {
+    ot->prop = RNA_def_enum(ot->srna,
+                            "fit_method",
+                            scale_fit_methods,
+                            SEQ_SCALE_TO_FIT,
+                            "Fit Method",
+                            "Scale fit method");
+  }
 }
 
 static void sequencer_generic_invoke_path__internal(bContext *C,
@@ -206,6 +224,8 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, bContext *C, wmOperato
   seq_load->end_frame = seq_load->start_frame;
   seq_load->channel = RNA_int_get(op->ptr, "channel");
   seq_load->len = 1;
+  seq_load->fit_method = RNA_enum_get(op->ptr, "fit_method");
+  SEQ_tool_settings_fit_method_set(CTX_data_scene(C), seq_load->fit_method);
 
   if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
     /* Full path, file is set by the caller. */
@@ -659,6 +679,7 @@ static int sequencer_add_movie_strip_invoke(bContext *C,
   if (ed && ed->seqbasep && ed->seqbasep->first) {
     RNA_boolean_set(op->ptr, "use_framerate", false);
   }
+  RNA_enum_set(op->ptr, "fit_method", SEQ_tool_settings_fit_method_get(scene));
 
   /* This is for drag and drop. */
   if ((RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) ||
@@ -725,7 +746,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
                                      WM_FILESEL_SHOW_PROPS | WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
-  sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
+  sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_FIT_METHOD);
   RNA_def_boolean(ot->srna, "sound", true, "Sound", "Load sound with the movie");
   RNA_def_boolean(ot->srna,
                   "use_framerate",
@@ -928,6 +949,9 @@ static int sequencer_add_image_strip_invoke(bContext *C,
   PropertyRNA *prop;
   Scene *scene = CTX_data_scene(C);
 
+  const SequencerToolSettings *tool_settings = scene->toolsettings->sequencer_tool_settings;
+  RNA_enum_set(op->ptr, "fit_method", tool_settings->fit_method);
+
   /* Name set already by drag and drop. */
   if (RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) {
     sequencer_generic_invoke_xy__internal(
@@ -972,7 +996,8 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
                                      WM_FILESEL_SHOW_PROPS | WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
-  sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
+  sequencer_generic_props__internal(ot,
+                                    SEQPROP_STARTFRAME | SEQPROP_ENDFRAME | SEQPROP_FIT_METHOD);
 
   RNA_def_boolean(ot->srna,
                   "use_placeholders",

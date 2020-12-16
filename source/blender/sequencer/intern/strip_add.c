@@ -118,6 +118,15 @@ Sequence *BKE_sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoad
   seq->flag |= seq_load->flag & SEQ_USE_VIEWS;
 
   seq_load_apply(CTX_data_main(C), scene, seq, seq_load);
+
+  char file_path[FILE_MAX];
+  BLI_join_dirfile(file_path, sizeof(file_path), seq_load->path, seq_load->name);
+  ImBuf *ibuf = IMB_loadiffname(file_path, IB_rect, seq->strip->colorspace_settings.name);
+  if (ibuf != NULL) {
+    SEQ_set_scale_to_fit(seq, ibuf->x, ibuf->y, scene->r.xsch, scene->r.ysch, seq_load->fit_method);
+    IMB_freeImBuf(ibuf);
+  }
+
   BKE_sequence_invalidate_cache_composite(scene, seq);
 
   return seq;
@@ -275,6 +284,11 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
   IMB_anim_load_metadata(anim_arr[0]);
 
   seq->anim_preseek = IMB_anim_get_preseek(anim_arr[0]);
+
+  const float width = IMB_anim_get_image_width(anim_arr[0]);
+  const float height = IMB_anim_get_image_height(anim_arr[0]);
+  SEQ_set_scale_to_fit(seq, width, height, scene->r.xsch, scene->r.ysch, seq_load->fit_method);
+
   BLI_strncpy(seq->name + 2, "Movie", SEQ_NAME_MAXSTR - 2);
   BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 

@@ -1506,3 +1506,13 @@ int IMB_anim_get_preseek(struct anim *anim)
 {
   return anim->preseek;
 }
+
+int IMB_anim_get_image_width(struct anim *anim)
+{
+  return anim->x;
+}
+
+int IMB_anim_get_image_height(struct anim *anim)
+{
+  return anim->y;
+}
