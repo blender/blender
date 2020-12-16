@@ -144,6 +144,8 @@ void SEQUENCER_OT_enable_proxies(struct wmOperatorType *ot);
 void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot);
+void SEQUENCER_OT_strip_transform_clear(struct wmOperatorType *ot);
+void SEQUENCER_OT_strip_transform_fit(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_select_all(struct wmOperatorType *ot);

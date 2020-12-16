@@ -741,6 +741,9 @@ const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *
       RNA_enum_items_add_value(
           &item, &totitem, WT_vertex_group_select_item, WT_VGROUP_BONE_SELECT);
     }
+  }
+
+  if (BKE_modifiers_is_deformed_by_armature(ob)) {
     if (selection_mask & (1 << WT_VGROUP_BONE_DEFORM)) {
       RNA_enum_items_add_value(
           &item, &totitem, WT_vertex_group_select_item, WT_VGROUP_BONE_DEFORM);

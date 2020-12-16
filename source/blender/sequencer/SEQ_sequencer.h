@@ -23,6 +23,8 @@
  * \ingroup sequencer
  */
 
+#include "DNA_scene_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,6 +49,10 @@ struct StripElem;
 struct TextVars;
 struct bContext;
 struct bSound;
+struct BlendWriter;
+struct BlendDataReader;
+struct BlendLibReader;
+struct SequencerToolSettings;
 
 /* Wipe effect */
 enum {
@@ -179,6 +185,12 @@ void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4
  * Sequencer scene functions
  * ********************************************************************** */
 
+struct SequencerToolSettings *SEQ_tool_settings_init(void);
+void SEQ_tool_settings_free(struct SequencerToolSettings *tool_settings);
+eSeqImageFitMethod SEQ_tool_settings_fit_method_get(struct Scene *scene);
+void SEQ_tool_settings_fit_method_set(struct Scene *scene, eSeqImageFitMethod fit_method);
+
+struct SequencerToolSettings *SEQ_tool_settings_copy(struct SequencerToolSettings *tool_settings);
 struct Editing *BKE_sequencer_editing_get(struct Scene *scene, bool alloc);
 struct Editing *BKE_sequencer_editing_ensure(struct Scene *scene);
 void BKE_sequencer_editing_free(struct Scene *scene, const bool do_id_user);
@@ -361,6 +373,20 @@ void BKE_sequence_invalidate_cache_in_range(struct Scene *scene,
 void BKE_sequencer_all_free_anim_ibufs(struct Scene *scene, int timeline_frame);
 
 /* **********************************************************************
+ * util.c
+ *
+ * Add strips
+ * **********************************************************************
+ */
+
+void SEQ_set_scale_to_fit(const struct Sequence *seq,
+                          const int image_width,
+                          const int image_height,
+                          const int preview_width,
+                          const int preview_height,
+                          const eSeqImageFitMethod fit_method);
+
+/* **********************************************************************
  * sequencer.c
  *
  * Add strips
@@ -376,6 +402,7 @@ typedef struct SeqLoadInfo {
   int type;
   int len;         /* only for image strips */
   char path[1024]; /* 1024 = FILE_MAX */
+  eSeqImageFitMethod fit_method;
 
   /* multiview */
   char views_format;

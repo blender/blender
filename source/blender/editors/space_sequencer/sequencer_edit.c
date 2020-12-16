@@ -3414,3 +3414,148 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Strip Transform Operator
+ * \{ */
+
+enum {
+  STRIP_TRANSFORM_POSITION,
+  STRIP_TRANSFORM_SCALE,
+  STRIP_TRANSFORM_ROTATION,
+  STRIP_TRANSFORM_ALL,
+};
+
+static const EnumPropertyItem transform_reset_properties[] = {
+    {STRIP_TRANSFORM_POSITION, "POSITION", 0, "Position", "Reset strip transform location"},
+    {STRIP_TRANSFORM_SCALE, "SCALE", 0, "Scale", "Reset strip transform scale"},
+    {STRIP_TRANSFORM_ROTATION, "ROTATION", 0, "Rotation", "Reset strip transform rotation"},
+    {STRIP_TRANSFORM_ALL, "ALL", 0, "All", "Reset strip transform location, scale and rotation"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static int sequencer_strip_transform_clear_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  const Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Sequence *seq;
+  const int property = RNA_enum_get(op->ptr, "property");
+
+  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+    if (seq->flag & SELECT && seq->type != SEQ_TYPE_SOUND_RAM) {
+      StripTransform *transform = seq->strip->transform;
+      switch (property) {
+        case STRIP_TRANSFORM_POSITION:
+          transform->xofs = 0;
+          transform->yofs = 0;
+          break;
+        case STRIP_TRANSFORM_SCALE:
+          transform->scale_x = 1.0f;
+          transform->scale_y = 1.0f;
+          break;
+        case STRIP_TRANSFORM_ROTATION:
+          transform->rotation = 0.0f;
+          break;
+        case STRIP_TRANSFORM_ALL:
+          transform->xofs = 0;
+          transform->yofs = 0;
+          transform->scale_x = 1.0f;
+          transform->scale_y = 1.0f;
+          transform->rotation = 0.0f;
+          break;
+      }
+      BKE_sequence_invalidate_cache_preprocessed(scene, seq);
+    }
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_strip_transform_clear(struct wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Clear Strip Transform";
+  ot->idname = "SEQUENCER_OT_strip_transform_clear";
+  ot->description = "Reset image transformation to default value";
+
+  /* Api callbacks. */
+  ot->exec = sequencer_strip_transform_clear_exec;
+  ot->poll = sequencer_edit_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(ot->srna,
+                          "property",
+                          transform_reset_properties,
+                          STRIP_TRANSFORM_ALL,
+                          "Property",
+                          "Strip transform property to be reset");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Set Fit Operator
+ * \{ */
+
+static const EnumPropertyItem scale_fit_methods[] = {
+    {SEQ_SCALE_TO_FIT, "FIT", 0, "Scale to Fit", "Scale image so fits in preview"},
+    {SEQ_SCALE_TO_FILL, "FILL", 0, "Scale to Fill", "Scale image so it fills preview completely"},
+    {SEQ_STRETCH_TO_FILL, "STRETCH", 0, "Stretch to Fill", "Stretch image so it fills preview"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static int sequencer_strip_transform_fit_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  const Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Sequence *seq;
+  const eSeqImageFitMethod fit_method = RNA_enum_get(op->ptr, "fit_method");
+
+  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+    if (seq->flag & SELECT && seq->type != SEQ_TYPE_SOUND_RAM) {
+      const int timeline_frame = CFRA;
+      StripElem *strip_elem = SEQ_render_give_stripelem(seq, timeline_frame);
+
+      if (strip_elem == NULL) {
+        continue;
+      }
+
+      SEQ_set_scale_to_fit(seq,
+                           strip_elem->orig_width,
+                           strip_elem->orig_height,
+                           scene->r.xsch,
+                           scene->r.ysch,
+                           fit_method);
+      BKE_sequence_invalidate_cache_preprocessed(scene, seq);
+    }
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_strip_transform_fit(struct wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Strip Transform Set Fit";
+  ot->idname = "SEQUENCER_OT_strip_transform_fit";
+
+  /* Api callbacks. */
+  ot->exec = sequencer_strip_transform_fit_exec;
+  ot->poll = sequencer_edit_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(ot->srna,
+                          "fit_method",
+                          scale_fit_methods,
+                          SEQ_SCALE_TO_FIT,
+                          "Fit Method",
+                          "Scale fit fit_method");
+}
+
+/** \} */

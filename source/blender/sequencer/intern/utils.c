@@ -36,6 +36,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -546,4 +547,37 @@ bool sequencer_seq_generates_image(Sequence *seq)
       return true;
   }
   return false;
+}
+
+void SEQ_set_scale_to_fit(const Sequence *seq,
+                          const int image_width,
+                          const int image_height,
+                          const int preview_width,
+                          const int preview_height,
+                          const eSeqImageFitMethod fit_method)
+{
+  StripTransform *transform = seq->strip->transform;
+
+  switch (fit_method) {
+    case SEQ_SCALE_TO_FIT:
+      transform->scale_x = transform->scale_y = MIN2((float)preview_width / (float)image_width,
+                                                     (float)preview_height / (float)image_height);
+
+      break;
+    case SEQ_SCALE_TO_FILL:
+
+      transform->scale_x = transform->scale_y = MAX2((float)preview_width / (float)image_width,
+                                                     (float)preview_height / (float)image_height);
+      break;
+    case SEQ_STRETCH_TO_FILL:
+      transform->scale_x = (float)preview_width / (float)image_width;
+      transform->scale_y = (float)preview_height / (float)image_height;
+      break;
+    case SEQ_USE_ORIGINAL_SIZE:
+      transform->scale_x = 1.0f;
+      transform->scale_y = 1.0f;
+      break;
+  }
+
+  return;
 }

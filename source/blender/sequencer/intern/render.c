@@ -528,7 +528,6 @@ static void sequencer_image_transform_init(void *handle_v,
   handle->ibuf_source = init_data->ibuf_source;
   handle->ibuf_out = init_data->ibuf_out;
   handle->transform = init_data->transform;
-  handle->scale_to_fit = init_data->scale_to_fit;
   handle->image_scale_factor = init_data->image_scale_factor;
   handle->for_render = init_data->for_render;
 
@@ -540,8 +539,8 @@ static void *sequencer_image_transform_do_thread(void *data_v)
 {
   const ImageTransformThreadData *data = (ImageTransformThreadData *)data_v;
   const StripTransform *transform = data->transform;
-  const float scale_x = transform->scale_x * data->scale_to_fit;
-  const float scale_y = transform->scale_y * data->scale_to_fit;
+  const float scale_x = transform->scale_x * data->image_scale_factor;
+  const float scale_y = transform->scale_y * data->image_scale_factor;
   const float scale_to_fit_offs_x = (data->ibuf_out->x - data->ibuf_source->x) / 2;
   const float scale_to_fit_offs_y = (data->ibuf_out->y - data->ibuf_source->y) / 2;
   const float translate_x = transform->xofs * data->image_scale_factor + scale_to_fit_offs_x;
@@ -626,10 +625,6 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     IMB_filtery(preprocessed_ibuf);
   }
 
-  /* Calculate scale factor, so image fits in preview area with original aspect ratio. */
-  const float scale_to_fit_factor = MIN2((float)context->rectx / (float)ibuf->x,
-                                         (float)context->recty / (float)ibuf->y);
-
   /* Get scale factor if preview resolution doesn't match project resolution. */
   float preview_scale_factor;
   if (context->preview_render_size == SEQ_RENDER_SIZE_SCENE) {
@@ -648,10 +643,10 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     const int height = ibuf->y;
     const StripCrop *c = seq->strip->crop;
 
-    const int left = c->left / scale_to_fit_factor * preview_scale_factor;
-    const int right = c->right / scale_to_fit_factor * preview_scale_factor;
-    const int top = c->top / scale_to_fit_factor * preview_scale_factor;
-    const int bottom = c->bottom / scale_to_fit_factor * preview_scale_factor;
+    const int left = c->left;
+    const int right = c->right;
+    const int top = c->top;
+    const int bottom = c->bottom;
     const float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
     /* Left. */
@@ -673,7 +668,6 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     init_data.ibuf_source = ibuf;
     init_data.ibuf_out = preprocessed_ibuf;
     init_data.transform = seq->strip->transform;
-    init_data.scale_to_fit = scale_to_fit_factor;
     init_data.image_scale_factor = preview_scale_factor;
     init_data.for_render = context->for_render;
     IMB_processor_apply_threaded(context->recty,

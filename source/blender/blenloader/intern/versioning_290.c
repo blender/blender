@@ -74,6 +74,29 @@
 /* Make preferences read-only, use versioning_userdef.c. */
 #define U (*((const UserDef *)&U))
 
+static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
+{
+  eSpaceSeq_Proxy_RenderSize render_size = 100;
+
+  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        switch (sl->spacetype) {
+          case SPACE_SEQ: {
+            SpaceSeq *sseq = (SpaceSeq *)sl;
+            if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+              render_size = sseq->render_size;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return render_size;
+}
+
 /* image_size is width or height depending what RNA property is converted - X or Y. */
 static void seq_convert_transform_animation(const Scene *scene,
                                             const char *path,
@@ -208,6 +231,90 @@ static void seq_convert_transform_crop_lb(const Scene *scene,
     }
     if (seq->type == SEQ_TYPE_META) {
       seq_convert_transform_crop_lb(scene, &seq->seqbase, render_size);
+    }
+  }
+}
+
+static void seq_convert_transform_animation_2(const Scene *scene,
+                                              const char *path,
+                                              const float scale_to_fit_factor)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL) {
+    return;
+  }
+
+  FCurve *fcu = BKE_fcurve_find(&scene->adt->action->curves, path, 0);
+  if (fcu != NULL && !BKE_fcurve_is_empty(fcu)) {
+    BezTriple *bezt = fcu->bezt;
+    for (int i = 0; i < fcu->totvert; i++, bezt++) {
+      /* Same math as with old_image_center_*, but simplified. */
+      bezt->vec[1][1] *= scale_to_fit_factor;
+    }
+  }
+}
+
+static void seq_convert_transform_crop_2(const Scene *scene,
+                                         Sequence *seq,
+                                         const eSpaceSeq_Proxy_RenderSize render_size)
+{
+  const StripElem *s_elem = SEQ_render_give_stripelem(seq, seq->start);
+  if (s_elem == NULL) {
+    return;
+  }
+
+  StripCrop *c = seq->strip->crop;
+  StripTransform *t = seq->strip->transform;
+  int image_size_x = s_elem->orig_width;
+  int image_size_y = s_elem->orig_height;
+
+  if (SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
+    image_size_x /= SEQ_rendersize_to_scale_factor(render_size);
+    image_size_y /= SEQ_rendersize_to_scale_factor(render_size);
+  }
+
+  /* Calculate scale factor, so image fits in preview area with original aspect ratio. */
+  const float scale_to_fit_factor = MIN2((float)scene->r.xsch / (float)image_size_x,
+                                         (float)scene->r.ysch / (float)image_size_y);
+  t->scale_x *= scale_to_fit_factor;
+  t->scale_y *= scale_to_fit_factor;
+  c->top /= scale_to_fit_factor;
+  c->bottom /= scale_to_fit_factor;
+  c->left /= scale_to_fit_factor;
+  c->right /= scale_to_fit_factor;
+
+  char name_esc[(sizeof(seq->name) - 2) * 2], *path;
+  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
+  seq_convert_transform_animation_2(scene, path, scale_to_fit_factor);
+  MEM_freeN(path);
+  path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_y", name_esc);
+  seq_convert_transform_animation_2(scene, path, scale_to_fit_factor);
+  MEM_freeN(path);
+  path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.min_x", name_esc);
+  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  MEM_freeN(path);
+  path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.max_x", name_esc);
+  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  MEM_freeN(path);
+  path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.min_y", name_esc);
+  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  MEM_freeN(path);
+  path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.max_x", name_esc);
+  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  MEM_freeN(path);
+}
+
+static void seq_convert_transform_crop_lb_2(const Scene *scene,
+                                            const ListBase *lb,
+                                            const eSpaceSeq_Proxy_RenderSize render_size)
+{
+
+  LISTBASE_FOREACH (Sequence *, seq, lb) {
+    if (seq->type != SEQ_TYPE_SOUND_RAM) {
+      seq_convert_transform_crop_2(scene, seq, render_size);
+    }
+    if (seq->type == SEQ_TYPE_META) {
+      seq_convert_transform_crop_lb_2(scene, &seq->seqbase, render_size);
     }
   }
 }
@@ -441,25 +548,35 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
 
   if (!MAIN_VERSION_ATLEAST(bmain, 292, 2)) {
 
-    eSpaceSeq_Proxy_RenderSize render_size = 100;
-
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          switch (sl->spacetype) {
-            case SPACE_SEQ: {
-              SpaceSeq *sseq = (SpaceSeq *)sl;
-              render_size = sseq->render_size;
-              break;
-            }
-          }
-        }
-      }
-    }
+    eSpaceSeq_Proxy_RenderSize render_size = get_sequencer_render_size(bmain);
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != NULL) {
         seq_convert_transform_crop_lb(scene, &scene->ed->seqbase, render_size);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 8)) {
+    /* Systematically rebuild posebones to ensure consistent ordering matching the one of bones in
+     * Armature obdata. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type == OB_ARMATURE) {
+        BKE_pose_rebuild(bmain, ob, ob->data, true);
+      }
+    }
+
+    /* Wet Paint Radius Factor */
+    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+      if (br->ob_mode & OB_MODE_SCULPT && br->wet_paint_radius_factor == 0.0f) {
+        br->wet_paint_radius_factor = 1.0f;
+      }
+    }
+
+    eSpaceSeq_Proxy_RenderSize render_size = get_sequencer_render_size(bmain);
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        seq_convert_transform_crop_lb_2(scene, &scene->ed->seqbase, render_size);
       }
     }
   }
@@ -476,21 +593,6 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
-
-    /* Systematically rebuild posebones to ensure consistent ordering matching the one of bones in
-     * Armature obdata. */
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      if (ob->type == OB_ARMATURE) {
-        BKE_pose_rebuild(bmain, ob, ob->data, true);
-      }
-    }
-  }
-
-  /* Wet Paint Radius Factor */
-  for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
-    if (br->ob_mode & OB_MODE_SCULPT && br->wet_paint_radius_factor == 0.0f) {
-      br->wet_paint_radius_factor = 1.0f;
-    }
   }
 }
 
@@ -1305,6 +1407,22 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 8)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (STREQ(node->idname, "GeometryNodeRandomAttribute")) {
+          STRNCPY(node->idname, "GeometryNodeAttributeRandomize");
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        scene->toolsettings->sequencer_tool_settings = SEQ_tool_settings_init();
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1316,13 +1434,5 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (STREQ(node->idname, "GeometryNodeRandomAttribute")) {
-          STRNCPY(node->idname, "GeometryNodeAttributeRandomize");
-        }
-      }
-    }
   }
 }

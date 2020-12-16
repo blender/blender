@@ -2200,6 +2200,11 @@ static char *rna_CurvePaintSettings_path(PointerRNA *UNUSED(ptr))
   return BLI_strdup("tool_settings.curve_paint_settings");
 }
 
+static char *rna_SequencerToolSettings_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("tool_settings.sequencer_tool_settings");
+}
+
 /* generic function to recalc geometry */
 static void rna_EditMesh_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
@@ -3584,6 +3589,38 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "custom_bevel_profile_preset");
   RNA_def_property_struct_type(prop, "CurveProfile");
   RNA_def_property_ui_text(prop, "Curve Profile Widget", "Used for defining a profile's path");
+
+  /* Sequencer tool settings */
+  prop = RNA_def_property(srna, "sequencer_tool_settings", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "SequencerToolSettings");
+  RNA_def_property_ui_text(prop, "Sequencer Tool Settings", NULL);
+}
+
+static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem scale_fit_methods[] = {
+      {SEQ_SCALE_TO_FIT, "FIT", 0, "Scale to Fit", "Scale image to fit within the canvas"},
+      {SEQ_SCALE_TO_FILL, "FILL", 0, "Scale to Fill", "Scale image to completely fill the canvas"},
+      {SEQ_STRETCH_TO_FILL, "STRETCH", 0, "Stretch to Fill", "Stretch image to fill the canvas"},
+      {SEQ_USE_ORIGINAL_SIZE,
+       "ORIGINAL",
+       0,
+       "Use Original Size",
+       "Keep image at its original size"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  srna = RNA_def_struct(brna, "SequencerToolSettings", NULL);
+  RNA_def_struct_path_func(srna, "rna_SequencerToolSettings_path");
+  RNA_def_struct_ui_text(srna, "Sequencer Tool Settings", "");
+
+  prop = RNA_def_property(srna, "fit_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, scale_fit_methods);
+  RNA_def_property_ui_text(prop, "Fit Method", "Scale fit method");
 }
 
 static void rna_def_unified_paint_settings(BlenderRNA *brna)
@@ -7968,6 +8005,7 @@ void RNA_def_scene(BlenderRNA *brna)
   rna_def_gpencil_interpolate(brna);
   rna_def_unified_paint_settings(brna);
   rna_def_curve_paint_settings(brna);
+  rna_def_sequencer_tool_settings(brna);
   rna_def_statvis(brna);
   rna_def_unit_settings(brna);
   rna_def_scene_image_format_data(brna);
