@@ -36,6 +36,48 @@ void update_attribute_input_socket_availabilities(bNode &node,
   }
 }
 
+static int attribute_data_type_complexity(const CustomDataType data_type)
+{
+  switch (data_type) {
+    case CD_PROP_BOOL:
+      return 0;
+    case CD_PROP_INT32:
+      return 1;
+    case CD_PROP_FLOAT:
+      return 2;
+    case CD_PROP_FLOAT3:
+      return 4;
+    case CD_PROP_COLOR:
+      return 5;
+#if 0 /* Attribute types are not supported yet. */
+    case CD_MLOOPCOL:
+      return 3;
+    case CD_PROP_STRING:
+      return 6;
+#endif
+    default:
+      /* Only accept "generic" custom data types used by the attribute system. */
+      BLI_assert(false);
+      return 0;
+  }
+}
+
+CustomDataType attribute_domain_highest_complexity(Span<CustomDataType> data_types)
+{
+  int highest_complexity = INT_MIN;
+  CustomDataType most_complex_type = CD_PROP_COLOR;
+
+  for (const CustomDataType data_type : data_types) {
+    const int complexity = attribute_data_type_complexity(data_type);
+    if (complexity > highest_complexity) {
+      highest_complexity = complexity;
+      most_complex_type = data_type;
+    }
+  }
+
+  return most_complex_type;
+}
+
 }  // namespace blender::nodes
 
 bool geo_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
