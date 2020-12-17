@@ -593,7 +593,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
             return
 
         # If the active file is an ID, use its name directly so renaming is possible from right here.
-        layout.prop(context.id if not None else active_file, "name", text="")
+        layout.prop(context.id if context.id is not None else active_file, "name", text="")
 
 
 class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
