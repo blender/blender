@@ -2845,6 +2845,7 @@ static void outliner_draw_iconrow(bContext *C,
 
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
+    te->flag &= ~(TE_ICONROW | TE_ICONROW_MERGED);
 
     /* object hierarchy always, further constrained on level */
     if (level < 1 || (tselem->type == 0 && te->idcode == ID_OB)) {
