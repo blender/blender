@@ -29,26 +29,24 @@ from modules.mesh_test import RunTest, ModifierSpec, MeshTest
 
 def main():
     test = [
-
-        MeshTest("SoftBodySimple", "testSoftBody", "expectedSoftBody",
-                 [ModifierSpec('Softbody', 'SOFT_BODY',
-                               {'settings': {'use_goal': False, 'bend': 8, 'pull': 0.8, 'push': 0.8}},
-                               45)]),
+        # World coordinates of test and expected object should be same.
+        MeshTest("PlaneOcean", "testObjPlaneOcean", "expObjPlaneOcean",
+                 [ModifierSpec('Ocean', 'OCEAN', {})]),
     ]
-    soft_body_test = RunTest(test)
+    ocean_test = RunTest(test)
 
     command = list(sys.argv)
     for i, cmd in enumerate(command):
         if cmd == "--run-all-tests":
-            soft_body_test.apply_modifiers = True
-            soft_body_test.do_compare = True
-            soft_body_test.run_all_tests()
+            ocean_test.apply_modifiers = True
+            ocean_test.do_compare = True
+            ocean_test.run_all_tests()
             break
         elif cmd == "--run-test":
-            soft_body_test.apply_modifiers = False
-            soft_body_test.do_compare = False
+            ocean_test.apply_modifiers = False
+            ocean_test.do_compare = False
             name = command[i + 1]
-            soft_body_test.run_test(name)
+            ocean_test.run_test(name)
             break
 
 

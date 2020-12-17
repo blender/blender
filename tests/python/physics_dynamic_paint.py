@@ -30,25 +30,27 @@ from modules.mesh_test import RunTest, ModifierSpec, MeshTest
 def main():
     test = [
 
-        MeshTest("SoftBodySimple", "testSoftBody", "expectedSoftBody",
-                 [ModifierSpec('Softbody', 'SOFT_BODY',
-                               {'settings': {'use_goal': False, 'bend': 8, 'pull': 0.8, 'push': 0.8}},
-                               45)]),
+        MeshTest("DynamicPaintSimple", "testObjDynamicPaintPlane", "expObjDynamicPaintPlane",
+                 [ModifierSpec('dynamic_paint', 'DYNAMIC_PAINT',
+                               {'ui_type': 'CANVAS',
+                                'canvas_settings': {'canvas_surfaces': {'surface_type': 'WAVE', 'frame_end': 15}}},
+                               15)]),
+
     ]
-    soft_body_test = RunTest(test)
+    dynamic_paint_test = RunTest(test)
 
     command = list(sys.argv)
     for i, cmd in enumerate(command):
         if cmd == "--run-all-tests":
-            soft_body_test.apply_modifiers = True
-            soft_body_test.do_compare = True
-            soft_body_test.run_all_tests()
+            dynamic_paint_test.apply_modifiers = True
+            dynamic_paint_test.do_compare = True
+            dynamic_paint_test.run_all_tests()
             break
         elif cmd == "--run-test":
-            soft_body_test.apply_modifiers = False
-            soft_body_test.do_compare = False
+            dynamic_paint_test.apply_modifiers = False
+            dynamic_paint_test.do_compare = False
             name = command[i + 1]
-            soft_body_test.run_test(name)
+            dynamic_paint_test.run_test(name)
             break
 
 
