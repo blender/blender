@@ -2527,7 +2527,7 @@ static bool convert_proxy_to_override_poll(bContext *C)
   return obact != NULL && obact->proxy != NULL;
 }
 
-static int convert_proxy_to_override_exec(bContext *C, wmOperator *UNUSED(op))
+static int convert_proxy_to_override_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -2540,6 +2540,15 @@ static int convert_proxy_to_override_exec(bContext *C, wmOperator *UNUSED(op))
   const bool is_override_instancing_object = ob_proxy_group != NULL;
 
   const bool success = BKE_lib_override_library_proxy_convert(bmain, scene, view_layer, ob_proxy);
+
+  if (!success) {
+    BKE_reportf(
+        op->reports,
+        RPT_ERROR_INVALID_INPUT,
+        "Could not create a library override from proxy '%s' (might use already local data?)",
+        ob_proxy->id.name + 2);
+    return OPERATOR_CANCELLED;
+  }
 
   /* Remove the instance empty from this scene, the items now have an overridden collection
    * instead. */

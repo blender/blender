@@ -702,6 +702,12 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
                                                 &ob_proxy->proxy->id;
   ID *id_reference = is_override_instancing_object ? &ob_proxy_group->id : &ob_proxy->id;
 
+  /* In some cases the instance collection of a proxy object may be local (see e.g. T83875). Not
+   * sure this is a valid state, but for now just abort the overriding process. */
+  if (!ID_IS_OVERRIDABLE_LIBRARY(id_root)) {
+    return false;
+  }
+
   /* We manually convert the proxy object into a library override, further override handling will
    * then be handled by `BKE_lib_override_library_create()` just as for a regular override
    * creation.
