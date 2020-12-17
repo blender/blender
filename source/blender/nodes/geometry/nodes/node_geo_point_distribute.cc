@@ -34,8 +34,8 @@
 
 static bNodeSocketTemplate geo_node_point_distribute_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_FLOAT, N_("Minimum Distance"), 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Maximum Density"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Distance Min"), 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Density Max"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
     {SOCK_STRING, N_("Density Attribute")},
     {SOCK_INT, N_("Seed"), 0, 0, 0, 0, -10000, 10000},
     {-1, ""},
@@ -252,7 +252,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
     return;
   }
 
-  const float density = params.extract_input<float>("Maximum Density");
+  const float density = params.extract_input<float>("Density Max");
   const std::string density_attribute = params.extract_input<std::string>("Density Attribute");
 
   if (density <= 0.0f) {
@@ -274,7 +274,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
       points = random_scatter_points_from_mesh(mesh_in, density, density_factors, seed);
       break;
     case GEO_NODE_POINT_DISTRIBUTE_POISSON:
-      const float min_dist = params.extract_input<float>("Minimum Distance");
+      const float min_dist = params.extract_input<float>("Distance Min");
       points = poisson_scatter_points_from_mesh(mesh_in, density, min_dist, density_factors, seed);
       break;
   }
