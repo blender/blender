@@ -2054,7 +2054,7 @@ static void bke_view_layer_verify_aov_cb(void *userdata,
                                          const char *name,
                                          int UNUSED(channels),
                                          const char *UNUSED(chanid),
-                                         int UNUSED(type))
+                                         eNodeSocketDatatype UNUSED(type))
 {
   GHash *name_count = userdata;
   void **value_p;

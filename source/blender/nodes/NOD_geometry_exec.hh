@@ -34,6 +34,8 @@ using bke::Float3ReadAttribute;
 using bke::Float3WriteAttribute;
 using bke::FloatReadAttribute;
 using bke::FloatWriteAttribute;
+using bke::Int32ReadAttribute;
+using bke::Int32WriteAttribute;
 using bke::PersistentDataHandleMap;
 using bke::PersistentObjectHandle;
 using bke::ReadAttribute;

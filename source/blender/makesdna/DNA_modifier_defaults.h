@@ -503,8 +503,8 @@
     .random_position = 0.0f, \
     .rotation = 0.0f, \
     .random_rotation = 0.0f, \
-    .particle_offset = 1.0f, \
-    .particle_amount = 0.0f, \
+    .particle_offset = 0.0f, \
+    .particle_amount = 1.0f, \
     .index_layer_name = "", \
     .value_layer_name = "", \
   }

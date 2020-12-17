@@ -30,25 +30,25 @@ from modules.mesh_test import RunTest, ModifierSpec, MeshTest
 def main():
     test = [
 
-        MeshTest("SoftBodySimple", "testSoftBody", "expectedSoftBody",
-                 [ModifierSpec('Softbody', 'SOFT_BODY',
-                               {'settings': {'use_goal': False, 'bend': 8, 'pull': 0.8, 'push': 0.8}},
-                               45)]),
+        MeshTest("ParticleInstanceSimple", "testParticleInstance", "expectedParticleInstance",
+                 [ModifierSpec('ParticleInstance', 'PARTICLE_INSTANCE', {'object': bpy.data.objects['Cube']})],
+                 threshold=1e-3),
+
     ]
-    soft_body_test = RunTest(test)
+    particle_instance_test = RunTest(test)
 
     command = list(sys.argv)
     for i, cmd in enumerate(command):
         if cmd == "--run-all-tests":
-            soft_body_test.apply_modifiers = True
-            soft_body_test.do_compare = True
-            soft_body_test.run_all_tests()
+            particle_instance_test.apply_modifiers = True
+            particle_instance_test.do_compare = True
+            particle_instance_test.run_all_tests()
             break
         elif cmd == "--run-test":
-            soft_body_test.apply_modifiers = False
-            soft_body_test.do_compare = False
+            particle_instance_test.apply_modifiers = False
+            particle_instance_test.do_compare = False
             name = command[i + 1]
-            soft_body_test.run_test(name)
+            particle_instance_test.run_test(name)
             break
 
 

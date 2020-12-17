@@ -267,10 +267,12 @@ template<typename T> class TypedWriteAttribute {
 using BooleanReadAttribute = TypedReadAttribute<bool>;
 using FloatReadAttribute = TypedReadAttribute<float>;
 using Float3ReadAttribute = TypedReadAttribute<float3>;
+using Int32ReadAttribute = TypedReadAttribute<int>;
 using Color4fReadAttribute = TypedReadAttribute<Color4f>;
 using BooleanWriteAttribute = TypedWriteAttribute<bool>;
 using FloatWriteAttribute = TypedWriteAttribute<float>;
 using Float3WriteAttribute = TypedWriteAttribute<float3>;
+using Int32WriteAttribute = TypedWriteAttribute<int>;
 using Color4fWriteAttribute = TypedWriteAttribute<Color4f>;
 
 }  // namespace blender::bke

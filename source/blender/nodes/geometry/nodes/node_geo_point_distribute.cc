@@ -34,8 +34,8 @@
 
 static bNodeSocketTemplate geo_node_point_distribute_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_FLOAT, N_("Minimum Distance"), 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Maximum Density"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Distance Min"), 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Density Max"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
     {SOCK_STRING, N_("Density Attribute")},
     {SOCK_INT, N_("Seed"), 0, 0, 0, 0, -10000, 10000},
     {-1, ""},
@@ -58,6 +58,7 @@ namespace blender::nodes {
 static Vector<float3> random_scatter_points_from_mesh(const Mesh *mesh,
                                                       const float density,
                                                       const FloatReadAttribute &density_factors,
+                                                      Vector<int> &r_ids,
                                                       const int seed)
 {
   /* This only updates a cache and can be considered to be logically const. */
@@ -95,6 +96,9 @@ static Vector<float3> random_scatter_points_from_mesh(const Mesh *mesh,
       float3 point_pos;
       interp_v3_v3v3v3(point_pos, v0_pos, v1_pos, v2_pos, bary_coords);
       points.append(point_pos);
+
+      /* Build a hash stable even when the mesh is deformed. */
+      r_ids.append(((int)(bary_coords.hash()) + looptri_index));
     }
   }
 
@@ -106,10 +110,14 @@ struct RayCastAll_Data {
 
   BVHTree_RayCastCallback raycast_callback;
 
+  /** The original coordinate the result point was projected from. */
+  float2 raystart;
+
   const Mesh *mesh;
   float base_weight;
   FloatReadAttribute *density_factors;
   Vector<float3> *projected_points;
+  Vector<int> *stable_ids;
   float cur_point_weight;
 };
 
@@ -148,6 +156,9 @@ static void project_2d_bvh_callback(void *userdata,
 
     if (point_weight >= FLT_EPSILON && data->cur_point_weight <= point_weight) {
       data->projected_points->append(hit->co);
+
+      /* Build a hash stable even when the mesh is deformed. */
+      data->stable_ids->append((int)data->raystart.hash());
     }
   }
 }
@@ -156,6 +167,7 @@ static Vector<float3> poisson_scatter_points_from_mesh(const Mesh *mesh,
                                                        const float density,
                                                        const float minimum_distance,
                                                        const FloatReadAttribute &density_factors,
+                                                       Vector<int> &r_ids,
                                                        const int seed)
 {
   Vector<float3> points;
@@ -191,6 +203,7 @@ static Vector<float3> poisson_scatter_points_from_mesh(const Mesh *mesh,
   const float3 bounds_max = float3(point_scale_multiplier, point_scale_multiplier, 0);
   poisson_disk_point_elimination(&points, &output_points, 2.0f * minimum_distance, bounds_max);
   Vector<float3> final_points;
+  r_ids.reserve(output_points_target);
   final_points.reserve(output_points_target);
 
   /* Check if we have any points we should remove from the final possion distribition. */
@@ -205,6 +218,7 @@ static Vector<float3> poisson_scatter_points_from_mesh(const Mesh *mesh,
   data.raycast_callback = treedata.raycast_callback;
   data.mesh = mesh;
   data.projected_points = &final_points;
+  data.stable_ids = &r_ids;
   data.density_factors = const_cast<FloatReadAttribute *>(&density_factors);
   data.base_weight = std::min(
       1.0f, density / (output_points.size() / (point_scale_multiplier * point_scale_multiplier)));
@@ -229,6 +243,7 @@ static Vector<float3> poisson_scatter_points_from_mesh(const Mesh *mesh,
         raystart.y = output_points[idx].y + tile_curr_y_coord;
 
         data.cur_point_weight = (float)idx / (float)output_points.size();
+        data.raystart = raystart;
 
         BLI_bvhtree_ray_cast_all(
             treedata.tree, raystart, dir, 0.0f, max_dist, project_2d_bvh_callback, &data);
@@ -252,7 +267,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
     return;
   }
 
-  const float density = params.extract_input<float>("Maximum Density");
+  const float density = params.extract_input<float>("Density Max");
   const std::string density_attribute = params.extract_input<std::string>("Density Attribute");
 
   if (density <= 0.0f) {
@@ -267,15 +282,17 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
       density_attribute, ATTR_DOMAIN_POINT, 1.0f);
   const int seed = params.get_input<int>("Seed");
 
+  Vector<int> stable_ids;
   Vector<float3> points;
-
   switch (distribute_method) {
     case GEO_NODE_POINT_DISTRIBUTE_RANDOM:
-      points = random_scatter_points_from_mesh(mesh_in, density, density_factors, seed);
+      points = random_scatter_points_from_mesh(
+          mesh_in, density, density_factors, stable_ids, seed);
       break;
     case GEO_NODE_POINT_DISTRIBUTE_POISSON:
-      const float min_dist = params.extract_input<float>("Minimum Distance");
-      points = poisson_scatter_points_from_mesh(mesh_in, density, min_dist, density_factors, seed);
+      const float min_dist = params.extract_input<float>("Distance Min");
+      points = poisson_scatter_points_from_mesh(
+          mesh_in, density, min_dist, density_factors, stable_ids, seed);
       break;
   }
 
@@ -286,7 +303,16 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
     pointcloud->radius[i] = 0.05f;
   }
 
-  geometry_set_out.replace_pointcloud(pointcloud);
+  PointCloudComponent &point_component =
+      geometry_set_out.get_component_for_write<PointCloudComponent>();
+  point_component.replace(pointcloud);
+
+  Int32WriteAttribute stable_id_attribute = point_component.attribute_try_ensure_for_write(
+      "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
+  MutableSpan<int> stable_ids_span = stable_id_attribute.get_span();
+  stable_ids_span.copy_from(stable_ids);
+  stable_id_attribute.apply_span();
+
   params.set_output("Geometry", std::move(geometry_set_out));
 }
 }  // namespace blender::nodes

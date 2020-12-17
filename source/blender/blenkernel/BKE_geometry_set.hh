@@ -136,6 +136,11 @@ class GeometryComponent {
       const AttributeDomain domain,
       const CustomDataType data_type) const;
 
+  /* Get a read-only attribute interpolated to the input domain, leaving the data type unchanged.
+   * Returns null when the attribute does not exist. */
+  blender::bke::ReadAttributePtr attribute_try_get_for_read(
+      const blender::StringRef attribute_name, const AttributeDomain domain) const;
+
   /* Get a read-only attribute for the given domain and data type.
    * Returns a constant attribute based on the default value if the attribute does not exist.
    * Never returns null. */

@@ -29,33 +29,53 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from modules.mesh_test import OperatorTest
+from modules.mesh_test import MeshTest, OperatorSpecEditMode, RunTest
 
 
 def main():
     tests = [
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_1', 'intersect_boolean', {'operation': 'UNION', 'solver' : 'FAST'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_2', 'intersect_boolean', {'operation': 'INTERSECT', 'solver' : 'FAST'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_3', 'intersect_boolean', {'operation': 'DIFFERENCE', 'solver' : 'FAST'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_4', 'intersect', {'separate_mode': 'CUT', 'solver' : 'FAST'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_5', 'intersect', {'separate_mode': 'ALL', 'solver' : 'FAST'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_6', 'intersect', {'separate_mode': 'NONE', 'solver' : 'FAST'}],
-        ['FACE', {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 'Cubecube', 'Cubecube_result_7', 'intersect',
-         {'mode': 'SELECT', 'separate_mode': 'NONE', 'solver' : 'FAST'}],
-        ['FACE', {6, 7, 8, 9, 10}, 'Cubecone', 'Cubecone_result_1', 'intersect_boolean', {'operation': 'UNION', 'solver' : 'FAST'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecones', 'Cubecones_result_1', 'intersect_boolean', {'operation': 'UNION', 'solver' : 'FAST'}],
+
+        MeshTest('Cubecube_intersect_union', 'Cubecube', 'Cubecube_result_1',
+                 [OperatorSpecEditMode('intersect_boolean',
+                                       {'operation': 'UNION', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
+        MeshTest('Cubecube_intersect_intersect', 'Cubecube', 'Cubecube_result_2',
+                 [OperatorSpecEditMode('intersect_boolean', {'operation': 'INTERSECT', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
+        MeshTest('Cubecube_intersect_difference', 'Cubecube', 'Cubecube_result_3',
+                 [OperatorSpecEditMode('intersect_boolean', {'operation': 'DIFFERENCE', 'solver': 'FAST'}, 'FACE',
+                                       {0, 1, 2, 3, 4, 5}, )]),
+        MeshTest('Cubecube_intersect_cut', 'Cubecube', 'Cubecube_result_4', [OperatorSpecEditMode('intersect',
+                                                                                                  {'separate_mode': 'CUT', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
+        MeshTest('Cubecube_intersect_all', 'Cubecube', 'Cubecube_result_5',
+                 [OperatorSpecEditMode('intersect',
+                                       {'separate_mode': 'ALL', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
+        MeshTest('Cubecube_intersect_none', 'Cubecube', 'Cubecube_result_6',
+                 [OperatorSpecEditMode('intersect',
+                                       {'separate_mode': 'NONE', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
+        MeshTest('Cubecube_intersect_select_none', 'Cubecube',
+                 'Cubecube_result_7',
+                 [OperatorSpecEditMode('intersect',
+                                       {'mode': 'SELECT', 'separate_mode': 'NONE', 'solver': 'FAST'}, 'FACE',
+                                       {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, )]),
+        MeshTest('Cubecone_intersect_union', 'Cubecone', 'Cubecone_result_1',
+                 [OperatorSpecEditMode('intersect_boolean',
+                                       {'operation': 'UNION', 'solver': 'FAST'}, 'FACE', {6, 7, 8, 9, 10}, )]),
+        MeshTest('Cubecones_intersect_union', 'Cubecones', 'Cubecones_result_1',
+                 [OperatorSpecEditMode('intersect_boolean', {'operation': 'UNION', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
+
     ]
 
-    operator_test = OperatorTest(tests)
+    operator_test = RunTest(tests)
 
     command = list(sys.argv)
     for i, cmd in enumerate(command):
         if cmd == "--run-all-tests":
+            operator_test.do_compare = True
             operator_test.run_all_tests()
             break
         elif cmd == "--run-test":
-            index = int(command[i + 1])
-            operator_test.run_test(index)
+            name = command[i + 1]
+            operator_test.do_compare = False
+            operator_test.run_test(name)
             break
 
 

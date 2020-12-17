@@ -16,6 +16,7 @@
 
 #include "node_geometry_util.hh"
 
+#include "BLI_hash.h"
 #include "BLI_rand.hh"
 
 #include "DNA_mesh_types.h"
@@ -59,48 +60,85 @@ static void geo_node_attribute_randomize_update(bNodeTree *UNUSED(ntree), bNode 
 
 namespace blender::nodes {
 
-static void randomize_attribute(BooleanWriteAttribute &attribute, RandomNumberGenerator &rng)
+/** Rehash to combine the seed with the "id" hash and a mutator for each dimension. */
+static float noise_from_index_and_mutator(const int seed, const int hash, const int mutator)
+{
+  const int combined_hash = BLI_hash_int_3d(seed, hash, mutator);
+  return BLI_hash_int_01(combined_hash);
+}
+
+/** Rehash to combine the seed with the "id" hash. */
+static float noise_from_index(const int seed, const int hash)
+{
+  const int combined_hash = BLI_hash_int_2d(seed, hash);
+  return BLI_hash_int_01(combined_hash);
+}
+
+static void randomize_attribute(BooleanWriteAttribute &attribute, Span<int> hashes, const int seed)
 {
   MutableSpan<bool> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
-    const bool value = rng.get_float() > 0.5f;
+    const bool value = noise_from_index(seed, hashes[i]) > 0.5f;
     attribute_span[i] = value;
   }
   attribute.apply_span();
 }
 
-static void randomize_attribute(FloatWriteAttribute &attribute,
-                                float min,
-                                float max,
-                                RandomNumberGenerator &rng)
+static void randomize_attribute(
+    FloatWriteAttribute &attribute, float min, float max, Span<int> hashes, const int seed)
 {
   MutableSpan<float> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
-    const float value = rng.get_float() * (max - min) + min;
+    const float value = noise_from_index(seed, hashes[i]) * (max - min) + min;
     attribute_span[i] = value;
   }
   attribute.apply_span();
 }
 
-static void randomize_attribute(Float3WriteAttribute &attribute,
-                                float3 min,
-                                float3 max,
-                                RandomNumberGenerator &rng)
+static void randomize_attribute(
+    Float3WriteAttribute &attribute, float3 min, float3 max, Span<int> hashes, const int seed)
 {
   MutableSpan<float3> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
-    const float x = rng.get_float();
-    const float y = rng.get_float();
-    const float z = rng.get_float();
+    const float x = noise_from_index_and_mutator(seed, hashes[i], 47);
+    const float y = noise_from_index_and_mutator(seed, hashes[i], 8);
+    const float z = noise_from_index_and_mutator(seed, hashes[i], 64);
     const float3 value = float3(x, y, z) * (max - min) + min;
     attribute_span[i] = value;
   }
   attribute.apply_span();
 }
 
+static Array<int> get_element_hashes(GeometryComponent &component,
+                                     const AttributeDomain domain,
+                                     const int attribute_size)
+{
+  /* Hash the reserved name attribute "id" as a (hopefully) stable seed for each point. */
+  ReadAttributePtr hash_attribute = component.attribute_try_get_for_read("id", domain);
+  Array<int> hashes(attribute_size);
+  if (hash_attribute) {
+    BLI_assert(hashes.size() == hash_attribute->size());
+    const CPPType &cpp_type = hash_attribute->cpp_type();
+    fn::GSpan items = hash_attribute->get_span();
+    for (const int i : hashes.index_range()) {
+      hashes[i] = (int)cpp_type.hash(items[i]);
+    }
+  }
+  else {
+    /* If there is no "id" attribute for per-point variation, just create it here. */
+    RandomNumberGenerator rng;
+    rng.seed(0);
+    for (const int i : hashes.index_range()) {
+      hashes[i] = rng.get_int32();
+    }
+  }
+
+  return hashes;
+}
+
 static void randomize_attribute(GeometryComponent &component,
                                 const GeoNodeExecParams &params,
-                                RandomNumberGenerator &rng)
+                                const int seed)
 {
   const bNode &node = params.node();
   const CustomDataType data_type = static_cast<CustomDataType>(node.custom1);
@@ -116,24 +154,26 @@ static void randomize_attribute(GeometryComponent &component,
     return;
   }
 
+  Array<int> hashes = get_element_hashes(component, domain, attribute->size());
+
   switch (data_type) {
     case CD_PROP_FLOAT: {
       FloatWriteAttribute float_attribute = std::move(attribute);
       const float min_value = params.get_input<float>("Min_001");
       const float max_value = params.get_input<float>("Max_001");
-      randomize_attribute(float_attribute, min_value, max_value, rng);
+      randomize_attribute(float_attribute, min_value, max_value, hashes, seed);
       break;
     }
     case CD_PROP_FLOAT3: {
       Float3WriteAttribute float3_attribute = std::move(attribute);
       const float3 min_value = params.get_input<float3>("Min");
       const float3 max_value = params.get_input<float3>("Max");
-      randomize_attribute(float3_attribute, min_value, max_value, rng);
+      randomize_attribute(float3_attribute, min_value, max_value, hashes, seed);
       break;
     }
     case CD_PROP_BOOL: {
       BooleanWriteAttribute boolean_attribute = std::move(attribute);
-      randomize_attribute(boolean_attribute, rng);
+      randomize_attribute(boolean_attribute, hashes, seed);
       break;
     }
     default:
@@ -147,14 +187,10 @@ static void geo_node_random_attribute_exec(GeoNodeExecParams params)
   const int seed = params.get_input<int>("Seed");
 
   if (geometry_set.has<MeshComponent>()) {
-    RandomNumberGenerator rng;
-    rng.seed_random(seed);
-    randomize_attribute(geometry_set.get_component_for_write<MeshComponent>(), params, rng);
+    randomize_attribute(geometry_set.get_component_for_write<MeshComponent>(), params, seed);
   }
   if (geometry_set.has<PointCloudComponent>()) {
-    RandomNumberGenerator rng;
-    rng.seed_random(seed + 3245231);
-    randomize_attribute(geometry_set.get_component_for_write<PointCloudComponent>(), params, rng);
+    randomize_attribute(geometry_set.get_component_for_write<PointCloudComponent>(), params, seed);
   }
 
   params.set_output("Geometry", geometry_set);

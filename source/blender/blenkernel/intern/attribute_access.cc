@@ -660,6 +660,28 @@ ReadAttributePtr GeometryComponent::attribute_try_get_for_read(
   return attribute;
 }
 
+ReadAttributePtr GeometryComponent::attribute_try_get_for_read(const StringRef attribute_name,
+                                                               const AttributeDomain domain) const
+{
+  if (!this->attribute_domain_supported(domain)) {
+    return {};
+  }
+
+  ReadAttributePtr attribute = this->attribute_try_get_for_read(attribute_name);
+  if (!attribute) {
+    return {};
+  }
+
+  if (attribute->domain() != domain) {
+    attribute = this->attribute_try_adapt_domain(std::move(attribute), domain);
+    if (!attribute) {
+      return {};
+    }
+  }
+
+  return attribute;
+}
+
 ReadAttributePtr GeometryComponent::attribute_get_for_read(const StringRef attribute_name,
                                                            const AttributeDomain domain,
                                                            const CustomDataType data_type,

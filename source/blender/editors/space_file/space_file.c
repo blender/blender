@@ -803,16 +803,25 @@ static int /*eContextResult*/ file_context(const bContext *C,
 
   if (CTX_data_equals(member, "active_file")) {
     FileDirEntry *file = filelist_file(sfile->files, params->active_file);
+    if (file == NULL) {
+      return CTX_RESULT_NO_DATA;
+    }
+
     CTX_data_pointer_set(result, &screen->id, &RNA_FileSelectEntry, file);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "id")) {
     const FileDirEntry *file = filelist_file(sfile->files, params->active_file);
+    if (file == NULL) {
+      return CTX_RESULT_NO_DATA;
+    }
 
     ID *id = filelist_file_get_id(file);
-    if (id) {
-      CTX_data_id_pointer_set(result, id);
+    if (id == NULL) {
+      return CTX_RESULT_NO_DATA;
     }
+
+    CTX_data_id_pointer_set(result, id);
     return CTX_RESULT_OK;
   }
 

@@ -39,6 +39,7 @@ void register_node_type_geo_attribute_randomize(void);
 void register_node_type_geo_attribute_math(void);
 void register_node_type_geo_join_geometry(void);
 void register_node_type_geo_attribute_mix(void);
+void register_node_type_geo_attribute_color_ramp(void);
 
 #ifdef __cplusplus
 }
