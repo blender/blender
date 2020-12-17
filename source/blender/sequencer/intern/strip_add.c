@@ -121,6 +121,7 @@ Sequence *BKE_sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
   char file_path[FILE_MAX];
   BLI_join_dirfile(file_path, sizeof(file_path), seq_load->path, seq_load->name);
+  BLI_path_abs(file_path, BKE_main_blendfile_path(CTX_data_main(C)));
   ImBuf *ibuf = IMB_loadiffname(file_path, IB_rect, seq->strip->colorspace_settings.name);
   if (ibuf != NULL) {
     SEQ_set_scale_to_fit(seq, ibuf->x, ibuf->y, scene->r.xsch, scene->r.ysch, seq_load->fit_method);
