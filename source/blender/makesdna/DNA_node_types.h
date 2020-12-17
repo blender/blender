@@ -1085,6 +1085,17 @@ typedef struct NodeAttributeCompare {
   char _pad[5];
 } NodeAttributeCompare;
 
+typedef struct NodeAttributeMath {
+  /* e.g. NODE_MATH_ADD. */
+  uint8_t operation;
+
+  /* GeometryNodeAttributeInputMode */
+  uint8_t input_type_a;
+  uint8_t input_type_b;
+
+  char _pad[5];
+} NodeAttributeMath;
+
 typedef struct NodeAttributeMix {
   /* e.g. MA_RAMP_BLEND. */
   uint8_t blend_type;
@@ -1498,11 +1509,6 @@ typedef enum GeometryNodeTriangulateQuads {
   GEO_NODE_TRIANGULATE_QUAD_ALTERNATE = 2,
   GEO_NODE_TRIANGULATE_QUAD_SHORTEDGE = 3,
 } GeometryNodeTriangulateQuads;
-
-typedef enum GeometryNodeUseAttributeFlag {
-  GEO_NODE_USE_ATTRIBUTE_A = (1 << 0),
-  GEO_NODE_USE_ATTRIBUTE_B = (1 << 1),
-} GeometryNodeUseAttributeFlag;
 
 typedef enum GeometryNodePointInstanceType {
   GEO_NODE_POINT_INSTANCE_TYPE_OBJECT = 0,

@@ -426,18 +426,6 @@ static const EnumPropertyItem rna_node_geometry_triangulate_ngon_method_items[] 
     {0, NULL, 0, NULL, NULL},
 };
 
-static const EnumPropertyItem rna_node_geometry_attribute_input_a_items[] = {
-    {0, "FLOAT", 0, "Float", ""},
-    {GEO_NODE_USE_ATTRIBUTE_A, "ATTRIBUTE", 0, "Attribute", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static const EnumPropertyItem rna_node_geometry_attribute_input_b_items[] = {
-    {0, "FLOAT", 0, "Float", ""},
-    {GEO_NODE_USE_ATTRIBUTE_B, "ATTRIBUTE", 0, "Attribute", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
 #  define ITEM_ATTRIBUTE \
     { \
       GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE, "ATTRIBUTE", 0, "Attribute", "" \
@@ -8454,8 +8442,10 @@ static void def_geo_attribute_math(StructRNA *srna)
 {
   PropertyRNA *prop;
 
+  RNA_def_struct_sdna_from(srna, "NodeAttributeMath", "storage");
+
   prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_sdna(prop, NULL, "operation");
   RNA_def_property_enum_items(prop, rna_enum_node_math_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeMath_operation_itemf");
   RNA_def_property_enum_default(prop, NODE_MATH_ADD);
@@ -8463,14 +8453,14 @@ static void def_geo_attribute_math(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "input_type_a", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "custom2");
-  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_a_items);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "input_type_a");
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_float);
   RNA_def_property_ui_text(prop, "Input Type A", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "input_type_b", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "custom2");
-  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_b_items);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "input_type_b");
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_float);
   RNA_def_property_ui_text(prop, "Input Type B", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
