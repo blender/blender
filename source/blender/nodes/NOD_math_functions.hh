@@ -36,6 +36,7 @@ struct FloatMathOperationInfo {
 };
 
 const FloatMathOperationInfo *get_float_math_operation_info(const int operation);
+const FloatMathOperationInfo *get_float_compare_operation_info(const int operation);
 
 /**
  * This calls the `callback` with two arguments:
@@ -193,6 +194,39 @@ inline bool try_dispatch_float_math_fl_fl_fl_to_fl(const int operation, Callback
       return dispatch([](float a, float b, float c) { return -smoothminf(-a, -b, -c); });
     case NODE_MATH_WRAP:
       return dispatch([](float a, float b, float c) { return wrapf(a, b, c); });
+  }
+  return false;
+}
+
+/**
+ * This is similar to try_dispatch_float_math_fl_to_fl, just with a different callback signature.
+ */
+template<typename Callback>
+inline bool try_dispatch_float_math_fl_fl_to_bool(const FloatCompareOperation operation,
+                                                  Callback &&callback)
+{
+  const FloatMathOperationInfo *info = get_float_compare_operation_info(operation);
+  if (info == nullptr) {
+    return false;
+  }
+
+  /* This is just an utility function to keep the individual cases smaller. */
+  auto dispatch = [&](auto math_function) -> bool {
+    callback(math_function, *info);
+    return true;
+  };
+
+  switch (operation) {
+    case NODE_FLOAT_COMPARE_LESS_THAN:
+      return dispatch([](float a, float b) { return a < b; });
+    case NODE_FLOAT_COMPARE_LESS_EQUAL:
+      return dispatch([](float a, float b) { return a <= b; });
+    case NODE_FLOAT_COMPARE_GREATER_THAN:
+      return dispatch([](float a, float b) { return a > b; });
+    case NODE_FLOAT_COMPARE_GREATER_EQUAL:
+      return dispatch([](float a, float b) { return a >= b; });
+    default:
+      return false;
   }
   return false;
 }

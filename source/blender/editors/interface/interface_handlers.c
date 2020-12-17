@@ -5861,7 +5861,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
     if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
       ColorPicker *cpicker = but->custom_data;
       float hsv_static[3] = {0.0f};
-      float *hsv = cpicker ? cpicker->color_data : hsv_static;
+      float *hsv = cpicker ? cpicker->hsv_perceptual : hsv_static;
       float col[3];
 
       ui_but_v3_get(but, col);
@@ -6089,7 +6089,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
 {
   const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
   ColorPicker *cpicker = but->custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
   float rgb[3];
   float x, y;
   float mx_fl, my_fl;
@@ -6107,7 +6107,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
 #endif
 
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
+  ui_scene_linear_to_perceptual_space(but, rgb);
 
   ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
 
@@ -6120,7 +6120,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
 
     /* calculate original hsv again */
     copy_v3_v3(rgb, data->origvec);
-    ui_scene_linear_to_color_picker_space(but, rgb);
+    ui_scene_linear_to_perceptual_space(but, rgb);
 
     copy_v3_v3(hsvo, hsv);
 
@@ -6183,7 +6183,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   }
 
   ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, hsv, rgb);
-  ui_color_picker_to_scene_linear_space(but, rgb);
+  ui_perceptual_to_scene_linear_space(but, rgb);
 
   /* clamp because with color conversion we can exceed range T34295. */
   if (hsv_but->gradient_type == UI_GRAD_V_ALT) {
@@ -6206,13 +6206,13 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
                                     const bool shift)
 {
   ColorPicker *cpicker = hsv_but->but.custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
   const float hsv_v_max = max_ff(hsv[2], hsv_but->but.softmax);
   float rgb[3];
   const float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
 
   ui_but_v3_get(&hsv_but->but, rgb);
-  ui_scene_linear_to_color_picker_space(&hsv_but->but, rgb);
+  ui_scene_linear_to_perceptual_space(&hsv_but->but, rgb);
   ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
 
   switch (hsv_but->gradient_type) {
@@ -6261,7 +6261,7 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
   hsv_clamp_v(hsv, hsv_v_max);
 
   ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, hsv, rgb);
-  ui_color_picker_to_scene_linear_space(&hsv_but->but, rgb);
+  ui_perceptual_to_scene_linear_space(&hsv_but->but, rgb);
 
   copy_v3_v3(data->vec, rgb);
   ui_but_v3_set(&hsv_but->but, data->vec);
@@ -6318,7 +6318,7 @@ static int ui_do_but_HSVCUBE(
           float rgb[3], def_hsv[3];
           float def[4];
           ColorPicker *cpicker = but->custom_data;
-          float *hsv = cpicker->color_data;
+          float *hsv = cpicker->hsv_perceptual;
 
           RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
           ui_rgb_to_color_picker_HSVCUBE_v(hsv_but, def, def_hsv);
@@ -6374,7 +6374,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
 {
   const bool changed = true;
   ColorPicker *cpicker = but->custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
 
   float mx_fl, my_fl;
   ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
@@ -6400,8 +6400,8 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
 
   float rgb[3];
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
-  ui_rgb_to_color_picker_compat_v(rgb, hsv);
+  ui_scene_linear_to_perceptual_space(but, rgb);
+  ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 
   /* exception, when using color wheel in 'locked' value state:
    * allow choosing a hue for black values, by giving a tiny increment */
@@ -6428,8 +6428,8 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
     /* calculate original hsv again */
     copy_v3_v3(hsvo, hsv);
     copy_v3_v3(rgbo, data->origvec);
-    ui_scene_linear_to_color_picker_space(but, rgbo);
-    ui_rgb_to_color_picker_compat_v(rgbo, hsvo);
+    ui_scene_linear_to_perceptual_space(but, rgbo);
+    ui_color_picker_rgb_to_hsv_compat(rgbo, hsvo);
 
     /* and original position */
     ui_hsvcircle_pos_from_vals(cpicker, &rect, hsvo, &xpos, &ypos);
@@ -6448,7 +6448,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
     ui_color_snap_hue(snap, &hsv[0]);
   }
 
-  ui_color_picker_to_rgb_v(hsv, rgb);
+  ui_color_picker_hsv_to_rgb(hsv, rgb);
 
   if ((cpicker->use_luminosity_lock)) {
     if (!is_zero_v3(rgb)) {
@@ -6456,7 +6456,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
     }
   }
 
-  ui_color_picker_to_scene_linear_space(but, rgb);
+  ui_perceptual_to_scene_linear_space(but, rgb);
   ui_but_v3_set(but, rgb);
 
   data->draglastx = mx;
@@ -6473,14 +6473,14 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
                                       const bool shift)
 {
   ColorPicker *cpicker = but->custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
   float rgb[3];
   float phi, r /*, sqr */ /* UNUSED */, v[2];
   const float sensitivity = (shift ? 0.06f : 0.3f) * ndof->dt;
 
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
-  ui_rgb_to_color_picker_compat_v(rgb, hsv);
+  ui_scene_linear_to_perceptual_space(but, rgb);
+  ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 
   /* Convert current color on hue/sat disc to circular coordinates phi, r */
   phi = fmodf(hsv[0] + 0.25f, 1.0f) * -2.0f * (float)M_PI;
@@ -6530,7 +6530,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
 
   hsv_clamp_v(hsv, FLT_MAX);
 
-  ui_color_picker_to_rgb_v(hsv, data->vec);
+  ui_color_picker_hsv_to_rgb(hsv, data->vec);
 
   if (cpicker->use_luminosity_lock) {
     if (!is_zero_v3(data->vec)) {
@@ -6538,7 +6538,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
     }
   }
 
-  ui_color_picker_to_scene_linear_space(but, data->vec);
+  ui_perceptual_to_scene_linear_space(but, data->vec);
   ui_but_v3_set(but, data->vec);
 }
 #endif /* WITH_INPUT_NDOF */
@@ -6547,7 +6547,7 @@ static int ui_do_but_HSVCIRCLE(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   ColorPicker *cpicker = but->custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
   int mx = event->x;
   int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
@@ -6594,10 +6594,10 @@ static int ui_do_but_HSVCIRCLE(
         def = MEM_callocN(sizeof(float) * len, "reset_defaults - float");
 
         RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
-        ui_color_picker_to_rgb_v(def, def_hsv);
+        ui_color_picker_hsv_to_rgb(def, def_hsv);
 
         ui_but_v3_get(but, rgb);
-        ui_rgb_to_color_picker_compat_v(rgb, hsv);
+        ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 
         def_hsv[0] = hsv[0];
         def_hsv[2] = hsv[2];

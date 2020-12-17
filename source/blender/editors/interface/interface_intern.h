@@ -378,11 +378,20 @@ typedef struct uiButExtraOpIcon {
 
 typedef struct ColorPicker {
   struct ColorPicker *next, *prev;
-  /** Color data, may be HSV or HSL. */
-  float color_data[3];
-  /** Initial color data (detect changes). */
-  float color_data_init[3];
+
+  /** Color in HSV or HSL, in color picking color space. Used for HSV cube,
+   * circle and slider widgets. The color picking space is perceptually
+   * linear for intuitive editing. */
+  float hsv_perceptual[3];
+  /** Initial color data (to detect changes). */
+  float hsv_perceptual_init[3];
   bool is_init;
+
+  /** HSV or HSL color in scene linear color space value used for number
+   * buttons. This is scene linear so that there is a clear correspondence
+   * to the scene linear RGB values. */
+  float hsv_scene_linear[3];
+
   /** Cubic saturation for the color wheel. */
   bool use_color_cubic;
   bool use_color_lock;
@@ -734,15 +743,14 @@ struct uiPopupBlockHandle {
 /* exposed as public API in UI_interface.h */
 
 /* interface_region_color_picker.c */
-void ui_rgb_to_color_picker_compat_v(const float rgb[3], float r_cp[3]);
-void ui_rgb_to_color_picker_v(const float rgb[3], float r_cp[3]);
-void ui_color_picker_to_rgb_v(const float r_cp[3], float rgb[3]);
-void ui_color_picker_to_rgb(float r_cp0, float r_cp1, float r_cp2, float *r, float *g, float *b);
+void ui_color_picker_rgb_to_hsv_compat(const float rgb[3], float r_cp[3]);
+void ui_color_picker_rgb_to_hsv(const float rgb[3], float r_cp[3]);
+void ui_color_picker_hsv_to_rgb(const float r_cp[3], float rgb[3]);
 
 bool ui_but_is_color_gamma(uiBut *but);
 
-void ui_scene_linear_to_color_picker_space(uiBut *but, float rgb[3]);
-void ui_color_picker_to_scene_linear_space(uiBut *but, float rgb[3]);
+void ui_scene_linear_to_perceptual_space(uiBut *but, float rgb[3]);
+void ui_perceptual_to_scene_linear_space(uiBut *but, float rgb[3]);
 
 uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
 ColorPicker *ui_block_colorpicker_create(struct uiBlock *block);

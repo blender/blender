@@ -116,4 +116,34 @@ const FloatMathOperationInfo *get_float_math_operation_info(const int operation)
   return nullptr;
 }
 
+const FloatMathOperationInfo *get_float_compare_operation_info(const int operation)
+{
+
+#define RETURN_OPERATION_INFO(title_case_name, shader_name) \
+  { \
+    static const FloatMathOperationInfo info{title_case_name, shader_name}; \
+    return &info; \
+  } \
+  ((void)0)
+
+  switch (operation) {
+    case NODE_FLOAT_COMPARE_LESS_THAN:
+      RETURN_OPERATION_INFO("Less Than", "math_less_than");
+    case NODE_FLOAT_COMPARE_LESS_EQUAL:
+      RETURN_OPERATION_INFO("Less Than or Equal", "math_less_equal");
+    case NODE_FLOAT_COMPARE_GREATER_THAN:
+      RETURN_OPERATION_INFO("Greater Than", "math_greater_than");
+    case NODE_FLOAT_COMPARE_GREATER_EQUAL:
+      RETURN_OPERATION_INFO("Greater Than or Equal", "math_greater_equal");
+    case NODE_FLOAT_COMPARE_EQUAL:
+      RETURN_OPERATION_INFO("Equal", "math_equal");
+    case NODE_FLOAT_COMPARE_NOT_EQUAL:
+      RETURN_OPERATION_INFO("Not Equal", "math_not_equal");
+  }
+
+#undef RETURN_OPERATION_INFO
+
+  return nullptr;
+}
+
 }  // namespace blender::nodes

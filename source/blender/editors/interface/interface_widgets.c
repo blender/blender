@@ -2906,12 +2906,12 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   const bool is_color_gamma = ui_but_is_color_gamma(but);
 
   /* Initialize for compatibility. */
-  copy_v3_v3(hsv, cpicker->color_data);
+  copy_v3_v3(hsv, cpicker->hsv_perceptual);
 
   /* Compute current hue. */
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
-  ui_rgb_to_color_picker_compat_v(rgb, hsv);
+  ui_scene_linear_to_perceptual_space(but, rgb);
+  ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 
   CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
 
@@ -2928,8 +2928,8 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   }
 
   const float hsv_center[3] = {0.0f, 0.0f, hsv[2]};
-  ui_color_picker_to_rgb_v(hsv_center, rgb_center);
-  ui_color_picker_to_scene_linear_space(but, rgb_center);
+  ui_color_picker_hsv_to_rgb(hsv_center, rgb_center);
+  ui_perceptual_to_scene_linear_space(but, rgb_center);
 
   if (!is_color_gamma) {
     ui_block_cm_to_display_space_v3(but->block, rgb_center);
@@ -2956,8 +2956,8 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
         rect, centx + co * radius, centy + si * radius, hsv_ang, hsv_ang + 1);
     hsv_ang[2] = hsv[2];
 
-    ui_color_picker_to_rgb_v(hsv_ang, rgb_ang);
-    ui_color_picker_to_scene_linear_space(but, rgb_ang);
+    ui_color_picker_hsv_to_rgb(hsv_ang, rgb_ang);
+    ui_perceptual_to_scene_linear_space(but, rgb_ang);
 
     if (!is_color_gamma) {
       ui_block_cm_to_display_space_v3(but->block, rgb_ang);
@@ -2987,10 +2987,10 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   GPU_line_smooth(false);
 
   /* cursor */
-  copy_v3_v3(hsv, cpicker->color_data);
+  copy_v3_v3(hsv, cpicker->hsv_perceptual);
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
-  ui_rgb_to_color_picker_compat_v(rgb, hsv);
+  ui_scene_linear_to_perceptual_space(but, rgb);
+  ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 
   float xpos, ypos;
   ui_hsvcircle_pos_from_vals(cpicker, rect, hsv, &xpos, &ypos);
@@ -3212,14 +3212,14 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   float rgb[3];
   float x = 0.0f, y = 0.0f;
   ColorPicker *cpicker = but->custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
   float hsv_n[3];
 
   /* Initialize for compatibility. */
   copy_v3_v3(hsv_n, hsv);
 
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
+  ui_scene_linear_to_perceptual_space(but, rgb);
   rgb_to_hsv_compat_v(rgb, hsv_n);
 
   ui_draw_gradient(rect, hsv_n, hsv_but->gradient_type, 1.0f);
@@ -3251,7 +3251,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   float rgb[3], hsv[3], v;
 
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
+  ui_scene_linear_to_perceptual_space(but, rgb);
 
   if (hsv_but->gradient_type == UI_GRAD_L_ALT) {
     rgb_to_hsl_v(rgb, hsv);
