@@ -378,11 +378,20 @@ typedef struct uiButExtraOpIcon {
 
 typedef struct ColorPicker {
   struct ColorPicker *next, *prev;
-  /** Color data, may be HSV or HSL. */
+
+  /** Color in HSV or HSL, in color picking color space. Used for HSV cube,
+   * circle and slider widgets. The color picking space is perceptually
+   * linear for intuitive editing. */
   float color_data[3];
-  /** Initial color data (detect changes). */
+  /** Initial color data (to detect changes). */
   float color_data_init[3];
   bool is_init;
+
+  /** HSV or HSL color in scene linear color space value used for number
+   * buttons. This is scene linear so that there is a clear correspondence
+   * to the scene linear RGB values. */
+  float hsv[3];
+
   /** Cubic saturation for the color wheel. */
   bool use_color_cubic;
   bool use_color_lock;
