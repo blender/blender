@@ -194,6 +194,7 @@ struct SequencerToolSettings *SEQ_tool_settings_copy(struct SequencerToolSetting
 struct Editing *BKE_sequencer_editing_get(struct Scene *scene, bool alloc);
 struct Editing *BKE_sequencer_editing_ensure(struct Scene *scene);
 void BKE_sequencer_editing_free(struct Scene *scene, const bool do_id_user);
+struct ListBase *SEQ_active_seqbase_get(const struct Editing *ed);
 void BKE_sequencer_sort(struct Scene *scene);
 struct Sequence *BKE_sequencer_from_elem(ListBase *seqbase, struct StripElem *se);
 struct Sequence *BKE_sequencer_active_get(struct Scene *scene);

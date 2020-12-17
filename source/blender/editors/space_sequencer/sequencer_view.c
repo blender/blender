@@ -90,11 +90,7 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   const Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-  if (ed == NULL) {
-    return OPERATOR_FINISHED;
-  }
-
-  SEQ_timeline_boundbox(scene, ed->seqbasep, &box);
+  SEQ_timeline_boundbox(scene, SEQ_active_seqbase_get(ed), &box);
   UI_view2d_smooth_view(C, region, &box, smooth_viewtx);
   return OPERATOR_FINISHED;
 }

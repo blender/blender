@@ -361,28 +361,26 @@ float BKE_sequence_get_fps(Scene *scene, Sequence *seq)
  */
 void SEQ_timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *rect)
 {
-  float min[2], max[2];
-  min[0] = scene->r.sfra;
-  max[0] = scene->r.efra + 1;
-  min[1] = 0.0;
-  max[1] = 8.0;
+  rect->xmin = scene->r.sfra;
+  rect->xmax = scene->r.efra + 1;
+  rect->ymin = 0.0f;
+  rect->ymax = 8.0f;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (min[0] > seq->startdisp - 1) {
-      min[0] = seq->startdisp - 1;
-    }
-    if (max[0] < seq->enddisp + 1) {
-      max[0] = seq->enddisp + 1;
-    }
-    if (max[1] < seq->machine + 2) {
-      max[1] = seq->machine + 2;
-    }
+  if (seqbase == NULL) {
+    return;
   }
 
-  rect->xmin = min[0];
-  rect->xmax = max[0];
-  rect->ymin = min[1];
-  rect->ymax = max[1];
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (rect->xmin > seq->startdisp - 1) {
+      rect->xmin = seq->startdisp - 1;
+    }
+    if (rect->xmax < seq->enddisp + 1) {
+      rect->xmax = seq->enddisp + 1;
+    }
+    if (rect->ymax < seq->machine + 2) {
+      rect->ymax = seq->machine + 2;
+    }
+  }
 }
 
 /**
