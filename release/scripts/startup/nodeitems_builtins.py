@@ -502,6 +502,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeObjectInfo"),
         NodeItem("FunctionNodeRandomFloat"),
         NodeItem("ShaderNodeValue"),
+        NodeItem("FunctionNodeInputVector"),
     ]),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=[
         NodeItem("GeometryNodeTriangulate"),

@@ -3289,6 +3289,12 @@ static void node_function_buts_switch(uiLayout *layout, bContext *UNUSED(C), Poi
   uiItemR(layout, ptr, "data_type", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
+static void node_function_buts_input_vector(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col = uiLayoutColumn(layout, true);
+  uiItemR(col, ptr, "vector", UI_ITEM_R_EXPAND, "", ICON_NONE);
+}
+
 static void node_function_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -3300,6 +3306,9 @@ static void node_function_set_butfunc(bNodeType *ntype)
       break;
     case FN_NODE_SWITCH:
       ntype->draw_buttons = node_function_buts_switch;
+      break;
+    case FN_NODE_INPUT_VECTOR:
+      ntype->draw_buttons = node_function_buts_input_vector;
       break;
   }
 }

@@ -1369,6 +1369,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_COMBINE_STRINGS 1204
 #define FN_NODE_OBJECT_TRANSFORMS 1205
 #define FN_NODE_RANDOM_FLOAT 1206
+#define FN_NODE_INPUT_VECTOR 1207
 
 /** \} */
 
