@@ -495,7 +495,6 @@ geometry_node_categories = [
     ]),
     GeometryNodeCategory("GEO_GEOMETRY", "Geometry", items=[
         NodeItem("GeometryNodeTransform"),
-        NodeItem("GeometryNodeBoolean"),
         NodeItem("GeometryNodeJoinGeometry"),
     ]),
     GeometryNodeCategory("GEO_INPUT", "Input", items=[
@@ -505,6 +504,7 @@ geometry_node_categories = [
         NodeItem("FunctionNodeInputVector"),
     ]),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=[
+        NodeItem("GeometryNodeBoolean"),
         NodeItem("GeometryNodeTriangulate"),
         NodeItem("GeometryNodeEdgeSplit"),
         NodeItem("GeometryNodeSubdivisionSurface"),
