@@ -263,6 +263,8 @@ typedef struct bNode {
   short custom1, custom2;
   float custom3, custom4;
 
+  char _pad1[4];
+
   /** Entire boundbox (worldspace). */
   rctf totr;
   /** Optional buttons area. */
