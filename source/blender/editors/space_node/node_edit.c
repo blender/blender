@@ -854,7 +854,7 @@ static void edit_node_properties_get(
 /* is rct in visible part of node? */
 static bNode *visible_node(SpaceNode *snode, const rctf *rct)
 {
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  LISTBASE_FOREACH_BACKWARD (bNode *, node, &snode->edittree->nodes) {
     if (BLI_rctf_isect(&node->totr, rct, NULL)) {
       return node;
     }
