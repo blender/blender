@@ -1167,16 +1167,21 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
  * \{ */
 
 static bool ui_but_event_operator_string_from_operator(const bContext *C,
-                                                       uiBut *but,
+                                                       wmOperatorCallParams *op_call_params,
                                                        char *buf,
                                                        const size_t buf_len)
 {
-  BLI_assert(but->optype != NULL);
+  BLI_assert(op_call_params->optype != NULL);
   bool found = false;
-  IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+  IDProperty *prop = (op_call_params->opptr) ? op_call_params->opptr->data : NULL;
 
-  if (WM_key_event_operator_string(
-          C, but->optype->idname, but->opcontext, prop, true, buf, buf_len)) {
+  if (WM_key_event_operator_string(C,
+                                   op_call_params->optype->idname,
+                                   op_call_params->opcontext,
+                                   prop,
+                                   true,
+                                   buf,
+                                   buf_len)) {
     found = true;
   }
   return found;
@@ -1253,15 +1258,22 @@ static bool ui_but_event_operator_string_from_panel(const bContext *C,
   return found;
 }
 
-static bool ui_but_event_operator_string(const bContext *C,
-                                         uiBut *but,
-                                         char *buf,
-                                         const size_t buf_len)
+static bool ui_but_event_operator_string(
+    const bContext *C, uiBut *but, uiButExtraOpIcon *extra_icon, char *buf, const size_t buf_len)
 {
   bool found = false;
+  wmOperatorType *extra_icon_optype = UI_but_extra_operator_icon_optype_get(extra_icon);
 
-  if (but->optype != NULL) {
-    found = ui_but_event_operator_string_from_operator(C, but, buf, buf_len);
+  if (extra_icon_optype) {
+    found = ui_but_event_operator_string_from_operator(C, extra_icon->optype_params, buf, buf_len);
+  }
+  else if (but->optype != NULL) {
+    found = ui_but_event_operator_string_from_operator(
+        C,
+        &(wmOperatorCallParams){
+            .optype = but->optype, .opptr = but->opptr, .opcontext = but->opcontext},
+        buf,
+        buf_len);
   }
   else if (UI_but_menutype_get(but) != NULL) {
     found = ui_but_event_operator_string_from_menu(C, but, buf, buf_len);
@@ -1564,7 +1576,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
         continue;
       }
 
-      if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
+      if (ui_but_event_operator_string(C, but, NULL, buf, sizeof(buf))) {
         ui_but_add_shortcut(but, buf, false);
       }
       else if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
@@ -1605,12 +1617,12 @@ typedef enum PredefinedExtraOpIconType {
   PREDEFINED_EXTRA_OP_ICON_EYEDROPPER,
 } PredefinedExtraOpIconType;
 
-static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
-                                                      wmOperatorType *optype,
-                                                      short opcontext,
-                                                      int icon)
+static uiButExtraOpIcon *ui_but_extra_operator_icon_add_ptr(uiBut *but,
+                                                            wmOperatorType *optype,
+                                                            short opcontext,
+                                                            int icon)
 {
-  uiButExtraOpIcon *extra_op_icon = MEM_mallocN(sizeof(*extra_op_icon), __func__);
+  uiButExtraOpIcon *extra_op_icon = MEM_callocN(sizeof(*extra_op_icon), __func__);
 
   extra_op_icon->icon = (BIFIconID)icon;
   extra_op_icon->optype_params = MEM_callocN(sizeof(*extra_op_icon->optype_params),
@@ -1625,13 +1637,15 @@ static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
 
   BLI_addtail(&but->extra_op_icons, extra_op_icon);
 
-  return extra_op_icon->optype_params->opptr;
+  return extra_op_icon;
 }
 
 static void ui_but_extra_operator_icon_free(uiButExtraOpIcon *extra_icon)
 {
-  WM_operator_properties_free(extra_icon->optype_params->opptr);
-  MEM_freeN(extra_icon->optype_params->opptr);
+  if (extra_icon->optype_params->opptr) {
+    WM_operator_properties_free(extra_icon->optype_params->opptr);
+    MEM_freeN(extra_icon->optype_params->opptr);
+  }
   MEM_freeN(extra_icon->optype_params);
   MEM_freeN(extra_icon);
 }
@@ -1644,18 +1658,25 @@ void ui_but_extra_operator_icons_free(uiBut *but)
   BLI_listbase_clear(&but->extra_op_icons);
 }
 
-PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
-                                           const char *opname,
-                                           short opcontext,
-                                           int icon)
+uiButExtraOpIcon *UI_but_extra_operator_icon_add(uiBut *but,
+                                                 const char *opname,
+                                                 short opcontext,
+                                                 int icon)
 {
   wmOperatorType *optype = WM_operatortype_find(opname, false);
 
-  if (optype) {
-    return ui_but_extra_operator_icon_add_ptr(but, optype, opcontext, icon);
-  }
+  BLI_assert(optype);
+  return ui_but_extra_operator_icon_add_ptr(but, optype, opcontext, icon);
+}
 
-  return NULL;
+PointerRNA *UI_but_extra_operator_icon_opptr_get(uiButExtraOpIcon *extra_icon)
+{
+  return extra_icon->optype_params->opptr;
+}
+
+wmOperatorType *UI_but_extra_operator_icon_optype_get(uiButExtraOpIcon *extra_icon)
+{
+  return extra_icon ? extra_icon->optype_params->optype : NULL;
 }
 
 static bool ui_but_icon_extra_is_visible_text_clear(const uiBut *but)
@@ -6818,7 +6839,7 @@ void UI_but_func_hold_set(uiBut *but, uiButHandleHoldFunc func, void *argN)
   but->hold_argN = argN;
 }
 
-void UI_but_string_info_get(bContext *C, uiBut *but, ...)
+void UI_but_string_info_get(bContext *C, uiBut *but, uiButExtraOpIcon *extra_icon, ...)
 {
   va_list args;
   uiStringInfo *si;
@@ -6827,13 +6848,19 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
   int totitems;
   bool free_items = false;
 
-  va_start(args, but);
+  wmOperatorType *extra_icon_optype = UI_but_extra_operator_icon_optype_get(extra_icon);
+  wmOperatorType *optype = extra_icon ? extra_icon_optype : but->optype;
+
+  /* Don't query RNA data when the extra-icon overrides the button. */
+  PropertyRNA *rnaprop = extra_icon ? NULL : but->rnaprop;
+
+  va_start(args, extra_icon);
   while ((si = (uiStringInfo *)va_arg(args, void *))) {
     uiStringInfoType type = si->type;
     char *tmp = NULL;
 
     if (type == BUT_GET_LABEL) {
-      if (but->str && but->str[0]) {
+      if (but->str && but->str[0] && !extra_icon) {
         const char *str_sep;
         size_t str_len;
 
@@ -6863,16 +6890,16 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
     }
 
     if (type == BUT_GET_RNAPROP_IDENTIFIER) {
-      if (but->rnaprop) {
-        tmp = BLI_strdup(RNA_property_identifier(but->rnaprop));
+      if (rnaprop) {
+        tmp = BLI_strdup(RNA_property_identifier(rnaprop));
       }
     }
     else if (type == BUT_GET_RNASTRUCT_IDENTIFIER) {
-      if (but->rnaprop && but->rnapoin.data) {
+      if (rnaprop && but->rnapoin.data) {
         tmp = BLI_strdup(RNA_struct_identifier(but->rnapoin.type));
       }
-      else if (but->optype) {
-        tmp = BLI_strdup(but->optype->idname);
+      else if (optype) {
+        tmp = BLI_strdup(optype->idname);
       }
       else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN)) {
         MenuType *mt = UI_but_menutype_get(but);
@@ -6888,23 +6915,25 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       }
     }
     else if (ELEM(type, BUT_GET_RNA_LABEL, BUT_GET_RNA_TIP)) {
-      if (but->rnaprop) {
+      if (rnaprop) {
         if (type == BUT_GET_RNA_LABEL) {
-          tmp = BLI_strdup(RNA_property_ui_name(but->rnaprop));
+          tmp = BLI_strdup(RNA_property_ui_name(rnaprop));
         }
         else {
-          const char *t = RNA_property_ui_description(but->rnaprop);
+          const char *t = RNA_property_ui_description(rnaprop);
           if (t && t[0]) {
             tmp = BLI_strdup(t);
           }
         }
       }
-      else if (but->optype) {
+      else if (optype) {
+        PointerRNA *opptr = extra_icon_optype ? UI_but_extra_operator_icon_opptr_get(extra_icon) :
+                                                but->opptr;
         if (type == BUT_GET_RNA_LABEL) {
-          tmp = BLI_strdup(WM_operatortype_name(but->optype, but->opptr));
+          tmp = BLI_strdup(WM_operatortype_name(optype, opptr));
         }
         else {
-          tmp = WM_operatortype_description(C, but->optype, but->opptr);
+          tmp = WM_operatortype_description(C, optype, opptr);
         }
       }
       else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER)) {
@@ -6956,11 +6985,11 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
     }
     else if (type == BUT_GET_RNA_LABEL_CONTEXT) {
       const char *_tmp = BLT_I18NCONTEXT_DEFAULT;
-      if (but->rnaprop) {
-        _tmp = RNA_property_translation_context(but->rnaprop);
+      if (rnaprop) {
+        _tmp = RNA_property_translation_context(rnaprop);
       }
-      else if (but->optype) {
-        _tmp = RNA_struct_translation_context(but->optype->srna);
+      else if (optype) {
+        _tmp = RNA_struct_translation_context(optype->srna);
       }
       else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN)) {
         MenuType *mt = UI_but_menutype_get(but);
@@ -6979,16 +7008,16 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       int value = 0;
 
       /* get the enum property... */
-      if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
+      if (rnaprop && RNA_property_type(rnaprop) == PROP_ENUM) {
         /* enum property */
         ptr = &but->rnapoin;
-        prop = but->rnaprop;
+        prop = rnaprop;
         value = (ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_TAB)) ? (int)but->hardmax :
                                                                 (int)ui_but_value_get(but);
       }
-      else if (but->optype) {
-        PointerRNA *opptr = UI_but_operator_ptr_get(but);
-        wmOperatorType *ot = but->optype;
+      else if (optype) {
+        PointerRNA *opptr = extra_icon_optype ? UI_but_extra_operator_icon_opptr_get(extra_icon) :
+                                                UI_but_operator_ptr_get(but);
 
         /* so the context is passed to itemf functions */
         WM_operator_properties_sanitize(opptr, false);
@@ -6998,11 +7027,11 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
          * operator menus in the Anim Editors will show tooltips for the different
          * operations instead of the meaningless generic operator tooltip
          */
-        if (ot->prop && RNA_property_type(ot->prop) == PROP_ENUM) {
-          if (RNA_struct_contains_property(opptr, ot->prop)) {
+        if (optype->prop && RNA_property_type(optype->prop) == PROP_ENUM) {
+          if (RNA_struct_contains_property(opptr, optype->prop)) {
             ptr = opptr;
-            prop = ot->prop;
-            value = RNA_property_enum_get(opptr, ot->prop);
+            prop = optype->prop;
+            value = RNA_property_enum_get(opptr, optype->prop);
           }
         }
       }
@@ -7035,7 +7064,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
     else if (type == BUT_GET_OP_KEYMAP) {
       if (!ui_block_is_menu(but->block)) {
         char buf[128];
-        if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
+        if (ui_but_event_operator_string(C, but, extra_icon, buf, sizeof(buf))) {
           tmp = BLI_strdup(buf);
         }
       }

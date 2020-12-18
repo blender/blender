@@ -334,6 +334,7 @@ typedef struct uiHandleButtonData {
   int retval;
   /* booleans (could be made into flags) */
   bool cancel, escapecancel;
+  bool skip_undo_push;
   bool applied, applied_interactive;
   bool changed_cursor;
   wmTimer *flashtimer;
@@ -820,7 +821,9 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 /* typically call ui_apply_but_undo(), ui_apply_but_autokey() */
 static void ui_apply_but_undo(uiBut *but)
 {
-  if (but->flag & UI_BUT_UNDO) {
+  const bool force_skip_undo = (but->active && but->active->skip_undo_push);
+
+  if (but->flag & UI_BUT_UNDO && !force_skip_undo) {
     const char *str = NULL;
     size_t str_len_clip = SIZE_MAX - 1;
     bool skip_undo = false;
@@ -2866,7 +2869,8 @@ void ui_but_active_string_clear_and_exit(bContext *C, uiBut *but)
   but->active->str[0] = 0;
 
   ui_apply_but_TEX(C, but, but->active);
-  button_activate_state(C, but, BUTTON_STATE_EXIT);
+  /* use onfree event so undo is handled by caller and apply is already done above */
+  button_activate_exit((bContext *)C, but, but->active, false, true);
 }
 
 static void ui_textedit_string_ensure_max_length(uiBut *but, uiHandleButtonData *data, int maxlen)
@@ -4011,16 +4015,38 @@ static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
   ED_region_tag_redraw(data->region);
 }
 
-static void ui_but_extra_operator_icon_apply(bContext *C, uiBut *but, uiButExtraOpIcon *op_icon)
+static void ui_but_extra_operator_icon_apply_func(uiBut *but, uiButExtraOpIcon *op_icon)
 {
-  if (but->active->interactive) {
-    ui_apply_but(C, but->block, but, but->active, true);
+  if (ui_afterfunc_check(but->block, but)) {
+    uiAfterFunc *after = ui_afterfunc_new();
+
+    after->optype = op_icon->optype_params->optype;
+    after->opcontext = op_icon->optype_params->opcontext;
+    after->opptr = op_icon->optype_params->opptr;
+
+    if (but->context) {
+      after->context = CTX_store_copy(but->context);
+    }
+
+    /* Ownership moved, don't let the UI code free it. */
+    op_icon->optype_params->opptr = NULL;
   }
+}
+
+static void ui_but_extra_operator_icon_apply(bContext *C,
+                                             uiBut *but,
+                                             uiHandleButtonData *data,
+                                             uiButExtraOpIcon *op_icon)
+{
   button_activate_state(C, but, BUTTON_STATE_EXIT);
-  WM_operator_name_call_ptr(C,
-                            op_icon->optype_params->optype,
-                            op_icon->optype_params->opcontext,
-                            op_icon->optype_params->opptr);
+  ui_apply_but(C, but->block, but, data, true);
+
+  data->postbut = but;
+  data->posttype = BUTTON_ACTIVATE_OVER;
+  /* Leave undo up to the operator. */
+  data->skip_undo_push = true;
+
+  ui_but_extra_operator_icon_apply_func(but, op_icon);
 
   /* Force recreation of extra operator icons (pseudo update). */
   ui_but_extra_operator_icons_free(but);
@@ -4219,7 +4245,7 @@ static bool ui_do_but_extra_operator_icon(bContext *C,
   ED_region_tag_redraw(data->region);
   button_tooltip_timer_reset(C, but);
 
-  ui_but_extra_operator_icon_apply(C, but, op_icon);
+  ui_but_extra_operator_icon_apply(C, but, data, op_icon);
   /* Note: 'but', 'data' may now be freed, don't access. */
 
   return true;
@@ -7854,7 +7880,10 @@ static ARegion *ui_but_tooltip_init(
   uiBut *but = UI_region_active_but_get(region);
   *r_exit_on_event = false;
   if (but) {
-    return UI_tooltip_create_from_button(C, region, but, is_label);
+    uiButExtraOpIcon *extra_icon = ui_but_extra_operator_icon_mouse_over_get(
+        but, but->active, CTX_wm_window(C)->eventstate);
+
+    return UI_tooltip_create_from_button_or_extra_icon(C, region, but, extra_icon, is_label);
   }
   return NULL;
 }

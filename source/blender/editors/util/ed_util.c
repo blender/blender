@@ -485,27 +485,6 @@ void ED_spacedata_id_remap(struct ScrArea *area, struct SpaceLink *sl, ID *old_i
   }
 }
 
-static int ed_flush_edits_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Main *bmain = CTX_data_main(C);
-  ED_editors_flush_edits(bmain);
-  return OPERATOR_FINISHED;
-}
-
-void ED_OT_flush_edits(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Flush Edits";
-  ot->description = "Flush edit data from active editing modes";
-  ot->idname = "ED_OT_flush_edits";
-
-  /* api callbacks */
-  ot->exec = ed_flush_edits_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_INTERNAL;
-}
-
 static bool lib_id_preview_editing_poll(bContext *C)
 {
   const PointerRNA idptr = CTX_data_pointer_get(C, "id");
