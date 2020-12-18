@@ -346,7 +346,7 @@ static void nla_panel_stripname(const bContext *C, Panel *panel)
 
   uiItemR(row, &strip_ptr, "name", 0, "", ICON_NLA);
 
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
   uiItemR(row, &strip_ptr, "mute", 0, "", ICON_NONE);
   UI_block_emboss_set(block, UI_EMBOSS);
 }

@@ -2915,7 +2915,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
   }
   else {
     /* enabled */
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
+    UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
     uiItemR(layout, &ptr, "mute", 0, "", 0);
     UI_block_emboss_set(block, UI_EMBOSS);
 
