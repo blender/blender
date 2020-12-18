@@ -5485,8 +5485,8 @@ uiLayout *UI_block_layout(uiBlock *block,
   layout->y = y;
   layout->root = root;
   layout->space = style->templatespace;
-  layout->active = 1;
-  layout->enabled = 1;
+  layout->active = true;
+  layout->enabled = true;
   layout->context = NULL;
   layout->emboss = UI_EMBOSS_UNDEFINED;
 
