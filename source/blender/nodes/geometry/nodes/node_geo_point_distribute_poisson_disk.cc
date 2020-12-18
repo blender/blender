@@ -27,8 +27,8 @@
 
 #include "node_geometry_util.hh"
 
+#include <cstring>
 #include <iostream>
-#include <string.h>
 
 namespace blender::nodes {
 

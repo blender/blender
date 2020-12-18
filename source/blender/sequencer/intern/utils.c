@@ -578,6 +578,4 @@ void SEQ_set_scale_to_fit(const Sequence *seq,
       transform->scale_y = 1.0f;
       break;
   }
-
-  return;
 }

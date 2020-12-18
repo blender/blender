@@ -156,7 +156,7 @@ class FairingContext {
                        loop_weight);
   }
 
-  void fair_vertices_ex(bool *affected,
+  void fair_vertices_ex(const bool *affected,
                         const int order,
                         VertexWeight *vertex_weight,
                         LoopWeight *loop_weight)
@@ -240,15 +240,15 @@ class MeshFairingContext : public FairingContext {
     }
   }
 
-  ~MeshFairingContext()
+  ~MeshFairingContext() override
   {
     MEM_SAFE_FREE(vlmap_);
     MEM_SAFE_FREE(vlmap_mem_);
   }
 
-  virtual void adjacents_coords_from_loop(const int loop,
-                                          float r_adj_next[3],
-                                          float r_adj_prev[3]) override
+  void adjacents_coords_from_loop(const int loop,
+                                  float r_adj_next[3],
+                                  float r_adj_prev[3]) override
   {
     const int vert = mloop_[loop].v;
     const MPoly *p = &mpoly_[loop_to_poly_map_[loop]];
@@ -257,7 +257,7 @@ class MeshFairingContext : public FairingContext {
     copy_v3_v3(r_adj_prev, co_[ME_POLY_LOOP_PREV(mloop_, p, corner)->v]);
   }
 
-  virtual int other_vertex_index_from_loop(const int loop, const unsigned int v) override
+  int other_vertex_index_from_loop(const int loop, const unsigned int v) override
   {
     MEdge *e = &medge_[mloop_[loop].e];
     if (e->v1 == v) {
@@ -318,21 +318,21 @@ class BMeshFairingContext : public FairingContext {
     }
   }
 
-  ~BMeshFairingContext()
+  ~BMeshFairingContext() override
   {
     MEM_SAFE_FREE(vlmap_);
     MEM_SAFE_FREE(vlmap_mem_);
   }
 
-  virtual void adjacents_coords_from_loop(const int loop,
-                                          float r_adj_next[3],
-                                          float r_adj_prev[3]) override
+  void adjacents_coords_from_loop(const int loop,
+                                  float r_adj_next[3],
+                                  float r_adj_prev[3]) override
   {
     copy_v3_v3(r_adj_next, bmloop_[loop]->next->v->co);
     copy_v3_v3(r_adj_prev, bmloop_[loop]->prev->v->co);
   }
 
-  virtual int other_vertex_index_from_loop(const int loop, const unsigned int v) override
+  int other_vertex_index_from_loop(const int loop, const unsigned int v) override
   {
     BMLoop *l = bmloop_[loop];
     BMVert *bmvert = BM_vert_at_index(bm, v);
