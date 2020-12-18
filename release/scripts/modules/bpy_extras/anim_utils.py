@@ -346,9 +346,7 @@ def bake_action_iter(
                 obj.keyframe_insert("rotation_axis_angle", index=-1, frame=f, group=name)
             else:  # euler, XYZ, ZXY etc
                 if euler_prev is not None:
-                    euler = obj.rotation_euler.copy()
-                    euler.make_compatible(euler_prev)
-                    obj.rotation_euler = euler
+                    obj.rotation_euler = matrix.to_euler(obj.rotation_mode, euler_prev)
                     euler_prev = euler
                     del euler
                 else:
