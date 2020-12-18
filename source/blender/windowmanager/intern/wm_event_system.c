@@ -212,11 +212,11 @@ static bool wm_test_duplicate_notifier(const wmWindowManager *wm, uint type, voi
   LISTBASE_FOREACH (wmNotifier *, note, &wm->queue) {
     if ((note->category | note->data | note->subtype | note->action) == type &&
         note->reference == reference) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint type, void *reference)
@@ -785,8 +785,8 @@ bool WM_operator_poll(bContext *C, wmOperatorType *ot)
   LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
     wmOperatorType *ot_macro = WM_operatortype_find(macro->idname, 0);
 
-    if (0 == WM_operator_poll(C, ot_macro)) {
-      return 0;
+    if (!WM_operator_poll(C, ot_macro)) {
+      return false;
     }
   }
 
@@ -798,7 +798,7 @@ bool WM_operator_poll(bContext *C, wmOperatorType *ot)
     return ot->poll(C);
   }
 
-  return 1;
+  return true;
 }
 
 /* sets up the new context and calls 'wm_operator_invoke()' with poll_only */
