@@ -1151,6 +1151,8 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
   GHOST_TInt32 x_screen, y_screen;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
+  GHOST_TabletData tabletData = GHOST_TABLET_DATA_NONE;
+
   if (window->m_tabletInRange || window->wintabSysButPressed()) {
     if (window->useTabletAPI(GHOST_kTabletWintab) &&
         processWintabEvent(
@@ -1164,8 +1166,13 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
       return NULL;
     }
 
-    /* If using Wintab but no button event is currently active,
-     * fall through to default handling. */
+    /* If using Wintab but no button event is currently active, fall through to default handling.
+     *
+     * Populate tablet data so that cursor is recognized as an absolute position device. */
+    tabletData.Active = GHOST_kTabletModeStylus;
+    tabletData.Pressure = 0.0f;
+    tabletData.Xtilt = 0.0f;
+    tabletData.Ytilt = 0.0f;
   }
 
   system->getCursorPosition(x_screen, y_screen);
@@ -1198,16 +1205,12 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
                                    window,
                                    x_screen + x_accum,
                                    y_screen + y_accum,
-                                   GHOST_TABLET_DATA_NONE);
+                                   tabletData);
     }
   }
   else {
-    return new GHOST_EventCursor(system->getMilliSeconds(),
-                                 GHOST_kEventCursorMove,
-                                 window,
-                                 x_screen,
-                                 y_screen,
-                                 GHOST_TABLET_DATA_NONE);
+    return new GHOST_EventCursor(
+        system->getMilliSeconds(), GHOST_kEventCursorMove, window, x_screen, y_screen, tabletData);
   }
   return NULL;
 }
