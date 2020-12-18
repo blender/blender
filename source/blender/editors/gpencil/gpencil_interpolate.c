@@ -483,13 +483,14 @@ static bool gpencil_interpolate_set_init_values(bContext *C, wmOperator *op, tGP
 
   /* set interpolation weight */
   tgpi->shift = RNA_float_get(op->ptr, "shift");
-  /* set layers */
-  gpencil_interpolate_set_points(C, tgpi);
 
   /* Untag strokes to be sure nothing is pending due any canceled process. */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &tgpi->gpd->layers) {
     gpencil_interpolate_untag_strokes(gpl);
   }
+
+  /* Set layers */
+  gpencil_interpolate_set_points(C, tgpi);
 
   return 1;
 }
