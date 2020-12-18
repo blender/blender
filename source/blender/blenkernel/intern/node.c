@@ -674,7 +674,6 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
   /* and we connect the rest */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     BLO_read_data_address(reader, &node->parent);
-    node->lasty = 0;
 
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       direct_link_node_socket(reader, sock);
