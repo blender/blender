@@ -1110,6 +1110,10 @@ typedef struct NodeAttributeColorRamp {
   ColorBand color_ramp;
 } NodeAttributeColorRamp;
 
+typedef struct NodeInputVector {
+  float vector[3];
+} NodeInputVector;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1

@@ -154,6 +154,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   /* TODO: Add relations for IDs in settings. */
+  /* TODO: Add dependency for collection changes. */
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -300,13 +301,28 @@ class GeometryNodesEvaluator {
   void execute_node(const DNode &node, GeoNodeExecParams params)
   {
     const bNode &bnode = params.node();
+
+    /* Use the geometry-node-execute callback if it exists. */
     if (bnode.typeinfo->geometry_node_execute != nullptr) {
       bnode.typeinfo->geometry_node_execute(params);
       return;
     }
 
-    /* Use the multi-function implementation of the node. */
-    const MultiFunction &fn = *mf_by_node_.lookup(&node);
+    /* Use the multi-function implementation if it exists. */
+    const MultiFunction *multi_function = mf_by_node_.lookup_default(&node, nullptr);
+    if (multi_function != nullptr) {
+      this->execute_multi_function_node(node, params, *multi_function);
+      return;
+    }
+
+    /* Just output default values if no implementation exists. */
+    this->execute_unknown_node(node, params);
+  }
+
+  void execute_multi_function_node(const DNode &node,
+                                   GeoNodeExecParams params,
+                                   const MultiFunction &fn)
+  {
     MFContextBuilder fn_context;
     MFParamsBuilder fn_params{fn, 1};
     Vector<GMutablePointer> input_data;
@@ -337,6 +353,16 @@ class GeometryNodesEvaluator {
         params.set_output_by_move(node.output(i).identifier(), value);
         value.destruct();
         output_index++;
+      }
+    }
+  }
+
+  void execute_unknown_node(const DNode &node, GeoNodeExecParams params)
+  {
+    for (const DOutputSocket *socket : node.outputs()) {
+      if (socket->is_available()) {
+        const CPPType &type = *blender::nodes::socket_cpp_type_get(*socket->typeinfo());
+        params.set_output_by_copy(socket->identifier(), {type, type.default_value()});
       }
     }
   }
@@ -1003,6 +1029,7 @@ static void panel_draw(const bContext *C, Panel *panel)
                ptr,
                "node_group",
                "node.new_geometry_node_group_assign",
+               nullptr,
                nullptr,
                nullptr,
                0,

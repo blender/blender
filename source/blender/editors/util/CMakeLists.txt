@@ -39,6 +39,7 @@ set(SRC
   ed_transverts.c
   ed_util.c
   ed_util_imbuf.c
+  ed_util_ops.c
   gizmo_utils.c
   numinput.c
   select_utils.c

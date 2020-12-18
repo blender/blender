@@ -133,7 +133,7 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
         row = layout.row()
 
         if ob:
-            row.template_ID(ob, "active_material", new="material.new")
+            row.template_ID(ob, "active_material", new="material.new", duplicate="material.duplicate")
 
             if slot:
                 icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'

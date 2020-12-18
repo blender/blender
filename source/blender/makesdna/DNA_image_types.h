@@ -151,12 +151,13 @@ typedef struct Image {
   int lastframe;
 
   /* GPU texture flag. */
+  /* Contains `ImagePartialRefresh`. */
+  ListBase gpu_refresh_areas;
   int gpuframenr;
   short gpuflag;
   short gpu_pass;
   short gpu_layer;
-  short gpu_slot;
-  char _pad2[4];
+  char _pad2[6];
 
   /** Deprecated. */
   struct PackedFile *packedfile DNA_DEPRECATED;
@@ -223,8 +224,10 @@ enum {
 enum {
   /** GPU texture needs to be refreshed. */
   IMA_GPU_REFRESH = (1 << 0),
+  /** GPU texture needs to be partially refreshed. */
+  IMA_GPU_PARTIAL_REFRESH = (1 << 1),
   /** All mipmap levels in OpenGL texture set? */
-  IMA_GPU_MIPMAP_COMPLETE = (1 << 1),
+  IMA_GPU_MIPMAP_COMPLETE = (1 << 2),
 };
 
 /* Image.source, where the image comes from */

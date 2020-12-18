@@ -237,7 +237,7 @@ void GPENCIL_OT_vertex_color_brightness_contrast(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Vertex Paint Bright/Contrast";
+  ot->name = "Vertex Paint Brightness/Contrast";
   ot->idname = "GPENCIL_OT_vertex_color_brightness_contrast";
   ot->description = "Adjust vertex color brightness/contrast";
 

@@ -686,6 +686,7 @@ static void do_versions_291_fcurve_handles_limit(FCurve *fcu)
   }
 }
 
+/* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   UNUSED_VARS(fd);

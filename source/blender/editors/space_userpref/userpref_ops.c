@@ -93,7 +93,7 @@ static int preferences_autoexec_add_exec(bContext *UNUSED(C), wmOperator *UNUSED
 
 static void PREFERENCES_OT_autoexec_path_add(wmOperatorType *ot)
 {
-  ot->name = "Add Autoexec Path";
+  ot->name = "Add Auto-Execution Path";
   ot->idname = "PREFERENCES_OT_autoexec_path_add";
   ot->description = "Add path to exclude from auto-execution";
 
@@ -121,7 +121,7 @@ static int preferences_autoexec_remove_exec(bContext *UNUSED(C), wmOperator *op)
 
 static void PREFERENCES_OT_autoexec_path_remove(wmOperatorType *ot)
 {
-  ot->name = "Remove Autoexec Path";
+  ot->name = "Remove Auto-Execution Path";
   ot->idname = "PREFERENCES_OT_autoexec_path_remove";
   ot->description = "Remove path to exclude from auto-execution";
 

@@ -66,7 +66,7 @@ template<typename Key> class GValueMap {
 
   /* Add a value to the container that is copy constructed from the given value. The caller remains
    * responsible for destructing and freeing the given value. */
-  template<typename ForwardKey> void add_new_by_copy(ForwardKey &&key, GMutablePointer value)
+  template<typename ForwardKey> void add_new_by_copy(ForwardKey &&key, GPointer value)
   {
     const CPPType &type = *value.type();
     void *buffer = allocator_.allocate(type.size(), type.alignment());

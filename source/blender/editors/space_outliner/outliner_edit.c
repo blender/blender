@@ -1253,8 +1253,7 @@ static void outliner_set_coordinates_element_recursive(SpaceOutliner *space_outl
   *starty -= UI_UNIT_Y;
 
   if (TSELEM_OPEN(tselem, space_outliner)) {
-    TreeElement *ten;
-    for (ten = te->subtree.first; ten; ten = ten->next) {
+    LISTBASE_FOREACH (TreeElement *, ten, &te->subtree) {
       outliner_set_coordinates_element_recursive(space_outliner, ten, startx + UI_UNIT_X, starty);
     }
   }
@@ -1753,7 +1752,7 @@ static void tree_element_to_path(TreeElement *te,
 {
   ListBase hierarchy = {NULL, NULL};
   LinkData *ld;
-  TreeElement *tem, *temnext, *temsub;
+  TreeElement *tem, *temnext;
   TreeStoreElem *tse /* , *tsenext */ /* UNUSED */;
   PointerRNA *ptr, *nextptr;
   PropertyRNA *prop;
@@ -1823,7 +1822,7 @@ static void tree_element_to_path(TreeElement *te,
             /* otherwise use index */
             int index = 0;
 
-            for (temsub = tem->subtree.first; temsub; temsub = temsub->next, index++) {
+            LISTBASE_FOREACH (TreeElement *, temsub, &tem->subtree) {
               if (temsub == temnext) {
                 break;
               }

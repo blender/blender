@@ -6331,7 +6331,7 @@ void RNA_def_userdef(BlenderRNA *brna)
   prop = RNA_def_property(srna, "autoexec_paths", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "autoexec_paths", NULL);
   RNA_def_property_struct_type(prop, "PathCompare");
-  RNA_def_property_ui_text(prop, "Autoexec Paths", "");
+  RNA_def_property_ui_text(prop, "Auto-Execution Paths", "");
   rna_def_userdef_autoexec_path_collection(brna, prop);
 
   /* nested structs */

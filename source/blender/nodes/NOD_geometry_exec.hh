@@ -44,6 +44,7 @@ using bke::WriteAttribute;
 using bke::WriteAttributePtr;
 using fn::CPPType;
 using fn::GMutablePointer;
+using fn::GPointer;
 using fn::GValueMap;
 
 class GeoNodeExecParams {
@@ -121,6 +122,16 @@ class GeoNodeExecParams {
     this->check_set_output(identifier, *value.type());
 #endif
     output_values_.add_new_by_move(identifier, value);
+  }
+
+  void set_output_by_copy(StringRef identifier, GPointer value)
+  {
+#ifdef DEBUG
+    BLI_assert(value.type() != nullptr);
+    BLI_assert(value.get() != nullptr);
+    this->check_set_output(identifier, *value.type());
+#endif
+    output_values_.add_new_by_copy(identifier, value);
   }
 
   /**

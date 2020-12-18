@@ -1521,6 +1521,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 
     UI_but_string_info_get(C,
                            but,
+                           NULL,
                            &but_label,
                            &rna_label,
                            &enum_label,
