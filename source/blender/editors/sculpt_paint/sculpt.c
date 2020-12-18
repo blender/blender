@@ -2466,12 +2466,10 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
      * across the symmetry axis and rotate it back to the original
      * position in order to project it. This insures that the
      * brush texture will be oriented correctly. */
-
-    flip_v3_v3(symm_point, point, cache->mirror_symmetry_pass);
-
     if (cache->radial_symmetry_pass) {
-      mul_m4_v3(cache->symm_rot_mat_inv, symm_point);
+      mul_m4_v3(cache->symm_rot_mat_inv, point);
     }
+    flip_v3_v3(symm_point, point, cache->mirror_symmetry_pass);
 
     ED_view3d_project_float_v2_m4(cache->vc->region, symm_point, point_2d, cache->projection_mat);
 
