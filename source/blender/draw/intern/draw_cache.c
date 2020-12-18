@@ -3542,7 +3542,7 @@ void drw_batch_cache_generate_requested(Object *ob)
       if (mesh_eval) {
         DRW_mesh_batch_cache_create_requested(ob, mesh_eval, scene, is_paint_mode, use_hide);
       }
-      DRW_curve_batch_cache_create_requested(ob);
+      DRW_curve_batch_cache_create_requested(ob, scene);
       break;
     /* TODO all cases */
     default:
