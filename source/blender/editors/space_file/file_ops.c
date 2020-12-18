@@ -967,7 +967,7 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
   ot->poll = ED_operator_file_active;
 
   /* properties */
-  prop = RNA_def_string(ot->srna, "dir", NULL, FILE_MAXDIR, "Dir", "");
+  prop = RNA_def_string(ot->srna, "dir", NULL, FILE_MAXDIR, "Directory", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

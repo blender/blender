@@ -187,7 +187,7 @@ class PREFERENCES_OT_copy_prev(Operator):
 
 
 class PREFERENCES_OT_keyconfig_test(Operator):
-    """Test key-config for conflicts"""
+    """Test key configuration for conflicts"""
     bl_idname = "preferences.keyconfig_test"
     bl_label = "Test Key Configuration for Conflicts"
 

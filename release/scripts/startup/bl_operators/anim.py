@@ -198,7 +198,7 @@ class ANIM_OT_keying_set_export(Operator):
 
 
 class NLA_OT_bake(Operator):
-    """Bake all selected objects loc/scale/rotation animation to an action"""
+    """Bake all selected objects location/scale/rotation animation to an action"""
     bl_idname = "nla.bake"
     bl_label = "Bake Action"
     bl_options = {'REGISTER', 'UNDO'}

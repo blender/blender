@@ -4240,7 +4240,7 @@ void rna_def_view_layer_common(StructRNA *srna, const bool scene)
   prop = RNA_def_property(srna, "use_ztransp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ZTRA);
   RNA_def_property_ui_text(
-      prop, "ZTransp", "Render Z-Transparent faces in this Layer (on top of Solid and Halos)");
+      prop, "Z-Transparent", "Render Z-transparent faces in this layer (on top of Solid and Halos)");
   if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
   }

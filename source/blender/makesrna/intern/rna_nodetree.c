@@ -5798,7 +5798,7 @@ static void def_cmp_alpha_over(StructRNA *srna)
   /* XXX: Tooltip */
   prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Convert Premul", "");
+  RNA_def_property_ui_text(prop, "Convert Premultiplied", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "NodeTwoFloats", "storage");
@@ -5806,7 +5806,7 @@ static void def_cmp_alpha_over(StructRNA *srna)
   prop = RNA_def_property(srna, "premul", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "x");
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Premul", "Mix Factor");
+  RNA_def_property_ui_text(prop, "Premultiplied", "Mix Factor");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -6622,7 +6622,7 @@ static void def_cmp_brightcontrast(StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Convert Premul", "Keep output image premultiplied alpha");
+  RNA_def_property_ui_text(prop, "Convert Premultiplied", "Keep output image premultiplied alpha");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -6682,7 +6682,7 @@ static void def_cmp_channel_matte(StructRNA *srna)
 
   static const EnumPropertyItem algorithm_items[] = {
       {0, "SINGLE", 0, "Single", "Limit by single channel"},
-      {1, "MAX", 0, "Max", "Limit by max of other channels"},
+      {1, "MAX", 0, "Max", "Limit by maximum of other channels"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -7077,8 +7077,8 @@ static void def_cmp_premul_key(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem type_items[] = {
-      {0, "STRAIGHT_TO_PREMUL", 0, "Straight to Premul", ""},
-      {1, "PREMUL_TO_STRAIGHT", 0, "Premul to Straight", ""},
+      {0, "STRAIGHT_TO_PREMUL", 0, "To Premultiplied", "Convert straight to premultiplied"},
+      {1, "PREMUL_TO_STRAIGHT", 0, "To Straight", "Convert premultiplied to straight"},
       {0, NULL, 0, NULL, NULL},
   };
 
