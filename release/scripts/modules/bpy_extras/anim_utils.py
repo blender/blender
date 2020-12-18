@@ -347,10 +347,7 @@ def bake_action_iter(
             else:  # euler, XYZ, ZXY etc
                 if euler_prev is not None:
                     obj.rotation_euler = matrix.to_euler(obj.rotation_mode, euler_prev)
-                    euler_prev = euler
-                    del euler
-                else:
-                    euler_prev = obj.rotation_euler.copy()
+                euler_prev = obj.rotation_euler.copy()
                 obj.keyframe_insert("rotation_euler", index=-1, frame=f, group=name)
 
             obj.keyframe_insert("scale", index=-1, frame=f, group=name)
