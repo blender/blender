@@ -23,6 +23,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_boxpack_2d.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
@@ -48,6 +49,16 @@
 /* Prototypes. */
 static void gpu_free_unused_buffers(void);
 static void image_free_gpu(Image *ima, const bool immediate);
+static void image_update_gputexture_ex(
+    Image *ima, ImageTile *tile, ImBuf *ibuf, int x, int y, int w, int h);
+
+/* Internal structs. */
+#define IMA_PARTIAL_REFRESH_TILE_SIZE 256
+typedef struct ImagePartialRefresh {
+  struct ImagePartialRefresh *next, *prev;
+  int tile_x;
+  int tile_y;
+} ImagePartialRefresh;
 
 /* Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied. */
 bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
@@ -299,19 +310,35 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
    * the current `pass` and `layer` should be 0. */
   short requested_pass = iuser ? iuser->pass : 0;
   short requested_layer = iuser ? iuser->layer : 0;
-  short requested_slot = ima->render_slot;
-  if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer ||
-      ima->gpu_slot != requested_slot) {
+  if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer) {
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
-    ima->gpu_slot = requested_slot;
     ima->gpuflag |= IMA_GPU_REFRESH;
   }
 
-  /* currently, gpu refresh tagging is used by ima sequences */
-  if (ima->gpuflag & IMA_GPU_REFRESH) {
+  /* Check if image has been updated and tagged to be updated (full or partial). */
+  ImageTile *tile = BKE_image_get_tile(ima, 0);
+  if (((ima->gpuflag & IMA_GPU_REFRESH) != 0) ||
+      ((ibuf == NULL || tile == NULL || !tile->ok) &&
+       ((ima->gpuflag & IMA_GPU_PARTIAL_REFRESH) != 0))) {
     image_free_gpu(ima, true);
-    ima->gpuflag &= ~IMA_GPU_REFRESH;
+    BLI_freelistN(&ima->gpu_refresh_areas);
+    ima->gpuflag &= ~(IMA_GPU_REFRESH | IMA_GPU_PARTIAL_REFRESH);
+  }
+  else if (ima->gpuflag & IMA_GPU_PARTIAL_REFRESH) {
+    BLI_assert(ibuf);
+    BLI_assert(tile && tile->ok);
+    ImagePartialRefresh *refresh_area;
+    while ((refresh_area = BLI_pophead(&ima->gpu_refresh_areas))) {
+      const int tile_offset_x = refresh_area->tile_x * IMA_PARTIAL_REFRESH_TILE_SIZE;
+      const int tile_offset_y = refresh_area->tile_y * IMA_PARTIAL_REFRESH_TILE_SIZE;
+      const int tile_width = MIN2(IMA_PARTIAL_REFRESH_TILE_SIZE, ibuf->x - tile_offset_x);
+      const int tile_height = MIN2(IMA_PARTIAL_REFRESH_TILE_SIZE, ibuf->y - tile_offset_y);
+      image_update_gputexture_ex(
+          ima, tile, ibuf, tile_offset_x, tile_offset_y, tile_width, tile_height);
+      MEM_freeN(refresh_area);
+    }
+    ima->gpuflag &= ~IMA_GPU_PARTIAL_REFRESH;
   }
 
   /* Tag as in active use for garbage collector. */
@@ -328,7 +355,6 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
 
   /* Check if we have a valid image. If not, we return a dummy
    * texture with zero bind-code so we don't keep trying. */
-  ImageTile *tile = BKE_image_get_tile(ima, 0);
   if (tile == NULL || tile->ok == 0) {
     *tex = image_gpu_texture_error_create(textarget);
     return *tex;
@@ -590,8 +616,8 @@ static void gpu_texture_update_scaled(GPUTexture *tex,
   }
   else {
     /* Partial update with scaling. */
-    int limit_w = smaller_power_of_2_limit(full_w);
-    int limit_h = smaller_power_of_2_limit(full_h);
+    int limit_w = GPU_texture_width(tex);
+    int limit_h = GPU_texture_height(tex);
 
     ibuf = update_do_scale(rect, rect_float, &x, &y, &w, &h, limit_w, limit_h, full_w, full_h);
   }
@@ -643,7 +669,7 @@ static void gpu_texture_update_from_ibuf(
     scaled = (ibuf->x != tilesize[0]) || (ibuf->y != tilesize[1]);
   }
   else {
-    scaled = is_over_resolution_limit(ibuf->x, ibuf->y);
+    scaled = (GPU_texture_width(tex) != ibuf->x) || (GPU_texture_height(tex) != ibuf->y);
   }
 
   if (scaled) {
@@ -746,18 +772,9 @@ static void gpu_texture_update_from_ibuf(
   GPU_texture_unbind(tex);
 }
 
-/* Partial update of texture for texture painting. This is often much
- * quicker than fully updating the texture for high resolution images. */
-void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
+static void image_update_gputexture_ex(
+    Image *ima, ImageTile *tile, ImBuf *ibuf, int x, int y, int w, int h)
 {
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
-  ImageTile *tile = BKE_image_get_tile_from_iuser(ima, iuser);
-
-  if ((ibuf == NULL) || (w == 0) || (h == 0)) {
-    /* Full reload of texture. */
-    BKE_image_free_gputextures(ima);
-  }
-
   GPUTexture *tex = ima->gputexture[TEXTARGET_2D][0];
   /* Check if we need to update the main gputexture. */
   if (tex != NULL && tile == ima->tiles.first) {
@@ -769,8 +786,97 @@ void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int
   if (tex != NULL) {
     gpu_texture_update_from_ibuf(tex, ima, ibuf, tile, x, y, w, h);
   }
+}
 
+/* Partial update of texture for texture painting. This is often much
+ * quicker than fully updating the texture for high resolution images. */
+void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
+{
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+  ImageTile *tile = BKE_image_get_tile_from_iuser(ima, iuser);
+
+  if ((ibuf == NULL) || (w == 0) || (h == 0)) {
+    /* Full reload of texture. */
+    BKE_image_free_gputextures(ima);
+  }
+  image_update_gputexture_ex(ima, tile, ibuf, x, y, w, h);
   BKE_image_release_ibuf(ima, ibuf, NULL);
+}
+
+/* Mark areas on the GPUTexture that needs to be updated. The areas are marked in chunks.
+ * The next time the GPUTexture is used these tiles will be refreshes. This saves time
+ * when writing to the same place multiple times This happens for during foreground
+ * rendering. */
+void BKE_image_update_gputexture_delayed(
+    struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h)
+{
+  /* Check for full refresh. */
+  if (ibuf && x == 0 && y == 0 && w == ibuf->x && h == ibuf->y) {
+    ima->gpuflag |= IMA_GPU_REFRESH;
+  }
+  /* Check if we can promote partial refresh to a full refresh. */
+  if ((ima->gpuflag & (IMA_GPU_REFRESH | IMA_GPU_PARTIAL_REFRESH)) ==
+      (IMA_GPU_REFRESH | IMA_GPU_PARTIAL_REFRESH)) {
+    ima->gpuflag &= ~IMA_GPU_PARTIAL_REFRESH;
+    BLI_freelistN(&ima->gpu_refresh_areas);
+  }
+  /* Image is already marked for complete refresh. */
+  if (ima->gpuflag & IMA_GPU_REFRESH) {
+    return;
+  }
+
+  /* Schedule the tiles that covers the requested area. */
+  const int start_tile_x = x / IMA_PARTIAL_REFRESH_TILE_SIZE;
+  const int start_tile_y = y / IMA_PARTIAL_REFRESH_TILE_SIZE;
+  const int end_tile_x = (x + w) / IMA_PARTIAL_REFRESH_TILE_SIZE;
+  const int end_tile_y = (y + h) / IMA_PARTIAL_REFRESH_TILE_SIZE;
+  const int num_tiles_x = (end_tile_x + 1) - (start_tile_x);
+  const int num_tiles_y = (end_tile_y + 1) - (start_tile_y);
+  const int num_tiles = num_tiles_x * num_tiles_y;
+  const bool allocate_on_heap = BLI_BITMAP_SIZE(num_tiles) > 16;
+  BLI_bitmap *requested_tiles = NULL;
+  if (allocate_on_heap) {
+    requested_tiles = BLI_BITMAP_NEW(num_tiles, __func__);
+  }
+  else {
+    requested_tiles = BLI_BITMAP_NEW_ALLOCA(num_tiles);
+  }
+
+  /* Mark the tiles that have already been requested. They don't need to be requested again. */
+  int num_tiles_not_scheduled = num_tiles;
+  LISTBASE_FOREACH (ImagePartialRefresh *, area, &ima->gpu_refresh_areas) {
+    if (area->tile_x < start_tile_x || area->tile_x > end_tile_x || area->tile_y < start_tile_y ||
+        area->tile_y > end_tile_y) {
+      continue;
+    }
+    int requested_tile_index = (area->tile_x - start_tile_x) +
+                               (area->tile_y - start_tile_y) * num_tiles_x;
+    BLI_BITMAP_ENABLE(requested_tiles, requested_tile_index);
+    num_tiles_not_scheduled--;
+    if (num_tiles_not_scheduled == 0) {
+      break;
+    }
+  }
+
+  /* Schedule the tiles that aren't requested yet. */
+  if (num_tiles_not_scheduled) {
+    int tile_index = 0;
+    for (int tile_y = start_tile_y; tile_y <= end_tile_y; tile_y++) {
+      for (int tile_x = start_tile_x; tile_x <= end_tile_x; tile_x++) {
+        if (!BLI_BITMAP_TEST_BOOL(requested_tiles, tile_index)) {
+          ImagePartialRefresh *area = MEM_mallocN(sizeof(ImagePartialRefresh), __func__);
+          area->tile_x = tile_x;
+          area->tile_y = tile_y;
+          BLI_addtail(&ima->gpu_refresh_areas, area);
+        }
+        tile_index++;
+      }
+    }
+    ima->gpuflag |= IMA_GPU_PARTIAL_REFRESH;
+  }
+  if (allocate_on_heap) {
+    MEM_freeN(requested_tiles);
+  }
 }
 
 /* these two functions are called on entering and exiting texture paint mode,

@@ -190,6 +190,7 @@ static void image_free_data(ID *id)
   BKE_previewimg_free(&image->preview);
 
   BLI_freelistN(&image->tiles);
+  BLI_freelistN(&image->gpu_refresh_areas);
 }
 
 static void image_foreach_cache(ID *id,
@@ -298,6 +299,8 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     tile->ok = IMA_OK;
   }
+  ima->gpuflag = 0;
+  BLI_listbase_clear(&ima->gpu_refresh_areas);
 }
 
 static void image_blend_read_lib(BlendLibReader *UNUSED(reader), ID *id)
@@ -3897,6 +3900,7 @@ RenderResult *BKE_image_acquire_renderresult(Scene *scene, Image *ima)
     }
     else {
       rr = BKE_image_get_renderslot(ima, ima->render_slot)->render;
+      ima->gpuflag |= IMA_GPU_REFRESH;
     }
 
     /* set proper views */

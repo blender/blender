@@ -29,6 +29,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_threads.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
@@ -121,72 +122,90 @@ typedef struct RenderJob {
 } RenderJob;
 
 /* called inside thread! */
+static bool image_buffer_calc_tile_rect(const RenderResult *rr,
+                                        const ImBuf *ibuf,
+                                        volatile rcti *renrect,
+                                        rcti *r_ibuf_rect,
+                                        int *r_offset_x,
+                                        int *r_offset_y)
+{
+  int tile_y, tile_height, tile_x, tile_width;
+
+  /* if renrect argument, we only refresh scanlines */
+  if (renrect) {
+    /* if (tile_height == recty), rendering of layer is ready,
+     * we should not draw, other things happen... */
+    if (rr->renlay == NULL || renrect->ymax >= rr->recty) {
+      return false;
+    }
+
+    /* tile_x here is first subrect x coord, tile_width defines subrect width */
+    tile_x = renrect->xmin;
+    tile_width = renrect->xmax - tile_x;
+    if (tile_width < 2) {
+      return false;
+    }
+
+    tile_y = renrect->ymin;
+    tile_height = renrect->ymax - tile_y;
+    if (tile_height < 2) {
+      return false;
+    }
+    renrect->ymin = renrect->ymax;
+  }
+  else {
+    tile_x = tile_y = 0;
+    tile_width = rr->rectx;
+    tile_height = rr->recty;
+  }
+
+  /* tile_x tile_y is in tile coords. transform to ibuf */
+  int offset_x = rr->tilerect.xmin;
+  if (offset_x >= ibuf->x) {
+    return false;
+  }
+  int offset_y = rr->tilerect.ymin;
+  if (offset_y >= ibuf->y) {
+    return false;
+  }
+
+  if (offset_x + tile_width > ibuf->x) {
+    tile_width = ibuf->x - offset_x;
+  }
+  if (offset_y + tile_height > ibuf->y) {
+    tile_height = ibuf->y - offset_y;
+  }
+
+  if (tile_width < 1 || tile_height < 1) {
+    return false;
+  }
+
+  r_ibuf_rect->xmax = tile_x + tile_width;
+  r_ibuf_rect->ymax = tile_y + tile_height;
+  r_ibuf_rect->xmin = tile_x;
+  r_ibuf_rect->ymin = tile_y;
+  *r_offset_x = offset_x;
+  *r_offset_y = offset_y;
+  return true;
+}
+
 static void image_buffer_rect_update(RenderJob *rj,
                                      RenderResult *rr,
                                      ImBuf *ibuf,
                                      ImageUser *iuser,
-                                     volatile rcti *renrect,
+                                     const rcti *tile_rect,
+                                     int offset_x,
+                                     int offset_y,
                                      const char *viewname)
 {
   Scene *scene = rj->scene;
   const float *rectf = NULL;
-  int ymin, ymax, xmin, xmax;
-  int rymin, rxmin;
   int linear_stride, linear_offset_x, linear_offset_y;
   ColorManagedViewSettings *view_settings;
   ColorManagedDisplaySettings *display_settings;
 
   if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
-    /* The whole image buffer it so be color managed again anyway. */
-    return;
-  }
-
-  /* if renrect argument, we only refresh scanlines */
-  if (renrect) {
-    /* if (ymax == recty), rendering of layer is ready,
-     * we should not draw, other things happen... */
-    if (rr->renlay == NULL || renrect->ymax >= rr->recty) {
-      return;
-    }
-
-    /* xmin here is first subrect x coord, xmax defines subrect width */
-    xmin = renrect->xmin;
-    xmax = renrect->xmax - xmin;
-    if (xmax < 2) {
-      return;
-    }
-
-    ymin = renrect->ymin;
-    ymax = renrect->ymax - ymin;
-    if (ymax < 2) {
-      return;
-    }
-    renrect->ymin = renrect->ymax;
-  }
-  else {
-    xmin = ymin = 0;
-    xmax = rr->rectx;
-    ymax = rr->recty;
-  }
-
-  /* xmin ymin is in tile coords. transform to ibuf */
-  rxmin = rr->tilerect.xmin;
-  if (rxmin >= ibuf->x) {
-    return;
-  }
-  rymin = rr->tilerect.ymin;
-  if (rymin >= ibuf->y) {
-    return;
-  }
-
-  if (rxmin + xmax > ibuf->x) {
-    xmax = ibuf->x - rxmin;
-  }
-  if (rymin + ymax > ibuf->y) {
-    ymax = ibuf->y - rymin;
-  }
-
-  if (xmax < 1 || ymax < 1) {
+    /* The whole image buffer is to be color managed again anyway. */
     return;
   }
 
@@ -230,10 +249,10 @@ static void image_buffer_rect_update(RenderJob *rj,
       return;
     }
 
-    rectf += 4 * (rr->rectx * ymin + xmin);
+    rectf += 4 * (rr->rectx * tile_rect->ymin + tile_rect->xmin);
     linear_stride = rr->rectx;
-    linear_offset_x = rxmin;
-    linear_offset_y = rymin;
+    linear_offset_x = offset_x;
+    linear_offset_y = offset_y;
   }
   else {
     rectf = ibuf->rect_float;
@@ -253,10 +272,10 @@ static void image_buffer_rect_update(RenderJob *rj,
                                     linear_offset_y,
                                     view_settings,
                                     display_settings,
-                                    rxmin,
-                                    rymin,
-                                    rxmin + xmax,
-                                    rymin + ymax);
+                                    offset_x,
+                                    offset_y,
+                                    offset_x + BLI_rcti_size_x(tile_rect),
+                                    offset_y + BLI_rcti_size_y(tile_rect));
 }
 
 /* ****************************** render invoking ***************** */
@@ -578,8 +597,16 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 
   /* update part of render */
   render_image_update_pass_and_layer(rj, rr, &rj->iuser);
+  rcti tile_rect;
+  int offset_x;
+  int offset_y;
   ibuf = BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);
   if (ibuf) {
+    if (!image_buffer_calc_tile_rect(rr, ibuf, renrect, &tile_rect, &offset_x, &offset_y)) {
+      BKE_image_release_ibuf(ima, ibuf, lock);
+      return;
+    }
+
     /* Don't waste time on CPU side color management if
      * image will be displayed using GLSL.
      *
@@ -589,9 +616,10 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
      */
     if (!rj->supports_glsl_draw || ibuf->channels == 1 ||
         ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL) {
-      image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, renrect, viewname);
+      image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, &tile_rect, offset_x, offset_y, viewname);
     }
-    ima->gpuflag |= IMA_GPU_REFRESH;
+    BKE_image_update_gputexture_delayed(
+        ima, ibuf, offset_x, offset_y, BLI_rcti_size_x(&tile_rect), BLI_rcti_size_y(&tile_rect));
 
     /* make jobs timer to send notifier */
     *(rj->do_update) = true;
