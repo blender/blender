@@ -154,6 +154,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   /* TODO: Add relations for IDs in settings. */
+  /* TODO: Add dependency for collection changes. */
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)

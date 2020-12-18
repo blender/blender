@@ -50,4 +50,7 @@ void poisson_disk_point_elimination(Vector<float3> const *input_points,
                                     float maximum_distance,
                                     float3 boundbox);
 
+Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &component,
+                                                  const AttributeDomain domain);
+
 }  // namespace blender::nodes

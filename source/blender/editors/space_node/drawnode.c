@@ -3196,6 +3196,9 @@ static void node_geometry_buts_point_instance(uiLayout *layout,
                                               PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "instance_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  if (RNA_enum_get(ptr, "instance_type") == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION) {
+    uiItemR(layout, ptr, "use_whole_collection", DEFAULT_FLAGS, NULL, ICON_NONE);
+  }
 }
 
 static void node_geometry_buts_attribute_fill(uiLayout *layout,

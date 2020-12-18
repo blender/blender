@@ -74,54 +74,57 @@ static float noise_from_index(const int seed, const int hash)
   return BLI_hash_int_01(combined_hash);
 }
 
-static void randomize_attribute(BooleanWriteAttribute &attribute, Span<int> hashes, const int seed)
+static void randomize_attribute(BooleanWriteAttribute &attribute,
+                                Span<uint32_t> hashes,
+                                const int seed)
 {
   MutableSpan<bool> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
-    const bool value = noise_from_index(seed, hashes[i]) > 0.5f;
+    const bool value = noise_from_index(seed, (int)hashes[i]) > 0.5f;
     attribute_span[i] = value;
   }
   attribute.apply_span();
 }
 
 static void randomize_attribute(
-    FloatWriteAttribute &attribute, float min, float max, Span<int> hashes, const int seed)
+    FloatWriteAttribute &attribute, float min, float max, Span<uint32_t> hashes, const int seed)
 {
   MutableSpan<float> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
-    const float value = noise_from_index(seed, hashes[i]) * (max - min) + min;
+    const float value = noise_from_index(seed, (int)hashes[i]) * (max - min) + min;
     attribute_span[i] = value;
   }
   attribute.apply_span();
 }
 
 static void randomize_attribute(
-    Float3WriteAttribute &attribute, float3 min, float3 max, Span<int> hashes, const int seed)
+    Float3WriteAttribute &attribute, float3 min, float3 max, Span<uint32_t> hashes, const int seed)
 {
   MutableSpan<float3> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
-    const float x = noise_from_index_and_mutator(seed, hashes[i], 47);
-    const float y = noise_from_index_and_mutator(seed, hashes[i], 8);
-    const float z = noise_from_index_and_mutator(seed, hashes[i], 64);
+    const float x = noise_from_index_and_mutator(seed, (int)hashes[i], 47);
+    const float y = noise_from_index_and_mutator(seed, (int)hashes[i], 8);
+    const float z = noise_from_index_and_mutator(seed, (int)hashes[i], 64);
     const float3 value = float3(x, y, z) * (max - min) + min;
     attribute_span[i] = value;
   }
   attribute.apply_span();
 }
 
-static Array<int> get_element_hashes(GeometryComponent &component,
-                                     const AttributeDomain domain,
-                                     const int attribute_size)
+Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &component,
+                                                  const AttributeDomain domain)
 {
+  const int domain_size = component.attribute_domain_size(domain);
+
   /* Hash the reserved name attribute "id" as a (hopefully) stable seed for each point. */
   ReadAttributePtr hash_attribute = component.attribute_try_get_for_read("id", domain);
-  Array<int> hashes(attribute_size);
+  Array<uint32_t> hashes(domain_size);
   if (hash_attribute) {
     BLI_assert(hashes.size() == hash_attribute->size());
     const CPPType &cpp_type = hash_attribute->cpp_type();
     fn::GSpan items = hash_attribute->get_span();
     for (const int i : hashes.index_range()) {
-      hashes[i] = (int)cpp_type.hash(items[i]);
+      hashes[i] = cpp_type.hash(items[i]);
     }
   }
   else {
@@ -129,7 +132,7 @@ static Array<int> get_element_hashes(GeometryComponent &component,
     RandomNumberGenerator rng;
     rng.seed(0);
     for (const int i : hashes.index_range()) {
-      hashes[i] = rng.get_int32();
+      hashes[i] = rng.get_uint32();
     }
   }
 
@@ -154,7 +157,7 @@ static void randomize_attribute(GeometryComponent &component,
     return;
   }
 
-  Array<int> hashes = get_element_hashes(component, domain, attribute->size());
+  Array<uint32_t> hashes = get_geometry_element_ids_as_uints(component, domain);
 
   switch (data_type) {
     case CD_PROP_FLOAT: {
