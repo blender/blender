@@ -1185,6 +1185,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
           }
           else {
             ModifierData *md = (ModifierData *)te->directdata;
+            BKE_object_modifier_set_active(ob, md);
 
             switch ((ModifierType)md->type) {
               case eModifierType_ParticleSystem:
