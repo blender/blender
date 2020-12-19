@@ -149,6 +149,7 @@ extern StructRNA RNA_CompositorNodeDilateErode;
 extern StructRNA RNA_CompositorNodeDisplace;
 extern StructRNA RNA_CompositorNodeDistanceMatte;
 extern StructRNA RNA_CompositorNodeDoubleEdgeMask;
+extern StructRNA RNA_CompositorNodeExposure;
 extern StructRNA RNA_CompositorNodeFilter;
 extern StructRNA RNA_CompositorNodeFlip;
 extern StructRNA RNA_CompositorNodeGamma;

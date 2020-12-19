@@ -172,7 +172,7 @@ struct uiLayout {
   /** For layouts inside gridflow, they and their items shall never have a fixed maximal size. */
   bool variable_size;
   char alignment;
-  char emboss;
+  eUIEmbossType emboss;
   /** for fixed width or height to avoid UI size changes */
   float units[2];
 };
@@ -1189,7 +1189,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
 
   const int w = ui_text_icon_width(layout, name, icon, 0);
 
-  const int prev_emboss = layout->emboss;
+  const eUIEmbossType prev_emboss = layout->emboss;
   if (flag & UI_ITEM_R_NO_BG) {
     layout->emboss = UI_EMBOSS_NONE;
   }
@@ -2120,7 +2120,7 @@ void uiItemFullR(uiLayout *layout,
   int w, h;
   ui_item_rna_size(layout, name, icon, ptr, prop, index, icon_only, compact, &w, &h);
 
-  const int prev_emboss = layout->emboss;
+  const eUIEmbossType prev_emboss = layout->emboss;
   if (no_bg) {
     layout->emboss = UI_EMBOSS_NONE;
   }
@@ -4914,7 +4914,7 @@ void uiLayoutSetUnitsY(uiLayout *layout, float unit)
   layout->units[1] = unit;
 }
 
-void uiLayoutSetEmboss(uiLayout *layout, char emboss)
+void uiLayoutSetEmboss(uiLayout *layout, eUIEmbossType emboss)
 {
   layout->emboss = emboss;
 }
@@ -4999,7 +4999,7 @@ float uiLayoutGetUnitsY(uiLayout *layout)
   return layout->units[1];
 }
 
-int uiLayoutGetEmboss(uiLayout *layout)
+eUIEmbossType uiLayoutGetEmboss(uiLayout *layout)
 {
   if (layout->emboss == UI_EMBOSS_UNDEFINED) {
     return layout->root->block->emboss;

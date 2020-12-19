@@ -73,6 +73,7 @@ set(SRC
   composite/nodes/node_composite_distanceMatte.c
   composite/nodes/node_composite_doubleEdgeMask.c
   composite/nodes/node_composite_ellipsemask.c
+  composite/nodes/node_composite_exposure.c
   composite/nodes/node_composite_filter.c
   composite/nodes/node_composite_flip.c
   composite/nodes/node_composite_gamma.c
