@@ -1423,7 +1423,7 @@ static void sculpt_gesture_project_begin(bContext *C, SculptGestureContext *sgco
   SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
                                                          sgcontext->operation;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
 
   if (project_operation->deformation_mode == SCULPT_GESTURE_PROJECT_DEFORM_FAIR) {
     const int totvert = SCULPT_vertex_count_get(sgcontext->ss);
@@ -1504,6 +1504,47 @@ static void project_gesture_tag_fairing_task_cb(void *__restrict userdata,
   }
 }
 
+static void project_gesture_project_fairing_boundary_task_cb(
+    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptGestureContext *sgcontext = userdata;
+  SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
+                                                         sgcontext->operation;
+  SculptSession *ss = sgcontext->ss;
+
+  PBVHNode *node = sgcontext->nodes[i];
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    bool project_vertex = false;
+    bool vertex_fairing_mask = project_operation->fairing_mask[vd.index];
+
+    if (!project_operation->fairing_mask[vd.index]) {
+      // continue;
+    }
+
+    SculptVertexNeighborIter ni;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+      if (project_operation->fairing_mask[ni.index] != vertex_fairing_mask) {
+        project_vertex = true;
+        break;
+      }
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    if (!project_vertex) {
+      continue;
+    }
+
+    closest_to_plane_v3(vd.co, sgcontext->line.plane, vd.co);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
 static void sculpt_gesture_project_apply_for_symmetry_pass(bContext *UNUSED(C),
                                                            SculptGestureContext *sgcontext)
 {
@@ -1521,6 +1562,16 @@ static void sculpt_gesture_project_apply_for_symmetry_pass(bContext *UNUSED(C),
     case SCULPT_GESTURE_PROJECT_DEFORM_FAIR:
       BLI_task_parallel_range(
           0, sgcontext->totnode, sgcontext, project_gesture_tag_fairing_task_cb, &settings);
+      if (sgcontext->shape_type == SCULPT_GESTURE_SHAPE_LINE) {
+        /* TODO: this needs to loop over all nodes to avoid artifacts. */
+        /*
+        BLI_task_parallel_range(0,
+                                sgcontext->totnode,
+                                sgcontext,
+                                project_gesture_project_fairing_boundary_task_cb,
+                                &settings);
+                                */
+      }
       break;
   }
 }
