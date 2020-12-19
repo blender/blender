@@ -40,7 +40,12 @@
 
 #include "strip_time.h"
 
+#include "SEQ_add.h"
+#include "SEQ_edit.h"
+#include "SEQ_effects.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
+#include "SEQ_transform.h"
 
 int SEQ_edit_sequence_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 {
@@ -124,7 +129,7 @@ static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, i
   }
 }
 
-void SEQ_sound_update_muting(Editing *ed)
+void SEQ_edit_update_muting(Editing *ed)
 {
   if (ed) {
     /* mute all sounds up to current metastack list */

@@ -44,7 +44,13 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
+#include "SEQ_effects.h"
+#include "SEQ_iterator.h"
+#include "SEQ_modifier.h"
+#include "SEQ_relations.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "image_cache.h"
 #include "prefetch.h"

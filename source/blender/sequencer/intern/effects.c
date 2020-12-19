@@ -59,7 +59,10 @@
 
 #include "RE_pipeline.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_effects.h"
+#include "SEQ_proxy.h"
+#include "SEQ_render.h"
+#include "SEQ_utils.h"
 
 #include "BLF_api.h"
 

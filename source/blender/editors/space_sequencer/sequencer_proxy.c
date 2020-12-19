@@ -34,6 +34,9 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+#include "SEQ_iterator.h"
+#include "SEQ_proxy.h"
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 
 #include "WM_api.h"

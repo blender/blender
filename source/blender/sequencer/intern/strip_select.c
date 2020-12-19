@@ -29,6 +29,7 @@
 
 #include "BKE_scene.h"
 
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
 Sequence *SEQ_select_active_get(Scene *scene)

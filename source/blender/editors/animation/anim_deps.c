@@ -50,6 +50,7 @@
 #include "RNA_access.h"
 
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "ED_anim_api.h"
 

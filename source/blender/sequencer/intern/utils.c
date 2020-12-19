@@ -42,7 +42,11 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
+#include "SEQ_iterator.h"
+#include "SEQ_relations.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

@@ -38,7 +38,9 @@
 
 #include "RNA_define.h"
 
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 /* For menu, popup, icons, etc. */
 #include "ED_anim_api.h"

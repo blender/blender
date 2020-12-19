@@ -51,6 +51,10 @@
 #  include "IMB_imbuf.h"
 #  include "IMB_imbuf_types.h"
 
+#  include "SEQ_add.h"
+#  include "SEQ_edit.h"
+#  include "SEQ_relations.h"
+#  include "SEQ_render.h"
 #  include "SEQ_sequencer.h"
 
 #  include "WM_api.h"

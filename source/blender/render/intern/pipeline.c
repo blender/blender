@@ -88,7 +88,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_relations.h"
+#include "SEQ_render.h"
 
 #include "../../windowmanager/WM_api.h"    /* XXX */
 #include "../../windowmanager/wm_window.h" /* XXX */

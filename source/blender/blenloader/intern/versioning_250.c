@@ -77,7 +77,7 @@
 #include "BKE_sound.h"
 #include "BKE_texture.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 #include "NOD_socket.h"
 

@@ -77,7 +77,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_render.h"
 
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"

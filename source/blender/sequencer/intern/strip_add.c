@@ -53,7 +53,13 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
+#include "SEQ_add.h"
+#include "SEQ_relations.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
+#include "SEQ_transform.h"
+#include "SEQ_utils.h"
 
 #include "multiview.h"
 #include "proxy.h"

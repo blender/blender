@@ -53,7 +53,8 @@
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_prefetch.h"
+#include "SEQ_render.h"
 
 #include "image_cache.h"
 #include "prefetch.h"

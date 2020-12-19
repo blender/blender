@@ -53,7 +53,7 @@
 
 #include "rna_internal.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_relations.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

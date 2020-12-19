@@ -68,6 +68,7 @@
 #include "BLO_read_write.h"
 
 #include "SEQ_sequencer.h"
+#include "SEQ_sound.h"
 
 static void sound_free_audio(bSound *sound);
 

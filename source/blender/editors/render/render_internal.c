@@ -83,7 +83,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_relations.h"
 
 #include "BLO_undofile.h"
 

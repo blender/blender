@@ -699,7 +699,9 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph_query.h"
 
+#  include "SEQ_relations.h"
 #  include "SEQ_sequencer.h"
+#  include "SEQ_sound.h"
 
 #  ifdef WITH_FREESTYLE
 #    include "FRS_freestyle.h"

@@ -64,7 +64,12 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#include "SEQ_effects.h"
+#include "SEQ_modifier.h"
+#include "SEQ_proxy.h"
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "effects.h"
 #include "image_cache.h"

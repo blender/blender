@@ -37,7 +37,7 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_clipboard.h"
 
 #include "sequencer.h"
 

@@ -56,6 +56,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "anim_intern.h"
 

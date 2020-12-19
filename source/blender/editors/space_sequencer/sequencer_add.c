@@ -50,7 +50,15 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "SEQ_add.h"
+#include "SEQ_effects.h"
+#include "SEQ_relations.h"
+#include "SEQ_render.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
+#include "SEQ_transform.h"
+#include "SEQ_utils.h"
 
 /* For menu, popup, icons, etc. */
 #include "ED_screen.h"

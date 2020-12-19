@@ -40,7 +40,7 @@
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "SEQ_sequencer.h"
+#  include "SEQ_relations.h"
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {

@@ -32,6 +32,7 @@ struct ListBase;
 struct Scene;
 struct SeqRenderData;
 struct Sequence;
+struct SeqEffectHandle;
 
 #define EARLY_NO_INPUT -1
 #define EARLY_DO_EFFECT 0
@@ -50,7 +51,7 @@ struct ImBuf *seq_render_give_ibuf_seqbase(const struct SeqRenderData *context,
                                            int chan_shown,
                                            struct ListBase *seqbasep);
 struct ImBuf *seq_render_effect_execute_threaded(struct SeqEffectHandle *sh,
-                                                 const SeqRenderData *context,
+                                                 const struct SeqRenderData *context,
                                                  struct Sequence *seq,
                                                  float timeline_frame,
                                                  float facf0,

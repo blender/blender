@@ -101,6 +101,7 @@
 #include "ED_markers.h"
 
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "UI_resources.h" /* for TH_KEYFRAME_SCALE lookup */
 

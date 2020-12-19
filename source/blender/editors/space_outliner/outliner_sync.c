@@ -46,7 +46,7 @@
 #include "ED_object.h"
 #include "ED_outliner.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_select.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -72,6 +72,7 @@
 #include "ED_sequencer.h"
 #include "ED_undo.h"
 
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
 #include "WM_api.h"

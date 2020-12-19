@@ -80,7 +80,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 #include "NOD_socket.h"
 

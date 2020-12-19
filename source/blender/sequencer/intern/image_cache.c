@@ -48,6 +48,9 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
+#include "SEQ_prefetch.h"
+#include "SEQ_relations.h"
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 
 #include "image_cache.h"

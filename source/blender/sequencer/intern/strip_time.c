@@ -36,7 +36,9 @@
 
 #include "IMB_imbuf.h"
 
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "strip_time.h"
 #include "utils.h"

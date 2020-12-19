@@ -35,7 +35,7 @@
 
 #include "BKE_scene.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 /* ************************* iterator ************************** */
 /* *************** (replaces old WHILE_SEQ) ********************* */

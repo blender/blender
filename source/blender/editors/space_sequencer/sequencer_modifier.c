@@ -34,6 +34,10 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "SEQ_iterator.h"
+#include "SEQ_modifier.h"
+#include "SEQ_relations.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
 /* Own include. */

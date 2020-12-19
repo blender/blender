@@ -97,7 +97,9 @@
 #include "BKE_unit.h"
 #include "BKE_workspace.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
+#include "SEQ_modifier.h"
+#include "SEQ_utils.h"
 
 /* Only for IMB_BlendMode */
 #include "IMB_imbuf.h"

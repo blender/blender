@@ -33,7 +33,11 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
+#include "SEQ_effects.h"
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
+#include "SEQ_transform.h"
 
 static int seq_tx_get_start(Sequence *seq)
 {

@@ -105,6 +105,9 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 
+#include "SEQ_clipboard.h"
+#include "SEQ_iterator.h"
+#include "SEQ_modifier.h"
 #include "SEQ_sequencer.h"
 
 #include "readfile.h"

@@ -66,7 +66,8 @@
 #include "BKE_tracking.h"
 #include "DNA_material_types.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_effects.h"
+#include "SEQ_iterator.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"

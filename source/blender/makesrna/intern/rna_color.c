@@ -60,7 +60,8 @@
 #  include "IMB_colormanagement.h"
 #  include "IMB_imbuf.h"
 
-#  include "SEQ_sequencer.h"
+#  include "SEQ_iterator.h"
+#  include "SEQ_relations.h"
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {

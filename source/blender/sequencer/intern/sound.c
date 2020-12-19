@@ -36,27 +36,10 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_sound.h"
+#include "SEQ_time.h"
 
 #include "strip_time.h"
-
-static void seq_sound_init(Scene *scene, Sequence *seq)
-{
-  if (seq->type == SEQ_TYPE_META) {
-    Sequence *seq_child;
-    for (seq_child = seq->seqbase.first; seq_child; seq_child = seq_child->next) {
-      seq_sound_init(scene, seq_child);
-    }
-  }
-  else {
-    if (seq->sound) {
-      seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene, seq);
-    }
-    if (seq->scene) {
-      seq->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene, seq);
-    }
-  }
-}
 
 /* Unlike _update_sound_ funcs, these ones take info from audaspace to update sequence length! */
 #ifdef WITH_AUDASPACE

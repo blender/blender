@@ -67,7 +67,9 @@
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
+#include "SEQ_modifier.h"
+#include "SEQ_utils.h"
 
 #ifdef WITH_FFMPEG
 #  include "BKE_writeffmpeg.h"

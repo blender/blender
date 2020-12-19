@@ -66,6 +66,8 @@
 
 #include "RNA_access.h"
 
+#include "SEQ_proxy.h"
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 
 #include "BLO_readfile.h"

@@ -109,7 +109,13 @@
 
 #include "RE_engine.h"
 
+#include "SEQ_edit.h"
+#include "SEQ_iterator.h"
+#include "SEQ_modifier.h"
+#include "SEQ_proxy.h"
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_sound.h"
 
 #include "BLO_read_write.h"
 
@@ -3733,6 +3739,6 @@ void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
     }
   }
   SEQ_ALL_END;
-  SEQ_sound_update_muting(scene->ed);
+  SEQ_edit_update_muting(scene->ed);
   SEQ_sound_update_bounds_all(scene);
 }
