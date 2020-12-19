@@ -212,7 +212,7 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
     return;
   }
 
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
 
   /* get strip name, and check if this strip is selected */
   char *seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
@@ -220,7 +220,7 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
     return;
   }
 
-  Sequence *seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, false);
+  Sequence *seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
   MEM_freeN(seq_name);
 
   if (seq == NULL) {

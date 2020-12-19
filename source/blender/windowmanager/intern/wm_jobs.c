@@ -556,7 +556,7 @@ void WM_jobs_kill_all(wmWindowManager *wm)
   }
 
   /* This job will be automatically restarted */
-  BKE_sequencer_prefetch_stop_all();
+  SEQ_prefetch_stop_all();
 }
 
 /* wait until every job ended, except for one owner (used in undo to keep screen job alive) */

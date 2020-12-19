@@ -283,7 +283,7 @@ typedef struct Editing {
 
   struct PrefetchJob *prefetch_job;
 
-  /* Must be initialized only by BKE_sequencer_cache_create() */
+  /* Must be initialized only by seq_cache_create() */
   int64_t disk_cache_timestamp;
 } Editing;
 

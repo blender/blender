@@ -38,12 +38,12 @@ struct Sequence;
  * **********************************************************************
  */
 
-struct SeqEffectHandle BKE_sequence_get_blend(struct Sequence *seq);
-void BKE_sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence *seq, bool force);
-float BKE_sequencer_speed_effect_target_frame_get(const struct SeqRenderData *context,
-                                                  struct Sequence *seq,
-                                                  float timeline_frame,
-                                                  int input);
+struct SeqEffectHandle seq_effect_get_sequence_blend(struct Sequence *seq);
+void seq_effect_speed_rebuild_map(struct Scene *scene, struct Sequence *seq, bool force);
+float seq_speed_effect_target_frame_get(const struct SeqRenderData *context,
+                                        struct Sequence *seq,
+                                        float timeline_frame,
+                                        int input);
 
 #ifdef __cplusplus
 }

@@ -37,35 +37,35 @@ struct Sequence;
 }
 #endif
 
-struct ImBuf *BKE_sequencer_cache_get(const struct SeqRenderData *context,
-                                      struct Sequence *seq,
-                                      float timeline_frame,
-                                      int type,
-                                      bool skip_disk_cache);
-void BKE_sequencer_cache_put(const struct SeqRenderData *context,
-                             struct Sequence *seq,
-                             float timeline_frame,
-                             int type,
-                             struct ImBuf *i,
-                             float cost,
-                             bool skip_disk_cache);
-bool BKE_sequencer_cache_put_if_possible(const struct SeqRenderData *context,
-                                         struct Sequence *seq,
-                                         float timeline_frame,
-                                         int type,
-                                         struct ImBuf *nval,
-                                         float cost,
-                                         bool skip_disk_cache);
-bool BKE_sequencer_cache_recycle_item(struct Scene *scene);
-void BKE_sequencer_cache_free_temp_cache(struct Scene *scene, short id, int timeline_frame);
-void BKE_sequencer_cache_destruct(struct Scene *scene);
-void BKE_sequencer_cache_cleanup_all(struct Main *bmain);
-void BKE_sequencer_cache_cleanup_sequence(struct Scene *scene,
-                                          struct Sequence *seq,
-                                          struct Sequence *seq_changed,
-                                          int invalidate_types,
-                                          bool force_seq_changed_range);
-bool BKE_sequencer_cache_is_full(struct Scene *scene);
+struct ImBuf *seq_cache_get(const struct SeqRenderData *context,
+                            struct Sequence *seq,
+                            float timeline_frame,
+                            int type,
+                            bool skip_disk_cache);
+void seq_cache_put(const struct SeqRenderData *context,
+                   struct Sequence *seq,
+                   float timeline_frame,
+                   int type,
+                   struct ImBuf *i,
+                   float cost,
+                   bool skip_disk_cache);
+bool seq_cache_put_if_possible(const struct SeqRenderData *context,
+                               struct Sequence *seq,
+                               float timeline_frame,
+                               int type,
+                               struct ImBuf *nval,
+                               float cost,
+                               bool skip_disk_cache);
+bool seq_cache_recycle_item(struct Scene *scene);
+void seq_cache_free_temp_cache(struct Scene *scene, short id, int timeline_frame);
+void seq_cache_destruct(struct Scene *scene);
+void seq_cache_cleanup_all(struct Main *bmain);
+void seq_cache_cleanup_sequence(struct Scene *scene,
+                                struct Sequence *seq,
+                                struct Sequence *seq_changed,
+                                int invalidate_types,
+                                bool force_seq_changed_range);
+bool seq_cache_is_full(struct Scene *scene);
 
 #ifdef __cplusplus
 }

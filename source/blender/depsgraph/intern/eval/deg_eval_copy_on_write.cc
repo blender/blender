@@ -322,7 +322,7 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
   const ID *id_for_copy = &scene->id;
 
   if (G.debug & G_DEBUG_DEPSGRAPH_UUID) {
-    BKE_sequencer_check_uuids_unique_and_report(scene);
+    SEQ_relations_check_uuids_unique_and_report(scene);
   }
 
 #ifdef NESTED_ID_NASTY_WORKAROUND

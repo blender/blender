@@ -683,7 +683,7 @@ void BKE_sound_update_fps(Main *bmain, Scene *scene)
     AUD_Sequence_setFPS(scene->sound_scene, FPS);
   }
 
-  BKE_sequencer_refresh_sound_length(bmain, scene);
+  SEQ_sound_update_length(bmain, scene);
 }
 
 void BKE_sound_update_scene_listener(Scene *scene)
@@ -825,7 +825,7 @@ void BKE_sound_update_sequencer(Main *main, bSound *sound)
   Scene *scene;
 
   for (scene = main->scenes.first; scene; scene = scene->id.next) {
-    BKE_sequencer_update_sound(scene, sound);
+    SEQ_sound_update(scene, sound);
   }
 }
 

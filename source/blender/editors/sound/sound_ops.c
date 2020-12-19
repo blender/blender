@@ -259,7 +259,7 @@ static void sound_update_animation_flags(Scene *scene)
   scene->id.tag |= LIB_TAG_DOIT;
 
   SEQ_ALL_BEGIN (scene->ed, seq) {
-    BKE_sequencer_recursive_apply(seq, sound_update_animation_flags_fn, scene);
+    SEQ_iterator_recursive_apply(seq, sound_update_animation_flags_fn, scene);
   }
   SEQ_ALL_END;
 

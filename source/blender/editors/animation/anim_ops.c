@@ -93,7 +93,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 
   if (do_snap) {
     if (CTX_wm_space_seq(C)) {
-      frame = BKE_sequencer_find_next_prev_edit(scene, frame, SEQ_SIDE_BOTH, true, false, false);
+      frame = SEQ_time_find_next_prev_edit(scene, frame, SEQ_SIDE_BOTH, true, false, false);
     }
     else {
       frame = BKE_scene_frame_snap_by_seconds(scene, 1.0, frame);

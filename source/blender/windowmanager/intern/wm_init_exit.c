@@ -565,7 +565,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
     wm_free_reports(wm);
   }
 
-  BKE_sequencer_free_clipboard(); /* sequencer.c */
+  SEQ_clipboard_free(); /* sequencer.c */
   BKE_tracking_clipboard_free();
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();

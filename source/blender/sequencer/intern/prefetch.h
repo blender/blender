@@ -35,16 +35,12 @@ struct Sequence;
 }
 #endif
 
-void BKE_sequencer_prefetch_start(const struct SeqRenderData *context,
-                                  float timeline_frame,
-                                  float cost);
-void BKE_sequencer_prefetch_free(struct Scene *scene);
-bool BKE_sequencer_prefetch_job_is_running(struct Scene *scene);
-void BKE_sequencer_prefetch_get_time_range(struct Scene *scene, int *start, int *end);
-struct SeqRenderData *BKE_sequencer_prefetch_get_original_context(
-    const struct SeqRenderData *context);
-struct Sequence *BKE_sequencer_prefetch_get_original_sequence(struct Sequence *seq,
-                                                              struct Scene *scene);
+void seq_prefetch_start(const struct SeqRenderData *context, float timeline_frame, float cost);
+void seq_prefetch_free(struct Scene *scene);
+bool seq_prefetch_job_is_running(struct Scene *scene);
+void seq_prefetch_get_time_range(struct Scene *scene, int *start, int *end);
+struct SeqRenderData *seq_prefetch_get_original_context(const struct SeqRenderData *context);
+struct Sequence *seq_prefetch_get_original_sequence(struct Sequence *seq, struct Scene *scene);
 
 #ifdef __cplusplus
 }

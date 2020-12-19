@@ -471,7 +471,7 @@ static int /*eContextResult*/ sequencer_context(const bContext *C,
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "edit_mask")) {
-    Mask *mask = BKE_sequencer_mask_get(scene);
+    Mask *mask = SEQ_active_mask_get(scene);
     if (mask) {
       CTX_data_id_pointer_set(result, &mask->id);
     }
