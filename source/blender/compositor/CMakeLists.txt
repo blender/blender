@@ -213,6 +213,8 @@ set(SRC
   nodes/COM_ColorCorrectionNode.h
   nodes/COM_ColorCurveNode.cpp
   nodes/COM_ColorCurveNode.h
+  nodes/COM_ColorExposureNode.cpp
+  nodes/COM_ColorExposureNode.h
   nodes/COM_ColorRampNode.cpp
   nodes/COM_ColorRampNode.h
   nodes/COM_ColorToBWNode.cpp
@@ -399,6 +401,8 @@ set(SRC
   operations/COM_ChromaMatteOperation.h
   operations/COM_ColorCurveOperation.cpp
   operations/COM_ColorCurveOperation.h
+  operations/COM_ColorExposureOperation.cpp
+  operations/COM_ColorExposureOperation.h
   operations/COM_ColorMatteOperation.cpp
   operations/COM_ColorMatteOperation.h
   operations/COM_ColorRampOperation.cpp
