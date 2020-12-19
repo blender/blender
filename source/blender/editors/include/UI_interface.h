@@ -103,7 +103,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_SCREEN_MARGIN 10
 
 /** #uiBlock.emboss and #uiBut.emboss */
-enum {
+typedef enum eUIEmbossType {
   UI_EMBOSS = 0,          /* use widget style for drawing */
   UI_EMBOSS_NONE = 1,     /* Nothing, only icon and/or text */
   UI_EMBOSS_PULLDOWN = 2, /* Pulldown menu style */
@@ -115,7 +115,7 @@ enum {
   UI_EMBOSS_NONE_OR_STATUS = 4,
 
   UI_EMBOSS_UNDEFINED = 255, /* For layout engine, use emboss from block. */
-};
+} eUIEmbossType;
 
 /* uiBlock->direction */
 enum {
@@ -671,7 +671,7 @@ bool UI_popup_block_name_exists(const struct bScreen *screen, const char *name);
 uiBlock *UI_block_begin(const struct bContext *C,
                         struct ARegion *region,
                         const char *name,
-                        char emboss);
+                        eUIEmbossType emboss);
 void UI_block_end_ex(const struct bContext *C, uiBlock *block, const int xy[2], int r_xy[2]);
 void UI_block_end(const struct bContext *C, uiBlock *block);
 void UI_block_draw(const struct bContext *C, struct uiBlock *block);
@@ -685,7 +685,7 @@ enum {
 };
 void UI_block_theme_style_set(uiBlock *block, char theme_style);
 char UI_block_emboss_get(uiBlock *block);
-void UI_block_emboss_set(uiBlock *block, char emboss);
+void UI_block_emboss_set(uiBlock *block, eUIEmbossType emboss);
 bool UI_block_is_search_only(const uiBlock *block);
 void UI_block_set_search_only(uiBlock *block, bool search_only);
 
@@ -1923,7 +1923,7 @@ void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 void uiLayoutSetUnitsX(uiLayout *layout, float unit);
 void uiLayoutSetUnitsY(uiLayout *layout, float unit);
-void uiLayoutSetEmboss(uiLayout *layout, char emboss);
+void uiLayoutSetEmboss(uiLayout *layout, eUIEmbossType emboss);
 void uiLayoutSetPropSep(uiLayout *layout, bool is_sep);
 void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep);
 int uiLayoutGetLocalDir(const uiLayout *layout);
@@ -1942,7 +1942,7 @@ float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
 float uiLayoutGetUnitsX(uiLayout *layout);
 float uiLayoutGetUnitsY(uiLayout *layout);
-int uiLayoutGetEmboss(uiLayout *layout);
+eUIEmbossType uiLayoutGetEmboss(uiLayout *layout);
 bool uiLayoutGetPropSep(uiLayout *layout);
 bool uiLayoutGetPropDecorate(uiLayout *layout);
 

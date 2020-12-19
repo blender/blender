@@ -3478,7 +3478,7 @@ void UI_block_region_set(uiBlock *block, ARegion *region)
   block->oldblock = oldblock;
 }
 
-uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, char emboss)
+uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, eUIEmbossType emboss)
 {
   wmWindow *window = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
@@ -3529,7 +3529,7 @@ char UI_block_emboss_get(uiBlock *block)
   return block->emboss;
 }
 
-void UI_block_emboss_set(uiBlock *block, char emboss)
+void UI_block_emboss_set(uiBlock *block, eUIEmbossType emboss)
 {
   block->emboss = emboss;
 }
