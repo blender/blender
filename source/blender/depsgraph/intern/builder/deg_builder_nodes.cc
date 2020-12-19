@@ -109,7 +109,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/depsgraph.h"

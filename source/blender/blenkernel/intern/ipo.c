@@ -74,7 +74,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 #include "BLO_read_write.h"
 

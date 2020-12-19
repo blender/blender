@@ -1206,7 +1206,7 @@ static void sequence_fn(int event, TreeElement *te, TreeStoreElem *tselem, void 
   Sequence *seq = (Sequence *)te->directdata;
   if (event == OL_DOP_SELECT) {
     Scene *scene = (Scene *)scene_ptr;
-    Editing *ed = BKE_sequencer_editing_get(scene, false);
+    Editing *ed = SEQ_editing_get(scene, false);
     if (BLI_findindex(ed->seqbasep, seq) != -1) {
       ED_sequencer_select_sequence_single(scene, seq, true);
     }

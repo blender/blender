@@ -30,7 +30,7 @@
 
 #include "BKE_sound.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 namespace blender::deg {
 

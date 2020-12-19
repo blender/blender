@@ -40,7 +40,7 @@
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "SEQ_sequencer.h"
+#  include "SEQ_relations.h"
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
@@ -127,7 +127,7 @@ static void rna_Camera_background_images_clear(Camera *cam)
 
 static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
-  BKE_sequence_invalidate_scene_strips(bmain, scene);
+  SEQ_relations_invalidate_scene_strips(bmain, scene);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 

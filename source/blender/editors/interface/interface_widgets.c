@@ -2520,8 +2520,14 @@ static void widget_active_color(uiWidgetColors *wcol)
 
 static const uchar *widget_color_blend_from_flags(const uiWidgetStateColors *wcol_state,
                                                   int state,
-                                                  int drawflag)
+                                                  int drawflag,
+                                                  const char emboss)
 {
+  /* Explicitly require #UI_EMBOSS_NONE_OR_STATUS for color blending with no emboss. */
+  if (emboss == UI_EMBOSS_NONE) {
+    return NULL;
+  }
+
   if (drawflag & UI_BUT_ANIMATED_CHANGED) {
     return wcol_state->inner_changed_sel;
   }
@@ -2557,7 +2563,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag, char emboss)
 
   wt->wcol = *(wt->wcol_theme);
 
-  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag);
+  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag, emboss);
 
   if (state & UI_SELECT) {
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
@@ -2626,7 +2632,7 @@ static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag, ch
   /* call this for option button */
   widget_state(wt, state, drawflag, emboss);
 
-  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag);
+  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag, emboss);
   if (color_blend != NULL) {
     /* Set the slider 'item' so that it reflects state settings too.
      * De-saturate so the color of the slider doesn't conflict with the blend color,
@@ -4524,8 +4530,9 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         break;
     }
   }
-  else if (but->emboss == UI_EMBOSS_NONE) {
-    /* "nothing" */
+  else if (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) {
+    /* Use the same widget types for both no emboss types. Later on,
+     * #UI_EMBOSS_NONE_OR_STATUS will blend state colors if they apply. */
     switch (but->type) {
       case UI_BTYPE_LABEL:
         wt = widget_type(UI_WTYPE_ICON_LABEL);

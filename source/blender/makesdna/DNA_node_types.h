@@ -218,15 +218,14 @@ typedef struct bNode {
   char name[64];
   int flag;
   short type;
-  char _pad[2];
   /** Both for dependency and sorting. */
   short done, level;
-  /** Lasty: check preview render status, menunr: browse ID blocks. */
-  short lasty, menunr;
-  /** For groupnode, offset in global caller stack. */
-  short stack_index;
-  /** Number of this node in list, used for UI exec events. */
-  short nr;
+
+  /** Used as a boolean for execution. */
+  uint8_t need_exec;
+
+  char _pad[1];
+
   /** Custom user-defined color. */
   float color[3];
 
@@ -264,10 +263,8 @@ typedef struct bNode {
   short custom1, custom2;
   float custom3, custom4;
 
-  /** Need_exec is set as UI execution event, exec is flag during exec. */
-  short need_exec, exec;
-  /** Optional extra storage for use in thread (read only then!). */
-  void *threaddata;
+  char _pad1[4];
+
   /** Entire boundbox (worldspace). */
   rctf totr;
   /** Optional buttons area. */

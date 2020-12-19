@@ -186,7 +186,7 @@ static void rna_Scene_ray_cast(Scene *scene,
 
 static void rna_Scene_sequencer_editing_free(Scene *scene)
 {
-  BKE_sequencer_editing_free(scene, true);
+  SEQ_editing_free(scene, true);
 }
 
 #  ifdef WITH_ALEMBIC
@@ -343,7 +343,7 @@ void RNA_api_scene(StructRNA *srna)
   RNA_def_function_output(func, parm);
 
   /* Sequencer. */
-  func = RNA_def_function(srna, "sequence_editor_create", "BKE_sequencer_editing_ensure");
+  func = RNA_def_function(srna, "sequence_editor_create", "SEQ_editing_ensure");
   RNA_def_function_ui_description(func, "Ensure sequence editor is valid in this scene");
   parm = RNA_def_pointer(
       func, "sequence_editor", "SequenceEditor", "", "New sequence editor data or NULL");

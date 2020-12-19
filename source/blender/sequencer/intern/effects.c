@@ -59,7 +59,10 @@
 
 #include "RE_pipeline.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_effects.h"
+#include "SEQ_proxy.h"
+#include "SEQ_render.h"
+#include "SEQ_utils.h"
 
 #include "BLF_api.h"
 
@@ -2988,7 +2991,7 @@ static ImBuf *do_multicam(const SeqRenderData *context,
   if (!ed) {
     return NULL;
   }
-  seqbasep = BKE_sequence_seqbase(&ed->seqbase, seq);
+  seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
   if (!seqbasep) {
     return NULL;
   }
@@ -3019,7 +3022,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
 
   ed = context->scene->ed;
 
-  seqbasep = BKE_sequence_seqbase(&ed->seqbase, seq);
+  seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
 
   if (seq->machine > 1) {
     i = seq_render_give_ibuf_seqbase(context, timeline_frame, seq->machine - 1, seqbasep);
@@ -3033,7 +3036,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
   if (!i) {
     Sequence *meta;
 
-    meta = BKE_sequence_metastrip(&ed->seqbase, NULL, seq);
+    meta = seq_find_metastrip_by_sequence(&ed->seqbase, NULL, seq);
 
     if (meta) {
       i = do_adjustment_impl(context, meta, timeline_frame);
@@ -3129,7 +3132,7 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
   SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
 
   /* if not already done, load / initialize data */
-  BKE_sequence_get_effect(seq);
+  SEQ_effect_handle_get(seq);
 
   if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
     *ymin = -100.0;
@@ -3147,7 +3150,7 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
   }
 }
 
-void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
+void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
 {
   int timeline_frame;
   float fallback_fac = 1.0f;
@@ -3156,7 +3159,7 @@ void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool for
   int flags = v->flags;
 
   /* if not already done, load / initialize data */
-  BKE_sequence_get_effect(seq);
+  SEQ_effect_handle_get(seq);
 
   if ((force == false) && (seq->len == v->length) && (v->frameMap != NULL)) {
     return;
@@ -3252,14 +3255,14 @@ void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool for
 }
 
 /* Override timeline_frame when rendering speed effect input. */
-float BKE_sequencer_speed_effect_target_frame_get(const SeqRenderData *context,
-                                                  Sequence *seq,
-                                                  float timeline_frame,
-                                                  int input)
+float seq_speed_effect_target_frame_get(const SeqRenderData *context,
+                                        Sequence *seq,
+                                        float timeline_frame,
+                                        int input)
 {
   int frame_index = seq_give_frame_index(seq, timeline_frame);
   SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
-  BKE_sequence_effect_speed_rebuild_map(context->scene, seq, false);
+  seq_effect_speed_rebuild_map(context->scene, seq, false);
 
   /* No interpolation. */
   if ((s->flags & SEQ_SPEED_USE_INTERPOLATION) == 0) {
@@ -3804,7 +3807,7 @@ static void init_text_effect(Sequence *seq)
   data->align_y = SEQ_TEXT_ALIGN_Y_BOTTOM;
 }
 
-void BKE_sequencer_text_font_unload(TextVars *data, const bool do_id_user)
+void SEQ_effect_text_font_unload(TextVars *data, const bool do_id_user)
 {
   if (data) {
     /* Unlink the VFont */
@@ -3820,7 +3823,7 @@ void BKE_sequencer_text_font_unload(TextVars *data, const bool do_id_user)
   }
 }
 
-void BKE_sequencer_text_font_load(TextVars *data, const bool do_id_user)
+void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
 {
   if (data->text_font != NULL) {
     if (do_id_user) {
@@ -3839,7 +3842,7 @@ void BKE_sequencer_text_font_load(TextVars *data, const bool do_id_user)
 static void free_text_effect(Sequence *seq, const bool do_id_user)
 {
   TextVars *data = seq->effectdata;
-  BKE_sequencer_text_font_unload(data, do_id_user);
+  SEQ_effect_text_font_unload(data, do_id_user);
 
   if (data) {
     MEM_freeN(data);
@@ -3850,7 +3853,7 @@ static void free_text_effect(Sequence *seq, const bool do_id_user)
 static void load_text_effect(Sequence *seq)
 {
   TextVars *data = seq->effectdata;
-  BKE_sequencer_text_font_load(data, false);
+  SEQ_effect_text_font_load(data, false);
 }
 
 static void copy_text_effect(Sequence *dst, Sequence *src, const int flag)
@@ -3859,7 +3862,7 @@ static void copy_text_effect(Sequence *dst, Sequence *src, const int flag)
   TextVars *data = dst->effectdata;
 
   data->text_blf_id = -1;
-  BKE_sequencer_text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
+  SEQ_effect_text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
 }
 
 static int num_inputs_text(void)
@@ -4275,7 +4278,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
   return rval;
 }
 
-struct SeqEffectHandle BKE_sequence_get_effect(Sequence *seq)
+struct SeqEffectHandle SEQ_effect_handle_get(Sequence *seq)
 {
   struct SeqEffectHandle rval = {false, false, NULL};
 
@@ -4290,7 +4293,7 @@ struct SeqEffectHandle BKE_sequence_get_effect(Sequence *seq)
   return rval;
 }
 
-struct SeqEffectHandle BKE_sequence_get_blend(Sequence *seq)
+struct SeqEffectHandle seq_effect_get_sequence_blend(Sequence *seq)
 {
   struct SeqEffectHandle rval = {false, false, NULL};
 
@@ -4312,7 +4315,7 @@ struct SeqEffectHandle BKE_sequence_get_blend(Sequence *seq)
   return rval;
 }
 
-int BKE_sequence_effect_get_num_inputs(int seq_type)
+int SEQ_effect_get_num_inputs(int seq_type)
 {
   struct SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
 

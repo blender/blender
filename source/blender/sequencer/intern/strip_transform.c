@@ -33,7 +33,11 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
+#include "SEQ_effects.h"
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
+#include "SEQ_transform.h"
 
 static int seq_tx_get_start(Sequence *seq)
 {
@@ -44,28 +48,28 @@ static int seq_tx_get_end(Sequence *seq)
   return seq->start + seq->len;
 }
 
-int BKE_sequence_tx_get_final_left(Sequence *seq, bool metaclip)
+int SEQ_transform_get_left_handle_frame(Sequence *seq, bool metaclip)
 {
   if (metaclip && seq->tmp) {
     /* return the range clipped by the parents range */
-    return max_ii(BKE_sequence_tx_get_final_left(seq, false),
-                  BKE_sequence_tx_get_final_left((Sequence *)seq->tmp, true));
+    return max_ii(SEQ_transform_get_left_handle_frame(seq, false),
+                  SEQ_transform_get_left_handle_frame((Sequence *)seq->tmp, true));
   }
 
   return (seq->start - seq->startstill) + seq->startofs;
 }
-int BKE_sequence_tx_get_final_right(Sequence *seq, bool metaclip)
+int SEQ_transform_get_right_handle_frame(Sequence *seq, bool metaclip)
 {
   if (metaclip && seq->tmp) {
     /* return the range clipped by the parents range */
-    return min_ii(BKE_sequence_tx_get_final_right(seq, false),
-                  BKE_sequence_tx_get_final_right((Sequence *)seq->tmp, true));
+    return min_ii(SEQ_transform_get_right_handle_frame(seq, false),
+                  SEQ_transform_get_right_handle_frame((Sequence *)seq->tmp, true));
   }
 
   return ((seq->start + seq->len) + seq->endstill) - seq->endofs;
 }
 
-void BKE_sequence_tx_set_final_left(Sequence *seq, int val)
+void SEQ_transform_set_left_handle_frame(Sequence *seq, int val)
 {
   if (val < (seq)->start) {
     seq->startstill = abs(val - (seq)->start);
@@ -77,7 +81,7 @@ void BKE_sequence_tx_set_final_left(Sequence *seq, int val)
   }
 }
 
-void BKE_sequence_tx_set_final_right(Sequence *seq, int val)
+void SEQ_transform_set_right_handle_frame(Sequence *seq, int val)
 {
   if (val > (seq)->start + (seq)->len) {
     seq->endstill = abs(val - (seq->start + (seq)->len));
@@ -91,15 +95,15 @@ void BKE_sequence_tx_set_final_right(Sequence *seq, int val)
 
 /* used so we can do a quick check for single image seq
  * since they work a bit differently to normal image seq's (during transform) */
-bool BKE_sequence_single_check(Sequence *seq)
+bool SEQ_transform_single_image_check(Sequence *seq)
 {
   return ((seq->len == 1) &&
           (seq->type == SEQ_TYPE_IMAGE ||
-           ((seq->type & SEQ_TYPE_EFFECT) && BKE_sequence_effect_get_num_inputs(seq->type) == 0)));
+           ((seq->type & SEQ_TYPE_EFFECT) && SEQ_effect_get_num_inputs(seq->type) == 0)));
 }
 
 /* check if the selected seq's reference unselected seq's */
-bool BKE_sequence_base_isolated_sel_check(ListBase *seqbase)
+bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 {
   Sequence *seq;
   /* is there more than 1 select */
@@ -144,17 +148,18 @@ bool BKE_sequence_base_isolated_sel_check(ListBase *seqbase)
  * Use to impose limits when dragging/extending - so impossible situations don't happen.
  * Cant use the #SEQ_LEFTSEL and #SEQ_LEFTSEL directly because the strip may be in a meta-strip.
  */
-void BKE_sequence_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
+void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 {
   if (leftflag) {
-    if (BKE_sequence_tx_get_final_left(seq, false) >=
-        BKE_sequence_tx_get_final_right(seq, false)) {
-      BKE_sequence_tx_set_final_left(seq, BKE_sequence_tx_get_final_right(seq, false) - 1);
+    if (SEQ_transform_get_left_handle_frame(seq, false) >=
+        SEQ_transform_get_right_handle_frame(seq, false)) {
+      SEQ_transform_set_left_handle_frame(seq,
+                                          SEQ_transform_get_right_handle_frame(seq, false) - 1);
     }
 
-    if (BKE_sequence_single_check(seq) == 0) {
-      if (BKE_sequence_tx_get_final_left(seq, false) >= seq_tx_get_end(seq)) {
-        BKE_sequence_tx_set_final_left(seq, seq_tx_get_end(seq) - 1);
+    if (SEQ_transform_single_image_check(seq) == 0) {
+      if (SEQ_transform_get_left_handle_frame(seq, false) >= seq_tx_get_end(seq)) {
+        SEQ_transform_set_left_handle_frame(seq, seq_tx_get_end(seq) - 1);
       }
 
       /* doesn't work now - TODO */
@@ -170,14 +175,15 @@ void BKE_sequence_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
   }
 
   if (rightflag) {
-    if (BKE_sequence_tx_get_final_right(seq, false) <=
-        BKE_sequence_tx_get_final_left(seq, false)) {
-      BKE_sequence_tx_set_final_right(seq, BKE_sequence_tx_get_final_left(seq, false) + 1);
+    if (SEQ_transform_get_right_handle_frame(seq, false) <=
+        SEQ_transform_get_left_handle_frame(seq, false)) {
+      SEQ_transform_set_right_handle_frame(seq,
+                                           SEQ_transform_get_left_handle_frame(seq, false) + 1);
     }
 
-    if (BKE_sequence_single_check(seq) == 0) {
-      if (BKE_sequence_tx_get_final_right(seq, false) <= seq_tx_get_start(seq)) {
-        BKE_sequence_tx_set_final_right(seq, seq_tx_get_start(seq) + 1);
+    if (SEQ_transform_single_image_check(seq) == 0) {
+      if (SEQ_transform_get_right_handle_frame(seq, false) <= seq_tx_get_start(seq)) {
+        SEQ_transform_set_right_handle_frame(seq, seq_tx_get_start(seq) + 1);
       }
     }
   }
@@ -189,39 +195,30 @@ void BKE_sequence_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
   }
 }
 
-void BKE_sequence_single_fix(Sequence *seq)
+void SEQ_transform_fix_single_image_seq_offsets(Sequence *seq)
 {
   int left, start, offset;
-  if (!BKE_sequence_single_check(seq)) {
+  if (!SEQ_transform_single_image_check(seq)) {
     return;
   }
 
   /* make sure the image is always at the start since there is only one,
    * adjusting its start should be ok */
-  left = BKE_sequence_tx_get_final_left(seq, false);
+  left = SEQ_transform_get_left_handle_frame(seq, false);
   start = seq->start;
   if (start != left) {
     offset = left - start;
-    BKE_sequence_tx_set_final_left(seq, BKE_sequence_tx_get_final_left(seq, false) - offset);
-    BKE_sequence_tx_set_final_right(seq, BKE_sequence_tx_get_final_right(seq, false) - offset);
+    SEQ_transform_set_left_handle_frame(seq,
+                                        SEQ_transform_get_left_handle_frame(seq, false) - offset);
+    SEQ_transform_set_right_handle_frame(
+        seq, SEQ_transform_get_right_handle_frame(seq, false) - offset);
     seq->start += offset;
   }
 }
 
-bool BKE_sequence_tx_test(Sequence *seq)
+bool SEQ_transform_sequence_can_be_translated(Sequence *seq)
 {
-  return !(seq->type & SEQ_TYPE_EFFECT) || (BKE_sequence_effect_get_num_inputs(seq->type) == 0);
-}
-
-/**
- * Return \a true if given \a seq needs a complete cleanup of its cache when it is transformed.
- *
- * Some (effect) strip types need a complete re-cache of themselves when they are transformed,
- * because they do not 'contain' anything and do not have any explicit relations to other strips.
- */
-bool BKE_sequence_tx_fullupdate_test(Sequence *seq)
-{
-  return BKE_sequence_tx_test(seq) && ELEM(seq->type, SEQ_TYPE_ADJUSTMENT, SEQ_TYPE_MULTICAM);
+  return !(seq->type & SEQ_TYPE_EFFECT) || (SEQ_effect_get_num_inputs(seq->type) == 0);
 }
 
 static bool seq_overlap(Sequence *seq1, Sequence *seq2)
@@ -230,7 +227,7 @@ static bool seq_overlap(Sequence *seq1, Sequence *seq2)
           ((seq1->enddisp <= seq2->startdisp) || (seq1->startdisp >= seq2->enddisp)) == 0);
 }
 
-bool BKE_sequence_test_overlap(ListBase *seqbasep, Sequence *test)
+bool SEQ_transform_test_overlap(ListBase *seqbasep, Sequence *test)
 {
   Sequence *seq;
 
@@ -245,43 +242,43 @@ bool BKE_sequence_test_overlap(ListBase *seqbasep, Sequence *test)
   return false;
 }
 
-void BKE_sequence_translate(Scene *evil_scene, Sequence *seq, int delta)
+void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delta)
 {
   if (delta == 0) {
     return;
   }
 
-  BKE_sequencer_offset_animdata(evil_scene, seq, delta);
+  SEQ_offset_animdata(evil_scene, seq, delta);
   seq->start += delta;
 
   if (seq->type == SEQ_TYPE_META) {
     Sequence *seq_child;
     for (seq_child = seq->seqbase.first; seq_child; seq_child = seq_child->next) {
-      BKE_sequence_translate(evil_scene, seq_child, delta);
+      SEQ_transform_translate_sequence(evil_scene, seq_child, delta);
     }
   }
 
-  BKE_sequence_calc_disp(evil_scene, seq);
+  SEQ_time_update_sequence_bounds(evil_scene, seq);
 }
 
 /* return 0 if there weren't enough space */
-bool BKE_sequence_base_shuffle_ex(ListBase *seqbasep,
-                                  Sequence *test,
-                                  Scene *evil_scene,
-                                  int channel_delta)
+bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
+                                      Sequence *test,
+                                      Scene *evil_scene,
+                                      int channel_delta)
 {
   const int orig_machine = test->machine;
   BLI_assert(ELEM(channel_delta, -1, 1));
 
   test->machine += channel_delta;
-  BKE_sequence_calc(evil_scene, test);
-  while (BKE_sequence_test_overlap(seqbasep, test)) {
+  SEQ_time_update_sequence(evil_scene, test);
+  while (SEQ_transform_test_overlap(seqbasep, test)) {
     if ((channel_delta > 0) ? (test->machine >= MAXSEQ) : (test->machine < 1)) {
       break;
     }
 
     test->machine += channel_delta;
-    BKE_sequence_calc(
+    SEQ_time_update_sequence(
         evil_scene,
         test);  // XXX - I don't think this is needed since were only moving vertically, Campbell.
   }
@@ -301,18 +298,18 @@ bool BKE_sequence_base_shuffle_ex(ListBase *seqbasep,
 
     test->machine = orig_machine;
     new_frame = new_frame + (test->start - test->startdisp); /* adjust by the startdisp */
-    BKE_sequence_translate(evil_scene, test, new_frame - test->start);
+    SEQ_transform_translate_sequence(evil_scene, test, new_frame - test->start);
 
-    BKE_sequence_calc(evil_scene, test);
+    SEQ_time_update_sequence(evil_scene, test);
     return false;
   }
 
   return true;
 }
 
-bool BKE_sequence_base_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_scene)
+bool SEQ_transform_seqbase_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_scene)
 {
-  return BKE_sequence_base_shuffle_ex(seqbasep, test, evil_scene, 1);
+  return SEQ_transform_seqbase_shuffle_ex(seqbasep, test, evil_scene, 1);
 }
 
 static int shuffle_seq_time_offset_test(ListBase *seqbasep, char dir)
@@ -356,17 +353,17 @@ static int shuffle_seq_time_offset(Scene *scene, ListBase *seqbasep, char dir)
 
   for (seq = seqbasep->first; seq; seq = seq->next) {
     if (seq->tmp) {
-      BKE_sequence_calc_disp(scene, seq); /* corrects dummy startdisp/enddisp values */
+      SEQ_time_update_sequence_bounds(scene, seq); /* corrects dummy startdisp/enddisp values */
     }
   }
 
   return tot_ofs;
 }
 
-bool BKE_sequence_base_shuffle_time(ListBase *seqbasep,
-                                    Scene *evil_scene,
-                                    ListBase *markers,
-                                    const bool use_sync_markers)
+bool SEQ_transform_seqbase_shuffle_time(ListBase *seqbasep,
+                                        Scene *evil_scene,
+                                        ListBase *markers,
+                                        const bool use_sync_markers)
 {
   /* note: seq->tmp is used to tag strips to move */
 
@@ -379,7 +376,7 @@ bool BKE_sequence_base_shuffle_time(ListBase *seqbasep,
   if (offset) {
     for (seq = seqbasep->first; seq; seq = seq->next) {
       if (seq->tmp) {
-        BKE_sequence_translate(evil_scene, seq, offset);
+        SEQ_transform_translate_sequence(evil_scene, seq, offset);
         seq->flag &= ~SEQ_OVERLAP;
       }
     }
@@ -406,16 +403,16 @@ bool BKE_sequence_base_shuffle_time(ListBase *seqbasep,
  * \param delta: offset in frames to be applied
  * \param timeline_frame: frame on timeline from where strips are moved
  */
-void SEQ_offset_after_frame(Scene *scene,
-                            ListBase *seqbase,
-                            const int delta,
-                            const int timeline_frame)
+void SEQ_transform_offset_after_frame(Scene *scene,
+                                      ListBase *seqbase,
+                                      const int delta,
+                                      const int timeline_frame)
 {
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->startdisp >= timeline_frame) {
-      BKE_sequence_translate(scene, seq, delta);
-      BKE_sequence_calc(scene, seq);
-      BKE_sequence_invalidate_cache_preprocessed(scene, seq);
+      SEQ_transform_translate_sequence(scene, seq, delta);
+      SEQ_time_update_sequence(scene, seq);
+      SEQ_relations_invalidate_cache_preprocessed(scene, seq);
     }
   }
 

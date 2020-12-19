@@ -80,7 +80,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
 
-#include "SEQ_sequencer.h" /* free seq clipboard */
+#include "SEQ_clipboard.h" /* free seq clipboard */
 
 #include "IMB_thumbs.h"
 
@@ -565,7 +565,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
     wm_free_reports(wm);
   }
 
-  BKE_sequencer_free_clipboard(); /* sequencer.c */
+  SEQ_clipboard_free(); /* sequencer.c */
   BKE_tracking_clipboard_free();
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();

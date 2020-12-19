@@ -36,7 +36,9 @@
 
 #include "IMB_imbuf.h"
 
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "strip_time.h"
 #include "utils.h"
@@ -142,7 +144,7 @@ void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
       scene, metaseq, metaseq_start(metaseq), metaseq_end(metaseq));
 }
 
-void BKE_sequence_calc_disp(Scene *scene, Sequence *seq)
+void SEQ_time_update_sequence_bounds(Scene *scene, Sequence *seq)
 {
   if (seq->startofs && seq->startstill) {
     seq->startstill = 0;
@@ -159,7 +161,7 @@ void BKE_sequence_calc_disp(Scene *scene, Sequence *seq)
   }
 }
 
-void BKE_sequence_calc(Scene *scene, Sequence *seq)
+void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
 {
   Sequence *seqm;
   int min, max;
@@ -168,7 +170,7 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
   seqm = seq->seqbase.first;
   while (seqm) {
     if (seqm->seqbase.first) {
-      BKE_sequence_calc(scene, seqm);
+      SEQ_time_update_sequence(scene, seqm);
     }
     seqm = seqm->next;
   }
@@ -206,7 +208,7 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
       seq->len = seq->enddisp - seq->startdisp;
     }
     else {
-      BKE_sequence_calc_disp(scene, seq);
+      SEQ_time_update_sequence_bounds(scene, seq);
     }
   }
   else {
@@ -231,12 +233,12 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
       }
       seq_update_sound_bounds_recursive(scene, seq);
     }
-    BKE_sequence_calc_disp(scene, seq);
+    SEQ_time_update_sequence_bounds(scene, seq);
   }
 }
 
 /** Comparison function suitable to be used with BLI_listbase_sort()... */
-int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b)
+int SEQ_time_cmp_time_startdisp(const void *a, const void *b)
 {
   const Sequence *seq_a = a;
   const Sequence *seq_b = b;
@@ -244,14 +246,14 @@ int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b)
   return (seq_a->startdisp > seq_b->startdisp);
 }
 
-int BKE_sequencer_find_next_prev_edit(Scene *scene,
-                                      int timeline_frame,
-                                      const short side,
-                                      const bool do_skip_mute,
-                                      const bool do_center,
-                                      const bool do_unselected)
+int SEQ_time_find_next_prev_edit(Scene *scene,
+                                 int timeline_frame,
+                                 const short side,
+                                 const bool do_skip_mute,
+                                 const bool do_center,
+                                 const bool do_unselected)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   Sequence *seq;
 
   int dist, best_dist, best_frame = timeline_frame;
@@ -319,7 +321,7 @@ int BKE_sequencer_find_next_prev_edit(Scene *scene,
   return best_frame;
 }
 
-float BKE_sequence_get_fps(Scene *scene, Sequence *seq)
+float SEQ_time_sequence_get_fps(Scene *scene, Sequence *seq)
 {
   switch (seq->type) {
     case SEQ_TYPE_MOVIE: {

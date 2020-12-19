@@ -203,42 +203,6 @@ static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *
   uiItemR(layout, &sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-#if 0 /* not used in 2.5x yet */
-static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
-{
-  Main *bmain = CTX_data_main(C);
-  bNodeTree *ntree = ntree_v;
-  bNode *node = node_v;
-  Tex *tex;
-
-  if (node->menunr < 1) {
-    return;
-  }
-
-  if (node->id) {
-    id_us_min(node->id);
-    node->id = NULL;
-  }
-  tex = BLI_findlink(&bmain->tex, node->menunr - 1);
-
-  node->id = &tex->id;
-  id_us_plus(node->id);
-  BLI_strncpy(node->name, node->id->name + 2, sizeof(node->name));
-
-  nodeSetActive(ntree, node);
-
-  if (ntree->type == NTREE_TEXTURE) {
-    ntreeTexCheckCyclics(ntree);
-  }
-
-  // allqueue(REDRAWBUTSSHADING, 0);
-  // allqueue(REDRAWNODE, 0);
-  NodeTagChanged(ntree, node);
-
-  node->menunr = 0;
-}
-#endif
-
 static void node_buts_texture(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   bNode *node = ptr->data;

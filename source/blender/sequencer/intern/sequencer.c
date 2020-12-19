@@ -44,7 +44,13 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
+#include "SEQ_effects.h"
+#include "SEQ_iterator.h"
+#include "SEQ_modifier.h"
+#include "SEQ_relations.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "image_cache.h"
 #include "prefetch.h"
@@ -104,7 +110,7 @@ static void seq_free_strip(Strip *strip)
   MEM_freeN(strip);
 }
 
-Sequence *BKE_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type)
+Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type)
 {
   Sequence *seq;
 
@@ -129,13 +135,13 @@ Sequence *BKE_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int 
   seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format");
   seq->cache_flag = SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_COMPOSITE;
 
-  BKE_sequence_session_uuid_generate(seq);
+  SEQ_relations_session_uuid_generate(seq);
 
   return seq;
 }
 
 /* only give option to skip cache locally (static func) */
-static void BKE_sequence_free_ex(Scene *scene,
+static void seq_sequence_free_ex(Scene *scene,
                                  Sequence *seq,
                                  const bool do_cache,
                                  const bool do_id_user,
@@ -145,10 +151,10 @@ static void BKE_sequence_free_ex(Scene *scene,
     seq_free_strip(seq->strip);
   }
 
-  BKE_sequence_free_anim(seq);
+  SEQ_relations_sequence_free_anim(seq);
 
   if (seq->type & SEQ_TYPE_EFFECT) {
-    struct SeqEffectHandle sh = BKE_sequence_get_effect(seq);
+    struct SeqEffectHandle sh = SEQ_effect_handle_get(seq);
     sh.free(seq, do_id_user);
   }
 
@@ -186,7 +192,7 @@ static void BKE_sequence_free_ex(Scene *scene,
   }
 
   /* free modifiers */
-  BKE_sequence_modifier_clear(seq);
+  SEQ_modifier_clear(seq);
 
   /* free cached data used by this strip,
    * also invalidate cache for all dependent sequences
@@ -194,20 +200,20 @@ static void BKE_sequence_free_ex(Scene *scene,
    * be _very_ careful here, invalidating cache loops over the scene sequences and
    * assumes the listbase is valid for all strips,
    * this may not be the case if lists are being freed.
-   * this is optional BKE_sequence_invalidate_cache
+   * this is optional SEQ_relations_invalidate_cache
    */
   if (do_cache) {
     if (scene) {
-      BKE_sequence_invalidate_cache_raw(scene, seq);
+      SEQ_relations_invalidate_cache_raw(scene, seq);
     }
   }
 
   MEM_freeN(seq);
 }
 
-void BKE_sequence_free(Scene *scene, Sequence *seq, const bool do_clean_animdata)
+void SEQ_sequence_free(Scene *scene, Sequence *seq, const bool do_clean_animdata)
 {
-  BKE_sequence_free_ex(scene, seq, true, true, do_clean_animdata);
+  seq_sequence_free_ex(scene, seq, true, true, do_clean_animdata);
 }
 
 /* cache must be freed before calling this function
@@ -221,18 +227,18 @@ void seq_free_sequence_recurse(Scene *scene, Sequence *seq, const bool do_id_use
     seq_free_sequence_recurse(scene, iseq, do_id_user);
   }
 
-  BKE_sequence_free_ex(scene, seq, false, do_id_user, true);
+  seq_sequence_free_ex(scene, seq, false, do_id_user, true);
 }
 
-Editing *BKE_sequencer_editing_get(Scene *scene, bool alloc)
+Editing *SEQ_editing_get(Scene *scene, bool alloc)
 {
   if (alloc) {
-    BKE_sequencer_editing_ensure(scene);
+    SEQ_editing_ensure(scene);
   }
   return scene->ed;
 }
 
-Editing *BKE_sequencer_editing_ensure(Scene *scene)
+Editing *SEQ_editing_ensure(Scene *scene)
 {
   if (scene->ed == NULL) {
     Editing *ed;
@@ -249,7 +255,7 @@ Editing *BKE_sequencer_editing_ensure(Scene *scene)
   return scene->ed;
 }
 
-void BKE_sequencer_editing_free(Scene *scene, const bool do_id_user)
+void SEQ_editing_free(Scene *scene, const bool do_id_user)
 {
   Editing *ed = scene->ed;
   Sequence *seq;
@@ -258,12 +264,12 @@ void BKE_sequencer_editing_free(Scene *scene, const bool do_id_user)
     return;
   }
 
-  BKE_sequencer_prefetch_free(scene);
-  BKE_sequencer_cache_destruct(scene);
+  seq_prefetch_free(scene);
+  seq_cache_destruct(scene);
 
   SEQ_ALL_BEGIN (ed, seq) {
     /* handle cache freeing above */
-    BKE_sequence_free_ex(scene, seq, false, do_id_user, false);
+    seq_sequence_free_ex(scene, seq, false, do_id_user, false);
   }
   SEQ_ALL_END;
 
@@ -356,7 +362,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
   Sequence *seqn = MEM_dupallocN(seq);
 
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-    BKE_sequence_session_uuid_generate(seq);
+    SEQ_relations_session_uuid_generate(seq);
   }
 
   seq->tmp = seqn;
@@ -386,7 +392,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
   if (seqn->modifiers.first) {
     BLI_listbase_clear(&seqn->modifiers);
 
-    BKE_sequence_modifier_list_copy(seqn, seq);
+    SEQ_modifier_list_copy(seqn, seq);
   }
 
   if (seq->type == SEQ_TYPE_META) {
@@ -424,7 +430,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
   }
   else if (seq->type & SEQ_TYPE_EFFECT) {
     struct SeqEffectHandle sh;
-    sh = BKE_sequence_get_effect(seq);
+    sh = SEQ_effect_handle_get(seq);
     if (sh.copy) {
       sh.copy(seqn, seq, flag);
     }
@@ -448,11 +454,11 @@ static Sequence *seq_dupli(const Scene *scene_src,
 
   if (scene_src == scene_dst) {
     if (dupe_flag & SEQ_DUPE_UNIQUE_NAME) {
-      BKE_sequence_base_unique_name_recursive(&scene_dst->ed->seqbase, seqn);
+      SEQ_sequence_base_unique_name_recursive(&scene_dst->ed->seqbase, seqn);
     }
 
     if (dupe_flag & SEQ_DUPE_ANIM) {
-      BKE_sequencer_dupe_animdata(scene_dst, seq->name + 2, seqn->name + 2);
+      SEQ_dupe_animdata(scene_dst, seq->name + 2, seqn->name + 2);
     }
   }
 
@@ -479,7 +485,7 @@ static Sequence *sequence_dupli_recursive_do(const Scene *scene_src,
   return seqn;
 }
 
-Sequence *BKE_sequence_dupli_recursive(
+Sequence *SEQ_sequence_dupli_recursive(
     const Scene *scene_src, Scene *scene_dst, ListBase *new_seq_list, Sequence *seq, int dupe_flag)
 {
   Sequence *seqn = sequence_dupli_recursive_do(scene_src, scene_dst, new_seq_list, seq, dupe_flag);
@@ -490,7 +496,7 @@ Sequence *BKE_sequence_dupli_recursive(
   return seqn;
 }
 
-void BKE_sequence_base_dupli_recursive(const Scene *scene_src,
+void SEQ_sequence_base_dupli_recursive(const Scene *scene_src,
                                        Scene *scene_dst,
                                        ListBase *nseqbase,
                                        const ListBase *seqbase,
@@ -499,7 +505,7 @@ void BKE_sequence_base_dupli_recursive(const Scene *scene_src,
 {
   Sequence *seq;
   Sequence *seqn = NULL;
-  Sequence *last_seq = BKE_sequencer_active_get((Scene *)scene_src);
+  Sequence *last_seq = SEQ_select_active_get((Scene *)scene_src);
   /* always include meta's strips */
   int dupe_flag_recursive = dupe_flag | SEQ_DUPE_ALL | SEQ_DUPE_IS_RECURSIVE_CALL;
 
@@ -514,13 +520,13 @@ void BKE_sequence_base_dupli_recursive(const Scene *scene_src,
         }
 
         if (seq->type == SEQ_TYPE_META) {
-          BKE_sequence_base_dupli_recursive(
+          SEQ_sequence_base_dupli_recursive(
               scene_src, scene_dst, &seqn->seqbase, &seq->seqbase, dupe_flag_recursive, flag);
         }
 
         if (dupe_flag & SEQ_DUPE_CONTEXT) {
           if (seq == last_seq) {
-            BKE_sequencer_active_set(scene_dst, seqn);
+            SEQ_select_active_set(scene_dst, seqn);
           }
         }
       }
@@ -551,7 +557,7 @@ static size_t sequencer_rna_path_prefix(char str[SEQ_RNAPATH_MAXSTR], const char
 }
 
 /* XXX - hackish function needed for transforming strips! TODO - have some better solution */
-void BKE_sequencer_offset_animdata(Scene *scene, Sequence *seq, int ofs)
+void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 {
   char str[SEQ_RNAPATH_MAXSTR];
   size_t str_len;
@@ -586,7 +592,7 @@ void BKE_sequencer_offset_animdata(Scene *scene, Sequence *seq, int ofs)
   DEG_id_tag_update(&scene->adt->action->id, ID_RECALC_ANIMATION);
 }
 
-void BKE_sequencer_dupe_animdata(Scene *scene, const char *name_src, const char *name_dst)
+void SEQ_dupe_animdata(Scene *scene, const char *name_src, const char *name_dst)
 {
   char str_from[SEQ_RNAPATH_MAXSTR];
   size_t str_from_len;

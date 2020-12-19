@@ -68,7 +68,16 @@
 
 #include "BIF_glutil.h"
 
+#include "SEQ_effects.h"
+#include "SEQ_prefetch.h"
+#include "SEQ_proxy.h"
+#include "SEQ_relations.h"
+#include "SEQ_render.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
+#include "SEQ_transform.h"
+#include "SEQ_utils.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -371,7 +380,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
   ListBase *seqbase;
   int offset;
 
-  seqbase = BKE_sequence_seqbase_get(seqm, &offset);
+  seqbase = SEQ_get_seqbase_from_sequence(seqm, &offset);
   if (!seqbase || BLI_listbase_is_empty(seqbase)) {
     return;
   }
@@ -488,7 +497,7 @@ static void draw_seq_handle(View2D *v2d,
     whichsel = SEQ_RIGHTSEL;
   }
 
-  if (!(seq->type & SEQ_TYPE_EFFECT) || BKE_sequence_effect_get_num_inputs(seq->type) == 0) {
+  if (!(seq->type & SEQ_TYPE_EFFECT) || SEQ_effect_get_num_inputs(seq->type) == 0) {
     GPU_blend(GPU_BLEND_ALPHA);
 
     GPU_blend(GPU_BLEND_ALPHA);
@@ -607,7 +616,7 @@ static const char *draw_seq_text_get_name(Sequence *seq)
 {
   const char *name = seq->name + 2;
   if (name[0] == '\0') {
-    name = BKE_sequence_give_name(seq);
+    name = SEQ_sequence_give_name(seq);
   }
   return name;
 }
@@ -840,9 +849,9 @@ static void draw_seq_background(Scene *scene,
   /* Draw the main strip body. */
   if (is_single_image) {
     immRectf(pos,
-             BKE_sequence_tx_get_final_left(seq, false),
+             SEQ_transform_get_left_handle_frame(seq, false),
              y1,
-             BKE_sequence_tx_get_final_right(seq, false),
+             SEQ_transform_get_right_handle_frame(seq, false),
              y2);
   }
   else {
@@ -1067,7 +1076,7 @@ static void draw_seq_strip(const bContext *C,
   float pixely = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
 
   /* Check if we are doing "solo preview". */
-  bool is_single_image = (char)BKE_sequence_single_check(seq);
+  bool is_single_image = (char)SEQ_transform_single_image_check(seq);
 
   /* Draw strip body. */
   x1 = (seq->startstill) ? seq->start : seq->startdisp;
@@ -1143,7 +1152,7 @@ static void draw_seq_strip(const bContext *C,
   }
 
   /* Draw Red line on the top of invalid strip (Missing media). */
-  if (!BKE_sequence_is_valid_check(seq)) {
+  if (!SEQ_sequence_has_source(seq)) {
     draw_seq_invalid(x1, x2, y2, text_margin_y);
   }
 
@@ -1441,7 +1450,7 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, S
 
   // if (sc->mode == SC_MODE_MASKEDIT)
   if (0 && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-    Mask *mask = BKE_sequencer_mask_get(scene);
+    Mask *mask = SEQ_active_mask_get(scene);
 
     if (mask) {
       int width, height;
@@ -1473,7 +1482,7 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, S
 /* Force redraw, when prefetching and using cache view. */
 static void seq_prefetch_wm_notify(const bContext *C, Scene *scene)
 {
-  if (BKE_sequencer_prefetch_need_redraw(CTX_data_main(C), scene)) {
+  if (SEQ_prefetch_need_redraw(CTX_data_main(C), scene)) {
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, NULL);
   }
 }
@@ -1913,7 +1922,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = &region->v2d;
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  Sequence *last_seq = BKE_sequencer_active_get(scene);
+  Sequence *last_seq = SEQ_select_active_get(scene);
   int sel = 0, j;
   float pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
 
@@ -1956,7 +1965,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
     draw_seq_strip(C, sseq, scene, region, last_seq, pixelx, true);
 
     /* When active strip is an effect, highlight its inputs. */
-    if (BKE_sequence_effect_get_num_inputs(last_seq->type) > 0) {
+    if (SEQ_effect_get_num_inputs(last_seq->type) > 0) {
       draw_effect_inputs_highlight(last_seq);
     }
     /* When active is a Multi-cam strip, highlight its source channel. */
@@ -2000,7 +2009,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
 
 static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 {
-  const Editing *ed = BKE_sequencer_editing_get(scene, false);
+  const Editing *ed = SEQ_editing_get(scene, false);
   const int frame_sta = scene->r.sfra;
   const int frame_end = scene->r.efra + 1;
 
@@ -2265,7 +2274,7 @@ static void draw_cache_view(const bContext *C)
   userdata.composite_vbo = GPU_vertbuf_create_with_format(&format);
   userdata.final_out_vbo = GPU_vertbuf_create_with_format(&format);
 
-  BKE_sequencer_cache_iterate(scene, &userdata, draw_cache_view_init_fn, draw_cache_view_iter_fn);
+  SEQ_cache_iterate(scene, &userdata, draw_cache_view_init_fn, draw_cache_view_iter_fn);
 
   draw_cache_view_batch(userdata.raw_vbo, userdata.raw_vert_count, 1.0f, 0.1f, 0.02f, 0.4f);
   draw_cache_view_batch(
@@ -2282,7 +2291,7 @@ static void draw_cache_view(const bContext *C)
 void draw_timeline_seq(const bContext *C, ARegion *region)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
   short cfra_flag = 0;

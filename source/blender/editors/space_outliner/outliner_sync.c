@@ -46,7 +46,7 @@
 #include "ED_object.h"
 #include "ED_outliner.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_select.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -305,7 +305,7 @@ static void outliner_select_sync_to_sequence(Scene *scene, TreeStoreElem *tselem
   Sequence *seq = (Sequence *)tselem->id;
 
   if (tselem->flag & TSE_ACTIVE) {
-    BKE_sequencer_active_set(scene, seq);
+    SEQ_select_active_set(scene, seq);
   }
 
   if (tselem->flag & TSE_SELECTED) {
@@ -542,7 +542,7 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
   active_data->object = OBACT(view_layer);
   active_data->edit_bone = CTX_data_active_bone(C);
   active_data->pose_channel = CTX_data_active_pose_bone(C);
-  active_data->sequence = BKE_sequencer_active_get(scene);
+  active_data->sequence = SEQ_select_active_get(scene);
 }
 
 /* If outliner is dirty sync selection from view layer and sequwncer */

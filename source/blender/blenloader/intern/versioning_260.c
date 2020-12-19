@@ -67,7 +67,9 @@
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
+#include "SEQ_modifier.h"
+#include "SEQ_utils.h"
 
 #ifdef WITH_FFMPEG
 #  include "BKE_writeffmpeg.h"
@@ -1499,7 +1501,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
             SequenceModifierData *smd;
             ColorBalanceModifierData *cbmd;
 
-            smd = BKE_sequence_modifier_new(seq, NULL, seqModifierType_ColorBalance);
+            smd = SEQ_modifier_new(seq, NULL, seqModifierType_ColorBalance);
             cbmd = (ColorBalanceModifierData *)smd;
 
             cbmd->color_balance = *strip->color_balance;
@@ -1813,7 +1815,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
           seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
         }
         else {
-          BKE_sequence_alpha_mode_from_extension(seq);
+          SEQ_alpha_mode_from_file_extension(seq);
         }
       }
       SEQ_ALL_END;

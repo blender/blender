@@ -93,7 +93,7 @@
 
 #include "RE_pipeline.h"
 
-#include "SEQ_sequencer.h" /* seq_foreground_frame_get() */
+#include "SEQ_utils.h" /* SEQ_get_topmost_sequence() */
 
 #include "GPU_texture.h"
 
@@ -2057,7 +2057,7 @@ static void stampdata(
   }
 
   if (use_dynamic && scene->r.stamp & R_STAMP_SEQSTRIP) {
-    const Sequence *seq = BKE_sequencer_foreground_frame_get(scene, scene->r.cfra);
+    const Sequence *seq = SEQ_get_topmost_sequence(scene, scene->r.cfra);
 
     if (seq) {
       STRNCPY(text, seq->name + 2);

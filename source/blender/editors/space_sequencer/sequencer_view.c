@@ -38,7 +38,9 @@
 
 #include "RNA_define.h"
 
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 /* For menu, popup, icons, etc. */
 #include "ED_anim_api.h"
@@ -88,7 +90,7 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
   Scene *scene = CTX_data_scene(C);
-  const Editing *ed = BKE_sequencer_editing_get(scene, false);
+  const Editing *ed = SEQ_editing_get(scene, false);
 
   SEQ_timeline_boundbox(scene, SEQ_active_seqbase_get(ed), &box);
   UI_view2d_smooth_view(C, region, &box, smooth_viewtx);
@@ -272,8 +274,8 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = UI_view2d_fromcontext(C);
   ARegion *region = CTX_wm_region(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
-  Sequence *last_seq = BKE_sequencer_active_get(scene);
+  Editing *ed = SEQ_editing_get(scene, false);
+  Sequence *last_seq = SEQ_select_active_get(scene);
   Sequence *seq;
   rctf cur_new = v2d->cur;
 

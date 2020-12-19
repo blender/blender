@@ -101,6 +101,7 @@
 #include "ED_markers.h"
 
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "UI_resources.h" /* for TH_KEYFRAME_SCALE lookup */
 
@@ -225,7 +226,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
     {
       /* TODO, other methods to get the mask */
 #if 0
-      Sequence *seq = BKE_sequencer_active_get(ac->scene);
+      Sequence *seq = SEQ_select_active_get(ac->scene);
       MovieClip *clip = ac->scene->clip;
       struct Mask *mask = seq ? seq->mask : NULL;
 #endif
@@ -1103,14 +1104,14 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
     /* only consider if F-Curve involves sequence_editor.sequences */
     if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
-      Editing *ed = BKE_sequencer_editing_get(scene, false);
+      Editing *ed = SEQ_editing_get(scene, false);
       Sequence *seq = NULL;
 
       if (ed) {
         /* get strip name, and check if this strip is selected */
         char *seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
         if (seq_name) {
-          seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, false);
+          seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
           MEM_freeN(seq_name);
         }
       }

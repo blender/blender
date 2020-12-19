@@ -1620,7 +1620,6 @@ void node_draw_nodetree(const bContext *C,
     }
 
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
-    node->nr = a; /* index of node in list, used for exec event code */
     node_draw(C, region, snode, ntree, node, key);
   }
 
@@ -1643,7 +1642,6 @@ void node_draw_nodetree(const bContext *C,
     }
 
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
-    node->nr = a; /* index of node in list, used for exec event code */
     node_draw(C, region, snode, ntree, node, key);
   }
 }

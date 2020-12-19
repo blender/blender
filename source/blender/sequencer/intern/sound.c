@@ -36,29 +36,10 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_sound.h"
+#include "SEQ_time.h"
 
 #include "strip_time.h"
-
-void BKE_sequence_sound_init(Scene *scene, Sequence *seq);
-
-void BKE_sequence_sound_init(Scene *scene, Sequence *seq)
-{
-  if (seq->type == SEQ_TYPE_META) {
-    Sequence *seq_child;
-    for (seq_child = seq->seqbase.first; seq_child; seq_child = seq_child->next) {
-      BKE_sequence_sound_init(scene, seq_child);
-    }
-  }
-  else {
-    if (seq->sound) {
-      seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene, seq);
-    }
-    if (seq->scene) {
-      seq->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene, seq);
-    }
-  }
-}
 
 /* Unlike _update_sound_ funcs, these ones take info from audaspace to update sequence length! */
 #ifdef WITH_AUDASPACE
@@ -70,7 +51,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
   for (seq = seqbase->first; seq; seq = seq->next) {
     if (seq->type == SEQ_TYPE_META) {
       if (sequencer_refresh_sound_length_recursive(bmain, scene, &seq->seqbase)) {
-        BKE_sequence_calc(scene, seq);
+        SEQ_time_update_sequence(scene, seq);
         changed = true;
       }
     }
@@ -86,7 +67,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
       seq->endofs *= fac;
       seq->start += (old - seq->startofs); /* So that visual/"real" start frame does not change! */
 
-      BKE_sequence_calc(scene, seq);
+      SEQ_time_update_sequence(scene, seq);
       changed = true;
     }
   }
@@ -94,7 +75,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
 }
 #endif
 
-void BKE_sequencer_refresh_sound_length(Main *bmain, Scene *scene)
+void SEQ_sound_update_length(Main *bmain, Scene *scene)
 {
 #ifdef WITH_AUDASPACE
   if (scene->ed) {
@@ -105,7 +86,7 @@ void BKE_sequencer_refresh_sound_length(Main *bmain, Scene *scene)
 #endif
 }
 
-void BKE_sequencer_update_sound_bounds_all(Scene *scene)
+void SEQ_sound_update_bounds_all(Scene *scene)
 {
   Editing *ed = scene->ed;
 
@@ -117,13 +98,13 @@ void BKE_sequencer_update_sound_bounds_all(Scene *scene)
         seq_update_sound_bounds_recursive(scene, seq);
       }
       else if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
-        BKE_sequencer_update_sound_bounds(scene, seq);
+        SEQ_sound_update_bounds(scene, seq);
       }
     }
   }
 }
 
-void BKE_sequencer_update_sound_bounds(Scene *scene, Sequence *seq)
+void SEQ_sound_update_bounds(Scene *scene, Sequence *seq)
 {
   if (seq->type == SEQ_TYPE_SCENE) {
     if (seq->scene && seq->scene_sound) {
@@ -155,7 +136,7 @@ static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound 
   }
 }
 
-void BKE_sequencer_update_sound(Scene *scene, bSound *sound)
+void SEQ_sound_update(Scene *scene, bSound *sound)
 {
   if (scene->ed) {
     seq_update_sound_recursive(scene, &scene->ed->seqbase, sound);

@@ -88,7 +88,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_relations.h"
+#include "SEQ_render.h"
 
 #include "../../windowmanager/WM_api.h"    /* XXX */
 #include "../../windowmanager/wm_window.h" /* XXX */
@@ -1548,7 +1549,7 @@ static void do_render_seq(Render *re)
       if (recurs_depth == 0) { /* With nested scenes, only free on top-level. */
         Editing *ed = re->pipeline_scene_eval->ed;
         if (ed) {
-          BKE_sequencer_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);
+          SEQ_relations_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);
         }
       }
       IMB_freeImBuf(ibuf_arr[view_id]);
@@ -1596,7 +1597,7 @@ static void do_render_all_options(Render *re)
 
   /* ensure no images are in memory from previous animated sequences */
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
-  BKE_sequencer_all_free_anim_ibufs(re->scene, re->r.cfra);
+  SEQ_relations_free_all_anim_ibufs(re->scene, re->r.cfra);
 
   if (RE_engine_render(re, 1)) {
     /* in this case external render overrides all */

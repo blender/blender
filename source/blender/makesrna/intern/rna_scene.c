@@ -699,7 +699,9 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph_query.h"
 
+#  include "SEQ_relations.h"
 #  include "SEQ_sequencer.h"
+#  include "SEQ_sound.h"
 
 #  ifdef WITH_FREESTYLE
 #    include "FRS_freestyle.h"
@@ -916,7 +918,7 @@ static void rna_Scene_fps_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(p
   /* NOTE: Tag via dependency graph will take care of all the updates ion the evaluated domain,
    * however, changes in FPS actually modifies an original skip length,
    * so this we take care about here. */
-  BKE_sequencer_refresh_sound_length(bmain, scene);
+  SEQ_sound_update_length(bmain, scene);
 }
 
 static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
@@ -2250,7 +2252,7 @@ static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
   Scene *scene = (Scene *)ptr->owner_id;
   Object *camera = scene->camera;
 
-  BKE_sequencer_cache_cleanup(scene);
+  SEQ_cache_cleanup(scene);
 
   if (camera && (camera->type == OB_CAMERA)) {
     DEG_id_tag_update(&camera->id, ID_RECALC_GEOMETRY);
@@ -2259,7 +2261,7 @@ static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 
 static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-  BKE_sequencer_cache_cleanup(scene);
+  SEQ_cache_cleanup(scene);
 }
 
 static char *rna_ToolSettings_path(PointerRNA *UNUSED(ptr))

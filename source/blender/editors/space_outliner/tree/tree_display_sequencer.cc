@@ -43,7 +43,7 @@ ListBase TreeDisplaySequencer::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 
-  Editing *ed = BKE_sequencer_editing_get(source_data.scene, false);
+  Editing *ed = SEQ_editing_get(source_data.scene, false);
   if (ed == nullptr) {
     return tree;
   }

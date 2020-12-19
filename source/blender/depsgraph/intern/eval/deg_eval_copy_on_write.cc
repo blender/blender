@@ -92,7 +92,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_sound.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_relations.h"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_nodes.h"
@@ -322,7 +322,7 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
   const ID *id_for_copy = &scene->id;
 
   if (G.debug & G_DEBUG_DEPSGRAPH_UUID) {
-    BKE_sequencer_check_uuids_unique_and_report(scene);
+    SEQ_relations_check_uuids_unique_and_report(scene);
   }
 
 #ifdef NESTED_ID_NASTY_WORKAROUND

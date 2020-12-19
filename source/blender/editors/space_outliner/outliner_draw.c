@@ -1996,7 +1996,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
         "Change the object in the current mode\n"
         "* Ctrl to add to the current mode");
   }
-
+  UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
   uiBut *but = uiDefIconBut(block,
                             UI_BTYPE_ICON_TOGGLE,
                             0,
@@ -3646,7 +3646,7 @@ void draw_outliner(const bContext *C)
   outliner_tree_dimensions(space_outliner, &tree_width, &tree_height);
 
   /* Default to no emboss for outliner UI. */
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
 
   if (space_outliner->outlinevis == SO_DATA_API) {
     int buttons_start_x = outliner_data_api_buttons_start_x(tree_width);
@@ -3655,7 +3655,7 @@ void draw_outliner(const bContext *C)
 
     UI_block_emboss_set(block, UI_EMBOSS);
     outliner_draw_rnabuts(block, region, space_outliner, buttons_start_x, &space_outliner->tree);
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
+    UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
   }
   else if (space_outliner->outlinevis == SO_ID_ORPHANS) {
     /* draw user toggle columns */

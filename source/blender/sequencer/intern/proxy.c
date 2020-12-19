@@ -54,6 +54,8 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
+#include "SEQ_proxy.h"
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 
 #include "multiview.h"
@@ -422,7 +424,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
 
     context = MEM_callocN(sizeof(SeqIndexBuildContext), "seq proxy rebuild context");
 
-    nseq = BKE_sequence_dupli_recursive(scene, scene, NULL, seq, 0);
+    nseq = SEQ_sequence_dupli_recursive(scene, scene, NULL, seq, 0);
 
     context->tc_flags = nseq->strip->proxy->build_tc_flags;
     context->size_flags = nseq->strip->proxy->build_size_flags;

@@ -604,7 +604,7 @@ static eContextResult screen_ctx_sequences(const bContext *C, bContextDataResult
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   if (ed) {
     LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
       CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
@@ -618,7 +618,7 @@ static eContextResult screen_ctx_selected_sequences(const bContext *C, bContextD
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   if (ed) {
     LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
       if (seq->flag & SELECT) {
@@ -635,7 +635,7 @@ static eContextResult screen_ctx_selected_editable_sequences(const bContext *C,
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   if (ed) {
     LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
       if (seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {

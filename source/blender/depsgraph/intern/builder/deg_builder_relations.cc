@@ -99,7 +99,7 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

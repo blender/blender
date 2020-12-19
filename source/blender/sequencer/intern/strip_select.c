@@ -29,11 +29,12 @@
 
 #include "BKE_scene.h"
 
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
-Sequence *BKE_sequencer_active_get(Scene *scene)
+Sequence *SEQ_select_active_get(Scene *scene)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
 
   if (ed == NULL) {
     return NULL;
@@ -42,9 +43,9 @@ Sequence *BKE_sequencer_active_get(Scene *scene)
   return ed->act_seq;
 }
 
-void BKE_sequencer_active_set(Scene *scene, Sequence *seq)
+void SEQ_select_active_set(Scene *scene, Sequence *seq)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
 
   if (ed == NULL) {
     return;
@@ -53,11 +54,11 @@ void BKE_sequencer_active_set(Scene *scene, Sequence *seq)
   ed->act_seq = seq;
 }
 
-int BKE_sequencer_active_get_pair(Scene *scene, Sequence **seq_act, Sequence **seq_other)
+int SEQ_select_active_get_pair(Scene *scene, Sequence **seq_act, Sequence **seq_other)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
 
-  *seq_act = BKE_sequencer_active_get(scene);
+  *seq_act = SEQ_select_active_get(scene);
 
   if (*seq_act == NULL) {
     return 0;

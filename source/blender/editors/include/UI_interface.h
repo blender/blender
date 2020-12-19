@@ -108,6 +108,11 @@ enum {
   UI_EMBOSS_NONE = 1,     /* Nothing, only icon and/or text */
   UI_EMBOSS_PULLDOWN = 2, /* Pulldown menu style */
   UI_EMBOSS_RADIAL = 3,   /* Pie Menu */
+  /**
+   * The same as #UI_EMBOSS_NONE, unless the the button has
+   * a coloring status like an animation state or red alert.
+   */
+  UI_EMBOSS_NONE_OR_STATUS = 4,
 
   UI_EMBOSS_UNDEFINED = 255, /* For layout engine, use emboss from block. */
 };

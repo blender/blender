@@ -72,6 +72,7 @@
 #include "ED_sequencer.h"
 #include "ED_undo.h"
 
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
 #include "WM_api.h"
@@ -870,13 +871,13 @@ static eOLDrawState tree_element_active_sequence(bContext *C,
                                                  const eOLSetState set)
 {
   Sequence *seq = (Sequence *)te->directdata;
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
 
   if (set != OL_SETSEL_NONE) {
     /* only check on setting */
     if (BLI_findindex(ed->seqbasep, seq) != -1) {
       if (set == OL_SETSEL_EXTEND) {
-        BKE_sequencer_active_set(scene, NULL);
+        SEQ_select_active_set(scene, NULL);
       }
       ED_sequencer_deselect_all(scene);
 
@@ -885,7 +886,7 @@ static eOLDrawState tree_element_active_sequence(bContext *C,
       }
       else {
         seq->flag |= SELECT;
-        BKE_sequencer_active_set(scene, seq);
+        SEQ_select_active_set(scene, seq);
       }
     }
 
@@ -905,7 +906,7 @@ static eOLDrawState tree_element_active_sequence_dup(Scene *scene,
                                                      const eOLSetState set)
 {
   Sequence *seq, *p;
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
 
   seq = (Sequence *)te->directdata;
   if (set == OL_SETSEL_NONE) {

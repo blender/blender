@@ -42,7 +42,11 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
+#include "SEQ_iterator.h"
+#include "SEQ_relations.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -51,11 +55,11 @@
 #include "proxy.h"
 #include "utils.h"
 
-void BKE_sequencer_sort(Scene *scene)
+void SEQ_sort(Scene *scene)
 {
   /* all strips together per kind, and in order of y location ("machine") */
   ListBase seqbase, effbase;
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   Sequence *seq, *seqt;
 
   if (ed == NULL) {
@@ -132,7 +136,7 @@ static int seqbase_unique_name_recursive_fn(Sequence *seq, void *arg_pt)
   return 1;
 }
 
-void BKE_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
+void SEQ_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
 {
   SeqUniqueInfo sui;
   char *dot;
@@ -156,7 +160,7 @@ void BKE_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
   while (sui.match) {
     sui.match = 0;
     seqbase_unique_name(seqbasep, &sui);
-    BKE_sequencer_base_recursive_apply(seqbasep, seqbase_unique_name_recursive_fn, &sui);
+    SEQ_iterator_seqbase_recursive_apply(seqbasep, seqbase_unique_name_recursive_fn, &sui);
   }
 
   BLI_strncpy(seq->name + 2, sui.name_dest, sizeof(seq->name) - 2);
@@ -220,7 +224,7 @@ static const char *give_seqname_by_type(int type)
   }
 }
 
-const char *BKE_sequence_give_name(Sequence *seq)
+const char *SEQ_sequence_give_name(Sequence *seq)
 {
   const char *name = give_seqname_by_type(seq->type);
 
@@ -234,7 +238,7 @@ const char *BKE_sequence_give_name(Sequence *seq)
   return name;
 }
 
-ListBase *BKE_sequence_seqbase_get(Sequence *seq, int *r_offset)
+ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, int *r_offset)
 {
   ListBase *seqbase = NULL;
 
@@ -246,7 +250,7 @@ ListBase *BKE_sequence_seqbase_get(Sequence *seq, int *r_offset)
     }
     case SEQ_TYPE_SCENE: {
       if (seq->flag & SEQ_SCENE_STRIPS && seq->scene) {
-        Editing *ed = BKE_sequencer_editing_get(seq->scene, false);
+        Editing *ed = SEQ_editing_get(seq->scene, false);
         if (ed) {
           seqbase = &ed->seqbase;
           *r_offset = seq->scene->r.sfra;
@@ -275,7 +279,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   }
 
   /* reset all the previously created anims */
-  BKE_sequence_free_anim(seq);
+  SEQ_relations_sequence_free_anim(seq);
 
   BLI_join_dirfile(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
   BLI_path_abs(name, BKE_main_blendfile_path_from_global());
@@ -388,7 +392,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   }
 }
 
-const Sequence *BKE_sequencer_foreground_frame_get(const Scene *scene, int frame)
+const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
 {
   const Editing *ed = scene->ed;
   const Sequence *seq, *best_seq = NULL;
@@ -421,7 +425,7 @@ const Sequence *BKE_sequencer_foreground_frame_get(const Scene *scene, int frame
 }
 
 /* in cases where we done know the sequence's listbase */
-ListBase *BKE_sequence_seqbase(ListBase *seqbase, Sequence *seq)
+ListBase *SEQ_get_seqbase_by_seq(ListBase *seqbase, Sequence *seq)
 {
   Sequence *iseq;
   ListBase *lb = NULL;
@@ -430,7 +434,7 @@ ListBase *BKE_sequence_seqbase(ListBase *seqbase, Sequence *seq)
     if (seq == iseq) {
       return seqbase;
     }
-    if (iseq->seqbase.first && (lb = BKE_sequence_seqbase(&iseq->seqbase, seq))) {
+    if (iseq->seqbase.first && (lb = SEQ_get_seqbase_by_seq(&iseq->seqbase, seq))) {
       return lb;
     }
   }
@@ -438,7 +442,7 @@ ListBase *BKE_sequence_seqbase(ListBase *seqbase, Sequence *seq)
   return NULL;
 }
 
-Sequence *BKE_sequence_metastrip(ListBase *seqbase, Sequence *meta, Sequence *seq)
+Sequence *seq_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
 {
   Sequence *iseq;
 
@@ -448,7 +452,8 @@ Sequence *BKE_sequence_metastrip(ListBase *seqbase, Sequence *meta, Sequence *se
     if (seq == iseq) {
       return meta;
     }
-    if (iseq->seqbase.first && (rval = BKE_sequence_metastrip(&iseq->seqbase, iseq, seq))) {
+    if (iseq->seqbase.first &&
+        (rval = seq_find_metastrip_by_sequence(&iseq->seqbase, iseq, seq))) {
       return rval;
     }
   }
@@ -460,7 +465,7 @@ Sequence *BKE_sequence_metastrip(ListBase *seqbase, Sequence *meta, Sequence *se
  * Only use as last resort when the StripElem is available but no the Sequence.
  * (needed for RNA)
  */
-Sequence *BKE_sequencer_from_elem(ListBase *seqbase, StripElem *se)
+Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
 {
   Sequence *iseq;
 
@@ -470,7 +475,7 @@ Sequence *BKE_sequencer_from_elem(ListBase *seqbase, StripElem *se)
         (ARRAY_HAS_ITEM(se, iseq->strip->stripdata, iseq->len))) {
       break;
     }
-    if ((seq_found = BKE_sequencer_from_elem(&iseq->seqbase, se))) {
+    if ((seq_found = SEQ_sequence_from_strip_elem(&iseq->seqbase, se))) {
       iseq = seq_found;
       break;
     }
@@ -479,7 +484,7 @@ Sequence *BKE_sequencer_from_elem(ListBase *seqbase, StripElem *se)
   return iseq;
 }
 
-Sequence *BKE_sequence_get_by_name(ListBase *seqbase, const char *name, bool recursive)
+Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool recursive)
 {
   Sequence *iseq = NULL;
   Sequence *rseq = NULL;
@@ -489,7 +494,7 @@ Sequence *BKE_sequence_get_by_name(ListBase *seqbase, const char *name, bool rec
       return iseq;
     }
     if (recursive && (iseq->seqbase.first) &&
-        (rseq = BKE_sequence_get_by_name(&iseq->seqbase, name, 1))) {
+        (rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, 1))) {
       return rseq;
     }
   }
@@ -497,9 +502,9 @@ Sequence *BKE_sequence_get_by_name(ListBase *seqbase, const char *name, bool rec
   return NULL;
 }
 
-Mask *BKE_sequencer_mask_get(Scene *scene)
+Mask *SEQ_active_mask_get(Scene *scene)
 {
-  Sequence *seq_act = BKE_sequencer_active_get(scene);
+  Sequence *seq_act = SEQ_select_active_get(scene);
 
   if (seq_act && seq_act->type == SEQ_TYPE_MASK) {
     return seq_act->mask;
@@ -508,7 +513,7 @@ Mask *BKE_sequencer_mask_get(Scene *scene)
   return NULL;
 }
 
-void BKE_sequence_alpha_mode_from_extension(Sequence *seq)
+void SEQ_alpha_mode_from_file_extension(Sequence *seq)
 {
   if (seq->strip && seq->strip->stripdata) {
     const char *filename = seq->strip->stripdata->name;
@@ -518,7 +523,7 @@ void BKE_sequence_alpha_mode_from_extension(Sequence *seq)
 
 /* called on draw, needs to be fast,
  * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
-bool BKE_sequence_is_valid_check(Sequence *seq)
+bool SEQ_sequence_has_source(Sequence *seq)
 {
   switch (seq->type) {
     case SEQ_TYPE_MASK:

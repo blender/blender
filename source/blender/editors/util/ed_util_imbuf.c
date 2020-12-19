@@ -42,6 +42,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 
 #include "UI_view2d.h"
@@ -564,7 +565,7 @@ bool ED_imbuf_sample_poll(bContext *C)
       return false;
     }
 
-    return sseq && BKE_sequencer_editing_get(CTX_data_scene(C), false) != NULL;
+    return sseq && SEQ_editing_get(CTX_data_scene(C), false) != NULL;
   }
 
   return false;
