@@ -65,7 +65,7 @@ void seq_cache_cleanup_sequence(struct Scene *scene,
                                 struct Sequence *seq_changed,
                                 int invalidate_types,
                                 bool force_seq_changed_range);
-bool seq_cache_is_full(struct Scene *scene);
+bool seq_cache_is_full(void);
 
 #ifdef __cplusplus
 }

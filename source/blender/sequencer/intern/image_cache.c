@@ -147,7 +147,6 @@ typedef struct SeqCache {
   struct BLI_mempool *keys_pool;
   struct BLI_mempool *items_pool;
   struct SeqCacheKey *last_key;
-  size_t memory_used;
   SeqDiskCache *disk_cache;
 } SeqCache;
 
@@ -796,10 +795,8 @@ static void seq_cache_keyfree(void *val)
 static void seq_cache_valfree(void *val)
 {
   SeqCacheItem *item = (SeqCacheItem *)val;
-  SeqCache *cache = item->cache_owner;
 
   if (item->ibuf) {
-    cache->memory_used -= IMB_get_size_in_memory(item->ibuf);
     IMB_freeImBuf(item->ibuf);
   }
 
@@ -816,7 +813,6 @@ static void seq_cache_put_ex(SeqCache *cache, SeqCacheKey *key, ImBuf *ibuf)
   if (BLI_ghash_reinsert(cache->hash, key, item, seq_cache_keyfree, seq_cache_valfree)) {
     IMB_refImBuf(ibuf);
     cache->last_key = key;
-    cache->memory_used += IMB_get_size_in_memory(ibuf);
   }
 }
 
@@ -994,7 +990,6 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
  */
 bool seq_cache_recycle_item(Scene *scene)
 {
-  size_t memory_total = seq_cache_get_mem_total();
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {
     return false;
@@ -1002,7 +997,7 @@ bool seq_cache_recycle_item(Scene *scene)
 
   seq_cache_lock(scene);
 
-  while (cache->memory_used > memory_total) {
+  while (seq_cache_is_full()) {
     SeqCacheKey *finalkey = seq_cache_get_item_for_removal(scene);
 
     if (finalkey) {
@@ -1466,13 +1461,7 @@ void SEQ_cache_iterate(struct Scene *scene,
   seq_cache_unlock(scene);
 }
 
-bool seq_cache_is_full(Scene *scene)
+bool seq_cache_is_full(void)
 {
-  size_t memory_total = seq_cache_get_mem_total();
-  SeqCache *cache = seq_cache_get_from_scene(scene);
-  if (!cache) {
-    return false;
-  }
-
-  return memory_total < cache->memory_used;
+  return seq_cache_get_mem_total() < MEM_get_memory_in_use();
 }
