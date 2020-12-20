@@ -2101,13 +2101,6 @@ static void rna_def_editor(BlenderRNA *brna)
       "Prefetch Frames",
       "Render frames ahead of current frame in the background for faster playback");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
-
-  prop = RNA_def_property(srna, "recycle_max_cost", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_range(prop, 0.0f, SEQ_CACHE_COST_MAX);
-  RNA_def_property_ui_range(prop, 0.0f, SEQ_CACHE_COST_MAX, 0.1f, 1);
-  RNA_def_property_float_sdna(prop, NULL, "recycle_max_cost");
-  RNA_def_property_ui_text(
-      prop, "Recycle Up to Cost", "Only frames with cost lower than this value will be recycled");
 }
 
 static void rna_def_filter_video(StructRNA *srna)

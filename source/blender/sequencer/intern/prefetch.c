@@ -178,7 +178,7 @@ static bool seq_prefetch_is_cache_full(Scene *scene)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
 
-  if (!seq_cache_is_full(pfjob->scene)) {
+  if (!seq_cache_is_full()) {
     return false;
   }
 
@@ -528,7 +528,7 @@ static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cf
 }
 
 /* Start or resume prefetching*/
-void seq_prefetch_start(const SeqRenderData *context, float timeline_frame, float cost)
+void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
 {
   Scene *scene = context->scene;
   Editing *ed = scene->ed;
@@ -540,13 +540,12 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame, floa
     bool running = seq_prefetch_job_is_running(scene);
     seq_prefetch_resume(scene);
     /* conditions to start:
-     * prefetch enabled, prefetch not running, not scrubbing,
-     * not playing and rendering-expensive footage, cache storage enabled, has strips to render,
-     * not rendering, not doing modal transform - important, see D7820.
+     * prefetch enabled, prefetch not running, not scrubbing,  not playing,
+     * cache storage enabled, has strips to render, not rendering, not doing modal transform -
+     * important, see D7820.
      */
-    if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing &&
-        !(playing && cost > 0.9) && ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips &&
-        !G.is_rendering && !G.moving) {
+    if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing && !playing &&
+        ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips && !G.is_rendering && !G.moving) {
 
       seq_prefetch_start_ex(context, timeline_frame);
     }

@@ -278,7 +278,7 @@ typedef struct Editing {
   struct SeqCache *cache;
 
   /* Cache control */
-  float recycle_max_cost;
+  float recycle_max_cost; /* UNUSED only for versioning. */
   int cache_flag;
 
   struct PrefetchJob *prefetch_job;

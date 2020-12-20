@@ -1891,8 +1891,6 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
         col.prop(ed, "use_cache_preprocessed", text="Pre-Processed")
         col.prop(ed, "use_cache_composite", text="Composite")
         col.prop(ed, "use_cache_final", text="Final")
-        col.separator()
-        col.prop(ed, "recycle_max_cost")
 
 
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
