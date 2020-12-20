@@ -88,6 +88,7 @@ class VOLUME_UL_grids(UIList):
         name = grid.name
         data_type = grid.bl_rna.properties['data_type'].enum_items[grid.data_type]
 
+        layout.emboss = 'NONE'
         layout.label(text=name)
         row = layout.row()
         row.alignment = 'RIGHT'
