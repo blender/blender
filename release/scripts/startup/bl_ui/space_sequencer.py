@@ -453,6 +453,11 @@ class SEQUENCER_MT_select_handle(Menu):
         layout.operator("sequencer.select_handles", text="Left").side = 'LEFT'
         layout.operator("sequencer.select_handles", text="Right").side = 'RIGHT'
 
+        layout.separator()
+
+        layout.operator("sequencer.select_handles", text="Both Neighbors").side = 'BOTH_NEIGHBORS'
+        layout.operator("sequencer.select_handles", text="Left Neighbor").side = 'LEFT_NEIGHBOR'
+        layout.operator("sequencer.select_handles", text="Right Neighbor").side = 'RIGHT_NEIGHBOR'
 
 class SEQUENCER_MT_select_channel(Menu):
     bl_label = "Select Channel"
@@ -1891,8 +1896,6 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
         col.prop(ed, "use_cache_preprocessed", text="Pre-Processed")
         col.prop(ed, "use_cache_composite", text="Composite")
         col.prop(ed, "use_cache_final", text="Final")
-        col.separator()
-        col.prop(ed, "recycle_max_cost")
 
 
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):

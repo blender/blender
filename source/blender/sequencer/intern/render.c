@@ -403,24 +403,6 @@ int seq_get_shown_sequences(ListBase *seqbasep,
   return cnt;
 }
 
-/* Estimate time spent by the program rendering the strip */
-static clock_t seq_estimate_render_cost_begin(void)
-{
-  return clock();
-}
-
-static float seq_estimate_render_cost_end(Scene *scene, clock_t begin)
-{
-  clock_t end = clock();
-  float time_spent = (float)(end - begin);
-  float time_max = (1.0f / scene->r.frs_sec) * CLOCKS_PER_SEC;
-
-  if (time_max != 0) {
-    return time_spent / time_max;
-  }
-
-  return 1;
-}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -738,7 +720,6 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
                                          Sequence *seq,
                                          ImBuf *ibuf,
                                          float timeline_frame,
-                                         clock_t begin,
                                          bool use_preprocess,
                                          const bool is_proxy_image)
 {
@@ -748,20 +729,15 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
   }
 
   if (use_preprocess) {
-    float cost = seq_estimate_render_cost_end(context->scene, begin);
-
     /* Proxies are not stored in cache. */
     if (!is_proxy_image) {
-      seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf, cost, false);
+      seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf, false);
     }
 
-    /* Reset timer so we can get partial render time. */
-    begin = seq_estimate_render_cost_begin();
     ibuf = input_preprocess(context, seq, timeline_frame, ibuf);
   }
 
-  float cost = seq_estimate_render_cost_end(context->scene, begin);
-  seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, ibuf, cost, false);
+  seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, ibuf, false);
   return ibuf;
 }
 
@@ -1073,7 +1049,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
 
       if (view_id != context->view_id) {
         ibufs_arr[view_id] = seq_render_preprocess_ibuf(
-            &localcontext, seq, ibufs_arr[view_id], timeline_frame, clock(), true, false);
+            &localcontext, seq, ibufs_arr[view_id], timeline_frame, true, false);
       }
     }
 
@@ -1223,7 +1199,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
 
       if (view_id != context->view_id) {
         ibuf_arr[view_id] = seq_render_preprocess_ibuf(
-            &localcontext, seq, ibuf_arr[view_id], timeline_frame, clock(), true, false);
+            &localcontext, seq, ibuf_arr[view_id], timeline_frame, true, false);
       }
     }
 
@@ -1630,7 +1606,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
       if (view_id != context->view_id) {
         seq_cache_put(
-            &localcontext, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibufs_arr[view_id], 0, false);
+            &localcontext, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibufs_arr[view_id], false);
       }
 
       RE_ReleaseResultImage(re);
@@ -1805,8 +1781,6 @@ ImBuf *seq_render_strip(const SeqRenderData *context,
   bool use_preprocess = false;
   bool is_proxy_image = false;
 
-  clock_t begin = seq_estimate_render_cost_begin();
-
   ibuf = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, false);
   if (ibuf != NULL) {
     return ibuf;
@@ -1824,7 +1798,7 @@ ImBuf *seq_render_strip(const SeqRenderData *context,
   if (ibuf) {
     use_preprocess = seq_input_have_to_preprocess(context, seq, timeline_frame);
     ibuf = seq_render_preprocess_ibuf(
-        context, seq, ibuf, timeline_frame, begin, use_preprocess, is_proxy_image);
+        context, seq, ibuf, timeline_frame, use_preprocess, is_proxy_image);
   }
 
   if (ibuf == NULL) {
@@ -1910,7 +1884,6 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
   int count;
   int i;
   ImBuf *out = NULL;
-  clock_t begin;
 
   count = seq_get_shown_sequences(seqbasep, timeline_frame, chanshown, (Sequence **)&seq_arr);
 
@@ -1946,16 +1919,13 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
         break;
       case EARLY_DO_EFFECT:
         if (i == 0) {
-          begin = seq_estimate_render_cost_begin();
-
           ImBuf *ibuf1 = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
           ImBuf *ibuf2 = seq_render_strip(context, state, seq, timeline_frame);
 
           out = seq_render_strip_stack_apply_effect(context, seq, timeline_frame, ibuf1, ibuf2);
 
-          float cost = seq_estimate_render_cost_end(context->scene, begin);
           seq_cache_put(
-              context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, cost, false);
+              context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, false);
 
           IMB_freeImBuf(ibuf1);
           IMB_freeImBuf(ibuf2);
@@ -1969,7 +1939,6 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
 
   i++;
   for (; i < count; i++) {
-    begin = seq_estimate_render_cost_begin();
     Sequence *seq = seq_arr[i];
 
     if (seq_get_early_out_for_blend_mode(seq) == EARLY_DO_EFFECT) {
@@ -1982,9 +1951,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
       IMB_freeImBuf(ibuf2);
     }
 
-    float cost = seq_estimate_render_cost_end(context->scene, begin);
-    seq_cache_put(
-        context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, cost, false);
+    seq_cache_put(context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, false);
   }
 
   return out;
@@ -2029,36 +1996,22 @@ ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, 
 
   seq_cache_free_temp_cache(context->scene, context->task_id, timeline_frame);
 
-  clock_t begin = seq_estimate_render_cost_begin();
-  float cost = 0;
-
   if (count && !out) {
     BLI_mutex_lock(&seq_render_mutex);
     out = seq_render_strip_stack(context, &state, seqbasep, timeline_frame, chanshown);
-    cost = seq_estimate_render_cost_end(context->scene, begin);
 
     if (context->is_prefetch_render) {
-      seq_cache_put(context,
-                    seq_arr[count - 1],
-                    timeline_frame,
-                    SEQ_CACHE_STORE_FINAL_OUT,
-                    out,
-                    cost,
-                    false);
+      seq_cache_put(
+          context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out, false);
     }
     else {
-      seq_cache_put_if_possible(context,
-                                seq_arr[count - 1],
-                                timeline_frame,
-                                SEQ_CACHE_STORE_FINAL_OUT,
-                                out,
-                                cost,
-                                false);
+      seq_cache_put_if_possible(
+          context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out, false);
     }
     BLI_mutex_unlock(&seq_render_mutex);
   }
 
-  seq_prefetch_start(context, timeline_frame, cost);
+  seq_prefetch_start(context, timeline_frame);
 
   return out;
 }

@@ -147,7 +147,6 @@ typedef struct SeqCache {
   struct BLI_mempool *keys_pool;
   struct BLI_mempool *items_pool;
   struct SeqCacheKey *last_key;
-  size_t memory_used;
   SeqDiskCache *disk_cache;
 } SeqCache;
 
@@ -796,10 +795,8 @@ static void seq_cache_keyfree(void *val)
 static void seq_cache_valfree(void *val)
 {
   SeqCacheItem *item = (SeqCacheItem *)val;
-  SeqCache *cache = item->cache_owner;
 
   if (item->ibuf) {
-    cache->memory_used -= IMB_get_size_in_memory(item->ibuf);
     IMB_freeImBuf(item->ibuf);
   }
 
@@ -816,7 +813,6 @@ static void seq_cache_put_ex(SeqCache *cache, SeqCacheKey *key, ImBuf *ibuf)
   if (BLI_ghash_reinsert(cache->hash, key, item, seq_cache_keyfree, seq_cache_valfree)) {
     IMB_refImBuf(ibuf);
     cache->last_key = key;
-    cache->memory_used += IMB_get_size_in_memory(ibuf);
   }
 }
 
@@ -942,7 +938,6 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
   GHashIterator gh_iter;
   BLI_ghashIterator_init(&gh_iter, cache->hash);
   int total_count = 0;
-  int cheap_count = 0;
 
   while (!BLI_ghashIterator_done(&gh_iter)) {
     key = BLI_ghashIterator_getKey(&gh_iter);
@@ -963,24 +958,21 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
 
     total_count++;
 
-    if (key->cost <= scene->ed->recycle_max_cost) {
-      cheap_count++;
-      if (lkey) {
-        if (key->timeline_frame < lkey->timeline_frame) {
-          lkey = key;
-        }
-      }
-      else {
+    if (lkey) {
+      if (key->timeline_frame < lkey->timeline_frame) {
         lkey = key;
       }
-      if (rkey) {
-        if (key->timeline_frame > rkey->timeline_frame) {
-          rkey = key;
-        }
-      }
-      else {
+    }
+    else {
+      lkey = key;
+    }
+    if (rkey) {
+      if (key->timeline_frame > rkey->timeline_frame) {
         rkey = key;
       }
+    }
+    else {
+      rkey = key;
     }
   }
 
@@ -994,7 +986,6 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
  */
 bool seq_cache_recycle_item(Scene *scene)
 {
-  size_t memory_total = seq_cache_get_mem_total();
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {
     return false;
@@ -1002,7 +993,7 @@ bool seq_cache_recycle_item(Scene *scene)
 
   seq_cache_lock(scene);
 
-  while (cache->memory_used > memory_total) {
+  while (seq_cache_is_full()) {
     SeqCacheKey *finalkey = seq_cache_get_item_for_removal(scene);
 
     if (finalkey) {
@@ -1286,10 +1277,10 @@ struct ImBuf *seq_cache_get(const SeqRenderData *context,
     BLI_mutex_unlock(&cache->disk_cache->read_write_mutex);
     if (ibuf) {
       if (key.type == SEQ_CACHE_STORE_FINAL_OUT) {
-        seq_cache_put_if_possible(context, seq, timeline_frame, type, ibuf, 0.0f, true);
+        seq_cache_put_if_possible(context, seq, timeline_frame, type, ibuf, true);
       }
       else {
-        seq_cache_put(context, seq, timeline_frame, type, ibuf, 0.0f, true);
+        seq_cache_put(context, seq, timeline_frame, type, ibuf, true);
       }
     }
   }
@@ -1302,7 +1293,6 @@ bool seq_cache_put_if_possible(const SeqRenderData *context,
                                float timeline_frame,
                                int type,
                                ImBuf *ibuf,
-                               float cost,
                                bool skip_disk_cache)
 {
   Scene *scene = context->scene;
@@ -1318,7 +1308,7 @@ bool seq_cache_put_if_possible(const SeqRenderData *context,
   }
 
   if (seq_cache_recycle_item(scene)) {
-    seq_cache_put(context, seq, timeline_frame, type, ibuf, cost, skip_disk_cache);
+    seq_cache_put(context, seq, timeline_frame, type, ibuf, skip_disk_cache);
     return true;
   }
 
@@ -1332,7 +1322,6 @@ void seq_cache_put(const SeqRenderData *context,
                    float timeline_frame,
                    int type,
                    ImBuf *i,
-                   float cost,
                    bool skip_disk_cache)
 {
   if (i == NULL || context->skip_cache || context->is_proxy_render || !seq) {
@@ -1375,10 +1364,6 @@ void seq_cache_put(const SeqRenderData *context,
     flag = scene->ed->cache_flag;
   }
 
-  if (cost > SEQ_CACHE_COST_MAX) {
-    cost = SEQ_CACHE_COST_MAX;
-  }
-
   SeqCacheKey *key;
   key = BLI_mempool_alloc(cache->keys_pool);
   key->cache_owner = cache;
@@ -1387,7 +1372,6 @@ void seq_cache_put(const SeqRenderData *context,
   key->frame_index = seq_cache_timeline_frame_to_frame_index(seq, timeline_frame, type);
   key->timeline_frame = timeline_frame;
   key->type = type;
-  key->cost = cost;
   key->link_prev = NULL;
   key->link_next = NULL;
   key->is_temp_cache = true;
@@ -1435,14 +1419,11 @@ void seq_cache_put(const SeqRenderData *context,
   }
 }
 
-void SEQ_cache_iterate(struct Scene *scene,
-                       void *userdata,
-                       bool callback_init(void *userdata, size_t item_count),
-                       bool callback_iter(void *userdata,
-                                          struct Sequence *seq,
-                                          int timeline_frame,
-                                          int cache_type,
-                                          float cost))
+void SEQ_cache_iterate(
+    struct Scene *scene,
+    void *userdata,
+    bool callback_init(void *userdata, size_t item_count),
+    bool callback_iter(void *userdata, struct Sequence *seq, int timeline_frame, int cache_type))
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {
@@ -1459,20 +1440,14 @@ void SEQ_cache_iterate(struct Scene *scene,
     SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
     BLI_ghashIterator_step(&gh_iter);
 
-    interrupt = callback_iter(userdata, key->seq, key->timeline_frame, key->type, key->cost);
+    interrupt = callback_iter(userdata, key->seq, key->timeline_frame, key->type);
   }
 
   cache->last_key = NULL;
   seq_cache_unlock(scene);
 }
 
-bool seq_cache_is_full(Scene *scene)
+bool seq_cache_is_full(void)
 {
-  size_t memory_total = seq_cache_get_mem_total();
-  SeqCache *cache = seq_cache_get_from_scene(scene);
-  if (!cache) {
-    return false;
-  }
-
-  return memory_total < cache->memory_used;
+  return seq_cache_get_mem_total() < MEM_get_memory_in_use();
 }

@@ -35,7 +35,7 @@ struct Sequence;
 }
 #endif
 
-void seq_prefetch_start(const struct SeqRenderData *context, float timeline_frame, float cost);
+void seq_prefetch_start(const struct SeqRenderData *context, float timeline_frame);
 void seq_prefetch_free(struct Scene *scene);
 bool seq_prefetch_job_is_running(struct Scene *scene);
 void seq_prefetch_get_time_range(struct Scene *scene, int *start, int *end);

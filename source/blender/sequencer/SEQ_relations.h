@@ -60,14 +60,11 @@ void SEQ_relations_check_uuids_unique_and_report(const struct Scene *scene);
 void SEQ_relations_session_uuid_generate(struct Sequence *sequence);
 
 void SEQ_cache_cleanup(struct Scene *scene);
-void SEQ_cache_iterate(struct Scene *scene,
-                       void *userdata,
-                       bool callback_init(void *userdata, size_t item_count),
-                       bool callback_iter(void *userdata,
-                                          struct Sequence *seq,
-                                          int timeline_frame,
-                                          int cache_type,
-                                          float cost));
+void SEQ_cache_iterate(
+    struct Scene *scene,
+    void *userdata,
+    bool callback_init(void *userdata, size_t item_count),
+    bool callback_iter(void *userdata, struct Sequence *seq, int timeline_frame, int cache_type));
 #ifdef __cplusplus
 }
 #endif

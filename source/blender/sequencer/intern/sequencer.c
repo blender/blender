@@ -249,7 +249,6 @@ Editing *SEQ_editing_ensure(Scene *scene)
     ed->cache_flag = SEQ_CACHE_STORE_FINAL_OUT;
     ed->cache_flag |= SEQ_CACHE_VIEW_FINAL_OUT;
     ed->cache_flag |= SEQ_CACHE_VIEW_ENABLE;
-    ed->recycle_max_cost = 10.0f;
   }
 
   return scene->ed;

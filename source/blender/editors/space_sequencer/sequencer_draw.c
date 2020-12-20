@@ -2111,8 +2111,10 @@ static bool draw_cache_view_init_fn(void *userdata, size_t item_count)
 }
 
 /* Called as a callback */
-static bool draw_cache_view_iter_fn(
-    void *userdata, struct Sequence *seq, int timeline_frame, int cache_type, float UNUSED(cost))
+static bool draw_cache_view_iter_fn(void *userdata,
+                                    struct Sequence *seq,
+                                    int timeline_frame,
+                                    int cache_type)
 {
   CacheDrawData *drawdata = userdata;
   struct View2D *v2d = drawdata->v2d;
