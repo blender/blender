@@ -902,6 +902,25 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 /** \name Select Handles Operator
  * \{ */
 
+enum {
+  SEQ_SELECT_HANDLES_SIDE_LEFT,
+  SEQ_SELECT_HANDLES_SIDE_RIGHT,
+  SEQ_SELECT_HANDLES_SIDE_BOTH,
+  SEQ_SELECT_HANDLES_SIDE_LEFT_NEIGHBOR,
+  SEQ_SELECT_HANDLES_SIDE_RIGHT_NEIGHBOR,
+  SEQ_SELECT_HANDLES_SIDE_BOTH_NEIGHBORS,
+};
+
+static const EnumPropertyItem prop_select_handles_side_types[] = {
+    {SEQ_SELECT_HANDLES_SIDE_LEFT, "LEFT", 0, "Left", ""},
+    {SEQ_SELECT_HANDLES_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
+    {SEQ_SELECT_HANDLES_SIDE_BOTH, "BOTH", 0, "Both", ""},
+    {SEQ_SELECT_HANDLES_SIDE_LEFT_NEIGHBOR, "LEFT_NEIGHBOR", 0, "Left Neighbor", ""},
+    {SEQ_SELECT_HANDLES_SIDE_RIGHT_NEIGHBOR, "RIGHT_NEIGHBOR", 0, "Right Neighbor", ""},
+    {SEQ_SELECT_HANDLES_SIDE_BOTH_NEIGHBORS, "BOTH_NEIGHBORS", 0, "Both Neighbors", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -911,18 +930,56 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->flag & SELECT) {
+      Sequence *l_neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_LEFT, -1);
+      Sequence *r_neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_RIGHT, -1);
+
       switch (sel_side) {
-        case SEQ_SIDE_LEFT:
+        case SEQ_SELECT_HANDLES_SIDE_LEFT:
           seq->flag &= ~SEQ_RIGHTSEL;
           seq->flag |= SEQ_LEFTSEL;
           break;
-        case SEQ_SIDE_RIGHT:
+        case SEQ_SELECT_HANDLES_SIDE_RIGHT:
           seq->flag &= ~SEQ_LEFTSEL;
           seq->flag |= SEQ_RIGHTSEL;
           break;
-        case SEQ_SIDE_BOTH:
+        case SEQ_SELECT_HANDLES_SIDE_BOTH:
           seq->flag |= SEQ_LEFTSEL | SEQ_RIGHTSEL;
           break;
+        case SEQ_SELECT_HANDLES_SIDE_LEFT_NEIGHBOR:
+          if (l_neighbor) {
+            if (!(l_neighbor->flag & SELECT)) {
+              l_neighbor->flag |= SEQ_RIGHTSEL;
+            }
+          }
+          break;
+        case SEQ_SELECT_HANDLES_SIDE_RIGHT_NEIGHBOR:
+          if (r_neighbor) {
+            if (!(r_neighbor->flag & SELECT)) {
+              r_neighbor->flag |= SEQ_LEFTSEL;
+            }
+          }
+          break;
+        case SEQ_SELECT_HANDLES_SIDE_BOTH_NEIGHBORS:
+          if (l_neighbor) {
+            if (!(l_neighbor->flag & SELECT)) {
+              l_neighbor->flag |= SEQ_RIGHTSEL;
+            }
+          }
+          if (r_neighbor) {
+            if (!(r_neighbor->flag & SELECT)) {
+              r_neighbor->flag |= SEQ_LEFTSEL;
+            }
+            break;
+          }
+      }
+    }
+  }
+  /*   Select strips */
+  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+    if ((seq->flag & SEQ_LEFTSEL) || (seq->flag & SEQ_RIGHTSEL)) {
+      if (!(seq->flag & SELECT)) {
+        seq->flag |= SELECT;
+        recurs_sel_seq(seq);
       }
     }
   }
@@ -951,8 +1008,8 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
   /* Properties. */
   RNA_def_enum(ot->srna,
                "side",
-               prop_side_types,
-               SEQ_SIDE_BOTH,
+               prop_select_handles_side_types,
+               SEQ_SELECT_HANDLES_SIDE_BOTH,
                "Side",
                "The side of the handle that is selected");
 }
