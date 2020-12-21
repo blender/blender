@@ -156,8 +156,8 @@ typedef struct NlaKeyframingContext {
   NlaStrip strip;
   NlaEvalStrip *eval_strip;
 
-  /* Evaluated NLA stack below the current strip. */
-  NlaEvalData nla_channels;
+  /* Evaluated NLA stack below the tweak strip. */
+  NlaEvalData lower_eval_data;
 } NlaKeyframingContext;
 
 /* --------------- NLA Functions (not to be used as a proper API) ----------------------- */
