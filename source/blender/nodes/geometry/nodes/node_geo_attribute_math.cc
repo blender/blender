@@ -97,7 +97,8 @@ static void do_math_operation(const FloatReadAttribute &input_a,
 static void attribute_math_calc(GeometryComponent &component, const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
-  const int operation = node.custom1;
+  const NodeAttributeMath *node_storage = (const NodeAttributeMath *)node.storage;
+  const int operation = node_storage->operation;
 
   /* The result type of this node is always float. */
   const CustomDataType result_type = CD_PROP_FLOAT;
