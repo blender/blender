@@ -91,6 +91,7 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
+#include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
@@ -1229,6 +1230,7 @@ static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
               SCULPT_TOOL_SMOOTH,
               SCULPT_TOOL_LAYER,
               SCULPT_TOOL_FAIRING,
+              SCULPT_TOOL_SCENE_PROJECT,
               SCULPT_TOOL_POSE,
               SCULPT_TOOL_DISPLACEMENT_SMEAR,
               SCULPT_TOOL_BOUNDARY,
@@ -2341,6 +2343,7 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
       return alpha * pressure * overlap * feather;
     case SCULPT_TOOL_FAIRING:
+    case SCULPT_TOOL_SCENE_PROJECT:
       return alpha * pressure * overlap * feather;
     case SCULPT_TOOL_CLOTH:
       if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
@@ -3562,6 +3565,119 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_draw_sharp_brush_task_cb_ex, &settings);
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Scene Project Brush
+ * \{ */
+
+static void sculpt_stroke_cache_snap_context_init(bContext *C, Object *ob) {
+  SculptSession *ss = ob->sculpt;
+  StrokeCache *cache = ss->cache;
+
+  if (ss->cache && ss->cache->snap_context) {
+      return;
+  }
+
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Scene *scene = CTX_data_scene(C);
+  ARegion *region = CTX_wm_region(C);
+  View3D *v3d = CTX_wm_view3d(C);
+
+  cache->snap_context = ED_transform_snap_object_context_create_view3d(
+        scene, 0, region, v3d);
+  cache->depsgraph = depsgraph;
+}
+
+
+static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
+                                                  const int n,
+                                                  const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  PBVHVertexIter vd;
+
+  const float bstrength = clamp_f(ss->cache->bstrength, 0.0f, 1.0f);
+  const Brush *brush = data->brush;
+
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                sqrtf(test.dist),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.index,
+                                                                thread_id);
+
+    if (fade == 0.0f) {
+      continue;
+    }
+
+    float ray_normal[3];
+    float world_space_hit_co[3];
+    float hit_co[3];
+    float world_space_vertex_co[3];
+    mul_v3_m4v3(world_space_vertex_co, data->ob->obmat, vd.co);
+    sub_v3_v3v3(ray_normal, world_space_vertex_co, ss->cache->view_origin);
+    normalize_v3(ray_normal);
+
+    const bool hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
+                                         ss->cache->depsgraph,
+                                         &(const struct SnapObjectParams){
+                                                 .snap_select = SNAP_NOT_ACTIVE,
+                                                 .use_object_edit_cage = true,
+                                         },
+                                         ss->cache->view_origin,
+                                         ray_normal,
+                                         NULL,
+                                         world_space_hit_co,
+                                         NULL);
+
+
+    if (!hit) {
+        continue;
+    }
+
+    mul_v3_m4v3(hit_co, data->ob->imat, world_space_hit_co);
+
+    float disp[3];
+    sub_v3_v3v3(disp, hit_co, vd.co);
+    mul_v3_fl(disp, fade);
+    add_v3_v3(vd.co, disp);
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void do_scene_project_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  /* Threaded loop over nodes. */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_scene_project_brush_task_cb_ex, &settings);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Topology Brush
@@ -6250,6 +6366,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       case SCULPT_TOOL_FAIRING:
         do_fairing_brush(sd, ob, nodes, totnode);
         break;
+      case SCULPT_TOOL_SCENE_PROJECT:
+        do_scene_project_brush(sd, ob, nodes, totnode);
+        break;
     }
 
     if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
@@ -6550,6 +6669,7 @@ void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
   flip_v3_v3(cache->last_location, cache->true_last_location, symm);
   flip_v3_v3(cache->grab_delta_symmetry, cache->grab_delta, symm);
   flip_v3_v3(cache->view_normal, cache->true_view_normal, symm);
+  flip_v3_v3(cache->view_origin, cache->true_view_origin, symm);
 
   flip_v3_v3(cache->initial_location, cache->true_initial_location, symm);
   flip_v3_v3(cache->initial_normal, cache->true_initial_normal, symm);
@@ -6844,6 +6964,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Smear Brush";
     case SCULPT_TOOL_FAIRING:
       return "Fairing Brush";
+    case SCULPT_TOOL_SCENE_PROJECT:
+      return "Scene Project";
   }
 
   return "Sculpting";
@@ -6865,6 +6987,10 @@ void SCULPT_cache_free(StrokeCache *cache)
   MEM_SAFE_FREE(cache->fairing_mask);
   MEM_SAFE_FREE(cache->prev_displacement);
   MEM_SAFE_FREE(cache->limit_surface_co);
+
+  if (cache->snap_context) {
+      ED_transform_snap_object_context_destroy(cache->snap_context);
+  }
 
   if (cache->pose_ik_chain) {
     SCULPT_pose_ik_chain_free(cache->pose_ik_chain);
@@ -7031,6 +7157,9 @@ static void sculpt_update_cache_invariants(
   copy_m3_m4(mat, ob->imat);
   mul_m3_v3(mat, viewDir);
   normalize_v3_v3(cache->true_view_normal, viewDir);
+
+  copy_v3_v3(cache->true_view_origin, cache->vc->rv3d->viewinv[3]);
+
 
   cache->supports_gravity = (!ELEM(brush->sculpt_tool,
                                    SCULPT_TOOL_MASK,
@@ -8062,6 +8191,10 @@ static void sculpt_stroke_update_step(bContext *C,
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   const Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (brush->sculpt_tool == SCULPT_TOOL_SCENE_PROJECT) {
+      sculpt_stroke_cache_snap_context_init(C, ob);
+  }
 
   SCULPT_stroke_modifiers_check(C, ob, brush);
   sculpt_update_cache_variants(C, sd, ob, itemptr);

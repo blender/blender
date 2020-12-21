@@ -970,6 +970,9 @@ typedef struct StrokeCache {
   float true_view_normal[3];
   float view_normal[3];
 
+  float view_origin[3];
+  float true_view_origin[3];
+
   /* sculpt_normal gets calculated by calc_sculpt_normal(), then the
    * sculpt_normal_symm gets updated quickly with the usual symmetry
    * transforms */
@@ -1041,6 +1044,10 @@ typedef struct StrokeCache {
   char saved_mask_brush_tool;
   int saved_smooth_size; /* smooth tool copies the size of the current tool */
   bool alt_smooth;
+
+  /* Scene Project Brush */
+  struct SnapObjectContext *snap_context;
+  struct Depsgraph *depsgraph;
 
   float plane_trim_squared;
 
