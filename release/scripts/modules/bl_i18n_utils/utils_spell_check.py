@@ -38,6 +38,7 @@ class SpellChecker:
         "boolean", "booleans",
         "chamfer",
         "couldn",  # couldn't
+        "customizable",
         "decrement",
         "derivate",
         "deterministically",
