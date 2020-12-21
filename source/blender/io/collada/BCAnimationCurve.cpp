@@ -173,8 +173,14 @@ std::string BCAnimationCurve::get_animation_name(Object *ob) const
         name = "";
       }
       else {
-        const char *boneName = BLI_str_quoted_substrN(fcurve->rna_path, "pose.bones[");
-        name = (boneName) ? id_name(ob) + "_" + std::string(boneName) : "";
+        char *boneName = BLI_str_quoted_substrN(fcurve->rna_path, "pose.bones[");
+        if (boneName) {
+          name = id_name(ob) + "_" + std::string(boneName);
+          MEM_freeN(boneName);
+        }
+        else {
+          name = "";
+        }
       }
     } break;
 

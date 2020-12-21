@@ -701,8 +701,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
             /*printf("flip direction %i\n", ed_loop_flip);*/
 
-            /* switch the flip option if set
-             * note: flip is now done at face level so copying vgroup slizes is easier */
+            /* Switch the flip option if set
+             * NOTE: flip is now done at face level so copying group slices is easier. */
 #if 0
             if (do_flip) {
               ed_loop_flip = !ed_loop_flip;
@@ -1259,7 +1259,7 @@ ModifierTypeInfo modifierType_Screw = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

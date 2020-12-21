@@ -60,9 +60,13 @@ struct NlaTrack *BKE_nlatrack_copy(struct Main *bmain,
                                    const int flag);
 void BKE_nla_tracks_copy(struct Main *bmain, ListBase *dst, ListBase *src, const int flag);
 
-struct NlaTrack *BKE_nlatrack_add(struct AnimData *adt, struct NlaTrack *prev);
+struct NlaTrack *BKE_nlatrack_add(struct AnimData *adt,
+                                  struct NlaTrack *prev,
+                                  bool is_liboverride);
 struct NlaStrip *BKE_nlastrip_new(struct bAction *act);
-struct NlaStrip *BKE_nlastack_add_strip(struct AnimData *adt, struct bAction *act);
+struct NlaStrip *BKE_nlastack_add_strip(struct AnimData *adt,
+                                        struct bAction *act,
+                                        const bool is_liboverride);
 struct NlaStrip *BKE_nla_add_soundstrip(struct Main *bmain,
                                         struct Scene *scene,
                                         struct Speaker *speaker);
@@ -95,9 +99,13 @@ void BKE_nlatrack_solo_toggle(struct AnimData *adt, struct NlaTrack *nlt);
 bool BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
 void BKE_nlatrack_sort_strips(struct NlaTrack *nlt);
 
-bool BKE_nlatrack_add_strip(struct NlaTrack *nlt, struct NlaStrip *strip);
+bool BKE_nlatrack_add_strip(struct NlaTrack *nlt,
+                            struct NlaStrip *strip,
+                            const bool is_liboverride);
 
 bool BKE_nlatrack_get_bounds(struct NlaTrack *nlt, float bounds[2]);
+
+bool BKE_nlatrack_is_nonlocal_in_liboverride(const struct ID *id, const struct NlaTrack *nlt);
 
 /* ............ */
 
@@ -124,11 +132,11 @@ void BKE_nla_validate_state(struct AnimData *adt);
 /* ............ */
 
 bool BKE_nla_action_is_stashed(struct AnimData *adt, struct bAction *act);
-bool BKE_nla_action_stash(struct AnimData *adt);
+bool BKE_nla_action_stash(struct AnimData *adt, const bool is_liboverride);
 
 /* ............ */
 
-void BKE_nla_action_pushdown(struct AnimData *adt);
+void BKE_nla_action_pushdown(struct AnimData *adt, const bool is_liboverride);
 
 bool BKE_nla_tweakmode_enter(struct AnimData *adt);
 void BKE_nla_tweakmode_exit(struct AnimData *adt);

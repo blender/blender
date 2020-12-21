@@ -38,6 +38,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"

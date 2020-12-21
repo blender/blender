@@ -23,26 +23,23 @@
  * \ingroup bke
  */
 
-#include "DNA_object_enums.h"
-
-#include "DNA_view3d_types.h"
-
-#include "IMB_imbuf_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct GPUOffScreen;
 
+enum eDrawType;
+enum eImBufFlags;
+
 typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            struct Scene *scene,
                                            struct View3DShading *shading_override,
-                                           eDrawType drawtype,
+                                           enum eDrawType drawtype,
                                            struct Object *camera,
                                            int width,
                                            int height,
-                                           eImBufFlags flag,
+                                           enum eImBufFlags flag,
                                            eV3DOffscreenDrawFlag draw_flags,
                                            int alpha_mode,
                                            const char *viewname,

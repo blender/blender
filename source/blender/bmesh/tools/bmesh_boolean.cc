@@ -296,7 +296,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
         BMIter liter;
         BMLoop *l = static_cast<BMLoop *>(BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, bmf));
         while (l != nullptr) {
-          BM_loop_interp_from_face(bm, l, orig_face, true, true);
+          BM_loop_interp_from_face(bm, l, orig_face, false, true);
           l = static_cast<BMLoop *>(BM_iter_step(&liter));
         }
       }

@@ -330,11 +330,11 @@ void DilateStepOperation::initExecution()
 }
 
 // small helper to pass data from initializeTileData to executePixel
-typedef struct tile_info {
+struct tile_info {
   rcti rect;
   int width;
   float *buffer;
-} tile_info;
+};
 
 static tile_info *create_cache(int xmin, int xmax, int ymin, int ymax)
 {

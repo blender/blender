@@ -178,6 +178,7 @@ int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersec
 int BLI_bvhtree_get_len(const BVHTree *tree);
 int BLI_bvhtree_get_tree_type(const BVHTree *tree);
 float BLI_bvhtree_get_epsilon(const BVHTree *tree);
+void BLI_bvhtree_get_bounding_box(BVHTree *tree, float r_bb_min[3], float r_bb_max[3]);
 
 /* find nearest node to the given coordinates
  * (if nearest is given it will only search nodes where

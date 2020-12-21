@@ -21,6 +21,7 @@
 set(INC
   .
   intern
+  ../blenfont
   ../blenkernel
   ../blenlib
   ../blenloader
@@ -30,7 +31,6 @@ set(INC
   ../makesdna
   ../makesrna
   ../render
-  ../blenfont
   ../windowmanager
   ../../../intern/atomic
   ../../../intern/guardedalloc
@@ -44,7 +44,22 @@ set(INC_SYS
 )
 
 set(SRC
+  SEQ_add.h
+  SEQ_clipboard.h
+  SEQ_edit.h
+  SEQ_effects.h
+  SEQ_iterator.h
+  SEQ_modifier.h
+  SEQ_prefetch.h
+  SEQ_proxy.h
+  SEQ_relations.h
+  SEQ_render.h
+  SEQ_select.h
   SEQ_sequencer.h
+  SEQ_sound.h
+  SEQ_time.h
+  SEQ_transform.h
+  SEQ_utils.h
 
   intern/clipboard.c
   intern/effects.c

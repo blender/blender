@@ -2017,7 +2017,7 @@ char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand 
 
     if (found) {
       char name_esc[sizeof(m->name) * 2];
-      BLI_strescape(name_esc, m->name, sizeof(name_esc));
+      BLI_str_escape(name_esc, m->name, sizeof(name_esc));
       return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", name_esc);
     }
   }

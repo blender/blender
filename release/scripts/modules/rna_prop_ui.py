@@ -49,7 +49,7 @@ def rna_idprop_ui_del(item):
 
 
 def rna_idprop_quote_path(prop):
-    return "[\"%s\"]" % prop.replace("\"", "\\\"")
+    return "[\"%s\"]" % bpy.utils.escape_identifier(prop)
 
 
 def rna_idprop_ui_prop_update(item, prop):

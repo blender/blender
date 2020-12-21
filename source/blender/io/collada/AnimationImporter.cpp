@@ -385,7 +385,10 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
     char joint_path[100];
     char rna_path[100];
 
-    BLI_snprintf(joint_path, sizeof(joint_path), "pose.bones[\"%s\"]", grp->name);
+    char grp_name_esc[sizeof(grp->name) * 2];
+    BLI_str_escape(grp_name_esc, grp->name, sizeof(grp_name_esc));
+
+    BLI_snprintf(joint_path, sizeof(joint_path), "pose.bones[\"%s\"]", grp_name_esc);
     BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation_quaternion", joint_path);
 
     FCurve *quatcu[4] = {

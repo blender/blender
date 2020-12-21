@@ -520,7 +520,7 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
             # for now, just add all of 'em
             prop_rna = type(bone).bl_rna.properties.get(prop, None)
             if prop_rna is None:
-                prop_path = '["%s"]' % prop
+                prop_path = '["%s"]' % bpy.utils.escape_identifier(prop)
                 try:
                     rna_property = bone.path_resolve(prop_path, False)
                 except ValueError as ex:

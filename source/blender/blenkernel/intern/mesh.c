@@ -173,24 +173,53 @@ static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Mesh *mesh = (Mesh *)id;
-  if (mesh->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* cache only - don't write */
-    mesh->mface = NULL;
-    mesh->totface = 0;
-    memset(&mesh->fdata, 0, sizeof(mesh->fdata));
-    memset(&mesh->runtime, 0, sizeof(mesh->runtime));
-
+  const bool is_undo = BLO_write_is_undo(writer);
+  if (mesh->id.us > 0 || is_undo) {
     CustomDataLayer *vlayers = NULL, vlayers_buff[CD_TEMP_CHUNK_SIZE];
     CustomDataLayer *elayers = NULL, elayers_buff[CD_TEMP_CHUNK_SIZE];
     CustomDataLayer *flayers = NULL, flayers_buff[CD_TEMP_CHUNK_SIZE];
     CustomDataLayer *llayers = NULL, llayers_buff[CD_TEMP_CHUNK_SIZE];
     CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
 
-    CustomData_blend_write_prepare(&mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
-    CustomData_blend_write_prepare(&mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
+    /* cache only - don't write */
+    mesh->mface = NULL;
+    mesh->totface = 0;
+    memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+    memset(&mesh->runtime, 0, sizeof(mesh->runtime));
     flayers = flayers_buff;
-    CustomData_blend_write_prepare(&mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
-    CustomData_blend_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+
+    /* Do not store actual geometry data in case this is a library override ID. */
+    if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
+      mesh->mvert = NULL;
+      mesh->totvert = 0;
+      memset(&mesh->vdata, 0, sizeof(mesh->vdata));
+      vlayers = vlayers_buff;
+
+      mesh->medge = NULL;
+      mesh->totedge = 0;
+      memset(&mesh->edata, 0, sizeof(mesh->edata));
+      elayers = elayers_buff;
+
+      mesh->mloop = NULL;
+      mesh->totloop = 0;
+      memset(&mesh->ldata, 0, sizeof(mesh->ldata));
+      llayers = llayers_buff;
+
+      mesh->mpoly = NULL;
+      mesh->totpoly = 0;
+      memset(&mesh->pdata, 0, sizeof(mesh->pdata));
+      players = players_buff;
+    }
+    else {
+      CustomData_blend_write_prepare(
+          &mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
+      CustomData_blend_write_prepare(
+          &mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
+      CustomData_blend_write_prepare(
+          &mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
+      CustomData_blend_write_prepare(
+          &mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+    }
 
     BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
     BKE_id_blend_write(writer, &mesh->id);

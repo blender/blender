@@ -667,9 +667,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 #  else
   printf("  $TMP or $TMPDIR           Store temporary files here.\n");
 #  endif
-#  ifdef WITH_SDL
-  printf("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
-#  endif
 
   exit(0);
 

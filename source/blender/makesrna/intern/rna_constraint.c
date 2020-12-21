@@ -433,13 +433,13 @@ static char *rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
   if (pchan) {
     char name_esc_pchan[sizeof(pchan->name) * 2];
     char name_esc_const[sizeof(con->name) * 2];
-    BLI_strescape(name_esc_pchan, pchan->name, sizeof(name_esc_pchan));
-    BLI_strescape(name_esc_const, con->name, sizeof(name_esc_const));
+    BLI_str_escape(name_esc_pchan, pchan->name, sizeof(name_esc_pchan));
+    BLI_str_escape(name_esc_const, con->name, sizeof(name_esc_const));
     return BLI_sprintfN("pose.bones[\"%s\"].constraints[\"%s\"]", name_esc_pchan, name_esc_const);
   }
   else {
     char name_esc_const[sizeof(con->name) * 2];
-    BLI_strescape(name_esc_const, con->name, sizeof(name_esc_const));
+    BLI_str_escape(name_esc_const, con->name, sizeof(name_esc_const));
     return BLI_sprintfN("constraints[\"%s\"]", name_esc_const);
   }
 }
@@ -856,7 +856,7 @@ static void rna_def_constraint_headtail_common(StructRNA *srna)
 
   prop = RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
-  RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1");
+  RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head is 0, Tail is 1");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   prop = RNA_def_property(srna, "use_bbone_shape", PROP_BOOLEAN, PROP_NONE);
@@ -1051,7 +1051,7 @@ static void rna_def_constraint_python(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "target_count", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "tarnum");
-  RNA_def_property_ui_text(prop, "Number of Targets", "Usually only 1-3 are needed");
+  RNA_def_property_ui_text(prop, "Number of Targets", "Usually only 1 to 3 are needed");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);

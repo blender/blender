@@ -24,6 +24,8 @@
 
 #include "BLI_sys_types.h"
 
+struct GPUUniformBuf;
+
 namespace blender {
 namespace gpu {
 

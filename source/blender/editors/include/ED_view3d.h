@@ -41,8 +41,6 @@ struct Camera;
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EditBone;
-struct GPUOffScreen;
-struct GPUViewport;
 struct ID;
 struct MVert;
 struct Main;
@@ -55,7 +53,6 @@ struct RenderEngineType;
 struct Scene;
 struct ScrArea;
 struct View3D;
-struct View3DShading;
 struct ViewContext;
 struct ViewLayer;
 struct bContext;
@@ -64,8 +61,6 @@ struct bScreen;
 struct rctf;
 struct rcti;
 struct wmGizmo;
-struct wmOperator;
-struct wmOperatorType;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -140,6 +135,11 @@ void ED_view3d_to_object(const struct Depsgraph *depsgraph,
                          const float ofs[3],
                          const float quat[4],
                          const float dist);
+
+bool ED_view3d_camera_to_view_selected(struct Main *bmain,
+                                       struct Depsgraph *depsgraph,
+                                       const struct Scene *scene,
+                                       struct Object *camera_ob);
 
 void ED_view3d_lastview_store(struct RegionView3D *rv3d);
 

@@ -31,56 +31,34 @@
 
 CCL_NAMESPACE_BEGIN
 
-class Geometry;
 class Hair;
 class Mesh;
 
 class BVHEmbree : public BVH {
  public:
-  virtual void build(Progress &progress, Stats *stats) override;
-  virtual void copy_to_device(Progress &progress, DeviceScene *dscene) override;
-  virtual ~BVHEmbree();
-  RTCScene scene;
-  static void destroy(RTCScene);
+  void build(Progress &progress, Stats *stats, RTCDevice rtc_device);
+  void refit(Progress &progress);
 
-  /* Building process. */
-  virtual BVHNode *widen_children_nodes(const BVHNode *root) override;
+  RTCScene scene;
 
  protected:
   friend class BVH;
   BVHEmbree(const BVHParams &params,
             const vector<Geometry *> &geometry,
-            const vector<Object *> &objects,
-            const Device *device);
-
-  virtual void pack_nodes(const BVHNode *) override;
-  virtual void refit_nodes() override;
+            const vector<Object *> &objects);
+  virtual ~BVHEmbree();
 
   void add_object(Object *ob, int i);
   void add_instance(Object *ob, int i);
   void add_curves(const Object *ob, const Hair *hair, int i);
   void add_triangles(const Object *ob, const Mesh *mesh, int i);
 
-  ssize_t mem_used;
-
-  void add_delayed_delete_scene(RTCScene scene)
-  {
-    delayed_delete_scenes.push_back(scene);
-  }
-  BVHEmbree *top_level;
-
  private:
-  void delete_rtcScene();
   void set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, const bool update);
   void set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, const bool update);
 
   RTCDevice rtc_device;
-
-  Stats *stats;
-  vector<RTCScene> delayed_delete_scenes;
-  int curve_subdivisions;
   enum RTCBuildQuality build_quality;
-  bool dynamic_scene;
 };
 
 CCL_NAMESPACE_END

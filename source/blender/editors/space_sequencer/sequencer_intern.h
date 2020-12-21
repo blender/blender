@@ -71,7 +71,6 @@ struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
 /* sequencer_edit.c */
 struct View2D;
 void seq_rectf(struct Sequence *seq, struct rctf *rectf);
-void boundbox_seq(struct Scene *scene, struct rctf *rect);
 struct Sequence *find_nearest_seq(struct Scene *scene,
                                   struct View2D *v2d,
                                   int *hand,
@@ -145,6 +144,8 @@ void SEQUENCER_OT_enable_proxies(struct wmOperatorType *ot);
 void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot);
+void SEQUENCER_OT_strip_transform_clear(struct wmOperatorType *ot);
+void SEQUENCER_OT_strip_transform_fit(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_select_all(struct wmOperatorType *ot);

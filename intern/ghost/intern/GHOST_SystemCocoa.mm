@@ -82,8 +82,8 @@ static GHOST_TButtonMask convertButton(int button)
 /**
  * Converts Mac rawkey codes (same for Cocoa & Carbon)
  * into GHOST key codes
- * \param rawCode The raw physical key code
- * \param recvChar the character ignoring modifiers (except for shift)
+ * \param rawCode: The raw physical key code
+ * \param recvChar: the character ignoring modifiers (except for shift)
  * \return Ghost key code
  */
 static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
@@ -783,7 +783,7 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSet
 
 /**
  * Dispose of a context.
- * \param context Pointer to the context to be disposed.
+ * \param context: Pointer to the context to be disposed.
  * \return Indication of success.
  */
 GHOST_TSuccess GHOST_SystemCocoa::disposeContext(GHOST_IContext *context)
@@ -1730,13 +1730,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         }
         window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 
+        NSPoint delta = [[cocoawindow contentView] convertPointToBacking:NSMakePoint(dx, dy)];
         pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000,
                                           window,
                                           GHOST_kTrackpadEventScroll,
                                           x,
                                           y,
-                                          dx,
-                                          dy,
+                                          delta.x,
+                                          delta.y,
                                           [event isDirectionInvertedFromDevice]));
       }
     } break;

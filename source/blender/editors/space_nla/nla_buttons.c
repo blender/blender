@@ -292,8 +292,9 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
                (bContext *)C,
                &adt_ptr,
                "action",
-               "ACTION_OT_new",
                NULL,
+               "ACTION_OT_new",
+               "ACTION_OT_duplicate_assign",
                "NLA_OT_action_unlink",
                UI_TEMPLATE_ID_FILTER_ALL,
                false,
@@ -345,7 +346,7 @@ static void nla_panel_stripname(const bContext *C, Panel *panel)
 
   uiItemR(row, &strip_ptr, "name", 0, "", ICON_NLA);
 
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
   uiItemR(row, &strip_ptr, "mute", 0, "", ICON_NONE);
   UI_block_emboss_set(block, UI_EMBOSS);
 }

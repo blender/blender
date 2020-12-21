@@ -25,7 +25,6 @@
 extern "C" {
 #endif
 
-struct Scene;
 struct bContext;
 
 struct USDExportParams {

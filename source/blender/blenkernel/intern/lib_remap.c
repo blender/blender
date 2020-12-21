@@ -24,6 +24,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_armature.h"
@@ -342,7 +343,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
 static void libblock_remap_data_postprocess_nodetree_update(Main *bmain, ID *new_id)
 {
   /* Update all group nodes using a node group. */
-  ntreeUpdateAllUsers(bmain, (bNodeTree *)new_id);
+  ntreeUpdateAllUsers(bmain, new_id);
 }
 
 /**

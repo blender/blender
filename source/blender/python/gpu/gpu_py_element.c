@@ -39,7 +39,7 @@
 /** \name IndexBuf Type
  * \{ */
 
-static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
@@ -175,7 +175,7 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
   return BPyGPUIndexBuf_CreatePyObject(GPU_indexbuf_build(&builder));
 }
 
-static void bpygpu_IndexBuf_dealloc(BPyGPUIndexBuf *self)
+static void py_IndexBuf_dealloc(BPyGPUIndexBuf *self)
 {
   GPU_indexbuf_discard(self->elem);
   Py_TYPE(self)->tp_free(self);
@@ -199,10 +199,10 @@ PyDoc_STRVAR(py_gpu_element_doc,
 PyTypeObject BPyGPUIndexBuf_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUIndexBuf",
     .tp_basicsize = sizeof(BPyGPUIndexBuf),
-    .tp_dealloc = (destructor)bpygpu_IndexBuf_dealloc,
+    .tp_dealloc = (destructor)py_IndexBuf_dealloc,
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_doc = py_gpu_element_doc,
-    .tp_new = bpygpu_IndexBuf_new,
+    .tp_new = py_IndexBuf_new,
 };
 
 /** \} */

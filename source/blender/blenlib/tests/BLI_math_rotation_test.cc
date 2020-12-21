@@ -2,6 +2,7 @@
 
 #include "testing/testing.h"
 
+#include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 
 #include <cmath>
@@ -71,6 +72,12 @@ TEST(math_rotation, quat_to_mat_to_quat_bad_T83196)
   test_quat_to_mat_to_quat(0.0149f, 0.9996f, -0.0212f, -0.0107f);
 }
 
+TEST(math_rotation, quat_to_mat_to_quat_bad_negative)
+{
+  /* This shouldn't produce a negative q[0]. */
+  test_quat_to_mat_to_quat(0.5f - 1e-6f, 0, -sqrtf(3) / 2 - 1e-6f, 0);
+}
+
 TEST(math_rotation, quat_to_mat_to_quat_near_1000)
 {
   test_quat_to_mat_to_quat(0.9999f, 0.01f, -0.001f, -0.01f);
@@ -125,4 +132,18 @@ TEST(math_rotation, quat_to_mat_to_quat_near_0001)
   test_quat_to_mat_to_quat(0.20f, -0.020f, -0.20f, 0.98f);
   test_quat_to_mat_to_quat(0.25f, -0.025f, -0.25f, 0.97f);
   test_quat_to_mat_to_quat(0.30f, -0.030f, -0.30f, 0.95f);
+}
+
+TEST(math_rotation, quat_split_swing_and_twist_negative)
+{
+  const float input[4] = {-0.5f, 0, sqrtf(3) / 2, 0};
+  const float expected_swing[4] = {1.0f, 0, 0, 0};
+  const float expected_twist[4] = {0.5f, 0, -sqrtf(3) / 2, 0};
+  float swing[4], twist[4];
+
+  float twist_angle = quat_split_swing_and_twist(input, 1, swing, twist);
+
+  EXPECT_NEAR(twist_angle, -M_PI * 2 / 3, FLT_EPSILON);
+  EXPECT_V4_NEAR(swing, expected_swing, FLT_EPSILON);
+  EXPECT_V4_NEAR(twist, expected_twist, FLT_EPSILON);
 }

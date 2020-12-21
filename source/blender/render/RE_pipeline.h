@@ -114,7 +114,7 @@ typedef struct RenderResult {
 
   /* target image size */
   int rectx, recty;
-  short crop, sample_nr;
+  short sample_nr;
 
   /* The following rect32, rectf and rectz buffers are for temporary storage only,
    * for RenderResult structs created in #RE_AcquireResultImage - which do not have RenderView */

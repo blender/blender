@@ -38,6 +38,7 @@ CCL_NAMESPACE_BEGIN
 
 class AttributeRequestSet;
 class Background;
+class BVH;
 class Camera;
 class Device;
 class DeviceInfo;
@@ -220,6 +221,7 @@ class Scene : public NodeOwner {
   string name;
 
   /* data */
+  BVH *bvh;
   Camera *camera;
   Camera *dicing_camera;
   LookupTables *lookup_tables;

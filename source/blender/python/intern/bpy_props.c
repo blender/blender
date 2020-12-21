@@ -43,6 +43,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h" /* MAX_IDPROP_NAME */
+
 #include "../generic/py_capi_utils.h"
 
 /* initial definition of callback slots we'll probably have more than 1 */
@@ -3494,7 +3496,6 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
     if (!RNA_struct_is_a(ptype, &RNA_PropertyGroup)) {
       PyErr_Format(PyExc_TypeError,
                    "CollectionProperty(...) expected an RNA type derived from %.200s",
-                   RNA_struct_ui_name(&RNA_ID),
                    RNA_struct_ui_name(&RNA_PropertyGroup));
       return NULL;
     }

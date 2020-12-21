@@ -315,8 +315,6 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
   const float eps_bias = 0.0002f;
   float dist_px = MVAL_MAX_PX_DIST * U.pixelsize; /* snap dist */
 
-  WM_gizmo_set_flag(snap_gizmo, WM_GIZMO_HIDDEN, true);
-
   if (ruler_item) {
     RulerInteraction *inter = ruler_item->gz.interaction_data;
     float *co = ruler_item->co[inter->co_index];
@@ -388,12 +386,8 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
             snap_gizmo->ptr, ruler_info->snap_data.prop_prevpoint, prev_point);
       }
 
-      short snap_elem = ED_gizmotypes_snap_3d_update(
+      ED_gizmotypes_snap_3d_update(
           snap_gizmo, depsgraph, ruler_info->region, v3d, ruler_info->wm, mval_fl, co, NULL);
-
-      if (snap_elem) {
-        WM_gizmo_set_flag(snap_gizmo, WM_GIZMO_HIDDEN, false);
-      }
     }
     return true;
   }
@@ -1074,7 +1068,6 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
 
   if (!cancel) {
     if (ruler_info->state == RULER_STATE_DRAG) {
-      WM_gizmo_set_flag(ruler_info->snap_data.gizmo, WM_GIZMO_HIDDEN, false);
       RNA_property_unset(ruler_info->snap_data.gizmo->ptr, ruler_info->snap_data.prop_prevpoint);
       ruler_state_set(ruler_info, RULER_STATE_NORMAL);
     }

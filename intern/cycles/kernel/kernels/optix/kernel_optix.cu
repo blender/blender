@@ -118,12 +118,18 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
     return optixIgnoreIntersection();
   }
 
+  const uint max_hits = optixGetPayload_5();
+  if (max_hits == 0) {
+    // Special case for when no hit information is requested, just report that something was hit
+    optixSetPayload_5(true);
+    return optixTerminateRay();
+  }
+
   int hit = 0;
   uint *const lcg_state = get_payload_ptr_0<uint>();
   LocalIntersection *const local_isect = get_payload_ptr_2<LocalIntersection>();
 
   if (lcg_state) {
-    const uint max_hits = optixGetPayload_5();
     for (int i = min(max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
       if (optixGetRayTmax() == local_isect->hits[i].t) {
         return optixIgnoreIntersection();

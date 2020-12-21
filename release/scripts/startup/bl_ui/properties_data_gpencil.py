@@ -273,7 +273,7 @@ class DATA_PT_gpencil_onion_skinning_display(DataButtonsPanel, Panel):
 
 
 class GPENCIL_MT_gpencil_vertex_group(Menu):
-    bl_label = "GP Vertex Groups"
+    bl_label = "Grease Pencil Vertex Groups"
 
     def draw(self, context):
         layout = self.layout

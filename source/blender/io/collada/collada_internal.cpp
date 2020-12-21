@@ -205,7 +205,7 @@ const unsigned char translate_name_map[256] = {
     242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255,
 };
 
-typedef std::map<std::string, std::vector<std::string>> map_string_list;
+using map_string_list = std::map<std::string, std::vector<std::string>>;
 map_string_list global_id_map;
 
 void clear_global_id_map()

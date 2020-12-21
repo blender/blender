@@ -152,7 +152,7 @@ void SCRIPT_OT_reload(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Reload Scripts";
-  ot->description = "Reload Scripts";
+  ot->description = "Reload scripts";
   ot->idname = "SCRIPT_OT_reload";
 
   /* api callbacks */

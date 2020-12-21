@@ -461,21 +461,13 @@ static void eevee_render_result_environment(RenderLayer *rl,
   EEVEE_RENDER_RESULT_MATERIAL_PASS(ENVIRONMENT, ENVIRONMENT)
 }
 
-static void eevee_render_result_volume_scatter(RenderLayer *rl,
-                                               const char *viewname,
-                                               const rcti *rect,
-                                               EEVEE_Data *vedata,
-                                               EEVEE_ViewLayerData *sldata)
+static void eevee_render_result_volume_light(RenderLayer *rl,
+                                             const char *viewname,
+                                             const rcti *rect,
+                                             EEVEE_Data *vedata,
+                                             EEVEE_ViewLayerData *sldata)
 {
-  EEVEE_RENDER_RESULT_MATERIAL_PASS(VOLUME_SCATTER, VOLUME_SCATTER)
-}
-static void eevee_render_result_volume_transmittance(RenderLayer *rl,
-                                                     const char *viewname,
-                                                     const rcti *rect,
-                                                     EEVEE_Data *vedata,
-                                                     EEVEE_ViewLayerData *sldata)
-{
-  EEVEE_RENDER_RESULT_MATERIAL_PASS(VOLUME_TRANSMITTANCE, VOLUME_TRANSMITTANCE)
+  EEVEE_RENDER_RESULT_MATERIAL_PASS(VOLUME_LIGHT, VOLUME_LIGHT)
 }
 
 static void eevee_render_result_aovs(RenderLayer *rl,
@@ -696,8 +688,7 @@ void EEVEE_render_read_result(EEVEE_Data *vedata,
   eevee_render_result_emission(rl, viewname, rect, vedata, sldata);
   eevee_render_result_environment(rl, viewname, rect, vedata, sldata);
   eevee_render_result_bloom(rl, viewname, rect, vedata, sldata);
-  eevee_render_result_volume_scatter(rl, viewname, rect, vedata, sldata);
-  eevee_render_result_volume_transmittance(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_volume_light(rl, viewname, rect, vedata, sldata);
   eevee_render_result_aovs(rl, viewname, rect, vedata, sldata);
   eevee_render_result_cryptomatte(rl, viewname, rect, vedata, sldata);
 }
@@ -730,8 +721,7 @@ void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *v
   CHECK_PASS_LEGACY(GLOSSY_DIRECT, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(EMIT, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(ENVIRONMENT, SOCK_RGBA, 3, "RGB");
-  CHECK_PASS_EEVEE(VOLUME_SCATTER, SOCK_RGBA, 3, "RGB");
-  CHECK_PASS_EEVEE(VOLUME_TRANSMITTANCE, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_EEVEE(VOLUME_LIGHT, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_EEVEE(BLOOM, SOCK_RGBA, 3, "RGB");
 
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {

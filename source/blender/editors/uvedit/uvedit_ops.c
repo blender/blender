@@ -1812,7 +1812,7 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
                        -FLT_MAX,
                        FLT_MAX,
                        "Location",
-                       "Cursor location in normalized (0.0-1.0) coordinates",
+                       "Cursor location in normalized (0.0 to 1.0) coordinates",
                        -10.0f,
                        10.0f);
 }

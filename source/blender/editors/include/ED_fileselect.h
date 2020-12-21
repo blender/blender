@@ -28,7 +28,9 @@ extern "C" {
 #endif
 
 struct ARegion;
+struct FileAssetSelectParams;
 struct FileSelectParams;
+struct FileDirEntry;
 struct Scene;
 struct ScrArea;
 struct SpaceFile;
@@ -101,15 +103,15 @@ typedef struct FileSelection {
 struct View2D;
 struct rcti;
 
-struct FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile);
+struct FileSelectParams *ED_fileselect_ensure_active_params(struct SpaceFile *sfile);
+struct FileSelectParams *ED_fileselect_get_active_params(const struct SpaceFile *sfile);
+struct FileSelectParams *ED_fileselect_get_file_params(const struct SpaceFile *sfile);
+struct FileAssetSelectParams *ED_fileselect_get_asset_params(const struct SpaceFile *sfile);
 
-short ED_fileselect_set_params(struct SpaceFile *sfile);
 void ED_fileselect_set_params_from_userdef(struct SpaceFile *sfile);
 void ED_fileselect_params_to_userdef(struct SpaceFile *sfile,
                                      const int temp_win_size[],
                                      const bool is_maximized);
-
-void ED_fileselect_reset_params(struct SpaceFile *sfile);
 
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *region);
 
@@ -142,6 +144,8 @@ void ED_fileselect_exit(struct wmWindowManager *wm,
                         struct Scene *owner_scene,
                         struct SpaceFile *sfile);
 
+bool ED_fileselect_is_asset_browser(const struct SpaceFile *sfile);
+
 void ED_fileselect_window_params_get(const struct wmWindow *win,
                                      int win_size[2],
                                      bool *is_maximized);
@@ -151,6 +155,7 @@ struct ScrArea *ED_fileselect_handler_area_find(const struct wmWindow *win,
 
 int ED_path_extension_type(const char *path);
 int ED_file_extension_icon(const char *path);
+int ED_file_icon(const struct FileDirEntry *file);
 
 void ED_file_read_bookmarks(void);
 

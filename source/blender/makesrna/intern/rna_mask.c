@@ -182,7 +182,7 @@ static char *rna_MaskLayer_path(PointerRNA *ptr)
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
   char name_esc[sizeof(masklay->name) * 2];
-  BLI_strescape(name_esc, masklay->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, masklay->name, sizeof(name_esc));
   return BLI_sprintfN("layers[\"%s\"]", name_esc);
 }
 

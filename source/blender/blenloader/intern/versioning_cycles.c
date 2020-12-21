@@ -840,12 +840,14 @@ static void update_mapping_node_fcurve_rna_path_callback(ID *UNUSED(id),
     fcurve->rna_path = BLI_sprintfN("%s.%s", data->nodePath, "inputs[3].default_value");
   }
   else if (data->minimumNode && BLI_str_endswith(old_fcurve_rna_path, "max")) {
-    fcurve->rna_path = BLI_sprintfN(
-        "nodes[\"%s\"].%s", data->minimumNode->name, "inputs[1].default_value");
+    char node_name_esc[sizeof(data->minimumNode->name) * 2];
+    BLI_str_escape(node_name_esc, data->minimumNode->name, sizeof(node_name_esc));
+    fcurve->rna_path = BLI_sprintfN("nodes[\"%s\"].%s", node_name_esc, "inputs[1].default_value");
   }
   else if (data->maximumNode && BLI_str_endswith(old_fcurve_rna_path, "min")) {
-    fcurve->rna_path = BLI_sprintfN(
-        "nodes[\"%s\"].%s", data->maximumNode->name, "inputs[1].default_value");
+    char node_name_esc[sizeof(data->maximumNode->name) * 2];
+    BLI_str_escape(node_name_esc, data->maximumNode->name, sizeof(node_name_esc));
+    fcurve->rna_path = BLI_sprintfN("nodes[\"%s\"].%s", node_name_esc, "inputs[1].default_value");
   }
 
   if (fcurve->rna_path != old_fcurve_rna_path) {
@@ -955,7 +957,10 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
       MEM_freeN(node->storage);
       node->storage = NULL;
 
-      char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node->name);
+      char node_name_esc[sizeof(node->name) * 2];
+      BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
+
+      char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node_name_esc);
       MappingNodeFCurveCallbackData data = {nodePath, minimumNode, maximumNode};
       BKE_fcurves_id_cb(&ntree->id, update_mapping_node_fcurve_rna_path_callback, &data);
       MEM_freeN(nodePath);

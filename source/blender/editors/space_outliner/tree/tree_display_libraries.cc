@@ -24,6 +24,8 @@
 #include "BKE_collection.h"
 #include "BKE_main.h"
 
+#include "DNA_collection_types.h"
+
 #include "BLT_translation.h"
 
 #include "../outliner_intern.h"

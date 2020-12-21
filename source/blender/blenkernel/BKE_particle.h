@@ -29,10 +29,7 @@
 #include "BLI_buffer.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
-
-#include "BKE_customdata.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,9 +42,9 @@ struct ParticleSystemModifierData;
 
 struct BVHTreeRay;
 struct BVHTreeRayHit;
-struct BlendWriter;
 struct BlendDataReader;
 struct BlendLibReader;
+struct BlendWriter;
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EdgeHash;
@@ -302,7 +299,7 @@ int psys_get_tot_child(struct Scene *scene,
 struct ParticleSystem *psys_get_current(struct Object *ob);
 /* for rna */
 short psys_get_current_num(struct Object *ob);
-void psys_set_current_num(Object *ob, int index);
+void psys_set_current_num(struct Object *ob, int index);
 /* UNUSED */
 // struct Object *psys_find_object(struct Scene *scene, struct ParticleSystem *psys);
 

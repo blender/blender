@@ -1325,8 +1325,8 @@ void ACTION_OT_select_less(wmOperatorType *ot)
 /* defines for left-right select tool */
 static const EnumPropertyItem prop_actkeys_leftright_select_types[] = {
     {ACTKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
-    {ACTKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
-    {ACTKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
+    {ACTKEYS_LRSEL_LEFT, "LEFT", 0, "Before Current Frame", ""},
+    {ACTKEYS_LRSEL_RIGHT, "RIGHT", 0, "After Current Frame", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

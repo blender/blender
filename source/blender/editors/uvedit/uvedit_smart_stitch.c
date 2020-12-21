@@ -2808,7 +2808,7 @@ void UV_OT_stitch(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "midpoint_snap",
                   0,
-                  "Snap At Midpoint",
+                  "Snap at Midpoint",
                   "UVs are stitched at midpoint instead of at static island");
   RNA_def_boolean(ot->srna, "clear_seams", 1, "Clear Seams", "Clear seams of stitched edges");
   RNA_def_enum(ot->srna,

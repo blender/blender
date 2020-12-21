@@ -180,7 +180,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
                   "ngon",
                   true,
                   "Create N-Gons",
-                  "When disabled, newly created faces are limited to 3-4 sided faces");
+                  "When disabled, newly created faces are limited to 3 and 4 sided faces");
   RNA_def_enum(
       ot->srna,
       "quadcorner",
@@ -395,7 +395,7 @@ void MESH_OT_unsubdivide(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Un-Subdivide";
-  ot->description = "UnSubdivide selected edges & faces";
+  ot->description = "Un-subdivide selected edges and faces";
   ot->idname = "MESH_OT_unsubdivide";
 
   /* api callbacks */
@@ -698,7 +698,7 @@ void MESH_OT_edge_collapse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Collapse Edges & Faces";
   ot->description =
-      "Collapse isolated edges & faces regions, merging data such as UV's and vertex colors. "
+      "Collapse isolated edge and face regions, merging data such as UV's and vertex colors. "
       "This can collapse edge-rings as well as regions of connected faces into vertices";
   ot->idname = "MESH_OT_edge_collapse";
 
@@ -1904,7 +1904,7 @@ void MESH_OT_edge_split(wmOperatorType *ot)
        "VERT",
        0,
        "Faces & Edges by Vertices",
-       "Split faces & edges connected to selected vertices"},
+       "Split faces and edges connected to selected vertices"},
       {0, NULL, 0, NULL, NULL},
   };
 

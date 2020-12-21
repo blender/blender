@@ -451,7 +451,7 @@ bool ntreeHasType(const struct bNodeTree *ntree, int type);
 bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
 void ntreeUpdateAllNew(struct Main *main);
-void ntreeUpdateAllUsers(struct Main *main, struct bNodeTree *ngroup);
+void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
 void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes);
 
@@ -1204,6 +1204,7 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 #define CMP_NODE_SWITCH_VIEW 322
 #define CMP_NODE_CRYPTOMATTE 323
 #define CMP_NODE_DENOISE 324
+#define CMP_NODE_EXPOSURE 325
 
 /* channel toggles */
 #define CMP_CHAN_RGB 1
@@ -1347,9 +1348,14 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_POINT_INSTANCE 1005
 #define GEO_NODE_SUBDIVISION_SURFACE 1006
 #define GEO_NODE_OBJECT_INFO 1007
-#define GEO_NODE_RANDOM_ATTRIBUTE 1008
+#define GEO_NODE_ATTRIBUTE_RANDOMIZE 1008
 #define GEO_NODE_ATTRIBUTE_MATH 1009
 #define GEO_NODE_JOIN_GEOMETRY 1010
+#define GEO_NODE_ATTRIBUTE_FILL 1011
+#define GEO_NODE_ATTRIBUTE_MIX 1012
+#define GEO_NODE_ATTRIBUTE_COLOR_RAMP 1013
+#define GEO_NODE_POINT_SEPARATE 1014
+#define GEO_NODE_ATTRIBUTE_COMPARE 1015
 
 /** \} */
 
@@ -1364,6 +1370,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_COMBINE_STRINGS 1204
 #define FN_NODE_OBJECT_TRANSFORMS 1205
 #define FN_NODE_RANDOM_FLOAT 1206
+#define FN_NODE_INPUT_VECTOR 1207
 
 /** \} */
 

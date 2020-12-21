@@ -136,8 +136,8 @@ bool deg_iterator_components_step(BLI_Iterator *iter)
     return false;
   }
 
-  if (data->geometry_component_owner->type != OB_POINTCLOUD) {
-    /* Only point clouds support multiple geometry components currently. */
+  if (data->geometry_component_owner->runtime.geometry_set_eval == nullptr) {
+    /* Return the object itself, if it does not have a geometry set yet. */
     iter->current = data->geometry_component_owner;
     data->geometry_component_owner = nullptr;
     return true;
@@ -149,10 +149,16 @@ bool deg_iterator_components_step(BLI_Iterator *iter)
     return false;
   }
 
+  /* The mesh component. */
   if (data->geometry_component_id == 0) {
     data->geometry_component_id++;
 
-    /* The mesh component. */
+    /* Don't use a temporary object for this component, when the owner is a mesh object. */
+    if (data->geometry_component_owner->type == OB_MESH) {
+      iter->current = data->geometry_component_owner;
+      return true;
+    }
+
     const Mesh *mesh = geometry_set->get_mesh_for_read();
     if (mesh != nullptr) {
       Object *temp_object = &data->temp_geometry_component_object;
@@ -164,10 +170,17 @@ bool deg_iterator_components_step(BLI_Iterator *iter)
       return true;
     }
   }
+
+  /* The pointcloud component. */
   if (data->geometry_component_id == 1) {
     data->geometry_component_id++;
 
-    /* The pointcloud component. */
+    /* Don't use a temporary object for this component, when the owner is a point cloud object. */
+    if (data->geometry_component_owner->type == OB_POINTCLOUD) {
+      iter->current = data->geometry_component_owner;
+      return true;
+    }
+
     const PointCloud *pointcloud = geometry_set->get_pointcloud_for_read();
     if (pointcloud != nullptr) {
       Object *temp_object = &data->temp_geometry_component_object;
@@ -179,6 +192,7 @@ bool deg_iterator_components_step(BLI_Iterator *iter)
       return true;
     }
   }
+
   data->geometry_component_owner = nullptr;
   return false;
 }

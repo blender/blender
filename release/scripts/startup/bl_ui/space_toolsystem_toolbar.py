@@ -360,7 +360,7 @@ class _defs_transform:
             idname="builtin.transform",
             label="Transform",
             description=(
-                "Supports any combination of grab, rotate & scale at once"
+                "Supports any combination of grab, rotate, and scale at once"
             ),
             icon="ops.transform.transform",
             widget="VIEW3D_GGT_xform_gizmo",
@@ -1654,7 +1654,7 @@ class _defs_image_uv_transform:
             idname="builtin.transform",
             label="Transform",
             description=(
-                "Supports any combination of grab, rotate & scale at once"
+                "Supports any combination of grab, rotate, and scale at once"
             ),
             icon="ops.transform.transform",
             widget="IMAGE_GGT_gizmo2d",
@@ -2903,10 +2903,10 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sequencer_generic.blade,
         ],
         'SEQUENCER_PREVIEW': [
-            _defs_sequencer_generic.sample,
             *_tools_select,
-            *_tools_annotate,
             _defs_sequencer_generic.blade,
+            _defs_sequencer_generic.sample,
+            *_tools_annotate,
         ],
     }
 

@@ -39,6 +39,8 @@
 
 #include "RNA_define.h"
 
+#include "SEQ_iterator.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
 /* For menu, popup, icons, etc. */
@@ -198,13 +200,13 @@ void select_surround_from_last(Scene *scene)
 
 void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool deselect_all)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
 
   if (deselect_all) {
     ED_sequencer_deselect_all(scene);
   }
 
-  BKE_sequencer_active_set(scene, seq);
+  SEQ_select_active_set(scene, seq);
 
   if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
     if (seq->strip) {
@@ -223,7 +225,7 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
 #if 0
 static void select_neighbor_from_last(Scene *scene, int lr)
 {
-  Sequence *seq = BKE_sequencer_active_get(scene);
+  Sequence *seq = SEQ_select_active_get(scene);
   Sequence *neighbor;
   bool changed = false;
   if (seq) {
@@ -264,7 +266,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
   int action = RNA_enum_get(op->ptr, "action");
 
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   Sequence *seq;
 
   if (action == SEL_TOGGLE) {
@@ -331,7 +333,7 @@ void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
 static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   Sequence *seq;
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -376,7 +378,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 {
   View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   const bool linked_handle = RNA_boolean_get(op->ptr, "linked_handle");
@@ -464,7 +466,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
         ret_value = OPERATOR_FINISHED;
       }
 
-      BKE_sequencer_active_set(scene, seq);
+      SEQ_select_active_set(scene, seq);
 
       if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
         if (seq->strip) {
@@ -667,7 +669,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 /* Run recursively to select linked. */
 static bool select_more_less_seq__internal(Scene *scene, bool sel, const bool linked)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   Sequence *seq, *neighbor;
   bool changed = false;
   int isel;
@@ -900,27 +902,84 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 /** \name Select Handles Operator
  * \{ */
 
+enum {
+  SEQ_SELECT_HANDLES_SIDE_LEFT,
+  SEQ_SELECT_HANDLES_SIDE_RIGHT,
+  SEQ_SELECT_HANDLES_SIDE_BOTH,
+  SEQ_SELECT_HANDLES_SIDE_LEFT_NEIGHBOR,
+  SEQ_SELECT_HANDLES_SIDE_RIGHT_NEIGHBOR,
+  SEQ_SELECT_HANDLES_SIDE_BOTH_NEIGHBORS,
+};
+
+static const EnumPropertyItem prop_select_handles_side_types[] = {
+    {SEQ_SELECT_HANDLES_SIDE_LEFT, "LEFT", 0, "Left", ""},
+    {SEQ_SELECT_HANDLES_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
+    {SEQ_SELECT_HANDLES_SIDE_BOTH, "BOTH", 0, "Both", ""},
+    {SEQ_SELECT_HANDLES_SIDE_LEFT_NEIGHBOR, "LEFT_NEIGHBOR", 0, "Left Neighbor", ""},
+    {SEQ_SELECT_HANDLES_SIDE_RIGHT_NEIGHBOR, "RIGHT_NEIGHBOR", 0, "Right Neighbor", ""},
+    {SEQ_SELECT_HANDLES_SIDE_BOTH_NEIGHBORS, "BOTH_NEIGHBORS", 0, "Both Neighbors", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   Sequence *seq;
   int sel_side = RNA_enum_get(op->ptr, "side");
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->flag & SELECT) {
+      Sequence *l_neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_LEFT, -1);
+      Sequence *r_neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_RIGHT, -1);
+
       switch (sel_side) {
-        case SEQ_SIDE_LEFT:
+        case SEQ_SELECT_HANDLES_SIDE_LEFT:
           seq->flag &= ~SEQ_RIGHTSEL;
           seq->flag |= SEQ_LEFTSEL;
           break;
-        case SEQ_SIDE_RIGHT:
+        case SEQ_SELECT_HANDLES_SIDE_RIGHT:
           seq->flag &= ~SEQ_LEFTSEL;
           seq->flag |= SEQ_RIGHTSEL;
           break;
-        case SEQ_SIDE_BOTH:
+        case SEQ_SELECT_HANDLES_SIDE_BOTH:
           seq->flag |= SEQ_LEFTSEL | SEQ_RIGHTSEL;
           break;
+        case SEQ_SELECT_HANDLES_SIDE_LEFT_NEIGHBOR:
+          if (l_neighbor) {
+            if (!(l_neighbor->flag & SELECT)) {
+              l_neighbor->flag |= SEQ_RIGHTSEL;
+            }
+          }
+          break;
+        case SEQ_SELECT_HANDLES_SIDE_RIGHT_NEIGHBOR:
+          if (r_neighbor) {
+            if (!(r_neighbor->flag & SELECT)) {
+              r_neighbor->flag |= SEQ_LEFTSEL;
+            }
+          }
+          break;
+        case SEQ_SELECT_HANDLES_SIDE_BOTH_NEIGHBORS:
+          if (l_neighbor) {
+            if (!(l_neighbor->flag & SELECT)) {
+              l_neighbor->flag |= SEQ_RIGHTSEL;
+            }
+          }
+          if (r_neighbor) {
+            if (!(r_neighbor->flag & SELECT)) {
+              r_neighbor->flag |= SEQ_LEFTSEL;
+            }
+            break;
+          }
+      }
+    }
+  }
+  /*   Select strips */
+  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+    if ((seq->flag & SEQ_LEFTSEL) || (seq->flag & SEQ_RIGHTSEL)) {
+      if (!(seq->flag & SELECT)) {
+        seq->flag |= SELECT;
+        recurs_sel_seq(seq);
       }
     }
   }
@@ -949,8 +1008,8 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
   /* Properties. */
   RNA_def_enum(ot->srna,
                "side",
-               prop_side_types,
-               SEQ_SIDE_BOTH,
+               prop_select_handles_side_types,
+               SEQ_SELECT_HANDLES_SIDE_BOTH,
                "Side",
                "The side of the handle that is selected");
 }
@@ -964,7 +1023,7 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const int side = RNA_enum_get(op->ptr, "side");
   Sequence *seq;
@@ -1038,7 +1097,7 @@ void SEQUENCER_OT_select_side_of_frame(wmOperatorType *ot)
 static int sequencer_select_side_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
 
   const int sel_side = RNA_enum_get(op->ptr, "side");
   const int frame_init = sel_side == SEQ_SIDE_LEFT ? INT_MIN : INT_MAX;
@@ -1109,7 +1168,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = UI_view2d_fromcontext(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
 
   if (ed == NULL) {
     return OPERATOR_CANCELLED;
@@ -1454,8 +1513,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
 
   actseq->tmp = POINTER_FROM_INT(true);
 
-  for (BKE_sequence_iterator_begin(ed, &iter, true); iter.valid;
-       BKE_sequence_iterator_next(&iter)) {
+  for (SEQ_iterator_begin(ed, &iter, true); iter.valid; SEQ_iterator_next(&iter)) {
     seq = iter.seq;
 
     /* Ignore all seqs already selected. */
@@ -1486,8 +1544,8 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
       changed = true;
 
       /* Unfortunately, we must restart checks from the beginning. */
-      BKE_sequence_iterator_end(&iter);
-      BKE_sequence_iterator_begin(ed, &iter, true);
+      SEQ_iterator_end(&iter);
+      SEQ_iterator_begin(ed, &iter, true);
     }
 
     /* Video strips below active one, or any strip for audio (order doesn't matter here). */
@@ -1496,7 +1554,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
       changed = true;
     }
   }
-  BKE_sequence_iterator_end(&iter);
+  SEQ_iterator_end(&iter);
 
   return changed;
 }
@@ -1508,8 +1566,8 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
 static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
-  Sequence *seq, *actseq = BKE_sequencer_active_get(scene);
+  Editing *ed = SEQ_editing_get(scene, false);
+  Sequence *seq, *actseq = SEQ_select_active_get(scene);
 
   if (actseq == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No active sequence!");

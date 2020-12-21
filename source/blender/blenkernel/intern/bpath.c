@@ -78,7 +78,7 @@
 
 #include "CLG_log.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 #ifndef _MSC_VER
 #  include "BLI_strict_flags.h"

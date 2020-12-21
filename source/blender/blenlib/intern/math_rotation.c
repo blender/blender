@@ -372,6 +372,11 @@ void mat3_normalized_to_quat(float q[4], const float mat[3][3])
       q[1] = (mat[2][0] + mat[0][2]) * s;
       q[2] = (mat[2][1] + mat[1][2]) * s;
     }
+
+    /* Make sure w is nonnegative for a canonical result. */
+    if (q[0] < 0) {
+      negate_v4(q);
+    }
   }
 
   normalize_qt(q);
@@ -556,9 +561,19 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
  * \param r_twist: if not NULL, receives the twist quaternion.
  * \returns twist angle.
  */
-float quat_split_swing_and_twist(const float q[4], int axis, float r_swing[4], float r_twist[4])
+float quat_split_swing_and_twist(const float q_in[4], int axis, float r_swing[4], float r_twist[4])
 {
   BLI_assert(axis >= 0 && axis <= 2);
+
+  /* The calculation requires a canonical quaternion. */
+  float q[4];
+
+  if (q_in[0] < 0) {
+    negate_v4_v4(q, q_in);
+  }
+  else {
+    copy_v4_v4(q, q_in);
+  }
 
   /* Half-twist angle can be computed directly. */
   float t = atan2f(q[axis + 1], q[0]);

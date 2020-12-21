@@ -126,7 +126,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             col = layout.column()
             col.separator()
 
-            sub = col.column()
+            sub = col.column(heading="Curve Deform", align=True)
             sub.prop(curve, "use_radius")
             sub.prop(curve, "use_stretch")
             sub.prop(curve, "use_deform_bounds")

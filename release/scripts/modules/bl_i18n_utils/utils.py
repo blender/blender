@@ -185,9 +185,9 @@ def list_po_dir(root_path, settings):
     """
     Generator. List given directory (expecting one sub-directory per languages)
     and return all files matching languages listed in settings.
-    
+
     Yield tuples (can_use, uid, num_id, name, isocode, po_path)
-    
+
     Note that po_path may not actually exists.
     """
     isocodes = ((e, os.path.join(root_path, e, e + ".po")) for e in os.listdir(root_path))

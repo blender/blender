@@ -1133,12 +1133,11 @@ void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
 
 ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *area, int type)
 {
-  wmWindow *win = CTX_wm_window(C);
   ScrArea *newsa = NULL;
   SpaceLink *newsl;
 
   if (!area || area->full == NULL) {
-    newsa = ED_screen_state_toggle(C, win, area, SCREENMAXIMIZED);
+    newsa = ED_screen_state_maximized_create(C);
   }
 
   if (!newsa) {
@@ -1149,11 +1148,11 @@ ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *area, int type)
   newsl = newsa->spacedata.first;
 
   /* Tag the active space before changing, so we can identify it when user wants to go back. */
-  if ((newsl->link_flag & SPACE_FLAG_TYPE_TEMPORARY) == 0) {
+  if (newsl && (newsl->link_flag & SPACE_FLAG_TYPE_TEMPORARY) == 0) {
     newsl->link_flag |= SPACE_FLAG_TYPE_WAS_ACTIVE;
   }
 
-  ED_area_newspace(C, newsa, type, newsl->link_flag & SPACE_FLAG_TYPE_TEMPORARY);
+  ED_area_newspace(C, newsa, type, (newsl && newsl->link_flag & SPACE_FLAG_TYPE_TEMPORARY));
 
   return newsa;
 }
@@ -1217,13 +1216,108 @@ void ED_screen_full_restore(bContext *C, ScrArea *area)
 }
 
 /**
- * this function toggles: if area is maximized/full then the parent will be restored
+ * \param toggle_area: If this is set, its space data will be swapped with the one of the new emtpy
+ *                     area, when toggling back it can be swapped back again.
+ * \return The newly created screen with the non-normal area.
+ */
+static bScreen *screen_state_to_nonnormal(bContext *C,
+                                          wmWindow *win,
+                                          ScrArea *toggle_area,
+                                          int state)
+{
+  Main *bmain = CTX_data_main(C);
+  WorkSpace *workspace = WM_window_get_active_workspace(win);
+
+  /* change from SCREENNORMAL to new state */
+  WorkSpaceLayout *layout_new;
+  ScrArea *newa;
+  char newname[MAX_ID_NAME - 2];
+
+  BLI_assert(ELEM(state, SCREENMAXIMIZED, SCREENFULL));
+
+  bScreen *oldscreen = WM_window_get_active_screen(win);
+
+  oldscreen->state = state;
+  BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name + 2, "nonnormal");
+
+  layout_new = ED_workspace_layout_add(bmain, workspace, win, newname);
+
+  bScreen *screen = BKE_workspace_layout_screen_get(layout_new);
+  screen->state = state;
+  screen->redraws_flag = oldscreen->redraws_flag;
+  screen->temp = oldscreen->temp;
+  screen->flag = oldscreen->flag;
+
+  /* timer */
+  screen->animtimer = oldscreen->animtimer;
+  oldscreen->animtimer = NULL;
+
+  newa = (ScrArea *)screen->areabase.first;
+
+  /* swap area */
+  if (toggle_area) {
+    ED_area_data_swap(newa, toggle_area);
+    newa->flag = toggle_area->flag; /* mostly for AREA_FLAG_WASFULLSCREEN */
+  }
+
+  if (state == SCREENFULL) {
+    /* temporarily hide global areas */
+    LISTBASE_FOREACH (ScrArea *, glob_area, &win->global_areas.areabase) {
+      glob_area->global->flag |= GLOBAL_AREA_IS_HIDDEN;
+    }
+    /* temporarily hide the side panels/header */
+    LISTBASE_FOREACH (ARegion *, region, &newa->regionbase) {
+      region->flagfullscreen = region->flag;
+
+      if (ELEM(region->regiontype,
+               RGN_TYPE_UI,
+               RGN_TYPE_HEADER,
+               RGN_TYPE_TOOL_HEADER,
+               RGN_TYPE_FOOTER,
+               RGN_TYPE_TOOLS,
+               RGN_TYPE_NAV_BAR,
+               RGN_TYPE_EXECUTE)) {
+        region->flag |= RGN_FLAG_HIDDEN;
+      }
+    }
+  }
+
+  if (toggle_area) {
+    toggle_area->full = oldscreen;
+  }
+  newa->full = oldscreen;
+
+  ED_screen_change(C, screen);
+  ED_area_tag_refresh(newa);
+
+  return screen;
+}
+
+/**
+ * Create a new temporary screen with a maximized, empty area.
+ * This can be closed with #ED_screen_state_toggle().
+ *
+ * Use this to just create a new maximized screen/area, rather than maximizing an existing one.
+ * Otherwise, maximize with #ED_screen_state_toggle().
+ */
+ScrArea *ED_screen_state_maximized_create(bContext *C)
+{
+  bScreen *screen = screen_state_to_nonnormal(C, CTX_wm_window(C), NULL, SCREENMAXIMIZED);
+  return screen->areabase.first;
+}
+
+/**
+ * This function toggles: if area is maximized/full then the parent will be restored.
+ *
+ * Use #ED_screen_state_maximized_create() if you do not want the toggle behavior when changing to
+ * a maximized area. I.e. if you just want to open a new maximized screen/area, not maximize a
+ * specific area. In the former case, space data of the maximized and non-maximized area should be
+ * independent, in the latter it should be the same.
  *
  * \warning \a area may be freed.
  */
 ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const short state)
 {
-  Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   WorkSpace *workspace = WM_window_get_active_workspace(win);
 
@@ -1257,7 +1351,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     screen->state = SCREENNORMAL;
     screen->flag = oldscreen->flag;
 
-    /* find old area to restore from */
+    /* Find old area we may have swapped dummy space data to. It's swapped back here. */
     ScrArea *fullsa = NULL;
     LISTBASE_FOREACH (ScrArea *, old, &screen->areabase) {
       /* area to restore from is always first */
@@ -1271,13 +1365,6 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
 
     area->full = NULL;
 
-    if (fullsa == NULL) {
-      if (G.debug & G_DEBUG) {
-        printf("%s: something wrong in areafullscreen\n", __func__);
-      }
-      return NULL;
-    }
-
     if (state == SCREENFULL) {
       /* unhide global areas */
       LISTBASE_FOREACH (ScrArea *, glob_area, &win->global_areas.areabase) {
@@ -1289,14 +1376,16 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
       }
     }
 
-    ED_area_data_swap(fullsa, area);
+    if (fullsa) {
+      ED_area_data_swap(fullsa, area);
+      ED_area_tag_refresh(fullsa);
+    }
 
     /* animtimer back */
     screen->animtimer = oldscreen->animtimer;
     oldscreen->animtimer = NULL;
 
     ED_screen_change(C, screen);
-    ED_area_tag_refresh(fullsa);
 
     BKE_workspace_layout_remove(CTX_data_main(C), workspace, layout_old);
 
@@ -1307,68 +1396,16 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     screen->skip_handling = true;
   }
   else {
-    /* change from SCREENNORMAL to new state */
-    WorkSpaceLayout *layout_new;
-    ScrArea *newa;
-    char newname[MAX_ID_NAME - 2];
-
-    BLI_assert(ELEM(state, SCREENMAXIMIZED, SCREENFULL));
-
-    bScreen *oldscreen = WM_window_get_active_screen(win);
-
-    oldscreen->state = state;
-    BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name + 2, "nonnormal");
-
-    layout_new = ED_workspace_layout_add(bmain, workspace, win, newname);
-
-    screen = BKE_workspace_layout_screen_get(layout_new);
-    screen->state = state;
-    screen->redraws_flag = oldscreen->redraws_flag;
-    screen->temp = oldscreen->temp;
-    screen->flag = oldscreen->flag;
-
-    /* timer */
-    screen->animtimer = oldscreen->animtimer;
-    oldscreen->animtimer = NULL;
+    ScrArea *toggle_area = area;
 
     /* use random area when we have no active one, e.g. when the
      * mouse is outside of the window and we open a file browser */
-    if (!area || area->global) {
-      area = oldscreen->areabase.first;
+    if (!toggle_area || toggle_area->global) {
+      bScreen *oldscreen = WM_window_get_active_screen(win);
+      toggle_area = oldscreen->areabase.first;
     }
 
-    newa = (ScrArea *)screen->areabase.first;
-
-    /* copy area */
-    ED_area_data_swap(newa, area);
-    newa->flag = area->flag; /* mostly for AREA_FLAG_WASFULLSCREEN */
-
-    if (state == SCREENFULL) {
-      /* temporarily hide global areas */
-      LISTBASE_FOREACH (ScrArea *, glob_area, &win->global_areas.areabase) {
-        glob_area->global->flag |= GLOBAL_AREA_IS_HIDDEN;
-      }
-      /* temporarily hide the side panels/header */
-      LISTBASE_FOREACH (ARegion *, region, &newa->regionbase) {
-        region->flagfullscreen = region->flag;
-
-        if (ELEM(region->regiontype,
-                 RGN_TYPE_UI,
-                 RGN_TYPE_HEADER,
-                 RGN_TYPE_TOOL_HEADER,
-                 RGN_TYPE_FOOTER,
-                 RGN_TYPE_TOOLS,
-                 RGN_TYPE_NAV_BAR,
-                 RGN_TYPE_EXECUTE)) {
-          region->flag |= RGN_FLAG_HIDDEN;
-        }
-      }
-    }
-
-    area->full = oldscreen;
-    newa->full = oldscreen;
-
-    ED_screen_change(C, screen);
+    screen = screen_state_to_nonnormal(C, win, toggle_area, state);
   }
 
   /* XXX bad code: setscreen() ends with first area active. fullscreen render assumes this too */
@@ -1411,9 +1448,6 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
         ED_area_newspace(C, ctx_area, space_type, true);
         area->flag |= AREA_FLAG_STACKED_FULLSCREEN;
         ((SpaceLink *)area->spacedata.first)->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
-      }
-      else if (ctx_area != NULL && ctx_area->spacetype == space_type) {
-        area = ED_screen_state_toggle(C, CTX_wm_window(C), ctx_area, SCREENMAXIMIZED);
       }
       else {
         area = ED_screen_full_newspace(C, ctx_area, (int)space_type);

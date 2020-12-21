@@ -44,14 +44,14 @@ typedef enum eRenderPassPostProcessType {
   PASS_POST_AO = 6,
   PASS_POST_NORMAL = 7,
   PASS_POST_TWO_LIGHT_BUFFERS = 8,
+  PASS_POST_ACCUMULATED_TRANSMITTANCE_COLOR = 9,
 } eRenderPassPostProcessType;
 
 /* bitmask containing all renderpasses that need post-processing */
 #define EEVEE_RENDERPASSES_WITH_POST_PROCESSING \
   (EEVEE_RENDER_PASS_Z | EEVEE_RENDER_PASS_MIST | EEVEE_RENDER_PASS_NORMAL | \
-   EEVEE_RENDER_PASS_AO | EEVEE_RENDER_PASS_BLOOM | EEVEE_RENDER_PASS_VOLUME_SCATTER | \
-   EEVEE_RENDER_PASS_VOLUME_TRANSMITTANCE | EEVEE_RENDER_PASS_SHADOW | \
-   EEVEE_RENDERPASSES_MATERIAL)
+   EEVEE_RENDER_PASS_AO | EEVEE_RENDER_PASS_BLOOM | EEVEE_RENDER_PASS_VOLUME_LIGHT | \
+   EEVEE_RENDER_PASS_SHADOW | EEVEE_RENDERPASSES_MATERIAL)
 
 #define EEVEE_RENDERPASSES_ALL \
   (EEVEE_RENDERPASSES_WITH_POST_PROCESSING | EEVEE_RENDER_PASS_COMBINED)
@@ -64,7 +64,10 @@ typedef enum eRenderPassPostProcessType {
    EEVEE_RENDER_PASS_BLOOM)
 #define EEVEE_RENDERPASSES_LIGHT_PASS \
   (EEVEE_RENDER_PASS_DIFFUSE_LIGHT | EEVEE_RENDER_PASS_SPECULAR_LIGHT)
-
+/* Render passes that uses volume transmittance when available */
+#define EEVEE_RENDERPASSES_USES_TRANSMITTANCE \
+  (EEVEE_RENDER_PASS_DIFFUSE_COLOR | EEVEE_RENDER_PASS_SPECULAR_COLOR | EEVEE_RENDER_PASS_EMIT | \
+   EEVEE_RENDER_PASS_ENVIRONMENT)
 bool EEVEE_renderpasses_only_first_sample_pass_active(EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = vedata->stl;
@@ -147,6 +150,18 @@ void EEVEE_renderpasses_init(EEVEE_Data *vedata)
   EEVEE_cryptomatte_renderpasses_init(vedata);
 }
 
+BLI_INLINE bool eevee_renderpasses_volumetric_active(const EEVEE_EffectsInfo *effects,
+                                                     const EEVEE_PrivateData *g_data)
+{
+  if (effects->enabled_effects & EFFECT_VOLUMETRIC) {
+    if (g_data->render_passes &
+        (EEVEE_RENDER_PASS_VOLUME_LIGHT | EEVEE_RENDERPASSES_USES_TRANSMITTANCE)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
                                     EEVEE_Data *vedata,
                                     uint tot_samples)
@@ -189,8 +204,7 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
       EEVEE_bloom_output_init(sldata, vedata, tot_samples);
     }
 
-    if ((g_data->render_passes &
-         (EEVEE_RENDER_PASS_VOLUME_TRANSMITTANCE | EEVEE_RENDER_PASS_VOLUME_SCATTER)) != 0) {
+    if (eevee_renderpasses_volumetric_active(effects, g_data)) {
       EEVEE_volumes_output_init(sldata, vedata, tot_samples);
     }
 
@@ -198,6 +212,7 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
     g_data->renderpass_input = txl->color;
     g_data->renderpass_col_input = txl->color;
     g_data->renderpass_light_input = txl->color;
+    g_data->renderpass_transmittance_input = txl->color;
   }
   else {
     /* Free unneeded memory */
@@ -227,6 +242,8 @@ void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
     DRW_shgroup_uniform_texture_ref(grp, "inputColorBuffer", &g_data->renderpass_col_input);
     DRW_shgroup_uniform_texture_ref(
         grp, "inputSecondLightBuffer", &g_data->renderpass_light_input);
+    DRW_shgroup_uniform_texture_ref(
+        grp, "inputTransmittanceBuffer", &g_data->renderpass_transmittance_input);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
     DRW_shgroup_uniform_block_ref(grp, "common_block", &sldata->common_ubo);
     DRW_shgroup_uniform_block_ref(grp, "renderpass_block", &sldata->renderpass_ubo.combined);
@@ -265,6 +282,19 @@ void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
   g_data->renderpass_current_sample = current_sample;
   g_data->renderpass_type = renderpass_type;
   g_data->renderpass_postprocess = PASS_POST_UNDEFINED;
+  const bool volumetric_active = eevee_renderpasses_volumetric_active(effects, g_data);
+  eRenderPassPostProcessType default_color_pass_type =
+      volumetric_active ? PASS_POST_ACCUMULATED_TRANSMITTANCE_COLOR : PASS_POST_ACCUMULATED_COLOR;
+  g_data->renderpass_transmittance_input = volumetric_active ? txl->volume_transmittance_accum :
+                                                               txl->color;
+
+  if (!volumetric_active && renderpass_type == EEVEE_RENDER_PASS_VOLUME_LIGHT) {
+    /* Early exit: Volumetric effect is off, but the volume light pass was requested. */
+    static float clear_col[4] = {0.0f};
+    GPU_framebuffer_bind(fbl->renderpass_fb);
+    GPU_framebuffer_clear_color(fbl->renderpass_fb, clear_col);
+    return;
+  }
 
   switch (renderpass_type) {
     case EEVEE_RENDER_PASS_Z: {
@@ -286,14 +316,9 @@ void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
       g_data->renderpass_input = txl->mist_accum;
       break;
     }
-    case EEVEE_RENDER_PASS_VOLUME_SCATTER: {
+    case EEVEE_RENDER_PASS_VOLUME_LIGHT: {
       g_data->renderpass_postprocess = PASS_POST_ACCUMULATED_COLOR;
       g_data->renderpass_input = txl->volume_scatter_accum;
-      break;
-    }
-    case EEVEE_RENDER_PASS_VOLUME_TRANSMITTANCE: {
-      g_data->renderpass_postprocess = PASS_POST_ACCUMULATED_COLOR;
-      g_data->renderpass_input = txl->volume_transmittance_accum;
       break;
     }
     case EEVEE_RENDER_PASS_SHADOW: {
@@ -302,22 +327,22 @@ void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
       break;
     }
     case EEVEE_RENDER_PASS_DIFFUSE_COLOR: {
-      g_data->renderpass_postprocess = PASS_POST_ACCUMULATED_COLOR;
+      g_data->renderpass_postprocess = default_color_pass_type;
       g_data->renderpass_input = txl->diff_color_accum;
       break;
     }
     case EEVEE_RENDER_PASS_SPECULAR_COLOR: {
-      g_data->renderpass_postprocess = PASS_POST_ACCUMULATED_COLOR;
+      g_data->renderpass_postprocess = default_color_pass_type;
       g_data->renderpass_input = txl->spec_color_accum;
       break;
     }
     case EEVEE_RENDER_PASS_ENVIRONMENT: {
-      g_data->renderpass_postprocess = PASS_POST_ACCUMULATED_COLOR;
+      g_data->renderpass_postprocess = default_color_pass_type;
       g_data->renderpass_input = txl->env_accum;
       break;
     }
     case EEVEE_RENDER_PASS_EMIT: {
-      g_data->renderpass_postprocess = PASS_POST_ACCUMULATED_COLOR;
+      g_data->renderpass_postprocess = default_color_pass_type;
       g_data->renderpass_input = txl->emit_accum;
       break;
     }
@@ -372,7 +397,8 @@ void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata,
 {
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
-  eViewLayerEEVEEPassType render_pass = stl->g_data->render_passes;
+  EEVEE_PrivateData *g_data = stl->g_data;
+  eViewLayerEEVEEPassType render_pass = g_data->render_passes;
 
   if (!post_effect) {
     if ((render_pass & EEVEE_RENDER_PASS_MIST) != 0) {
@@ -387,8 +413,7 @@ void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata,
     if ((render_pass & EEVEE_RENDERPASSES_MATERIAL) != 0) {
       EEVEE_material_output_accumulate(sldata, vedata);
     }
-    if ((render_pass &
-         (EEVEE_RENDER_PASS_VOLUME_TRANSMITTANCE | EEVEE_RENDER_PASS_VOLUME_SCATTER)) != 0) {
+    if (eevee_renderpasses_volumetric_active(effects, g_data)) {
       EEVEE_volumes_output_accumulate(sldata, vedata);
     }
     if ((render_pass & EEVEE_RENDER_PASS_CRYPTOMATTE) != 0) {

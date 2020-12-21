@@ -186,8 +186,6 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   for (n = 0; n < totnodes; n++) {
     node = nodelist[n];
 
-    node->stack_index = index;
-
     /* init node socket stack indexes */
     for (sock = node->inputs.first; sock; sock = sock->next) {
       node_init_input_index(sock, &index);

@@ -115,7 +115,7 @@ static char *rna_ViewLayer_path(PointerRNA *ptr)
   ViewLayer *srl = (ViewLayer *)ptr->data;
   char name_esc[sizeof(srl->name) * 2];
 
-  BLI_strescape(name_esc, srl->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, srl->name, sizeof(name_esc));
   return BLI_sprintfN("view_layers[\"%s\"]", name_esc);
 }
 

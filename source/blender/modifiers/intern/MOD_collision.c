@@ -23,6 +23,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_kdopbvh.h"
 #include "BLI_math.h"
 
 #include "BLT_translation.h"
@@ -30,6 +31,7 @@
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
@@ -309,7 +311,7 @@ ModifierTypeInfo modifierType_Collision = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

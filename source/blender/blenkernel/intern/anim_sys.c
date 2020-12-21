@@ -1189,7 +1189,7 @@ static void nlaeval_free(NlaEvalData *nlaeval)
 
 /* ---------------------- */
 
-static int nlaevalchan_validate_index(NlaEvalChannel *nec, int index)
+static int nlaevalchan_validate_index(const NlaEvalChannel *nec, int index)
 {
   if (nec->is_array) {
     if (index >= 0 && index < nec->base_snapshot.length) {
@@ -1199,6 +1199,28 @@ static int nlaevalchan_validate_index(NlaEvalChannel *nec, int index)
     return -1;
   }
   return 0;
+}
+
+static bool nlaevalchan_validate_index_ex(const NlaEvalChannel *nec, const int array_index)
+{
+  /** Although array_index comes from fcurve, that doesn't necessarily mean the property has that
+   * many elements. */
+  const int index = nlaevalchan_validate_index(nec, array_index);
+
+  if (index < 0) {
+    if (G.debug & G_DEBUG) {
+      ID *id = nec->key.ptr.owner_id;
+      CLOG_WARN(&LOG,
+                "Animation: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
+                id ? (id->name + 2) : "<No ID>",
+                nec->rna_path,
+                array_index,
+                nec->base_snapshot.length);
+    }
+
+    return false;
+  }
+  return true;
 }
 
 /* Initialize default values for NlaEvalChannel from the property data. */
@@ -1455,7 +1477,7 @@ static float nla_combine_value(
       return old_value + (value - base_value) * inf;
 
     case NEC_MIX_MULTIPLY:
-      if (base_value == 0.0f) {
+      if (IS_EQF(base_value, 0.0f)) {
         base_value = 1.0f;
       }
       return old_value * powf(value / base_value, inf);
@@ -1471,6 +1493,11 @@ static float nla_combine_value(
 static bool nla_invert_blend_value(
     int blend_mode, float old_value, float target_value, float influence, float *r_value)
 {
+  /** No solution if strip had 0 influence. */
+  if (IS_EQF(influence, 0.0f)) {
+    return false;
+  }
+
   switch (blend_mode) {
     case NLASTRIP_MODE_ADD:
       *r_value = (target_value - old_value) / influence;
@@ -1481,9 +1508,9 @@ static bool nla_invert_blend_value(
       return true;
 
     case NLASTRIP_MODE_MULTIPLY:
-      if (old_value == 0.0f) {
+      if (IS_EQF(old_value, 0.0f)) {
         /* Resolve 0/0 to 1. */
-        if (target_value == 0.0f) {
+        if (IS_EQF(target_value, 0.0f)) {
           *r_value = 1.0f;
           return true;
         }
@@ -1514,6 +1541,11 @@ static bool nla_invert_combine_value(int mix_mode,
                                      float influence,
                                      float *r_value)
 {
+  /* No solution if strip had no influence. */
+  if (IS_EQF(influence, 0.0f)) {
+    return false;
+  }
+
   switch (mix_mode) {
     case NEC_MIX_ADD:
     case NEC_MIX_AXIS_ANGLE:
@@ -1521,12 +1553,12 @@ static bool nla_invert_combine_value(int mix_mode,
       return true;
 
     case NEC_MIX_MULTIPLY:
-      if (base_value == 0.0f) {
+      if (IS_EQF(base_value, 0.0f)) {
         base_value = 1.0f;
       }
-      if (old_value == 0.0f) {
+      if (IS_EQF(old_value, 0.0f)) {
         /* Resolve 0/0 to 1. */
-        if (target_value == 0.0f) {
+        if (IS_EQF(target_value, 0.0f)) {
           *r_value = base_value;
           return true;
         }
@@ -1560,11 +1592,14 @@ static void nla_combine_quaternion(const float old_values[4],
 }
 
 /* invert accumulation of quaternion channels for Combine mode according to influence */
-static void nla_invert_combine_quaternion(const float old_values[4],
+static bool nla_invert_combine_quaternion(const float old_values[4],
                                           const float values[4],
                                           float influence,
                                           float result[4])
 {
+  if (IS_EQF(influence, 0.0f)) {
+    return false;
+  }
   float tmp_old[4], tmp_new[4];
 
   normalize_qt_qt(tmp_old, old_values);
@@ -1573,6 +1608,8 @@ static void nla_invert_combine_quaternion(const float old_values[4],
 
   mul_qt_qtqt(result, tmp_old, tmp_new);
   pow_qt_fl_normalized(result, 1.0f / influence);
+
+  return true;
 }
 
 /* Data about the current blend mode. */
@@ -1612,19 +1649,7 @@ static bool nlaeval_blend_value(NlaBlendData *blend,
     return false;
   }
 
-  int index = nlaevalchan_validate_index(nec, array_index);
-
-  if (index < 0) {
-    if (G.debug & G_DEBUG) {
-      ID *id = nec->key.ptr.owner_id;
-      CLOG_WARN(&LOG,
-                "Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
-                id ? (id->name + 2) : "<No ID>",
-                nec->rna_path,
-                array_index,
-                nec->base_snapshot.length);
-    }
-
+  if (!nlaevalchan_validate_index_ex(nec, array_index)) {
     return false;
   }
 
@@ -1633,21 +1658,21 @@ static bool nlaeval_blend_value(NlaBlendData *blend,
     BLI_bitmap_set_all(nec->valid.ptr, true, 4);
   }
   else {
-    BLI_BITMAP_ENABLE(nec->valid.ptr, index);
+    BLI_BITMAP_ENABLE(nec->valid.ptr, array_index);
   }
 
   NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_ensure_channel(blend->snapshot, nec);
-  float *p_value = &nec_snapshot->values[index];
+  float *p_value = &nec_snapshot->values[array_index];
 
   if (blend->mode == NLASTRIP_MODE_COMBINE) {
     /* Quaternion blending is deferred until all sub-channel values are known. */
     if (nec->mix_mode == NEC_MIX_QUATERNION) {
       NlaEvalChannelSnapshot *blend_snapshot = nlaevalchan_queue_blend(blend, nec);
 
-      blend_snapshot->values[index] = value;
+      blend_snapshot->values[array_index] = value;
     }
     else {
-      float base_value = nec->base_snapshot.values[index];
+      float base_value = nec->base_snapshot.values[array_index];
 
       *p_value = nla_combine_value(nec->mix_mode, base_value, *p_value, value, blend->influence);
     }
@@ -2502,7 +2527,9 @@ bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
 
       *r_force_all = true;
 
-      nla_invert_combine_quaternion(old_values, values, influence, values);
+      if (!nla_invert_combine_quaternion(old_values, values, influence, values)) {
+        return false;
+      }
     }
     else {
       float *base_values = nec->base_snapshot.values;

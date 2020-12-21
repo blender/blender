@@ -20,8 +20,6 @@
 
 #include <Python.h>
 
-#include <string.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -29,6 +27,8 @@
 #include "idprop_py_api.h"
 
 #include "BKE_idprop.h"
+
+#include "DNA_ID.h" /* ID property definitions. */
 
 #define USE_STRING_COERCE
 
@@ -255,7 +255,7 @@ static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *UNUS
 
   name = _PyUnicode_AsStringAndSize(value, &name_size);
 
-  if (name_size > MAX_IDPROP_NAME) {
+  if (name_size >= MAX_IDPROP_NAME) {
     PyErr_SetString(PyExc_TypeError, "string length cannot exceed 63 characters!");
     return -1;
   }
@@ -367,14 +367,9 @@ static const char *idp_try_read_name(PyObject *name_obj)
       return NULL;
     }
 
-    if (name_size > MAX_IDPROP_NAME) {
+    if (name_size >= MAX_IDPROP_NAME) {
       PyErr_SetString(PyExc_KeyError,
                       "the length of IDProperty names is limited to 63 characters");
-      return NULL;
-    }
-
-    if (strchr(name, '\"') || strchr(name, '\\') || strchr(name, '\'')) {
-      PyErr_SetString(PyExc_KeyError, "IDProperty names cannot include \", \\, or \'");
       return NULL;
     }
   }

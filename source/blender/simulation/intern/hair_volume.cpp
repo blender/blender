@@ -68,13 +68,13 @@ BLI_INLINE int hair_grid_size(const int res[3])
   return res[0] * res[1] * res[2];
 }
 
-typedef struct HairGridVert {
+struct HairGridVert {
   int samples;
   float velocity[3];
   float density;
 
   float velocity_smooth[3];
-} HairGridVert;
+};
 
 struct HairGrid {
   HairGridVert *verts;

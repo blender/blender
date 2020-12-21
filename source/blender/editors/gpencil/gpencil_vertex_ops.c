@@ -32,6 +32,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -236,7 +237,7 @@ void GPENCIL_OT_vertex_color_brightness_contrast(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Vertex Paint Bright/Contrast";
+  ot->name = "Vertex Paint Brightness/Contrast";
   ot->idname = "GPENCIL_OT_vertex_color_brightness_contrast";
   ot->description = "Adjust vertex color brightness/contrast";
 

@@ -40,7 +40,7 @@
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "SEQ_sequencer.h"
+#  include "SEQ_relations.h"
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
@@ -127,7 +127,7 @@ static void rna_Camera_background_images_clear(Camera *cam)
 
 static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
-  BKE_sequence_invalidate_scene_strips(bmain, scene);
+  SEQ_relations_invalidate_scene_strips(bmain, scene);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
@@ -662,7 +662,7 @@ void RNA_def_camera(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_safe_center", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOW_SAFE_CENTER);
   RNA_def_property_ui_text(prop,
-                           "Show Center-cut safe areas",
+                           "Show Center-Cut Safe Areas",
                            "Show safe areas to fit content in a different aspect ratio");
   RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 

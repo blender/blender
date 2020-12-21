@@ -270,6 +270,8 @@ static void rna_Area_ui_type_update(bContext *C, PointerRNA *ptr)
     st->space_subtype_set(area, area->butspacetype_subtype);
   }
   area->butspacetype_subtype = 0;
+
+  ED_area_tag_refresh(area);
 }
 
 static void rna_View2D_region_to_view(struct View2D *v2d, float x, float y, float result[2])
@@ -586,7 +588,7 @@ static void rna_def_screen(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_statusbar", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SCREEN_COLLAPSE_STATUSBAR);
-  RNA_def_property_ui_text(prop, "Show Status Bar", "Show Status Bar");
+  RNA_def_property_ui_text(prop, "Show Status Bar", "Show status bar");
   RNA_def_property_update(prop, 0, "rna_Screen_bar_update");
 
   func = RNA_def_function(srna, "statusbar_info", "rna_Screen_statusbar_info_get");

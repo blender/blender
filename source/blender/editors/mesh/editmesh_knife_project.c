@@ -177,6 +177,6 @@ void MESH_OT_knife_project(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "cut_through",
                   false,
-                  "Cut through",
+                  "Cut Through",
                   "Cut through all faces, not just visible ones");
 }

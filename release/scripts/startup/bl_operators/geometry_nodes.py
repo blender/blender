@@ -18,6 +18,7 @@
 
 import bpy
 
+
 def geometry_node_group_empty_new(context):
     group = bpy.data.node_groups.new("Geometry Nodes", 'GeometryNodeTree')
     group.inputs.new('NodeSocketGeometry', "Geometry")
@@ -33,6 +34,7 @@ def geometry_node_group_empty_new(context):
 
     return group
 
+
 def geometry_modifier_poll(context) -> bool:
     ob = context.object
 
@@ -41,6 +43,7 @@ def geometry_modifier_poll(context) -> bool:
         return False
 
     return True
+
 
 class NewGeometryNodesModifier(bpy.types.Operator):
     """Create a new modifier with a new geometry node group"""

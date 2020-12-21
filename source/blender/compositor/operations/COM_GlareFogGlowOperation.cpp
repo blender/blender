@@ -23,7 +23,7 @@
  *  2D Fast Hartley Transform, used for convolution
  */
 
-typedef float fREAL;
+using fREAL = float;
 
 // returns next highest power of 2 of x, as well its log2 in L2
 static unsigned int nextPow2(unsigned int x, unsigned int *L2)

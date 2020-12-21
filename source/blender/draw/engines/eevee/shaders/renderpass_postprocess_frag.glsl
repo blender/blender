@@ -11,6 +11,7 @@
 #define PASS_POST_AO 6
 #define PASS_POST_NORMAL 7
 #define PASS_POST_TWO_LIGHT_BUFFERS 8
+#define PASS_POST_ACCUMULATED_TRANSMITTANCE_COLOR 9
 
 uniform int postProcessType;
 uniform int currentSample;
@@ -19,6 +20,7 @@ uniform sampler2D depthBuffer;
 uniform sampler2D inputBuffer;
 uniform sampler2D inputSecondLightBuffer;
 uniform sampler2D inputColorBuffer;
+uniform sampler2D inputTransmittanceBuffer;
 
 out vec4 fragColor;
 
@@ -98,6 +100,11 @@ void main()
   else if (postProcessType == PASS_POST_ACCUMULATED_COLOR_ALPHA) {
     vec4 accumulated_color = texelFetch(inputBuffer, texel, 0);
     color = (accumulated_color / currentSample);
+  }
+  else if (postProcessType == PASS_POST_ACCUMULATED_TRANSMITTANCE_COLOR) {
+    vec3 accumulated_color = texelFetch(inputBuffer, texel, 0).rgb;
+    vec3 transmittance = texelFetch(inputTransmittanceBuffer, texel, 0).rgb;
+    color.rgb = (accumulated_color / currentSample) * (transmittance / currentSample);
   }
   else if (postProcessType == PASS_POST_ACCUMULATED_LIGHT) {
     vec3 accumulated_light = texelFetch(inputBuffer, texel, 0).rgb;

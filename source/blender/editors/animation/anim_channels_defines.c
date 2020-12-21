@@ -5353,7 +5353,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                                 "",
                                 ICON_NONE,
                                 offset,
-                                ymid,
+                                rect->ymin,
                                 SLIDER_WIDTH,
                                 channel_height);
             UI_but_func_set(but, achannel_setting_slider_nla_curve_cb, ale->id, ale->data);
@@ -5411,7 +5411,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                             "",
                             icon,
                             offset,
-                            ymid,
+                            rect->ymin,
                             ICON_WIDTH,
                             channel_height);
             }
@@ -5437,7 +5437,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                             "",
                             icon,
                             offset,
-                            ymid,
+                            rect->ymin,
                             ICON_WIDTH,
                             channel_height);
             }
@@ -5457,7 +5457,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                             "",
                             ICON_NONE,
                             offset,
-                            ymid,
+                            rect->ymin,
                             width,
                             channel_height);
             }
@@ -5483,7 +5483,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                                 "",
                                 ICON_NONE,
                                 offset,
-                                ymid,
+                                rect->ymin,
                                 SLIDER_WIDTH,
                                 channel_height);
 

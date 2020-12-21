@@ -27,11 +27,23 @@
 extern "C" {
 #endif
 
+struct ListBase;
 struct Scene;
 struct Sequence;
 
 float seq_give_frame_index(struct Sequence *seq, float timeline_frame);
 void seq_update_sound_bounds_recursive(struct Scene *scene, struct Sequence *metaseq);
+
+/* Describes gap between strips in timeline. */
+typedef struct GapInfo {
+  int gap_start_frame; /* Start frame of the gap. */
+  int gap_length;      /* Length of the gap. */
+  bool gap_exists;     /* False if there are no gaps. */
+} GapInfo;
+void seq_time_gap_info_get(const struct Scene *scene,
+                           struct ListBase *seqbase,
+                           const int initial_frame,
+                           struct GapInfo *r_gap_info);
 
 #ifdef __cplusplus
 }

@@ -239,6 +239,7 @@ void ED_screen_restore_temp_type(struct bContext *C, ScrArea *area);
 ScrArea *ED_screen_full_newspace(struct bContext *C, ScrArea *area, int type);
 void ED_screen_full_prevspace(struct bContext *C, ScrArea *area);
 void ED_screen_full_restore(struct bContext *C, ScrArea *area);
+ScrArea *ED_screen_state_maximized_create(struct bContext *C);
 struct ScrArea *ED_screen_state_toggle(struct bContext *C,
                                        struct wmWindow *win,
                                        struct ScrArea *area,

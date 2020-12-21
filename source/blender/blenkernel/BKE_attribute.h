@@ -35,7 +35,6 @@ extern "C" {
 struct CustomData;
 struct CustomDataLayer;
 struct ID;
-struct PointerRNA;
 struct ReportList;
 
 /* Attribute.domain */

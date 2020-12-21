@@ -493,8 +493,8 @@ static bool image_associate_alpha(ImageManager::Image *img)
 template<TypeDesc::BASETYPE FileFormat, typename StorageType>
 bool ImageManager::file_load_image(Image *img, int texture_limit)
 {
-  /* we only handle certain number of components */
-  if (!(img->metadata.channels >= 1 && img->metadata.channels <= 4)) {
+  /* Ignore empty images. */
+  if (!(img->metadata.channels > 0)) {
     return false;
   }
 

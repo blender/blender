@@ -25,8 +25,6 @@
 
 #pragma once
 
-struct Main;
-
 namespace blender {
 namespace deg {
 

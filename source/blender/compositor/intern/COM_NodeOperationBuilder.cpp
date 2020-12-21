@@ -304,7 +304,7 @@ void NodeOperationBuilder::add_operation_input_constants()
   /* Note: unconnected inputs cached first to avoid modifying
    *       m_operations while iterating over it
    */
-  typedef std::vector<NodeOperationInput *> Inputs;
+  using Inputs = std::vector<NodeOperationInput *>;
   Inputs pending_inputs;
   for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     NodeOperation *op = *it;

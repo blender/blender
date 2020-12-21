@@ -392,6 +392,8 @@ const blender::fn::CPPType *custom_data_type_to_cpp_type(const CustomDataType ty
       return &CPPType::get<int>();
     case CD_PROP_COLOR:
       return &CPPType::get<Color4f>();
+    case CD_PROP_BOOL:
+      return &CPPType::get<bool>();
     default:
       return nullptr;
   }
@@ -414,6 +416,9 @@ CustomDataType cpp_type_to_custom_data_type(const blender::fn::CPPType &type)
   }
   if (type.is<Color4f>()) {
     return CD_PROP_COLOR;
+  }
+  if (type.is<bool>()) {
+    return CD_PROP_BOOL;
   }
   return static_cast<CustomDataType>(-1);
 }
@@ -449,6 +454,9 @@ static ReadAttributePtr read_attribute_from_custom_data(const CustomData &custom
         case CD_PROP_COLOR:
           return std::make_unique<ArrayReadAttribute<Color4f>>(
               domain, Span(static_cast<Color4f *>(layer.data), size));
+        case CD_PROP_BOOL:
+          return std::make_unique<ArrayReadAttribute<bool>>(
+              domain, Span(static_cast<bool *>(layer.data), size));
       }
     }
   }
@@ -490,6 +498,9 @@ static WriteAttributePtr write_attribute_from_custom_data(
         case CD_PROP_COLOR:
           return std::make_unique<ArrayWriteAttribute<Color4f>>(
               domain, MutableSpan(static_cast<Color4f *>(layer.data), size));
+        case CD_PROP_BOOL:
+          return std::make_unique<ArrayWriteAttribute<bool>>(
+              domain, MutableSpan(static_cast<bool *>(layer.data), size));
       }
     }
   }
@@ -590,6 +601,15 @@ Set<std::string> GeometryComponent::attribute_names() const
   return {};
 }
 
+bool GeometryComponent::attribute_exists(const blender::StringRef attribute_name) const
+{
+  ReadAttributePtr attribute = this->attribute_try_get_for_read(attribute_name);
+  if (attribute) {
+    return true;
+  }
+  return false;
+}
+
 static ReadAttributePtr try_adapt_data_type(ReadAttributePtr attribute,
                                             const blender::fn::CPPType &to_type)
 {
@@ -640,6 +660,28 @@ ReadAttributePtr GeometryComponent::attribute_try_get_for_read(
   return attribute;
 }
 
+ReadAttributePtr GeometryComponent::attribute_try_get_for_read(const StringRef attribute_name,
+                                                               const AttributeDomain domain) const
+{
+  if (!this->attribute_domain_supported(domain)) {
+    return {};
+  }
+
+  ReadAttributePtr attribute = this->attribute_try_get_for_read(attribute_name);
+  if (!attribute) {
+    return {};
+  }
+
+  if (attribute->domain() != domain) {
+    attribute = this->attribute_try_adapt_domain(std::move(attribute), domain);
+    if (!attribute) {
+      return {};
+    }
+  }
+
+  return attribute;
+}
+
 ReadAttributePtr GeometryComponent::attribute_get_for_read(const StringRef attribute_name,
                                                            const AttributeDomain domain,
                                                            const CustomDataType data_type,
@@ -666,6 +708,39 @@ blender::bke::ReadAttributePtr GeometryComponent::attribute_get_constant_for_rea
   const int domain_size = this->attribute_domain_size(domain);
   return std::make_unique<blender::bke::ConstantReadAttribute>(
       domain, domain_size, *cpp_type, value);
+}
+
+blender::bke::ReadAttributePtr GeometryComponent::attribute_get_constant_for_read_converted(
+    const AttributeDomain domain,
+    const CustomDataType in_data_type,
+    const CustomDataType out_data_type,
+    const void *value) const
+{
+  BLI_assert(this->attribute_domain_supported(domain));
+  if (value == nullptr || in_data_type == out_data_type) {
+    return this->attribute_get_constant_for_read(domain, out_data_type, value);
+  }
+
+  const blender::fn::CPPType *in_cpp_type = blender::bke::custom_data_type_to_cpp_type(
+      in_data_type);
+  const blender::fn::CPPType *out_cpp_type = blender::bke::custom_data_type_to_cpp_type(
+      out_data_type);
+  BLI_assert(in_cpp_type != nullptr);
+  BLI_assert(out_cpp_type != nullptr);
+
+  const blender::nodes::DataTypeConversions &conversions =
+      blender::nodes::get_implicit_type_conversions();
+  BLI_assert(conversions.is_convertible(*in_cpp_type, *out_cpp_type));
+
+  void *out_value = alloca(out_cpp_type->size());
+  conversions.convert(*in_cpp_type, *out_cpp_type, value, out_value);
+
+  const int domain_size = this->attribute_domain_size(domain);
+  blender::bke::ReadAttributePtr attribute = std::make_unique<blender::bke::ConstantReadAttribute>(
+      domain, domain_size, *out_cpp_type, out_value);
+
+  out_cpp_type->destruct(out_value);
+  return attribute;
 }
 
 WriteAttributePtr GeometryComponent::attribute_try_ensure_for_write(const StringRef attribute_name,
@@ -709,6 +784,7 @@ bool PointCloudComponent::attribute_domain_with_type_supported(
     const AttributeDomain domain, const CustomDataType data_type) const
 {
   return domain == ATTR_DOMAIN_POINT && ELEM(data_type,
+                                             CD_PROP_BOOL,
                                              CD_PROP_FLOAT,
                                              CD_PROP_FLOAT2,
                                              CD_PROP_FLOAT3,
@@ -832,8 +908,13 @@ bool MeshComponent::attribute_domain_with_type_supported(const AttributeDomain d
   if (!this->attribute_domain_supported(domain)) {
     return false;
   }
-  return ELEM(
-      data_type, CD_PROP_FLOAT, CD_PROP_FLOAT2, CD_PROP_FLOAT3, CD_PROP_INT32, CD_PROP_COLOR);
+  return ELEM(data_type,
+              CD_PROP_BOOL,
+              CD_PROP_FLOAT,
+              CD_PROP_FLOAT2,
+              CD_PROP_FLOAT3,
+              CD_PROP_INT32,
+              CD_PROP_COLOR);
 }
 
 int MeshComponent::attribute_domain_size(const AttributeDomain domain) const

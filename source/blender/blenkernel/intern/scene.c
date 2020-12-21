@@ -37,6 +37,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -47,6 +48,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
@@ -107,7 +109,13 @@
 
 #include "RE_engine.h"
 
+#include "SEQ_edit.h"
+#include "SEQ_iterator.h"
+#include "SEQ_modifier.h"
+#include "SEQ_proxy.h"
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_sound.h"
 
 #include "BLO_read_write.h"
 
@@ -220,6 +228,7 @@ static void scene_init_data(ID *id)
 
   /* Curve Profile */
   scene->toolsettings->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
+  scene->toolsettings->sequencer_tool_settings = SEQ_tool_settings_init();
 
   for (size_t i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
     scene->orientation_slots[i].index_custom = -1;
@@ -337,7 +346,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   if (scene_src->ed) {
     scene_dst->ed = MEM_callocN(sizeof(*scene_dst->ed), __func__);
     scene_dst->ed->seqbasep = &scene_dst->ed->seqbase;
-    BKE_sequence_base_dupli_recursive(scene_src,
+    SEQ_sequence_base_dupli_recursive(scene_src,
                                       scene_dst,
                                       &scene_dst->ed->seqbase,
                                       &scene_src->ed->seqbase,
@@ -372,7 +381,7 @@ static void scene_free_data(ID *id)
   Scene *scene = (Scene *)id;
   const bool do_id_user = false;
 
-  BKE_sequencer_editing_free(scene, do_id_user);
+  SEQ_editing_free(scene, do_id_user);
 
   BKE_keyingsets_free(&scene->keyingsets);
 
@@ -860,6 +869,9 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (tos->custom_bevel_profile_preset) {
     BKE_curveprofile_blend_write(writer, tos->custom_bevel_profile_preset);
   }
+  if (tos->sequencer_tool_settings) {
+    BLO_write_struct(writer, SequencerToolSettings, tos->sequencer_tool_settings);
+  }
 
   BKE_paint_blend_write(writer, &tos->imapaint.paint);
 
@@ -942,7 +954,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
         IDP_BlendWrite(writer, seq->prop);
       }
 
-      BKE_sequence_modifier_blend_write(writer, &seq->modifiers);
+      SEQ_modifier_blend_write(writer, &seq->modifiers);
     }
     SEQ_ALL_END;
 
@@ -1119,6 +1131,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     if (sce->toolsettings->custom_bevel_profile_preset) {
       BKE_curveprofile_blend_read(reader, sce->toolsettings->custom_bevel_profile_preset);
     }
+
+    BLO_read_data_address(reader, &sce->toolsettings->sequencer_tool_settings);
   }
 
   if (sce->ed) {
@@ -1137,7 +1151,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     Sequence *seq;
     SEQ_ALL_BEGIN (ed, seq) {
       /* Do as early as possible, so that other parts of reading can rely on valid session UUID. */
-      BKE_sequence_session_uuid_generate(seq);
+      SEQ_relations_session_uuid_generate(seq);
 
       BLO_read_data_address(reader, &seq->seq1);
       BLO_read_data_address(reader, &seq->seq2);
@@ -1196,7 +1210,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
         BLO_read_data_address(reader, &seq->strip->color_balance);
       }
 
-      BKE_sequence_modifier_blend_read_data(reader, &seq->modifiers);
+      SEQ_modifier_blend_read_data(reader, &seq->modifiers);
     }
     SEQ_ALL_END;
 
@@ -1485,7 +1499,7 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
     }
     BLI_listbase_clear(&seq->anims);
 
-    BKE_sequence_modifier_blend_read_lib(reader, sce, &seq->modifiers);
+    SEQ_modifier_blend_read_lib(reader, sce, &seq->modifiers);
   }
   SEQ_ALL_END;
 
@@ -1790,6 +1804,8 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
   ts->gp_sculpt.cur_primitive = BKE_curvemapping_copy(ts->gp_sculpt.cur_primitive);
 
   ts->custom_bevel_profile_preset = BKE_curveprofile_copy(ts->custom_bevel_profile_preset);
+
+  ts->sequencer_tool_settings = SEQ_tool_settings_copy(ts->sequencer_tool_settings);
   return ts;
 }
 
@@ -1846,6 +1862,10 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
 
   if (toolsettings->custom_bevel_profile_preset) {
     BKE_curveprofile_free(toolsettings->custom_bevel_profile_preset);
+  }
+
+  if (toolsettings->sequencer_tool_settings) {
+    SEQ_tool_settings_free(toolsettings->sequencer_tool_settings);
   }
 
   MEM_freeN(toolsettings);
@@ -1999,7 +2019,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     /* Remove sequencer if not full copy */
     /* XXX Why in Hell? :/ */
     remove_sequencer_fcurves(sce_copy);
-    BKE_sequencer_editing_free(sce_copy, true);
+    SEQ_editing_free(sce_copy, true);
   }
 
   return sce_copy;
@@ -3720,6 +3740,6 @@ void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
     }
   }
   SEQ_ALL_END;
-  BKE_sequencer_update_muting(scene->ed);
-  BKE_sequencer_update_sound_bounds_all(scene);
+  SEQ_edit_update_muting(scene->ed);
+  SEQ_sound_update_bounds_all(scene);
 }

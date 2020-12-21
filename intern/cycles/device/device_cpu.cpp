@@ -47,6 +47,8 @@
 #include "kernel/osl/osl_globals.h"
 // clang-format on
 
+#include "bvh/bvh_embree.h"
+
 #include "render/buffers.h"
 #include "render/coverage.h"
 
@@ -188,6 +190,7 @@ class CPUDevice : public Device {
 #endif
   thread_spin_lock oidn_task_lock;
 #ifdef WITH_EMBREE
+  RTCScene embree_scene = NULL;
   RTCDevice embree_device;
 #endif
 
@@ -472,6 +475,15 @@ class CPUDevice : public Device {
 
   virtual void const_copy_to(const char *name, void *host, size_t size) override
   {
+#if WITH_EMBREE
+    if (strcmp(name, "__data") == 0) {
+      assert(size <= sizeof(KernelData));
+
+      // Update scene handle (since it is different for each device on multi devices)
+      KernelData *const data = (KernelData *)host;
+      data->bvh.scene = embree_scene;
+    }
+#endif
     kernel_const_copy(&kernel_globals, name, host, size);
   }
 
@@ -537,13 +549,26 @@ class CPUDevice : public Device {
 #endif
   }
 
-  void *bvh_device() const override
+  void build_bvh(BVH *bvh, Progress &progress, bool refit) override
   {
 #ifdef WITH_EMBREE
-    return embree_device;
-#else
-    return NULL;
+    if (bvh->params.bvh_layout == BVH_LAYOUT_EMBREE ||
+        bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE) {
+      BVHEmbree *const bvh_embree = static_cast<BVHEmbree *>(bvh);
+      if (refit) {
+        bvh_embree->refit(progress);
+      }
+      else {
+        bvh_embree->build(progress, &stats, embree_device);
+      }
+
+      if (bvh->params.top_level) {
+        embree_scene = bvh_embree->scene;
+      }
+    }
+    else
 #endif
+      Device::build_bvh(bvh, progress, refit);
   }
 
   void thread_run(DeviceTask &task)

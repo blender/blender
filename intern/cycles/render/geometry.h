@@ -41,6 +41,7 @@ class Scene;
 class SceneParams;
 class Shader;
 class Volume;
+struct PackedBVH;
 
 /* Geometry
  *
@@ -123,6 +124,8 @@ class Geometry : public Node {
                    Progress *progress,
                    int n,
                    int total);
+
+  virtual void pack_primitives(PackedBVH &pack, int object, uint visibility) = 0;
 
   /* Check whether the geometry should have own BVH built separately. Briefly,
    * own BVH is needed for geometry, if:

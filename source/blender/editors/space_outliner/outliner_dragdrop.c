@@ -333,7 +333,7 @@ static bool parent_drop_poll(bContext *C,
     ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
   }
 
-  Object *potential_child = (Object *)WM_drag_ID(drag, ID_OB);
+  Object *potential_child = (Object *)WM_drag_get_local_ID(drag, ID_OB);
   if (!potential_child) {
     return false;
   }
@@ -421,7 +421,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   Object *par = (Object *)tselem->id;
-  Object *ob = (Object *)WM_drag_ID_from_event(event, ID_OB);
+  Object *ob = (Object *)WM_drag_get_local_ID_from_event(event, ID_OB);
 
   if (ELEM(NULL, ob, par)) {
     return OPERATOR_CANCELLED;
@@ -445,7 +445,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Drop to Set Parent [+Alt keeps transforms]";
+  ot->name = "Drop to Set Parent (hold Alt to keep transforms)";
   ot->description = "Drag to parent in Outliner";
   ot->idname = "OUTLINER_OT_parent_drop";
 
@@ -473,7 +473,7 @@ static bool parent_clear_poll(bContext *C,
     }
   }
 
-  Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
+  Object *ob = (Object *)WM_drag_get_local_ID(drag, ID_OB);
   if (!ob) {
     return false;
   }
@@ -531,7 +531,7 @@ static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEven
 void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Drop to Clear Parent [+Alt keeps transforms]";
+  ot->name = "Drop to Clear Parent (hold Alt to keep transforms)";
   ot->description = "Drag to clear parent in Outliner";
   ot->idname = "OUTLINER_OT_parent_clear";
 
@@ -552,7 +552,7 @@ static bool scene_drop_poll(bContext *C,
                             const char **UNUSED(r_tooltip))
 {
   /* Ensure item under cursor is valid drop target */
-  Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
+  Object *ob = (Object *)WM_drag_get_local_ID(drag, ID_OB);
   return (ob && (outliner_ID_drop_find(C, event, ID_SCE) != NULL));
 }
 
@@ -560,7 +560,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = (Scene *)outliner_ID_drop_find(C, event, ID_SCE);
-  Object *ob = (Object *)WM_drag_ID_from_event(event, ID_OB);
+  Object *ob = (Object *)WM_drag_get_local_ID_from_event(event, ID_OB);
 
   if (ELEM(NULL, ob, scene) || ID_IS_LINKED(scene)) {
     return OPERATOR_CANCELLED;
@@ -620,7 +620,7 @@ static bool material_drop_poll(bContext *C,
                                const char **UNUSED(r_tooltip))
 {
   /* Ensure item under cursor is valid drop target */
-  Material *ma = (Material *)WM_drag_ID(drag, ID_MA);
+  Material *ma = (Material *)WM_drag_get_local_ID(drag, ID_MA);
   return (ma && (outliner_ID_drop_find(C, event, ID_OB) != NULL));
 }
 
@@ -628,7 +628,7 @@ static int material_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = (Object *)outliner_ID_drop_find(C, event, ID_OB);
-  Material *ma = (Material *)WM_drag_ID_from_event(event, ID_MA);
+  Material *ma = (Material *)WM_drag_get_local_ID_from_event(event, ID_MA);
 
   if (ELEM(NULL, ob, ma)) {
     return OPERATOR_CANCELLED;
@@ -1461,14 +1461,14 @@ static int outliner_item_drag_drop_invoke(bContext *C,
         parent = scene->master_collection;
       }
 
-      WM_drag_add_ID(drag, id, &parent->id);
+      WM_drag_add_local_ID(drag, id, &parent->id);
     }
 
     BLI_freelistN(&selected.selected_array);
   }
   else {
     /* Add single ID. */
-    WM_drag_add_ID(drag, data.drag_id, data.drag_parent);
+    WM_drag_add_local_ID(drag, data.drag_id, data.drag_parent);
   }
 
   ED_outliner_select_sync_from_outliner(C, space_outliner);

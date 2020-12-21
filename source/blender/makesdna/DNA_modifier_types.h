@@ -2005,13 +2005,20 @@ typedef struct WeldModifierData {
   /* Name of vertex group to use to mask, MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
-  short flag;
+  char mode;
+  char flag;
   char _pad[2];
 } WeldModifierData;
 
 /* WeldModifierData->flag */
 enum {
   MOD_WELD_INVERT_VGROUP = (1 << 0),
+};
+
+/* #WeldModifierData.mode */
+enum {
+  MOD_WELD_MODE_ALL = 0,
+  MOD_WELD_MODE_CONNECTED = 1,
 };
 
 typedef struct DataTransferModifierData {

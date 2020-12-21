@@ -27,6 +27,7 @@
 #include "BLI_listbase.h"
 
 #include "DNA_ID.h"
+#include "DNA_collection_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_enums.h"
 #include "DNA_object_types.h"

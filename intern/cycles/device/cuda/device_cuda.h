@@ -71,6 +71,7 @@ class CUDADevice : public Device {
   };
   typedef map<device_memory *, CUDAMem> CUDAMemMap;
   CUDAMemMap cuda_mem_map;
+  thread_mutex cuda_mem_map_mutex;
 
   struct PixelMem {
     GLuint cuPBO;

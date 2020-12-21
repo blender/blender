@@ -184,9 +184,8 @@ class Mesh : public Geometry {
   unordered_multimap<int, int>
       vert_stitching_map; /* stitching index -> multiple real vert indices */
 
-  friend class BVH;
+  friend class BVH2;
   friend class BVHBuild;
-  friend class BVHEmbree;
   friend class BVHSpatialSplit;
   friend class DiagSplit;
   friend class EdgeDice;
@@ -205,6 +204,7 @@ class Mesh : public Geometry {
   void resize_subd_faces(int numfaces, int num_ngons, int numcorners);
   void reserve_subd_faces(int numfaces, int num_ngons, int numcorners);
   void reserve_subd_creases(size_t num_creases);
+  void clear_non_sockets();
   void clear(bool preserve_shaders = false) override;
   void add_vertex(float3 P);
   void add_vertex_slow(float3 P);
@@ -231,6 +231,8 @@ class Mesh : public Geometry {
                   size_t vert_offset,
                   size_t tri_offset);
   void pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset);
+
+  void pack_primitives(PackedBVH &pack, int object, uint visibility) override;
 
   void tessellate(DiagSplit *split);
 

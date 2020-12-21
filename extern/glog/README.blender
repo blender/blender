@@ -1,6 +1,6 @@
 Project: Google Logging
 URL: https://github.com/google/glog
-License: New BSD
+License: BSD 3-Clause
 Upstream version: 0.4.0, 96a2f23dca4
 Local modifications:
 * Added per-platform config.h files so no configuration-time

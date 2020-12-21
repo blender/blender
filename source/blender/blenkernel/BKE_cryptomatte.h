@@ -29,13 +29,20 @@
 extern "C" {
 #endif
 
-struct Object;
+struct Main;
 struct Material;
+struct Object;
 
+uint32_t BKE_cryptomatte_hash(const char *name, int name_len);
 uint32_t BKE_cryptomatte_object_hash(const struct Object *object);
 uint32_t BKE_cryptomatte_material_hash(const struct Material *material);
 uint32_t BKE_cryptomatte_asset_hash(const struct Object *object);
 float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash);
+
+char *BKE_cryptomatte_entries_to_matte_id(struct NodeCryptomatte *node_storage);
+void BKE_cryptomatte_matte_id_to_entries(const struct Main *bmain,
+                                         struct NodeCryptomatte *node_storage,
+                                         const char *matte_id);
 
 #ifdef __cplusplus
 }

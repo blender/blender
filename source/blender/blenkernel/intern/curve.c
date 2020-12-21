@@ -2185,19 +2185,28 @@ static void bevel_list_calc_bisect(BevList *bl)
     bevp2++;
   }
 
+  /* In the unlikely situation that handles define a zeroed direction,
+   * calculate it from the adjacent points, see T80742.
+   *
+   * Only do this as a fallback since we typically want the end-point directions
+   * to be exactly aligned with the handles at the end-point, see T83117. */
   if (is_cyclic == false) {
     bevp0 = &bl->bevpoints[0];
     bevp1 = &bl->bevpoints[1];
-    sub_v3_v3v3(bevp0->dir, bevp1->vec, bevp0->vec);
-    if (normalize_v3(bevp0->dir) == 0.0f) {
-      copy_v3_v3(bevp0->dir, bevp1->dir);
+    if (UNLIKELY(is_zero_v3(bevp0->dir))) {
+      sub_v3_v3v3(bevp0->dir, bevp1->vec, bevp0->vec);
+      if (normalize_v3(bevp0->dir) == 0.0f) {
+        copy_v3_v3(bevp0->dir, bevp1->dir);
+      }
     }
 
     bevp0 = &bl->bevpoints[bl->nr - 2];
     bevp1 = &bl->bevpoints[bl->nr - 1];
-    sub_v3_v3v3(bevp1->dir, bevp1->vec, bevp0->vec);
-    if (normalize_v3(bevp1->dir) == 0.0f) {
-      copy_v3_v3(bevp1->dir, bevp0->dir);
+    if (UNLIKELY(is_zero_v3(bevp1->dir))) {
+      sub_v3_v3v3(bevp1->dir, bevp1->vec, bevp0->vec);
+      if (normalize_v3(bevp1->dir) == 0.0f) {
+        copy_v3_v3(bevp1->dir, bevp0->dir);
+      }
     }
   }
 }

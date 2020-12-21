@@ -86,26 +86,9 @@ static void ui_imageuser_slot_menu(bContext *UNUSED(C), uiLayout *layout, void *
 {
   uiBlock *block = uiLayoutGetBlock(layout);
   Image *image = image_p;
+
   int slot_id;
-
-  uiDefBut(block,
-           UI_BTYPE_LABEL,
-           0,
-           IFACE_("Slot"),
-           0,
-           0,
-           UI_UNIT_X * 5,
-           UI_UNIT_Y,
-           NULL,
-           0.0,
-           0.0,
-           0,
-           0,
-           "");
-  uiItemS(layout);
-
-  slot_id = BLI_listbase_count(&image->renderslots) - 1;
-  for (RenderSlot *slot = image->renderslots.last; slot; slot = slot->prev) {
+  LISTBASE_FOREACH_INDEX (RenderSlot *, slot, &image->renderslots, slot_id) {
     char str[64];
     if (slot->name[0] != '\0') {
       BLI_strncpy(str, slot->name, sizeof(str));
@@ -127,8 +110,23 @@ static void ui_imageuser_slot_menu(bContext *UNUSED(C), uiLayout *layout, void *
               0,
               -1,
               "");
-    slot_id--;
   }
+
+  uiItemS(layout);
+  uiDefBut(block,
+           UI_BTYPE_LABEL,
+           0,
+           IFACE_("Slot"),
+           0,
+           0,
+           UI_UNIT_X * 5,
+           UI_UNIT_Y,
+           NULL,
+           0.0,
+           0.0,
+           0,
+           0,
+           "");
 }
 
 static bool ui_imageuser_slot_menu_step(bContext *C, int direction, void *image_p)
@@ -175,14 +173,9 @@ static void ui_imageuser_layer_menu(bContext *UNUSED(C), uiLayout *layout, void 
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   Scene *scene = iuser->scene;
-  RenderResult *rr;
-  RenderLayer *rl;
-  RenderLayer rl_fake = {NULL};
-  const char *fake_name;
-  int nr;
 
-  /* may have been freed since drawing */
-  rr = BKE_image_acquire_renderresult(scene, image);
+  /* May have been freed since drawing. */
+  RenderResult *rr = BKE_image_acquire_renderresult(scene, image);
   if (UNLIKELY(rr == NULL)) {
     return;
   }
@@ -190,32 +183,26 @@ static void ui_imageuser_layer_menu(bContext *UNUSED(C), uiLayout *layout, void 
   UI_block_layout_set_current(block, layout);
   uiLayoutColumn(layout, false);
 
-  uiDefBut(block,
-           UI_BTYPE_LABEL,
-           0,
-           IFACE_("Layer"),
-           0,
-           0,
-           UI_UNIT_X * 5,
-           UI_UNIT_Y,
-           NULL,
-           0.0,
-           0.0,
-           0,
-           0,
-           "");
-  uiItemS(layout);
-
-  nr = BLI_listbase_count(&rr->layers) - 1;
-  fake_name = ui_imageuser_layer_fake_name(rr);
-
+  const char *fake_name = ui_imageuser_layer_fake_name(rr);
   if (fake_name) {
-    BLI_strncpy(rl_fake.name, fake_name, sizeof(rl_fake.name));
-    nr += 1;
+    uiDefButS(block,
+              UI_BTYPE_BUT_MENU,
+              B_NOP,
+              fake_name,
+              0,
+              0,
+              UI_UNIT_X * 5,
+              UI_UNIT_X,
+              &iuser->layer,
+              0.0,
+              0.0,
+              0,
+              -1,
+              "");
   }
 
-  for (rl = rr->layers.last; rl; rl = rl->prev, nr--) {
-  final:
+  int nr = fake_name ? 1 : 0;
+  for (RenderLayer *rl = rr->layers.first; rl; rl = rl->next, nr++) {
     uiDefButS(block,
               UI_BTYPE_BUT_MENU,
               B_NOP,
@@ -232,13 +219,21 @@ static void ui_imageuser_layer_menu(bContext *UNUSED(C), uiLayout *layout, void 
               "");
   }
 
-  if (fake_name) {
-    fake_name = NULL;
-    rl = &rl_fake;
-    goto final;
-  }
-
-  BLI_assert(nr == -1);
+  uiItemS(layout);
+  uiDefBut(block,
+           UI_BTYPE_LABEL,
+           0,
+           IFACE_("Layer"),
+           0,
+           0,
+           UI_UNIT_X * 5,
+           UI_UNIT_Y,
+           NULL,
+           0.0,
+           0.0,
+           0,
+           0,
+           "");
 
   BKE_image_release_renderresult(scene, image);
 }
@@ -267,23 +262,6 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 
   UI_block_layout_set_current(block, layout);
   uiLayoutColumn(layout, false);
-
-  uiDefBut(block,
-           UI_BTYPE_LABEL,
-           0,
-           IFACE_("Pass"),
-           0,
-           0,
-           UI_UNIT_X * 5,
-           UI_UNIT_Y,
-           NULL,
-           0.0,
-           0.0,
-           0,
-           0,
-           "");
-
-  uiItemS(layout);
 
   nr = (rl == NULL) ? 1 : 0;
 
@@ -314,6 +292,22 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
               -1,
               "");
   }
+
+  uiItemS(layout);
+  uiDefBut(block,
+           UI_BTYPE_LABEL,
+           0,
+           IFACE_("Pass"),
+           0,
+           0,
+           UI_UNIT_X * 5,
+           UI_UNIT_Y,
+           NULL,
+           0.0,
+           0.0,
+           0,
+           0,
+           "");
 
   BLI_freelistN(&added_passes);
 
@@ -806,7 +800,8 @@ void uiTemplateImage(uiLayout *layout,
                  C,
                  ptr,
                  propname,
-                 ima ? NULL : "IMAGE_OT_new",
+                 "IMAGE_OT_new",
+                 NULL,
                  "IMAGE_OT_open",
                  NULL,
                  UI_TEMPLATE_ID_FILTER_ALL,

@@ -28,7 +28,6 @@
 #include <pxr/usd/usd/timeCode.h>
 
 struct Depsgraph;
-struct ID;
 struct Object;
 
 namespace blender::io::usd {

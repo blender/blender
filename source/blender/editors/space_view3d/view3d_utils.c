@@ -1620,6 +1620,41 @@ void ED_view3d_to_object(const Depsgraph *depsgraph,
   BKE_object_apply_mat4_ex(ob, mat, ob_eval->parent, ob_eval->parentinv, true);
 }
 
+bool ED_view3d_camera_to_view_selected(struct Main *bmain,
+                                       Depsgraph *depsgraph,
+                                       const Scene *scene,
+                                       Object *camera_ob)
+{
+  Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
+  float co[3]; /* the new location to apply */
+  float scale; /* only for ortho cameras */
+
+  if (BKE_camera_view_frame_fit_to_scene(depsgraph, scene, camera_ob_eval, co, &scale)) {
+    ObjectTfmProtectedChannels obtfm;
+    float obmat_new[4][4];
+
+    if ((camera_ob_eval->type == OB_CAMERA) &&
+        (((Camera *)camera_ob_eval->data)->type == CAM_ORTHO)) {
+      ((Camera *)camera_ob->data)->ortho_scale = scale;
+    }
+
+    copy_m4_m4(obmat_new, camera_ob_eval->obmat);
+    copy_v3_v3(obmat_new[3], co);
+
+    /* only touch location */
+    BKE_object_tfm_protected_backup(camera_ob, &obtfm);
+    BKE_object_apply_mat4(camera_ob, obmat_new, true, true);
+    BKE_object_tfm_protected_restore(camera_ob, &obtfm, OB_LOCK_SCALE | OB_LOCK_ROT4D);
+
+    /* notifiers */
+    DEG_id_tag_update_ex(bmain, &camera_ob->id, ID_RECALC_TRANSFORM);
+
+    return true;
+  }
+
+  return false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

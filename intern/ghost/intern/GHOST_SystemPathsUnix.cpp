@@ -21,6 +21,9 @@
  * \ingroup GHOST
  */
 
+#include <cstdio>
+#include <sstream>
+
 #include "GHOST_SystemPathsUnix.h"
 
 #include "GHOST_Debug.h"
@@ -106,6 +109,62 @@ const GHOST_TUns8 *GHOST_SystemPathsUnix::getUserDir(int version, const char *ve
 
     return (const GHOST_TUns8 *)user_path.c_str();
   }
+}
+
+const GHOST_TUns8 *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
+{
+  const char *type_str;
+
+  switch (type) {
+    case GHOST_kUserSpecialDirDesktop:
+      type_str = "DESKTOP";
+      break;
+    case GHOST_kUserSpecialDirDocuments:
+      type_str = "DOCUMENTS";
+      break;
+    case GHOST_kUserSpecialDirDownloads:
+      type_str = "DOWNLOAD";
+      break;
+    case GHOST_kUserSpecialDirMusic:
+      type_str = "MUSIC";
+      break;
+    case GHOST_kUserSpecialDirPictures:
+      type_str = "PICTURES";
+      break;
+    case GHOST_kUserSpecialDirVideos:
+      type_str = "VIDEOS";
+      break;
+    default:
+      GHOST_ASSERT(
+          false,
+          "GHOST_SystemPathsUnix::getUserSpecialDir(): Invalid enum value for type parameter");
+      return NULL;
+  }
+
+  static string path = "";
+  /* Pipe stderr to /dev/null to avoid error prints. We will fail gracefully still. */
+  string command = string("xdg-user-dir ") + type_str + " 2> /dev/null";
+
+  FILE *fstream = popen(command.c_str(), "r");
+  if (fstream == NULL) {
+    return NULL;
+  }
+  std::stringstream path_stream;
+  while (!feof(fstream)) {
+    char c = fgetc(fstream);
+    /* xdg-user-dir ends the path with '\n'. */
+    if (c == '\n') {
+      break;
+    }
+    path_stream << c;
+  }
+  if (pclose(fstream) == -1) {
+    perror("GHOST_SystemPathsUnix::getUserSpecialDir failed at pclose()");
+    return NULL;
+  }
+
+  path = path_stream.str();
+  return path[0] ? (const GHOST_TUns8 *)path.c_str() : NULL;
 }
 
 const GHOST_TUns8 *GHOST_SystemPathsUnix::getBinaryDir() const

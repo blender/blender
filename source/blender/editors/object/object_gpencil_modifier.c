@@ -443,9 +443,9 @@ static bool gpencil_edit_modifier_poll_generic(bContext *C,
     return false;
   }
 
-  if (!is_liboverride_allowed &&
-      (mod == NULL || !BKE_gpencil_modifier_is_local_in_liboverride(ob, mod))) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from library override");
+  if (!is_liboverride_allowed && BKE_gpencil_modifier_is_nonlocal_in_liboverride(ob, mod)) {
+    CTX_wm_operator_poll_msg_set(
+        C, "Cannot edit modifiers coming from linked data in a library override");
     return false;
   }
 
@@ -461,7 +461,7 @@ static bool gpencil_edit_modifier_poll(bContext *C)
  * (not only from added 'local' ones). */
 static bool gpencil_edit_modifier_liboverride_allowed_poll(bContext *C)
 {
-  return gpencil_edit_modifier_poll_generic(C, &RNA_Modifier, 0, true);
+  return gpencil_edit_modifier_poll_generic(C, &RNA_GpencilModifier, 0, true);
 }
 
 static void gpencil_edit_modifier_properties(wmOperatorType *ot)
@@ -789,7 +789,7 @@ void OBJECT_OT_gpencil_modifier_apply(wmOperatorType *ot)
                "apply_as",
                gpencil_modifier_apply_as_items,
                MODIFIER_APPLY_DATA,
-               "Apply as",
+               "Apply As",
                "How to apply the modifier to the geometry");
   gpencil_edit_modifier_properties(ot);
   gpencil_edit_modifier_report_property(ot);

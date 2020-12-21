@@ -1996,7 +1996,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
         "Change the object in the current mode\n"
         "* Ctrl to add to the current mode");
   }
-
+  UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
   uiBut *but = uiDefIconBut(block,
                             UI_BTYPE_ICON_TOGGLE,
                             0,
@@ -2845,6 +2845,7 @@ static void outliner_draw_iconrow(bContext *C,
 
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
+    te->flag &= ~(TE_ICONROW | TE_ICONROW_MERGED);
 
     /* object hierarchy always, further constrained on level */
     if (level < 1 || (tselem->type == 0 && te->idcode == ID_OB)) {
@@ -2928,8 +2929,6 @@ static void outliner_draw_iconrow(bContext *C,
 /* closed tree element */
 static void outliner_set_coord_tree_element(TreeElement *te, int startx, int starty)
 {
-  TreeElement *ten;
-
   /* closed items may be displayed in row of parent, don't change their coordinate! */
   if ((te->flag & TE_ICONROW) == 0 && (te->flag & TE_ICONROW_MERGED) == 0) {
     te->xs = 0;
@@ -2937,7 +2936,7 @@ static void outliner_set_coord_tree_element(TreeElement *te, int startx, int sta
     te->xend = 0;
   }
 
-  for (ten = te->subtree.first; ten; ten = ten->next) {
+  LISTBASE_FOREACH (TreeElement *, ten, &te->subtree) {
     outliner_set_coord_tree_element(ten, startx + UI_UNIT_X, starty);
   }
 }
@@ -3647,7 +3646,7 @@ void draw_outliner(const bContext *C)
   outliner_tree_dimensions(space_outliner, &tree_width, &tree_height);
 
   /* Default to no emboss for outliner UI. */
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
 
   if (space_outliner->outlinevis == SO_DATA_API) {
     int buttons_start_x = outliner_data_api_buttons_start_x(tree_width);
@@ -3656,7 +3655,7 @@ void draw_outliner(const bContext *C)
 
     UI_block_emboss_set(block, UI_EMBOSS);
     outliner_draw_rnabuts(block, region, space_outliner, buttons_start_x, &space_outliner->tree);
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
+    UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
   }
   else if (space_outliner->outlinevis == SO_ID_ORPHANS) {
     /* draw user toggle columns */

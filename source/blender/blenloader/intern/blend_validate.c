@@ -148,7 +148,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
         }
       }
 
-      BLI_linklist_free(names, free);
+      BLI_linklist_freeN(names);
     }
 
     BLO_blendhandle_close(bh);

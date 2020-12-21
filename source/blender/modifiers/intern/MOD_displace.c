@@ -437,7 +437,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
+  uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, NULL, 0, ICON_NONE, NULL);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, has_texture);
@@ -506,7 +506,7 @@ ModifierTypeInfo modifierType_Displace = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

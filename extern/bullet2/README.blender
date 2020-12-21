@@ -1,0 +1,5 @@
+Project: Bullet Continuous Collision Detection and Physics Library
+URL: http://bulletphysics.org
+License: zlib
+Upstream version: 3.07
+Local modifications: Fixed inertia

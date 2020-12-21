@@ -245,7 +245,7 @@ static char *rna_Bone_path(PointerRNA *ptr)
   Bone *bone = (Bone *)ptr->data;
   char name_esc[sizeof(bone->name) * 2];
 
-  BLI_strescape(name_esc, bone->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
 
   /* special exception for trying to get the path where ID-block is Object
    * - this will be assumed to be from a Pose Bone...

@@ -16,15 +16,21 @@
 
 #include "BKE_mesh.h"
 #include "BKE_persistent_data_handle.hh"
+
+#include "DNA_collection_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
+
+#include "BLI_hash.h"
 
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_point_instance_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_OBJECT, N_("Object")},
+    {SOCK_COLLECTION, N_("Collection")},
+    {SOCK_INT, N_("Seed"), 0, 0, 0, 0, -10000, 10000},
     {-1, ""},
 };
 
@@ -35,19 +41,129 @@ static bNodeSocketTemplate geo_node_point_instance_out[] = {
 
 namespace blender::nodes {
 
+static void geo_node_point_instance_update(bNodeTree *UNUSED(tree), bNode *node)
+{
+  bNodeSocket *object_socket = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
+  bNodeSocket *collection_socket = object_socket->next;
+  bNodeSocket *seed_socket = collection_socket->next;
+
+  GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)node->custom1;
+  const bool use_whole_collection = node->custom2 == 0;
+
+  nodeSetSocketAvailability(object_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_OBJECT);
+  nodeSetSocketAvailability(collection_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION);
+  nodeSetSocketAvailability(
+      seed_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION && !use_whole_collection);
+}
+
+static void get_instanced_data__object(const GeoNodeExecParams &params,
+                                       MutableSpan<std::optional<InstancedData>> r_instances_data)
+{
+  bke::PersistentObjectHandle object_handle = params.get_input<bke::PersistentObjectHandle>(
+      "Object");
+  Object *object = params.handle_map().lookup(object_handle);
+  if (object == params.self_object()) {
+    object = nullptr;
+  }
+  if (object != nullptr) {
+    InstancedData instance;
+    instance.type = INSTANCE_DATA_TYPE_OBJECT;
+    instance.data.object = object;
+    r_instances_data.fill(instance);
+  }
+}
+
+static void get_instanced_data__collection(
+    const GeoNodeExecParams &params,
+    const GeometryComponent &component,
+    MutableSpan<std::optional<InstancedData>> r_instances_data)
+{
+  const bNode &node = params.node();
+  bke::PersistentCollectionHandle collection_handle =
+      params.get_input<bke::PersistentCollectionHandle>("Collection");
+  Collection *collection = params.handle_map().lookup(collection_handle);
+  if (collection != nullptr) {
+    const bool use_whole_collection = node.custom2 == 0;
+    if (use_whole_collection) {
+      InstancedData instance;
+      instance.type = INSTANCE_DATA_TYPE_COLLECTION;
+      instance.data.collection = collection;
+      r_instances_data.fill(instance);
+    }
+    else {
+      Vector<InstancedData> possible_instances;
+      /* Direct child objects are instanced as objects. */
+      LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+        Object *object = cob->ob;
+        InstancedData instance;
+        instance.type = INSTANCE_DATA_TYPE_OBJECT;
+        instance.data.object = object;
+        possible_instances.append(instance);
+      }
+      /* Direct child collections are instanced as collections. */
+      LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+        Collection *child_collection = child->collection;
+        InstancedData instance;
+        instance.type = INSTANCE_DATA_TYPE_COLLECTION;
+        instance.data.collection = child_collection;
+        possible_instances.append(instance);
+      }
+
+      if (!possible_instances.is_empty()) {
+        const int seed = params.get_input<int>("Seed");
+        Array<uint32_t> ids = get_geometry_element_ids_as_uints(component, ATTR_DOMAIN_POINT);
+        for (const int i : r_instances_data.index_range()) {
+          const int index = BLI_hash_int_2d(ids[i], seed) % possible_instances.size();
+          r_instances_data[i] = possible_instances[index];
+        }
+      }
+    }
+  }
+}
+
+static Array<std::optional<InstancedData>> get_instanced_data(const GeoNodeExecParams &params,
+                                                              const GeometryComponent &component,
+                                                              const int amount)
+{
+  const bNode &node = params.node();
+  const GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)node.custom1;
+
+  Array<std::optional<InstancedData>> instances_data(amount);
+
+  switch (type) {
+    case GEO_NODE_POINT_INSTANCE_TYPE_OBJECT: {
+      get_instanced_data__object(params, instances_data);
+      break;
+    }
+    case GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION: {
+      get_instanced_data__collection(params, component, instances_data);
+      break;
+    }
+  }
+  return instances_data;
+}
+
 static void add_instances_from_geometry_component(InstancesComponent &instances,
                                                   const GeometryComponent &src_geometry,
-                                                  Object *object)
+                                                  const GeoNodeExecParams &params)
 {
-  Float3ReadAttribute positions = src_geometry.attribute_get_for_read<float3>(
-      "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-  Float3ReadAttribute rotations = src_geometry.attribute_get_for_read<float3>(
-      "rotation", ATTR_DOMAIN_POINT, {0, 0, 0});
-  Float3ReadAttribute scales = src_geometry.attribute_get_for_read<float3>(
-      "scale", ATTR_DOMAIN_POINT, {1, 1, 1});
+  const AttributeDomain domain = ATTR_DOMAIN_POINT;
 
-  for (const int i : IndexRange(positions.size())) {
-    instances.add_instance(object, positions[i], rotations[i], scales[i]);
+  const int domain_size = src_geometry.attribute_domain_size(domain);
+  Array<std::optional<InstancedData>> instances_data = get_instanced_data(
+      params, src_geometry, domain_size);
+
+  Float3ReadAttribute positions = src_geometry.attribute_get_for_read<float3>(
+      "position", domain, {0, 0, 0});
+  Float3ReadAttribute rotations = src_geometry.attribute_get_for_read<float3>(
+      "rotation", domain, {0, 0, 0});
+  Float3ReadAttribute scales = src_geometry.attribute_get_for_read<float3>(
+      "scale", domain, {1, 1, 1});
+
+  for (const int i : IndexRange(domain_size)) {
+    if (instances_data[i].has_value()) {
+      instances.add_instance(*instances_data[i], positions[i], rotations[i], scales[i]);
+    }
   }
 }
 
@@ -56,20 +172,14 @@ static void geo_node_point_instance_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet geometry_set_out;
 
-  bke::PersistentObjectHandle object_handle = params.extract_input<bke::PersistentObjectHandle>(
-      "Object");
-  Object *object = params.handle_map().lookup(object_handle);
-
-  if (object != nullptr && object != params.self_object()) {
-    InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
-    if (geometry_set.has<MeshComponent>()) {
-      add_instances_from_geometry_component(
-          instances, *geometry_set.get_component_for_read<MeshComponent>(), object);
-    }
-    if (geometry_set.has<PointCloudComponent>()) {
-      add_instances_from_geometry_component(
-          instances, *geometry_set.get_component_for_read<PointCloudComponent>(), object);
-    }
+  InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
+  if (geometry_set.has<MeshComponent>()) {
+    add_instances_from_geometry_component(
+        instances, *geometry_set.get_component_for_read<MeshComponent>(), params);
+  }
+  if (geometry_set.has<PointCloudComponent>()) {
+    add_instances_from_geometry_component(
+        instances, *geometry_set.get_component_for_read<PointCloudComponent>(), params);
   }
 
   params.set_output("Geometry", std::move(geometry_set_out));
@@ -82,6 +192,7 @@ void register_node_type_geo_point_instance()
 
   geo_node_type_base(&ntype, GEO_NODE_POINT_INSTANCE, "Point Instance", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(&ntype, geo_node_point_instance_in, geo_node_point_instance_out);
+  node_type_update(&ntype, blender::nodes::geo_node_point_instance_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_instance_exec;
   nodeRegisterType(&ntype);
 }

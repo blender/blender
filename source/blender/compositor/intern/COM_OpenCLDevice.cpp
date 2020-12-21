@@ -19,7 +19,7 @@
 #include "COM_OpenCLDevice.h"
 #include "COM_WorkScheduler.h"
 
-typedef enum COM_VendorID { NVIDIA = 0x10DE, AMD = 0x1002 } COM_VendorID;
+enum COM_VendorID { NVIDIA = 0x10DE, AMD = 0x1002 };
 const cl_image_format IMAGE_FORMAT_COLOR = {
     CL_RGBA,
     CL_FLOAT,

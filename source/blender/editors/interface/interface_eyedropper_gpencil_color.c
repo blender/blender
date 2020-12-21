@@ -34,6 +34,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_gpencil_types.h"
+#include "DNA_material_types.h"
 #include "DNA_space_types.h"
 
 #include "BKE_context.h"

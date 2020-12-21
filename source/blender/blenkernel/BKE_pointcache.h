@@ -23,12 +23,10 @@
  * \ingroup bke
  */
 
-#include "DNA_ID.h"
-#include "DNA_boid_types.h"
-#include "DNA_dynamicpaint_types.h"
-#include "DNA_object_force_types.h"
-#include "DNA_pointcache_types.h"
-#include <stdio.h> /* for FILE */
+#include "DNA_boid_types.h"       /* for #BoidData */
+#include "DNA_pointcache_types.h" /* for #BPHYS_TOT_DATA */
+
+#include <stdio.h> /* for #FILE */
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,7 +77,10 @@ extern "C" {
 #define PTCACHE_READ_OLD 3
 
 /* Structs */
+struct BlendDataReader;
+struct BlendWriter;
 struct ClothModifierData;
+struct DynamicPaintSurface;
 struct FluidModifierData;
 struct ListBase;
 struct Main;
@@ -91,8 +92,6 @@ struct RigidBodyWorld;
 struct Scene;
 struct SoftBody;
 struct ViewLayer;
-struct BlendWriter;
-struct BlendDataReader;
 
 /* temp structure for read/write */
 typedef struct PTCacheData {

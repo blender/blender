@@ -22,6 +22,7 @@ if(WITH_BLENDER)
 
   add_subdirectory(animation)
   add_subdirectory(armature)
+  add_subdirectory(asset)
   add_subdirectory(curve)
   add_subdirectory(geometry)
   add_subdirectory(gizmo_library)

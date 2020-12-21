@@ -17,11 +17,14 @@
 #include <sstream>
 #include <stdlib.h>
 
+#include "bvh/bvh_multi.h"
+
 #include "device/device.h"
 #include "device/device_intern.h"
 #include "device/device_network.h"
 
 #include "render/buffers.h"
+#include "render/geometry.h"
 
 #include "util/util_foreach.h"
 #include "util/util_list.h"
@@ -141,7 +144,7 @@ class MultiDevice : public Device {
       delete sub.device;
   }
 
-  const string &error_message()
+  const string &error_message() override
   {
     error_msg.clear();
 
@@ -153,7 +156,7 @@ class MultiDevice : public Device {
     return error_msg;
   }
 
-  virtual bool show_samples() const
+  virtual bool show_samples() const override
   {
     if (devices.size() > 1) {
       return false;
@@ -161,16 +164,31 @@ class MultiDevice : public Device {
     return devices.front().device->show_samples();
   }
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const
+  virtual BVHLayoutMask get_bvh_layout_mask() const override
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;
+    BVHLayoutMask bvh_layout_mask_all = BVH_LAYOUT_NONE;
     foreach (const SubDevice &sub_device, devices) {
-      bvh_layout_mask &= sub_device.device->get_bvh_layout_mask();
+      BVHLayoutMask device_bvh_layout_mask = sub_device.device->get_bvh_layout_mask();
+      bvh_layout_mask &= device_bvh_layout_mask;
+      bvh_layout_mask_all |= device_bvh_layout_mask;
     }
+
+    /* With multiple OptiX devices, every device needs its own acceleration structure */
+    if (bvh_layout_mask == BVH_LAYOUT_OPTIX) {
+      return BVH_LAYOUT_MULTI_OPTIX;
+    }
+
+    /* When devices do not share a common BVH layout, fall back to creating one for each */
+    const BVHLayoutMask BVH_LAYOUT_OPTIX_EMBREE = (BVH_LAYOUT_OPTIX | BVH_LAYOUT_EMBREE);
+    if ((bvh_layout_mask_all & BVH_LAYOUT_OPTIX_EMBREE) == BVH_LAYOUT_OPTIX_EMBREE) {
+      return BVH_LAYOUT_MULTI_OPTIX_EMBREE;
+    }
+
     return bvh_layout_mask;
   }
 
-  bool load_kernels(const DeviceRequestedFeatures &requested_features)
+  bool load_kernels(const DeviceRequestedFeatures &requested_features) override
   {
     foreach (SubDevice &sub, devices)
       if (!sub.device->load_kernels(requested_features))
@@ -188,7 +206,7 @@ class MultiDevice : public Device {
     return true;
   }
 
-  bool wait_for_availability(const DeviceRequestedFeatures &requested_features)
+  bool wait_for_availability(const DeviceRequestedFeatures &requested_features) override
   {
     foreach (SubDevice &sub, devices)
       if (!sub.device->wait_for_availability(requested_features))
@@ -203,7 +221,7 @@ class MultiDevice : public Device {
     return true;
   }
 
-  DeviceKernelStatus get_active_kernel_switch_state()
+  DeviceKernelStatus get_active_kernel_switch_state() override
   {
     DeviceKernelStatus result = DEVICE_KERNEL_USING_FEATURE_KERNEL;
 
@@ -227,24 +245,61 @@ class MultiDevice : public Device {
     return result;
   }
 
-  bool build_optix_bvh(BVH *bvh)
+  void build_bvh(BVH *bvh, Progress &progress, bool refit) override
   {
-    /* Broadcast acceleration structure build to all render devices */
-    foreach (SubDevice &sub, devices) {
-      if (!sub.device->build_optix_bvh(bvh))
-        return false;
+    /* Try to build and share a single acceleration structure, if possible */
+    if (bvh->params.bvh_layout == BVH_LAYOUT_BVH2) {
+      devices.back().device->build_bvh(bvh, progress, refit);
+      return;
     }
-    return true;
+
+    BVHMulti *const bvh_multi = static_cast<BVHMulti *>(bvh);
+    bvh_multi->sub_bvhs.resize(devices.size());
+
+    vector<BVHMulti *> geom_bvhs;
+    geom_bvhs.reserve(bvh->geometry.size());
+    foreach (Geometry *geom, bvh->geometry) {
+      geom_bvhs.push_back(static_cast<BVHMulti *>(geom->bvh));
+    }
+
+    /* Broadcast acceleration structure build to all render devices */
+    size_t i = 0;
+    foreach (SubDevice &sub, devices) {
+      /* Change geometry BVH pointers to the sub BVH */
+      for (size_t k = 0; k < bvh->geometry.size(); ++k) {
+        bvh->geometry[k]->bvh = geom_bvhs[k]->sub_bvhs[i];
+      }
+
+      if (!bvh_multi->sub_bvhs[i]) {
+        BVHParams params = bvh->params;
+        if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX)
+          params.bvh_layout = BVH_LAYOUT_OPTIX;
+        else if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE)
+          params.bvh_layout = sub.device->info.type == DEVICE_OPTIX ? BVH_LAYOUT_OPTIX :
+                                                                      BVH_LAYOUT_EMBREE;
+
+        /* Skip building a bottom level acceleration structure for non-instanced geometry on Embree
+         * (since they are put into the top level directly, see bvh_embree.cpp) */
+        if (!params.top_level && params.bvh_layout == BVH_LAYOUT_EMBREE &&
+            !bvh->geometry[0]->is_instanced()) {
+          i++;
+          continue;
+        }
+
+        bvh_multi->sub_bvhs[i] = BVH::create(params, bvh->geometry, bvh->objects, sub.device);
+      }
+
+      sub.device->build_bvh(bvh_multi->sub_bvhs[i], progress, refit);
+      i++;
+    }
+
+    /* Change geomtry BVH pointers back to the multi BVH */
+    for (size_t k = 0; k < bvh->geometry.size(); ++k) {
+      bvh->geometry[k]->bvh = geom_bvhs[k];
+    }
   }
 
-  virtual void *bvh_device() const
-  {
-    /* CPU devices will always be at the back, so simply choose the last one.
-       There should only ever be one CPU device anyway and we need the Embree device for it. */
-    return devices.back().device->bvh_device();
-  }
-
-  virtual void *osl_memory()
+  virtual void *osl_memory() override
   {
     if (devices.size() > 1) {
       return NULL;
@@ -252,7 +307,7 @@ class MultiDevice : public Device {
     return devices.front().device->osl_memory();
   }
 
-  bool is_resident(device_ptr key, Device *sub_device)
+  bool is_resident(device_ptr key, Device *sub_device) override
   {
     foreach (SubDevice &sub, devices) {
       if (sub.device == sub_device) {
@@ -299,7 +354,7 @@ class MultiDevice : public Device {
     return find_matching_mem_device(key, sub)->ptr_map[key];
   }
 
-  void mem_alloc(device_memory &mem)
+  void mem_alloc(device_memory &mem) override
   {
     device_ptr key = unique_key++;
 
@@ -335,7 +390,7 @@ class MultiDevice : public Device {
     stats.mem_alloc(mem.device_size);
   }
 
-  void mem_copy_to(device_memory &mem)
+  void mem_copy_to(device_memory &mem) override
   {
     device_ptr existing_key = mem.device_pointer;
     device_ptr key = (existing_key) ? existing_key : unique_key++;
@@ -378,7 +433,7 @@ class MultiDevice : public Device {
     stats.mem_alloc(mem.device_size - existing_size);
   }
 
-  void mem_copy_from(device_memory &mem, int y, int w, int h, int elem)
+  void mem_copy_from(device_memory &mem, int y, int w, int h, int elem) override
   {
     device_ptr key = mem.device_pointer;
     int i = 0, sub_h = h / devices.size();
@@ -399,7 +454,7 @@ class MultiDevice : public Device {
     mem.device_pointer = key;
   }
 
-  void mem_zero(device_memory &mem)
+  void mem_zero(device_memory &mem) override
   {
     device_ptr existing_key = mem.device_pointer;
     device_ptr key = (existing_key) ? existing_key : unique_key++;
@@ -454,7 +509,7 @@ class MultiDevice : public Device {
     stats.mem_alloc(mem.device_size - existing_size);
   }
 
-  void mem_free(device_memory &mem)
+  void mem_free(device_memory &mem) override
   {
     device_ptr key = mem.device_pointer;
     size_t existing_size = mem.device_size;
@@ -510,7 +565,7 @@ class MultiDevice : public Device {
     stats.mem_free(existing_size);
   }
 
-  void const_copy_to(const char *name, void *host, size_t size)
+  void const_copy_to(const char *name, void *host, size_t size) override
   {
     foreach (SubDevice &sub, devices)
       sub.device->const_copy_to(name, host, size);
@@ -527,7 +582,7 @@ class MultiDevice : public Device {
                    int dw,
                    int dh,
                    bool transparent,
-                   const DeviceDrawParams &draw_params)
+                   const DeviceDrawParams &draw_params) override
   {
     assert(rgba.type == MEM_PIXELS);
 
@@ -551,7 +606,7 @@ class MultiDevice : public Device {
     rgba.device_pointer = key;
   }
 
-  void map_tile(Device *sub_device, RenderTile &tile)
+  void map_tile(Device *sub_device, RenderTile &tile) override
   {
     if (!tile.buffer) {
       return;
@@ -572,7 +627,7 @@ class MultiDevice : public Device {
     }
   }
 
-  int device_number(Device *sub_device)
+  int device_number(Device *sub_device) override
   {
     int i = 0;
 
@@ -591,7 +646,7 @@ class MultiDevice : public Device {
     return -1;
   }
 
-  void map_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors)
+  void map_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors) override
   {
     for (int i = 0; i < RenderTileNeighbors::SIZE; i++) {
       RenderTile &tile = neighbors.tiles[i];
@@ -643,7 +698,7 @@ class MultiDevice : public Device {
     }
   }
 
-  void unmap_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors)
+  void unmap_neighbor_tiles(Device *sub_device, RenderTileNeighbors &neighbors) override
   {
     RenderTile &target_tile = neighbors.target;
     device_vector<float> &mem = target_tile.buffers->buffer;
@@ -677,7 +732,7 @@ class MultiDevice : public Device {
     }
   }
 
-  int get_split_task_count(DeviceTask &task)
+  int get_split_task_count(DeviceTask &task) override
   {
     int total_tasks = 0;
     list<DeviceTask> tasks;
@@ -693,7 +748,7 @@ class MultiDevice : public Device {
     return total_tasks;
   }
 
-  void task_add(DeviceTask &task)
+  void task_add(DeviceTask &task) override
   {
     list<SubDevice> task_devices = devices;
     if (!denoising_devices.empty()) {
@@ -743,7 +798,7 @@ class MultiDevice : public Device {
     }
   }
 
-  void task_wait()
+  void task_wait() override
   {
     foreach (SubDevice &sub, devices)
       sub.device->task_wait();
@@ -751,7 +806,7 @@ class MultiDevice : public Device {
       sub.device->task_wait();
   }
 
-  void task_cancel()
+  void task_cancel() override
   {
     foreach (SubDevice &sub, devices)
       sub.device->task_cancel();

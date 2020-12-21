@@ -53,7 +53,8 @@
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_prefetch.h"
+#include "SEQ_render.h"
 
 #include "image_cache.h"
 #include "prefetch.h"
@@ -118,7 +119,7 @@ static PrefetchJob *seq_prefetch_job_get(Scene *scene)
   return NULL;
 }
 
-bool BKE_sequencer_prefetch_job_is_running(Scene *scene)
+bool seq_prefetch_job_is_running(Scene *scene)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
 
@@ -159,14 +160,14 @@ static Sequence *sequencer_prefetch_get_original_sequence(Sequence *seq, ListBas
 }
 
 /* for cache context swapping */
-Sequence *BKE_sequencer_prefetch_get_original_sequence(Sequence *seq, Scene *scene)
+Sequence *seq_prefetch_get_original_sequence(Sequence *seq, Scene *scene)
 {
   Editing *ed = scene->ed;
   return sequencer_prefetch_get_original_sequence(seq, &ed->seqbase);
 }
 
 /* for cache context swapping */
-SeqRenderData *BKE_sequencer_prefetch_get_original_context(const SeqRenderData *context)
+SeqRenderData *seq_prefetch_get_original_context(const SeqRenderData *context)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
 
@@ -177,11 +178,11 @@ static bool seq_prefetch_is_cache_full(Scene *scene)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
 
-  if (!BKE_sequencer_cache_is_full(pfjob->scene)) {
+  if (!seq_cache_is_full()) {
     return false;
   }
 
-  return BKE_sequencer_cache_recycle_item(pfjob->scene) == false;
+  return seq_cache_recycle_item(pfjob->scene) == false;
 }
 
 static float seq_prefetch_cfra(PrefetchJob *pfjob)
@@ -193,7 +194,7 @@ static AnimationEvalContext seq_prefetch_anim_eval_context(PrefetchJob *pfjob)
   return BKE_animsys_eval_context_construct(pfjob->depsgraph, seq_prefetch_cfra(pfjob));
 }
 
-void BKE_sequencer_prefetch_get_time_range(Scene *scene, int *start, int *end)
+void seq_prefetch_get_time_range(Scene *scene, int *start, int *end)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
 
@@ -256,18 +257,18 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
   }
 }
 
-void BKE_sequencer_prefetch_stop_all(void)
+void SEQ_prefetch_stop_all(void)
 {
   /*TODO(Richard): Use wm_jobs for prefetch, or pass main. */
   for (Scene *scene = G.main->scenes.first; scene; scene = scene->id.next) {
-    BKE_sequencer_prefetch_stop(scene);
+    SEQ_prefetch_stop(scene);
   }
 }
 
 /* Use also to update scene and context changes
  * This function should almost always be called by cache invalidation, not directly.
  */
-void BKE_sequencer_prefetch_stop(Scene *scene)
+void SEQ_prefetch_stop(Scene *scene)
 {
   PrefetchJob *pfjob;
   pfjob = seq_prefetch_job_get(scene);
@@ -338,14 +339,14 @@ static void seq_prefetch_resume(Scene *scene)
   }
 }
 
-void BKE_sequencer_prefetch_free(Scene *scene)
+void seq_prefetch_free(Scene *scene)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
   if (!pfjob) {
     return;
   }
 
-  BKE_sequencer_prefetch_stop(scene);
+  SEQ_prefetch_stop(scene);
 
   BLI_threadpool_remove(&pfjob->threads, pfjob);
   BLI_threadpool_end(&pfjob->threads);
@@ -372,28 +373,28 @@ static bool seq_prefetch_do_skip_frame(Scene *scene)
     if (seq_arr[i]->type == SEQ_TYPE_SCENE && (seq_arr[i]->flag & SEQ_SCENE_STRIPS) == 0) {
       int cached_types = 0;
 
-      ibuf = BKE_sequencer_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_FINAL_OUT;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
       }
 
-      ibuf = BKE_sequencer_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_COMPOSITE;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
       }
 
-      ibuf = BKE_sequencer_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_PREPROCESSED, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_PREPROCESSED, false);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_PREPROCESSED;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
       }
 
-      ibuf = BKE_sequencer_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_RAW, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_RAW, false);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_RAW;
         IMB_freeImBuf(ibuf);
@@ -463,8 +464,7 @@ static void *seq_prefetch_frames(void *job)
     }
 
     ImBuf *ibuf = SEQ_render_give_ibuf(&pfjob->context_cpy, seq_prefetch_cfra(pfjob), 0);
-    BKE_sequencer_cache_free_temp_cache(
-        pfjob->scene, pfjob->context.task_id, seq_prefetch_cfra(pfjob));
+    seq_cache_free_temp_cache(pfjob->scene, pfjob->context.task_id, seq_prefetch_cfra(pfjob));
     IMB_freeImBuf(ibuf);
 
     /* Suspend thread if there is nothing to be prefetched. */
@@ -484,15 +484,14 @@ static void *seq_prefetch_frames(void *job)
     pfjob->num_frames_prefetched++;
   }
 
-  BKE_sequencer_cache_free_temp_cache(
-      pfjob->scene, pfjob->context.task_id, seq_prefetch_cfra(pfjob));
+  seq_cache_free_temp_cache(pfjob->scene, pfjob->context.task_id, seq_prefetch_cfra(pfjob));
   pfjob->running = false;
   pfjob->scene_eval->ed->prefetch_job = NULL;
 
   return NULL;
 }
 
-static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)
+static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cfra)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
 
@@ -529,7 +528,7 @@ static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)
 }
 
 /* Start or resume prefetching*/
-void BKE_sequencer_prefetch_start(const SeqRenderData *context, float timeline_frame, float cost)
+void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
 {
   Scene *scene = context->scene;
   Editing *ed = scene->ed;
@@ -538,27 +537,26 @@ void BKE_sequencer_prefetch_start(const SeqRenderData *context, float timeline_f
   if (!context->is_prefetch_render && !context->is_proxy_render) {
     bool playing = seq_prefetch_is_playing(context->bmain);
     bool scrubbing = seq_prefetch_is_scrubbing(context->bmain);
-    bool running = BKE_sequencer_prefetch_job_is_running(scene);
+    bool running = seq_prefetch_job_is_running(scene);
     seq_prefetch_resume(scene);
     /* conditions to start:
-     * prefetch enabled, prefetch not running, not scrubbing,
-     * not playing and rendering-expensive footage, cache storage enabled, has strips to render,
-     * not rendering, not doing modal transform - important, see D7820.
+     * prefetch enabled, prefetch not running, not scrubbing,  not playing,
+     * cache storage enabled, has strips to render, not rendering, not doing modal transform -
+     * important, see D7820.
      */
-    if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing &&
-        !(playing && cost > 0.9) && ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips &&
-        !G.is_rendering && !G.moving) {
+    if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing && !playing &&
+        ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips && !G.is_rendering && !G.moving) {
 
-      seq_prefetch_start(context, timeline_frame);
+      seq_prefetch_start_ex(context, timeline_frame);
     }
   }
 }
 
-bool BKE_sequencer_prefetch_need_redraw(Main *bmain, Scene *scene)
+bool SEQ_prefetch_need_redraw(Main *bmain, Scene *scene)
 {
   bool playing = seq_prefetch_is_playing(bmain);
   bool scrubbing = seq_prefetch_is_scrubbing(bmain);
-  bool running = BKE_sequencer_prefetch_job_is_running(scene);
+  bool running = seq_prefetch_job_is_running(scene);
   bool suspended = seq_prefetch_job_is_waiting(scene);
 
   /* force redraw, when prefetching and using cache view. */

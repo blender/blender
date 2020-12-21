@@ -347,8 +347,15 @@ void Shader::tag_update(Scene *scene)
   foreach (ShaderNode *node, graph->nodes)
     node->attributes(this, &attributes);
 
-  if (has_displacement && displacement_method == DISPLACE_BOTH) {
-    attributes.add(ATTR_STD_POSITION_UNDISPLACED);
+  if (has_displacement) {
+    if (displacement_method == DISPLACE_BOTH) {
+      attributes.add(ATTR_STD_POSITION_UNDISPLACED);
+    }
+    if (displacement_method_is_modified()) {
+      need_update_geometry = true;
+      scene->geometry_manager->need_update = true;
+      scene->object_manager->need_flags_update = true;
+    }
   }
 
   /* compare if the attributes changed, mesh manager will check

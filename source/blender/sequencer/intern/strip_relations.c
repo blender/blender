@@ -40,14 +40,18 @@
 
 #include "IMB_imbuf.h"
 
+#include "SEQ_iterator.h"
+#include "SEQ_prefetch.h"
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "effects.h"
 #include "image_cache.h"
 #include "utils.h"
 
 /* check whether sequence cur depends on seq */
-static bool BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
+static bool seq_relations_check_depend(Sequence *seq, Sequence *cur)
 {
   if (cur->seq1 == seq || cur->seq2 == seq || cur->seq3 == seq) {
     return true;
@@ -84,14 +88,14 @@ static void sequence_do_invalidate_dependent(Scene *scene, Sequence *seq, ListBa
       continue;
     }
 
-    if (BKE_sequence_check_depend(seq, cur)) {
+    if (seq_relations_check_depend(seq, cur)) {
       /* Effect must be invalidated completely if they depend on invalidated seq. */
       if ((cur->type & SEQ_TYPE_EFFECT) != 0) {
-        BKE_sequencer_cache_cleanup_sequence(scene, cur, seq, SEQ_CACHE_ALL_TYPES, false);
+        seq_cache_cleanup_sequence(scene, cur, seq, SEQ_CACHE_ALL_TYPES, false);
       }
       else {
         /* In case of alpha over for example only invalidate composite image */
-        BKE_sequencer_cache_cleanup_sequence(
+        seq_cache_cleanup_sequence(
             scene, cur, seq, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT, false);
       }
     }
@@ -110,33 +114,33 @@ static void sequence_invalidate_cache(Scene *scene,
   Editing *ed = scene->ed;
 
   if (invalidate_self) {
-    BKE_sequence_free_anim(seq);
-    BKE_sequencer_cache_cleanup_sequence(scene, seq, seq, invalidate_types, false);
+    SEQ_relations_sequence_free_anim(seq);
+    seq_cache_cleanup_sequence(scene, seq, seq, invalidate_types, false);
   }
 
   if (seq->effectdata && seq->type == SEQ_TYPE_SPEED) {
-    BKE_sequence_effect_speed_rebuild_map(scene, seq, true);
+    seq_effect_speed_rebuild_map(scene, seq, true);
   }
 
   sequence_do_invalidate_dependent(scene, seq, &ed->seqbase);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
-  BKE_sequencer_prefetch_stop(scene);
+  SEQ_prefetch_stop(scene);
 }
 
-void BKE_sequence_invalidate_cache_in_range(Scene *scene,
-                                            Sequence *seq,
-                                            Sequence *range_mask,
-                                            int invalidate_types)
+void SEQ_relations_invalidate_cache_in_range(Scene *scene,
+                                             Sequence *seq,
+                                             Sequence *range_mask,
+                                             int invalidate_types)
 {
-  BKE_sequencer_cache_cleanup_sequence(scene, seq, range_mask, invalidate_types, true);
+  seq_cache_cleanup_sequence(scene, seq, range_mask, invalidate_types, true);
 }
 
-void BKE_sequence_invalidate_cache_raw(Scene *scene, Sequence *seq)
+void SEQ_relations_invalidate_cache_raw(Scene *scene, Sequence *seq)
 {
   sequence_invalidate_cache(scene, seq, true, SEQ_CACHE_ALL_TYPES);
 }
 
-void BKE_sequence_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
+void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
 {
   sequence_invalidate_cache(scene,
                             seq,
@@ -145,7 +149,7 @@ void BKE_sequence_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
                                 SEQ_CACHE_STORE_FINAL_OUT);
 }
 
-void BKE_sequence_invalidate_cache_composite(Scene *scene, Sequence *seq)
+void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq)
 {
   if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
     return;
@@ -155,7 +159,7 @@ void BKE_sequence_invalidate_cache_composite(Scene *scene, Sequence *seq)
       scene, seq, true, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
 }
 
-void BKE_sequence_invalidate_dependent(Scene *scene, Sequence *seq)
+void SEQ_relations_invalidate_dependent(Scene *scene, Sequence *seq)
 {
   if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
     return;
@@ -169,7 +173,7 @@ static void invalidate_scene_strips(Scene *scene, Scene *scene_target, ListBase 
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
     if (seq->scene == scene_target) {
-      BKE_sequence_invalidate_cache_raw(scene, seq);
+      SEQ_relations_invalidate_cache_raw(scene, seq);
     }
 
     if (seq->seqbase.first != NULL) {
@@ -178,7 +182,7 @@ static void invalidate_scene_strips(Scene *scene, Scene *scene_target, ListBase 
   }
 }
 
-void BKE_sequence_invalidate_scene_strips(Main *bmain, Scene *scene_target)
+void SEQ_relations_invalidate_scene_strips(Main *bmain, Scene *scene_target)
 {
   for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
     if (scene->ed != NULL) {
@@ -191,7 +195,7 @@ static void invalidate_movieclip_strips(Scene *scene, MovieClip *clip_target, Li
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
     if (seq->clip == clip_target) {
-      BKE_sequence_invalidate_cache_raw(scene, seq);
+      SEQ_relations_invalidate_cache_raw(scene, seq);
     }
 
     if (seq->seqbase.first != NULL) {
@@ -200,7 +204,7 @@ static void invalidate_movieclip_strips(Scene *scene, MovieClip *clip_target, Li
   }
 }
 
-void BKE_sequence_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target)
+void SEQ_relations_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target)
 {
   for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
     if (scene->ed != NULL) {
@@ -209,7 +213,7 @@ void BKE_sequence_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_targe
   }
 }
 
-void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
+void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
 {
   if (scene->ed == NULL) {
     return;
@@ -217,8 +221,8 @@ void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
 
   Sequence *seq;
 
-  BKE_sequencer_cache_cleanup(scene);
-  BKE_sequencer_prefetch_stop(scene);
+  SEQ_cache_cleanup(scene);
+  SEQ_prefetch_stop(scene);
 
   for (seq = seqbase->first; seq; seq = seq->next) {
     if (for_render && CFRA >= seq->startdisp && CFRA <= seq->enddisp) {
@@ -227,14 +231,14 @@ void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
 
     if (seq->strip) {
       if (seq->type == SEQ_TYPE_MOVIE) {
-        BKE_sequence_free_anim(seq);
+        SEQ_relations_sequence_free_anim(seq);
       }
       if (seq->type == SEQ_TYPE_SPEED) {
-        BKE_sequence_effect_speed_rebuild_map(scene, seq, true);
+        seq_effect_speed_rebuild_map(scene, seq, true);
       }
     }
     if (seq->type == SEQ_TYPE_META) {
-      BKE_sequencer_free_imbuf(scene, &seq->seqbase, for_render);
+      SEQ_relations_free_imbuf(scene, &seq->seqbase, for_render);
     }
     if (seq->type == SEQ_TYPE_SCENE) {
       /* FIXME: recurse downwards,
@@ -284,27 +288,27 @@ static bool update_changed_seq_recurs(
   if (free_imbuf) {
     if (ibuf_change) {
       if (seq->type == SEQ_TYPE_MOVIE) {
-        BKE_sequence_free_anim(seq);
+        SEQ_relations_sequence_free_anim(seq);
       }
       else if (seq->type == SEQ_TYPE_SPEED) {
-        BKE_sequence_effect_speed_rebuild_map(scene, seq, true);
+        seq_effect_speed_rebuild_map(scene, seq, true);
       }
     }
 
     if (len_change) {
-      BKE_sequence_calc(scene, seq);
+      SEQ_time_update_sequence(scene, seq);
     }
   }
 
   return free_imbuf;
 }
 
-void BKE_sequencer_update_changed_seq_and_deps(Scene *scene,
+void SEQ_relations_update_changed_seq_and_deps(Scene *scene,
                                                Sequence *changed_seq,
                                                int len_change,
                                                int ibuf_change)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   Sequence *seq;
 
   if (ed == NULL) {
@@ -321,7 +325,7 @@ static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
     if (seq->enddisp < timeline_frame || seq->startdisp > timeline_frame) {
-      BKE_sequence_free_anim(seq);
+      SEQ_relations_sequence_free_anim(seq);
     }
     if (seq->type == SEQ_TYPE_META) {
       sequencer_all_free_anim_ibufs(&seq->seqbase, timeline_frame);
@@ -330,14 +334,14 @@ static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
 }
 
 /* Unused */
-void BKE_sequencer_all_free_anim_ibufs(Scene *scene, int timeline_frame)
+void SEQ_relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   if (ed == NULL) {
     return;
   }
   sequencer_all_free_anim_ibufs(&ed->seqbase, timeline_frame);
-  BKE_sequencer_cache_cleanup(scene);
+  SEQ_cache_cleanup(scene);
 }
 
 static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)
@@ -361,9 +365,9 @@ static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase
   return NULL;
 }
 
-bool BKE_sequencer_check_scene_recursion(Scene *scene, ReportList *reports)
+bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   if (ed == NULL) {
     return false;
   }
@@ -391,7 +395,7 @@ bool BKE_sequencer_check_scene_recursion(Scene *scene, ReportList *reports)
 }
 
 /* Check if "seq_main" (indirectly) uses strip "seq". */
-bool BKE_sequencer_render_loop_check(Sequence *seq_main, Sequence *seq)
+bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
 {
   if (seq_main == NULL || seq == NULL) {
     return false;
@@ -401,15 +405,15 @@ bool BKE_sequencer_render_loop_check(Sequence *seq_main, Sequence *seq)
     return true;
   }
 
-  if ((seq_main->seq1 && BKE_sequencer_render_loop_check(seq_main->seq1, seq)) ||
-      (seq_main->seq2 && BKE_sequencer_render_loop_check(seq_main->seq2, seq)) ||
-      (seq_main->seq3 && BKE_sequencer_render_loop_check(seq_main->seq3, seq))) {
+  if ((seq_main->seq1 && SEQ_relations_render_loop_check(seq_main->seq1, seq)) ||
+      (seq_main->seq2 && SEQ_relations_render_loop_check(seq_main->seq2, seq)) ||
+      (seq_main->seq3 && SEQ_relations_render_loop_check(seq_main->seq3, seq))) {
     return true;
   }
 
   SequenceModifierData *smd;
   for (smd = seq_main->modifiers.first; smd; smd = smd->next) {
-    if (smd->mask_sequence && BKE_sequencer_render_loop_check(smd->mask_sequence, seq)) {
+    if (smd->mask_sequence && SEQ_relations_render_loop_check(smd->mask_sequence, seq)) {
       return true;
     }
   }
@@ -418,7 +422,7 @@ bool BKE_sequencer_render_loop_check(Sequence *seq_main, Sequence *seq)
 }
 
 /* Function to free imbuf and anim data on changes */
-void BKE_sequence_free_anim(Sequence *seq)
+void SEQ_relations_sequence_free_anim(Sequence *seq)
 {
   while (seq->anims.last) {
     StripAnim *sanim = seq->anims.last;
@@ -433,12 +437,12 @@ void BKE_sequence_free_anim(Sequence *seq)
   BLI_listbase_clear(&seq->anims);
 }
 
-void BKE_sequence_session_uuid_generate(struct Sequence *sequence)
+void SEQ_relations_session_uuid_generate(struct Sequence *sequence)
 {
   sequence->runtime.session_uuid = BLI_session_uuid_generate();
 }
 
-void BKE_sequencer_check_uuids_unique_and_report(const Scene *scene)
+void SEQ_relations_check_uuids_unique_and_report(const Scene *scene)
 {
   if (scene->ed == NULL) {
     return;

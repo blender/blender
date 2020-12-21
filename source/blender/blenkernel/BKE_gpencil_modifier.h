@@ -27,6 +27,9 @@ extern "C" {
 #endif
 
 struct ARegionType;
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendWriter;
 struct Depsgraph;
 struct GpencilModifierData;
 struct ID;
@@ -35,9 +38,6 @@ struct Main;
 struct ModifierUpdateDepsgraphContext;
 struct Object;
 struct Scene;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
 /* NOTE: bakeModifier() called from UI:
  * needs to create new data-blocks, hence the need for this. */
 struct bGPDframe;
@@ -278,8 +278,8 @@ void BKE_gpencil_modifiers_foreach_tex_link(struct Object *ob,
                                             GreasePencilTexWalkFunc walk,
                                             void *userData);
 
-bool BKE_gpencil_modifier_is_local_in_liboverride(const struct Object *ob,
-                                                  const struct GpencilModifierData *gmd);
+bool BKE_gpencil_modifier_is_nonlocal_in_liboverride(const struct Object *ob,
+                                                     const struct GpencilModifierData *gmd);
 
 typedef struct GpencilVirtualModifierData {
   ArmatureGpencilModifierData amd;

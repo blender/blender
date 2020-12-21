@@ -51,7 +51,6 @@ extern "C" {
 
 struct RenderResult *render_result_new(struct Render *re,
                                        struct rcti *partrct,
-                                       int crop,
                                        int savebuffers,
                                        const char *layername,
                                        const char *viewname);

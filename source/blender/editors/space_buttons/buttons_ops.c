@@ -338,7 +338,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
         is_relative = BLI_path_is_rel(str);
       }
 
-      if (UNLIKELY(ptr.data == &U)) {
+      if (UNLIKELY(ptr.data == &U || is_userdef)) {
         is_relative = false;
       }
 

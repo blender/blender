@@ -45,7 +45,7 @@
 #include <Stream.h>
 
 /* A function that flips a DXTC block. */
-typedef void (*FlipBlockFunction)(uint8_t *block);
+using FlipBlockFunction = void (*)(uint8_t *block);
 
 /* Flips a full DXT1 block in the y direction. */
 static void FlipDXT1BlockFull(uint8_t *block)

@@ -260,25 +260,19 @@ PyDoc_STRVAR(bpy_escape_identifier_doc,
              "   :rtype: string\n");
 static PyObject *bpy_escape_identifier(PyObject *UNUSED(self), PyObject *value)
 {
-  const char *value_str;
   Py_ssize_t value_str_len;
-
-  char *value_escape_str;
-  Py_ssize_t value_escape_str_len;
-  PyObject *value_escape;
-  size_t size;
-
-  value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
+  const char *value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
 
   if (value_str == NULL) {
     PyErr_SetString(PyExc_TypeError, "expected a string");
     return NULL;
   }
 
-  size = (value_str_len * 2) + 1;
-  value_escape_str = PyMem_MALLOC(size);
-  value_escape_str_len = BLI_strescape(value_escape_str, value_str, size);
+  const size_t size = (value_str_len * 2) + 1;
+  char *value_escape_str = PyMem_MALLOC(size);
+  const Py_ssize_t value_escape_str_len = BLI_str_escape(value_escape_str, value_str, size);
 
+  PyObject *value_escape;
   if (value_escape_str_len == value_str_len) {
     Py_INCREF(value);
     value_escape = value;
@@ -290,6 +284,44 @@ static PyObject *bpy_escape_identifier(PyObject *UNUSED(self), PyObject *value)
   PyMem_FREE(value_escape_str);
 
   return value_escape;
+}
+
+PyDoc_STRVAR(bpy_unescape_identifier_doc,
+             ".. function:: unescape_identifier(string)\n"
+             "\n"
+             "   Simple string un-escape function used for animation paths.\n"
+             "   This performs the reverse of `escape_identifier`.\n"
+             "\n"
+             "   :arg string: text\n"
+             "   :type string: string\n"
+             "   :return: The un-escaped string.\n"
+             "   :rtype: string\n");
+static PyObject *bpy_unescape_identifier(PyObject *UNUSED(self), PyObject *value)
+{
+  Py_ssize_t value_str_len;
+  const char *value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
+
+  if (value_str == NULL) {
+    PyErr_SetString(PyExc_TypeError, "expected a string");
+    return NULL;
+  }
+
+  const size_t size = value_str_len + 1;
+  char *value_unescape_str = PyMem_MALLOC(size);
+  const Py_ssize_t value_unescape_str_len = BLI_str_unescape(value_unescape_str, value_str, size);
+
+  PyObject *value_unescape;
+  if (value_unescape_str_len == value_str_len) {
+    Py_INCREF(value);
+    value_unescape = value;
+  }
+  else {
+    value_unescape = PyUnicode_FromStringAndSize(value_unescape_str, value_unescape_str_len);
+  }
+
+  PyMem_FREE(value_unescape_str);
+
+  return value_unescape;
 }
 
 static PyMethodDef meth_bpy_script_paths = {
@@ -327,6 +359,12 @@ static PyMethodDef meth_bpy_escape_identifier = {
     (PyCFunction)bpy_escape_identifier,
     METH_O,
     bpy_escape_identifier_doc,
+};
+static PyMethodDef meth_bpy_unescape_identifier = {
+    "unescape_identifier",
+    (PyCFunction)bpy_unescape_identifier,
+    METH_O,
+    bpy_unescape_identifier_doc,
 };
 
 static PyObject *bpy_import_test(const char *modname)
@@ -429,6 +467,9 @@ void BPy_init_modules(struct bContext *C)
   PyModule_AddObject(mod,
                      meth_bpy_escape_identifier.ml_name,
                      (PyObject *)PyCFunction_New(&meth_bpy_escape_identifier, NULL));
+  PyModule_AddObject(mod,
+                     meth_bpy_unescape_identifier.ml_name,
+                     (PyObject *)PyCFunction_New(&meth_bpy_unescape_identifier, NULL));
 
   /* register funcs (bpy_rna.c) */
   PyModule_AddObject(mod,

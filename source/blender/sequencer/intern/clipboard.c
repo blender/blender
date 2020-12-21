@@ -37,7 +37,7 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_clipboard.h"
 
 #include "sequencer.h"
 
@@ -56,13 +56,13 @@
 ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
 
-void BKE_sequencer_base_clipboard_pointers_free(struct ListBase *seqbase);
+void seq_clipboard_pointers_free(struct ListBase *seqbase);
 
-void BKE_sequencer_free_clipboard(void)
+void SEQ_clipboard_free(void)
 {
   Sequence *seq, *nseq;
 
-  BKE_sequencer_base_clipboard_pointers_free(&seqbase_clipboard);
+  seq_clipboard_pointers_free(&seqbase_clipboard);
 
   for (seq = seqbase_clipboard.first; seq; seq = nseq) {
     nseq = seq->next;
@@ -153,27 +153,27 @@ static void sequence_clipboard_pointers(Main *bmain,
 }
 
 /* recursive versions of functions above */
-void BKE_sequencer_base_clipboard_pointers_free(ListBase *seqbase)
+void seq_clipboard_pointers_free(ListBase *seqbase)
 {
   Sequence *seq;
   for (seq = seqbase->first; seq; seq = seq->next) {
     sequence_clipboard_pointers(NULL, seq, seqclipboard_ptr_free);
-    BKE_sequencer_base_clipboard_pointers_free(&seq->seqbase);
+    seq_clipboard_pointers_free(&seq->seqbase);
   }
 }
-void BKE_sequencer_base_clipboard_pointers_store(Main *bmain, ListBase *seqbase)
+void SEQ_clipboard_pointers_store(Main *bmain, ListBase *seqbase)
 {
   Sequence *seq;
   for (seq = seqbase->first; seq; seq = seq->next) {
     sequence_clipboard_pointers(bmain, seq, seqclipboard_ptr_store);
-    BKE_sequencer_base_clipboard_pointers_store(bmain, &seq->seqbase);
+    SEQ_clipboard_pointers_store(bmain, &seq->seqbase);
   }
 }
-void BKE_sequencer_base_clipboard_pointers_restore(ListBase *seqbase, Main *bmain)
+void SEQ_clipboard_pointers_restore(ListBase *seqbase, Main *bmain)
 {
   Sequence *seq;
   for (seq = seqbase->first; seq; seq = seq->next) {
     sequence_clipboard_pointers(bmain, seq, seqclipboard_ptr_restore);
-    BKE_sequencer_base_clipboard_pointers_restore(&seq->seqbase, bmain);
+    SEQ_clipboard_pointers_restore(&seq->seqbase, bmain);
   }
 }

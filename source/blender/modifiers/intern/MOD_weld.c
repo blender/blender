@@ -1567,6 +1567,12 @@ static bool bvhtree_weld_overlap_cb(void *userdata, int index_a, int index_b, in
 }
 #endif
 
+/** Use for #MOD_WELD_MODE_CONNECTED calculation. */
+struct WeldVertexCluster {
+  float co[3];
+  uint merged_verts;
+};
+
 static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result = mesh;
@@ -1606,6 +1612,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
    * This indicates which vert it is or is going to be merged. */
   uint *vert_dest_map = MEM_malloc_arrayN(totvert, sizeof(*vert_dest_map), __func__);
   uint vert_kill_len = 0;
+  if (wmd->mode == MOD_WELD_MODE_ALL)
 #ifdef USE_BVHTREEKDOP
   {
     /* Get overlap map. */
@@ -1701,6 +1708,80 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
     BLI_kdtree_3d_free(tree);
   }
 #endif
+  else {
+    BLI_assert(wmd->mode == MOD_WELD_MODE_CONNECTED);
+
+    MEdge *medge, *me;
+
+    medge = mesh->medge;
+    totvert = mesh->totvert;
+    totedge = mesh->totedge;
+
+    struct WeldVertexCluster *vert_clusters = MEM_malloc_arrayN(
+        totvert, sizeof(*vert_clusters), __func__);
+    struct WeldVertexCluster *vc = &vert_clusters[0];
+    for (uint i = 0; i < totvert; i++, vc++) {
+      copy_v3_v3(vc->co, mvert[i].co);
+      vc->merged_verts = 0;
+    }
+    const float merge_dist_sq = square_f(wmd->merge_dist);
+
+    range_vn_u(vert_dest_map, totvert, 0);
+
+    /* Collapse Edges that are shorter than the threshold. */
+    me = &medge[0];
+    for (uint i = 0; i < totedge; i++, me++) {
+      uint v1 = me->v1;
+      uint v2 = me->v2;
+
+      while (v1 != vert_dest_map[v1]) {
+        v1 = vert_dest_map[v1];
+      }
+      while (v2 != vert_dest_map[v2]) {
+        v2 = vert_dest_map[v2];
+      }
+      if (v1 == v2) {
+        continue;
+      }
+      if (v_mask && (!BLI_BITMAP_TEST(v_mask, v1) || !BLI_BITMAP_TEST(v_mask, v2))) {
+        continue;
+      }
+      if (v1 > v2) {
+        SWAP(uint, v1, v2);
+      }
+      struct WeldVertexCluster *v1_cluster = &vert_clusters[v1];
+      struct WeldVertexCluster *v2_cluster = &vert_clusters[v2];
+
+      float edgedir[3];
+      sub_v3_v3v3(edgedir, v2_cluster->co, v1_cluster->co);
+      const float dist_sq = len_squared_v3(edgedir);
+      if (dist_sq <= merge_dist_sq) {
+        float influence = (v2_cluster->merged_verts + 1) /
+                          (float)(v1_cluster->merged_verts + v2_cluster->merged_verts + 2);
+        madd_v3_v3fl(v1_cluster->co, edgedir, influence);
+
+        v1_cluster->merged_verts += v2_cluster->merged_verts + 1;
+        vert_dest_map[v2] = v1;
+        vert_kill_len++;
+      }
+    }
+
+    MEM_freeN(vert_clusters);
+
+    for (uint i = 0; i < totvert; i++) {
+      if (i == vert_dest_map[i]) {
+        vert_dest_map[i] = OUT_OF_CONTEXT;
+      }
+      else {
+        uint v = i;
+        while ((v != vert_dest_map[v]) && (vert_dest_map[v] != OUT_OF_CONTEXT)) {
+          v = vert_dest_map[v];
+        }
+        vert_dest_map[v] = v;
+        vert_dest_map[i] = v;
+      }
+    }
+  }
 
   if (v_mask) {
     MEM_freeN(v_mask);
@@ -1940,6 +2021,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
+  uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "merge_threshold", 0, IFACE_("Distance"), ICON_NONE);
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
@@ -1970,7 +2052,7 @@ ModifierTypeInfo modifierType_Weld = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ NULL,
-    /* modifyPointCloud */ NULL,
+    /* modifyGeometrySet */ NULL,
     /* modifyVolume */ NULL,
 
     /* initData */ initData,

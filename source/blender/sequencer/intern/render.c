@@ -64,7 +64,12 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#include "SEQ_effects.h"
+#include "SEQ_modifier.h"
+#include "SEQ_proxy.h"
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "effects.h"
 #include "image_cache.h"
@@ -337,16 +342,17 @@ static int evaluate_seq_frame_gen(Sequence **seq_arr,
   return totseq;
 }
 
-int SEQ_render_evaluate_frame(Scene *scene, int timeline_frame)
+/**
+ * Count number of strips in timeline at timeline_frame
+ *
+ * \param seqbase: ListBase in which strips are located
+ * \param timeline_frame: frame on timeline from where gaps are searched for
+ * \return number of strips
+ */
+int SEQ_render_evaluate_frame(ListBase *seqbase, int timeline_frame)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
   Sequence *seq_arr[MAXSEQ + 1];
-
-  if (ed == NULL) {
-    return 0;
-  }
-
-  return evaluate_seq_frame_gen(seq_arr, ed->seqbasep, timeline_frame, 0);
+  return evaluate_seq_frame_gen(seq_arr, seqbase, timeline_frame, 0);
 }
 
 static bool video_seq_is_rendered(Sequence *seq)
@@ -397,24 +403,6 @@ int seq_get_shown_sequences(ListBase *seqbasep,
   return cnt;
 }
 
-/* Estimate time spent by the program rendering the strip */
-static clock_t seq_estimate_render_cost_begin(void)
-{
-  return clock();
-}
-
-static float seq_estimate_render_cost_end(Scene *scene, clock_t begin)
-{
-  clock_t end = clock();
-  float time_spent = (float)(end - begin);
-  float time_max = (1.0f / scene->r.frs_sec) * CLOCKS_PER_SEC;
-
-  if (time_max != 0) {
-    return time_spent / time_max;
-  }
-
-  return 1;
-}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -460,9 +448,9 @@ static bool sequencer_use_crop(const Sequence *seq)
   return false;
 }
 
-static bool BKE_sequencer_input_have_to_preprocess(const SeqRenderData *context,
-                                                   Sequence *seq,
-                                                   float UNUSED(timeline_frame))
+static bool seq_input_have_to_preprocess(const SeqRenderData *context,
+                                         Sequence *seq,
+                                         float UNUSED(timeline_frame))
 {
   float mul;
 
@@ -527,7 +515,6 @@ static void sequencer_image_transform_init(void *handle_v,
   handle->ibuf_source = init_data->ibuf_source;
   handle->ibuf_out = init_data->ibuf_out;
   handle->transform = init_data->transform;
-  handle->scale_to_fit = init_data->scale_to_fit;
   handle->image_scale_factor = init_data->image_scale_factor;
   handle->for_render = init_data->for_render;
 
@@ -539,8 +526,8 @@ static void *sequencer_image_transform_do_thread(void *data_v)
 {
   const ImageTransformThreadData *data = (ImageTransformThreadData *)data_v;
   const StripTransform *transform = data->transform;
-  const float scale_x = transform->scale_x * data->scale_to_fit;
-  const float scale_y = transform->scale_y * data->scale_to_fit;
+  const float scale_x = transform->scale_x * data->image_scale_factor;
+  const float scale_y = transform->scale_y * data->image_scale_factor;
   const float scale_to_fit_offs_x = (data->ibuf_out->x - data->ibuf_source->x) / 2;
   const float scale_to_fit_offs_y = (data->ibuf_out->y - data->ibuf_source->y) / 2;
   const float translate_x = transform->xofs * data->image_scale_factor + scale_to_fit_offs_x;
@@ -625,10 +612,6 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     IMB_filtery(preprocessed_ibuf);
   }
 
-  /* Calculate scale factor, so image fits in preview area with original aspect ratio. */
-  const float scale_to_fit_factor = MIN2((float)context->rectx / (float)ibuf->x,
-                                         (float)context->recty / (float)ibuf->y);
-
   /* Get scale factor if preview resolution doesn't match project resolution. */
   float preview_scale_factor;
   if (context->preview_render_size == SEQ_RENDER_SIZE_SCENE) {
@@ -647,10 +630,10 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     const int height = ibuf->y;
     const StripCrop *c = seq->strip->crop;
 
-    const int left = c->left / scale_to_fit_factor * preview_scale_factor;
-    const int right = c->right / scale_to_fit_factor * preview_scale_factor;
-    const int top = c->top / scale_to_fit_factor * preview_scale_factor;
-    const int bottom = c->bottom / scale_to_fit_factor * preview_scale_factor;
+    const int left = c->left;
+    const int right = c->right;
+    const int top = c->top;
+    const int bottom = c->bottom;
     const float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
     /* Left. */
@@ -672,7 +655,6 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     init_data.ibuf_source = ibuf;
     init_data.ibuf_out = preprocessed_ibuf;
     init_data.transform = seq->strip->transform;
-    init_data.scale_to_fit = scale_to_fit_factor;
     init_data.image_scale_factor = preview_scale_factor;
     init_data.for_render = context->for_render;
     IMB_processor_apply_threaded(context->recty,
@@ -722,8 +704,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
   }
 
   if (seq->modifiers.first) {
-    ImBuf *ibuf_new = BKE_sequence_modifier_apply_stack(
-        context, seq, preprocessed_ibuf, timeline_frame);
+    ImBuf *ibuf_new = SEQ_modifier_apply_stack(context, seq, preprocessed_ibuf, timeline_frame);
 
     if (ibuf_new != preprocessed_ibuf) {
       IMB_metadata_copy(ibuf_new, preprocessed_ibuf);
@@ -739,7 +720,6 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
                                          Sequence *seq,
                                          ImBuf *ibuf,
                                          float timeline_frame,
-                                         clock_t begin,
                                          bool use_preprocess,
                                          const bool is_proxy_image)
 {
@@ -749,22 +729,15 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
   }
 
   if (use_preprocess) {
-    float cost = seq_estimate_render_cost_end(context->scene, begin);
-
     /* Proxies are not stored in cache. */
     if (!is_proxy_image) {
-      BKE_sequencer_cache_put(
-          context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf, cost, false);
+      seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf, false);
     }
 
-    /* Reset timer so we can get partial render time. */
-    begin = seq_estimate_render_cost_begin();
     ibuf = input_preprocess(context, seq, timeline_frame, ibuf);
   }
 
-  float cost = seq_estimate_render_cost_end(context->scene, begin);
-  BKE_sequencer_cache_put(
-      context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, ibuf, cost, false);
+  seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, ibuf, false);
   return ibuf;
 }
 
@@ -873,7 +846,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
   float fac, facf;
   int early_out;
   int i;
-  struct SeqEffectHandle sh = BKE_sequence_get_effect(seq);
+  struct SeqEffectHandle sh = SEQ_effect_handle_get(seq);
   FCurve *fcu = NULL;
   ImBuf *ibuf[3];
   Sequence *input[3];
@@ -915,8 +888,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
       for (i = 0; i < 3; i++) {
         /* Speed effect requires time remapping of `timeline_frame` for input(s). */
         if (input[0] && seq->type == SEQ_TYPE_SPEED) {
-          float target_frame = BKE_sequencer_speed_effect_target_frame_get(
-              context, seq, timeline_frame, i);
+          float target_frame = seq_speed_effect_target_frame_get(context, seq, timeline_frame, i);
           ibuf[i] = seq_render_strip(context, state, input[0], target_frame);
         }
         else { /* Other effects. */
@@ -926,7 +898,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
         }
       }
 
-      if (ibuf[0] && (ibuf[1] || BKE_sequence_effect_get_num_inputs(seq->type) == 1)) {
+      if (ibuf[0] && (ibuf[1] || SEQ_effect_get_num_inputs(seq->type) == 1)) {
         if (sh.multithreaded) {
           out = seq_render_effect_execute_threaded(
               &sh, context, seq, timeline_frame, fac, facf, ibuf[0], ibuf[1], ibuf[2]);
@@ -1077,7 +1049,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
 
       if (view_id != context->view_id) {
         ibufs_arr[view_id] = seq_render_preprocess_ibuf(
-            &localcontext, seq, ibufs_arr[view_id], timeline_frame, clock(), true, false);
+            &localcontext, seq, ibufs_arr[view_id], timeline_frame, true, false);
       }
     }
 
@@ -1227,7 +1199,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
 
       if (view_id != context->view_id) {
         ibuf_arr[view_id] = seq_render_preprocess_ibuf(
-            &localcontext, seq, ibuf_arr[view_id], timeline_frame, clock(), true, false);
+            &localcontext, seq, ibuf_arr[view_id], timeline_frame, true, false);
       }
     }
 
@@ -1633,8 +1605,8 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
       }
 
       if (view_id != context->view_id) {
-        BKE_sequencer_cache_put(
-            &localcontext, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibufs_arr[view_id], 0, false);
+        seq_cache_put(
+            &localcontext, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibufs_arr[view_id], false);
       }
 
       RE_ReleaseResultImage(re);
@@ -1682,7 +1654,7 @@ static ImBuf *do_render_strip_seqbase(const SeqRenderData *context,
   ListBase *seqbase = NULL;
   int offset;
 
-  seqbase = BKE_sequence_seqbase_get(seq, &offset);
+  seqbase = SEQ_get_seqbase_from_sequence(seq, &offset);
 
   if (seqbase && !BLI_listbase_is_empty(seqbase)) {
 
@@ -1809,17 +1781,14 @@ ImBuf *seq_render_strip(const SeqRenderData *context,
   bool use_preprocess = false;
   bool is_proxy_image = false;
 
-  clock_t begin = seq_estimate_render_cost_begin();
-
-  ibuf = BKE_sequencer_cache_get(
-      context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, false);
+  ibuf = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, false);
   if (ibuf != NULL) {
     return ibuf;
   }
 
   /* Proxies are not stored in cache. */
   if (!SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(context->preview_render_size))) {
-    ibuf = BKE_sequencer_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, false);
+    ibuf = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, false);
   }
 
   if (ibuf == NULL) {
@@ -1827,9 +1796,9 @@ ImBuf *seq_render_strip(const SeqRenderData *context,
   }
 
   if (ibuf) {
-    use_preprocess = BKE_sequencer_input_have_to_preprocess(context, seq, timeline_frame);
+    use_preprocess = seq_input_have_to_preprocess(context, seq, timeline_frame);
     ibuf = seq_render_preprocess_ibuf(
-        context, seq, ibuf, timeline_frame, begin, use_preprocess, is_proxy_image);
+        context, seq, ibuf, timeline_frame, use_preprocess, is_proxy_image);
   }
 
   if (ibuf == NULL) {
@@ -1856,7 +1825,7 @@ static bool seq_must_swap_input_in_blend_mode(Sequence *seq)
 
 static int seq_get_early_out_for_blend_mode(Sequence *seq)
 {
-  struct SeqEffectHandle sh = BKE_sequence_get_blend(seq);
+  struct SeqEffectHandle sh = seq_effect_get_sequence_blend(seq);
   float facf = seq->blend_opacity / 100.0f;
   int early_out = sh.early_out(seq, facf, facf);
 
@@ -1879,7 +1848,7 @@ static ImBuf *seq_render_strip_stack_apply_effect(
     const SeqRenderData *context, Sequence *seq, float timeline_frame, ImBuf *ibuf1, ImBuf *ibuf2)
 {
   ImBuf *out;
-  struct SeqEffectHandle sh = BKE_sequence_get_blend(seq);
+  struct SeqEffectHandle sh = seq_effect_get_sequence_blend(seq);
   float facf = seq->blend_opacity / 100.0f;
   int swap_input = seq_must_swap_input_in_blend_mode(seq);
 
@@ -1915,7 +1884,6 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
   int count;
   int i;
   ImBuf *out = NULL;
-  clock_t begin;
 
   count = seq_get_shown_sequences(seqbasep, timeline_frame, chanshown, (Sequence **)&seq_arr);
 
@@ -1927,7 +1895,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
     int early_out;
     Sequence *seq = seq_arr[i];
 
-    out = BKE_sequencer_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_COMPOSITE, false);
+    out = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_COMPOSITE, false);
 
     if (out) {
       break;
@@ -1951,16 +1919,13 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
         break;
       case EARLY_DO_EFFECT:
         if (i == 0) {
-          begin = seq_estimate_render_cost_begin();
-
           ImBuf *ibuf1 = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
           ImBuf *ibuf2 = seq_render_strip(context, state, seq, timeline_frame);
 
           out = seq_render_strip_stack_apply_effect(context, seq, timeline_frame, ibuf1, ibuf2);
 
-          float cost = seq_estimate_render_cost_end(context->scene, begin);
-          BKE_sequencer_cache_put(
-              context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, cost, false);
+          seq_cache_put(
+              context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, false);
 
           IMB_freeImBuf(ibuf1);
           IMB_freeImBuf(ibuf2);
@@ -1974,7 +1939,6 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
 
   i++;
   for (; i < count; i++) {
-    begin = seq_estimate_render_cost_begin();
     Sequence *seq = seq_arr[i];
 
     if (seq_get_early_out_for_blend_mode(seq) == EARLY_DO_EFFECT) {
@@ -1987,9 +1951,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
       IMB_freeImBuf(ibuf2);
     }
 
-    float cost = seq_estimate_render_cost_end(context->scene, begin);
-    BKE_sequencer_cache_put(
-        context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, cost, false);
+    seq_cache_put(context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, false);
   }
 
   return out;
@@ -2003,7 +1965,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
 ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, int chanshown)
 {
   Scene *scene = context->scene;
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   ListBase *seqbasep;
 
   if (ed == NULL) {
@@ -2028,42 +1990,28 @@ ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, 
   count = seq_get_shown_sequences(seqbasep, timeline_frame, chanshown, seq_arr);
 
   if (count) {
-    out = BKE_sequencer_cache_get(
+    out = seq_cache_get(
         context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, false);
   }
 
-  BKE_sequencer_cache_free_temp_cache(context->scene, context->task_id, timeline_frame);
-
-  clock_t begin = seq_estimate_render_cost_begin();
-  float cost = 0;
+  seq_cache_free_temp_cache(context->scene, context->task_id, timeline_frame);
 
   if (count && !out) {
     BLI_mutex_lock(&seq_render_mutex);
     out = seq_render_strip_stack(context, &state, seqbasep, timeline_frame, chanshown);
-    cost = seq_estimate_render_cost_end(context->scene, begin);
 
     if (context->is_prefetch_render) {
-      BKE_sequencer_cache_put(context,
-                              seq_arr[count - 1],
-                              timeline_frame,
-                              SEQ_CACHE_STORE_FINAL_OUT,
-                              out,
-                              cost,
-                              false);
+      seq_cache_put(
+          context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out, false);
     }
     else {
-      BKE_sequencer_cache_put_if_possible(context,
-                                          seq_arr[count - 1],
-                                          timeline_frame,
-                                          SEQ_CACHE_STORE_FINAL_OUT,
-                                          out,
-                                          cost,
-                                          false);
+      seq_cache_put_if_possible(
+          context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out, false);
     }
     BLI_mutex_unlock(&seq_render_mutex);
   }
 
-  BKE_sequencer_prefetch_start(context, timeline_frame, cost);
+  seq_prefetch_start(context, timeline_frame);
 
   return out;
 }

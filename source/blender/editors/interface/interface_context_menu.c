@@ -38,6 +38,7 @@
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
 
+#include "ED_asset.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
 
@@ -503,16 +504,22 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 
   uiPopupMenu *pup;
   uiLayout *layout;
+  bContextStore *previous_ctx = CTX_store_get(C);
   {
     uiStringInfo label = {BUT_GET_LABEL, NULL};
 
     /* highly unlikely getting the label ever fails */
-    UI_but_string_info_get(C, but, &label, NULL);
+    UI_but_string_info_get(C, but, NULL, &label, NULL);
 
     pup = UI_popup_menu_begin(C, label.strinfo ? label.strinfo : "", ICON_NONE);
     layout = UI_popup_menu_layout(pup);
     if (label.strinfo) {
       MEM_freeN(label.strinfo);
+    }
+
+    if (but->context) {
+      uiLayoutContextCopy(layout, but->context);
+      CTX_store_set(C, uiLayoutGetContextStore(layout));
     }
     uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
   }
@@ -946,6 +953,22 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     }
   }
 
+  /* If the button reprents an id, it can set the "id" context pointer. */
+  if (ED_asset_can_make_single_from_context(C)) {
+    ID *id = CTX_data_pointer_get_type(C, "id", &RNA_ID).data;
+
+    /* Gray out items depending on if data-block is an asset. Preferably this could be done via
+     * operator poll, but that doesn't work since the operator also works with "selected_ids",
+     * which isn't cheap to check. */
+    uiLayout *sub = uiLayoutColumn(layout, true);
+    uiLayoutSetEnabled(sub, !id->asset_data);
+    uiItemO(sub, NULL, ICON_NONE, "ASSET_OT_mark");
+    sub = uiLayoutColumn(layout, true);
+    uiLayoutSetEnabled(sub, id->asset_data);
+    uiItemO(sub, NULL, ICON_NONE, "ASSET_OT_clear");
+    uiItemS(layout);
+  }
+
   /* Pointer properties and string properties with
    * prop_search support jumping to target object/bone. */
   if (but->rnapoin.data && but->rnaprop) {
@@ -1208,6 +1231,10 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
   MenuType *mt = WM_menutype_find("WM_MT_button_context", true);
   if (mt) {
     UI_menutype_draw(C, mt, uiLayoutColumn(layout, false));
+  }
+
+  if (but->context) {
+    CTX_store_set(C, previous_ctx);
   }
 
   return UI_popup_menu_end_or_cancel(C, pup);

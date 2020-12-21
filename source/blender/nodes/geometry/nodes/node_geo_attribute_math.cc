@@ -30,9 +30,9 @@
 
 static bNodeSocketTemplate geo_node_attribute_math_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Attribute A")},
+    {SOCK_STRING, N_("A")},
     {SOCK_FLOAT, N_("A"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_STRING, N_("Attribute B")},
+    {SOCK_STRING, N_("B")},
     {SOCK_FLOAT, N_("B"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
     {SOCK_STRING, N_("Result")},
     {-1, ""},
@@ -45,26 +45,26 @@ static bNodeSocketTemplate geo_node_attribute_math_out[] = {
 
 static void geo_node_attribute_math_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  node->custom1 = NODE_MATH_ADD;
-  node->custom2 = GEO_NODE_USE_ATTRIBUTE_A | GEO_NODE_USE_ATTRIBUTE_B;
-}
+  NodeAttributeMath *data = (NodeAttributeMath *)MEM_callocN(sizeof(NodeAttributeMath),
+                                                             "NodeAttributeMath");
 
-static void geo_node_attribute_math_update(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  bNodeSocket *sock_attribute_a = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
-  bNodeSocket *sock_float_a = sock_attribute_a->next;
-  bNodeSocket *sock_attribute_b = sock_float_a->next;
-  bNodeSocket *sock_float_b = sock_attribute_b->next;
-
-  GeometryNodeUseAttributeFlag flag = static_cast<GeometryNodeUseAttributeFlag>(node->custom2);
-
-  nodeSetSocketAvailability(sock_attribute_a, flag & GEO_NODE_USE_ATTRIBUTE_A);
-  nodeSetSocketAvailability(sock_attribute_b, flag & GEO_NODE_USE_ATTRIBUTE_B);
-  nodeSetSocketAvailability(sock_float_a, !(flag & GEO_NODE_USE_ATTRIBUTE_A));
-  nodeSetSocketAvailability(sock_float_b, !(flag & GEO_NODE_USE_ATTRIBUTE_B));
+  data->operation = NODE_MATH_ADD;
+  data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  data->input_type_b = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  node->storage = data;
 }
 
 namespace blender::nodes {
+
+static void geo_node_attribute_math_update(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeAttributeMath *node_storage = (NodeAttributeMath *)node->storage;
+
+  update_attribute_input_socket_availabilities(
+      *node, "A", (GeometryNodeAttributeInputMode)node_storage->input_type_a);
+  update_attribute_input_socket_availabilities(
+      *node, "B", (GeometryNodeAttributeInputMode)node_storage->input_type_b);
+}
 
 static void do_math_operation(const FloatReadAttribute &input_a,
                               const FloatReadAttribute &input_b,
@@ -97,7 +97,8 @@ static void do_math_operation(const FloatReadAttribute &input_a,
 static void attribute_math_calc(GeometryComponent &component, const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
-  const int operation = node.custom1;
+  const NodeAttributeMath *node_storage = (const NodeAttributeMath *)node.storage;
+  const int operation = node_storage->operation;
 
   /* The result type of this node is always float. */
   const CustomDataType result_type = CD_PROP_FLOAT;
@@ -112,23 +113,10 @@ static void attribute_math_calc(GeometryComponent &component, const GeoNodeExecP
     return;
   }
 
-  GeometryNodeUseAttributeFlag flag = static_cast<GeometryNodeUseAttributeFlag>(node.custom2);
-
-  auto get_input_attribute = [&](GeometryNodeUseAttributeFlag use_flag,
-                                 StringRef attribute_socket_identifier,
-                                 StringRef value_socket_identifier) {
-    if (flag & use_flag) {
-      const std::string attribute_name = params.get_input<std::string>(
-          attribute_socket_identifier);
-      return component.attribute_try_get_for_read(attribute_name, result_domain, result_type);
-    }
-    const float value = params.get_input<float>(value_socket_identifier);
-    return component.attribute_get_constant_for_read(result_domain, result_type, &value);
-  };
-
-  ReadAttributePtr attribute_a = get_input_attribute(GEO_NODE_USE_ATTRIBUTE_A, "Attribute A", "A");
-  ReadAttributePtr attribute_b = get_input_attribute(GEO_NODE_USE_ATTRIBUTE_B, "Attribute B", "B");
-
+  ReadAttributePtr attribute_a = params.get_input_attribute(
+      "A", component, result_domain, result_type, nullptr);
+  ReadAttributePtr attribute_b = params.get_input_attribute(
+      "B", component, result_domain, result_type, nullptr);
   if (!attribute_a || !attribute_b) {
     /* Attribute wasn't found. */
     return;
@@ -161,7 +149,9 @@ void register_node_type_geo_attribute_math()
   geo_node_type_base(&ntype, GEO_NODE_ATTRIBUTE_MATH, "Attribute Math", NODE_CLASS_ATTRIBUTE, 0);
   node_type_socket_templates(&ntype, geo_node_attribute_math_in, geo_node_attribute_math_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_math_exec;
-  node_type_update(&ntype, geo_node_attribute_math_update);
+  node_type_update(&ntype, blender::nodes::geo_node_attribute_math_update);
   node_type_init(&ntype, geo_node_attribute_math_init);
+  node_type_storage(
+      &ntype, "NodeAttributeCompare", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);
 }

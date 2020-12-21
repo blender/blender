@@ -22,21 +22,11 @@
  * \ingroup bke
  */
 
-#include <float.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-
-/* types */
-#include "BKE_collision.h"
-#include "DNA_cloth_types.h"
-
-#include "BLI_kdopbvh.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct BVHTree;
 struct Collection;
 struct CollisionModifierData;
 struct Depsgraph;
@@ -113,11 +103,11 @@ typedef struct FaceCollPair {
 // used in modifier.c from collision.c
 /////////////////////////////////////////////////
 
-BVHTree *bvhtree_build_from_mvert(const struct MVert *mvert,
-                                  const struct MVertTri *tri,
-                                  int tri_num,
-                                  float epsilon);
-void bvhtree_update_from_mvert(BVHTree *bvhtree,
+struct BVHTree *bvhtree_build_from_mvert(const struct MVert *mvert,
+                                         const struct MVertTri *tri,
+                                         int tri_num,
+                                         float epsilon);
+void bvhtree_update_from_mvert(struct BVHTree *bvhtree,
                                const struct MVert *mvert,
                                const struct MVert *mvert_moving,
                                const struct MVertTri *tri,

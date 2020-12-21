@@ -246,9 +246,11 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
     return true;
   }
 #endif
+#ifdef WITH_POINT_CLOUD
   if (RNA_struct_is_a(ptr->type, &RNA_PointCloud) && (type == -1 || type == OB_POINTCLOUD)) {
     return true;
   }
+#endif
   if (RNA_struct_is_a(ptr->type, &RNA_Volume) && (type == -1 || type == OB_VOLUME)) {
     return true;
   }
@@ -812,7 +814,9 @@ const char *buttons_context_dir[] = {
 #ifdef WITH_HAIR_NODES
     "hair",
 #endif
+#ifdef WITH_POINT_CLOUD
     "pointcloud",
+#endif
     "volume",
     NULL,
 };
@@ -822,6 +826,11 @@ int /*eContextResult*/ buttons_context(const bContext *C,
                                        bContextDataResult *result)
 {
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
+  if (sbuts && sbuts->path == NULL) {
+    /* path is cleared for SCREEN_OT_redo_last, when global undo does a file-read which clears the
+     * path (see lib_link_workspace_layout_restore). */
+    buttons_context_compute(C, sbuts);
+  }
   ButsContextPath *path = sbuts ? sbuts->path : NULL;
 
   if (!path) {
@@ -899,10 +908,12 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     return CTX_RESULT_OK;
   }
 #endif
+#ifdef WITH_POINT_CLOUD
   if (CTX_data_equals(member, "pointcloud")) {
     set_pointer_type(path, result, &RNA_PointCloud);
     return CTX_RESULT_OK;
   }
+#endif
   if (CTX_data_equals(member, "volume")) {
     set_pointer_type(path, result, &RNA_Volume);
     return CTX_RESULT_OK;

@@ -206,6 +206,7 @@ void OBJECT_OT_gpencil_modifier_copy(struct wmOperatorType *ot);
 
 /* object_shader_fx.c */
 void OBJECT_OT_shaderfx_add(struct wmOperatorType *ot);
+void OBJECT_OT_shaderfx_copy(struct wmOperatorType *ot);
 void OBJECT_OT_shaderfx_remove(struct wmOperatorType *ot);
 void OBJECT_OT_shaderfx_move_up(struct wmOperatorType *ot);
 void OBJECT_OT_shaderfx_move_down(struct wmOperatorType *ot);

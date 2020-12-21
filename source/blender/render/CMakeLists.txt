@@ -60,9 +60,9 @@ set(SRC
   RE_texture.h
 
   intern/initrender.h
+  intern/pipeline.h
   intern/render_result.h
   intern/render_types.h
-  intern/pipeline.h
   intern/texture_common.h
   intern/zbuf.h
 )

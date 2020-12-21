@@ -5957,16 +5957,15 @@ static bConstraint *constraint_find_original_for_update(bConstraintOb *cob, bCon
 }
 
 /**
- * Check whether given constraint is local when the object is a library override.
+ * Check whether given constraint is not local (i.e. from linked data) when the object is a library
+ * override.
  *
- * \param con May be NULL, in which case we consider it as a non-local constraint case.
- *
- * \note This check is only valid for a liboverride data-block, it always return \a true otherwise.
+ * \param con: May be NULL, in which case we consider it as a non-local constraint case.
  */
-bool BKE_constraint_is_local_in_liboverride(const Object *ob, const bConstraint *con)
+bool BKE_constraint_is_nonlocal_in_liboverride(const Object *ob, const bConstraint *con)
 {
-  return (!ID_IS_OVERRIDE_LIBRARY(ob) ||
-          (con != NULL && (con->flag & CONSTRAINT_OVERRIDE_LIBRARY_LOCAL) != 0));
+  return (ID_IS_OVERRIDE_LIBRARY(ob) &&
+          (con == NULL || (con->flag & CONSTRAINT_OVERRIDE_LIBRARY_LOCAL) == 0));
 }
 
 /* -------- Constraints and Proxies ------- */

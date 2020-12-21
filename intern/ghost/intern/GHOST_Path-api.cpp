@@ -50,6 +50,12 @@ const GHOST_TUns8 *GHOST_getUserDir(int version, const char *versionstr)
   return systemPaths ? systemPaths->getUserDir(version, versionstr) : NULL; /* shouldn't be NULL */
 }
 
+const GHOST_TUns8 *GHOST_getUserSpecialDir(GHOST_TUserSpecialDirTypes type)
+{
+  GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
+  return systemPaths ? systemPaths->getUserSpecialDir(type) : NULL; /* shouldn't be NULL */
+}
+
 const GHOST_TUns8 *GHOST_getBinaryDir()
 {
   GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();

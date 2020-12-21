@@ -22,8 +22,6 @@
  * \ingroup bke
  */
 
-#include "DNA_modifier_types.h"
-
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
@@ -147,7 +145,7 @@ float effector_falloff(struct EffectorCache *eff,
                        struct EffectorData *efd,
                        struct EffectedPoint *point,
                        struct EffectorWeights *weights);
-int closest_point_on_surface(SurfaceModifierData *surmd,
+int closest_point_on_surface(struct SurfaceModifierData *surmd,
                              const float co[3],
                              float surface_co[3],
                              float surface_nor[3],

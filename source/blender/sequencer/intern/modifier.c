@@ -44,7 +44,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_modifier.h"
+#include "SEQ_render.h"
 
 #include "BLO_read_write.h"
 
@@ -1316,7 +1317,7 @@ static void sequence_modifier_type_info_init(void)
 #undef INIT_TYPE
 }
 
-const SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type)
+const SequenceModifierTypeInfo *SEQ_modifier_type_info_get(int type)
 {
   if (!modifierTypesInit) {
     sequence_modifier_type_info_init();
@@ -1326,10 +1327,10 @@ const SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type)
   return modifiersTypes[type];
 }
 
-SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name, int type)
+SequenceModifierData *SEQ_modifier_new(Sequence *seq, const char *name, int type)
 {
   SequenceModifierData *smd;
-  const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(type);
+  const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(type);
 
   smd = MEM_callocN(smti->struct_size, "sequence modifier");
 
@@ -1345,7 +1346,7 @@ SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name,
 
   BLI_addtail(&seq->modifiers, smd);
 
-  BKE_sequence_modifier_unique_name(seq, smd);
+  SEQ_modifier_unique_name(seq, smd);
 
   if (smti->init_data) {
     smti->init_data(smd);
@@ -1354,33 +1355,33 @@ SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name,
   return smd;
 }
 
-bool BKE_sequence_modifier_remove(Sequence *seq, SequenceModifierData *smd)
+bool SEQ_modifier_remove(Sequence *seq, SequenceModifierData *smd)
 {
   if (BLI_findindex(&seq->modifiers, smd) == -1) {
     return false;
   }
 
   BLI_remlink(&seq->modifiers, smd);
-  BKE_sequence_modifier_free(smd);
+  SEQ_modifier_free(smd);
 
   return true;
 }
 
-void BKE_sequence_modifier_clear(Sequence *seq)
+void SEQ_modifier_clear(Sequence *seq)
 {
   SequenceModifierData *smd, *smd_next;
 
   for (smd = seq->modifiers.first; smd; smd = smd_next) {
     smd_next = smd->next;
-    BKE_sequence_modifier_free(smd);
+    SEQ_modifier_free(smd);
   }
 
   BLI_listbase_clear(&seq->modifiers);
 }
 
-void BKE_sequence_modifier_free(SequenceModifierData *smd)
+void SEQ_modifier_free(SequenceModifierData *smd)
 {
-  const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+  const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(smd->type);
 
   if (smti && smti->free_data) {
     smti->free_data(smd);
@@ -1389,9 +1390,9 @@ void BKE_sequence_modifier_free(SequenceModifierData *smd)
   MEM_freeN(smd);
 }
 
-void BKE_sequence_modifier_unique_name(Sequence *seq, SequenceModifierData *smd)
+void SEQ_modifier_unique_name(Sequence *seq, SequenceModifierData *smd)
 {
-  const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+  const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(smd->type);
 
   BLI_uniquename(&seq->modifiers,
                  smd,
@@ -1401,15 +1402,15 @@ void BKE_sequence_modifier_unique_name(Sequence *seq, SequenceModifierData *smd)
                  sizeof(smd->name));
 }
 
-SequenceModifierData *BKE_sequence_modifier_find_by_name(Sequence *seq, const char *name)
+SequenceModifierData *SEQ_modifier_find_by_name(Sequence *seq, const char *name)
 {
   return BLI_findstring(&(seq->modifiers), name, offsetof(SequenceModifierData, name));
 }
 
-ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
-                                         Sequence *seq,
-                                         ImBuf *ibuf,
-                                         int timeline_frame)
+ImBuf *SEQ_modifier_apply_stack(const SeqRenderData *context,
+                                Sequence *seq,
+                                ImBuf *ibuf,
+                                int timeline_frame)
 {
   SequenceModifierData *smd;
   ImBuf *processed_ibuf = ibuf;
@@ -1420,7 +1421,7 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
   }
 
   for (smd = seq->modifiers.first; smd; smd = smd->next) {
-    const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+    const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(smd->type);
 
     /* could happen if modifier is being removed or not exists in current version of blender */
     if (!smti) {
@@ -1463,13 +1464,13 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context,
   return processed_ibuf;
 }
 
-void BKE_sequence_modifier_list_copy(Sequence *seqn, Sequence *seq)
+void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq)
 {
   SequenceModifierData *smd;
 
   for (smd = seq->modifiers.first; smd; smd = smd->next) {
     SequenceModifierData *smdn;
-    const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+    const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(smd->type);
 
     smdn = MEM_dupallocN(smd);
 
@@ -1482,7 +1483,7 @@ void BKE_sequence_modifier_list_copy(Sequence *seqn, Sequence *seq)
   }
 }
 
-int BKE_sequence_supports_modifiers(Sequence *seq)
+int SEQ_sequence_supports_modifiers(Sequence *seq)
 {
   return !ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD);
 }
@@ -1493,10 +1494,10 @@ int BKE_sequence_supports_modifiers(Sequence *seq)
 /** \name .blend File I/O
  * \{ */
 
-void BKE_sequence_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
+void SEQ_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, modbase) {
-    const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
+    const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(smd->type);
 
     if (smti) {
       BLO_write_struct_by_name(writer, smti->struct_name, smd);
@@ -1518,7 +1519,7 @@ void BKE_sequence_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
   }
 }
 
-void BKE_sequence_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
+void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
 {
   BLO_read_list(reader, lb);
 
@@ -1540,7 +1541,7 @@ void BKE_sequence_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb
   }
 }
 
-void BKE_sequence_modifier_blend_read_lib(BlendLibReader *reader, Scene *scene, ListBase *lb)
+void SEQ_modifier_blend_read_lib(BlendLibReader *reader, Scene *scene, ListBase *lb)
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, lb) {
     if (smd->mask_id) {

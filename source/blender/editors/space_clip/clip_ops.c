@@ -859,7 +859,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
                               -FLT_MAX,
                               FLT_MAX,
                               "Location",
-                              "Cursor location in normalized (0.0-1.0) coordinates",
+                              "Cursor location in normalized (0.0 to 1.0) coordinates",
                               -10.0f,
                               10.0f);
   RNA_def_property_flag(prop, PROP_HIDDEN);

@@ -109,7 +109,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/depsgraph.h"
@@ -1482,6 +1482,9 @@ void DepsgraphNodeBuilder::build_nodetree_socket(bNodeSocket *socket)
   }
   else if (socket->type == SOCK_IMAGE) {
     build_id((ID *)((bNodeSocketValueImage *)socket->default_value)->value);
+  }
+  else if (socket->type == SOCK_COLLECTION) {
+    build_id((ID *)((bNodeSocketValueCollection *)socket->default_value)->value);
   }
 }
 

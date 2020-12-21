@@ -1863,6 +1863,21 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      layerMultiply_propfloat2,
      NULL,
      layerAdd_propfloat2},
+    /* 50: CD_PROP_POOL */
+    {sizeof(bool),
+     "bool",
+     1,
+     N_("Boolean"),
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL},
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -1918,6 +1933,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDPropCol",
     "CDPropFloat3",
     "CDPropFloat2",
+    "CDPropBoolean",
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {

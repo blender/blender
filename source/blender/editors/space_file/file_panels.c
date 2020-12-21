@@ -132,7 +132,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
 {
   bScreen *screen = CTX_wm_screen(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_params(sfile);
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   uiBlock *block = uiLayoutGetBlock(panel->layout);
   uiBut *but;
   uiLayout *row;
@@ -180,11 +180,16 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   UI_but_funcN_set(but, file_filename_enter_handle, NULL, but);
 
   if (params->flag & FILE_CHECK_EXISTING) {
-    but_extra_rna_ptr = UI_but_extra_operator_icon_add(
+    uiButExtraOpIcon *extra_icon;
+
+    extra_icon = UI_but_extra_operator_icon_add(
         but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_REMOVE);
+    but_extra_rna_ptr = UI_but_extra_operator_icon_opptr_get(extra_icon);
     RNA_int_set(but_extra_rna_ptr, "increment", -1);
-    but_extra_rna_ptr = UI_but_extra_operator_icon_add(
+
+    extra_icon = UI_but_extra_operator_icon_add(
         but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_ADD);
+    but_extra_rna_ptr = UI_but_extra_operator_icon_opptr_get(extra_icon);
     RNA_int_set(but_extra_rna_ptr, "increment", 1);
   }
 

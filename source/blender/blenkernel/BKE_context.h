@@ -143,8 +143,9 @@ bContext *CTX_copy(const bContext *C);
 
 /* Stored Context */
 
-bContextStore *CTX_store_add(ListBase *contexts, const char *name, PointerRNA *ptr);
+bContextStore *CTX_store_add(ListBase *contexts, const char *name, const PointerRNA *ptr);
 bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context);
+bContextStore *CTX_store_get(bContext *C);
 void CTX_store_set(bContext *C, bContextStore *store);
 bContextStore *CTX_store_copy(bContextStore *store);
 void CTX_store_free(bContextStore *store);
@@ -287,6 +288,9 @@ enum eContextObjectMode CTX_data_mode_enum(const bContext *C);
 
 void CTX_data_main_set(bContext *C, struct Main *bmain);
 void CTX_data_scene_set(bContext *C, struct Scene *scene);
+
+/* Only Outliner currently! */
+int CTX_data_selected_ids(const bContext *C, ListBase *list);
 
 int CTX_data_selected_editable_objects(const bContext *C, ListBase *list);
 int CTX_data_selected_editable_bases(const bContext *C, ListBase *list);

@@ -23,9 +23,7 @@
 
 #pragma once
 
-struct GHash;
 struct MDeformVert;
-struct Main;
 struct Material;
 struct Object;
 struct bGPDlayer;

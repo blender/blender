@@ -47,7 +47,7 @@ namespace deg = blender::deg;
 namespace blender::deg {
 namespace {
 
-typedef deque<OperationNode *> TraversalQueue;
+using TraversalQueue = deque<OperationNode *>;
 
 using DEGForeachOperation = void (*)(OperationNode *, void *);
 

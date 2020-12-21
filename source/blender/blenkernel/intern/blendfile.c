@@ -52,6 +52,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_preferences.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -644,6 +645,8 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
 
   /* Default studio light. */
   BKE_studiolight_default(userdef->light_param, userdef->light_ambient);
+
+  BKE_preferences_asset_library_default_add(userdef);
 
   return userdef;
 }

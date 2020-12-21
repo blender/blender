@@ -334,6 +334,7 @@ typedef struct uiHandleButtonData {
   int retval;
   /* booleans (could be made into flags) */
   bool cancel, escapecancel;
+  bool skip_undo_push;
   bool applied, applied_interactive;
   bool changed_cursor;
   wmTimer *flashtimer;
@@ -626,7 +627,11 @@ static bool ui_rna_is_userdef(PointerRNA *ptr, PropertyRNA *prop)
     if (base == NULL) {
       base = ptr->type;
     }
-    if (ELEM(base, &RNA_AddonPreferences, &RNA_KeyConfigPreferences, &RNA_KeyMapItem)) {
+    if (ELEM(base,
+             &RNA_AddonPreferences,
+             &RNA_KeyConfigPreferences,
+             &RNA_KeyMapItem,
+             &RNA_UserAssetLibrary)) {
       tag = true;
     }
   }
@@ -816,7 +821,9 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 /* typically call ui_apply_but_undo(), ui_apply_but_autokey() */
 static void ui_apply_but_undo(uiBut *but)
 {
-  if (but->flag & UI_BUT_UNDO) {
+  const bool force_skip_undo = (but->active && but->active->skip_undo_push);
+
+  if (but->flag & UI_BUT_UNDO && !force_skip_undo) {
     const char *str = NULL;
     size_t str_len_clip = SIZE_MAX - 1;
     bool skip_undo = false;
@@ -1349,6 +1356,9 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
     if (mbut_state == NULL) {
       /* Highly unlikely. */
       printf("%s: Can't find button\n", __func__);
+      /* While this avoids crashing, multi-button dragging will fail,
+       * which is still a bug from the user perspective. See T83651. */
+      continue;
     }
 
     void *active_back;
@@ -1984,6 +1994,8 @@ static bool ui_but_drag_init(bContext *C,
     else {
       wmDrag *drag = WM_event_start_drag(
           C, but->icon, but->dragtype, but->dragpoin, ui_but_value_get(but), WM_DRAG_NOP);
+      /* wmDrag has ownership over dragpoin now, stop messing with it. */
+      but->dragpoin = NULL;
 
       if (but->imb) {
         WM_event_drag_image(drag,
@@ -2256,10 +2268,11 @@ static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleB
   ListBase *drags = event->customdata; /* drop event type has listbase customdata by default */
 
   LISTBASE_FOREACH (wmDrag *, wmd, drags) {
+    /* TODO asset dropping. */
     if (wmd->type == WM_DRAG_ID) {
       /* align these types with UI_but_active_drop_name */
       if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
-        ID *id = WM_drag_ID(wmd, 0);
+        ID *id = WM_drag_get_local_ID(wmd, 0);
 
         button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 
@@ -2856,7 +2869,8 @@ void ui_but_active_string_clear_and_exit(bContext *C, uiBut *but)
   but->active->str[0] = 0;
 
   ui_apply_but_TEX(C, but, but->active);
-  button_activate_state(C, but, BUTTON_STATE_EXIT);
+  /* use onfree event so undo is handled by caller and apply is already done above */
+  button_activate_exit((bContext *)C, but, but->active, false, true);
 }
 
 static void ui_textedit_string_ensure_max_length(uiBut *but, uiHandleButtonData *data, int maxlen)
@@ -4001,16 +4015,38 @@ static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
   ED_region_tag_redraw(data->region);
 }
 
-static void ui_but_extra_operator_icon_apply(bContext *C, uiBut *but, uiButExtraOpIcon *op_icon)
+static void ui_but_extra_operator_icon_apply_func(uiBut *but, uiButExtraOpIcon *op_icon)
 {
-  if (but->active->interactive) {
-    ui_apply_but(C, but->block, but, but->active, true);
+  if (ui_afterfunc_check(but->block, but)) {
+    uiAfterFunc *after = ui_afterfunc_new();
+
+    after->optype = op_icon->optype_params->optype;
+    after->opcontext = op_icon->optype_params->opcontext;
+    after->opptr = op_icon->optype_params->opptr;
+
+    if (but->context) {
+      after->context = CTX_store_copy(but->context);
+    }
+
+    /* Ownership moved, don't let the UI code free it. */
+    op_icon->optype_params->opptr = NULL;
   }
+}
+
+static void ui_but_extra_operator_icon_apply(bContext *C,
+                                             uiBut *but,
+                                             uiHandleButtonData *data,
+                                             uiButExtraOpIcon *op_icon)
+{
   button_activate_state(C, but, BUTTON_STATE_EXIT);
-  WM_operator_name_call_ptr(C,
-                            op_icon->optype_params->optype,
-                            op_icon->optype_params->opcontext,
-                            op_icon->optype_params->opptr);
+  ui_apply_but(C, but->block, but, data, true);
+
+  data->postbut = but;
+  data->posttype = BUTTON_ACTIVATE_OVER;
+  /* Leave undo up to the operator. */
+  data->skip_undo_push = true;
+
+  ui_but_extra_operator_icon_apply_func(but, op_icon);
 
   /* Force recreation of extra operator icons (pseudo update). */
   ui_but_extra_operator_icons_free(but);
@@ -4209,7 +4245,7 @@ static bool ui_do_but_extra_operator_icon(bContext *C,
   ED_region_tag_redraw(data->region);
   button_tooltip_timer_reset(C, but);
 
-  ui_but_extra_operator_icon_apply(C, but, op_icon);
+  ui_but_extra_operator_icon_apply(C, but, data, op_icon);
   /* Note: 'but', 'data' may now be freed, don't access. */
 
   return true;
@@ -5851,7 +5887,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
     if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
       ColorPicker *cpicker = but->custom_data;
       float hsv_static[3] = {0.0f};
-      float *hsv = cpicker ? cpicker->color_data : hsv_static;
+      float *hsv = cpicker ? cpicker->hsv_perceptual : hsv_static;
       float col[3];
 
       ui_but_v3_get(but, col);
@@ -6079,7 +6115,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
 {
   const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
   ColorPicker *cpicker = but->custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
   float rgb[3];
   float x, y;
   float mx_fl, my_fl;
@@ -6097,7 +6133,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
 #endif
 
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
+  ui_scene_linear_to_perceptual_space(but, rgb);
 
   ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
 
@@ -6110,7 +6146,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
 
     /* calculate original hsv again */
     copy_v3_v3(rgb, data->origvec);
-    ui_scene_linear_to_color_picker_space(but, rgb);
+    ui_scene_linear_to_perceptual_space(but, rgb);
 
     copy_v3_v3(hsvo, hsv);
 
@@ -6173,7 +6209,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   }
 
   ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, hsv, rgb);
-  ui_color_picker_to_scene_linear_space(but, rgb);
+  ui_perceptual_to_scene_linear_space(but, rgb);
 
   /* clamp because with color conversion we can exceed range T34295. */
   if (hsv_but->gradient_type == UI_GRAD_V_ALT) {
@@ -6196,13 +6232,13 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
                                     const bool shift)
 {
   ColorPicker *cpicker = hsv_but->but.custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
   const float hsv_v_max = max_ff(hsv[2], hsv_but->but.softmax);
   float rgb[3];
   const float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
 
   ui_but_v3_get(&hsv_but->but, rgb);
-  ui_scene_linear_to_color_picker_space(&hsv_but->but, rgb);
+  ui_scene_linear_to_perceptual_space(&hsv_but->but, rgb);
   ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
 
   switch (hsv_but->gradient_type) {
@@ -6251,7 +6287,7 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
   hsv_clamp_v(hsv, hsv_v_max);
 
   ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, hsv, rgb);
-  ui_color_picker_to_scene_linear_space(&hsv_but->but, rgb);
+  ui_perceptual_to_scene_linear_space(&hsv_but->but, rgb);
 
   copy_v3_v3(data->vec, rgb);
   ui_but_v3_set(&hsv_but->but, data->vec);
@@ -6308,7 +6344,7 @@ static int ui_do_but_HSVCUBE(
           float rgb[3], def_hsv[3];
           float def[4];
           ColorPicker *cpicker = but->custom_data;
-          float *hsv = cpicker->color_data;
+          float *hsv = cpicker->hsv_perceptual;
 
           RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
           ui_rgb_to_color_picker_HSVCUBE_v(hsv_but, def, def_hsv);
@@ -6364,7 +6400,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
 {
   const bool changed = true;
   ColorPicker *cpicker = but->custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
 
   float mx_fl, my_fl;
   ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
@@ -6390,8 +6426,8 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
 
   float rgb[3];
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
-  ui_rgb_to_color_picker_compat_v(rgb, hsv);
+  ui_scene_linear_to_perceptual_space(but, rgb);
+  ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 
   /* exception, when using color wheel in 'locked' value state:
    * allow choosing a hue for black values, by giving a tiny increment */
@@ -6418,8 +6454,8 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
     /* calculate original hsv again */
     copy_v3_v3(hsvo, hsv);
     copy_v3_v3(rgbo, data->origvec);
-    ui_scene_linear_to_color_picker_space(but, rgbo);
-    ui_rgb_to_color_picker_compat_v(rgbo, hsvo);
+    ui_scene_linear_to_perceptual_space(but, rgbo);
+    ui_color_picker_rgb_to_hsv_compat(rgbo, hsvo);
 
     /* and original position */
     ui_hsvcircle_pos_from_vals(cpicker, &rect, hsvo, &xpos, &ypos);
@@ -6438,7 +6474,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
     ui_color_snap_hue(snap, &hsv[0]);
   }
 
-  ui_color_picker_to_rgb_v(hsv, rgb);
+  ui_color_picker_hsv_to_rgb(hsv, rgb);
 
   if ((cpicker->use_luminosity_lock)) {
     if (!is_zero_v3(rgb)) {
@@ -6446,7 +6482,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
     }
   }
 
-  ui_color_picker_to_scene_linear_space(but, rgb);
+  ui_perceptual_to_scene_linear_space(but, rgb);
   ui_but_v3_set(but, rgb);
 
   data->draglastx = mx;
@@ -6463,14 +6499,14 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
                                       const bool shift)
 {
   ColorPicker *cpicker = but->custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
   float rgb[3];
   float phi, r /*, sqr */ /* UNUSED */, v[2];
   const float sensitivity = (shift ? 0.06f : 0.3f) * ndof->dt;
 
   ui_but_v3_get(but, rgb);
-  ui_scene_linear_to_color_picker_space(but, rgb);
-  ui_rgb_to_color_picker_compat_v(rgb, hsv);
+  ui_scene_linear_to_perceptual_space(but, rgb);
+  ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 
   /* Convert current color on hue/sat disc to circular coordinates phi, r */
   phi = fmodf(hsv[0] + 0.25f, 1.0f) * -2.0f * (float)M_PI;
@@ -6520,7 +6556,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
 
   hsv_clamp_v(hsv, FLT_MAX);
 
-  ui_color_picker_to_rgb_v(hsv, data->vec);
+  ui_color_picker_hsv_to_rgb(hsv, data->vec);
 
   if (cpicker->use_luminosity_lock) {
     if (!is_zero_v3(data->vec)) {
@@ -6528,7 +6564,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
     }
   }
 
-  ui_color_picker_to_scene_linear_space(but, data->vec);
+  ui_perceptual_to_scene_linear_space(but, data->vec);
   ui_but_v3_set(but, data->vec);
 }
 #endif /* WITH_INPUT_NDOF */
@@ -6537,7 +6573,7 @@ static int ui_do_but_HSVCIRCLE(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   ColorPicker *cpicker = but->custom_data;
-  float *hsv = cpicker->color_data;
+  float *hsv = cpicker->hsv_perceptual;
   int mx = event->x;
   int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
@@ -6584,10 +6620,10 @@ static int ui_do_but_HSVCIRCLE(
         def = MEM_callocN(sizeof(float) * len, "reset_defaults - float");
 
         RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
-        ui_color_picker_to_rgb_v(def, def_hsv);
+        ui_color_picker_hsv_to_rgb(def, def_hsv);
 
         ui_but_v3_get(but, rgb);
-        ui_rgb_to_color_picker_compat_v(rgb, hsv);
+        ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 
         def_hsv[0] = hsv[0];
         def_hsv[2] = hsv[2];
@@ -7844,7 +7880,10 @@ static ARegion *ui_but_tooltip_init(
   uiBut *but = UI_region_active_but_get(region);
   *r_exit_on_event = false;
   if (but) {
-    return UI_tooltip_create_from_button(C, region, but, is_label);
+    uiButExtraOpIcon *extra_icon = ui_but_extra_operator_icon_mouse_over_get(
+        but, but->active, CTX_wm_window(C)->eventstate);
+
+    return UI_tooltip_create_from_button_or_extra_icon(C, region, but, extra_icon, is_label);
   }
   return NULL;
 }

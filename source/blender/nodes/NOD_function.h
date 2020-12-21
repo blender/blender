@@ -27,6 +27,7 @@ void register_node_type_fn_group_instance_id(void);
 void register_node_type_fn_combine_strings(void);
 void register_node_type_fn_object_transforms(void);
 void register_node_type_fn_random_float(void);
+void register_node_type_fn_input_vector(void);
 
 #ifdef __cplusplus
 }

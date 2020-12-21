@@ -30,10 +30,10 @@ extern "C" {
 struct Main;
 struct Object;
 struct Scene;
-struct bGPdata;
+struct bGPDcurve;
 struct bGPDlayer;
 struct bGPDstroke;
-struct bGPDcurve;
+struct bGPdata;
 
 void BKE_gpencil_convert_curve(struct Main *bmain,
                                struct Scene *scene,

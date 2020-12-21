@@ -534,7 +534,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 
     {
       uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, NULL};
-      UI_but_string_info_get(C, but, &op_keymap, NULL);
+      UI_but_string_info_get(C, but, NULL, &op_keymap, NULL);
       shortcut = op_keymap.strinfo;
     }
 
@@ -764,7 +764,9 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
   return data;
 }
 
-static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
+static uiTooltipData *ui_tooltip_data_from_button(bContext *C,
+                                                  uiBut *but,
+                                                  uiButExtraOpIcon *extra_icon)
 {
   uiStringInfo but_label = {BUT_GET_LABEL, NULL};
   uiStringInfo but_tip = {BUT_GET_TIP, NULL};
@@ -777,20 +779,29 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 
   char buf[512];
 
+  wmOperatorType *extra_icon_optype = UI_but_extra_operator_icon_optype_get(extra_icon);
+  wmOperatorType *optype = extra_icon ? extra_icon_optype : but->optype;
+
   /* create tooltip data */
   uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
-  UI_but_string_info_get(C,
-                         but,
-                         &but_label,
-                         &but_tip,
-                         &enum_label,
-                         &enum_tip,
-                         &op_keymap,
-                         &prop_keymap,
-                         &rna_struct,
-                         &rna_prop,
-                         NULL);
+  if (extra_icon) {
+    UI_but_string_info_get(C, but, extra_icon, &but_label, &but_tip, &op_keymap, NULL);
+  }
+  else {
+    UI_but_string_info_get(C,
+                           but,
+                           NULL,
+                           &but_label,
+                           &but_tip,
+                           &enum_label,
+                           &enum_tip,
+                           &op_keymap,
+                           &prop_keymap,
+                           &rna_struct,
+                           &rna_prop,
+                           NULL);
+  }
 
   /* Tip Label (only for buttons not already showing the label).
    * Check prefix instead of comparing because the button may include the shortcut. */
@@ -923,15 +934,16 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
       }
     }
   }
-  else if (but->optype) {
-    PointerRNA *opptr;
-    char *str;
-    opptr = UI_but_operator_ptr_get(but); /* allocated when needed, the button owns it */
+  else if (optype) {
+    PointerRNA *opptr = extra_icon_optype ?
+                            UI_but_extra_operator_icon_opptr_get(extra_icon) :
+                            UI_but_operator_ptr_get(
+                                but); /* allocated when needed, the button owns it */
 
     /* so the context is passed to fieldf functions (some py fieldf functions use it) */
     WM_operator_properties_sanitize(opptr, false);
 
-    str = ui_tooltip_text_python_from_op(C, but->optype, opptr);
+    char *str = ui_tooltip_text_python_from_op(C, optype, opptr);
 
     /* operator info */
     if (U.flag & USER_TOOLTIPS_PYTHON) {
@@ -958,7 +970,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
       disabled_msg = CTX_wm_operator_poll_msg_get(C);
     }
     /* alternatively, buttons can store some reasoning too */
-    else if (but->disabled_info) {
+    if (!disabled_msg && but->disabled_info) {
       disabled_msg = TIP_(but->disabled_info);
     }
 
@@ -1398,11 +1410,8 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 /** \name ToolTip Public API
  * \{ */
 
-/**
- * \param is_label: When true, show a small tip that only shows the name,
- * otherwise show the full tooltip.
- */
-ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but, bool is_label)
+ARegion *UI_tooltip_create_from_button_or_extra_icon(
+    bContext *C, ARegion *butregion, uiBut *but, uiButExtraOpIcon *extra_icon, bool is_label)
 {
   wmWindow *win = CTX_wm_window(C);
   /* aspect values that shrink text are likely unreadable */
@@ -1419,7 +1428,7 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
   }
 
   if (data == NULL) {
-    data = ui_tooltip_data_from_button(C, but);
+    data = ui_tooltip_data_from_button(C, but, extra_icon);
   }
 
   if (data == NULL) {
@@ -1455,6 +1464,15 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
       C, data, init_position, is_no_overlap ? &init_rect : NULL, aspect);
 
   return region;
+}
+
+/**
+ * \param is_label: When true, show a small tip that only shows the name,
+ *                  otherwise show the full tooltip.
+ */
+ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but, bool is_label)
+{
+  return UI_tooltip_create_from_button_or_extra_icon(C, butregion, but, NULL, is_label);
 }
 
 ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)

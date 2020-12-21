@@ -160,6 +160,7 @@ void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_p
 void BLO_write_int32_array(BlendWriter *writer, uint num, const int32_t *data_ptr);
 void BLO_write_uint32_array(BlendWriter *writer, uint num, const uint32_t *data_ptr);
 void BLO_write_float_array(BlendWriter *writer, uint num, const float *data_ptr);
+void BLO_write_double_array(BlendWriter *writer, uint num, const double *data_ptr);
 void BLO_write_float3_array(BlendWriter *writer, uint num, const float *data_ptr);
 void BLO_write_pointer_array(BlendWriter *writer, uint num, const void *data_ptr);
 void BLO_write_string(BlendWriter *writer, const char *data_ptr);

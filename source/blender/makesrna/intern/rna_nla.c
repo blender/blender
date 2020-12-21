@@ -88,8 +88,8 @@ static char *rna_NlaStrip_path(PointerRNA *ptr)
           char name_esc_nlt[sizeof(nlt->name) * 2];
           char name_esc_strip[sizeof(strip->name) * 2];
 
-          BLI_strescape(name_esc_nlt, nlt->name, sizeof(name_esc_nlt));
-          BLI_strescape(name_esc_strip, strip->name, sizeof(name_esc_strip));
+          BLI_str_escape(name_esc_nlt, nlt->name, sizeof(name_esc_nlt));
+          BLI_str_escape(name_esc_strip, strip->name, sizeof(name_esc_strip));
           return BLI_sprintfN(
               "animation_data.nla_tracks[\"%s\"].strips[\"%s\"]", name_esc_nlt, name_esc_strip);
         }
@@ -607,6 +607,8 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_NlaStrip_path");
   RNA_def_struct_ui_icon(srna, ICON_NLA); /* XXX */
 
+  RNA_define_lib_overridable(true);
+
   /* name property */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "");
@@ -782,7 +784,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_animated_time_cyclic", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_TIME_CYCLIC);
   RNA_def_property_ui_text(
-      prop, "Cyclic Strip Time", "Cycle the animated time within the action start & end");
+      prop, "Cyclic Strip Time", "Cycle the animated time within the action start and end");
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
 
@@ -820,6 +822,8 @@ static void rna_def_nlastrip(BlenderRNA *brna)
                            "Update range of frames referenced from action "
                            "after tweaking strip and its keyframes");
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_api_nlatrack_strips(BlenderRNA *brna, PropertyRNA *cprop)
@@ -877,9 +881,13 @@ static void rna_def_nlatrack(BlenderRNA *brna)
   /* strips collection */
   prop = RNA_def_property(srna, "strips", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "NlaStrip");
+  /* We do not support inserting or removing strips in overrides of tracks for now. */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "NLA Strips", "NLA Strips on this NLA-track");
 
   rna_api_nlatrack_strips(brna, prop);
+
+  RNA_define_lib_overridable(true);
 
   /* name property */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -920,6 +928,8 @@ static void rna_def_nlatrack(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_PROTECTED);
   RNA_def_property_ui_text(prop, "Locked", "NLA Track is locked");
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
+
+  RNA_define_lib_overridable(false);
 }
 
 /* --------- */

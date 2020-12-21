@@ -38,9 +38,8 @@ extern "C" {
 
 struct AnimData;
 struct BoundBox;
-struct DerivedMesh;
 struct FluidsimSettings;
-struct GpencilBatchCache;
+struct GeometrySet;
 struct Ipo;
 struct Material;
 struct Mesh;
@@ -51,7 +50,6 @@ struct RigidBodyOb;
 struct SculptSession;
 struct SoftBody;
 struct bGPdata;
-struct GeometrySet;
 
 /* Vertex Groups - Name Info */
 typedef struct bDeformGroup {
@@ -150,14 +148,17 @@ typedef struct Object_Runtime {
    */
   struct ID *data_orig;
   /**
-   * Object data structure created during object evaluation.
-   * It has all modifiers applied.
+   * Object data structure created during object evaluation. It has all modifiers applied.
+   * The type is determined by the type of the original object. For example, for mesh and curve
+   * objects, this is a mesh. For a volume object, this is a volume.
    */
   struct ID *data_eval;
 
   /**
-   * Some objects support evaluating to a geometry set instead of a single ID. In those cases the
-   * evaluated geometry will be stored here instead of in #data_eval.
+   * Objects can evaluate to a geometry set instead of a single ID. In those cases, the evaluated
+   * geometry set will be stored here. An ID of the correct type is still stored in #data_eval.
+   * #geometry_set_eval might reference the ID pointed to by #data_eval as well, but does not own
+   * the data.
    */
   struct GeometrySet *geometry_set_eval;
 

@@ -42,6 +42,7 @@
 #include "RNA_access.h"
 
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "WM_types.h"
 
@@ -1409,7 +1410,7 @@ void snapSequenceBounds(TransInfo *t, const int mval[2])
   const int frame_curr = round_fl_to_int(xmouse);
 
   /* Now find the closest sequence. */
-  const int frame_near = BKE_sequencer_find_next_prev_edit(
+  const int frame_near = SEQ_time_find_next_prev_edit(
       t->scene, frame_curr, SEQ_SIDE_BOTH, true, false, true);
 
   const int frame_snap = transform_convert_sequencer_get_snap_bound(t);

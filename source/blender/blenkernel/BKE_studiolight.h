@@ -29,7 +29,7 @@
 
 #include "BLI_path_util.h"
 
-#include "DNA_userdef_types.h"
+#include "DNA_userdef_types.h" /* for #SolidLight */
 
 #ifdef __cplusplus
 extern "C" {

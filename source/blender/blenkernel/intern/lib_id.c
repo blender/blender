@@ -37,6 +37,7 @@
 /* all types are needed here, in order to do memory operations */
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_node_types.h"
@@ -55,6 +56,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_armature.h"
+#include "BKE_asset.h"
 #include "BKE_bpath.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -2264,6 +2266,12 @@ bool BKE_id_is_in_global_main(ID *id)
   return (id == NULL || BLI_findindex(which_libbase(G_MAIN, GS(id->name)), id) != -1);
 }
 
+bool BKE_id_can_be_asset(const ID *id)
+{
+  return !ID_IS_LINKED(id) && !ID_IS_OVERRIDE_LIBRARY(id) &&
+         BKE_idtype_idcode_is_linkable(GS(id->name));
+}
+
 /************************* Datablock order in UI **************************/
 
 static int *id_order_get(ID *id)
@@ -2361,6 +2369,10 @@ void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after)
 
 void BKE_id_blend_write(BlendWriter *writer, ID *id)
 {
+  if (id->asset_data) {
+    BKE_asset_metadata_write(writer, id->asset_data);
+  }
+
   /* ID_WM's id->properties are considered runtime only, and never written in .blend file. */
   if (id->properties && !ELEM(GS(id->name), ID_WM)) {
     IDP_BlendWrite(writer, id->properties);

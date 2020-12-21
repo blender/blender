@@ -112,7 +112,8 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
         char *constName = BLI_str_quoted_substrN(fcu->rna_path, "constraints[");
 
         /* assemble the string to display in the UI... */
-        structname = BLI_sprintfN("%s : %s", pchanName, constName);
+        structname = BLI_sprintfN(
+            "%s : %s", pchanName ? pchanName : "", constName ? constName : "");
         free_structname = 1;
 
         /* free the temp names */

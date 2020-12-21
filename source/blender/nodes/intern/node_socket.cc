@@ -37,6 +37,8 @@
 #include "BKE_node.h"
 #include "BKE_persistent_data_handle.hh"
 
+#include "DNA_collection_types.h"
+
 #include "RNA_access.h"
 #include "RNA_types.h"
 
@@ -280,6 +282,15 @@ void node_socket_init_default_value(bNodeSocket *sock)
       sock->default_value = dval;
       break;
     }
+    case SOCK_COLLECTION: {
+      bNodeSocketValueCollection *dval = (bNodeSocketValueCollection *)MEM_callocN(
+          sizeof(bNodeSocketValueCollection), "node socket value object");
+      dval->value = nullptr;
+
+      sock->default_value = dval;
+      break;
+      break;
+    }
   }
 }
 
@@ -348,6 +359,13 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
     case SOCK_IMAGE: {
       bNodeSocketValueImage *toval = (bNodeSocketValueImage *)to->default_value;
       bNodeSocketValueImage *fromval = (bNodeSocketValueImage *)from->default_value;
+      *toval = *fromval;
+      id_us_plus(&toval->value->id);
+      break;
+    }
+    case SOCK_COLLECTION: {
+      bNodeSocketValueCollection *toval = (bNodeSocketValueCollection *)to->default_value;
+      bNodeSocketValueCollection *fromval = (bNodeSocketValueCollection *)from->default_value;
       *toval = *fromval;
       id_us_plus(&toval->value->id);
       break;
@@ -648,6 +666,7 @@ class ObjectSocketMultiFunction : public blender::fn::MultiFunction {
 };
 
 MAKE_CPP_TYPE(PersistentObjectHandle, blender::bke::PersistentObjectHandle);
+MAKE_CPP_TYPE(PersistentCollectionHandle, blender::bke::PersistentCollectionHandle);
 
 static bNodeSocketType *make_socket_type_object()
 {
@@ -669,6 +688,16 @@ static bNodeSocketType *make_socket_type_geometry()
   socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<GeometrySet>(); };
   socktype->get_cpp_value = [](const bNodeSocket &UNUSED(socket), void *r_value) {
     new (r_value) GeometrySet();
+  };
+  return socktype;
+}
+
+static bNodeSocketType *make_socket_type_collection()
+{
+  bNodeSocketType *socktype = make_standard_socket_type(SOCK_COLLECTION, PROP_NONE);
+  socktype->get_cpp_type = []() {
+    /* Objects are not passed along as raw pointers, but as handles. */
+    return &blender::fn::CPPType::get<blender::bke::PersistentCollectionHandle>();
   };
   return socktype;
 }
@@ -710,6 +739,8 @@ void register_standard_node_socket_types(void)
   nodeRegisterSocketType(make_standard_socket_type(SOCK_IMAGE, PROP_NONE));
 
   nodeRegisterSocketType(make_socket_type_geometry());
+
+  nodeRegisterSocketType(make_socket_type_collection());
 
   nodeRegisterSocketType(make_socket_type_virtual());
 }

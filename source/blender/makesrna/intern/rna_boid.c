@@ -183,7 +183,7 @@ static char *rna_BoidRule_path(PointerRNA *ptr)
   BoidRule *rule = (BoidRule *)ptr->data;
   char name_esc[sizeof(rule->name) * 2];
 
-  BLI_strescape(name_esc, rule->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, rule->name, sizeof(name_esc));
 
   return BLI_sprintfN("rules[\"%s\"]", name_esc); /* XXX not unique */
 }

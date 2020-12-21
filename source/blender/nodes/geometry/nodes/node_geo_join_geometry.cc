@@ -218,12 +218,12 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
   InstancesComponent &dst_component = result.get_component_for_write<InstancesComponent>();
   for (const InstancesComponent *component : src_components) {
     const int size = component->instances_amount();
-    Span<const Object *> objects = component->objects();
+    Span<InstancedData> instanced_data = component->instanced_data();
     Span<float3> positions = component->positions();
     Span<float3> rotations = component->rotations();
     Span<float3> scales = component->scales();
     for (const int i : IndexRange(size)) {
-      dst_component.add_instance(objects[i], positions[i], rotations[i], scales[i]);
+      dst_component.add_instance(instanced_data[i], positions[i], rotations[i], scales[i]);
     }
   }
 }

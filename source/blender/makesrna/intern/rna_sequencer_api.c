@@ -51,6 +51,10 @@
 #  include "IMB_imbuf.h"
 #  include "IMB_imbuf_types.h"
 
+#  include "SEQ_add.h"
+#  include "SEQ_edit.h"
+#  include "SEQ_relations.h"
+#  include "SEQ_render.h"
 #  include "SEQ_sequencer.h"
 
 #  include "WM_api.h"
@@ -58,11 +62,11 @@
 static void rna_Sequence_update_rnafunc(ID *id, Sequence *self, bool do_data)
 {
   if (do_data) {
-    BKE_sequencer_update_changed_seq_and_deps((Scene *)id, self, true, true);
+    SEQ_relations_update_changed_seq_and_deps((Scene *)id, self, true, true);
     // new_tstripdata(self); /* need 2.6x version of this. */
   }
-  BKE_sequence_calc((Scene *)id, self);
-  BKE_sequence_calc_disp((Scene *)id, self);
+  SEQ_time_update_sequence((Scene *)id, self);
+  SEQ_time_update_sequence_bounds((Scene *)id, self);
 }
 
 static void rna_Sequence_swap_internal(Sequence *seq_self,
@@ -71,7 +75,7 @@ static void rna_Sequence_swap_internal(Sequence *seq_self,
 {
   const char *error_msg;
 
-  if (BKE_sequence_swap(seq_self, seq_other, &error_msg) == 0) {
+  if (SEQ_edit_sequence_swap(seq_self, seq_other, &error_msg) == 0) {
     BKE_report(reports, RPT_ERROR, error_msg);
   }
 }
@@ -82,10 +86,10 @@ static Sequence *alloc_generic_sequence(
   Sequence *seq;
   StripElem *se;
 
-  seq = BKE_sequence_alloc(seqbase, frame_start, channel, type);
+  seq = SEQ_sequence_alloc(seqbase, frame_start, channel, type);
 
   BLI_strncpy(seq->name + 2, name, sizeof(seq->name) - 2);
-  BKE_sequence_base_unique_name_recursive(seqbase, seq);
+  SEQ_sequence_base_unique_name_recursive(seqbase, seq);
 
   Strip *strip = seq->strip;
 
@@ -121,7 +125,7 @@ static Sequence *rna_Sequences_new_clip(ID *id,
   seq->len = BKE_movieclip_get_duration(clip);
   id_us_plus((ID *)clip);
 
-  BKE_sequence_calc_disp(scene, seq);
+  SEQ_time_update_sequence_bounds(scene, seq);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -168,8 +172,8 @@ static Sequence *rna_Sequences_new_mask(ID *id,
   seq->len = BKE_mask_get_duration(mask);
   id_us_plus((ID *)mask);
 
-  BKE_sequence_calc_disp(scene, seq);
-  BKE_sequence_invalidate_cache_composite(scene, seq);
+  SEQ_time_update_sequence_bounds(scene, seq);
+  SEQ_relations_invalidate_cache_composite(scene, seq);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -205,8 +209,8 @@ static Sequence *rna_Sequences_new_scene(ID *id,
   seq->len = sce_seq->r.efra - sce_seq->r.sfra + 1;
   id_us_plus((ID *)sce_seq);
 
-  BKE_sequence_calc_disp(scene, seq);
-  BKE_sequence_invalidate_cache_composite(scene, seq);
+  SEQ_time_update_sequence_bounds(scene, seq);
+  SEQ_relations_invalidate_cache_composite(scene, seq);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -255,12 +259,12 @@ static Sequence *rna_Sequences_new_image(ID *id,
   if (seq->strip->stripdata->name[0] == '\0') {
     BKE_report(reports, RPT_ERROR, "Sequences.new_image: unable to open image file");
     BLI_remlink(seqbase, seq);
-    BKE_sequence_free(scene, seq, true);
+    SEQ_sequence_free(scene, seq, true);
     return NULL;
   }
 
-  BKE_sequence_calc_disp(scene, seq);
-  BKE_sequence_invalidate_cache_composite(scene, seq);
+  SEQ_time_update_sequence_bounds(scene, seq);
+  SEQ_relations_invalidate_cache_composite(scene, seq);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -318,8 +322,8 @@ static Sequence *rna_Sequences_new_movie(
     seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
   }
 
-  BKE_sequence_calc_disp(scene, seq);
-  BKE_sequence_invalidate_cache_composite(scene, seq);
+  SEQ_time_update_sequence_bounds(scene, seq);
+  SEQ_relations_invalidate_cache_composite(scene, seq);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
@@ -365,7 +369,7 @@ static Sequence *rna_Sequences_new_sound(ID *id,
   seq->sound = sound;
   seq->len = ceil((double)info.length * FPS);
 
-  BKE_sequence_calc_disp(scene, seq);
+  SEQ_time_update_sequence_bounds(scene, seq);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -429,7 +433,7 @@ static Sequence *rna_Sequences_new_effect(ID *id,
   Scene *scene = (Scene *)id;
   Sequence *seq;
   struct SeqEffectHandle sh;
-  int num_inputs = BKE_sequence_effect_get_num_inputs(type);
+  int num_inputs = SEQ_effect_get_num_inputs(type);
 
   switch (num_inputs) {
     case 0:
@@ -467,7 +471,7 @@ static Sequence *rna_Sequences_new_effect(ID *id,
 
   seq = alloc_generic_sequence(seqbase, name, frame_start, channel, type, NULL);
 
-  sh = BKE_sequence_get_effect(seq);
+  sh = SEQ_effect_handle_get(seq);
 
   seq->seq1 = seq1;
   seq->seq2 = seq2;
@@ -477,14 +481,14 @@ static Sequence *rna_Sequences_new_effect(ID *id,
 
   if (!seq1) { /* effect has no deps */
     seq->len = 1;
-    BKE_sequence_tx_set_final_right(seq, frame_end);
+    SEQ_transform_set_right_handle_frame(seq, frame_end);
   }
 
   seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
 
-  BKE_sequence_calc(scene, seq);
-  BKE_sequence_calc_disp(scene, seq);
-  BKE_sequence_invalidate_cache_composite(scene, seq);
+  SEQ_time_update_sequence(scene, seq);
+  SEQ_time_update_sequence_bounds(scene, seq);
+  SEQ_relations_invalidate_cache_composite(scene, seq);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
@@ -536,8 +540,8 @@ static void rna_Sequences_remove(
     return;
   }
 
-  BKE_sequencer_flag_for_removal(scene, seqbase, seq);
-  BKE_sequencer_remove_flagged_sequences(scene, seqbase);
+  SEQ_edit_flag_for_removal(scene, seqbase, seq);
+  SEQ_edit_remove_flagged_sequences(scene, seqbase);
   RNA_POINTER_INVALIDATE(seq_ptr);
 
   DEG_relations_tag_update(bmain);
@@ -568,7 +572,7 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
   BLI_strncpy(se->name, filename, sizeof(se->name));
   seq->len++;
 
-  BKE_sequence_calc_disp(scene, seq);
+  SEQ_time_update_sequence_bounds(scene, seq);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return se;
@@ -609,7 +613,7 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
   MEM_freeN(seq->strip->stripdata);
   seq->strip->stripdata = new_seq;
 
-  BKE_sequence_calc_disp(scene, seq);
+  SEQ_time_update_sequence_bounds(scene, seq);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
@@ -618,13 +622,13 @@ static void rna_Sequence_invalidate_cache_rnafunc(ID *id, Sequence *self, int ty
 {
   switch (type) {
     case SEQ_CACHE_STORE_RAW:
-      BKE_sequence_invalidate_cache_raw((Scene *)id, self);
+      SEQ_relations_invalidate_cache_raw((Scene *)id, self);
       break;
     case SEQ_CACHE_STORE_PREPROCESSED:
-      BKE_sequence_invalidate_cache_preprocessed((Scene *)id, self);
+      SEQ_relations_invalidate_cache_preprocessed((Scene *)id, self);
       break;
     case SEQ_CACHE_STORE_COMPOSITE:
-      BKE_sequence_invalidate_cache_composite((Scene *)id, self);
+      SEQ_relations_invalidate_cache_composite((Scene *)id, self);
       break;
   }
 }

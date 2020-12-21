@@ -142,7 +142,11 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
     list(APPEND INC_SYS
       ${SDL_INCLUDE_DIR}
     )
-    if(NOT WITH_SDL_DYNLOAD)
+    if(WITH_SDL_DYNLOAD)
+      list(APPEND LIB
+        extern_sdlew
+      )
+    else()
       list(APPEND LIB
         ${SDL_LIBRARY}
       )
@@ -181,6 +185,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
   if(WITH_GHOST_X11)
     list(APPEND INC_SYS
       ${X11_X11_INCLUDE_PATH}
+    )
+
+    list(APPEND LIB
+      ${X11_X11_LIB}
+      ${X11_Xrender_LIB}
     )
 
     list(APPEND SRC
@@ -234,12 +243,18 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       list(APPEND INC_SYS
         ${X11_xf86vmode_INCLUDE_PATH}
       )
+      list(APPEND LIB
+        ${X11_Xf86vmode_LIB}
+      )
     endif()
 
     if(WITH_X11_XFIXES)
       add_definitions(-DWITH_X11_XFIXES)
       list(APPEND INC_SYS
         ${X11_Xfixes_INCLUDE_PATH}
+      )
+      list(APPEND LIB
+        ${X11_Xfixes_LIB}
       )
     endif()
 
@@ -251,6 +266,9 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       add_definitions(-DWITH_X11_XINPUT)
       list(APPEND INC_SYS
         ${X11_Xinput_INCLUDE_PATH}
+      )
+      list(APPEND LIB
+        ${X11_Xinput_LIB}
       )
     endif()
 

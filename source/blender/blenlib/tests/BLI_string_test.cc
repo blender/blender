@@ -27,14 +27,14 @@ TEST(string, StrPartition)
 {
   const char delim[] = {'-', '.', '_', '~', '\\', '\0'};
   const char *sep, *suf;
-  size_t pre_ln;
+  size_t pre_len;
 
   {
     const char *str = "mat.e-r_ial";
 
     /* "mat.e-r_ial" -> "mat", '.', "e-r_ial", 3 */
-    pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 3);
+    pre_len = BLI_str_partition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 3);
     EXPECT_EQ(&str[3], sep);
     EXPECT_STREQ("e-r_ial", suf);
   }
@@ -44,8 +44,8 @@ TEST(string, StrPartition)
     const char *str = ".mate-rial--";
 
     /* ".mate-rial--" -> "", '.', "mate-rial--", 0 */
-    pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 0);
+    pre_len = BLI_str_partition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(&str[0], sep);
     EXPECT_STREQ("mate-rial--", suf);
   }
@@ -54,8 +54,8 @@ TEST(string, StrPartition)
     const char *str = ".__.--_";
 
     /* ".__.--_" -> "", '.', "__.--_", 0 */
-    pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 0);
+    pre_len = BLI_str_partition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(&str[0], sep);
     EXPECT_STREQ("__.--_", suf);
   }
@@ -64,8 +64,8 @@ TEST(string, StrPartition)
     const char *str = "";
 
     /* "" -> "", NULL, NULL, 0 */
-    pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 0);
+    pre_len = BLI_str_partition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -74,8 +74,8 @@ TEST(string, StrPartition)
     const char *str = "material";
 
     /* "material" -> "material", NULL, NULL, 8 */
-    pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 8);
+    pre_len = BLI_str_partition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -86,14 +86,14 @@ TEST(string, StrRPartition)
 {
   const char delim[] = {'-', '.', '_', '~', '\\', '\0'};
   const char *sep, *suf;
-  size_t pre_ln;
+  size_t pre_len;
 
   {
     const char *str = "mat.e-r_ial";
 
     /* "mat.e-r_ial" -> "mat.e-r", '_', "ial", 7 */
-    pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 7);
+    pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 7);
     EXPECT_EQ(&str[7], sep);
     EXPECT_STREQ("ial", suf);
   }
@@ -103,8 +103,8 @@ TEST(string, StrRPartition)
     const char *str = ".mate-rial--";
 
     /* ".mate-rial--" -> ".mate-rial-", '-', "", 11 */
-    pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 11);
+    pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 11);
     EXPECT_EQ(&str[11], sep);
     EXPECT_STREQ("", suf);
   }
@@ -113,8 +113,8 @@ TEST(string, StrRPartition)
     const char *str = ".__.--_";
 
     /* ".__.--_" -> ".__.--", '_', "", 6 */
-    pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 6);
+    pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 6);
     EXPECT_EQ(&str[6], sep);
     EXPECT_STREQ("", suf);
   }
@@ -123,8 +123,8 @@ TEST(string, StrRPartition)
     const char *str = "";
 
     /* "" -> "", NULL, NULL, 0 */
-    pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 0);
+    pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -133,8 +133,8 @@ TEST(string, StrRPartition)
     const char *str = "material";
 
     /* "material" -> "material", NULL, NULL, 8 */
-    pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 8);
+    pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -145,7 +145,7 @@ TEST(string, StrPartitionEx)
 {
   const char delim[] = {'-', '.', '_', '~', '\\', '\0'};
   const char *sep, *suf;
-  size_t pre_ln;
+  size_t pre_len;
 
   /* Only considering 'from_right' cases here. */
 
@@ -153,8 +153,8 @@ TEST(string, StrPartitionEx)
     const char *str = "mat.e-r_ia.l";
 
     /* "mat.e-r_ia.l" over "mat.e-r" -> "mat.e", '.', "r_ia.l", 3 */
-    pre_ln = BLI_str_partition_ex(str, str + 6, delim, &sep, &suf, true);
-    EXPECT_EQ(pre_ln, 5);
+    pre_len = BLI_str_partition_ex(str, str + 6, delim, &sep, &suf, true);
+    EXPECT_EQ(pre_len, 5);
     EXPECT_EQ(&str[5], sep);
     EXPECT_STREQ("r_ia.l", suf);
   }
@@ -164,8 +164,8 @@ TEST(string, StrPartitionEx)
     const char *str = "mate.rial";
 
     /* "mate.rial" over "mate" -> "mate.rial", NULL, NULL, 4 */
-    pre_ln = BLI_str_partition_ex(str, str + 4, delim, &sep, &suf, true);
-    EXPECT_EQ(pre_ln, 4);
+    pre_len = BLI_str_partition_ex(str, str + 4, delim, &sep, &suf, true);
+    EXPECT_EQ(pre_len, 4);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -176,14 +176,14 @@ TEST(string, StrPartitionUtf8)
 {
   const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
   const char *sep, *suf;
-  size_t pre_ln;
+  size_t pre_len;
 
   {
     const char *str = "ma\xc3\xb1te-r\xe2\x98\xafial";
 
     /* "ma\xc3\xb1te-r\xe2\x98\xafial" -> "ma", '\xc3\xb1', "te-r\xe2\x98\xafial", 2 */
-    pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 2);
+    pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 2);
     EXPECT_EQ(&str[2], sep);
     EXPECT_STREQ("te-r\xe2\x98\xafial", suf);
   }
@@ -193,8 +193,8 @@ TEST(string, StrPartitionUtf8)
     const char *str = "\xe2\x98\xafmate-rial-\xc3\xb1";
 
     /* "\xe2\x98\xafmate-rial-\xc3\xb1" -> "", '\xe2\x98\xaf', "mate-rial-\xc3\xb1", 0 */
-    pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 0);
+    pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(&str[0], sep);
     EXPECT_STREQ("mate-rial-\xc3\xb1", suf);
   }
@@ -203,8 +203,8 @@ TEST(string, StrPartitionUtf8)
     const char *str = "\xe2\x98\xaf.\xc3\xb1_.--\xc3\xb1";
 
     /* "\xe2\x98\xaf.\xc3\xb1_.--\xc3\xb1" -> "", '\xe2\x98\xaf', ".\xc3\xb1_.--\xc3\xb1", 0 */
-    pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 0);
+    pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(&str[0], sep);
     EXPECT_STREQ(".\xc3\xb1_.--\xc3\xb1", suf);
   }
@@ -213,8 +213,8 @@ TEST(string, StrPartitionUtf8)
     const char *str = "";
 
     /* "" -> "", NULL, NULL, 0 */
-    pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 0);
+    pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -223,8 +223,8 @@ TEST(string, StrPartitionUtf8)
     const char *str = "material";
 
     /* "material" -> "material", NULL, NULL, 8 */
-    pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 8);
+    pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -235,14 +235,14 @@ TEST(string, StrRPartitionUtf8)
 {
   const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
   const char *sep, *suf;
-  size_t pre_ln;
+  size_t pre_len;
 
   {
     const char *str = "ma\xc3\xb1te-r\xe2\x98\xafial";
 
     /* "ma\xc3\xb1te-r\xe2\x98\xafial" -> "mat\xc3\xb1te-r", '\xe2\x98\xaf', "ial", 8 */
-    pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 8);
+    pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(&str[8], sep);
     EXPECT_STREQ("ial", suf);
   }
@@ -252,8 +252,8 @@ TEST(string, StrRPartitionUtf8)
     const char *str = "\xe2\x98\xafmate-rial-\xc3\xb1";
 
     /* "\xe2\x98\xafmate-rial-\xc3\xb1" -> "\xe2\x98\xafmate-rial-", '\xc3\xb1', "", 13 */
-    pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 13);
+    pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 13);
     EXPECT_EQ(&str[13], sep);
     EXPECT_STREQ("", suf);
   }
@@ -262,8 +262,8 @@ TEST(string, StrRPartitionUtf8)
     const char *str = "\xe2\x98\xaf.\xc3\xb1_.--\xc3\xb1";
 
     /* "\xe2\x98\xaf.\xc3\xb1_.--\xc3\xb1" -> "\xe2\x98\xaf.\xc3\xb1_.--", '\xc3\xb1', "", 10 */
-    pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 10);
+    pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 10);
     EXPECT_EQ(&str[10], sep);
     EXPECT_STREQ("", suf);
   }
@@ -272,8 +272,8 @@ TEST(string, StrRPartitionUtf8)
     const char *str = "";
 
     /* "" -> "", NULL, NULL, 0 */
-    pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 0);
+    pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -282,8 +282,8 @@ TEST(string, StrRPartitionUtf8)
     const char *str = "material";
 
     /* "material" -> "material", NULL, NULL, 8 */
-    pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-    EXPECT_EQ(pre_ln, 8);
+    pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
+    EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -294,7 +294,7 @@ TEST(string, StrPartitionExUtf8)
 {
   const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
   const char *sep, *suf;
-  size_t pre_ln;
+  size_t pre_len;
 
   /* Only considering 'from_right' cases here. */
 
@@ -303,8 +303,8 @@ TEST(string, StrPartitionExUtf8)
 
     /* "ma\xc3\xb1te-r\xe2\x98\xafial" over
      * "ma\xc3\xb1te" -> "ma", '\xc3\xb1', "te-r\xe2\x98\xafial", 2 */
-    pre_ln = BLI_str_partition_ex_utf8(str, str + 6, delim, &sep, &suf, true);
-    EXPECT_EQ(pre_ln, 2);
+    pre_len = BLI_str_partition_ex_utf8(str, str + 6, delim, &sep, &suf, true);
+    EXPECT_EQ(pre_len, 2);
     EXPECT_EQ(&str[2], sep);
     EXPECT_STREQ("te-r\xe2\x98\xafial", suf);
   }
@@ -314,8 +314,8 @@ TEST(string, StrPartitionExUtf8)
     const char *str = "mate\xe2\x98\xafrial";
 
     /* "mate\xe2\x98\xafrial" over "mate" -> "mate\xe2\x98\xafrial", NULL, NULL, 4 */
-    pre_ln = BLI_str_partition_ex_utf8(str, str + 4, delim, &sep, &suf, true);
-    EXPECT_EQ(pre_ln, 4);
+    pre_len = BLI_str_partition_ex_utf8(str, str + 4, delim, &sep, &suf, true);
+    EXPECT_EQ(pre_len, 4);
     EXPECT_EQ(sep, (void *)nullptr);
     EXPECT_EQ(suf, (void *)nullptr);
   }
@@ -801,4 +801,77 @@ TEST_F(StringCasecmpNatural, TextAndNumbers)
   testReturnsZeroForAll(equal);
   testReturnsLessThanZeroForAll(negative);
   testReturnsMoreThanZeroForAll(positive);
+}
+
+/* BLI_str_escape, BLI_str_unescape */
+
+class StringEscape : public testing::Test {
+ protected:
+  StringEscape()
+  {
+  }
+
+  using CompareWordsArray = vector<std::array<const char *, 2>>;
+
+  void testEscapeWords(const CompareWordsArray &items)
+  {
+    size_t dst_test_len;
+    char dst_test[64];
+    for (const auto &item : items) {
+      /* Escape the string. */
+      dst_test_len = BLI_str_escape(dst_test, item[0], SIZE_MAX);
+      EXPECT_STREQ(dst_test, item[1]);
+      EXPECT_EQ(dst_test_len, strlen(dst_test));
+      /* Escape back. */
+      dst_test_len = BLI_str_unescape(dst_test, item[1], strlen(item[1]));
+      EXPECT_STREQ(dst_test, item[0]);
+      EXPECT_EQ(dst_test_len, strlen(dst_test));
+    }
+  }
+};
+
+TEST_F(StringEscape, Simple)
+{
+  const CompareWordsArray equal{
+      {"", ""},
+      {"/", "/"},
+      {"'", "'"},
+      {"?", "?"},
+  };
+
+  const CompareWordsArray escaped{
+      {"\\", "\\\\"},
+      {"A\\", "A\\\\"},
+      {"\\A", "\\\\A"},
+      {"A\\B", "A\\\\B"},
+      {"?", "?"},
+      {"\"\\", "\\\"\\\\"},
+      {"\\\"", "\\\\\\\""},
+      {"\"\\\"", "\\\"\\\\\\\""},
+
+      {"\"\"\"", "\\\"\\\"\\\""},
+      {"\\\\\\", "\\\\\\\\\\\\"},
+  };
+
+  testEscapeWords(equal);
+  testEscapeWords(escaped);
+}
+
+TEST_F(StringEscape, Control)
+{
+  const CompareWordsArray escaped{
+      {"\n", "\\n"},
+      {"\r", "\\r"},
+      {"\t", "\\t"},
+      {"\a", "\\a"},
+      {"\b", "\\b"},
+      {"\f", "\\f"},
+      {"A\n", "A\\n"},
+      {"\nA", "\\nA"},
+      {"\n\r\t\a\b\f", "\\n\\r\\t\\a\\b\\f"},
+      {"\n_\r_\t_\a_\b_\f", "\\n_\\r_\\t_\\a_\\b_\\f"},
+      {"\n\\\r\\\t\\\a\\\b\\\f", "\\n\\\\\\r\\\\\\t\\\\\\a\\\\\\b\\\\\\f"},
+  };
+
+  testEscapeWords(escaped);
 }

@@ -68,7 +68,7 @@ ListBase TreeDisplayIDOrphans::buildTree(const TreeSourceData &source_data)
     TreeElement *te = nullptr;
     if (!filter_id_type) {
       ID *id = (ID *)lbarray[a]->first;
-      te = outliner_add_element(&space_outliner_, &tree, lbarray[a], NULL, TSE_ID_BASE, 0);
+      te = outliner_add_element(&space_outliner_, &tree, lbarray[a], nullptr, TSE_ID_BASE, 0);
       te->directdata = lbarray[a];
       te->name = outliner_idcode_to_plural(GS(id->name));
     }

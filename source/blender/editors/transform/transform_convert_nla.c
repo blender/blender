@@ -462,6 +462,12 @@ void recalcData_nla(TransInfo *t)
      * - we need to calculate both,
      *   as only one may have been altered by transform if only 1 handle moved.
      */
+    /* In LibOverride case, we cannot move strips across tracks that come from the linked data. */
+    const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(tdn->id);
+    if (BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, tdn->nlt)) {
+      continue;
+    }
+
     delta_y1 = ((int)tdn->h1[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
     delta_y2 = ((int)tdn->h2[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
 
@@ -477,10 +483,11 @@ void recalcData_nla(TransInfo *t)
       if (delta > 0) {
         for (track = tdn->nlt->next, n = 0; (track) && (n < delta); track = track->next, n++) {
           /* check if space in this track for the strip */
-          if (BKE_nlatrack_has_space(track, strip->start, strip->end)) {
+          if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
+              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, tdn->nlt)) {
             /* move strip to this track */
             BLI_remlink(&tdn->nlt->strips, strip);
-            BKE_nlatrack_add_strip(track, strip);
+            BKE_nlatrack_add_strip(track, strip, is_liboverride);
 
             tdn->nlt = track;
             tdn->trackIndex++;
@@ -496,10 +503,11 @@ void recalcData_nla(TransInfo *t)
 
         for (track = tdn->nlt->prev, n = 0; (track) && (n < delta); track = track->prev, n++) {
           /* check if space in this track for the strip */
-          if (BKE_nlatrack_has_space(track, strip->start, strip->end)) {
+          if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
+              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, tdn->nlt)) {
             /* move strip to this track */
             BLI_remlink(&tdn->nlt->strips, strip);
-            BKE_nlatrack_add_strip(track, strip);
+            BKE_nlatrack_add_strip(track, strip, is_liboverride);
 
             tdn->nlt = track;
             tdn->trackIndex--;

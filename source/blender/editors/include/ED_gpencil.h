@@ -51,7 +51,6 @@ struct ScrArea;
 struct SnapObjectContext;
 struct ToolSettings;
 struct View3D;
-struct ViewLayer;
 struct bContext;
 
 struct Material;

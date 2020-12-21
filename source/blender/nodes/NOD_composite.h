@@ -56,6 +56,7 @@ void register_node_type_cmp_mix_rgb(void);
 void register_node_type_cmp_hue_sat(void);
 void register_node_type_cmp_brightcontrast(void);
 void register_node_type_cmp_gamma(void);
+void register_node_type_cmp_exposure(void);
 void register_node_type_cmp_invert(void);
 void register_node_type_cmp_alphaover(void);
 void register_node_type_cmp_zcombine(void);

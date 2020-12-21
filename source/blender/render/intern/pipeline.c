@@ -88,7 +88,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_relations.h"
+#include "SEQ_render.h"
 
 #include "../../windowmanager/WM_api.h"    /* XXX */
 #include "../../windowmanager/wm_window.h" /* XXX */
@@ -905,7 +906,7 @@ static void render_result_rescale(Render *re)
 
   if (src_rectf != NULL) {
     float *dst_rectf = NULL;
-    re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, "");
+    re->result = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, "");
 
     if (re->result != NULL) {
       dst_rectf = RE_RenderViewGetById(re->result, 0)->rectf;
@@ -1162,7 +1163,7 @@ static void render_result_uncrop(Render *re)
       /* weak is: it chances disprect from border */
       render_result_disprect_to_full_resolution(re);
 
-      rres = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+      rres = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
       rres->stamp_data = BKE_stamp_data_copy(re->result->stamp_data);
 
       render_result_clone_passes(re, rres, NULL);
@@ -1358,7 +1359,7 @@ static void do_render_composite(Render *re)
     if ((re->r.mode & R_CROP) == 0) {
       render_result_disprect_to_full_resolution(re);
     }
-    re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+    re->result = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
 
     BLI_rw_mutex_unlock(&re->resultmutex);
 
@@ -1548,7 +1549,7 @@ static void do_render_seq(Render *re)
       if (recurs_depth == 0) { /* With nested scenes, only free on top-level. */
         Editing *ed = re->pipeline_scene_eval->ed;
         if (ed) {
-          BKE_sequencer_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);
+          SEQ_relations_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);
         }
       }
       IMB_freeImBuf(ibuf_arr[view_id]);
@@ -1596,7 +1597,7 @@ static void do_render_all_options(Render *re)
 
   /* ensure no images are in memory from previous animated sequences */
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
-  BKE_sequencer_all_free_anim_ibufs(re->scene, re->r.cfra);
+  SEQ_relations_free_all_anim_ibufs(re->scene, re->r.cfra);
 
   if (RE_engine_render(re, 1)) {
     /* in this case external render overrides all */

@@ -31,6 +31,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_asset.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
@@ -62,6 +63,10 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
   if (id->override_library) {
     BKE_lib_override_library_free(&id->override_library, do_id_user);
     id->override_library = NULL;
+  }
+
+  if (id->asset_data) {
+    BKE_asset_metadata_free(&id->asset_data);
   }
 
   BKE_animdata_free(id, do_id_user);

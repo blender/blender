@@ -36,7 +36,9 @@
 
 #include "IMB_imbuf.h"
 
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "strip_time.h"
 #include "utils.h"
@@ -142,7 +144,7 @@ void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
       scene, metaseq, metaseq_start(metaseq), metaseq_end(metaseq));
 }
 
-void BKE_sequence_calc_disp(Scene *scene, Sequence *seq)
+void SEQ_time_update_sequence_bounds(Scene *scene, Sequence *seq)
 {
   if (seq->startofs && seq->startstill) {
     seq->startstill = 0;
@@ -159,7 +161,7 @@ void BKE_sequence_calc_disp(Scene *scene, Sequence *seq)
   }
 }
 
-void BKE_sequence_calc(Scene *scene, Sequence *seq)
+void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
 {
   Sequence *seqm;
   int min, max;
@@ -168,7 +170,7 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
   seqm = seq->seqbase.first;
   while (seqm) {
     if (seqm->seqbase.first) {
-      BKE_sequence_calc(scene, seqm);
+      SEQ_time_update_sequence(scene, seqm);
     }
     seqm = seqm->next;
   }
@@ -206,7 +208,7 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
       seq->len = seq->enddisp - seq->startdisp;
     }
     else {
-      BKE_sequence_calc_disp(scene, seq);
+      SEQ_time_update_sequence_bounds(scene, seq);
     }
   }
   else {
@@ -231,12 +233,12 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
       }
       seq_update_sound_bounds_recursive(scene, seq);
     }
-    BKE_sequence_calc_disp(scene, seq);
+    SEQ_time_update_sequence_bounds(scene, seq);
   }
 }
 
 /** Comparison function suitable to be used with BLI_listbase_sort()... */
-int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b)
+int SEQ_time_cmp_time_startdisp(const void *a, const void *b)
 {
   const Sequence *seq_a = a;
   const Sequence *seq_b = b;
@@ -244,14 +246,14 @@ int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b)
   return (seq_a->startdisp > seq_b->startdisp);
 }
 
-int BKE_sequencer_find_next_prev_edit(Scene *scene,
-                                      int timeline_frame,
-                                      const short side,
-                                      const bool do_skip_mute,
-                                      const bool do_center,
-                                      const bool do_unselected)
+int SEQ_time_find_next_prev_edit(Scene *scene,
+                                 int timeline_frame,
+                                 const short side,
+                                 const bool do_skip_mute,
+                                 const bool do_center,
+                                 const bool do_unselected)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene, false);
   Sequence *seq;
 
   int dist, best_dist, best_frame = timeline_frame;
@@ -319,7 +321,7 @@ int BKE_sequencer_find_next_prev_edit(Scene *scene,
   return best_frame;
 }
 
-float BKE_sequence_get_fps(Scene *scene, Sequence *seq)
+float SEQ_time_sequence_get_fps(Scene *scene, Sequence *seq)
 {
   switch (seq->type) {
     case SEQ_TYPE_MOVIE: {
@@ -350,4 +352,86 @@ float BKE_sequence_get_fps(Scene *scene, Sequence *seq)
       break;
   }
   return 0.0f;
+}
+
+/**
+ * Define boundary rectangle of sequencer timeline and fill in rect data
+ *
+ * \param scene: Scene in which strips are located
+ * \param seqbase: ListBase in which strips are located
+ * \param rect: data structure describing rectangle, that will be filled in by this function
+ */
+void SEQ_timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *rect)
+{
+  rect->xmin = scene->r.sfra;
+  rect->xmax = scene->r.efra + 1;
+  rect->ymin = 0.0f;
+  rect->ymax = 8.0f;
+
+  if (seqbase == NULL) {
+    return;
+  }
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (rect->xmin > seq->startdisp - 1) {
+      rect->xmin = seq->startdisp - 1;
+    }
+    if (rect->xmax < seq->enddisp + 1) {
+      rect->xmax = seq->enddisp + 1;
+    }
+    if (rect->ymax < seq->machine + 2) {
+      rect->ymax = seq->machine + 2;
+    }
+  }
+}
+
+/**
+ * Find first gap between strips after initial_frame and describe it by filling data of r_gap_info
+ *
+ * \param scene: Scene in which strips are located
+ * \param seqbase: ListBase in which strips are located
+ * \param initial_frame: frame on timeline from where gaps are searched for
+ * \param r_gap_info: data structure describing gap, that will be filled in by this function
+ */
+void seq_time_gap_info_get(const Scene *scene,
+                           ListBase *seqbase,
+                           const int initial_frame,
+                           GapInfo *r_gap_info)
+{
+  rctf rectf;
+  /* Get first and last frame. */
+  SEQ_timeline_boundbox(scene, seqbase, &rectf);
+  const int sfra = (int)rectf.xmin;
+  const int efra = (int)rectf.xmax;
+  int timeline_frame = initial_frame;
+  r_gap_info->gap_exists = false;
+
+  if (SEQ_render_evaluate_frame(seqbase, initial_frame) == 0) {
+    /* Search backward for gap_start_frame. */
+    for (; timeline_frame >= sfra; timeline_frame--) {
+      if (SEQ_render_evaluate_frame(seqbase, timeline_frame) != 0) {
+        break;
+      }
+    }
+    r_gap_info->gap_start_frame = timeline_frame + 1;
+    timeline_frame = initial_frame;
+  }
+  else {
+    /* Search forward for gap_start_frame. */
+    for (; timeline_frame <= efra; timeline_frame++) {
+      if (SEQ_render_evaluate_frame(seqbase, timeline_frame) == 0) {
+        r_gap_info->gap_start_frame = timeline_frame;
+        break;
+      }
+    }
+  }
+  /* Search forward for gap_end_frame. */
+  for (; timeline_frame <= efra; timeline_frame++) {
+    if (SEQ_render_evaluate_frame(seqbase, timeline_frame) != 0) {
+      const int gap_end_frame = timeline_frame;
+      r_gap_info->gap_length = gap_end_frame - r_gap_info->gap_start_frame;
+      r_gap_info->gap_exists = true;
+      break;
+    }
+  }
 }

@@ -22,6 +22,7 @@
  */
 
 #include "GHOST_SystemPathsWin32.h"
+#include "GHOST_Debug.h"
 
 #ifndef _WIN32_IE
 #  define _WIN32_IE 0x0501
@@ -73,6 +74,50 @@ const GHOST_TUns8 *GHOST_SystemPathsWin32::getUserDir(int, const char *versionst
     return (GHOST_TUns8 *)knownpath;
   }
 
+  return NULL;
+}
+
+const GHOST_TUns8 *GHOST_SystemPathsWin32::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
+{
+  GUID folderid;
+
+  switch (type) {
+    case GHOST_kUserSpecialDirDesktop:
+      folderid = FOLDERID_Desktop;
+      break;
+    case GHOST_kUserSpecialDirDocuments:
+      folderid = FOLDERID_Documents;
+      break;
+    case GHOST_kUserSpecialDirDownloads:
+      folderid = FOLDERID_Downloads;
+      break;
+    case GHOST_kUserSpecialDirMusic:
+      folderid = FOLDERID_Music;
+      break;
+    case GHOST_kUserSpecialDirPictures:
+      folderid = FOLDERID_Pictures;
+      break;
+    case GHOST_kUserSpecialDirVideos:
+      folderid = FOLDERID_Videos;
+      break;
+    default:
+      GHOST_ASSERT(
+          false,
+          "GHOST_SystemPathsWin32::getUserSpecialDir(): Invalid enum value for type parameter");
+      return NULL;
+  }
+
+  static char knownpath[MAX_PATH * 3] = {0};
+  PWSTR knownpath_16 = NULL;
+  HRESULT hResult = SHGetKnownFolderPath(folderid, KF_FLAG_DEFAULT, NULL, &knownpath_16);
+
+  if (hResult == S_OK) {
+    conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
+    CoTaskMemFree(knownpath_16);
+    return (GHOST_TUns8 *)knownpath;
+  }
+
+  CoTaskMemFree(knownpath_16);
   return NULL;
 }
 

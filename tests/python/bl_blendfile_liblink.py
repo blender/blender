@@ -21,6 +21,7 @@ class TestBlendLibLinkSaveLoadBasic(TestHelper):
 
         output_dir = self.args.output_dir
         self.ensure_path(output_dir)
+        # Take care to keep the name unique so multiple test jobs can run at once.
         output_path = os.path.join(output_dir, "blendlib.blend")
 
         bpy.ops.wm.save_as_mainfile(filepath=output_path, check_existing=False, compress=False)

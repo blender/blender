@@ -31,7 +31,6 @@ extern "C" {
 #endif
 
 struct ARegion;
-struct Main;
 struct bContext;
 struct wmEvent;
 struct wmOperator;

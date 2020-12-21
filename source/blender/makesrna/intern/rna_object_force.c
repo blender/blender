@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "DNA_cloth_types.h"
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
@@ -154,7 +155,7 @@ static char *rna_PointCache_path(PointerRNA *ptr)
     }
 
     char name_esc[sizeof(md->name) * 2];
-    BLI_strescape(name_esc, md->name, sizeof(name_esc));
+    BLI_str_escape(name_esc, md->name, sizeof(name_esc));
 
     switch (md->type) {
       case eModifierType_ParticleSystem: {
@@ -171,7 +172,7 @@ static char *rna_PointCache_path(PointerRNA *ptr)
           for (; surface; surface = surface->next) {
             if (surface->pointcache == cache) {
               char name_surface_esc[sizeof(surface->name) * 2];
-              BLI_strescape(name_surface_esc, surface->name, sizeof(name_surface_esc));
+              BLI_str_escape(name_surface_esc, surface->name, sizeof(name_surface_esc));
               return BLI_sprintfN(
                   "modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"].point_cache",
                   name_esc,
@@ -436,7 +437,7 @@ static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
   if (md) {
     char name_esc[sizeof(md->name) * 2];
 
-    BLI_strescape(name_esc, md->name, sizeof(name_esc));
+    BLI_str_escape(name_esc, md->name, sizeof(name_esc));
     return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
   }
   else {
@@ -608,7 +609,7 @@ static char *rna_SoftBodySettings_path(PointerRNA *ptr)
   ModifierData *md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Softbody);
   char name_esc[sizeof(md->name) * 2];
 
-  BLI_strescape(name_esc, md->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
 }
 
@@ -797,7 +798,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
       /* no pointer from modifier data to actual softbody storage, would be good to add */
       if (ob->soft->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
-        BLI_strescape(name_esc, md->name, sizeof(name_esc));
+        BLI_str_escape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
       }
     }
@@ -808,7 +809,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
       ClothModifierData *cmd = (ClothModifierData *)md;
       if (cmd->sim_parms->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
-        BLI_strescape(name_esc, md->name, sizeof(name_esc));
+        BLI_str_escape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
       }
     }
@@ -820,7 +821,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
       if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain &&
           fmd->domain->effector_weights == ew) {
         char name_esc[sizeof(md->name) * 2];
-        BLI_strescape(name_esc, md->name, sizeof(name_esc));
+        BLI_str_escape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].domain_settings.effector_weights", name_esc);
       }
     }
@@ -838,8 +839,8 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
             char name_esc[sizeof(md->name) * 2];
             char name_esc_surface[sizeof(surface->name) * 2];
 
-            BLI_strescape(name_esc, md->name, sizeof(name_esc));
-            BLI_strescape(name_esc_surface, surface->name, sizeof(name_esc_surface));
+            BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+            BLI_str_escape(name_esc_surface, surface->name, sizeof(name_esc_surface));
             return BLI_sprintfN(
                 "modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]"
                 ".effector_weights",
@@ -1486,10 +1487,11 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "texture_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "tex_mode");
   RNA_def_property_enum_items(prop, texture_items);
-  RNA_def_property_ui_text(prop,
-                           "Texture Mode",
-                           "How the texture effect is calculated (RGB & Curl need a RGB texture, "
-                           "else Gradient will be used instead)");
+  RNA_def_property_ui_text(
+      prop,
+      "Texture Mode",
+      "How the texture effect is calculated (RGB and Curl need a RGB texture, "
+      "else Gradient will be used instead)");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "z_direction", PROP_ENUM, PROP_NONE);

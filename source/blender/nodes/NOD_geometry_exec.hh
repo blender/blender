@@ -26,12 +26,16 @@
 
 namespace blender::nodes {
 
+using bke::BooleanReadAttribute;
+using bke::BooleanWriteAttribute;
 using bke::Color4fReadAttribute;
 using bke::Color4fWriteAttribute;
 using bke::Float3ReadAttribute;
 using bke::Float3WriteAttribute;
 using bke::FloatReadAttribute;
 using bke::FloatWriteAttribute;
+using bke::Int32ReadAttribute;
+using bke::Int32WriteAttribute;
 using bke::PersistentDataHandleMap;
 using bke::PersistentObjectHandle;
 using bke::ReadAttribute;
@@ -40,6 +44,7 @@ using bke::WriteAttribute;
 using bke::WriteAttributePtr;
 using fn::CPPType;
 using fn::GMutablePointer;
+using fn::GPointer;
 using fn::GValueMap;
 
 class GeoNodeExecParams {
@@ -119,6 +124,16 @@ class GeoNodeExecParams {
     output_values_.add_new_by_move(identifier, value);
   }
 
+  void set_output_by_copy(StringRef identifier, GPointer value)
+  {
+#ifdef DEBUG
+    BLI_assert(value.type() != nullptr);
+    BLI_assert(value.get() != nullptr);
+    this->check_set_output(identifier, *value.type());
+#endif
+    output_values_.add_new_by_copy(identifier, value);
+  }
+
   /**
    * Store the output value for the given socket identifier.
    */
@@ -148,10 +163,41 @@ class GeoNodeExecParams {
     return self_object_;
   }
 
+  /**
+   * Creates a read-only attribute based on node inputs. The method automatically detects which
+   * input with the given name is available.
+   */
+  ReadAttributePtr get_input_attribute(const StringRef name,
+                                       const GeometryComponent &component,
+                                       const AttributeDomain domain,
+                                       const CustomDataType type,
+                                       const void *default_value) const;
+
+  template<typename T>
+  bke::TypedReadAttribute<T> get_input_attribute(const StringRef name,
+                                                 const GeometryComponent &component,
+                                                 const AttributeDomain domain,
+                                                 const T &default_value) const
+  {
+    const CustomDataType type = bke::cpp_type_to_custom_data_type(CPPType::get<T>());
+    return this->get_input_attribute(name, component, domain, type, &default_value);
+  }
+
+  /**
+   * Get the type of an input property or the associated constant socket types with the
+   * same names. Fall back to the default value if no attribute exists with the name.
+   */
+  CustomDataType get_input_attribute_data_type(const StringRef name,
+                                               const GeometryComponent &component,
+                                               const CustomDataType default_type) const;
+
  private:
   /* Utilities for detecting common errors at when using this class. */
   void check_extract_input(StringRef identifier, const CPPType *requested_type = nullptr) const;
   void check_set_output(StringRef identifier, const CPPType &value_type) const;
+
+  /* Find the active socket socket with the input name (not the identifier). */
+  const bNodeSocket *find_available_socket(const StringRef name) const;
 };
 
 }  // namespace blender::nodes

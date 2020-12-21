@@ -1360,7 +1360,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
           BLI_assert(STREQ(rna_itemname_a, rna_itemname_b));
 
           char esc_item_name[RNA_PATH_BUFFSIZE];
-          const size_t esc_item_name_len = BLI_strescape(
+          const size_t esc_item_name_len = BLI_str_escape(
               esc_item_name, rna_itemname_a, RNA_PATH_BUFFSIZE);
           extended_rna_path_len = rna_path_len + 2 + esc_item_name_len + 2;
           if (extended_rna_path_len >= RNA_PATH_BUFFSIZE) {
@@ -1858,7 +1858,7 @@ int rna_property_override_diff_default(Main *bmain,
                 is_id,
                 is_valid_for_diffing,
                 is_valid_for_insertion,
-                (RNA_property_override_flag(prop_a) & PROPOVERRIDE_LIBRARY_INSERTION) != 0,
+                use_collection_insertion,
                 do_create);
           }
 #  endif
@@ -3076,7 +3076,7 @@ static void rna_def_string_property(StructRNA *srna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_string_funcs(
       prop, "rna_StringProperty_default_get", "rna_StringProperty_default_length", NULL);
-  RNA_def_property_ui_text(prop, "Default", "string default value");
+  RNA_def_property_ui_text(prop, "Default", "String default value");
 
   prop = RNA_def_property(srna, "length_max", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

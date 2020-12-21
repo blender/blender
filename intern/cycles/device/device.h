@@ -373,12 +373,6 @@ class Device {
     return NULL;
   }
 
-  /* Device specific pointer for BVH creation. Currently only used by Embree. */
-  virtual void *bvh_device() const
-  {
-    return NULL;
-  }
-
   /* load/compile kernels, must be called before adding tasks */
   virtual bool load_kernels(const DeviceRequestedFeatures & /*requested_features*/)
   {
@@ -427,10 +421,7 @@ class Device {
                            const DeviceDrawParams &draw_params);
 
   /* acceleration structure building */
-  virtual bool build_optix_bvh(BVH *)
-  {
-    return false;
-  }
+  virtual void build_bvh(BVH *bvh, Progress &progress, bool refit);
 
 #ifdef WITH_NETWORK
   /* networking */

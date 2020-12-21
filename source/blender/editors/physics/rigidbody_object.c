@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"

@@ -188,7 +188,7 @@ void wm_stereo3d_mouse_offset_apply(wmWindow *win, int *r_mouse_xy)
   }
 
   if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
-    const int half_x = win->sizex / 2;
+    const int half_x = WM_window_pixels_x(win) / 2;
     /* right half of the screen */
     if (r_mouse_xy[0] > half_x) {
       r_mouse_xy[0] -= half_x;
@@ -196,7 +196,7 @@ void wm_stereo3d_mouse_offset_apply(wmWindow *win, int *r_mouse_xy)
     r_mouse_xy[0] *= 2;
   }
   else if (win->stereo3d_format->display_mode == S3D_DISPLAY_TOPBOTTOM) {
-    const int half_y = win->sizey / 2;
+    const int half_y = WM_window_pixels_y(win) / 2;
     /* upper half of the screen */
     if (r_mouse_xy[1] > half_y) {
       r_mouse_xy[1] -= half_y;

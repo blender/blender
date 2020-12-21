@@ -164,12 +164,12 @@ static bool id_drop_poll(bContext *UNUSED(C),
                          const wmEvent *UNUSED(event),
                          const char **UNUSED(tooltip))
 {
-  return WM_drag_ID(drag, 0) != NULL;
+  return WM_drag_get_local_ID(drag, 0) != NULL;
 }
 
 static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-  ID *id = WM_drag_ID(drag, 0);
+  ID *id = WM_drag_get_local_ID(drag, 0);
 
   /* copy drag path to properties */
   char *text = RNA_path_full_ID_py(G_MAIN, id);

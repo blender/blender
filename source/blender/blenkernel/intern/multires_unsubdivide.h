@@ -26,10 +26,8 @@
 #include "BLI_sys_types.h"
 
 struct BMesh;
-struct Depsgraph;
 struct Mesh;
 struct MultiresModifierData;
-struct Object;
 
 typedef struct MultiresUnsubdivideGrid {
   /* For sanity checks. */

@@ -296,6 +296,7 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
   }
 
   BLI_freelistN(&userdef->autoexec_paths);
+  BLI_freelistN(&userdef->asset_libraries);
 
   BLI_freelistN(&userdef->uistyles);
   BLI_freelistN(&userdef->uifonts);

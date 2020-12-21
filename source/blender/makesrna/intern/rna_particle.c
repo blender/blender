@@ -1490,7 +1490,7 @@ static char *rna_ParticleSystem_path(PointerRNA *ptr)
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
   char name_esc[sizeof(psys->name) * 2];
 
-  BLI_strescape(name_esc, psys->name, sizeof(name_esc));
+  BLI_str_escape(name_esc, psys->name, sizeof(name_esc));
   return BLI_sprintfN("particle_systems[\"%s\"]", name_esc);
 }
 
@@ -2484,7 +2484,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
                       NULL,
                       "ParticleSettingsTextureSlot",
                       "ParticleSettingsTextureSlots",
-                      "rna_Particle_reset",
+                      "rna_Particle_reset_dependency",
                       NULL);
 
   /* Fluid particle type can't be checked from the type value in RNA
@@ -2948,7 +2948,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
       prop,
       "Adaptive Subframe Threshold",
       "The relative distance a particle can move before requiring more subframes "
-      "(target Courant number); 0.01-0.3 is the recommended range");
+      "(target Courant number); 0.01 to 0.3 is the recommended range");
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(srna, "jitter_factor", PROP_FLOAT, PROP_NONE);
@@ -3298,48 +3298,48 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "rough1");
   RNA_def_property_range(prop, 0.0f, 100000.0f);
   RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Rough1", "Amount of location dependent rough");
+  RNA_def_property_ui_text(prop, "Roughness 1", "Amount of location dependent roughness");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "roughness_1_size", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "rough1_size");
   RNA_def_property_range(prop, 0.01f, 100000.0f);
   RNA_def_property_ui_range(prop, 0.01f, 10.0f, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Size1", "Size of location dependent rough");
+  RNA_def_property_ui_text(prop, "Size 1", "Size of location dependent roughness");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "roughness_2", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "rough2");
   RNA_def_property_range(prop, 0.0f, 100000.0f);
   RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Rough2", "Amount of random rough");
+  RNA_def_property_ui_text(prop, "Roughness 2", "Amount of random roughness");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "roughness_2_size", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "rough2_size");
   RNA_def_property_range(prop, 0.01f, 100000.0f);
   RNA_def_property_ui_range(prop, 0.01f, 10.0f, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Size2", "Size of random rough");
+  RNA_def_property_ui_text(prop, "Size 2", "Size of random roughness");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "roughness_2_threshold", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "rough2_thres");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
-      prop, "Threshold", "Amount of particles left untouched by random rough");
+      prop, "Threshold", "Amount of particles left untouched by random roughness");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "roughness_endpoint", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "rough_end");
   RNA_def_property_range(prop, 0.0f, 100000.0f);
   RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Rough Endpoint", "Amount of end point rough");
+  RNA_def_property_ui_text(prop, "Roughness Endpoint", "Amount of endpoint roughness");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "roughness_end_shape", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "rough_end_shape");
   RNA_def_property_range(prop, 0.0f, 10.0f);
-  RNA_def_property_ui_text(prop, "Shape", "Shape of end point rough");
+  RNA_def_property_ui_text(prop, "Shape", "Shape of endpoint roughness");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "use_roughness_curve", PROP_BOOLEAN, PROP_NONE);

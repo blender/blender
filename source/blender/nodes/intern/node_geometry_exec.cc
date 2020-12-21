@@ -19,6 +19,91 @@
 
 namespace blender::nodes {
 
+const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name) const
+{
+  LISTBASE_FOREACH (const bNodeSocket *, socket, &node_.inputs) {
+    if ((socket->flag & SOCK_UNAVAIL) != 0) {
+      continue;
+    }
+    if (name == socket->name) {
+      return socket;
+    }
+  }
+
+  return nullptr;
+}
+
+ReadAttributePtr GeoNodeExecParams::get_input_attribute(const StringRef name,
+                                                        const GeometryComponent &component,
+                                                        const AttributeDomain domain,
+                                                        const CustomDataType type,
+                                                        const void *default_value) const
+{
+  const bNodeSocket *found_socket = this->find_available_socket(name);
+  BLI_assert(found_socket != nullptr); /* There should always be available socket for the name. */
+  if (found_socket == nullptr) {
+    return component.attribute_get_constant_for_read(domain, type, default_value);
+  }
+
+  if (found_socket->type == SOCK_STRING) {
+    const std::string name = this->get_input<std::string>(found_socket->identifier);
+    return component.attribute_get_for_read(name, domain, type, default_value);
+  }
+  if (found_socket->type == SOCK_FLOAT) {
+    const float value = this->get_input<float>(found_socket->identifier);
+    return component.attribute_get_constant_for_read_converted(
+        domain, CD_PROP_FLOAT, type, &value);
+  }
+  if (found_socket->type == SOCK_VECTOR) {
+    const float3 value = this->get_input<float3>(found_socket->identifier);
+    return component.attribute_get_constant_for_read_converted(
+        domain, CD_PROP_FLOAT3, type, &value);
+  }
+  if (found_socket->type == SOCK_RGBA) {
+    const Color4f value = this->get_input<Color4f>(found_socket->identifier);
+    return component.attribute_get_constant_for_read_converted(
+        domain, CD_PROP_COLOR, type, &value);
+  }
+  BLI_assert(false);
+  return component.attribute_get_constant_for_read(domain, type, default_value);
+}
+
+CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
+    const StringRef name,
+    const GeometryComponent &component,
+    const CustomDataType default_type) const
+{
+  const bNodeSocket *found_socket = this->find_available_socket(name);
+  BLI_assert(found_socket != nullptr); /* There should always be available socket for the name. */
+  if (found_socket == nullptr) {
+    return default_type;
+  }
+
+  if (found_socket->type == SOCK_STRING) {
+    const std::string name = this->get_input<std::string>(found_socket->identifier);
+    ReadAttributePtr attribute = component.attribute_try_get_for_read(name);
+    if (!attribute) {
+      return default_type;
+    }
+    return attribute->custom_data_type();
+  }
+  if (found_socket->type == SOCK_FLOAT) {
+    return CD_PROP_FLOAT;
+  }
+  if (found_socket->type == SOCK_VECTOR) {
+    return CD_PROP_FLOAT3;
+  }
+  if (found_socket->type == SOCK_RGBA) {
+    return CD_PROP_COLOR;
+  }
+  if (found_socket->type == SOCK_BOOLEAN) {
+    return CD_PROP_BOOL;
+  }
+
+  BLI_assert(false);
+  return default_type;
+}
+
 void GeoNodeExecParams::check_extract_input(StringRef identifier,
                                             const CPPType *requested_type) const
 {

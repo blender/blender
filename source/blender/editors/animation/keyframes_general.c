@@ -767,16 +767,15 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
      * Storing the relevant information here helps avoiding crashes if we undo-repaste. */
     if ((aci->id_type == ID_OB) && (((Object *)aci->id)->type == OB_ARMATURE) && aci->rna_path) {
       Object *ob = (Object *)aci->id;
-      bPoseChannel *pchan;
-      char *bone_name;
 
-      bone_name = BLI_str_quoted_substrN(aci->rna_path, "pose.bones[");
-      pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-      if (pchan) {
-        aci->is_bone = true;
-      }
+      char *bone_name = BLI_str_quoted_substrN(aci->rna_path, "pose.bones[");
       if (bone_name) {
+        bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
         MEM_freeN(bone_name);
+
+        if (pchan) {
+          aci->is_bone = true;
+        }
       }
     }
 

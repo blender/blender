@@ -298,6 +298,8 @@ typedef struct wmNotifier {
 #define NC_LINESTYLE (23 << 24)
 #define NC_CAMERA (24 << 24)
 #define NC_LIGHTPROBE (25 << 24)
+/* Changes to asset data in the current .blend. */
+#define NC_ASSET (26 << 24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA 0x00FF0000
@@ -408,20 +410,21 @@ typedef struct wmNotifier {
 #define ND_SPACE_IMAGE (4 << 16)
 #define ND_SPACE_FILE_PARAMS (5 << 16)
 #define ND_SPACE_FILE_LIST (6 << 16)
-#define ND_SPACE_NODE (7 << 16)
-#define ND_SPACE_OUTLINER (8 << 16)
-#define ND_SPACE_VIEW3D (9 << 16)
-#define ND_SPACE_PROPERTIES (10 << 16)
-#define ND_SPACE_TEXT (11 << 16)
-#define ND_SPACE_TIME (12 << 16)
-#define ND_SPACE_GRAPH (13 << 16)
-#define ND_SPACE_DOPESHEET (14 << 16)
-#define ND_SPACE_NLA (15 << 16)
-#define ND_SPACE_SEQUENCER (16 << 16)
-#define ND_SPACE_NODE_VIEW (17 << 16)
-#define ND_SPACE_CHANGED (18 << 16) /*sent to a new editor type after it's replaced an old one*/
-#define ND_SPACE_CLIP (19 << 16)
-#define ND_SPACE_FILE_PREVIEW (20 << 16)
+#define ND_SPACE_ASSET_PARAMS (7 << 16)
+#define ND_SPACE_NODE (8 << 16)
+#define ND_SPACE_OUTLINER (9 << 16)
+#define ND_SPACE_VIEW3D (10 << 16)
+#define ND_SPACE_PROPERTIES (11 << 16)
+#define ND_SPACE_TEXT (12 << 16)
+#define ND_SPACE_TIME (13 << 16)
+#define ND_SPACE_GRAPH (14 << 16)
+#define ND_SPACE_DOPESHEET (15 << 16)
+#define ND_SPACE_NLA (16 << 16)
+#define ND_SPACE_SEQUENCER (17 << 16)
+#define ND_SPACE_NODE_VIEW (18 << 16)
+#define ND_SPACE_CHANGED (19 << 16) /*sent to a new editor type after it's replaced an old one*/
+#define ND_SPACE_CLIP (20 << 16)
+#define ND_SPACE_FILE_PREVIEW (21 << 16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE 0x0000FF00
@@ -834,12 +837,13 @@ typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata
 /* *************** Drag and drop *************** */
 
 #define WM_DRAG_ID 0
-#define WM_DRAG_RNA 1
-#define WM_DRAG_PATH 2
-#define WM_DRAG_NAME 3
-#define WM_DRAG_VALUE 4
-#define WM_DRAG_COLOR 5
-#define WM_DRAG_DATASTACK 6
+#define WM_DRAG_ASSET 1
+#define WM_DRAG_RNA 2
+#define WM_DRAG_PATH 3
+#define WM_DRAG_NAME 4
+#define WM_DRAG_VALUE 5
+#define WM_DRAG_COLOR 6
+#define WM_DRAG_DATASTACK 7
 
 typedef enum wmDragFlags {
   WM_DRAG_NOP = 0,
@@ -853,6 +857,13 @@ typedef struct wmDragID {
   struct ID *id;
   struct ID *from_parent;
 } wmDragID;
+
+typedef struct wmDragAsset {
+  char name[64]; /* MAX_NAME */
+  /* Always freed. */
+  const char *path;
+  int id_type;
+} wmDragAsset;
 
 typedef struct wmDrag {
   struct wmDrag *next, *prev;

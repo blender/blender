@@ -46,8 +46,9 @@ static int gpu_shader_clamp(GPUMaterial *mat,
                             GPUNodeStack *in,
                             GPUNodeStack *out)
 {
-  return (node->custom1 == NODE_CLAMP_MINMAX) ? GPU_stack_link(mat, node, "clamp_value", in, out) :
-                                                GPU_stack_link(mat, node, "clamp_range", in, out);
+  return (node->custom1 == NODE_CLAMP_MINMAX) ?
+             GPU_stack_link(mat, node, "clamp_minmax", in, out) :
+             GPU_stack_link(mat, node, "clamp_range", in, out);
 }
 
 static void sh_node_clamp_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)

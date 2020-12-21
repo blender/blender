@@ -57,6 +57,12 @@ extern const GHOST_TUns8 *GHOST_getSystemDir(int version, const char *versionstr
 extern const GHOST_TUns8 *GHOST_getUserDir(int version, const char *versionstr);
 
 /**
+ * Determine a special ("well known") and easy to reach user directory.
+ * \return Unsigned char string pointing to user dir (eg `~/Documents/`).
+ */
+extern const GHOST_TUns8 *GHOST_getUserSpecialDir(GHOST_TUserSpecialDirTypes type);
+
+/**
  * Determine the dir in which the binary file is found.
  * \return Unsigned char string pointing to binary dir (eg ~/usr/local/bin/).
  */

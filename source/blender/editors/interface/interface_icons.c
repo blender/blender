@@ -100,11 +100,12 @@ typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 #define ICON_TYPE_COLOR_TEXTURE 1
 #define ICON_TYPE_MONO_TEXTURE 2
 #define ICON_TYPE_BUFFER 3
-#define ICON_TYPE_VECTOR 4
-#define ICON_TYPE_GEOM 5
-#define ICON_TYPE_EVENT 6 /* draw keymap entries using custom renderer. */
-#define ICON_TYPE_GPLAYER 7
-#define ICON_TYPE_BLANK 8
+#define ICON_TYPE_IMBUF 4
+#define ICON_TYPE_VECTOR 5
+#define ICON_TYPE_GEOM 6
+#define ICON_TYPE_EVENT 7 /* draw keymap entries using custom renderer. */
+#define ICON_TYPE_GPLAYER 8
+#define ICON_TYPE_BLANK 9
 
 typedef struct DrawInfo {
   int type;
@@ -1147,6 +1148,9 @@ static DrawInfo *icon_create_drawinfo(Icon *icon)
   if (ELEM(icon_data_type, ICON_DATA_ID, ICON_DATA_PREVIEW)) {
     di->type = ICON_TYPE_PREVIEW;
   }
+  else if (icon_data_type == ICON_DATA_IMBUF) {
+    di->type = ICON_TYPE_IMBUF;
+  }
   else if (icon_data_type == ICON_DATA_GEOM) {
     di->type = ICON_TYPE_GEOM;
   }
@@ -1262,7 +1266,7 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
   else if (!prv_img->rect[size]) {
     prv_img->w[size] = render_size;
     prv_img->h[size] = render_size;
-    prv_img->flag[size] |= PRV_CHANGED;
+    prv_img->flag[size] |= (PRV_CHANGED | PRV_UNFINISHED);
     prv_img->changed_timestamp[size] = 0;
     prv_img->rect[size] = MEM_callocN(render_size * render_size * sizeof(uint), "prv_rect");
   }
@@ -1384,8 +1388,12 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
   }
 }
 
-/* only called when icon has changed */
-/* only call with valid pointer from UI_icon_draw */
+/**
+ * * Only call with valid pointer from UI_icon_draw.
+ * * Only called when icon has changed.
+ *
+ * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
+ */
 static void icon_set_image(const bContext *C,
                            Scene *scene,
                            ID *id,
@@ -1408,7 +1416,7 @@ static void icon_set_image(const bContext *C,
   const bool delay = prv_img->rect[size] != NULL;
   icon_create_rect(prv_img, size);
 
-  if (use_job) {
+  if (use_job && (!id || BKE_previewimg_id_supports_jobs(id))) {
     /* Job (background) version */
     ED_preview_icon_job(
         C, prv_img, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size], delay);
@@ -1790,7 +1798,14 @@ static void icon_draw_size(float x,
   /* We need to flush widget base first to ensure correct ordering. */
   UI_widgetbase_draw_cache_flush();
 
-  if (di->type == ICON_TYPE_VECTOR) {
+  if (di->type == ICON_TYPE_IMBUF) {
+    ImBuf *ibuf = icon->obj;
+
+    GPU_blend(GPU_BLEND_ALPHA_PREMULT);
+    icon_draw_rect(x, y, w, h, aspect, ibuf->x, ibuf->y, ibuf->rect, alpha, desaturate);
+    GPU_blend(GPU_BLEND_ALPHA);
+  }
+  else if (di->type == ICON_TYPE_VECTOR) {
     /* vector icons use the uiBlock transformation, they are not drawn
      * with untransformed coordinates like the other icons */
     di->data.vector.func((int)x, (int)y, w, h, 1.0f);
@@ -1937,6 +1952,9 @@ static void ui_id_preview_image_render_size(
   }
 }
 
+/**
+ * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
+ */
 void UI_icon_render_id(const bContext *C, Scene *scene, ID *id, const bool big, const bool use_job)
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
@@ -1964,12 +1982,7 @@ static void ui_id_icon_render(const bContext *C, ID *id, bool use_jobs)
   }
 
   for (enum eIconSizes i = 0; i < NUM_ICON_SIZES; i++) {
-    /* check if rect needs to be created; changed
-     * only set by dynamic icons */
-    if (((pi->flag[i] & PRV_CHANGED) || !pi->rect[i])) {
-      icon_set_image(C, NULL, id, pi, i, use_jobs);
-      pi->flag[i] &= ~PRV_CHANGED;
-    }
+    ui_id_preview_image_render_size(C, NULL, id, pi, i, use_jobs);
   }
 }
 
@@ -2185,6 +2198,9 @@ int UI_icon_from_library(const ID *id)
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     return ICON_LIBRARY_DATA_OVERRIDE;
+  }
+  if (ID_IS_ASSET(id)) {
+    return ICON_MAT_SPHERE_SKY;
   }
 
   return ICON_NONE;

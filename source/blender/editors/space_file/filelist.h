@@ -29,6 +29,7 @@ extern "C" {
 
 struct BlendHandle;
 struct FileList;
+struct FileSelectAssetLibraryUID;
 struct FileSelection;
 struct wmWindowManager;
 
@@ -46,13 +47,15 @@ typedef enum FileCheckType {
   CHECK_ALL = 3,
 } FileCheckType;
 
-struct ListBase *folderlist_new(void);
 void folderlist_free(struct ListBase *folderlist);
-struct ListBase *folderlist_duplicate(ListBase *folderlist);
 void folderlist_popdir(struct ListBase *folderlist, char *dir);
 void folderlist_pushdir(struct ListBase *folderlist, const char *dir);
 const char *folderlist_peeklastdir(struct ListBase *folderlist);
 int folderlist_clear_next(struct SpaceFile *sfile);
+
+void folder_history_list_ensure_for_active_browse_mode(struct SpaceFile *sfile);
+void folder_history_list_free(struct SpaceFile *sfile);
+struct ListBase folder_history_list_duplicate(struct ListBase *listbase);
 
 void filelist_setsorting(struct FileList *filelist, const short sort, bool invert_sort);
 void filelist_sort(struct FileList *filelist);
@@ -63,17 +66,22 @@ void filelist_setfilter_options(struct FileList *filelist,
                                 const bool hide_parent,
                                 const uint64_t filter,
                                 const uint64_t filter_id,
+                                const bool filter_assets_only,
                                 const char *filter_glob,
                                 const char *filter_search);
 void filelist_filter(struct FileList *filelist);
+void filelist_setlibrary(struct FileList *filelist,
+                         const struct FileSelectAssetLibraryUID *asset_library);
 
 void filelist_init_icons(void);
 void filelist_free_icons(void);
 struct ImBuf *filelist_getimage(struct FileList *filelist, const int index);
+struct ImBuf *filelist_file_getimage(const FileDirEntry *file);
 struct ImBuf *filelist_geticon_image(struct FileList *filelist, const int index);
 int filelist_geticon(struct FileList *filelist, const int index, const bool is_main);
 
 struct FileList *filelist_new(short type);
+void filelist_settype(struct FileList *filelist, short type);
 void filelist_clear(struct FileList *filelist);
 void filelist_clear_ex(struct FileList *filelist, const bool do_cache, const bool do_selection);
 void filelist_free(struct FileList *filelist);
@@ -83,15 +91,18 @@ bool filelist_is_dir(struct FileList *filelist, const char *path);
 void filelist_setdir(struct FileList *filelist, char *r_dir);
 
 int filelist_files_ensure(struct FileList *filelist);
-int filelist_empty(struct FileList *filelist);
+int filelist_needs_reading(struct FileList *filelist);
 FileDirEntry *filelist_file(struct FileList *filelist, int index);
 int filelist_file_findpath(struct FileList *filelist, const char *file);
+struct ID *filelist_file_get_id(const struct FileDirEntry *file);
 FileDirEntry *filelist_entry_find_uuid(struct FileList *filelist, const int uuid[4]);
 void filelist_file_cache_slidingwindow_set(struct FileList *filelist, size_t window_size);
 bool filelist_file_cache_block(struct FileList *filelist, const int index);
 
-bool filelist_force_reset(struct FileList *filelist);
+bool filelist_needs_force_reset(struct FileList *filelist);
+void filelist_tag_force_reset(struct FileList *filelist);
 bool filelist_pending(struct FileList *filelist);
+bool filelist_needs_reset_on_main_changes(const struct FileList *filelist);
 bool filelist_is_ready(struct FileList *filelist);
 
 unsigned int filelist_entry_select_set(const struct FileList *filelist,

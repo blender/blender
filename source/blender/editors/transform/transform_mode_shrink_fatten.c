@@ -32,6 +32,7 @@
 #include "ED_screen.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "UI_interface.h"
 
@@ -44,6 +45,18 @@
 /* -------------------------------------------------------------------- */
 /** \name Transform (Shrink-Fatten)
  * \{ */
+
+static eRedrawFlag shrinkfatten_handleEvent(struct TransInfo *t, const wmEvent *event)
+{
+  BLI_assert(t->mode == TFM_SHRINKFATTEN);
+  wmKeyMapItem *kmi = t->custom.mode.data;
+  if (kmi && event->type == kmi->type && event->val == kmi->val) {
+    /* Allows the 'Even Thickness' effect to be enabled as a toogle. */
+    t->flag ^= T_ALT_TRANSFORM;
+    return TREDRAW_HARD;
+  }
+  return TREDRAW_NOTHING;
+}
 
 static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
@@ -77,12 +90,11 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   }
   ofs += BLI_strncpy_rlen(str + ofs, ", (", sizeof(str) - ofs);
 
-  if (t->keymap) {
-    wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
-    if (kmi) {
-      ofs += WM_keymap_item_to_string(kmi, false, str + ofs, sizeof(str) - ofs);
-    }
+  wmKeyMapItem *kmi = t->custom.mode.data;
+  if (kmi) {
+    ofs += WM_keymap_item_to_string(kmi, false, str + ofs, sizeof(str) - ofs);
   }
+
   BLI_snprintf(str + ofs,
                sizeof(str) - ofs,
                TIP_(" or Alt) Even Thickness %s"),
@@ -121,6 +133,7 @@ void initShrinkFatten(TransInfo *t)
   else {
     t->mode = TFM_SHRINKFATTEN;
     t->transform = applyShrinkFatten;
+    t->handleEvent = shrinkfatten_handleEvent;
 
     initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 
@@ -134,6 +147,11 @@ void initShrinkFatten(TransInfo *t)
     t->num.unit_type[0] = B_UNIT_LENGTH;
 
     t->flag |= T_NO_CONSTRAINT;
+
+    if (t->keymap) {
+      /* Workaround to use the same key as the modal keymap. */
+      t->custom.mode.data = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
+    }
   }
 }
 /** \} */

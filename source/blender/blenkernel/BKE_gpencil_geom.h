@@ -32,12 +32,11 @@ struct Depsgraph;
 struct Main;
 struct Object;
 struct Scene;
+struct bGPDcurve;
 struct bGPDframe;
-struct bGPDlayer;
 struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
-struct bGPDcurve;
 
 /* Object boundbox. */
 bool BKE_gpencil_data_minmax(const struct bGPdata *gpd, float r_min[3], float r_max[3]);
@@ -163,6 +162,11 @@ bool BKE_gpencil_convert_mesh(struct Main *bmain,
                               const int frame_offset,
                               const bool use_seams,
                               const bool use_faces);
+
+void BKE_gpencil_stroke_uniform_subdivide(struct bGPdata *gpd,
+                                          struct bGPDstroke *gps,
+                                          const uint32_t target_number,
+                                          const bool select);
 
 #ifdef __cplusplus
 }

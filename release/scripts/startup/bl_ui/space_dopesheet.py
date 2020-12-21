@@ -248,7 +248,7 @@ class DOPESHEET_HT_editor_buttons:
 
             layout.separator_spacer()
 
-            layout.template_ID(st, "action", new="action.new", unlink="action.unlink")
+            layout.template_ID(st, "action", new="action.new", duplicate="action.duplicate_assign", unlink="action.unlink")
 
         # Layer management
         if st.mode == 'GPENCIL':

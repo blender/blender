@@ -75,8 +75,7 @@ typedef struct CustomData {
    * MUST be >= CD_NUMTYPES, but we cant use a define here.
    * Correct size is ensured in CustomData_update_typemap assert().
    */
-  int typemap[50];
-  char _pad[4];
+  int typemap[51];
   /** Number of layers, size of layers array. */
   int totlayer, maxlayer;
   /** In editmode, total size of all data layers. */
@@ -156,7 +155,9 @@ typedef enum CustomDataType {
   CD_PROP_FLOAT3 = 48,
   CD_PROP_FLOAT2 = 49,
 
-  CD_NUMTYPES = 50,
+  CD_PROP_BOOL = 50,
+
+  CD_NUMTYPES = 51,
 } CustomDataType;
 
 /* Bits for CustomDataMask */
@@ -208,6 +209,7 @@ typedef enum CustomDataType {
 #define CD_MASK_PROP_COLOR (1ULL << CD_PROP_COLOR)
 #define CD_MASK_PROP_FLOAT3 (1ULL << CD_PROP_FLOAT3)
 #define CD_MASK_PROP_FLOAT2 (1ULL << CD_PROP_FLOAT2)
+#define CD_MASK_PROP_BOOL (1ULL << CD_PROP_BOOL)
 
 /** Multires loop data. */
 #define CD_MASK_MULTIRES_GRIDS (CD_MASK_MDISPS | CD_GRID_PAINT_MASK)
@@ -218,7 +220,7 @@ typedef enum CustomDataType {
 /* All generic attributes. */
 #define CD_MASK_PROP_ALL \
   (CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 | \
-   CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_MLOOPCOL)
+   CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_MLOOPCOL | CD_MASK_PROP_BOOL)
 
 typedef struct CustomData_MeshMasks {
   uint64_t vmask;

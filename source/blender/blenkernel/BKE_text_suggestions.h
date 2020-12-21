@@ -22,8 +22,6 @@
  * \ingroup bke
  */
 
-#include "DNA_text_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -62,9 +60,9 @@ typedef struct SuggList {
 void free_texttools(void);
 
 /* Used to identify which Text object the current tools should appear against */
-void texttool_text_set_active(Text *text);
+void texttool_text_set_active(struct Text *text);
 void texttool_text_clear(void);
-short texttool_text_is_active(Text *text);
+short texttool_text_is_active(struct Text *text);
 
 /* Suggestions */
 void texttool_suggest_add(const char *name, char type);

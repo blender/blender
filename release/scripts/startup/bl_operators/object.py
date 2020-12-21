@@ -223,7 +223,7 @@ class SelectHierarchy(Operator):
 
 
 class SubdivisionSet(Operator):
-    """Sets a Subdivision Surface Level (1-5)"""
+    """Sets a Subdivision Surface level (1 to 5)"""
 
     bl_idname = "object.subdivision_set"
     bl_label = "Subdivision Set"
@@ -888,7 +888,7 @@ class LoadImageAsEmpty:
     filter_folder: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
 
     view_align: BoolProperty(
-        name="Align to view",
+        name="Align to View",
         default=True,
     )
 

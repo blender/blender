@@ -39,6 +39,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
@@ -98,7 +99,7 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "SEQ_sequencer.h"
+#include "SEQ_iterator.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -2314,6 +2315,12 @@ void DepsgraphRelationBuilder::build_nodetree_socket(bNodeSocket *socket)
     Image *image = ((bNodeSocketValueImage *)socket->default_value)->value;
     if (image != nullptr) {
       build_image(image);
+    }
+  }
+  else if (socket->type == SOCK_COLLECTION) {
+    Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value;
+    if (collection != nullptr) {
+      build_collection(nullptr, nullptr, collection);
     }
   }
 }

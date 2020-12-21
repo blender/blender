@@ -23,7 +23,6 @@
 #include "BKE_collection.h"
 
 #include "DNA_listBase.h"
-#include "DNA_scene_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,9 +55,9 @@ typedef enum eViewLayerCopyMethod {
 struct ViewLayer *BKE_view_layer_default_view(const struct Scene *scene);
 struct ViewLayer *BKE_view_layer_default_render(const struct Scene *scene);
 struct ViewLayer *BKE_view_layer_find(const struct Scene *scene, const char *layer_name);
-struct ViewLayer *BKE_view_layer_add(Scene *scene,
+struct ViewLayer *BKE_view_layer_add(struct Scene *scene,
                                      const char *name,
-                                     ViewLayer *view_layer_source,
+                                     struct ViewLayer *view_layer_source,
                                      const int type);
 
 /* DEPRECATED */
@@ -393,10 +392,11 @@ struct ObjectsInModeParams {
   void *filter_userdata;
 };
 
-Base **BKE_view_layer_array_from_bases_in_mode_params(struct ViewLayer *view_layer,
-                                                      const struct View3D *v3d,
-                                                      uint *r_len,
-                                                      const struct ObjectsInModeParams *params);
+struct Base **BKE_view_layer_array_from_bases_in_mode_params(
+    struct ViewLayer *view_layer,
+    const struct View3D *v3d,
+    uint *r_len,
+    const struct ObjectsInModeParams *params);
 
 struct Object **BKE_view_layer_array_from_objects_in_mode_params(
     struct ViewLayer *view_layer,
@@ -452,7 +452,8 @@ void BKE_view_layer_verify_aov(struct RenderEngine *engine,
                                struct Scene *scene,
                                struct ViewLayer *view_layer);
 bool BKE_view_layer_has_valid_aov(struct ViewLayer *view_layer);
-ViewLayer *BKE_view_layer_find_with_aov(struct Scene *scene, struct ViewLayerAOV *view_layer_aov);
+struct ViewLayer *BKE_view_layer_find_with_aov(struct Scene *scene,
+                                               struct ViewLayerAOV *view_layer_aov);
 
 #ifdef __cplusplus
 }

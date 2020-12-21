@@ -297,6 +297,7 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
         col.label(text="New Keyframe Type")
         col.prop(tool_settings, "keyframe_type", text="")
 
+
 class TIME_PT_auto_keyframing(TimelinePanelButtons, Panel):
     bl_label = "Auto Keyframing"
     bl_options = {'HIDE_HEADER'}

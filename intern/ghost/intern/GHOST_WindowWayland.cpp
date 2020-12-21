@@ -407,7 +407,7 @@ void GHOST_WindowWayland::setOpaque() const
 #endif
 
 /**
- * \param type  The type of rendering context create.
+ * \param type: The type of rendering context create.
  * \return Indication of success.
  */
 GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType type)

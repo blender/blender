@@ -486,9 +486,14 @@ class GHOST_WindowWin32 : public GHOST_Window {
   GHOST_TSuccess getWintabInfo(std::vector<GHOST_WintabInfoWin32> &outWintabInfo);
 
   /**
-   * Updates stored pending Wintab events.
+   * Updates pending Wintab events and syncs Wintab time with OS time.
    */
-  void updatePendingWintabEvents();
+  void updateWintabEventsSyncTime();
+
+  /**
+   * Updates pending Wintab events.
+   */
+  void updateWintabEvents();
 
   GHOST_TSuccess beginFullScreen() const
   {
@@ -629,6 +634,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
     GHOST_TUns8 numSysButtons = 0;
     /** Cursors currently in contact mapped to system buttons */
     DWORD sysButtonsPressed = 0;
+    DWORD sysTimeOffset = 0;
     LONG maxPressure = 0;
     LONG maxAzimuth = 0, maxAltitude = 0;
     /** Reusable buffer to read in Wintab Packets. */
@@ -641,6 +647,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * Wintab setup.
    */
   void initializeWintab();
+
+  void readWintabEvents();
+
+  void expireWintabEvents();
 
   /**
    * Convert Wintab system mapped (mouse) buttons into Ghost button mask.

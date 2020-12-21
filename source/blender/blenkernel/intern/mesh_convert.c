@@ -1460,7 +1460,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
   return result;
 }
 
-/* This is a Mesh-based copy of the same function in DerivedMesh.c */
+/* This is a Mesh-based copy of the same function in DerivedMesh.cc */
 static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int actshape_uid)
 {
   KeyBlock *kb;

@@ -322,7 +322,7 @@ struct _RGBAZ {
   half z;
 };
 
-typedef struct _RGBAZ RGBAZ;
+using RGBAZ = _RGBAZ;
 
 extern "C" {
 

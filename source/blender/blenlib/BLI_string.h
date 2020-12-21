@@ -85,8 +85,11 @@ size_t BLI_vsnprintf_rlen(char *__restrict buffer,
 char *BLI_sprintfN(const char *__restrict format, ...) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_PRINTF_FORMAT(1, 2);
 
-size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
+size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
     ATTR_NONNULL();
+size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
+    ATTR_NONNULL();
+const char *BLI_str_escape_find_quote(const char *str) ATTR_NONNULL();
 
 size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();
 size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num) ATTR_NONNULL();

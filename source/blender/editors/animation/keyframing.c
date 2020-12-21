@@ -2236,20 +2236,18 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
         /* in pose mode, only delete the F-Curve if it belongs to a selected bone */
         if (ob->mode & OB_MODE_POSE) {
           if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones[")) {
-            bPoseChannel *pchan;
-            char *bone_name;
 
             /* get bone-name, and check if this bone is selected */
-            bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
-            pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+            char *bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
             if (bone_name) {
+              bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
               MEM_freeN(bone_name);
-            }
 
-            /* delete if bone is selected*/
-            if ((pchan) && (pchan->bone)) {
-              if (pchan->bone->flag & BONE_SELECTED) {
-                can_delete = true;
+              /* delete if bone is selected*/
+              if ((pchan) && (pchan->bone)) {
+                if (pchan->bone->flag & BONE_SELECTED) {
+                  can_delete = true;
+                }
               }
             }
           }
@@ -2342,13 +2340,12 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
          * In object mode, we're dealing with the entire object.
          */
         if ((ob->mode & OB_MODE_POSE) && strstr(fcu->rna_path, "pose.bones[\"")) {
-          bPoseChannel *pchan;
-          char *bone_name;
+          bPoseChannel *pchan = NULL;
 
           /* get bone-name, and check if this bone is selected */
-          bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
-          pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+          char *bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
           if (bone_name) {
+            pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
             MEM_freeN(bone_name);
           }
 

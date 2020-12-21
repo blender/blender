@@ -60,7 +60,8 @@
 #  include "IMB_colormanagement.h"
 #  include "IMB_imbuf.h"
 
-#  include "SEQ_sequencer.h"
+#  include "SEQ_iterator.h"
+#  include "SEQ_relations.h"
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {
@@ -608,14 +609,14 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
     MovieClip *clip = (MovieClip *)id;
 
     DEG_id_tag_update(&clip->id, ID_RECALC_SOURCE);
-    BKE_sequence_invalidate_movieclip_strips(bmain, clip);
+    SEQ_relations_invalidate_movieclip_strips(bmain, clip);
 
     WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
     WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, &clip->id);
   }
   else if (GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
-    BKE_sequence_invalidate_scene_strips(bmain, scene);
+    SEQ_relations_invalidate_scene_strips(bmain, scene);
 
     if (scene->ed) {
       ColorManagedColorspaceSettings *colorspace_settings = (ColorManagedColorspaceSettings *)
@@ -634,18 +635,18 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
       }
 
       if (seq_found) {
-        BKE_sequence_free_anim(seq);
+        SEQ_relations_sequence_free_anim(seq);
 
         if (seq->strip->proxy && seq->strip->proxy->anim) {
           IMB_free_anim(seq->strip->proxy->anim);
           seq->strip->proxy->anim = NULL;
         }
 
-        BKE_sequence_invalidate_cache_preprocessed(scene, seq);
+        SEQ_relations_invalidate_cache_preprocessed(scene, seq);
       }
       else {
         SEQ_ALL_BEGIN (scene->ed, seq) {
-          BKE_sequence_free_anim(seq);
+          SEQ_relations_sequence_free_anim(seq);
         }
         SEQ_ALL_END;
       }
