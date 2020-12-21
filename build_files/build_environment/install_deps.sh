@@ -2086,7 +2086,7 @@ compile_OIIO() {
     cmake_d="$cmake_d -D USE_OPENCV=OFF"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
-    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=OFF"
+    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=ON"
     cmake_d="$cmake_d -D TXT2MAN="
     #cmake_d="$cmake_d -D CMAKE_EXPORT_COMPILE_COMMANDS=ON"
     #cmake_d="$cmake_d -D CMAKE_VERBOSE_MAKEFILE=ON"
@@ -4072,7 +4072,7 @@ install_DEB() {
   else
     check_package_version_ge_lt_DEB libopenimageio-dev $OIIO_VERSION_MIN $OIIO_VERSION_MAX
     if [ $? -eq 0 -a "$_with_built_openexr" = false ]; then
-      install_packages_DEB libopenimageio-dev
+      install_packages_DEB libopenimageio-dev openimageio-tools
       clean_OIIO
     else
       compile_OIIO
@@ -4714,13 +4714,13 @@ install_RPM() {
     INFO "Forced OpenImageIO building, as requested..."
     compile_OIIO
   else
-    #check_package_version_ge_lt_RPM OpenImageIO-devel $OIIO_VERSION_MIN $OIIO_VERSION_MAX
-    #if [ $? -eq 0 -a $_with_built_openexr == false ]; then
-    #  install_packages_RPM OpenImageIO-devel
-    #  clean_OIIO
-    #else
+    check_package_version_ge_lt_RPM OpenImageIO-devel $OIIO_VERSION_MIN $OIIO_VERSION_MAX
+    if [ $? -eq 0 -a $_with_built_openexr == false ]; then
+      install_packages_RPM OpenImageIO-devel OpenImageIO-utils
+      clean_OIIO
+    else
       compile_OIIO
-    #fi
+    fi
   fi
 
 

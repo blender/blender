@@ -254,7 +254,7 @@ class ExecutePreset(Operator):
         ext = splitext(filepath)[1].lower()
 
         if ext not in {".py", ".xml"}:
-            self.report({'ERROR'}, "unknown filetype: %r" % ext)
+            self.report({'ERROR'}, "Unknown file type: %r" % ext)
             return {'CANCELLED'}
 
         if hasattr(preset_class, "reset_cb"):

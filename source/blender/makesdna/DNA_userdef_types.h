@@ -375,7 +375,7 @@ typedef struct ThemeSpace {
   /** Two uses, for uvs with modifier applied on mesh and uvs during painting. */
   unsigned char uv_shadow[4];
 
-  /** Outliner - filter match. */
+  /** Search filter match, used for property search and in the outliner. */
   unsigned char match[4];
   /** Outliner - selected item. */
   unsigned char selected_highlight[4];

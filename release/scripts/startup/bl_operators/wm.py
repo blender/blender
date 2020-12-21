@@ -1625,7 +1625,7 @@ class WM_OT_operator_cheat_sheet(Operator):
         textblock = bpy.data.texts.new("OperatorList.txt")
         textblock.write('# %d Operators\n\n' % tot)
         textblock.write('\n'.join(op_strings))
-        self.report({'INFO'}, "See OperatorList.txt textblock")
+        self.report({'INFO'}, "See OperatorList.txt text block")
         return {'FINISHED'}
 
 
@@ -1717,7 +1717,7 @@ class WM_OT_tool_set_by_id(Operator):
                 tool_settings.workspace_tool_type = 'FALLBACK'
             return {'FINISHED'}
         else:
-            self.report({'WARNING'}, "Tool %r not found for space %r." % (self.name, space_type))
+            self.report({'WARNING'}, "Tool %r not found for space %r" % (self.name, space_type))
             return {'CANCELLED'}
 
 

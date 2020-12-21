@@ -87,7 +87,8 @@ class POINTCLOUD_UL_attributes(UIList):
         data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
 
         split = layout.split(factor=0.75)
-        split.prop(attribute, "name", text="", emboss=False)
+        split.emboss = 'NONE'
+        split.prop(attribute, "name", text="")
         sub = split.row()
         sub.alignment = 'RIGHT'
         sub.active = False

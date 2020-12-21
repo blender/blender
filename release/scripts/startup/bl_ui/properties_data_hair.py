@@ -86,8 +86,9 @@ class HAIR_UL_attributes(UIList):
         domain = attribute.bl_rna.properties['domain'].enum_items[attribute.domain]
 
         split = layout.split(factor=0.5)
+        split.emboss = 'NONE'
         row = split.row()
-        row.prop(attribute, "name", text="", emboss=False)
+        row.prop(attribute, "name", text="")
         sub = split.split()
         sub.alignment = 'RIGHT'
         sub.active = False
