@@ -4797,6 +4797,13 @@ static bool constructive_modifier_is_deform_modified(ModifierData *md)
      */
     return true;
   }
+  if (md->type == eModifierType_Nodes) {
+    /* Not ideal for performance to always assume this is animated,
+     * but hard to detect in general. The better long term solution is likely
+     * to replace BKE_object_is_deform_modified by a test if the object was
+     * modified by the depsgraph when changing frames. */
+    return true;
+  }
   return false;
 }
 

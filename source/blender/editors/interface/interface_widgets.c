@@ -4771,73 +4771,75 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
     }
   }
 
-  if (wt) {
-    // rcti disablerect = *rect; /* rect gets clipped smaller for text */
+  if (wt == NULL) {
+    return;
+  }
 
-    const int roundboxalign = widget_roundbox_set(but, rect);
+  // rcti disablerect = *rect; /* rect gets clipped smaller for text */
 
-    /* Mask out flags re-used for local state. */
-    int state = but->flag & ~UI_STATE_FLAGS_ALL;
-    const int drawflag = but->drawflag;
+  const int roundboxalign = widget_roundbox_set(but, rect);
 
-    if (state & UI_SELECT_DRAW) {
-      state |= UI_SELECT;
+  /* Mask out flags re-used for local state. */
+  int state = but->flag & ~UI_STATE_FLAGS_ALL;
+  const int drawflag = but->drawflag;
+
+  if (state & UI_SELECT_DRAW) {
+    state |= UI_SELECT;
+  }
+
+  if ((but->editstr) ||
+      (UNLIKELY(but->flag & UI_BUT_DRAG_MULTI) && ui_but_drag_multi_edit_get(but))) {
+    state |= UI_STATE_TEXT_INPUT;
+  }
+
+  if (but->hold_func) {
+    state |= UI_STATE_HOLD_ACTION;
+  }
+
+  if (state & UI_ACTIVE) {
+    if (but->drawflag & UI_BUT_ACTIVE_LEFT) {
+      state |= UI_STATE_ACTIVE_LEFT;
     }
-
-    if ((but->editstr) ||
-        (UNLIKELY(but->flag & UI_BUT_DRAG_MULTI) && ui_but_drag_multi_edit_get(but))) {
-      state |= UI_STATE_TEXT_INPUT;
+    else if (but->drawflag & UI_BUT_ACTIVE_RIGHT) {
+      state |= UI_STATE_ACTIVE_RIGHT;
     }
+  }
 
-    if (but->hold_func) {
-      state |= UI_STATE_HOLD_ACTION;
+  bool use_alpha_blend = false;
+  if (but->emboss != UI_EMBOSS_PULLDOWN) {
+    if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
+      use_alpha_blend = true;
+      ui_widget_color_disabled(wt, state);
     }
+  }
 
-    if (state & UI_ACTIVE) {
-      if (but->drawflag & UI_BUT_ACTIVE_LEFT) {
-        state |= UI_STATE_ACTIVE_LEFT;
-      }
-      else if (but->drawflag & UI_BUT_ACTIVE_RIGHT) {
-        state |= UI_STATE_ACTIVE_RIGHT;
-      }
-    }
-
-    bool use_alpha_blend = false;
-    if (but->emboss != UI_EMBOSS_PULLDOWN) {
-      if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
-        use_alpha_blend = true;
-        ui_widget_color_disabled(wt, state);
-      }
-    }
-
-    if (drawflag & UI_BUT_TEXT_RIGHT) {
-      state |= UI_STATE_TEXT_BEFORE_WIDGET;
-    }
+  if (drawflag & UI_BUT_TEXT_RIGHT) {
+    state |= UI_STATE_TEXT_BEFORE_WIDGET;
+  }
 
 #ifdef USE_UI_POPOVER_ONCE
-    if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
-      if ((state & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
-        state |= UI_BUT_ACTIVE_DEFAULT;
-      }
+  if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
+    if ((state & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
+      state |= UI_BUT_ACTIVE_DEFAULT;
     }
+  }
 #endif
 
-    wt->state(wt, state, drawflag, but->emboss);
-    if (wt->custom) {
-      wt->custom(but, &wt->wcol, rect, state, roundboxalign);
-    }
-    else if (wt->draw) {
-      wt->draw(&wt->wcol, rect, state, roundboxalign);
-    }
+  wt->state(wt, state, drawflag, but->emboss);
+  if (wt->custom) {
+    wt->custom(but, &wt->wcol, rect, state, roundboxalign);
+  }
+  else if (wt->draw) {
+    wt->draw(&wt->wcol, rect, state, roundboxalign);
+  }
 
-    if (use_alpha_blend) {
-      GPU_blend(GPU_BLEND_ALPHA);
-    }
+  if (use_alpha_blend) {
+    GPU_blend(GPU_BLEND_ALPHA);
+  }
 
-    wt->text(fstyle, &wt->wcol, but, rect);
-    if (use_alpha_blend) {
-      GPU_blend(GPU_BLEND_NONE);
-    }
+  wt->text(fstyle, &wt->wcol, but, rect);
+  if (use_alpha_blend) {
+    GPU_blend(GPU_BLEND_NONE);
   }
 }
 

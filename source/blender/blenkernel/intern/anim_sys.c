@@ -1421,125 +1421,147 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval,
 
 /* ---------------------- */
 
-/* accumulate the old and new values of a channel according to mode and influence */
-static float nla_blend_value(int blendmode, float old_value, float value, float inf)
+/* Blend the lower nla stack value and upper strip value of a channel according to mode and
+ * influence. */
+static float nla_blend_value(const int blendmode,
+                             const float lower_value,
+                             const float strip_value,
+                             const float influence)
 {
   /* Optimization: no need to try applying if there is no influence. */
-  if (IS_EQF(inf, 0.0f)) {
-    return old_value;
+  if (IS_EQF(influence, 0.0f)) {
+    return lower_value;
   }
 
-  /* perform blending */
+  /* Perform blending. */
   switch (blendmode) {
     case NLASTRIP_MODE_ADD:
-      /* simply add the scaled value on to the stack */
-      return old_value + (value * inf);
+      /* Simply add the scaled value on to the stack. */
+      return lower_value + (strip_value * influence);
 
     case NLASTRIP_MODE_SUBTRACT:
-      /* simply subtract the scaled value from the stack */
-      return old_value - (value * inf);
+      /* Simply subtract the scaled value from the stack. */
+      return lower_value - (strip_value * influence);
 
     case NLASTRIP_MODE_MULTIPLY:
-      /* multiply the scaled value with the stack */
-      /* Formula Used:
-       *     result = fac * (a * b) + (1 - fac) * a
-       */
-      return inf * (old_value * value) + (1 - inf) * old_value;
+      /* Multiply the scaled value with the stack. */
+      return influence * (lower_value * strip_value) + (1 - influence) * lower_value;
 
     case NLASTRIP_MODE_COMBINE:
       BLI_assert(!"combine mode");
       ATTR_FALLTHROUGH;
 
-    case NLASTRIP_MODE_REPLACE:
-    default
-        : /* TODO: do we really want to blend by default? it seems more uses might prefer add... */
-      /* do linear interpolation
-       * - the influence of the accumulated data (elsewhere, that is called dstweight)
-       *   is 1 - influence, since the strip's influence is srcweight
+    default:
+      /* TODO: Do we really want to blend by default? it seems more uses might prefer add... */
+      /* Do linear interpolation. The influence of the accumulated data (elsewhere, that is called
+       * dstweight) is 1 - influence, since the strip's influence is srcweight.
        */
-      return old_value * (1.0f - inf) + (value * inf);
+      return lower_value * (1.0f - influence) + (strip_value * influence);
   }
 }
 
-/* accumulate the old and new values of a channel according to mode and influence */
-static float nla_combine_value(
-    int mix_mode, float base_value, float old_value, float value, float inf)
+/* Blend the lower nla stack value and upper strip value of a channel according to mode and
+ * influence. */
+static float nla_combine_value(const int mix_mode,
+                               float base_value,
+                               const float lower_value,
+                               const float strip_value,
+                               const float influence)
 {
-  /* Optimization: no need to try applying if there is no influence. */
-  if (IS_EQF(inf, 0.0f)) {
-    return old_value;
+  /* Optimization: No need to try applying if there is no influence. */
+  if (IS_EQF(influence, 0.0f)) {
+    return lower_value;
   }
 
-  /* perform blending */
+  /* Perform blending */
   switch (mix_mode) {
     case NEC_MIX_ADD:
     case NEC_MIX_AXIS_ANGLE:
-      return old_value + (value - base_value) * inf;
+      return lower_value + (strip_value - base_value) * influence;
 
     case NEC_MIX_MULTIPLY:
       if (IS_EQF(base_value, 0.0f)) {
         base_value = 1.0f;
       }
-      return old_value * powf(value / base_value, inf);
+      return lower_value * powf(strip_value / base_value, influence);
 
-    case NEC_MIX_QUATERNION:
     default:
       BLI_assert(!"invalid mix mode");
-      return old_value;
+      return lower_value;
   }
 }
 
-/* compute the value that would blend to the desired target value using nla_blend_value */
-static bool nla_invert_blend_value(
-    int blend_mode, float old_value, float target_value, float influence, float *r_value)
+/** \returns true if solution exists and output is written to. */
+static bool nla_blend_get_inverted_strip_value(const int blendmode,
+                                               const float lower_value,
+                                               const float blended_value,
+                                               const float influence,
+                                               float *r_strip_value)
 {
   /** No solution if strip had 0 influence. */
   if (IS_EQF(influence, 0.0f)) {
     return false;
   }
 
-  switch (blend_mode) {
+  switch (blendmode) {
     case NLASTRIP_MODE_ADD:
-      *r_value = (target_value - old_value) / influence;
+      *r_strip_value = (blended_value - lower_value) / influence;
       return true;
 
     case NLASTRIP_MODE_SUBTRACT:
-      *r_value = (old_value - target_value) / influence;
+      *r_strip_value = (lower_value - blended_value) / influence;
       return true;
 
     case NLASTRIP_MODE_MULTIPLY:
-      if (IS_EQF(old_value, 0.0f)) {
+      if (IS_EQF(lower_value, 0.0f)) {
         /* Resolve 0/0 to 1. */
-        if (IS_EQF(target_value, 0.0f)) {
-          *r_value = 1.0f;
+        if (IS_EQF(blended_value, 0.0f)) {
+          *r_strip_value = 1.0f;
           return true;
         }
         /* Division by zero. */
         return false;
       }
-      else {
-        *r_value = (target_value - old_value) / influence / old_value + 1.0f;
-        return true;
-      }
+
+      /** Math:
+       *
+       *  blended_value = inf * (lower_value * strip_value) + (1 - inf) * lower_value
+       *  blended_value - (1 - inf) * lower_value = inf * (lower_value * strip_value)
+       *  (blended_value - (1 - inf) * lower_value) / (inf * lower_value) =  strip_value
+       *  (blended_value - lower_value + inf * lower_value) / (inf * lower_value) =  strip_value
+       *  ((blended_value - lower_value) / (inf * lower_value)) + 1 =  strip_value
+       *
+       *  strip_value = ((blended_value - lower_value) / (inf * lower_value)) + 1
+       */
+      *r_strip_value = ((blended_value - lower_value) / (influence * lower_value)) + 1.0f;
+      return true;
 
     case NLASTRIP_MODE_COMBINE:
       BLI_assert(!"combine mode");
       ATTR_FALLTHROUGH;
 
-    case NLASTRIP_MODE_REPLACE:
     default:
-      *r_value = (target_value - old_value) / influence + old_value;
+
+      /** Math:
+       *
+       *  blended_value = lower_value * (1.0f - inf) + (strip_value * inf)
+       *  blended_value - lower_value * (1.0f - inf) = (strip_value * inf)
+       *  (blended_value - lower_value * (1.0f - inf)) / inf = strip_value
+       *
+       *  strip_value = (blended_value - lower_value * (1.0f - inf)) / inf
+       */
+      *r_strip_value = (blended_value - lower_value * (1.0f - influence)) / influence;
       return true;
   }
 }
 
-/* compute the value that would blend to the desired target value using nla_combine_value */
-static bool nla_invert_combine_value(int mix_mode,
-                                     float base_value,
-                                     float old_value,
-                                     float target_value,
-                                     float influence,
-                                     float *r_value)
+/** \returns true if solution exists and output is written to.  */
+static bool nla_combine_get_inverted_strip_value(const int mix_mode,
+                                                 float base_value,
+                                                 const float lower_value,
+                                                 const float blended_value,
+                                                 const float influence,
+                                                 float *r_strip_value)
 {
   /* No solution if strip had no influence. */
   if (IS_EQF(influence, 0.0f)) {
@@ -1549,65 +1571,72 @@ static bool nla_invert_combine_value(int mix_mode,
   switch (mix_mode) {
     case NEC_MIX_ADD:
     case NEC_MIX_AXIS_ANGLE:
-      *r_value = base_value + (target_value - old_value) / influence;
+      *r_strip_value = base_value + (blended_value - lower_value) / influence;
       return true;
 
     case NEC_MIX_MULTIPLY:
       if (IS_EQF(base_value, 0.0f)) {
         base_value = 1.0f;
       }
-      if (IS_EQF(old_value, 0.0f)) {
+      /* Divison by zero. */
+      if (IS_EQF(lower_value, 0.0f)) {
         /* Resolve 0/0 to 1. */
-        if (IS_EQF(target_value, 0.0f)) {
-          *r_value = base_value;
+        if (IS_EQF(blended_value, 0.0f)) {
+          *r_strip_value = base_value;
           return true;
         }
         /* Division by zero. */
         return false;
       }
 
-      *r_value = base_value * powf(target_value / old_value, 1.0f / influence);
+      *r_strip_value = base_value * powf(blended_value / lower_value, 1.0f / influence);
       return true;
 
-    case NEC_MIX_QUATERNION:
     default:
       BLI_assert(!"invalid mix mode");
       return false;
   }
 }
 
-/* accumulate quaternion channels for Combine mode according to influence */
-static void nla_combine_quaternion(const float old_values[4],
-                                   const float values[4],
-                                   float influence,
-                                   float result[4])
+/** Accumulate quaternion channels for Combine mode according to influence.
+ * \returns blended_value = lower_values @ strip_values^infl
+ */
+static void nla_combine_quaternion(const float lower_values[4],
+                                   const float strip_values[4],
+                                   const float influence,
+                                   float r_blended_value[4])
 {
-  float tmp_old[4], tmp_new[4];
+  float tmp_lower[4], tmp_strip_values[4];
 
-  normalize_qt_qt(tmp_old, old_values);
-  normalize_qt_qt(tmp_new, values);
+  normalize_qt_qt(tmp_lower, lower_values);
+  normalize_qt_qt(tmp_strip_values, strip_values);
 
-  pow_qt_fl_normalized(tmp_new, influence);
-  mul_qt_qtqt(result, tmp_old, tmp_new);
+  pow_qt_fl_normalized(tmp_strip_values, influence);
+  mul_qt_qtqt(r_blended_value, tmp_lower, tmp_strip_values);
 }
 
-/* invert accumulation of quaternion channels for Combine mode according to influence */
-static bool nla_invert_combine_quaternion(const float old_values[4],
-                                          const float values[4],
-                                          float influence,
-                                          float result[4])
+/** \returns true if solution exists and output written to. */
+static bool nla_combine_quaternion_get_inverted_strip_values(const float lower_values[4],
+                                                             const float blended_values[4],
+                                                             const float influence,
+                                                             float r_strip_values[4])
 {
+  /* blended_value = lower_values @ r_strip_values^infl
+   * inv(lower_values) @ blended_value = r_strip_values^infl
+   * (inv(lower_values) @ blended_value) ^ (1/inf) = r_strip_values
+   *
+   * Returns: r_strip_values = (inv(lower_values) @ blended_value) ^ (1/inf) */
   if (IS_EQF(influence, 0.0f)) {
     return false;
   }
-  float tmp_old[4], tmp_new[4];
+  float tmp_lower[4], tmp_blended[4];
 
-  normalize_qt_qt(tmp_old, old_values);
-  normalize_qt_qt(tmp_new, values);
-  invert_qt_normalized(tmp_old);
+  normalize_qt_qt(tmp_lower, lower_values);
+  normalize_qt_qt(tmp_blended, blended_values);
+  invert_qt_normalized(tmp_lower);
 
-  mul_qt_qtqt(result, tmp_old, tmp_new);
-  pow_qt_fl_normalized(result, 1.0f / influence);
+  mul_qt_qtqt(r_strip_values, tmp_lower, tmp_blended);
+  pow_qt_fl_normalized(r_strip_values, 1.0f / influence);
 
   return true;
 }
@@ -2442,8 +2471,9 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
     ctx = MEM_callocN(sizeof(*ctx), "NlaKeyframingContext");
     ctx->adt = adt;
 
-    nlaeval_init(&ctx->nla_channels);
-    animsys_evaluate_nla(&ctx->nla_channels, ptr, adt, anim_eval_context, flush_to_original, ctx);
+    nlaeval_init(&ctx->lower_eval_data);
+    animsys_evaluate_nla(
+        &ctx->lower_eval_data, ptr, adt, anim_eval_context, flush_to_original, ctx);
 
     BLI_assert(ELEM(ctx->strip.act, NULL, adt->action));
     BLI_addtail(cache, ctx);
@@ -2504,44 +2534,51 @@ bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
       .ptr = *prop_ptr,
       .prop = prop,
   };
-  NlaEvalData *nlaeval = &context->nla_channels;
-  NlaEvalChannel *nec = nlaevalchan_verify_key(nlaeval, NULL, &key);
+  /**
+   * Remove lower NLA stack effects.
+   *
+   * Using the tweak strip's blended result and the lower snapshot value, we can solve for the
+   * tweak strip value it must evaluate to.
+   */
+  NlaEvalData *const lower_eval_data = &context->lower_eval_data;
+  NlaEvalChannel *const lower_nec = nlaevalchan_verify_key(lower_eval_data, NULL, &key);
 
-  if (nec->base_snapshot.length != count) {
+  if ((lower_nec->base_snapshot.length != count)) {
     BLI_assert(!"invalid value count");
     return false;
   }
 
-  /* Invert the blending operation to compute the desired key values. */
-  NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_find_channel(&nlaeval->eval_snapshot,
-                                                                       nec);
+  /* Invert the blending operation to compute the desired strip values. */
+  NlaEvalChannelSnapshot *const lower_nec_snapshot = nlaeval_snapshot_find_channel(
+      &lower_eval_data->eval_snapshot, lower_nec);
 
-  float *old_values = nec_snapshot->values;
+  float *lower_values = lower_nec_snapshot->values;
 
   if (blend_mode == NLASTRIP_MODE_COMBINE) {
     /* Quaternion combine handles all sub-channels as a unit. */
-    if (nec->mix_mode == NEC_MIX_QUATERNION) {
+    if (lower_nec->mix_mode == NEC_MIX_QUATERNION) {
       if (r_force_all == NULL) {
         return false;
       }
 
       *r_force_all = true;
 
-      if (!nla_invert_combine_quaternion(old_values, values, influence, values)) {
+      if (!nla_combine_quaternion_get_inverted_strip_values(
+              lower_values, values, influence, values)) {
         return false;
       }
     }
     else {
-      float *base_values = nec->base_snapshot.values;
+      float *base_values = lower_nec->base_snapshot.values;
 
       for (int i = 0; i < count; i++) {
         if (ELEM(index, i, -1)) {
-          if (!nla_invert_combine_value(nec->mix_mode,
-                                        base_values[i],
-                                        old_values[i],
-                                        values[i],
-                                        influence,
-                                        &values[i])) {
+          if (!nla_combine_get_inverted_strip_value(lower_nec->mix_mode,
+                                                    base_values[i],
+                                                    lower_values[i],
+                                                    values[i],
+                                                    influence,
+                                                    &values[i])) {
             return false;
           }
         }
@@ -2551,7 +2588,8 @@ bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
   else {
     for (int i = 0; i < count; i++) {
       if (ELEM(index, i, -1)) {
-        if (!nla_invert_blend_value(blend_mode, old_values[i], values[i], influence, &values[i])) {
+        if (!nla_blend_get_inverted_strip_value(
+                blend_mode, lower_values[i], values[i], influence, &values[i])) {
           return false;
         }
       }
@@ -2568,7 +2606,7 @@ void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache)
 {
   LISTBASE_FOREACH (NlaKeyframingContext *, ctx, cache) {
     MEM_SAFE_FREE(ctx->eval_strip);
-    nlaeval_free(&ctx->nla_channels);
+    nlaeval_free(&ctx->lower_eval_data);
   }
 
   BLI_freelistN(cache);
