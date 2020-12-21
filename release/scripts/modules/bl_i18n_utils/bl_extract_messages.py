@@ -558,6 +558,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         "msgid": ((("msgctxt",), _ctxt_to_ctxt),
                   ),
         "message": (),
+        "heading": (),
     }
 
     context_kw_set = {}
