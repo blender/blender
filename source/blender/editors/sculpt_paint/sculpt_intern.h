@@ -184,6 +184,7 @@ void SCULPT_fake_neighbors_free(struct Object *ob);
 
 /* Vertex Info. */
 void SCULPT_boundary_info_ensure(Object *object);
+void SCULPT_connected_components_ensure(Object *ob);
 /* Boundary Info needs to be initialized in order to use this function. */
 bool SCULPT_vertex_is_boundary(const SculptSession *ss, const int index);
 

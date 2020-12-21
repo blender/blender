@@ -9196,7 +9196,7 @@ static bool SCULPT_connected_components_floodfill_cb(
   return true;
 }
 
-static void sculpt_connected_components_ensure(Object *ob)
+void SCULPT_connected_components_ensure(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -9271,7 +9271,7 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
     return;
   }
 
-  sculpt_connected_components_ensure(ob);
+  SCULPT_connected_components_ensure(ob);
   SCULPT_fake_neighbor_init(ss, max_dist);
 
   for (int i = 0; i < totvert; i++) {

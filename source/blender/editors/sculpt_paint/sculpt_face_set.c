@@ -1027,6 +1027,11 @@ typedef enum eSculptFaceSetEditMode {
   SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY = 2,
   SCULPT_FACE_SET_EDIT_FAIR_POSITIONS = 3,
   SCULPT_FACE_SET_EDIT_FAIR_TANGENCY = 4,
+  /* TODO(pablodp606): enable this after supporting cotangent weights in fairing. */
+  /*
+  SCULPT_FACE_SET_EDIT_FAIR_CURVATURE = 5,
+  */
+  SCULPT_FACE_SET_EDIT_FILL_COMPONENT = 6,
 } eSculptFaceSetEditMode;
 
 static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
@@ -1067,6 +1072,13 @@ static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
         "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
         "vertex tangents",
     },
+    {
+        SCULPT_FACE_SET_EDIT_FILL_COMPONENT,
+        "FILL_COMPONENT",
+        0,
+        "Fill Component",
+        "Expand a Face Set to fill all affected connected components",
+    },
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1096,6 +1108,38 @@ static void sculpt_face_set_grow(Object *ob,
       }
     }
   }
+}
+
+static void sculpt_face_set_fill_component(Object *ob,
+                                           SculptSession *ss,
+                                           const int active_face_set_id,
+                                           const bool UNUSED(modify_hidden))
+{
+  SCULPT_connected_components_ensure(ob);
+  GSet *connected_components = BLI_gset_int_new("affected_components");
+
+  const int totvert = SCULPT_vertex_count_get(ss);
+  for (int i = 0; i < totvert; i++) {
+    if (!SCULPT_vertex_has_face_set(ss, i, active_face_set_id)) {
+      continue;
+    }
+    const int vertex_connected_component = ss->vertex_info.connected_component[i];
+    if (BLI_gset_haskey(connected_components, POINTER_FROM_INT(vertex_connected_component))) {
+      continue;
+    }
+    BLI_gset_add(connected_components, POINTER_FROM_INT(vertex_connected_component));
+  }
+
+  for (int i = 0; i < totvert; i++) {
+    const int vertex_connected_component = ss->vertex_info.connected_component[i];
+    if (!BLI_gset_haskey(connected_components, POINTER_FROM_INT(vertex_connected_component))) {
+      continue;
+    }
+
+    SCULPT_vertex_face_set_set(ss, i, active_face_set_id);
+  }
+
+  BLI_gset_free(connected_components, NULL);
 }
 
 static void sculpt_face_set_shrink(Object *ob,
@@ -1241,6 +1285,10 @@ static void sculpt_face_set_apply_edit(Object *ob,
       int *prev_face_sets = MEM_dupallocN(ss->face_sets);
       sculpt_face_set_shrink(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
       MEM_SAFE_FREE(prev_face_sets);
+      break;
+    }
+    case SCULPT_FACE_SET_EDIT_FILL_COMPONENT: {
+      sculpt_face_set_fill_component(ob, ss, active_face_set_id, modify_hidden);
       break;
     }
     case SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY:
@@ -1403,6 +1451,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
       break;
     case SCULPT_FACE_SET_EDIT_GROW:
     case SCULPT_FACE_SET_EDIT_SHRINK:
+    case SCULPT_FACE_SET_EDIT_FILL_COMPONENT:
       sculpt_face_set_edit_modify_face_sets(ob, active_face_set, mode, modify_hidden);
       break;
     case SCULPT_FACE_SET_EDIT_FAIR_POSITIONS:
