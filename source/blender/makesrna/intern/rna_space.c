@@ -4776,6 +4776,17 @@ static void rna_def_space_properties(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem tab_sync_items[] = {
+      {PROPERTIES_SYNC_ON, "ON", 0, "On", "Always sync from outliner editors to this editor"},
+      {PROPERTIES_SYNC_OFF, "OFF", 0, "Off", "Never sync from outliner editors to this editor"},
+      {PROPERTIES_SYNC_AUTO,
+       "AUTO",
+       0,
+       "Auto",
+       "Sync when this editor shares an edge with an outliner editor"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "SpaceProperties", "Space");
   RNA_def_struct_sdna(srna, "SpaceProperties");
   RNA_def_struct_ui_text(srna, "Properties Space", "Properties space data");
@@ -4826,6 +4837,13 @@ static void rna_def_space_properties(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_search_filter_update");
+
+  /* Outliner sync. */
+  prop = RNA_def_property(srna, "outliner_sync", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "outliner_sync");
+  RNA_def_property_enum_items(prop, tab_sync_items);
+  RNA_def_property_ui_text(prop, "Outliner Sync", "Sync tabs from outliner datablock selection");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, NULL);
 }
 
 static void rna_def_space_image_overlay(BlenderRNA *brna)

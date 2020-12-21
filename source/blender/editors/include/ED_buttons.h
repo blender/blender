@@ -26,6 +26,7 @@
 extern "C" {
 #endif
 
+struct ScrArea;
 struct SpaceProperties;
 struct bContext;
 
@@ -36,7 +37,13 @@ void ED_buttons_search_string_set(struct SpaceProperties *sbuts, const char *val
 int ED_buttons_search_string_length(struct SpaceProperties *sbuts);
 const char *ED_buttons_search_string_get(struct SpaceProperties *sbuts);
 
-void ED_buttons_set_context(const struct bContext *C, PointerRNA *ptr, const int context);
+bool ED_buttons_should_sync_with_outliner(const struct bContext *C,
+                                          const struct SpaceProperties *sbuts,
+                                          struct ScrArea *area);
+void ED_buttons_set_context(const struct bContext *C,
+                            struct SpaceProperties *sbuts,
+                            PointerRNA *ptr,
+                            const int context);
 
 #ifdef __cplusplus
 }
