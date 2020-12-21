@@ -504,6 +504,7 @@ MO_FILE_NAME = DOMAIN + ".mo"
 # Where to search for py files that may contain ui strings (relative to one of the 'resource_path' of Blender).
 CUSTOM_PY_UI_FILES = [
     os.path.join("scripts", "startup", "bl_ui"),
+    os.path.join("scripts", "startup", "bl_operators"),
     os.path.join("scripts", "modules", "rna_prop_ui.py"),
 ]
 
