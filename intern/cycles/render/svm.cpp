@@ -548,22 +548,23 @@ void SVMCompiler::generated_shared_closure_nodes(ShaderNode *root_node,
   }
 }
 
-void SVMCompiler::generate_aov_node(ShaderNode *node, CompilerState *state)
+void SVMCompiler::find_aov_nodes_and_dependencies(ShaderNodeSet &aov_nodes,
+                                                  ShaderGraph *graph,
+                                                  CompilerState *state)
 {
-  /* execute dependencies for node */
-  foreach (ShaderInput *in, node->inputs) {
-    if (in->link != NULL) {
-      ShaderNodeSet dependencies;
-      find_dependencies(dependencies, state->nodes_done, in);
-      generate_svm_nodes(dependencies, state);
+  foreach (ShaderNode *node, graph->nodes) {
+    if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
+      OutputAOVNode *aov_node = static_cast<OutputAOVNode *>(node);
+      if (aov_node->slot >= 0) {
+        aov_nodes.insert(aov_node);
+        foreach (ShaderInput *in, node->inputs) {
+          if (in->link != NULL) {
+            find_dependencies(aov_nodes, state->nodes_done, in);
+          }
+        }
+      }
     }
   }
-
-  /* compile node itself */
-  generate_node(node, state->nodes_done);
-
-  state->nodes_done.insert(node);
-  state->nodes_done_flag[node->id] = true;
 }
 
 void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
@@ -629,6 +630,25 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
                            std::inserter(shareddeps, shareddeps.begin()),
                            node_id_comp);
         }
+      }
+
+      /* For dependencies AOV nodes, prevent them from being categorized
+       * as exclusive deps of one or the other closure, since the need to
+       * execute them for AOV writing is not dependent on the closure
+       * weights. */
+      if (state->aov_nodes.size()) {
+        set_intersection(state->aov_nodes.begin(),
+                         state->aov_nodes.end(),
+                         cl1deps.begin(),
+                         cl1deps.end(),
+                         std::inserter(shareddeps, shareddeps.begin()),
+                         node_id_comp);
+        set_intersection(state->aov_nodes.begin(),
+                         state->aov_nodes.end(),
+                         cl2deps.begin(),
+                         cl2deps.end(),
+                         std::inserter(shareddeps, shareddeps.begin()),
+                         node_id_comp);
       }
 
       if (!shareddeps.empty()) {
@@ -782,6 +802,9 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
       }
 
       if (generate) {
+        if (type == SHADER_TYPE_SURFACE) {
+          find_aov_nodes_and_dependencies(state.aov_nodes, graph, &state);
+        }
         generate_multi_closure(clin->link->parent, clin->link->parent, &state);
       }
     }
@@ -789,28 +812,15 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
     /* compile output node */
     output->compile(*this);
 
-    if (type == SHADER_TYPE_SURFACE) {
-      vector<OutputAOVNode *> aov_outputs;
-      foreach (ShaderNode *node, graph->nodes) {
-        if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
-          OutputAOVNode *aov_node = static_cast<OutputAOVNode *>(node);
-          if (aov_node->slot >= 0) {
-            aov_outputs.push_back(aov_node);
-          }
-        }
-      }
-      if (aov_outputs.size() > 0) {
-        /* AOV passes are only written if the object is directly visible, so
-         * there is no point in evaluating all the nodes generated only for the
-         * AOV outputs if that's not the case. Therefore, we insert
-         * NODE_AOV_START into the shader before the AOV-only nodes are
-         * generated which tells the kernel that it can stop evaluation
-         * early if AOVs will not be written. */
-        add_node(NODE_AOV_START, 0, 0, 0);
-        foreach (OutputAOVNode *node, aov_outputs) {
-          generate_aov_node(node, &state);
-        }
-      }
+    if (!state.aov_nodes.empty()) {
+      /* AOV passes are only written if the object is directly visible, so
+       * there is no point in evaluating all the nodes generated only for the
+       * AOV outputs if that's not the case. Therefore, we insert
+       * NODE_AOV_START into the shader before the AOV-only nodes are
+       * generated which tells the kernel that it can stop evaluation
+       * early if AOVs will not be written. */
+      add_node(NODE_AOV_START, 0, 0, 0);
+      generate_svm_nodes(state.aov_nodes, &state);
     }
   }
 
