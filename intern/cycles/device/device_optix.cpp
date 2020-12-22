@@ -314,6 +314,14 @@ class OptiXDevice : public CUDADevice {
       common_cflags += string_printf(" -I\"%s/include\"", optix_sdk_path);
     }
 
+    // Specialization for shader raytracing
+    if (requested_features.use_shader_raytrace) {
+      common_cflags += " --keep-device-functions";
+    }
+    else {
+      common_cflags += " -D __NO_SHADER_RAYTRACE__";
+    }
+
     return common_cflags;
   }
 
