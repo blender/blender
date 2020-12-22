@@ -425,7 +425,10 @@ static void seq_disk_cache_handle_versioning(SeqDiskCache *disk_cache)
     FILE *file = BLI_fopen(path_version_file, "r");
 
     if (file) {
-      fscanf(file, "%d", &version);
+      const int num_items_read = fscanf(file, "%d", &version);
+      if (num_items_read == 0) {
+        version = -1;
+      }
       fclose(file);
     }
 
@@ -510,10 +513,14 @@ static size_t inflate_file_to_imbuf(ImBuf *ibuf, FILE *file, DiskCacheHeaderEntr
       ibuf->rect_float, header_entry->size_raw, file, header_entry->offset);
 }
 
-static void seq_disk_cache_read_header(FILE *file, DiskCacheHeader *header)
+static bool seq_disk_cache_read_header(FILE *file, DiskCacheHeader *header)
 {
   fseek(file, 0, 0);
-  fread(header, sizeof(*header), 1, file);
+  const size_t num_items_read = fread(header, sizeof(*header), 1, file);
+  if (num_items_read < 1) {
+    perror("unable to read disk cache header");
+    return false;
+  }
 
   for (int i = 0; i < DCACHE_IMAGES_PER_FILE; i++) {
     if ((ENDIAN_ORDER == B_ENDIAN) && header->entry[i].encoding == 0) {
@@ -523,6 +530,8 @@ static void seq_disk_cache_read_header(FILE *file, DiskCacheHeader *header)
       BLI_endian_switch_uint64(&header->entry[i].size_raw);
     }
   }
+
+  return true;
 }
 
 static size_t seq_disk_cache_write_header(FILE *file, DiskCacheHeader *header)
@@ -611,8 +620,12 @@ static bool seq_disk_cache_write_file(SeqDiskCache *disk_cache, SeqCacheKey *key
 
   DiskCacheHeader header;
   memset(&header, 0, sizeof(header));
-  seq_disk_cache_read_header(file, &header);
+  if (!seq_disk_cache_read_header(file, &header)) {
+    fclose(file);
+    return false;
+  }
   int entry_index = seq_disk_cache_add_header_entry(key, ibuf, &header);
+
   size_t bytes_written = deflate_imbuf_to_file(
       ibuf, file, seq_disk_cache_compression_level(), &header.entry[entry_index]);
 
@@ -644,7 +657,10 @@ static ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *ke
     return NULL;
   }
 
-  seq_disk_cache_read_header(file, &header);
+  if (!seq_disk_cache_read_header(file, &header)) {
+    fclose(file);
+    return NULL;
+  }
   int entry_index = seq_disk_cache_get_header_entry(key, &header);
 
   /* Item not found. */
