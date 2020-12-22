@@ -782,6 +782,9 @@ typedef struct SculptThreadedTaskData {
   int face_set;
   int filter_undo_type;
 
+  int mask_init_mode;
+  int mask_init_seed;
+
   ThreadMutex mutex;
 
 } SculptThreadedTaskData;

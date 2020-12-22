@@ -3570,12 +3570,13 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 /** \name Sculpt Scene Project Brush
  * \{ */
 
-static void sculpt_stroke_cache_snap_context_init(bContext *C, Object *ob) {
+static void sculpt_stroke_cache_snap_context_init(bContext *C, Object *ob)
+{
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
 
   if (ss->cache && ss->cache->snap_context) {
-      return;
+    return;
   }
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -3583,15 +3584,13 @@ static void sculpt_stroke_cache_snap_context_init(bContext *C, Object *ob) {
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
 
-  cache->snap_context = ED_transform_snap_object_context_create_view3d(
-        scene, 0, region, v3d);
+  cache->snap_context = ED_transform_snap_object_context_create_view3d(scene, 0, region, v3d);
   cache->depsgraph = depsgraph;
 }
 
-
 static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
-                                                  const int n,
-                                                  const TaskParallelTLS *__restrict tls)
+                                              const int n,
+                                              const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -3634,20 +3633,19 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
     normalize_v3(ray_normal);
 
     const bool hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
-                                         ss->cache->depsgraph,
-                                         &(const struct SnapObjectParams){
-                                                 .snap_select = SNAP_NOT_ACTIVE,
-                                                 .use_object_edit_cage = true,
-                                         },
-                                         ss->cache->view_origin,
-                                         ray_normal,
-                                         NULL,
-                                         world_space_hit_co,
-                                         NULL);
-
+                                                          ss->cache->depsgraph,
+                                                          &(const struct SnapObjectParams){
+                                                              .snap_select = SNAP_NOT_ACTIVE,
+                                                              .use_object_edit_cage = true,
+                                                          },
+                                                          ss->cache->view_origin,
+                                                          ray_normal,
+                                                          NULL,
+                                                          world_space_hit_co,
+                                                          NULL);
 
     if (!hit) {
-        continue;
+      continue;
     }
 
     mul_v3_m4v3(hit_co, data->ob->imat, world_space_hit_co);
@@ -6989,7 +6987,7 @@ void SCULPT_cache_free(StrokeCache *cache)
   MEM_SAFE_FREE(cache->limit_surface_co);
 
   if (cache->snap_context) {
-      ED_transform_snap_object_context_destroy(cache->snap_context);
+    ED_transform_snap_object_context_destroy(cache->snap_context);
   }
 
   if (cache->pose_ik_chain) {
@@ -7159,7 +7157,6 @@ static void sculpt_update_cache_invariants(
   normalize_v3_v3(cache->true_view_normal, viewDir);
 
   copy_v3_v3(cache->true_view_origin, cache->vc->rv3d->viewinv[3]);
-
 
   cache->supports_gravity = (!ELEM(brush->sculpt_tool,
                                    SCULPT_TOOL_MASK,
@@ -8193,7 +8190,7 @@ static void sculpt_stroke_update_step(bContext *C,
   const Brush *brush = BKE_paint_brush(&sd->paint);
 
   if (brush->sculpt_tool == SCULPT_TOOL_SCENE_PROJECT) {
-      sculpt_stroke_cache_snap_context_init(C, ob);
+    sculpt_stroke_cache_snap_context_init(C, ob);
   }
 
   SCULPT_stroke_modifiers_check(C, ob, brush);
@@ -10077,6 +10074,135 @@ static void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+typedef enum eSculptMaskInitMode {
+  SCULPT_MASK_INIT_RANDOM_PER_VERTEX,
+  SCULPT_MASK_INIT_RANDOM_PER_FACE_SET,
+  SCULPT_MASK_INIT_RANDOM_PER_COMPONENT,
+} eSculptMaskInitMode;
+
+static EnumPropertyItem prop_sculpt_mask_init_mode_types[] = {
+    {
+        SCULPT_MASK_INIT_RANDOM_PER_VERTEX,
+        "RANDOM_PER_VERTEX",
+        0,
+        "Random per Vertex",
+        "",
+    },
+    {
+        SCULPT_MASK_INIT_RANDOM_PER_FACE_SET,
+        "RANDOM_PER_FACE_SET",
+        0,
+        "Random per Face Set",
+        "",
+    },
+    {
+        SCULPT_MASK_INIT_RANDOM_PER_COMPONENT,
+        "RANDOM_PER_COMPONENT",
+        0,
+        "Random per Component",
+        "",
+    },
+    {0, NULL, 0, NULL, NULL},
+
+};
+
+static void mask_init_task_cb(void *__restrict userdata,
+                              const int i,
+                              const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHNode *node = data->nodes[i];
+  PBVHVertexIter vd;
+  const int mode = data->mask_init_mode;
+  const int seed = data->mask_init_seed;
+  SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    switch (mode) {
+      case SCULPT_MASK_INIT_RANDOM_PER_VERTEX:
+        *vd.mask = BLI_hash_int_01(vd.index + seed);
+        break;
+      case SCULPT_MASK_INIT_RANDOM_PER_FACE_SET: {
+        const int face_set = SCULPT_vertex_face_set_get(ss, vd.index);
+        *vd.mask = BLI_hash_int_01(face_set + seed);
+        break;
+      }
+      case SCULPT_MASK_INIT_RANDOM_PER_COMPONENT:
+        *vd.mask = BLI_hash_int_01(ss->vertex_info.connected_component[vd.index] + seed);
+        break;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+  BKE_pbvh_node_mark_update_mask(data->nodes[i]);
+}
+
+static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
+  const int mode = RNA_enum_get(op->ptr, "mode");
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
+  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+
+  if (!nodes) {
+    return OPERATOR_CANCELLED;
+  }
+
+  SCULPT_undo_push_begin(ob, "init mask");
+
+  if (mode == SCULPT_MASK_INIT_RANDOM_PER_COMPONENT) {
+    SCULPT_connected_components_ensure(ob);
+  }
+
+  SculptThreadedTaskData data = {
+      .ob = ob,
+      .nodes = nodes,
+      .mask_init_mode = mode,
+      .mask_init_seed = PIL_check_seconds_timer(),
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, mask_init_task_cb, &settings);
+
+  multires_stitch_grids(ob);
+
+  SCULPT_undo_push_end();
+
+  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+  MEM_SAFE_FREE(nodes);
+  SCULPT_tag_update_overlays(C);
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_mask_init(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Init Mask";
+  ot->description = "Creates a new mask for the mesh";
+  ot->idname = "SCULPT_OT_mask_init";
+
+  /* api callbacks */
+  ot->exec = sculpt_mask_init_exec;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  RNA_def_enum(ot->srna,
+               "mode",
+               prop_sculpt_mask_init_mode_types,
+               SCULPT_MASK_INIT_RANDOM_PER_VERTEX,
+               "Mode",
+               "");
+}
+
 void ED_operatortypes_sculpt(void)
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -10113,4 +10239,5 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_color_filter);
   WM_operatortype_append(SCULPT_OT_mask_by_color);
   WM_operatortype_append(SCULPT_OT_dyntopo_detail_size_edit);
+  WM_operatortype_append(SCULPT_OT_mask_init);
 }
