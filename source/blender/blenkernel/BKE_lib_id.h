@@ -200,7 +200,7 @@ void BKE_id_free(struct Main *bmain, void *idv);
 void BKE_id_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
 
 void BKE_id_delete(struct Main *bmain, void *idv) ATTR_NONNULL();
-void BKE_id_multi_tagged_delete(struct Main *bmain) ATTR_NONNULL();
+size_t BKE_id_multi_tagged_delete(struct Main *bmain) ATTR_NONNULL();
 
 void BKE_libblock_management_main_add(struct Main *bmain, void *idv);
 void BKE_libblock_management_main_remove(struct Main *bmain, void *idv);
