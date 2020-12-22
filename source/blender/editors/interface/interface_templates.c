@@ -1380,6 +1380,11 @@ static void template_id_name_button(
         but, template_ui->duplicate_op, WM_OP_INVOKE_DEFAULT, ICON_DUPLICATE);
   }
 
+  if (template_ui->open_op && (flag & UI_ID_OPEN)) {
+    UI_but_extra_operator_icon_add(
+        but, template_ui->open_op, WM_OP_INVOKE_DEFAULT, ICON_FILEBROWSER);
+  }
+
   if (id && (flag & UI_ID_DELETE)) {
     const bool never_unlink = RNA_property_flag(template_ui->prop) &
                               (PROP_NEVER_UNLINK | PROP_NEVER_NULL);
