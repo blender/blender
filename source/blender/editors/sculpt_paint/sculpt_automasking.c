@@ -100,6 +100,13 @@ bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, co
   if (SCULPT_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
     return true;
   }
+  if (SCULPT_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_CONCAVITY)) {
+    return true;
+  }
+  if (br->concave_mask_factor > 0.0f) {
+    return true;
+  }
+
   return false;
 }
 
@@ -131,14 +138,38 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
                                     SculptSession *ss,
                                     SculptVertRef vert)
 {
+  float mask = 1.0f;
+  bool do_concave;
+
   if (!automasking) {
-    return 1.0f;
+    return mask;
   }
+
+  do_concave = ss->cache->brush->concave_mask_factor > 0.0f ||
+               (automasking->settings.flags & BRUSH_AUTOMASKING_CONCAVITY);
+
   /* If the cache is initialized with valid info, use the cache. This is used when the
    * automasking information can't be computed in real time per vertex and needs to be
    * initialized for the whole mesh when the stroke starts. */
   if (automasking->factor) {
-    return automasking->factor[BKE_pbvh_vertex_index_to_table(ss->pbvh, vert)];
+    mask = automasking->factor[BKE_pbvh_vertex_index_to_table(ss->pbvh, vert)];
+  }
+
+  if (do_concave) {
+    if (!automasking->factor) {
+      mask = SCULPT_calc_concavity(ss, vert);
+    }
+
+    if (automasking->settings.flags & BRUSH_AUTOMASKING_INVERT_CONCAVITY) {
+      mask = 1.0 - mask;
+    }
+
+    mask = pow(mask*1.5f, (1.0f + automasking->settings.concave_factor) * 8.0);
+    CLAMP(mask, 0.0f, 1.0f);
+  }
+
+  if (automasking->factor) {
+    return mask;
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
@@ -159,7 +190,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
     }
   }
 
-  return 1.0f;
+  return mask;
 }
 
 void SCULPT_automasking_cache_free(AutomaskingCache *automasking)
@@ -339,7 +370,65 @@ static void SCULPT_automasking_cache_settings_update(AutomaskingCache *automaski
                                                      Brush *brush)
 {
   automasking->settings.flags = sculpt_automasking_mode_effective_bits(sd, brush);
+
+  if (brush->concave_mask_factor != 0.0f) {
+    automasking->settings.flags |= BRUSH_AUTOMASKING_CONCAVITY;
+  }
+
   automasking->settings.initial_face_set = SCULPT_active_face_set_get(ss);
+  automasking->settings.concave_factor = brush->concave_mask_factor;
+}
+
+float SCULPT_calc_concavity(SculptSession *ss, SculptVertRef vref)
+{
+  SculptVertexNeighborIter ni;
+  float co[3], tot = 0.0, elen = 0.0;
+  const float *vco = SCULPT_vertex_co_get(ss, vref);
+
+  zero_v3(co);
+
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vref, ni) {
+    const float *vco2 = SCULPT_vertex_co_get(ss, ni.vertex);
+
+    elen += len_v3v3(vco, vco2);
+    add_v3_v3(co, vco2);
+    tot += 1.0f;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  if (!tot) {
+    return 0.5f;
+  }
+
+  elen /= tot;
+  mul_v3_fl(co, 1.0 / tot);
+  sub_v3_v3(co, vco);
+  mul_v3_fl(co, -1.0 / elen);
+
+  float no[3];
+  SCULPT_vertex_normal_get(ss, vref, no);
+
+  float f = dot_v3v3(co, no) * 0.5 + 0.5;
+  return 1.0 - f;
+}
+
+static void SCULPT_concavity_automasking_init(Object *ob, Brush *brush, float *factor)
+{
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss) {
+    return;
+  }
+
+  const int totvert = SCULPT_vertex_count_get(ss);
+
+  for (int i = 0; i < totvert; i++) {
+    SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    float f = SCULPT_calc_concavity(ss, vref);
+
+    factor[i] *= f;
+  }
+  // BKE_pbvh_vertex_iter_begin
 }
 
 AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object *ob)
@@ -386,6 +475,10 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
     SCULPT_vertex_random_access_ensure(ss);
     SCULPT_boundary_automasking_init(
         ob, AUTOMASK_INIT_BOUNDARY_FACE_SETS, boundary_propagation_steps, automasking->factor);
+  }
+  if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_CONCAVITY)) {
+    SCULPT_vertex_random_access_ensure(ss);
+    SCULPT_concavity_automasking_init(ob, brush, automasking->factor);
   }
 
   return automasking;

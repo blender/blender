@@ -324,6 +324,8 @@ typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_FACE_SETS = (1 << 1),
   BRUSH_AUTOMASKING_BOUNDARY_EDGES = (1 << 2),
   BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS = (1 << 3),
+  BRUSH_AUTOMASKING_CONCAVITY = (1 << 4),
+  BRUSH_AUTOMASKING_INVERT_CONCAVITY = (1<<5)
 } eAutomasking_flag;
 
 typedef enum ePaintBrush_flag {
@@ -513,6 +515,7 @@ typedef enum eBrushUVSculptTool {
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \
         SCULPT_TOOL_SMOOTH, \
+        SCULPT_TOOL_VCOL_BOUNDARY, \
         SCULPT_TOOL_MASK) == 0)
 
 #define SCULPT_TOOL_HAS_TOPOLOGY_RAKE(t) \

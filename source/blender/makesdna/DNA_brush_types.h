@@ -367,7 +367,7 @@ typedef struct Brush {
   float mask_stencil_pos[2];
   float mask_stencil_dimension[2];
 
-  int _pad11;
+  float concave_mask_factor;
   struct BrushGpencilSettings *gpencil_settings;
 } Brush;
 

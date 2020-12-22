@@ -2842,6 +2842,15 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Autosmooth", "Amount of smoothing to automatically apply to each stroke");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "concave_mask_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "concave_mask_factor");
+  RNA_def_property_float_default(prop, 0);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+  RNA_def_property_ui_text(
+      prop, "Cavity Mask", "Mask to concave areas");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "topology_rake_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "topology_rake_factor");
   RNA_def_property_float_default(prop, 0);
@@ -2997,6 +3006,16 @@ static void rna_def_brush(BlenderRNA *brna)
       prop,
       "Original Plane",
       "When locked keep using the plane origin of surface where stroke was initiated");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  //note that concavity flag is derived from brush->concave_mask_factor being nonzero,
+  //so we just expose the invert concave flag here
+  prop = RNA_def_property(srna, "invert_automasking_concavity", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_INVERT_CONCAVITY);
+  RNA_def_property_ui_text(prop,
+                           "Invert Cavity Mask",
+                           "Invert mask to expose convex instead of concave areas");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_automasking_topology", PROP_BOOLEAN, PROP_NONE);

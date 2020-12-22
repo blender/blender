@@ -897,6 +897,7 @@ typedef struct AutomaskingSettings {
   /* Flags from eAutomasking_flag. */
   int flags;
   int initial_face_set;
+  float concave_factor;
 } AutomaskingSettings;
 
 typedef struct AutomaskingCache {
@@ -1228,3 +1229,4 @@ bool SCULPT_ensure_dyntopo_node_undo(struct Object *ob,
                                      int extraType);
 
 void SCULPT_update_flat_vcol_shading(struct Object *ob, struct Scene *scene);
+float SCULPT_calc_concavity(SculptSession *ss, SculptVertRef vref);

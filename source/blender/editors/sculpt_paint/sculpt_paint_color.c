@@ -122,6 +122,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   PBVHColorBufferNode *color_buffer;
 
+  
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
   orig_data.datatype = SCULPT_UNDO_COLOR;
