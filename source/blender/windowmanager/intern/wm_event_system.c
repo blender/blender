@@ -423,6 +423,7 @@ void wm_event_do_notifiers(bContext *C)
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     Scene *scene = WM_window_get_active_scene(win);
     bool do_anim = false;
+    bool clear_info_stats = false;
 
     CTX_wm_window_set(C, win);
 
@@ -489,11 +490,17 @@ void wm_event_do_notifiers(bContext *C)
         }
       }
       if (ELEM(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_WM)) {
-        ViewLayer *view_layer = CTX_data_view_layer(C);
-        ED_info_stats_clear(view_layer);
-        WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
+        clear_info_stats = true;
       }
     }
+
+    if (clear_info_stats) {
+      /* Only do once since adding notifiers is slow when there are many. */
+      ViewLayer *view_layer = CTX_data_view_layer(C);
+      ED_info_stats_clear(view_layer);
+      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
+    }
+
     if (do_anim) {
 
       /* XXX, quick frame changes can cause a crash if framechange and rendering
