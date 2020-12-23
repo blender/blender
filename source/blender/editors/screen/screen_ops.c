@@ -5506,16 +5506,6 @@ void ED_operatortypes_screen(void)
   /* new/delete */
   WM_operatortype_append(SCREEN_OT_new);
   WM_operatortype_append(SCREEN_OT_delete);
-
-  /* tools shared by more space types */
-  WM_operatortype_append(ED_OT_undo);
-  WM_operatortype_append(ED_OT_undo_push);
-  WM_operatortype_append(ED_OT_redo);
-  WM_operatortype_append(ED_OT_undo_redo);
-  WM_operatortype_append(ED_OT_undo_history);
-
-  WM_operatortype_append(ED_OT_lib_id_load_custom_preview);
-  WM_operatortype_append(ED_OT_lib_id_generate_preview);
 }
 
 /** \} */

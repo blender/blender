@@ -22,15 +22,22 @@
 
 #include <string.h>
 
+#include "BLI_fileops.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+#include "BLT_translation.h"
+
+#include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "ED_render.h"
+#include "ED_undo.h"
 #include "ED_util.h"
 
 #include "RNA_access.h"
@@ -40,7 +47,118 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-static int lib_fake_user_toggle_exec(bContext *C, wmOperator *op)
+/* -------------------------------------------------------------------- */
+/** \name ID Previews
+ * \{ */
+
+static bool lib_id_preview_editing_poll(bContext *C)
+{
+  const PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  BLI_assert(!idptr.data || RNA_struct_is_ID(idptr.type));
+
+  const ID *id = idptr.data;
+  if (!id) {
+    return false;
+  }
+  if (ID_IS_LINKED(id)) {
+    CTX_wm_operator_poll_msg_set(C, TIP_("Can't edit external library data"));
+    return false;
+  }
+  if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    CTX_wm_operator_poll_msg_set(C, TIP_("Can't edit previews of overridden library data"));
+    return false;
+  }
+  if (!BKE_previewimg_id_get_p(id)) {
+    CTX_wm_operator_poll_msg_set(C, TIP_("Data-block does not support previews"));
+    return false;
+  }
+
+  return true;
+}
+
+static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
+{
+  char path[FILE_MAX];
+
+  RNA_string_get(op->ptr, "filepath", path);
+
+  if (!BLI_is_file(path)) {
+    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", path);
+    return OPERATOR_CANCELLED;
+  }
+
+  PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  ID *id = idptr.data;
+
+  BKE_previewimg_id_custom_set(id, path);
+
+  WM_event_add_notifier(C, NC_ASSET, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static void ED_OT_lib_id_load_custom_preview(wmOperatorType *ot)
+{
+  ot->name = "Load Custom Preview";
+  ot->description = "Choose an image to help identify the data-block visually";
+  ot->idname = "ED_OT_lib_id_load_custom_preview";
+
+  /* api callbacks */
+  ot->poll = lib_id_preview_editing_poll;
+  ot->exec = lib_id_load_custom_preview_exec;
+  ot->invoke = WM_operator_filesel;
+
+  /* flags */
+  ot->flag = OPTYPE_INTERNAL;
+
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER | FILE_TYPE_IMAGE,
+                                 FILE_SPECIAL,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_FILEPATH,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
+}
+
+static int lib_id_generate_preview_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  ID *id = idptr.data;
+
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+
+  PreviewImage *preview = BKE_previewimg_id_get(id);
+  if (preview) {
+    BKE_previewimg_clear(preview);
+  }
+  UI_icon_render_id(C, NULL, id, true, true);
+
+  WM_event_add_notifier(C, NC_ASSET, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static void ED_OT_lib_id_generate_preview(wmOperatorType *ot)
+{
+  ot->name = "Generate Preview";
+  ot->description = "Create an automatic preview for the selected data-block";
+  ot->idname = "ED_OT_lib_id_generate_preview";
+
+  /* api callbacks */
+  ot->poll = lib_id_preview_editing_poll;
+  ot->exec = lib_id_generate_preview_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic ID Operators
+ * \{ */
+
+static int lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op)
 {
   PropertyPointerRNA pprop;
   PointerRNA idptr = PointerRNA_NULL;
@@ -74,21 +192,21 @@ static int lib_fake_user_toggle_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void ED_OT_lib_fake_user_toggle(wmOperatorType *ot)
+static void ED_OT_lib_id_fake_user_toggle(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Toggle Fake User";
   ot->description = "Save this data-block even if it has no users";
-  ot->idname = "ED_OT_lib_fake_user_toggle";
+  ot->idname = "ED_OT_lib_id_fake_user_toggle";
 
   /* api callbacks */
-  ot->exec = lib_fake_user_toggle_exec;
+  ot->exec = lib_id_fake_user_toggle_exec;
 
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-static int lib_unlink_exec(bContext *C, wmOperator *op)
+static int lib_id_unlink_exec(bContext *C, wmOperator *op)
 {
   PropertyPointerRNA pprop;
   PointerRNA idptr;
@@ -112,19 +230,25 @@ static int lib_unlink_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void ED_OT_lib_unlink(wmOperatorType *ot)
+static void ED_OT_lib_id_unlink(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Unlink Data-Block";
   ot->description = "Remove a usage of a data-block, clearing the assignment";
-  ot->idname = "ED_OT_lib_unlink";
+  ot->idname = "ED_OT_lib_id_unlink";
 
   /* api callbacks */
-  ot->exec = lib_unlink_exec;
+  ot->exec = lib_id_unlink_exec;
 
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name General editor utils.
+ * \{ */
 
 static int ed_flush_edits_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -147,9 +271,21 @@ static void ED_OT_flush_edits(wmOperatorType *ot)
   ot->flag = OPTYPE_INTERNAL;
 }
 
+/** \} */
+
 void ED_operatortypes_edutils(void)
 {
-  WM_operatortype_append(ED_OT_lib_fake_user_toggle);
-  WM_operatortype_append(ED_OT_lib_unlink);
+  WM_operatortype_append(ED_OT_lib_id_load_custom_preview);
+  WM_operatortype_append(ED_OT_lib_id_generate_preview);
+
+  WM_operatortype_append(ED_OT_lib_id_fake_user_toggle);
+  WM_operatortype_append(ED_OT_lib_id_unlink);
+
   WM_operatortype_append(ED_OT_flush_edits);
+
+  WM_operatortype_append(ED_OT_undo);
+  WM_operatortype_append(ED_OT_undo_push);
+  WM_operatortype_append(ED_OT_redo);
+  WM_operatortype_append(ED_OT_undo_redo);
+  WM_operatortype_append(ED_OT_undo_history);
 }
