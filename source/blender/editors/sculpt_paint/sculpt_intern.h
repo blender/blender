@@ -676,6 +676,7 @@ typedef struct SculptUndoNode {
   int nodemap_size;
 
   size_t undo_size;
+  //int gen, lasthash;
 } SculptUndoNode;
 
 /* Factor of brush to have rake point following behind

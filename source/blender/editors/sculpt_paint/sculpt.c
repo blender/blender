@@ -6203,9 +6203,8 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 }
 
-static void do_brush_action_task_cb(void *__restrict userdata,
-                                    const int n,
-                                    const TaskParallelTLS *__restrict UNUSED(tls))
+__attribute__((optnone)) static void do_brush_action_task_cb(
+    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;

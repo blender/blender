@@ -164,7 +164,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
       mask = 1.0 - mask;
     }
 
-    mask = pow(mask*1.5f, (1.0f + automasking->settings.concave_factor) * 8.0);
+    mask = pow(mask*1.5f, (0.5f + automasking->settings.concave_factor) * 8.0);
     CLAMP(mask, 0.0f, 1.0f);
   }
 
