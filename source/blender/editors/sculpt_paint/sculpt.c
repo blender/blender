@@ -1188,25 +1188,6 @@ void SCULPT_floodfill_free(SculptFloodFill *flood)
  *
  * \{ */
 
-/* Check if there are any active modifiers in stack.
- * Used for flushing updates at enter/exit sculpt mode. */
-static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
-{
-  ModifierData *md;
-  VirtualModifierData virtualModifierData;
-
-  md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
-
-  /* Exception for shape keys because we can edit those. */
-  for (; md; md = md->next) {
-    if (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 static bool sculpt_tool_needs_original(const char sculpt_tool)
 {
   return ELEM(sculpt_tool,
@@ -8320,7 +8301,7 @@ static void sculpt_init_session(Depsgraph *depsgraph, Scene *scene, Object *ob)
   /* Here we can detect geometry that was just added to Sculpt Mode as it has the
    * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
   /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
-   * initialized, which is used is some operators that modify the mesh topology to preform certain
+   * initialized, which is used is some operators that modify the mesh topology to perform certain
    * actions in the new polys. After these operations are finished, all polys should have a valid
    * face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their visibility
    * correctly. */
@@ -8334,23 +8315,6 @@ static void sculpt_init_session(Depsgraph *depsgraph, Scene *scene, Object *ob)
       ss->face_sets[i] = new_face_set;
     }
   }
-
-  /* Update the Face Sets visibility with the vertex visibility changes that may have been done
-   * outside Sculpt Mode */
-  Mesh *mesh = ob->data;
-  BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(mesh);
-}
-
-static int ed_object_sculptmode_flush_recalc_flag(Scene *scene,
-                                                  Object *ob,
-                                                  MultiresModifierData *mmd)
-{
-  int flush_recalc = 0;
-  /* Multires in sculpt mode could have different from object mode subdivision level. */
-  flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;
-  /* If object has got active modifiers, its dm could be different in sculpt mode.  */
-  flush_recalc |= sculpt_has_active_modifiers(scene, ob);
-  return flush_recalc;
 }
 
 void ED_object_sculptmode_enter_ex(Main *bmain,
@@ -8368,13 +8332,6 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
-  const int flush_recalc = ed_object_sculptmode_flush_recalc_flag(scene, ob, mmd);
-
-  if (flush_recalc) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
-  }
-
   /* Create sculpt mode session data. */
   if (ob->sculpt) {
     BKE_sculptsession_free(ob);
@@ -8383,14 +8340,30 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   /* Copy the current mesh visibility to the Face Sets. */
   BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(me);
 
-  sculpt_init_session(depsgraph, scene, ob);
+  /* Mask layer is required for Multires. */
+  BKE_sculpt_mask_layers_ensure(ob, mmd);
 
-  /* Mask layer is required. */
-  if (mmd) {
-    /* XXX, we could attempt to support adding mask data mid-sculpt mode (with multi-res)
-     * but this ends up being quite tricky (and slow). */
-    BKE_sculpt_mask_layers_ensure(ob, mmd);
-  }
+  /* Tessfaces aren't used and will become invalid. */
+  BKE_mesh_tessface_clear(me);
+
+  /* We always need to flush updates from depsgraph here, since at the very least
+   * `BKE_sculpt_face_sets_ensure_from_base_mesh_visibility()` will have updated some data layer of
+   * the mesh.
+   *
+   * All known potential sources of updates:
+   *   - Addition of, or changes to, the `CD_SCULPT_FACE_SETS` data layer
+   *     (`BKE_sculpt_face_sets_ensure_from_base_mesh_visibility`).
+   *   - Addition of a `CD_PAINT_MASK` data layer (`BKE_sculpt_mask_layers_ensure`).
+   *   - Object has any active modifier (modifier stack can be different in Sculpt mode).
+   *   - Multires:
+   *     + Differences of subdiv levels between sculpt and object modes
+   *       (`mmd->sculptlvl != mmd->lvl`).
+   *     + Addition of a `CD_GRID_PAINT_MASK` data layer (`BKE_sculpt_mask_layers_ensure`).
+   */
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+
+  sculpt_init_session(depsgraph, scene, ob);
 
   if (!(fabsf(ob->scale[0] - ob->scale[1]) < 1e-4f &&
         fabsf(ob->scale[1] - ob->scale[2]) < 1e-4f)) {

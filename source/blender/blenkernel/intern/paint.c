@@ -1596,7 +1596,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
   SculptSession *ss = ob->sculpt;
-  Mesh *me = BKE_object_get_original_mesh(ob);
+  const Mesh *me = BKE_object_get_original_mesh(ob);
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
@@ -1612,19 +1612,12 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   if (need_mask) {
     if (mmd == NULL) {
-      if (!CustomData_has_layer(&me->vdata, CD_PAINT_MASK)) {
-        BKE_sculpt_mask_layers_ensure(ob, NULL);
-      }
+      BLI_assert(CustomData_has_layer(&me->vdata, CD_PAINT_MASK));
     }
     else {
-      if (!CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
-        BKE_sculpt_mask_layers_ensure(ob, mmd);
-      }
+      BLI_assert(CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK));
     }
   }
-
-  /* tessfaces aren't used and will become invalid */
-  BKE_mesh_tessface_clear(me);
 
   ss->shapekey_active = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
 
@@ -1660,12 +1653,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   /* Sculpt Face Sets. */
   if (use_face_sets) {
-    if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
-      /* By checking here if the data-layer already exist this avoids copying the visibility from
-       * the mesh and looping over all vertices on every sculpt editing operation, using this
-       * function only the first time the Face Sets data-layer needs to be created. */
-      BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(me);
-    }
+    BLI_assert(CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS));
     ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
   }
   else {
@@ -1928,6 +1916,10 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
   return deformed;
 }
 
+/**
+ * Ensures that a Face Set data-layers exists. If it does not, it creates one respecting the
+ * visibility stored in the vertices of the mesh. If it does, it copies the visibility from the
+ * mesh to the Face Sets. */
 void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
 {
   const int face_sets_default_visible_id = 1;
