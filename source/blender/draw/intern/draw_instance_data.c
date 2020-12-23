@@ -633,6 +633,10 @@ static bool drw_uniform_property_lookup(ID *id, const char *name, float r_data[4
     return false;
   }
 
+  if (prop == NULL) {
+    return false;
+  }
+
   PropertyType type = RNA_property_type(prop);
   int arraylen = RNA_property_array_length(&ptr, prop);
 
