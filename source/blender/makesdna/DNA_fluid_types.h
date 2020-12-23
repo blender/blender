@@ -290,7 +290,7 @@ enum {
 #define FLUID_NAME_GUIDING "fluid_guiding"
 
 /* Fluid object names.*/
-#define FLUID_NAME_FLAGS "flags" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_FLAGS "flags"       /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_VELOCITY "velocity" /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_VEL "vel"
 #define FLUID_NAME_VELOCITYTMP "velocity_previous" /* == OpenVDB grid attribute name. */
@@ -301,7 +301,7 @@ enum {
 #define FLUID_NAME_PHIOBS "phi_obstacle" /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_PHISIN "phiSIn"
 #define FLUID_NAME_PHIIN "phi_inflow" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_PHIOUT "phi_out" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_PHIOUT "phi_out"   /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_FORCES "forces"
 #define FLUID_NAME_FORCE_X "x_force"
 #define FLUID_NAME_FORCE_Y "y_force"
@@ -323,37 +323,37 @@ enum {
 #define FLUID_NAME_PHIOUTIN "phi_out_inflow"
 
 /* Smoke object names. */
-#define FLUID_NAME_SHADOW "shadow" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_SHADOW "shadow"     /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_EMISSION "emission" /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_EMISSIONIN "emissionIn"
-#define FLUID_NAME_DENSITY "density" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_DENSITY "density"          /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_DENSITYIN "density_inflow" /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_HEAT "heat"
 #define FLUID_NAME_HEATIN "heatIn"
-#define FLUID_NAME_TEMPERATURE "temperature" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_TEMPERATURE "temperature"          /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_TEMPERATUREIN "temperature_inflow" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_COLORR "color_r" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_COLORG "color_g" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_COLORB "color_b" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_COLORRIN "color_r_inflow" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_COLORGIN "color_g_inflow" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_COLORBIN "color_b_inflow" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_FLAME "flame" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_FUEL "fuel" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_REACT "react" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_FUELIN "fuel_inflow" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_REACTIN "react_inflow" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_COLORR "color_r"                   /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_COLORG "color_g"                   /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_COLORB "color_b"                   /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_COLORRIN "color_r_inflow"          /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_COLORGIN "color_g_inflow"          /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_COLORBIN "color_b_inflow"          /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_FLAME "flame"                      /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_FUEL "fuel"                        /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_REACT "react"                      /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_FUELIN "fuel_inflow"               /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_REACTIN "react_inflow"             /* == OpenVDB grid attribute name. */
 
 /* Liquid object names. */
 #define FLUID_NAME_PHIPARTS "phi_particles" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_PHI "phi" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_PHITMP "phi_previous" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_PHI "phi"                /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_PHITMP "phi_previous"    /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_VELOCITYOLD "velOld"
 #define FLUID_NAME_VELOCITYPARTS "velParts"
 #define FLUID_NAME_MAPWEIGHTS "mapWeights"
 #define FLUID_NAME_PP "pp"
 #define FLUID_NAME_PVEL "pVel"
-#define FLUID_NAME_PARTS "particles" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_PARTS "particles"                  /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_PARTSVELOCITY "particles_velocity" /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_PINDEX "pindex"
 #define FLUID_NAME_GPI "gpi"
@@ -376,8 +376,8 @@ enum {
 #define FLUID_NAME_TEXTURE_U2 "textureU2"
 #define FLUID_NAME_TEXTURE_V2 "textureV2"
 #define FLUID_NAME_TEXTURE_W2 "textureW2"
-#define FLUID_NAME_UV0 "uv_grid_0" /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_UV1 "uv_grid_1" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_UV0 "uv_grid_0"              /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_UV1 "uv_grid_1"              /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_COLORR_NOISE "color_r_noise" /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_COLORG_NOISE "color_g_noise" /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_COLORB_NOISE "color_b_noise" /* == OpenVDB grid attribute name. */

@@ -124,7 +124,7 @@ void uiTemplateMovieClip(
   }
 
   PointerRNA clipptr = RNA_property_pointer_get(ptr, prop);
-  MovieClip *clip  = clipptr.data;
+  MovieClip *clip = clipptr.data;
 
   uiLayoutSetContextPointer(layout, "edit_movieclip", &clipptr);
 
@@ -447,20 +447,20 @@ void uiTemplateMarker(uiLayout *layout,
     }
 
     uiBut *bt = uiDefIconButBitI(block,
-                          UI_BTYPE_TOGGLE_N,
-                          MARKER_DISABLED,
-                          0,
-                          ICON_HIDE_OFF,
-                          0,
-                          0,
-                          UI_UNIT_X,
-                          UI_UNIT_Y,
-                          &cb->marker_flag,
-                          0,
-                          0,
-                          1,
-                          0,
-                          tip);
+                                 UI_BTYPE_TOGGLE_N,
+                                 MARKER_DISABLED,
+                                 0,
+                                 ICON_HIDE_OFF,
+                                 0,
+                                 0,
+                                 UI_UNIT_X,
+                                 UI_UNIT_Y,
+                                 &cb->marker_flag,
+                                 0,
+                                 0,
+                                 1,
+                                 0,
+                                 tip);
     UI_but_funcN_set(bt, marker_update_cb, cb, NULL);
     UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
   }
@@ -561,19 +561,19 @@ void uiTemplateMarker(uiLayout *layout,
              0,
              "");
     uiBut *bt = uiDefButF(block,
-                   UI_BTYPE_NUM,
-                   B_MARKER_POS,
-                   IFACE_("X:"),
-                   0.5 * UI_UNIT_X,
-                   9 * UI_UNIT_Y,
-                   7.25 * UI_UNIT_X,
-                   UI_UNIT_Y,
-                   &cb->marker_pos[0],
-                   -10 * width,
-                   10.0 * width,
-                   0,
-                   0,
-                   TIP_("X-position of marker at frame in screen coordinates"));
+                          UI_BTYPE_NUM,
+                          B_MARKER_POS,
+                          IFACE_("X:"),
+                          0.5 * UI_UNIT_X,
+                          9 * UI_UNIT_Y,
+                          7.25 * UI_UNIT_X,
+                          UI_UNIT_Y,
+                          &cb->marker_pos[0],
+                          -10 * width,
+                          10.0 * width,
+                          0,
+                          0,
+                          TIP_("X-position of marker at frame in screen coordinates"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
     bt = uiDefButF(block,
