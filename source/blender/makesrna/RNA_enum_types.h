@@ -83,6 +83,7 @@ extern const EnumPropertyItem rna_enum_image_generated_type_items[];
 extern const EnumPropertyItem rna_enum_normal_space_items[];
 extern const EnumPropertyItem rna_enum_normal_swizzle_items[];
 extern const EnumPropertyItem rna_enum_bake_save_mode_items[];
+extern const EnumPropertyItem rna_enum_bake_target_items[];
 
 extern const EnumPropertyItem rna_enum_views_format_items[];
 extern const EnumPropertyItem rna_enum_views_format_multilayer_items[];

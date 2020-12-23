@@ -83,6 +83,8 @@ typedef struct BakeAPIRender {
   ListBase selected_objects;
 
   /* Baking settings. */
+  eBakeTarget target;
+
   eScenePassType pass_type;
   int pass_filter;
   int margin;
@@ -416,7 +418,10 @@ static bool is_noncolor_pass(eScenePassType pass_type)
 }
 
 /* if all is good tag image and return true */
-static bool bake_object_check(ViewLayer *view_layer, Object *ob, ReportList *reports)
+static bool bake_object_check(ViewLayer *view_layer,
+                              Object *ob,
+                              const eBakeTarget target,
+                              ReportList *reports)
 {
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
@@ -442,67 +447,69 @@ static bool bake_object_check(ViewLayer *view_layer, Object *ob, ReportList *rep
     return false;
   }
 
-  for (int i = 0; i < ob->totcol; i++) {
-    bNodeTree *ntree = NULL;
-    bNode *node = NULL;
-    const int mat_nr = i + 1;
-    Image *image;
-    ED_object_get_active_image(ob, mat_nr, &image, NULL, &node, &ntree);
+  if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
+    for (int i = 0; i < ob->totcol; i++) {
+      bNodeTree *ntree = NULL;
+      bNode *node = NULL;
+      const int mat_nr = i + 1;
+      Image *image;
+      ED_object_get_active_image(ob, mat_nr, &image, NULL, &node, &ntree);
 
-    if (image) {
-      ImBuf *ibuf;
+      if (image) {
+        ImBuf *ibuf;
 
-      if (node) {
-        if (BKE_node_is_connected_to_output(ntree, node)) {
-          /* we don't return false since this may be a false positive
-           * this can't be RPT_ERROR though, otherwise it prevents
-           * multiple highpoly objects to be baked at once */
+        if (node) {
+          if (BKE_node_is_connected_to_output(ntree, node)) {
+            /* we don't return false since this may be a false positive
+             * this can't be RPT_ERROR though, otherwise it prevents
+             * multiple highpoly objects to be baked at once */
+            BKE_reportf(reports,
+                        RPT_INFO,
+                        "Circular dependency for image \"%s\" from object \"%s\"",
+                        image->id.name + 2,
+                        ob->id.name + 2);
+          }
+        }
+
+        void *lock;
+        ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+
+        if (ibuf) {
+          BKE_image_release_ibuf(image, ibuf, lock);
+        }
+        else {
           BKE_reportf(reports,
-                      RPT_INFO,
-                      "Circular dependency for image \"%s\" from object \"%s\"",
+                      RPT_ERROR,
+                      "Uninitialized image \"%s\" from object \"%s\"",
                       image->id.name + 2,
                       ob->id.name + 2);
+
+          BKE_image_release_ibuf(image, ibuf, lock);
+          return false;
         }
       }
-
-      void *lock;
-      ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
-
-      if (ibuf) {
-        BKE_image_release_ibuf(image, ibuf, lock);
-      }
       else {
-        BKE_reportf(reports,
-                    RPT_ERROR,
-                    "Uninitialized image \"%s\" from object \"%s\"",
-                    image->id.name + 2,
-                    ob->id.name + 2);
+        Material *mat = BKE_object_material_get(ob, mat_nr);
+        if (mat != NULL) {
+          BKE_reportf(reports,
+                      RPT_INFO,
+                      "No active image found in material \"%s\" (%d) for object \"%s\"",
+                      mat->id.name + 2,
+                      i,
+                      ob->id.name + 2);
+        }
+        else {
+          BKE_reportf(reports,
+                      RPT_INFO,
+                      "No active image found in material slot (%d) for object \"%s\"",
+                      i,
+                      ob->id.name + 2);
+        }
+        continue;
+      }
 
-        BKE_image_release_ibuf(image, ibuf, lock);
-        return false;
-      }
+      image->id.tag |= LIB_TAG_DOIT;
     }
-    else {
-      Material *mat = BKE_object_material_get(ob, mat_nr);
-      if (mat != NULL) {
-        BKE_reportf(reports,
-                    RPT_INFO,
-                    "No active image found in material \"%s\" (%d) for object \"%s\"",
-                    mat->id.name + 2,
-                    i,
-                    ob->id.name + 2);
-      }
-      else {
-        BKE_reportf(reports,
-                    RPT_INFO,
-                    "No active image found in material slot (%d) for object \"%s\"",
-                    i,
-                    ob->id.name + 2);
-      }
-      continue;
-    }
-
-    image->id.tag |= LIB_TAG_DOIT;
   }
 
   return true;
@@ -576,7 +583,8 @@ static bool bake_objects_check(Main *bmain,
                                Object *ob,
                                ListBase *selected_objects,
                                ReportList *reports,
-                               const bool is_selected_to_active)
+                               const bool is_selected_to_active,
+                               const eBakeTarget target)
 {
   CollectionPointerLink *link;
 
@@ -586,7 +594,7 @@ static bool bake_objects_check(Main *bmain,
   if (is_selected_to_active) {
     int tot_objects = 0;
 
-    if (!bake_object_check(view_layer, ob, reports)) {
+    if (!bake_object_check(view_layer, ob, target, reports)) {
       return false;
     }
 
@@ -620,7 +628,7 @@ static bool bake_objects_check(Main *bmain,
     }
 
     for (link = selected_objects->first; link; link = link->next) {
-      if (!bake_object_check(view_layer, link->ptr.data, reports)) {
+      if (!bake_object_check(view_layer, link->ptr.data, target, reports)) {
         return false;
       }
     }
@@ -895,6 +903,161 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
   return all_ok;
 }
 
+/* Vertex Color Bake Targets */
+
+static bool bake_targets_init_vertex_colors(BakeTargets *targets, Object *ob, ReportList *reports)
+{
+  if (ob->type != OB_MESH) {
+    BKE_report(
+        reports, RPT_ERROR, "Vertex color baking not support with object types other than mesh");
+    return false;
+  }
+
+  Mesh *me = ob->data;
+  MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+  MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
+  if (mcol == NULL && mloopcol == NULL) {
+    BKE_report(reports, RPT_ERROR, "No vertex colors layer found to bake to");
+    return false;
+  }
+
+  targets->images = MEM_callocN(sizeof(BakeImage), "BakeTargets.images");
+  targets->num_images = 1;
+
+  targets->material_to_image = MEM_callocN(sizeof(int) * ob->totcol,
+                                           "BakeTargets.material_to_image");
+  targets->num_materials = ob->totcol;
+
+  BakeImage *bk_image = &targets->images[0];
+  bk_image->width = me->totvert;
+  bk_image->height = 1;
+  bk_image->offset = 0;
+  bk_image->image = NULL;
+
+  targets->num_pixels = bk_image->width * bk_image->height;
+
+  return true;
+}
+
+static void bake_targets_populate_pixels_vertex_colors(BakeTargets *targets,
+                                                       Mesh *me,
+                                                       BakePixel *pixel_array)
+{
+  const int num_pixels = targets->num_pixels;
+
+  /* Initialize blank pixels. */
+  for (int i = 0; i < num_pixels; i++) {
+    BakePixel *pixel = &pixel_array[i];
+
+    pixel->primitive_id = -1;
+    pixel->object_id = 0;
+    pixel->du_dx = 0.0f;
+    pixel->du_dy = 0.0f;
+    pixel->dv_dx = 0.0f;
+    pixel->dv_dy = 0.0f;
+    pixel->uv[0] = 0.0f;
+    pixel->uv[1] = 0.0f;
+  }
+
+  /* Populate through adjacent triangles, first triangle wins. */
+  const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
+  MLoopTri *looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
+
+  BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
+
+  for (int i = 0; i < tottri; i++) {
+    const MLoopTri *lt = &looptri[i];
+
+    for (int j = 0; j < 3; j++) {
+      const unsigned int v = me->mloop[lt->tri[j]].v;
+      BakePixel *pixel = &pixel_array[v];
+
+      if (pixel->primitive_id != -1) {
+        continue;
+      }
+
+      pixel->primitive_id = i;
+
+      /* Barycentric coordinates, nudged a bit to avoid precision issues that
+       * may happen when exactly at the vertex coordinate. */
+      if (j == 0) {
+        pixel->uv[0] = 1.0f - FLT_EPSILON;
+        pixel->uv[1] = FLT_EPSILON / 2.0f;
+      }
+      else if (j == 1) {
+        pixel->uv[0] = FLT_EPSILON / 2.0f;
+        pixel->uv[1] = 1.0f - FLT_EPSILON;
+      }
+      else if (j == 2) {
+        pixel->uv[0] = FLT_EPSILON / 2.0f;
+        pixel->uv[1] = FLT_EPSILON / 2.0f;
+      }
+    }
+  }
+
+  MEM_freeN(looptri);
+}
+
+static void bake_result_to_rgba(float rgba[4], const float *result, const int num_channels)
+{
+  if (num_channels == 4) {
+    copy_v4_v4(rgba, result);
+  }
+  else if (num_channels == 3) {
+    copy_v3_v3(rgba, result);
+    rgba[3] = 1.0f;
+  }
+  else {
+    rgba[0] = result[0];
+    rgba[1] = result[0];
+    rgba[2] = result[0];
+    rgba[3] = 1.0f;
+  }
+}
+
+static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
+{
+  Mesh *me = ob->data;
+  MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+  MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
+  const int num_channels = targets->num_channels;
+  const float *result = targets->result;
+
+  if (mcol) {
+    /* Float vertex colors in scene linear color space. */
+    const int totvert = me->totvert;
+    for (int i = 0; i < totvert; i++, mcol++) {
+      bake_result_to_rgba(mcol->color, &result[i * num_channels], num_channels);
+    }
+  }
+  else {
+    /* Byte loop colors in sRGB colors space.
+     *
+     * Note that colors have been baked per vertex and not per corner, which
+     * could be useful to preserve material discontinuities. However this also
+     * leads to unintended discontinuities due to sampling noise. */
+    MLoop *mloop = me->mloop;
+    const int totloop = me->totloop;
+    const bool is_noncolor = targets->is_noncolor;
+
+    for (int i = 0; i < totloop; i++, mloop++, mloopcol++) {
+      float rgba[4];
+      bake_result_to_rgba(rgba, &result[mloop->v * num_channels], num_channels);
+
+      if (is_noncolor) {
+        linearrgb_to_srgb_uchar4(&mloopcol->r, rgba);
+      }
+      else {
+        unit_float_to_uchar_clamp_v4(&mloopcol->r, rgba);
+      }
+    }
+  }
+
+  DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
+
+  return true;
+}
+
 /* Bake Targets */
 
 static bool bake_targets_init(const BakeAPIRender *bkr,
@@ -902,13 +1065,20 @@ static bool bake_targets_init(const BakeAPIRender *bkr,
                               Object *ob,
                               ReportList *reports)
 {
-  if (bkr->save_mode == R_BAKE_SAVE_INTERNAL) {
-    if (!bake_targets_init_internal(bkr, targets, ob, reports)) {
-      return false;
+  if (bkr->target == R_BAKE_TARGET_IMAGE_TEXTURES) {
+    if (bkr->save_mode == R_BAKE_SAVE_INTERNAL) {
+      if (!bake_targets_init_internal(bkr, targets, ob, reports)) {
+        return false;
+      }
+    }
+    else if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
+      if (!bake_targets_init_external(bkr, targets, ob, reports)) {
+        return false;
+      }
     }
   }
-  else if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
-    if (!bake_targets_init_external(bkr, targets, ob, reports)) {
+  else if (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) {
+    if (!bake_targets_init_vertex_colors(targets, ob, reports)) {
       return false;
     }
   }
@@ -930,7 +1100,12 @@ static void bake_targets_populate_pixels(const BakeAPIRender *bkr,
                                          Mesh *me,
                                          BakePixel *pixel_array)
 {
-  RE_bake_pixels_populate(me, pixel_array, targets->num_pixels, targets, bkr->uv_layer);
+  if (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) {
+    bake_targets_populate_pixels_vertex_colors(targets, me, pixel_array);
+  }
+  else {
+    RE_bake_pixels_populate(me, pixel_array, targets->num_pixels, targets, bkr->uv_layer);
+  }
 }
 
 static bool bake_targets_output(const BakeAPIRender *bkr,
@@ -941,11 +1116,16 @@ static bool bake_targets_output(const BakeAPIRender *bkr,
                                 BakePixel *pixel_array,
                                 ReportList *reports)
 {
-  if (bkr->save_mode == R_BAKE_SAVE_INTERNAL) {
-    return bake_targets_output_internal(bkr, targets, ob, pixel_array, reports);
+  if (bkr->target == R_BAKE_TARGET_IMAGE_TEXTURES) {
+    if (bkr->save_mode == R_BAKE_SAVE_INTERNAL) {
+      return bake_targets_output_internal(bkr, targets, ob, pixel_array, reports);
+    }
+    else if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
+      return bake_targets_output_external(bkr, targets, ob, ob_eval, me, pixel_array, reports);
+    }
   }
-  else if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
-    return bake_targets_output_external(bkr, targets, ob, ob_eval, me, pixel_array, reports);
+  else if (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) {
+    return bake_targets_output_vertex_colors(targets, ob);
   }
 
   return false;
@@ -1362,9 +1542,11 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
   bkr->margin = RNA_int_get(op->ptr, "margin");
 
   bkr->save_mode = (eBakeSaveMode)RNA_enum_get(op->ptr, "save_mode");
+  bkr->target = (eBakeTarget)RNA_enum_get(op->ptr, "target");
 
   bkr->is_clear = RNA_boolean_get(op->ptr, "use_clear");
-  bkr->is_split_materials = (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) &&
+  bkr->is_split_materials = (bkr->target == R_BAKE_TARGET_IMAGE_TEXTURES &&
+                             bkr->save_mode == R_BAKE_SAVE_EXTERNAL) &&
                             RNA_boolean_get(op->ptr, "use_split_materials");
   bkr->is_automatic_name = RNA_boolean_get(op->ptr, "use_automatic_name");
   bkr->is_selected_to_active = RNA_boolean_get(op->ptr, "use_selected_to_active");
@@ -1432,7 +1614,8 @@ static int bake_exec(bContext *C, wmOperator *op)
                           bkr.ob,
                           &bkr.selected_objects,
                           bkr.reports,
-                          bkr.is_selected_to_active)) {
+                          bkr.is_selected_to_active,
+                          bkr.target)) {
     goto finally;
   }
 
@@ -1484,7 +1667,8 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
                           bkr->ob,
                           &bkr->selected_objects,
                           bkr->reports,
-                          bkr->is_selected_to_active)) {
+                          bkr->is_selected_to_active,
+                          bkr->target)) {
     bkr->result = OPERATOR_CANCELLED;
     return;
   }
@@ -1590,6 +1774,11 @@ static void bake_set_props(wmOperator *op, Scene *scene)
     RNA_property_enum_set(op->ptr, prop, bake->normal_swizzle[2]);
   }
 
+  prop = RNA_struct_find_property(op->ptr, "target");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_enum_set(op->ptr, prop, bake->target);
+  }
+
   prop = RNA_struct_find_property(op->ptr, "save_mode");
   if (!RNA_property_is_set(op->ptr, prop)) {
     RNA_property_enum_set(op->ptr, prop, bake->save_mode);
@@ -1653,7 +1842,9 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
                        WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
                        WM_JOB_TYPE_OBJECT_BAKE);
   WM_jobs_customdata_set(wm_job, bkr, bake_freejob);
-  WM_jobs_timer(wm_job, 0.5, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
+  /* TODO - only draw bake image, can we enforce this */
+  WM_jobs_timer(
+      wm_job, 0.5, (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) ? NC_GEOM | ND_DATA : NC_IMAGE, 0);
   WM_jobs_callbacks(wm_job, bake_startjob, NULL, NULL, NULL);
 
   G.is_break = false;
@@ -1789,11 +1980,17 @@ void OBJECT_OT_bake(wmOperatorType *ot)
                "B",
                "Axis to bake in blue channel");
   RNA_def_enum(ot->srna,
+               "target",
+               rna_enum_bake_target_items,
+               R_BAKE_TARGET_IMAGE_TEXTURES,
+               "Target",
+               "Where to output the baked map");
+  RNA_def_enum(ot->srna,
                "save_mode",
                rna_enum_bake_save_mode_items,
                R_BAKE_SAVE_INTERNAL,
                "Save Mode",
-               "Choose how to save the baking map");
+               "Where to save baked image textures");
   RNA_def_boolean(ot->srna,
                   "use_clear",
                   false,
