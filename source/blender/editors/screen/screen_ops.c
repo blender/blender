@@ -3138,6 +3138,8 @@ static int screen_maximize_area_exec(bContext *C, wmOperator *op)
   ScrArea *area = NULL;
   const bool hide_panels = RNA_boolean_get(op->ptr, "use_hide_panels");
 
+  BLI_assert(!screen->temp);
+
   /* search current screen for 'fullscreen' areas */
   /* prevents restoring info header, when mouse is over it */
   LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
@@ -3169,11 +3171,14 @@ static int screen_maximize_area_exec(bContext *C, wmOperator *op)
 
 static bool screen_maximize_area_poll(bContext *C)
 {
+  const wmWindow *win = CTX_wm_window(C);
   const bScreen *screen = CTX_wm_screen(C);
   const ScrArea *area = CTX_wm_area(C);
   return ED_operator_areaactive(C) &&
          /* Don't allow maximizing global areas but allow minimizing from them. */
-         ((screen->state != SCREENNORMAL) || !ED_area_is_global(area));
+         ((screen->state != SCREENNORMAL) || !ED_area_is_global(area)) &&
+         /* Don't change temporary screens. */
+         !WM_window_is_temp_screen(win);
 }
 
 static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
