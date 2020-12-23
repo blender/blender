@@ -1135,26 +1135,27 @@ struct KnAddForceIfLower : public KernelBase {
     if (!curFluid && !curEmpty)
       return;
 
+    Real minVal, maxVal, sum;
     if (flags.isFluid(i - 1, j, k) || (curFluid && flags.isEmpty(i - 1, j, k))) {
       Real forceMACX = 0.5 * (force(i - 1, j, k).x + force(i, j, k).x);
-      Real min = std::min(vel(i, j, k).x, forceMACX);
-      Real max = std::max(vel(i, j, k).x, forceMACX);
-      Real sum = vel(i, j, k).x + forceMACX;
-      vel(i, j, k).x = (forceMACX > 0) ? std::min(sum, max) : std::max(sum, min);
+      minVal = min(vel(i, j, k).x, forceMACX);
+      maxVal = max(vel(i, j, k).x, forceMACX);
+      sum = vel(i, j, k).x + forceMACX;
+      vel(i, j, k).x = (forceMACX > 0) ? min(sum, maxVal) : max(sum, minVal);
     }
     if (flags.isFluid(i, j - 1, k) || (curFluid && flags.isEmpty(i, j - 1, k))) {
       Real forceMACY = 0.5 * (force(i, j - 1, k).y + force(i, j, k).y);
-      Real min = std::min(vel(i, j, k).y, forceMACY);
-      Real max = std::max(vel(i, j, k).y, forceMACY);
-      Real sum = vel(i, j, k).y + forceMACY;
-      vel(i, j, k).y = (forceMACY > 0) ? std::min(sum, max) : std::max(sum, min);
+      minVal = min(vel(i, j, k).y, forceMACY);
+      maxVal = max(vel(i, j, k).y, forceMACY);
+      sum = vel(i, j, k).y + forceMACY;
+      vel(i, j, k).y = (forceMACY > 0) ? min(sum, maxVal) : max(sum, minVal);
     }
     if (vel.is3D() && (flags.isFluid(i, j, k - 1) || (curFluid && flags.isEmpty(i, j, k - 1)))) {
       Real forceMACZ = 0.5 * (force(i, j, k - 1).z + force(i, j, k).z);
-      Real min = std::min(vel(i, j, k).z, forceMACZ);
-      Real max = std::max(vel(i, j, k).z, forceMACZ);
-      Real sum = vel(i, j, k).z + forceMACZ;
-      vel(i, j, k).z = (forceMACZ > 0) ? std::min(sum, max) : std::max(sum, min);
+      minVal = min(vel(i, j, k).z, forceMACZ);
+      maxVal = max(vel(i, j, k).z, forceMACZ);
+      sum = vel(i, j, k).z + forceMACZ;
+      vel(i, j, k).z = (forceMACZ > 0) ? min(sum, maxVal) : max(sum, minVal);
     }
   }
   inline const FlagGrid &getArg0()

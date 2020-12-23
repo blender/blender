@@ -1138,11 +1138,15 @@ void solvePressureSystem(Grid<Real> &rhs,
   // note: the last factor increases the max iterations for 2d, which right now can't use a
   // preconditioner
   GridCgInterface *gcg;
-  if (vel.is3D())
-    gcg = new GridCg<ApplyMatrix>(pressure, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
-  else
-    gcg = new GridCg<ApplyMatrix2D>(
-        pressure, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
+  vector<Grid<Real> *> matA{&A0, &Ai, &Aj};
+
+  if (vel.is3D()) {
+    matA.push_back(&Ak);
+    gcg = new GridCg<ApplyMatrix>(pressure, rhs, residual, search, flags, tmp, matA);
+  }
+  else {
+    gcg = new GridCg<ApplyMatrix2D>(pressure, rhs, residual, search, flags, tmp, matA);
+  }
 
   gcg->setAccuracy(cgAccuracy);
   gcg->setUseL2Norm(useL2Norm);

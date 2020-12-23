@@ -200,6 +200,7 @@ set(SRC
   ${MANTA_PP}/plugin/ptsplugins.cpp
   ${MANTA_PP}/plugin/secondaryparticles.cpp
   ${MANTA_PP}/plugin/surfaceturbulence.cpp
+  ${MANTA_PP}/plugin/viscosity.cpp
   ${MANTA_PP}/plugin/vortexplugins.cpp
   ${MANTA_PP}/plugin/waveletturbulence.cpp
   ${MANTA_PP}/plugin/waves.cpp

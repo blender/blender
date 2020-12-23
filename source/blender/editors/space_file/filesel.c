@@ -1142,7 +1142,9 @@ void ED_fileselect_exit(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfil
     return;
   }
   if (sfile->op) {
-    wmWindow *temp_win = WM_window_is_temp_screen(wm->winactive) ? wm->winactive : NULL;
+    wmWindow *temp_win = (wm->winactive && WM_window_is_temp_screen(wm->winactive)) ?
+                             wm->winactive :
+                             NULL;
     if (temp_win) {
       int win_size[2];
       bool is_maximized;

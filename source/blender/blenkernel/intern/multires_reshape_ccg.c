@@ -61,8 +61,24 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
                sizeof(float[3]));
 
         if (reshape_level_key.has_mask) {
-          BLI_assert(grid_element.mask != NULL);
-          *grid_element.mask = *CCG_grid_elem_mask(&reshape_level_key, ccg_grid, x, y);
+          /* Assert about a non-NULL `grid_element.mask` may fail here, this code may be called
+           * from cleanup code during COW evaluation phase by depsgraph (e.g.
+           * `object_update_from_subsurf_ccg` call in `BKE_object_free_derived_caches`).
+           *
+           * `reshape_level_key.has_mask` is ultimately set from MultiRes modifier apply code
+           * (through `multires_as_ccg` -> `multires_ccg_settings_init`), when object is in sculpt
+           * mode only, and there is matching loop cdlayer.
+           *
+           * `grid_element.mask` is directly set from existing matching loop cdlayer during
+           * initialization of `MultiresReshapeContext` struct.
+           *
+           * Since ccg data is preserved during undos, we may end up with a state where there is no
+           * mask data in mesh loops' cdlayer, while ccg's `has_mask` is still set to true.
+           */
+          // BLI_assert(grid_element.mask != NULL);
+          if (grid_element.mask != NULL) {
+            *grid_element.mask = *CCG_grid_elem_mask(&reshape_level_key, ccg_grid, x, y);
+          }
         }
       }
     }

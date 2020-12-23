@@ -576,8 +576,10 @@ void VICintegration(VortexSheetMesh &mesh,
 
     // prepare CG solver
     const int maxIter = (int)(cgMaxIterFac * vel.getSize().max());
+    vector<Grid<Real> *> matA{&A0, &Ai, &Aj, &Ak};
+
     GridCgInterface *gcg = new GridCg<ApplyMatrix>(
-        solution, rhs, residual, search, flags, temp1, &A0, &Ai, &Aj, &Ak);
+        solution, rhs, residual, search, flags, temp1, matA);
     gcg->setAccuracy(cgAccuracy);
     gcg->setUseL2Norm(true);
     gcg->setICPreconditioner(

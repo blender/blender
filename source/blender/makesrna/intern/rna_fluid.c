@@ -1929,6 +1929,22 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       "Maximum number of fluid particles that are allowed in this simulation");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
+  /* viscosity options */
+
+  prop = RNA_def_property(srna, "use_viscosity", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_USE_VISCOSITY);
+  RNA_def_property_ui_text(prop, "Use Viscosity", "Enable fluid viscosity settings");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
+
+  prop = RNA_def_property(srna, "viscosity_value", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_range(prop, 0.0, 10.0);
+  RNA_def_property_ui_range(prop, 0.0, 5.0, 0.01, 3);
+  RNA_def_property_ui_text(prop,
+                           "Strength",
+                           "Viscosity of liquid (higher values result in more viscous fluids, a "
+                           "value of 0 will still apply some viscosity)");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
+
   /*  diffusion options */
 
   prop = RNA_def_property(srna, "use_diffusion", PROP_BOOLEAN, PROP_NONE);

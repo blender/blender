@@ -42,6 +42,7 @@ void register_node_type_geo_point_separate(void);
 void register_node_type_geo_attribute_compare(void);
 void register_node_type_geo_attribute_mix(void);
 void register_node_type_geo_attribute_color_ramp(void);
+void register_node_type_geo_rotate_points(void);
 
 #ifdef __cplusplus
 }

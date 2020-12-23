@@ -5011,6 +5011,9 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     tfds->sys_particle_maximum = fds->sys_particle_maximum;
     tfds->simulation_method = fds->simulation_method;
 
+    /* viscosity options */
+    tfds->viscosity_value = fds->viscosity_value;
+
     /* diffusion options*/
     tfds->surface_tension = fds->surface_tension;
     tfds->viscosity_base = fds->viscosity_base;

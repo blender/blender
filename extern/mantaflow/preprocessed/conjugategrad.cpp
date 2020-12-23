@@ -397,7 +397,7 @@ struct UpdateSearchVec : public KernelBase {
 };
 
 //*****************************************************************************
-//  CG class
+// CG class
 
 template<class APPLYMAT>
 GridCg<APPLYMAT>::GridCg(Grid<Real> &dst,
@@ -406,10 +406,8 @@ GridCg<APPLYMAT>::GridCg(Grid<Real> &dst,
                          Grid<Real> &search,
                          const FlagGrid &flags,
                          Grid<Real> &tmp,
-                         Grid<Real> *pA0,
-                         Grid<Real> *pAi,
-                         Grid<Real> *pAj,
-                         Grid<Real> *pAk)
+                         std::vector<Grid<Real> *> matrixAVec,
+                         std::vector<Grid<Real> *> rhsVec)
     : GridCgInterface(),
       mInited(false),
       mIterations(0),
@@ -419,10 +417,8 @@ GridCg<APPLYMAT>::GridCg(Grid<Real> &dst,
       mSearch(search),
       mFlags(flags),
       mTmp(tmp),
-      mpA0(pA0),
-      mpAi(pAi),
-      mpAj(pAj),
-      mpAk(pAk),
+      mMatrixA(matrixAVec),
+      mVecRhs(rhsVec),
       mPcMethod(PC_None),
       mpPCA0(nullptr),
       mpPCAi(nullptr),
@@ -445,19 +441,37 @@ template<class APPLYMAT> void GridCg<APPLYMAT>::doInit()
 
   if (mPcMethod == PC_ICP) {
     assertMsg(mDst.is3D(), "ICP only supports 3D grids so far");
-    InitPreconditionIncompCholesky(
-        mFlags, *mpPCA0, *mpPCAi, *mpPCAj, *mpPCAk, *mpA0, *mpAi, *mpAj, *mpAk);
-    ApplyPreconditionIncompCholesky(
-        mTmp, mResidual, mFlags, *mpPCA0, *mpPCAi, *mpPCAj, *mpPCAk, *mpA0, *mpAi, *mpAj, *mpAk);
+    InitPreconditionIncompCholesky(mFlags,
+                                   *mpPCA0,
+                                   *mpPCAi,
+                                   *mpPCAj,
+                                   *mpPCAk,
+                                   *mMatrixA[0],
+                                   *mMatrixA[1],
+                                   *mMatrixA[2],
+                                   *mMatrixA[3]);
+    ApplyPreconditionIncompCholesky(mTmp,
+                                    mResidual,
+                                    mFlags,
+                                    *mpPCA0,
+                                    *mpPCAi,
+                                    *mpPCAj,
+                                    *mpPCAk,
+                                    *mMatrixA[0],
+                                    *mMatrixA[1],
+                                    *mMatrixA[2],
+                                    *mMatrixA[3]);
   }
   else if (mPcMethod == PC_mICP) {
     assertMsg(mDst.is3D(), "mICP only supports 3D grids so far");
-    InitPreconditionModifiedIncompCholesky2(mFlags, *mpPCA0, *mpA0, *mpAi, *mpAj, *mpAk);
+    InitPreconditionModifiedIncompCholesky2(
+        mFlags, *mpPCA0, *mMatrixA[0], *mMatrixA[1], *mMatrixA[2], *mMatrixA[3]);
     ApplyPreconditionModifiedIncompCholesky2(
-        mTmp, mResidual, mFlags, *mpPCA0, *mpA0, *mpAi, *mpAj, *mpAk);
+        mTmp, mResidual, mFlags, *mpPCA0, *mMatrixA[0], *mMatrixA[1], *mMatrixA[2], *mMatrixA[3]);
   }
   else if (mPcMethod == PC_MGP) {
-    InitPreconditionMultigrid(mMG, *mpA0, *mpAi, *mpAj, *mpAk, mAccuracy);
+    InitPreconditionMultigrid(
+        mMG, *mMatrixA[0], *mMatrixA[1], *mMatrixA[2], *mMatrixA[3], mAccuracy);
     ApplyPreconditionMultigrid(mMG, mTmp, mResidual);
   }
   else {
@@ -465,7 +479,6 @@ template<class APPLYMAT> void GridCg<APPLYMAT>::doInit()
   }
 
   mSearch.copyFrom(mTmp);
-
   mSigma = GridDotProduct(mTmp, mResidual);
 }
 
@@ -480,7 +493,7 @@ template<class APPLYMAT> bool GridCg<APPLYMAT>::iterate()
   // this could reinterpret the mpA pointers (not so clean right now)
   // tmp = applyMat(search)
 
-  APPLYMAT(mFlags, mTmp, mSearch, *mpA0, *mpAi, *mpAj, *mpAk);
+  APPLYMAT(mFlags, mTmp, mSearch, mMatrixA, mVecRhs);
 
   // alpha = sigma/dot(tmp, search)
   Real dp = GridDotProduct(mTmp, mSearch);
@@ -492,11 +505,20 @@ template<class APPLYMAT> bool GridCg<APPLYMAT>::iterate()
   gridScaledAdd<Real, Real>(mResidual, mTmp, -alpha);  // residual += tmp * -alpha
 
   if (mPcMethod == PC_ICP)
-    ApplyPreconditionIncompCholesky(
-        mTmp, mResidual, mFlags, *mpPCA0, *mpPCAi, *mpPCAj, *mpPCAk, *mpA0, *mpAi, *mpAj, *mpAk);
+    ApplyPreconditionIncompCholesky(mTmp,
+                                    mResidual,
+                                    mFlags,
+                                    *mpPCA0,
+                                    *mpPCAi,
+                                    *mpPCAj,
+                                    *mpPCAk,
+                                    *mMatrixA[0],
+                                    *mMatrixA[1],
+                                    *mMatrixA[2],
+                                    *mMatrixA[3]);
   else if (mPcMethod == PC_mICP)
     ApplyPreconditionModifiedIncompCholesky2(
-        mTmp, mResidual, mFlags, *mpPCA0, *mpA0, *mpAi, *mpAj, *mpAk);
+        mTmp, mResidual, mFlags, *mpPCA0, *mMatrixA[0], *mMatrixA[1], *mMatrixA[2], *mMatrixA[3]);
   else if (mPcMethod == PC_MGP)
     ApplyPreconditionMultigrid(mMG, mTmp, mResidual);
   else
@@ -584,13 +606,15 @@ void GridCg<APPLYMAT>::setMGPreconditioner(PreconditionType method, GridMg *MG)
   assertMsg(method == PC_MGP, "GridCg<APPLYMAT>::setMGPreconditioner: Invalid method specified.");
 
   mPcMethod = method;
-
   mMG = MG;
 }
 
 // explicit instantiation
 template class GridCg<ApplyMatrix>;
 template class GridCg<ApplyMatrix2D>;
+template class GridCg<ApplyMatrixViscosityU>;
+template class GridCg<ApplyMatrixViscosityV>;
+template class GridCg<ApplyMatrixViscosityW>;
 
 //*****************************************************************************
 // diffusion for real and vec grids, e.g. for viscosity
@@ -638,10 +662,15 @@ void cgSolveDiffusion(const FlagGrid &flags,
   if (grid.getType() & GridBase::TypeReal) {
     Grid<Real> &u = ((Grid<Real> &)grid);
     rhs.copyFrom(u);
-    if (flags.is3D())
-      gcg = new GridCg<ApplyMatrix>(u, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
-    else
-      gcg = new GridCg<ApplyMatrix2D>(u, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
+    vector<Grid<Real> *> matA{&A0, &Ai, &Aj};
+
+    if (flags.is3D()) {
+      matA.push_back(&Ak);
+      gcg = new GridCg<ApplyMatrix>(u, rhs, residual, search, flags, tmp, matA);
+    }
+    else {
+      gcg = new GridCg<ApplyMatrix2D>(u, rhs, residual, search, flags, tmp, matA);
+    }
 
     gcg->setAccuracy(cgAccuracy);
     gcg->solve(maxIter);
@@ -653,12 +682,17 @@ void cgSolveDiffusion(const FlagGrid &flags,
   else if ((grid.getType() & GridBase::TypeVec3) || (grid.getType() & GridBase::TypeMAC)) {
     Grid<Vec3> &vec = ((Grid<Vec3> &)grid);
     Grid<Real> u(parent);
+    vector<Grid<Real> *> matA{&A0, &Ai, &Aj};
 
     // core solve is same as for a regular real grid
-    if (flags.is3D())
-      gcg = new GridCg<ApplyMatrix>(u, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
-    else
-      gcg = new GridCg<ApplyMatrix2D>(u, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
+    if (flags.is3D()) {
+      matA.push_back(&Ak);
+      gcg = new GridCg<ApplyMatrix>(u, rhs, residual, search, flags, tmp, matA);
+    }
+    else {
+      gcg = new GridCg<ApplyMatrix2D>(u, rhs, residual, search, flags, tmp, matA);
+    }
+
     gcg->setAccuracy(cgAccuracy);
 
     // diffuse every component separately
