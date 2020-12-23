@@ -67,6 +67,7 @@ struct MANTA {
   bool initColorsHigh(struct FluidModifierData *fmd = nullptr);
   bool initLiquid(FluidModifierData *fmd = nullptr);
   bool initLiquidMesh(FluidModifierData *fmd = nullptr);
+  bool initLiquidViscosity(FluidModifierData *fmd = nullptr);
   bool initObstacle(FluidModifierData *fmd = nullptr);
   bool initCurvature(FluidModifierData *fmd = nullptr);
   bool initGuiding(FluidModifierData *fmd = nullptr);
@@ -757,6 +758,7 @@ struct MANTA {
   bool mUsingNoise;
   bool mUsingMesh;
   bool mUsingDiffusion;
+  bool mUsingViscosity;
   bool mUsingMVel;
   bool mUsingLiquid;
   bool mUsingSmoke;

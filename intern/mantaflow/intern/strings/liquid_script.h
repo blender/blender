@@ -40,6 +40,8 @@ radiusFactor_s$ID$     = $PARTICLE_RADIUS$\n\
 using_mesh_s$ID$       = $USING_MESH$\n\
 using_final_mesh_s$ID$ = $USING_IMPROVED_MESH$\n\
 using_fractions_s$ID$  = $USING_FRACTIONS$\n\
+using_apic_s$ID$       = $USING_APIC$\n\
+using_viscosity_s$ID$  = $USING_VISCOSITY$\n\
 fracThreshold_s$ID$    = $FRACTIONS_THRESHOLD$\n\
 fracDistance_s$ID$     = $FRACTIONS_DISTANCE$\n\
 flipRatio_s$ID$        = $FLIP_RATIO$\n\
@@ -51,7 +53,7 @@ smoothenNeg_s$ID$      = $MESH_SMOOTHEN_NEG$\n\
 randomness_s$ID$       = $PARTICLE_RANDOMNESS$\n\
 surfaceTension_s$ID$   = $LIQUID_SURFACE_TENSION$\n\
 maxSysParticles_s$ID$  = $PP_PARTICLE_MAXIMUM$\n\
-using_apic_s$ID$       = $USING_APIC$\n";
+viscosityValue_s$ID$   = $VISCOSITY_VALUE$\n";
 
 const std::string liquid_variables_particles =
     "\n\
@@ -134,6 +136,13 @@ liquid_mesh_dict_s$ID$ = { 'lMesh' : mesh_sm$ID$ }\n\
 \n\
 if using_speedvectors_s$ID$:\n\
     liquid_meshvel_dict_s$ID$ = { 'lVelMesh' : mVel_mesh$ID$ }\n";
+
+const std::string liquid_alloc_viscosity =
+    "\n\
+# Viscosity grids\n\
+volumes_s$ID$   = sv$ID$.create(RealGrid)\n\
+viscosity_s$ID$ = s$ID$.create(RealGrid)\n\
+viscosity_s$ID$.setConst(viscosityValue_s$ID$)\n";
 
 const std::string liquid_alloc_curvature =
     "\n\
@@ -306,7 +315,7 @@ def liquid_step_$ID$():\n\
     if using_diffusion_s$ID$:\n\
         mantaMsg('Viscosity')\n\
         # diffusion param for solve = const * dt / dx^2\n\
-        alphaV = viscosity_s$ID$ * s$ID$.timestep * float(res_s$ID$*res_s$ID$)\n\
+        alphaV = kinViscosity_s$ID$ * s$ID$.timestep * float(res_s$ID$*res_s$ID$)\n\
         setWallBcs(flags=flags_s$ID$, vel=vel_s$ID$, obvel=None if using_fractions_s$ID$ else obvel_s$ID$, phiObs=phiObs_s$ID$, fractions=fractions_s$ID$)\n\
         cgSolveDiffusion(flags_s$ID$, vel_s$ID$, alphaV)\n\
         \n\
@@ -315,7 +324,11 @@ def liquid_step_$ID$():\n\
         curvature_s$ID$.clamp(-1.0, 1.0)\n\
     \n\
     setWallBcs(flags=flags_s$ID$, vel=vel_s$ID$, obvel=None if using_fractions_s$ID$ else obvel_s$ID$, phiObs=phiObs_s$ID$, fractions=fractions_s$ID$)\n\
+    if using_viscosity_s$ID$:\n\
+        viscosity_s$ID$.setConst(viscosityValue_s$ID$)\n\
+        applyViscosity(flags=flags_s$ID$, phi=phi_s$ID$, vel=vel_s$ID$, volumes=volumes_s$ID$, viscosity=viscosity_s$ID$)\n\
     \n\
+    setWallBcs(flags=flags_s$ID$, vel=vel_s$ID$, obvel=None if using_fractions_s$ID$ else obvel_s$ID$, phiObs=phiObs_s$ID$, fractions=fractions_s$ID$)\n\
     if using_guiding_s$ID$:\n\
         mantaMsg('Guiding and pressure')\n\
         PD_fluid_guiding(vel=vel_s$ID$, velT=velT_s$ID$, flags=flags_s$ID$, phi=phi_s$ID$, curv=curvature_s$ID$, surfTens=surfaceTension_s$ID$, fractions=fractions_s$ID$, weight=weightGuide_s$ID$, blurRadius=beta_sg$ID$, pressure=pressure_s$ID$, tau=tau_sg$ID$, sigma=sigma_sg$ID$, theta=theta_sg$ID$, zeroPressureFixing=domainClosed_s$ID$)\n\

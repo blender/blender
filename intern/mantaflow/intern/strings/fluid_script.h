@@ -79,6 +79,11 @@ const std::string fluid_solver_guiding =
 mantaMsg('Solver guiding')\n\
 sg$ID$ = Solver(name='solver_guiding$ID$', gridSize=gs_sg$ID$)\n";
 
+const std::string fluid_solver_viscosity =
+    "\n\
+mantaMsg('Solver viscosity')\n\
+sv$ID$ = Solver(name='solver_viscosity$ID$', gridSize=gs_sv$ID$, dim=dim_s$ID$)\n";
+
 //////////////////////////////////////////////////////////////////////
 // VARIABLES
 //////////////////////////////////////////////////////////////////////
@@ -133,7 +138,7 @@ end_frame_s$ID$     = $END_FRAME$\n\
 \n\
 # Fluid diffusion / viscosity\n\
 domainSize_s$ID$ = $FLUID_DOMAIN_SIZE$ # longest domain side in meters\n\
-viscosity_s$ID$ = $FLUID_VISCOSITY$ / (domainSize_s$ID$*domainSize_s$ID$) # kinematic viscosity in m^2/s\n\
+kinViscosity_s$ID$ = $FLUID_VISCOSITY$ / (domainSize_s$ID$*domainSize_s$ID$) # kinematic viscosity in m^2/s\n\
 \n\
 # Factors to convert Blender units to Manta units\n\
 ratioMetersToRes_s$ID$ = float(domainSize_s$ID$) / float(res_s$ID$) # [meters / cells]\n\
@@ -198,6 +203,10 @@ gamma_sg$ID$ = $GUIDING_FACTOR$\n\
 tau_sg$ID$   = 1.0\n\
 sigma_sg$ID$ = 0.99/tau_sg$ID$\n\
 theta_sg$ID$ = 1.0\n";
+
+const std::string fluid_variables_viscosity =
+    "\n\
+gs_sv$ID$    = vec3($RESX$*2, $RESY$*2, $RESZ$*2)\n";
 
 const std::string fluid_with_obstacle =
     "\n\

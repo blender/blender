@@ -145,6 +145,7 @@ extern void PbRegister_flipComputeSurfaceNormals();
 extern void PbRegister_flipUpdateNeighborRatio();
 extern void PbRegister_particleSurfaceTurbulence();
 extern void PbRegister_debugCheckParts();
+extern void PbRegister_applyViscosity();
 extern void PbRegister_markAsFixed();
 extern void PbRegister_texcoordInflow();
 extern void PbRegister_meshSmokeInflow();
@@ -342,6 +343,7 @@ void MantaEnsureRegistration()
   PbRegister_flipUpdateNeighborRatio();
   PbRegister_particleSurfaceTurbulence();
   PbRegister_debugCheckParts();
+  PbRegister_applyViscosity();
   PbRegister_markAsFixed();
   PbRegister_texcoordInflow();
   PbRegister_meshSmokeInflow();

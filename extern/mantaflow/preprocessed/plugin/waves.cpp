@@ -423,10 +423,15 @@ void cgSolveWE(const FlagGrid &flags,
 
   const int maxIter = (int)(cgMaxIterFac * flags.getSize().max()) * (flags.is3D() ? 1 : 4);
   GridCgInterface *gcg;
-  if (flags.is3D())
-    gcg = new GridCg<ApplyMatrix>(out, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
-  else
-    gcg = new GridCg<ApplyMatrix2D>(out, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
+  vector<Grid<Real> *> matA{&A0, &Ai, &Aj};
+
+  if (flags.is3D()) {
+    matA.push_back(&Ak);
+    gcg = new GridCg<ApplyMatrix>(out, rhs, residual, search, flags, tmp, matA);
+  }
+  else {
+    gcg = new GridCg<ApplyMatrix2D>(out, rhs, residual, search, flags, tmp, matA);
+  }
 
   gcg->setAccuracy(cgAccuracy);
 

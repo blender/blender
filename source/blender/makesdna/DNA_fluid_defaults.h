@@ -113,6 +113,7 @@
     .flip_ratio = 0.97f, \
     .sys_particle_maximum = 0, \
     .simulation_method = FLUID_DOMAIN_METHOD_FLIP, \
+    .viscosity_value = 0.05f, \
     .surface_tension = 0.0f, \
     .viscosity_base = 1.0f, \
     .viscosity_exponent = 6.0f, \
