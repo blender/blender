@@ -452,6 +452,11 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_float
     ITEM_FLOAT,
     {0, NULL, 0, NULL, NULL},
 };
+static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_vector[] = {
+    ITEM_ATTRIBUTE,
+    ITEM_VECTOR,
+    {0, NULL, 0, NULL, NULL},
+};
 static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_no_boolean[] = {
     ITEM_ATTRIBUTE,
     ITEM_FLOAT,
@@ -8582,6 +8587,66 @@ static void def_geo_attribute_color_ramp(StructRNA *srna)
   RNA_def_property_struct_type(prop, "ColorRamp");
   RNA_def_property_ui_text(prop, "Color Ramp", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_rotate_points(StructRNA *srna)
+{
+  static const EnumPropertyItem type_items[] = {
+      {GEO_NODE_ROTATE_POINTS_TYPE_AXIS_ANGLE,
+       "AXIS_ANGLE",
+       ICON_NONE,
+       "Axis Angle",
+       "Rotate around an axis by an angle"},
+      {GEO_NODE_ROTATE_POINTS_TYPE_EULER,
+       "EULER",
+       ICON_NONE,
+       "Euler",
+       "Rotate around the x, y and z axis"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem space_items[] = {
+      {GEO_NODE_ROTATE_POINTS_SPACE_OBJECT,
+       "OBJECT",
+       ICON_NONE,
+       "Object",
+       "Rotate points in the local space of the object"},
+      {GEO_NODE_ROTATE_POINTS_SPACE_POINT,
+       "POINT",
+       ICON_NONE,
+       "Point",
+       "Rotate every point in its local space (as defined by the 'rotation' attribute)"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryRotatePoints", "storage");
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_ui_text(prop, "Type", "Method used to describe the rotation");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, space_items);
+  RNA_def_property_ui_text(prop, "Space", "Base orientation of the points");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "input_type_axis", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_vector);
+  RNA_def_property_ui_text(prop, "Input Type Axis", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_angle", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_float);
+  RNA_def_property_ui_text(prop, "Input Type Angle", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_rotation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_vector);
+  RNA_def_property_ui_text(prop, "Input Type Rotation", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 /* -------------------------------------------------------------------------- */
