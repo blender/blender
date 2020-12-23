@@ -921,7 +921,7 @@ SculptUndoNode *SCULPT_undo_get_first_node()
   return usculpt->nodes.first;
 }
 
-static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh, SculptUndoNode *unode)
+static size_t sculpt_undo_alloc_and_store_hidden(PBVH *pbvh, SculptUndoNode *unode)
 {
   PBVHNode *node = unode->node;
   BLI_bitmap **grid_hidden = BKE_pbvh_grid_hidden(pbvh);
@@ -929,28 +929,34 @@ static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh, SculptUndoNode *unode
   int *grid_indices, totgrid;
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, NULL, NULL, NULL);
 
-  unode->grid_hidden = MEM_callocN(sizeof(*unode->grid_hidden) * totgrid, "unode->grid_hidden");
+  size_t alloc_size = sizeof(*unode->grid_hidden) * (size_t)totgrid;
+  unode->grid_hidden = MEM_callocN(alloc_size, "unode->grid_hidden");
 
   for (int i = 0; i < totgrid; i++) {
     if (grid_hidden[grid_indices[i]]) {
       unode->grid_hidden[i] = MEM_dupallocN(grid_hidden[grid_indices[i]]);
+      alloc_size += MEM_allocN_len(unode->grid_hidden[i]);
     }
     else {
       unode->grid_hidden[i] = NULL;
     }
   }
+
+  return alloc_size;
 }
 
 /* Allocate node and initialize its default fields specific for the given undo type.
  * Will also add the node to the list in the undo step. */
 static SculptUndoNode *sculpt_undo_alloc_node_type(Object *object, SculptUndoType type)
 {
-  SculptUndoNode *unode = MEM_callocN(sizeof(SculptUndoNode), "SculptUndoNode");
+  const size_t alloc_size = sizeof(SculptUndoNode);
+  SculptUndoNode *unode = MEM_callocN(alloc_size, "SculptUndoNode");
   BLI_strncpy(unode->idname, object->id.name, sizeof(unode->idname));
   unode->type = type;
 
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   BLI_addtail(&usculpt->nodes, unode);
+  usculpt->undo_size += alloc_size;
 
   return unode;
 }
@@ -975,7 +981,12 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptSession *ss = ob->sculpt;
-  int totvert, allvert, totgrid, maxgrid, gridsize, *grids;
+  int totvert = 0;
+  int allvert = 0;
+  int totgrid = 0;
+  int maxgrid = 0;
+  int gridsize = 0;
+  int *grids = NULL;
 
   SculptUndoNode *unode = sculpt_undo_alloc_node_type(ob, type);
   unode->node = node;
@@ -986,39 +997,43 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
 
     unode->totvert = totvert;
   }
-  else {
-    maxgrid = 0;
-  }
 
-  /* General TODO, fix count_alloc. */
   switch (type) {
-    case SCULPT_UNDO_COORDS:
-      unode->co = MEM_callocN(sizeof(float[3]) * allvert, "SculptUndoNode.co");
-      unode->no = MEM_callocN(sizeof(short[3]) * allvert, "SculptUndoNode.no");
+    case SCULPT_UNDO_COORDS: {
+      size_t alloc_size = sizeof(*unode->co) * (size_t)allvert;
+      unode->co = MEM_callocN(alloc_size, "SculptUndoNode.co");
+      usculpt->undo_size += alloc_size;
 
-      usculpt->undo_size = (sizeof(float[3]) + sizeof(short[3]) + sizeof(int)) * allvert;
+      /* FIXME: Should explain why this is allocated here, to be freed in
+       * `SCULPT_undo_push_end_ex()`? */
+      alloc_size = sizeof(*unode->no) * (size_t)allvert;
+      unode->no = MEM_callocN(alloc_size, "SculptUndoNode.no");
+      usculpt->undo_size += alloc_size;
       break;
-    case SCULPT_UNDO_HIDDEN:
+    }
+    case SCULPT_UNDO_HIDDEN: {
       if (maxgrid) {
-        sculpt_undo_alloc_and_store_hidden(ss->pbvh, unode);
+        usculpt->undo_size += sculpt_undo_alloc_and_store_hidden(ss->pbvh, unode);
       }
       else {
         unode->vert_hidden = BLI_BITMAP_NEW(allvert, "SculptUndoNode.vert_hidden");
+        usculpt->undo_size += BLI_BITMAP_SIZE(allvert);
       }
 
       break;
-    case SCULPT_UNDO_MASK:
-      unode->mask = MEM_callocN(sizeof(float) * allvert, "SculptUndoNode.mask");
-
-      usculpt->undo_size += (sizeof(float) * sizeof(int)) * allvert;
-
+    }
+    case SCULPT_UNDO_MASK: {
+      const size_t alloc_size = sizeof(*unode->mask) * (size_t)allvert;
+      unode->mask = MEM_callocN(alloc_size, "SculptUndoNode.mask");
+      usculpt->undo_size += alloc_size;
       break;
-    case SCULPT_UNDO_COLOR:
-      unode->col = MEM_callocN(sizeof(MPropCol) * allvert, "SculptUndoNode.col");
-
-      usculpt->undo_size += (sizeof(MPropCol) * sizeof(int)) * allvert;
-
+    }
+    case SCULPT_UNDO_COLOR: {
+      const size_t alloc_size = sizeof(*unode->col) * (size_t)allvert;
+      unode->col = MEM_callocN(alloc_size, "SculptUndoNode.col");
+      usculpt->undo_size += alloc_size;
       break;
+    }
     case SCULPT_UNDO_DYNTOPO_BEGIN:
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
@@ -1033,16 +1048,24 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     unode->maxgrid = maxgrid;
     unode->totgrid = totgrid;
     unode->gridsize = gridsize;
-    unode->grids = MEM_callocN(sizeof(int) * totgrid, "SculptUndoNode.grids");
+
+    const size_t alloc_size = sizeof(*unode->grids) * (size_t)totgrid;
+    unode->grids = MEM_callocN(alloc_size, "SculptUndoNode.grids");
+    usculpt->undo_size += alloc_size;
   }
   else {
     /* Regular mesh. */
     unode->maxvert = ss->totvert;
-    unode->index = MEM_callocN(sizeof(int) * allvert, "SculptUndoNode.index");
+
+    const size_t alloc_size = sizeof(*unode->index) * (size_t)allvert;
+    unode->index = MEM_callocN(alloc_size, "SculptUndoNode.index");
+    usculpt->undo_size += alloc_size;
   }
 
   if (ss->deform_modifiers_active) {
-    unode->orig_co = MEM_callocN(allvert * sizeof(*unode->orig_co), "undoSculpt orig_cos");
+    const size_t alloc_size = sizeof(*unode->orig_co) * (size_t)allvert;
+    unode->orig_co = MEM_callocN(alloc_size, "undoSculpt orig_cos");
+    usculpt->undo_size += alloc_size;
   }
 
   return unode;
@@ -1364,6 +1387,7 @@ void SCULPT_undo_push_end_ex(const bool use_nested_undo)
   /* We don't need normals in the undo stack. */
   for (unode = usculpt->nodes.first; unode; unode = unode->next) {
     if (unode->no) {
+      usculpt->undo_size -= MEM_allocN_len(unode->no);
       MEM_freeN(unode->no);
       unode->no = NULL;
     }
