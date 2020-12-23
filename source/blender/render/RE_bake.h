@@ -39,11 +39,23 @@ typedef struct BakeImage {
   size_t offset;
 } BakeImage;
 
-typedef struct BakeImages {
-  BakeImage *data; /* all the images of an object */
-  int *lookup;     /* lookup table from Material to BakeImage */
-  int size;
-} BakeImages;
+typedef struct BakeTargets {
+  /* All images of the object. */
+  BakeImage *images;
+  int num_images;
+
+  /* Lookup table from Material number to BakeImage. */
+  int *material_to_image;
+  int num_materials;
+
+  /* Pixel buffer to bake to. */
+  float *result;
+  int num_pixels;
+  int num_channels;
+
+  /* Baking to non-color data image. */
+  bool is_noncolor;
+} BakeTargets;
 
 typedef struct BakePixel {
   int primitive_id, object_id;
@@ -70,8 +82,7 @@ bool RE_bake_engine(struct Render *re,
                     struct Object *object,
                     const int object_id,
                     const BakePixel pixel_array[],
-                    const BakeImages *bake_images,
-                    const int depth,
+                    const BakeTargets *targets,
                     const eScenePassType pass_type,
                     const int pass_filter,
                     float result[]);
@@ -95,7 +106,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
 void RE_bake_pixels_populate(struct Mesh *me,
                              struct BakePixel *pixel_array,
                              const size_t num_pixels,
-                             const struct BakeImages *bake_images,
+                             const struct BakeTargets *targets,
                              const char *uv_layer);
 
 void RE_bake_mask_fill(const BakePixel pixel_array[], const size_t num_pixels, char *mask);
