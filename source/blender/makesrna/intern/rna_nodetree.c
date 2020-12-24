@@ -4183,7 +4183,7 @@ static const EnumPropertyItem node_script_mode_items[] = {
 };
 
 static EnumPropertyItem node_ies_mode_items[] = {
-    {NODE_IES_INTERNAL, "INTERNAL", 0, "Internal", "Use internal text datablock"},
+    {NODE_IES_INTERNAL, "INTERNAL", 0, "Internal", "Use internal text data-block"},
     {NODE_IES_EXTERNAL, "EXTERNAL", 0, "External", "Use external .ies file"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -4564,7 +4564,7 @@ static void def_sh_attribute(StructRNA *srna)
        "OBJECT",
        0,
        "Object",
-       "The attribute is associated with the object or mesh datablock itself, "
+       "The attribute is associated with the object or mesh data-block itself, "
        "and its value is uniform"},
       {SHD_ATTRIBUTE_INSTANCER,
        "INSTANCER",
@@ -5712,7 +5712,7 @@ static void def_sh_tex_ies(StructRNA *srna)
   RNA_def_property_enum_funcs(prop, NULL, "rna_ShaderNodeTexIES_mode_set", NULL);
   RNA_def_property_enum_items(prop, node_ies_mode_items);
   RNA_def_property_ui_text(
-      prop, "Source", "Whether the IES file is loaded from disk or from a Text datablock");
+      prop, "Source", "Whether the IES file is loaded from disk or from a text data-block");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "bNode", NULL);
@@ -5855,7 +5855,7 @@ static void def_cmp_blur(StructRNA *srna)
   prop = RNA_def_property(srna, "use_variable_size", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODEFLAG_BLUR_VARIABLE_SIZE);
   RNA_def_property_ui_text(
-      prop, "Variable Size", "Support variable blur per-pixel when using an image for size input");
+      prop, "Variable Size", "Support variable blur per pixel when using an image for size input");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_extended_bounds", PROP_BOOLEAN, PROP_NONE);
@@ -7675,7 +7675,7 @@ static void def_cmp_bokehblur(StructRNA *srna)
   prop = RNA_def_property(srna, "use_variable_size", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODEFLAG_BLUR_VARIABLE_SIZE);
   RNA_def_property_ui_text(
-      prop, "Variable Size", "Support variable blur per-pixel when using an image for size input");
+      prop, "Variable Size", "Support variable blur per pixel when using an image for size input");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_extended_bounds", PROP_BOOLEAN, PROP_NONE);
@@ -8968,7 +8968,7 @@ static void rna_def_node_socket_float(BlenderRNA *brna,
   }
 
   srna = RNA_def_struct(brna, idname, "NodeSocketStandard");
-  RNA_def_struct_ui_text(srna, "Float Node Socket", "Floating point number socket of a node");
+  RNA_def_struct_ui_text(srna, "Float Node Socket", "Floating-point number socket of a node");
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueFloat", "default_value");
@@ -8985,7 +8985,7 @@ static void rna_def_node_socket_float(BlenderRNA *brna,
   /* socket interface */
   srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
   RNA_def_struct_ui_text(
-      srna, "Float Node Socket Interface", "Floating point number socket of a node");
+      srna, "Float Node Socket Interface", "Floating-point number socket of a node");
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueFloat", "default_value");

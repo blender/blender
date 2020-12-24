@@ -1351,7 +1351,7 @@ static EnumPropertyItem prop_cloth_filter_type[] = {
      "SCALE",
      0,
      "Scale",
-     "Scales the mesh as a soft-body using the origin of the object as scale"},
+     "Scales the mesh as a soft body using the origin of the object as scale"},
     {0, NULL, 0, NULL, NULL},
 };
 

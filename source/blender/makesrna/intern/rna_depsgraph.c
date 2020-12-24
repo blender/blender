@@ -604,7 +604,7 @@ static void rna_def_depsgraph_update(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ID");
-  RNA_def_property_ui_text(prop, "ID", "Updated datablock");
+  RNA_def_property_ui_text(prop, "ID", "Updated data-block");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
   RNA_def_property_pointer_funcs(prop, "rna_DepsgraphUpdate_id_get", NULL, NULL, NULL);
 
@@ -745,7 +745,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
                                     NULL,
                                     NULL,
                                     NULL);
-  RNA_def_property_ui_text(prop, "IDs", "All evaluated datablocks");
+  RNA_def_property_ui_text(prop, "IDs", "All evaluated data-blocks");
 
   prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Object");
@@ -788,7 +788,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
                                     NULL,
                                     NULL,
                                     NULL);
-  RNA_def_property_ui_text(prop, "Updates", "Updates to datablocks");
+  RNA_def_property_ui_text(prop, "Updates", "Updates to data-blocks");
 }
 
 void RNA_def_depsgraph(BlenderRNA *brna)

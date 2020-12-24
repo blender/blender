@@ -3222,7 +3222,7 @@ void RNA_def_rna(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "FloatProperty", "Property");
   RNA_def_struct_ui_text(srna,
                          "Float Definition",
-                         "RNA floating point number (single precision) property definition");
+                         "RNA floating-point number (single precision) property definition");
   rna_def_number_property(srna, PROP_FLOAT);
 
   /* StringProperty */

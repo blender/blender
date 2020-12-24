@@ -1021,7 +1021,7 @@ static void rna_def_image(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_generated_float", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "gen_flag", IMA_GEN_FLOAT);
-  RNA_def_property_ui_text(prop, "Float Buffer", "Generate floating point buffer");
+  RNA_def_property_ui_text(prop, "Float Buffer", "Generate floating-point buffer");
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
@@ -1106,7 +1106,7 @@ static void rna_def_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "pixels", PROP_FLOAT, PROP_NONE);
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_multi_array(prop, 1, NULL);
-  RNA_def_property_ui_text(prop, "Pixels", "Image pixels in floating point values");
+  RNA_def_property_ui_text(prop, "Pixels", "Image pixels in floating-point values");
   RNA_def_property_dynamic_array_funcs(prop, "rna_Image_pixels_get_length");
   RNA_def_property_float_funcs(prop, "rna_Image_pixels_get", "rna_Image_pixels_set", NULL);
 
@@ -1118,7 +1118,7 @@ static void rna_def_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_float", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Image_is_float_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Is Float", "True if this image is stored in float buffer");
+  RNA_def_property_ui_text(prop, "Is Float", "True if this image is stored in floating-point buffer");
 
   prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");

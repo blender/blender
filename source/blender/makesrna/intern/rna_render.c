@@ -586,7 +586,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 
   func = RNA_def_function(srna, "begin_result", "RE_engine_begin_result");
   RNA_def_function_ui_description(
-      func, "Create render result to write linear floating point render layers and passes");
+      func, "Create render result to write linear floating-point render layers and passes");
   parm = RNA_def_int(func, "x", 0, 0, INT_MAX, "X", "", 0, INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_int(func, "y", 0, 0, INT_MAX, "Y", "", 0, INT_MAX);

@@ -533,7 +533,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
                        -FLT_MAX,
                        FLT_MAX,
                        "Offset",
-                       "Offset in floating point units, 1.0 is the width and height of the image",
+                       "Offset in floating-point units, 1.0 is the width and height of the image",
                        -FLT_MAX,
                        FLT_MAX);
 }

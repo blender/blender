@@ -649,7 +649,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
                   "Copy textures to same folder where the .dae file is exported");
 
   RNA_def_boolean(
-      func, "triangulate", 1, "Triangulate", "Export Polygons (Quads & NGons) as Triangles");
+      func, "triangulate", 1, "Triangulate", "Export polygons (quads and n-gons) as triangles");
 
   RNA_def_boolean(func,
                   "use_object_instantiation",

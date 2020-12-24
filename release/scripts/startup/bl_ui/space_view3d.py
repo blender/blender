@@ -957,7 +957,7 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
         # generic...
         layout = self.layout
         if context.mode == 'EDIT_MESH':
-            layout.operator("transform.shrink_fatten", text="Shrink Fatten")
+            layout.operator("transform.shrink_fatten", text="Shrink/Fatten")
             layout.operator("transform.skin_resize")
         elif context.mode == 'EDIT_CURVE':
             layout.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
@@ -5091,7 +5091,7 @@ class VIEW3D_MT_edit_gpencil_transform(Menu):
         layout.operator("transform.bend", text="Bend")
         layout.operator("transform.shear", text="Shear")
         layout.operator("transform.tosphere", text="To Sphere")
-        layout.operator("transform.transform", text="Shrink Fatten").mode = 'GPENCIL_SHRINKFATTEN'
+        layout.operator("transform.transform", text="Shrink/Fatten").mode = 'GPENCIL_SHRINKFATTEN'
 
 
 class VIEW3D_MT_edit_gpencil_showhide(Menu):
@@ -7044,7 +7044,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
             col.operator("transform.bend", text="Bend")
             col.operator("transform.shear", text="Shear")
             col.operator("transform.tosphere", text="To Sphere")
-            col.operator("transform.transform", text="Shrink Fatten").mode = 'GPENCIL_SHRINKFATTEN'
+            col.operator("transform.transform", text="Shrink/Fatten").mode = 'GPENCIL_SHRINKFATTEN'
 
             col.separator()
 
@@ -7088,7 +7088,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
             col.separator()
 
             col.operator("gpencil.stroke_smooth", text="Smooth Stroke").only_selected = False
-            col.operator("transform.transform", text="Shrink Fatten").mode = 'GPENCIL_SHRINKFATTEN'
+            col.operator("transform.transform", text="Shrink/Fatten").mode = 'GPENCIL_SHRINKFATTEN'
 
             col.separator()
 

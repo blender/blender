@@ -1008,7 +1008,7 @@ void CONSTRAINT_OT_childof_set_inverse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Set Inverse";
   ot->idname = "CONSTRAINT_OT_childof_set_inverse";
-  ot->description = "Set inverse correction for ChildOf constraint";
+  ot->description = "Set inverse correction for Child Of constraint";
 
   /* callbacks */
   ot->invoke = childof_set_inverse_invoke;
@@ -1057,7 +1057,7 @@ void CONSTRAINT_OT_childof_clear_inverse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Inverse";
   ot->idname = "CONSTRAINT_OT_childof_clear_inverse";
-  ot->description = "Clear inverse correction for ChildOf constraint";
+  ot->description = "Clear inverse correction for Child Of constraint";
 
   /* callbacks */
   ot->invoke = childof_clear_inverse_invoke;
@@ -1263,7 +1263,7 @@ void CONSTRAINT_OT_objectsolver_set_inverse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Set Inverse";
   ot->idname = "CONSTRAINT_OT_objectsolver_set_inverse";
-  ot->description = "Set inverse correction for ObjectSolver constraint";
+  ot->description = "Set inverse correction for Object Solver constraint";
 
   /* callbacks */
   ot->invoke = objectsolver_set_inverse_invoke;
@@ -1319,7 +1319,7 @@ void CONSTRAINT_OT_objectsolver_clear_inverse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Inverse";
   ot->idname = "CONSTRAINT_OT_objectsolver_clear_inverse";
-  ot->description = "Clear inverse correction for ObjectSolver constraint";
+  ot->description = "Clear inverse correction for Object Solver constraint";
 
   /* callbacks */
   ot->invoke = objectsolver_clear_inverse_invoke;

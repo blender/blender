@@ -2455,7 +2455,7 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
   prop = RNA_def_property(srna, "dopesheet_subchannel", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "ds_subchannel");
   RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Dope Sheet Sub-Channel", "");
+  RNA_def_property_ui_text(prop, "Dope Sheet Subchannel", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "channel_group", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -3334,7 +3334,7 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
   prop = RNA_def_property(srna, "dopesheet_subchannel", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "ds_subchannel");
   RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Dope Sheet Sub-Channel", "");
+  RNA_def_property_ui_text(prop, "Dope Sheet Subchannel", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "channels", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -5763,7 +5763,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, DEG2RADF(0.001f), DEG2RADF(15.0f), 1.0f, 2);
   RNA_def_property_ui_text(prop,
                            "Orbit Sensitivity",
-                           "Rotation amount per-pixel to control how fast the viewport orbits");
+                           "Rotation amount per pixel to control how fast the viewport orbits");
 
   prop = RNA_def_property(srna, "view_rotate_sensitivity_trackball", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_range(prop, 0.1f, 10.0f);
@@ -5776,7 +5776,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Mouse Drag Threshold",
                            "Number of pixels to drag before a tweak/drag event is triggered "
-                           "for mouse/track-pad input "
+                           "for mouse/trackpad input "
                            "(otherwise click events are detected)");
 
   prop = RNA_def_property(srna, "drag_threshold_tablet", PROP_INT, PROP_PIXEL);

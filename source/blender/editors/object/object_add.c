@@ -324,7 +324,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)
 
   if (do_editmode) {
     prop = RNA_def_boolean(
-        ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object");
+        ot->srna, "enter_editmode", 0, "Enter Edit Mode", "Enter edit mode when adding this object");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
   /* note: this property gets hidden for add-camera operator */

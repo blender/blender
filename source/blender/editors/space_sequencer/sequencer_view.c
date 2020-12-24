@@ -393,7 +393,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Border Offset View";
   ot->idname = "SEQUENCER_OT_view_ghost_border";
-  ot->description = "Set the boundaries of the border used for offset-view";
+  ot->description = "Set the boundaries of the border used for offset view";
 
   /* Api callbacks. */
   ot->invoke = WM_gesture_box_invoke;

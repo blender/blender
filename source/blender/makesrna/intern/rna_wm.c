@@ -2310,7 +2310,7 @@ static void rna_def_window_stereo3d(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_sidebyside_crosseyed", PROP_BOOLEAN, PROP_BOOLEAN);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", S3D_SIDEBYSIDE_CROSSEYED);
-  RNA_def_property_ui_text(prop, "Cross-Eyed", "Right eye should see left image and vice-versa");
+  RNA_def_property_ui_text(prop, "Cross-Eyed", "Right eye should see left image and vice versa");
 }
 
 static void rna_def_window(BlenderRNA *brna)

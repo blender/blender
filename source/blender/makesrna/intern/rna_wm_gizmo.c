@@ -1288,7 +1288,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   prop = RNA_def_property(srna, "use_tooltip", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_tooltip_get", "rna_Gizmo_flag_use_tooltip_set");
-  RNA_def_property_ui_text(prop, "Use Tooltip", "Use tool-tips when hovering over this gizmo");
+  RNA_def_property_ui_text(prop, "Use Tooltip", "Use tooltips when hovering over this gizmo");
   /* No update needed. */
 
   /* wmGizmo.state (readonly) */

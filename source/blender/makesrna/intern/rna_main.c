@@ -387,8 +387,8 @@ void RNA_def_main(BlenderRNA *brna)
       {"lightprobes",
        "LightProbe",
        "rna_Main_lightprobes_begin",
-       "LightProbes",
-       "LightProbe data-blocks",
+       "Light Probes",
+       "Light Probe data-blocks",
        RNA_def_main_lightprobes},
 #  ifdef WITH_HAIR_NODES
       {"hairs", "Hair", "rna_Main_hairs_begin", "Hairs", "Hair data-blocks", RNA_def_main_hairs},
