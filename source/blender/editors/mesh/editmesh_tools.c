@@ -5263,7 +5263,7 @@ void MESH_OT_poke(wmOperatorType *ot)
                poke_center_modes,
                BMOP_POKE_MEDIAN_WEIGHTED,
                "Poke Center",
-               "Poke Face Center Calculation");
+               "Poke face center calculation");
 }
 
 /** \} */
@@ -9204,7 +9204,7 @@ void MESH_OT_normals_tools(struct wmOperatorType *ot)
                           normal_vector_tool_items,
                           EDBM_CLNOR_TOOLS_COPY,
                           "Mode",
-                          "Mode of tools taking input from Interface");
+                          "Mode of tools taking input from interface");
   RNA_def_property_flag(ot->prop, PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna,

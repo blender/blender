@@ -2220,7 +2220,7 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
 
   /* Properties. */
   RNA_def_boolean(ot->srna, "next", true, "Next Strip", "");
-  RNA_def_boolean(ot->srna, "center", true, "Use strip center", "");
+  RNA_def_boolean(ot->srna, "center", true, "Use Strip Center", "");
 }
 
 /** \} */

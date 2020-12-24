@@ -434,7 +434,7 @@ void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Bake Mesh Animation to Grease Pencil";
   ot->idname = "GPENCIL_OT_bake_mesh_animation";
-  ot->description = "Bake Mesh Animation to Grease Pencil strokes";
+  ot->description = "Bake mesh animation to grease pencil strokes";
 
   /* callbacks */
   ot->invoke = gpencil_bake_mesh_animation_invoke;

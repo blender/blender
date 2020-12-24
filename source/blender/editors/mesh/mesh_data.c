@@ -620,7 +620,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add UV Map";
-  ot->description = "Add UV Map";
+  ot->description = "Add UV map";
   ot->idname = "MESH_OT_uv_texture_add";
 
   /* api callbacks */
@@ -653,7 +653,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove UV Map";
-  ot->description = "Remove UV Map";
+  ot->description = "Remove UV map";
   ot->idname = "MESH_OT_uv_texture_remove";
 
   /* api callbacks */

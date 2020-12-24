@@ -680,7 +680,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 
   if ((flags & P_OPTIONS) && !(flags & P_NO_TEXSPACE)) {
     prop = RNA_def_boolean(
-        ot->srna, "texture_space", 0, "Edit Texture Space", "Edit Object data texture space");
+        ot->srna, "texture_space", 0, "Edit Texture Space", "Edit object data texture space");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
     prop = RNA_def_boolean(
         ot->srna, "remove_on_cancel", 0, "Remove on Cancel", "Remove elements on cancel");

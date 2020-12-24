@@ -1995,7 +1995,7 @@ void OBJECT_OT_bake(wmOperatorType *ot)
                   "use_clear",
                   false,
                   "Clear",
-                  "Clear Images before baking (only for internal saving)");
+                  "Clear images before baking (only for internal saving)");
   RNA_def_boolean(ot->srna, "use_cage", false, "Cage", "Cast rays to active object from a cage");
   RNA_def_boolean(
       ot->srna,

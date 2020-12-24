@@ -635,7 +635,7 @@ class LightMapPack(Operator):
     )
     PREF_IMG_PX_SIZE: IntProperty(
         name="Image Size",
-        description="Width and Height for the new image",
+        description="Width and height for the new image",
         min=64, max=5000,
         default=512,
     )

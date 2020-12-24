@@ -1945,7 +1945,7 @@ static void rna_def_operator(BlenderRNA *brna)
   RNA_api_operator(srna);
 
   srna = RNA_def_struct(brna, "OperatorProperties", NULL);
-  RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator");
+  RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an operator");
   RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
   RNA_def_struct_idprops_func(srna, "rna_OperatorProperties_idprops");
   RNA_def_struct_property_tags(srna, rna_enum_operator_property_tags);
@@ -2387,7 +2387,7 @@ static void rna_def_window(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "stereo3d_format");
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "Stereo3dDisplay");
-  RNA_def_property_ui_text(prop, "Stereo 3D Display", "Settings for stereo 3d display");
+  RNA_def_property_ui_text(prop, "Stereo 3D Display", "Settings for stereo 3D display");
 
   RNA_api_window(srna);
 }

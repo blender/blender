@@ -893,7 +893,7 @@ class WM_OT_url_open_preset(Operator):
         (('BUG', "Bug",
           "Report a bug with pre-filled version information"),
          _url_from_bug),
-        (('BUG_ADDON', "Add-On Bug",
+        (('BUG_ADDON', "Add-on Bug",
           "Report a bug in an add-on"),
          _url_from_bug_addon),
         (('RELEASE_NOTES', "Release Notes",
@@ -1175,7 +1175,7 @@ rna_use_soft_limits = BoolProperty(
 
 rna_is_overridable_library = BoolProperty(
     name="Is Library Overridable",
-    description="Allow the property to be overridden when the Data-Block is linked",
+    description="Allow the property to be overridden when the data-block is linked",
     default=False,
 )
 
@@ -1604,7 +1604,7 @@ class WM_OT_sysinfo(Operator):
 
 
 class WM_OT_operator_cheat_sheet(Operator):
-    """List all the Operators in a text-block, useful for scripting"""
+    """List all the operators in a text-block, useful for scripting"""
     bl_idname = "wm.operator_cheat_sheet"
     bl_label = "Operator Cheat Sheet"
 
@@ -1726,7 +1726,7 @@ class WM_OT_tool_set_by_index(Operator):
     bl_idname = "wm.tool_set_by_index"
     bl_label = "Set Tool by Index"
     index: IntProperty(
-        name="Index in toolbar",
+        name="Index in Toolbar",
         default=0,
     )
     cycle: BoolProperty(
@@ -2163,7 +2163,7 @@ class WM_OT_batch_rename(Operator):
         object_data_type_attrs_map = {
             'MESH': ("meshes", "Mesh(es)"),
             'CURVE': ("curves", "Curve(s)"),
-            'META': ("metaballs", "MetaBall(s)"),
+            'META': ("metaballs", "Metaball(s)"),
             'ARMATURE': ("armatures", "Armature(s)"),
             'LATTICE': ("lattices", "Lattice(s)"),
             'GPENCIL': ("grease_pencils", "Grease Pencil(s)"),
