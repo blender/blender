@@ -43,11 +43,11 @@
 #include "BLT_translation.h"
 
 #include "BKE_bvhutils.h"
-#include "BKE_mesh_fair.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
-#include "BKE_layer.h"
 #include "BKE_editmesh_bvh.h"
+#include "BKE_layer.h"
+#include "BKE_mesh_fair.h"
 #include "BKE_report.h"
 
 #include "ED_mesh.h"
@@ -117,17 +117,17 @@ static int edbm_fair_vertices_exec(bContext *C, wmOperator *op)
     BMIter iter;
     int i;
     bool *fairing_mask = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "fairing mask");
-    BM_ITER_MESH_INDEX(v, &iter, bm, BM_VERTS_OF_MESH, i) {
-        if (!BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-            continue;
-        }
-        if (BM_vert_is_boundary(v)) {
-            continue;
-        }
-        if (!BM_vert_is_manifold(v)) {
-            continue;
-        }
-        fairing_mask[i] = true;
+    BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+      if (!BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+        continue;
+      }
+      if (BM_vert_is_boundary(v)) {
+        continue;
+      }
+      if (!BM_vert_is_manifold(v)) {
+        continue;
+      }
+      fairing_mask[i] = true;
     }
     BKE_bmesh_prefair_and_fair_vertices(bm, fairing_mask, mode);
     MEM_freeN(fairing_mask);
@@ -155,8 +155,10 @@ void MESH_OT_fair_vertices(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_enum(
-      ot->srna, "mode", prop_edit_mesh_fair_selection_mode_items, MESH_FAIRING_DEPTH_POSITION, "Mode", "");
-
+  RNA_def_enum(ot->srna,
+               "mode",
+               prop_edit_mesh_fair_selection_mode_items,
+               MESH_FAIRING_DEPTH_POSITION,
+               "Mode",
+               "");
 }
-
