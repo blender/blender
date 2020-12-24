@@ -2164,6 +2164,11 @@ static void rna_def_brush(BlenderRNA *brna)
        0,
        "Surface",
        "Smooths the surface of the mesh, preserving the volume"},
+      {BRUSH_SMOOTH_DEFORM_DIRECTIONAL,
+       "DIRECTIONAL",
+       0,
+       "Directional",
+       "Smooths the surface taking into account the direction of the stroke"},
       {0, NULL, 0, NULL, NULL},
   };
 

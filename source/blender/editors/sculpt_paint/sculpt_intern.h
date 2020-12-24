@@ -563,6 +563,9 @@ void SCULPT_surface_smooth_displace_step(SculptSession *ss,
                                          const float fade);
 void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
+/* Directional Smooth Brush. */
+void SCULPT_do_directional_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+
 /* Slide/Relax */
 void SCULPT_relax_vertex(struct SculptSession *ss,
                          struct PBVHVertexIter *vd,
