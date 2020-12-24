@@ -369,9 +369,7 @@ ObjectManager::~ObjectManager()
 {
 }
 
-static float object_volume_density(UpdateObjectTransformState *state,
-                                   const Transform &tfm,
-                                   Geometry *geom)
+static float object_volume_density(const Transform &tfm, Geometry *geom)
 {
   if (geom->geometry_type == Geometry::VOLUME) {
     /* Volume density automatically adjust to object scale. */
@@ -405,7 +403,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 
   kobject.tfm = tfm;
   kobject.itfm = itfm;
-  kobject.volume_density = object_volume_density(state, tfm, geom);
+  kobject.volume_density = object_volume_density(tfm, geom);
   kobject.color[0] = color.x;
   kobject.color[1] = color.y;
   kobject.color[2] = color.z;
