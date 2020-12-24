@@ -46,6 +46,7 @@ set(SRC
   editmesh_extrude_screw.c
   editmesh_extrude_spin.c
   editmesh_extrude_spin_gizmo.c
+  editmesh_fair.c
   editmesh_inset.c
   editmesh_intersect.c
   editmesh_knife.c

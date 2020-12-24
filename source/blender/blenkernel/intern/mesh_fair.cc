@@ -67,6 +67,9 @@ class FairingContext {
   /* Get the other vertex index for a loop. */
   virtual int other_vertex_index_from_loop(const int loop, const unsigned int v) = 0;
 
+  virtual int vertex_index_from_loop(const int loop) = 0;
+  virtual float cotangent_loop_weight_get(const int loop) = 0;
+
   int vertex_count_get()
   {
     return totvert_;
@@ -74,7 +77,7 @@ class FairingContext {
 
   int loop_count_get()
   {
-    return totvert_;
+    return totloop_;
   }
 
   MeshElemMap *vertex_loop_map_get(const int v)
@@ -219,6 +222,15 @@ class MeshFairingContext : public FairingContext {
                                   mesh->totpoly,
                                   mesh->totloop);
 
+    BKE_mesh_edge_loop_map_create(&elmap_,
+                                  &elmap_mem_,
+                                  mesh->medge,
+                                  mesh->totedge,
+                                  mesh->mpoly,
+                                  mesh->totpoly,
+                                  mesh->mloop,
+                                  mesh->totloop);
+
     /* Deformation coords. */
     co_.reserve(mesh->totvert);
     if (deform_mverts) {
@@ -244,6 +256,8 @@ class MeshFairingContext : public FairingContext {
   {
     MEM_SAFE_FREE(vlmap_);
     MEM_SAFE_FREE(vlmap_mem_);
+    MEM_SAFE_FREE(elmap_);
+    MEM_SAFE_FREE(elmap_mem_);
   }
 
   void adjacents_coords_from_loop(const int loop,
@@ -266,12 +280,26 @@ class MeshFairingContext : public FairingContext {
     return e->v1;
   }
 
+  int vertex_index_from_loop(const int loop) override
+  {
+    return mloop_[loop].v;
+  }
+
+  float cotangent_loop_weight_get(const int UNUSED(loop)) override
+  {
+    /* TODO: Implement cotangent loop weights for meshes. */
+    return 1.0f;
+  }
+
  protected:
   Mesh *mesh_;
   MLoop *mloop_;
   MPoly *mpoly_;
   MEdge *medge_;
   Vector<int> loop_to_poly_map_;
+
+  MeshElemMap *elmap_;
+  int *elmap_mem_;
 };
 
 class BMeshFairingContext : public FairingContext {
@@ -307,6 +335,7 @@ class BMeshFairingContext : public FairingContext {
       int loop_count = 0;
       const int vert_index = BM_elem_index_get(v);
       vlmap_[vert_index].indices = &vlmap_mem_[index_iter];
+
       BM_ITER_ELEM (l, &loop_iter, v, BM_LOOPS_OF_VERT) {
         const int loop_index = BM_elem_index_get(l);
         bmloop_[loop_index] = l;
@@ -338,6 +367,47 @@ class BMeshFairingContext : public FairingContext {
     BMVert *bmvert = BM_vert_at_index(bm, v);
     BMVert *bm_other_vert = BM_edge_other_vert(l->e, bmvert);
     return BM_elem_index_get(bm_other_vert);
+  }
+
+  int vertex_index_from_loop(const int loop) override
+  {
+    return BM_elem_index_get(bmloop_[loop]->v);
+  }
+
+  float cotangent_loop_weight_get(const int loop) override
+  {
+    return 1.0f;
+
+    /* TODO: enable this when it works. */
+    BMLoop *l = bmloop_[loop];
+    float *co_c[2];
+    int co_c_count = 1;
+
+    float *co_a = l->v->co;
+    float *co_b = l->next->v->co;
+    co_c[0] = l->prev->v->co;
+    if (!BM_edge_is_boundary(l->e)) {
+      co_c_count = 2;
+      co_c[1] = l->radial_next->next->next->v->co;
+    }
+
+    float weight = 0.0f;
+    for (int c = 0; c < co_c_count; c++) {
+      float v1[3];
+      float v2[3];
+      sub_v3_v3v3(v1, co_a, co_c[c]);
+      sub_v3_v3v3(v2, co_b, co_c[c]);
+      const float angle = angle_v3v3(v1, v2);
+      const float tangent = tan(angle);
+      if (tangent != 0) {
+        weight += 1.0f / tangent;
+      }
+      else {
+        weight += 1e-4;
+      }
+    }
+    weight *= 0.5f;
+    return weight;
   }
 
  protected:
@@ -464,6 +534,27 @@ class UniformLoopWeight : public LoopWeight {
   }
 };
 
+class CotangentLoopWeight : public LoopWeight {
+ public:
+  CotangentLoopWeight(FairingContext *fairing_context)
+  {
+    const int totloop = fairing_context->loop_count_get();
+    loop_weights_.reserve(totloop);
+    for (int i = 0; i < totloop; i++) {
+      loop_weights_[i] = fairing_context->cotangent_loop_weight_get(i);
+    }
+  }
+  ~CotangentLoopWeight() = default;
+
+  float weight_at_index(const int index) override
+  {
+    return loop_weights_[index];
+  }
+
+ private:
+  Vector<float> loop_weights_;
+};
+
 static void prefair_and_fair_vertices(FairingContext *fairing_context,
                                       bool *affected_vertices,
                                       const eMeshFairingDepth depth)
@@ -471,18 +562,22 @@ static void prefair_and_fair_vertices(FairingContext *fairing_context,
   /* Prefair. */
   UniformVertexWeight *uniform_vertex_weights = new UniformVertexWeight(fairing_context);
   UniformLoopWeight *uniform_loop_weights = new UniformLoopWeight();
-  fairing_context->fair_vertices(
-      affected_vertices, depth, uniform_vertex_weights, uniform_loop_weights);
+  fairing_context->fair_vertices(affected_vertices,
+                                 MESH_FAIRING_DEPTH_POSITION,
+                                 uniform_vertex_weights,
+                                 uniform_loop_weights);
+
   delete uniform_vertex_weights;
+  delete uniform_loop_weights;
 
   /* Fair. */
   VoronoiVertexWeight *voronoi_vertex_weights = new VoronoiVertexWeight(fairing_context);
-  /* TODO: Implemente cotangent loop weights. */
+  CotangentLoopWeight *cotangent_loop_weights = new CotangentLoopWeight(fairing_context);
   fairing_context->fair_vertices(
-      affected_vertices, depth, voronoi_vertex_weights, uniform_loop_weights);
+      affected_vertices, depth, voronoi_vertex_weights, cotangent_loop_weights);
 
-  delete uniform_loop_weights;
   delete voronoi_vertex_weights;
+  delete cotangent_loop_weights;
 }
 
 void BKE_mesh_prefair_and_fair_vertices(struct Mesh *mesh,

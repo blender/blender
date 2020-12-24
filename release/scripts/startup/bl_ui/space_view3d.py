@@ -3624,6 +3624,8 @@ class VIEW3D_MT_edit_mesh(Menu):
         if with_bullet:
             layout.operator("mesh.convex_hull")
 
+        layout.operator("mesh.fair_vertices", text="Fair")
+
         layout.separator()
 
         layout.operator("mesh.symmetrize")

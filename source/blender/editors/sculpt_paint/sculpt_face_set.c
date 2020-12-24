@@ -1027,10 +1027,7 @@ typedef enum eSculptFaceSetEditMode {
   SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY = 2,
   SCULPT_FACE_SET_EDIT_FAIR_POSITIONS = 3,
   SCULPT_FACE_SET_EDIT_FAIR_TANGENCY = 4,
-  /* TODO(pablodp606): enable this after supporting cotangent weights in fairing. */
-  /*
   SCULPT_FACE_SET_EDIT_FAIR_CURVATURE = 5,
-  */
   SCULPT_FACE_SET_EDIT_FILL_COMPONENT = 6,
 } eSculptFaceSetEditMode;
 
@@ -1072,6 +1069,16 @@ static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
         "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
         "vertex tangents",
     },
+    /*
+    {
+        SCULPT_FACE_SET_EDIT_FAIR_CURVATURE,
+        "FAIR_CURVATURE",
+        0,
+        "Fair Curvature",
+        "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
+        "surface curvature",
+    },
+    */
     {
         SCULPT_FACE_SET_EDIT_FILL_COMPONENT,
         "FILL_COMPONENT",
@@ -1300,6 +1307,9 @@ static void sculpt_face_set_apply_edit(Object *ob,
     case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
       sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_TANGENCY);
       break;
+    case SCULPT_FACE_SET_EDIT_FAIR_CURVATURE:
+      sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_CURVATURE);
+      break;
   }
 }
 
@@ -1456,6 +1466,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
       break;
     case SCULPT_FACE_SET_EDIT_FAIR_POSITIONS:
     case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
+    case SCULPT_FACE_SET_EDIT_FAIR_CURVATURE:
       sculpt_face_set_edit_modify_coordinates(C, ob, active_face_set, mode);
       break;
   }
