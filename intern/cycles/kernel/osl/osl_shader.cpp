@@ -109,7 +109,7 @@ static void shaderdata_to_shaderglobals(
   globals->dvdy = sd->dv.dy;
   globals->dPdu = TO_VEC3(sd->dPdu);
   globals->dPdv = TO_VEC3(sd->dPdv);
-  globals->surfacearea = (sd->object == OBJECT_NONE) ? 1.0f : object_surface_area(kg, sd->object);
+  globals->surfacearea = 1.0f;
   globals->time = sd->time;
 
   /* booleans */

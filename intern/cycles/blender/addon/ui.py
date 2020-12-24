@@ -1969,9 +1969,11 @@ class CYCLES_RENDER_PT_bake_output(CyclesButtonsPanel, Panel):
             if rd.bake_type == 'DISPLACEMENT':
                 layout.prop(rd, "use_bake_lores_mesh")
         else:
+            layout.prop(cbk, "target")
 
-            layout.prop(cbk, "margin")
-            layout.prop(cbk, "use_clear", text="Clear Image")
+            if cbk.target == 'IMAGE_TEXTURES':
+                layout.prop(cbk, "margin")
+                layout.prop(cbk, "use_clear", text="Clear Image")
 
 
 class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
