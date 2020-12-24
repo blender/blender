@@ -1248,6 +1248,12 @@ class OptiXDevice : public CUDADevice {
 
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override
   {
+    if (bvh->params.bvh_layout == BVH_LAYOUT_BVH2) {
+      /* For baking CUDA is used, build appropriate BVH for that. */
+      Device::build_bvh(bvh, progress, refit);
+      return;
+    }
+
     BVHOptiX *const bvh_optix = static_cast<BVHOptiX *>(bvh);
 
     progress.set_substatus("Building OptiX acceleration structure");
