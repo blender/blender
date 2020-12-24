@@ -1680,7 +1680,7 @@ static int constraint_move_to_index_invoke(bContext *C, wmOperator *op, const wm
 void CONSTRAINT_OT_move_to_index(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Move Constraint To Index";
+  ot->name = "Move Constraint to Index";
   ot->idname = "CONSTRAINT_OT_move_to_index";
   ot->description =
       "Change the constraint's position in the list so it evaluates after the set number of "
@@ -1781,7 +1781,7 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Object Constraints";
   ot->idname = "OBJECT_OT_constraints_clear";
-  ot->description = "Clear all the constraints for the active Object only";
+  ot->description = "Clear all the constraints for the active object only";
 
   /* callbacks */
   ot->exec = object_constraints_clear_exec;
@@ -2267,7 +2267,7 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
   ot->name = "Add Constraint (with Targets)";
   ot->description =
       "Add a constraint to the active object, with target (where applicable) set to the "
-      "selected Objects/Bones";
+      "selected objects/bones";
   ot->idname = "OBJECT_OT_constraint_add_with_targets";
 
   /* api callbacks */

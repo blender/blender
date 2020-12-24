@@ -359,7 +359,7 @@ static void rna_def_volume_display(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "VolumeDisplay", NULL);
-  RNA_def_struct_ui_text(srna, "Volume Display", "Volume object display settings for 3d viewport");
+  RNA_def_struct_ui_text(srna, "Volume Display", "Volume object display settings for 3D viewport");
   RNA_def_struct_sdna(srna, "VolumeDisplay");
 
   prop = RNA_def_property(srna, "density", PROP_FLOAT, PROP_NONE);
@@ -604,13 +604,13 @@ static void rna_def_volume(BlenderRNA *brna)
   prop = RNA_def_property(srna, "display", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "display");
   RNA_def_property_struct_type(prop, "VolumeDisplay");
-  RNA_def_property_ui_text(prop, "Display", "Volume display settings for 3d viewport");
+  RNA_def_property_ui_text(prop, "Display", "Volume display settings for 3D viewport");
 
   /* Render */
   prop = RNA_def_property(srna, "render", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "render");
   RNA_def_property_struct_type(prop, "VolumeRender");
-  RNA_def_property_ui_text(prop, "Render", "Volume render settings for 3d viewport");
+  RNA_def_property_ui_text(prop, "Render", "Volume render settings for 3D viewport");
 
   /* Common */
   rna_def_animdata_common(srna);

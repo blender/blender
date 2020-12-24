@@ -1027,7 +1027,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "Constraint");
   RNA_def_property_override_flag(
       prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY | PROPOVERRIDE_LIBRARY_INSERTION);
-  RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel");
+  RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this pose channel");
   RNA_def_property_override_funcs(prop, NULL, NULL, "rna_PoseChannel_constraints_override_apply");
 
   rna_def_pose_channel_constraints(brna, prop);
@@ -1392,7 +1392,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_pointer_funcs(
       prop, "rna_PoseChannel_bone_group_get", "rna_PoseChannel_bone_group_set", NULL, NULL);
-  RNA_def_property_ui_text(prop, "Bone Group", "Bone Group this pose channel belongs to");
+  RNA_def_property_ui_text(prop, "Bone Group", "Bone group this pose channel belongs to");
   RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 

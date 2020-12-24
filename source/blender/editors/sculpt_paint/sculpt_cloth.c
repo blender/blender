@@ -1653,15 +1653,15 @@ void SCULPT_OT_cloth_filter(struct wmOperatorType *ot)
                "type",
                prop_cloth_filter_type,
                CLOTH_FILTER_GRAVITY,
-               "Filter type",
+               "Filter Type",
                "Operation that is going to be applied to the mesh");
   RNA_def_float(
-      ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter Strength", -10.0f, 10.0f);
+      ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter strength", -10.0f, 10.0f);
   RNA_def_enum_flag(ot->srna,
                     "force_axis",
                     prop_cloth_filter_force_axis_items,
                     CLOTH_FILTER_FORCE_X | CLOTH_FILTER_FORCE_Y | CLOTH_FILTER_FORCE_Z,
-                    "Force axis",
+                    "Force Axis",
                     "Apply the force in the selected axis");
   RNA_def_enum(ot->srna,
                "orientation",

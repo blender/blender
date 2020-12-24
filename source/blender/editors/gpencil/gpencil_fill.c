@@ -1707,6 +1707,6 @@ void GPENCIL_OT_fill(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
-  prop = RNA_def_boolean(ot->srna, "on_back", false, "Draw On Back", "Send new stroke to Back");
+  prop = RNA_def_boolean(ot->srna, "on_back", false, "Draw on Back", "Send new stroke to back");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }

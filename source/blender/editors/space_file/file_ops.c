@@ -1253,7 +1253,7 @@ void FILE_OT_reset_recent(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Reset Recent";
-  ot->description = "Reset Recent files";
+  ot->description = "Reset recent files";
   ot->idname = "FILE_OT_reset_recent";
 
   /* api callbacks */

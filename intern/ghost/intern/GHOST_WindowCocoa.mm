@@ -905,8 +905,8 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 static void postNotification()
 {
   NSUserNotification *notification = [[NSUserNotification alloc] init];
-  notification.title = @"Blender progress notification";
-  notification.informativeText = @"Calculation is finished";
+  notification.title = @"Blender Progress Notification";
+  notification.informativeText = @"Calculation is finished.";
   notification.soundName = NSUserNotificationDefaultSoundName;
   [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
   [notification release];

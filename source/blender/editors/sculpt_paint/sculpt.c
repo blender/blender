@@ -9351,7 +9351,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
 static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Mask By Color";
+  ot->name = "Mask by Color";
   ot->idname = "SCULPT_OT_mask_by_color";
   ot->description = "Creates a mask based on the sculpt vertex colors";
 

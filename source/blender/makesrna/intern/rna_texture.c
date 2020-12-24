@@ -1045,7 +1045,7 @@ static void rna_def_texture_blend(BlenderRNA *brna)
       {TEX_HALO,
        "QUADRATIC_SPHERE",
        0,
-       "Quadratic sphere",
+       "Quadratic Sphere",
        "Create a quadratic progression in the shape of a sphere"},
       {TEX_RAD, "RADIAL", 0, "Radial", "Create a radial progression"},
       {0, NULL, 0, NULL, NULL},

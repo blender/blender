@@ -360,7 +360,7 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Accept";
   ot->description =
-      "Open a file browser, Hold Shift to open the file, Alt to browse containing directory";
+      "Open a file browser, hold Shift to open the file, Alt to browse containing directory";
   ot->idname = "BUTTONS_OT_file_browse";
 
   /* Callbacks. */
@@ -387,7 +387,7 @@ void BUTTONS_OT_directory_browse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Accept";
   ot->description =
-      "Open a directory browser, Hold Shift to open the file, Alt to browse containing directory";
+      "Open a directory browser, hold Shift to open the file, Alt to browse containing directory";
   ot->idname = "BUTTONS_OT_directory_browse";
 
   /* api callbacks */

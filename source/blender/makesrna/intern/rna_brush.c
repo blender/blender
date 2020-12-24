@@ -2046,7 +2046,7 @@ static void rna_def_brush(BlenderRNA *brna)
       {BRUSH_CURVE_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
       {BRUSH_CURVE_LIN, "LIN", ICON_LINCURVE, "Linear", ""},
       {BRUSH_CURVE_POW4, "POW4", ICON_SHARPCURVE, "Sharper", ""},
-      {BRUSH_CURVE_INVSQUARE, "INVSQUARE", ICON_INVERSESQUARECURVE, "Inverse square", ""},
+      {BRUSH_CURVE_INVSQUARE, "INVSQUARE", ICON_INVERSESQUARECURVE, "Inverse Square", ""},
       {BRUSH_CURVE_CONSTANT, "CONSTANT", ICON_NOCURVE, "Constant", ""},
       {0, NULL, 0, NULL, NULL},
   };
@@ -2067,8 +2067,8 @@ static void rna_def_brush(BlenderRNA *brna)
 
   static const EnumPropertyItem brush_elastic_deform_type_items[] = {
       {BRUSH_ELASTIC_DEFORM_GRAB, "GRAB", 0, "Grab", ""},
-      {BRUSH_ELASTIC_DEFORM_GRAB_BISCALE, "GRAB_BISCALE", 0, "Bi-scale Grab", ""},
-      {BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE, "GRAB_TRISCALE", 0, "Tri-scale Grab", ""},
+      {BRUSH_ELASTIC_DEFORM_GRAB_BISCALE, "GRAB_BISCALE", 0, "Bi-Scale Grab", ""},
+      {BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE, "GRAB_TRISCALE", 0, "Tri-Scale Grab", ""},
       {BRUSH_ELASTIC_DEFORM_SCALE, "SCALE", 0, "Scale", ""},
       {BRUSH_ELASTIC_DEFORM_TWIST, "TWIST", 0, "Twist", ""},
       {0, NULL, 0, NULL, NULL},
@@ -2973,21 +2973,21 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_automasking_topology", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_TOPOLOGY);
   RNA_def_property_ui_text(prop,
-                           "Topology Auto-masking",
+                           "Topology Auto-Masking",
                            "Affect only vertices connected to the active vertex under the brush");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_automasking_face_sets", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_FACE_SETS);
   RNA_def_property_ui_text(prop,
-                           "Face Sets Auto-masking",
+                           "Face Sets Auto-Masking",
                            "Affect only vertices that share Face Sets with the active vertex");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_automasking_boundary_edges", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_BOUNDARY_EDGES);
   RNA_def_property_ui_text(
-      prop, "Mesh Boundary Auto-masking", "Do not affect non manifold boundary edges");
+      prop, "Mesh Boundary Auto-Masking", "Do not affect non manifold boundary edges");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_automasking_boundary_face_sets", PROP_BOOLEAN, PROP_NONE);
@@ -3221,7 +3221,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_edge_to_edge", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_EDGE_TO_EDGE);
-  RNA_def_property_ui_text(prop, "Edge-to-edge", "Drag anchor brush from edge-to-edge");
+  RNA_def_property_ui_text(prop, "Edge-to-Edge", "Drag anchor brush from edge-to-edge");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_restore_mesh", PROP_BOOLEAN, PROP_NONE);
@@ -3243,7 +3243,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "paint_curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Paint Curve", "Active Paint Curve");
+  RNA_def_property_ui_text(prop, "Paint Curve", "Active paint curve");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "gradient", PROP_POINTER, PROP_NEVER_NULL);

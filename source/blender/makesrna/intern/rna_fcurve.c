@@ -1208,7 +1208,7 @@ static void rna_def_fmodifier_function_generator(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "FModifierFunctionGenerator", "FModifier");
   RNA_def_struct_ui_text(
-      srna, "Built-In Function F-Modifier", "Generate values using a Built-In Function");
+      srna, "Built-In Function F-Modifier", "Generate values using a built-in function");
   RNA_def_struct_sdna_from(srna, "FMod_FunctionGenerator", "data");
 
   /* coefficients */

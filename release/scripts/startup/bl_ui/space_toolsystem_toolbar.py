@@ -1424,7 +1424,7 @@ class _defs_sculpt:
 
         return dict(
             idname="builtin.mask_by_color",
-            label="Mask By Color",
+            label="Mask by Color",
             icon="ops.sculpt.mask_by_color",
             widget=None,
             keymap=(),
