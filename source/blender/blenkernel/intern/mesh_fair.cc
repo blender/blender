@@ -424,27 +424,28 @@ class UniformVertexWeight : public VertexWeight {
     vertex_weights_.reserve(totvert);
     cached_.reserve(totvert);
     for (int i = 0; i < totvert; i++) {
-        cached_[i] = false;
+      cached_[i] = false;
     }
   }
   ~UniformVertexWeight() = default;
 
   float weight_at_index(const int index) override
   {
-      if (!cached_[index]) {
-          vertex_weights_[index] = uniform_weight_at_index(index);
-          cached_[index] = true;
-      }
+    if (!cached_[index]) {
+      vertex_weights_[index] = uniform_weight_at_index(index);
+      cached_[index] = true;
+    }
     return vertex_weights_[index];
   }
 
  private:
-  float uniform_weight_at_index(const int index) {
-      const int tot_loop = fairing_context_->vertex_loop_map_get(index)->count;
-      if (tot_loop != 0) {
-        return  1.0f / tot_loop;
-      }
-      return FLT_MAX;
+  float uniform_weight_at_index(const int index)
+  {
+    const int tot_loop = fairing_context_->vertex_loop_map_get(index)->count;
+    if (tot_loop != 0) {
+      return 1.0f / tot_loop;
+    }
+    return FLT_MAX;
   }
   Vector<float> vertex_weights_;
   Vector<bool> cached_;
@@ -460,17 +461,17 @@ class VoronoiVertexWeight : public VertexWeight {
     vertex_weights_.reserve(totvert);
     cached_.reserve(totvert);
     for (int i = 0; i < totvert; i++) {
-        cached_[i] = false;
+      cached_[i] = false;
     }
   }
   ~VoronoiVertexWeight() = default;
 
   float weight_at_index(const int index) override
   {
-      if (!cached_[index]) {
-          vertex_weights_[index] = voronoi_weight_at_index(index);
-          cached_[index] = true;
-      }
+    if (!cached_[index]) {
+      vertex_weights_[index] = voronoi_weight_at_index(index);
+      cached_[index] = true;
+    }
     return vertex_weights_[index];
   }
 
@@ -479,38 +480,40 @@ class VoronoiVertexWeight : public VertexWeight {
   Vector<bool> cached_;
   FairingContext *fairing_context_;
 
-  float voronoi_weight_at_index(const int index) {
-      float area = 0.0f;
-      float a[3];
-      copy_v3_v3(a, fairing_context_->vertex_deformation_co_get(index));
-      const float acute_threshold = M_PI_2;
+  float voronoi_weight_at_index(const int index)
+  {
+    float area = 0.0f;
+    float a[3];
+    copy_v3_v3(a, fairing_context_->vertex_deformation_co_get(index));
+    const float acute_threshold = M_PI_2;
 
-      MeshElemMap *vlmap_elem = fairing_context_->vertex_loop_map_get(index);
-      for (int l = 0; l < vlmap_elem->count; l++) {
-        const int l_index = vlmap_elem->indices[l];
+    MeshElemMap *vlmap_elem = fairing_context_->vertex_loop_map_get(index);
+    for (int l = 0; l < vlmap_elem->count; l++) {
+      const int l_index = vlmap_elem->indices[l];
 
-        float b[3], c[3], d[3];
-        fairing_context_->adjacents_coords_from_loop(l_index, b, c);
+      float b[3], c[3], d[3];
+      fairing_context_->adjacents_coords_from_loop(l_index, b, c);
 
-        if (angle_v3v3v3(c, fairing_context_->vertex_deformation_co_get(index), b) < acute_threshold) {
-          calc_circumcenter(d, a, b, c);
-        }
-        else {
-          add_v3_v3v3(d, b, c);
-          mul_v3_fl(d, 0.5f);
-        }
-
-        float t[3];
-        add_v3_v3v3(t, a, b);
-        mul_v3_fl(t, 0.5f);
-        area += area_tri_v3(a, t, d);
-
-        add_v3_v3v3(t, a, c);
-        mul_v3_fl(t, 0.5f);
-        area += area_tri_v3(a, d, t);
+      if (angle_v3v3v3(c, fairing_context_->vertex_deformation_co_get(index), b) <
+          acute_threshold) {
+        calc_circumcenter(d, a, b, c);
+      }
+      else {
+        add_v3_v3v3(d, b, c);
+        mul_v3_fl(d, 0.5f);
       }
 
-      return area != 0.0f ? 1.0f / area : 1e12;
+      float t[3];
+      add_v3_v3v3(t, a, b);
+      mul_v3_fl(t, 0.5f);
+      area += area_tri_v3(a, t, d);
+
+      add_v3_v3v3(t, a, c);
+      mul_v3_fl(t, 0.5f);
+      area += area_tri_v3(a, d, t);
+    }
+
+    return area != 0.0f ? 1.0f / area : 1e12;
   }
 
   void calc_circumcenter(float r[3], const float a[3], const float b[3], const float c[3])
@@ -561,7 +564,7 @@ class CotangentLoopWeight : public LoopWeight {
     loop_weights_.reserve(totloop);
     cached_.reserve(totloop);
     for (int i = 0; i < totloop; i++) {
-        cached_[i] = false;
+      cached_[i] = false;
     }
   }
   ~CotangentLoopWeight() = default;
