@@ -23,6 +23,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
@@ -38,8 +41,6 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_scene.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "IMB_colormanagement.h"
 
