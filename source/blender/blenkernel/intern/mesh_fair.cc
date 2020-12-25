@@ -420,26 +420,35 @@ class UniformVertexWeight : public VertexWeight {
   UniformVertexWeight(FairingContext *fairing_context)
   {
     const int totvert = fairing_context->vertex_count_get();
+    fairing_context_ = fairing_context;
     vertex_weights_.reserve(totvert);
+    cached_.reserve(totvert);
     for (int i = 0; i < totvert; i++) {
-      const int tot_loop = fairing_context->vertex_loop_map_get(i)->count;
-      if (tot_loop != 0) {
-        vertex_weights_[i] = 1.0f / tot_loop;
-      }
-      else {
-        vertex_weights_[i] = FLT_MAX;
-      }
+        cached_[i] = false;
     }
   }
   ~UniformVertexWeight() = default;
 
   float weight_at_index(const int index) override
   {
+      if (!cached_[index]) {
+          vertex_weights_[index] = uniform_weight_at_index(index);
+          cached_[index] = true;
+      }
     return vertex_weights_[index];
   }
 
  private:
+  float uniform_weight_at_index(const int index) {
+      const int tot_loop = fairing_context_->vertex_loop_map_get(index)->count;
+      if (tot_loop != 0) {
+        return  1.0f / tot_loop;
+      }
+      return FLT_MAX;
+  }
   Vector<float> vertex_weights_;
+  Vector<bool> cached_;
+  FairingContext *fairing_context_;
 };
 
 class VoronoiVertexWeight : public VertexWeight {
@@ -447,24 +456,43 @@ class VoronoiVertexWeight : public VertexWeight {
  public:
   VoronoiVertexWeight(FairingContext *fairing_context)
   {
-
     const int totvert = fairing_context->vertex_count_get();
     vertex_weights_.reserve(totvert);
+    cached_.reserve(totvert);
     for (int i = 0; i < totvert; i++) {
+        cached_[i] = false;
+    }
+  }
+  ~VoronoiVertexWeight() = default;
 
+  float weight_at_index(const int index) override
+  {
+      if (!cached_[index]) {
+          vertex_weights_[index] = voronoi_weight_at_index(index);
+          cached_[index] = true;
+      }
+    return vertex_weights_[index];
+  }
+
+ private:
+  Vector<float> vertex_weights_;
+  Vector<bool> cached_;
+  FairingContext *fairing_context_;
+
+  float voronoi_weight_at_index(const int index) {
       float area = 0.0f;
       float a[3];
-      copy_v3_v3(a, fairing_context->vertex_deformation_co_get(i));
+      copy_v3_v3(a, fairing_context_->vertex_deformation_co_get(index));
       const float acute_threshold = M_PI_2;
 
-      MeshElemMap *vlmap_elem = fairing_context->vertex_loop_map_get(i);
+      MeshElemMap *vlmap_elem = fairing_context_->vertex_loop_map_get(index);
       for (int l = 0; l < vlmap_elem->count; l++) {
         const int l_index = vlmap_elem->indices[l];
 
         float b[3], c[3], d[3];
-        fairing_context->adjacents_coords_from_loop(l_index, b, c);
+        fairing_context_->adjacents_coords_from_loop(l_index, b, c);
 
-        if (angle_v3v3v3(c, fairing_context->vertex_deformation_co_get(i), b) < acute_threshold) {
+        if (angle_v3v3v3(c, fairing_context_->vertex_deformation_co_get(index), b) < acute_threshold) {
           calc_circumcenter(d, a, b, c);
         }
         else {
@@ -482,18 +510,8 @@ class VoronoiVertexWeight : public VertexWeight {
         area += area_tri_v3(a, d, t);
       }
 
-      vertex_weights_[i] = area != 0.0f ? 1.0f / area : 1e12;
-    }
+      return area != 0.0f ? 1.0f / area : 1e12;
   }
-  ~VoronoiVertexWeight() = default;
-
-  float weight_at_index(const int index) override
-  {
-    return vertex_weights_[index];
-  }
-
- private:
-  Vector<float> vertex_weights_;
 
   void calc_circumcenter(float r[3], const float a[3], const float b[3], const float c[3])
   {
@@ -539,20 +557,28 @@ class CotangentLoopWeight : public LoopWeight {
   CotangentLoopWeight(FairingContext *fairing_context)
   {
     const int totloop = fairing_context->loop_count_get();
+    fairing_context_ = fairing_context;
     loop_weights_.reserve(totloop);
+    cached_.reserve(totloop);
     for (int i = 0; i < totloop; i++) {
-      loop_weights_[i] = fairing_context->cotangent_loop_weight_get(i);
+        cached_[i] = false;
     }
   }
   ~CotangentLoopWeight() = default;
 
   float weight_at_index(const int index) override
   {
+    if (!cached_[index]) {
+      loop_weights_[index] = fairing_context_->cotangent_loop_weight_get(index);
+      cached_[index] = true;
+    }
     return loop_weights_[index];
   }
 
  private:
   Vector<float> loop_weights_;
+  Vector<bool> cached_;
+  FairingContext *fairing_context_;
 };
 
 static void prefair_and_fair_vertices(FairingContext *fairing_context,
