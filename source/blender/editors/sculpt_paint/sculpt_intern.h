@@ -33,6 +33,8 @@
 #include "BLI_gsqueue.h"
 #include "BLI_threads.h"
 
+#include "ED_view3d.h"
+
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
@@ -1094,6 +1096,47 @@ void SCULPT_filter_to_orientation_space(float r_v[3], struct FilterCache *filter
 void SCULPT_filter_to_object_space(float r_v[3], struct FilterCache *filter_cache);
 void SCULPT_filter_zero_disabled_axis_components(float r_v[3], struct FilterCache *filter_cache);
 
+typedef enum eSculptGradientType {
+  SCULPT_GRADIENT_LINEAR,
+  SCULPT_GRADIENT_SPHERICAL,
+  SCULPT_GRADIENT_RADIAL,
+  SCULPT_GRADIENT_ANGLE,
+  SCULPT_GRADIENT_REFLECTED,
+} eSculptGradientType;
+
+typedef struct SculptGradientContext {
+  eSculptGradientType gradient_type;
+
+  ViewContext vc;
+
+  int symm;
+
+  int update_type;
+
+  float line_points[2][2];
+  float line_length;
+
+  float depth_point[3];
+
+  float gradient_plane[4];
+  float initial_location[3];
+
+  float gradient_line[3];
+  float initial_projected_location[2];
+
+  float strength;
+
+  void (*sculpt_gradient_begin)(struct bContext *);
+  void (*sculpt_gradient_apply_for_element)(struct Sculpt *,
+                                            struct SculptSession *,
+                                            SculptOrigVertData *orig_data,
+                                            PBVHVertexIter *vd,
+                                            float gradient_value,
+                                            float fade_value);
+  void (*sculpt_gradient_node_update)(struct PBVHNode *);
+  void (*sculpt_gradient_end)(struct bContext *);
+} SculptGradientContext;
+
 typedef struct FilterCache {
   bool enabled_axis[3];
   bool enabled_force_axis[3];
@@ -1149,6 +1192,9 @@ typedef struct FilterCache {
 
   /* Transform. */
   SculptTransformDisplacementMode transform_displacement_mode;
+
+  /* Gradient. */
+  SculptGradientContext *gradient_context;
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
