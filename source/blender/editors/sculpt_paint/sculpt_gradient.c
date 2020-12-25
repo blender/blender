@@ -29,8 +29,6 @@
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -40,6 +38,8 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_scene.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "IMB_colormanagement.h"
 
@@ -66,7 +66,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-
 static EnumPropertyItem prop_sculpt_gradient_type[] = {
     {SCULPT_GRADIENT_LINEAR, "LINEAR", 0, "Linear", ""},
     {SCULPT_GRADIENT_SPHERICAL, "SPHERICAL", 0, "Spherical", ""},
@@ -77,8 +76,8 @@ static EnumPropertyItem prop_sculpt_gradient_type[] = {
 };
 
 static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
-                                 const int n,
-                                 const TaskParallelTLS *__restrict UNUSED(tls))
+                                          const int n,
+                                          const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -97,35 +96,40 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
       continue;
     }
 
-
     float world_co[3];
     float projected_co[3];
-    mul_v3_m4v3(world_co, data->ob->obmat, vd.co);
+
+    /* TODO: Implement symmetry by flipping this coordinate. */
+    float symm_co[3];
+    copy_v3_v3(symm_co, vd.co);
+
+    mul_v3_m4v3(world_co, data->ob->obmat, symm_co);
     ED_view3d_project(gcontext->vc.region, world_co, projected_co);
 
     float gradient_value = 0.0f;
     switch (gcontext->gradient_type) {
-    case SCULPT_GRADIENT_LINEAR:
+      case SCULPT_GRADIENT_LINEAR:
 
         break;
-    case SCULPT_GRADIENT_SPHERICAL:
+      case SCULPT_GRADIENT_SPHERICAL:
 
         break;
-    case SCULPT_GRADIENT_RADIAL:
+      case SCULPT_GRADIENT_RADIAL: {
+        const float dist = len_v2v2_int(projected_co, gcontext->line_points[0]);
+        gradient_value = dist / gcontext->line_length;
+      } break;
+      case SCULPT_GRADIENT_ANGLE:
         break;
-    case SCULPT_GRADIENT_ANGLE:
-
-        break;
-    case SCULPT_GRADIENT_REFLECTED:
+      case SCULPT_GRADIENT_REFLECTED:
 
         break;
     }
 
+    gradient_value = clamp_f(gradient_value, 0.0f, 1.0f);
     gcontext->sculpt_gradient_apply_for_element(sd, ss, &orig_data, &vd, gradient_value, fade);
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
-
   }
   BKE_pbvh_vertex_iter_end;
   gcontext->sculpt_gradient_node_update(data->nodes[n]);
@@ -146,7 +150,6 @@ static int sculpt_gradient_update_exec(bContext *C, wmOperator *op, const wmEven
   gcontext->line_points[0][1] = RNA_int_get(op->ptr, "ystart");
   gcontext->line_points[1][0] = RNA_int_get(op->ptr, "xend");
   gcontext->line_points[1][1] = RNA_int_get(op->ptr, "yend");
-
   gcontext->line_length = len_v2v2_int(gcontext->line_points[0], gcontext->line_points[1]);
 
   SculptThreadedTaskData data = {
@@ -159,19 +162,25 @@ static int sculpt_gradient_update_exec(bContext *C, wmOperator *op, const wmEven
   BLI_parallel_range_settings_defaults(&settings);
 
   BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
-  BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, sculpt_gradient_apply_task_cb, &settings);
+  BLI_task_parallel_range(
+      0, ss->filter_cache->totnode, &data, sculpt_gradient_apply_task_cb, &settings);
 
   SCULPT_flush_update_step(C, ss->filter_cache->gradient_context->update_type);
 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void sculpt_gradient_properties(wmOperatorType *ot) {
-  RNA_def_enum(ot->srna, "type", prop_sculpt_gradient_type, SCULPT_GRADIENT_LINEAR, "Gradient Type", "");
+static void sculpt_gradient_properties(wmOperatorType *ot)
+{
+  RNA_def_enum(
+      ot->srna, "type", prop_sculpt_gradient_type, SCULPT_GRADIENT_LINEAR, "Gradient Type", "");
 }
 
-
-static void sculpt_gradient_context_init_common(bContext *C, wmOperator *op, const wmEvent *event, SculptGradientContext *gcontext) {
+static void sculpt_gradient_context_init_common(bContext *C,
+                                                wmOperator *op,
+                                                const wmEvent *event,
+                                                SculptGradientContext *gcontext)
+{
   /* View Context. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ED_view3d_viewcontext_init(C, &gcontext->vc, depsgraph);
@@ -189,16 +198,17 @@ static void sculpt_gradient_context_init_common(bContext *C, wmOperator *op, con
   float mouse[2] = {event->mval[0], event->mval[1]};
   const bool hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
   if (hit) {
-      copy_v3_v3(gcontext->depth_point, sgi.location);
+    copy_v3_v3(gcontext->depth_point, sgi.location);
   }
   else {
-      zero_v3(gcontext->depth_point);
+    zero_v3(gcontext->depth_point);
   }
 }
 
-
-static SculptGradientContext *sculpt_mask_gradient_context_create(Object *ob, wmOperator *op) {
-  SculptGradientContext *gradient_context = MEM_callocN(sizeof(SculptGradientContext), "gradient context");
+static SculptGradientContext *sculpt_mask_gradient_context_create(Object *ob, wmOperator *op)
+{
+  SculptGradientContext *gradient_context = MEM_callocN(sizeof(SculptGradientContext),
+                                                        "gradient context");
   gradient_context->update_type = SCULPT_UPDATE_MASK;
   return gradient_context;
 }
@@ -215,7 +225,6 @@ static int sculpt_mask_gradient_invoke(bContext *C, wmOperator *op, const wmEven
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_MASK);
   ss->filter_cache->gradient_context = sculpt_mask_gradient_context_create(ob, op);
   sculpt_gradient_context_init_common(C, op, event, ss->filter_cache->gradient_context);
-
 
   return WM_gesture_straightline_invoke(C, op, event);
 }
