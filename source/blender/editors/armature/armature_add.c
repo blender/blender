@@ -1617,7 +1617,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Add Bone";
   ot->idname = "ARMATURE_OT_bone_primitive_add";
-  ot->description = "Add a new bone located at the 3D-Cursor";
+  ot->description = "Add a new bone located at the 3D cursor";
 
   /* api callbacks */
   ot->exec = armature_bone_primitive_add_exec;

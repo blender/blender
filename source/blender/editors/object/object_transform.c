@@ -1533,7 +1533,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
        0,
        "Origin to Geometry",
        "Calculate the center of geometry based on the current pivot point (median, otherwise "
-       "bounding-box)"},
+       "bounding box)"},
       {ORIGIN_TO_CURSOR,
        "ORIGIN_CURSOR",
        0,

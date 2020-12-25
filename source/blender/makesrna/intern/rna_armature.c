@@ -1250,7 +1250,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "EditBone", NULL);
   RNA_def_struct_sdna(srna, "EditBone");
   RNA_def_struct_idprops_func(srna, "rna_EditBone_idprops");
-  RNA_def_struct_ui_text(srna, "Edit Bone", "Editmode bone in an Armature data-block");
+  RNA_def_struct_ui_text(srna, "Edit Bone", "Edit mode bone in an armature data-block");
   RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 
   RNA_define_verify_sdna(0); /* not in sdna */
@@ -1335,7 +1335,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_THICK_WRAP); /* no reference to original data */
   RNA_def_property_ui_text(
       prop,
-      "Editbone Matrix",
+      "Edit Bone Matrix",
       "Matrix combining location and rotation of the bone (head position, direction and roll), "
       "in armature space (does not include/support bone's length/size)");
   RNA_def_property_float_funcs(prop, "rna_EditBone_matrix_get", "rna_EditBone_matrix_set", NULL);

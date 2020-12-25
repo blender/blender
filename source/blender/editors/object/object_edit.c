@@ -863,8 +863,8 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 {
 
   /* identifiers */
-  ot->name = "Toggle Editmode";
-  ot->description = "Toggle object's editmode";
+  ot->name = "Toggle Edit Mode";
+  ot->description = "Toggle object's edit mode";
   ot->idname = "OBJECT_OT_editmode_toggle";
 
   /* api callbacks */

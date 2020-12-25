@@ -843,7 +843,7 @@ void MESH_OT_customdata_mask_clear(wmOperatorType *ot)
 {
 
   /* identifiers */
-  ot->name = "Clear Sculpt-Mask Data";
+  ot->name = "Clear Sculpt Mask Data";
   ot->idname = "MESH_OT_customdata_mask_clear";
   ot->description = "Clear vertex sculpt masking data from the mesh";
 

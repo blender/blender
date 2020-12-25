@@ -130,7 +130,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         description=(
             "The action when Middle-Mouse dragging in the viewport. "
             "Shift-Middle-Mouse is used for the other action. "
-            "This applies to Track-Pad as well"
+            "This applies to trackpad as well"
         ),
         update=update_fn,
     )

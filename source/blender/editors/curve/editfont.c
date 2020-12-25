@@ -1802,7 +1802,7 @@ static int textbox_add_exec(bContext *C, wmOperator *UNUSED(op))
 void FONT_OT_textbox_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Textbox";
+  ot->name = "Add Text Box";
   ot->description = "Add a new text box";
   ot->idname = "FONT_OT_textbox_add";
 
@@ -1846,8 +1846,8 @@ static int textbox_remove_exec(bContext *C, wmOperator *op)
 void FONT_OT_textbox_remove(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove Textbox";
-  ot->description = "Remove the textbox";
+  ot->name = "Remove Text Box";
+  ot->description = "Remove the text box";
   ot->idname = "FONT_OT_textbox_remove";
 
   /* api callbacks */

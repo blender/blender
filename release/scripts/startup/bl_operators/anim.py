@@ -347,7 +347,7 @@ class ClearUselessActions(Operator):
 
 
 class UpdateAnimatedTransformConstraint(Operator):
-    """Update fcurves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"""
+    """Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"""
     bl_idname = "anim.update_animated_transform_constraints"
     bl_label = "Update Animated Transform Constraints"
     bl_options = {'REGISTER', 'UNDO'}

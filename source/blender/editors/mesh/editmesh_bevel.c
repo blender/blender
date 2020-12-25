@@ -1055,7 +1055,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
        "CUTOFF",
        0,
        "Cutoff",
-       "A cut-off at each profile's end before the intersection"},
+       "A cutoff at each profile's end before the intersection"},
       {0, NULL, 0, NULL, NULL},
   };
 

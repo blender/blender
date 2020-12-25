@@ -4360,7 +4360,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Local View",
-      "Display an isolated sub-set of objects, apart from the scene visibility");
+      "Display an isolated subset of objects, apart from the scene visibility");
 
   prop = RNA_def_property(srna, "lens", PROP_FLOAT, PROP_UNIT_CAMERA);
   RNA_def_property_float_sdna(prop, NULL, "lens");

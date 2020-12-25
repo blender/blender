@@ -1859,7 +1859,7 @@ void NODE_OT_output_file_add_socket(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_string(
-      ot->srna, "file_path", "Image", MAX_NAME, "File Path", "Sub-path of the output file");
+      ot->srna, "file_path", "Image", MAX_NAME, "File Path", "Subpath of the output file");
 }
 
 /* ****************** Multi File Output Remove Socket  ******************* */

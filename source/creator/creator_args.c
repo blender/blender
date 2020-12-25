@@ -1079,7 +1079,7 @@ static int arg_handle_debug_value_set(int argc, const char **argv, void *UNUSED(
 
 static const char arg_handle_debug_fpe_set_doc[] =
     "\n\t"
-    "Enable floating point exceptions.";
+    "Enable floating-point exceptions.";
 static int arg_handle_debug_fpe_set(int UNUSED(argc),
                                     const char **UNUSED(argv),
                                     void *UNUSED(data))

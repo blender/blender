@@ -876,7 +876,7 @@ void ARMATURE_OT_fill(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Fill Between Joints";
   ot->idname = "ARMATURE_OT_fill";
-  ot->description = "Add bone between selected joint(s) and/or 3D-Cursor";
+  ot->description = "Add bone between selected joint(s) and/or 3D cursor";
 
   /* callbacks */
   ot->exec = armature_fill_bones_exec;

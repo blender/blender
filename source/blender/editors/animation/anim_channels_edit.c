@@ -3422,7 +3422,7 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Mouse Click on Channels";
   ot->idname = "ANIM_OT_channels_click";
-  ot->description = "Handle mouse-clicks over animation channels";
+  ot->description = "Handle mouse clicks over animation channels";
 
   /* api callbacks */
   ot->invoke = animchannels_mouseclick_invoke;

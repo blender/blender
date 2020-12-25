@@ -2419,7 +2419,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_AUTOLOCK_LAYERS);
   RNA_def_property_ui_text(
       prop,
-      "Autolock Layers",
+      "Auto-Lock Layers",
       "Lock automatically all layers except active one to avoid accidental changes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_autolock");
 
@@ -2537,7 +2537,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_annotation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_ANNOTATIONS);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Annotation", "Current datablock is an annotation");
+  RNA_def_property_ui_text(prop, "Annotation", "Current data-block is an annotation");
 
   /* Nested Structs */
   prop = RNA_def_property(srna, "grid", PROP_POINTER, PROP_NONE);

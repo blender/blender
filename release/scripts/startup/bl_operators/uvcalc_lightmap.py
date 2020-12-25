@@ -642,7 +642,7 @@ class LightMapPack(Operator):
     # UV Packing...
     PREF_BOX_DIV: IntProperty(
         name="Pack Quality",
-        description="Pre Packing before the complex boxpack",
+        description="Pre-packing before the complex boxpack",
         min=1, max=48,
         default=12,
     )

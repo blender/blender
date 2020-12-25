@@ -834,7 +834,7 @@ class WM_OT_context_modal_mouse(Operator):
 
 
 class WM_OT_url_open(Operator):
-    """Open a website in the web-browser"""
+    """Open a website in the web browser"""
     bl_idname = "wm.url_open"
     bl_label = ""
     bl_options = {'INTERNAL'}
@@ -851,7 +851,7 @@ class WM_OT_url_open(Operator):
 
 
 class WM_OT_url_open_preset(Operator):
-    """Open a preset website in the web-browser"""
+    """Open a preset website in the web browser"""
     bl_idname = "wm.url_open_preset"
     bl_label = "Open Preset Website"
     bl_options = {'INTERNAL'}
@@ -1737,7 +1737,7 @@ class WM_OT_tool_set_by_index(Operator):
     )
 
     expand: BoolProperty(
-        description="Include tool sub-groups",
+        description="Include tool subgroups",
         default=True,
     )
 
@@ -2169,7 +2169,7 @@ class WM_OT_batch_rename(Operator):
             'GPENCIL': ("grease_pencils", "Grease Pencil(s)"),
             'CAMERA': ("cameras", "Camera(s)"),
             'SPEAKER': ("speakers", "Speaker(s)"),
-            'LIGHT_PROBE': ("light_probes", "LightProbe(s)"),
+            'LIGHT_PROBE': ("light_probes", "Light Probe(s)"),
         }
 
         # Finish with space types.

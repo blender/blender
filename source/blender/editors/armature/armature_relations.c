@@ -948,7 +948,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_enum(
-      ot->srna, "type", prop_editarm_make_parent_types, 0, "ParentType", "Type of parenting");
+      ot->srna, "type", prop_editarm_make_parent_types, 0, "Parent Type", "Type of parenting");
 }
 
 static const EnumPropertyItem prop_editarm_clear_parent_types[] = {
@@ -1029,7 +1029,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
                           "type",
                           prop_editarm_clear_parent_types,
                           0,
-                          "ClearType",
+                          "Clear Type",
                           "What way to clear parenting");
 }
 

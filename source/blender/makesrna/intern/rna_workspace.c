@@ -295,7 +295,7 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
   RNA_define_verify_sdna(0);
   prop = RNA_def_property(srna, "has_datablock", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Has Datablock", "");
+  RNA_def_property_ui_text(prop, "Has Data-Block", "");
   RNA_def_property_boolean_funcs(prop, "rna_WorkSpaceTool_has_datablock_get", NULL);
   RNA_define_verify_sdna(1);
 

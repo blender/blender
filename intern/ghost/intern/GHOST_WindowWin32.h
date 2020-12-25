@@ -41,7 +41,7 @@
 // PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first
 #define PACKETDATA \
   (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR | PK_X | PK_Y | PK_TIME)
-#define PACKETMODE 0
+#define PACKETMODE PK_BUTTONS
 #include <pktdef.h>
 
 class GHOST_SystemWin32;
@@ -438,13 +438,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
   void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
   /**
-   * Handle setup and switch between Wintab and Pointer APIs.
-   * \param active: Whether the window is or will be in an active state.
-   * \param visible: Whether the window is currently (or will be) visible).
-   */
-  void updateWintab(bool active, bool visible);
-
-  /**
    * Query whether given tablet API should be used.
    * \param api: Tablet API to test.
    */
@@ -462,15 +455,26 @@ class GHOST_WindowWin32 : public GHOST_Window {
                                 LPARAM lParam);
 
   /**
+   * Enables or disables Wintab context.
+   * \param enable: Whether the context should be enabled.
+   */
+  void setWintabEnabled(bool enable);
+
+  /**
+   * Changes Wintab context overlap.
+   * \param overlap: Whether context should be brought to top of overlap order.
+   */
+  void setWintabOverlap(bool overlap);
+
+  /**
    * Handle Wintab coordinate changes when DisplayChange events occur.
    */
   void processWintabDisplayChangeEvent();
 
   /**
-   * Set tablet details when a cursor enters range.
-   * \param inRange: Whether the Wintab device is in tracking range.
+   * Updates cached Wintab properties for current cursor.
    */
-  void processWintabProximityEvent(bool inRange);
+  void updateWintabCursorInfo();
 
   /**
    * Handle Wintab info changes such as change in number of connected tablets.
@@ -486,14 +490,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
   GHOST_TSuccess getWintabInfo(std::vector<GHOST_WintabInfoWin32> &outWintabInfo);
 
   /**
-   * Updates pending Wintab events and syncs Wintab time with OS time.
+   * Get the most recent tablet data.
+   * \return Most recent tablet data.
    */
-  void updateWintabEventsSyncTime();
-
-  /**
-   * Updates pending Wintab events.
-   */
-  void updateWintabEvents();
+  GHOST_TabletData getLastTabletData();
 
   GHOST_TSuccess beginFullScreen() const
   {
@@ -507,24 +507,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   GHOST_TUns16 getDPIHint() override;
 
-  /**
-   * Get whether there are currently any mouse buttons pressed.
-   * \return True if there are any currently pressed mouse buttons.
-   */
-  bool getMousePressed() const;
-
-  /**
-   * Get if there are currently pressed Wintab buttons associated to a Windows mouse button press.
-   * \return True if there are currently any pressed Wintab buttons associated to a Windows
-   * mouse button press.
-   */
-  bool wintabSysButPressed() const;
-
-  /**
-   * Register a Wintab button has been associated to a Windows mouse button press.
-   * \param event: Whether the button was pressed or released.
-   */
-  void updateWintabSysBut(GHOST_MouseCaptureEventWin32 event);
+  /** Whether the mouse is either over or captured by the window. */
+  bool m_mousePresent;
 
   /** Whether a tablet stylus is being tracked. */
   bool m_tabletInRange;
@@ -582,28 +566,28 @@ class GHOST_WindowWin32 : public GHOST_Window {
                                             int hotY,
                                             bool canInvertColor);
 
-  /** Pointer to system */
+  /** Pointer to system. */
   GHOST_SystemWin32 *m_system;
-  /** Pointer to COM IDropTarget implementor */
+  /** Pointer to COM IDropTarget implementor. */
   GHOST_DropTargetWin32 *m_dropTarget;
   /** Window handle. */
   HWND m_hWnd;
   /** Device context handle. */
   HDC m_hDC;
 
-  /** Flag for if window has captured the mouse */
+  /** Flag for if window has captured the mouse. */
   bool m_hasMouseCaptured;
-  /** Flag if an operator grabs the mouse with WM_cursor_grab_enable/ungrab()
-   * Multiple grabs must be released with a single ungrab */
+  /** Flag if an operator grabs the mouse with WM_cursor_grab_enable/ungrab().
+   *  Multiple grabs must be released with a single ungrab. */
   bool m_hasGrabMouse;
-  /** Count of number of pressed buttons */
+  /** Count of number of pressed buttons. */
   int m_nPressedButtons;
-  /** HCURSOR structure of the custom cursor */
+  /** HCURSOR structure of the custom cursor. */
   HCURSOR m_customCursor;
-  /** request GL context aith alpha channel */
+  /** Request GL context aith alpha channel. */
   bool m_wantAlphaBackground;
 
-  /** ITaskbarList3 structure for progress bar*/
+  /** ITaskbarList3 structure for progress bar. */
   ITaskbarList3 *m_Bar;
 
   static const wchar_t *s_windowClassName;
@@ -626,42 +610,31 @@ class GHOST_WindowWin32 : public GHOST_Window {
     GHOST_WIN32_WTEnable enable = NULL;
     GHOST_WIN32_WTOverlap overlap = NULL;
 
-    /** Stores the Tablet context if detected Tablet features using WinTab.dll */
+    /** Stores the Tablet context if detected Tablet features using WinTab.dll. */
     HCTX context = NULL;
-    /** Number of connected Wintab digitizers */
+    /** Number of connected Wintab digitizers. */
     UINT numDevices = 0;
-    /** Number of cursors currently in contact mapped to system buttons */
-    GHOST_TUns8 numSysButtons = 0;
-    /** Cursors currently in contact mapped to system buttons */
-    DWORD sysButtonsPressed = 0;
-    DWORD sysTimeOffset = 0;
     LONG maxPressure = 0;
     LONG maxAzimuth = 0, maxAltitude = 0;
     /** Reusable buffer to read in Wintab Packets. */
     std::vector<PACKET> pkts;
-    /** Queue of packets to process. */
-    std::queue<PACKET> pendingEvents;
   } m_wintab;
+
+  /** Most recent tablet data. */
+  GHOST_TabletData lastTabletData = GHOST_TABLET_DATA_NONE;
 
   /**
    * Wintab setup.
    */
   void initializeWintab();
 
-  void readWintabEvents();
-
-  void expireWintabEvents();
-
   /**
    * Convert Wintab system mapped (mouse) buttons into Ghost button mask.
    * \param cursor: The Wintab cursor associated to the button.
    * \param physicalButton: The physical button ID to inspect.
-   * \param buttonMask: Return pointer for button found.
-   * \return Whether an associated button was found.
+   * \return The system mapped button.
    */
-  GHOST_TSuccess wintabMouseToGhost(UINT cursor,
-                                    WORD physicalButton,
-                                    GHOST_TButtonMask &buttonMask);
+  GHOST_TButtonMask wintabMouseToGhost(UINT cursor, WORD physicalButton);
 
   GHOST_TWindowState m_normal_state;
 

@@ -1972,7 +1972,7 @@ static void rna_Object_fmap_remove(Object *ob, ReportList *reports, PointerRNA *
   bFaceMap *fmap = fmap_ptr->data;
   if (BLI_findindex(&ob->fmaps, fmap) == -1) {
     BKE_reportf(
-        reports, RPT_ERROR, "FaceMap '%s' not in object '%s'", fmap->name, ob->id.name + 2);
+        reports, RPT_ERROR, "Face map '%s' not in object '%s'", fmap->name, ob->id.name + 2);
     return;
   }
 
@@ -2156,7 +2156,7 @@ static void rna_def_face_map(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
-  RNA_def_property_ui_text(prop, "Select", "Face-map selection state (for tools to use)");
+  RNA_def_property_ui_text(prop, "Select", "Face map selection state (for tools to use)");
   /* important not to use a notifier here, creates a feedback loop! */
 
   prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);

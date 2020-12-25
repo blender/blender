@@ -3611,7 +3611,7 @@ static int spacedata_cleanup_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Clean-up Space-data";
+  ot->name = "Cleanup Space Data";
   ot->description = "Remove unused settings for invisible editors";
   ot->idname = "SCREEN_OT_spacedata_cleanup";
 
@@ -5285,7 +5285,7 @@ static void SCREEN_OT_space_type_set_or_cycle(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Cycle Space Type Set";
-  ot->description = "Set the space type or cycle sub-type";
+  ot->description = "Set the space type or cycle subtype";
   ot->idname = "SCREEN_OT_space_type_set_or_cycle";
 
   /* api callbacks */

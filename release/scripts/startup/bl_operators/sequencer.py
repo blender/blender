@@ -80,7 +80,7 @@ class SequencerCrossfadeSounds(Operator):
 
 
 class SequencerSplitMulticam(Operator):
-    """Split multi-cam strip and select camera"""
+    """Split multicam strip and select camera"""
 
     bl_idname = "sequencer.split_multicam"
     bl_label = "Split Multicam"

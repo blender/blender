@@ -246,7 +246,7 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
      "REFIT",
      0,
      "Refit",
-     "Incrementally re-fit the curve (high quality)"},
+     "Incrementally refit the curve (high quality)"},
     {CURVE_PAINT_FIT_METHOD_SPLIT,
      "SPLIT",
      0,
@@ -5445,7 +5445,7 @@ static void rna_def_image_format_stereo3d_format(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_sidebyside_crosseyed", PROP_BOOLEAN, PROP_BOOLEAN);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", S3D_SIDEBYSIDE_CROSSEYED);
-  RNA_def_property_ui_text(prop, "Cross-Eyed", "Right eye should see left image and vice-versa");
+  RNA_def_property_ui_text(prop, "Cross-Eyed", "Right eye should see left image and vice versa");
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Stereo3dFormat_update");
 
   prop = RNA_def_property(srna, "use_squeezed_frame", PROP_BOOLEAN, PROP_BOOLEAN);
@@ -7626,14 +7626,14 @@ void RNA_def_scene(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "frame_subframe", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, NULL, "r.subframe");
-  RNA_def_property_ui_text(prop, "Current Sub-Frame", "");
+  RNA_def_property_ui_text(prop, "Current Subframe", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01, 2);
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME, "rna_Scene_frame_update");
 
   prop = RNA_def_property(srna, "frame_float", PROP_FLOAT, PROP_TIME);
-  RNA_def_property_ui_text(prop, "Current Sub-Frame", "");
+  RNA_def_property_ui_text(prop, "Current Subframe", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
   RNA_def_property_ui_range(prop, MINAFRAME, MAXFRAME, 0.1, 2);
@@ -7744,7 +7744,7 @@ void RNA_def_scene(BlenderRNA *brna)
                               PROP_EDITABLE); /* DO NOT MAKE THIS EDITABLE, OR NLA EDITOR BREAKS */
   RNA_def_property_ui_text(
       prop,
-      "NLA TweakMode",
+      "NLA Tweak Mode",
       "Whether there is any action referenced by NLA being edited (strictly read-only)");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 

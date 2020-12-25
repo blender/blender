@@ -3618,7 +3618,7 @@ static void WM_OT_stereo3d_set(wmOperatorType *ot)
                          "use_sidebyside_crosseyed",
                          false,
                          "Cross-Eyed",
-                         "Right eye should see left image and vice-versa");
+                         "Right eye should see left image and vice versa");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
