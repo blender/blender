@@ -289,6 +289,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
+  FilterCache *filter_cache = ss->filter_cache;
 
   const eSculptMeshFilterType filter_type = data->filter_type;
 
@@ -354,10 +355,10 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       case MESH_FILTER_SPHERE:
         normalize_v3_v3(disp, orig_co);
         if (fade > 0.0f) {
-          mul_v3_v3fl(disp, disp, fade);
+          mul_v3_v3fl(disp, disp, filter_cache->sphere_radius * fade);
         }
         else {
-          mul_v3_v3fl(disp, disp, -fade);
+          mul_v3_v3fl(disp, disp, filter_cache->sphere_radius * -fade);
         }
 
         unit_m3(transform);
@@ -370,7 +371,6 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         copy_v3_v3(val, orig_co);
         mul_m3_v3(transform, val);
         sub_v3_v3v3(disp2, val, orig_co);
-
         mid_v3_v3v3(disp, disp, disp2);
         break;
       case MESH_FILTER_RANDOM: {
@@ -491,6 +491,17 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
     SCULPT_neighbor_coords_average(ss, avg, i);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, i));
   }
+}
+
+static void mesh_filter_sphere_radius_calculate(SculptSession *ss)
+{
+  const int totvert = SCULPT_vertex_count_get(ss);
+  FilterCache *filter_cache = ss->filter_cache;
+  float accum = 0.0f;
+  for (int i = 0; i < totvert; i++) {
+    accum += len_v3(SCULPT_vertex_co_get(ss, i));
+  }
+  filter_cache->sphere_radius = accum / totvert;
 }
 
 static void mesh_filter_surface_smooth_init(SculptSession *ss,
@@ -731,6 +742,10 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
     }
     case MESH_FILTER_ENHANCE_DETAILS: {
       mesh_filter_enhance_details_init_directions(ss);
+      break;
+    }
+    case MESH_FILTER_SPHERE: {
+      mesh_filter_sphere_radius_calculate(ss);
       break;
     }
     case MESH_FILTER_ERASE_DISPLACEMENT: {

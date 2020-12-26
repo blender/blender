@@ -1158,6 +1158,9 @@ typedef struct FilterCache {
   float *sharpen_factor;
   float (*detail_directions)[3];
 
+  /* Sphere mesh filter. */
+  float sphere_radius;
+
   /* Filter orientaiton. */
   SculptFilterOrientation orientation;
   float obmat[4][4];
