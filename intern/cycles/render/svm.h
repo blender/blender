@@ -176,6 +176,9 @@ class SVMCompiler {
     /* Set of closures which were already compiled. */
     ShaderNodeSet closure_done;
 
+    /* Set of nodes used for writing AOVs. */
+    ShaderNodeSet aov_nodes;
+
     /* ** SVM nodes generation state ** */
 
     /* Flag whether the node with corresponding ID was already compiled or
@@ -197,6 +200,9 @@ class SVMCompiler {
                          const ShaderNodeSet &done,
                          ShaderInput *input,
                          ShaderNode *skip_node = NULL);
+  void find_aov_nodes_and_dependencies(ShaderNodeSet &aov_nodes,
+                                       ShaderGraph *graph,
+                                       CompilerState *state);
   void generate_node(ShaderNode *node, ShaderNodeSet &done);
   void generate_aov_node(ShaderNode *node, CompilerState *state);
   void generate_closure_node(ShaderNode *node, CompilerState *state);

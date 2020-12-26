@@ -26,7 +26,7 @@ ExposureNode::ExposureNode(bNode *editorNode) : Node(editorNode)
 }
 
 void ExposureNode::convertToOperations(NodeConverter &converter,
-                                         const CompositorContext & /*context*/) const
+                                       const CompositorContext & /*context*/) const
 {
   ExposureOperation *operation = new ExposureOperation();
   converter.addOperation(operation);

@@ -1317,9 +1317,7 @@ ModifierData *BKE_object_active_modifier(const Object *ob)
 
 bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 {
-  const ModifierTypeInfo *mti;
-
-  mti = BKE_modifier_get_info(modifier_type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(modifier_type);
 
   /* Only geometry objects should be able to get modifiers T25291. */
   if (ob->type == OB_HAIR) {
@@ -1349,8 +1347,6 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 
 bool BKE_object_copy_modifier(struct Object *ob_dst, const struct Object *ob_src, ModifierData *md)
 {
-  ModifierData *nmd = NULL;
-
   if (ELEM(md->type, eModifierType_Hook, eModifierType_Collision)) {
     return false;
   }
@@ -1369,7 +1365,7 @@ bool BKE_object_copy_modifier(struct Object *ob_dst, const struct Object *ob_src
       break;
   }
 
-  nmd = BKE_modifier_new(md->type);
+  ModifierData *nmd = BKE_modifier_new(md->type);
   BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
 
   if (md->type == eModifierType_Multires) {
@@ -1387,9 +1383,7 @@ bool BKE_object_copy_modifier(struct Object *ob_dst, const struct Object *ob_src
 
 bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, GpencilModifierData *md)
 {
-  GpencilModifierData *nmd = NULL;
-
-  nmd = BKE_gpencil_modifier_new(md->type);
+  GpencilModifierData *nmd = BKE_gpencil_modifier_new(md->type);
   BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
 
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
@@ -1604,7 +1598,6 @@ void BKE_object_free_derived_caches(Object *ob)
 
 void BKE_object_free_caches(Object *object)
 {
-  ModifierData *md;
   short update_flag = 0;
 
   /* Free particle system caches holding paths. */
@@ -1617,7 +1610,7 @@ void BKE_object_free_caches(Object *object)
   }
 
   /* Free memory used by cached derived meshes in the particle system modifiers. */
-  for (md = object->modifiers.first; md != NULL; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
     if (md->type == eModifierType_ParticleSystem) {
       ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
       if (psmd->mesh_final) {
@@ -1845,19 +1838,16 @@ int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
 
 bool BKE_object_exists_check(Main *bmain, const Object *obtest)
 {
-  Object *ob;
-
   if (obtest == NULL) {
     return false;
   }
 
-  ob = bmain->objects.first;
-  while (ob) {
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     if (ob == obtest) {
       return true;
     }
-    ob = ob->id.next;
   }
+
   return false;
 }
 
@@ -2012,14 +2002,12 @@ int BKE_object_obdata_to_type(const ID *id)
  */
 Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 {
-  Object *ob;
-
   if (!name) {
     name = get_obdata_defname(type);
   }
 
   /* We cannot use #BKE_id_new here as we need some custom initialization code. */
-  ob = BKE_libblock_alloc(bmain, ID_OB, name, 0);
+  Object *ob = BKE_libblock_alloc(bmain, ID_OB, name, 0);
 
   /* We increase object user count when linking to Collections. */
   id_us_min(&ob->id);
@@ -2032,9 +2020,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 
 static Object *object_add_common(Main *bmain, ViewLayer *view_layer, int type, const char *name)
 {
-  Object *ob;
-
-  ob = BKE_object_add_only_object(bmain, type, name);
+  Object *ob = BKE_object_add_only_object(bmain, type, name);
   ob->data = BKE_object_obdata_add_from_type(bmain, type, name);
   BKE_view_layer_base_deselect_all(view_layer);
 
@@ -2053,16 +2039,12 @@ static Object *object_add_common(Main *bmain, ViewLayer *view_layer, int type, c
  */
 Object *BKE_object_add(Main *bmain, ViewLayer *view_layer, int type, const char *name)
 {
-  Object *ob;
-  Base *base;
-  LayerCollection *layer_collection;
+  Object *ob = object_add_common(bmain, view_layer, type, name);
 
-  ob = object_add_common(bmain, view_layer, type, name);
-
-  layer_collection = BKE_layer_collection_get_active(view_layer);
+  LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
   BKE_collection_object_add(bmain, layer_collection->collection, ob);
 
-  base = BKE_view_layer_base_find(view_layer, ob);
+  Base *base = BKE_view_layer_base_find(view_layer, ob);
   BKE_view_layer_base_select_and_set_active(view_layer, base);
 
   return ob;
@@ -2076,13 +2058,10 @@ Object *BKE_object_add(Main *bmain, ViewLayer *view_layer, int type, const char 
 Object *BKE_object_add_from(
     Main *bmain, Scene *scene, ViewLayer *view_layer, int type, const char *name, Object *ob_src)
 {
-  Object *ob;
-  Base *base;
-
-  ob = object_add_common(bmain, view_layer, type, name);
+  Object *ob = object_add_common(bmain, view_layer, type, name);
   BKE_collection_object_add_from(bmain, scene, ob_src, ob);
 
-  base = BKE_view_layer_base_find(view_layer, ob);
+  Base *base = BKE_view_layer_base_find(view_layer, ob);
   BKE_view_layer_base_select_and_set_active(view_layer, base);
 
   return ob;
@@ -2100,12 +2079,8 @@ Object *BKE_object_add_from(
 Object *BKE_object_add_for_data(
     Main *bmain, ViewLayer *view_layer, int type, const char *name, ID *data, bool do_id_user)
 {
-  Object *ob;
-  Base *base;
-  LayerCollection *layer_collection;
-
   /* same as object_add_common, except we don't create new ob->data */
-  ob = BKE_object_add_only_object(bmain, type, name);
+  Object *ob = BKE_object_add_only_object(bmain, type, name);
   ob->data = data;
   if (do_id_user) {
     id_us_plus(data);
@@ -2115,10 +2090,10 @@ Object *BKE_object_add_for_data(
   DEG_id_tag_update_ex(
       bmain, &ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
-  layer_collection = BKE_layer_collection_get_active(view_layer);
+  LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
   BKE_collection_object_add(bmain, layer_collection->collection, ob);
 
-  base = BKE_view_layer_base_find(view_layer, ob);
+  Base *base = BKE_view_layer_base_find(view_layer, ob);
   BKE_view_layer_base_select_and_set_active(view_layer, base);
 
   return ob;
@@ -2127,7 +2102,6 @@ Object *BKE_object_add_for_data(
 void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src, const int flag)
 {
   SoftBody *sb = ob_src->soft;
-  SoftBody *sbn;
   bool tagged_no_main = ob_dst->id.tag & LIB_TAG_NO_MAIN;
 
   ob_dst->softflag = ob_src->softflag;
@@ -2136,7 +2110,7 @@ void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src
     return;
   }
 
-  sbn = MEM_dupallocN(sb);
+  SoftBody *sbn = MEM_dupallocN(sb);
 
   if ((flag & LIB_ID_COPY_CACHES) == 0) {
     sbn->totspring = sbn->totpoint = 0;
@@ -2234,22 +2208,19 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
 
 void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src, const int flag)
 {
-  ParticleSystem *psys, *npsys;
-  ModifierData *md;
-
   if (ob_dst->type != OB_MESH) {
     /* currently only mesh objects can have soft body */
     return;
   }
 
   BLI_listbase_clear(&ob_dst->particlesystem);
-  for (psys = ob_src->particlesystem.first; psys; psys = psys->next) {
-    npsys = BKE_object_copy_particlesystem(psys, flag);
+  LISTBASE_FOREACH (ParticleSystem *, psys, &ob_src->particlesystem) {
+    ParticleSystem *npsys = BKE_object_copy_particlesystem(psys, flag);
 
     BLI_addtail(&ob_dst->particlesystem, npsys);
 
     /* need to update particle modifiers too */
-    for (md = ob_dst->modifiers.first; md; md = md->next) {
+    LISTBASE_FOREACH (ModifierData *, md, &ob_dst->modifiers) {
       if (md->type == eModifierType_ParticleSystem) {
         ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
         if (psmd->psys == psys) {
@@ -2281,22 +2252,18 @@ void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src, const
 
 static void copy_object_pose(Object *obn, const Object *ob, const int flag)
 {
-  bPoseChannel *chan;
-
   /* note: need to clear obn->pose pointer first,
    * so that BKE_pose_copy_data works (otherwise there's a crash) */
   obn->pose = NULL;
   BKE_pose_copy_data_ex(&obn->pose, ob->pose, flag, true); /* true = copy constraints */
 
-  for (chan = obn->pose->chanbase.first; chan; chan = chan->next) {
-    bConstraint *con;
-
+  LISTBASE_FOREACH (bPoseChannel *, chan, &obn->pose->chanbase) {
     chan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE);
 
     /* XXX Remapping object pointing onto itself should be handled by generic
      *     BKE_library_remap stuff, but...
      *     the flush_constraint_targets callback am not sure about, so will delay that for now. */
-    for (con = chan->constraints.first; con; con = con->next) {
+    LISTBASE_FOREACH (bConstraint *, con, &chan->constraints) {
       const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
       ListBase targets = {NULL, NULL};
       bConstraintTarget *ct;
@@ -3159,7 +3126,6 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
 
 static void ob_parbone(Object *ob, Object *par, float r_mat[4][4])
 {
-  bPoseChannel *pchan;
   float vec[3];
 
   if (par->type != OB_ARMATURE) {
@@ -3168,7 +3134,7 @@ static void ob_parbone(Object *ob, Object *par, float r_mat[4][4])
   }
 
   /* Make sure the bone is still valid */
-  pchan = BKE_pose_channel_find_name(par->pose, ob->parsubstr);
+  bPoseChannel *pchan = BKE_pose_channel_find_name(par->pose, ob->parsubstr);
   if (!pchan || !pchan->bone) {
     CLOG_ERROR(
         &LOG, "Object %s with Bone parent: bone %s doesn't exist", ob->id.name + 2, ob->parsubstr);
@@ -3312,7 +3278,6 @@ static void give_parvert(Object *par, int nr, float vec[3])
 
 static void ob_parvert3(Object *ob, Object *par, float r_mat[4][4])
 {
-
   /* in local ob space */
   if (OB_TYPE_SUPPORT_PARVERT(par->type)) {
     float cmat[3][3], v1[3], v2[3], v3[3], q[4];
@@ -3336,14 +3301,13 @@ void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][
 {
   float tmat[4][4];
   float vec[3];
-  bool ok;
 
   switch (ob->partype & PARTYPE) {
-    case PAROBJECT:
-      ok = 0;
+    case PAROBJECT: {
+      bool ok = false;
       if (par->type == OB_CURVE) {
         if ((((Curve *)par->data)->flag & CU_PATH) && (ob_parcurve(ob, par, tmat))) {
-          ok = 1;
+          ok = true;
         }
       }
 
@@ -3355,6 +3319,7 @@ void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][
       }
 
       break;
+    }
     case PARBONE:
       ob_parbone(ob, par, tmat);
       mul_m4_m4m4(r_parentmat, par->obmat, tmat);
@@ -3611,10 +3576,9 @@ void BKE_object_apply_mat4(Object *ob,
 
 BoundBox *BKE_boundbox_alloc_unit(void)
 {
-  BoundBox *bb;
   const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
 
-  bb = MEM_callocN(sizeof(BoundBox), "OB-BoundBox");
+  BoundBox *bb = MEM_callocN(sizeof(BoundBox), "OB-BoundBox");
   BKE_boundbox_init_from_minmax(bb, min, max);
 
   return bb;
@@ -3745,9 +3709,7 @@ void BKE_object_boundbox_calc_from_mesh(struct Object *ob, struct Mesh *me_eval)
 
 void BKE_object_dimensions_get(Object *ob, float r_vec[3])
 {
-  BoundBox *bb = NULL;
-
-  bb = BKE_object_boundbox_get(ob);
+  BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
     float scale[3];
 
@@ -3776,9 +3738,7 @@ void BKE_object_dimensions_set_ex(Object *ob,
                                   const float ob_scale_orig[3],
                                   const float ob_obmat_orig[4][4])
 {
-  BoundBox *bb = NULL;
-
-  bb = BKE_object_boundbox_get(ob);
+  BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
     float len[3];
 
@@ -3812,7 +3772,6 @@ void BKE_object_dimensions_set(Object *ob, const float value[3], int axis_mask)
 
 void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool use_hidden)
 {
-  BoundBox bb;
   float vec[3];
   bool changed = false;
 
@@ -3820,19 +3779,19 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
     case OB_CURVE:
     case OB_FONT:
     case OB_SURF: {
-      bb = *BKE_curve_boundbox_get(ob);
+      BoundBox bb = *BKE_curve_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
     case OB_MESH: {
-      bb = *BKE_mesh_boundbox_get(ob);
+      BoundBox bb = *BKE_mesh_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
     case OB_GPENCIL: {
-      bb = *BKE_gpencil_boundbox_get(ob);
+      BoundBox bb = *BKE_gpencil_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
@@ -3868,20 +3827,20 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
       break;
     }
     case OB_HAIR: {
-      bb = *BKE_hair_boundbox_get(ob);
+      BoundBox bb = *BKE_hair_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
 
     case OB_POINTCLOUD: {
-      bb = *BKE_pointcloud_boundbox_get(ob);
+      BoundBox bb = *BKE_pointcloud_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
     case OB_VOLUME: {
-      bb = *BKE_volume_boundbox_get(ob);
+      BoundBox bb = *BKE_volume_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
@@ -3997,9 +3956,8 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
     return ok;
   }
 
-  ListBase *lb;
   DupliObject *dob;
-  lb = object_duplilist(depsgraph, scene, ob);
+  ListBase *lb = object_duplilist(depsgraph, scene, ob);
   for (dob = lb->first; dob; dob = dob->next) {
     if ((use_hidden == false) && (dob->no_draw != 0)) {
       /* pass */
@@ -4398,14 +4356,13 @@ int BKE_object_insert_ptcache(Object *ob)
 
 static int pc_findindex(ListBase *listbase, int index)
 {
-  LinkData *link = NULL;
   int number = 0;
 
   if (listbase == NULL) {
     return -1;
   }
 
-  link = listbase->first;
+  LinkData *link = listbase->first;
   while (link) {
     if (POINTER_AS_INT(link->data) == index) {
       return number;
@@ -4795,6 +4752,13 @@ static bool constructive_modifier_is_deform_modified(ModifierData *md)
      * going on here we allow baking deform-only mesh to Alembic and have
      * proper motion blur after that.
      */
+    return true;
+  }
+  if (md->type == eModifierType_Nodes) {
+    /* Not ideal for performance to always assume this is animated,
+     * but hard to detect in general. The better long term solution is likely
+     * to replace BKE_object_is_deform_modified by a test if the object was
+     * modified by the depsgraph when changing frames. */
     return true;
   }
   return false;

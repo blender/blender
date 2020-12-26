@@ -3110,13 +3110,13 @@ enum {
 };
 
 static const EnumPropertyItem redraw_timer_type_items[] = {
-    {eRTDrawRegion, "DRAW", 0, "Draw Region", "Draw Region"},
-    {eRTDrawRegionSwap, "DRAW_SWAP", 0, "Draw Region + Swap", "Draw Region and Swap"},
-    {eRTDrawWindow, "DRAW_WIN", 0, "Draw Window", "Draw Window"},
-    {eRTDrawWindowSwap, "DRAW_WIN_SWAP", 0, "Draw Window + Swap", "Draw Window and Swap"},
-    {eRTAnimationStep, "ANIM_STEP", 0, "Anim Step", "Animation Steps"},
-    {eRTAnimationPlay, "ANIM_PLAY", 0, "Anim Play", "Animation Playback"},
-    {eRTUndo, "UNDO", 0, "Undo/Redo", "Undo/Redo"},
+    {eRTDrawRegion, "DRAW", 0, "Draw Region", "Draw region"},
+    {eRTDrawRegionSwap, "DRAW_SWAP", 0, "Draw Region & Swap", "Draw region and swap"},
+    {eRTDrawWindow, "DRAW_WIN", 0, "Draw Window", "Draw window"},
+    {eRTDrawWindowSwap, "DRAW_WIN_SWAP", 0, "Draw Window & Swap", "Draw window and swap"},
+    {eRTAnimationStep, "ANIM_STEP", 0, "Animation Step", "Animation steps"},
+    {eRTAnimationPlay, "ANIM_PLAY", 0, "Animation Play", "Animation playback"},
+    {eRTUndo, "UNDO", 0, "Undo/Redo", "Undo and redo"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -3618,7 +3618,7 @@ static void WM_OT_stereo3d_set(wmOperatorType *ot)
                          "use_sidebyside_crosseyed",
                          false,
                          "Cross-Eyed",
-                         "Right eye should see left image and vice-versa");
+                         "Right eye should see left image and vice versa");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

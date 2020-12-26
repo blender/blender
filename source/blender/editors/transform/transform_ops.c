@@ -131,32 +131,32 @@ const EnumPropertyItem rna_enum_transform_mode_types[] = {
     {TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
     {TFM_RESIZE, "RESIZE", 0, "Resize", ""},
     {TFM_SKIN_RESIZE, "SKIN_RESIZE", 0, "Skin Resize", ""},
-    {TFM_TOSPHERE, "TOSPHERE", 0, "Tosphere", ""},
+    {TFM_TOSPHERE, "TOSPHERE", 0, "To Sphere", ""},
     {TFM_SHEAR, "SHEAR", 0, "Shear", ""},
     {TFM_BEND, "BEND", 0, "Bend", ""},
-    {TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrinkfatten", ""},
+    {TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrink/Fatten", ""},
     {TFM_TILT, "TILT", 0, "Tilt", ""},
     {TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
-    {TFM_PUSHPULL, "PUSHPULL", 0, "Pushpull", ""},
+    {TFM_PUSHPULL, "PUSHPULL", 0, "Push/Pull", ""},
     {TFM_CREASE, "CREASE", 0, "Crease", ""},
     {TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
-    {TFM_BONESIZE, "BONE_SIZE", 0, "Bonesize", ""},
+    {TFM_BONESIZE, "BONE_SIZE", 0, "Bone Size", ""},
     {TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone Envelope", ""},
     {TFM_BONE_ENVELOPE_DIST, "BONE_ENVELOPE_DIST", 0, "Bone Envelope Distance", ""},
-    {TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve Shrinkfatten", ""},
-    {TFM_MASK_SHRINKFATTEN, "MASK_SHRINKFATTEN", 0, "Mask Shrinkfatten", ""},
-    {TFM_GPENCIL_SHRINKFATTEN, "GPENCIL_SHRINKFATTEN", 0, "GPencil Shrinkfatten", ""},
+    {TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve Shrink/Fatten", ""},
+    {TFM_MASK_SHRINKFATTEN, "MASK_SHRINKFATTEN", 0, "Mask Shrink/Fatten", ""},
+    {TFM_GPENCIL_SHRINKFATTEN, "GPENCIL_SHRINKFATTEN", 0, "Grease Pencil Shrink/Fatten", ""},
     {TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone Roll", ""},
     {TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time Translate", ""},
     {TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time Slide", ""},
     {TFM_TIME_SCALE, "TIME_SCALE", 0, "Time Scale", ""},
     {TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time Extend", ""},
     {TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake Time", ""},
-    {TFM_BWEIGHT, "BWEIGHT", 0, "Bweight", ""},
+    {TFM_BWEIGHT, "BWEIGHT", 0, "Bevel Weight", ""},
     {TFM_ALIGN, "ALIGN", 0, "Align", ""},
     {TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
     {TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
-    {TFM_GPENCIL_OPACITY, "GPENCIL_OPACITY", 0, "GPencil Opacity", ""},
+    {TFM_GPENCIL_OPACITY, "GPENCIL_OPACITY", 0, "Grease Pencil Opacity", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -680,7 +680,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 
   if ((flags & P_OPTIONS) && !(flags & P_NO_TEXSPACE)) {
     prop = RNA_def_boolean(
-        ot->srna, "texture_space", 0, "Edit Texture Space", "Edit Object data texture space");
+        ot->srna, "texture_space", 0, "Edit Texture Space", "Edit object data texture space");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
     prop = RNA_def_boolean(
         ot->srna, "remove_on_cancel", 0, "Remove on Cancel", "Remove elements on cancel");

@@ -78,13 +78,9 @@ template<class APPLYMAT> class GridCg : public GridCgInterface {
          Grid<Real> &search,
          const FlagGrid &flags,
          Grid<Real> &tmp,
-         Grid<Real> *A0,
-         Grid<Real> *pAi,
-         Grid<Real> *pAj,
-         Grid<Real> *pAk);
-  ~GridCg()
-  {
-  }
+         std::vector<Grid<Real> *> matrixAVec,
+         std::vector<Grid<Real> *> rhsVec = {});
+  ~GridCg(){};
 
   void doInit();
   bool iterate();
@@ -133,7 +129,10 @@ template<class APPLYMAT> class GridCg : public GridCgInterface {
   const FlagGrid &mFlags;
   Grid<Real> &mTmp;
 
-  Grid<Real> *mpA0, *mpAi, *mpAj, *mpAk;
+  //! shape of A matrix defined here (e.g. diagonal,  positive neighbor cells, etc)
+  std::vector<Grid<Real> *> mMatrixA;
+  //! shape of rhs vector defined here (e.g. 1 rhs for regular fluids solve, 3 rhs for viscosity)
+  std::vector<Grid<Real> *> mVecRhs;
 
   PreconditionType mPcMethod;
   //! preconditioning grids
@@ -154,11 +153,9 @@ struct ApplyMatrix : public KernelBase {
   ApplyMatrix(const FlagGrid &flags,
               Grid<Real> &dst,
               const Grid<Real> &src,
-              Grid<Real> &A0,
-              Grid<Real> &Ai,
-              Grid<Real> &Aj,
-              Grid<Real> &Ak)
-      : KernelBase(&flags, 0), flags(flags), dst(dst), src(src), A0(A0), Ai(Ai), Aj(Aj), Ak(Ak)
+              const std::vector<Grid<Real> *> matrixA,
+              const std::vector<Grid<Real> *> vecRhs)
+      : KernelBase(&flags, 0), flags(flags), dst(dst), src(src), matrixA(matrixA), vecRhs(vecRhs)
   {
     runMessage();
     run();
@@ -167,11 +164,18 @@ struct ApplyMatrix : public KernelBase {
                  const FlagGrid &flags,
                  Grid<Real> &dst,
                  const Grid<Real> &src,
-                 Grid<Real> &A0,
-                 Grid<Real> &Ai,
-                 Grid<Real> &Aj,
-                 Grid<Real> &Ak) const
+                 const std::vector<Grid<Real> *> matrixA,
+                 const std::vector<Grid<Real> *> vecRhs) const
   {
+    unusedParameter(vecRhs);  // Not needed in this matrix application
+
+    if (matrixA.size() != 4)
+      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+    Grid<Real> &A0 = *matrixA[0];
+    Grid<Real> &Ai = *matrixA[1];
+    Grid<Real> &Aj = *matrixA[2];
+    Grid<Real> &Ak = *matrixA[3];
+
     if (!flags.isFluid(idx)) {
       dst[idx] = src[idx];
       return;
@@ -196,26 +200,16 @@ struct ApplyMatrix : public KernelBase {
     return src;
   }
   typedef Grid<Real> type2;
-  inline Grid<Real> &getArg3()
+  inline const std::vector<Grid<Real> *> &getArg3()
   {
-    return A0;
+    return matrixA;
   }
-  typedef Grid<Real> type3;
-  inline Grid<Real> &getArg4()
+  typedef std::vector<Grid<Real> *> type3;
+  inline const std::vector<Grid<Real> *> &getArg4()
   {
-    return Ai;
+    return vecRhs;
   }
-  typedef Grid<Real> type4;
-  inline Grid<Real> &getArg5()
-  {
-    return Aj;
-  }
-  typedef Grid<Real> type5;
-  inline Grid<Real> &getArg6()
-  {
-    return Ak;
-  }
-  typedef Grid<Real> type6;
+  typedef std::vector<Grid<Real> *> type4;
   void runMessage()
   {
     debMsg("Executing kernel ApplyMatrix ", 3);
@@ -226,7 +220,7 @@ struct ApplyMatrix : public KernelBase {
   void operator()(const tbb::blocked_range<IndexInt> &__r) const
   {
     for (IndexInt idx = __r.begin(); idx != (IndexInt)__r.end(); idx++)
-      op(idx, flags, dst, src, A0, Ai, Aj, Ak);
+      op(idx, flags, dst, src, matrixA, vecRhs);
   }
   void run()
   {
@@ -235,10 +229,8 @@ struct ApplyMatrix : public KernelBase {
   const FlagGrid &flags;
   Grid<Real> &dst;
   const Grid<Real> &src;
-  Grid<Real> &A0;
-  Grid<Real> &Ai;
-  Grid<Real> &Aj;
-  Grid<Real> &Ak;
+  const std::vector<Grid<Real> *> matrixA;
+  const std::vector<Grid<Real> *> vecRhs;
 };
 
 //! Kernel: Apply symmetric stored Matrix. 2D version
@@ -247,11 +239,9 @@ struct ApplyMatrix2D : public KernelBase {
   ApplyMatrix2D(const FlagGrid &flags,
                 Grid<Real> &dst,
                 const Grid<Real> &src,
-                Grid<Real> &A0,
-                Grid<Real> &Ai,
-                Grid<Real> &Aj,
-                Grid<Real> &Ak)
-      : KernelBase(&flags, 0), flags(flags), dst(dst), src(src), A0(A0), Ai(Ai), Aj(Aj), Ak(Ak)
+                const std::vector<Grid<Real> *> matrixA,
+                const std::vector<Grid<Real> *> vecRhs)
+      : KernelBase(&flags, 0), flags(flags), dst(dst), src(src), matrixA(matrixA), vecRhs(vecRhs)
   {
     runMessage();
     run();
@@ -260,12 +250,16 @@ struct ApplyMatrix2D : public KernelBase {
                  const FlagGrid &flags,
                  Grid<Real> &dst,
                  const Grid<Real> &src,
-                 Grid<Real> &A0,
-                 Grid<Real> &Ai,
-                 Grid<Real> &Aj,
-                 Grid<Real> &Ak) const
+                 const std::vector<Grid<Real> *> matrixA,
+                 const std::vector<Grid<Real> *> vecRhs) const
   {
-    unusedParameter(Ak);  // only there for parameter compatibility with ApplyMatrix
+    unusedParameter(vecRhs);  // Not needed in this matrix application
+
+    if (matrixA.size() != 3)
+      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+    Grid<Real> &A0 = *matrixA[0];
+    Grid<Real> &Ai = *matrixA[1];
+    Grid<Real> &Aj = *matrixA[2];
 
     if (!flags.isFluid(idx)) {
       dst[idx] = src[idx];
@@ -290,26 +284,16 @@ struct ApplyMatrix2D : public KernelBase {
     return src;
   }
   typedef Grid<Real> type2;
-  inline Grid<Real> &getArg3()
+  inline const std::vector<Grid<Real> *> &getArg3()
   {
-    return A0;
+    return matrixA;
   }
-  typedef Grid<Real> type3;
-  inline Grid<Real> &getArg4()
+  typedef std::vector<Grid<Real> *> type3;
+  inline const std::vector<Grid<Real> *> &getArg4()
   {
-    return Ai;
+    return vecRhs;
   }
-  typedef Grid<Real> type4;
-  inline Grid<Real> &getArg5()
-  {
-    return Aj;
-  }
-  typedef Grid<Real> type5;
-  inline Grid<Real> &getArg6()
-  {
-    return Ak;
-  }
-  typedef Grid<Real> type6;
+  typedef std::vector<Grid<Real> *> type4;
   void runMessage()
   {
     debMsg("Executing kernel ApplyMatrix2D ", 3);
@@ -320,7 +304,7 @@ struct ApplyMatrix2D : public KernelBase {
   void operator()(const tbb::blocked_range<IndexInt> &__r) const
   {
     for (IndexInt idx = __r.begin(); idx != (IndexInt)__r.end(); idx++)
-      op(idx, flags, dst, src, A0, Ai, Aj, Ak);
+      op(idx, flags, dst, src, matrixA, vecRhs);
   }
   void run()
   {
@@ -329,11 +313,357 @@ struct ApplyMatrix2D : public KernelBase {
   const FlagGrid &flags;
   Grid<Real> &dst;
   const Grid<Real> &src;
-  Grid<Real> &A0;
-  Grid<Real> &Ai;
-  Grid<Real> &Aj;
-  Grid<Real> &Ak;
+  const std::vector<Grid<Real> *> matrixA;
+  const std::vector<Grid<Real> *> vecRhs;
 };
+
+struct ApplyMatrixViscosityU : public KernelBase {
+  ApplyMatrixViscosityU(const FlagGrid &flags,
+                        Grid<Real> &dst,
+                        const Grid<Real> &src,
+                        const std::vector<Grid<Real> *> matrixA,
+                        const std::vector<Grid<Real> *> vecRhs)
+      : KernelBase(&flags, 1), flags(flags), dst(dst), src(src), matrixA(matrixA), vecRhs(vecRhs)
+  {
+    runMessage();
+    run();
+  }
+  inline void op(int i,
+                 int j,
+                 int k,
+                 const FlagGrid &flags,
+                 Grid<Real> &dst,
+                 const Grid<Real> &src,
+                 const std::vector<Grid<Real> *> matrixA,
+                 const std::vector<Grid<Real> *> vecRhs) const
+  {
+    if (matrixA.size() != 15)
+      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+    Grid<Real> &A0 = *matrixA[0];
+    Grid<Real> &Aplusi = *matrixA[1];
+    Grid<Real> &Aplusj = *matrixA[2];
+    Grid<Real> &Aplusk = *matrixA[3];
+    Grid<Real> &Aminusi = *matrixA[4];
+    Grid<Real> &Aminusj = *matrixA[5];
+    Grid<Real> &Aminusk = *matrixA[6];
+
+    if (vecRhs.size() != 2)
+      errMsg("ConjugatedGrad: Invalid rhs vector in apply matrix step");
+    Grid<Real> &srcV = *vecRhs[0];
+    Grid<Real> &srcW = *vecRhs[1];
+
+    dst(i, j, k) = src(i, j, k) * A0(i, j, k) + src(i + 1, j, k) * Aplusi(i, j, k) +
+                   src(i, j + 1, k) * Aplusj(i, j, k) + src(i, j, k + 1) * Aplusk(i, j, k) +
+                   src(i - 1, j, k) * Aminusi(i, j, k) + src(i, j - 1, k) * Aminusj(i, j, k) +
+                   src(i, j, k - 1) * Aminusk(i, j, k);
+
+    dst(i, j, k) += srcV(i, j + 1, k) * (*matrixA[7])(i, j, k) +
+                    srcV(i - 1, j + 1, k) * (*matrixA[8])(i, j, k) +
+                    srcV(i, j, k) * (*matrixA[9])(i, j, k) +
+                    srcV(i - 1, j, k) * (*matrixA[10])(i, j, k) +
+                    srcW(i, j, k + 1) * (*matrixA[11])(i, j, k) +
+                    srcW(i - 1, j, k + 1) * (*matrixA[12])(i, j, k) +
+                    srcW(i, j, k) * (*matrixA[13])(i, j, k) +
+                    srcW(i - 1, j, k) * (*matrixA[14])(i, j, k);
+  }
+  inline const FlagGrid &getArg0()
+  {
+    return flags;
+  }
+  typedef FlagGrid type0;
+  inline Grid<Real> &getArg1()
+  {
+    return dst;
+  }
+  typedef Grid<Real> type1;
+  inline const Grid<Real> &getArg2()
+  {
+    return src;
+  }
+  typedef Grid<Real> type2;
+  inline const std::vector<Grid<Real> *> &getArg3()
+  {
+    return matrixA;
+  }
+  typedef std::vector<Grid<Real> *> type3;
+  inline const std::vector<Grid<Real> *> &getArg4()
+  {
+    return vecRhs;
+  }
+  typedef std::vector<Grid<Real> *> type4;
+  void runMessage()
+  {
+    debMsg("Executing kernel ApplyMatrixViscosityU ", 3);
+    debMsg("Kernel range"
+               << " x " << maxX << " y " << maxY << " z " << minZ << " - " << maxZ << " ",
+           4);
+  };
+  void operator()(const tbb::blocked_range<IndexInt> &__r) const
+  {
+    const int _maxX = maxX;
+    const int _maxY = maxY;
+    if (maxZ > 1) {
+      for (int k = __r.begin(); k != (int)__r.end(); k++)
+        for (int j = 1; j < _maxY; j++)
+          for (int i = 1; i < _maxX; i++)
+            op(i, j, k, flags, dst, src, matrixA, vecRhs);
+    }
+    else {
+      const int k = 0;
+      for (int j = __r.begin(); j != (int)__r.end(); j++)
+        for (int i = 1; i < _maxX; i++)
+          op(i, j, k, flags, dst, src, matrixA, vecRhs);
+    }
+  }
+  void run()
+  {
+    if (maxZ > 1)
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(minZ, maxZ), *this);
+    else
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(1, maxY), *this);
+  }
+  const FlagGrid &flags;
+  Grid<Real> &dst;
+  const Grid<Real> &src;
+  const std::vector<Grid<Real> *> matrixA;
+  const std::vector<Grid<Real> *> vecRhs;
+};
+
+struct ApplyMatrixViscosityV : public KernelBase {
+  ApplyMatrixViscosityV(const FlagGrid &flags,
+                        Grid<Real> &dst,
+                        const Grid<Real> &src,
+                        const std::vector<Grid<Real> *> matrixA,
+                        const std::vector<Grid<Real> *> vecRhs)
+      : KernelBase(&flags, 1), flags(flags), dst(dst), src(src), matrixA(matrixA), vecRhs(vecRhs)
+  {
+    runMessage();
+    run();
+  }
+  inline void op(int i,
+                 int j,
+                 int k,
+                 const FlagGrid &flags,
+                 Grid<Real> &dst,
+                 const Grid<Real> &src,
+                 const std::vector<Grid<Real> *> matrixA,
+                 const std::vector<Grid<Real> *> vecRhs) const
+  {
+    if (matrixA.size() != 15)
+      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+    Grid<Real> &A0 = *matrixA[0];
+    Grid<Real> &Aplusi = *matrixA[1];
+    Grid<Real> &Aplusj = *matrixA[2];
+    Grid<Real> &Aplusk = *matrixA[3];
+    Grid<Real> &Aminusi = *matrixA[4];
+    Grid<Real> &Aminusj = *matrixA[5];
+    Grid<Real> &Aminusk = *matrixA[6];
+
+    if (vecRhs.size() != 2)
+      errMsg("ConjugatedGrad: Invalid rhs vector in apply matrix step");
+    Grid<Real> &srcU = *vecRhs[0];
+    Grid<Real> &srcW = *vecRhs[1];
+
+    dst(i, j, k) = src(i, j, k) * A0(i, j, k) + src(i + 1, j, k) * Aplusi(i, j, k) +
+                   src(i, j + 1, k) * Aplusj(i, j, k) + src(i, j, k + 1) * Aplusk(i, j, k) +
+                   src(i - 1, j, k) * Aminusi(i, j, k) + src(i, j - 1, k) * Aminusj(i, j, k) +
+                   src(i, j, k - 1) * Aminusk(i, j, k);
+
+    dst(i, j, k) += srcU(i + 1, j, k) * (*matrixA[7])(i, j, k) +
+                    srcU(i + 1, j - 1, k) * (*matrixA[8])(i, j, k) +
+                    srcU(i, j, k) * (*matrixA[9])(i, j, k) +
+                    srcU(i, j - 1, k) * (*matrixA[10])(i, j, k) +
+                    srcW(i, j, k + 1) * (*matrixA[11])(i, j, k) +
+                    srcW(i, j - 1, k + 1) * (*matrixA[12])(i, j, k) +
+                    srcW(i, j, k) * (*matrixA[13])(i, j, k) +
+                    srcW(i, j - 1, k) * (*matrixA[14])(i, j, k);
+  }
+  inline const FlagGrid &getArg0()
+  {
+    return flags;
+  }
+  typedef FlagGrid type0;
+  inline Grid<Real> &getArg1()
+  {
+    return dst;
+  }
+  typedef Grid<Real> type1;
+  inline const Grid<Real> &getArg2()
+  {
+    return src;
+  }
+  typedef Grid<Real> type2;
+  inline const std::vector<Grid<Real> *> &getArg3()
+  {
+    return matrixA;
+  }
+  typedef std::vector<Grid<Real> *> type3;
+  inline const std::vector<Grid<Real> *> &getArg4()
+  {
+    return vecRhs;
+  }
+  typedef std::vector<Grid<Real> *> type4;
+  void runMessage()
+  {
+    debMsg("Executing kernel ApplyMatrixViscosityV ", 3);
+    debMsg("Kernel range"
+               << " x " << maxX << " y " << maxY << " z " << minZ << " - " << maxZ << " ",
+           4);
+  };
+  void operator()(const tbb::blocked_range<IndexInt> &__r) const
+  {
+    const int _maxX = maxX;
+    const int _maxY = maxY;
+    if (maxZ > 1) {
+      for (int k = __r.begin(); k != (int)__r.end(); k++)
+        for (int j = 1; j < _maxY; j++)
+          for (int i = 1; i < _maxX; i++)
+            op(i, j, k, flags, dst, src, matrixA, vecRhs);
+    }
+    else {
+      const int k = 0;
+      for (int j = __r.begin(); j != (int)__r.end(); j++)
+        for (int i = 1; i < _maxX; i++)
+          op(i, j, k, flags, dst, src, matrixA, vecRhs);
+    }
+  }
+  void run()
+  {
+    if (maxZ > 1)
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(minZ, maxZ), *this);
+    else
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(1, maxY), *this);
+  }
+  const FlagGrid &flags;
+  Grid<Real> &dst;
+  const Grid<Real> &src;
+  const std::vector<Grid<Real> *> matrixA;
+  const std::vector<Grid<Real> *> vecRhs;
+};
+
+struct ApplyMatrixViscosityW : public KernelBase {
+  ApplyMatrixViscosityW(const FlagGrid &flags,
+                        Grid<Real> &dst,
+                        const Grid<Real> &src,
+                        const std::vector<Grid<Real> *> matrixA,
+                        const std::vector<Grid<Real> *> vecRhs)
+      : KernelBase(&flags, 1), flags(flags), dst(dst), src(src), matrixA(matrixA), vecRhs(vecRhs)
+  {
+    runMessage();
+    run();
+  }
+  inline void op(int i,
+                 int j,
+                 int k,
+                 const FlagGrid &flags,
+                 Grid<Real> &dst,
+                 const Grid<Real> &src,
+                 const std::vector<Grid<Real> *> matrixA,
+                 const std::vector<Grid<Real> *> vecRhs) const
+  {
+    if (matrixA.size() != 15)
+      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+    Grid<Real> &A0 = *matrixA[0];
+    Grid<Real> &Aplusi = *matrixA[1];
+    Grid<Real> &Aplusj = *matrixA[2];
+    Grid<Real> &Aplusk = *matrixA[3];
+    Grid<Real> &Aminusi = *matrixA[4];
+    Grid<Real> &Aminusj = *matrixA[5];
+    Grid<Real> &Aminusk = *matrixA[6];
+
+    if (vecRhs.size() != 2)
+      errMsg("ConjugatedGrad: Invalid rhs vector in apply matrix step");
+    Grid<Real> &srcU = *vecRhs[0];
+    Grid<Real> &srcV = *vecRhs[1];
+
+    dst(i, j, k) = src(i, j, k) * A0(i, j, k) + src(i + 1, j, k) * Aplusi(i, j, k) +
+                   src(i, j + 1, k) * Aplusj(i, j, k) + src(i, j, k + 1) * Aplusk(i, j, k) +
+                   src(i - 1, j, k) * Aminusi(i, j, k) + src(i, j - 1, k) * Aminusj(i, j, k) +
+                   src(i, j, k - 1) * Aminusk(i, j, k);
+
+    dst(i, j, k) += srcU(i + 1, j, k) * (*matrixA[7])(i, j, k) +
+                    srcU(i + 1, j, k - 1) * (*matrixA[8])(i, j, k) +
+                    srcU(i, j, k) * (*matrixA[9])(i, j, k) +
+                    srcU(i, j, k - 1) * (*matrixA[10])(i, j, k) +
+                    srcV(i, j + 1, k) * (*matrixA[11])(i, j, k) +
+                    srcV(i, j + 1, k - 1) * (*matrixA[12])(i, j, k) +
+                    srcV(i, j, k) * (*matrixA[13])(i, j, k) +
+                    srcV(i, j, k - 1) * (*matrixA[14])(i, j, k);
+  }
+  inline const FlagGrid &getArg0()
+  {
+    return flags;
+  }
+  typedef FlagGrid type0;
+  inline Grid<Real> &getArg1()
+  {
+    return dst;
+  }
+  typedef Grid<Real> type1;
+  inline const Grid<Real> &getArg2()
+  {
+    return src;
+  }
+  typedef Grid<Real> type2;
+  inline const std::vector<Grid<Real> *> &getArg3()
+  {
+    return matrixA;
+  }
+  typedef std::vector<Grid<Real> *> type3;
+  inline const std::vector<Grid<Real> *> &getArg4()
+  {
+    return vecRhs;
+  }
+  typedef std::vector<Grid<Real> *> type4;
+  void runMessage()
+  {
+    debMsg("Executing kernel ApplyMatrixViscosityW ", 3);
+    debMsg("Kernel range"
+               << " x " << maxX << " y " << maxY << " z " << minZ << " - " << maxZ << " ",
+           4);
+  };
+  void operator()(const tbb::blocked_range<IndexInt> &__r) const
+  {
+    const int _maxX = maxX;
+    const int _maxY = maxY;
+    if (maxZ > 1) {
+      for (int k = __r.begin(); k != (int)__r.end(); k++)
+        for (int j = 1; j < _maxY; j++)
+          for (int i = 1; i < _maxX; i++)
+            op(i, j, k, flags, dst, src, matrixA, vecRhs);
+    }
+    else {
+      const int k = 0;
+      for (int j = __r.begin(); j != (int)__r.end(); j++)
+        for (int i = 1; i < _maxX; i++)
+          op(i, j, k, flags, dst, src, matrixA, vecRhs);
+    }
+  }
+  void run()
+  {
+    if (maxZ > 1)
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(minZ, maxZ), *this);
+    else
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(1, maxY), *this);
+  }
+  const FlagGrid &flags;
+  Grid<Real> &dst;
+  const Grid<Real> &src;
+  const std::vector<Grid<Real> *> matrixA;
+  const std::vector<Grid<Real> *> vecRhs;
+};
+
+/* NOTE: Use this template for new matrix application kernels
+
+//! Template for matrix application kernels
+KERNEL()
+void ApplyMatrixTemplate (const FlagGrid& flags, Grid<Real>& dst, const Grid<Real>& src,
+  const std::vector<Grid<Real> *> matrixA, const std::vector<Grid<Real> *> vecRhs)
+{
+  // The kernel must define how to use the grids from the matrixA and vecRhs lists
+}
+
+*/
 
 //! Kernel: Construct the matrix for the poisson equation
 

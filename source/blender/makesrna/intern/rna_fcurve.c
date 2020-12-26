@@ -58,9 +58,9 @@ const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
      "ENVELOPE",
      0,
      "Envelope",
-     "Reshape F-Curve values - e.g. change amplitude of movements"},
+     "Reshape F-Curve values, e.g. change amplitude of movements"},
     {FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles", "Cyclic extend/repeat keyframe sequence"},
-    {FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", "Add pseudo-random noise on top of F-Curves"},
+    {FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", "Add pseudorandom noise on top of F-Curves"},
     /*{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},*/ /* FIXME: not implemented yet! */
     /*{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},*/ /* FIXME: not implemented yet! */
     {FMODIFIER_TYPE_LIMITS,
@@ -72,7 +72,7 @@ const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
      "STEPPED",
      0,
      "Stepped Interpolation",
-     "Snap values to nearest grid-step - e.g. for a stop-motion look"},
+     "Snap values to nearest grid step, e.g. for a stop-motion look"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -97,12 +97,12 @@ const EnumPropertyItem rna_enum_beztriple_keyframe_type_items[] = {
      "KEYFRAME",
      ICON_KEYTYPE_KEYFRAME_VEC,
      "Keyframe",
-     "Normal keyframe - e.g. for key poses"},
+     "Normal keyframe, e.g. for key poses"},
     {BEZT_KEYTYPE_BREAKDOWN,
      "BREAKDOWN",
      ICON_KEYTYPE_BREAKDOWN_VEC,
      "Breakdown",
-     "A breakdown pose - e.g. for transitions between key poses"},
+     "A breakdown pose, e.g. for transitions between key poses"},
     {BEZT_KEYTYPE_MOVEHOLD,
      "MOVING_HOLD",
      ICON_KEYTYPE_MOVING_HOLD_VEC,
@@ -1208,7 +1208,7 @@ static void rna_def_fmodifier_function_generator(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "FModifierFunctionGenerator", "FModifier");
   RNA_def_struct_ui_text(
-      srna, "Built-In Function F-Modifier", "Generate values using a Built-In Function");
+      srna, "Built-In Function F-Modifier", "Generate values using a built-in function");
   RNA_def_struct_sdna_from(srna, "FMod_FunctionGenerator", "data");
 
   /* coefficients */

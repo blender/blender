@@ -1382,7 +1382,7 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
   ot->name = "Show Active";
   ot->idname = "OUTLINER_OT_show_active";
   ot->description =
-      "Open up the tree and adjust the view so that the active Object is shown centered";
+      "Open up the tree and adjust the view so that the active object is shown centered";
 
   /* callbacks */
   ot->exec = outliner_show_active_exec;

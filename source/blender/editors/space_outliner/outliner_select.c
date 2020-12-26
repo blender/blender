@@ -1105,6 +1105,24 @@ bPoseChannel *outliner_find_parent_bone(TreeElement *te, TreeElement **r_bone_te
   return NULL;
 }
 
+static void outliner_sync_to_properties_editors(const bContext *C,
+                                                PointerRNA *ptr,
+                                                const int context)
+{
+  bScreen *screen = CTX_wm_screen(C);
+
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    if (area->spacetype != SPACE_PROPERTIES) {
+      continue;
+    }
+
+    SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
+    if (ED_buttons_should_sync_with_outliner(C, sbuts, area)) {
+      ED_buttons_set_context(C, sbuts, ptr, context);
+    }
+  }
+}
+
 static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreElem *tselem)
 {
   PointerRNA ptr = {0};
@@ -1285,7 +1303,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
   }
 
   if (ptr.data) {
-    ED_buttons_set_context(C, &ptr, context);
+    outliner_sync_to_properties_editors(C, &ptr, context);
   }
 }
 

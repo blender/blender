@@ -55,12 +55,6 @@ struct UpdateObjectTransformState {
    */
   map<ParticleSystem *, int> particle_offset;
 
-  /* Mesh area.
-   * Used to avoid calculation of mesh area multiple times. Used for both
-   * read and write. Acquire surface_area_lock to keep it all thread safe.
-   */
-  map<Mesh *, float> surface_area_map;
-
   /* Motion offsets for each object. */
   array<uint> motion_offset;
 
@@ -76,11 +70,7 @@ struct UpdateObjectTransformState {
   bool have_curves;
 
   /* ** Scheduling queue. ** */
-
   Scene *scene;
-
-  /* Some locks to keep everything thread-safe. */
-  thread_spin_lock surface_area_lock;
 
   /* First unused object index in the queue. */
   int queue_start_object;
@@ -379,80 +369,17 @@ ObjectManager::~ObjectManager()
 {
 }
 
-static float object_surface_area(UpdateObjectTransformState *state,
-                                 const Transform &tfm,
-                                 Geometry *geom)
+static float object_volume_density(const Transform &tfm, Geometry *geom)
 {
-  if (geom->geometry_type != Geometry::MESH && geom->geometry_type != Geometry::VOLUME) {
-    return 0.0f;
-  }
-
-  Mesh *mesh = static_cast<Mesh *>(geom);
-  if (mesh->has_volume || geom->geometry_type == Geometry::VOLUME) {
+  if (geom->geometry_type == Geometry::VOLUME) {
     /* Volume density automatically adjust to object scale. */
-    if (geom->geometry_type == Geometry::VOLUME &&
-        static_cast<Volume *>(geom)->get_object_space()) {
+    if (static_cast<Volume *>(geom)->get_object_space()) {
       const float3 unit = normalize(make_float3(1.0f, 1.0f, 1.0f));
       return 1.0f / len(transform_direction(&tfm, unit));
     }
-    else {
-      return 1.0f;
-    }
   }
 
-  /* Compute surface area. for uniform scale we can do avoid the many
-   * transform calls and share computation for instances.
-   *
-   * TODO(brecht): Correct for displacement, and move to a better place.
-   */
-  float surface_area = 0.0f;
-  float uniform_scale;
-  if (transform_uniform_scale(tfm, uniform_scale)) {
-    map<Mesh *, float>::iterator it;
-
-    /* NOTE: This isn't fully optimal and could in theory lead to multiple
-     * threads calculating area of the same mesh in parallel. However, this
-     * also prevents suspending all the threads when some mesh's area is
-     * not yet known.
-     */
-    state->surface_area_lock.lock();
-    it = state->surface_area_map.find(mesh);
-    state->surface_area_lock.unlock();
-
-    if (it == state->surface_area_map.end()) {
-      size_t num_triangles = mesh->num_triangles();
-      for (size_t j = 0; j < num_triangles; j++) {
-        Mesh::Triangle t = mesh->get_triangle(j);
-        float3 p1 = mesh->get_verts()[t.v[0]];
-        float3 p2 = mesh->get_verts()[t.v[1]];
-        float3 p3 = mesh->get_verts()[t.v[2]];
-
-        surface_area += triangle_area(p1, p2, p3);
-      }
-
-      state->surface_area_lock.lock();
-      state->surface_area_map[mesh] = surface_area;
-      state->surface_area_lock.unlock();
-    }
-    else {
-      surface_area = it->second;
-    }
-
-    surface_area *= uniform_scale;
-  }
-  else {
-    size_t num_triangles = mesh->num_triangles();
-    for (size_t j = 0; j < num_triangles; j++) {
-      Mesh::Triangle t = mesh->get_triangle(j);
-      float3 p1 = transform_point(&tfm, mesh->get_verts()[t.v[0]]);
-      float3 p2 = transform_point(&tfm, mesh->get_verts()[t.v[1]]);
-      float3 p3 = transform_point(&tfm, mesh->get_verts()[t.v[2]]);
-
-      surface_area += triangle_area(p1, p2, p3);
-    }
-  }
-
-  return surface_area;
+  return 1.0f;
 }
 
 void ObjectManager::device_update_object_transform(UpdateObjectTransformState *state, Object *ob)
@@ -476,7 +403,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 
   kobject.tfm = tfm;
   kobject.itfm = itfm;
-  kobject.surface_area = object_surface_area(state, tfm, geom);
+  kobject.volume_density = object_volume_density(tfm, geom);
   kobject.color[0] = color.x;
   kobject.color[1] = color.y;
   kobject.color[2] = color.z;

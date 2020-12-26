@@ -314,6 +314,14 @@ class OptiXDevice : public CUDADevice {
       common_cflags += string_printf(" -I\"%s/include\"", optix_sdk_path);
     }
 
+    // Specialization for shader raytracing
+    if (requested_features.use_shader_raytrace) {
+      common_cflags += " --keep-device-functions";
+    }
+    else {
+      common_cflags += " -D __NO_SHADER_RAYTRACE__";
+    }
+
     return common_cflags;
   }
 
@@ -1240,6 +1248,12 @@ class OptiXDevice : public CUDADevice {
 
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override
   {
+    if (bvh->params.bvh_layout == BVH_LAYOUT_BVH2) {
+      /* For baking CUDA is used, build appropriate BVH for that. */
+      Device::build_bvh(bvh, progress, refit);
+      return;
+    }
+
     BVHOptiX *const bvh_optix = static_cast<BVHOptiX *>(bvh);
 
     progress.set_substatus("Building OptiX acceleration structure");

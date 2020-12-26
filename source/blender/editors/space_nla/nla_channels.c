@@ -621,7 +621,7 @@ void NLA_OT_action_unlink(wmOperatorType *ot)
                          "force_delete",
                          false,
                          "Force Delete",
-                         "Clear Fake User and remove copy stashed in this datablock's NLA stack");
+                         "Clear Fake User and remove copy stashed in this data-block's NLA stack");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

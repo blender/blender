@@ -1380,6 +1380,11 @@ static void template_id_name_button(
         but, template_ui->duplicate_op, WM_OP_INVOKE_DEFAULT, ICON_DUPLICATE);
   }
 
+  if (template_ui->open_op && (flag & UI_ID_OPEN)) {
+    UI_but_extra_operator_icon_add(
+        but, template_ui->open_op, WM_OP_INVOKE_DEFAULT, ICON_FILEBROWSER);
+  }
+
   if (id && (flag & UI_ID_DELETE)) {
     const bool never_unlink = RNA_property_flag(template_ui->prop) &
                               (PROP_NEVER_UNLINK | PROP_NEVER_NULL);
@@ -1387,7 +1392,7 @@ static void template_id_name_button(
       UI_but_extra_operator_icon_add(but, template_ui->unlink_op, WM_OP_INVOKE_DEFAULT, ICON_X);
     }
     else if (!never_unlink) {
-      UI_but_extra_operator_icon_add(but, "ED_OT_lib_unlink", WM_OP_INVOKE_DEFAULT, ICON_X);
+      UI_but_extra_operator_icon_add(but, "ED_OT_lib_id_unlink", WM_OP_INVOKE_DEFAULT, ICON_X);
     }
   }
 
@@ -1396,7 +1401,7 @@ static void template_id_name_button(
   if (add_extra_fake_user_icon && id->lib == NULL &&
       !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))) {
     UI_but_extra_operator_icon_add(but,
-                                   "ED_OT_lib_fake_user_toggle",
+                                   "ED_OT_lib_id_fake_user_toggle",
                                    WM_OP_INVOKE_DEFAULT,
                                    ID_FAKE_USERS(id) ? ICON_FAKE_USER_ON : ICON_FAKE_USER_OFF);
   }

@@ -214,13 +214,6 @@ ccl_device_inline float3 object_location(KernelGlobals *kg, const ShaderData *sd
 #endif
 }
 
-/* Total surface area of object */
-
-ccl_device_inline float object_surface_area(KernelGlobals *kg, int object)
-{
-  return kernel_tex_fetch(__objects, object).surface_area;
-}
-
 /* Color of the object */
 
 ccl_device_inline float3 object_color(KernelGlobals *kg, int object)
@@ -328,7 +321,7 @@ ccl_device_inline float object_volume_density(KernelGlobals *kg, int object)
     return 1.0f;
   }
 
-  return kernel_tex_fetch(__objects, object).surface_area;
+  return kernel_tex_fetch(__objects, object).volume_density;
 }
 
 ccl_device_inline float object_volume_step_size(KernelGlobals *kg, int object)

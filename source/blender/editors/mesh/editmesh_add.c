@@ -239,7 +239,7 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 
 static const EnumPropertyItem fill_type_items[] = {
     {0, "NOTHING", 0, "Nothing", "Don't fill at all"},
-    {1, "NGON", 0, "Ngon", "Use ngons"},
+    {1, "NGON", 0, "N-Gon", "Use n-gons"},
     {2, "TRIFAN", 0, "Triangle Fan", "Use triangle fans"},
     {0, NULL, 0, NULL, NULL},
 };

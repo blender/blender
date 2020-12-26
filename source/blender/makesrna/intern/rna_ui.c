@@ -1276,12 +1276,12 @@ static void rna_def_ui_layout(BlenderRNA *brna)
   prop = RNA_def_property(srna, "ui_units_x", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_funcs(prop, "rna_UILayout_units_x_get", "rna_UILayout_units_x_set", NULL);
   RNA_def_property_ui_text(
-      prop, "Units X", "Fixed Size along the X for items in this (sub)layout");
+      prop, "Units X", "Fixed size along the X for items in this (sub)layout");
 
   prop = RNA_def_property(srna, "ui_units_y", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_funcs(prop, "rna_UILayout_units_y_get", "rna_UILayout_units_y_set", NULL);
   RNA_def_property_ui_text(
-      prop, "Units Y", "Fixed Size along the Y for items in this (sub)layout");
+      prop, "Units Y", "Fixed size along the Y for items in this (sub)layout");
   RNA_api_ui_layout(srna);
 
   prop = RNA_def_property(srna, "emboss", PROP_ENUM, PROP_NONE);
@@ -1380,7 +1380,7 @@ static void rna_def_panel(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "runtime.custom_data_ptr");
   RNA_def_property_pointer_funcs(
       prop, "rna_Panel_custom_data_get", NULL, "rna_Panel_custom_data_typef", NULL);
-  RNA_def_property_ui_text(prop, "Custom Data", "Panel Data");
+  RNA_def_property_ui_text(prop, "Custom Data", "Panel data");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   /* registration */
@@ -1420,7 +1420,7 @@ static void rna_def_panel(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
   RNA_def_property_enum_items(prop, rna_enum_space_type_items);
   RNA_def_property_flag(prop, PROP_REGISTER);
-  RNA_def_property_ui_text(prop, "Space type", "The space where the panel is going to be used in");
+  RNA_def_property_ui_text(prop, "Space Type", "The space where the panel is going to be used in");
 
   prop = RNA_def_property(srna, "bl_region_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type->region_type");
@@ -1448,7 +1448,7 @@ static void rna_def_panel(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "type->parent_id");
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(
-      prop, "Parent ID Name", "If this is set, the panel becomes a sub-panel");
+      prop, "Parent ID Name", "If this is set, the panel becomes a subpanel");
 
   prop = RNA_def_property(srna, "bl_ui_units_x", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "type->ui_units_x");
@@ -1519,7 +1519,7 @@ static void rna_def_uilist(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_filter_invert", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "filter_flag", UILST_FLT_EXCLUDE);
-  RNA_def_property_ui_text(prop, "Invert", "Invert filtering (show hidden items, and vice-versa)");
+  RNA_def_property_ui_text(prop, "Invert", "Invert filtering (show hidden items, and vice versa)");
 
   /* WARNING: This is sort of an abuse, sort-by-alpha is actually a value,
    * should even be an enum in full logic (of two values, sort by index and sort by name).
@@ -1678,7 +1678,7 @@ static void rna_def_header(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_space_type_items);
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_def_property_ui_text(
-      prop, "Space type", "The space where the header is going to be used in");
+      prop, "Space Type", "The space where the header is going to be used in");
 
   prop = RNA_def_property(srna, "bl_region_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type->region_type");

@@ -72,6 +72,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd)
   mUsingFractions = (fds->flags & FLUID_DOMAIN_USE_FRACTIONS) && mUsingLiquid;
   mUsingMesh = (fds->flags & FLUID_DOMAIN_USE_MESH) && mUsingLiquid;
   mUsingDiffusion = (fds->flags & FLUID_DOMAIN_USE_DIFFUSION) && mUsingLiquid;
+  mUsingViscosity = (fds->flags & FLUID_DOMAIN_USE_VISCOSITY) && mUsingLiquid;
   mUsingMVel = (fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS) && mUsingLiquid;
   mUsingGuiding = (fds->flags & FLUID_DOMAIN_USE_GUIDE);
   mUsingDrops = (fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) && mUsingLiquid;
@@ -219,6 +220,10 @@ MANTA::MANTA(int *res, FluidModifierData *fmd)
       /* Initialize Mantaflow variables in Python. */
       initSuccess &= initMesh();
       initSuccess &= initLiquidMesh();
+    }
+
+    if (mUsingViscosity) {
+      initSuccess &= initLiquidViscosity();
     }
 
     if (mUsingDiffusion) {
@@ -437,6 +442,17 @@ bool MANTA::initLiquidMesh(FluidModifierData *fmd)
   pythonCommands.push_back(finalString);
 
   mUsingMesh = true;
+  return runPythonString(pythonCommands);
+}
+
+bool MANTA::initLiquidViscosity(FluidModifierData *fmd)
+{
+  vector<string> pythonCommands;
+  string tmpString = fluid_variables_viscosity + fluid_solver_viscosity + liquid_alloc_viscosity;
+  string finalString = parseScript(tmpString, fmd);
+  pythonCommands.push_back(finalString);
+
+  mUsingViscosity = true;
   return runPythonString(pythonCommands);
 }
 
@@ -871,8 +887,10 @@ void MANTA::initializeRNAMap(FluidModifierData *fmd)
   mRNAMap["CACHE_DIR"] = cacheDirectory;
   mRNAMap["COMPRESSION_OPENVDB"] = vdbCompressionMethod;
   mRNAMap["PRECISION_OPENVDB"] = vdbPrecisionHalf;
-	mRNAMap["CLIP_OPENVDB"] = to_string(fds->clipping);
+  mRNAMap["CLIP_OPENVDB"] = to_string(fds->clipping);
   mRNAMap["PP_PARTICLE_MAXIMUM"] = to_string(fds->sys_particle_maximum);
+  mRNAMap["USING_VISCOSITY"] = getBooleanString(fds->flags & FLUID_DOMAIN_USE_VISCOSITY);
+  mRNAMap["VISCOSITY_VALUE"] = to_string(fds->viscosity_value);
 
   /* Fluid object names. */
   mRNAMap["NAME_FLAGS"] = FLUID_NAME_FLAGS;
@@ -1728,6 +1746,7 @@ bool MANTA::exportLiquidScript(FluidModifierData *fmd)
   bool guiding = fds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
   bool invel = fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
   bool outflow = fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
+  bool viscosity = fds->flags & FLUID_DOMAIN_USE_VISCOSITY;
 
   string manta_script;
 
@@ -1742,6 +1761,8 @@ bool MANTA::exportLiquidScript(FluidModifierData *fmd)
     manta_script += fluid_variables_particles + liquid_variables_particles;
   if (guiding)
     manta_script += fluid_variables_guiding;
+  if (viscosity)
+    manta_script += fluid_variables_viscosity;
 
   /* Solvers. */
   manta_script += header_solvers + fluid_solver;
@@ -1751,6 +1772,8 @@ bool MANTA::exportLiquidScript(FluidModifierData *fmd)
     manta_script += fluid_solver_particles;
   if (guiding)
     manta_script += fluid_solver_guiding;
+  if (viscosity)
+    manta_script += fluid_solver_viscosity;
 
   /* Grids. */
   manta_script += header_grids + fluid_alloc + liquid_alloc;
@@ -1768,6 +1791,8 @@ bool MANTA::exportLiquidScript(FluidModifierData *fmd)
     manta_script += fluid_alloc_invel;
   if (outflow)
     manta_script += fluid_alloc_outflow;
+  if (viscosity)
+    manta_script += liquid_alloc_viscosity;
 
   /* Domain init. */
   manta_script += header_gridinit + liquid_init_phi;

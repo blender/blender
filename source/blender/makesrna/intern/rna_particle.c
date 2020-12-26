@@ -2619,7 +2619,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, part_type_items);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_type_itemf");
-  RNA_def_property_ui_text(prop, "Type", "Particle Type");
+  RNA_def_property_ui_text(prop, "Type", "Particle type");
   RNA_def_property_update(prop, 0, "rna_Particle_change_type");
 
   prop = RNA_def_property(srna, "emit_from", PROP_ENUM, PROP_NONE);
@@ -3137,7 +3137,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "drag_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "dragfac");
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Drag", "Amount of air-drag");
+  RNA_def_property_ui_text(prop, "Drag", "Amount of air drag");
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(srna, "brownian_factor", PROP_FLOAT, PROP_NONE);

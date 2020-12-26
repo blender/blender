@@ -684,3 +684,15 @@ set(PLATFORM_LINKFLAGS
 if(WITH_INSTALL_PORTABLE)
   string(APPEND CMAKE_EXE_LINKER_FLAGS " -no-pie")
 endif()
+
+if(WITH_COMPILER_CCACHE)
+  find_program(CCACHE_PROGRAM ccache)
+  if(CCACHE_PROGRAM)
+    # Makefiles and ninja
+    set(CMAKE_C_COMPILER_LAUNCHER   "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
+  else()
+    message(WARNING "Ccache NOT found, disabling WITH_COMPILER_CCACHE")
+    set(WITH_COMPILER_CCACHE OFF)
+  endif()
+endif()

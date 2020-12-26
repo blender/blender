@@ -99,12 +99,12 @@ static const EnumPropertyItem prop_graphkeys_insertkey_types[] = {
     {GRAPHKEYS_INSERTKEY_ACTIVE | GRAPHKEYS_INSERTKEY_CURSOR,
      "CURSOR_ACTIVE",
      0,
-     "Active Channels At Cursor",
+     "Active Channels at Cursor",
      "Insert a keyframe for the active F-Curve at the cursor point"},
     {GRAPHKEYS_INSERTKEY_SEL | GRAPHKEYS_INSERTKEY_CURSOR,
      "CURSOR_SEL",
      0,
-     "Selected Channels At Cursor",
+     "Selected Channels at Cursor",
      "Insert a keyframe for selected F-Curves at the cursor point"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -1170,7 +1170,7 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                 0.0f,
                 0.0,
                 100000.0,
-                "Lowest frequency",
+                "Lowest Frequency",
                 "Cutoff frequency of a high-pass filter that is applied to the audio data",
                 0.1,
                 1000.00);
@@ -1179,7 +1179,7 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                 100000.0,
                 0.0,
                 100000.0,
-                "Highest frequency",
+                "Highest Frequency",
                 "Cutoff frequency of a low-pass filter that is applied to the audio data",
                 0.1,
                 1000.00);
@@ -1188,7 +1188,7 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                 0.005,
                 0.0,
                 2.0,
-                "Attack time",
+                "Attack Time",
                 "Value for the hull curve calculation that tells how fast the hull curve can rise "
                 "(the lower the value the steeper it can rise)",
                 0.01,
@@ -1198,7 +1198,7 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                 0.2,
                 0.0,
                 5.0,
-                "Release time",
+                "Release Time",
                 "Value for the hull curve calculation that tells how fast the hull curve can fall "
                 "(the lower the value the steeper it can fall)",
                 0.01,
@@ -2198,7 +2198,7 @@ static const EnumPropertyItem prop_graphkeys_snap_types[] = {
      "NEAREST_FRAME",
      0,
      "Selection to Nearest Frame",
-     "Snap selected keyframes to the nearest (whole) frame (use to fix accidental sub-frame "
+     "Snap selected keyframes to the nearest (whole) frame (use to fix accidental subframe "
      "offsets)"},
     {GRAPHKEYS_SNAP_NEAREST_SECOND,
      "NEAREST_SECOND",

@@ -417,7 +417,7 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
                        -FLT_MAX,
                        FLT_MAX,
                        "Offset",
-                       "Offset in floating point units, 1.0 is the width and height of the image",
+                       "Offset in floating-point units, 1.0 is the width and height of the image",
                        -FLT_MAX,
                        FLT_MAX);
 }
@@ -2771,13 +2771,13 @@ void IMAGE_OT_invert(wmOperatorType *ot)
   ot->poll = image_from_context_has_data_poll_no_image_user;
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
+  prop = RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert red channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert Green Channel");
+  prop = RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert green channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert Blue Channel");
+  prop = RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert blue channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert Alpha Channel");
+  prop = RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert alpha channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* flags */

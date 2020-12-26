@@ -296,13 +296,10 @@ def bake_action_iter(
                     pbone.keyframe_insert("rotation_axis_angle", index=-1, frame=f, group=name)
                 else:  # euler, XYZ, ZXY etc
                     if euler_prev is not None:
-                        euler = pbone.rotation_euler.copy()
-                        euler.make_compatible(euler_prev)
+                        euler = pbone.matrix_basis.to_euler(obj.rotation_mode, euler_prev)
                         pbone.rotation_euler = euler
-                        euler_prev = euler
                         del euler
-                    else:
-                        euler_prev = pbone.rotation_euler.copy()
+                    euler_prev = pbone.rotation_euler.copy()
                     pbone.keyframe_insert("rotation_euler", index=-1, frame=f, group=name)
 
                 pbone.keyframe_insert("scale", index=-1, frame=f, group=name)

@@ -80,7 +80,7 @@ class SequencerCrossfadeSounds(Operator):
 
 
 class SequencerSplitMulticam(Operator):
-    """Split multi-cam strip and select camera"""
+    """Split multicam strip and select camera"""
 
     bl_idname = "sequencer.split_multicam"
     bl_label = "Split Multicam"
@@ -242,7 +242,7 @@ class SequencerFadesAdd(Operator):
             sequence.invalidate_cache('COMPOSITE')
 
         sequence_string = "sequence" if len(faded_sequences) == 1 else "sequences"
-        self.report({'INFO'}, "Added fade animation to %d %s." % (len(faded_sequences), sequence_string))
+        self.report({'INFO'}, "Added fade animation to %d %s" % (len(faded_sequences), sequence_string))
         return {'FINISHED'}
 
     def calculate_fade_duration(self, context, sequence):

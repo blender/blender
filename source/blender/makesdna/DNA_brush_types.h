@@ -375,7 +375,7 @@ typedef struct Brush {
 typedef struct tPaletteColorHSV {
   float rgb[3];
   float value;
-      float h;
+  float h;
   float s;
   float v;
 } tPaletteColorHSV;

@@ -351,6 +351,10 @@ static bool lookup_property(BL::ID b_id, const string &name, float4 *r_value)
     return false;
   }
 
+  if (prop == NULL) {
+    return false;
+  }
+
   PropertyType type = RNA_property_type(prop);
   int arraylen = RNA_property_array_length(&ptr, prop);
 

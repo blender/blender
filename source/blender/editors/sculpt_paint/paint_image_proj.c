@@ -6299,7 +6299,7 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Image from View";
   ot->idname = "PAINT_OT_image_from_view";
-  ot->description = "Make an image from biggest 3D view for re-projection";
+  ot->description = "Make an image from biggest 3D view for reprojection";
 
   /* api callbacks */
   ot->exec = texture_paint_image_from_view_exec;

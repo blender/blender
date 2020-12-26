@@ -1626,10 +1626,10 @@ static uiButExtraOpIcon *ui_but_extra_operator_icon_add_ptr(uiBut *but,
 
   extra_op_icon->icon = (BIFIconID)icon;
   extra_op_icon->optype_params = MEM_callocN(sizeof(*extra_op_icon->optype_params),
-                                             "uiButExtraOpIcon.optype_hook");
+                                             "uiButExtraOpIcon.optype_params");
   extra_op_icon->optype_params->optype = optype;
   extra_op_icon->optype_params->opptr = MEM_callocN(sizeof(*extra_op_icon->optype_params->opptr),
-                                                    "uiButExtraOpIcon.optype_hook.opptr");
+                                                    "uiButExtraOpIcon.optype_params.opptr");
   WM_operator_properties_create_ptr(extra_op_icon->optype_params->opptr,
                                     extra_op_icon->optype_params->optype);
   extra_op_icon->optype_params->opcontext = opcontext;

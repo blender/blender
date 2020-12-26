@@ -558,8 +558,9 @@ typedef struct BakeData {
   char normal_swizzle[3];
   char normal_space;
 
+  char target;
   char save_mode;
-  char _pad[7];
+  char _pad[6];
 
   struct Object *cage_object;
 } BakeData;
@@ -573,6 +574,12 @@ typedef enum eBakeNormalSwizzle {
   R_BAKE_NEGY = 4,
   R_BAKE_NEGZ = 5,
 } eBakeNormalSwizzle;
+
+/* BakeData.target (char) */
+typedef enum eBakeTarget {
+  R_BAKE_TARGET_IMAGE_TEXTURES = 0,
+  R_BAKE_TARGET_VERTEX_COLORS = 1,
+} eBakeTarget;
 
 /* BakeData.save_mode (char) */
 typedef enum eBakeSaveMode {

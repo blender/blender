@@ -752,26 +752,25 @@ static bool is_pointer_in_path(ButsContextPath *path, PointerRNA *ptr)
   return false;
 }
 
-void ED_buttons_set_context(const bContext *C, PointerRNA *ptr, const int context)
+bool ED_buttons_should_sync_with_outliner(const bContext *C,
+                                          const SpaceProperties *sbuts,
+                                          ScrArea *area)
 {
   ScrArea *active_area = CTX_wm_area(C);
-  bScreen *screen = CTX_wm_screen(C);
+  const bool auto_sync = ED_area_has_shared_border(active_area, area) &&
+                         sbuts->outliner_sync == PROPERTIES_SYNC_AUTO;
+  return auto_sync || sbuts->outliner_sync == PROPERTIES_SYNC_ON;
+}
 
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    /* Only update for properties editors that are visible and share a border. */
-    if (area->spacetype != SPACE_PROPERTIES) {
-      continue;
-    }
-    if (!ED_area_has_shared_border(active_area, area)) {
-      continue;
-    }
-
-    SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
-    ButsContextPath path;
-    if (buttons_context_path(C, sbuts, &path, context, 0) && is_pointer_in_path(&path, ptr)) {
-      sbuts->mainbuser = context;
-      sbuts->mainb = sbuts->mainbuser;
-    }
+void ED_buttons_set_context(const bContext *C,
+                            SpaceProperties *sbuts,
+                            PointerRNA *ptr,
+                            const int context)
+{
+  ButsContextPath path;
+  if (buttons_context_path(C, sbuts, &path, context, 0) && is_pointer_in_path(&path, ptr)) {
+    sbuts->mainbuser = context;
+    sbuts->mainb = sbuts->mainbuser;
   }
 }
 

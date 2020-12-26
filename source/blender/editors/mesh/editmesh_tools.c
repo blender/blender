@@ -187,7 +187,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
       prop_mesh_cornervert_types,
       SUBD_CORNER_STRAIGHT_CUT,
       "Quad Corner Type",
-      "How to subdivide quad corners (anything other than Straight Cut will prevent ngons)");
+      "How to subdivide quad corners (anything other than Straight Cut will prevent n-gons)");
 
   RNA_def_float(ot->srna,
                 "fractal",
@@ -335,7 +335,7 @@ void MESH_OT_subdivide_edgering(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Subdivide Edge-Ring";
-  ot->description = "Subdivide perpendicular edges to the selected edge ring";
+  ot->description = "Subdivide perpendicular edges to the selected edge-ring";
   ot->idname = "MESH_OT_subdivide_edgering";
 
   /* api callbacks */
@@ -407,7 +407,7 @@ void MESH_OT_unsubdivide(wmOperatorType *ot)
 
   /* props */
   RNA_def_int(
-      ot->srna, "iterations", 2, 1, 1000, "Iterations", "Number of times to unsubdivide", 1, 100);
+      ot->srna, "iterations", 2, 1, 1000, "Iterations", "Number of times to un-subdivide", 1, 100);
 }
 
 /** \} */
@@ -5264,7 +5264,7 @@ void MESH_OT_poke(wmOperatorType *ot)
                poke_center_modes,
                BMOP_POKE_MEDIAN_WEIGHTED,
                "Poke Center",
-               "Poke Face Center Calculation");
+               "Poke face center calculation");
 }
 
 /** \} */
@@ -7047,7 +7047,7 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
                           type_items,
                           SRT_VIEW_ZAXIS,
                           "Type",
-                          "Type of re-ordering operation to apply");
+                          "Type of reordering operation to apply");
   RNA_def_enum_flag(ot->srna,
                     "elements",
                     elem_items,
@@ -7366,7 +7366,7 @@ void MESH_OT_wireframe(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Wireframe";
   ot->idname = "MESH_OT_wireframe";
-  ot->description = "Create a solid wire-frame from faces";
+  ot->description = "Create a solid wireframe from faces";
 
   /* api callbacks */
   ot->exec = edbm_wireframe_exec;
@@ -9312,7 +9312,7 @@ void MESH_OT_normals_tools(struct wmOperatorType *ot)
                           normal_vector_tool_items,
                           EDBM_CLNOR_TOOLS_COPY,
                           "Mode",
-                          "Mode of tools taking input from Interface");
+                          "Mode of tools taking input from interface");
   RNA_def_property_flag(ot->prop, PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna,

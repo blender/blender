@@ -514,6 +514,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodePointDistribute"),
         NodeItem("GeometryNodePointInstance"),
         NodeItem("GeometryNodePointSeparate"),
+        NodeItem("GeometryNodeRotatePoints"),
     ]),
     GeometryNodeCategory("GEO_UTILITIES", "Utilities", items=[
         NodeItem("ShaderNodeMapRange"),

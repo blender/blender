@@ -663,8 +663,7 @@ bool RE_bake_engine(Render *re,
                     Object *object,
                     const int object_id,
                     const BakePixel pixel_array[],
-                    const BakeImages *bake_images,
-                    const int depth,
+                    const BakeTargets *targets,
                     const eScenePassType pass_type,
                     const int pass_filter,
                     float result[])
@@ -707,14 +706,14 @@ bool RE_bake_engine(Render *re,
       type->update(engine, re->main, engine->depsgraph);
     }
 
-    for (int i = 0; i < bake_images->size; i++) {
-      const BakeImage *image = bake_images->data + i;
+    for (int i = 0; i < targets->num_images; i++) {
+      const BakeImage *image = targets->images + i;
 
       engine->bake.pixels = pixel_array + image->offset;
-      engine->bake.result = result + image->offset * depth;
+      engine->bake.result = result + image->offset * targets->num_channels;
       engine->bake.width = image->width;
       engine->bake.height = image->height;
-      engine->bake.depth = depth;
+      engine->bake.depth = targets->num_channels;
       engine->bake.object_id = object_id;
 
       type->bake(

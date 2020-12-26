@@ -1039,7 +1039,7 @@ static void file_draw_invalid_library_hint(const SpaceFile *sfile, const ARegion
     UI_icon_draw(sx, sy - UI_UNIT_Y, ICON_INFO);
 
     const char *suggestion = TIP_(
-        "Set up the library or edit libraries in the Preferences, File Paths section.");
+        "Set up the library or edit libraries in the Preferences, File Paths section");
     file_draw_string_multiline(
         sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, NULL, NULL);
   }

@@ -353,6 +353,8 @@ PyDoc_STRVAR(bpy_orphans_purge_doc,
              "\n"
              "   Remove (delete) all IDs with no user.\n"
              "\n"
+             "   :return: The number of deleted IDs.\n"
+             "\n"
              "   WARNING: Considered experimental feature currently.\n");
 static PyObject *bpy_orphans_purge(PyObject *UNUSED(self),
                                    PyObject *UNUSED(args),
@@ -376,13 +378,11 @@ static PyObject *bpy_orphans_purge(PyObject *UNUSED(self),
   }
   FOREACH_MAIN_ID_END;
 
-  BKE_id_multi_tagged_delete(bmain);
+  const size_t num_datablocks_deleted = BKE_id_multi_tagged_delete(bmain);
   /* Force full redraw, mandatory to avoid crashes when running this from UI... */
   WM_main_add_notifier(NC_WINDOW, NULL);
 
-  Py_INCREF(Py_None);
-
-  return Py_None;
+  return PyLong_FromSize_t(num_datablocks_deleted);
 }
 
 PyMethodDef BPY_rna_id_collection_user_map_method_def = {

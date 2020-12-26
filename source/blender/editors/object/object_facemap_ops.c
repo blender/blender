@@ -491,5 +491,5 @@ void OBJECT_OT_face_map_move(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_enum(
-      ot->srna, "direction", fmap_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
+      ot->srna, "direction", fmap_slot_move, 0, "Direction", "Direction to move, up or down");
 }

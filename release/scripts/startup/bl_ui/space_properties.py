@@ -46,6 +46,8 @@ class PROPERTIES_HT_header(Header):
 
         layout.separator_spacer()
 
+        layout.popover(panel="PROPERTIES_PT_options", text="")
+
 
 class PROPERTIES_PT_navigation_bar(Panel):
     bl_space_type = 'PROPERTIES'
@@ -69,9 +71,25 @@ class PROPERTIES_PT_navigation_bar(Panel):
             layout.prop_tabs_enum(view, "context", icon_only=True)
 
 
+class PROPERTIES_PT_options(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'HEADER'
+    bl_label = 'Options'
+
+    def draw(self, context):
+        layout = self.layout
+
+        space = context.space_data
+
+        col = layout.column()
+        col.label(text="Sync with Outliner")
+        col.row().prop(space, "outliner_sync", expand=True)
+
+
 classes = (
     PROPERTIES_HT_header,
     PROPERTIES_PT_navigation_bar,
+    PROPERTIES_PT_options,
 )
 
 if __name__ == "__main__":  # only for live edit.

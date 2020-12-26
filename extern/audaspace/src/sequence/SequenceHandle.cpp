@@ -22,6 +22,7 @@
 #include <mutex>
 
 #define KEEP_TIME 10
+#define POSITION_EPSILON (1.0 / static_cast<double>(RATE_48000))
 
 AUD_NAMESPACE_BEGIN
 
@@ -64,7 +65,7 @@ bool SequenceHandle::updatePosition(double position)
 	if(m_handle.get())
 	{
 		// we currently have a handle, let's check where we are
-		if(position >= m_entry->m_end)
+		if(position - POSITION_EPSILON >= m_entry->m_end)
 		{
 			if(position >= m_entry->m_end + KEEP_TIME)
 				// far end, stopping
@@ -76,7 +77,7 @@ bool SequenceHandle::updatePosition(double position)
 				return true;
 			}
 		}
-		else if(position >= m_entry->m_begin)
+		else if(position + POSITION_EPSILON >= m_entry->m_begin)
 		{
 			// inside, resuming
 			m_handle->resume();
@@ -98,7 +99,7 @@ bool SequenceHandle::updatePosition(double position)
 	else
 	{
 		// we don't have a handle, let's start if we should be playing
-		if(position >= m_entry->m_begin && position <= m_entry->m_end)
+		if(position + POSITION_EPSILON >= m_entry->m_begin && position - POSITION_EPSILON <= m_entry->m_end)
 		{
 			start();
 			return m_valid;

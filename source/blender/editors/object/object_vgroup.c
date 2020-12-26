@@ -788,7 +788,7 @@ static void vgroup_operator_subset_select_props(wmOperatorType *ot, bool use_act
                       DummyRNA_NULL_items,
                       use_active ? WT_VGROUP_ACTIVE : WT_VGROUP_ALL,
                       "Subset",
-                      "Define which subset of Groups shall be used");
+                      "Define which subset of groups shall be used");
 
   if (use_active) {
     RNA_def_enum_funcs(prop, rna_vertex_group_with_single_itemf);
@@ -1751,7 +1751,7 @@ static bool *vgroup_selected_get(Object *ob)
     /* Mirror the selection if X Mirror is enabled. */
     Mesh *me = BKE_mesh_from_object(ob);
 
-    if (me && (me->symmetry & ME_SYMMETRY_X) != 0) {
+    if (me && (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) != 0) {
       BKE_object_defgroup_mirror_selection(ob, defbase_tot, mask, mask, &sel_count);
     }
   }
@@ -4229,7 +4229,7 @@ void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(ot->srna, "sort_type", vgroup_sort_type, SORT_TYPE_NAME, "Sort type", "Sort type");
+  RNA_def_enum(ot->srna, "sort_type", vgroup_sort_type, SORT_TYPE_NAME, "Sort Type", "Sort type");
 }
 
 /** \} */

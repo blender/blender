@@ -349,7 +349,7 @@ static bool eyedropper_colorband_poll(bContext *C)
 void UI_OT_eyedropper_colorramp(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Eyedropper colorband";
+  ot->name = "Eyedropper Colorband";
   ot->idname = "UI_OT_eyedropper_colorramp";
   ot->description = "Sample a color band";
 
@@ -369,7 +369,7 @@ void UI_OT_eyedropper_colorramp(wmOperatorType *ot)
 void UI_OT_eyedropper_colorramp_point(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Eyedropper colorband (points)";
+  ot->name = "Eyedropper Colorband (Points)";
   ot->idname = "UI_OT_eyedropper_colorramp_point";
   ot->description = "Point-sample a color band";
 

@@ -4327,7 +4327,7 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Select Sharp Edges";
-  ot->description = "Select all sharp-enough edges";
+  ot->description = "Select all sharp enough edges";
   ot->idname = "MESH_OT_edges_select_sharp";
 
   /* api callbacks */
@@ -4536,7 +4536,7 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_non_manifold(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Select Non Manifold";
+  ot->name = "Select Non-Manifold";
   ot->description = "Select all non-manifold vertices or edges";
   ot->idname = "MESH_OT_select_non_manifold";
 

@@ -1035,7 +1035,7 @@ template<class N, class T> struct RCFixedMatrix {
 typedef RCMatrix<int, Real> Matrix;
 typedef RCFixedMatrix<int, Real> FixedMatrix;
 
-}  // namespace Manta
+}
 
 #undef parallel_for
 #undef parallel_end

@@ -181,23 +181,20 @@ class MeshMirrorUV(Operator):
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
         if total_duplicates and total_no_active_UV:
-            self.report({'WARNING'}, "%d %s with no active UV layer. "
-                        "%d duplicates found in %d %s, mirror may be incomplete."
+            self.report({'WARNING'},
+                        "%d mesh(es) with no active UV layer, "
+                        "%d duplicates found in %d mesh(es), mirror may be incomplete"
                         % (total_no_active_UV,
-                           "mesh" if total_no_active_UV == 1 else "meshes",
                            total_duplicates,
-                           meshes_with_duplicates,
-                           "mesh" if meshes_with_duplicates == 1 else "meshes"))
+                           meshes_with_duplicates))
         elif total_no_active_UV:
-            self.report({'WARNING'}, "%d %s with no active UV layer."
-                        % (total_no_active_UV,
-                           "mesh" if total_no_active_UV == 1 else "meshes"))
+            self.report({'WARNING'},
+                        "%d mesh(es) with no active UV layer"
+                        % (total_no_active_UV,))
         elif total_duplicates:
-            self.report({'WARNING'}, "%d duplicates found in %d %s,"
-                        " mirror may be incomplete."
-                        % (total_duplicates,
-                           meshes_with_duplicates,
-                           "mesh" if meshes_with_duplicates == 1 else "meshes"))
+            self.report({'WARNING'},
+                        "%d duplicates found in %d mesh(es), mirror may be incomplete"
+                        % (total_duplicates, meshes_with_duplicates))
 
         return {'FINISHED'}
 

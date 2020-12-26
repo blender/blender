@@ -1142,7 +1142,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
   RNA_def_property_float_sdna(prop, NULL, "fsize");
   RNA_def_property_range(prop, 0.0001f, 10000.0f);
   RNA_def_property_ui_range(prop, 0.01, 10, 1, 3);
-  RNA_def_property_ui_text(prop, "Font size", "");
+  RNA_def_property_ui_text(prop, "Font Size", "");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "small_caps_scale", PROP_FLOAT, PROP_NONE);
@@ -1208,7 +1208,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 
   prop = RNA_def_property(srna, "active_textbox", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "actbox");
-  RNA_def_property_ui_text(prop, "The active text box", "");
+  RNA_def_property_ui_text(prop, "Active Text Box", "");
   RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Curve_active_textbox_index_range");
 
   /* strings */

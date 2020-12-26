@@ -1906,7 +1906,7 @@ void GPENCIL_OT_brush_reset(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Reset Brush";
   ot->idname = "GPENCIL_OT_brush_reset";
-  ot->description = "Reset Brush to default parameters";
+  ot->description = "Reset brush to default parameters";
 
   /* api callbacks */
   ot->exec = gpencil_brush_reset_exec;
