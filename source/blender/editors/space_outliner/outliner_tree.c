@@ -66,6 +66,7 @@
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_outliner_treehash.h"
@@ -640,6 +641,30 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
   }
 }
 
+static void outliner_add_library_override_contents(SpaceOutliner *soops, TreeElement *te, ID *id)
+{
+  if (!id->override_library) {
+    return;
+  }
+
+  PointerRNA idpoin;
+  RNA_id_pointer_create(id, &idpoin);
+
+  PointerRNA override_ptr;
+  PropertyRNA *override_prop;
+  int index = 0;
+  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
+    if (!BKE_lib_override_rna_property_find(&idpoin, op, &override_ptr, &override_prop)) {
+      BLI_assert(false);
+      continue;
+    }
+
+    TreeElement *ten = outliner_add_element(
+        soops, &te->subtree, id, te, TSE_LIBRARY_OVERRIDE, index++);
+    ten->name = RNA_property_ui_name(override_prop);
+  }
+}
+
 /* Can be inlined if necessary. */
 static void outliner_add_id_contents(SpaceOutliner *space_outliner,
                                      TreeElement *te,
@@ -902,6 +927,17 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
     }
     default:
       break;
+  }
+
+  const bool lib_overrides_visible = !SUPPORT_FILTER_OUTLINER(space_outliner) ||
+                                     ((space_outliner->filter & SO_FILTER_NO_LIB_OVERRIDE) == 0);
+
+  if (lib_overrides_visible && ID_IS_OVERRIDE_LIBRARY(id)) {
+    TreeElement *ten = outliner_add_element(
+        space_outliner, &te->subtree, id, te, TSE_LIBRARY_OVERRIDE_BASE, 0);
+
+    ten->name = IFACE_("Library Overrides");
+    outliner_add_library_override_contents(space_outliner, ten, id);
   }
 }
 

@@ -2180,6 +2180,10 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.icon = ICON_MODIFIER_DATA;
         data.drag_id = tselem->id;
         break;
+      case TSE_LIBRARY_OVERRIDE_BASE:
+      case TSE_LIBRARY_OVERRIDE:
+        data.icon = ICON_LIBRARY_DATA_OVERRIDE;
+        break;
       case TSE_LINKED_OB:
         data.icon = ICON_OBJECT_DATA;
         break;

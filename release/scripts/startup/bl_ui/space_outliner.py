@@ -410,6 +410,10 @@ class OUTLINER_PT_filter(Panel):
         row = sub.row()
         row.label(icon='EMPTY_DATA')
         row.prop(space, "use_filter_object_empty", text="Empties")
+        row = sub.row()
+        if bpy.data.libraries:
+            row.label(icon='LIBRARY_DATA_OVERRIDE')
+            row.prop(space, "use_filter_lib_override", text="Library Overrides")
 
         if (
                 bpy.data.curves or

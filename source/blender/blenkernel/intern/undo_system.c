@@ -342,9 +342,10 @@ static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct 
   CLOG_INFO(&LOG, 1, "'%s'", name);
   bContext *C_temp = CTX_create();
   CTX_data_main_set(C_temp, bmain);
-  bool ok = BKE_undosys_step_push_with_type(ustack, C_temp, name, BKE_UNDOSYS_TYPE_MEMFILE);
+  UndoPushReturn ret = BKE_undosys_step_push_with_type(
+      ustack, C_temp, name, BKE_UNDOSYS_TYPE_MEMFILE);
   CTX_free(C_temp);
-  return ok;
+  return (ret & UNDO_PUSH_RET_SUCCESS);
 }
 
 void BKE_undosys_stack_init_from_main(UndoStack *ustack, struct Main *bmain)
@@ -495,18 +496,21 @@ UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char 
 /**
  * \param C: Can be NULL from some callers if their encoding function doesn't need it
  */
-bool BKE_undosys_step_push_with_type(UndoStack *ustack,
-                                     bContext *C,
-                                     const char *name,
-                                     const UndoType *ut)
+UndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
+                                               bContext *C,
+                                               const char *name,
+                                               const UndoType *ut)
 {
   UNDO_NESTED_ASSERT(false);
   undosys_stack_validate(ustack, false);
   bool is_not_empty = ustack->step_active != NULL;
+  UndoPushReturn retval = UNDO_PUSH_RET_FAILURE;
 
   /* Might not be final place for this to be called - probably only want to call it from some
    * undo handlers, not all of them? */
-  BKE_lib_override_library_main_operations_create(G_MAIN, false);
+  if (BKE_lib_override_library_main_operations_create(G_MAIN, false)) {
+    retval |= UNDO_PUSH_RET_OVERRIDE_CHANGED;
+  }
 
   /* Remove all undos after (also when 'ustack->step_active == NULL'). */
   while (ustack->steps.last != ustack->step_active) {
@@ -558,7 +562,7 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack,
     if (!undosys_step_encode(C, G_MAIN, ustack, us)) {
       MEM_freeN(us);
       undosys_stack_validate(ustack, true);
-      return false;
+      return retval;
     }
     ustack->step_active = us;
     BLI_addtail(&ustack->steps, us);
@@ -589,10 +593,10 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack,
   }
 
   undosys_stack_validate(ustack, true);
-  return true;
+  return (retval | UNDO_PUSH_RET_SUCCESS);
 }
 
-bool BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char *name)
+UndoPushReturn BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char *name)
 {
   UNDO_NESTED_ASSERT(false);
   const UndoType *ut = ustack->step_init ? ustack->step_init->type :

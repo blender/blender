@@ -95,6 +95,10 @@ struct IDOverrideLibraryProperty *BKE_lib_override_library_property_get(
     struct IDOverrideLibrary *override, const char *rna_path, bool *r_created);
 void BKE_lib_override_library_property_delete(struct IDOverrideLibrary *override,
                                               struct IDOverrideLibraryProperty *override_property);
+bool BKE_lib_override_rna_property_find(struct PointerRNA *idpoin,
+                                        const struct IDOverrideLibraryProperty *library_prop,
+                                        struct PointerRNA *r_override_poin,
+                                        struct PropertyRNA **r_override_prop);
 
 struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_find(
     struct IDOverrideLibraryProperty *override_property,
@@ -131,7 +135,7 @@ bool BKE_lib_override_library_status_check_local(struct Main *bmain, struct ID *
 bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct ID *local);
 
 bool BKE_lib_override_library_operations_create(struct Main *bmain, struct ID *local);
-void BKE_lib_override_library_main_operations_create(struct Main *bmain, const bool force_auto);
+bool BKE_lib_override_library_main_operations_create(struct Main *bmain, const bool force_auto);
 
 void BKE_lib_override_library_id_reset(struct Main *bmain, struct ID *id_root);
 void BKE_lib_override_library_id_hierarchy_reset(struct Main *bmain, struct ID *id_root);

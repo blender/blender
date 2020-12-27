@@ -3421,7 +3421,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
             case SPACE_OUTLINER: {
               SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
-              space_outliner->filter &= ~(SO_FILTER_UNUSED_1 | SO_FILTER_UNUSED_5 |
+              space_outliner->filter &= ~(SO_FILTER_CLEARED_1 | SO_FILTER_UNUSED_5 |
                                           SO_FILTER_OB_STATE_SELECTABLE);
               space_outliner->storeflag &= ~(SO_TREESTORE_UNUSED_1);
               break;

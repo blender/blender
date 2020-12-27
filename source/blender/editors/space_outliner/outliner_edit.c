@@ -331,7 +331,8 @@ static void do_item_rename(ARegion *region,
                 TSE_POSEGRP_BASE,
                 TSE_R_LAYER_BASE,
                 TSE_SCENE_COLLECTION_BASE,
-                TSE_VIEW_COLLECTION_BASE)) {
+                TSE_VIEW_COLLECTION_BASE,
+                TSE_LIBRARY_OVERRIDE_BASE)) {
     BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
   }
   else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
