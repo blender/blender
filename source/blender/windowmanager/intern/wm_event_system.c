@@ -2263,7 +2263,7 @@ static int wm_handler_fileselect_do(bContext *C,
             continue;
           }
 
-          if (ctx_area->full) {
+          if (file_area->full) {
             /* Users should not be able to maximize/fullscreen an area in a temporary screen. So if
              * there's a maximized file browser in a temporary screen, it was likely opened by
              * #EVT_FILESELECT_FULL_OPEN. */
