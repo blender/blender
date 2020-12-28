@@ -118,6 +118,7 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
           ED_region_tag_redraw(region);
           break;
       }
+      break;
     case NC_SCENE:
       switch (wmn->data) {
         case ND_OB_ACTIVE:
