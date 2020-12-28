@@ -956,16 +956,14 @@ float ED_view3d_grid_view_scale(Scene *scene,
   RegionView3D *rv3d = region->regiondata;
   if (!rv3d->is_persp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
     /* Decrease the distance between grid snap points depending on zoom. */
-    /* `0.38` was a value visually obtained in order to get a snap distance
-     * that matches previous versions Blender.*/
-    float min_dist = 16.0f / (region->sizex * rv3d->winmat[0][0]);
+    float dist = 12.0f / (region->sizex * rv3d->winmat[0][0]);
     float grid_steps[STEPS_LEN];
     ED_view3d_grid_steps(scene, v3d, rv3d, grid_steps);
     /* Skip last item, in case the 'mid_dist' is greater than the largest unit. */
     int i;
     for (i = 0; i < ARRAY_SIZE(grid_steps) - 1; i++) {
       grid_scale = grid_steps[i];
-      if (grid_scale > min_dist) {
+      if (grid_scale > dist) {
         break;
       }
     }

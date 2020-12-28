@@ -137,6 +137,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_modifier_apply_as_shapekey);
   WM_operatortype_append(OBJECT_OT_modifier_convert);
   WM_operatortype_append(OBJECT_OT_modifier_copy);
+  WM_operatortype_append(OBJECT_OT_modifier_copy_to_selected);
   WM_operatortype_append(OBJECT_OT_modifier_set_active);
   WM_operatortype_append(OBJECT_OT_multires_subdivide);
   WM_operatortype_append(OBJECT_OT_multires_reshape);
@@ -159,6 +160,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_move_to_index);
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_apply);
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy);
+  WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy_to_selected);
 
   /* shader fx */
   WM_operatortype_append(OBJECT_OT_shaderfx_add);

@@ -30,6 +30,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_dynamicpaint_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -1675,6 +1677,229 @@ void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
   ot->invoke = modifier_set_active_invoke;
   ot->exec = modifier_set_active_exec;
   ot->poll = edit_modifier_liboverride_allowed_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+}
+
+/** \} */
+/** \name Copy Modifier To Selected Operator
+ * \{ */
+
+/* If the modifier uses particles, copy particle system to destination object
+ * or reuse existing if it has the same ParticleSettings */
+static void copy_or_reuse_particle_system(bContext *C, Object *ob, ModifierData *md)
+{
+  ParticleSystem *psys_on_modifier = NULL;
+
+  if (md->type == eModifierType_DynamicPaint) {
+    DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+    if (pmd->brush && pmd->brush->psys) {
+      psys_on_modifier = pmd->brush->psys;
+    }
+  }
+  else if (md->type == eModifierType_Fluid) {
+    FluidModifierData *fmd = (FluidModifierData *)md;
+    if (fmd->type == MOD_FLUID_TYPE_FLOW) {
+      if (fmd->flow && fmd->flow->psys) {
+        psys_on_modifier = fmd->flow->psys;
+      }
+    }
+  }
+
+  if (!psys_on_modifier) {
+    return;
+  }
+
+  ParticleSystem *psys_on_new_modifier = NULL;
+
+  /* Check if a particle system with the same particle settings
+   * already exists on the destination object. */
+  LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
+    if (psys_on_modifier->part == psys->part) {
+      psys_on_new_modifier = psys;
+      break;
+    }
+  }
+
+  /* If it does not exist, copy the particle system to the destination object. */
+  if (!psys_on_new_modifier) {
+    Main *bmain = CTX_data_main(C);
+    Scene *scene = CTX_data_scene(C);
+    object_copy_particle_system(bmain, scene, ob, psys_on_modifier);
+
+    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
+      if (psys_on_modifier->part == psys->part) {
+        psys_on_new_modifier = psys;
+      }
+    }
+  }
+
+  /* Update the modifier to point to the new/existing particle system. */
+  LISTBASE_FOREACH (ModifierData *, new_md, &ob->modifiers) {
+    if (new_md->type == eModifierType_DynamicPaint) {
+      DynamicPaintModifierData *new_pmd = (DynamicPaintModifierData *)new_md;
+
+      if (psys_on_modifier == new_pmd->brush->psys) {
+        new_pmd->brush->psys = psys_on_new_modifier;
+      }
+    }
+    else if (new_md->type == eModifierType_Fluid) {
+      FluidModifierData *new_fmd = (FluidModifierData *)new_md;
+
+      if (psys_on_modifier == new_fmd->flow->psys) {
+        new_fmd->flow->psys = psys_on_new_modifier;
+      }
+    }
+  }
+}
+
+static int modifier_copy_to_selected_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  Object *obact = ED_object_active_context(C);
+  ModifierData *md = edit_modifier_property_get(op, obact, 0);
+
+  if (!md) {
+    return OPERATOR_CANCELLED;
+  }
+
+  int num_copied = 0;
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
+
+  CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+    if (ob == obact) {
+      continue;
+    }
+
+    /* Checked in #BKE_object_copy_modifier, but check here too so we can give a better message. */
+    if (!BKE_object_support_modifier_type_check(ob, md->type)) {
+      BKE_reportf(op->reports,
+                  RPT_WARNING,
+                  "Object '%s' does not support %s modifiers",
+                  ob->id.name + 2,
+                  mti->name);
+      continue;
+    }
+
+    if (mti->flags & eModifierTypeFlag_Single) {
+      if (BKE_modifiers_findby_type(ob, md->type)) {
+        BKE_reportf(op->reports,
+                    RPT_WARNING,
+                    "Modifier can only be added once to object '%s'",
+                    ob->id.name + 2);
+        continue;
+      }
+    }
+
+    if (md->type == eModifierType_ParticleSystem) {
+      ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+      object_copy_particle_system(bmain, scene, ob, psmd->psys);
+    }
+    else {
+      if (!BKE_object_copy_modifier(ob, obact, md)) {
+        BKE_reportf(op->reports,
+                    RPT_ERROR,
+                    "Copying modifier '%s' to object '%s' failed",
+                    md->name,
+                    ob->id.name + 2);
+      }
+    }
+
+    if (ELEM(md->type, eModifierType_DynamicPaint, eModifierType_Fluid)) {
+      copy_or_reuse_particle_system(C, ob, md);
+    }
+
+    num_copied++;
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+  }
+  CTX_DATA_END;
+
+  if (num_copied > 0) {
+    DEG_relations_tag_update(bmain);
+  }
+  else {
+    BKE_reportf(op->reports, RPT_ERROR, "Modifier '%s' was not copied to any objects", md->name);
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static int modifier_copy_to_selected_invoke(bContext *C,
+                                            wmOperator *op,
+                                            const wmEvent *UNUSED(event))
+{
+  if (edit_modifier_invoke_properties(C, op)) {
+    return modifier_copy_to_selected_exec(C, op);
+  }
+  /* Work around multiple operators using the same shortcut. */
+  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+}
+
+static bool modifier_copy_to_selected_poll(bContext *C)
+{
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+  Object *obact = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
+  ModifierData *md = ptr.data;
+
+  /* This just mirrors the check in #BKE_object_copy_modifier,
+   * but there is no reasoning for it there. */
+  if (md && ELEM(md->type, eModifierType_Hook, eModifierType_Collision)) {
+    CTX_wm_operator_poll_msg_set(C, "Not supported for \"Collision\" or \"Hook\" modifiers");
+    return false;
+  }
+
+  if (!obact) {
+    CTX_wm_operator_poll_msg_set(C, "No selected object is active");
+    return false;
+  }
+
+  if (!BKE_object_supports_modifiers(obact)) {
+    CTX_wm_operator_poll_msg_set(C, "Object type of source object is not supported");
+    return false;
+  }
+
+  /* This could have a performance impact in the worst case, where there are many objects selected
+   * and none of them pass either of the checks. But that should be uncommon, and this operator is
+   * only exposed in a drop-down menu anyway. */
+  bool found_supported_objects = false;
+  CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+    if (ob == obact) {
+      continue;
+    }
+
+    if (!md && BKE_object_supports_modifiers(ob)) {
+      /* Skip type check if modifier could not be found ("modifier" context variable not set). */
+      found_supported_objects = true;
+      break;
+    }
+    else if (BKE_object_support_modifier_type_check(ob, md->type)) {
+      found_supported_objects = true;
+      break;
+    }
+  }
+  CTX_DATA_END;
+
+  if (!found_supported_objects) {
+    CTX_wm_operator_poll_msg_set(C, "No supported objects were selected");
+    return false;
+  }
+  return true;
+}
+
+void OBJECT_OT_modifier_copy_to_selected(wmOperatorType *ot)
+{
+  ot->name = "Copy Modifier to Selected";
+  ot->description = "Copy the modifier from the active object to all selected objects";
+  ot->idname = "OBJECT_OT_modifier_copy_to_selected";
+
+  ot->invoke = modifier_copy_to_selected_invoke;
+  ot->exec = modifier_copy_to_selected_exec;
+  ot->poll = modifier_copy_to_selected_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

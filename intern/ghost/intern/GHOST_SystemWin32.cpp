@@ -943,10 +943,7 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
                                                   GHOST_TABLET_DATA_NONE;
 
   /* Ensure button click occurs at its intended position. */
-  DWORD msgPos = ::GetMessagePos();
-  GHOST_TInt32 x_screen = GET_X_LPARAM(msgPos), y_screen = GET_Y_LPARAM(msgPos);
-  system->pushEvent(new GHOST_EventCursor(
-      system->getMilliSeconds(), GHOST_kEventCursorMove, window, x_screen, y_screen, td));
+  processCursorEvent(window);
 
   window->updateMouseCapture(type == GHOST_kEventButtonDown ? MousePressed : MouseReleased);
   return new GHOST_EventButton(system->getMilliSeconds(), type, window, mask, td);
@@ -1106,22 +1103,19 @@ void GHOST_SystemWin32::processPointerEvent(
 
 GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
 {
-  if (window->m_tabletInRange) {
-    return NULL;
-  }
-
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
-  GHOST_TInt32 x_screen, y_screen;
 
-  system->getCursorPosition(x_screen, y_screen);
+  DWORD msgPos = ::GetMessagePos();
+  GHOST_TInt32 x_screen = GET_X_LPARAM(msgPos);
+  GHOST_TInt32 y_screen = GET_Y_LPARAM(msgPos);
+  GHOST_TInt32 x_accum = 0, y_accum = 0;
 
-  if (window->getCursorGrabModeIsWarp()) {
+  if (window->getCursorGrabModeIsWarp() && !window->m_tabletInRange) {
     GHOST_TInt32 x_new = x_screen;
     GHOST_TInt32 y_new = y_screen;
-    GHOST_TInt32 x_accum, y_accum;
     GHOST_Rect bounds;
 
-    /* fallback to window bounds */
+    /* Fallback to window bounds. */
     if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
       window->getClientBounds(bounds);
     }
@@ -1132,29 +1126,19 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
 
     window->getCursorGrabAccum(x_accum, y_accum);
     if (x_new != x_screen || y_new != y_screen) {
-      /* when wrapping we don't need to add an event because the
-       * setCursorPosition call will cause a new event after */
       system->setCursorPosition(x_new, y_new); /* wrap */
       window->setCursorGrabAccum(x_accum + (x_screen - x_new), y_accum + (y_screen - y_new));
     }
-    else {
-      return new GHOST_EventCursor(system->getMilliSeconds(),
-                                   GHOST_kEventCursorMove,
-                                   window,
-                                   x_screen + x_accum,
-                                   y_screen + y_accum,
-                                   GHOST_TABLET_DATA_NONE);
-    }
   }
-  else {
-    return new GHOST_EventCursor(system->getMilliSeconds(),
-                                 GHOST_kEventCursorMove,
-                                 window,
-                                 x_screen,
-                                 y_screen,
-                                 GHOST_TABLET_DATA_NONE);
-  }
-  return NULL;
+
+  GHOST_TabletData td = window->m_tabletInRange ? window->getLastTabletData() :
+                                                  GHOST_TABLET_DATA_NONE;
+  return new GHOST_EventCursor(system->getMilliSeconds(),
+                               GHOST_kEventCursorMove,
+                               window,
+                               x_screen + x_accum,
+                               y_screen + y_accum,
+                               td);
 }
 
 void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam)
@@ -1641,7 +1625,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
             window->setWintabOverlap(true);
           }
 
-          event = processCursorEvent(window);
+          if (!window->m_tabletInRange) {
+            event = processCursorEvent(window);
+          }
           break;
         case WM_MOUSEWHEEL: {
           /* The WM_MOUSEWHEEL message is sent to the focus window
