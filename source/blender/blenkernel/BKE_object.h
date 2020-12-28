@@ -75,6 +75,7 @@ bool BKE_object_modifier_gpencil_use_time(struct Object *ob, struct GpencilModif
 
 bool BKE_object_shaderfx_use_time(struct Object *ob, struct ShaderFxData *md);
 
+bool BKE_object_supports_modifiers(const struct Object *ob);
 bool BKE_object_support_modifier_type_check(const struct Object *ob, int modifier_type);
 
 /* Active modifier. */

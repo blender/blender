@@ -256,6 +256,11 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
             "OBJECT_OT_modifier_copy");
   }
 
+  uiItemO(layout,
+          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
+          0,
+          "OBJECT_OT_modifier_copy_to_selected");
+
   uiItemS(layout);
 
   /* Move to first. */

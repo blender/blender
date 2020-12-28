@@ -1315,6 +1315,15 @@ ModifierData *BKE_object_active_modifier(const Object *ob)
   return NULL;
 }
 
+/**
+ * \return True if the object's type supports regular modifiers (not grease pencil modifiers).
+ */
+bool BKE_object_supports_modifiers(const Object *ob)
+{
+  return (
+      ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE, OB_POINTCLOUD, OB_VOLUME));
+}
+
 bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(modifier_type);
@@ -1377,6 +1386,7 @@ bool BKE_object_copy_modifier(struct Object *ob_dst, const struct Object *ob_src
   BKE_modifier_copydata(md, nmd);
   BLI_addtail(&ob_dst->modifiers, nmd);
   BKE_modifier_unique_name(&ob_dst->modifiers, nmd);
+  BKE_object_modifier_set_active(ob_dst, nmd);
 
   return true;
 }
