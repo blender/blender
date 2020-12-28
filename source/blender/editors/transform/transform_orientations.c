@@ -602,20 +602,34 @@ short transform_orientation_matrix_get(
     orientation = V3D_ORIENT_CUSTOM;
   }
 
-  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+  if ((t->spacetype == SPACE_VIEW3D) && t->region && (t->region->regiontype == RGN_TYPE_WINDOW)) {
     rv3d = t->region->regiondata;
   }
 
-  return ED_transform_calc_orientation_from_type_ex(C,
-                                                    r_spacemtx,
-                                                    /* extra args (can be accessed from context) */
-                                                    scene,
-                                                    rv3d,
-                                                    ob,
-                                                    obedit,
-                                                    orientation,
-                                                    orientation_index_custom,
-                                                    t->around);
+  short orient_type = ED_transform_calc_orientation_from_type_ex(
+      C,
+      r_spacemtx,
+      /* extra args (can be accessed from context) */
+      scene,
+      rv3d,
+      ob,
+      obedit,
+      orientation,
+      orientation_index_custom,
+      t->around);
+
+  if (rv3d && (t->options & CTX_PAINT_CURVE)) {
+    /* Screen space in the 3d region. */
+    if (orient_type == V3D_ORIENT_VIEW) {
+      unit_m3(r_spacemtx);
+    }
+    else {
+      mul_m3_m4m3(r_spacemtx, rv3d->viewmat, r_spacemtx);
+      normalize_m3(r_spacemtx);
+    }
+  }
+
+  return orient_type;
 }
 
 const char *transform_orientations_spacename_get(TransInfo *t, const short orient_type)
