@@ -169,7 +169,7 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *decorator_but)
   else if (flag & UI_BUT_ANIMATED) {
     but->icon = ICON_DECORATE_ANIMATE;
   }
-  else if (flag & UI_BUT_OVERRIDEN) {
+  else if (flag & UI_BUT_OVERRIDDEN) {
     but->icon = ICON_DECORATE_OVERRIDE;
   }
   else {

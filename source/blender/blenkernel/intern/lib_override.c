@@ -986,7 +986,7 @@ IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibra
 
 /**
  * Get the RNA-property matching the \a library_prop override property. Used for UI to query
- * additional data about the overriden property (e.g. UI name).
+ * additional data about the overridden property (e.g. UI name).
  *
  * \param idpoin: Pointer to the override ID.
  * \param library_prop: The library override property to find the matching RNA property for.

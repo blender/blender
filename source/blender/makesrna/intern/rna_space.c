@@ -3447,7 +3447,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_LIB_OVERRIDE);
   RNA_def_property_ui_text(prop,
                            "Show Library Overrides",
-                           "For libraries with overrides created, show the overriden values");
+                           "For libraries with overrides created, show the overridden values");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 }
 

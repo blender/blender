@@ -1592,10 +1592,10 @@ void ui_but_override_flag(Main *bmain, uiBut *but)
       bmain, &but->rnapoin, but->rnaprop, but->rnaindex);
 
   if (override_status & RNA_OVERRIDE_STATUS_OVERRIDDEN) {
-    but->flag |= UI_BUT_OVERRIDEN;
+    but->flag |= UI_BUT_OVERRIDDEN;
   }
   else {
-    but->flag &= ~UI_BUT_OVERRIDEN;
+    but->flag &= ~UI_BUT_OVERRIDDEN;
   }
 }
 
@@ -4537,7 +4537,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
       block, type, retval, str, x, y, width, height, NULL, min, max, a1, a2, tip);
 
   if (but->type == UI_BTYPE_NUM) {
-    /* Set default values, can be overriden later. */
+    /* Set default values, can be overridden later. */
     UI_but_number_step_size_set(but, a1);
     UI_but_number_precision_set(but, a2);
   }

@@ -784,7 +784,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
       /* Override Operators */
       uiItemS(layout);
 
-      if (but->flag & UI_BUT_OVERRIDEN) {
+      if (but->flag & UI_BUT_OVERRIDDEN) {
         if (is_array_component) {
 #if 0 /* Disabled for now. */
           ot = WM_operatortype_find("UI_OT_override_type_set_button", false);

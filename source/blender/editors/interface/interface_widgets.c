@@ -2540,7 +2540,7 @@ static const uchar *widget_color_blend_from_flags(const uiWidgetStateColors *wco
   if (state & UI_BUT_DRIVEN) {
     return wcol_state->inner_driven_sel;
   }
-  if (state & UI_BUT_OVERRIDEN) {
+  if (state & UI_BUT_OVERRIDDEN) {
     return wcol_state->inner_overridden_sel;
   }
   return NULL;
@@ -3824,7 +3824,7 @@ static void widget_swatch(
 
   ui_but_v3_get(but, col);
 
-  if ((state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_OVERRIDEN |
+  if ((state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_OVERRIDDEN |
                 UI_BUT_REDALERT)) ||
       (but->drawflag & UI_BUT_ANIMATED_CHANGED)) {
     /* draw based on state - color for keyed etc */
