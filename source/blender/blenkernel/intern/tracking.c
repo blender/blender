@@ -1380,6 +1380,84 @@ MovieTrackingMarker *BKE_tracking_marker_ensure(MovieTrackingTrack *track, int f
   return marker;
 }
 
+static const MovieTrackingMarker *get_usable_marker_for_interpolation(
+    struct MovieTrackingTrack *track,
+    const MovieTrackingMarker *anchor_marker,
+    const int direction)
+{
+  BLI_assert(direction == -1 || direction == 1);
+
+  const MovieTrackingMarker *last_marker = track->markers + track->markersnr - 1;
+  const MovieTrackingMarker *current_marker = anchor_marker;
+
+  while (current_marker >= track->markers && current_marker <= last_marker) {
+    if ((current_marker->flag & MARKER_DISABLED) == 0) {
+      return current_marker;
+    }
+    current_marker += direction;
+  }
+
+  return NULL;
+}
+
+bool BKE_tracking_marker_get_interpolated(struct MovieTrackingTrack *track,
+                                          const int framenr,
+                                          struct MovieTrackingMarker *r_marker)
+{
+  const MovieTrackingMarker *closest_marker = BKE_tracking_marker_get(track, framenr);
+  if (closest_marker == NULL) {
+    return false;
+  }
+  if (closest_marker->framenr == framenr && (closest_marker->flag & MARKER_DISABLED) == 0) {
+    *r_marker = *closest_marker;
+    return true;
+  }
+
+  const MovieTrackingMarker *left_marker = get_usable_marker_for_interpolation(
+      track, closest_marker, -1);
+  if (left_marker == NULL) {
+    return false;
+  }
+
+  const MovieTrackingMarker *right_marker = get_usable_marker_for_interpolation(
+      track, closest_marker + 1, 1);
+  if (right_marker == NULL) {
+    return false;
+  }
+
+  if (left_marker == right_marker) {
+    *r_marker = *left_marker;
+    return true;
+  }
+
+  const float factor = (float)(framenr - left_marker->framenr) /
+                       (right_marker->framenr - left_marker->framenr);
+
+  interp_v2_v2v2(r_marker->pos, left_marker->pos, right_marker->pos, factor);
+
+  for (int i = 0; i < 4; i++) {
+    interp_v2_v2v2(r_marker->pattern_corners[i],
+                   left_marker->pattern_corners[i],
+                   right_marker->pattern_corners[i],
+                   factor);
+  }
+
+  interp_v2_v2v2(r_marker->search_min, left_marker->search_min, right_marker->search_min, factor);
+  interp_v2_v2v2(r_marker->search_max, left_marker->search_max, right_marker->search_max, factor);
+
+  r_marker->framenr = framenr;
+  r_marker->flag = 0;
+
+  if (framenr == left_marker->framenr) {
+    r_marker->flag = left_marker->flag;
+  }
+  else if (framenr == right_marker->framenr) {
+    r_marker->flag = right_marker->flag;
+  }
+
+  return true;
+}
+
 void BKE_tracking_marker_pattern_minmax(const MovieTrackingMarker *marker,
                                         float min[2],
                                         float max[2])

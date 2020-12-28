@@ -139,6 +139,17 @@ struct MovieTrackingMarker *BKE_tracking_marker_get_exact(struct MovieTrackingTr
 struct MovieTrackingMarker *BKE_tracking_marker_ensure(struct MovieTrackingTrack *track,
                                                        int framenr);
 
+/* Get marker position, possibly interpolating interpolating gap between keyframed/tracked markers.
+ *
+ * The result marker frame number is set to the requested frame number. Its flags are 0 if the
+ * marker is interpolated, and is set to original marker flag if there were no interpolation
+ * involved.
+ *
+ * Returns truth if the result is usable. */
+bool BKE_tracking_marker_get_interpolated(struct MovieTrackingTrack *track,
+                                          const int framenr,
+                                          struct MovieTrackingMarker *r_marker);
+
 void BKE_tracking_marker_pattern_minmax(const struct MovieTrackingMarker *marker,
                                         float min[2],
                                         float max[2]);
