@@ -60,7 +60,7 @@ const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
      "Envelope",
      "Reshape F-Curve values, e.g. change amplitude of movements"},
     {FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles", "Cyclic extend/repeat keyframe sequence"},
-    {FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", "Add pseudorandom noise on top of F-Curves"},
+    {FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", "Add pseudo-random noise on top of F-Curves"},
     /*{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},*/ /* FIXME: not implemented yet! */
     /*{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},*/ /* FIXME: not implemented yet! */
     {FMODIFIER_TYPE_LIMITS,

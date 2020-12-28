@@ -2455,7 +2455,7 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
   prop = RNA_def_property(srna, "dopesheet_subchannel", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "ds_subchannel");
   RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Dope Sheet Subchannel", "");
+  RNA_def_property_ui_text(prop, "Dope Sheet Sub-channel", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "channel_group", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -3334,7 +3334,7 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
   prop = RNA_def_property(srna, "dopesheet_subchannel", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "ds_subchannel");
   RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Dope Sheet Subchannel", "");
+  RNA_def_property_ui_text(prop, "Dope Sheet Sub-channel", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "channels", PROP_FLOAT, PROP_COLOR_GAMMA);
