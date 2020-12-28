@@ -312,6 +312,7 @@ typedef struct wmNotifier {
 #define ND_JOB (5 << 16)
 #define ND_UNDO (6 << 16)
 #define ND_XR_DATA_CHANGED (7 << 16)
+#define ND_LIB_OVERRIDE_CHANGED (8 << 16)
 
 /* NC_SCREEN */
 #define ND_LAYOUTBROWSE (1 << 16)

@@ -82,40 +82,42 @@ static void get_instanced_data__collection(
   bke::PersistentCollectionHandle collection_handle =
       params.get_input<bke::PersistentCollectionHandle>("Collection");
   Collection *collection = params.handle_map().lookup(collection_handle);
-  if (collection != nullptr) {
-    const bool use_whole_collection = node.custom2 == 0;
-    if (use_whole_collection) {
+  if (collection == nullptr) {
+    return;
+  }
+
+  const bool use_whole_collection = node.custom2 == 0;
+  if (use_whole_collection) {
+    InstancedData instance;
+    instance.type = INSTANCE_DATA_TYPE_COLLECTION;
+    instance.data.collection = collection;
+    r_instances_data.fill(instance);
+  }
+  else {
+    Vector<InstancedData> possible_instances;
+    /* Direct child objects are instanced as objects. */
+    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+      Object *object = cob->ob;
+      InstancedData instance;
+      instance.type = INSTANCE_DATA_TYPE_OBJECT;
+      instance.data.object = object;
+      possible_instances.append(instance);
+    }
+    /* Direct child collections are instanced as collections. */
+    LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+      Collection *child_collection = child->collection;
       InstancedData instance;
       instance.type = INSTANCE_DATA_TYPE_COLLECTION;
-      instance.data.collection = collection;
-      r_instances_data.fill(instance);
+      instance.data.collection = child_collection;
+      possible_instances.append(instance);
     }
-    else {
-      Vector<InstancedData> possible_instances;
-      /* Direct child objects are instanced as objects. */
-      LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-        Object *object = cob->ob;
-        InstancedData instance;
-        instance.type = INSTANCE_DATA_TYPE_OBJECT;
-        instance.data.object = object;
-        possible_instances.append(instance);
-      }
-      /* Direct child collections are instanced as collections. */
-      LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-        Collection *child_collection = child->collection;
-        InstancedData instance;
-        instance.type = INSTANCE_DATA_TYPE_COLLECTION;
-        instance.data.collection = child_collection;
-        possible_instances.append(instance);
-      }
 
-      if (!possible_instances.is_empty()) {
-        const int seed = params.get_input<int>("Seed");
-        Array<uint32_t> ids = get_geometry_element_ids_as_uints(component, ATTR_DOMAIN_POINT);
-        for (const int i : r_instances_data.index_range()) {
-          const int index = BLI_hash_int_2d(ids[i], seed) % possible_instances.size();
-          r_instances_data[i] = possible_instances[index];
-        }
+    if (!possible_instances.is_empty()) {
+      const int seed = params.get_input<int>("Seed");
+      Array<uint32_t> ids = get_geometry_element_ids_as_uints(component, ATTR_DOMAIN_POINT);
+      for (const int i : r_instances_data.index_range()) {
+        const int index = BLI_hash_int_2d(ids[i], seed) % possible_instances.size();
+        r_instances_data[i] = possible_instances[index];
       }
     }
   }

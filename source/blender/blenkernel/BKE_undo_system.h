@@ -96,6 +96,12 @@ typedef struct UndoStep {
   /* Over alloc 'type->struct_size'. */
 } UndoStep;
 
+typedef enum UndoPushReturn {
+  UNDO_PUSH_RET_FAILURE = 0,
+  UNDO_PUSH_RET_SUCCESS = (1 << 0),
+  UNDO_PUSH_RET_OVERRIDE_CHANGED = (1 << 1),
+} UndoPushReturn;
+
 typedef void (*UndoTypeForEachIDRefFn)(void *user_data, struct UndoRefID *id_ref);
 
 typedef struct UndoType {
@@ -172,11 +178,11 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
                                                const UndoType *ut);
 UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, struct bContext *C, const char *name);
 
-bool BKE_undosys_step_push_with_type(UndoStack *ustack,
-                                     struct bContext *C,
-                                     const char *name,
-                                     const UndoType *ut);
-bool BKE_undosys_step_push(UndoStack *ustack, struct bContext *C, const char *name);
+UndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
+                                               struct bContext *C,
+                                               const char *name,
+                                               const UndoType *ut);
+UndoPushReturn BKE_undosys_step_push(UndoStack *ustack, struct bContext *C, const char *name);
 
 UndoStep *BKE_undosys_step_find_by_name_with_type(UndoStack *ustack,
                                                   const char *name,

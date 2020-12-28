@@ -493,7 +493,7 @@ static bool parent_clear_poll(bContext *C,
       case ID_OB:
         return ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE);
       case ID_GR:
-        return event->shift;
+        return event->shift || ELEM(tselem->type, TSE_LIBRARY_OVERRIDE_BASE);
       default:
         return true;
     }

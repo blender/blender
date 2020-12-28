@@ -154,12 +154,10 @@ int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
 /* This is a ported copy of dm_getLoopTriArray(dm). */
 const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
 {
-  MLoopTri *looptri;
-
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
   BLI_mutex_lock(mesh_eval_mutex);
 
-  looptri = mesh->runtime.looptris.array;
+  MLoopTri *looptri = mesh->runtime.looptris.array;
 
   if (looptri != NULL) {
     BLI_assert(BKE_mesh_runtime_looptri_len(mesh) == mesh->runtime.looptris.len);
@@ -180,8 +178,7 @@ void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
                                            const MLoopTri *looptri,
                                            int looptri_num)
 {
-  int i;
-  for (i = 0; i < looptri_num; i++) {
+  for (int i = 0; i < looptri_num; i++) {
     r_verttri[i].tri[0] = mloop[looptri[i].tri[0]].v;
     r_verttri[i].tri[1] = mloop[looptri[i].tri[1]].v;
     r_verttri[i].tri[2] = mloop[looptri[i].tri[2]].v;

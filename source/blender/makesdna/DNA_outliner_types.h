@@ -117,6 +117,8 @@ enum {
 #define TSE_SCENE_OBJECTS_BASE 41
 #define TSE_GPENCIL_EFFECT_BASE 42
 #define TSE_GPENCIL_EFFECT 43
+#define TSE_LIBRARY_OVERRIDE_BASE 44
+#define TSE_LIBRARY_OVERRIDE 45
 
 /* Check whether given TreeStoreElem should have a real ID in its ->id member. */
 #define TSE_IS_REAL_ID(_tse) \
