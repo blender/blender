@@ -5709,10 +5709,20 @@ static char *rna_idp_path(PointerRNA *ptr,
       break;
     }
     if (iter->type == IDP_GROUP) {
-      /* ensure this is RNA */
+      /* Ensure this is RNA. */
       PropertyRNA *prop = RNA_struct_find_property(ptr, iter->name);
-      if (prop && prop->type == PROP_POINTER) {
+
+      /* NOTE: `iter` might be a fully user-defined IDProperty (a.k.a. custom data), which name
+       * collides with an actual fully static RNA property of the same struct (which would then not
+       * be flagged with `PROP_IDPROPERTY`).
+       *
+       * That case must be ignored here, we only want to deal with runtime RNA properties stored in
+       * IDProps here.
+       *
+       * See T84091. */
+      if (prop != NULL && prop->type == PROP_POINTER && (prop->flag & PROP_IDPROPERTY) != 0) {
         PointerRNA child_ptr = RNA_property_pointer_get(ptr, prop);
+        BLI_assert(child_ptr.type != NULL);
         link.name = iter->name;
         link.index = -1;
         if ((path = rna_idp_path(&child_ptr, iter, needle, &link))) {
@@ -5722,7 +5732,8 @@ static char *rna_idp_path(PointerRNA *ptr,
     }
     else if (iter->type == IDP_IDPARRAY) {
       PropertyRNA *prop = RNA_struct_find_property(ptr, iter->name);
-      if (prop && prop->type == PROP_COLLECTION) {
+      /* See comment above in `IDP_GROUP` case, same applies here. */
+      if (prop != NULL && prop->type == PROP_COLLECTION && (prop->flag & PROP_IDPROPERTY) != 0) {
         IDProperty *array = IDP_IDPArray(iter);
         if (needle >= array && needle < (iter->len + array)) { /* found! */
           link.name = iter->name;
@@ -5735,6 +5746,7 @@ static char *rna_idp_path(PointerRNA *ptr,
         for (j = 0; j < iter->len; j++, array++) {
           PointerRNA child_ptr;
           if (RNA_property_collection_lookup_int(ptr, prop, j, &child_ptr)) {
+            BLI_assert(child_ptr.type != NULL);
             link.index = j;
             if ((path = rna_idp_path(&child_ptr, array, needle, &link))) {
               break;
@@ -5752,7 +5764,10 @@ static char *rna_idp_path(PointerRNA *ptr,
 }
 
 /**
- * Find the path from the structure referenced by the pointer to the #IDProperty object.
+ * Find the path from the structure referenced by the pointer to the runtime RNA-defined
+ * #IDProperty object.
+ *
+ * \note Does *not* handle pure user-defined IDProperties (a.k.a. custom properties).
  *
  * \param ptr: Reference to the object owning the custom property storage.
  * \param needle: Custom property object to find.
