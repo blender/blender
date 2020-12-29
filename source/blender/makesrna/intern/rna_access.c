@@ -5730,7 +5730,7 @@ static char *rna_idp_path(PointerRNA *ptr,
     if (iter->type == IDP_GROUP) {
       if (prop->type == PROP_POINTER) {
         PointerRNA child_ptr = RNA_property_pointer_get(ptr, prop);
-        BLI_assert(child_ptr.type != NULL);
+        BLI_assert(!RNA_pointer_is_null(&child_ptr));
         link.name = iter->name;
         link.index = -1;
         if ((path = rna_idp_path(&child_ptr, iter, needle, &link))) {
@@ -5752,7 +5752,7 @@ static char *rna_idp_path(PointerRNA *ptr,
         for (j = 0; j < iter->len; j++, array++) {
           PointerRNA child_ptr;
           if (RNA_property_collection_lookup_int(ptr, prop, j, &child_ptr)) {
-            BLI_assert(child_ptr.type != NULL);
+            BLI_assert(!RNA_pointer_is_null(&child_ptr));
             link.index = j;
             if ((path = rna_idp_path(&child_ptr, array, needle, &link))) {
               break;
