@@ -8257,14 +8257,23 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 
 /**** Toggle operator for turning sculpt mode on or off ****/
 
-/** \warning Expects a fully evaluated depsgraph. */
-static void sculpt_init_session(Depsgraph *depsgraph, Scene *scene, Object *ob)
+static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   /* Create persistent sculpt mode data. */
   BKE_sculpt_toolsettings_data_ensure(scene);
 
+  /* Create sculpt mode session data. */
+  if (ob->sculpt != NULL) {
+    BKE_sculptsession_free(ob);
+  }
   ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = OB_MODE_SCULPT;
+
+  BKE_sculpt_ensure_orig_mesh_data(scene, ob);
+
+  BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+
+  /* This function expects a fully evaluated depsgraph. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   /* Here we can detect geometry that was just added to Sculpt Mode as it has the
@@ -8299,40 +8308,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   /* Enter sculpt mode. */
   ob->mode |= mode_flag;
 
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
-
-  /* Create sculpt mode session data. */
-  if (ob->sculpt) {
-    BKE_sculptsession_free(ob);
-  }
-
-  /* Copy the current mesh visibility to the Face Sets. */
-  BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(me);
-
-  /* Mask layer is required for Multires. */
-  BKE_sculpt_mask_layers_ensure(ob, mmd);
-
-  /* Tessfaces aren't used and will become invalid. */
-  BKE_mesh_tessface_clear(me);
-
-  /* We always need to flush updates from depsgraph here, since at the very least
-   * `BKE_sculpt_face_sets_ensure_from_base_mesh_visibility()` will have updated some data layer of
-   * the mesh.
-   *
-   * All known potential sources of updates:
-   *   - Addition of, or changes to, the `CD_SCULPT_FACE_SETS` data layer
-   *     (`BKE_sculpt_face_sets_ensure_from_base_mesh_visibility`).
-   *   - Addition of a `CD_PAINT_MASK` data layer (`BKE_sculpt_mask_layers_ensure`).
-   *   - Object has any active modifier (modifier stack can be different in Sculpt mode).
-   *   - Multires:
-   *     + Differences of subdiv levels between sculpt and object modes
-   *       (`mmd->sculptlvl != mmd->lvl`).
-   *     + Addition of a `CD_GRID_PAINT_MASK` data layer (`BKE_sculpt_mask_layers_ensure`).
-   */
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
-
-  sculpt_init_session(depsgraph, scene, ob);
+  sculpt_init_session(bmain, depsgraph, scene, ob);
 
   if (!(fabsf(ob->scale[0] - ob->scale[1]) < 1e-4f &&
         fabsf(ob->scale[1] - ob->scale[2]) < 1e-4f)) {
@@ -8351,6 +8327,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   /* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
    * As long as no data was added that is not supported. */
   if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
+
     const char *message_unsupported = NULL;
     if (me->totloop != me->totpoly * 3) {
       message_unsupported = TIP_("non-triangle face");

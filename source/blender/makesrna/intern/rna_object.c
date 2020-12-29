@@ -483,6 +483,17 @@ static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), Poin
   WM_main_add_notifier(NC_OBJECT | ND_PARENT, ptr->owner_id);
 }
 
+void rna_Object_data_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->data;
+
+  if (object->mode == OB_MODE_SCULPT) {
+    BKE_sculpt_ensure_orig_mesh_data(scene, object);
+  }
+
+  rna_Object_internal_update_data_dependency(bmain, scene, ptr);
+}
+
 static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)
 {
   Object *ob = (Object *)ptr->data;
@@ -2679,7 +2690,7 @@ static void rna_def_object(BlenderRNA *brna)
       prop, NULL, "rna_Object_data_set", "rna_Object_data_typef", "rna_Object_data_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Data", "Object data");
-  RNA_def_property_update(prop, 0, "rna_Object_internal_update_data_dependency");
+  RNA_def_property_update(prop, 0, "rna_Object_data_update");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
