@@ -73,9 +73,15 @@ enum transDataTracking_Mode {
  *
  * \{ */
 
-static void markerToTransDataInit(TransData *td,
-                                  TransData2D *td2d,
-                                  TransDataTracking *tdt,
+typedef struct TransformInitContext {
+  struct {
+    TransData *td;
+    TransData2D *td2d;
+    TransDataTracking *tdt;
+  } current;
+} TransformInitContext;
+
+static void markerToTransDataInit(TransformInitContext *init_context,
                                   MovieTrackingTrack *track,
                                   MovieTrackingMarker *marker,
                                   int area,
@@ -84,8 +90,13 @@ static void markerToTransDataInit(TransData *td,
                                   const float off[2],
                                   const float aspect[2])
 {
+  TransData *td = init_context->current.td;
+  TransData2D *td2d = init_context->current.td2d;
+  TransDataTracking *tdt = init_context->current.tdt;
+
   int anchor = area == TRACK_AREA_POINT && off;
 
+  tdt->flag = marker->flag;
   tdt->mode = transDataTracking_ModeTracks;
 
   if (anchor) {
@@ -143,23 +154,20 @@ static void markerToTransDataInit(TransData *td,
 
   unit_m3(td->mtx);
   unit_m3(td->smtx);
+
+  init_context->current.td++;
+  init_context->current.td2d++;
+  init_context->current.tdt++;
 }
 
-static void trackToTransData(const int framenr,
-                             TransData *td,
-                             TransData2D *td2d,
-                             TransDataTracking *tdt,
+static void trackToTransData(TransformInitContext *init_context,
+                             const int framenr,
                              MovieTrackingTrack *track,
                              const float aspect[2])
 {
   MovieTrackingMarker *marker = BKE_tracking_marker_ensure(track, framenr);
 
-  tdt->flag = marker->flag;
-  marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
-
-  markerToTransDataInit(td++,
-                        td2d++,
-                        tdt++,
+  markerToTransDataInit(init_context,
                         track,
                         marker,
                         TRACK_AREA_POINT,
@@ -170,16 +178,14 @@ static void trackToTransData(const int framenr,
 
   if (track->flag & SELECT) {
     markerToTransDataInit(
-        td++, td2d++, tdt++, track, marker, TRACK_AREA_POINT, marker->pos, NULL, NULL, aspect);
+        init_context, track, marker, TRACK_AREA_POINT, marker->pos, NULL, NULL, aspect);
   }
 
   if (track->pat_flag & SELECT) {
     int a;
 
     for (a = 0; a < 4; a++) {
-      markerToTransDataInit(td++,
-                            td2d++,
-                            tdt++,
+      markerToTransDataInit(init_context,
                             track,
                             marker,
                             TRACK_AREA_PAT,
@@ -191,9 +197,7 @@ static void trackToTransData(const int framenr,
   }
 
   if (track->search_flag & SELECT) {
-    markerToTransDataInit(td++,
-                          td2d++,
-                          tdt++,
+    markerToTransDataInit(init_context,
                           track,
                           marker,
                           TRACK_AREA_SEARCH,
@@ -202,9 +206,7 @@ static void trackToTransData(const int framenr,
                           NULL,
                           aspect);
 
-    markerToTransDataInit(td++,
-                          td2d++,
-                          tdt++,
+    markerToTransDataInit(init_context,
                           track,
                           marker,
                           TRACK_AREA_SEARCH,
@@ -213,15 +215,21 @@ static void trackToTransData(const int framenr,
                           NULL,
                           aspect);
   }
+
+  marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
 }
 
-static void planeMarkerToTransDataInit(TransData *td,
-                                       TransData2D *td2d,
-                                       TransDataTracking *tdt,
+static void planeMarkerToTransDataInit(TransformInitContext *init_context,
                                        MovieTrackingPlaneTrack *plane_track,
+                                       MovieTrackingPlaneMarker *plane_marker,
                                        float corner[2],
                                        const float aspect[2])
 {
+  TransData *td = init_context->current.td;
+  TransData2D *td2d = init_context->current.td2d;
+  TransDataTracking *tdt = init_context->current.tdt;
+
+  tdt->flag = plane_marker->flag;
   tdt->mode = transDataTracking_ModePlaneTracks;
   tdt->plane_track = plane_track;
 
@@ -247,24 +255,25 @@ static void planeMarkerToTransDataInit(TransData *td,
 
   unit_m3(td->mtx);
   unit_m3(td->smtx);
+
+  init_context->current.td++;
+  init_context->current.td2d++;
+  init_context->current.tdt++;
 }
 
-static void planeTrackToTransData(const int framenr,
-                                  TransData *td,
-                                  TransData2D *td2d,
-                                  TransDataTracking *tdt,
+static void planeTrackToTransData(TransformInitContext *init_context,
+                                  const int framenr,
                                   MovieTrackingPlaneTrack *plane_track,
                                   const float aspect[2])
 {
   MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_ensure(plane_track, framenr);
-  int i;
 
-  tdt->flag = plane_marker->flag;
-  plane_marker->flag &= ~PLANE_MARKER_TRACKED;
-
-  for (i = 0; i < 4; i++) {
-    planeMarkerToTransDataInit(td++, td2d++, tdt++, plane_track, plane_marker->corners[i], aspect);
+  for (int i = 0; i < 4; i++) {
+    planeMarkerToTransDataInit(
+        init_context, plane_track, plane_marker, plane_marker->corners[i], aspect);
   }
+
+  plane_marker->flag &= ~PLANE_MARKER_TRACKED;
 }
 
 static void transDataTrackingFree(TransInfo *UNUSED(t),
@@ -339,34 +348,16 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
   tc->custom.type.free_cb = transDataTrackingFree;
 
+  TransformInitContext init_context;
+  init_context.current.td = td;
+  init_context.current.td2d = td2d;
+  init_context.current.tdt = tdt;
+
   /* create actual data */
   track = tracksbase->first;
   while (track) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-      trackToTransData(framenr, td, td2d, tdt, track, t->aspect);
-
-      /* offset */
-      td++;
-      td2d++;
-      tdt++;
-
-      if (track->flag & SELECT) {
-        td++;
-        td2d++;
-        tdt++;
-      }
-
-      if (track->pat_flag & SELECT) {
-        td += 4;
-        td2d += 4;
-        tdt += 4;
-      }
-
-      if (track->search_flag & SELECT) {
-        td += 2;
-        td2d += 2;
-        tdt += 2;
-      }
+      trackToTransData(&init_context, framenr, track, t->aspect);
     }
 
     track = track->next;
@@ -374,10 +365,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
   for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
     if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
-      planeTrackToTransData(framenr, td, td2d, tdt, plane_track, t->aspect);
-      td += 4;
-      td2d += 4;
-      tdt += 4;
+      planeTrackToTransData(&init_context, framenr, plane_track, t->aspect);
     }
   }
 }
