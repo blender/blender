@@ -1911,6 +1911,7 @@ static void draw_seq_backdrop(View2D *v2d)
   while (line_len--) {
     immVertex2f(pos, v2d->cur.xmax, i);
     immVertex2f(pos, v2d->cur.xmin, i);
+    i++;
   }
   immEnd();
 
