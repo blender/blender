@@ -361,7 +361,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
   Sequence *seqn = MEM_dupallocN(seq);
 
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-    SEQ_relations_session_uuid_generate(seq);
+    SEQ_relations_session_uuid_generate(seqn);
   }
 
   seq->tmp = seqn;

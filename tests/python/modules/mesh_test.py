@@ -251,7 +251,7 @@ class MeshTest:
             bpy.data.objects.remove(self.expected_object, do_unlink=True)
             evaluated_test_object.name = expected_object_name
 
-            # Save file
+            # Save file.
             bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
 
             self._test_updated = True
@@ -482,7 +482,7 @@ class MeshTest:
         try:
             retval = object_operator(**operator.operator_parameters)
         except AttributeError:
-            raise AttributeError("bpy.ops.mesh has no attribute {}".format(operator.operator_name))
+            raise AttributeError("bpy.ops.object has no attribute {}".format(operator.operator_name))
         except TypeError as ex:
             raise TypeError("Incorrect operator parameters {!r} raised {!r}".format(operator.operator_parameters, ex))
 

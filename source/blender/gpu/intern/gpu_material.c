@@ -803,14 +803,11 @@ void GPU_material_compile(GPUMaterial *mat)
 
 void GPU_materials_free(Main *bmain)
 {
-  Material *ma;
-  World *wo;
-
-  for (ma = bmain->materials.first; ma; ma = ma->id.next) {
+  LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
     GPU_material_free(&ma->gpumaterial);
   }
 
-  for (wo = bmain->worlds.first; wo; wo = wo->id.next) {
+  LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
     GPU_material_free(&wo->gpumaterial);
   }
 
