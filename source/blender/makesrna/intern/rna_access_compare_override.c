@@ -52,6 +52,74 @@
 #include "rna_access_internal.h"
 #include "rna_internal.h"
 
+/**
+ * Find the actual ID owner of the given \a ptr #PointerRNA, in override sense, and generate the
+ * full rna path from it to given \a prop #PropertyRNA if \a rna_path is given.
+ *
+ * \note this is slightly different than 'generic' RNA 'id owner' as returned by
+ * #RNA_find_real_ID_and_path, since in overrides we also consider shape keys as embedded data, not
+ * only root node trees and master collections.
+ */
+static ID *rna_property_override_property_real_id_owner(Main *bmain,
+                                                        PointerRNA *ptr,
+                                                        PropertyRNA *prop,
+                                                        char **r_rna_path)
+{
+  ID *id = ptr->owner_id;
+  ID *owner_id = id;
+  const char *rna_path_prefix = NULL;
+
+  if (r_rna_path != NULL) {
+    *r_rna_path = NULL;
+  }
+
+  if (id == NULL) {
+    return NULL;
+  }
+
+  if (id->flag & (LIB_EMBEDDED_DATA | LIB_EMBEDDED_DATA_LIB_OVERRIDE)) {
+    /* XXX this is very bad band-aid code, but for now it will do.
+     * We should at least use a #define for those prop names.
+     * Ideally RNA as a whole should be aware of those PITA of embedded IDs, and have a way to
+     * retrieve their owner IDs and generate paths from those.
+     */
+
+    switch (GS(id->name)) {
+      case ID_KE:
+        owner_id = ((Key *)id)->from;
+        rna_path_prefix = "shape_keys.";
+        break;
+      case ID_GR:
+      case ID_NT:
+        /* Master collections, Root node trees. */
+        owner_id = RNA_find_real_ID_and_path(bmain, id, &rna_path_prefix);
+        break;
+      default:
+        BLI_assert(0);
+    }
+  }
+
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
+    return NULL;
+  }
+
+  if (r_rna_path == NULL) {
+    return owner_id;
+  }
+
+  char *rna_path = RNA_path_from_ID_to_property(ptr, prop);
+  if (rna_path) {
+    *r_rna_path = rna_path;
+    if (rna_path_prefix != NULL) {
+      *r_rna_path = BLI_sprintfN("%s%s", rna_path_prefix, rna_path);
+      MEM_freeN(rna_path);
+    }
+
+    return owner_id;
+  }
+  return NULL;
+}
+
 int RNA_property_override_flag(PropertyRNA *prop)
 {
   return rna_ensure_property(prop)->flag_override;
@@ -1115,61 +1183,6 @@ void RNA_struct_override_apply(Main *bmain,
 #endif
 }
 
-static char *rna_property_override_property_real_id_owner(Main *bmain,
-                                                          PointerRNA *ptr,
-                                                          PropertyRNA *prop,
-                                                          ID **r_id)
-{
-  ID *id = ptr->owner_id;
-  ID *owner_id = id;
-  const char *rna_path_prefix = NULL;
-
-  *r_id = NULL;
-
-  if (id == NULL) {
-    return NULL;
-  }
-
-  if (id->flag & (LIB_EMBEDDED_DATA | LIB_EMBEDDED_DATA_LIB_OVERRIDE)) {
-    /* XXX this is very bad band-aid code, but for now it will do.
-     * We should at least use a #define for those prop names.
-     * Ideally RNA as a whole should be aware of those PITA of embedded IDs, and have a way to
-     * retrieve their owner IDs and generate paths from those.
-     */
-
-    switch (GS(id->name)) {
-      case ID_KE:
-        owner_id = ((Key *)id)->from;
-        rna_path_prefix = "shape_keys.";
-        break;
-      case ID_GR:
-      case ID_NT:
-        /* Master collections, Root node trees. */
-        owner_id = RNA_find_real_ID_and_path(bmain, id, &rna_path_prefix);
-        break;
-      default:
-        BLI_assert(0);
-    }
-  }
-
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
-    return NULL;
-  }
-
-  char *rna_path = RNA_path_from_ID_to_property(ptr, prop);
-  if (rna_path) {
-    char *rna_path_full = rna_path;
-    if (rna_path_prefix != NULL) {
-      rna_path_full = BLI_sprintfN("%s%s", rna_path_prefix, rna_path);
-      MEM_freeN(rna_path);
-    }
-
-    *r_id = owner_id;
-    return rna_path_full;
-  }
-  return NULL;
-}
-
 IDOverrideLibraryProperty *RNA_property_override_property_find(Main *bmain,
                                                                PointerRNA *ptr,
                                                                PropertyRNA *prop,
@@ -1177,8 +1190,8 @@ IDOverrideLibraryProperty *RNA_property_override_property_find(Main *bmain,
 {
   char *rna_path;
 
-  if ((rna_path = rna_property_override_property_real_id_owner(bmain, ptr, prop, r_owner_id)) !=
-      NULL) {
+  *r_owner_id = rna_property_override_property_real_id_owner(bmain, ptr, prop, &rna_path);
+  if (rna_path != NULL) {
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(
         (*r_owner_id)->override_library, rna_path);
     MEM_freeN(rna_path);
@@ -1192,14 +1205,14 @@ IDOverrideLibraryProperty *RNA_property_override_property_get(Main *bmain,
                                                               PropertyRNA *prop,
                                                               bool *r_created)
 {
-  ID *id;
   char *rna_path;
 
   if (r_created != NULL) {
     *r_created = false;
   }
 
-  if ((rna_path = rna_property_override_property_real_id_owner(bmain, ptr, prop, &id)) != NULL) {
+  ID *id = rna_property_override_property_real_id_owner(bmain, ptr, prop, &rna_path);
+  if (rna_path != NULL) {
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
         id->override_library, rna_path, r_created);
     MEM_freeN(rna_path);

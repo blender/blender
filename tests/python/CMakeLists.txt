@@ -172,6 +172,14 @@ add_blender_test(
   --python-text run_tests
 )
 
+add_blender_test(
+  curve_to_mesh
+  ${TEST_SRC_DIR}/modeling/curve_to_mesh.blend
+  --python ${TEST_PYTHON_DIR}/curve_to_mesh.py
+  --
+  --run-all-tests
+)
+
 # ------------------------------------------------------------------------------
 # MODIFIERS TESTS
 add_blender_test(
