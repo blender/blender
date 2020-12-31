@@ -6246,3 +6246,56 @@ float cubic_tangent_factor_circle_v3(const float tan_l[3], const float tan_r[3])
   const float angle_cos = cosf(angle);
   return ((1.0f - angle_cos) / (angle_sin * 2.0f)) / angle_sin;
 }
+
+/**
+ * Utility for computing approximate geodesic distances on triangle meshes.
+ *
+ * Given triangle with vertex coordinates v0, v1, v2, and known geodesic distances
+ * dist1 and dist2 at v1 and v2, estimate a geodesic distance at vertex v0.
+ *
+ * From "Dart Throwing on Surfaces", EGSR 2009. Section 7, Geodesic Dart Throwing.
+ */
+float geodesic_distance_propagate_across_triangle(
+    const float v0[3], const float v1[3], const float v2[3], const float dist1, const float dist2)
+{
+  /* Vectors along triangle edges. */
+  float v10[3], v12[3];
+  sub_v3_v3v3(v10, v0, v1);
+  sub_v3_v3v3(v12, v2, v1);
+
+  if (dist1 != 0.0f && dist2 != 0.0f) {
+    /* Local coordinate system in the triangle plane. */
+    float u[3], v[3], n[3];
+    const float d12 = normalize_v3_v3(u, v12);
+
+    if (d12 * d12 > 0.0f) {
+      cross_v3_v3v3(n, v12, v10);
+      normalize_v3(n);
+      cross_v3_v3v3(v, n, u);
+
+      /* v0 in local coordinates */
+      const float v0_[2] = {dot_v3v3(v10, u), fabsf(dot_v3v3(v10, v))};
+
+      /* Compute virtual source point in local coordinates, that we estimate the geodesic
+       * distance is being computed from. See figure 9 in the paper for the derivation. */
+      const float a = 0.5f * (1.0f + (dist1 * dist1 - dist2 * dist2) / (d12 * d12));
+      const float hh = dist1 * dist1 - a * a * d12 * d12;
+
+      if (hh > 0.0f) {
+        const float h = sqrtf(hh);
+        const float S_[2] = {a * d12, -h};
+
+        /* Only valid if the line between the source point and v0 crosses
+         * the edge between v1 and v2. */
+        const float x_intercept = S_[0] + h * (v0_[0] - S_[0]) / (v0_[1] + h);
+        if (x_intercept >= 0.0f && x_intercept <= d12) {
+          return len_v2v2(S_, v0_);
+        }
+      }
+    }
+  }
+
+  /* Fall back to Dijsktra approximaton in trivial case, or if no valid source
+   * point found that connects to v0 across the triangle. */
+  return min_ff(dist1 + len_v3(v10), dist2 + len_v3v3(v0, v2));
+}

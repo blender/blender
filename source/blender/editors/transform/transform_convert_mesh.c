@@ -251,29 +251,55 @@ void transform_convert_mesh_islanddata_free(struct TransIslandData *island_data)
  *
  * \{ */
 
-static bool bmesh_test_dist_add(BMVert *v,
-                                BMVert *v_other,
+/* Propagate distance from v1 and v2 to v0. */
+static bool bmesh_test_dist_add(BMVert *v0,
+                                BMVert *v1,
+                                BMVert *v2,
                                 float *dists,
-                                const float *dists_prev,
                                 /* optionally track original index */
                                 int *index,
-                                const int *index_prev,
                                 const float mtx[3][3])
 {
-  if ((BM_elem_flag_test(v_other, BM_ELEM_SELECT) == 0) &&
-      (BM_elem_flag_test(v_other, BM_ELEM_HIDDEN) == 0)) {
-    const int i = BM_elem_index_get(v);
-    const int i_other = BM_elem_index_get(v_other);
-    float vec[3];
-    float dist_other;
-    sub_v3_v3v3(vec, v->co, v_other->co);
-    mul_m3_v3(mtx, vec);
+  if ((BM_elem_flag_test(v0, BM_ELEM_SELECT) == 0) &&
+      (BM_elem_flag_test(v0, BM_ELEM_HIDDEN) == 0)) {
+    const int i0 = BM_elem_index_get(v0);
+    const int i1 = BM_elem_index_get(v1);
 
-    dist_other = dists_prev[i] + len_v3(vec);
-    if (dist_other < dists[i_other]) {
-      dists[i_other] = dist_other;
+    BLI_assert(dists[i1] != FLT_MAX);
+    if (dists[i0] <= dists[i1]) {
+      return false;
+    }
+
+    float dist0;
+
+    if (v2) {
+      /* Distance across triangle. */
+      const int i2 = BM_elem_index_get(v2);
+      BLI_assert(dists[i2] != FLT_MAX);
+      if (dists[i0] <= dists[i2]) {
+        return false;
+      }
+
+      float vm0[3], vm1[3], vm2[3];
+      mul_v3_m3v3(vm0, mtx, v0->co);
+      mul_v3_m3v3(vm1, mtx, v1->co);
+      mul_v3_m3v3(vm2, mtx, v2->co);
+
+      dist0 = geodesic_distance_propagate_across_triangle(vm0, vm1, vm2, dists[i1], dists[i2]);
+    }
+    else {
+      /* Distance along edge. */
+      float vec[3];
+      sub_v3_v3v3(vec, v1->co, v0->co);
+      mul_m3_v3(mtx, vec);
+
+      dist0 = dists[i1] + len_v3(vec);
+    }
+
+    if (dist0 < dists[i0]) {
+      dists[i0] = dist0;
       if (index != NULL) {
-        index[i_other] = index_prev[i];
+        index[i0] = index[i1];
       }
       return true;
     }
@@ -292,15 +318,16 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
                                                   float *dists,
                                                   int *index)
 {
-  BLI_LINKSTACK_DECLARE(queue, BMVert *);
+  BLI_LINKSTACK_DECLARE(queue, BMEdge *);
 
-  /* any BM_ELEM_TAG'd vertex is in 'queue_next', so we don't add in twice */
-  BLI_LINKSTACK_DECLARE(queue_next, BMVert *);
+  /* any BM_ELEM_TAG'd edge is in 'queue_next', so we don't add in twice */
+  BLI_LINKSTACK_DECLARE(queue_next, BMEdge *);
 
   BLI_LINKSTACK_INIT(queue);
   BLI_LINKSTACK_INIT(queue_next);
 
   {
+    /* Set indexes and initial distances for selected vertices. */
     BMIter viter;
     BMVert *v;
     int i;
@@ -308,7 +335,6 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
     BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
       float dist;
       BM_elem_index_set(v, i); /* set_inline */
-      BM_elem_flag_disable(v, BM_ELEM_TAG);
 
       if (BM_elem_flag_test(v, BM_ELEM_SELECT) == 0 || BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
         dist = FLT_MAX;
@@ -317,7 +343,6 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
         }
       }
       else {
-        BLI_LINKSTACK_PUSH(queue, v);
         dist = 0.0f;
         if (index != NULL) {
           index[i] = i;
@@ -329,103 +354,99 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
     bm->elem_index_dirty &= ~BM_VERT;
   }
 
-  /* need to be very careful of feedback loops here, store previous dist's to avoid feedback */
-  float *dists_prev = MEM_dupallocN(dists);
-  int *index_prev = MEM_dupallocN(index); /* may be NULL */
+  {
+    /* Add edges with at least one selected vertex to the queue. */
+    BMIter eiter;
+    BMEdge *e;
+
+    BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+      BMVert *v1 = e->v1;
+      BMVert *v2 = e->v2;
+      int i1 = BM_elem_index_get(v1);
+      int i2 = BM_elem_index_get(v2);
+
+      if (dists[i1] != FLT_MAX || dists[i2] != FLT_MAX) {
+        BLI_LINKSTACK_PUSH(queue, e);
+      }
+      BM_elem_flag_disable(e, BM_ELEM_TAG);
+    }
+  }
 
   do {
-    BMVert *v;
-    LinkNode *lnk;
+    BMEdge *e;
 
-    /* this is correct but slow to do each iteration,
-     * instead sync the dist's while clearing BM_ELEM_TAG (below) */
-#if 0
-    memcpy(dists_prev, dists, sizeof(float) * bm->totvert);
-#endif
+    while ((e = BLI_LINKSTACK_POP(queue))) {
+      BMVert *v1 = e->v1;
+      BMVert *v2 = e->v2;
+      int i1 = BM_elem_index_get(v1);
+      int i2 = BM_elem_index_get(v2);
 
-    while ((v = BLI_LINKSTACK_POP(queue))) {
-      BLI_assert(dists[BM_elem_index_get(v)] != FLT_MAX);
+      if (e->l == NULL || (dists[i1] == FLT_MAX || dists[i2] == FLT_MAX)) {
+        /* Propagate along edge from vertex with smallest to largest distance. */
+        if (dists[i1] > dists[i2]) {
+          SWAP(int, i1, i2);
+          SWAP(BMVert *, v1, v2);
+        }
 
-      /* connected edge-verts */
-      if (v->e != NULL) {
-        BMEdge *e_iter, *e_first;
+        if (bmesh_test_dist_add(v2, v1, NULL, dists, index, mtx)) {
+          /* Add adjacent loose edges to the queue, or all edges if this is a loose edge.
+           * Other edges are handled by propagation across edges below. */
+          BMEdge *e_other;
+          BMIter eiter;
+          BM_ITER_ELEM (e_other, &eiter, v2, BM_EDGES_OF_VERT) {
+            if (e_other != e && BM_elem_flag_test(e_other, BM_ELEM_TAG) == 0 &&
+                (e->l == NULL || e_other->l == NULL)) {
+              BM_elem_flag_enable(e_other, BM_ELEM_TAG);
+              BLI_LINKSTACK_PUSH(queue_next, e_other);
+            }
+          }
+        }
+      }
 
-        e_iter = e_first = v->e;
+      if (e->l != NULL) {
+        /* Propagate across edge to vertices in adjacent faces. */
+        BMLoop *l;
+        BMIter liter;
+        BM_ITER_ELEM (l, &liter, e, BM_LOOPS_OF_EDGE) {
+          for (BMLoop *l_other = l->next->next; l_other != l; l_other = l_other->next) {
+            BMVert *v_other = l_other->v;
+            BLI_assert(!ELEM(v_other, v1, v2));
 
-        /* would normally use BM_EDGES_OF_VERT, but this runs so often,
-         * its faster to iterate on the data directly */
-        do {
-
-          if (BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN) == 0) {
-
-            /* edge distance */
-            {
-              BMVert *v_other = BM_edge_other_vert(e_iter, v);
-              if (bmesh_test_dist_add(v, v_other, dists, dists_prev, index, index_prev, mtx)) {
-                if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
-                  BM_elem_flag_enable(v_other, BM_ELEM_TAG);
-                  BLI_LINKSTACK_PUSH(queue_next, v_other);
+            if (bmesh_test_dist_add(v_other, v1, v2, dists, index, mtx)) {
+              /* Add adjacent edges to the queue, if they are ready to propagate across/along.
+               * Always propagate along loose edges, and for other edges only propagate across
+               * if both vertices have a known distances. */
+              BMEdge *e_other;
+              BMIter eiter;
+              BM_ITER_ELEM (e_other, &eiter, v_other, BM_EDGES_OF_VERT) {
+                if (e_other != e && BM_elem_flag_test(e_other, BM_ELEM_TAG) == 0 &&
+                    (e_other->l == NULL ||
+                     dists[BM_elem_index_get(BM_edge_other_vert(e_other, v_other))] != FLT_MAX)) {
+                  BM_elem_flag_enable(e_other, BM_ELEM_TAG);
+                  BLI_LINKSTACK_PUSH(queue_next, e_other);
                 }
               }
             }
-
-            /* face distance */
-            if (e_iter->l) {
-              BMLoop *l_iter_radial, *l_first_radial;
-              /**
-               * imaginary edge diagonally across quad.
-               * \note This takes advantage of the rules of winding that we
-               * know 2 or more of a verts edges wont reference the same face twice.
-               * Also, if the edge is hidden, the face will be hidden too.
-               */
-              l_iter_radial = l_first_radial = e_iter->l;
-
-              do {
-                if ((l_iter_radial->v == v) && (l_iter_radial->f->len == 4) &&
-                    (BM_elem_flag_test(l_iter_radial->f, BM_ELEM_HIDDEN) == 0)) {
-                  BMVert *v_other = l_iter_radial->next->next->v;
-                  if (bmesh_test_dist_add(v, v_other, dists, dists_prev, index, index_prev, mtx)) {
-                    if (BM_elem_flag_test(v_other, BM_ELEM_TAG) == 0) {
-                      BM_elem_flag_enable(v_other, BM_ELEM_TAG);
-                      BLI_LINKSTACK_PUSH(queue_next, v_other);
-                    }
-                  }
-                }
-              } while ((l_iter_radial = l_iter_radial->radial_next) != l_first_radial);
-            }
           }
-        } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
+        }
       }
     }
 
-    /* clear for the next loop */
-    for (lnk = queue_next; lnk; lnk = lnk->next) {
-      BMVert *v_link = lnk->link;
-      const int i = BM_elem_index_get(v_link);
+    /* Clear for the next loop. */
+    for (LinkNode *lnk = queue_next; lnk; lnk = lnk->next) {
+      BMEdge *e_link = lnk->link;
 
-      BM_elem_flag_disable(v_link, BM_ELEM_TAG);
-
-      /* keep in sync, avoid having to do full memcpy each iteration */
-      dists_prev[i] = dists[i];
-      if (index != NULL) {
-        index_prev[i] = index[i];
-      }
+      BM_elem_flag_disable(e_link, BM_ELEM_TAG);
     }
 
     BLI_LINKSTACK_SWAP(queue, queue_next);
 
-    /* none should be tagged now since 'queue_next' is empty */
-    BLI_assert(BM_iter_mesh_count_flag(BM_VERTS_OF_MESH, bm, BM_ELEM_TAG, true) == 0);
-
+    /* None should be tagged now since 'queue_next' is empty. */
+    BLI_assert(BM_iter_mesh_count_flag(BM_EDGES_OF_MESH, bm, BM_ELEM_TAG, true) == 0);
   } while (BLI_LINKSTACK_SIZE(queue));
 
   BLI_LINKSTACK_FREE(queue);
   BLI_LINKSTACK_FREE(queue_next);
-
-  MEM_freeN(dists_prev);
-  if (index_prev != NULL) {
-    MEM_freeN(index_prev);
-  }
 }
 
 /** \} */
