@@ -61,7 +61,7 @@ static CLG_LogRef LOG = {"rna.access_compare_override"};
  * Find the actual ID owner of the given \a ptr #PointerRNA, in override sense, and generate the
  * full rna path from it to given \a prop #PropertyRNA if \a rna_path is given.
  *
- * \note this is slightly different than 'generic' RNA 'id owner' as returned by
+ * \note This is slightly different than 'generic' RNA 'id owner' as returned by
  * #RNA_find_real_ID_and_path, since in overrides we also consider shape keys as embedded data, not
  * only root node trees and master collections.
  */
@@ -102,10 +102,6 @@ static ID *rna_property_override_property_real_id_owner(Main *bmain,
       default:
         BLI_assert(0);
     }
-  }
-
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
-    return NULL;
   }
 
   if (r_rna_path == NULL) {
@@ -1156,6 +1152,39 @@ void RNA_struct_override_apply(Main *bmain,
         if (ptr_storage && (ptr_storage->owner_id != NULL)) {
           RNA_path_resolve_property_and_item_pointer(
               ptr_storage, op->rna_path, &data_storage, &prop_storage, &data_item_storage);
+        }
+
+        /* Check if an overridden ID pointer supposed to be in sync with linked data gets out of
+         * sync. */
+        if ((ptr_dst->owner_id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0 &&
+            op->rna_prop_type == PROP_POINTER &&
+            (((IDOverrideLibraryPropertyOperation *)op->operations.first)->flag &
+             IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) != 0) {
+          BLI_assert(ptr_src->owner_id ==
+                     rna_property_override_property_real_id_owner(bmain, &data_src, NULL, NULL));
+          BLI_assert(ptr_dst->owner_id ==
+                     rna_property_override_property_real_id_owner(bmain, &data_dst, NULL, NULL));
+
+          PointerRNA prop_ptr_src = RNA_property_pointer_get(&data_src, prop_src);
+          PointerRNA prop_ptr_dst = RNA_property_pointer_get(&data_dst, prop_dst);
+          ID *id_src = rna_property_override_property_real_id_owner(
+              bmain, &prop_ptr_src, NULL, NULL);
+          ID *id_dst = rna_property_override_property_real_id_owner(
+              bmain, &prop_ptr_dst, NULL, NULL);
+
+          BLI_assert(id_src == NULL || ID_IS_OVERRIDE_LIBRARY_REAL(id_src));
+
+          if (/* We might be in a case where id_dst has already been processed and its usages
+               * remapped to its new local override. In that case overrides and linked data are
+               * always properly matching. */
+              id_src != id_dst &&
+              /* If one of the pointers is NULL and not the other, or if linked reference ID of
+               * `id_src` is not `id_dst`,  we are in a non-matching case. */
+              (ELEM(NULL, id_src, id_dst) || id_src->override_library->reference != id_dst)) {
+            ptr_dst->owner_id->tag |= LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+            CLOG_INFO(
+                &LOG, 3, "Local override %s detected as needing resync", ptr_dst->owner_id->name);
+          }
         }
 
         rna_property_override_apply_ex(bmain,

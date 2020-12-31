@@ -909,6 +909,8 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
         ID *id_override_new = id->newid;
         ID *id_override_old = BLI_ghash_lookup(linkedref_to_old_override, id);
 
+        BLI_assert((id_override_new->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0);
+
         if (id_override_old != NULL) {
           /* Swap the names between old override ID and new one. */
           char id_name_buf[MAX_ID_NAME];
@@ -1920,6 +1922,14 @@ void BKE_lib_override_library_main_unused_cleanup(struct Main *bmain)
   FOREACH_MAIN_ID_END;
 }
 
+static void lib_override_id_swap(Main *bmain, ID *id_local, ID *id_temp)
+{
+  BKE_lib_id_swap(bmain, id_local, id_temp);
+  /* We need to keep these tags from temp ID into orig one.
+   * ID swap does not swap most of ID data itself. */
+  id_local->tag |= (id_temp->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC);
+}
+
 /** Update given override from its reference (re-applying overridden properties). */
 void BKE_lib_override_library_update(Main *bmain, ID *local)
 {
@@ -1988,11 +1998,11 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
 
   /* This also transfers all pointers (memory) owned by local to tmp_id, and vice-versa.
    * So when we'll free tmp_id, we'll actually free old, outdated data from local. */
-  BKE_lib_id_swap(bmain, local, tmp_id);
+  lib_override_id_swap(bmain, local, tmp_id);
 
   if (local_key != NULL && tmp_key != NULL) {
     /* This is some kind of hard-coded 'always enforced override'. */
-    BKE_lib_id_swap(bmain, &local_key->id, &tmp_key->id);
+    lib_override_id_swap(bmain, &local_key->id, &tmp_key->id);
     tmp_key->id.flag |= (local_key->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE);
     /* The swap of local and tmp_id inverted those pointers, we need to redefine proper
      * relationships. */
