@@ -2297,7 +2297,6 @@ static float brush_strength(const Sculpt *sd,
   const float root_alpha = BKE_brush_alpha_get(scene, brush);
   const float alpha = root_alpha * root_alpha;
   const float dir = (brush->flag & BRUSH_DIR_IN) ? -1.0f : 1.0f;
-  const float pressure = BKE_brush_use_alpha_pressure(brush) ? cache->pressure : 1.0f;
   const float pen_flip = cache->pen_flip ? -1.0f : 1.0f;
   const float invert = cache->invert ? -1.0f : 1.0f;
   float overlap = ups->overlap_factor;
@@ -2309,14 +2308,18 @@ static float brush_strength(const Sculpt *sd,
     flip = 1.0f;
   }
 
+  float pressure = BKE_brush_use_alpha_pressure(brush) ? cache->pressure : 1.0f;
+  pressure = BKE_brush_use_alpha_pressure(brush) && brush->pressure_strength_curve ?
+                 BKE_curvemapping_evaluateF(brush->pressure_strength_curve, 0, cache->pressure) :
+                 pressure;
   /* Pressure final value after being tweaked depending on the brush. */
   float final_pressure;
 
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_CLAY:
-      final_pressure = pow4f(pressure);
+      // final_pressure = pow4f(pressure);
       overlap = (1.0f + overlap) / 2.0f;
-      return 0.25f * alpha * flip * final_pressure * overlap * feather;
+      return 0.25f * alpha * flip * pressure * overlap * feather;
     case SCULPT_TOOL_DRAW:
     case SCULPT_TOOL_DRAW_SHARP:
     case SCULPT_TOOL_LAYER:
@@ -2356,11 +2359,11 @@ static float brush_strength(const Sculpt *sd,
       return alpha * pressure * overlap * feather;
     case SCULPT_TOOL_CLAY_STRIPS:
       /* Clay Strips needs less strength to compensate the curve. */
-      final_pressure = powf(pressure, 1.5f);
-      return alpha * flip * final_pressure * overlap * feather * 0.3f;
+      // final_pressure = powf(pressure, 1.5f);
+      return alpha * flip * pressure * overlap * feather * 0.3f;
     case SCULPT_TOOL_CLAY_THUMB:
-      final_pressure = pressure * pressure;
-      return alpha * flip * final_pressure * overlap * feather * 1.3f;
+      // final_pressure = pressure * pressure;
+      return alpha * flip * pressure * overlap * feather * 1.3f;
 
     case SCULPT_TOOL_MASK:
       overlap = (1.0f + overlap) / 2.0f;
@@ -7196,6 +7199,11 @@ static void sculpt_update_cache_invariants(
 
 static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, float initial_size)
 {
+  if (brush->pressure_size_curve) {
+    return initial_size *
+           BKE_curvemapping_evaluateF(brush->pressure_size_curve, 0, cache->pressure);
+  }
+
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_CLAY:
       return max_ff(initial_size * 0.20f, initial_size * pow3f(cache->pressure));

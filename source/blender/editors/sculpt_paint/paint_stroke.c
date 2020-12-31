@@ -679,7 +679,11 @@ static float paint_space_stroke_spacing(bContext *C,
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   float size_clamp = 0.0f;
-  float size = BKE_brush_size_get(scene, stroke->brush) * size_pressure;
+  float final_size_pressure = size_pressure;
+  if (brush->pressure_size_curve) {
+    final_size_pressure = BKE_curvemapping_evaluateF(brush->pressure_size_curve, 0, size_pressure);
+  }
+  float size = BKE_brush_size_get(scene, stroke->brush) * final_size_pressure;
   if (paint_stroke_use_scene_spacing(brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, brush)) {
       float last_object_space_position[3];
@@ -688,7 +692,7 @@ static float paint_space_stroke_spacing(bContext *C,
       size_clamp = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
     else {
-      size_clamp = BKE_brush_unprojected_radius_get(scene, brush) * size_pressure;
+      size_clamp = BKE_brush_unprojected_radius_get(scene, brush) * final_size_pressure;
     }
   }
   else {
@@ -788,6 +792,7 @@ static float paint_space_stroke_spacing_variable(bContext *C,
     /* average spacing */
     float last_spacing = paint_space_stroke_spacing(
         C, scene, stroke, last_size_pressure, pressure);
+
     float new_spacing = paint_space_stroke_spacing(C, scene, stroke, new_size_pressure, pressure);
 
     return 0.5f * (last_spacing + new_spacing);

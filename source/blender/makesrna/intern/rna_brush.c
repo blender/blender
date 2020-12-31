@@ -3249,6 +3249,16 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "pressure_size_curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_ui_text(prop, "Pressure/Size Curve", "Pressure/Size input curve");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "pressure_strength_curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_ui_text(prop, "Pressure/Strength Curve", "Pressure/Strength input curve");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "paint_curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Paint Curve", "Active paint curve");

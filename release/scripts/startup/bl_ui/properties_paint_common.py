@@ -771,6 +771,10 @@ def brush_settings(layout, context, brush, popover=False):
         elif sculpt_tool == 'MASK':
             layout.row().prop(brush, "mask_tool", expand=True)
 
+
+        layout.template_curve_mapping(brush, "pressure_size_curve")
+        layout.template_curve_mapping(brush, "pressure_strength_curve", brush=True)
+
         # End sculpt_tool interface.
 
     # 3D and 2D Texture Paint Mode.

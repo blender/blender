@@ -85,6 +85,8 @@ static void brush_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   }
 
   brush_dst->curve = BKE_curvemapping_copy(brush_src->curve);
+  brush_dst->pressure_size_curve = BKE_curvemapping_copy(brush_src->pressure_size_curve);
+  brush_dst->pressure_strength_curve = BKE_curvemapping_copy(brush_src->pressure_strength_curve);
   if (brush_src->gpencil_settings != NULL) {
     brush_dst->gpencil_settings = MEM_dupallocN(brush_src->gpencil_settings);
     brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
@@ -119,6 +121,8 @@ static void brush_free_data(ID *id)
     IMB_freeImBuf(brush->icon_imbuf);
   }
   BKE_curvemapping_free(brush->curve);
+  BKE_curvemapping_free(brush->pressure_size_curve);
+  BKE_curvemapping_free(brush->pressure_strength_curve);
 
   if (brush->gpencil_settings != NULL) {
     BKE_curvemapping_free(brush->gpencil_settings->curve_sensitivity);
@@ -209,6 +213,12 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     if (brush->curve) {
       BKE_curvemapping_blend_write(writer, brush->curve);
     }
+    if (brush->pressure_size_curve) {
+      BKE_curvemapping_blend_write(writer, brush->pressure_size_curve);
+    }
+    if (brush->pressure_strength_curve) {
+      BKE_curvemapping_blend_write(writer, brush->pressure_strength_curve);
+    }
 
     if (brush->gpencil_settings) {
       BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
@@ -247,12 +257,39 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 }
 
+static void brush_reset_input_curve(CurveMapping *cumap)
+{
+  cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+  cumap->preset = CURVE_PRESET_LINE;
+
+  CurveMap *cuma = cumap->cm;
+  BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
+  BKE_curvemapping_changed(cumap, false);
+}
+
+static void BKE_brush_default_input_curves_set(Brush *brush)
+{
+  if (!brush->pressure_size_curve) {
+    brush->pressure_size_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
+    brush_reset_input_curve(brush->pressure_size_curve);
+  }
+
+  if (!brush->pressure_strength_curve) {
+    brush->pressure_strength_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
+    brush_reset_input_curve(brush->pressure_strength_curve);
+  }
+}
+
 static void brush_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Brush *brush = (Brush *)id;
 
   /* Falloff curve. */
   BLO_read_data_address(reader, &brush->curve);
+
+  /* Input Curves. */
+  BLO_read_data_address(reader, &brush->pressure_size_curve);
+  BLO_read_data_address(reader, &brush->pressure_strength_curve);
 
   BLO_read_data_address(reader, &brush->gradient);
 
@@ -261,6 +298,20 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   }
   else {
     BKE_brush_curve_preset(brush, CURVE_PRESET_SHARP);
+  }
+
+  if (brush->pressure_size_curve) {
+    BKE_curvemapping_blend_read(reader, brush->pressure_size_curve);
+  }
+  else {
+    BKE_brush_default_input_curves_set(brush);
+  }
+
+  if (brush->pressure_strength_curve) {
+    BKE_curvemapping_blend_read(reader, brush->pressure_strength_curve);
+  }
+  else {
+    BKE_brush_default_input_curves_set(brush);
   }
 
   /* grease pencil */
@@ -1678,6 +1729,7 @@ void BKE_brush_sculpt_reset(Brush *br)
 
   brush_defaults(br);
   BKE_brush_curve_preset(br, CURVE_PRESET_SMOOTH);
+  BKE_brush_default_input_curves_set(br);
 
   /* Use the curve presets by default */
   br->curve_preset = BRUSH_CURVE_SMOOTH;

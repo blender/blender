@@ -154,6 +154,10 @@ typedef struct Brush {
   struct MTex mtex;
   struct MTex mask_mtex;
 
+  /** Pen Input curves */
+  struct CurveMapping *pressure_size_curve;
+  struct CurveMapping *pressure_strength_curve;
+
   struct Brush *toggle_brush;
 
   struct ImBuf *icon_imbuf;
