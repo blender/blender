@@ -42,6 +42,7 @@
 #include "SEQ_iterator.h"
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_transform.h"
 
 /* For menu, popup, icons, etc. */
 
@@ -220,6 +221,109 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
   }
   seq->flag |= SELECT;
   recurs_sel_seq(seq);
+}
+
+void seq_rectf(Sequence *seq, rctf *rect)
+{
+  rect->xmin = seq->startdisp;
+  rect->xmax = seq->enddisp;
+  rect->ymin = seq->machine + SEQ_STRIP_OFSBOTTOM;
+  rect->ymax = seq->machine + SEQ_STRIP_OFSTOP;
+}
+
+Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int sel)
+{
+  /* sel: 0==unselected, 1==selected, -1==don't care. */
+  Sequence *seq;
+  Editing *ed = SEQ_editing_get(scene, false);
+
+  if (ed == NULL) {
+    return NULL;
+  }
+
+  if (sel > 0) {
+    sel = SELECT;
+  }
+
+  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+    if ((seq != test) && (test->machine == seq->machine) &&
+        ((sel == -1) || (sel && (seq->flag & SELECT)) ||
+         (sel == 0 && (seq->flag & SELECT) == 0))) {
+      switch (lr) {
+        case SEQ_SIDE_LEFT:
+          if (test->startdisp == (seq->enddisp)) {
+            return seq;
+          }
+          break;
+        case SEQ_SIDE_RIGHT:
+          if (test->enddisp == (seq->startdisp)) {
+            return seq;
+          }
+          break;
+      }
+    }
+  }
+  return NULL;
+}
+
+Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[2])
+{
+  Sequence *seq;
+  Editing *ed = SEQ_editing_get(scene, false);
+  float x, y;
+  float pixelx;
+  float handsize;
+  float displen;
+  *hand = SEQ_SIDE_NONE;
+
+  if (ed == NULL) {
+    return NULL;
+  }
+
+  pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
+
+  UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+
+  seq = ed->seqbasep->first;
+
+  while (seq) {
+    if (seq->machine == (int)y) {
+      /* Check for both normal strips, and strips that have been flipped horizontally. */
+      if (((seq->startdisp < seq->enddisp) && (seq->startdisp <= x && seq->enddisp >= x)) ||
+          ((seq->startdisp > seq->enddisp) && (seq->startdisp >= x && seq->enddisp <= x))) {
+        if (SEQ_transform_sequence_can_be_translated(seq)) {
+
+          /* Clamp handles to defined size in pixel space. */
+          handsize = 2.0f * sequence_handle_size_get_clamped(seq, pixelx);
+          displen = (float)abs(seq->startdisp - seq->enddisp);
+
+          /* Don't even try to grab the handles of small strips. */
+          if (displen / pixelx > 16) {
+
+            /* Set the max value to handle to 1/3 of the total len when its
+             * less than 28. This is important because otherwise selecting
+             * handles happens even when you click in the middle. */
+            if ((displen / 3) < 30 * pixelx) {
+              handsize = displen / 3;
+            }
+            else {
+              CLAMP(handsize, 7 * pixelx, 30 * pixelx);
+            }
+
+            if (handsize + seq->startdisp >= x) {
+              *hand = SEQ_SIDE_LEFT;
+            }
+            else if (-handsize + seq->enddisp <= x) {
+              *hand = SEQ_SIDE_RIGHT;
+            }
+          }
+        }
+        return seq;
+      }
+    }
+    seq = seq->next;
+  }
+  return NULL;
 }
 
 #if 0
