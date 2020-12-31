@@ -70,7 +70,7 @@ static ID *rna_property_override_property_real_id_owner(Main *bmain,
   const char *rna_path_prefix = NULL;
 
   if (r_rna_path != NULL) {
-    *r_rna_path == NULL;
+    *r_rna_path = NULL;
   }
 
   if (id == NULL) {
