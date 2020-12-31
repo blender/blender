@@ -1690,6 +1690,7 @@ void BKE_brush_sculpt_reset(Brush *br)
   switch (br->sculpt_tool) {
     case SCULPT_TOOL_DRAW_SHARP:
       br->flag |= BRUSH_DIR_IN;
+      br->flag |= BRUSH_SIZE_PRESSURE;
       br->curve_preset = BRUSH_CURVE_POW4;
       br->spacing = 5;
       break;
