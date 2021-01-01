@@ -265,9 +265,10 @@ static void brush_reset_input_curve(CurveMapping *cumap)
   CurveMap *cuma = cumap->cm;
   BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
   BKE_curvemapping_changed(cumap, false);
+  BKE_curvemapping_init(cumap);
 }
 
-static void BKE_brush_default_input_curves_set(Brush *brush)
+void BKE_brush_default_input_curves_set(Brush *brush)
 {
   if (!brush->pressure_size_curve) {
     brush->pressure_size_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);

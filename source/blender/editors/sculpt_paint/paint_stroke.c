@@ -681,6 +681,7 @@ static float paint_space_stroke_spacing(bContext *C,
   float size_clamp = 0.0f;
   float final_size_pressure = size_pressure;
   if (brush->pressure_size_curve) {
+    BKE_curvemapping_init(brush->pressure_size_curve);
     final_size_pressure = BKE_curvemapping_evaluateF(brush->pressure_size_curve, 0, size_pressure);
   }
   float size = BKE_brush_size_get(scene, stroke->brush) * final_size_pressure;

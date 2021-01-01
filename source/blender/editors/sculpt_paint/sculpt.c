@@ -2309,6 +2309,9 @@ static float brush_strength(const Sculpt *sd,
   }
 
   float pressure = BKE_brush_use_alpha_pressure(brush) ? cache->pressure : 1.0f;
+  if (brush->pressure_strength_curve) {
+    BKE_curvemapping_init(brush->pressure_strength_curve);
+  }
   pressure = BKE_brush_use_alpha_pressure(brush) && brush->pressure_strength_curve ?
                  BKE_curvemapping_evaluateF(brush->pressure_strength_curve, 0, cache->pressure) :
                  pressure;

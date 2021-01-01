@@ -51,6 +51,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_brush.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_cryptomatte.h"
@@ -1490,5 +1491,10 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+      if (!br->pressure_size_curve || !br->pressure_strength_curve) {
+        BKE_brush_default_input_curves_set(br);
+      }
+    }
   }
 }

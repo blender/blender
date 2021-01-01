@@ -140,6 +140,8 @@ void BKE_brush_scale_size(int *r_brush_size,
                           float new_unprojected_radius,
                           float old_unprojected_radius);
 
+void BKE_brush_default_input_curves_set(struct Brush *brush);
+
 /* Accessors */
 #define BKE_brush_tool_get(brush, p) \
   (CHECK_TYPE_ANY(brush, struct Brush *, const struct Brush *), \
