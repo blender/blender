@@ -278,6 +278,11 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   const MeshComponent &mesh_component = *geometry_set.get_component_for_read<MeshComponent>();
   const Mesh *mesh_in = mesh_component.get_for_read();
 
+  if (mesh_in == nullptr || mesh_in->mpoly == nullptr) {
+    params.set_output("Geometry", std::move(geometry_set_out));
+    return;
+  }
+
   const FloatReadAttribute density_factors = mesh_component.attribute_get_for_read<float>(
       density_attribute, ATTR_DOMAIN_POINT, 1.0f);
   const int seed = params.get_input<int>("Seed");
