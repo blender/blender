@@ -272,13 +272,13 @@ void BKE_brush_default_input_curves_set(Brush *brush)
 {
   if (!brush->pressure_size_curve) {
     brush->pressure_size_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
-    brush_reset_input_curve(brush->pressure_size_curve);
   }
+  brush_reset_input_curve(brush->pressure_size_curve);
 
   if (!brush->pressure_strength_curve) {
     brush->pressure_strength_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
-    brush_reset_input_curve(brush->pressure_strength_curve);
   }
+  brush_reset_input_curve(brush->pressure_strength_curve);
 }
 
 static void brush_blend_read_data(BlendDataReader *reader, ID *id)
@@ -1784,15 +1784,28 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag |= BRUSH_SIZE_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       break;
-    case SCULPT_TOOL_CLAY_STRIPS:
+    case SCULPT_TOOL_CLAY_STRIPS: {
       br->flag |= BRUSH_ACCUMULATE | BRUSH_SIZE_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
-      br->alpha = 0.6f;
-      br->spacing = 5;
-      br->normal_radius_factor = 1.55f;
+      br->alpha = 0.8f;
+      br->spacing = 7;
+      br->normal_radius_factor = 1.35f;
       br->tip_roundness = 0.18f;
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
-      break;
+
+      CurveMap *cuma = br->pressure_size_curve->cm;
+      cuma->curve[0].x = 0.0f;
+      cuma->curve[0].y = 0.55f;
+      BKE_curvemap_insert(cuma, 0.5f, 0.7f);
+      cuma->curve[2].x = 1.0f;
+      cuma->curve[2].y = 1.0f;
+      BKE_curvemapping_changed(br->pressure_size_curve, true);
+
+      cuma = br->pressure_strength_curve->cm;
+      BKE_curvemap_insert(cuma, 0.6f, 0.25f);
+      BKE_curvemapping_changed(br->pressure_strength_curve, true);
+
+    } break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
       br->flag2 |= BRUSH_MULTIPLANE_SCRAPE_DYNAMIC | BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW;
       br->alpha = 0.7f;
