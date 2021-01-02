@@ -45,7 +45,7 @@ bool ED_asset_mark_id(const bContext *C, ID *id)
 
   id->asset_data = BKE_asset_metadata_create();
 
-  UI_icon_render_id(C, NULL, id, true, true);
+  UI_icon_render_id(C, NULL, id, ICON_SIZE_PREVIEW, true);
 
   return true;
 }

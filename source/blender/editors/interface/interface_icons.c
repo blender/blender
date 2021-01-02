@@ -1955,7 +1955,8 @@ static void ui_id_preview_image_render_size(
 /**
  * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
  */
-void UI_icon_render_id(const bContext *C, Scene *scene, ID *id, const bool big, const bool use_job)
+void UI_icon_render_id(
+    const bContext *C, Scene *scene, ID *id, const enum eIconSizes size, const bool use_job)
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
 
@@ -1963,14 +1964,7 @@ void UI_icon_render_id(const bContext *C, Scene *scene, ID *id, const bool big, 
     return;
   }
 
-  if (big) {
-    /* bigger preview size */
-    ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_PREVIEW, use_job);
-  }
-  else {
-    /* icon size */
-    ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_ICON, use_job);
-  }
+  ui_id_preview_image_render_size(C, scene, id, pi, size, use_job);
 }
 
 static void ui_id_icon_render(const bContext *C, ID *id, bool use_jobs)
@@ -2170,7 +2164,7 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
     case ID_LA: /* fall through */
       iconid = BKE_icon_id_ensure(id);
       /* checks if not exists, or changed */
-      UI_icon_render_id(C, NULL, id, big, true);
+      UI_icon_render_id(C, NULL, id, big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON, true);
       break;
     case ID_SCR:
       iconid = ui_id_screen_get_icon(C, id);

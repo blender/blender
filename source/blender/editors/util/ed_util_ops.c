@@ -131,7 +131,7 @@ static int lib_id_generate_preview_exec(bContext *C, wmOperator *UNUSED(op))
   if (preview) {
     BKE_previewimg_clear(preview);
   }
-  UI_icon_render_id(C, NULL, id, true, true);
+  UI_icon_render_id(C, NULL, id, ICON_SIZE_PREVIEW, true);
 
   WM_event_add_notifier(C, NC_ASSET, NULL);
 
