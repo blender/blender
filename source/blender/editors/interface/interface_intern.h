@@ -1039,7 +1039,7 @@ void ui_item_menutype_func(struct bContext *C, struct uiLayout *layout, void *ar
 void ui_item_paneltype_func(struct bContext *C, struct uiLayout *layout, void *arg_pt);
 
 /* interface_button_group.c */
-void ui_block_new_button_group(uiBlock *block, short flag);
+void ui_block_new_button_group(uiBlock *block, uiButtonGroupFlag flag);
 void ui_button_group_add_but(uiBlock *block, uiBut *but);
 void ui_button_group_replace_but_ptr(uiBlock *block, const void *old_but_ptr, uiBut *new_but);
 void ui_block_free_button_groups(uiBlock *block);
