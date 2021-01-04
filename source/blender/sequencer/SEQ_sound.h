@@ -27,8 +27,6 @@
 extern "C" {
 #endif
 
-struct Editing;
-struct ListBase;
 struct Main;
 struct Scene;
 struct Sequence;
