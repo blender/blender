@@ -1010,7 +1010,7 @@ static void init_iconfile_list(struct ListBase *list)
   }
 
   struct direntry *dir;
-  int totfile = BLI_filelist_dir_contents(icondir, &dir);
+  const int totfile = BLI_filelist_dir_contents(icondir, &dir);
 
   int index = 1;
   for (int i = 0; i < totfile; i++) {
@@ -1716,10 +1716,10 @@ static void icon_draw_texture(float x,
 
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
-  float x1 = ix * icongltex.invw;
-  float x2 = (ix + ih) * icongltex.invw;
-  float y1 = iy * icongltex.invh;
-  float y2 = (iy + ih) * icongltex.invh;
+  const float x1 = ix * icongltex.invw;
+  const float x2 = (ix + ih) * icongltex.invw;
+  const float y1 = iy * icongltex.invh;
+  const float y2 = (iy + ih) * icongltex.invh;
 
   GPUTexture *texture = with_border ? icongltex.tex[1] : icongltex.tex[0];
 

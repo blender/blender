@@ -143,8 +143,8 @@ static void view_pan_init(bContext *C, wmOperator *op)
   vpd->v2d = &vpd->region->v2d;
 
   /* calculate translation factor - based on size of view */
-  float winx = (float)(BLI_rcti_size_x(&vpd->region->winrct) + 1);
-  float winy = (float)(BLI_rcti_size_y(&vpd->region->winrct) + 1);
+  const float winx = (float)(BLI_rcti_size_x(&vpd->region->winrct) + 1);
+  const float winy = (float)(BLI_rcti_size_y(&vpd->region->winrct) + 1);
   vpd->facx = (BLI_rctf_size_x(&vpd->v2d->cur)) / winx;
   vpd->facy = (BLI_rctf_size_y(&vpd->v2d->cur)) / winy;
 }
@@ -1991,7 +1991,7 @@ static void scroller_activate_init(bContext *C,
 
   if (in_scroller == 'h') {
     /* horizontal scroller - calculate adjustment factor first */
-    float mask_size = (float)BLI_rcti_size_x(&v2d->hor);
+    const float mask_size = (float)BLI_rcti_size_x(&v2d->hor);
     vsm->fac = BLI_rctf_size_x(&tot_cur_union) / mask_size;
 
     /* pixel rounding */
@@ -2011,7 +2011,7 @@ static void scroller_activate_init(bContext *C,
   }
   else {
     /* vertical scroller - calculate adjustment factor first */
-    float mask_size = (float)BLI_rcti_size_y(&v2d->vert);
+    const float mask_size = (float)BLI_rcti_size_y(&v2d->vert);
     vsm->fac = BLI_rctf_size_y(&tot_cur_union) / mask_size;
 
     /* pixel rounding */
