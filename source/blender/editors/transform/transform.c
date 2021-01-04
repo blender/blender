@@ -698,9 +698,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {0, NULL, 0, NULL, NULL},
   };
 
-  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Transform Modal Map");
-
-  keymap = WM_modalkeymap_ensure(keyconf, "Transform Modal Map", modal_items);
+  wmKeyMap *keymap = WM_modalkeymap_ensure(keyconf, "Transform Modal Map", modal_items);
   keymap->poll_modal_item = transform_modal_item_poll;
 
   /* Default modal map values:
