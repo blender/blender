@@ -1006,7 +1006,8 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
 }
 
 /* The fluid modifier does not actually use this anymore, but some parts of Blender expect that it
- * still has a point cache currently. */
+ * still has a point cache currently. For example, the fluid modifier uses
+ * #DEG_add_collision_relations, which internally creates relations with the point cache. */
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct FluidModifierData *fmd)
 {
   FluidDomainSettings *fds = fmd->domain;
@@ -2549,6 +2550,12 @@ static int ptcache_write_needed(PTCacheID *pid, int cfra, int *overwrite)
 int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra)
 {
   PointCache *cache = pid->cache;
+  if (!pid->totpoint) {
+    /* This happens when `pid->type == PTCACHE_TYPE_SMOKE_DOMAIN`. The fluid system does not
+     * actually use the pointcache anymore for caching. */
+    return 0;
+  }
+
   int totpoint = pid->totpoint(pid->calldata, cfra);
   int overwrite = 0, error = 0;
 
