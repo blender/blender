@@ -482,7 +482,6 @@ static PointerRNA rna_Depsgraph_scene_eval_get(PointerRNA *ptr)
 {
   Depsgraph *depsgraph = (Depsgraph *)ptr->data;
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  return rna_pointer_inherit_refine(ptr, &RNA_Scene, scene_eval);
   PointerRNA newptr;
   RNA_pointer_create(&scene_eval->id, &RNA_Scene, scene_eval, &newptr);
   return newptr;
