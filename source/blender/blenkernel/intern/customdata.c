@@ -1837,7 +1837,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      layerMultiply_propfloat2,
      NULL,
      layerAdd_propfloat2},
-    /* 50: CD_PROP_POOL */
+    /* 50: CD_PROP_BOOL */
     {sizeof(bool),
      "bool",
      1,
