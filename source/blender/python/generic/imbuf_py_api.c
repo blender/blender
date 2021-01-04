@@ -423,7 +423,7 @@ static PyObject *M_imbuf_new(PyObject *UNUSED(self), PyObject *args, PyObject *k
 {
   int size[2];
   static const char *_keywords[] = {"size", NULL};
-  static _PyArg_Parser _parser = {"(ii)|i:new", _keywords, 0};
+  static _PyArg_Parser _parser = {"(ii):new", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &size[0], &size[1])) {
     return NULL;
   }
