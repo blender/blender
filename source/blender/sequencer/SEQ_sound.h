@@ -27,12 +27,12 @@
 extern "C" {
 #endif
 
-struct Scene;
 struct Editing;
+struct ListBase;
+struct Main;
+struct Scene;
 struct Sequence;
 struct bSound;
-struct Main;
-struct ListBase;
 
 void SEQ_sound_update_bounds_all(struct Scene *scene);
 void SEQ_sound_update_bounds(struct Scene *scene, struct Sequence *seq);

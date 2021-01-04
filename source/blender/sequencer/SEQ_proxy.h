@@ -27,14 +27,14 @@
 extern "C" {
 #endif
 
-struct Scene;
-struct Main;
-struct GSet;
-struct Sequence;
-struct ListBase;
 struct Depsgraph;
-struct SeqIndexBuildContext;
+struct GSet;
 struct ListBase;
+struct ListBase;
+struct Main;
+struct Scene;
+struct SeqIndexBuildContext;
+struct Sequence;
 
 bool SEQ_proxy_rebuild_context(struct Main *bmain,
                                struct Depsgraph *depsgraph,

@@ -27,9 +27,9 @@
 extern "C" {
 #endif
 
+struct ListBase;
 struct Scene;
 struct Sequence;
-struct ListBase;
 
 int SEQ_transform_get_left_handle_frame(struct Sequence *seq, bool metaclip);
 int SEQ_transform_get_right_handle_frame(struct Sequence *seq, bool metaclip);

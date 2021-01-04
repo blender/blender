@@ -29,8 +29,8 @@ extern "C" {
 
 struct ARegion;
 struct FileAssetSelectParams;
-struct FileSelectParams;
 struct FileDirEntry;
+struct FileSelectParams;
 struct Scene;
 struct ScrArea;
 struct SpaceFile;

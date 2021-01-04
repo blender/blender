@@ -27,15 +27,15 @@
 extern "C" {
 #endif
 
-struct Scene;
-struct Sequence;
-struct ListBase;
-struct SequenceModifierData;
-struct SeqRenderData;
-struct ImBuf;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
+struct ImBuf;
+struct ListBase;
+struct Scene;
+struct SeqRenderData;
+struct Sequence;
+struct SequenceModifierData;
 
 typedef struct SequenceModifierTypeInfo {
   /* default name for the modifier */
