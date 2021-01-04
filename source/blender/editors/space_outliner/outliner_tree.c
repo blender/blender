@@ -655,9 +655,9 @@ static void outliner_add_library_override_contents(SpaceOutliner *soops, TreeEle
   int index = 0;
   LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
     if (!BKE_lib_override_rna_property_find(&idpoin, op, &override_ptr, &override_prop)) {
-      /* This is fine, override properties list is not alwasy fully up-to-date with current
-       * RNA/IDProps etc., this gets cleaned up when re-generating the overrides rules, no error
-       * here. */
+      /* This is fine, override properties list is not always fully up-to-date with current
+       * RNA/IDProps etc., this gets cleaned up when re-generating the overrides rules,
+       * no error here. */
       continue;
     }
 

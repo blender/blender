@@ -95,7 +95,7 @@ static float point_weight_influence_get(const float maximum_distance,
  * Weight each point based on their proximity to its neighbors
  *
  * For each index in the weight array add a weight based on the proximity the
- * corresponding point has with its neighboors.
+ * corresponding point has with its neighbors.
  **/
 static void points_distance_weight_calculate(Vector<float> *weights,
                                              const size_t point_id,

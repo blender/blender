@@ -1148,7 +1148,7 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
               BKE_main_blendfile_path_from_global(), path, folder, brush->icon_filepath);
 
           if (path[0]) {
-            /* use fefault color spaces */
+            /* Use default color spaces. */
             brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
           }
         }
