@@ -1564,7 +1564,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
       }
     }
 
-    if (mti->blendRead != NULL) {
+    if ((mti != NULL) && (mti->blendRead != NULL)) {
       mti->blendRead(reader, md);
     }
   }
