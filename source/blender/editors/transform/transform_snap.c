@@ -1424,10 +1424,21 @@ static void snap_grid_apply(
   const float *center_global = t->center_global;
   const float *asp = t->aspect;
 
-  /* use a fallback for cursor selection,
-   * this isn't useful as a global center for absolute grid snapping
-   * since its not based on the position of the selection. */
-  if (t->around == V3D_AROUND_CURSOR) {
+  if (t->options & CTX_CURSOR) {
+    /* Note that we must already have called #transformCenter_from_type, otherwise
+     * we would be lazy-initializing data which is being transformed,
+     * causing the transformed cursor location to be used instead of it's initial location. */
+    BLI_assert(t->center_cache[V3D_AROUND_CURSOR].is_set);
+
+    /* Use a fallback when transforming the cursor.
+     * In this case the center is _not_ derived from the cursor which is being transformed. */
+    const TransCenterData *cd = transformCenter_from_type(t, V3D_AROUND_CURSOR);
+    center_global = cd->global;
+  }
+  else if (t->around == V3D_AROUND_CURSOR) {
+    /* Use a fallback for cursor selection,
+     * this isn't useful as a global center for absolute grid snapping
+     * since its not based on the position of the selection. */
     const TransCenterData *cd = transformCenter_from_type(t, V3D_AROUND_CENTER_MEDIAN);
     center_global = cd->global;
   }
