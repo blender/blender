@@ -2245,33 +2245,36 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     table_coords[i][0] = pts[i].x;
     table_coords[i][1] = pts[i].y;
   }
+  /* Using some extra margin (-1.0f) for the coordinates used to complete the polygon
+   * avoids the profile line crossing itself in some common situations, which can lead to
+   * incorrect triangulation. See T841183. */
   if (add_left_tri && add_bottom_tri) {
     /* Add left side, bottom left corner, and bottom side points. */
-    table_coords[tot_points - 3][0] = profile->view_rect.xmin;
+    table_coords[tot_points - 3][0] = profile->view_rect.xmin - 1.0f;
     table_coords[tot_points - 3][1] = 1.0f;
-    table_coords[tot_points - 2][0] = profile->view_rect.xmin;
-    table_coords[tot_points - 2][1] = profile->view_rect.ymin;
+    table_coords[tot_points - 2][0] = profile->view_rect.xmin - 1.0f;
+    table_coords[tot_points - 2][1] = profile->view_rect.ymin - 1.0f;
     table_coords[tot_points - 1][0] = 1.0f;
-    table_coords[tot_points - 1][1] = profile->view_rect.ymin;
+    table_coords[tot_points - 1][1] = profile->view_rect.ymin - 1.0f;
   }
   else if (add_left_tri) {
     /* Add the left side and bottom left corner points. */
-    table_coords[tot_points - 2][0] = profile->view_rect.xmin;
+    table_coords[tot_points - 2][0] = profile->view_rect.xmin - 1.0f;
     table_coords[tot_points - 2][1] = 1.0f;
-    table_coords[tot_points - 1][0] = profile->view_rect.xmin;
-    table_coords[tot_points - 1][1] = 0.0f;
+    table_coords[tot_points - 1][0] = profile->view_rect.xmin - 1.0f;
+    table_coords[tot_points - 1][1] = -1.0f;
   }
   else if (add_bottom_tri) {
     /* Add the bottom side and bottom left corner points. */
-    table_coords[tot_points - 2][0] = 0.0f;
-    table_coords[tot_points - 2][1] = profile->view_rect.ymin;
+    table_coords[tot_points - 2][0] = -1.0f;
+    table_coords[tot_points - 2][1] = profile->view_rect.ymin - 1.0f;
     table_coords[tot_points - 1][0] = 1.0f;
-    table_coords[tot_points - 1][1] = profile->view_rect.ymin;
+    table_coords[tot_points - 1][1] = profile->view_rect.ymin - 1.0f;
   }
   else {
     /* Just add the bottom corner point. Side points would be redundant anyway. */
-    table_coords[tot_points - 1][0] = 0.0f;
-    table_coords[tot_points - 1][1] = 0.0f;
+    table_coords[tot_points - 1][0] = -1.0f;
+    table_coords[tot_points - 1][1] = -1.0f;
   }
 
   /* Calculate the table point indices of the triangles for the profile's fill. */
@@ -2427,7 +2430,6 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 
   immUniformColor3ubv((const uchar *)wcol->outline);
   imm_draw_box_wire_2d(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-
   immUnbindProgram();
 }
 
