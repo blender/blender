@@ -908,14 +908,14 @@ static bool gpencil_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
 
           /* To each point individually... */
           pt = &gps->points[i];
-          pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
-          index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
+          pt_active = pt->runtime.pt_orig;
           if (pt_active != NULL) {
             /* If masked and the point is not selected, skip it. */
             if ((GPENCIL_ANY_VERTEX_MASK(gso->mask)) &&
                 ((pt_active->flag & GP_SPOINT_SELECT) == 0)) {
               continue;
             }
+            index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
             hit = true;
             gpencil_save_selected_point(gso, gps_active, index, pc1);
             saved = true;
@@ -931,9 +931,9 @@ static bool gpencil_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
            */
           if (i + 1 == gps->totpoints - 1) {
             pt = &gps->points[i + 1];
-            pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
-            index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i + 1;
+            pt_active = pt->runtime.pt_orig;
             if (pt_active != NULL) {
+              index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i + 1;
               hit = true;
               gpencil_save_selected_point(gso, gps_active, index, pc2);
               include_last = false;
@@ -951,9 +951,9 @@ static bool gpencil_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
            * (but wasn't added then, to avoid double-ups).
            */
           pt = &gps->points[i];
-          pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
-          index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
+          pt_active = pt->runtime.pt_orig;
           if (pt_active != NULL) {
+            index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;
             hit = true;
             gpencil_save_selected_point(gso, gps_active, index, pc1);
             include_last = false;
