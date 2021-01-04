@@ -27,8 +27,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_bitmap.h"
-#include "BLI_ghash.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
@@ -45,12 +43,10 @@
 #include "DEG_depsgraph_query.h"
 
 #include "transform.h"
-#include "transform_mode.h"
+#include "transform_orientations.h"
 #include "transform_snap.h"
 
-/* Own include. */
 #include "transform_convert.h"
-#include "transform_orientations.h"
 
 #define USE_FACE_SUBSTITUTE
 
@@ -59,18 +55,11 @@
  *
  * \{ */
 
-struct TransIslandData {
-  float (*center)[3];
-  float (*axismtx)[3][3];
-  int island_tot;
-  int *island_vert_map;
-};
-
-static void editmesh_islands_info_calc(BMEditMesh *em,
-                                       const bool calc_single_islands,
-                                       const bool calc_island_center,
-                                       const bool calc_island_axismtx,
-                                       struct TransIslandData *r_island_data)
+void transform_convert_mesh_islands_calc(struct BMEditMesh *em,
+                                         const bool calc_single_islands,
+                                         const bool calc_island_center,
+                                         const bool calc_island_axismtx,
+                                         struct TransIslandData *r_island_data)
 {
   BMesh *bm = em->bm;
   char htype;
@@ -242,6 +231,19 @@ static void editmesh_islands_info_calc(BMEditMesh *em,
   r_island_data->island_vert_map = vert_map;
 }
 
+void transform_convert_mesh_islanddata_free(struct TransIslandData *island_data)
+{
+  if (island_data->center) {
+    MEM_freeN(island_data->center);
+  }
+  if (island_data->axismtx) {
+    MEM_freeN(island_data->axismtx);
+  }
+  if (island_data->island_vert_map) {
+    MEM_freeN(island_data->island_vert_map);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -285,10 +287,10 @@ static bool bmesh_test_dist_add(BMVert *v,
  * \param dists: Store the closest connected distance to selected vertices.
  * \param index: Optionally store the original index we're measuring the distance to (can be NULL).
  */
-static void editmesh_set_connectivity_distance(BMesh *bm,
-                                               const float mtx[3][3],
-                                               float *dists,
-                                               int *index)
+void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
+                                                  const float mtx[3][3],
+                                                  float *dists,
+                                                  int *index)
 {
   BLI_LINKSTACK_DECLARE(queue, BMVert *);
 
@@ -436,16 +438,6 @@ static void editmesh_set_connectivity_distance(BMesh *bm,
 /* Used for both mirror epsilon and TD_MIRROR_EDGE_ */
 #define TRANSFORM_MAXDIST_MIRROR 0.00002f
 
-struct MirrorDataVert {
-  int index;
-  int flag;
-};
-
-struct TransMirrorData {
-  struct MirrorDataVert *vert_map;
-  int mirror_elem_len;
-};
-
 static bool is_in_quadrant_v3(const float co[3], const int quadrant[3], const float epsilon)
 {
   if (quadrant[0] && ((co[0] * quadrant[0]) < -epsilon)) {
@@ -460,11 +452,11 @@ static bool is_in_quadrant_v3(const float co[3], const int quadrant[3], const fl
   return true;
 }
 
-static void editmesh_mirror_data_calc(BMEditMesh *em,
-                                      const bool use_select,
-                                      const bool use_topology,
-                                      const bool mirror_axis[3],
-                                      struct TransMirrorData *r_mirror_data)
+void transform_convert_mesh_mirrordata_calc(struct BMEditMesh *em,
+                                            const bool use_select,
+                                            const bool use_topology,
+                                            const bool mirror_axis[3],
+                                            struct TransMirrorData *r_mirror_data)
 {
   struct MirrorDataVert *vert_map;
 
@@ -572,6 +564,119 @@ static void editmesh_mirror_data_calc(BMEditMesh *em,
   r_mirror_data->mirror_elem_len = mirror_elem_len;
 }
 
+void transform_convert_mesh_mirrordata_free(struct TransMirrorData *mirror_data)
+{
+  if (mirror_data->vert_map) {
+    MEM_freeN(mirror_data->vert_map);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Crazy Space
+ *
+ * \{ */
+
+/* Detect CrazySpace [tm].
+ * Vertices with space affected by quats are marked with #BM_ELEM_TAG */
+void transform_convert_mesh_crazyspace_detect(TransInfo *t,
+                                              struct TransDataContainer *tc,
+                                              struct BMEditMesh *em,
+                                              struct TransMeshDataCrazySpace *r_crazyspace_data)
+{
+  float(*quats)[4] = NULL;
+  float(*defmats)[3][3] = NULL;
+  const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
+  if (BKE_modifiers_get_cage_index(t->scene, tc->obedit, NULL, 1) != -1) {
+    float(*defcos)[3] = NULL;
+    int totleft = -1;
+    if (BKE_modifiers_is_correctable_deformed(t->scene, tc->obedit)) {
+      BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
+
+      /* Use evaluated state because we need b-bone cache. */
+      Scene *scene_eval = (Scene *)DEG_get_evaluated_id(t->depsgraph, &t->scene->id);
+      Object *obedit_eval = (Object *)DEG_get_evaluated_id(t->depsgraph, &tc->obedit->id);
+      BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
+      /* check if we can use deform matrices for modifier from the
+       * start up to stack, they are more accurate than quats */
+      totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(
+          t->depsgraph, scene_eval, obedit_eval, em_eval, &defmats, &defcos);
+    }
+
+    /* If we still have more modifiers, also do crazy-space
+     * correction with \a quats, relative to the coordinates after
+     * the modifiers that support deform matrices \a defcos. */
+
+#if 0 /* TODO, fix crazy-space & extrude so it can be enabled for general use - campbell */
+      if ((totleft > 0) || (totleft == -1))
+#else
+    if (totleft > 0)
+#endif
+    {
+      float(*mappedcos)[3] = NULL;
+      mappedcos = BKE_crazyspace_get_mapped_editverts(t->depsgraph, tc->obedit);
+      quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
+      BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
+      if (mappedcos) {
+        MEM_freeN(mappedcos);
+      }
+    }
+
+    if (defcos) {
+      MEM_freeN(defcos);
+    }
+  }
+  r_crazyspace_data->quats = quats;
+  r_crazyspace_data->defmats = defmats;
+}
+
+void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
+                                                     const float smtx[3][3],
+                                                     const float defmat[3][3],
+                                                     const float quat[4],
+                                                     struct TransData *r_td)
+{
+  /* CrazySpace */
+  if (quat || defmat) {
+    float mat[3][3], qmat[3][3], imat[3][3];
+
+    /* Use both or either quat and defmat correction. */
+    if (quat) {
+      quat_to_mat3(qmat, quat);
+
+      if (defmat) {
+        mul_m3_series(mat, defmat, qmat, mtx);
+      }
+      else {
+        mul_m3_m3m3(mat, mtx, qmat);
+      }
+    }
+    else {
+      mul_m3_m3m3(mat, mtx, defmat);
+    }
+
+    invert_m3_m3(imat, mat);
+
+    copy_m3_m3(r_td->smtx, imat);
+    copy_m3_m3(r_td->mtx, mat);
+  }
+  else {
+    copy_m3_m3(r_td->smtx, smtx);
+    copy_m3_m3(r_td->mtx, mtx);
+  }
+}
+
+void transform_convert_mesh_crazyspace_free(struct TransMeshDataCrazySpace *r_crazyspace_data)
+{
+  if (r_crazyspace_data->quats) {
+    MEM_freeN(r_crazyspace_data->quats);
+  }
+  if (r_crazyspace_data->defmats) {
+    MEM_freeN(r_crazyspace_data->defmats);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -643,19 +748,6 @@ static void VertsToTransData(TransInfo *t,
     td->val = bweight;
     td->ival = *bweight;
   }
-  else if (t->mode == TFM_SKIN_RESIZE) {
-    MVertSkin *vs = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MVERT_SKIN);
-    if (vs) {
-      /* skin node size */
-      td->ext = tx;
-      copy_v3_v3(tx->isize, vs->radius);
-      tx->size = vs->radius;
-      td->val = vs->radius;
-    }
-    else {
-      td->flag |= TD_SKIP;
-    }
-  }
   else if (t->mode == TFM_SHRINKFATTEN) {
     td->ext = tx;
     tx->isize[0] = BM_vert_calc_shell_factor_ex(eve, no, BM_ELEM_SELECT);
@@ -677,6 +769,7 @@ void createTransEditVerts(TransInfo *t)
 
     struct TransIslandData island_data = {NULL};
     struct TransMirrorData mirror_data = {NULL};
+    struct TransMeshDataCrazySpace crazyspace_data = {NULL};
 
     /**
      * Quick check if we can transform.
@@ -730,7 +823,7 @@ void createTransEditVerts(TransInfo *t)
        * TODO(Germano): Extend the list to exclude other modes. */
       const bool calc_island_axismtx = !ELEM(t->mode, TFM_SHRINKFATTEN);
 
-      editmesh_islands_info_calc(
+      transform_convert_mesh_islands_calc(
           em, calc_single_islands, calc_island_center, calc_island_axismtx, &island_data);
     }
 
@@ -748,7 +841,7 @@ void createTransEditVerts(TransInfo *t)
       if (is_island_center) {
         dists_index = MEM_mallocN(bm->totvert * sizeof(int), __func__);
       }
-      editmesh_set_connectivity_distance(em->bm, mtx, dists, dists_index);
+      transform_convert_mesh_connectivity_distance(em->bm, mtx, dists, dists_index);
     }
 
     /* Create TransDataMirror. */
@@ -757,7 +850,8 @@ void createTransEditVerts(TransInfo *t)
       bool use_select = (t->flag & T_PROP_EDIT) == 0;
       const bool mirror_axis[3] = {
           tc->use_mirror_axis_x, tc->use_mirror_axis_y, tc->use_mirror_axis_z};
-      editmesh_mirror_data_calc(em, use_select, use_topology, mirror_axis, &mirror_data);
+      transform_convert_mesh_mirrordata_calc(
+          em, use_select, use_topology, mirror_axis, &mirror_data);
 
       if (mirror_data.vert_map) {
         tc->data_mirror_len = mirror_data.mirror_elem_len;
@@ -774,60 +868,20 @@ void createTransEditVerts(TransInfo *t)
       }
     }
 
+    /* Detect CrazySpace [tm]. */
+    transform_convert_mesh_crazyspace_detect(t, tc, em, &crazyspace_data);
+
     /* Create TransData. */
     BLI_assert(data_len >= 1);
     tc->data_len = data_len;
     tc->data = MEM_callocN(data_len * sizeof(TransData), "TransObData(Mesh EditMode)");
-    if (ELEM(t->mode, TFM_SKIN_RESIZE, TFM_SHRINKFATTEN)) {
+    if (t->mode == TFM_SHRINKFATTEN) {
       /* warning, this is overkill, we only need 2 extra floats,
        * but this stores loads of extra stuff, for TFM_SHRINKFATTEN its even more overkill
        * since we may not use the 'alt' transform mode to maintain shell thickness,
        * but with generic transform code its hard to lazy init vars */
       tx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension),
                                       "TransObData ext");
-    }
-
-    /* detect CrazySpace [tm] */
-    float(*quats)[4] = NULL;
-    float(*defmats)[3][3] = NULL;
-    if (BKE_modifiers_get_cage_index(t->scene, tc->obedit, NULL, 1) != -1) {
-      float(*defcos)[3] = NULL;
-      int totleft = -1;
-      if (BKE_modifiers_is_correctable_deformed(t->scene, tc->obedit)) {
-        BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
-
-        /* Use evaluated state because we need b-bone cache. */
-        Scene *scene_eval = (Scene *)DEG_get_evaluated_id(t->depsgraph, &t->scene->id);
-        Object *obedit_eval = (Object *)DEG_get_evaluated_id(t->depsgraph, &tc->obedit->id);
-        BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
-        /* check if we can use deform matrices for modifier from the
-         * start up to stack, they are more accurate than quats */
-        totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(
-            t->depsgraph, scene_eval, obedit_eval, em_eval, &defmats, &defcos);
-      }
-
-      /* If we still have more modifiers, also do crazy-space
-       * correction with \a quats, relative to the coordinates after
-       * the modifiers that support deform matrices \a defcos. */
-
-#if 0 /* TODO, fix crazy-space & extrude so it can be enabled for general use - campbell */
-      if ((totleft > 0) || (totleft == -1))
-#else
-      if (totleft > 0)
-#endif
-      {
-        float(*mappedcos)[3] = NULL;
-        mappedcos = BKE_crazyspace_get_mapped_editverts(t->depsgraph, tc->obedit);
-        quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
-        BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
-        if (mappedcos) {
-          MEM_freeN(mappedcos);
-        }
-      }
-
-      if (defcos) {
-        MEM_freeN(defcos);
-      }
     }
 
     int cd_vert_bweight_offset = -1;
@@ -894,34 +948,14 @@ void createTransEditVerts(TransInfo *t)
         }
 
         /* CrazySpace */
-        const bool use_quats = quats && BM_elem_flag_test(eve, BM_ELEM_TAG);
-        if (use_quats || defmats) {
-          float mat[3][3], qmat[3][3], imat[3][3];
-
-          /* Use both or either quat and defmat correction. */
-          if (use_quats) {
-            quat_to_mat3(qmat, quats[BM_elem_index_get(eve)]);
-
-            if (defmats) {
-              mul_m3_series(mat, defmats[a], qmat, mtx);
-            }
-            else {
-              mul_m3_m3m3(mat, mtx, qmat);
-            }
-          }
-          else {
-            mul_m3_m3m3(mat, mtx, defmats[a]);
-          }
-
-          invert_m3_m3(imat, mat);
-
-          copy_m3_m3(tob->smtx, imat);
-          copy_m3_m3(tob->mtx, mat);
-        }
-        else {
-          copy_m3_m3(tob->smtx, smtx);
-          copy_m3_m3(tob->mtx, mtx);
-        }
+        transform_convert_mesh_crazyspace_transdata_set(
+            mtx,
+            smtx,
+            crazyspace_data.defmats ? crazyspace_data.defmats[a] : NULL,
+            crazyspace_data.quats && BM_elem_flag_test(eve, BM_ELEM_TAG) ?
+                crazyspace_data.quats[a] :
+                NULL,
+            tob);
 
         if (tc->use_mirror_axis_any) {
           if (tc->use_mirror_axis_x && fabsf(tob->loc[0]) < TRANSFORM_MAXDIST_MIRROR) {
@@ -939,24 +973,9 @@ void createTransEditVerts(TransInfo *t)
       }
     }
 
-    if (island_data.center) {
-      MEM_freeN(island_data.center);
-    }
-    if (island_data.axismtx) {
-      MEM_freeN(island_data.axismtx);
-    }
-    if (island_data.island_vert_map) {
-      MEM_freeN(island_data.island_vert_map);
-    }
-    if (mirror_data.vert_map) {
-      MEM_freeN(mirror_data.vert_map);
-    }
-    if (quats) {
-      MEM_freeN(quats);
-    }
-    if (defmats) {
-      MEM_freeN(defmats);
-    }
+    transform_convert_mesh_islanddata_free(&island_data);
+    transform_convert_mesh_mirrordata_free(&mirror_data);
+    transform_convert_mesh_crazyspace_free(&crazyspace_data);
     if (dists) {
       MEM_freeN(dists);
     }
@@ -1523,7 +1542,7 @@ static void mesh_customdatacorrect_restore(struct TransInfo *t)
  *
  * \{ */
 
-static void transform_apply_to_mirror(TransInfo *t)
+static void mesh_apply_to_mirror(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->use_mirror_axis_any) {
@@ -1570,7 +1589,7 @@ void recalcData_mesh(TransInfo *t)
     clipMirrorModifier(t);
 
     if ((t->flag & T_NO_MIRROR) == 0 && (t->options & CTX_NO_MIRROR) == 0) {
-      transform_apply_to_mirror(t);
+      mesh_apply_to_mirror(t);
     }
 
     mesh_customdatacorrect_apply(t, false);

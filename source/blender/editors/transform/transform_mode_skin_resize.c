@@ -88,8 +88,8 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
       }
 
       mat3_to_size(fsize, tmat);
-      td->val[0] = td->ext->isize[0] * (1 + (fsize[0] - 1) * td->factor);
-      td->val[1] = td->ext->isize[1] * (1 + (fsize[1] - 1) * td->factor);
+      td->loc[0] = td->iloc[0] * (1 + (fsize[0] - 1) * td->factor);
+      td->loc[1] = td->iloc[1] * (1 + (fsize[1] - 1) * td->factor);
     }
   }
 
