@@ -99,6 +99,7 @@ static struct GPUGlobal {
   /* Intel drivers exhibit artifacts when using glCopyImageSubData & workbench antialiasing.
    * (see T76273) */
   bool texture_copy_workaround;
+  bool use_hq_normals_workaround;
 } GG = {1, 0};
 
 static void gpu_detect_mip_render_workaround(void)
@@ -236,6 +237,11 @@ bool GPU_crappy_amd_driver(void)
 {
   /* Currently are the same drivers with the `unused_fb_slot` problem. */
   return GG.broken_amd_driver;
+}
+
+bool GPU_use_hq_normals_workaround(void)
+{
+  return GG.use_hq_normals_workaround;
 }
 
 void gpu_extensions_init(void)

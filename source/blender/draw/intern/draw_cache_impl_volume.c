@@ -40,6 +40,7 @@
 #include "BKE_volume_render.h"
 
 #include "GPU_batch.h"
+#include "GPU_extensions.h"
 #include "GPU_texture.h"
 
 #include "DRW_render.h"
@@ -151,7 +152,8 @@ static void drw_volume_wireframe_cb(
   Scene *scene = data->scene;
   Volume *volume = data->volume;
   VolumeBatchCache *cache = volume->batch_cache;
-  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0;
+  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
+                             GPU_use_hq_normals_workaround();
 
   /* Create vertex buffer. */
   static GPUVertFormat format = {0};
