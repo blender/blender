@@ -36,6 +36,7 @@
 #include "BKE_font.h"
 
 #include "GPU_batch.h"
+#include "GPU_capabilities.h"
 #include "GPU_material.h"
 #include "GPU_texture.h"
 
@@ -634,11 +635,11 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata,
                                          GPUVertBuf *vbo_curves_nor,
                                          const Scene *scene)
 {
-  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0;
+  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
+                             GPU_use_hq_normals_workaround();
 
   static GPUVertFormat format = {0};
   static GPUVertFormat format_hq = {0};
-  /* TODO(jeroen): add support for high quality normals */
   static struct {
     uint pos, nor, tan, rad;
     uint pos_hq, nor_hq, tan_hq, rad_hq;
