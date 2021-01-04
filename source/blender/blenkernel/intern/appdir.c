@@ -1014,7 +1014,7 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
 {
   /* Test if app template provides a `userpref.blend`.
    * If not, we will share user preferences with the rest of Blender. */
-  if (!app_template && app_template[0]) {
+  if (app_template[0] == '\0') {
     return false;
   }
 
