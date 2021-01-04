@@ -177,7 +177,8 @@ static int displist_indexbufbuilder_tess_set(
 
 void DRW_displist_vertbuf_create_pos_and_nor(ListBase *lb, GPUVertBuf *vbo, const Scene *scene)
 {
-  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0;
+  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
+                             GPU_use_hq_normals_workaround();
 
   static GPUVertFormat format = {0};
   static GPUVertFormat format_hq = {0};
@@ -485,7 +486,8 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
                                                                  GPUVertBuf *vbo_tan,
                                                                  const Scene *scene)
 {
-  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0;
+  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
+                             GPU_use_hq_normals_workaround();
 
   static GPUVertFormat format_pos_nor = {0};
   static GPUVertFormat format_pos_nor_hq = {0};
