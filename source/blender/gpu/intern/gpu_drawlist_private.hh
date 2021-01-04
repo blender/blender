@@ -33,7 +33,7 @@ namespace gpu {
 /**
  * Implementation of Multi Draw Indirect.
  * Base class which is then specialized for each implementation (GL, VK, ...).
- **/
+ */
 class DrawList {
  public:
   virtual ~DrawList(){};

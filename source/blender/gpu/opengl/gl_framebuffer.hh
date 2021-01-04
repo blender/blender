@@ -37,7 +37,7 @@ class GLStateManager;
 
 /**
  * Implementation of FrameBuffer object using OpenGL.
- **/
+ */
 class GLFrameBuffer : public FrameBuffer {
   /* For debugging purpose. */
   friend class GLTexture;
@@ -61,7 +61,7 @@ class GLFrameBuffer : public FrameBuffer {
  public:
   /**
    * Create a conventional framebuffer to attach texture to.
-   **/
+   */
   GLFrameBuffer(const char *name);
 
   /**
@@ -72,7 +72,7 @@ class GLFrameBuffer : public FrameBuffer {
    * \param fbo: The (optional) already created object for some implementation. Default is 0.
    * \param w: Buffer width.
    * \param h: Buffer height.
-   **/
+   */
   GLFrameBuffer(const char *name, GLContext *ctx, GLenum target, GLuint fbo, int w, int h);
 
   ~GLFrameBuffer();

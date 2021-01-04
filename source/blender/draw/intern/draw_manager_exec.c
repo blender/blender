@@ -266,7 +266,7 @@ static void drw_stencil_state_set(uint write_mask, uint reference, uint compare_
    * - (compare_mask & reference) is what is tested against (compare_mask & stencil_value)
    *   stencil_value being the value stored in the stencil buffer.
    * - (write-mask & reference) is what gets written if the test condition is fulfilled.
-   **/
+   */
   GPU_stencil_write_mask_set(write_mask);
   GPU_stencil_reference_set(reference);
   GPU_stencil_compare_mask_set(compare_mask);

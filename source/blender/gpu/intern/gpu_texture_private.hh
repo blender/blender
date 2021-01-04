@@ -71,7 +71,7 @@ ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_CUBE_ARRAY)
 /**
  * Implementation of Textures.
  * Base class which is then specialized for each implementation (GL, VK, ...).
- **/
+ */
 class Texture {
  public:
   /** Internal Sampler state. */

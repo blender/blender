@@ -480,7 +480,7 @@ void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state);
  * - (compare_mask & reference) is what is tested against (compare_mask & stencil_value)
  *   stencil_value being the value stored in the stencil buffer.
  * - (write-mask & reference) is what gets written if the test condition is fulfilled.
- **/
+ */
 void DRW_shgroup_stencil_set(DRWShadingGroup *shgroup,
                              uint write_mask,
                              uint reference,

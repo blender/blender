@@ -44,9 +44,9 @@ static inline size_t to_bytesize(GPUIndexBufType type)
 /**
  * Base class which is then specialized for each implementation (GL, VK, ...).
  *
- * NOTE: IndexBuf does not hold any GPUPrimType. This is because it can be interpreted
- *       differently by multiple batches.
- **/
+ * \note #IndexBuf does not hold any #GPUPrimType.
+ * This is because it can be interpreted differently by multiple batches.
+ */
 class IndexBuf {
  protected:
   /** Type of indices used inside this buffer. */

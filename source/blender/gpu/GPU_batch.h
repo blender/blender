@@ -76,7 +76,7 @@ extern "C" {
  * IMPORTANT: Do not allocate manually as the real struct is bigger (i.e: GLBatch). This is only
  * the common and "public" part of the struct. Use the provided allocator.
  * TODO(fclem): Make the content of this struct hidden and expose getters/setters.
- **/
+ */
 typedef struct GPUBatch {
   /** verts[0] is required, others can be NULL */
   GPUVertBuf *verts[GPU_BATCH_VBO_MAX_LEN];

@@ -38,7 +38,7 @@ namespace gpu {
 /**
  * Implementation of Uniform Buffers.
  * Base class which is then specialized for each implementation (GL, VK, ...).
- **/
+ */
 class UniformBuf {
  protected:
   /** Data size in bytes. */
