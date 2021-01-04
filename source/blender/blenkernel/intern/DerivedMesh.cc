@@ -1748,12 +1748,12 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
           if (!BKE_mesh_runtime_ensure_edit_data(me_orig)) {
             BKE_mesh_runtime_reset_edit_data(me_orig);
           }
-          me_orig->runtime.edit_data->vertexCos = (float(*)[3])MEM_dupallocN(deformed_verts);
+          me_orig->runtime.edit_data->vertexCos = (const float(*)[3])MEM_dupallocN(deformed_verts);
         }
         mesh_cage = BKE_mesh_wrapper_from_editmesh_with_coords(
             em_input,
             &final_datamask,
-            deformed_verts ? (float(*)[3])MEM_dupallocN(deformed_verts) : nullptr,
+            deformed_verts ? (const float(*)[3])MEM_dupallocN(deformed_verts) : nullptr,
             mesh_input);
       }
     }
@@ -2263,9 +2263,9 @@ void DM_calc_loop_tangents(DerivedMesh *dm,
       calc_active_tangent,
       tangent_names,
       tangent_names_len,
-      (float(*)[3])CustomData_get_layer(&dm->polyData, CD_NORMAL),
-      (float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
-      (float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptr */
+      (const float(*)[3])CustomData_get_layer(&dm->polyData, CD_NORMAL),
+      (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
+      (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptr */
       /* result */
       &dm->loopData,
       dm->getNumLoops(dm),
