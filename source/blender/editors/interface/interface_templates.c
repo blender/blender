@@ -2301,6 +2301,11 @@ static void object_constraint_panel_id(void *md_link, char *r_name)
   bConstraint *con = (bConstraint *)md_link;
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(con->type);
 
+  /* Cannot get TypeInfo for invalid/legacy constraints. */
+  if (cti == NULL) {
+    return;
+  }
+
   strcpy(r_name, CONSTRAINT_TYPE_PANEL_PREFIX);
   strcat(r_name, cti->structName);
 }
@@ -2309,6 +2314,11 @@ static void bone_constraint_panel_id(void *md_link, char *r_name)
 {
   bConstraint *con = (bConstraint *)md_link;
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(con->type);
+
+  /* Cannot get TypeInfo for invalid/legacy constraints. */
+  if (cti == NULL) {
+    return;
+  }
 
   strcpy(r_name, CONSTRAINT_BONE_TYPE_PANEL_PREFIX);
   strcat(r_name, cti->structName);
@@ -2340,6 +2350,10 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
     UI_panels_free_instanced(C, region);
     bConstraint *con = (constraints == NULL) ? NULL : constraints->first;
     for (int i = 0; con; i++, con = con->next) {
+      /* Dont show invalid/legacy constraints. */
+      if (con->type == CONSTRAINT_TYPE_NULL) {
+        continue;
+      }
       /* Dont show temporary constraints (AutoIK and targetless IK constraints). */
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
         bKinematicConstraint *data = con->data;
@@ -2369,6 +2383,10 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = region->panels.first;
     LISTBASE_FOREACH (bConstraint *, con, constraints) {
+      /* Dont show invalid/legacy constraints. */
+      if (con->type == CONSTRAINT_TYPE_NULL) {
+        continue;
+      }
       /* Dont show temporary constraints (AutoIK and targetless IK constraints). */
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
         bKinematicConstraint *data = con->data;
