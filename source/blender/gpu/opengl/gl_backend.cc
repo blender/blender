@@ -130,19 +130,6 @@ void GLBackend::platform_init()
         GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
-
-    /* Driver 20.11.2/3 fixes a lot of issues for the Navi cards, but introduces new ones
-     * for Polaris based cards cards. The viewport has glitches but doesn't crash.
-     * See T82856,T83574.  */
-    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
-        (strstr(version, " 20.11.2 ") || strstr(version, " 20.11.3 "))) {
-      if (strstr(renderer, "Radeon RX 460 ") || strstr(renderer, "Radeon RX 470 ") ||
-          strstr(renderer, "Radeon RX 480 ") || strstr(renderer, "Radeon RX 490 ") ||
-          strstr(renderer, "Radeon RX 560 ") || strstr(renderer, "Radeon RX 570 ") ||
-          strstr(renderer, "Radeon RX 580 ") || strstr(renderer, "Radeon RX 590 ")) {
-        GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
-      }
-    }
     if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
       /* Platform seems to work when SB backend is disabled. This can be done
        * by adding the environment variable `R600_DEBUG=nosb`. */
@@ -283,6 +270,23 @@ static void detect_workarounds()
       strstr(version, "Mesa 19.3.4")) {
     GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
+  }
+  /* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
+   * `GL_INT_2_10_10_10_REV` data type. This data type is used to pack normals. The work around
+   * uses `GPU_RGBA16I`.*/
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    if (strstr(version, " 20.11.2") || strstr(version, " 20.11.3 ") ||
+        strstr(version, " 20.12.")) {
+      if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
+          strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
+          strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
+          strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
+          strstr(renderer, " RX 590 ") || strstr(renderer, " RX550/550 ") ||
+          strstr(renderer, " (TM) 520  ") || strstr(renderer, " (TM) 530  ") ||
+          strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
+        GCaps.use_hq_normals_workaround = true;
+      }
+    }
   }
   /* There is an issue with the #glBlitFramebuffer on MacOS with radeon pro graphics.
    * Blitting depth with#GL_DEPTH24_STENCIL8 is buggy so the workaround is to use
