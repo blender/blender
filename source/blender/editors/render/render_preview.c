@@ -105,6 +105,10 @@
 
 static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect);
 
+/* -------------------------------------------------------------------- */
+/** \name Local Structs
+ * \{ */
+
 typedef struct ShaderPreview {
   /* from wmJob */
   void *owner;
@@ -147,7 +151,11 @@ typedef struct IconPreview {
   ListBase sizes;
 } IconPreview;
 
-/* *************************** Preview for buttons *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Preview for Buttons
+ * \{ */
 
 static Main *G_pr_main = NULL;
 static Main *G_pr_main_grease_pencil = NULL;
@@ -662,7 +670,11 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
   }
 }
 
-/* **************************** Object preview ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Preview
+ * \{ */
 
 struct ObjectPreviewData {
   /* The main for the preview, not of the current file. */
@@ -788,7 +800,11 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
   BKE_main_free(preview_main);
 }
 
-/* **************************** new shader preview system ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Shader Preview System
+ * \{ */
 
 /* inside thread, called by renderer, sets job update value */
 static void shader_preview_update(void *spv,
@@ -1099,7 +1115,11 @@ static void shader_preview_free(void *customdata)
   MEM_freeN(sp);
 }
 
-/* ************************* icon preview ********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Icon Preview
+ * \{ */
 
 static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
 {
@@ -1686,3 +1706,5 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main *UNUSED(bmain))
     WM_jobs_kill(wm, NULL, icon_preview_startjob_all_sizes);
   }
 }
+
+/** \} */
