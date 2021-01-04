@@ -55,7 +55,7 @@ static void do_mix_operation_float(const int blend_mode,
     float3 a{inputs_a[i]};
     const float3 b{inputs_b[i]};
     ramp_blend(blend_mode, a, factor, b);
-    const float result = a.length();
+    const float result = a.x;
     results.set(i, result);
   }
 }
