@@ -1075,9 +1075,7 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
     view3d_ruler_to_gpencil(C, gzgroup);
   }
 
-  if (gz) {
-    MEM_SAFE_FREE(gz->interaction_data);
-  }
+  MEM_SAFE_FREE(gz->interaction_data);
 
   ruler_state_set(ruler_info, RULER_STATE_NORMAL);
 }

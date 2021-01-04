@@ -586,7 +586,7 @@ static int nla_action_unlink_exec(bContext *C, wmOperator *op)
   }
 
   /* do unlinking */
-  if (adt && adt->action) {
+  if (adt->action) {
     bool force_delete = RNA_boolean_get(op->ptr, "force_delete");
     ED_animedit_unlink_action(C, adt_ptr.owner_id, adt, adt->action, op->reports, force_delete);
   }

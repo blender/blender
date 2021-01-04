@@ -908,7 +908,6 @@ wmKeyMap *WM_modalkeymap_find(wmKeyConfig *keyconf, const char *idname)
     if (km->flag & KEYMAP_MODAL) {
       if (STREQLEN(idname, km->idname, KMAP_MAX_NAME)) {
         return km;
-        break;
       }
     }
   }
