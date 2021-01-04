@@ -323,6 +323,27 @@ void gpu_extensions_init(void)
     }
   }
 
+  /* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
+   * `GL_INT_2_10_10_10_REV` data type correctly. This data type is used to pack normals and flags.
+   * The work around uses `GPU_RGBA16I` but that is only possible for loop normals.
+   *
+   * Vertex and Face normals would still render resulting in undefined behavior during selection
+   * and rendering. */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    /* On Linux the driver does not report its version. Test the OpenGL version in stead. */
+    if (strstr(version, "4.5.14756") || strstr(version, "4.5.14757")) {
+      if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
+          strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
+          strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
+          strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
+          strstr(renderer, " RX 590 ") || strstr(renderer, " RX550/550 ") ||
+          strstr(renderer, " (TM) 520  ") || strstr(renderer, " (TM) 530  ") ||
+          strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
+        GG.use_hq_normals_workaround = true;
+      }
+    }
+  }
+
   /* Limit support for GLEW_ARB_base_instance to OpenGL 4.0 and higher. NVIDIA Quadro FX 4800
    * (TeraScale) report that they support GLEW_ARB_base_instance, but the driver does not support
    * GLEW_ARB_draw_indirect as it has an OpenGL3 context what also matches the minimum needed
