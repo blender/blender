@@ -69,7 +69,7 @@ class NewGeometryNodesModifier(bpy.types.Operator):
 
 
 class NewGeometryNodeTreeAssign(bpy.types.Operator):
-    """Create a new geometry node group and assign it the the active modifier"""
+    """Create a new geometry node group and assign it to the active modifier"""
 
     bl_idname = "node.new_geometry_node_group_assign"
     bl_label = "Assign New Geometry Node Group"
