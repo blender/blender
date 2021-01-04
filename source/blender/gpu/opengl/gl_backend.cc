@@ -130,6 +130,13 @@ void GLBackend::platform_init(void)
         GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
+    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
+      /* Platform seems to work when SB backend is disabled. This can be done
+       * by adding the environment variable `R600_DEBUG=nosb`. */
+      if (strstr(renderer, "AMD CEDAR")) {
+        GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
+      }
+    }
   }
   GPG.create_key(GPG.support_level, vendor, renderer, version);
   GPG.create_gpu_name(vendor, renderer, version);
@@ -266,6 +273,23 @@ static void detect_workarounds(void)
       strstr(version, "Mesa 19.3.4")) {
     GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
+  }
+  /* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
+   * `GL_INT_2_10_10_10_REV` data type. This data type is used to pack normals. The work around
+   * uses `GPU_RGBA16I`.*/
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    /* On Linux the driver does not report its version. Test the OpenGL version in stead. */
+	  if (strstr(version, "4.5.14756") || strstr(version, "4.5.14757")) {
+      if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
+          strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
+          strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
+          strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
+          strstr(renderer, " RX 590 ") || strstr(renderer, " RX550/550 ") ||
+          strstr(renderer, " (TM) 520  ") || strstr(renderer, " (TM) 530  ") ||
+          strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
+        GCaps.use_hq_normals_workaround = true;
+      }
+    }
   }
   /* There is an issue with the #glBlitFramebuffer on MacOS with radeon pro graphics.
    * Blitting depth with#GL_DEPTH24_STENCIL8 is buggy so the workaround is to use
