@@ -18,10 +18,13 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_ASSET_TYPES_H__
-#define __DNA_ASSET_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief User defined tag.
@@ -59,4 +62,6 @@ typedef struct AssetMetaData {
   char _pad[4];
 } AssetMetaData;
 
-#endif /* __DNA_ASSET_TYPES_H__ */
+#ifdef __cplusplus
+}
+#endif

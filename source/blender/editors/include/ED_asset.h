@@ -18,8 +18,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_ASSET_H__
-#define __ED_ASSET_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,5 +34,3 @@ void ED_operatortypes_asset(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_ASSET_H__ */

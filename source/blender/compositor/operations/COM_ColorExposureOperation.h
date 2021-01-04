@@ -16,8 +16,8 @@
  * Copyright 2020, Blender Foundation.
  */
 
-#ifndef __COM_COLOREXPOSUREOPERATION_H__
-#define __COM_COLOREXPOSUREOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class ExposureOperation : public NodeOperation {
@@ -46,4 +46,3 @@ class ExposureOperation : public NodeOperation {
    */
   void deinitExecution();
 };
-#endif

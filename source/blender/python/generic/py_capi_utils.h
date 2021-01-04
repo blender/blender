@@ -18,6 +18,7 @@
  * \ingroup pygen
  */
 
+/* Use a define instead of `#pragma once` because of `bmesh_py_types.h` */
 #ifndef __PY_CAPI_UTILS_H__
 #define __PY_CAPI_UTILS_H__
 

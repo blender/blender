@@ -15,8 +15,8 @@
  *
  * The Original Code is Copyright (C) 2019 by Blender Foundation.
  */
-#ifndef __BLENDFILE_LOADING_BASE_TEST_H__
-#define __BLENDFILE_LOADING_BASE_TEST_H__
+
+#pragma once
 
 #include "DEG_depsgraph.h"
 #include "testing/testing.h"
@@ -60,5 +60,3 @@ class BlendfileLoadingBaseTest : public testing::Test {
   /* Free the depsgraph if it's not nullptr. */
   virtual void depsgraph_free();
 };
-
-#endif /* __BLENDFILE_LOADING_BASE_TEST_H__ */
