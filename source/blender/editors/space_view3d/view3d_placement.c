@@ -594,10 +594,10 @@ static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
   return true;
 }
 
-static void draw_circle_in_quad(const float v1[2],
-                                const float v2[2],
-                                const float v3[2],
-                                const float v4[2],
+static void draw_circle_in_quad(const float v1[3],
+                                const float v2[3],
+                                const float v3[3],
+                                const float v4[3],
                                 const int resolution,
                                 const float color[4])
 {
