@@ -1118,7 +1118,8 @@ static void rna_def_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_float", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Image_is_float_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Is Float", "True if this image is stored in floating-point buffer");
+  RNA_def_property_ui_text(
+      prop, "Is Float", "True if this image is stored in floating-point buffer");
 
   prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");
