@@ -238,11 +238,13 @@ void SCULPT_OT_mask_gradient(struct wmOperatorType *ot)
   ot->description = "Creates or modifies the mask using a gradient";
 
   /* api callbacks */
+  /*
   ot->invoke = WM_gesture_straightline_invoke;
   ot->modal = WM_gesture_straightline_modal;
   ot->exec = sculpt_gradient_update_exec;
 
   ot->poll = SCULPT_mode_poll;
+  */
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
