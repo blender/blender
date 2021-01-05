@@ -1570,6 +1570,7 @@ void ED_sculpt_undo_geometry_end(struct Object *ob)
 void ED_sculpt_undosys_type(UndoType *ut)
 {
   ut->name = "Sculpt";
+  ut->poll = NULL; /* No poll from context for now. */
   ut->step_encode_init = sculpt_undosys_step_encode_init;
   ut->step_encode = sculpt_undosys_step_encode;
   ut->step_decode = sculpt_undosys_step_decode;
