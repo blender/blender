@@ -8192,9 +8192,10 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       /* Symmetrize and re-triangulate. */
       BMO_op_callf(ss->bm,
                    (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-                   "symmetrize input=%avef direction=%i  dist=%f",
+                   "symmetrize input=%avef direction=%i dist=%f use_shapekey=%b",
                    sd->symmetrize_direction,
-                   0.00001f);
+                   0.00001f,
+                   true);
       SCULPT_dynamic_topology_triangulate(ss->bm);
 
       /* Bisect operator flags edges (keep tags clean for edge queue). */
