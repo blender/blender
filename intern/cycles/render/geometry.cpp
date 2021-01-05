@@ -280,6 +280,15 @@ void Geometry::tag_update(Scene *scene, bool rebuild)
   scene->object_manager->need_update = true;
 }
 
+void Geometry::tag_bvh_update(bool rebuild)
+{
+  tag_modified();
+
+  if (rebuild) {
+    need_update_rebuild = true;
+  }
+}
+
 /* Geometry Manager */
 
 GeometryManager::GeometryManager()
@@ -915,7 +924,7 @@ void GeometryManager::device_update_attributes(Device *device,
   scene->object_manager->device_update_mesh_offsets(device, dscene, scene);
 }
 
-void GeometryManager::mesh_calc_offset(Scene *scene)
+void GeometryManager::mesh_calc_offset(Scene *scene, BVHLayout bvh_layout)
 {
   size_t vert_size = 0;
   size_t tri_size = 0;
@@ -930,6 +939,14 @@ void GeometryManager::mesh_calc_offset(Scene *scene)
   size_t optix_prim_size = 0;
 
   foreach (Geometry *geom, scene->geometry) {
+    if (geom->optix_prim_offset != optix_prim_size) {
+      /* Need to rebuild BVH in OptiX, since refit only allows modified mesh data there */
+      const bool has_optix_bvh = bvh_layout == BVH_LAYOUT_OPTIX ||
+                                 bvh_layout == BVH_LAYOUT_MULTI_OPTIX ||
+                                 bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE;
+      geom->tag_bvh_update(has_optix_bvh);
+    }
+
     if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
@@ -1526,7 +1543,9 @@ void GeometryManager::device_update(Device *device,
   /* Device update. */
   device_free(device, dscene);
 
-  mesh_calc_offset(scene);
+  const BVHLayout bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
+                                                          device->get_bvh_layout_mask());
+  mesh_calc_offset(scene, bvh_layout);
   if (true_displacement_used) {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
@@ -1553,8 +1572,6 @@ void GeometryManager::device_update(Device *device,
   }
 
   /* Update displacement. */
-  BVHLayout bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
-                                                    device->get_bvh_layout_mask());
   bool displacement_done = false;
   size_t num_bvh = 0;
 

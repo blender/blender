@@ -1166,7 +1166,6 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *
   int len = 0;
   bool check_degenerate = true;
 
-  BMVert **verts;
   bool checks_succeded = true;
 
   /* sanity check */
@@ -1174,7 +1173,7 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *
     return false;
   }
 
-  verts = MEM_mallocN(sizeof(*verts) * verts_len, __func__);
+  BMVert **verts = MEM_mallocN(sizeof(*verts) * verts_len, __func__);
   {
     BMIter iter;
     BMVert *v;
@@ -2510,9 +2509,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
     Object *obedit = objects[ob_index];
     Mesh *me = obedit->data;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    ModifierData *md;
     bool mirrx = false, mirry = false, mirrz = false;
-    int i;
     float clip_dist = 0.0f;
     const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
@@ -2528,7 +2525,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
     /* if there is a mirror modifier with clipping, flag the verts that
      * are within tolerance of the plane(s) of reflection
      */
-    for (md = obedit->modifiers.first; md; md = md->next) {
+    LISTBASE_FOREACH (ModifierData *, md, &obedit->modifiers) {
       if (md->type == eModifierType_Mirror && (md->mode & eModifierMode_Realtime)) {
         MirrorModifierData *mmd = (MirrorModifierData *)md;
 
@@ -2548,7 +2545,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
       }
     }
 
-    for (i = 0; i < repeat; i++) {
+    for (int i = 0; i < repeat; i++) {
       if (!EDBM_op_callf(
               em,
               op,
@@ -3276,16 +3273,14 @@ static const EnumPropertyItem *merge_type_itemf(bContext *C,
                                                 PropertyRNA *UNUSED(prop),
                                                 bool *r_free)
 {
-  Object *obedit;
-  EnumPropertyItem *item = NULL;
-  int totitem = 0;
-
   if (!C) { /* needed for docs */
     return merge_type_items;
   }
 
-  obedit = CTX_data_edit_object(C);
+  Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_MESH) {
+    EnumPropertyItem *item = NULL;
+    int totitem = 0;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     /* Only active object supported:
@@ -4011,10 +4006,9 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   BMEdge *be;
   BMOperator bmop;
   float isect = 0.0f;
-  int len = 0, isected, i;
+  int isected, i;
   short numcuts = 1;
   const short mode = RNA_int_get(op->ptr, "type");
-  BMOpSlot *slot_edge_percents;
 
   /* allocd vars */
   float(*screen_vert_coords)[2], (*sco)[2], (*mouse_path)[2];
@@ -4029,7 +4023,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  len = RNA_collection_length(op->ptr, "path");
+  const int len = RNA_collection_length(op->ptr, "path");
 
   if (len < 2) {
     BKE_report(op->reports, RPT_ERROR, "Mouse path too short");
@@ -4070,7 +4064,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   }
 
   /* store percentage of edge cut for KNIFE_EXACT here.*/
-  slot_edge_percents = BMO_slot_get(bmop.slots_in, "edge_percents");
+  BMOpSlot *slot_edge_percents = BMO_slot_get(bmop.slots_in, "edge_percents");
   BM_ITER_MESH (be, &iter, bm, BM_EDGES_OF_MESH) {
     bool is_cut = false;
     if (BM_elem_flag_test(be, BM_ELEM_SELECT)) {
@@ -4168,14 +4162,11 @@ enum {
 static Base *mesh_separate_tagged(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base_old, BMesh *bm_old)
 {
-  Base *base_new;
   Object *obedit = base_old->object;
-  BMesh *bm_new;
-
-  bm_new = BM_mesh_create(&bm_mesh_allocsize_default,
-                          &((struct BMeshCreateParams){
-                              .use_toolflags = true,
-                          }));
+  BMesh *bm_new = BM_mesh_create(&bm_mesh_allocsize_default,
+                                 &((struct BMeshCreateParams){
+                                     .use_toolflags = true,
+                                 }));
   BM_mesh_elem_toolflags_ensure(bm_new); /* needed for 'duplicate' bmo */
 
   CustomData_copy(&bm_old->vdata, &bm_new->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
@@ -4190,7 +4181,7 @@ static Base *mesh_separate_tagged(
 
   /* Take into account user preferences for duplicating actions. */
   const eDupli_ID_Flags dupflag = USER_DUP_MESH | (U.dupflag & USER_DUP_ACT);
-  base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
+  Base *base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
   /* DAG_relations_tag_update(bmain); */
@@ -4250,7 +4241,6 @@ static Base *mesh_separate_arrays(Main *bmain,
   };
   const bool use_custom_normals = (bm_old->lnor_spacearr != NULL);
 
-  Base *base_new;
   Object *obedit = base_old->object;
 
   BMesh *bm_new = BM_mesh_create(&bm_new_allocsize, &((struct BMeshCreateParams){0}));
@@ -4265,7 +4255,7 @@ static Base *mesh_separate_arrays(Main *bmain,
 
   /* Take into account user preferences for duplicating actions. */
   const eDupli_ID_Flags dupflag = USER_DUP_MESH | (U.dupflag & USER_DUP_ACT);
-  base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
+  Base *base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
   /* DAG_relations_tag_update(bmain); */
@@ -4320,11 +4310,8 @@ static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const 
 {
   ID *obdata = ob->data;
 
-  Material ***matarar;
-  const short *totcolp;
-
-  totcolp = BKE_id_material_len_p(obdata);
-  matarar = BKE_id_material_array_p(obdata);
+  const short *totcolp = BKE_id_material_len_p(obdata);
+  Material ***matarar = BKE_id_material_array_p(obdata);
 
   if ((totcolp && matarar) == 0) {
     BLI_assert(0);

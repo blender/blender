@@ -248,10 +248,13 @@ class MultiDevice : public Device {
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override
   {
     /* Try to build and share a single acceleration structure, if possible */
-    if (bvh->params.bvh_layout == BVH_LAYOUT_BVH2) {
+    if (bvh->params.bvh_layout == BVH_LAYOUT_BVH2 || bvh->params.bvh_layout == BVH_LAYOUT_EMBREE) {
       devices.back().device->build_bvh(bvh, progress, refit);
       return;
     }
+
+    assert(bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX ||
+           bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE);
 
     BVHMulti *const bvh_multi = static_cast<BVHMulti *>(bvh);
     bvh_multi->sub_bvhs.resize(devices.size());

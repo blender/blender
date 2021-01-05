@@ -142,7 +142,10 @@ typedef struct UndoType {
 
   bool use_context;
 
-  int step_size;
+  /**
+   * The size of the undo struct 'inherited' from #UndoStep for that specific type. Used for
+   * generic allocation in BKE's `undo_system.c`. */
+  size_t step_size;
 } UndoType;
 
 /* Expose since we need to perform operations on specific undo types (rarely). */

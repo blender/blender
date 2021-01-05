@@ -157,6 +157,8 @@ class Geometry : public Node {
 
   /* Updates */
   void tag_update(Scene *scene, bool rebuild);
+
+  void tag_bvh_update(bool rebuild);
 };
 
 /* Geometry Manager */
@@ -198,7 +200,7 @@ class GeometryManager {
                              vector<AttributeRequestSet> &object_attributes);
 
   /* Compute verts/triangles/curves offsets in global arrays. */
-  void mesh_calc_offset(Scene *scene);
+  void mesh_calc_offset(Scene *scene, BVHLayout bvh_layout);
 
   void device_update_object(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
 

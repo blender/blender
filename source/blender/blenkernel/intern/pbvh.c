@@ -1365,6 +1365,17 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_draw_buffer_cb, &settings);
+
+  for (int i = 0; i < totnode; i++) {
+    PBVHNode *node = nodes[i];
+
+    if (node->flag & PBVH_UpdateDrawBuffers) {
+      /* Flush buffers uses OpenGL, so not in parallel. */
+      GPU_pbvh_buffers_update_flush(node->draw_buffers);
+    }
+
+    node->flag &= ~(PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
+  }
 }
 
 static int pbvh_flush_bb(PBVH *pbvh, PBVHNode *node, int flag)
@@ -2704,49 +2715,35 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
 {
   PBVHNode **nodes;
   int totnode;
+  int update_flag = 0;
 
-  const int update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
-
-  if (!update_only_visible) {
-    /* Update all draw buffers, also those outside the view. */
+  /* Search for nodes that need updates. */
+  if (update_only_visible) {
+    /* Get visible nodes with draw updates. */
+    PBVHDrawSearchData data = {.frustum = update_frustum, .accum_update_flag = 0};
+    BKE_pbvh_search_gather(pbvh, pbvh_draw_search_cb, &data, &nodes, &totnode);
+    update_flag = data.accum_update_flag;
+  }
+  else {
+    /* Get all nodes with draw updates, also those outside the view. */
+    const int search_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
     BKE_pbvh_search_gather(
-        pbvh, update_search_cb, POINTER_FROM_INT(update_flag), &nodes, &totnode);
-
-    if (totnode) {
-      pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag);
-    }
-
-    MEM_SAFE_FREE(nodes);
+        pbvh, update_search_cb, POINTER_FROM_INT(search_flag), &nodes, &totnode);
+    update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
   }
 
-  /* Gather visible nodes. */
-  PBVHDrawSearchData data = {.frustum = update_frustum, .accum_update_flag = 0};
-  BKE_pbvh_search_gather(pbvh, pbvh_draw_search_cb, &data, &nodes, &totnode);
-
-  if (update_only_visible && (data.accum_update_flag & update_flag)) {
-    /* Update draw buffers in visible nodes. */
-    pbvh_update_draw_buffers(pbvh, nodes, totnode, data.accum_update_flag);
+  /* Update draw buffers. */
+  if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {
+    pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag);
   }
-
-  /* Draw. */
-  for (int a = 0; a < totnode; a++) {
-    PBVHNode *node = nodes[a];
-
-    if (node->flag & PBVH_UpdateDrawBuffers) {
-      /* Flush buffers uses OpenGL, so not in parallel. */
-      GPU_pbvh_buffers_update_flush(node->draw_buffers);
-    }
-
-    node->flag &= ~(PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
-  }
-
   MEM_SAFE_FREE(nodes);
 
+  /* Draw visible nodes. */
   PBVHDrawSearchData draw_data = {.frustum = draw_frustum, .accum_update_flag = 0};
   BKE_pbvh_search_gather(pbvh, pbvh_draw_search_cb, &draw_data, &nodes, &totnode);
 
-  for (int a = 0; a < totnode; a++) {
-    PBVHNode *node = nodes[a];
+  for (int i = 0; i < totnode; i++) {
+    PBVHNode *node = nodes[i];
     if (!(node->flag & PBVH_FullyHidden)) {
       draw_fn(user_data, node->draw_buffers);
     }
