@@ -55,7 +55,15 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 
   /* feed old data to transform bmo */
   scale[axis] = -1.0f;
-  BMO_op_callf(bm, op->flag, "scale verts=%fv vec=%v space=%s", ELE_NEW, scale, op, "matrix");
+  BMO_op_callf(bm,
+               op->flag,
+               "scale verts=%fv vec=%v space=%s use_shapekey=%s",
+               ELE_NEW,
+               scale,
+               op,
+               "matrix",
+               op,
+               "use_shapekey");
 
   BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 

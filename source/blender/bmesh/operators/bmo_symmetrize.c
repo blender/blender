@@ -76,7 +76,14 @@ void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
   BMO_slot_buffer_flag_enable(bm, op_bisect.slots_out, "geom.out", BM_ALL_NOLOOP, ELE_OUT);
   BMO_slot_buffer_flag_enable(bm, op_dupe.slots_out, "geom.out", BM_ALL_NOLOOP, ELE_OUT);
 
-  BMO_op_callf(bm, op->flag, "scale verts=%S vec=%v", &op_dupe, "geom.out", scale);
+  BMO_op_callf(bm,
+               op->flag,
+               "scale verts=%S vec=%v use_shapekey=%s",
+               &op_dupe,
+               "geom.out",
+               scale,
+               op,
+               "use_shapekey");
 
   /* important 'flip_multires' is disabled,
    * otherwise multi-res data will be reversed, see: T47788 */
