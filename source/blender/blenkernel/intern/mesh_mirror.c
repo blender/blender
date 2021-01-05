@@ -41,11 +41,11 @@
 
 #include "MOD_modifiertypes.h"
 
-Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
-                                             const Mesh *mesh,
-                                             int axis,
-                                             const float plane_co[3],
-                                             float plane_no[3])
+Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mmd,
+                                                          const Mesh *mesh,
+                                                          int axis,
+                                                          const float plane_co[3],
+                                                          float plane_no[3])
 {
   bool do_bisect_flip_axis = ((axis == 0 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_X) ||
                               (axis == 1 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_Y) ||
@@ -97,11 +97,47 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
   return result;
 }
 
-Mesh *BKE_mesh_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
-                                           const ModifierEvalContext *UNUSED(ctx),
-                                           Object *ob,
-                                           const Mesh *mesh,
-                                           int axis)
+void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
+                                          Mesh *mesh,
+                                          const int axis,
+                                          const float dist)
+{
+  BMesh *bm = BKE_mesh_to_bmesh_ex(mesh,
+                                   &(struct BMeshCreateParams){
+                                       .use_toolflags = 1,
+                                   },
+                                   &(struct BMeshFromMeshParams){
+                                       .calc_face_normal = true,
+                                       .cd_mask_extra =
+                                           {
+                                               .vmask = CD_MASK_SHAPEKEY,
+                                           },
+                                   });
+  BMO_op_callf(bm,
+               (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+               "symmetrize input=%avef direction=%i dist=%f use_shapekey=%b",
+               axis,
+               dist,
+               true);
+
+  BM_mesh_bm_to_me(bmain,
+                   bm,
+                   mesh,
+                   (&(struct BMeshToMeshParams){
+                       .calc_object_remap = true,
+
+                   }));
+  BM_mesh_free(bm);
+}
+
+/**
+ * \warning This should _not_ be used to modify original meshes since
+ * it doesn't handle shape-keys, use #BKE_mesh_mirror_apply_mirror_on_axis instead.
+ */
+Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
+                                                        Object *ob,
+                                                        const Mesh *mesh,
+                                                        const int axis)
 {
   const float tolerance_sq = mmd->tolerance * mmd->tolerance;
   const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) == 0;
@@ -157,7 +193,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
 
   Mesh *mesh_bisect = NULL;
   if (do_bisect) {
-    mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane(mmd, mesh, axis, plane_co, plane_no);
+    mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
+        mmd, mesh, axis, plane_co, plane_no);
     mesh = mesh_bisect;
   }
 

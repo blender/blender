@@ -8166,10 +8166,12 @@ static bool sculpt_no_multires_poll(bContext *C)
 
 static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
   const Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ss->pbvh;
+  const float dist = RNA_float_get(op->ptr, "merge_tolerance");
 
   if (!pbvh) {
     return OPERATOR_CANCELLED;
@@ -8212,41 +8214,9 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       /* Mesh Symmetrize. */
       ED_sculpt_undo_geometry_begin(ob, "mesh symmetrize");
       Mesh *mesh = ob->data;
-      Mesh *mesh_mirror;
-      MirrorModifierData mmd = {{0}};
-      int axis = 0;
-      mmd.flag = 0;
-      mmd.tolerance = RNA_float_get(op->ptr, "merge_tolerance");
-      switch (sd->symmetrize_direction) {
-        case BMO_SYMMETRIZE_NEGATIVE_X:
-          axis = 0;
-          mmd.flag |= MOD_MIR_AXIS_X | MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_FLIP_AXIS_X;
-          break;
-        case BMO_SYMMETRIZE_NEGATIVE_Y:
-          axis = 1;
-          mmd.flag |= MOD_MIR_AXIS_Y | MOD_MIR_BISECT_AXIS_Y | MOD_MIR_BISECT_FLIP_AXIS_Y;
-          break;
-        case BMO_SYMMETRIZE_NEGATIVE_Z:
-          axis = 2;
-          mmd.flag |= MOD_MIR_AXIS_Z | MOD_MIR_BISECT_AXIS_Z | MOD_MIR_BISECT_FLIP_AXIS_Z;
-          break;
-        case BMO_SYMMETRIZE_POSITIVE_X:
-          axis = 0;
-          mmd.flag |= MOD_MIR_AXIS_X | MOD_MIR_BISECT_AXIS_X;
-          break;
-        case BMO_SYMMETRIZE_POSITIVE_Y:
-          axis = 1;
-          mmd.flag |= MOD_MIR_AXIS_Y | MOD_MIR_BISECT_AXIS_Y;
-          break;
-        case BMO_SYMMETRIZE_POSITIVE_Z:
-          axis = 2;
-          mmd.flag |= MOD_MIR_AXIS_Z | MOD_MIR_BISECT_AXIS_Z;
-          break;
-      }
-      mesh_mirror = BKE_mesh_mirror_apply_mirror_on_axis(&mmd, NULL, ob, mesh, axis);
-      if (mesh_mirror) {
-        BKE_mesh_nomain_to_mesh(mesh_mirror, mesh, ob, &CD_MASK_MESH, true);
-      }
+
+      BKE_mesh_mirror_apply_mirror_on_axis(bmain, mesh, sd->symmetrize_direction, dist);
+
       ED_sculpt_undo_geometry_end(ob);
       BKE_mesh_calc_normals(ob->data);
       BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
