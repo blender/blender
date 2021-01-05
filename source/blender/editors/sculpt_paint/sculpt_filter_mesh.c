@@ -271,6 +271,25 @@ static EnumPropertyItem prop_mesh_filter_orientation_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+typedef enum eMeshFilterSphereCenterType {
+  MESH_FILTER_SPHERE_CENTER_AVERAGE = 1 << 0,
+  MESH_FILTER_SPHERE_CENTER_OBJECT = 1 << 1,
+} eMeshFilterSphereCenterType;
+
+static EnumPropertyItem prop_mesh_filter_sphere_center_items[] = {
+    {MESH_FILTER_SPHERE_CENTER_AVERAGE,
+     "AVERAGE",
+     0,
+     "Center of Mass",
+     "Use the average position of all vertices as the sphere center"},
+    {MESH_FILTER_SPHERE_CENTER_OBJECT,
+     "OBJECT",
+     0,
+     "Object Origin",
+     "Use the object origin as the sphere center"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static bool sculpt_mesh_filter_needs_pmap(eSculptMeshFilterType filter_type)
 {
   return ELEM(filter_type,
@@ -352,8 +371,10 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         mul_m3_v3(transform, val);
         sub_v3_v3v3(disp, val, orig_co);
         break;
-      case MESH_FILTER_SPHERE:
-        normalize_v3_v3(disp, orig_co);
+      case MESH_FILTER_SPHERE: {
+        float sphere_space_co[3];
+        sub_v3_v3v3(sphere_space_co, orig_co, filter_cache->sphere_center);
+        normalize_v3_v3(disp, sphere_space_co);
         if (fade > 0.0f) {
           mul_v3_v3fl(disp, disp, filter_cache->sphere_radius * fade);
         }
@@ -368,11 +389,11 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         else {
           scale_m3_fl(transform, 1.0f + fade);
         }
-        copy_v3_v3(val, orig_co);
+        copy_v3_v3(val, sphere_space_co);
         mul_m3_v3(transform, val);
-        sub_v3_v3v3(disp2, val, orig_co);
+        sub_v3_v3v3(disp2, val, sphere_space_co);
         mid_v3_v3v3(disp, disp, disp2);
-        break;
+      } break;
       case MESH_FILTER_RANDOM: {
         normal_short_to_float_v3(normal, orig_data.no);
         /* Index is not unique for multires, so hash by vertex coordinates. */
@@ -493,13 +514,32 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
   }
 }
 
+static void mesh_filter_sphere_center_calculate(
+    SculptSession *ss, const eMeshFilterSphereCenterType sphere_center_mode)
+{
+  FilterCache *filter_cache = ss->filter_cache;
+  switch (sphere_center_mode) {
+    case MESH_FILTER_SPHERE_CENTER_AVERAGE: {
+      const int totvert = SCULPT_vertex_count_get(ss);
+      float center_accum[3] = {0.0f};
+      for (int i = 0; i < totvert; i++) {
+        add_v3_v3(center_accum, SCULPT_vertex_co_get(ss, i));
+      }
+      mul_v3_v3fl(filter_cache->sphere_center, center_accum, 1.0f / totvert);
+    } break;
+    case MESH_FILTER_SPHERE_CENTER_OBJECT:
+      zero_v3(filter_cache->sphere_center);
+      break;
+  }
+}
+
 static void mesh_filter_sphere_radius_calculate(SculptSession *ss)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
   FilterCache *filter_cache = ss->filter_cache;
   float accum = 0.0f;
   for (int i = 0; i < totvert; i++) {
-    accum += len_v3(SCULPT_vertex_co_get(ss, i));
+    accum += len_v3v3(filter_cache->sphere_center, SCULPT_vertex_co_get(ss, i));
   }
   filter_cache->sphere_radius = accum / totvert;
 }
@@ -745,6 +785,9 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
       break;
     }
     case MESH_FILTER_SPHERE: {
+      const eMeshFilterSphereCenterType sphere_center_mode = RNA_enum_get(op->ptr,
+                                                                          "sphere_center");
+      mesh_filter_sphere_center_calculate(ss, sphere_center_mode);
       mesh_filter_sphere_radius_calculate(ss);
       break;
     }
@@ -851,4 +894,11 @@ void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
               "How much smooth the resulting shape is, ignoring high frequency details",
               0,
               10);
+
+  RNA_def_enum(ot->srna,
+               "sphere_center",
+               prop_mesh_filter_sphere_center_items,
+               MESH_FILTER_SPHERE_CENTER_AVERAGE,
+               "Sphere Center",
+               "Position of the center of the sphere created by the filter");
 }

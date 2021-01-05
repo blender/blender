@@ -1393,6 +1393,8 @@ class _defs_sculpt:
                 layout.prop(props, "sharpen_smooth_ratio", expand=False)
                 layout.prop(props, "sharpen_intensify_detail_strength", expand=False)
                 layout.prop(props, "sharpen_curvature_smooth_iterations", expand=False)
+            elif props.type == 'SPHERE':
+                layout.prop(props, "sphere_center", expand=False)
 
         return dict(
             idname="builtin.mesh_filter",

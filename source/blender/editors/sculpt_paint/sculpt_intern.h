@@ -1159,6 +1159,7 @@ typedef struct FilterCache {
   float (*detail_directions)[3];
 
   /* Sphere mesh filter. */
+  float sphere_center[3];
   float sphere_radius;
 
   /* Filter orientaiton. */
