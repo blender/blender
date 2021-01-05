@@ -44,7 +44,7 @@ class SetValueOperation : public NodeOperation {
   }
 
   /**
-   * the inner loop of this program
+   * The inner loop of this operation.
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
   void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
