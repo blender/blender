@@ -653,7 +653,10 @@ static void ptcache_cloth_error(const ID *owner_id, void *cloth_v, const char *m
 {
   ClothModifierData *clmd = cloth_v;
   BLI_assert(GS(owner_id->name) == ID_OB);
-  BKE_modifier_set_error((Object *)owner_id, &clmd->modifier, "%s", message);
+  if (clmd->hairdata == NULL) {
+    /* If there is hair data, this modifier does not actually exist on the object. */
+    BKE_modifier_set_error((Object *)owner_id, &clmd->modifier, "%s", message);
+  }
 }
 
 static int ptcache_dynamicpaint_totpoint(void *sd, int UNUSED(cfra))
