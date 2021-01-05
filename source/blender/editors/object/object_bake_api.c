@@ -441,13 +441,24 @@ static bool bake_object_check(ViewLayer *view_layer,
   }
 
   Mesh *me = (Mesh *)ob->data;
-  if (CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) == -1) {
-    BKE_reportf(
-        reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
-    return false;
+  if (target == R_BAKE_TARGET_VERTEX_COLORS) {
+    MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+    MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
+    if (mcol == NULL && mloopcol == NULL) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "No vertex colors layer found in the object \"%s\"",
+                  ob->id.name + 2);
+      return false;
+    }
   }
+  else if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
+    if (CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) == -1) {
+      BKE_reportf(
+          reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
+      return false;
+    }
 
-  if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
     for (int i = 0; i < ob->totcol; i++) {
       bNodeTree *ntree = NULL;
       bNode *node = NULL;
