@@ -38,8 +38,6 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
   BMOperator dupeop, weldop;
   BMOIter siter;
   BMVert *v;
-  float mtx[4][4];
-  float imtx[4][4];
   float scale[3] = {1.0f, 1.0f, 1.0f};
   float dist = BMO_slot_float_get(op->slots_in, "merge_dist");
   int i;
@@ -50,9 +48,6 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
   BMOpSlot *slot_targetmap;
   BMOpSlot *slot_vertmap;
 
-  BMO_slot_mat4_get(op->slots_in, "matrix", mtx);
-  invert_m4_m4(imtx, mtx);
-
   BMO_op_initf(bm, &dupeop, op->flag, "duplicate geom=%s", op, "geom");
   BMO_op_exec(bm, &dupeop);
 
@@ -60,9 +55,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 
   /* feed old data to transform bmo */
   scale[axis] = -1.0f;
-  BMO_op_callf(bm, op->flag, "transform verts=%fv matrix=%m4", ELE_NEW, mtx);
-  BMO_op_callf(bm, op->flag, "scale verts=%fv vec=%v", ELE_NEW, scale);
-  BMO_op_callf(bm, op->flag, "transform verts=%fv matrix=%m4", ELE_NEW, imtx);
+  BMO_op_callf(bm, op->flag, "scale verts=%fv vec=%v space=%s", ELE_NEW, scale, op, "matrix");
 
   BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 
