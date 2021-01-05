@@ -131,6 +131,7 @@ typedef struct DrawEngineType {
                           struct RenderEngine *engine,
                           struct RenderLayer *layer,
                           const struct rcti *rect);
+  void (*store_metadata)(void *vedata, struct RenderResult *render_result);
 } DrawEngineType;
 
 /* Textures */

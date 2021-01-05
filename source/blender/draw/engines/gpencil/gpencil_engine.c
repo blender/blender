@@ -977,4 +977,5 @@ DrawEngineType draw_engine_gpencil_type = {
     NULL,
     NULL,
     &GPENCIL_render_to_image,
+    NULL,
 };

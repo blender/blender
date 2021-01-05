@@ -1911,6 +1911,11 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 
   RE_engine_end_result(engine, render_result, false, false, false);
 
+  if (engine_type->draw_engine->store_metadata) {
+    RenderResult *final_render_result = RE_engine_get_result(engine);
+    engine_type->draw_engine->store_metadata(data, final_render_result);
+  }
+
   /* Force cache to reset. */
   drw_viewport_cache_resize();
 
