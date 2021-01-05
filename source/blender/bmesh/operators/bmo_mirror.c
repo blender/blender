@@ -37,21 +37,18 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 {
   BMOperator dupeop, weldop;
   BMOIter siter;
-  BMIter iter;
-  BMVert *v, **vmap;
-  int vmap_size = 0;
+  BMVert *v;
   float mtx[4][4];
   float imtx[4][4];
   float scale[3] = {1.0f, 1.0f, 1.0f};
   float dist = BMO_slot_float_get(op->slots_in, "merge_dist");
-  int i, ototvert;
+  int i;
   int axis = BMO_slot_int_get(op->slots_in, "axis");
   bool mirror_u = BMO_slot_bool_get(op->slots_in, "mirror_u");
   bool mirror_v = BMO_slot_bool_get(op->slots_in, "mirror_v");
   bool mirror_udim = BMO_slot_bool_get(op->slots_in, "mirror_udim");
   BMOpSlot *slot_targetmap;
-
-  ototvert = bm->totvert;
+  BMOpSlot *slot_vertmap;
 
   BMO_slot_mat4_get(op->slots_in, "matrix", mtx);
   invert_m4_m4(imtx, mtx);
@@ -60,9 +57,6 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
   BMO_op_exec(bm, &dupeop);
 
   BMO_slot_buffer_flag_enable(bm, dupeop.slots_out, "geom.out", BM_ALL_NOLOOP, ELE_NEW);
-
-  /* create old -> new mappin */
-  vmap = BMO_iter_as_arrayN(dupeop.slots_out, "geom.out", BM_VERT, &vmap_size, NULL, 0);
 
   /* feed old data to transform bmo */
   scale[axis] = -1.0f;
@@ -73,14 +67,14 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
   BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 
   slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
+  slot_vertmap = BMO_slot_get(dupeop.slots_out, "vert_map.out");
 
-  v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
-  for (i = 0; i < ototvert; i++) {
+  BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
     if (fabsf(v->co[axis]) <= dist) {
-      BLI_assert(vmap_size >= i);
-      BMO_slot_map_elem_insert(&weldop, slot_targetmap, vmap[i], v);
+      BMVert *v_new = BMO_slot_map_elem_get(slot_vertmap, v);
+      BLI_assert(v_new != NULL);
+      BMO_slot_map_elem_insert(&weldop, slot_targetmap, v_new, v);
     }
-    v = BM_iter_step(&iter);
   }
 
   if (mirror_u || mirror_v) {
@@ -123,8 +117,4 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
   BMO_op_finish(bm, &dupeop);
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, ELE_NEW);
-
-  if (vmap) {
-    MEM_freeN(vmap);
-  }
 }
