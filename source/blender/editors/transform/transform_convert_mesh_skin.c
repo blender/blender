@@ -52,6 +52,7 @@ static void mesh_skin_transdata_create(TransDataBasic *td, BMEditMesh *em, BMVer
 {
   BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
   MVertSkin *vs = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MVERT_SKIN);
+  td->flag = 0;
   if (vs) {
     copy_v3_v3(td->iloc, vs->radius);
     td->loc = vs->radius;
@@ -59,8 +60,6 @@ static void mesh_skin_transdata_create(TransDataBasic *td, BMEditMesh *em, BMVer
   else {
     td->flag |= TD_SKIP;
   }
-
-  td->flag = 0;
 
   if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
     td->flag |= TD_SELECTED;
@@ -92,6 +91,10 @@ void createTransMeshSkin(TransInfo *t)
      * \note ignore modes here, even in edge/face modes,
      * transform data is created by selected vertices.
      */
+
+    if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+      continue;
+    }
 
     /* Support other objects using PET to adjust these, unless connected is enabled. */
     if ((!prop_mode || (prop_mode & T_PROP_CONNECTED)) && (bm->totvertsel == 0)) {
