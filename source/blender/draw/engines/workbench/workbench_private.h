@@ -513,7 +513,7 @@ struct GPUUniformBuf *workbench_material_ubo_alloc(WORKBENCH_PrivateData *wpd);
 void workbench_volume_engine_init(WORKBENCH_Data *vedata);
 void workbench_volume_cache_init(WORKBENCH_Data *vedata);
 void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
-                                     struct Scene *UNUSED(scene),
+                                     struct Scene *scene,
                                      struct Object *ob,
                                      struct ModifierData *md,
                                      eV3DShadingColorType color_type);

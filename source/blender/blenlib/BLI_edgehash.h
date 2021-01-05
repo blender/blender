@@ -75,7 +75,7 @@ bool BLI_edgehash_remove(EdgeHash *eh,
 void *BLI_edgehash_popkey(EdgeHash *eh, unsigned int v0, unsigned int v1) ATTR_WARN_UNUSED_RESULT;
 bool BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1) ATTR_WARN_UNUSED_RESULT;
 int BLI_edgehash_len(EdgeHash *eh) ATTR_WARN_UNUSED_RESULT;
-void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP free_value, const uint UNUSED(reserve));
+void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP free_value, const uint reserve);
 void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP free_value);
 
 EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
