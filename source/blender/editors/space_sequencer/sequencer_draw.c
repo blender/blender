@@ -1880,6 +1880,10 @@ static void draw_seq_backdrop(View2D *v2d)
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
+  /* View backdrop. */
+  immUniformThemeColorShade(TH_BACK, -25);
+  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+
   /* Darker overlay over the view backdrop. */
   immUniformThemeColorShade(TH_BACK, -20);
   immRectf(pos, v2d->cur.xmin, -1.0, v2d->cur.xmax, 1.0);
@@ -1887,21 +1891,17 @@ static void draw_seq_backdrop(View2D *v2d)
   /* Alternating horizontal stripes. */
   i = max_ii(1, ((int)v2d->cur.ymin) - 1);
 
-  float col_alternating[4];
-  UI_GetThemeColor4fv(TH_ROW_ALTERNATE, col_alternating);
+  GPU_blend(GPU_BLEND_ALPHA);
+  immUniformThemeColor(TH_ROW_ALTERNATE);
 
   while (i < v2d->cur.ymax) {
     if (i & 1) {
-      immUniformThemeColorBlendShade(TH_BACK, TH_ROW_ALTERNATE, col_alternating[3], -25);
+      immRectf(pos, v2d->cur.xmin, i, v2d->cur.xmax, i + 1);
     }
-    else {
-      immUniformThemeColorShade(TH_BACK, -25);
-    }
-
-    immRectf(pos, v2d->cur.xmin, i, v2d->cur.xmax, i + 1);
-
     i++;
   }
+
+  GPU_blend(GPU_BLEND_NONE);
 
   /* Lines separating the horizontal bands. */
   i = max_ii(1, ((int)v2d->cur.ymin) - 1);
