@@ -1240,6 +1240,7 @@ static int sculpt_brush_needs_normal(const SculptSession *ss, const Brush *brush
                SCULPT_TOOL_CREASE,
                SCULPT_TOOL_DRAW,
                SCULPT_TOOL_DRAW_SHARP,
+               SCULPT_TOOL_SCENE_PROJECT,
                SCULPT_TOOL_CLOTH,
                SCULPT_TOOL_LAYER,
                SCULPT_TOOL_NUDGE,
@@ -3573,6 +3574,95 @@ static void sculpt_stroke_cache_snap_context_init(bContext *C, Object *ob)
   cache->depsgraph = depsgraph;
 }
 
+
+static void sculpt_scene_project_view_ray_init(Object *ob, const int vertex_index, float r_ray_normal[3], float r_ray_origin[3]) {
+    SculptSession *ss = ob->sculpt;
+    float world_space_vertex_co[3];
+    mul_v3_m4v3(world_space_vertex_co, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
+    sub_v3_v3v3(r_ray_normal, world_space_vertex_co, ss->cache->view_origin);
+    normalize_v3(r_ray_normal);
+    copy_v3_v3(r_ray_origin, ss->cache->view_origin);
+}
+
+static void sculpt_scene_project_vertex_normal_ray_init(Object *ob, const int vertex_index, float r_ray_normal[3], float r_ray_origin[3]) {
+    SculptSession *ss = ob->sculpt;
+    float vertex_normal[3];
+    SCULPT_vertex_normal_get(ss, vertex_index, vertex_normal);
+    mul_v3_m4v3(r_ray_normal, ob->obmat, vertex_normal);
+    normalize_v3(r_ray_normal);
+
+    mul_v3_m4v3(r_ray_origin, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
+}
+
+static void sculpt_scene_project_brush_normal_ray_init(Object *ob, const int vertex_index, float r_ray_normal[3], float r_ray_origin[3]) {
+    SculptSession *ss = ob->sculpt;
+    mul_v3_m4v3(r_ray_origin, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
+    mul_v3_m4v3(r_ray_normal, ob->obmat, ss->cache->sculpt_normal);
+    normalize_v3(r_ray_normal);
+}
+
+static bool sculpt_scene_project_raycast(SculptSession *ss, const float ray_normal[3], const float ray_origin[3], const bool use_both_directions, float r_loc[3]) {
+   float hit_co[2][3];
+   float hit_len_squared[2];
+   bool any_hit = false;
+   bool hit = false;
+   hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
+                                                          ss->cache->depsgraph,
+                                                          &(const struct SnapObjectParams){
+                                                              .snap_select = SNAP_NOT_ACTIVE,
+                                                              .use_object_edit_cage = true,
+                                                          },
+                                                          ray_origin,
+                                                          ray_normal,
+                                                          NULL,
+                                                          hit_co[0],
+                                                          NULL);
+   if (hit) {
+      hit_len_squared[0] = len_squared_v3v3(hit_co[0], ray_origin);
+      any_hit |= hit;
+   }
+   else {
+      hit_len_squared[0] = FLT_MAX;
+   }
+
+
+   if (!use_both_directions) {
+       copy_v3_v3(r_loc, hit_co[0]);
+       return any_hit;
+   }
+
+   float ray_normal_flip[3];
+   mul_v3_v3fl(ray_normal_flip, ray_normal, -1.0f);
+
+   hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
+                                                          ss->cache->depsgraph,
+                                                          &(const struct SnapObjectParams){
+                                                              .snap_select = SNAP_NOT_ACTIVE,
+                                                              .use_object_edit_cage = true,
+                                                          },
+                                                          ray_origin,
+                                                          ray_normal_flip,
+                                                          NULL,
+                                                          hit_co[1],
+                                                          NULL);
+   if (hit) {
+      hit_len_squared[1] = len_squared_v3v3(hit_co[1], ray_origin);
+      any_hit |= hit;
+   }
+   else {
+      hit_len_squared[1] = FLT_MAX;
+   }
+
+   if (hit_len_squared[0] <= hit_len_squared[1]) {
+       copy_v3_v3(r_loc, hit_co[0]);
+   }
+   else {
+       copy_v3_v3(r_loc, hit_co[1]);
+   }
+   return any_hit;
+
+}
+
 static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
                                               const int n,
                                               const TaskParallelTLS *__restrict tls)
@@ -3610,25 +3700,25 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
     }
 
     float ray_normal[3];
+    float ray_origin[3];
+    bool use_both_directions = false;
+    switch (brush->scene_project_direction_type) {
+    case BRUSH_SCENE_PROJECT_DIRECTION_VIEW:
+        sculpt_scene_project_view_ray_init(data->ob, vd.index, ray_normal, ray_origin);
+        break;
+    case BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL:
+        sculpt_scene_project_vertex_normal_ray_init(data->ob, vd.index, ray_normal, ray_origin);
+        use_both_directions = true;
+        break;
+    case BRUSH_SCENE_PROJECT_DIRECTION_BRUSH_NORMAL:
+        sculpt_scene_project_brush_normal_ray_init(data->ob, vd.index, ray_normal, ray_origin);
+        use_both_directions = true;
+        break;
+    }
+
     float world_space_hit_co[3];
     float hit_co[3];
-    float world_space_vertex_co[3];
-    mul_v3_m4v3(world_space_vertex_co, data->ob->obmat, vd.co);
-    sub_v3_v3v3(ray_normal, world_space_vertex_co, ss->cache->view_origin);
-    normalize_v3(ray_normal);
-
-    const bool hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
-                                                          ss->cache->depsgraph,
-                                                          &(const struct SnapObjectParams){
-                                                              .snap_select = SNAP_NOT_ACTIVE,
-                                                              .use_object_edit_cage = true,
-                                                          },
-                                                          ss->cache->view_origin,
-                                                          ray_normal,
-                                                          NULL,
-                                                          world_space_hit_co,
-                                                          NULL);
-
+    const bool hit = sculpt_scene_project_raycast(ss, ray_normal, ray_origin, use_both_directions, world_space_hit_co);
     if (!hit) {
       continue;
     }

@@ -268,7 +268,7 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1[6];
+  char _pad1[2];
 
   float autosmooth_factor;
 
@@ -344,6 +344,9 @@ typedef struct Brush {
 
   /* slide/relax */
   int slide_deform_type;
+
+  /* scene_project */
+  int scene_project_direction_type;
 
   /* overlay */
   int texture_overlay_alpha;

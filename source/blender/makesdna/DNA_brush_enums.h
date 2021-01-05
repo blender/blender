@@ -284,6 +284,12 @@ typedef enum eBrushBoundaryFalloffType {
   BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT = 3,
 } eBrushBoundaryFalloffType;
 
+typedef enum eBrushSceneProjectDirectionType {
+  BRUSH_SCENE_PROJECT_DIRECTION_VIEW = 0,
+  BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL = 1,
+  BRUSH_SCENE_PROJECT_DIRECTION_BRUSH_NORMAL = 2,
+} eBrushSceneProjectDirectionType;
+
 typedef enum eBrushSnakeHookDeformType {
   BRUSH_SNAKE_HOOK_DEFORM_FALLOFF = 0,
   BRUSH_SNAKE_HOOK_DEFORM_ELASTIC = 1,

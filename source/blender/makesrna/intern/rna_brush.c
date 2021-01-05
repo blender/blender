@@ -2223,6 +2223,13 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem brush_scene_project_direction_type_items[] = {
+      {BRUSH_SCENE_PROJECT_DIRECTION_VIEW, "VIEW", 0, "View", ""},
+      {BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL, "VERTEX_NORMAL", 0, "Vertex Normal", ""},
+      {BRUSH_SCENE_PROJECT_DIRECTION_BRUSH_NORMAL, "BRUSH_NORMAL", 0, "Brush Normal", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "Brush", "ID");
   RNA_def_struct_ui_text(
       srna, "Brush", "Brush data-block for storing brush settings for painting and sculpting");
@@ -2393,6 +2400,11 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Rotation Origins",
                            "Method to set the rotation origins for the segments of the brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "scene_project_direction_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_scene_project_direction_type_items);
+  RNA_def_property_ui_text(prop, "Project Direction", "Direction that is going to be used to project the vertices into the scene");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "jitter_unit", PROP_ENUM, PROP_NONE); /* as an enum */
