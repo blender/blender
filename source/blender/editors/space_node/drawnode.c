@@ -189,7 +189,10 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
     cumap->flag &= ~CUMA_DRAW_SAMPLE;
   }
 
-  uiTemplateCurveMapping(layout, ptr, "mapping", 'c', false, false, false, true);
+  /* "Tone" (Standard/Filmlike) only used in the Compositor. */
+  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
+  uiTemplateCurveMapping(
+      layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT));
 }
 
 static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
