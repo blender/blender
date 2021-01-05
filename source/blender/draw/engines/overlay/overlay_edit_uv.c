@@ -26,10 +26,13 @@
 
 #include "BKE_editmesh.h"
 #include "BKE_image.h"
+#include "BKE_mask.h"
 #include "BKE_paint.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
+
+#include "DEG_depsgraph_query.h"
 
 #include "ED_image.h"
 
@@ -70,6 +73,27 @@ static OVERLAY_UVLineStyle edit_uv_line_style_from_space_image(const SpaceImage 
   }
 }
 
+/* TODO(jbakker): the GPU texture should be cached with the mask. */
+static GPUTexture *edit_uv_mask_texture(
+    Mask *mask, const int width, const int height_, const float aspx, const float aspy)
+{
+  const int height = (float)height_ * (aspy / aspx);
+  MaskRasterHandle *handle;
+  float *buffer = MEM_mallocN(sizeof(float) * height * width, __func__);
+
+  /* Initialize rasterization handle. */
+  handle = BKE_maskrasterize_handle_new();
+  BKE_maskrasterize_handle_init(handle, mask, width, height, true, true, true);
+
+  BKE_maskrasterize_buffer(handle, width, height, buffer);
+
+  /* Free memory. */
+  BKE_maskrasterize_handle_free(handle);
+  GPUTexture *texture = GPU_texture_create_2d(mask->id.name, width, height, 1, GPU_R16F, buffer);
+  MEM_freeN(buffer);
+  return texture;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Internal API
  * \{ */
@@ -93,6 +117,7 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   const bool has_edit_object = (draw_ctx->object_edit) != NULL;
   const bool is_paint_mode = sima->mode == SI_MODE_PAINT;
   const bool is_view_mode = sima->mode == SI_MODE_VIEW;
+  const bool is_mask_mode = sima->mode == SI_MODE_MASK;
   const bool is_edit_mode = draw_ctx->object_mode == OB_MODE_EDIT;
   const bool do_uv_overlay = is_image_type && is_uv_editor && has_edit_object;
   const bool show_modified_uvs = sima->flag & SI_DRAWSHADOW;
@@ -118,6 +143,14 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
                                       (is_view_mode && do_tex_paint_shadows &&
                                        ((draw_ctx->object_mode & (OB_MODE_TEXTURE_PAINT)) != 0)) ||
                                       (do_uv_overlay && (show_modified_uvs)));
+
+  pd->edit_uv.do_mask_overlay = show_overlays && is_mask_mode && (sima->mask_info.mask != NULL) &&
+                                ((sima->mask_info.draw_flag & MASK_DRAWFLAG_OVERLAY) != 0);
+  pd->edit_uv.mask_overlay_mode = sima->mask_info.overlay_mode;
+  pd->edit_uv.mask = sima->mask_info.mask ? (Mask *)DEG_get_evaluated_id(
+                                                draw_ctx->depsgraph, &sima->mask_info.mask->id) :
+                                            NULL;
+
   pd->edit_uv.do_uv_stretching_overlay = show_overlays && do_uvstretching_overlay;
   pd->edit_uv.uv_opacity = sima->uv_opacity;
   pd->edit_uv.do_tiled_image_overlay = show_overlays && is_image_type && is_tiled_image;
@@ -132,7 +165,12 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   pd->edit_uv.total_area_ratio = 0.0f;
   pd->edit_uv.total_area_ratio_inv = 0.0f;
 
-  ED_space_image_get_uv_aspect(sima, &pd->edit_uv.aspect[0], &pd->edit_uv.aspect[1]);
+  /* During engine init phase the sima isn't locked and we are able to retrieve the needed data.
+   * During cache_init the image engine locks the sima and makes it imposible to retrieve the data.
+   */
+  ED_space_image_get_uv_aspect(sima, &pd->edit_uv.uv_aspect[0], &pd->edit_uv.uv_aspect[1]);
+  ED_space_image_get_size(sima, &pd->edit_uv.image_size[0], &pd->edit_uv.image_size[1]);
+  ED_space_image_get_aspect(sima, &pd->edit_uv.image_aspect[0], &pd->edit_uv.image_aspect[1]);
 }
 
 void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
@@ -225,7 +263,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       GPUShader *sh = OVERLAY_shader_edit_uv_stretching_angle_get();
       pd->edit_uv_stretching_grp = DRW_shgroup_create(sh, psl->edit_uv_stretching_ps);
       DRW_shgroup_uniform_block(pd->edit_uv_stretching_grp, "globalsBlock", G_draw.block_ubo);
-      DRW_shgroup_uniform_vec2_copy(pd->edit_uv_stretching_grp, "aspect", pd->edit_uv.aspect);
+      DRW_shgroup_uniform_vec2_copy(pd->edit_uv_stretching_grp, "aspect", pd->edit_uv.uv_aspect);
     }
     else /* SI_UVDT_STRETCH_AREA */ {
       GPUShader *sh = OVERLAY_shader_edit_uv_stretching_area_get();
@@ -334,6 +372,26 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
     pd->edit_uv.stencil_ibuf = NULL;
     pd->edit_uv.stencil_image = NULL;
   }
+
+  if (pd->edit_uv.do_mask_overlay) {
+    const bool is_combined_overlay = pd->edit_uv.mask_overlay_mode == MASK_OVERLAY_COMBINED;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS;
+    state |= is_combined_overlay ? DRW_STATE_BLEND_MUL : DRW_STATE_BLEND_ALPHA;
+    DRW_PASS_CREATE(psl->edit_uv_mask_ps, state);
+
+    GPUShader *sh = OVERLAY_shader_edit_uv_mask_image();
+    GPUBatch *geom = DRW_cache_quad_get();
+    DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->edit_uv_mask_ps);
+    GPUTexture *mask_texture = edit_uv_mask_texture(pd->edit_uv.mask,
+                                                    pd->edit_uv.image_size[0],
+                                                    pd->edit_uv.image_size[1],
+                                                    pd->edit_uv.image_aspect[1],
+                                                    pd->edit_uv.image_aspect[1]);
+    pd->edit_uv.mask_texture = mask_texture;
+    DRW_shgroup_uniform_texture(grp, "imgTexture", mask_texture);
+    DRW_shgroup_uniform_vec4_copy(grp, "color", (float[4]){1.0f, 1.0f, 1.0f, 1.0f});
+    DRW_shgroup_call_obmat(grp, geom, NULL);
+  }
 }
 
 void OVERLAY_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
@@ -436,6 +494,8 @@ static void OVERLAY_edit_uv_draw_finish(OVERLAY_Data *vedata)
     pd->edit_uv.stencil_image = NULL;
     pd->edit_uv.stencil_ibuf = NULL;
   }
+
+  DRW_TEXTURE_FREE_SAFE(pd->edit_uv.mask_texture);
 }
 
 void OVERLAY_edit_uv_draw(OVERLAY_Data *vedata)
@@ -446,6 +506,21 @@ void OVERLAY_edit_uv_draw(OVERLAY_Data *vedata)
 
   if (pd->edit_uv.do_tiled_image_border_overlay) {
     DRW_draw_pass(psl->edit_uv_tiled_image_borders_ps);
+  }
+  if (pd->edit_uv.do_mask_overlay) {
+    /* Combined overlay renders in the default framebuffer and modifies the image in SRS.
+     * The alpha overlay renders in the overlay framebuffer. */
+    const bool is_combined_overlay = pd->edit_uv.mask_overlay_mode == MASK_OVERLAY_COMBINED;
+    GPUFrameBuffer *previous_framebuffer = NULL;
+    if (is_combined_overlay) {
+      DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+      previous_framebuffer = GPU_framebuffer_active_get();
+      GPU_framebuffer_bind(dfbl->default_fb);
+    }
+    DRW_draw_pass(psl->edit_uv_mask_ps);
+    if (previous_framebuffer) {
+      GPU_framebuffer_bind(previous_framebuffer);
+    }
   }
 
   if (pd->edit_uv.do_uv_stretching_overlay) {

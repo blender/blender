@@ -34,9 +34,9 @@ extern "C" {
 #  define USE_GEOM_SHADER_WORKAROUND 0
 #endif
 
-/* Needed for eSpaceImage_UVDT_Stretch */
+/* Needed for eSpaceImage_UVDT_Stretch and eMaskOverlayMode */
+#include "DNA_mask_types.h"
 #include "DNA_space_types.h"
-
 /* Forward declarations */
 struct ImBuf;
 
@@ -99,6 +99,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *edit_uv_stretching_ps;
   DRWPass *edit_uv_tiled_image_borders_ps;
   DRWPass *edit_uv_stencil_ps;
+  DRWPass *edit_uv_mask_ps;
   DRWPass *extra_ps[2];
   DRWPass *extra_blend_ps;
   DRWPass *extra_centers_ps;
@@ -368,18 +369,23 @@ typedef struct OVERLAY_PrivateData {
     bool do_tiled_image_overlay;
     bool do_tiled_image_border_overlay;
     bool do_stencil_overlay;
+    bool do_mask_overlay;
 
     bool do_faces;
     bool do_face_dots;
 
     float uv_opacity;
+
+    int image_size[2];
+    float image_aspect[2];
+
     /* edge drawing */
     OVERLAY_UVLineStyle line_style;
     float dash_length;
     int do_smooth_wire;
 
     /* stretching overlay */
-    float aspect[2];
+    float uv_aspect[2];
     eSpaceImage_UVDT_Stretch draw_type;
     ListBase totals;
     float total_area_ratio;
@@ -389,6 +395,11 @@ typedef struct OVERLAY_PrivateData {
     struct Image *stencil_image;
     struct ImBuf *stencil_ibuf;
     void *stencil_lock;
+
+    /* mask overlay */
+    Mask *mask;
+    eMaskOverlayMode mask_overlay_mode;
+    GPUTexture *mask_texture;
   } edit_uv;
   struct {
     bool transparent;
@@ -690,6 +701,7 @@ GPUShader *OVERLAY_shader_edit_uv_stretching_area_get(void);
 GPUShader *OVERLAY_shader_edit_uv_stretching_angle_get(void);
 GPUShader *OVERLAY_shader_edit_uv_tiled_image_borders_get(void);
 GPUShader *OVERLAY_shader_edit_uv_stencil_image(void);
+GPUShader *OVERLAY_shader_edit_uv_mask_image(void);
 GPUShader *OVERLAY_shader_extra(bool is_select);
 GPUShader *OVERLAY_shader_extra_groundline(void);
 GPUShader *OVERLAY_shader_extra_wire(bool use_object, bool is_select);
