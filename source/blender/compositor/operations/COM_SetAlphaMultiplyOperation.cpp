@@ -13,12 +13,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2020, Blender Foundation.
+ * Copyright 2011, Blender Foundation.
  */
 
-#include "COM_KeyingSetAlphaOperation.h"
+#include "COM_SetAlphaMultiplyOperation.h"
 
-KeyingSetAlphaOperation::KeyingSetAlphaOperation()
+SetAlphaMultiplyOperation::SetAlphaMultiplyOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);
@@ -28,16 +28,16 @@ KeyingSetAlphaOperation::KeyingSetAlphaOperation()
   this->m_inputAlpha = nullptr;
 }
 
-void KeyingSetAlphaOperation::initExecution()
+void SetAlphaMultiplyOperation::initExecution()
 {
   this->m_inputColor = getInputSocketReader(0);
   this->m_inputAlpha = getInputSocketReader(1);
 }
 
-void KeyingSetAlphaOperation::executePixelSampled(float output[4],
-                                                  float x,
-                                                  float y,
-                                                  PixelSampler sampler)
+void SetAlphaMultiplyOperation::executePixelSampled(float output[4],
+                                            float x,
+                                            float y,
+                                            PixelSampler sampler)
 {
   float color_input[4];
   float alpha_input[4];
@@ -48,7 +48,7 @@ void KeyingSetAlphaOperation::executePixelSampled(float output[4],
   mul_v4_v4fl(output, color_input, alpha_input[0]);
 }
 
-void KeyingSetAlphaOperation::deinitExecution()
+void SetAlphaMultiplyOperation::deinitExecution()
 {
   this->m_inputColor = nullptr;
   this->m_inputAlpha = nullptr;

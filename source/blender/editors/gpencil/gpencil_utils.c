@@ -3207,7 +3207,7 @@ bGPDstroke *ED_gpencil_stroke_join_and_trim(
     bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps, bGPDstroke *gps_dst, const int pt_index)
 {
   if ((gps->totpoints < 1) || (gps_dst->totpoints < 1)) {
-    return false;
+    return NULL;
   }
   BLI_assert(pt_index >= 0 && pt_index < gps_dst->totpoints);
 

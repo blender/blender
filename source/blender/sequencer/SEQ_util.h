@@ -29,9 +29,9 @@
 extern "C" {
 #endif
 
+struct ListBase;
 struct Scene;
 struct Sequence;
-struct ListBase;
 
 void SEQ_set_scale_to_fit(const struct Sequence *seq,
                           const int image_width,

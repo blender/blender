@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2020, Blender Foundation.
+ * Copyright 2011, Blender Foundation.
  */
 
 #pragma once
@@ -21,16 +21,17 @@
 #include "COM_NodeOperation.h"
 
 /**
- * Operation which is used by keying node to modify image's alpha channels.
- * It keeps color properly pre-multiplied.
+ * This operation will apply a mask to its input image.
+ *
+ * `output color.rgba = input color.rgba * input alpha`
  */
-class KeyingSetAlphaOperation : public NodeOperation {
+class SetAlphaMultiplyOperation : public NodeOperation {
  private:
   SocketReader *m_inputColor;
   SocketReader *m_inputAlpha;
 
  public:
-  KeyingSetAlphaOperation();
+  SetAlphaMultiplyOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 

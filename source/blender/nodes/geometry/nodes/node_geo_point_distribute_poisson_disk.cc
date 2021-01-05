@@ -95,8 +95,8 @@ static float point_weight_influence_get(const float maximum_distance,
  * Weight each point based on their proximity to its neighbors
  *
  * For each index in the weight array add a weight based on the proximity the
- * corresponding point has with its neighboors.
- **/
+ * corresponding point has with its neighbors.
+ */
 static void points_distance_weight_calculate(Vector<float> *weights,
                                              const size_t point_id,
                                              const float3 *input_points,
@@ -264,18 +264,18 @@ static void progressive_sampling_reorder(Vector<float3> *output_points,
 
 void poisson_disk_point_elimination(Vector<float3> const *input_points,
                                     Vector<float3> *output_points,
-                                    float maximum_density,
+                                    float maximum_distance,
                                     float3 boundbox)
 {
   weighted_sample_elimination(input_points->data(),
                               input_points->size(),
                               output_points->data(),
                               output_points->size(),
-                              maximum_density,
+                              maximum_distance,
                               boundbox,
                               false);
 
-  progressive_sampling_reorder(output_points, maximum_density, boundbox);
+  progressive_sampling_reorder(output_points, maximum_distance, boundbox);
 }
 
 }  // namespace blender::nodes

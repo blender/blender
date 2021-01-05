@@ -451,7 +451,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
   uiBut *but = arg_but;
   PointerRNA *ptr = &but->rnapoin;
   PropertyRNA *prop = but->rnaprop;
-  int index = POINTER_AS_INT(arg_index);
+  const int index = POINTER_AS_INT(arg_index);
   const int shift = win->eventstate->shift;
   const int len = RNA_property_array_length(ptr, prop);
 
@@ -1807,8 +1807,8 @@ static void ui_item_rna_size(uiLayout *layout,
   int w = 0, h;
 
   /* arbitrary extended width by type */
-  PropertyType type = RNA_property_type(prop);
-  PropertySubType subtype = RNA_property_subtype(prop);
+  const PropertyType type = RNA_property_type(prop);
+  const PropertySubType subtype = RNA_property_subtype(prop);
   const int len = RNA_property_array_length(ptr, prop);
 
   bool is_checkbox_only = false;
@@ -2857,7 +2857,7 @@ static uiBut *ui_item_menu(uiLayout *layout,
   }
 
   int w = ui_text_icon_width(layout, name, icon, 1);
-  int h = UI_UNIT_Y;
+  const int h = UI_UNIT_Y;
 
   if (layout->root->type == UI_LAYOUT_HEADER) { /* ugly .. */
     if (icon == ICON_NONE && force_menu) {
@@ -3553,7 +3553,7 @@ static void ui_litem_layout_row(uiLayout *litem)
   float extra_pixel;
 
   /* x = litem->x; */ /* UNUSED */
-  int y = litem->y;
+  const int y = litem->y;
   int w = litem->w;
   int totw = 0;
   int tot = 0;
@@ -3722,7 +3722,7 @@ static void ui_litem_estimate_column(uiLayout *litem, bool is_box)
 
 static void ui_litem_layout_column(uiLayout *litem, bool is_box, bool is_menu)
 {
-  int x = litem->x;
+  const int x = litem->x;
   int y = litem->y;
 
   LISTBASE_FOREACH (uiItem *, item, &litem->items) {
@@ -3756,7 +3756,7 @@ static RadialDirection ui_get_radialbut_vec(float vec[2], short itemnum)
            PIE_MAX_ITEMS);
   }
 
-  RadialDirection dir = ui_radial_dir_order[itemnum];
+  const RadialDirection dir = ui_radial_dir_order[itemnum];
   ui_but_pie_dir(dir, vec);
 
   return dir;
@@ -3795,8 +3795,8 @@ static void ui_litem_layout_radial(uiLayout *litem)
 
   const int pie_radius = U.pie_menu_radius * UI_DPI_FAC;
 
-  int x = litem->x;
-  int y = litem->y;
+  const int x = litem->x;
+  const int y = litem->y;
 
   int minx = x, miny = y, maxx = x, maxy = y;
 
@@ -3922,8 +3922,8 @@ static void ui_litem_layout_box(uiLayout *litem)
     boxspace = 0;
   }
 
-  int w = litem->w;
-  int h = litem->h;
+  const int w = litem->w;
+  const int h = litem->h;
 
   litem->x += boxspace;
   litem->y -= boxspace;
@@ -3993,7 +3993,7 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
   int miny = 0;
 
   maxw = 0;
-  int emh = toth / flow->totcol;
+  const int emh = toth / flow->totcol;
 
   /* create column per column */
   int col = 0;
@@ -4546,11 +4546,11 @@ static void ui_litem_layout_split(uiLayout *litem)
   }
 
   int x = litem->x;
-  int y = litem->y;
+  const int y = litem->y;
 
-  float percentage = (split->percentage == 0.0f) ? 1.0f / (float)tot : split->percentage;
+  const float percentage = (split->percentage == 0.0f) ? 1.0f / (float)tot : split->percentage;
 
-  int w = (litem->w - (tot - 1) * litem->space);
+  const int w = (litem->w - (tot - 1) * litem->space);
   int colw = w * percentage;
   colw = MAX2(colw, 0);
 
@@ -4595,8 +4595,8 @@ static void ui_litem_estimate_overlap(uiLayout *litem)
 static void ui_litem_layout_overlap(uiLayout *litem)
 {
 
-  int x = litem->x;
-  int y = litem->y;
+  const int x = litem->x;
+  const int y = litem->y;
 
   LISTBASE_FOREACH (uiItem *, item, &litem->items) {
     int itemw, itemh;

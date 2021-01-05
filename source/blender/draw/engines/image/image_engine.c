@@ -413,4 +413,5 @@ DrawEngineType draw_engine_image_type = {
     NULL,                  /* view_update */
     NULL,                  /* id_update */
     NULL,                  /* render_to_image */
+    NULL,                  /* store_metadata */
 };

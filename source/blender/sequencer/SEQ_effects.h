@@ -27,9 +27,9 @@
 extern "C" {
 #endif
 
-struct Sequence;
 struct ImBuf;
 struct SeqRenderData;
+struct Sequence;
 struct TextVars;
 
 /* Wipe effect */

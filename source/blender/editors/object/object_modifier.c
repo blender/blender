@@ -1623,8 +1623,8 @@ static int modifier_set_active_exec(bContext *C, wmOperator *op)
  * pointer then it would always set the active modifier to the already active modifier.
  *
  * \param event: If this isn't NULL, the operator will also look for panels underneath
- * the cursor with customdata set to a modifier.
- * \param r_retval: This should be used if #event is used in order to to return
+ * the cursor with custom-data set to a modifier.
+ * \param r_retval: This should be used if #event is used in order to return
  * #OPERATOR_PASS_THROUGH to check other operators with the same key set.
  */
 bool edit_modifier_invoke_properties_with_hover_no_active(bContext *C,
@@ -1877,7 +1877,7 @@ static bool modifier_copy_to_selected_poll(bContext *C)
       found_supported_objects = true;
       break;
     }
-    else if (BKE_object_support_modifier_type_check(ob, md->type)) {
+    if (BKE_object_support_modifier_type_check(ob, md->type)) {
       found_supported_objects = true;
       break;
     }

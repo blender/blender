@@ -207,7 +207,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
   /**
    * Reset for each "redraw". When rendering using ogl render,
    * we accumulate the redraw inside the drawing loop in eevee_draw_scene().
-   **/
+   */
   if (DRW_state_is_opengl_render()) {
     effects->taa_render_sample = 1;
   }

@@ -144,12 +144,12 @@ set(SRC
   geometry/nodes/node_geo_attribute_compare.cc
   geometry/nodes/node_geo_attribute_fill.cc
   geometry/nodes/node_geo_attribute_math.cc
+  geometry/nodes/node_geo_attribute_mix.cc
   geometry/nodes/node_geo_attribute_randomize.cc
   geometry/nodes/node_geo_boolean.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_join_geometry.cc
-  geometry/nodes/node_geo_attribute_mix.cc
   geometry/nodes/node_geo_object_info.cc
   geometry/nodes/node_geo_point_distribute.cc
   geometry/nodes/node_geo_point_distribute_poisson_disk.cc

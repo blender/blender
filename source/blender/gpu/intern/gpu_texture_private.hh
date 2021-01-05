@@ -71,7 +71,7 @@ ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_CUBE_ARRAY)
 /**
  * Implementation of Textures.
  * Base class which is then specialized for each implementation (GL, VK, ...).
- **/
+ */
 class Texture {
  public:
   /** Internal Sampler state. */
@@ -540,7 +540,18 @@ static inline eGPUTextureFormat to_texture_format(const GPUVertFormat *format)
         case GPU_COMP_I16:
           return GPU_RGBA16I;
         case GPU_COMP_U16:
-          return GPU_RGBA16UI;
+          /* Note: Checking the fetch mode to select the right GPU texture format. This can be
+           * added to other formats as well. */
+          switch (format->attrs[0].fetch_mode) {
+            case GPU_FETCH_INT:
+              return GPU_RGBA16UI;
+            case GPU_FETCH_INT_TO_FLOAT_UNIT:
+              return GPU_RGBA16;
+            case GPU_FETCH_INT_TO_FLOAT:
+              return GPU_RGBA16F;
+            case GPU_FETCH_FLOAT:
+              return GPU_RGBA16F;
+          }
         case GPU_COMP_I32:
           return GPU_RGBA32I;
         case GPU_COMP_U32:

@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/* Use a define instead of `#pragma once` because of `BLI_endian_switch_inline.h` */
 #ifndef __BLI_ENDIAN_SWITCH_H__
 #define __BLI_ENDIAN_SWITCH_H__
 

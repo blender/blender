@@ -46,11 +46,16 @@ void bmo_create_vert_exec(BMesh *bm, BMOperator *op)
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "vert.out", BM_VERT, ELE_NEW);
 }
 
-void bmo_transform_exec(BMesh *UNUSED(bm), BMOperator *op)
+void bmo_transform_exec(BMesh *bm, BMOperator *op)
 {
   BMOIter iter;
   BMVert *v;
   float mat[4][4], mat_space[4][4], imat_space[4][4];
+
+  const uint shape_keys_len = BMO_slot_bool_get(op->slots_in, "use_shapekey") ?
+                                  CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY) :
+                                  0;
+  const uint cd_shape_key_offset = CustomData_get_offset(&bm->vdata, CD_SHAPEKEY);
 
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
   BMO_slot_mat4_get(op->slots_in, "space", mat_space);
@@ -62,6 +67,13 @@ void bmo_transform_exec(BMesh *UNUSED(bm), BMOperator *op)
 
   BMO_ITER (v, &iter, op->slots_in, "verts", BM_VERT) {
     mul_m4_v3(mat, v->co);
+
+    if (shape_keys_len != 0) {
+      float(*co_dst)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
+      for (int i = 0; i < shape_keys_len; i++, co_dst++) {
+        mul_m4_v3(mat, *co_dst);
+      }
+    }
   }
 }
 
@@ -74,8 +86,16 @@ void bmo_translate_exec(BMesh *bm, BMOperator *op)
   unit_m4(mat);
   copy_v3_v3(mat[3], vec);
 
-  BMO_op_callf(
-      bm, op->flag, "transform matrix=%m4 space=%s verts=%s", mat, op, "space", op, "verts");
+  BMO_op_callf(bm,
+               op->flag,
+               "transform matrix=%m4 space=%s verts=%s use_shapekey=%s",
+               mat,
+               op,
+               "space",
+               op,
+               "verts",
+               op,
+               "use_shapekey");
 }
 
 void bmo_scale_exec(BMesh *bm, BMOperator *op)
@@ -89,8 +109,16 @@ void bmo_scale_exec(BMesh *bm, BMOperator *op)
   mat[1][1] = vec[1];
   mat[2][2] = vec[2];
 
-  BMO_op_callf(
-      bm, op->flag, "transform matrix=%m3 space=%s verts=%s", mat, op, "space", op, "verts");
+  BMO_op_callf(bm,
+               op->flag,
+               "transform matrix=%m3 space=%s verts=%s use_shapekey=%s",
+               mat,
+               op,
+               "space",
+               op,
+               "verts",
+               op,
+               "use_shapekey");
 }
 
 void bmo_rotate_exec(BMesh *bm, BMOperator *op)
@@ -102,8 +130,16 @@ void bmo_rotate_exec(BMesh *bm, BMOperator *op)
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
   transform_pivot_set_m4(mat, center);
 
-  BMO_op_callf(
-      bm, op->flag, "transform matrix=%m4 space=%s verts=%s", mat, op, "space", op, "verts");
+  BMO_op_callf(bm,
+               op->flag,
+               "transform matrix=%m4 space=%s verts=%s use_shapekey=%s",
+               mat,
+               op,
+               "space",
+               op,
+               "verts",
+               op,
+               "use_shapekey");
 }
 
 void bmo_reverse_faces_exec(BMesh *bm, BMOperator *op)

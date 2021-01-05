@@ -105,51 +105,9 @@
 
 static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect);
 
-ImBuf *get_brush_icon(Brush *brush)
-{
-  static const int flags = IB_rect | IB_multilayer | IB_metadata;
-
-  char path[FILE_MAX];
-  const char *folder;
-
-  if (!(brush->icon_imbuf)) {
-    if (brush->flag & BRUSH_CUSTOM_ICON) {
-
-      if (brush->icon_filepath[0]) {
-        /* First use the path directly to try and load the file. */
-
-        BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
-        BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
-
-        /* use default colorspaces for brushes */
-        brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
-
-        /* otherwise lets try to find it in other directories */
-        if (!(brush->icon_imbuf)) {
-          folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
-
-          BLI_make_file_string(
-              BKE_main_blendfile_path_from_global(), path, folder, brush->icon_filepath);
-
-          if (path[0]) {
-            /* use fefault color spaces */
-            brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
-          }
-        }
-
-        if (brush->icon_imbuf) {
-          BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
-        }
-      }
-    }
-  }
-
-  if (!(brush->icon_imbuf)) {
-    brush->id.icon_id = 0;
-  }
-
-  return brush->icon_imbuf;
-}
+/* -------------------------------------------------------------------- */
+/** \name Local Structs
+ * \{ */
 
 typedef struct ShaderPreview {
   /* from wmJob */
@@ -193,7 +151,11 @@ typedef struct IconPreview {
   ListBase sizes;
 } IconPreview;
 
-/* *************************** Preview for buttons *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Preview for Buttons
+ * \{ */
 
 static Main *G_pr_main = NULL;
 static Main *G_pr_main_grease_pencil = NULL;
@@ -708,7 +670,11 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
   }
 }
 
-/* **************************** Object preview ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Preview
+ * \{ */
 
 struct ObjectPreviewData {
   /* The main for the preview, not of the current file. */
@@ -834,7 +800,11 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
   BKE_main_free(preview_main);
 }
 
-/* **************************** new shader preview system ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Shader Preview System
+ * \{ */
 
 /* inside thread, called by renderer, sets job update value */
 static void shader_preview_update(void *spv,
@@ -1145,7 +1115,57 @@ static void shader_preview_free(void *customdata)
   MEM_freeN(sp);
 }
 
-/* ************************* icon preview ********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Icon Preview
+ * \{ */
+
+static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
+{
+  static const int flags = IB_rect | IB_multilayer | IB_metadata;
+
+  char path[FILE_MAX];
+  const char *folder;
+
+  if (!(brush->icon_imbuf)) {
+    if (brush->flag & BRUSH_CUSTOM_ICON) {
+
+      if (brush->icon_filepath[0]) {
+        /* First use the path directly to try and load the file. */
+
+        BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
+        BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
+
+        /* use default colorspaces for brushes */
+        brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
+
+        /* otherwise lets try to find it in other directories */
+        if (!(brush->icon_imbuf)) {
+          folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
+
+          BLI_make_file_string(
+              BKE_main_blendfile_path_from_global(), path, folder, brush->icon_filepath);
+
+          if (path[0]) {
+            /* Use default color spaces. */
+            brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
+          }
+        }
+
+        if (brush->icon_imbuf) {
+          BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
+        }
+      }
+    }
+  }
+
+  if (!(brush->icon_imbuf)) {
+    brush->id.icon_id = 0;
+  }
+
+  return brush->icon_imbuf;
+}
 
 static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
 {
@@ -1277,7 +1297,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
     else if (idtype == ID_BR) {
       Brush *br = (Brush *)id;
 
-      br->icon_imbuf = get_brush_icon(br);
+      br->icon_imbuf = icon_preview_imbuf_from_brush(br);
 
       memset(sp->pr_rect, 0x88, sp->sizex * sp->sizey * sizeof(uint));
 
@@ -1686,3 +1706,5 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main *UNUSED(bmain))
     WM_jobs_kill(wm, NULL, icon_preview_startjob_all_sizes);
   }
 }
+
+/** \} */

@@ -27,6 +27,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_math_geom.h"
 #include "GPU_common.h"
 
 #ifdef __cplusplus
@@ -140,6 +141,13 @@ typedef struct GPUPackedNormal {
   int w : 2; /* 0 by default, can manually set to { -2, -1, 0, 1 } */
 } GPUPackedNormal;
 
+typedef struct GPUNormal {
+  union {
+    GPUPackedNormal low;
+    short high[3];
+  };
+} GPUNormal;
+
 /* OpenGL ES packs in a different order as desktop GL but component conversion is the same.
  * Of the code here, only struct GPUPackedNormal needs to change. */
 
@@ -193,6 +201,18 @@ BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3])
       gpu_convert_i16_to_i10(data[2]),
   };
   return n;
+}
+
+BLI_INLINE void GPU_normal_convert_v3(GPUNormal *gpu_normal,
+                                      const float data[3],
+                                      const bool do_hq_normals)
+{
+  if (do_hq_normals) {
+    normal_float_to_short_v3(gpu_normal->high, data);
+  }
+  else {
+    gpu_normal->low = GPU_normal_convert_i10_v3(data);
+  }
 }
 
 #ifdef __cplusplus

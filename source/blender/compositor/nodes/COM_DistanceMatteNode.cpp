@@ -21,7 +21,7 @@
 #include "COM_ConvertOperation.h"
 #include "COM_DistanceRGBMatteOperation.h"
 #include "COM_DistanceYCCMatteOperation.h"
-#include "COM_SetAlphaOperation.h"
+#include "COM_SetAlphaMultiplyOperation.h"
 
 DistanceMatteNode::DistanceMatteNode(bNode *editorNode) : Node(editorNode)
 {
@@ -39,7 +39,7 @@ void DistanceMatteNode::convertToOperations(NodeConverter &converter,
   NodeOutput *outputSocketImage = this->getOutputSocket(0);
   NodeOutput *outputSocketMatte = this->getOutputSocket(1);
 
-  SetAlphaOperation *operationAlpha = new SetAlphaOperation();
+  SetAlphaMultiplyOperation *operationAlpha = new SetAlphaMultiplyOperation();
   converter.addOperation(operationAlpha);
 
   /* work in RGB color space */

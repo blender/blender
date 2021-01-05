@@ -230,7 +230,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
    * than being found on adding later... */
   wmKeyMap *km = WM_keymap_guess_opname(C, idname);
   wmKeyMapItem *kmi = WM_keymap_add_item(km, idname, EVT_AKEY, KM_PRESS, 0, 0);
-  int kmi_id = kmi->id;
+  const int kmi_id = kmi->id;
 
   /* This takes ownership of prop, or prop can be NULL for reset. */
   WM_keymap_item_properties_reset(kmi, prop);
@@ -280,7 +280,7 @@ static void menu_add_shortcut_cancel(struct bContext *C, void *arg1)
 
 #ifdef USE_KEYMAP_ADD_HACK
   wmKeyMap *km = WM_keymap_guess_opname(C, idname);
-  int kmi_id = g_kmi_id_hack;
+  const int kmi_id = g_kmi_id_hack;
   UNUSED_VARS(but);
 #else
   int kmi_id = WM_key_event_operator_id(C, idname, but->opcontext, prop, true, &km);

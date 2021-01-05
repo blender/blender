@@ -18,12 +18,12 @@
 
 #include "COM_ColorExposureOperation.h"
 
-ExposureOperation::ExposureOperation() : NodeOperation()
+ExposureOperation::ExposureOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);
-  this->m_inputProgram = NULL;
+  this->m_inputProgram = nullptr;
 }
 
 void ExposureOperation::initExecution()
@@ -52,6 +52,6 @@ void ExposureOperation::executePixelSampled(float output[4],
 
 void ExposureOperation::deinitExecution()
 {
-  this->m_inputProgram = NULL;
-  this->m_inputExposureProgram = NULL;
+  this->m_inputProgram = nullptr;
+  this->m_inputExposureProgram = nullptr;
 }

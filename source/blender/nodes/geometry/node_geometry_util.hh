@@ -42,7 +42,7 @@ namespace blender::nodes {
 void update_attribute_input_socket_availabilities(bNode &node,
                                                   const StringRef name,
                                                   const GeometryNodeAttributeInputMode mode,
-                                                  const bool can_be_available = true);
+                                                  const bool name_is_available = true);
 
 CustomDataType attribute_domain_highest_complexity(Span<CustomDataType>);
 

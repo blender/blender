@@ -283,6 +283,7 @@ GeometryComponent *MeshComponent::copy() const
   if (mesh_ != nullptr) {
     new_component->mesh_ = BKE_mesh_copy_for_eval(mesh_, false);
     new_component->ownership_ = GeometryOwnershipType::Owned;
+    new_component->vertex_group_names_ = blender::Map(vertex_group_names_);
   }
   return new_component;
 }

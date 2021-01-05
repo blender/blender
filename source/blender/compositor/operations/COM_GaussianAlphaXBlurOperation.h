@@ -34,7 +34,7 @@ class GaussianAlphaXBlurOperation : public BlurBaseOperation {
   GaussianAlphaXBlurOperation();
 
   /**
-   * \brief the inner loop of this program
+   * \brief The inner loop of this operation.
    */
   void executePixel(float output[4], int x, int y, void *data);
 

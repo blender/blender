@@ -22,8 +22,10 @@
  */
 
 #include "BKE_cryptomatte.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 
+#include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -32,48 +34,142 @@
 #include "BLI_dynstr.h"
 #include "BLI_hash_mm3.h"
 #include "BLI_listbase.h"
+#include "BLI_set.hh"
 #include "BLI_string.h"
 
 #include "MEM_guardedalloc.h"
 
 #include <cstring>
+#include <iomanip>
 #include <sstream>
 #include <string>
 
-static uint32_t cryptomatte_hash(const ID *id)
+enum CryptomatteLayerState {
+  EMPTY,
+  FILLED,
+  CLOSED,
+};
+
+struct CryptomatteLayer {
+  CryptomatteLayerState state = CryptomatteLayerState::EMPTY;
+  blender::Set<std::string> names;
+  std::stringstream manifest;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("cryptomatte:CryptomatteLayer")
+#endif
+
+  void add_hash(std::string name, uint32_t cryptomatte_hash)
+  {
+    BLI_assert(state != CryptomatteLayerState::CLOSED);
+    const bool first_item = names.is_empty();
+    if (!names.add(name)) {
+      return;
+    }
+
+    if (first_item) {
+      state = CryptomatteLayerState::FILLED;
+      manifest << "{";
+    }
+    else {
+      manifest << ",";
+    }
+    manifest << quoted(name) << ":\"";
+    manifest << std::setfill('0') << std::setw(sizeof(uint32_t) * 2) << std::hex
+             << cryptomatte_hash;
+    manifest << "\"";
+  }
+
+  void close_manifest()
+  {
+    BLI_assert(state != CryptomatteLayerState::CLOSED);
+    if (state == CryptomatteLayerState::FILLED) {
+      manifest << "}";
+    }
+    state = CryptomatteLayerState::CLOSED;
+  }
+
+  std::string manifest_get_string()
+  {
+    BLI_assert(state == CryptomatteLayerState::CLOSED);
+    return manifest.str();
+  }
+};
+
+struct CryptomatteSession {
+  CryptomatteLayer objects;
+  CryptomatteLayer assets;
+  CryptomatteLayer materials;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("cryptomatte:CryptomatteSession")
+#endif
+
+  void finish()
+  {
+    objects.close_manifest();
+    materials.close_manifest();
+    assets.close_manifest();
+  }
+};
+
+CryptomatteSession *BKE_cryptomatte_init(void)
 {
-  const char *name = &id->name[2];
-  const int name_len = BLI_strnlen(name, MAX_NAME);
-  uint32_t cryptohash_int = BKE_cryptomatte_hash(name, name_len);
-  return cryptohash_int;
+  CryptomatteSession *session = new CryptomatteSession();
+  return session;
 }
 
-uint32_t BKE_cryptomatte_hash(const char *name, int name_len)
+void BKE_cryptomatte_finish(CryptomatteSession *session)
+{
+  BLI_assert(session != nullptr);
+  session->finish();
+}
+
+void BKE_cryptomatte_free(CryptomatteSession *session)
+{
+  BLI_assert(session != nullptr);
+  delete session;
+}
+
+uint32_t BKE_cryptomatte_hash(const char *name, const int name_len)
 {
   uint32_t cryptohash_int = BLI_hash_mm3((const unsigned char *)name, name_len, 0);
   return cryptohash_int;
 }
 
-uint32_t BKE_cryptomatte_object_hash(const Object *object)
+static uint32_t cryptomatte_hash(CryptomatteLayer *layer, const ID *id)
 {
-  return cryptomatte_hash(&object->id);
+  const char *name = &id->name[2];
+  const int name_len = BLI_strnlen(name, MAX_NAME - 2);
+  uint32_t cryptohash_int = BKE_cryptomatte_hash(name, name_len);
+
+  if (layer != nullptr) {
+    layer->add_hash(std::string(name, name_len), cryptohash_int);
+  }
+
+  return cryptohash_int;
 }
 
-uint32_t BKE_cryptomatte_material_hash(const Material *material)
+uint32_t BKE_cryptomatte_object_hash(CryptomatteSession *session, const Object *object)
+{
+  return cryptomatte_hash(&session->objects, &object->id);
+}
+
+uint32_t BKE_cryptomatte_material_hash(CryptomatteSession *session, const Material *material)
 {
   if (material == nullptr) {
     return 0.0f;
   }
-  return cryptomatte_hash(&material->id);
+  return cryptomatte_hash(&session->materials, &material->id);
 }
 
-uint32_t BKE_cryptomatte_asset_hash(const Object *object)
+uint32_t BKE_cryptomatte_asset_hash(CryptomatteSession *session, const Object *object)
 {
   const Object *asset_object = object;
   while (asset_object->parent != nullptr) {
     asset_object = asset_object->parent;
   }
-  return cryptomatte_hash(&asset_object->id);
+  return cryptomatte_hash(&session->assets, &asset_object->id);
 }
 
 /* Convert a cryptomatte hash to a float.
@@ -187,4 +283,64 @@ void BKE_cryptomatte_matte_id_to_entries(const Main *bmain,
       BLI_addtail(&node_storage->entries, entry);
     }
   }
+}
+
+static std::string cryptomatte_determine_name(const ViewLayer *view_layer,
+                                              const std::string cryptomatte_layer_name)
+{
+  std::stringstream stream;
+  const size_t view_layer_name_len = BLI_strnlen(view_layer->name, sizeof(view_layer->name));
+  stream << std::string(view_layer->name, view_layer_name_len) << "." << cryptomatte_layer_name;
+  return stream.str();
+}
+
+static uint32_t cryptomatte_determine_identifier(const std::string name)
+{
+  return BLI_hash_mm3(reinterpret_cast<const unsigned char *>(name.c_str()), name.length(), 0);
+}
+
+static std::string cryptomatte_determine_prefix(const std::string name)
+{
+  std::stringstream stream;
+  const uint32_t render_pass_identifier = cryptomatte_determine_identifier(name);
+  stream << "cryptomatte/";
+  stream << std::setfill('0') << std::setw(sizeof(uint32_t) * 2) << std::hex
+         << render_pass_identifier;
+  stream << "/";
+  return stream.str();
+}
+
+void BKE_cryptomatte_store_metadata(struct CryptomatteSession *session,
+                                    RenderResult *render_result,
+                                    const ViewLayer *view_layer,
+                                    eViewLayerCryptomatteFlags cryptomatte_layer,
+                                    const char *cryptomatte_layer_name)
+{
+  /* Create Manifest. */
+  CryptomatteLayer *layer = nullptr;
+  switch (cryptomatte_layer) {
+    case VIEW_LAYER_CRYPTOMATTE_OBJECT:
+      layer = &session->objects;
+      break;
+    case VIEW_LAYER_CRYPTOMATTE_MATERIAL:
+      layer = &session->materials;
+      break;
+    case VIEW_LAYER_CRYPTOMATTE_ASSET:
+      layer = &session->assets;
+      break;
+    default:
+      BLI_assert(!"Incorrect cryptomatte layer");
+      break;
+  }
+
+  const std::string manifest = layer->manifest_get_string();
+  const std::string name = cryptomatte_determine_name(view_layer, cryptomatte_layer_name);
+  const std::string prefix = cryptomatte_determine_prefix(name);
+
+  /* Store the meta data into the render result. */
+  BKE_render_result_stamp_data(render_result, (prefix + "name").c_str(), name.c_str());
+  BKE_render_result_stamp_data(render_result, (prefix + "hash").c_str(), "MurmurHash3_32");
+  BKE_render_result_stamp_data(
+      render_result, (prefix + "conversion").c_str(), "uint32_to_float32");
+  BKE_render_result_stamp_data(render_result, (prefix + "manifest").c_str(), manifest.c_str());
 }

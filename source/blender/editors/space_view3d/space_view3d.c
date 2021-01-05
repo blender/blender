@@ -392,6 +392,10 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *region)
   keymap = WM_keymap_ensure(wm->defaultconf, "Paint Vertex Selection (Weight, Vertex)", 0, 0);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
+  /* Before 'Weight/Vertex Paint' so adding curve points is not overriden. */
+  keymap = WM_keymap_ensure(wm->defaultconf, "Paint Curve", 0, 0);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
+
   /* Before 'Pose' so weight paint menus aren't overridden by pose menus. */
   keymap = WM_keymap_ensure(wm->defaultconf, "Weight Paint", 0, 0);
   WM_event_add_keymap_handler(&region->handlers, keymap);
@@ -404,9 +408,6 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Object Mode", 0, 0);
-  WM_event_add_keymap_handler(&region->handlers, keymap);
-
-  keymap = WM_keymap_ensure(wm->defaultconf, "Paint Curve", 0, 0);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Curve", 0, 0);

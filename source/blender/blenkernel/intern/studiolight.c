@@ -306,19 +306,19 @@ static void UNUSED_FUNCTION(direction_to_cube_face_uv)(float r_uv[2],
     bool is_pos = (dir[0] > 0.0f);
     *r_face = is_pos ? STUDIOLIGHT_X_POS : STUDIOLIGHT_X_NEG;
     r_uv[0] = dir[2] / fabsf(dir[0]) * (is_pos ? 1 : -1);
-    r_uv[1] = dir[1] / fabsf(dir[0]) * (is_pos ? -1 : -1);
+    r_uv[1] = dir[1] / fabsf(dir[0]) * -1;
   }
   else if (fabsf(dir[1]) > fabsf(dir[0]) && fabsf(dir[1]) > fabsf(dir[2])) {
     bool is_pos = (dir[1] > 0.0f);
     *r_face = is_pos ? STUDIOLIGHT_Y_POS : STUDIOLIGHT_Y_NEG;
-    r_uv[0] = dir[0] / fabsf(dir[1]) * (is_pos ? 1 : 1);
+    r_uv[0] = dir[0] / fabsf(dir[1]) * 1;
     r_uv[1] = dir[2] / fabsf(dir[1]) * (is_pos ? -1 : 1);
   }
   else {
     bool is_pos = (dir[2] > 0.0f);
     *r_face = is_pos ? STUDIOLIGHT_Z_NEG : STUDIOLIGHT_Z_POS;
     r_uv[0] = dir[0] / fabsf(dir[2]) * (is_pos ? -1 : 1);
-    r_uv[1] = dir[1] / fabsf(dir[2]) * (is_pos ? -1 : -1);
+    r_uv[1] = dir[1] / fabsf(dir[2]) * -1;
   }
   r_uv[0] = r_uv[0] * 0.5f + 0.5f;
   r_uv[1] = r_uv[1] * 0.5f + 0.5f;

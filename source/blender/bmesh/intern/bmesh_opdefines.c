@@ -326,6 +326,7 @@ static BMOpDefine bmo_mirror_def = {
    {"mirror_u",        BMO_OP_SLOT_BOOL},  /* mirror UVs across the u axis */
    {"mirror_v",        BMO_OP_SLOT_BOOL},  /* mirror UVs across the v axis */
    {"mirror_udim",     BMO_OP_SLOT_BOOL},  /* mirror UVs in each tile */
+   {"use_shapekey",    BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   /* slots_out */
@@ -758,6 +759,7 @@ static BMOpDefine bmo_rotate_def = {
    {"matrix",          BMO_OP_SLOT_MAT},  /* matrix defining rotation */
    {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
    {"space",           BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
+   {"use_shapekey",    BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   {{{'\0'}}},  /* no output */
@@ -776,6 +778,7 @@ static BMOpDefine bmo_translate_def = {
   {{"vec", BMO_OP_SLOT_VEC},  /* translation offset */
    {"space", BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
    {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+   {"use_shapekey", BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   {{{'\0'}}},  /* no output */
@@ -794,6 +797,7 @@ static BMOpDefine bmo_scale_def = {
   {{"vec", BMO_OP_SLOT_VEC},  /* scale factor */
    {"space", BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
    {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+   {"use_shapekey", BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   {{{'\0'}}},  /* no output */
@@ -814,6 +818,7 @@ static BMOpDefine bmo_transform_def = {
   {{"matrix",          BMO_OP_SLOT_MAT},  /* transform matrix */
    {"space",           BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
    {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+   {"use_shapekey",    BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   {{{'\0'}}},  /* no output */
@@ -2072,6 +2077,7 @@ static BMOpDefine bmo_symmetrize_def = {
   {{"input", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}}, /* input geometry */
    {"direction", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_axis_neg_xyz_and_xyz}, /* axis to use */
    {"dist", BMO_OP_SLOT_FLT}, /* minimum distance */
+   {"use_shapekey", BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   /* slots_out */

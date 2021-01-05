@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/* Use a define instead of `#pragma once` because of `rna_internal.h` */
 #ifndef __RNA_ACCESS_H__
 #define __RNA_ACCESS_H__
 

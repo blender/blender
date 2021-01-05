@@ -1827,7 +1827,7 @@ static int mixed_bones_object_selectbuffer_extended(ViewContext *vc,
 /**
  * \param has_bones: When true, skip non-bone hits, also allow bases to be used
  * that are visible but not select-able,
- * since you may be in pose mode with an an unselect-able object.
+ * since you may be in pose mode with an unselect-able object.
  *
  * \return the active base or NULL.
  */

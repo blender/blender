@@ -993,6 +993,10 @@ void createTransData(bContext *C, TransInfo *t)
     else {
       convert_type = TC_CURSOR_VIEW3D;
     }
+
+    /* Since we're transforming the cursor, initialize this value before it's modified.
+     * Needed for #snap_grid_apply to access the cursor location. */
+    transformCenter_from_type(t, V3D_AROUND_CURSOR);
   }
   else if (!(t->options & CTX_PAINT_CURVE) && (t->spacetype == SPACE_VIEW3D) && ob &&
            (ob->mode == OB_MODE_SCULPT) && ob->sculpt) {
@@ -1074,7 +1078,12 @@ void createTransData(bContext *C, TransInfo *t)
     initTransDataContainers_FromObjectData(t, ob, NULL, 0);
 
     if (t->obedit_type == OB_MESH) {
-      convert_type = TC_MESH_VERTS;
+      if (t->mode == TFM_SKIN_RESIZE) {
+        convert_type = TC_MESH_SKIN;
+      }
+      else {
+        convert_type = TC_MESH_VERTS;
+      }
     }
     else if (ELEM(t->obedit_type, OB_CURVE, OB_SURF)) {
       convert_type = TC_CURVE_VERTS;
@@ -1198,6 +1207,9 @@ void createTransData(bContext *C, TransInfo *t)
     case TC_MESH_EDGES:
       createTransEdge(t);
       break;
+    case TC_MESH_SKIN:
+      createTransMeshSkin(t);
+      break;
     case TC_MESH_UV:
       createTransUVs(C, t);
       break;
@@ -1269,9 +1281,9 @@ void createTransData(bContext *C, TransInfo *t)
     if (ELEM(convert_type, TC_ACTION_DATA, TC_GRAPH_EDIT_DATA)) {
       /* Distance has already been set. */
     }
-    else if (convert_type == TC_MESH_VERTS) {
+    else if (ELEM(convert_type, TC_MESH_VERTS, TC_MESH_SKIN)) {
       if (t->flag & T_PROP_CONNECTED) {
-        /* Already calculated by editmesh_set_connectivity_distance. */
+        /* Already calculated by transform_convert_mesh_connectivity_distance. */
       }
       else {
         set_prop_dist(t, false);
@@ -1531,6 +1543,9 @@ void recalcData(TransInfo *t)
     case TC_MESH_VERTS:
     case TC_MESH_EDGES:
       recalcData_mesh(t);
+      break;
+    case TC_MESH_SKIN:
+      recalcData_mesh_skin(t);
       break;
     case TC_MESH_UV:
       recalcData_uv(t);

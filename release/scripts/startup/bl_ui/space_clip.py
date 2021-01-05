@@ -807,16 +807,19 @@ class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):
         layout.use_property_decorate = False
 
         clip = context.space_data.clip
+        active = clip.tracking.tracks.active
+
+        if not active:
+            layout.active = False
+            layout.label(text="No active track")
+            return
 
         col = layout.column()
+        col.prop(active, "motion_model")
+        col.prop(active, "pattern_match", text="Match")
 
-        active = clip.tracking.tracks.active
-        if active:
-            col.prop(active, "motion_model")
-            col.prop(active, "pattern_match", text="Match")
-
-            col.prop(active, "use_brute")
-            col.prop(active, "use_normalization")
+        col.prop(active, "use_brute")
+        col.prop(active, "use_normalization")
 
 
 class CLIP_PT_track_settings_extras(CLIP_PT_tracking_panel, Panel):
@@ -826,6 +829,12 @@ class CLIP_PT_track_settings_extras(CLIP_PT_tracking_panel, Panel):
     bl_label = "Tracking Settings Extras"
     bl_parent_id = 'CLIP_PT_track_settings'
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        clip = context.space_data.clip
+
+        return clip.tracking.tracks.active
 
     def draw(self, context):
         layout = self.layout

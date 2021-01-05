@@ -27,9 +27,9 @@
 extern "C" {
 #endif
 
+struct ListBase;
 struct Scene;
 struct Sequence;
-struct ListBase;
 struct rctf;
 
 void SEQ_timeline_boundbox(const struct Scene *scene,

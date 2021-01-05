@@ -977,6 +977,7 @@ typedef struct EEVEE_PrivateData {
   eViewLayerEEVEEPassType render_passes;
   int aov_hash;
   int num_aovs_used;
+  struct CryptomatteSession *cryptomatte_session;
   bool cryptomatte_accurate_mode;
   EEVEE_CryptomatteSample *cryptomatte_accum_buffer;
   float *cryptomatte_download_buffer;
@@ -1246,6 +1247,7 @@ void EEVEE_cryptomatte_output_init(EEVEE_ViewLayerData *sldata,
                                    int tot_samples);
 void EEVEE_cryptomatte_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_cryptomatte_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob);
+void EEVEE_cryptomatte_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
                                                     EEVEE_ViewLayerData *sldata,
                                                     Object *ob);
@@ -1261,6 +1263,7 @@ void EEVEE_cryptomatte_render_result(struct RenderLayer *rl,
                                      const rcti *rect,
                                      EEVEE_Data *vedata,
                                      EEVEE_ViewLayerData *sldata);
+void EEVEE_cryptomatte_store_metadata(EEVEE_Data *vedata, struct RenderResult *render_result);
 void EEVEE_cryptomatte_free(EEVEE_Data *vedata);
 
 /* eevee_occlusion.c */

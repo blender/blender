@@ -827,14 +827,14 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
     quat_to_mat3(m, vod->curr.viewquat);
     invert_m3_m3(m_inv, m);
 
-    /* Avoid Gimble Lock
+    /* Avoid Gimbal Lock
      *
      * Even though turn-table mode is in use, this can occur when the user exits the camera view
      * or when aligning the view to a rotated object.
      *
-     * We have gimble lock when the user's view is rotated +/- 90 degrees along the view axis.
+     * We have gimbal lock when the user's view is rotated +/- 90 degrees along the view axis.
      * In this case the vertical rotation is the same as the sideways turntable motion.
-     * Making it impossible to get out of the gimble locked state without resetting the view.
+     * Making it impossible to get out of the gimbal locked state without resetting the view.
      *
      * The logic below lets the user exit out of this state without any abrupt 'fix'
      * which would be disorienting.
@@ -843,7 +843,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
      * - Rotated-horizon: `cross_v3_v3v3(xaxis, zvec_global, m_inv[2])`
      *   When only this is used, this turntable rotation works - but it's side-ways
      *   (as if the entire turn-table has been placed on its side)
-     *   While there is no gimble lock, it's also awkward to use.
+     *   While there is no gimbal lock, it's also awkward to use.
      * - Un-rotated-horizon: `m_inv[0]`
      *   When only this is used, the turntable rotation can have gimbal lock.
      *
@@ -852,7 +852,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
      * Blending isn't essential, it just makes the transition smoother.
      *
      * This allows sideways turn-table rotation on a Z axis that isn't world-space Z,
-     * While up-down turntable rotation eventually corrects gimble lock. */
+     * While up-down turntable rotation eventually corrects gimbal lock. */
 #if 1
     if (len_squared_v3v3(zvec_global, m_inv[2]) > 0.001f) {
       float fac;

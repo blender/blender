@@ -510,7 +510,6 @@ static void eevee_render_result_cryptomatte(RenderLayer *rl,
   if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_CRYPTOMATTE) != 0) {
     EEVEE_cryptomatte_render_result(rl, viewname, rect, vedata, sldata);
   }
-  EEVEE_cryptomatte_free(vedata);
 }
 
 static void eevee_render_draw_background(EEVEE_Data *vedata)

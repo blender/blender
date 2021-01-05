@@ -245,14 +245,13 @@ add_blender_test(
   --run-all-tests
 )
 
-# Particle Instance disabling currently broken in master
-# add_blender_test(
-#   physics_particle_instance
-#   ${TEST_SRC_DIR}/physics/physics_particle_instance.blend
-#   --python ${TEST_PYTHON_DIR}/physics_particle_instance.py
-#   --
-#   --run-all-tests
-# )
+add_blender_test(
+  physics_particle_instance
+  ${TEST_SRC_DIR}/physics/physics_particle_instance.blend
+  --python ${TEST_PYTHON_DIR}/physics_particle_instance.py
+  --
+  --run-all-tests
+)
 
 add_blender_test(
   constraints

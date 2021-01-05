@@ -65,8 +65,8 @@ void DistanceRGBMatteOperation::executePixelSampled(float output[4],
 
   distance = this->calculateDistance(inKey, inImage);
 
-  /* store matte(alpha) value in [0] to go with
-   * COM_SetAlphaOperation and the Value output
+  /* Store matte(alpha) value in [0] to go with
+   * COM_SetAlphaMultiplyOperation and the Value output.
    */
 
   /*make 100% transparent */

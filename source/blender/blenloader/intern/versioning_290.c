@@ -1496,5 +1496,23 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         BKE_brush_default_input_curves_set(br);
       }
     }
+    
+    if (!DNA_struct_find(fd->filesdna, "NodeSetAlpha")) {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        bNodeTree *nodetree = scene->nodetree;
+        if (nodetree == NULL) {
+          continue;
+        }
+
+        LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
+          if (node->type != CMP_NODE_SETALPHA) {
+            continue;
+          }
+          NodeSetAlpha *storage = MEM_callocN(sizeof(NodeSetAlpha), "NodeSetAlpha");
+          storage->mode = CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA;
+          node->storage = storage;
+        }
+      }
+    }
   }
 }

@@ -5578,7 +5578,8 @@ static void extract_task_create(struct TaskGraph *task_graph,
                                 int32_t *task_counter)
 {
   BLI_assert(scene != NULL);
-  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0;
+  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
+                             GPU_use_hq_normals_workaround();
   if (do_hq_normals && (extract == &extract_lnor)) {
     extract = &extract_lnor_hq;
   }

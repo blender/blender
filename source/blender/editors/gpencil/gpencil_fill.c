@@ -722,9 +722,7 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
   }
 
   /* release ibuf */
-  if (ibuf) {
-    BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
-  }
+  BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 
   tgpf->ima->id.tag |= LIB_TAG_DOIT;
   /* free temp stack data */
@@ -760,9 +758,7 @@ static void gpencil_set_borders(tGPDfill *tgpf, const bool transparent)
   }
 
   /* release ibuf */
-  if (ibuf) {
-    BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
-  }
+  BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 
   tgpf->ima->id.tag |= LIB_TAG_DOIT;
 }
@@ -794,9 +790,7 @@ static void gpencil_invert_image(tGPDfill *tgpf)
   }
 
   /* release ibuf */
-  if (ibuf) {
-    BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
-  }
+  BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 
   tgpf->ima->id.tag |= LIB_TAG_DOIT;
 }
@@ -846,9 +840,7 @@ static void gpencil_erase_processed_area(tGPDfill *tgpf)
   }
 
   /* release ibuf */
-  if (ibuf) {
-    BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
-  }
+  BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 
   tgpf->ima->id.tag |= LIB_TAG_DOIT;
 }
@@ -1062,9 +1054,7 @@ static void gpencil_get_outline_points(tGPDfill *tgpf, const bool dilate)
   }
 
   /* release ibuf */
-  if (ibuf) {
-    BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
-  }
+  BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 }
 
 /* get z-depth array to reproject on surface */

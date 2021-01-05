@@ -128,7 +128,7 @@ void blend_mode_output(
        * rtn = 1 - 2 (1 - dst * (1 - src) - src);
        * rtn = 1 - 2 + dst * (2 - 2 * src) + 2 * src;
        * rtn = (- 1 + 2 * src) + dst * (2 - 2 * src);
-       **/
+       */
       color = mix(vec4(0.5), color, color.a * opacity);
       vec4 s = step(-0.5, -color);
       frag_revealage = frag_color = 2.0 * s + 2.0 * color * (1.0 - s * 2.0);
@@ -363,7 +363,7 @@ void color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, float mix
    * finalColorAdd is how much of the mixed color to add.
    * Note that we never add alpha. This is to keep the texture act as a stencil.
    * We do however, modulate the alpha (reduce it).
-   **/
+   */
   /* We add the mixed color. This is 100% mix (no texture visible). */
   finalColorMul = vec4(mixed_col.aaa, mixed_col.a);
   finalColorAdd = vec4(mixed_col.rgb * mixed_col.a, 0.0);

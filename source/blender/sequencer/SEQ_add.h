@@ -27,9 +27,9 @@
 extern "C" {
 #endif
 
+struct ListBase;
 struct Scene;
 struct Sequence;
-struct ListBase;
 struct bContext;
 
 /* api for adding new sequence strips */

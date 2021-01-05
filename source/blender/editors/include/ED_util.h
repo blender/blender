@@ -31,7 +31,6 @@ extern "C" {
 
 struct Main;
 struct bContext;
-struct wmOperatorType;
 
 /* ed_util.c */
 void ED_editors_init_for_undo(struct Main *bmain);

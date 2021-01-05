@@ -60,7 +60,7 @@ typedef enum {
  * TODO Improve error checking by validating that the shader is suited for this primitive type.
  * GPUPrimClass GPU_primtype_class(GPUPrimType);
  * bool GPU_primtype_belongs_to_class(GPUPrimType, GPUPrimClass);
- **/
+ */
 
 #ifdef __cplusplus
 }

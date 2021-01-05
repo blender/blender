@@ -17,8 +17,8 @@
 
 set(INC
     ../include
-    ../../blenlib
     ../../blenkernel
+    ../../blenlib
     ../../makesdna
     ../../makesrna
     ../../windowmanager

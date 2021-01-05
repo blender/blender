@@ -835,6 +835,11 @@ typedef struct NodeMask {
   int size_x, size_y;
 } NodeMask;
 
+typedef struct NodeSetAlpha {
+  char mode;
+  char _pad[7];
+} NodeSetAlpha;
+
 typedef struct NodeTexBase {
   TexMapping tex_mapping;
   ColorMapping color_mapping;
@@ -1467,6 +1472,13 @@ enum {
 enum {
   CMP_NODEFLAG_STABILIZE_INVERSE = 1,
 };
+
+/* Set Alpha Node. */
+/* `NodeSetAlpha.mode` */
+typedef enum CMPNodeSetAlphaMode {
+  CMP_NODE_SETALPHA_MODE_APPLY = 0,
+  CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA = 1,
+} CMPNodeSetAlphaMode;
 
 #define CMP_NODE_PLANETRACKDEFORM_MBLUR_SAMPLES_MAX 64
 

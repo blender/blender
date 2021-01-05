@@ -225,10 +225,10 @@ enum {
 };
 
 /* MaskSpaceInfo->overlay_mode */
-enum {
+typedef enum eMaskOverlayMode {
   MASK_OVERLAY_ALPHACHANNEL = 0,
   MASK_OVERLAY_COMBINED = 1,
-};
+} eMaskOverlayMode;
 
 /* masklay->blend */
 enum {

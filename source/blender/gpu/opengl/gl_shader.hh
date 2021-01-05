@@ -34,7 +34,7 @@ namespace gpu {
 
 /**
  * Implementation of shader compilation and uniforms handling using OpenGL.
- **/
+ */
 class GLShader : public Shader {
  private:
   /** Handle for full program (links shader stages below). */

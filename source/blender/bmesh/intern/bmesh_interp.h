@@ -31,7 +31,7 @@ void BM_loop_interp_multires_ex(BMesh *bm,
                                 const int cd_loop_mdisp_offset);
 void BM_loop_interp_multires(BMesh *bm, BMLoop *l_dst, const BMFace *f_src);
 
-void BM_face_interp_multires_ex(BMesh *UNUSED(bm),
+void BM_face_interp_multires_ex(BMesh *bm,
                                 BMFace *f_dst,
                                 const BMFace *f_src,
                                 const float f_dst_center[3],

@@ -1729,7 +1729,7 @@ static void rna_Scene_mesh_quality_update(Main *bmain, Scene *UNUSED(scene), Poi
   Scene *scene = (Scene *)ptr->owner_id;
 
   FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
-    if (ob->type == OB_MESH) {
+    if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_VOLUME, OB_MBALL)) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
   }

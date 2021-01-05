@@ -3652,7 +3652,7 @@ static int manta_step(
   }
 
   /* Total time must not exceed framecount times framelength. Correct tiny errors here. */
-  CLAMP(fds->time_total, fds->time_total, time_total_old + fds->frame_length);
+  CLAMP_MAX(fds->time_total, time_total_old + fds->frame_length);
 
   /* Compute shadow grid for gas simulations. Make sure to skip if bake job was canceled early. */
   if (fds->type == FLUID_DOMAIN_TYPE_GAS && result) {

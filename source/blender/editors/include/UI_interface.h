@@ -25,7 +25,6 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h" /* size_t */
-#include "RNA_types.h"
 #include "UI_interface_icons.h"
 
 #ifdef __cplusplus
@@ -36,6 +35,7 @@ extern "C" {
 
 struct ARegion;
 struct AutoComplete;
+struct EnumPropertyItem;
 struct FileSelectParams;
 struct ID;
 struct IDProperty;
@@ -109,7 +109,7 @@ typedef enum eUIEmbossType {
   UI_EMBOSS_PULLDOWN = 2, /* Pulldown menu style */
   UI_EMBOSS_RADIAL = 3,   /* Pie Menu */
   /**
-   * The same as #UI_EMBOSS_NONE, unless the the button has
+   * The same as #UI_EMBOSS_NONE, unless the button has
    * a coloring status like an animation state or red alert.
    */
   UI_EMBOSS_NONE_OR_STATUS = 4,
@@ -1132,7 +1132,7 @@ uiBut *uiDefIconButR_prop(uiBlock *block,
                           short width,
                           short height,
                           struct PointerRNA *ptr,
-                          PropertyRNA *prop,
+                          struct PropertyRNA *prop,
                           int index,
                           float min,
                           float max,
@@ -1674,7 +1674,7 @@ struct uiButExtraOpIcon *UI_but_extra_operator_icon_add(uiBut *but,
                                                         short opcontext,
                                                         int icon);
 struct wmOperatorType *UI_but_extra_operator_icon_optype_get(struct uiButExtraOpIcon *extra_icon);
-PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon *extra_icon);
+struct PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon *extra_icon);
 
 /* Autocomplete
  *
@@ -1901,7 +1901,7 @@ void uiLayoutSetContextPointer(uiLayout *layout, const char *name, struct Pointe
 struct bContextStore *uiLayoutGetContextStore(uiLayout *layout);
 void uiLayoutContextCopy(uiLayout *layout, struct bContextStore *context);
 struct wmOperatorType *UI_but_operatortype_get_from_enum_menu(struct uiBut *but,
-                                                              PropertyRNA **r_prop);
+                                                              struct PropertyRNA **r_prop);
 struct MenuType *UI_but_menutype_get(uiBut *but);
 struct PanelType *UI_but_paneltype_get(uiBut *but);
 void UI_menutype_draw(struct bContext *C, struct MenuType *mt, struct uiLayout *layout);
@@ -2004,7 +2004,7 @@ void uiTemplateIDPreview(uiLayout *layout,
                          const bool hide_buttons);
 void uiTemplateIDTabs(uiLayout *layout,
                       struct bContext *C,
-                      PointerRNA *ptr,
+                      struct PointerRNA *ptr,
                       const char *propname,
                       const char *newop,
                       const char *menu,
@@ -2100,7 +2100,7 @@ void uiTemplateCryptoPicker(uiLayout *layout, struct PointerRNA *ptr, const char
 void uiTemplateLayers(uiLayout *layout,
                       struct PointerRNA *ptr,
                       const char *propname,
-                      PointerRNA *used_ptr,
+                      struct PointerRNA *used_ptr,
                       const char *used_propname,
                       int active_layer);
 void uiTemplateImage(uiLayout *layout,
@@ -2113,7 +2113,9 @@ void uiTemplateImage(uiLayout *layout,
 void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, bool color_management);
 void uiTemplateImageStereo3d(uiLayout *layout, struct PointerRNA *stereo3d_format_ptr);
 void uiTemplateImageViews(uiLayout *layout, struct PointerRNA *imaptr);
-void uiTemplateImageFormatViews(uiLayout *layout, PointerRNA *imfptr, PointerRNA *ptr);
+void uiTemplateImageFormatViews(uiLayout *layout,
+                                struct PointerRNA *imfptr,
+                                struct PointerRNA *ptr);
 void uiTemplateImageLayers(uiLayout *layout,
                            struct bContext *C,
                            struct Image *ima,
@@ -2197,8 +2199,8 @@ void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char
 void uiTemplateMarker(struct uiLayout *layout,
                       struct PointerRNA *ptr,
                       const char *propname,
-                      PointerRNA *userptr,
-                      PointerRNA *trackptr,
+                      struct PointerRNA *userptr,
+                      struct PointerRNA *trackptr,
                       bool compact);
 void uiTemplateMovieclipInformation(struct uiLayout *layout,
                                     struct PointerRNA *ptr,
@@ -2277,7 +2279,7 @@ void uiItemFullO_ptr(uiLayout *layout,
                      struct IDProperty *properties,
                      int context,
                      int flag,
-                     PointerRNA *r_opptr);
+                     struct PointerRNA *r_opptr);
 void uiItemFullO(uiLayout *layout,
                  const char *opname,
                  const char *name,
@@ -2285,7 +2287,7 @@ void uiItemFullO(uiLayout *layout,
                  struct IDProperty *properties,
                  int context,
                  int flag,
-                 PointerRNA *r_opptr);
+                 struct PointerRNA *r_opptr);
 void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              struct wmOperatorType *ot,
                              const char *name,
@@ -2294,7 +2296,7 @@ void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              int context,
                              int flag,
                              const char *menu_id, /* extra menu arg. */
-                             PointerRNA *r_opptr);
+                             struct PointerRNA *r_opptr);
 
 void uiItemR(uiLayout *layout,
              struct PointerRNA *ptr,
@@ -2332,7 +2334,7 @@ void uiItemEnumR_prop(uiLayout *layout,
                       const char *name,
                       int icon,
                       struct PointerRNA *ptr,
-                      PropertyRNA *prop,
+                      struct PropertyRNA *prop,
                       int value);
 void uiItemEnumR(uiLayout *layout,
                  const char *name,
@@ -2342,7 +2344,7 @@ void uiItemEnumR(uiLayout *layout,
                  int value);
 void uiItemEnumR_string_prop(uiLayout *layout,
                              struct PointerRNA *ptr,
-                             PropertyRNA *prop,
+                             struct PropertyRNA *prop,
                              const char *value,
                              const char *name,
                              int icon);
@@ -2355,9 +2357,9 @@ void uiItemEnumR_string(uiLayout *layout,
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiItemPointerR_prop(uiLayout *layout,
                          struct PointerRNA *ptr,
-                         PropertyRNA *prop,
+                         struct PropertyRNA *prop,
                          struct PointerRNA *searchptr,
-                         PropertyRNA *searchprop,
+                         struct PropertyRNA *searchprop,
                          const char *name,
                          int icon);
 void uiItemPointerR(uiLayout *layout,
@@ -2375,12 +2377,12 @@ void uiItemsFullEnumO(uiLayout *layout,
                       int flag);
 void uiItemsFullEnumO_items(uiLayout *layout,
                             struct wmOperatorType *ot,
-                            PointerRNA ptr,
-                            PropertyRNA *prop,
+                            struct PointerRNA ptr,
+                            struct PropertyRNA *prop,
                             struct IDProperty *properties,
                             int context,
                             int flag,
-                            const EnumPropertyItem *item_array,
+                            const struct EnumPropertyItem *item_array,
                             int totitem);
 
 typedef struct uiPropertySplitWrapper {
@@ -2403,8 +2405,11 @@ void uiItemM(uiLayout *layout, const char *menuname, const char *name, int icon)
 /* menu contents */
 void uiItemMContents(uiLayout *layout, const char *menuname);
 /* Decorators */
-void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index);
-void uiItemDecoratorR(uiLayout *layout, PointerRNA *ptr, const char *propname, int index);
+void uiItemDecoratorR_prop(uiLayout *layout,
+                           struct PointerRNA *ptr,
+                           struct PropertyRNA *prop,
+                           int index);
+void uiItemDecoratorR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int index);
 /* value */
 void uiItemV(uiLayout *layout, const char *name, int icon, int argval);
 /* separator */
@@ -2438,16 +2443,19 @@ void uiItemMenuEnumO(uiLayout *layout,
                      const char *propname,
                      const char *name,
                      int icon);
-void uiItemMenuEnumR_prop(
-    uiLayout *layout, struct PointerRNA *ptr, PropertyRNA *prop, const char *name, int icon);
+void uiItemMenuEnumR_prop(uiLayout *layout,
+                          struct PointerRNA *ptr,
+                          struct PropertyRNA *prop,
+                          const char *name,
+                          int icon);
 void uiItemMenuEnumR(
     uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name, int icon);
 void uiItemTabsEnumR_prop(uiLayout *layout,
                           struct bContext *C,
                           struct PointerRNA *ptr,
-                          PropertyRNA *prop,
+                          struct PropertyRNA *prop,
                           struct PointerRNA *ptr_highlight,
-                          PropertyRNA *prop_highlight,
+                          struct PropertyRNA *prop_highlight,
                           bool icon_only);
 
 /* Only for testing, inspecting layouts. */

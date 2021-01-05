@@ -175,7 +175,7 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(GPENCIL_Private
  * Creates a linked list of material pool containing all materials assigned for a given object.
  * We merge the material pools together if object does not contain a huge amount of materials.
  * Also return an offset to the first material of the object in the ubo.
- **/
+ */
 GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Object *ob, int *ofs)
 {
   GPENCIL_MaterialPool *matpool = pd->last_material_pool;
@@ -424,7 +424,7 @@ void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)
 
 /**
  * Creates a single pool containing all lights assigned (light linked) for a given object.
- **/
+ */
 GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_PrivateData *pd, Object *UNUSED(ob))
 {
   GPENCIL_LightPool *lightpool = pd->last_light_pool;

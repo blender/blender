@@ -2210,7 +2210,7 @@ static bool line_clip_rect2f(const rctf *cliprect,
  */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 
-static void scale_tri(float insetCos[3][3], const float *origCos[4], const float inset)
+static void scale_tri(float insetCos[3][3], const float *origCos[3], const float inset)
 {
   float cent[3];
   cent[0] = (origCos[0][0] + origCos[1][0] + origCos[2][0]) * (1.0f / 3.0f);

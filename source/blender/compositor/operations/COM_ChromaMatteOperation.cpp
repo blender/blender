@@ -60,8 +60,8 @@ void ChromaMatteOperation::executePixelSampled(float output[4],
   this->m_inputKeyProgram->readSampled(inKey, x, y, sampler);
   this->m_inputImageProgram->readSampled(inImage, x, y, sampler);
 
-  /* store matte(alpha) value in [0] to go with
-   * COM_SetAlphaOperation and the Value output
+  /* Store matte(alpha) value in [0] to go with
+   * COM_SetAlphaMultiplyOperation and the Value output.
    */
 
   /* Algorithm from book "Video Demistified," does not include the spill reduction part */

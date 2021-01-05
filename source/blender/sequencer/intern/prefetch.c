@@ -380,7 +380,7 @@ static bool seq_prefetch_do_skip_frame(Scene *scene)
         ibuf = NULL;
       }
 
-      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_COMPOSITE, false);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_COMPOSITE;
         IMB_freeImBuf(ibuf);
@@ -406,8 +406,7 @@ static bool seq_prefetch_do_skip_frame(Scene *scene)
       }
 
       /* It is only safe to use these cache types if strip is last in stack. */
-      if (i == count - 1 &&
-          (cached_types & (SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_RAW)) != 0) {
+      if (i == count - 1 && (cached_types & SEQ_CACHE_STORE_FINAL_OUT) != 0) {
         continue;
       }
 

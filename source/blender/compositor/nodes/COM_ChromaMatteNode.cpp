@@ -20,7 +20,7 @@
 #include "BKE_node.h"
 #include "COM_ChromaMatteOperation.h"
 #include "COM_ConvertOperation.h"
-#include "COM_SetAlphaOperation.h"
+#include "COM_SetAlphaMultiplyOperation.h"
 
 ChromaMatteNode::ChromaMatteNode(bNode *editorNode) : Node(editorNode)
 {
@@ -48,7 +48,7 @@ void ChromaMatteNode::convertToOperations(NodeConverter &converter,
   operation->setSettings((NodeChroma *)editorsnode->storage);
   converter.addOperation(operation);
 
-  SetAlphaOperation *operationAlpha = new SetAlphaOperation();
+  SetAlphaMultiplyOperation *operationAlpha = new SetAlphaMultiplyOperation();
   converter.addOperation(operationAlpha);
 
   converter.mapInputSocket(inputSocketImage, operationRGBToYCC_Image->getInputSocket(0));

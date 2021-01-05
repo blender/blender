@@ -27,6 +27,8 @@
 extern "C" {
 #endif
 
+#include "DNA_mask_types.h"
+
 struct Depsgraph;
 struct KeyframeEditData;
 struct MaskLayer;
@@ -70,7 +72,7 @@ void ED_mask_draw_region(struct Depsgraph *depsgraph,
                          struct ARegion *region,
                          const char draw_flag,
                          const char draw_type,
-                         const char overlay_mode,
+                         const eMaskOverlayMode overlay_mode,
                          const int width_i,
                          const int height_i,
                          const float aspx,

@@ -19,7 +19,7 @@
 #include "COM_DifferenceMatteNode.h"
 #include "BKE_node.h"
 #include "COM_DifferenceMatteOperation.h"
-#include "COM_SetAlphaOperation.h"
+#include "COM_SetAlphaMultiplyOperation.h"
 
 DifferenceMatteNode::DifferenceMatteNode(bNode *editorNode) : Node(editorNode)
 {
@@ -43,7 +43,7 @@ void DifferenceMatteNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputSocket2, operationSet->getInputSocket(1));
   converter.mapOutputSocket(outputSocketMatte, operationSet->getOutputSocket(0));
 
-  SetAlphaOperation *operation = new SetAlphaOperation();
+  SetAlphaMultiplyOperation *operation = new SetAlphaMultiplyOperation();
   converter.addOperation(operation);
 
   converter.mapInputSocket(inputSocket, operation->getInputSocket(0));

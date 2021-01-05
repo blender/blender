@@ -148,7 +148,7 @@ inline GPUStateMutable operator~(const GPUStateMutable &a)
 /**
  * State manager keeping track of the draw state and applying it before drawing.
  * Base class which is then specialized for each implementation (GL, VK, ...).
- **/
+ */
 class StateManager {
  public:
   GPUState state;

@@ -27,8 +27,8 @@
 extern "C" {
 #endif
 
-struct Scene;
 struct Main;
+struct Scene;
 
 void SEQ_prefetch_stop_all(void);
 void SEQ_prefetch_stop(struct Scene *scene);

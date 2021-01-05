@@ -108,7 +108,7 @@ class BokehImageOperation : public NodeOperation {
   BokehImageOperation();
 
   /**
-   * \brief the inner loop of this program
+   * \brief The inner loop of this operation.
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 

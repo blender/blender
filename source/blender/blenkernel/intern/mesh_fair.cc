@@ -427,7 +427,6 @@ class UniformVertexWeight : public VertexWeight {
       cached_[i] = false;
     }
   }
-  ~UniformVertexWeight() = default;
 
   float weight_at_index(const int index) override
   {
@@ -464,7 +463,6 @@ class VoronoiVertexWeight : public VertexWeight {
       cached_[i] = false;
     }
   }
-  ~VoronoiVertexWeight() = default;
 
   float weight_at_index(const int index) override
   {

@@ -311,6 +311,7 @@ static DrawEngineType draw_engine_external_type = {
     NULL,
     NULL,
     NULL,
+    NULL,
 };
 
 /* Note: currently unused,

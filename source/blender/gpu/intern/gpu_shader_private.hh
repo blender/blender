@@ -32,7 +32,7 @@ namespace gpu {
 /**
  * Implementation of shader compilation and uniforms handling.
  * Base class which is then specialized for each implementation (GL, VK, ...).
- **/
+ */
 class Shader {
  public:
   /** Uniform & attribute locations for shader. */

@@ -125,7 +125,7 @@ typedef struct SDefBindPoly {
   float cent_edgemid_vecs_v2[2][2];
   /**
    * The unsigned angle of this face-corner in `[0.0 .. PI]` range,
-   * where a small value is a thin corner. PI is is a straight line.
+   * where a small value is a thin corner. PI is a straight line.
    * Take care dividing by this value as it can approach zero.
    */
   float edgemid_angle;

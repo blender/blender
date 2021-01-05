@@ -30,9 +30,9 @@ extern "C" {
 struct ImBuf;
 struct ListBase;
 struct Scene;
+struct SeqEffectHandle;
 struct SeqRenderData;
 struct Sequence;
-struct SeqEffectHandle;
 
 #define EARLY_NO_INPUT -1
 #define EARLY_DO_EFFECT 0

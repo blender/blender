@@ -1935,7 +1935,7 @@ static void outliner_mode_toggle_fn(bContext *C, void *tselem_poin, void *UNUSED
     return;
   }
 
-  /* Check that the the item is actually an object. */
+  /* Check that the item is actually an object. */
   BLI_assert(tselem->id != NULL && GS(tselem->id->name) == ID_OB);
 
   Object *ob = (Object *)tselem->id;
@@ -1946,7 +1946,7 @@ static void outliner_mode_toggle_fn(bContext *C, void *tselem_poin, void *UNUSED
   outliner_item_mode_toggle(C, &tvc, te, do_extend);
 }
 
-/* Draw icons for adding and removing objects from the current interation mode. */
+/* Draw icons for adding and removing objects from the current interaction mode. */
 static void outliner_draw_mode_column_toggle(uiBlock *block,
                                              TreeViewContext *tvc,
                                              TreeElement *te,

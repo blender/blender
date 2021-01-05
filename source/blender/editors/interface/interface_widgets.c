@@ -746,7 +746,7 @@ static void round_box__edges(
                        1 :
                        2;
 
-  int minsize = min_ii(BLI_rcti_size_x(rect) * hnum, BLI_rcti_size_y(rect) * vnum);
+  const int minsize = min_ii(BLI_rcti_size_x(rect) * hnum, BLI_rcti_size_y(rect) * vnum);
 
   if (2.0f * rad > minsize) {
     rad = 0.5f * minsize;
@@ -911,7 +911,7 @@ static void shape_preset_init_trias_ex(uiWidgetTrias *tria,
   float sizex, sizey;
   int i1 = 0, i2 = 1;
 
-  float minsize = ELEM(where, 'r', 'l') ? BLI_rcti_size_y(rect) : BLI_rcti_size_x(rect);
+  const float minsize = ELEM(where, 'r', 'l') ? BLI_rcti_size_y(rect) : BLI_rcti_size_x(rect);
 
   /* center position and size */
   float centx = (float)rect->xmin + 0.4f * minsize;
@@ -1396,8 +1396,8 @@ static void widget_draw_icon(
     return;
   }
 
-  float aspect = but->block->aspect * U.inv_dpi_fac;
-  float height = ICON_DEFAULT_HEIGHT / aspect;
+  const float aspect = but->block->aspect * U.inv_dpi_fac;
+  const float height = ICON_DEFAULT_HEIGHT / aspect;
 
   /* calculate blend color */
   if (ELEM(but->type, UI_BTYPE_TOGGLE, UI_BTYPE_ROW, UI_BTYPE_TOGGLE_N, UI_BTYPE_LISTROW)) {
@@ -1622,7 +1622,7 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
       }
     }
 
-    float parts_strwidth = (okwidth - sep_strwidth) / 2.0f;
+    const float parts_strwidth = (okwidth - sep_strwidth) / 2.0f;
 
     if (rpart) {
       strcpy(rpart_buf, rpart);
@@ -1630,7 +1630,8 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
       rpart = rpart_buf;
     }
 
-    size_t l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, parts_strwidth, NULL);
+    const size_t l_end = BLF_width_to_strlen(
+        fstyle->uifont_id, str, max_len, parts_strwidth, NULL);
     if (l_end < 10 || min_ff(parts_strwidth, strwidth - okwidth) < minwidth) {
       /* If we really have no place, or we would clip a very small piece of string in the middle,
        * only show start of string.
@@ -2413,7 +2414,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   }
 
   if (!no_text_padding) {
-    int text_padding = (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+    const int text_padding = (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
     if (but->editstr) {
       rect->xmin += text_padding;
     }
@@ -2883,7 +2884,7 @@ void ui_hsvcircle_pos_from_vals(
   /* duplication of code... well, simple is better now */
   const float centx = BLI_rcti_cent_x_fl(rect);
   const float centy = BLI_rcti_cent_y_fl(rect);
-  float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+  const float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 
   const float ang = 2.0f * (float)M_PI * hsv[0] + (float)M_PI_2;
 
@@ -2895,7 +2896,7 @@ void ui_hsvcircle_pos_from_vals(
     radius_t = hsv[1];
   }
 
-  float rad = clamp_f(radius_t, 0.0f, 1.0f) * radius;
+  const float rad = clamp_f(radius_t, 0.0f, 1.0f) * radius;
   *r_xpos = centx + cosf(-ang) * rad;
   *r_ypos = centy + sinf(-ang) * rad;
 }
@@ -3505,7 +3506,7 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
   widget_init(&wtb);
 
   /* determine horizontal/vertical */
-  bool horizontal = (BLI_rcti_size_x(rect) > BLI_rcti_size_y(rect));
+  const bool horizontal = (BLI_rcti_size_x(rect) > BLI_rcti_size_y(rect));
 
   const float rad = (horizontal) ? wcol->roundness * BLI_rcti_size_y(rect) :
                                    wcol->roundness * BLI_rcti_size_x(rect);
@@ -3621,7 +3622,7 @@ static void widget_scroll(
     rect1.ymin = rect1.ymax - ceilf(fac * (but->a1 - but->softmin));
 
     /* ensure minimium size */
-    float min = BLI_rcti_size_x(rect);
+    const float min = BLI_rcti_size_x(rect);
 
     if (BLI_rcti_size_y(&rect1) < min) {
       rect1.ymax = rect1.ymin + min;
@@ -5012,7 +5013,7 @@ static void draw_disk_shaded(float start,
 
   uint col;
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   if (shaded) {
     col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
@@ -5024,15 +5025,15 @@ static void draw_disk_shaded(float start,
 
   immBegin(GPU_PRIM_TRI_STRIP, subd * 2);
   for (int i = 0; i < subd; i++) {
-    float a = start + ((i) / (float)(subd - 1)) * angle;
-    float s = sinf(a);
-    float c = cosf(a);
-    float y1 = s * radius_int;
-    float y2 = s * radius_ext;
+    const float a = start + ((i) / (float)(subd - 1)) * angle;
+    const float s = sinf(a);
+    const float c = cosf(a);
+    const float y1 = s * radius_int;
+    const float y2 = s * radius_ext;
 
     if (shaded) {
       uchar r_col[4];
-      float fac = (y1 + radius_ext) * radius_ext_scale;
+      const float fac = (y1 + radius_ext) * radius_ext_scale;
       color_blend_v4_v4v4(r_col, col1, col2, fac);
       immAttr4ubv(col, r_col);
     }
@@ -5040,7 +5041,7 @@ static void draw_disk_shaded(float start,
 
     if (shaded) {
       uchar r_col[4];
-      float fac = (y2 + radius_ext) * radius_ext_scale;
+      const float fac = (y2 + radius_ext) * radius_ext_scale;
       color_blend_v4_v4v4(r_col, col1, col2, fac);
       immAttr4ubv(col, r_col);
     }

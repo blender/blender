@@ -27,12 +27,10 @@
 extern "C" {
 #endif
 
-struct Scene;
-struct Editing;
-struct Sequence;
-struct bSound;
-struct Main;
 struct ListBase;
+struct Main;
+struct Scene;
+struct Sequence;
 
 typedef enum eSeqTaskId {
   SEQ_TASK_MAIN_RENDER,

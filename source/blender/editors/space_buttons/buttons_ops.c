@@ -127,7 +127,7 @@ static int toggle_pin_exec(bContext *C, wmOperator *UNUSED(op))
   bScreen *screen = CTX_wm_screen(C);
   RNA_pointer_create(&screen->id, &RNA_SpaceProperties, sbuts, &sbuts_ptr);
 
-  /* Create the new ID pointer and set the the pin ID with RNA
+  /* Create the new ID pointer and set the pin ID with RNA
    * so we can use the property's RNA update functionality. */
   ID *new_id = (sbuts->flag & SB_PIN_CONTEXT) ? buttons_context_id_path(C) : NULL;
   PointerRNA new_id_ptr;

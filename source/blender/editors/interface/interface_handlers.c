@@ -505,7 +505,7 @@ bool ui_but_is_editing(const uiBut *but)
 void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 {
   static int lastdy = 0;
-  int dy = WM_event_absolute_delta_y(event);
+  const int dy = WM_event_absolute_delta_y(event);
 
   /* This event should be originally from event->type,
    * converting wrong event into wheel is bad, see T33803. */

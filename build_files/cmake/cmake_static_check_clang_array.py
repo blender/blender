@@ -32,7 +32,7 @@ CHECKER_IGNORE_PREFIX = [
     "intern/moto",
 ]
 
-CHECKER_BIN = "python2"
+CHECKER_BIN = "python3"
 
 CHECKER_ARGS = [
     os.path.join(os.path.dirname(__file__), "clang_array_check.py"),

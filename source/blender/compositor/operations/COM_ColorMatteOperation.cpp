@@ -58,8 +58,8 @@ void ColorMatteOperation::executePixelSampled(float output[4],
   this->m_inputImageProgram->readSampled(inColor, x, y, sampler);
   this->m_inputKeyProgram->readSampled(inKey, x, y, sampler);
 
-  /* store matte(alpha) value in [0] to go with
-   * COM_SetAlphaOperation and the Value output
+  /* Store matte(alpha) value in [0] to go with
+   * COM_SetAlphaMultiplyOperation and the Value output.
    */
 
   if (

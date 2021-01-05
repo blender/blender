@@ -6035,6 +6035,32 @@ static void def_cmp_vector_blur(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_set_alpha(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem mode_items[] = {
+      {CMP_NODE_SETALPHA_MODE_APPLY,
+       "APPLY",
+       0,
+       "Apply Mask",
+       "Multiply the input image's RGBA channels by the alpha input value"},
+      {CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA,
+       "REPLACE_ALPHA",
+       0,
+       "Replace Alpha",
+       "Replace the input image's alpha channels by the alpha input value"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeSetAlpha", "storage");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_cmp_levels(StructRNA *srna)
 {
   PropertyRNA *prop;

@@ -21,8 +21,7 @@
  * \ingroup edgpencil
  */
 
-#ifndef __GPENCIL_TRACE_H__
-#define __GPENCIL_TRACE_H__
+#pragma once
 
 /* internal exports only */
 struct FILE;
@@ -79,5 +78,3 @@ void ED_gpencil_trace_data_to_strokes(struct Main *bmain,
                                       const float sample,
                                       const int32_t resolution,
                                       const int32_t thickness);
-
-#endif /* __GPENCIL_TRACE_H__ */

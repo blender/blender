@@ -1256,7 +1256,7 @@ void ED_sequencer_special_preview_clear(void)
  *
  * TODO: do not rely on such hack and just update the \a ibuf outside of
  * the UI drawing code.
- **/
+ */
 ImBuf *sequencer_ibuf_get(struct Main *bmain,
                           ARegion *region,
                           struct Depsgraph *depsgraph,

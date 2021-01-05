@@ -39,7 +39,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
 
   const std::string result_name = params.get_input<std::string>("Result");
   /* Once we support more domains at the user level, we have to decide how the result domain is
-   * choosen. */
+   * chosen. */
   const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
   const CustomDataType result_type = CD_PROP_COLOR;
 

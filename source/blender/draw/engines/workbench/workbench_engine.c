@@ -641,6 +641,7 @@ DrawEngineType draw_engine_workbench = {
     &workbench_view_update,
     &workbench_id_update,
     &workbench_render,
+    NULL,
 };
 
 RenderEngineType DRW_engine_viewport_workbench_type = {

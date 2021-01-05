@@ -475,15 +475,15 @@ void psys_tasks_create(ParticleThreadContext *ctx,
 {
   ParticleTask *tasks;
   int numtasks = min_ii(BLI_system_thread_count() * 4, endpart - startpart);
-  float particles_per_task = (float)(endpart - startpart) / (float)numtasks, p, pnext;
-  int i;
+  float particles_per_task = numtasks > 0 ? (float)(endpart - startpart) / (float)numtasks : 0;
 
   tasks = MEM_callocN(sizeof(ParticleTask) * numtasks, "ParticleThread");
   *r_numtasks = numtasks;
   *r_tasks = tasks;
 
-  p = (float)startpart;
-  for (i = 0; i < numtasks; i++, p = pnext) {
+  float pnext;
+  float p = (float)startpart;
+  for (int i = 0; i < numtasks; i++, p = pnext) {
     pnext = p + particles_per_task;
 
     tasks[i].ctx = ctx;

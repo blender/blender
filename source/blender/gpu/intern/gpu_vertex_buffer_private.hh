@@ -32,7 +32,7 @@ namespace blender::gpu {
 /**
  * Implementation of Vertex Buffers.
  * Base class which is then specialized for each implementation (GL, VK, ...).
- **/
+ */
 class VertBuf {
  public:
   static size_t memory_usage;

@@ -570,8 +570,6 @@ static void eevee_render_to_image(void *vedata,
   EEVEE_motion_blur_data_free(&ved->stl->effects->motion_blur);
 
   if (RE_engine_test_break(engine)) {
-    /* Cryptomatte buffers are freed during render_read_result */
-    EEVEE_cryptomatte_free(vedata);
     return;
   }
 
@@ -583,6 +581,16 @@ static void eevee_render_to_image(void *vedata,
   if (CFRA != initial_frame || SUBFRA != initial_subframe) {
     /* Restore original frame number. This is because the render pipeline expects it. */
     RE_engine_frame_set(engine, initial_frame, initial_subframe);
+  }
+}
+
+static void eevee_store_metadata(void *vedata, struct RenderResult *render_result)
+{
+  EEVEE_Data *ved = (EEVEE_Data *)vedata;
+  EEVEE_PrivateData *g_data = ved->stl->g_data;
+  if (g_data->render_passes & EEVEE_RENDER_PASS_CRYPTOMATTE) {
+    EEVEE_cryptomatte_store_metadata(ved, render_result);
+    EEVEE_cryptomatte_free(ved);
   }
 }
 
@@ -611,6 +619,7 @@ DrawEngineType draw_engine_eevee_type = {
     &eevee_view_update,
     &eevee_id_update,
     &eevee_render_to_image,
+    &eevee_store_metadata,
 };
 
 RenderEngineType DRW_engine_viewport_eevee_type = {

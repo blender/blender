@@ -260,6 +260,7 @@ DrawEngineType draw_engine_basic_type = {
     NULL,
     NULL,
     NULL,
+    NULL,
 };
 
 #undef BASIC_ENGINE

@@ -17,6 +17,7 @@
  * All rights reserved.
  */
 
+/* Use a define instead of `#pragma once` because of `BLI_memory_utils.h` */
 #ifndef __BLI_UTILDEFINES_H__
 #define __BLI_UTILDEFINES_H__
 

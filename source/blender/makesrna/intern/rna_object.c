@@ -1045,7 +1045,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr,
   BLI_assert(BKE_id_is_in_global_main(value.data));
   BKE_object_material_assign(G_MAIN, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 
-  if (ob && ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL) {
     /* notifying material property in topbar */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }

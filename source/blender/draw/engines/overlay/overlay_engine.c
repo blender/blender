@@ -695,6 +695,7 @@ DrawEngineType draw_engine_overlay_type = {
     NULL,
     NULL,
     NULL,
+    NULL,
 };
 
 /** \} */

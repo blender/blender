@@ -1154,7 +1154,7 @@ static void uv_select_edgeloop_single_side_tag(const Scene *scene,
         break;
       }
       if (boundary_mode == UV_EDGE_LOOP_BOUNDARY_LOOP) {
-        /* Don't allow walking over the the face. */
+        /* Don't allow walking over the face. */
         if (f_step_prev == l_step->f) {
           break;
         }
@@ -2878,6 +2878,8 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
   const bool use_edge = ((ts->uv_flag & UV_SYNC_SELECTION) ?
                              (ts->selectmode == SCE_SELECT_EDGE) :
                              (ts->uv_selectmode == UV_SELECT_EDGE));
+  const bool use_select_linked = !(ts->uv_flag & UV_SYNC_SELECTION) &&
+                                 (ts->uv_selectmode == UV_SELECT_ISLAND);
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &rectf);
@@ -2981,7 +2983,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
             }
           }
         }
-        if (has_selected && ts->uv_selectmode == UV_SELECT_ISLAND) {
+        if (has_selected && use_select_linked) {
           UvNearestHit hit = {
               .ob = obedit,
               .efa = efa,
@@ -3089,6 +3091,8 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
   const bool use_edge = ((ts->uv_flag & UV_SYNC_SELECTION) ?
                              (ts->selectmode == SCE_SELECT_EDGE) :
                              (ts->uv_selectmode == UV_SELECT_EDGE));
+  const bool use_select_linked = !(ts->uv_flag & UV_SYNC_SELECTION) &&
+                                 (ts->uv_selectmode == UV_SELECT_ISLAND);
 
   /* get operator properties */
   x = RNA_int_get(op->ptr, "x");
@@ -3188,7 +3192,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
             }
           }
         }
-        if (has_selected && ts->uv_selectmode == UV_SELECT_ISLAND) {
+        if (has_selected && use_select_linked) {
           UvNearestHit hit = {
               .ob = obedit,
               .efa = efa,
@@ -3276,6 +3280,8 @@ static bool do_lasso_select_mesh_uv(bContext *C,
   const bool use_edge = ((ts->uv_flag & UV_SYNC_SELECTION) ?
                              (ts->selectmode == SCE_SELECT_EDGE) :
                              (ts->uv_selectmode == UV_SELECT_EDGE));
+  const bool use_select_linked = !(ts->uv_flag & UV_SYNC_SELECTION) &&
+                                 (ts->uv_selectmode == UV_SELECT_ISLAND);
 
   const bool select = (sel_op != SEL_OP_SUB);
   const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
@@ -3370,7 +3376,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
             }
           }
         }
-        if (has_selected && ts->uv_selectmode == UV_SELECT_ISLAND) {
+        if (has_selected && use_select_linked) {
           UvNearestHit hit = {
               .ob = obedit,
               .efa = efa,

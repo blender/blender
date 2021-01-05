@@ -29,10 +29,10 @@
 extern "C" {
 #endif
 
-struct Scene;
-struct Sequence;
 struct ListBase;
 struct Mask;
+struct Scene;
+struct Sequence;
 struct StripElem;
 
 void SEQ_sort(struct Scene *scene);
