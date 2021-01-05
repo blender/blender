@@ -109,7 +109,7 @@ typedef enum eUIEmbossType {
   UI_EMBOSS_PULLDOWN = 2, /* Pulldown menu style */
   UI_EMBOSS_RADIAL = 3,   /* Pie Menu */
   /**
-   * The same as #UI_EMBOSS_NONE, unless the the button has
+   * The same as #UI_EMBOSS_NONE, unless the button has
    * a coloring status like an animation state or red alert.
    */
   UI_EMBOSS_NONE_OR_STATUS = 4,

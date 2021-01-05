@@ -1154,7 +1154,7 @@ static void uv_select_edgeloop_single_side_tag(const Scene *scene,
         break;
       }
       if (boundary_mode == UV_EDGE_LOOP_BOUNDARY_LOOP) {
-        /* Don't allow walking over the the face. */
+        /* Don't allow walking over the face. */
         if (f_step_prev == l_step->f) {
           break;
         }

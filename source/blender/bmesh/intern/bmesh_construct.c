@@ -613,7 +613,7 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
  * \param bm_dst: BMesh whose custom-data layers will be added.
  * \param bm_src: BMesh whose custom-data layers will be copied.
  * \param htype: Specifies which custom-data layers will be initiated.
- * \param allocsize: Initialize the the memory-pool before use (may be an estimate).
+ * \param allocsize: Initialize the memory-pool before use (may be an estimate).
  */
 void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
                                              BMesh *bm_src,

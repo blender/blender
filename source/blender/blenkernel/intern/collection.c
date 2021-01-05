@@ -1788,7 +1788,7 @@ static void layer_collection_flags_restore_recursive(LayerCollection *layer_coll
   /* There should be a flag struct for every layer collection. */
   BLI_assert(BLI_listbase_count(&layer_collection->layer_collections) ==
              BLI_listbase_count(&flag->children));
-  /* The flag and the the layer collection should actually correspond. */
+  /* The flag and the layer collection should actually correspond. */
   BLI_assert(flag->collection == layer_collection->collection);
 
   LayerCollectionFlag *child_flag = flag->children.first;

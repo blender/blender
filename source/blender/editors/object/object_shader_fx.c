@@ -399,8 +399,8 @@ static void edit_shaderfx_report_property(wmOperatorType *ot)
 
 /**
  * \param event: If this isn't NULL, the operator will also look for panels underneath
- * the cursor with customdata set to a modifier.
- * \param r_retval: This should be used if #event is used in order to to return
+ * the cursor with custom-data set to a modifier.
+ * \param r_retval: This should be used if #event is used in order to return
  * #OPERATOR_PASS_THROUGH to check other operators with the same key set.
  */
 static bool edit_shaderfx_invoke_properties(bContext *C,
