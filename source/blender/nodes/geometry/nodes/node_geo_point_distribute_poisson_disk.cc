@@ -264,18 +264,18 @@ static void progressive_sampling_reorder(Vector<float3> *output_points,
 
 void poisson_disk_point_elimination(Vector<float3> const *input_points,
                                     Vector<float3> *output_points,
-                                    float maximum_density,
+                                    float maximum_distance,
                                     float3 boundbox)
 {
   weighted_sample_elimination(input_points->data(),
                               input_points->size(),
                               output_points->data(),
                               output_points->size(),
-                              maximum_density,
+                              maximum_distance,
                               boundbox,
                               false);
 
-  progressive_sampling_reorder(output_points, maximum_density, boundbox);
+  progressive_sampling_reorder(output_points, maximum_distance, boundbox);
 }
 
 }  // namespace blender::nodes

@@ -121,13 +121,13 @@ CryptomatteSession *BKE_cryptomatte_init(void)
 
 void BKE_cryptomatte_finish(CryptomatteSession *session)
 {
-  BLI_assert(session != NULL);
+  BLI_assert(session != nullptr);
   session->finish();
 }
 
 void BKE_cryptomatte_free(CryptomatteSession *session)
 {
-  BLI_assert(session != NULL);
+  BLI_assert(session != nullptr);
   delete session;
 }
 
@@ -157,7 +157,7 @@ uint32_t BKE_cryptomatte_object_hash(CryptomatteSession *session, const Object *
 
 uint32_t BKE_cryptomatte_material_hash(CryptomatteSession *session, const Material *material)
 {
-  if (material == NULL) {
+  if (material == nullptr) {
     return 0.0f;
   }
   return cryptomatte_hash(&session->materials, &material->id);
@@ -166,7 +166,7 @@ uint32_t BKE_cryptomatte_material_hash(CryptomatteSession *session, const Materi
 uint32_t BKE_cryptomatte_asset_hash(CryptomatteSession *session, const Object *object)
 {
   const Object *asset_object = object;
-  while (asset_object->parent != NULL) {
+  while (asset_object->parent != nullptr) {
     asset_object = asset_object->parent;
   }
   return cryptomatte_hash(&session->assets, &asset_object->id);

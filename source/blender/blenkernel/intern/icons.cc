@@ -92,10 +92,10 @@ std::mutex gIconMutex;
 static GHash *gCachedPreviews = nullptr;
 
 /* Queue of icons for deferred deletion. */
-typedef struct DeferredIconDeleteNode {
+struct DeferredIconDeleteNode {
   struct DeferredIconDeleteNode *next;
   int icon_id;
-} DeferredIconDeleteNode;
+};
 /* Protected by gIconMutex. */
 static LockfreeLinkList g_icon_delete_queue;
 

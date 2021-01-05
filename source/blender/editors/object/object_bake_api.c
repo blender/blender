@@ -674,7 +674,7 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
           reports, RPT_ERROR, "No active image found, add a material or bake to an external file");
       return false;
     }
-    else if (bkr->is_split_materials) {
+    if (bkr->is_split_materials) {
       BKE_report(
           reports,
           RPT_ERROR,
@@ -1120,7 +1120,7 @@ static bool bake_targets_output(const BakeAPIRender *bkr,
     if (bkr->save_mode == R_BAKE_SAVE_INTERNAL) {
       return bake_targets_output_internal(bkr, targets, ob, pixel_array, reports);
     }
-    else if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
+    if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
       return bake_targets_output_external(bkr, targets, ob, ob_eval, me, pixel_array, reports);
     }
   }

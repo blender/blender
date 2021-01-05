@@ -252,7 +252,7 @@ static struct VolumeFileCache {
   }
 
   /* Cache contents */
-  typedef std::unordered_set<Entry, EntryHasher, EntryEqual> EntrySet;
+  using EntrySet = std::unordered_set<Entry, EntryHasher, EntryEqual>;
   EntrySet cache;
   /* Mutex for multithreaded access. */
   std::mutex mutex;

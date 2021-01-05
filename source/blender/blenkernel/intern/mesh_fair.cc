@@ -361,7 +361,6 @@ class UniformVertexWeight : public VertexWeight {
       }
     }
   }
-  ~UniformVertexWeight() = default;
 
   float weight_at_index(const int index) override
   {
@@ -415,7 +414,6 @@ class VoronoiVertexWeight : public VertexWeight {
       vertex_weights_[i] = area != 0.0f ? 1.0f / area : 1e12;
     }
   }
-  ~VoronoiVertexWeight() = default;
 
   float weight_at_index(const int index) override
   {

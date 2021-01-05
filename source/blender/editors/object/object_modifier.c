@@ -1877,7 +1877,7 @@ static bool modifier_copy_to_selected_poll(bContext *C)
       found_supported_objects = true;
       break;
     }
-    else if (BKE_object_support_modifier_type_check(ob, md->type)) {
+    if (BKE_object_support_modifier_type_check(ob, md->type)) {
       found_supported_objects = true;
       break;
     }
