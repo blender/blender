@@ -3737,6 +3737,8 @@ static void do_scene_project_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+  SCULPT_vertex_random_access_ensure(ob->sculpt);
+
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
       .sd = sd,
