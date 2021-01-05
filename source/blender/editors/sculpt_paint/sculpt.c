@@ -8196,7 +8196,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
                    (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
                    "symmetrize input=%avef direction=%i dist=%f use_shapekey=%b",
                    sd->symmetrize_direction,
-                   0.00001f,
+                   dist,
                    true);
       SCULPT_dynamic_topology_triangulate(ss->bm);
 
