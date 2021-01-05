@@ -674,7 +674,7 @@ void ED_mask_draw_region(
     ARegion *region,
     const char draw_flag,
     const char draw_type,
-    const char overlay_mode,
+    const eMaskOverlayMode overlay_mode,
     /* convert directly into aspect corrected vars */
     const int width_i,
     const int height_i,
