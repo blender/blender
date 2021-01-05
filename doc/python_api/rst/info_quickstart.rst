@@ -237,7 +237,7 @@ Examples:
    {'FINISHED'}
    >>> bpy.ops.mesh.hide(unselected=False)
    {'FINISHED'}
-   >>> bpy.ops.object.scale_apply()
+   >>> bpy.ops.object.transform_apply()
    {'FINISHED'}
 
 .. tip::
