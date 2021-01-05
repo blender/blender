@@ -16,9 +16,9 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include "COM_SetAlphaOperation.h"
+#include "COM_SetAlphaReplaceOperation.h"
 
-SetAlphaOperation::SetAlphaOperation()
+SetAlphaReplaceOperation::SetAlphaReplaceOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);
@@ -28,26 +28,25 @@ SetAlphaOperation::SetAlphaOperation()
   this->m_inputAlpha = nullptr;
 }
 
-void SetAlphaOperation::initExecution()
+void SetAlphaReplaceOperation::initExecution()
 {
   this->m_inputColor = getInputSocketReader(0);
   this->m_inputAlpha = getInputSocketReader(1);
 }
 
-void SetAlphaOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void SetAlphaReplaceOperation::executePixelSampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
 {
-  float alphaInput[4];
+  float alpha_input[4];
 
   this->m_inputColor->readSampled(output, x, y, sampler);
-  this->m_inputAlpha->readSampled(alphaInput, x, y, sampler);
-
-  output[3] = alphaInput[0];
+  this->m_inputAlpha->readSampled(alpha_input, x, y, sampler);
+  output[3] = alpha_input[0];
 }
 
-void SetAlphaOperation::deinitExecution()
+void SetAlphaReplaceOperation::deinitExecution()
 {
   this->m_inputColor = nullptr;
   this->m_inputAlpha = nullptr;

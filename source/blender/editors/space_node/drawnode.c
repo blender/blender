@@ -2331,6 +2331,11 @@ static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
   uiItemR(row, ptr, "midtones_end", DEFAULT_FLAGS, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_set_alpha(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, NULL, ICON_NONE);
+}
+
 static void node_composit_buts_switch(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "check", DEFAULT_FLAGS, NULL, ICON_NONE);
@@ -2927,6 +2932,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
     case CMP_NODE_COLORCORRECTION:
       ntype->draw_buttons = node_composit_buts_colorcorrection;
       ntype->draw_buttons_ex = node_composit_buts_colorcorrection_ex;
+      break;
+    case CMP_NODE_SETALPHA:
+      ntype->draw_buttons = node_composit_buts_set_alpha;
       break;
     case CMP_NODE_SWITCH:
       ntype->draw_buttons = node_composit_buts_switch;

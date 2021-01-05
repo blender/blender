@@ -19,13 +19,13 @@
 #include "COM_CryptomatteNode.h"
 #include "COM_ConvertOperation.h"
 #include "COM_CryptomatteOperation.h"
-#include "COM_SetAlphaOperation.h"
 
 #include "BLI_assert.h"
 #include "BLI_hash_mm3.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+#include "COM_SetAlphaMultiplyOperation.h"
 #include <iterator>
 
 CryptomatteNode::CryptomatteNode(bNode *editorNode) : Node(editorNode)
@@ -61,13 +61,13 @@ void CryptomatteNode::convertToOperations(NodeConverter &converter,
   separateOperation->setChannel(3);
   converter.addOperation(separateOperation);
 
-  SetAlphaOperation *operationAlpha = new SetAlphaOperation();
+  SetAlphaMultiplyOperation *operationAlpha = new SetAlphaMultiplyOperation();
   converter.addOperation(operationAlpha);
 
   converter.addLink(operation->getOutputSocket(0), separateOperation->getInputSocket(0));
   converter.addLink(separateOperation->getOutputSocket(0), operationAlpha->getInputSocket(1));
 
-  SetAlphaOperation *clearAlphaOperation = new SetAlphaOperation();
+  SetAlphaMultiplyOperation *clearAlphaOperation = new SetAlphaMultiplyOperation();
   converter.addOperation(clearAlphaOperation);
   converter.addInputValue(clearAlphaOperation->getInputSocket(1), 1.0f);
 
