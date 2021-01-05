@@ -270,14 +270,16 @@ static void brush_reset_input_curve(CurveMapping *cumap)
 
 void BKE_brush_default_input_curves_set(Brush *brush)
 {
-  if (!brush->pressure_size_curve) {
-    brush->pressure_size_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
+  if (brush->pressure_size_curve) {
+    BKE_curvemapping_free(brush->pressure_size_curve);
   }
+  brush->pressure_size_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
   brush_reset_input_curve(brush->pressure_size_curve);
 
-  if (!brush->pressure_strength_curve) {
-    brush->pressure_strength_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
+  if (brush->pressure_strength_curve) {
+    BKE_curvemapping_free(brush->pressure_strength_curve);
   }
+  brush->pressure_strength_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
   brush_reset_input_curve(brush->pressure_strength_curve);
 }
 

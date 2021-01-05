@@ -1491,12 +1491,12 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-    LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-      if (!br->pressure_size_curve || !br->pressure_strength_curve) {
+    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "CurveMapping", "*pressure_size_curve")) {
+      LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
         BKE_brush_default_input_curves_set(br);
       }
     }
-    
+
     if (!DNA_struct_find(fd->filesdna, "NodeSetAlpha")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         bNodeTree *nodetree = scene->nodetree;
