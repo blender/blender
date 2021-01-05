@@ -1473,7 +1473,7 @@ static void sculpt_face_set_extrude_id(Object *ob, SculptSession *ss, const int 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     const int face_index = BM_elem_index_get(f);
     const int face_set_id = ss->face_sets[face_index];
-    BM_elem_select_set(bm, f, face_set_id == active_face_set_id);
+    BM_elem_select_set(bm, (BMElem *)f, face_set_id == active_face_set_id);
     BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id == active_face_set_id);
   }
   BM_mesh_select_flush(bm);

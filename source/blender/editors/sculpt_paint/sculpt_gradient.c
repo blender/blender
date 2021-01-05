@@ -116,7 +116,7 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
 
         break;
       case SCULPT_GRADIENT_RADIAL: {
-        const float dist = len_v2v2_int(projected_co, gcontext->line_points[0]);
+        const float dist = len_v2v2(projected_co, gcontext->line_points[0]);
         gradient_value = dist / gcontext->line_length;
       } break;
       case SCULPT_GRADIENT_ANGLE:
@@ -151,7 +151,7 @@ static int sculpt_gradient_update_exec(bContext *C, wmOperator *op, const wmEven
   gcontext->line_points[0][1] = RNA_int_get(op->ptr, "ystart");
   gcontext->line_points[1][0] = RNA_int_get(op->ptr, "xend");
   gcontext->line_points[1][1] = RNA_int_get(op->ptr, "yend");
-  gcontext->line_length = len_v2v2_int(gcontext->line_points[0], gcontext->line_points[1]);
+  gcontext->line_length = len_v2v2(gcontext->line_points[0], gcontext->line_points[1]);
 
   SculptThreadedTaskData data = {
       .sd = sd,
