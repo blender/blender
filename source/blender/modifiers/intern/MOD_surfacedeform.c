@@ -160,7 +160,9 @@ typedef struct SDefDeformData {
   const SDefVert *const bind_verts;
   float (*const targetCos)[3];
   float (*const vertexCos)[3];
-  float *const weights;
+  const MDeformVert *const dvert;
+  int const defgrp_index;
+  bool const invert_vgroup;
   float const strength;
 } SDefDeformData;
 
@@ -1191,7 +1193,17 @@ static void deformVert(void *__restrict userdata,
   const int num_binds = data->bind_verts[index].numbinds;
   float *const vertexCos = data->vertexCos[index];
   float norm[3], temp[3], offset[3];
-  const float weight = (data->weights != NULL) ? data->weights[index] : 1.0f;
+
+  /* Retrieve the value of the weight vertex group if specified. */
+  float weight = 1.0f;
+
+  if (data->dvert && data->defgrp_index != -1) {
+    weight = BKE_defvert_find_weight(&data->dvert[index], data->defgrp_index);
+
+    if (data->invert_vgroup) {
+      weight = 1.0f - weight;
+    }
+  }
 
   /* Check if this vertex will be deformed. If it is not deformed we return and avoid
    * unnecessary calculations. */
@@ -1332,33 +1344,16 @@ static void surfacedeformModifier_do(ModifierData *md,
   int defgrp_index;
   MDeformVert *dvert;
   MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
-  float *weights = NULL;
-  const bool invert_group = (smd->flags & MOD_SDEF_INVERT_VGROUP) != 0;
-
-  if (defgrp_index != -1) {
-    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, mesh->totvert);
-    /* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
-    if (dvert == NULL) {
-      /* Add a valid data layer! */
-      dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, mesh->totvert);
-    }
-
-    if (dvert) {
-      weights = MEM_calloc_arrayN((size_t)numverts, sizeof(*weights), __func__);
-      MDeformVert *dv = dvert;
-      for (uint i = 0; i < numverts; i++, dv++) {
-        weights[i] = invert_group ? (1.0f - BKE_defvert_find_weight(dv, defgrp_index)) :
-                                    BKE_defvert_find_weight(dv, defgrp_index);
-      }
-    }
-  }
+  const bool invert_vgroup = (smd->flags & MOD_SDEF_INVERT_VGROUP) != 0;
 
   /* Actual vertex location update starts here */
   SDefDeformData data = {
       .bind_verts = smd->verts,
       .targetCos = MEM_malloc_arrayN(tnumverts, sizeof(float[3]), "SDefTargetVertArray"),
       .vertexCos = vertexCos,
-      .weights = weights,
+      .dvert = dvert,
+      .defgrp_index = defgrp_index,
+      .invert_vgroup = invert_vgroup,
       .strength = smd->strength,
   };
 
@@ -1372,8 +1367,6 @@ static void surfacedeformModifier_do(ModifierData *md,
 
     MEM_freeN(data.targetCos);
   }
-
-  MEM_SAFE_FREE(weights);
 }
 
 static void deformVerts(ModifierData *md,
