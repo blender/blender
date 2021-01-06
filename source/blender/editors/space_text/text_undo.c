@@ -183,11 +183,14 @@ static bool text_undosys_step_encode(struct bContext *C,
                                      struct Main *UNUSED(bmain),
                                      UndoStep *us_p)
 {
+  if (C == NULL) {
+    return false;
+  }
+
   TextUndoStep *us = (TextUndoStep *)us_p;
 
   Text *text = us->text_ref.ptr;
   BLI_assert(text == CTX_data_edit_text(C));
-  UNUSED_VARS_NDEBUG(C);
 
   us->step.data_size += text_undosys_step_encode_to_state(&us->states[1], text);
 
@@ -260,7 +263,7 @@ void ED_text_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = text_undosys_foreach_ID_ref;
 
-  ut->use_context = false;
+  ut->use_context_for_encode = false;
 
   ut->step_size = sizeof(TextUndoStep);
 }

@@ -156,7 +156,7 @@ void ED_paintcurve_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = paintcurve_undosys_foreach_ID_ref;
 
-  ut->use_context = false;
+  ut->use_context_for_encode = false;
 
   ut->step_size = sizeof(PaintCurveUndoStep);
 }

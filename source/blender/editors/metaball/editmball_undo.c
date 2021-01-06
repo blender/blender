@@ -258,7 +258,7 @@ void ED_mball_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = mball_undosys_foreach_ID_ref;
 
-  ut->use_context = true;
+  ut->use_context_for_encode = true;
 
   ut->step_size = sizeof(MBallUndoStep);
 }
