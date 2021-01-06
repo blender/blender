@@ -637,6 +637,8 @@ void BKE_sculpt_sync_face_sets_visibility_to_grids(struct Mesh *mesh,
 
 void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(struct Mesh *mesh);
 
+void BKE_sculpt_ensure_orig_mesh_data(struct Scene *scene, struct Object *object);
+
 bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct View3D *v3d);
 
 enum {

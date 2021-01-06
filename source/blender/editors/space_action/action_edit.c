@@ -1036,12 +1036,13 @@ void ACTION_OT_delete(wmOperatorType *ot)
   ot->description = "Remove all selected keyframes";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = actkeys_delete_exec;
   ot->poll = ED_operator_action_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /* ******************** Clean Keyframes Operator ************************* */

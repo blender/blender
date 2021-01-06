@@ -1790,6 +1790,8 @@ static bool edbm_edge_split_selected_verts(wmOperator *op, Object *obedit, BMEdi
     return false;
   }
 
+  BM_custom_loop_normals_to_vector_layer(em->bm);
+
   /* Flush from vertices to edges. */
   BMIter iter;
   BMEdge *eed;
@@ -1808,8 +1810,6 @@ static bool edbm_edge_split_selected_verts(wmOperator *op, Object *obedit, BMEdi
       } while ((l_iter = l_iter->radial_next) != eed->l);
     }
   }
-
-  BM_custom_loop_normals_to_vector_layer(em->bm);
 
   if (!EDBM_op_callf(em,
                      op,
@@ -5966,6 +5966,8 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     if (em->selectmode == SCE_SELECT_FACE) {
       /* flush selection to tags and untag edges/verts with partially selected faces */
       BMIter iter;
@@ -5996,8 +5998,6 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
     else {
       dissolve_flag = BM_ELEM_SELECT;
     }
-
-    BM_custom_loop_normals_to_vector_layer(em->bm);
 
     EDBM_op_call_and_selectf(
         em,

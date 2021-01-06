@@ -24,6 +24,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -268,7 +269,7 @@ static void rna_def_latticepoint(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_LatticePoint_path");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+  RNA_def_property_boolean_sdna(prop, NULL, "f1", SELECT);
   RNA_def_property_ui_text(prop, "Point selected", "Selection status");
 
   prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);

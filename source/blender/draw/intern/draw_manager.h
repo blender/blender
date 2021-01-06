@@ -480,7 +480,7 @@ typedef struct DRWDebugSphere {
 
 /* ------------- DRAW MANAGER ------------ */
 
-#define DST_MAX_SLOTS 64 /* Cannot be changed without modifying RST.bound_tex_slots */
+#define DST_MAX_SLOTS 64  /* Cannot be changed without modifying RST.bound_tex_slots */
 #define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
 #define STENCIL_UNDEFINED 256
 #define DRW_DRAWLIST_LEN 256

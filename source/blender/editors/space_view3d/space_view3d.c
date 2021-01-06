@@ -616,7 +616,6 @@ static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, ID_GR);
 
-  drop->opcontext = WM_OP_EXEC_DEFAULT;
   RNA_string_set(drop->ptr, "name", id->name + 2);
 }
 
