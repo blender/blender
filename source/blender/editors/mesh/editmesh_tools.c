@@ -5340,8 +5340,8 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
                "ngon_method",
                rna_enum_modifier_triangulate_ngon_method_items,
                MOD_TRIANGULATE_NGON_BEAUTY,
-               "Polygon Method",
-               "Method for splitting the polygons into triangles");
+               "N-gon Method",
+               "Method for splitting the n-gons into triangles");
 }
 
 /** \} */

@@ -8434,7 +8434,7 @@ static void def_geo_triangulate(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_node_geometry_triangulate_ngon_method_items);
   RNA_def_property_enum_default(prop, GEO_NODE_TRIANGULATE_NGON_BEAUTY);
   RNA_def_property_ui_text(
-      prop, "Polygon Method", "Method for splitting the polygons into triangles");
+      prop, "N-gon Method", "Method for splitting the n-gons into triangles");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

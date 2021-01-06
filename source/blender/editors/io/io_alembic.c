@@ -439,10 +439,10 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 
   RNA_def_enum(ot->srna,
                "ngon_method",
-               rna_enum_modifier_triangulate_quad_method_items,
+               rna_enum_modifier_triangulate_ngon_method_items,
                MOD_TRIANGULATE_NGON_BEAUTY,
-               "Polygon Method",
-               "Method for splitting the polygons into triangles");
+               "N-gon Method",
+               "Method for splitting the n-gons into triangles");
 
   RNA_def_boolean(ot->srna,
                   "export_hair",
