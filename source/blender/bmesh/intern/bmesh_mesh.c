@@ -669,6 +669,9 @@ bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr)
  * BMesh version of BKE_mesh_normals_loop_split() in mesh_evaluate.c
  * Will use first clnors_data array, and fallback to cd_loop_clnors_offset
  * (use NULL and -1 to not use clnors).
+ *
+ * \note This sets #BM_ELEM_TAG which is used in tool code (e.g. T84426).
+ * we could add a low-level API flag for this, see #BM_ELEM_API_FLAG_ENABLE and friends.
  */
 static void bm_mesh_loops_calc_normals(BMesh *bm,
                                        const float (*vcos)[3],
@@ -1555,6 +1558,10 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
 #endif
 }
 
+/**
+ * \warning This function sets #BM_ELEM_TAG on loops & edges via #bm_mesh_loops_calc_normals,
+ * take care to run this before setting up tags.
+ */
 void BM_lnorspace_update(BMesh *bm)
 {
   if (bm->lnor_spacearr == NULL) {
@@ -1889,6 +1896,10 @@ void BM_loop_normal_editdata_array_free(BMLoopNorEditDataArray *lnors_ed_arr)
   MEM_freeN(lnors_ed_arr);
 }
 
+/**
+ * \warning This function sets #BM_ELEM_TAG on loops & edges via #bm_mesh_loops_calc_normals,
+ * take care to run this before setting up tags.
+ */
 bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
 {
   BMFace *f;
