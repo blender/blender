@@ -163,13 +163,13 @@ Now in the button's context menu select *Copy Data Path*, then paste the result 
 
 .. code-block:: python
 
-   bpy.context.active_object.modifiers["Subsurf"].levels
+   bpy.context.active_object.modifiers["Subdivision"].levels
 
 Press :kbd:`Return` and you'll get the current value of 1. Now try changing the value to 2:
 
 .. code-block:: python
 
-   bpy.context.active_object.modifiers["Subsurf"].levels = 2
+   bpy.context.active_object.modifiers["Subdivision"].levels = 2
 
 You can see the value update in the Subdivision Surface modifier's UI as well as the cube.
 
