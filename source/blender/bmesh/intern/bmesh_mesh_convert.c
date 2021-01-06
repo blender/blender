@@ -239,6 +239,24 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
      * Shape keys are also already integrated into the state of the evaluated
      * mesh, so considering them here would kind of apply them twice. */
     tot_shape_keys = BLI_listbase_count(&me->key->block);
+
+    /* Original meshes must never contain a shape-key custom-data layers.
+     *
+     * This may happen if and object's mesh data is accidentally
+     * set to the output from the modifier stack, causing it to be an "original" ID,
+     * even though the data isn't fully compatible (hence this assert).
+     *
+     * This results in:
+     * - The newly created #BMesh having twice the number of custom-data layers.
+     * - When converting the #BMesh back to a regular mesh,
+     *   At least one of the extra shape-key blocks will be created in #Mesh.key
+     *   depending on the value of #CustomDataLayer.uid.
+     *
+     * We could support mixing both kinds of data if there is a compelling use-case for it.
+     * At the moment it's simplest to assume all original meshes use the key-block and meshes
+     * that are evaluated (through the modifier stack for example) use custom-data layers.
+     */
+    BLI_assert(!CustomData_has_layer(&me->vdata, CD_SHAPEKEY));
   }
   if (is_new == false) {
     tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
