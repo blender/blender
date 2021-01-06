@@ -997,8 +997,10 @@ void ED_image_undosys_type(UndoType *ut)
   ut->step_foreach_ID_ref = image_undosys_foreach_ID_ref;
 
   /* NOTE this is actually a confusing case, since it expects a valid context, but only in a
-   * specific case, see `image_undosys_step_encode` code. */
-  ut->use_context_for_encode = false;
+   * specific case, see `image_undosys_step_encode` code. We cannot specify
+   * `UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE` though, as it can be called with a NULL context by
+   * current code. */
+  ut->flags = 0;
 
   ut->step_size = sizeof(ImageUndoStep);
 }
