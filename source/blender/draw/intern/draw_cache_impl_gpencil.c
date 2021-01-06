@@ -755,9 +755,9 @@ static void gpencil_edit_curve_stroke_count_cb(bGPDlayer *gpl,
 }
 
 static uint32_t gpencil_beztriple_vflag_get(char flag,
-                                        char col_id,
-                                        bool handle_point,
-                                        const bool handle_selected)
+                                            char col_id,
+                                            bool handle_point,
+                                            const bool handle_selected)
 {
   uint32_t vflag = 0;
   SET_FLAG_FROM_TEST(vflag, (flag & SELECT), VFLAG_VERT_SELECTED);
