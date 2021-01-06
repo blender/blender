@@ -282,7 +282,7 @@ void ED_memfile_undosys_type(UndoType *ut)
   ut->step_decode = memfile_undosys_step_decode;
   ut->step_free = memfile_undosys_step_free;
 
-  ut->use_context_for_encode = true;
+  ut->use_context_for_encode = false;
 
   ut->step_size = sizeof(MemFileUndoStep);
 }

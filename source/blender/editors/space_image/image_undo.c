@@ -883,6 +883,9 @@ static bool image_undosys_step_encode(struct bContext *C,
     }
   }
   else {
+    if (C == NULL) {
+      return false;
+    }
     /* Happens when switching modes. */
     ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
     BLI_assert(ELEM(paint_mode, PAINT_MODE_TEXTURE_2D, PAINT_MODE_TEXTURE_3D));
@@ -995,7 +998,7 @@ void ED_image_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = image_undosys_foreach_ID_ref;
 
-  ut->use_context_for_encode = true;
+  ut->use_context_for_encode = false;
 
   ut->step_size = sizeof(ImageUndoStep);
 }
