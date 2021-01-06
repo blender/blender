@@ -335,6 +335,7 @@ typedef struct SculptClothSimulation {
   float (*softbody_pos)[3];
   float (*prev_pos)[3];
   float (*last_iteration_pos)[3];
+  float (*init_normal)[3];
 
   struct ListBase *collider_list;
 

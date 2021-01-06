@@ -103,6 +103,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+/* Experimental features. */
+
+#define USE_SOLVER_RIPPLE_CONSTRAINT false
+
 static void cloth_brush_simulation_location_get(SculptSession *ss,
                                                 const Brush *brush,
                                                 float r_location[3])
@@ -464,6 +469,17 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
   }
   BKE_pbvh_vertex_iter_end;
 }
+
+static void cloth_brush_constraint_pos_to_line(SculptClothSimulation *cloth_sim, const int v) {
+    if (!USE_SOLVER_RIPPLE_CONSTRAINT) {
+        return;
+    }
+    float line_points[2][3];
+    copy_v3_v3(line_points[0], cloth_sim->init_pos[v]);
+    add_v3_v3v3(line_points[1], cloth_sim->init_pos[v], cloth_sim->init_normal[v]);
+    closest_to_line_v3(cloth_sim->pos[v], cloth_sim->pos[v], line_points[0], line_points[1]);
+}
+
 
 static void cloth_brush_apply_force_to_vertex(SculptSession *UNUSED(ss),
                                               SculptClothSimulation *cloth_sim,
@@ -849,6 +865,10 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
       cloth_simulation_noise_get(noise, ss, vd.index, 0.000001f);
       add_v3_v3(cloth_sim->pos[i], noise);
 
+      if (USE_SOLVER_RIPPLE_CONSTRAINT) {
+        cloth_brush_constraint_pos_to_line(cloth_sim, i);
+      }
+
       if (cloth_sim->collider_list != NULL) {
         cloth_brush_solve_collision(data->ob, cloth_sim, i);
       }
@@ -871,6 +891,7 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
   /* Disable the simulation on this node, it needs to be enabled again to continue. */
   cloth_sim->node_state[node_index] = SCULPT_CLOTH_NODE_INACTIVE;
 }
+
 
 static void cloth_brush_satisfy_constraints(SculptSession *ss,
                                             Brush *brush,
@@ -961,6 +982,10 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
                        -1.0f * mask_v2 * sim_factor_v2 * constraint->strength *
                            deformation_strength);
         }
+      }
+      if (USE_SOLVER_RIPPLE_CONSTRAINT) {
+        cloth_brush_constraint_pos_to_line(cloth_sim, v1);
+        cloth_brush_constraint_pos_to_line(cloth_sim, v2);
       }
     }
   }
@@ -1134,6 +1159,15 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
         totverts, sizeof(float[3]), "cloth sim softbody pos");
   }
 
+  if (USE_SOLVER_RIPPLE_CONSTRAINT) {
+  cloth_sim->init_normal = MEM_calloc_arrayN(
+      totverts, sizeof(float) * 3, "init noramls");
+  for (int i = 0; i < totverts; i++) {
+      SCULPT_vertex_normal_get(ss, i, cloth_sim->init_normal[i]);
+  }
+  }
+
+
   cloth_sim->mass = cloth_mass;
   cloth_sim->damping = cloth_damping;
   cloth_sim->softbody_strength = cloth_softbody_strength;
@@ -1306,6 +1340,7 @@ void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim)
   MEM_SAFE_FREE(cloth_sim->init_pos);
   MEM_SAFE_FREE(cloth_sim->deformation_strength);
   MEM_SAFE_FREE(cloth_sim->node_state);
+  MEM_SAFE_FREE(cloth_sim->init_normal);
   BLI_ghash_free(cloth_sim->node_state_index, NULL, NULL);
   if (cloth_sim->collider_list) {
     BKE_collider_cache_free(&cloth_sim->collider_list);
