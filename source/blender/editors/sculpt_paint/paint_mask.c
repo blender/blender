@@ -1617,7 +1617,7 @@ static void sculpt_gesture_project_end(bContext *C, SculptGestureContext *sgcont
 
 static void sculpt_gesture_init_project_properties(SculptGestureContext *sgcontext, wmOperator *op)
 {
-  sgcontext->operation = MEM_callocN(sizeof(SculptGestureFaceSetOperation), "Project Operation");
+  sgcontext->operation = MEM_callocN(sizeof(SculptGestureProjectOperation), "Project Operation");
 
   SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
                                                          sgcontext->operation;
