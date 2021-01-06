@@ -872,7 +872,7 @@ static void rna_def_bpoint(BlenderRNA *brna)
 
   /* Boolean values */
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+  RNA_def_property_boolean_sdna(prop, NULL, "f1", SELECT);
   RNA_def_property_ui_text(prop, "Select", "Selection status");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
