@@ -35,9 +35,9 @@ void SetAlphaMultiplyOperation::initExecution()
 }
 
 void SetAlphaMultiplyOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+                                                    float x,
+                                                    float y,
+                                                    PixelSampler sampler)
 {
   float color_input[4];
   float alpha_input[4];
