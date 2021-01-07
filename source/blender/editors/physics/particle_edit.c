@@ -3496,6 +3496,21 @@ static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
+static bool mirror_poll(bContext *C)
+{
+  if (!PE_hair_poll(C)) {
+    return false;
+  }
+
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Scene *scene = CTX_data_scene(C);
+  Object *ob = CTX_data_active_object(C);
+  PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
+
+  /* The operator only works for hairs emitted from faces. */
+  return edit->psys->part->from == PART_FROM_FACE;
+}
+
 void PARTICLE_OT_mirror(wmOperatorType *ot)
 {
   /* identifiers */
@@ -3505,7 +3520,7 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mirror_exec;
-  ot->poll = PE_hair_poll;
+  ot->poll = mirror_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
