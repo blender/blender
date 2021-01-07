@@ -252,9 +252,8 @@ static void undosys_stack_validate(UndoStack *ustack, bool expect_non_empty)
   }
 }
 #else
-static void undosys_stack_validate(UndoStack *ustack, bool expect_non_empty)
+static void undosys_stack_validate(UndoStack *UNUSED(ustack), bool UNUSED(expect_non_empty))
 {
-  UNUSED_VARS(ustack, expect_non_empty);
 }
 #endif
 
