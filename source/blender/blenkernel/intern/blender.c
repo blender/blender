@@ -417,7 +417,7 @@ void BKE_blender_atexit_unregister(void (*func)(void *user_data), const void *us
       free(ae);
       return;
     }
-    ae_p = &ae;
+    ae_p = &ae->next;
     ae = ae->next;
   }
 }
