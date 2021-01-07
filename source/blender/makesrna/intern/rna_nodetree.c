@@ -3245,6 +3245,7 @@ static void rna_NodeGroup_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
   }
 
   ED_node_tag_update_nodetree(bmain, ntree, node);
+  DEG_relations_tag_update(bmain);
 }
 
 static void rna_NodeGroup_node_tree_set(PointerRNA *ptr,
