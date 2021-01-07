@@ -197,9 +197,10 @@ void createTransCurveVerts(TransInfo *t)
     TransData *td = tc->data;
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
     LISTBASE_FOREACH (Nurb *, nu, nurbs) {
+      TransData *head, *tail;
+      head = tail = td;
+      bool has_any_selected = false;
       if (nu->type == CU_BEZIER) {
-        TransData *head, *tail;
-        head = tail = td;
         for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
           if (bezt->hide == 0) {
             TransDataCurveHandleFlags *hdata = NULL;
@@ -223,6 +224,7 @@ void createTransCurveVerts(TransInfo *t)
 
             /* Elements that will be transform (not always a match to selection). */
             const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
+            has_any_selected |= bezt_tx != 0;
 
             if (is_prop_edit || bezt_tx & SEL_F1) {
               copy_v3_v3(td->iloc, bezt->vec[0]);
@@ -350,28 +352,9 @@ void createTransCurveVerts(TransInfo *t)
 
             (void)hdata; /* quiet warning */
           }
-          else if (is_prop_edit && head != tail) {
-            tail->flag |= TD_NOTCONNECTED;
-            td++;
-            tail++;
-          }
-        }
-        if (is_prop_edit && head != tail) {
-          bool cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
-          calc_distanceCurveVerts(head, tail - 1, cyclic);
-        }
-
-        /* TODO - in the case of tilt and radius we can also avoid allocating the
-         * initTransDataCurveHandles but for now just don't change handle types */
-        if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT, TFM_DUMMY) == 0) {
-          /* sets the handles based on their selection,
-           * do this after the data is copied to the TransData */
-          BKE_nurb_handles_test(nu, !hide_handles, use_around_origins_for_handles_test);
         }
       }
       else {
-        TransData *head, *tail;
-        head = tail = td;
         for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a > 0; a--, bp++) {
           if (bp->hide == 0) {
             if (is_prop_edit || (bp->f1 & SELECT)) {
@@ -400,6 +383,7 @@ void createTransCurveVerts(TransInfo *t)
               copy_v3_v3(td->center, td->loc);
               if (bp->f1 & SELECT) {
                 td->flag = TD_SELECTED;
+                has_any_selected |= true;
               }
               else {
                 td->flag = 0;
@@ -427,16 +411,26 @@ void createTransCurveVerts(TransInfo *t)
               tail++;
             }
           }
-          else if (is_prop_edit && head != tail) {
-            tail->flag |= TD_NOTCONNECTED;
-            td++;
-            tail++;
+        }
+      }
+      if (is_prop_edit && head != tail) {
+        tail -= 1;
+        if (!has_any_selected) {
+          for (td = head; td <= tail; td++) {
+            td->flag |= TD_NOTCONNECTED;
           }
         }
-        if (is_prop_edit && head != tail) {
-          bool cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
-          calc_distanceCurveVerts(head, tail - 1, cyclic);
-        }
+        bool cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
+        calc_distanceCurveVerts(head, tail, cyclic);
+      }
+
+      /* TODO - in the case of tilt and radius we can also avoid allocating the
+       * initTransDataCurveHandles but for now just don't change handle types */
+      if ((nu->type == CU_BEZIER) &&
+          ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT, TFM_DUMMY) == 0) {
+        /* sets the handles based on their selection,
+         * do this after the data is copied to the TransData */
+        BKE_nurb_handles_test(nu, !hide_handles, use_around_origins_for_handles_test);
       }
     }
   }
