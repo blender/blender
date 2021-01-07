@@ -969,9 +969,9 @@ class PREFERENCES_OT_app_template_install(Operator):
 # Studio Light Operations
 
 class PREFERENCES_OT_studiolight_install(Operator):
-    """Install a user defined studio light"""
+    """Install a user defined light"""
     bl_idname = "preferences.studiolight_install"
-    bl_label = "Install Custom Studio Light"
+    bl_label = "Install Light"
 
     files: CollectionProperty(
         name="File Path",
@@ -981,7 +981,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
         subtype='DIR_PATH',
     )
     filter_folder: BoolProperty(
-        name="Filter folders",
+        name="Filter Folders",
         default=True,
         options={'HIDDEN'},
     )
@@ -992,9 +992,9 @@ class PREFERENCES_OT_studiolight_install(Operator):
     type: EnumProperty(
         name="Type",
         items=(
-            ('MATCAP', "MatCap", ""),
-            ('WORLD', "World", ""),
-            ('STUDIO', "Studio", ""),
+            ('MATCAP', "MatCap", "Install custom MatCaps"),
+            ('WORLD', "World", "Install custom HDRIs"),
+            ('STUDIO', "Studio", "Install custom Studio Lights"),
         )
     )
 

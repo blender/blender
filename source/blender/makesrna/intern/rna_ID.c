@@ -77,7 +77,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
     {ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
     {ID_HA, "HAIR", ICON_HAIR_DATA, "Hair", ""},
-    {ID_PT, "POINTCLOUD", ICON_POINTCLOUD_DATA, "PointCloud", ""},
+    {ID_PT, "POINTCLOUD", ICON_POINTCLOUD_DATA, "Point Cloud", ""},
     {ID_VO, "VOLUME", ICON_VOLUME_DATA, "Volume", ""},
     {ID_WM, "WINDOWMANAGER", ICON_WINDOW, "Window Manager", ""},
     {ID_WO, "WORLD", ICON_WORLD_DATA, "World", ""},

@@ -2229,7 +2229,7 @@ void UV_OT_smart_project(wmOperatorType *ot)
                 0.0f,
                 1.0f,
                 "Area Weight",
-                "Weight projections vector by faces with larger areas",
+                "Weight projection's vector by faces with larger areas",
                 0.0f,
                 1.0f);
 

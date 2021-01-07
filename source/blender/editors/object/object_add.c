@@ -2411,7 +2411,7 @@ static const EnumPropertyItem convert_target_items[] = {
      ICON_OUTLINER_OB_MESH,
      "Mesh",
 #ifdef WITH_POINT_CLOUD
-     "Mesh from Curve, Surface, Metaball, Text, or Pointcloud objects"},
+     "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"},
 #else
      "Mesh from Curve, Surface, Metaball, or Text objects"},
 #endif
@@ -2424,8 +2424,8 @@ static const EnumPropertyItem convert_target_items[] = {
     {OB_POINTCLOUD,
      "POINTCLOUD",
      ICON_OUTLINER_OB_POINTCLOUD,
-     "Pointcloud",
-     "Pointcloud from Mesh objects"},
+     "Point Cloud",
+     "Point Cloud from Mesh objects"},
 #endif
     {0, NULL, 0, NULL, NULL},
 };
