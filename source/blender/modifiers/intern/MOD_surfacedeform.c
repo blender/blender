@@ -20,6 +20,7 @@
  * \ingroup modifiers
  */
 
+#include "BLI_alloca.h"
 #include "BLI_math.h"
 #include "BLI_math_geom.h"
 #include "BLI_task.h"
@@ -1218,7 +1219,16 @@ static void deformVert(void *__restrict userdata,
   for (int j = 0; j < num_binds; j++) {
     max_verts = MAX2(max_verts, sdbind[j].numverts);
   }
-  float(*coords_buffer)[3] = MEM_malloc_arrayN(max_verts, sizeof(*coords_buffer), __func__);
+
+  const bool big_buffer = max_verts > 256;
+  float(*coords_buffer)[3];
+
+  if (UNLIKELY(big_buffer)) {
+    coords_buffer = MEM_malloc_arrayN(max_verts, sizeof(*coords_buffer), __func__);
+  }
+  else {
+    coords_buffer = BLI_array_alloca(coords_buffer, max_verts);
+  }
 
   for (int j = 0; j < num_binds; j++, sdbind++) {
     for (int k = 0; k < sdbind->numverts; k++) {
@@ -1228,28 +1238,32 @@ static void deformVert(void *__restrict userdata,
     normal_poly_v3(norm, coords_buffer, sdbind->numverts);
     zero_v3(temp);
 
-    /* ---------- looptri mode ---------- */
-    if (sdbind->mode == MOD_SDEF_MODE_LOOPTRI) {
-      madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[0]], sdbind->vert_weights[0]);
-      madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[1]], sdbind->vert_weights[1]);
-      madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[2]], sdbind->vert_weights[2]);
-    }
-    else {
+    switch (sdbind->mode) {
+      /* ---------- looptri mode ---------- */
+      case MOD_SDEF_MODE_LOOPTRI: {
+        madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[0]], sdbind->vert_weights[0]);
+        madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[1]], sdbind->vert_weights[1]);
+        madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[2]], sdbind->vert_weights[2]);
+        break;
+      }
+
       /* ---------- ngon mode ---------- */
-      if (sdbind->mode == MOD_SDEF_MODE_NGON) {
+      case MOD_SDEF_MODE_NGON: {
         for (int k = 0; k < sdbind->numverts; k++) {
           madd_v3_v3fl(temp, coords_buffer[k], sdbind->vert_weights[k]);
         }
+        break;
       }
 
       /* ---------- centroid mode ---------- */
-      else if (sdbind->mode == MOD_SDEF_MODE_CENTROID) {
+      case MOD_SDEF_MODE_CENTROID: {
         float cent[3];
         mid_v3_v3_array(cent, coords_buffer, sdbind->numverts);
 
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[0]], sdbind->vert_weights[0]);
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[1]], sdbind->vert_weights[1]);
         madd_v3_v3fl(temp, cent, sdbind->vert_weights[2]);
+        break;
       }
     }
 
@@ -1263,7 +1277,10 @@ static void deformVert(void *__restrict userdata,
 
   /* Add the offset to start coord multiplied by the strength and weight values. */
   madd_v3_v3fl(vertexCos, offset, data->strength * weight);
-  MEM_freeN(coords_buffer);
+
+  if (UNLIKELY(big_buffer)) {
+    MEM_freeN(coords_buffer);
+  }
 }
 
 static void surfacedeformModifier_do(ModifierData *md,
