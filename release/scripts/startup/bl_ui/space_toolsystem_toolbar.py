@@ -1526,6 +1526,7 @@ class _defs_weight_paint:
             idname="builtin.sample_weight",
             label="Sample Weight",
             icon="ops.paint.weight_sample",
+            cursor='EYEDROPPER',
             widget=None,
             keymap=(),
             draw_settings=draw_settings
@@ -1537,6 +1538,7 @@ class _defs_weight_paint:
             idname="builtin.sample_vertex_group",
             label="Sample Vertex Group",
             icon="ops.paint.weight_sample_group",
+            cursor='EYEDROPPER',
             widget=None,
             keymap=(),
         )
