@@ -974,7 +974,7 @@ class WM_OT_path_open(Operator):
         return {'FINISHED'}
 
 
-def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
+def _wm_doc_get_id(doc_id, do_url=True, url_prefix="", report=None):
 
     def operator_exists_pair(a, b):
         # Not fast, this is only for docs.
@@ -1024,6 +1024,11 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
             if rna_class is None:
                 # Check class for dynamically registered types.
                 rna_class = bpy.types.PropertyGroup.bl_rna_get_subclass_py(class_name)
+
+            if rna_class is None:
+                if report is not None:
+                    report({'ERROR'}, iface_("Type \"%s\" can not be found") % class_name)
+                return None
 
             # Detect if this is a inherited member and use that name instead.
             rna_parent = rna_class.bl_rna
@@ -1084,9 +1089,9 @@ class WM_OT_doc_view_manual(Operator):
                 return url
 
     def execute(self, _context):
-        rna_id = _wm_doc_get_id(self.doc_id, do_url=False)
+        rna_id = _wm_doc_get_id(self.doc_id, do_url=False, report=self.report)
         if rna_id is None:
-            return {'PASS_THROUGH'}
+            return {'CANCELLED'}
 
         url = self._lookup_rna_url(rna_id)
 
@@ -1118,9 +1123,9 @@ class WM_OT_doc_view(Operator):
         _prefix = ("https://docs.blender.org/api/master")
 
     def execute(self, _context):
-        url = _wm_doc_get_id(self.doc_id, do_url=True, url_prefix=self._prefix)
+        url = _wm_doc_get_id(self.doc_id, do_url=True, url_prefix=self._prefix, report=self.report)
         if url is None:
-            return {'PASS_THROUGH'}
+            return {'CANCELLED'}
 
         import webbrowser
         webbrowser.open(url)
