@@ -195,10 +195,14 @@ void BPY_context_dict_clear_members_array(void **dict_p,
 
   PyObject *dict = *dict_p;
   BLI_assert(PyDict_Check(dict));
+
+  /* Use #PyDict_Pop instead of #PyDict_DelItemString to avoid setting the exception,
+   * while supported it's good to avoid for low level functions like this that run often. */
   for (uint i = 0; i < context_members_len; i++) {
-    if (PyDict_DelItemString(dict, context_members[i])) {
-      PyErr_Clear();
-    }
+    PyObject *key = PyUnicode_FromString(context_members[i]);
+    PyObject *item = _PyDict_Pop(dict, key, Py_None);
+    Py_DECREF(key);
+    Py_DECREF(item);
   }
 
   if (use_gil) {
