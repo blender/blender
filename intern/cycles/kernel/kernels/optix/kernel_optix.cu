@@ -47,9 +47,9 @@ template<bool always = false> ccl_device_forceinline uint get_object_id()
   // Choose between always returning object ID or only for instances
   if (always)
     // Can just remove the high bit since instance always contains object ID
-    return object & 0x7FFFFF;
+    return object & 0x7FFFFFF;  // OPTIX_ABI_VERSION >= 23 ? 0x7FFFFFF : 0x7FFFFF
   // Set to OBJECT_NONE if this is not an instanced object
-  else if (object & 0x800000)
+  else if (object & 0x8000000)  // OPTIX_ABI_VERSION >= 23 ? 0x8000000 : 0x800000
     object = OBJECT_NONE;
   return object;
 }

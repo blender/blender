@@ -1519,6 +1519,16 @@ class OptiXDevice : public CUDADevice {
       bvh_optix->traversable_handle = 0;
       bvh_optix->motion_transform_data.free();
 
+#  if OPTIX_ABI_VERSION < 23
+      if (bvh->objects.size() > 0x7FFFFF) {
+#  else
+      if (bvh->objects.size() > 0x7FFFFFF) {
+#  endif
+        progress.set_error(
+            "Failed to build OptiX acceleration structure because there are too many instances");
+        return;
+      }
+
       // Fill instance descriptions
 #  if OPTIX_ABI_VERSION < 41
       device_vector<OptixAabb> aabbs(this, "optix tlas aabbs", MEM_READ_ONLY);
@@ -1681,7 +1691,11 @@ class OptiXDevice : public CUDADevice {
             instance.flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
             // Non-instanced objects read ID from prim_object, so
             // distinguish them from instanced objects with high bit set
+#  if OPTIX_ABI_VERSION < 23
             instance.instanceId |= 0x800000;
+#  else
+            instance.instanceId |= 0x8000000;
+#  endif
           }
         }
       }
