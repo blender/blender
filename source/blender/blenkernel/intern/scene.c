@@ -1904,7 +1904,6 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       sce_copy->id.properties = IDP_CopyProperty(sce->id.properties);
     }
 
-    MEM_freeN(sce_copy->toolsettings);
     BKE_sound_destroy_scene(sce_copy);
 
     /* copy color management settings */
@@ -1929,6 +1928,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     sce_copy->display = sce->display;
 
     /* tool settings */
+    BKE_toolsettings_free(sce_copy->toolsettings);
     sce_copy->toolsettings = BKE_toolsettings_copy(sce->toolsettings, 0);
 
     /* make a private copy of the avicodecdata */
