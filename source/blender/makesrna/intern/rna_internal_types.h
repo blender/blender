@@ -545,6 +545,17 @@ struct StructRNA {
   /* function to register/unregister subclasses */
   StructRegisterFunc reg;
   StructUnregisterFunc unreg;
+  /**
+   * Optionally support reusing Python instances for this type.
+   *
+   * Without this, an operator class created for #wmOperatorType.invoke (for example)
+   * would have a different instance passed to the #wmOperatorType.modal callback.
+   * So any variables assigned to `self` from Python would not be available to other callbacks.
+   *
+   * Being able to access the instance also has the advantage that we can invalidate
+   * the Python instance when the data has been removed, see: #BPY_DECREF_RNA_INVALIDATE
+   * so accessing the variables from Python raises an exception instead of crashing.
+   */
   StructInstanceFunc instance;
 
   /* callback to get id properties */

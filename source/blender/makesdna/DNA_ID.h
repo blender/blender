@@ -314,6 +314,20 @@ typedef struct ID {
    */
   struct ID *orig_id;
 
+  /**
+   * Holds the #PyObject reference to the ID (initialized on demand).
+   *
+   * This isn't essential, it could be removed however it gives some advantages:
+   *
+   * - Every time the #ID is accessed a #BPy_StructRNA doesn't have to be created & destroyed
+   *   (consider all the polling and drawing functions that access ID's).
+   *
+   * - When this #ID is deleted, the #BPy_StructRNA can be invalidated
+   *   so accessing it from Python raises an exception instead of crashing.
+   *
+   *   This is of limited benefit though, as it doesn't apply to non #ID data
+   *   that references this ID (the bones of an armature or the modifiers of an object for e.g.).
+   */
   void *py_instance;
   void *_pad1;
 } ID;
