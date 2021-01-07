@@ -816,9 +816,14 @@ static void make_duplis_instances_component(const DupliContext *ctx)
   float(*positions)[3];
   float(*rotations)[3];
   float(*scales)[3];
+  int *ids;
   InstancedData *instanced_data;
-  const int amount = BKE_geometry_set_instances(
-      ctx->object->runtime.geometry_set_eval, &positions, &rotations, &scales, &instanced_data);
+  const int amount = BKE_geometry_set_instances(ctx->object->runtime.geometry_set_eval,
+                                                &positions,
+                                                &rotations,
+                                                &scales,
+                                                &ids,
+                                                &instanced_data);
 
   for (int i = 0; i < amount; i++) {
     InstancedData *data = &instanced_data[i];
@@ -831,17 +836,19 @@ static void make_duplis_instances_component(const DupliContext *ctx)
     mul_m4_m4m4(instance_offset_matrix, rotation_matrix, scale_matrix);
     copy_v3_v3(instance_offset_matrix[3], positions[i]);
 
+    const int id = ids[i] != -1 ? ids[i] : i;
+
     if (data->type == INSTANCE_DATA_TYPE_OBJECT) {
       Object *object = data->data.object;
       if (object != NULL) {
         float matrix[4][4];
         mul_m4_m4m4(matrix, ctx->object->obmat, instance_offset_matrix);
-        make_dupli(ctx, object, matrix, i);
+        make_dupli(ctx, object, matrix, id);
 
         float space_matrix[4][4];
         mul_m4_m4m4(space_matrix, instance_offset_matrix, object->imat);
         mul_m4_m4_pre(space_matrix, ctx->object->obmat);
-        make_recursive_duplis(ctx, object, space_matrix, i);
+        make_recursive_duplis(ctx, object, space_matrix, id);
       }
     }
     else if (data->type == INSTANCE_DATA_TYPE_COLLECTION) {
@@ -862,8 +869,8 @@ static void make_duplis_instances_component(const DupliContext *ctx)
           float instance_matrix[4][4];
           mul_m4_m4m4(instance_matrix, collection_matrix, object->obmat);
 
-          make_dupli(ctx, object, instance_matrix, i);
-          make_recursive_duplis(ctx, object, collection_matrix, i);
+          make_dupli(ctx, object, instance_matrix, id);
+          make_recursive_duplis(ctx, object, collection_matrix, id);
         }
         FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
       }

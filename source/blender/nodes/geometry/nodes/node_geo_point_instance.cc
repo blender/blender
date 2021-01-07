@@ -161,10 +161,11 @@ static void add_instances_from_geometry_component(InstancesComponent &instances,
       "rotation", domain, {0, 0, 0});
   Float3ReadAttribute scales = src_geometry.attribute_get_for_read<float3>(
       "scale", domain, {1, 1, 1});
+  Int32ReadAttribute ids = src_geometry.attribute_get_for_read<int>("id", domain, -1);
 
   for (const int i : IndexRange(domain_size)) {
     if (instances_data[i].has_value()) {
-      instances.add_instance(*instances_data[i], positions[i], rotations[i], scales[i]);
+      instances.add_instance(*instances_data[i], positions[i], rotations[i], scales[i], ids[i]);
     }
   }
 }

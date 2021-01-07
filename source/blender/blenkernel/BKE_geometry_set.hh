@@ -364,6 +364,7 @@ class InstancesComponent : public GeometryComponent {
   blender::Vector<blender::float3> positions_;
   blender::Vector<blender::float3> rotations_;
   blender::Vector<blender::float3> scales_;
+  blender::Vector<int> ids_;
   blender::Vector<InstancedData> instanced_data_;
 
  public:
@@ -375,20 +376,24 @@ class InstancesComponent : public GeometryComponent {
   void add_instance(Object *object,
                     blender::float3 position,
                     blender::float3 rotation = {0, 0, 0},
-                    blender::float3 scale = {1, 1, 1});
+                    blender::float3 scale = {1, 1, 1},
+                    const int id = -1);
   void add_instance(Collection *collection,
                     blender::float3 position,
                     blender::float3 rotation = {0, 0, 0},
-                    blender::float3 scale = {1, 1, 1});
+                    blender::float3 scale = {1, 1, 1},
+                    const int id = -1);
   void add_instance(InstancedData data,
                     blender::float3 position,
                     blender::float3 rotation,
-                    blender::float3 scale);
+                    blender::float3 scale,
+                    const int id = -1);
 
   blender::Span<InstancedData> instanced_data() const;
   blender::Span<blender::float3> positions() const;
   blender::Span<blender::float3> rotations() const;
   blender::Span<blender::float3> scales() const;
+  blender::Span<int> ids() const;
   blender::MutableSpan<blender::float3> positions();
   int instances_amount() const;
 

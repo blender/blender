@@ -476,34 +476,38 @@ void InstancesComponent::clear()
 void InstancesComponent::add_instance(Object *object,
                                       blender::float3 position,
                                       blender::float3 rotation,
-                                      blender::float3 scale)
+                                      blender::float3 scale,
+                                      const int id)
 {
   InstancedData data;
   data.type = INSTANCE_DATA_TYPE_OBJECT;
   data.data.object = object;
-  this->add_instance(data, position, rotation, scale);
+  this->add_instance(data, position, rotation, scale, id);
 }
 
 void InstancesComponent::add_instance(Collection *collection,
                                       blender::float3 position,
                                       blender::float3 rotation,
-                                      blender::float3 scale)
+                                      blender::float3 scale,
+                                      const int id)
 {
   InstancedData data;
   data.type = INSTANCE_DATA_TYPE_COLLECTION;
   data.data.collection = collection;
-  this->add_instance(data, position, rotation, scale);
+  this->add_instance(data, position, rotation, scale, id);
 }
 
 void InstancesComponent::add_instance(InstancedData data,
                                       blender::float3 position,
                                       blender::float3 rotation,
-                                      blender::float3 scale)
+                                      blender::float3 scale,
+                                      const int id)
 {
   instanced_data_.append(data);
   positions_.append(position);
   rotations_.append(rotation);
   scales_.append(scale);
+  ids_.append(id);
 }
 
 Span<InstancedData> InstancesComponent::instanced_data() const
@@ -516,14 +520,19 @@ Span<float3> InstancesComponent::positions() const
   return positions_;
 }
 
-blender::Span<blender::float3> InstancesComponent::rotations() const
+Span<float3> InstancesComponent::rotations() const
 {
   return rotations_;
 }
 
-blender::Span<blender::float3> InstancesComponent::scales() const
+Span<float3> InstancesComponent::scales() const
 {
   return scales_;
+}
+
+Span<int> InstancesComponent::ids() const
+{
+  return ids_;
 }
 
 MutableSpan<float3> InstancesComponent::positions()
@@ -565,6 +574,7 @@ int BKE_geometry_set_instances(const GeometrySet *geometry_set,
                                float (**r_positions)[3],
                                float (**r_rotations)[3],
                                float (**r_scales)[3],
+                               int **r_ids,
                                InstancedData **r_instanced_data)
 {
   const InstancesComponent *component = geometry_set->get_component_for_read<InstancesComponent>();
@@ -574,6 +584,8 @@ int BKE_geometry_set_instances(const GeometrySet *geometry_set,
   *r_positions = (float(*)[3])component->positions().data();
   *r_rotations = (float(*)[3])component->rotations().data();
   *r_scales = (float(*)[3])component->scales().data();
+  *r_ids = (int *)component->ids().data();
+  *r_instanced_data = (InstancedData *)component->instanced_data().data();
   *r_instanced_data = (InstancedData *)component->instanced_data().data();
   return component->instances_amount();
 }
