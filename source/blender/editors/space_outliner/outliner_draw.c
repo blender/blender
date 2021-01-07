@@ -347,17 +347,15 @@ static void outliner_layer_or_collection_pointer_create(Scene *scene,
 }
 
 /** Create either a RNA_ObjectBase or a RNA_Object pointer. */
-static void outliner_base_or_object_pointer_create(ViewLayer *view_layer,
-                                                   Collection *collection,
-                                                   Object *ob,
-                                                   PointerRNA *ptr)
+static void outliner_base_or_object_pointer_create(
+    Scene *scene, ViewLayer *view_layer, Collection *collection, Object *ob, PointerRNA *ptr)
 {
   if (collection) {
     RNA_id_pointer_create(&ob->id, ptr);
   }
   else {
     Base *base = BKE_view_layer_base_find(view_layer, ob);
-    RNA_pointer_create(&base->object->id, &RNA_ObjectBase, base, ptr);
+    RNA_pointer_create(&scene->id, &RNA_ObjectBase, base, ptr);
   }
 }
 
@@ -384,7 +382,7 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
      * otherwise we would not take collection exclusion into account. */
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
 
-      outliner_base_or_object_pointer_create(view_layer, collection, cob->ob, &ptr);
+      outliner_base_or_object_pointer_create(scene, view_layer, collection, cob->ob, &ptr);
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
 
       if (collection) {
@@ -1116,7 +1114,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                           BKE_view_layer_base_find(view_layer, ob);
           if (base) {
             PointerRNA base_ptr;
-            RNA_pointer_create(&ob->id, &RNA_ObjectBase, base, &base_ptr);
+            RNA_pointer_create(&scene->id, &RNA_ObjectBase, base, &base_ptr);
             bt = uiDefIconButR_prop(block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
