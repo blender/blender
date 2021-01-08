@@ -194,9 +194,9 @@ static void rna_Main_scenes_remove(
 {
   /* don't call BKE_id_free(...) directly */
   Scene *scene = scene_ptr->data;
-  Scene *scene_new;
 
-  if ((scene_new = scene->id.prev) || (scene_new = scene->id.next)) {
+  if (BKE_scene_can_be_removed(bmain, scene)) {
+    Scene *scene_new = scene->id.prev ? scene->id.prev : scene->id.next;
     if (do_unlink) {
       wmWindow *win = CTX_wm_window(C);
 
@@ -216,8 +216,10 @@ static void rna_Main_scenes_remove(
     rna_Main_ID_remove(bmain, reports, scene_ptr, do_unlink, true, true);
   }
   else {
-    BKE_reportf(
-        reports, RPT_ERROR, "Scene '%s' is the last, cannot be removed", scene->id.name + 2);
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Scene '%s' is the last local one, cannot be removed",
+                scene->id.name + 2);
   }
 }
 

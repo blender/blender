@@ -2032,6 +2032,21 @@ void BKE_scene_groups_relink(Scene *sce)
   }
 }
 
+bool BKE_scene_can_be_removed(const Main *bmain, const Scene *scene)
+{
+  /* Linked scenes can always be removed. */
+  if (ID_IS_LINKED(scene)) {
+    return true;
+  }
+  /* Local scenes can only be removed, when there is at least one local scene left. */
+  LISTBASE_FOREACH (Scene *, other_scene, &bmain->scenes) {
+    if (other_scene != scene && !ID_IS_LINKED(other_scene)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Scene *BKE_scene_add(Main *bmain, const char *name)
 {
   Scene *sce;
