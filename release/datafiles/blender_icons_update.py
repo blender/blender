@@ -17,7 +17,7 @@ inkscape_bin = os.environ.get("INKSCAPE_BIN", "inkscape")
 blender_bin = os.environ.get("BLENDER_BIN", "blender")
 
 if sys.platform == 'darwin':
-    inkscape_app_path = '/Applications/Inkscape.app/Contents/Resources/script'
+    inkscape_app_path = '/Applications/Inkscape.app/Contents/MacOS/inkscape'
     if os.path.exists(inkscape_app_path):
         inkscape_bin = inkscape_app_path
     blender_app_path = '/Applications/Blender.app/Contents/MacOS/Blender'
@@ -29,8 +29,8 @@ cmd = (
     os.path.join(BASEDIR, "blender_icons.svg"),
     "--export-width=602",
     "--export-height=640",
-    "--without-gui",
-    "--export-png=" + os.path.join(BASEDIR, "blender_icons16.png"),
+    "--export-type=png",
+    "--export-filename=" + os.path.join(BASEDIR, "blender_icons16.png"),
 )
 run(cmd)
 
@@ -39,8 +39,8 @@ cmd = (
     os.path.join(BASEDIR, "blender_icons.svg"),
     "--export-width=1204",
     "--export-height=1280",
-    "--without-gui",
-    "--export-png=" + os.path.join(BASEDIR, "blender_icons32.png"),
+    "--export-type=png",
+    "--export-filename=" + os.path.join(BASEDIR, "blender_icons32.png"),
 )
 run(cmd)
 
