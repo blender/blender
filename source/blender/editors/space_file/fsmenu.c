@@ -171,6 +171,8 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
       }
     }
   }
+  fclose(fp);
+
   return xdg_map;
 }
 
