@@ -275,8 +275,8 @@ static void detect_workarounds()
    * `GL_INT_2_10_10_10_REV` data type. This data type is used to pack normals. The work around
    * uses `GPU_RGBA16I`.*/
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    if (strstr(version, " 20.11.2") || strstr(version, " 20.11.3 ") ||
-        strstr(version, " 20.12.")) {
+    /* On Linux the driver does not report its version. Test the OpenGL version in stead. */
+    if (strstr(version, "4.5.14756") || strstr(version, "4.5.14757")) {
       if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
           strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
           strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
