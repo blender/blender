@@ -179,6 +179,7 @@
     .loop_count = 2, \
     .group = NULL, \
     .vgroup_selfcol = 0, \
+    .vgroup_objcol = 0, \
     .clamp = 0.0f, \
     .self_clamp = 0.0f, \
   }

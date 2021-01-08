@@ -1012,7 +1012,7 @@ static bool cloth_bvh_collision_is_active(const ClothModifierData *UNUSED(clmd),
   const int flags_a = verts[tri_a->tri[0]].flags & verts[tri_a->tri[1]].flags &
                       verts[tri_a->tri[2]].flags;
 
-  if (flags_a & CLOTH_VERT_FLAG_PINNED) {
+  if (flags_a & (CLOTH_VERT_FLAG_PINNED | CLOTH_VERT_FLAG_NOOBJCOLL)) {
     return false;
   }
 

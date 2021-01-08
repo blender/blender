@@ -50,6 +50,7 @@ struct Scene;
 typedef enum eClothVertexFlag {
   CLOTH_VERT_FLAG_PINNED = (1 << 0),
   CLOTH_VERT_FLAG_NOSELFCOLL = (1 << 1), /* vertex NOT used for self collisions */
+  CLOTH_VERT_FLAG_NOOBJCOLL = (1 << 2),  /* vertex NOT used for object collisions */
 } eClothVertexFlag;
 
 typedef struct ClothHairData {
