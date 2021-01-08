@@ -246,7 +246,7 @@ Editing *SEQ_editing_ensure(Scene *scene)
     ed->seqbasep = &ed->seqbase;
     ed->cache = NULL;
     ed->cache_flag = SEQ_CACHE_STORE_FINAL_OUT;
-    ed->cache_flag |= SEQ_CACHE_STORE_RAW ;
+    ed->cache_flag |= SEQ_CACHE_STORE_RAW;
   }
 
   return scene->ed;
