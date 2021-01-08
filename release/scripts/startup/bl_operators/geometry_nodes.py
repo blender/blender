@@ -27,6 +27,9 @@ def geometry_node_group_empty_new(context):
     output_node = group.nodes.new('NodeGroupOutput')
     output_node.is_active_output = True
 
+    input_node.select = False
+    output_node.select = False
+
     input_node.location.x = -200 - input_node.width
     output_node.location.x = 200
 
