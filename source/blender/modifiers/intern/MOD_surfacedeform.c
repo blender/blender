@@ -1459,9 +1459,9 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, !is_bound);
   uiItemR(col, ptr, "target", 0, NULL, ICON_NONE);
-
   uiItemR(col, ptr, "falloff", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "strength", 0, NULL, ICON_NONE);
+
+  uiItemR(layout, ptr, "strength", 0, NULL, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
