@@ -38,8 +38,8 @@ def geometry_node_group_empty_new(context):
 def geometry_modifier_poll(context) -> bool:
     ob = context.object
 
-    # Test object support for geometry node modifier (No volume or hair object support yet)
-    if not ob or ob.type not in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'POINTCLOUD'}:
+    # Test object support for geometry node modifier (No volume, curve, or hair object support yet)
+    if not ob or ob.type not in {'MESH', 'POINTCLOUD'}:
         return False
 
     return True
