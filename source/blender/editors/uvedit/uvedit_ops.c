@@ -1451,7 +1451,7 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
   const bool swap = RNA_boolean_get(op->ptr, "unselected");
-  const int use_face_center = (ts->uv_selectmode == UV_SELECT_FACE);
+  const bool use_face_center = (ts->uv_selectmode == UV_SELECT_FACE);
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -1583,8 +1583,8 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
 
-  const int use_face_center = (ts->uv_selectmode == UV_SELECT_FACE);
-  const int stickymode = sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
+  const bool use_face_center = (ts->uv_selectmode == UV_SELECT_FACE);
+  const bool stickymode = sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
   const bool select = RNA_boolean_get(op->ptr, "select");
 
   uint objects_len = 0;

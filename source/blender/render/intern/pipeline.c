@@ -1130,7 +1130,7 @@ void RE_AddObject(Render *UNUSED(re), Object *UNUSED(ob))
 static void do_render_3d(Render *re)
 {
   re->current_scene_update(re->suh, re->scene);
-  RE_engine_render(re, 0);
+  RE_engine_render(re, false);
 }
 
 /* make sure disprect is not affected by the render border */
@@ -1599,7 +1599,7 @@ static void do_render_all_options(Render *re)
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
   SEQ_relations_free_all_anim_ibufs(re->scene, re->r.cfra);
 
-  if (RE_engine_render(re, 1)) {
+  if (RE_engine_render(re, true)) {
     /* in this case external render overrides all */
   }
   else if (RE_seq_render_active(re->scene, &re->r)) {

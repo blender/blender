@@ -91,7 +91,7 @@ typedef struct BrushPainter {
   Scene *scene;
   Brush *brush;
 
-  short firsttouch; /* first paint op */
+  bool firsttouch; /* first paint op */
 
   struct ImagePool *pool; /* image pool */
   rctf tex_mapping;       /* texture coordinate mapping */
@@ -161,7 +161,7 @@ static BrushPainter *brush_painter_2d_new(Scene *scene, Brush *brush, bool inver
 
   painter->brush = brush;
   painter->scene = scene;
-  painter->firsttouch = 1;
+  painter->firsttouch = true;
   painter->cache_invert = invert;
 
   return painter;
@@ -1659,7 +1659,7 @@ void paint_2d_stroke(void *ps,
     }
   }
 
-  painter->firsttouch = 0;
+  painter->firsttouch = false;
 }
 
 void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)

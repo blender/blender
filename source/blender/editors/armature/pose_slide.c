@@ -1779,7 +1779,7 @@ static void pose_propagate_fcurve(
   float refVal = 0.0f;
   bool keyExists;
   int i, match;
-  short first = 1;
+  bool first = true;
 
   /* skip if no keyframes to edit */
   if ((fcu->bezt == NULL) || (fcu->totvert < 2)) {
@@ -1826,7 +1826,7 @@ static void pose_propagate_fcurve(
     }
     else if (mode == POSE_PROPAGATE_NEXT_KEY) {
       /* stop after the first keyframe has been processed */
-      if (first == 0) {
+      if (first == false) {
         break;
       }
     }
@@ -1865,7 +1865,7 @@ static void pose_propagate_fcurve(
 
     /* select keyframe to indicate that it's been changed */
     bezt->f2 |= SELECT;
-    first = 0;
+    first = false;
   }
 }
 

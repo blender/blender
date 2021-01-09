@@ -536,7 +536,7 @@ void BPY_DECREF(void *pyob_ptr)
 void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
 {
   const PyGILState_STATE gilstate = PyGILState_Ensure();
-  const int do_invalidate = (Py_REFCNT((PyObject *)pyob_ptr) > 1);
+  const bool do_invalidate = (Py_REFCNT((PyObject *)pyob_ptr) > 1);
   Py_DECREF((PyObject *)pyob_ptr);
   if (do_invalidate) {
     pyrna_invalidate(pyob_ptr);
