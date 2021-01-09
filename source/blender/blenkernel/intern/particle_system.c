@@ -1400,8 +1400,9 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
 static void psys_update_effectors(ParticleSimulationData *sim)
 {
   BKE_effectors_free(sim->psys->effectors);
+  bool use_rotation = (sim->psys->part->flag & PART_ROT_DYN) != 0;
   sim->psys->effectors = BKE_effectors_create(
-      sim->depsgraph, sim->ob, sim->psys, sim->psys->part->effector_weights);
+      sim->depsgraph, sim->ob, sim->psys, sim->psys->part->effector_weights, use_rotation);
   precalc_guides(sim, sim->psys->effectors);
 }
 

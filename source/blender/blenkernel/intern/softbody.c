@@ -1539,7 +1539,8 @@ static void sb_sfesf_threads_run(struct Depsgraph *depsgraph,
    * or even be UI option sb->spawn_cf_threads_nopts */
   int lowsprings = 100;
 
-  ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, ob->soft->effector_weights);
+  ListBase *effectors = BKE_effectors_create(
+      depsgraph, ob, NULL, ob->soft->effector_weights, false);
 
   /* figure the number of threads while preventing pretty pointless threading overhead */
   totthread = BKE_scene_num_threads(scene);
@@ -2300,7 +2301,7 @@ static void softbody_calc_forces(
   }
 
   /* after spring scan because it uses Effoctors too */
-  ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, sb->effector_weights);
+  ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, sb->effector_weights, false);
 
   if (do_deflector) {
     float defforce[3];

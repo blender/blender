@@ -121,7 +121,8 @@ void BKE_effector_relations_free(struct ListBase *lb);
 struct ListBase *BKE_effectors_create(struct Depsgraph *depsgraph,
                                       struct Object *ob_src,
                                       struct ParticleSystem *psys_src,
-                                      struct EffectorWeights *weights);
+                                      struct EffectorWeights *weights,
+                                      bool use_rotation);
 void BKE_effectors_apply(struct ListBase *effectors,
                          struct ListBase *colliders,
                          struct EffectorWeights *weights,

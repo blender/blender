@@ -3225,7 +3225,7 @@ static void update_effectors(
   ListBase *effectors;
   /* make sure smoke flow influence is 0.0f */
   fds->effector_weights->weight[PFIELD_FLUIDFLOW] = 0.0f;
-  effectors = BKE_effectors_create(depsgraph, ob, NULL, fds->effector_weights);
+  effectors = BKE_effectors_create(depsgraph, ob, NULL, fds->effector_weights, false);
 
   if (effectors) {
     /* Precalculate wind forces. */
