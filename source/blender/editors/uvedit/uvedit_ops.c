@@ -187,28 +187,6 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Space Conversion
- * \{ */
-
-void uvedit_pixel_to_float(SpaceImage *sima, float pixeldist, float r_dist[2])
-{
-  int width, height;
-
-  if (sima) {
-    ED_space_image_get_size(sima, &width, &height);
-  }
-  else {
-    width = IMG_SIZE_FALLBACK;
-    height = IMG_SIZE_FALLBACK;
-  }
-
-  r_dist[0] = pixeldist / width;
-  r_dist[1] = pixeldist / height;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Live Unwrap Utilities
  * \{ */
 

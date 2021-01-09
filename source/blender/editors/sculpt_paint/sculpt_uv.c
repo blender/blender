@@ -543,7 +543,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     /* we need to find the active island here */
     if (do_island_optimization) {
       UvElement *element;
-      UvNearestHit hit = UV_NEAREST_HIT_INIT;
+      UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
       uv_find_nearest_vert(scene, obedit, co, 0.0f, &hit);
 
       element = BM_uv_element_get(data->elementMap, hit.efa, hit.l);
