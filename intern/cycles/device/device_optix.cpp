@@ -1514,10 +1514,23 @@ class OptiXDevice : public CUDADevice {
     }
     else {
       unsigned int num_instances = 0;
+      unsigned int max_num_instances = 0xFFFFFFFF;
 
       bvh_optix->as_data.free();
       bvh_optix->traversable_handle = 0;
       bvh_optix->motion_transform_data.free();
+
+      optixDeviceContextGetProperty(context,
+                                    OPTIX_DEVICE_PROPERTY_LIMIT_MAX_INSTANCE_ID,
+                                    &max_num_instances,
+                                    sizeof(max_num_instances));
+      // Do not count first bit, which is used to distinguish instanced and non-instanced objects
+      max_num_instances >>= 1;
+      if (bvh->objects.size() > max_num_instances) {
+        progress.set_error(
+            "Failed to build OptiX acceleration structure because there are too many instances");
+        return;
+      }
 
       // Fill instance descriptions
 #  if OPTIX_ABI_VERSION < 41
@@ -1572,8 +1585,8 @@ class OptiXDevice : public CUDADevice {
         instance.transform[5] = 1.0f;
         instance.transform[10] = 1.0f;
 
-        // Set user instance ID to object index
-        instance.instanceId = ob->get_device_index();
+        // Set user instance ID to object index (but leave low bit blank)
+        instance.instanceId = ob->get_device_index() << 1;
 
         // Have to have at least one bit in the mask, or else instance would always be culled
         instance.visibilityMask = 1;
@@ -1679,9 +1692,9 @@ class OptiXDevice : public CUDADevice {
           else {
             // Disable instance transform if geometry already has it applied to vertex data
             instance.flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
-            // Non-instanced objects read ID from prim_object, so
-            // distinguish them from instanced objects with high bit set
-            instance.instanceId |= 0x800000;
+            // Non-instanced objects read ID from 'prim_object', so distinguish
+            // them from instanced objects with the low bit set
+            instance.instanceId |= 1;
           }
         }
       }

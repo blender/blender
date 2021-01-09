@@ -2558,7 +2558,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag, eUIEmbossTyp
     wt->wcol_theme = &btheme->tui.wcol_list_item;
 
     if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
-      ui_widget_color_disabled(wt, state & UI_SEARCH_FILTER_NO_MATCH);
+      ui_widget_color_disabled(wt, state);
     }
   }
 

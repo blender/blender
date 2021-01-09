@@ -754,6 +754,9 @@ void MOD_nodes_init(Main *bmain, NodesModifierData *nmd)
   bNode *group_input_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_INPUT);
   bNode *group_output_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_OUTPUT);
 
+  nodeSetSelected(group_input_node, false);
+  nodeSetSelected(group_output_node, false);
+
   group_input_node->locx = -200 - group_input_node->width;
   group_output_node->locx = 200;
   group_output_node->flag |= NODE_DO_OUTPUT;

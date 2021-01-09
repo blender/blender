@@ -346,7 +346,7 @@ static bool object_modifier_remove(
    * get called twice on same modifier, so make
    * sure it is in list. */
   if (BLI_findindex(&ob->modifiers, md) == -1) {
-    return 0;
+    return false;
   }
 
   /* special cases */
@@ -393,7 +393,7 @@ static bool object_modifier_remove(
   BKE_modifier_free(md);
   BKE_object_free_derived_caches(ob);
 
-  return 1;
+  return true;
 }
 
 bool ED_object_modifier_remove(
@@ -674,18 +674,18 @@ static Mesh *modifier_apply_create_mesh_for_modifier(Depsgraph *depsgraph,
   return mesh_applied;
 }
 
-static int modifier_apply_shape(Main *bmain,
-                                ReportList *reports,
-                                Depsgraph *depsgraph,
-                                Scene *scene,
-                                Object *ob,
-                                ModifierData *md_eval)
+static bool modifier_apply_shape(Main *bmain,
+                                 ReportList *reports,
+                                 Depsgraph *depsgraph,
+                                 Scene *scene,
+                                 Object *ob,
+                                 ModifierData *md_eval)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
 
   if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
-    return 0;
+    return false;
   }
 
   /* We could investigate using the #CD_ORIGINDEX layer
@@ -699,19 +699,18 @@ static int modifier_apply_shape(Main *bmain,
    * we can look into supporting them. */
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh_applied;
     Mesh *me = ob->data;
     Key *key = me->key;
 
     if (!BKE_modifier_is_same_topology(md_eval) || mti->type == eModifierTypeType_NonGeometrical) {
       BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to shapes");
-      return 0;
+      return false;
     }
 
-    mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, false);
+    Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, false);
     if (!mesh_applied) {
       BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
-      return 0;
+      return false;
     }
 
     if (key == NULL) {
@@ -731,29 +730,28 @@ static int modifier_apply_shape(Main *bmain,
   else {
     /* TODO: implement for hair, point-clouds and volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
-static int modifier_apply_obdata(
+static bool modifier_apply_obdata(
     ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md_eval)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
 
   if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
-    return 0;
+    return false;
   }
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh_applied;
     Mesh *me = ob->data;
     MultiresModifierData *mmd = find_multires_modifier_before(scene, md_eval);
 
     if (me->key && mti->type != eModifierTypeType_NonGeometrical) {
       BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to a mesh with shape keys");
-      return 0;
+      return false;
     }
 
     /* Multires: ensure that recent sculpting is applied */
@@ -764,14 +762,14 @@ static int modifier_apply_obdata(
     if (mmd && mmd->totlvl && mti->type == eModifierTypeType_OnlyDeform) {
       if (!multiresModifier_reshapeFromDeformModifier(depsgraph, ob, mmd, md_eval)) {
         BKE_report(reports, RPT_ERROR, "Multires modifier returned error, skipping apply");
-        return 0;
+        return false;
       }
     }
     else {
-      mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, true);
+      Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, true);
       if (!mesh_applied) {
         BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
-        return 0;
+        return false;
       }
 
       BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
@@ -790,7 +788,7 @@ static int modifier_apply_obdata(
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(
           reports, RPT_ERROR, "Transform curve to mesh in order to apply constructive modifiers");
-      return 0;
+      return false;
     }
 
     BKE_report(reports,
@@ -813,7 +811,7 @@ static int modifier_apply_obdata(
 
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(reports, RPT_ERROR, "Constructive modifiers cannot be applied");
-      return 0;
+      return false;
     }
 
     int numVerts;
@@ -828,7 +826,7 @@ static int modifier_apply_obdata(
   else {
     /* TODO: implement for hair, point-clouds and volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
-    return 0;
+    return false;
   }
 
   /* lattice modifier can be applied to particle system too */
@@ -842,7 +840,7 @@ static int modifier_apply_obdata(
     }
   }
 
-  return 1;
+  return true;
 }
 
 bool ED_object_modifier_apply(Main *bmain,
@@ -908,20 +906,19 @@ bool ED_object_modifier_apply(Main *bmain,
   return true;
 }
 
-int ED_object_modifier_copy(
+bool ED_object_modifier_copy(
     ReportList *UNUSED(reports), Main *bmain, Scene *scene, Object *ob, ModifierData *md)
 {
-  ModifierData *nmd;
-
   if (md->type == eModifierType_ParticleSystem) {
-    nmd = object_copy_particle_system(bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
+    ModifierData *nmd = object_copy_particle_system(
+        bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
     BLI_remlink(&ob->modifiers, nmd);
     BLI_insertlinkafter(&ob->modifiers, md, nmd);
     BKE_object_modifier_set_active(ob, nmd);
     return true;
   }
 
-  nmd = BKE_modifier_new(md->type);
+  ModifierData *nmd = BKE_modifier_new(md->type);
   BKE_modifier_copydata(md, nmd);
   BLI_insertlinkafter(&ob->modifiers, md, nmd);
   BKE_modifier_unique_name(&ob->modifiers, nmd);
@@ -929,7 +926,7 @@ int ED_object_modifier_copy(
 
   nmd->flag |= eModifierFlag_OverrideLibrary_Local;
 
-  return 1;
+  return true;
 }
 
 /** \} */

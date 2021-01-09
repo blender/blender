@@ -574,7 +574,7 @@ static bool uv_shortest_path_pick_ex(const SpaceImage *sima,
 
 static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const SpaceImage *sima = CTX_wm_space_image(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
   const char uv_selectmode = ED_uvedit_select_mode_get(scene);
@@ -613,7 +613,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   BMElem *ele_src = NULL, *ele_dst = NULL;
 
   if (uv_selectmode == UV_SELECT_FACE) {
-    UvNearestHit hit = UV_NEAREST_HIT_INIT;
+    UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
     if (!uv_find_nearest_face(scene, obedit, co, &hit)) {
       return OPERATOR_CANCELLED;
     }
@@ -626,7 +626,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   }
 
   else if (uv_selectmode & UV_SELECT_EDGE) {
-    UvNearestHit hit = UV_NEAREST_HIT_INIT;
+    UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
     if (!uv_find_nearest_edge(scene, obedit, co, &hit)) {
       return OPERATOR_CANCELLED;
     }
@@ -652,7 +652,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     ele_dst = (BMElem *)hit.l;
   }
   else {
-    UvNearestHit hit = UV_NEAREST_HIT_INIT;
+    UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
     if (!uv_find_nearest_vert(scene, obedit, co, 0.0f, &hit)) {
       return OPERATOR_CANCELLED;
     }

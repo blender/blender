@@ -283,7 +283,7 @@ void ED_lattice_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = lattice_undosys_foreach_ID_ref;
 
-  ut->use_context_for_encode = true;
+  ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE;
 
   ut->step_size = sizeof(LatticeUndoStep);
 }

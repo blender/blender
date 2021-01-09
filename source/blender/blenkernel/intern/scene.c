@@ -1904,7 +1904,6 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       sce_copy->id.properties = IDP_CopyProperty(sce->id.properties);
     }
 
-    MEM_freeN(sce_copy->toolsettings);
     BKE_sound_destroy_scene(sce_copy);
 
     /* copy color management settings */
@@ -1929,6 +1928,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     sce_copy->display = sce->display;
 
     /* tool settings */
+    BKE_toolsettings_free(sce_copy->toolsettings);
     sce_copy->toolsettings = BKE_toolsettings_copy(sce->toolsettings, 0);
 
     /* make a private copy of the avicodecdata */
@@ -2030,6 +2030,21 @@ void BKE_scene_groups_relink(Scene *sce)
   if (sce->rigidbody_world) {
     BKE_rigidbody_world_groups_relink(sce->rigidbody_world);
   }
+}
+
+bool BKE_scene_can_be_removed(const Main *bmain, const Scene *scene)
+{
+  /* Linked scenes can always be removed. */
+  if (ID_IS_LINKED(scene)) {
+    return true;
+  }
+  /* Local scenes can only be removed, when there is at least one local scene left. */
+  LISTBASE_FOREACH (Scene *, other_scene, &bmain->scenes) {
+    if (other_scene != scene && !ID_IS_LINKED(other_scene)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)

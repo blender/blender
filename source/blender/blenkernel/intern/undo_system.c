@@ -252,9 +252,8 @@ static void undosys_stack_validate(UndoStack *ustack, bool expect_non_empty)
   }
 }
 #else
-static void undosys_stack_validate(UndoStack *ustack, bool expect_non_empty)
+static void undosys_stack_validate(UndoStack *UNUSED(ustack), bool UNUSED(expect_non_empty))
 {
-  UNUSED_VARS(ustack, expect_non_empty);
 }
 #endif
 
@@ -501,7 +500,7 @@ UndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
                                                const char *name,
                                                const UndoType *ut)
 {
-  BLI_assert(ut->use_context_for_encode == false || C != NULL);
+  BLI_assert((ut->flags & UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE) == 0 || C != NULL);
 
   UNDO_NESTED_ASSERT(false);
   undosys_stack_validate(ustack, false);
@@ -676,9 +675,11 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
                                         bool use_skip)
 {
   UNDO_NESTED_ASSERT(false);
-  if (us) {
-    undosys_stack_validate(ustack, true);
+  if (us == NULL) {
+    return false;
   }
+  undosys_stack_validate(ustack, true);
+
   UndoStep *us_prev = us ? us->prev : NULL;
   if (us) {
     /* The current state is a copy, we need to load the previous state. */
@@ -754,6 +755,11 @@ bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
                                         bool use_skip)
 {
   UNDO_NESTED_ASSERT(false);
+  if (us == NULL) {
+    return false;
+  }
+  undosys_stack_validate(ustack, true);
+
   UndoStep *us_next = us ? us->next : NULL;
   /* Unlike undo accumulate, we always use the next. */
   us = us_next;

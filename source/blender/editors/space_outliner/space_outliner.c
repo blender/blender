@@ -196,7 +196,7 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
       }
       break;
     case NC_ID:
-      if (wmn->action == NA_RENAME) {
+      if (ELEM(wmn->action, NA_RENAME, NA_ADDED)) {
         ED_region_tag_redraw(region);
       }
       break;

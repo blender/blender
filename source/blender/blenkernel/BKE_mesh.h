@@ -229,7 +229,7 @@ struct Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                                   struct Scene *scene,
                                                   struct Object *ob_eval,
                                                   struct ModifierData *md_eval,
-                                                  int build_shapekey_layers);
+                                                  const bool build_shapekey_layers);
 
 /* Copies a nomain-Mesh into an existing Mesh. */
 void BKE_mesh_nomain_to_mesh(struct Mesh *mesh_src,

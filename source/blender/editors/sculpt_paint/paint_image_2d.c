@@ -91,7 +91,7 @@ typedef struct BrushPainter {
   Scene *scene;
   Brush *brush;
 
-  short firsttouch; /* first paint op */
+  bool firsttouch; /* first paint op */
 
   struct ImagePool *pool; /* image pool */
   rctf tex_mapping;       /* texture coordinate mapping */
@@ -132,8 +132,6 @@ typedef struct ImagePaintState {
   SpaceImage *sima;
   View2D *v2d;
   Scene *scene;
-  bScreen *screen;
-  struct ImagePool *image_pool;
 
   Brush *brush;
   short tool, blend;
@@ -142,11 +140,6 @@ typedef struct ImagePaintState {
 
   bool do_masking;
 
-  /* viewport texture paint only, but _not_ project paint */
-  Object *ob;
-  int faceindex;
-  float uv[2];
-  int do_facesel;
   int symmetry;
 
   ImagePaintTile *tiles;
@@ -161,7 +154,7 @@ static BrushPainter *brush_painter_2d_new(Scene *scene, Brush *brush, bool inver
 
   painter->brush = brush;
   painter->scene = scene;
-  painter->firsttouch = 1;
+  painter->firsttouch = true;
   painter->cache_invert = invert;
 
   return painter;
@@ -1659,7 +1652,7 @@ void paint_2d_stroke(void *ps,
     }
   }
 
-  painter->firsttouch = 0;
+  painter->firsttouch = false;
 }
 
 void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
@@ -1674,7 +1667,6 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   s->sima = CTX_wm_space_image(C);
   s->v2d = &CTX_wm_region(C)->v2d;
   s->scene = scene;
-  s->screen = CTX_wm_screen(C);
 
   s->brush = brush;
   s->tool = brush->imagepaint_tool;

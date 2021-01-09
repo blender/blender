@@ -49,6 +49,7 @@ int BKE_geometry_set_instances(const struct GeometrySet *geometry_set,
                                float (**r_positions)[3],
                                float (**r_rotations)[3],
                                float (**r_scales)[3],
+                               int **r_ids,
                                struct InstancedData **r_instanced_data);
 
 #ifdef __cplusplus

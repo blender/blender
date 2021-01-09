@@ -34,6 +34,28 @@
 
 namespace blender::gpu {
 
+/* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
+ * `GL_INT_2_10_10_10_REV` data type correctly. This data type is used to pack normals and flags.
+ * The work around uses `GPU_RGBA16I` but that is only possible for loop normals.
+ *
+ * Vertex and Face normals would still render resulting in undefined behavior during selection and
+ * rendering. */
+static bool is_faulty_T82856_platform(const char *version, const char *renderer)
+{
+  /* On Linux the driver does not report its version. Test the OpenGL version in stead. */
+  if (strstr(version, "4.5.14756") || strstr(version, "4.5.14757")) {
+    if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
+        strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
+        strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
+        strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
+        strstr(renderer, " RX 590 ") || strstr(renderer, " RX550/550 ") ||
+        strstr(renderer, " (TM) 520  ") || strstr(renderer, " (TM) 530  ") ||
+        strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
+      return true;
+    }
+  }
+  return false;
+}
 /* -------------------------------------------------------------------- */
 /** \name Platform
  * \{ */
@@ -134,6 +156,11 @@ void GLBackend::platform_init()
       /* Platform seems to work when SB backend is disabled. This can be done
        * by adding the environment variable `R600_DEBUG=nosb`. */
       if (strstr(renderer, "AMD CEDAR")) {
+        GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
+      }
+    }
+    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+      if (is_faulty_T82856_platform(version, renderer)) {
         GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
@@ -272,20 +299,10 @@ static void detect_workarounds()
     GCaps.broken_amd_driver = true;
   }
   /* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
-   * `GL_INT_2_10_10_10_REV` data type. This data type is used to pack normals. The work around
-   * uses `GPU_RGBA16I`.*/
+   * `GL_INT_2_10_10_10_REV` data type. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    if (strstr(version, " 20.11.2") || strstr(version, " 20.11.3 ") ||
-        strstr(version, " 20.12.")) {
-      if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
-          strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
-          strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
-          strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
-          strstr(renderer, " RX 590 ") || strstr(renderer, " RX550/550 ") ||
-          strstr(renderer, " (TM) 520  ") || strstr(renderer, " (TM) 530  ") ||
-          strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
-        GCaps.use_hq_normals_workaround = true;
-      }
+    if (is_faulty_T82856_platform(version, renderer)) {
+      GCaps.use_hq_normals_workaround = true;
     }
   }
   /* There is an issue with the #glBlitFramebuffer on MacOS with radeon pro graphics.
@@ -378,7 +395,7 @@ static void detect_workarounds()
   if (GLContext::debug_layer_support == false) {
     GLContext::debug_layer_workaround = true;
   }
-}
+}  // namespace blender::gpu
 
 /** Internal capabilities. */
 GLint GLContext::max_cubemap_size = 0;

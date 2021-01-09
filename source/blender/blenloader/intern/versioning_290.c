@@ -699,6 +699,16 @@ static void do_versions_291_fcurve_handles_limit(FCurve *fcu)
   }
 }
 
+static void do_versions_strip_cache_settings_recursive(const ListBase *seqbase)
+{
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    seq->cache_flag = 0;
+    if (seq->type == SEQ_TYPE_META) {
+      do_versions_strip_cache_settings_recursive(&seq->seqbase);
+    }
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -1480,23 +1490,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "CurveMapping", "*pressure_size_curve")) {
-      LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-        BKE_brush_default_input_curves_set(br);
-      }
-    }
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 10)) {
     if (!DNA_struct_find(fd->filesdna, "NodeSetAlpha")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         bNodeTree *nodetree = scene->nodetree;
@@ -1512,6 +1506,33 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           storage->mode = CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA;
           node->storage = storage;
         }
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    Editing *ed = SEQ_editing_get(scene, false);
+    if (ed == NULL) {
+      continue;
+    }
+    ed->cache_flag = (SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_FINAL_OUT);
+    do_versions_strip_cache_settings_recursive(&ed->seqbase);
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "CurveMapping", "*pressure_size_curve")) {
+      LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+        BKE_brush_default_input_curves_set(br);
       }
     }
   }

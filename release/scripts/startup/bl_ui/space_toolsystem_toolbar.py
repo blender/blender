@@ -1547,12 +1547,22 @@ class _defs_weight_paint:
 
     @ToolDef.from_fn
     def sample_weight():
+        def draw_settings(context, layout, tool):
+            if context.tool_settings.unified_paint_settings.use_unified_weight:
+                weight = context.tool_settings.unified_paint_settings.weight
+            elif context.tool_settings.weight_paint.brush:
+                weight = context.tool_settings.weight_paint.brush.weight
+            else:
+                return
+            layout.label(text="Weight: %.3f" % weight)
         return dict(
             idname="builtin.sample_weight",
             label="Sample Weight",
             icon="ops.paint.weight_sample",
+            cursor='EYEDROPPER',
             widget=None,
             keymap=(),
+            draw_settings=draw_settings
         )
 
     @ToolDef.from_fn
@@ -1561,6 +1571,7 @@ class _defs_weight_paint:
             idname="builtin.sample_vertex_group",
             label="Sample Vertex Group",
             icon="ops.paint.weight_sample_group",
+            cursor='EYEDROPPER',
             widget=None,
             keymap=(),
         )

@@ -5900,8 +5900,7 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
   prop = RNA_def_property(srna, "ngon_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "ngon_method");
   RNA_def_property_enum_items(prop, rna_enum_modifier_triangulate_ngon_method_items);
-  RNA_def_property_ui_text(
-      prop, "Polygon Method", "Method for splitting the polygons into triangles");
+  RNA_def_property_ui_text(prop, "N-gon Method", "Method for splitting the n-gons into triangles");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "min_vertices", PROP_INT, PROP_UNSIGNED);

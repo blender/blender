@@ -330,9 +330,17 @@ static DRWVolumeGrid *volume_grid_cache_get(Volume *volume,
                                                 format,
                                                 GPU_DATA_FLOAT,
                                                 dense_grid.voxels);
-    GPU_texture_swizzle_set(cache_grid->texture, (channels == 3) ? "rgb1" : "rrr1");
-    GPU_texture_wrap_mode(cache_grid->texture, false, false);
-    BKE_volume_dense_float_grid_clear(&dense_grid);
+    /* The texture can be null if the resolution along one axis is larger than
+     * GL_MAX_3D_TEXTURE_SIZE. */
+    if (cache_grid->texture != NULL) {
+      GPU_texture_swizzle_set(cache_grid->texture, (channels == 3) ? "rgb1" : "rrr1");
+      GPU_texture_wrap_mode(cache_grid->texture, false, false);
+      BKE_volume_dense_float_grid_clear(&dense_grid);
+    }
+    else {
+      MEM_freeN(dense_grid.voxels);
+      printf("Error: Could not allocate 3D texture for volume.\n");
+    }
   }
 
   /* Free grid from memory if it wasn't previously loaded. */

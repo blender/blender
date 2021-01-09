@@ -165,7 +165,6 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
   float *alert_color = tip_colors[UI_TIP_LC_ALERT];
 
   float background_color[3];
-  float tone_bg;
 
   wmOrtho2_region_pixelspace(region);
 
@@ -185,7 +184,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
 
   /* find the brightness difference between background and text colors */
 
-  tone_bg = rgb_to_grayscale(background_color);
+  const float tone_bg = rgb_to_grayscale(background_color);
   /* tone_fg = rgb_to_grayscale(main_color); */
 
   /* mix the colors */
@@ -272,9 +271,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
 
 static void ui_tooltip_region_free_cb(ARegion *region)
 {
-  uiTooltipData *data;
-
-  data = region->regiondata;
+  uiTooltipData *data = region->regiondata;
 
   for (int i = 0; i < data->fields_len; i++) {
     const uiTooltipField *field = &data->fields[i];
@@ -1164,16 +1161,13 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   const int winx = WM_window_pixels_x(win);
   const int winy = WM_window_pixels_y(win);
   const uiStyle *style = UI_style_get();
-  static ARegionType type;
-  ARegion *region;
-  int fonth, fontw;
-  int h, i;
   rcti rect_i;
   int font_flag = 0;
 
   /* create area region */
-  region = ui_region_temp_add(CTX_wm_screen(C));
+  ARegion *region = ui_region_temp_add(CTX_wm_screen(C));
 
+  static ARegionType type;
   memset(&type, 0, sizeof(ARegionType));
   type.draw = ui_tooltip_region_draw_cb;
   type.free = ui_tooltip_region_free_cb;
@@ -1201,8 +1195,9 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 #define TIP_BORDER_X (16.0f / aspect)
 #define TIP_BORDER_Y (6.0f / aspect)
 
-  h = BLF_height_max(data->fstyle.uifont_id);
+  int h = BLF_height_max(data->fstyle.uifont_id);
 
+  int i, fonth, fontw;
   for (i = 0, fontw = 0, fonth = 0; i < data->fields_len; i++) {
     uiTooltipField *field = &data->fields[i];
     uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] : NULL;

@@ -1567,7 +1567,11 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
       }
       break;
     case MAKE_LINKS_MATERIALS:
-      if (OB_TYPE_SUPPORT_MATERIAL(ob_src->type) && OB_TYPE_SUPPORT_MATERIAL(ob_dst->type)) {
+      if (OB_TYPE_SUPPORT_MATERIAL(ob_src->type) && OB_TYPE_SUPPORT_MATERIAL(ob_dst->type) &&
+          /* Linking non-grease-pencil materials to a grease-pencil object causes issues.
+           * We make sure that if one of the objects is a grease-pencil object, the other must be
+           * as well. */
+          ((ob_src->type == OB_GPENCIL) == (ob_dst->type == OB_GPENCIL))) {
         return true;
       }
       break;

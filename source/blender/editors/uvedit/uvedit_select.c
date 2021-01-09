@@ -201,21 +201,6 @@ void ED_uvedit_select_sync_flush(const ToolSettings *ts, BMEditMesh *em, const b
   }
 }
 
-/**
- * Apply a penalty to elements that are already selected
- * so elements that aren't already selected are prioritized.
- *
- * \note This is calculated in screen-space otherwise zooming in on a uv-vert and
- * shift-selecting can consider an adjacent point close enough to add to
- * the selection rather than de-selecting the closest.
- */
-static float uv_select_penalty_default(SpaceImage *sima)
-{
-  float penalty[2];
-  uvedit_pixel_to_float(sima, 5.0f / (sima ? sima->zoom : 1.0f), penalty);
-  return len_v2(penalty);
-}
-
 static void uvedit_vertex_select_tagged(BMEditMesh *em,
                                         Scene *scene,
                                         bool select,
@@ -680,6 +665,7 @@ static BMLoop *uvedit_loop_find_other_boundary_loop_with_visible_face(const Scen
 
 bool uv_find_nearest_edge(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit)
 {
+  BLI_assert((hit->scale[0] > 0.0f) && (hit->scale[1] > 0.0f));
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMFace *efa;
   BMLoop *l;
@@ -700,7 +686,13 @@ bool uv_find_nearest_edge(Scene *scene, Object *obedit, const float co[2], UvNea
       luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
 
-      const float dist_test_sq = dist_squared_to_line_segment_v2(co, luv->uv, luv_next->uv);
+      float delta[2];
+      closest_to_line_segment_v2(delta, co, luv->uv, luv_next->uv);
+
+      sub_v2_v2(delta, co);
+      mul_v2_v2(delta, hit->scale);
+
+      const float dist_test_sq = len_squared_v2(delta);
 
       if (dist_test_sq < hit->dist_sq) {
         hit->efa = efa;
@@ -734,6 +726,7 @@ bool uv_find_nearest_edge_multi(Scene *scene,
 
 bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit_final)
 {
+  BLI_assert((hit_final->scale[0] > 0.0f) && (hit_final->scale[1] > 0.0f));
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   bool found = false;
 
@@ -757,7 +750,11 @@ bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNea
       float cent[2];
       BM_face_uv_calc_center_median(efa, cd_loop_uv_offset, cent);
 
-      const float dist_test_sq = len_squared_v2v2(co, cent);
+      float delta[2];
+      sub_v2_v2v2(delta, co, cent);
+      mul_v2_v2(delta, hit.scale);
+
+      const float dist_test_sq = len_squared_v2(delta);
 
       if (dist_test_sq < hit.dist_sq) {
         hit.efa = efa;
@@ -805,9 +802,10 @@ bool uv_find_nearest_vert(Scene *scene,
                           const float penalty_dist,
                           UvNearestHit *hit_final)
 {
+  BLI_assert((hit_final->scale[0] > 0.0f) && (hit_final->scale[1] > 0.0f));
   bool found = false;
 
-  /* this will fill in hit.vert1 and hit.vert2 */
+  /* This will fill in `hit.l`. */
   float dist_sq_init = hit_final->dist_sq;
   UvNearestHit hit = *hit_final;
   if (uv_find_nearest_edge(scene, obedit, co, &hit)) {
@@ -832,14 +830,17 @@ bool uv_find_nearest_vert(Scene *scene,
       BMLoop *l;
       int i;
       BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-        float dist_test_sq;
         MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        if (penalty_dist != 0.0f && uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-          dist_test_sq = len_v2v2(co, luv->uv) + penalty_dist;
-          dist_test_sq = square_f(dist_test_sq);
-        }
-        else {
-          dist_test_sq = len_squared_v2v2(co, luv->uv);
+
+        float delta[2];
+
+        sub_v2_v2v2(delta, co, luv->uv);
+        mul_v2_v2(delta, hit.scale);
+
+        float dist_test_sq = len_squared_v2(delta);
+
+        if ((penalty_dist != 0.0f) && uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+          dist_test_sq = square_f(sqrtf(dist_test_sq) + penalty_dist);
         }
 
         if (dist_test_sq <= hit.dist_sq) {
@@ -1912,15 +1913,18 @@ static int uv_mouse_select_multi(bContext *C,
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   SpaceImage *sima = CTX_wm_space_image(C);
+  const ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
-  UvNearestHit hit = UV_NEAREST_HIT_INIT;
+  UvNearestHit hit = UV_NEAREST_HIT_INIT_DIST_PX(&region->v2d, 75.0f);
   int selectmode, sticky;
   bool found_item = false;
   /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
   int flush = 0;
 
-  const float penalty_dist = uv_select_penalty_default(sima);
+  /* Penalty (in pixels) applied to elements that are already selected
+   * so elements that aren't already selected are prioritized. */
+  const float penalty_dist = 3.0f * U.pixelsize;
 
   /* retrieve operation mode */
   if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -1945,8 +1949,6 @@ static int uv_mouse_select_multi(bContext *C,
   if (selectmode == UV_SELECT_VERTEX) {
     /* find vertex */
     found_item = uv_find_nearest_vert_multi(scene, objects, objects_len, co, penalty_dist, &hit);
-    found_item = found_item && (!deselect_all || hit.dist_sq < penalty_dist);
-
     if (found_item) {
       if ((ts->uv_flag & UV_SYNC_SELECTION) == 0) {
         BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
@@ -1957,8 +1959,6 @@ static int uv_mouse_select_multi(bContext *C,
   else if (selectmode == UV_SELECT_EDGE) {
     /* find edge */
     found_item = uv_find_nearest_edge_multi(scene, objects, objects_len, co, &hit);
-    found_item = found_item && (!deselect_all || hit.dist_sq < penalty_dist);
-
     if (found_item) {
       if ((ts->uv_flag & UV_SYNC_SELECTION) == 0) {
         BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
@@ -1969,8 +1969,6 @@ static int uv_mouse_select_multi(bContext *C,
   else if (selectmode == UV_SELECT_FACE) {
     /* find face */
     found_item = uv_find_nearest_face_multi(scene, objects, objects_len, co, &hit);
-    found_item = found_item && (!deselect_all || hit.dist_sq < penalty_dist);
-
     if (found_item) {
       BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
       BM_mesh_active_face_set(bm, hit.efa);
@@ -1978,7 +1976,6 @@ static int uv_mouse_select_multi(bContext *C,
   }
   else if (selectmode == UV_SELECT_ISLAND) {
     found_item = uv_find_nearest_edge_multi(scene, objects, objects_len, co, &hit);
-    found_item = found_item && (!deselect_all || hit.dist_sq < penalty_dist);
   }
 
   if (!found_item) {
@@ -2173,10 +2170,11 @@ static int uv_mouse_select_loop_generic_multi(bContext *C,
                                               enum eUVLoopGenericType loop_type)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
+  const ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
-  UvNearestHit hit = UV_NEAREST_HIT_INIT;
+  UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
   bool found_item = false;
   /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
   int flush = 0;
@@ -2367,6 +2365,7 @@ void UV_OT_select_edge_ring(wmOperatorType *ot)
 
 static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent *event, bool pick)
 {
+  const ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2374,7 +2373,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
   bool deselect = false;
   bool select_faces = (ts->uv_flag & UV_SYNC_SELECTION) && (ts->selectmode & SCE_SELECT_FACE);
 
-  UvNearestHit hit = UV_NEAREST_HIT_INIT;
+  UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
 
   if (pick) {
     extend = RNA_boolean_get(op->ptr, "extend");
@@ -2390,8 +2389,6 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 
     if (event) {
       /* invoke */
-      const ARegion *region = CTX_wm_region(C);
-
       UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
       RNA_float_set_array(op->ptr, "location", co);
     }
