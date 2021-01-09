@@ -746,7 +746,6 @@ static bool modifier_apply_obdata(
   }
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh_applied;
     Mesh *me = ob->data;
     MultiresModifierData *mmd = find_multires_modifier_before(scene, md_eval);
 
@@ -767,7 +766,7 @@ static bool modifier_apply_obdata(
       }
     }
     else {
-      mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, true);
+      Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, true);
       if (!mesh_applied) {
         BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
         return false;
@@ -911,7 +910,8 @@ bool ED_object_modifier_copy(
     ReportList *UNUSED(reports), Main *bmain, Scene *scene, Object *ob, ModifierData *md)
 {
   if (md->type == eModifierType_ParticleSystem) {
-    nmd = object_copy_particle_system(bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
+    ModifierData *nmd = object_copy_particle_system(
+        bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
     BLI_remlink(&ob->modifiers, nmd);
     BLI_insertlinkafter(&ob->modifiers, md, nmd);
     BKE_object_modifier_set_active(ob, nmd);
