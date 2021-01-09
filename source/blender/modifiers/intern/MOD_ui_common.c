@@ -351,8 +351,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     }
   }
   /* Collision and Surface are always enabled, hide buttons. */
-  if (((md->type != eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) &&
-      (md->type != eModifierType_Surface)) {
+  if ((md->type != eModifierType_Collision) && (md->type != eModifierType_Surface)) {
     if (mti->flags & eModifierTypeFlag_SupportsEditmode) {
       sub = uiLayoutRow(row, true);
       uiLayoutSetActive(sub, (md->mode & eModifierMode_Realtime));

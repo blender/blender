@@ -1238,13 +1238,8 @@ static void add_collision_object(ListBase *relations,
                                  int level,
                                  unsigned int modifier_type)
 {
-  CollisionModifierData *cmd = NULL;
-
   /* only get objects with collision modifier */
-  if (((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) ||
-      (modifier_type != eModifierType_Collision)) {
-    cmd = (CollisionModifierData *)BKE_modifiers_findby_type(ob, modifier_type);
-  }
+  ModifierData *cmd = BKE_modifiers_findby_type(ob, modifier_type);
 
   if (cmd) {
     CollisionRelation *relation = MEM_callocN(sizeof(CollisionRelation), "CollisionRelation");
@@ -1319,6 +1314,10 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
   LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
     /* Get evaluated object. */
     Object *ob = (Object *)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
+
+    if (modifier_type == eModifierType_Collision && !(ob->pd && ob->pd->deflect)) {
+      continue;
+    }
 
     if (ob != self) {
       objects[num] = ob;
