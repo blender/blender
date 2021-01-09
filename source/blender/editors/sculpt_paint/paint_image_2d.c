@@ -132,8 +132,6 @@ typedef struct ImagePaintState {
   SpaceImage *sima;
   View2D *v2d;
   Scene *scene;
-  bScreen *screen;
-  struct ImagePool *image_pool;
 
   Brush *brush;
   short tool, blend;
@@ -142,11 +140,6 @@ typedef struct ImagePaintState {
 
   bool do_masking;
 
-  /* viewport texture paint only, but _not_ project paint */
-  Object *ob;
-  int faceindex;
-  float uv[2];
-  int do_facesel;
   int symmetry;
 
   ImagePaintTile *tiles;
@@ -1674,7 +1667,6 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   s->sima = CTX_wm_space_image(C);
   s->v2d = &CTX_wm_region(C)->v2d;
   s->scene = scene;
-  s->screen = CTX_wm_screen(C);
 
   s->brush = brush;
   s->tool = brush->imagepaint_tool;
