@@ -424,11 +424,11 @@ bool ED_object_modifier_apply(struct Main *bmain,
                               struct ModifierData *md,
                               int mode,
                               bool keep_modifier);
-int ED_object_modifier_copy(struct ReportList *reports,
-                            struct Main *bmain,
-                            struct Scene *scene,
-                            struct Object *ob,
-                            struct ModifierData *md);
+bool ED_object_modifier_copy(struct ReportList *reports,
+                             struct Main *bmain,
+                             struct Scene *scene,
+                             struct Object *ob,
+                             struct ModifierData *md);
 void ED_object_modifier_link(struct bContext *C, struct Object *ob_dst, struct Object *ob_src);
 void ED_object_modifier_copy_to_object(struct bContext *C,
                                        struct Object *ob_dst,
