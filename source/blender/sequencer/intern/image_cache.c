@@ -518,6 +518,7 @@ static bool seq_disk_cache_read_header(FILE *file, DiskCacheHeader *header)
   fseek(file, 0, 0);
   const size_t num_items_read = fread(header, sizeof(*header), 1, file);
   if (num_items_read < 1) {
+    BLI_assert(!"unable to read disk cache header");
     perror("unable to read disk cache header");
     return false;
   }
@@ -618,10 +619,14 @@ static bool seq_disk_cache_write_file(SeqDiskCache *disk_cache, SeqCacheKey *key
     seq_disk_cache_add_file_to_list(disk_cache, path);
   }
 
+  DiskCacheFile *cache_file = seq_disk_cache_get_file_entry_by_path(disk_cache, path);
   DiskCacheHeader header;
   memset(&header, 0, sizeof(header));
-  if (!seq_disk_cache_read_header(file, &header)) {
+  /* BLI_make_existing_file() above may create an empty file. This is fine, don't atttempt reading
+   * the header in that case. */
+  if (cache_file->fstat.st_size != 0 && !seq_disk_cache_read_header(file, &header)) {
     fclose(file);
+    seq_disk_cache_delete_file(disk_cache, cache_file);
     return false;
   }
   int entry_index = seq_disk_cache_add_header_entry(key, ibuf, &header);
