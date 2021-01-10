@@ -395,9 +395,9 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
     }
 
     float incr_dir[3];
-    mul_v3_m3v3(incr_dir, t->spacemtx_inv, global_dir);
-    if (!(activeSnap(t) && validSnap(t)) && transform_snap_increment(t, incr_dir)) {
-      mul_v3_m3v3(incr_dir, t->spacemtx, incr_dir);
+    copy_v3_v3(incr_dir, global_dir);
+    if (!(activeSnap(t) && validSnap(t)) &&
+        transform_snap_increment_ex(t, (t->con.mode & CON_APPLY) != 0, incr_dir)) {
 
       /* Test for mixed snap with grid. */
       float snap_dist_sq = FLT_MAX;

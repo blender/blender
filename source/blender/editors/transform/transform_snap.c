@@ -1536,7 +1536,7 @@ static void snap_increment_apply(TransInfo *t,
   snap_increment_apply_ex(t, max_index, increment_dist, asp, r_val, r_val);
 }
 
-bool transform_snap_increment(TransInfo *t, float *val)
+bool transform_snap_increment_ex(TransInfo *t, bool use_local_space, float *r_val)
 {
   if (!activeSnap(t)) {
     return false;
@@ -1552,10 +1552,24 @@ bool transform_snap_increment(TransInfo *t, float *val)
     return false;
   }
 
-  float increment_dist = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
+  if (use_local_space) {
+    BLI_assert(t->idx_max == 2);
+    mul_m3_v3(t->spacemtx_inv, r_val);
+  }
 
-  snap_increment_apply(t, t->idx_max, increment_dist, val);
+  float increment_dist = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
+  snap_increment_apply(t, t->idx_max, increment_dist, r_val);
+
+  if (use_local_space) {
+    mul_m3_v3(t->spacemtx, r_val);
+  }
+
   return true;
+}
+
+bool transform_snap_increment(TransInfo *t, float *r_val)
+{
+  return transform_snap_increment_ex(t, false, r_val);
 }
 
 /** \} */
