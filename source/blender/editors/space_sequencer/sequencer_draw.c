@@ -627,10 +627,8 @@ static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t sourc
   if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
     BLI_snprintf(r_source, source_len, "%s%s", seq->strip->dir, seq->strip->stripdata->name);
   }
-  else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    if (seq->sound) {
-      BLI_snprintf(r_source, source_len, "%s", seq->sound->filepath);
-    }
+  else if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound != NULL) {
+    BLI_snprintf(r_source, source_len, "%s", seq->sound->filepath);
   }
   else if (seq->type == SEQ_TYPE_MULTICAM) {
     BLI_snprintf(r_source, source_len, "Channel: %d", seq->multicam_source);
@@ -639,8 +637,8 @@ static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t sourc
     TextVars *textdata = seq->effectdata;
     BLI_snprintf(r_source, source_len, "%s", textdata->text);
   }
-  else if (seq->type == SEQ_TYPE_SCENE) {
-    if (seq->scene_camera) {
+  else if (seq->type == SEQ_TYPE_SCENE && seq->scene != NULL) {
+    if (seq->scene_camera && seq->scene_camera != NULL) {
       BLI_snprintf(r_source,
                    source_len,
                    "%s (%s)",
@@ -651,10 +649,10 @@ static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t sourc
       BLI_snprintf(r_source, source_len, "%s", seq->scene->id.name + 2);
     }
   }
-  else if (seq->type == SEQ_TYPE_MOVIECLIP) {
+  else if (seq->type == SEQ_TYPE_MOVIECLIP && seq->clip != NULL) {
     BLI_snprintf(r_source, source_len, "%s", seq->clip->id.name + 2);
   }
-  else if (seq->type == SEQ_TYPE_MASK) {
+  else if (seq->type == SEQ_TYPE_MASK && seq->mask != NULL) {
     BLI_snprintf(r_source, source_len, "%s", seq->mask->id.name + 2);
   }
   else {
