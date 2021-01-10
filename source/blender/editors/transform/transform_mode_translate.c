@@ -427,7 +427,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 
   /* Set the redo value. */
   mul_v3_m3v3(t->values_final, t->spacemtx_inv, global_dir);
-  headerTranslation(t, t->values_final, str);
+  headerTranslation(t, (t->con.mode & CON_APPLY) ? t->values_final : global_dir, str);
 
   recalcData(t);
   ED_area_status_text(t->area, str);
