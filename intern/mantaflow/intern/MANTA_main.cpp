@@ -1394,15 +1394,14 @@ bool MANTA::readGuiding(FluidModifierData *fmd, int framenr, bool sourceDomain)
   if (with_debug)
     cout << "MANTA::readGuiding()" << endl;
 
-  FluidDomainSettings *fds = fmd->domain;
-
   if (!mUsingGuiding)
     return false;
-  if (!fds)
+  if (!fmd)
     return false;
 
   ostringstream ss;
   vector<string> pythonCommands;
+  FluidDomainSettings *fds = fmd->domain;
 
   string directory = (sourceDomain) ? getDirectory(fmd, FLUID_DOMAIN_DIR_DATA) :
                                       getDirectory(fmd, FLUID_DOMAIN_DIR_GUIDE);
