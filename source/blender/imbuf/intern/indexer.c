@@ -198,10 +198,19 @@ struct anim_index *IMB_indexer_open(const char *name)
                              "anim_index_entries");
 
   for (i = 0; i < idx->num_entries; i++) {
-    fread(&idx->entries[i].frameno, sizeof(int), 1, fp);
-    fread(&idx->entries[i].seek_pos, sizeof(unsigned long long), 1, fp);
-    fread(&idx->entries[i].seek_pos_dts, sizeof(unsigned long long), 1, fp);
-    fread(&idx->entries[i].pts, sizeof(unsigned long long), 1, fp);
+    size_t items_read = 0;
+    items_read += fread(&idx->entries[i].frameno, sizeof(int), 1, fp);
+    items_read += fread(&idx->entries[i].seek_pos, sizeof(unsigned long long), 1, fp);
+    items_read += fread(&idx->entries[i].seek_pos_dts, sizeof(unsigned long long), 1, fp);
+    items_read += fread(&idx->entries[i].pts, sizeof(unsigned long long), 1, fp);
+
+    if (items_read < 4) {
+      perror("error reading animation index file");
+      MEM_freeN(idx->entries);
+      MEM_freeN(idx);
+      fclose(fp);
+      return NULL;
+    }
   }
 
   if (((ENDIAN_ORDER == B_ENDIAN) != (header[8] == 'V'))) {
