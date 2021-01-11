@@ -26,6 +26,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -684,31 +685,37 @@ static size_t draw_seq_text_get_overlay_string(SpaceSeq *sseq,
 {
   const char *name = draw_seq_text_get_name(seq);
   char source[FILE_MAX];
-  int strip_duration = seq->enddisp - seq->startdisp;
   draw_seq_text_get_source(seq, source, sizeof(source));
 
-  bool show_name = sseq->flag & SEQ_SHOW_STRIP_NAME;
-  bool show_source = (sseq->flag & (SEQ_SHOW_STRIP_SOURCE)) && source[0] != '\0';
-  bool show_duration = sseq->flag & SEQ_SHOW_STRIP_DURATION;
+  const char *text_sep = " | ";
+  const char *text_array[5];
+  int i = 0;
 
-  size_t string_len = 0;
-  if (show_name) {
-    string_len = BLI_snprintf(r_overlay_string, overlay_string_len, "%s", name);
-    if (show_source || show_duration) {
-      string_len += BLI_snprintf(r_overlay_string + string_len, overlay_string_len, " | ");
+  if (sseq->flag & SEQ_SHOW_STRIP_NAME) {
+    text_array[i++] = name;
+  }
+
+  if ((sseq->flag & SEQ_SHOW_STRIP_SOURCE) && (source[0] != '\0')) {
+    if (i != 0) {
+      text_array[i++] = text_sep;
     }
+    text_array[i++] = source;
   }
-  if (show_source) {
-    string_len += BLI_snprintf(r_overlay_string + string_len, overlay_string_len, "%s", source);
-    if (show_duration) {
-      string_len += BLI_snprintf(r_overlay_string + string_len, overlay_string_len, " | ");
+
+  char strip_duration_text[16];
+  if (sseq->flag & SEQ_SHOW_STRIP_DURATION) {
+    const int strip_duration = seq->enddisp - seq->startdisp;
+    SNPRINTF(strip_duration_text, "%d", strip_duration);
+    if (i != 0) {
+      text_array[i++] = text_sep;
     }
+    text_array[i++] = strip_duration_text;
   }
-  if (show_duration) {
-    string_len += BLI_snprintf(
-        r_overlay_string + string_len, overlay_string_len, "%d", strip_duration);
-  }
-  return string_len;
+
+  BLI_assert(i <= ARRAY_SIZE(text_array));
+
+  return BLI_string_join_array(r_overlay_string, overlay_string_len, text_array, i) -
+         r_overlay_string;
 }
 
 /* Draw info text on a sequence strip. */
