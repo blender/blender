@@ -285,6 +285,7 @@ DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_COLOR_RAMP, def_geo_attribute_color_ram
 DefNode(GeometryNode, GEO_NODE_POINT_SEPARATE, 0, "POINT_SEPARATE", PointSeparate, "Point Separate", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_COMPARE, def_geo_attribute_attribute_compare, "ATTRIBUTE_COMPARE", AttributeCompare, "Attribute Compare", "")
 DefNode(GeometryNode, GEO_NODE_ROTATE_POINTS, def_geo_rotate_points, "ROTATE_POINTS", RotatePoints, "Rotate Points", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_VECTOR_MATH, def_geo_attribute_vector_math, "ATTRIBUTE_VECTOR_MATH", AttributeVectorMath, "Attribute Vector Math", "")
 
 /* undefine macros */
 #undef DefNode

@@ -1108,6 +1108,18 @@ typedef struct NodeAttributeMix {
   uint8_t input_type_b;
 } NodeAttributeMix;
 
+typedef struct NodeAttributeVectorMath {
+  /* NodeVectorMathOperation */
+  uint8_t operation;
+
+  /* GeometryNodeAttributeInputMode */
+  uint8_t input_type_a;
+  uint8_t input_type_b;
+  uint8_t input_type_c;
+
+  char _pad[4];
+} NodeAttributeVectorMath;
+
 typedef struct NodeAttributeColorRamp {
   ColorBand color_ramp;
 } NodeAttributeColorRamp;
@@ -1368,7 +1380,7 @@ enum {
 };
 
 /* Vector Math node operations. */
-enum {
+typedef enum NodeVectorMathOperation {
   NODE_VECTOR_MATH_ADD = 0,
   NODE_VECTOR_MATH_SUBTRACT = 1,
   NODE_VECTOR_MATH_MULTIPLY = 2,
@@ -1396,7 +1408,7 @@ enum {
   NODE_VECTOR_MATH_SINE = 21,
   NODE_VECTOR_MATH_COSINE = 22,
   NODE_VECTOR_MATH_TANGENT = 23,
-};
+} NodeVectorMathOperation;
 
 /* Boolean math node operations. */
 enum {

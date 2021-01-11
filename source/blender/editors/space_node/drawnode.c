@@ -3228,6 +3228,35 @@ static void node_geometry_buts_attribute_math(uiLayout *layout,
   uiItemR(layout, ptr, "input_type_b", DEFAULT_FLAGS, IFACE_("Type B"), ICON_NONE);
 }
 
+static void node_geometry_buts_attribute_vector_math(uiLayout *layout,
+                                                     bContext *UNUSED(C),
+                                                     PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeAttributeVectorMath *node_storage = (NodeAttributeVectorMath *)node->storage;
+
+  uiItemR(layout, ptr, "operation", DEFAULT_FLAGS, "", ICON_NONE);
+  uiItemR(layout, ptr, "input_type_a", DEFAULT_FLAGS, IFACE_("Type A"), ICON_NONE);
+
+  /* These "use input b / c" checks are copied from the node's code. They could be deduplicated if
+   * the drawing code was moved to the node's file. */
+  if (!ELEM(node_storage->operation,
+            NODE_VECTOR_MATH_NORMALIZE,
+            NODE_VECTOR_MATH_FLOOR,
+            NODE_VECTOR_MATH_CEIL,
+            NODE_VECTOR_MATH_FRACTION,
+            NODE_VECTOR_MATH_ABSOLUTE,
+            NODE_VECTOR_MATH_SINE,
+            NODE_VECTOR_MATH_COSINE,
+            NODE_VECTOR_MATH_TANGENT,
+            NODE_VECTOR_MATH_LENGTH)) {
+    uiItemR(layout, ptr, "input_type_b", DEFAULT_FLAGS, IFACE_("Type B"), ICON_NONE);
+  }
+  if (ELEM(node_storage->operation, NODE_VECTOR_MATH_WRAP)) {
+    uiItemR(layout, ptr, "input_type_c", DEFAULT_FLAGS, IFACE_("Type C"), ICON_NONE);
+  }
+}
+
 static void node_geometry_buts_point_instance(uiLayout *layout,
                                               bContext *UNUSED(C),
                                               PointerRNA *ptr)
@@ -3319,6 +3348,9 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_ATTRIBUTE_MIX:
       ntype->draw_buttons = node_geometry_buts_attribute_mix;
+      break;
+    case GEO_NODE_ATTRIBUTE_VECTOR_MATH:
+      ntype->draw_buttons = node_geometry_buts_attribute_vector_math;
       break;
     case GEO_NODE_POINT_DISTRIBUTE:
       ntype->draw_buttons = node_geometry_buts_attribute_point_distribute;
