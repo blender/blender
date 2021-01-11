@@ -71,36 +71,3 @@ elseif(APPLE)
 endif()
 
 unset(_test_libs)
-
-# This runs the blender_test executable with `--gtest_list_tests`, then
-# exposes those tests individually to the ctest runner.
-# See https://cmake.org/cmake/help/v3.18/module/GoogleTest.html
-#
-# We have our own modified copy of this CMake module.
-include(GTest)
-
-set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
-  ${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/GTestAddTests.cmake
-)
-
-if(APPLE)
-  set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Contents/Resources/${BLENDER_VERSION})
-else()
-  if(WIN32 OR WITH_INSTALL_PORTABLE)
-    set(_test_release_dir ${TEST_INSTALL_DIR}/${BLENDER_VERSION})
-  else()
-    set(_test_release_dir ${TEST_INSTALL_DIR}/share/blender/${BLENDER_VERSION})
-  endif()
-endif()
-
-gtest_discover_tests(blender_test
-  WORKING_DIRECTORY "${TEST_INSTALL_DIR}"
-# So that it will run after the install phase that will copy the required libraries
-  DISCOVERY_MODE PRE_TEST
-# So that unit tests know where to find files:
-  EXTRA_ARGS
-    --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
-    --test-release-dir "${_test_release_dir}"
-)
-
-unset(_test_release_dir)

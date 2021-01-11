@@ -388,6 +388,43 @@ function(blender_add_lib
   set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
 endfunction()
 
+function(blender_add_test_suite)
+  if (ARGC LESS 1)
+    message(FATAL_ERROR "No arguments supplied to blender_add_test_suite()")
+  endif()
+
+  # Parse the arguments
+  set(oneValueArgs TARGET SUITE_NAME)
+  set(multiValueArgs SOURCES)
+  cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  # Figure out the release dir, as some tests need files from there.
+  GET_BLENDER_TEST_INSTALL_DIR(TEST_INSTALL_DIR)
+  if(APPLE)
+    set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Contents/Resources/${BLENDER_VERSION})
+  else()
+    if(WIN32 OR WITH_INSTALL_PORTABLE)
+      set(_test_release_dir ${TEST_INSTALL_DIR}/${BLENDER_VERSION})
+    else()
+      set(_test_release_dir ${TEST_INSTALL_DIR}/share/blender/${BLENDER_VERSION})
+    endif()
+  endif()
+
+  # Define a test case with our custom gtest_add_tests() command.
+  include(GTest)
+  gtest_add_tests(
+    TARGET ${ARGS_TARGET}
+    SOURCES "${ARGS_SOURCES}"
+    TEST_PREFIX ${ARGS_SUITE_NAME}
+    WORKING_DIRECTORY "${TEST_INSTALL_DIR}"
+    EXTRA_ARGS
+      --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
+      --test-release-dir "${_test_release_dir}"
+  )
+
+  unset(_test_release_dir)
+endfunction()
+
 # Add tests for a Blender library, to be called in tandem with blender_add_lib().
 # The tests will be part of the blender_test executable (see tests/gtests/runner).
 function(blender_add_test_lib
@@ -421,6 +458,12 @@ function(blender_add_test_lib
   blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${library_deps}")
 
   set_property(GLOBAL APPEND PROPERTY BLENDER_TEST_LIBS ${name})
+
+  blender_add_test_suite(
+    TARGET blender_test
+    SUITE_NAME ${name}
+    SOURCES "${sources}"
+  )
 endfunction()
 
 
@@ -454,14 +497,10 @@ function(blender_add_test_executable
     SKIP_ADD_TEST
   )
 
-  include(GTest)
-  set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
-    ${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/GTestAddTests.cmake
-  )
-
-  gtest_discover_tests(${name}_test
-    DISCOVERY_MODE PRE_TEST
-    WORKING_DIRECTORY "${TEST_INSTALL_DIR}"
+  blender_add_test_suite(
+    TARGET ${name}_test
+    SUITE_NAME ${name}
+    SOURCES "${sources}"
   )
 endfunction()
 
