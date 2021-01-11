@@ -4939,6 +4939,82 @@ static const MeshExtract extract_fdots_nor = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Extract Facedots High Quality Normal and edit flag
+ * \{ */
+static void *extract_fdots_nor_hq_init(const MeshRenderData *mr,
+                                       struct MeshBatchCache *UNUSED(cache),
+                                       void *buf)
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  }
+  GPUVertBuf *vbo = buf;
+  GPU_vertbuf_init_with_format(vbo, &format);
+  GPU_vertbuf_data_alloc(vbo, mr->poly_len);
+
+  return NULL;
+}
+
+static void extract_fdots_nor_hq_finish(const MeshRenderData *mr,
+                                        struct MeshBatchCache *UNUSED(cache),
+                                        void *buf,
+                                        void *UNUSED(data))
+{
+  static float invalid_normal[3] = {0.0f, 0.0f, 0.0f};
+  GPUVertBuf *vbo = buf;
+  short *nor = (short *)GPU_vertbuf_get_data(vbo);
+  BMFace *efa;
+
+  /* Quicker than doing it for each loop. */
+  if (mr->extract_type == MR_EXTRACT_BMESH) {
+    for (int f = 0; f < mr->poly_len; f++) {
+      efa = BM_face_at_index(mr->bm, f);
+      const bool is_face_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
+      if (is_face_hidden || (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
+                             mr->p_origindex[f] == ORIGINDEX_NONE)) {
+        normal_float_to_short_v3(&nor[f * 4], invalid_normal);
+        nor[f * 4 + 3] = NOR_AND_FLAG_HIDDEN;
+      }
+      else {
+        normal_float_to_short_v3(&nor[f * 4], bm_face_no_get(mr, efa));
+        /* Select / Active Flag. */
+        nor[f * 4 + 3] = (BM_elem_flag_test(efa, BM_ELEM_SELECT) ?
+                              ((efa == mr->efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
+                              NOR_AND_FLAG_DEFAULT);
+      }
+    }
+  }
+  else {
+    for (int f = 0; f < mr->poly_len; f++) {
+      efa = bm_original_face_get(mr, f);
+      const bool is_face_hidden = efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
+      if (is_face_hidden || (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
+                             mr->p_origindex[f] == ORIGINDEX_NONE)) {
+        normal_float_to_short_v3(&nor[f * 4], invalid_normal);
+        nor[f * 4 + 3] = NOR_AND_FLAG_HIDDEN;
+      }
+      else {
+        normal_float_to_short_v3(&nor[f * 4], bm_face_no_get(mr, efa));
+        /* Select / Active Flag. */
+        nor[f * 4 + 3] = (BM_elem_flag_test(efa, BM_ELEM_SELECT) ?
+                              ((efa == mr->efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
+                              NOR_AND_FLAG_DEFAULT);
+      }
+    }
+  }
+}
+
+static const MeshExtract extract_fdots_nor_hq = {
+    .init = extract_fdots_nor_hq_init,
+    .finish = extract_fdots_nor_hq_finish,
+    .data_flag = MR_DATA_POLY_NOR,
+    .use_threading = false,
+};
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Extract Facedots UV
  * \{ */
 
@@ -5772,14 +5848,19 @@ static void extract_task_create(struct TaskGraph *task_graph,
   BLI_assert(scene != NULL);
   const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
-  if (do_hq_normals && (extract == &extract_lnor)) {
-    extract = &extract_lnor_hq;
-  }
-  if (do_hq_normals && (extract == &extract_pos_nor)) {
-    extract = &extract_pos_nor_hq;
-  }
-  if (do_hq_normals && (extract == &extract_tan)) {
-    extract = &extract_tan_hq;
+  if (do_hq_normals) {
+    if (extract == &extract_lnor) {
+      extract = &extract_lnor_hq;
+    }
+    else if (extract == &extract_pos_nor) {
+      extract = &extract_pos_nor_hq;
+    }
+    else if (extract == &extract_tan) {
+      extract = &extract_tan_hq;
+    }
+    else if (extract == &extract_fdots_nor) {
+      extract = &extract_fdots_nor_hq;
+    }
   }
 
   /* Divide extraction of the VBO/IBO into sensible chunks of works. */
