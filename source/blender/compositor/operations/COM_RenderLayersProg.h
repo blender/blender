@@ -94,7 +94,7 @@ class RenderLayersProg : public NodeOperation {
   {
     this->m_scene = scene;
   }
-  Scene *getScene()
+  Scene *getScene() const
   {
     return this->m_scene;
   }
@@ -106,7 +106,7 @@ class RenderLayersProg : public NodeOperation {
   {
     this->m_layerId = layerId;
   }
-  short getLayerId()
+  short getLayerId() const
   {
     return this->m_layerId;
   }
