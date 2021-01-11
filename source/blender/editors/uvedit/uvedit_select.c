@@ -732,9 +732,11 @@ bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNea
 
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-  /* this will fill in hit.vert1 and hit.vert2 */
+  /* This will fill in `hit.l`. */
   float dist_sq_init = hit_final->dist_sq;
   UvNearestHit hit = *hit_final;
+  /* The edge of the face might be further away than the threshold from it's center. */
+  hit.dist_sq = FLT_MAX;
   if (uv_find_nearest_edge(scene, obedit, co, &hit)) {
     hit.dist_sq = dist_sq_init;
     hit.l = NULL;
