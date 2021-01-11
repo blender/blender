@@ -1155,14 +1155,19 @@ void GHOST_WindowWin32::setWintabOverlap(bool overlap)
         /* If context is disabled, Windows Ink may be active and managing m_tabletInRange. Don't
          * modify it. */
         if (!(context.lcStatus & CXS_DISABLED)) {
-          /* Set tablet as not in range, proximity event may not occur. */
-          m_tabletInRange = false;
-          /* Clear the packet queue. */
-          m_wintab.packetsGet(m_wintab.context, m_wintab.pkts.size(), m_wintab.pkts.data());
+          processWintabLeave();
         }
       }
     }
   }
+}
+
+void GHOST_WindowWin32::processWintabLeave()
+{
+  m_tabletInRange = false;
+  m_wintab.buttons = 0;
+  /* Clear the packet queue. */
+  m_wintab.packetsGet(m_wintab.context, m_wintab.pkts.size(), m_wintab.pkts.data());
 }
 
 void GHOST_WindowWin32::processWintabDisplayChangeEvent()
@@ -1327,17 +1332,32 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
       out.tabletData.Ytilt = (float)(sin(M_PI / 2.0 - azmRad) * vecLen);
     }
 
-    out.button = wintabMouseToGhost(pkt.pkCursor, LOWORD(pkt.pkButtons));
-    switch (HIWORD(pkt.pkButtons)) {
-      case TBN_NONE:
-        out.type = GHOST_kEventCursorMove;
-        break;
-      case TBN_DOWN:
-        out.type = GHOST_kEventButtonDown;
-        break;
-      case TBN_UP:
-        out.type = GHOST_kEventButtonUp;
-        break;
+    /* Some Wintab libraries don't handle relative button input, so we track button presses
+     * manually. */
+    out.button = GHOST_kButtonMaskNone;
+    out.type = GHOST_kEventCursorMove;
+
+    DWORD buttonsChanged = m_wintab.buttons ^ pkt.pkButtons;
+    if (buttonsChanged) {
+      /* Find the index for the changed button from the button map. */
+      WORD physicalButton = 0;
+      for (DWORD diff = (unsigned)buttonsChanged >> 1; diff > 0; diff = (unsigned)diff >> 1) {
+        physicalButton++;
+      }
+
+      out.button = wintabMouseToGhost(pkt.pkCursor, physicalButton);
+
+      if (out.button != GHOST_kButtonMaskNone) {
+        if (buttonsChanged & pkt.pkButtons) {
+          out.type = GHOST_kEventButtonDown;
+        }
+        else {
+          out.type = GHOST_kEventButtonUp;
+        }
+      }
+
+      /* Only update handled button, in case multiple button events arrived simultaneously. */
+      m_wintab.buttons ^= 1 << physicalButton;
     }
 
     out.time = system->tickCountToMillis(pkt.pkTime);

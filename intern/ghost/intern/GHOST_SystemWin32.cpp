@@ -1559,7 +1559,12 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         case WT_PROXIMITY: {
           if (window->useTabletAPI(GHOST_kTabletWintab)) {
-            window->m_tabletInRange = LOWORD(lParam);
+            if (LOWORD(lParam)) {
+              window->m_tabletInRange = true;
+            }
+            else {
+              window->processWintabLeave();
+            }
           }
           eventHandled = true;
           break;

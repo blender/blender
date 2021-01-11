@@ -41,7 +41,7 @@
 // PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first
 #define PACKETDATA \
   (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR | PK_X | PK_Y | PK_TIME)
-#define PACKETMODE PK_BUTTONS
+#define PACKETMODE 0
 #include <pktdef.h>
 
 class GHOST_SystemWin32;
@@ -467,6 +467,11 @@ class GHOST_WindowWin32 : public GHOST_Window {
   void setWintabOverlap(bool overlap);
 
   /**
+   * Resets Wintab state.
+   */
+  void processWintabLeave();
+
+  /**
    * Handle Wintab coordinate changes when DisplayChange events occur.
    */
   void processWintabDisplayChangeEvent();
@@ -614,6 +619,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
     HCTX context = NULL;
     /** Number of connected Wintab digitizers. */
     UINT numDevices = 0;
+    /** Pressed button map. */
+    GHOST_TUns8 buttons = 0;
     LONG maxPressure = 0;
     LONG maxAzimuth = 0, maxAltitude = 0;
     /** Reusable buffer to read in Wintab Packets. */
