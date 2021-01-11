@@ -683,23 +683,23 @@ static size_t draw_seq_text_get_overlay_string(SpaceSeq *sseq,
                                                char *r_overlay_string,
                                                size_t overlay_string_len)
 {
-  const char *name = draw_seq_text_get_name(seq);
-  char source[FILE_MAX];
-  draw_seq_text_get_source(seq, source, sizeof(source));
-
   const char *text_sep = " | ";
   const char *text_array[5];
   int i = 0;
 
   if (sseq->flag & SEQ_SHOW_STRIP_NAME) {
-    text_array[i++] = name;
+    text_array[i++] = draw_seq_text_get_name(seq);
   }
 
-  if ((sseq->flag & SEQ_SHOW_STRIP_SOURCE) && (source[0] != '\0')) {
-    if (i != 0) {
-      text_array[i++] = text_sep;
+  char source[FILE_MAX];
+  if (sseq->flag & SEQ_SHOW_STRIP_SOURCE) {
+    draw_seq_text_get_source(seq, source, sizeof(source));
+    if (source[0] != '\0') {
+      if (i != 0) {
+        text_array[i++] = text_sep;
+      }
+      text_array[i++] = source;
     }
-    text_array[i++] = source;
   }
 
   char strip_duration_text[16];
