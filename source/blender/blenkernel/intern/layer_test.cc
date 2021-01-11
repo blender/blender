@@ -39,6 +39,7 @@ TEST(view_layer, aov_unique_names)
 {
   /* Set Up */
   CLG_init();
+  BKE_idtype_init();
   BKE_appdir_init();
   IMB_init();
   RE_engines_init();
