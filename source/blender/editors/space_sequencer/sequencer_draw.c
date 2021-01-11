@@ -623,40 +623,57 @@ static const char *draw_seq_text_get_name(Sequence *seq)
 
 static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t source_len)
 {
+  *r_source = '\0';
+
   /* Set source for the most common types. */
-  if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
-    BLI_snprintf(r_source, source_len, "%s%s", seq->strip->dir, seq->strip->stripdata->name);
-  }
-  else if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound != NULL) {
-    BLI_snprintf(r_source, source_len, "%s", seq->sound->filepath);
-  }
-  else if (seq->type == SEQ_TYPE_MULTICAM) {
-    BLI_snprintf(r_source, source_len, "Channel: %d", seq->multicam_source);
-  }
-  else if (seq->type == SEQ_TYPE_TEXT) {
-    TextVars *textdata = seq->effectdata;
-    BLI_snprintf(r_source, source_len, "%s", textdata->text);
-  }
-  else if (seq->type == SEQ_TYPE_SCENE && seq->scene != NULL) {
-    if (seq->scene_camera && seq->scene_camera != NULL) {
-      BLI_snprintf(r_source,
-                   source_len,
-                   "%s (%s)",
-                   seq->scene->id.name + 2,
-                   ((ID *)seq->scene_camera)->name + 2);
+  switch (seq->type) {
+    case SEQ_TYPE_IMAGE:
+    case SEQ_TYPE_MOVIE: {
+      BLI_snprintf(r_source, source_len, "%s%s", seq->strip->dir, seq->strip->stripdata->name);
+      break;
     }
-    else {
-      BLI_snprintf(r_source, source_len, "%s", seq->scene->id.name + 2);
+    case SEQ_TYPE_SOUND_RAM: {
+      if (seq->sound != NULL) {
+        BLI_strncpy(r_source, seq->sound->filepath, source_len);
+      }
+      break;
     }
-  }
-  else if (seq->type == SEQ_TYPE_MOVIECLIP && seq->clip != NULL) {
-    BLI_snprintf(r_source, source_len, "%s", seq->clip->id.name + 2);
-  }
-  else if (seq->type == SEQ_TYPE_MASK && seq->mask != NULL) {
-    BLI_snprintf(r_source, source_len, "%s", seq->mask->id.name + 2);
-  }
-  else {
-    *r_source = '\0';
+    case SEQ_TYPE_MULTICAM: {
+      BLI_snprintf(r_source, source_len, "Channel: %d", seq->multicam_source);
+      break;
+    }
+    case SEQ_TYPE_TEXT: {
+      const TextVars *textdata = seq->effectdata;
+      BLI_strncpy(r_source, textdata->text, source_len);
+      break;
+    }
+    case SEQ_TYPE_SCENE: {
+      if (seq->scene != NULL) {
+        if (seq->scene_camera != NULL) {
+          BLI_snprintf(r_source,
+                       source_len,
+                       "%s (%s)",
+                       seq->scene->id.name + 2,
+                       seq->scene_camera->id.name + 2);
+        }
+        else {
+          BLI_strncpy(r_source, seq->scene->id.name + 2, source_len);
+        }
+      }
+      break;
+    }
+    case SEQ_TYPE_MOVIECLIP: {
+      if (seq->clip != NULL) {
+        BLI_strncpy(r_source, seq->clip->id.name + 2, source_len);
+      }
+      break;
+    }
+    case SEQ_TYPE_MASK: {
+      if (seq->mask != NULL) {
+        BLI_strncpy(r_source, seq->mask->id.name + 2, source_len);
+      }
+      break;
+    }
   }
 }
 
