@@ -1943,7 +1943,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "viscosity_value", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0, 10.0);
-  RNA_def_property_ui_range(prop, 0.0, 5.0, 0.01, 3);
+  RNA_def_property_ui_range(prop, 0.0, 5.0, 1.0, 3);
   RNA_def_property_ui_text(prop,
                            "Strength",
                            "Viscosity of liquid (higher values result in more viscous fluids, a "
