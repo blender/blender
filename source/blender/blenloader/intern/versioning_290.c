@@ -1507,15 +1507,15 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
-  }
 
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    Editing *ed = SEQ_editing_get(scene, false);
-    if (ed == NULL) {
-      continue;
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene, false);
+      if (ed == NULL) {
+        continue;
+      }
+      ed->cache_flag = (SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_FINAL_OUT);
+      do_versions_strip_cache_settings_recursive(&ed->seqbase);
     }
-    ed->cache_flag = (SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_FINAL_OUT);
-    do_versions_strip_cache_settings_recursive(&ed->seqbase);
   }
 
   /**
