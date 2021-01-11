@@ -330,7 +330,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeHueCorrect"),
         NodeItem("CompositorNodeBrightContrast"),
         NodeItem("CompositorNodeGamma"),
-        NodeItem("CompositorNodeExposure"),        
+        NodeItem("CompositorNodeExposure"),
         NodeItem("CompositorNodeColorCorrection"),
         NodeItem("CompositorNodeTonemap"),
         NodeItem("CompositorNodeZcombine"),
