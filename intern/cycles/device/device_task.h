@@ -117,8 +117,7 @@ class AdaptiveSampling {
  public:
   AdaptiveSampling();
 
-  int align_static_samples(int samples) const;
-  int align_dynamic_samples(int offset, int samples) const;
+  int align_samples(int sample, int num_samples) const;
   bool need_filter(int sample) const;
 
   bool use;

@@ -29,8 +29,7 @@ ccl_device void kernel_adaptive_adjust_samples(KernelGlobals *kg)
     int sample = kernel_split_params.tile.start_sample + kernel_split_params.tile.num_samples;
     if (buffer[kernel_data.film.pass_sample_count] < 0.0f) {
       buffer[kernel_data.film.pass_sample_count] = -buffer[kernel_data.film.pass_sample_count];
-      float sample_multiplier = sample / max((float)kernel_split_params.tile.start_sample + 1.0f,
-                                             buffer[kernel_data.film.pass_sample_count]);
+      float sample_multiplier = sample / buffer[kernel_data.film.pass_sample_count];
       if (sample_multiplier != 1.0f) {
         kernel_adaptive_post_adjust(kg, buffer, sample_multiplier);
       }

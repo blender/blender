@@ -139,7 +139,7 @@ kernel_cuda_adaptive_scale_samples(WorkTile *tile, int start_sample, int sample,
 			ccl_global float *buffer = tile->buffer + index * kernel_data.film.pass_stride;
 			if(buffer[kernel_data.film.pass_sample_count] < 0.0f) {
 				buffer[kernel_data.film.pass_sample_count] = -buffer[kernel_data.film.pass_sample_count];
-				float sample_multiplier = sample / max((float)start_sample + 1.0f, buffer[kernel_data.film.pass_sample_count]);
+				float sample_multiplier = sample / buffer[kernel_data.film.pass_sample_count];
 				if(sample_multiplier != 1.0f) {
 					kernel_adaptive_post_adjust(&kg, buffer, sample_multiplier);
 				}

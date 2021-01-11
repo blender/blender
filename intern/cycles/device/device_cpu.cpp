@@ -920,8 +920,7 @@ class CPUDevice : public Device {
         ccl_global float *buffer = render_buffer + index * kernel_data.film.pass_stride;
         if (buffer[kernel_data.film.pass_sample_count] < 0.0f) {
           buffer[kernel_data.film.pass_sample_count] = -buffer[kernel_data.film.pass_sample_count];
-          float sample_multiplier = tile.sample / max((float)tile.start_sample + 1.0f,
-                                                      buffer[kernel_data.film.pass_sample_count]);
+          float sample_multiplier = tile.sample / buffer[kernel_data.film.pass_sample_count];
           if (sample_multiplier != 1.0f) {
             kernel_adaptive_post_adjust(kg, buffer, sample_multiplier);
           }
@@ -997,7 +996,7 @@ class CPUDevice : public Device {
       coverage.finalize();
     }
 
-    if (task.adaptive_sampling.use) {
+    if (task.adaptive_sampling.use && (tile.stealing_state != RenderTile::WAS_STOLEN)) {
       adaptive_sampling_post(tile, kg);
     }
   }
