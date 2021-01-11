@@ -4939,7 +4939,7 @@ static const MeshExtract extract_fdots_nor = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Facedots Normal and edit flag
+/** \name Extract Facedots UV
  * \{ */
 
 typedef struct MeshExtract_FdotUV_Data {
