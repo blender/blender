@@ -629,7 +629,7 @@ static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t sourc
   switch (seq->type) {
     case SEQ_TYPE_IMAGE:
     case SEQ_TYPE_MOVIE: {
-      BLI_snprintf(r_source, source_len, "%s%s", seq->strip->dir, seq->strip->stripdata->name);
+      BLI_join_dirfile(r_source, source_len, seq->strip->dir, seq->strip->stripdata->name);
       break;
     }
     case SEQ_TYPE_SOUND_RAM: {
