@@ -142,6 +142,14 @@ static void clear_id_nodes_conditional(Depsgraph::IDDepsNodes *id_nodes, const F
        * datablock for her own dirty needs. */
       continue;
     }
+    if (id_node->id_cow == id_node->id_orig) {
+      /* Copy-on-write version is not needed for this ID type.
+       *
+       * NOTE: Is important to not de-reference the original datablock here because it might be
+       * freed already (happens during main database free when some IDs are freed prior to a
+       * scene). */
+      continue;
+    }
     if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
       continue;
     }
