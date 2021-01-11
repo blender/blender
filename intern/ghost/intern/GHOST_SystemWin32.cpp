@@ -225,6 +225,9 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 #ifdef WITH_INPUT_NDOF
   m_ndofManager = new GHOST_NDOFManagerWin32(*this);
 #endif
+
+  getCursorPosition(m_mousePosX, m_mousePosY);
+  m_mouseTimestamp = ::GetTickCount();
 }
 
 GHOST_SystemWin32::~GHOST_SystemWin32()
@@ -533,7 +536,20 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 {
   if (!::GetActiveWindow())
     return GHOST_kFailure;
-  return ::SetCursorPos(x, y) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+
+  INPUT input;
+  input.type = INPUT_MOUSE;
+  input.mi.mouseData = 0;
+  input.mi.time = ::GetTickCount();
+  /* Map from virtual screen to 0-65536. */
+  input.mi.dx = (x - GetSystemMetrics(SM_XVIRTUALSCREEN)) * 65536 /
+                GetSystemMetrics(SM_CXVIRTUALSCREEN);
+  input.mi.dy = (y - GetSystemMetrics(SM_YVIRTUALSCREEN)) * 65536 /
+                GetSystemMetrics(SM_CYVIRTUALSCREEN);
+  input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
+  SendInput(1, &input, sizeof(input));
+
+  return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) const
@@ -942,8 +958,18 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
   GHOST_TabletData td = window->m_tabletInRange ? window->getLastTabletData() :
                                                   GHOST_TABLET_DATA_NONE;
 
-  /* Ensure button click occurs at its intended position. */
-  processCursorEvent(window);
+  /* Move mouse to button event position. */
+  if (!window->m_tabletInRange) {
+    processCursorEvent(window);
+  }
+  else {
+    /* Tablet should be hadling inbetween mouse moves, only move to event position. */
+    DWORD msgPos = ::GetMessagePos();
+    int msgPosX = GET_X_LPARAM(msgPos);
+    int msgPosY = GET_Y_LPARAM(msgPos);
+    system->pushEvent(new GHOST_EventCursor(
+        ::GetMessageTime(), GHOST_kEventCursorMove, window, msgPosX, msgPosY, td));
+  }
 
   window->updateMouseCapture(type == GHOST_kEventButtonDown ? MousePressed : MouseReleased);
   return new GHOST_EventButton(system->getMilliSeconds(), type, window, mask, td);
@@ -1101,18 +1127,79 @@ void GHOST_SystemWin32::processPointerEvent(
   system->setCursorPosition(pointerInfo[0].pixelLocation.x, pointerInfo[0].pixelLocation.y);
 }
 
-GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
+void GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
 {
+  /* Cursor moves handled by tablets while active. */
+  if (window->m_tabletInRange) {
+    return;
+  }
+
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
   DWORD msgPos = ::GetMessagePos();
-  GHOST_TInt32 x_screen = GET_X_LPARAM(msgPos);
-  GHOST_TInt32 y_screen = GET_Y_LPARAM(msgPos);
-  GHOST_TInt32 x_accum = 0, y_accum = 0;
+  LONG msgTime = ::GetMessageTime();
 
-  if (window->getCursorGrabModeIsWarp() && !window->m_tabletInRange) {
-    GHOST_TInt32 x_new = x_screen;
-    GHOST_TInt32 y_new = y_screen;
+  /* GetMessagePointsEx processes points as 16 bit integers and can fail or return erroneous values
+   * if negative input is not truncated. */
+  int msgPosX = GET_X_LPARAM(msgPos) & 0x0000FFFF;
+  int msgPosY = GET_Y_LPARAM(msgPos) & 0x0000FFFF;
+
+  const int maxPoints = 64;
+  MOUSEMOVEPOINT currentPoint = {msgPosX, msgPosY, (DWORD)msgTime, 0};
+  MOUSEMOVEPOINT points[maxPoints] = {0};
+  /* GetMouseMovePointsEx returns the number of points returned that are less than or equal to the
+   * requested point. If the requested point is the most recent, this returns up to 64 requested
+   * points. */
+  int numPoints = ::GetMouseMovePointsEx(
+      sizeof(MOUSEMOVEPOINT), &currentPoint, points, maxPoints, GMMP_USE_DISPLAY_POINTS);
+
+  if (numPoints == -1) {
+    /* Points at edge of screen are often not in the queue, use the message's point instead. */
+    numPoints = 1;
+    points[0] = currentPoint;
+  }
+
+  GHOST_TInt32 x_accum = 0, y_accum = 0;
+  window->getCursorGrabAccum(x_accum, y_accum);
+
+  /* Points are in reverse chronological order. Find least recent, unprocessed mouse move. */
+  int i;
+  for (i = 0; i < numPoints; i++) {
+    if (points[i].time < system->m_mouseTimestamp) {
+      break;
+    }
+
+    /* GetMouseMovePointsEx returns 16 bit number as 32 bit. If negative, we need to sign extend.
+     */
+    points[i].x = points[i].x > 32767 ? points[i].x | 0xFFFF0000 : points[i].x;
+    points[i].y = points[i].y > 32767 ? points[i].y | 0xFFFF0000 : points[i].y;
+
+    if (points[i].time == system->m_mouseTimestamp && points[i].x == system->m_mousePosX &&
+        points[i].y == system->m_mousePosY) {
+      break;
+    }
+  }
+  while (--i >= 0) {
+    system->pushEvent(new GHOST_EventCursor(system->getMilliSeconds(),
+                                            GHOST_kEventCursorMove,
+                                            window,
+                                            points[i].x + x_accum,
+                                            points[i].y + y_accum,
+                                            GHOST_TABLET_DATA_NONE));
+  }
+
+  DWORD lastTimestamp = points[0].time;
+
+  /* Check if we need to wrap the cursor. */
+  if (window->getCursorGrabModeIsWarp()) {
+    /* Wrap based on current cursor position in case Win32 mouse move queue is out of order due to
+     * prior wrap. */
+    POINT point;
+    ::GetCursorPos(&point);
+    GHOST_TInt32 x_current = point.x;
+    GHOST_TInt32 y_current = point.y;
+    GHOST_TInt32 x_wrap = point.x;
+    GHOST_TInt32 y_wrap = point.y;
     GHOST_Rect bounds;
 
     /* Fallback to window bounds. */
@@ -1122,23 +1209,24 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
 
     /* Could also clamp to screen bounds wrap with a window outside the view will fail atm.
      * Use offset of 8 in case the window is at screen bounds. */
-    bounds.wrapPoint(x_new, y_new, 2, window->getCursorGrabAxis());
+    bounds.wrapPoint(x_wrap, y_wrap, 2, window->getCursorGrabAxis());
 
-    window->getCursorGrabAccum(x_accum, y_accum);
-    if (x_new != x_screen || y_new != y_screen) {
-      system->setCursorPosition(x_new, y_new); /* wrap */
-      window->setCursorGrabAccum(x_accum + (x_screen - x_new), y_accum + (y_screen - y_new));
+    if (x_wrap != x_current || y_wrap != y_current) {
+      system->setCursorPosition(x_wrap, y_wrap);
+      window->setCursorGrabAccum(x_accum + (x_current - x_wrap), y_accum + (y_current - y_wrap));
+
+      /* First message after SendInput wrap is invalid for unknown reasons, skip events until one
+       * tick after SendInput event time. */
+      lastTimestamp = ::GetTickCount() + 1;
     }
   }
 
-  GHOST_TabletData td = window->m_tabletInRange ? window->getLastTabletData() :
-                                                  GHOST_TABLET_DATA_NONE;
-  return new GHOST_EventCursor(system->getMilliSeconds(),
-                               GHOST_kEventCursorMove,
-                               window,
-                               x_screen + x_accum,
-                               y_screen + y_accum,
-                               td);
+  system->m_mousePosX = points[0].x;
+  system->m_mousePosY = points[0].y;
+  /* Use latest time, checking for overflow. */
+  if (lastTimestamp > system->m_mouseTimestamp || ::GetTickCount() < system->m_mouseTimestamp) {
+    system->m_mouseTimestamp = lastTimestamp;
+  }
 }
 
 void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam)
@@ -1631,7 +1719,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           }
 
           if (!window->m_tabletInRange) {
-            event = processCursorEvent(window);
+            processCursorEvent(window);
+            eventHandled = true;
           }
           break;
         case WM_MOUSEWHEEL: {
@@ -1677,6 +1766,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_MOUSELEAVE:
           window->m_mousePresent = false;
           window->setWintabOverlap(false);
+          if (!window->m_tabletInRange) {
+            processCursorEvent(window);
+          }
           break;
         ////////////////////////////////////////////////////////////////////////
         // Mouse events, ignored
