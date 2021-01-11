@@ -50,8 +50,11 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
   const Object *self_object = params.self_object();
 
   if (object != nullptr) {
+    float transform[4][4];
+    mul_m4_m4m4(transform, self_object->imat, object->obmat);
+
     float quaternion[4];
-    mat4_decompose(location, quaternion, scale, object->obmat);
+    mat4_decompose(location, quaternion, scale, transform);
     quat_to_eul(rotation, quaternion);
 
     if (object != self_object) {
@@ -64,8 +67,6 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
           Mesh *copied_mesh = BKE_mesh_copy_for_eval(mesh, false);
 
           /* Transform into the local space of the object that is being modified. */
-          float transform[4][4];
-          mul_m4_m4m4(transform, self_object->imat, object->obmat);
           BKE_mesh_transform(copied_mesh, transform, true);
 
           MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
