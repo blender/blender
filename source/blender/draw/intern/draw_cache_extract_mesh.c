@@ -1455,7 +1455,7 @@ typedef struct PosNorLoop {
 
 typedef struct MeshExtract_PosNor_Data {
   PosNorLoop *vbo_data;
-  GPUPackedNormal packed_nor[];
+  GPUNormal normals[];
 } MeshExtract_PosNor_Data;
 
 static void *extract_pos_nor_init(const MeshRenderData *mr, void *buf)
@@ -1472,7 +1472,7 @@ static void *extract_pos_nor_init(const MeshRenderData *mr, void *buf)
   GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
 
   /* Pack normals per vert, reduce amount of computation. */
-  size_t packed_nor_len = sizeof(GPUPackedNormal) * mr->vert_len;
+  size_t packed_nor_len = sizeof(GPUNormal) * mr->vert_len;
   MeshExtract_PosNor_Data *data = MEM_mallocN(sizeof(*data) + packed_nor_len, __func__);
   data->vbo_data = (PosNorLoop *)vbo->data;
 
@@ -1482,13 +1482,13 @@ static void *extract_pos_nor_init(const MeshRenderData *mr, void *buf)
     BMVert *eve;
     int v;
     BM_ITER_MESH_INDEX (eve, &iter, mr->bm, BM_VERTS_OF_MESH, v) {
-      data->packed_nor[v] = GPU_normal_convert_i10_v3(eve->no);
+      data->normals[v].low = GPU_normal_convert_i10_v3(eve->no);
     }
   }
   else {
-    const MVert *mvert = mr->mvert;
-    for (int v = 0; v < mr->vert_len; v++, mvert++) {
-      data->packed_nor[v] = GPU_normal_convert_i10_s3(mvert->no);
+    const MVert *mv = mr->mvert;
+    for (int v = 0; v < mr->vert_len; v++, mv++) {
+      data->normals[v].low = GPU_normal_convert_i10_s3(mv->no);
     }
   }
   return data;
@@ -1502,7 +1502,7 @@ static void extract_pos_nor_loop_bmesh(const MeshRenderData *UNUSED(mr),
   MeshExtract_PosNor_Data *data = _data;
   PosNorLoop *vert = data->vbo_data + l;
   copy_v3_v3(vert->pos, loop->v->co);
-  vert->nor = data->packed_nor[BM_elem_index_get(loop->v)];
+  vert->nor = data->normals[BM_elem_index_get(loop->v)].low;
   BMFace *efa = loop->f;
   vert->nor.w = BM_elem_flag_test(efa, BM_ELEM_HIDDEN) ? -1 : 0;
 }
@@ -1518,7 +1518,7 @@ static void extract_pos_nor_loop_mesh(const MeshRenderData *mr,
   PosNorLoop *vert = data->vbo_data + l;
   const MVert *mvert = &mr->mvert[mloop->v];
   copy_v3_v3(vert->pos, mvert->co);
-  vert->nor = data->packed_nor[mloop->v];
+  vert->nor = data->normals[mloop->v].low;
   /* Flag for paint mode overlay. */
   if (mpoly->flag & ME_HIDE || mvert->flag & ME_HIDE ||
       ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->v_origindex) &&
@@ -1540,8 +1540,8 @@ static void extract_pos_nor_ledge_bmesh(const MeshRenderData *mr, int e, BMEdge 
   PosNorLoop *vert = data->vbo_data + l;
   copy_v3_v3(vert[0].pos, eed->v1->co);
   copy_v3_v3(vert[1].pos, eed->v2->co);
-  vert[0].nor = data->packed_nor[BM_elem_index_get(eed->v1)];
-  vert[1].nor = data->packed_nor[BM_elem_index_get(eed->v2)];
+  vert[0].nor = data->normals[BM_elem_index_get(eed->v1)].low;
+  vert[1].nor = data->normals[BM_elem_index_get(eed->v2)].low;
 }
 
 static void extract_pos_nor_ledge_mesh(const MeshRenderData *mr,
@@ -1554,8 +1554,8 @@ static void extract_pos_nor_ledge_mesh(const MeshRenderData *mr,
   PosNorLoop *vert = data->vbo_data + l;
   copy_v3_v3(vert[0].pos, mr->mvert[medge->v1].co);
   copy_v3_v3(vert[1].pos, mr->mvert[medge->v2].co);
-  vert[0].nor = data->packed_nor[medge->v1];
-  vert[1].nor = data->packed_nor[medge->v2];
+  vert[0].nor = data->normals[medge->v1].low;
+  vert[1].nor = data->normals[medge->v2].low;
 }
 
 static void extract_pos_nor_lvert_bmesh(const MeshRenderData *mr, int v, BMVert *eve, void *_data)
@@ -1564,7 +1564,7 @@ static void extract_pos_nor_lvert_bmesh(const MeshRenderData *mr, int v, BMVert 
   MeshExtract_PosNor_Data *data = _data;
   PosNorLoop *vert = data->vbo_data + l;
   copy_v3_v3(vert->pos, eve->co);
-  vert->nor = data->packed_nor[BM_elem_index_get(eve)];
+  vert->nor = data->normals[BM_elem_index_get(eve)].low;
 }
 
 static void extract_pos_nor_lvert_mesh(const MeshRenderData *mr,
@@ -1577,7 +1577,7 @@ static void extract_pos_nor_lvert_mesh(const MeshRenderData *mr,
   MeshExtract_PosNor_Data *data = _data;
   PosNorLoop *vert = data->vbo_data + l;
   copy_v3_v3(vert->pos, mvert->co);
-  vert->nor = data->packed_nor[v_idx];
+  vert->nor = data->normals[v_idx].low;
 }
 
 static void extract_pos_nor_finish(const MeshRenderData *UNUSED(mr), void *UNUSED(vbo), void *data)
@@ -1601,6 +1601,174 @@ static const MeshExtract extract_pos_nor = {
 };
 /** \} */
 
+/* ---------------------------------------------------------------------- */
+/** \name Extract Position and High Quality Vertex Normal
+ * \{ */
+
+typedef struct PosNorHQLoop {
+  float pos[3];
+  short nor[4];
+} PosNorHQLoop;
+
+typedef struct MeshExtract_PosNorHQ_Data {
+  PosNorHQLoop *vbo_data;
+  GPUNormal normals[];
+} MeshExtract_PosNorHQ_Data;
+
+static void *extract_pos_nor_hq_init(const MeshRenderData *mr, void *buf)
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    /* WARNING Adjust #PosNorHQLoop struct accordingly. */
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    GPU_vertformat_alias_add(&format, "vnor");
+  }
+  GPUVertBuf *vbo = buf;
+  GPU_vertbuf_init_with_format(vbo, &format);
+  GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
+
+  /* Pack normals per vert, reduce amount of computation. */
+  size_t packed_nor_len = sizeof(GPUNormal) * mr->vert_len;
+  MeshExtract_PosNorHQ_Data *data = MEM_mallocN(sizeof(*data) + packed_nor_len, __func__);
+  data->vbo_data = (PosNorHQLoop *)vbo->data;
+
+  /* Quicker than doing it for each loop. */
+  if (mr->extract_type == MR_EXTRACT_BMESH) {
+    BMIter iter;
+    BMVert *eve;
+    int v;
+    BM_ITER_MESH_INDEX (eve, &iter, mr->bm, BM_VERTS_OF_MESH, v) {
+      normal_float_to_short_v3(data->normals[v].high, eve->no);
+    }
+  }
+  else {
+    const MVert *mv = mr->mvert;
+    for (int v = 0; v < mr->vert_len; v++, mv++) {
+      copy_v3_v3_short(data->normals[v].high, mv->no);
+    }
+  }
+  return data;
+}
+
+static void extract_pos_nor_hq_loop_bmesh(const MeshRenderData *UNUSED(mr),
+                                          int l,
+                                          BMLoop *loop,
+                                          void *_data)
+{
+  MeshExtract_PosNorHQ_Data *data = _data;
+  PosNorHQLoop *vert = data->vbo_data + l;
+  copy_v3_v3(vert->pos, loop->v->co);
+  copy_v3_v3_short(vert->nor, data->normals[BM_elem_index_get(loop->v)].high);
+  BMFace *efa = loop->f;
+  vert->nor[3] = BM_elem_flag_test(efa, BM_ELEM_HIDDEN) ? -1 : 0;
+}
+
+static void extract_pos_nor_hq_loop_mesh(const MeshRenderData *mr,
+                                         int l,
+                                         const MLoop *mloop,
+                                         int UNUSED(p),
+                                         const MPoly *mpoly,
+                                         void *_data)
+{
+  MeshExtract_PosNorHQ_Data *data = _data;
+  PosNorHQLoop *vert = data->vbo_data + l;
+  const MVert *mvert = &mr->mvert[mloop->v];
+  copy_v3_v3(vert->pos, mvert->co);
+  copy_v3_v3_short(vert->nor, data->normals[mloop->v].high);
+  /* Flag for paint mode overlay. */
+  if (mpoly->flag & ME_HIDE || mvert->flag & ME_HIDE ||
+      ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->v_origindex) &&
+       (mr->v_origindex[mloop->v] == ORIGINDEX_NONE))) {
+    vert->nor[3] = -1;
+  }
+  else if (mvert->flag & SELECT) {
+    vert->nor[3] = 1;
+  }
+  else {
+    vert->nor[3] = 0;
+  }
+}
+
+static void extract_pos_nor_hq_ledge_bmesh(const MeshRenderData *mr,
+                                           int e,
+                                           BMEdge *eed,
+                                           void *_data)
+{
+  int l = mr->loop_len + e * 2;
+  MeshExtract_PosNorHQ_Data *data = _data;
+  PosNorHQLoop *vert = data->vbo_data + l;
+  copy_v3_v3(vert[0].pos, eed->v1->co);
+  copy_v3_v3(vert[1].pos, eed->v2->co);
+  copy_v3_v3_short(vert[0].nor, data->normals[BM_elem_index_get(eed->v1)].high);
+  vert[0].nor[3] = 0;
+  copy_v3_v3_short(vert[1].nor, data->normals[BM_elem_index_get(eed->v2)].high);
+  vert[1].nor[3] = 0;
+}
+
+static void extract_pos_nor_hq_ledge_mesh(const MeshRenderData *mr,
+                                          int e,
+                                          const MEdge *medge,
+                                          void *_data)
+{
+  int l = mr->loop_len + e * 2;
+  MeshExtract_PosNorHQ_Data *data = _data;
+  PosNorHQLoop *vert = data->vbo_data + l;
+  copy_v3_v3(vert[0].pos, mr->mvert[medge->v1].co);
+  copy_v3_v3(vert[1].pos, mr->mvert[medge->v2].co);
+  copy_v3_v3_short(vert[0].nor, data->normals[medge->v1].high);
+  vert[0].nor[3] = 0;
+  copy_v3_v3_short(vert[1].nor, data->normals[medge->v2].high);
+  vert[1].nor[3] = 0;
+}
+
+static void extract_pos_nor_hq_lvert_bmesh(const MeshRenderData *mr,
+                                           int v,
+                                           BMVert *eve,
+                                           void *_data)
+{
+  int l = mr->loop_len + mr->edge_loose_len * 2 + v;
+  MeshExtract_PosNorHQ_Data *data = _data;
+  PosNorHQLoop *vert = data->vbo_data + l;
+  copy_v3_v3(vert->pos, eve->co);
+  copy_v3_v3_short(vert->nor, data->normals[BM_elem_index_get(eve)].high);
+  vert->nor[3] = 0;
+}
+
+static void extract_pos_nor_hq_lvert_mesh(const MeshRenderData *mr,
+                                          int v,
+                                          const MVert *mvert,
+                                          void *_data)
+{
+  int l = mr->loop_len + mr->edge_loose_len * 2 + v;
+  int v_idx = mr->lverts[v];
+  MeshExtract_PosNorHQ_Data *data = _data;
+  PosNorHQLoop *vert = data->vbo_data + l;
+  copy_v3_v3(vert->pos, mvert->co);
+  copy_v3_v3_short(vert->nor, data->normals[v_idx].high);
+  vert->nor[3] = 0;
+}
+static void extract_pos_nor_hq_finish(const MeshRenderData *UNUSED(mr),
+                                      void *UNUSED(vbo),
+                                      void *data)
+{
+  MEM_freeN(data);
+}
+
+static const MeshExtract extract_pos_nor_hq = {
+    .init = extract_pos_nor_hq_init,
+    .iter_loop_bm = extract_pos_nor_hq_loop_bmesh,
+    .iter_loop = extract_pos_nor_hq_loop_mesh,
+    .iter_ledge_bm = extract_pos_nor_hq_ledge_bmesh,
+    .iter_ledge = extract_pos_nor_hq_ledge_mesh,
+    .iter_lvert_bm = extract_pos_nor_hq_lvert_bmesh,
+    .iter_lvert = extract_pos_nor_hq_lvert_mesh,
+    .finish = extract_pos_nor_hq_finish,
+    .data_flag = 0,
+    .use_threading = true,
+};
+
+/** \} */
 /* ---------------------------------------------------------------------- */
 /** \name Extract HQ Loop Normal
  * \{ */
@@ -4619,6 +4787,9 @@ static void extract_task_create(TaskPool *task_pool,
   if (do_hq_normals) {
     if (extract == &extract_lnor) {
       extract = &extract_lnor_hq;
+    }
+    else if (extract == &extract_pos_nor) {
+      extract = &extract_pos_nor_hq;
     }
     else if (extract == &extract_tan) {
       extract = &extract_tan_hq;
