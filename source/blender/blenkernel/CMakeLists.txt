@@ -731,6 +731,7 @@ add_dependencies(bf_blenkernel bf_dna)
 if(WITH_GTESTS)
   set(TEST_SRC
     intern/armature_test.cc
+    intern/cryptomatte_test.cc
     intern/fcurve_test.cc
     intern/lattice_deform_test.cc
     intern/layer_test.cc

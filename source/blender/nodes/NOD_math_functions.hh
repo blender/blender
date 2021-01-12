@@ -18,6 +18,7 @@
 
 #include "DNA_node_types.h"
 
+#include "BLI_float3.hh"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string_ref.hh"
@@ -36,6 +37,7 @@ struct FloatMathOperationInfo {
 };
 
 const FloatMathOperationInfo *get_float_math_operation_info(const int operation);
+const FloatMathOperationInfo *get_float3_math_operation_info(const int operation);
 const FloatMathOperationInfo *get_float_compare_operation_info(const int operation);
 
 /**
@@ -225,6 +227,230 @@ inline bool try_dispatch_float_math_fl_fl_to_bool(const FloatCompareOperation op
       return dispatch([](float a, float b) { return a > b; });
     case NODE_FLOAT_COMPARE_GREATER_EQUAL:
       return dispatch([](float a, float b) { return a >= b; });
+    default:
+      return false;
+  }
+  return false;
+}
+
+/**
+ * This is similar to try_dispatch_float_math_fl_to_fl, just with a different callback signature.
+ */
+template<typename Callback>
+inline bool try_dispatch_float_math_fl3_fl3_to_fl3(const NodeVectorMathOperation operation,
+                                                   Callback &&callback)
+{
+  const FloatMathOperationInfo *info = get_float3_math_operation_info(operation);
+  if (info == nullptr) {
+    return false;
+  }
+
+  /* This is just a utility function to keep the individual cases smaller. */
+  auto dispatch = [&](auto math_function) -> bool {
+    callback(math_function, *info);
+    return true;
+  };
+
+  switch (operation) {
+    case NODE_VECTOR_MATH_ADD:
+      return dispatch([](float3 a, float3 b) { return a + b; });
+    case NODE_VECTOR_MATH_SUBTRACT:
+      return dispatch([](float3 a, float3 b) { return a - b; });
+    case NODE_VECTOR_MATH_MULTIPLY:
+      return dispatch([](float3 a, float3 b) { return a * b; });
+    case NODE_VECTOR_MATH_DIVIDE:
+      return dispatch([](float3 a, float3 b) {
+        return float3(safe_divide(a.x, b.x), safe_divide(a.y, b.y), safe_divide(a.z, b.z));
+      });
+    case NODE_VECTOR_MATH_CROSS_PRODUCT:
+      return dispatch([](float3 a, float3 b) { return float3::cross_high_precision(a, b); });
+    case NODE_VECTOR_MATH_PROJECT:
+      return dispatch([](float3 a, float3 b) {
+        float length_squared = float3::dot(a, b);
+        return (length_squared != 0.0) ? (float3::dot(a, b) / length_squared) * b : float3(0.0f);
+      });
+    case NODE_VECTOR_MATH_REFLECT:
+      return dispatch([](float3 a, float3 b) {
+        b.normalize();
+        return a.reflected(b);
+      });
+    case NODE_VECTOR_MATH_SNAP:
+      return dispatch([](float3 a, float3 b) {
+        return float3(floor(safe_divide(a.x, b.x)),
+                      floor(safe_divide(a.y, b.y)),
+                      floor(safe_divide(a.z, b.z))) *
+               b;
+      });
+    case NODE_VECTOR_MATH_MODULO:
+      return dispatch([](float3 a, float3 b) {
+        return float3(safe_modf(a.x, b.x), safe_modf(a.y, b.y), safe_modf(a.z, b.z));
+      });
+    case NODE_VECTOR_MATH_MINIMUM:
+      return dispatch([](float3 a, float3 b) {
+        return float3(min_ff(a.x, b.x), min_ff(a.y, b.y), min_ff(a.z, b.z));
+      });
+    case NODE_VECTOR_MATH_MAXIMUM:
+      return dispatch([](float3 a, float3 b) {
+        return float3(max_ff(a.x, b.x), max_ff(a.y, b.y), max_ff(a.z, b.z));
+      });
+    default:
+      return false;
+  }
+  return false;
+}
+
+/**
+ * This is similar to try_dispatch_float_math_fl_to_fl, just with a different callback signature.
+ */
+template<typename Callback>
+inline bool try_dispatch_float_math_fl3_fl3_to_fl(const NodeVectorMathOperation operation,
+                                                  Callback &&callback)
+{
+  const FloatMathOperationInfo *info = get_float3_math_operation_info(operation);
+  if (info == nullptr) {
+    return false;
+  }
+
+  /* This is just a utility function to keep the individual cases smaller. */
+  auto dispatch = [&](auto math_function) -> bool {
+    callback(math_function, *info);
+    return true;
+  };
+
+  switch (operation) {
+    case NODE_VECTOR_MATH_DOT_PRODUCT:
+      return dispatch([](float3 a, float3 b) { return float3::dot(a, b); });
+    case NODE_VECTOR_MATH_DISTANCE:
+      return dispatch([](float3 a, float3 b) { return float3::distance(a, b); });
+    default:
+      return false;
+  }
+  return false;
+}
+
+/**
+ * This is similar to try_dispatch_float_math_fl_to_fl, just with a different callback signature.
+ */
+template<typename Callback>
+inline bool try_dispatch_float_math_fl3_fl3_fl3_to_fl3(const NodeVectorMathOperation operation,
+                                                       Callback &&callback)
+{
+  const FloatMathOperationInfo *info = get_float3_math_operation_info(operation);
+  if (info == nullptr) {
+    return false;
+  }
+
+  /* This is just a utility function to keep the individual cases smaller. */
+  auto dispatch = [&](auto math_function) -> bool {
+    callback(math_function, *info);
+    return true;
+  };
+
+  switch (operation) {
+    case NODE_VECTOR_MATH_WRAP:
+      return dispatch([](float3 a, float3 b, float3 c) {
+        return float3(wrapf(a.x, b.x, c.x), wrapf(a.y, b.y, c.y), wrapf(a.z, b.z, c.z));
+      });
+    default:
+      return false;
+  }
+  return false;
+}
+
+/**
+ * This is similar to try_dispatch_float_math_fl_to_fl, just with a different callback signature.
+ */
+template<typename Callback>
+inline bool try_dispatch_float_math_fl3_to_fl(const NodeVectorMathOperation operation,
+                                              Callback &&callback)
+{
+  const FloatMathOperationInfo *info = get_float3_math_operation_info(operation);
+  if (info == nullptr) {
+    return false;
+  }
+
+  /* This is just a utility function to keep the individual cases smaller. */
+  auto dispatch = [&](auto math_function) -> bool {
+    callback(math_function, *info);
+    return true;
+  };
+
+  switch (operation) {
+    case NODE_VECTOR_MATH_LENGTH:
+      return dispatch([](float3 in) { return in.length(); });
+    default:
+      return false;
+  }
+  return false;
+}
+
+/**
+ * This is similar to try_dispatch_float_math_fl_to_fl, just with a different callback signature.
+ */
+template<typename Callback>
+inline bool try_dispatch_float_math_fl3_fl_to_fl3(const NodeVectorMathOperation operation,
+                                                  Callback &&callback)
+{
+  const FloatMathOperationInfo *info = get_float3_math_operation_info(operation);
+  if (info == nullptr) {
+    return false;
+  }
+
+  /* This is just a utility function to keep the individual cases smaller. */
+  auto dispatch = [&](auto math_function) -> bool {
+    callback(math_function, *info);
+    return true;
+  };
+
+  switch (operation) {
+    case NODE_VECTOR_MATH_SCALE:
+      return dispatch([](float3 a, float b) { return a * b; });
+    default:
+      return false;
+  }
+  return false;
+}
+
+/**
+ * This is similar to try_dispatch_float_math_fl_to_fl, just with a different callback signature.
+ */
+template<typename Callback>
+inline bool try_dispatch_float_math_fl3_to_fl3(const NodeVectorMathOperation operation,
+                                               Callback &&callback)
+{
+  const FloatMathOperationInfo *info = get_float3_math_operation_info(operation);
+  if (info == nullptr) {
+    return false;
+  }
+
+  /* This is just a utility function to keep the individual cases smaller. */
+  auto dispatch = [&](auto math_function) -> bool {
+    callback(math_function, *info);
+    return true;
+  };
+
+  switch (operation) {
+    case NODE_VECTOR_MATH_NORMALIZE:
+      return dispatch([](float3 in) {
+        float3 out = in;
+        out.normalize();
+        return out;
+      }); /* Should be safe. */
+    case NODE_VECTOR_MATH_FLOOR:
+      return dispatch([](float3 in) { return float3(floor(in.x), floor(in.y), floor(in.z)); });
+    case NODE_VECTOR_MATH_CEIL:
+      return dispatch([](float3 in) { return float3(ceil(in.x), ceil(in.y), ceil(in.z)); });
+    case NODE_VECTOR_MATH_FRACTION:
+      return dispatch(
+          [](float3 in) { return in - float3(floor(in.x), floor(in.y), floor(in.z)); });
+    case NODE_VECTOR_MATH_ABSOLUTE:
+      return dispatch([](float3 in) { return float3::abs(in); });
+    case NODE_VECTOR_MATH_SINE:
+      return dispatch([](float3 in) { return float3(sinf(in.x), sinf(in.y), sinf(in.z)); });
+    case NODE_VECTOR_MATH_COSINE:
+      return dispatch([](float3 in) { return float3(cosf(in.x), cosf(in.y), cosf(in.z)); });
+    case NODE_VECTOR_MATH_TANGENT:
+      return dispatch([](float3 in) { return float3(tanf(in.x), tanf(in.y), tanf(in.z)); });
     default:
       return false;
   }

@@ -5698,7 +5698,7 @@ static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
     /* First test: curve? */
     if (obedit->type != OB_CURVE) {
       LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
-        if ((nu->pntsv == 1) && (ED_curve_nurb_select_count(v3d, nu) == 1)) {
+        if ((nu->pntsv == 1) && (ED_curve_nurb_select_count(v3d, nu) < nu->pntsu)) {
           as_curve = true;
           break;
         }

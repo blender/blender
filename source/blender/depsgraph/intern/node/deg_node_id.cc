@@ -80,6 +80,7 @@ void IDNode::init(const ID *id, const char *UNUSED(subdata))
   /* Store ID-pointer. */
   id_type = GS(id->name);
   id_orig = (ID *)id;
+  id_orig_session_uuid = id->session_uuid;
   eval_flags = 0;
   previous_eval_flags = 0;
   customdata_masks = DEGCustomDataMeshMasks();

@@ -423,13 +423,14 @@ int writeObjectsVDB(const string &filename,
 
     if (GridBase *mantaGrid = dynamic_cast<GridBase *>(*iter)) {
 
-      if (clipGrid) {
-        assertMsg(clipGrid->getSize() == mantaGrid->getSize(),
-                  "writeObjectsVDB: Clip grid and exported grid must have the same size");
-      }
       if (mantaGrid->getType() & GridBase::TypeInt) {
         debMsg("Writing int grid '" << mantaGrid->getName() << "' to vdb file " << filename, 1);
         Grid<int> *mantaIntGrid = (Grid<int> *)mantaGrid;
+        if (clipGrid && mantaIntGrid->saveSparse()) {
+          assertMsg(clipGrid->getSize() == mantaGrid->getSize(),
+                    "writeObjectsVDB: Clip grid and exported grid must have the same size "
+                        << clipGrid->getSize() << " vs " << mantaGrid->getSize());
+        }
         vdbGrid = exportVDB<int, openvdb::Int32Grid>(mantaIntGrid, clip, vdbClipGrid);
         gridsVDB.push_back(vdbGrid);
       }
@@ -440,6 +441,11 @@ int writeObjectsVDB(const string &filename,
         Grid<Real> *mantaRealGrid = (Grid<Real> *)mantaGrid;
         // Only supply clip grid if real grid is not equal to the clip grid
         openvdb::FloatGrid::Ptr tmpClipGrid = (mantaRealGrid == clipGrid) ? nullptr : vdbClipGrid;
+        if (clipGrid && mantaRealGrid->saveSparse()) {
+          assertMsg(clipGrid->getSize() == mantaGrid->getSize(),
+                    "writeObjectsVDB: Clip grid and exported grid must have the same size "
+                        << clipGrid->getSize() << " vs " << mantaGrid->getSize());
+        }
         vdbGrid = exportVDB<Real, openvdb::FloatGrid>(mantaRealGrid, clip, tmpClipGrid);
         gridsVDB.push_back(vdbGrid);
       }
@@ -448,6 +454,11 @@ int writeObjectsVDB(const string &filename,
         gClass = (mantaGrid->getType() & GridBase::TypeMAC) ? openvdb::GRID_STAGGERED :
                                                               openvdb::GRID_UNKNOWN;
         Grid<Vec3> *mantaVec3Grid = (Grid<Vec3> *)mantaGrid;
+        if (clipGrid && mantaVec3Grid->saveSparse()) {
+          assertMsg(clipGrid->getSize() == mantaGrid->getSize(),
+                    "writeObjectsVDB: Clip grid and exported grid must have the same size "
+                        << clipGrid->getSize() << " vs " << mantaGrid->getSize());
+        }
         vdbGrid = exportVDB<Vec3, openvdb::Vec3SGrid>(mantaVec3Grid, clip, vdbClipGrid);
         gridsVDB.push_back(vdbGrid);
       }

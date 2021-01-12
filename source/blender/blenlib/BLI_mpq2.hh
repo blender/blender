@@ -156,7 +156,8 @@ struct mpq2 {
 
   static mpq_class distance_squared(const mpq2 &a, const mpq2 &b)
   {
-    return dot(a, b);
+    mpq2 diff = a - b;
+    return dot(diff, diff);
   }
 
   struct isect_result {

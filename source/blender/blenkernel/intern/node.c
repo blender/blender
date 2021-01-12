@@ -2322,14 +2322,14 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
   /* trees are created as local trees for compositor, material or texture nodes,
    * node groups and other tree types are created as library data.
    */
-  if (bmain) {
-    ntree = BKE_libblock_alloc(bmain, ID_NT, name, 0);
+  const bool is_embedded = (bmain == NULL);
+  int flag = 0;
+  if (is_embedded) {
+    flag |= LIB_ID_CREATE_NO_MAIN;
   }
-  else {
-    ntree = MEM_callocN(sizeof(bNodeTree), "new node tree");
+  ntree = BKE_libblock_alloc(bmain, ID_NT, name, flag);
+  if (is_embedded) {
     ntree->id.flag |= LIB_EMBEDDED_DATA;
-    *((short *)ntree->id.name) = ID_NT;
-    BLI_strncpy(ntree->id.name + 2, name, sizeof(ntree->id.name));
   }
 
   /* Types are fully initialized at this point,
@@ -4730,6 +4730,7 @@ static void registerGeometryNodes(void)
 
   register_node_type_geo_attribute_compare();
   register_node_type_geo_attribute_fill();
+  register_node_type_geo_attribute_vector_math();
   register_node_type_geo_triangulate();
   register_node_type_geo_edge_split();
   register_node_type_geo_transform();
@@ -4745,6 +4746,7 @@ static void registerGeometryNodes(void)
   register_node_type_geo_attribute_mix();
   register_node_type_geo_attribute_color_ramp();
   register_node_type_geo_rotate_points();
+  register_node_type_geo_align_rotation_to_vector();
 }
 
 static void registerFunctionNodes(void)

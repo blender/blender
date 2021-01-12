@@ -340,9 +340,8 @@ class GHOST_SystemWin32 : public GHOST_System {
   /**
    * Creates cursor event.
    * \param window: The window receiving the event (the active window).
-   * \return The event created.
    */
-  static GHOST_EventCursor *processCursorEvent(GHOST_WindowWin32 *window);
+  static void processCursorEvent(GHOST_WindowWin32 *window);
 
   /**
    * Handles a mouse wheel event.
@@ -463,16 +462,23 @@ class GHOST_SystemWin32 : public GHOST_System {
   __int64 m_lfstart;
   /** AltGr on current keyboard layout. */
   bool m_hasAltGr;
-  /** language identifier. */
+  /** Language identifier. */
   WORD m_langId;
-  /** stores keyboard layout. */
+  /** Stores keyboard layout. */
   HKL m_keylayout;
 
-  /** Console status */
+  /** Console status. */
   int m_consoleStatus;
 
-  /** Wheel delta accumulator */
+  /** Wheel delta accumulator. */
   int m_wheelDeltaAccum;
+
+  /** Last mouse x position. */
+  int m_mousePosX;
+  /** Last mouse y position. */
+  int m_mousePosY;
+  /** Last mouse timestamp. */
+  DWORD m_mouseTimestamp;
 };
 
 inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys &keys) const

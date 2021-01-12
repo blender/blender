@@ -892,7 +892,7 @@ static void acf_group_name(bAnimListElem *ale, char *name)
 /* name property for group entries */
 static bool acf_group_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
 {
-  RNA_pointer_create(ale->id, &RNA_ActionGroup, ale->data, ptr);
+  RNA_pointer_create(ale->fcurve_owner_id, &RNA_ActionGroup, ale->data, ptr);
   *prop = RNA_struct_name_property(ptr->type);
 
   return (*prop != NULL);
@@ -1013,7 +1013,7 @@ static bool acf_fcurve_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRN
    * as our "name" so that user can perform quick fixes
    */
   if (fcu->flag & FCURVE_DISABLED) {
-    RNA_pointer_create(ale->id, &RNA_FCurve, ale->data, ptr);
+    RNA_pointer_create(ale->fcurve_owner_id, &RNA_FCurve, ale->data, ptr);
     *prop = RNA_struct_find_property(ptr, "data_path");
   }
   else {
@@ -3965,7 +3965,7 @@ static void acf_nlaaction_name(bAnimListElem *ale, char *name)
 static bool acf_nlaaction_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
 {
   if (ale->data) {
-    RNA_pointer_create(ale->id, &RNA_Action, ale->data, ptr);
+    RNA_pointer_create(ale->fcurve_owner_id, &RNA_Action, ale->data, ptr);
     *prop = RNA_struct_name_property(ptr->type);
 
     return (*prop != NULL);

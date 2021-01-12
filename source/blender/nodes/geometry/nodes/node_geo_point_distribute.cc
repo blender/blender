@@ -55,9 +55,22 @@ static void node_point_distribute_update(bNodeTree *UNUSED(ntree), bNode *node)
 
 namespace blender::nodes {
 
+/**
+ * Use an arbitrary choice of axes for a usable rotation attribute directly out of this node.
+ */
+static float3 normal_to_euler_rotation(const float3 normal)
+{
+  float quat[4];
+  vec_to_quat(quat, normal, OB_NEGZ, OB_POSY);
+  float3 rotation;
+  quat_to_eul(rotation, quat);
+  return rotation;
+}
+
 static Vector<float3> random_scatter_points_from_mesh(const Mesh *mesh,
                                                       const float density,
                                                       const FloatReadAttribute &density_factors,
+                                                      Vector<float3> &r_normals,
                                                       Vector<int> &r_ids,
                                                       const int seed)
 {
@@ -99,6 +112,10 @@ static Vector<float3> random_scatter_points_from_mesh(const Mesh *mesh,
 
       /* Build a hash stable even when the mesh is deformed. */
       r_ids.append(((int)(bary_coords.hash()) + looptri_index));
+
+      float3 tri_normal;
+      normal_tri_v3(tri_normal, v0_pos, v1_pos, v2_pos);
+      r_normals.append(tri_normal);
     }
   }
 
@@ -117,6 +134,7 @@ struct RayCastAll_Data {
   float base_weight;
   FloatReadAttribute *density_factors;
   Vector<float3> *projected_points;
+  Vector<float3> *normals;
   Vector<int> *stable_ids;
   float cur_point_weight;
 };
@@ -159,6 +177,8 @@ static void project_2d_bvh_callback(void *userdata,
 
       /* Build a hash stable even when the mesh is deformed. */
       data->stable_ids->append((int)data->raystart.hash());
+
+      data->normals->append(hit->no);
     }
   }
 }
@@ -167,6 +187,7 @@ static Vector<float3> poisson_scatter_points_from_mesh(const Mesh *mesh,
                                                        const float density,
                                                        const float minimum_distance,
                                                        const FloatReadAttribute &density_factors,
+                                                       Vector<float3> &r_normals,
                                                        Vector<int> &r_ids,
                                                        const int seed)
 {
@@ -219,6 +240,7 @@ static Vector<float3> poisson_scatter_points_from_mesh(const Mesh *mesh,
   data.mesh = mesh;
   data.projected_points = &final_points;
   data.stable_ids = &r_ids;
+  data.normals = &r_normals;
   data.density_factors = const_cast<FloatReadAttribute *>(&density_factors);
   data.base_weight = std::min(
       1.0f, density / (output_points.size() / (point_scale_multiplier * point_scale_multiplier)));
@@ -288,16 +310,17 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   const int seed = params.get_input<int>("Seed");
 
   Vector<int> stable_ids;
+  Vector<float3> normals;
   Vector<float3> points;
   switch (distribute_method) {
     case GEO_NODE_POINT_DISTRIBUTE_RANDOM:
       points = random_scatter_points_from_mesh(
-          mesh_in, density, density_factors, stable_ids, seed);
+          mesh_in, density, density_factors, normals, stable_ids, seed);
       break;
     case GEO_NODE_POINT_DISTRIBUTE_POISSON:
       const float min_dist = params.extract_input<float>("Distance Min");
       points = poisson_scatter_points_from_mesh(
-          mesh_in, density, min_dist, density_factors, stable_ids, seed);
+          mesh_in, density, min_dist, density_factors, normals, stable_ids, seed);
       break;
   }
 
@@ -312,11 +335,31 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
       geometry_set_out.get_component_for_write<PointCloudComponent>();
   point_component.replace(pointcloud);
 
-  Int32WriteAttribute stable_id_attribute = point_component.attribute_try_ensure_for_write(
-      "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
-  MutableSpan<int> stable_ids_span = stable_id_attribute.get_span();
-  stable_ids_span.copy_from(stable_ids);
-  stable_id_attribute.apply_span();
+  {
+    Int32WriteAttribute stable_id_attribute = point_component.attribute_try_ensure_for_write(
+        "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
+    MutableSpan<int> stable_ids_span = stable_id_attribute.get_span();
+    stable_ids_span.copy_from(stable_ids);
+    stable_id_attribute.apply_span();
+  }
+
+  {
+    Float3WriteAttribute normals_attribute = point_component.attribute_try_ensure_for_write(
+        "normal", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+    MutableSpan<float3> normals_span = normals_attribute.get_span();
+    normals_span.copy_from(normals);
+    normals_attribute.apply_span();
+  }
+
+  {
+    Float3WriteAttribute rotations_attribute = point_component.attribute_try_ensure_for_write(
+        "rotation", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+    MutableSpan<float3> rotations_span = rotations_attribute.get_span();
+    for (const int i : rotations_span.index_range()) {
+      rotations_span[i] = normal_to_euler_rotation(normals[i]);
+    }
+    rotations_attribute.apply_span();
+  }
 
   params.set_output("Geometry", std::move(geometry_set_out));
 }

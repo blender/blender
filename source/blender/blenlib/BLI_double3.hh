@@ -218,7 +218,8 @@ struct double3 {
 
   static double distance_squared(const double3 &a, const double3 &b)
   {
-    return double3::dot(a, b);
+    double3 diff = a - b;
+    return double3::dot(diff, diff);
   }
 
   static double3 interpolate(const double3 &a, const double3 &b, double t)

@@ -159,11 +159,6 @@ void GLBackend::platform_init()
         GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
-    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-      if (is_faulty_T82856_platform(version, renderer)) {
-        GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
-      }
-    }
   }
   GPG.create_key(GPG.support_level, vendor, renderer, version);
   GPG.create_gpu_name(vendor, renderer, version);

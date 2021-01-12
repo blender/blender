@@ -94,7 +94,7 @@ class RenderLayersProg : public NodeOperation {
   {
     this->m_scene = scene;
   }
-  Scene *getScene()
+  Scene *getScene() const
   {
     return this->m_scene;
   }
@@ -106,7 +106,7 @@ class RenderLayersProg : public NodeOperation {
   {
     this->m_layerId = layerId;
   }
-  short getLayerId()
+  short getLayerId() const
   {
     return this->m_layerId;
   }
@@ -121,6 +121,8 @@ class RenderLayersProg : public NodeOperation {
   void initExecution();
   void deinitExecution();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+
+  std::unique_ptr<MetaData> getMetaData() const override;
 };
 
 class RenderLayersAOOperation : public RenderLayersProg {

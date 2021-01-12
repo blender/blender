@@ -772,9 +772,7 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner, ListBase *tree)
     }
 
     /* go over sub-tree */
-    if (TSELEM_OPEN(tselem, space_outliner)) {
-      num_ids += outliner_id_copy_tag(space_outliner, &te->subtree);
-    }
+    num_ids += outliner_id_copy_tag(space_outliner, &te->subtree);
   }
 
   return num_ids;

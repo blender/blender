@@ -403,16 +403,15 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
   }
   BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
-  if (num == DMCACHE_NOTFOUND) {
+  if (ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     if (particle->num < modifier->mesh_final->totface) {
       num = particle->num;
     }
   }
 
   /* get uvco */
-  if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-
-    if (num != DMCACHE_NOTFOUND) {
+  if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME) &&
+      !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
       MFace *mface;
       MTFace *mtface;
 
@@ -424,7 +423,6 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
         psys_interpolate_uvs(mtface, mface->v4, particle->fuv, r_uv);
         return;
       }
-    }
   }
 
   r_uv[0] = 0.0f;

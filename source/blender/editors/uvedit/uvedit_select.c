@@ -724,47 +724,36 @@ bool uv_find_nearest_edge_multi(Scene *scene,
   return found;
 }
 
-bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit_final)
+bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit)
 {
-  BLI_assert((hit_final->scale[0] > 0.0f) && (hit_final->scale[1] > 0.0f));
+  BLI_assert((hit->scale[0] > 0.0f) && (hit->scale[1] > 0.0f));
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   bool found = false;
 
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-  /* this will fill in hit.vert1 and hit.vert2 */
-  float dist_sq_init = hit_final->dist_sq;
-  UvNearestHit hit = *hit_final;
-  if (uv_find_nearest_edge(scene, obedit, co, &hit)) {
-    hit.dist_sq = dist_sq_init;
-    hit.l = NULL;
+  BMIter iter;
+  BMFace *efa;
 
-    BMIter iter;
-    BMFace *efa;
-
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      if (!uvedit_face_visible_test(scene, efa)) {
-        continue;
-      }
-
-      float cent[2];
-      BM_face_uv_calc_center_median(efa, cd_loop_uv_offset, cent);
-
-      float delta[2];
-      sub_v2_v2v2(delta, co, cent);
-      mul_v2_v2(delta, hit.scale);
-
-      const float dist_test_sq = len_squared_v2(delta);
-
-      if (dist_test_sq < hit.dist_sq) {
-        hit.efa = efa;
-        hit.dist_sq = dist_test_sq;
-        found = true;
-      }
+  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    if (!uvedit_face_visible_test(scene, efa)) {
+      continue;
     }
-  }
-  if (found) {
-    *hit_final = hit;
+
+    float cent[2];
+    BM_face_uv_calc_center_median(efa, cd_loop_uv_offset, cent);
+
+    float delta[2];
+    sub_v2_v2v2(delta, co, cent);
+    mul_v2_v2(delta, hit->scale);
+
+    const float dist_test_sq = len_squared_v2(delta);
+
+    if (dist_test_sq < hit->dist_sq) {
+      hit->efa = efa;
+      hit->dist_sq = dist_test_sq;
+      found = true;
+    }
   }
   return found;
 }
@@ -796,72 +785,56 @@ static bool uv_nearest_between(const BMLoop *l, const float co[2], const int cd_
           (line_point_side_v2(uv_next, uv_curr, co) <= 0.0f));
 }
 
-bool uv_find_nearest_vert(Scene *scene,
-                          Object *obedit,
-                          float const co[2],
-                          const float penalty_dist,
-                          UvNearestHit *hit_final)
+bool uv_find_nearest_vert(
+    Scene *scene, Object *obedit, float const co[2], const float penalty_dist, UvNearestHit *hit)
 {
-  BLI_assert((hit_final->scale[0] > 0.0f) && (hit_final->scale[1] > 0.0f));
+  BLI_assert((hit->scale[0] > 0.0f) && (hit->scale[1] > 0.0f));
   bool found = false;
 
-  /* This will fill in `hit.l`. */
-  float dist_sq_init = hit_final->dist_sq;
-  UvNearestHit hit = *hit_final;
-  if (uv_find_nearest_edge(scene, obedit, co, &hit)) {
-    hit.dist_sq = dist_sq_init;
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  BMFace *efa;
+  BMIter iter;
 
-    hit.l = NULL;
+  BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMFace *efa;
-    BMIter iter;
+  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-    BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    if (!uvedit_face_visible_test(scene, efa)) {
+      continue;
+    }
 
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    BMIter liter;
+    BMLoop *l;
+    int i;
+    BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
+      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      if (!uvedit_face_visible_test(scene, efa)) {
-        continue;
+      float delta[2];
+
+      sub_v2_v2v2(delta, co, luv->uv);
+      mul_v2_v2(delta, hit->scale);
+
+      float dist_test_sq = len_squared_v2(delta);
+
+      if ((penalty_dist != 0.0f) && uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+        dist_test_sq = square_f(sqrtf(dist_test_sq) + penalty_dist);
       }
 
-      BMIter liter;
-      BMLoop *l;
-      int i;
-      BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-        float delta[2];
-
-        sub_v2_v2v2(delta, co, luv->uv);
-        mul_v2_v2(delta, hit.scale);
-
-        float dist_test_sq = len_squared_v2(delta);
-
-        if ((penalty_dist != 0.0f) && uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-          dist_test_sq = square_f(sqrtf(dist_test_sq) + penalty_dist);
-        }
-
-        if (dist_test_sq <= hit.dist_sq) {
-          if (dist_test_sq == hit.dist_sq) {
-            if (!uv_nearest_between(l, co, cd_loop_uv_offset)) {
-              continue;
-            }
+      if (dist_test_sq <= hit->dist_sq) {
+        if (dist_test_sq == hit->dist_sq) {
+          if (!uv_nearest_between(l, co, cd_loop_uv_offset)) {
+            continue;
           }
-
-          hit.dist_sq = dist_test_sq;
-
-          hit.l = l;
-          hit.efa = efa;
-          found = true;
         }
+
+        hit->dist_sq = dist_test_sq;
+
+        hit->l = l;
+        hit->efa = efa;
+        found = true;
       }
     }
-  }
-
-  if (found) {
-    *hit_final = hit;
   }
 
   return found;

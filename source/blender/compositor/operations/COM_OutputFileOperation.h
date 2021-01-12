@@ -91,6 +91,7 @@ class OutputOpenExrMultiLayerOperation : public NodeOperation {
  protected:
   typedef std::vector<OutputOpenExrLayer> LayerList;
 
+  const Scene *m_scene;
   const RenderData *m_rd;
   const bNodeTree *m_tree;
 
@@ -100,8 +101,11 @@ class OutputOpenExrMultiLayerOperation : public NodeOperation {
   LayerList m_layers;
   const char *m_viewName;
 
+  StampData *createStampData() const;
+
  public:
-  OutputOpenExrMultiLayerOperation(const RenderData *rd,
+  OutputOpenExrMultiLayerOperation(const Scene *scene,
+                                   const RenderData *rd,
                                    const bNodeTree *tree,
                                    const char *path,
                                    char exr_codec,

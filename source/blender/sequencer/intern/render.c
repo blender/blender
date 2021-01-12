@@ -728,12 +728,12 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
     use_preprocess = true;
   }
 
-  if (use_preprocess) {
-    /* Proxies are not stored in cache. */
-    if (!is_proxy_image) {
-      seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf, false);
-    }
+  /* Proxies and effect strips are not stored in cache. */
+  if (!is_proxy_image && (seq->type & SEQ_TYPE_EFFECT) == 0) {
+    seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf, false);
+  }
 
+  if (use_preprocess) {
     ibuf = input_preprocess(context, seq, timeline_frame, ibuf);
   }
 

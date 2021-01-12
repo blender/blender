@@ -482,9 +482,7 @@ static StructRNA *rna_Property_refine(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
-  prop = rna_ensure_property(prop);
-
-  switch (prop->type) {
+  switch (RNA_property_type(prop)) {
     case PROP_BOOLEAN:
       return &RNA_BoolProperty;
     case PROP_INT:
@@ -507,70 +505,64 @@ static StructRNA *rna_Property_refine(PointerRNA *ptr)
 static void rna_Property_identifier_get(PointerRNA *ptr, char *value)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  strcpy(value, ((PropertyRNA *)prop)->identifier);
+  strcpy(value, RNA_property_identifier(prop));
 }
 
 static int rna_Property_identifier_length(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return strlen(prop->identifier);
+  return strlen(RNA_property_identifier(prop));
 }
 
 static void rna_Property_name_get(PointerRNA *ptr, char *value)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  strcpy(value, prop->name ? prop->name : "");
+  const char *name = RNA_property_ui_name_raw(prop);
+  strcpy(value, name ? name : "");
 }
 
 static int rna_Property_name_length(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->name ? strlen(prop->name) : 0;
+  const char *name = RNA_property_ui_name_raw(prop);
+  return name ? strlen(name) : 0;
 }
 
 static void rna_Property_description_get(PointerRNA *ptr, char *value)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  strcpy(value, prop->description ? prop->description : "");
+  const char *description = RNA_property_ui_description_raw(prop);
+  strcpy(value, description ? description : "");
 }
 static int rna_Property_description_length(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->description ? strlen(prop->description) : 0;
+  const char *description = RNA_property_ui_description_raw(prop);
+  return description ? strlen(description) : 0;
 }
 
 static void rna_Property_translation_context_get(PointerRNA *ptr, char *value)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  strcpy(value, prop->translation_context);
+  strcpy(value, RNA_property_translation_context(prop));
 }
 
 static int rna_Property_translation_context_length(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return strlen(prop->translation_context);
+  return strlen(RNA_property_translation_context(prop));
 }
 
 static int rna_Property_type_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->type;
+  return RNA_property_type(prop);
 }
 
 static int rna_Property_subtype_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->subtype;
+  return RNA_property_subtype(prop);
 }
 
 static PointerRNA rna_Property_srna_get(PointerRNA *ptr)
@@ -583,15 +575,13 @@ static PointerRNA rna_Property_srna_get(PointerRNA *ptr)
 static int rna_Property_unit_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return RNA_SUBTYPE_UNIT(prop->subtype);
+  return RNA_property_unit(prop);
 }
 
 static int rna_Property_icon_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->icon;
+  return RNA_property_ui_icon(prop);
 }
 
 static bool rna_Property_readonly_get(PointerRNA *ptr)

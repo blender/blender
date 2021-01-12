@@ -282,7 +282,7 @@ def list_render_passes(scene, srl):
             yield ("CryptoAsset" + '{:02d}'.format(i), "RGBA", 'COLOR')
 
     # Denoising passes.
-    if crl.use_denoising or crl.denoising_store_passes:
+    if (scene.cycles.use_denoising and crl.use_denoising) or crl.denoising_store_passes:
         yield ("Noisy Image", "RGBA", 'COLOR')
         if crl.denoising_store_passes:
             yield ("Denoising Normal",          "XYZ", 'VECTOR')

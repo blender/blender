@@ -236,7 +236,8 @@ struct float3 {
 
   static float distance_squared(const float3 &a, const float3 &b)
   {
-    return float3::dot(a, b);
+    float3 diff = a - b;
+    return float3::dot(diff, diff);
   }
 
   static float3 interpolate(const float3 &a, const float3 &b, float t)

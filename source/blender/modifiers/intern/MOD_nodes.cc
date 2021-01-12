@@ -134,6 +134,7 @@ static void findUsedIds(const bNodeTree &tree, Set<ID *> &ids)
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+  DEG_add_modifier_to_transform_relation(ctx->node, "Nodes Modifier");
   if (nmd->node_group != nullptr) {
     DEG_add_node_tree_relation(ctx->node, nmd->node_group, "Nodes Modifier");
 

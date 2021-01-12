@@ -345,6 +345,7 @@ class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
 
         cloth = context.cloth.collision_settings
         md = context.cloth
+        ob = context.object
 
         layout.active = cloth.use_collision and cloth_panel_enabled(md)
 
@@ -355,6 +356,9 @@ class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(cloth, "impulse_clamp")
+
+        col = flow.column()
+        col.prop_search(cloth, "vertex_group_object_collisions", ob, "vertex_groups", text="Vertex Group")
 
         col = flow.column()
         col.prop(cloth, "collection")

@@ -99,25 +99,22 @@ anim_index_builder *IMB_index_builder_create(const char *name)
   return rv;
 }
 
-void IMB_index_builder_add_entry(anim_index_builder *fp,
-                                 int frameno,
-                                 unsigned long long seek_pos,
-                                 unsigned long long seek_pos_dts,
-                                 unsigned long long pts)
+void IMB_index_builder_add_entry(
+    anim_index_builder *fp, int frameno, uint64_t seek_pos, uint64_t seek_pos_dts, uint64_t pts)
 {
   fwrite(&frameno, sizeof(int), 1, fp->fp);
-  fwrite(&seek_pos, sizeof(unsigned long long), 1, fp->fp);
-  fwrite(&seek_pos_dts, sizeof(unsigned long long), 1, fp->fp);
-  fwrite(&pts, sizeof(unsigned long long), 1, fp->fp);
+  fwrite(&seek_pos, sizeof(uint64_t), 1, fp->fp);
+  fwrite(&seek_pos_dts, sizeof(uint64_t), 1, fp->fp);
+  fwrite(&pts, sizeof(uint64_t), 1, fp->fp);
 }
 
 void IMB_index_builder_proc_frame(anim_index_builder *fp,
-                                  unsigned char *buffer,
+                                  uchar *buffer,
                                   int data_size,
                                   int frameno,
-                                  unsigned long long seek_pos,
-                                  unsigned long long seek_pos_dts,
-                                  unsigned long long pts)
+                                  uint64_t seek_pos,
+                                  uint64_t seek_pos_dts,
+                                  uint64_t pts)
 {
   if (fp->proc_frame) {
     anim_index_entry e;
@@ -186,10 +183,10 @@ struct anim_index *IMB_indexer_open(const char *name)
 
   fseek(fp, 0, SEEK_END);
 
-  idx->num_entries = (ftell(fp) - 12) / (sizeof(int) +                /* framepos */
-                                         sizeof(unsigned long long) + /* seek_pos */
-                                         sizeof(unsigned long long) + /* seek_pos_dts */
-                                         sizeof(unsigned long long)   /* pts */
+  idx->num_entries = (ftell(fp) - 12) / (sizeof(int) +      /* framepos */
+                                         sizeof(uint64_t) + /* seek_pos */
+                                         sizeof(uint64_t) + /* seek_pos_dts */
+                                         sizeof(uint64_t)   /* pts */
                                         );
 
   fseek(fp, 12, SEEK_SET);
@@ -197,19 +194,28 @@ struct anim_index *IMB_indexer_open(const char *name)
   idx->entries = MEM_callocN(sizeof(struct anim_index_entry) * idx->num_entries,
                              "anim_index_entries");
 
+  size_t items_read = 0;
   for (i = 0; i < idx->num_entries; i++) {
-    fread(&idx->entries[i].frameno, sizeof(int), 1, fp);
-    fread(&idx->entries[i].seek_pos, sizeof(unsigned long long), 1, fp);
-    fread(&idx->entries[i].seek_pos_dts, sizeof(unsigned long long), 1, fp);
-    fread(&idx->entries[i].pts, sizeof(unsigned long long), 1, fp);
+    items_read += fread(&idx->entries[i].frameno, sizeof(int), 1, fp);
+    items_read += fread(&idx->entries[i].seek_pos, sizeof(uint64_t), 1, fp);
+    items_read += fread(&idx->entries[i].seek_pos_dts, sizeof(uint64_t), 1, fp);
+    items_read += fread(&idx->entries[i].pts, sizeof(uint64_t), 1, fp);
+  }
+
+  if (UNLIKELY(items_read != idx->num_entries * 4)) {
+    perror("error reading animation index file");
+    MEM_freeN(idx->entries);
+    MEM_freeN(idx);
+    fclose(fp);
+    return NULL;
   }
 
   if (((ENDIAN_ORDER == B_ENDIAN) != (header[8] == 'V'))) {
     for (i = 0; i < idx->num_entries; i++) {
       BLI_endian_switch_int32(&idx->entries[i].frameno);
-      BLI_endian_switch_int64((int64_t *)&idx->entries[i].seek_pos);
-      BLI_endian_switch_int64((int64_t *)&idx->entries[i].seek_pos_dts);
-      BLI_endian_switch_int64((int64_t *)&idx->entries[i].pts);
+      BLI_endian_switch_uint64(&idx->entries[i].seek_pos);
+      BLI_endian_switch_uint64(&idx->entries[i].seek_pos_dts);
+      BLI_endian_switch_uint64(&idx->entries[i].pts);
     }
   }
 
@@ -218,7 +224,7 @@ struct anim_index *IMB_indexer_open(const char *name)
   return idx;
 }
 
-unsigned long long IMB_indexer_get_seek_pos(struct anim_index *idx, int frame_index)
+uint64_t IMB_indexer_get_seek_pos(struct anim_index *idx, int frame_index)
 {
   if (frame_index < 0) {
     frame_index = 0;
@@ -229,7 +235,7 @@ unsigned long long IMB_indexer_get_seek_pos(struct anim_index *idx, int frame_in
   return idx->entries[frame_index].seek_pos;
 }
 
-unsigned long long IMB_indexer_get_seek_pos_dts(struct anim_index *idx, int frame_index)
+uint64_t IMB_indexer_get_seek_pos_dts(struct anim_index *idx, int frame_index)
 {
   if (frame_index < 0) {
     frame_index = 0;
@@ -272,7 +278,7 @@ int IMB_indexer_get_frame_index(struct anim_index *idx, int frameno)
   return first;
 }
 
-unsigned long long IMB_indexer_get_pts(struct anim_index *idx, int frame_index)
+uint64_t IMB_indexer_get_pts(struct anim_index *idx, int frame_index)
 {
   if (frame_index < 0) {
     frame_index = 0;
@@ -698,12 +704,12 @@ typedef struct FFmpegIndexBuilderContext {
   IMB_Timecode_Type tcs_in_use;
   IMB_Proxy_Size proxy_sizes_in_use;
 
-  unsigned long long seek_pos;
-  unsigned long long last_seek_pos;
-  unsigned long long seek_pos_dts;
-  unsigned long long seek_pos_pts;
-  unsigned long long last_seek_pos_dts;
-  unsigned long long start_pts;
+  uint64_t seek_pos;
+  uint64_t last_seek_pos;
+  uint64_t seek_pos_dts;
+  uint64_t seek_pos_pts;
+  uint64_t last_seek_pos_dts;
+  uint64_t start_pts;
   double frame_rate;
   double pts_time_base;
   int frameno, frameno_gapless;
@@ -838,9 +844,9 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *c
                                                     AVFrame *in_frame)
 {
   int i;
-  unsigned long long s_pos = context->seek_pos;
-  unsigned long long s_dts = context->seek_pos_dts;
-  unsigned long long pts = av_get_pts_from_frame(context->iFormatCtx, in_frame);
+  uint64_t s_pos = context->seek_pos;
+  uint64_t s_dts = context->seek_pos_dts;
+  uint64_t pts = av_get_pts_from_frame(context->iFormatCtx, in_frame);
 
   for (i = 0; i < context->num_proxy_sizes; i++) {
     add_to_proxy_output_ffmpeg(context->proxy_ctx[i], in_frame);

@@ -26,6 +26,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -623,42 +624,57 @@ static const char *draw_seq_text_get_name(Sequence *seq)
 
 static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t source_len)
 {
+  *r_source = '\0';
+
   /* Set source for the most common types. */
-  if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
-    BLI_snprintf(r_source, source_len, "%s%s", seq->strip->dir, seq->strip->stripdata->name);
-  }
-  else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    if (seq->sound) {
-      BLI_snprintf(r_source, source_len, "%s", seq->sound->filepath);
+  switch (seq->type) {
+    case SEQ_TYPE_IMAGE:
+    case SEQ_TYPE_MOVIE: {
+      BLI_join_dirfile(r_source, source_len, seq->strip->dir, seq->strip->stripdata->name);
+      break;
     }
-  }
-  else if (seq->type == SEQ_TYPE_MULTICAM) {
-    BLI_snprintf(r_source, source_len, "Channel: %d", seq->multicam_source);
-  }
-  else if (seq->type == SEQ_TYPE_TEXT) {
-    TextVars *textdata = seq->effectdata;
-    BLI_snprintf(r_source, source_len, "%s", textdata->text);
-  }
-  else if (seq->type == SEQ_TYPE_SCENE) {
-    if (seq->scene_camera) {
-      BLI_snprintf(r_source,
-                   source_len,
-                   "%s (%s)",
-                   seq->scene->id.name + 2,
-                   ((ID *)seq->scene_camera)->name + 2);
+    case SEQ_TYPE_SOUND_RAM: {
+      if (seq->sound != NULL) {
+        BLI_strncpy(r_source, seq->sound->filepath, source_len);
+      }
+      break;
     }
-    else {
-      BLI_snprintf(r_source, source_len, "%s", seq->scene->id.name + 2);
+    case SEQ_TYPE_MULTICAM: {
+      BLI_snprintf(r_source, source_len, "Channel: %d", seq->multicam_source);
+      break;
     }
-  }
-  else if (seq->type == SEQ_TYPE_MOVIECLIP) {
-    BLI_snprintf(r_source, source_len, "%s", seq->clip->id.name + 2);
-  }
-  else if (seq->type == SEQ_TYPE_MASK) {
-    BLI_snprintf(r_source, source_len, "%s", seq->mask->id.name + 2);
-  }
-  else {
-    *r_source = '\0';
+    case SEQ_TYPE_TEXT: {
+      const TextVars *textdata = seq->effectdata;
+      BLI_strncpy(r_source, textdata->text, source_len);
+      break;
+    }
+    case SEQ_TYPE_SCENE: {
+      if (seq->scene != NULL) {
+        if (seq->scene_camera != NULL) {
+          BLI_snprintf(r_source,
+                       source_len,
+                       "%s (%s)",
+                       seq->scene->id.name + 2,
+                       seq->scene_camera->id.name + 2);
+        }
+        else {
+          BLI_strncpy(r_source, seq->scene->id.name + 2, source_len);
+        }
+      }
+      break;
+    }
+    case SEQ_TYPE_MOVIECLIP: {
+      if (seq->clip != NULL) {
+        BLI_strncpy(r_source, seq->clip->id.name + 2, source_len);
+      }
+      break;
+    }
+    case SEQ_TYPE_MASK: {
+      if (seq->mask != NULL) {
+        BLI_strncpy(r_source, seq->mask->id.name + 2, source_len);
+      }
+      break;
+    }
   }
 }
 
@@ -667,33 +683,39 @@ static size_t draw_seq_text_get_overlay_string(SpaceSeq *sseq,
                                                char *r_overlay_string,
                                                size_t overlay_string_len)
 {
-  const char *name = draw_seq_text_get_name(seq);
+  const char *text_sep = " | ";
+  const char *text_array[5];
+  int i = 0;
+
+  if (sseq->flag & SEQ_SHOW_STRIP_NAME) {
+    text_array[i++] = draw_seq_text_get_name(seq);
+  }
+
   char source[FILE_MAX];
-  int strip_duration = seq->enddisp - seq->startdisp;
-  draw_seq_text_get_source(seq, source, sizeof(source));
-
-  bool show_name = sseq->flag & SEQ_SHOW_STRIP_NAME;
-  bool show_source = (sseq->flag & (SEQ_SHOW_STRIP_SOURCE)) && source[0] != '\0';
-  bool show_duration = sseq->flag & SEQ_SHOW_STRIP_DURATION;
-
-  size_t string_len = 0;
-  if (show_name) {
-    string_len = BLI_snprintf(r_overlay_string, overlay_string_len, "%s", name);
-    if (show_source || show_duration) {
-      string_len += BLI_snprintf(r_overlay_string + string_len, overlay_string_len, " | ");
+  if (sseq->flag & SEQ_SHOW_STRIP_SOURCE) {
+    draw_seq_text_get_source(seq, source, sizeof(source));
+    if (source[0] != '\0') {
+      if (i != 0) {
+        text_array[i++] = text_sep;
+      }
+      text_array[i++] = source;
     }
   }
-  if (show_source) {
-    string_len += BLI_snprintf(r_overlay_string + string_len, overlay_string_len, "%s", source);
-    if (show_duration) {
-      string_len += BLI_snprintf(r_overlay_string + string_len, overlay_string_len, " | ");
+
+  char strip_duration_text[16];
+  if (sseq->flag & SEQ_SHOW_STRIP_DURATION) {
+    const int strip_duration = seq->enddisp - seq->startdisp;
+    SNPRINTF(strip_duration_text, "%d", strip_duration);
+    if (i != 0) {
+      text_array[i++] = text_sep;
     }
+    text_array[i++] = strip_duration_text;
   }
-  if (show_duration) {
-    string_len += BLI_snprintf(
-        r_overlay_string + string_len, overlay_string_len, "%d", strip_duration);
-  }
-  return string_len;
+
+  BLI_assert(i <= ARRAY_SIZE(text_array));
+
+  return BLI_string_join_array(r_overlay_string, overlay_string_len, text_array, i) -
+         r_overlay_string;
 }
 
 /* Draw info text on a sequence strip. */

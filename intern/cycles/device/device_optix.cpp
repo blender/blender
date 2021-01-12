@@ -760,9 +760,6 @@ class OptiXDevice : public CUDADevice {
     const int end_sample = rtile.start_sample + rtile.num_samples;
     // Keep this number reasonable to avoid running into TDRs
     int step_samples = (info.display_device ? 8 : 32);
-    if (task.adaptive_sampling.use) {
-      step_samples = task.adaptive_sampling.align_static_samples(step_samples);
-    }
 
     // Offset into launch params buffer so that streams use separate data
     device_ptr launch_params_ptr = launch_params.device_pointer +
@@ -770,10 +767,14 @@ class OptiXDevice : public CUDADevice {
 
     const CUDAContextScope scope(cuContext);
 
-    for (int sample = rtile.start_sample; sample < end_sample; sample += step_samples) {
+    for (int sample = rtile.start_sample; sample < end_sample;) {
       // Copy work tile information to device
-      wtile.num_samples = min(step_samples, end_sample - sample);
       wtile.start_sample = sample;
+      wtile.num_samples = step_samples;
+      if (task.adaptive_sampling.use) {
+        wtile.num_samples = task.adaptive_sampling.align_samples(sample, step_samples);
+      }
+      wtile.num_samples = min(wtile.num_samples, end_sample - sample);
       device_ptr d_wtile_ptr = launch_params_ptr + offsetof(KernelParams, tile);
       check_result_cuda(
           cuMemcpyHtoDAsync(d_wtile_ptr, &wtile, sizeof(wtile), cuda_stream[thread_index]));
@@ -815,7 +816,8 @@ class OptiXDevice : public CUDADevice {
       check_result_cuda(cuStreamSynchronize(cuda_stream[thread_index]));
 
       // Update current sample, so it is displayed correctly
-      rtile.sample = wtile.start_sample + wtile.num_samples;
+      sample += wtile.num_samples;
+      rtile.sample = sample;
       // Update task progress after the kernel completed rendering
       task.update_progress(&rtile, wtile.w * wtile.h * wtile.num_samples);
 

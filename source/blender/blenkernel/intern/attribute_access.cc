@@ -97,26 +97,45 @@ WriteAttribute::~WriteAttribute()
 
 /**
  * Get a mutable span that can be modified. When all modifications to the attribute are done,
- * #apply_span_if_necessary should be called.
- */
+ * #apply_span should be called. */
 fn::GMutableSpan WriteAttribute::get_span()
 {
   if (size_ == 0) {
     return fn::GMutableSpan(cpp_type_);
   }
   if (array_buffer_ == nullptr) {
-    this->initialize_span();
+    this->initialize_span(false);
   }
   array_should_be_applied_ = true;
   return fn::GMutableSpan(cpp_type_, array_buffer_, size_);
 }
 
-void WriteAttribute::initialize_span()
+fn::GMutableSpan WriteAttribute::get_span_for_write_only()
 {
-  array_buffer_ = MEM_mallocN_aligned(cpp_type_.size() * size_, cpp_type_.alignment(), __func__);
+  if (size_ == 0) {
+    return fn::GMutableSpan(cpp_type_);
+  }
+  if (array_buffer_ == nullptr) {
+    this->initialize_span(true);
+  }
+  array_should_be_applied_ = true;
+  return fn::GMutableSpan(cpp_type_, array_buffer_, size_);
+}
+
+void WriteAttribute::initialize_span(const bool write_only)
+{
+  const int element_size = cpp_type_.size();
+  array_buffer_ = MEM_mallocN_aligned(element_size * size_, cpp_type_.alignment(), __func__);
   array_is_temporary_ = true;
-  /* This does nothing for trivial types, but is necessary for general correctness. */
-  cpp_type_.construct_default_n(array_buffer_, size_);
+  if (write_only) {
+    /* This does nothing for trivial types, but is necessary for general correctness. */
+    cpp_type_.construct_default_n(array_buffer_, size_);
+  }
+  else {
+    for (const int i : IndexRange(size_)) {
+      this->get(i, POINTER_OFFSET(array_buffer_, i * element_size));
+    }
+  }
 }
 
 void WriteAttribute::apply_span()
@@ -219,7 +238,7 @@ template<typename T> class ArrayWriteAttribute final : public WriteAttribute {
     data_[index] = *reinterpret_cast<const T *>(value);
   }
 
-  void initialize_span() override
+  void initialize_span(const bool UNUSED(write_only)) override
   {
     array_buffer_ = data_.data();
     array_is_temporary_ = false;

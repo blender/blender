@@ -223,8 +223,8 @@ bool DeviceSplitKernel::path_trace(DeviceTask &task,
     subtile.num_samples = samples_per_second;
 
     if (task.adaptive_sampling.use) {
-      subtile.num_samples = task.adaptive_sampling.align_dynamic_samples(subtile.start_sample,
-                                                                         subtile.num_samples);
+      subtile.num_samples = task.adaptive_sampling.align_samples(subtile.start_sample,
+                                                                 subtile.num_samples);
     }
 
     /* Don't go beyond requested number of samples. */

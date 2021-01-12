@@ -708,8 +708,8 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
       walk->is_cursor_absolute = true;
       copy_v2_v2_int(walk->prev_mval, event->mval);
       copy_v2_v2_int(walk->center_mval, event->mval);
-      /* without this we can't turn 180d */
-      CLAMP_MIN(walk->mouse_speed, 4.0f);
+      /* Without this we can't turn 180d with the default speed of 1.0. */
+      walk->mouse_speed *= 4.0f;
     }
 #endif /* USE_TABLET_SUPPORT */
 

@@ -892,13 +892,12 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
   while ((rval = av_read_frame(anim->pFormatCtx, &anim->next_packet)) >= 0) {
     av_log(anim->pFormatCtx,
            AV_LOG_DEBUG,
-           "%sREAD: strID=%d (VID: %d) dts=%lld pts=%lld "
-           "%s\n",
+           "%sREAD: strID=%d (VID: %d) dts=%" PRId64 " pts=%" PRId64 " %s\n",
            (anim->next_packet.stream_index == anim->videoStream) ? "->" : "  ",
            anim->next_packet.stream_index,
            anim->videoStream,
-           (anim->next_packet.dts == AV_NOPTS_VALUE) ? -1 : (long long int)anim->next_packet.dts,
-           (anim->next_packet.pts == AV_NOPTS_VALUE) ? -1 : (long long int)anim->next_packet.pts,
+           (anim->next_packet.dts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->next_packet.dts,
+           (anim->next_packet.pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->next_packet.pts,
            (anim->next_packet.flags & AV_PKT_FLAG_KEY) ? " KEY" : "");
     if (anim->next_packet.stream_index == anim->videoStream) {
       anim->pFrameComplete = 0;
@@ -911,12 +910,10 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
 
         av_log(anim->pFormatCtx,
                AV_LOG_DEBUG,
-               "  FRAME DONE: next_pts=%lld "
-               "pkt_pts=%lld, guessed_pts=%lld\n",
-               (anim->pFrame->pts == AV_NOPTS_VALUE) ? -1 : (long long int)anim->pFrame->pts,
-               (anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ? -1 :
-                                                           (long long int)anim->pFrame->pkt_pts,
-               (long long int)anim->next_pts);
+               "  FRAME DONE: next_pts=%" PRId64 " pkt_pts=%" PRId64 ", guessed_pts=%" PRId64 "\n",
+               (anim->pFrame->pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->pFrame->pts,
+               (anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->pFrame->pkt_pts,
+               (int64_t)anim->next_pts);
         break;
       }
     }
@@ -946,11 +943,11 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
 
       av_log(anim->pFormatCtx,
              AV_LOG_DEBUG,
-             "  FRAME DONE (after EOF): next_pts=%lld "
-             "pkt_pts=%lld, guessed_pts=%lld\n",
-             (anim->pFrame->pts == AV_NOPTS_VALUE) ? -1 : (long long int)anim->pFrame->pts,
-             (anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ? -1 : (long long int)anim->pFrame->pkt_pts,
-             (long long int)anim->next_pts);
+             "  FRAME DONE (after EOF): next_pts=%" PRId64 " pkt_pts=%" PRId64
+             ", guessed_pts=%" PRId64 "\n",
+             (anim->pFrame->pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->pFrame->pts,
+             (anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->pFrame->pkt_pts,
+             (int64_t)anim->next_pts);
       rval = 0;
     }
   }
@@ -975,16 +972,16 @@ static void ffmpeg_decode_video_frame_scan(struct anim *anim, int64_t pts_to_sea
 
   av_log(anim->pFormatCtx,
          AV_LOG_DEBUG,
-         "SCAN start: considering pts=%lld in search of %lld\n",
-         (long long int)anim->next_pts,
-         (long long int)pts_to_search);
+         "SCAN start: considering pts=%" PRId64 " in search of %" PRId64 "\n",
+         (int64_t)anim->next_pts,
+         (int64_t)pts_to_search);
 
   while (count > 0 && anim->next_pts < pts_to_search) {
     av_log(anim->pFormatCtx,
            AV_LOG_DEBUG,
-           "  WHILE: pts=%lld in search of %lld\n",
-           (long long int)anim->next_pts,
-           (long long int)pts_to_search);
+           "  WHILE: pts=%" PRId64 " in search of %" PRId64 "\n",
+           (int64_t)anim->next_pts,
+           (int64_t)pts_to_search);
     if (!ffmpeg_decode_video_frame(anim)) {
       break;
     }
@@ -994,9 +991,9 @@ static void ffmpeg_decode_video_frame_scan(struct anim *anim, int64_t pts_to_sea
     av_log(anim->pFormatCtx,
            AV_LOG_ERROR,
            "SCAN failed: completely lost in stream, "
-           "bailing out at PTS=%lld, searching for PTS=%lld\n",
-           (long long int)anim->next_pts,
-           (long long int)pts_to_search);
+           "bailing out at PTS=%" PRId64 ", searching for PTS=%" PRId64 "\n",
+           (int64_t)anim->next_pts,
+           (int64_t)pts_to_search);
   }
   if (anim->next_pts == pts_to_search) {
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "SCAN HAPPY: we found our PTS!\n");
@@ -1091,9 +1088,9 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
 
   av_log(anim->pFormatCtx,
          AV_LOG_DEBUG,
-         "FETCH: looking for PTS=%lld "
-         "(pts_timebase=%g, frame_rate=%g, st_time=%lld)\n",
-         (long long int)pts_to_search,
+         "FETCH: looking for PTS=%" PRId64 " (pts_timebase=%g, frame_rate=%g, st_time=%" PRId64
+         ")\n",
+         (int64_t)pts_to_search,
          pts_time_base,
          frame_rate,
          st_time);
@@ -1101,9 +1098,9 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
   if (anim->last_frame && anim->last_pts <= pts_to_search && anim->next_pts > pts_to_search) {
     av_log(anim->pFormatCtx,
            AV_LOG_DEBUG,
-           "FETCH: frame repeat: last: %lld next: %lld\n",
-           (long long int)anim->last_pts,
-           (long long int)anim->next_pts);
+           "FETCH: frame repeat: last: %" PRId64 " next: %" PRId64 "\n",
+           (int64_t)anim->last_pts,
+           (int64_t)anim->next_pts);
     IMB_refImBuf(anim->last_frame);
     anim->curposition = position;
     return anim->last_frame;
@@ -1128,13 +1125,13 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
     int ret;
 
     if (tc_index) {
-      unsigned long long dts;
+      uint64_t dts;
 
       pos = IMB_indexer_get_seek_pos(tc_index, new_frame_index);
       dts = IMB_indexer_get_seek_pos_dts(tc_index, new_frame_index);
 
-      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek pos = %lld\n", pos);
-      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek dts = %llu\n", dts);
+      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek pos = %" PRId64 "\n", pos);
+      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek dts = %" PRIu64 "\n", dts);
 
       if (ffmpeg_seek_by_byte(anim->pFormatCtx)) {
         av_log(anim->pFormatCtx, AV_LOG_DEBUG, "... using BYTE pos\n");
@@ -1152,7 +1149,7 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
 
       av_log(anim->pFormatCtx,
              AV_LOG_DEBUG,
-             "NO INDEX seek pos = %lld, st_time = %lld\n",
+             "NO INDEX seek pos = %" PRId64 ", st_time = %" PRId64 "\n",
              pos,
              (st_time != AV_NOPTS_VALUE) ? st_time : 0);
 
@@ -1164,7 +1161,7 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
         pos += st_time;
       }
 
-      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "NO INDEX final seek pos = %lld\n", pos);
+      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "NO INDEX final seek pos = %" PRId64 "\n", pos);
 
       ret = av_seek_frame(anim->pFormatCtx, -1, pos, AVSEEK_FLAG_BACKWARD);
     }
@@ -1173,11 +1170,11 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
       av_log(anim->pFormatCtx,
              AV_LOG_ERROR,
              "FETCH: "
-             "error while seeking to DTS = %lld "
-             "(frameno = %d, PTS = %lld): errcode = %d\n",
+             "error while seeking to DTS = %" PRId64 " (frameno = %d, PTS = %" PRId64
+             "): errcode = %d\n",
              pos,
              position,
-             (long long int)pts_to_search,
+             (int64_t)pts_to_search,
              ret);
     }
 

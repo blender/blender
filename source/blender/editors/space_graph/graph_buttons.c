@@ -181,7 +181,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   }
 
   /* F-Curve pointer */
-  RNA_pointer_create(ale->id, &RNA_FCurve, fcu, &fcu_ptr);
+  RNA_pointer_create(ale->fcurve_owner_id, &RNA_FCurve, fcu, &fcu_ptr);
 
   /* user-friendly 'name' for F-Curve */
   col = uiLayoutColumn(layout, false);
@@ -366,7 +366,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     int unit = B_UNIT_NONE;
 
     /* RNA pointer to keyframe, to allow editing */
-    RNA_pointer_create(ale->id, &RNA_Keyframe, bezt, &bezt_ptr);
+    RNA_pointer_create(ale->fcurve_owner_id, &RNA_Keyframe, bezt, &bezt_ptr);
 
     /* get property that F-Curve affects, for some unit-conversion magic */
     RNA_id_pointer_create(ale->id, &id_ptr);

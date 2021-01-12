@@ -251,10 +251,42 @@ static void undosys_stack_validate(UndoStack *ustack, bool expect_non_empty)
     BLI_assert(!BLI_listbase_is_empty(&ustack->steps));
   }
 }
+
+/* Return whether `us_item` is before (-1), after (1) or same as (0) `us_anchor` step. */
+static int undosys_stack_order(const UndoStack *ustack,
+                               const UndoStep *us_anchor,
+                               const UndoStep *us_item)
+{
+  const int index_anchor = BLI_findindex(&ustack->steps, us_anchor);
+  const int index_item = BLI_findindex(&ustack->steps, us_item);
+  BLI_assert(index_anchor >= 0);
+  BLI_assert(index_item >= 0);
+
+  return (index_item == index_anchor) ? 0 : (index_item < index_anchor) ? -1 : 1;
+}
+
+#  define ASSERT_VALID_UNDO_STEP(_ustack, _us_undo) \
+    { \
+      const UndoStep *_us_anchor = (_ustack)->step_active; \
+      BLI_assert(_us_anchor == NULL || \
+                 (undosys_stack_order((_ustack), _us_anchor, (_us_undo)) <= 0)); \
+    } \
+    (void)0
+
+#  define ASSERT_VALID_REDO_STEP(_ustack, _us_redo) \
+    { \
+      const UndoStep *_us_anchor = (_ustack)->step_active; \
+      BLI_assert(_us_anchor == NULL || \
+                 (undosys_stack_order((_ustack), _us_anchor, (_us_redo)) >= 0)); \
+    } \
+    (void)0
+
 #else
 static void undosys_stack_validate(UndoStack *UNUSED(ustack), bool UNUSED(expect_non_empty))
 {
 }
+#  define ASSERT_VALID_UNDO_STEP(_ustack, _us_undo)
+#  define ASSERT_VALID_REDO_STEP(_ustack, _us_redo)
 #endif
 
 UndoStack *BKE_undosys_stack_create(void)
@@ -676,62 +708,91 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
 {
   UNDO_NESTED_ASSERT(false);
   if (us == NULL) {
+    CLOG_ERROR(&LOG, "called with a NULL step");
     return false;
   }
   undosys_stack_validate(ustack, true);
 
-  UndoStep *us_prev = us ? us->prev : NULL;
-  if (us) {
-    /* The current state is a copy, we need to load the previous state. */
-    us = us_prev;
+  /* We expect to get next-from-actual-target step here (i.e. active step in case we only undo
+   * once)?
+   * FIXME: this is very confusing now that we may have to undo several steps anyway, this function
+   * should just get the target final step, not assume that it is getting the active one by default
+   * (or the step after the target one when undoing more than one step). */
+  UndoStep *us_target = us->prev;
+  if (us_target == NULL) {
+    CLOG_ERROR(&LOG, "could not find a valid target step");
+    return false;
   }
+  ASSERT_VALID_UNDO_STEP(ustack, us_target);
 
   /* This will be active once complete. */
-  UndoStep *us_active = us_prev;
+  UndoStep *us_active = us_target;
   if (use_skip) {
     while (us_active && us_active->skip) {
       us_active = us_active->prev;
     }
   }
 
-  if ((us != NULL) && (us_active != NULL)) {
-    CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
-
-    /* Handle accumulate steps. */
-    if (ustack->step_active) {
-      UndoStep *us_iter = ustack->step_active;
-      while (us_iter != us) {
-        /* TODO:
-         * - skip successive steps that store the same data, eg: memfile steps.
-         * - or steps that include another steps data, eg: a memfile step includes text undo data.
-         */
-        undosys_step_decode(C, G_MAIN, ustack, us_iter, -1, false);
-
-        us_iter = us_iter->prev;
-      }
+  /* This will be the active step once the undo process is complete.
+   *
+   * In case we do skip 'skipped' steps, the final active step may be several steps backward from
+   * the one passed as parameter. */
+  UndoStep *us_target_active = us_target;
+  if (use_skip) {
+    while (us_target_active != NULL && us_target_active->skip) {
+      us_target_active = us_target_active->prev;
     }
-
-    {
-      UndoStep *us_iter = us_prev;
-      do {
-        const bool is_final = (us_iter == us_active);
-        if (is_final == false) {
-          CLOG_INFO(&LOG,
-                    2,
-                    "undo continue with skip %p '%s', type='%s'",
-                    us_iter,
-                    us_iter->name,
-                    us_iter->type->name);
-        }
-        undosys_step_decode(C, G_MAIN, ustack, us_iter, -1, is_final);
-        ustack->step_active = us_iter;
-      } while ((us_active != us_iter) && (us_iter = us_iter->prev));
-    }
-
-    return true;
   }
+  if (us_target_active == NULL) {
+    CLOG_ERROR(&LOG, "could not find a valid final active target step");
+    return false;
+  }
+
+  CLOG_INFO(
+      &LOG, 1, "addr=%p, name='%s', type='%s'", us_target, us_target->name, us_target->type->name);
+
+  /* Undo steps until we reach original given target, if we do have a current active step.
+   *
+   * NOTE: Unlike with redo case, where we can expect current active step to fully reflect current
+   * data status, in undo case we also do reload the active step.
+   * FIXME: this feels weak, and should probably not be actually needed? Or should also be done in
+   * redo case? */
+  if (ustack->step_active != NULL) {
+    for (UndoStep *us_iter = ustack->step_active; us_iter != us_target; us_iter = us_iter->prev) {
+      BLI_assert(us_iter != NULL);
+      undosys_step_decode(C, G_MAIN, ustack, us_iter, -1, false);
+      ustack->step_active = us_iter;
+    }
+  }
+
+  /* Undo target step, and all potential extra ones if some steps have to be 'skipped'. */
+  for (UndoStep *us_iter = us_target; us_iter != NULL; us_iter = us_iter->prev) {
+    const bool is_final = (us_iter == us_target_active);
+
+    if (!is_final) {
+      BLI_assert(us_iter->skip == true);
+      CLOG_INFO(&LOG,
+                2,
+                "undo continue with skip addr=%p, name='%s', type='%s'",
+                us_iter,
+                us_iter->name,
+                us_iter->type->name);
+    }
+
+    undosys_step_decode(C, G_MAIN, ustack, us_iter, -1, is_final);
+    ustack->step_active = us_iter;
+
+    if (is_final) {
+      /* Undo process is finished and successful. */
+      return true;
+    }
+  }
+
+  BLI_assert(
+      !"This should never be reached, either undo stack is corrupted, or code above is buggy");
   return false;
 }
+
 bool BKE_undosys_step_undo_with_data(UndoStack *ustack, bContext *C, UndoStep *us)
 {
   return BKE_undosys_step_undo_with_data_ex(ustack, C, us, true);
@@ -756,54 +817,79 @@ bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
 {
   UNDO_NESTED_ASSERT(false);
   if (us == NULL) {
+    CLOG_ERROR(&LOG, "called with a NULL step");
     return false;
   }
   undosys_stack_validate(ustack, true);
 
-  UndoStep *us_next = us ? us->next : NULL;
-  /* Unlike undo accumulate, we always use the next. */
-  us = us_next;
+  /* We expect to get previous-from-actual-target step here (i.e. active step in case we only redo
+   * once)?
+   * FIXME: this is very confusing now that we may have to redo several steps anyway, this function
+   * should just get the target final step, not assume that it is getting the active one by default
+   * (or the step before the target one when redoing more than one step). */
+  UndoStep *us_target = us->next;
+  if (us_target == NULL) {
+    CLOG_ERROR(&LOG, "could not find a valid target step");
+    return false;
+  }
+  ASSERT_VALID_REDO_STEP(ustack, us_target);
 
-  /* This will be active once complete. */
-  UndoStep *us_active = us_next;
+  /* This will be the active step once the redo process is complete.
+   *
+   * In case we do skip 'skipped' steps, the final active step may be several steps forward the one
+   * passed as parameter. */
+  UndoStep *us_target_active = us_target;
   if (use_skip) {
-    while (us_active && us_active->skip) {
-      us_active = us_active->next;
+    while (us_target_active != NULL && us_target_active->skip) {
+      us_target_active = us_target_active->next;
+    }
+  }
+  if (us_target_active == NULL) {
+    CLOG_ERROR(&LOG, "could not find a valid final active target step");
+    return false;
+  }
+
+  CLOG_INFO(
+      &LOG, 1, "addr=%p, name='%s', type='%s'", us_target, us_target->name, us_target->type->name);
+
+  /* Redo steps until we reach original given target, if we do have a current active step. */
+  if (ustack->step_active != NULL) {
+    for (UndoStep *us_iter = ustack->step_active->next; us_iter != us_target;
+         us_iter = us_iter->next) {
+      BLI_assert(us_iter != NULL);
+      undosys_step_decode(C, G_MAIN, ustack, us_iter, 1, false);
+      ustack->step_active = us_iter;
     }
   }
 
-  if ((us != NULL) && (us_active != NULL)) {
-    CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
+  /* Redo target step, and all potential extra ones if some steps have to be 'skipped'. */
+  for (UndoStep *us_iter = us_target; us_iter != NULL; us_iter = us_iter->next) {
+    const bool is_final = (us_iter == us_target_active);
 
-    /* Handle accumulate steps. */
-    if (ustack->step_active && ustack->step_active->next) {
-      UndoStep *us_iter = ustack->step_active->next;
-      while (us_iter != us) {
-        undosys_step_decode(C, G_MAIN, ustack, us_iter, 1, false);
-        us_iter = us_iter->next;
-      }
+    if (!is_final) {
+      BLI_assert(us_iter->skip == true);
+      CLOG_INFO(&LOG,
+                2,
+                "redo continue with skip addr=%p, name='%s', type='%s'",
+                us_iter,
+                us_iter->name,
+                us_iter->type->name);
     }
 
-    {
-      UndoStep *us_iter = us_next;
-      do {
-        const bool is_final = (us_iter == us_active);
-        if (is_final == false) {
-          CLOG_INFO(&LOG,
-                    2,
-                    "redo continue with skip %p '%s', type='%s'",
-                    us_iter,
-                    us_iter->name,
-                    us_iter->type->name);
-        }
-        undosys_step_decode(C, G_MAIN, ustack, us_iter, 1, is_final);
-        ustack->step_active = us_iter;
-      } while ((us_active != us_iter) && (us_iter = us_iter->next));
+    undosys_step_decode(C, G_MAIN, ustack, us_iter, 1, is_final);
+    ustack->step_active = us_iter;
+
+    if (is_final) {
+      /* Redo process is finished and successful. */
+      return true;
     }
-    return true;
   }
+
+  BLI_assert(
+      !"This should never be reached, either undo stack is corrupted, or code above is buggy");
   return false;
 }
+
 bool BKE_undosys_step_redo_with_data(UndoStack *ustack, bContext *C, UndoStep *us)
 {
   return BKE_undosys_step_redo_with_data_ex(ustack, C, us, true);

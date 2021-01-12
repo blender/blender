@@ -830,18 +830,6 @@ void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
   BKE_splineik_execute_tree(depsgraph, scene, object, rootchan, ctime);
 }
 
-/* Common part for both original and proxy armatrues. */
-static void pose_eval_done_common(struct Depsgraph *depsgraph, Object *object)
-{
-  const bArmature *armature = (bArmature *)object->data;
-  if (armature->edbo != NULL) {
-    return;
-  }
-  bPose *pose = object->pose;
-  UNUSED_VARS_NDEBUG(pose);
-  BLI_assert(pose != NULL);
-  BKE_object_eval_boundbox(depsgraph, object);
-}
 static void pose_eval_cleanup_common(Object *object)
 {
   bPose *pose = object->pose;
@@ -857,7 +845,6 @@ void BKE_pose_eval_done(struct Depsgraph *depsgraph, Object *object)
   UNUSED_VARS_NDEBUG(pose);
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   BLI_assert(object->type == OB_ARMATURE);
-  pose_eval_done_common(depsgraph, object);
 }
 
 void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph, Scene *scene, Object *object)
@@ -885,7 +872,6 @@ void BKE_pose_eval_proxy_done(struct Depsgraph *depsgraph, Object *object)
 {
   BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-  pose_eval_done_common(depsgraph, object);
 }
 
 void BKE_pose_eval_proxy_cleanup(struct Depsgraph *depsgraph, Object *object)

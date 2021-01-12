@@ -1108,6 +1108,18 @@ typedef struct NodeAttributeMix {
   uint8_t input_type_b;
 } NodeAttributeMix;
 
+typedef struct NodeAttributeVectorMath {
+  /* NodeVectorMathOperation */
+  uint8_t operation;
+
+  /* GeometryNodeAttributeInputMode */
+  uint8_t input_type_a;
+  uint8_t input_type_b;
+  uint8_t input_type_c;
+
+  char _pad[4];
+} NodeAttributeVectorMath;
+
 typedef struct NodeAttributeColorRamp {
   ColorBand color_ramp;
 } NodeAttributeColorRamp;
@@ -1128,6 +1140,17 @@ typedef struct NodeGeometryRotatePoints {
   uint8_t input_type_rotation;
   char _pad[3];
 } NodeGeometryRotatePoints;
+
+typedef struct NodeGeometryAlignRotationToVector {
+  /* GeometryNodeAlignRotationToVectorAxis */
+  uint8_t axis;
+
+  /* GeometryNodeAttributeInputMode */
+  uint8_t input_type_factor;
+  uint8_t input_type_vector;
+
+  char _pad[5];
+} NodeGeometryAlignRotationToVector;
 
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
@@ -1368,7 +1391,7 @@ enum {
 };
 
 /* Vector Math node operations. */
-enum {
+typedef enum NodeVectorMathOperation {
   NODE_VECTOR_MATH_ADD = 0,
   NODE_VECTOR_MATH_SUBTRACT = 1,
   NODE_VECTOR_MATH_MULTIPLY = 2,
@@ -1396,7 +1419,7 @@ enum {
   NODE_VECTOR_MATH_SINE = 21,
   NODE_VECTOR_MATH_COSINE = 22,
   NODE_VECTOR_MATH_TANGENT = 23,
-};
+} NodeVectorMathOperation;
 
 /* Boolean math node operations. */
 enum {
@@ -1563,6 +1586,12 @@ typedef enum GeometryNodeRotatePointsSpace {
   GEO_NODE_ROTATE_POINTS_SPACE_OBJECT = 0,
   GEO_NODE_ROTATE_POINTS_SPACE_POINT = 1,
 } GeometryNodeRotatePointsSpace;
+
+typedef enum GeometryNodeAlignRotationToVectorAxis {
+  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_X = 0,
+  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_Y = 1,
+  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_Z = 2,
+} GeometryNodeAlignRotationToVectorAxis;
 
 #ifdef __cplusplus
 }

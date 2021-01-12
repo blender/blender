@@ -2227,21 +2227,15 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
-  int in_out = RNA_enum_get(op->ptr, "in_out");
 
   PointerRNA ntree_ptr;
   RNA_id_pointer_create((ID *)ntree, &ntree_ptr);
 
-  const char *default_name;
-  bNodeSocket *active_sock;
-  if (in_out == SOCK_IN) {
-    active_sock = ntree_get_active_interface_socket(&ntree->inputs);
-    default_name = "Input";
-  }
-  else {
-    active_sock = ntree_get_active_interface_socket(&ntree->outputs);
-    default_name = "Output";
-  }
+  const eNodeSocketInOut in_out = RNA_enum_get(op->ptr, "in_out");
+  ListBase *sockets = (in_out == SOCK_IN) ? &ntree->inputs : &ntree->outputs;
+
+  const char *default_name = (in_out == SOCK_IN) ? "Input" : "Output";
+  bNodeSocket *active_sock = ntree_get_active_interface_socket(sockets);
 
   bNodeSocket *sock;
   if (active_sock) {
@@ -2256,11 +2250,8 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
     sock = ntreeAddSocketInterface(ntree, in_out, "NodeSocketFloat", default_name);
   }
 
-  /* deactivate sockets (has to check both lists) */
-  LISTBASE_FOREACH (bNodeSocket *, socket_iter, &ntree->inputs) {
-    socket_iter->flag &= ~SELECT;
-  }
-  LISTBASE_FOREACH (bNodeSocket *, socket_iter, &ntree->outputs) {
+  /* Deactivate sockets. */
+  LISTBASE_FOREACH (bNodeSocket *, socket_iter, sockets) {
     socket_iter->flag &= ~SELECT;
   }
   /* make the new socket active */
@@ -2295,16 +2286,15 @@ void NODE_OT_tree_socket_add(wmOperatorType *ot)
 
 /********************** Remove interface socket operator *********************/
 
-static int ntree_socket_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int ntree_socket_remove_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
+  const eNodeSocketInOut in_out = RNA_enum_get(op->ptr, "in_out");
 
-  bNodeSocket *iosock = ntree_get_active_interface_socket(&ntree->inputs);
-  if (!iosock) {
-    iosock = ntree_get_active_interface_socket(&ntree->outputs);
-  }
-  if (!iosock) {
+  bNodeSocket *iosock = ntree_get_active_interface_socket(in_out == SOCK_IN ? &ntree->inputs :
+                                                                              &ntree->outputs);
+  if (iosock == NULL) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2340,6 +2330,7 @@ void NODE_OT_tree_socket_remove(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  RNA_def_enum(ot->srna, "in_out", rna_enum_node_socket_in_out_items, SOCK_IN, "Socket Type", "");
 }
 
 /********************** Move interface socket operator *********************/
@@ -2356,36 +2347,35 @@ static int ntree_socket_move_exec(bContext *C, wmOperator *op)
   bNodeTree *ntree = snode->edittree;
   int direction = RNA_enum_get(op->ptr, "direction");
 
-  ListBase *lb = &ntree->inputs;
-  bNodeSocket *iosock = ntree_get_active_interface_socket(lb);
-  if (!iosock) {
-    lb = &ntree->outputs;
-    iosock = ntree_get_active_interface_socket(lb);
-  }
-  if (!iosock) {
+  const eNodeSocketInOut in_out = RNA_enum_get(op->ptr, "in_out");
+  ListBase *sockets = in_out == SOCK_IN ? &ntree->inputs : &ntree->outputs;
+
+  bNodeSocket *iosock = ntree_get_active_interface_socket(sockets);
+
+  if (iosock == NULL) {
     return OPERATOR_CANCELLED;
   }
 
   switch (direction) {
     case 1: { /* up */
       bNodeSocket *before = iosock->prev;
-      BLI_remlink(lb, iosock);
+      BLI_remlink(sockets, iosock);
       if (before) {
-        BLI_insertlinkbefore(lb, before, iosock);
+        BLI_insertlinkbefore(sockets, before, iosock);
       }
       else {
-        BLI_addhead(lb, iosock);
+        BLI_addhead(sockets, iosock);
       }
       break;
     }
     case 2: { /* down */
       bNodeSocket *after = iosock->next;
-      BLI_remlink(lb, iosock);
+      BLI_remlink(sockets, iosock);
       if (after) {
-        BLI_insertlinkafter(lb, after, iosock);
+        BLI_insertlinkafter(sockets, after, iosock);
       }
       else {
-        BLI_addtail(lb, iosock);
+        BLI_addtail(sockets, iosock);
       }
       break;
     }
@@ -2417,6 +2407,7 @@ void NODE_OT_tree_socket_move(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_enum(ot->srna, "direction", move_direction_items, 1, "Direction", "");
+  RNA_def_enum(ot->srna, "in_out", rna_enum_node_socket_in_out_items, SOCK_IN, "Socket Type", "");
 }
 
 /* ********************** Shader Script Update ******************/

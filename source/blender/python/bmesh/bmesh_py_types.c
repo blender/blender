@@ -1123,6 +1123,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
   scene_eval = DEG_get_evaluated_scene(depsgraph);
   ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  bool need_free = false;
 
   /* Write the display mesh into the dummy mesh */
   if (use_deform) {
@@ -1134,7 +1135,8 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
         return NULL;
       }
 
-      me_eval = mesh_create_eval_final(depsgraph, scene_eval, ob_eval, &data_masks);
+      me_eval = BKE_mesh_new_from_object(depsgraph, ob_eval, true);
+      need_free = true;
     }
     else {
       if (use_cage) {
@@ -1174,6 +1176,10 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = use_fnorm,
                      }));
+
+  if (need_free) {
+    BKE_id_free(NULL, me_eval);
+  }
 
   Py_RETURN_NONE;
 }
