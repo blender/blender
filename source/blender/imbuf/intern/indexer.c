@@ -194,28 +194,28 @@ struct anim_index *IMB_indexer_open(const char *name)
   idx->entries = MEM_callocN(sizeof(struct anim_index_entry) * idx->num_entries,
                              "anim_index_entries");
 
+  size_t items_read = 0;
   for (i = 0; i < idx->num_entries; i++) {
-    size_t items_read = 0;
     items_read += fread(&idx->entries[i].frameno, sizeof(int), 1, fp);
     items_read += fread(&idx->entries[i].seek_pos, sizeof(uint64_t), 1, fp);
     items_read += fread(&idx->entries[i].seek_pos_dts, sizeof(uint64_t), 1, fp);
     items_read += fread(&idx->entries[i].pts, sizeof(uint64_t), 1, fp);
+  }
 
-    if (items_read < 4) {
-      perror("error reading animation index file");
-      MEM_freeN(idx->entries);
-      MEM_freeN(idx);
-      fclose(fp);
-      return NULL;
-    }
+  if (UNLIKELY(items_read != idx->num_entries * 4)) {
+    perror("error reading animation index file");
+    MEM_freeN(idx->entries);
+    MEM_freeN(idx);
+    fclose(fp);
+    return NULL;
   }
 
   if (((ENDIAN_ORDER == B_ENDIAN) != (header[8] == 'V'))) {
     for (i = 0; i < idx->num_entries; i++) {
       BLI_endian_switch_int32(&idx->entries[i].frameno);
-      BLI_endian_switch_int64((int64_t *)&idx->entries[i].seek_pos);
-      BLI_endian_switch_int64((int64_t *)&idx->entries[i].seek_pos_dts);
-      BLI_endian_switch_int64((int64_t *)&idx->entries[i].pts);
+      BLI_endian_switch_uint64(&idx->entries[i].seek_pos);
+      BLI_endian_switch_uint64(&idx->entries[i].seek_pos_dts);
+      BLI_endian_switch_uint64(&idx->entries[i].pts);
     }
   }
 
