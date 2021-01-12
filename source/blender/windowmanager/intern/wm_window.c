@@ -801,10 +801,12 @@ wmWindow *WM_window_open(bContext *C, const rcti *rect)
   wmWindow *win_prev = CTX_wm_window(C);
   wmWindow *win = wm_window_new(CTX_data_main(C), wm, win_prev, false);
 
-  win->posx = rect->xmin;
-  win->posy = rect->ymin;
-  win->sizex = BLI_rcti_size_x(rect);
-  win->sizey = BLI_rcti_size_y(rect);
+  const float native_pixel_size = GHOST_GetNativePixelSize(win_prev->ghostwin);
+
+  win->posx = rect->xmin / native_pixel_size;
+  win->posy = rect->ymin / native_pixel_size;
+  win->sizex = BLI_rcti_size_x(rect) / native_pixel_size;
+  win->sizey = BLI_rcti_size_y(rect) / native_pixel_size;
 
   WM_check(C);
 
