@@ -83,6 +83,7 @@ extern "C" {
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_light.h"
 #include "BKE_mask.h"
 #include "BKE_material.h"
@@ -121,20 +122,6 @@ extern "C" {
 
 namespace DEG {
 
-namespace {
-
-void free_copy_on_write_datablock(void *id_info_v)
-{
-  DepsgraphNodeBuilder::IDInfo *id_info = (DepsgraphNodeBuilder::IDInfo *)id_info_v;
-  if (id_info->id_cow != nullptr) {
-    deg_free_copy_on_write_datablock(id_info->id_cow);
-    MEM_freeN(id_info->id_cow);
-  }
-  MEM_freeN(id_info);
-}
-
-} /* namespace */
-
 /* ************ */
 /* Node Builder */
 
@@ -148,26 +135,31 @@ DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain,
       view_layer_(nullptr),
       view_layer_index_(-1),
       collection_(nullptr),
-      is_parent_collection_visible_(true),
-      id_info_hash_(nullptr)
+      is_parent_collection_visible_(true)
 {
 }
 
 DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 {
-  if (id_info_hash_ != nullptr) {
-    BLI_ghash_free(id_info_hash_, nullptr, free_copy_on_write_datablock);
+ for (IDInfo *id_info : id_info_hash_.values()) {
+    if (id_info->id_cow != nullptr) {
+      deg_free_copy_on_write_datablock(id_info->id_cow);
+      MEM_freeN(id_info->id_cow);
+    }
+    MEM_freeN(id_info);
   }
 }
 
 IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
+  BLI_assert(id->session_uuid != MAIN_ID_SESSION_UUID_UNSET);
+
   IDNode *id_node = nullptr;
   ID *id_cow = nullptr;
   IDComponentsMask previously_visible_components_mask = 0;
   uint32_t previous_eval_flags = 0;
   DEGCustomDataMeshMasks previous_customdata_masks;
-  IDInfo *id_info = (IDInfo *)BLI_ghash_lookup(id_info_hash_, id);
+  IDInfo *id_info = id_info_hash_.lookup_default(id->session_uuid, nullptr);
   if (id_info != nullptr) {
     id_cow = id_info->id_cow;
     previously_visible_components_mask = id_info->previously_visible_components_mask;
@@ -321,7 +313,6 @@ void DepsgraphNodeBuilder::begin_build()
 {
   /* Store existing copy-on-write versions of datablock, so we can re-use
    * them for new ID nodes. */
-  id_info_hash_ = BLI_ghash_ptr_new("Depsgraph id hash");
   for (IDNode *id_node : graph_->id_nodes) {
     /* It is possible that the ID does not need to have CoW version in which case id_cow is the
      * same as id_orig. Additionally, such ID might have been removed, which makes the check
@@ -345,7 +336,8 @@ void DepsgraphNodeBuilder::begin_build()
     id_info->previously_visible_components_mask = id_node->visible_components_mask;
     id_info->previous_eval_flags = id_node->eval_flags;
     id_info->previous_customdata_masks = id_node->customdata_masks;
-    BLI_ghash_insert(id_info_hash_, id_node->id_orig, id_info);
+    BLI_assert(!id_info_hash_.contains(id_node->id_orig_session_uuid));
+    id_info_hash_.add_new(id_node->id_orig_session_uuid, id_info);
     id_node->id_cow = nullptr;
   }
 
