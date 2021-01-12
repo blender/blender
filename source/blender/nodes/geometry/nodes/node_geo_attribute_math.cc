@@ -75,7 +75,7 @@ static void do_math_operation(const FloatReadAttribute &input_a,
 
   Span<float> span_a = input_a.get_span();
   Span<float> span_b = input_b.get_span();
-  MutableSpan<float> span_result = result.get_span();
+  MutableSpan<float> span_result = result.get_span_for_write_only();
 
   bool success = try_dispatch_float_math_fl_fl_to_fl(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {

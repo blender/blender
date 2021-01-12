@@ -56,7 +56,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
       input_name, result_domain, 0.0f);
 
   Span<float> data_in = attribute_in.get_span();
-  MutableSpan<Color4f> data_out = attribute_out.get_span();
+  MutableSpan<Color4f> data_out = attribute_out.get_span_for_write_only();
 
   ColorBand *color_ramp = &node_storage->color_ramp;
   for (const int i : data_in.index_range()) {

@@ -263,7 +263,7 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
   }
 
   BooleanWriteAttribute attribute_result_bool = std::move(attribute_result);
-  MutableSpan<bool> result_span = attribute_result_bool.get_span();
+  MutableSpan<bool> result_span = attribute_result_bool.get_span_for_write_only();
 
   /* Use specific types for correct equality operations, but for other operations we use implicit
    * conversions and float comparison. In other words, the comparison is not element-wise. */

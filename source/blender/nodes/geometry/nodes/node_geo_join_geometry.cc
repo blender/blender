@@ -182,7 +182,7 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
         write_attribute->domain() != domain) {
       continue;
     }
-    fn::GMutableSpan dst_span = write_attribute->get_span();
+    fn::GMutableSpan dst_span = write_attribute->get_span_for_write_only();
     fill_new_attribute(src_components, attribute_name, data_type, domain, dst_span);
     write_attribute->apply_span();
   }

@@ -78,7 +78,7 @@ static void fill_attribute(GeometryComponent &component, const GeoNodeExecParams
     case CD_PROP_FLOAT: {
       FloatWriteAttribute float_attribute = std::move(attribute);
       const float value = params.get_input<float>("Value_001");
-      MutableSpan<float> attribute_span = float_attribute.get_span();
+      MutableSpan<float> attribute_span = float_attribute.get_span_for_write_only();
       attribute_span.fill(value);
       float_attribute.apply_span();
       break;
@@ -86,7 +86,7 @@ static void fill_attribute(GeometryComponent &component, const GeoNodeExecParams
     case CD_PROP_FLOAT3: {
       Float3WriteAttribute float3_attribute = std::move(attribute);
       const float3 value = params.get_input<float3>("Value");
-      MutableSpan<float3> attribute_span = float3_attribute.get_span();
+      MutableSpan<float3> attribute_span = float3_attribute.get_span_for_write_only();
       attribute_span.fill(value);
       float3_attribute.apply_span();
       break;
@@ -94,7 +94,7 @@ static void fill_attribute(GeometryComponent &component, const GeoNodeExecParams
     case CD_PROP_COLOR: {
       Color4fWriteAttribute color4f_attribute = std::move(attribute);
       const Color4f value = params.get_input<Color4f>("Value_002");
-      MutableSpan<Color4f> attribute_span = color4f_attribute.get_span();
+      MutableSpan<Color4f> attribute_span = color4f_attribute.get_span_for_write_only();
       attribute_span.fill(value);
       color4f_attribute.apply_span();
       break;
@@ -102,7 +102,7 @@ static void fill_attribute(GeometryComponent &component, const GeoNodeExecParams
     case CD_PROP_BOOL: {
       BooleanWriteAttribute boolean_attribute = std::move(attribute);
       const bool value = params.get_input<bool>("Value_003");
-      MutableSpan<bool> attribute_span = boolean_attribute.get_span();
+      MutableSpan<bool> attribute_span = boolean_attribute.get_span_for_write_only();
       attribute_span.fill(value);
       boolean_attribute.apply_span();
       break;
