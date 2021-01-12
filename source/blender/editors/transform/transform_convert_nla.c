@@ -484,7 +484,7 @@ void recalcData_nla(TransInfo *t)
         for (track = tdn->nlt->next, n = 0; (track) && (n < delta); track = track->next, n++) {
           /* check if space in this track for the strip */
           if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
-              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, tdn->nlt)) {
+              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track)) {
             /* move strip to this track */
             BLI_remlink(&tdn->nlt->strips, strip);
             BKE_nlatrack_add_strip(track, strip, is_liboverride);
@@ -504,7 +504,7 @@ void recalcData_nla(TransInfo *t)
         for (track = tdn->nlt->prev, n = 0; (track) && (n < delta); track = track->prev, n++) {
           /* check if space in this track for the strip */
           if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
-              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, tdn->nlt)) {
+              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track)) {
             /* move strip to this track */
             BLI_remlink(&tdn->nlt->strips, strip);
             BKE_nlatrack_add_strip(track, strip, is_liboverride);
