@@ -22,6 +22,7 @@
  */
 
 #include "BKE_cryptomatte.h"
+#include "BKE_cryptomatte.hh"
 #include "BKE_image.h"
 #include "BKE_main.h"
 
@@ -43,6 +44,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 enum CryptomatteLayerState {
   EMPTY,
@@ -299,15 +301,15 @@ static uint32_t cryptomatte_determine_identifier(const std::string name)
   return BLI_hash_mm3(reinterpret_cast<const unsigned char *>(name.c_str()), name.length(), 0);
 }
 
-static std::string cryptomatte_determine_prefix(const std::string name)
+static void add_render_result_meta_data(RenderResult *render_result,
+                                        const blender::StringRef layer_name,
+                                        const blender::StringRefNull key_name,
+                                        const blender::StringRefNull value)
 {
-  std::stringstream stream;
-  const uint32_t render_pass_identifier = cryptomatte_determine_identifier(name);
-  stream << "cryptomatte/";
-  stream << std::setfill('0') << std::setw(sizeof(uint32_t) * 2) << std::hex
-         << render_pass_identifier;
-  stream << "/";
-  return stream.str();
+  BKE_render_result_stamp_data(
+      render_result,
+      blender::BKE_cryptomatte_meta_data_key(layer_name, key_name).c_str(),
+      value.data());
 }
 
 void BKE_cryptomatte_store_metadata(struct CryptomatteSession *session,
@@ -335,12 +337,47 @@ void BKE_cryptomatte_store_metadata(struct CryptomatteSession *session,
 
   const std::string manifest = layer->manifest_get_string();
   const std::string name = cryptomatte_determine_name(view_layer, cryptomatte_layer_name);
-  const std::string prefix = cryptomatte_determine_prefix(name);
 
   /* Store the meta data into the render result. */
-  BKE_render_result_stamp_data(render_result, (prefix + "name").c_str(), name.c_str());
-  BKE_render_result_stamp_data(render_result, (prefix + "hash").c_str(), "MurmurHash3_32");
-  BKE_render_result_stamp_data(
-      render_result, (prefix + "conversion").c_str(), "uint32_to_float32");
-  BKE_render_result_stamp_data(render_result, (prefix + "manifest").c_str(), manifest.c_str());
+  add_render_result_meta_data(render_result, name, "name", name);
+  add_render_result_meta_data(render_result, name, "hash", "MurmurHash3_32");
+  add_render_result_meta_data(render_result, name, "conversion", "uint32_to_float32");
+  add_render_result_meta_data(render_result, name, "manifest", manifest);
 }
+
+namespace blender {
+
+/* Return the hash of the given cryptomatte layer name.
+ *
+ * The cryptomatte specification limits the hash to 7 characters.
+ * The 7 position limitation solves issues when using cryptomatte together with OpenEXR.
+ * The specification suggests to use the first 7 chars of the hashed layer_name.
+ */
+static std::string cryptomatte_layer_name_hash(const StringRef layer_name)
+{
+  std::stringstream stream;
+  const uint32_t render_pass_identifier = cryptomatte_determine_identifier(layer_name);
+  stream << std::setfill('0') << std::setw(sizeof(uint32_t) * 2) << std::hex
+         << render_pass_identifier;
+  return stream.str().substr(0, 7);
+}
+
+std::string BKE_cryptomatte_meta_data_key(const StringRef layer_name, const StringRefNull key_name)
+{
+  return "cryptomatte/" + cryptomatte_layer_name_hash(layer_name) + "/" + key_name;
+}
+
+/* Extracts the cryptomatte name from a render pass name.
+ *
+ * Example: A render pass could be named `CryptoObject00`. This
+ *   function would remove the trailing digits and return `CryptoObject`. */
+StringRef BKE_cryptomatte_extract_layer_name(const StringRef render_pass_name)
+{
+  int64_t last_token = render_pass_name.size();
+  while (last_token > 0 && std::isdigit(render_pass_name[last_token - 1])) {
+    last_token -= 1;
+  }
+  return render_pass_name.substr(0, last_token);
+}
+
+}  // namespace blender

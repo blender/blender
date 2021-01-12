@@ -71,6 +71,8 @@ set(SRC
   intern/COM_MemoryBuffer.h
   intern/COM_MemoryProxy.cpp
   intern/COM_MemoryProxy.h
+  intern/COM_MetaData.cpp
+  intern/COM_MetaData.h
   intern/COM_Node.cpp
   intern/COM_Node.h
   intern/COM_NodeConverter.cpp

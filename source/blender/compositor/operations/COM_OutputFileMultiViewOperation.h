@@ -48,7 +48,8 @@ class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOpera
 class OutputOpenExrMultiLayerMultiViewOperation : public OutputOpenExrMultiLayerOperation {
  private:
  public:
-  OutputOpenExrMultiLayerMultiViewOperation(const RenderData *rd,
+  OutputOpenExrMultiLayerMultiViewOperation(const Scene *scene,
+                                            const RenderData *rd,
                                             const bNodeTree *tree,
                                             const char *path,
                                             char exr_codec,
