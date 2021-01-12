@@ -58,7 +58,7 @@ static int attribute_data_type_complexity(const CustomDataType data_type)
       return 4;
     case CD_PROP_COLOR:
       return 5;
-#if 0 /* Attribute types are not supported yet. */
+#if 0 /* These attribute types are not supported yet. */
     case CD_MLOOPCOL:
       return 3;
     case CD_PROP_STRING:
@@ -71,7 +71,7 @@ static int attribute_data_type_complexity(const CustomDataType data_type)
   }
 }
 
-CustomDataType attribute_domain_highest_complexity(Span<CustomDataType> data_types)
+CustomDataType attribute_data_type_highest_complexity(Span<CustomDataType> data_types)
 {
   int highest_complexity = INT_MIN;
   CustomDataType most_complex_type = CD_PROP_COLOR;
