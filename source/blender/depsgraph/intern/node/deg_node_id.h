@@ -74,12 +74,22 @@ struct IDNode : public Node {
 
   IDComponentsMask get_visible_components_mask() const;
 
-  /* ID Block referenced. */
   /* Type of the ID stored separately, so it's possible to perform check whether CoW is needed
    * without de-referencing the id_cow (which is not safe when ID is NOT covered by CoW and has
    * been deleted from the main database.) */
   ID_Type id_type;
+
+  /* ID Block referenced. */
   ID *id_orig;
+
+  /* Session-wide UUID of the id_orig.
+   * Is used on relations update to map evaluated state from old nodes to the new ones, without
+   * relying on pointers (which are not guaranteed to be unique) and without dereferencing id_orig
+   * which could be "stale" pointer. */
+  uint id_orig_session_uuid;
+
+  /* Evaluated datablock.
+   * Will be covered by the copy-on-write system if the ID Type needs it. */
   ID *id_cow;
 
   /* Hash to make it faster to look up components. */
