@@ -1255,7 +1255,9 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
   last_seq->seq2 = seq2;
   last_seq->seq3 = seq3;
 
+  int old_start = last_seq->start;
   SEQ_relations_update_changed_seq_and_deps(scene, last_seq, 1, 1);
+  SEQ_offset_animdata(scene, last_seq, (last_seq->start - old_start));
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
