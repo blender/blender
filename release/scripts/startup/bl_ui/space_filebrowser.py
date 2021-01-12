@@ -197,7 +197,8 @@ class FILEBROWSER_PT_filter(Panel):
 
                 sub = row.column(align=True)
 
-                sub.prop(params, "use_filter_asset_only")
+                if context.preferences.experimental.use_asset_browser:
+                    sub.prop(params, "use_filter_asset_only")
 
                 filter_id = params.filter_id
                 for identifier in dir(filter_id):
@@ -390,7 +391,8 @@ class FILEBROWSER_PT_advanced_filter(Panel):
                 layout.separator()
                 col = layout.column(align=True)
 
-                col.prop(params, "use_filter_asset_only")
+                if context.preferences.experimental.use_asset_browser:
+                    col.prop(params, "use_filter_asset_only")
 
                 filter_id = params.filter_id
                 for identifier in dir(filter_id):

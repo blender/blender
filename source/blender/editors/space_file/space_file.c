@@ -776,7 +776,13 @@ static void file_space_subtype_item_extend(bContext *UNUSED(C),
                                            EnumPropertyItem **item,
                                            int *totitem)
 {
-  RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
+  if (U.experimental.use_asset_browser) {
+    RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
+  }
+  else {
+    RNA_enum_items_add_value(
+        item, totitem, rna_enum_space_file_browse_mode_items, FILE_BROWSE_MODE_FILES);
+  }
 }
 
 static const char *file_context_dir[] = {"active_file", "active_id", NULL};

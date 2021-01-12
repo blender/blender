@@ -6229,6 +6229,13 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "use_object_add_tool", 1);
   RNA_def_property_ui_text(
       prop, "Add Object Tool", "Show add object tool in the toolbar in Object Mode and Edit Mode");
+
+  prop = RNA_def_property(srna, "use_asset_browser", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_asset_browser", 1);
+  RNA_def_property_ui_text(
+      prop,
+      "Asset Browser",
+      "Enable Asset Browser editor and operators to manage data-blocks as asset");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

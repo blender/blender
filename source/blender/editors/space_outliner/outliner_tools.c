@@ -1791,6 +1791,9 @@ static bool outliner_id_operation_item_poll(bContext *C,
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   switch (enum_value) {
+    case OUTLINER_IDOP_MARK_ASSET:
+    case OUTLINER_IDOP_CLEAR_ASSET:
+      return U.experimental.use_asset_browser;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY:
       return true;

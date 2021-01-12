@@ -1342,6 +1342,11 @@ class USERPREF_PT_saveload_autorun(FilePathsPanel, Panel):
 class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
     bl_label = "Asset Libraries"
 
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return prefs.experimental.use_asset_browser
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = False
@@ -2188,14 +2193,21 @@ class ExperimentalPanel:
         layout.use_property_split = False
         layout.use_property_decorate = False
 
-        for prop_keywords, task in items:
+        for prop_keywords, reference in items:
             split = layout.split(factor=0.66)
             col = split.split()
             col.prop(experimental, **prop_keywords)
 
-            if task:
+            if reference:
+                if type(reference) is tuple:
+                    url_ext = reference[0]
+                    text = reference[1]
+                else:
+                    url_ext = reference
+                    text = reference
+
                 col = split.split()
-                col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
+                col.operator("wm.url_open", text=text, icon='URL').url = self.url_prefix + url_ext
 
 
 """
@@ -2225,6 +2237,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_switch_object_operator"}, "T80402"),
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
                 ({"property": "use_object_add_tool"}, "T57210"),
+                ({"property": "use_asset_browser"}, ("project/profile/124/", "Milestone 1")),
             ),
         )
 
