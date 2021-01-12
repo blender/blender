@@ -216,14 +216,12 @@ static CustomDataType get_data_type(GeometryComponent &component,
                                     const NodeAttributeCompare &node_storage)
 {
   if (operation_tests_equality(node_storage)) {
-    CustomDataType data_type_a = params.get_input_attribute_data_type(
-        "A", component, CD_PROP_FLOAT);
-    CustomDataType data_type_b = params.get_input_attribute_data_type(
-        "B", component, CD_PROP_FLOAT);
-
     /* Convert the input attributes to the same data type for the equality tests. Use the higher
      * complexity attribute type, otherwise information necessary to the comparison may be lost. */
-    return attribute_data_type_highest_complexity({data_type_a, data_type_b});
+    return attribute_data_type_highest_complexity({
+        params.get_input_attribute_data_type("A", component, CD_PROP_FLOAT),
+        params.get_input_attribute_data_type("B", component, CD_PROP_FLOAT),
+    });
   }
 
   /* Use float compare for every operation besides equality. */

@@ -136,14 +136,21 @@ static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecPa
   const bNode &node = params.node();
   const NodeAttributeMix *node_storage = (const NodeAttributeMix *)node.storage;
 
-  CustomDataType result_type = CD_PROP_COLOR;
-  AttributeDomain result_domain = ATTR_DOMAIN_POINT;
+  /* Use the highest complexity data type among the inputs and outputs, that way the node will
+   * never "remove information". Use CD_PROP_BOOL as the lowest complexity data type, but in any
+   * real situation it won't be returned. */
+  const CustomDataType result_type = attribute_data_type_highest_complexity({
+      params.get_input_attribute_data_type("A", component, CD_PROP_BOOL),
+      params.get_input_attribute_data_type("B", component, CD_PROP_BOOL),
+      params.get_input_attribute_data_type("Result", component, CD_PROP_BOOL),
+  });
 
-  /* Use type and domain from the result attribute, if it exists already. */
+  /* Once we support more domains at the user level, we have to decide how the result domain is
+   * chosen. */
+  AttributeDomain result_domain = ATTR_DOMAIN_POINT;
   const std::string result_name = params.get_input<std::string>("Result");
   const ReadAttributePtr result_attribute_read = component.attribute_try_get_for_read(result_name);
   if (result_attribute_read) {
-    result_type = result_attribute_read->custom_data_type();
     result_domain = result_attribute_read->domain();
   }
 
