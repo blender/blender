@@ -3319,6 +3319,16 @@ static void node_geometry_buts_rotate_points(uiLayout *layout,
   }
 }
 
+static void node_geometry_buts_align_rotation_to_vector(uiLayout *layout,
+                                                        bContext *UNUSED(C),
+                                                        PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "axis", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "input_type_factor", DEFAULT_FLAGS, IFACE_("Factor"), ICON_NONE);
+  uiItemR(col, ptr, "input_type_vector", DEFAULT_FLAGS, IFACE_("Vector"), ICON_NONE);
+}
+
 static void node_geometry_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -3360,6 +3370,9 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_ROTATE_POINTS:
       ntype->draw_buttons = node_geometry_buts_rotate_points;
+      break;
+    case GEO_NODE_ALIGN_ROTATION_TO_VECTOR:
+      ntype->draw_buttons = node_geometry_buts_align_rotation_to_vector;
       break;
   }
 }
