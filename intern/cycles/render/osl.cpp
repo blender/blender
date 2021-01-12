@@ -323,7 +323,7 @@ bool OSLShaderManager::osl_compile(const string &inputfile, const string &output
   string include_path_arg = string("-I") + shader_path;
   options.push_back(include_path_arg);
 
-  stdosl_path = path_get("shader/stdcycles.h");
+  stdosl_path = path_join(shader_path, "stdcycles.h");
 
   /* compile */
   OSL::OSLCompiler *compiler = new OSL::OSLCompiler(&OSL::ErrorHandler::default_handler());
