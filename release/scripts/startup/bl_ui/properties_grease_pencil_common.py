@@ -592,7 +592,7 @@ class GreasePencilMaterialsPanel:
             if show_full_ui:
                 row = layout.row()
 
-                row.template_ID(ob, "active_material", new="material.new", duplicate="material.duplicate", live_icon=True)
+                row.template_ID(ob, "active_material", new="material.new", live_icon=True)
 
                 slot = context.material_slot
                 if slot:
