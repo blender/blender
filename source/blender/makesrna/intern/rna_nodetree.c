@@ -436,7 +436,8 @@ static const EnumPropertyItem rna_node_geometry_point_distribute_method_items[] 
      "POISSON",
      0,
      "Poisson Disk",
-     "Project points on the surface evenly with a Poisson disk distribution"},
+     "Distribute the points randomly on the surface while taking a minimum distance between "
+     "points into account"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -6291,7 +6292,8 @@ static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "save_as_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "save_as_render", 1);
-  RNA_def_property_ui_text(prop, "Save as Render", "Apply render part of display transform when saving byte image");
+  RNA_def_property_ui_text(
+      prop, "Save as Render", "Apply render part of display transform when saving byte image");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
 
   prop = RNA_def_property(srna, "format", PROP_POINTER, PROP_NONE);

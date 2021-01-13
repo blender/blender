@@ -154,7 +154,6 @@ set(SRC
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_object_info.cc
   geometry/nodes/node_geo_point_distribute.cc
-  geometry/nodes/node_geo_point_distribute_poisson_disk.cc
   geometry/nodes/node_geo_point_instance.cc
   geometry/nodes/node_geo_point_separate.cc
   geometry/nodes/node_geo_rotate_points.cc
