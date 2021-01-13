@@ -76,7 +76,6 @@ struct wmWindow;
 
 typedef struct uiBlock uiBlock;
 typedef struct uiBut uiBut;
-typedef struct uiButExtraOpIcon uiButExtraOpIcon;
 typedef struct uiLayout uiLayout;
 typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 
@@ -1387,16 +1386,13 @@ typedef struct uiStringInfo {
 /* Note: Expects pointers to uiStringInfo structs as parameters.
  *       Will fill them with translated strings, when possible.
  *       Strings in uiStringInfo must be MEM_freeN'ed by caller. */
-void UI_but_string_info_get(struct bContext *C, uiBut *but, uiButExtraOpIcon *extra_icon, ...)
-    ATTR_SENTINEL(0);
+void UI_but_string_info_get(struct bContext *C, uiBut *but, ...) ATTR_SENTINEL(0);
 
 /* Edit i18n stuff. */
 /* Name of the main py op from i18n addon. */
 #define EDTSRC_I18N_OP_NAME "UI_OT_edittranslation"
 
 /**
- * TODO This is old stuff, only used by templateID. Should be cleaned up.
- *
  * Special Buttons
  *
  * Buttons with a more specific purpose:
@@ -1414,16 +1410,14 @@ enum {
   UI_ID_ALONE = 1 << 4,
   UI_ID_OPEN = 1 << 3,
   UI_ID_DELETE = 1 << 5,
-  UI_ID_MAKE_LOCAL = 1 << 6,
-  UI_ID_LIB_OVERRIDE_ADD = 1 << 7,
-  UI_ID_AUTO_NAME = 1 << 8,
+  UI_ID_LOCAL = 1 << 6,
+  UI_ID_AUTO_NAME = 1 << 7,
+  UI_ID_FAKE_USER = 1 << 8,
   UI_ID_PIN = 1 << 9,
   UI_ID_PREVIEWS = 1 << 10,
-  UI_ID_LIB_OVERRIDE_REMOVE = 1 << 11,
-  UI_ID_LIB_OVERRIDE_RESET = 1 << 12,
+  UI_ID_OVERRIDE = 1 << 11,
   UI_ID_FULL = UI_ID_RENAME | UI_ID_BROWSE | UI_ID_ADD_NEW | UI_ID_OPEN | UI_ID_ALONE |
-               UI_ID_DELETE | UI_ID_MAKE_LOCAL | UI_ID_LIB_OVERRIDE_ADD |
-               UI_ID_LIB_OVERRIDE_REMOVE | UI_ID_LIB_OVERRIDE_RESET,
+               UI_ID_DELETE | UI_ID_LOCAL,
 };
 
 /**
@@ -1669,12 +1663,10 @@ void UI_but_func_hold_set(uiBut *but, uiButHandleHoldFunc func, void *argN);
 
 void UI_but_func_pushed_state_set(uiBut *but, uiButPushedStateFunc func, void *arg);
 
-struct uiButExtraOpIcon *UI_but_extra_operator_icon_add(uiBut *but,
-                                                        const char *opname,
-                                                        short opcontext,
-                                                        int icon);
-struct wmOperatorType *UI_but_extra_operator_icon_optype_get(struct uiButExtraOpIcon *extra_icon);
-struct PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon *extra_icon);
+struct PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
+                                                  const char *opname,
+                                                  short opcontext,
+                                                  int icon);
 
 /* Autocomplete
  *
@@ -1976,7 +1968,6 @@ void uiTemplateID(uiLayout *layout,
                   struct PointerRNA *ptr,
                   const char *propname,
                   const char *newop,
-                  const char *duplicateop,
                   const char *openop,
                   const char *unlinkop,
                   int filter,
@@ -2589,11 +2580,6 @@ struct ARegion *UI_tooltip_create_from_button(struct bContext *C,
                                               struct ARegion *butregion,
                                               uiBut *but,
                                               bool is_label);
-struct ARegion *UI_tooltip_create_from_button_or_extra_icon(struct bContext *C,
-                                                            struct ARegion *butregion,
-                                                            uiBut *but,
-                                                            uiButExtraOpIcon *extra_icon,
-                                                            bool is_label);
 struct ARegion *UI_tooltip_create_from_gizmo(struct bContext *C, struct wmGizmo *gz);
 void UI_tooltip_free(struct bContext *C, struct bScreen *screen, struct ARegion *region);
 

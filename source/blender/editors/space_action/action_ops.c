@@ -73,9 +73,7 @@ void action_operatortypes(void)
   WM_operatortype_append(ACTION_OT_copy);
   WM_operatortype_append(ACTION_OT_paste);
 
-  /* UI-context based operators. */
   WM_operatortype_append(ACTION_OT_new);
-  WM_operatortype_append(ACTION_OT_duplicate_assign);
   WM_operatortype_append(ACTION_OT_unlink);
 
   WM_operatortype_append(ACTION_OT_push_down);

@@ -1119,7 +1119,6 @@ static void panel_draw(const bContext *C, Panel *panel)
                "node.new_geometry_node_group_assign",
                nullptr,
                nullptr,
-               nullptr,
                0,
                false,
                nullptr);

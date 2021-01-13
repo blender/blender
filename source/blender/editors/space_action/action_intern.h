@@ -106,7 +106,6 @@ void ACTION_OT_snap(struct wmOperatorType *ot);
 void ACTION_OT_mirror(struct wmOperatorType *ot);
 
 void ACTION_OT_new(struct wmOperatorType *ot);
-void ACTION_OT_duplicate_assign(struct wmOperatorType *ot);
 void ACTION_OT_unlink(struct wmOperatorType *ot);
 
 void ACTION_OT_push_down(struct wmOperatorType *ot);

@@ -180,16 +180,11 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   UI_but_funcN_set(but, file_filename_enter_handle, NULL, but);
 
   if (params->flag & FILE_CHECK_EXISTING) {
-    uiButExtraOpIcon *extra_icon;
-
-    extra_icon = UI_but_extra_operator_icon_add(
+    but_extra_rna_ptr = UI_but_extra_operator_icon_add(
         but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_REMOVE);
-    but_extra_rna_ptr = UI_but_extra_operator_icon_opptr_get(extra_icon);
     RNA_int_set(but_extra_rna_ptr, "increment", -1);
-
-    extra_icon = UI_but_extra_operator_icon_add(
+    but_extra_rna_ptr = UI_but_extra_operator_icon_add(
         but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_ADD);
-    but_extra_rna_ptr = UI_but_extra_operator_icon_opptr_get(extra_icon);
     RNA_int_set(but_extra_rna_ptr, "increment", 1);
   }
 
