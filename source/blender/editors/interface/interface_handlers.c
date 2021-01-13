@@ -1993,7 +1993,12 @@ static bool ui_but_drag_init(bContext *C,
     }
     else {
       wmDrag *drag = WM_event_start_drag(
-          C, but->icon, but->dragtype, but->dragpoin, ui_but_value_get(but), WM_DRAG_NOP);
+          C,
+          but->icon,
+          but->dragtype,
+          but->dragpoin,
+          ui_but_value_get(but),
+          (but->dragflag & UI_BUT_DRAGPOIN_FREE) ? WM_DRAG_FREE_DATA : WM_DRAG_NOP);
       /* wmDrag has ownership over dragpoin now, stop messing with it. */
       but->dragpoin = NULL;
 

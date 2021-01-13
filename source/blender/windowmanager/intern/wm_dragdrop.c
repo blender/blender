@@ -150,6 +150,10 @@ wmDrag *WM_event_start_drag(
   switch (type) {
     case WM_DRAG_PATH:
       BLI_strncpy(drag->path, poin, FILE_MAX);
+      /* As the path is being copied, free it immediately as `drag` wont "own" the data. */
+      if (flags & WM_DRAG_FREE_DATA) {
+        MEM_freeN(poin);
+      }
       break;
     case WM_DRAG_ID:
       if (poin) {
