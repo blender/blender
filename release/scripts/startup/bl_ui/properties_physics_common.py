@@ -92,7 +92,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
         if obj.type == 'MESH':
             row = physics_add(col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
             if row and obj.collision:
-                row.prop(obj.collision, "use", text="", icon="HIDE_OFF" if obj.collision.use else "HIDE_ON")
+                row.prop(obj.collision, "use", text="", icon='HIDE_OFF' if obj.collision.use else 'HIDE_ON')
 
             physics_add(col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
             physics_add(col, context.dynamic_paint, "Dynamic Paint", 'DYNAMIC_PAINT', 'MOD_DYNAMICPAINT', True)

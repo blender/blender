@@ -40,7 +40,7 @@ class FILEBROWSER_HT_header(Header):
         row.prop(params, "asset_library", text="")
         # External libraries don't auto-refresh, add refresh button.
         if params.asset_library != 'LOCAL':
-            row.operator("file.refresh", text="", icon="FILE_REFRESH")
+            row.operator("file.refresh", text="", icon='FILE_REFRESH')
 
         layout.separator_spacer()
 
