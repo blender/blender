@@ -67,7 +67,7 @@ static void event_ids_from_type_and_value(const short type,
     RNA_enum_identifier(rna_enum_event_value_tweak_items, val, r_val_id);
   }
   else {
-    RNA_enum_identifier(rna_enum_event_value_items, val, r_val_id);
+    RNA_enum_identifier(rna_enum_event_value_all_items, val, r_val_id);
   }
 }
 

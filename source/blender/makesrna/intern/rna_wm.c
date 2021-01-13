@@ -373,7 +373,7 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
  * This is needed for `km.keymap_items.new` value argument,
  * to accept values from different types.
  */
-const EnumPropertyItem rna_enum_event_value_items[] = {
+const EnumPropertyItem rna_enum_event_value_all_items[] = {
     {KM_ANY, "ANY", 0, "Any", ""},
     {KM_PRESS, "PRESS", 0, "Press", ""},
     {KM_RELEASE, "RELEASE", 0, "Release", ""},
@@ -623,7 +623,7 @@ static const EnumPropertyItem *rna_Event_value_itemf(bContext *UNUSED(C),
   if (ISTWEAK(event->type)) {
     return rna_enum_event_value_tweak_items;
   }
-  return rna_enum_event_value_items;
+  return rna_enum_event_value_all_items;
 }
 
 static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
@@ -990,7 +990,7 @@ static const EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C),
     return rna_enum_event_value_tweak_items;
   }
   else {
-    return rna_enum_event_value_items;
+    return rna_enum_event_value_all_items;
   }
 }
 
@@ -2132,7 +2132,7 @@ static void rna_def_event(BlenderRNA *brna)
   /* enums */
   prop = RNA_def_property(srna, "value", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "val");
-  RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_enum_items(prop, rna_enum_event_value_all_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Event_value_itemf");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Value", "The type of event, only applies to some");
@@ -2697,7 +2697,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "value", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "val");
-  RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_enum_items(prop, rna_enum_event_value_all_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_value_itemf");
   RNA_def_property_ui_text(prop, "Value", "");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
