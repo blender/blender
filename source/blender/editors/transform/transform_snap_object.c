@@ -3026,7 +3026,11 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
   bool has_hit = false;
   Object *ob = NULL;
-  float loc[3], no[3], obmat[4][4];
+  float loc[3];
+  /* Not all snapping callbacks set the normal,
+   * initialize this since any hit copies both the `loc` and `no`. */
+  float no[3] = {0.0f, 0.0f, 0.0f};
+  float obmat[4][4];
   int index = -1;
 
   const ARegion *region = sctx->v3d_data.region;
