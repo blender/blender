@@ -95,6 +95,9 @@ content_blender_folder = pathlib.Path(content_folder, "Blender").absolute()
 content_assets_folder = pathlib.Path(content_folder, "Assets")
 assets_original_folder = pathlib.Path(".", "Assets")
 
+pri_config_file = pathlib.Path(".", "priconfig.xml")
+pri_resources_file = pathlib.Path(content_folder, "resources.pri")
+
 local_blender_zip = pathlib.Path(".", "blender.zip")
 
 if args.pfx:
@@ -106,6 +109,13 @@ if args.pfx:
 else:
     pfx_path = None
     print("Creating MSIX package without signing.")
+
+pri_command = ["makepri",
+                   "new",
+                   "/pr", f"{content_folder.absolute()}",
+                   "/cf", f"{pri_config_file.absolute()}",
+                   "/of", f"{pri_resources_file.absolute()}"
+                   ]
 
 msix_command = ["makeappx",
                 "pack",
@@ -164,6 +174,9 @@ with zipfile.ZipFile(local_blender_zip, "r") as blender_zip:
 
 print("... extraction complete.")
 
+
+print(f"Generating Package Resource Index (PRI) file using command: {' '.join(pri_command)}")
+execute_command(pri_command, "MakePri", 4)
 
 print(f"Creating MSIX package using command: {' '.join(msix_command)}")
 
