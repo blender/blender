@@ -51,21 +51,19 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
     return;
   }
 
-  Color4fWriteAttribute attribute_out = std::move(attribute_result);
-
   const std::string input_name = params.get_input<std::string>("Attribute");
   FloatReadAttribute attribute_in = component.attribute_get_for_read<float>(
       input_name, result_domain, 0.0f);
 
   Span<float> data_in = attribute_in.get_span();
-  MutableSpan<Color4f> data_out = attribute_out.get_span_for_write_only();
+  MutableSpan<Color4f> data_out = attribute_result->get_span_for_write_only<Color4f>();
 
   ColorBand *color_ramp = &node_storage->color_ramp;
   for (const int i : data_in.index_range()) {
     BKE_colorband_evaluate(color_ramp, data_in[i], data_out[i]);
   }
 
-  attribute_out.apply_span();
+  attribute_result->apply_span();
 }
 
 static void geo_node_attribute_color_ramp_exec(GeoNodeExecParams params)

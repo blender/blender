@@ -122,8 +122,7 @@ static void attribute_math_calc(GeometryComponent &component, const GeoNodeExecP
     return;
   }
 
-  do_math_operation(
-      std::move(attribute_a), std::move(attribute_b), std::move(attribute_result), operation);
+  do_math_operation(*attribute_a, *attribute_b, *attribute_result, operation);
 }
 
 static void geo_node_attribute_math_exec(GeoNodeExecParams params)

@@ -100,6 +100,11 @@ class ReadAttribute {
   /* Get a span that contains all attribute values. */
   fn::GSpan get_span() const;
 
+  template<typename T> Span<T> get_span() const
+  {
+    return this->get_span().typed<T>();
+  }
+
  protected:
   /* r_value is expected to be uninitialized. */
   virtual void get_internal(const int64_t index, void *r_value) const = 0;
@@ -176,6 +181,16 @@ class WriteAttribute {
   /* Write the changes to the span into the actual attribute, if they aren't already. */
   void apply_span();
 
+  template<typename T> MutableSpan<T> get_span()
+  {
+    return this->get_span().typed<T>();
+  }
+
+  template<typename T> MutableSpan<T> get_span_for_write_only()
+  {
+    return this->get_span_for_write_only().typed<T>();
+  }
+
  protected:
   virtual void get_internal(const int64_t index, void *r_value) const = 0;
   virtual void set_internal(const int64_t index, const void *value) = 0;
@@ -191,8 +206,8 @@ using WriteAttributePtr = std::unique_ptr<WriteAttribute>;
  * The underlying ReadAttribute is owned optionally. */
 template<typename T> class TypedReadAttribute {
  private:
-  std::unique_ptr<ReadAttribute> owned_attribute_;
-  ReadAttribute *attribute_;
+  std::unique_ptr<const ReadAttribute> owned_attribute_;
+  const ReadAttribute *attribute_;
 
  public:
   TypedReadAttribute(ReadAttributePtr attribute) : TypedReadAttribute(*attribute)
@@ -201,7 +216,7 @@ template<typename T> class TypedReadAttribute {
     BLI_assert(owned_attribute_);
   }
 
-  TypedReadAttribute(ReadAttribute &attribute) : attribute_(&attribute)
+  TypedReadAttribute(const ReadAttribute &attribute) : attribute_(&attribute)
   {
     BLI_assert(attribute_->cpp_type().is<T>());
   }

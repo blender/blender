@@ -103,10 +103,10 @@ static void do_math_operation(const FloatReadAttribute &input_a,
   BLI_assert(false);
 }
 
-static void do_equal_operation(const FloatReadAttribute &input_a,
-                               const FloatReadAttribute &input_b,
-                               const float threshold,
-                               MutableSpan<bool> span_result)
+static void do_equal_operation_float(const FloatReadAttribute &input_a,
+                                     const FloatReadAttribute &input_b,
+                                     const float threshold,
+                                     MutableSpan<bool> span_result)
 {
   const int size = input_a.size();
   for (const int i : IndexRange(size)) {
@@ -116,10 +116,10 @@ static void do_equal_operation(const FloatReadAttribute &input_a,
   }
 }
 
-static void do_equal_operation(const Float3ReadAttribute &input_a,
-                               const Float3ReadAttribute &input_b,
-                               const float threshold,
-                               MutableSpan<bool> span_result)
+static void do_equal_operation_float3(const Float3ReadAttribute &input_a,
+                                      const Float3ReadAttribute &input_b,
+                                      const float threshold,
+                                      MutableSpan<bool> span_result)
 {
   const float threshold_squared = pow2f(threshold);
   const int size = input_a.size();
@@ -130,10 +130,10 @@ static void do_equal_operation(const Float3ReadAttribute &input_a,
   }
 }
 
-static void do_equal_operation(const Color4fReadAttribute &input_a,
-                               const Color4fReadAttribute &input_b,
-                               const float threshold,
-                               MutableSpan<bool> span_result)
+static void do_equal_operation_color4f(const Color4fReadAttribute &input_a,
+                                       const Color4fReadAttribute &input_b,
+                                       const float threshold,
+                                       MutableSpan<bool> span_result)
 {
   const float threshold_squared = pow2f(threshold);
   const int size = input_a.size();
@@ -144,10 +144,10 @@ static void do_equal_operation(const Color4fReadAttribute &input_a,
   }
 }
 
-static void do_equal_operation(const BooleanReadAttribute &input_a,
-                               const BooleanReadAttribute &input_b,
-                               const float UNUSED(threshold),
-                               MutableSpan<bool> span_result)
+static void do_equal_operation_bool(const BooleanReadAttribute &input_a,
+                                    const BooleanReadAttribute &input_b,
+                                    const float UNUSED(threshold),
+                                    MutableSpan<bool> span_result)
 {
   const int size = input_a.size();
   for (const int i : IndexRange(size)) {
@@ -157,10 +157,10 @@ static void do_equal_operation(const BooleanReadAttribute &input_a,
   }
 }
 
-static void do_not_equal_operation(const FloatReadAttribute &input_a,
-                                   const FloatReadAttribute &input_b,
-                                   const float threshold,
-                                   MutableSpan<bool> span_result)
+static void do_not_equal_operation_float(const FloatReadAttribute &input_a,
+                                         const FloatReadAttribute &input_b,
+                                         const float threshold,
+                                         MutableSpan<bool> span_result)
 {
   const int size = input_a.size();
   for (const int i : IndexRange(size)) {
@@ -170,10 +170,10 @@ static void do_not_equal_operation(const FloatReadAttribute &input_a,
   }
 }
 
-static void do_not_equal_operation(const Float3ReadAttribute &input_a,
-                                   const Float3ReadAttribute &input_b,
-                                   const float threshold,
-                                   MutableSpan<bool> span_result)
+static void do_not_equal_operation_float3(const Float3ReadAttribute &input_a,
+                                          const Float3ReadAttribute &input_b,
+                                          const float threshold,
+                                          MutableSpan<bool> span_result)
 {
   const float threshold_squared = pow2f(threshold);
   const int size = input_a.size();
@@ -184,10 +184,10 @@ static void do_not_equal_operation(const Float3ReadAttribute &input_a,
   }
 }
 
-static void do_not_equal_operation(const Color4fReadAttribute &input_a,
-                                   const Color4fReadAttribute &input_b,
-                                   const float threshold,
-                                   MutableSpan<bool> span_result)
+static void do_not_equal_operation_color4f(const Color4fReadAttribute &input_a,
+                                           const Color4fReadAttribute &input_b,
+                                           const float threshold,
+                                           MutableSpan<bool> span_result)
 {
   const float threshold_squared = pow2f(threshold);
   const int size = input_a.size();
@@ -198,10 +198,10 @@ static void do_not_equal_operation(const Color4fReadAttribute &input_a,
   }
 }
 
-static void do_not_equal_operation(const BooleanReadAttribute &input_a,
-                                   const BooleanReadAttribute &input_b,
-                                   const float UNUSED(threshold),
-                                   MutableSpan<bool> span_result)
+static void do_not_equal_operation_bool(const BooleanReadAttribute &input_a,
+                                        const BooleanReadAttribute &input_b,
+                                        const float UNUSED(threshold),
+                                        MutableSpan<bool> span_result)
 {
   const int size = input_a.size();
   for (const int i : IndexRange(size)) {
@@ -260,7 +260,7 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
     return;
   }
 
-  BooleanWriteAttribute attribute_result_bool = std::move(attribute_result);
+  BooleanWriteAttribute attribute_result_bool = *attribute_result;
   MutableSpan<bool> result_span = attribute_result_bool.get_span_for_write_only();
 
   /* Use specific types for correct equality operations, but for other operations we use implicit
@@ -269,59 +269,35 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
     const float threshold = params.get_input<float>("Threshold");
     if (operation == NODE_FLOAT_COMPARE_EQUAL) {
       if (input_data_type == CD_PROP_FLOAT) {
-        FloatReadAttribute attribute_a_float = std::move(attribute_a);
-        FloatReadAttribute attribute_b_float = std::move(attribute_b);
-        do_equal_operation(
-            std::move(attribute_a_float), std::move(attribute_b_float), threshold, result_span);
+        do_equal_operation_float(*attribute_a, *attribute_b, threshold, result_span);
       }
       else if (input_data_type == CD_PROP_FLOAT3) {
-        Float3ReadAttribute attribute_a_float3 = std::move(attribute_a);
-        Float3ReadAttribute attribute_b_float3 = std::move(attribute_b);
-        do_equal_operation(
-            std::move(attribute_a_float3), std::move(attribute_b_float3), threshold, result_span);
+        do_equal_operation_float3(*attribute_a, *attribute_b, threshold, result_span);
       }
       else if (input_data_type == CD_PROP_COLOR) {
-        Color4fReadAttribute attribute_a_color = std::move(attribute_a);
-        Color4fReadAttribute attribute_b_color = std::move(attribute_b);
-        do_equal_operation(
-            std::move(attribute_a_color), std::move(attribute_b_color), threshold, result_span);
+        do_equal_operation_color4f(*attribute_a, *attribute_b, threshold, result_span);
       }
       else if (input_data_type == CD_PROP_BOOL) {
-        BooleanReadAttribute attribute_a_bool = std::move(attribute_a);
-        BooleanReadAttribute attribute_b_bool = std::move(attribute_b);
-        do_equal_operation(
-            std::move(attribute_a_bool), std::move(attribute_b_bool), threshold, result_span);
+        do_equal_operation_bool(*attribute_a, *attribute_b, threshold, result_span);
       }
     }
     else if (operation == NODE_FLOAT_COMPARE_NOT_EQUAL) {
       if (input_data_type == CD_PROP_FLOAT) {
-        FloatReadAttribute attribute_a_float = std::move(attribute_a);
-        FloatReadAttribute attribute_b_float = std::move(attribute_b);
-        do_not_equal_operation(
-            std::move(attribute_a_float), std::move(attribute_b_float), threshold, result_span);
+        do_not_equal_operation_float(*attribute_a, *attribute_b, threshold, result_span);
       }
       else if (input_data_type == CD_PROP_FLOAT3) {
-        Float3ReadAttribute attribute_a_float3 = std::move(attribute_a);
-        Float3ReadAttribute attribute_b_float3 = std::move(attribute_b);
-        do_not_equal_operation(
-            std::move(attribute_a_float3), std::move(attribute_b_float3), threshold, result_span);
+        do_not_equal_operation_float3(*attribute_a, *attribute_b, threshold, result_span);
       }
       else if (input_data_type == CD_PROP_COLOR) {
-        Color4fReadAttribute attribute_a_color = std::move(attribute_a);
-        Color4fReadAttribute attribute_b_color = std::move(attribute_b);
-        do_not_equal_operation(
-            std::move(attribute_a_color), std::move(attribute_b_color), threshold, result_span);
+        do_not_equal_operation_color4f(*attribute_a, *attribute_b, threshold, result_span);
       }
       else if (input_data_type == CD_PROP_BOOL) {
-        BooleanReadAttribute attribute_a_bool = std::move(attribute_a);
-        BooleanReadAttribute attribute_b_bool = std::move(attribute_b);
-        do_not_equal_operation(
-            std::move(attribute_a_bool), std::move(attribute_b_bool), threshold, result_span);
+        do_not_equal_operation_bool(*attribute_a, *attribute_b, threshold, result_span);
       }
     }
   }
   else {
-    do_math_operation(std::move(attribute_a), std::move(attribute_b), operation, result_span);
+    do_math_operation(*attribute_a, *attribute_b, operation, result_span);
   }
 
   attribute_result_bool.apply_span();
