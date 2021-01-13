@@ -3678,8 +3678,10 @@ void RNA_property_pointer_set(PointerRNA *ptr,
                               PointerRNA ptr_value,
                               ReportList *reports)
 {
-  PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
+  /* Detect IDProperty and retrieve the actual PropertyRNA pointer before cast. */
   IDProperty *idprop = rna_idproperty_check(&prop, ptr);
+
+  PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
   /* Check types. */
