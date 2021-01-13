@@ -52,6 +52,7 @@
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -2288,6 +2289,11 @@ static void rna_property_update(
      * Python developers on the other hand will need to manually 'update_tag', see: T74000. */
     DEG_id_tag_update(ptr->owner_id,
                       ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_PARAMETERS);
+
+    /* When updating an ID pointer property, tag depsgraph for update. */
+    if (prop->type == PROP_POINTER && RNA_struct_is_ID(RNA_property_pointer_type(ptr, prop))) {
+      DEG_relations_tag_update(bmain);
+    }
 
     WM_main_add_notifier(NC_WINDOW, NULL);
     /* Not nice as well, but the only way to make sure material preview

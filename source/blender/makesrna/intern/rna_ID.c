@@ -1113,7 +1113,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 
   /* IDP_ID */
   prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_IDPROPERTY | PROP_NEVER_UNLINK);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY | PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "ID");
 
   /* ID property groups > level 0, since level 0 group is merged
