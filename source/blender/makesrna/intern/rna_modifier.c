@@ -1657,7 +1657,7 @@ static void rna_def_property_subdivision_common(StructRNA *srna)
      "Smooth, keep corners",
      "UVs are smoothed, boundaries are kept sharp"},
 #  endif
-    {SUBSURF_UV_SMOOTH_ALL, "PRESERVE_BOUNDARIES", 0, "All", "UVs and boundaries are smoothed"},
+    {SUBSURF_UV_SMOOTH_ALL, "SMOOTH_ALL", 0, "All", "UVs and boundaries are smoothed"},
     {0, NULL, 0, NULL, NULL},
   };
 
