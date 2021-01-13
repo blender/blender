@@ -4739,6 +4739,8 @@ static void registerGeometryNodes(void)
   register_node_type_geo_point_distribute();
   register_node_type_geo_point_instance();
   register_node_type_geo_point_separate();
+  register_node_type_geo_point_scale();
+  register_node_type_geo_point_translate();
   register_node_type_geo_object_info();
   register_node_type_geo_attribute_randomize();
   register_node_type_geo_attribute_math();
