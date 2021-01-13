@@ -1884,6 +1884,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   PointerRNA active_input_ptr, op_ptr;
   uiLayout *row, *col;
   const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
+  const bool is_exr = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_OPENEXR;
   const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
 
   node_composit_buts_file_output(layout, C, ptr);
@@ -1991,8 +1992,15 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
       uiItemL(col, IFACE_("Format:"), ICON_NONE);
       uiItemR(col, &active_input_ptr, "use_node_format", DEFAULT_FLAGS, NULL, ICON_NONE);
 
+      const bool is_socket_exr = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_OPENEXR;
+      const bool use_node_format = RNA_boolean_get(&active_input_ptr, "use_node_format");
+
+      if ((!is_exr && use_node_format) || (!is_socket_exr && !use_node_format)) {
+        uiItemR(col, &active_input_ptr, "save_as_render", DEFAULT_FLAGS, NULL, ICON_NONE);
+      }
+
       col = uiLayoutColumn(layout, false);
-      uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format") == false);
+      uiLayoutSetActive(col, use_node_format == false);
       uiTemplateImageSettings(col, &imfptr, false);
 
       if (is_multiview) {

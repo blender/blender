@@ -47,9 +47,10 @@ OutputOpenExrSingleLayerMultiViewOperation::OutputOpenExrSingleLayerMultiViewOpe
     const char *path,
     const ColorManagedViewSettings *viewSettings,
     const ColorManagedDisplaySettings *displaySettings,
-    const char *viewName)
+    const char *viewName,
+    const bool saveAsRender)
     : OutputSingleLayerOperation(
-          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName)
+          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName, saveAsRender)
 {
 }
 
@@ -273,9 +274,10 @@ OutputStereoOperation::OutputStereoOperation(const RenderData *rd,
                                              const char *name,
                                              const ColorManagedViewSettings *viewSettings,
                                              const ColorManagedDisplaySettings *displaySettings,
-                                             const char *viewName)
+                                             const char *viewName,
+                                             const bool saveAsRender)
     : OutputSingleLayerOperation(
-          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName)
+          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName, saveAsRender)
 {
   BLI_strncpy(this->m_name, name, sizeof(this->m_name));
   this->m_channels = get_datatype_size(datatype);

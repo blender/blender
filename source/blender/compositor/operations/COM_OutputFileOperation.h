@@ -44,6 +44,7 @@ class OutputSingleLayerOperation : public NodeOperation {
   const ColorManagedDisplaySettings *m_displaySettings;
 
   const char *m_viewName;
+  bool m_saveAsRender;
 
  public:
   OutputSingleLayerOperation(const RenderData *rd,
@@ -53,7 +54,8 @@ class OutputSingleLayerOperation : public NodeOperation {
                              const char *path,
                              const ColorManagedViewSettings *viewSettings,
                              const ColorManagedDisplaySettings *displaySettings,
-                             const char *viewName);
+                             const char *viewName,
+                             const bool saveAsRender);
 
   void executeRegion(rcti *rect, unsigned int tileNumber);
   bool isOutputOperation(bool /*rendering*/) const

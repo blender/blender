@@ -6289,6 +6289,11 @@ static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use Node Format", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
 
+  prop = RNA_def_property(srna, "save_as_render", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "save_as_render", 1);
+  RNA_def_property_ui_text(prop, "Save as Render", "Apply render part of display transform when saving byte image");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
+
   prop = RNA_def_property(srna, "format", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ImageFormatSettings");
 

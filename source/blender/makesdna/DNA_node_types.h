@@ -735,7 +735,8 @@ typedef struct NodeImageMultiFileSocket {
   short use_render_format DNA_DEPRECATED;
   /** Use overall node image format. */
   short use_node_format;
-  char _pad1[4];
+  char save_as_render;
+  char _pad1[3];
   /** 1024 = FILE_MAX. */
   char path[1024];
   ImageFormatData format;
