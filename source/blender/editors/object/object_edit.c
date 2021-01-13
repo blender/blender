@@ -1931,7 +1931,7 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
   Collection *master_collection = scene->master_collection;
 
   /* We need the data to be allocated so it's available during menu drawing.
-   * Technically we could use wmOperator->customdata. However there is no free callback
+   * Technically we could use #wmOperator.customdata. However there is no free callback
    * called to an operator that exit with OPERATOR_INTERFACE to launch a menu.
    *
    * So we are left with a memory that will necessarily leak. It's a small leak though.*/

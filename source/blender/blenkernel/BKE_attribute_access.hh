@@ -100,6 +100,11 @@ class ReadAttribute {
   /* Get a span that contains all attribute values. */
   fn::GSpan get_span() const;
 
+  template<typename T> Span<T> get_span() const
+  {
+    return this->get_span().typed<T>();
+  }
+
  protected:
   /* r_value is expected to be uninitialized. */
   virtual void get_internal(const int64_t index, void *r_value) const = 0;
@@ -176,6 +181,16 @@ class WriteAttribute {
   /* Write the changes to the span into the actual attribute, if they aren't already. */
   void apply_span();
 
+  template<typename T> MutableSpan<T> get_span()
+  {
+    return this->get_span().typed<T>();
+  }
+
+  template<typename T> MutableSpan<T> get_span_for_write_only()
+  {
+    return this->get_span_for_write_only().typed<T>();
+  }
+
  protected:
   virtual void get_internal(const int64_t index, void *r_value) const = 0;
   virtual void set_internal(const int64_t index, const void *value) = 0;
@@ -187,15 +202,22 @@ class WriteAttribute {
 using ReadAttributePtr = std::unique_ptr<ReadAttribute>;
 using WriteAttributePtr = std::unique_ptr<WriteAttribute>;
 
-/* This provides type safe access to an attribute. */
+/* This provides type safe access to an attribute.
+ * The underlying ReadAttribute is owned optionally. */
 template<typename T> class TypedReadAttribute {
  private:
-  ReadAttributePtr attribute_;
+  std::unique_ptr<const ReadAttribute> owned_attribute_;
+  const ReadAttribute *attribute_;
 
  public:
-  TypedReadAttribute(ReadAttributePtr attribute) : attribute_(std::move(attribute))
+  TypedReadAttribute(ReadAttributePtr attribute) : TypedReadAttribute(*attribute)
   {
-    BLI_assert(attribute_);
+    owned_attribute_ = std::move(attribute);
+    BLI_assert(owned_attribute_);
+  }
+
+  TypedReadAttribute(const ReadAttribute &attribute) : attribute_(&attribute)
+  {
     BLI_assert(attribute_->cpp_type().is<T>());
   }
 
@@ -220,15 +242,22 @@ template<typename T> class TypedReadAttribute {
   }
 };
 
-/* This provides type safe access to an attribute. */
+/* This provides type safe access to an attribute.
+ * The underlying WriteAttribute is owned optionally. */
 template<typename T> class TypedWriteAttribute {
  private:
-  WriteAttributePtr attribute_;
+  std::unique_ptr<WriteAttribute> owned_attribute_;
+  WriteAttribute *attribute_;
 
  public:
-  TypedWriteAttribute(WriteAttributePtr attribute) : attribute_(std::move(attribute))
+  TypedWriteAttribute(WriteAttributePtr attribute) : TypedWriteAttribute(*attribute)
   {
-    BLI_assert(attribute_);
+    owned_attribute_ = std::move(attribute);
+    BLI_assert(owned_attribute_);
+  }
+
+  TypedWriteAttribute(WriteAttribute &attribute) : attribute_(&attribute)
+  {
     BLI_assert(attribute_->cpp_type().is<T>());
   }
 

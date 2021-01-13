@@ -165,9 +165,10 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   pd->edit_uv.total_area_ratio = 0.0f;
   pd->edit_uv.total_area_ratio_inv = 0.0f;
 
-  /* During engine init phase the sima isn't locked and we are able to retrieve the needed data.
-   * During cache_init the image engine locks the sima and makes it imposible to retrieve the data.
-   */
+  /* During engine initialization phase the `sima` isn't locked and
+   * we are able to retrieve the needed data.
+   * During cache_init the image engine locks the `sima` and makes it impossible
+   * to retrieve the data. */
   ED_space_image_get_uv_aspect(sima, &pd->edit_uv.uv_aspect[0], &pd->edit_uv.uv_aspect[1]);
   ED_space_image_get_size(sima, &pd->edit_uv.image_size[0], &pd->edit_uv.image_size[1]);
   ED_space_image_get_aspect(sima, &pd->edit_uv.image_aspect[0], &pd->edit_uv.image_aspect[1]);

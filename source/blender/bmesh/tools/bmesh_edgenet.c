@@ -60,7 +60,7 @@ static int bm_edge_face(BMEdge *e)
 }
 
 /**
- * Get the next available edge we can use to attempt tp calculate a path from.
+ * Get the next available edge we can use to attempt to calculate a path from.
  */
 static BMEdge *bm_edgenet_edge_get_next(BMesh *bm,
                                         LinkNode **edge_queue,

@@ -215,7 +215,8 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(
     const char *path,
     const ColorManagedViewSettings *viewSettings,
     const ColorManagedDisplaySettings *displaySettings,
-    const char *viewName)
+    const char *viewName,
+    const bool saveAsRender)
 {
   this->m_rd = rd;
   this->m_tree = tree;
@@ -232,6 +233,7 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(
   this->m_viewSettings = viewSettings;
   this->m_displaySettings = displaySettings;
   this->m_viewName = viewName;
+  this->m_saveAsRender = saveAsRender;
 }
 
 void OutputSingleLayerOperation::initExecution()
@@ -265,7 +267,7 @@ void OutputSingleLayerOperation::deinitExecution()
     ibuf->dither = this->m_rd->dither_intensity;
 
     IMB_colormanagement_imbuf_for_write(
-        ibuf, true, false, m_viewSettings, m_displaySettings, this->m_format);
+        ibuf, m_saveAsRender, false, m_viewSettings, m_displaySettings, this->m_format);
 
     suffix = BKE_scene_multiview_view_suffix_get(this->m_rd, this->m_viewName);
 

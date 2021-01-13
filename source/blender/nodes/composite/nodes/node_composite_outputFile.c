@@ -146,6 +146,7 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
   }
   /* use node data format by default */
   sockdata->use_node_format = true;
+  sockdata->save_as_render = true;
 
   nimf->active_input = BLI_findindex(&node->inputs, sock);
 

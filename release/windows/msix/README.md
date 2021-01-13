@@ -9,8 +9,9 @@ needs to be signed.
 Requirements
 ============
 
-* MakeAppX - this tool is distributed with Windows 10 SDK
-* SignTool - this tool is also distributed with Windows 10 SDK
+* MakeAppX.exe - this tool is distributed with the Windows 10 SDK and is used to build the .appx package.
+* MakePri.exe - this tool is distributed with the Windows 10 SDK and is used to generate a resources file.
+* SignTool.exe - this tool is distributed with the Windows 10 SDK and is used to sign the .appx package.
 * Python 3 (3.7 or later tested) - to run the create_msix_package.py script
 * requests module - can be installed with `pip install requests`
 * PFX file (optional, but strongly recommended) - for signing the resulting MSIX

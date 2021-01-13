@@ -722,7 +722,7 @@ void RNA_api_window(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_enum(func, "type", rna_enum_event_type_items, 0, "Type", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
+  parm = RNA_def_enum(func, "value", rna_enum_event_value_all_items, 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_string(func, "unicode", NULL, 0, "", "");
   RNA_def_parameter_clear_flags(parm, PROP_NEVER_NULL, 0);
@@ -1127,7 +1127,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_enum(func, "type", rna_enum_event_type_items, 0, "Type", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
+  parm = RNA_def_enum(func, "value", rna_enum_event_value_all_items, 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_boolean(func, "any", 0, "Any", "");
   RNA_def_boolean(func, "shift", 0, "Shift", "");
@@ -1151,7 +1151,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_enum(func, "type", rna_enum_event_type_items, 0, "Type", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
+  parm = RNA_def_enum(func, "value", rna_enum_event_value_all_items, 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_boolean(func, "any", 0, "Any", "");
   RNA_def_boolean(func, "shift", 0, "Shift", "");

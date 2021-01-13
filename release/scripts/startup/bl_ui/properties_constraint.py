@@ -225,7 +225,7 @@ class ConstraintButtonsPanel(Panel):
         sub.active = con.use_limit_x
         sub.prop(con, "min_x", text="Min")
         sub.prop(con, "max_x", text="Max")
-        row.label(icon="BLANK1")
+        row.label(icon='BLANK1')
 
         row = layout.row(heading="Y", align=True)
         row.use_property_decorate = False
@@ -234,7 +234,7 @@ class ConstraintButtonsPanel(Panel):
         sub.active = con.use_limit_y
         sub.prop(con, "min_y", text="Min")
         sub.prop(con, "max_y", text="Max")
-        row.label(icon="BLANK1")
+        row.label(icon='BLANK1')
 
         row = layout.row(heading="Z", align=True)
         row.use_property_decorate = False
@@ -243,7 +243,7 @@ class ConstraintButtonsPanel(Panel):
         sub.active = con.use_limit_z
         sub.prop(con, "min_z", text="Min")
         sub.prop(con, "max_z", text="Max")
-        row.label(icon="BLANK1")
+        row.label(icon='BLANK1')
 
         layout.prop(con, "use_transform_limit")
         self.space_template(layout, con, target=False, owner=True)
@@ -556,7 +556,7 @@ class ConstraintButtonsPanel(Panel):
 
         row = layout.row()
         row.prop(con, "distance")
-        row.operator("constraint.limitdistance_reset", text="", icon="X")
+        row.operator("constraint.limitdistance_reset", text="", icon='X')
 
         layout.prop(con, "limit_mode", text="Clamp Region")
 
@@ -576,7 +576,7 @@ class ConstraintButtonsPanel(Panel):
 
         row = layout.row()
         row.prop(con, "rest_length")
-        row.operator("constraint.stretchto_reset", text="", icon="X")
+        row.operator("constraint.stretchto_reset", text="", icon='X')
 
         layout.separator()
 

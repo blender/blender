@@ -45,7 +45,7 @@ def get_generate_modifiers_list(test_object_name, randomize=False):
 
     generate_modifiers = [
         ModifierSpec('array', 'ARRAY', {}),
-        ModifierSpec('bevel', 'BEVEL', {'width': 0.1}),
+        ModifierSpec('bevel', 'BEVEL', {'width': 0.1, 'limit_method': 'NONE'}),
         ModifierSpec('boolean', 'BOOLEAN', {'object': boolean_test_object, 'solver': 'FAST'}),
         ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2),
         ModifierSpec('decimate', 'DECIMATE', {}),
@@ -284,7 +284,7 @@ def main():
                  [ModifierSpec('array', 'ARRAY', {})]),
 
         MeshTest("CurveBevel", "testObjBezierCurveBevel", "expObjBezierCurveBevel",
-                 [ModifierSpec('bevel', 'BEVEL', {})]),
+                 [ModifierSpec('bevel', 'BEVEL', {'limit_method': 'NONE'})]),
 
         MeshTest("CurveBuild", "testObjBezierCurveBuild", "expObjBezierCurveBuild",
                  [ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2)]),

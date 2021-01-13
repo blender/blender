@@ -51,7 +51,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, Panel):
         space = context.space_data
 
         if scene:
-            layout.template_ID(scene, "world", new="world.new", duplicate="world.duplicate")
+            layout.template_ID(scene, "world", new="world.new")
         elif world:
             layout.template_ID(space, "pin_id")
 

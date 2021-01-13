@@ -412,17 +412,17 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
   /* get uvco */
   if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME) &&
       !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
-      MFace *mface;
-      MTFace *mtface;
+    MFace *mface;
+    MTFace *mtface;
 
-      mface = modifier->mesh_final->mface;
-      mtface = modifier->mesh_final->mtface;
+    mface = modifier->mesh_final->mface;
+    mtface = modifier->mesh_final->mtface;
 
-      if (mface && mtface) {
-        mtface += num;
-        psys_interpolate_uvs(mtface, mface->v4, particle->fuv, r_uv);
-        return;
-      }
+    if (mface && mtface) {
+      mtface += num;
+      psys_interpolate_uvs(mtface, mface->v4, particle->fuv, r_uv);
+      return;
+    }
   }
 
   r_uv[0] = 0.0f;

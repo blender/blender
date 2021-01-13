@@ -54,6 +54,23 @@
 /** \name Event Printing
  * \{ */
 
+static void event_ids_from_type_and_value(const short type,
+                                          const short val,
+                                          const char **r_type_id,
+                                          const char **r_val_id)
+{
+  /* Type. */
+  RNA_enum_identifier(rna_enum_event_type_items, type, r_type_id);
+
+  /* Value. */
+  if (ISTWEAK(type)) {
+    RNA_enum_identifier(rna_enum_event_value_tweak_items, val, r_val_id);
+  }
+  else {
+    RNA_enum_identifier(rna_enum_event_value_all_items, val, r_val_id);
+  }
+}
+
 /* for debugging only, getting inspecting events manually is tedious */
 void WM_event_print(const wmEvent *event)
 {
@@ -64,11 +81,8 @@ void WM_event_print(const wmEvent *event)
     const char *prev_type_id = unknown;
     const char *prev_val_id = unknown;
 
-    RNA_enum_identifier(rna_enum_event_type_items, event->type, &type_id);
-    RNA_enum_identifier(rna_enum_event_value_items, event->val, &val_id);
-
-    RNA_enum_identifier(rna_enum_event_type_items, event->prevtype, &prev_type_id);
-    RNA_enum_identifier(rna_enum_event_value_items, event->prevval, &prev_val_id);
+    event_ids_from_type_and_value(event->type, event->val, &type_id, &val_id);
+    event_ids_from_type_and_value(event->prevtype, event->prevval, &prev_type_id, &prev_val_id);
 
     printf(
         "wmEvent  type:%d / %s, val:%d / %s,\n"

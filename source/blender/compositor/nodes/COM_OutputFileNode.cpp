@@ -113,7 +113,8 @@ void OutputFileNode::convertToOperations(NodeConverter &converter,
               path,
               context.getViewSettings(),
               context.getDisplaySettings(),
-              context.getViewName());
+              context.getViewName(),
+              sockdata->save_as_render);
         }
         else if ((!is_multiview) || (format->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
           outputOperation = new OutputSingleLayerOperation(context.getRenderData(),
@@ -123,7 +124,8 @@ void OutputFileNode::convertToOperations(NodeConverter &converter,
                                                            path,
                                                            context.getViewSettings(),
                                                            context.getDisplaySettings(),
-                                                           context.getViewName());
+                                                           context.getViewName(),
+                                                           sockdata->save_as_render);
         }
         else { /* R_IMF_VIEWS_STEREO_3D */
           outputOperation = new OutputStereoOperation(context.getRenderData(),
@@ -134,7 +136,8 @@ void OutputFileNode::convertToOperations(NodeConverter &converter,
                                                       sockdata->layer,
                                                       context.getViewSettings(),
                                                       context.getDisplaySettings(),
-                                                      context.getViewName());
+                                                      context.getViewName(),
+                                                      sockdata->save_as_render);
         }
 
         converter.addOperation(outputOperation);

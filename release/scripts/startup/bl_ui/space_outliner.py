@@ -375,11 +375,11 @@ class OUTLINER_PT_filter(Panel):
         row.label(icon='OBJECT_DATAMODE')
         row.prop(space, "use_filter_object", text="Objects")
         row = col.row(align=True)
-        row.label(icon="BLANK1")
+        row.label(icon='BLANK1')
         row.prop(space, "filter_state", text="")
         sub = row.row(align=True)
         sub.enabled = space.filter_state != 'ALL'
-        sub.prop(space, "filter_invert", text="", icon="ARROW_LEFTRIGHT")
+        sub.prop(space, "filter_invert", text="", icon='ARROW_LEFTRIGHT')
 
         sub = col.column(align=True)
         sub.active = space.use_filter_object

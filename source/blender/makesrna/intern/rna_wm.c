@@ -42,31 +42,6 @@
 
 #ifdef RNA_RUNTIME
 
-static const EnumPropertyItem event_keymouse_value_items[] = {
-    {KM_ANY, "ANY", 0, "Any", ""},
-    {KM_PRESS, "PRESS", 0, "Press", ""},
-    {KM_RELEASE, "RELEASE", 0, "Release", ""},
-    {KM_CLICK, "CLICK", 0, "Click", ""},
-    {KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
-    {KM_CLICK_DRAG, "CLICK_DRAG", 0, "Click Drag", ""},
-    /* Used for NDOF and trackpad events. */
-    {KM_NOTHING, "NOTHING", 0, "Nothing", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static const EnumPropertyItem event_tweak_value_items[] = {
-    {KM_ANY, "ANY", 0, "Any", ""},
-    {EVT_GESTURE_N, "NORTH", 0, "North", ""},
-    {EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
-    {EVT_GESTURE_E, "EAST", 0, "East", ""},
-    {EVT_GESTURE_SE, "SOUTH_EAST", 0, "South-East", ""},
-    {EVT_GESTURE_S, "SOUTH", 0, "South", ""},
-    {EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
-    {EVT_GESTURE_W, "WEST", 0, "West", ""},
-    {EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
 static const EnumPropertyItem event_tweak_type_items[] = {
     {EVT_TWEAK_L, "EVT_TWEAK_L", 0, "Left", ""},
     {EVT_TWEAK_M, "EVT_TWEAK_M", 0, "Middle", ""},
@@ -390,7 +365,15 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_event_value_items[] = {
+/**
+ * \note This contains overlapping items from:
+ * - #rna_enum_event_value_keymouse_items
+ * - #rna_enum_event_value_tweak_items
+ *
+ * This is needed for `km.keymap_items.new` value argument,
+ * to accept values from different types.
+ */
+const EnumPropertyItem rna_enum_event_value_all_items[] = {
     {KM_ANY, "ANY", 0, "Any", ""},
     {KM_PRESS, "PRESS", 0, "Press", ""},
     {KM_RELEASE, "RELEASE", 0, "Release", ""},
@@ -406,6 +389,31 @@ const EnumPropertyItem rna_enum_event_value_items[] = {
     {EVT_GESTURE_W, "WEST", 0, "West", ""},
     {EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
     {KM_NOTHING, "NOTHING", 0, "Nothing", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_event_value_keymouse_items[] = {
+    {KM_ANY, "ANY", 0, "Any", ""},
+    {KM_PRESS, "PRESS", 0, "Press", ""},
+    {KM_RELEASE, "RELEASE", 0, "Release", ""},
+    {KM_CLICK, "CLICK", 0, "Click", ""},
+    {KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
+    {KM_CLICK_DRAG, "CLICK_DRAG", 0, "Click Drag", ""},
+    /* Used for NDOF and trackpad events. */
+    {KM_NOTHING, "NOTHING", 0, "Nothing", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_event_value_tweak_items[] = {
+    {KM_ANY, "ANY", 0, "Any", ""},
+    {EVT_GESTURE_N, "NORTH", 0, "North", ""},
+    {EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
+    {EVT_GESTURE_E, "EAST", 0, "East", ""},
+    {EVT_GESTURE_SE, "SOUTH_EAST", 0, "South-East", ""},
+    {EVT_GESTURE_S, "SOUTH", 0, "South", ""},
+    {EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
+    {EVT_GESTURE_W, "WEST", 0, "West", ""},
+    {EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -604,6 +612,18 @@ static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
   wmOperatorTypeMacro *otmacro = (wmOperatorTypeMacro *)ptr->data;
   wmOperatorType *ot = WM_operatortype_find(otmacro->idname, true);
   return rna_pointer_inherit_refine(ptr, ot->srna, otmacro->properties);
+}
+
+static const EnumPropertyItem *rna_Event_value_itemf(bContext *UNUSED(C),
+                                                     PointerRNA *ptr,
+                                                     PropertyRNA *UNUSED(prop),
+                                                     bool *UNUSED(r_free))
+{
+  const wmEvent *event = ptr->data;
+  if (ISTWEAK(event->type)) {
+    return rna_enum_event_value_tweak_items;
+  }
+  return rna_enum_event_value_all_items;
 }
 
 static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
@@ -964,13 +984,13 @@ static const EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C),
   int map_type = rna_wmKeyMapItem_map_type_get(ptr);
 
   if (map_type == KMI_TYPE_MOUSE || map_type == KMI_TYPE_KEYBOARD || map_type == KMI_TYPE_NDOF) {
-    return event_keymouse_value_items;
+    return rna_enum_event_value_keymouse_items;
   }
   if (map_type == KMI_TYPE_TWEAK) {
-    return event_tweak_value_items;
+    return rna_enum_event_value_tweak_items;
   }
   else {
-    return rna_enum_event_value_items;
+    return rna_enum_event_value_all_items;
   }
 }
 
@@ -2112,7 +2132,8 @@ static void rna_def_event(BlenderRNA *brna)
   /* enums */
   prop = RNA_def_property(srna, "value", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "val");
-  RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_enum_items(prop, rna_enum_event_value_all_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Event_value_itemf");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Value", "The type of event, only applies to some");
 
@@ -2676,7 +2697,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "value", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "val");
-  RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_enum_items(prop, rna_enum_event_value_all_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_value_itemf");
   RNA_def_property_ui_text(prop, "Value", "");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");

@@ -284,9 +284,11 @@ DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_MIX, def_geo_attribute_mix, "ATTRIBUTE_
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_COLOR_RAMP, def_geo_attribute_color_ramp, "ATTRIBUTE_COLOR_RAMP", AttributeColorRamp, "Attribute Color Ramp", "")
 DefNode(GeometryNode, GEO_NODE_POINT_SEPARATE, 0, "POINT_SEPARATE", PointSeparate, "Point Separate", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_COMPARE, def_geo_attribute_attribute_compare, "ATTRIBUTE_COMPARE", AttributeCompare, "Attribute Compare", "")
-DefNode(GeometryNode, GEO_NODE_ROTATE_POINTS, def_geo_rotate_points, "ROTATE_POINTS", RotatePoints, "Rotate Points", "")
+DefNode(GeometryNode, GEO_NODE_POINT_ROTATE, def_geo_point_rotate, "POINT_ROTATE", RotatePoints, "Point Rotate", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_VECTOR_MATH, def_geo_attribute_vector_math, "ATTRIBUTE_VECTOR_MATH", AttributeVectorMath, "Attribute Vector Math", "")
 DefNode(GeometryNode, GEO_NODE_ALIGN_ROTATION_TO_VECTOR, def_geo_align_rotation_to_vector, "ALIGN_ROTATION_TO_VECTOR", AlignRotationToVector, "Align Rotation to Vector", "")
+DefNode(GeometryNode, GEO_NODE_POINT_SCALE, def_geo_point_scale, "POINT_SCALE", PointScale, "Point Scale", "")
+DefNode(GeometryNode, GEO_NODE_POINT_TRANSLATE, def_geo_point_translate, "POINT_TRANSLATE", PointTranslate, "Point Translate", "")
 
 /* undefine macros */
 #undef DefNode

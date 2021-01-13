@@ -38,22 +38,22 @@ static bNodeSocketTemplate geo_node_point_instance_out[] = {
 
 namespace blender::nodes {
 
-static void fill_new_attribute_from_input(ReadAttributePtr input_attribute,
-                                          WriteAttributePtr out_attribute_a,
-                                          WriteAttributePtr out_attribute_b,
+static void fill_new_attribute_from_input(const ReadAttribute &input_attribute,
+                                          WriteAttribute &out_attribute_a,
+                                          WriteAttribute &out_attribute_b,
                                           Span<bool> a_or_b)
 {
-  fn::GSpan in_span = input_attribute->get_span();
+  fn::GSpan in_span = input_attribute.get_span();
   int i_a = 0;
   int i_b = 0;
   for (int i_in = 0; i_in < in_span.size(); i_in++) {
     const bool move_to_b = a_or_b[i_in];
     if (move_to_b) {
-      out_attribute_b->set(i_b, in_span[i_in]);
+      out_attribute_b.set(i_b, in_span[i_in]);
       i_b++;
     }
     else {
-      out_attribute_a->set(i_a, in_span[i_in]);
+      out_attribute_a.set(i_a, in_span[i_in]);
       i_a++;
     }
   }
@@ -108,8 +108,7 @@ static void move_split_attributes(const GeometryComponent &in_component,
       continue;
     }
 
-    fill_new_attribute_from_input(
-        std::move(attribute), std::move(out_attribute_a), std::move(out_attribute_b), a_or_b);
+    fill_new_attribute_from_input(*attribute, *out_attribute_a, *out_attribute_b, a_or_b);
   }
 }
 

@@ -296,8 +296,8 @@ NlaTrack *BKE_nlatrack_add(AnimData *adt, NlaTrack *prev, const bool is_liboverr
   nlt->flag = NLATRACK_SELECTED | NLATRACK_OVERRIDELIBRARY_LOCAL;
   nlt->index = BLI_listbase_count(&adt->nla_tracks);
 
-  /* In liboverride case, we only add local tracks after all those comming from the linked data, so
-   * we need to find the first local track. */
+  /* In liboverride case, we only add local tracks after all those coming from the linked data,
+   * so we need to find the first local track. */
   if (is_liboverride && prev != NULL && (prev->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0) {
     NlaTrack *first_local = prev->next;
     for (; first_local != NULL && (first_local->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0;

@@ -65,7 +65,6 @@
 #include "ED_space_api.h"
 #include "ED_transform.h"
 #include "ED_userpref.h"
-#include "ED_util.h"
 #include "ED_uvedit.h"
 
 #include "io_ops.h"
@@ -125,7 +124,6 @@ void ED_spacetypes_init(void)
   ED_operatortypes_render();
   ED_operatortypes_mask();
   ED_operatortypes_io();
-  ED_operatortypes_edutils();
 
   ED_operatortypes_view2d();
   ED_operatortypes_ui();

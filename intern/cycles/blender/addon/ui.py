@@ -1148,7 +1148,7 @@ class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
         split = layout.split(factor=0.65)
 
         if ob:
-            split.template_ID(ob, "active_material", new="material.new", duplicate="material.duplicate")
+            split.template_ID(ob, "active_material", new="material.new")
             row = split.row()
 
             if slot:

@@ -596,7 +596,7 @@ char *WM_operatortype_description(struct bContext *C,
                                   struct wmOperatorType *ot,
                                   struct PointerRNA *properties)
 {
-  if (C && ot->get_description && properties) {
+  if (ot->get_description && properties) {
     char *description = ot->get_description(C, ot, properties);
 
     if (description) {

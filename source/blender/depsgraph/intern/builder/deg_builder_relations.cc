@@ -484,7 +484,9 @@ void DepsgraphRelationBuilder::build_id(ID *id)
   if (id == nullptr) {
     return;
   }
-  switch (GS(id->name)) {
+
+  const ID_Type id_type = GS(id->name);
+  switch (id_type) {
     case ID_AC:
       build_action((bAction *)id);
       break;
@@ -560,11 +562,38 @@ void DepsgraphRelationBuilder::build_id(ID *id)
     case ID_SIM:
       build_simulation((Simulation *)id);
       break;
-    default:
-      fprintf(stderr, "Unhandled ID %s\n", id->name);
-      BLI_assert(!"Should never happen");
+    case ID_PA:
+      build_particle_settings((ParticleSettings *)id);
+      break;
+    case ID_GD:
+      build_gpencil((bGPdata *)id);
+      break;
+
+    case ID_LI:
+    case ID_IP:
+    case ID_SCR:
+    case ID_VF:
+    case ID_BR:
+    case ID_WM:
+    case ID_PAL:
+    case ID_PC:
+    case ID_WS:
+      BLI_assert(!deg_copy_on_write_is_needed(id_type));
+      build_generic_id(id);
       break;
   }
+}
+
+void DepsgraphRelationBuilder::build_generic_id(ID *id)
+{
+
+  if (built_map_.checkIsBuiltAndTag(id)) {
+    return;
+  }
+
+  build_idproperties(id->properties);
+  build_animdata(id);
+  build_parameters(id);
 }
 
 static void build_idproperties_callback(IDProperty *id_property, void *user_data)
@@ -2778,7 +2807,13 @@ void DepsgraphRelationBuilder::build_nested_shapekey(ID *owner, Key *key)
 void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
 {
   ID *id_orig = id_node->id_orig;
+
   const ID_Type id_type = GS(id_orig->name);
+
+  if (!deg_copy_on_write_is_needed(id_type)) {
+    return;
+  }
+
   TimeSourceKey time_source_key;
   OperationKey copy_on_write_key(id_orig, NodeType::COPY_ON_WRITE, OperationCode::COPY_ON_WRITE);
   /* XXX: This is a quick hack to make Alt-A to work. */

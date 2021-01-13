@@ -265,6 +265,10 @@ void depsgraph_update_editors_tag(Main *bmain, Depsgraph *graph, ID *id)
 void depsgraph_id_tag_copy_on_write(Depsgraph *graph, IDNode *id_node, eUpdateSource update_source)
 {
   ComponentNode *cow_comp = id_node->find_component(NodeType::COPY_ON_WRITE);
+  if (cow_comp == nullptr) {
+    BLI_assert(!deg_copy_on_write_is_needed(GS(id_node->id_orig->name)));
+    return;
+  }
   cow_comp->tag_update(graph, update_source);
 }
 

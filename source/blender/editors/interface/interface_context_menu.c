@@ -509,7 +509,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     uiStringInfo label = {BUT_GET_LABEL, NULL};
 
     /* highly unlikely getting the label ever fails */
-    UI_but_string_info_get(C, but, NULL, &label, NULL);
+    UI_but_string_info_get(C, but, &label, NULL);
 
     pup = UI_popup_menu_begin(C, label.strinfo ? label.strinfo : "", ICON_NONE);
     layout = UI_popup_menu_layout(pup);
@@ -954,7 +954,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
   }
 
   /* If the button reprents an id, it can set the "id" context pointer. */
-  if (ED_asset_can_make_single_from_context(C)) {
+  if (U.experimental.use_asset_browser && ED_asset_can_make_single_from_context(C)) {
     ID *id = CTX_data_pointer_get_type(C, "id", &RNA_ID).data;
 
     /* Gray out items depending on if data-block is an asset. Preferably this could be done via

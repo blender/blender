@@ -26,8 +26,10 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_asset_types.h"
+#include "DNA_userdef_types.h"
 
 #include "ED_asset.h"
 
@@ -46,6 +48,11 @@ struct AssetMarkResultStats {
   int tot_already_asset;
   ID *last_id;
 };
+
+static bool asset_ops_poll(bContext *UNUSED(C))
+{
+  return U.experimental.use_asset_browser;
+}
 
 /**
  * Return the IDs to operate on as list of #CollectionPointerLink links. Needs freeing.
@@ -146,6 +153,7 @@ static void ASSET_OT_mark(wmOperatorType *ot)
   ot->idname = "ASSET_OT_mark";
 
   ot->exec = asset_mark_exec;
+  ot->poll = asset_ops_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -225,6 +233,7 @@ static void ASSET_OT_clear(wmOperatorType *ot)
   ot->idname = "ASSET_OT_clear";
 
   ot->exec = asset_clear_exec;
+  ot->poll = asset_ops_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

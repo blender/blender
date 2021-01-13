@@ -4739,13 +4739,15 @@ static void registerGeometryNodes(void)
   register_node_type_geo_point_distribute();
   register_node_type_geo_point_instance();
   register_node_type_geo_point_separate();
+  register_node_type_geo_point_scale();
+  register_node_type_geo_point_translate();
   register_node_type_geo_object_info();
   register_node_type_geo_attribute_randomize();
   register_node_type_geo_attribute_math();
   register_node_type_geo_join_geometry();
   register_node_type_geo_attribute_mix();
   register_node_type_geo_attribute_color_ramp();
-  register_node_type_geo_rotate_points();
+  register_node_type_geo_point_rotate();
   register_node_type_geo_align_rotation_to_vector();
 }
 

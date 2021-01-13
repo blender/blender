@@ -644,7 +644,8 @@ typedef struct UserDef_Experimental {
   char use_switch_object_operator;
   char use_sculpt_tools_tilt;
   char use_object_add_tool;
-  char _pad[7];
+  char use_asset_browser;
+  char _pad[6];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

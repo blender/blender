@@ -51,7 +51,7 @@ std::string BKE_cryptomatte_meta_data_key(const StringRef layer_name,
  * A render_pass_name could be 'View Layer.CryptoMaterial02'. The cryptomatte layer would be 'View
  * Layer.CryptoMaterial'.
  *
- * NOTE: The return type is a substring of `render_pass_name` and therefore cannot outlive the
+ * NOTE: The return type is a sub-string of `render_pass_name` and therefore cannot outlive the
  * `render_pass_name` internal data.
  */
 StringRef BKE_cryptomatte_extract_layer_name(const StringRef render_pass_name);
