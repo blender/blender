@@ -1231,7 +1231,7 @@ function(find_python_package
       set(WITH_PYTHON_INSTALL_${_upper_package} OFF PARENT_SCOPE)
     else()
       message(STATUS "${package} found at '${PYTHON_${_upper_package}_PATH}'")
-      
+
       if(NOT "${relative_include_dir}" STREQUAL "")
         set(_relative_include_dir "${package}/${relative_include_dir}")
         unset(PYTHON_${_upper_package}_INCLUDE_DIRS CACHE)

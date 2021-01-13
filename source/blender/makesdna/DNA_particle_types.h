@@ -132,7 +132,7 @@ typedef struct ParticleData {
    */
   /** Index to vert/edge/face. */
   int num;
-  /** 
+  /**
    * Index to derived mesh data (face) to avoid slow lookups. It can also have negative
    * values DMCACHE_NOTFOUND and DMCACHE_ISCHILD.
    */
