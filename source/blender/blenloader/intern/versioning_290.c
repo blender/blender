@@ -1491,13 +1491,11 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 292, 10)) {
     if (!DNA_struct_find(fd->filesdna, "NodeSetAlpha")) {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        bNodeTree *nodetree = scene->nodetree;
-        if (nodetree == NULL) {
+      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+        if (ntree->type != NTREE_COMPOSIT) {
           continue;
         }
-
-        LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type != CMP_NODE_SETALPHA) {
             continue;
           }
