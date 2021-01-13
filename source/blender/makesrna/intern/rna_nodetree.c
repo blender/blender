@@ -8733,7 +8733,7 @@ static void def_geo_point_rotate(StructRNA *srna)
        "EULER",
        ICON_NONE,
        "Euler",
-       "Rotate around the x, y and z axis"},
+       "Rotate around the X, Y, and Z axes"},
       {0, NULL, 0, NULL, NULL},
   };
 
