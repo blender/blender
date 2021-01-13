@@ -1150,6 +1150,32 @@ typedef struct SculptGradientContext {
   void (*sculpt_gradient_end)(struct bContext *);
 } SculptGradientContext;
 
+typedef enum eSculptExpandFalloffType {
+  SCULPT_EXPAND_FALLOFF_GEODESICS,
+  SCULPT_EXPAND_FALLOFF_TOPOLOGY,
+  SCULPT_EXPAND_FALLOFF_NORMALS,
+  SCULPT_EXPAND_FALLOFF_SPHERICAL,
+  SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY,
+} eSculptExpandFalloffType;
+
+typedef enum eSculptExpandTargetType {
+  SCULPT_EXPAND_TARGET_MASK,
+  SCULPT_EXPAND_TARGET_FACE_SETS,
+} eSculptExpandTargetType;
+
+typedef struct ExpandCache {
+    eSculptExpandFalloffType falloff_factor_type;
+    float *falloff_factor;
+    float max_falloff_factor;
+
+    int initial_active_vertex;
+    float active_factor;
+
+    eSculptExpandTargetType target;
+    float *initial_mask;
+    int *initial_face_sets;
+} ExpandCache;
+
 typedef struct FilterCache {
   bool enabled_axis[3];
   bool enabled_force_axis[3];

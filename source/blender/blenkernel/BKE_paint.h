@@ -515,6 +515,7 @@ typedef struct SculptSession {
 
   struct StrokeCache *cache;
   struct FilterCache *filter_cache;
+  struct ExpandCache *expand_cache;
 
   /* Cursor data and active vertex for tools */
   int active_vertex_index;
