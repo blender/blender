@@ -170,7 +170,7 @@ struct ApplyMatrix : public KernelBase {
     unusedParameter(vecRhs);  // Not needed in this matrix application
 
     if (matrixA.size() != 4)
-      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+      errMsg("ConjugateGrad: Invalid A matrix in apply matrix step");
     Grid<Real> &A0 = *matrixA[0];
     Grid<Real> &Ai = *matrixA[1];
     Grid<Real> &Aj = *matrixA[2];
@@ -256,7 +256,7 @@ struct ApplyMatrix2D : public KernelBase {
     unusedParameter(vecRhs);  // Not needed in this matrix application
 
     if (matrixA.size() != 3)
-      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+      errMsg("ConjugateGrad: Invalid A matrix in apply matrix step");
     Grid<Real> &A0 = *matrixA[0];
     Grid<Real> &Ai = *matrixA[1];
     Grid<Real> &Aj = *matrixA[2];
@@ -338,7 +338,7 @@ struct ApplyMatrixViscosityU : public KernelBase {
                  const std::vector<Grid<Real> *> vecRhs) const
   {
     if (matrixA.size() != 15)
-      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+      errMsg("ConjugateGrad: Invalid A matrix in apply matrix step");
     Grid<Real> &A0 = *matrixA[0];
     Grid<Real> &Aplusi = *matrixA[1];
     Grid<Real> &Aplusj = *matrixA[2];
@@ -348,7 +348,7 @@ struct ApplyMatrixViscosityU : public KernelBase {
     Grid<Real> &Aminusk = *matrixA[6];
 
     if (vecRhs.size() != 2)
-      errMsg("ConjugatedGrad: Invalid rhs vector in apply matrix step");
+      errMsg("ConjugateGrad: Invalid rhs vector in apply matrix step");
     Grid<Real> &srcV = *vecRhs[0];
     Grid<Real> &srcW = *vecRhs[1];
 
@@ -450,7 +450,7 @@ struct ApplyMatrixViscosityV : public KernelBase {
                  const std::vector<Grid<Real> *> vecRhs) const
   {
     if (matrixA.size() != 15)
-      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+      errMsg("ConjugateGrad: Invalid A matrix in apply matrix step");
     Grid<Real> &A0 = *matrixA[0];
     Grid<Real> &Aplusi = *matrixA[1];
     Grid<Real> &Aplusj = *matrixA[2];
@@ -460,7 +460,7 @@ struct ApplyMatrixViscosityV : public KernelBase {
     Grid<Real> &Aminusk = *matrixA[6];
 
     if (vecRhs.size() != 2)
-      errMsg("ConjugatedGrad: Invalid rhs vector in apply matrix step");
+      errMsg("ConjugateGrad: Invalid rhs vector in apply matrix step");
     Grid<Real> &srcU = *vecRhs[0];
     Grid<Real> &srcW = *vecRhs[1];
 
@@ -562,7 +562,7 @@ struct ApplyMatrixViscosityW : public KernelBase {
                  const std::vector<Grid<Real> *> vecRhs) const
   {
     if (matrixA.size() != 15)
-      errMsg("ConjugatedGrad: Invalid A matrix in apply matrix step");
+      errMsg("ConjugateGrad: Invalid A matrix in apply matrix step");
     Grid<Real> &A0 = *matrixA[0];
     Grid<Real> &Aplusi = *matrixA[1];
     Grid<Real> &Aplusj = *matrixA[2];
@@ -572,7 +572,7 @@ struct ApplyMatrixViscosityW : public KernelBase {
     Grid<Real> &Aminusk = *matrixA[6];
 
     if (vecRhs.size() != 2)
-      errMsg("ConjugatedGrad: Invalid rhs vector in apply matrix step");
+      errMsg("ConjugateGrad: Invalid rhs vector in apply matrix step");
     Grid<Real> &srcU = *vecRhs[0];
     Grid<Real> &srcV = *vecRhs[1];
 

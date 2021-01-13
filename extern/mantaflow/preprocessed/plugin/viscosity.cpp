@@ -139,7 +139,7 @@ struct KnEstimateVolumeFraction : public KernelBase {
   {
     const Vec3 centre = startCentre + Vec3(i, j, k) * 0.5;
     const Real offset = 0.5 * dx;
-    const int order = 2;
+    const int order = 1;  // is sufficient
 
     Real phi000 = phi.getInterpolatedHi(centre + Vec3(-offset, -offset, -offset), order);
     Real phi001 = phi.getInterpolatedHi(centre + Vec3(-offset, -offset, +offset), order);
@@ -1067,10 +1067,8 @@ void solveViscosity(const FlagGrid &flags,
 
       Real viscTop = 0.25 * (viscosity(i, j, k) + viscosity(i, j, k - 1) + viscosity(i, j + 1, k) +
                              viscosity(i, j + 1, k - 1));
-      ;
       Real viscBottom = 0.25 * (viscosity(i, j, k) + viscosity(i, j, k - 1) +
                                 viscosity(i, j - 1, k) + viscosity(i, j - 1, k - 1));
-      ;
       Real volTop = exVolLiquid(i, j + 1, k);
       Real volBottom = exVolLiquid(i, j, k);
 
@@ -1224,7 +1222,7 @@ void solveViscosity(const FlagGrid &flags,
         uSolution, uRhs, uResidual, uSearch, flags, uTmp, uMatA, uVecRhs);
   }
   else {
-    errMsg("2D Matrix application not yet supported in viscosity solver");
+    errMsg("Viscosity: 2D Matrix application not yet supported in viscosity solver");
   }
 
   // CG solver for V
@@ -1249,7 +1247,7 @@ void solveViscosity(const FlagGrid &flags,
         vSolution, vRhs, vResidual, vSearch, flags, vTmp, vMatA, vVecRhs);
   }
   else {
-    errMsg("2D Matrix application not yet supported in viscosity solver");
+    errMsg("Viscosity: 2D Matrix application not yet supported in viscosity solver");
   }
 
   // CG solver for W
@@ -1274,7 +1272,7 @@ void solveViscosity(const FlagGrid &flags,
         wSolution, wRhs, wResidual, wSearch, flags, wTmp, wMatA, wVecRhs);
   }
   else {
-    errMsg("2D Matrix application not yet supported in viscosity solver");
+    errMsg("Viscosity: 2D Matrix application not yet supported in viscosity solver");
   }
 
   // Same accuracy for all dimensions
@@ -1308,7 +1306,7 @@ void solveViscosity(const FlagGrid &flags,
     wRhs.copyFrom(wSearch);
   }
   debMsg(
-      "Viscosity::solveViscosity done. "
+      "Viscosity: solveViscosity() done. "
       "Iterations (u,v,w): ("
           << uGcg->getIterations() << "," << vGcg->getIterations() << "," << wGcg->getIterations()
           << "), "
