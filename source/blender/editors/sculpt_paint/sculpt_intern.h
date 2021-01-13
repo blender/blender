@@ -364,6 +364,16 @@ float *SCULPT_boundary_automasking_init(Object *ob,
                                         int propagation_steps,
                                         float *automask_factor);
 
+/* Geodesic distances. */
+float *SCULPT_geodesic_distances_create(struct Object *ob,
+                                        struct GSet *initial_vertices,
+                                        const float limit_radius);
+float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
+                                            struct Object *ob,
+                                            const int vertex,
+                                            const float limit_radius);
+float *SCULPT_geodesic_from_vertex(Object *ob, const int vertex, const float limit_radius);
+
 /* Filters. */
 void SCULPT_filter_cache_init(struct bContext *C, Object *ob, Sculpt *sd, const int undo_type);
 void SCULPT_filter_cache_free(SculptSession *ss);
@@ -967,6 +977,9 @@ typedef struct StrokeCache {
   float rake_rotation[4], rake_rotation_symmetry[4];
   bool is_rake_rotation_valid;
   struct SculptRakeData rake_data;
+
+  /* Geodesic distances. */
+  float *geodesic_dists[PAINT_SYMM_AREAS];
 
   /* Face Sets */
   int paint_face_set;

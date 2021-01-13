@@ -29,6 +29,7 @@
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_hash.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
@@ -3574,93 +3575,107 @@ static void sculpt_stroke_cache_snap_context_init(bContext *C, Object *ob)
   cache->depsgraph = depsgraph;
 }
 
-
-static void sculpt_scene_project_view_ray_init(Object *ob, const int vertex_index, float r_ray_normal[3], float r_ray_origin[3]) {
-    SculptSession *ss = ob->sculpt;
-    float world_space_vertex_co[3];
-    mul_v3_m4v3(world_space_vertex_co, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
-    sub_v3_v3v3(r_ray_normal, world_space_vertex_co, ss->cache->view_origin);
-    normalize_v3(r_ray_normal);
-    copy_v3_v3(r_ray_origin, ss->cache->view_origin);
+static void sculpt_scene_project_view_ray_init(Object *ob,
+                                               const int vertex_index,
+                                               float r_ray_normal[3],
+                                               float r_ray_origin[3])
+{
+  SculptSession *ss = ob->sculpt;
+  float world_space_vertex_co[3];
+  mul_v3_m4v3(world_space_vertex_co, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
+  sub_v3_v3v3(r_ray_normal, world_space_vertex_co, ss->cache->view_origin);
+  normalize_v3(r_ray_normal);
+  copy_v3_v3(r_ray_origin, ss->cache->view_origin);
 }
 
-static void sculpt_scene_project_vertex_normal_ray_init(Object *ob, const int vertex_index, float r_ray_normal[3], float r_ray_origin[3]) {
-    SculptSession *ss = ob->sculpt;
-    float vertex_normal[3];
-    SCULPT_vertex_normal_get(ss, vertex_index, vertex_normal);
-    mul_v3_m4v3(r_ray_normal, ob->obmat, vertex_normal);
-    normalize_v3(r_ray_normal);
+static void sculpt_scene_project_vertex_normal_ray_init(Object *ob,
+                                                        const int vertex_index,
+                                                        float r_ray_normal[3],
+                                                        float r_ray_origin[3])
+{
+  SculptSession *ss = ob->sculpt;
+  float vertex_normal[3];
+  SCULPT_vertex_normal_get(ss, vertex_index, vertex_normal);
+  mul_v3_m4v3(r_ray_normal, ob->obmat, vertex_normal);
+  normalize_v3(r_ray_normal);
 
-    mul_v3_m4v3(r_ray_origin, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
+  mul_v3_m4v3(r_ray_origin, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
 }
 
-static void sculpt_scene_project_brush_normal_ray_init(Object *ob, const int vertex_index, float r_ray_normal[3], float r_ray_origin[3]) {
-    SculptSession *ss = ob->sculpt;
-    mul_v3_m4v3(r_ray_origin, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
-    mul_v3_m4v3(r_ray_normal, ob->obmat, ss->cache->sculpt_normal);
-    normalize_v3(r_ray_normal);
+static void sculpt_scene_project_brush_normal_ray_init(Object *ob,
+                                                       const int vertex_index,
+                                                       float r_ray_normal[3],
+                                                       float r_ray_origin[3])
+{
+  SculptSession *ss = ob->sculpt;
+  mul_v3_m4v3(r_ray_origin, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
+  mul_v3_m4v3(r_ray_normal, ob->obmat, ss->cache->sculpt_normal);
+  normalize_v3(r_ray_normal);
 }
 
-static bool sculpt_scene_project_raycast(SculptSession *ss, const float ray_normal[3], const float ray_origin[3], const bool use_both_directions, float r_loc[3]) {
-   float hit_co[2][3];
-   float hit_len_squared[2];
-   bool any_hit = false;
-   bool hit = false;
-   hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
-                                                          ss->cache->depsgraph,
-                                                          &(const struct SnapObjectParams){
-                                                              .snap_select = SNAP_NOT_ACTIVE,
-                                                              .use_object_edit_cage = true,
-                                                          },
-                                                          ray_origin,
-                                                          ray_normal,
-                                                          NULL,
-                                                          hit_co[0],
-                                                          NULL);
-   if (hit) {
-      hit_len_squared[0] = len_squared_v3v3(hit_co[0], ray_origin);
-      any_hit |= hit;
-   }
-   else {
-      hit_len_squared[0] = FLT_MAX;
-   }
+static bool sculpt_scene_project_raycast(SculptSession *ss,
+                                         const float ray_normal[3],
+                                         const float ray_origin[3],
+                                         const bool use_both_directions,
+                                         float r_loc[3])
+{
+  float hit_co[2][3];
+  float hit_len_squared[2];
+  bool any_hit = false;
+  bool hit = false;
+  hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
+                                             ss->cache->depsgraph,
+                                             &(const struct SnapObjectParams){
+                                                 .snap_select = SNAP_NOT_ACTIVE,
+                                                 .use_object_edit_cage = true,
+                                             },
+                                             ray_origin,
+                                             ray_normal,
+                                             NULL,
+                                             hit_co[0],
+                                             NULL);
+  if (hit) {
+    hit_len_squared[0] = len_squared_v3v3(hit_co[0], ray_origin);
+    any_hit |= hit;
+  }
+  else {
+    hit_len_squared[0] = FLT_MAX;
+  }
 
+  if (!use_both_directions) {
+    copy_v3_v3(r_loc, hit_co[0]);
+    return any_hit;
+  }
 
-   if (!use_both_directions) {
-       copy_v3_v3(r_loc, hit_co[0]);
-       return any_hit;
-   }
+  float ray_normal_flip[3];
+  mul_v3_v3fl(ray_normal_flip, ray_normal, -1.0f);
 
-   float ray_normal_flip[3];
-   mul_v3_v3fl(ray_normal_flip, ray_normal, -1.0f);
+  hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
+                                             ss->cache->depsgraph,
+                                             &(const struct SnapObjectParams){
+                                                 .snap_select = SNAP_NOT_ACTIVE,
+                                                 .use_object_edit_cage = true,
+                                             },
+                                             ray_origin,
+                                             ray_normal_flip,
+                                             NULL,
+                                             hit_co[1],
+                                             NULL);
+  if (hit) {
+    hit_len_squared[1] = len_squared_v3v3(hit_co[1], ray_origin);
+    any_hit |= hit;
+  }
+  else {
+    hit_len_squared[1] = FLT_MAX;
+  }
 
-   hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
-                                                          ss->cache->depsgraph,
-                                                          &(const struct SnapObjectParams){
-                                                              .snap_select = SNAP_NOT_ACTIVE,
-                                                              .use_object_edit_cage = true,
-                                                          },
-                                                          ray_origin,
-                                                          ray_normal_flip,
-                                                          NULL,
-                                                          hit_co[1],
-                                                          NULL);
-   if (hit) {
-      hit_len_squared[1] = len_squared_v3v3(hit_co[1], ray_origin);
-      any_hit |= hit;
-   }
-   else {
-      hit_len_squared[1] = FLT_MAX;
-   }
-
-   if (hit_len_squared[0] <= hit_len_squared[1]) {
-       copy_v3_v3(r_loc, hit_co[0]);
-   }
-   else {
-       copy_v3_v3(r_loc, hit_co[1]);
-   }
-   return any_hit;
-
+  if (hit_len_squared[0] <= hit_len_squared[1]) {
+    copy_v3_v3(r_loc, hit_co[0]);
+  }
+  else {
+    copy_v3_v3(r_loc, hit_co[1]);
+  }
+  return any_hit;
 }
 
 static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
@@ -3703,14 +3718,14 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
     float ray_origin[3];
     bool use_both_directions = false;
     switch (brush->scene_project_direction_type) {
-    case BRUSH_SCENE_PROJECT_DIRECTION_VIEW:
+      case BRUSH_SCENE_PROJECT_DIRECTION_VIEW:
         sculpt_scene_project_view_ray_init(data->ob, vd.index, ray_normal, ray_origin);
         break;
-    case BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL:
+      case BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL:
         sculpt_scene_project_vertex_normal_ray_init(data->ob, vd.index, ray_normal, ray_origin);
         use_both_directions = true;
         break;
-    case BRUSH_SCENE_PROJECT_DIRECTION_BRUSH_NORMAL:
+      case BRUSH_SCENE_PROJECT_DIRECTION_BRUSH_NORMAL:
         sculpt_scene_project_brush_normal_ray_init(data->ob, vd.index, ray_normal, ray_origin);
         use_both_directions = true;
         break;
@@ -3718,7 +3733,8 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
 
     float world_space_hit_co[3];
     float hit_co[3];
-    const bool hit = sculpt_scene_project_raycast(ss, ray_normal, ray_origin, use_both_directions, world_space_hit_co);
+    const bool hit = sculpt_scene_project_raycast(
+        ss, ray_normal, ray_origin, use_both_directions, world_space_hit_co);
     if (!hit) {
       continue;
     }
@@ -4331,38 +4347,49 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   const bool grab_silhouette = brush->flag2 & BRUSH_GRAB_SILHOUETTE;
+  const bool use_geodesic_dists = brush->flag2 & BRUSH_USE_SURFACE_FALLOFF;
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
 
-    if (sculpt_brush_test_sq_fn(&test, orig_data.co)) {
-      float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                            brush,
-                                                            orig_data.co,
-                                                            sqrtf(test.dist),
-                                                            orig_data.no,
-                                                            NULL,
-                                                            vd.mask ? *vd.mask : 0.0f,
-                                                            vd.index,
-                                                            thread_id);
+    if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
+      continue;
+    }
 
-      if (grab_silhouette) {
-        float silhouette_test_dir[3];
-        normalize_v3_v3(silhouette_test_dir, grab_delta);
-        if (dot_v3v3(ss->cache->initial_normal, ss->cache->grab_delta_symmetry) < 0.0f) {
-          mul_v3_fl(silhouette_test_dir, -1.0f);
-        }
-        float vno[3];
-        normal_short_to_float_v3(vno, orig_data.no);
-        fade *= max_ff(dot_v3v3(vno, silhouette_test_dir), 0.0f);
+    float dist;
+    if (use_geodesic_dists) {
+      dist = ss->cache->geodesic_dists[ss->cache->mirror_symmetry_pass][vd.index];
+    }
+    else {
+      dist = sqrtf(test.dist);
+    }
+
+    float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                          brush,
+                                                          orig_data.co,
+                                                          dist,
+                                                          orig_data.no,
+                                                          NULL,
+                                                          vd.mask ? *vd.mask : 0.0f,
+                                                          vd.index,
+                                                          thread_id);
+
+    if (grab_silhouette) {
+      float silhouette_test_dir[3];
+      normalize_v3_v3(silhouette_test_dir, grab_delta);
+      if (dot_v3v3(ss->cache->initial_normal, ss->cache->grab_delta_symmetry) < 0.0f) {
+        mul_v3_fl(silhouette_test_dir, -1.0f);
       }
+      float vno[3];
+      normal_short_to_float_v3(vno, orig_data.no);
+      fade *= max_ff(dot_v3v3(vno, silhouette_test_dir), 0.0f);
+    }
 
-      mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
+    mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-      }
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -4378,6 +4405,17 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
   if (ss->cache->normal_weight > 0.0f) {
     sculpt_project_v3_normal_align(ss, ss->cache->normal_weight, grab_delta);
+  }
+
+  if (brush->flag2 & BRUSH_USE_SURFACE_FALLOFF) {
+    if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
+      const int symm_pass = ss->cache->mirror_symmetry_pass;
+      float location[3];
+      flip_v3_v3(location, SCULPT_active_vertex_co_get(ss), symm_pass);
+      int v = SCULPT_nearest_vertex_get(sd, ob, location, ss->cache->radius, false);
+      ss->cache->geodesic_dists[symm_pass] = SCULPT_geodesic_from_vertex(
+          ob, v, ss->cache->initial_radius);
+    }
   }
 
   SculptThreadedTaskData data = {
@@ -7077,6 +7115,9 @@ void SCULPT_cache_free(StrokeCache *cache)
   for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
     if (cache->boundaries[i]) {
       SCULPT_boundary_data_free(cache->boundaries[i]);
+    }
+    if (cache->geodesic_dists[i]) {
+      MEM_SAFE_FREE(cache->geodesic_dists[i]);
     }
   }
 
@@ -10229,6 +10270,268 @@ static void SCULPT_OT_mask_init(wmOperatorType *ot)
                "");
 }
 
+#define SCULPT_GEODESIC_VERTEX_NONE -1
+
+static bool sculpt_geodesic_mesh_test_dist_add(
+    MVert *mvert, const int v0, const int v1, const int v2, float *dists, GSet *initial_vertices)
+{
+  if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(v0))) {
+    return false;
+  }
+
+  BLI_assert(dists[v1] != FLT_MAX);
+  if (dists[v0] <= dists[v1]) {
+    return false;
+  }
+
+  float dist0;
+  if (v2 != SCULPT_GEODESIC_VERTEX_NONE) {
+    BLI_assert(dists[v2] != FLT_MAX);
+    if (dists[v0] <= dists[v2]) {
+      return false;
+    }
+    dist0 = geodesic_distance_propagate_across_triangle(
+        mvert[v0].co, mvert[v1].co, mvert[v2].co, dists[v1], dists[v2]);
+  }
+  else {
+    float vec[3];
+    sub_v3_v3v3(vec, mvert[v1].co, mvert[v0].co);
+    dist0 = dists[v1] + len_v3(vec);
+  }
+
+  if (dist0 < dists[v0]) {
+    dists[v0] = dist0;
+    return true;
+  }
+
+  return false;
+}
+
+static float *SCULPT_geodesic_mesh_create(Object *ob,
+                                          GSet *initial_vertices,
+                                          const float limit_radius)
+{
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+  const int totvert = mesh->totvert;
+  const int totedge = mesh->totedge;
+
+  const float limit_radius_sq = limit_radius * limit_radius;
+
+  MEdge *edges = mesh->medge;
+  MVert *verts = SCULPT_mesh_deformed_mverts_get(ss);
+
+  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
+  BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
+
+  if (!ss->epmap) {
+    BKE_mesh_edge_poly_map_create(&ss->epmap,
+                                  &ss->epmap_mem,
+                                  mesh->medge,
+                                  mesh->totedge,
+                                  mesh->mpoly,
+                                  mesh->totpoly,
+                                  mesh->mloop,
+                                  mesh->totloop);
+  }
+  if (!ss->vemap) {
+    BKE_mesh_vert_edge_map_create(
+        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
+  }
+
+  BLI_LINKSTACK_DECLARE(queue, int);
+  BLI_LINKSTACK_DECLARE(queue_next, int);
+
+  BLI_LINKSTACK_INIT(queue);
+  BLI_LINKSTACK_INIT(queue_next);
+
+  for (int i = 0; i < totvert; i++) {
+    if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(i))) {
+      dists[i] = 0.0f;
+    }
+    else {
+      dists[i] = FLT_MAX;
+    }
+  }
+
+  BLI_bitmap *affected_vertex = BLI_BITMAP_NEW(totvert, "affected vertex");
+  GSetIterator gs_iter;
+  GSET_ITER (gs_iter, initial_vertices) {
+    const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+    float *v_co = verts[v].co;
+    for (int i = 0; i < totvert; i++) {
+      if (len_squared_v3v3(v_co, verts[i].co) <= limit_radius_sq) {
+        BLI_BITMAP_ENABLE(affected_vertex, i);
+      }
+    }
+  }
+
+  for (int i = 0; i < totedge; i++) {
+    const int v1 = edges[i].v1;
+    const int v2 = edges[i].v2;
+    if (!BLI_BITMAP_TEST(affected_vertex, v1) && !BLI_BITMAP_TEST(affected_vertex, v2)) {
+      continue;
+    }
+    if (dists[v1] != FLT_MAX || dists[v2] != FLT_MAX) {
+      BLI_LINKSTACK_PUSH(queue, i);
+    }
+  }
+
+  do {
+    int e;
+    while (e = BLI_LINKSTACK_POP(queue)) {
+      int v1 = edges[e].v1;
+      int v2 = edges[e].v2;
+
+      if (dists[v1] == FLT_MAX || dists[v2] == FLT_MAX) {
+        if (dists[v1] > dists[v2]) {
+          SWAP(int, v1, v2);
+        }
+        sculpt_geodesic_mesh_test_dist_add(
+            verts, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_vertices);
+      }
+
+      if (ss->epmap[e].count != 0) {
+        for (int pi = 0; pi < ss->epmap[e].count; pi++) {
+          const int poly = ss->epmap[e].indices[pi];
+          if (ss->face_sets[poly] <= 0) {
+            continue;
+          }
+          const MPoly *mpoly = &mesh->mpoly[poly];
+
+          for (int li = 0; li < mpoly->totloop; li++) {
+            const MLoop *mloop = &mesh->mloop[li + mpoly->loopstart];
+            const int v_other = mloop->v;
+            if (ELEM(v_other, v1, v2)) {
+              continue;
+            }
+            if (sculpt_geodesic_mesh_test_dist_add(
+                    verts, v_other, v1, v2, dists, initial_vertices)) {
+              for (int ei = 0; ei < ss->vemap[v_other].count; ei++) {
+                const int e_other = ss->vemap[v_other].indices[ei];
+                int ev_other;
+                if (edges[e_other].v1 == v_other) {
+                  ev_other = edges[e_other].v2;
+                }
+                else {
+                  ev_other = edges[e_other].v1;
+                }
+
+                if (e_other != e && !BLI_BITMAP_TEST(edge_tag, e_other) &&
+                    (ss->epmap[e_other].count == 0 || dists[ev_other] != FLT_MAX)) {
+                  if (BLI_BITMAP_TEST(affected_vertex, v_other) ||
+                      BLI_BITMAP_TEST(affected_vertex, ev_other)) {
+                    BLI_BITMAP_ENABLE(edge_tag, e_other);
+                    BLI_LINKSTACK_PUSH(queue_next, e_other);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (LinkNode *lnk = queue_next; lnk; lnk = lnk->next) {
+      const int e = POINTER_AS_INT(lnk->link);
+      BLI_BITMAP_DISABLE(edge_tag, e);
+    }
+
+    BLI_LINKSTACK_SWAP(queue, queue_next);
+
+  } while (BLI_LINKSTACK_SIZE(queue));
+
+  BLI_LINKSTACK_FREE(queue);
+  BLI_LINKSTACK_FREE(queue_next);
+  MEM_SAFE_FREE(edge_tag);
+  MEM_SAFE_FREE(affected_vertex);
+
+  return dists;
+}
+
+static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices)
+{
+
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  const int totvert = mesh->totvert;
+  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
+  int first_affected = SCULPT_GEODESIC_VERTEX_NONE;
+  GSetIterator gs_iter;
+  GSET_ITER (gs_iter, initial_vertices) {
+    first_affected = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+    break;
+  }
+  if (first_affected == SCULPT_GEODESIC_VERTEX_NONE) {
+    return dists;
+  }
+
+  float *first_affected_co = SCULPT_vertex_co_get(ss, first_affected);
+  for (int i = 0; i < totvert; i++) {
+    dists[i] = len_v3v3(first_affected_co, SCULPT_vertex_co_get(ss, i));
+  }
+
+  return dists;
+}
+
+float *SCULPT_geodesic_distances_create(Object *ob,
+                                        GSet *initial_vertices,
+                                        const float limit_radius)
+{
+  SculptSession *ss = ob->sculpt;
+  const int totvert = SCULPT_vertex_count_get(ss);
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return SCULPT_geodesic_mesh_create(ob, initial_vertices, limit_radius);
+    case PBVH_BMESH:
+    case PBVH_GRIDS:
+      return SCULPT_geodesic_fallback_create(ob, initial_vertices);
+  }
+  BLI_assert(false);
+  return NULL;
+}
+
+float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
+                                            Object *ob,
+                                            const int vertex,
+                                            const float limit_radius)
+{
+  SculptSession *ss = ob->sculpt;
+  GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
+
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  for (char i = 0; i <= symm; ++i) {
+    if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
+      int v = -1;
+      if (i == 0) {
+        v = vertex;
+      }
+      else {
+        float location[3];
+        flip_v3_v3(location, SCULPT_vertex_co_get(ss, vertex), i);
+        v = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
+      }
+      if (v != -1) {
+        BLI_gset_add(initial_vertices, POINTER_FROM_INT(v));
+      }
+    }
+  }
+
+  float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius);
+  BLI_gset_free(initial_vertices, NULL);
+  return dists;
+}
+
+float *SCULPT_geodesic_from_vertex(Object *ob, const int vertex, const float limit_radius)
+{
+  GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
+  BLI_gset_add(initial_vertices, POINTER_FROM_INT(vertex));
+  float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius);
+  BLI_gset_free(initial_vertices, NULL);
+  return dists;
+}
+
 void ED_operatortypes_sculpt(void)
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -10248,7 +10551,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_create);
   WM_operatortype_append(SCULPT_OT_face_sets_change_visibility);
   WM_operatortype_append(SCULPT_OT_face_sets_randomize_colors);
-  WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_cloth_filter);
   WM_operatortype_append(SCULPT_OT_face_sets_edit);
   WM_operatortype_append(SCULPT_OT_face_set_lasso_gesture);

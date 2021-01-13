@@ -2404,7 +2404,10 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "scene_project_direction_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_scene_project_direction_type_items);
-  RNA_def_property_ui_text(prop, "Project Direction", "Direction that is going to be used to project the vertices into the scene");
+  RNA_def_property_ui_text(
+      prop,
+      "Project Direction",
+      "Direction that is going to be used to project the vertices into the scene");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "jitter_unit", PROP_ENUM, PROP_NONE); /* as an enum */
@@ -3037,6 +3040,13 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_GRAB_SILHOUETTE);
   RNA_def_property_ui_text(
       prop, "Grab Silhouette", "Grabs trying to automask the silhouette of the object");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_surface_falloff", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_USE_SURFACE_FALLOFF);
+  RNA_def_property_ui_text(prop,
+                           "Use Surface Falloff",
+                           "Propagate the falloff of the brush trough the surface of the mesh");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_paint_antialiasing", PROP_BOOLEAN, PROP_NONE);

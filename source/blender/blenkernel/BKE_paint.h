@@ -474,6 +474,12 @@ typedef struct SculptSession {
   struct MeshElemMap *pmap;
   int *pmap_mem;
 
+  struct MeshElemMap *epmap;
+  int *epmap_mem;
+
+  struct MeshElemMap *vemap;
+  int *vemap_mem;
+
   /* Mesh Face Sets */
   /* Total number of polys of the base mesh. */
   int totfaces;

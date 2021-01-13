@@ -703,6 +703,7 @@ def brush_settings(layout, context, brush, popover=False):
         elif sculpt_tool == 'GRAB':
             layout.prop(brush, "use_grab_active_vertex")
             layout.prop(brush, "use_grab_silhouette")
+            layout.prop(brush, "use_surface_falloff")
 
         elif sculpt_tool == 'PAINT':
             row = layout.row(align=True)
