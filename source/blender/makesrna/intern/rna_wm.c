@@ -606,6 +606,18 @@ static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, ot->srna, otmacro->properties);
 }
 
+static const EnumPropertyItem *rna_Event_value_itemf(bContext *UNUSED(C),
+                                                     PointerRNA *ptr,
+                                                     PropertyRNA *UNUSED(prop),
+                                                     bool *UNUSED(r_free))
+{
+  const wmEvent *event = ptr->data;
+  if (ISTWEAK(event->type)) {
+    return event_tweak_value_items;
+  }
+  return rna_enum_event_value_items;
+}
+
 static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
 {
   const wmEvent *event = ptr->data;
@@ -2113,6 +2125,7 @@ static void rna_def_event(BlenderRNA *brna)
   prop = RNA_def_property(srna, "value", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "val");
   RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Event_value_itemf");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Value", "The type of event, only applies to some");
 
