@@ -93,10 +93,10 @@ class NODE_HT_header(Header):
 
                 # Show material.new when no active ID/slot exists
                 if not id_from and ob_type in types_that_support_material:
-                    row.template_ID(ob, "active_material", new="material.new", duplicate="material.duplicate")
+                    row.template_ID(ob, "active_material", new="material.new")
                 # Material ID, but not for Lights
                 if id_from and ob_type != 'LIGHT':
-                    row.template_ID(id_from, "active_material", new="material.new", duplicate="material.duplicate")
+                    row.template_ID(id_from, "active_material", new="material.new")
 
             if snode.shader_type == 'WORLD':
                 NODE_MT_editor_menus.draw_collapsible(context, layout)
@@ -109,7 +109,7 @@ class NODE_HT_header(Header):
 
                 row = layout.row()
                 row.enabled = not snode.pin
-                row.template_ID(scene, "world", new="world.new", duplicate="world.duplicate")
+                row.template_ID(scene, "world", new="world.new")
 
             if snode.shader_type == 'LINESTYLE':
                 view_layer = context.view_layer
