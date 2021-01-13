@@ -233,10 +233,10 @@ class MeshFairingContext : public FairingContext {
 
     /* Deformation coords. */
     if (deform_mverts) {
-        deform_mvert_ = deform_mverts;
+      deform_mvert_ = deform_mverts;
     }
     else {
-        deform_mvert_ = mesh->mvert;
+      deform_mvert_ = mesh->mvert;
     }
 
     loop_to_poly_map_.resize(mesh->totloop);
@@ -255,12 +255,14 @@ class MeshFairingContext : public FairingContext {
     MEM_SAFE_FREE(elmap_mem_);
   }
 
-  float *vertex_deformation_co_get(const int v) {
-      return deform_mvert_[v].co;
+  float *vertex_deformation_co_get(const int v)
+  {
+    return deform_mvert_[v].co;
   }
 
-  void vertex_deformation_co_set(const int v, const float co[3]) {
-      copy_v3_v3(deform_mvert_[v].co, co);
+  void vertex_deformation_co_set(const int v, const float co[3])
+  {
+    copy_v3_v3(deform_mvert_[v].co, co);
   }
 
   void adjacents_coords_from_loop(const int loop,
@@ -351,12 +353,14 @@ class BMeshFairingContext : public FairingContext {
     MEM_SAFE_FREE(vlmap_mem_);
   }
 
-  float *vertex_deformation_co_get(const int v) {
-      return BM_vert_at_index(bm, v)->co;
+  float *vertex_deformation_co_get(const int v)
+  {
+    return BM_vert_at_index(bm, v)->co;
   }
 
-  void vertex_deformation_co_set(const int v, const float co[3]) {
-      copy_v3_v3(BM_vert_at_index(bm, v)->co, co);
+  void vertex_deformation_co_set(const int v, const float co[3])
+  {
+    copy_v3_v3(BM_vert_at_index(bm, v)->co, co);
   }
 
   void adjacents_coords_from_loop(const int loop,

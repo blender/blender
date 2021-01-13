@@ -103,7 +103,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /* Experimental features. */
 
 #define USE_SOLVER_RIPPLE_CONSTRAINT false
@@ -470,16 +469,16 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
   BKE_pbvh_vertex_iter_end;
 }
 
-static void cloth_brush_constraint_pos_to_line(SculptClothSimulation *cloth_sim, const int v) {
-    if (!USE_SOLVER_RIPPLE_CONSTRAINT) {
-        return;
-    }
-    float line_points[2][3];
-    copy_v3_v3(line_points[0], cloth_sim->init_pos[v]);
-    add_v3_v3v3(line_points[1], cloth_sim->init_pos[v], cloth_sim->init_normal[v]);
-    closest_to_line_v3(cloth_sim->pos[v], cloth_sim->pos[v], line_points[0], line_points[1]);
+static void cloth_brush_constraint_pos_to_line(SculptClothSimulation *cloth_sim, const int v)
+{
+  if (!USE_SOLVER_RIPPLE_CONSTRAINT) {
+    return;
+  }
+  float line_points[2][3];
+  copy_v3_v3(line_points[0], cloth_sim->init_pos[v]);
+  add_v3_v3v3(line_points[1], cloth_sim->init_pos[v], cloth_sim->init_normal[v]);
+  closest_to_line_v3(cloth_sim->pos[v], cloth_sim->pos[v], line_points[0], line_points[1]);
 }
-
 
 static void cloth_brush_apply_force_to_vertex(SculptSession *UNUSED(ss),
                                               SculptClothSimulation *cloth_sim,
@@ -892,7 +891,6 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
   cloth_sim->node_state[node_index] = SCULPT_CLOTH_NODE_INACTIVE;
 }
 
-
 static void cloth_brush_satisfy_constraints(SculptSession *ss,
                                             Brush *brush,
                                             SculptClothSimulation *cloth_sim)
@@ -1160,13 +1158,11 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
   }
 
   if (USE_SOLVER_RIPPLE_CONSTRAINT) {
-  cloth_sim->init_normal = MEM_calloc_arrayN(
-      totverts, sizeof(float) * 3, "init noramls");
-  for (int i = 0; i < totverts; i++) {
+    cloth_sim->init_normal = MEM_calloc_arrayN(totverts, sizeof(float) * 3, "init noramls");
+    for (int i = 0; i < totverts; i++) {
       SCULPT_vertex_normal_get(ss, i, cloth_sim->init_normal[i]);
+    }
   }
-  }
-
 
   cloth_sim->mass = cloth_mass;
   cloth_sim->damping = cloth_damping;
