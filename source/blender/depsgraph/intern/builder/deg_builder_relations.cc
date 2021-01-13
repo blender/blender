@@ -2807,7 +2807,13 @@ void DepsgraphRelationBuilder::build_nested_shapekey(ID *owner, Key *key)
 void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
 {
   ID *id_orig = id_node->id_orig;
+
   const ID_Type id_type = GS(id_orig->name);
+
+  if (!deg_copy_on_write_is_needed(id_type)) {
+    return;
+  }
+
   TimeSourceKey time_source_key;
   OperationKey copy_on_write_key(id_orig, NodeType::COPY_ON_WRITE, OperationCode::COPY_ON_WRITE);
   /* XXX: This is a quick hack to make Alt-A to work. */
