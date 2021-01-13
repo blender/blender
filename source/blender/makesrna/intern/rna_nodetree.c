@@ -8721,15 +8721,15 @@ static void def_geo_attribute_color_ramp(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_geo_rotate_points(StructRNA *srna)
+static void def_geo_point_rotate(StructRNA *srna)
 {
   static const EnumPropertyItem type_items[] = {
-      {GEO_NODE_ROTATE_POINTS_TYPE_AXIS_ANGLE,
+      {GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE,
        "AXIS_ANGLE",
        ICON_NONE,
        "Axis Angle",
        "Rotate around an axis by an angle"},
-      {GEO_NODE_ROTATE_POINTS_TYPE_EULER,
+      {GEO_NODE_POINT_ROTATE_TYPE_EULER,
        "EULER",
        ICON_NONE,
        "Euler",
@@ -8738,12 +8738,12 @@ static void def_geo_rotate_points(StructRNA *srna)
   };
 
   static const EnumPropertyItem space_items[] = {
-      {GEO_NODE_ROTATE_POINTS_SPACE_OBJECT,
+      {GEO_NODE_POINT_ROTATE_SPACE_OBJECT,
        "OBJECT",
        ICON_NONE,
        "Object",
        "Rotate points in the local space of the object"},
-      {GEO_NODE_ROTATE_POINTS_SPACE_POINT,
+      {GEO_NODE_POINT_ROTATE_SPACE_POINT,
        "POINT",
        ICON_NONE,
        "Point",

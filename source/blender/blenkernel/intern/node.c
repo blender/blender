@@ -4745,7 +4745,7 @@ static void registerGeometryNodes(void)
   register_node_type_geo_join_geometry();
   register_node_type_geo_attribute_mix();
   register_node_type_geo_attribute_color_ramp();
-  register_node_type_geo_rotate_points();
+  register_node_type_geo_point_rotate();
   register_node_type_geo_align_rotation_to_vector();
 }
 

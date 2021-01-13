@@ -1579,13 +1579,13 @@ typedef enum GeometryNodePointDistributeMethod {
 } GeometryNodePointDistributeMethod;
 
 typedef enum GeometryNodeRotatePointsType {
-  GEO_NODE_ROTATE_POINTS_TYPE_EULER = 0,
-  GEO_NODE_ROTATE_POINTS_TYPE_AXIS_ANGLE = 1,
+  GEO_NODE_POINT_ROTATE_TYPE_EULER = 0,
+  GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE = 1,
 } GeometryNodeRotatePointsType;
 
 typedef enum GeometryNodeRotatePointsSpace {
-  GEO_NODE_ROTATE_POINTS_SPACE_OBJECT = 0,
-  GEO_NODE_ROTATE_POINTS_SPACE_POINT = 1,
+  GEO_NODE_POINT_ROTATE_SPACE_OBJECT = 0,
+  GEO_NODE_POINT_ROTATE_SPACE_POINT = 1,
 } GeometryNodeRotatePointsSpace;
 
 typedef enum GeometryNodeAlignRotationToVectorAxis {

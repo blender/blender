@@ -3246,9 +3246,7 @@ static void node_geometry_buts_attribute_color_ramp(uiLayout *layout,
   uiTemplateColorRamp(layout, ptr, "color_ramp", 0);
 }
 
-static void node_geometry_buts_rotate_points(uiLayout *layout,
-                                             bContext *UNUSED(C),
-                                             PointerRNA *ptr)
+static void node_geometry_buts_point_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   NodeGeometryRotatePoints *storage = (NodeGeometryRotatePoints *)((bNode *)ptr->data)->storage;
 
@@ -3256,7 +3254,7 @@ static void node_geometry_buts_rotate_points(uiLayout *layout,
   uiItemR(layout, ptr, "space", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, false);
-  if (storage->type == GEO_NODE_ROTATE_POINTS_TYPE_AXIS_ANGLE) {
+  if (storage->type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE) {
     uiItemR(col, ptr, "input_type_axis", DEFAULT_FLAGS, IFACE_("Axis"), ICON_NONE);
     uiItemR(col, ptr, "input_type_angle", DEFAULT_FLAGS, IFACE_("Angle"), ICON_NONE);
   }
@@ -3314,8 +3312,8 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
     case GEO_NODE_ATTRIBUTE_COLOR_RAMP:
       ntype->draw_buttons = node_geometry_buts_attribute_color_ramp;
       break;
-    case GEO_NODE_ROTATE_POINTS:
-      ntype->draw_buttons = node_geometry_buts_rotate_points;
+    case GEO_NODE_POINT_ROTATE:
+      ntype->draw_buttons = node_geometry_buts_point_rotate;
       break;
     case GEO_NODE_ALIGN_ROTATION_TO_VECTOR:
       ntype->draw_buttons = node_geometry_buts_align_rotation_to_vector;
