@@ -187,15 +187,22 @@ class WriteAttribute {
 using ReadAttributePtr = std::unique_ptr<ReadAttribute>;
 using WriteAttributePtr = std::unique_ptr<WriteAttribute>;
 
-/* This provides type safe access to an attribute. */
+/* This provides type safe access to an attribute.
+ * The underlying ReadAttribute is owned optionally. */
 template<typename T> class TypedReadAttribute {
  private:
-  ReadAttributePtr attribute_;
+  std::unique_ptr<ReadAttribute> owned_attribute_;
+  ReadAttribute *attribute_;
 
  public:
-  TypedReadAttribute(ReadAttributePtr attribute) : attribute_(std::move(attribute))
+  TypedReadAttribute(ReadAttributePtr attribute) : TypedReadAttribute(*attribute)
   {
-    BLI_assert(attribute_);
+    owned_attribute_ = std::move(attribute);
+    BLI_assert(owned_attribute_);
+  }
+
+  TypedReadAttribute(ReadAttribute &attribute) : attribute_(&attribute)
+  {
     BLI_assert(attribute_->cpp_type().is<T>());
   }
 
@@ -220,15 +227,22 @@ template<typename T> class TypedReadAttribute {
   }
 };
 
-/* This provides type safe access to an attribute. */
+/* This provides type safe access to an attribute.
+ * The underlying WriteAttribute is owned optionally. */
 template<typename T> class TypedWriteAttribute {
  private:
-  WriteAttributePtr attribute_;
+  std::unique_ptr<WriteAttribute> owned_attribute_;
+  WriteAttribute *attribute_;
 
  public:
-  TypedWriteAttribute(WriteAttributePtr attribute) : attribute_(std::move(attribute))
+  TypedWriteAttribute(WriteAttributePtr attribute) : TypedWriteAttribute(*attribute)
   {
-    BLI_assert(attribute_);
+    owned_attribute_ = std::move(attribute);
+    BLI_assert(owned_attribute_);
+  }
+
+  TypedWriteAttribute(WriteAttribute &attribute) : attribute_(&attribute)
+  {
     BLI_assert(attribute_->cpp_type().is<T>());
   }
 
