@@ -622,7 +622,7 @@ static bool seq_disk_cache_write_file(SeqDiskCache *disk_cache, SeqCacheKey *key
   DiskCacheFile *cache_file = seq_disk_cache_get_file_entry_by_path(disk_cache, path);
   DiskCacheHeader header;
   memset(&header, 0, sizeof(header));
-  /* BLI_make_existing_file() above may create an empty file. This is fine, don't atttempt reading
+  /* #BLI_make_existing_file() above may create an empty file. This is fine, don't attempt reading
    * the header in that case. */
   if (cache_file->fstat.st_size != 0 && !seq_disk_cache_read_header(file, &header)) {
     fclose(file);

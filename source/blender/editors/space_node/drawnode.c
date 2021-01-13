@@ -3238,8 +3238,8 @@ static void node_geometry_buts_attribute_vector_math(uiLayout *layout,
   uiItemR(layout, ptr, "operation", DEFAULT_FLAGS, "", ICON_NONE);
   uiItemR(layout, ptr, "input_type_a", DEFAULT_FLAGS, IFACE_("Type A"), ICON_NONE);
 
-  /* These "use input b / c" checks are copied from the node's code. They could be deduplicated if
-   * the drawing code was moved to the node's file. */
+  /* These "use input b / c" checks are copied from the node's code.
+   * They could be de-duplicated if the drawing code was moved to the node's file. */
   if (!ELEM(node_storage->operation,
             NODE_VECTOR_MATH_NORMALIZE,
             NODE_VECTOR_MATH_FLOOR,
