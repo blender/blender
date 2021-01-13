@@ -219,14 +219,14 @@ class GeometryNodesEvaluator {
   Vector<const DInputSocket *> group_outputs_;
   blender::nodes::MultiFunctionByNode &mf_by_node_;
   const blender::nodes::DataTypeConversions &conversions_;
-  const blender::bke::PersistentDataHandleMap &handle_map_;
+  const PersistentDataHandleMap &handle_map_;
   const Object *self_object_;
 
  public:
   GeometryNodesEvaluator(const Map<const DOutputSocket *, GMutablePointer> &group_input_data,
                          Vector<const DInputSocket *> group_outputs,
                          blender::nodes::MultiFunctionByNode &mf_by_node,
-                         const blender::bke::PersistentDataHandleMap &handle_map,
+                         const PersistentDataHandleMap &handle_map,
                          const Object *self_object)
       : group_outputs_(std::move(group_outputs)),
         mf_by_node_(mf_by_node),
@@ -449,13 +449,13 @@ class GeometryNodesEvaluator {
 
     if (bsocket->type == SOCK_OBJECT) {
       Object *object = ((bNodeSocketValueObject *)bsocket->default_value)->value;
-      blender::bke::PersistentObjectHandle object_handle = handle_map_.lookup(object);
-      new (buffer) blender::bke::PersistentObjectHandle(object_handle);
+      PersistentObjectHandle object_handle = handle_map_.lookup(object);
+      new (buffer) PersistentObjectHandle(object_handle);
     }
     else if (bsocket->type == SOCK_COLLECTION) {
       Collection *collection = ((bNodeSocketValueCollection *)bsocket->default_value)->value;
-      blender::bke::PersistentCollectionHandle collection_handle = handle_map_.lookup(collection);
-      new (buffer) blender::bke::PersistentCollectionHandle(collection_handle);
+      PersistentCollectionHandle collection_handle = handle_map_.lookup(collection);
+      new (buffer) PersistentCollectionHandle(collection_handle);
     }
     else {
       blender::nodes::socket_cpp_value_get(*bsocket, buffer);
@@ -866,7 +866,7 @@ static void initialize_group_input(NodesModifierData &nmd,
 
 static void fill_data_handle_map(const NodesModifierSettings &settings,
                                  const DerivedNodeTree &tree,
-                                 blender::bke::PersistentDataHandleMap &handle_map)
+                                 PersistentDataHandleMap &handle_map)
 {
   Set<ID *> used_ids;
   find_used_ids_from_settings(settings, used_ids);
