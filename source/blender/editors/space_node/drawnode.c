@@ -3505,7 +3505,7 @@ void ED_init_custom_node_socket_type(bNodeSocketType *stype)
 
 /* maps standard socket integer type to a color */
 static const float std_node_socket_colors[][4] = {
-    {0.75, 0.75, 0.59, 1.0}, /* SOCK_FLOAT */
+    {0.63, 0.63, 0.63, 1.0}, /* SOCK_FLOAT */
     {0.39, 0.39, 0.78, 1.0}, /* SOCK_VECTOR */
     {0.78, 0.78, 0.16, 1.0}, /* SOCK_RGBA */
     {0.88, 0.43, 0.46, 1.0}, /* SOCK_SHADER */
