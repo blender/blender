@@ -3525,7 +3525,7 @@ static const float std_node_socket_colors[][4] = {
     {0.63, 0.63, 0.63, 1.0}, /* SOCK_FLOAT */
     {0.39, 0.39, 0.78, 1.0}, /* SOCK_VECTOR */
     {0.78, 0.78, 0.16, 1.0}, /* SOCK_RGBA */
-    {0.88, 0.43, 0.46, 1.0}, /* SOCK_SHADER */
+    {0.39, 0.78, 0.39, 1.0}, /* SOCK_SHADER */
     {0.80, 0.65, 0.84, 1.0}, /* SOCK_BOOLEAN */
     {0.0, 0.0, 0.0, 1.0},    /*__SOCK_MESH (deprecated) */
     {0.25, 0.75, 0.26, 1.0}, /* SOCK_INT */
