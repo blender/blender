@@ -42,31 +42,6 @@
 
 #ifdef RNA_RUNTIME
 
-static const EnumPropertyItem event_keymouse_value_items[] = {
-    {KM_ANY, "ANY", 0, "Any", ""},
-    {KM_PRESS, "PRESS", 0, "Press", ""},
-    {KM_RELEASE, "RELEASE", 0, "Release", ""},
-    {KM_CLICK, "CLICK", 0, "Click", ""},
-    {KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
-    {KM_CLICK_DRAG, "CLICK_DRAG", 0, "Click Drag", ""},
-    /* Used for NDOF and trackpad events. */
-    {KM_NOTHING, "NOTHING", 0, "Nothing", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static const EnumPropertyItem event_tweak_value_items[] = {
-    {KM_ANY, "ANY", 0, "Any", ""},
-    {EVT_GESTURE_N, "NORTH", 0, "North", ""},
-    {EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
-    {EVT_GESTURE_E, "EAST", 0, "East", ""},
-    {EVT_GESTURE_SE, "SOUTH_EAST", 0, "South-East", ""},
-    {EVT_GESTURE_S, "SOUTH", 0, "South", ""},
-    {EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
-    {EVT_GESTURE_W, "WEST", 0, "West", ""},
-    {EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
 static const EnumPropertyItem event_tweak_type_items[] = {
     {EVT_TWEAK_L, "EVT_TWEAK_L", 0, "Left", ""},
     {EVT_TWEAK_M, "EVT_TWEAK_M", 0, "Middle", ""},
@@ -390,6 +365,14 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+/**
+ * \note This contains overlapping items from:
+ * - #rna_enum_event_value_keymouse_items
+ * - #rna_enum_event_value_tweak_items
+ *
+ * This is needed for `km.keymap_items.new` value argument,
+ * to accept values from different types.
+ */
 const EnumPropertyItem rna_enum_event_value_items[] = {
     {KM_ANY, "ANY", 0, "Any", ""},
     {KM_PRESS, "PRESS", 0, "Press", ""},
@@ -406,6 +389,31 @@ const EnumPropertyItem rna_enum_event_value_items[] = {
     {EVT_GESTURE_W, "WEST", 0, "West", ""},
     {EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
     {KM_NOTHING, "NOTHING", 0, "Nothing", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_event_value_keymouse_items[] = {
+    {KM_ANY, "ANY", 0, "Any", ""},
+    {KM_PRESS, "PRESS", 0, "Press", ""},
+    {KM_RELEASE, "RELEASE", 0, "Release", ""},
+    {KM_CLICK, "CLICK", 0, "Click", ""},
+    {KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
+    {KM_CLICK_DRAG, "CLICK_DRAG", 0, "Click Drag", ""},
+    /* Used for NDOF and trackpad events. */
+    {KM_NOTHING, "NOTHING", 0, "Nothing", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_event_value_tweak_items[] = {
+    {KM_ANY, "ANY", 0, "Any", ""},
+    {EVT_GESTURE_N, "NORTH", 0, "North", ""},
+    {EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
+    {EVT_GESTURE_E, "EAST", 0, "East", ""},
+    {EVT_GESTURE_SE, "SOUTH_EAST", 0, "South-East", ""},
+    {EVT_GESTURE_S, "SOUTH", 0, "South", ""},
+    {EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
+    {EVT_GESTURE_W, "WEST", 0, "West", ""},
+    {EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -613,7 +621,7 @@ static const EnumPropertyItem *rna_Event_value_itemf(bContext *UNUSED(C),
 {
   const wmEvent *event = ptr->data;
   if (ISTWEAK(event->type)) {
-    return event_tweak_value_items;
+    return rna_enum_event_value_tweak_items;
   }
   return rna_enum_event_value_items;
 }
@@ -976,10 +984,10 @@ static const EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C),
   int map_type = rna_wmKeyMapItem_map_type_get(ptr);
 
   if (map_type == KMI_TYPE_MOUSE || map_type == KMI_TYPE_KEYBOARD || map_type == KMI_TYPE_NDOF) {
-    return event_keymouse_value_items;
+    return rna_enum_event_value_keymouse_items;
   }
   if (map_type == KMI_TYPE_TWEAK) {
-    return event_tweak_value_items;
+    return rna_enum_event_value_tweak_items;
   }
   else {
     return rna_enum_event_value_items;
