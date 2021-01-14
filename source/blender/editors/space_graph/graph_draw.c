@@ -35,9 +35,11 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
+#include "BKE_nla.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -77,7 +79,12 @@ static float fcurve_display_alpha(FCurve *fcu)
 /* Envelope -------------- */
 
 /* TODO: draw a shaded poly showing the region of influence too!!! */
-static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
+/**
+ * \param adt_nla_remap: Send NULL if no NLA remapping necessary.
+ */
+static void draw_fcurve_modifier_controls_envelope(FModifier *fcm,
+                                                   View2D *v2d,
+                                                   AnimData *adt_nla_remap)
 {
   FMod_Envelope *env = (FMod_Envelope *)fcm->data;
   FCM_EnvelopeData *fed;
@@ -124,12 +131,15 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
     immBeginAtMost(GPU_PRIM_POINTS, env->totvert * 2);
 
     for (i = 0, fed = env->data; i < env->totvert; i++, fed++) {
+      const float env_scene_time = BKE_nla_tweakedit_remap(
+          adt_nla_remap, fed->time, NLATIME_CONVERT_MAP);
+
       /* only draw if visible
        * - min/max here are fixed, not relative
        */
-      if (IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
-        immVertex2f(shdr_pos, fed->time, fed->min);
-        immVertex2f(shdr_pos, fed->time, fed->max);
+      if (IN_RANGE(env_scene_time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
+        immVertex2f(shdr_pos, env_scene_time, fed->min);
+        immVertex2f(shdr_pos, env_scene_time, fed->max);
       }
     }
 
@@ -572,7 +582,8 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
 
 /* Helper func - just draw the F-Curve by sampling the visible region
  * (for drawing curves with modifiers). */
-static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2d, uint pos)
+static void draw_fcurve_curve(
+    bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2d, uint pos, const bool use_nla_remap)
 {
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
   short mapping_flag = ANIM_get_normalization_flags(ac);
@@ -646,9 +657,17 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2
   if (n > 0) {
     immBegin(GPU_PRIM_LINE_STRIP, (n + 1));
 
+    AnimData *adt = use_nla_remap ? BKE_animdata_from_id(id) : NULL;
+    /* NLA remapping is linear so we don't have to remap per iteration. */
+    const float eval_start = BKE_nla_tweakedit_remap(adt, stime, NLATIME_CONVERT_UNMAP);
+    const float eval_freq = BKE_nla_tweakedit_remap(
+                                adt, stime + samplefreq, NLATIME_CONVERT_UNMAP) -
+                            eval_start;
+
     for (int i = 0; i <= n; i++) {
       float ctime = stime + i * samplefreq;
-      immVertex2f(pos, ctime, (evaluate_fcurve(&fcurve_for_draw, ctime) + offset) * unitFac);
+      const float eval_time = eval_start + i * eval_freq;
+      immVertex2f(pos, ctime, (evaluate_fcurve(&fcurve_for_draw, eval_time) + offset) * unitFac);
     }
 
     immEnd();
@@ -1015,7 +1034,20 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       /* draw a curve affected by modifiers or only allowed to have integer values
        * by sampling it at various small-intervals over the visible region
        */
-      draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos);
+      if (adt) {
+        /** We have to do this mapping dance since the keyframes were remapped but the Fmodifier
+         * evaluations are not.
+         *
+         * So we undo the keyframe remapping and instead remap the evaluation time when drawing the
+         * curve itself. Afterward, we go back and redo the keyframe remapping so the controls are
+         * drawn properly. */
+        ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, true, false);
+        draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, true);
+        ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, false, false);
+      }
+      else {
+        draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, false);
+      }
     }
     else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
       /* just draw curve based on defined data (i.e. no modifiers) */
@@ -1024,7 +1056,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
           draw_fcurve_curve_bezts(ac, ale->id, fcu, &region->v2d, shdr_pos);
         }
         else {
-          draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos);
+          draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, false);
         }
       }
       else if (fcu->fpt) {
@@ -1050,7 +1082,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
         switch (fcm->type) {
           case FMODIFIER_TYPE_ENVELOPE: /* envelope */
-            draw_fcurve_modifier_controls_envelope(fcm, &region->v2d);
+            draw_fcurve_modifier_controls_envelope(fcm, &region->v2d, adt);
             break;
         }
       }
