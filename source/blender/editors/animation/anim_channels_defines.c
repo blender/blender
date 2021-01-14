@@ -4710,7 +4710,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     (float)CFRA);
   NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(
-      &nla_cache, &id_ptr, adt, &anim_eval_context, false);
+      &nla_cache, &id_ptr, adt, &anim_eval_context);
 
   /* get current frame and apply NLA-mapping to it (if applicable) */
   cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
@@ -4766,7 +4766,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     (float)CFRA);
   NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(
-      &nla_cache, &id_ptr, key->adt, &anim_eval_context, false);
+      &nla_cache, &id_ptr, key->adt, &anim_eval_context);
 
   /* get current frame and apply NLA-mapping to it (if applicable) */
   const float remapped_frame = BKE_nla_tweakedit_remap(
