@@ -52,6 +52,7 @@ typedef struct TransDataTracking {
 
   float (*smarkers)[2];
   int markersnr;
+  int framenr;
   MovieTrackingMarker *markers;
 
   /* marker transformation from curves editor */
@@ -75,6 +76,8 @@ enum transDataTracking_Mode {
 
 typedef struct TransformInitContext {
   SpaceClip *space_clip;
+
+  TransInfo *t;
   TransDataContainer *tc;
 
   /* MOTE: There pointers will be nullptr during counting step.
@@ -110,6 +113,7 @@ static void markerToTransDataInit(TransformInitContext *init_context,
   int anchor = area == TRACK_AREA_POINT && off;
 
   tdt->flag = marker->flag;
+  tdt->framenr = marker->framenr;
   tdt->mode = transDataTracking_ModeTracks;
 
   if (anchor) {
@@ -264,6 +268,7 @@ static void planeMarkerToTransDataInit(TransformInitContext *init_context,
   }
 
   tdt->flag = plane_marker->flag;
+  tdt->framenr = plane_marker->framenr;
   tdt->mode = transDataTracking_ModePlaneTracks;
   tdt->plane_track = plane_track;
 
@@ -350,6 +355,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
   TransformInitContext init_context = {NULL};
   init_context.space_clip = space_clip;
+  init_context.t = t;
   init_context.tc = tc;
 
   /* Count required tranformation data. */
@@ -567,17 +573,17 @@ void createTransTrackingData(bContext *C, TransInfo *t)
 static void cancelTransTracking(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
-  SpaceClip *sc = t->area->spacedata.first;
-  int i, framenr = ED_space_clip_get_clip_frame_number(sc);
   TransDataTracking *tdt_array = tc->custom.type.data;
 
-  i = 0;
+  int i = 0;
   while (i < tc->data_len) {
     TransDataTracking *tdt = &tdt_array[i];
 
     if (tdt->mode == transDataTracking_ModeTracks) {
       MovieTrackingTrack *track = tdt->track;
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+      MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, tdt->framenr);
+
+      BLI_assert(marker != NULL);
 
       marker->flag = tdt->flag;
 
@@ -613,7 +619,10 @@ static void cancelTransTracking(TransInfo *t)
     }
     else if (tdt->mode == transDataTracking_ModePlaneTracks) {
       MovieTrackingPlaneTrack *plane_track = tdt->plane_track;
-      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track,
+                                                                             tdt->framenr);
+
+      BLI_assert(plane_marker != NULL);
 
       plane_marker->flag = tdt->flag;
       i += 3;
