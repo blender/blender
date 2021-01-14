@@ -23,7 +23,8 @@
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     struct OpenSubdiv_TopologyRefiner * /*topology_refiner*/,
     eOpenSubdivEvaluator /*evaluator_type*/,
-    OpenSubdiv_EvaluatorCache * /*evaluator_cache*/)
+    OpenSubdiv_EvaluatorCache * /*evaluator_cache*/,
+    const OpenSubdiv_EvaluatorSettings * /*settings*/)
 {
   return NULL;
 }
