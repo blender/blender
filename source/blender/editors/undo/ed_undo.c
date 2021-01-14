@@ -77,7 +77,7 @@ static CLG_LogRef LOG = {"ed.undo"};
 enum eUndoStepDir {
   STEP_REDO = 1,
   STEP_UNDO = -1,
-  /** Only used when the undo name is passed to #ed_undo_step_impl. */
+  /** Only used when the undo step name or index is passed to #ed_undo_step_impl. */
   STEP_NONE = 0,
 };
 
@@ -207,8 +207,12 @@ static int ed_undo_step_impl(
 
   /* TODO(campbell): undo_system: use undo system */
   /* grease pencil can be can be used in plenty of spaces, so check it first */
+  /* FIXME: This gpencil undo effectively only supports the one step undo/redo, undo based on name
+   * or index is fully not implemented.
+   * FIXME: However, it seems to never be used in current code (`ED_gpencil_session_active` seems
+   * to always return false). */
   if (ED_gpencil_session_active()) {
-    return ED_undo_gpencil_step(C, (int)step, undoname);
+    return ED_undo_gpencil_step(C, (int)step);
   }
   if (area && (area->spacetype == SPACE_VIEW3D)) {
     Object *obact = CTX_data_active_object(C);
