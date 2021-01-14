@@ -362,6 +362,20 @@ void BKE_keyingsets_blend_read_expand(BlendExpander *expander, ListBase *list)
 /* ***************************************** */
 /* Evaluation Data-Setting Backend */
 
+static bool is_fcurve_evaluatable(FCurve *fcu)
+{
+  if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) {
+    return false;
+  }
+  if (fcu->grp != NULL && (fcu->grp->flag & AGRP_MUTED)) {
+    return false;
+  }
+  if (BKE_fcurve_is_empty(fcu)) {
+    return false;
+  }
+  return true;
+}
+
 bool BKE_animsys_store_rna_setting(PointerRNA *ptr,
                                    /* typically 'fcu->rna_path', 'fcu->array_index' */
                                    const char *rna_path,
@@ -594,18 +608,11 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
 {
   /* Calculate then execute each curve. */
   LISTBASE_FOREACH (FCurve *, fcu, list) {
-    /* Check if this F-Curve doesn't belong to a muted group. */
-    if ((fcu->grp != NULL) && (fcu->grp->flag & AGRP_MUTED)) {
+
+    if (!is_fcurve_evaluatable(fcu)) {
       continue;
     }
-    /* Check if this curve should be skipped. */
-    if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED))) {
-      continue;
-    }
-    /* Skip empty curves, as if muted. */
-    if (BKE_fcurve_is_empty(fcu)) {
-      continue;
-    }
+
     PathResolvedRNA anim_rna;
     if (BKE_animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
       const float curval = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
@@ -1902,16 +1909,8 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
   /* Evaluate all the F-Curves in the action,
    * saving the relevant pointers to data that will need to be used. */
   for (fcu = strip->act->curves.first; fcu; fcu = fcu->next) {
-    float value = 0.0f;
 
-    /* check if this curve should be skipped */
-    if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) {
-      continue;
-    }
-    if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) {
-      continue;
-    }
-    if (BKE_fcurve_is_empty(fcu)) {
+    if (!is_fcurve_evaluatable(fcu)) {
       continue;
     }
 
@@ -1919,7 +1918,7 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
      * NOTE: we use the modified time here, since strip's F-Curve Modifiers
      * are applied on top of this.
      */
-    value = evaluate_fcurve(fcu, evaltime);
+    float value = evaluate_fcurve(fcu, evaltime);
 
     /* apply strip's F-Curve Modifiers on this value
      * NOTE: we apply the strip's original evaluation time not the modified one
@@ -2144,13 +2143,7 @@ static void nla_eval_domain_action(PointerRNA *ptr,
 
   LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
     /* check if this curve should be skipped */
-    if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) {
-      continue;
-    }
-    if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) {
-      continue;
-    }
-    if (BKE_fcurve_is_empty(fcu)) {
+    if (!is_fcurve_evaluatable(fcu)) {
       continue;
     }
 
