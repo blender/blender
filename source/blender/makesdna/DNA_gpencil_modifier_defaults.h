@@ -152,6 +152,7 @@
     .factor_thickness = 0.0f, \
     .factor_uvs = 0.0f, \
     .noise_scale = 0.0f, \
+    .noise_offset = 0.0f, \
     .step = 4, \
     .layer_pass = 0, \
     .seed = 1, \

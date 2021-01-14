@@ -107,6 +107,8 @@ typedef struct NoiseGpencilModifierData {
   float factor_uvs;
   /** Noise Frequency scaling */
   float noise_scale;
+  float noise_offset;
+  char _pad[4];
   /** How many frames before recalculate randoms. */
   int step;
   /** Custom index for passes. */
