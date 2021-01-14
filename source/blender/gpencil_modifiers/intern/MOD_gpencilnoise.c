@@ -292,6 +292,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "factor_thickness", 0, IFACE_("Thickness"), ICON_NONE);
   uiItemR(col, ptr, "factor_uvs", 0, IFACE_("UV"), ICON_NONE);
   uiItemR(col, ptr, "noise_scale", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "seed", 0, NULL, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -316,7 +317,6 @@ static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "random"));
 
   uiItemR(layout, ptr, "step", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "seed", 0, NULL, ICON_NONE);
 }
 
 static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
