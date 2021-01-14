@@ -19,6 +19,7 @@
 #include "FN_multi_function_network_evaluation.hh"
 
 #include "BLI_color.hh"
+#include "BLI_float2.hh"
 #include "BLI_float3.hh"
 
 namespace blender::nodes {
@@ -191,27 +192,57 @@ static void add_implicit_conversion(DataTypeConversions &conversions,
 static DataTypeConversions create_implicit_conversions()
 {
   DataTypeConversions conversions;
-  add_implicit_conversion<float, int32_t>(conversions);
+  add_implicit_conversion<float, float2>(conversions);
   add_implicit_conversion<float, float3>(conversions);
-  add_implicit_conversion<int32_t, float>(conversions);
+  add_implicit_conversion<float, int32_t>(conversions);
   add_implicit_conversion<float, bool>(conversions);
-  add_implicit_conversion<bool, float>(conversions);
-  add_implicit_conversion<float3, float>(
-      conversions, "Vector Length", [](float3 a) { return a.length(); });
-  add_implicit_conversion<int32_t, float3>(
-      conversions, "int32 to float3", [](int32_t a) { return float3((float)a); });
-  add_implicit_conversion<float3, Color4f>(
-      conversions, "float3 to Color4f", [](float3 a) { return Color4f(a.x, a.y, a.z, 1.0f); });
-  add_implicit_conversion<Color4f, float3>(
-      conversions, "Color4f to float3", [](Color4f a) { return float3(a.r, a.g, a.b); });
   add_implicit_conversion<float, Color4f>(
       conversions, "float to Color4f", [](float a) { return Color4f(a, a, a, 1.0f); });
-  add_implicit_conversion<Color4f, float>(
-      conversions, "Color4f to float", [](Color4f a) { return rgb_to_grayscale(a); });
+
+  add_implicit_conversion<float2, float3>(conversions);
+  add_implicit_conversion<float2, float>(
+      conversions, "float2 to float", [](float2 a) { return a.length(); });
+  add_implicit_conversion<float2, int32_t>(
+      conversions, "float2 to int32_t", [](float2 a) { return (int32_t)a.length(); });
+  add_implicit_conversion<float2, bool>(
+      conversions, "float2 to bool", [](float2 a) { return a.length_squared() == 0.0f; });
+  add_implicit_conversion<float2, Color4f>(
+      conversions, "float2 to Color4f", [](float2 a) { return Color4f(a.x, a.y, 0.0f, 1.0f); });
+
   add_implicit_conversion<float3, bool>(
       conversions, "float3 to boolean", [](float3 a) { return a.length_squared() == 0.0f; });
+  add_implicit_conversion<float3, float>(
+      conversions, "Vector Length", [](float3 a) { return a.length(); });
+  add_implicit_conversion<float3, int32_t>(
+      conversions, "float3 to int32_t", [](float3 a) { return (int)a.length(); });
+  add_implicit_conversion<float3, float2>(conversions);
+  add_implicit_conversion<float3, Color4f>(
+      conversions, "float3 to Color4f", [](float3 a) { return Color4f(a.x, a.y, a.z, 1.0f); });
+
+  add_implicit_conversion<int32_t, bool>(conversions);
+  add_implicit_conversion<int32_t, float>(conversions);
+  add_implicit_conversion<int32_t, float2>(
+      conversions, "int32 to float2", [](int32_t a) { return float2((float)a); });
+  add_implicit_conversion<int32_t, float3>(
+      conversions, "int32 to float3", [](int32_t a) { return float3((float)a); });
+
+  add_implicit_conversion<bool, float>(conversions);
+  add_implicit_conversion<bool, int32_t>(conversions);
+  add_implicit_conversion<bool, float2>(
+      conversions, "boolean to float2", [](bool a) { return (a) ? float2(1.0f) : float2(0.0f); });
   add_implicit_conversion<bool, float3>(
       conversions, "boolean to float3", [](bool a) { return (a) ? float3(1.0f) : float3(0.0f); });
+  add_implicit_conversion<bool, Color4f>(conversions, "boolean to Color4f", [](bool a) {
+    return (a) ? Color4f(1.0f, 1.0f, 1.0f, 1.0f) : Color4f(0.0f, 0.0f, 0.0f, 1.0f);
+  });
+
+  add_implicit_conversion<Color4f, float>(
+      conversions, "Color4f to float", [](Color4f a) { return rgb_to_grayscale(a); });
+  add_implicit_conversion<Color4f, float2>(
+      conversions, "Color4f to float2", [](Color4f a) { return float2(a.r, a.g); });
+  add_implicit_conversion<Color4f, float3>(
+      conversions, "Color4f to float3", [](Color4f a) { return float3(a.r, a.g, a.b); });
+
   return conversions;
 }
 
