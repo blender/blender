@@ -1171,6 +1171,13 @@ typedef struct ExpandCache {
     int initial_active_vertex;
     float active_factor;
 
+    PBVHNode **nodes;
+    int totnode;
+
+    bool invert;
+
+    bool mask_preserve_previous;
+
     eSculptExpandTargetType target;
     float *initial_mask;
     int *initial_face_sets;
@@ -1303,6 +1310,9 @@ void SCULPT_OT_dirty_mask(struct wmOperatorType *ot);
 
 /* Mask and Face Sets Expand. */
 void SCULPT_OT_mask_expand(struct wmOperatorType *ot);
+
+/* Expand. */
+void SCULPT_OT_expand(struct wmOperatorType *ot);
 
 /* Detail size. */
 void SCULPT_OT_detail_flood_fill(struct wmOperatorType *ot);
