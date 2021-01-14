@@ -539,6 +539,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   /* Update object. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_boundary_info_ensure(ob);
   SCULPT_undo_push_begin(ob, "expand");
 
   /* Create the Expand Cache. */
@@ -561,8 +562,14 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   sculpt_expand_initial_state_store(ob, ss->expand_cache);
 
   /* Initialize the factors. */
+
+  eSculptExpandFalloffType falloff_type = SCULPT_EXPAND_FALLOFF_GEODESICS;
+  if (SCULPT_vertex_is_boundary(ss, initial_vertex)) {
+      falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
+  }
+
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
-      ss->expand_cache, sd, ob, initial_vertex, SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY);
+      ss->expand_cache, sd, ob, initial_vertex, falloff_type);
 
   /* Initial update. */
   sculpt_expand_update_for_vertex(C, ob, initial_vertex);

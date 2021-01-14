@@ -1175,12 +1175,15 @@ typedef struct ExpandCache {
   int totnode;
 
   bool invert;
-
   bool mask_preserve_previous;
+
+  int update_face_set;
 
   eSculptExpandTargetType target;
   float *initial_mask;
   int *initial_face_sets;
+
+
 } ExpandCache;
 
 typedef struct FilterCache {
