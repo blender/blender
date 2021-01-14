@@ -537,6 +537,9 @@ def km_screen(params):
             ("ed.undo_history", {"type": 'Z', "value": 'PRESS', "ctrl": True, "alt": True}, None),
             ("screen.screen_full_area", {"type": 'UP_ARROW', "value": 'PRESS', "ctrl": True}, None),
             ("screen.screen_full_area", {"type": 'DOWN_ARROW', "value": 'PRESS', "ctrl": True}, None),
+            ("screen.screen_full_area", {"type": 'SPACE', "value": 'PRESS', "shift": True}, None),
+            ("screen.screen_full_area", {"type": 'F10', "value": 'PRESS', "alt": True},
+             {"properties": [("use_hide_panels", True)]}),
             ("screen.screen_set", {"type": 'RIGHT_ARROW', "value": 'PRESS', "ctrl": True},
              {"properties": [("delta", 1)]}),
             ("screen.screen_set", {"type": 'LEFT_ARROW', "value": 'PRESS', "ctrl": True},
@@ -1591,11 +1594,25 @@ def km_graph_editor(params):
         ("wm.context_toggle", {"type": 'O', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.use_proportional_fcurve')]}),
         op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
-        op_menu_pie("GRAPH_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         ("marker.rename", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_context_menu("GRAPH_MT_context_menu", params.context_menu_event),
     ])
+
+    if not params.legacy:
+        items.extend([
+            op_menu_pie("GRAPH_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
+        ])
+    else:
+        items.extend([
+            # Old pivot.
+            ("wm.context_set_enum", {"type": 'COMMA', "value": 'PRESS'},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'BOUNDING_BOX_CENTER')]}),
+            ("wm.context_set_enum", {"type": 'PERIOD', "value": 'PRESS'},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'CURSOR')]}),
+            ("wm.context_set_enum", {"type": 'PERIOD', "value": 'PRESS', "ctrl": True},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'INDIVIDUAL_ORIGINS')]}),
+        ])
 
     if params.select_mouse == 'LEFTMOUSE' and not params.legacy:
         items.extend([
@@ -1697,14 +1714,25 @@ def km_image(params):
              for i in range(9)
              )
         ),
-        op_menu_pie("IMAGE_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
         ("image.render_border", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         ("image.clear_render_border", {"type": 'B', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         *_template_items_context_menu("IMAGE_MT_mask_context_menu", params.context_menu_event),
     ])
 
-    if params.legacy:
+    if not params.legacy:
         items.extend([
+            op_menu_pie("IMAGE_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
+        ])
+    else:
+        items.extend([
+            # Old pivot.
+            ("wm.context_set_enum", {"type": 'COMMA', "value": 'PRESS'},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'CENTER')]}),
+            ("wm.context_set_enum", {"type": 'COMMA', "value": 'PRESS', "ctrl": True},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'MEDIAN')]}),
+            ("wm.context_set_enum", {"type": 'PERIOD', "value": 'PRESS'},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'CURSOR')]}),
+
             ("image.view_center_cursor", {"type": 'HOME', "value": 'PRESS', "alt": True}, None),
         ])
 
@@ -2826,14 +2854,25 @@ def km_clip_editor(params):
         ("clip.clear_track_path", {"type": 'T', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("action", 'ALL'), ("clear_active", False)]}),
         ("clip.cursor_set", params.cursor_set_event, None),
-        op_menu_pie("CLIP_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
         ("clip.copy_tracks", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("clip.paste_tracks", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_context_menu("CLIP_MT_tracking_context_menu", params.context_menu_event),
     ])
 
-    if params.legacy:
+    if not params.legacy:
+        op_menu_pie("CLIP_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
+    else:
         items.extend([
+            # Old pivot.
+            ("wm.context_set_enum", {"type": 'COMMA', "value": 'PRESS'},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'BOUNDING_BOX_CENTER')]}),
+            ("wm.context_set_enum", {"type": 'COMMA', "value": 'PRESS', "ctrl": True},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'MEDIAN_POINT')]}),
+            ("wm.context_set_enum", {"type": 'PERIOD', "value": 'PRESS'},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'CURSOR')]}),
+            ("wm.context_set_enum", {"type": 'PERIOD', "value": 'PRESS', "ctrl": True},
+             {"properties": [("data_path", 'space_data.pivot_point'), ("value", 'INDIVIDUAL_ORIGINS')]}),
+
             ("clip.view_center_cursor", {"type": 'HOME', "value": 'PRESS', "alt": True}, None),
         ])
 
