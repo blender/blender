@@ -526,6 +526,10 @@ static ReadAttributePtr read_attribute_from_custom_data(const CustomData &custom
         case CD_PROP_BOOL:
           return std::make_unique<ArrayReadAttribute<bool>>(
               domain, Span(static_cast<bool *>(layer.data), size));
+        case CD_MLOOPUV:
+          auto get_uv = [](const MLoopUV &uv) { return float2(uv.uv); };
+          return std::make_unique<DerivedArrayReadAttribute<MLoopUV, float2, decltype(get_uv)>>(
+              domain, Span(static_cast<MLoopUV *>(layer.data), size), get_uv);
       }
     }
   }
@@ -570,6 +574,12 @@ static WriteAttributePtr write_attribute_from_custom_data(
         case CD_PROP_BOOL:
           return std::make_unique<ArrayWriteAttribute<bool>>(
               domain, MutableSpan(static_cast<bool *>(layer.data), size));
+        case CD_MLOOPUV:
+          auto get_uv = [](const MLoopUV &uv) { return float2(uv.uv); };
+          auto set_uv = [](MLoopUV &uv, const float2 value) { copy_v2_v2(uv.uv, value); };
+          return std::make_unique<
+              DerivedArrayWriteAttribute<MLoopUV, float2, decltype(get_uv), decltype(set_uv)>>(
+              domain, MutableSpan(static_cast<MLoopUV *>(layer.data), size), get_uv, set_uv);
       }
     }
   }
@@ -597,8 +607,9 @@ static void get_custom_data_layer_attribute_names(const CustomData &custom_data,
                                                   Set<std::string> &r_names)
 {
   for (const CustomDataLayer &layer : blender::Span(custom_data.layers, custom_data.totlayer)) {
-    if (component.attribute_domain_with_type_supported(domain,
-                                                       static_cast<CustomDataType>(layer.type))) {
+    const CustomDataType data_type = static_cast<CustomDataType>(layer.type);
+    if (component.attribute_domain_with_type_supported(domain, data_type) ||
+        ELEM(data_type, CD_MLOOPUV)) {
       r_names.add(layer.name);
     }
   }
@@ -1307,7 +1318,7 @@ Set<std::string> MeshComponent::attribute_names() const
   for (StringRef name : vertex_group_names_.keys()) {
     names.add(name);
   }
-  get_custom_data_layer_attribute_names(mesh_->pdata, *this, ATTR_DOMAIN_CORNER, names);
+  get_custom_data_layer_attribute_names(mesh_->ldata, *this, ATTR_DOMAIN_CORNER, names);
   get_custom_data_layer_attribute_names(mesh_->vdata, *this, ATTR_DOMAIN_POINT, names);
   get_custom_data_layer_attribute_names(mesh_->edata, *this, ATTR_DOMAIN_EDGE, names);
   get_custom_data_layer_attribute_names(mesh_->pdata, *this, ATTR_DOMAIN_POLYGON, names);
