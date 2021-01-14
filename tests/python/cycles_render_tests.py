@@ -98,6 +98,7 @@ def create_argparse():
     parser.add_argument("-outdir", nargs=1)
     parser.add_argument("-idiff", nargs=1)
     parser.add_argument("-device", nargs=1)
+    parser.add_argument("-blacklist", nargs="*")
     return parser
 
 
@@ -114,6 +115,7 @@ def main():
     blacklist = []
     if device != 'CPU':
         blacklist += BLACKLIST_GPU
+    if device != 'CPU' or 'OSL' in args.blacklist:
         blacklist += BLACKLIST_OSL
     if device == 'OPTIX':
         blacklist += BLACKLIST_OPTIX
