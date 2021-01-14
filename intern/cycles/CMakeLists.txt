@@ -379,6 +379,9 @@ endif()
 # Subdirectories
 
 if(WITH_CYCLES_BLENDER)
+  # Not needed to make cycles automated tests pass with -march=native.
+  # However Blender itself needs this flag.
+  remove_cc_flag("-ffp-contract=off")
   add_definitions(-DWITH_BLENDER_GUARDEDALLOC)
   add_subdirectory(blender)
 endif()
