@@ -574,7 +574,9 @@ typedef struct bGPdata_Runtime {
   /** Temp stroke used for drawing. */
   struct bGPDstroke *sbuffer_gps;
 
-  char _pad[2];
+  /** Animation playing flag. */
+  short playing;
+
   /** Material index of the stroke. */
   short matid;
 
@@ -839,6 +841,8 @@ typedef enum eGP_DrawMode {
 #define GPENCIL_ANY_VERTEX_MASK(flag) \
   ((flag & (GP_VERTEX_MASK_SELECTMODE_POINT | GP_VERTEX_MASK_SELECTMODE_STROKE | \
             GP_VERTEX_MASK_SELECTMODE_SEGMENT)))
+
+#define GPENCIL_PLAY_ON(gpd) ((gpd) && ((gpd)->runtime.playing == 1))
 
 #ifdef __cplusplus
 }
