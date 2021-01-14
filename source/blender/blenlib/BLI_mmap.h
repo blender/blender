@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_MMAP_H__
-#define __BLI_MMAP_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -55,5 +54,3 @@ void BLI_mmap_free(BLI_mmap_file *file) ATTR_NONNULL(1);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MEMPOOL_H__ */
