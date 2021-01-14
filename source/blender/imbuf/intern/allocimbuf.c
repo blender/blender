@@ -53,7 +53,7 @@ void imb_refcounter_lock_exit(void)
   BLI_spin_end(&refcounter_spin);
 }
 
-#ifdef WIN32
+#ifndef WIN32
 static SpinLock mmap_spin;
 
 void imb_mmap_lock_init(void)

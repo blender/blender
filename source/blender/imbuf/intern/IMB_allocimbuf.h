@@ -32,7 +32,7 @@ struct ImBuf;
 void imb_refcounter_lock_init(void);
 void imb_refcounter_lock_exit(void);
 
-#ifdef WIN32
+#ifndef WIN32
 void imb_mmap_lock_init(void);
 void imb_mmap_lock_exit(void);
 void imb_mmap_lock(void);

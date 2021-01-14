@@ -54,6 +54,7 @@ set(SRC
   intern/BLI_memblock.c
   intern/BLI_memiter.c
   intern/BLI_mempool.c
+  intern/BLI_mmap.c
   intern/BLI_timer.c
   intern/DLRB_tree.c
   intern/array_store.c
@@ -243,6 +244,7 @@ set(SRC
   BLI_mempool.h
   BLI_mesh_boolean.hh
   BLI_mesh_intersect.hh
+  BLI_mmap.h
   BLI_mpq2.hh
   BLI_mpq3.hh
   BLI_multi_value_map.hh
