@@ -1435,7 +1435,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
                 row.prop(gp_settings, "fill_layer_mode", text="Layers")
 
                 col.separator()
-                col.prop(gp_settings, "fill_factor", text="Resolution")
+                col.prop(gp_settings, "fill_factor")
                 if gp_settings.fill_draw_mode != 'STROKE':
                     col = layout.column(align=False, heading="Ignore Transparent")
                     col.use_property_decorate = False

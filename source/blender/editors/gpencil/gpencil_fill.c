@@ -81,6 +81,7 @@
 
 #define LEAK_HORZ 0
 #define LEAK_VERT 1
+#define MIN_WINDOW_SIZE 128
 
 /* Temporary fill operation data (op->customdata) */
 typedef struct tGPDfill {
@@ -137,7 +138,7 @@ typedef struct tGPDfill {
   /** boundary limits drawing mode */
   int fill_draw_mode;
   /* scaling factor */
-  short fill_factor;
+  float fill_factor;
 
   /* Frame to use. */
   int active_cfra;
@@ -398,8 +399,8 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   /* resize region */
   tgpf->region->winrct.xmin = 0;
   tgpf->region->winrct.ymin = 0;
-  tgpf->region->winrct.xmax = (int)tgpf->region->winx * tgpf->fill_factor;
-  tgpf->region->winrct.ymax = (int)tgpf->region->winy * tgpf->fill_factor;
+  tgpf->region->winrct.xmax = max_ii((int)tgpf->region->winx * tgpf->fill_factor, MIN_WINDOW_SIZE);
+  tgpf->region->winrct.ymax = max_ii((int)tgpf->region->winy * tgpf->fill_factor, MIN_WINDOW_SIZE);
   tgpf->region->winx = (short)abs(tgpf->region->winrct.xmax - tgpf->region->winrct.xmin);
   tgpf->region->winy = (short)abs(tgpf->region->winrct.ymax - tgpf->region->winrct.ymin);
 
@@ -456,7 +457,7 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   }
 
   GPU_matrix_push_projection();
-  GPU_matrix_identity_set();
+  GPU_matrix_identity_projection_set();
   GPU_matrix_push();
   GPU_matrix_identity_set();
 
@@ -1394,11 +1395,12 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *UNUSED(op))
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
   tgpf->brush = brush;
   tgpf->flag = brush->gpencil_settings->flag;
-  tgpf->fill_leak = brush->gpencil_settings->fill_leak;
   tgpf->fill_threshold = brush->gpencil_settings->fill_threshold;
   tgpf->fill_simplylvl = brush->gpencil_settings->fill_simplylvl;
   tgpf->fill_draw_mode = brush->gpencil_settings->fill_draw_mode;
-  tgpf->fill_factor = (short)max_ii(1, min_ii((int)brush->gpencil_settings->fill_factor, 8));
+  tgpf->fill_factor = max_ff(GPENCIL_MIN_FILL_FAC,
+                             min_ff(brush->gpencil_settings->fill_factor, 8.0f));
+  tgpf->fill_leak = (int)ceil((float)brush->gpencil_settings->fill_leak * tgpf->fill_factor);
 
   int totcol = tgpf->ob->totcol;
 
