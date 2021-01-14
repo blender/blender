@@ -610,7 +610,13 @@ endif()
 
 # GNU Compiler
 if(CMAKE_COMPILER_IS_GNUCC)
-  set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+  # ffp-contract=off:
+  # Automatically turned on when building with "-march=native". This is
+  # explicitly turned off here as it will make floating point math give a bit
+  # different results. This will lead to automated test failures. So disable
+  # this until we support it. Seems to default to off in clang and the intel
+  # compiler.
+  set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -ffp-contract=off")
 
   # `maybe-uninitialized` is unreliable in release builds, but fine in debug builds.
   set(GCC_EXTRA_FLAGS_RELEASE "-Wno-maybe-uninitialized")
