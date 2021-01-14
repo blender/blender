@@ -46,7 +46,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
   /* Once we support more domains at the user level, we have to decide how the result domain is
    * chosen. */
   const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
-  WriteAttributePtr attribute_result = component.attribute_try_ensure_for_write(
+  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
     return;
@@ -64,7 +64,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
     BKE_colorband_evaluate(color_ramp, data_in[i], data_out[i]);
   }
 
-  attribute_result->apply_span();
+  attribute_result.apply_span_and_save();
 }
 
 static void geo_node_attribute_color_ramp_exec(GeoNodeExecParams params)

@@ -248,11 +248,11 @@ BLI_NOINLINE static void add_remaining_point_attributes(const Mesh &mesh,
                                                         Span<float3> bary_coords,
                                                         Span<int> looptri_indices)
 {
-  WriteAttributePtr id_attribute = component.attribute_try_ensure_for_write(
+  OutputAttributePtr id_attribute = component.attribute_try_get_for_output(
       "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
-  WriteAttributePtr normal_attribute = component.attribute_try_ensure_for_write(
+  OutputAttributePtr normal_attribute = component.attribute_try_get_for_output(
       "normal", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
-  WriteAttributePtr rotation_attribute = component.attribute_try_ensure_for_write(
+  OutputAttributePtr rotation_attribute = component.attribute_try_get_for_output(
       "rotation", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
 
   compute_special_attributes(mesh,
@@ -262,9 +262,9 @@ BLI_NOINLINE static void add_remaining_point_attributes(const Mesh &mesh,
                              id_attribute->get_span_for_write_only<int>(),
                              rotation_attribute->get_span_for_write_only<float3>());
 
-  id_attribute->apply_span();
-  normal_attribute->apply_span();
-  rotation_attribute->apply_span();
+  id_attribute.apply_span_and_save();
+  normal_attribute.apply_span_and_save();
+  rotation_attribute.apply_span_and_save();
 }
 
 static void sample_mesh_surface_with_minimum_distance(const Mesh &mesh,

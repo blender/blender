@@ -41,12 +41,12 @@ static void align_rotations_on_component(GeometryComponent &component,
   const NodeGeometryAlignRotationToVector &storage = *(const NodeGeometryAlignRotationToVector *)
                                                           node.storage;
 
-  WriteAttributePtr rotation_attribute = component.attribute_try_ensure_for_write(
+  OutputAttributePtr rotation_attribute = component.attribute_try_get_for_output(
       "rotation", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
   if (!rotation_attribute) {
     return;
   }
-  MutableSpan<float3> rotations = rotation_attribute->get_span().typed<float3>();
+  MutableSpan<float3> rotations = rotation_attribute->get_span<float3>();
 
   FloatReadAttribute factors = params.get_input_attribute<float>(
       "Factor", component, ATTR_DOMAIN_POINT, 1.0f);
@@ -85,7 +85,7 @@ static void align_rotations_on_component(GeometryComponent &component,
     rotations[i] = new_rotation;
   }
 
-  rotation_attribute->apply_span();
+  rotation_attribute.apply_span_and_save();
 }
 
 static void geo_node_align_rotation_to_vector_exec(GeoNodeExecParams params)
