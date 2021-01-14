@@ -151,7 +151,7 @@ static void randomize_attribute(GeometryComponent &component,
     return;
   }
 
-  WriteAttributePtr attribute = component.attribute_try_ensure_for_write(
+  OutputAttributePtr attribute = component.attribute_try_get_for_output(
       attribute_name, domain, data_type);
   if (!attribute) {
     return;
@@ -179,6 +179,8 @@ static void randomize_attribute(GeometryComponent &component,
     default:
       break;
   }
+
+  attribute.save();
 }
 
 static void geo_node_random_attribute_exec(GeoNodeExecParams params)

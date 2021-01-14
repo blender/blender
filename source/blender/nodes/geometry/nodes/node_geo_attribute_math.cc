@@ -107,7 +107,7 @@ static void attribute_math_calc(GeometryComponent &component, const GeoNodeExecP
 
   /* Get result attribute first, in case it has to overwrite one of the existing attributes. */
   const std::string result_name = params.get_input<std::string>("Result");
-  WriteAttributePtr attribute_result = component.attribute_try_ensure_for_write(
+  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
     return;
@@ -123,6 +123,7 @@ static void attribute_math_calc(GeometryComponent &component, const GeoNodeExecP
   }
 
   do_math_operation(*attribute_a, *attribute_b, *attribute_result, operation);
+  attribute_result.save();
 }
 
 static void geo_node_attribute_math_exec(GeoNodeExecParams params)

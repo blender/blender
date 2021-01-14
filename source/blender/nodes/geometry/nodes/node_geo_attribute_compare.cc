@@ -242,7 +242,7 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
 
   /* Get result attribute first, in case it has to overwrite one of the existing attributes. */
   const std::string result_name = params.get_input<std::string>("Result");
-  WriteAttributePtr attribute_result = component.attribute_try_ensure_for_write(
+  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
     return;
@@ -260,8 +260,7 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
     return;
   }
 
-  BooleanWriteAttribute attribute_result_bool = *attribute_result;
-  MutableSpan<bool> result_span = attribute_result_bool.get_span_for_write_only();
+  MutableSpan<bool> result_span = attribute_result->get_span_for_write_only<bool>();
 
   /* Use specific types for correct equality operations, but for other operations we use implicit
    * conversions and float comparison. In other words, the comparison is not element-wise. */
@@ -300,7 +299,7 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
     do_math_operation(*attribute_a, *attribute_b, operation, result_span);
   }
 
-  attribute_result_bool.apply_span();
+  attribute_result.apply_span_and_save();
 }
 
 static void geo_node_attribute_compare_exec(GeoNodeExecParams params)

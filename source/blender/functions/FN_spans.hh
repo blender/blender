@@ -161,6 +161,14 @@ class GMutableSpan {
 
   void *operator[](int64_t index)
   {
+    BLI_assert(index >= 0);
+    BLI_assert(index < size_);
+    return POINTER_OFFSET(data_, type_->size() * index);
+  }
+
+  void *operator[](int64_t index) const
+  {
+    BLI_assert(index >= 0);
     BLI_assert(index < size_);
     return POINTER_OFFSET(data_, type_->size() * index);
   }

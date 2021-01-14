@@ -34,7 +34,7 @@ namespace blender::nodes {
 
 static void execute_on_component(GeoNodeExecParams params, GeometryComponent &component)
 {
-  Float3WriteAttribute position_attribute = component.attribute_try_ensure_for_write(
+  OutputAttributePtr position_attribute = component.attribute_try_get_for_output(
       "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
   ReadAttributePtr attribute = params.get_input_attribute(
       "Translation", component, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, nullptr);
@@ -43,12 +43,12 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
   }
 
   Span<float3> data = attribute->get_span<float3>();
-  MutableSpan<float3> scale_span = position_attribute.get_span();
+  MutableSpan<float3> scale_span = position_attribute->get_span<float3>();
   for (const int i : scale_span.index_range()) {
     scale_span[i] = scale_span[i] + data[i];
   }
 
-  position_attribute.apply_span();
+  position_attribute.apply_span_and_save();
 }
 
 static void geo_node_point_translate_exec(GeoNodeExecParams params)

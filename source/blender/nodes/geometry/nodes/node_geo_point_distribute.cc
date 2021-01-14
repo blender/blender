@@ -333,27 +333,27 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   point_component.replace(pointcloud);
 
   {
-    Int32WriteAttribute stable_id_attribute = point_component.attribute_try_ensure_for_write(
+    OutputAttributePtr stable_id_attribute = point_component.attribute_try_get_for_output(
         "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
-    MutableSpan<int> stable_ids_span = stable_id_attribute.get_span();
+    MutableSpan<int> stable_ids_span = stable_id_attribute->get_span<int>();
     stable_ids_span.copy_from(stable_ids);
-    stable_id_attribute.apply_span();
+    stable_id_attribute.apply_span_and_save();
   }
 
   {
-    Float3WriteAttribute normals_attribute = point_component.attribute_try_ensure_for_write(
+    OutputAttributePtr normals_attribute = point_component.attribute_try_get_for_output(
         "normal", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
-    MutableSpan<float3> normals_span = normals_attribute.get_span();
+    MutableSpan<float3> normals_span = normals_attribute->get_span<float3>();
     normals_span.copy_from(normals);
-    normals_attribute.apply_span();
+    normals_attribute.apply_span_and_save();
   }
 
   {
-    Float3WriteAttribute rotations_attribute = point_component.attribute_try_ensure_for_write(
+    OutputAttributePtr rotations_attribute = point_component.attribute_try_get_for_output(
         "rotation", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
-    MutableSpan<float3> rotations_span = rotations_attribute.get_span();
+    MutableSpan<float3> rotations_span = rotations_attribute->get_span<float3>();
     rotations_span.copy_from(rotations);
-    rotations_attribute.apply_span();
+    rotations_attribute.apply_span_and_save();
   }
 
   params.set_output("Geometry", std::move(geometry_set_out));
