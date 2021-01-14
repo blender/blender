@@ -217,12 +217,12 @@ BLI_NOINLINE static void eliminate_points_based_on_mask(Span<bool> elimination_m
   }
 }
 
-BLI_NOINLINE static void compute_remaining_point_data(const Mesh &mesh,
-                                                      Span<float3> bary_coords,
-                                                      Span<int> looptri_indices,
-                                                      MutableSpan<float3> r_normals,
-                                                      MutableSpan<int> r_ids,
-                                                      MutableSpan<float3> r_rotations)
+BLI_NOINLINE static void compute_special_attributes(const Mesh &mesh,
+                                                    Span<float3> bary_coords,
+                                                    Span<int> looptri_indices,
+                                                    MutableSpan<float3> r_normals,
+                                                    MutableSpan<int> r_ids,
+                                                    MutableSpan<float3> r_rotations)
 {
   Span<MLoopTri> looptris = get_mesh_looptris(mesh);
   for (const int i : bary_coords.index_range()) {
@@ -241,6 +241,30 @@ BLI_NOINLINE static void compute_remaining_point_data(const Mesh &mesh,
     normal_tri_v3(r_normals[i], v0_pos, v1_pos, v2_pos);
     r_rotations[i] = normal_to_euler_rotation(r_normals[i]);
   }
+}
+
+BLI_NOINLINE static void add_remaining_point_attributes(const Mesh &mesh,
+                                                        GeometryComponent &component,
+                                                        Span<float3> bary_coords,
+                                                        Span<int> looptri_indices)
+{
+  OutputAttributePtr id_attribute = component.attribute_try_get_for_output(
+      "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
+  OutputAttributePtr normal_attribute = component.attribute_try_get_for_output(
+      "normal", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+  OutputAttributePtr rotation_attribute = component.attribute_try_get_for_output(
+      "rotation", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+
+  compute_special_attributes(mesh,
+                             bary_coords,
+                             looptri_indices,
+                             normal_attribute->get_span_for_write_only<float3>(),
+                             id_attribute->get_span_for_write_only<int>(),
+                             rotation_attribute->get_span_for_write_only<float3>());
+
+  id_attribute.apply_span_and_save();
+  normal_attribute.apply_span_and_save();
+  rotation_attribute.apply_span_and_save();
 }
 
 static void sample_mesh_surface_with_minimum_distance(const Mesh &mesh,
@@ -315,11 +339,6 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
       break;
   }
   const int tot_points = positions.size();
-  Array<float3> normals(tot_points);
-  Array<int> stable_ids(tot_points);
-  Array<float3> rotations(tot_points);
-  compute_remaining_point_data(
-      *mesh_in, bary_coords, looptri_indices, normals, stable_ids, rotations);
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(tot_points);
   memcpy(pointcloud->co, positions.data(), sizeof(float3) * tot_points);
@@ -332,29 +351,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
       geometry_set_out.get_component_for_write<PointCloudComponent>();
   point_component.replace(pointcloud);
 
-  {
-    Int32WriteAttribute stable_id_attribute = point_component.attribute_try_ensure_for_write(
-        "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
-    MutableSpan<int> stable_ids_span = stable_id_attribute.get_span();
-    stable_ids_span.copy_from(stable_ids);
-    stable_id_attribute.apply_span();
-  }
-
-  {
-    Float3WriteAttribute normals_attribute = point_component.attribute_try_ensure_for_write(
-        "normal", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
-    MutableSpan<float3> normals_span = normals_attribute.get_span();
-    normals_span.copy_from(normals);
-    normals_attribute.apply_span();
-  }
-
-  {
-    Float3WriteAttribute rotations_attribute = point_component.attribute_try_ensure_for_write(
-        "rotation", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
-    MutableSpan<float3> rotations_span = rotations_attribute.get_span();
-    rotations_span.copy_from(rotations);
-    rotations_attribute.apply_span();
-  }
+  add_remaining_point_attributes(*mesh_in, point_component, bary_coords, looptri_indices);
 
   params.set_output("Geometry", std::move(geometry_set_out));
 }

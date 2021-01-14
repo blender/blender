@@ -324,6 +324,11 @@ struct _RGBAZ {
 
 using RGBAZ = _RGBAZ;
 
+static half float_to_half_safe(const float value)
+{
+  return half(clamp_f(value, -HALF_MAX, HALF_MAX));
+}
+
 extern "C" {
 
 /**
@@ -472,10 +477,10 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
         from = ibuf->rect_float + channels * i * width;
 
         for (int j = ibuf->x; j > 0; j--) {
-          to->r = from[0];
-          to->g = (channels >= 2) ? from[1] : from[0];
-          to->b = (channels >= 3) ? from[2] : from[0];
-          to->a = (channels >= 4) ? from[3] : 1.0f;
+          to->r = float_to_half_safe(from[0]);
+          to->g = float_to_half_safe((channels >= 2) ? from[1] : from[0]);
+          to->b = float_to_half_safe((channels >= 3) ? from[2] : from[0]);
+          to->a = float_to_half_safe((channels >= 4) ? from[3] : 1.0f);
           to++;
           from += channels;
         }
@@ -1116,7 +1121,7 @@ void IMB_exr_write_channels(void *handle)
         float *rect = echan->rect;
         half *cur = current_rect_half;
         for (size_t i = 0; i < num_pixels; i++, cur++) {
-          *cur = rect[i * echan->xstride];
+          *cur = float_to_half_safe(rect[i * echan->xstride]);
         }
         half *rect_to_write = current_rect_half + (data->height - 1L) * data->width;
         frameBuffer.insert(

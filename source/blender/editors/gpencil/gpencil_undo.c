@@ -61,28 +61,22 @@ int ED_gpencil_session_active(void)
   return (BLI_listbase_is_empty(&undo_nodes) == false);
 }
 
-int ED_undo_gpencil_step(bContext *C, int step, const char *name)
+int ED_undo_gpencil_step(bContext *C, const int step)
 {
   bGPdata **gpd_ptr = NULL, *new_gpd = NULL;
 
   gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 
-  if (step == 1) { /* undo */
-    // printf("\t\tGP - undo step\n");
+  if (step == -1) { /* undo */
     if (cur_node->prev) {
-      if (!name || STREQ(cur_node->name, name)) {
-        cur_node = cur_node->prev;
-        new_gpd = cur_node->gpd;
-      }
+      cur_node = cur_node->prev;
+      new_gpd = cur_node->gpd;
     }
   }
-  else if (step == -1) {
-    // printf("\t\tGP - redo step\n");
+  else if (step == 1) {
     if (cur_node->next) {
-      if (!name || STREQ(cur_node->name, name)) {
-        cur_node = cur_node->next;
-        new_gpd = cur_node->gpd;
-      }
+      cur_node = cur_node->next;
+      new_gpd = cur_node->gpd;
     }
   }
 

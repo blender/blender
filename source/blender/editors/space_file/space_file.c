@@ -104,6 +104,7 @@ static ARegion *file_tool_props_region_ensure(ScrArea *area, ARegion *region_pre
   BLI_insertlinkafter(&area->regionbase, region_prev, region);
   region->regiontype = RGN_TYPE_TOOL_PROPS;
   region->alignment = RGN_ALIGN_RIGHT;
+  region->flag = RGN_FLAG_HIDDEN;
 
   return region;
 }
@@ -246,13 +247,13 @@ static void file_ensure_valid_region_state(bContext *C,
   BLI_assert(region_tools);
 
   if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) {
-    ARegion *region_execute = file_execute_region_ensure(area, region_tools);
-    ARegion *region_props = file_tool_props_region_ensure(area, region_execute);
+    file_tool_props_region_ensure(area, region_tools);
 
-    /* Hide specific regions by default. */
-    region_props->flag |= RGN_FLAG_HIDDEN;
-    region_execute->flag |= RGN_FLAG_HIDDEN;
-
+    ARegion *region_execute = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE);
+    if (region_execute) {
+      ED_region_remove(C, area, region_execute);
+      needs_init = true;
+    }
     ARegion *region_ui = BKE_area_find_region_type(area, RGN_TYPE_UI);
     if (region_ui) {
       ED_region_remove(C, area, region_ui);
@@ -281,11 +282,12 @@ static void file_ensure_valid_region_state(bContext *C,
     ARegion *region_ui = file_ui_region_ensure(area, region_tools);
     UNUSED_VARS(region_ui);
 
-    if (region_props) {
-      BLI_assert(region_execute);
-
-      ED_region_remove(C, area, region_props);
+    if (region_execute) {
       ED_region_remove(C, area, region_execute);
+      needs_init = true;
+    }
+    if (region_props) {
+      ED_region_remove(C, area, region_props);
       needs_init = true;
     }
   }

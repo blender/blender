@@ -68,7 +68,7 @@ static void fill_attribute(GeometryComponent &component, const GeoNodeExecParams
     return;
   }
 
-  WriteAttributePtr attribute = component.attribute_try_ensure_for_write(
+  OutputAttributePtr attribute = component.attribute_try_get_for_output(
       attribute_name, domain, data_type);
   if (!attribute) {
     return;
@@ -79,33 +79,31 @@ static void fill_attribute(GeometryComponent &component, const GeoNodeExecParams
       const float value = params.get_input<float>("Value_001");
       MutableSpan<float> attribute_span = attribute->get_span_for_write_only<float>();
       attribute_span.fill(value);
-      attribute->apply_span();
       break;
     }
     case CD_PROP_FLOAT3: {
       const float3 value = params.get_input<float3>("Value");
       MutableSpan<float3> attribute_span = attribute->get_span_for_write_only<float3>();
       attribute_span.fill(value);
-      attribute->apply_span();
       break;
     }
     case CD_PROP_COLOR: {
       const Color4f value = params.get_input<Color4f>("Value_002");
       MutableSpan<Color4f> attribute_span = attribute->get_span_for_write_only<Color4f>();
       attribute_span.fill(value);
-      attribute->apply_span();
       break;
     }
     case CD_PROP_BOOL: {
       const bool value = params.get_input<bool>("Value_003");
       MutableSpan<bool> attribute_span = attribute->get_span_for_write_only<bool>();
       attribute_span.fill(value);
-      attribute->apply_span();
       break;
     }
     default:
       break;
   }
+
+  attribute.apply_span_and_save();
 }
 
 static void geo_node_attribute_fill_exec(GeoNodeExecParams params)

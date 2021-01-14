@@ -37,15 +37,16 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
   const bNode &bnode = params.node();
   NodeAttributeColorRamp *node_storage = (NodeAttributeColorRamp *)bnode.storage;
 
-  /* Use the type of the input attribute, but create a color attribute if it doesn't exist yet. */
-  const CustomDataType result_type = params.get_input_attribute_data_type(
-      "Attribute", component, CD_PROP_COLOR);
+  /* Always output a color attribute for now. We might want to allow users to customize.
+   * Using the type of an existing attribute could work, but does not have a real benefit
+   * currently. */
+  const CustomDataType result_type = CD_PROP_COLOR;
 
   const std::string result_name = params.get_input<std::string>("Result");
   /* Once we support more domains at the user level, we have to decide how the result domain is
    * chosen. */
   const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
-  WriteAttributePtr attribute_result = component.attribute_try_ensure_for_write(
+  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
     return;
@@ -63,7 +64,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
     BKE_colorband_evaluate(color_ramp, data_in[i], data_out[i]);
   }
 
-  attribute_result->apply_span();
+  attribute_result.apply_span_and_save();
 }
 
 static void geo_node_attribute_color_ramp_exec(GeoNodeExecParams params)

@@ -214,6 +214,7 @@ void GPENCIL_cache_init(void *ved)
                                  NULL :
                              false;
     pd->do_onion = show_onion && !hide_overlay && !playing;
+    pd->playing = playing;
     /* Save simplify flags (can change while drawing, so it's better to save). */
     Scene *scene = draw_ctx->scene;
     pd->simplify_fill = GPENCIL_SIMPLIFY_FILL(scene, playing);
@@ -241,6 +242,7 @@ void GPENCIL_cache_init(void *ved)
     pd->simplify_fill = false;
     pd->simplify_fx = false;
     pd->fade_layer_opacity = -1.0f;
+    pd->playing = false;
   }
 
   {
@@ -617,7 +619,7 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
     /* Special case for rendering onion skin. */
     bGPdata *gpd = (bGPdata *)ob->data;
     bool do_onion = (!pd->is_render) ? pd->do_onion : (gpd->onion_flag & GP_ONION_GHOST_ALWAYS);
-
+    gpd->runtime.playing = (short)pd->playing;
     BKE_gpencil_visible_stroke_iter(is_final_render ? pd->view_layer : NULL,
                                     ob,
                                     gpencil_layer_cache_populate,

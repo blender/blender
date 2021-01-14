@@ -342,6 +342,8 @@ typedef struct GPENCIL_PrivateData {
 
   /* Display onion skinning */
   bool do_onion;
+  /* Playing animation */
+  bool playing;
   /* simplify settings */
   bool simplify_fill;
   bool simplify_fx;

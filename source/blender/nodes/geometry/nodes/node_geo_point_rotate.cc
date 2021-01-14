@@ -104,13 +104,13 @@ static void point_rotate_on_component(GeometryComponent &component,
   const bNode &node = params.node();
   const NodeGeometryRotatePoints &storage = *(const NodeGeometryRotatePoints *)node.storage;
 
-  WriteAttributePtr rotation_attribute = component.attribute_try_ensure_for_write(
+  OutputAttributePtr rotation_attribute = component.attribute_try_get_for_output(
       "rotation", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
   if (!rotation_attribute) {
     return;
   }
 
-  MutableSpan<float3> rotations = rotation_attribute->get_span().typed<float3>();
+  MutableSpan<float3> rotations = rotation_attribute->get_span<float3>();
   const int domain_size = rotations.size();
 
   if (storage.type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE) {
@@ -138,7 +138,7 @@ static void point_rotate_on_component(GeometryComponent &component,
     }
   }
 
-  rotation_attribute->apply_span();
+  rotation_attribute.apply_span_and_save();
 }
 
 static void geo_node_point_rotate_exec(GeoNodeExecParams params)

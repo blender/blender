@@ -541,11 +541,11 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
   input.type = INPUT_MOUSE;
   input.mi.mouseData = 0;
   input.mi.time = ::GetTickCount();
-  /* Map from virtual screen to 0-65536. */
-  input.mi.dx = (x - GetSystemMetrics(SM_XVIRTUALSCREEN)) * 65536 /
-                GetSystemMetrics(SM_CXVIRTUALSCREEN);
-  input.mi.dy = (y - GetSystemMetrics(SM_YVIRTUALSCREEN)) * 65536 /
-                GetSystemMetrics(SM_CYVIRTUALSCREEN);
+  /* Map from virtual screen to 0-65535 inclusive. */
+  input.mi.dx = (x - GetSystemMetrics(SM_XVIRTUALSCREEN)) * 65535 /
+                (GetSystemMetrics(SM_CXVIRTUALSCREEN) - 1);
+  input.mi.dy = (y - GetSystemMetrics(SM_YVIRTUALSCREEN)) * 65535 /
+                (GetSystemMetrics(SM_CYVIRTUALSCREEN) - 1);
   input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
   SendInput(1, &input, sizeof(input));
 

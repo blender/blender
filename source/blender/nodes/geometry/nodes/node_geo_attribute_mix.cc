@@ -136,7 +136,7 @@ static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecPa
     result_domain = result_attribute_read->domain();
   }
 
-  WriteAttributePtr attribute_result = component.attribute_try_ensure_for_write(
+  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
     return;
@@ -155,6 +155,7 @@ static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecPa
                    *attribute_a,
                    *attribute_b,
                    *attribute_result);
+  attribute_result.save();
 }
 
 static void geo_node_attribute_mix_exec(GeoNodeExecParams params)

@@ -70,6 +70,17 @@
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo"};
 
+/**
+ * \warning Values are used in #ED_undo_gpencil_step,
+ * which should eventually be replaced with the undo-system.
+ */
+enum eUndoStepDir {
+  STEP_REDO = 1,
+  STEP_UNDO = -1,
+  /** Only used when the undo step name or index is passed to #ed_undo_step_impl. */
+  STEP_NONE = 0,
+};
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Undo System Access
  *
@@ -171,13 +182,16 @@ void ED_undo_push(bContext *C, const char *str)
 /**
  * \note Also check #undo_history_exec in bottom if you change notifiers.
  */
-static int ed_undo_step_impl(
-    bContext *C, int step, const char *undoname, int undo_index, ReportList *reports)
+static int ed_undo_step_impl(bContext *C,
+                             enum eUndoStepDir step,
+                             const char *undo_name,
+                             const int undo_index,
+                             ReportList *reports)
 {
   /* Mutually exclusives, ensure correct input. */
-  BLI_assert(((undoname || undo_index != -1) && !step) ||
-             (!(undoname || undo_index != -1) && step));
-  CLOG_INFO(&LOG, 1, "name='%s', step=%d", undoname, step);
+  BLI_assert(((undo_name || undo_index != -1) && (step == STEP_NONE)) ||
+             (!(undo_name || undo_index != -1) && (step != STEP_NONE)));
+  CLOG_INFO(&LOG, 1, "name='%s', index=%d, step=%d", undo_name, undo_index, step);
   wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = CTX_data_scene(C);
   ScrArea *area = CTX_wm_area(C);
@@ -196,8 +210,12 @@ static int ed_undo_step_impl(
 
   /* TODO(campbell): undo_system: use undo system */
   /* grease pencil can be can be used in plenty of spaces, so check it first */
+  /* FIXME: This gpencil undo effectively only supports the one step undo/redo, undo based on name
+   * or index is fully not implemented.
+   * FIXME: However, it seems to never be used in current code (`ED_gpencil_session_active` seems
+   * to always return false). */
   if (ED_gpencil_session_active()) {
-    return ED_undo_gpencil_step(C, step, undoname);
+    return ED_undo_gpencil_step(C, (int)step);
   }
   if (area && (area->spacetype == SPACE_VIEW3D)) {
     Object *obact = CTX_data_active_object(C);
@@ -207,9 +225,9 @@ static int ed_undo_step_impl(
   }
 
   UndoStep *step_data_from_name = NULL;
-  int step_for_callback = step;
-  if (undoname != NULL) {
-    step_data_from_name = BKE_undosys_step_find_by_name(wm->undo_stack, undoname);
+  enum eUndoStepDir step_for_callback = step;
+  if (undo_name != NULL) {
+    step_data_from_name = BKE_undosys_step_find_by_name(wm->undo_stack, undo_name);
     if (step_data_from_name == NULL) {
       return OPERATOR_CANCELLED;
     }
@@ -218,14 +236,14 @@ static int ed_undo_step_impl(
     /* Pointers match on redo. */
     step_for_callback = (BLI_findindex(&wm->undo_stack->steps, step_data_from_name) <
                          BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active)) ?
-                            1 :
-                            -1;
+                            STEP_UNDO :
+                            STEP_REDO;
   }
   else if (undo_index != -1) {
     step_for_callback = (undo_index <
                          BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active)) ?
-                            1 :
-                            -1;
+                            STEP_UNDO :
+                            STEP_REDO;
   }
 
   /* App-Handlers (pre). */
@@ -240,14 +258,14 @@ static int ed_undo_step_impl(
 
   /* Undo System */
   {
-    if (undoname) {
+    if (undo_name) {
       BKE_undosys_step_undo_with_data(wm->undo_stack, C, step_data_from_name);
     }
     else if (undo_index != -1) {
       BKE_undosys_step_undo_from_index(wm->undo_stack, C, undo_index);
     }
     else {
-      if (step == 1) {
+      if (step == STEP_UNDO) {
         BKE_undosys_step_undo(wm->undo_stack, C);
       }
       else {
@@ -310,19 +328,19 @@ static int ed_undo_step_impl(
   return OPERATOR_FINISHED;
 }
 
-static int ed_undo_step_direction(bContext *C, int step, ReportList *reports)
+static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportList *reports)
 {
   return ed_undo_step_impl(C, step, NULL, -1, reports);
 }
 
 static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *reports)
 {
-  return ed_undo_step_impl(C, 0, undo_name, -1, reports);
+  return ed_undo_step_impl(C, STEP_NONE, undo_name, -1, reports);
 }
 
-static int ed_undo_step_by_index(bContext *C, int index, ReportList *reports)
+static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *reports)
 {
-  return ed_undo_step_impl(C, 0, NULL, index, reports);
+  return ed_undo_step_impl(C, STEP_NONE, NULL, undo_index, reports);
 }
 
 void ED_undo_grouped_push(bContext *C, const char *str)
@@ -340,11 +358,11 @@ void ED_undo_grouped_push(bContext *C, const char *str)
 
 void ED_undo_pop(bContext *C)
 {
-  ed_undo_step_direction(C, 1, NULL);
+  ed_undo_step_direction(C, STEP_UNDO, NULL);
 }
 void ED_undo_redo(bContext *C)
 {
-  ed_undo_step_direction(C, -1, NULL);
+  ed_undo_step_direction(C, STEP_REDO, NULL);
 }
 
 void ED_undo_push_op(bContext *C, wmOperator *op)
@@ -448,7 +466,7 @@ static int ed_undo_exec(bContext *C, wmOperator *op)
 {
   /* "last operator" should disappear, later we can tie this with undo stack nicer */
   WM_operator_stack_clear(CTX_wm_manager(C));
-  int ret = ed_undo_step_direction(C, 1, op->reports);
+  int ret = ed_undo_step_direction(C, STEP_UNDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
     /* Keep button under the cursor active. */
     WM_event_add_mousemove(CTX_wm_window(C));
@@ -477,7 +495,7 @@ static int ed_undo_push_exec(bContext *C, wmOperator *op)
 
 static int ed_redo_exec(bContext *C, wmOperator *op)
 {
-  int ret = ed_undo_step_direction(C, -1, op->reports);
+  int ret = ed_undo_step_direction(C, STEP_REDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
     /* Keep button under the cursor active. */
     WM_event_add_mousemove(CTX_wm_window(C));

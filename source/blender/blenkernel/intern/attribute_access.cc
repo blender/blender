@@ -40,8 +40,10 @@ static CLG_LogRef LOG = {"bke.attribute_access"};
 using blender::float3;
 using blender::Set;
 using blender::StringRef;
+using blender::StringRefNull;
 using blender::bke::ReadAttributePtr;
 using blender::bke::WriteAttributePtr;
+using blender::fn::GMutableSpan;
 
 /* Can't include BKE_object_deform.h right now, due to an enum forward declaration.  */
 extern "C" MDeformVert *BKE_object_defgroup_data_create(ID *id);
@@ -241,6 +243,54 @@ template<typename T> class ArrayWriteAttribute final : public WriteAttribute {
   void initialize_span(const bool UNUSED(write_only)) override
   {
     array_buffer_ = data_.data();
+    array_is_temporary_ = false;
+  }
+
+  void apply_span_if_necessary() override
+  {
+    /* Do nothing, because the span contains the attribute itself already. */
+  }
+};
+
+/* This is used by the #OutputAttributePtr class. */
+class TemporaryWriteAttribute final : public WriteAttribute {
+ public:
+  GMutableSpan data;
+  GeometryComponent &component;
+  std::string final_name;
+
+  TemporaryWriteAttribute(AttributeDomain domain,
+                          GMutableSpan data,
+                          GeometryComponent &component,
+                          std::string final_name)
+      : WriteAttribute(domain, data.type(), data.size()),
+        data(data),
+        component(component),
+        final_name(std::move(final_name))
+  {
+  }
+
+  ~TemporaryWriteAttribute() override
+  {
+    if (data.data() != nullptr) {
+      cpp_type_.destruct_n(data.data(), data.size());
+      MEM_freeN(data.data());
+    }
+  }
+
+  void get_internal(const int64_t index, void *r_value) const override
+  {
+    data.type().copy_to_uninitialized(data[index], r_value);
+  }
+
+  void set_internal(const int64_t index, const void *value) override
+  {
+    data.type().copy_to_initialized(value, data[index]);
+  }
+
+  void initialize_span(const bool UNUSED(write_only)) override
+  {
+    array_buffer_ = data.data();
     array_is_temporary_ = false;
   }
 
@@ -762,30 +812,117 @@ blender::bke::ReadAttributePtr GeometryComponent::attribute_get_constant_for_rea
   return attribute;
 }
 
-WriteAttributePtr GeometryComponent::attribute_try_ensure_for_write(const StringRef attribute_name,
-                                                                    const AttributeDomain domain,
-                                                                    const CustomDataType data_type)
+OutputAttributePtr GeometryComponent::attribute_try_get_for_output(const StringRef attribute_name,
+                                                                   const AttributeDomain domain,
+                                                                   const CustomDataType data_type)
 {
+  BLI_assert(this->attribute_domain_with_type_supported(domain, data_type));
+
   const blender::fn::CPPType *cpp_type = blender::bke::custom_data_type_to_cpp_type(data_type);
   BLI_assert(cpp_type != nullptr);
 
   WriteAttributePtr attribute = this->attribute_try_get_for_write(attribute_name);
-  if (attribute && attribute->domain() == domain && attribute->cpp_type() == *cpp_type) {
-    return attribute;
+
+  /* If the attribute doesn't exist, make a new one with the correct type. */
+  if (!attribute) {
+    this->attribute_try_create(attribute_name, domain, data_type);
+    attribute = this->attribute_try_get_for_write(attribute_name);
+    return OutputAttributePtr(std::move(attribute));
   }
 
-  if (attribute) {
-    if (!this->attribute_try_delete(attribute_name)) {
-      return {};
-    }
+  /* If an existing attribute has a matching domain and type, just use that. */
+  if (attribute->domain() == domain && attribute->cpp_type() == *cpp_type) {
+    return OutputAttributePtr(std::move(attribute));
   }
-  if (!this->attribute_domain_with_type_supported(domain, data_type)) {
-    return {};
+
+  /* Otherwise create a temporary buffer to use before saving the new attribute. */
+  return OutputAttributePtr(*this, domain, attribute_name, data_type);
+}
+
+/* Construct from an attribute that already exists in the geometry component. */
+OutputAttributePtr::OutputAttributePtr(WriteAttributePtr attribute)
+    : attribute_(std::move(attribute))
+{
+}
+
+/* Construct a temporary attribute that has to replace an existing one later on. */
+OutputAttributePtr::OutputAttributePtr(GeometryComponent &component,
+                                       AttributeDomain domain,
+                                       std::string final_name,
+                                       CustomDataType data_type)
+{
+  const blender::fn::CPPType *cpp_type = blender::bke::custom_data_type_to_cpp_type(data_type);
+  BLI_assert(cpp_type != nullptr);
+
+  const int domain_size = component.attribute_domain_size(domain);
+  void *buffer = MEM_malloc_arrayN(domain_size, cpp_type->size(), __func__);
+  cpp_type->construct_default_n(buffer, domain_size);
+
+  attribute_ = std::make_unique<blender::bke::TemporaryWriteAttribute>(
+      domain, GMutableSpan{*cpp_type, buffer, domain_size}, component, std::move(final_name));
+}
+
+/* Store the computed attribute. If it was stored from the beginning already, nothing is done. This
+ * might delete another attribute with the same name. */
+void OutputAttributePtr::save()
+{
+  if (!attribute_) {
+    CLOG_WARN(&LOG, "Trying to save an attribute that does not exist anymore.");
+    return;
   }
-  if (!this->attribute_try_create(attribute_name, domain, data_type)) {
-    return {};
+
+  blender::bke::TemporaryWriteAttribute *attribute =
+      dynamic_cast<blender::bke::TemporaryWriteAttribute *>(attribute_.get());
+
+  if (attribute == nullptr) {
+    /* The attribute is saved already. */
+    attribute_.reset();
+    return;
   }
-  return this->attribute_try_get_for_write(attribute_name);
+
+  StringRefNull name = attribute->final_name;
+  const blender::fn::CPPType &cpp_type = attribute->cpp_type();
+
+  /* Delete an existing attribute with the same name if necessary. */
+  attribute->component.attribute_try_delete(name);
+
+  if (!attribute->component.attribute_try_create(
+          name, attribute_->domain(), attribute_->custom_data_type())) {
+    /* Cannot create the target attribute for some reason. */
+    CLOG_WARN(&LOG,
+              "Creating the '%s' attribute with type '%s' failed.",
+              name.c_str(),
+              cpp_type.name().c_str());
+    attribute_.reset();
+    return;
+  }
+
+  WriteAttributePtr new_attribute = attribute->component.attribute_try_get_for_write(name);
+
+  GMutableSpan temp_span = attribute->data;
+  GMutableSpan new_span = new_attribute->get_span_for_write_only();
+  BLI_assert(temp_span.size() == new_span.size());
+
+  /* Currently we copy over the attribute. In the future we want to reuse the buffer. */
+  cpp_type.move_to_initialized_n(temp_span.data(), new_span.data(), new_span.size());
+  new_attribute->apply_span();
+
+  attribute_.reset();
+}
+
+OutputAttributePtr::~OutputAttributePtr()
+{
+  if (attribute_) {
+    CLOG_ERROR(&LOG, "Forgot to call #save or #apply_span_and_save.");
+  }
+}
+
+/* Utility function to call #apply_span and #save in the right order. */
+void OutputAttributePtr::apply_span_and_save()
+{
+  BLI_assert(attribute_);
+  attribute_->apply_span();
+  this->save();
 }
 
 /** \} */

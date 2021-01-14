@@ -213,7 +213,7 @@ bool ED_gpencil_anim_copybuf_paste(struct bAnimContext *ac, const short copy_mod
 
 /* ------------ Grease-Pencil Undo System ------------------ */
 int ED_gpencil_session_active(void);
-int ED_undo_gpencil_step(struct bContext *C, int step, const char *name);
+int ED_undo_gpencil_step(struct bContext *C, const int step);
 
 /* ------------ Grease-Pencil Armature ------------------ */
 bool ED_gpencil_add_armature(const struct bContext *C,

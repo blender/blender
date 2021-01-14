@@ -1079,7 +1079,12 @@ PyDoc_STRVAR(
     "   :arg cage: Get the mesh as a deformed cage.\n"
     "   :type cage: boolean\n"
     "   :arg face_normals: Calculate face normals.\n"
-    "   :type face_normals: boolean\n");
+    "   :type face_normals: boolean\n"
+    "\n"
+    "   .. deprecated:: 2.93\n"
+    "\n"
+    "      The deform parameter is deprecated, assumed to be True, and will be removed in version "
+    "3.0.\n");
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {"object", "depsgraph", "deform", "cage", "face_normals", NULL};
@@ -1120,45 +1125,36 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
     return NULL;
   }
 
+  if (use_deform == false) {
+    PyErr_WarnEx(PyExc_FutureWarning,
+                 "from_object(...): the deform parameter is deprecated, assumed to be True, and "
+                 "will be removed in version 3.0",
+                 1);
+  }
+
   const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
   scene_eval = DEG_get_evaluated_scene(depsgraph);
   ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   bool need_free = false;
 
   /* Write the display mesh into the dummy mesh */
-  if (use_deform) {
-    if (use_render) {
-      if (use_cage) {
-        PyErr_SetString(PyExc_ValueError,
-                        "from_object(...): cage arg is unsupported when dependency graph "
-                        "evaluation mode is RENDER");
-        return NULL;
-      }
-
-      me_eval = BKE_mesh_new_from_object(depsgraph, ob_eval, true);
-      need_free = true;
-    }
-    else {
-      if (use_cage) {
-        me_eval = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &data_masks);
-      }
-      else {
-        me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &data_masks);
-      }
-    }
-  }
-  else {
-    /* !use_deform */
+  if (use_render) {
     if (use_cage) {
       PyErr_SetString(PyExc_ValueError,
-                      "from_object(...): cage arg is unsupported when deform=False");
+                      "from_object(...): cage arg is unsupported when dependency graph "
+                      "evaluation mode is RENDER");
       return NULL;
     }
-    if (use_render) {
-      me_eval = mesh_create_eval_no_deform_render(depsgraph, scene_eval, ob, &data_masks);
+
+    me_eval = BKE_mesh_new_from_object(depsgraph, ob_eval, true);
+    need_free = true;
+  }
+  else {
+    if (use_cage) {
+      me_eval = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &data_masks);
     }
     else {
-      me_eval = mesh_create_eval_no_deform(depsgraph, scene_eval, ob, &data_masks);
+      me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &data_masks);
     }
   }
 

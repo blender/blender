@@ -52,6 +52,7 @@ typedef struct TransDataTracking {
 
   float (*smarkers)[2];
   int markersnr;
+  int framenr;
   MovieTrackingMarker *markers;
 
   /* marker transformation from curves editor */
@@ -73,9 +74,25 @@ enum transDataTracking_Mode {
  *
  * \{ */
 
-static void markerToTransDataInit(TransData *td,
-                                  TransData2D *td2d,
-                                  TransDataTracking *tdt,
+typedef struct TransformInitContext {
+  SpaceClip *space_clip;
+
+  TransInfo *t;
+  TransDataContainer *tc;
+
+  /* MOTE: There pointers will be nullptr during counting step.
+   * This means, that the transformation data initialization functions are to increment
+   * `tc->data_len` instead of filling in the transformation data when these pointers are nullptr.
+   * For simplicitly, check the `current.td` against nullptr.
+   * Do not `tc->data_len` when filling in the transformation data. */
+  struct {
+    TransData *td;
+    TransData2D *td2d;
+    TransDataTracking *tdt;
+  } current;
+} TransformInitContext;
+
+static void markerToTransDataInit(TransformInitContext *init_context,
                                   MovieTrackingTrack *track,
                                   MovieTrackingMarker *marker,
                                   int area,
@@ -84,8 +101,19 @@ static void markerToTransDataInit(TransData *td,
                                   const float off[2],
                                   const float aspect[2])
 {
+  TransData *td = init_context->current.td;
+  TransData2D *td2d = init_context->current.td2d;
+  TransDataTracking *tdt = init_context->current.tdt;
+
+  if (td == NULL) {
+    init_context->tc->data_len++;
+    return;
+  }
+
   int anchor = area == TRACK_AREA_POINT && off;
 
+  tdt->flag = marker->flag;
+  tdt->framenr = marker->framenr;
   tdt->mode = transDataTracking_ModeTracks;
 
   if (anchor) {
@@ -143,23 +171,20 @@ static void markerToTransDataInit(TransData *td,
 
   unit_m3(td->mtx);
   unit_m3(td->smtx);
+
+  init_context->current.td++;
+  init_context->current.td2d++;
+  init_context->current.tdt++;
 }
 
-static void trackToTransData(const int framenr,
-                             TransData *td,
-                             TransData2D *td2d,
-                             TransDataTracking *tdt,
+static void trackToTransData(TransformInitContext *init_context,
+                             const int framenr,
                              MovieTrackingTrack *track,
                              const float aspect[2])
 {
   MovieTrackingMarker *marker = BKE_tracking_marker_ensure(track, framenr);
 
-  tdt->flag = marker->flag;
-  marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
-
-  markerToTransDataInit(td++,
-                        td2d++,
-                        tdt++,
+  markerToTransDataInit(init_context,
                         track,
                         marker,
                         TRACK_AREA_POINT,
@@ -170,16 +195,14 @@ static void trackToTransData(const int framenr,
 
   if (track->flag & SELECT) {
     markerToTransDataInit(
-        td++, td2d++, tdt++, track, marker, TRACK_AREA_POINT, marker->pos, NULL, NULL, aspect);
+        init_context, track, marker, TRACK_AREA_POINT, marker->pos, NULL, NULL, aspect);
   }
 
   if (track->pat_flag & SELECT) {
     int a;
 
     for (a = 0; a < 4; a++) {
-      markerToTransDataInit(td++,
-                            td2d++,
-                            tdt++,
+      markerToTransDataInit(init_context,
                             track,
                             marker,
                             TRACK_AREA_PAT,
@@ -191,9 +214,7 @@ static void trackToTransData(const int framenr,
   }
 
   if (track->search_flag & SELECT) {
-    markerToTransDataInit(td++,
-                          td2d++,
-                          tdt++,
+    markerToTransDataInit(init_context,
                           track,
                           marker,
                           TRACK_AREA_SEARCH,
@@ -202,9 +223,7 @@ static void trackToTransData(const int framenr,
                           NULL,
                           aspect);
 
-    markerToTransDataInit(td++,
-                          td2d++,
-                          tdt++,
+    markerToTransDataInit(init_context,
                           track,
                           marker,
                           TRACK_AREA_SEARCH,
@@ -213,15 +232,43 @@ static void trackToTransData(const int framenr,
                           NULL,
                           aspect);
   }
+
+  if (init_context->current.td != NULL) {
+    marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
+  }
 }
 
-static void planeMarkerToTransDataInit(TransData *td,
-                                       TransData2D *td2d,
-                                       TransDataTracking *tdt,
+static void trackToTransDataIfNeeded(TransformInitContext *init_context,
+                                     const int framenr,
+                                     MovieTrackingTrack *track,
+                                     const float aspect[2])
+{
+  if (!TRACK_VIEW_SELECTED(init_context->space_clip, track)) {
+    return;
+  }
+  if (track->flag & TRACK_LOCKED) {
+    return;
+  }
+  trackToTransData(init_context, framenr, track, aspect);
+}
+
+static void planeMarkerToTransDataInit(TransformInitContext *init_context,
                                        MovieTrackingPlaneTrack *plane_track,
+                                       MovieTrackingPlaneMarker *plane_marker,
                                        float corner[2],
                                        const float aspect[2])
 {
+  TransData *td = init_context->current.td;
+  TransData2D *td2d = init_context->current.td2d;
+  TransDataTracking *tdt = init_context->current.tdt;
+
+  if (td == NULL) {
+    init_context->tc->data_len++;
+    return;
+  }
+
+  tdt->flag = plane_marker->flag;
+  tdt->framenr = plane_marker->framenr;
   tdt->mode = transDataTracking_ModePlaneTracks;
   tdt->plane_track = plane_track;
 
@@ -247,24 +294,38 @@ static void planeMarkerToTransDataInit(TransData *td,
 
   unit_m3(td->mtx);
   unit_m3(td->smtx);
+
+  init_context->current.td++;
+  init_context->current.td2d++;
+  init_context->current.tdt++;
 }
 
-static void planeTrackToTransData(const int framenr,
-                                  TransData *td,
-                                  TransData2D *td2d,
-                                  TransDataTracking *tdt,
+static void planeTrackToTransData(TransformInitContext *init_context,
+                                  const int framenr,
                                   MovieTrackingPlaneTrack *plane_track,
                                   const float aspect[2])
 {
   MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_ensure(plane_track, framenr);
-  int i;
 
-  tdt->flag = plane_marker->flag;
-  plane_marker->flag &= ~PLANE_MARKER_TRACKED;
-
-  for (i = 0; i < 4; i++) {
-    planeMarkerToTransDataInit(td++, td2d++, tdt++, plane_track, plane_marker->corners[i], aspect);
+  for (int i = 0; i < 4; i++) {
+    planeMarkerToTransDataInit(
+        init_context, plane_track, plane_marker, plane_marker->corners[i], aspect);
   }
+
+  if (init_context->current.td != NULL) {
+    plane_marker->flag &= ~PLANE_MARKER_TRACKED;
+  }
+}
+
+static void planeTrackToTransDataIfNeeded(TransformInitContext *init_context,
+                                          const int framenr,
+                                          MovieTrackingPlaneTrack *plane_track,
+                                          const float aspect[2])
+{
+  if (!PLANE_TRACK_VIEW_SELECTED(plane_track)) {
+    return;
+  }
+  planeTrackToTransData(init_context, framenr, plane_track, aspect);
 }
 
 static void transDataTrackingFree(TransInfo *UNUSED(t),
@@ -284,101 +345,53 @@ static void transDataTrackingFree(TransInfo *UNUSED(t),
 
 static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 {
-  TransData *td;
-  TransData2D *td2d;
-  SpaceClip *sc = CTX_wm_space_clip(C);
-  MovieClip *clip = ED_space_clip_get_clip(sc);
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-  ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
-  MovieTrackingTrack *track;
-  MovieTrackingPlaneTrack *plane_track;
-  TransDataTracking *tdt;
-  int framenr = ED_space_clip_get_clip_frame_number(sc);
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  const ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+  const ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
+  const int framenr = ED_space_clip_get_clip_frame_number(space_clip);
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
-  /* count */
+  TransformInitContext init_context = {NULL};
+  init_context.space_clip = space_clip;
+  init_context.t = t;
+  init_context.tc = tc;
+
+  /* Count required tranformation data. */
+
   tc->data_len = 0;
 
-  track = tracksbase->first;
-  while (track) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-      tc->data_len++; /* offset */
-
-      if (track->flag & SELECT) {
-        tc->data_len++;
-      }
-
-      if (track->pat_flag & SELECT) {
-        tc->data_len += 4;
-      }
-
-      if (track->search_flag & SELECT) {
-        tc->data_len += 2;
-      }
-    }
-
-    track = track->next;
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+    trackToTransDataIfNeeded(&init_context, framenr, track, t->aspect);
   }
 
-  for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
-    if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
-      tc->data_len += 4;
-    }
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
+    planeTrackToTransDataIfNeeded(&init_context, framenr, plane_track, t->aspect);
   }
 
   if (tc->data_len == 0) {
     return;
   }
 
-  td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransTracking TransData");
-  td2d = tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D),
-                                   "TransTracking TransData2D");
-  tdt = tc->custom.type.data = MEM_callocN(tc->data_len * sizeof(TransDataTracking),
-                                           "TransTracking TransDataTracking");
-
+  tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransTracking TransData");
+  tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D), "TransTracking TransData2D");
+  tc->custom.type.data = MEM_callocN(tc->data_len * sizeof(TransDataTracking),
+                                     "TransTracking TransDataTracking");
   tc->custom.type.free_cb = transDataTrackingFree;
 
-  /* create actual data */
-  track = tracksbase->first;
-  while (track) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-      trackToTransData(framenr, td, td2d, tdt, track, t->aspect);
+  init_context.current.td = tc->data;
+  init_context.current.td2d = tc->data_2d;
+  init_context.current.tdt = tc->custom.type.data;
 
-      /* offset */
-      td++;
-      td2d++;
-      tdt++;
+  /* Create actual transformation data. */
 
-      if (track->flag & SELECT) {
-        td++;
-        td2d++;
-        tdt++;
-      }
-
-      if (track->pat_flag & SELECT) {
-        td += 4;
-        td2d += 4;
-        tdt += 4;
-      }
-
-      if (track->search_flag & SELECT) {
-        td += 2;
-        td2d += 2;
-        tdt += 2;
-      }
-    }
-
-    track = track->next;
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+    trackToTransDataIfNeeded(&init_context, framenr, track, t->aspect);
   }
 
-  for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
-    if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
-      planeTrackToTransData(framenr, td, td2d, tdt, plane_track, t->aspect);
-      td += 4;
-      td2d += 4;
-      tdt += 4;
-    }
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
+    planeTrackToTransDataIfNeeded(&init_context, framenr, plane_track, t->aspect);
   }
 }
 
@@ -560,17 +573,17 @@ void createTransTrackingData(bContext *C, TransInfo *t)
 static void cancelTransTracking(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
-  SpaceClip *sc = t->area->spacedata.first;
-  int i, framenr = ED_space_clip_get_clip_frame_number(sc);
   TransDataTracking *tdt_array = tc->custom.type.data;
 
-  i = 0;
+  int i = 0;
   while (i < tc->data_len) {
     TransDataTracking *tdt = &tdt_array[i];
 
     if (tdt->mode == transDataTracking_ModeTracks) {
       MovieTrackingTrack *track = tdt->track;
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+      MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, tdt->framenr);
+
+      BLI_assert(marker != NULL);
 
       marker->flag = tdt->flag;
 
@@ -606,7 +619,10 @@ static void cancelTransTracking(TransInfo *t)
     }
     else if (tdt->mode == transDataTracking_ModePlaneTracks) {
       MovieTrackingPlaneTrack *plane_track = tdt->plane_track;
-      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
+      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track,
+                                                                             tdt->framenr);
+
+      BLI_assert(plane_marker != NULL);
 
       plane_marker->flag = tdt->flag;
       i += 3;
