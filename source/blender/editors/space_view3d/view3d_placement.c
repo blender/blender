@@ -946,6 +946,24 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
     }
   }
 
+  /* For tweak events the snap target may have changed since dragging,
+   * update the snap target at the cursor location where tweak began.
+   *
+   * NOTE: we could investigating solving this in a more generic way,
+   * so each operator doesn't have to account for it. */
+  if (ISTWEAK(event->type)) {
+    if (ipd->snap_gizmo != NULL) {
+      ED_gizmotypes_snap_3d_update(ipd->snap_gizmo,
+                                   CTX_data_ensure_evaluated_depsgraph(C),
+                                   ipd->region,
+                                   ipd->v3d,
+                                   G_MAIN->wm.first,
+                                   mval_fl,
+                                   NULL,
+                                   NULL);
+    }
+  }
+
   ipd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
   view3d_interactive_add_calc_plane(C,
