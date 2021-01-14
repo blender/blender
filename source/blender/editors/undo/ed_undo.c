@@ -182,13 +182,16 @@ void ED_undo_push(bContext *C, const char *str)
 /**
  * \note Also check #undo_history_exec in bottom if you change notifiers.
  */
-static int ed_undo_step_impl(
-    bContext *C, enum eUndoStepDir step, const char *undoname, int undo_index, ReportList *reports)
+static int ed_undo_step_impl(bContext *C,
+                             enum eUndoStepDir step,
+                             const char *undo_name,
+                             const int undo_index,
+                             ReportList *reports)
 {
   /* Mutually exclusives, ensure correct input. */
-  BLI_assert(((undoname || undo_index != -1) && (step == STEP_NONE)) ||
-             (!(undoname || undo_index != -1) && (step != STEP_NONE)));
-  CLOG_INFO(&LOG, 1, "name='%s', step=%d", undoname, step);
+  BLI_assert(((undo_name || undo_index != -1) && (step == STEP_NONE)) ||
+             (!(undo_name || undo_index != -1) && (step != STEP_NONE)));
+  CLOG_INFO(&LOG, 1, "name='%s', index=%d, step=%d", undo_name, undo_index, step);
   wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = CTX_data_scene(C);
   ScrArea *area = CTX_wm_area(C);
@@ -223,8 +226,8 @@ static int ed_undo_step_impl(
 
   UndoStep *step_data_from_name = NULL;
   enum eUndoStepDir step_for_callback = step;
-  if (undoname != NULL) {
-    step_data_from_name = BKE_undosys_step_find_by_name(wm->undo_stack, undoname);
+  if (undo_name != NULL) {
+    step_data_from_name = BKE_undosys_step_find_by_name(wm->undo_stack, undo_name);
     if (step_data_from_name == NULL) {
       return OPERATOR_CANCELLED;
     }
@@ -255,7 +258,7 @@ static int ed_undo_step_impl(
 
   /* Undo System */
   {
-    if (undoname) {
+    if (undo_name) {
       BKE_undosys_step_undo_with_data(wm->undo_stack, C, step_data_from_name);
     }
     else if (undo_index != -1) {
@@ -335,9 +338,9 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
   return ed_undo_step_impl(C, STEP_NONE, undo_name, -1, reports);
 }
 
-static int ed_undo_step_by_index(bContext *C, int index, ReportList *reports)
+static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *reports)
 {
-  return ed_undo_step_impl(C, STEP_NONE, NULL, index, reports);
+  return ed_undo_step_impl(C, STEP_NONE, NULL, undo_index, reports);
 }
 
 void ED_undo_grouped_push(bContext *C, const char *str)
