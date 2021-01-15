@@ -27,6 +27,7 @@
 
 #include <OSL/oslclosure.h>
 #include <OSL/oslexec.h>
+#include <OSL/rendererservices.h>
 
 #ifdef WITH_PTEX
 class PtexCache;
