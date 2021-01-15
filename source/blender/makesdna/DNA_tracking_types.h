@@ -251,8 +251,6 @@ typedef struct MovieTrackingPlaneTrack {
 } MovieTrackingPlaneTrack;
 
 typedef struct MovieTrackingSettings {
-  int flag;
-
   /* ** default tracker settings */
   /** Model of the motion for this track. */
   short default_motion_model;
@@ -309,8 +307,6 @@ typedef struct MovieTrackingSettings {
   /* set object scale */
   /** Distance between two bundles used for object scaling. */
   float object_distance;
-
-  char _pad3[4];
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {
@@ -526,11 +522,6 @@ typedef enum eTrackFrameMatch {
   TRACK_MATCH_PREVIOS_FRAME = 1,
 } eTrackFrameMatch;
 
-/* MovieTrackingSettings->flag */
-enum {
-  TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED = (1 << 0),
-  TRACKING_SETTINGS_SHOW_EXTRA_EXPANDED = (1 << 1),
-};
 
 /* MovieTrackingSettings->motion_flag */
 enum {
