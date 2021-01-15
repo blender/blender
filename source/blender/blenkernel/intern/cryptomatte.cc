@@ -40,6 +40,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <cctype>
 #include <cstring>
 #include <iomanip>
 #include <sstream>
