@@ -1702,14 +1702,6 @@ static bool nlaeval_blend_value(NlaBlendData *blend,
     return false;
   }
 
-  if (nec->mix_mode == NEC_MIX_QUATERNION) {
-    /* For quaternion properties, always output all sub-channels. */
-    BLI_bitmap_set_all(nec->valid.ptr, true, 4);
-  }
-  else {
-    BLI_BITMAP_ENABLE(nec->valid.ptr, array_index);
-  }
-
   NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_ensure_channel(blend->snapshot, nec);
   float *p_value = &nec_snapshot->values[array_index];
 
