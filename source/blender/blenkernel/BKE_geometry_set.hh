@@ -242,7 +242,8 @@ class GeometryComponent {
 
   /**
    * If an attribute with the given params exist, it is returned.
-   * If no attribute with the given name exists, it is created and returned.
+   * If no attribute with the given name exists, create it and
+   * fill it with the default value if it is provided.
    * If an attribute with the given name but different domain or type exists, a temporary attribute
    * is created that has to be saved after the output has been computed. This avoids deleting
    * another attribute, before a computation is finished.
@@ -251,7 +252,8 @@ class GeometryComponent {
    */
   OutputAttributePtr attribute_try_get_for_output(const blender::StringRef attribute_name,
                                                   const AttributeDomain domain,
-                                                  const CustomDataType data_type);
+                                                  const CustomDataType data_type,
+                                                  const void *default_value = nullptr);
 };
 
 template<typename T>
