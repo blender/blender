@@ -48,12 +48,6 @@ set(SRC
   ../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
 )
 
-if(WIN32 AND NOT UNIX)
-  list(APPEND SRC
-    ../../../../intern/guardedalloc/intern/mmap_win.c
-  )
-endif()
-
 # SRC_DNA_INC is defined in the parent dir
 
 add_cc_flags_custom_test(makesdna)

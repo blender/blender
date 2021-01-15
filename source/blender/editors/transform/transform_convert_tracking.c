@@ -80,10 +80,10 @@ typedef struct TransformInitContext {
   TransInfo *t;
   TransDataContainer *tc;
 
-  /* MOTE: There pointers will be nullptr during counting step.
+  /* MOTE: There pointers will be `nullptr` during counting step.
    * This means, that the transformation data initialization functions are to increment
-   * `tc->data_len` instead of filling in the transformation data when these pointers are nullptr.
-   * For simplicitly, check the `current.td` against nullptr.
+   * `tc->data_len` instead of filling in the transformation data when these pointers are
+   * `nullptr`. For simplicity, check the `current.td` against `nullptr`.
    * Do not `tc->data_len` when filling in the transformation data. */
   struct {
     TransData *td;
@@ -619,8 +619,8 @@ static void cancelTransTracking(TransInfo *t)
     }
     else if (tdt->mode == transDataTracking_ModePlaneTracks) {
       MovieTrackingPlaneTrack *plane_track = tdt->plane_track;
-      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track,
-                                                                             tdt->framenr);
+      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track,
+                                                                                   tdt->framenr);
 
       BLI_assert(plane_marker != NULL);
 

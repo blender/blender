@@ -41,6 +41,7 @@ struct Object;
 struct OldNewMap;
 struct ReportList;
 struct UserDef;
+struct BLI_mmap_file;
 
 typedef struct IDNameLib_Map IDNameLib_Map;
 
@@ -83,8 +84,9 @@ typedef struct FileData {
   /** Regular file reading. */
   int filedes;
 
-  /** Variables needed for reading from memory / stream. */
+  /** Variables needed for reading from memory / stream / memory-mapped files. */
   const char *buffer;
+  struct BLI_mmap_file *mmap_file;
   /** Variables needed for reading from memfile (undo). */
   struct MemFile *memfile;
   /** Whether we are undoing (< 0) or redoing (> 0), used to choose which 'unchanged' flag to use

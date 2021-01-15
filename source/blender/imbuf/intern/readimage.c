@@ -23,13 +23,13 @@
  */
 
 #ifdef _WIN32
-#  include "mmap_win.h"
 #  include <io.h>
 #  include <stddef.h>
 #  include <sys/types.h>
 #endif
 
 #include "BLI_fileops.h"
+#include "BLI_mmap.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -186,20 +186,19 @@ ImBuf *IMB_loadifffile(
   size = BLI_file_descriptor_size(file);
 
   imb_mmap_lock();
-  mem = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
+  BLI_mmap_file *mmap_file = BLI_mmap_open(file);
   imb_mmap_unlock();
-
-  if (mem == (unsigned char *)-1) {
+  if (mmap_file == NULL) {
     fprintf(stderr, "%s: couldn't get mapping %s\n", __func__, descr);
     return NULL;
   }
 
+  mem = BLI_mmap_get_pointer(mmap_file);
+
   ibuf = IMB_ibImageFromMemory(mem, size, flags, colorspace, descr);
 
   imb_mmap_lock();
-  if (munmap(mem, size)) {
-    fprintf(stderr, "%s: couldn't unmap file %s\n", __func__, descr);
-  }
+  BLI_mmap_free(mmap_file);
   imb_mmap_unlock();
 
   return ibuf;
@@ -292,13 +291,14 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
   size = BLI_file_descriptor_size(file);
 
   imb_mmap_lock();
-  mem = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
+  BLI_mmap_file *mmap_file = BLI_mmap_open(file);
   imb_mmap_unlock();
-
-  if (mem == (unsigned char *)-1) {
+  if (mmap_file == NULL) {
     fprintf(stderr, "Couldn't get memory mapping for %s\n", ibuf->cachename);
     return;
   }
+
+  mem = BLI_mmap_get_pointer(mmap_file);
 
   const ImFileType *type = IMB_file_type_from_ibuf(ibuf);
   if (type != NULL) {
@@ -308,9 +308,7 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
   }
 
   imb_mmap_lock();
-  if (munmap(mem, size)) {
-    fprintf(stderr, "Couldn't unmap memory for %s.\n", ibuf->cachename);
-  }
+  BLI_mmap_free(mmap_file);
   imb_mmap_unlock();
 }
 

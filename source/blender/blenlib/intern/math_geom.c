@@ -6295,7 +6295,7 @@ float geodesic_distance_propagate_across_triangle(
     }
   }
 
-  /* Fall back to Dijsktra approximaton in trivial case, or if no valid source
+  /* Fall back to Dijsktra approximation in trivial case, or if no valid source
    * point found that connects to v0 across the triangle. */
   return min_ff(dist1 + len_v3(v10), dist2 + len_v3v3(v0, v2));
 }

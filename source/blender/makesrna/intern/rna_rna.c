@@ -1279,12 +1279,22 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                                                                   0);
 
   if (is_id) {
-    /* For now, once we deal with nodetrees we'll want to get rid of that one. */
-    //    BLI_assert(no_ownership);
+    /* Owned IDs (the ones we want to actually compare in depth, instead of just comparing pointer
+     * values) should be always properly tagged as 'virtual' overrides. */
+    ID *id = propptr_a->owner_id;
+    if (id != NULL && !ID_IS_OVERRIDE_LIBRARY(id)) {
+      id = propptr_b->owner_id;
+      if (id != NULL && !ID_IS_OVERRIDE_LIBRARY(id)) {
+        id = NULL;
+      }
+    }
+
+    BLI_assert(no_ownership || id == NULL || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id));
+    UNUSED_VARS_NDEBUG(id);
   }
 
   if (override) {
-    if (no_ownership /* || is_id */ || is_null || is_type_diff || !is_valid_for_diffing) {
+    if (no_ownership || is_null || is_type_diff || !is_valid_for_diffing) {
       /* In case this pointer prop does not own its data (or one is NULL), do not compare structs!
        * This is a quite safe path to infinite loop, among other nasty issues.
        * Instead, just compare pointers themselves. */
@@ -1468,7 +1478,6 @@ int rna_property_override_diff_default(Main *bmain,
                          rna_path != NULL;
 
   const bool no_ownership = (prop_a->rnaprop->flag & PROP_PTR_NO_OWNERSHIP) != 0;
-  const bool no_prop_name = (prop_a->rnaprop->flag_override & PROPOVERRIDE_NO_PROP_NAME) != 0;
 
   /* Note: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
    * and that we never remove anything. */
@@ -1724,6 +1733,11 @@ int rna_property_override_diff_default(Main *bmain,
     }
 
     case PROP_POINTER: {
+      /* Using property name check only makes sense for items of a collection, not for a single
+       * pointer.
+       * Doing this here avoids having to manually specify `PROPOVERRIDE_NO_PROP_NAME` to things
+       * like ShapeKey pointers. */
+      const bool no_prop_name = true;
       if (STREQ(prop_a->identifier, "rna_type")) {
         /* Dummy 'pass' answer, this is a meta-data and must be ignored... */
         return 0;
@@ -1752,6 +1766,8 @@ int rna_property_override_diff_default(Main *bmain,
     }
 
     case PROP_COLLECTION: {
+      const bool no_prop_name = (prop_a->rnaprop->flag_override & PROPOVERRIDE_NO_PROP_NAME) != 0;
+
       bool equals = true;
       bool abort = false;
       int idx_a = 0;

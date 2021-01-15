@@ -1384,7 +1384,7 @@ static AnimationEvalContext nla_time_remap(const AnimationEvalContext *anim_eval
   if (adt && adt->action == act) {
     /* Get NLA context for value remapping. */
     *r_nla_context = BKE_animsys_get_nla_keyframing_context(
-        nla_cache, id_ptr, adt, anim_eval_context, false);
+        nla_cache, id_ptr, adt, anim_eval_context);
 
     /* Apply NLA-mapping to frame. */
     const float remapped_frame = BKE_nla_tweakedit_remap(

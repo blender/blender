@@ -112,8 +112,8 @@ typedef struct NlaEvalChannel {
   struct NlaEvalChannel *next_blend;
   NlaEvalChannelSnapshot *blend_snapshot;
 
-  /* Mask of array items controlled by NLA. */
-  NlaValidMask valid;
+  /* Associated with the RNA property's value(s), marks which elements are affected by NLA. */
+  NlaValidMask domain;
 
   /* Base set of values. */
   NlaEvalChannelSnapshot base_snapshot;

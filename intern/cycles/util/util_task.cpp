@@ -62,7 +62,7 @@ void TaskPool::cancel()
 
 bool TaskPool::canceled()
 {
-  return tbb_group.is_canceling();
+  return tbb::is_current_task_group_canceling();
 }
 
 /* Task Scheduler */
