@@ -275,6 +275,7 @@ set(SRC
   BKE_asset.h
   BKE_attribute.h
   BKE_attribute_access.hh
+  BKE_attribute_math.hh
   BKE_autoexec.h
   BKE_blender.h
   BKE_blender_copybuffer.h
