@@ -1393,4 +1393,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
   /* paint stroke */
   keymap = paint_stroke_modal_keymap(keyconf);
   WM_modalkeymap_assign(keymap, "SCULPT_OT_brush_stroke");
+
+  /* sculpt expand. */
+  sculpt_expand_modal_keymap(keyconf);
 }

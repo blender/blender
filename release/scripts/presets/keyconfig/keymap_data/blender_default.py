@@ -5520,6 +5520,22 @@ def km_paint_stroke_modal(_params):
 
     return keymap
 
+def km_sculpt_expand_modal(_params):
+    items = []
+    keymap = (
+        "Sculpt Expand Modal",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
+        ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("INVERT", {"type": 'F', "value": 'PRESS', "any": True, "repeat" : False}, None),
+    ])
+    return keymap
+
 
 # Fallback for gizmos that don't have custom a custom key-map.
 def km_generic_gizmo(_params):
@@ -7034,6 +7050,7 @@ def generate_keymaps(params=None):
         km_view3d_zoom_modal(params),
         km_view3d_dolly_modal(params),
         km_paint_stroke_modal(params),
+        km_sculpt_expand_modal(params),
 
         # Gizmos.
         km_generic_gizmo(params),

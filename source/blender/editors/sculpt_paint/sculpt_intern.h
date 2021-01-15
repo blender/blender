@@ -1183,7 +1183,6 @@ typedef struct ExpandCache {
   float *initial_mask;
   int *initial_face_sets;
 
-
 } ExpandCache;
 
 typedef struct FilterCache {
@@ -1316,6 +1315,7 @@ void SCULPT_OT_mask_expand(struct wmOperatorType *ot);
 
 /* Expand. */
 void SCULPT_OT_expand(struct wmOperatorType *ot);
+void sculpt_expand_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* Detail size. */
 void SCULPT_OT_detail_flood_fill(struct wmOperatorType *ot);

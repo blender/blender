@@ -70,6 +70,12 @@
 
 #define SCULPT_EXPAND_VERTEX_NONE -1
 
+enum {
+  SCULPT_EXPAND_MODAL_CONFIRM = 1,
+  SCULPT_EXPAND_MODAL_CANCEL,
+  SCULPT_EXPAND_MODAL_INVERT,
+};
+
 static EnumPropertyItem prop_sculpt_expand_faloff_type_items[] = {
     {SCULPT_EXPAND_FALLOFF_GEODESICS, "GEODESICS", 0, "Surface", ""},
     {SCULPT_EXPAND_FALLOFF_TOPOLOGY, "TOPOLOGY", 0, "Topology", ""},
@@ -333,7 +339,7 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
   sculpt_expand_update_max_falloff_factor(ss, expand_cache);
 }
 
-void sculpt_expand_cache_free(ExpandCache *expand_cache)
+static void sculpt_expand_cache_free(ExpandCache *expand_cache)
 {
   MEM_SAFE_FREE(expand_cache->nodes);
   MEM_SAFE_FREE(expand_cache->falloff_factor);
@@ -513,6 +519,17 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
+  ExpandCache *expand_cache = ss->expand_cache;
+  if (event->type == EVT_MODAL_MAP) {
+    printf("MODAL KEYMAP\n");
+    switch (event->val) {
+      case SCULPT_EXPAND_MODAL_INVERT: {
+        expand_cache->invert = !expand_cache->invert;
+        break;
+      }
+    }
+  }
+
   const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, event);
   sculpt_expand_update_for_vertex(C, ob, target_expand_vertex);
 
@@ -527,6 +544,11 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   }
 
   return OPERATOR_RUNNING_MODAL;
+}
+
+static void sculpt_expand_cache_initial_config_set(ExpandCache *expand_cache, wmOperator *op)
+{
+  expand_cache->invert = RNA_boolean_get(op->ptr, "invert");
 }
 
 static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -545,6 +567,9 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   /* Create the Expand Cache. */
   ss->expand_cache = MEM_callocN(sizeof(ExpandCache), "expand cache");
 
+  /* Configure the cache with the operator properties. */
+  sculpt_expand_cache_initial_config_set(ss->expand_cache, op);
+
   /* Set the initial element for expand. */
   int initial_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, event);
   if (initial_vertex == SCULPT_EXPAND_VERTEX_NONE) {
@@ -562,10 +587,9 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   sculpt_expand_initial_state_store(ob, ss->expand_cache);
 
   /* Initialize the factors. */
-
   eSculptExpandFalloffType falloff_type = SCULPT_EXPAND_FALLOFF_GEODESICS;
   if (SCULPT_vertex_is_boundary(ss, initial_vertex)) {
-      falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
+    falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
 
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
@@ -583,6 +607,30 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return OPERATOR_RUNNING_MODAL;
 }
 
+void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
+{
+
+  static const EnumPropertyItem modal_items[] = {
+      {SCULPT_EXPAND_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
+      {SCULPT_EXPAND_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+      {SCULPT_EXPAND_MODAL_INVERT, "INVERT", 0, "Invert", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const char *name = "Sculpt Expand Modal";
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, name);
+
+  /* this function is called for each spacetype, only needs to add map once */
+  if (keymap && keymap->modal_items) {
+    return;
+  }
+
+  keymap = WM_modalkeymap_ensure(keyconf, name, modal_items);
+
+  /* assign map to operators */
+  WM_modalkeymap_assign(keymap, "SCULPT_OT_expand");
+}
+
 void SCULPT_OT_expand(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -597,4 +645,6 @@ void SCULPT_OT_expand(wmOperatorType *ot)
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->prop = RNA_def_boolean(
+      ot->srna, "invert", true, "Invert", "Invert the expand active elements");
 }
