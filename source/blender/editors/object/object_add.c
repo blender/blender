@@ -65,6 +65,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
+#include "BKE_geometry_set.h"
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_hair.h"
@@ -2146,6 +2147,13 @@ static bool dupliobject_instancer_cmp(const void *a_, const void *b_)
   return false;
 }
 
+static bool object_has_geometry_set_instances(const Object *object_eval)
+{
+  struct GeometrySet *geometry_set = object_eval->runtime.geometry_set_eval;
+
+  return (geometry_set != NULL) && BKE_geometry_set_has_instances(geometry_set);
+}
+
 static void make_object_duplilist_real(bContext *C,
                                        Depsgraph *depsgraph,
                                        Scene *scene,
@@ -2157,12 +2165,18 @@ static void make_object_duplilist_real(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   GHash *parent_gh = NULL, *instancer_gh = NULL;
 
-  if (!(base->object->transflag & OB_DUPLI)) {
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, base->object);
+
+  if (!(base->object->transflag & OB_DUPLI) && !object_has_geometry_set_instances(object_eval)) {
     return;
   }
 
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, base->object);
   ListBase *lb_duplis = object_duplilist(depsgraph, scene, object_eval);
+
+  if (BLI_listbase_is_empty(lb_duplis)) {
+    free_object_duplilist(lb_duplis);
+    return;
+  }
 
   GHash *dupli_gh = BLI_ghash_ptr_new(__func__);
   if (use_hierarchy) {
