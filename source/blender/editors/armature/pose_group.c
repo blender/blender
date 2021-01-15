@@ -55,6 +55,21 @@
 /* ********************************************** */
 /* Bone Groups */
 
+static bool pose_group_poll(bContext *C)
+{
+  if (!ED_operator_posemode_context(C)) {
+    return false;
+  }
+
+  Object *obpose = ED_pose_object_from_context(C);
+  if ((obpose->proxy != NULL) || (obpose->proxy_group != NULL) || ID_IS_OVERRIDE_LIBRARY(obpose)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit bonegroups for proxies or library overrides");
+    return false;
+  }
+
+  return true;
+}
+
 static int pose_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = ED_pose_object_from_context(C);
@@ -82,7 +97,7 @@ void POSE_OT_group_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = pose_group_add_exec;
-  ot->poll = ED_operator_posemode_context;
+  ot->poll = pose_group_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -116,7 +131,7 @@ void POSE_OT_group_remove(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = pose_group_remove_exec;
-  ot->poll = ED_operator_posemode_context;
+  ot->poll = pose_group_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -233,7 +248,7 @@ void POSE_OT_group_assign(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = pose_groups_menu_invoke;
   ot->exec = pose_group_assign_exec;
-  ot->poll = ED_operator_posemode_context;
+  ot->poll = pose_group_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -281,7 +296,7 @@ void POSE_OT_group_unassign(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = pose_group_unassign_exec;
-  ot->poll = ED_operator_posemode_context;
+  ot->poll = pose_group_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -346,7 +361,7 @@ void POSE_OT_group_move(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = group_move_exec;
-  ot->poll = ED_operator_posemode_context;
+  ot->poll = pose_group_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -437,7 +452,7 @@ void POSE_OT_group_sort(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = group_sort_exec;
-  ot->poll = ED_operator_posemode_context;
+  ot->poll = pose_group_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
