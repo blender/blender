@@ -1895,7 +1895,7 @@ void UI_view2d_scroller_size_get(const View2D *v2d, float *r_x, float *r_y)
  *
  * \param r_x, r_y: scale on each axis
  */
-void UI_view2d_scale_get(View2D *v2d, float *r_x, float *r_y)
+void UI_view2d_scale_get(const View2D *v2d, float *r_x, float *r_y)
 {
   if (r_x) {
     *r_x = UI_view2d_scale_get_x(v2d);

@@ -2149,7 +2149,7 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
   ntree->update |= NTREE_UPDATE_LINKS;
 }
 
-bool nodeLinkIsHidden(bNodeLink *link)
+bool nodeLinkIsHidden(const bNodeLink *link)
 {
   return nodeSocketIsHidden(link->fromsock) || nodeSocketIsHidden(link->tosock);
 }
@@ -2200,7 +2200,7 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
   }
 }
 
-void nodeToView(bNode *node, float x, float y, float *rx, float *ry)
+void nodeToView(const bNode *node, float x, float y, float *rx, float *ry)
 {
   if (node->parent) {
     nodeToView(node->parent, x + node->locx, y + node->locy, rx, ry);
@@ -2211,7 +2211,7 @@ void nodeToView(bNode *node, float x, float y, float *rx, float *ry)
   }
 }
 
-void nodeFromView(bNode *node, float x, float y, float *rx, float *ry)
+void nodeFromView(const bNode *node, float x, float y, float *rx, float *ry)
 {
   if (node->parent) {
     nodeFromView(node->parent, x, y, rx, ry);
@@ -2224,10 +2224,10 @@ void nodeFromView(bNode *node, float x, float y, float *rx, float *ry)
   }
 }
 
-bool nodeAttachNodeCheck(bNode *node, bNode *parent)
+bool nodeAttachNodeCheck(const bNode *node, const bNode *parent)
 {
-  for (bNode *parent_recurse = node; parent_recurse; parent_recurse = parent_recurse->parent) {
-    if (parent_recurse == parent) {
+  for (const bNode *parent_iter = node; parent_iter; parent_iter = parent_iter->parent) {
+    if (parent_iter == parent) {
       return true;
     }
   }
@@ -2317,8 +2317,6 @@ void nodePositionPropagate(bNode *node)
 
 bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
 {
-  bNodeTree *ntree;
-
   /* trees are created as local trees for compositor, material or texture nodes,
    * node groups and other tree types are created as library data.
    */
@@ -2327,7 +2325,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
   if (is_embedded) {
     flag |= LIB_ID_CREATE_NO_MAIN;
   }
-  ntree = BKE_libblock_alloc(bmain, ID_NT, name, flag);
+  bNodeTree *ntree = BKE_libblock_alloc(bmain, ID_NT, name, flag);
   if (is_embedded) {
     ntree->id.flag |= LIB_EMBEDDED_DATA;
   }
@@ -2362,7 +2360,7 @@ bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree)
  * using BKE_node_preview_init_tree to set up previews for a whole node tree in advance.
  * This should be left more to the individual node tree implementations.
  */
-int BKE_node_preview_used(bNode *node)
+bool BKE_node_preview_used(const bNode *node)
 {
   /* XXX check for closed nodes? */
   return (node->typeinfo->flag & NODE_PREVIEW) != 0;
@@ -2959,9 +2957,9 @@ ID *BKE_node_tree_find_owner_ID(Main *bmain, struct bNodeTree *ntree)
   return NULL;
 }
 
-bool ntreeNodeExists(bNodeTree *ntree, bNode *testnode)
+bool ntreeNodeExists(const bNodeTree *ntree, const bNode *testnode)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  LISTBASE_FOREACH (const bNode *, node, &ntree->nodes) {
     if (node == testnode) {
       return true;
     }
@@ -2969,9 +2967,9 @@ bool ntreeNodeExists(bNodeTree *ntree, bNode *testnode)
   return false;
 }
 
-bool ntreeOutputExists(bNode *node, bNodeSocket *testsock)
+bool ntreeOutputExists(const bNode *node, const bNodeSocket *testsock)
 {
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+  LISTBASE_FOREACH (const bNodeSocket *, sock, &node->outputs) {
     if (sock == testsock) {
       return true;
     }
@@ -3246,7 +3244,7 @@ static void ntree_interface_type_create(bNodeTree *ntree)
   }
 }
 
-StructRNA *ntreeInterfaceTypeGet(bNodeTree *ntree, int create)
+StructRNA *ntreeInterfaceTypeGet(bNodeTree *ntree, bool create)
 {
   if (ntree->interface_type) {
     /* strings are generated from base string + ID name, sizes are sufficient */
@@ -3333,7 +3331,7 @@ bool ntreeHasTree(const bNodeTree *ntree, const bNodeTree *lookup)
   return false;
 }
 
-bNodeLink *nodeFindLink(bNodeTree *ntree, bNodeSocket *from, bNodeSocket *to)
+bNodeLink *nodeFindLink(bNodeTree *ntree, const bNodeSocket *from, const bNodeSocket *to)
 {
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     if (link->fromsock == from && link->tosock == to) {
@@ -3346,10 +3344,10 @@ bNodeLink *nodeFindLink(bNodeTree *ntree, bNodeSocket *from, bNodeSocket *to)
   return NULL;
 }
 
-int nodeCountSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
+int nodeCountSocketLinks(const bNodeTree *ntree, const bNodeSocket *sock)
 {
   int tot = 0;
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+  LISTBASE_FOREACH (const bNodeLink *, link, &ntree->links) {
     if (link->fromsock == sock || link->tosock == sock) {
       tot++;
     }
@@ -3515,7 +3513,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   }
 }
 
-int nodeSocketIsHidden(bNodeSocket *sock)
+int nodeSocketIsHidden(const bNodeSocket *sock)
 {
   return ((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0);
 }
@@ -3530,7 +3528,7 @@ void nodeSetSocketAvailability(bNodeSocket *sock, bool is_available)
   }
 }
 
-int nodeSocketLinkLimit(struct bNodeSocket *sock)
+int nodeSocketLinkLimit(const bNodeSocket *sock)
 {
   bNodeSocketType *stype = sock->typeinfo;
   if (stype != NULL && stype->use_link_limits_of_type) {

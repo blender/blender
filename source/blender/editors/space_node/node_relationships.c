@@ -58,7 +58,7 @@
 
 static bool ntree_has_drivers(bNodeTree *ntree)
 {
-  AnimData *adt = BKE_animdata_from_id(&ntree->id);
+  const AnimData *adt = BKE_animdata_from_id(&ntree->id);
   if (adt == NULL) {
     return false;
   }

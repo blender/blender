@@ -463,8 +463,8 @@ void ntreeSetOutput(struct bNodeTree *ntree);
 
 void ntreeFreeCache(struct bNodeTree *ntree);
 
-bool ntreeNodeExists(struct bNodeTree *ntree, struct bNode *testnode);
-bool ntreeOutputExists(struct bNode *node, struct bNodeSocket *testsock);
+bool ntreeNodeExists(const struct bNodeTree *ntree, const struct bNode *testnode);
+bool ntreeOutputExists(const struct bNode *node, const struct bNodeSocket *testsock);
 void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable);
 struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
 void ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
@@ -501,7 +501,7 @@ struct bNodeSocket *ntreeInsertSocketInterfaceFromSocket(struct bNodeTree *ntree
                                                          struct bNodeSocket *from_sock);
 void ntreeRemoveSocketInterface(struct bNodeTree *ntree, struct bNodeSocket *sock);
 
-struct StructRNA *ntreeInterfaceTypeGet(struct bNodeTree *ntree, int create);
+struct StructRNA *ntreeInterfaceTypeGet(struct bNodeTree *ntree, bool create);
 void ntreeInterfaceTypeFree(struct bNodeTree *ntree);
 void ntreeInterfaceTypeUpdate(struct bNodeTree *ntree);
 
@@ -624,12 +624,12 @@ struct bNodeLink *nodeAddLink(struct bNodeTree *ntree,
                               struct bNodeSocket *tosock);
 void nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
-bool nodeLinkIsHidden(struct bNodeLink *link);
+bool nodeLinkIsHidden(const struct bNodeLink *link);
 void nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
-void nodeToView(struct bNode *node, float x, float y, float *rx, float *ry);
-void nodeFromView(struct bNode *node, float x, float y, float *rx, float *ry);
-bool nodeAttachNodeCheck(struct bNode *node, struct bNode *parent);
+void nodeToView(const struct bNode *node, float x, float y, float *rx, float *ry);
+void nodeFromView(const struct bNode *node, float x, float y, float *rx, float *ry);
+bool nodeAttachNodeCheck(const struct bNode *node, const struct bNode *parent);
 void nodeAttachNode(struct bNode *node, struct bNode *parent);
 void nodeDetachNode(struct bNode *node);
 
@@ -661,9 +661,9 @@ void nodeChainIterBackwards(const bNodeTree *ntree,
 void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userdata);
 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree,
-                               struct bNodeSocket *from,
-                               struct bNodeSocket *to);
-int nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
+                               const struct bNodeSocket *from,
+                               const struct bNodeSocket *to);
+int nodeCountSocketLinks(const struct bNodeTree *ntree, const struct bNodeSocket *sock);
 
 void nodeSetSelected(struct bNode *node, bool select);
 void nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
@@ -678,11 +678,11 @@ void nodeUpdate(struct bNodeTree *ntree, struct bNode *node);
 bool nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
 void nodeUpdateInternalLinks(struct bNodeTree *ntree, struct bNode *node);
 
-int nodeSocketIsHidden(struct bNodeSocket *sock);
+int nodeSocketIsHidden(const struct bNodeSocket *sock);
 void ntreeTagUsedSockets(struct bNodeTree *ntree);
 void nodeSetSocketAvailability(struct bNodeSocket *sock, bool is_available);
 
-int nodeSocketLinkLimit(struct bNodeSocket *sock);
+int nodeSocketLinkLimit(const struct bNodeSocket *sock);
 
 /* Node Clipboard */
 void BKE_node_clipboard_init(struct bNodeTree *ntree);
@@ -767,7 +767,7 @@ BLI_INLINE bool BKE_node_instance_hash_iterator_done(bNodeInstanceHashIterator *
 
 /* Node Previews */
 
-int BKE_node_preview_used(struct bNode *node);
+bool BKE_node_preview_used(const struct bNode *node);
 bNodePreview *BKE_node_preview_verify(
     struct bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, bool create);
 bNodePreview *BKE_node_preview_copy(struct bNodePreview *preview);

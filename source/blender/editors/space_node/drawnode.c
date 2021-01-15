@@ -3817,9 +3817,9 @@ void draw_nodespace_back_pix(const bContext *C,
 }
 
 /* return quadratic beziers points for a given nodelink and clip if v2d is not NULL. */
-static bool node_link_bezier_handles(View2D *v2d,
-                                     SpaceNode *snode,
-                                     bNodeLink *link,
+static bool node_link_bezier_handles(const View2D *v2d,
+                                     const SpaceNode *snode,
+                                     const bNodeLink *link,
                                      float vec[4][2])
 {
   float cursor[2] = {0.0f, 0.0f};
@@ -3912,8 +3912,11 @@ static bool node_link_bezier_handles(View2D *v2d,
 }
 
 /* if v2d not NULL, it clips and returns 0 if not visible */
-bool node_link_bezier_points(
-    View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol)
+bool node_link_bezier_points(const View2D *v2d,
+                             const SpaceNode *snode,
+                             const bNodeLink *link,
+                             float coord_array[][2],
+                             const int resol)
 {
   float vec[4][2];
 
@@ -4076,7 +4079,7 @@ static char nodelink_get_color_id(int th_col)
   return 0;
 }
 
-static void nodelink_batch_draw(SpaceNode *snode)
+static void nodelink_batch_draw(const SpaceNode *snode)
 {
   if (g_batch_link.count == 0) {
     return;
@@ -4116,7 +4119,7 @@ void nodelink_batch_end(SpaceNode *snode)
   g_batch_link.enabled = false;
 }
 
-static void nodelink_batch_add_link(SpaceNode *snode,
+static void nodelink_batch_add_link(const SpaceNode *snode,
                                     const float p0[2],
                                     const float p1[2],
                                     const float p2[2],
@@ -4148,8 +4151,12 @@ static void nodelink_batch_add_link(SpaceNode *snode,
 }
 
 /* don't do shadows if th_col3 is -1. */
-void node_draw_link_bezier(
-    View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int th_col2, int th_col3)
+void node_draw_link_bezier(const View2D *v2d,
+                           const SpaceNode *snode,
+                           const bNodeLink *link,
+                           int th_col1,
+                           int th_col2,
+                           int th_col3)
 {
   float vec[4][2];
 
