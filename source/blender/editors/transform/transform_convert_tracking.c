@@ -619,8 +619,8 @@ static void cancelTransTracking(TransInfo *t)
     }
     else if (tdt->mode == transDataTracking_ModePlaneTracks) {
       MovieTrackingPlaneTrack *plane_track = tdt->plane_track;
-      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track,
-                                                                             tdt->framenr);
+      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track,
+                                                                                   tdt->framenr);
 
       BLI_assert(plane_marker != NULL);
 
