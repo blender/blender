@@ -268,7 +268,7 @@ static bool tbb_task_pool_canceled(TaskPool *pool)
 {
 #ifdef WITH_TBB
   if (pool->use_threads) {
-    return pool->tbb_group.is_canceling();
+    return tbb::is_current_task_group_canceling();
   }
 #else
   UNUSED_VARS(pool);
@@ -520,7 +520,7 @@ void BLI_task_pool_cancel(TaskPool *pool)
   }
 }
 
-bool BLI_task_pool_canceled(TaskPool *pool)
+bool BLI_task_pool_current_canceled(TaskPool *pool)
 {
   switch (pool->type) {
     case TASK_POOL_TBB:

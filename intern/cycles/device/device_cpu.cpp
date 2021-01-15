@@ -951,7 +951,7 @@ class CPUDevice : public Device {
     SIMD_SET_FLUSH_TO_ZERO;
 
     for (int sample = start_sample; sample < end_sample; sample++) {
-      if (task.get_cancel() || task_pool.canceled()) {
+      if (task.get_cancel() || TaskPool::canceled()) {
         if (task.need_finish_queue == false)
           break;
       }
@@ -1249,7 +1249,7 @@ class CPUDevice : public Device {
 
   void thread_render(DeviceTask &task)
   {
-    if (task_pool.canceled()) {
+    if (TaskPool::canceled()) {
       if (task.need_finish_queue == false)
         return;
     }
@@ -1319,7 +1319,7 @@ class CPUDevice : public Device {
 
       task.release_tile(tile);
 
-      if (task_pool.canceled()) {
+      if (TaskPool::canceled()) {
         if (task.need_finish_queue == false)
           break;
       }
@@ -1416,7 +1416,7 @@ class CPUDevice : public Device {
                         task.offset,
                         sample);
 
-      if (task.get_cancel() || task_pool.canceled())
+      if (task.get_cancel() || TaskPool::canceled())
         break;
 
       task.update_progress(NULL);
