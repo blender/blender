@@ -63,6 +63,9 @@
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_imbuf.h"
+
 #include "bmesh.h"
 
 #include <math.h>
@@ -79,12 +82,19 @@ enum {
   SCULPT_EXPAND_MODAL_FALLOFF_CYCLE,
 };
 
-static EnumPropertyItem prop_sculpt_expand_faloff_type_items[] = {
+static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
     {SCULPT_EXPAND_FALLOFF_GEODESICS, "GEODESICS", 0, "Surface", ""},
     {SCULPT_EXPAND_FALLOFF_TOPOLOGY, "TOPOLOGY", 0, "Topology", ""},
     {SCULPT_EXPAND_FALLOFF_NORMALS, "NORMALS", 0, "Normals", ""},
     {SCULPT_EXPAND_FALLOFF_SPHERICAL, "SPHERICAL", 0, "Spherical", ""},
     {SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY, "BOUNDARY_TOPOLOGY`", 0, "Boundary Topology", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
+    {SCULPT_EXPAND_TARGET_MASK, "MASK", 0, "Mask", ""},
+    {SCULPT_EXPAND_TARGET_FACE_SETS, "FACE_SETS", 0, "Face Sets", ""},
+    {SCULPT_EXPAND_TARGET_COLORS, "COLOR", 0, "Color", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -359,6 +369,7 @@ static void sculpt_expand_cache_free(ExpandCache *expand_cache)
   MEM_SAFE_FREE(expand_cache->falloff_factor);
   MEM_SAFE_FREE(expand_cache->initial_mask);
   MEM_SAFE_FREE(expand_cache->initial_face_sets);
+  MEM_SAFE_FREE(expand_cache->initial_color);
   MEM_SAFE_FREE(expand_cache);
 }
 
@@ -476,6 +487,59 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
   }
 }
 
+static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
+                                                const int i,
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHNode *node = data->nodes[i];
+  ExpandCache *expand_cache = ss->expand_cache;
+
+  bool any_changed = false;
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
+  {
+    float initial_color[4];
+    copy_v4_v4(initial_color, vd.col);
+
+    const bool enabled = sculpt_expand_state_get(expand_cache, vd.index);
+    float fade;
+
+    if (enabled) {
+      fade = sculpt_expand_gradient_falloff_get(expand_cache, vd.index);
+    }
+    else {
+      fade = 0.0f;
+    }
+
+    fade = clamp_f(fade, 0.0f, 1.0f);
+
+    float final_color[4];
+    float final_fill_color[4];
+    mul_v4_v4fl(final_fill_color, expand_cache->fill_color, fade);
+    IMB_blend_color_float(final_color,
+                          expand_cache->initial_color[vd.index],
+                          final_fill_color,
+                          expand_cache->blend_mode);
+
+    if (equals_v4v4(initial_color, final_color)) {
+      continue;
+    }
+
+    copy_v4_v4(vd.col, final_color);
+    any_changed = true;
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+  if (any_changed) {
+    BKE_pbvh_node_mark_update_color(node);
+  }
+}
+
 static void sculpt_expand_flush_updates(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -483,7 +547,21 @@ static void sculpt_expand_flush_updates(bContext *C)
   for (int i = 0; i < ss->expand_cache->totnode; i++) {
     BKE_pbvh_node_mark_redraw(ss->expand_cache->nodes[i]);
   }
-  SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
+
+  switch (ss->expand_cache->target) {
+    case SCULPT_EXPAND_TARGET_MASK:
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
+      break;
+    case SCULPT_EXPAND_TARGET_FACE_SETS:
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
+      break;
+    case SCULPT_EXPAND_TARGET_COLORS:
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
+      break;
+
+    default:
+      break;
+  }
 }
 
 static void sculpt_expand_initial_state_store(Object *ob, ExpandCache *expand_cache)
@@ -500,6 +578,13 @@ static void sculpt_expand_initial_state_store(Object *ob, ExpandCache *expand_ca
   expand_cache->initial_face_sets = MEM_malloc_arrayN(totvert, sizeof(int), "initial face set");
   for (int i = 0; i < totface; i++) {
     expand_cache->initial_face_sets[i] = ss->face_sets[i];
+  }
+
+  if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
+    expand_cache->initial_color = MEM_malloc_arrayN(totvert, sizeof(float[4]), "initial colors");
+    for (int i = 0; i < totvert; i++) {
+      copy_v4_v4(expand_cache->initial_color[i], SCULPT_vertex_color_get(ss, i));
+    }
   }
 }
 
@@ -525,8 +610,21 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, expand_cache->totnode);
-  BLI_task_parallel_range(
-      0, expand_cache->totnode, &data, sculpt_expand_mask_update_task_cb, &settings);
+
+  switch (expand_cache->target) {
+    case SCULPT_EXPAND_TARGET_MASK:
+      BLI_task_parallel_range(
+          0, expand_cache->totnode, &data, sculpt_expand_mask_update_task_cb, &settings);
+      break;
+    case SCULPT_EXPAND_TARGET_FACE_SETS:
+      BLI_task_parallel_range(
+          0, expand_cache->totnode, &data, sculpt_expand_mask_update_task_cb, &settings);
+      break;
+    case SCULPT_EXPAND_TARGET_COLORS:
+      BLI_task_parallel_range(
+          0, expand_cache->totnode, &data, sculpt_expand_colors_update_task_cb, &settings);
+      break;
+  }
 
   sculpt_expand_flush_updates(C);
 }
@@ -550,9 +648,23 @@ static void sculpt_expand_finish(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  sculpt_expand_cache_free(ss->expand_cache);
   SCULPT_undo_push_end();
-  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+
+  switch (ss->expand_cache->target) {
+    case SCULPT_EXPAND_TARGET_MASK:
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      break;
+    case SCULPT_EXPAND_TARGET_FACE_SETS:
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      break;
+    case SCULPT_EXPAND_TARGET_COLORS:
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
+      break;
+    default:
+      break;
+  }
+
+  sculpt_expand_cache_free(ss->expand_cache);
   ED_workspace_status_text(C, NULL);
 }
 
@@ -595,31 +707,49 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void sculpt_expand_cache_initial_config_set(ExpandCache *expand_cache, wmOperator *op)
+static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
+                                                   Object *ob,
+                                                   ExpandCache *expand_cache,
+                                                   wmOperator *op)
 {
+
   expand_cache->invert = RNA_boolean_get(op->ptr, "invert");
   expand_cache->mask_preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
   expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
+  expand_cache->target = RNA_enum_get(op->ptr, "target");
+
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  copy_v4_fl(expand_cache->fill_color, 1.0f);
+  copy_v3_v3(expand_cache->fill_color, BKE_brush_color_get(ss->scene, brush));
+  IMB_colormanagement_srgb_to_scene_linear_v3(expand_cache->fill_color);
+
+  expand_cache->blend_mode = brush->blend;
 }
 
 static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
+  /* Create and configure the Expand Cache. */
+  ss->expand_cache = MEM_callocN(sizeof(ExpandCache), "expand cache");
+  sculpt_expand_cache_initial_config_set(sd, ob, ss->expand_cache, op);
+
   /* Update object. */
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  const bool needs_colors = ss->expand_cache->target = SCULPT_EXPAND_TARGET_COLORS;
+
+  if (needs_colors) {
+    BKE_sculpt_color_layer_create_if_needed(ob);
+    depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  }
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
   SCULPT_undo_push_begin(ob, "expand");
-
-  /* Create the Expand Cache. */
-  ss->expand_cache = MEM_callocN(sizeof(ExpandCache), "expand cache");
-
-  /* Configure the cache with the operator properties. */
-  sculpt_expand_cache_initial_config_set(ss->expand_cache, op);
 
   /* Set the initial element for expand. */
   int initial_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, event);
@@ -699,6 +829,14 @@ void SCULPT_OT_expand(wmOperatorType *ot)
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(ot->srna,
+               "target",
+               prop_sculpt_expand_target_type_items,
+               SCULPT_EXPAND_TARGET_COLORS,
+               "Data Target",
+               "Data that is going to be modified in the expand operation");
+
   ot->prop = RNA_def_boolean(
       ot->srna, "invert", true, "Invert", "Invert the expand active elements");
   ot->prop = RNA_def_boolean(ot->srna,

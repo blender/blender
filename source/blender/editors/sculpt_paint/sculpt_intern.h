@@ -1161,6 +1161,7 @@ typedef enum eSculptExpandFalloffType {
 typedef enum eSculptExpandTargetType {
   SCULPT_EXPAND_TARGET_MASK,
   SCULPT_EXPAND_TARGET_FACE_SETS,
+  SCULPT_EXPAND_TARGET_COLORS,
 } eSculptExpandTargetType;
 
 typedef struct ExpandCache {
@@ -1180,9 +1181,13 @@ typedef struct ExpandCache {
 
   int update_face_set;
 
+  float fill_color[4];
+  short blend_mode;
+
   eSculptExpandTargetType target;
   float *initial_mask;
   int *initial_face_sets;
+  float (*initial_color)[4];
 
 } ExpandCache;
 
