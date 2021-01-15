@@ -1468,7 +1468,6 @@ int rna_property_override_diff_default(Main *bmain,
                          rna_path != NULL;
 
   const bool no_ownership = (prop_a->rnaprop->flag & PROP_PTR_NO_OWNERSHIP) != 0;
-  const bool no_prop_name = (prop_a->rnaprop->flag_override & PROPOVERRIDE_NO_PROP_NAME) != 0;
 
   /* Note: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
    * and that we never remove anything. */
@@ -1724,6 +1723,11 @@ int rna_property_override_diff_default(Main *bmain,
     }
 
     case PROP_POINTER: {
+      /* Using property name check only makes sense for items of a collection, not for a single
+       * pointer.
+       * Doing this here avoids having to manually specify `PROPOVERRIDE_NO_PROP_NAME` to things
+       * like ShapeKey pointers. */
+      const bool no_prop_name = true;
       if (STREQ(prop_a->identifier, "rna_type")) {
         /* Dummy 'pass' answer, this is a meta-data and must be ignored... */
         return 0;
@@ -1752,6 +1756,8 @@ int rna_property_override_diff_default(Main *bmain,
     }
 
     case PROP_COLLECTION: {
+      const bool no_prop_name = (prop_a->rnaprop->flag_override & PROPOVERRIDE_NO_PROP_NAME) != 0;
+
       bool equals = true;
       bool abort = false;
       int idx_a = 0;
