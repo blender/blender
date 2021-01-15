@@ -1279,12 +1279,22 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                                                                   0);
 
   if (is_id) {
-    /* For now, once we deal with nodetrees we'll want to get rid of that one. */
-    //    BLI_assert(no_ownership);
+    /* Owned IDs (the ones we want to actually compare in depth, instead of just comparing pointer
+     * values) should be always properly tagged as 'virtual' overrides. */
+    ID *id = propptr_a->owner_id;
+    if (id != NULL && !ID_IS_OVERRIDE_LIBRARY(id)) {
+      id = propptr_b->owner_id;
+      if (id != NULL && !ID_IS_OVERRIDE_LIBRARY(id)) {
+        id = NULL;
+      }
+    }
+
+    BLI_assert(no_ownership || id == NULL || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id));
+    UNUSED_VARS_NDEBUG(id);
   }
 
   if (override) {
-    if (no_ownership /* || is_id */ || is_null || is_type_diff || !is_valid_for_diffing) {
+    if (no_ownership || is_null || is_type_diff || !is_valid_for_diffing) {
       /* In case this pointer prop does not own its data (or one is NULL), do not compare structs!
        * This is a quite safe path to infinite loop, among other nasty issues.
        * Instead, just compare pointers themselves. */
