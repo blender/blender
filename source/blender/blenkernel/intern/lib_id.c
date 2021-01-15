@@ -1261,10 +1261,17 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
 
   /* We may need our own flag to control that at some point, but for now 'no main' one should be
    * good enough. */
-  if ((orig_flag & LIB_ID_CREATE_NO_MAIN) == 0 && ID_IS_OVERRIDE_LIBRARY(id)) {
-    /* We do not want to copy existing override rules here, as they would break the proper
-     * remapping between IDs. Proper overrides rules will be re-generated anyway. */
-    BKE_lib_override_library_copy(new_id, id, false);
+  if ((orig_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      /* We do not want to copy existing override rules here, as they would break the proper
+       * remapping between IDs. Proper overrides rules will be re-generated anyway. */
+      BKE_lib_override_library_copy(new_id, id, false);
+    }
+    else if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id)) {
+      /* Just ensure virtual overrides do get properly tagged, there is not actual override data to
+       * copy here. */
+      new_id->flag |= LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+    }
   }
 
   if (id_can_have_animdata(new_id)) {
