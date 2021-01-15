@@ -74,6 +74,9 @@ enum {
   SCULPT_EXPAND_MODAL_CONFIRM = 1,
   SCULPT_EXPAND_MODAL_CANCEL,
   SCULPT_EXPAND_MODAL_INVERT,
+  SCULPT_EXPAND_MODAL_MASK_PRESERVE_TOGGLE,
+  SCULPT_EXPAND_MODAL_GRADIENT_TOGGLE,
+  SCULPT_EXPAND_MODAL_FALLOFF_CYCLE,
 };
 
 static EnumPropertyItem prop_sculpt_expand_faloff_type_items[] = {
@@ -179,6 +182,10 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
   SCULPT_floodfill_execute(ss, &flood, mask_expand_normal_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
 
+  for (int i = 0; i < totvert; i++) {
+    dists[i] = FLT_MAX;
+  }
+
   for (int repeat = 0; repeat < 2; repeat++) {
     for (int i = 0; i < totvert; i++) {
       float avg = 0.0f;
@@ -268,6 +275,10 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
     return dists;
   }
 
+  for (int i = 0; i < totvert; i++) {
+    dists[i] = FLT_MAX;
+  }
+
   while (!BLI_gsqueue_is_empty(queue)) {
     int v;
     BLI_gsqueue_pop(queue, &v);
@@ -293,6 +304,9 @@ static void sculpt_expand_update_max_falloff_factor(SculptSession *ss, ExpandCac
   const int totvert = SCULPT_vertex_count_get(ss);
   expand_cache->max_falloff_factor = -FLT_MAX;
   for (int i = 0; i < totvert; i++) {
+    if (expand_cache->falloff_factor[i] == FLT_MAX) {
+      continue;
+    }
     expand_cache->max_falloff_factor = max_ff(expand_cache->max_falloff_factor,
                                               expand_cache->falloff_factor[i]);
   }
@@ -393,13 +407,27 @@ static void sculpt_expand_cancel(bContext *C, wmOperator *op)
   ED_workspace_status_text(C, NULL);
 }
 
-static bool sculpt_expand_state_get(ExpandCache *expand_cache, int i)
+static bool sculpt_expand_state_get(ExpandCache *expand_cache, const int i)
 {
   bool enabled = expand_cache->falloff_factor[i] <= expand_cache->active_factor;
   if (expand_cache->invert) {
     enabled = !enabled;
   }
   return enabled;
+}
+
+static float sculpt_expand_gradient_falloff_get(ExpandCache *expand_cache, const int i)
+{
+  if (!expand_cache->falloff_gradient) {
+    return 1.0f;
+  }
+
+  if (expand_cache->invert) {
+    return (expand_cache->falloff_factor[i] - expand_cache->active_factor) /
+           (expand_cache->max_falloff_factor - expand_cache->active_factor);
+  }
+
+  return 1.0f - (expand_cache->falloff_factor[i] / expand_cache->active_factor);
 }
 
 static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
@@ -419,23 +447,27 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
     const float initial_mask = *vd.mask;
     const bool enabled = sculpt_expand_state_get(expand_cache, vd.index);
 
+    float new_mask;
+
     if (enabled) {
-      if (expand_cache->mask_preserve_previous) {
-        *vd.mask = max_ff(initial_mask, expand_cache->initial_mask[vd.index]);
-      }
-      else {
-        *vd.mask = 1.0f;
-      }
+      new_mask = sculpt_expand_gradient_falloff_get(expand_cache, vd.index);
     }
     else {
-      *vd.mask = 0.0f;
+      new_mask = 0.0f;
     }
 
-    if (*vd.mask != initial_mask) {
-      any_changed = true;
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-      }
+    if (expand_cache->mask_preserve) {
+      new_mask = max_ff(new_mask, expand_cache->initial_mask[vd.index]);
+    }
+
+    if (new_mask == initial_mask) {
+      continue;
+    }
+
+    *vd.mask = clamp_f(new_mask, 0.0f, 1.0f);
+    any_changed = true;
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -514,34 +546,51 @@ static int sculpt_expand_target_vertex_update_and_get(bContext *C,
   }
 }
 
+static void sculpt_expand_finish(bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  sculpt_expand_cache_free(ss->expand_cache);
+  SCULPT_undo_push_end();
+  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+  ED_workspace_status_text(C, NULL);
+}
+
 static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
+  const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, event);
+
   ExpandCache *expand_cache = ss->expand_cache;
   if (event->type == EVT_MODAL_MAP) {
-    printf("MODAL KEYMAP\n");
     switch (event->val) {
       case SCULPT_EXPAND_MODAL_INVERT: {
         expand_cache->invert = !expand_cache->invert;
         break;
       }
+      case SCULPT_EXPAND_MODAL_MASK_PRESERVE_TOGGLE: {
+        expand_cache->mask_preserve = !expand_cache->mask_preserve;
+        break;
+      }
+      case SCULPT_EXPAND_MODAL_GRADIENT_TOGGLE: {
+        expand_cache->falloff_gradient = !expand_cache->falloff_gradient;
+        break;
+      }
+      case SCULPT_EXPAND_MODAL_CONFIRM: {
+        sculpt_expand_update_for_vertex(C, ob, target_expand_vertex);
+        sculpt_expand_finish(C);
+        return OPERATOR_FINISHED;
+      }
     }
   }
 
-  const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, event);
-  sculpt_expand_update_for_vertex(C, ob, target_expand_vertex);
-
-  if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
-      (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
-      (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
-    sculpt_expand_cache_free(ss->expand_cache);
-    SCULPT_undo_push_end();
-    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
-    ED_workspace_status_text(C, NULL);
-    return OPERATOR_FINISHED;
+  if (event->type != MOUSEMOVE) {
+    return OPERATOR_RUNNING_MODAL;
   }
+
+  sculpt_expand_update_for_vertex(C, ob, target_expand_vertex);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -549,6 +598,8 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
 static void sculpt_expand_cache_initial_config_set(ExpandCache *expand_cache, wmOperator *op)
 {
   expand_cache->invert = RNA_boolean_get(op->ptr, "invert");
+  expand_cache->mask_preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
+  expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
 }
 
 static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -609,25 +660,28 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
 {
-
   static const EnumPropertyItem modal_items[] = {
       {SCULPT_EXPAND_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
       {SCULPT_EXPAND_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {SCULPT_EXPAND_MODAL_INVERT, "INVERT", 0, "Invert", ""},
+      {SCULPT_EXPAND_MODAL_MASK_PRESERVE_TOGGLE,
+       "MASK_PRESERVE",
+       0,
+       "Toggle Preserve Previous Mask",
+       ""},
+      {SCULPT_EXPAND_MODAL_GRADIENT_TOGGLE, "GRADIENT", 0, "Toggle Gradient", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
   static const char *name = "Sculpt Expand Modal";
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, name);
 
-  /* this function is called for each spacetype, only needs to add map once */
+  /* This function is called for each spacetype, only needs to add map once. */
   if (keymap && keymap->modal_items) {
     return;
   }
 
   keymap = WM_modalkeymap_ensure(keyconf, name, modal_items);
-
-  /* assign map to operators */
   WM_modalkeymap_assign(keymap, "SCULPT_OT_expand");
 }
 
@@ -647,4 +701,11 @@ void SCULPT_OT_expand(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
   ot->prop = RNA_def_boolean(
       ot->srna, "invert", true, "Invert", "Invert the expand active elements");
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_mask_preserve",
+                             false,
+                             "Preserve Previous Mask",
+                             "Preserve the previous mask");
+  ot->prop = RNA_def_boolean(
+      ot->srna, "use_falloff_gradient", false, "Falloff Gradient", "Expand Using a Falloff");
 }

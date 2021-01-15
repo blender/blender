@@ -1175,7 +1175,8 @@ typedef struct ExpandCache {
   int totnode;
 
   bool invert;
-  bool mask_preserve_previous;
+  bool mask_preserve;
+  bool falloff_gradient;
 
   int update_face_set;
 

@@ -5533,6 +5533,8 @@ def km_sculpt_expand_modal(_params):
         ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
         ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
         ("INVERT", {"type": 'F', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("MASK_PRESERVE", {"type": 'P', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("GRADIENT", {"type": 'G', "value": 'PRESS', "any": True, "repeat" : False}, None),
     ])
     return keymap
 
