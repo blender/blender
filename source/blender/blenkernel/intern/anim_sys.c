@@ -1172,7 +1172,7 @@ static void nlaeval_snapshot_free_data(NlaEvalSnapshot *snapshot)
 /* Free memory owned by this evaluation channel. */
 static void nlaevalchan_free_data(NlaEvalChannel *nec)
 {
-  nlavalidmask_free(&nec->valid);
+  nlavalidmask_free(&nec->domain);
 
   if (nec->blend_snapshot != NULL) {
     nlaevalchan_snapshot_free(nec->blend_snapshot);
@@ -1373,7 +1373,7 @@ static NlaEvalChannel *nlaevalchan_verify_key(NlaEvalData *nlaeval,
 
   nec->mix_mode = nlaevalchan_detect_mix_mode(key, length);
 
-  nlavalidmask_init(&nec->valid, length);
+  nlavalidmask_init(&nec->domain, length);
 
   nec->base_snapshot.channel = nec;
   nec->base_snapshot.length = length;
@@ -2103,12 +2103,21 @@ void nladata_flush_channels(PointerRNA *ptr,
 
   /* for each channel with accumulated values, write its value on the property it affects */
   LISTBASE_FOREACH (NlaEvalChannel *, nec, &channels->channels) {
+    /**
+     * The bitmask is set for all channels touched by NLA due to the domain() function.
+     * Channels touched by current set of evaluated strips will have a snapshot channel directly
+     * from the evaluation snapshot.
+     *
+     * This function falls back to the default value if the snapshot channel doesn't exist.
+     * Thus channels, touched by NLA but not by the current set of evaluated strips, will be
+     * reset to default. If channel not touched by NLA then it's value is unchanged.
+     */
     NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_find_channel(snapshot, nec);
 
     PathResolvedRNA rna = {nec->key.ptr, nec->key.prop, -1};
 
     for (int i = 0; i < nec_snapshot->length; i++) {
-      if (BLI_BITMAP_TEST(nec->valid.ptr, i)) {
+      if (BLI_BITMAP_TEST(nec->domain.ptr, i)) {
         float value = nec_snapshot->values[i];
         if (nec->is_array) {
           rna.prop_index = i;
@@ -2144,14 +2153,14 @@ static void nla_eval_domain_action(PointerRNA *ptr,
     if (nec != NULL) {
       /* For quaternion properties, enable all sub-channels. */
       if (nec->mix_mode == NEC_MIX_QUATERNION) {
-        BLI_bitmap_set_all(nec->valid.ptr, true, 4);
+        BLI_bitmap_set_all(nec->domain.ptr, true, 4);
         continue;
       }
 
       int idx = nlaevalchan_validate_index(nec, fcu->array_index);
 
       if (idx >= 0) {
-        BLI_BITMAP_ENABLE(nec->valid.ptr, idx);
+        BLI_BITMAP_ENABLE(nec->domain.ptr, idx);
       }
     }
   }
