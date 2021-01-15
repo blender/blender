@@ -39,7 +39,7 @@ void DotproductOperation::deinitExecution()
   this->m_input2Operation = nullptr;
 }
 
-/** \todo: current implementation is the inverse of a dotproduct. not 'logically' correct
+/** \todo current implementation is the inverse of a dot-product. not 'logically' correct
  */
 void DotproductOperation::executePixelSampled(float output[4],
                                               float x,
