@@ -1157,6 +1157,8 @@ typedef enum eSculptExpandFalloffType {
   SCULPT_EXPAND_FALLOFF_NORMALS,
   SCULPT_EXPAND_FALLOFF_SPHERICAL,
   SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY,
+  SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET,
+  SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET,
 } eSculptExpandFalloffType;
 
 typedef enum eSculptExpandTargetType {
@@ -1193,7 +1195,6 @@ typedef struct ExpandCache {
   bool move;
   bool snap;
   bool modify_active;
-  bool expand_from_active;
 
   float initial_mouse_move[2];
   float original_mouse_move[2];
