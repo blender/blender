@@ -6225,11 +6225,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Sculpt Mode Tilt Support", "Support for pen tablet tilt events in Sculpt Mode");
 
-  prop = RNA_def_property(srna, "use_object_add_tool", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_object_add_tool", 1);
-  RNA_def_property_ui_text(
-      prop, "Add Object Tool", "Show add object tool in the toolbar in Object Mode and Edit Mode");
-
   prop = RNA_def_property(srna, "use_asset_browser", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_asset_browser", 1);
   RNA_def_property_ui_text(
