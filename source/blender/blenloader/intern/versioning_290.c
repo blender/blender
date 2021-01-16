@@ -1595,5 +1595,11 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+    /* Fix Fill factor for grease pencil fill brushes. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if ((brush->gpencil_settings) && (brush->gpencil_settings->fill_factor == 0.0f)) {
+        brush->gpencil_settings->fill_factor = 1.0f;
+      }
+    }
   }
 }
