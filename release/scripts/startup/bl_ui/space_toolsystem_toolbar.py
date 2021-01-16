@@ -441,6 +441,35 @@ class _defs_view3d_select:
 
 class _defs_view3d_add:
 
+    @staticmethod
+    def description_interactive_add(context, _item, _km, *, prefix):
+        km = context.window_manager.keyconfigs.user.keymaps["View3D Placement Modal"]
+
+        def keymap_item_from_propvalue(propvalue):
+            for item in km.keymap_items:
+                if item.propvalue == propvalue:
+                    return item
+
+        if km is not None:
+            kmi_snap = keymap_item_from_propvalue('SNAP_ON')
+            kmi_center = keymap_item_from_propvalue('PIVOT_CENTER_ON')
+            kmi_fixed_aspect = keymap_item_from_propvalue('FIXED_ASPECT_ON')
+        else:
+            kmi_snap = None
+            kmi_center = None
+            kmi_fixed_aspect = None
+        return tip_(
+            "%s\n"
+            "\u2022 %s toggles snap while dragging.\n"
+            "\u2022 %s toggles dragging from the center.\n"
+            "\u2022 %s toggles fixed aspect"
+        ) % (
+            prefix,
+            kmi_to_string_or_none(kmi_snap),
+            kmi_to_string_or_none(kmi_center),
+            kmi_to_string_or_none(kmi_fixed_aspect),
+        )
+
     # Layout tweaks here would be good to avoid,
     # this shows limits in layout engine, as buttons are using a lot of space.
     @staticmethod
@@ -483,8 +512,8 @@ class _defs_view3d_add:
             idname="builtin.primitive_cube_add",
             label="Add Cube",
             icon="ops.mesh.primitive_cube_add_gizmo",
-            description=(
-                "Add cube to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add cube to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
@@ -505,8 +534,8 @@ class _defs_view3d_add:
             idname="builtin.primitive_cone_add",
             label="Add Cone",
             icon="ops.mesh.primitive_cone_add_gizmo",
-            description=(
-                "Add cone to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add cone to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
@@ -527,8 +556,8 @@ class _defs_view3d_add:
             idname="builtin.primitive_cylinder_add",
             label="Add Cylinder",
             icon="ops.mesh.primitive_cylinder_add_gizmo",
-            description=(
-                "Add cylinder to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add cylinder to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
@@ -549,8 +578,8 @@ class _defs_view3d_add:
             idname="builtin.primitive_uv_sphere_add",
             label="Add UV Sphere",
             icon="ops.mesh.primitive_sphere_add_gizmo",
-            description=(
-                "Add cylinder to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add sphere to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
@@ -570,8 +599,8 @@ class _defs_view3d_add:
             idname="builtin.primitive_ico_sphere_add",
             label="Add Ico Sphere",
             icon="ops.mesh.primitive_sphere_add_gizmo",
-            description=(
-                "Add cylinder to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add sphere to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
