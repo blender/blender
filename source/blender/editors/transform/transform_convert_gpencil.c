@@ -242,7 +242,7 @@ static void createTransGPencil_curves(bContext *C,
       }
 
       /* Calculate difference matrix. */
-      BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+      BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
       copy_m3_m4(mtx, diff_mat);
       pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
@@ -507,7 +507,7 @@ static void createTransGPencil_strokes(bContext *C,
       }
 
       /* Calculate difference matrix. */
-      BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+      BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
       /* Undo matrix. */
       invert_m4_m4(inverse_diff_mat, diff_mat);
 

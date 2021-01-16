@@ -800,20 +800,20 @@ static void gpencil_edit_curve_stroke_iter_cb(bGPDlayer *gpl,
     };
 
     /* First segment. */
-    copy_v3_v3(vert_ptr->pos, bezt->vec[0]);
+    mul_v3_m4v3(vert_ptr->pos, gpl->layer_mat, bezt->vec[0]);
     vert_ptr->data = vflag[0];
     vert_ptr++;
 
-    copy_v3_v3(vert_ptr->pos, bezt->vec[1]);
+    mul_v3_m4v3(vert_ptr->pos, gpl->layer_mat, bezt->vec[1]);
     vert_ptr->data = vflag[1];
     vert_ptr++;
 
     /* Second segment. */
-    copy_v3_v3(vert_ptr->pos, bezt->vec[1]);
+    mul_v3_m4v3(vert_ptr->pos, gpl->layer_mat, bezt->vec[1]);
     vert_ptr->data = vflag[1];
     vert_ptr++;
 
-    copy_v3_v3(vert_ptr->pos, bezt->vec[2]);
+    mul_v3_m4v3(vert_ptr->pos, gpl->layer_mat, bezt->vec[2]);
     vert_ptr->data = vflag[2];
     vert_ptr++;
   }

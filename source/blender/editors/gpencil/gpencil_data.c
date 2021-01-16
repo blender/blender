@@ -2854,7 +2854,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
           float inverse_diff_mat[4][4];
 
           /* recalculate all stroke points */
-          BKE_gpencil_parent_matrix_get(depsgraph, ob_iter, gpl_src, diff_mat);
+          BKE_gpencil_layer_transform_matrix_get(depsgraph, ob_iter, gpl_src, diff_mat);
           invert_m4_m4_safe_ortho(inverse_diff_mat, diff_mat);
 
           Material *ma_src = NULL;

@@ -178,7 +178,7 @@ static void gpencil_strokepoint_convertcoords(bContext *C,
 
   /* apply parent transform */
   float fpt[3];
-  BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+  BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
   mul_v3_m4v3(fpt, diff_mat, &source_pt->x);
   copy_v3_v3(&pt->x, fpt);
 

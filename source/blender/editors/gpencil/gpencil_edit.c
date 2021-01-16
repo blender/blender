@@ -2800,7 +2800,7 @@ static int gpencil_snap_to_grid(bContext *C, wmOperator *UNUSED(op))
       float diff_mat[4][4];
 
       /* calculate difference matrix object */
-      BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+      BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
 
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         /* skip strokes that are invalid for current view */
@@ -2935,7 +2935,7 @@ static int gpencil_snap_to_cursor(bContext *C, wmOperator *op)
         float diff_mat[4][4];
 
         /* calculate difference matrix */
-        BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+        BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
 
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           bGPDspoint *pt;
@@ -3039,7 +3039,7 @@ static bool gpencil_stroke_points_centroid(Depsgraph *depsgraph,
       float diff_mat[4][4];
 
       /* calculate difference matrix */
-      BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+      BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
 
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         bGPDspoint *pt;

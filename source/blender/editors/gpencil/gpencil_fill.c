@@ -263,13 +263,13 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
   BLI_assert(gpl_active_index >= 0);
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    /* calculate parent position */
-    BKE_gpencil_parent_matrix_get(tgpw.depsgraph, ob, gpl, tgpw.diff_mat);
-
     /* do not draw layer if hidden */
     if (gpl->flag & GP_LAYER_HIDE) {
       continue;
     }
+
+    /* calculate parent position */
+    BKE_gpencil_layer_transform_matrix_get(tgpw.depsgraph, ob, gpl, tgpw.diff_mat);
 
     /* Decide if the strokes of layers are included or not depending on the layer mode.
      * Cannot skip the layer because it can use boundary strokes and must be used. */
@@ -1275,7 +1275,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
     float origin[3];
     ED_gpencil_drawing_reference_get(tgpf->scene, tgpf->ob, ts->gpencil_v3d_align, origin);
     ED_gpencil_project_stroke_to_plane(
-        tgpf->scene, tgpf->ob, tgpf->rv3d, gps, origin, tgpf->lock_axis - 1);
+        tgpf->scene, tgpf->ob, tgpf->rv3d, tgpf->gpl, gps, origin, tgpf->lock_axis - 1);
   }
 
   /* if parented change position relative to parent object */

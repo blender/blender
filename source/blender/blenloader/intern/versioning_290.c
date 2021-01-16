@@ -1582,5 +1582,18 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Grease pencil layer transform matrix. */
+    if (!DNA_struct_elem_find(fd->filesdna, "bGPDlayer", "float", "location[0]")) {
+      LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
+        LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+          zero_v3(gpl->location);
+          zero_v3(gpl->rotation);
+          copy_v3_fl(gpl->scale, 1.0f);
+          loc_eul_size_to_mat4(gpl->layer_mat, gpl->location, gpl->rotation, gpl->scale);
+          invert_m4_m4(gpl->layer_invmat, gpl->layer_mat);
+        }
+      }
+    }
   }
 }

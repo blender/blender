@@ -263,11 +263,13 @@ bool ED_object_gpencil_exit(struct Main *bmain, struct Object *ob);
 void ED_gpencil_project_stroke_to_plane(const struct Scene *scene,
                                         const struct Object *ob,
                                         const struct RegionView3D *rv3d,
+                                        struct bGPDlayer *gpl,
                                         struct bGPDstroke *gps,
                                         const float origin[3],
                                         const int axis);
 void ED_gpencil_project_point_to_plane(const struct Scene *scene,
                                        const struct Object *ob,
+                                       struct bGPDlayer *gpl,
                                        const struct RegionView3D *rv3d,
                                        const float origin[3],
                                        const int axis,

@@ -701,11 +701,16 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
   Object *ob_orig = (Object *)DEG_get_original_id(&ob->id);
   bGPdata *gpd_orig = (bGPdata *)ob_orig->data;
 
-  /* Need check if some layer is parented. */
+  /* Need check if some layer is parented or transformed. */
   bool do_parent = false;
+  bool do_transform = false;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd_orig->layers) {
     if (gpl->parent != NULL) {
       do_parent = true;
+      break;
+    }
+    if ((!is_zero_v3(gpl->location)) || (!is_zero_v3(gpl->rotation)) || (!is_one_v3(gpl->scale))) {
+      do_transform = true;
       break;
     }
   }
@@ -715,7 +720,7 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
   const bool do_modifiers = (bool)((!is_multiedit) && (!is_curve_edit) &&
                                    (ob->greasepencil_modifiers.first != NULL) &&
                                    (!GPENCIL_SIMPLIFY_MODIF(scene)));
-  if ((!do_modifiers) && (!do_parent)) {
+  if ((!do_modifiers) && (!do_parent) && (!do_transform)) {
     return;
   }
   DEG_debug_print_eval(depsgraph, __func__, gpd_eval->id.name, gpd_eval);

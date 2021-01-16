@@ -95,6 +95,32 @@ static void greasepencil_copy_data(Main *UNUSED(bmain),
     /* TODO here too could add unused flags... */
     bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(gpl_src);
 
+    /* Apply local layer transform to all frames. Calc the active frame is not enough
+     * because onion skin can use more frames. This is more slow but required here. */
+    if (gpl_dst->actframe != NULL) {
+      bool transfomed = ((!is_zero_v3(gpl_dst->location)) || (!is_zero_v3(gpl_dst->rotation)) ||
+                         (!is_one_v3(gpl_dst->scale)));
+      if (transfomed) {
+        loc_eul_size_to_mat4(
+            gpl_dst->layer_mat, gpl_dst->location, gpl_dst->rotation, gpl_dst->scale);
+        bool do_onion = ((gpl_dst->onion_flag & GP_LAYER_ONIONSKIN) != 0);
+        bGPDframe *init_gpf = (do_onion) ? gpl_dst->frames.first : gpl_dst->actframe;
+        for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+          LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+            bGPDspoint *pt;
+            int i;
+            for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+              mul_m4_v3(gpl_dst->layer_mat, &pt->x);
+            }
+          }
+          /* if not onion, exit loop. */
+          if (!do_onion) {
+            break;
+          }
+        }
+      }
+    }
+
     BLI_addtail(&gpd_dst->layers, gpl_dst);
   }
 }
@@ -686,6 +712,14 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
 
   /* Enable always affected by scene lights. */
   gpl->flag |= GP_LAYER_USE_LIGHTS;
+
+  /* Init transform. */
+  zero_v3(gpl->location);
+  zero_v3(gpl->rotation);
+  copy_v3_fl(gpl->scale, 1.0f);
+  loc_eul_size_to_mat4(gpl->layer_mat, gpl->location, gpl->rotation, gpl->scale);
+  invert_m4_m4(gpl->layer_invmat, gpl->layer_mat);
+
   /* make this one the active one */
   if (setactive) {
     BKE_gpencil_layer_active_set(gpd, gpl);
@@ -2759,10 +2793,10 @@ void BKE_gpencil_update_orig_pointers(const Object *ob_orig, const Object *ob_ev
  * \param gpl: Grease pencil layer
  * \param diff_mat: Result parent matrix
  */
-void BKE_gpencil_parent_matrix_get(const Depsgraph *depsgraph,
-                                   Object *obact,
-                                   bGPDlayer *gpl,
-                                   float diff_mat[4][4])
+void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
+                                            Object *obact,
+                                            bGPDlayer *gpl,
+                                            float diff_mat[4][4])
 {
   Object *ob_eval = depsgraph != NULL ? DEG_get_evaluated_object(depsgraph, obact) : obact;
   Object *obparent = gpl->parent;
@@ -2771,11 +2805,10 @@ void BKE_gpencil_parent_matrix_get(const Depsgraph *depsgraph,
 
   /* if not layer parented, try with object parented */
   if (obparent_eval == NULL) {
-    if (ob_eval != NULL) {
-      if (ob_eval->type == OB_GPENCIL) {
-        copy_m4_m4(diff_mat, ob_eval->obmat);
-        return;
-      }
+    if ((ob_eval != NULL) && (ob_eval->type == OB_GPENCIL)) {
+      copy_m4_m4(diff_mat, ob_eval->obmat);
+      mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
+      return;
     }
     /* not gpencil object */
     unit_m4(diff_mat);
@@ -2785,6 +2818,7 @@ void BKE_gpencil_parent_matrix_get(const Depsgraph *depsgraph,
   if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
     mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
     add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
+    mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
     return;
   }
   if (gpl->partype == PARBONE) {
@@ -2800,6 +2834,7 @@ void BKE_gpencil_parent_matrix_get(const Depsgraph *depsgraph,
       mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
       add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
     }
+    mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
     return;
   }
 
@@ -2807,11 +2842,11 @@ void BKE_gpencil_parent_matrix_get(const Depsgraph *depsgraph,
 }
 
 /**
- * Update parent matrix.
+ * Update parent matrix and local transforms.
  * \param depsgraph: Depsgraph
  * \param ob: Grease pencil object
  */
-void BKE_gpencil_update_layer_parent(const Depsgraph *depsgraph, Object *ob)
+void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
 {
   if (ob->type != OB_GPENCIL) {
     return;
@@ -2820,31 +2855,50 @@ void BKE_gpencil_update_layer_parent(const Depsgraph *depsgraph, Object *ob)
   bGPdata *gpd = (bGPdata *)ob->data;
   float cur_mat[4][4];
 
+  bool changed = false;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    if ((gpl->parent != NULL) && (gpl->actframe != NULL)) {
-      Object *ob_parent = DEG_get_evaluated_object(depsgraph, gpl->parent);
-      /* calculate new matrix */
-      if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-        copy_m4_m4(cur_mat, ob_parent->obmat);
-      }
-      else if (gpl->partype == PARBONE) {
-        bPoseChannel *pchan = BKE_pose_channel_find_name(ob_parent->pose, gpl->parsubstr);
-        if (pchan != NULL) {
-          copy_m4_m4(cur_mat, ob->imat);
-          mul_m4_m4m4(cur_mat, ob_parent->obmat, pchan->pose_mat);
+    unit_m4(cur_mat);
+    if (gpl->actframe != NULL) {
+      if (gpl->parent != NULL) {
+        Object *ob_parent = DEG_get_evaluated_object(depsgraph, gpl->parent);
+        /* calculate new matrix */
+        if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
+          copy_m4_m4(cur_mat, ob_parent->obmat);
         }
-        else {
-          unit_m4(cur_mat);
+        else if (gpl->partype == PARBONE) {
+          bPoseChannel *pchan = BKE_pose_channel_find_name(ob_parent->pose, gpl->parsubstr);
+          if (pchan != NULL) {
+            copy_m4_m4(cur_mat, ob->imat);
+            mul_m4_m4m4(cur_mat, ob_parent->obmat, pchan->pose_mat);
+          }
+          else {
+            unit_m4(cur_mat);
+          }
         }
+        changed = !equals_m4m4(gpl->inverse, cur_mat);
       }
+
+      /* Calc local layer transform. */
+      bool transfomed = ((!is_zero_v3(gpl->location)) || (!is_zero_v3(gpl->rotation)) ||
+                         (!is_one_v3(gpl->scale)));
+      if (transfomed) {
+        loc_eul_size_to_mat4(gpl->layer_mat, gpl->location, gpl->rotation, gpl->scale);
+      }
+
       /* only redo if any change */
-      if (!equals_m4m4(gpl->inverse, cur_mat)) {
+      if (changed || transfomed) {
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpl->actframe->strokes) {
           bGPDspoint *pt;
           int i;
           for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-            mul_m4_v3(gpl->inverse, &pt->x);
-            mul_m4_v3(cur_mat, &pt->x);
+            if (changed) {
+              mul_m4_v3(gpl->inverse, &pt->x);
+              mul_m4_v3(cur_mat, &pt->x);
+            }
+
+            if (transfomed) {
+              mul_m4_v3(gpl->layer_mat, &pt->x);
+            }
           }
         }
       }

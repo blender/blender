@@ -759,6 +759,16 @@ class GreasePencilLayerAdjustmentsPanel:
         col = layout.row(align=True)
         col.prop(gpl, "lock_material")
 
+        # Transforms
+        row = layout.row(align=True)
+        row.prop(gpl, "location")
+
+        row = layout.row(align=True)
+        row.prop(gpl, "rotation")
+
+        row = layout.row(align=True)
+        row.prop(gpl, "scale")
+
 
 class GPENCIL_UL_masks(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
