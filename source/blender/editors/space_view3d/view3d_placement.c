@@ -1354,7 +1354,9 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
           RNA_float_set_array(&op_props, "location", location);
           RNA_float_set_array(&op_props, "scale", scale);
           /* Always use default size here. */
-          RNA_float_set(&op_props, "size", 2.0f);
+          if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CUBE) {
+            RNA_float_set(&op_props, "size", 2.0f);
+          }
           WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props);
           WM_operator_properties_free(&op_props);
         }
