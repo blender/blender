@@ -1068,10 +1068,9 @@ static int sculpt_expand_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
   return OPERATOR_RUNNING_MODAL;
 }
 
-
-
-
-static void sculpt_expand_delete_face_set_id(Mesh *mesh, MeshElemMap *pmap, int *face_sets, const int totface, const int delete_id) {
+static void sculpt_expand_delete_face_set_id(
+    Mesh *mesh, MeshElemMap *pmap, int *face_sets, const int totface, const int delete_id)
+{
 
   BLI_LINKSTACK_DECLARE(queue, int);
   BLI_LINKSTACK_DECLARE(queue_next, int);
@@ -1080,18 +1079,17 @@ static void sculpt_expand_delete_face_set_id(Mesh *mesh, MeshElemMap *pmap, int 
   BLI_LINKSTACK_INIT(queue_next);
 
   for (int i = 0; i < totface; i++) {
-      if (face_sets[i] == delete_id) {
-          BLI_LINKSTACK_PUSH(queue, i);
-      }
+    if (face_sets[i] == delete_id) {
+      BLI_LINKSTACK_PUSH(queue, i);
+    }
   }
-
 
   while (BLI_LINKSTACK_SIZE(queue)) {
     int f_index;
     while (f_index = BLI_LINKSTACK_POP(queue)) {
 
-    int other_id = delete_id;
-    const MPoly *c_poly = &mesh->mpoly[f_index];
+      int other_id = delete_id;
+      const MPoly *c_poly = &mesh->mpoly[f_index];
       for (int l = 0; l < c_poly->totloop; l++) {
         const MLoop *c_loop = &mesh->mloop[c_poly->loopstart + l];
         const MeshElemMap *vert_map = &pmap[c_loop->v];
@@ -1099,7 +1097,7 @@ static void sculpt_expand_delete_face_set_id(Mesh *mesh, MeshElemMap *pmap, int 
 
           const int neighbor_face_index = vert_map->indices[i];
           if (face_sets[neighbor_face_index] != delete_id) {
-              other_id = face_sets[neighbor_face_index];
+            other_id = face_sets[neighbor_face_index];
           }
         }
       }
@@ -1108,7 +1106,7 @@ static void sculpt_expand_delete_face_set_id(Mesh *mesh, MeshElemMap *pmap, int 
         face_sets[f_index] = other_id;
       }
       else {
-          BLI_LINKSTACK_PUSH(queue_next, f_index);
+        BLI_LINKSTACK_PUSH(queue_next, f_index);
       }
     }
 
@@ -1118,7 +1116,6 @@ static void sculpt_expand_delete_face_set_id(Mesh *mesh, MeshElemMap *pmap, int 
   BLI_LINKSTACK_FREE(queue);
   BLI_LINKSTACK_FREE(queue_next);
 }
-
 
 static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
                                                    Object *ob,
@@ -1177,12 +1174,13 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   /* Store initial state. */
   sculpt_expand_initial_state_store(ob, ss->expand_cache);
 
-
   if (ss->expand_cache->modify_active) {
-      sculpt_expand_delete_face_set_id(ob->data, ss->pmap, ss->expand_cache->initial_face_sets, ss->totfaces, ss->expand_cache->next_face_set);
+    sculpt_expand_delete_face_set_id(ob->data,
+                                     ss->pmap,
+                                     ss->expand_cache->initial_face_sets,
+                                     ss->totfaces,
+                                     ss->expand_cache->next_face_set);
   }
-
-
 
   /* Initialize the factors. */
   eSculptExpandFalloffType falloff_type = SCULPT_EXPAND_FALLOFF_GEODESICS;
