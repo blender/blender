@@ -85,6 +85,7 @@ enum {
   SCULPT_EXPAND_MODAL_FALLOFF_GEODESICS,
   SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY,
   SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL,
+  SCULPT_EXPAND_MODAL_SNAP_TOGGLE,
 };
 
 static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
@@ -407,6 +408,9 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
 
 static void sculpt_expand_cache_free(ExpandCache *expand_cache)
 {
+  if (expand_cache->snap_enabled_face_sets) {
+    BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
+  }
   MEM_SAFE_FREE(expand_cache->nodes);
   MEM_SAFE_FREE(expand_cache->falloff_factor);
   MEM_SAFE_FREE(expand_cache->face_falloff_factor);
@@ -461,18 +465,35 @@ static void sculpt_expand_cancel(bContext *C, wmOperator *op)
   ED_workspace_status_text(C, NULL);
 }
 
-static bool sculpt_expand_state_get(ExpandCache *expand_cache, const int i)
+static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int i)
 {
-  bool enabled = expand_cache->falloff_factor[i] <= expand_cache->active_factor;
+
+  bool enabled = false;
+
+  if (expand_cache->snap) {
+    const int face_set = SCULPT_vertex_face_set_get(ss, i);
+    enabled = BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
+  }
+  else {
+    enabled = expand_cache->falloff_factor[i] <= expand_cache->active_factor;
+  }
+
   if (expand_cache->invert) {
     enabled = !enabled;
   }
   return enabled;
 }
 
-static bool sculpt_expand_face_state_get(ExpandCache *expand_cache, const int f)
+static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_cache, const int f)
 {
-  bool enabled = expand_cache->face_falloff_factor[f] <= expand_cache->active_factor;
+  bool enabled = false;
+  if (expand_cache->snap_enabled_face_sets) {
+    const int face_set = ss->face_sets[f];
+    enabled = BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
+  }
+  else {
+    enabled = expand_cache->face_falloff_factor[f] <= expand_cache->active_factor;
+  }
   if (expand_cache->invert) {
     enabled = !enabled;
   }
@@ -508,7 +529,7 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
   {
     const float initial_mask = *vd.mask;
-    const bool enabled = sculpt_expand_state_get(expand_cache, vd.index);
+    const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.index);
 
     float new_mask;
 
@@ -551,7 +572,7 @@ static void sculpt_expand_face_sets_update_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
   {
-    const bool enabled = sculpt_expand_state_get(expand_cache, vd.index);
+    const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.index);
 
     if (!enabled) {
       continue;
@@ -577,7 +598,7 @@ static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expan
 {
   const int totface = ss->totfaces;
   for (int f = 0; f < totface; f++) {
-    const bool enabled = sculpt_expand_face_state_get(expand_cache, f);
+    const bool enabled = sculpt_expand_face_state_get(ss, expand_cache, f);
     if (!enabled) {
       continue;
     }
@@ -611,7 +632,7 @@ static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
     float initial_color[4];
     copy_v4_v4(initial_color, vd.col);
 
-    const bool enabled = sculpt_expand_state_get(expand_cache, vd.index);
+    const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.index);
     float fade;
 
     if (enabled) {
@@ -788,17 +809,23 @@ static void sculpt_expand_finish(bContext *C)
   ED_workspace_status_text(C, NULL);
 }
 
-static void sculpt_mask_expand_resursion_step_add(Object *ob, ExpandCache *expand_cache)
+static BLI_bitmap *sculpt_expand_bitmap_from_enabled(SculptSession *ss, ExpandCache *expand_cache)
+{
+  const int totvert = SCULPT_vertex_count_get(ss);
+  BLI_bitmap *enabled_vertices = BLI_BITMAP_NEW(totvert, "enabled vertices");
+  for (int i = 0; i < totvert; i++) {
+    const bool enabled = sculpt_expand_state_get(ss, expand_cache, i);
+    BLI_BITMAP_SET(enabled_vertices, i, enabled);
+  }
+  return enabled_vertices;
+}
+
+static void sculpt_expand_resursion_step_add(Object *ob, ExpandCache *expand_cache)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  BLI_bitmap *enabled_vertices = BLI_BITMAP_NEW(totvert, "boundary vertices");
   GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
-
-  for (int i = 0; i < totvert; i++) {
-    const bool enabled = sculpt_expand_state_get(expand_cache, i);
-    BLI_BITMAP_SET(enabled_vertices, i, enabled);
-  }
+  BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
 
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
@@ -885,7 +912,45 @@ static void sculpt_expand_move_propagation_origin(bContext *C,
                                                             expand_cache->falloff_factor_type);
 }
 
-static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
+                                                       ExpandCache *expand_cache)
+{
+  const bool prev_snap_state = expand_cache->snap;
+  const bool prev_invert_state = expand_cache->invert;
+  expand_cache->snap = false;
+  expand_cache->invert = false;
+
+  BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
+
+  const int totface = ss->totfaces;
+  for (int i = 0; i < totface; i++) {
+    const int face_set = expand_cache->initial_face_sets[i];
+    BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
+  }
+
+  for (int p = 0; p < totface; p++) {
+    MPoly *poly = &ss->mpoly[p];
+    bool any_disabled = false;
+    for (int l = 0; l < poly->totloop; l++) {
+      MLoop *loop = &ss->mloop[l + poly->loopstart];
+      if (!BLI_BITMAP_TEST(enabled_vertices, loop->v)) {
+        any_disabled = true;
+      }
+    }
+    if (any_disabled) {
+      const int face_set = expand_cache->initial_face_sets[p];
+      if (BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set))) {
+        BLI_gset_remove(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set), NULL);
+      }
+    }
+  }
+
+  MEM_freeN(enabled_vertices);
+  expand_cache->snap = prev_snap_state;
+  expand_cache->invert = prev_invert_state;
+}
+
+static int sculpt_expand_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -909,6 +974,22 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         expand_cache->falloff_gradient = !expand_cache->falloff_gradient;
         break;
       }
+      case SCULPT_EXPAND_MODAL_SNAP_TOGGLE: {
+        if (expand_cache->snap) {
+          expand_cache->snap = false;
+          if (expand_cache->snap_enabled_face_sets) {
+            BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
+            expand_cache->snap_enabled_face_sets = NULL;
+          }
+        }
+        else {
+          expand_cache->snap = true;
+          if (!expand_cache->snap_enabled_face_sets) {
+            expand_cache->snap_enabled_face_sets = BLI_gset_int_new("snap face sets");
+          }
+          sculpt_expand_snap_initialize_from_enabled(ss, expand_cache);
+        }
+      } break;
       case SCULPT_EXPAND_MODAL_MOVE_TOGGLE: {
         if (expand_cache->move) {
           expand_cache->move = false;
@@ -921,7 +1002,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
       case SCULPT_EXPAND_MODAL_RECURSION_STEP: {
-        sculpt_mask_expand_resursion_step_add(ob, expand_cache);
+        sculpt_expand_resursion_step_add(ob, expand_cache);
         break;
       }
       case SCULPT_EXPAND_MODAL_CONFIRM: {
@@ -965,6 +1046,14 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
 
   if (expand_cache->move) {
     sculpt_expand_move_propagation_origin(C, ob, event, expand_cache);
+  }
+
+  if (expand_cache->snap) {
+    const int active_face_set_id = expand_cache->initial_face_sets[ss->active_face_index];
+    if (!BLI_gset_haskey(expand_cache->snap_enabled_face_sets,
+                         POINTER_FROM_INT(active_face_set_id))) {
+      BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(active_face_set_id));
+    }
   }
 
   sculpt_expand_update_for_vertex(C, ob, target_expand_vertex);
@@ -1077,6 +1166,7 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Move the origin of the expand",
        ""},
+      {SCULPT_EXPAND_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap expand to Face Sets", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1110,7 +1200,7 @@ void SCULPT_OT_expand(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "target",
                prop_sculpt_expand_target_type_items,
-               SCULPT_EXPAND_TARGET_COLORS,
+               SCULPT_EXPAND_TARGET_FACE_SETS,
                "Data Target",
                "Data that is going to be modified in the expand operation");
 

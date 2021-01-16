@@ -5540,6 +5540,7 @@ def km_sculpt_expand_modal(_params):
         ("FALLOFF_GEODESICS", {"type": 'ONE', "value": 'PRESS', "any": True, "repeat" : False}, None),
         ("FALLOFF_TOPOLOGY", {"type": 'TWO', "value": 'PRESS', "any": True, "repeat" : False}, None),
         ("FALLOFF_SPHERICAL", {"type": 'THREE', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("SNAP_TOGGLE", {"type": 'Z', "value": 'ANY', "any": True, "repeat" : False}, None),
     ])
     return keymap
 

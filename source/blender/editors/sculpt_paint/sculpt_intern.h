@@ -1182,6 +1182,8 @@ typedef struct ExpandCache {
   int initial_active_face_set;
   int next_face_set;
 
+  GSet *snap_enabled_face_sets;
+
   PBVHNode **nodes;
   int totnode;
 
@@ -1189,6 +1191,7 @@ typedef struct ExpandCache {
   bool preserve;
   bool falloff_gradient;
   bool move;
+  bool snap;
 
   float initial_mouse_move[2];
   float original_mouse_move[2];
