@@ -24,6 +24,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
@@ -39,6 +40,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
@@ -887,7 +889,12 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
   copy_v2_v2(ss->expand_cache->initial_mouse, mouse);
   expand_cache->initial_active_vertex = initial_vertex;
   expand_cache->initial_active_face_set = SCULPT_active_face_set_get(ss);
-  expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
+  if (expand_cache->modify_active) {
+    expand_cache->next_face_set = SCULPT_active_face_set_get(ss);
+  }
+  else {
+    expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
+  }
 }
 
 static void sculpt_expand_move_propagation_origin(bContext *C,
@@ -1061,6 +1068,58 @@ static int sculpt_expand_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
   return OPERATOR_RUNNING_MODAL;
 }
 
+
+
+
+static void sculpt_expand_delete_face_set_id(Mesh *mesh, MeshElemMap *pmap, int *face_sets, const int totface, const int delete_id) {
+
+  BLI_LINKSTACK_DECLARE(queue, int);
+  BLI_LINKSTACK_DECLARE(queue_next, int);
+
+  BLI_LINKSTACK_INIT(queue);
+  BLI_LINKSTACK_INIT(queue_next);
+
+  for (int i = 0; i < totface; i++) {
+      if (face_sets[i] == delete_id) {
+          BLI_LINKSTACK_PUSH(queue, i);
+      }
+  }
+
+
+  while (BLI_LINKSTACK_SIZE(queue)) {
+    int f_index;
+    while (f_index = BLI_LINKSTACK_POP(queue)) {
+
+    int other_id = delete_id;
+    const MPoly *c_poly = &mesh->mpoly[f_index];
+      for (int l = 0; l < c_poly->totloop; l++) {
+        const MLoop *c_loop = &mesh->mloop[c_poly->loopstart + l];
+        const MeshElemMap *vert_map = &pmap[c_loop->v];
+        for (int i = 0; i < vert_map->count; i++) {
+
+          const int neighbor_face_index = vert_map->indices[i];
+          if (face_sets[neighbor_face_index] != delete_id) {
+              other_id = face_sets[neighbor_face_index];
+          }
+        }
+      }
+
+      if (other_id != delete_id) {
+        face_sets[f_index] = other_id;
+      }
+      else {
+          BLI_LINKSTACK_PUSH(queue_next, f_index);
+      }
+    }
+
+    BLI_LINKSTACK_SWAP(queue, queue_next);
+  }
+
+  BLI_LINKSTACK_FREE(queue);
+  BLI_LINKSTACK_FREE(queue_next);
+}
+
+
 static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
                                                    Object *ob,
                                                    ExpandCache *expand_cache,
@@ -1071,6 +1130,8 @@ static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
   expand_cache->preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
   expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
   expand_cache->target = RNA_enum_get(op->ptr, "target");
+  expand_cache->modify_active = RNA_boolean_get(op->ptr, "use_modify_active");
+  expand_cache->expand_from_active = RNA_boolean_get(op->ptr, "use_expand_from_active");
 
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -1115,6 +1176,13 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Store initial state. */
   sculpt_expand_initial_state_store(ob, ss->expand_cache);
+
+
+  if (ss->expand_cache->modify_active) {
+      sculpt_expand_delete_face_set_id(ob->data, ss->pmap, ss->expand_cache->initial_face_sets, ss->totfaces, ss->expand_cache->next_face_set);
+  }
+
+
 
   /* Initialize the factors. */
   eSculptExpandFalloffType falloff_type = SCULPT_EXPAND_FALLOFF_GEODESICS;
@@ -1213,4 +1281,10 @@ void SCULPT_OT_expand(wmOperatorType *ot)
                              "Preserve the previous mask");
   ot->prop = RNA_def_boolean(
       ot->srna, "use_falloff_gradient", false, "Falloff Gradient", "Expand Using a Falloff");
+
+  ot->prop = RNA_def_boolean(
+      ot->srna, "use_modify_active", true, "Modify Active", "Modify Active");
+
+  ot->prop = RNA_def_boolean(
+      ot->srna, "use_expand_from_active", false, "Expand From Active", "Expand From Active");
 }

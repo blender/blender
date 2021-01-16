@@ -1192,6 +1192,8 @@ typedef struct ExpandCache {
   bool falloff_gradient;
   bool move;
   bool snap;
+  bool modify_active;
+  bool expand_from_active;
 
   float initial_mouse_move[2];
   float original_mouse_move[2];
