@@ -1166,15 +1166,20 @@ typedef enum eSculptExpandTargetType {
 } eSculptExpandTargetType;
 
 typedef struct ExpandCache {
+  eSculptExpandTargetType target;
+
   eSculptExpandFalloffType falloff_factor_type;
   float *falloff_factor;
   float max_falloff_factor;
 
+  float *face_falloff_factor;
+  float max_face_falloff_factor;
+
+  float active_factor;
+
   int initial_active_vertex;
   int initial_active_face_set;
   int next_face_set;
-  float active_factor;
-
 
   PBVHNode **nodes;
   int totnode;
@@ -1188,11 +1193,9 @@ typedef struct ExpandCache {
   float fill_color[4];
   short blend_mode;
 
-  eSculptExpandTargetType target;
   float *initial_mask;
   int *initial_face_sets;
   float (*initial_color)[4];
-
 } ExpandCache;
 
 typedef struct FilterCache {

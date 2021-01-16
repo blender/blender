@@ -302,11 +302,10 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
 
   for (int i = 0; i < totvert; i++) {
     if (BLI_BITMAP_TEST(visited_vertices, i)) {
-       continue;
+      continue;
     }
     dists[i] = FLT_MAX;
   }
-
 
   BLI_gsqueue_free(queue);
   MEM_freeN(visited_vertices);
@@ -323,6 +322,40 @@ static void sculpt_expand_update_max_falloff_factor(SculptSession *ss, ExpandCac
     }
     expand_cache->max_falloff_factor = max_ff(expand_cache->max_falloff_factor,
                                               expand_cache->falloff_factor[i]);
+  }
+}
+
+static void sculpt_expand_update_max_face_falloff_factor(SculptSession *ss,
+                                                         ExpandCache *expand_cache)
+{
+  const int totface = ss->totfaces;
+  expand_cache->max_face_falloff_factor = -FLT_MAX;
+  for (int i = 0; i < totface; i++) {
+    if (expand_cache->face_falloff_factor[i] == FLT_MAX) {
+      continue;
+    }
+    expand_cache->max_face_falloff_factor = max_ff(expand_cache->max_face_falloff_factor,
+                                                   expand_cache->face_falloff_factor[i]);
+  }
+}
+
+static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(Mesh *mesh,
+                                                                ExpandCache *expand_cache)
+{
+  if (expand_cache->face_falloff_factor) {
+    MEM_freeN(expand_cache->face_falloff_factor);
+  }
+  expand_cache->face_falloff_factor = MEM_malloc_arrayN(
+      mesh->totpoly, sizeof(float), "face falloff factors");
+
+  for (int p = 0; p < mesh->totpoly; p++) {
+    MPoly *poly = &mesh->mpoly[p];
+    float accum = 0.0f;
+    for (int l = 0; l < poly->totloop; l++) {
+      MLoop *loop = &mesh->mloop[l + poly->loopstart];
+      accum += expand_cache->falloff_factor[loop->v];
+    }
+    expand_cache->face_falloff_factor[p] = accum / poly->totloop;
   }
 }
 
@@ -365,12 +398,18 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
 
   SculptSession *ss = ob->sculpt;
   sculpt_expand_update_max_falloff_factor(ss, expand_cache);
+
+  if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
+    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ob->data, expand_cache);
+    sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
+  }
 }
 
 static void sculpt_expand_cache_free(ExpandCache *expand_cache)
 {
   MEM_SAFE_FREE(expand_cache->nodes);
   MEM_SAFE_FREE(expand_cache->falloff_factor);
+  MEM_SAFE_FREE(expand_cache->face_falloff_factor);
   MEM_SAFE_FREE(expand_cache->initial_mask);
   MEM_SAFE_FREE(expand_cache->initial_face_sets);
   MEM_SAFE_FREE(expand_cache->initial_color);
@@ -425,6 +464,15 @@ static void sculpt_expand_cancel(bContext *C, wmOperator *op)
 static bool sculpt_expand_state_get(ExpandCache *expand_cache, const int i)
 {
   bool enabled = expand_cache->falloff_factor[i] <= expand_cache->active_factor;
+  if (expand_cache->invert) {
+    enabled = !enabled;
+  }
+  return enabled;
+}
+
+static bool sculpt_expand_face_state_get(ExpandCache *expand_cache, const int f)
+{
+  bool enabled = expand_cache->face_falloff_factor[f] <= expand_cache->active_factor;
   if (expand_cache->invert) {
     enabled = !enabled;
   }
@@ -492,8 +540,8 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
 }
 
 static void sculpt_expand_face_sets_update_task_cb(void *__restrict userdata,
-                                                const int i,
-                                                const TaskParallelTLS *__restrict UNUSED(tls))
+                                                   const int i,
+                                                   const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -506,14 +554,14 @@ static void sculpt_expand_face_sets_update_task_cb(void *__restrict userdata,
     const bool enabled = sculpt_expand_state_get(expand_cache, vd.index);
 
     if (!enabled) {
-        continue;
+      continue;
     }
 
     if (expand_cache->falloff_gradient) {
-        SCULPT_vertex_face_set_increase(ss, vd.index, expand_cache->next_face_set);
+      SCULPT_vertex_face_set_increase(ss, vd.index, expand_cache->next_face_set);
     }
     else {
-        SCULPT_vertex_face_set_set(ss, vd.index, expand_cache->next_face_set);
+      SCULPT_vertex_face_set_set(ss, vd.index, expand_cache->next_face_set);
     }
 
     if (vd.mvert) {
@@ -523,6 +571,27 @@ static void sculpt_expand_face_sets_update_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 
   BKE_pbvh_node_mark_update_mask(node);
+}
+
+static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expand_cache)
+{
+  const int totface = ss->totfaces;
+  for (int f = 0; f < totface; f++) {
+    const bool enabled = sculpt_expand_face_state_get(expand_cache, f);
+    if (!enabled) {
+      continue;
+    }
+    if (expand_cache->falloff_gradient) {
+      ss->face_sets[f] += expand_cache->next_face_set;
+    }
+    else {
+      ss->face_sets[f] = expand_cache->next_face_set;
+    }
+  }
+
+  for (int i = 0; i < expand_cache->totnode; i++) {
+    BKE_pbvh_node_mark_update_mask(expand_cache->nodes[i]);
+  }
 }
 
 static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
@@ -627,11 +696,12 @@ static void sculpt_expand_initial_state_store(Object *ob, ExpandCache *expand_ca
   }
 }
 
-static void sculpt_expand_face_sets_restore(SculptSession *ss, ExpandCache *expand_cache) {
-    const int totfaces = ss->totfaces;
-    for (int i = 0; i < totfaces; i++) {
-        ss->face_sets[i] = expand_cache->initial_face_sets[i];
-    }
+static void sculpt_expand_face_sets_restore(SculptSession *ss, ExpandCache *expand_cache)
+{
+  const int totfaces = ss->totfaces;
+  for (int i = 0; i < totfaces; i++) {
+    ss->face_sets[i] = expand_cache->initial_face_sets[i];
+  }
 }
 
 static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int vertex)
@@ -648,11 +718,9 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
     expand_cache->active_factor = expand_cache->falloff_factor[vertex];
   }
 
-
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
     sculpt_expand_face_sets_restore(ss, expand_cache);
   }
-
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -669,8 +737,11 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
           0, expand_cache->totnode, &data, sculpt_expand_mask_update_task_cb, &settings);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
+      /*
       BLI_task_parallel_range(
           0, expand_cache->totnode, &data, sculpt_expand_face_sets_update_task_cb, &settings);
+      */
+      sculpt_expand_face_sets_update(ss, expand_cache);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       BLI_task_parallel_range(
