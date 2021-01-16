@@ -1174,7 +1174,7 @@ void viewplace_modal_keymap(wmKeyConfig *keyconf)
       {0, NULL, 0, NULL, NULL},
   };
 
-  const char *keymap_name = "View3D Placement Modal Map";
+  const char *keymap_name = "View3D Placement Modal";
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, keymap_name);
 
   /* This function is called for each space-type, only needs to add map once. */

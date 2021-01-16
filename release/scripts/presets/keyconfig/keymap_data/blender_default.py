@@ -5087,10 +5087,10 @@ def km_transform_modal_map(_params):
     return keymap
 
 
-def km_view3d_interactive_add_tool_modal_map(_params):
+def km_view3d_interactive_add_tool_modal(_params):
     items = []
     keymap = (
-        "View3D Placement Modal Map",
+        "View3D Placement Modal",
         {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
         {"items": items},
     )
@@ -6997,7 +6997,7 @@ def generate_keymaps(params=None):
         km_eyedropper_modal_map(params),
         km_eyedropper_colorramp_pointsampling_map(params),
         km_transform_modal_map(params),
-        km_view3d_interactive_add_tool_modal_map(params),
+        km_view3d_interactive_add_tool_modal(params),
         km_view3d_gesture_circle(params),
         km_gesture_border(params),
         km_gesture_zoom_border(params),
