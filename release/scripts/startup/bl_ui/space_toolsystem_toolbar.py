@@ -462,6 +462,8 @@ class _defs_view3d_add:
         row = layout.row()
         row.scale_x = 0.7
         row.prop(props, "plane_origin")
+        row.scale_x = 0.8
+        row.prop(props, "snap_target")
 
     @ToolDef.from_fn
     def cube_add():
