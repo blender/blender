@@ -795,6 +795,12 @@ static void view3d_interactive_add_calc_plane(bContext *C,
   const RegionView3D *rv3d = region->regiondata;
   ED_transform_calc_orientation_from_type(C, r_matrix_orient);
 
+  /* Non-orthogonal matrices cause the preview and final result not to match.
+   *
+   * While making orthogonal doesn't always work well (especially with gimbal orientation for e.g.)
+   * it's a corner case, without better alternatives as objects don't support shear. */
+  orthogonalize_m3(r_matrix_orient, plane_axis);
+
   SnapObjectContext *snap_context = NULL;
   bool snap_context_free = false;
 
