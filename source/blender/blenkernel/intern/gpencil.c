@@ -2575,6 +2575,11 @@ void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
       continue;
     }
 
+    /* If scale to 0 the layer must be invisible. */
+    if (is_zero_v3(gpl->scale)) {
+      continue;
+    }
+
     /* Hide the layer if it's defined a view layer filter. This is used to
      * generate renders, putting only selected GP layers for each View Layer.
      * This is used only in final render and never in Viewport. */
