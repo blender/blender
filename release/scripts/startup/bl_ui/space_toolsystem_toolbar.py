@@ -2581,12 +2581,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'OBJECT': [
             *_tools_default,
-            # Currently experimental.
-            # None, _tools_view3d_add,
-            lambda context: (
-                (None, VIEW3D_PT_tools_active._tools_view3d_add)
-                if (context is None or context.preferences.experimental.use_object_add_tool) else ()
-            ),
+            None,
+            _tools_view3d_add,
         ],
         'POSE': [
             *_tools_default,
@@ -2615,12 +2611,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'EDIT_MESH': [
             *_tools_default,
 
-            # Currently experimental.
-            # None, _tools_view3d_add,
-            lambda context: (
-                (None, VIEW3D_PT_tools_active._tools_view3d_add)
-                if (context is None or context.preferences.experimental.use_object_add_tool) else ()
-            ),
+            None,
+            _tools_view3d_add,
             None,
             (
                 _defs_edit_mesh.extrude,
