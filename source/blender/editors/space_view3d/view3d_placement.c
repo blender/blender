@@ -167,6 +167,9 @@ struct InteractivePlaceData {
   /** The tool option, if we start centered, invert toggling behavior. */
   bool is_centered_init;
 
+  /** The tool option, if we start fixed, invert toggling behavior. */
+  bool is_fixed_aspect_init;
+
   bool use_snap, is_snap_found, is_snap_invert;
   float snap_co[3];
 
@@ -997,6 +1000,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   const enum ePlace_Depth plane_depth = RNA_enum_get(op->ptr, "plane_depth");
   const enum ePlace_Origin plane_origin = RNA_enum_get(op->ptr, "plane_origin");
   const enum ePlace_Orient plane_orient = RNA_enum_get(op->ptr, "plane_orientation");
+  const bool use_fixed_aspect = RNA_boolean_get(op->ptr, "use_fixed_aspect");
 
   const float mval_fl[2] = {UNPACK2(event->mval)};
 
@@ -1052,8 +1056,11 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 
   ipd->orient_axis = plane_axis;
   ipd->is_centered_init = (plane_origin == PLACE_ORIGIN_CENTER);
+  ipd->is_fixed_aspect_init = use_fixed_aspect;
   ipd->step[0].is_centered = ipd->is_centered_init;
   ipd->step[1].is_centered = ipd->is_centered_init;
+  ipd->step[0].is_fixed_aspect = ipd->is_fixed_aspect_init;
+  ipd->step[1].is_fixed_aspect = ipd->is_fixed_aspect_init;
   ipd->step_index = STEP_BASE;
   ipd->snap_to = snap_to;
 
@@ -1279,7 +1286,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         ATTR_FALLTHROUGH;
       }
       case PLACE_MODAL_FIXED_ASPECT_OFF: {
-        ipd->step[ipd->step_index].is_fixed_aspect = is_fallthrough;
+        ipd->step[ipd->step_index].is_fixed_aspect = is_fallthrough ^ ipd->is_fixed_aspect_init;
         do_redraw = true;
         break;
       }
@@ -1354,6 +1361,11 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         /* Keep these values from the previous step. */
         ipd->step[1].is_centered = ipd->step[0].is_centered;
         ipd->step[1].is_fixed_aspect = ipd->step[0].is_fixed_aspect;
+        if (ipd->is_fixed_aspect_init) {
+          /* Keep this false, as it locks to a single size, which feels a bit strange. */
+          ipd->step[1].is_fixed_aspect = false;
+          ipd->is_fixed_aspect_init = false;
+        }
       }
     }
   }
@@ -1638,6 +1650,13 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_ui_text(prop, "Snap to", "The target to use while snapping");
   RNA_def_property_enum_default(prop, PLACE_SNAP_TO_GEOMETRY);
   RNA_def_property_enum_items(prop, snap_to_items);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(ot->srna,
+                         "use_fixed_aspect",
+                         false,
+                         "Fixed Aspect",
+                         "Constraint the initial plane to a fixed aspect");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* When not accessed via a tool. */
