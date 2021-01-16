@@ -519,6 +519,31 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, int index, int face_set)
   }
 }
 
+void SCULPT_vertex_face_set_increase(SculptSession *ss, int index, const int increase)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      MeshElemMap *vert_map = &ss->pmap[index];
+      for (int j = 0; j < ss->pmap[index].count; j++) {
+        if (ss->face_sets[vert_map->indices[j]] > 0) {
+          ss->face_sets[vert_map->indices[j]] += increase;
+        }
+      }
+    } break;
+    case PBVH_BMESH:
+      break;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = index / key->grid_area;
+      const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg, grid_index);
+      if (ss->face_sets[face_index] > 0) {
+        ss->face_sets[face_index] += increase;
+      }
+
+    } break;
+  }
+}
+
 int SCULPT_vertex_face_set_get(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {

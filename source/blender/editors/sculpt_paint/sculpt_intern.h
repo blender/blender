@@ -203,6 +203,7 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
 int SCULPT_active_face_set_get(SculptSession *ss);
 int SCULPT_vertex_face_set_get(SculptSession *ss, int index);
 void SCULPT_vertex_face_set_set(SculptSession *ss, int index, int face_set);
+void SCULPT_vertex_face_set_increase(SculptSession *ss, int index, const int increase);
 
 bool SCULPT_vertex_has_face_set(SculptSession *ss, int index, int face_set);
 bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, int index);
@@ -1170,7 +1171,10 @@ typedef struct ExpandCache {
   float max_falloff_factor;
 
   int initial_active_vertex;
+  int initial_active_face_set;
+  int next_face_set;
   float active_factor;
+
 
   PBVHNode **nodes;
   int totnode;

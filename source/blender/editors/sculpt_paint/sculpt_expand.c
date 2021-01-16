@@ -285,10 +285,6 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
     return dists;
   }
 
-  for (int i = 0; i < totvert; i++) {
-    dists[i] = FLT_MAX;
-  }
-
   while (!BLI_gsqueue_is_empty(queue)) {
     int v;
     BLI_gsqueue_pop(queue, &v);
@@ -303,6 +299,14 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
+
+  for (int i = 0; i < totvert; i++) {
+    if (BLI_BITMAP_TEST(visited_vertices, i)) {
+       continue;
+    }
+    dists[i] = FLT_MAX;
+  }
+
 
   BLI_gsqueue_free(queue);
   MEM_freeN(visited_vertices);
@@ -487,6 +491,40 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
   }
 }
 
+static void sculpt_expand_face_sets_update_task_cb(void *__restrict userdata,
+                                                const int i,
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHNode *node = data->nodes[i];
+  ExpandCache *expand_cache = ss->expand_cache;
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
+  {
+    const bool enabled = sculpt_expand_state_get(expand_cache, vd.index);
+
+    if (!enabled) {
+        continue;
+    }
+
+    if (expand_cache->falloff_gradient) {
+        SCULPT_vertex_face_set_increase(ss, vd.index, expand_cache->next_face_set);
+    }
+    else {
+        SCULPT_vertex_face_set_set(ss, vd.index, expand_cache->next_face_set);
+    }
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_update_mask(node);
+}
+
 static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
                                                 const int i,
                                                 const TaskParallelTLS *__restrict UNUSED(tls))
@@ -514,6 +552,7 @@ static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
       fade = 0.0f;
     }
 
+    fade *= 1.0f - *vd.mask;
     fade = clamp_f(fade, 0.0f, 1.0f);
 
     float final_color[4];
@@ -588,6 +627,13 @@ static void sculpt_expand_initial_state_store(Object *ob, ExpandCache *expand_ca
   }
 }
 
+static void sculpt_expand_face_sets_restore(SculptSession *ss, ExpandCache *expand_cache) {
+    const int totfaces = ss->totfaces;
+    for (int i = 0; i < totfaces; i++) {
+        ss->face_sets[i] = expand_cache->initial_face_sets[i];
+    }
+}
+
 static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int vertex)
 {
   SculptSession *ss = ob->sculpt;
@@ -601,6 +647,12 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
   else {
     expand_cache->active_factor = expand_cache->falloff_factor[vertex];
   }
+
+
+  if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
+    sculpt_expand_face_sets_restore(ss, expand_cache);
+  }
+
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -618,7 +670,7 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       BLI_task_parallel_range(
-          0, expand_cache->totnode, &data, sculpt_expand_mask_update_task_cb, &settings);
+          0, expand_cache->totnode, &data, sculpt_expand_face_sets_update_task_cb, &settings);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       BLI_task_parallel_range(
@@ -659,8 +711,6 @@ static void sculpt_expand_finish(bContext *C)
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
-      break;
-    default:
       break;
   }
 
@@ -739,7 +789,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   sculpt_expand_cache_initial_config_set(sd, ob, ss->expand_cache, op);
 
   /* Update object. */
-  const bool needs_colors = ss->expand_cache->target = SCULPT_EXPAND_TARGET_COLORS;
+  const bool needs_colors = ss->expand_cache->target == SCULPT_EXPAND_TARGET_COLORS;
 
   if (needs_colors) {
     BKE_sculpt_color_layer_create_if_needed(ob);
@@ -759,6 +809,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     initial_vertex = SCULPT_active_vertex_get(ss);
   }
   ss->expand_cache->initial_active_vertex = initial_vertex;
+  ss->expand_cache->initial_active_face_set = SCULPT_active_face_set_get(ss);
+  ss->expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
 
   /* Cache PBVH nodes. */
   BKE_pbvh_search_gather(
@@ -833,7 +885,7 @@ void SCULPT_OT_expand(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "target",
                prop_sculpt_expand_target_type_items,
-               SCULPT_EXPAND_TARGET_COLORS,
+               SCULPT_EXPAND_TARGET_FACE_SETS,
                "Data Target",
                "Data that is going to be modified in the expand operation");
 
