@@ -1288,7 +1288,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         ATTR_FALLTHROUGH;
       }
       case PLACE_MODAL_PIVOT_CENTER_OFF: {
-        ipd->step[ipd->step_index].is_centered = is_fallthrough;
+        ipd->step[ipd->step_index].is_centered = is_fallthrough ^ ipd->is_centered_init;
         do_redraw = true;
         break;
       }
@@ -1584,13 +1584,13 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
       {PLACE_DEPTH_CURSOR_PLANE,
        "CURSOR_PLANE",
        0,
-       "3D Cursor Plane",
+       "Cursor Plane",
        "Start placement using a point projected onto the selected axis at the 3D cursor position"},
       {PLACE_DEPTH_CURSOR_VIEW,
        "CURSOR_VIEW",
        0,
-       "3D Cursor View",
-       "Start placement using the mouse cursor projected onto the view plane"},
+       "Cursor View",
+       "Start placement using the 3D cursor projected onto the view plane"},
       {0, NULL, 0, NULL, NULL},
   };
   prop = RNA_def_property(ot->srna, "plane_depth", PROP_ENUM, PROP_NONE);

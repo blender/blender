@@ -444,31 +444,40 @@ class _defs_view3d_add:
     # Layout tweaks here would be good to avoid,
     # this shows limits in layout engine, as buttons are using a lot of space.
     @staticmethod
-    def draw_settings_interactive_add(layout, tool):
+    def draw_settings_interactive_add(layout, tool, extra):
         props = tool.operator_properties("view3d.interactive_add")
-        row = layout.row()
-        row.scale_x = 0.8
-        row.label(text="Depth:")
-        row = layout.row()
-        row.scale_x = 0.9
-        row.prop(props, "plane_depth", text="")
-        row = layout.row()
-        row.prop(props, "plane_axis", text="")
-        row = layout.row()
-        row.scale_x = 0.8
-        row.label(text="Orientation:")
-        row = layout.row()
-        row.prop(props, "plane_orientation", text="")
-        row = layout.row()
-        row.scale_x = 0.7
-        row.prop(props, "plane_origin")
-        row.scale_x = 0.8
-        row.prop(props, "snap_target")
+        if not extra:
+            row = layout.row()
+            row.scale_x = 0.8
+            row.label(text="Depth:")
+            row = layout.row()
+            row.scale_x = 0.9
+            row.prop(props, "plane_depth", text="")
+            row = layout.row()
+            row.scale_x = 0.8
+            row.label(text="Orientation:")
+            row = layout.row()
+            row.prop(props, "plane_orientation", text="")
+            row = layout.row()
+            row.scale_x = 0.8
+            row.prop(props, "snap_target")
+
+            region_is_header = bpy.context.region.type == 'TOOL_HEADER'
+
+            if region_is_header:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
+            else:
+                extra = True
+
+        if extra:
+            layout.use_property_split = True
+            layout.row().prop(props, "plane_axis", expand=True)
+            layout.row().prop(props, "plane_origin", expand=True)
 
     @ToolDef.from_fn
     def cube_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
         return dict(
             idname="builtin.primitive_cube_add",
             label="Add Cube",
@@ -483,8 +492,10 @@ class _defs_view3d_add:
 
     @ToolDef.from_fn
     def cone_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if extra:
+                return
 
             props = tool.operator_properties("mesh.primitive_cone_add")
             layout.prop(props, "vertices")
@@ -503,8 +514,10 @@ class _defs_view3d_add:
 
     @ToolDef.from_fn
     def cylinder_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if extra:
+                return
 
             props = tool.operator_properties("mesh.primitive_cylinder_add")
             layout.prop(props, "vertices")
@@ -523,8 +536,10 @@ class _defs_view3d_add:
 
     @ToolDef.from_fn
     def uv_sphere_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if extra:
+                return
 
             props = tool.operator_properties("mesh.primitive_uv_sphere_add")
             layout.prop(props, "segments")
@@ -543,8 +558,10 @@ class _defs_view3d_add:
 
     @ToolDef.from_fn
     def ico_sphere_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if extra:
+                return
 
             props = tool.operator_properties("mesh.primitive_ico_sphere_add")
             layout.prop(props, "subdivisions")
