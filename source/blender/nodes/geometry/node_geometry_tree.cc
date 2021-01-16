@@ -32,6 +32,8 @@
 
 #include "RNA_access.h"
 
+#include "node_common.h"
+
 bNodeTreeType *ntreeType_Geometry;
 
 static void geometry_node_tree_get_from_context(const bContext *C,
@@ -63,6 +65,12 @@ static void geometry_node_tree_get_from_context(const bContext *C,
   }
 }
 
+static void geometry_node_tree_update(bNodeTree *ntree)
+{
+  /* Needed to give correct types to reroutes. */
+  ntree_update_reroute_nodes(ntree);
+}
+
 void register_node_tree_type_geo(void)
 {
   bNodeTreeType *tt = ntreeType_Geometry = static_cast<bNodeTreeType *>(
@@ -73,7 +81,7 @@ void register_node_tree_type_geo(void)
   tt->ui_icon = 0; /* defined in drawnode.c */
   strcpy(tt->ui_description, N_("Geometry nodes"));
   tt->rna_ext.srna = &RNA_GeometryNodeTree;
-
+  tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;
 
   ntreeTypeAdd(tt);
