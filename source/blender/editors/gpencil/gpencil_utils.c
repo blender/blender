@@ -579,7 +579,7 @@ bool ED_gpencil_stroke_can_use(const bContext *C, const bGPDstroke *gps)
 }
 
 /* Check whether given stroke can be edited for the current color */
-bool ED_gpencil_stroke_color_use(Object *ob, const bGPDlayer *gpl, const bGPDstroke *gps)
+bool ED_gpencil_stroke_material_editable(Object *ob, const bGPDlayer *gpl, const bGPDstroke *gps)
 {
   /* check if the color is editable */
   MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
@@ -2173,7 +2173,7 @@ void ED_gpencil_update_color_uv(Main *bmain, Material *mat)
           LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
             LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
               /* check if it is editable */
-              if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+              if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
                 continue;
               }
               gps_ma = BKE_gpencil_material(ob, gps->mat_nr + 1);
@@ -3173,7 +3173,7 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
   float dist_min = FLT_MAX;
   LISTBASE_FOREACH (bGPDstroke *, gps_target, &gpf->strokes) {
     /* Check if the color is editable. */
-    if ((gps_target == gps) || (ED_gpencil_stroke_color_use(ob, gpl, gps) == false)) {
+    if ((gps_target == gps) || (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false)) {
       continue;
     }
 

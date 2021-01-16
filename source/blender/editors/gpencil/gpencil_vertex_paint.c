@@ -1015,7 +1015,7 @@ static bool gpencil_vertexpaint_brush_do_frame(bContext *C,
       continue;
     }
     /* Check if the color is editable. */
-    if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+    if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
       continue;
     }
 

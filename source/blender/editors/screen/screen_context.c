@@ -866,7 +866,7 @@ static eContextResult screen_ctx_editable_gpencil_strokes(const bContext *C,
           LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
             if (ED_gpencil_stroke_can_use_direct(area, gps)) {
               /* check if the color is editable */
-              if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+              if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
                 continue;
               }
 

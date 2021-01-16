@@ -135,7 +135,7 @@ static void createTransGPencil_curves(bContext *C,
               continue;
             }
             /* Check if the color is editable. */
-            if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+            if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
               continue;
             }
             /* Check if stroke has an editcurve */
@@ -263,7 +263,7 @@ static void createTransGPencil_curves(bContext *C,
               continue;
             }
             /* Check if the color is editable. */
-            if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+            if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
               continue;
             }
             /* Check if stroke has an editcurve */
@@ -436,7 +436,7 @@ static void createTransGPencil_strokes(bContext *C,
               continue;
             }
             /* Check if the color is editable. */
-            if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+            if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
               continue;
             }
 
@@ -551,7 +551,7 @@ static void createTransGPencil_strokes(bContext *C,
               continue;
             }
             /* check if the color is editable */
-            if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+            if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
               continue;
             }
             /* What we need to include depends on proportional editing settings... */

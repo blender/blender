@@ -1738,7 +1738,7 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
     /* loop over strokes, checking segments for intersections */
     LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
       /* check if the color is editable */
-      if (ED_gpencil_stroke_color_use(p->ob, gpl, gps) == false) {
+      if (ED_gpencil_stroke_material_editable(p->ob, gpl, gps) == false) {
         continue;
       }
 

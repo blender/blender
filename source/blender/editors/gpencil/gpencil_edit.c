@@ -1867,7 +1867,7 @@ static int gpencil_move_to_layer_exec(bContext *C, wmOperator *op)
       }
 
       /* Check if the color is editable. */
-      if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+      if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
         continue;
       }
 
@@ -2610,7 +2610,7 @@ static int gpencil_delete_selected_points(bContext *C)
             continue;
           }
           /* check if the color is editable */
-          if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+          if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
             continue;
           }
 
@@ -2808,7 +2808,7 @@ static int gpencil_snap_to_grid(bContext *C, wmOperator *UNUSED(op))
           continue;
         }
         /* check if the color is editable */
-        if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+        if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
           continue;
         }
 
@@ -2946,7 +2946,7 @@ static int gpencil_snap_to_cursor(bContext *C, wmOperator *op)
             continue;
           }
           /* check if the color is editable */
-          if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+          if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
             continue;
           }
           /* only continue if this stroke is selected (editable doesn't guarantee this)... */
@@ -3050,7 +3050,7 @@ static bool gpencil_stroke_points_centroid(Depsgraph *depsgraph,
           continue;
         }
         /* check if the color is editable */
-        if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+        if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
           continue;
         }
         /* only continue if this stroke is selected (editable doesn't guarantee this)... */
@@ -3565,7 +3565,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
           continue;
         }
         /* check if the color is editable. */
-        if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+        if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
           continue;
         }
         elem = &strokes_list[tot_strokes];
@@ -3697,7 +3697,7 @@ static int gpencil_stroke_flip_exec(bContext *C, wmOperator *op)
           continue;
         }
         /* check if the color is editable */
-        if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+        if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
           continue;
         }
 
@@ -4516,7 +4516,7 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
               continue;
             }
             /* check if the color is editable */
-            if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+            if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
               continue;
             }
             /* Separate selected strokes. */
@@ -4717,7 +4717,7 @@ static int gpencil_stroke_split_exec(bContext *C, wmOperator *op)
             continue;
           }
           /* check if the color is editable */
-          if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+          if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
             continue;
           }
           /* Split selected strokes. */
