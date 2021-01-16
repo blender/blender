@@ -77,9 +77,14 @@ enum {
   SCULPT_EXPAND_MODAL_CONFIRM = 1,
   SCULPT_EXPAND_MODAL_CANCEL,
   SCULPT_EXPAND_MODAL_INVERT,
-  SCULPT_EXPAND_MODAL_MASK_PRESERVE_TOGGLE,
+  SCULPT_EXPAND_MODAL_PRESERVE_TOGGLE,
   SCULPT_EXPAND_MODAL_GRADIENT_TOGGLE,
   SCULPT_EXPAND_MODAL_FALLOFF_CYCLE,
+  SCULPT_EXPAND_MODAL_RECURSION_STEP,
+  SCULPT_EXPAND_MODAL_MOVE_TOGGLE,
+  SCULPT_EXPAND_MODAL_FALLOFF_GEODESICS,
+  SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY,
+  SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL,
 };
 
 static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
@@ -115,7 +120,7 @@ static bool mask_expand_topology_floodfill_cb(
 {
   ExpandFloodFillData *data = userdata;
   if (!is_duplicate) {
-    const int to_it = data->dists[from_v] + 1;
+    const float to_it = data->dists[from_v] + 1.0f;
     data->dists[to_v] = to_it;
   }
   else {
@@ -128,7 +133,7 @@ static float *sculpt_expand_topology_falloff_create(Sculpt *sd, Object *ob, cons
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_malloc_arrayN(sizeof(float), totvert, "spherical dist");
+  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "topology dist");
 
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
@@ -366,11 +371,6 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
     const int vertex,
     eSculptExpandFalloffType falloff_type)
 {
-  if (expand_cache->falloff_factor && expand_cache->falloff_factor_type == falloff_type) {
-    /* Falloffs are already initialize with the current falloff type, nothing to do. */
-    return;
-  }
-
   if (expand_cache->falloff_factor) {
     MEM_freeN(expand_cache->falloff_factor);
   }
@@ -519,7 +519,7 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
       new_mask = 0.0f;
     }
 
-    if (expand_cache->mask_preserve) {
+    if (expand_cache->preserve) {
       new_mask = max_ff(new_mask, expand_cache->initial_mask[vd.index]);
     }
 
@@ -581,7 +581,7 @@ static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expan
     if (!enabled) {
       continue;
     }
-    if (expand_cache->falloff_gradient) {
+    if (expand_cache->preserve) {
       ss->face_sets[f] += expand_cache->next_face_set;
     }
     else {
@@ -754,11 +754,10 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
 
 static int sculpt_expand_target_vertex_update_and_get(bContext *C,
                                                       Object *ob,
-                                                      const wmEvent *event)
+                                                      const float mouse[2])
 {
   SculptSession *ss = ob->sculpt;
   SculptCursorGeometryInfo sgi;
-  float mouse[2] = {event->mval[0], event->mval[1]};
   if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
     return SCULPT_active_vertex_get(ss);
   }
@@ -789,12 +788,111 @@ static void sculpt_expand_finish(bContext *C)
   ED_workspace_status_text(C, NULL);
 }
 
+static void sculpt_mask_expand_resursion_step_add(Object *ob, ExpandCache *expand_cache)
+{
+  SculptSession *ss = ob->sculpt;
+  const int totvert = SCULPT_vertex_count_get(ss);
+  BLI_bitmap *enabled_vertices = BLI_BITMAP_NEW(totvert, "boundary vertices");
+  GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
+
+  for (int i = 0; i < totvert; i++) {
+    const bool enabled = sculpt_expand_state_get(expand_cache, i);
+    BLI_BITMAP_SET(enabled_vertices, i, enabled);
+  }
+
+  SculptFloodFill flood;
+  SCULPT_floodfill_init(ss, &flood);
+
+  for (int i = 0; i < totvert; i++) {
+    SculptVertexNeighborIter ni;
+    if (!BLI_BITMAP_TEST(enabled_vertices, i)) {
+      continue;
+    }
+
+    bool is_expand_boundary = false;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+      if (!BLI_BITMAP_TEST(enabled_vertices, ni.index)) {
+        is_expand_boundary = true;
+      }
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    if (is_expand_boundary) {
+      BLI_gset_add(initial_vertices, POINTER_FROM_INT(i));
+      SCULPT_floodfill_add_initial(&flood, i);
+    }
+  }
+
+  MEM_SAFE_FREE(expand_cache->falloff_factor);
+  MEM_SAFE_FREE(expand_cache->face_falloff_factor);
+  MEM_freeN(enabled_vertices);
+
+  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "topology dist");
+  ExpandFloodFillData fdata;
+  fdata.dists = dists;
+
+  SCULPT_floodfill_execute(ss, &flood, mask_expand_topology_floodfill_cb, &fdata);
+  SCULPT_floodfill_free(&flood);
+
+  expand_cache->falloff_factor = SCULPT_geodesic_distances_create(ob, initial_vertices, FLT_MAX);
+
+  sculpt_expand_update_max_falloff_factor(ss, expand_cache);
+
+  BLI_gset_free(initial_vertices, NULL);
+
+  if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
+    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ob->data, expand_cache);
+    sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
+  }
+}
+
+static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
+                                                           Object *ob,
+                                                           ExpandCache *expand_cache,
+                                                           const float mouse[2])
+{
+  SculptSession *ss = ob->sculpt;
+  int initial_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mouse);
+  if (initial_vertex == SCULPT_EXPAND_VERTEX_NONE) {
+    /* Cursor not over the mesh, for creating valid initial falloffs, fallback to the last active
+     * vertex in the sculpt session. */
+    initial_vertex = SCULPT_active_vertex_get(ss);
+  }
+  copy_v2_v2(ss->expand_cache->initial_mouse, mouse);
+  expand_cache->initial_active_vertex = initial_vertex;
+  expand_cache->initial_active_face_set = SCULPT_active_face_set_get(ss);
+  expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
+}
+
+static void sculpt_expand_move_propagation_origin(bContext *C,
+                                                  Object *ob,
+                                                  const wmEvent *event,
+                                                  ExpandCache *expand_cache)
+{
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+  const float mouse[2] = {event->mval[0], event->mval[1]};
+  float move_disp[2];
+  sub_v2_v2v2(move_disp, mouse, expand_cache->initial_mouse_move);
+
+  float new_mouse[2];
+  add_v2_v2v2(new_mouse, move_disp, expand_cache->original_mouse_move);
+
+  sculpt_expand_set_initial_components_for_mouse(C, ob, expand_cache, new_mouse);
+  sculpt_expand_falloff_factors_from_vertex_and_symm_create(expand_cache,
+                                                            sd,
+                                                            ob,
+                                                            expand_cache->initial_active_vertex,
+                                                            expand_cache->falloff_factor_type);
+}
+
 static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
-  const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, event);
+  const float mouse[2] = {event->mval[0], event->mval[1]};
+  const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mouse);
 
   ExpandCache *expand_cache = ss->expand_cache;
   if (event->type == EVT_MODAL_MAP) {
@@ -803,12 +901,27 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         expand_cache->invert = !expand_cache->invert;
         break;
       }
-      case SCULPT_EXPAND_MODAL_MASK_PRESERVE_TOGGLE: {
-        expand_cache->mask_preserve = !expand_cache->mask_preserve;
+      case SCULPT_EXPAND_MODAL_PRESERVE_TOGGLE: {
+        expand_cache->preserve = !expand_cache->preserve;
         break;
       }
       case SCULPT_EXPAND_MODAL_GRADIENT_TOGGLE: {
         expand_cache->falloff_gradient = !expand_cache->falloff_gradient;
+        break;
+      }
+      case SCULPT_EXPAND_MODAL_MOVE_TOGGLE: {
+        if (expand_cache->move) {
+          expand_cache->move = false;
+        }
+        else {
+          expand_cache->move = true;
+          copy_v2_v2(expand_cache->initial_mouse_move, mouse);
+          copy_v2_v2(expand_cache->original_mouse_move, expand_cache->initial_mouse);
+        }
+        break;
+      }
+      case SCULPT_EXPAND_MODAL_RECURSION_STEP: {
+        sculpt_mask_expand_resursion_step_add(ob, expand_cache);
         break;
       }
       case SCULPT_EXPAND_MODAL_CONFIRM: {
@@ -816,11 +929,42 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         sculpt_expand_finish(C);
         return OPERATOR_FINISHED;
       }
+      case SCULPT_EXPAND_MODAL_FALLOFF_GEODESICS: {
+        sculpt_expand_falloff_factors_from_vertex_and_symm_create(
+            expand_cache,
+            sd,
+            ob,
+            expand_cache->initial_active_vertex,
+            SCULPT_EXPAND_FALLOFF_GEODESICS);
+        break;
+      }
+      case SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY: {
+        sculpt_expand_falloff_factors_from_vertex_and_symm_create(
+            expand_cache,
+            sd,
+            ob,
+            expand_cache->initial_active_vertex,
+            SCULPT_EXPAND_FALLOFF_TOPOLOGY);
+        break;
+      }
+      case SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL: {
+        sculpt_expand_falloff_factors_from_vertex_and_symm_create(
+            expand_cache,
+            sd,
+            ob,
+            expand_cache->initial_active_vertex,
+            SCULPT_EXPAND_FALLOFF_SPHERICAL);
+        break;
+      }
     }
   }
 
   if (event->type != MOUSEMOVE) {
     return OPERATOR_RUNNING_MODAL;
+  }
+
+  if (expand_cache->move) {
+    sculpt_expand_move_propagation_origin(C, ob, event, expand_cache);
   }
 
   sculpt_expand_update_for_vertex(C, ob, target_expand_vertex);
@@ -835,7 +979,7 @@ static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
 {
 
   expand_cache->invert = RNA_boolean_get(op->ptr, "invert");
-  expand_cache->mask_preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
+  expand_cache->preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
   expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
   expand_cache->target = RNA_enum_get(op->ptr, "target");
 
@@ -872,16 +1016,9 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   SCULPT_boundary_info_ensure(ob);
   SCULPT_undo_push_begin(ob, "expand");
 
-  /* Set the initial element for expand. */
-  int initial_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, event);
-  if (initial_vertex == SCULPT_EXPAND_VERTEX_NONE) {
-    /* Cursor not over the mesh, for creating valid initial falloffs, fallback to the last active
-     * vertex in the sculpt session. */
-    initial_vertex = SCULPT_active_vertex_get(ss);
-  }
-  ss->expand_cache->initial_active_vertex = initial_vertex;
-  ss->expand_cache->initial_active_face_set = SCULPT_active_face_set_get(ss);
-  ss->expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
+  /* Set the initial element for expand from the event position. */
+  const float mouse[2] = {event->mval[0], event->mval[1]};
+  sculpt_expand_set_initial_components_for_mouse(C, ob, ss->expand_cache, mouse);
 
   /* Cache PBVH nodes. */
   BKE_pbvh_search_gather(
@@ -892,15 +1029,15 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Initialize the factors. */
   eSculptExpandFalloffType falloff_type = SCULPT_EXPAND_FALLOFF_GEODESICS;
-  if (SCULPT_vertex_is_boundary(ss, initial_vertex)) {
+  if (SCULPT_vertex_is_boundary(ss, ss->expand_cache->initial_active_vertex)) {
     falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
 
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
-      ss->expand_cache, sd, ob, initial_vertex, falloff_type);
+      ss->expand_cache, sd, ob, ss->expand_cache->initial_active_vertex, falloff_type);
 
   /* Initial update. */
-  sculpt_expand_update_for_vertex(C, ob, initial_vertex);
+  sculpt_expand_update_for_vertex(C, ob, ss->expand_cache->initial_active_vertex);
 
   const char *status_str = TIP_(
       "Move the mouse to expand from the active vertex. LMB: confirm, ESC/RMB: "
@@ -917,12 +1054,29 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
       {SCULPT_EXPAND_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
       {SCULPT_EXPAND_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {SCULPT_EXPAND_MODAL_INVERT, "INVERT", 0, "Invert", ""},
-      {SCULPT_EXPAND_MODAL_MASK_PRESERVE_TOGGLE,
-       "MASK_PRESERVE",
-       0,
-       "Toggle Preserve Previous Mask",
-       ""},
+      {SCULPT_EXPAND_MODAL_PRESERVE_TOGGLE, "PRESERVE", 0, "Toggle Preserve Previous Mask", ""},
       {SCULPT_EXPAND_MODAL_GRADIENT_TOGGLE, "GRADIENT", 0, "Toggle Gradient", ""},
+      {SCULPT_EXPAND_MODAL_RECURSION_STEP,
+       "RECURSION_STEP",
+       0,
+       "Do a recursion step in the falloff from current boundary",
+       ""},
+      {SCULPT_EXPAND_MODAL_MOVE_TOGGLE, "MOVE_TOGGLE", 0, "Move the origin of the expand", ""},
+      {SCULPT_EXPAND_MODAL_FALLOFF_GEODESICS,
+       "FALLOFF_GEODESICS",
+       0,
+       "Move the origin of the expand",
+       ""},
+      {SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY,
+       "FALLOFF_TOPOLOGY",
+       0,
+       "Move the origin of the expand",
+       ""},
+      {SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL,
+       "FALLOFF_SPHERICAL",
+       0,
+       "Move the origin of the expand",
+       ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -956,7 +1110,7 @@ void SCULPT_OT_expand(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "target",
                prop_sculpt_expand_target_type_items,
-               SCULPT_EXPAND_TARGET_FACE_SETS,
+               SCULPT_EXPAND_TARGET_COLORS,
                "Data Target",
                "Data that is going to be modified in the expand operation");
 

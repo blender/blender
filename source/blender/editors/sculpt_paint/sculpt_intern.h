@@ -1177,6 +1177,7 @@ typedef struct ExpandCache {
 
   float active_factor;
 
+  float initial_mouse[2];
   int initial_active_vertex;
   int initial_active_face_set;
   int next_face_set;
@@ -1185,9 +1186,12 @@ typedef struct ExpandCache {
   int totnode;
 
   bool invert;
-  bool mask_preserve;
+  bool preserve;
   bool falloff_gradient;
+  bool move;
 
+  float initial_mouse_move[2];
+  float original_mouse_move[2];
   int update_face_set;
 
   float fill_color[4];

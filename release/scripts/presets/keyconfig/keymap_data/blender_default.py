@@ -5533,8 +5533,13 @@ def km_sculpt_expand_modal(_params):
         ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
         ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
         ("INVERT", {"type": 'F', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("MASK_PRESERVE", {"type": 'P', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("PRESERVE", {"type": 'E', "value": 'PRESS', "any": True, "repeat" : False}, None),
         ("GRADIENT", {"type": 'G', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("RECURSION_STEP", {"type": 'R', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("MOVE_TOGGLE", {"type": 'SPACE', "value": 'ANY', "any": True, "repeat" : False}, None),
+        ("FALLOFF_GEODESICS", {"type": 'ONE', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("FALLOFF_TOPOLOGY", {"type": 'TWO', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("FALLOFF_SPHERICAL", {"type": 'THREE', "value": 'PRESS', "any": True, "repeat" : False}, None),
     ])
     return keymap
 
