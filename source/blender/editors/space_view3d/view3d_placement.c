@@ -1978,7 +1978,27 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
   }
 
   /* Draw */
-  const float pixel_size = ED_view3d_pixel_size(rv3d, plc->matrix[3]);
+  float pixel_size;
+
+  /* Arbitrary, 1.0 is a little too strong though. */
+  float color_alpha = 0.75f;
+
+  if (rv3d->is_persp) {
+    float center[3];
+    negate_v3_v3(center, rv3d->ofs);
+    pixel_size = ED_view3d_pixel_size(rv3d, center);
+
+    /* Scale down the alpha when this is drawn very small,
+     * since the add shader causes the small size to show too dense & bright. */
+    const float relative_pixel_scale = pixel_size / ED_view3d_pixel_size(rv3d, plc->matrix[3]);
+    if (relative_pixel_scale < 1.0f) {
+      color_alpha *= max_ff(square_f(relative_pixel_scale), 0.3f);
+    }
+  }
+  else {
+    pixel_size = ED_view3d_pixel_size(rv3d, plc->matrix[3]);
+  }
+
   if (pixel_size > FLT_EPSILON) {
 
     /* Setup viewport & matrix. */
@@ -1988,7 +2008,7 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
     GPU_matrix_projection_set(rv3d->winmat);
     GPU_matrix_set(rv3d->viewmat);
 
-    const float scale_mod = U.gizmo_size * U.dpi_fac;
+    const float scale_mod = U.gizmo_size * 2 * U.dpi_fac;
 
     float final_scale = (scale_mod * pixel_size);
 
@@ -2000,13 +2020,18 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
 
     float fac = final_scale_fade / final_scale;
 
-    float color[4] = {1, 1, 1, 1};
-    color[3] = square_f(1.0f - fac);
-    gizmo_plane_draw_grid(
-        lines * lines_subdiv, final_scale, final_scale_fade, plc->matrix, plc->plane_axis, color);
+    float color[4] = {1, 1, 1, color_alpha};
+    color[3] *= square_f(1.0f - fac);
+    if (color[3] > 0.0f) {
+      gizmo_plane_draw_grid(lines * lines_subdiv,
+                            final_scale,
+                            final_scale_fade,
+                            plc->matrix,
+                            plc->plane_axis,
+                            color);
+    }
 
-    /* Arbitrary, 1.0 is a little too strong though. */
-    color[3] = 0.75f;
+    color[3] = color_alpha;
     /* When the grid is large, we only need the 2x lines in the middle. */
     if (fac < 0.2f) {
       lines = 1;
