@@ -3178,10 +3178,8 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
     }
 
     /* Check if one of the ends is inside target stroke bounding box. */
-    if (!ED_gpencil_stroke_check_collision(gsc, gps, pt2d_start, radius, diff_mat)) {
-      continue;
-    }
-    if (!ED_gpencil_stroke_check_collision(gsc, gps, pt2d_end, radius, diff_mat)) {
+    if ((!ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_start, radius, diff_mat)) &&
+        (!ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_end, radius, diff_mat))) {
       continue;
     }
     /* Check the distance of the ends with the ends of target stroke to avoid middle contact.
