@@ -501,8 +501,14 @@ class _defs_view3d_add:
         if extra:
             layout.use_property_split = True
             layout.row().prop(props, "plane_axis", expand=True)
-            layout.row().prop(props, "plane_origin", expand=True)
-            layout.row().prop(props, "use_fixed_aspect")
+
+            layout.label(text="Base")
+            layout.row().prop(props, "plane_origin_base", expand=True)
+            layout.row().prop(props, "plane_aspect_base", expand=True)
+            layout.label(text="Height")
+            layout.row().prop(props, "plane_origin_depth", expand=True)
+            layout.row().prop(props, "plane_aspect_depth", expand=True)
+
 
     @ToolDef.from_fn
     def cube_add():

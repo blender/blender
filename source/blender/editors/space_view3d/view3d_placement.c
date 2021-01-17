@@ -91,6 +91,11 @@ enum ePlace_Origin {
   PLACE_ORIGIN_CENTER = 2,
 };
 
+enum ePlace_Aspect {
+  PLACE_ASPECT_FREE = 1,
+  PLACE_ASPECT_FIXED = 2,
+};
+
 enum ePlace_Depth {
   PLACE_DEPTH_SURFACE = 1,
   PLACE_DEPTH_CURSOR_PLANE = 2,
@@ -121,8 +126,17 @@ struct InteractivePlaceData {
 
   /** Primary & secondary steps. */
   struct {
-    bool is_centered;
-    bool is_fixed_aspect;
+    /**
+     * When centered, drag out the shape from the center.
+     * Toggling the setting flips the value from it's initial state.
+     */
+    bool is_centered, is_centered_init;
+    /**
+     * When fixed, constrain the X/Y aspect for the initial #STEP_BASE drag.
+     * For #STEP_DEPTH match the maximum X/Y dimension.
+     * Toggling the setting flips the value from it's initial state.
+     */
+    bool is_fixed_aspect, is_fixed_aspect_init;
     float plane[4];
     float co_dst[3];
 
@@ -163,12 +177,6 @@ struct InteractivePlaceData {
 
   float matrix_orient[3][3];
   int orient_axis;
-
-  /** The tool option, if we start centered, invert toggling behavior. */
-  bool is_centered_init;
-
-  /** The tool option, if we start fixed, invert toggling behavior. */
-  bool is_fixed_aspect_init;
 
   bool use_snap, is_snap_found, is_snap_invert;
   float snap_co[3];
@@ -998,9 +1006,15 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   const int plane_axis = RNA_enum_get(op->ptr, "plane_axis");
   const enum ePlace_SnapTo snap_to = RNA_enum_get(op->ptr, "snap_target");
   const enum ePlace_Depth plane_depth = RNA_enum_get(op->ptr, "plane_depth");
-  const enum ePlace_Origin plane_origin = RNA_enum_get(op->ptr, "plane_origin");
+  const enum ePlace_Origin plane_origin[2] = {
+      RNA_enum_get(op->ptr, "plane_origin_base"),
+      RNA_enum_get(op->ptr, "plane_origin_depth"),
+  };
+  const enum ePlace_Aspect plane_aspect[2] = {
+      RNA_enum_get(op->ptr, "plane_aspect_base"),
+      RNA_enum_get(op->ptr, "plane_aspect_depth"),
+  };
   const enum ePlace_Orient plane_orient = RNA_enum_get(op->ptr, "plane_orientation");
-  const bool use_fixed_aspect = RNA_boolean_get(op->ptr, "use_fixed_aspect");
 
   const float mval_fl[2] = {UNPACK2(event->mval)};
 
@@ -1055,12 +1069,14 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
                                     ipd->matrix_orient);
 
   ipd->orient_axis = plane_axis;
-  ipd->is_centered_init = (plane_origin == PLACE_ORIGIN_CENTER);
-  ipd->is_fixed_aspect_init = use_fixed_aspect;
-  ipd->step[0].is_centered = ipd->is_centered_init;
-  ipd->step[1].is_centered = ipd->is_centered_init;
-  ipd->step[0].is_fixed_aspect = ipd->is_fixed_aspect_init;
-  ipd->step[1].is_fixed_aspect = ipd->is_fixed_aspect_init;
+  for (int i = 0; i < 2; i++) {
+    ipd->step[i].is_centered_init = (plane_origin[i] == PLACE_ORIGIN_CENTER);
+    ipd->step[i].is_centered = ipd->step[i].is_centered_init;
+
+    ipd->step[i].is_fixed_aspect_init = (plane_aspect[i] == PLACE_ASPECT_FIXED);
+    ipd->step[i].is_fixed_aspect = ipd->step[i].is_fixed_aspect_init;
+  }
+
   ipd->step_index = STEP_BASE;
   ipd->snap_to = snap_to;
 
@@ -1286,7 +1302,8 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         ATTR_FALLTHROUGH;
       }
       case PLACE_MODAL_FIXED_ASPECT_OFF: {
-        ipd->step[ipd->step_index].is_fixed_aspect = is_fallthrough ^ ipd->is_fixed_aspect_init;
+        ipd->step[ipd->step_index].is_fixed_aspect =
+            is_fallthrough ^ ipd->step[ipd->step_index].is_fixed_aspect_init;
         do_redraw = true;
         break;
       }
@@ -1295,7 +1312,8 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         ATTR_FALLTHROUGH;
       }
       case PLACE_MODAL_PIVOT_CENTER_OFF: {
-        ipd->step[ipd->step_index].is_centered = is_fallthrough ^ ipd->is_centered_init;
+        ipd->step[ipd->step_index].is_centered = is_fallthrough ^
+                                                 ipd->step[ipd->step_index].is_centered_init;
         do_redraw = true;
         break;
       }
@@ -1358,13 +1376,12 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         copy_v3_v3(ipd->step[1].co_dst, ipd->step[0].co_dst);
         ipd->step_index = STEP_DEPTH;
 
-        /* Keep these values from the previous step. */
-        ipd->step[1].is_centered = ipd->step[0].is_centered;
-        ipd->step[1].is_fixed_aspect = ipd->step[0].is_fixed_aspect;
-        if (ipd->is_fixed_aspect_init) {
-          /* Keep this false, as it locks to a single size, which feels a bit strange. */
-          ipd->step[1].is_fixed_aspect = false;
-          ipd->is_fixed_aspect_init = false;
+        /* Use the toggle from the previous step. */
+        if (ipd->step[0].is_centered != ipd->step[0].is_centered_init) {
+          ipd->step[1].is_centered = !ipd->step[1].is_centered;
+        }
+        if (ipd->step[0].is_fixed_aspect != ipd->step[0].is_fixed_aspect_init) {
+          ipd->step[1].is_fixed_aspect = !ipd->step[1].is_fixed_aspect;
         }
       }
     }
@@ -1611,17 +1628,6 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_enum_items(prop, plane_depth_items);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  static const EnumPropertyItem origin_items[] = {
-      {PLACE_ORIGIN_BASE, "BASE", 0, "Base", "Start placing the corner position"},
-      {PLACE_ORIGIN_CENTER, "CENTER", 0, "Center", "Start placing the center position"},
-      {0, NULL, 0, NULL, NULL},
-  };
-  prop = RNA_def_property(ot->srna, "plane_origin", PROP_ENUM, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Origin", "The initial position for placement");
-  RNA_def_property_enum_default(prop, PLACE_ORIGIN_BASE);
-  RNA_def_property_enum_items(prop, origin_items);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
   static const EnumPropertyItem plane_orientation_items[] = {
       {PLACE_ORIENT_SURFACE,
        "SURFACE",
@@ -1652,12 +1658,37 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_enum_items(prop, snap_to_items);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(ot->srna,
-                         "use_fixed_aspect",
-                         false,
-                         "Fixed Aspect",
-                         "Constraint the initial plane to a fixed aspect");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  { /* Plane Origin. */
+    static const EnumPropertyItem items[] = {
+        {PLACE_ORIGIN_BASE, "EDGE", 0, "Edge", "Start placing the edge position"},
+        {PLACE_ORIGIN_CENTER, "CENTER", 0, "Center", "Start placing the center position"},
+        {0, NULL, 0, NULL, NULL},
+    };
+    const char *identifiers[2] = {"plane_origin_base", "plane_origin_depth"};
+    for (int i = 0; i < 2; i++) {
+      prop = RNA_def_property(ot->srna, identifiers[i], PROP_ENUM, PROP_NONE);
+      RNA_def_property_ui_text(prop, "Origin", "The initial position for placement");
+      RNA_def_property_enum_default(prop, PLACE_ORIGIN_BASE);
+      RNA_def_property_enum_items(prop, items);
+      RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+    }
+  }
+
+  { /* Plane Aspect. */
+    static const EnumPropertyItem items[] = {
+        {PLACE_ASPECT_FREE, "FREE", 0, "Free", "Use an unconstrained aspect"},
+        {PLACE_ASPECT_FIXED, "FIXED", 0, "Fixed", "Use a fixed 1:1 aspect"},
+        {0, NULL, 0, NULL, NULL},
+    };
+    const char *identifiers[2] = {"plane_aspect_base", "plane_aspect_depth"};
+    for (int i = 0; i < 2; i++) {
+      prop = RNA_def_property(ot->srna, identifiers[i], PROP_ENUM, PROP_NONE);
+      RNA_def_property_ui_text(prop, "Aspect", "The initial aspect setting");
+      RNA_def_property_enum_default(prop, PLACE_ASPECT_FREE);
+      RNA_def_property_enum_items(prop, items);
+      RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+    }
+  }
 
   /* When not accessed via a tool. */
   prop = RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "");
