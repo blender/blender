@@ -1081,7 +1081,6 @@ static void rna_def_render_pass(BlenderRNA *brna)
   prop = RNA_def_property(srna, "fullname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "fullname");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_struct_name_property(srna, prop);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "name");
