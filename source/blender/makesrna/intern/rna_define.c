@@ -1125,6 +1125,11 @@ void RNA_def_struct_name_property(struct StructRNA *srna, struct PropertyRNA *pr
     CLOG_ERROR(&LOG, "\"%s.%s\", must be a string property.", srna->identifier, prop->identifier);
     DefRNA.error = true;
   }
+  else if (srna->nameproperty != NULL) {
+    CLOG_ERROR(
+        &LOG, "\"%s.%s\", name property is already set.", srna->identifier, prop->identifier);
+    DefRNA.error = true;
+  }
   else {
     srna->nameproperty = prop;
   }
