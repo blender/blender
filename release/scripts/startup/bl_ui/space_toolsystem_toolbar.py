@@ -474,6 +474,7 @@ class _defs_view3d_add:
     # this shows limits in layout engine, as buttons are using a lot of space.
     @staticmethod
     def draw_settings_interactive_add(layout, tool, extra):
+        show_extra = False
         props = tool.operator_properties("view3d.interactive_add")
         if not extra:
             row = layout.row()
@@ -494,7 +495,8 @@ class _defs_view3d_add:
             region_is_header = bpy.context.region.type == 'TOOL_HEADER'
 
             if region_is_header:
-                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
+                # Don't draw the "extra" popover here as we might have other settings & this should be last.
+                show_extra = True
             else:
                 extra = True
 
@@ -508,12 +510,15 @@ class _defs_view3d_add:
             layout.label(text="Height")
             layout.row().prop(props, "plane_origin_depth", expand=True)
             layout.row().prop(props, "plane_aspect_depth", expand=True)
-
+        return show_extra
 
     @ToolDef.from_fn
     def cube_add():
         def draw_settings(_context, layout, tool, *, extra=False):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
+
         return dict(
             idname="builtin.primitive_cube_add",
             label="Add Cube",
@@ -529,13 +534,17 @@ class _defs_view3d_add:
     @ToolDef.from_fn
     def cone_add():
         def draw_settings(_context, layout, tool, *, extra=False):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
             if extra:
                 return
 
             props = tool.operator_properties("mesh.primitive_cone_add")
             layout.prop(props, "vertices")
             layout.prop(props, "end_fill_type")
+
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
+
         return dict(
             idname="builtin.primitive_cone_add",
             label="Add Cone",
@@ -551,13 +560,16 @@ class _defs_view3d_add:
     @ToolDef.from_fn
     def cylinder_add():
         def draw_settings(_context, layout, tool, *, extra=False):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
             if extra:
                 return
 
             props = tool.operator_properties("mesh.primitive_cylinder_add")
             layout.prop(props, "vertices")
             layout.prop(props, "end_fill_type")
+
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
             idname="builtin.primitive_cylinder_add",
             label="Add Cylinder",
@@ -573,13 +585,16 @@ class _defs_view3d_add:
     @ToolDef.from_fn
     def uv_sphere_add():
         def draw_settings(_context, layout, tool, *, extra=False):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
             if extra:
                 return
 
             props = tool.operator_properties("mesh.primitive_uv_sphere_add")
             layout.prop(props, "segments")
             layout.prop(props, "ring_count")
+
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
             idname="builtin.primitive_uv_sphere_add",
             label="Add UV Sphere",
@@ -595,12 +610,15 @@ class _defs_view3d_add:
     @ToolDef.from_fn
     def ico_sphere_add():
         def draw_settings(_context, layout, tool, *, extra=False):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
             if extra:
                 return
 
             props = tool.operator_properties("mesh.primitive_ico_sphere_add")
             layout.prop(props, "subdivisions")
+
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
             idname="builtin.primitive_ico_sphere_add",
             label="Add Ico Sphere",
