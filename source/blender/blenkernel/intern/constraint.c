@@ -2539,9 +2539,14 @@ static void armdef_accumulate_matrix(const float obmat[4][4],
 
   /* Accumulate the transformation. */
   if (r_sum_dq != NULL) {
+    float basemat_world[4][4];
     DualQuat tmpdq;
 
-    mat4_to_dquat(&tmpdq, basemat, mat);
+    /* Compute the orthonormal rest matrix in world space. */
+    mul_m4_m4m4(basemat_world, obmat, basemat);
+    orthogonalize_m4_stable(basemat_world, 1, true);
+
+    mat4_to_dquat(&tmpdq, basemat_world, mat);
     add_weighted_dq_dq(r_sum_dq, &tmpdq, weight);
   }
   else {
@@ -2558,7 +2563,7 @@ static void armdef_accumulate_bone(bConstraintTarget *ct,
                                    float r_sum_mat[4][4],
                                    DualQuat *r_sum_dq)
 {
-  float iobmat[4][4], basemat[4][4], co[3];
+  float iobmat[4][4], co[3];
   Bone *bone = pchan->bone;
   float weight = ct->weight;
 
@@ -2572,15 +2577,12 @@ static void armdef_accumulate_bone(bConstraintTarget *ct,
         co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
   }
 
-  /* Compute the quaternion base matrix. */
-  if (r_sum_dq != NULL) {
-    mul_m4_series(basemat, ct->tar->obmat, bone->arm_mat, iobmat);
-  }
-
   /* Find the correct bone transform matrix in world space. */
   if (bone->segments > 1 && bone->segments == pchan->runtime.bbone_segments) {
     Mat4 *b_bone_mats = pchan->runtime.bbone_deform_mats;
+    Mat4 *b_bone_rest_mats = pchan->runtime.bbone_rest_mats;
     float(*iamat)[4] = b_bone_mats[0].mat;
+    float basemat[4][4];
 
     /* The target is a B-Bone:
      * FIRST: find the segment (see b_bone_deform in armature.c)
@@ -2592,6 +2594,11 @@ static void armdef_accumulate_bone(bConstraintTarget *ct,
     float blend;
     BKE_pchan_bbone_deform_segment_index(pchan, y / bone->length, &index, &blend);
 
+    if (r_sum_dq != NULL) {
+      /* Compute the object space rest matrix of the segment. */
+      mul_m4_m4m4(basemat, bone->arm_mat, b_bone_rest_mats[index].mat);
+    }
+
     armdef_accumulate_matrix(ct->tar->obmat,
                              iobmat,
                              basemat,
@@ -2599,6 +2606,12 @@ static void armdef_accumulate_bone(bConstraintTarget *ct,
                              weight * (1.0f - blend),
                              r_sum_mat,
                              r_sum_dq);
+
+    if (r_sum_dq != NULL) {
+      /* Compute the object space rest matrix of the segment. */
+      mul_m4_m4m4(basemat, bone->arm_mat, b_bone_rest_mats[index + 1].mat);
+    }
+
     armdef_accumulate_matrix(ct->tar->obmat,
                              iobmat,
                              basemat,
@@ -2610,7 +2623,7 @@ static void armdef_accumulate_bone(bConstraintTarget *ct,
   else {
     /* Simple bone. This requires DEG_OPCODE_BONE_DONE dependency due to chan_mat. */
     armdef_accumulate_matrix(
-        ct->tar->obmat, iobmat, basemat, pchan->chan_mat, weight, r_sum_mat, r_sum_dq);
+        ct->tar->obmat, iobmat, bone->arm_mat, pchan->chan_mat, weight, r_sum_mat, r_sum_dq);
   }
 
   /* Accumulate the weight. */
