@@ -151,8 +151,6 @@ string device_opencl_capabilities()
   platform_ids.resize(num_platforms);
   opencl_assert(clGetPlatformIDs(num_platforms, &platform_ids[0], NULL));
 
-  typedef char cl_string[1024];
-
 #  define APPEND_INFO(func, id, name, what, type) \
     do { \
       type data; \
@@ -160,22 +158,33 @@ string device_opencl_capabilities()
       opencl_assert(func(id, what, sizeof(data), &data, NULL)); \
       result += string_printf("%s: %s\n", name, to_string(data).c_str()); \
     } while (false)
-#  define APPEND_STRING_EXTENSION_INFO(func, id, name, what) \
+#  define APPEND_STRING_INFO_IMPL(func, id, name, what, is_optional) \
     do { \
-      char data[1024] = "\0"; \
+      string value; \
       size_t length = 0; \
-      if (func(id, what, sizeof(data), &data, &length) == CL_SUCCESS) { \
-        if (length != 0 && data[0] != '\0') { \
-          result += string_printf("%s: %s\n", name, data); \
+      if (func(id, what, 0, NULL, &length) == CL_SUCCESS) { \
+        vector<char> buffer(length + 1); \
+        if (func(id, what, buffer.size(), buffer.data(), NULL) == CL_SUCCESS) { \
+          value = string(buffer.data()); \
         } \
       } \
+      if (is_optional && !(length != 0 && value[0] != '\0')) { \
+        break; \
+      } \
+      result += string_printf("%s: %s\n", name, value.c_str()); \
     } while (false)
+#  define APPEND_PLATFORM_STRING_INFO(id, name, what) \
+    APPEND_STRING_INFO_IMPL(clGetPlatformInfo, id, "\tPlatform " name, what, false)
+#  define APPEND_STRING_EXTENSION_INFO(func, id, name, what) \
+    APPEND_STRING_INFO_IMPL(clGetPlatformInfo, id, "\tPlatform " name, what, true)
 #  define APPEND_PLATFORM_INFO(id, name, what, type) \
     APPEND_INFO(clGetPlatformInfo, id, "\tPlatform " name, what, type)
 #  define APPEND_DEVICE_INFO(id, name, what, type) \
     APPEND_INFO(clGetDeviceInfo, id, "\t\t\tDevice " name, what, type)
+#  define APPEND_DEVICE_STRING_INFO(id, name, what) \
+    APPEND_STRING_INFO_IMPL(clGetDeviceInfo, id, "\t\t\tDevice " name, what, false)
 #  define APPEND_DEVICE_STRING_EXTENSION_INFO(id, name, what) \
-    APPEND_STRING_EXTENSION_INFO(clGetDeviceInfo, id, "\t\t\tDevice " name, what)
+    APPEND_STRING_INFO_IMPL(clGetDeviceInfo, id, "\t\t\tDevice " name, what, true)
 
   vector<cl_device_id> device_ids;
   for (cl_uint platform = 0; platform < num_platforms; ++platform) {
@@ -183,11 +192,11 @@ string device_opencl_capabilities()
 
     result += string_printf("Platform #%u\n", platform);
 
-    APPEND_PLATFORM_INFO(platform_id, "Name", CL_PLATFORM_NAME, cl_string);
-    APPEND_PLATFORM_INFO(platform_id, "Vendor", CL_PLATFORM_VENDOR, cl_string);
-    APPEND_PLATFORM_INFO(platform_id, "Version", CL_PLATFORM_VERSION, cl_string);
-    APPEND_PLATFORM_INFO(platform_id, "Profile", CL_PLATFORM_PROFILE, cl_string);
-    APPEND_PLATFORM_INFO(platform_id, "Extensions", CL_PLATFORM_EXTENSIONS, cl_string);
+    APPEND_PLATFORM_STRING_INFO(platform_id, "Name", CL_PLATFORM_NAME);
+    APPEND_PLATFORM_STRING_INFO(platform_id, "Vendor", CL_PLATFORM_VENDOR);
+    APPEND_PLATFORM_STRING_INFO(platform_id, "Version", CL_PLATFORM_VERSION);
+    APPEND_PLATFORM_STRING_INFO(platform_id, "Profile", CL_PLATFORM_PROFILE);
+    APPEND_PLATFORM_STRING_INFO(platform_id, "Extensions", CL_PLATFORM_EXTENSIONS);
 
     cl_uint num_devices = 0;
     opencl_assert(
@@ -202,13 +211,13 @@ string device_opencl_capabilities()
 
       result += string_printf("\t\tDevice: #%u\n", device);
 
-      APPEND_DEVICE_INFO(device_id, "Name", CL_DEVICE_NAME, cl_string);
+      APPEND_DEVICE_STRING_INFO(device_id, "Name", CL_DEVICE_NAME);
       APPEND_DEVICE_STRING_EXTENSION_INFO(device_id, "Board Name", CL_DEVICE_BOARD_NAME_AMD);
-      APPEND_DEVICE_INFO(device_id, "Vendor", CL_DEVICE_VENDOR, cl_string);
-      APPEND_DEVICE_INFO(device_id, "OpenCL C Version", CL_DEVICE_OPENCL_C_VERSION, cl_string);
-      APPEND_DEVICE_INFO(device_id, "Profile", CL_DEVICE_PROFILE, cl_string);
-      APPEND_DEVICE_INFO(device_id, "Version", CL_DEVICE_VERSION, cl_string);
-      APPEND_DEVICE_INFO(device_id, "Extensions", CL_DEVICE_EXTENSIONS, cl_string);
+      APPEND_DEVICE_STRING_INFO(device_id, "Vendor", CL_DEVICE_VENDOR);
+      APPEND_DEVICE_STRING_INFO(device_id, "OpenCL C Version", CL_DEVICE_OPENCL_C_VERSION);
+      APPEND_DEVICE_STRING_INFO(device_id, "Profile", CL_DEVICE_PROFILE);
+      APPEND_DEVICE_STRING_INFO(device_id, "Version", CL_DEVICE_VERSION);
+      APPEND_DEVICE_STRING_INFO(device_id, "Extensions", CL_DEVICE_EXTENSIONS);
       APPEND_DEVICE_INFO(
           device_id, "Max clock frequency (MHz)", CL_DEVICE_MAX_CLOCK_FREQUENCY, cl_uint);
       APPEND_DEVICE_INFO(device_id, "Max compute units", CL_DEVICE_MAX_COMPUTE_UNITS, cl_uint);
@@ -216,9 +225,14 @@ string device_opencl_capabilities()
     }
   }
 
-#  undef APPEND_STRING_INFO
+#  undef APPEND_INFO
+#  undef APPEND_STRING_INFO_IMPL
 #  undef APPEND_PLATFORM_STRING_INFO
+#  undef APPEND_STRING_EXTENSION_INFO
+#  undef APPEND_PLATFORM_INFO
+#  undef APPEND_DEVICE_INFO
 #  undef APPEND_DEVICE_STRING_INFO
+#  undef APPEND_DEVICE_STRING_EXTENSION_INFO
 
   return result;
 }
