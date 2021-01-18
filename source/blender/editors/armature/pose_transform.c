@@ -934,6 +934,18 @@ static void pchan_clear_scale(bPoseChannel *pchan)
   pchan->scale_in_x = pchan->scale_in_y = 1.0f;
   pchan->scale_out_x = pchan->scale_out_y = 1.0f;
 }
+/* Clear the scale. When X-mirror is enabled,
+ * also clear the scale of the mirrored pose channel. */
+static void pchan_clear_scale_with_mirrored(const bPose *pose, bPoseChannel *pchan)
+{
+  if (pose->flag & POSE_MIRROR_EDIT) {
+    bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(pose, pchan->name);
+    if (pchan_mirror != NULL) {
+      pchan_clear_scale(pchan_mirror);
+    }
+  }
+  pchan_clear_scale(pchan);
+}
 
 /* clear location of pose-channel */
 static void pchan_clear_loc(bPoseChannel *pchan)
@@ -947,6 +959,18 @@ static void pchan_clear_loc(bPoseChannel *pchan)
   if ((pchan->protectflag & OB_LOCK_LOCZ) == 0) {
     pchan->loc[2] = 0.0f;
   }
+}
+/* Clear the Location. When X-mirror is enabled,
+ * also clear the location of the mirrored pose channel. */
+static void pchan_clear_loc_with_mirrored(const bPose *pose, bPoseChannel *pchan)
+{
+  if (pose->flag & POSE_MIRROR_EDIT) {
+    bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(pose, pchan->name);
+    if (pchan_mirror != NULL) {
+      pchan_clear_loc(pchan_mirror);
+    }
+  }
+  pchan_clear_loc(pchan);
 }
 
 /* clear rotation of pose-channel */
@@ -1075,13 +1099,25 @@ static void pchan_clear_rot(bPoseChannel *pchan)
   pchan->curve_out_x = 0.0f;
   pchan->curve_out_y = 0.0f;
 }
+/* Clear the rotation. When X-mirror is enabled,
+ * also clear the rotation of the mirrored pose channel. */
+static void pchan_clear_rot_with_mirrored(const bPose *pose, bPoseChannel *pchan)
+{
+  if (pose->flag & POSE_MIRROR_EDIT) {
+    bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(pose, pchan->name);
+    if (pchan_mirror != NULL) {
+      pchan_clear_rot(pchan_mirror);
+    }
+  }
+  pchan_clear_rot(pchan);
+}
 
 /* clear loc/rot/scale of pose-channel */
-static void pchan_clear_transforms(bPoseChannel *pchan)
+static void pchan_clear_transforms(const bPose *pose, bPoseChannel *pchan)
 {
-  pchan_clear_loc(pchan);
-  pchan_clear_rot(pchan);
-  pchan_clear_scale(pchan);
+  pchan_clear_loc_with_mirrored(pose, pchan);
+  pchan_clear_rot_with_mirrored(pose, pchan);
+  pchan_clear_scale_with_mirrored(pose, pchan);
 }
 
 /* --------------- */
@@ -1089,7 +1125,7 @@ static void pchan_clear_transforms(bPoseChannel *pchan)
 /* generic exec for clear-pose operators */
 static int pose_clear_transform_generic_exec(bContext *C,
                                              wmOperator *op,
-                                             void (*clear_func)(bPoseChannel *),
+                                             void (*clear_func)(const bPose *, bPoseChannel *),
                                              const char default_ksName[])
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -1115,7 +1151,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
 
     FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {
       /* run provided clearing function */
-      clear_func(pchan);
+      clear_func(ob_iter->pose, pchan);
       changed = true;
 
       /* do auto-keyframing as appropriate */
@@ -1129,7 +1165,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
 
 #if 1 /* XXX: Ugly Hack - Run clearing function on evaluated copy of pchan */
         bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
-        clear_func(pchan_eval);
+        clear_func(ob_iter->pose, pchan_eval);
 #endif
       }
       else {
@@ -1175,7 +1211,8 @@ static int pose_clear_transform_generic_exec(bContext *C,
 
 static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 {
-  return pose_clear_transform_generic_exec(C, op, pchan_clear_scale, ANIM_KS_SCALING_ID);
+  return pose_clear_transform_generic_exec(
+      C, op, pchan_clear_scale_with_mirrored, ANIM_KS_SCALING_ID);
 }
 
 void POSE_OT_scale_clear(wmOperatorType *ot)
@@ -1195,7 +1232,8 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 
 static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 {
-  return pose_clear_transform_generic_exec(C, op, pchan_clear_rot, ANIM_KS_ROTATION_ID);
+  return pose_clear_transform_generic_exec(
+      C, op, pchan_clear_rot_with_mirrored, ANIM_KS_ROTATION_ID);
 }
 
 void POSE_OT_rot_clear(wmOperatorType *ot)
@@ -1215,7 +1253,8 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 
 static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 {
-  return pose_clear_transform_generic_exec(C, op, pchan_clear_loc, ANIM_KS_LOCATION_ID);
+  return pose_clear_transform_generic_exec(
+      C, op, pchan_clear_loc_with_mirrored, ANIM_KS_LOCATION_ID);
 }
 
 void POSE_OT_loc_clear(wmOperatorType *ot)
