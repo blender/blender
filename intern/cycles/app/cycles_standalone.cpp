@@ -133,12 +133,12 @@ static void scene_init()
 
   /* Camera width/height override? */
   if (!(options.width == 0 || options.height == 0)) {
-    options.scene->camera->width = options.width;
-    options.scene->camera->height = options.height;
+    options.scene->camera->set_full_width(options.width);
+    options.scene->camera->set_full_height(options.height);
   }
   else {
-    options.width = options.scene->camera->width;
-    options.height = options.scene->camera->height;
+    options.width = options.scene->camera->get_full_width();
+    options.height = options.scene->camera->get_full_height();
   }
 
   /* Calculate Viewplane */
@@ -233,7 +233,7 @@ static void display()
 static void motion(int x, int y, int button)
 {
   if (options.interactive) {
-    Transform matrix = options.session->scene->camera->matrix;
+    Transform matrix = options.session->scene->camera->get_matrix();
 
     /* Translate */
     if (button == 0) {
@@ -251,8 +251,8 @@ static void motion(int x, int y, int button)
     }
 
     /* Update and Reset */
-    options.session->scene->camera->matrix = matrix;
-    options.session->scene->camera->need_update = true;
+    options.session->scene->camera->set_matrix(matrix);
+    options.session->scene->camera->need_flags_update = true;
     options.session->scene->camera->need_device_update = true;
 
     options.session->reset(session_buffer_params(), options.session_params.samples);
@@ -266,10 +266,10 @@ static void resize(int width, int height)
 
   if (options.session) {
     /* Update camera */
-    options.session->scene->camera->width = width;
-    options.session->scene->camera->height = height;
+    options.session->scene->camera->set_full_width(options.width);
+    options.session->scene->camera->set_full_height(options.height);
     options.session->scene->camera->compute_auto_viewplane();
-    options.session->scene->camera->need_update = true;
+    options.session->scene->camera->need_flags_update = true;
     options.session->scene->camera->need_device_update = true;
 
     options.session->reset(session_buffer_params(), options.session_params.samples);
@@ -302,7 +302,7 @@ static void keyboard(unsigned char key)
 
   /* Navigation */
   else if (options.interactive && (key == 'w' || key == 'a' || key == 's' || key == 'd')) {
-    Transform matrix = options.session->scene->camera->matrix;
+    Transform matrix = options.session->scene->camera->get_matrix();
     float3 translate;
 
     if (key == 'w')
@@ -317,8 +317,8 @@ static void keyboard(unsigned char key)
     matrix = matrix * transform_translate(translate);
 
     /* Update and Reset */
-    options.session->scene->camera->matrix = matrix;
-    options.session->scene->camera->need_update = true;
+    options.session->scene->camera->set_matrix(matrix);
+    options.session->scene->camera->need_flags_update = true;
     options.session->scene->camera->need_device_update = true;
 
     options.session->reset(session_buffer_params(), options.session_params.samples);
@@ -345,10 +345,7 @@ static void keyboard(unsigned char key)
         break;
     }
 
-    options.session->scene->integrator->max_bounce = bounce;
-
-    /* Update and Reset */
-    options.session->scene->integrator->need_update = true;
+    options.session->scene->integrator->set_max_bounce(bounce);
 
     options.session->reset(session_buffer_params(), options.session_params.samples);
   }

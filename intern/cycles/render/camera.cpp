@@ -212,8 +212,8 @@ void Camera::compute_auto_viewplane()
     viewplane.top = 1.0f;
   }
   else {
-    float aspect = (float)width / (float)height;
-    if (width >= height) {
+    float aspect = (float)full_width / (float)full_height;
+    if (full_width >= full_height) {
       viewplane.left = -aspect;
       viewplane.right = aspect;
       viewplane.bottom = -1.0f;
