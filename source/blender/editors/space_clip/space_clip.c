@@ -514,6 +514,7 @@ static void clip_operatortypes(void)
   /* clean-up */
   WM_operatortype_append(CLIP_OT_clear_track_path);
   WM_operatortype_append(CLIP_OT_join_tracks);
+  WM_operatortype_append(CLIP_OT_average_tracks);
   WM_operatortype_append(CLIP_OT_track_copy_color);
 
   WM_operatortype_append(CLIP_OT_clean_tracks);

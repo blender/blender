@@ -1580,6 +1580,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 
   /* send notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ORDER, NULL);
 
   return OPERATOR_FINISHED;
 }
@@ -2900,6 +2901,7 @@ static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), const
 
   /* handle click */
   if (rename_anim_channels(&ac, channel_index)) {
+    WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
     return OPERATOR_FINISHED;
   }
 

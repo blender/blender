@@ -674,7 +674,7 @@ static bool gpencil_extract_palette_from_vertex(bContext *C,
         if (ED_gpencil_stroke_can_use(C, gps) == false) {
           continue;
         }
-        if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+        if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
           continue;
         }
         MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
@@ -859,7 +859,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
         if (ED_gpencil_stroke_can_use(C, gps) == false) {
           continue;
         }
-        if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+        if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
           continue;
         }
 

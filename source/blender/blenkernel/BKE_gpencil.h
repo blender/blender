@@ -280,12 +280,12 @@ void BKE_gpencil_frame_original_pointers_update(const struct bGPDframe *gpf_orig
                                                 const struct bGPDframe *gpf_eval);
 void BKE_gpencil_update_orig_pointers(const struct Object *ob_orig, const struct Object *ob_eval);
 
-void BKE_gpencil_parent_matrix_get(const struct Depsgraph *depsgraph,
-                                   struct Object *obact,
-                                   struct bGPDlayer *gpl,
-                                   float diff_mat[4][4]);
+void BKE_gpencil_layer_transform_matrix_get(const struct Depsgraph *depsgraph,
+                                            struct Object *obact,
+                                            struct bGPDlayer *gpl,
+                                            float diff_mat[4][4]);
 
-void BKE_gpencil_update_layer_parent(const struct Depsgraph *depsgraph, struct Object *ob);
+void BKE_gpencil_update_layer_transforms(const struct Depsgraph *depsgraph, struct Object *ob);
 
 int BKE_gpencil_material_find_index_by_name_prefix(struct Object *ob, const char *name_prefix);
 

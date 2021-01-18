@@ -426,7 +426,7 @@ static void gpencil_reproject_toplane(tGPsdata *p, bGPDstroke *gps)
 
   /* get drawing origin */
   gpencil_get_3d_reference(p, origin);
-  ED_gpencil_project_stroke_to_plane(p->scene, obact, rv3d, gps, origin, p->lock_axis - 1);
+  ED_gpencil_project_stroke_to_plane(p->scene, obact, rv3d, p->gpl, gps, origin, p->lock_axis - 1);
 }
 
 /* convert screen-coordinates to buffer-coordinates */
@@ -887,11 +887,13 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
       gpencil_get_3d_reference(p, origin);
       /* reproject current */
       ED_gpencil_tpoint_to_point(p->region, origin, pt, &spt);
-      ED_gpencil_project_point_to_plane(p->scene, obact, rv3d, origin, p->lock_axis - 1, &spt);
+      ED_gpencil_project_point_to_plane(
+          p->scene, obact, p->gpl, rv3d, origin, p->lock_axis - 1, &spt);
 
       /* reproject previous */
       ED_gpencil_tpoint_to_point(p->region, origin, ptb, &spt2);
-      ED_gpencil_project_point_to_plane(p->scene, obact, rv3d, origin, p->lock_axis - 1, &spt2);
+      ED_gpencil_project_point_to_plane(
+          p->scene, obact, p->gpl, rv3d, origin, p->lock_axis - 1, &spt2);
       p->totpixlen += len_v3v3(&spt.x, &spt2.x);
       pt->uv_fac = p->totpixlen;
     }
@@ -1349,7 +1351,7 @@ static bool gpencil_stroke_eraser_is_occluded(tGPsdata *p,
 
     float diff_mat[4][4];
     /* calculate difference matrix if parent object */
-    BKE_gpencil_parent_matrix_get(p->depsgraph, obact, gpl, diff_mat);
+    BKE_gpencil_layer_transform_matrix_get(p->depsgraph, obact, gpl, diff_mat);
 
     if (ED_view3d_autodist_simple(p->region, mval_i, mval_3d, 0, NULL)) {
       const float depth_mval = view3d_point_depth(rv3d, mval_3d);
@@ -1731,12 +1733,12 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
       continue;
     }
     /* calculate difference matrix */
-    BKE_gpencil_parent_matrix_get(p->depsgraph, p->ob, gpl, p->diff_mat);
+    BKE_gpencil_layer_transform_matrix_get(p->depsgraph, p->ob, gpl, p->diff_mat);
 
     /* loop over strokes, checking segments for intersections */
     LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
       /* check if the color is editable */
-      if (ED_gpencil_stroke_color_use(p->ob, gpl, gps) == false) {
+      if (ED_gpencil_stroke_material_editable(p->ob, gpl, gps) == false) {
         continue;
       }
 
@@ -2103,6 +2105,11 @@ static void gpencil_paint_initstroke(tGPsdata *p,
       copy_v3_v3(p->gpl->color, p->custom_color);
     }
   }
+
+  /* Recalculate layer transform matrix to avoid problems if props are animated. */
+  loc_eul_size_to_mat4(p->gpl->layer_mat, p->gpl->location, p->gpl->rotation, p->gpl->scale);
+  invert_m4_m4(p->gpl->layer_invmat, p->gpl->layer_mat);
+
   if ((paintmode != GP_PAINTMODE_ERASER) && (p->gpl->flag & GP_LAYER_LOCKED)) {
     p->status = GP_STATUS_ERROR;
     if (G.debug & G_DEBUG) {

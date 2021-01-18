@@ -2473,7 +2473,7 @@ static void gpencil_selected_hue_table(bContext *C,
         if (ED_gpencil_stroke_can_use(C, gps) == false) {
           continue;
         }
-        if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+        if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
           continue;
         }
         if ((gps->flag & GP_STROKE_SELECT) == 0) {

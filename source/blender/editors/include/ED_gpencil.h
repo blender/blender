@@ -147,9 +147,9 @@ bool ED_gpencil_has_keyframe_v3d(struct Scene *scene, struct Object *ob, int cfr
 
 bool ED_gpencil_stroke_can_use_direct(const struct ScrArea *area, const struct bGPDstroke *gps);
 bool ED_gpencil_stroke_can_use(const struct bContext *C, const struct bGPDstroke *gps);
-bool ED_gpencil_stroke_color_use(struct Object *ob,
-                                 const struct bGPDlayer *gpl,
-                                 const struct bGPDstroke *gps);
+bool ED_gpencil_stroke_material_editable(struct Object *ob,
+                                         const struct bGPDlayer *gpl,
+                                         const struct bGPDstroke *gps);
 
 /* ----------- Grease Pencil Operators ----------------- */
 
@@ -263,11 +263,13 @@ bool ED_object_gpencil_exit(struct Main *bmain, struct Object *ob);
 void ED_gpencil_project_stroke_to_plane(const struct Scene *scene,
                                         const struct Object *ob,
                                         const struct RegionView3D *rv3d,
+                                        struct bGPDlayer *gpl,
                                         struct bGPDstroke *gps,
                                         const float origin[3],
                                         const int axis);
 void ED_gpencil_project_point_to_plane(const struct Scene *scene,
                                        const struct Object *ob,
+                                       struct bGPDlayer *gpl,
                                        const struct RegionView3D *rv3d,
                                        const float origin[3],
                                        const int axis,

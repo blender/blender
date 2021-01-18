@@ -512,6 +512,11 @@ typedef struct bGPDlayer {
   int act_mask;
   char _pad2[4];
 
+  /** Layer transforms. */
+  float location[3], rotation[3], scale[3];
+  float layer_mat[4][4], layer_invmat[4][4];
+  char _pad3[4];
+
   bGPDlayer_Runtime runtime;
 } bGPDlayer;
 

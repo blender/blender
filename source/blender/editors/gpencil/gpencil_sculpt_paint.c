@@ -1441,11 +1441,6 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
   bool changed = false;
   float rot_eval = 0.0f;
 
-  /* Check if the stroke collide with brush. */
-  if (!ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, diff_mat)) {
-    return false;
-  }
-
   if (gps->totpoints == 1) {
     bGPDspoint pt_temp;
     pt = &gps->points[0];
@@ -1577,6 +1572,13 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
   Object *ob = gso->object;
   bGPdata *gpd = ob->data;
   char tool = gso->brush->gpencil_sculpt_tool;
+  GP_SpaceConversion *gsc = &gso->gsc;
+  Brush *brush = gso->brush;
+  const int radius = (brush->flag & GP_BRUSH_USE_PRESSURE) ? gso->brush->size * gso->pressure :
+                                                             gso->brush->size;
+  /* Calc bound box matrix. */
+  float bound_mat[4][4];
+  BKE_gpencil_layer_transform_matrix_get(gso->depsgraph, gso->object, gpl, bound_mat);
 
   LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
     /* skip strokes that are invalid for current view */
@@ -1584,7 +1586,12 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
       continue;
     }
     /* check if the color is editable */
-    if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+    if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
+      continue;
+    }
+
+    /* Check if the stroke collide with brush. */
+    if (!ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat)) {
       continue;
     }
 
@@ -1742,7 +1749,8 @@ static bool gpencil_sculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *
 
     /* calculate difference matrix */
     float diff_mat[4][4];
-    BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+    BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
+    mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_invmat);
 
     /* Active Frame or MultiFrame? */
     if (gso->is_multiframe) {

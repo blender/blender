@@ -1462,7 +1462,11 @@ void BKE_pchan_bbone_segments_cache_compute(bPoseChannel *pchan)
                   tmat,
                   b_bone_mats[0].mat);
 
-    mat4_to_dquat(&b_bone_dual_quats[a], bone->arm_mat, b_bone_mats[a + 1].mat);
+    /* Compute the orthonormal object space rest matrix of the segment. */
+    mul_m4_m4m4(tmat, bone->arm_mat, b_bone_rest[a].mat);
+    normalize_m4(tmat);
+
+    mat4_to_dquat(&b_bone_dual_quats[a], tmat, b_bone_mats[a + 1].mat);
   }
 }
 

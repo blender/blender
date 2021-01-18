@@ -225,7 +225,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
     case OB_GPENCIL: {
       BKE_gpencil_prepare_eval_data(depsgraph, scene, ob);
       BKE_gpencil_modifiers_calc(depsgraph, scene, ob);
-      BKE_gpencil_update_layer_parent(depsgraph, ob);
+      BKE_gpencil_update_layer_transforms(depsgraph, ob);
       break;
     }
     case OB_HAIR:

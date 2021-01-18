@@ -80,6 +80,9 @@ typedef struct SnapGizmo3D {
 #endif
   int use_snap_override;
   short snap_elem;
+
+  /** Enabled when snap is activated, even if it didn't find anything. */
+  bool is_enabled;
 } SnapGizmo3D;
 
 /* Checks if the current event is different from the one captured in the last update. */
@@ -284,6 +287,12 @@ void ED_gizmotypes_snap_3d_toggle_clear(wmGizmo *gz)
   snap_gizmo->use_snap_override = -1;
 }
 
+bool ED_gizmotypes_snap_3d_is_enabled(wmGizmo *gz)
+{
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  return snap_gizmo->is_enabled;
+}
+
 short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
                                    struct Depsgraph *depsgraph,
                                    const ARegion *region,
@@ -294,6 +303,8 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
                                    float r_nor[3])
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  snap_gizmo->is_enabled = false;
+
   if (snap_gizmo->use_snap_override != -1) {
     if (snap_gizmo->use_snap_override == false) {
       snap_gizmo->snap_elem = 0;
@@ -317,6 +328,8 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
     }
   }
 #endif
+
+  snap_gizmo->is_enabled = true;
 
   float co[3], no[3];
   short snap_elem = 0;

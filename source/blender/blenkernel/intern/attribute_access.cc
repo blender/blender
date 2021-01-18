@@ -1202,6 +1202,11 @@ WriteAttributePtr MeshComponent::attribute_try_get_for_write(const StringRef att
     if (mesh_->dvert == nullptr) {
       BKE_object_defgroup_data_create(&mesh_->id);
     }
+    else {
+      /* Copy the data layer if it is shared with some other mesh. */
+      mesh_->dvert = (MDeformVert *)CustomData_duplicate_referenced_layer(
+          &mesh_->vdata, CD_MDEFORMVERT, mesh_->totvert);
+    }
     return std::make_unique<blender::bke::VertexWeightWriteAttribute>(
         mesh_->dvert, mesh_->totvert, vertex_group_index);
   }

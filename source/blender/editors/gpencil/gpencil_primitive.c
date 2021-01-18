@@ -317,6 +317,10 @@ static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   }
   tgpi->gpl = gpl;
 
+  /* Recalculate layer transform matrix to avoid problems if props are animated. */
+  loc_eul_size_to_mat4(gpl->layer_mat, gpl->location, gpl->rotation, gpl->scale);
+  invert_m4_m4(gpl->layer_invmat, gpl->layer_mat);
+
   /* create a new temporary frame */
   tgpi->gpf = MEM_callocN(sizeof(bGPDframe), "Temp bGPDframe");
   tgpi->gpf->framenum = tgpi->cframe = cfra;
@@ -1004,12 +1008,12 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       /* reproject current */
       ED_gpencil_tpoint_to_point(tgpi->region, origin, tpt, &spt);
       ED_gpencil_project_point_to_plane(
-          tgpi->scene, tgpi->ob, tgpi->rv3d, origin, tgpi->lock_axis - 1, &spt);
+          tgpi->scene, tgpi->ob, tgpi->gpl, tgpi->rv3d, origin, tgpi->lock_axis - 1, &spt);
 
       /* reproject previous */
       ED_gpencil_tpoint_to_point(tgpi->region, origin, tptb, &spt2);
       ED_gpencil_project_point_to_plane(
-          tgpi->scene, tgpi->ob, tgpi->rv3d, origin, tgpi->lock_axis - 1, &spt2);
+          tgpi->scene, tgpi->ob, tgpi->gpl, tgpi->rv3d, origin, tgpi->lock_axis - 1, &spt2);
       tgpi->totpixlen += len_v3v3(&spt.x, &spt2.x);
       tpt->uv_fac = tgpi->totpixlen;
     }
@@ -1067,7 +1071,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     float origin[3];
     ED_gpencil_drawing_reference_get(tgpi->scene, tgpi->ob, ts->gpencil_v3d_align, origin);
     ED_gpencil_project_stroke_to_plane(
-        tgpi->scene, tgpi->ob, tgpi->rv3d, gps, origin, ts->gp_sculpt.lock_axis - 1);
+        tgpi->scene, tgpi->ob, tgpi->rv3d, tgpi->gpl, gps, origin, ts->gp_sculpt.lock_axis - 1);
   }
 
   /* if parented change position relative to parent object */

@@ -459,7 +459,11 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
   int device_num = device->device_number(tile_device);
 
   while (!tile_manager.next_tile(tile, device_num, tile_types)) {
-    if (steal_tile(rtile, tile_device, tile_lock)) {
+    /* Can only steal tiles on devices that support rendering
+     * This is because denoising tiles cannot be stolen (see below)
+     */
+    if ((tile_types & (RenderTile::PATH_TRACE | RenderTile::BAKE)) &&
+        steal_tile(rtile, tile_device, tile_lock)) {
       return true;
     }
 

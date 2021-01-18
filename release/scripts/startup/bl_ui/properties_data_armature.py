@@ -133,7 +133,6 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
         )
 
         col = row.column(align=True)
-        col.active = (ob.proxy is None)
         col.operator("pose.group_add", icon='ADD', text="")
         col.operator("pose.group_remove", icon='REMOVE', text="")
         col.menu("DATA_MT_bone_group_context_menu", icon='DOWNARROW_HLT', text="")
@@ -156,7 +155,6 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
                 sub.prop(group.colors, "active", text="")
 
         row = layout.row()
-        row.active = (ob.proxy is None)
 
         sub = row.row(align=True)
         sub.operator("pose.group_assign", text="Assign")

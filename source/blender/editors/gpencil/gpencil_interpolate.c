@@ -229,7 +229,7 @@ static bool gpencil_interpolate_check_todo(bContext *C, bGPdata *gpd)
         continue;
       }
       /* check if the color is editable */
-      if (ED_gpencil_stroke_color_use(ob, gpl, gps_from) == false) {
+      if (ED_gpencil_stroke_material_editable(ob, gpl, gps_from) == false) {
         continue;
       }
 
@@ -315,7 +315,7 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
       }
 
       /* check if the color is editable */
-      if (ED_gpencil_stroke_color_use(ob, tgpil->gpl, gps_from) == false) {
+      if (ED_gpencil_stroke_material_editable(ob, tgpil->gpl, gps_from) == false) {
         valid = false;
       }
 
@@ -1038,7 +1038,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
           continue;
         }
         /* check if the color is editable */
-        if (ED_gpencil_stroke_color_use(ob, gpl, gps_from) == false) {
+        if (ED_gpencil_stroke_material_editable(ob, gpl, gps_from) == false) {
           continue;
         }
 

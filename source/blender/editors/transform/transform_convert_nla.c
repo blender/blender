@@ -36,6 +36,7 @@
 #include "ED_markers.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 
@@ -553,6 +554,12 @@ void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
       /* remove the temp metas */
       BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
     }
+
+    /* General refresh for the outliner because the following might have happened:
+     * - strips moved between tracks
+     * - strips swapped order
+     * - duplicate-move moves to different track. */
+    WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
     /* free temp memory */
     ANIM_animdata_freelist(&anim_data);

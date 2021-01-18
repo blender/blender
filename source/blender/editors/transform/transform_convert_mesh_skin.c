@@ -55,9 +55,7 @@ static float *mesh_skin_transdata_center(const struct TransIslandData *island_da
   if (island_data->center && island_index != -1) {
     return island_data->center[island_index];
   }
-  else {
-    return eve->co;
-  }
+  return eve->co;
 }
 
 static void mesh_skin_transdata_create(TransDataBasic *td,

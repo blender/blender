@@ -500,6 +500,15 @@ void ED_transform_calc_orientation_from_type(const bContext *C, float r_mat[3][3
       C, r_mat, scene, rv3d, ob, obedit, orientation_type, orientation_index_custom, pivot_point);
 }
 
+/**
+ * \note The resulting matrix may not be orthogonal,
+ * callers that depend on `r_mat` to be orthogonal should use #orthogonalize_m3.
+ *
+ * A non orthogonal matrix may be returned when:
+ * - #V3D_ORIENT_GIMBAL the result won't be orthogonal unless the object has no rotation.
+ * - #V3D_ORIENT_LOCAL may contain shear from non-uniform scale in parent/child relationships.
+ * - #V3D_ORIENT_CUSTOM may have been created from #V3D_ORIENT_LOCAL.
+ */
 short ED_transform_calc_orientation_from_type_ex(const bContext *C,
                                                  float r_mat[3][3],
                                                  /* extra args (can be accessed from context) */

@@ -89,6 +89,23 @@ struct MovieTrackingTrack *BKE_tracking_track_duplicate(struct MovieTrackingTrac
 void BKE_tracking_track_unique_name(struct ListBase *tracksbase, struct MovieTrackingTrack *track);
 void BKE_tracking_track_free(struct MovieTrackingTrack *track);
 
+void BKE_tracking_track_first_last_frame_get(const struct MovieTrackingTrack *track,
+                                             int *r_first_frame,
+                                             int *r_last_frame);
+
+void BKE_tracking_tracks_first_last_frame_minmax(/*const*/ struct MovieTrackingTrack **tracks,
+                                                 const int num_tracks,
+                                                 int *r_first_frame,
+                                                 int *r_last_frame);
+
+int BKE_tracking_count_selected_tracks_in_list(const struct ListBase *tracks_list);
+int BKE_tracking_count_selected_tracks_in_active_object(/*const*/ struct MovieTracking *tracking);
+
+/* Get array of selected tracks from the current active object in the tracking structure.
+ * If nothing is selected then the result is nullptr and `r_num_tracks` is set to 0. */
+struct MovieTrackingTrack **BKE_tracking_selected_tracks_in_active_object(
+    struct MovieTracking *tracking, int *r_num_tracks);
+
 void BKE_tracking_track_flag_set(struct MovieTrackingTrack *track, int area, int flag);
 void BKE_tracking_track_flag_clear(struct MovieTrackingTrack *track, int area, int flag);
 
@@ -96,9 +113,14 @@ bool BKE_tracking_track_has_marker_at_frame(struct MovieTrackingTrack *track, in
 bool BKE_tracking_track_has_enabled_marker_at_frame(struct MovieTrackingTrack *track, int framenr);
 
 void BKE_tracking_track_path_clear(struct MovieTrackingTrack *track, int ref_frame, int action);
+
 void BKE_tracking_tracks_join(struct MovieTracking *tracking,
                               struct MovieTrackingTrack *dst_track,
                               struct MovieTrackingTrack *src_track);
+
+void BKE_tracking_tracks_average(struct MovieTrackingTrack *dst_track,
+                                 /*const*/ struct MovieTrackingTrack **src_tracks,
+                                 const int num_src_tracks);
 
 struct MovieTrackingTrack *BKE_tracking_track_get_named(struct MovieTracking *tracking,
                                                         struct MovieTrackingObject *object,
@@ -138,6 +160,17 @@ struct MovieTrackingMarker *BKE_tracking_marker_get_exact(struct MovieTrackingTr
                                                           int framenr);
 struct MovieTrackingMarker *BKE_tracking_marker_ensure(struct MovieTrackingTrack *track,
                                                        int framenr);
+
+/* Get marker position, possibly interpolating interpolating gap between keyframed/tracked markers.
+ *
+ * The result marker frame number is set to the requested frame number. Its flags are 0 if the
+ * marker is interpolated, and is set to original marker flag if there were no interpolation
+ * involved.
+ *
+ * Returns truth if the result is usable. */
+bool BKE_tracking_marker_get_interpolated(struct MovieTrackingTrack *track,
+                                          const int framenr,
+                                          struct MovieTrackingMarker *r_marker);
 
 void BKE_tracking_marker_pattern_minmax(const struct MovieTrackingMarker *marker,
                                         float min[2],
