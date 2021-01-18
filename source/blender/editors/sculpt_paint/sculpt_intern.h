@@ -1168,13 +1168,12 @@ typedef enum eSculptExpandTargetType {
 } eSculptExpandTargetType;
 
 typedef enum eSculptExpandRecursionType {
-    SCULPT_EXPAND_RECURSION_TOPOLOGY,
-    SCULPT_EXPAND_RECURSION_GEODESICS,
+  SCULPT_EXPAND_RECURSION_TOPOLOGY,
+  SCULPT_EXPAND_RECURSION_GEODESICS,
 } eSculptExpandRecursionType;
 
 typedef struct ExpandCache {
   eSculptExpandTargetType target;
-
 
   eSculptExpandRecursionType recursion_type;
 
