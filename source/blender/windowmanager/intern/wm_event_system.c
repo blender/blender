@@ -543,13 +543,31 @@ void wm_event_do_notifiers(bContext *C)
         ED_screen_do_listen(C, note);
 
         LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
-          ED_region_do_listen(win, NULL, region, note, scene);
+          wmRegionListenerParams region_params = {
+              .area = NULL,
+              .region = region,
+              .scene = scene,
+              .notifier = note,
+          };
+          ED_region_do_listen(&region_params);
         }
 
         ED_screen_areas_iter (win, screen, area) {
-          ED_area_do_listen(win, area, note, scene);
+          wmSpaceTypeListenerParams area_params = {
+              .window = win,
+              .area = area,
+              .notifier = note,
+              .scene = scene,
+          };
+          ED_area_do_listen(&area_params);
           LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-            ED_region_do_listen(win, area, region, note, scene);
+            wmRegionListenerParams region_params = {
+                .area = area,
+                .region = region,
+                .scene = scene,
+                .notifier = note,
+            };
+            ED_region_do_listen(&region_params);
           }
         }
       }

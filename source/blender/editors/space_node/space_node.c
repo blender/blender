@@ -328,11 +328,11 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
-static void node_area_listener(wmWindow *UNUSED(win),
-                               ScrArea *area,
-                               wmNotifier *wmn,
-                               Scene *UNUSED(scene))
+static void node_area_listener(wmSpaceTypeListenerParams *params)
 {
+  ScrArea *area = params->area;
+  wmNotifier *wmn = params->notifier;
+
   /* note, ED_area_tag_refresh will re-execute compositor */
   SpaceNode *snode = area->spacedata.first;
   /* shaderfrom is only used for new shading nodes, otherwise all shaders are from objects */
@@ -703,12 +703,10 @@ static void node_header_region_draw(const bContext *C, ARegion *region)
 }
 
 /* used for header + main region */
-static void node_region_listener(wmWindow *UNUSED(win),
-                                 ScrArea *UNUSED(area),
-                                 ARegion *region,
-                                 wmNotifier *wmn,
-                                 const Scene *UNUSED(scene))
+static void node_region_listener(wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
   wmGizmoMap *gzmap = region->gizmo_map;
 
   /* context changes */

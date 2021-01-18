@@ -229,7 +229,7 @@ static void clip_scopes_check_gpencil_change(ScrArea *area)
   }
 }
 
-static void clip_area_sync_frame_from_scene(ScrArea *area, Scene *scene)
+static void clip_area_sync_frame_from_scene(ScrArea *area, const Scene *scene)
 {
   SpaceClip *space_clip = (SpaceClip *)area->spacedata.first;
   BKE_movieclip_user_set_frame(&space_clip->user, scene->r.cfra);
@@ -334,8 +334,12 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
   return (SpaceLink *)scn;
 }
 
-static void clip_listener(wmWindow *UNUSED(win), ScrArea *area, wmNotifier *wmn, Scene *scene)
+static void clip_listener(wmSpaceTypeListenerParams *params)
 {
+  ScrArea *area = params->area;
+  wmNotifier *wmn = params->notifier;
+  const Scene *scene = params->scene;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SCENE:
@@ -1004,12 +1008,11 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
   WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 }
 
-static void clip_main_region_listener(wmWindow *UNUSED(win),
-                                      ScrArea *UNUSED(area),
-                                      ARegion *region,
-                                      wmNotifier *wmn,
-                                      const Scene *UNUSED(scene))
+static void clip_main_region_listener(wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_GPENCIL:
@@ -1140,11 +1143,7 @@ static void clip_preview_region_draw(const bContext *C, ARegion *region)
   }
 }
 
-static void clip_preview_region_listener(wmWindow *UNUSED(win),
-                                         ScrArea *UNUSED(area),
-                                         ARegion *UNUSED(region),
-                                         wmNotifier *UNUSED(wmn),
-                                         const Scene *UNUSED(scene))
+static void clip_preview_region_listener(wmRegionListenerParams *UNUSED(params))
 {
 }
 
@@ -1185,11 +1184,7 @@ static void clip_channels_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 }
 
-static void clip_channels_region_listener(wmWindow *UNUSED(win),
-                                          ScrArea *UNUSED(area),
-                                          ARegion *UNUSED(region),
-                                          wmNotifier *UNUSED(wmn),
-                                          const Scene *UNUSED(scene))
+static void clip_channels_region_listener(wmRegionListenerParams *UNUSED(params))
 {
 }
 
@@ -1206,12 +1201,11 @@ static void clip_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void clip_header_region_listener(wmWindow *UNUSED(win),
-                                        ScrArea *UNUSED(area),
-                                        ARegion *region,
-                                        wmNotifier *wmn,
-                                        const Scene *UNUSED(scene))
+static void clip_header_region_listener(wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SCENE:
@@ -1249,12 +1243,11 @@ static void clip_tools_region_draw(const bContext *C, ARegion *region)
 
 /****************** tool properties region ******************/
 
-static void clip_props_region_listener(wmWindow *UNUSED(win),
-                                       ScrArea *UNUSED(area),
-                                       ARegion *region,
-                                       wmNotifier *wmn,
-                                       const Scene *UNUSED(scene))
+static void clip_props_region_listener(wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_WM:
@@ -1302,12 +1295,11 @@ static void clip_properties_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void clip_properties_region_listener(wmWindow *UNUSED(win),
-                                            ScrArea *UNUSED(area),
-                                            ARegion *region,
-                                            wmNotifier *wmn,
-                                            const Scene *UNUSED(scene))
+static void clip_properties_region_listener(wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_GPENCIL:
