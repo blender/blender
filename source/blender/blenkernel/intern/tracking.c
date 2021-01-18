@@ -1508,7 +1508,8 @@ MovieTrackingMarker *BKE_tracking_marker_get(MovieTrackingTrack *track, int fram
     if (marker->framenr == framenr) {
       return marker;
     }
-    else if (marker->framenr < framenr) {
+
+    if (marker->framenr < framenr) {
       left_boundary = median_index + 1;
     }
     else {
