@@ -88,6 +88,8 @@ enum {
   SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY,
   SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL,
   SCULPT_EXPAND_MODAL_SNAP_TOGGLE,
+  SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE,
+  SCULPT_EXPAND_MODAL_LOOP_COUNT_DECREASE,
 };
 
 static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
@@ -108,17 +110,23 @@ static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+
 static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int i)
 {
-
   bool enabled = false;
+
 
   if (expand_cache->snap) {
     const int face_set = SCULPT_vertex_face_set_get(ss, i);
     enabled = BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
   }
   else {
-    enabled = expand_cache->falloff_factor[i] <= expand_cache->active_factor;
+  const float loop_len = (expand_cache->max_falloff_factor / expand_cache->loop_count) + 0.0001f;
+
+  const float active_factor = fmod(expand_cache->active_factor, loop_len);
+  const float falloff_factor = fmod(expand_cache->falloff_factor[i], loop_len);
+
+    enabled = falloff_factor < active_factor;
   }
 
   if (expand_cache->invert) {
@@ -138,14 +146,14 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
     enabled = expand_cache->face_falloff_factor[f] <= expand_cache->active_factor;
   }
 
-  if (expand_cache->invert) {
-    enabled = !enabled;
-  }
-
   if (expand_cache->falloff_factor_type == SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET) {
       if (ss->face_sets[f] == expand_cache->initial_active_face_set) {
           enabled = false;
       }
+  }
+
+  if (expand_cache->invert) {
+    enabled = !enabled;
   }
 
   return enabled;
@@ -157,12 +165,16 @@ static float sculpt_expand_gradient_falloff_get(ExpandCache *expand_cache, const
     return 1.0f;
   }
 
+  const float loop_len = (expand_cache->max_falloff_factor / expand_cache->loop_count) + 0.0001f;
+  const float active_factor = fmod(expand_cache->active_factor, loop_len);
+  const float falloff_factor = fmod(expand_cache->falloff_factor[i], loop_len);
+
   if (expand_cache->invert) {
-    return (expand_cache->falloff_factor[i] - expand_cache->active_factor) /
-           (expand_cache->max_falloff_factor - expand_cache->active_factor);
+    return (falloff_factor - active_factor) /
+           (loop_len - active_factor);
   }
 
-  return 1.0f - (expand_cache->falloff_factor[i] / expand_cache->active_factor);
+  return 1.0f - (falloff_factor / active_factor);
 }
 
 static float *sculpt_expand_geodesic_falloff_create(Sculpt *sd, Object *ob, const int vertex)
@@ -324,7 +336,6 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
   float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "spherical dist");
   BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(totvert, "visited vertices");
   GSQueue *queue = BLI_gsqueue_new(sizeof(int));
-
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char symm_it = 0; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
@@ -437,18 +448,13 @@ static BLI_bitmap *sculpt_expand_bitmap_from_enabled(SculptSession *ss, ExpandCa
   return enabled_vertices;
 }
 
-static void sculpt_expand_from_state_boundary(Object *ob,
+
+static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
                                               ExpandCache *expand_cache,
-                                              BLI_bitmap *enabled_vertices)
-{
+                                                        BLI_bitmap *enabled_vertices) {
   SculptSession *ss = ob->sculpt;
   GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
-
   const int totvert = SCULPT_vertex_count_get(ss);
-
-  SculptFloodFill flood;
-  SCULPT_floodfill_init(ss, &flood);
-
   for (int i = 0; i < totvert; i++) {
     SculptVertexNeighborIter ni;
     if (!BLI_BITMAP_TEST(enabled_vertices, i)) {
@@ -464,6 +470,35 @@ static void sculpt_expand_from_state_boundary(Object *ob,
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
     if (is_expand_boundary) {
       BLI_gset_add(initial_vertices, POINTER_FROM_INT(i));
+    }
+  }
+  MEM_SAFE_FREE(expand_cache->falloff_factor);
+  MEM_SAFE_FREE(expand_cache->face_falloff_factor);
+  expand_cache->falloff_factor = SCULPT_geodesic_distances_create(ob, initial_vertices, FLT_MAX);
+  BLI_gset_free(initial_vertices, NULL);
+}
+
+static void sculpt_expand_topology_from_state_boundary(Object *ob,
+                                              ExpandCache *expand_cache,
+                                                        BLI_bitmap *enabled_vertices) {
+  SculptSession *ss = ob->sculpt;
+  const int totvert = SCULPT_vertex_count_get(ss);
+  SculptFloodFill flood;
+  SCULPT_floodfill_init(ss, &flood);
+  for (int i = 0; i < totvert; i++) {
+    SculptVertexNeighborIter ni;
+    if (!BLI_BITMAP_TEST(enabled_vertices, i)) {
+      continue;
+    }
+
+    bool is_expand_boundary = false;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+      if (!BLI_BITMAP_TEST(enabled_vertices, ni.index)) {
+        is_expand_boundary = true;
+      }
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    if (is_expand_boundary) {
       SCULPT_floodfill_add_initial(&flood, i);
     }
   }
@@ -474,16 +509,26 @@ static void sculpt_expand_from_state_boundary(Object *ob,
   float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "topology dist");
   ExpandFloodFillData fdata;
   fdata.dists = dists;
-
   SCULPT_floodfill_execute(ss, &flood, mask_expand_topology_floodfill_cb, &fdata);
+  expand_cache->falloff_factor = dists;
   SCULPT_floodfill_free(&flood);
-
-  expand_cache->falloff_factor = SCULPT_geodesic_distances_create(ob, initial_vertices, FLT_MAX);
-
-  BLI_gset_free(initial_vertices, NULL);
 }
 
-static void sculpt_expand_finitialize_from_face_set_boundary(Object *ob,
+static void sculpt_expand_from_state_boundary(Object *ob,
+                                              ExpandCache *expand_cache,
+                                              BLI_bitmap *enabled_vertices)
+{
+    switch (expand_cache->recursion_type) {
+    case SCULPT_EXPAND_RECURSION_GEODESICS:
+        sculpt_expand_geodesics_from_state_boundary(ob, expand_cache, enabled_vertices);
+        break;
+    case SCULPT_EXPAND_RECURSION_TOPOLOGY:
+        sculpt_expand_topology_from_state_boundary(ob, expand_cache, enabled_vertices);
+        break;
+    }
+}
+
+static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
                                                              ExpandCache *expand_cache,
                                                              const int active_face_set,
                                                              const bool internal_falloff)
@@ -598,12 +643,13 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
     case SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY:
       expand_cache->falloff_factor = sculpt_expand_boundary_topology_falloff_create(
           sd, ob, vertex);
+      break;
     case SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET:
-      sculpt_expand_finitialize_from_face_set_boundary(
+      sculpt_expand_initialize_from_face_set_boundary(
           ob, expand_cache, expand_cache->initial_active_face_set, true);
       break;
     case SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET:
-      sculpt_expand_finitialize_from_face_set_boundary(
+      sculpt_expand_initialize_from_face_set_boundary(
           ob, expand_cache, expand_cache->initial_active_face_set, false);
       break;
   }
@@ -1120,6 +1166,15 @@ static int sculpt_expand_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
             SCULPT_EXPAND_FALLOFF_SPHERICAL);
         break;
       }
+      case SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE: {
+        expand_cache->loop_count += 1;
+        break;
+      }
+      case SCULPT_EXPAND_MODAL_LOOP_COUNT_DECREASE: {
+        expand_cache->loop_count -= 1;
+        expand_cache->loop_count = max_ii(expand_cache->loop_count, 1);
+        break;
+      }
     }
   }
 
@@ -1205,6 +1260,9 @@ static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
   expand_cache->target = RNA_enum_get(op->ptr, "target");
   expand_cache->modify_active = RNA_boolean_get(op->ptr, "use_modify_active");
 
+  /* TODO: Expose in RNA. */
+  expand_cache->loop_count = 1;
+
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   copy_v4_fl(expand_cache->fill_color, 1.0f);
@@ -1246,6 +1304,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   BKE_pbvh_search_gather(
       ss->pbvh, NULL, NULL, &ss->expand_cache->nodes, &ss->expand_cache->totnode);
 
+
   /* Store initial state. */
   sculpt_expand_initial_state_store(ob, ss->expand_cache);
 
@@ -1262,6 +1321,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   if (SCULPT_vertex_is_boundary(ss, ss->expand_cache->initial_active_vertex)) {
     falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
+
+  ss->expand_cache->recursion_type = SCULPT_EXPAND_RECURSION_TOPOLOGY;
 
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
       ss->expand_cache, sd, ob, ss->expand_cache->initial_active_vertex, falloff_type);
@@ -1302,12 +1363,19 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Move the origin of the expand",
        ""},
-      {SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL,
-       "FALLOFF_SPHERICAL",
+      {SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL, "FALLOFF_SPHERICAL",
        0,
        "Move the origin of the expand",
        ""},
       {SCULPT_EXPAND_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap expand to Face Sets", ""},
+      {SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE, "LOOP_COUNT_INCREASE",
+       0,
+       "Loop Count Increase",
+       ""},
+      {SCULPT_EXPAND_MODAL_LOOP_COUNT_DECREASE, "LOOP_COUNT_DECREASE",
+       0,
+       "Loop Count Decrease",
+       ""},
       {0, NULL, 0, NULL, NULL},
   };
 

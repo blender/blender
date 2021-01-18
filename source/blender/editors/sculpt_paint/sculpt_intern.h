@@ -1167,8 +1167,16 @@ typedef enum eSculptExpandTargetType {
   SCULPT_EXPAND_TARGET_COLORS,
 } eSculptExpandTargetType;
 
+typedef enum eSculptExpandRecursionType {
+    SCULPT_EXPAND_RECURSION_TOPOLOGY,
+    SCULPT_EXPAND_RECURSION_GEODESICS,
+} eSculptExpandRecursionType;
+
 typedef struct ExpandCache {
   eSculptExpandTargetType target;
+
+
+  eSculptExpandRecursionType recursion_type;
 
   eSculptExpandFalloffType falloff_factor_type;
   float *falloff_factor;
@@ -1189,6 +1197,7 @@ typedef struct ExpandCache {
   PBVHNode **nodes;
   int totnode;
 
+  int loop_count;
   bool invert;
   bool preserve;
   bool falloff_gradient;

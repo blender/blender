@@ -5541,6 +5541,8 @@ def km_sculpt_expand_modal(_params):
         ("FALLOFF_TOPOLOGY", {"type": 'TWO', "value": 'PRESS', "any": True, "repeat" : False}, None),
         ("FALLOFF_SPHERICAL", {"type": 'THREE', "value": 'PRESS', "any": True, "repeat" : False}, None),
         ("SNAP_TOGGLE", {"type": 'Z', "value": 'ANY', "any": True, "repeat" : False}, None),
+        ("LOOP_COUNT_INCREASE", {"type": 'W', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("LOOP_COUNT_DECREASE", {"type": 'Q', "value": 'PRESS', "any": True, "repeat" : False}, None),
     ])
     return keymap
 
