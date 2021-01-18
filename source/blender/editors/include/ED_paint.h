@@ -101,7 +101,7 @@ struct ListBase *ED_image_paint_tile_list_get(void);
 
 /* paint_curve_undo.c */
 void ED_paintcurve_undo_push_begin(const char *name);
-void ED_paintcurve_undo_push_end(void);
+void ED_paintcurve_undo_push_end(struct bContext *C);
 
 void ED_paintcurve_undosys_type(struct UndoType *ut);
 

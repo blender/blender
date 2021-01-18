@@ -241,7 +241,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
     pcp[add_index].bez.h1 = HD_ALIGN;
   }
 
-  ED_paintcurve_undo_push_end();
+  ED_paintcurve_undo_push_end(C);
 
   WM_paint_cursor_tag_redraw(window, region);
 }
@@ -352,7 +352,7 @@ static int paintcurve_delete_point_exec(bContext *C, wmOperator *op)
 
 #undef DELETE_TAG
 
-  ED_paintcurve_undo_push_end();
+  ED_paintcurve_undo_push_end(C);
 
   WM_paint_cursor_tag_redraw(window, region);
 
@@ -463,12 +463,12 @@ static bool paintcurve_point_select(
     }
 
     if (!pcp) {
-      ED_paintcurve_undo_push_end();
+      ED_paintcurve_undo_push_end(C);
       return false;
     }
   }
 
-  ED_paintcurve_undo_push_end();
+  ED_paintcurve_undo_push_end(C);
 
   WM_paint_cursor_tag_redraw(window, region);
 
@@ -614,7 +614,7 @@ static int paintcurve_slide_modal(bContext *C, wmOperator *op, const wmEvent *ev
   if (event->type == psd->event && event->val == KM_RELEASE) {
     MEM_freeN(psd);
     ED_paintcurve_undo_push_begin(op->type->name);
-    ED_paintcurve_undo_push_end();
+    ED_paintcurve_undo_push_end(C);
     return OPERATOR_FINISHED;
   }
 
