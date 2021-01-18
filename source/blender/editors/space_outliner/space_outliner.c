@@ -222,9 +222,17 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
           ED_region_tag_redraw(region);
           break;
         case ND_ANIMCHAN:
-          if (wmn->action == NA_SELECTED) {
+          if (ELEM(wmn->action, NA_SELECTED, NA_RENAME)) {
             ED_region_tag_redraw(region);
           }
+          break;
+        case ND_NLA:
+          if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
+            ED_region_tag_redraw(region);
+          }
+          break;
+        case ND_NLA_ORDER:
+          ED_region_tag_redraw(region);
           break;
       }
       break;
