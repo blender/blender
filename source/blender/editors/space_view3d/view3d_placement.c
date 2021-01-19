@@ -610,11 +610,12 @@ static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
     /* Use a copy in case aspect was applied to the quad. */
     float base_co_dst[3];
     copy_v3_v3(base_co_dst, quad_base[2]);
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < ARRAY_SIZE(quad_base); i++) {
       sub_v3_v3(quad_base[i], base_co_dst);
       mul_v3_fl(quad_base[i], 2.0f);
       add_v3_v3(quad_base[i], base_co_dst);
     }
+    fixed_aspect_dimension *= 2.0f;
   }
 
   /* *** Secondary *** */
@@ -634,10 +635,18 @@ static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
   }
 
   if (ipd->step[1].is_centered) {
-    for (int i = 0; i < ARRAY_SIZE(quad_base); i++) {
-      sub_v3_v3(quad_base[i], delta_local);
+    float temp_delta[3];
+    if (ipd->step[1].is_fixed_aspect) {
+      mul_v3_v3fl(temp_delta, delta_local, 0.5f);
     }
-    mul_v3_fl(delta_local, 2.0f);
+    else {
+      copy_v3_v3(temp_delta, delta_local);
+      mul_v3_fl(delta_local, 2.0f);
+    }
+
+    for (int i = 0; i < ARRAY_SIZE(quad_base); i++) {
+      sub_v3_v3(quad_base[i], temp_delta);
+    }
   }
 
   if ((ipd->step_index == STEP_DEPTH) &&
