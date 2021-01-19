@@ -218,26 +218,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
     ob_dst->runtime.bb = MEM_dupallocN(ob_src->runtime.bb);
   }
 
-  BLI_listbase_clear(&ob_dst->modifiers);
-
-  LISTBASE_FOREACH (ModifierData *, md, &ob_src->modifiers) {
-    ModifierData *nmd = BKE_modifier_new(md->type);
-    BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
-    BKE_modifier_copydata_ex(md, nmd, flag_subdata);
-    BLI_addtail(&ob_dst->modifiers, nmd);
-  }
-
-  BLI_listbase_clear(&ob_dst->greasepencil_modifiers);
-
-  LISTBASE_FOREACH (GpencilModifierData *, gmd, &ob_src->greasepencil_modifiers) {
-    GpencilModifierData *nmd = BKE_gpencil_modifier_new(gmd->type);
-    BLI_strncpy(nmd->name, gmd->name, sizeof(nmd->name));
-    BKE_gpencil_modifier_copydata_ex(gmd, nmd, flag_subdata);
-    BLI_addtail(&ob_dst->greasepencil_modifiers, nmd);
-  }
-
   BLI_listbase_clear(&ob_dst->shader_fx);
-
   LISTBASE_FOREACH (ShaderFxData *, fx, &ob_src->shader_fx) {
     ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
     BLI_strncpy(nfx->name, fx->name, sizeof(nfx->name));
@@ -266,10 +247,12 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
       ob_dst->pd->rng = MEM_dupallocN(ob_src->pd->rng);
     }
   }
-  BKE_object_copy_softbody(ob_dst, ob_src, flag_subdata);
   BKE_rigidbody_object_copy(bmain, ob_dst, ob_src, flag_subdata);
 
-  BKE_object_copy_particlesystems(ob_dst, ob_src, flag_subdata);
+  BLI_listbase_clear(&ob_dst->modifiers);
+  BLI_listbase_clear(&ob_dst->greasepencil_modifiers);
+  /* Note: Also takes care of softbody and particle systems copying. */
+  BKE_object_modifier_stack_copy(ob_dst, ob_src, true, flag_subdata);
 
   BLI_listbase_clear((ListBase *)&ob_dst->drawdata);
   BLI_listbase_clear(&ob_dst->pc_ids);
@@ -1354,17 +1337,76 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
   return false;
 }
 
-bool BKE_object_copy_modifier(struct Object *ob_dst, const struct Object *ob_src, ModifierData *md)
+static bool object_modifier_type_copy_check(ModifierType md_type)
 {
-  if (ELEM(md->type, eModifierType_Hook, eModifierType_Collision)) {
-    return false;
+  return !ELEM(md_type, eModifierType_Hook, eModifierType_Collision);
+}
+
+/** Find a `psys` matching given `psys_src` in `ob_dst` (i.e. sharing the same ParticleSettings
+ * ID), or add one, and return valid `psys` from `ob_dst`.
+ *
+ * \note Order handling is fairly weak here. This code assumes that it is called **before** the
+ * modifier using the psys is actually copied, and that this copied modifier will be added at the
+ * end of the stack. That way we can be sure that the particle modifier will be before the one
+ * using its particle system in the stack.
+ */
+static ParticleSystem *object_copy_modifier_particle_system_ensure(Main *bmain,
+                                                                   Scene *scene,
+                                                                   Object *ob_dst,
+                                                                   ParticleSystem *psys_src)
+{
+  ParticleSystem *psys_dst = NULL;
+
+  /* Check if a particle system with the same particle settings
+   * already exists on the destination object. */
+  LISTBASE_FOREACH (ParticleSystem *, psys, &ob_dst->particlesystem) {
+    if (psys->part == psys_src->part) {
+      psys_dst = psys;
+      break;
+    }
   }
 
-  if (!BKE_object_support_modifier_type_check(ob_dst, md->type)) {
-    return false;
+  /* If it does not exist, copy the particle system to the destination object. */
+  if (psys_dst == NULL) {
+    ModifierData *md = object_copy_particle_system(bmain, scene, ob_dst, psys_src);
+    psys_dst = ((ParticleSystemModifierData *)md)->psys;
   }
 
-  switch (md->type) {
+  return psys_dst;
+}
+
+/** Copy a single modifier.
+ *
+ * \note **Do not** use this function to copy a whole modifier stack (see note below too). Use
+ * `BKE_object_modifier_stack_copy` instead.
+ *
+ * \note Complex modifiers relaying on other data (like e.g. dynamic paint or fluid using particle
+ * systems) are not always 100% 'correctly' copied here, since we have to use heuristics to decide
+ * which particle system to use or add in `ob_dst`, and it's placement in the stack, etc. If used
+ * more than once, this function should preferably be called in stack order. */
+bool BKE_object_copy_modifier(
+    Main *bmain, Scene *scene, Object *ob_dst, const Object *ob_src, ModifierData *md_src)
+{
+  BLI_assert(ob_dst->type != OB_GPENCIL);
+
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md_src->type);
+  if (!object_modifier_type_copy_check(md_src->type)) {
+    /* We never allow copying those modifiers here. */
+    return false;
+  }
+  if (!BKE_object_support_modifier_type_check(ob_dst, md_src->type)) {
+    return false;
+  }
+  if (mti->flags & eModifierTypeFlag_Single) {
+    if (BKE_modifiers_findby_type(ob_dst, md_src->type) != NULL) {
+      return false;
+    }
+  }
+
+  ParticleSystem *psys_src = NULL;
+  ParticleSystem *psys_dst = NULL;
+
+  switch (md_src->type) {
     case eModifierType_Softbody:
       BKE_object_copy_softbody(ob_dst, ob_src, 0);
       break;
@@ -1372,66 +1414,158 @@ bool BKE_object_copy_modifier(struct Object *ob_dst, const struct Object *ob_src
       /* ensure skin-node customdata exists */
       BKE_mesh_ensure_skin_customdata(ob_dst->data);
       break;
+    case eModifierType_Fluid: {
+      FluidModifierData *fmd = (FluidModifierData *)md_src;
+      if (fmd->type == MOD_FLUID_TYPE_FLOW) {
+        if (fmd->flow != NULL && fmd->flow->psys != NULL) {
+          psys_src = fmd->flow->psys;
+          psys_dst = object_copy_modifier_particle_system_ensure(bmain, scene, ob_dst, psys_src);
+        }
+      }
+      break;
+    }
+    case eModifierType_DynamicPaint: {
+      DynamicPaintModifierData *dpmd = (DynamicPaintModifierData *)md_src;
+      if (dpmd->brush != NULL && dpmd->brush->psys != NULL) {
+        psys_src = dpmd->brush->psys;
+        psys_dst = object_copy_modifier_particle_system_ensure(bmain, scene, ob_dst, psys_src);
+      }
+      break;
+    }
+    default:
+      break;
   }
 
-  ModifierData *nmd = BKE_modifier_new(md->type);
-  BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
+  ModifierData *md_dst;
+  if (md_src->type == eModifierType_ParticleSystem) {
+    md_dst = object_copy_particle_system(
+        bmain, scene, ob_dst, ((ParticleSystemModifierData *)md_src)->psys);
+  }
+  else {
+    md_dst = BKE_modifier_new(md_src->type);
 
-  if (md->type == eModifierType_Multires) {
-    /* Has to be done after mod creation, but *before* we actually copy its settings! */
-    multiresModifier_sync_levels_ex(
-        ob_dst, (MultiresModifierData *)md, (MultiresModifierData *)nmd);
+    BLI_strncpy(md_dst->name, md_src->name, sizeof(md_dst->name));
+
+    if (md_src->type == eModifierType_Multires) {
+      /* Has to be done after mod creation, but *before* we actually copy its settings! */
+      multiresModifier_sync_levels_ex(
+          ob_dst, (MultiresModifierData *)md_src, (MultiresModifierData *)md_dst);
+    }
+
+    BKE_modifier_copydata(md_src, md_dst);
+
+    switch (md_dst->type) {
+      case eModifierType_Fluid:
+        if (psys_dst != NULL) {
+          FluidModifierData *fmd_dst = (FluidModifierData *)md_dst;
+          BLI_assert(fmd_dst->type == MOD_FLUID_TYPE_FLOW && fmd_dst->flow != NULL &&
+                     fmd_dst->flow->psys != NULL);
+          fmd_dst->flow->psys = psys_dst;
+        }
+        break;
+      case eModifierType_DynamicPaint:
+        if (psys_dst != NULL) {
+          DynamicPaintModifierData *dpmd_dst = (DynamicPaintModifierData *)md_dst;
+          BLI_assert(dpmd_dst->brush != NULL && dpmd_dst->brush->psys != NULL);
+          dpmd_dst->brush->psys = psys_dst;
+        }
+        break;
+      default:
+        break;
+    }
+
+    BLI_addtail(&ob_dst->modifiers, md_dst);
+    BKE_modifier_unique_name(&ob_dst->modifiers, md_dst);
   }
 
-  BKE_modifier_copydata(md, nmd);
-  BLI_addtail(&ob_dst->modifiers, nmd);
-  BKE_modifier_unique_name(&ob_dst->modifiers, nmd);
-  BKE_object_modifier_set_active(ob_dst, nmd);
+  BKE_object_modifier_set_active(ob_dst, md_dst);
 
   return true;
 }
 
-bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, GpencilModifierData *md)
+/** Copy a single GPencil modifier.
+ *
+ * \note **Do not** use this function to copy a whole modifier stack. Use
+ * `BKE_object_modifier_stack_copy` instead. */
+bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, GpencilModifierData *gmd_src)
 {
-  GpencilModifierData *nmd = BKE_gpencil_modifier_new(md->type);
-  BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
+  BLI_assert(ob_dst->type == OB_GPENCIL);
 
-  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
-  mti->copyData(md, nmd);
+  GpencilModifierData *gmd_dst = BKE_gpencil_modifier_new(gmd_src->type);
+  BLI_strncpy(gmd_dst->name, gmd_src->name, sizeof(gmd_dst->name));
 
-  BLI_addtail(&ob_dst->greasepencil_modifiers, nmd);
-  BKE_gpencil_modifier_unique_name(&ob_dst->greasepencil_modifiers, nmd);
+  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(gmd_src->type);
+  mti->copyData(gmd_src, gmd_dst);
+
+  BLI_addtail(&ob_dst->greasepencil_modifiers, gmd_dst);
+  BKE_gpencil_modifier_unique_name(&ob_dst->greasepencil_modifiers, gmd_dst);
 
   return true;
 }
 
-void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src)
+/**
+ * Copy the whole stack of modifiers from one object into another.
+ *
+ * \warning  **Does not** clear modifier stack and related data (particle systems, softbody,
+ * etc.) in `ob_dst`, if needed calling code must do it.
+ *
+ * @param do_copy_all If true, even modifiers that should not suport copying (like Hook one) will
+ * be duplicated.
+ */
+bool BKE_object_modifier_stack_copy(Object *ob_dst,
+                                    const Object *ob_src,
+                                    const bool do_copy_all,
+                                    const int flag_subdata)
+{
+  if ((ob_dst->type == OB_GPENCIL) != (ob_src->type == OB_GPENCIL)) {
+    BLI_assert(!"Trying to copy a modifier stack between a GPencil object and another type.");
+    return false;
+  }
+
+  if (!BLI_listbase_is_empty(&ob_dst->modifiers) ||
+      !BLI_listbase_is_empty(&ob_dst->greasepencil_modifiers)) {
+    BLI_assert(
+        !"Trying to copy a modifier stack into an object having a non-empty modifier stack.");
+    return false;
+  }
+
+  LISTBASE_FOREACH (ModifierData *, md_src, &ob_src->modifiers) {
+    if (!do_copy_all && !object_modifier_type_copy_check(md_src->type)) {
+      continue;
+    }
+    if (!BKE_object_support_modifier_type_check(ob_dst, md_src->type)) {
+      continue;
+    }
+
+    ModifierData *md_dst = BKE_modifier_new(md_src->type);
+    BLI_strncpy(md_dst->name, md_src->name, sizeof(md_dst->name));
+    BKE_modifier_copydata_ex(md_src, md_dst, flag_subdata);
+    BLI_addtail(&ob_dst->modifiers, md_dst);
+  }
+
+  LISTBASE_FOREACH (GpencilModifierData *, gmd_src, &ob_src->greasepencil_modifiers) {
+    GpencilModifierData *gmd_dst = BKE_gpencil_modifier_new(gmd_src->type);
+    BLI_strncpy(gmd_dst->name, gmd_src->name, sizeof(gmd_dst->name));
+    BKE_gpencil_modifier_copydata_ex(gmd_src, gmd_dst, flag_subdata);
+    BLI_addtail(&ob_dst->greasepencil_modifiers, gmd_dst);
+  }
+
+  /* This could be copied from anywhere, since no other modifier actually use this data. But for
+   * consistency do it together with particle systems. */
+  BKE_object_copy_softbody(ob_dst, ob_src, flag_subdata);
+
+  /* It is mandatory that this happens after copying modifiers, as it will update their `psys`
+   * pointers accordingly. */
+  BKE_object_copy_particlesystems(ob_dst, ob_src, flag_subdata);
+
+  return true;
+}
+
+void BKE_object_link_modifiers(Object *ob_dst, const Object *ob_src)
 {
   BKE_object_free_modifiers(ob_dst, 0);
 
-  if (!ELEM(ob_dst->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE, OB_GPENCIL)) {
-    /* only objects listed above can have modifiers and linking them to objects
-     * which doesn't have modifiers stack is quite silly */
-    return;
-  }
-
-  /* No grease pencil modifiers. */
-  if ((ob_src->type != OB_GPENCIL) && (ob_dst->type != OB_GPENCIL)) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob_src->modifiers) {
-      BKE_object_copy_modifier(ob_dst, ob_src, md);
-    }
-  }
-
-  /* Copy grease pencil modifiers. */
-  if ((ob_src->type == OB_GPENCIL) && (ob_dst->type == OB_GPENCIL)) {
-    LISTBASE_FOREACH (GpencilModifierData *, md, &ob_src->greasepencil_modifiers) {
-      BKE_object_copy_gpencil_modifier(ob_dst, md);
-    }
-  }
-
-  BKE_object_copy_particlesystems(ob_dst, ob_src, 0);
-
-  /* TODO: smoke?, cloth? */
+  BKE_object_modifier_stack_copy(ob_dst, ob_src, false, 0);
 }
 
 /**
@@ -2109,7 +2243,7 @@ Object *BKE_object_add_for_data(
   return ob;
 }
 
-void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src, const int flag)
+void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src, const int flag)
 {
   SoftBody *sb = ob_src->soft;
   bool tagged_no_main = ob_dst->id.tag & LIB_TAG_NO_MAIN;
@@ -2153,7 +2287,7 @@ void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src
 
   sbn->scratch = NULL;
 
-  if (tagged_no_main == 0) {
+  if (!tagged_no_main) {
     sbn->shared = MEM_dupallocN(sb->shared);
     sbn->shared->pointcache = BKE_ptcache_copy_list(
         &sbn->shared->ptcaches, &sb->shared->ptcaches, flag);

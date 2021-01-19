@@ -535,7 +535,7 @@ void ED_object_modifier_copy_to_object(bContext *C,
                                        Object *ob_src,
                                        ModifierData *md)
 {
-  BKE_object_copy_modifier(ob_dst, ob_src, md);
+  BKE_object_copy_modifier(CTX_data_main(C), CTX_data_scene(C), ob_dst, ob_src, md);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob_dst);
   DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
@@ -1684,74 +1684,6 @@ void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
 /** \name Copy Modifier To Selected Operator
  * \{ */
 
-/* If the modifier uses particles, copy particle system to destination object
- * or reuse existing if it has the same ParticleSettings */
-static void copy_or_reuse_particle_system(bContext *C, Object *ob, ModifierData *md)
-{
-  ParticleSystem *psys_on_modifier = NULL;
-
-  if (md->type == eModifierType_DynamicPaint) {
-    DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-    if (pmd->brush && pmd->brush->psys) {
-      psys_on_modifier = pmd->brush->psys;
-    }
-  }
-  else if (md->type == eModifierType_Fluid) {
-    FluidModifierData *fmd = (FluidModifierData *)md;
-    if (fmd->type == MOD_FLUID_TYPE_FLOW) {
-      if (fmd->flow && fmd->flow->psys) {
-        psys_on_modifier = fmd->flow->psys;
-      }
-    }
-  }
-
-  if (!psys_on_modifier) {
-    return;
-  }
-
-  ParticleSystem *psys_on_new_modifier = NULL;
-
-  /* Check if a particle system with the same particle settings
-   * already exists on the destination object. */
-  LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-    if (psys_on_modifier->part == psys->part) {
-      psys_on_new_modifier = psys;
-      break;
-    }
-  }
-
-  /* If it does not exist, copy the particle system to the destination object. */
-  if (!psys_on_new_modifier) {
-    Main *bmain = CTX_data_main(C);
-    Scene *scene = CTX_data_scene(C);
-    object_copy_particle_system(bmain, scene, ob, psys_on_modifier);
-
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      if (psys_on_modifier->part == psys->part) {
-        psys_on_new_modifier = psys;
-      }
-    }
-  }
-
-  /* Update the modifier to point to the new/existing particle system. */
-  LISTBASE_FOREACH (ModifierData *, new_md, &ob->modifiers) {
-    if (new_md->type == eModifierType_DynamicPaint) {
-      DynamicPaintModifierData *new_pmd = (DynamicPaintModifierData *)new_md;
-
-      if (psys_on_modifier == new_pmd->brush->psys) {
-        new_pmd->brush->psys = psys_on_new_modifier;
-      }
-    }
-    else if (new_md->type == eModifierType_Fluid) {
-      FluidModifierData *new_fmd = (FluidModifierData *)new_md;
-
-      if (psys_on_modifier == new_fmd->flow->psys) {
-        new_fmd->flow->psys = psys_on_new_modifier;
-      }
-    }
-  }
-}
-
 static int modifier_copy_to_selected_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1791,22 +1723,12 @@ static int modifier_copy_to_selected_exec(bContext *C, wmOperator *op)
       }
     }
 
-    if (md->type == eModifierType_ParticleSystem) {
-      ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-      object_copy_particle_system(bmain, scene, ob, psmd->psys);
-    }
-    else {
-      if (!BKE_object_copy_modifier(ob, obact, md)) {
-        BKE_reportf(op->reports,
-                    RPT_ERROR,
-                    "Copying modifier '%s' to object '%s' failed",
-                    md->name,
-                    ob->id.name + 2);
-      }
-    }
-
-    if (ELEM(md->type, eModifierType_DynamicPaint, eModifierType_Fluid)) {
-      copy_or_reuse_particle_system(C, ob, md);
+    if (!BKE_object_copy_modifier(bmain, scene, ob, obact, md)) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR,
+                  "Copying modifier '%s' to object '%s' failed",
+                  md->name,
+                  ob->id.name + 2);
     }
 
     num_copied++;
