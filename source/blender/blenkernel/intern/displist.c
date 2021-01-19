@@ -488,6 +488,7 @@ void BKE_displist_fill(ListBase *dispbase,
 
   while (cont) {
     int dl_flag_accum = 0;
+    int dl_rt_accum = 0;
     cont = 0;
     totvert = 0;
     nextcol = 0;
@@ -535,6 +536,7 @@ void BKE_displist_fill(ListBase *dispbase,
           }
         }
         dl_flag_accum |= dl->flag;
+        dl_rt_accum |= dl->rt;
       }
     }
 
@@ -544,6 +546,7 @@ void BKE_displist_fill(ListBase *dispbase,
         dlnew = MEM_callocN(sizeof(DispList), "filldisplist");
         dlnew->type = DL_INDEX3;
         dlnew->flag = (dl_flag_accum & (DL_BACK_CURVE | DL_FRONT_CURVE));
+        dlnew->rt = (dl_rt_accum & CU_SMOOTH);
         dlnew->col = colnr;
         dlnew->nr = totvert;
         dlnew->parts = tot;
