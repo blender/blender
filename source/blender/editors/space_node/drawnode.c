@@ -3284,6 +3284,11 @@ static void node_geometry_buts_point_scale(uiLayout *layout, bContext *UNUSED(C)
   uiItemR(layout, ptr, "input_type", DEFAULT_FLAGS, IFACE_("Type"), ICON_NONE);
 }
 
+static void node_geometry_buts_object_info(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+}
+
 static void node_geometry_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -3334,6 +3339,9 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_POINT_SCALE:
       ntype->draw_buttons = node_geometry_buts_point_scale;
+      break;
+    case GEO_NODE_OBJECT_INFO:
+      ntype->draw_buttons = node_geometry_buts_object_info;
       break;
   }
 }
