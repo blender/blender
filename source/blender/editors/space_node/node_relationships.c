@@ -663,7 +663,7 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
     snode_dag_update(C, snode);
   }
 
-  BLI_remlink(&snode->linkdrag, nldrag);
+  BLI_remlink(&snode->runtime->linkdrag, nldrag);
   /* links->data pointers are either held by the tree or freed already */
   BLI_freelistN(&nldrag->links);
   MEM_freeN(nldrag);
@@ -903,7 +903,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (nldrag) {
     op->customdata = nldrag;
-    BLI_addtail(&snode->linkdrag, nldrag);
+    BLI_addtail(&snode->runtime->linkdrag, nldrag);
 
     /* add modal handler */
     WM_event_add_modal_handler(C, op);
@@ -918,7 +918,7 @@ static void node_link_cancel(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeLinkDrag *nldrag = op->customdata;
 
-  BLI_remlink(&snode->linkdrag, nldrag);
+  BLI_remlink(&snode->runtime->linkdrag, nldrag);
 
   BLI_freelistN(&nldrag->links);
   MEM_freeN(nldrag);
@@ -1798,7 +1798,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
 static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  NodeInsertOfsData *iofsd = snode->iofsd;
+  NodeInsertOfsData *iofsd = snode->runtime->iofsd;
   bool redraw = false;
 
   if (!snode || event->type != TIMER || iofsd == NULL || iofsd->anim_timer != event->customdata) {
@@ -1837,7 +1837,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const w
       node->anim_init_locx = node->anim_ofsx = 0.0f;
     }
 
-    snode->iofsd = NULL;
+    snode->runtime->iofsd = NULL;
     MEM_freeN(iofsd);
 
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
@@ -1851,7 +1851,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const w
 static int node_insert_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  NodeInsertOfsData *iofsd = snode->iofsd;
+  NodeInsertOfsData *iofsd = snode->runtime->iofsd;
 
   if (!iofsd || !iofsd->insert) {
     return OPERATOR_CANCELLED;
@@ -1927,7 +1927,7 @@ void ED_node_link_insert(Main *bmain, ScrArea *area)
         iofsd->prev = link->fromnode;
         iofsd->next = node;
 
-        snode->iofsd = iofsd;
+        snode->runtime->iofsd = iofsd;
       }
 
       ntreeUpdateTree(bmain, snode->edittree); /* needed for pointers */

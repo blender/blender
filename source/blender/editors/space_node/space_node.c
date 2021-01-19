@@ -321,11 +321,18 @@ static void node_free(SpaceLink *sl)
   LISTBASE_FOREACH_MUTABLE (bNodeTreePath *, path, &snode->treepath) {
     MEM_freeN(path);
   }
+
+  MEM_SAFE_FREE(snode->runtime);
 }
 
 /* spacetype; init callback */
-static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
+static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
 {
+  SpaceNode *snode = (SpaceNode *)area->spacedata.first;
+
+  if (snode->runtime == NULL) {
+    snode->runtime = MEM_callocN(sizeof(SpaceNode_Runtime), __func__);
+  }
 }
 
 static void node_area_listener(const wmSpaceTypeListenerParams *params)
@@ -362,7 +369,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         case ND_TRANSFORM_DONE:
           if (ED_node_is_compositor(snode)) {
             if (snode->flag & SNODE_AUTO_RENDER) {
-              snode->recalc = 1;
+              snode->runtime->recalc = true;
               ED_area_tag_refresh(area);
             }
           }
@@ -521,8 +528,8 @@ static void node_area_refresh(const struct bContext *C, ScrArea *area)
       Scene *scene = (Scene *)snode->id;
       if (scene->use_nodes) {
         /* recalc is set on 3d view changes for auto compo */
-        if (snode->recalc) {
-          snode->recalc = 0;
+        if (snode->runtime->recalc) {
+          snode->runtime->recalc = false;
           node_render_changed_exec((struct bContext *)C, NULL);
         }
         else {
@@ -546,8 +553,10 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 
   BLI_duplicatelist(&snoden->treepath, &snode->treepath);
 
-  /* clear or remove stuff from old */
-  BLI_listbase_clear(&snoden->linkdrag);
+  if (snode->runtime != NULL) {
+    snoden->runtime = MEM_dupallocN(snode->runtime);
+    BLI_listbase_clear(&snoden->runtime->linkdrag);
+  }
 
   /* Note: no need to set node tree user counts,
    * the editor only keeps at least 1 (id_us_ensure_real),
@@ -589,6 +598,16 @@ static void node_toolbar_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
+void ED_node_cursor_location_get(const SpaceNode *snode, float value[2])
+{
+  copy_v2_v2(value, snode->runtime->cursor);
+}
+
+void ED_node_cursor_location_set(SpaceNode *snode, const float value[2])
+{
+  copy_v2_v2(snode->runtime->cursor, value);
+}
+
 static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 {
   SpaceNode *snode = area->spacedata.first;
@@ -597,15 +616,15 @@ static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   UI_view2d_region_to_view(&region->v2d,
                            win->eventstate->x - region->winrct.xmin,
                            win->eventstate->y - region->winrct.ymin,
-                           &snode->cursor[0],
-                           &snode->cursor[1]);
+                           &snode->runtime->cursor[0],
+                           &snode->runtime->cursor[1]);
 
-  /* here snode->cursor is used to detect the node edge for sizing */
-  node_set_cursor(win, snode, snode->cursor);
+  /* here snode->runtime->cursor is used to detect the node edge for sizing */
+  node_set_cursor(win, snode, snode->runtime->cursor);
 
-  /* XXX snode->cursor is in placing new nodes space */
-  snode->cursor[0] /= UI_DPI_FAC;
-  snode->cursor[1] /= UI_DPI_FAC;
+  /* XXX snode->runtime->cursor is in placing new nodes space */
+  snode->runtime->cursor[0] /= UI_DPI_FAC;
+  snode->runtime->cursor[1] /= UI_DPI_FAC;
 }
 
 /* Initialize main region, setting handlers. */

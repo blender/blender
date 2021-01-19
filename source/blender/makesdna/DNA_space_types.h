@@ -63,6 +63,9 @@ struct wmTimer;
 /* Defined in `buttons_intern.h`. */
 typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 
+/* Defined in `node_intern.h`. */
+typedef struct SpaceNode_Runtime SpaceNode_Runtime;
+
 /* -------------------------------------------------------------------- */
 /** \name SpaceLink (Base)
  * \{ */
@@ -1518,19 +1521,17 @@ typedef struct SpaceNode {
 
   /** Context, no need to save in file? well... pinning... */
   struct ID *id, *from;
-  /** Menunr: browse id block in header. */
+
   short flag;
-  char _pad1[2];
-  /** Internal state variables. */
-  float aspect;
-  char _pad2[4];
+
+  /** Direction for offsetting nodes on insertion. */
+  char insert_ofs_dir;
+  char _pad1;
 
   /** Offset for drawing the backdrop. */
   float xof, yof;
   /** Zoom for backdrop. */
   float zoom;
-  /** Mouse pos for drawing socketless link and adding nodes. */
-  float cursor[2];
 
   /**
    * XXX nodetree pointer info is all in the path stack now,
@@ -1541,33 +1542,25 @@ typedef struct SpaceNode {
    */
   ListBase treepath;
 
-  struct bNodeTree *nodetree, *edittree;
+  /* The tree farthest down in the group heirarchy. */
+  struct bNodeTree *edittree;
+
+  struct bNodeTree *nodetree;
 
   /* tree type for the current node tree */
   char tree_idname[64];
   /** Treetype: as same nodetree->type. */
   int treetype DNA_DEPRECATED;
-  char _pad3[4];
 
   /** Texfrom object, world or brush. */
   short texfrom;
   /** Shader from object or world. */
   short shaderfrom;
-  /** Currently on 0/1, for auto compo. */
-  short recalc;
-
-  /** Direction for offsetting nodes on insertion. */
-  char insert_ofs_dir;
-  char _pad4;
-
-  /** Temporary data for modal linking operator. */
-  ListBase linkdrag;
-  /* XXX hack for translate_attach op-macros to pass data from transform op to insert_offset op */
-  /** Temporary data for node insert offset (in UI called Auto-offset). */
-  struct NodeInsertOfsData *iofsd;
 
   /** Grease-pencil data. */
   struct bGPdata *gpd;
+
+  SpaceNode_Runtime *runtime;
 } SpaceNode;
 
 /* SpaceNode.flag */
