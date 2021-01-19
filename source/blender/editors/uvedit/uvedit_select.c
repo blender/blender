@@ -647,8 +647,6 @@ static BMLoop *uvedit_loop_find_other_boundary_loop_with_visible_face(const Scen
     }
   } while (l_step != NULL);
 
-  BM_elem_flag_set(l_step_last->e, BM_ELEM_SMOOTH, false);
-
   if (l_step_last != NULL) {
     BLI_assert(uvedit_loop_find_other_radial_loop_with_visible_face(
                    scene, l_step_last, cd_loop_uv_offset) == NULL);
