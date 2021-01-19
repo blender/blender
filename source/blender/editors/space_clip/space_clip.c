@@ -334,7 +334,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
   return (SpaceLink *)scn;
 }
 
-static void clip_listener(wmSpaceTypeListenerParams *params)
+static void clip_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   wmNotifier *wmn = params->notifier;
@@ -1008,7 +1008,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
   WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 }
 
-static void clip_main_region_listener(wmRegionListenerParams *params)
+static void clip_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -1143,7 +1143,7 @@ static void clip_preview_region_draw(const bContext *C, ARegion *region)
   }
 }
 
-static void clip_preview_region_listener(wmRegionListenerParams *UNUSED(params))
+static void clip_preview_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
 }
 
@@ -1184,7 +1184,7 @@ static void clip_channels_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 }
 
-static void clip_channels_region_listener(wmRegionListenerParams *UNUSED(params))
+static void clip_channels_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
 }
 
@@ -1201,7 +1201,7 @@ static void clip_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void clip_header_region_listener(wmRegionListenerParams *params)
+static void clip_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -1243,7 +1243,7 @@ static void clip_tools_region_draw(const bContext *C, ARegion *region)
 
 /****************** tool properties region ******************/
 
-static void clip_props_region_listener(wmRegionListenerParams *params)
+static void clip_props_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -1295,7 +1295,7 @@ static void clip_properties_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void clip_properties_region_listener(wmRegionListenerParams *params)
+static void clip_properties_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;

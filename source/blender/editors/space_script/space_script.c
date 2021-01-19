@@ -156,7 +156,7 @@ static void script_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void script_main_region_listener(wmRegionListenerParams *UNUSED(params))
+static void script_main_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
 /* XXX - Todo, need the ScriptSpace accessible to get the python script to run. */
 #if 0

@@ -514,7 +514,7 @@ static void buttons_main_region_layout(const bContext *C, ARegion *region)
   sbuts->mainbo = sbuts->mainb;
 }
 
-static void buttons_main_region_listener(wmRegionListenerParams *params)
+static void buttons_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -566,7 +566,7 @@ static void buttons_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void buttons_header_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void buttons_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   ScrArea *area = params->area;
@@ -618,7 +618,8 @@ static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *regio
   ED_region_panels_draw(C, region);
 }
 
-static void buttons_navigation_bar_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void buttons_navigation_bar_region_message_subscribe(
+    const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;
@@ -651,7 +652,7 @@ static void buttons_area_redraw(ScrArea *area, short buttons)
  * \{ */
 
 /* reused! */
-static void buttons_area_listener(wmSpaceTypeListenerParams *params)
+static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   wmNotifier *wmn = params->notifier;

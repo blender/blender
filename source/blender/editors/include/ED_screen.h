@@ -143,8 +143,8 @@ void ED_area_do_msg_notify_tag_refresh(struct bContext *C,
                                        struct wmMsgSubscribeKey *msg_key,
                                        struct wmMsgSubscribeValue *msg_val);
 
-void ED_area_do_mgs_subscribe_for_tool_header(struct wmRegionMessageSubscribeParams *params);
-void ED_area_do_mgs_subscribe_for_tool_ui(struct wmRegionMessageSubscribeParams *params);
+void ED_area_do_mgs_subscribe_for_tool_header(const struct wmRegionMessageSubscribeParams *params);
+void ED_area_do_mgs_subscribe_for_tool_ui(const struct wmRegionMessageSubscribeParams *params);
 
 /* message bus */
 void ED_region_message_subscribe(struct wmRegionMessageSubscribeParams *params);
@@ -409,7 +409,7 @@ void ED_region_cache_draw_cached_segments(struct ARegion *region,
 
 /* area_utils.c */
 void ED_region_generic_tools_region_message_subscribe(
-    struct wmRegionMessageSubscribeParams *params);
+    const struct wmRegionMessageSubscribeParams *params);
 int ED_region_generic_tools_region_snap_size(const struct ARegion *region, int size, int axis);
 
 /* area_query.c */

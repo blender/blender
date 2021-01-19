@@ -44,7 +44,7 @@
 /**
  * Callback for #ARegionType.message_subscribe
  */
-void ED_region_generic_tools_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+void ED_region_generic_tools_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;

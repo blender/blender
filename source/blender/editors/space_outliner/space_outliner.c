@@ -102,7 +102,7 @@ static void outliner_main_region_free(ARegion *UNUSED(region))
 {
 }
 
-static void outliner_main_region_listener(wmRegionListenerParams *params)
+static void outliner_main_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
@@ -263,7 +263,7 @@ static void outliner_main_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void outliner_main_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void outliner_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   ScrArea *area = params->area;
@@ -298,7 +298,7 @@ static void outliner_header_region_free(ARegion *UNUSED(region))
 {
 }
 
-static void outliner_header_region_listener(wmRegionListenerParams *params)
+static void outliner_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;

@@ -334,7 +334,7 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
   return (SpaceLink *)sseqn;
 }
 
-static void sequencer_listener(wmSpaceTypeListenerParams *params)
+static void sequencer_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   wmNotifier *wmn = params->notifier;
@@ -534,7 +534,7 @@ static void sequencer_main_region_draw_overlay(const bContext *C, ARegion *regio
   draw_timeline_seq_display(C, region);
 }
 
-static void sequencer_main_region_listener(wmRegionListenerParams *params)
+static void sequencer_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -578,7 +578,7 @@ static void sequencer_main_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void sequencer_main_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void sequencer_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   Scene *scene = params->scene;
@@ -743,7 +743,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   }
 }
 
-static void sequencer_preview_region_listener(wmRegionListenerParams *params)
+static void sequencer_preview_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -812,7 +812,7 @@ static void sequencer_buttons_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void sequencer_buttons_region_listener(wmRegionListenerParams *params)
+static void sequencer_buttons_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;

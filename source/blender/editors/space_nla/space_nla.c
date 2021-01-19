@@ -324,7 +324,7 @@ static void nla_buttons_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void nla_region_listener(wmRegionListenerParams *params)
+static void nla_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -363,7 +363,7 @@ static void nla_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void nla_main_region_listener(wmRegionListenerParams *params)
+static void nla_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -421,7 +421,7 @@ static void nla_main_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void nla_main_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void nla_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   Scene *scene = params->scene;
@@ -463,7 +463,7 @@ static void nla_main_region_message_subscribe(wmRegionMessageSubscribeParams *pa
   }
 }
 
-static void nla_channel_region_listener(wmRegionListenerParams *params)
+static void nla_channel_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -505,7 +505,7 @@ static void nla_channel_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void nla_channel_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   bScreen *screen = params->screen;
@@ -539,7 +539,7 @@ static void nla_channel_region_message_subscribe(wmRegionMessageSubscribeParams 
 }
 
 /* editor level listener */
-static void nla_listener(wmSpaceTypeListenerParams *params)
+static void nla_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   wmNotifier *wmn = params->notifier;

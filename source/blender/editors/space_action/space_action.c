@@ -305,7 +305,7 @@ static void action_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void action_channel_region_listener(wmRegionListenerParams *params)
+static void action_channel_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -355,7 +355,7 @@ static void action_channel_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void saction_channel_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void saction_channel_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   bScreen *screen = params->screen;
@@ -399,7 +399,7 @@ static void saction_channel_region_message_subscribe(wmRegionMessageSubscribePar
   }
 }
 
-static void action_main_region_listener(wmRegionListenerParams *params)
+static void action_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -457,7 +457,7 @@ static void action_main_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void saction_main_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void saction_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   Scene *scene = params->scene;
@@ -503,7 +503,7 @@ static void saction_main_region_message_subscribe(wmRegionMessageSubscribeParams
 }
 
 /* editor level listener */
-static void action_listener(wmSpaceTypeListenerParams *params)
+static void action_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   wmNotifier *wmn = params->notifier;
@@ -656,7 +656,7 @@ static void action_listener(wmSpaceTypeListenerParams *params)
   }
 }
 
-static void action_header_region_listener(wmRegionListenerParams *params)
+static void action_header_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
@@ -732,7 +732,7 @@ static void action_buttons_area_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void action_region_listener(wmRegionListenerParams *params)
+static void action_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;

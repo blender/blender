@@ -204,7 +204,7 @@ static void info_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void info_main_region_listener(wmRegionListenerParams *params)
+static void info_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -220,7 +220,7 @@ static void info_main_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void info_header_listener(wmRegionListenerParams *params)
+static void info_header_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -255,7 +255,7 @@ static void info_header_listener(wmRegionListenerParams *params)
   }
 }
 
-static void info_header_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void info_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;

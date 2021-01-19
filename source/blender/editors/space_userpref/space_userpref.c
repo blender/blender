@@ -183,19 +183,19 @@ static void userpref_execute_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 }
 
-static void userpref_main_region_listener(wmRegionListenerParams *UNUSED(params))
+static void userpref_main_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
 }
 
-static void userpref_header_listener(wmRegionListenerParams *UNUSED(params))
+static void userpref_header_listener(const wmRegionListenerParams *UNUSED(params))
 {
 }
 
-static void userpref_navigation_region_listener(wmRegionListenerParams *UNUSED(params))
+static void userpref_navigation_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
 }
 
-static void userpref_execute_region_listener(wmRegionListenerParams *UNUSED(params))
+static void userpref_execute_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
 }
 

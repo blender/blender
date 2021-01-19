@@ -92,7 +92,7 @@ typedef struct SpaceType {
   /* exit is called when the area is hidden or removed */
   void (*exit)(struct wmWindowManager *wm, struct ScrArea *area);
   /* Listeners can react to bContext changes */
-  void (*listener)(wmSpaceTypeListenerParams *params);
+  void (*listener)(const wmSpaceTypeListenerParams *params);
 
   /* called when the mouse moves out of the area */
   void (*deactivate)(struct ScrArea *area);
@@ -179,9 +179,9 @@ typedef struct ARegionType {
   /* snap the size of the region (can be NULL for no snapping). */
   int (*snap_size)(const struct ARegion *region, int size, int axis);
   /* contextual changes should be handled here */
-  void (*listener)(wmRegionListenerParams *params);
+  void (*listener)(const wmRegionListenerParams *params);
   /* Optional callback to generate subscriptions. */
-  void (*message_subscribe)(wmRegionMessageSubscribeParams *params);
+  void (*message_subscribe)(const wmRegionMessageSubscribeParams *params);
 
   void (*free)(struct ARegion *);
 

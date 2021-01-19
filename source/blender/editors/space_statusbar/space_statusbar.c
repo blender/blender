@@ -95,7 +95,7 @@ static void statusbar_keymap(struct wmKeyConfig *UNUSED(keyconf))
 {
 }
 
-static void statusbar_header_region_listener(wmRegionListenerParams *params)
+static void statusbar_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -130,7 +130,7 @@ static void statusbar_header_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void statusbar_header_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void statusbar_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;

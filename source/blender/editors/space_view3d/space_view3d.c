@@ -783,7 +783,7 @@ static void *view3d_main_region_duplicate(void *poin)
   return NULL;
 }
 
-static void view3d_main_region_listener(wmRegionListenerParams *params)
+static void view3d_main_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
@@ -1044,7 +1044,7 @@ static void view3d_main_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void view3d_main_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   const bContext *C = params->context;
@@ -1165,7 +1165,7 @@ static void view3d_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void view3d_header_region_listener(wmRegionListenerParams *params)
+static void view3d_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -1234,7 +1234,7 @@ static void view3d_header_region_listener(wmRegionListenerParams *params)
 #endif
 }
 
-static void view3d_header_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void view3d_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;
@@ -1376,7 +1376,7 @@ static void view3d_buttons_region_layout(const bContext *C, ARegion *region)
   ED_view3d_buttons_region_layout_ex(C, region, NULL);
 }
 
-static void view3d_buttons_region_listener(wmRegionListenerParams *params)
+static void view3d_buttons_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -1499,7 +1499,7 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
 }
 
 /* area (not region) level listener */
-static void space_view3d_listener(wmSpaceTypeListenerParams *params)
+static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   wmNotifier *wmn = params->notifier;

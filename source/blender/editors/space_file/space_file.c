@@ -392,7 +392,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
   ED_area_tag_redraw(area);
 }
 
-static void file_listener(wmSpaceTypeListenerParams *params)
+static void file_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   wmNotifier *wmn = params->notifier;
@@ -446,7 +446,7 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void file_main_region_listener(wmRegionListenerParams *params)
+static void file_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -466,7 +466,7 @@ static void file_main_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void file_main_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void file_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   bScreen *screen = params->screen;
@@ -646,7 +646,7 @@ static void file_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void file_tools_region_listener(wmRegionListenerParams *UNUSED(params))
+static void file_tools_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
 }
 
@@ -704,7 +704,7 @@ static void file_execution_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void file_ui_region_listener(wmRegionListenerParams *params)
+static void file_ui_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;

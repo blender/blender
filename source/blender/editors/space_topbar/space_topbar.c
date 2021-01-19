@@ -129,7 +129,7 @@ static void topbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *regi
   ED_region_header_init(region);
 }
 
-static void topbar_main_region_listener(wmRegionListenerParams *params)
+static void topbar_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -159,7 +159,7 @@ static void topbar_main_region_listener(wmRegionListenerParams *params)
   }
 }
 
-static void topbar_header_listener(wmRegionListenerParams *params)
+static void topbar_header_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -189,7 +189,7 @@ static void topbar_header_listener(wmRegionListenerParams *params)
   }
 }
 
-static void topbar_header_region_message_subscribe(wmRegionMessageSubscribeParams *params)
+static void topbar_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   WorkSpace *workspace = params->workspace;

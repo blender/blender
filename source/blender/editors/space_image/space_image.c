@@ -320,7 +320,7 @@ static void image_refresh(const bContext *C, ScrArea *area)
   }
 }
 
-static void image_listener(wmSpaceTypeListenerParams *params)
+static void image_listener(const wmSpaceTypeListenerParams *params)
 {
   wmWindow *win = params->window;
   ScrArea *area = params->area;
@@ -726,7 +726,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   draw_image_cache(C, region);
 }
 
-static void image_main_region_listener(wmRegionListenerParams *params)
+static void image_main_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
@@ -841,7 +841,7 @@ static void image_buttons_region_draw(const bContext *C, ARegion *region)
   ED_region_panels_draw(C, region);
 }
 
-static void image_buttons_region_listener(wmRegionListenerParams *params)
+static void image_buttons_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -903,7 +903,7 @@ static void image_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void image_tools_region_listener(wmRegionListenerParams *params)
+static void image_tools_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
@@ -959,7 +959,7 @@ static void image_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void image_header_region_listener(wmRegionListenerParams *params)
+static void image_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;

@@ -273,7 +273,7 @@ static void console_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void console_main_region_listener(wmRegionListenerParams *params)
+static void console_main_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;

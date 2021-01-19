@@ -421,7 +421,7 @@ void ED_area_do_msg_notify_tag_refresh(
 }
 
 /* Follow ARegionType.message_subscribe */
-void ED_area_do_mgs_subscribe_for_tool_header(wmRegionMessageSubscribeParams *params)
+void ED_area_do_mgs_subscribe_for_tool_header(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   WorkSpace *workspace = params->workspace;
@@ -437,7 +437,7 @@ void ED_area_do_mgs_subscribe_for_tool_header(wmRegionMessageSubscribeParams *pa
       mbus, &workspace->id, workspace, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
 }
 
-void ED_area_do_mgs_subscribe_for_tool_ui(wmRegionMessageSubscribeParams *params)
+void ED_area_do_mgs_subscribe_for_tool_ui(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
   WorkSpace *workspace = params->workspace;

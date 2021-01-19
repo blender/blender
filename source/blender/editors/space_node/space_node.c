@@ -328,7 +328,7 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
-static void node_area_listener(wmSpaceTypeListenerParams *params)
+static void node_area_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   wmNotifier *wmn = params->notifier;
@@ -703,7 +703,7 @@ static void node_header_region_draw(const bContext *C, ARegion *region)
 }
 
 /* used for header + main region */
-static void node_region_listener(wmRegionListenerParams *params)
+static void node_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
