@@ -606,8 +606,8 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  /* Image space manages own v2d. */
-  // UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
+  /* NOTE: don't use `UI_view2d_region_reinit(&region->v2d, ...)`
+   * since the space clip manages own v2d in #image_main_region_set_view2d */
 
   /* mask polls mode */
   keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
