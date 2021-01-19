@@ -50,8 +50,7 @@ static void geo_node_attribute_randomize_update(bNodeTree *UNUSED(ntree), bNode 
   bNodeSocket *sock_min_float = sock_max_vector->next;
   bNodeSocket *sock_max_float = sock_min_float->next;
 
-  const int data_type = node->custom1;
-
+  const CustomDataType data_type = static_cast<CustomDataType>(node->custom1);
   nodeSetSocketAvailability(sock_min_vector, data_type == CD_PROP_FLOAT3);
   nodeSetSocketAvailability(sock_max_vector, data_type == CD_PROP_FLOAT3);
   nodeSetSocketAvailability(sock_min_float, data_type == CD_PROP_FLOAT);
@@ -86,8 +85,11 @@ static void randomize_attribute_bool(BooleanWriteAttribute attribute,
   attribute.apply_span();
 }
 
-static void randomize_attribute_float(
-    FloatWriteAttribute attribute, float min, float max, Span<uint32_t> hashes, const int seed)
+static void randomize_attribute_float(FloatWriteAttribute attribute,
+                                      const float min,
+                                      const float max,
+                                      Span<uint32_t> hashes,
+                                      const int seed)
 {
   MutableSpan<float> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
@@ -97,8 +99,11 @@ static void randomize_attribute_float(
   attribute.apply_span();
 }
 
-static void randomize_attribute_float3(
-    Float3WriteAttribute attribute, float3 min, float3 max, Span<uint32_t> hashes, const int seed)
+static void randomize_attribute_float3(Float3WriteAttribute attribute,
+                                       const float3 min,
+                                       const float3 max,
+                                       Span<uint32_t> hashes,
+                                       const int seed)
 {
   MutableSpan<float3> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
@@ -129,8 +134,7 @@ Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &compo
   }
   else {
     /* If there is no "id" attribute for per-point variation, just create it here. */
-    RandomNumberGenerator rng;
-    rng.seed(0);
+    RandomNumberGenerator rng(0);
     for (const int i : hashes.index_range()) {
       hashes[i] = rng.get_uint32();
     }
