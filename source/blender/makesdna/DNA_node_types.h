@@ -1167,6 +1167,13 @@ typedef struct NodeGeometryPointTranslate {
   char _pad[7];
 } NodeGeometryPointTranslate;
 
+typedef struct NodeGeometryObjectInfo {
+  /* GeometryNodeTransformSpace. */
+  uint8_t transform_space;
+
+  char _pad[7];
+} NodeGeometryObjectInfo;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -1607,6 +1614,11 @@ typedef enum GeometryNodeAlignRotationToVectorAxis {
   GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_Y = 1,
   GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_Z = 2,
 } GeometryNodeAlignRotationToVectorAxis;
+
+typedef enum GeometryNodeTransformSpace {
+  GEO_NODE_TRANSFORM_SPACE_ORIGINAL = 0,
+  GEO_NODE_TRANSFORM_SPACE_RELATIVE = 1,
+} GeometryNodeTransformSpace;
 
 #ifdef __cplusplus
 }
