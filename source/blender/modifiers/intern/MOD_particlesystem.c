@@ -91,6 +91,11 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
   BKE_modifier_copydata_generic(md, target, flag);
 
+  /* NOTE: `psys` pointer here is just copied over from `md` to `target`. This is dangerous, as it
+   * will generate invalid data in case we are copying between different objects. Extra external
+   * code has to be called then to ensure proper remapping of that pointer. See e.g.
+   * `BKE_object_copy_particlesystems` or `BKE_object_copy_modifier`. */
+
   tpsmd->mesh_final = NULL;
   tpsmd->mesh_original = NULL;
   tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
