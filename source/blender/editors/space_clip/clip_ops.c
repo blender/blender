@@ -1840,8 +1840,16 @@ void CLIP_OT_cursor_set(wmOperatorType *ot)
 static int lock_selection_togglee_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
+
+  ClipViewLockState lock_state;
+  ED_clip_view_lock_state_store(C, &lock_state);
+
   space_clip->flag ^= SC_LOCK_SELECTION;
+
+  ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
+
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CLIP, NULL);
+
   return OPERATOR_FINISHED;
 }
 

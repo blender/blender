@@ -88,17 +88,16 @@ static int add_marker_exec(bContext *C, wmOperator *op)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   float pos[2];
 
+  ClipViewLockState lock_state;
+  ED_clip_view_lock_state_store(C, &lock_state);
+
   RNA_float_get_array(op->ptr, "location", pos);
 
   if (!add_marker(C, pos[0], pos[1])) {
     return OPERATOR_CANCELLED;
   }
 
-  /* Reset offset from locked position, so frame jumping wouldn't be so
-   * confusing.
-   */
-  sc->xlockof = 0;
-  sc->ylockof = 0;
+  ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
 
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 

@@ -99,6 +99,30 @@ void ED_space_clip_set_clip(struct bContext *C,
 struct Mask *ED_space_clip_get_mask(struct SpaceClip *sc);
 void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask);
 
+/* Locked state is used to preserve current clip editor viewport upon changes. Example usage:
+ *
+ *   ...
+ *
+ *   ClipViewLockState lock_state;
+ *   ED_clip_view_lock_state_store(C, &lock_state);
+ *
+ *   <change selection>
+ *
+ *   ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
+ *
+ * These function are to be used from space clip editor context only. Otherwise debug builds will
+ * assert, release builds will crash. */
+
+typedef struct ClipViewLockState {
+  float offset_x, offset_y;
+  float lock_offset_x, lock_offset_y;
+  float zoom;
+} ClipViewLockState;
+
+void ED_clip_view_lock_state_store(const struct bContext *C, ClipViewLockState *state);
+void ED_clip_view_lock_state_restore_no_jump(const struct bContext *C,
+                                             const ClipViewLockState *state);
+
 /* ** clip_ops.c ** */
 void ED_operatormacros_clip(void);
 

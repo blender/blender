@@ -226,6 +226,12 @@ typedef struct SlidePointData {
   int width, height;
 
   float prev_mouse_coord[2];
+
+  /* Previous clip coordinate which was resolved from mouse position (0, 0).
+   * Is used to compansate for view offste moving in-between of mouse events when
+   * lock-to-selection is enabled. */
+  float prev_zero_coord[2];
+
   float no[2];
 
   bool is_curvature_only, is_accurate, is_initial_feather, is_overall_feather;
@@ -431,6 +437,9 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
   const float threshold = 19;
   eMaskWhichHandle which_handle;
 
+  MaskViewLockState lock_state;
+  ED_mask_view_lock_state_store(C, &lock_state);
+
   ED_mask_mouse_pos(area, region, event->mval, co);
   ED_mask_get_size(area, &width, &height);
 
@@ -530,7 +539,15 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
     }
     customdata->which_handle = which_handle;
 
+    {
+      WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+      DEG_id_tag_update(&mask->id, 0);
+
+      ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
+    }
+
     ED_mask_mouse_pos(area, region, event->mval, customdata->prev_mouse_coord);
+    ED_mask_mouse_pos(area, region, (int[2]){0, 0}, customdata->prev_zero_coord);
   }
 
   return customdata;
@@ -655,10 +672,24 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       ED_mask_mouse_pos(area, region, event->mval, co);
       sub_v2_v2v2(delta, co, data->prev_mouse_coord);
+      copy_v2_v2(data->prev_mouse_coord, co);
+
+      /* Compensate for possibly moved view offset since the last event.
+       * The idea is to see how mapping of a fixed and known position did change. */
+      {
+        float zero_coord[2];
+        ED_mask_mouse_pos(area, region, (int[2]){0, 0}, zero_coord);
+
+        float zero_delta[2];
+        sub_v2_v2v2(zero_delta, zero_coord, data->prev_zero_coord);
+        sub_v2_v2(delta, zero_delta);
+
+        copy_v2_v2(data->prev_zero_coord, zero_coord);
+      }
+
       if (data->is_accurate) {
         mul_v2_fl(delta, 0.2f);
       }
-      copy_v2_v2(data->prev_mouse_coord, co);
 
       if (data->action == SLIDE_ACTION_HANDLE) {
         float new_handle[2];
@@ -966,6 +997,9 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(bContext *C,
   float u, co[2];
   BezTriple *next_bezt;
 
+  MaskViewLockState lock_state;
+  ED_mask_view_lock_state_store(C, &lock_state);
+
   ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, co);
 
   if (!ED_mask_find_nearest_diff_point(C,
@@ -1046,6 +1080,9 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(bContext *C,
   mask_layer->act_spline = spline;
   mask_layer->act_point = point;
   ED_mask_select_flush_all(mask);
+
+  DEG_id_tag_update(&mask->id, 0);
+  ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
 
   return slide_data;
 }
