@@ -168,7 +168,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
                                            FLT_MAX :
                                            sample_clamp_indirect * 3.0f;
 
-  kintegrator->branched = (method == BRANCHED_PATH);
+  kintegrator->branched = (method == BRANCHED_PATH) && device->info.has_branched_path;
   kintegrator->volume_decoupled = device->info.has_volume_decoupled;
   kintegrator->diffuse_samples = diffuse_samples;
   kintegrator->glossy_samples = glossy_samples;
@@ -179,7 +179,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->volume_samples = volume_samples;
   kintegrator->start_sample = start_sample;
 
-  if (method == BRANCHED_PATH) {
+  if (kintegrator->branched) {
     kintegrator->sample_all_lights_direct = sample_all_lights_direct;
     kintegrator->sample_all_lights_indirect = sample_all_lights_indirect;
   }
@@ -224,7 +224,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   /* sobol directions table */
   int max_samples = 1;
 
-  if (method == BRANCHED_PATH) {
+  if (kintegrator->branched) {
     foreach (Light *light, scene->lights)
       max_samples = max(max_samples, light->get_samples());
 

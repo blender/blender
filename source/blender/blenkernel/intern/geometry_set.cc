@@ -540,6 +540,16 @@ MutableSpan<float3> InstancesComponent::positions()
   return positions_;
 }
 
+MutableSpan<float3> InstancesComponent::rotations()
+{
+  return rotations_;
+}
+
+MutableSpan<float3> InstancesComponent::scales()
+{
+  return scales_;
+}
+
 int InstancesComponent::instances_amount() const
 {
   const int size = instanced_data_.size();

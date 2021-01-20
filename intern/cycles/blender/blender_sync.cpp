@@ -853,7 +853,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
     preview_samples = preview_samples * preview_samples;
   }
 
-  if (get_enum(cscene, "progressive") == 0 && (params.device.type != DEVICE_OPTIX)) {
+  if (get_enum(cscene, "progressive") == 0 && params.device.has_branched_path) {
     if (background) {
       params.samples = aa_samples;
     }

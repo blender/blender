@@ -456,6 +456,8 @@ class InstancesComponent : public GeometryComponent {
   blender::Span<blender::float3> scales() const;
   blender::Span<int> ids() const;
   blender::MutableSpan<blender::float3> positions();
+  blender::MutableSpan<blender::float3> rotations();
+  blender::MutableSpan<blender::float3> scales();
   int instances_amount() const;
 
   bool is_empty() const final;
