@@ -58,3 +58,8 @@ bool BM_loop_uv_share_vert_check(BMLoop *l_a,
                                  BMLoop *l_b,
                                  const int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
+
+bool BM_face_uv_point_inside_test(const BMFace *f,
+                                  const float co[2],
+                                  const int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
