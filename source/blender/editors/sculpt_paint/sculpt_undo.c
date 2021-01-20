@@ -55,7 +55,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_undo_system.h"
 
-/* XXX: Ideally should be no direct call to such low level things. */
+/* TODO(sergey): Ideally should be no direct call to such low level things. */
 #include "BKE_subdiv_eval.h"
 
 #include "DEG_depsgraph.h"
@@ -609,6 +609,32 @@ static int sculpt_undo_bmesh_restore(bContext *C,
   return false;
 }
 
+/* Geometry updates (such as Apply Base, for example) will re-evaluate the object and refine its
+ * Subdiv descriptor. Upon undo it is required that mesh, grids, and subdiv all stay consistent
+ * with each other. This means that when geometry coordinate changes the undo should refine the
+ * subdiv to the new coarse mesh coordinates. Tricky part is: this needs to happen without using
+ * dependency graph tag: tagging object for geometry update will either loose sculpted data from
+ * the sculpt grids, or will wrongly "commit" them to the CD_MDISPS.
+ *
+ * So what we do instead is do minimum object evaluation to get base mesh coordinates for the
+ * multires modifier input. While this is expensive, it is less expensive than dependency graph
+ * evaluation and is only happening when geometry coordinates changes on undo.
+ *
+ * Note that the dependency graph is ensured to be evaluated prior to the undo step is decoded,
+ * so if the object's modifier stack references other object it is all fine. */
+static void sculpt_undo_refine_subdiv(Depsgraph *depsgraph,
+                                      SculptSession *ss,
+                                      Object *object,
+                                      struct Subdiv *subdiv)
+{
+  float(*deformed_verts)[3] = BKE_multires_create_deformed_base_mesh_vert_coords(
+      depsgraph, object, ss->multires.modifier, NULL);
+
+  BKE_subdiv_eval_refine_from_mesh(subdiv, object->data, deformed_verts);
+
+  MEM_freeN(deformed_verts);
+}
+
 static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)
 {
   Scene *scene = CTX_data_scene(C);
@@ -620,6 +646,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   SculptUndoNode *unode;
   bool update = false, rebuild = false, update_mask = false, update_visibility = false;
   bool need_mask = false;
+  bool need_refine_subdiv = false;
 
   for (unode = lb->first; unode; unode = unode->next) {
     /* Restore pivot. */
@@ -731,6 +758,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         break;
 
       case SCULPT_UNDO_GEOMETRY:
+        need_refine_subdiv = true;
         sculpt_undo_geometry_restore(unode, ob);
         BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask, false);
         break;
@@ -762,8 +790,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
   }
 
-  if (subdiv_ccg != NULL) {
-    BKE_subdiv_eval_refine_from_mesh(subdiv_ccg->subdiv, ob->data, NULL);
+  if (subdiv_ccg != NULL && need_refine_subdiv) {
+    sculpt_undo_refine_subdiv(depsgraph, ss, ob, subdiv_ccg->subdiv);
   }
 
   if (update || rebuild) {
