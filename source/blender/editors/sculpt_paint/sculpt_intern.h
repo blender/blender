@@ -1175,8 +1175,6 @@ typedef enum eSculptExpandRecursionType {
 typedef struct ExpandCache {
   eSculptExpandTargetType target;
 
-  eSculptExpandRecursionType recursion_type;
-
   eSculptExpandFalloffType falloff_factor_type;
   float *falloff_factor;
   float max_falloff_factor;
@@ -1203,6 +1201,9 @@ typedef struct ExpandCache {
   bool move;
   bool snap;
   bool modify_active;
+  bool brush_gradient;
+
+  Brush *brush;
 
   float initial_mouse_move[2];
   float original_mouse_move[2];
@@ -1213,6 +1214,7 @@ typedef struct ExpandCache {
 
   float *initial_mask;
   int *initial_face_sets;
+  int *origin_face_sets;
   float (*initial_color)[4];
 } ExpandCache;
 

@@ -5544,6 +5544,7 @@ def km_sculpt_expand_modal(_params):
         ("SNAP_TOGGLE", {"type": 'Z', "value": 'ANY', "any": True, "repeat" : False}, None),
         ("LOOP_COUNT_INCREASE", {"type": 'W', "value": 'PRESS', "any": True, "repeat" : False}, None),
         ("LOOP_COUNT_DECREASE", {"type": 'Q', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("BRUSH_GRADIENT_TOGGLE", {"type": 'B', "value": 'PRESS', "any": True, "repeat" : False}, None),
     ])
     return keymap
 

@@ -91,6 +91,7 @@ enum {
   SCULPT_EXPAND_MODAL_SNAP_TOGGLE,
   SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE,
   SCULPT_EXPAND_MODAL_LOOP_COUNT_DECREASE,
+  SCULPT_EXPAND_MODAL_BRUSH_GRADIENT_TOGGLE,
 };
 
 static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
@@ -176,11 +177,20 @@ static float sculpt_expand_gradient_falloff_get(ExpandCache *expand_cache, const
   const float active_factor = fmod(expand_cache->active_factor, loop_len);
   const float falloff_factor = fmod(expand_cache->falloff_factor[i], loop_len);
 
+  float linear_falloff;
+
   if (expand_cache->invert) {
-    return (falloff_factor - active_factor) / (loop_len - active_factor);
+    linear_falloff =  (falloff_factor - active_factor) / (loop_len - active_factor);
   }
 
-  return 1.0f - (falloff_factor / active_factor);
+  linear_falloff = 1.0f - (falloff_factor / active_factor);
+
+  if (!expand_cache->brush_gradient) {
+      return linear_falloff;
+  }
+
+  return BKE_brush_curve_strength(expand_cache->brush, linear_falloff, 1.0f);
+
 }
 
 static float *sculpt_expand_geodesic_falloff_create(Sculpt *sd, Object *ob, const int vertex)
@@ -672,9 +682,14 @@ static void sculpt_expand_cache_free(ExpandCache *expand_cache)
   MEM_SAFE_FREE(expand_cache->falloff_factor);
   MEM_SAFE_FREE(expand_cache->face_falloff_factor);
   MEM_SAFE_FREE(expand_cache->initial_mask);
+  MEM_SAFE_FREE(expand_cache->origin_face_sets);
   MEM_SAFE_FREE(expand_cache->initial_face_sets);
   MEM_SAFE_FREE(expand_cache->initial_color);
   MEM_SAFE_FREE(expand_cache);
+}
+
+static void sculpt_expand_restore_original_state(SculptSession *ss, ExpandCache *expand_cache) {
+
 }
 
 static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
@@ -913,8 +928,10 @@ static void sculpt_expand_initial_state_store(Object *ob, ExpandCache *expand_ca
   }
 
   expand_cache->initial_face_sets = MEM_malloc_arrayN(totvert, sizeof(int), "initial face set");
+  expand_cache->origin_face_sets = MEM_malloc_arrayN(totvert, sizeof(int), "initial face set");
   for (int i = 0; i < totface; i++) {
     expand_cache->initial_face_sets[i] = ss->face_sets[i];
+    expand_cache->origin_face_sets[i] = ss->face_sets[i];
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
@@ -1113,6 +1130,10 @@ static int sculpt_expand_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
         expand_cache->falloff_gradient = !expand_cache->falloff_gradient;
         break;
       }
+      case SCULPT_EXPAND_MODAL_BRUSH_GRADIENT_TOGGLE: {
+        expand_cache->brush_gradient = !expand_cache->brush_gradient;
+        break;
+      }
       case SCULPT_EXPAND_MODAL_SNAP_TOGGLE: {
         if (expand_cache->snap) {
           expand_cache->snap = false;
@@ -1276,14 +1297,16 @@ static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
 
   /* TODO: Expose in RNA. */
   expand_cache->loop_count = 1;
+  expand_cache->brush_gradient = false;
 
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  expand_cache->brush = BKE_paint_brush(&sd->paint);
+  BKE_curvemapping_init(expand_cache->brush->curve);
   copy_v4_fl(expand_cache->fill_color, 1.0f);
-  copy_v3_v3(expand_cache->fill_color, BKE_brush_color_get(ss->scene, brush));
+  copy_v3_v3(expand_cache->fill_color, BKE_brush_color_get(ss->scene, expand_cache->brush));
   IMB_colormanagement_srgb_to_scene_linear_v3(expand_cache->fill_color);
 
-  expand_cache->blend_mode = brush->blend;
+  expand_cache->blend_mode = expand_cache->brush->blend;
 }
 
 static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1334,8 +1357,6 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   if (SCULPT_vertex_is_boundary(ss, ss->expand_cache->initial_active_vertex)) {
     falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
-
-  ss->expand_cache->recursion_type = SCULPT_EXPAND_RECURSION_TOPOLOGY;
 
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
       ss->expand_cache, sd, ob, ss->expand_cache->initial_active_vertex, falloff_type);
@@ -1396,6 +1417,11 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        "LOOP_COUNT_DECREASE",
        0,
        "Loop Count Decrease",
+       ""},
+      {SCULPT_EXPAND_MODAL_BRUSH_GRADIENT_TOGGLE,
+       "BRUSH_GRADIENT_TOGGLE",
+       0,
+       "Brush Gradient Toggle",
        ""},
       {0, NULL, 0, NULL, NULL},
   };
