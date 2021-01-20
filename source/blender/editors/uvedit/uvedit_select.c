@@ -719,7 +719,17 @@ bool uv_find_nearest_edge_multi(
   return found;
 }
 
-bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit)
+/**
+ * \param only_in_face: when true, only hit faces which `co` is inside.
+ * This gives users a result they might expect, especially when zoomed in.
+ *
+ * \note Concave faces can cause odd behavior, although in practice this isn't often an issue.
+ * The center can be outside the face, in this case the distance to the center
+ * could cause the face to be considered too far away.
+ * If this becomes an issue we could track the distance to the faces closest edge.
+ */
+bool uv_find_nearest_face_ex(
+    Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit, const bool only_in_face)
 {
   BLI_assert((hit->scale[0] > 0.0f) && (hit->scale[1] > 0.0f));
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -745,6 +755,13 @@ bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNea
     const float dist_test_sq = len_squared_v2(delta);
 
     if (dist_test_sq < hit->dist_sq) {
+
+      if (only_in_face) {
+        if (!BM_face_uv_point_inside_test(efa, co, cd_loop_uv_offset)) {
+          continue;
+        }
+      }
+
       hit->ob = obedit;
       hit->efa = efa;
       hit->dist_sq = dist_test_sq;
@@ -754,17 +771,32 @@ bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNea
   return found;
 }
 
-bool uv_find_nearest_face_multi(
-    Scene *scene, Object **objects, const uint objects_len, const float co[2], UvNearestHit *hit)
+bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit)
+{
+  return uv_find_nearest_face_ex(scene, obedit, co, hit, NULL);
+}
+
+bool uv_find_nearest_face_multi_ex(Scene *scene,
+                                   Object **objects,
+                                   const uint objects_len,
+                                   const float co[2],
+                                   UvNearestHit *hit,
+                                   const bool only_in_face)
 {
   bool found = false;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    if (uv_find_nearest_face(scene, obedit, co, hit)) {
+    if (uv_find_nearest_face_ex(scene, obedit, co, hit, only_in_face)) {
       found = true;
     }
   }
   return found;
+}
+
+bool uv_find_nearest_face_multi(
+    Scene *scene, Object **objects, const uint objects_len, const float co[2], UvNearestHit *hit)
+{
+  return uv_find_nearest_face_multi_ex(scene, objects, objects_len, co, hit, false);
 }
 
 static bool uv_nearest_between(const BMLoop *l, const float co[2], const int cd_loop_uv_offset)
@@ -1934,6 +1966,15 @@ static int uv_mouse_select_multi(bContext *C,
   else if (selectmode == UV_SELECT_FACE) {
     /* find face */
     found_item = uv_find_nearest_face_multi(scene, objects, objects_len, co, &hit);
+
+    if (!found_item) {
+      /* Fallback, perform a second pass without a limited threshold,
+       * which succeeds as long as the cursor is inside the UV face.
+       * Useful when zoomed in, to select faces with distant screen-space face centers. */
+      hit.dist_sq = FLT_MAX;
+      found_item = uv_find_nearest_face_multi_ex(scene, objects, objects_len, co, &hit, true);
+    }
+
     if (found_item) {
       BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
       BM_mesh_active_face_set(bm, hit.efa);
