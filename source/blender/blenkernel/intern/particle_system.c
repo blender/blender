@@ -475,20 +475,24 @@ void psys_tasks_create(ParticleThreadContext *ctx,
 {
   ParticleTask *tasks;
   int numtasks = min_ii(BLI_system_thread_count() * 4, endpart - startpart);
-  float particles_per_task = numtasks > 0 ? (float)(endpart - startpart) / (float)numtasks : 0;
+  int particles_per_task = numtasks > 0 ? (endpart - startpart) / numtasks : 0;
+  int remainder = numtasks > 0 ? (endpart - startpart) - particles_per_task * numtasks : 0;
 
   tasks = MEM_callocN(sizeof(ParticleTask) * numtasks, "ParticleThread");
   *r_numtasks = numtasks;
   *r_tasks = tasks;
 
-  float pnext;
-  float p = (float)startpart;
-  for (int i = 0; i < numtasks; i++, p = pnext) {
-    pnext = p + particles_per_task;
-
+  int p = startpart;
+  for (int i = 0; i < numtasks; i++) {
     tasks[i].ctx = ctx;
-    tasks[i].begin = (int)p;
-    tasks[i].end = min_ii((int)pnext, endpart);
+    tasks[i].begin = p;
+    p = p + particles_per_task + (i < remainder ? 1 : 0);
+    tasks[i].end = p;
+  }
+
+  /* Verify that all particles are accounted for. */
+  if (numtasks > 0) {
+    BLI_assert(tasks[numtasks - 1].end == endpart);
   }
 }
 
