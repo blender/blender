@@ -1989,26 +1989,35 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
   /* Draw */
   float pixel_size;
 
-  /* Arbitrary, 1.0 is a little too strong though. */
-  float color_alpha = 0.75f;
-
   if (rv3d->is_persp) {
     float center[3];
     negate_v3_v3(center, rv3d->ofs);
     pixel_size = ED_view3d_pixel_size(rv3d, center);
-
-    /* Scale down the alpha when this is drawn very small,
-     * since the add shader causes the small size to show too dense & bright. */
-    const float relative_pixel_scale = pixel_size / ED_view3d_pixel_size(rv3d, plc->matrix[3]);
-    if (relative_pixel_scale < 1.0f) {
-      color_alpha *= max_ff(square_f(relative_pixel_scale), 0.3f);
-    }
   }
   else {
     pixel_size = ED_view3d_pixel_size(rv3d, plc->matrix[3]);
   }
 
   if (pixel_size > FLT_EPSILON) {
+
+    /* Arbitrary, 1.0 is a little too strong though. */
+    float color_alpha = 0.75f;
+    if (rv3d->is_persp) {
+      /* Scale down the alpha when this is drawn very small,
+       * since the add shader causes the small size to show too dense & bright. */
+      const float relative_pixel_scale = pixel_size / ED_view3d_pixel_size(rv3d, plc->matrix[3]);
+      if (relative_pixel_scale < 1.0f) {
+        color_alpha *= max_ff(square_f(relative_pixel_scale), 0.3f);
+      }
+    }
+
+    {
+      /* Extra adjustment when it's near view-aligned as it seems overly bright. */
+      float view_vector[3];
+      ED_view3d_global_to_vector(rv3d, plc->matrix[3], view_vector);
+      float view_dot = fabsf(dot_v3v3(plc->matrix[plc->plane_axis], view_vector));
+      color_alpha *= max_ff(0.3f, 1.0f - square_f(square_f(1.0f - view_dot)));
+    }
 
     /* Setup viewport & matrix. */
     wmViewport(&region->winrct);
