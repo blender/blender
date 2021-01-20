@@ -92,6 +92,8 @@ static void transform_instances(InstancesComponent &instances,
                                 const float3 scale)
 {
   MutableSpan<float3> positions = instances.positions();
+  MutableSpan<float3> rotations = instances.rotations();
+  MutableSpan<float3> scales = instances.scales();
 
   /* Use only translation if rotation and scale don't apply. */
   if (use_translate(rotation, scale)) {
@@ -101,9 +103,15 @@ static void transform_instances(InstancesComponent &instances,
   }
   else {
     float mat[4][4];
+    float instance_mat[4][4];
+    float quaternion[4];
+
     loc_eul_size_to_mat4(mat, translation, rotation, scale);
-    for (float3 &position : positions) {
-      mul_m4_v3(mat, position);
+    for (int i = 0; i < positions.size(); i++) {
+      loc_eul_size_to_mat4(instance_mat, positions[i], rotations[i], scales[i]);
+      mul_m4_m4_post(instance_mat, mat);
+      mat4_decompose(positions[i], quaternion, scales[i], instance_mat);
+      quat_to_eul(rotations[i], quaternion);
     }
   }
 }
