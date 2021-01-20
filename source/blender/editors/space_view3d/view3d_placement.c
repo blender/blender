@@ -916,7 +916,7 @@ static void view3d_interactive_add_calc_plane(bContext *C,
     }
 
     if (!found_surface_or_normal) {
-      /* Drawing into empty mspace, draw onto the plane most aligned to the view direction. */
+      /* Drawing into empty space, draw onto the plane most aligned to the view direction. */
       mat3_align_axis_to_v3(r_matrix_orient, plane_axis, rv3d->viewinv[2]);
     }
   }
@@ -1623,12 +1623,13 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
        "CURSOR_PLANE",
        0,
        "Cursor Plane",
-       "Start placement using a point projected onto the selected axis at the 3D cursor position"},
+       "Start placement using a point projected onto the orientation axis "
+       "at the 3D cursor position"},
       {PLACE_DEPTH_CURSOR_VIEW,
        "CURSOR_VIEW",
        0,
        "Cursor View",
-       "Start placement using the 3D cursor projected onto the view plane"},
+       "Start placement using a point projected onto the view plane at the 3D cursor position"},
       {0, NULL, 0, NULL, NULL},
   };
   prop = RNA_def_property(ot->srna, "plane_depth", PROP_ENUM, PROP_NONE);
@@ -1642,7 +1643,7 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
        "SURFACE",
        ICON_SNAP_NORMAL,
        "Surface",
-       "Use the surface normal (the transform orientation as a fallback)"},
+       "Use the surface normal (using the transform orientation as a fallback)"},
       {PLACE_ORIENT_DEFAULT,
        "DEFAULT",
        ICON_ORIENTATION_GLOBAL,
