@@ -180,17 +180,16 @@ static float sculpt_expand_gradient_falloff_get(ExpandCache *expand_cache, const
   float linear_falloff;
 
   if (expand_cache->invert) {
-    linear_falloff =  (falloff_factor - active_factor) / (loop_len - active_factor);
+    linear_falloff = (falloff_factor - active_factor) / (loop_len - active_factor);
   }
 
   linear_falloff = 1.0f - (falloff_factor / active_factor);
 
   if (!expand_cache->brush_gradient) {
-      return linear_falloff;
+    return linear_falloff;
   }
 
   return BKE_brush_curve_strength(expand_cache->brush, linear_falloff, 1.0f);
-
 }
 
 static float *sculpt_expand_geodesic_falloff_create(Sculpt *sd, Object *ob, const int vertex)
@@ -688,8 +687,8 @@ static void sculpt_expand_cache_free(ExpandCache *expand_cache)
   MEM_SAFE_FREE(expand_cache);
 }
 
-static void sculpt_expand_restore_original_state(SculptSession *ss, ExpandCache *expand_cache) {
-
+static void sculpt_expand_restore_original_state(SculptSession *ss, ExpandCache *expand_cache)
+{
 }
 
 static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
