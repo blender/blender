@@ -1506,11 +1506,11 @@ bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, GpencilModifierData
 /**
  * Copy the whole stack of modifiers from one object into another.
  *
- * \warning  **Does not** clear modifier stack and related data (particle systems, softbody,
+ * \warning **Does not** clear modifier stack and related data (particle systems, soft-body,
  * etc.) in `ob_dst`, if needed calling code must do it.
  *
- * @param do_copy_all If true, even modifiers that should not suport copying (like Hook one) will
- * be duplicated.
+ * \param do_copy_all: If true, even modifiers that should not support copying (like Hook one)
+ * will be duplicated.
  */
 bool BKE_object_modifier_stack_copy(Object *ob_dst,
                                     const Object *ob_src,
