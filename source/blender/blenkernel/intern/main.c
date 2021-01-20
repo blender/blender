@@ -211,7 +211,7 @@ void BKE_main_unlock(struct Main *bmain)
 
 static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  MainIDRelations *rel = cb_data->user_data;
+  MainIDRelations *bmain_relations = cb_data->user_data;
   ID *id_self = cb_data->id_self;
   ID **id_pointer = cb_data->id_pointer;
   const int cb_flag = cb_data->cb_flag;
@@ -219,8 +219,8 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
   if (*id_pointer) {
     MainIDRelationsEntry *entry, **entry_p;
 
-    entry = BLI_mempool_alloc(rel->entry_pool);
-    if (BLI_ghash_ensure_p(rel->id_user_to_used, id_self, (void ***)&entry_p)) {
+    entry = BLI_mempool_alloc(bmain_relations->entry_pool);
+    if (BLI_ghash_ensure_p(bmain_relations->id_user_to_used, id_self, (void ***)&entry_p)) {
       entry->next = *entry_p;
     }
     else {
@@ -230,8 +230,8 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
     entry->usage_flag = cb_flag;
     *entry_p = entry;
 
-    entry = BLI_mempool_alloc(rel->entry_pool);
-    if (BLI_ghash_ensure_p(rel->id_used_to_user, *id_pointer, (void ***)&entry_p)) {
+    entry = BLI_mempool_alloc(bmain_relations->entry_pool);
+    if (BLI_ghash_ensure_p(bmain_relations->id_used_to_user, *id_pointer, (void ***)&entry_p)) {
       entry->next = *entry_p;
     }
     else {
