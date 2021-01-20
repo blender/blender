@@ -675,7 +675,7 @@ void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
 
 void setLocalConstraint(TransInfo *t, int mode, const char text[])
 {
-  if (t->flag & T_EDIT) {
+  if ((t->flag & T_EDIT) || t->data_len_all == 1) {
     /* Although in edit-mode each object has its local space, use the
      * orientation of the active object. */
     setConstraint(t, mode, text);
