@@ -522,7 +522,6 @@ typedef enum eTrackFrameMatch {
   TRACK_MATCH_PREVIOS_FRAME = 1,
 } eTrackFrameMatch;
 
-
 /* MovieTrackingSettings->motion_flag */
 enum {
   TRACKING_MOTION_TRIPOD = (1 << 0),
