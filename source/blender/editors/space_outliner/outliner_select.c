@@ -1547,7 +1547,7 @@ static bool outliner_is_co_within_active_mode_column(bContext *C,
  * Action to run when clicking in the outliner,
  *
  * May expend/collapse branches or activate items.
- * */
+ */
 static int outliner_item_do_activate_from_cursor(bContext *C,
                                                  const int mval[2],
                                                  const bool extend,

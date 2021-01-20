@@ -98,8 +98,7 @@ enum TfmMode {
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
- * (if 0 is returns, *vec is unmodified)
- * */
+ * (if false is returns, `cent3d` is unmodified). */
 bool calculateTransformCenter(struct bContext *C,
                               int centerMode,
                               float cent3d[3],

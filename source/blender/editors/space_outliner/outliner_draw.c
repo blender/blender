@@ -314,7 +314,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
 
 /**
  * Object properties.
- * */
+ */
 static void outliner__object_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   Object *ob = poin;
@@ -324,7 +324,7 @@ static void outliner__object_set_flag_recursive_fn(bContext *C, void *poin, void
 
 /**
  * Base properties.
- * */
+ */
 static void outliner__base_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   Base *base = poin;

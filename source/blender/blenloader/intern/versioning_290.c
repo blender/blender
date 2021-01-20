@@ -499,7 +499,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
     /**
      * Make sure Emission Alpha fcurve and drivers is properly mapped after the Emission Strength
      * got introduced.
-     * */
+     */
 
     /**
      * Effectively we are replacing the (animation of) node socket input 18 with 19.
@@ -510,7 +510,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
      *
      * The for loop for the input ids is at the top level otherwise we lose the animation
      * keyframe data.
-     * */
+     */
     for (int input_id = 21; input_id >= 18; input_id--) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {

@@ -140,7 +140,7 @@ static void compute_eigenstuff(struct OceanResult *ocr, float jxx, float jzz, fl
  * instead of Complex.h
  * in fftw.h "fftw_complex" typedefed as double[2]
  * below you can see functions are needed to work with such complex numbers.
- * */
+ */
 static void init_complex(fftw_complex cmpl, float real, float image)
 {
   cmpl[0] = real;

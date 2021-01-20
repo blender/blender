@@ -397,13 +397,11 @@ static int add_type(const char *str, int size)
 }
 
 /**
- *
  * Because of the weird way of tokenizing, we have to 'cast' function
  * pointers to ... (*f)(), whatever the original signature. In fact,
  * we add name and type at the same time... There are two special
  * cases, unfortunately. These are explicitly checked.
- *
- * */
+ */
 static int add_name(const char *str)
 {
   char buf[255]; /* stupid limit, change it :) */
@@ -479,17 +477,16 @@ static int add_name(const char *str)
     }
 
     /*
-     * Put )(void) at the end? Maybe )(). Should check this with
-     * old sdna. Actually, sometimes )(), sometimes )(void...)
+     * Put `)(void)` at the end? Maybe `)()`. Should check this with
+     * old `sdna`. Actually, sometimes `)()`, sometimes `)(void...)`
      * Alas.. such is the nature of brain-damage :(
      *
-     * Sorted it out: always do )(), except for headdraw and
-     * windraw, part of ScrArea. This is important, because some
+     * Sorted it out: always do )(), except for `headdraw` and
+     * `windraw`, part of #ScrArea. This is important, because some
      * linkers will treat different fp's differently when called
      * !!! This has to do with interference in byte-alignment and
-     * the way args are pushed on the stack.
-     *
-     * */
+     * the way arguments are pushed on the stack.
+     */
     buf[i] = 0;
     DEBUG_PRINTF(3, "Name before chomping: %s\n", buf);
     if ((strncmp(buf, "(*headdraw", 10) == 0) || (strncmp(buf, "(*windraw", 9) == 0)) {

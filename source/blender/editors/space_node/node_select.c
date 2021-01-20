@@ -62,14 +62,15 @@
 
 #include "node_intern.h" /* own include */
 
-/* Function to detect if there is a visible view3d that uses workbench in texture mode.
+/**
+ * Function to detect if there is a visible view3d that uses workbench in texture mode.
  * This function is for fixing T76970 for Blender 2.83. The actual fix should add a mechanism in
  * the depsgraph that can be used by the draw engines to check if they need to be redrawn.
  *
  * We don't want to add these risky changes this close before releasing 2.83 without good testing
  * hence this workaround. There are still cases were too many updates happen. For example when you
  * have both a Cycles and workbench with textures viewport.
- * */
+ */
 static bool has_workbench_in_texture_color(const wmWindowManager *wm,
                                            const Scene *scene,
                                            const Object *ob)

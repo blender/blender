@@ -486,9 +486,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /*
      * Normal Calculation (for face flipping)
      * Sort edge verts for correct face flipping
-     * NOT REALLY NEEDED but face flipping is nice.
-     *
-     * */
+     * NOT REALLY NEEDED but face flipping is nice. */
 
     /* Notice!
      *

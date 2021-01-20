@@ -1466,7 +1466,7 @@ static void mesh_customdatacorrect_apply_vert(struct TransCustomDataLayer *tcld,
    *
    * Interpolate from every other loop (not ideal)
    * However values will only be taken from loops which overlap other mdisps.
-   * */
+   */
   const bool update_loop_mdisps = is_moved && do_loop_mdisps && (tcld->cd_loop_mdisp_offset != -1);
   if (update_loop_mdisps) {
     float(*faces_center)[3] = BLI_array_alloca(faces_center, l_num);

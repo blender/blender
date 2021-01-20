@@ -306,8 +306,7 @@ static EditBone *get_named_editbone(ListBase *edbo, const char *name)
   return NULL;
 }
 
-/* Call this before doing any duplications
- * */
+/* Call this before doing any duplications. */
 void preEditBoneDuplicate(ListBase *editbones)
 {
   /* clear temp */

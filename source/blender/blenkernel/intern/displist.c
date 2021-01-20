@@ -1132,7 +1132,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
        *
        * The right solution would be to COW the Curve data block at the input of the modifier
        * stack just like what the mesh modifier does.
-       * */
+       */
       modified = BKE_mesh_new_nomain_from_curve_displist(ob, dispbase);
     }
 

@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bli
  * \brief File and directory operations.
- * */
+ */
 
 #pragma once
 

@@ -112,7 +112,7 @@ static OArchive *create_archive(std::ofstream *abc_ostream,
  *
  * If 'time_relative' is true, samples are returned as time (in seconds) from params.frame_start.
  * If 'time_relative' is false, samples are returned as fractional frames from 0.
- * */
+ */
 static void get_shutter_samples(double scene_fps,
                                 const AlembicExportParams &params,
                                 int nr_of_samples,

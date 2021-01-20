@@ -1167,8 +1167,7 @@ bool BKE_unit_replace_string(
   /* Replace # with add sign when there is no operator between it and the next number.
    *
    * "1*1# 3*100# * 3"  ->  "1*1+ 3*100  * 3"
-   *
-   * */
+   */
   {
     char *str_found = str;
     const char *ch = str;
