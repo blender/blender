@@ -667,13 +667,14 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
         float t_orig_co[3];
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         sub_v3_v3v3(t_orig_co, orig_data.co, boundary->bend.pivot_positions[vd.index]);
         rotate_v3_v3v3fl(target_co,
                          t_orig_co,
                          boundary->bend.pivot_rotation_axis[vd.index],
-                         angle * boundary->edit_info[vd.index].strength_factor * mask);
+                         angle * boundary->edit_info[vd.index].strength_factor * mask * automask);
         add_v3_v3(target_co, boundary->bend.pivot_positions[vd.index]);
       }
     }
@@ -712,11 +713,13 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         madd_v3_v3v3fl(target_co,
                        orig_data.co,
                        boundary->slide.directions[vd.index],
-                       boundary->edit_info[vd.index].strength_factor * disp * mask * strength);
+                       boundary->edit_info[vd.index].strength_factor * disp * mask * automask *
+                           strength);
       }
     }
 
@@ -754,13 +757,15 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
         float normal[3];
         normal_short_to_float_v3(normal, orig_data.no);
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         madd_v3_v3v3fl(target_co,
                        orig_data.co,
                        normal,
-                       boundary->edit_info[vd.index].strength_factor * disp * mask * strength);
+                       boundary->edit_info[vd.index].strength_factor * disp * mask * automask *
+                           strength);
       }
     }
 
@@ -796,11 +801,12 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         madd_v3_v3v3fl(target_co,
                        orig_data.co,
                        ss->cache->grab_delta_symmetry,
-                       boundary->edit_info[vd.index].strength_factor * mask * strength);
+                       boundary->edit_info[vd.index].strength_factor * mask * automask * strength);
       }
     }
 
@@ -844,13 +850,14 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
         float t_orig_co[3];
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         sub_v3_v3v3(t_orig_co, orig_data.co, boundary->twist.pivot_position);
         rotate_v3_v3v3fl(target_co,
                          t_orig_co,
                          boundary->twist.rotation_axis,
-                         angle * mask * boundary->edit_info[vd.index].strength_factor);
+                         angle * mask * automask * boundary->edit_info[vd.index].strength_factor);
         add_v3_v3(target_co, boundary->twist.pivot_position);
       }
     }
