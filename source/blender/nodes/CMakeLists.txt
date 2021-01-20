@@ -308,6 +308,7 @@ set(SRC
   NOD_derived_node_tree.hh
   NOD_function.h
   NOD_geometry.h
+  NOD_geometry_exec.hh
   NOD_math_functions.hh
   NOD_node_tree_dependencies.hh
   NOD_node_tree_multi_function.hh
