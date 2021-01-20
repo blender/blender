@@ -1790,20 +1790,33 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 void OBJECT_OT_make_links_data(wmOperatorType *ot)
 {
   static const EnumPropertyItem make_links_items[] = {
-      {MAKE_LINKS_OBDATA, "OBDATA", 0, "Object Data", ""},
-      {MAKE_LINKS_MATERIALS, "MATERIAL", 0, "Materials", ""},
-      {MAKE_LINKS_ANIMDATA, "ANIMATION", 0, "Animation Data", ""},
-      {MAKE_LINKS_GROUP, "GROUPS", 0, "Collection", ""},
-      {MAKE_LINKS_DUPLICOLLECTION, "DUPLICOLLECTION", 0, "Instance Collection", ""},
-      {MAKE_LINKS_MODIFIERS, "MODIFIERS", 0, "Modifiers", ""},
-      {MAKE_LINKS_FONTS, "FONTS", 0, "Fonts", ""},
-      {MAKE_LINKS_SHADERFX, "EFFECTS", 0, "Effects", ""},
+      {MAKE_LINKS_OBDATA, "OBDATA", 0, "Link Object Data", "Replace assigned Object Data"},
+      {MAKE_LINKS_MATERIALS, "MATERIAL", 0, "Link Materials", "Replace assigned Materials"},
+      {MAKE_LINKS_ANIMDATA,
+       "ANIMATION",
+       0,
+       "Link Animation Data",
+       "Replace assigned Animation Data"},
+      {MAKE_LINKS_GROUP, "GROUPS", 0, "Link Collections", "Replace assigned Collections"},
+      {MAKE_LINKS_DUPLICOLLECTION,
+       "DUPLICOLLECTION",
+       0,
+       "Link Instance Collection",
+       "Replace assigned Collection Instance"},
+      {MAKE_LINKS_FONTS, "FONTS", 0, "Link Fonts to Text", "Replace Text object Fonts"},
+      {0, "", 0, NULL, NULL},
+      {MAKE_LINKS_MODIFIERS, "MODIFIERS", 0, "Copy Modifiers", "Replace Modifiers"},
+      {MAKE_LINKS_SHADERFX,
+       "EFFECTS",
+       0,
+       "Copy Grease Pencil Effects",
+       "Replace Grease Pencil Effects"},
       {0, NULL, 0, NULL, NULL},
   };
 
   /* identifiers */
-  ot->name = "Link Data";
-  ot->description = "Apply active object links to other selected objects";
+  ot->name = "Link/Transfer Data";
+  ot->description = "Transfer data from active object to selected objects";
   ot->idname = "OBJECT_OT_make_links_data";
 
   /* api callbacks */
