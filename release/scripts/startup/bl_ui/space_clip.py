@@ -1420,7 +1420,7 @@ class CLIP_MT_track_refine(Menu):
         props = layout.operator("clip.refine_markers", text="Backwards")
         props.backwards = True
 
-        props = layout.operator("clip.refine_markers", text="Fowards")
+        props = layout.operator("clip.refine_markers", text="Forwards")
         props.backwards = False
 
 
