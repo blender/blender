@@ -88,7 +88,7 @@ struct IDNode : public Node {
    * which could be "stale" pointer. */
   uint id_orig_session_uuid;
 
-  /* Evaluated datablock.
+  /* Evaluated data-block.
    * Will be covered by the copy-on-write system if the ID Type needs it. */
   ID *id_cow;
 
@@ -107,7 +107,7 @@ struct IDNode : public Node {
 
   eDepsNode_LinkedState_Type linked_state;
 
-  /* Indicates the datablock is visible in the evaluated scene. */
+  /* Indicates the data-block is visible in the evaluated scene. */
   bool is_directly_visible;
 
   /* For the collection type of ID, denotes whether collection was fully

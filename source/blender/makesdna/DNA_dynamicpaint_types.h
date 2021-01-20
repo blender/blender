@@ -242,10 +242,12 @@ typedef struct DynamicPaintBrushSettings {
   /** For fast RNA access. */
   struct DynamicPaintModifierData *pmd;
 
-  /* NOTE: Storing the particle system pointer here is very weak, as it prevents modfiers' data
+  /**
+   * \note Storing the particle system pointer here is very weak, as it prevents modifiers' data
    * copying to be self-sufficient (extra external code needs to ensure the pointer remains valid
    * when the modifier data is copied from one object to another). See e.g.
-   * `BKE_object_copy_particlesystems` or `BKE_object_copy_modifier`. */
+   * `BKE_object_copy_particlesystems` or `BKE_object_copy_modifier`.
+   */
   struct ParticleSystem *psys;
 
   int flags;

@@ -1482,14 +1482,16 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
   }
 }
 
-/* Get marker closest to the given frame number.
+/**
+ * Get marker closest to the given frame number.
  *
  * If there is maker with exact frame number it returned.
- * Otherwise, marker with higherst frame number but lower than the requested
+ * Otherwise, marker with highest frame number but lower than the requested
  * frame is returned if such marker exists. Otherwise, the marker with lowest
  * frame number greater than the requested frame number is returned.
  *
- * This function has complexity of O(log number_of_markers). */
+ * This function has complexity of `O(log number_of_markers)`.
+ */
 MovieTrackingMarker *BKE_tracking_marker_get(MovieTrackingTrack *track, int framenr)
 {
   const int num_markers = track->markersnr;
