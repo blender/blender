@@ -1242,6 +1242,18 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
     }
     float dy = fac * BLI_rctf_size_y(&v2d->cur) / 10.0f;
 
+    /* Only respect user setting zoom axis if the view does not have any zoom restrictions
+     * any will be scaled uniformly. */
+    if (((v2d->keepzoom & (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y)) == 0) &&
+        (v2d->keepzoom & V2D_KEEPASPECT)) {
+      if (U.uiflag & USER_ZOOM_HORIZ) {
+        dy = 0;
+      }
+      else {
+        dx = 0;
+      }
+    }
+
     /* support trackpad zoom to always zoom entirely - the v2d code uses portrait or
      * landscape exceptions */
     if (v2d->keepzoom & V2D_KEEPASPECT) {
