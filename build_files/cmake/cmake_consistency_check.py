@@ -43,6 +43,12 @@ global_h = set()
 global_c = set()
 global_refs = {}
 
+# Flatten `IGNORE_SOURCE_MISSING` to avoid nested looping.
+IGNORE_SOURCE_MISSING = [
+    (k, ig) for k, ig_list in IGNORE_SOURCE_MISSING
+    for ig in ig_list
+]
+
 # Ignore cmake file, path pairs.
 global_ignore_source_missing = {}
 for k, v in IGNORE_SOURCE_MISSING:
@@ -178,6 +184,8 @@ def cmake_get_src(f):
 
                     if not l:
                         pass
+                    elif l in local_ignore_source_missing:
+                        local_ignore_source_missing.remove(l)
                     elif l.startswith("$"):
                         if context_name == "SRC":
                             # assume if it ends with context_name we know about it
@@ -227,10 +235,7 @@ def cmake_get_src(f):
                                     # replace_line(f, i - 1, new_path_rel)
 
                             else:
-                                if l in local_ignore_source_missing:
-                                    local_ignore_source_missing.remove(l)
-                                else:
-                                    raise Exception("non existent include %s:%d -> %s" % (f, i, new_file))
+                                raise Exception("non existent include %s:%d -> %s" % (f, i, new_file))
 
                         # print(new_file)
 
