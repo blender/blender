@@ -693,6 +693,7 @@ bool uv_find_nearest_edge(Scene *scene, Object *obedit, const float co[2], UvNea
       const float dist_test_sq = len_squared_v2(delta);
 
       if (dist_test_sq < hit->dist_sq) {
+        hit->ob = obedit;
         hit->efa = efa;
 
         hit->l = l;
@@ -705,17 +706,13 @@ bool uv_find_nearest_edge(Scene *scene, Object *obedit, const float co[2], UvNea
   return found;
 }
 
-bool uv_find_nearest_edge_multi(Scene *scene,
-                                Object **objects,
-                                const uint objects_len,
-                                const float co[2],
-                                UvNearestHit *hit_final)
+bool uv_find_nearest_edge_multi(
+    Scene *scene, Object **objects, const uint objects_len, const float co[2], UvNearestHit *hit)
 {
   bool found = false;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    if (uv_find_nearest_edge(scene, obedit, co, hit_final)) {
-      hit_final->ob = obedit;
+    if (uv_find_nearest_edge(scene, obedit, co, hit)) {
       found = true;
     }
   }
@@ -748,6 +745,7 @@ bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNea
     const float dist_test_sq = len_squared_v2(delta);
 
     if (dist_test_sq < hit->dist_sq) {
+      hit->ob = obedit;
       hit->efa = efa;
       hit->dist_sq = dist_test_sq;
       found = true;
@@ -756,17 +754,13 @@ bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNea
   return found;
 }
 
-bool uv_find_nearest_face_multi(Scene *scene,
-                                Object **objects,
-                                const uint objects_len,
-                                const float co[2],
-                                UvNearestHit *hit_final)
+bool uv_find_nearest_face_multi(
+    Scene *scene, Object **objects, const uint objects_len, const float co[2], UvNearestHit *hit)
 {
   bool found = false;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    if (uv_find_nearest_face(scene, obedit, co, hit_final)) {
-      hit_final->ob = obedit;
+    if (uv_find_nearest_face(scene, obedit, co, hit)) {
       found = true;
     }
   }
@@ -828,8 +822,9 @@ bool uv_find_nearest_vert(
 
         hit->dist_sq = dist_test_sq;
 
-        hit->l = l;
+        hit->ob = obedit;
         hit->efa = efa;
+        hit->l = l;
         found = true;
       }
     }
@@ -843,13 +838,12 @@ bool uv_find_nearest_vert_multi(Scene *scene,
                                 const uint objects_len,
                                 float const co[2],
                                 const float penalty_dist,
-                                UvNearestHit *hit_final)
+                                UvNearestHit *hit)
 {
   bool found = false;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    if (uv_find_nearest_vert(scene, obedit, co, penalty_dist, hit_final)) {
-      hit_final->ob = obedit;
+    if (uv_find_nearest_vert(scene, obedit, co, penalty_dist, hit)) {
       found = true;
     }
   }
@@ -1296,7 +1290,7 @@ static int uv_select_edgering(
 static void uv_select_linked_multi(Scene *scene,
                                    Object **objects,
                                    const uint objects_len,
-                                   UvNearestHit *hit_final,
+                                   UvNearestHit *hit,
                                    const bool extend,
                                    bool deselect,
                                    const bool toggle,
@@ -1304,12 +1298,12 @@ static void uv_select_linked_multi(Scene *scene,
 {
   const bool uv_sync_select = (scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
 
-  /* loop over objects, or just use hit_final->ob */
+  /* loop over objects, or just use hit->ob */
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    if (hit_final && ob_index != 0) {
+    if (hit && ob_index != 0) {
       break;
     }
-    Object *obedit = hit_final ? hit_final->ob : objects[ob_index];
+    Object *obedit = hit ? hit->ob : objects[ob_index];
 
     BMFace *efa;
     BMLoop *l;
@@ -1340,7 +1334,7 @@ static void uv_select_linked_multi(Scene *scene,
     stack = MEM_mallocN(sizeof(*stack) * (em->bm->totface + 1), "UvLinkStack");
     flag = MEM_callocN(sizeof(*flag) * em->bm->totface, "UvLinkFlag");
 
-    if (hit_final == NULL) {
+    if (hit == NULL) {
       /* Use existing selection */
       BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
         if (uvedit_face_visible_test(scene, efa)) {
@@ -1397,7 +1391,7 @@ static void uv_select_linked_multi(Scene *scene,
     }
     else {
       BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-        if (efa == hit_final->efa) {
+        if (efa == hit->efa) {
           stack[stacksize] = a;
           stacksize++;
           flag[a] = 1;
