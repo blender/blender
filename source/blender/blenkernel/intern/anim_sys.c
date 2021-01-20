@@ -2357,9 +2357,10 @@ static bool is_action_track_evaluated_without_nla(const AnimData *adt,
   return true;
 }
 
-/** XXX Wayde Moss: BKE_nlatrack_find_tweaked() exists within nla.c, but it doesn't appear to
- * work as expected. From animsys_evaluate_nla_for_flush(), it returns NULL in tweak mode. I'm not
- * sure why. Preferably, it would be as simple as checking for (adt->act_Track == nlt) but that
+/**
+ * XXX(Wayde Moss): #BKE_nlatrack_find_tweaked() exists within nla.c, but it doesn't appear to
+ * work as expected. From #animsys_evaluate_nla_for_flush(), it returns NULL in tweak mode. I'm not
+ * sure why. Preferably, it would be as simple as checking for `(adt->act_Track == nlt)` but that
  * doesn't work either, neither does comparing indices.
  *
  *  This function is a temporary work around. The first disabled track is always the tweaked track.

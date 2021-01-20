@@ -783,9 +783,12 @@ static void *view3d_main_region_duplicate(void *poin)
   return NULL;
 }
 
-static void view3d_main_region_listener(
-    wmWindow *UNUSED(win), ScrArea *area, ARegion *region, wmNotifier *wmn, const Scene *scene)
+static void view3d_main_region_listener(const wmRegionListenerParams *params)
 {
+  ScrArea *area = params->area;
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+  const Scene *scene = params->scene;
   View3D *v3d = area->spacedata.first;
   RegionView3D *rv3d = region->regiondata;
   wmGizmoMap *gzmap = region->gizmo_map;
@@ -1041,14 +1044,13 @@ static void view3d_main_region_listener(
   }
 }
 
-static void view3d_main_region_message_subscribe(const struct bContext *C,
-                                                 struct WorkSpace *UNUSED(workspace),
-                                                 struct Scene *UNUSED(scene),
-                                                 struct bScreen *UNUSED(screen),
-                                                 struct ScrArea *area,
-                                                 struct ARegion *region,
-                                                 struct wmMsgBus *mbus)
+static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  const bContext *C = params->context;
+  ScrArea *area = params->area;
+  ARegion *region = params->region;
+
   /* Developer note: there are many properties that impact 3D view drawing,
    * so instead of subscribing to individual properties, just subscribe to types
    * accepting some redundant redraws.
@@ -1163,12 +1165,11 @@ static void view3d_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void view3d_header_region_listener(wmWindow *UNUSED(win),
-                                          ScrArea *UNUSED(area),
-                                          ARegion *region,
-                                          wmNotifier *wmn,
-                                          const Scene *UNUSED(scene))
+static void view3d_header_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SCENE:
@@ -1233,14 +1234,11 @@ static void view3d_header_region_listener(wmWindow *UNUSED(win),
 #endif
 }
 
-static void view3d_header_region_message_subscribe(const struct bContext *UNUSED(C),
-                                                   struct WorkSpace *UNUSED(workspace),
-                                                   struct Scene *UNUSED(scene),
-                                                   struct bScreen *UNUSED(screen),
-                                                   struct ScrArea *UNUSED(area),
-                                                   struct ARegion *region,
-                                                   struct wmMsgBus *mbus)
+static void view3d_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  ARegion *region = params->region;
+
   wmMsgParams_RNA msg_key_params = {{0}};
 
   /* Only subscribe to types. */
@@ -1378,12 +1376,11 @@ static void view3d_buttons_region_layout(const bContext *C, ARegion *region)
   ED_view3d_buttons_region_layout_ex(C, region, NULL);
 }
 
-static void view3d_buttons_region_listener(wmWindow *UNUSED(win),
-                                           ScrArea *UNUSED(area),
-                                           ARegion *region,
-                                           wmNotifier *wmn,
-                                           const Scene *UNUSED(scene))
+static void view3d_buttons_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
@@ -1502,11 +1499,10 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
 }
 
 /* area (not region) level listener */
-static void space_view3d_listener(wmWindow *UNUSED(win),
-                                  ScrArea *area,
-                                  struct wmNotifier *wmn,
-                                  Scene *UNUSED(scene))
+static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
 {
+  ScrArea *area = params->area;
+  wmNotifier *wmn = params->notifier;
   View3D *v3d = area->spacedata.first;
 
   /* context changes */

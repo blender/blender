@@ -2415,9 +2415,10 @@ static bool IsectPT2Df_limit(
           (area_tri_v2(v1, v2, v3))) < limit;
 }
 
-/* Clip the face by a bucket and set the uv-space bucket_bounds_uv
+/**
+ * Clip the face by a bucket and set the uv-space bucket_bounds_uv
  * so we have the clipped UV's to do pixel intersection tests with
- * */
+ */
 static int float_z_sort_flip(const void *p1, const void *p2)
 {
   return (((float *)p1)[2] < ((float *)p2)[2] ? 1 : -1);

@@ -20,6 +20,8 @@
 
 # <pep8 compliant>
 
+# Note: this code should be cleaned up / refactored.
+
 import sys
 if sys.version_info.major < 3:
     print("\nPython3.x needed, found %s.\nAborting!\n" %
@@ -37,11 +39,22 @@ from cmake_consistency_check_config import (
 
 
 import os
-from os.path import join, dirname, normpath, splitext
+from os.path import (
+    dirname,
+    join,
+    normpath,
+    splitext,
+)
 
 global_h = set()
 global_c = set()
 global_refs = {}
+
+# Flatten `IGNORE_SOURCE_MISSING` to avoid nested looping.
+IGNORE_SOURCE_MISSING = [
+    (k, ignore_path) for k, ig_list in IGNORE_SOURCE_MISSING
+    for ignore_path in ig_list
+]
 
 # Ignore cmake file, path pairs.
 global_ignore_source_missing = {}
@@ -178,6 +191,8 @@ def cmake_get_src(f):
 
                     if not l:
                         pass
+                    elif l in local_ignore_source_missing:
+                        local_ignore_source_missing.remove(l)
                     elif l.startswith("$"):
                         if context_name == "SRC":
                             # assume if it ends with context_name we know about it
@@ -227,10 +242,7 @@ def cmake_get_src(f):
                                     # replace_line(f, i - 1, new_path_rel)
 
                             else:
-                                if l in local_ignore_source_missing:
-                                    local_ignore_source_missing.remove(l)
-                                else:
-                                    raise Exception("non existent include %s:%d -> %s" % (f, i, new_file))
+                                raise Exception("non existent include %s:%d -> %s" % (f, i, new_file))
 
                         # print(new_file)
 
@@ -258,16 +270,16 @@ def cmake_get_src(f):
 
 
 def is_ignore_source(f, ignore_used):
-    for index, ig in enumerate(IGNORE_SOURCE):
-        if ig in f:
+    for index, ignore_path in enumerate(IGNORE_SOURCE):
+        if ignore_path in f:
             ignore_used[index] = True
             return True
     return False
 
 
 def is_ignore_cmake(f, ignore_used):
-    for index, ig in enumerate(IGNORE_CMAKE):
-        if ig in f:
+    for index, ignore_path in enumerate(IGNORE_CMAKE):
+        if ignore_path in f:
             ignore_used[index] = True
             return True
     return False
@@ -298,7 +310,7 @@ def main():
                 for cf, i in refs:
                     errs.append((cf, i))
             else:
-                raise Exception("CMake referenecs missing, internal error, aborting!")
+                raise Exception("CMake references missing, internal error, aborting!")
             is_err = True
 
     errs.sort()
@@ -309,7 +321,7 @@ def main():
         # print("sed '%dd' '%s' > '%s.tmp' ; mv '%s.tmp' '%s'" % (i, cf, cf, cf, cf))
 
     if is_err:
-        raise Exception("CMake referenecs missing files, aborting!")
+        raise Exception("CMake references missing files, aborting!")
     del is_err
     del errs
 
@@ -320,7 +332,7 @@ def main():
             if cf not in global_c:
                 print("missing_c: ", cf)
 
-            # check if automake builds a corrasponding .o file.
+            # Check if automake builds a corresponding .o file.
             '''
             if cf in global_c:
                 out1 = os.path.splitext(cf)[0] + ".o"
@@ -356,21 +368,21 @@ def main():
 
     # Check ignores aren't stale
     print("\nCheck for unused 'IGNORE_SOURCE' paths...")
-    for index, ig in enumerate(IGNORE_SOURCE):
+    for index, ignore_path in enumerate(IGNORE_SOURCE):
         if not ignore_used_source[index]:
-            print("unused ignore: %r" % ig)
+            print("unused ignore: %r" % ignore_path)
 
     # Check ignores aren't stale
     print("\nCheck for unused 'IGNORE_SOURCE_MISSING' paths...")
     for k, v in sorted(global_ignore_source_missing.items()):
-        for ig in v:
-            print("unused ignore: %r -> %r" % (ig, k))
+        for ignore_path in v:
+            print("unused ignore: %r -> %r" % (ignore_path, k))
 
     # Check ignores aren't stale
     print("\nCheck for unused 'IGNORE_CMAKE' paths...")
-    for index, ig in enumerate(IGNORE_CMAKE):
+    for index, ignore_path in enumerate(IGNORE_CMAKE):
         if not ignore_used_cmake[index]:
-            print("unused ignore: %r" % ig)
+            print("unused ignore: %r" % ignore_path)
 
 
 if __name__ == "__main__":

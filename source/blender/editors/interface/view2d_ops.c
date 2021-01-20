@@ -1106,11 +1106,6 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
   float dx = RNA_float_get(op->ptr, "deltax") / U.dpi_fac;
   float dy = RNA_float_get(op->ptr, "deltay") / U.dpi_fac;
 
-  if (U.uiflag & USER_ZOOM_INVERT) {
-    dx *= -1;
-    dy *= -1;
-  }
-
   /* Check if the 'timer' is initialized, as zooming with the trackpad
    * never uses the "Continuous" zoom method, and the 'timer' is not initialized. */
   if ((U.viewzoom == USER_ZOOM_CONT) && vzd->timer) { /* XXX store this setting as RNA prop? */
@@ -1232,26 +1227,53 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
     vzd->lastx = event->prevx;
     vzd->lasty = event->prevy;
 
-    /* As we have only 1D information (magnify value), feed both axes
-     * with magnify information that is stored in x axis
-     */
-    float fac = 0.01f * (event->prevx - event->x);
-    float dx = fac * BLI_rctf_size_x(&v2d->cur) / 10.0f;
-    if (event->type == MOUSEPAN) {
-      fac = 0.01f * (event->prevy - event->y);
+    float facx, facy;
+    float zoomfac = 0.01f;
+
+    /* Some view2d's (graph) don't have min/max zoom, or extreme ones. */
+    if (v2d->maxzoom > 0.0f) {
+      zoomfac = clamp_f(0.001f * v2d->maxzoom, 0.001f, 0.01f);
     }
-    float dy = fac * BLI_rctf_size_y(&v2d->cur) / 10.0f;
+
+    if (event->type == MOUSEPAN) {
+      facx = zoomfac * WM_event_absolute_delta_x(event);
+      facy = zoomfac * WM_event_absolute_delta_y(event);
+
+      if (U.uiflag & USER_ZOOM_INVERT) {
+        facx *= -1.0f;
+        facy *= -1.0f;
+      }
+    }
+    else { /* MOUSEZOOM */
+      facx = facy = zoomfac * WM_event_absolute_delta_x(event);
+    }
+
+    /* Only respect user setting zoom axis if the view does not have any zoom restrictions
+     * any will be scaled uniformly. */
+    if (((v2d->keepzoom & (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y)) == 0) &&
+        (v2d->keepzoom & V2D_KEEPASPECT)) {
+      if (U.uiflag & USER_ZOOM_HORIZ) {
+        facy = 0.0f;
+      }
+      else {
+        facx = 0.0f;
+      }
+    }
 
     /* support trackpad zoom to always zoom entirely - the v2d code uses portrait or
      * landscape exceptions */
     if (v2d->keepzoom & V2D_KEEPASPECT) {
-      if (fabsf(dx) > fabsf(dy)) {
-        dy = dx;
+      if (fabsf(facx) > fabsf(facy)) {
+        facy = facx;
       }
       else {
-        dx = dy;
+        facx = facy;
       }
     }
+
+    const float dx = facx * BLI_rctf_size_x(&v2d->cur);
+    const float dy = facy * BLI_rctf_size_y(&v2d->cur);
+
     RNA_float_set(op->ptr, "deltax", dx);
     RNA_float_set(op->ptr, "deltay", dy);
 
@@ -1320,19 +1342,13 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
 
       /* x-axis transform */
       dist = BLI_rcti_size_x(&v2d->mask) / 2.0f;
-      len_old[0] = fabsf(vzd->lastx - vzd->region->winrct.xmin - dist);
-      len_new[0] = fabsf(event->x - vzd->region->winrct.xmin - dist);
-
-      len_old[0] *= zoomfac * BLI_rctf_size_x(&v2d->cur);
-      len_new[0] *= zoomfac * BLI_rctf_size_x(&v2d->cur);
+      len_old[0] = zoomfac * fabsf(vzd->lastx - vzd->region->winrct.xmin - dist);
+      len_new[0] = zoomfac * fabsf(event->x - vzd->region->winrct.xmin - dist);
 
       /* y-axis transform */
       dist = BLI_rcti_size_y(&v2d->mask) / 2.0f;
-      len_old[1] = fabsf(vzd->lasty - vzd->region->winrct.ymin - dist);
-      len_new[1] = fabsf(event->y - vzd->region->winrct.ymin - dist);
-
-      len_old[1] *= zoomfac * BLI_rctf_size_y(&v2d->cur);
-      len_new[1] *= zoomfac * BLI_rctf_size_y(&v2d->cur);
+      len_old[1] = zoomfac * fabsf(vzd->lasty - vzd->region->winrct.ymin - dist);
+      len_new[1] = zoomfac * fabsf(event->y - vzd->region->winrct.ymin - dist);
 
       /* Calculate distance */
       if (v2d->keepzoom & V2D_KEEPASPECT) {
@@ -1343,40 +1359,44 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
         dx = len_new[0] - len_old[0];
         dy = len_new[1] - len_old[1];
       }
-    }
-    else {
-      /* 'continuous' or 'dolly' */
-      float fac;
-      /* x-axis transform */
-      fac = zoomfac * (event->x - vzd->lastx);
-      dx = fac * BLI_rctf_size_x(&v2d->cur);
 
-      /* y-axis transform */
-      fac = zoomfac * (event->y - vzd->lasty);
-      dy = fac * BLI_rctf_size_y(&v2d->cur);
+      dx *= BLI_rctf_size_x(&v2d->cur);
+      dy *= BLI_rctf_size_y(&v2d->cur);
+    }
+    else { /* USER_ZOOM_CONT or USER_ZOOM_DOLLY */
+      float facx = zoomfac * (event->x - vzd->lastx);
+      float facy = zoomfac * (event->y - vzd->lasty);
 
       /* Only respect user setting zoom axis if the view does not have any zoom restrictions
        * any will be scaled uniformly */
       if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 &&
           (v2d->keepzoom & V2D_KEEPASPECT)) {
         if (U.uiflag & USER_ZOOM_HORIZ) {
-          dy = 0;
+          facy = 0.0f;
         }
         else {
-          dx = 0;
+          facx = 0.0f;
         }
       }
+
+      /* support zoom to always zoom entirely - the v2d code uses portrait or
+       * landscape exceptions */
+      if (v2d->keepzoom & V2D_KEEPASPECT) {
+        if (fabsf(facx) > fabsf(facy)) {
+          facy = facx;
+        }
+        else {
+          facx = facy;
+        }
+      }
+
+      dx = facx * BLI_rctf_size_x(&v2d->cur);
+      dy = facy * BLI_rctf_size_y(&v2d->cur);
     }
 
-    /* support zoom to always zoom entirely - the v2d code uses portrait or
-     * landscape exceptions */
-    if (v2d->keepzoom & V2D_KEEPASPECT) {
-      if (fabsf(dx) > fabsf(dy)) {
-        dy = dx;
-      }
-      else {
-        dx = dy;
-      }
+    if (U.uiflag & USER_ZOOM_INVERT) {
+      dx *= -1.0f;
+      dy *= -1.0f;
     }
 
     /* set transform amount, and add current deltas to stored total delta (for redo) */

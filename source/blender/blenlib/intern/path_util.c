@@ -1650,7 +1650,7 @@ bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filenam
  * - Wont create any directories.
  * - Doesn't use CWD, or deal with relative paths.
  * - Only fill's in \a dir and \a file when they are non NULL.
- * */
+ */
 void BLI_split_dirfile(
     const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen)
 {

@@ -221,18 +221,21 @@ class GeometryNodesEvaluator {
   const blender::nodes::DataTypeConversions &conversions_;
   const PersistentDataHandleMap &handle_map_;
   const Object *self_object_;
+  Depsgraph *depsgraph_;
 
  public:
   GeometryNodesEvaluator(const Map<const DOutputSocket *, GMutablePointer> &group_input_data,
                          Vector<const DInputSocket *> group_outputs,
                          blender::nodes::MultiFunctionByNode &mf_by_node,
                          const PersistentDataHandleMap &handle_map,
-                         const Object *self_object)
+                         const Object *self_object,
+                         Depsgraph *depsgraph)
       : group_outputs_(std::move(group_outputs)),
         mf_by_node_(mf_by_node),
         conversions_(blender::nodes::get_implicit_type_conversions()),
         handle_map_(handle_map),
-        self_object_(self_object)
+        self_object_(self_object),
+        depsgraph_(depsgraph)
   {
     for (auto item : group_input_data.items()) {
       this->forward_to_inputs(*item.key, item.value);
@@ -306,7 +309,8 @@ class GeometryNodesEvaluator {
 
     /* Execute the node. */
     GValueMap<StringRef> node_outputs_map{allocator_};
-    GeoNodeExecParams params{bnode, node_inputs_map, node_outputs_map, handle_map_, self_object_};
+    GeoNodeExecParams params{
+        bnode, node_inputs_map, node_outputs_map, handle_map_, self_object_, depsgraph_};
     this->execute_node(node, params);
 
     /* Forward computed outputs to linked input sockets. */
@@ -926,7 +930,7 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
   group_outputs.append(&socket_to_compute);
 
   GeometryNodesEvaluator evaluator{
-      group_inputs, group_outputs, mf_by_node, handle_map, ctx->object};
+      group_inputs, group_outputs, mf_by_node, handle_map, ctx->object, ctx->depsgraph};
   Vector<GMutablePointer> results = evaluator.execute();
   BLI_assert(results.size() == 1);
   GMutablePointer result = results[0];

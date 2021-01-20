@@ -132,10 +132,12 @@ set(SRC
   ../../blenlib/intern/hash_mm2a.c
   ../../blenlib/intern/listbase.c
 
+  ../DNA_armature_defaults.h
   ../DNA_asset_defaults.h
   ../DNA_brush_defaults.h
   ../DNA_cachefile_defaults.h
   ../DNA_camera_defaults.h
+  ../DNA_collection_defaults.h
   ../DNA_curve_defaults.h
   ../DNA_defaults.h
   ../DNA_fluid_defaults.h
@@ -151,7 +153,9 @@ set(SRC
   ../DNA_meta_defaults.h
   ../DNA_modifier_defaults.h
   ../DNA_modifier_types.h
+  ../DNA_movieclip_defaults.h
   ../DNA_object_defaults.h
+  ../DNA_particle_defaults.h
   ../DNA_pointcloud_defaults.h
   ../DNA_scene_defaults.h
   ../DNA_simulation_defaults.h

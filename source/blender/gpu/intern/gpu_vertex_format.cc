@@ -200,7 +200,7 @@ void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
  *
  * WARNING: this function creates a lot of aliases/attributes, make sure to keep the attribute
  * name short to avoid overflowing the name-buffer.
- * */
+ */
 void GPU_vertformat_multiload_enable(GPUVertFormat *format, int load_count)
 {
   /* Sanity check. Maximum can be upgraded if needed. */

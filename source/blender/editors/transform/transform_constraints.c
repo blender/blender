@@ -675,7 +675,7 @@ void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
 
 void setLocalConstraint(TransInfo *t, int mode, const char text[])
 {
-  if (t->flag & T_EDIT) {
+  if ((t->flag & T_EDIT) || t->data_len_all == 1) {
     /* Although in edit-mode each object has its local space, use the
      * orientation of the active object. */
     setConstraint(t, mode, text);
@@ -703,34 +703,25 @@ void setUserConstraint(TransInfo *t, int mode, const char ftext[])
   const char *spacename = transform_orientations_spacename_get(t, orientation);
   BLI_snprintf(text, sizeof(text), ftext, spacename);
 
-  if (t->modifiers & (MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE)) {
-    /* Force the orientation of the active object.
-     * Although possible, it is not convenient to use the local or axis constraint
-     * with the modifier to select constraint.
-     * This also follows the convention of older versions. */
-    setConstraint(t, mode, text);
-  }
-  else {
-    switch (orientation) {
-      case V3D_ORIENT_LOCAL:
-        setLocalConstraint(t, mode, text);
-        break;
-      case V3D_ORIENT_NORMAL:
-        if (checkUseAxisMatrix(t)) {
-          setAxisMatrixConstraint(t, mode, text);
-          break;
-        }
-        ATTR_FALLTHROUGH;
-      case V3D_ORIENT_GLOBAL:
-      case V3D_ORIENT_VIEW:
-      case V3D_ORIENT_CURSOR:
-      case V3D_ORIENT_GIMBAL:
-      case V3D_ORIENT_CUSTOM_MATRIX:
-      case V3D_ORIENT_CUSTOM:
-      default: {
-        setConstraint(t, mode, text);
+  switch (orientation) {
+    case V3D_ORIENT_LOCAL:
+      setLocalConstraint(t, mode, text);
+      break;
+    case V3D_ORIENT_NORMAL:
+      if (checkUseAxisMatrix(t)) {
+        setAxisMatrixConstraint(t, mode, text);
         break;
       }
+      ATTR_FALLTHROUGH;
+    case V3D_ORIENT_GLOBAL:
+    case V3D_ORIENT_VIEW:
+    case V3D_ORIENT_CURSOR:
+    case V3D_ORIENT_GIMBAL:
+    case V3D_ORIENT_CUSTOM_MATRIX:
+    case V3D_ORIENT_CUSTOM:
+    default: {
+      setConstraint(t, mode, text);
+      break;
     }
   }
   t->con.mode |= CON_USER;

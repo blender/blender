@@ -57,11 +57,12 @@ static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)
       vert_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 }
 
-/* To be used before calling immDrawPixelsTex
- * Default shader is GPU_SHADER_2D_IMAGE_COLOR
- * You can still set uniforms with :
- * GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "name"), 0);
- * */
+/**
+ * To be used before calling #immDrawPixelsTex
+ * Default shader is #GPU_SHADER_2D_IMAGE_COLOR
+ * You can still set uniforms with:
+ * `GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "name"), 0);`
+ */
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
 {
   IMMDrawPixelsTexState state;
@@ -77,10 +78,11 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
   return state;
 }
 
-/* Use the currently bound shader.
+/**
+ * Use the currently bound shader.
  *
- * Use immDrawPixelsTexSetup to bind the shader you
- * want before calling immDrawPixelsTex.
+ * Use #immDrawPixelsTexSetup to bind the shader you
+ * want before calling #immDrawPixelsTex.
  *
  * If using a special shader double check it uses the same
  * attributes "pos" "texCoord" and uniform "image".
@@ -89,7 +91,7 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
  *
  * Be also aware that this function unbinds the shader when
  * it's finished.
- * */
+ */
 void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float x,
                                      float y,

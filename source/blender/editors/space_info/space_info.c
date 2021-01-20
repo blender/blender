@@ -204,13 +204,10 @@ static void info_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void info_main_region_listener(wmWindow *UNUSED(win),
-                                      ScrArea *UNUSED(area),
-                                      ARegion *region,
-                                      wmNotifier *wmn,
-                                      const Scene *UNUSED(scene))
+static void info_main_region_listener(const wmRegionListenerParams *params)
 {
-  // SpaceInfo *sinfo = area->spacedata.first;
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -223,12 +220,11 @@ static void info_main_region_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void info_header_listener(wmWindow *UNUSED(win),
-                                 ScrArea *UNUSED(area),
-                                 ARegion *region,
-                                 wmNotifier *wmn,
-                                 const Scene *UNUSED(scene))
+static void info_header_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SCREEN:
@@ -259,14 +255,11 @@ static void info_header_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void info_header_region_message_subscribe(const bContext *UNUSED(C),
-                                                 WorkSpace *UNUSED(workspace),
-                                                 Scene *UNUSED(scene),
-                                                 bScreen *UNUSED(screen),
-                                                 ScrArea *UNUSED(area),
-                                                 ARegion *region,
-                                                 struct wmMsgBus *mbus)
+static void info_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  ARegion *region = params->region;
+
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
       .user_data = region,

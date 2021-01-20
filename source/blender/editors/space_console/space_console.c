@@ -273,13 +273,11 @@ static void console_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void console_main_region_listener(wmWindow *UNUSED(win),
-                                         ScrArea *area,
-                                         ARegion *region,
-                                         wmNotifier *wmn,
-                                         const Scene *UNUSED(scene))
+static void console_main_region_listener(const wmRegionListenerParams *params)
 {
-  // SpaceInfo *sinfo = area->spacedata.first;
+  ScrArea *area = params->area;
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {

@@ -1878,7 +1878,7 @@ static void execute_scene(struct Depsgraph *depsgraph,
 
 /*---------------------------------------------------
  * plugin interface
- * */
+ */
 void itasc_initialize_tree(struct Depsgraph *depsgraph,
                            struct Scene *scene,
                            Object *ob,

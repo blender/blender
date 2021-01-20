@@ -425,7 +425,7 @@ static int check_pixel_assigned(
  *
  * When a mask is given, only effect pixels with a mask value of 1,
  * defined as #BAKE_MASK_MARGIN in rendercore.c
- * */
+ */
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 {
   const int width = ibuf->x;

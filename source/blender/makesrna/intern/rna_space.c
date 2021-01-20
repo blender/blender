@@ -2279,6 +2279,20 @@ static bool rna_SpaceNodeEditor_tree_type_poll(void *Cv, bNodeTreeType *type)
   }
 }
 
+static void rna_SpaceNodeEditor_cursor_location_get(PointerRNA *ptr, float value[2])
+{
+  const SpaceNode *snode = (SpaceNode *)ptr->data;
+
+  ED_node_cursor_location_get(snode, value);
+}
+
+static void rna_SpaceNodeEditor_cursor_location_set(PointerRNA *ptr, const float value[2])
+{
+  SpaceNode *snode = (SpaceNode *)ptr->data;
+
+  ED_node_cursor_location_set(snode, value);
+}
+
 const EnumPropertyItem *RNA_enum_node_tree_types_itemf_impl(bContext *C, bool *r_free)
 {
   return rna_node_tree_type_itemf(C, rna_SpaceNodeEditor_tree_type_poll, r_free);
@@ -2346,9 +2360,13 @@ static void rna_SpaceNodeEditor_cursor_location_from_region(SpaceNode *snode,
 {
   ARegion *region = CTX_wm_region(C);
 
-  UI_view2d_region_to_view(&region->v2d, x, y, &snode->cursor[0], &snode->cursor[1]);
-  snode->cursor[0] /= UI_DPI_FAC;
-  snode->cursor[1] /= UI_DPI_FAC;
+  float cursor_location[2];
+
+  UI_view2d_region_to_view(&region->v2d, x, y, &cursor_location[0], &cursor_location[1]);
+  cursor_location[0] /= UI_DPI_FAC;
+  cursor_location[1] /= UI_DPI_FAC;
+
+  ED_node_cursor_location_set(snode, cursor_location);
 }
 
 static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr,
@@ -6815,11 +6833,13 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, backdrop_channels_items);
   RNA_def_property_ui_text(prop, "Display Channels", "Channels of the image to draw");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
-
   /* the mx/my "cursor" in the node editor is used only by operators to store the mouse position */
   prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_array(prop, 2);
-  RNA_def_property_float_sdna(prop, NULL, "cursor");
+  RNA_def_property_float_funcs(prop,
+                               "rna_SpaceNodeEditor_cursor_location_get",
+                               "rna_SpaceNodeEditor_cursor_location_set",
+                               NULL);
   RNA_def_property_ui_text(prop, "Cursor Location", "Location for adding new nodes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 

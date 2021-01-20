@@ -103,10 +103,10 @@ class SessionParams {
 
   bool modified(const SessionParams &params)
   {
+    /* Modified means we have to recreate the session, any parameter changes
+     * that can be handled by an existing Session are omitted. */
     return !(device == params.device && background == params.background &&
              progressive_refine == params.progressive_refine &&
-             /* samples == params.samples && denoising_start_sample ==
-                params.denoising_start_sample && */
              progressive == params.progressive && experimental == params.experimental &&
              tile_size == params.tile_size && start_resolution == params.start_resolution &&
              pixel_size == params.pixel_size && threads == params.threads &&
@@ -117,7 +117,8 @@ class SessionParams {
              text_timeout == params.text_timeout &&
              progressive_update_timeout == params.progressive_update_timeout &&
              tile_order == params.tile_order && shadingsystem == params.shadingsystem &&
-             denoising.type == params.denoising.type);
+             denoising.type == params.denoising.type &&
+             (denoising.use == params.denoising.use || (device.denoisers & denoising.type)));
   }
 };
 

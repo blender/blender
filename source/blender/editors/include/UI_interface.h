@@ -664,8 +664,7 @@ bool UI_popup_block_name_exists(const struct bScreen *screen, const char *name);
  * Begin/Define Buttons/End/Draw is the typical order in which these
  * function should be called, though for popup blocks Draw is left out.
  * Freeing blocks is done by the screen/ module automatically.
- *
- * */
+ */
 
 uiBlock *UI_block_begin(const struct bContext *C,
                         struct ARegion *region,

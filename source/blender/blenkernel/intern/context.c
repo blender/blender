@@ -318,7 +318,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
    *
    * Values in order of importance
    * (0, -1, 1) - Where 1 is highest priority
-   * */
+   */
   if (done != 1 && recursion < 1 && C->wm.store) {
     C->data.recursion = 1;
 

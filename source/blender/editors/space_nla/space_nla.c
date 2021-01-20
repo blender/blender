@@ -324,12 +324,11 @@ static void nla_buttons_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void nla_region_listener(wmWindow *UNUSED(win),
-                                ScrArea *UNUSED(area),
-                                ARegion *region,
-                                wmNotifier *wmn,
-                                const Scene *UNUSED(scene))
+static void nla_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
@@ -364,12 +363,11 @@ static void nla_region_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void nla_main_region_listener(wmWindow *UNUSED(win),
-                                     ScrArea *UNUSED(area),
-                                     ARegion *region,
-                                     wmNotifier *wmn,
-                                     const Scene *UNUSED(scene))
+static void nla_main_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
@@ -423,14 +421,14 @@ static void nla_main_region_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void nla_main_region_message_subscribe(const struct bContext *UNUSED(C),
-                                              struct WorkSpace *UNUSED(workspace),
-                                              struct Scene *scene,
-                                              struct bScreen *screen,
-                                              struct ScrArea *area,
-                                              struct ARegion *region,
-                                              struct wmMsgBus *mbus)
+static void nla_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  Scene *scene = params->scene;
+  bScreen *screen = params->screen;
+  ScrArea *area = params->area;
+  ARegion *region = params->region;
+
   PointerRNA ptr;
   RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
@@ -465,12 +463,11 @@ static void nla_main_region_message_subscribe(const struct bContext *UNUSED(C),
   }
 }
 
-static void nla_channel_region_listener(wmWindow *UNUSED(win),
-                                        ScrArea *UNUSED(area),
-                                        ARegion *region,
-                                        wmNotifier *wmn,
-                                        const Scene *UNUSED(scene))
+static void nla_channel_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
@@ -508,14 +505,13 @@ static void nla_channel_region_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void nla_channel_region_message_subscribe(const struct bContext *UNUSED(C),
-                                                 struct WorkSpace *UNUSED(workspace),
-                                                 struct Scene *UNUSED(scene),
-                                                 struct bScreen *screen,
-                                                 struct ScrArea *area,
-                                                 struct ARegion *region,
-                                                 struct wmMsgBus *mbus)
+static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  bScreen *screen = params->screen;
+  ScrArea *area = params->area;
+  ARegion *region = params->region;
+
   PointerRNA ptr;
   RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
@@ -543,11 +539,11 @@ static void nla_channel_region_message_subscribe(const struct bContext *UNUSED(C
 }
 
 /* editor level listener */
-static void nla_listener(wmWindow *UNUSED(win),
-                         ScrArea *area,
-                         wmNotifier *wmn,
-                         Scene *UNUSED(scene))
+static void nla_listener(const wmSpaceTypeListenerParams *params)
 {
+  ScrArea *area = params->area;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:

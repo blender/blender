@@ -1022,7 +1022,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       tpt->uv_fac = 0.0f;
     }
 
-    tpt->uv_rot = p2d->uv_rot;
+    tpt->uv_rot = 0.0f;
 
     gpd->runtime.sbuffer_used++;
 
@@ -1044,6 +1044,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     pt->time = 0.0f;
     pt->flag = 0;
     pt->uv_fac = tpt->uv_fac;
+    pt->uv_rot = 0.0f;
     ED_gpencil_point_vertex_color_set(ts, brush, pt, tpt);
 
     if (gps->dvert != NULL) {

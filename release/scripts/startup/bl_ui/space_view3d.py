@@ -2236,11 +2236,6 @@ class VIEW3D_MT_object_relations(Menu):
         layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
         layout.menu("VIEW3D_MT_make_single_user")
 
-        layout.separator()
-
-        layout.operator("object.data_transfer")
-        layout.operator("object.datalayout_transfer")
-
 
 class VIEW3D_MT_object(Menu):
     bl_context = "objectmode"
@@ -2274,7 +2269,7 @@ class VIEW3D_MT_object(Menu):
         layout.menu("VIEW3D_MT_object_relations")
         layout.menu("VIEW3D_MT_object_constraints")
         layout.menu("VIEW3D_MT_object_track")
-        layout.menu("VIEW3D_MT_make_links", text="Make Links")
+        layout.menu("VIEW3D_MT_make_links")
 
         layout.separator()
 
@@ -2787,7 +2782,7 @@ class VIEW3D_MT_make_single_user(Menu):
 
 
 class VIEW3D_MT_make_links(Menu):
-    bl_label = "Make Links"
+    bl_label = "Link/Transfer Data"
 
     def draw(self, _context):
         layout = self.layout
@@ -2795,10 +2790,10 @@ class VIEW3D_MT_make_links(Menu):
 
         if len(bpy.data.scenes) > 10:
             layout.operator_context = 'INVOKE_REGION_WIN'
-            layout.operator("object.make_links_scene", text="Objects to Scene...", icon='OUTLINER_OB_EMPTY')
+            layout.operator("object.make_links_scene", text="Link Objects to Scene...", icon='OUTLINER_OB_EMPTY')
         else:
             layout.operator_context = 'EXEC_REGION_WIN'
-            layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene")
+            layout.operator_menu_enum("object.make_links_scene", "scene", text="Link Objects to Scene")
 
         layout.separator()
 
@@ -2806,7 +2801,12 @@ class VIEW3D_MT_make_links(Menu):
 
         layout.operator_enum("object.make_links_data", "type")  # inline
 
-        layout.operator("object.join_uvs")  # stupid place to add this!
+        layout.operator("object.join_uvs", text="Copy UV Maps")
+
+        layout.separator()
+
+        layout.operator("object.data_transfer")
+        layout.operator("object.datalayout_transfer")
 
 
 class VIEW3D_MT_brush_paint_modes(Menu):

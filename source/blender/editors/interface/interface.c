@@ -1279,12 +1279,10 @@ static bool ui_but_event_property_operator_string(const bContext *C,
                                                   char *buf,
                                                   const size_t buf_len)
 {
-  /* context toggle operator names to check... */
+  /* Context toggle operator names to check. */
 
   /* This function could use a refactor to generalize button type to operator relationship
-   * as well as which operators use properties.
-   * - Campbell
-   * */
+   * as well as which operators use properties. - Campbell */
   const char *ctx_toggle_opnames[] = {
       "WM_OT_context_toggle",
       "WM_OT_context_toggle_enum",

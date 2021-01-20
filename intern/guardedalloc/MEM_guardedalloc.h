@@ -122,7 +122,7 @@ extern void *(*MEM_calloc_arrayN)(size_t len,
 /**
  * Allocate a block of memory of size len, with tag name str. The
  * name must be a static, because only a pointer to it is stored !
- * */
+ */
 extern void *(*MEM_mallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
@@ -130,7 +130,7 @@ extern void *(*MEM_mallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_
  * Allocate a block of memory of size (len * size), with tag name str,
  * aborting in case of integer overflow to prevent vulnerabilities. The
  * name must be a static, because only a pointer to it is stored !
- * */
+ */
 extern void *(*MEM_malloc_arrayN)(size_t len,
                                   size_t size,
                                   const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
@@ -139,7 +139,7 @@ extern void *(*MEM_malloc_arrayN)(size_t len,
 /**
  * Allocate an aligned block of memory of size len, with tag name str. The
  * name must be a static, because only a pointer to it is stored !
- * */
+ */
 extern void *(*MEM_mallocN_aligned)(size_t len,
                                     size_t alignment,
                                     const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT

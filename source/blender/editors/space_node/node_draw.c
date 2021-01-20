@@ -951,7 +951,7 @@ void node_draw_shadow(const SpaceNode *snode, const bNode *node, float radius, f
 {
   const rctf *rct = &node->totr;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  ui_draw_dropshadow(rct, radius, snode->aspect, alpha, node->flag & SELECT);
+  ui_draw_dropshadow(rct, radius, snode->runtime->aspect, alpha, node->flag & SELECT);
 }
 
 void node_draw_sockets(const View2D *v2d,
@@ -1473,19 +1473,19 @@ static void node_draw_hidden(const bContext *C,
   immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
   immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
 
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->aspect, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->aspect, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy - 4.0f);
+  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy + 4.0f);
   immEnd();
 
   immUniformThemeColorShade(color_id, 30);
-  dx -= snode->aspect;
+  dx -= snode->runtime->aspect;
 
   immBegin(GPU_PRIM_LINES, 4);
   immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
   immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
 
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->aspect, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->aspect, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy - 4.0f);
+  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy + 4.0f);
   immEnd();
 
   immUnbindProgram();
@@ -1661,7 +1661,7 @@ static void snode_setup_v2d(SpaceNode *snode, ARegion *region, const float cente
   UI_view2d_view_ortho(v2d);
 
   /* aspect+font, set each time */
-  snode->aspect = BLI_rctf_size_x(&v2d->cur) / (float)region->winx;
+  snode->runtime->aspect = BLI_rctf_size_x(&v2d->cur) / (float)region->winx;
   // XXX snode->curfont = uiSetCurFont_ext(snode->aspect);
 }
 
@@ -1717,14 +1717,15 @@ void node_draw_space(const bContext *C, ARegion *region)
   GPU_depth_test(GPU_DEPTH_NONE);
   GPU_scissor_test(true);
 
-  /* XXX snode->cursor set in coordspace for placing new nodes, used for drawing noodles too */
+  /* XXX snode->runtime->cursor set in coordspace for placing new nodes, used for drawing noodles
+   * too */
   UI_view2d_region_to_view(&region->v2d,
                            win->eventstate->x - region->winrct.xmin,
                            win->eventstate->y - region->winrct.ymin,
-                           &snode->cursor[0],
-                           &snode->cursor[1]);
-  snode->cursor[0] /= UI_DPI_FAC;
-  snode->cursor[1] /= UI_DPI_FAC;
+                           &snode->runtime->cursor[0],
+                           &snode->runtime->cursor[1]);
+  snode->runtime->cursor[0] /= UI_DPI_FAC;
+  snode->runtime->cursor[1] /= UI_DPI_FAC;
 
   int grid_levels = UI_GetThemeValueType(TH_NODE_GRID_LEVELS, SPACE_NODE);
 
@@ -1814,7 +1815,7 @@ void node_draw_space(const bContext *C, ARegion *region)
     /* temporary links */
     GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
-    LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->linkdrag) {
+    LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
       LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
         node_draw_link(v2d, snode, (bNodeLink *)linkdata->data);
       }

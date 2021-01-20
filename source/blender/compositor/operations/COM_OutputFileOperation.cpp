@@ -341,6 +341,10 @@ StampData *OutputOpenExrMultiLayerOperation::createStampData() const
   render_result.stamp_data = stamp_data;
   for (int i = 0; i < this->m_layers.size(); i++) {
     const OutputOpenExrLayer *layer = &this->m_layers[i];
+    /* Skip unconnected sockets. */
+    if (layer->imageInput == nullptr) {
+      continue;
+    }
     std::unique_ptr<MetaData> meta_data = layer->imageInput->getMetaData();
     if (meta_data) {
       blender::StringRef layer_name = blender::BKE_cryptomatte_extract_layer_name(

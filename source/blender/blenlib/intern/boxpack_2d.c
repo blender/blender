@@ -414,8 +414,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
 
       /* This vert has a free quadrant
        * Test if we can place the box here
-       * vert->free & quad_flags[j] - Checks
-       * */
+       * `vert->free & quad_flags[j]` - Checks. */
 
       for (j = 0; (j < 4) && isect; j++) {
         if (vert->free & quad_flag(j)) {

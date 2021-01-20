@@ -34,8 +34,18 @@ IGNORE_SOURCE = (
 
 # Ignore cmake file, path pairs.
 IGNORE_SOURCE_MISSING = (
-    # Use for cycles stand-alone.
-    ("intern/cycles/util/CMakeLists.txt", "../../third_party/numaapi/include"),
+    (   # Use for cycles stand-alone.
+        "intern/cycles/util/CMakeLists.txt", (
+            "../../third_party/numaapi/include",
+        )),
+    (   # Use for `WITH_NANOVDB`.
+        "intern/cycles/kernel/CMakeLists.txt", (
+            "nanovdb/util/CSampleFromVoxels.h",
+            "nanovdb/util/SampleFromVoxels.h",
+            "nanovdb/NanoVDB.h",
+            "nanovdb/CNanoVDB.h",
+        ),
+    ),
 )
 
 IGNORE_CMAKE = (

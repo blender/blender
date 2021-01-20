@@ -294,8 +294,7 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
     /* subtract existing cost to further differentiate edges from one another
      *
      * keep topology cost below 0.0 so their values don't interfere with quadric cost,
-     * (and they get handled first).
-     * */
+     * (and they get handled first). */
     if (vweights == NULL) {
       cost = bm_decim_build_edge_cost_single_squared__topology(e) - cost;
     }

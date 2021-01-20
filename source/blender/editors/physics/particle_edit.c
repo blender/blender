@@ -3750,8 +3750,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
       }
     }
     else {
-      /* compute position as if hair was standing up straight.
-       * */
+      /* Compute position as if hair was standing up straight. */
       float length;
       copy_v3_v3(co_prev, co);
       copy_v3_v3(co, key->co);

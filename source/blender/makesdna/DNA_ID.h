@@ -254,7 +254,7 @@ typedef struct IDOverrideLibrary {
 /**
  * ID is the first thing included in all serializable types. It
  * provides a common handle to place all data in double-linked lists.
- * */
+ */
 
 /* 2 characters for ID code and 64 for actual name */
 #define MAX_ID_NAME 66

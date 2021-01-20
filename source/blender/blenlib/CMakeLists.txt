@@ -278,6 +278,7 @@ set(SRC
   BLI_sys_types.h
   BLI_system.h
   BLI_task.h
+  BLI_task.hh
   BLI_threads.h
   BLI_timecode.h
   BLI_timeit.hh

@@ -29,8 +29,8 @@
 #include <string.h>
 
 #ifndef WIN32
-#  include <stdlib.h>
 #  include <signal.h>
+#  include <stdlib.h>
 #  include <sys/mman.h>  // for mmap
 #  include <unistd.h>    // for read close
 #else

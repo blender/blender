@@ -301,7 +301,7 @@ void WM_gizmomap_draw(struct wmGizmoMap *gzmap,
 void WM_gizmomap_add_handlers(struct ARegion *region, struct wmGizmoMap *gzmap);
 bool WM_gizmomap_select_all(struct bContext *C, struct wmGizmoMap *gzmap, const int action);
 bool WM_gizmomap_cursor_set(const struct wmGizmoMap *gzmap, struct wmWindow *win);
-void WM_gizmomap_message_subscribe(struct bContext *C,
+void WM_gizmomap_message_subscribe(const struct bContext *C,
                                    struct wmGizmoMap *gzmap,
                                    struct ARegion *region,
                                    struct wmMsgBus *mbus);

@@ -233,7 +233,7 @@ static bool calc_curve_deform(
      * Now for Neg Up XYZ, the colors are all dark, and ordered clockwise - Campbell
      *
      * note: moved functions into quat_apply_track/vec_apply_track
-     * */
+     */
     copy_qt_qt(quat, new_quat);
     copy_v3_v3(cent, co);
 

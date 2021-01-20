@@ -2373,7 +2373,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
      * 0,1,2,3,4 --> 1,2,3,4,0
      *
      * this is why we compare last with second last
-     * */
+     */
     float vec_1[3] = {0, 1, 0}, vec_2[3] = {0, 1, 0}, angle, ang_fac, cross_tmp[3];
 
     BevPoint *bevp_first;

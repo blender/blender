@@ -606,7 +606,14 @@ void ED_mask_point_pos__reverse(
 
 bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2])
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Mask *mask = CTX_data_edit_mask(C);
+
+  /* Use evaluated mask to take animation into account.
+   * The animation of splies is not "flushed" back to original, so need to explicitly
+   * sue evaluated datablock here. */
+  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask->id);
+
   bool ok = false;
 
   if (mask == NULL) {
@@ -614,7 +621,7 @@ bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2])
   }
 
   INIT_MINMAX2(min, max);
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer != NULL;
+  for (MaskLayer *mask_layer = mask_eval->masklayers.first; mask_layer != NULL;
        mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;

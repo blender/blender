@@ -1316,6 +1316,10 @@ void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
     t_brush->particle_radius = brush->particle_radius;
     t_brush->particle_smooth = brush->particle_smooth;
     t_brush->paint_distance = brush->paint_distance;
+
+    /* NOTE: This is dangerous, as it will generate invalid data in case we are copying between
+     * different objects. Extra external code has to be called then to ensure proper remapping of
+     * that pointer. See e.g. `BKE_object_copy_particlesystems` or `BKE_object_copy_modifier`. */
     t_brush->psys = brush->psys;
 
     if (brush->paint_ramp) {

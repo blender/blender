@@ -246,8 +246,7 @@ void WM_cursor_wait(bool val)
 void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
 {
   /* Only grab cursor when not running debug.
-   * It helps not to get a stuck WM when hitting a breakpoint
-   * */
+   * It helps not to get a stuck WM when hitting a break-point. */
   GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
   GHOST_TAxisFlag mode_axis = GHOST_kAxisX | GHOST_kGrabAxisY;
 

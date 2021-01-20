@@ -75,33 +75,44 @@ bool uv_find_nearest_vert(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
                           const float penalty_dist,
-                          struct UvNearestHit *hit_final);
+                          struct UvNearestHit *hit);
 bool uv_find_nearest_vert_multi(struct Scene *scene,
                                 struct Object **objects,
                                 const uint objects_len,
                                 const float co[2],
                                 const float penalty_dist,
-                                struct UvNearestHit *hit_final);
+                                struct UvNearestHit *hit);
 
 bool uv_find_nearest_edge(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
-                          struct UvNearestHit *hit_final);
+                          struct UvNearestHit *hit);
 bool uv_find_nearest_edge_multi(struct Scene *scene,
                                 struct Object **objects,
                                 const uint objects_len,
                                 const float co[2],
-                                struct UvNearestHit *hit_final);
+                                struct UvNearestHit *hit);
 
+bool uv_find_nearest_face_ex(struct Scene *scene,
+                             struct Object *obedit,
+                             const float co[2],
+                             struct UvNearestHit *hit,
+                             const bool only_in_face);
 bool uv_find_nearest_face(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
-                          struct UvNearestHit *hit_final);
+                          struct UvNearestHit *hit);
+bool uv_find_nearest_face_multi_ex(struct Scene *scene,
+                                   struct Object **objects,
+                                   const uint objects_len,
+                                   const float co[2],
+                                   struct UvNearestHit *hit,
+                                   const bool only_in_face);
 bool uv_find_nearest_face_multi(struct Scene *scene,
                                 struct Object **objects,
                                 const uint objects_len,
                                 const float co[2],
-                                struct UvNearestHit *hit_final);
+                                struct UvNearestHit *hit);
 
 BMLoop *uv_find_nearest_loop_from_vert(struct Scene *scene,
                                        struct Object *obedit,

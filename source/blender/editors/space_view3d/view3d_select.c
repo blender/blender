@@ -2494,8 +2494,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   }
 
   /* Pass-through allows tweaks
-   * FINISHED to signal one operator worked
-   * */
+   * FINISHED to signal one operator worked. */
   if (retval) {
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;

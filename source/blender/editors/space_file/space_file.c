@@ -392,11 +392,10 @@ static void file_refresh(const bContext *C, ScrArea *area)
   ED_area_tag_redraw(area);
 }
 
-static void file_listener(wmWindow *UNUSED(win),
-                          ScrArea *area,
-                          wmNotifier *wmn,
-                          Scene *UNUSED(scene))
+static void file_listener(const wmSpaceTypeListenerParams *params)
 {
+  ScrArea *area = params->area;
+  wmNotifier *wmn = params->notifier;
   SpaceFile *sfile = (SpaceFile *)area->spacedata.first;
 
   /* context changes */
@@ -447,12 +446,11 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void file_main_region_listener(wmWindow *UNUSED(win),
-                                      ScrArea *UNUSED(area),
-                                      ARegion *region,
-                                      wmNotifier *wmn,
-                                      const Scene *UNUSED(scene))
+static void file_main_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SPACE:
@@ -468,16 +466,15 @@ static void file_main_region_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void file_main_region_message_subscribe(const struct bContext *UNUSED(C),
-                                               struct WorkSpace *UNUSED(workspace),
-                                               struct Scene *UNUSED(scene),
-                                               struct bScreen *screen,
-                                               struct ScrArea *area,
-                                               struct ARegion *region,
-                                               struct wmMsgBus *mbus)
+static void file_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  bScreen *screen = params->screen;
+  ScrArea *area = params->area;
+  ARegion *region = params->region;
   SpaceFile *sfile = area->spacedata.first;
-  FileSelectParams *params = ED_fileselect_ensure_active_params(sfile);
+
+  FileSelectParams *file_params = ED_fileselect_ensure_active_params(sfile);
   /* This is a bit odd that a region owns the subscriber for an area,
    * keep for now since all subscribers for WM are regions.
    * May be worth re-visiting later. */
@@ -499,7 +496,7 @@ static void file_main_region_message_subscribe(const struct bContext *UNUSED(C),
   /* FileSelectParams */
   {
     PointerRNA ptr;
-    RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &ptr);
+    RNA_pointer_create(&screen->id, &RNA_FileSelectParams, file_params, &ptr);
 
     /* All properties for this space type. */
     WM_msg_subscribe_rna(mbus, &ptr, NULL, &msg_sub_value_area_tag_refresh, __func__);
@@ -649,18 +646,8 @@ static void file_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void file_tools_region_listener(wmWindow *UNUSED(win),
-                                       ScrArea *UNUSED(area),
-                                       ARegion *UNUSED(region),
-                                       wmNotifier *UNUSED(wmn),
-                                       const Scene *UNUSED(scene))
+static void file_tools_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
-#if 0
-  /* context changes */
-  switch (wmn->category) {
-    /* pass */
-  }
-#endif
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -717,12 +704,11 @@ static void file_execution_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void file_ui_region_listener(wmWindow *UNUSED(win),
-                                    ScrArea *UNUSED(area),
-                                    ARegion *region,
-                                    wmNotifier *wmn,
-                                    const Scene *UNUSED(scene))
+static void file_ui_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SPACE:
