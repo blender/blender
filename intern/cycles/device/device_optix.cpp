@@ -1857,6 +1857,7 @@ void device_optix_info(const vector<DeviceInfo> &cuda_devices, vector<DeviceInfo
     info.type = DEVICE_OPTIX;
     info.id += "_OptiX";
     info.denoisers |= DENOISER_OPTIX;
+    info.has_branched_path = false;
 
     devices.push_back(info);
   }
