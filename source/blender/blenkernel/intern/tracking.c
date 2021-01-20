@@ -1033,9 +1033,11 @@ static void multiply_marker(MovieTrackingMarker *marker, const float multiplier)
   mul_v2_fl(marker->search_max, multiplier);
 }
 
-void BKE_tracking_tracks_average(MovieTrackingTrack *dst_track,
-                                 /*const*/ MovieTrackingTrack **src_tracks,
-                                 const int num_src_tracks)
+/* Helper function for BKE_tracking_tracks_average which takes care of averaging fields of
+ * markers (position, patterns, ...). */
+static void tracking_average_markers(MovieTrackingTrack *dst_track,
+                                     /*const*/ MovieTrackingTrack **src_tracks,
+                                     const int num_src_tracks)
 {
   /* Get global range of frames within which averaging would happen. */
   int first_frame, last_frame;
@@ -1086,6 +1088,32 @@ void BKE_tracking_tracks_average(MovieTrackingTrack *dst_track,
   /* Free memory. */
   MEM_freeN(accumulator);
   MEM_freeN(counters);
+}
+
+/* Helper function for BKE_tracking_tracks_average which takes care of averaging fields of
+ * tracks (track for example, offset). */
+static void tracking_average_tracks(MovieTrackingTrack *dst_track,
+                                    /*const*/ MovieTrackingTrack **src_tracks,
+                                    const int num_src_tracks)
+{
+  /* TODO(sergey): Consider averaging weight, stabilization weight, maybe even bundle position. */
+  zero_v2(dst_track->offset);
+  for (int track_index = 0; track_index < num_src_tracks; track_index++) {
+    add_v2_v2(dst_track->offset, src_tracks[track_index]->offset);
+  }
+  mul_v2_fl(dst_track->offset, 1.0f / num_src_tracks);
+}
+
+void BKE_tracking_tracks_average(MovieTrackingTrack *dst_track,
+                                 /*const*/ MovieTrackingTrack **src_tracks,
+                                 const int num_src_tracks)
+{
+  if (num_src_tracks == 0) {
+    return;
+  }
+
+  tracking_average_markers(dst_track, src_tracks, num_src_tracks);
+  tracking_average_tracks(dst_track, src_tracks, num_src_tracks);
 }
 
 MovieTrackingTrack *BKE_tracking_track_get_named(MovieTracking *tracking,
