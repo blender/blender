@@ -3020,6 +3020,10 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.operator("sculpt.optimize")
 
+        layout.separator()
+
+        layout.operator("sculpt.reset_brushes")
+
 
 class VIEW3D_MT_mask(Menu):
     bl_label = "Mask"

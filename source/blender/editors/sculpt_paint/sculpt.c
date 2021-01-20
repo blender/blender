@@ -10557,6 +10557,39 @@ float *SCULPT_geodesic_from_vertex(Object *ob, const int vertex, const float lim
   return dists;
 }
 
+
+static int sculpt_reset_brushes_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+
+  LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+      if (br->ob_mode != OB_MODE_SCULPT) {
+          continue;
+      }
+      BKE_brush_sculpt_reset(br);
+      WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, br);
+  }
+
+
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_reset_brushes(struct wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Reset Sculpt Brushes";
+  ot->idname = "SCULPT_OT_reset_brushes";
+  ot->description = "Resets all sculpt brushes to their default value";
+
+  /* API callbacks. */
+  ot->exec = sculpt_reset_brushes_exec;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+}
+
+
+
 void ED_operatortypes_sculpt(void)
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -10595,4 +10628,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_mask_by_color);
   WM_operatortype_append(SCULPT_OT_dyntopo_detail_size_edit);
   WM_operatortype_append(SCULPT_OT_mask_init);
+  WM_operatortype_append(SCULPT_OT_reset_brushes);
+
 }
