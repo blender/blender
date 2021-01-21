@@ -449,20 +449,25 @@ void GPENCIL_OT_layer_annotation_move(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
 /* ********************* Duplicate Layer ************************** */
+enum {
+  GP_LAYER_DUPLICATE_ALL = 0,
+  GP_LAYER_DUPLICATE_EMPTY = 1,
+};
 
-static int gpencil_layer_copy_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_layer_copy_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
   bGPDlayer *new_layer;
-
+  const int mode = RNA_enum_get(op->ptr, "mode");
+  const bool dup_strokes = (bool)(mode == GP_LAYER_DUPLICATE_ALL);
   /* sanity checks */
   if (ELEM(NULL, gpd, gpl)) {
     return OPERATOR_CANCELLED;
   }
 
   /* make copy of layer, and add it immediately after the existing layer */
-  new_layer = BKE_gpencil_layer_duplicate(gpl);
+  new_layer = BKE_gpencil_layer_duplicate(gpl, true, dup_strokes);
   BLI_insertlinkafter(&gpd->layers, gpl, new_layer);
 
   /* ensure new layer has a unique name, and is now the active layer */
@@ -484,6 +489,12 @@ static int gpencil_layer_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
 void GPENCIL_OT_layer_duplicate(wmOperatorType *ot)
 {
+  static const EnumPropertyItem copy_mode[] = {
+      {GP_LAYER_DUPLICATE_ALL, "ALL", 0, "All Data", ""},
+      {GP_LAYER_DUPLICATE_EMPTY, "EMPTY", 0, "Empty Keyframes", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* identifiers */
   ot->name = "Duplicate Layer";
   ot->idname = "GPENCIL_OT_layer_duplicate";
@@ -495,6 +506,8 @@ void GPENCIL_OT_layer_duplicate(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(ot->srna, "mode", copy_mode, GP_LAYER_DUPLICATE_ALL, "Mode", "");
 }
 
 /* ********************* Duplicate Layer in a new object ************************** */
