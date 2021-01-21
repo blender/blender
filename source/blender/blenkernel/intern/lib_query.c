@@ -237,9 +237,12 @@ static void library_foreach_ID_link(Main *bmain,
        * but we might as well use it (Main->relations is always assumed valid,
        * it's responsibility of code creating it to free it,
        * especially if/when it starts modifying Main database). */
-      MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->id_user_to_used, id);
-      for (; entry != NULL; entry = entry->next) {
-        BKE_lib_query_foreachid_process(&data, entry->id_pointer, entry->usage_flag);
+      MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers,
+                                                     id);
+      for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != NULL;
+           to_id_entry = to_id_entry->next) {
+        BKE_lib_query_foreachid_process(
+            &data, to_id_entry->id_pointer.to, to_id_entry->usage_flag);
       }
       continue;
     }

@@ -374,9 +374,15 @@ static bool lib_override_hierarchy_recursive_tag(Main *bmain,
                                                  const uint missing_tag,
                                                  Library *override_group_lib_reference)
 {
-  void **entry_vp = BLI_ghash_lookup_p(bmain->relations->id_user_to_used, id);
+  void **entry_vp = BLI_ghash_lookup_p(bmain->relations->relations_from_pointers, id);
   if (entry_vp == NULL) {
-    /* Already processed. */
+    /* This ID is not used by nor using any other ID. */
+    return (id->tag & tag) != 0;
+  }
+
+  MainIDRelationsEntry *entry = *entry_vp;
+  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
+    /* This ID has already been processed. */
     return (id->tag & tag) != 0;
   }
 
@@ -393,22 +399,21 @@ static bool lib_override_hierarchy_recursive_tag(Main *bmain,
   }
 
   /* This way we won't process again that ID, should we encounter it again through another
-   * relationship hierarchy.
-   * Note that this does not free any memory from relations, so we can still use the entries.
-   */
-  BKE_main_relations_ID_remove(bmain, id);
+   * relationship hierarchy. */
+  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
 
-  for (MainIDRelationsEntry *entry = *entry_vp; entry != NULL; entry = entry->next) {
-    if ((entry->usage_flag & IDWALK_CB_LOOPBACK) != 0) {
+  for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != NULL;
+       to_id_entry = to_id_entry->next) {
+    if ((to_id_entry->usage_flag & IDWALK_CB_LOOPBACK) != 0) {
       /* Never consider 'loop back' relationships ('from', 'parents', 'owner' etc. pointers) as
        * actual dependencies. */
       continue;
     }
     /* We only consider IDs from the same library. */
-    if (entry->id_pointer != NULL && (*entry->id_pointer)->lib == id->lib) {
-      if (lib_override_hierarchy_recursive_tag(
-              bmain, *entry->id_pointer, tag, missing_tag, override_group_lib_reference) &&
-          override_group_lib_reference == NULL) {
+    if (*to_id_entry->id_pointer.to != NULL && (*to_id_entry->id_pointer.to)->lib == id->lib) {
+      const bool needs_tag = lib_override_hierarchy_recursive_tag(
+          bmain, *to_id_entry->id_pointer.to, tag, missing_tag, override_group_lib_reference);
+      if (needs_tag && override_group_lib_reference == NULL) {
         id->tag |= tag;
       }
     }
@@ -1619,31 +1624,37 @@ static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain, ID *i
     return;
   }
 
-  void **entry_pp = BLI_ghash_lookup(bmain->relations->id_user_to_used, id_root);
-  if (entry_pp == NULL) {
-    /* Already processed. */
+  void **entry_vp = BLI_ghash_lookup_p(bmain->relations->relations_from_pointers, id_root);
+  if (entry_vp == NULL) {
+    /* This ID is not used by nor using any other ID. */
+    lib_override_library_id_reset_do(bmain, id_root);
+    return;
+  }
+
+  MainIDRelationsEntry *entry = *entry_vp;
+  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
+    /* This ID has already been processed. */
     return;
   }
 
   lib_override_library_id_reset_do(bmain, id_root);
 
   /* This way we won't process again that ID, should we encounter it again through another
-   * relationship hierarchy.
-   * Note that this does not free any memory from relations, so we can still use the entries.
-   */
-  BKE_main_relations_ID_remove(bmain, id_root);
+   * relationship hierarchy. */
+  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
 
-  for (MainIDRelationsEntry *entry = *entry_pp; entry != NULL; entry = entry->next) {
-    if ((entry->usage_flag & IDWALK_CB_LOOPBACK) != 0) {
+  for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != NULL;
+       to_id_entry = to_id_entry->next) {
+    if ((to_id_entry->usage_flag & IDWALK_CB_LOOPBACK) != 0) {
       /* Never consider 'loop back' relationships ('from', 'parents', 'owner' etc. pointers) as
        * actual dependencies. */
       continue;
     }
     /* We only consider IDs from the same library. */
-    if (entry->id_pointer != NULL) {
-      ID *id_entry = *entry->id_pointer;
-      if (id_entry->override_library != NULL) {
-        lib_override_library_id_hierarchy_recursive_reset(bmain, id_entry);
+    if (*to_id_entry->id_pointer.to != NULL) {
+      ID *to_id = *to_id_entry->id_pointer.to;
+      if (to_id->override_library != NULL) {
+        lib_override_library_id_hierarchy_recursive_reset(bmain, to_id);
       }
     }
   }
