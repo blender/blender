@@ -554,6 +554,13 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
+  if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot interpolate in curve edit mode");
+    return OPERATOR_CANCELLED;
+  }
+
   /* need editable strokes */
   if (!gpencil_interpolate_check_todo(C, gpd)) {
     BKE_report(op->reports, RPT_ERROR, "Interpolation requires some editable strokes");
@@ -975,6 +982,13 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports,
                RPT_ERROR,
                "Cannot interpolate as current frame already has existing grease pencil frames");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot interpolate in curve edit mode");
     return OPERATOR_CANCELLED;
   }
 
