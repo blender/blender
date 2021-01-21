@@ -228,6 +228,14 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
   }
 }
 
+static void join_components(Span<const VolumeComponent *> src_components, GeometrySet &result)
+{
+  /* Not yet supported. Joining volume grids with the same name requires resampling of at least one
+   * of the grids. The cell size of the resulting volume has to be determined somehow. */
+  VolumeComponent &dst_component = result.get_component_for_write<VolumeComponent>();
+  UNUSED_VARS(src_components, dst_component);
+}
+
 template<typename Component>
 static void join_component_type(Span<const GeometrySet *> src_geometry_sets, GeometrySet &result)
 {
@@ -260,6 +268,7 @@ static void geo_node_join_geometry_exec(GeoNodeExecParams params)
   join_component_type<MeshComponent>(src_geometry_sets, geometry_set_result);
   join_component_type<PointCloudComponent>(src_geometry_sets, geometry_set_result);
   join_component_type<InstancesComponent>(src_geometry_sets, geometry_set_result);
+  join_component_type<VolumeComponent>(src_geometry_sets, geometry_set_result);
 
   params.set_output("Geometry", std::move(geometry_set_result));
 }

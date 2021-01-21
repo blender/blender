@@ -523,6 +523,8 @@ static void volume_copy_data(Main *UNUSED(bmain),
     volume_dst->runtime.grids = OBJECT_GUARDED_NEW(VolumeGridVector, grids_src);
   }
 #endif
+
+  volume_dst->batch_cache = nullptr;
 }
 
 static void volume_free_data(ID *id)
