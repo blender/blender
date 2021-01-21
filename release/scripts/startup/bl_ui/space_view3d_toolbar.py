@@ -352,10 +352,13 @@ class VIEW3D_PT_tools_particlemode(Panel, View3DPaintPanel):
                     layout.row().prop(brush, "puff_mode", expand=True)
                     layout.prop(brush, "use_puff_volume")
                 elif tool == 'COMB':
-                    layout.prop(settings, "use_emitter_deflect", text="Deflect Emitter")
-                    col = layout.column()
-                    col.active = settings.use_emitter_deflect
-                    col.prop(settings, "emitter_distance", text="Distance")
+                    col = layout.column(align=False, heading="Deflect Emitter")
+                    row = col.row(align=True)
+                    sub = row.row(align=True)
+                    sub.prop(settings, "use_emitter_deflect", text="")
+                    sub = sub.row(align=True)
+                    sub.active = settings.use_emitter_deflect
+                    sub.prop(settings, "emitter_distance", text="")
 
 
 # TODO, move to space_view3d.py
@@ -1231,14 +1234,20 @@ class VIEW3D_PT_tools_particlemode_options(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.active = pe.is_editable
-        col.prop(ob.data, "use_mirror_x")
-        if pe.tool == 'ADD':
-            col.prop(ob.data, "use_mirror_topology")
-        col.separator()
-        col.prop(pe, "use_preserve_length", text="Preserve Strand Lengths")
-        col.prop(pe, "use_preserve_root", text="Preserve Root Positions")
+
         if not pe.is_hair:
             col.prop(pe, "use_auto_velocity", text="Auto-Velocity")
+            col.separator()
+
+        sub = col.column(align=True, heading="Mirror")
+        sub.prop(ob.data, "use_mirror_x")
+        if pe.tool == 'ADD':
+            sub.prop(ob.data, "use_mirror_topology")
+        col.separator()
+
+        sub = col.column(align=True, heading="Preserve")
+        sub.prop(pe, "use_preserve_length", text="Strand Lengths")
+        sub.prop(pe, "use_preserve_root", text="Root Positions")
 
 
 class VIEW3D_PT_tools_particlemode_options_shapecut(View3DPanel, Panel):
@@ -1282,10 +1291,13 @@ class VIEW3D_PT_tools_particlemode_options_display(View3DPanel, Panel):
         else:
             if pe.type == 'PARTICLES':
                 col.prop(pe, "show_particles", text="Particles")
-            col.prop(pe, "use_fade_time")
-            sub = col.row(align=True)
+            col = layout.column(align=False, heading="Fade Time")
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.prop(pe, "use_fade_time", text="")
+            sub = sub.row(align=True)
             sub.active = pe.use_fade_time
-            sub.prop(pe, "fade_frames", slider=True)
+            sub.prop(pe, "fade_frames", slider=True, text="")
 
 
 # ********** grease pencil object tool panels ****************
