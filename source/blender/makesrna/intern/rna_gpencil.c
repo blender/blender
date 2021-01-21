@@ -950,7 +950,7 @@ static void rna_GPencil_frame_remove(bGPDlayer *layer, ReportList *reports, Poin
 
 static bGPDframe *rna_GPencil_frame_copy(bGPDlayer *layer, bGPDframe *src)
 {
-  bGPDframe *frame = BKE_gpencil_frame_duplicate(src);
+  bGPDframe *frame = BKE_gpencil_frame_duplicate(src, true);
 
   while (BKE_gpencil_layer_frame_find(layer, frame->framenum)) {
     frame->framenum++;

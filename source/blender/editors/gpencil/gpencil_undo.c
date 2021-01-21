@@ -93,7 +93,7 @@ int ED_undo_gpencil_step(bContext *C, const int step)
 
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           /* make a copy of source layer and its data */
-          gpld = BKE_gpencil_layer_duplicate(gpl);
+          gpld = BKE_gpencil_layer_duplicate(gpl, true, true);
           BLI_addtail(&gpd->layers, gpld);
         }
       }

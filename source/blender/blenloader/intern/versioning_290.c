@@ -475,7 +475,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           bGPDframe *gpf = gpl->frames.first;
           if (gpf && gpf->framenum > scene->r.sfra) {
-            bGPDframe *gpf_dup = BKE_gpencil_frame_duplicate(gpf);
+            bGPDframe *gpf_dup = BKE_gpencil_frame_duplicate(gpf, true);
             gpf_dup->framenum = scene->r.sfra;
             BLI_addhead(&gpl->frames, gpf_dup);
           }

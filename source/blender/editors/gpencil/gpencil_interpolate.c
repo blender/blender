@@ -283,8 +283,8 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     tgpil = MEM_callocN(sizeof(tGPDinterpolate_layer), "GPencil Interpolate Layer");
 
     tgpil->gpl = gpl;
-    tgpil->prevFrame = BKE_gpencil_frame_duplicate(gpl->actframe);
-    tgpil->nextFrame = BKE_gpencil_frame_duplicate(gpl->actframe->next);
+    tgpil->prevFrame = BKE_gpencil_frame_duplicate(gpl->actframe, true);
+    tgpil->nextFrame = BKE_gpencil_frame_duplicate(gpl->actframe->next, true);
 
     BLI_addtail(&tgpi->ilayers, tgpil);
 
@@ -998,8 +998,8 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     }
 
     /* store extremes */
-    prevFrame = BKE_gpencil_frame_duplicate(gpl->actframe);
-    nextFrame = BKE_gpencil_frame_duplicate(gpl->actframe->next);
+    prevFrame = BKE_gpencil_frame_duplicate(gpl->actframe, true);
+    nextFrame = BKE_gpencil_frame_duplicate(gpl->actframe->next, true);
 
     /* Loop over intermediary frames and create the interpolation */
     for (cframe = prevFrame->framenum + step; cframe < nextFrame->framenum; cframe += step) {
