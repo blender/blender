@@ -56,11 +56,6 @@ NodeGroup *BlenderFileLoader::Load()
   // creation of the scene root node
   _Scene = new NodeGroup;
 
-  _viewplane_left = _re->viewplane.xmin;
-  _viewplane_right = _re->viewplane.xmax;
-  _viewplane_bottom = _re->viewplane.ymin;
-  _viewplane_top = _re->viewplane.ymax;
-
   if (_re->clip_start < 0.0f) {
     // Adjust clipping start/end and set up a Z offset when the viewport preview
     // is used with the orthographic view.  In this case, _re->clip_start is negative,
@@ -75,14 +70,6 @@ NodeGroup *BlenderFileLoader::Load()
     _z_far = -_re->clip_end;
     _z_offset = 0.0f;
   }
-
-#if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
-    cout << "Frustum: l " << _viewplane_left << " r " << _viewplane_right << " b "
-         << _viewplane_bottom << " t " << _viewplane_top << " n " << _z_near << " f " << _z_far
-         << endl;
-  }
-#endif
 
   int id = 0;
   const eEvaluationMode eval_mode = DEG_get_mode(_depsgraph);

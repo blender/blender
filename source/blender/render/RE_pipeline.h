@@ -252,8 +252,6 @@ void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
 void RE_SetOverrideCamera(struct Render *re, struct Object *cam_ob);
 void RE_SetCamera(struct Render *re, struct Object *cam_ob);
-void RE_SetWindow(struct Render *re, const rctf *viewplane, float clip_start, float clip_end);
-void RE_SetOrtho(struct Render *re, const rctf *viewplane, float clip_start, float clip_end);
 
 /* get current view and window transform */
 void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
