@@ -146,6 +146,7 @@ set(SRC
   geometry/nodes/node_geo_attribute_fill.cc
   geometry/nodes/node_geo_attribute_math.cc
   geometry/nodes/node_geo_attribute_mix.cc
+  geometry/nodes/node_geo_attribute_sample_texture.cc
   geometry/nodes/node_geo_attribute_randomize.cc
   geometry/nodes/node_geo_attribute_vector_math.cc
   geometry/nodes/node_geo_boolean.cc

@@ -4747,6 +4747,7 @@ static void registerGeometryNodes(void)
   register_node_type_geo_attribute_color_ramp();
   register_node_type_geo_point_rotate();
   register_node_type_geo_align_rotation_to_vector();
+  register_node_type_geo_sample_texture();
 }
 
 static void registerFunctionNodes(void)

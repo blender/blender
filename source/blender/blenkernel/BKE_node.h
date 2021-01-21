@@ -1361,6 +1361,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_ALIGN_ROTATION_TO_VECTOR 1018
 #define GEO_NODE_POINT_TRANSLATE 1019
 #define GEO_NODE_POINT_SCALE 1020
+#define GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE 1021
 
 /** \} */
 

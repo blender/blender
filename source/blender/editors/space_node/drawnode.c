@@ -3289,6 +3289,13 @@ static void node_geometry_buts_object_info(uiLayout *layout, bContext *UNUSED(C)
   uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 }
 
+static void node_geometry_buts_attribute_sample_texture(uiLayout *layout,
+                                                        bContext *C,
+                                                        PointerRNA *ptr)
+{
+  uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
+}
+
 static void node_geometry_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -3342,6 +3349,9 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_OBJECT_INFO:
       ntype->draw_buttons = node_geometry_buts_object_info;
+      break;
+    case GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE:
+      ntype->draw_buttons = node_geometry_buts_attribute_sample_texture;
       break;
   }
 }
