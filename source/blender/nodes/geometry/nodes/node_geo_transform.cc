@@ -117,7 +117,7 @@ static void transform_instances(InstancesComponent &instances,
     loc_eul_size_to_mat4(mat, translation, rotation, scale);
     for (int i = 0; i < positions.size(); i++) {
       loc_eul_size_to_mat4(instance_mat, positions[i], rotations[i], scales[i]);
-      mul_m4_m4_post(instance_mat, mat);
+      mul_m4_m4_pre(instance_mat, mat);
       mat4_decompose(positions[i], quaternion, scales[i], instance_mat);
       quat_to_eul(rotations[i], quaternion);
     }
