@@ -2862,7 +2862,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         mul_v3_m3v3(offset_local, imat, offset_global);
 
         LISTBASE_FOREACH (bGPDlayer *, gpl_src, &gpd_src->layers) {
-          bGPDlayer *gpl_new = BKE_gpencil_layer_duplicate(gpl_src);
+          bGPDlayer *gpl_new = BKE_gpencil_layer_duplicate(gpl_src, true, true);
           float diff_mat[4][4];
           float inverse_diff_mat[4][4];
 
