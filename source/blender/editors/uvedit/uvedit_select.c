@@ -773,7 +773,7 @@ bool uv_find_nearest_face_ex(
 
 bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit)
 {
-  return uv_find_nearest_face_ex(scene, obedit, co, hit, NULL);
+  return uv_find_nearest_face_ex(scene, obedit, co, hit, false);
 }
 
 bool uv_find_nearest_face_multi_ex(Scene *scene,
