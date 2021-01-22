@@ -143,6 +143,21 @@ void ED_object_base_activate(bContext *C, Base *base)
   ED_object_base_active_refresh(CTX_data_main(C), scene, view_layer);
 }
 
+void ED_object_base_activate_with_mode_exit_if_needed(bContext *C, Base *base)
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  /* Currently we only need to be concerned with edit-mode. */
+  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  if (obedit) {
+    Object *ob = base->object;
+    if (((ob->mode & OB_MODE_EDIT) == 0) || (obedit->type != ob->type)) {
+      ED_object_editmode_exit(C, EM_FREEDATA);
+    }
+  }
+  ED_object_base_activate(C, base);
+}
+
 bool ED_object_base_deselect_all_ex(ViewLayer *view_layer,
                                     View3D *v3d,
                                     int action,
