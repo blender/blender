@@ -161,7 +161,7 @@ static int mouse_nla_channels(
         }
 
         /* change active object - regardless of whether it is now selected [T37883] */
-        ED_object_base_activate(C, base); /* adds notifier */
+        ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
 
         if ((adt) && (adt->flag & ADT_UI_SELECTED)) {
           adt->flag |= ADT_UI_ACTIVE;
