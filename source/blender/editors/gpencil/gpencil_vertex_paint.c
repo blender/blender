@@ -845,6 +845,13 @@ static bool gpencil_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
 
   bool saved = false;
 
+  /* Check stroke masking. */
+  if (GPENCIL_ANY_VERTEX_MASK(gso->mask)) {
+    if ((gps->flag & GP_STROKE_SELECT) == 0) {
+      return false;
+    }
+  }
+
   /* Check if the stroke collide with brush. */
   if (!ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, diff_mat)) {
     return false;
