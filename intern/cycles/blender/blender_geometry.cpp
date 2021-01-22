@@ -124,7 +124,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
       foreach (Node *node, geom->get_used_shaders()) {
         Shader *shader = static_cast<Shader *>(node);
-        if (shader->need_update_geometry) {
+        if (shader->need_update_geometry()) {
           attribute_recalc = true;
         }
       }

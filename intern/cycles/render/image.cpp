@@ -298,7 +298,7 @@ bool ImageLoader::is_vdb_loader() const
 
 ImageManager::ImageManager(const DeviceInfo &info)
 {
-  need_update = true;
+  need_update_ = true;
   osl_texture_system = NULL;
   animation_frame = 0;
 
@@ -451,7 +451,7 @@ int ImageManager::add_image_slot(ImageLoader *loader,
 
   images[slot] = img;
 
-  need_update = true;
+  need_update_ = true;
 
   return slot;
 }
@@ -478,7 +478,7 @@ void ImageManager::remove_image_user(int slot)
    * the reasons for this is that on shader changes we add and remove nodes
    * that use them, but we do not want to reload the image all the time. */
   if (image->users == 0)
-    need_update = true;
+    need_update_ = true;
 }
 
 static bool image_associate_alpha(ImageManager::Image *img)
@@ -810,7 +810,7 @@ void ImageManager::device_free_image(Device *, int slot)
 
 void ImageManager::device_update(Device *device, Scene *scene, Progress &progress)
 {
-  if (!need_update) {
+  if (!need_update()) {
     return;
   }
 
@@ -834,7 +834,7 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
 
   pool.wait_work();
 
-  need_update = false;
+  need_update_ = false;
 }
 
 void ImageManager::device_update_slot(Device *device, Scene *scene, int slot, Progress *progress)
@@ -854,7 +854,7 @@ void ImageManager::device_load_builtin(Device *device, Scene *scene, Progress &p
 {
   /* Load only builtin images, Blender needs this to load evaluated
    * scene data from depsgraph before it is freed. */
-  if (!need_update) {
+  if (!need_update()) {
     return;
   }
 
@@ -894,6 +894,16 @@ void ImageManager::collect_statistics(RenderStats *stats)
     stats->image.textures.add_entry(
         NamedSizeEntry(image->loader->name(), image->mem->memory_size()));
   }
+}
+
+void ImageManager::tag_update()
+{
+  need_update_ = true;
+}
+
+bool ImageManager::need_update() const
+{
+  return need_update_;
 }
 
 CCL_NAMESPACE_END

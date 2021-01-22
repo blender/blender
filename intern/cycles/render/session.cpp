@@ -1038,13 +1038,7 @@ bool Session::update_scene()
   BakeManager *bake_manager = scene->bake_manager;
 
   if (integrator->get_sampling_pattern() != SAMPLING_PATTERN_SOBOL || bake_manager->get_baking()) {
-    int aa_samples = tile_manager.num_samples;
-
-    integrator->set_aa_samples(aa_samples);
-
-    if (integrator->is_modified()) {
-      integrator->tag_update(scene);
-    }
+    integrator->set_aa_samples(tile_manager.num_samples);
   }
 
   bool kernel_switch_needed = false;

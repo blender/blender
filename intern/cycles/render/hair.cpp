@@ -494,33 +494,38 @@ void Hair::pack_curves(Scene *scene,
   }
 }
 
-void Hair::pack_primitives(PackedBVH &pack, int object, uint visibility)
+void Hair::pack_primitives(PackedBVH *pack, int object, uint visibility, bool pack_all)
 {
   if (curve_first_key.empty())
     return;
 
-  const size_t num_prims = num_segments();
-  pack.prim_tri_index.reserve(pack.prim_tri_index.size() + num_prims);
-  pack.prim_type.reserve(pack.prim_type.size() + num_prims);
-  pack.prim_visibility.reserve(pack.prim_visibility.size() + num_prims);
-  pack.prim_index.reserve(pack.prim_index.size() + num_prims);
-  pack.prim_object.reserve(pack.prim_object.size() + num_prims);
-  // 'pack.prim_time' is unused by Embree and OptiX
+  /* If the BVH does not have to be recreated, we can bail out. */
+  if (!pack_all) {
+    return;
+  }
+
+  unsigned int *prim_tri_index = &pack->prim_tri_index[optix_prim_offset];
+  int *prim_type = &pack->prim_type[optix_prim_offset];
+  unsigned int *prim_visibility = &pack->prim_visibility[optix_prim_offset];
+  int *prim_index = &pack->prim_index[optix_prim_offset];
+  int *prim_object = &pack->prim_object[optix_prim_offset];
+  // 'pack->prim_time' is unused by Embree and OptiX
 
   uint type = has_motion_blur() ?
                   ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
                                                    PRIMITIVE_MOTION_CURVE_THICK) :
                   ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON : PRIMITIVE_CURVE_THICK);
 
+  size_t index = 0;
   for (size_t j = 0; j < num_curves(); ++j) {
     Curve curve = get_curve(j);
-    for (size_t k = 0; k < curve.num_segments(); ++k) {
-      pack.prim_tri_index.push_back_reserved(-1);
-      pack.prim_type.push_back_reserved(PRIMITIVE_PACK_SEGMENT(type, k));
-      pack.prim_visibility.push_back_reserved(visibility);
+    for (size_t k = 0; k < curve.num_segments(); ++k, ++index) {
+      prim_tri_index[index] = -1;
+      prim_type[index] = PRIMITIVE_PACK_SEGMENT(type, k);
+      prim_visibility[index] = visibility;
       // Each curve segment points back to its curve index
-      pack.prim_index.push_back_reserved(j + prim_offset);
-      pack.prim_object.push_back_reserved(object);
+      prim_index[index] = j + prim_offset;
+      prim_object[index] = object;
     }
   }
 }

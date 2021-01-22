@@ -100,7 +100,9 @@ class Shader : public Node {
   float prev_volume_step_rate;
 
   /* synchronization */
-  bool need_update_geometry;
+  bool need_update_uvs;
+  bool need_update_attribute;
+  bool need_update_displacement;
 
   /* If the shader has only volume components, the surface is assumed to
    * be transparent.
@@ -152,6 +154,8 @@ class Shader : public Node {
   void set_graph(ShaderGraph *graph);
   void tag_update(Scene *scene);
   void tag_used(Scene *scene);
+
+  bool need_update_geometry() const;
 };
 
 /* Shader Manager virtual base class
@@ -161,7 +165,16 @@ class Shader : public Node {
 
 class ShaderManager {
  public:
-  bool need_update;
+  enum : uint32_t {
+    SHADER_ADDED = (1 << 0),
+    SHADER_MODIFIED = (1 << 2),
+    INTEGRATOR_MODIFIED = (1 << 3),
+
+    /* tag everything in the manager for an update */
+    UPDATE_ALL = ~0u,
+
+    UPDATE_NONE = 0u,
+  };
 
   static ShaderManager *create(int shadingsystem);
   virtual ~ShaderManager();
@@ -204,8 +217,14 @@ class ShaderManager {
 
   string get_cryptomatte_materials(Scene *scene);
 
+  void tag_update(Scene *scene, uint32_t flag);
+
+  bool need_update() const;
+
  protected:
   ShaderManager();
+
+  uint32_t update_flags;
 
   typedef unordered_map<ustring, uint, ustringHash> AttributeIDMap;
   AttributeIDMap unique_attribute_id;

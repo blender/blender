@@ -161,10 +161,10 @@ void Scene::free_memory(bool final)
     camera->device_free(device, &dscene, this);
     film->device_free(device, &dscene, this);
     background->device_free(device, &dscene);
-    integrator->device_free(device, &dscene);
+    integrator->device_free(device, &dscene, true);
 
-    object_manager->device_free(device, &dscene);
-    geometry_manager->device_free(device, &dscene);
+    object_manager->device_free(device, &dscene, true);
+    geometry_manager->device_free(device, &dscene, true);
     shader_manager->device_free(device, &dscene, this);
     light_manager->device_free(device, &dscene);
 
@@ -386,10 +386,11 @@ bool Scene::need_update()
 
 bool Scene::need_data_update()
 {
-  return (background->is_modified() || image_manager->need_update || object_manager->need_update ||
-          geometry_manager->need_update || light_manager->need_update ||
-          lookup_tables->need_update || integrator->is_modified() || shader_manager->need_update ||
-          particle_system_manager->need_update || bake_manager->need_update ||
+  return (background->is_modified() || image_manager->need_update() ||
+          object_manager->need_update() || geometry_manager->need_update() ||
+          light_manager->need_update() || lookup_tables->need_update() ||
+          integrator->is_modified() || shader_manager->need_update() ||
+          particle_system_manager->need_update() || bake_manager->need_update() ||
           film->is_modified());
 }
 
@@ -407,11 +408,13 @@ void Scene::reset()
   camera->tag_modified();
   dicing_camera->tag_modified();
   film->tag_modified();
+  background->tag_modified();
+
   background->tag_update(this);
-  integrator->tag_update(this);
-  object_manager->tag_update(this);
-  geometry_manager->tag_update(this);
-  light_manager->tag_update(this);
+  integrator->tag_update(this, Integrator::UPDATE_ALL);
+  object_manager->tag_update(this, ObjectManager::UPDATE_ALL);
+  geometry_manager->tag_update(this, GeometryManager::UPDATE_ALL);
+  light_manager->tag_update(this, LightManager::UPDATE_ALL);
   particle_system_manager->tag_update(this);
 }
 
@@ -596,7 +599,7 @@ template<> Light *Scene::create_node<Light>()
   Light *node = new Light();
   node->set_owner(this);
   lights.push_back(node);
-  light_manager->tag_update(this);
+  light_manager->tag_update(this, LightManager::LIGHT_ADDED);
   return node;
 }
 
@@ -605,7 +608,7 @@ template<> Mesh *Scene::create_node<Mesh>()
   Mesh *node = new Mesh();
   node->set_owner(this);
   geometry.push_back(node);
-  geometry_manager->tag_update(this);
+  geometry_manager->tag_update(this, GeometryManager::MESH_ADDED);
   return node;
 }
 
@@ -614,7 +617,7 @@ template<> Hair *Scene::create_node<Hair>()
   Hair *node = new Hair();
   node->set_owner(this);
   geometry.push_back(node);
-  geometry_manager->tag_update(this);
+  geometry_manager->tag_update(this, GeometryManager::HAIR_ADDED);
   return node;
 }
 
@@ -623,7 +626,7 @@ template<> Volume *Scene::create_node<Volume>()
   Volume *node = new Volume();
   node->set_owner(this);
   geometry.push_back(node);
-  geometry_manager->tag_update(this);
+  geometry_manager->tag_update(this, GeometryManager::MESH_ADDED);
   return node;
 }
 
@@ -632,7 +635,7 @@ template<> Object *Scene::create_node<Object>()
   Object *node = new Object();
   node->set_owner(this);
   objects.push_back(node);
-  object_manager->tag_update(this);
+  object_manager->tag_update(this, ObjectManager::OBJECT_ADDED);
   return node;
 }
 
@@ -650,7 +653,7 @@ template<> Shader *Scene::create_node<Shader>()
   Shader *node = new Shader();
   node->set_owner(this);
   shaders.push_back(node);
-  shader_manager->need_update = true;
+  shader_manager->tag_update(this, ShaderManager::SHADER_ADDED);
   return node;
 }
 
@@ -664,43 +667,52 @@ template<typename T> void delete_node_from_array(vector<T> &nodes, T node)
   }
 
   nodes.resize(nodes.size() - 1);
+
   delete node;
 }
 
 template<> void Scene::delete_node_impl(Light *node)
 {
   delete_node_from_array(lights, node);
-  light_manager->tag_update(this);
+  light_manager->tag_update(this, LightManager::LIGHT_REMOVED);
 }
 
 template<> void Scene::delete_node_impl(Mesh *node)
 {
   delete_node_from_array(geometry, static_cast<Geometry *>(node));
-  geometry_manager->tag_update(this);
+  geometry_manager->tag_update(this, GeometryManager::MESH_REMOVED);
 }
 
 template<> void Scene::delete_node_impl(Hair *node)
 {
   delete_node_from_array(geometry, static_cast<Geometry *>(node));
-  geometry_manager->tag_update(this);
+  geometry_manager->tag_update(this, GeometryManager::HAIR_REMOVED);
 }
 
 template<> void Scene::delete_node_impl(Volume *node)
 {
   delete_node_from_array(geometry, static_cast<Geometry *>(node));
-  geometry_manager->tag_update(this);
+  geometry_manager->tag_update(this, GeometryManager::MESH_REMOVED);
 }
 
 template<> void Scene::delete_node_impl(Geometry *node)
 {
+  uint flag;
+  if (node->is_hair()) {
+    flag = GeometryManager::HAIR_REMOVED;
+  }
+  else {
+    flag = GeometryManager::MESH_REMOVED;
+  }
+
   delete_node_from_array(geometry, node);
-  geometry_manager->tag_update(this);
+  geometry_manager->tag_update(this, flag);
 }
 
 template<> void Scene::delete_node_impl(Object *node)
 {
   delete_node_from_array(objects, node);
-  object_manager->tag_update(this);
+  object_manager->tag_update(this, ObjectManager::OBJECT_REMOVED);
 }
 
 template<> void Scene::delete_node_impl(ParticleSystem *node)
@@ -742,19 +754,19 @@ static void remove_nodes_in_set(const set<T *> &nodes_set,
 template<> void Scene::delete_nodes(const set<Light *> &nodes, const NodeOwner *owner)
 {
   remove_nodes_in_set(nodes, lights, owner);
-  light_manager->tag_update(this);
+  light_manager->tag_update(this, LightManager::LIGHT_REMOVED);
 }
 
 template<> void Scene::delete_nodes(const set<Geometry *> &nodes, const NodeOwner *owner)
 {
   remove_nodes_in_set(nodes, geometry, owner);
-  geometry_manager->tag_update(this);
+  geometry_manager->tag_update(this, GeometryManager::GEOMETRY_REMOVED);
 }
 
 template<> void Scene::delete_nodes(const set<Object *> &nodes, const NodeOwner *owner)
 {
   remove_nodes_in_set(nodes, objects, owner);
-  object_manager->tag_update(this);
+  object_manager->tag_update(this, ObjectManager::OBJECT_REMOVED);
 }
 
 template<> void Scene::delete_nodes(const set<ParticleSystem *> &nodes, const NodeOwner *owner)

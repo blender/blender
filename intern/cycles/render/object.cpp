@@ -153,6 +153,10 @@ void Object::update_motion()
 
 void Object::compute_bounds(bool motion_blur)
 {
+  if (!is_modified() && !geometry->is_modified()) {
+    return;
+  }
+
   BoundBox mbounds = geometry->bounds;
 
   if (motion_blur && use_motion()) {
@@ -205,20 +209,39 @@ void Object::apply_transform(bool apply_to_motion)
 
 void Object::tag_update(Scene *scene)
 {
+  uint32_t flag = ObjectManager::UPDATE_NONE;
+
+  if (is_modified()) {
+    flag |= ObjectManager::OBJECT_MODIFIED;
+
+    if (use_holdout_is_modified()) {
+      flag |= ObjectManager::HOLDOUT_MODIFIED;
+    }
+  }
+
   if (geometry) {
-    if (geometry->transform_applied)
-      geometry->tag_modified();
+    if (tfm_is_modified()) {
+      /* tag the geometry as modified so the BVH is updated, but do not tag everything as modified
+       */
+      if (geometry->is_mesh() || geometry->is_volume()) {
+        Mesh *mesh = static_cast<Mesh *>(geometry);
+        mesh->tag_verts_modified();
+      }
+      else if (geometry->is_hair()) {
+        Hair *hair = static_cast<Hair *>(geometry);
+        hair->tag_curve_keys_modified();
+      }
+    }
 
     foreach (Node *node, geometry->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       if (shader->get_use_mis() && shader->has_surface_emission)
-        scene->light_manager->need_update = true;
+        scene->light_manager->tag_update(scene, LightManager::EMISSIVE_MESH_MODIFIED);
     }
   }
 
   scene->camera->need_flags_update = true;
-  scene->geometry_manager->need_update = true;
-  scene->object_manager->need_update = true;
+  scene->object_manager->tag_update(scene, flag);
 }
 
 bool Object::use_motion() const
@@ -361,7 +384,7 @@ int Object::get_device_index() const
 
 ObjectManager::ObjectManager()
 {
-  need_update = true;
+  update_flags = UPDATE_ALL;
   need_flags_update = true;
 }
 
@@ -382,7 +405,9 @@ static float object_volume_density(const Transform &tfm, Geometry *geom)
   return 1.0f;
 }
 
-void ObjectManager::device_update_object_transform(UpdateObjectTransformState *state, Object *ob)
+void ObjectManager::device_update_object_transform(UpdateObjectTransformState *state,
+                                                   Object *ob,
+                                                   bool update_all)
 {
   KernelObject &kobject = state->objects[ob->index];
   Transform *object_motion_pass = state->object_motion_pass;
@@ -456,8 +481,11 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
       kobject.motion_offset = state->motion_offset[ob->index];
 
       /* Decompose transforms for interpolation. */
-      DecomposedTransform *decomp = state->object_motion + kobject.motion_offset;
-      transform_motion_decompose(decomp, ob->motion.data(), ob->motion.size());
+      if (ob->tfm_is_modified() || update_all) {
+        DecomposedTransform *decomp = state->object_motion + kobject.motion_offset;
+        transform_motion_decompose(decomp, ob->motion.data(), ob->motion.size());
+      }
+
       flag |= SD_OBJECT_MOTION;
       state->have_motion = true;
     }
@@ -480,10 +508,14 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
                          0;
   kobject.patch_map_offset = 0;
   kobject.attribute_map_offset = 0;
-  uint32_t hash_name = util_murmur_hash3(ob->name.c_str(), ob->name.length(), 0);
-  uint32_t hash_asset = util_murmur_hash3(ob->asset_name.c_str(), ob->asset_name.length(), 0);
-  kobject.cryptomatte_object = util_hash_to_float(hash_name);
-  kobject.cryptomatte_asset = util_hash_to_float(hash_asset);
+
+  if (ob->asset_name_is_modified() || update_all) {
+    uint32_t hash_name = util_murmur_hash3(ob->name.c_str(), ob->name.length(), 0);
+    uint32_t hash_asset = util_murmur_hash3(ob->asset_name.c_str(), ob->asset_name.length(), 0);
+    kobject.cryptomatte_object = util_hash_to_float(hash_name);
+    kobject.cryptomatte_asset = util_hash_to_float(hash_asset);
+  }
+
   kobject.shadow_terminator_offset = 1.0f / (1.0f - 0.5f * ob->shadow_terminator_offset);
 
   /* Object flag. */
@@ -544,6 +576,9 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
     numparticles += psys->particles.size();
   }
 
+  /* as all the arrays are the same size, checking only dscene.objects is sufficient */
+  const bool update_all = dscene->objects.need_realloc();
+
   /* Parallel object update, with grain size to avoid too much threading overhead
    * for individual objects. */
   static const int OBJECTS_PER_TASK = 32;
@@ -551,7 +586,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
                [&](const blocked_range<size_t> &r) {
                  for (size_t i = r.begin(); i != r.end(); i++) {
                    Object *ob = state.scene->objects[i];
-                   device_update_object_transform(&state, ob);
+                   device_update_object_transform(&state, ob, update_all);
                  }
                });
 
@@ -559,7 +594,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
     return;
   }
 
-  dscene->objects.copy_to_device();
+  dscene->objects.copy_to_device_if_modified();
   if (state.need_motion == Scene::MOTION_PASS) {
     dscene->object_motion_pass.copy_to_device();
   }
@@ -569,6 +604,10 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
 
   dscene->data.bvh.have_motion = state.have_motion;
   dscene->data.bvh.have_curves = state.have_curves;
+
+  dscene->objects.clear_modified();
+  dscene->object_motion_pass.clear_modified();
+  dscene->object_motion.clear_modified();
 }
 
 void ObjectManager::device_update(Device *device,
@@ -576,12 +615,28 @@ void ObjectManager::device_update(Device *device,
                                   Scene *scene,
                                   Progress &progress)
 {
-  if (!need_update)
+  if (!need_update())
     return;
+
+  if (update_flags & (OBJECT_ADDED | OBJECT_REMOVED)) {
+    dscene->objects.tag_realloc();
+    dscene->object_motion_pass.tag_realloc();
+    dscene->object_motion.tag_realloc();
+    dscene->object_flag.tag_realloc();
+    dscene->object_volume_step.tag_realloc();
+  }
+
+  if (update_flags & HOLDOUT_MODIFIED) {
+    dscene->object_flag.tag_modified();
+  }
+
+  if (update_flags & PARTICLE_MODIFIED) {
+    dscene->objects.tag_modified();
+  }
 
   VLOG(1) << "Total " << scene->objects.size() << " objects.";
 
-  device_free(device, dscene);
+  device_free(device, dscene, false);
 
   if (scene->objects.size() == 0)
     return;
@@ -597,6 +652,16 @@ void ObjectManager::device_update(Device *device,
     int index = 0;
     foreach (Object *object, scene->objects) {
       object->index = index++;
+
+      /* this is a bit too broad, however a bigger refactor might be needed to properly separate
+       * update each type of data (transform, flags, etc.) */
+      if (object->is_modified()) {
+        dscene->objects.tag_modified();
+        dscene->object_motion_pass.tag_modified();
+        dscene->object_motion.tag_modified();
+        dscene->object_flag.tag_modified();
+        dscene->object_volume_step.tag_modified();
+      }
     }
   }
 
@@ -638,7 +703,7 @@ void ObjectManager::device_update(Device *device,
 void ObjectManager::device_update_flags(
     Device *, DeviceScene *dscene, Scene *scene, Progress & /*progress*/, bool bounds_valid)
 {
-  if (!need_update && !need_flags_update)
+  if (!need_update() && !need_flags_update)
     return;
 
   scoped_callback_timer timer([scene](double time) {
@@ -647,7 +712,7 @@ void ObjectManager::device_update_flags(
     }
   });
 
-  need_update = false;
+  update_flags = UPDATE_NONE;
   need_flags_update = false;
 
   if (scene->objects.size() == 0)
@@ -717,6 +782,9 @@ void ObjectManager::device_update_flags(
   /* Copy object flag. */
   dscene->object_flag.copy_to_device();
   dscene->object_volume_step.copy_to_device();
+
+  dscene->object_flag.clear_modified();
+  dscene->object_volume_step.clear_modified();
 }
 
 void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Scene *scene)
@@ -764,13 +832,13 @@ void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Sc
   }
 }
 
-void ObjectManager::device_free(Device *, DeviceScene *dscene)
+void ObjectManager::device_free(Device *, DeviceScene *dscene, bool force_free)
 {
-  dscene->objects.free();
-  dscene->object_motion_pass.free();
-  dscene->object_motion.free();
-  dscene->object_flag.free();
-  dscene->object_volume_step.free();
+  dscene->objects.free_if_need_realloc(force_free);
+  dscene->object_motion_pass.free_if_need_realloc(force_free);
+  dscene->object_motion.free_if_need_realloc(force_free);
+  dscene->object_flag.free_if_need_realloc(force_free);
+  dscene->object_volume_step.free_if_need_realloc(force_free);
 }
 
 void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, Progress &progress)
@@ -841,11 +909,21 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
   }
 }
 
-void ObjectManager::tag_update(Scene *scene)
+void ObjectManager::tag_update(Scene *scene, uint32_t flag)
 {
-  need_update = true;
-  scene->geometry_manager->need_update = true;
-  scene->light_manager->need_update = true;
+  update_flags |= flag;
+
+  /* avoid infinite loops if the geometry manager tagged us for an update */
+  if ((flag & GEOMETRY_MANAGER) == 0) {
+    scene->geometry_manager->tag_update(scene, GeometryManager::OBJECT_MANAGER);
+  }
+
+  scene->light_manager->tag_update(scene, LightManager::OBJECT_MANAGER);
+}
+
+bool ObjectManager::need_update() const
+{
+  return update_flags != UPDATE_NONE;
 }
 
 string ObjectManager::get_cryptomatte_objects(Scene *scene)

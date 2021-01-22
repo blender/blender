@@ -855,10 +855,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *ha
     hair->set_value(socket, new_hair, socket);
   }
 
-  hair->attributes.clear();
-  foreach (Attribute &attr, new_hair.attributes.attributes) {
-    hair->attributes.attributes.push_back(std::move(attr));
-  }
+  hair->attributes.update(std::move(new_hair.attributes));
 
   /* tag update */
 

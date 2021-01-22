@@ -17,9 +17,11 @@
 #include "render/integrator.h"
 #include "device/device.h"
 #include "render/background.h"
+#include "render/camera.h"
 #include "render/film.h"
 #include "render/jitter.h"
 #include "render/light.h"
+#include "render/object.h"
 #include "render/scene.h"
 #include "render/shader.h"
 #include "render/sobol.h"
@@ -112,6 +114,10 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
       scene->update_stats->integrator.times.add_entry({"device_update", time});
     }
   });
+
+  if (sampling_pattern_is_modified()) {
+    dscene->sample_pattern_lut.tag_realloc();
+  }
 
   device_free(device, dscene);
 
@@ -242,45 +248,63 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   int dimensions = PRNG_BASE_NUM + max_samples * PRNG_BOUNCE_NUM;
   dimensions = min(dimensions, SOBOL_MAX_DIMENSIONS);
 
-  if (sampling_pattern == SAMPLING_PATTERN_SOBOL) {
-    uint *directions = dscene->sample_pattern_lut.alloc(SOBOL_BITS * dimensions);
+  if (sampling_pattern_is_modified()) {
+    if (sampling_pattern == SAMPLING_PATTERN_SOBOL) {
+      uint *directions = dscene->sample_pattern_lut.alloc(SOBOL_BITS * dimensions);
 
-    sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
+      sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
 
-    dscene->sample_pattern_lut.copy_to_device();
-  }
-  else {
-    constexpr int sequence_size = NUM_PMJ_SAMPLES;
-    constexpr int num_sequences = NUM_PMJ_PATTERNS;
-    float2 *directions = (float2 *)dscene->sample_pattern_lut.alloc(sequence_size * num_sequences *
-                                                                    2);
-    TaskPool pool;
-    for (int j = 0; j < num_sequences; ++j) {
-      float2 *sequence = directions + j * sequence_size;
-      pool.push(
-          function_bind(&progressive_multi_jitter_02_generate_2D, sequence, sequence_size, j));
+      dscene->sample_pattern_lut.copy_to_device();
     }
-    pool.wait_work();
-    dscene->sample_pattern_lut.copy_to_device();
+    else {
+      constexpr int sequence_size = NUM_PMJ_SAMPLES;
+      constexpr int num_sequences = NUM_PMJ_PATTERNS;
+      float2 *directions = (float2 *)dscene->sample_pattern_lut.alloc(sequence_size *
+                                                                      num_sequences * 2);
+      TaskPool pool;
+      for (int j = 0; j < num_sequences; ++j) {
+        float2 *sequence = directions + j * sequence_size;
+        pool.push(
+            function_bind(&progressive_multi_jitter_02_generate_2D, sequence, sequence_size, j));
+      }
+      pool.wait_work();
+      dscene->sample_pattern_lut.copy_to_device();
+    }
   }
 
   clear_modified();
 }
 
-void Integrator::device_free(Device *, DeviceScene *dscene)
+void Integrator::device_free(Device *, DeviceScene *dscene, bool force_free)
 {
-  dscene->sample_pattern_lut.free();
+  dscene->sample_pattern_lut.free_if_need_realloc(force_free);
 }
 
-void Integrator::tag_update(Scene *scene)
+void Integrator::tag_update(Scene *scene, uint32_t flag)
 {
-  foreach (Shader *shader, scene->shaders) {
-    if (shader->has_integrator_dependency) {
-      scene->shader_manager->need_update = true;
-      break;
+  if (flag & UPDATE_ALL) {
+    tag_modified();
+  }
+
+  if (flag & (AO_PASS_MODIFIED | BACKGROUND_AO_MODIFIED)) {
+    /* tag only the ao_bounces socket as modified so we avoid updating sample_pattern_lut
+     * unnecessarily */
+    tag_ao_bounces_modified();
+  }
+
+  if (filter_glossy_is_modified()) {
+    foreach (Shader *shader, scene->shaders) {
+      if (shader->has_integrator_dependency) {
+        scene->shader_manager->tag_update(scene, ShaderManager::INTEGRATOR_MODIFIED);
+        break;
+      }
     }
   }
-  tag_modified();
+
+  if (motion_blur_is_modified()) {
+    scene->object_manager->tag_update(scene, ObjectManager::MOTION_BLUR_MODIFIED);
+    scene->camera->tag_modified();
+  }
 }
 
 CCL_NAMESPACE_END

@@ -552,7 +552,6 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
       int seed = scene->integrator->get_seed();
       seed += hash_uint2(seed, hash_uint2(view_index * 0xdeadbeef, 0));
       scene->integrator->set_seed(seed);
-      scene->integrator->tag_update(scene);
     }
 
     /* Update number of samples per layer. */
@@ -1115,10 +1114,6 @@ void BlenderSession::update_resumable_tile_manager(int num_samples)
           << "number of samples to render is " << range_num_samples;
 
   scene->integrator->set_start_sample(rounded_range_start_sample);
-
-  if (scene->integrator->is_modified()) {
-    scene->integrator->tag_update(scene);
-  }
 
   session->tile_manager.range_start_sample = rounded_range_start_sample;
   session->tile_manager.range_num_samples = rounded_range_num_samples;

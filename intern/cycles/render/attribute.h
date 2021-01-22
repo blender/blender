@@ -54,6 +54,8 @@ class Attribute {
   AttributeElement element;
   uint flags; /* enum AttributeFlag */
 
+  bool modified;
+
   Attribute(ustring name,
             TypeDesc type,
             AttributeElement element,
@@ -159,6 +161,8 @@ class Attribute {
   void add(const Transform &tfm);
   void add(const char *data);
 
+  void set_data_from(Attribute &&other);
+
   static bool same_storage(TypeDesc a, TypeDesc b);
   static const char *standard_name(AttributeStandard std);
   static AttributeStandard name_standard(const char *name);
@@ -194,6 +198,12 @@ class AttributeSet {
 
   void resize(bool reserve_only = false);
   void clear(bool preserve_voxel_data = false);
+
+  /* Update the attributes in this AttributeSet with the ones from the new set,
+   * and remove any attribute not found on the new set from this. */
+  void update(AttributeSet &&new_attributes);
+
+  void clear_modified();
 };
 
 /* AttributeRequest
