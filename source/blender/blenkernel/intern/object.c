@@ -3527,9 +3527,6 @@ static void solve_parenting(
   }
 }
 
-/**
- * \note scene is the active scene while actual_scene is the scene the object resides in.
- */
 static void object_where_is_calc_ex(Depsgraph *depsgraph,
                                     Scene *scene,
                                     Object *ob,

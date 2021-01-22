@@ -607,7 +607,6 @@ Object *ED_object_add_type_with_obdata(bContext *C,
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  /* For as long scene has editmode... */
   {
     Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
     if (obedit != NULL) {

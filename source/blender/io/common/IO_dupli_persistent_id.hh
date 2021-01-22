@@ -41,7 +41,7 @@ class PersistentID {
   PersistentID();
   explicit PersistentID(const DupliObject *dupli_ob);
 
-  /* Return true iff the persistent IDs are the same, ignoring the first digit. */
+  /* Return true if the persistent IDs are the same, ignoring the first digit. */
   bool is_from_same_instancer_as(const PersistentID &other) const;
 
   /* Construct the persistent ID of this instance's instancer. */

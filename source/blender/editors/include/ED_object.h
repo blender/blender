@@ -159,7 +159,7 @@ extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
 #endif
 
-/* Set the object's parent, return true iff successful. */
+/* Set the object's parent, return true if successful. */
 bool ED_object_parent_set(struct ReportList *reports,
                           const struct bContext *C,
                           struct Scene *scene,
