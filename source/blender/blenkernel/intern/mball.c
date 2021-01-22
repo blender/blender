@@ -204,6 +204,8 @@ IDTypeInfo IDType_ID_MB = {
     .blend_read_expand = metaball_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 /* Functions */

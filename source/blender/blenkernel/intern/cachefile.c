@@ -142,6 +142,8 @@ IDTypeInfo IDType_ID_CF = {
     .blend_read_expand = NULL,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 /* TODO: make this per cache file to avoid global locks. */

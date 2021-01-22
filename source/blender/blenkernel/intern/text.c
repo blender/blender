@@ -258,6 +258,8 @@ IDTypeInfo IDType_ID_TXT = {
     .blend_read_expand = NULL,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 /** \} */

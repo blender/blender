@@ -298,6 +298,8 @@ IDTypeInfo IDType_ID_AC = {
     .blend_read_expand = action_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 /* ***************** Library data level operations on action ************** */

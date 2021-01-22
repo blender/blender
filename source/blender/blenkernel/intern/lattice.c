@@ -205,6 +205,8 @@ IDTypeInfo IDType_ID_LT = {
     .blend_read_expand = lattice_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 int BKE_lattice_index_from_uvw(Lattice *lt, const int u, const int v, const int w)

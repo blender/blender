@@ -112,6 +112,8 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     .blend_read_expand = NULL,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 /* GS reads the memory pointed at in a specific ordering.

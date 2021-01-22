@@ -410,6 +410,8 @@ IDTypeInfo IDType_ID_BR = {
     .blend_read_expand = brush_blend_read_expand,
 
     .blend_read_undo_preserve = brush_undo_preserve,
+
+    .lib_override_apply_post = NULL,
 };
 
 static RNG *brush_rng;

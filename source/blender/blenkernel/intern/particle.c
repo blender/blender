@@ -511,6 +511,8 @@ IDTypeInfo IDType_ID_PA = {
     .blend_read_expand = particle_settings_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];

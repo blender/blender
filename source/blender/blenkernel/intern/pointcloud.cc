@@ -190,6 +190,8 @@ IDTypeInfo IDType_ID_PT = {
     /* blend_read_expand */ pointcloud_blend_read_expand,
 
     /* blend_read_undo_preserve */ nullptr,
+
+    /* lib_override_apply_post */ nullptr,
 };
 
 static void pointcloud_random(PointCloud *pointcloud)

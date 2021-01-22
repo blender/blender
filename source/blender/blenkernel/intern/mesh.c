@@ -364,6 +364,8 @@ IDTypeInfo IDType_ID_ME = {
     .blend_read_expand = mesh_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 enum {

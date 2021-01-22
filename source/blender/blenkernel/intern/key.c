@@ -223,6 +223,8 @@ IDTypeInfo IDType_ID_KE = {
     .blend_read_expand = shapekey_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 #define KEY_MODE_DUMMY 0 /* use where mode isn't checked for */
