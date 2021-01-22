@@ -152,7 +152,9 @@ void ED_object_base_activate_with_mode_exit_if_needed(bContext *C, Base *base)
   if (obedit) {
     Object *ob = base->object;
     if (((ob->mode & OB_MODE_EDIT) == 0) || (obedit->type != ob->type)) {
-      ED_object_editmode_exit(C, EM_FREEDATA);
+      Main *bmain = CTX_data_main(C);
+      Scene *scene = CTX_data_scene(C);
+      ED_object_editmode_exit_multi_ex(bmain, scene, view_layer, EM_FREEDATA);
     }
   }
   ED_object_base_activate(C, base);
