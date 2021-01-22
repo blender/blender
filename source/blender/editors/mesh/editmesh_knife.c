@@ -3067,8 +3067,6 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
 {
   KnifeTool_OpData *kcd;
 
-  view3d_operator_needs_opengl(C);
-
   /* init */
   {
     const bool only_select = false;
