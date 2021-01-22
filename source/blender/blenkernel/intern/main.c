@@ -280,6 +280,17 @@ void BKE_main_relations_create(Main *bmain, const short flag)
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     const int idwalk_flag = IDWALK_READONLY |
                             ((flag & MAINIDRELATIONS_INCLUDE_UI) != 0 ? IDWALK_INCLUDE_UI : 0);
+
+    /* Ensure all IDs do have an entry, even if they are not connected to any other. */
+    MainIDRelationsEntry **entry_p;
+    if (!BLI_ghash_ensure_p(bmain->relations->relations_from_pointers, id, (void ***)&entry_p)) {
+      *entry_p = MEM_callocN(sizeof(**entry_p), __func__);
+      (*entry_p)->session_uuid = id->session_uuid;
+    }
+    else {
+      BLI_assert((*entry_p)->session_uuid == id->session_uuid);
+    }
+
     BKE_library_foreach_ID_link(
         NULL, id, main_relations_create_idlink_cb, bmain->relations, idwalk_flag);
   }
