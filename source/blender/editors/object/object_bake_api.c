@@ -1062,10 +1062,10 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
       bake_result_to_rgba(rgba, &result[mloop->v * num_channels], num_channels);
 
       if (is_noncolor) {
-        linearrgb_to_srgb_uchar4(&mloopcol->r, rgba);
+        unit_float_to_uchar_clamp_v4(&mloopcol->r, rgba);
       }
       else {
-        unit_float_to_uchar_clamp_v4(&mloopcol->r, rgba);
+        linearrgb_to_srgb_uchar4(&mloopcol->r, rgba);
       }
     }
   }
