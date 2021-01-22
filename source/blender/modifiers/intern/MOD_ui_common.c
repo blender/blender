@@ -460,6 +460,7 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
   BLI_strncpy(panel_type->label, label, BKE_ST_MAXNAME);
   BLI_strncpy(panel_type->context, "modifier", BKE_ST_MAXNAME);
   BLI_strncpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
+  BLI_strncpy(panel_type->active_property, "is_active", BKE_ST_MAXNAME);
 
   panel_type->draw_header = draw_header;
   panel_type->draw = draw;
