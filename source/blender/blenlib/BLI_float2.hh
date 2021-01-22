@@ -55,11 +55,6 @@ struct float2 {
     return &x;
   }
 
-  operator float3() const
-  {
-    return float3(x, y, 0.0f);
-  }
-
   float length() const
   {
     return len_v2(*this);
