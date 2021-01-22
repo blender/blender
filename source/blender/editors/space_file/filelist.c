@@ -1954,7 +1954,13 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
 
   ret->entry = rev;
   ret->relpath = BLI_strdup(entry->relpath);
-  ret->name = entry->free_name ? BLI_strdup(entry->name) : entry->name;
+  if (entry->free_name) {
+    ret->name = BLI_strdup(entry->name);
+    ret->flags |= FILE_ENTRY_NAME_FREE;
+  }
+  else {
+    ret->name = entry->name;
+  }
   ret->description = BLI_strdupcat(filelist->filelist.root, entry->relpath);
   memcpy(ret->uuid, entry->uuid, sizeof(ret->uuid));
   ret->blentype = entry->blentype;
