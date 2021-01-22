@@ -173,6 +173,7 @@ void ED_object_parent_clear(struct Object *ob, const int type);
 
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode);
 void ED_object_base_activate(struct bContext *C, struct Base *base);
+void ED_object_base_activate_with_mode_exit_if_needed(struct bContext *C, struct Base *base);
 void ED_object_base_active_refresh(struct Main *bmain,
                                    struct Scene *scene,
                                    struct ViewLayer *view_layer);
