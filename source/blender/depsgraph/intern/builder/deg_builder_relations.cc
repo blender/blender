@@ -1797,7 +1797,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
                      RELATION_FLAG_GODMODE);
       }
 
-      /* Final transform is wherever solver gave to us. */
+      /* Final transform is whatever the solver gave to us. */
       if (object->rigidbody_object->type == RBO_TYPE_ACTIVE) {
         /* We do not have to update the objects final transform after the simulation if it is
          * passive or controlled by the animation system in blender.
