@@ -199,7 +199,8 @@ static DataTypeConversions create_implicit_conversions()
   add_implicit_conversion<float, Color4f>(
       conversions, "float to Color4f", [](float a) { return Color4f(a, a, a, 1.0f); });
 
-  add_implicit_conversion<float2, float3>(conversions);
+  add_implicit_conversion<float2, float3>(
+      conversions, "float2 to float3", [](float2 a) { return float3(a.x, a.y, 0.0f); });
   add_implicit_conversion<float2, float>(
       conversions, "float2 to float", [](float2 a) { return a.length(); });
   add_implicit_conversion<float2, int32_t>(
