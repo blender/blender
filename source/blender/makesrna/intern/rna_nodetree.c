@@ -8648,16 +8648,17 @@ static void def_geo_point_instance(StructRNA *srna)
   };
 
   PropertyRNA *prop;
+  RNA_def_struct_sdna_from(srna, "NodeGeometryPointInstance", "storage");
 
   prop = RNA_def_property(srna, "instance_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_sdna(prop, NULL, "instance_type");
   RNA_def_property_enum_items(prop, instance_type_items);
   RNA_def_property_enum_default(prop, GEO_NODE_POINT_INSTANCE_TYPE_OBJECT);
   RNA_def_property_ui_text(prop, "Instance Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "use_whole_collection", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "custom2", 1);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION);
   RNA_def_property_ui_text(prop, "Whole Collection", "Instance entire collection on each point");
   RNA_def_property_update(prop, 0, "rna_Node_socket_update");
 }

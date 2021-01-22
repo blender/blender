@@ -1611,6 +1611,24 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 3)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == GEO_NODE_POINT_INSTANCE && node->storage == NULL) {
+          NodeGeometryPointInstance *data = (NodeGeometryPointInstance *)MEM_callocN(
+              sizeof(NodeGeometryPointInstance), __func__);
+          data->instance_type = node->custom1;
+          data->flag = (node->custom2 ? 0 : GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION);
+          node->storage = data;
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

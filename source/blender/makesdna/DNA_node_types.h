@@ -1174,6 +1174,15 @@ typedef struct NodeGeometryObjectInfo {
   char _pad[7];
 } NodeGeometryObjectInfo;
 
+typedef struct NodeGeometryPointInstance {
+  /* GeometryNodePointInstanceType. */
+  uint8_t instance_type;
+  /* GeometryNodePointInstanceFlag. */
+  uint8_t flag;
+
+  char _pad[6];
+} NodeGeometryPointInstance;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -1585,6 +1594,10 @@ typedef enum GeometryNodePointInstanceType {
   GEO_NODE_POINT_INSTANCE_TYPE_OBJECT = 0,
   GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION = 1,
 } GeometryNodePointInstanceType;
+
+typedef enum GeometryNodePointInstanceFlag {
+  GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION = (1 << 0),
+} GeometryNodePointInstanceFlag;
 
 typedef enum GeometryNodeAttributeInputMode {
   GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE = 0,
