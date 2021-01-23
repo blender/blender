@@ -443,6 +443,16 @@ void UI_draw_roundbox_shade_x(bool filled,
                               float shadetop,
                               float shadedown,
                               const float col[4]);
+void UI_draw_roundbox_4fv_ex(float minx,
+                             float miny,
+                             float maxx,
+                             float maxy,
+                             const float inner1[4],
+                             const float inner2[4],
+                             float shade_dir,
+                             float outline[4],
+                             float outline_width,
+                             float rad);
 
 #if 0 /* unused */
 int UI_draw_roundbox_corner_get(void);

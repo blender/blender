@@ -844,6 +844,9 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
+    if (userdef->gizmo_size_navigate_v3d == 0) {
+      userdef->gizmo_size_navigate_v3d = 80;
+    }
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {

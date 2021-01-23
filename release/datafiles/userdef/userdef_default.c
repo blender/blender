@@ -131,6 +131,7 @@ const UserDef U_default = {
 
     .prefetchframes = 0,
     .pad_rot_angle = 15,
+    .gizmo_size_navigate_v3d = 80,
     .rvisize = 25,
     .rvibright = 8,
     .recent_files = 10,

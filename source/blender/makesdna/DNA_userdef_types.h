@@ -773,7 +773,9 @@ typedef struct UserDef {
   int prefetchframes;
   /** Control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use. */
   float pad_rot_angle;
-  char _pad12[4];
+  /** Navigate gizmo size. */
+  char gizmo_size_navigate_v3d;
+  char _pad12[3];
   /** Rotating view icon size. */
   short rvisize;
   /** Rotating view icon brightness. */

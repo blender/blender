@@ -81,6 +81,57 @@ int UI_draw_roundbox_corner_get(void)
 }
 #endif
 
+void UI_draw_roundbox_4fv_ex(float minx,
+                             float miny,
+                             float maxx,
+                             float maxy,
+                             const float inner1[4],
+                             const float inner2[4],
+                             float shade_dir,
+                             float outline[4],
+                             float outline_width,
+                             float rad)
+{
+  /* WATCH: This is assuming the ModelViewProjectionMatrix is area pixel space.
+   * If it has been scaled, then it's no longer valid. */
+  uiWidgetBaseParameters widget_params = {
+      .recti.xmin = minx + outline_width,
+      .recti.ymin = miny + outline_width,
+      .recti.xmax = maxx - outline_width,
+      .recti.ymax = maxy - outline_width,
+      .rect.xmin = minx,
+      .rect.ymin = miny,
+      .rect.xmax = maxx,
+      .rect.ymax = maxy,
+      .radi = rad,
+      .rad = rad,
+      .round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
+      .round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
+      .round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
+      .round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
+      .color_inner1[0] = inner1 ? inner1[0] : 0.0f,
+      .color_inner1[1] = inner1 ? inner1[1] : 0.0f,
+      .color_inner1[2] = inner1 ? inner1[2] : 0.0f,
+      .color_inner1[3] = inner1 ? inner1[3] : 0.0f,
+      .color_inner2[0] = inner2 ? inner2[0] : inner1 ? inner1[0] : 0.0f,
+      .color_inner2[1] = inner2 ? inner2[1] : inner1 ? inner1[1] : 0.0f,
+      .color_inner2[2] = inner2 ? inner2[2] : inner1 ? inner1[2] : 0.0f,
+      .color_inner2[3] = inner2 ? inner2[3] : inner1 ? inner1[3] : 0.0f,
+      .color_outline[0] = outline ? outline[0] : inner1 ? inner1[0] : 0.0f,
+      .color_outline[1] = outline ? outline[1] : inner1 ? inner1[1] : 0.0f,
+      .color_outline[2] = outline ? outline[2] : inner1 ? inner1[2] : 0.0f,
+      .color_outline[3] = outline ? outline[3] : inner1 ? inner1[3] : 0.0f,
+      .shade_dir = shade_dir,
+      .alpha_discard = 1.0f,
+  };
+  GPUBatch *batch = ui_batch_roundbox_widget_get();
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
+  GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float(*)[4]) & widget_params);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_batch_draw(batch);
+  GPU_blend(GPU_BLEND_NONE);
+}
+
 void UI_draw_roundbox_3ub_alpha(bool filled,
                                 float minx,
                                 float miny,
