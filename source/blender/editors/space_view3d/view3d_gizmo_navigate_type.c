@@ -352,6 +352,16 @@ static int gizmo_axis_cursor_get(wmGizmo *UNUSED(gz))
   return WM_CURSOR_DEFAULT;
 }
 
+static void gizmo_axis_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
+{
+  ScrArea *area = CTX_wm_area(C);
+  const float rad = (40.0f * U.dpi_fac);
+  r_bounding_box->xmin = gz->matrix_basis[3][0] + area->totrct.xmin - rad;
+  r_bounding_box->ymin = gz->matrix_basis[3][1] + area->totrct.ymin - rad;
+  r_bounding_box->xmax = r_bounding_box->xmin + rad;
+  r_bounding_box->ymax = r_bounding_box->ymin + rad;
+}
+
 void VIEW3D_GT_navigate_rotate(wmGizmoType *gzt)
 {
   /* identifiers */
@@ -361,6 +371,7 @@ void VIEW3D_GT_navigate_rotate(wmGizmoType *gzt)
   gzt->draw = gizmo_axis_draw;
   gzt->test_select = gizmo_axis_test_select;
   gzt->cursor_get = gizmo_axis_cursor_get;
+  gzt->screen_bounds_get = gizmo_axis_bounds;
 
   gzt->struct_size = sizeof(wmGizmo);
 }

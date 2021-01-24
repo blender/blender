@@ -320,6 +320,16 @@ static int gizmo_button2d_cursor_get(wmGizmo *gz)
   return WM_CURSOR_DEFAULT;
 }
 
+static void gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
+{
+  ScrArea *area = CTX_wm_area(C);
+  float rad = CIRCLE_RESOLUTION * U.dpi_fac / 2.0f;
+  r_bounding_box->xmin = gz->matrix_basis[3][0] + area->totrct.xmin - rad;
+  r_bounding_box->ymin = gz->matrix_basis[3][1] + area->totrct.ymin - rad;
+  r_bounding_box->xmax = r_bounding_box->xmin + rad;
+  r_bounding_box->ymax = r_bounding_box->ymin + rad;
+}
+
 static void gizmo_button2d_free(wmGizmo *gz)
 {
   ButtonGizmo2D *shape = (ButtonGizmo2D *)gz;
@@ -346,6 +356,7 @@ static void GIZMO_GT_button_2d(wmGizmoType *gzt)
   gzt->draw_select = gizmo_button2d_draw_select;
   gzt->test_select = gizmo_button2d_test_select;
   gzt->cursor_get = gizmo_button2d_cursor_get;
+  gzt->screen_bounds_get = gizmo_button2d_bounds;
   gzt->free = gizmo_button2d_free;
 
   gzt->struct_size = sizeof(ButtonGizmo2D);
