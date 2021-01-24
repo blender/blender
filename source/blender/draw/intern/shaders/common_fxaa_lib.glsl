@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------------------------
  * File:        es3-kepler\FXAA/FXAA3_11.h
  * SDK Version: v3.00
- * Email:       gameworks@nvidia.com
+ * Email:       <gameworks@nvidia.com>
  * Site:        http://developer.nvidia.com/
  *
  * Copyright (c) 2014-2015, NVIDIA CORPORATION. All rights reserved.

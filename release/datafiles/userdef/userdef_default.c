@@ -119,6 +119,7 @@ const UserDef U_default = {
 
     .gizmo_flag = USER_GIZMO_DRAW,
     .gizmo_size = 75,
+    .gizmo_size_navigate_v3d = 80,
     .edit_studio_light = 0,
     .lookdev_sphere_size = 150,
     .vbotimeout = 120,
@@ -131,7 +132,6 @@ const UserDef U_default = {
 
     .prefetchframes = 0,
     .pad_rot_angle = 15,
-    .gizmo_size_navigate_v3d = 80,
     .rvisize = 25,
     .rvibright = 8,
     .recent_files = 10,

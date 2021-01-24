@@ -685,7 +685,7 @@ typedef enum IDRecalcFlag {
    * redraw update in that case. */
 
   /* Selection of the ID itself or its components (for example, vertices) did
-   * change, and all the drawing data is to eb updated. */
+   * change, and all the drawing data is to be updated. */
   ID_RECALC_SELECT = (1 << 9),
   /* Flags on the base did change, and is to be copied onto all the copies of
    * corresponding objects. */

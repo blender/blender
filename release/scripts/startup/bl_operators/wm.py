@@ -33,11 +33,6 @@ from bpy.props import (
 )
 from bpy.app.translations import pgettext_iface as iface_
 
-# FIXME, we need a way to detect key repeat events.
-# unfortunately checking event previous values isn't reliable.
-use_toolbar_release_hack = True
-
-
 rna_path_prop = StringProperty(
     name="Context Attributes",
     description="RNA context string",
@@ -1692,18 +1687,6 @@ class WM_OT_tool_set_by_id(Operator):
 
     space_type: rna_space_type_prop
 
-    if use_toolbar_release_hack:
-        def invoke(self, context, event):
-            # Hack :S
-            if not self.properties.is_property_set("name"):
-                WM_OT_toolbar._key_held = False
-                return {'PASS_THROUGH'}
-            elif (WM_OT_toolbar._key_held == event.type) and (event.value != 'RELEASE'):
-                return {'PASS_THROUGH'}
-            WM_OT_toolbar._key_held = None
-
-            return self.execute(context)
-
     def execute(self, context):
         from bl_ui.space_toolsystem_common import (
             activate_by_id,
@@ -1793,13 +1776,6 @@ class WM_OT_toolbar(Operator):
     @classmethod
     def poll(cls, context):
         return context.space_data is not None
-
-    if use_toolbar_release_hack:
-        _key_held = None
-
-        def invoke(self, context, event):
-            WM_OT_toolbar._key_held = event.type
-            return self.execute(context)
 
     @staticmethod
     def keymap_from_toolbar(context, space_type, use_fallback_keys=True, use_reset=True):

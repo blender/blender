@@ -1275,8 +1275,8 @@ void GeometryManager::device_update_bvh(Device *device,
       dscene->prim_tri_verts.give_data(pack.prim_tri_verts);
     }
     else {
-      /* it is not stricly necessary to skip those resizes we if do not have to repack, as the OS
-       * will not allocate pages if we do not touch them, however it does help catching bugs */
+      /* It is not strictly necessary to skip those resizes we if do not have to repack, as the OS
+       * will not allocate pages if we do not touch them, however it does help catching bugs. */
       pack.prim_tri_index.resize(num_prims);
       pack.prim_tri_verts.resize(num_tri_verts);
       pack.prim_type.resize(num_prims);

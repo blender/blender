@@ -160,7 +160,7 @@ static RobustInitCaller init_caller;
  * Carnegie Mellon University
  * 5000 Forbes Avenue
  * Pittsburgh, Pennsylvania  15213-3891
- * jrs@cs.cmu.edu
+ * <jrs@cs.cmu.edu>
  *
  * This file contains C implementation of algorithms for exact addition
  * and multiplication of floating-point numbers, and predicates for

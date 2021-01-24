@@ -19,7 +19,7 @@
  * and:
  *     OGF/Graphite: Geometry and Graphics Programming Library + Utilities
  *     Copyright (C) 2000-2003 Bruno Levy
- *     Contact: Bruno Levy levy@loria.fr
+ *     Contact: Bruno Levy <levy@loria.fr>
  *         ISA Project
  *         LORIA, INRIA Lorraine,
  *         Campus Scientifique, BP 239

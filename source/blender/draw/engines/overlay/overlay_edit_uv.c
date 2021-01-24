@@ -228,7 +228,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       GPUShader *sh = OVERLAY_shader_edit_uv_verts_get();
       pd->edit_uv_verts_grp = DRW_shgroup_create(sh, psl->edit_uv_verts_ps);
 
-      const float point_size = UI_GetThemeValuef(TH_VERTEX_SIZE);
+      const float point_size = UI_GetThemeValuef(TH_VERTEX_SIZE) * U.dpi_fac;
 
       DRW_shgroup_uniform_block(pd->edit_uv_verts_grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_float_copy(
@@ -248,7 +248,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
     /* uv face dots */
     if (pd->edit_uv.do_face_dots) {
-      const float point_size = UI_GetThemeValuef(TH_FACEDOT_SIZE);
+      const float point_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) * U.dpi_fac;
       GPUShader *sh = OVERLAY_shader_edit_uv_face_dots_get();
       pd->edit_uv_face_dots_grp = DRW_shgroup_create(sh, psl->edit_uv_verts_ps);
       DRW_shgroup_uniform_block(pd->edit_uv_face_dots_grp, "globalsBlock", G_draw.block_ubo);
