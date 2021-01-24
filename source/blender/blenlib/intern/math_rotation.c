@@ -1581,7 +1581,7 @@ void quat_to_compatible_eul(float eul[3], const float oldrot[3], const float qua
  * was adapted from
  *      ANSI C code from the article
  *      "Euler Angle Conversion"
- *      by Ken Shoemake, shoemake@graphics.cis.upenn.edu
+ *      by Ken Shoemake <shoemake@graphics.cis.upenn.edu>
  *      in "Graphics Gems IV", Academic Press, 1994
  * for use in Blender
  */

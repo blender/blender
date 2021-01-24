@@ -17,7 +17,7 @@
  *   GXML/Graphite: Geometry and Graphics Programming Library + Utilities
  *   Copyright (C) 2000 Bruno Levy
  *   Contact: Bruno Levy
- *      levy@loria.fr
+ *      <levy@loria.fr>
  *      ISA Project
  *      LORIA, INRIA Lorraine,
  *      Campus Scientifique, BP 239

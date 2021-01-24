@@ -25,7 +25,7 @@
  * Original license from NVIDIA follows.
  */
 
-// This code is in the public domain -- castanyo@yahoo.es
+// This code is in the public domain -- <castanyo@yahoo.es>
 
 #pragma once
 

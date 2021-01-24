@@ -263,7 +263,7 @@ static void build_bvh_spatial(PROCESS *process,
  * BASED AT CODE (but mostly rewritten) :
  * C code from the article
  * "An Implicit Surface Polygonizer"
- * by Jules Bloomenthal, jbloom@beauty.gmu.edu
+ * by Jules Bloomenthal <jbloom@beauty.gmu.edu>
  * in "Graphics Gems IV", Academic Press, 1994
  *
  * Authored by Jules Bloomenthal, Xerox PARC.
