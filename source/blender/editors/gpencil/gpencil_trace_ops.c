@@ -87,6 +87,7 @@ typedef struct TraceJob {
   bGPDlayer *gpl;
 
   bool was_ob_created;
+  bool use_current_frame;
 
   int32_t frame_target;
   float threshold;
@@ -228,15 +229,17 @@ static void trace_start_job(void *customdata, short *stop, short *do_update, flo
   trace_job->do_update = do_update;
   trace_job->progress = progress;
   trace_job->was_canceled = false;
+  const int init_frame = max_ii((trace_job->use_current_frame) ? trace_job->frame_target : 0, 0);
 
   G.is_break = false;
 
   /* Single Image. */
-
   if ((trace_job->image->source == IMA_SRC_FILE) ||
       (trace_job->mode == GPENCIL_TRACE_MODE_SINGLE)) {
     void *lock;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(trace_job->image, NULL, &lock);
+    ImageUser *iuser = trace_job->ob_active->iuser;
+    iuser->framenr = init_frame;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(trace_job->image, iuser, &lock);
     if (ibuf) {
       /* Create frame. */
       bGPDframe *gpf = BKE_gpencil_layer_frame_get(
@@ -249,7 +252,7 @@ static void trace_start_job(void *customdata, short *stop, short *do_update, flo
   /* Image sequence. */
   else if (trace_job->image->type == IMA_TYPE_IMAGE) {
     ImageUser *iuser = trace_job->ob_active->iuser;
-    for (int i = 0; i < iuser->frames; i++) {
+    for (int i = init_frame; i < iuser->frames; i++) {
       if (G.is_break) {
         trace_job->was_canceled = true;
         break;
@@ -320,6 +323,7 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
   job->ob_active = job->base_active->object;
   job->image = (Image *)job->ob_active->data;
   job->frame_target = CFRA;
+  job->use_current_frame = RNA_boolean_get(op->ptr, "use_current_frame");
 
   /* Create a new grease pencil object or reuse selected. */
   eGP_TargetObjectMode target = RNA_enum_get(op->ptr, "target");
@@ -493,4 +497,9 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
                GPENCIL_TRACE_MODE_SINGLE,
                "Mode",
                "Determines if trace simple image or full sequence");
+  RNA_def_boolean(ot->srna,
+                  "use_current_frame",
+                  true,
+                  "Start At Current Frame",
+                  "Trace Image starting in current image frame");
 }
