@@ -225,7 +225,8 @@ static const char *dropbox_active(bContext *C,
       if (handler->dropboxes) {
         LISTBASE_FOREACH (wmDropBox *, drop, handler->dropboxes) {
           const char *tooltip = NULL;
-          if (drop->poll(C, drag, event, &tooltip)) {
+          if (drop->poll(C, drag, event, &tooltip) &&
+              WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
             /* XXX Doing translation here might not be ideal, but later we have no more
              *     access to ot (and hence op context)... */
             return (tooltip) ? tooltip : WM_operatortype_name(drop->ot, drop->ptr);
