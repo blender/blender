@@ -489,7 +489,7 @@ static bool view3d_drop_id_in_main_region_poll(bContext *C,
     return false;
   }
 
-  return WM_drag_get_local_ID(drag, id_type) || WM_drag_get_asset_data(drag, id_type);
+  return WM_drag_is_ID_type(drag, id_type);
 }
 
 static bool view3d_ob_drop_poll(bContext *C,
@@ -544,7 +544,7 @@ static bool view3d_ima_drop_poll(bContext *C,
     return (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE));
   }
 
-  return WM_drag_get_local_ID(drag, ID_IM) || WM_drag_get_asset_data(drag, ID_IM);
+  return WM_drag_is_ID_type(drag, ID_IM);
 }
 
 static bool view3d_ima_bg_is_camera_view(bContext *C)

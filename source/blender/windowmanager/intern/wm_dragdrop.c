@@ -353,6 +353,14 @@ ID *WM_drag_get_local_ID_from_event(const wmEvent *event, short idcode)
   return WM_drag_get_local_ID(lb->first, idcode);
 }
 
+/**
+ * Check if the drag data is either a local ID or an external ID asset of type \a idcode.
+ */
+bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
+{
+  return WM_drag_get_local_ID(drag, idcode) || WM_drag_get_asset_data(drag, idcode);
+}
+
 wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)
 {
   if (drag->type != WM_DRAG_ASSET) {

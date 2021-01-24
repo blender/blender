@@ -664,7 +664,7 @@ static bool node_ima_drop_poll(bContext *UNUSED(C),
     /* rule might not work? */
     return (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE));
   }
-  return WM_drag_get_local_ID(drag, ID_IM) || WM_drag_get_asset_data(drag, ID_IM);
+  return WM_drag_is_ID_type(drag, ID_IM);
 }
 
 static bool node_mask_drop_poll(bContext *UNUSED(C),
@@ -672,7 +672,7 @@ static bool node_mask_drop_poll(bContext *UNUSED(C),
                                 const wmEvent *UNUSED(event),
                                 const char **UNUSED(r_tooltip))
 {
-  return WM_drag_get_local_ID(drag, ID_MSK) || WM_drag_get_asset_data(drag, ID_MSK);
+  return WM_drag_is_ID_type(drag, ID_MSK);
 }
 
 static void node_id_drop_copy(wmDrag *drag, wmDropBox *drop)

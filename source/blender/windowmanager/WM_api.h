@@ -685,6 +685,7 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 void WM_drag_add_local_ID(struct wmDrag *drag, struct ID *id, struct ID *from_parent);
 struct ID *WM_drag_get_local_ID(const struct wmDrag *drag, short idcode);
 struct ID *WM_drag_get_local_ID_from_event(const struct wmEvent *event, short idcode);
+bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
 
 struct wmDragAsset *WM_drag_get_asset_data(const struct wmDrag *drag, int idcode);
 struct ID *WM_drag_get_local_ID_or_import_from_asset(const struct wmDrag *drag, int idcode);
