@@ -74,8 +74,6 @@ def generate(context, space_type, use_fallback_keys=True, use_reset=True):
     if tap_reset_tool not in items_all_id:
         use_tap_reset = False
 
-    from bl_operators.wm import use_toolbar_release_hack
-
     # Pie-menu style release to activate.
     use_release_confirm = use_reset
 
@@ -437,7 +435,7 @@ def generate(context, space_type, use_fallback_keys=True, use_reset=True):
 
         kmi = keymap.keymap_items.new(
             "wm.tool_set_by_id",
-            value='PRESS' if use_toolbar_release_hack else 'DOUBLE_CLICK',
+            value='DOUBLE_CLICK',
             **kmi_toolbar_args_available,
         )
         kmi.properties.name = tap_reset_tool
@@ -451,15 +449,6 @@ def generate(context, space_type, use_fallback_keys=True, use_reset=True):
         )
         kmi.properties.skip_depressed = True
 
-        if use_toolbar_release_hack:
-            # ... or pass through to let the toolbar know we're released.
-            # Let the operator know we're released.
-            kmi = keymap.keymap_items.new(
-                "wm.tool_set_by_id",
-                type=kmi_toolbar_type,
-                value='RELEASE',
-                any=True,
-            )
 
     wm.keyconfigs.update()
     return keymap
