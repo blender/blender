@@ -672,12 +672,12 @@ static bool node_mask_drop_poll(bContext *UNUSED(C),
                                 const wmEvent *UNUSED(event),
                                 const char **UNUSED(r_tooltip))
 {
-  return WM_drag_get_local_ID(drag, ID_MSK) != NULL;
+  return WM_drag_get_local_ID(drag, ID_MSK) || WM_drag_get_asset_data(drag, ID_MSK);
 }
 
 static void node_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-  ID *id = WM_drag_get_local_ID(drag, 0);
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
   RNA_string_set(drop->ptr, "name", id->name + 2);
 }
