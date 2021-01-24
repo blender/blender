@@ -7211,14 +7211,14 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
  *
  * where edges are A, B, and C, following a face around vertices a, b, c, d.
  * th1 is angle abc and th2 is angle bcd;
- * and the argument EdgeHalf eb is B, going from b to c.
+ * and the argument `EdgeHalf eb` is B, going from b to c.
  * In general case, edge offset specs for A, B, C have
  * the form ka*t, kb*t, kc*t where ka, kb, kc are some factors
  * (may be 0) and t is the current bp->offset.
  * We want to calculate t at which the clone of B parallel
  * to it collapses. This can be calculated using trig.
  * Another case of geometry collision that can happen is
- * When B slides along A because A is unbeveled.
+ * When B slides along A because A is un-beveled.
  * Then it might collide with a.  Similarly for B sliding along C.
  */
 static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)

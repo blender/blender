@@ -109,7 +109,7 @@ class GHOST_DropTargetX11 {
   /* class holding internal stiff of xdnd library */
   static DndClass m_dndClass;
 
-  /* list of supported types to eb draggeg into */
+  /* list of supported types to be dragged into */
   static Atom *m_dndTypes;
 
   /* list of supported dran'n'drop actions */

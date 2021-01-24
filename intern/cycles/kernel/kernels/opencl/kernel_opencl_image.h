@@ -18,7 +18,7 @@
 /* Data type to replace `double` used in the NanoVDB headers. Cycles don't need doubles, and is
  * safer and more portable to never use double datatype on GPU.
  * Use a special structure, so that the following is true:
- * - No unnoticed implicit cast or mathermatical operations used on scalar 64bit type
+ * - No unnoticed implicit cast or mathematical operations used on scalar 64bit type
  *   (which rules out trick like using `uint64_t` as a drop-in replacement for double).
  * - Padding rules are matching exactly `double`
  *   (which rules out array of `uint8_t`). */
