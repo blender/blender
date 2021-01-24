@@ -226,17 +226,15 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
     if (!is_aligned_back) {
       float *inner_color = fading_color;
       float *outline_color = fading_color;
+      float negative_color[4];
       if (!is_pos) {
-        float negative_color[4];
         if (is_aligned_front) {
-          inner_color = fading_color;
           interp_v4_v4v4(
               negative_color, (float[4]){1.0f, 1.0f, 1.0f, 1.0f}, axis_color[axis], 0.5f);
           negative_color[3] = MIN2(depth + 1, 1.0f);
           outline_color = negative_color;
         }
         else {
-          outline_color = fading_color;
           interp_v4_v4v4(negative_color, view_color, axis_color[axis], 0.25f);
           negative_color[3] = MIN2(depth + 1, 1.0f);
           inner_color = negative_color;
