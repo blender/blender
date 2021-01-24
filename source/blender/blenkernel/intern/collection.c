@@ -362,6 +362,8 @@ IDTypeInfo IDType_ID_GR = {
     .blend_read_expand = collection_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 /** \} */

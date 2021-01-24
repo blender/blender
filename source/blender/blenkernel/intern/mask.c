@@ -270,6 +270,8 @@ IDTypeInfo IDType_ID_MSK = {
     .blend_read_expand = mask_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 static struct {

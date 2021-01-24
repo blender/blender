@@ -173,6 +173,8 @@ IDTypeInfo IDType_ID_SIM = {
     /* blend_read_expand */ simulation_blend_read_expand,
 
     /* blend_read_undo_preserve */ nullptr,
+
+    /* lib_override_apply_post */ nullptr,
 };
 
 void *BKE_simulation_add(Main *bmain, const char *name)

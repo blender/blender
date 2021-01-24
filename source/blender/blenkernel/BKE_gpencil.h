@@ -109,8 +109,11 @@ struct bGPDframe *BKE_gpencil_frame_addcopy(struct bGPDlayer *gpl, int cframe);
 struct bGPDlayer *BKE_gpencil_layer_addnew(struct bGPdata *gpd, const char *name, bool setactive);
 struct bGPdata *BKE_gpencil_data_addnew(struct Main *bmain, const char name[]);
 
-struct bGPDframe *BKE_gpencil_frame_duplicate(const struct bGPDframe *gpf_src);
-struct bGPDlayer *BKE_gpencil_layer_duplicate(const struct bGPDlayer *gpl_src);
+struct bGPDframe *BKE_gpencil_frame_duplicate(const struct bGPDframe *gpf_src,
+                                              const bool dup_strokes);
+struct bGPDlayer *BKE_gpencil_layer_duplicate(const struct bGPDlayer *gpl_src,
+                                              const bool dup_frames,
+                                              const bool dup_strokes);
 void BKE_gpencil_frame_copy_strokes(struct bGPDframe *gpf_src, struct bGPDframe *gpf_dst);
 struct bGPDcurve *BKE_gpencil_stroke_curve_duplicate(struct bGPDcurve *gpc_src);
 struct bGPDstroke *BKE_gpencil_stroke_duplicate(struct bGPDstroke *gps_src,

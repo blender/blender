@@ -45,14 +45,17 @@
 /** \name View3D Navigation Gizmo Group
  * \{ */
 
-/* Offset from screen edge. */
-#define GIZMO_OFFSET_FAC 1.2f
 /* Size of main icon. */
-#define GIZMO_SIZE 80
-/* Factor for size of smaller button. */
-#define GIZMO_MINI_FAC 0.35f
-/* How much mini buttons offset from the primary. */
-#define GIZMO_MINI_OFFSET_FAC 0.38f
+#define GIZMO_SIZE U.gizmo_size_navigate_v3d
+
+/* Main gizmo offset from screen edges in unscaled pixels. */
+#define GIZMO_OFFSET 10.0f
+
+/* Width of smaller buttons in unscaled pixels. */
+#define GIZMO_MINI_SIZE 28.0f
+
+/* Margin around the smaller buttons. */
+#define GIZMO_MINI_OFFSET 2.0f
 
 enum {
   GZ_INDEX_MOVE = 0,
@@ -174,7 +177,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
     }
 
     /* may be overwritten later */
-    gz->scale_basis = (GIZMO_SIZE * GIZMO_MINI_FAC) / 2;
+    gz->scale_basis = GIZMO_MINI_SIZE / 2.0f;
     if (info->icon != 0) {
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
       RNA_property_enum_set(gz->ptr, prop, info->icon);
@@ -212,7 +215,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   {
     wmGizmo *gz = navgroup->gz_array[GZ_INDEX_ROTATE];
-    gz->scale_basis = GIZMO_SIZE / 2;
+    gz->scale_basis = GIZMO_SIZE / 2.0f;
     const char mapping[6] = {
         RV3D_VIEW_LEFT,
         RV3D_VIEW_RIGHT,
@@ -263,9 +266,8 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
 
   const bool show_navigate = (U.uiflag & USER_SHOW_GIZMO_NAVIGATE) != 0;
   const bool show_rotate_gizmo = (U.mini_axis_type == USER_MINI_AXIS_TYPE_GIZMO);
-  const float icon_size = GIZMO_SIZE;
-  const float icon_offset = (icon_size * 0.52f) * GIZMO_OFFSET_FAC * UI_DPI_FAC;
-  const float icon_offset_mini = icon_size * GIZMO_MINI_OFFSET_FAC * UI_DPI_FAC;
+  const float icon_offset = ((GIZMO_SIZE / 2.0f) + GIZMO_OFFSET) * UI_DPI_FAC;
+  const float icon_offset_mini = (GIZMO_MINI_SIZE + GIZMO_MINI_OFFSET) * UI_DPI_FAC;
   const float co_rotate[2] = {
       rect_visible->xmax - icon_offset,
       rect_visible->ymax - icon_offset,

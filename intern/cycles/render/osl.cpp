@@ -96,7 +96,7 @@ void OSLShaderManager::device_update(Device *device,
                                      Scene *scene,
                                      Progress &progress)
 {
-  if (!need_update)
+  if (!need_update())
     return;
 
   scoped_callback_timer timer([scene](double time) {
@@ -132,7 +132,7 @@ void OSLShaderManager::device_update(Device *device,
     compiler.compile(og, shader);
 
     if (shader->get_use_mis() && shader->has_surface_emission)
-      scene->light_manager->need_update = true;
+      scene->light_manager->tag_update(scene, LightManager::SHADER_COMPILED);
   }
 
   /* setup shader engine */
@@ -147,7 +147,7 @@ void OSLShaderManager::device_update(Device *device,
   foreach (Shader *shader, scene->shaders)
     shader->clear_modified();
 
-  need_update = false;
+  update_flags = UPDATE_NONE;
 
   /* add special builtin texture types */
   services->textures.insert(ustring("@ao"), new OSLTextureHandle(OSLTextureHandle::AO));

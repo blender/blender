@@ -274,6 +274,8 @@ IDTypeInfo IDType_ID_MA = {
     .blend_read_expand = material_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 void BKE_gpencil_material_attr_init(Material *ma)

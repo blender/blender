@@ -46,14 +46,14 @@ ParticleSystem::~ParticleSystem()
 
 void ParticleSystem::tag_update(Scene *scene)
 {
-  scene->particle_system_manager->need_update = true;
+  scene->particle_system_manager->tag_update(scene);
 }
 
 /* Particle System Manager */
 
 ParticleSystemManager::ParticleSystemManager()
 {
-  need_update = true;
+  need_update_ = true;
 }
 
 ParticleSystemManager::~ParticleSystemManager()
@@ -109,7 +109,7 @@ void ParticleSystemManager::device_update(Device *device,
                                           Scene *scene,
                                           Progress &progress)
 {
-  if (!need_update)
+  if (!need_update())
     return;
 
   scoped_callback_timer timer([scene](double time) {
@@ -128,7 +128,7 @@ void ParticleSystemManager::device_update(Device *device,
   if (progress.get_cancel())
     return;
 
-  need_update = false;
+  need_update_ = false;
 }
 
 void ParticleSystemManager::device_free(Device *, DeviceScene *dscene)
@@ -138,7 +138,12 @@ void ParticleSystemManager::device_free(Device *, DeviceScene *dscene)
 
 void ParticleSystemManager::tag_update(Scene * /*scene*/)
 {
-  need_update = true;
+  need_update_ = true;
+}
+
+bool ParticleSystemManager::need_update() const
+{
+  return need_update_;
 }
 
 CCL_NAMESPACE_END

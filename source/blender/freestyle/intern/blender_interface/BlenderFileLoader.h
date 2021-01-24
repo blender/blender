@@ -152,10 +152,6 @@ class BlenderFileLoader {
   real _minEdgeSize;
 #endif
   bool _smooth; /* if true, face smoothness is taken into account */
-  float _viewplane_left;
-  float _viewplane_right;
-  float _viewplane_bottom;
-  float _viewplane_top;
   float _z_near, _z_far;
   float _z_offset;
 

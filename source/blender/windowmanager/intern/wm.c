@@ -279,6 +279,8 @@ IDTypeInfo IDType_ID_WM = {
     .blend_read_expand = NULL,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 #define MAX_OP_REGISTERED 32

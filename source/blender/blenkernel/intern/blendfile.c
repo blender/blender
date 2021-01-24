@@ -647,6 +647,10 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
   BKE_studiolight_default(userdef->light_param, userdef->light_ambient);
 
   BKE_preferences_asset_library_default_add(userdef);
+  /* Enable asset browser features by default for alpha testing.
+   * BLO_sanitize_experimental_features_userpref_blend() will disable it again for non-alpha
+   * builds. */
+  userdef->experimental.use_asset_browser = true;
 
   return userdef;
 }

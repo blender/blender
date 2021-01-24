@@ -32,6 +32,8 @@ using bke::BooleanReadAttribute;
 using bke::BooleanWriteAttribute;
 using bke::Color4fReadAttribute;
 using bke::Color4fWriteAttribute;
+using bke::Float2ReadAttribute;
+using bke::Float2WriteAttribute;
 using bke::Float3ReadAttribute;
 using bke::Float3WriteAttribute;
 using bke::FloatReadAttribute;

@@ -1087,6 +1087,8 @@ typedef struct FileDirEntry {
   struct FileDirEntry *next, *prev;
 
   int uuid[4];
+  /* Name needs freeing if FILE_ENTRY_NAME_FREE is set. Otherwise this is a direct pointer to a
+   * name buffer. */
   char *name;
   char *description;
 
@@ -1165,6 +1167,7 @@ enum {
 /* FileDirEntry.flags */
 enum {
   FILE_ENTRY_INVALID_PREVIEW = 1 << 0, /* The preview for this entry could not be generated. */
+  FILE_ENTRY_NAME_FREE = 1 << 1,
 };
 
 /** \} */

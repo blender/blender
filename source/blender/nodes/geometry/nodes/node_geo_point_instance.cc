@@ -47,8 +47,10 @@ static void geo_node_point_instance_update(bNodeTree *UNUSED(tree), bNode *node)
   bNodeSocket *collection_socket = object_socket->next;
   bNodeSocket *seed_socket = collection_socket->next;
 
-  GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)node->custom1;
-  const bool use_whole_collection = node->custom2 == 0;
+  NodeGeometryPointInstance *node_storage = (NodeGeometryPointInstance *)node->storage;
+  GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)node_storage->instance_type;
+  const bool use_whole_collection = (node_storage->flag &
+                                     GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION) != 0;
 
   nodeSetSocketAvailability(object_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_OBJECT);
   nodeSetSocketAvailability(collection_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION);
@@ -79,6 +81,8 @@ static void get_instanced_data__collection(
     MutableSpan<std::optional<InstancedData>> r_instances_data)
 {
   const bNode &node = params.node();
+  NodeGeometryPointInstance *node_storage = (NodeGeometryPointInstance *)node.storage;
+
   bke::PersistentCollectionHandle collection_handle =
       params.get_input<bke::PersistentCollectionHandle>("Collection");
   Collection *collection = params.handle_map().lookup(collection_handle);
@@ -86,7 +90,8 @@ static void get_instanced_data__collection(
     return;
   }
 
-  const bool use_whole_collection = node.custom2 == 0;
+  const bool use_whole_collection = (node_storage->flag &
+                                     GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION) != 0;
   if (use_whole_collection) {
     InstancedData instance;
     instance.type = INSTANCE_DATA_TYPE_COLLECTION;
@@ -128,8 +133,9 @@ static Array<std::optional<InstancedData>> get_instanced_data(const GeoNodeExecP
                                                               const int amount)
 {
   const bNode &node = params.node();
-  const GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)node.custom1;
-
+  NodeGeometryPointInstance *node_storage = (NodeGeometryPointInstance *)node.storage;
+  const GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)
+                                                 node_storage->instance_type;
   Array<std::optional<InstancedData>> instances_data(amount);
 
   switch (type) {
@@ -187,6 +193,16 @@ static void geo_node_point_instance_exec(GeoNodeExecParams params)
 
   params.set_output("Geometry", std::move(geometry_set_out));
 }
+
+static void geo_node_point_instance_init(bNodeTree *UNUSED(tree), bNode *node)
+{
+  NodeGeometryPointInstance *data = (NodeGeometryPointInstance *)MEM_callocN(
+      sizeof(NodeGeometryPointInstance), __func__);
+  data->instance_type = GEO_NODE_POINT_INSTANCE_TYPE_OBJECT;
+  data->flag |= GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION;
+  node->storage = data;
+}
+
 }  // namespace blender::nodes
 
 void register_node_type_geo_point_instance()
@@ -195,6 +211,9 @@ void register_node_type_geo_point_instance()
 
   geo_node_type_base(&ntype, GEO_NODE_POINT_INSTANCE, "Point Instance", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(&ntype, geo_node_point_instance_in, geo_node_point_instance_out);
+  node_type_init(&ntype, blender::nodes::geo_node_point_instance_init);
+  node_type_storage(
+      &ntype, "NodeGeometryPointInstance", node_free_standard_storage, node_copy_standard_storage);
   node_type_update(&ntype, blender::nodes::geo_node_point_instance_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_instance_exec;
   nodeRegisterType(&ntype);

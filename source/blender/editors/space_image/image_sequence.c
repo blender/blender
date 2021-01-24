@@ -65,10 +65,11 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
   const bool do_frame_range = RNA_boolean_get(op->ptr, "use_sequence_detection");
   ImageFrameRange *range = NULL;
   int range_first_frame = 0;
+  /* Track when a new series of files are found that aren't compatible with the previous file. */
+  char base_head[FILE_MAX], base_tail[FILE_MAX];
 
   RNA_string_get(op->ptr, "directory", dir);
   RNA_BEGIN (op->ptr, itemptr, "files") {
-    char base_head[FILE_MAX], base_tail[FILE_MAX];
     char head[FILE_MAX], tail[FILE_MAX];
     ushort digits;
     char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);

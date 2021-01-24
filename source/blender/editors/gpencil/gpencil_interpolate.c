@@ -283,8 +283,8 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     tgpil = MEM_callocN(sizeof(tGPDinterpolate_layer), "GPencil Interpolate Layer");
 
     tgpil->gpl = gpl;
-    tgpil->prevFrame = BKE_gpencil_frame_duplicate(gpl->actframe);
-    tgpil->nextFrame = BKE_gpencil_frame_duplicate(gpl->actframe->next);
+    tgpil->prevFrame = BKE_gpencil_frame_duplicate(gpl->actframe, true);
+    tgpil->nextFrame = BKE_gpencil_frame_duplicate(gpl->actframe->next, true);
 
     BLI_addtail(&tgpi->ilayers, tgpil);
 
@@ -551,6 +551,13 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
     BKE_report(op->reports,
                RPT_ERROR,
                "Cannot interpolate as current frame already has existing grease pencil frames");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot interpolate in curve edit mode");
     return OPERATOR_CANCELLED;
   }
 
@@ -978,6 +985,13 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot interpolate in curve edit mode");
+    return OPERATOR_CANCELLED;
+  }
+
   /* loop all layer to check if need interpolation */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *prevFrame, *nextFrame;
@@ -998,8 +1012,8 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     }
 
     /* store extremes */
-    prevFrame = BKE_gpencil_frame_duplicate(gpl->actframe);
-    nextFrame = BKE_gpencil_frame_duplicate(gpl->actframe->next);
+    prevFrame = BKE_gpencil_frame_duplicate(gpl->actframe, true);
+    nextFrame = BKE_gpencil_frame_duplicate(gpl->actframe->next, true);
 
     /* Loop over intermediary frames and create the interpolation */
     for (cframe = prevFrame->framenum + step; cframe < nextFrame->framenum; cframe += step) {

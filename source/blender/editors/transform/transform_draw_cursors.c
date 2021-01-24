@@ -45,99 +45,45 @@ enum eArrowDirection {
   RIGHT,
 };
 
-struct ArrowDims {
-  int offset;
-  int length;
-  int size;
-};
+#define ARROW_WIDTH (2.0f * U.pixelsize)
+#define DASH_WIDTH (1.0f)
+#define DASH_LENGTH (8.0f * DASH_WIDTH * U.pixelsize)
 
-#define POS_INDEX 0
-/* NOTE: this --^ is a bit hackish, but simplifies GPUVertFormat usage among functions
- * private to this file  - merwin
- */
-
-static void drawArrow(enum eArrowDirection dir, const struct ArrowDims *arrow_dims)
+static void drawArrow(const uint pos_id, const enum eArrowDirection dir)
 {
-  int offset = arrow_dims->offset;
-  int length = arrow_dims->length;
-  int size = arrow_dims->size;
+  int offset = 5.0f * UI_DPI_FAC;
+  int length = (6.0f * UI_DPI_FAC) + (4.0f * U.pixelsize);
+  int size = (3.0f * UI_DPI_FAC) + (2.0f * U.pixelsize);
+
+  /* To line up the arrow point nicely, one end has to be extended by half its width. But
+   * being on a 45 degree angle, Pythagoras says a movement of sqrt(2)/2 * (line width /2) */
+  float adjust = (M_SQRT2 * ARROW_WIDTH / 4.0f);
+
+  if (ELEM(dir, LEFT, DOWN)) {
+    offset = -offset;
+    length = -length;
+    size = -size;
+    adjust = -adjust;
+  }
 
   immBegin(GPU_PRIM_LINES, 6);
 
-  switch (dir) {
-    case LEFT:
-      offset = -offset;
-      length = -length;
-      size = -size;
-      ATTR_FALLTHROUGH;
-    case RIGHT:
-      immVertex2f(POS_INDEX, offset, 0);
-      immVertex2f(POS_INDEX, offset + length, 0);
-      immVertex2f(POS_INDEX, offset + length, 0);
-      immVertex2f(POS_INDEX, offset + length - size, -size);
-      immVertex2f(POS_INDEX, offset + length, 0);
-      immVertex2f(POS_INDEX, offset + length - size, size);
-      break;
-
-    case DOWN:
-      offset = -offset;
-      length = -length;
-      size = -size;
-      ATTR_FALLTHROUGH;
-    case UP:
-      immVertex2f(POS_INDEX, 0, offset);
-      immVertex2f(POS_INDEX, 0, offset + length);
-      immVertex2f(POS_INDEX, 0, offset + length);
-      immVertex2f(POS_INDEX, -size, offset + length - size);
-      immVertex2f(POS_INDEX, 0, offset + length);
-      immVertex2f(POS_INDEX, size, offset + length - size);
-      break;
+  if (ELEM(dir, LEFT, RIGHT)) {
+    immVertex2f(pos_id, offset, 0);
+    immVertex2f(pos_id, offset + length, 0);
+    immVertex2f(pos_id, offset + length + adjust, adjust);
+    immVertex2f(pos_id, offset + length - size, -size);
+    immVertex2f(pos_id, offset + length, 0);
+    immVertex2f(pos_id, offset + length - size, size);
   }
-
-  immEnd();
-}
-
-static void drawArrowHead(enum eArrowDirection dir, int size)
-{
-  immBegin(GPU_PRIM_LINES, 4);
-
-  switch (dir) {
-    case LEFT:
-      size = -size;
-      ATTR_FALLTHROUGH;
-    case RIGHT:
-      immVertex2f(POS_INDEX, 0, 0);
-      immVertex2f(POS_INDEX, -size, -size);
-      immVertex2f(POS_INDEX, 0, 0);
-      immVertex2f(POS_INDEX, -size, size);
-      break;
-
-    case DOWN:
-      size = -size;
-      ATTR_FALLTHROUGH;
-    case UP:
-      immVertex2f(POS_INDEX, 0, 0);
-      immVertex2f(POS_INDEX, -size, -size);
-      immVertex2f(POS_INDEX, 0, 0);
-      immVertex2f(POS_INDEX, size, -size);
-      break;
+  else {
+    immVertex2f(pos_id, 0, offset);
+    immVertex2f(pos_id, 0, offset + length);
+    immVertex2f(pos_id, adjust, offset + length + adjust);
+    immVertex2f(pos_id, -size, offset + length - size);
+    immVertex2f(pos_id, 0, offset + length);
+    immVertex2f(pos_id, size, offset + length - size);
   }
-
-  immEnd();
-}
-
-static void drawArc(float angle_start, float angle_end, int segments, float size)
-{
-  float delta = (angle_end - angle_start) / segments;
-  float angle;
-  int a;
-
-  immBegin(GPU_PRIM_LINE_STRIP, segments + 1);
-
-  for (angle = angle_start, a = 0; a < segments; angle += delta, a++) {
-    immVertex2f(POS_INDEX, cosf(angle) * size, sinf(angle) * size);
-  }
-  immVertex2f(POS_INDEX, cosf(angle_end) * size, sinf(angle_end) * size);
 
   immEnd();
 }
@@ -149,11 +95,7 @@ static void drawArc(float angle_start, float angle_end, int segments, float size
 bool transform_draw_cursor_poll(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
-
-  if (region && region->regiontype == RGN_TYPE_WINDOW) {
-    return 1;
-  }
-  return 0;
+  return (region && region->regiontype == RGN_TYPE_WINDOW) ? 1 : 0;
 }
 
 /**
@@ -164,181 +106,115 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
 {
   TransInfo *t = (TransInfo *)customdata;
 
-  if (t->helpline != HLP_NONE) {
-    struct ArrowDims arrow_dims = {
-        .offset = 5 * UI_DPI_FAC,
-        .length = 10 * UI_DPI_FAC,
-        .size = 5 * UI_DPI_FAC,
-    };
-
-    float cent[2];
-    const float mval[3] = {x, y, 0.0f};
-    float tmval[2] = {
-        (float)t->mval[0],
-        (float)t->mval[1],
-    };
-
-    projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
-    /* Offset the values for the area region. */
-    const float offset[2] = {
-        t->region->winrct.xmin,
-        t->region->winrct.ymin,
-    };
-
-    for (int i = 0; i < 2; i++) {
-      cent[i] += offset[i];
-      tmval[i] += offset[i];
-    }
-
-    GPU_line_smooth(true);
-    GPU_blend(GPU_BLEND_ALPHA);
-
-    GPU_matrix_push();
-
-    /* Dashed lines first. */
-    if (ELEM(t->helpline, HLP_SPRING, HLP_ANGLE)) {
-      const uint shdr_pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-      UNUSED_VARS_NDEBUG(shdr_pos); /* silence warning */
-      BLI_assert(shdr_pos == POS_INDEX);
-
-      GPU_line_width(1.0f);
-
-      immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
-
-      float viewport_size[4];
-      GPU_viewport_size_get_f(viewport_size);
-      immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
-
-      immUniform1i("colors_len", 0); /* "simple" mode */
-      immUniformThemeColor3(TH_VIEW_OVERLAY);
-      immUniform1f("dash_width", 6.0f * UI_DPI_FAC);
-      immUniform1f("dash_factor", 0.5f);
-
-      immBegin(GPU_PRIM_LINES, 2);
-      immVertex2fv(POS_INDEX, cent);
-      immVertex2f(POS_INDEX, tmval[0], tmval[1]);
-      immEnd();
-
-      immUnbindProgram();
-    }
-
-    /* And now, solid lines. */
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    UNUSED_VARS_NDEBUG(pos); /* silence warning */
-    BLI_assert(pos == POS_INDEX);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-    switch (t->helpline) {
-      case HLP_SPRING:
-        immUniformThemeColor3(TH_VIEW_OVERLAY);
-
-        GPU_matrix_translate_3fv(mval);
-        GPU_matrix_rotate_axis(-RAD2DEGF(atan2f(cent[0] - tmval[0], cent[1] - tmval[1])), 'Z');
-
-        GPU_line_width(3.0f);
-        drawArrow(UP, &arrow_dims);
-        drawArrow(DOWN, &arrow_dims);
-        break;
-      case HLP_HARROW:
-        immUniformThemeColor3(TH_VIEW_OVERLAY);
-        GPU_matrix_translate_3fv(mval);
-
-        GPU_line_width(3.0f);
-        drawArrow(RIGHT, &arrow_dims);
-        drawArrow(LEFT, &arrow_dims);
-        break;
-      case HLP_VARROW:
-        immUniformThemeColor3(TH_VIEW_OVERLAY);
-
-        GPU_matrix_translate_3fv(mval);
-
-        GPU_line_width(3.0f);
-        drawArrow(UP, &arrow_dims);
-        drawArrow(DOWN, &arrow_dims);
-        break;
-      case HLP_CARROW: {
-        /* Draw arrow based on direction defined by custom-points. */
-        immUniformThemeColor3(TH_VIEW_OVERLAY);
-
-        GPU_matrix_translate_3fv(mval);
-
-        GPU_line_width(3.0f);
-
-        const int *data = t->mouse.data;
-        const float dx = data[2] - data[0], dy = data[3] - data[1];
-        const float angle = -atan2f(dx, dy);
-
-        GPU_matrix_push();
-
-        GPU_matrix_rotate_axis(RAD2DEGF(angle), 'Z');
-
-        drawArrow(UP, &arrow_dims);
-        drawArrow(DOWN, &arrow_dims);
-
-        GPU_matrix_pop();
-        break;
-      }
-      case HLP_ANGLE: {
-        float dx = tmval[0] - cent[0], dy = tmval[1] - cent[1];
-        float angle = atan2f(dy, dx);
-        float dist = hypotf(dx, dy);
-        float delta_angle = min_ff(15.0f / (dist / UI_DPI_FAC), (float)M_PI / 4.0f);
-        float spacing_angle = min_ff(5.0f / (dist / UI_DPI_FAC), (float)M_PI / 12.0f);
-
-        immUniformThemeColor3(TH_VIEW_OVERLAY);
-
-        GPU_matrix_translate_3f(cent[0] - tmval[0] + mval[0], cent[1] - tmval[1] + mval[1], 0);
-
-        GPU_line_width(3.0f);
-        drawArc(angle - delta_angle, angle - spacing_angle, 10, dist);
-        drawArc(angle + spacing_angle, angle + delta_angle, 10, dist);
-
-        GPU_matrix_push();
-
-        GPU_matrix_translate_3f(
-            cosf(angle - delta_angle) * dist, sinf(angle - delta_angle) * dist, 0);
-        GPU_matrix_rotate_axis(RAD2DEGF(angle - delta_angle), 'Z');
-
-        drawArrowHead(DOWN, arrow_dims.size);
-
-        GPU_matrix_pop();
-
-        GPU_matrix_translate_3f(
-            cosf(angle + delta_angle) * dist, sinf(angle + delta_angle) * dist, 0);
-        GPU_matrix_rotate_axis(RAD2DEGF(angle + delta_angle), 'Z');
-
-        drawArrowHead(UP, arrow_dims.size);
-        break;
-      }
-      case HLP_TRACKBALL: {
-        uchar col[3], col2[3];
-        UI_GetThemeColor3ubv(TH_GRID, col);
-
-        GPU_matrix_translate_3fv(mval);
-
-        GPU_line_width(3.0f);
-
-        UI_make_axis_color(col, col2, 'X');
-        immUniformColor3ubv(col2);
-
-        drawArrow(RIGHT, &arrow_dims);
-        drawArrow(LEFT, &arrow_dims);
-
-        UI_make_axis_color(col, col2, 'Y');
-        immUniformColor3ubv(col2);
-
-        drawArrow(UP, &arrow_dims);
-        drawArrow(DOWN, &arrow_dims);
-        break;
-      }
-    }
-
-    immUnbindProgram();
-    GPU_matrix_pop();
-
-    GPU_line_smooth(false);
-    GPU_blend(GPU_BLEND_NONE);
+  if (t->helpline == HLP_NONE) {
+    return;
   }
+
+  float cent[2];
+  const float mval[3] = {x, y, 0.0f};
+  float tmval[2] = {
+      (float)t->mval[0],
+      (float)t->mval[1],
+  };
+
+  projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
+  /* Offset the values for the area region. */
+  const float offset[2] = {
+      t->region->winrct.xmin,
+      t->region->winrct.ymin,
+  };
+
+  for (int i = 0; i < 2; i++) {
+    cent[i] += offset[i];
+    tmval[i] += offset[i];
+  }
+
+  float viewport_size[4];
+  GPU_viewport_size_get_f(viewport_size);
+
+  GPU_line_smooth(true);
+  GPU_blend(GPU_BLEND_ALPHA);
+  const uint pos_id = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  /* Dashed lines first. */
+  if (ELEM(t->helpline, HLP_SPRING, HLP_ANGLE)) {
+    GPU_line_width(DASH_WIDTH);
+    immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+    immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
+    immUniform1i("colors_len", 0); /* "simple" mode */
+    immUniformThemeColor3(TH_VIEW_OVERLAY);
+    immUniform1f("dash_width", DASH_LENGTH);
+    immUniform1f("dash_factor", 0.5f);
+    immBegin(GPU_PRIM_LINES, 2);
+    immVertex2fv(pos_id, cent);
+    immVertex2f(pos_id, tmval[0], tmval[1]);
+    immEnd();
+    immUnbindProgram();
+  }
+
+  /* And now, solid lines. */
+
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+  immUniformThemeColor3(TH_VIEW_OVERLAY);
+  immUniform2fv("viewportSize", &viewport_size[2]);
+  immUniform1f("lineWidth", ARROW_WIDTH);
+
+  GPU_matrix_push();
+  GPU_matrix_translate_3fv(mval);
+
+  switch (t->helpline) {
+    case HLP_SPRING:
+      GPU_matrix_rotate_axis(-RAD2DEGF(atan2f(cent[0] - tmval[0], cent[1] - tmval[1])), 'Z');
+      drawArrow(pos_id, UP);
+      drawArrow(pos_id, DOWN);
+      break;
+    case HLP_HARROW:
+      drawArrow(pos_id, RIGHT);
+      drawArrow(pos_id, LEFT);
+      break;
+    case HLP_VARROW:
+      drawArrow(pos_id, UP);
+      drawArrow(pos_id, DOWN);
+      break;
+    case HLP_CARROW: {
+      /* Draw arrow based on direction defined by custom-points. */
+      const int *data = t->mouse.data;
+      const float angle = -atan2f(data[2] - data[0], data[3] - data[1]);
+      GPU_matrix_rotate_axis(RAD2DEGF(angle), 'Z');
+      drawArrow(pos_id, UP);
+      drawArrow(pos_id, DOWN);
+      break;
+    }
+    case HLP_ANGLE: {
+      GPU_matrix_push();
+      float angle = atan2f(tmval[1] - cent[1], tmval[0] - cent[0]);
+      GPU_matrix_translate_3f(cosf(angle), sinf(angle), 0);
+      GPU_matrix_rotate_axis(RAD2DEGF(angle), 'Z');
+      drawArrow(pos_id, DOWN);
+      GPU_matrix_pop();
+      GPU_matrix_translate_3f(cosf(angle), sinf(angle), 0);
+      GPU_matrix_rotate_axis(RAD2DEGF(angle), 'Z');
+      drawArrow(pos_id, UP);
+      break;
+    }
+    case HLP_TRACKBALL: {
+      uchar col[3], col2[3];
+      UI_GetThemeColor3ubv(TH_GRID, col);
+      UI_make_axis_color(col, col2, 'X');
+      immUniformColor3ubv(col2);
+      drawArrow(pos_id, RIGHT);
+      drawArrow(pos_id, LEFT);
+      UI_make_axis_color(col, col2, 'Y');
+      immUniformColor3ubv(col2);
+      drawArrow(pos_id, UP);
+      drawArrow(pos_id, DOWN);
+      break;
+    }
+  }
+
+  GPU_matrix_pop();
+  immUnbindProgram();
+  GPU_line_smooth(false);
+  GPU_blend(GPU_BLEND_NONE);
 }

@@ -42,6 +42,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
 
@@ -1178,6 +1179,17 @@ void RNA_struct_override_apply(Main *bmain,
 #endif
     }
   }
+
+  /* Some cases (like point caches) may require additional post-processing. */
+  if (RNA_struct_is_a(ptr_dst->type, &RNA_ID)) {
+    ID *id_dst = ptr_dst->data;
+    ID *id_src = ptr_src->data;
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id_dst);
+    if (id_type->lib_override_apply_post != NULL) {
+      id_type->lib_override_apply_post(id_dst, id_src);
+    }
+  }
+
 #ifdef DEBUG_OVERRIDE_TIMEIT
   TIMEIT_END_AVERAGED(RNA_struct_override_apply);
 #endif

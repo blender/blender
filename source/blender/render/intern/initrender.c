@@ -172,24 +172,9 @@ struct Object *RE_GetCamera(Render *re)
   return BKE_camera_multiview_render(re->scene, camera, re->viewname);
 }
 
-static void re_camera_params_get(Render *re, CameraParams *params)
-{
-  copy_m4_m4(re->winmat, params->winmat);
-
-  re->clip_start = params->clip_start;
-  re->clip_end = params->clip_end;
-
-  re->viewplane = params->viewplane;
-}
-
 void RE_SetOverrideCamera(Render *re, Object *cam_ob)
 {
   re->camera_override = cam_ob;
-}
-
-static void re_camera_params_stereo3d(Render *re, CameraParams *params, Object *cam_ob)
-{
-  BKE_camera_multiview_params(&re->r, params, cam_ob, re->viewname);
 }
 
 /* call this after InitState() */
@@ -201,14 +186,17 @@ void RE_SetCamera(Render *re, Object *cam_ob)
   /* setup parameters */
   BKE_camera_params_init(&params);
   BKE_camera_params_from_object(&params, cam_ob);
-  re_camera_params_stereo3d(re, &params, cam_ob);
+  BKE_camera_multiview_params(&re->r, &params, cam_ob, re->viewname);
 
   /* compute matrix, viewplane, .. */
   BKE_camera_params_compute_viewplane(&params, re->winx, re->winy, re->r.xasp, re->r.yasp);
   BKE_camera_params_compute_matrix(&params);
 
   /* extract results */
-  re_camera_params_get(re, &params);
+  copy_m4_m4(re->winmat, params.winmat);
+  re->clip_start = params.clip_start;
+  re->clip_end = params.clip_end;
+  re->viewplane = params.viewplane;
 }
 
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, float r_winmat[4][4])
@@ -239,6 +227,19 @@ void RE_GetCameraWindowWithOverscan(struct Render *re, float overscan, float r_w
 void RE_GetCameraModelMatrix(Render *re, struct Object *camera, float r_modelmat[4][4])
 {
   BKE_camera_multiview_model_matrix(&re->r, camera, re->viewname, r_modelmat);
+}
+
+void RE_GetViewPlane(Render *re, rctf *r_viewplane, rcti *r_disprect)
+{
+  *r_viewplane = re->viewplane;
+
+  /* make disprect zero when no border render, is needed to detect changes in 3d view render */
+  if (re->r.mode & R_BORDER) {
+    *r_disprect = re->disprect;
+  }
+  else {
+    BLI_rcti_init(r_disprect, 0, 0, 0, 0);
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~ part (tile) calculus ~~~~~~~~~~~~~~~~~~~~~~ */

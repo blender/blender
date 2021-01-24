@@ -888,6 +888,8 @@ IDTypeInfo IDType_ID_NT = {
     .blend_read_expand = ntree_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
@@ -4747,6 +4749,7 @@ static void registerGeometryNodes(void)
   register_node_type_geo_attribute_color_ramp();
   register_node_type_geo_point_rotate();
   register_node_type_geo_align_rotation_to_vector();
+  register_node_type_geo_sample_texture();
 }
 
 static void registerFunctionNodes(void)

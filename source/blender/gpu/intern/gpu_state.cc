@@ -165,6 +165,11 @@ void GPU_depth_range(float near, float far)
   copy_v2_fl2(state.depth_range, near, far);
 }
 
+/**
+ * \note By convention, this is set as needed and not reset back to 1.0.
+ * This means code that draws lines must always set the line width beforehand,
+ * but is not expected to restore it's previous value.
+ */
 void GPU_line_width(float width)
 {
   width = max_ff(1.0f, width * PIXELSIZE);

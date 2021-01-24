@@ -523,6 +523,8 @@ static void volume_copy_data(Main *UNUSED(bmain),
     volume_dst->runtime.grids = OBJECT_GUARDED_NEW(VolumeGridVector, grids_src);
   }
 #endif
+
+  volume_dst->batch_cache = nullptr;
 }
 
 static void volume_free_data(ID *id)
@@ -642,6 +644,8 @@ IDTypeInfo IDType_ID_VO = {
     /* blend_read_expand */ volume_blend_read_expand,
 
     /* blend_read_undo_preserve */ nullptr,
+
+    /* lib_override_apply_post */ nullptr,
 };
 
 void BKE_volume_init_grids(Volume *volume)

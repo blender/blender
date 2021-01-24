@@ -122,8 +122,24 @@ class Object : public Node {
 /* Object Manager */
 
 class ObjectManager {
+  uint32_t update_flags;
+
  public:
-  bool need_update;
+  enum : uint32_t {
+    PARTICLE_MODIFIED = (1 << 0),
+    GEOMETRY_MANAGER = (1 << 1),
+    MOTION_BLUR_MODIFIED = (1 << 2),
+    OBJECT_ADDED = (1 << 3),
+    OBJECT_REMOVED = (1 << 4),
+    OBJECT_MODIFIED = (1 << 5),
+    HOLDOUT_MODIFIED = (1 << 6),
+
+    /* tag everything in the manager for an update */
+    UPDATE_ALL = ~0u,
+
+    UPDATE_NONE = 0u,
+  };
+
   bool need_flags_update;
 
   ObjectManager();
@@ -139,9 +155,11 @@ class ObjectManager {
                            bool bounds_valid = true);
   void device_update_mesh_offsets(Device *device, DeviceScene *dscene, Scene *scene);
 
-  void device_free(Device *device, DeviceScene *dscene);
+  void device_free(Device *device, DeviceScene *dscene, bool force_free);
 
-  void tag_update(Scene *scene);
+  void tag_update(Scene *scene, uint32_t flag);
+
+  bool need_update() const;
 
   void apply_static_transforms(DeviceScene *dscene, Scene *scene, Progress &progress);
 
@@ -149,7 +167,9 @@ class ObjectManager {
   string get_cryptomatte_assets(Scene *scene);
 
  protected:
-  void device_update_object_transform(UpdateObjectTransformState *state, Object *ob);
+  void device_update_object_transform(UpdateObjectTransformState *state,
+                                      Object *ob,
+                                      bool update_all);
   void device_update_object_transform_task(UpdateObjectTransformState *state);
   bool device_update_object_transform_pop_work(UpdateObjectTransformState *state,
                                                int *start_index,

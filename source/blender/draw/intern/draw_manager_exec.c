@@ -344,7 +344,7 @@ void DRW_state_reset(void)
   /* Should stay constant during the whole rendering. */
   GPU_point_size(5);
   GPU_line_smooth(false);
-  /* Bypass U.pixelsize factor by using a factor of 0.0f. Will be clamped to 1.0f. */
+  /* Bypass #U.pixelsize factor by using a factor of 0.0f. Will be clamped to 1.0f. */
   GPU_line_width(0.0f);
 }
 

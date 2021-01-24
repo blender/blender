@@ -192,6 +192,8 @@ IDTypeInfo IDType_ID_WS = {
     .blend_read_expand = workspace_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 /* -------------------------------------------------------------------- */

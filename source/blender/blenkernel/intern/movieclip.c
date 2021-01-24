@@ -362,6 +362,8 @@ IDTypeInfo IDType_ID_MC = {
     .blend_read_expand = NULL,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 /*********************** movieclip buffer loaders *************************/

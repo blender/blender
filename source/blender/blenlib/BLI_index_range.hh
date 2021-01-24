@@ -58,11 +58,6 @@
 
 #include "BLI_utildefines.h"
 
-/* Forward declare tbb::blocked_range for conversion operations. */
-namespace tbb {
-template<typename Value> class blocked_range;
-}
-
 namespace blender {
 
 template<typename T> class Span;
@@ -84,12 +79,6 @@ class IndexRange {
   {
     BLI_assert(start >= 0);
     BLI_assert(size >= 0);
-  }
-
-  template<typename T>
-  constexpr IndexRange(const tbb::blocked_range<T> &range)
-      : start_(range.begin()), size_(range.size())
-  {
   }
 
   class Iterator {

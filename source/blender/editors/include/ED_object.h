@@ -159,7 +159,7 @@ extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
 #endif
 
-/* Set the object's parent, return true iff successful. */
+/* Set the object's parent, return true if successful. */
 bool ED_object_parent_set(struct ReportList *reports,
                           const struct bContext *C,
                           struct Scene *scene,
@@ -173,6 +173,7 @@ void ED_object_parent_clear(struct Object *ob, const int type);
 
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode);
 void ED_object_base_activate(struct bContext *C, struct Base *base);
+void ED_object_base_activate_with_mode_exit_if_needed(struct bContext *C, struct Base *base);
 void ED_object_base_active_refresh(struct Main *bmain,
                                    struct Scene *scene,
                                    struct ViewLayer *view_layer);
@@ -205,6 +206,12 @@ bool ED_object_editmode_exit_ex(struct Main *bmain,
                                 struct Object *obedit,
                                 int flag);
 bool ED_object_editmode_exit(struct bContext *C, int flag);
+
+bool ED_object_editmode_exit_multi_ex(struct Main *bmain,
+                                      struct Scene *scene,
+                                      struct ViewLayer *view_layer,
+                                      int flag);
+bool ED_object_editmode_exit_multi(struct bContext *C, int flag);
 
 bool ED_object_editmode_enter_ex(struct Main *bmain,
                                  struct Scene *scene,

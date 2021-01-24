@@ -289,6 +289,7 @@ DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_VECTOR_MATH, def_geo_attribute_vector_m
 DefNode(GeometryNode, GEO_NODE_ALIGN_ROTATION_TO_VECTOR, def_geo_align_rotation_to_vector, "ALIGN_ROTATION_TO_VECTOR", AlignRotationToVector, "Align Rotation to Vector", "")
 DefNode(GeometryNode, GEO_NODE_POINT_SCALE, def_geo_point_scale, "POINT_SCALE", PointScale, "Point Scale", "")
 DefNode(GeometryNode, GEO_NODE_POINT_TRANSLATE, def_geo_point_translate, "POINT_TRANSLATE", PointTranslate, "Point Translate", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE, def_geo_attribute_sample_texture, "ATTRIBUTE_SAMPLE_TEXTURE", AttributeSampleTexture, "Attribute Sample Texture", "")
 
 /* undefine macros */
 #undef DefNode

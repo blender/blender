@@ -873,10 +873,19 @@ OutputAttributePtr::OutputAttributePtr(GeometryComponent &component,
 
   const int domain_size = component.attribute_domain_size(domain);
   void *buffer = MEM_malloc_arrayN(domain_size, cpp_type->size(), __func__);
-  cpp_type->construct_default_n(buffer, domain_size);
+  GMutableSpan new_span{*cpp_type, buffer, domain_size};
+
+  /* Copy converted values from conflicting attribute, in case the value is read.
+   * TODO: An optimization could be to not do this, when the caller says that the attribute will
+   * only be written. */
+  ReadAttributePtr src_attribute = component.attribute_get_for_read(
+      final_name, domain, data_type, nullptr);
+  for (const int i : blender::IndexRange(domain_size)) {
+    src_attribute->get(i, new_span[i]);
+  }
 
   attribute_ = std::make_unique<blender::bke::TemporaryWriteAttribute>(
-      domain, GMutableSpan{*cpp_type, buffer, domain_size}, component, std::move(final_name));
+      domain, new_span, component, std::move(final_name));
 }
 
 /* Store the computed attribute. If it was stored from the beginning already, nothing is done. This

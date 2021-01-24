@@ -93,7 +93,7 @@ static void greasepencil_copy_data(Main *UNUSED(bmain),
     /* make a copy of source layer and its data */
 
     /* TODO here too could add unused flags... */
-    bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(gpl_src);
+    bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(gpl_src, true, true);
 
     /* Apply local layer transform to all frames. Calc the active frame is not enough
      * because onion skin can use more frames. This is more slow but required here. */
@@ -329,6 +329,8 @@ IDTypeInfo IDType_ID_GD = {
     .blend_read_expand = greasepencil_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 /* ************************************************** */
@@ -607,7 +609,7 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
   }
 
   /* Create a copy of the frame */
-  new_frame = BKE_gpencil_frame_duplicate(gpl->actframe);
+  new_frame = BKE_gpencil_frame_duplicate(gpl->actframe, true);
 
   /* Find frame to insert it before */
   LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
@@ -991,7 +993,7 @@ bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src,
  * \param gpf_src: Source grease pencil frame
  * \return Pointer to new frame
  */
-bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src)
+bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src, const bool dup_strokes)
 {
   bGPDstroke *gps_dst = NULL;
   bGPDframe *gpf_dst;
@@ -1005,12 +1007,14 @@ bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src)
   gpf_dst = MEM_dupallocN(gpf_src);
   gpf_dst->prev = gpf_dst->next = NULL;
 
-  /* copy strokes */
+  /* Copy strokes. */
   BLI_listbase_clear(&gpf_dst->strokes);
-  LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
-    /* make copy of source stroke */
-    gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true, true);
-    BLI_addtail(&gpf_dst->strokes, gps_dst);
+  if (dup_strokes) {
+    LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
+      /* make copy of source stroke */
+      gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true, true);
+      BLI_addtail(&gpf_dst->strokes, gps_dst);
+    }
   }
 
   /* return new frame */
@@ -1044,7 +1048,9 @@ void BKE_gpencil_frame_copy_strokes(bGPDframe *gpf_src, struct bGPDframe *gpf_ds
  * \param gpl_src: Source grease pencil layer
  * \return Pointer to new layer
  */
-bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
+bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
+                                       const bool dup_frames,
+                                       const bool dup_strokes)
 {
   const bGPDframe *gpf_src;
   bGPDframe *gpf_dst;
@@ -1069,14 +1075,16 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
 
   /* copy frames */
   BLI_listbase_clear(&gpl_dst->frames);
-  for (gpf_src = gpl_src->frames.first; gpf_src; gpf_src = gpf_src->next) {
-    /* make a copy of source frame */
-    gpf_dst = BKE_gpencil_frame_duplicate(gpf_src);
-    BLI_addtail(&gpl_dst->frames, gpf_dst);
+  if (dup_frames) {
+    for (gpf_src = gpl_src->frames.first; gpf_src; gpf_src = gpf_src->next) {
+      /* make a copy of source frame */
+      gpf_dst = BKE_gpencil_frame_duplicate(gpf_src, dup_strokes);
+      BLI_addtail(&gpl_dst->frames, gpf_dst);
 
-    /* if source frame was the current layer's 'active' frame, reassign that too */
-    if (gpf_src == gpl_dst->actframe) {
-      gpl_dst->actframe = gpf_dst;
+      /* if source frame was the current layer's 'active' frame, reassign that too */
+      if (gpf_src == gpl_dst->actframe) {
+        gpl_dst->actframe = gpf_dst;
+      }
     }
   }
 

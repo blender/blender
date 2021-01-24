@@ -1226,7 +1226,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
           // TODO: loc vs rot vs scale?
           if (&ct->tar->id == id) {
             /* Constraint targeting own object:
-             * - This case is fine IFF we're dealing with a bone
+             * - This case is fine IF we're dealing with a bone
              *   constraint pointing to its own armature. In that
              *   case, it's just transform -> bone.
              * - If however it is a real self targeting case, just
@@ -1797,7 +1797,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
                      RELATION_FLAG_GODMODE);
       }
 
-      /* Final transform is whetever solver gave to us. */
+      /* Final transform is whatever the solver gave to us. */
       if (object->rigidbody_object->type == RBO_TYPE_ACTIVE) {
         /* We do not have to update the objects final transform after the simulation if it is
          * passive or controlled by the animation system in blender.

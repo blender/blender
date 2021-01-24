@@ -80,7 +80,7 @@ typedef struct TransformInitContext {
   TransInfo *t;
   TransDataContainer *tc;
 
-  /* MOTE: There pointers will be `nullptr` during counting step.
+  /* NOTE: These pointers will be `nullptr` during counting step.
    * This means, that the transformation data initialization functions are to increment
    * `tc->data_len` instead of filling in the transformation data when these pointers are
    * `nullptr`. For simplicity, check the `current.td` against `nullptr`.

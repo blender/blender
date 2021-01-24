@@ -131,6 +131,14 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     }
   }
 
+  void set_data(T *ptr_, size_t datasize)
+  {
+    clear();
+    data_ = ptr_;
+    datasize_ = datasize;
+    capacity_ = datasize;
+  }
+
   T *steal_pointer()
   {
     T *ptr = data_;

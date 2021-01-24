@@ -1497,7 +1497,6 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
 
     shader->set_graph(graph);
     shader->tag_update(scene);
-    background->tag_update(scene);
   }
 
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -1517,8 +1516,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
                              viewport_parameters.custom_viewport_parameters());
   background->set_use_ao(background->get_use_ao() && view_layer.use_background_ao);
 
-  if (background->is_modified())
-    background->tag_update(scene);
+  background->tag_update(scene);
 }
 
 /* Sync Lights */
