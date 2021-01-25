@@ -50,13 +50,12 @@ array<Node *> BlenderSync::find_used_shaders(BL::Object &b_ob)
 
   array<Node *> used_shaders;
 
-  BL::Object::material_slots_iterator slot;
-  for (b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
+  for (BL::MaterialSlot &b_slot : b_ob.material_slots) {
     if (material_override) {
       find_shader(material_override, used_shaders, default_shader);
     }
     else {
-      BL::ID b_material(slot->material());
+      BL::ID b_material(b_slot.material());
       find_shader(b_material, used_shaders, default_shader);
     }
   }
