@@ -324,19 +324,27 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* Recalculate bounds of effect strips. */
+  /* Recalculate bounds of effect strips, offsetting the keyframes if not snapping any handle. */
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->type & SEQ_TYPE_EFFECT) {
+      const bool either_handle_selected = (seq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) != 0;
+
       if (seq->seq1 && (seq->seq1->flag & SELECT)) {
-        SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        if (!either_handle_selected) {
+          SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        }
         SEQ_time_update_sequence(scene, seq);
       }
       else if (seq->seq2 && (seq->seq2->flag & SELECT)) {
-        SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        if (!either_handle_selected) {
+          SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        }
         SEQ_time_update_sequence(scene, seq);
       }
       else if (seq->seq3 && (seq->seq3->flag & SELECT)) {
-        SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        if (!either_handle_selected) {
+          SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        }
         SEQ_time_update_sequence(scene, seq);
       }
     }
