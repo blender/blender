@@ -5211,8 +5211,7 @@ void ui_draw_tooltip_background(const uiStyle *UNUSED(style), uiBlock *UNUSED(bl
  *
  * \param state: The state of the button,
  * typically #UI_ACTIVE, #UI_BUT_DISABLED, #UI_BUT_INACTIVE.
- * \param use_sep: When true, characters after the last #UI_SEP_CHAR are right aligned,
- * use for displaying key shortcuts.
+ * \param separator_type: The kind of separator which controls if and how the string is clipped.
  * \param r_xmax: The right hand position of the text, this takes into the icon,
  * padding and text clipping when there is not enough room to display the full text.
  */
@@ -5260,7 +5259,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
         rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1, INT_MAX) + UI_DPI_ICON_SIZE;
       }
       else if (separator_type == UI_MENU_ITEM_SEPARATOR_HINT) {
-        /* Deterimine max-width for the hint string to leave the name string un-clipped (if there's
+        /* Determine max-width for the hint string to leave the name string un-clipped (if there's
          * enough space to display it). */
 
         const int available_width = BLI_rcti_size_x(rect) - padding;
