@@ -3150,10 +3150,12 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
   }
 }
 
-/* Generator strips with zero inputs have their length set to 1 pernamently. In some cases it is
+/**
+ * Generator strips with zero inputs have their length set to 1 permanently. In some cases it is
  * useful to use speed effect on these strips because they can be animated. This can be done by
- * using their length as is on timeline as content length. See T82698. */
-int seq_effect_speed_get_strip_content_length(const Sequence *seq)
+ * using their length as is on timeline as content length. See T82698.
+ */
+static int seq_effect_speed_get_strip_content_length(const Sequence *seq)
 {
   if (SEQ_effect_get_num_inputs(seq->type) == 0) {
     return seq->enddisp - seq->startdisp;
