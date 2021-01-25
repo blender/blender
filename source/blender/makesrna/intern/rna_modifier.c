@@ -1617,21 +1617,16 @@ static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, Point
   MOD_nodes_update_interface(object, nmd);
 }
 
-static IDProperty *rna_NodesModifierSettings_properties(PointerRNA *ptr, bool create)
+static IDProperty *rna_NodesModifier_properties(PointerRNA *ptr, bool create)
 {
-  NodesModifierSettings *settings = ptr->data;
+  NodesModifierData *nmd = ptr->data;
+  NodesModifierSettings *settings = &nmd->settings;
   if (create && settings->properties == NULL) {
     IDPropertyTemplate val = {0};
     settings->properties = IDP_New(IDP_GROUP, &val, "Nodes Modifier Settings");
   }
   return settings->properties;
 }
-
-static char *rna_NodesModifierSettings_path(PointerRNA *UNUSED(ptr))
-{
-  return BLI_strdup("settings");
-}
-
 #else
 
 static void rna_def_property_subdivision_common(StructRNA *srna)
@@ -6960,18 +6955,6 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
-static void rna_def_modifier_nodes_settings(BlenderRNA *brna)
-{
-  StructRNA *srna;
-
-  srna = RNA_def_struct(brna, "NodesModifierSettings", NULL);
-  RNA_def_struct_nested(brna, srna, "NodesModifier");
-  RNA_def_struct_path_func(srna, "rna_NodesModifierSettings_path");
-  RNA_def_struct_ui_text(
-      srna, "Nodes Modifier Settings", "Settings that are passed into the node group");
-  RNA_def_struct_idprops_func(srna, "rna_NodesModifierSettings_properties");
-}
-
 static void rna_def_modifier_nodes(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -6980,6 +6963,7 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "NodesModifier", "Modifier");
   RNA_def_struct_ui_text(srna, "Nodes Modifier", "");
   RNA_def_struct_sdna(srna, "NodesModifierData");
+  RNA_def_struct_idprops_func(srna, "rna_NodesModifier_properties");
   RNA_def_struct_ui_icon(srna, ICON_NODETREE);
 
   RNA_define_lib_overridable(true);
@@ -6990,13 +6974,7 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_update(prop, 0, "rna_NodesModifier_node_group_update");
 
-  prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_NEVER_NULL);
-  RNA_def_property_ui_text(prop, "Settings", "Settings that are passed into the node group");
-
   RNA_define_lib_overridable(false);
-
-  rna_def_modifier_nodes_settings(brna);
 }
 
 static void rna_def_modifier_mesh_to_volume(BlenderRNA *brna)

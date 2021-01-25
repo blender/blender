@@ -574,7 +574,6 @@ extern StructRNA RNA_SimpleDeformModifier;
 extern StructRNA RNA_SimplifyGpencilModifier;
 extern StructRNA RNA_Simulation;
 extern StructRNA RNA_NodesModifier;
-extern StructRNA RNA_NodesModifierSettings;
 extern StructRNA RNA_GeometryNode;
 extern StructRNA RNA_GeometryNodeTree;
 extern StructRNA RNA_SkinModifier;
