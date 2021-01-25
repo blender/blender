@@ -1010,13 +1010,16 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
                       BLI_rcti_size_y(&st->runtime.scroll_region_select));
   UI_GetThemeColor3fv(TH_HILITE, col);
   col[3] = 0.18f;
-  UI_draw_roundbox_aa(true,
-                      st->runtime.scroll_region_select.xmin + 1,
-                      st->runtime.scroll_region_select.ymin,
-                      st->runtime.scroll_region_select.xmax - 1,
-                      st->runtime.scroll_region_select.ymax,
-                      rad,
-                      col);
+  UI_draw_roundbox_aa(
+      &(const rctf){
+          .xmin = st->runtime.scroll_region_select.xmin + 1,
+          .xmax = st->runtime.scroll_region_select.xmax - 1,
+          .ymin = st->runtime.scroll_region_select.ymin,
+          .ymax = st->runtime.scroll_region_select.ymax,
+      },
+      true,
+      rad,
+      col);
 }
 
 /*********************** draw documentation *******************************/
@@ -1180,7 +1183,14 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
   }
 
   /* not needed but stands out nicer */
-  UI_draw_box_shadow(220, x, y - boxh, x + boxw, y);
+  UI_draw_box_shadow(
+      &(const rctf){
+          .xmin = x,
+          .xmax = x + boxw,
+          .ymin = y - boxh,
+          .ymax = y,
+      },
+      220);
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);

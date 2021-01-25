@@ -56,6 +56,7 @@ struct bNode;
 struct bNodeSocket;
 struct bNodeTree;
 struct bScreen;
+struct rctf;
 struct rcti;
 struct uiButSearch;
 struct uiFontStyle;
@@ -414,39 +415,22 @@ void UI_draw_anti_tria(
 void UI_draw_anti_fan(float tri_array[][2], unsigned int length, const float color[4]);
 
 void UI_draw_roundbox_corner_set(int type);
-void UI_draw_roundbox_aa(
-    bool filled, float minx, float miny, float maxx, float maxy, float rad, const float color[4]);
-void UI_draw_roundbox_4fv(
-    bool filled, float minx, float miny, float maxx, float maxy, float rad, const float col[4]);
-void UI_draw_roundbox_3ub_alpha(bool filled,
-                                float minx,
-                                float miny,
-                                float maxx,
-                                float maxy,
+void UI_draw_roundbox_aa(const struct rctf *rect, bool filled, float rad, const float color[4]);
+void UI_draw_roundbox_4fv(const struct rctf *rect, bool filled, float rad, const float col[4]);
+void UI_draw_roundbox_3ub_alpha(const struct rctf *rect,
+                                bool filled,
                                 float rad,
                                 const unsigned char col[3],
                                 unsigned char alpha);
-void UI_draw_roundbox_3fv_alpha(bool filled,
-                                float minx,
-                                float miny,
-                                float maxx,
-                                float maxy,
-                                float rad,
-                                const float col[3],
-                                float alpha);
-void UI_draw_roundbox_shade_x(bool filled,
-                              float minx,
-                              float miny,
-                              float maxx,
-                              float maxy,
+void UI_draw_roundbox_3fv_alpha(
+    const struct rctf *rect, bool filled, float rad, const float col[3], float alpha);
+void UI_draw_roundbox_shade_x(const struct rctf *rect,
+                              bool filled,
                               float rad,
                               float shadetop,
                               float shadedown,
                               const float col[4]);
-void UI_draw_roundbox_4fv_ex(float minx,
-                             float miny,
-                             float maxx,
-                             float maxy,
+void UI_draw_roundbox_4fv_ex(const struct rctf *rect,
                              const float inner1[4],
                              const float inner2[4],
                              float shade_dir,
@@ -458,14 +442,11 @@ void UI_draw_roundbox_4fv_ex(float minx,
 int UI_draw_roundbox_corner_get(void);
 #endif
 
-void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
+void UI_draw_box_shadow(const struct rctf *rect, unsigned char alpha);
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4]);
 
 void UI_draw_safe_areas(uint pos,
-                        float x1,
-                        float x2,
-                        float y1,
-                        float y2,
+                        const struct rctf *rect,
                         const float title_aspect[2],
                         const float action_aspect[2]);
 

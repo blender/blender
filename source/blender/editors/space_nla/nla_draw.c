@@ -493,7 +493,18 @@ static void nla_draw_strip(SpaceNla *snla,
 
     /* strip is in normal track */
     UI_draw_roundbox_corner_set(UI_CNR_ALL); /* all corners rounded */
-    UI_draw_roundbox_shade_x(true, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1, color);
+    UI_draw_roundbox_shade_x(
+        &(const rctf){
+            .xmin = strip->start,
+            .xmax = strip->end,
+            .ymin = yminc,
+            .ymax = ymaxc,
+        },
+        true,
+        0.0,
+        0.5,
+        0.1,
+        color);
 
     /* restore current vertex format & program (roundbox trashes it) */
     shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -547,7 +558,18 @@ static void nla_draw_strip(SpaceNla *snla,
   }
   else {
     /* non-muted - draw solid, rounded outline */
-    UI_draw_roundbox_shade_x(false, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1, color);
+    UI_draw_roundbox_shade_x(
+        &(const rctf){
+            .xmin = strip->start,
+            .xmax = strip->end,
+            .ymin = yminc,
+            .ymax = ymaxc,
+        },
+        false,
+        0.0,
+        0.0,
+        0.1,
+        color);
 
     /* restore current vertex format & program (roundbox trashes it) */
     shdr_pos = nla_draw_use_dashed_outlines(color, muted);

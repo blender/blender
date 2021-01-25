@@ -124,23 +124,29 @@ static void draw_current_frame(const Scene *scene,
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
-  UI_draw_roundbox_3fv_alpha(true,
-                             frame_x - box_width / 2 + U.pixelsize / 2,
-                             scrub_region_rect->ymin + box_padding,
-                             frame_x + box_width / 2 + U.pixelsize / 2,
-                             scrub_region_rect->ymax - box_padding,
-                             4 * UI_DPI_FAC,
-                             bg_color,
-                             1.0f);
+  UI_draw_roundbox_3fv_alpha(
+      &(const rctf){
+          .xmin = frame_x - box_width / 2 + U.pixelsize / 2,
+          .xmax = frame_x + box_width / 2 + U.pixelsize / 2,
+          .ymin = scrub_region_rect->ymin + box_padding,
+          .ymax = scrub_region_rect->ymax - box_padding,
+      },
+      true,
+      4 * UI_DPI_FAC,
+      bg_color,
+      1.0f);
 
   UI_GetThemeColorShade4fv(TH_CFRAME, 5, bg_color);
-  UI_draw_roundbox_aa(false,
-                      frame_x - box_width / 2 + U.pixelsize / 2,
-                      scrub_region_rect->ymin + box_padding,
-                      frame_x + box_width / 2 + U.pixelsize / 2,
-                      scrub_region_rect->ymax - box_padding,
-                      4 * UI_DPI_FAC,
-                      bg_color);
+  UI_draw_roundbox_aa(
+      &(const rctf){
+          .xmin = frame_x - box_width / 2 + U.pixelsize / 2,
+          .xmax = frame_x + box_width / 2 + U.pixelsize / 2,
+          .ymin = scrub_region_rect->ymin + box_padding,
+          .ymax = scrub_region_rect->ymax - box_padding,
+      },
+      true,
+      4 * UI_DPI_FAC,
+      bg_color);
 
   uchar text_color[4];
   UI_GetThemeColor4ubv(TH_HEADER_TEXT_HI, text_color);

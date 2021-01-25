@@ -162,7 +162,16 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
     const float rad = WIDGET_RADIUS;
     GPU_matrix_push();
     GPU_matrix_scale_1f(1.0f / rad);
-    UI_draw_roundbox_4fv(true, -rad, -rad, rad, rad, rad, gz->color_hi);
+    UI_draw_roundbox_4fv(
+        &(const rctf){
+            .xmin = -rad,
+            .xmax = rad,
+            .ymin = -rad,
+            .ymax = rad,
+        },
+        true,
+        rad,
+        gz->color_hi);
     GPU_matrix_pop();
   }
 
@@ -248,7 +257,18 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       float scale = ((depth + 1) * 0.08f) + 0.92f;
       const float rad = WIDGET_RADIUS * AXIS_HANDLE_SIZE * scale;
       UI_draw_roundbox_4fv_ex(
-          -rad, -rad, rad, rad, inner_color, NULL, 0.0f, outline_color, AXIS_RING_WIDTH, rad);
+          &(const rctf){
+              .xmin = -rad,
+              .xmax = rad,
+              .ymin = -rad,
+              .ymax = rad,
+          },
+          inner_color,
+          NULL,
+          0.0f,
+          outline_color,
+          AXIS_RING_WIDTH,
+          rad);
       GPU_matrix_pop();
     }
 

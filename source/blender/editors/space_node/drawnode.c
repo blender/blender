@@ -440,7 +440,7 @@ static void node_draw_frame(const bContext *C,
 
   const rctf *rct = &node->totr;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_aa(true, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
+  UI_draw_roundbox_aa(rct, true, BASIS_RAD, color);
 
   /* outline active and selected emphasis */
   if (node->flag & SELECT) {
@@ -451,7 +451,7 @@ static void node_draw_frame(const bContext *C,
       UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -40, color);
     }
 
-    UI_draw_roundbox_aa(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
+    UI_draw_roundbox_aa(rct, false, BASIS_RAD, color);
   }
 
   /* label */

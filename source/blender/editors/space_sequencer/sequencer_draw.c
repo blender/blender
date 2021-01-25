@@ -1447,15 +1447,24 @@ static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
   if (sseq->flag & SEQ_SHOW_SAFE_MARGINS) {
     immUniformThemeColorBlend(TH_VIEW_OVERLAY, TH_BACK, 0.25f);
 
-    UI_draw_safe_areas(
-        shdr_pos, x1, x2, y1, y2, scene->safe_areas.title, scene->safe_areas.action);
+    UI_draw_safe_areas(shdr_pos,
+                       &(const rctf){
+                           .xmin = x1,
+                           .xmax = x2,
+                           .ymin = y1,
+                           .ymax = y2,
+                       },
+                       scene->safe_areas.title,
+                       scene->safe_areas.action);
 
     if (sseq->flag & SEQ_SHOW_SAFE_CENTER) {
       UI_draw_safe_areas(shdr_pos,
-                         x1,
-                         x2,
-                         y1,
-                         y2,
+                         &(const rctf){
+                             .xmin = x1,
+                             .xmax = x2,
+                             .ymin = y1,
+                             .ymax = y2,
+                         },
                          scene->safe_areas.title_center,
                          scene->safe_areas.action_center);
     }

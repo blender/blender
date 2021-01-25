@@ -1122,13 +1122,16 @@ static void panel_draw_highlight_border(const Panel *panel,
   /* Abuse the property search theme color for now. */
   float color[4];
   UI_GetThemeColor4fv(TH_MATCH, color);
-  UI_draw_roundbox_aa(false,
-                      rect->xmin,
-                      UI_panel_is_closed(panel) ? header_rect->ymin : rect->ymin,
-                      rect->xmax,
-                      header_rect->ymax,
-                      radius,
-                      color);
+  UI_draw_roundbox_aa(
+      &(const rctf){
+          .xmin = rect->xmin,
+          .xmax = rect->xmax,
+          .ymin = UI_panel_is_closed(panel) ? header_rect->ymin : rect->ymin,
+          .ymax = header_rect->ymax,
+      },
+      false,
+      radius,
+      color);
 }
 
 static void panel_draw_aligned_widgets(const uiStyle *style,
@@ -1254,13 +1257,16 @@ static void panel_draw_aligned_backdrop(const Panel *panel,
         float color[4];
         UI_GetThemeColor4fv(TH_PANEL_SUB_BACK, color);
         /* Change the width a little bit to line up with sides. */
-        UI_draw_roundbox_aa(true,
-                            rect->xmin + U.pixelsize,
-                            rect->ymin + U.pixelsize,
-                            rect->xmax - U.pixelsize,
-                            rect->ymax,
-                            box_wcol->roundness * U.widget_unit,
-                            color);
+        UI_draw_roundbox_aa(
+            &(const rctf){
+                .xmin = rect->xmin + U.pixelsize,
+                .xmax = rect->xmax - U.pixelsize,
+                .ymin = rect->ymin + U.pixelsize,
+                .ymax = rect->ymax,
+            },
+            true,
+            box_wcol->roundness * U.widget_unit,
+            color);
       }
       else {
         immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -1545,20 +1551,26 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     {
       /* Draw filled rectangle and outline for tab. */
       UI_draw_roundbox_corner_set(roundboxtype);
-      UI_draw_roundbox_4fv(true,
-                           rct->xmin,
-                           rct->ymin,
-                           rct->xmax,
-                           rct->ymax,
-                           tab_curve_radius,
-                           is_active ? theme_col_tab_active : theme_col_tab_inactive);
-      UI_draw_roundbox_4fv(false,
-                           rct->xmin,
-                           rct->ymin,
-                           rct->xmax,
-                           rct->ymax,
-                           tab_curve_radius,
-                           theme_col_tab_outline);
+      UI_draw_roundbox_4fv(
+          &(const rctf){
+              .xmin = rct->xmin,
+              .xmax = rct->xmax,
+              .ymin = rct->ymin,
+              .ymax = rct->ymax,
+          },
+          true,
+          tab_curve_radius,
+          is_active ? theme_col_tab_active : theme_col_tab_inactive);
+      UI_draw_roundbox_4fv(
+          &(const rctf){
+              .xmin = rct->xmin,
+              .xmax = rct->xmax,
+              .ymin = rct->ymin,
+              .ymax = rct->ymax,
+          },
+          false,
+          tab_curve_radius,
+          theme_col_tab_outline);
 
       /* Disguise the outline on one side to join the tab to the panel. */
       pos = GPU_vertformat_attr_add(

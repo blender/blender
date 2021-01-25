@@ -341,13 +341,16 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
     const float color[4] = {col_bg[0], col_bg[1], col_bg[2], 0.5f};
 
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_aa(true,
-                        x - margin,
-                        (y + decent) - margin,
-                        x + width + margin,
-                        (y + decent) + height + margin,
-                        margin,
-                        color);
+    UI_draw_roundbox_aa(
+        &(const rctf){
+            .xmin = x - margin,
+            .xmax = x + width + margin,
+            .ymin = (y + decent) - margin,
+            .ymax = (y + decent) + height + margin,
+        },
+        true,
+        margin,
+        color);
   }
 
   BLF_position(fs->uifont_id, x, y, 0.0f);
