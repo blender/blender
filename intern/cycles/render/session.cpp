@@ -560,10 +560,12 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
   if (read_bake_tile_cb) {
     /* This will read any passes needed as input for baking. */
     if (tile_manager.state.sample == tile_manager.range_start_sample) {
-      thread_scoped_lock tile_lock(tile_mutex);
-      read_bake_tile_cb(rtile);
+      {
+        thread_scoped_lock tile_lock(tile_mutex);
+        read_bake_tile_cb(rtile);
+      }
+      rtile.buffers->buffer.copy_to_device();
     }
-    rtile.buffers->buffer.copy_to_device();
   }
   else {
     /* This will tag tile as IN PROGRESS in blender-side render pipeline,
