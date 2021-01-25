@@ -1456,15 +1456,23 @@ ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
 {
   wmWindow *win = CTX_wm_window(C);
   const float aspect = 1.0f;
-  float init_position[2];
+  float init_position[2] = {win->eventstate->x, win->eventstate->y};
 
   uiTooltipData *data = ui_tooltip_data_from_gizmo(C, gz);
   if (data == NULL) {
     return NULL;
   }
 
-  init_position[0] = win->eventstate->x;
-  init_position[1] = win->eventstate->y;
+  /* TODO(harley):
+   * Julian preferred that the gizmo callback return the 3D bounding box
+   * which we then project to 2D here. Would make a nice improvement.
+   */
+  if (gz->type->screen_bounds_get) {
+    rcti bounds;
+    gz->type->screen_bounds_get(C, gz, &bounds);
+    init_position[0] = bounds.xmin;
+    init_position[1] = bounds.ymin;
+  }
 
   return ui_tooltip_create_with_data(C, data, init_position, NULL, aspect);
 }

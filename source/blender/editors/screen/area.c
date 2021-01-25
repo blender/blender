@@ -291,7 +291,15 @@ static void region_draw_azone_tab_arrow(ScrArea *area, ARegion *region, AZone *a
   float alpha = WM_region_use_viewport(area, region) ? 0.6f : 0.4f;
   const float color[4] = {0.05f, 0.05f, 0.05f, alpha};
   UI_draw_roundbox_aa(
-      true, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, color);
+      &(const rctf){
+          .xmin = (float)az->x1,
+          .xmax = (float)az->x2,
+          .ymin = (float)az->y1,
+          .ymax = (float)az->y2,
+      },
+      true,
+      4.0f,
+      color);
 
   draw_azone_arrow((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, az->edge);
 }
@@ -375,7 +383,16 @@ static void region_draw_status_text(ScrArea *area, ARegion *region)
     float color[4] = {0.0f, 0.0f, 0.0f, 0.5f};
     UI_GetThemeColor3fv(TH_BACK, color);
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_aa(true, x1, y1, x2, y2, 4.0f, color);
+    UI_draw_roundbox_aa(
+        &(const rctf){
+            .xmin = x1,
+            .xmax = x2,
+            .ymin = y1,
+            .ymax = y2,
+        },
+        true,
+        4.0f,
+        color);
 
     UI_FontThemeColor(fontid, TH_TEXT);
   }

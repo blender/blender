@@ -141,7 +141,7 @@ static char *rna_PoseBone_path(PointerRNA *ptr)
 static bool rna_bone_group_poll(Object *ob, ReportList *reports)
 {
   if ((ob->proxy != NULL) || (ob->proxy_group != NULL) || ID_IS_OVERRIDE_LIBRARY(ob)) {
-    BKE_report(reports, RPT_ERROR, "Cannot edit bonegroups for proxies or library overrides");
+    BKE_report(reports, RPT_ERROR, "Cannot edit bone groups for proxies or library overrides");
     return false;
   }
 

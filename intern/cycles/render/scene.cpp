@@ -18,6 +18,7 @@
 
 #include "bvh/bvh.h"
 #include "device/device.h"
+#include "render/alembic.h"
 #include "render/background.h"
 #include "render/bake.h"
 #include "render/camera.h"
@@ -29,6 +30,7 @@
 #include "render/object.h"
 #include "render/osl.h"
 #include "render/particles.h"
+#include "render/procedural.h"
 #include "render/scene.h"
 #include "render/session.h"
 #include "render/shader.h"
@@ -114,6 +116,7 @@ Scene::Scene(const SceneParams &params_, Device *device)
   image_manager = new ImageManager(device->info);
   particle_system_manager = new ParticleSystemManager();
   bake_manager = new BakeManager();
+  procedural_manager = new ProceduralManager();
   kernels_loaded = false;
 
   /* TODO(sergey): Check if it's indeed optimal value for the split kernel. */
@@ -142,6 +145,9 @@ void Scene::free_memory(bool final)
 
   foreach (Shader *s, shaders)
     delete s;
+  /* delete procedurals before other types as they may hold pointers to those types */
+  foreach (Procedural *p, procedurals)
+    delete p;
   foreach (Geometry *g, geometry)
     delete g;
   foreach (Object *o, objects)
@@ -156,6 +162,7 @@ void Scene::free_memory(bool final)
   objects.clear();
   lights.clear();
   particle_systems.clear();
+  procedurals.clear();
 
   if (device) {
     camera->device_free(device, &dscene, this);
@@ -195,6 +202,7 @@ void Scene::free_memory(bool final)
     delete image_manager;
     delete bake_manager;
     delete update_stats;
+    delete procedural_manager;
   }
 }
 
@@ -234,6 +242,11 @@ void Scene::device_update(Device *device_, Progress &progress)
   shader_manager->device_update(device, &dscene, this, progress);
 
   if (progress.get_cancel() || device->have_error())
+    return;
+
+  procedural_manager->update(this, progress);
+
+  if (progress.get_cancel())
     return;
 
   progress.set_status("Updating Background");
@@ -391,7 +404,7 @@ bool Scene::need_data_update()
           light_manager->need_update() || lookup_tables->need_update() ||
           integrator->is_modified() || shader_manager->need_update() ||
           particle_system_manager->need_update() || bake_manager->need_update() ||
-          film->is_modified());
+          film->is_modified() || procedural_manager->need_update());
 }
 
 bool Scene::need_reset()
@@ -416,6 +429,7 @@ void Scene::reset()
   geometry_manager->tag_update(this, GeometryManager::UPDATE_ALL);
   light_manager->tag_update(this, LightManager::UPDATE_ALL);
   particle_system_manager->tag_update(this);
+  procedural_manager->tag_update();
 }
 
 void Scene::device_free()
@@ -657,6 +671,19 @@ template<> Shader *Scene::create_node<Shader>()
   return node;
 }
 
+template<> AlembicProcedural *Scene::create_node<AlembicProcedural>()
+{
+#ifdef WITH_ALEMBIC
+  AlembicProcedural *node = new AlembicProcedural();
+  node->set_owner(this);
+  procedurals.push_back(node);
+  procedural_manager->tag_update();
+  return node;
+#else
+  return nullptr;
+#endif
+}
+
 template<typename T> void delete_node_from_array(vector<T> &nodes, T node)
 {
   for (size_t i = 0; i < nodes.size(); ++i) {
@@ -726,6 +753,21 @@ template<> void Scene::delete_node_impl(Shader * /*node*/)
   /* don't delete unused shaders, not supported */
 }
 
+template<> void Scene::delete_node_impl(Procedural *node)
+{
+  delete_node_from_array(procedurals, node);
+  procedural_manager->tag_update();
+}
+
+template<> void Scene::delete_node_impl(AlembicProcedural *node)
+{
+#ifdef WITH_ALEMBIC
+  delete_node_impl(static_cast<Procedural *>(node));
+#else
+  (void)node;
+#endif
+}
+
 template<typename T>
 static void remove_nodes_in_set(const set<T *> &nodes_set,
                                 vector<T *> &nodes_array,
@@ -778,6 +820,12 @@ template<> void Scene::delete_nodes(const set<ParticleSystem *> &nodes, const No
 template<> void Scene::delete_nodes(const set<Shader *> & /*nodes*/, const NodeOwner * /*owner*/)
 {
   /* don't delete unused shaders, not supported */
+}
+
+template<> void Scene::delete_nodes(const set<Procedural *> &nodes, const NodeOwner *owner)
+{
+  remove_nodes_in_set(nodes, procedurals, owner);
+  procedural_manager->tag_update();
 }
 
 CCL_NAMESPACE_END

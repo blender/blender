@@ -723,15 +723,24 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
     }
 
     if (ca->flag & CAM_SHOW_SAFE_MARGINS) {
-      UI_draw_safe_areas(
-          shdr_pos, x1, x2, y1, y2, scene->safe_areas.title, scene->safe_areas.action);
+      UI_draw_safe_areas(shdr_pos,
+                         &(const rctf){
+                             .xmin = x1,
+                             .xmax = x2,
+                             .ymin = y1,
+                             .ymax = y2,
+                         },
+                         scene->safe_areas.title,
+                         scene->safe_areas.action);
 
       if (ca->flag & CAM_SHOW_SAFE_CENTER) {
         UI_draw_safe_areas(shdr_pos,
-                           x1,
-                           x2,
-                           y1,
-                           y2,
+                           &(const rctf){
+                               .xmin = x1,
+                               .xmax = x2,
+                               .ymin = y1,
+                               .ymax = y2,
+                           },
                            scene->safe_areas.title_center,
                            scene->safe_areas.action_center);
       }

@@ -25,6 +25,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_system.h"
+#include "BLI_threads.h"
 
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -440,7 +441,7 @@ static void node_draw_frame(const bContext *C,
 
   const rctf *rct = &node->totr;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_aa(true, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
+  UI_draw_roundbox_aa(rct, true, BASIS_RAD, color);
 
   /* outline active and selected emphasis */
   if (node->flag & SELECT) {
@@ -451,7 +452,7 @@ static void node_draw_frame(const bContext *C,
       UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -40, color);
     }
 
-    UI_draw_roundbox_aa(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
+    UI_draw_roundbox_aa(rct, false, BASIS_RAD, color);
   }
 
   /* label */
@@ -3780,7 +3781,9 @@ void draw_nodespace_back_pix(const bContext *C,
   /* The draw manager is used to draw the backdrop image. */
   GPUFrameBuffer *old_fb = GPU_framebuffer_active_get();
   GPU_framebuffer_restore();
+  BLI_thread_lock(LOCK_DRAW_IMAGE);
   DRW_draw_view(C);
+  BLI_thread_unlock(LOCK_DRAW_IMAGE);
   GPU_framebuffer_bind_no_srgb(old_fb);
   /* Draw manager changes the depth state. Set it back to NONE. Without this the node preview
    * images aren't drawn correctly. */

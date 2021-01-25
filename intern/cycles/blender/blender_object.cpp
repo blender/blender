@@ -51,10 +51,11 @@ bool BlenderSync::BKE_object_is_modified(BL::Object &b_ob)
   }
   else {
     /* object level material links */
-    BL::Object::material_slots_iterator slot;
-    for (b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot)
-      if (slot->link() == BL::MaterialSlot::link_OBJECT)
+    for (BL::MaterialSlot &b_slot : b_ob.material_slots) {
+      if (b_slot.link() == BL::MaterialSlot::link_OBJECT) {
         return true;
+      }
+    }
   }
 
   return false;

@@ -47,11 +47,9 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
 
   /* Find cycles preferences. */
   PointerRNA cpreferences;
-  BL::Preferences::addons_iterator b_addon_iter;
-  for (b_preferences.addons.begin(b_addon_iter); b_addon_iter != b_preferences.addons.end();
-       ++b_addon_iter) {
-    if (b_addon_iter->module() == "cycles") {
-      cpreferences = b_addon_iter->preferences().ptr;
+  for (BL::Addon &b_addon : b_preferences.addons) {
+    if (b_addon.module() == "cycles") {
+      cpreferences = b_addon.preferences().ptr;
       break;
     }
   }

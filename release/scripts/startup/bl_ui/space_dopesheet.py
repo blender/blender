@@ -27,6 +27,7 @@ from bpy.types import (
 
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilLayerMasksPanel,
+    GreasePencilLayerTransformPanel,
     GreasePencilLayerAdjustmentsPanel,
     GreasePencilLayerRelationsPanel,
     GreasePencilLayerDisplayPanel,
@@ -726,6 +727,12 @@ class DOPESHEET_PT_gpencil_layer_masks(LayersDopeSheetPanel, GreasePencilLayerMa
     bl_options = {'DEFAULT_CLOSED'}
 
 
+class DOPESHEET_PT_gpencil_layer_transform(LayersDopeSheetPanel, GreasePencilLayerTransformPanel, Panel):
+    bl_label = "Transform"
+    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_options = {'DEFAULT_CLOSED'}
+
+
 class DOPESHEET_PT_gpencil_layer_adjustments(LayersDopeSheetPanel, GreasePencilLayerAdjustmentsPanel, Panel):
     bl_label = "Adjustments"
     bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
@@ -762,6 +769,7 @@ classes = (
     DOPESHEET_PT_filters,
     DOPESHEET_PT_gpencil_mode,
     DOPESHEET_PT_gpencil_layer_masks,
+    DOPESHEET_PT_gpencil_layer_transform,
     DOPESHEET_PT_gpencil_layer_adjustments,
     DOPESHEET_PT_gpencil_layer_relations,
     DOPESHEET_PT_gpencil_layer_display,

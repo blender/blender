@@ -162,7 +162,16 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
     const float rad = WIDGET_RADIUS;
     GPU_matrix_push();
     GPU_matrix_scale_1f(1.0f / rad);
-    UI_draw_roundbox_4fv(true, -rad, -rad, rad, rad, rad, gz->color_hi);
+    UI_draw_roundbox_4fv(
+        &(const rctf){
+            .xmin = -rad,
+            .xmax = rad,
+            .ymin = -rad,
+            .ymax = rad,
+        },
+        true,
+        rad,
+        gz->color_hi);
     GPU_matrix_pop();
   }
 
@@ -248,7 +257,18 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       float scale = ((depth + 1) * 0.08f) + 0.92f;
       const float rad = WIDGET_RADIUS * AXIS_HANDLE_SIZE * scale;
       UI_draw_roundbox_4fv_ex(
-          -rad, -rad, rad, rad, inner_color, NULL, 0.0f, outline_color, AXIS_RING_WIDTH, rad);
+          &(const rctf){
+              .xmin = -rad,
+              .xmax = rad,
+              .ymin = -rad,
+              .ymax = rad,
+          },
+          inner_color,
+          NULL,
+          0.0f,
+          outline_color,
+          AXIS_RING_WIDTH,
+          rad);
       GPU_matrix_pop();
     }
 
@@ -352,6 +372,16 @@ static int gizmo_axis_cursor_get(wmGizmo *UNUSED(gz))
   return WM_CURSOR_DEFAULT;
 }
 
+static void gizmo_axis_screen_bounds_get(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
+{
+  ScrArea *area = CTX_wm_area(C);
+  const float rad = WIDGET_RADIUS;
+  r_bounding_box->xmin = gz->matrix_basis[3][0] + area->totrct.xmin - rad;
+  r_bounding_box->ymin = gz->matrix_basis[3][1] + area->totrct.ymin - rad;
+  r_bounding_box->xmax = r_bounding_box->xmin + rad;
+  r_bounding_box->ymax = r_bounding_box->ymin + rad;
+}
+
 void VIEW3D_GT_navigate_rotate(wmGizmoType *gzt)
 {
   /* identifiers */
@@ -361,6 +391,7 @@ void VIEW3D_GT_navigate_rotate(wmGizmoType *gzt)
   gzt->draw = gizmo_axis_draw;
   gzt->test_select = gizmo_axis_test_select;
   gzt->cursor_get = gizmo_axis_cursor_get;
+  gzt->screen_bounds_get = gizmo_axis_screen_bounds_get;
 
   gzt->struct_size = sizeof(wmGizmo);
 }

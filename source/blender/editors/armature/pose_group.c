@@ -63,7 +63,7 @@ static bool pose_group_poll(bContext *C)
 
   Object *obpose = ED_pose_object_from_context(C);
   if ((obpose->proxy != NULL) || (obpose->proxy_group != NULL) || ID_IS_OVERRIDE_LIBRARY(obpose)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit bonegroups for proxies or library overrides");
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit bone groups for proxies or library overrides");
     return false;
   }
 

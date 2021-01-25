@@ -16,6 +16,7 @@
 
 #include "device/device.h"
 
+#include "render/alembic.h"
 #include "render/background.h"
 #include "render/camera.h"
 #include "render/colorspace.h"
@@ -366,6 +367,7 @@ void Shader::tag_update(Scene *scene)
   if (attributes.modified(prev_attributes)) {
     need_update_attribute = true;
     scene->geometry_manager->tag_update(scene, GeometryManager::SHADER_ATTRIBUTE_MODIFIED);
+    scene->procedural_manager->tag_update();
   }
 
   if (has_volume != prev_has_volume || volume_step_rate != prev_volume_step_rate) {
@@ -511,6 +513,21 @@ void ShaderManager::update_shaders_used(Scene *scene)
 
   if (scene->background->get_shader())
     scene->background->get_shader()->used = true;
+
+#ifdef WITH_ALEMBIC
+  foreach (Procedural *procedural, scene->procedurals) {
+    AlembicProcedural *abc_proc = static_cast<AlembicProcedural *>(procedural);
+
+    foreach (Node *abc_node, abc_proc->get_objects()) {
+      AlembicObject *abc_object = static_cast<AlembicObject *>(abc_node);
+
+      foreach (Node *node, abc_object->get_used_shaders()) {
+        Shader *shader = static_cast<Shader *>(node);
+        shader->used = true;
+      }
+    }
+  }
+#endif
 
   foreach (Geometry *geom, scene->geometry)
     foreach (Node *node, geom->get_used_shaders()) {

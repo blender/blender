@@ -1314,9 +1314,9 @@ static int rna_property_override_diff_propptr(Main *bmain,
             BLI_assert(op->rna_prop_type == property_type);
           }
 
+          IDOverrideLibraryPropertyOperation *opop = NULL;
           if (created || rna_itemname_a != NULL || rna_itemname_b != NULL ||
               rna_itemindex_a != -1 || rna_itemindex_b != -1) {
-            IDOverrideLibraryPropertyOperation *opop;
             opop = BKE_lib_override_library_property_operation_get(op,
                                                                    IDOVERRIDE_LIBRARY_OP_REPLACE,
                                                                    rna_itemname_b,
@@ -1336,6 +1336,38 @@ static int rna_property_override_diff_propptr(Main *bmain,
           }
           else {
             BKE_lib_override_library_operations_tag(op, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
+          }
+
+          if (is_id && no_ownership) {
+            if (opop == NULL) {
+              opop = BKE_lib_override_library_property_operation_find(op,
+                                                                      rna_itemname_b,
+                                                                      rna_itemname_a,
+                                                                      rna_itemindex_b,
+                                                                      rna_itemindex_a,
+                                                                      true,
+                                                                      NULL);
+              BLI_assert(opop != NULL);
+            }
+
+            BLI_assert(propptr_a->data == propptr_a->owner_id);
+            BLI_assert(propptr_b->data == propptr_b->owner_id);
+            ID *id_a = propptr_a->data;
+            ID *id_b = propptr_b->data;
+            if (ELEM(NULL, id_a, id_b)) {
+              /* In case one of the pointer is NULL and not the other, we consider that the
+               * override is not matching its reference anymore. */
+              opop->flag &= ~IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
+            }
+            else if (id_a->override_library != NULL && id_a->override_library->reference == id_b) {
+              opop->flag |= IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
+            }
+            else if (id_b->override_library != NULL && id_b->override_library->reference == id_a) {
+              opop->flag |= IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
+            }
+            else {
+              opop->flag &= ~IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
+            }
           }
         }
       }

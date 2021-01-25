@@ -225,7 +225,8 @@ static const char *dropbox_active(bContext *C,
       if (handler->dropboxes) {
         LISTBASE_FOREACH (wmDropBox *, drop, handler->dropboxes) {
           const char *tooltip = NULL;
-          if (drop->poll(C, drag, event, &tooltip)) {
+          if (drop->poll(C, drag, event, &tooltip) &&
+              WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
             /* XXX Doing translation here might not be ideal, but later we have no more
              *     access to ot (and hence op context)... */
             return (tooltip) ? tooltip : WM_operatortype_name(drop->ot, drop->ptr);
@@ -351,6 +352,14 @@ ID *WM_drag_get_local_ID_from_event(const wmEvent *event, short idcode)
 
   ListBase *lb = event->customdata;
   return WM_drag_get_local_ID(lb->first, idcode);
+}
+
+/**
+ * Check if the drag data is either a local ID or an external ID asset of type \a idcode.
+ */
+bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
+{
+  return WM_drag_get_local_ID(drag, idcode) || WM_drag_get_asset_data(drag, idcode);
 }
 
 wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)

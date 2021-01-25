@@ -36,6 +36,7 @@
 
 CCL_NAMESPACE_BEGIN
 
+class AlembicProcedural;
 class AttributeRequestSet;
 class Background;
 class BVH;
@@ -53,6 +54,8 @@ class Object;
 class ObjectManager;
 class ParticleSystemManager;
 class ParticleSystem;
+class Procedural;
+class ProceduralManager;
 class CurveSystemManager;
 class Shader;
 class ShaderManager;
@@ -236,6 +239,7 @@ class Scene : public NodeOwner {
   vector<Light *> lights;
   vector<ParticleSystem *> particle_systems;
   vector<Pass> passes;
+  vector<Procedural *> procedurals;
 
   /* data managers */
   ImageManager *image_manager;
@@ -245,6 +249,7 @@ class Scene : public NodeOwner {
   ObjectManager *object_manager;
   ParticleSystemManager *particle_system_manager;
   BakeManager *bake_manager;
+  ProceduralManager *procedural_manager;
 
   /* default shaders */
   Shader *default_surface;
@@ -379,6 +384,8 @@ template<> ParticleSystem *Scene::create_node<ParticleSystem>();
 
 template<> Shader *Scene::create_node<Shader>();
 
+template<> AlembicProcedural *Scene::create_node<AlembicProcedural>();
+
 template<> void Scene::delete_node_impl(Light *node);
 
 template<> void Scene::delete_node_impl(Mesh *node);
@@ -395,6 +402,10 @@ template<> void Scene::delete_node_impl(ParticleSystem *node);
 
 template<> void Scene::delete_node_impl(Shader *node);
 
+template<> void Scene::delete_node_impl(Procedural *node);
+
+template<> void Scene::delete_node_impl(AlembicProcedural *node);
+
 template<> void Scene::delete_nodes(const set<Light *> &nodes, const NodeOwner *owner);
 
 template<> void Scene::delete_nodes(const set<Geometry *> &nodes, const NodeOwner *owner);
@@ -404,6 +415,8 @@ template<> void Scene::delete_nodes(const set<Object *> &nodes, const NodeOwner 
 template<> void Scene::delete_nodes(const set<ParticleSystem *> &nodes, const NodeOwner *owner);
 
 template<> void Scene::delete_nodes(const set<Shader *> &nodes, const NodeOwner *owner);
+
+template<> void Scene::delete_nodes(const set<Procedural *> &nodes, const NodeOwner *owner);
 
 CCL_NAMESPACE_END
 

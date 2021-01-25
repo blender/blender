@@ -312,6 +312,13 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
 
 /* ****************** Add File Node Operator  ******************* */
 
+static bool node_add_file_poll(bContext *C)
+{
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  return ED_operator_node_editable(C) &&
+         ELEM(snode->nodetree->type, NTREE_SHADER, NTREE_TEXTURE, NTREE_COMPOSIT);
+}
+
 static int node_add_file_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -396,7 +403,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
   /* callbacks */
   ot->exec = node_add_file_exec;
   ot->invoke = node_add_file_invoke;
-  ot->poll = ED_operator_node_editable;
+  ot->poll = node_add_file_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

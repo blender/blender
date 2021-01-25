@@ -55,6 +55,7 @@
 
 #include "SEQ_prefetch.h"
 #include "SEQ_render.h"
+#include "SEQ_sequencer.h"
 
 #include "image_cache.h"
 #include "prefetch.h"
@@ -358,43 +359,48 @@ void seq_prefetch_free(Scene *scene)
   scene->ed->prefetch_job = NULL;
 }
 
-static bool seq_prefetch_do_skip_frame(Scene *scene)
+/* Skip frame if we need to render 3D scene strip. Rendering 3D scene requires main lock or setting
+ * up render job that doesn't have API to do openGL renders which can be used for sequencer. */
+static bool seq_prefetch_do_skip_frame(PrefetchJob *pfjob, ListBase *seqbase)
 {
-  Editing *ed = scene->ed;
-  PrefetchJob *pfjob = seq_prefetch_job_get(scene);
   float cfra = seq_prefetch_cfra(pfjob);
   Sequence *seq_arr[MAXSEQ + 1];
-  int count = seq_get_shown_sequences(ed->seqbasep, cfra, 0, seq_arr);
+  int count = seq_get_shown_sequences(seqbase, cfra, 0, seq_arr);
   SeqRenderData *ctx = &pfjob->context_cpy;
   ImBuf *ibuf = NULL;
 
   /* Disable prefetching 3D scene strips, but check for disk cache. */
   for (int i = 0; i < count; i++) {
+    if (seq_arr[i]->type == SEQ_TYPE_META &&
+        seq_prefetch_do_skip_frame(pfjob, &seq_arr[i]->seqbase)) {
+      return true;
+    }
+
     if (seq_arr[i]->type == SEQ_TYPE_SCENE && (seq_arr[i]->flag & SEQ_SCENE_STRIPS) == 0) {
       int cached_types = 0;
 
-      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_FINAL_OUT;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
       }
 
-      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_COMPOSITE, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_COMPOSITE);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_COMPOSITE;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
       }
 
-      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_PREPROCESSED, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_PREPROCESSED);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_PREPROCESSED;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
       }
 
-      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_RAW, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_RAW);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_RAW;
         IMB_freeImBuf(ibuf);
@@ -457,7 +463,8 @@ static void *seq_prefetch_frames(void *job)
      */
     pfjob->scene_eval->ed->prefetch_job = pfjob;
 
-    if (seq_prefetch_do_skip_frame(pfjob->scene)) {
+    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(pfjob->scene, false));
+    if (seq_prefetch_do_skip_frame(pfjob, seqbase)) {
       pfjob->num_frames_prefetched++;
       continue;
     }

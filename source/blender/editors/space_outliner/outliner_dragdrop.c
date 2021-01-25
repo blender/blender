@@ -140,6 +140,11 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
   TreeElement *te_hovered;
   float view_mval[2];
 
+  /* Emtpy tree, e.g. while filtered. */
+  if (BLI_listbase_is_empty(&space_outliner->tree)) {
+    return NULL;
+  }
+
   UI_view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
   te_hovered = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);

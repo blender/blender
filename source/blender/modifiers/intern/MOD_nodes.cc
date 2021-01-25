@@ -1057,7 +1057,7 @@ static void modifyGeometrySet(ModifierData *md,
  * the correct label displayed in the UI.  */
 static void draw_property_for_socket(uiLayout *layout,
                                      PointerRNA *bmain_ptr,
-                                     PointerRNA *settings_ptr,
+                                     PointerRNA *md_ptr,
                                      const IDProperty *modifier_props,
                                      const bNodeSocket &socket)
 {
@@ -1085,12 +1085,12 @@ static void draw_property_for_socket(uiLayout *layout,
     switch (socket.type) {
       case SOCK_OBJECT: {
         uiItemPointerR(
-            layout, settings_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
+            layout, md_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
         break;
       }
       case SOCK_COLLECTION: {
         uiItemPointerR(layout,
-                       settings_ptr,
+                       md_ptr,
                        rna_path,
                        bmain_ptr,
                        "collections",
@@ -1099,7 +1099,7 @@ static void draw_property_for_socket(uiLayout *layout,
         break;
       }
       default:
-        uiItemR(layout, settings_ptr, rna_path, 0, socket.name, ICON_NONE);
+        uiItemR(layout, md_ptr, rna_path, 0, socket.name, ICON_NONE);
     }
   }
 }
@@ -1113,8 +1113,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   NodesModifierData *nmd = static_cast<NodesModifierData *>(ptr->data);
 
   uiLayoutSetPropSep(layout, true);
-  /* This should be removed, but animation currently doesn't work with the IDProperties. */
-  uiLayoutSetPropDecorate(layout, false);
+  uiLayoutSetPropDecorate(layout, true);
 
   uiTemplateID(layout,
                C,
@@ -1128,15 +1127,11 @@ static void panel_draw(const bContext *C, Panel *panel)
                nullptr);
 
   if (nmd->node_group != nullptr && nmd->settings.properties != nullptr) {
-    PointerRNA settings_ptr;
-    RNA_pointer_create(ptr->owner_id, &RNA_NodesModifierSettings, &nmd->settings, &settings_ptr);
-
     PointerRNA bmain_ptr;
     RNA_main_pointer_create(bmain, &bmain_ptr);
 
     LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->inputs) {
-      draw_property_for_socket(
-          layout, &bmain_ptr, &settings_ptr, nmd->settings.properties, *socket);
+      draw_property_for_socket(layout, &bmain_ptr, ptr, nmd->settings.properties, *socket);
     }
   }
 
