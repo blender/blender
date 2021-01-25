@@ -224,13 +224,11 @@ void view3d_region_operator_needs_opengl(wmWindow *UNUSED(win), ARegion *region)
  */
 void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 {
-  float viewdist;
-
   if (rv3d->rflag & RV3D_ZOFFSET_DISABLED) {
     return;
   }
 
-  viewdist = rv3d->dist;
+  float viewdist = rv3d->dist;
 
   /* special exception for ortho camera (viewdist isnt used for perspective cameras) */
   if (dist != 0.0f) {
@@ -248,7 +246,6 @@ bool ED_view3d_context_activate(bContext *C)
 {
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
-  ARegion *region;
 
   /* area can be NULL when called from python */
   if (area == NULL || area->spacetype != SPACE_VIEW3D) {
@@ -259,7 +256,7 @@ bool ED_view3d_context_activate(bContext *C)
     return false;
   }
 
-  region = BKE_area_find_region_active_win(area);
+  ARegion *region = BKE_area_find_region_active_win(area);
   if (region == NULL) {
     return false;
   }
@@ -282,9 +279,7 @@ void ED_view3d_clipping_calc_from_boundbox(float clip[4][4],
                                            const BoundBox *bb,
                                            const bool is_flip)
 {
-  int val;
-
-  for (val = 0; val < 4; val++) {
+  for (int val = 0; val < 4; val++) {
     normal_tri_v3(clip[val], bb->vec[val], bb->vec[val == 3 ? 0 : val + 1], bb->vec[val + 4]);
     if (UNLIKELY(is_flip)) {
       negate_v3(clip[val]);
@@ -752,14 +747,12 @@ bool ED_view3d_camera_lock_autokey(View3D *v3d,
 
 static void view3d_boxview_clip(ScrArea *area)
 {
-  ARegion *region;
   BoundBox *bb = MEM_callocN(sizeof(BoundBox), "clipbb");
   float clip[6][4];
   float x1 = 0.0f, y1 = 0.0f, z1 = 0.0f, ofs[3] = {0.0f, 0.0f, 0.0f};
-  int val;
 
   /* create bounding box */
-  for (region = area->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3d = region->regiondata;
 
@@ -794,7 +787,7 @@ static void view3d_boxview_clip(ScrArea *area)
     }
   }
 
-  for (val = 0; val < 8; val++) {
+  for (int val = 0; val < 8; val++) {
     if (ELEM(val, 0, 3, 4, 7)) {
       bb->vec[val][0] = -x1 - ofs[0];
     }
@@ -826,12 +819,12 @@ static void view3d_boxview_clip(ScrArea *area)
   normal_tri_v3(clip[5], bb->vec[0], bb->vec[2], bb->vec[1]);
 
   /* then plane equations */
-  for (val = 0; val < 6; val++) {
+  for (int val = 0; val < 6; val++) {
     clip[val][3] = -dot_v3v3(clip[val], bb->vec[val % 5]);
   }
 
   /* create bounding box */
-  for (region = area->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3d = region->regiondata;
 
@@ -950,11 +943,10 @@ void ED_view3d_quadview_update(ScrArea *area, ARegion *region, bool do_clip)
 {
   ARegion *region_sync = NULL;
   RegionView3D *rv3d = region->regiondata;
-  short viewlock;
   /* this function copies flags from the first of the 3 other quadview
    * regions to the 2 other, so it assumes this is the region whose
    * properties are always being edited, weak */
-  viewlock = rv3d->viewlock;
+  short viewlock = rv3d->viewlock;
 
   if ((viewlock & RV3D_LOCK_ROTATION) == 0) {
     do_clip = (viewlock & RV3D_BOXCLIP) != 0;
@@ -1015,10 +1007,7 @@ void ED_view3d_quadview_update(ScrArea *area, ARegion *region, bool do_clip)
 
 static float view_autodist_depth_margin(ARegion *region, const int mval[2], int margin)
 {
-  ViewDepths depth_temp = {0};
   rcti rect;
-  float depth_close;
-
   if (margin == 0) {
     /* Get Z Depths, needed for perspective, nice for ortho */
     rect.xmin = mval[0];
@@ -1030,8 +1019,9 @@ static float view_autodist_depth_margin(ARegion *region, const int mval[2], int 
     BLI_rcti_init_pt_radius(&rect, mval, margin);
   }
 
+  ViewDepths depth_temp = {0};
   view3d_update_depths_rect(region, &depth_temp, &rect);
-  depth_close = view3d_depth_near(&depth_temp);
+  float depth_close = view3d_depth_near(&depth_temp);
   MEM_SAFE_FREE(depth_temp.depths);
   return depth_close;
 }
@@ -1053,14 +1043,13 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
 {
   float depth_close;
   int margin_arr[] = {0, 2, 4};
-  int i;
   bool depth_ok = false;
 
   /* Get Z Depths, needed for perspective, nice for ortho */
   ED_view3d_draw_depth(depsgraph, region, v3d, alphaoverride);
 
   /* Attempt with low margin's first */
-  i = 0;
+  int i = 0;
   do {
     depth_close = view_autodist_depth_margin(region, mval, margin_arr[i++] * U.pixelsize);
     depth_ok = (depth_close != FLT_MAX);
@@ -1104,9 +1093,8 @@ bool ED_view3d_autodist_simple(ARegion *region,
                                int margin,
                                const float *force_depth)
 {
-  float depth;
-
   /* Get Z Depths, needed for perspective, nice for ortho */
+  float depth;
   if (force_depth) {
     depth = *force_depth;
   }
@@ -1237,7 +1225,6 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
   }
   else {
     float lens, sensor_size, zoom;
-    float angle;
 
     if (persp == RV3D_CAMOB) {
       CameraParams params;
@@ -1259,7 +1246,7 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
       zoom = CAMERA_PARAM_ZOOM_INIT_PERSP;
     }
 
-    angle = focallength_to_fov(lens, sensor_size);
+    float angle = focallength_to_fov(lens, sensor_size);
 
     /* zoom influences lens, correct this by scaling the angle as a distance
      * (by the zoom-level) */
@@ -1319,14 +1306,13 @@ float ED_view3d_offset_distance(const float mat[4][4],
 {
   float pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   float dir[4] = {0.0f, 0.0f, 1.0f, 0.0f};
-  float dist;
 
   mul_m4_v4(mat, pos);
   add_v3_v3(pos, ofs);
   mul_m4_v4(mat, dir);
   normalize_v3(dir);
 
-  dist = dot_v3v3(pos, dir);
+  float dist = dot_v3v3(pos, dir);
 
   if ((dist < FLT_EPSILON) && (fallback_dist != 0.0f)) {
     dist = fallback_dist;
