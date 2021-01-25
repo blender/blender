@@ -371,7 +371,12 @@ typedef struct wmGizmoType {
    */
   wmGizmoFnMatrixBasisGet matrix_basis_get;
 
-  /** Returns screen-space bounding box. Needed for nice tooltip placement. */
+  /**
+   * Returns screen-space bounding box in the window space
+   * (compatible with #wmEvent.x #wmEvent.y).
+   *
+   * Used for tool-tip placement (otherwise the cursor location is used).
+   */
   wmGizmoFnScreenBoundsGet screen_bounds_get;
 
   /** Activate a gizmo state when the user clicks on it. */

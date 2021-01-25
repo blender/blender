@@ -352,7 +352,7 @@ static int gizmo_axis_cursor_get(wmGizmo *UNUSED(gz))
   return WM_CURSOR_DEFAULT;
 }
 
-static void gizmo_axis_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
+static void gizmo_axis_screen_bounds_get(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
 {
   ScrArea *area = CTX_wm_area(C);
   const float rad = WIDGET_RADIUS;
@@ -371,7 +371,7 @@ void VIEW3D_GT_navigate_rotate(wmGizmoType *gzt)
   gzt->draw = gizmo_axis_draw;
   gzt->test_select = gizmo_axis_test_select;
   gzt->cursor_get = gizmo_axis_cursor_get;
-  gzt->screen_bounds_get = gizmo_axis_bounds;
+  gzt->screen_bounds_get = gizmo_axis_screen_bounds_get;
 
   gzt->struct_size = sizeof(wmGizmo);
 }

@@ -59,12 +59,12 @@ typedef int (*wmGizmoFnModal)(struct bContext *,
                               eWM_GizmoFlagTweak);
 typedef void (*wmGizmoFnPropertyUpdate)(struct wmGizmo *, struct wmGizmoProperty *);
 typedef void (*wmGizmoFnMatrixBasisGet)(const struct wmGizmo *, float[4][4]);
-typedef void (*wmGizmoFnScreenBoundsGet)(struct bContext *,
-                                         struct wmGizmo *,
-                                         rcti *r_bounding_box);
 typedef int (*wmGizmoFnInvoke)(struct bContext *, struct wmGizmo *, const struct wmEvent *);
 typedef void (*wmGizmoFnExit)(struct bContext *, struct wmGizmo *, const bool);
 typedef int (*wmGizmoFnCursorGet)(struct wmGizmo *);
+typedef void (*wmGizmoFnScreenBoundsGet)(struct bContext *,
+                                         struct wmGizmo *,
+                                         rcti *r_bounding_box);
 typedef void (*wmGizmoFnSelectRefresh)(struct wmGizmo *);
 typedef void (*wmGizmoFnFree)(struct wmGizmo *);
 
