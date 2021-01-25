@@ -1341,7 +1341,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     foreach (Node *shader_node, object->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(shader_node);
 
-      if (shader->need_update_geometry) {
+      if (shader->need_update_geometry()) {
         object->need_shader_update = true;
         need_shader_updates = true;
       }
