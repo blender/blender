@@ -366,6 +366,7 @@ void Shader::tag_update(Scene *scene)
   if (attributes.modified(prev_attributes)) {
     need_update_attribute = true;
     scene->geometry_manager->tag_update(scene, GeometryManager::SHADER_ATTRIBUTE_MODIFIED);
+    scene->procedural_manager->tag_update();
   }
 
   if (has_volume != prev_has_volume || volume_step_rate != prev_volume_step_rate) {

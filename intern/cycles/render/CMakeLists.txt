@@ -48,6 +48,7 @@ set(SRC
   mesh_displace.cpp
   mesh_subdivision.cpp
   nodes.cpp
+  procedural.cpp
   object.cpp
   osl.cpp
   particles.cpp
@@ -90,6 +91,7 @@ set(SRC_HEADERS
   object.h
   osl.h
   particles.h
+  procedural.h
   curves.h
   scene.h
   session.h
