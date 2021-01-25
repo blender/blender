@@ -157,6 +157,7 @@ typedef struct Image {
   short gpuflag;
   short gpu_pass;
   short gpu_layer;
+  short gpu_view;
   char _pad2[6];
 
   /** Deprecated. */
