@@ -456,15 +456,6 @@ void UI_draw_roundbox_4fv_ex(float minx,
 
 #if 0 /* unused */
 int UI_draw_roundbox_corner_get(void);
-void UI_draw_roundbox_shade_y(bool filled,
-                              float minx,
-                              float miny,
-                              float maxx,
-                              float maxy,
-                              float rad,
-                              float shadeleft,
-                              float shaderight,
-                              const float col[4]);
 #endif
 
 void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
