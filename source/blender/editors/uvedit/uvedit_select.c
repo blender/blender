@@ -1982,6 +1982,13 @@ static int uv_mouse_select_multi(bContext *C,
   }
   else if (selectmode == UV_SELECT_ISLAND) {
     found_item = uv_find_nearest_edge_multi(scene, objects, objects_len, co, &hit);
+
+    if (!found_item) {
+      /* Without this, we can be within the face of an island but too far from an edge,
+       * see face selection comment for details. */
+      hit.dist_sq = FLT_MAX;
+      found_item = uv_find_nearest_face_multi_ex(scene, objects, objects_len, co, &hit, true);
+    }
   }
 
   if (!found_item) {
