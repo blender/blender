@@ -158,7 +158,7 @@ typedef struct Image {
   short gpu_pass;
   short gpu_layer;
   short gpu_view;
-  char _pad2[6];
+  char _pad2[4];
 
   /** Deprecated. */
   struct PackedFile *packedfile DNA_DEPRECATED;
