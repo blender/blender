@@ -730,14 +730,14 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
 
   /* Proxies and effect strips are not stored in cache. */
   if (!is_proxy_image && (seq->type & SEQ_TYPE_EFFECT) == 0) {
-    seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf, false);
+    seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf);
   }
 
   if (use_preprocess) {
     ibuf = input_preprocess(context, seq, timeline_frame, ibuf);
   }
 
-  seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, ibuf, false);
+  seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, ibuf);
   return ibuf;
 }
 
@@ -1605,8 +1605,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
       }
 
       if (view_id != context->view_id) {
-        seq_cache_put(
-            &localcontext, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibufs_arr[view_id], false);
+        seq_cache_put(&localcontext, seq, timeline_frame, SEQ_CACHE_STORE_RAW, ibufs_arr[view_id]);
       }
 
       RE_ReleaseResultImage(re);
@@ -1781,14 +1780,14 @@ ImBuf *seq_render_strip(const SeqRenderData *context,
   bool use_preprocess = false;
   bool is_proxy_image = false;
 
-  ibuf = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, false);
+  ibuf = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED);
   if (ibuf != NULL) {
     return ibuf;
   }
 
   /* Proxies are not stored in cache. */
   if (!SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(context->preview_render_size))) {
-    ibuf = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW, false);
+    ibuf = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW);
   }
 
   if (ibuf == NULL) {
@@ -1895,7 +1894,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
     int early_out;
     Sequence *seq = seq_arr[i];
 
-    out = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_COMPOSITE, false);
+    out = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_COMPOSITE);
 
     if (out) {
       break;
@@ -1924,8 +1923,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
 
           out = seq_render_strip_stack_apply_effect(context, seq, timeline_frame, ibuf1, ibuf2);
 
-          seq_cache_put(
-              context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, false);
+          seq_cache_put(context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out);
 
           IMB_freeImBuf(ibuf1);
           IMB_freeImBuf(ibuf2);
@@ -1951,7 +1949,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
       IMB_freeImBuf(ibuf2);
     }
 
-    seq_cache_put(context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out, false);
+    seq_cache_put(context, seq_arr[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out);
   }
 
   return out;
@@ -1990,8 +1988,7 @@ ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, 
   count = seq_get_shown_sequences(seqbasep, timeline_frame, chanshown, seq_arr);
 
   if (count) {
-    out = seq_cache_get(
-        context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, false);
+    out = seq_cache_get(context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT);
   }
 
   seq_cache_free_temp_cache(context->scene, context->task_id, timeline_frame);
@@ -2001,12 +1998,11 @@ ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, 
     out = seq_render_strip_stack(context, &state, seqbasep, timeline_frame, chanshown);
 
     if (context->is_prefetch_render) {
-      seq_cache_put(
-          context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out, false);
+      seq_cache_put(context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out);
     }
     else {
       seq_cache_put_if_possible(
-          context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out, false);
+          context, seq_arr[count - 1], timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out);
     }
     BLI_mutex_unlock(&seq_render_mutex);
   }

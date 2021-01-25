@@ -373,28 +373,28 @@ static bool seq_prefetch_do_skip_frame(Scene *scene)
     if (seq_arr[i]->type == SEQ_TYPE_SCENE && (seq_arr[i]->flag & SEQ_SCENE_STRIPS) == 0) {
       int cached_types = 0;
 
-      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_FINAL_OUT;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
       }
 
-      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_COMPOSITE, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_COMPOSITE);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_COMPOSITE;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
       }
 
-      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_PREPROCESSED, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_PREPROCESSED);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_PREPROCESSED;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
       }
 
-      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_RAW, false);
+      ibuf = seq_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_RAW);
       if (ibuf != NULL) {
         cached_types |= SEQ_CACHE_STORE_RAW;
         IMB_freeImBuf(ibuf);
