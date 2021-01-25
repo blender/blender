@@ -25,6 +25,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_system.h"
+#include "BLI_threads.h"
 
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -3780,7 +3781,9 @@ void draw_nodespace_back_pix(const bContext *C,
   /* The draw manager is used to draw the backdrop image. */
   GPUFrameBuffer *old_fb = GPU_framebuffer_active_get();
   GPU_framebuffer_restore();
+  BLI_thread_lock(LOCK_DRAW_IMAGE);
   DRW_draw_view(C);
+  BLI_thread_unlock(LOCK_DRAW_IMAGE);
   GPU_framebuffer_bind_no_srgb(old_fb);
   /* Draw manager changes the depth state. Set it back to NONE. Without this the node preview
    * images aren't drawn correctly. */
