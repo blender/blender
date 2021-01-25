@@ -7237,7 +7237,8 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
           (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) ||
           (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||
           (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
-          (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS));
+          (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) ||
+          (brush->sculpt_tool == SCULPT_TOOL_DISPLACEMENT_SMEAR));
 }
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
