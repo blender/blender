@@ -252,7 +252,7 @@ static int ed_undo_step_impl(bContext *C,
     Main *bmain = CTX_data_main(C);
     wm->op_undo_depth++;
     BKE_callback_exec_id(
-        bmain, &scene->id, (step_for_callback > 0) ? BKE_CB_EVT_UNDO_PRE : BKE_CB_EVT_REDO_PRE);
+        bmain, &scene->id, (step_for_callback == STEP_UNDO) ? BKE_CB_EVT_UNDO_PRE : BKE_CB_EVT_REDO_PRE);
     wm->op_undo_depth--;
   }
 
@@ -301,7 +301,7 @@ static int ed_undo_step_impl(bContext *C,
     scene = CTX_data_scene(C);
     wm->op_undo_depth++;
     BKE_callback_exec_id(
-        bmain, &scene->id, step_for_callback > 0 ? BKE_CB_EVT_UNDO_POST : BKE_CB_EVT_REDO_POST);
+        bmain, &scene->id, (step_for_callback == STEP_UNDO) ? BKE_CB_EVT_UNDO_POST : BKE_CB_EVT_REDO_POST);
     wm->op_undo_depth--;
   }
 
