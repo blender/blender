@@ -88,7 +88,7 @@ void UI_draw_roundbox_4fv_ex(float minx,
                              const float inner1[4],
                              const float inner2[4],
                              float shade_dir,
-                             float outline[4],
+                             const float outline[4],
                              float outline_width,
                              float rad)
 {
@@ -141,12 +141,14 @@ void UI_draw_roundbox_3ub_alpha(bool filled,
                                 const uchar col[3],
                                 uchar alpha)
 {
-  float colv[4];
-  colv[0] = ((float)col[0]) / 255;
-  colv[1] = ((float)col[1]) / 255;
-  colv[2] = ((float)col[2]) / 255;
-  colv[3] = ((float)alpha) / 255;
-  UI_draw_roundbox_4fv(filled, minx, miny, maxx, maxy, rad, colv);
+  float colv[4] = {
+      ((float)col[0]) / 255,
+      ((float)col[1]) / 255,
+      ((float)col[2]) / 255,
+      ((float)alpha) / 255,
+  };
+  UI_draw_roundbox_4fv_ex(
+      minx, miny, maxx, maxy, (filled) ? colv : NULL, NULL, 1.0f, colv, U.pixelsize, rad);
 }
 
 void UI_draw_roundbox_3fv_alpha(bool filled,
@@ -158,213 +160,32 @@ void UI_draw_roundbox_3fv_alpha(bool filled,
                                 const float col[3],
                                 float alpha)
 {
-  float colv[4];
-  colv[0] = col[0];
-  colv[1] = col[1];
-  colv[2] = col[2];
-  colv[3] = alpha;
-  UI_draw_roundbox_4fv(filled, minx, miny, maxx, maxy, rad, colv);
+  float colv[4] = {col[0], col[1], col[2], alpha};
+  UI_draw_roundbox_4fv_ex(
+      minx, miny, maxx, maxy, (filled) ? colv : NULL, NULL, 1.0f, colv, U.pixelsize, rad);
 }
 
 void UI_draw_roundbox_aa(
     bool filled, float minx, float miny, float maxx, float maxy, float rad, const float color[4])
 {
-  uiWidgetBaseParameters widget_params = {
-      .recti.xmin = minx + U.pixelsize,
-      .recti.ymin = miny + U.pixelsize,
-      .recti.xmax = maxx - U.pixelsize,
-      .recti.ymax = maxy - U.pixelsize,
-      .rect.xmin = minx,
-      .rect.ymin = miny,
-      .rect.xmax = maxx,
-      .rect.ymax = maxy,
-      .radi = rad,
-      .rad = rad,
-      .round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
-      .round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
-      .round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
-      .round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
-      .color_inner1[0] = filled ? color[0] : 0.0f,
-      .color_inner1[1] = filled ? color[1] : 0.0f,
-      .color_inner1[2] = filled ? color[2] : 0.0f,
-      .color_inner1[3] = filled ? color[3] : 0.0f,
-      .color_inner2[0] = filled ? color[0] : 0.0f,
-      .color_inner2[1] = filled ? color[1] : 0.0f,
-      .color_inner2[2] = filled ? color[2] : 0.0f,
-      .color_inner2[3] = filled ? color[3] : 0.0f,
-      .color_outline[0] = color[0],
-      .color_outline[1] = color[1],
-      .color_outline[2] = color[2],
-      .color_outline[3] = color[3],
-      .alpha_discard = 1.0f,
-  };
-
   /* XXX this is to emulate previous behavior of semitransparent fills but that's was a side effect
    * of the previous AA method. Better fix the callers. */
+  float colv[4] = {color[0], color[1], color[2], color[3]};
   if (filled) {
-    widget_params.color_inner1[3] *= 0.65f;
-    widget_params.color_inner2[3] *= 0.65f;
-    widget_params.color_outline[3] *= 0.65f;
+    colv[3] *= 0.65f;
   }
 
-  /* WATCH: This is assuming the ModelViewProjectionMatrix is area pixel space.
-   * If it has been scaled, then it's no longer valid. */
-
-  GPUBatch *batch = ui_batch_roundbox_widget_get();
-  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-  GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float(*)[4]) & widget_params);
-
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  GPU_batch_draw(batch);
-
-  GPU_blend(GPU_BLEND_NONE);
+  UI_draw_roundbox_4fv_ex(
+      minx, miny, maxx, maxy, (filled) ? colv : NULL, NULL, 1.0f, colv, U.pixelsize, rad);
 }
 
 void UI_draw_roundbox_4fv(
     bool filled, float minx, float miny, float maxx, float maxy, float rad, const float col[4])
 {
-#if 0
-  float vec[7][2] = {
-      {0.195, 0.02},
-      {0.383, 0.067},
-      {0.55, 0.169},
-      {0.707, 0.293},
-      {0.831, 0.45},
-      {0.924, 0.617},
-      {0.98, 0.805},
-  };
-  int a;
-
-  GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-  /* mult */
-  for (a = 0; a < 7; a++) {
-    mul_v2_fl(vec[a], rad);
-  }
-
-  uint vert_len = 0;
-  vert_len += (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 9 : 1;
-  vert_len += (roundboxtype & UI_CNR_TOP_RIGHT) ? 9 : 1;
-  vert_len += (roundboxtype & UI_CNR_TOP_LEFT) ? 9 : 1;
-  vert_len += (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 9 : 1;
-
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-  immUniformColor4fv(col);
-
-  immBegin(filled ? GPU_PRIM_TRI_FAN : GPU_PRIM_LINE_LOOP, vert_len);
-  /* start with corner right-bottom */
-  if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
-    immVertex2f(pos, maxx - rad, miny);
-    for (a = 0; a < 7; a++) {
-      immVertex2f(pos, maxx - rad + vec[a][0], miny + vec[a][1]);
-    }
-    immVertex2f(pos, maxx, miny + rad);
-  }
-  else {
-    immVertex2f(pos, maxx, miny);
-  }
-
-  /* corner right-top */
-  if (roundboxtype & UI_CNR_TOP_RIGHT) {
-    immVertex2f(pos, maxx, maxy - rad);
-    for (a = 0; a < 7; a++) {
-      immVertex2f(pos, maxx - vec[a][1], maxy - rad + vec[a][0]);
-    }
-    immVertex2f(pos, maxx - rad, maxy);
-  }
-  else {
-    immVertex2f(pos, maxx, maxy);
-  }
-
-  /* corner left-top */
-  if (roundboxtype & UI_CNR_TOP_LEFT) {
-    immVertex2f(pos, minx + rad, maxy);
-    for (a = 0; a < 7; a++) {
-      immVertex2f(pos, minx + rad - vec[a][0], maxy - vec[a][1]);
-    }
-    immVertex2f(pos, minx, maxy - rad);
-  }
-  else {
-    immVertex2f(pos, minx, maxy);
-  }
-
-  /* corner left-bottom */
-  if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
-    immVertex2f(pos, minx, miny + rad);
-    for (a = 0; a < 7; a++) {
-      immVertex2f(pos, minx + vec[a][1], miny + rad - vec[a][0]);
-    }
-    immVertex2f(pos, minx + rad, miny);
-  }
-  else {
-    immVertex2f(pos, minx, miny);
-  }
-
-  immEnd();
-  immUnbindProgram();
-#endif
-  uiWidgetBaseParameters widget_params = {
-      .recti.xmin = minx + U.pixelsize,
-      .recti.ymin = miny + U.pixelsize,
-      .recti.xmax = maxx - U.pixelsize,
-      .recti.ymax = maxy - U.pixelsize,
-      .rect.xmin = minx,
-      .rect.ymin = miny,
-      .rect.xmax = maxx,
-      .rect.ymax = maxy,
-      .radi = rad,
-      .rad = rad,
-      .round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
-      .round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
-      .round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
-      .round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
-      .color_inner1[0] = filled ? col[0] : 0.0f,
-      .color_inner1[1] = filled ? col[1] : 0.0f,
-      .color_inner1[2] = filled ? col[2] : 0.0f,
-      .color_inner1[3] = filled ? col[3] : 0.0f,
-      .color_inner2[0] = filled ? col[0] : 0.0f,
-      .color_inner2[1] = filled ? col[1] : 0.0f,
-      .color_inner2[2] = filled ? col[2] : 0.0f,
-      .color_inner2[3] = filled ? col[3] : 0.0f,
-      .color_outline[0] = col[0],
-      .color_outline[1] = col[1],
-      .color_outline[2] = col[2],
-      .color_outline[3] = col[3],
-      .alpha_discard = 1.0f,
-  };
   /* Exactly the same as UI_draw_roundbox_aa but does not do the legacy transparency. */
-
-  /* WATCH: This is assuming the ModelViewProjectionMatrix is area pixel space.
-   * If it has been scaled, then it's no longer valid. */
-
-  GPUBatch *batch = ui_batch_roundbox_widget_get();
-  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-  GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float(*)[4]) & widget_params);
-
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  GPU_batch_draw(batch);
-
-  GPU_blend(GPU_BLEND_NONE);
+  UI_draw_roundbox_4fv_ex(
+      minx, miny, maxx, maxy, (filled) ? col : NULL, NULL, 1.0f, col, U.pixelsize, rad);
 }
-
-#if 0
-static void round_box_shade_col(uint attr,
-                                const float col1[3],
-                                float const col2[3],
-                                const float fac)
-{
-  float col[4] = {
-      fac * col1[0] + (1.0f - fac) * col2[0],
-      fac * col1[1] + (1.0f - fac) * col2[1],
-      fac * col1[2] + (1.0f - fac) * col2[2],
-      1.0f,
-  };
-  immAttr4fv(attr, col);
-}
-#endif
 
 /* linear horizontal shade within button or in outline */
 /* view2d scrollers use it */
@@ -378,166 +199,28 @@ void UI_draw_roundbox_shade_x(bool filled,
                               float shadedown,
                               const float col[4])
 {
-#if 0
-  float vec[7][2] = {
-      {0.195, 0.02},
-      {0.383, 0.067},
-      {0.55, 0.169},
-      {0.707, 0.293},
-      {0.831, 0.45},
-      {0.924, 0.617},
-      {0.98, 0.805},
-  };
-  const float div = maxy - miny;
-  const float idiv = 1.0f / div;
-  float coltop[3], coldown[3];
-  int vert_count = 0;
-  int a;
+  float inner1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float inner2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float outline[4];
 
-  GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
-
-  /* mult */
-  for (a = 0; a < 7; a++) {
-    mul_v2_fl(vec[a], rad);
+  if (filled) {
+    inner1[0] = min_ff(1.0f, col[0] + shadetop);
+    inner1[1] = min_ff(1.0f, col[1] + shadetop);
+    inner1[2] = min_ff(1.0f, col[2] + shadetop);
+    inner1[3] = 1.0f;
+    inner2[0] = max_ff(0.0f, col[0] + shadedown);
+    inner2[1] = max_ff(0.0f, col[1] + shadedown);
+    inner2[2] = max_ff(0.0f, col[2] + shadedown);
+    inner2[3] = 1.0f;
   }
 
-  /* 'shade' defines strength of shading */
-  coltop[0] = min_ff(1.0f, col[0] + shadetop);
-  coltop[1] = min_ff(1.0f, col[1] + shadetop);
-  coltop[2] = min_ff(1.0f, col[2] + shadetop);
-  coldown[0] = max_ff(0.0f, col[0] + shadedown);
-  coldown[1] = max_ff(0.0f, col[1] + shadedown);
-  coldown[2] = max_ff(0.0f, col[2] + shadedown);
+  /* TODO: non-filled box don't have gradients. Just use middle color. */
+  outline[0] = clamp_f(col[0] + shadetop + shadedown, 0.0f, 1.0f);
+  outline[1] = clamp_f(col[1] + shadetop + shadedown, 0.0f, 1.0f);
+  outline[2] = clamp_f(col[2] + shadetop + shadedown, 0.0f, 1.0f);
+  outline[3] = clamp_f(col[3] + shadetop + shadedown, 0.0f, 1.0f);
 
-  vert_count += (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 9 : 1;
-  vert_count += (roundboxtype & UI_CNR_TOP_RIGHT) ? 9 : 1;
-  vert_count += (roundboxtype & UI_CNR_TOP_LEFT) ? 9 : 1;
-  vert_count += (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 9 : 1;
-
-  immBegin(filled ? GPU_PRIM_TRI_FAN : GPU_PRIM_LINE_LOOP, vert_count);
-
-  /* start with corner right-bottom */
-  if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
-
-    round_box_shade_col(color, coltop, coldown, 0.0);
-    immVertex2f(pos, maxx - rad, miny);
-
-    for (a = 0; a < 7; a++) {
-      round_box_shade_col(color, coltop, coldown, vec[a][1] * idiv);
-      immVertex2f(pos, maxx - rad + vec[a][0], miny + vec[a][1]);
-    }
-
-    round_box_shade_col(color, coltop, coldown, rad * idiv);
-    immVertex2f(pos, maxx, miny + rad);
-  }
-  else {
-    round_box_shade_col(color, coltop, coldown, 0.0);
-    immVertex2f(pos, maxx, miny);
-  }
-
-  /* corner right-top */
-  if (roundboxtype & UI_CNR_TOP_RIGHT) {
-
-    round_box_shade_col(color, coltop, coldown, (div - rad) * idiv);
-    immVertex2f(pos, maxx, maxy - rad);
-
-    for (a = 0; a < 7; a++) {
-      round_box_shade_col(color, coltop, coldown, (div - rad + vec[a][1]) * idiv);
-      immVertex2f(pos, maxx - vec[a][1], maxy - rad + vec[a][0]);
-    }
-    round_box_shade_col(color, coltop, coldown, 1.0);
-    immVertex2f(pos, maxx - rad, maxy);
-  }
-  else {
-    round_box_shade_col(color, coltop, coldown, 1.0);
-    immVertex2f(pos, maxx, maxy);
-  }
-
-  /* corner left-top */
-  if (roundboxtype & UI_CNR_TOP_LEFT) {
-
-    round_box_shade_col(color, coltop, coldown, 1.0);
-    immVertex2f(pos, minx + rad, maxy);
-
-    for (a = 0; a < 7; a++) {
-      round_box_shade_col(color, coltop, coldown, (div - vec[a][1]) * idiv);
-      immVertex2f(pos, minx + rad - vec[a][0], maxy - vec[a][1]);
-    }
-
-    round_box_shade_col(color, coltop, coldown, (div - rad) * idiv);
-    immVertex2f(pos, minx, maxy - rad);
-  }
-  else {
-    round_box_shade_col(color, coltop, coldown, 1.0);
-    immVertex2f(pos, minx, maxy);
-  }
-
-  /* corner left-bottom */
-  if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
-
-    round_box_shade_col(color, coltop, coldown, rad * idiv);
-    immVertex2f(pos, minx, miny + rad);
-
-    for (a = 0; a < 7; a++) {
-      round_box_shade_col(color, coltop, coldown, (rad - vec[a][1]) * idiv);
-      immVertex2f(pos, minx + vec[a][1], miny + rad - vec[a][0]);
-    }
-
-    round_box_shade_col(color, coltop, coldown, 0.0);
-    immVertex2f(pos, minx + rad, miny);
-  }
-  else {
-    round_box_shade_col(color, coltop, coldown, 0.0);
-    immVertex2f(pos, minx, miny);
-  }
-
-  immEnd();
-  immUnbindProgram();
-#endif
-  uiWidgetBaseParameters widget_params = {
-      .recti.xmin = minx + U.pixelsize,
-      .recti.ymin = miny + U.pixelsize,
-      .recti.xmax = maxx - U.pixelsize,
-      .recti.ymax = maxy - U.pixelsize,
-      .rect.xmin = minx,
-      .rect.ymin = miny,
-      .rect.xmax = maxx,
-      .rect.ymax = maxy,
-      .radi = rad,
-      .rad = rad,
-      .round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
-      .round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
-      .round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
-      .round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
-      .color_inner1[0] = !filled ? 0.0f : min_ff(1.0f, col[0] + shadetop),
-      .color_inner1[1] = !filled ? 0.0f : min_ff(1.0f, col[1] + shadetop),
-      .color_inner1[2] = !filled ? 0.0f : min_ff(1.0f, col[2] + shadetop),
-      .color_inner1[3] = !filled ? 0.0f : 1.0f,
-      .color_inner2[0] = !filled ? 0.0f : max_ff(0.0f, col[0] + shadedown),
-      .color_inner2[1] = !filled ? 0.0f : max_ff(0.0f, col[1] + shadedown),
-      .color_inner2[2] = !filled ? 0.0f : max_ff(0.0f, col[2] + shadedown),
-      .color_inner2[3] = !filled ? 0.0f : 1.0f,
-      /* TODO: non-filled box don't have gradients. Just use middle color. */
-      .color_outline[0] = clamp_f(col[0] + shadetop + shadedown, 0.0f, 1.0f),
-      .color_outline[1] = clamp_f(col[1] + shadetop + shadedown, 0.0f, 1.0f),
-      .color_outline[2] = clamp_f(col[2] + shadetop + shadedown, 0.0f, 1.0f),
-      .color_outline[3] = clamp_f(col[3] + shadetop + shadedown, 0.0f, 1.0f),
-      .shade_dir = 1.0f,
-      .alpha_discard = 1.0f,
-  };
-
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  GPUBatch *batch = ui_batch_roundbox_widget_get();
-  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-  GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float(*)[4]) & widget_params);
-  GPU_batch_draw(batch);
-
-  GPU_blend(GPU_BLEND_NONE);
+  UI_draw_roundbox_4fv_ex(minx, miny, maxx, maxy, inner1, inner2, 1.0f, outline, U.pixelsize, rad);
 }
 
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4])

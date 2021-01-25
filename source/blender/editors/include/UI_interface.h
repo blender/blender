@@ -450,7 +450,7 @@ void UI_draw_roundbox_4fv_ex(float minx,
                              const float inner1[4],
                              const float inner2[4],
                              float shade_dir,
-                             float outline[4],
+                             const float outline[4],
                              float outline_width,
                              float rad);
 
