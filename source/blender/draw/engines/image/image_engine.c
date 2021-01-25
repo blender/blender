@@ -110,9 +110,7 @@ static void space_image_gpu_texture_get(Image *image,
     /* update multiindex and pass for the current eye */
     BKE_image_multilayer_index(image->rr, &sima->iuser);
   }
-  else {
-    BKE_image_multiview_index(image, &sima->iuser);
-  }
+  BKE_image_multiview_index(image, &sima->iuser);
 
   if (ibuf) {
     if (sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {

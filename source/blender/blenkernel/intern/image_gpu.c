@@ -271,6 +271,7 @@ static GPUTexture **get_image_gpu_texture_ptr(Image *ima,
 {
   const bool in_range = (textarget >= 0) && (textarget < TEXTARGET_COUNT);
   BLI_assert(in_range);
+  BLI_assert(multiview_eye == 0 || multiview_eye == 1);
 
   if (in_range) {
     return &(ima->gputexture[textarget][multiview_eye]);
@@ -310,9 +311,17 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
    * the current `pass` and `layer` should be 0. */
   short requested_pass = iuser ? iuser->pass : 0;
   short requested_layer = iuser ? iuser->layer : 0;
-  if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer) {
+  short requested_view = iuser ? iuser->multi_index : 0;
+  /* There is room for 2 multiview textures. When a higher number is requested we should always
+   * target the first view slot. This is fine as multi view images aren't used together. */
+  if (requested_view < 2) {
+    requested_view = 0;
+  }
+  if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer ||
+      ima->gpu_view != requested_view) {
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
+    ima->gpu_view = requested_view;
     ima->gpuflag |= IMA_GPU_REFRESH;
   }
 
@@ -345,9 +354,10 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   BKE_image_tag_time(ima);
 
   /* Test if we already have a texture. */
-  const int current_view = iuser ? ((iuser->flag & IMA_SHOW_STEREO) != 0 ? iuser->multiview_eye :
-                                                                           iuser->view) :
-                                   0;
+  int current_view = iuser ? iuser->multi_index : 0;
+  if (current_view >= 2) {
+    current_view = 0;
+  }
   GPUTexture **tex = get_image_gpu_texture_ptr(ima, textarget, current_view);
   if (*tex) {
     return *tex;
