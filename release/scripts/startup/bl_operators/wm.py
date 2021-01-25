@@ -43,18 +43,21 @@ rna_reverse_prop = BoolProperty(
     name="Reverse",
     description="Cycle backwards",
     default=False,
+    options={'SKIP_SAVE'},
 )
 
 rna_wrap_prop = BoolProperty(
     name="Wrap",
     description="Wrap back to the first/last values",
     default=False,
+    options={'SKIP_SAVE'},
 )
 
 rna_relative_prop = BoolProperty(
     name="Relative",
     description="Apply relative to the current value (delta)",
     default=False,
+    options={'SKIP_SAVE'},
 )
 
 rna_space_type_prop = EnumProperty(
@@ -228,6 +231,7 @@ class WM_OT_context_scale_int(Operator):
         name="Always Step",
         description="Always adjust the value by a minimum of 1 when 'value' is not 1.0",
         default=True,
+        options={'SKIP_SAVE'},
     )
 
     def execute(self, context):
@@ -736,10 +740,12 @@ class WM_OT_context_modal_mouse(Operator):
     input_scale: FloatProperty(
         description="Scale the mouse movement by this value before applying the delta",
         default=0.01,
+        options={'SKIP_SAVE'},
     )
     invert: BoolProperty(
         description="Invert the mouse input",
         default=False,
+        options={'SKIP_SAVE'},
     )
     initial_x: IntProperty(options={'HIDDEN'})
 
@@ -1727,6 +1733,7 @@ class WM_OT_tool_set_by_index(Operator):
     expand: BoolProperty(
         description="Include tool subgroups",
         default=True,
+        options={'SKIP_SAVE'},
     )
 
     as_fallback: BoolProperty(
