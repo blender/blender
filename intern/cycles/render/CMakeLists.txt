@@ -23,6 +23,7 @@ set(INC_SYS
 )
 
 set(SRC
+  alembic.cpp
   attribute.cpp
   background.cpp
   bake.cpp
@@ -65,6 +66,7 @@ set(SRC
 )
 
 set(SRC_HEADERS
+  alembic.h
   attribute.h
   bake.h
   background.h
@@ -143,6 +145,16 @@ if(WITH_OPENVDB)
   )
   list(APPEND LIB
     ${OPENVDB_LIBRARIES}
+  )
+endif()
+
+if(WITH_ALEMBIC)
+  add_definitions(-DWITH_ALEMBIC)
+  list(APPEND INC_SYS
+    ${ALEMBIC_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${ALEMBIC_LIBRARIES}
   )
 endif()
 

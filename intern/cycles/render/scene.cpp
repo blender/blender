@@ -18,6 +18,7 @@
 
 #include "bvh/bvh.h"
 #include "device/device.h"
+#include "render/alembic.h"
 #include "render/background.h"
 #include "render/bake.h"
 #include "render/camera.h"
@@ -670,6 +671,19 @@ template<> Shader *Scene::create_node<Shader>()
   return node;
 }
 
+template<> AlembicProcedural *Scene::create_node<AlembicProcedural>()
+{
+#ifdef WITH_ALEMBIC
+  AlembicProcedural *node = new AlembicProcedural();
+  node->set_owner(this);
+  procedurals.push_back(node);
+  procedural_manager->tag_update();
+  return node;
+#else
+  return nullptr;
+#endif
+}
+
 template<typename T> void delete_node_from_array(vector<T> &nodes, T node)
 {
   for (size_t i = 0; i < nodes.size(); ++i) {
@@ -743,6 +757,15 @@ template<> void Scene::delete_node_impl(Procedural *node)
 {
   delete_node_from_array(procedurals, node);
   procedural_manager->tag_update();
+}
+
+template<> void Scene::delete_node_impl(AlembicProcedural *node)
+{
+#ifdef WITH_ALEMBIC
+  delete_node_impl(static_cast<Procedural *>(node));
+#else
+  (void)node;
+#endif
 }
 
 template<typename T>
