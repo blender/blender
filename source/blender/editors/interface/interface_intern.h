@@ -991,12 +991,26 @@ extern void ui_draw_but(const struct bContext *C,
                         uiBut *but,
                         rcti *rect);
 
+/**
+ * Info about what the separator character separates, used to decide between different drawing
+ * styles. E.g. we never want a shortcut string to be clipped, but other hint strings can be
+ * clipped.
+ */
+typedef enum {
+  UI_MENU_ITEM_SEPARATOR_NONE,
+  /** Separator is used to indicate shortcut string of this item. Shortcut string will not get
+   * clipped. */
+  UI_MENU_ITEM_SEPARATOR_SHORTCUT,
+  /** Separator is used to indicate some additional hint to display for this item. Hint string will
+   * get clipped before the normal text. */
+  UI_MENU_ITEM_SEPARATOR_HINT,
+} uiMenuItemSeparatorType;
 void ui_draw_menu_item(const struct uiFontStyle *fstyle,
                        rcti *rect,
                        const char *name,
                        int iconid,
                        int state,
-                       bool use_sep,
+                       uiMenuItemSeparatorType separator_type,
                        int *r_xmax);
 void ui_draw_preview_item(
     const struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
