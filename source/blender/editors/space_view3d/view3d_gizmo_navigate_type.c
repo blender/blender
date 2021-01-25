@@ -355,7 +355,7 @@ static int gizmo_axis_cursor_get(wmGizmo *UNUSED(gz))
 static void gizmo_axis_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
 {
   ScrArea *area = CTX_wm_area(C);
-  const float rad = (40.0f * U.dpi_fac);
+  const float rad = WIDGET_RADIUS;
   r_bounding_box->xmin = gz->matrix_basis[3][0] + area->totrct.xmin - rad;
   r_bounding_box->ymin = gz->matrix_basis[3][1] + area->totrct.ymin - rad;
   r_bounding_box->xmax = r_bounding_box->xmin + rad;
