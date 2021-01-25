@@ -2287,16 +2287,7 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        ob = context.active_object
-        if ob and ob.type == 'GPENCIL' and context.gpencil_data:
-            layout.operator_menu_enum("gpencil.convert", "type", text="Convert To")
-        else:
-            layout.operator_menu_enum("object.convert", "target")
-
-        # Potrace lib dependency
-        if bpy.app.build_options.potrace:
-            layout.separator()
-            layout.operator("gpencil.trace_image")
+        layout.menu("VIEW3D_MT_object_convert")
 
         layout.separator()
 
@@ -2779,6 +2770,23 @@ class VIEW3D_MT_make_single_user(Menu):
         props = layout.operator("object.make_single_user", text="Object Animation")
         props.animation = True
         props.object = props.obdata = props.material = False
+
+
+class VIEW3D_MT_object_convert(Menu):
+    bl_label = "Convert"
+
+    def draw(self, context):
+        layout = self.layout
+        ob = context.active_object
+
+        if ob and ob.type == 'GPENCIL' and context.gpencil_data:
+            layout.operator_enum("gpencil.convert", "type")
+        else:
+            layout.operator_enum("object.convert", "target")
+
+        # Potrace lib dependency.
+        if bpy.app.build_options.potrace:
+            layout.operator("gpencil.trace_image", icon='OUTLINER_OB_GREASEPENCIL')
 
 
 class VIEW3D_MT_make_links(Menu):
@@ -7525,6 +7533,7 @@ classes = (
     VIEW3D_MT_object_rigid_body,
     VIEW3D_MT_object_clear,
     VIEW3D_MT_object_context_menu,
+    VIEW3D_MT_object_convert,
     VIEW3D_MT_object_shading,
     VIEW3D_MT_object_apply,
     VIEW3D_MT_object_relations,
