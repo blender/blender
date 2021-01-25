@@ -1532,7 +1532,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       if (mesh->need_update_rebuild) {
         device_update_flags |= DEVICE_MESH_DATA_NEEDS_REALLOC;
       }
-      else if (mesh->verts_is_modified()) {
+      else if (mesh->is_modified()) {
         device_update_flags |= DEVICE_MESH_DATA_MODIFIED;
       }
     }
@@ -1612,9 +1612,10 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   }
 
   if (device_update_flags & DEVICE_MESH_DATA_MODIFIED) {
-    /* if anything else than vertices are modified, we would need to reallocate, so this is the
-     * only array that can be updated */
+    /* if anything else than vertices or shaders are modified, we would need to reallocate, so
+     * these are the only arrays that can be updated */
     dscene->tri_vnormal.tag_modified();
+    dscene->tri_shader.tag_modified();
   }
 
   if (device_update_flags & DEVICE_CURVE_DATA_MODIFIED) {
