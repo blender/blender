@@ -145,8 +145,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   bool selected = false; /* Check for no selected strips */
 
   SEQ_CURRENT_BEGIN (ed, seq) {
-    if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_META) ||
-        (seq->flag & SELECT) == 0) {
+    if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE) || (seq->flag & SELECT) == 0) {
       continue;
     }
 
@@ -284,7 +283,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 
   SEQ_CURRENT_BEGIN (ed, seq) {
     if ((seq->flag & SELECT)) {
-      if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_META)) {
+      if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
         SEQ_proxy_set(seq, turnon);
         if (seq->strip->proxy == NULL) {
           continue;
@@ -339,7 +338,7 @@ void SEQUENCER_OT_enable_proxies(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Set Selected Strip Proxies";
   ot->idname = "SEQUENCER_OT_enable_proxies";
-  ot->description = "Enable selected proxies on all selected Movie, Image and Meta strips";
+  ot->description = "Enable selected proxies on all selected Movie and Image strips";
 
   /* Api callbacks. */
   ot->invoke = sequencer_enable_proxies_invoke;
