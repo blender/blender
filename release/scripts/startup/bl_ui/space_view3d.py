@@ -2499,6 +2499,7 @@ class VIEW3D_MT_object_context_menu(Menu):
             props = layout.operator("wm.context_modal_mouse", text="Power")
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.energy"
+            props.input_scale = 1.0
             props.header_text = "Light Power: %.3f"
 
             if light.type == 'AREA':
