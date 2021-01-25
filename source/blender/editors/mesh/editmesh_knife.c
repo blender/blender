@@ -2752,8 +2752,6 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  view3d_operator_needs_opengl(C);
-
   /* alloc new customdata */
   kcd = op->customdata = MEM_callocN(sizeof(KnifeTool_OpData), __func__);
 
@@ -2831,7 +2829,6 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
   em_setup_viewcontext(C, &kcd->vc);
   kcd->region = kcd->vc.region;
 
-  view3d_operator_needs_opengl(C);
   ED_view3d_init_mats_rv3d(obedit, kcd->vc.rv3d); /* needed to initialize clipping */
 
   if (kcd->mode == MODE_PANNING) {
