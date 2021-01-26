@@ -1630,6 +1630,21 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 4)) {
+    /* Add support for all operations to the "Attribute Math" node. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_ATTRIBUTE_MATH) {
+            NodeAttributeMath *data = (NodeAttributeMath *)node->storage;
+            data->input_type_c = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

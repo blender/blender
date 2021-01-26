@@ -1089,14 +1089,15 @@ typedef struct NodeAttributeCompare {
 } NodeAttributeCompare;
 
 typedef struct NodeAttributeMath {
-  /* e.g. NODE_MATH_ADD. */
+  /* NodeMathOperation. */
   uint8_t operation;
 
   /* GeometryNodeAttributeInputMode */
   uint8_t input_type_a;
   uint8_t input_type_b;
+  uint8_t input_type_c;
 
-  char _pad[5];
+  char _pad[4];
 } NodeAttributeMath;
 
 typedef struct NodeAttributeMix {
@@ -1387,7 +1388,7 @@ enum {
 #define SHD_MATH_CLAMP 1
 
 /* Math node operations. */
-enum {
+typedef enum NodeMathOperation {
   NODE_MATH_ADD = 0,
   NODE_MATH_SUBTRACT = 1,
   NODE_MATH_MULTIPLY = 2,
@@ -1428,7 +1429,7 @@ enum {
   NODE_MATH_PINGPONG = 37,
   NODE_MATH_SMOOTH_MIN = 38,
   NODE_MATH_SMOOTH_MAX = 39,
-};
+} NodeMathOperation;
 
 /* Vector Math node operations. */
 typedef enum NodeVectorMathOperation {
