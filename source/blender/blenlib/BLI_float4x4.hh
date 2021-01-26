@@ -45,6 +45,17 @@ struct float4x4 {
     return &values[0][0];
   }
 
+  using c_style_float4x4 = float[4][4];
+  c_style_float4x4 &ptr()
+  {
+    return values;
+  }
+
+  const c_style_float4x4 &ptr() const
+  {
+    return values;
+  }
+
   friend float4x4 operator*(const float4x4 &a, const float4x4 &b)
   {
     float4x4 result;

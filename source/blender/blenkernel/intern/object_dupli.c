@@ -813,28 +813,14 @@ static const DupliGenerator gen_dupli_verts_pointcloud = {
 
 static void make_duplis_instances_component(const DupliContext *ctx)
 {
-  float(*positions)[3];
-  float(*rotations)[3];
-  float(*scales)[3];
+  float(*instance_offset_matrices)[4][4];
   int *ids;
   InstancedData *instanced_data;
-  const int amount = BKE_geometry_set_instances(ctx->object->runtime.geometry_set_eval,
-                                                &positions,
-                                                &rotations,
-                                                &scales,
-                                                &ids,
-                                                &instanced_data);
+  const int amount = BKE_geometry_set_instances(
+      ctx->object->runtime.geometry_set_eval, &instance_offset_matrices, &ids, &instanced_data);
 
   for (int i = 0; i < amount; i++) {
     InstancedData *data = &instanced_data[i];
-
-    float scale_matrix[4][4];
-    size_to_mat4(scale_matrix, scales[i]);
-    float rotation_matrix[4][4];
-    eul_to_mat4(rotation_matrix, rotations[i]);
-    float instance_offset_matrix[4][4];
-    mul_m4_m4m4(instance_offset_matrix, rotation_matrix, scale_matrix);
-    copy_v3_v3(instance_offset_matrix[3], positions[i]);
 
     const int id = ids[i] != -1 ? ids[i] : i;
 
@@ -842,11 +828,11 @@ static void make_duplis_instances_component(const DupliContext *ctx)
       Object *object = data->data.object;
       if (object != NULL) {
         float matrix[4][4];
-        mul_m4_m4m4(matrix, ctx->object->obmat, instance_offset_matrix);
+        mul_m4_m4m4(matrix, ctx->object->obmat, instance_offset_matrices[i]);
         make_dupli(ctx, object, matrix, id);
 
         float space_matrix[4][4];
-        mul_m4_m4m4(space_matrix, instance_offset_matrix, object->imat);
+        mul_m4_m4m4(space_matrix, instance_offset_matrices[i], object->imat);
         mul_m4_m4_pre(space_matrix, ctx->object->obmat);
         make_recursive_duplis(ctx, object, space_matrix, id);
       }
@@ -857,7 +843,7 @@ static void make_duplis_instances_component(const DupliContext *ctx)
         float collection_matrix[4][4];
         unit_m4(collection_matrix);
         sub_v3_v3(collection_matrix[3], collection->instance_offset);
-        mul_m4_m4_pre(collection_matrix, instance_offset_matrix);
+        mul_m4_m4_pre(collection_matrix, instance_offset_matrices[i]);
         mul_m4_m4_pre(collection_matrix, ctx->object->obmat);
 
         eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);

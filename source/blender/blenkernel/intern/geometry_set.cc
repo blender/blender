@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 using blender::float3;
+using blender::float4x4;
 using blender::MutableSpan;
 using blender::Span;
 using blender::StringRef;
@@ -482,9 +483,7 @@ InstancesComponent::InstancesComponent() : GeometryComponent(GeometryComponentTy
 GeometryComponent *InstancesComponent::copy() const
 {
   InstancesComponent *new_component = new InstancesComponent();
-  new_component->positions_ = positions_;
-  new_component->rotations_ = rotations_;
-  new_component->scales_ = scales_;
+  new_component->transforms_ = transforms_;
   new_component->instanced_data_ = instanced_data_;
   return new_component;
 }
@@ -492,45 +491,29 @@ GeometryComponent *InstancesComponent::copy() const
 void InstancesComponent::clear()
 {
   instanced_data_.clear();
-  positions_.clear();
-  rotations_.clear();
-  scales_.clear();
+  transforms_.clear();
 }
 
-void InstancesComponent::add_instance(Object *object,
-                                      blender::float3 position,
-                                      blender::float3 rotation,
-                                      blender::float3 scale,
-                                      const int id)
+void InstancesComponent::add_instance(Object *object, float4x4 transform, const int id)
 {
   InstancedData data;
   data.type = INSTANCE_DATA_TYPE_OBJECT;
   data.data.object = object;
-  this->add_instance(data, position, rotation, scale, id);
+  this->add_instance(data, transform, id);
 }
 
-void InstancesComponent::add_instance(Collection *collection,
-                                      blender::float3 position,
-                                      blender::float3 rotation,
-                                      blender::float3 scale,
-                                      const int id)
+void InstancesComponent::add_instance(Collection *collection, float4x4 transform, const int id)
 {
   InstancedData data;
   data.type = INSTANCE_DATA_TYPE_COLLECTION;
   data.data.collection = collection;
-  this->add_instance(data, position, rotation, scale, id);
+  this->add_instance(data, transform, id);
 }
 
-void InstancesComponent::add_instance(InstancedData data,
-                                      blender::float3 position,
-                                      blender::float3 rotation,
-                                      blender::float3 scale,
-                                      const int id)
+void InstancesComponent::add_instance(InstancedData data, float4x4 transform, const int id)
 {
   instanced_data_.append(data);
-  positions_.append(position);
-  rotations_.append(rotation);
-  scales_.append(scale);
+  transforms_.append(transform);
   ids_.append(id);
 }
 
@@ -539,19 +522,9 @@ Span<InstancedData> InstancesComponent::instanced_data() const
   return instanced_data_;
 }
 
-Span<float3> InstancesComponent::positions() const
+Span<float4x4> InstancesComponent::transforms() const
 {
-  return positions_;
-}
-
-Span<float3> InstancesComponent::rotations() const
-{
-  return rotations_;
-}
-
-Span<float3> InstancesComponent::scales() const
-{
-  return scales_;
+  return transforms_;
 }
 
 Span<int> InstancesComponent::ids() const
@@ -559,33 +532,21 @@ Span<int> InstancesComponent::ids() const
   return ids_;
 }
 
-MutableSpan<float3> InstancesComponent::positions()
+MutableSpan<float4x4> InstancesComponent::transforms()
 {
-  return positions_;
-}
-
-MutableSpan<float3> InstancesComponent::rotations()
-{
-  return rotations_;
-}
-
-MutableSpan<float3> InstancesComponent::scales()
-{
-  return scales_;
+  return transforms_;
 }
 
 int InstancesComponent::instances_amount() const
 {
   const int size = instanced_data_.size();
-  BLI_assert(positions_.size() == size);
-  BLI_assert(rotations_.size() == size);
-  BLI_assert(scales_.size() == size);
+  BLI_assert(transforms_.size() == size);
   return size;
 }
 
 bool InstancesComponent::is_empty() const
 {
-  return positions_.size() == 0;
+  return transforms_.size() == 0;
 }
 
 /** \} */
@@ -684,9 +645,7 @@ bool BKE_geometry_set_has_instances(const GeometrySet *geometry_set)
 }
 
 int BKE_geometry_set_instances(const GeometrySet *geometry_set,
-                               float (**r_positions)[3],
-                               float (**r_rotations)[3],
-                               float (**r_scales)[3],
+                               float (**r_transforms)[4][4],
                                int **r_ids,
                                InstancedData **r_instanced_data)
 {
@@ -694,9 +653,7 @@ int BKE_geometry_set_instances(const GeometrySet *geometry_set,
   if (component == nullptr) {
     return 0;
   }
-  *r_positions = (float(*)[3])component->positions().data();
-  *r_rotations = (float(*)[3])component->rotations().data();
-  *r_scales = (float(*)[3])component->scales().data();
+  *r_transforms = (float(*)[4][4])component->transforms().data();
   *r_ids = (int *)component->ids().data();
   *r_instanced_data = (InstancedData *)component->instanced_data().data();
   *r_instanced_data = (InstancedData *)component->instanced_data().data();
