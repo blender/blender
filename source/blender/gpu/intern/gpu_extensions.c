@@ -331,7 +331,7 @@ void gpu_extensions_init(void)
    * and rendering. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     /* On Linux the driver does not report its version. Test the OpenGL version in stead. */
-    if (strstr(version, "4.5.14756") || strstr(version, "4.5.14757")) {
+    if (strstr(version, "4.5.1475")) {
       if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
           strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
           strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
