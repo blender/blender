@@ -73,9 +73,6 @@
 /* only call once on startup, storage is global in BKE kernel listbase */
 void ED_spacetypes_init(void)
 {
-  const ListBase *spacetypes;
-  SpaceType *type;
-
   /* UI_UNIT_X is now a variable, is used in some spacetype inits? */
   U.widget_unit = 20;
 
@@ -145,8 +142,8 @@ void ED_spacetypes_init(void)
   ED_gizmotypes_snap_3d();
 
   /* register types for operators and gizmos */
-  spacetypes = BKE_spacetypes_list();
-  for (type = spacetypes->first; type; type = type->next) {
+  const ListBase *spacetypes = BKE_spacetypes_list();
+  LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
     /* init gizmo types first, operator-types need them */
     if (type->gizmos) {
       type->gizmos();
@@ -159,9 +156,6 @@ void ED_spacetypes_init(void)
 
 void ED_spacemacros_init(void)
 {
-  const ListBase *spacetypes;
-  SpaceType *type;
-
   /* Macros's must go last since they reference other operators.
    * We need to have them go after python operators too */
   ED_operatormacros_armature();
@@ -181,8 +175,8 @@ void ED_spacemacros_init(void)
   ED_operatormacros_gpencil();
 
   /* register dropboxes (can use macros) */
-  spacetypes = BKE_spacetypes_list();
-  for (type = spacetypes->first; type; type = type->next) {
+  const ListBase *spacetypes = BKE_spacetypes_list();
+  LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
     if (type->dropboxes) {
       type->dropboxes();
     }
@@ -194,10 +188,6 @@ void ED_spacemacros_init(void)
  * using the keymap the actual areas/regions add the handlers */
 void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 {
-  const ListBase *spacetypes;
-  SpaceType *stype;
-  ARegionType *atype;
-
   ED_keymap_screen(keyconf);
   ED_keymap_anim(keyconf);
   ED_keymap_animchannels(keyconf);
@@ -219,14 +209,14 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 
   ED_keymap_transform(keyconf);
 
-  spacetypes = BKE_spacetypes_list();
-  for (stype = spacetypes->first; stype; stype = stype->next) {
-    if (stype->keymap) {
-      stype->keymap(keyconf);
+  const ListBase *spacetypes = BKE_spacetypes_list();
+  LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
+    if (type->keymap) {
+      type->keymap(keyconf);
     }
-    for (atype = stype->regiontypes.first; atype; atype = atype->next) {
-      if (atype->keymap) {
-        atype->keymap(keyconf);
+    LISTBASE_FOREACH (ARegionType *, region_type, &type->regiontypes) {
+      if (region_type->keymap) {
+        region_type->keymap(keyconf);
       }
     }
   }
@@ -261,9 +251,7 @@ void *ED_region_draw_cb_activate(ARegionType *art,
 
 void ED_region_draw_cb_exit(ARegionType *art, void *handle)
 {
-  RegionDrawCB *rdc;
-
-  for (rdc = art->drawcalls.first; rdc; rdc = rdc->next) {
+  LISTBASE_FOREACH (RegionDrawCB *, rdc, &art->drawcalls) {
     if (rdc == (RegionDrawCB *)handle) {
       BLI_remlink(&art->drawcalls, rdc);
       MEM_freeN(rdc);
@@ -274,9 +262,7 @@ void ED_region_draw_cb_exit(ARegionType *art, void *handle)
 
 void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
 {
-  RegionDrawCB *rdc;
-
-  for (rdc = region->type->drawcalls.first; rdc; rdc = rdc->next) {
+  LISTBASE_FOREACH (RegionDrawCB *, rdc, &region->type->drawcalls) {
     if (rdc->type == type) {
       rdc->draw(C, region, rdc->customdata);
 
