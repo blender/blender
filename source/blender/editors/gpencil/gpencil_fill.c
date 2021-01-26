@@ -1284,8 +1284,8 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
     gpencil_apply_parent_point(tgpf->depsgraph, tgpf->ob, tgpf->gpl, pt);
   }
 
-  /* if camera view, reproject flat to view to avoid perspective effect */
-  if (is_camera) {
+  /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
+  if ((*p->align_flag & GP_PROJECT_VIEWSPACE) || is_camera) {
     ED_gpencil_project_stroke_to_view(tgpf->C, tgpf->gpl, gps);
   }
 

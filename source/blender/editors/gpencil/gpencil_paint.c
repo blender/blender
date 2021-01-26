@@ -1086,8 +1086,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       gpencil_apply_parent_point(depsgraph, obact, gpl, pt);
     }
 
-    /* if camera view, reproject flat to view to avoid perspective effect */
-    if (is_camera) {
+    /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
+    if ((*p->align_flag & GP_PROJECT_VIEWSPACE) || is_camera) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
     }
   }
@@ -1235,8 +1235,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     gpencil_reproject_toplane(p, gps);
     /* change position relative to parent object */
     gpencil_apply_parent(depsgraph, obact, gpl, gps);
-    /* if camera view, reproject flat to view to avoid perspective effect */
-    if (is_camera) {
+    /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
+    if ((*p->align_flag & GP_PROJECT_VIEWSPACE) || is_camera) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
     }
 
