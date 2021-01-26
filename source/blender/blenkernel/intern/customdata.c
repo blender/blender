@@ -5167,7 +5167,7 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
 
     if (CustomData_verify_versions(data, i)) {
       BLO_read_data_address(reader, &layer->data);
-      if (layer->data == NULL) {
+      if (layer->data == NULL && count > 0 && layer->type == CD_PROP_BOOL) {
         /* Usually this should never happen, except when a custom data layer has not been written
          * to a file correctly. */
         CLOG_WARN(&LOG, "Reallocating custom data layer that was not saved correctly.");

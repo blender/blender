@@ -137,6 +137,15 @@ static void workbench_studiolight_data_update(WORKBENCH_PrivateData *wpd, WORKBE
   wd->use_specular = workbench_is_specular_highlight_enabled(wpd);
 }
 
+void workbench_private_data_alloc(WORKBENCH_StorageList *stl)
+{
+  if (!stl->wpd) {
+    stl->wpd = MEM_callocN(sizeof(*stl->wpd), __func__);
+    stl->wpd->taa_sample_len_previous = -1;
+    stl->wpd->view_updated = true;
+  }
+}
+
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();

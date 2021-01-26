@@ -352,6 +352,11 @@ endif()
 
 if(WITH_PUGIXML)
   find_package_wrapper(PugiXML)
+
+  if (NOT PUGIXML_FOUND)
+    set(WITH_PUGIXML OFF)
+    message(STATUS "PugiXML not found, disabling WITH_PUGIXML")
+  endif()
 endif()
 
 if(WITH_OPENIMAGEIO)

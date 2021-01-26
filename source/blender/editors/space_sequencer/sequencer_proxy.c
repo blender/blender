@@ -168,12 +168,12 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   }
   SEQ_CURRENT_END;
 
+  BLI_gset_free(file_list, MEM_freeN);
+
   if (!selected) {
     BKE_reportf(reports, RPT_WARNING, "Select movie or image strips");
     return;
   }
-
-  BLI_gset_free(file_list, MEM_freeN);
 
   if (selected && !WM_jobs_is_running(wm_job)) {
     G.is_break = false;

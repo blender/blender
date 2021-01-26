@@ -190,17 +190,18 @@ static void xml_read_camera(XMLReadState &state, xml_node node)
 {
   Camera *cam = state.scene->camera;
 
-  xml_read_int(&cam->width, node, "width");
-  xml_read_int(&cam->height, node, "height");
+  int width = -1, height = -1;
+  xml_read_int(&width, node, "width");
+  xml_read_int(&height, node, "height");
 
-  cam->full_width = cam->width;
-  cam->full_height = cam->height;
+  cam->set_full_width(width);
+  cam->set_full_height(height);
 
   xml_read_node(state, cam, node);
 
-  cam->matrix = state.tfm;
+  cam->set_matrix(state.tfm);
 
-  cam->need_update = true;
+  cam->need_flags_update = true;
   cam->update(state.scene);
 }
 
@@ -338,11 +339,13 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
 
     if (node_name == "image_texture") {
       ImageTextureNode *img = (ImageTextureNode *)snode;
-      img->filename = path_join(state.base, img->filename.string());
+      ustring filename(path_join(state.base, img->get_filename().string()));
+      img->set_filename(filename);
     }
     else if (node_name == "environment_texture") {
       EnvironmentTextureNode *env = (EnvironmentTextureNode *)snode;
-      env->filename = path_join(state.base, env->filename.string());
+      ustring filename(path_join(state.base, env->get_filename().string()));
+      env->set_filename(filename);
     }
 
     if (snode) {
@@ -384,8 +387,8 @@ static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm)
 
   /* create object*/
   Object *object = new Object();
-  object->geometry = mesh;
-  object->tfm = tfm;
+  object->set_geometry(mesh);
+  object->set_tfm(tfm);
   scene->objects.push_back(object);
 
   return mesh;
@@ -395,7 +398,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
 {
   /* add mesh */
   Mesh *mesh = xml_add_mesh(state.scene, state.tfm);
-  mesh->used_shaders.push_back(state.shader);
+  array<Node *> used_shaders = mesh->get_used_shaders();
+  used_shaders.push_back_slow(state.shader);
+  mesh->set_used_shaders(used_shaders);
 
   /* read state */
   int shader = 0;
@@ -411,20 +416,24 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
   xml_read_int_array(nverts, node, "nverts");
 
   if (xml_equal_string(node, "subdivision", "catmull-clark")) {
-    mesh->subdivision_type = Mesh::SUBDIVISION_CATMULL_CLARK;
+    mesh->set_subdivision_type(Mesh::SUBDIVISION_CATMULL_CLARK);
   }
   else if (xml_equal_string(node, "subdivision", "linear")) {
-    mesh->subdivision_type = Mesh::SUBDIVISION_LINEAR;
+    mesh->set_subdivision_type(Mesh::SUBDIVISION_LINEAR);
   }
 
-  if (mesh->subdivision_type == Mesh::SUBDIVISION_NONE) {
+  array<float3> P_array;
+  P_array = P;
+
+  if (mesh->get_subdivision_type() == Mesh::SUBDIVISION_NONE) {
     /* create vertices */
-    mesh->verts = P;
+
+    mesh->set_verts(P_array);
 
     size_t num_triangles = 0;
     for (size_t i = 0; i < nverts.size(); i++)
       num_triangles += nverts[i] - 2;
-    mesh->reserve_mesh(mesh->verts.size(), num_triangles);
+    mesh->reserve_mesh(mesh->get_verts().size(), num_triangles);
 
     /* create triangles */
     int index_offset = 0;
@@ -474,7 +483,7 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
   }
   else {
     /* create vertices */
-    mesh->verts = P;
+    mesh->set_verts(P_array);
 
     size_t num_ngons = 0;
     size_t num_corners = 0;
@@ -513,23 +522,20 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
     }
 
     /* setup subd params */
-    if (!mesh->subd_params) {
-      mesh->subd_params = new SubdParams(mesh);
-    }
-    SubdParams &sdparams = *mesh->subd_params;
+    float dicing_rate = state.dicing_rate;
+    xml_read_float(&dicing_rate, node, "dicing_rate");
+    dicing_rate = std::max(0.1f, dicing_rate);
 
-    sdparams.dicing_rate = state.dicing_rate;
-    xml_read_float(&sdparams.dicing_rate, node, "dicing_rate");
-    sdparams.dicing_rate = std::max(0.1f, sdparams.dicing_rate);
-
-    sdparams.objecttoworld = state.tfm;
+    mesh->set_subd_dicing_rate(dicing_rate);
+    mesh->set_subd_objecttoworld(state.tfm);
   }
 
   /* we don't yet support arbitrary attributes, for now add vertex
    * coordinates as generated coordinates if requested */
   if (mesh->need_attribute(state.scene, ATTR_STD_GENERATED)) {
     Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-    memcpy(attr->data_float3(), mesh->verts.data(), sizeof(float3) * mesh->verts.size());
+    memcpy(
+        attr->data_float3(), mesh->get_verts().data(), sizeof(float3) * mesh->get_verts().size());
   }
 }
 
@@ -539,7 +545,7 @@ static void xml_read_light(XMLReadState &state, xml_node node)
 {
   Light *light = new Light();
 
-  light->shader = state.shader;
+  light->set_shader(state.shader);
   xml_read_node(state, light, node);
 
   state.scene->lights.push_back(light);
