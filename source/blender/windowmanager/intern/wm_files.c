@@ -2549,35 +2549,22 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
 /** \name Recover Last Session Operator
  * \{ */
 
-void WM_recover_last_session(bContext *C, ReportList *reports)
+bool WM_recover_last_session(bContext *C, ReportList *reports)
 {
   char filepath[FILE_MAX];
-
   BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
-  /* if reports==NULL, it's called directly without operator, we add a quick check here */
-  if (reports || BLI_exists(filepath)) {
-    G.fileflags |= G_FILE_RECOVER;
-
-    wm_file_read_opwrap(C, filepath, reports, true);
-
-    G.fileflags &= ~G_FILE_RECOVER;
-
-    /* XXX bad global... fixme */
-    Main *bmain = CTX_data_main(C);
-    if (BKE_main_blendfile_path(bmain)[0] != '\0') {
-      G.file_loaded = 1; /* prevents splash to show */
-    }
-    else {
-      G.relbase_valid = 0;
-      G.save_over = 0; /* start with save preference untitled.blend */
-    }
-  }
+  G.fileflags |= G_FILE_RECOVER;
+  const bool success = wm_file_read_opwrap(C, filepath, reports, true);
+  G.fileflags &= ~G_FILE_RECOVER;
+  return success;
 }
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 {
-  WM_recover_last_session(C, op->reports);
-  return OPERATOR_FINISHED;
+  if (WM_recover_last_session(C, op->reports)) {
+    return OPERATOR_FINISHED;
+  }
+  return OPERATOR_CANCELLED;
 }
 
 void WM_OT_recover_last_session(wmOperatorType *ot)
