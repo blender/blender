@@ -422,7 +422,7 @@ static int lib_override_linked_group_tag_cb(LibraryIDLinkCallbackData *cb_data)
   return IDWALK_RET_NOP;
 }
 
-/* Tag all IDs in dependency relationships whithin an override hierarchy/group.
+/* Tag all IDs in dependency relationships within an override hierarchy/group.
  *
  * Note: this is typically called to complete `lib_override_linked_group_tag()`.
  * Note: BMain's relations mapping won't be valid anymore after that call.
@@ -464,8 +464,8 @@ static bool lib_override_hierarchy_dependencies_recursive_tag(Main *bmain,
 
 /* This will tag at least all 'boundary' linked IDs for a potential override group.
  *
- * Note that you will then need to call `lib_override_hierarchy_dependencies_recursive_tag` to
- * complete tagging of all dependencies whitin theoverride group.
+ * Note that you will then need to call #lib_override_hierarchy_dependencies_recursive_tag to
+ * complete tagging of all dependencies within the override group.
  *
  * We currently only consider Collections and Objects (that are not used as bone shapes) as valid
  * boundary IDs to define an override group.
@@ -483,7 +483,7 @@ static void lib_override_linked_group_tag(Main *bmain,
     BKE_library_foreach_ID_link(
         bmain, id, lib_override_linked_group_tag_cb, &data, IDWALK_READONLY | IDWALK_RECURSE);
 
-    /* Then, we remove (untag) bone shape objects, you shall never want to directly/explicitely
+    /* Then, we remove (untag) bone shape objects, you shall never want to directly/explicitly
      * override those. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       if (ob->type == OB_ARMATURE && ob->pose != NULL && (ob->id.tag & tag)) {
@@ -559,8 +559,8 @@ static int lib_override_local_group_tag_cb(LibraryIDLinkCallbackData *cb_data)
 
 /* This will tag at least all 'boundary' linked IDs for a potential override group.
  *
- * Note that you will then need to call `lib_override_hierarchy_dependencies_recursive_tag` to
- * complete tagging of all dependencies whitin theoverride group.
+ * Note that you will then need to call #lib_override_hierarchy_dependencies_recursive_tag to
+ * complete tagging of all dependencies within the override group.
  *
  * We currently only consider Collections and Objects (that are not used as bone shapes) as valid
  * boundary IDs to define an override group.

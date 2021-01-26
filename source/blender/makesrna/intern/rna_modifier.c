@@ -1632,33 +1632,35 @@ static IDProperty *rna_NodesModifier_properties(PointerRNA *ptr, bool create)
 static void rna_def_property_subdivision_common(StructRNA *srna)
 {
   static const EnumPropertyItem prop_uv_smooth_items[] = {
-    {SUBSURF_UV_SMOOTH_NONE, "NONE", 0, "None", "UVs are not smoothed, boundaries are kept sharp"},
-    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS,
-     "PRESERVE_CORNERS",
-     0,
-     "Keep Corners",
-     "UVs are smoothed, corners on discontinuous boundary are kept sharp"},
-#  if 0
-    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS,
-     "PRESERVE_CORNERS_AND_JUNCTIONS",
-     0,
-     "Smooth, keep corners+junctions",
-     "UVs are smoothed, corners on discontinuous boundary and "
-     "junctions of 3 or more regions are kept sharp"},
-    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE,
-     "PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE",
-     0,
-     "Smooth, keep corners+junctions+concave",
-     "UVs are smoothed, corners on discontinuous boundary, "
-     "junctions of 3 or more regions and darts and concave corners are kept sharp"},
-    {SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES,
-     "PRESERVE_BOUNDARIES",
-     0,
-     "Smooth, keep corners",
-     "UVs are smoothed, boundaries are kept sharp"},
-#  endif
-    {SUBSURF_UV_SMOOTH_ALL, "PRESERVE_BOUNDARIES", 0, "All", "UVs and boundaries are smoothed"},
-    {0, NULL, 0, NULL, NULL},
+      {SUBSURF_UV_SMOOTH_NONE,
+       "NONE",
+       0,
+       "None",
+       "UVs are not smoothed, boundaries are kept sharp"},
+      {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS,
+       "PRESERVE_CORNERS",
+       0,
+       "Keep Corners",
+       "UVs are smoothed, corners on discontinuous boundary are kept sharp"},
+      {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS,
+       "PRESERVE_CORNERS_AND_JUNCTIONS",
+       0,
+       "Keep Corners, Junctions",
+       "UVs are smoothed, corners on discontinuous boundary and "
+       "junctions of 3 or more regions are kept sharp"},
+      {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE,
+       "PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE",
+       0,
+       "Keep Corners, Junctions, Concave",
+       "UVs are smoothed, corners on discontinuous boundary, "
+       "junctions of 3 or more regions and darts and concave corners are kept sharp"},
+      {SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES,
+       "PRESERVE_BOUNDARIES",
+       0,
+       "Keep boundaries",
+       "UVs are smoothed, boundaries are kept sharp"},
+      {SUBSURF_UV_SMOOTH_ALL, "SMOOTH_ALL", 0, "All", "UVs and boundaries are smoothed"},
+      {0, NULL, 0, NULL, NULL},
   };
 
   static const EnumPropertyItem prop_boundary_smooth_items[] = {

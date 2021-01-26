@@ -440,7 +440,7 @@
     .renderlvl = 0, \
     .totlvl = 0, \
     .flags = eMultiresModifierFlag_UseCrease | eMultiresModifierFlag_ControlEdges, \
-    .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS, \
+    .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES, \
     .quality = 4, \
     .boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL, \
   }
@@ -622,7 +622,7 @@
     .levels = 1, \
     .renderLevels = 2, \
     .flags = eSubsurfModifierFlag_UseCrease | eSubsurfModifierFlag_ControlEdges, \
-    .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS, \
+    .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES, \
     .quality = 3, \
     .boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL, \
     .emCache = NULL, \

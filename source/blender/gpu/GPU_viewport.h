@@ -114,7 +114,8 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *re
 void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
                                     int view,
                                     const rcti *rect,
-                                    bool display_colorspace);
+                                    bool display_colorspace,
+                                    bool do_overlay_merge);
 void GPU_viewport_free(GPUViewport *viewport);
 
 void GPU_viewport_colorspace_set(GPUViewport *viewport,
@@ -125,7 +126,8 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
 void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen *ofs);
 void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
                                         struct GPUOffScreen *ofs,
-                                        bool display_colorspace);
+                                        bool display_colorspace,
+                                        bool do_overlay_merge);
 
 ViewportMemoryPool *GPU_viewport_mempool_get(GPUViewport *viewport);
 struct DRWInstanceDataList *GPU_viewport_instance_data_list_get(GPUViewport *viewport);

@@ -63,7 +63,10 @@ void ED_mask_point_pos__reverse(
     struct ScrArea *area, struct ARegion *region, float x, float y, float *xr, float *yr);
 
 void ED_mask_cursor_location_get(struct ScrArea *area, float cursor[2]);
-bool ED_mask_selected_minmax(const struct bContext *C, float min[2], float max[2]);
+bool ED_mask_selected_minmax(const struct bContext *C,
+                             float min[2],
+                             float max[2],
+                             bool include_handles);
 
 /* mask_draw.c */
 void ED_mask_draw(const struct bContext *C, const char draw_flag, const char draw_type);

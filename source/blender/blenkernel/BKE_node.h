@@ -685,7 +685,7 @@ void nodeSetSocketAvailability(struct bNodeSocket *sock, bool is_available);
 int nodeSocketLinkLimit(const struct bNodeSocket *sock);
 
 /* Node Clipboard */
-void BKE_node_clipboard_init(struct bNodeTree *ntree);
+void BKE_node_clipboard_init(const struct bNodeTree *ntree);
 void BKE_node_clipboard_clear(void);
 void BKE_node_clipboard_free(void);
 bool BKE_node_clipboard_validate(void);
@@ -706,8 +706,8 @@ extern const bNodeInstanceKey NODE_INSTANCE_KEY_BASE;
 extern const bNodeInstanceKey NODE_INSTANCE_KEY_NONE;
 
 bNodeInstanceKey BKE_node_instance_key(bNodeInstanceKey parent_key,
-                                       struct bNodeTree *ntree,
-                                       struct bNode *node);
+                                       const struct bNodeTree *ntree,
+                                       const struct bNode *node);
 
 bNodeInstanceHash *BKE_node_instance_hash_new(const char *info);
 void BKE_node_instance_hash_free(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp);
@@ -1362,6 +1362,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_POINT_TRANSLATE 1019
 #define GEO_NODE_POINT_SCALE 1020
 #define GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE 1021
+#define GEO_NODE_POINTS_TO_VOLUME 1022
 
 /** \} */
 

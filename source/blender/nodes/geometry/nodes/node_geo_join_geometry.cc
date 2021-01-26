@@ -43,17 +43,31 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent 
   int totedges = 0;
   int totpolys = 0;
 
+  int64_t cd_dirty_vert = 0;
+  int64_t cd_dirty_poly = 0;
+  int64_t cd_dirty_edge = 0;
+  int64_t cd_dirty_loop = 0;
+
   for (const MeshComponent *mesh_component : src_components) {
     const Mesh *mesh = mesh_component->get_for_read();
     totverts += mesh->totvert;
     totloops += mesh->totloop;
     totedges += mesh->totedge;
     totpolys += mesh->totpoly;
+    cd_dirty_vert |= mesh->runtime.cd_dirty_vert;
+    cd_dirty_poly |= mesh->runtime.cd_dirty_poly;
+    cd_dirty_edge |= mesh->runtime.cd_dirty_edge;
+    cd_dirty_loop |= mesh->runtime.cd_dirty_loop;
   }
 
   const Mesh *first_input_mesh = src_components[0]->get_for_read();
   Mesh *new_mesh = BKE_mesh_new_nomain(totverts, totedges, 0, totloops, totpolys);
   BKE_mesh_copy_settings(new_mesh, first_input_mesh);
+
+  new_mesh->runtime.cd_dirty_vert = cd_dirty_vert;
+  new_mesh->runtime.cd_dirty_poly = cd_dirty_poly;
+  new_mesh->runtime.cd_dirty_edge = cd_dirty_edge;
+  new_mesh->runtime.cd_dirty_loop = cd_dirty_loop;
 
   int vert_offset = 0;
   int loop_offset = 0;
@@ -124,17 +138,17 @@ static void determine_final_data_type_and_domain(Span<const GeometryComponent *>
                                                  CustomDataType *r_type,
                                                  AttributeDomain *r_domain)
 {
+  Vector<CustomDataType> data_types;
   for (const GeometryComponent *component : components) {
     ReadAttributePtr attribute = component->attribute_try_get_for_read(attribute_name);
     if (attribute) {
-      /* TODO: Use data type with most information. */
-      *r_type = bke::cpp_type_to_custom_data_type(attribute->cpp_type());
+      data_types.append(attribute->custom_data_type());
       /* TODO: Use highest priority domain. */
       *r_domain = attribute->domain();
-      return;
     }
   }
-  BLI_assert(false);
+
+  *r_type = attribute_data_type_highest_complexity(data_types);
 }
 
 static void fill_new_attribute(Span<const GeometryComponent *> src_components,
@@ -219,11 +233,9 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
   for (const InstancesComponent *component : src_components) {
     const int size = component->instances_amount();
     Span<InstancedData> instanced_data = component->instanced_data();
-    Span<float3> positions = component->positions();
-    Span<float3> rotations = component->rotations();
-    Span<float3> scales = component->scales();
+    Span<float4x4> transforms = component->transforms();
     for (const int i : IndexRange(size)) {
-      dst_component.add_instance(instanced_data[i], positions[i], rotations[i], scales[i]);
+      dst_component.add_instance(instanced_data[i], transforms[i]);
     }
   }
 }

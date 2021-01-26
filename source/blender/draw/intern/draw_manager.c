@@ -1715,8 +1715,8 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
 
   GPU_matrix_identity_set();
   GPU_matrix_identity_projection_set();
-
-  GPU_viewport_unbind_from_offscreen(render_viewport, ofs, do_color_management);
+  const bool do_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
+  GPU_viewport_unbind_from_offscreen(render_viewport, ofs, do_color_management, do_overlays);
 
   if (draw_background) {
     /* Reset default. */

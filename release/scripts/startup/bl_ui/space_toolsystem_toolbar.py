@@ -1594,6 +1594,7 @@ class _defs_texture_paint:
             icon_prefix="brush.paint_texture.",
             type=bpy.types.Brush,
             attr="image_tool",
+            cursor='PAINT_CROSS',
         )
 
 

@@ -3166,13 +3166,80 @@ static void node_geometry_buts_random_attribute(uiLayout *layout,
   uiItemR(layout, ptr, "data_type", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
+static bool node_attribute_math_operation_use_input_b(const NodeMathOperation operation)
+{
+  switch (operation) {
+    case NODE_MATH_ADD:
+    case NODE_MATH_SUBTRACT:
+    case NODE_MATH_MULTIPLY:
+    case NODE_MATH_DIVIDE:
+    case NODE_MATH_POWER:
+    case NODE_MATH_LOGARITHM:
+    case NODE_MATH_MINIMUM:
+    case NODE_MATH_MAXIMUM:
+    case NODE_MATH_LESS_THAN:
+    case NODE_MATH_GREATER_THAN:
+    case NODE_MATH_MODULO:
+    case NODE_MATH_ARCTAN2:
+    case NODE_MATH_SNAP:
+    case NODE_MATH_WRAP:
+    case NODE_MATH_COMPARE:
+    case NODE_MATH_MULTIPLY_ADD:
+    case NODE_MATH_PINGPONG:
+    case NODE_MATH_SMOOTH_MIN:
+    case NODE_MATH_SMOOTH_MAX:
+      return true;
+    case NODE_MATH_SINE:
+    case NODE_MATH_COSINE:
+    case NODE_MATH_TANGENT:
+    case NODE_MATH_ARCSINE:
+    case NODE_MATH_ARCCOSINE:
+    case NODE_MATH_ARCTANGENT:
+    case NODE_MATH_ROUND:
+    case NODE_MATH_ABSOLUTE:
+    case NODE_MATH_FLOOR:
+    case NODE_MATH_CEIL:
+    case NODE_MATH_FRACTION:
+    case NODE_MATH_SQRT:
+    case NODE_MATH_INV_SQRT:
+    case NODE_MATH_SIGN:
+    case NODE_MATH_EXPONENT:
+    case NODE_MATH_RADIANS:
+    case NODE_MATH_DEGREES:
+    case NODE_MATH_SINH:
+    case NODE_MATH_COSH:
+    case NODE_MATH_TANH:
+    case NODE_MATH_TRUNC:
+      return false;
+  }
+  BLI_assert(false);
+  return false;
+}
+
 static void node_geometry_buts_attribute_math(uiLayout *layout,
                                               bContext *UNUSED(C),
                                               PointerRNA *ptr)
 {
+  bNode *node = (bNode *)ptr->data;
+  NodeAttributeMath *node_storage = (NodeAttributeMath *)node->storage;
+  NodeMathOperation operation = (NodeMathOperation)node_storage->operation;
+
   uiItemR(layout, ptr, "operation", DEFAULT_FLAGS, "", ICON_NONE);
   uiItemR(layout, ptr, "input_type_a", DEFAULT_FLAGS, IFACE_("Type A"), ICON_NONE);
-  uiItemR(layout, ptr, "input_type_b", DEFAULT_FLAGS, IFACE_("Type B"), ICON_NONE);
+
+  /* These "use input b / c" checks are copied from the node's code.
+   * They could be de-duplicated if the drawing code was moved to the node's file. */
+  if (node_attribute_math_operation_use_input_b(operation)) {
+    uiItemR(layout, ptr, "input_type_b", DEFAULT_FLAGS, IFACE_("Type B"), ICON_NONE);
+  }
+  if (ELEM(operation,
+           NODE_MATH_MULTIPLY_ADD,
+           NODE_MATH_SMOOTH_MIN,
+           NODE_MATH_SMOOTH_MAX,
+           NODE_MATH_WRAP,
+           NODE_MATH_COMPARE)) {
+    uiItemR(layout, ptr, "input_type_c", DEFAULT_FLAGS, IFACE_("Type C"), ICON_NONE);
+  }
 }
 
 static void node_geometry_buts_attribute_vector_math(uiLayout *layout,
@@ -3297,6 +3364,16 @@ static void node_geometry_buts_attribute_sample_texture(uiLayout *layout,
   uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
 }
 
+static void node_geometry_buts_points_to_volume(uiLayout *layout,
+                                                bContext *UNUSED(C),
+                                                PointerRNA *ptr)
+{
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "resolution_mode", DEFAULT_FLAGS, IFACE_("Resolution"), ICON_NONE);
+  uiItemR(layout, ptr, "input_type_radius", DEFAULT_FLAGS, IFACE_("Radius"), ICON_NONE);
+}
+
 static void node_geometry_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -3353,6 +3430,9 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE:
       ntype->draw_buttons = node_geometry_buts_attribute_sample_texture;
+      break;
+    case GEO_NODE_POINTS_TO_VOLUME:
+      ntype->draw_buttons = node_geometry_buts_points_to_volume;
       break;
   }
 }

@@ -124,29 +124,22 @@ static void draw_current_frame(const Scene *scene,
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
-  UI_draw_roundbox_3fv_alpha(
-      &(const rctf){
-          .xmin = frame_x - box_width / 2 + U.pixelsize / 2,
-          .xmax = frame_x + box_width / 2 + U.pixelsize / 2,
-          .ymin = scrub_region_rect->ymin + box_padding,
-          .ymax = scrub_region_rect->ymax - box_padding,
-      },
-      true,
-      4 * UI_DPI_FAC,
-      bg_color,
-      1.0f);
+  float outline_color[4];
+  UI_GetThemeColorShade4fv(TH_CFRAME, 5, outline_color);
 
-  UI_GetThemeColorShade4fv(TH_CFRAME, 5, bg_color);
-  UI_draw_roundbox_aa(
+  UI_draw_roundbox_4fv_ex(
       &(const rctf){
           .xmin = frame_x - box_width / 2 + U.pixelsize / 2,
           .xmax = frame_x + box_width / 2 + U.pixelsize / 2,
           .ymin = scrub_region_rect->ymin + box_padding,
           .ymax = scrub_region_rect->ymax - box_padding,
       },
-      true,
-      4 * UI_DPI_FAC,
-      bg_color);
+      bg_color,
+      NULL,
+      1.0f,
+      outline_color,
+      U.pixelsize,
+      4 * UI_DPI_FAC);
 
   uchar text_color[4];
   UI_GetThemeColor4ubv(TH_HEADER_TEXT_HI, text_color);

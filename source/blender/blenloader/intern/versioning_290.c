@@ -1505,7 +1505,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 292, 10)) {
     if (!DNA_struct_find(fd->filesdna, "NodeSetAlpha")) {
-      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type != NTREE_COMPOSIT) {
           continue;
         }
@@ -1518,6 +1518,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           node->storage = storage;
         }
       }
+      FOREACH_NODETREE_END;
     }
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -1630,6 +1631,21 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           data->instance_type = node->custom1;
           data->flag = (node->custom2 ? 0 : GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION);
           node->storage = data;
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 4)) {
+    /* Add support for all operations to the "Attribute Math" node. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_ATTRIBUTE_MATH) {
+            NodeAttributeMath *data = (NodeAttributeMath *)node->storage;
+            data->input_type_c = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+          }
         }
       }
     }

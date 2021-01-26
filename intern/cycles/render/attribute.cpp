@@ -661,15 +661,8 @@ void AttributeSet::update(AttributeSet &&new_attributes)
 {
   /* add or update old_attributes based on the new_attributes */
   foreach (Attribute &attr, new_attributes.attributes) {
-    Attribute *nattr = nullptr;
-
-    if (attr.std != ATTR_STD_NONE) {
-      nattr = add(attr.std, attr.name);
-    }
-    else {
-      nattr = add(attr.name, attr.type, attr.element);
-    }
-
+    Attribute *nattr = add(attr.name, attr.type, attr.element);
+    nattr->std = attr.std;
     nattr->set_data_from(std::move(attr));
   }
 

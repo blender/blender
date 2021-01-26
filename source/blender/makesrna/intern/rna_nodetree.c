@@ -1980,22 +1980,6 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeFill_domain_itemf(
   return itemf_function_check(rna_enum_attribute_domain_items, attribute_fill_domain_supported);
 }
 
-static bool attribute_math_operation_supported(const EnumPropertyItem *item)
-{
-  return ELEM(item->value,
-              NODE_MATH_ADD,
-              NODE_MATH_SUBTRACT,
-              NODE_MATH_MULTIPLY,
-              NODE_MATH_DIVIDE) &&
-         (item->identifier[0] != '\0');
-}
-static const EnumPropertyItem *rna_GeometryNodeAttributeMath_operation_itemf(
-    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
-{
-  *r_free = true;
-  return itemf_function_check(rna_enum_node_math_items, attribute_math_operation_supported);
-}
-
 /**
  * This bit of ugly code makes sure the float / attribute option shows up instead of
  * vector / attribute if the node uses an operation that uses a float for input B.
@@ -8579,10 +8563,9 @@ static void def_geo_attribute_math(StructRNA *srna)
   prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "operation");
   RNA_def_property_enum_items(prop, rna_enum_node_math_items);
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeMath_operation_itemf");
   RNA_def_property_enum_default(prop, NODE_MATH_ADD);
   RNA_def_property_ui_text(prop, "Operation", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "input_type_a", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "input_type_a");
@@ -8594,6 +8577,12 @@ static void def_geo_attribute_math(StructRNA *srna)
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "input_type_b");
   RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_float);
   RNA_def_property_ui_text(prop, "Input Type B", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_c", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "input_type_c");
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_float);
+  RNA_def_property_ui_text(prop, "Input Type C", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
@@ -8887,6 +8876,37 @@ static void def_geo_object_info(StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "Transform Space", "The transformation of the vector and geometry outputs");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_points_to_volume(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem resolution_mode_items[] = {
+      {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT,
+       "VOXEL_AMOUNT",
+       0,
+       "Amount",
+       "Specify the approximate number of voxels along the diagonal"},
+      {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE,
+       "VOXEL_SIZE",
+       0,
+       "Size",
+       "Specify the voxel side length"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryPointsToVolume", "storage");
+
+  prop = RNA_def_property(srna, "resolution_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, resolution_mode_items);
+  RNA_def_property_ui_text(prop, "Resolution Mode", "How the voxel size is specified");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_radius", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_float);
+  RNA_def_property_ui_text(prop, "Radius Input Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 /* -------------------------------------------------------------------------- */

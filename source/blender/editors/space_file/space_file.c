@@ -794,7 +794,7 @@ static void file_space_subtype_item_extend(bContext *UNUSED(C),
   }
 }
 
-static const char *file_context_dir[] = {"active_file", "active_id", NULL};
+static const char *file_context_dir[] = {"active_file", "id", NULL};
 
 static int /*eContextResult*/ file_context(const bContext *C,
                                            const char *member,

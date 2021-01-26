@@ -70,6 +70,7 @@ extern struct DrawEngineType draw_engine_workbench;
 #define OBJECT_ID_PASS_ENABLED(wpd) (OBJECT_OUTLINE_ENABLED(wpd) || CURVATURE_ENABLED(wpd))
 #define NORMAL_ENCODING_ENABLED() (true)
 
+struct Object;
 struct RenderEngine;
 struct RenderLayer;
 struct rcti;
@@ -351,6 +352,9 @@ typedef struct WORKBENCH_PrivateData {
   float dof_rotation;
   float dof_ratio;
 
+  /* Camera override for rendering. */
+  struct Object *cam_original_ob;
+
   /** True if any volume needs to be rendered. */
   bool volumes_do;
   /** Convenience boolean. */
@@ -504,6 +508,7 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
   workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, interp, WORKBENCH_DATATYPE_HAIR)
 
 /* workbench_data.c */
+void workbench_private_data_alloc(WORKBENCH_StorageList *stl);
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
 void workbench_update_world_ubo(WORKBENCH_PrivateData *wpd);
 void workbench_update_material_ubos(WORKBENCH_PrivateData *wpd);

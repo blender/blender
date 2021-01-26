@@ -1533,25 +1533,22 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
 {
   BLI_assert(str[0]);
 
-  /* If the trailing ellipsis takes more than 20% of all available width, just cut the string
-   * (as using the ellipsis would remove even more useful chars, and we cannot show much
-   * already!).
-   */
-  if (sep_strwidth / okwidth > 0.2f) {
-    float tmp;
-    const int l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth, &tmp);
-    str[l_end] = '\0';
-    if (r_final_len) {
-      *r_final_len = (size_t)l_end;
-    }
-  }
-  else {
-    float tmp;
-    const int l_end = BLF_width_to_strlen(
-        fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, &tmp);
+  /* How many BYTES (not characters) of this utf-8 string can fit, along with appended ellipsis. */
+  int l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, NULL);
+
+  if (l_end > 0) {
+    /* At least one character, so clip and add the ellipsis.  */
     memcpy(str + l_end, sep, sep_len + 1); /* +1 for trailing '\0'. */
     if (r_final_len) {
       *r_final_len = (size_t)(l_end) + sep_len;
+    }
+  }
+  else {
+    /* Otherwise fit as much as we can without adding an ellipsis.  */
+    l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth, NULL);
+    str[l_end] = '\0';
+    if (r_final_len) {
+      *r_final_len = (size_t)l_end;
     }
   }
 }
@@ -5211,8 +5208,7 @@ void ui_draw_tooltip_background(const uiStyle *UNUSED(style), uiBlock *UNUSED(bl
  *
  * \param state: The state of the button,
  * typically #UI_ACTIVE, #UI_BUT_DISABLED, #UI_BUT_INACTIVE.
- * \param use_sep: When true, characters after the last #UI_SEP_CHAR are right aligned,
- * use for displaying key shortcuts.
+ * \param separator_type: The kind of separator which controls if and how the string is clipped.
  * \param r_xmax: The right hand position of the text, this takes into the icon,
  * padding and text clipping when there is not enough room to display the full text.
  */
@@ -5221,11 +5217,13 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
                        const char *name,
                        int iconid,
                        int state,
-                       bool use_sep,
+                       uiMenuItemSeparatorType separator_type,
                        int *r_xmax)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
   const rcti _rect = *rect;
+  int max_hint_width = INT_MAX;
+  int padding = 0.25f * UI_UNIT_X;
   char *cpoin = NULL;
 
   wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
@@ -5234,13 +5232,13 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   UI_fontstyle_set(fstyle);
 
   /* text location offset */
-  rect->xmin += 0.25f * UI_UNIT_X;
+  rect->xmin += padding;
   if (iconid) {
     rect->xmin += UI_DPI_ICON_SIZE;
   }
 
   /* cut string in 2 parts? */
-  if (use_sep) {
+  if (separator_type != UI_MENU_ITEM_SEPARATOR_NONE) {
     cpoin = strrchr(name, UI_SEP_CHAR);
     if (cpoin) {
       *cpoin = 0;
@@ -5253,7 +5251,30 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
         BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
       }
 
-      rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1, INT_MAX) + UI_DPI_ICON_SIZE;
+      if (separator_type == UI_MENU_ITEM_SEPARATOR_SHORTCUT) {
+        /* Shrink rect to exclude the shortcut string. */
+        rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1, INT_MAX) + UI_DPI_ICON_SIZE;
+      }
+      else if (separator_type == UI_MENU_ITEM_SEPARATOR_HINT) {
+        /* Determine max-width for the hint string to leave the name string un-clipped (if there's
+         * enough space to display it). */
+
+        const int available_width = BLI_rcti_size_x(rect) - padding;
+        const int name_width = BLF_width(fstyle->uifont_id, name, INT_MAX);
+        const int hint_width = BLF_width(fstyle->uifont_id, cpoin + 1, INT_MAX) + padding;
+
+        if ((name_width + hint_width) > available_width) {
+          /* Clipping width for hint string. */
+          max_hint_width = available_width * 0.40f;
+          /* Clipping xmax for clipping of item name. */
+          rect->xmax = (hint_width < max_hint_width) ?
+                           (rect->xmax - hint_width) :
+                           (rect->xmin + (available_width - max_hint_width));
+        }
+      }
+      else {
+        BLI_assert(!"Unknwon menu item separator type");
+      }
 
       if (fstyle->kerning == 1) {
         BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
@@ -5308,15 +5329,26 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   }
 
   /* part text right aligned */
-  if (use_sep) {
+  if (separator_type != UI_MENU_ITEM_SEPARATOR_NONE) {
     if (cpoin) {
       /* Set inactive state for grayed out text. */
       wt->state(wt, state | UI_BUT_INACTIVE, 0, UI_EMBOSS_UNDEFINED);
 
+      char hint_drawstr[UI_MAX_DRAW_STR];
+      {
+        const size_t max_len = sizeof(hint_drawstr);
+        const float minwidth = (float)(UI_DPI_ICON_SIZE);
+
+        BLI_strncpy(hint_drawstr, cpoin + 1, sizeof(hint_drawstr));
+        if (hint_drawstr[0] && (max_hint_width < INT_MAX)) {
+          UI_text_clip_middle_ex(fstyle, hint_drawstr, max_hint_width, minwidth, max_len, '\0');
+        }
+      }
+
       rect->xmax = _rect.xmax - 5;
       UI_fontstyle_draw(fstyle,
                         rect,
-                        cpoin + 1,
+                        hint_drawstr,
                         wt->wcol.text,
                         &(struct uiFontStyleDraw_Params){
                             .align = UI_STYLE_TEXT_RIGHT,

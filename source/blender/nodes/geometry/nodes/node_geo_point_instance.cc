@@ -171,7 +171,9 @@ static void add_instances_from_geometry_component(InstancesComponent &instances,
 
   for (const int i : IndexRange(domain_size)) {
     if (instances_data[i].has_value()) {
-      instances.add_instance(*instances_data[i], positions[i], rotations[i], scales[i], ids[i]);
+      float transform[4][4];
+      loc_eul_size_to_mat4(transform, positions[i], rotations[i], scales[i]);
+      instances.add_instance(*instances_data[i], transform, ids[i]);
     }
   }
 }
