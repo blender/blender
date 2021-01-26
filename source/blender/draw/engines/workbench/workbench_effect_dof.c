@@ -133,14 +133,14 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   RegionView3D *rv3d = draw_ctx->rv3d;
   View3D *v3d = draw_ctx->v3d;
-  Scene *scene = draw_ctx->scene;
+
   Object *camera;
 
   if (v3d && rv3d) {
     camera = (rv3d->persp == RV3D_CAMOB) ? v3d->camera : NULL;
   }
   else {
-    camera = scene->camera;
+    camera = wpd->cam_original_ob;
   }
 
   Camera *cam = camera != NULL ? camera->data : NULL;
