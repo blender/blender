@@ -3574,7 +3574,7 @@ typedef struct bNodeClipboard {
 
 static bNodeClipboard node_clipboard = {{NULL}};
 
-void BKE_node_clipboard_init(struct bNodeTree *ntree)
+void BKE_node_clipboard_init(const struct bNodeTree *ntree)
 {
   node_clipboard.type = ntree->type;
 }
@@ -3718,11 +3718,11 @@ static bNodeInstanceKey node_hash_int_str(bNodeInstanceKey hash, const char *str
   return hash;
 }
 
-bNodeInstanceKey BKE_node_instance_key(bNodeInstanceKey parent_key, bNodeTree *ntree, bNode *node)
+bNodeInstanceKey BKE_node_instance_key(bNodeInstanceKey parent_key,
+                                       const bNodeTree *ntree,
+                                       const bNode *node)
 {
-  bNodeInstanceKey key;
-
-  key = node_hash_int_str(parent_key, ntree->id.name + 2);
+  bNodeInstanceKey key = node_hash_int_str(parent_key, ntree->id.name + 2);
 
   if (node) {
     key = node_hash_int_str(key, node->name);
