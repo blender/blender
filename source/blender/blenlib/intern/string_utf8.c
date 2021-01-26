@@ -33,7 +33,9 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_string_utf8.h" /* own include */
-
+#ifdef WIN32
+#  include "utfconv.h"
+#endif
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
@@ -393,38 +395,11 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
                                    const char *__restrict src_c,
                                    const size_t maxncpy)
 {
-  const size_t maxlen = maxncpy - 1;
-  size_t len = 0;
-
-  BLI_assert(maxncpy != 0);
-
-#ifdef DEBUG_STRSIZE
-  memset(dst_w, 0xff, sizeof(*dst_w) * maxncpy);
+#ifdef WIN32
+  return conv_utf_8_to_16(src_c, dst_w, maxncpy);
+#else
+  return BLI_str_utf8_as_utf32((char32_t *)dst_w, src_c, maxncpy);
 #endif
-
-  while (*src_c && len != maxlen) {
-    size_t step = 0;
-    uint unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
-    if (unicode != BLI_UTF8_ERR) {
-      /* TODO: `wchar_t` type is an implementation-defined and may represent
-       * 16-bit or 32-bit depending on operating system.
-       * So the ideal would be to do the corresponding encoding.
-       * But for now just assert that it has no conflicting use. */
-      BLI_assert(step <= sizeof(wchar_t));
-      *dst_w = (wchar_t)unicode;
-      src_c += step;
-    }
-    else {
-      *dst_w = '?';
-      src_c = BLI_str_find_next_char_utf8(src_c, NULL);
-    }
-    dst_w++;
-    len++;
-  }
-
-  *dst_w = 0;
-
-  return len;
 }
 
 /* end wchar_t / utf8 functions  */
