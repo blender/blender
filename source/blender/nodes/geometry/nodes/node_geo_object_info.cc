@@ -91,10 +91,12 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
         InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
 
         if (transform_space_relative) {
-          instances.add_instance(object, location, rotation, scale);
+          instances.add_instance(object, transform);
         }
         else {
-          instances.add_instance(object, {0, 0, 0});
+          float unit_transform[4][4];
+          unit_m4(unit_transform);
+          instances.add_instance(object, unit_transform);
         }
       }
     }
