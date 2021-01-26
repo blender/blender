@@ -43,7 +43,7 @@ namespace blender::gpu {
 static bool is_faulty_T82856_platform(const char *version, const char *renderer)
 {
   /* On Linux the driver does not report its version. Test the OpenGL version in stead. */
-  if (strstr(version, "4.5.14756") || strstr(version, "4.5.14757")) {
+  if (strstr(version, "4.5.1475")) {
     if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
         strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
         strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
