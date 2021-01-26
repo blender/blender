@@ -393,7 +393,11 @@ static void anim_channels_select_set(bAnimContext *ac,
         FCurve *fcu = (FCurve *)ale->data;
 
         ACHANNEL_SET_FLAG(fcu, sel, FCURVE_SELECTED);
-        fcu->flag &= ~FCURVE_ACTIVE;
+        if ((fcu->flag & FCURVE_SELECTED) == 0) {
+          /* Only erase the ACTIVE flag when deselecting. This ensures that "select all curves"
+           * retains the currently active curve. */
+          fcu->flag &= ~FCURVE_ACTIVE;
+        }
         break;
       }
       case ANIMTYPE_SHAPEKEY: {
