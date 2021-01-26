@@ -54,6 +54,8 @@ static int attribute_data_type_complexity(const CustomDataType data_type)
       return 1;
     case CD_PROP_FLOAT:
       return 2;
+    case CD_PROP_FLOAT2:
+      return 3;
     case CD_PROP_FLOAT3:
       return 4;
     case CD_PROP_COLOR:
