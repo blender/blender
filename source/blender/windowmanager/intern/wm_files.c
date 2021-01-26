@@ -2167,10 +2167,7 @@ void WM_OT_read_factory_settings(wmOperatorType *ot)
 /**
  * Wrap #WM_file_read, shared by file reading operators.
  */
-static bool wm_file_read_opwrap(bContext *C,
-                                const char *filepath,
-                                ReportList *reports,
-                                const bool autoexec_init)
+static bool wm_file_read_opwrap(bContext *C, const char *filepath, ReportList *reports)
 {
   bool success;
 
@@ -2178,7 +2175,8 @@ static bool wm_file_read_opwrap(bContext *C,
   /* do it before for now, but is this correct with multiple windows? */
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-  if (autoexec_init) {
+  /* Set by the "use_scripts" property on file load. */
+  if ((G.f & G_FLAG_SCRIPT_AUTOEXEC) == 0) {
     WM_file_autoexec_init(filepath);
   }
 
@@ -2308,21 +2306,9 @@ static int wm_open_mainfile__open(bContext *C, wmOperator *op)
   wm_open_init_load_ui(op, false);
   wm_open_init_use_scripts(op, false);
 
-  if (RNA_boolean_get(op->ptr, "load_ui")) {
-    G.fileflags &= ~G_FILE_NO_UI;
-  }
-  else {
-    G.fileflags |= G_FILE_NO_UI;
-  }
-
-  if (RNA_boolean_get(op->ptr, "use_scripts")) {
-    G.f |= G_FLAG_SCRIPT_AUTOEXEC;
-  }
-  else {
-    G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
-  }
-
-  success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_FLAG_SCRIPT_AUTOEXEC));
+  SET_FLAG_FROM_TEST(G.fileflags, !RNA_boolean_get(op->ptr, "load_ui"), G_FILE_NO_UI);
+  SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
+  success = wm_file_read_opwrap(C, filepath, op->reports);
 
   /* for file open also popup for warnings, not only errors */
   BKE_report_print_level_set(op->reports, RPT_WARNING);
@@ -2453,6 +2439,16 @@ static void wm_open_mainfile_ui(bContext *UNUSED(C), wmOperator *op)
   uiItemR(col, op->ptr, "use_scripts", 0, autoexec_text, ICON_NONE);
 }
 
+static void wm_open_mainfile_def_property_use_scripts(wmOperatorType *ot)
+{
+  RNA_def_boolean(ot->srna,
+                  "use_scripts",
+                  true,
+                  "Trusted Source",
+                  "Allow .blend file to execute scripts automatically, default available from "
+                  "system preferences");
+}
+
 void WM_OT_open_mainfile(wmOperatorType *ot)
 {
   ot->name = "Open";
@@ -2476,12 +2472,8 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "load_ui", true, "Load UI", "Load user interface setup in the .blend file");
-  RNA_def_boolean(ot->srna,
-                  "use_scripts",
-                  true,
-                  "Trusted Source",
-                  "Allow .blend file to execute scripts automatically, default available from "
-                  "system preferences");
+
+  wm_open_mainfile_def_property_use_scripts(ot);
 
   PropertyRNA *prop = RNA_def_boolean(
       ot->srna, "display_file_selector", true, "Display File Selector", "");
@@ -2504,15 +2496,10 @@ static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 
   wm_open_init_use_scripts(op, false);
 
-  if (RNA_boolean_get(op->ptr, "use_scripts")) {
-    G.f |= G_FLAG_SCRIPT_AUTOEXEC;
-  }
-  else {
-    G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
-  }
+  SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
 
   BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
-  success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_FLAG_SCRIPT_AUTOEXEC));
+  success = wm_file_read_opwrap(C, filepath, op->reports);
 
   if (success) {
     return OPERATOR_FINISHED;
@@ -2535,12 +2522,7 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
   ot->exec = wm_revert_mainfile_exec;
   ot->poll = wm_revert_mainfile_poll;
 
-  RNA_def_boolean(ot->srna,
-                  "use_scripts",
-                  true,
-                  "Trusted Source",
-                  "Allow .blend file to execute scripts automatically, default available from "
-                  "system preferences");
+  wm_open_mainfile_def_property_use_scripts(ot);
 }
 
 /** \} */
@@ -2554,7 +2536,7 @@ bool WM_recover_last_session(bContext *C, ReportList *reports)
   char filepath[FILE_MAX];
   BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
   G.fileflags |= G_FILE_RECOVER;
-  const bool success = wm_file_read_opwrap(C, filepath, reports, true);
+  const bool success = wm_file_read_opwrap(C, filepath, reports);
   G.fileflags &= ~G_FILE_RECOVER;
   return success;
 }
@@ -2567,14 +2549,24 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
+static int wm_recover_last_session_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  /* Keep the current setting instead of using the preferences since a file selector
+   * doesn't give us the option to change the setting. */
+  wm_open_init_use_scripts(op, false);
+  return WM_operator_confirm(C, op, event);
+}
+
 void WM_OT_recover_last_session(wmOperatorType *ot)
 {
   ot->name = "Recover Last Session";
   ot->idname = "WM_OT_recover_last_session";
   ot->description = "Open the last closed file (\"" BLENDER_QUIT_FILE "\")";
 
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = wm_recover_last_session_invoke;
   ot->exec = wm_recover_last_session_exec;
+
+  wm_open_mainfile_def_property_use_scripts(ot);
 }
 
 /** \} */
@@ -2590,9 +2582,12 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 
   RNA_string_get(op->ptr, "filepath", filepath);
 
+  wm_open_init_use_scripts(op, true);
+  SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
+
   G.fileflags |= G_FILE_RECOVER;
 
-  success = wm_file_read_opwrap(C, filepath, op->reports, true);
+  success = wm_file_read_opwrap(C, filepath, op->reports);
 
   G.fileflags &= ~G_FILE_RECOVER;
 
@@ -2608,6 +2603,7 @@ static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, const wmEven
 
   wm_autosave_location(filename);
   RNA_string_set(op->ptr, "filepath", filename);
+  wm_open_init_use_scripts(op, true);
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;
@@ -2629,6 +2625,8 @@ void WM_OT_recover_auto_save(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH,
                                  FILE_VERTICALDISPLAY,
                                  FILE_SORT_TIME);
+
+  wm_open_mainfile_def_property_use_scripts(ot);
 }
 
 /** \} */
