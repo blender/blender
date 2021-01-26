@@ -1533,25 +1533,22 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
 {
   BLI_assert(str[0]);
 
-  /* If the trailing ellipsis takes more than 20% of all available width, just cut the string
-   * (as using the ellipsis would remove even more useful chars, and we cannot show much
-   * already!).
-   */
-  if (sep_strwidth / okwidth > 0.2f) {
-    float tmp;
-    const int l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth, &tmp);
-    str[l_end] = '\0';
-    if (r_final_len) {
-      *r_final_len = (size_t)l_end;
-    }
-  }
-  else {
-    float tmp;
-    const int l_end = BLF_width_to_strlen(
-        fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, &tmp);
+  /* How many BYTES (not characters) of this utf-8 string can fit, along with appended ellipsis. */
+  int l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, NULL);
+
+  if (l_end > 0) {
+    /* At least one character, so clip and add the ellipsis.  */
     memcpy(str + l_end, sep, sep_len + 1); /* +1 for trailing '\0'. */
     if (r_final_len) {
       *r_final_len = (size_t)(l_end) + sep_len;
+    }
+  }
+  else {
+    /* Otherwise fit as much as we can without adding an ellipsis.  */
+    l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth, NULL);
+    str[l_end] = '\0';
+    if (r_final_len) {
+      *r_final_len = (size_t)l_end;
     }
   }
 }
