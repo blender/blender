@@ -640,6 +640,7 @@ def brush_settings(layout, context, brush, popover=False):
             layout.separator()
             layout.prop(brush, "elastic_deform_type")
             layout.prop(brush, "elastic_deform_volume_preservation", slider=True)
+            layout.prop(brush, "use_surface_falloff")
             layout.separator()
 
         elif sculpt_tool == 'SNAKE_HOOK':

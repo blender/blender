@@ -4500,28 +4500,39 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
   {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float final_disp[3];
+
+    float orig_co[3];
+    if (brush->flag2 & BRUSH_USE_SURFACE_FALLOFF) {
+      float disp[3];
+      sub_v3_v3v3(disp, orig_data.co, ss->cache->initial_location);
+      normalize_v3(disp);
+      mul_v3_fl(disp, ss->cache->geodesic_dists[ss->cache->mirror_symmetry_pass][vd.index]);
+      add_v3_v3v3(orig_co, ss->cache->initial_location, disp);
+    }
+    else {
+      copy_v3_v3(orig_co, orig_data.co);
+    }
+
     switch (brush->elastic_deform_type) {
       case BRUSH_ELASTIC_DEFORM_GRAB:
-        BKE_kelvinlet_grab(final_disp, &params, orig_data.co, location, grab_delta);
+        BKE_kelvinlet_grab(final_disp, &params, orig_co, location, grab_delta);
         mul_v3_fl(final_disp, bstrength * 20.0f);
         break;
       case BRUSH_ELASTIC_DEFORM_GRAB_BISCALE: {
-        BKE_kelvinlet_grab_biscale(final_disp, &params, orig_data.co, location, grab_delta);
+        BKE_kelvinlet_grab_biscale(final_disp, &params, orig_co, location, grab_delta);
         mul_v3_fl(final_disp, bstrength * 20.0f);
         break;
       }
       case BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE: {
-        BKE_kelvinlet_grab_triscale(final_disp, &params, orig_data.co, location, grab_delta);
+        BKE_kelvinlet_grab_triscale(final_disp, &params, orig_co, location, grab_delta);
         mul_v3_fl(final_disp, bstrength * 20.0f);
         break;
       }
       case BRUSH_ELASTIC_DEFORM_SCALE:
-        BKE_kelvinlet_scale(
-            final_disp, &params, orig_data.co, location, ss->cache->sculpt_normal_symm);
+        BKE_kelvinlet_scale(final_disp, &params, orig_co, location, ss->cache->sculpt_normal_symm);
         break;
       case BRUSH_ELASTIC_DEFORM_TWIST:
-        BKE_kelvinlet_twist(
-            final_disp, &params, orig_data.co, location, ss->cache->sculpt_normal_symm);
+        BKE_kelvinlet_twist(final_disp, &params, orig_co, location, ss->cache->sculpt_normal_symm);
         break;
     }
 
@@ -4550,6 +4561,16 @@ static void do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 
   if (ss->cache->normal_weight > 0.0f) {
     sculpt_project_v3_normal_align(ss, ss->cache->normal_weight, grab_delta);
+  }
+
+  if (brush->flag2 & BRUSH_USE_SURFACE_FALLOFF) {
+    if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
+      const int symm_pass = ss->cache->mirror_symmetry_pass;
+      float location[3];
+      flip_v3_v3(location, SCULPT_active_vertex_co_get(ss), symm_pass);
+      int v = SCULPT_nearest_vertex_get(sd, ob, location, ss->cache->initial_radius, false);
+      ss->cache->geodesic_dists[symm_pass] = SCULPT_geodesic_from_vertex(ob, v, FLT_MAX);
+    }
   }
 
   SculptThreadedTaskData data = {
