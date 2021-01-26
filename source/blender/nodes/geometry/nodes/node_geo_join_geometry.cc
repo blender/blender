@@ -43,17 +43,31 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent 
   int totedges = 0;
   int totpolys = 0;
 
+  int64_t cd_dirty_vert = 0;
+  int64_t cd_dirty_poly = 0;
+  int64_t cd_dirty_edge = 0;
+  int64_t cd_dirty_loop = 0;
+
   for (const MeshComponent *mesh_component : src_components) {
     const Mesh *mesh = mesh_component->get_for_read();
     totverts += mesh->totvert;
     totloops += mesh->totloop;
     totedges += mesh->totedge;
     totpolys += mesh->totpoly;
+    cd_dirty_vert |= mesh->runtime.cd_dirty_vert;
+    cd_dirty_poly |= mesh->runtime.cd_dirty_poly;
+    cd_dirty_edge |= mesh->runtime.cd_dirty_edge;
+    cd_dirty_loop |= mesh->runtime.cd_dirty_loop;
   }
 
   const Mesh *first_input_mesh = src_components[0]->get_for_read();
   Mesh *new_mesh = BKE_mesh_new_nomain(totverts, totedges, 0, totloops, totpolys);
   BKE_mesh_copy_settings(new_mesh, first_input_mesh);
+
+  new_mesh->runtime.cd_dirty_vert = cd_dirty_vert;
+  new_mesh->runtime.cd_dirty_poly = cd_dirty_poly;
+  new_mesh->runtime.cd_dirty_edge = cd_dirty_edge;
+  new_mesh->runtime.cd_dirty_loop = cd_dirty_loop;
 
   int vert_offset = 0;
   int loop_offset = 0;
