@@ -3297,6 +3297,16 @@ static void node_geometry_buts_attribute_sample_texture(uiLayout *layout,
   uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
 }
 
+static void node_geometry_buts_points_to_volume(uiLayout *layout,
+                                                bContext *UNUSED(C),
+                                                PointerRNA *ptr)
+{
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "resolution_mode", DEFAULT_FLAGS, IFACE_("Resolution"), ICON_NONE);
+  uiItemR(layout, ptr, "input_type_radius", DEFAULT_FLAGS, IFACE_("Radius"), ICON_NONE);
+}
+
 static void node_geometry_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -3353,6 +3363,9 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE:
       ntype->draw_buttons = node_geometry_buts_attribute_sample_texture;
+      break;
+    case GEO_NODE_POINTS_TO_VOLUME:
+      ntype->draw_buttons = node_geometry_buts_points_to_volume;
       break;
   }
 }

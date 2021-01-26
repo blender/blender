@@ -1183,6 +1183,15 @@ typedef struct NodeGeometryPointInstance {
   char _pad[6];
 } NodeGeometryPointInstance;
 
+typedef struct NodeGeometryPointsToVolume {
+  /* GeometryNodePointsToVolumeResolutionMode */
+  uint8_t resolution_mode;
+  /* GeometryNodeAttributeInputMode */
+  uint8_t input_type_radius;
+
+  char _pad[6];
+} NodeGeometryPointsToVolume;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -1632,6 +1641,11 @@ typedef enum GeometryNodeTransformSpace {
   GEO_NODE_TRANSFORM_SPACE_ORIGINAL = 0,
   GEO_NODE_TRANSFORM_SPACE_RELATIVE = 1,
 } GeometryNodeTransformSpace;
+
+typedef enum GeometryNodePointsToVolumeResolutionMode {
+  GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT = 0,
+  GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE = 1,
+} GeometryNodePointsToVolumeResolutionMode;
 
 #ifdef __cplusplus
 }
