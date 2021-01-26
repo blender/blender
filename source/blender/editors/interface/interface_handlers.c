@@ -8481,6 +8481,15 @@ wmOperator *UI_context_active_operator_get(const struct bContext *C)
   return NULL;
 }
 
+/**
+ * Try to find a search-box region opened from a button in \a button_region.
+ */
+ARegion *UI_region_searchbox_region_get(const ARegion *button_region)
+{
+  uiBut *but = UI_region_active_but_get(button_region);
+  return (but != NULL) ? but->active->searchbox : NULL;
+}
+
 /* helper function for insert keyframe, reset to default, etc operators */
 void UI_context_update_anim_flag(const bContext *C)
 {
