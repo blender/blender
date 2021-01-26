@@ -4,6 +4,7 @@
 uniform sampler2D image_texture;
 uniform sampler2D overlays_texture;
 uniform bool display_transform;
+uniform bool overlay;
 
 in vec2 texCoord_interp;
 
@@ -30,12 +31,13 @@ void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
 void main()
 {
   fragColor = texture(image_texture, texCoord_interp.st);
-
   vec4 overlay_col = texture(overlays_texture, texCoord_interp.st);
 
-  fragColor = clamp(fragColor, 0.0, 1.0);
-  fragColor *= 1.0 - overlay_col.a;
-  fragColor += overlay_col;
+  if (overlay) {
+    fragColor = clamp(fragColor, 0.0, 1.0);
+    fragColor *= 1.0 - overlay_col.a;
+    fragColor += overlay_col;
+  }
 
   if (display_transform) {
     linearrgb_to_srgb(fragColor, fragColor);
