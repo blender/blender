@@ -107,6 +107,9 @@ class TIME_MT_editor_menus(Menu):
             text="Keying",
         )
 
+        # Add a separator to keep the popover button from aligning with the menu button.
+        sub.separator(factor=0.4)
+
         if horizontal:
             sub = row.row(align=True)
 
