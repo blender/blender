@@ -1,8 +1,8 @@
-# This script defines functions to be used directly in drivers expressions to
-# extend the builtin set of python functions.
+# This script defines functions to be used directly in driver expressions to
+# extend the built-in set of python functions.
 #
 # This can be executed on manually or set to 'Register' to
-# initialize thefunctions on file load.
+# initialize the functions on file load.
 
 
 # two sample functions
@@ -30,6 +30,6 @@ def slow_value(value, fac, uuid):
 
 import bpy
 
-# Add variable defined in this script into the drivers namespace.
+# Add functions defined in this script into the drivers namespace.
 bpy.app.driver_namespace["invert"] = invert
 bpy.app.driver_namespace["slow_value"] = slow_value
