@@ -331,16 +331,14 @@ void gpu_extensions_init(void)
    * and rendering. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     /* On Linux the driver does not report its version. Test the OpenGL version in stead. */
-    if (strstr(version, "4.5.1475")) {
-      if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
-          strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
-          strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
-          strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
-          strstr(renderer, " RX 590 ") || strstr(renderer, " RX550/550 ") ||
-          strstr(renderer, " (TM) 520  ") || strstr(renderer, " (TM) 530  ") ||
-          strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
-        GG.use_hq_normals_workaround = true;
-      }
+    if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
+        strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
+        strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
+        strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
+        strstr(renderer, " RX 590 ") || strstr(renderer, " RX550/550 ") ||
+        strstr(renderer, " (TM) 520  ") || strstr(renderer, " (TM) 530  ") ||
+        strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
+      GG.use_hq_normals_workaround = true;
     }
   }
 
