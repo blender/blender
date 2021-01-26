@@ -143,6 +143,8 @@ static void wm_history_file_free(RecentFile *recent);
 static void wm_history_file_update(void);
 static void wm_history_file_write(void);
 
+static void wm_test_autorun_revert_action_exec(bContext *C);
+
 /* -------------------------------------------------------------------- */
 /** \name Misc Utility Functions
  * \{ */
@@ -668,6 +670,9 @@ static void wm_file_read_post(bContext *C,
        * a blend file and do anything since the screen
        * won't be set to a valid value again */
       CTX_wm_window_set(C, NULL); /* exits queues */
+
+      /* Ensure auto-run action is not used from a previous blend file load. */
+      wm_test_autorun_revert_action_set(NULL, NULL);
 
       /* Ensure tools are registered. */
       WM_toolsystem_init(C);
@@ -2543,7 +2548,16 @@ bool WM_recover_last_session(bContext *C, ReportList *reports)
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 {
+  wm_open_init_use_scripts(op, true);
+  SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
   if (WM_recover_last_session(C, op->reports)) {
+    if (!G.background) {
+      wmOperatorType *ot = op->type;
+      PointerRNA *props_ptr = MEM_callocN(sizeof(PointerRNA), __func__);
+      WM_operator_properties_create_ptr(props_ptr, ot);
+      RNA_boolean_set(props_ptr, "use_scripts", true);
+      wm_test_autorun_revert_action_set(ot, props_ptr);
+    }
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
@@ -2592,6 +2606,13 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
   G.fileflags &= ~G_FILE_RECOVER;
 
   if (success) {
+    if (!G.background) {
+      wmOperatorType *ot = op->type;
+      PointerRNA *props_ptr = MEM_callocN(sizeof(PointerRNA), __func__);
+      WM_operator_properties_create_ptr(props_ptr, ot);
+      RNA_boolean_set(props_ptr, "use_scripts", true);
+      wm_test_autorun_revert_action_set(ot, props_ptr);
+    }
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
@@ -2892,6 +2913,9 @@ static void wm_block_autorun_warning_ignore(bContext *C, void *arg_block, void *
 {
   wmWindow *win = CTX_wm_window(C);
   UI_popup_block_close(C, win, arg_block);
+
+  /* Free the data as it's no longer needed. */
+  wm_test_autorun_revert_action_set(NULL, NULL);
 }
 
 static void wm_block_autorun_warning_reload_with_scripts(bContext *C,
@@ -2909,13 +2933,7 @@ static void wm_block_autorun_warning_reload_with_scripts(bContext *C,
 
   /* Load file again with scripts enabled.
    * The reload is necessary to allow scripts to run when the files loads. */
-  wmOperatorType *ot = WM_operatortype_find("WM_OT_revert_mainfile", false);
-
-  PointerRNA props_ptr;
-  WM_operator_properties_create_ptr(&props_ptr, ot);
-  RNA_boolean_set(&props_ptr, "use_scripts", true);
-  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &props_ptr);
-  WM_operator_properties_free(&props_ptr);
+  wm_test_autorun_revert_action_exec(C);
 }
 
 static void wm_block_autorun_warning_enable_scripts(bContext *C,
@@ -3051,6 +3069,54 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
   UI_block_bounds_set_centered(block, 14 * U.dpi_fac);
 
   return block;
+}
+
+/**
+ * Store the action needed if the user needs to reload the file with Python scripts enabled.
+ *
+ * When left to NULL, this is simply revert.
+ * When loading files through the recover auto-save or session,
+ * we need to revert using other operators.
+ */
+static struct {
+  wmOperatorType *ot;
+  PointerRNA *ptr;
+} wm_test_autorun_revert_action_data = {
+    .ot = NULL,
+    .ptr = NULL,
+};
+
+void wm_test_autorun_revert_action_set(wmOperatorType *ot, PointerRNA *ptr)
+{
+  BLI_assert(!G.background);
+  wm_test_autorun_revert_action_data.ot = NULL;
+  if (wm_test_autorun_revert_action_data.ptr != NULL) {
+    WM_operator_properties_free(wm_test_autorun_revert_action_data.ptr);
+    MEM_freeN(wm_test_autorun_revert_action_data.ptr);
+    wm_test_autorun_revert_action_data.ptr = NULL;
+  }
+  wm_test_autorun_revert_action_data.ot = ot;
+  wm_test_autorun_revert_action_data.ptr = ptr;
+}
+
+void wm_test_autorun_revert_action_exec(bContext *C)
+{
+  wmOperatorType *ot = wm_test_autorun_revert_action_data.ot;
+  PointerRNA *ptr = wm_test_autorun_revert_action_data.ptr;
+
+  /* Use regular revert. */
+  if (ot == NULL) {
+    ot = WM_operatortype_find("WM_OT_revert_mainfile", false);
+    ptr = MEM_callocN(sizeof(PointerRNA), __func__);
+    WM_operator_properties_create_ptr(ptr, ot);
+    RNA_boolean_set(ptr, "use_scripts", true);
+
+    /* Set state, so it's freed correctly */
+    wm_test_autorun_revert_action_set(ot, ptr);
+  }
+
+  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, ptr);
+  wm_test_autorun_revert_action_set(NULL, NULL);
 }
 
 void wm_test_autorun_warning(bContext *C)

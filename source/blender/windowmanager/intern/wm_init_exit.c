@@ -517,6 +517,9 @@ void WM_exit_ex(bContext *C, const bool do_python)
           BKE_blendfile_userdef_write_all(NULL);
         }
       }
+      /* Free the callback data used on file-open
+       * (will be set when a recover operation has run). */
+      wm_test_autorun_revert_action_set(NULL, NULL);
     }
   }
 

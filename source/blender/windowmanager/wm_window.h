@@ -86,6 +86,7 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win) ATTR_
 int wm_window_new_exec(bContext *C, struct wmOperator *op);
 int wm_window_new_main_exec(bContext *C, struct wmOperator *op);
 
+void wm_test_autorun_revert_action_set(struct wmOperatorType *ot, struct PointerRNA *ptr);
 void wm_test_autorun_warning(bContext *C);
 
 #ifdef __cplusplus
