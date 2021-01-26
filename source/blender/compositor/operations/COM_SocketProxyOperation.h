@@ -24,11 +24,11 @@ class SocketProxyOperation : public NodeOperation {
  public:
   SocketProxyOperation(DataType type, bool use_conversion);
 
-  bool isProxyOperation() const
+  bool isProxyOperation() const override
   {
     return true;
   }
-  bool useDatatypeConversion() const
+  bool useDatatypeConversion() const override
   {
     return m_use_conversion;
   }

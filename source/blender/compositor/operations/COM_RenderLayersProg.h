@@ -68,7 +68,8 @@ class RenderLayersProg : public NodeOperation {
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
    */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
   /**
    * retrieve the reference to the float buffer of the renderer.
@@ -118,9 +119,9 @@ class RenderLayersProg : public NodeOperation {
   {
     return this->m_viewName;
   }
-  void initExecution();
-  void deinitExecution();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void initExecution() override;
+  void deinitExecution() override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   std::unique_ptr<MetaData> getMetaData() const override;
 };
