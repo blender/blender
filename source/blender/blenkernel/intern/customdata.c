@@ -5104,6 +5104,10 @@ void CustomData_blend_write(BlendWriter *writer,
       const int *layer_data = layer->data;
       BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
     }
+    else if (layer->type == CD_PROP_BOOL) {
+      const bool *layer_data = layer->data;
+      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
+    }
     else {
       const char *structname;
       int structnum;
@@ -5193,6 +5197,16 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
 
     if (CustomData_verify_versions(data, i)) {
       BLO_read_data_address(reader, &layer->data);
+      if (layer->data == NULL) {
+        /* Usually this should never happen, except when a custom data layer has not been written
+         * to a file correctly. */
+        CLOG_WARN(&LOG, "Reallocating custom data layer that was not saved correctly.");
+        const LayerTypeInfo *info = layerType_getInfo(layer->type);
+        layer->data = MEM_calloc_arrayN((size_t)count, info->size, layerType_getName(layer->type));
+        if (info->set_default) {
+          info->set_default(layer->data, count);
+        }
+      }
       if (layer->type == CD_MDISPS) {
         blend_read_mdisps(reader, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
       }
