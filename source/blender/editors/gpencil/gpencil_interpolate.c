@@ -734,7 +734,7 @@ void GPENCIL_OT_interpolate(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
   /* properties */
-  RNA_def_float_percentage(
+  RNA_def_float_factor(
       ot->srna,
       "shift",
       0.0f,

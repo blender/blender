@@ -347,9 +347,20 @@ static struct ARegion *wm_searchbox_tooltip_init(struct bContext *C,
       }
 
       uiButSearch *search_but = (uiButSearch *)but;
-      if (search_but->item_tooltip_fn) {
-        return search_but->item_tooltip_fn(C, region, search_but->arg, search_but->item_active);
+      if (!search_but->item_tooltip_fn) {
+        continue;
       }
+
+      ARegion *searchbox_region = UI_region_searchbox_region_get(region);
+      uiSearchboxData *data = searchbox_region->regiondata;
+
+      BLI_assert(data->items.pointers[data->active] == search_but->item_active);
+
+      rcti rect;
+      ui_searchbox_butrect(&rect, data, data->active);
+
+      return search_but->item_tooltip_fn(
+          C, region, &rect, search_but->arg, search_but->item_active);
     }
   }
   return NULL;

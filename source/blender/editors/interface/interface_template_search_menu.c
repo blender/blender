@@ -1069,6 +1069,7 @@ static bool ui_search_menu_create_context_menu(struct bContext *C,
 
 static struct ARegion *ui_search_menu_create_tooltip(struct bContext *C,
                                                      struct ARegion *region,
+                                                     const rcti *UNUSED(item_rect),
                                                      void *arg,
                                                      void *active)
 {

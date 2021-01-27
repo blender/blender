@@ -749,8 +749,8 @@ static bool ed_marker_move_use_time(MarkerMove *mm)
       ((mm->slink->spacetype == SPACE_ACTION) &&
        (((SpaceAction *)mm->slink)->flag & SACTION_DRAWTIME)) ||
       ((mm->slink->spacetype == SPACE_GRAPH) &&
-       !(((SpaceGraph *)mm->slink)->flag & SIPO_DRAWTIME)) ||
-      ((mm->slink->spacetype == SPACE_NLA) && !(((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME))) {
+       (((SpaceGraph *)mm->slink)->flag & SIPO_DRAWTIME)) ||
+      ((mm->slink->spacetype == SPACE_NLA) && (((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME))) {
     return true;
   }
 

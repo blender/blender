@@ -150,7 +150,7 @@ template<typename T> class DataStore {
       return;
     }
 
-    /* TODO(@kevindietrich): arrays are emptied when passed to the sockets, so for now we copy the
+    /* TODO(kevindietrich): arrays are emptied when passed to the sockets, so for now we copy the
      * arrays to avoid reloading the data */
     T value = *data_;
     node->set(*socket, value);

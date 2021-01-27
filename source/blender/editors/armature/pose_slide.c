@@ -1246,15 +1246,15 @@ static void pose_slide_opdef_properties(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  prop = RNA_def_float_percentage(ot->srna,
-                                  "percentage",
-                                  0.5f,
-                                  0.0f,
-                                  1.0f,
-                                  "Percentage",
-                                  "Weighting factor for which keyframe is favored more",
-                                  0.0,
-                                  1.0);
+  prop = RNA_def_float_factor(ot->srna,
+                              "factor",
+                              0.5f,
+                              0.0f,
+                              1.0f,
+                              "Factor",
+                              "Weighting factor for which keyframe is favored more",
+                              0.0,
+                              1.0);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_int(ot->srna,

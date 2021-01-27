@@ -207,7 +207,7 @@ void ED_mask_view_lock_state_restore_no_jump(const bContext *C, const MaskViewLo
       return;
     }
 
-    /* Mask's lock-to-selection requres deformed splines to be evaluated to calculate bounds of
+    /* Mask's lock-to-selection requires deformed splines to be evaluated to calculate bounds of
      * points after animation has been evaluated. The restore-no-jump type of function does
      * calculation of new offset for the view for an updated state of mask to cancel the offset out
      * by modifying locked offset. In order to do such calculation mask needs to be evaluated after

@@ -555,7 +555,7 @@ void OVERLAY_edit_particle_draw(OVERLAY_Data *vedata);
 
 void OVERLAY_edit_uv_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata);
-void OVERLAY_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_edit_uv_cache_finish(OVERLAY_Data *vedata);
 void OVERLAY_edit_uv_draw(OVERLAY_Data *vedata);
 
 void OVERLAY_extra_cache_init(OVERLAY_Data *vedata);

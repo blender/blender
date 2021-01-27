@@ -508,6 +508,7 @@ typedef bool (*uiButSearchContextMenuFn)(struct bContext *C,
                                          const struct wmEvent *event);
 typedef struct ARegion *(*uiButSearchTooltipFn)(struct bContext *C,
                                                 struct ARegion *region,
+                                                const struct rcti *item_rect,
                                                 void *arg,
                                                 void *active);
 
@@ -2480,11 +2481,12 @@ void UI_context_active_but_prop_get_templateID(struct bContext *C,
                                                struct PropertyRNA **r_prop);
 struct ID *UI_context_active_but_get_tab_ID(struct bContext *C);
 
-uiBut *UI_region_active_but_get(struct ARegion *region);
+uiBut *UI_region_active_but_get(const struct ARegion *region);
 uiBut *UI_region_but_find_rect_over(const struct ARegion *region, const struct rcti *rect_px);
 uiBlock *UI_region_block_find_mouse_over(const struct ARegion *region,
                                          const int xy[2],
                                          bool only_clip);
+struct ARegion *UI_region_searchbox_region_get(const struct ARegion *button_region);
 
 /* uiFontStyle.align */
 typedef enum eFontStyle_Align {
@@ -2563,6 +2565,21 @@ struct ARegion *UI_tooltip_create_from_button(struct bContext *C,
                                               bool is_label);
 struct ARegion *UI_tooltip_create_from_gizmo(struct bContext *C, struct wmGizmo *gz);
 void UI_tooltip_free(struct bContext *C, struct bScreen *screen, struct ARegion *region);
+
+typedef struct {
+  /** A description for the item, e.g. what happens when selecting it. */
+  char description[UI_MAX_DRAW_STR];
+  /* The full name of the item, without prefixes or suffixes (e.g. hint with UI_SEP_CHARP). */
+  const char *name;
+  /** Additional info about the item (e.g. library name of a linked data-block). */
+  char hint[UI_MAX_DRAW_STR];
+} uiSearchItemTooltipData;
+
+struct ARegion *UI_tooltip_create_from_search_item_generic(
+    struct bContext *C,
+    const struct ARegion *searchbox_region,
+    const struct rcti *item_rect,
+    const uiSearchItemTooltipData *item_tooltip_data);
 
 /* How long before a tool-tip shows. */
 #define UI_TOOLTIP_DELAY 0.5

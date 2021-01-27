@@ -742,6 +742,7 @@ void CUDADevice::move_textures_to_host(size_t size, bool for_texture)
     size_t max_size = 0;
     bool max_is_image = false;
 
+    thread_scoped_lock lock(cuda_mem_map_mutex);
     foreach (CUDAMemMap::value_type &pair, cuda_mem_map) {
       device_memory &mem = *pair.first;
       CUDAMem *cmem = &pair.second;
@@ -773,6 +774,7 @@ void CUDADevice::move_textures_to_host(size_t size, bool for_texture)
         max_mem = &mem;
       }
     }
+    lock.unlock();
 
     /* Move to host memory. This part is mutex protected since
      * multiple CUDA devices could be moving the memory. The
@@ -894,6 +896,7 @@ CUDADevice::CUDAMem *CUDADevice::generic_alloc(device_memory &mem, size_t pitch_
   }
 
   /* Insert into map of allocations. */
+  thread_scoped_lock lock(cuda_mem_map_mutex);
   CUDAMem *cmem = &cuda_mem_map[&mem];
   if (shared_pointer != 0) {
     /* Replace host pointer with our host allocation. Only works if
@@ -935,6 +938,7 @@ void CUDADevice::generic_copy_to(device_memory &mem)
   /* If use_mapped_host of mem is false, the current device only uses device memory allocated by
    * cuMemAlloc regardless of mem.host_pointer and mem.shared_pointer, and should copy data from
    * mem.host_pointer. */
+  thread_scoped_lock lock(cuda_mem_map_mutex);
   if (!cuda_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
     const CUDAContextScope scope(this);
     cuda_assert(
@@ -946,6 +950,7 @@ void CUDADevice::generic_free(device_memory &mem)
 {
   if (mem.device_pointer) {
     CUDAContextScope scope(this);
+    thread_scoped_lock lock(cuda_mem_map_mutex);
     const CUDAMem &cmem = cuda_mem_map[&mem];
 
     /* If cmem.use_mapped_host is true, reference counting is used
@@ -990,7 +995,6 @@ void CUDADevice::mem_alloc(device_memory &mem)
     assert(!"mem_alloc not supported for global memory.");
   }
   else {
-    thread_scoped_lock lock(cuda_mem_map_mutex);
     generic_alloc(mem);
   }
 }
@@ -1009,7 +1013,6 @@ void CUDADevice::mem_copy_to(device_memory &mem)
     tex_alloc((device_texture &)mem);
   }
   else {
-    thread_scoped_lock lock(cuda_mem_map_mutex);
     if (!mem.device_pointer) {
       generic_alloc(mem);
     }
@@ -1073,7 +1076,6 @@ void CUDADevice::mem_free(device_memory &mem)
     tex_free((device_texture &)mem);
   }
   else {
-    thread_scoped_lock lock(cuda_mem_map_mutex);
     generic_free(mem);
   }
 }
@@ -1097,7 +1099,6 @@ void CUDADevice::const_copy_to(const char *name, void *host, size_t size)
 void CUDADevice::global_alloc(device_memory &mem)
 {
   if (mem.is_resident(this)) {
-    thread_scoped_lock lock(cuda_mem_map_mutex);
     generic_alloc(mem);
     generic_copy_to(mem);
   }
@@ -1108,7 +1109,6 @@ void CUDADevice::global_alloc(device_memory &mem)
 void CUDADevice::global_free(device_memory &mem)
 {
   if (mem.is_resident(this) && mem.device_pointer) {
-    thread_scoped_lock lock(cuda_mem_map_mutex);
     generic_free(mem);
   }
 }
@@ -1177,9 +1177,8 @@ void CUDADevice::tex_alloc(device_texture &mem)
   size_t src_pitch = mem.data_width * dsize * mem.data_elements;
   size_t dst_pitch = src_pitch;
 
-  thread_scoped_lock lock(cuda_mem_map_mutex);
-
   if (!mem.is_resident(this)) {
+    thread_scoped_lock lock(cuda_mem_map_mutex);
     cmem = &cuda_mem_map[&mem];
     cmem->texobject = 0;
 
@@ -1229,6 +1228,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
     mem.device_size = size;
     stats.mem_alloc(size);
 
+    thread_scoped_lock lock(cuda_mem_map_mutex);
     cmem = &cuda_mem_map[&mem];
     cmem->texobject = 0;
     cmem->array = array_3d;
@@ -1265,9 +1265,6 @@ void CUDADevice::tex_alloc(device_texture &mem)
 
     cuda_assert(cuMemcpyHtoD(mem.device_pointer, mem.host_pointer, size));
   }
-
-  /* Unlock mutex before resizing texture info, since that may attempt to lock it again. */
-  lock.unlock();
 
   /* Resize once */
   const uint slot = mem.slot;
@@ -1317,9 +1314,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
     texDesc.filterMode = filter_mode;
     texDesc.flags = CU_TRSF_NORMALIZED_COORDINATES;
 
-    /* Lock again and refresh the data pointer (in case another thread modified the map in the
-     * meantime). */
-    lock.lock();
+    thread_scoped_lock lock(cuda_mem_map_mutex);
     cmem = &cuda_mem_map[&mem];
 
     cuda_assert(cuTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL));
@@ -1357,6 +1352,7 @@ void CUDADevice::tex_free(device_texture &mem)
       cuda_mem_map.erase(cuda_mem_map.find(&mem));
     }
     else {
+      lock.unlock();
       generic_free(mem);
     }
   }

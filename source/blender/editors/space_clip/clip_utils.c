@@ -499,12 +499,12 @@ bool clip_view_calculate_view_selection(
     return false;
   }
 
-  /* NOTE: The `fit` argment is set to truth when doing "View to Selected" operator, and it set to
+  /* NOTE: The `fit` argument is set to truth when doing "View to Selected" operator, and it set to
    * false when this function is used for Lock-to-Selection functionality. When locking to
-   * selection the handles are to be ignored. So we can deriver the `include_handles` from `fit`.
+   * selection the handles are to be ignored. So we can derive the `include_handles` from `fit`.
    *
-   * TODO(sergey): Make such decision more explicit. Maybe pass usecase for the calculation to tell
-   * operator from lock-to-selection apart. */
+   * TODO(sergey): Make such decision more explicit. Maybe pass use-case for the calculation to
+   * tell operator from lock-to-selection apart. */
   float min[2], max[2];
   if (!selected_boundbox(C, min, max, fit)) {
     return false;

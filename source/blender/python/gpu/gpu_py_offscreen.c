@@ -247,6 +247,12 @@ static PyObject *py_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *args,
 
   depsgraph = BKE_scene_ensure_depsgraph(G_MAIN, scene, view_layer);
 
+  /* Disable 'bgl' state since it interfere with off-screen drawing, see: T84402. */
+  const bool is_bgl = GPU_bgl_get();
+  if (is_bgl) {
+    GPU_bgl_end();
+  }
+
   GPU_offscreen_bind(self->ofs, true);
 
   ED_view3d_draw_offscreen(depsgraph,
@@ -266,6 +272,10 @@ static PyObject *py_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *args,
                            NULL);
 
   GPU_offscreen_unbind(self->ofs, true);
+
+  if (is_bgl) {
+    GPU_bgl_start();
+  }
 
   Py_RETURN_NONE;
 }

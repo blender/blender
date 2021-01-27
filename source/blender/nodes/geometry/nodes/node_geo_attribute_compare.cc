@@ -51,7 +51,7 @@ static bNodeSocketTemplate geo_node_attribute_compare_out[] = {
 static void geo_node_attribute_compare_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeAttributeCompare *data = (NodeAttributeCompare *)MEM_callocN(sizeof(NodeAttributeCompare),
-                                                                   "attribute mix node");
+                                                                   __func__);
   data->operation = NODE_FLOAT_COMPARE_GREATER_THAN;
   data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
   data->input_type_b = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;

@@ -505,15 +505,15 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
                "Mode",
                "Which mode to use for decimation");
 
-  RNA_def_float_percentage(ot->srna,
-                           "remove_ratio",
-                           1.0f / 3.0f,
-                           0.0f,
-                           1.0f,
-                           "Remove",
-                           "The percentage of keyframes to remove",
-                           0.0f,
-                           1.0f);
+  RNA_def_float_factor(ot->srna,
+                       "remove_ratio",
+                       1.0f / 3.0f,
+                       0.0f,
+                       1.0f,
+                       "Remove",
+                       "The ratio of remaining keyframes after the operation",
+                       0.0f,
+                       1.0f);
   RNA_def_float(ot->srna,
                 "remove_error_margin",
                 0.0f,

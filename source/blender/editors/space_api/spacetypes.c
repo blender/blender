@@ -70,16 +70,13 @@
 
 #include "io_ops.h"
 
-/* only call once on startup, storage is global in BKE kernel listbase */
+/* Only called once on startup. storage is global in BKE kernel listbase. */
 void ED_spacetypes_init(void)
 {
-  const ListBase *spacetypes;
-  SpaceType *type;
-
-  /* UI_UNIT_X is now a variable, is used in some spacetype inits? */
+  /* UI unit is a variable, may be used in some space type inits. */
   U.widget_unit = 20;
 
-  /* create space types */
+  /* Create space types. */
   ED_spacetype_outliner();
   ED_spacetype_view3d();
   ED_spacetype_ipo();
@@ -98,9 +95,8 @@ void ED_spacetypes_init(void)
   ED_spacetype_clip();
   ED_spacetype_statusbar();
   ED_spacetype_topbar();
-  //  ...
 
-  /* register operator types for screen and all spaces */
+  /* Register operator types for screen and all spaces. */
   ED_operatortypes_userpref();
   ED_operatortypes_workspace();
   ED_operatortypes_scene();
@@ -132,7 +128,7 @@ void ED_spacetypes_init(void)
 
   ED_screen_user_menu_register();
 
-  /* gizmo types */
+  /* Gizmo types. */
   ED_gizmotypes_button_2d();
   ED_gizmotypes_dial_3d();
   ED_gizmotypes_move_3d();
@@ -144,10 +140,10 @@ void ED_spacetypes_init(void)
   ED_gizmotypes_cage_3d();
   ED_gizmotypes_snap_3d();
 
-  /* register types for operators and gizmos */
-  spacetypes = BKE_spacetypes_list();
-  for (type = spacetypes->first; type; type = type->next) {
-    /* init gizmo types first, operator-types need them */
+  /* Register types for operators and gizmos. */
+  const ListBase *spacetypes = BKE_spacetypes_list();
+  LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
+    /* Initialize gizmo types first, operator types need them. */
     if (type->gizmos) {
       type->gizmos();
     }
@@ -159,11 +155,8 @@ void ED_spacetypes_init(void)
 
 void ED_spacemacros_init(void)
 {
-  const ListBase *spacetypes;
-  SpaceType *type;
-
-  /* Macros's must go last since they reference other operators.
-   * We need to have them go after python operators too */
+  /* Macros must go last since they reference other operators.
+   * They need to be registered after python operators too. */
   ED_operatormacros_armature();
   ED_operatormacros_mesh();
   ED_operatormacros_uvedit();
@@ -180,24 +173,21 @@ void ED_spacemacros_init(void)
   ED_operatormacros_paint();
   ED_operatormacros_gpencil();
 
-  /* register dropboxes (can use macros) */
-  spacetypes = BKE_spacetypes_list();
-  for (type = spacetypes->first; type; type = type->next) {
+  /* Register dropboxes (can use macros). */
+  const ListBase *spacetypes = BKE_spacetypes_list();
+  LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
     if (type->dropboxes) {
       type->dropboxes();
     }
   }
 }
 
-/* called in wm.c */
-/* keymap definitions are registered only once per WM initialize, usually on file read,
- * using the keymap the actual areas/regions add the handlers */
+/**
+ * \note Keymap definitions are registered only once per WM initialize,
+ * usually on file read, using the keymap the actual areas/regions add the handlers.
+ * \note Called in wm.c. */
 void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 {
-  const ListBase *spacetypes;
-  SpaceType *stype;
-  ARegionType *atype;
-
   ED_keymap_screen(keyconf);
   ED_keymap_anim(keyconf);
   ED_keymap_animchannels(keyconf);
@@ -219,20 +209,20 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 
   ED_keymap_transform(keyconf);
 
-  spacetypes = BKE_spacetypes_list();
-  for (stype = spacetypes->first; stype; stype = stype->next) {
-    if (stype->keymap) {
-      stype->keymap(keyconf);
+  const ListBase *spacetypes = BKE_spacetypes_list();
+  LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
+    if (type->keymap) {
+      type->keymap(keyconf);
     }
-    for (atype = stype->regiontypes.first; atype; atype = atype->next) {
-      if (atype->keymap) {
-        atype->keymap(keyconf);
+    LISTBASE_FOREACH (ARegionType *, region_type, &type->regiontypes) {
+      if (region_type->keymap) {
+        region_type->keymap(keyconf);
       }
     }
   }
 }
 
-/* ********************** custom drawcall api ***************** */
+/* ********************** Custom Draw Call API ***************** */
 
 typedef struct RegionDrawCB {
   struct RegionDrawCB *next, *prev;
@@ -261,9 +251,7 @@ void *ED_region_draw_cb_activate(ARegionType *art,
 
 void ED_region_draw_cb_exit(ARegionType *art, void *handle)
 {
-  RegionDrawCB *rdc;
-
-  for (rdc = art->drawcalls.first; rdc; rdc = rdc->next) {
+  LISTBASE_FOREACH (RegionDrawCB *, rdc, &art->drawcalls) {
     if (rdc == (RegionDrawCB *)handle) {
       BLI_remlink(&art->drawcalls, rdc);
       MEM_freeN(rdc);
@@ -274,9 +262,7 @@ void ED_region_draw_cb_exit(ARegionType *art, void *handle)
 
 void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
 {
-  RegionDrawCB *rdc;
-
-  for (rdc = region->type->drawcalls.first; rdc; rdc = rdc->next) {
+  LISTBASE_FOREACH (RegionDrawCB *, rdc, &region->type->drawcalls) {
     if (rdc->type == type) {
       rdc->draw(C, region, rdc->customdata);
 

@@ -34,6 +34,8 @@ set(_clang_tidy_SEARCH_DIRS
 # TODO(sergey): Find more reliable way of finding the latest clang-tidy.
 find_program(CLANG_TIDY_EXECUTABLE
   NAMES
+    clang-tidy-12
+    clang-tidy-11
     clang-tidy-10
     clang-tidy-9
     clang-tidy-8

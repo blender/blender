@@ -8317,7 +8317,7 @@ void ui_but_active_free(const bContext *C, uiBut *but)
 }
 
 /* returns the active button with an optional checking function */
-static uiBut *ui_context_button_active(ARegion *region, bool (*but_check_cb)(uiBut *))
+static uiBut *ui_context_button_active(const ARegion *region, bool (*but_check_cb)(const uiBut *))
 {
   uiBut *but_found = NULL;
 
@@ -8358,7 +8358,7 @@ static uiBut *ui_context_button_active(ARegion *region, bool (*but_check_cb)(uiB
   return but_found;
 }
 
-static bool ui_context_rna_button_active_test(uiBut *but)
+static bool ui_context_rna_button_active_test(const uiBut *but)
 {
   return (but->rnapoin.data != NULL);
 }
@@ -8383,7 +8383,7 @@ uiBut *UI_context_active_but_get_respect_menu(const bContext *C)
   return ui_context_button_active(region_menu ? region_menu : CTX_wm_region(C), NULL);
 }
 
-uiBut *UI_region_active_but_get(ARegion *region)
+uiBut *UI_region_active_but_get(const ARegion *region)
 {
   return ui_context_button_active(region, NULL);
 }
@@ -8479,6 +8479,15 @@ wmOperator *UI_context_active_operator_get(const struct bContext *C)
   }
 
   return NULL;
+}
+
+/**
+ * Try to find a search-box region opened from a button in \a button_region.
+ */
+ARegion *UI_region_searchbox_region_get(const ARegion *button_region)
+{
+  uiBut *but = UI_region_active_but_get(button_region);
+  return (but != NULL) ? but->active->searchbox : NULL;
 }
 
 /* helper function for insert keyframe, reset to default, etc operators */
