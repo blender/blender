@@ -203,23 +203,32 @@ UndoStep *BKE_undosys_step_find_by_name_with_type(UndoStack *ustack,
 UndoStep *BKE_undosys_step_find_by_type(UndoStack *ustack, const UndoType *ut);
 UndoStep *BKE_undosys_step_find_by_name(UndoStack *ustack, const char *name);
 
+int BKE_undosys_step_calc_direction(const UndoStack *ustack,
+                                    const UndoStep *us_target,
+                                    const UndoStep *us_reference);
+
+bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
+                                   struct bContext *C,
+                                   UndoStep *us_target,
+                                   UndoStep *us_reference,
+                                   const bool use_skip);
+bool BKE_undosys_step_load_data(UndoStack *ustack, struct bContext *C, UndoStep *us_target);
+void BKE_undosys_step_load_from_index(UndoStack *ustack, struct bContext *C, const int index);
+
 bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
                                         struct bContext *C,
                                         UndoStep *us,
                                         bool use_skip);
-bool BKE_undosys_step_undo_with_data(UndoStack *ustack, struct bContext *C, UndoStep *us);
+bool BKE_undosys_step_undo_with_data(UndoStack *ustack, struct bContext *C, UndoStep *us_target);
 bool BKE_undosys_step_undo(UndoStack *ustack, struct bContext *C);
 
 bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
                                         struct bContext *C,
                                         UndoStep *us,
                                         bool use_skip);
-bool BKE_undosys_step_redo_with_data(UndoStack *ustack, struct bContext *C, UndoStep *us);
+bool BKE_undosys_step_redo_with_data(UndoStack *ustack, struct bContext *C, UndoStep *us_target);
 bool BKE_undosys_step_redo(UndoStack *ustack, struct bContext *C);
 
-bool BKE_undosys_step_load_data(UndoStack *ustack, struct bContext *C, UndoStep *us);
-
-void BKE_undosys_step_undo_from_index(UndoStack *ustack, struct bContext *C, int index);
 UndoStep *BKE_undosys_step_same_type_next(UndoStep *us);
 UndoStep *BKE_undosys_step_same_type_prev(UndoStep *us);
 

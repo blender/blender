@@ -297,8 +297,7 @@ static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportLis
 
 /** Undo the step matching given name.
  *  May undo several steps at once.
- *  The target step will be the one immediately before given named one.
- *  Only supposed to undo (will assert in case given named step is after current active one). */
+ *  The target step will be the one immediately before given named one. */
 static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *reports)
 {
   BLI_assert(undo_name != NULL);
@@ -316,28 +315,26 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
     return OPERATOR_CANCELLED;
   }
 
-  /* TODO(campbell), could use simple optimization. */
-  /* Pointers match on redo. */
-  const int target_step_index = BLI_findindex(&wm->undo_stack->steps, undo_step_from_name);
-  const int active_step_index = BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active);
-  /* NOTE: when current and target active steps are the same, we are in undo case. */
-  const enum eUndoStepDir undo_dir = (target_step_index <= active_step_index) ? STEP_UNDO :
-                                                                                STEP_REDO;
+  UndoStep *undo_step_target = undo_step_from_name->prev;
+  if (undo_step_target == NULL) {
+    CLOG_ERROR(&LOG, "Step name='%s' cannot be undone", undo_name);
+
+    return OPERATOR_CANCELLED;
+  }
+
+  const int undo_dir_i = BKE_undosys_step_calc_direction(wm->undo_stack, undo_step_target, NULL);
+  BLI_assert(ELEM(undo_dir_i, -1, 1));
+  const enum eUndoStepDir undo_dir = (undo_dir_i == -1) ? STEP_UNDO : STEP_REDO;
 
   CLOG_INFO(&LOG,
             1,
-            "name='%s', found direction=%s, index=%d",
+            "name='%s', found direction=%s",
             undo_name,
-            (undo_dir == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO",
-            target_step_index);
-
-  /* This function is currently not supposed to redo ever.
-   * TODO: Will be fixed in future in continuing undo code refactor effort. */
-  BLI_assert(undo_dir == STEP_UNDO);
+            (undo_dir == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO");
 
   ed_undo_step_pre(C, wm, undo_dir, reports);
 
-  BKE_undosys_step_undo_with_data(wm->undo_stack, C, undo_step_from_name);
+  BKE_undosys_step_load_data_ex(wm->undo_stack, C, undo_step_target, NULL, true);
 
   ed_undo_step_post(C, wm, undo_dir, reports);
 
@@ -368,7 +365,7 @@ static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *
 
   ed_undo_step_pre(C, wm, undo_dir, reports);
 
-  BKE_undosys_step_undo_from_index(wm->undo_stack, C, undo_index);
+  BKE_undosys_step_load_from_index(wm->undo_stack, C, undo_index);
 
   ed_undo_step_post(C, wm, undo_dir, reports);
 
