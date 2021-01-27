@@ -609,16 +609,16 @@ bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2], bool
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Mask *mask = CTX_data_edit_mask(C);
 
-  /* Use evaluated mask to take animation into account.
-   * The animation of splies is not "flushed" back to original, so need to explicitly
-   * sue evaluated datablock here. */
-  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask->id);
-
   bool ok = false;
 
   if (mask == NULL) {
     return ok;
   }
+
+  /* Use evaluated mask to take animation into account.
+   * The animation of splies is not "flushed" back to original, so need to explicitly
+   * sue evaluated datablock here. */
+  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask->id);
 
   INIT_MINMAX2(min, max);
   for (MaskLayer *mask_layer = mask_eval->masklayers.first; mask_layer != NULL;
