@@ -8689,7 +8689,7 @@ static void def_geo_attribute_attribute_compare(StructRNA *srna)
 
   prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_node_float_compare_items);
-  RNA_def_property_enum_default(prop, NODE_MATH_ADD);
+  RNA_def_property_enum_default(prop, NODE_FLOAT_COMPARE_GREATER_THAN);
   RNA_def_property_ui_text(prop, "Operation", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
