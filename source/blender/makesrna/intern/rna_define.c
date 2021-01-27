@@ -4111,6 +4111,16 @@ PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont_,
 
   ASSERT_SOFT_HARD_LIMITS;
 
+#ifdef DEBUG
+  /* Properties with PROP_PERCENTAGE should use a range like 0 to 100, unlike PROP_FACTOR. */
+  if (hardmax < 2.0f) {
+    CLOG_WARN(&LOG,
+              "Percentage property with incorrect range: %s.%s",
+              CONTAINER_RNA_ID(cont),
+              identifier);
+  }
+#endif
+
   prop = RNA_def_property(cont, identifier, PROP_FLOAT, PROP_PERCENTAGE);
   RNA_def_property_float_default(prop, default_value);
   if (hardmin != hardmax) {
