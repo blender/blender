@@ -363,7 +363,7 @@ static void eevee_cryptomatte_download_buffer(EEVEE_Data *vedata, GPUFrameBuffer
                              download_buffer);
 
   /* Integrate download buffer into the accum buffer.
-   * The download buffer contains upto 3 floats per pixel (one float per cryptomatte layer.
+   * The download buffer contains up to 3 floats per pixel (one float per cryptomatte layer.
    *
    * NOTE: here we deviate from the cryptomatte standard. During integration the standard always
    * sort the samples by its weight to make sure that samples with the lowest weight

@@ -235,7 +235,7 @@ static void gpencil_vfx_rim(RimShaderFxData *fx, Object *ob, gpIterVfxData *iter
   DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
   if (fx->mode == eShaderFxRimMode_Overlay) {
-    /* We cannot do custom blending on MultiTarget framebuffers.
+    /* We cannot do custom blending on multi-target frame-buffers.
      * Workaround by doing 2 passes. */
     grp = DRW_shgroup_create_sub(grp);
     DRW_shgroup_state_disable(grp, DRW_STATE_BLEND_MUL);
@@ -363,7 +363,7 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
     copy_v2_v2(wave_ofs, wave_dir);
     SWAP(float, wave_ofs[0], wave_ofs[1]);
     wave_ofs[1] *= -1.0f;
-    /* Keep world space scalling and aspect ratio. */
+    /* Keep world space scaling and aspect ratio. */
     mul_v2_fl(wave_dir, 1.0f / (max_ff(1e-8f, fx->period) * distance_factor));
     mul_v2_v2(wave_dir, vp_size);
     mul_v2_fl(wave_ofs, fx->amplitude * distance_factor);
@@ -515,7 +515,7 @@ static void gpencil_vfx_wave(WaveShaderFxData *fx, Object *ob, gpIterVfxData *it
   copy_v2_v2(wave_ofs, wave_dir);
   SWAP(float, wave_ofs[0], wave_ofs[1]);
   wave_ofs[1] *= -1.0f;
-  /* Keep world space scalling and aspect ratio. */
+  /* Keep world space scaling and aspect ratio. */
   mul_v2_fl(wave_dir, 1.0f / (max_ff(1e-8f, fx->period) * distance_factor));
   mul_v2_v2(wave_dir, vp_size);
   mul_v2_fl(wave_ofs, fx->amplitude * distance_factor);
@@ -647,7 +647,7 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata, Object *ob, GPENCIL_tObjec
     DRW_shgroup_uniform_int_copy(grp, "isFirstPass", true);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
-    /* We cannot do custom blending on MultiTarget framebuffers.
+    /* We cannot do custom blending on multi-target frame-buffers.
      * Workaround by doing 2 passes. */
     grp = DRW_shgroup_create_sub(grp);
     DRW_shgroup_state_disable(grp, DRW_STATE_BLEND_MUL);

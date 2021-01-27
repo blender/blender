@@ -228,7 +228,7 @@ typedef struct SlidePointData {
   float prev_mouse_coord[2];
 
   /* Previous clip coordinate which was resolved from mouse position (0, 0).
-   * Is used to compansate for view offste moving in-between of mouse events when
+   * Is used to compensate for view offset moving in-between of mouse events when
    * lock-to-selection is enabled. */
   float prev_zero_coord[2];
 
