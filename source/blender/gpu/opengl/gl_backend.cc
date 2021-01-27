@@ -244,15 +244,16 @@ static void detect_workarounds()
   if (!GLEW_VERSION_4_0) {
     GLContext::base_instance_support = false;
   }
-  /* The renderers include:
-   *   Mobility Radeon HD 5000;
-   *   Radeon HD 7500M;
-   *   Radeon HD 7570M;
-   *   Radeon HD 7600M;
-   * And many others... */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(version, "4.5.13399") || strstr(version, "4.5.13417") ||
-       strstr(version, "4.5.13422"))) {
+       strstr(version, "4.5.13422") || strstr(version, "4.5.13467"))) {
+    /* The renderers include:
+     *   Radeon HD 5000;
+     *   Radeon HD 7500M;
+     *   Radeon HD 7570M;
+     *   Radeon HD 7600M;
+     *   Radeon R5 Graphics;
+     * And others... */
     GLContext::unused_fb_slot_workaround = true;
     GCaps.mip_render_workaround = true;
     GCaps.shader_image_load_store_support = false;
