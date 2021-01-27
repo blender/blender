@@ -243,8 +243,6 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
       changed = true;
     }
   }
-  /* Nothing selected now, unlock view so it can be scrolled nice again. */
-  sc->flag &= ~SC_LOCK_SELECTION;
   if (changed) {
     WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
   }
@@ -311,11 +309,6 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
         changed = true;
       }
     }
-  }
-
-  if (!has_selection) {
-    /* Nothing selected now, unlock view so it can be scrolled nice again. */
-    sc->flag &= ~SC_LOCK_SELECTION;
   }
 
   if (!changed) {
@@ -1222,13 +1215,6 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
   }
   if (act_plane_track != NULL && act_plane_track->flag & TRACK_HIDDEN) {
     clip->tracking.act_plane_track = NULL;
-  }
-
-  if (unselected == 0) {
-    /* No selection on screen now, unlock view so it can be
-     * scrolled nice again.
-     */
-    sc->flag &= ~SC_LOCK_SELECTION;
   }
 
   BKE_tracking_dopesheet_tag_update(tracking);

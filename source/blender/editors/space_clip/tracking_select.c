@@ -875,10 +875,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
   bool has_selection = false;
   ED_clip_select_all(sc, action, &has_selection);
 
-  if (!has_selection) {
-    sc->flag &= ~SC_LOCK_SELECTION;
-  }
-  else {
+  if (has_selection) {
     ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
   }
 
