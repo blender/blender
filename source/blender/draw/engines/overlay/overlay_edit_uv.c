@@ -503,6 +503,16 @@ static void edit_uv_stretching_update_ratios(OVERLAY_Data *vedata)
   BLI_freelistN(&pd->edit_uv.totals);
 }
 
+void OVERLAY_edit_uv_cache_finish(OVERLAY_Data *vedata)
+{
+  OVERLAY_StorageList *stl = vedata->stl;
+  OVERLAY_PrivateData *pd = stl->pd;
+
+  if (pd->edit_uv.do_uv_stretching_overlay) {
+    edit_uv_stretching_update_ratios(vedata);
+  }
+}
+
 static void OVERLAY_edit_uv_draw_finish(OVERLAY_Data *vedata)
 {
   OVERLAY_StorageList *stl = vedata->stl;
@@ -544,7 +554,6 @@ void OVERLAY_edit_uv_draw(OVERLAY_Data *vedata)
   }
 
   if (pd->edit_uv.do_uv_stretching_overlay) {
-    edit_uv_stretching_update_ratios(vedata);
     DRW_draw_pass(psl->edit_uv_stretching_ps);
   }
 

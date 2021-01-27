@@ -486,7 +486,12 @@ static void OVERLAY_cache_finish(void *vedata)
 {
   OVERLAY_Data *data = vedata;
   OVERLAY_PrivateData *pd = data->stl->pd;
-  if (ELEM(pd->space_type, SPACE_IMAGE, SPACE_NODE)) {
+
+  if (ELEM(pd->space_type, SPACE_IMAGE)) {
+    OVERLAY_edit_uv_cache_finish(vedata);
+    return;
+  }
+  if (ELEM(pd->space_type, SPACE_NODE)) {
     return;
   }
 
