@@ -298,9 +298,6 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   OVERLAY_PrivateData *pd = data->stl->pd;
 
   if (pd->space_type == SPACE_IMAGE) {
-    if (ob->type == OB_MESH) {
-      OVERLAY_edit_uv_cache_populate(vedata, ob);
-    }
     return;
   }
 
@@ -489,7 +486,12 @@ static void OVERLAY_cache_finish(void *vedata)
 {
   OVERLAY_Data *data = vedata;
   OVERLAY_PrivateData *pd = data->stl->pd;
-  if (ELEM(pd->space_type, SPACE_IMAGE, SPACE_NODE)) {
+
+  if (ELEM(pd->space_type, SPACE_IMAGE)) {
+    OVERLAY_edit_uv_cache_finish(vedata);
+    return;
+  }
+  if (ELEM(pd->space_type, SPACE_NODE)) {
     return;
   }
 
