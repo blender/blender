@@ -702,7 +702,7 @@ class ShaderImageTextureWrapper():
                 image = image.copy()
             image.colorspace_settings.is_data = self.colorspace_is_data
         if self.colorspace_name is not ...:
-            if image.colorspace_settings.is_data != self.colorspace_is_data and image.users >= 1:
+            if image.colorspace_settings.name != self.colorspace_name and image.users >= 1:
                 image = image.copy()
             image.colorspace_settings.name = self.colorspace_name
         if self.use_alpha:
