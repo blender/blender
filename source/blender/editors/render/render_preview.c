@@ -200,6 +200,11 @@ static bool check_engine_supports_preview(Scene *scene)
   return (type->flag & RE_USE_PREVIEW) != 0;
 }
 
+static bool preview_method_is_render(int pr_method)
+{
+  return ELEM(pr_method, PR_ICON_RENDER, PR_BUTS_RENDER, PR_NODE_RENDER);
+}
+
 void ED_preview_free_dbase(void)
 {
   if (G_pr_main) {
@@ -1352,13 +1357,12 @@ static void common_preview_startjob(void *customdata,
  */
 static void other_id_types_preview_render(IconPreview *ip,
                                           IconPreviewSize *cur_size,
-                                          const bool is_deferred,
+                                          const int pr_method,
                                           short *stop,
                                           short *do_update,
                                           float *progress)
 {
   ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
-  const bool is_render = !is_deferred;
 
   /* These types don't use the ShaderPreview mess, they have their own types and functions. */
   BLI_assert(!ip->id || !ELEM(GS(ip->id->name), ID_OB));
@@ -1368,7 +1372,7 @@ static void other_id_types_preview_render(IconPreview *ip,
   sp->owner = ip->owner;
   sp->sizex = cur_size->sizex;
   sp->sizey = cur_size->sizey;
-  sp->pr_method = is_render ? PR_ICON_RENDER : PR_ICON_DEFERRED;
+  sp->pr_method = pr_method;
   sp->pr_rect = cur_size->rect;
   sp->id = ip->id;
   sp->id_copy = ip->id_copy;
@@ -1376,7 +1380,7 @@ static void other_id_types_preview_render(IconPreview *ip,
   sp->own_id_copy = false;
   Material *ma = NULL;
 
-  if (is_render) {
+  if (sp->pr_method == PR_ICON_RENDER) {
     BLI_assert(ip->id);
 
     /* grease pencil use its own preview file */
@@ -1424,6 +1428,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
 
   for (cur_size = ip->sizes.first; cur_size; cur_size = cur_size->next) {
     PreviewImage *prv = ip->owner;
+    /* Is this a render job or a deferred loading job? */
+    const int pr_method = (prv->tag & PRV_TAG_DEFFERED) ? PR_ICON_DEFERRED : PR_ICON_RENDER;
 
     if (*stop) {
       break;
@@ -1434,7 +1440,7 @@ static void icon_preview_startjob_all_sizes(void *customdata,
       continue;
     }
 
-    if (!check_engine_supports_preview(ip->scene)) {
+    if (preview_method_is_render(pr_method) && !check_engine_supports_preview(ip->scene)) {
       continue;
     }
 
@@ -1450,8 +1456,7 @@ static void icon_preview_startjob_all_sizes(void *customdata,
       object_preview_render(ip, cur_size);
     }
     else {
-      other_id_types_preview_render(
-          ip, cur_size, (prv->tag & PRV_TAG_DEFFERED), stop, do_update, progress);
+      other_id_types_preview_render(ip, cur_size, pr_method, stop, do_update, progress);
     }
   }
 }
@@ -1634,7 +1639,7 @@ void ED_preview_shader_job(const bContext *C,
   /* Use workspace render only for buttons Window,
    * since the other previews are related to the datablock. */
 
-  if (!check_engine_supports_preview(scene)) {
+  if (preview_method_is_render(method) && !check_engine_supports_preview(scene)) {
     return;
   }
 
