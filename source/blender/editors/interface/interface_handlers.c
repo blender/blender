@@ -9914,6 +9914,12 @@ static int ui_handle_menu_event(bContext *C,
               break;
             }
 
+            /* Only respond to explicit press to avoid the event that opened the menu
+             * activating an item when the key is held. */
+            if (event->is_repeat) {
+              break;
+            }
+
             if (event->alt) {
               act += 10;
             }
@@ -9993,8 +9999,11 @@ static int ui_handle_menu_event(bContext *C,
         case EVT_XKEY:
         case EVT_YKEY:
         case EVT_ZKEY: {
-          if ((event->val == KM_PRESS || event->val == KM_DBL_CLICK) &&
-              !IS_EVENT_MOD(event, shift, ctrl, oskey)) {
+          if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK) &&
+              !IS_EVENT_MOD(event, shift, ctrl, oskey) &&
+              /* Only respond to explicit press to avoid the event that opened the menu
+               * activating an item when the key is held. */
+              !event->is_repeat) {
             if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval)) {
               break;
             }
