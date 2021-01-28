@@ -129,7 +129,9 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem, int memsize);
 
 struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
                                                      int ofblocktype,
-                                                     int *tot_names);
+
+                                                     const bool use_assets_only,
+                                                     int *r_tot_names);
 struct LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
                                                     int ofblocktype,
                                                     int *tot_info_items);

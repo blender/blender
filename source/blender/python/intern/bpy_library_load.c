@@ -173,7 +173,7 @@ static PyTypeObject bpy_lib_Type = {
 
 PyDoc_STRVAR(
     bpy_lib_load_doc,
-    ".. method:: load(filepath, link=False, relative=False)\n"
+    ".. method:: load(filepath, link=False, assets_only=False, relative=False)\n"
     "\n"
     "   Returns a context manager which exposes 2 library objects on entering.\n"
     "   Each object has attributes matching bpy.data which are lists of strings to be linked.\n"
@@ -182,6 +182,8 @@ PyDoc_STRVAR(
     "   :type filepath: string\n"
     "   :arg link: When False reference to the original file is lost.\n"
     "   :type link: bool\n"
+    "   :arg assets_only: If True, only list data-blocks marked as assets.\n"
+    "   :type assets_only: bool\n"
     "   :arg relative: When True the path is stored relative to the open blend file.\n"
     "   :type relative: bool\n");
 static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
@@ -189,12 +191,20 @@ static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *
   Main *bmain = CTX_data_main(BPY_context_get());
   BPy_Library *ret;
   const char *filename = NULL;
-  bool is_rel = false, is_link = false;
+  bool is_rel = false, is_link = false, use_assets_only = false;
 
-  static const char *_keywords[] = {"filepath", "link", "relative", NULL};
-  static _PyArg_Parser _parser = {"s|O&O&:load", _keywords, 0};
-  if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &filename, PyC_ParseBool, &is_link, PyC_ParseBool, &is_rel)) {
+  static const char *_keywords[] = {"filepath", "link", "relative", "assets_only", NULL};
+  static _PyArg_Parser _parser = {"s|O&O&O&:load", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kw,
+                                        &_parser,
+                                        &filename,
+                                        PyC_ParseBool,
+                                        &is_link,
+                                        PyC_ParseBool,
+                                        &is_rel,
+                                        PyC_ParseBool,
+                                        &use_assets_only)) {
     return NULL;
   }
 
@@ -205,7 +215,8 @@ static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *
   BLI_path_abs(ret->abspath, BKE_main_blendfile_path(bmain));
 
   ret->blo_handle = NULL;
-  ret->flag = ((is_link ? FILE_LINK : 0) | (is_rel ? FILE_RELPATH : 0));
+  ret->flag = ((is_link ? FILE_LINK : 0) | (is_rel ? FILE_RELPATH : 0) |
+               (use_assets_only ? FILE_ASSETS_ONLY : 0));
 
   ret->dict = _PyDict_NewPresized(MAX_LIBARRAY);
 
@@ -218,7 +229,8 @@ static PyObject *_bpy_names(BPy_Library *self, int blocktype)
   LinkNode *l, *names;
   int totnames;
 
-  names = BLO_blendhandle_get_datablock_names(self->blo_handle, blocktype, &totnames);
+  names = BLO_blendhandle_get_datablock_names(
+      self->blo_handle, blocktype, (self->flag & FILE_ASSETS_ONLY) != 0, &totnames);
   list = PyList_New(totnames);
 
   if (names) {
