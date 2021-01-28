@@ -2254,20 +2254,33 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
                                     rcti *rect,
                                     float alpha)
 {
-  /* inverse order, from right to left. */
+  const float icon_size = ICON_SIZE_FROM_BUTRECT(rect);
+
+  /* Offset of icons from the right edge. Keep in sync
+     with 'ui_but_extra_operator_icon_mouse_over_get'. */
+  if (!BLI_listbase_is_empty(&but->extra_op_icons)) {
+    /* Eyeballed. */
+    rect->xmax -= 0.2 * icon_size;
+  }
+
+  /* Inverse order, from right to left. */
   LISTBASE_FOREACH_BACKWARD (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
     rcti temp = *rect;
     float alpha_this = alpha;
 
-    temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
+    temp.xmin = temp.xmax - icon_size;
 
     if (!op_icon->highlighted) {
       alpha_this *= 0.75f;
     }
 
+    /* Draw the icon at the center, and restore the flags after. */
+    const int old_drawflags = but->drawflag;
+    UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
     widget_draw_icon(but, op_icon->icon, alpha_this, &temp, wcol->text);
+    but->drawflag = old_drawflags;
 
-    rect->xmax -= ICON_SIZE_FROM_BUTRECT(rect);
+    rect->xmax -= icon_size;
   }
 }
 
