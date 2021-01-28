@@ -442,6 +442,13 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
   py_tstate = PyGILState_GetThisThreadState();
   PyEval_ReleaseThread(py_tstate);
 #endif
+
+#ifdef WITH_PYTHON_MODULE
+  /* Disable all add-ons at exit, not essential, it just avoids resource leaks, see T71362. */
+  BPY_run_string_eval(C,
+                      (const char *[]){"atexit", "addon_utils", NULL},
+                      "atexit.register(addon_utils.disable_all)");
+#endif
 }
 
 void BPY_python_end(void)

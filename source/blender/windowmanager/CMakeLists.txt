@@ -168,6 +168,9 @@ if(WITH_PYTHON)
     ../python
   )
   add_definitions(-DWITH_PYTHON)
+  if(WITH_PYTHON_MODULE)
+    add_definitions(-DWITH_PYTHON_MODULE)
+  endif()
 endif()
 
 if(WITH_BUILDINFO)
