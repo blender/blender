@@ -988,6 +988,11 @@ bool UI_but_active_only(const bContext *C, ARegion *region, uiBlock *block, uiBu
  */
 bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *region, uiBlock *block)
 {
+
+  /* Running this command before end-block has run, means buttons that open menus
+   * wont have those menus correctly positioned, see T83539. */
+  BLI_assert(block->endblock != 0);
+
   bool done = false;
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     if (but->flag & UI_BUT_ACTIVATE_ON_INIT) {

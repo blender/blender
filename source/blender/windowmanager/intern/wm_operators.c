@@ -1403,8 +1403,6 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
   UI_block_bounds_set_popup(
       block, 6 * U.dpi_fac, (const int[2]){data->width / -2, data->height / 2});
 
-  UI_block_active_only_flagged_buttons(C, region, block);
-
   return block;
 }
 
