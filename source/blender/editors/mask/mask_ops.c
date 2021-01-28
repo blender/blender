@@ -238,7 +238,7 @@ typedef struct SlidePointData {
 
   bool is_sliding_new_point;
 
-  /* Data needed to restre the state. */
+  /* Data needed to restore the state. */
   float vec[3][3];
   char old_h1, old_h2;
 
@@ -863,7 +863,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
       if (event->type == data->event_invoke_type && event->val == KM_RELEASE) {
         Scene *scene = CTX_data_scene(C);
 
-        /* dont key sliding feather uw's */
+        /* Don't key sliding feather UW's. */
         if ((data->action == SLIDE_ACTION_FEATHER && data->uw) == false) {
           if (IS_AUTOKEY_ON(scene)) {
             ED_mask_layer_shape_auto_key(data->mask_layer, CFRA);
@@ -1053,7 +1053,7 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(bContext *C,
   slide_data->bezt_backup = *slide_data->adjust_bezt;
   slide_data->other_bezt_backup = *slide_data->other_bezt;
 
-  /* Let's dont touch other side of the point for now, so set handle to FREE. */
+  /* Let's don't touch other side of the point for now, so set handle to FREE. */
   if (u < 0.5f) {
     if (slide_data->adjust_bezt->h2 <= HD_VECT) {
       slide_data->adjust_bezt->h2 = HD_FREE;
@@ -1270,7 +1270,7 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
     case LEFTMOUSE:
     case RIGHTMOUSE:
       if (event->type == slide_data->event_invoke_type && event->val == KM_RELEASE) {
-        /* dont key sliding feather uw's */
+        /* Don't key sliding feather UW's. */
         if (IS_AUTOKEY_ON(scene)) {
           ED_mask_layer_shape_auto_key(slide_data->mask_layer, CFRA);
         }
