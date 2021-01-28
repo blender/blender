@@ -341,12 +341,20 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     }
   }
 
-  /* Without this the `sys.stdout` may be set to 'ascii'
-   * (it is on my system at least), where printing unicode values will raise
-   * an error, this is highly annoying, another stumbling block for developers,
-   * so use a more relaxed error handler and enforce utf-8 since the rest of
-   * Blender is utf-8 too - campbell */
-  Py_SetStandardStreamEncoding("utf-8", "surrogateescape");
+  /* Force `utf-8` on all platforms, since this is what's used for Blender's internal strings,
+   * providing consistent encoding behavior across all Blender installations.
+   *
+   * This also uses the `surrogateescape` error handler ensures any unexpected bytes are escaped
+   * instead of raising an error.
+   *
+   * Without this `sys.getfilesystemencoding()` and `sys.stdout` for example may be set to ASCII
+   * or some other encoding - where printing some `utf-8` values will raise an error.
+   *
+   * This can cause scripts to fail entirely on some systems.
+   *
+   * This assignment is the equivalent of enabling the `PYTHONUTF8` environment variable.
+   * See `PEP-540` for details on exactly what this changes. */
+  Py_UTF8Mode = 1;
 
   /* Suppress error messages when calculating the module search path.
    * While harmless, it's noisy. */
