@@ -650,6 +650,11 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   if (object->particlesystem.first != nullptr) {
     build_particle_systems(object, is_visible);
   }
+  /* Force field Texture. */
+  if ((object->pd != nullptr) && (object->pd->forcefield == PFIELD_TEXTURE) &&
+      (object->pd->tex != nullptr)) {
+    build_texture(object->pd->tex);
+  }
   /* Proxy object to copy from. */
   build_object_proxy_from(object, is_visible);
   build_object_proxy_group(object, is_visible);
