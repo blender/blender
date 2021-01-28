@@ -53,11 +53,6 @@ typedef struct img_folder {
   float *rates;
 } img_fol_t;
 
-enum {
-  DCP_CINEMA2K = 3,
-  DCP_CINEMA4K = 4,
-};
-
 static bool check_jp2(const unsigned char *mem, const size_t size) /* J2K_CFMT */
 {
   if (size < sizeof(JP2_HEAD)) {
@@ -733,7 +728,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
         parameters->cp_rsiz = OPJ_STD_RSIZ;
       }
       else {
-        parameters->cp_rsiz = DCP_CINEMA2K;
+        parameters->cp_rsiz = OPJ_CINEMA2K;
       }
       break;
 
@@ -754,7 +749,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
         parameters->cp_rsiz = OPJ_STD_RSIZ;
       }
       else {
-        parameters->cp_rsiz = DCP_CINEMA2K;
+        parameters->cp_rsiz = OPJ_CINEMA4K;
       }
       parameters->numpocs = init_4K_poc(parameters->POC, parameters->numresolution);
       break;
