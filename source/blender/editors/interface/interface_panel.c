@@ -1119,16 +1119,15 @@ static void panel_draw_highlight_border(const Panel *panel,
     radius = 0.0f;
   }
 
-  /* Abuse the property search theme color for now. */
   float color[4];
-  UI_GetThemeColor4fv(TH_MATCH, color);
-  UI_draw_roundbox_aa(false,
-                      rect->xmin,
-                      UI_panel_is_closed(panel) ? header_rect->ymin : rect->ymin,
-                      rect->xmax,
-                      header_rect->ymax,
-                      radius,
-                      color);
+  UI_GetThemeColor4fv(TH_SELECT_ACTIVE, color);
+  UI_draw_roundbox_4fv(false,
+                       rect->xmin,
+                       UI_panel_is_closed(panel) ? header_rect->ymin : rect->ymin,
+                       rect->xmax,
+                       header_rect->ymax,
+                       radius,
+                       color);
 }
 
 static void panel_draw_aligned_widgets(const uiStyle *style,

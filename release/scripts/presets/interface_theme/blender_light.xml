@@ -855,6 +855,7 @@
     <properties>
       <ThemeProperties
         match="#5680c2"
+        active_modifier="#5680c2ff"
         >
         <space>
           <ThemeSpaceGeneric
