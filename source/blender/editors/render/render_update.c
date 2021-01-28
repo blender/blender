@@ -61,23 +61,79 @@
 #include "ED_view3d.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 
 #include "render_intern.h" /* own include */
 
+#include <stdio.h>
+
 /***************************** Render Engines ********************************/
 
-void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int updated)
+/* Update 3D viewport render or draw engine on changes to the scene or view settings . */
+void ED_render_view3d_update(Depsgraph *depsgraph,
+                             wmWindow *window,
+                             ScrArea *area,
+                             const bool updated)
 {
-  /* viewport rendering update on data changes, happens after depsgraph
-   * updates if there was any change. context is set to the 3d view */
+  Main *bmain = DEG_get_bmain(depsgraph);
+  Scene *scene = DEG_get_input_scene(depsgraph);
+  ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (region->regiontype != RGN_TYPE_WINDOW) {
+      continue;
+    }
+
+    View3D *v3d = area->spacedata.first;
+    RegionView3D *rv3d = region->regiondata;
+    RenderEngine *engine = rv3d->render_engine;
+
+    /* call update if the scene changed, or if the render engine
+     * tagged itself for update (e.g. because it was busy at the
+     * time of the last update) */
+    if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
+      /* Create temporary context to execute callback in. */
+      bContext *C = CTX_create();
+      CTX_data_main_set(C, bmain);
+      CTX_data_scene_set(C, scene);
+      CTX_wm_manager_set(C, bmain->wm.first);
+      CTX_wm_window_set(C, window);
+      CTX_wm_screen_set(C, WM_window_get_active_screen(window));
+      CTX_wm_area_set(C, area);
+      CTX_wm_region_set(C, region);
+
+      engine->flag &= ~RE_ENGINE_DO_UPDATE;
+      /* NOTE: Important to pass non-updated depsgraph, This is because this function is called
+       * from inside dependency graph evaluation. Additionally, if we pass fully evaluated one
+       * we will lose updates stored in the graph. */
+      engine->type->view_update(engine, C, CTX_data_depsgraph_pointer(C));
+
+      CTX_free(C);
+    }
+    else {
+      RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
+      if (updated) {
+        DRW_notify_view_update((&(DRWUpdateContext){
+            .bmain = bmain,
+            .depsgraph = depsgraph,
+            .scene = scene,
+            .view_layer = view_layer,
+            .region = region,
+            .v3d = v3d,
+            .engine_type = engine_type,
+        }));
+      }
+    }
+  }
+}
+
+/* Update all 3D viewport render and draw engines on changes to the scene.
+ * This is called by the dependency graph when it detects changes. */
+void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, const bool updated)
+{
   Main *bmain = update_ctx->bmain;
-  Scene *scene = update_ctx->scene;
-  ViewLayer *view_layer = update_ctx->view_layer;
-  bContext *C;
-  wmWindowManager *wm;
-  wmWindow *win;
   static bool recursive_check = false;
 
   /* don't do this render engine update if we're updating the scene from
@@ -98,65 +154,16 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 
   recursive_check = true;
 
-  C = CTX_create();
-  CTX_data_main_set(C, bmain);
-  CTX_data_scene_set(C, scene);
+  wmWindowManager *wm = bmain->wm.first;
+  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(window);
 
-  CTX_wm_manager_set(C, bmain->wm.first);
-  wm = bmain->wm.first;
-
-  for (win = wm->windows.first; win; win = win->next) {
-    bScreen *screen = WM_window_get_active_screen(win);
-    ScrArea *area;
-    ARegion *region;
-
-    CTX_wm_window_set(C, win);
-
-    for (area = screen->areabase.first; area; area = area->next) {
-      if (area->spacetype != SPACE_VIEW3D) {
-        continue;
-      }
-      View3D *v3d = area->spacedata.first;
-      for (region = area->regionbase.first; region; region = region->next) {
-        if (region->regiontype != RGN_TYPE_WINDOW) {
-          continue;
-        }
-        RegionView3D *rv3d = region->regiondata;
-        RenderEngine *engine = rv3d->render_engine;
-        /* call update if the scene changed, or if the render engine
-         * tagged itself for update (e.g. because it was busy at the
-         * time of the last update) */
-        if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
-
-          CTX_wm_screen_set(C, screen);
-          CTX_wm_area_set(C, area);
-          CTX_wm_region_set(C, region);
-
-          engine->flag &= ~RE_ENGINE_DO_UPDATE;
-          /* NOTE: Important to pass non-updated depsgraph, This is because this function is called
-           * from inside dependency graph evaluation. Additionally, if we pass fully evaluated one
-           * we will lose updates stored in the graph. */
-          engine->type->view_update(engine, C, CTX_data_depsgraph_pointer(C));
-        }
-        else {
-          RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
-          if (updated) {
-            DRW_notify_view_update((&(DRWUpdateContext){
-                .bmain = bmain,
-                .depsgraph = update_ctx->depsgraph,
-                .scene = scene,
-                .view_layer = view_layer,
-                .region = region,
-                .v3d = (View3D *)area->spacedata.first,
-                .engine_type = engine_type,
-            }));
-          }
-        }
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->spacetype == SPACE_VIEW3D) {
+        ED_render_view3d_update(update_ctx->depsgraph, window, area, updated);
       }
     }
   }
-
-  CTX_free(C);
 
   recursive_check = false;
 }
