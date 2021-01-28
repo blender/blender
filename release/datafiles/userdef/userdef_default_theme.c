@@ -287,6 +287,7 @@ const bTheme U_theme_default = {
     .outline_width = 1,
     .facedot_size = 4,
     .match = RGBA(0x5680c2ff),
+    .active = RGBA(0x5680c2ff),
   },
   .space_view3d = {
     .back = RGBA(0x393939ff),
