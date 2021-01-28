@@ -4193,9 +4193,17 @@ static uiButExtraOpIcon *ui_but_extra_operator_icon_mouse_over_get(uiBut *but,
     return NULL;
   }
 
+  /* Same as in 'widget_draw_extra_icons', icon padding from the right edge. */
+  xmax -= 0.2 * icon_size;
+
+  /* Handle the padding space from the right edge as the last button. */
+  if (x > xmax) {
+    return but->extra_op_icons.last;
+  }
+
   /* Inverse order, from right to left. */
   LISTBASE_FOREACH_BACKWARD (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
-    if ((x > (xmax - icon_size)) && x < xmax) {
+    if ((x > (xmax - icon_size)) && x <= xmax) {
       return op_icon;
     }
     xmax -= icon_size;
