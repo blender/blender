@@ -344,6 +344,20 @@ void GPU_bgl_start()
     /* Expected by many addons (see T80169, T81289).
      * This will reset the blend function. */
     GPU_blend(GPU_BLEND_NONE);
+
+    /* Equivalent of setting the depth func `glDepthFunc(GL_LEQUAL)`
+     * Needed since Python scripts may enable depth test.
+     * Without this block the depth test function is undefined. */
+    {
+      eGPUDepthTest depth_test_real = GPU_depth_test_get();
+      eGPUDepthTest depth_test_temp = GPU_DEPTH_LESS_EQUAL;
+      if (depth_test_real != depth_test_temp) {
+        GPU_depth_test(depth_test_temp);
+        state_manager.apply_state();
+        GPU_depth_test(depth_test_real);
+      }
+    }
+
     state_manager.apply_state();
     state_manager.use_bgl = true;
   }
