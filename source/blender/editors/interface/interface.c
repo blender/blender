@@ -3199,6 +3199,7 @@ void ui_but_range_set_soft(uiBut *but)
 
   if (but->rnaprop) {
     const PropertyType type = RNA_property_type(but->rnaprop);
+    const PropertySubType subtype = RNA_property_subtype(but->rnaprop);
     double softmin, softmax /*, step, precision*/;
     double value_min;
     double value_max;
@@ -3222,7 +3223,7 @@ void ui_but_range_set_soft(uiBut *but)
         value_max = (double)value_range[1];
       }
       else {
-        value_min = value_max = (double)RNA_property_int_get(&but->rnapoin, but->rnaprop);
+        value_min = value_max = ui_but_value_get(but);
       }
     }
     else if (type == PROP_FLOAT) {
@@ -3235,14 +3236,15 @@ void ui_but_range_set_soft(uiBut *but)
       /*step = fstep;*/           /*UNUSED*/
       /*precision = fprecision;*/ /*UNUSED*/
 
-      if (is_array) {
+      /* Use shared min/max for array values, except for color alpha. */
+      if (is_array && !(subtype == PROP_COLOR && but->rnaindex == 3)) {
         float value_range[2];
         RNA_property_float_get_array_range(&but->rnapoin, but->rnaprop, value_range);
         value_min = (double)value_range[0];
         value_max = (double)value_range[1];
       }
       else {
-        value_min = value_max = (double)RNA_property_float_get(&but->rnapoin, but->rnaprop);
+        value_min = value_max = ui_but_value_get(but);
       }
     }
     else {
