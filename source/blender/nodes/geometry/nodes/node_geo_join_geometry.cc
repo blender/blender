@@ -163,6 +163,9 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
   int offset = 0;
   for (const GeometryComponent *component : src_components) {
     const int domain_size = component->attribute_domain_size(domain);
+    if (domain_size == 0) {
+      continue;
+    }
     ReadAttributePtr read_attribute = component->attribute_get_for_read(
         attribute_name, domain, data_type, nullptr);
 
