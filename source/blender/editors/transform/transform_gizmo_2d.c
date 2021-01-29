@@ -618,7 +618,7 @@ static void gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgrou
       /* set up widget data */
       RNA_float_set(gz->ptr, "length", 1.0f);
       float axis[3] = {0.0f};
-      axis[(i + 1) % 2] = 1.0f;
+      axis[i] = 1.0f;
       WM_gizmo_set_matrix_rotation_from_z_axis(gz, axis);
 
       RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_BOX);
@@ -651,8 +651,8 @@ static void gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgrou
     /* Assign operator. */
     PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_resize, NULL);
     if (i < 2) {
-      bool constraint[3] = {0};
-      constraint[(i + 1) % 2] = 1;
+      bool constraint[3] = {false};
+      constraint[i] = true;
       if (RNA_struct_find_property(ptr, "constraint_axis")) {
         RNA_boolean_set_array(ptr, "constraint_axis", constraint);
       }
