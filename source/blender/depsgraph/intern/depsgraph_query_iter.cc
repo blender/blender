@@ -207,13 +207,15 @@ bool deg_iterator_components_step(BLI_Iterator *iter)
     if (component != nullptr) {
       const Volume *volume = component->get_for_read();
 
-      Object *temp_object = &data->temp_geometry_component_object;
-      *temp_object = *data->geometry_component_owner;
-      temp_object->type = OB_VOLUME;
-      temp_object->data = (void *)volume;
-      temp_object->runtime.select_id = data->geometry_component_owner->runtime.select_id;
-      iter->current = temp_object;
-      return true;
+      if (volume != nullptr) {
+        Object *temp_object = &data->temp_geometry_component_object;
+        *temp_object = *data->geometry_component_owner;
+        temp_object->type = OB_VOLUME;
+        temp_object->data = (void *)volume;
+        temp_object->runtime.select_id = data->geometry_component_owner->runtime.select_id;
+        iter->current = temp_object;
+        return true;
+      }
     }
   }
 
