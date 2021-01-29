@@ -25,23 +25,23 @@ class MyLightWidgetGroup(GizmoGroup):
     def setup(self, context):
         # Arrow gizmo has one 'offset' property we can assign to the light energy.
         ob = context.object
-        mpr = self.gizmos.new("GIZMO_GT_arrow_3d")
-        mpr.target_set_prop("offset", ob.data, "energy")
-        mpr.matrix_basis = ob.matrix_world.normalized()
-        mpr.draw_style = 'BOX'
+        gz = self.gizmos.new("GIZMO_GT_arrow_3d")
+        gz.target_set_prop("offset", ob.data, "energy")
+        gz.matrix_basis = ob.matrix_world.normalized()
+        gz.draw_style = 'BOX'
 
-        mpr.color = 1.0, 0.5, 0.0
-        mpr.alpha = 0.5
+        gz.color = 1.0, 0.5, 0.0
+        gz.alpha = 0.5
 
-        mpr.color_highlight = 1.0, 0.5, 1.0
-        mpr.alpha_highlight = 0.5
+        gz.color_highlight = 1.0, 0.5, 1.0
+        gz.alpha_highlight = 0.5
 
-        self.energy_widget = mpr
+        self.energy_gizmo = gz
 
     def refresh(self, context):
         ob = context.object
-        mpr = self.energy_widget
-        mpr.matrix_basis = ob.matrix_world.normalized()
+        gz = self.energy_gizmo
+        gz.matrix_basis = ob.matrix_world.normalized()
 
 
 bpy.utils.register_class(MyLightWidgetGroup)
