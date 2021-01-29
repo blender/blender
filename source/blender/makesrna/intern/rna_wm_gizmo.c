@@ -600,6 +600,18 @@ static wmGizmo *rna_GizmoGroup_gizmo_new(wmGizmoGroup *gzgroup,
     BKE_reportf(reports, RPT_ERROR, "GizmoType '%s' not known", idname);
     return NULL;
   }
+  if ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) == 0) {
+    /* Allow for neither callbacks to be set, while this doesn't seem like a valid use case,
+     * there may be rare situations where a developer wants a gizmo to be draw-only. */
+    if ((gzt->test_select == NULL) && (gzt->draw_select != NULL)) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "GizmoType '%s' is for a 3D gizmo-group. "
+                  "The 'draw_select' callback is set where only 'test_select' will be used.",
+                  idname);
+      return NULL;
+    }
+  }
   wmGizmo *gz = WM_gizmo_new_ptr(gzt, gzgroup, NULL);
   return gz;
 }
