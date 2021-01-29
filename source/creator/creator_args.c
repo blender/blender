@@ -587,7 +587,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-time");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-pretty");
   BLI_args_print_arg_doc(ba, "--debug-gpu");
-  BLI_args_print_arg_doc(ba, "--debug-gpumem");
   BLI_args_print_arg_doc(ba, "--debug-gpu-shaders");
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
   BLI_args_print_arg_doc(ba, "--debug-wm");
@@ -977,9 +976,6 @@ static const char arg_handle_debug_mode_generic_set_doc_depsgraph_no_threads[] =
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph_pretty[] =
     "\n\t"
     "Enable colors for dependency graph debug messages.";
-static const char arg_handle_debug_mode_generic_set_doc_gpumem[] =
-    "\n\t"
-    "Enable GPU memory stats in status bar.";
 static const char arg_handle_debug_mode_generic_set_doc_gpu_force_workarounds[] =
     "\n\t"
     "Enable workarounds for typical GPU issues and disable all GPU extensions.";
@@ -2160,16 +2156,6 @@ void main_args_setup(bContext *C, bArgs *ba)
                "--debug-depsgraph-uuid",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_build),
                (void *)G_DEBUG_DEPSGRAPH_UUID);
-  BLI_args_add(ba,
-               NULL,
-               "--debug-gpumem",
-               CB_EX(arg_handle_debug_mode_generic_set, gpumem),
-               (void *)G_DEBUG_GPU_MEM);
-  BLI_args_add(ba,
-               NULL,
-               "--debug-gpu-shaders",
-               CB_EX(arg_handle_debug_mode_generic_set, gpumem),
-               (void *)G_DEBUG_GPU_SHADERS);
   BLI_args_add(ba,
                NULL,
                "--debug-gpu-force-workarounds",
