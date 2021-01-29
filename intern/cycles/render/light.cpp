@@ -164,6 +164,10 @@ void Light::tag_update(Scene *scene)
 {
   if (is_modified()) {
     scene->light_manager->tag_update(scene, LightManager::LIGHT_MODIFIED);
+
+    if (samples_is_modified()) {
+      scene->integrator->tag_update(scene, Integrator::LIGHT_SAMPLES_MODIFIED);
+    }
   }
 }
 

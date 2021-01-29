@@ -115,7 +115,15 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     }
   });
 
-  if (sampling_pattern_is_modified()) {
+  const bool need_update_lut = ao_samples_is_modified() || diffuse_samples_is_modified() ||
+                               glossy_samples_is_modified() || max_bounce_is_modified() ||
+                               max_transmission_bounce_is_modified() ||
+                               mesh_light_samples_is_modified() || method_is_modified() ||
+                               sampling_pattern_is_modified() ||
+                               subsurface_samples_is_modified() ||
+                               transmission_samples_is_modified() || volume_samples_is_modified();
+
+  if (need_update_lut) {
     dscene->sample_pattern_lut.tag_realloc();
   }
 
@@ -248,7 +256,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   int dimensions = PRNG_BASE_NUM + max_samples * PRNG_BOUNCE_NUM;
   dimensions = min(dimensions, SOBOL_MAX_DIMENSIONS);
 
-  if (sampling_pattern_is_modified()) {
+  if (need_update_lut) {
     if (sampling_pattern == SAMPLING_PATTERN_SOBOL) {
       uint *directions = dscene->sample_pattern_lut.alloc(SOBOL_BITS * dimensions);
 
@@ -272,6 +280,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     }
   }
 
+  dscene->sample_pattern_lut.clear_modified();
   clear_modified();
 }
 
@@ -290,6 +299,11 @@ void Integrator::tag_update(Scene *scene, uint32_t flag)
     /* tag only the ao_bounces socket as modified so we avoid updating sample_pattern_lut
      * unnecessarily */
     tag_ao_bounces_modified();
+  }
+
+  if ((flag & LIGHT_SAMPLES_MODIFIED) && (method == BRANCHED_PATH)) {
+    /* the number of light samples may affect the size of the sample_pattern_lut */
+    tag_sampling_pattern_modified();
   }
 
   if (filter_glossy_is_modified()) {

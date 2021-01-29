@@ -92,6 +92,7 @@ class Integrator : public Node {
   enum : uint32_t {
     AO_PASS_MODIFIED = (1 << 0),
     BACKGROUND_AO_MODIFIED = (1 << 1),
+    LIGHT_SAMPLES_MODIFIED = (1 << 2),
 
     /* tag everything in the manager for an update */
     UPDATE_ALL = ~0u,
