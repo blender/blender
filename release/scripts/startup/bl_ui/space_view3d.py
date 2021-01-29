@@ -6247,17 +6247,20 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         overlay = view.overlay
         display_all = overlay.show_overlays
 
+        is_any_solid_shading = not (shading.show_xray or (shading.type == 'WIREFRAME'))
+
         col = layout.column()
         col.active = display_all
 
         split = col.split()
 
         sub = split.column()
-        sub.active = not ((shading.type == 'WIREFRAME') or shading.show_xray)
+        sub.active = is_any_solid_shading
         sub.prop(overlay, "show_edges", text="Edges")
         sub = split.column()
         sub.prop(overlay, "show_faces", text="Faces")
         sub = split.column()
+        sub.active = is_any_solid_shading
         sub.prop(overlay, "show_face_center", text="Center")
 
         row = col.row(align=True)

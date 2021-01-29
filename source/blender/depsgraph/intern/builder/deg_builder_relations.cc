@@ -434,6 +434,13 @@ void DepsgraphRelationBuilder::add_particle_forcefield_relations(const Operation
         add_relation(mod_key, key, name);
       }
 
+      /* Force field Texture. */
+      if ((relation->pd != nullptr) && (relation->pd->forcefield == PFIELD_TEXTURE) &&
+          (relation->pd->tex != nullptr)) {
+        ComponentKey tex_key(&relation->pd->tex->id, NodeType::GENERIC_DATABLOCK);
+        add_relation(tex_key, key, "Force field Texture");
+      }
+
       /* Smoke flow relations. */
       if (relation->pd->forcefield == PFIELD_FLUIDFLOW && relation->pd->f_source) {
         ComponentKey trf_key(&relation->pd->f_source->id, NodeType::TRANSFORM);
@@ -711,6 +718,11 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   /* Particle systems. */
   if (object->particlesystem.first != nullptr) {
     build_particle_systems(object);
+  }
+  /* Force field Texture. */
+  if ((object->pd != nullptr) && (object->pd->forcefield == PFIELD_TEXTURE) &&
+      (object->pd->tex != nullptr)) {
+    build_texture(object->pd->tex);
   }
   /* Proxy object to copy from. */
   build_object_proxy_from(object);
@@ -1724,6 +1736,11 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
       if (ELEM(shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS)) {
         ComponentKey effector_geometry_key(&effector_relation->ob->id, NodeType::GEOMETRY);
         add_relation(effector_geometry_key, rb_init_key, "RigidBody Field");
+      }
+      if ((effector_relation->pd->forcefield == PFIELD_TEXTURE) &&
+          (effector_relation->pd->tex != nullptr)) {
+        ComponentKey tex_key(&effector_relation->pd->tex->id, NodeType::GENERIC_DATABLOCK);
+        add_relation(tex_key, rb_init_key, "Force field Texture");
       }
     }
   }
