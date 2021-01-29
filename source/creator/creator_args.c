@@ -980,6 +980,9 @@ static const char arg_handle_debug_mode_generic_set_doc_depsgraph_pretty[] =
 static const char arg_handle_debug_mode_generic_set_doc_gpumem[] =
     "\n\t"
     "Enable GPU memory stats in status bar.";
+static const char arg_handle_debug_mode_generic_set_doc_gpu_force_workarounds[] =
+    "\n\t"
+    "Enable workarounds for typical GPU issues and disable all GPU extensions.";
 
 static int arg_handle_debug_mode_generic_set(int UNUSED(argc),
                                              const char **UNUSED(argv),
@@ -2170,7 +2173,7 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_args_add(ba,
                NULL,
                "--debug-gpu-force-workarounds",
-               CB_EX(arg_handle_debug_mode_generic_set, gpumem),
+               CB_EX(arg_handle_debug_mode_generic_set, gpu_force_workarounds),
                (void *)G_DEBUG_GPU_FORCE_WORKAROUNDS);
   BLI_args_add(ba, NULL, "--debug-exit-on-error", CB(arg_handle_debug_exit_on_error), NULL);
 
