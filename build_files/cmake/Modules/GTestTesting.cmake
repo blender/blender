@@ -99,7 +99,9 @@ macro(BLENDER_SRC_GTEST_EX)
 
       # Don't fail tests on leaks since these often happen in external libraries
       # that we can't fix.
-      set_tests_properties(${TARGET_NAME} PROPERTIES ENVIRONMENT LSAN_OPTIONS=exitcode=0)
+      set_tests_properties(${TARGET_NAME} PROPERTIES
+        ENVIRONMENT LSAN_OPTIONS=exitcode=0:$ENV{LSAN_OPTIONS}
+      )
     endif()
     if(WIN32)
       set_target_properties(${TARGET_NAME} PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
