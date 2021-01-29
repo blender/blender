@@ -110,12 +110,6 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
   float face_alpha = (do_occlude_wire || !pd->edit_mesh.do_faces) ? 0.0f : 1.0f;
   GPUTexture **depth_tex = (pd->edit_mesh.do_zbufclip) ? &dtxl->depth : &txl->dummy_depth_tx;
 
-  if (select_face && !pd->edit_mesh.do_faces && pd->edit_mesh.do_edges) {
-    /* Force display of face centers in this case because that's
-     * the only way to see if a face is selected. */
-    show_face_dots = true;
-  }
-
   /* Run Twice for in-front passes. */
   for (int i = 0; i < 2; i++) {
     /* Complementary Depth Pass */
