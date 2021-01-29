@@ -465,6 +465,68 @@ static bool selected_tracking_boundbox(SpaceClip *sc, float min[2], float max[2]
   return ok;
 }
 
+static bool tracking_has_selection(SpaceClip *space_clip)
+{
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+  const int framenr = ED_space_clip_get_clip_frame_number(space_clip);
+
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+    if (!TRACK_VIEW_SELECTED(space_clip, track)) {
+      continue;
+    }
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+    if (marker != NULL) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static bool mask_has_selection(const bContext *C, bool include_handles)
+{
+  Mask *mask = CTX_data_edit_mask(C);
+  if (mask == NULL) {
+    return false;
+  }
+
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
+    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+      continue;
+    }
+    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
+      for (int i = 0; i < spline->tot_point; i++) {
+        const MaskSplinePoint *point = &spline->points[i];
+        const BezTriple *bezt = &point->bezt;
+        if (!MASKPOINT_ISSEL_ANY(point)) {
+          continue;
+        }
+        if (bezt->f2 & SELECT) {
+          return true;
+        }
+
+        if (!include_handles) {
+          /* Ignore handles. */
+        }
+        else if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
+          return true;
+        }
+        else {
+          if ((bezt->f1 & SELECT) && (bezt->h1 != HD_VECT)) {
+            return true;
+          }
+          if ((bezt->f3 & SELECT) && (bezt->h2 != HD_VECT)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 static bool selected_boundbox(const bContext *C, float min[2], float max[2], bool include_handles)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
@@ -544,6 +606,23 @@ bool clip_view_calculate_view_selection(
   }
 
   return true;
+}
+
+/* Returns truth if lock-to-selection is enabled and possible.
+ * Locking to selection is not possible if there is no selection. */
+bool clip_view_has_locked_selection(const bContext *C)
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+
+  if ((space_clip->flag & SC_LOCK_SELECTION) == 0) {
+    return false;
+  }
+
+  if (space_clip->mode == SC_MODE_TRACKING) {
+    return tracking_has_selection(space_clip);
+  }
+
+  return mask_has_selection(C, false);
 }
 
 void clip_draw_sfra_efra(View2D *v2d, Scene *scene)

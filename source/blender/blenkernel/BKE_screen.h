@@ -139,6 +139,7 @@ typedef struct SpaceType {
 /* region types are also defined using spacetypes_init, via a callback */
 
 typedef struct wmRegionListenerParams {
+  struct wmWindow *window;
   struct ScrArea *area; /* Can be NULL when the region is not part of an area. */
   struct ARegion *region;
   struct wmNotifier *notifier;

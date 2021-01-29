@@ -34,7 +34,7 @@ def main(context, plane_co, plane_no):
 
 
 class SelectSideOfPlane(Operator):
-    """UV Operator description"""
+    """Select all vertices on one side of a plane defined by a location and a direction"""
     bl_idname = "mesh.select_side_of_plane"
     bl_label = "Select Side of Plane"
     bl_options = {'REGISTER', 'UNDO'}
@@ -126,20 +126,20 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
             # XXX, this may change!
             op.execute(context)
 
-        mpr = self.gizmos.new("GIZMO_GT_move_3d")
-        mpr.target_set_handler("offset", get=move_get_cb, set=move_set_cb)
+        gz = self.gizmos.new("GIZMO_GT_move_3d")
+        gz.target_set_handler("offset", get=move_get_cb, set=move_set_cb)
 
-        mpr.use_draw_value = True
+        gz.use_draw_value = True
 
-        mpr.color = 0.8, 0.8, 0.8
-        mpr.alpha = 0.5
+        gz.color = 0.8, 0.8, 0.8
+        gz.alpha = 0.5
 
-        mpr.color_highlight = 1.0, 1.0, 1.0
-        mpr.alpha_highlight = 1.0
+        gz.color_highlight = 1.0, 1.0, 1.0
+        gz.alpha_highlight = 1.0
 
-        mpr.scale_basis = 0.2
+        gz.scale_basis = 0.2
 
-        self.widget_move = mpr
+        self.gizmo_move = gz
 
         # ----
         # Dial
@@ -147,7 +147,7 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
         def direction_get_cb():
             op = SelectSideOfPlaneGizmoGroup.my_target_operator(context)
 
-            no_a = self.widget_dial.matrix_basis.col[1].xyz
+            no_a = self.gizmo_dial.matrix_basis.col[1].xyz
             no_b = Vector(op.plane_no)
 
             no_a = (no_a @ self.view_inv).xy.normalized()
@@ -157,23 +157,23 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
         def direction_set_cb(value):
             op = SelectSideOfPlaneGizmoGroup.my_target_operator(context)
             matrix_rotate = Matrix.Rotation(-value, 3, self.rotate_axis)
-            no = matrix_rotate @ self.widget_dial.matrix_basis.col[1].xyz
+            no = matrix_rotate @ self.gizmo_dial.matrix_basis.col[1].xyz
             op.plane_no = no
             op.execute(context)
 
-        mpr = self.gizmos.new("GIZMO_GT_dial_3d")
-        mpr.target_set_handler("offset", get=direction_get_cb, set=direction_set_cb)
-        mpr.draw_options = {'ANGLE_START_Y'}
+        gz = self.gizmos.new("GIZMO_GT_dial_3d")
+        gz.target_set_handler("offset", get=direction_get_cb, set=direction_set_cb)
+        gz.draw_options = {'ANGLE_START_Y'}
 
-        mpr.use_draw_value = True
+        gz.use_draw_value = True
 
-        mpr.color = 0.8, 0.8, 0.8
-        mpr.alpha = 0.5
+        gz.color = 0.8, 0.8, 0.8
+        gz.alpha = 0.5
 
-        mpr.color_highlight = 1.0, 1.0, 1.0
-        mpr.alpha_highlight = 1.0
+        gz.color_highlight = 1.0, 1.0, 1.0
+        gz.alpha_highlight = 1.0
 
-        self.widget_dial = mpr
+        self.gizmo_dial = gz
 
     def draw_prepare(self, context):
         from mathutils import Vector
@@ -194,7 +194,7 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
         no_y = no_z.orthogonal()
         no_x = no_z.cross(no_y)
 
-        matrix = self.widget_move.matrix_basis
+        matrix = self.gizmo_move.matrix_basis
         matrix.identity()
         matrix.col[0].xyz = no_x
         matrix.col[1].xyz = no_y
@@ -206,7 +206,7 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
         no_y = (no - (no.project(no_z))).normalized()
         no_x = self.rotate_axis.cross(no_y)
 
-        matrix = self.widget_dial.matrix_basis
+        matrix = self.gizmo_dial.matrix_basis
         matrix.identity()
         matrix.col[0].xyz = no_x
         matrix.col[1].xyz = no_y

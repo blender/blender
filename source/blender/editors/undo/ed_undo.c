@@ -320,8 +320,9 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
   /* Pointers match on redo. */
   const int target_step_index = BLI_findindex(&wm->undo_stack->steps, undo_step_from_name);
   const int active_step_index = BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active);
-  const enum eUndoStepDir undo_dir = (target_step_index < active_step_index) ? STEP_UNDO :
-                                                                               STEP_REDO;
+  /* NOTE: when current and target active steps are the same, we are in undo case. */
+  const enum eUndoStepDir undo_dir = (target_step_index <= active_step_index) ? STEP_UNDO :
+                                                                                STEP_REDO;
 
   CLOG_INFO(&LOG,
             1,

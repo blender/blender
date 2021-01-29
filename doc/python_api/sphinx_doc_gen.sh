@@ -55,7 +55,7 @@ if $DO_EXE_BLENDER ; then
   # Don't delete existing docs, now partial updates are used for quick builds.
   #
   # Disable ASAN error halt since it results in nonzero exit code on any minor issue.
-  ASAN_OPTIONS=halt_on_error=0 \
+  ASAN_OPTIONS=halt_on_error=0:${ASAN_OPTIONS} \
   $BLENDER_BIN \
     --background \
     -noaudio \

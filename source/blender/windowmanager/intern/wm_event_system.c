@@ -544,6 +544,7 @@ void wm_event_do_notifiers(bContext *C)
 
         LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
           wmRegionListenerParams region_params = {
+              .window = win,
               .area = NULL,
               .region = region,
               .scene = scene,
@@ -562,6 +563,7 @@ void wm_event_do_notifiers(bContext *C)
           ED_area_do_listen(&area_params);
           LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
             wmRegionListenerParams region_params = {
+                .window = win,
                 .area = area,
                 .region = region,
                 .scene = scene,

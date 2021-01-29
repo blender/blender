@@ -1119,10 +1119,9 @@ static void panel_draw_highlight_border(const Panel *panel,
     radius = 0.0f;
   }
 
-  /* Abuse the property search theme color for now. */
   float color[4];
-  UI_GetThemeColor4fv(TH_MATCH, color);
-  UI_draw_roundbox_aa(
+  UI_GetThemeColor4fv(TH_SELECT_ACTIVE, color);
+  UI_draw_roundbox_4fv(
       &(const rctf){
           .xmin = rect->xmin,
           .xmax = rect->xmax,

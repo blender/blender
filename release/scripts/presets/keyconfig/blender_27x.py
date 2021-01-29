@@ -1,3 +1,28 @@
+#
+# Notes on this key-map:
+#
+# This uses Blender's key-map, running with `legacy=True`.
+#
+# The intention of this key-map is to match Blender 2.7x which had many more key-map items available.
+#
+# There are some differences with the original Blender 2.7x key-map.
+# There is no intention to change these are they are not considered significant
+# enough to make a 1:1 match with the previous Blender version.
+#
+# These include:
+#
+# 3D View
+# =======
+#
+# - Border Render (`Shift-B` -> `Ctrl-B`)
+#   Both `Shift-B` and `Ctrl-B` were used.
+#
+# Time Line/Animation Views
+# =========================
+#
+# - Start Frame/End Frame (`S/E` -> `Ctrl-Home/Ctrl-End`)
+#
+
 import os
 import bpy
 from bpy.props import (

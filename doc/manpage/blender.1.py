@@ -52,10 +52,11 @@ outfilename = sys.argv[2]
 
 cmd = [blender_bin, "--help"]
 print("  executing:", " ".join(cmd))
+ASAN_OPTIONS = "exitcode=0:" + os.environ.get("ASAN_OPTIONS", "")
 blender_help = subprocess.run(
-    cmd, env={"ASAN_OPTIONS": "exitcode=0"}, check=True, stdout=subprocess.PIPE).stdout.decode(encoding="utf-8")
+    cmd, env={"ASAN_OPTIONS": ASAN_OPTIONS}, check=True, stdout=subprocess.PIPE).stdout.decode(encoding="utf-8")
 blender_version = subprocess.run(
-    [blender_bin, "--version"], env={"ASAN_OPTIONS": "exitcode=0"}, check=True, stdout=subprocess.PIPE).stdout.decode(encoding="utf-8").strip()
+    [blender_bin, "--version"], env={"ASAN_OPTIONS": ASAN_OPTIONS}, check=True, stdout=subprocess.PIPE).stdout.decode(encoding="utf-8").strip()
 blender_version, blender_date = (blender_version.split("build") + [None, None])[0:2]
 blender_version = blender_version.rstrip().partition(" ")[2]  # remove 'Blender' prefix.
 if blender_date is None:

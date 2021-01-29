@@ -223,7 +223,8 @@ void BKE_scene_free_depsgraph_hash(struct Scene *scene);
 void BKE_scene_free_view_layer_depsgraph(struct Scene *scene, struct ViewLayer *view_layer);
 
 /* Do not allocate new depsgraph. */
-struct Depsgraph *BKE_scene_get_depsgraph(struct Scene *scene, struct ViewLayer *view_layer);
+struct Depsgraph *BKE_scene_get_depsgraph(const struct Scene *scene,
+                                          const struct ViewLayer *view_layer);
 /* Allocate new depsgraph if necessary. */
 struct Depsgraph *BKE_scene_ensure_depsgraph(struct Main *bmain,
                                              struct Scene *scene,

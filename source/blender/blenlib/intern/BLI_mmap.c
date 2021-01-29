@@ -88,7 +88,11 @@ static void sigbus_handler(int sig, siginfo_t *siginfo, void *ptr)
       file->io_error = true;
 
       /* Replace the mapped memory with zeroes. */
-      mmap(file->memory, file->length, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+      const void *mapped_memory = mmap(
+          file->memory, file->length, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+      if (mapped_memory == MAP_FAILED) {
+        fprintf(stderr, "SIGBUS handler: Error replacing mapped file with zeros\n");
+      }
 
       return;
     }

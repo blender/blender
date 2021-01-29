@@ -147,21 +147,18 @@ enum {
   G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_EVAL | G_DEBUG_DEPSGRAPH_TAG |
                        G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UUID),
   G_DEBUG_SIMDATA = (1 << 15),               /* sim debug data display */
-  G_DEBUG_GPU_MEM = (1 << 16),               /* gpu memory in status bar */
-  G_DEBUG_GPU = (1 << 17),                   /* gpu debug */
-  G_DEBUG_IO = (1 << 18),                    /* IO Debugging (for Collada, ...)*/
-  G_DEBUG_GPU_SHADERS = (1 << 19),           /* GLSL shaders */
-  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 20), /* force gpu workarounds bypassing detections. */
-  G_DEBUG_XR = (1 << 21),                    /* XR/OpenXR messages */
-  G_DEBUG_XR_TIME = (1 << 22),               /* XR/OpenXR timing messages */
+  G_DEBUG_GPU = (1 << 16),                   /* gpu debug */
+  G_DEBUG_IO = (1 << 17),                    /* IO Debugging (for Collada, ...)*/
+  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18), /* force gpu workarounds bypassing detections. */
+  G_DEBUG_XR = (1 << 19),                    /* XR/OpenXR messages */
+  G_DEBUG_XR_TIME = (1 << 20),               /* XR/OpenXR timing messages */
 
-  G_DEBUG_GHOST = (1 << 23), /* Debug GHOST module. */
+  G_DEBUG_GHOST = (1 << 21), /* Debug GHOST module. */
 };
 
 #define G_DEBUG_ALL \
   (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS | \
-   G_DEBUG_FREESTYLE | G_DEBUG_DEPSGRAPH | G_DEBUG_GPU_MEM | G_DEBUG_IO | G_DEBUG_GPU_SHADERS | \
-   G_DEBUG_GHOST)
+   G_DEBUG_FREESTYLE | G_DEBUG_DEPSGRAPH | G_DEBUG_IO | G_DEBUG_GHOST)
 
 /** #Global.fileflags */
 enum {

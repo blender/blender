@@ -387,7 +387,9 @@ void DepsgraphNodeBuilder::build_id(ID *id)
   if (id == nullptr) {
     return;
   }
-  switch (GS(id->name)) {
+
+  const ID_Type id_type = GS(id->name);
+  switch (id_type) {
     case ID_AC:
       build_action((bAction *)id);
       break;
@@ -477,11 +479,37 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_SIM:
       build_simulation((Simulation *)id);
       break;
-    default:
-      fprintf(stderr, "Unhandled ID %s\n", id->name);
-      BLI_assert(!"Should never happen");
+    case ID_PA:
+      build_particle_settings((ParticleSettings *)id);
+      break;
+    case ID_GD:
+      build_gpencil((bGPdata *)id);
+      break;
+
+    case ID_LI:
+    case ID_IP:
+    case ID_SCR:
+    case ID_VF:
+    case ID_BR:
+    case ID_WM:
+    case ID_PAL:
+    case ID_PC:
+    case ID_WS:
+      BLI_assert(!deg_copy_on_write_is_needed(id_type));
+      build_generic_id(id);
       break;
   }
+}
+
+void DepsgraphNodeBuilder::build_generic_id(ID *id)
+{
+  if (built_map_.checkIsBuiltAndTag(id)) {
+    return;
+  }
+
+  build_idproperties(id->properties);
+  build_animdata(id);
+  build_parameters(id);
 }
 
 static void build_idproperties_callback(IDProperty *id_property, void *user_data)
@@ -648,6 +676,11 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   /* Particle systems. */
   if (object->particlesystem.first != nullptr) {
     build_particle_systems(object, is_visible);
+  }
+  /* Force field Texture. */
+  if ((object->pd != nullptr) && (object->pd->forcefield == PFIELD_TEXTURE) &&
+      (object->pd->tex != nullptr)) {
+    build_texture(object->pd->tex);
   }
   /* Proxy object to copy from. */
   build_object_proxy_from(object, is_visible);

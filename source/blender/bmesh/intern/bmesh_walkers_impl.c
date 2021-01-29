@@ -852,6 +852,10 @@ static void bmw_EdgeLoopWalker_begin(BMWalker *walker, void *data)
       BM_vert_edge_count_nonwire(e->v1),
       BM_vert_edge_count_nonwire(e->v2),
   };
+  const int vert_face_count[2] = {
+      BM_vert_face_count(e->v1),
+      BM_vert_face_count(e->v2),
+  };
 
   v = e->v1;
 
@@ -863,8 +867,75 @@ static void bmw_EdgeLoopWalker_begin(BMWalker *walker, void *data)
   lwalk->is_boundary = BM_edge_is_boundary(e);
   lwalk->is_single = (lwalk->is_boundary && bm_edge_is_single(e));
 
-  /* could also check that vertex*/
-  if ((lwalk->is_boundary == false) && (vert_edge_count[0] == 3 || vert_edge_count[1] == 3)) {
+  /**
+   * Detect an NGon (face-hub)
+   * =========================
+   *
+   * The face-hub - #BMwEdgeLoopWalker.f_hub - is set when there is an ngon
+   * on one side of the edge and a series of faces on the other,
+   * loop around the ngon for as long as it's connected to faces which would form an edge loop
+   * in the absence of the ngon (used as the hub).
+   *
+   * This isn't simply ignoring the ngon though, as the edges looped over must all be
+   * connected to the hub.
+   *
+   * NGon in Grid Example
+   * --------------------
+   * \code{.txt}
+   * +-----+-----+-----+-----+-----+
+   * |     |     |     |     |     |
+   * +-----va=ea=+==eb=+==ec=vb----+
+   * |     |                 |     |
+   * +-----+                 +-----+
+   * |     |      f_hub      |     |
+   * +-----+                 +-----+
+   * |     |                 |     |
+   * +-----+-----+-----+-----+-----+
+   * |     |     |     |     |     |
+   * +-----+-----+-----+-----+-----+
+   * \endcode
+   *
+   * In the example above, starting from edges marked `ea/eb/ec`,
+   * the will detect `f_hub` and walk along the edge loop between `va -> vb`.
+   * The same is true for any of the un-marked sides of the ngon,
+   * walking stops for vertices with >= 3 connected faces (in this case they look like corners).
+   *
+   * Mixed Triangle-Fan & Quad Example
+   * ---------------------------------
+   * \code{.txt}
+   * +-----------------------------------------------+
+   * |              f_hub                            |
+   * va-ea-vb=eb=+==ec=+=ed==+=ee=vc=ef=vd----------ve
+   * |     |\    |     |     |    /     / \          |
+   * |     | \    \    |    /    /     /   \         |
+   * |     |  \   |    |    |   /     /     \        |
+   * |     |   \   \   |   /   /     /       \       |
+   * |     |    \  |   |   |  /     /         \      |
+   * |     |     \  \  |  /  /     /           \     |
+   * |     |      \ |  |  | /     /             \    |
+   * |     |       \ \ | / /     /               \   |
+   * |     |        \| | |/     /                 \  |
+   * |     |         \\|//     /                   \ |
+   * |     |          \|/     /                     \|
+   * +-----+-----------+-----+-----------------------+
+   * \endcode
+   *
+   * In the example above, starting from edges marked `eb/eb/ed/ed/ef`,
+   * the will detect `f_hub` and walk along the edge loop between `vb -> vd`.
+   *
+   * Notice `vb` and `vd` delimit the loop, since the faces connected to `vb`
+   * excluding `f_hub` don't share an edge, which isn't walked over in the case
+   * of boundaries either.
+   *
+   * Notice `vc` doesn't delimit stepping from `ee` onto `ef` as the stepping method used
+   * doesn't differentiate between the number of sides of faces opposite `f_hub`,
+   * only that each of the connected faces share an edge.
+   */
+  if ((lwalk->is_boundary == false) &&
+      /* Without checking the face count, the 3 edges could be this edge
+       * plus two boundary edges (which would not be stepped over), see T84906. */
+      ((vert_edge_count[0] == 3 && vert_face_count[0] == 3) ||
+       (vert_edge_count[1] == 3 && vert_face_count[1] == 3))) {
     BMIter iter;
     BMFace *f_iter;
     BMFace *f_best = NULL;

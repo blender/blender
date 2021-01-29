@@ -175,7 +175,8 @@ typedef struct DEGEditorUpdateContext {
 } DEGEditorUpdateContext;
 
 typedef void (*DEG_EditorUpdateIDCb)(const DEGEditorUpdateContext *update_ctx, struct ID *id);
-typedef void (*DEG_EditorUpdateSceneCb)(const DEGEditorUpdateContext *update_ctx, int updated);
+typedef void (*DEG_EditorUpdateSceneCb)(const DEGEditorUpdateContext *update_ctx,
+                                        const bool updated);
 
 /* Set callbacks which are being called when depsgraph changes. */
 void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func, DEG_EditorUpdateSceneCb scene_func);
