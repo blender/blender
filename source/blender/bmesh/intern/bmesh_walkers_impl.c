@@ -852,6 +852,10 @@ static void bmw_EdgeLoopWalker_begin(BMWalker *walker, void *data)
       BM_vert_edge_count_nonwire(e->v1),
       BM_vert_edge_count_nonwire(e->v2),
   };
+  const int vert_face_count[2] = {
+      BM_vert_face_count(e->v1),
+      BM_vert_face_count(e->v2),
+  };
 
   v = e->v1;
 
@@ -927,7 +931,11 @@ static void bmw_EdgeLoopWalker_begin(BMWalker *walker, void *data)
    * doesn't differentiate between the number of sides of faces opposite `f_hub`,
    * only that each of the connected faces share an edge.
    */
-  if ((lwalk->is_boundary == false) && (vert_edge_count[0] == 3 || vert_edge_count[1] == 3)) {
+  if ((lwalk->is_boundary == false) &&
+      /* Without checking the face count, the 3 edges could be this edge
+       * plus two boundary edges (which would not be stepped over), see T84906. */
+      ((vert_edge_count[0] == 3 && vert_face_count[0] == 3) ||
+       (vert_edge_count[1] == 3 && vert_face_count[1] == 3))) {
     BMIter iter;
     BMFace *f_iter;
     BMFace *f_best = NULL;
