@@ -100,7 +100,9 @@ class DenoiseParams {
     neighbor_frames = 2;
     clamp_input = true;
 
-    input_passes = DENOISER_INPUT_RGB_ALBEDO_NORMAL;
+    /* Default to color + albedo only, since normal input does not always have the desired effect
+     * when denoising with OptiX. */
+    input_passes = DENOISER_INPUT_RGB_ALBEDO;
 
     start_sample = 0;
   }
