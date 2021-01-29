@@ -127,25 +127,25 @@ class MyCustomShapeWidgetGroup(GizmoGroup):
     def setup(self, context):
         # Assign the 'offset' target property to the light energy.
         ob = context.object
-        mpr = self.gizmos.new(MyCustomShapeWidget.bl_idname)
-        mpr.target_set_prop("offset", ob.data, "energy")
+        gz = self.gizmos.new(MyCustomShapeWidget.bl_idname)
+        gz.target_set_prop("offset", ob.data, "energy")
 
-        mpr.color = 1.0, 0.5, 1.0
-        mpr.alpha = 0.5
+        gz.color = 1.0, 0.5, 1.0
+        gz.alpha = 0.5
 
-        mpr.color_highlight = 1.0, 1.0, 1.0
-        mpr.alpha_highlight = 0.5
+        gz.color_highlight = 1.0, 1.0, 1.0
+        gz.alpha_highlight = 0.5
 
         # units are large, so shrink to something more reasonable.
-        mpr.scale_basis = 0.1
-        mpr.use_draw_modal = True
+        gz.scale_basis = 0.1
+        gz.use_draw_modal = True
 
-        self.energy_widget = mpr
+        self.energy_gizmo = gz
 
     def refresh(self, context):
         ob = context.object
-        mpr = self.energy_widget
-        mpr.matrix_basis = ob.matrix_world.normalized()
+        gz = self.energy_gizmo
+        gz.matrix_basis = ob.matrix_world.normalized()
 
 
 classes = (
