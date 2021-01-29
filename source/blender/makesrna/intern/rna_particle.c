@@ -4016,7 +4016,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  prop = RNA_def_pointer(func, "particle", "Particle", "", "Particle");
+  parm = RNA_def_pointer(func, "particle", "Particle", "", "Particle");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   RNA_def_int(func, "particle_no", 0, INT_MIN, INT_MAX, "Particle no", "", INT_MIN, INT_MAX);
   RNA_def_int(func, "uv_no", 0, INT_MIN, INT_MAX, "UV no", "", INT_MIN, INT_MAX);
