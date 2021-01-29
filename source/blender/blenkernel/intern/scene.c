@@ -3316,7 +3316,7 @@ int BKE_scene_multiview_num_videos_get(const RenderData *rd)
 
 /* This is a key which identifies depsgraph. */
 typedef struct DepsgraphKey {
-  ViewLayer *view_layer;
+  const ViewLayer *view_layer;
   /* TODO(sergey): Need to include window somehow (same layer might be in a
    * different states in different windows).
    */
@@ -3451,10 +3451,13 @@ static Depsgraph **scene_ensure_depsgraph_p(Main *bmain, Scene *scene, ViewLayer
   return depsgraph_ptr;
 }
 
-Depsgraph *BKE_scene_get_depsgraph(Scene *scene, ViewLayer *view_layer)
+Depsgraph *BKE_scene_get_depsgraph(const Scene *scene, const ViewLayer *view_layer)
 {
-  Depsgraph **depsgraph_ptr = scene_get_depsgraph_p(scene, view_layer, false);
-  return (depsgraph_ptr != NULL) ? *depsgraph_ptr : NULL;
+  BLI_assert(BKE_scene_has_view_layer(scene, view_layer));
+
+  DepsgraphKey key;
+  key.view_layer = view_layer;
+  return BLI_ghash_lookup(scene->depsgraph_hash, &key);
 }
 
 Depsgraph *BKE_scene_ensure_depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer)

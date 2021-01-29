@@ -29,15 +29,17 @@
 extern "C" {
 #endif
 
+struct bContext;
+struct bScreen;
 struct DEGEditorUpdateContext;
+struct Depsgraph;
 struct ID;
-struct MTex;
 struct Main;
+struct MTex;
 struct Render;
 struct Scene;
 struct ScrArea;
-struct bContext;
-struct bScreen;
+struct wmWindow;
 struct wmWindowManager;
 
 /* render_ops.c */
@@ -53,7 +55,11 @@ void ED_render_view_layer_changed(struct Main *bmain, struct bScreen *screen);
 /* Callbacks handling data update events coming from depsgraph. */
 
 void ED_render_id_flush_update(const struct DEGEditorUpdateContext *update_ctx, struct ID *id);
-void ED_render_scene_update(const struct DEGEditorUpdateContext *update_ctx, int updated);
+void ED_render_scene_update(const struct DEGEditorUpdateContext *update_ctx, const bool updated);
+void ED_render_view3d_update(struct Depsgraph *depsgraph,
+                             struct wmWindow *window,
+                             struct ScrArea *area,
+                             const bool updated);
 
 struct Scene *ED_render_job_get_scene(const struct bContext *C);
 struct Scene *ED_render_job_get_current_scene(const struct bContext *C);

@@ -155,6 +155,7 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
   BLI_assert(id->session_uuid != MAIN_ID_SESSION_UUID_UNSET);
 
+  const ID_Type id_type = GS(id->name);
   IDNode *id_node = nullptr;
   ID *id_cow = nullptr;
   IDComponentsMask previously_visible_components_mask = 0;
@@ -173,10 +174,8 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
   id_node->previously_visible_components_mask = previously_visible_components_mask;
   id_node->previous_eval_flags = previous_eval_flags;
   id_node->previous_customdata_masks = previous_customdata_masks;
-  /* Currently all ID nodes are supposed to have copy-on-write logic.
-   *
-   * NOTE: Zero number of components indicates that ID node was just created. */
-  if (id_node->components.is_empty()) {
+  /* NOTE: Zero number of components indicates that ID node was just created. */
+  if (id_node->components.is_empty() && deg_copy_on_write_is_needed(id_type)) {
     ComponentNode *comp_cow = id_node->add_component(NodeType::COPY_ON_WRITE);
     OperationNode *op_cow = comp_cow->add_operation(
         function_bind(deg_evaluate_copy_on_write, _1, id_node),
@@ -388,7 +387,9 @@ void DepsgraphNodeBuilder::build_id(ID *id)
   if (id == nullptr) {
     return;
   }
-  switch (GS(id->name)) {
+
+  const ID_Type id_type = GS(id->name);
+  switch (id_type) {
     case ID_AC:
       build_action((bAction *)id);
       break;
@@ -478,11 +479,37 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_SIM:
       build_simulation((Simulation *)id);
       break;
-    default:
-      fprintf(stderr, "Unhandled ID %s\n", id->name);
-      BLI_assert(!"Should never happen");
+    case ID_PA:
+      build_particle_settings((ParticleSettings *)id);
+      break;
+    case ID_GD:
+      build_gpencil((bGPdata *)id);
+      break;
+
+    case ID_LI:
+    case ID_IP:
+    case ID_SCR:
+    case ID_VF:
+    case ID_BR:
+    case ID_WM:
+    case ID_PAL:
+    case ID_PC:
+    case ID_WS:
+      BLI_assert(!deg_copy_on_write_is_needed(id_type));
+      build_generic_id(id);
       break;
   }
+}
+
+void DepsgraphNodeBuilder::build_generic_id(ID *id)
+{
+  if (built_map_.checkIsBuiltAndTag(id)) {
+    return;
+  }
+
+  build_idproperties(id->properties);
+  build_animdata(id);
+  build_parameters(id);
 }
 
 static void build_idproperties_callback(IDProperty *id_property, void *user_data)
