@@ -538,6 +538,36 @@ static void applyObjectConstraintSize(TransInfo *t,
   }
 }
 
+static void constraints_rotation_imp(TransInfo *t,
+                                     float axismtx[3][3],
+                                     float r_vec[3],
+                                     float *r_angle)
+{
+  BLI_assert(t->con.mode & CON_APPLY);
+  int mode = t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
+
+  switch (mode) {
+    case CON_AXIS0:
+    case (CON_AXIS1 | CON_AXIS2):
+      negate_v3_v3(r_vec, axismtx[0]);
+      break;
+    case CON_AXIS1:
+    case (CON_AXIS0 | CON_AXIS2):
+      negate_v3_v3(r_vec, axismtx[1]);
+      break;
+    case CON_AXIS2:
+    case (CON_AXIS0 | CON_AXIS1):
+      negate_v3_v3(r_vec, axismtx[2]);
+      break;
+  }
+  /* don't flip axis if asked to or if num input */
+  if (r_angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
+    if (dot_v3v3(r_vec, t->viewinv[2]) > 0.0f) {
+      *r_angle = -(*r_angle);
+    }
+  }
+}
+
 /*
  * Generic callback for constant spatial constraints applied to rotations
  *
@@ -551,33 +581,11 @@ static void applyObjectConstraintSize(TransInfo *t,
  * This insures that the rotation is always logically following the mouse.
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
-
 static void applyAxisConstraintRot(
     TransInfo *t, TransDataContainer *UNUSED(tc), TransData *td, float vec[3], float *angle)
 {
   if (!td && t->con.mode & CON_APPLY) {
-    int mode = t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
-
-    switch (mode) {
-      case CON_AXIS0:
-      case (CON_AXIS1 | CON_AXIS2):
-        copy_v3_v3(vec, t->spacemtx[0]);
-        break;
-      case CON_AXIS1:
-      case (CON_AXIS0 | CON_AXIS2):
-        copy_v3_v3(vec, t->spacemtx[1]);
-        break;
-      case CON_AXIS2:
-      case (CON_AXIS0 | CON_AXIS1):
-        copy_v3_v3(vec, t->spacemtx[2]);
-        break;
-    }
-    /* don't flip axis if asked to or if num input */
-    if (angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
-      if (dot_v3v3(vec, t->viewinv[2]) > 0.0f) {
-        *angle = -(*angle);
-      }
-    }
+    constraints_rotation_imp(t, t->spacemtx, vec, angle);
   }
 }
 
@@ -594,12 +602,10 @@ static void applyAxisConstraintRot(
  * This insures that the rotation is always logically following the mouse.
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
-
 static void applyObjectConstraintRot(
     TransInfo *t, TransDataContainer *tc, TransData *td, float vec[3], float *angle)
 {
   if (t->con.mode & CON_APPLY) {
-    int mode = t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
     float tmp_axismtx[3][3];
     float(*axismtx)[3];
 
@@ -618,25 +624,7 @@ static void applyObjectConstraintRot(
       axismtx = td->axismtx;
     }
 
-    switch (mode) {
-      case CON_AXIS0:
-      case (CON_AXIS1 | CON_AXIS2):
-        copy_v3_v3(vec, axismtx[0]);
-        break;
-      case CON_AXIS1:
-      case (CON_AXIS0 | CON_AXIS2):
-        copy_v3_v3(vec, axismtx[1]);
-        break;
-      case CON_AXIS2:
-      case (CON_AXIS0 | CON_AXIS1):
-        copy_v3_v3(vec, axismtx[2]);
-        break;
-    }
-    if (angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
-      if (dot_v3v3(vec, t->viewinv[2]) > 0.0f) {
-        *angle = -(*angle);
-      }
-    }
+    constraints_rotation_imp(t, axismtx, vec, angle);
   }
 }
 
