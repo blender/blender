@@ -1322,21 +1322,21 @@ void drawDial3d(const TransInfo *t)
     if (tc->mode & CON_APPLY) {
       if (tc->mode & CON_AXIS0) {
         axis_idx = MAN_AXIS_ROT_X;
-        negate_v3_v3(mat_basis[2], t->spacemtx[0]);
+        copy_v3_v3(mat_basis[2], t->spacemtx[0]);
       }
       else if (tc->mode & CON_AXIS1) {
         axis_idx = MAN_AXIS_ROT_Y;
-        negate_v3_v3(mat_basis[2], t->spacemtx[1]);
+        copy_v3_v3(mat_basis[2], t->spacemtx[1]);
       }
       else {
         BLI_assert((tc->mode & CON_AXIS2) != 0);
         axis_idx = MAN_AXIS_ROT_Z;
-        negate_v3_v3(mat_basis[2], t->spacemtx[2]);
+        copy_v3_v3(mat_basis[2], t->spacemtx[2]);
       }
     }
     else {
       axis_idx = MAN_AXIS_ROT_C;
-      negate_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
+      copy_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
       scale *= 1.2f;
       line_with -= 1.0f;
     }

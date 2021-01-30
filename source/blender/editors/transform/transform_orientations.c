@@ -561,7 +561,6 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
       if (rv3d != NULL) {
         copy_m3_m4(r_mat, rv3d->viewinv);
         normalize_m3(r_mat);
-        negate_v3(r_mat[2]);
       }
       else {
         unit_m3(r_mat);
