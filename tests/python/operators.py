@@ -137,7 +137,6 @@ def main():
         MeshTest("CubeEdgeSplit", "testCubeEdgeSplit", "expectedCubeEdgeSplit",
                  [OperatorSpecEditMode("edge_split", {}, "EDGE", {2, 5, 8, 11, 14, 17, 20, 23})]),
 
-        ### 25
         # edge ring select - Cannot be tested. Need user input.
         # MeshTest("CubeEdgeRingSelect", "testCubeEdgeRingSelect", "expectedCubeEdgeRingSelect",
         #         [OperatorSpecEditMode("edgering_select", {}, "EDGE", {5, 20, 25, 26})]),
@@ -145,6 +144,16 @@ def main():
         #         [OperatorSpecEditMode("edgering_select", {}, "VERT", {65, 66, 67})]),
         # MeshTest("EmptyMeshEdgeRingSelect", "testEmptyMeshdgeRingSelect", "expectedEmptyMeshEdgeRingSelect",
         #         [OperatorSpecEditMode("edgering_select", {}, "VERT", {})]),
+
+        # edges select sharp
+        MeshTest("CubeEdgesSelectSharp", "testCubeEdgeSelectSharp", "expectedCubeEdgeSelectSharp",
+                 [OperatorSpecEditMode("edges_select_sharp", {}, "EDGE", {20})]),
+        MeshTest("SphereEdgesSelectSharp", "testSphereEdgesSelectSharp", "expectedSphereEdgeSelectSharp",
+                 [OperatorSpecEditMode("edges_select_sharp", {"sharpness": 0.25}, "EDGE", {288})]),
+        MeshTest("HoledSphereEdgesSelectSharp", "testHoledSphereEdgesSelectSharp", "expectedHoledSphereEdgeSelectSharp",
+                 [OperatorSpecEditMode("edges_select_sharp", {"sharpness": 0.18}, "VERT", {})]),
+        MeshTest("EmptyMeshEdgesSelectSharp", "testEmptyMeshEdgeSelectSharp", "expectedEmptyMeshEdgeSelectSharp",
+                 [OperatorSpecEditMode("edges_select_sharp", {}, "VERT", {})]),
 
         # face make planar
         MeshTest("MonkeyFaceMakePlanar", "testMonkeyFaceMakePlanar",
@@ -208,6 +217,85 @@ def main():
                  [OperatorSpecEditMode("inset", {"thickness": 0.4,
                                                  "use_relative_offset": True}, "FACE",
                                        {35, 36, 37, 45, 46, 47, 55, 56, 57})]),
+
+        # loop multi select
+        MeshTest("MokeyLoopMultiSelect", "testMonkeyLoopMultiSelect", "expectedMonkeyLoopMultiSelect",
+                 [OperatorSpecEditMode("loop_multi_select", {}, "VERT", {355, 359, 73, 301, 302})]),
+        MeshTest("HoledGridLoopMultiSelect", "testGridLoopMultiSelect", "expectedGridLoopMultiSelect",
+                 [OperatorSpecEditMode("loop_multi_select", {}, "VERT", {257, 169, 202, 207, 274, 278, 63})]),
+        MeshTest("EmptyMeshLoopMultiSelect", "testEmptyMeshLoopMultiSelect", "expectedEmptyMeshLoopMultiSelect",
+                 [OperatorSpecEditMode("loop_multi_select", {}, "VERT", {})]),
+
+        # select all
+        MeshTest("CircleSelectAll", "testCircleSelectAll", "expectedCircleSelectAll",
+                 [OperatorSpecEditMode("select_all", {}, "VERT", {1})]),
+        MeshTest("IsolatedVertsSelectAll", "testIsolatedVertsSelectAll", "expectedIsolatedVertsSelectAll",
+                 [OperatorSpecEditMode("select_all", {}, "VERT", {})]),
+        MeshTest("EmptyMeshSelectAll", "testEmptyMeshSelectAll", "expectedEmptyMeshSelectAll",
+                 [OperatorSpecEditMode("select_all", {}, "VERT", {})]),
+
+        # select axis - Cannot be tested. Needs active vert selection
+        # MeshTest("MonkeySelectAxisX", "testMonkeySelectAxisX", "expectedMonkeySelectAxisX",
+        #          [OperatorSpecEditMode("select_axis", {"axis": "X"}, "VERT", {13})]),
+        # MeshTest("MonkeySelectAxisY", "testMonkeySelectAxisY", "expectedMonkeySelectAxisY",
+        #          [OperatorSpecEditMode("select_axis", {"axis": "Y", "sign": "NEG"}, "FACE", {317})]),
+        # MeshTest("MonkeySelectAxisXYZ", "testMonkeySelectAxisXYZ", "expectedMonkeySelectAxisXYZ",
+        #          [OperatorSpecEditMode("select_axis", {"axis": "X", "sign": "NEG"}, "FACE", {317}),
+        #          OperatorSpecEditMode("select_axis", {"axis": "Y", "sign": "POS"}, "FACE", {}),
+        #          OperatorSpecEditMode("select_axis", {"axis": "Z", "sign": "NEG"}, "FACE", {})]),
+
+        # select faces by sides
+        MeshTest("CubeSelectFacesBySide", "testCubeSelectFacesBySide", "expectedCubeSelectFacesBySide",
+                 [OperatorSpecEditMode("select_face_by_sides", {"number": 4}, "FACE", {})]),
+        MeshTest("CubeSelectFacesBySideGreater", "testCubeSelectFacesBySideGreater", "expectedCubeSelectFacesBySideGreater",
+                 [OperatorSpecEditMode("select_face_by_sides", {"number": 4, "type": "GREATER", "extend": True}, "FACE", {})]),
+        MeshTest("CubeSelectFacesBySideLess", "testCubeSelectFacesBySideLess", "expectedCubeSelectFacesBySideLess",
+                 [OperatorSpecEditMode("select_face_by_sides", {"number": 4, "type": "GREATER", "extend": True}, "FACE", {})]),
+
+        # select interior faces
+        MeshTest("CubeSelectInteriorFaces", "testCubeSelectInteriorFaces", "expectedCubeSelectInteriorFaces",
+                 [OperatorSpecEditMode("select_face_by_sides", {"number": 4}, "FACE", {})]),
+        MeshTest("HoledCubeSelectInteriorFaces", "testHoledCubeSelectInteriorFaces", "expectedHoledCubeSelectInteriorFaces",
+                 [OperatorSpecEditMode("select_face_by_sides", {"number": 4}, "FACE", {})]),
+        MeshTest("EmptyMeshSelectInteriorFaces", "testEmptyMeshSelectInteriorFaces", "expectedEmptyMeshSelectInteriorFaces",
+                 [OperatorSpecEditMode("select_face_by_sides", {"number": 4}, "FACE", {})]),
+
+        # select less
+        MeshTest("MonkeySelectLess", "testMonkeySelectLess", "expectedMonkeySelectLess",
+                 [OperatorSpecEditMode("select_less", {}, "VERT", {2, 8, 24, 34, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 68,
+                                                                   69, 70, 71, 74, 75, 78, 80, 81, 82, 83, 90, 91, 93, 95, 97, 99,
+                                                                   101, 109, 111, 115, 117, 119, 121, 123, 125, 127, 129, 130, 131,
+                                                                   132, 133, 134, 135, 136, 138, 141, 143, 145, 147, 149, 151, 153,
+                                                                   155, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174,
+                                                                   175, 176, 177, 178, 181, 182, 184, 185, 186, 187, 188, 189, 190,
+                                                                   192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204,
+                                                                   206, 207, 208, 210, 216, 217, 218, 219, 220, 221, 222, 229, 230,
+                                                                   231, 233, 235, 237, 239, 241, 243, 245, 247, 249, 251, 253, 255,
+                                                                   257, 259, 263, 267, 269, 271, 275, 277, 289, 291, 293, 295, 309,
+                                                                   310, 311, 312, 316, 317, 318, 319, 320, 323, 325, 327, 329, 331,
+                                                                   341, 347, 349, 350, 351, 354, 356, 359, 361, 363, 365, 367, 369,
+                                                                   375, 379, 381, 382, 385, 386, 387, 388, 389, 390, 391, 392, 393,
+                                                                   394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406,
+                                                                   407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419,
+                                                                   420, 421, 423, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434,
+                                                                   435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447,
+                                                                   448, 449, 450, 451, 452, 454, 455, 456, 457, 458, 459, 460, 461,
+                                                                   462, 463, 464, 471, 473, 474, 475, 476, 477, 478, 479, 480, 481,
+                                                                   482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 495,
+                                                                   496, 497, 498, 499, 502, 505})]),
+        MeshTest("HoledCubeSelectLess", "testHoledCubeSelectLess", "expectedHoledCubeSelectLess",
+                 [OperatorSpecEditMode("select_face_by_sides", {}, "FACE", {})]),
+        MeshTest("EmptyMeshSelectLess", "testEmptyMeshSelectLess", "expectedEmptyMeshSelectLess",
+                 [OperatorSpecEditMode("select_face_by_sides", {}, "VERT", {})]),
+
+        # select linked
+        MeshTest("PlanesSelectLinked", "testPlanesSelectLinked", "expectedPlanesSelectedLinked",
+                 [OperatorSpecEditMode("select_linked", {}, "VERT", {7})]),
+        MeshTest("CubesSelectLinked", "testCubesSelectLinked", "expectedCubesSelectLinked",
+                 [OperatorSpecEditMode("select_linked", {}, "VERT", {11})]),
+        MeshTest("EmptyMeshSelectLinked", "testEmptyMeshSelectLinked", "expectedEmptyMeshSelectLinked",
+                 [OperatorSpecEditMode("select_linked", {}, "VERT", {})]),
+
     ]
 
     operators_test = RunTest(tests)
