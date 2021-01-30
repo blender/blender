@@ -1322,16 +1322,16 @@ void drawDial3d(const TransInfo *t)
     if (tc->mode & CON_APPLY) {
       if (tc->mode & CON_AXIS0) {
         axis_idx = MAN_AXIS_ROT_X;
-        negate_v3_v3(mat_basis[2], t->spacemtx[0]);
+        copy_v3_v3(mat_basis[2], t->spacemtx[0]);
       }
       else if (tc->mode & CON_AXIS1) {
         axis_idx = MAN_AXIS_ROT_Y;
-        negate_v3_v3(mat_basis[2], t->spacemtx[1]);
+        copy_v3_v3(mat_basis[2], t->spacemtx[1]);
       }
       else {
         BLI_assert((tc->mode & CON_AXIS2) != 0);
         axis_idx = MAN_AXIS_ROT_Z;
-        negate_v3_v3(mat_basis[2], t->spacemtx[2]);
+        copy_v3_v3(mat_basis[2], t->spacemtx[2]);
       }
     }
     else {
@@ -1384,7 +1384,7 @@ void drawDial3d(const TransInfo *t)
                                     false,
                                     &(struct Dial3dParams){
                                         .draw_options = ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE,
-                                        .angle_delta = t->values[0],
+                                        .angle_delta = t->values_final[0],
                                         .angle_increment = increment,
                                     });
 
