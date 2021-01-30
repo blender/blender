@@ -678,7 +678,7 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, int index)
       return sculpt_check_unique_face_set_in_base_mesh(ss, index);
     }
     case PBVH_BMESH:
-      return false;
+      return true;
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index / key->grid_area;
