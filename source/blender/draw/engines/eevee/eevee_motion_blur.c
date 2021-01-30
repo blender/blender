@@ -376,6 +376,19 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
   }
 }
 
+static void motion_blur_remove_vbo_reference_from_batch(GPUBatch *batch,
+                                                        GPUVertBuf *vbo1,
+                                                        GPUVertBuf *vbo2)
+{
+
+  for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN; i++) {
+    if (ELEM(batch->verts[i], vbo1, vbo2)) {
+      /* Avoid double reference of the VBOs. */
+      batch->verts[i] = NULL;
+    }
+  }
+}
+
 void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = vedata->stl;
@@ -446,6 +459,9 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
               }
 
               if (mb_geom->use_deform == false) {
+                motion_blur_remove_vbo_reference_from_batch(
+                    batch, mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT]);
+
                 GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_PREV]);
                 GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_NEXT]);
                 break;
@@ -523,12 +539,8 @@ void EEVEE_motion_blur_swap_data(EEVEE_Data *vedata)
 
       case EEVEE_MOTION_DATA_MESH:
         if (mb_geom->batch != NULL) {
-          for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN; i++) {
-            if (ELEM(mb_geom->batch->verts[i], mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT])) {
-              /* Avoid double reference of the VBOs. */
-              mb_geom->batch->verts[i] = NULL;
-            }
-          }
+          motion_blur_remove_vbo_reference_from_batch(
+              mb_geom->batch, mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT]);
         }
         GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_PREV]);
         mb_geom->vbo[MB_PREV] = mb_geom->vbo[MB_NEXT];
