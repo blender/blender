@@ -1342,13 +1342,18 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
       }
     }
   }
-
-  if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
-    view3d_interactive_add_exit(C, op);
-    return OPERATOR_CANCELLED;
-  }
-  if (event->type == MOUSEMOVE) {
-    do_cursor_update = true;
+  else {
+    switch (event->type) {
+      case EVT_ESCKEY:
+      case RIGHTMOUSE: {
+        view3d_interactive_add_exit(C, op);
+        return OPERATOR_CANCELLED;
+      }
+      case MOUSEMOVE: {
+        do_cursor_update = true;
+        break;
+      }
+    }
   }
 
   if (ipd->wait_for_input) {
