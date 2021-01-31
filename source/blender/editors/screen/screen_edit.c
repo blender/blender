@@ -871,6 +871,11 @@ static void screen_global_area_refresh(wmWindow *win,
                                        const short height_min,
                                        const short height_max)
 {
+  /* Full-screens shouldn't have global areas. Don't touch them. */
+  if (screen->state == SCREENFULL) {
+    return;
+  }
+
   ScrArea *area = NULL;
   LISTBASE_FOREACH (ScrArea *, area_iter, &win->global_areas.areabase) {
     if (area_iter->spacetype == space_type) {
