@@ -17,6 +17,7 @@
  * All rights reserved.
  */
 
+#include <cassert>
 #include <iostream>
 #include <math.h>
 #include <sstream>
@@ -35,7 +36,9 @@ using namespace OCIO_NAMESPACE;
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
 
 #include "ocio_impl.h"
 
@@ -267,7 +270,7 @@ const char *OCIOImpl::configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *conf
                                                      const char *view)
 {
   try {
-    return (*(ConstConfigRcPtr *)config)->getDisplayColorSpaceName(display, view);
+    return (*(ConstConfigRcPtr *)config)->getDisplayViewColorSpaceName(display, view);
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -279,11 +282,44 @@ const char *OCIOImpl::configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *conf
 void OCIOImpl::configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb)
 {
   try {
-    (*(ConstConfigRcPtr *)config)->getDefaultLumaCoefs(rgb);
+    double rgb_double[3];
+    (*(ConstConfigRcPtr *)config)->getDefaultLumaCoefs(rgb_double);
+    rgb[0] = rgb_double[0];
+    rgb[1] = rgb_double[1];
+    rgb[2] = rgb_double[2];
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
   }
+}
+
+static bool to_scene_linear_matrix(ConstConfigRcPtr &config,
+                                   const char *colorspace,
+                                   float to_scene_linear[3][3])
+{
+  ConstProcessorRcPtr processor;
+  try {
+    processor = config->getProcessor(colorspace, ROLE_SCENE_LINEAR);
+  }
+  catch (Exception &exception) {
+    OCIO_reportException(exception);
+    return false;
+  }
+
+  if (!processor) {
+    return false;
+  }
+
+  ConstCPUProcessorRcPtr cpu_processor = processor->getDefaultCPUProcessor();
+  if (!cpu_processor) {
+    return false;
+  }
+
+  unit_m3(to_scene_linear);
+  cpu_processor->applyRGB(to_scene_linear[0]);
+  cpu_processor->applyRGB(to_scene_linear[1]);
+  cpu_processor->applyRGB(to_scene_linear[2]);
+  return true;
 }
 
 void OCIOImpl::configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config_, float xyz_to_rgb[3][3])
@@ -293,23 +329,24 @@ void OCIOImpl::configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config_, float xyz_to_rg
   /* Default to ITU-BT.709 in case no appropriate transform found. */
   memcpy(xyz_to_rgb, OCIO_XYZ_TO_LINEAR_SRGB, sizeof(OCIO_XYZ_TO_LINEAR_SRGB));
 
-  /* Auto estimate from XYZ and scene_linear roles, assumed to be a linear transform. */
-  if (config->hasRole("XYZ") && config->hasRole("scene_linear")) {
-    ConstProcessorRcPtr to_rgb_processor = config->getProcessor("XYZ", "scene_linear");
-    if (to_rgb_processor) {
-      xyz_to_rgb[0][0] = 1.0f;
-      xyz_to_rgb[0][1] = 0.0f;
-      xyz_to_rgb[0][2] = 0.0f;
-      xyz_to_rgb[1][0] = 0.0f;
-      xyz_to_rgb[1][1] = 1.0f;
-      xyz_to_rgb[1][2] = 0.0f;
-      xyz_to_rgb[2][0] = 0.0f;
-      xyz_to_rgb[2][1] = 0.0f;
-      xyz_to_rgb[2][2] = 1.0f;
-      to_rgb_processor->applyRGB(xyz_to_rgb[0]);
-      to_rgb_processor->applyRGB(xyz_to_rgb[1]);
-      to_rgb_processor->applyRGB(xyz_to_rgb[2]);
+  /* Get from OpenColorO config if it has the required roles. */
+  if (!config->hasRole(ROLE_SCENE_LINEAR)) {
+    return;
+  }
+
+  if (config->hasRole("aces_interchange")) {
+    /* Standard OpenColorIO role, defined as ACES2065-1. */
+    const float xyz_to_aces[3][3] = {{1.0498110175f, -0.4959030231f, 0.0f},
+                                     {0.0f, 1.3733130458f, 0.0f},
+                                     {-0.0000974845f, 0.0982400361f, 0.9912520182f}};
+    float aces_to_rgb[3][3];
+    if (to_scene_linear_matrix(config, "aces_interchange", aces_to_rgb)) {
+      mul_m3_m3m3(xyz_to_rgb, aces_to_rgb, xyz_to_aces);
     }
+  }
+  else if (config->hasRole("XYZ")) {
+    /* Custom role used before the standard existed. */
+    to_scene_linear_matrix(config, "XYZ", xyz_to_rgb);
   }
 }
 
@@ -431,6 +468,8 @@ void OCIOImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config_,
     return;
   }
 
+  ConstCPUProcessorRcPtr cpu_processor = processor->getDefaultCPUProcessor();
+
   is_scene_linear = true;
   is_srgb = true;
   for (int i = 0; i < 256; i++) {
@@ -440,10 +479,10 @@ void OCIOImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config_,
     float cG[3] = {0, v, 0};
     float cB[3] = {0, 0, v};
     float cW[3] = {v, v, v};
-    processor->applyRGB(cR);
-    processor->applyRGB(cG);
-    processor->applyRGB(cB);
-    processor->applyRGB(cW);
+    cpu_processor->applyRGB(cR);
+    cpu_processor->applyRGB(cG);
+    cpu_processor->applyRGB(cB);
+    cpu_processor->applyRGB(cW);
 
     /* Make sure that there is no channel crosstalk. */
     if (fabsf(cR[1]) > 1e-5f || fabsf(cR[2]) > 1e-5f || fabsf(cG[0]) > 1e-5f ||
@@ -485,62 +524,57 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(OCIO_ConstConfig
                                                                 const char *srcName,
                                                                 const char *dstName)
 {
-  ConstProcessorRcPtr *p = OBJECT_GUARDED_NEW(ConstProcessorRcPtr);
+  ConstProcessorRcPtr *processor = OBJECT_GUARDED_NEW(ConstProcessorRcPtr);
 
   try {
-    *p = (*(ConstConfigRcPtr *)config)->getProcessor(srcName, dstName);
+    *processor = (*(ConstConfigRcPtr *)config)->getProcessor(srcName, dstName);
 
-    if (*p)
-      return (OCIO_ConstProcessorRcPtr *)p;
+    if (*processor)
+      return (OCIO_ConstProcessorRcPtr *)processor;
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
   }
 
-  OBJECT_GUARDED_DELETE(p, ConstProcessorRcPtr);
+  OBJECT_GUARDED_DELETE(processor, ConstProcessorRcPtr);
 
   return 0;
 }
 
-OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessor(OCIO_ConstConfigRcPtr *config,
-                                                       OCIO_ConstTransformRcPtr *transform)
+void OCIOImpl::processorRelease(OCIO_ConstProcessorRcPtr *processor)
 {
-  ConstProcessorRcPtr *p = OBJECT_GUARDED_NEW(ConstProcessorRcPtr);
-
-  try {
-    *p = (*(ConstConfigRcPtr *)config)->getProcessor(*(ConstTransformRcPtr *)transform);
-
-    if (*p)
-      return (OCIO_ConstProcessorRcPtr *)p;
-  }
-  catch (Exception &exception) {
-    OCIO_reportException(exception);
-  }
-
-  OBJECT_GUARDED_DELETE(p, ConstProcessorRcPtr);
-
-  return NULL;
+  OBJECT_GUARDED_DELETE(processor, ConstProcessorRcPtr);
 }
 
-void OCIOImpl::processorApply(OCIO_ConstProcessorRcPtr *processor, OCIO_PackedImageDesc *img)
+OCIO_ConstCPUProcessorRcPtr *OCIOImpl::processorGetCPUProcessor(
+    OCIO_ConstProcessorRcPtr *processor)
+{
+  ConstCPUProcessorRcPtr *cpu_processor = OBJECT_GUARDED_NEW(ConstCPUProcessorRcPtr);
+  *cpu_processor = (*(ConstProcessorRcPtr *)processor)->getDefaultCPUProcessor();
+  return (OCIO_ConstCPUProcessorRcPtr *)cpu_processor;
+}
+
+void OCIOImpl::cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
+                                 OCIO_PackedImageDesc *img)
 {
   try {
-    (*(ConstProcessorRcPtr *)processor)->apply(*(PackedImageDesc *)img);
+    (*(ConstCPUProcessorRcPtr *)cpu_processor)->apply(*(PackedImageDesc *)img);
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
   }
 }
 
-void OCIOImpl::processorApply_predivide(OCIO_ConstProcessorRcPtr *processor,
-                                        OCIO_PackedImageDesc *img_)
+void OCIOImpl::cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
+                                           OCIO_PackedImageDesc *img_)
 {
   try {
     PackedImageDesc *img = (PackedImageDesc *)img_;
     int channels = img->getNumChannels();
 
     if (channels == 4) {
-      float *pixels = img->getData();
+      assert(img->isFloat());
+      float *pixels = (float *)img->getData();
 
       int width = img->getWidth();
       int height = img->getHeight();
@@ -549,12 +583,12 @@ void OCIOImpl::processorApply_predivide(OCIO_ConstProcessorRcPtr *processor,
         for (int x = 0; x < width; x++) {
           float *pixel = pixels + 4 * (y * width + x);
 
-          processorApplyRGBA_predivide(processor, pixel);
+          cpuProcessorApplyRGBA_predivide(cpu_processor, pixel);
         }
       }
     }
     else {
-      (*(ConstProcessorRcPtr *)processor)->apply(*img);
+      (*(ConstCPUProcessorRcPtr *)cpu_processor)->apply(*img);
     }
   }
   catch (Exception &exception) {
@@ -562,20 +596,21 @@ void OCIOImpl::processorApply_predivide(OCIO_ConstProcessorRcPtr *processor,
   }
 }
 
-void OCIOImpl::processorApplyRGB(OCIO_ConstProcessorRcPtr *processor, float *pixel)
+void OCIOImpl::cpuProcessorApplyRGB(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel)
 {
-  (*(ConstProcessorRcPtr *)processor)->applyRGB(pixel);
+  (*(ConstCPUProcessorRcPtr *)cpu_processor)->applyRGB(pixel);
 }
 
-void OCIOImpl::processorApplyRGBA(OCIO_ConstProcessorRcPtr *processor, float *pixel)
+void OCIOImpl::cpuProcessorApplyRGBA(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel)
 {
-  (*(ConstProcessorRcPtr *)processor)->applyRGBA(pixel);
+  (*(ConstCPUProcessorRcPtr *)cpu_processor)->applyRGBA(pixel);
 }
 
-void OCIOImpl::processorApplyRGBA_predivide(OCIO_ConstProcessorRcPtr *processor, float *pixel)
+void OCIOImpl::cpuProcessorApplyRGBA_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
+                                               float *pixel)
 {
   if (pixel[3] == 1.0f || pixel[3] == 0.0f) {
-    (*(ConstProcessorRcPtr *)processor)->applyRGBA(pixel);
+    (*(ConstCPUProcessorRcPtr *)cpu_processor)->applyRGBA(pixel);
   }
   else {
     float alpha, inv_alpha;
@@ -587,7 +622,7 @@ void OCIOImpl::processorApplyRGBA_predivide(OCIO_ConstProcessorRcPtr *processor,
     pixel[1] *= inv_alpha;
     pixel[2] *= inv_alpha;
 
-    (*(ConstProcessorRcPtr *)processor)->applyRGBA(pixel);
+    (*(ConstCPUProcessorRcPtr *)cpu_processor)->applyRGBA(pixel);
 
     pixel[0] *= alpha;
     pixel[1] *= alpha;
@@ -595,9 +630,9 @@ void OCIOImpl::processorApplyRGBA_predivide(OCIO_ConstProcessorRcPtr *processor,
   }
 }
 
-void OCIOImpl::processorRelease(OCIO_ConstProcessorRcPtr *p)
+void OCIOImpl::cpuProcessorRelease(OCIO_ConstCPUProcessorRcPtr *cpu_processor)
 {
-  OBJECT_GUARDED_DELETE(p, ConstProcessorRcPtr);
+  OBJECT_GUARDED_DELETE(cpu_processor, ConstCPUProcessorRcPtr);
 }
 
 const char *OCIOImpl::colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs)
@@ -615,57 +650,85 @@ const char *OCIOImpl::colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs)
   return (*(ConstColorSpaceRcPtr *)cs)->getFamily();
 }
 
-OCIO_DisplayTransformRcPtr *OCIOImpl::createDisplayTransform(void)
+OCIO_ConstProcessorRcPtr *OCIOImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr *config_,
+                                                           const char *input,
+                                                           const char *view,
+                                                           const char *display,
+                                                           const char *look,
+                                                           const float scale,
+                                                           const float exponent)
+
 {
-  DisplayTransformRcPtr *dt = OBJECT_GUARDED_NEW(DisplayTransformRcPtr);
+  ConstConfigRcPtr config = *(ConstConfigRcPtr *)config_;
+  GroupTransformRcPtr group = GroupTransform::Create();
 
-  *dt = DisplayTransform::Create();
+  /* Exposure. */
+  if (scale != 1.0f) {
+    /* Always apply exposure in scene linear. */
+    ColorSpaceTransformRcPtr ct = ColorSpaceTransform::Create();
+    ct->setSrc(input);
+    ct->setDst(ROLE_SCENE_LINEAR);
+    group->appendTransform(ct);
 
-  return (OCIO_DisplayTransformRcPtr *)dt;
-}
+    /* Make further transforms aware of the color space change. */
+    input = ROLE_SCENE_LINEAR;
 
-void OCIOImpl::displayTransformSetInputColorSpaceName(OCIO_DisplayTransformRcPtr *dt,
-                                                      const char *name)
-{
-  (*(DisplayTransformRcPtr *)dt)->setInputColorSpaceName(name);
-}
+    /* Apply scale. */
+    MatrixTransformRcPtr mt = MatrixTransform::Create();
+    const double matrix[16] = {
+        scale, 0.0, 0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0, 0.0, 1.0};
+    mt->setMatrix(matrix);
+    group->appendTransform(mt);
+  }
 
-void OCIOImpl::displayTransformSetDisplay(OCIO_DisplayTransformRcPtr *dt, const char *name)
-{
-  (*(DisplayTransformRcPtr *)dt)->setDisplay(name);
-}
+  /* Add look transform. */
+  const bool use_look = (strlen(look) != 0);
+  if (use_look) {
+    const char *look_output = LookTransform::GetLooksResultColorSpace(
+        config, config->getCurrentContext(), look);
 
-void OCIOImpl::displayTransformSetView(OCIO_DisplayTransformRcPtr *dt, const char *name)
-{
-  (*(DisplayTransformRcPtr *)dt)->setView(name);
-}
+    LookTransformRcPtr lt = LookTransform::Create();
+    lt->setSrc(input);
+    lt->setDst(look_output);
+    lt->setLooks(look);
+    group->appendTransform(lt);
 
-void OCIOImpl::displayTransformSetDisplayCC(OCIO_DisplayTransformRcPtr *dt,
-                                            OCIO_ConstTransformRcPtr *t)
-{
-  (*(DisplayTransformRcPtr *)dt)->setDisplayCC(*(ConstTransformRcPtr *)t);
-}
+    /* Make further transforms aware of the color space change. */
+    input = look_output;
+  }
 
-void OCIOImpl::displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *dt,
-                                           OCIO_ConstTransformRcPtr *t)
-{
-  (*(DisplayTransformRcPtr *)dt)->setLinearCC(*(ConstTransformRcPtr *)t);
-}
+  /* Add view and display transform. */
+  DisplayViewTransformRcPtr dvt = DisplayViewTransform::Create();
+  dvt->setSrc(input);
+  dvt->setLooksBypass(use_look);
+  dvt->setView(view);
+  dvt->setDisplay(display);
+  group->appendTransform(dvt);
 
-void OCIOImpl::displayTransformSetLooksOverride(OCIO_DisplayTransformRcPtr *dt, const char *looks)
-{
-  (*(DisplayTransformRcPtr *)dt)->setLooksOverride(looks);
-}
+  /* Gamma. */
+  if (exponent != 1.0f) {
+    ExponentTransformRcPtr et = ExponentTransform::Create();
+    const double value[4] = {exponent, exponent, exponent, 1.0};
+    et->setValue(value);
+    group->appendTransform(et);
+  }
 
-void OCIOImpl::displayTransformSetLooksOverrideEnabled(OCIO_DisplayTransformRcPtr *dt,
-                                                       bool enabled)
-{
-  (*(DisplayTransformRcPtr *)dt)->setLooksOverrideEnabled(enabled);
-}
+  /* Create processor from transform. This is the moment were OCIO validates
+   * the entire transform, no need to check for the validity of inputs above. */
+  ConstProcessorRcPtr *p = OBJECT_GUARDED_NEW(ConstProcessorRcPtr);
 
-void OCIOImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr *dt)
-{
-  OBJECT_GUARDED_DELETE((DisplayTransformRcPtr *)dt, DisplayTransformRcPtr);
+  try {
+    *p = config->getProcessor(group);
+
+    if (*p)
+      return (OCIO_ConstProcessorRcPtr *)p;
+  }
+  catch (Exception &exception) {
+    OCIO_reportException(exception);
+  }
+
+  OBJECT_GUARDED_DELETE(p, ConstProcessorRcPtr);
+  return NULL;
 }
 
 OCIO_PackedImageDesc *OCIOImpl::createOCIO_PackedImageDesc(float *data,
@@ -678,8 +741,14 @@ OCIO_PackedImageDesc *OCIOImpl::createOCIO_PackedImageDesc(float *data,
 {
   try {
     void *mem = MEM_mallocN(sizeof(PackedImageDesc), __func__);
-    PackedImageDesc *id = new (mem) PackedImageDesc(
-        data, width, height, numChannels, chanStrideBytes, xStrideBytes, yStrideBytes);
+    PackedImageDesc *id = new (mem) PackedImageDesc(data,
+                                                    width,
+                                                    height,
+                                                    numChannels,
+                                                    BIT_DEPTH_F32,
+                                                    chanStrideBytes,
+                                                    xStrideBytes,
+                                                    yStrideBytes);
 
     return (OCIO_PackedImageDesc *)id;
   }
@@ -693,96 +762,6 @@ OCIO_PackedImageDesc *OCIOImpl::createOCIO_PackedImageDesc(float *data,
 void OCIOImpl::OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id)
 {
   OBJECT_GUARDED_DELETE((PackedImageDesc *)id, PackedImageDesc);
-}
-
-OCIO_GroupTransformRcPtr *OCIOImpl::createGroupTransform(void)
-{
-  GroupTransformRcPtr *gt = OBJECT_GUARDED_NEW(GroupTransformRcPtr);
-
-  *gt = GroupTransform::Create();
-
-  return (OCIO_GroupTransformRcPtr *)gt;
-}
-
-void OCIOImpl::groupTransformSetDirection(OCIO_GroupTransformRcPtr *gt, const bool forward)
-{
-  TransformDirection dir = forward ? TRANSFORM_DIR_FORWARD : TRANSFORM_DIR_INVERSE;
-  (*(GroupTransformRcPtr *)gt)->setDirection(dir);
-}
-
-void OCIOImpl::groupTransformPushBack(OCIO_GroupTransformRcPtr *gt, OCIO_ConstTransformRcPtr *tr)
-{
-  (*(GroupTransformRcPtr *)gt)->push_back(*(ConstTransformRcPtr *)tr);
-}
-
-void OCIOImpl::groupTransformRelease(OCIO_GroupTransformRcPtr *gt)
-{
-  OBJECT_GUARDED_DELETE((GroupTransformRcPtr *)gt, GroupTransformRcPtr);
-}
-
-OCIO_ColorSpaceTransformRcPtr *OCIOImpl::createColorSpaceTransform(void)
-{
-  ColorSpaceTransformRcPtr *ct = OBJECT_GUARDED_NEW(ColorSpaceTransformRcPtr);
-
-  *ct = ColorSpaceTransform::Create();
-  (*ct)->setDirection(TRANSFORM_DIR_FORWARD);
-
-  return (OCIO_ColorSpaceTransformRcPtr *)ct;
-}
-
-void OCIOImpl::colorSpaceTransformSetSrc(OCIO_ColorSpaceTransformRcPtr *ct, const char *name)
-{
-  (*(ColorSpaceTransformRcPtr *)ct)->setSrc(name);
-}
-
-void OCIOImpl::colorSpaceTransformRelease(OCIO_ColorSpaceTransformRcPtr *ct)
-{
-  OBJECT_GUARDED_DELETE((ColorSpaceTransformRcPtr *)ct, ColorSpaceTransformRcPtr);
-}
-
-OCIO_ExponentTransformRcPtr *OCIOImpl::createExponentTransform(void)
-{
-  ExponentTransformRcPtr *et = OBJECT_GUARDED_NEW(ExponentTransformRcPtr);
-
-  *et = ExponentTransform::Create();
-
-  return (OCIO_ExponentTransformRcPtr *)et;
-}
-
-void OCIOImpl::exponentTransformSetValue(OCIO_ExponentTransformRcPtr *et, const float *exponent)
-{
-  (*(ExponentTransformRcPtr *)et)->setValue(exponent);
-}
-
-void OCIOImpl::exponentTransformRelease(OCIO_ExponentTransformRcPtr *et)
-{
-  OBJECT_GUARDED_DELETE((ExponentTransformRcPtr *)et, ExponentTransformRcPtr);
-}
-
-OCIO_MatrixTransformRcPtr *OCIOImpl::createMatrixTransform(void)
-{
-  MatrixTransformRcPtr *mt = OBJECT_GUARDED_NEW(MatrixTransformRcPtr);
-
-  *mt = MatrixTransform::Create();
-
-  return (OCIO_MatrixTransformRcPtr *)mt;
-}
-
-void OCIOImpl::matrixTransformSetValue(OCIO_MatrixTransformRcPtr *mt,
-                                       const float *m44,
-                                       const float *offset4)
-{
-  (*(MatrixTransformRcPtr *)mt)->setValue(m44, offset4);
-}
-
-void OCIOImpl::matrixTransformRelease(OCIO_MatrixTransformRcPtr *mt)
-{
-  OBJECT_GUARDED_DELETE((MatrixTransformRcPtr *)mt, MatrixTransformRcPtr);
-}
-
-void OCIOImpl::matrixTransformScale(float *m44, float *offset4, const float *scale4f)
-{
-  MatrixTransform::Scale(m44, offset4, scale4f);
 }
 
 const char *OCIOImpl::getVersionString(void)

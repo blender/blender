@@ -500,7 +500,7 @@ if(WITH_OPENIMAGEIO)
   set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
 
   set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
-  set(OPENCOLORIO_DEFINITIONS "-DOCIO_STATIC_BUILD")
+  set(OPENCOLORIO_DEFINITIONS "-DDOpenColorIO_SKIP_IMPORTS")
   set(OPENIMAGEIO_IDIFF "${OPENIMAGEIO}/bin/idiff.exe")
   add_definitions(-DOIIO_STATIC_DEFINE)
   add_definitions(-DOIIO_NO_SSE=1)
@@ -538,11 +538,13 @@ if(WITH_OPENCOLORIO)
   set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
   set(OPENCOLORIO_LIBRARIES
     optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
-    optimized ${OPENCOLORIO_LIBPATH}/tinyxml.lib
     optimized ${OPENCOLORIO_LIBPATH}/libyaml-cpp.lib
+    optimized ${OPENCOLORIO_LIBPATH}/libexpatMD.lib
+    optimized ${OPENCOLORIO_LIBPATH}/pystring.lib
     debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
-    debug ${OPENCOLORIO_LIBPATH}/tinyxml_d.lib
     debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
+    debug ${OPENCOLORIO_LIBPATH}/libexpatdMD.lib
+    debug ${OPENCOLORIO_LIBPATH}/pystring_d.lib
   )
   set(OPENCOLORIO_DEFINITIONS)
 endif()

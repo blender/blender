@@ -1,17 +1,18 @@
 /* Blender OpenColorIO implementation */
 
-uniform sampler1D curve_mapping_texture;
 uniform sampler2D image_texture;
 uniform sampler2D overlay_texture;
-uniform sampler3D lut3d_texture;
-uniform sampler3D lut3d_display_texture;
 
 uniform float dither;
+uniform float scale;
+uniform float exponent;
 uniform bool predivide;
-uniform bool curve_mapping;
 uniform bool overlay;
 
-layout(std140) uniform OCIO_GLSLCurveMappingParameters
+#ifdef USE_CURVE_MAPPING
+uniform sampler1D curve_mapping_texture;
+
+layout(std140) uniform OCIO_GPUCurveMappingParameters
 {
   /* Curve mapping parameters
    *
@@ -114,6 +115,7 @@ vec4 curvemapping_evaluate_premulRGBF(vec4 col)
   result.a = col.a;
   return result;
 }
+#endif /* USE_CURVE_MAPPING */
 
 /* Using a triangle distribution which gives a more final uniform noise.
  * See Banding in Games:A Noisy Rant(revision 5) Mikkel Gjøl, Playdead (slide 27) */
@@ -145,9 +147,9 @@ vec4 apply_dither(vec4 col, vec2 uv)
 
 vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay, vec2 noise_uv)
 {
-  if (curve_mapping) {
-    col = curvemapping_evaluate_premulRGBF(col);
-  }
+#ifdef USE_CURVE_MAPPING
+  col = curvemapping_evaluate_premulRGBF(col);
+#endif
 
   if (predivide) {
     if (col.a > 0.0 && col.a < 1.0) {
@@ -160,15 +162,31 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay, vec2 noise_uv)
    *       for straight alpha at this moment
    */
 
-  col = OCIO_to_display_linear_with_look(col, lut3d_texture);
+  /* Convert to scene linear (usually a no-op). */
+  col = OCIO_to_scene_linear(col);
 
+  /* Apply exposure in scene linear. */
+  col.rgb *= scale;
+
+  /* Convert to display space. */
+  col = OCIO_to_display(col);
+
+  /* Blend with overlay in UI colorspace.
+   *
+   * UI colorspace here refers to the display linear color space,
+   * i.e: The linear color space w.r.t. display chromaticity and radiometry.
+   * We separate the colormanagement process into two steps to be able to
+   * merge UI using alpha blending in the correct color space. */
   if (overlay) {
+    col.rgb = pow(col.rgb, vec3(exponent * 2.2));
     col = clamp(col, 0.0, 1.0);
     col *= 1.0 - col_overlay.a;
     col += col_overlay; /* Assumed unassociated alpha. */
+    col.rgb = pow(col.rgb, vec3(1.0 / 2.2));
   }
-
-  col = OCIO_to_display_encoded(col, lut3d_display_texture);
+  else {
+    col.rgb = pow(col.rgb, vec3(exponent));
+  }
 
   if (dither > 0.0) {
     col = apply_dither(col, noise_uv);

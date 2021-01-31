@@ -39,8 +39,8 @@ roles:
   # Non-color data
   data: Non-Color
 
-  # CIE XYZ color space
-  XYZ: XYZ
+  # For interop between configs, and to determine XYZ for rendering
+  aces_interchange: Linear ACES
 
   # Specifed by OCIO, not used in Blender
   color_timing: Filmic Log
@@ -97,7 +97,10 @@ colorspaces:
     isdata: false
     allocation: lg2
     allocationvars: [-8.5, 5]
-    to_reference: !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
+    from_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
+        - !<FileTransform> {src: xyz_to_aces.spimtx, interpolation: linear}
 
   - !<ColorSpace>
     name: nuke_rec709

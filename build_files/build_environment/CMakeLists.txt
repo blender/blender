@@ -70,7 +70,6 @@ include(cmake/cuew.cmake)
 include(cmake/opensubdiv.cmake)
 include(cmake/sdl.cmake)
 include(cmake/opencollada.cmake)
-include(cmake/opencolorio.cmake)
 include(cmake/llvm.cmake)
 include(cmake/clang.cmake)
 if(APPLE)
@@ -105,16 +104,13 @@ if(NOT APPLE)
   include(cmake/xr_openxr.cmake)
 endif()
 
+# OpenColorIO and dependencies.
+include(cmake/expat.cmake)
+include(cmake/yamlcpp.cmake)
+include(cmake/opencolorio.cmake)
+
 if(WITH_WEBP)
   include(cmake/webp.cmake)
-endif()
-
-if(WIN32)
-  # OCIO deps
-  include(cmake/tinyxml.cmake)
-  include(cmake/yamlcpp.cmake)
-  # LCMS is an OCIO dep, but only if you build the apps, leaving it here for convenience
-  # include(cmake/lcms.cmake)
 endif()
 
 if(NOT WIN32 OR ENABLE_MINGW64)

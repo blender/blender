@@ -221,6 +221,8 @@ class ShaderManager {
 
   bool need_update() const;
 
+  void init_xyz_transforms();
+
  protected:
   ShaderManager();
 
