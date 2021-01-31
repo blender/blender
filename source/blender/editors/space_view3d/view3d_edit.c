@@ -2628,9 +2628,10 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
   /* overwrite the mouse vector with the view direction (zoom into the center) */
   if ((use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) == 0) {
     normalize_v3_v3(mousevec, rv3d->viewinv[2]);
+    negate_v3(mousevec);
   }
 
-  view_dolly_to_vector_3d(region, rv3d->ofs, mousevec, delta < 0 ? 0.2f : 1.8f);
+  view_dolly_to_vector_3d(region, rv3d->ofs, mousevec, delta < 0 ? 1.8f : 0.2f);
 
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_sync(area, region);
