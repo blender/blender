@@ -311,6 +311,7 @@ static int backimage_zoom_exec(bContext *C, wmOperator *op)
   snode->zoom *= fac;
   ED_region_tag_redraw(region);
   WM_main_add_notifier(NC_NODE | ND_DISPLAY, NULL);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 
   return OPERATOR_FINISHED;
 }
