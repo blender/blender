@@ -856,7 +856,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
             ADD_SHGROUP_CALL(matcache[i].shading_grp, ob, mat_geom[i], oedata);
             ADD_SHGROUP_CALL_SAFE(matcache[i].depth_grp, ob, mat_geom[i], oedata);
             ADD_SHGROUP_CALL_SAFE(matcache[i].shadow_grp, ob, mat_geom[i], oedata);
-            *cast_shadow = (matcache[i].shadow_grp != NULL);
+            *cast_shadow = *cast_shadow || (matcache[i].shadow_grp != NULL);
           }
         }
       }
