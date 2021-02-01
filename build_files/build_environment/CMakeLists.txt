@@ -92,6 +92,7 @@ include(cmake/package_python.cmake)
 include(cmake/numpy.cmake)
 include(cmake/usd.cmake)
 include(cmake/potrace.cmake)
+include(cmake/haru.cmake)
 # Boost needs to be included after python.cmake due to the PYTHON_BINARY variable being needed.
 include(cmake/boost.cmake)
 include(cmake/pugixml.cmake)
