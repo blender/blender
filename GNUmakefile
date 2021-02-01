@@ -183,8 +183,13 @@ endif
 ifndef DEPS_INSTALL_DIR
 	DEPS_INSTALL_DIR:=$(shell dirname "$(BLENDER_DIR)")/lib/$(OS_NCASE)
 
-	ifneq ($(OS_NCASE),darwin)
-		# Add processor type to directory name
+	# Add processor type to directory name, except for darwin x86_64
+	# which by convention does not have it.
+	ifeq ($(OS_NCASE),darwin)
+		ifneq ($(CPU),x86_64)
+			DEPS_INSTALL_DIR:=$(DEPS_INSTALL_DIR)_$(CPU)
+		endif
+	else
 		DEPS_INSTALL_DIR:=$(DEPS_INSTALL_DIR)_$(CPU)
 	endif
 endif
@@ -198,7 +203,7 @@ endif
 # in libraries, or python 2 for running make update to get it.
 ifeq ($(OS_NCASE),darwin)
 	ifeq (, $(shell command -v $(PYTHON)))
-		PYTHON:=../lib/darwin/python/bin/python3.7m
+		PYTHON:=$(DEPS_INSTALL_DIR)/python/bin/python3.7m
 		ifeq (, $(shell command -v $(PYTHON)))
 			PYTHON:=python
 		endif
