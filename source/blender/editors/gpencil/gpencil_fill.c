@@ -1156,8 +1156,9 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   ToolSettings *ts = tgpf->scene->toolsettings;
   const char align_flag = ts->gpencil_v3d_align;
   const bool is_depth = (bool)(align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
-  const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) &&
-                         (tgpf->rv3d->persp == RV3D_CAMOB) && (!is_depth);
+  const bool is_lock_axis_view = (bool)(ts->gp_sculpt.lock_axis == 0);
+  const bool is_camera = is_lock_axis_view && (tgpf->rv3d->persp == RV3D_CAMOB) && (!is_depth);
+
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
   if (brush == NULL) {
     return;
@@ -1285,7 +1286,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   }
 
   /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
-  if ((align_flag & GP_PROJECT_VIEWSPACE) || is_camera) {
+  if (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera) {
     ED_gpencil_project_stroke_to_view(tgpf->C, tgpf->gpl, gps);
   }
 
