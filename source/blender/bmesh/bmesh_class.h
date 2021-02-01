@@ -238,7 +238,6 @@ typedef struct BMesh {
   uint use_toolflags : 1;
 
   int toolflag_index;
-  struct BMOperator *currentop;
 
   CustomData vdata, edata, ldata, pdata;
 

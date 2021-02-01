@@ -598,6 +598,11 @@ static void OVERLAY_draw_scene(void *vedata)
 
   OVERLAY_xray_depth_infront_copy(vedata);
 
+  if (pd->ctx_mode == CTX_MODE_PAINT_WEIGHT) {
+    /* Fix weird case where weightpaint mode needs to draw before xray bones. */
+    OVERLAY_paint_draw(vedata);
+  }
+
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_in_front_fb);
   }
@@ -648,7 +653,6 @@ static void OVERLAY_draw_scene(void *vedata)
       OVERLAY_paint_draw(vedata);
       OVERLAY_pose_draw(vedata);
       break;
-    case CTX_MODE_PAINT_WEIGHT:
     case CTX_MODE_PAINT_VERTEX:
     case CTX_MODE_PAINT_TEXTURE:
       OVERLAY_paint_draw(vedata);

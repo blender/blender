@@ -490,6 +490,7 @@ typedef struct ImageTransformThreadInitData {
   StripTransform *transform;
   float scale_to_fit;
   float image_scale_factor;
+  float preview_scale_factor;
   bool for_render;
 } ImageTransformThreadInitData;
 
@@ -498,7 +499,10 @@ typedef struct ImageTransformThreadData {
   ImBuf *ibuf_out;
   StripTransform *transform;
   float scale_to_fit;
+  /* image_scale_factor is used to scale proxies to correct preview size. */
   float image_scale_factor;
+  /* Preview scale factor is needed to correct translation to match preview size. */
+  float preview_scale_factor;
   bool for_render;
   int start_line;
   int tot_line;
@@ -516,6 +520,7 @@ static void sequencer_image_transform_init(void *handle_v,
   handle->ibuf_out = init_data->ibuf_out;
   handle->transform = init_data->transform;
   handle->image_scale_factor = init_data->image_scale_factor;
+  handle->preview_scale_factor = init_data->preview_scale_factor;
   handle->for_render = init_data->for_render;
 
   handle->start_line = start_line;
@@ -528,13 +533,11 @@ static void *sequencer_image_transform_do_thread(void *data_v)
   const StripTransform *transform = data->transform;
   const float scale_x = transform->scale_x * data->image_scale_factor;
   const float scale_y = transform->scale_y * data->image_scale_factor;
-  const float scale_to_fit_offs_x = (data->ibuf_out->x - data->ibuf_source->x) / 2;
-  const float scale_to_fit_offs_y = (data->ibuf_out->y - data->ibuf_source->y) / 2;
-  const float translate_x = transform->xofs * data->image_scale_factor + scale_to_fit_offs_x;
-  const float translate_y = transform->yofs * data->image_scale_factor + scale_to_fit_offs_y;
-  const int width = data->ibuf_out->x;
-  const int height = data->ibuf_out->y;
-  const float pivot[2] = {width / 2 - scale_to_fit_offs_x, height / 2 - scale_to_fit_offs_y};
+  const float image_center_offs_x = (data->ibuf_out->x - data->ibuf_source->x) / 2;
+  const float image_center_offs_y = (data->ibuf_out->y - data->ibuf_source->y) / 2;
+  const float translate_x = transform->xofs * data->preview_scale_factor + image_center_offs_x;
+  const float translate_y = transform->yofs * data->preview_scale_factor + image_center_offs_y;
+  const float pivot[2] = {data->ibuf_source->x / 2, data->ibuf_source->y / 2};
   float transform_matrix[3][3];
   loc_rot_size_to_mat3(transform_matrix,
                        (const float[]){translate_x, translate_y},
@@ -543,6 +546,7 @@ static void *sequencer_image_transform_do_thread(void *data_v)
   invert_m3(transform_matrix);
   transform_pivot_set_m3(transform_matrix, pivot);
 
+  const int width = data->ibuf_out->x;
   for (int yi = data->start_line; yi < data->start_line + data->tot_line; yi++) {
     for (int xi = 0; xi < width; xi++) {
       float uv[2] = {xi, yi};
@@ -595,10 +599,27 @@ static void multibuf(ImBuf *ibuf, const float fmul)
   }
 }
 
+/* Effect, mask and scene in strip input strips are rendered in preview resolution. They are
+ * already downscaled. input_preprocess() does not expect this to happen. Other strip types are
+ * rendered with original media resolution, unless proxies are enabled for them. With proxies
+ * is_proxy_image will be set correctly to true.*/
+static bool seq_need_scale_to_render_size(const Sequence *seq, bool is_proxy_image)
+{
+  if (is_proxy_image) {
+    return true;
+  }
+  if ((seq->type & SEQ_TYPE_EFFECT) != 0 || seq->type == SEQ_TYPE_MASK ||
+      (seq->type == SEQ_TYPE_SCENE && ((seq->flag & SEQ_SCENE_STRIPS) != 0))) {
+    return true;
+  }
+  return false;
+}
+
 static ImBuf *input_preprocess(const SeqRenderData *context,
                                Sequence *seq,
                                float timeline_frame,
-                               ImBuf *ibuf)
+                               ImBuf *ibuf,
+                               const bool is_proxy_image)
 {
   Scene *scene = context->scene;
   ImBuf *preprocessed_ibuf = NULL;
@@ -630,10 +651,15 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     const int height = ibuf->y;
     const StripCrop *c = seq->strip->crop;
 
-    const int left = c->left;
-    const int right = c->right;
-    const int top = c->top;
-    const int bottom = c->bottom;
+    /* Proxy image is smaller, so crop values must be corrected by proxy scale factor.
+     * Proxy scale factor always matches preview_scale_factor. */
+    const float crop_scale_factor = seq_need_scale_to_render_size(seq, is_proxy_image) ?
+                                        preview_scale_factor :
+                                        1.0f;
+    const int left = c->left * crop_scale_factor;
+    const int right = c->right * crop_scale_factor;
+    const int top = c->top * crop_scale_factor;
+    const int bottom = c->bottom * crop_scale_factor;
     const float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
     /* Left. */
@@ -655,7 +681,13 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     init_data.ibuf_source = ibuf;
     init_data.ibuf_out = preprocessed_ibuf;
     init_data.transform = seq->strip->transform;
-    init_data.image_scale_factor = preview_scale_factor;
+    if (seq_need_scale_to_render_size(seq, is_proxy_image)) {
+      init_data.image_scale_factor = 1.0f;
+    }
+    else {
+      init_data.image_scale_factor = preview_scale_factor;
+    }
+    init_data.preview_scale_factor = preview_scale_factor;
     init_data.for_render = context->for_render;
     IMB_processor_apply_threaded(context->recty,
                                  sizeof(ImageTransformThreadData),
@@ -734,7 +766,7 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
   }
 
   if (use_preprocess) {
-    ibuf = input_preprocess(context, seq, timeline_frame, ibuf);
+    ibuf = input_preprocess(context, seq, timeline_frame, ibuf, is_proxy_image);
   }
 
   seq_cache_put(context, seq, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, ibuf);

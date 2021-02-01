@@ -213,7 +213,7 @@ static void GPENCIL_render_result_z(struct RenderLayer *rl,
           rp->rect[i] = 1e10f; /* Background */
         }
         else {
-          rp->rect[i] = -rp->rect[i] * range + near;
+          rp->rect[i] = rp->rect[i] * range - near;
         }
       }
     }

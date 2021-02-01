@@ -939,10 +939,10 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   RegionView3D *rv3d = p->region->regiondata;
   const int def_nr = obact->actdef - 1;
   const bool have_weight = (bool)BLI_findlink(&obact->defbase, def_nr);
-  const char *align_flag = &ts->gpencil_v3d_align;
-  const bool is_depth = (bool)(*align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
-  const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) && (rv3d->persp == RV3D_CAMOB) &&
-                         (!is_depth);
+  const char align_flag = ts->gpencil_v3d_align;
+  const bool is_depth = (bool)(align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
+  const bool is_lock_axis_view = (bool)(ts->gp_sculpt.lock_axis == 0);
+  const bool is_camera = is_lock_axis_view && (rv3d->persp == RV3D_CAMOB) && (!is_depth);
   int totelem;
 
   /* For very low pressure at the end, truncate stroke. */
@@ -1087,7 +1087,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     }
 
     /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
-    if ((*p->align_flag & GP_PROJECT_VIEWSPACE) || is_camera) {
+    if (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
     }
   }
@@ -1236,7 +1236,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     /* change position relative to parent object */
     gpencil_apply_parent(depsgraph, obact, gpl, gps);
     /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
-    if ((*p->align_flag & GP_PROJECT_VIEWSPACE) || is_camera) {
+    if (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
     }
 

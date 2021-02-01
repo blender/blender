@@ -521,23 +521,19 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
                                                  const int pivot_point)
 {
   switch (orientation_type) {
-    case V3D_ORIENT_GLOBAL: {
-      unit_m3(r_mat);
-      return V3D_ORIENT_GLOBAL;
-    }
     case V3D_ORIENT_GIMBAL: {
       if (ob && gimbal_axis(ob, r_mat)) {
-        return V3D_ORIENT_GIMBAL;
+        break;
       }
-      /* if not gimbal, fall through to normal */
+      /* If not gimbal, fall through to normal. */
       ATTR_FALLTHROUGH;
     }
     case V3D_ORIENT_NORMAL: {
       if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
         ED_getTransformOrientationMatrix(C, ob, obedit, pivot_point, r_mat);
-        return V3D_ORIENT_NORMAL;
+        break;
       }
-      /* no break we define 'normal' as 'local' in Object mode */
+      /* No break we define 'normal' as 'local' in Object mode. */
       ATTR_FALLTHROUGH;
     }
     case V3D_ORIENT_LOCAL: {
@@ -552,10 +548,14 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
         else {
           transform_orientations_create_from_axis(r_mat, UNPACK3(ob->obmat));
         }
-        return V3D_ORIENT_LOCAL;
+        break;
       }
+      /* If not local, fall through to global. */
+      ATTR_FALLTHROUGH;
+    }
+    case V3D_ORIENT_GLOBAL: {
       unit_m3(r_mat);
-      return V3D_ORIENT_GLOBAL;
+      break;
     }
     case V3D_ORIENT_VIEW: {
       if (rv3d != NULL) {
@@ -565,11 +565,11 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
       else {
         unit_m3(r_mat);
       }
-      return V3D_ORIENT_VIEW;
+      break;
     }
     case V3D_ORIENT_CURSOR: {
       BKE_scene_cursor_rot_to_mat3(&scene->cursor, r_mat);
-      return V3D_ORIENT_CURSOR;
+      break;
     }
     case V3D_ORIENT_CUSTOM_MATRIX: {
       /* Do nothing. */;

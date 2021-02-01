@@ -629,6 +629,14 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
       }
     }
 
+    /* When render in background the active frame could not be properly set due thread priority
+     * better set again. This is not required in viewport. */
+    if (txl->render_depth_tx) {
+      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+        gpl->actframe = BKE_gpencil_layer_frame_get(gpl, pd->cfra, GP_GETFRAME_USE_PREV);
+      }
+    }
+
     BKE_gpencil_visible_stroke_iter(is_final_render ? pd->view_layer : NULL,
                                     ob,
                                     gpencil_layer_cache_populate,

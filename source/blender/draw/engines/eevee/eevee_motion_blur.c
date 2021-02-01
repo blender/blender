@@ -376,6 +376,19 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
   }
 }
 
+static void motion_blur_remove_vbo_reference_from_batch(GPUBatch *batch,
+                                                        GPUVertBuf *vbo1,
+                                                        GPUVertBuf *vbo2)
+{
+
+  for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN; i++) {
+    if (ELEM(batch->verts[i], vbo1, vbo2)) {
+      /* Avoid double reference of the VBOs. */
+      batch->verts[i] = NULL;
+    }
+  }
+}
+
 void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = vedata->stl;
@@ -446,6 +459,9 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
               }
 
               if (mb_geom->use_deform == false) {
+                motion_blur_remove_vbo_reference_from_batch(
+                    batch, mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT]);
+
                 GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_PREV]);
                 GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_NEXT]);
                 break;
@@ -457,9 +473,6 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
         }
         else {
           GPUVertBuf *vbo = mb_geom->vbo[mb_step];
-          /* If this assert fails, it means that different EEVEE_GeometryMotionDatas
-           * has been used for each motion blur step.  */
-          BLI_assert(vbo);
           if (vbo) {
             /* Use the vbo to perform the copy on the GPU. */
             GPU_vertbuf_use(vbo);
@@ -469,6 +482,10 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
             GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);
             int attrib_id = GPU_vertformat_attr_id_get(format, "pos");
             GPU_vertformat_attr_rename(format, attrib_id, (mb_step == MB_PREV) ? "prv" : "nxt");
+          }
+          else {
+            /* This might happen if the object visibility has been animated. */
+            mb_geom->use_deform = false;
           }
         }
         break;
@@ -515,23 +532,22 @@ void EEVEE_motion_blur_swap_data(EEVEE_Data *vedata)
           DRW_TEXTURE_FREE_SAFE(mb_hair->psys[i].hair_pos_tx[MB_PREV]);
           mb_hair->psys[i].hair_pos[MB_PREV] = mb_hair->psys[i].hair_pos[MB_NEXT];
           mb_hair->psys[i].hair_pos_tx[MB_PREV] = mb_hair->psys[i].hair_pos_tx[MB_NEXT];
+          mb_hair->psys[i].hair_pos[MB_NEXT] = NULL;
+          mb_hair->psys[i].hair_pos_tx[MB_NEXT] = NULL;
         }
         break;
 
       case EEVEE_MOTION_DATA_MESH:
         if (mb_geom->batch != NULL) {
-          for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN; i++) {
-            if (ELEM(mb_geom->batch->verts[i], mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT])) {
-              /* Avoid double reference of the VBOs. */
-              mb_geom->batch->verts[i] = NULL;
-            }
-          }
+          motion_blur_remove_vbo_reference_from_batch(
+              mb_geom->batch, mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT]);
         }
         GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_PREV]);
         mb_geom->vbo[MB_PREV] = mb_geom->vbo[MB_NEXT];
+        mb_geom->vbo[MB_NEXT] = NULL;
 
-        if (mb_geom->vbo[MB_NEXT]) {
-          GPUVertBuf *vbo = mb_geom->vbo[MB_NEXT];
+        if (mb_geom->vbo[MB_PREV]) {
+          GPUVertBuf *vbo = mb_geom->vbo[MB_PREV];
           GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);
           int attrib_id = GPU_vertformat_attr_id_get(format, "nxt");
           GPU_vertformat_attr_rename(format, attrib_id, "prv");

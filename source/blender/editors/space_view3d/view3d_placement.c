@@ -867,6 +867,7 @@ static void view3d_interactive_add_calc_plane(bContext *C,
                                               const enum ePlace_Depth plane_depth,
                                               const enum ePlace_Orient plane_orient,
                                               const int plane_axis,
+                                              const bool plane_axis_auto,
                                               float r_co_src[3],
                                               float r_matrix_orient[3][3])
 {
@@ -915,7 +916,7 @@ static void view3d_interactive_add_calc_plane(bContext *C,
       found_surface_or_normal = true;
     }
 
-    if (!found_surface_or_normal) {
+    if (!found_surface_or_normal && plane_axis_auto) {
       /* Drawing into empty space, draw onto the plane most aligned to the view direction. */
       mat3_align_axis_to_v3(r_matrix_orient, plane_axis, rv3d->viewinv[2]);
     }
@@ -1013,6 +1014,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 {
 
   const int plane_axis = RNA_enum_get(op->ptr, "plane_axis");
+  const bool plane_axis_auto = RNA_boolean_get(op->ptr, "plane_axis_auto");
   const enum ePlace_SnapTo snap_to = RNA_enum_get(op->ptr, "snap_target");
   const enum ePlace_Depth plane_depth = RNA_enum_get(op->ptr, "plane_depth");
   const enum ePlace_Origin plane_origin[2] = {
@@ -1074,6 +1076,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
                                     plane_depth,
                                     plane_orient,
                                     plane_axis,
+                                    plane_axis_auto,
                                     ipd->co_src,
                                     ipd->matrix_orient);
 
@@ -1339,13 +1342,18 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
       }
     }
   }
-
-  if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
-    view3d_interactive_add_exit(C, op);
-    return OPERATOR_CANCELLED;
-  }
-  if (event->type == MOUSEMOVE) {
-    do_cursor_update = true;
+  else {
+    switch (event->type) {
+      case EVT_ESCKEY:
+      case RIGHTMOUSE: {
+        view3d_interactive_add_exit(C, op);
+        return OPERATOR_CANCELLED;
+      }
+      case MOUSEMOVE: {
+        do_cursor_update = true;
+        break;
+      }
+    }
   }
 
   if (ipd->wait_for_input) {
@@ -1613,6 +1621,14 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
+  prop = RNA_def_boolean(ot->srna,
+                         "plane_axis_auto",
+                         false,
+                         "Auto Axis",
+                         "Select the closest axis when placing objects "
+                         "(surface overrides)");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
   static const EnumPropertyItem plane_depth_items[] = {
       {PLACE_DEPTH_SURFACE,
        "SURFACE",
@@ -1777,6 +1793,7 @@ static void gizmo_plane_update_cursor(const bContext *C,
 
   const enum ePlace_SnapTo snap_to = RNA_enum_get(&ptr, "snap_target");
   const int plane_axis = RNA_enum_get(&ptr, "plane_axis");
+  const bool plane_axis_auto = RNA_boolean_get(&ptr, "plane_axis_auto");
   const enum ePlace_Depth plane_depth = RNA_enum_get(&ptr, "plane_depth");
   const enum ePlace_Orient plane_orient = RNA_enum_get(&ptr, "plane_orientation");
 
@@ -1810,6 +1827,7 @@ static void gizmo_plane_update_cursor(const bContext *C,
                                     plane_depth,
                                     plane_orient,
                                     plane_axis,
+                                    plane_axis_auto,
                                     r_co,
                                     r_matrix_orient);
   *r_plane_axis = plane_axis;

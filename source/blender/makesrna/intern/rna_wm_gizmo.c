@@ -607,7 +607,7 @@ static wmGizmo *rna_GizmoGroup_gizmo_new(wmGizmoGroup *gzgroup,
       BKE_reportf(reports,
                   RPT_ERROR,
                   "GizmoType '%s' is for a 3D gizmo-group. "
-                  "The 'draw_select' callback is set where only 'test_select' will be used.",
+                  "The 'draw_select' callback is set where only 'test_select' will be used",
                   idname);
       return NULL;
     }
