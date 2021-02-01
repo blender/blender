@@ -731,6 +731,9 @@ set_and_warn_dependency(WITH_OPENVDB WITH_NANOVDB       OFF)
 # OpenVDB uses 'half' type from OpenEXR & fails to link without OpenEXR enabled.
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENVDB OFF)
 
+# Haru needs `TIFFFaxBlackCodes` & `TIFFFaxWhiteCodes` symbols from TIFF.
+set_and_warn_dependency(WITH_IMAGE_TIFF WITH_HARU       OFF)
+
 # auto enable openimageio for cycles
 if(WITH_CYCLES)
   set(WITH_OPENIMAGEIO ON)

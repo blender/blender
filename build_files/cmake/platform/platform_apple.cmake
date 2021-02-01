@@ -434,11 +434,6 @@ if(WITH_HARU)
     message(WARNING "Haru not found, disabling WITH_HARU")
     set(WITH_HARU OFF)
   endif()
-  if(NOT WITH_IMAGE_TIFF)
-    # Some symbols in libharu are provided by libtiff.
-    message(WARNING "WITH_IMAGE_TIFF not enabled, disabling WITH_HARU")
-    set(WITH_HARU OFF)
-  endif()
 endif()
 
 if(EXISTS ${LIBDIR})
