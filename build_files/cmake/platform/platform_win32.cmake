@@ -803,6 +803,11 @@ endif()
 
 if(WITH_HARU)
   if(EXISTS ${LIBDIR}/haru)
+    if(NOT WITH_IMAGE_TIFF)
+      # Some symbols in libharu are provided by libtiff.
+      message(WARNING "WITH_IMAGE_TIFF not enabled, disabling WITH_HARU")
+      set(WITH_HARU OFF)
+    endif()
     set(HARU_FOUND On)
     set(HARU_ROOT_DIR ${LIBDIR}/haru)
     set(HARU_INCLUDE_DIRS ${HARU_ROOT_DIR}/include)
