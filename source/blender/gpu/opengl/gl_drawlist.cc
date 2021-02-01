@@ -69,7 +69,6 @@ GLDrawList::GLDrawList(int length)
   buffer_id_ = 0;
   command_len_ = 0;
   command_offset_ = 0;
-  data_offset_ = 0;
   data_size_ = 0;
   data_ = nullptr;
 
@@ -81,6 +80,8 @@ GLDrawList::GLDrawList(int length)
     /* Indicates MDI is not supported. */
     buffer_size_ = 0;
   }
+  /* Force buffer specification on first init. */
+  data_offset_ = buffer_size_;
 }
 
 GLDrawList::~GLDrawList()
@@ -104,10 +105,10 @@ void GLDrawList::init()
 
   glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer_id_);
   /* If buffer is full, orphan buffer data and start fresh. */
-  // if (command_offset_ >= data_size_) {
-  glBufferData(GL_DRAW_INDIRECT_BUFFER, buffer_size_, nullptr, GL_DYNAMIC_DRAW);
-  data_offset_ = 0;
-  // }
+  if (data_offset_ >= buffer_size_) {
+    glBufferData(GL_DRAW_INDIRECT_BUFFER, buffer_size_, nullptr, GL_DYNAMIC_DRAW);
+    data_offset_ = 0;
+  }
   /* Map the remaining range. */
   GLbitfield flag = GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT;
   data_size_ = buffer_size_ - data_offset_;
