@@ -298,7 +298,7 @@ extern "C" {
 
 /**
  * \brief The main method that is used to execute the compositor tree.
- * It can be executed during editing (blenkernel/node.c) or rendering
+ * It can be executed during editing (blenkernel/node.cc) or rendering
  * (renderer/pipeline.c)
  *
  * \param rd: [struct RenderData]

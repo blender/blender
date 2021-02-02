@@ -197,7 +197,7 @@ set(SRC
   intern/multires_unsubdivide.c
   intern/multires_versioning.c
   intern/nla.c
-  intern/node.c
+  intern/node.cc
   intern/object.c
   intern/object_deform.c
   intern/object_dupli.c
