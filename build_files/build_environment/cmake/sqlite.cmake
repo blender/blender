@@ -42,7 +42,7 @@ if(UNIX)
     -DSQLITE_MAX_VARIABLE_NUMBER=250000 \
     -fPIC")
   set(SQLITE_CONFIGURE_ENV ${SQLITE_CONFIGURE_ENV} && export LDFLAGS=${SQLITE_LDFLAGS} && export CFLAGS=${SQLITE_CFLAGS})
-  set(SQLITE_CONFIGURATION_ARGS ${SQLITE_CONFIGURATION_ARGS} --enable-threadsafe --enable-load-extension --enable-json1 --enable-fts4 --enable-fts5
+  set(SQLITE_CONFIGURATION_ARGS ${SQLITE_CONFIGURATION_ARGS} --enable-threadsafe --enable-load-extension --enable-json1 --enable-fts4 --enable-fts5 --disable-tcl
       --enable-shared=no)
 endif()
 
