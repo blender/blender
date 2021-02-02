@@ -354,6 +354,8 @@ class MeshComponent : public GeometryComponent {
   void clear();
   bool has_mesh() const;
   void replace(Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  void replace_mesh_but_keep_vertex_group_names(
+      Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
   Mesh *release();
 
   void copy_vertex_group_names_from_object(const struct Object &object);
