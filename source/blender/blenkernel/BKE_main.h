@@ -202,6 +202,9 @@ void BKE_main_unlock(struct Main *bmain);
 
 void BKE_main_relations_create(struct Main *bmain, const short flag);
 void BKE_main_relations_free(struct Main *bmain);
+void BKE_main_relations_tag_set(struct Main *bmain,
+                                const MainIDRelationsEntryTags tag,
+                                const bool value);
 
 struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
 
