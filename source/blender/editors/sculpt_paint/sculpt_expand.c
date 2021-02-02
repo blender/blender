@@ -687,53 +687,88 @@ static void sculpt_expand_cache_free(ExpandCache *expand_cache)
   MEM_SAFE_FREE(expand_cache);
 }
 
-static void sculpt_expand_restore_original_state(SculptSession *ss, ExpandCache *expand_cache)
-{
-}
-
-static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
-{
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
-  const bool create_face_set = RNA_boolean_get(op->ptr, "create_face_set");
-
-  MEM_freeN(op->customdata);
-
-  for (int n = 0; n < ss->filter_cache->totnode; n++) {
-    PBVHNode *node = ss->filter_cache->nodes[n];
-    if (create_face_set) {
-      for (int i = 0; i < ss->totfaces; i++) {
-        ss->face_sets[i] = ss->filter_cache->prev_face_set[i];
-      }
-    }
-    else {
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-      {
-        *vd.mask = ss->filter_cache->prev_mask[vd.index];
-      }
-      BKE_pbvh_vertex_iter_end;
-    }
-
+static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *expand_cache) {
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  for (int n = 0; n < totnode; n++) {
+    PBVHNode *node = nodes[n];
     BKE_pbvh_node_mark_redraw(node);
   }
-
-  if (!create_face_set) {
-    SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
-  }
-  SCULPT_filter_cache_free(ss);
-  SCULPT_undo_push_end();
-  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
-  ED_workspace_status_text(C, NULL);
+  MEM_freeN(nodes);
+    for (int i = 0; i < ss->totfaces; i++) {
+        ss->face_sets[i] = expand_cache->origin_face_sets[i];
+    }
 }
 
-static void sculpt_expand_cancel(bContext *C, wmOperator *op)
+static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *expand_cache) {
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  for (int n = 0; n < totnode; n++) {
+    PBVHNode *node = nodes[n];
+    PBVHVertexIter vd;
+    BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+    {
+        copy_v4_v4(vd.col, expand_cache->initial_color[vd.index]);
+    }
+    BKE_pbvh_vertex_iter_end;
+    BKE_pbvh_node_mark_redraw(node);
+  }
+  MEM_freeN(nodes);
+}
+
+static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expand_cache) {
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  for (int n = 0; n < totnode; n++) {
+    PBVHNode *node = nodes[n];
+    PBVHVertexIter vd;
+    BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+    {
+        *vd.mask = expand_cache->initial_mask[vd.index];
+    }
+    BKE_pbvh_vertex_iter_end;
+    BKE_pbvh_node_mark_redraw(node);
+  }
+  MEM_freeN(nodes);
+}
+
+static void sculpt_expand_restore_original_state(bContext *C, Object *ob, ExpandCache *expand_cache)
+{
+
+  SculptSession *ss = ob->sculpt;
+  switch (expand_cache->target) {
+    case SCULPT_EXPAND_TARGET_MASK:
+      sculpt_expand_restore_mask_data(ss, expand_cache);
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      SCULPT_tag_update_overlays(C);
+      break;
+    case SCULPT_EXPAND_TARGET_FACE_SETS:
+      sculpt_expand_restore_face_set_data(ss, expand_cache);
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      SCULPT_tag_update_overlays(C);
+      break;
+    case SCULPT_EXPAND_TARGET_COLORS:
+      sculpt_expand_restore_color_data(ss, expand_cache);
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
+      break;
+  }
+}
+
+static void sculpt_expand_cancel(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
+  sculpt_expand_restore_original_state(C, ob, ss->expand_cache);
+
+  SCULPT_undo_push_end();
   sculpt_expand_cache_free(ss->expand_cache);
-  ED_workspace_status_text(C, NULL);
 }
 
 static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
@@ -1038,7 +1073,6 @@ static void sculpt_expand_resursion_step_add(Object *ob,
                                              const eSculptExpandRecursionType recursion_type)
 {
   SculptSession *ss = ob->sculpt;
-  const int totvert = SCULPT_vertex_count_get(ss);
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
   sculpt_expand_from_state_boundary(ob, expand_cache, enabled_vertices);
 
@@ -1105,7 +1139,7 @@ static void sculpt_expand_move_propagation_origin(bContext *C,
                                                             expand_cache->falloff_factor_type);
 }
 
-static int sculpt_expand_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -1117,6 +1151,10 @@ static int sculpt_expand_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
   ExpandCache *expand_cache = ss->expand_cache;
   if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
+      case SCULPT_EXPAND_MODAL_CANCEL: {
+        sculpt_expand_cancel(C, op);
+        return OPERATOR_FINISHED;
+      }
       case SCULPT_EXPAND_MODAL_INVERT: {
         expand_cache->invert = !expand_cache->invert;
         break;
@@ -1212,7 +1250,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
     }
   }
 
-  if (event->type != MOUSEMOVE) {
+  if (!ELEM(event->type,MOUSEMOVE, EVT_MODAL_MAP)) {
     return OPERATOR_RUNNING_MODAL;
   }
 
@@ -1308,6 +1346,31 @@ static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
   expand_cache->blend_mode = expand_cache->brush->blend;
 }
 
+static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache) {
+  SculptSession *ss = ob->sculpt;
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+
+  switch (expand_cache->target) {
+    case SCULPT_EXPAND_TARGET_MASK:
+      for (int i = 0; i < totnode; i++) {
+        SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+      }
+      break;
+    case SCULPT_EXPAND_TARGET_FACE_SETS:
+      SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+      break;
+    case SCULPT_EXPAND_TARGET_COLORS:
+      for (int i = 0; i < totnode; i++) {
+        SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COLOR);
+      }
+      break;
+  }
+
+  MEM_freeN(nodes);
+}
+
 static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -1330,7 +1393,10 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
+
+  /* Initialize undo. */
   SCULPT_undo_push_begin(ob, "expand");
+  sculpt_expand_undo_push(ob, ss->expand_cache);
 
   /* Set the initial element for expand from the event position. */
   const float mouse[2] = {event->mval[0], event->mval[1]};
@@ -1362,11 +1428,6 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Initial update. */
   sculpt_expand_update_for_vertex(C, ob, ss->expand_cache->initial_active_vertex);
-
-  const char *status_str = TIP_(
-      "Move the mouse to expand from the active vertex. LMB: confirm, ESC/RMB: "
-      "cancel");
-  ED_workspace_status_text(C, status_str);
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
@@ -1455,7 +1516,7 @@ void SCULPT_OT_expand(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "target",
                prop_sculpt_expand_target_type_items,
-               SCULPT_EXPAND_TARGET_FACE_SETS,
+               SCULPT_EXPAND_TARGET_MASK,
                "Data Target",
                "Data that is going to be modified in the expand operation");
 
