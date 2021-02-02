@@ -338,11 +338,10 @@ static void node_foreach_cache(ID *id,
                                void *user_data)
 {
   bNodeTree *nodetree = (bNodeTree *)id;
-  IDCacheKey key = {
-      .id_session_uuid = id->session_uuid,
-      .offset_in_ID = offsetof(bNodeTree, previews),
-      .cache_v = nodetree->previews,
-  };
+  IDCacheKey key = {0};
+  key.id_session_uuid = id->session_uuid;
+  key.offset_in_ID = offsetof(bNodeTree, previews);
+  key.cache_v = nodetree->previews;
 
   /* TODO, see also `direct_link_nodetree()` in readfile.c. */
 #if 0
@@ -879,30 +878,30 @@ static void ntree_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_NT = {
-    .id_code = ID_NT,
-    .id_filter = FILTER_ID_NT,
-    .main_listbase_index = INDEX_ID_NT,
-    .struct_size = sizeof(bNodeTree),
-    .name = "NodeTree",
-    .name_plural = "node_groups",
-    .translation_context = BLT_I18NCONTEXT_ID_NODETREE,
-    .flags = 0,
+    /* id_code */ ID_NT,
+    /* id_filter */ FILTER_ID_NT,
+    /* main_listbase_index */ INDEX_ID_NT,
+    /* struct_size */ sizeof(bNodeTree),
+    /* name */ "NodeTree",
+    /* name_plural */ "node_groups",
+    /* translation_context */ BLT_I18NCONTEXT_ID_NODETREE,
+    /* flags */ 0,
 
-    .init_data = ntree_init_data,
-    .copy_data = ntree_copy_data,
-    .free_data = ntree_free_data,
-    .make_local = nullptr,
-    .foreach_id = node_foreach_id,
-    .foreach_cache = node_foreach_cache,
+    /* init_data */ ntree_init_data,
+    /* copy_data */ ntree_copy_data,
+    /* free_data */ ntree_free_data,
+    /* make_local */ nullptr,
+    /* foreach_id */ node_foreach_id,
+    /* foreach_cache */ node_foreach_cache,
 
-    .blend_write = ntree_blend_write,
-    .blend_read_data = ntree_blend_read_data,
-    .blend_read_lib = ntree_blend_read_lib,
-    .blend_read_expand = ntree_blend_read_expand,
+    /* blend_write */ ntree_blend_write,
+    /* blend_read_data */ ntree_blend_read_data,
+    /* blend_read_lib */ ntree_blend_read_lib,
+    /* blend_read_expand */ ntree_blend_read_expand,
 
-    .blend_read_undo_preserve = nullptr,
+    /* blend_read_undo_preserve */ nullptr,
 
-    .lib_override_apply_post = nullptr,
+    /* lib_override_apply_post */ nullptr,
 };
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
