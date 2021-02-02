@@ -285,7 +285,7 @@ static int do_step_cloth(
     mul_m4_v3(ob->obmat, verts->xconst);
   }
 
-  effectors = BKE_effectors_create(depsgraph, ob, NULL, clmd->sim_parms->effector_weights);
+  effectors = BKE_effectors_create(depsgraph, ob, NULL, clmd->sim_parms->effector_weights, false);
 
   if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH) {
     cloth_update_verts(ob, clmd, result);

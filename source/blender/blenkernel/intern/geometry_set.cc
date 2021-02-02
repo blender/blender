@@ -339,6 +339,23 @@ void MeshComponent::replace(Mesh *mesh, GeometryOwnershipType ownership)
   ownership_ = ownership;
 }
 
+/* This function exists for the same reason as #vertex_group_names_. Non-nodes modifiers need to
+ * be able to replace the mesh data without losing the vertex group names, which may have come
+ * from another object. */
+void MeshComponent::replace_mesh_but_keep_vertex_group_names(Mesh *mesh,
+                                                             GeometryOwnershipType ownership)
+{
+  BLI_assert(this->is_mutable());
+  if (mesh_ != nullptr) {
+    if (ownership_ == GeometryOwnershipType::Owned) {
+      BKE_id_free(nullptr, mesh_);
+    }
+    mesh_ = nullptr;
+  }
+  mesh_ = mesh;
+  ownership_ = ownership;
+}
+
 /* Return the mesh and clear the component. The caller takes over responsibility for freeing the
  * mesh (if the component was responsible before). */
 Mesh *MeshComponent::release()

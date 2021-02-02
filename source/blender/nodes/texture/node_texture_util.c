@@ -146,7 +146,7 @@ void tex_output(bNode *node,
   }
 
   if (!out->data) {
-    /* Freed in tex_end_exec (node.c) */
+    /* Freed in tex_end_exec (node.cc) */
     dg = out->data = MEM_mallocN(sizeof(TexDelegate), "tex delegate");
   }
   else {
