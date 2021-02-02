@@ -711,7 +711,7 @@ def fluid_file_export_s$ID$(framenr, file_format, path, dict, file_name=None, mo
             file = os.path.join(path, file_name + '_' + framenr + file_format)\n\
             if not os.path.isfile(file) or mode_override:\n\
                 if file_format == '.vdb':\n\
-                    saveCombined = save(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$, skipDeletedParts=True, compression=vdbCompression_s$ID$, precision=vdbPrecision_s$ID$, clip=vdbClip_s$ID$, clipGrid=clipGrid)\n\
+                    saveCombined = save(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$, skipDeletedParts=True, compression=vdbCompression_s$ID$, precision=vdbPrecision_s$ID$, clip=vdbClip_s$ID$, clipGrid=clipGrid, meta=True)\n\
                 elif file_format == '.bobj.gz' or file_format == '.obj':\n\
                     for name, object in dict.items():\n\
                         if not os.path.isfile(file) or mode_override:\n\

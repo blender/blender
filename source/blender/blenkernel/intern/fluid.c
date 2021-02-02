@@ -4001,8 +4001,11 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
         has_config = manta_read_config(fds->fluid, fmd, mesh_frame);
       }
 
-      /* Update mesh data from file is faster than via Python (manta_read_mesh()). */
-      has_mesh = manta_read_mesh(fds->fluid, fmd, mesh_frame);
+      /* Only load the mesh at the resolution it ways originally simulated at.
+       * The mesh files don't have a header, i.e. the don't store the grid resolution. */
+      if (!manta_needs_realloc(fds->fluid, fmd)) {
+        has_mesh = manta_read_mesh(fds->fluid, fmd, mesh_frame);
+      }
     }
 
     /* Read particles cache. */

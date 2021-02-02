@@ -1984,7 +1984,9 @@ float MANTA::getTimestep()
 bool MANTA::needsRealloc(FluidModifierData *fmd)
 {
   FluidDomainSettings *fds = fmd->domain;
-  return (fds->res[0] != mResX || fds->res[1] != mResY || fds->res[2] != mResZ);
+  return ((fds->res_max[0] - fds->res_min[0]) != mResX ||
+          (fds->res_max[1] - fds->res_min[1]) != mResY ||
+          (fds->res_max[2] - fds->res_min[2]) != mResZ);
 }
 
 void MANTA::adaptTimestep()
