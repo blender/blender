@@ -708,9 +708,8 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
     const int vertex,
     eSculptExpandFalloffType falloff_type)
 {
-  if (expand_cache->falloff_factor) {
-    MEM_freeN(expand_cache->falloff_factor);
-  }
+
+  MEM_SAFE_FREE(expand_cache->falloff_factor);
 
   switch (falloff_type) {
     case SCULPT_EXPAND_FALLOFF_GEODESICS:
@@ -1257,6 +1256,15 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
+  if (!ELEM(event->type, MOUSEMOVE, EVT_MODAL_MAP)) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_boundary_info_ensure(ob);
+
   const float mouse[2] = {event->mval[0], event->mval[1]};
   const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mouse);
 
@@ -1374,10 +1382,6 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
     }
-  }
-
-  if (!ELEM(event->type, MOUSEMOVE, EVT_MODAL_MAP)) {
-    return OPERATOR_RUNNING_MODAL;
   }
 
   if (expand_cache->move) {
