@@ -508,8 +508,7 @@ struct CompMaxVec : public KernelBase {
 
 template<class T> Grid<T> &Grid<T>::copyFrom(const Grid<T> &a, bool copyType)
 {
-  assertMsg(a.mSize.x == mSize.x && a.mSize.y == mSize.y && a.mSize.z == mSize.z,
-            "different grid resolutions " << a.mSize << " vs " << this->mSize);
+  assertMsg(a.mSize == mSize, "different grid resolutions " << a.mSize << " vs " << this->mSize);
   memcpy(mData, a.mData, sizeof(T) * mSize.x * mSize.y * mSize.z);
   if (copyType)
     mType = a.mType;  // copy type marker
@@ -3402,8 +3401,7 @@ void PbRegister_markIsolatedFluidCell()
 void copyMACData(
     const MACGrid &source, MACGrid &target, const FlagGrid &flags, const int flag, const int bnd)
 {
-  assertMsg(source.getSize().x == target.getSize().x && source.getSize().y == target.getSize().y &&
-                source.getSize().z == target.getSize().z,
+  assertMsg(source.getSize() == target.getSize(),
             "different grid resolutions " << source.getSize() << " vs " << target.getSize());
 
   // Grid<Real> divGrid(target.getParent());

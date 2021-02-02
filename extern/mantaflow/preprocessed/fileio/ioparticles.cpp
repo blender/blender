@@ -230,6 +230,19 @@ int readParticlesUni(const std::string &name, BasicParticleSystem *parts)
     assertMsg(((head.bytesPerElement == PartSysSize) && (head.elementType == 0)),
               "particle type doesn't match");
 
+    const Vec3i curGridSize = parts->getParent()->getGridSize();
+    const Vec3i headGridSize(head.dimX, head.dimY, head.dimZ);
+#  if BLENDER
+    // Correct grid size is only a soft requirement in Blender
+    if (headGridSize != curGridSize) {
+      debMsg("readPdataUni: Grid dim doesn't match, " << headGridSize << " vs " << curGridSize, 1);
+      return 0;
+    }
+#  else
+    assertMsg(headGridSize == curGridSize,
+              "readPdataUni: Grid dim doesn't match, " << headGridSize << " vs " << curGridSize);
+#  endif
+
     // re-allocate all data
     parts->resizeAll(head.dim);
 
@@ -324,6 +337,19 @@ template<class T> int readPdataUni(const std::string &name, ParticleDataImpl<T> 
               "can't read file, no header present");
     pdata->getParticleSys()->resize(head.dim);  // ensure that parent particle system has same size
     pdata->resize(head.dim);
+
+    const Vec3i curGridSize = pdata->getParent()->getGridSize();
+    const Vec3i headGridSize(head.dimX, head.dimY, head.dimZ);
+#  if BLENDER
+    // Correct grid size is only a soft requirement in Blender
+    if (headGridSize != curGridSize) {
+      debMsg("readPdataUni: Grid dim doesn't match, " << headGridSize << " vs " << curGridSize, 1);
+      return 0;
+    }
+#  else
+    assertMsg(headGridSize == curGridSize,
+              "readPdataUni: Grid dim doesn't match, " << headGridSize << " vs " << curGridSize);
+#  endif
 
     assertMsg(head.dim == pdata->size(), "pdata size doesn't match");
 #  if FLOATINGPOINT_PRECISION != 1
