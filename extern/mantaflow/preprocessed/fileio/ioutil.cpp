@@ -90,6 +90,13 @@ template<> void convertFrom(openvdb::Vec3s &in, Vec3 *out)
   (*out).z = in.z();
 }
 
+template<> void convertFrom(openvdb::Vec3i &in, Vec3i *out)
+{
+  (*out).x = in.x();
+  (*out).y = in.y();
+  (*out).z = in.z();
+}
+
 // Convert to OpenVDB value from Manta value.
 template<class S, class T> void convertTo(S *out, T &in)
 {

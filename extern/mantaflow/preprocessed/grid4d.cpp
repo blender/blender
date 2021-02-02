@@ -491,9 +491,7 @@ template<class T> Grid4d<T> &Grid4d<T>::safeDivide(const Grid4d<T> &a)
 }
 template<class T> Grid4d<T> &Grid4d<T>::copyFrom(const Grid4d<T> &a, bool copyType)
 {
-  assertMsg(a.mSize.x == mSize.x && a.mSize.y == mSize.y && a.mSize.z == mSize.z &&
-                a.mSize.t == mSize.t,
-            "different Grid4d resolutions " << a.mSize << " vs " << this->mSize);
+  assertMsg(a.mSize == mSize, "different Grid4d resolutions " << a.mSize << " vs " << this->mSize);
   memcpy(mData, a.mData, sizeof(T) * mSize.x * mSize.y * mSize.z * mSize.t);
   if (copyType)
     mType = a.mType;  // copy type marker

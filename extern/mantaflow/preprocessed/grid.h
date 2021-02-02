@@ -596,6 +596,7 @@ template<class T> class Grid : public GridBase {
   //! set data
   inline void set(int i, int j, int k, T &val)
   {
+    DEBUG_ONLY(checkIndex(i, j, k));
     mData[index(i, j, k)] = val;
   }
 

@@ -628,13 +628,24 @@ template<class T> int readGridUni(const string &name, Grid<T> *grid)
     // current file format
     UniHeader head;
     assertMsg(gzread(gzf, &head, sizeof(UniHeader)) == sizeof(UniHeader),
-              "can't read file, no header present");
-    assertMsg(head.dimX == grid->getSizeX() && head.dimY == grid->getSizeY() &&
-                  head.dimZ == grid->getSizeZ(),
-              "grid dim doesn't match, " << Vec3(head.dimX, head.dimY, head.dimZ) << " vs "
-                                         << grid->getSize());
+              "readGridUni: Can't read file, no header present");
     assertMsg(unifyGridType(head.gridType) == unifyGridType(grid->getType()),
-              "grid type doesn't match " << head.gridType << " vs " << grid->getType());
+              "readGridUni: Grid type doesn't match " << head.gridType << " vs "
+                                                      << grid->getType());
+
+    const Vec3i curGridSize = grid->getParent()->getGridSize();
+    const Vec3i headGridSize(head.dimX, head.dimY, head.dimZ);
+#  if BLENDER
+    // Correct grid size is only a soft requirement in Blender
+    if (headGridSize != curGridSize) {
+      debMsg("readGridUni: Grid dim doesn't match, " << headGridSize << " vs " << curGridSize, 1);
+      return 0;
+    }
+#  else
+    assertMsg(headGridSize == curGridSize,
+              "readGridUni: Grid dim doesn't match, " << headGridSize << " vs " << curGridSize);
+#  endif
+
 #  if FLOATINGPOINT_PRECISION != 1
     // convert float to double
     Grid<T> temp(grid->getParent());

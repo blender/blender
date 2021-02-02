@@ -38,6 +38,11 @@
 #define POSITION_NAME "P"
 #define FLAG_NAME "U"
 
+#define META_BASE_RES "file_base_resolution"
+#define META_VOXEL_SIZE "file_voxel_size"
+#define META_BBOX_MAX "file_bbox_max"
+#define META_BBOX_MIN "file_bbox_min"
+
 using namespace std;
 
 namespace Manta {
@@ -388,7 +393,8 @@ int writeObjectsVDB(const string &filename,
                     int compression,
                     int precision,
                     float clip,
-                    const Grid<Real> *clipGrid)
+                    const Grid<Real> *clipGrid,
+                    const bool meta)
 {
   openvdb::initialize();
   openvdb::io::File file(filename);
@@ -489,6 +495,16 @@ int writeObjectsVDB(const string &filename,
     // Set additional grid attributes, e.g. name, grid class, compression level, etc.
     if (vdbGrid) {
       setGridOptions<openvdb::GridBase>(vdbGrid, objectName, gClass, voxelSize, precision);
+
+      // Optional metadata: Save additional simulation information per vdb object
+      if (meta) {
+        const Vec3i size = object->getParent()->getGridSize();
+        // The (dense) resolution of this grid
+        vdbGrid->insertMeta(META_BASE_RES,
+                            openvdb::Vec3IMetadata(openvdb::Vec3i(size.x, size.y, size.z)));
+        // Length of one voxel side
+        vdbGrid->insertMeta(META_VOXEL_SIZE, openvdb::FloatMetadata(voxelSize));
+      }
     }
   }
 
@@ -533,6 +549,44 @@ int writeObjectsVDB(const string &filename,
   return 1;
 }
 
+static void clearAll(std::vector<PbClass *> *objects, std::vector<ParticleDataBase *> pdbBuffer)
+{
+  // Clear all data loaded into manta objects (e.g. during IO error)
+  for (std::vector<PbClass *>::iterator iter = objects->begin(); iter != objects->end(); ++iter) {
+    if (GridBase *mantaGrid = dynamic_cast<GridBase *>(*iter)) {
+      if (mantaGrid->getType() & GridBase::TypeInt) {
+        Grid<int> *mantaIntGrid = (Grid<int> *)mantaGrid;
+        mantaIntGrid->clear();
+      }
+      else if (mantaGrid->getType() & GridBase::TypeReal) {
+        Grid<Real> *mantaRealGrid = (Grid<Real> *)mantaGrid;
+        mantaRealGrid->clear();
+      }
+      else if (mantaGrid->getType() & GridBase::TypeVec3) {
+        Grid<Vec3> *mantaVec3Grid = (Grid<Vec3> *)mantaGrid;
+        mantaVec3Grid->clear();
+      }
+    }
+    else if (BasicParticleSystem *mantaPP = dynamic_cast<BasicParticleSystem *>(*iter)) {
+      mantaPP->clear();
+    }
+  }
+  for (ParticleDataBase *pdb : pdbBuffer) {
+    if (pdb->getType() == ParticleDataBase::TypeInt) {
+      ParticleDataImpl<int> *mantaPDataInt = (ParticleDataImpl<int> *)pdb;
+      mantaPDataInt->clear();
+    }
+    else if (pdb->getType() == ParticleDataBase::TypeReal) {
+      ParticleDataImpl<Real> *mantaPDataReal = (ParticleDataImpl<Real> *)pdb;
+      mantaPDataReal->clear();
+    }
+    else if (pdb->getType() == ParticleDataBase::TypeVec3) {
+      ParticleDataImpl<Vec3> *mantaPDataVec3 = (ParticleDataImpl<Vec3> *)pdb;
+      mantaPDataVec3->clear();
+    }
+  }
+}
+
 int readObjectsVDB(const string &filename, std::vector<PbClass *> *objects, float worldSize)
 {
 
@@ -561,6 +615,9 @@ int readObjectsVDB(const string &filename, std::vector<PbClass *> *objects, floa
   // A buffer to store a handle to pData objects. These will be read alongside a particle system.
   std::vector<ParticleDataBase *> pdbBuffer;
 
+  // Count how many objects could not be read correctly
+  int readFailure = 0;
+
   for (std::vector<PbClass *>::iterator iter = objects->begin(); iter != objects->end(); ++iter) {
 
     if (gridsVDB.empty()) {
@@ -568,11 +625,12 @@ int readObjectsVDB(const string &filename, std::vector<PbClass *> *objects, floa
     }
     // If there is just one grid in this file, load it regardless of name match (to vdb caches per
     // grid).
-    bool onlyGrid = (gridsVDB.size() == 1);
+    const bool onlyGrid = (gridsVDB.size() == 1);
 
     PbClass *object = dynamic_cast<PbClass *>(*iter);
     const Real dx = object->getParent()->getDx();
-    const Real voxelSize = worldSize * dx;
+    const Vec3i origRes = object->getParent()->getGridSize();
+    Real voxelSize = worldSize * dx;
 
     // Particle data objects are treated separately - buffered and inserted when reading the
     // particle system
@@ -596,6 +654,81 @@ int readObjectsVDB(const string &filename, std::vector<PbClass *> *objects, floa
       if (!nameMatch && !onlyGrid) {
         continue;
       }
+
+      // Metadata: If present in the file, meta data will be parsed into these fields
+      Real metaVoxelSize(0);
+      Vec3i metaRes(0), metaBBoxMax(0), metaBBoxMin(0);
+
+      // Loop to load all meta data that we care about
+      for (openvdb::MetaMap::MetaIterator iter = vdbGrid->beginMeta(); iter != vdbGrid->endMeta();
+           ++iter) {
+        const std::string &name = iter->first;
+        const openvdb::Metadata::Ptr value = iter->second;
+        if (name.compare(META_BASE_RES) == 0) {
+          openvdb::Vec3i tmp = static_cast<openvdb::Vec3IMetadata &>(*value).value();
+          convertFrom(tmp, &metaRes);
+        }
+        else if (name.compare(META_VOXEL_SIZE) == 0) {
+          float tmp = static_cast<openvdb::FloatMetadata &>(*value).value();
+          convertFrom(tmp, &metaVoxelSize);
+
+          voxelSize = metaVoxelSize;  // Make sure to update voxel size variable (used in
+                                      // pointgrid's importVDB())
+          if (worldSize != 1.0)
+            debMsg(
+                "readObjectsVDB: Found voxel size in meta data. worldSize parameter will be "
+                "ignored!",
+                1);
+        }
+        else if (name.compare(META_BBOX_MAX) == 0) {
+          openvdb::Vec3i tmp = static_cast<openvdb::Vec3IMetadata &>(*value).value();
+          convertFrom(tmp, &metaBBoxMax);
+        }
+        else if (name.compare(META_BBOX_MIN) == 0) {
+          openvdb::Vec3i tmp = static_cast<openvdb::Vec3IMetadata &>(*value).value();
+          convertFrom(tmp, &metaBBoxMin);
+        }
+        else {
+          debMsg("readObjectsVDB: Skipping unknown meta information '" << name << "'", 1);
+        }
+      }
+
+      // Compare metadata with allocated grid setup. This prevents invalid index access.
+      if (notZero(metaRes) && metaRes != origRes) {
+        debMsg("readObjectsVDB Warning: Grid '" << vdbGrid->getName()
+                                                << "' has not been read. Meta grid res " << metaRes
+                                                << " vs " << origRes << " current grid size",
+               1);
+        readFailure++;
+        break;
+      }
+      if (notZero(metaVoxelSize) && metaVoxelSize != voxelSize) {
+        debMsg("readObjectsVDB Warning: Grid '"
+                   << vdbGrid->getName() << "' has not been read. Meta voxel size "
+                   << metaVoxelSize << " vs " << voxelSize << " current voxel size",
+               1);
+        readFailure++;
+        break;
+      }
+      if (metaBBoxMax.x > origRes.x || metaBBoxMax.y > origRes.y || metaBBoxMax.z > origRes.z) {
+        debMsg("readObjectsVDB Warning: Grid '"
+                   << vdbGrid->getName() << "' has not been read. Vdb bbox max " << metaBBoxMax
+                   << " vs " << origRes << " current grid size",
+               1);
+        readFailure++;
+        break;
+      }
+      const Vec3i origOrigin(0);
+      if (metaBBoxMin.x < origOrigin.x || metaBBoxMin.y < origOrigin.y ||
+          metaBBoxMin.z < origOrigin.z) {
+        debMsg("readObjectsVDB Warning: Grid '"
+                   << vdbGrid->getName() << "' has not been read. Vdb bbox min " << metaBBoxMin
+                   << " vs " << origOrigin << " current grid origin",
+               1);
+        readFailure++;
+        break;
+      }
+
       if (GridBase *mantaGrid = dynamic_cast<GridBase *>(*iter)) {
 
         if (mantaGrid->getType() & GridBase::TypeInt) {
@@ -655,6 +788,17 @@ int readObjectsVDB(const string &filename, std::vector<PbClass *> *objects, floa
         return 0;
       }
     }
+    // Do not continue loading objects in this loop if there was a read error
+    if (readFailure > 0) {
+      break;
+    }
+  }
+
+  if (readFailure > 0) {
+    // Clear all data that has already been loaded into simulation objects
+    clearAll(objects, pdbBuffer);
+    pdbBuffer.clear();
+    return 0;
   }
 
   // Give out a warning if pData items were present but could not be read due to missing particle
@@ -729,7 +873,8 @@ int writeObjectsVDB(const string &filename,
                     int compression,
                     int precision,
                     float clip,
-                    const Grid<Real> *clipGrid)
+                    const Grid<Real> *clipGrid,
+                    const bool meta)
 {
   errMsg("Cannot save to .vdb file. Mantaflow has not been built with OpenVDB support.");
   return 0;
