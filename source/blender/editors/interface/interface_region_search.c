@@ -463,8 +463,11 @@ static void ui_searchbox_update_fn(bContext *C,
                                    const char *str,
                                    uiSearchItems *items)
 {
-  wmWindow *win = CTX_wm_window(C);
-  WM_tooltip_clear(C, win);
+  /* While the button is in text editing mode (searchbox open), remove tooltips on every update. */
+  if (search_but->but.editstr) {
+    wmWindow *win = CTX_wm_window(C);
+    WM_tooltip_clear(C, win);
+  }
   search_but->items_update_fn(C, search_but->arg, str, items);
 }
 
