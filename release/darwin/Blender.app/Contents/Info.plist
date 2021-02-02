@@ -11,8 +11,6 @@
 			<array>
 				<string>blend</string>
 			</array>
-			<key>CFBundleTypeIconFile</key>
-			<string>blender file icon.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Blender File</string>
 			<key>CFBundleTypeOSTypes</key>
@@ -22,6 +20,12 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSIsAppleDefaultForType</key>
+			<true/>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.blenderfoundation.blender.file</string>
+			</array>
+			<key>CFBundleTypeIconSystemGenerated</key>
 			<true/>
 		</dict>
 	</array>
@@ -49,5 +53,30 @@
 	<string>NSApplication</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeIdentifier</key>
+			<string>org.blenderfoundation.blender.file</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconName</key>
+				<string>Blender File</string>
+				<key>UTTypeIconText</key>
+				<string>blend</string>
+			</dict>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>blend</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>
