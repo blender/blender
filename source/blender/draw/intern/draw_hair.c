@@ -28,6 +28,7 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
@@ -195,7 +196,12 @@ void DRW_hair_duplimat_get(Object *object,
   if (psys) {
     if ((dupli_parent != NULL) && (dupli_object != NULL)) {
       if (dupli_object->type & OB_DUPLICOLLECTION) {
-        copy_m4_m4(dupli_mat, dupli_parent->obmat);
+        unit_m4(dupli_mat);
+        Collection *collection = dupli_parent->instance_collection;
+        if (collection != NULL) {
+          sub_v3_v3(dupli_mat[3], collection->instance_offset);
+        }
+        mul_m4_m4m4(dupli_mat, dupli_parent->obmat, dupli_mat);
       }
       else {
         copy_m4_m4(dupli_mat, dupli_object->ob->obmat);
