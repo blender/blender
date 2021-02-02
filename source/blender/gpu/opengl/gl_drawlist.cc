@@ -105,7 +105,8 @@ void GLDrawList::init()
 
   glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer_id_);
   /* If buffer is full, orphan buffer data and start fresh. */
-  if (data_offset_ >= buffer_size_) {
+  size_t command_size = MDI_INDEXED ? sizeof(GLDrawCommandIndexed) : sizeof(GLDrawCommand);
+  if (data_offset_ + command_size > buffer_size_) {
     glBufferData(GL_DRAW_INDIRECT_BUFFER, buffer_size_, nullptr, GL_DYNAMIC_DRAW);
     data_offset_ = 0;
   }
@@ -152,7 +153,6 @@ void GLDrawList::append(GPUBatch *gpu_batch, int i_first, int i_count)
     cmd->i_count = i_count;
     cmd->base_index = base_index_;
     cmd->i_first = i_first;
-    command_offset_ += sizeof(GLDrawCommandIndexed);
   }
   else {
     GLDrawCommand *cmd = reinterpret_cast<GLDrawCommand *>(data_ + command_offset_);
@@ -160,12 +160,15 @@ void GLDrawList::append(GPUBatch *gpu_batch, int i_first, int i_count)
     cmd->v_count = v_count_;
     cmd->i_count = i_count;
     cmd->i_first = i_first;
-    command_offset_ += sizeof(GLDrawCommand);
   }
 
+  size_t command_size = MDI_INDEXED ? sizeof(GLDrawCommandIndexed) : sizeof(GLDrawCommand);
+
+  command_offset_ += command_size;
   command_len_++;
 
-  if (command_offset_ >= data_size_) {
+  /* Check if we can fit at least one other command. */
+  if (command_offset_ + command_size > data_size_) {
     this->submit();
   }
 }
@@ -180,10 +183,12 @@ void GLDrawList::submit()
   BLI_assert(data_);
   BLI_assert(GLContext::get()->shader != nullptr);
 
+  size_t command_size = MDI_INDEXED ? sizeof(GLDrawCommandIndexed) : sizeof(GLDrawCommand);
+
   /* Only do multi-draw indirect if doing more than 2 drawcall. This avoids the overhead of
    * buffer mapping if scene is not very instance friendly. BUT we also need to take into
    * account the case where only a few instances are needed to finish filling a call buffer. */
-  const bool is_finishing_a_buffer = (command_offset_ >= data_size_);
+  const bool is_finishing_a_buffer = (command_offset_ + command_size > data_size_);
   if (command_len_ > 2 || is_finishing_a_buffer) {
     GLenum prim = to_gl(batch_->prim_type);
     void *offset = (void *)data_offset_;
