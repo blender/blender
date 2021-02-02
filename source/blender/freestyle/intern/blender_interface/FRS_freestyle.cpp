@@ -500,6 +500,11 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
   int x, y, rectx, recty;
 
   if (freestyle_render == nullptr || freestyle_render->result == nullptr) {
+    if (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS) {
+      // Create a blank render pass output.
+      RE_create_render_pass(
+          re->result, RE_PASSNAME_FREESTYLE, 4, "RGBA", view_layer->name, re->viewname);
+    }
     return;
   }
 
@@ -677,8 +682,8 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
       g_freestyle.scene = nullptr;
 
       // composite result
+      FRS_composite_result(re, view_layer, freestyle_render);
       if (freestyle_render) {
-        FRS_composite_result(re, view_layer, freestyle_render);
         RE_FreeRender(freestyle_render);
       }
     }
