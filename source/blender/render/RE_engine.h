@@ -64,6 +64,7 @@ extern "C" {
 #define RE_USE_SPHERICAL_STEREO 128
 #define RE_USE_STEREO_VIEWPORT 256
 #define RE_USE_GPU_CONTEXT 512
+#define RE_USE_CUSTOM_FREESTYLE 1024
 
 /* RenderEngine.flag */
 #define RE_ENGINE_ANIMATION 1

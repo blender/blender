@@ -34,6 +34,7 @@ typedef enum eGPUDeviceType {
   GPU_DEVICE_ATI = (1 << 1),
   GPU_DEVICE_INTEL = (1 << 2),
   GPU_DEVICE_INTEL_UHD = (1 << 3),
+  GPU_DEVICE_APPLE = (1 << 3),
   GPU_DEVICE_SOFTWARE = (1 << 4),
   GPU_DEVICE_UNKNOWN = (1 << 5),
   GPU_DEVICE_ANY = (0xff),

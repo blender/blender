@@ -8,6 +8,7 @@
 
 import argparse
 import os
+import platform
 import shutil
 import sys
 
@@ -49,7 +50,12 @@ def svn_update(args, release_version):
 
     # Checkout precompiled libraries
     if sys.platform == 'darwin':
-        lib_platform = "darwin"
+        if platform.machine() == 'x86_64':
+            lib_platform = "darwin"
+        elif platform.machine() == 'arm64':
+            lib_platform = "darwin_arm64"
+        else:
+            lib_platform = None
     elif sys.platform == 'win32':
         # Windows checkout is usually handled by bat scripts since python3 to run
         # this script is bundled as part of the precompiled libraries. However it

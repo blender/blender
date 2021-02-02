@@ -20,6 +20,7 @@
  * \ingroup draw_engine
  */
 
+#include "DNA_collection_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_view3d_types.h"
@@ -141,7 +142,12 @@ static void wireframe_hair_cache_populate(OVERLAY_Data *vedata, Object *ob, Part
   float dupli_mat[4][4];
   if ((dupli_parent != NULL) && (dupli_object != NULL)) {
     if (dupli_object->type & OB_DUPLICOLLECTION) {
-      copy_m4_m4(dupli_mat, dupli_parent->obmat);
+      unit_m4(dupli_mat);
+      Collection *collection = dupli_parent->instance_collection;
+      if (collection != NULL) {
+        sub_v3_v3(dupli_mat[3], collection->instance_offset);
+      }
+      mul_m4_m4m4(dupli_mat, dupli_parent->obmat, dupli_mat);
     }
     else {
       copy_m4_m4(dupli_mat, dupli_object->ob->obmat);

@@ -3457,6 +3457,10 @@ Depsgraph *BKE_scene_get_depsgraph(const Scene *scene, const ViewLayer *view_lay
 {
   BLI_assert(BKE_scene_has_view_layer(scene, view_layer));
 
+  if (scene->depsgraph_hash == NULL) {
+    return NULL;
+  }
+
   DepsgraphKey key;
   key.view_layer = view_layer;
   return BLI_ghash_lookup(scene->depsgraph_hash, &key);

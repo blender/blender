@@ -275,6 +275,16 @@ void BLI_args_print_other_doc(struct bArgs *ba)
   }
 }
 
+bool BLI_args_has_other_doc(const struct bArgs *ba)
+{
+  for (const bArgDoc *d = ba->docs.first; d; d = d->next) {
+    if (d->done == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void BLI_args_parse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *default_data)
 {
   BLI_assert((pass != 0) && (pass >= -1));

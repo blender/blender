@@ -496,7 +496,7 @@ static const char arg_handle_print_help_doc[] =
     "Print this help text and exit.";
 static const char arg_handle_print_help_doc_win32[] =
     "\n\t"
-    "Print this help text and exit (windows only).";
+    "Print this help text and exit (Windows only).";
 static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
   bArgs *ba = (bArgs *)data;
@@ -586,8 +586,12 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-no-threads");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-time");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-pretty");
+  BLI_args_print_arg_doc(ba, "--debug-depsgraph-uuid");
+  BLI_args_print_arg_doc(ba, "--debug-ghost");
   BLI_args_print_arg_doc(ba, "--debug-gpu");
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
+  BLI_args_print_arg_doc(ba, "--debug-gpu-shaders");
+  BLI_args_print_arg_doc(ba, "--debug-gpumem");
   BLI_args_print_arg_doc(ba, "--debug-wm");
 #  ifdef WITH_XR_OPENXR
   BLI_args_print_arg_doc(ba, "--debug-xr");
@@ -598,8 +602,11 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
   printf("\n");
   BLI_args_print_arg_doc(ba, "--debug-fpe");
+  BLI_args_print_arg_doc(ba, "--debug-exit-on-error");
   BLI_args_print_arg_doc(ba, "--disable-crash-handler");
   BLI_args_print_arg_doc(ba, "--disable-abort-handler");
+
+  BLI_args_print_arg_doc(ba, "--verbose");
 
   printf("\n");
   printf("Misc Options:\n");
@@ -617,6 +624,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   printf("\n");
 
   BLI_args_print_arg_doc(ba, "--help");
+  BLI_args_print_arg_doc(ba, "/?");
 
   /* WIN32 only (ignored for non-win32) */
   BLI_args_print_arg_doc(ba, "-R");
@@ -629,10 +637,15 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   // printf("\n");
   // printf("Experimental Features:\n");
 
-  /* Other options _must_ be last (anything not handled will show here) */
-  printf("\n");
-  printf("Other Options:\n");
-  BLI_args_print_other_doc(ba);
+  /* Other options _must_ be last (anything not handled will show here).
+   *
+   * Note that it's good practice for this to remain empty,
+   * nevertheless print if any exist. */
+  if (BLI_args_has_other_doc(ba)) {
+    printf("\n");
+    printf("Other Options:\n");
+    BLI_args_print_other_doc(ba);
+  }
 
   printf("\n");
   printf("Argument Parsing:\n");

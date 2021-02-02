@@ -2165,6 +2165,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     scene->toolsettings->uvcalc_margin = island_margin;
 
     /* Depsgraph refresh functions are called here. */
+    const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
     ED_uvedit_pack_islands_multi(scene,
                                  objects_changed,
                                  object_changed_len,
@@ -2173,7 +2174,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
                                      /* We could make this optional. */
                                      .rotate_align_axis = 1,
                                      .only_selected_faces = true,
-                                     .correct_aspect = true,
+                                     .correct_aspect = correct_aspect,
                                      .use_seams = true,
                                  });
 

@@ -96,6 +96,11 @@ void GLBackend::platform_init()
     GPG.device = GPU_DEVICE_SOFTWARE;
     GPG.driver = GPU_DRIVER_SOFTWARE;
   }
+  else if (strstr(vendor, "Apple")) {
+    /* Apple Silicon. */
+    GPG.device = GPU_DEVICE_APPLE;
+    GPG.driver = GPU_DRIVER_OFFICIAL;
+  }
   else if (strstr(renderer, "Apple Software Renderer")) {
     GPG.device = GPU_DEVICE_SOFTWARE;
     GPG.driver = GPU_DRIVER_SOFTWARE;
