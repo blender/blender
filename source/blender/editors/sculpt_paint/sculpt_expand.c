@@ -87,6 +87,7 @@ enum {
   SCULPT_EXPAND_MODAL_MOVE_TOGGLE,
   SCULPT_EXPAND_MODAL_FALLOFF_GEODESICS,
   SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY,
+  SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS,
   SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL,
   SCULPT_EXPAND_MODAL_SNAP_TOGGLE,
   SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE,
@@ -97,6 +98,7 @@ enum {
 static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
     {SCULPT_EXPAND_FALLOFF_GEODESICS, "GEODESICS", 0, "Surface", ""},
     {SCULPT_EXPAND_FALLOFF_TOPOLOGY, "TOPOLOGY", 0, "Topology", ""},
+    {SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS, "TOPOLOGY_DIAGONALS", 0, "Topology Diagonals", ""},
     {SCULPT_EXPAND_FALLOFF_NORMALS, "NORMALS", 0, "Normals", ""},
     {SCULPT_EXPAND_FALLOFF_SPHERICAL, "SPHERICAL", 0, "Spherical", ""},
     {SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY, "BOUNDARY_TOPOLOGY", 0, "Boundary Topology", ""},
@@ -381,6 +383,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
   while (!BLI_gsqueue_is_empty(queue)) {
     int v;
     BLI_gsqueue_pop(queue, &v);
+
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v, ni) {
       if (BLI_BITMAP_TEST(visited_vertices, ni.index)) {
@@ -391,6 +394,71 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
       BLI_gsqueue_push(queue, &ni.index);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  }
+
+  for (int i = 0; i < totvert; i++) {
+    if (BLI_BITMAP_TEST(visited_vertices, i)) {
+      continue;
+    }
+    dists[i] = FLT_MAX;
+  }
+
+  BLI_gsqueue_free(queue);
+  MEM_freeN(visited_vertices);
+  return dists;
+}
+
+static float *sculpt_expand_diagonals_falloff_create(Sculpt *sd, Object *ob, const int vertex)
+{
+  SculptSession *ss = ob->sculpt;
+  const int totvert = SCULPT_vertex_count_get(ss);
+  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "spherical dist");
+
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return dists;
+  }
+
+  BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(totvert, "visited vertices");
+  GSQueue *queue = BLI_gsqueue_new(sizeof(int));
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  for (char symm_it = 0; symm_it <= symm; symm_it++) {
+    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+      continue;
+    }
+    int v = SCULPT_EXPAND_VERTEX_NONE;
+    if (symm_it == 0) {
+      v = vertex;
+    }
+    else {
+      float location[3];
+      flip_v3_v3(location, SCULPT_vertex_co_get(ss, vertex), symm_it);
+      v = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
+    }
+
+    BLI_gsqueue_push(queue, &v);
+    BLI_BITMAP_ENABLE(visited_vertices, v);
+  }
+
+  if (BLI_gsqueue_is_empty(queue)) {
+    return dists;
+  }
+
+  Mesh *mesh = ob->data;
+  while (!BLI_gsqueue_is_empty(queue)) {
+    int v;
+    BLI_gsqueue_pop(queue, &v);
+    for (int j = 0; j < ss->pmap[v].count; j++) {
+      MPoly *p = &ss->mpoly[ss->pmap[v].indices[j]];
+      for (int l = 0; l < p->totloop; l++) {
+        const int neighbor_v = mesh->mloop[p->loopstart + l].v;
+        if (BLI_BITMAP_TEST(visited_vertices, neighbor_v)) {
+          continue;
+        }
+        dists[neighbor_v] = dists[v] + 1.0f;
+        BLI_BITMAP_ENABLE(visited_vertices, neighbor_v);
+        BLI_gsqueue_push(queue, &neighbor_v);
+      }
+    }
   }
 
   for (int i = 0; i < totvert; i++) {
@@ -642,6 +710,9 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
     case SCULPT_EXPAND_FALLOFF_TOPOLOGY:
       expand_cache->falloff_factor = sculpt_expand_topology_falloff_create(sd, ob, vertex);
       break;
+    case SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS:
+      expand_cache->falloff_factor = sculpt_expand_diagonals_falloff_create(sd, ob, vertex);
+      break;
     case SCULPT_EXPAND_FALLOFF_NORMALS:
       expand_cache->falloff_factor = sculpt_expand_normal_falloff_create(sd, ob, vertex, 300.0f);
       break;
@@ -687,7 +758,8 @@ static void sculpt_expand_cache_free(ExpandCache *expand_cache)
   MEM_SAFE_FREE(expand_cache);
 }
 
-static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *expand_cache) {
+static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *expand_cache)
+{
   PBVHNode **nodes;
   int totnode;
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
@@ -696,29 +768,13 @@ static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *
     BKE_pbvh_node_mark_redraw(node);
   }
   MEM_freeN(nodes);
-    for (int i = 0; i < ss->totfaces; i++) {
-        ss->face_sets[i] = expand_cache->origin_face_sets[i];
-    }
-}
-
-static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *expand_cache) {
-  PBVHNode **nodes;
-  int totnode;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-  for (int n = 0; n < totnode; n++) {
-    PBVHNode *node = nodes[n];
-    PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-    {
-        copy_v4_v4(vd.col, expand_cache->initial_color[vd.index]);
-    }
-    BKE_pbvh_vertex_iter_end;
-    BKE_pbvh_node_mark_redraw(node);
+  for (int i = 0; i < ss->totfaces; i++) {
+    ss->face_sets[i] = expand_cache->origin_face_sets[i];
   }
-  MEM_freeN(nodes);
 }
 
-static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expand_cache) {
+static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *expand_cache)
+{
   PBVHNode **nodes;
   int totnode;
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
@@ -727,7 +783,7 @@ static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expa
     PBVHVertexIter vd;
     BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
     {
-        *vd.mask = expand_cache->initial_mask[vd.index];
+      copy_v4_v4(vd.col, expand_cache->initial_color[vd.index]);
     }
     BKE_pbvh_vertex_iter_end;
     BKE_pbvh_node_mark_redraw(node);
@@ -735,7 +791,27 @@ static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expa
   MEM_freeN(nodes);
 }
 
-static void sculpt_expand_restore_original_state(bContext *C, Object *ob, ExpandCache *expand_cache)
+static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expand_cache)
+{
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  for (int n = 0; n < totnode; n++) {
+    PBVHNode *node = nodes[n];
+    PBVHVertexIter vd;
+    BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+    {
+      *vd.mask = expand_cache->initial_mask[vd.index];
+    }
+    BKE_pbvh_vertex_iter_end;
+    BKE_pbvh_node_mark_redraw(node);
+  }
+  MEM_freeN(nodes);
+}
+
+static void sculpt_expand_restore_original_state(bContext *C,
+                                                 Object *ob,
+                                                 ExpandCache *expand_cache)
 {
 
   SculptSession *ss = ob->sculpt;
@@ -1229,6 +1305,15 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
             SCULPT_EXPAND_FALLOFF_TOPOLOGY);
         break;
       }
+      case SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS: {
+        sculpt_expand_falloff_factors_from_vertex_and_symm_create(
+            expand_cache,
+            sd,
+            ob,
+            expand_cache->initial_active_vertex,
+            SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS);
+        break;
+      }
       case SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL: {
         sculpt_expand_falloff_factors_from_vertex_and_symm_create(
             expand_cache,
@@ -1250,7 +1335,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
     }
   }
 
-  if (!ELEM(event->type,MOUSEMOVE, EVT_MODAL_MAP)) {
+  if (!ELEM(event->type, MOUSEMOVE, EVT_MODAL_MAP)) {
     return OPERATOR_RUNNING_MODAL;
   }
 
@@ -1346,7 +1431,8 @@ static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
   expand_cache->blend_mode = expand_cache->brush->blend;
 }
 
-static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache) {
+static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
+{
   SculptSession *ss = ob->sculpt;
   PBVHNode **nodes;
   int totnode;
@@ -1459,6 +1545,11 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        ""},
       {SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY,
        "FALLOFF_TOPOLOGY",
+       0,
+       "Move the origin of the expand",
+       ""},
+      {SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS,
+       "FALLOFF_TOPOLOGY_DIAGONALS",
        0,
        "Move the origin of the expand",
        ""},
