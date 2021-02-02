@@ -1065,7 +1065,7 @@ static void studiolight_lights_eval(StudioLight *sl, float color[3], const float
   copy_v3_v3(spec_light, sl->light_ambient);
 
   reflect_v3_v3v3(R, I, N);
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < STUDIOLIGHT_MAX_LIGHT; i++) {
     SolidLight *light = &sl->light[i];
     if (light->flag) {
       /* Diffuse lighting */
