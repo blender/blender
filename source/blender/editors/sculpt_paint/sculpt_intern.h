@@ -1202,6 +1202,7 @@ typedef struct ExpandCache {
   bool move;
   bool snap;
   bool modify_active;
+  bool reposition_pivot;
   bool brush_gradient;
 
   Brush *brush;

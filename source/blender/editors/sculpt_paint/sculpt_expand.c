@@ -531,13 +531,12 @@ static BLI_bitmap *sculpt_expand_bitmap_from_enabled(SculptSession *ss, ExpandCa
   return enabled_vertices;
 }
 
-static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
-                                                        ExpandCache *expand_cache,
-                                                        BLI_bitmap *enabled_vertices)
+static BLI_bitmap *sculpt_expand_boundary_from_enabled(SculptSession *ss,
+                                                       BLI_bitmap *enabled_vertices,
+                                                       const bool use_mesh_boundary)
 {
-  SculptSession *ss = ob->sculpt;
-  GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
   const int totvert = SCULPT_vertex_count_get(ss);
+  BLI_bitmap *boundary_vertices = BLI_BITMAP_NEW(totvert, "enabled vertices");
   for (int i = 0; i < totvert; i++) {
     SculptVertexNeighborIter ni;
     if (!BLI_BITMAP_TEST(enabled_vertices, i)) {
@@ -551,12 +550,38 @@ static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
       }
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    if (use_mesh_boundary && SCULPT_vertex_is_boundary(ss, i)) {
+      is_expand_boundary = true;
+    }
+
     if (is_expand_boundary) {
-      BLI_gset_add(initial_vertices, POINTER_FROM_INT(i));
+      BLI_BITMAP_ENABLE(boundary_vertices, i);
     }
   }
+
+  return boundary_vertices;
+}
+
+static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
+                                                        ExpandCache *expand_cache,
+                                                        BLI_bitmap *enabled_vertices)
+{
+  SculptSession *ss = ob->sculpt;
+  GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
+  BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, false);
+  const int totvert = SCULPT_vertex_count_get(ss);
+  for (int i = 0; i < totvert; i++) {
+    if (!BLI_BITMAP_TEST(boundary_vertices, i)) {
+      continue;
+    }
+    BLI_gset_add(initial_vertices, POINTER_FROM_INT(i));
+  }
+  MEM_freeN(boundary_vertices);
+
   MEM_SAFE_FREE(expand_cache->falloff_factor);
   MEM_SAFE_FREE(expand_cache->face_falloff_factor);
+
   expand_cache->falloff_factor = SCULPT_geodesic_distances_create(ob, initial_vertices, FLT_MAX);
   BLI_gset_free(initial_vertices, NULL);
 }
@@ -567,25 +592,16 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
+  BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, false);
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
   for (int i = 0; i < totvert; i++) {
-    SculptVertexNeighborIter ni;
-    if (!BLI_BITMAP_TEST(enabled_vertices, i)) {
+    if (!BLI_BITMAP_TEST(boundary_vertices, i)) {
       continue;
     }
-
-    bool is_expand_boundary = false;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
-      if (!BLI_BITMAP_TEST(enabled_vertices, ni.index)) {
-        is_expand_boundary = true;
-      }
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-    if (is_expand_boundary) {
-      SCULPT_floodfill_add_initial(&flood, i);
-    }
+    SCULPT_floodfill_add_initial(&flood, i);
   }
+  MEM_freeN(boundary_vertices);
 
   MEM_SAFE_FREE(expand_cache->falloff_factor);
   MEM_SAFE_FREE(expand_cache->face_falloff_factor);
@@ -596,12 +612,6 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   SCULPT_floodfill_execute(ss, &flood, mask_expand_topology_floodfill_cb, &fdata);
   expand_cache->falloff_factor = dists;
   SCULPT_floodfill_free(&flood);
-}
-
-static void sculpt_expand_from_state_boundary(Object *ob,
-                                              ExpandCache *expand_cache,
-                                              BLI_bitmap *enabled_vertices)
-{
 }
 
 static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
@@ -623,7 +633,6 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
     BLI_BITMAP_ENABLE(enabled_vertices, i);
   }
 
-  sculpt_expand_from_state_boundary(ob, expand_cache, enabled_vertices);
   MEM_freeN(enabled_vertices);
 
   if (internal_falloff) {
@@ -1122,6 +1131,34 @@ static int sculpt_expand_target_vertex_update_and_get(bContext *C,
   }
 }
 
+static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache *expand_cache)
+{
+  SculptSession *ss = ob->sculpt;
+  const int totvert = SCULPT_vertex_count_get(ss);
+  BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
+  BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, true);
+
+  int total = 0;
+  float avg[3] = {0.0f};
+
+  for (int i = 0; i < totvert; i++) {
+    if (!BLI_BITMAP_TEST(boundary_vertices, i)) {
+      continue;
+    }
+    add_v3_v3(avg, SCULPT_vertex_co_get(ss, i));
+    total++;
+  }
+
+  MEM_freeN(enabled_vertices);
+  MEM_freeN(boundary_vertices);
+
+  if (total > 0) {
+    mul_v3_v3fl(ss->pivot_pos, avg, 1.0f / total);
+  }
+
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+}
+
 static void sculpt_expand_finish(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -1150,7 +1187,6 @@ static void sculpt_expand_resursion_step_add(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
-  sculpt_expand_from_state_boundary(ob, expand_cache, enabled_vertices);
 
   switch (recursion_type) {
     case SCULPT_EXPAND_RECURSION_GEODESICS:
@@ -1284,6 +1320,11 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
       }
       case SCULPT_EXPAND_MODAL_CONFIRM: {
         sculpt_expand_update_for_vertex(C, ob, target_expand_vertex);
+
+        if (expand_cache->reposition_pivot) {
+          sculpt_expand_reposition_pivot(C, ob, expand_cache);
+        }
+
         sculpt_expand_finish(C);
         return OPERATOR_FINISHED;
       }
@@ -1416,6 +1457,7 @@ static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
   expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
   expand_cache->target = RNA_enum_get(op->ptr, "target");
   expand_cache->modify_active = RNA_boolean_get(op->ptr, "use_modify_active");
+  expand_cache->reposition_pivot = RNA_boolean_get(op->ptr, "use_reposition_pivot");
 
   /* TODO: Expose in RNA. */
   expand_cache->loop_count = 1;
@@ -1623,4 +1665,7 @@ void SCULPT_OT_expand(wmOperatorType *ot)
 
   ot->prop = RNA_def_boolean(
       ot->srna, "use_modify_active", false, "Modify Active", "Modify Active");
+
+  ot->prop = RNA_def_boolean(
+      ot->srna, "use_reposition_pivot", true, "Reposition Pivot", "Reposition pivot");
 }
