@@ -48,10 +48,6 @@
 
 #include "MEM_guardedalloc.h"
 
-/* Cached IME support flags */
-static bool ime_is_lang_supported = false;
-static void blt_lang_check_ime_supported(void);
-
 #ifdef WITH_INTERNATIONAL
 
 #  include "BLI_fileops.h"
@@ -286,7 +282,6 @@ void BLT_lang_set(const char *str)
 #else
   (void)str;
 #endif
-  blt_lang_check_ime_supported();
   IMB_thumb_clear_translations();
 }
 
@@ -380,24 +375,13 @@ void BLT_lang_locale_explode(const char *locale,
   }
 }
 
-/**
- * Test if the translation context allows IME input - used to
- * avoid weird character drawing if IME inputs non-ascii chars.
- */
-static void blt_lang_check_ime_supported(void)
-{
-#ifdef WITH_INPUT_IME
-  const char *uilng = BLT_lang_get();
-  ime_is_lang_supported = STR_ELEM(uilng, "zh_CN", "zh_TW", "ja_JP");
-#else
-  ime_is_lang_supported = false;
-#endif
-}
-
+/* Note that "lang" here is the _output_ display language. We used to restrict
+ * IME for keyboard _input_ language because our multilingual font was only used
+ * when some output languages were selected. That font is used all the time now. */
 bool BLT_lang_is_ime_supported(void)
 {
 #ifdef WITH_INPUT_IME
-  return ime_is_lang_supported;
+  return true;
 #else
   return false;
 #endif
