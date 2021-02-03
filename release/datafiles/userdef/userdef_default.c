@@ -105,7 +105,7 @@ const UserDef U_default = {
     .autoexec_paths = {NULL},
     .user_menus = {NULL},
 
-    .keyconfigstr = "blender",
+    .keyconfigstr = "Blender",
     .undosteps = 32,
     .undomemory = 0,
     .gp_manhattandist = 1,

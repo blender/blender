@@ -624,7 +624,7 @@ def keyconfig_init():
     active_config = _preferences.keymap.active_keyconfig
 
     # Load the default key configuration.
-    default_filepath = preset_find("blender", "keyconfig")
+    default_filepath = preset_find("Blender", "keyconfig")
     keyconfig_set(default_filepath)
 
     # Set the active key configuration if different
