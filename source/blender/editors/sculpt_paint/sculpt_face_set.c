@@ -555,7 +555,8 @@ static bool sculpt_face_sets_init_face_set_boundary_test(
     BMesh *bm, BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float UNUSED(threshold))
 {
   const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
-  return BM_ELEM_CD_GET_INT(from_f, cd_face_sets_offset) == BM_ELEM_CD_GET_INT(to_f, cd_face_sets_offset);
+  return BM_ELEM_CD_GET_INT(from_f, cd_face_sets_offset) ==
+         BM_ELEM_CD_GET_INT(to_f, cd_face_sets_offset);
 }
 
 static bool sculpt_face_sets_init_sharp_edges_test(BMesh *UNUSED(bm),
@@ -731,7 +732,8 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
       sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_bevel_weight_test, threshold);
       break;
     case SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES:
-      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_face_set_boundary_test, threshold);
+      sculpt_face_sets_init_flood_fill(
+          ob, sculpt_face_sets_init_face_set_boundary_test, threshold);
       break;
     case SCULPT_FACE_SETS_FROM_FACE_MAPS:
       sculpt_face_sets_init_loop(ob, SCULPT_FACE_SETS_FROM_FACE_MAPS);

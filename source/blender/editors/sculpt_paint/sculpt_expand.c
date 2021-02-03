@@ -640,7 +640,8 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
 
   if (internal_falloff) {
     for (int i = 0; i < totvert; i++) {
-      if (!(SCULPT_vertex_has_face_set(ss, i, active_face_set) && SCULPT_vertex_has_unique_face_set(ss, i))) {
+      if (!(SCULPT_vertex_has_face_set(ss, i, active_face_set) &&
+            SCULPT_vertex_has_unique_face_set(ss, i))) {
         continue;
       }
       expand_cache->falloff_factor[i] *= -1.0f;
@@ -1587,26 +1588,14 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        "Topology recursion Step",
        ""},
       {SCULPT_EXPAND_MODAL_MOVE_TOGGLE, "MOVE_TOGGLE", 0, "Move the origin of the expand", ""},
-      {SCULPT_EXPAND_MODAL_FALLOFF_GEODESIC,
-       "FALLOFF_GEODESICS",
-       0,
-       "Geodesic Falloff",
-       ""},
-      {SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY,
-       "FALLOFF_TOPOLOGY",
-       0,
-       "Topology Falloff",
-       ""},
+      {SCULPT_EXPAND_MODAL_FALLOFF_GEODESIC, "FALLOFF_GEODESICS", 0, "Geodesic Falloff", ""},
+      {SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY, "FALLOFF_TOPOLOGY", 0, "Topology Falloff", ""},
       {SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS,
        "FALLOFF_TOPOLOGY_DIAGONALS",
        0,
        "Diagonals Falloff",
        ""},
-      {SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL,
-       "FALLOFF_SPHERICAL",
-       0,
-       "Spherical Falloff",
-       ""},
+      {SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL, "FALLOFF_SPHERICAL", 0, "Spherical Falloff", ""},
       {SCULPT_EXPAND_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap expand to Face Sets", ""},
       {SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE,
        "LOOP_COUNT_INCREASE",
