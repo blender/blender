@@ -80,6 +80,7 @@ class DInputSocket : public DSocket {
  private:
   Vector<DOutputSocket *> linked_sockets_;
   Vector<DGroupInput *> linked_group_inputs_;
+  bool is_multi_input_socket_;
 
   friend DerivedNodeTree;
 
@@ -90,6 +91,7 @@ class DInputSocket : public DSocket {
   Span<const DGroupInput *> linked_group_inputs() const;
 
   bool is_linked() const;
+  bool is_multi_input_socket() const;
 };
 
 class DOutputSocket : public DSocket {
@@ -360,6 +362,11 @@ inline Span<const DGroupInput *> DInputSocket::linked_group_inputs() const
 inline bool DInputSocket::is_linked() const
 {
   return linked_sockets_.size() > 0 || linked_group_inputs_.size() > 0;
+}
+
+inline bool DInputSocket::is_multi_input_socket() const
+{
+  return is_multi_input_socket_;
 }
 
 /* --------------------------------------------------------------------

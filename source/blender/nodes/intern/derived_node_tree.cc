@@ -91,7 +91,7 @@ DNode &DerivedNodeTree::create_node(const NodeRef &node_ref,
   for (int i : node.inputs_.index_range()) {
     const InputSocketRef &socket_ref = node_ref.input(i);
     DInputSocket &socket = *node.inputs_[i];
-
+    socket.is_multi_input_socket_ = socket_ref.bsocket()->flag & SOCK_MULTI_INPUT;
     socket.id_ = UNINITIALIZED_ID;
     socket.node_ = &node;
     socket.socket_ref_ = &socket_ref;

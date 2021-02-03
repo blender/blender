@@ -215,7 +215,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 class GeometryNodesEvaluator {
  private:
   blender::LinearAllocator<> allocator_;
-  Map<const DInputSocket *, GMutablePointer> value_by_input_;
+  Map<std::pair<const DInputSocket *, const DOutputSocket *>, GMutablePointer> value_by_input_;
   Vector<const DInputSocket *> group_outputs_;
   blender::nodes::MultiFunctionByNode &mf_by_node_;
   const blender::nodes::DataTypeConversions &conversions_;
@@ -246,8 +246,8 @@ class GeometryNodesEvaluator {
   {
     Vector<GMutablePointer> results;
     for (const DInputSocket *group_output : group_outputs_) {
-      GMutablePointer result = this->get_input_value(*group_output);
-      results.append(result);
+      Vector<GMutablePointer> result = this->get_input_values(*group_output);
+      results.append(result[0]);
     }
     for (GMutablePointer value : value_by_input_.values()) {
       value.destruct();
@@ -256,32 +256,53 @@ class GeometryNodesEvaluator {
   }
 
  private:
-  GMutablePointer get_input_value(const DInputSocket &socket_to_compute)
+  Vector<GMutablePointer> get_input_values(const DInputSocket &socket_to_compute)
   {
-    std::optional<GMutablePointer> value = value_by_input_.pop_try(&socket_to_compute);
-    if (value.has_value()) {
-      /* This input has been computed before, return it directly. */
-      return *value;
-    }
 
     Span<const DOutputSocket *> from_sockets = socket_to_compute.linked_sockets();
     Span<const DGroupInput *> from_group_inputs = socket_to_compute.linked_group_inputs();
     const int total_inputs = from_sockets.size() + from_group_inputs.size();
-    BLI_assert(total_inputs <= 1);
 
     if (total_inputs == 0) {
       /* The input is not connected, use the value from the socket itself. */
-      return get_unlinked_input_value(socket_to_compute);
+      return {get_unlinked_input_value(socket_to_compute)};
     }
+
     if (from_group_inputs.size() == 1) {
-      /* The input gets its value from the input of a group that is not further connected. */
-      return get_unlinked_input_value(socket_to_compute);
+      return {get_unlinked_input_value(socket_to_compute)};
+    }
+
+    /* Multi-input sockets contain a vector of inputs. */
+    if (socket_to_compute.is_multi_input_socket()) {
+      Vector<GMutablePointer> values;
+      for (const DOutputSocket *from_socket : from_sockets) {
+        const std::pair<const DInputSocket *, const DOutputSocket *> key = std::make_pair(
+            &socket_to_compute, from_socket);
+        std::optional<GMutablePointer> value = value_by_input_.pop_try(key);
+        if (value.has_value()) {
+          values.append(value.value());
+        }
+        else {
+          this->compute_output_and_forward(*from_socket);
+          GMutablePointer value = value_by_input_.pop(key);
+          values.append(value);
+        }
+      }
+      return values;
+    }
+
+    const DOutputSocket &from_socket = *from_sockets[0];
+    const std::pair<const DInputSocket *, const DOutputSocket *> key = std::make_pair(
+        &socket_to_compute, &from_socket);
+    std::optional<GMutablePointer> value = value_by_input_.pop_try(key);
+    if (value.has_value()) {
+      /* This input has been computed before, return it directly. */
+      return {*value};
     }
 
     /* Compute the socket now. */
-    const DOutputSocket &from_socket = *from_sockets[0];
     this->compute_output_and_forward(from_socket);
-    return value_by_input_.pop(&socket_to_compute);
+    return {value_by_input_.pop(key)};
   }
 
   void compute_output_and_forward(const DOutputSocket &socket_to_compute)
@@ -302,8 +323,14 @@ class GeometryNodesEvaluator {
     GValueMap<StringRef> node_inputs_map{allocator_};
     for (const DInputSocket *input_socket : node.inputs()) {
       if (input_socket->is_available()) {
-        GMutablePointer value = this->get_input_value(*input_socket);
-        node_inputs_map.add_new_direct(input_socket->identifier(), value);
+        Vector<GMutablePointer> values = this->get_input_values(*input_socket);
+        for (int i = 0; i < values.size(); ++i) {
+          /* Values from Multi Input Sockets are stored in input map with the format
+           * <identifier>[<index>]. */
+          blender::StringRefNull key = allocator_.copy_string(
+              input_socket->identifier() + (i > 0 ? ("[" + std::to_string(i)) + "]" : ""));
+          node_inputs_map.add_new_direct(key, std::move(values[i]));
+        }
       }
     }
 
@@ -393,13 +420,15 @@ class GeometryNodesEvaluator {
 
   void forward_to_inputs(const DOutputSocket &from_socket, GMutablePointer value_to_forward)
   {
+    /* For all sockets that are linked with the from_socket push the value to their node. */
     Span<const DInputSocket *> to_sockets_all = from_socket.linked_sockets();
 
     const CPPType &from_type = *value_to_forward.type();
-
     Vector<const DInputSocket *> to_sockets_same_type;
     for (const DInputSocket *to_socket : to_sockets_all) {
       const CPPType &to_type = *blender::nodes::socket_cpp_type_get(*to_socket->typeinfo());
+      const std::pair<const DInputSocket *, const DOutputSocket *> key = std::make_pair(
+          to_socket, &from_socket);
       if (from_type == to_type) {
         to_sockets_same_type.append(to_socket);
       }
@@ -411,7 +440,7 @@ class GeometryNodesEvaluator {
         else {
           to_type.copy_to_uninitialized(to_type.default_value(), buffer);
         }
-        value_by_input_.add_new(to_socket, GMutablePointer{to_type, buffer});
+        add_value_to_input_socket(key, GMutablePointer{to_type, buffer});
       }
     }
 
@@ -422,21 +451,33 @@ class GeometryNodesEvaluator {
     else if (to_sockets_same_type.size() == 1) {
       /* This value is only used on one input socket, no need to copy it. */
       const DInputSocket *to_socket = to_sockets_same_type[0];
-      value_by_input_.add_new(to_socket, value_to_forward);
+      const std::pair<const DInputSocket *, const DOutputSocket *> key = std::make_pair(
+          to_socket, &from_socket);
+
+      add_value_to_input_socket(key, value_to_forward);
     }
     else {
       /* Multiple inputs use the value, make a copy for every input except for one. */
       const DInputSocket *first_to_socket = to_sockets_same_type[0];
       Span<const DInputSocket *> other_to_sockets = to_sockets_same_type.as_span().drop_front(1);
       const CPPType &type = *value_to_forward.type();
-
-      value_by_input_.add_new(first_to_socket, value_to_forward);
+      const std::pair<const DInputSocket *, const DOutputSocket *> first_key = std::make_pair(
+          first_to_socket, &from_socket);
+      add_value_to_input_socket(first_key, value_to_forward);
       for (const DInputSocket *to_socket : other_to_sockets) {
+        const std::pair<const DInputSocket *, const DOutputSocket *> key = std::make_pair(
+            to_socket, &from_socket);
         void *buffer = allocator_.allocate(type.size(), type.alignment());
         type.copy_to_uninitialized(value_to_forward.get(), buffer);
-        value_by_input_.add_new(to_socket, GMutablePointer{type, buffer});
+        add_value_to_input_socket(key, GMutablePointer{type, buffer});
       }
     }
+  }
+
+  void add_value_to_input_socket(const std::pair<const DInputSocket *, const DOutputSocket *> key,
+                                 GMutablePointer value)
+  {
+    value_by_input_.add_new(key, value);
   }
 
   GMutablePointer get_unlinked_input_value(const DInputSocket &socket)

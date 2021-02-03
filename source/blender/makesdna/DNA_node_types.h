@@ -200,6 +200,8 @@ typedef enum eNodeSocketFlag {
   SOCK_NO_INTERNAL_LINK = (1 << 9),
   /** Draw socket in a more compact form. */
   SOCK_COMPACT = (1 << 10),
+  /** Make the input socket accept multiple incoming links in the UI. */
+  SOCK_MULTI_INPUT = (1 << 11),
 } eNodeSocketFlag;
 
 /* limit data in bNode to what we want to see saved? */
