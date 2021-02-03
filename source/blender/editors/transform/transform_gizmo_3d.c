@@ -1865,7 +1865,10 @@ static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
     PropertyRNA *prop_orient_type = RNA_struct_find_property(ptr, "orient_type");
     const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(
         scene, ggd->twtype_init);
-    if (orient_slot == &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
+    if ((gz == ggd->gizmos[MAN_AXIS_ROT_C]) ||
+        (orient_slot == &scene->orientation_slots[SCE_ORIENT_DEFAULT])) {
+      /* #MAN_AXIS_ROT_C always uses the #V3D_ORIENT_VIEW orientation,
+       * optionally we could set this orientation instead of unset the property. */
       RNA_property_unset(ptr, prop_orient_type);
     }
     else {
