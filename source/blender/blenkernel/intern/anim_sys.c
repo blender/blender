@@ -2532,16 +2532,16 @@ void nlasnapshot_blend(NlaEvalData *eval_data,
       continue;
     }
 
+    /** Blend with lower_snapshot's base or default. */
+    if (lower_necs == NULL) {
+      lower_necs = nlaeval_snapshot_find_channel(lower_snapshot->base, nec);
+    }
+
     NlaEvalChannelSnapshot *result_necs = nlaeval_snapshot_ensure_channel(r_blended_snapshot, nec);
 
     if (upper_necs == NULL || zero_upper_influence) {
       memcpy(result_necs->values, lower_necs->values, length * sizeof(float));
       continue;
-    }
-
-    /** Blend with lower_snapshot's base or default. */
-    if (lower_necs == NULL) {
-      lower_necs = nlaeval_snapshot_find_channel(lower_snapshot->base, nec);
     }
 
     if (upper_blendmode == NLASTRIP_MODE_COMBINE) {
