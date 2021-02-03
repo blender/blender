@@ -280,7 +280,7 @@ class GeometryNodesEvaluator {
             &socket_to_compute, from_socket);
         std::optional<GMutablePointer> value = value_by_input_.pop_try(key);
         if (value.has_value()) {
-          values.append(value.value());
+          values.append(*value);
         }
         else {
           this->compute_output_and_forward(*from_socket);
