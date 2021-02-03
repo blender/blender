@@ -1127,6 +1127,7 @@ void SCULPT_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
 void SCULPT_floodfill_add_initial(SculptFloodFill *flood, int index)
 {
   BLI_gsqueue_push(flood->queue, &index);
+  BLI_BITMAP_ENABLE(flood->visited_vertices, index);
 }
 
 void SCULPT_floodfill_add_initial_with_symmetry(
@@ -1148,6 +1149,7 @@ void SCULPT_floodfill_add_initial_with_symmetry(
       }
       if (v != -1) {
         SCULPT_floodfill_add_initial(flood, v);
+        BLI_BITMAP_ENABLE(flood->visited_vertices, v);
       }
     }
   }

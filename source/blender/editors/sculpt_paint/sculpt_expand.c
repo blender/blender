@@ -206,7 +206,7 @@ typedef struct ExpandFloodFillData {
   float *edge_factor;
 } ExpandFloodFillData;
 
-static bool mask_expand_topology_floodfill_cb(
+static bool expand_topology_floodfill_cb(
     SculptSession *UNUSED(ss), int from_v, int to_v, bool is_duplicate, void *userdata)
 {
   ExpandFloodFillData *data = userdata;
@@ -233,7 +233,7 @@ static float *sculpt_expand_topology_falloff_create(Sculpt *sd, Object *ob, cons
   ExpandFloodFillData fdata;
   fdata.dists = dists;
 
-  SCULPT_floodfill_execute(ss, &flood, mask_expand_topology_floodfill_cb, &fdata);
+  SCULPT_floodfill_execute(ss, &flood, expand_topology_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
 
   return dists;
@@ -536,14 +536,14 @@ static BLI_bitmap *sculpt_expand_boundary_from_enabled(SculptSession *ss,
                                                        const bool use_mesh_boundary)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
-  BLI_bitmap *boundary_vertices = BLI_BITMAP_NEW(totvert, "enabled vertices");
+  BLI_bitmap *boundary_vertices = BLI_BITMAP_NEW(totvert, "boundary vertices");
   for (int i = 0; i < totvert; i++) {
-    SculptVertexNeighborIter ni;
     if (!BLI_BITMAP_TEST(enabled_vertices, i)) {
       continue;
     }
 
     bool is_expand_boundary = false;
+    SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
       if (!BLI_BITMAP_TEST(enabled_vertices, ni.index)) {
         is_expand_boundary = true;
@@ -555,9 +555,7 @@ static BLI_bitmap *sculpt_expand_boundary_from_enabled(SculptSession *ss,
       is_expand_boundary = true;
     }
 
-    if (is_expand_boundary) {
-      BLI_BITMAP_ENABLE(boundary_vertices, i);
-    }
+    BLI_BITMAP_SET(boundary_vertices, i, is_expand_boundary);
   }
 
   return boundary_vertices;
@@ -590,9 +588,15 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
                                                        ExpandCache *expand_cache,
                                                        BLI_bitmap *enabled_vertices)
 {
+  MEM_SAFE_FREE(expand_cache->falloff_factor);
+  MEM_SAFE_FREE(expand_cache->face_falloff_factor);
+
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
+
+  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "topology dist");
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, false);
+
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
   for (int i = 0; i < totvert; i++) {
@@ -603,13 +607,9 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   }
   MEM_freeN(boundary_vertices);
 
-  MEM_SAFE_FREE(expand_cache->falloff_factor);
-  MEM_SAFE_FREE(expand_cache->face_falloff_factor);
-
-  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "topology dist");
   ExpandFloodFillData fdata;
   fdata.dists = dists;
-  SCULPT_floodfill_execute(ss, &flood, mask_expand_topology_floodfill_cb, &fdata);
+  SCULPT_floodfill_execute(ss, &flood, expand_topology_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
 
   expand_cache->falloff_factor = dists;
