@@ -502,6 +502,7 @@ geometry_node_categories = [
     ]),
     GeometryNodeCategory("GEO_INPUT", "Input", items=[
         NodeItem("GeometryNodeObjectInfo"),
+        NodeItem("GeometryNodeCollectionInfo"),
         NodeItem("FunctionNodeRandomFloat"),
         NodeItem("ShaderNodeValue"),
         NodeItem("FunctionNodeInputVector"),

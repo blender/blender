@@ -1193,6 +1193,13 @@ typedef struct NodeGeometryPointsToVolume {
   char _pad[6];
 } NodeGeometryPointsToVolume;
 
+typedef struct NodeGeometryCollectionInfo {
+  /* GeometryNodeTransformSpace. */
+  uint8_t transform_space;
+
+  char _pad[7];
+} NodeGeometryCollectionInfo;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1

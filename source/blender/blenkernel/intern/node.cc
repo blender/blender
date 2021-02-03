@@ -4770,6 +4770,7 @@ static void registerGeometryNodes()
   register_node_type_geo_align_rotation_to_vector();
   register_node_type_geo_sample_texture();
   register_node_type_geo_points_to_volume();
+  register_node_type_geo_collection_info();
 }
 
 static void registerFunctionNodes()

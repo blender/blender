@@ -8911,6 +8911,33 @@ static void def_geo_points_to_volume(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_collection_info(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem rna_node_geometry_collection_info_transform_space_items[] = {
+      {GEO_NODE_TRANSFORM_SPACE_ORIGINAL,
+       "ORIGINAL",
+       0,
+       "Original",
+       "Output the geometry relative to the collection offset"},
+      {GEO_NODE_TRANSFORM_SPACE_RELATIVE,
+       "RELATIVE",
+       0,
+       "Relative",
+       "Bring the input collection geometry into the modified object, maintaining the relative "
+       "position between the objects in the scene."},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryCollectionInfo", "storage");
+
+  prop = RNA_def_property(srna, "transform_space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_collection_info_transform_space_items);
+  RNA_def_property_ui_text(prop, "Transform Space", "The transformation of the geometry output");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 /* -------------------------------------------------------------------------- */
 
 static void rna_def_shader_node(BlenderRNA *brna)
