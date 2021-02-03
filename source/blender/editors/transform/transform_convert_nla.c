@@ -304,7 +304,7 @@ void recalcData_nla(TransInfo *t)
   for (i = 0; i < tc->data_len; i++, tdn++) {
     NlaStrip *strip = tdn->strip;
     PointerRNA strip_ptr;
-    short pExceeded, nExceeded, iter;
+    short iter;
     int delta_y1, delta_y2;
 
     /* if this tdn has no handles, that means it is just a dummy that should be skipped */
@@ -358,21 +358,31 @@ void recalcData_nla(TransInfo *t)
      *
      * this is done as a iterative procedure (done 5 times max for now)
      */
+    NlaStrip *prev = strip->prev;
+    while (prev != NULL && (prev->type & NLASTRIP_TYPE_TRANSITION)) {
+      prev = prev->prev;
+    }
+
+    NlaStrip *next = strip->next;
+    while (next != NULL && (next->type & NLASTRIP_TYPE_TRANSITION)) {
+      next = next->next;
+    }
+
     for (iter = 0; iter < 5; iter++) {
-      pExceeded = ((strip->prev) && (strip->prev->type != NLASTRIP_TYPE_TRANSITION) &&
-                   (tdn->h1[0] < strip->prev->end));
-      nExceeded = ((strip->next) && (strip->next->type != NLASTRIP_TYPE_TRANSITION) &&
-                   (tdn->h2[0] > strip->next->start));
+
+      const bool pExceeded = (prev != NULL) && (tdn->h1[0] < prev->end);
+      const bool nExceeded = (next != NULL) && (tdn->h2[0] > next->start);
 
       if ((pExceeded && nExceeded) || (iter == 4)) {
-        /* both endpoints exceeded (or iteration ping-pong'd meaning that we need a compromise)
+        /* both endpoints exceeded (or iteration ping-pong'd meaning that we need a
+         * compromise)
          * - Simply crop strip to fit within the bounds of the strips bounding it
          * - If there were no neighbors, clear the transforms
          *   (make it default to the strip's current values).
          */
-        if (strip->prev && strip->next) {
-          tdn->h1[0] = strip->prev->end;
-          tdn->h2[0] = strip->next->start;
+        if (prev && next) {
+          tdn->h1[0] = prev->end;
+          tdn->h2[0] = next->start;
         }
         else {
           tdn->h1[0] = strip->start;
@@ -381,14 +391,14 @@ void recalcData_nla(TransInfo *t)
       }
       else if (nExceeded) {
         /* move backwards */
-        float offset = tdn->h2[0] - strip->next->start;
+        float offset = tdn->h2[0] - next->start;
 
         tdn->h1[0] -= offset;
         tdn->h2[0] -= offset;
       }
       else if (pExceeded) {
         /* more forwards */
-        float offset = strip->prev->end - tdn->h1[0];
+        float offset = prev->end - tdn->h1[0];
 
         tdn->h1[0] += offset;
         tdn->h2[0] += offset;
