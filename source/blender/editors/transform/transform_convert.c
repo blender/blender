@@ -981,7 +981,7 @@ void createTransData(bContext *C, TransInfo *t)
 
   t->data_len_all = -1;
 
-  eTransConvertType convert_type = TC_NONE;
+  eTConvertType convert_type = TC_NONE;
 
   /* if tests must match recalcData for correct updates */
   if (t->options & CTX_CURSOR) {
