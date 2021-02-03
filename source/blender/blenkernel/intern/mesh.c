@@ -941,7 +941,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   Mesh *me_dst = BKE_id_new_nomain(ID_ME, NULL);
 
-  me_dst->mselect = MEM_dupallocN(me_dst->mselect);
+  me_dst->mselect = MEM_dupallocN(me_src->mselect);
 
   me_dst->totvert = verts_len;
   me_dst->totedge = edges_len;
