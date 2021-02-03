@@ -233,6 +233,11 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
       &settings);
 }
 
+static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void *userData)
+{
+  walk(userData, ob, md, "texture");
+}
+
 static bool isDisabled(const struct Scene *UNUSED(scene),
                        ModifierData *md,
                        bool UNUSED(useRenderParams))
@@ -1348,7 +1353,7 @@ ModifierTypeInfo modifierType_Nodes = {
     /* dependsOnTime */ nullptr,
     /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
+    /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
     /* blendWrite */ blendWrite,
