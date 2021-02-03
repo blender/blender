@@ -968,7 +968,7 @@ void NODE_OT_link(wmOperatorType *ot)
                       -UI_PRECISION_FLOAT_MAX,
                       UI_PRECISION_FLOAT_MAX,
                       "Drag Start",
-                      "The position of the mouse cursor at the start of the operation.",
+                      "The position of the mouse cursor at the start of the operation",
                       -UI_PRECISION_FLOAT_MAX,
                       UI_PRECISION_FLOAT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
