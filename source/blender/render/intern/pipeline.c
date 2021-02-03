@@ -2007,6 +2007,9 @@ void RE_RenderFrame(Render *re,
   G.is_rendering = false;
 }
 
+#ifdef WITH_FREESTYLE
+
+/* Not freestyle specific, currently only used by free-style. */
 static void change_renderdata_engine(Render *re, const char *new_engine)
 {
   if (!STREQ(re->r.engine, new_engine)) {
@@ -2018,7 +2021,6 @@ static void change_renderdata_engine(Render *re, const char *new_engine)
   }
 }
 
-#ifdef WITH_FREESTYLE
 static bool use_eevee_for_freestyle_render(Render *re)
 {
   RenderEngineType *type = RE_engines_find(re->r.engine);
