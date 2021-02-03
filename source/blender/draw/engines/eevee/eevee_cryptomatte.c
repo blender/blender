@@ -503,7 +503,7 @@ static void eevee_cryptomatte_postprocess_weights(EEVEE_Data *vedata)
     volumetric_transmittance_buffer = GPU_texture_read(
         txl->volume_transmittance_accum, GPU_DATA_FLOAT, 0);
   }
-  const int num_samples = effects->taa_current_sample;
+  const int num_samples = effects->taa_current_sample - 1;
 
   int accum_pixel_index = 0;
   int accum_pixel_stride = eevee_cryptomatte_pixel_stride(view_layer);
