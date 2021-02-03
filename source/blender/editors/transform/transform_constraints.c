@@ -79,6 +79,17 @@ static void projection_matrix_calc(const TransInfo *t, float r_pmtx[3][3])
   mul_m3_m3m3(r_pmtx, t->spacemtx, mat);
 }
 
+static void view_vector_calc(const TransInfo *t, const float focus[3], float r_vec[3])
+{
+  if (t->persp != RV3D_ORTHO) {
+    sub_v3_v3v3(r_vec, t->viewinv[3], focus);
+  }
+  else {
+    copy_v3_v3(r_vec, t->viewinv[2]);
+  }
+  normalize_v3(r_vec);
+}
+
 /* ************************** CONSTRAINTS ************************* */
 #define CONSTRAIN_EPSILON 0.0001f
 
@@ -218,14 +229,14 @@ static void axisProjection(const TransInfo *t,
     float norm_center[3];
     float plane[3];
 
-    getViewVector(t, t_con_center, norm_center);
+    view_vector_calc(t, t_con_center, norm_center);
     cross_v3_v3v3(plane, norm_center, axis);
 
     project_v3_v3v3(vec, in, plane);
     sub_v3_v3v3(vec, in, vec);
 
     add_v3_v3v3(v, vec, t_con_center);
-    getViewVector(t, v, norm);
+    view_vector_calc(t, v, norm);
 
     /* give arbitrary large value if projection is impossible */
     factor = dot_v3v3(axis, norm);
@@ -342,7 +353,7 @@ static bool isPlaneProjectionViewAligned(const TransInfo *t, const float plane[4
 {
   const float eps = 0.001f;
   float view_to_plane[3];
-  getViewVector(t, t->center_global, view_to_plane);
+  view_vector_calc(t, t->center_global, view_to_plane);
 
   float factor = dot_v3v3(plane, view_to_plane);
   return fabsf(factor) < eps;
@@ -353,7 +364,7 @@ static void planeProjection(const TransInfo *t, const float in[3], float out[3])
   float vec[3], factor, norm[3];
 
   add_v3_v3v3(vec, in, t->center_global);
-  getViewVector(t, vec, norm);
+  view_vector_calc(t, vec, norm);
 
   sub_v3_v3v3(vec, out, in);
 
