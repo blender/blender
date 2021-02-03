@@ -439,7 +439,7 @@ _with_built_openexr=false
 OIIO_VERSION="2.1.15.0"
 OIIO_VERSION_SHORT="2.1"
 OIIO_VERSION_MIN="2.1.12"
-OIIO_VERSION_MAX="3.0"
+OIIO_VERSION_MAX="2.2.10"
 OIIO_FORCE_BUILD=false
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
@@ -2064,7 +2064,6 @@ compile_OIIO() {
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
-    cmake_d="$cmake_d -D BUILDSTATIC=OFF"
     cmake_d="$cmake_d -D LINKSTATIC=OFF"
     cmake_d="$cmake_d -D USE_SIMD=sse2"
 
@@ -2099,9 +2098,6 @@ compile_OIIO() {
 #    if [ -d $INST/ocio ]; then
 #      cmake_d="$cmake_d -D OCIO_PATH=$INST/ocio"
 #    fi
-    cmake_d="$cmake_d -D USE_OCIO=OFF"
-
-    cmake_d="$cmake_d -D OIIO_BUILD_CPP11=ON"
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
