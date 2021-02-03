@@ -85,7 +85,7 @@ enum {
   SCULPT_EXPAND_MODAL_RECURSION_STEP_GEODESIC,
   SCULPT_EXPAND_MODAL_RECURSION_STEP_TOPOLOGY,
   SCULPT_EXPAND_MODAL_MOVE_TOGGLE,
-  SCULPT_EXPAND_MODAL_FALLOFF_GEODESICS,
+  SCULPT_EXPAND_MODAL_FALLOFF_GEODESIC,
   SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY,
   SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS,
   SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL,
@@ -96,7 +96,7 @@ enum {
 };
 
 static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
-    {SCULPT_EXPAND_FALLOFF_GEODESICS, "GEODESICS", 0, "Surface", ""},
+    {SCULPT_EXPAND_FALLOFF_GEODESIC, "GEODESIC", 0, "Geodesic", ""},
     {SCULPT_EXPAND_FALLOFF_TOPOLOGY, "TOPOLOGY", 0, "Topology", ""},
     {SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS, "TOPOLOGY_DIAGONALS", 0, "Topology Diagonals", ""},
     {SCULPT_EXPAND_FALLOFF_NORMALS, "NORMALS", 0, "Normals", ""},
@@ -610,8 +610,9 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   ExpandFloodFillData fdata;
   fdata.dists = dists;
   SCULPT_floodfill_execute(ss, &flood, mask_expand_topology_floodfill_cb, &fdata);
-  expand_cache->falloff_factor = dists;
   SCULPT_floodfill_free(&flood);
+
+  expand_cache->falloff_factor = dists;
 }
 
 static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
@@ -633,11 +634,13 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
     BLI_BITMAP_ENABLE(enabled_vertices, i);
   }
 
+  sculpt_expand_geodesics_from_state_boundary(ob, expand_cache, enabled_vertices);
+
   MEM_freeN(enabled_vertices);
 
   if (internal_falloff) {
     for (int i = 0; i < totvert; i++) {
-      if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
+      if (!(SCULPT_vertex_has_face_set(ss, i, active_face_set) && SCULPT_vertex_has_unique_face_set(ss, i))) {
         continue;
       }
       expand_cache->falloff_factor[i] *= -1.0f;
@@ -712,7 +715,7 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
   MEM_SAFE_FREE(expand_cache->falloff_factor);
 
   switch (falloff_type) {
-    case SCULPT_EXPAND_FALLOFF_GEODESICS:
+    case SCULPT_EXPAND_FALLOFF_GEODESIC:
       expand_cache->falloff_factor = sculpt_expand_geodesic_falloff_create(sd, ob, vertex);
       break;
     case SCULPT_EXPAND_FALLOFF_TOPOLOGY:
@@ -1336,13 +1339,13 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         sculpt_expand_finish(C);
         return OPERATOR_FINISHED;
       }
-      case SCULPT_EXPAND_MODAL_FALLOFF_GEODESICS: {
+      case SCULPT_EXPAND_MODAL_FALLOFF_GEODESIC: {
         sculpt_expand_falloff_factors_from_vertex_and_symm_create(
             expand_cache,
             sd,
             ob,
             expand_cache->initial_active_vertex,
-            SCULPT_EXPAND_FALLOFF_GEODESICS);
+            SCULPT_EXPAND_FALLOFF_GEODESIC);
         break;
       }
       case SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY: {
@@ -1550,7 +1553,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   /* Initialize the factors. */
-  eSculptExpandFalloffType falloff_type = SCULPT_EXPAND_FALLOFF_GEODESICS;
+  eSculptExpandFalloffType falloff_type = RNA_enum_get(op->ptr, "falloff_type");
   if (SCULPT_vertex_is_boundary(ss, ss->expand_cache->initial_active_vertex)) {
     falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
@@ -1584,7 +1587,7 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        "Topology recursion Step",
        ""},
       {SCULPT_EXPAND_MODAL_MOVE_TOGGLE, "MOVE_TOGGLE", 0, "Move the origin of the expand", ""},
-      {SCULPT_EXPAND_MODAL_FALLOFF_GEODESICS,
+      {SCULPT_EXPAND_MODAL_FALLOFF_GEODESIC,
        "FALLOFF_GEODESICS",
        0,
        "Geodesic Falloff",
@@ -1657,13 +1660,20 @@ void SCULPT_OT_expand(wmOperatorType *ot)
                "Data Target",
                "Data that is going to be modified in the expand operation");
 
+  RNA_def_enum(ot->srna,
+               "falloff_type",
+               prop_sculpt_expand_falloff_type_items,
+               SCULPT_EXPAND_FALLOFF_GEODESIC,
+               "Fallof Type",
+               "Initial falloff of the expand operation");
+
   ot->prop = RNA_def_boolean(
       ot->srna, "invert", false, "Invert", "Invert the expand active elements");
   ot->prop = RNA_def_boolean(ot->srna,
                              "use_mask_preserve",
                              false,
-                             "Preserve Previous Mask",
-                             "Preserve the previous mask");
+                             "Preserve Previous",
+                             "Preserve the previous state of the target data");
   ot->prop = RNA_def_boolean(
       ot->srna, "use_falloff_gradient", false, "Falloff Gradient", "Expand Using a Falloff");
 
