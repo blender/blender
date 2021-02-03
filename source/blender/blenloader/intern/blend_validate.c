@@ -112,7 +112,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
       }
 
       int totnames = 0;
-      LinkNode *names = BLO_blendhandle_get_datablock_names(bh, GS(id->name), &totnames);
+      LinkNode *names = BLO_blendhandle_get_datablock_names(bh, GS(id->name), false, &totnames);
       for (; id != NULL; id = id->next) {
         if (id->lib == NULL) {
           is_valid = false;

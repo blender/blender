@@ -251,42 +251,10 @@ static void undosys_stack_validate(UndoStack *ustack, bool expect_non_empty)
     BLI_assert(!BLI_listbase_is_empty(&ustack->steps));
   }
 }
-
-/* Return whether `us_item` is before (-1), after (1) or same as (0) `us_anchor` step. */
-static int undosys_stack_order(const UndoStack *ustack,
-                               const UndoStep *us_anchor,
-                               const UndoStep *us_item)
-{
-  const int index_anchor = BLI_findindex(&ustack->steps, us_anchor);
-  const int index_item = BLI_findindex(&ustack->steps, us_item);
-  BLI_assert(index_anchor >= 0);
-  BLI_assert(index_item >= 0);
-
-  return (index_item == index_anchor) ? 0 : (index_item < index_anchor) ? -1 : 1;
-}
-
-#  define ASSERT_VALID_UNDO_STEP(_ustack, _us_undo) \
-    { \
-      const UndoStep *_us_anchor = (_ustack)->step_active; \
-      BLI_assert(_us_anchor == NULL || \
-                 (undosys_stack_order((_ustack), _us_anchor, (_us_undo)) <= 0)); \
-    } \
-    (void)0
-
-#  define ASSERT_VALID_REDO_STEP(_ustack, _us_redo) \
-    { \
-      const UndoStep *_us_anchor = (_ustack)->step_active; \
-      BLI_assert(_us_anchor == NULL || \
-                 (undosys_stack_order((_ustack), _us_anchor, (_us_redo)) >= 0)); \
-    } \
-    (void)0
-
 #else
 static void undosys_stack_validate(UndoStack *UNUSED(ustack), bool UNUSED(expect_non_empty))
 {
 }
-#  define ASSERT_VALID_UNDO_STEP(_ustack, _us_undo)
-#  define ASSERT_VALID_REDO_STEP(_ustack, _us_redo)
 #endif
 
 UndoStack *BKE_undosys_stack_create(void)
@@ -701,37 +669,91 @@ UndoStep *BKE_undosys_step_find_by_type(UndoStack *ustack, const UndoType *ut)
   return NULL;
 }
 
-bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
-                                        bContext *C,
-                                        UndoStep *us,
-                                        bool use_skip)
+/**
+ * Return direction of the undo/redo from `us_reference` (or `ustack->step_active` if NULL), and
+ * `us_target`.
+ *
+ * \note If `us_reference` and `us_target` are the same, we consider this is an undo.
+ *
+ * \return -1 for undo, 1 for redo, 0 in case of error.
+ */
+int BKE_undosys_step_calc_direction(const UndoStack *ustack,
+                                    const UndoStep *us_target,
+                                    const UndoStep *us_reference)
+{
+  if (us_reference == NULL) {
+    us_reference = ustack->step_active;
+  }
+
+  BLI_assert(us_reference != NULL);
+
+  /* Note that we use heuristics to make this lookup as fast as possible in most common cases,
+   * assuming that:
+   *  - Most cases are just undo or redo of one step from active one.
+   *  - Otherwise, it is typically faster to check future steps since active one is usually close
+   *    to the end of the list, rather than its start. */
+  /* NOTE: in case target step is the active one, we assume we are in an undo case... */
+  if (ELEM(us_target, us_reference, us_reference->prev)) {
+    return -1;
+  }
+  if (us_target == us_reference->next) {
+    return 1;
+  }
+
+  /* Search forward, and then backward. */
+  for (UndoStep *us_iter = us_reference->next; us_iter != NULL; us_iter = us_iter->next) {
+    if (us_iter == us_target) {
+      return 1;
+    }
+  }
+  for (UndoStep *us_iter = us_reference->prev; us_iter != NULL; us_iter = us_iter->prev) {
+    if (us_iter == us_target) {
+      return -1;
+    }
+  }
+
+  BLI_assert(!"Target undo step not found, this should not happen and may indicate an undo stack corruption");
+  return 0;
+}
+
+/**
+ * Undo/Redo until the given `us_target` step becomes the active (currently loaded) one.
+ *
+ * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target` will become the
+ *       active step.
+ *
+ * \note In case `use_skip` is true, the final target will always be **beyond** the given one (if
+ *       the given one has to be skipped).
+ *
+ * \param us_reference If NULL, will be set to current active step in the undo stack. Otherwise, it
+ *                     is assumed to match the current state, and will be used as basis for the
+ *                     undo/redo process (i.e. all steps in-between `us_reference` and `us_target`
+ *                     will be processed).
+ */
+bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
+                                   bContext *C,
+                                   UndoStep *us_target,
+                                   UndoStep *us_reference,
+                                   const bool use_skip)
 {
   UNDO_NESTED_ASSERT(false);
-  if (us == NULL) {
-    CLOG_ERROR(&LOG, "called with a NULL step");
+  if (us_target == NULL) {
+    CLOG_ERROR(&LOG, "called with a NULL target step");
     return false;
   }
   undosys_stack_validate(ustack, true);
 
-  /* We expect to get next-from-actual-target step here (i.e. active step in case we only undo
-   * once)?
-   * FIXME: this is very confusing now that we may have to undo several steps anyway, this function
-   * should just get the target final step, not assume that it is getting the active one by default
-   * (or the step after the target one when undoing more than one step). */
-  UndoStep *us_target = us->prev;
-  if (us_target == NULL) {
-    CLOG_ERROR(&LOG, "could not find a valid target step");
+  if (us_reference == NULL) {
+    us_reference = ustack->step_active;
+  }
+  if (us_reference == NULL) {
+    CLOG_ERROR(&LOG, "could not find a valid initial active target step as reference");
     return false;
   }
-  ASSERT_VALID_UNDO_STEP(ustack, us_target);
 
-  /* This will be active once complete. */
-  UndoStep *us_active = us_target;
-  if (use_skip) {
-    while (us_active && us_active->skip) {
-      us_active = us_active->prev;
-    }
-  }
+  /* This considers we are in undo case if both `us_target` and `us_reference` are the same. */
+  const int undo_dir = BKE_undosys_step_calc_direction(ustack, us_target, us_reference);
+  BLI_assert(undo_dir != 0);
 
   /* This will be the active step once the undo process is complete.
    *
@@ -740,7 +762,7 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
   UndoStep *us_target_active = us_target;
   if (use_skip) {
     while (us_target_active != NULL && us_target_active->skip) {
-      us_target_active = us_target_active->prev;
+      us_target_active = (undo_dir == -1) ? us_target_active->prev : us_target_active->next;
     }
   }
   if (us_target_active == NULL) {
@@ -748,42 +770,47 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
     return false;
   }
 
-  CLOG_INFO(
-      &LOG, 1, "addr=%p, name='%s', type='%s'", us_target, us_target->name, us_target->type->name);
+  CLOG_INFO(&LOG,
+            1,
+            "addr=%p, name='%s', type='%s', undo_dir=%d",
+            us_target,
+            us_target->name,
+            us_target->type->name,
+            undo_dir);
 
-  /* Undo steps until we reach original given target, if we do have a current active step.
+  /* Undo/Redo steps until we reach given target step (or beyond if it has to be skipped), from
+   * given reference step.
    *
    * NOTE: Unlike with redo case, where we can expect current active step to fully reflect current
    * data status, in undo case we also do reload the active step.
    * FIXME: this feels weak, and should probably not be actually needed? Or should also be done in
    * redo case? */
-  if (ustack->step_active != NULL) {
-    for (UndoStep *us_iter = ustack->step_active; us_iter != us_target; us_iter = us_iter->prev) {
-      BLI_assert(us_iter != NULL);
-      undosys_step_decode(C, G_MAIN, ustack, us_iter, -1, false);
-      ustack->step_active = us_iter;
-    }
-  }
+  bool is_processing_extra_skipped_steps = false;
+  for (UndoStep *us_iter = (undo_dir == -1) ? us_reference : us_reference->next; us_iter != NULL;
+       us_iter = (undo_dir == -1) ? us_iter->prev : us_iter->next) {
+    BLI_assert(us_iter != NULL);
 
-  /* Undo target step, and all potential extra ones if some steps have to be 'skipped'. */
-  for (UndoStep *us_iter = us_target; us_iter != NULL; us_iter = us_iter->prev) {
     const bool is_final = (us_iter == us_target_active);
 
-    if (!is_final) {
+    if (!is_final && is_processing_extra_skipped_steps) {
       BLI_assert(us_iter->skip == true);
       CLOG_INFO(&LOG,
                 2,
-                "undo continue with skip addr=%p, name='%s', type='%s'",
+                "undo/redo continue with skip addr=%p, name='%s', type='%s'",
                 us_iter,
                 us_iter->name,
                 us_iter->type->name);
     }
 
-    undosys_step_decode(C, G_MAIN, ustack, us_iter, -1, is_final);
+    undosys_step_decode(C, G_MAIN, ustack, us_iter, undo_dir, is_final);
     ustack->step_active = us_iter;
 
+    if (us_iter == us_target) {
+      is_processing_extra_skipped_steps = true;
+    }
+
     if (is_final) {
-      /* Undo process is finished and successful. */
+      /* Undo/Redo process is finished and successful. */
       return true;
     }
   }
@@ -793,139 +820,117 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
   return false;
 }
 
-bool BKE_undosys_step_undo_with_data(UndoStack *ustack, bContext *C, UndoStep *us)
+/**
+ * Undo/Redo until the given `us_target` step becomes the active (currently loaded) one.
+ */
+bool BKE_undosys_step_load_data(UndoStack *ustack, bContext *C, UndoStep *us_target)
 {
-  return BKE_undosys_step_undo_with_data_ex(ustack, C, us, true);
+  /* Note that here we do not skip 'skipped' steps by default. */
+  return BKE_undosys_step_load_data_ex(ustack, C, us_target, NULL, false);
 }
 
-bool BKE_undosys_step_undo(UndoStack *ustack, bContext *C)
+/**
+ * Undo/Redo until the step matching given `index` in the undo stack becomes the active (currently
+ * loaded) one.
+ */
+void BKE_undosys_step_load_from_index(UndoStack *ustack, bContext *C, const int index)
 {
-  return BKE_undosys_step_undo_with_data(ustack, C, ustack->step_active);
+  UndoStep *us_target = BLI_findlink(&ustack->steps, index);
+  BLI_assert(us_target->skip == false);
+  BKE_undosys_step_load_data(ustack, C, us_target);
 }
 
-void BKE_undosys_step_undo_from_index(UndoStack *ustack, bContext *C, int index)
-{
-  UndoStep *us = BLI_findlink(&ustack->steps, index);
-  BLI_assert(us->skip == false);
-  BKE_undosys_step_load_data(ustack, C, us);
-}
-
-bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
+/**
+ * Undo until `us_target` step becomes the active (currently loaded) one.
+ *
+ * \warning This function assumes that the given target step is _before_ current active one.
+ *
+ * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target` will become the
+ *       active step.
+ *
+ * \note In case `use_skip` is true, the final target will always be **before** the given one (if
+ *       the given one has to be skipped).
+ */
+bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
                                         bContext *C,
-                                        UndoStep *us,
+                                        UndoStep *us_target,
                                         bool use_skip)
 {
-  UNDO_NESTED_ASSERT(false);
-  if (us == NULL) {
-    CLOG_ERROR(&LOG, "called with a NULL step");
-    return false;
-  }
-  undosys_stack_validate(ustack, true);
+  /* In case there is no active step, we consider we just load given step, so reference must be
+   * itself (due to weird 'load current active step in undo case' thing, see comments in
+   * #BKE_undosys_step_load_data_ex). */
+  UndoStep *us_reference = ustack->step_active != NULL ? ustack->step_active : us_target;
 
-  /* We expect to get previous-from-actual-target step here (i.e. active step in case we only redo
-   * once)?
-   * FIXME: this is very confusing now that we may have to redo several steps anyway, this function
-   * should just get the target final step, not assume that it is getting the active one by default
-   * (or the step before the target one when redoing more than one step). */
-  UndoStep *us_target = us->next;
-  if (us_target == NULL) {
-    CLOG_ERROR(&LOG, "could not find a valid target step");
-    return false;
-  }
-  ASSERT_VALID_REDO_STEP(ustack, us_target);
+  BLI_assert(BKE_undosys_step_calc_direction(ustack, us_target, us_reference) == -1);
 
-  /* This will be the active step once the redo process is complete.
-   *
-   * In case we do skip 'skipped' steps, the final active step may be several steps forward the one
-   * passed as parameter. */
-  UndoStep *us_target_active = us_target;
-  if (use_skip) {
-    while (us_target_active != NULL && us_target_active->skip) {
-      us_target_active = us_target_active->next;
-    }
-  }
-  if (us_target_active == NULL) {
-    CLOG_ERROR(&LOG, "could not find a valid final active target step");
-    return false;
-  }
+  return BKE_undosys_step_load_data_ex(ustack, C, us_target, us_reference, use_skip);
+}
 
-  CLOG_INFO(
-      &LOG, 1, "addr=%p, name='%s', type='%s'", us_target, us_target->name, us_target->type->name);
+/**
+ * Undo until `us_target` step becomes the active (currently loaded) one.
+ *
+ * \note See #BKE_undosys_step_undo_with_data_ex for details.
+ */
+bool BKE_undosys_step_undo_with_data(UndoStack *ustack, bContext *C, UndoStep *us_target)
+{
+  return BKE_undosys_step_undo_with_data_ex(ustack, C, us_target, true);
+}
 
-  /* Redo steps until we reach original given target, if we do have a current active step. */
+/**
+ * Undo one step from current active (currently loaded) one.
+ */
+bool BKE_undosys_step_undo(UndoStack *ustack, bContext *C)
+{
   if (ustack->step_active != NULL) {
-    for (UndoStep *us_iter = ustack->step_active->next; us_iter != us_target;
-         us_iter = us_iter->next) {
-      BLI_assert(us_iter != NULL);
-      undosys_step_decode(C, G_MAIN, ustack, us_iter, 1, false);
-      ustack->step_active = us_iter;
-    }
+    return BKE_undosys_step_undo_with_data(ustack, C, ustack->step_active->prev);
   }
-
-  /* Redo target step, and all potential extra ones if some steps have to be 'skipped'. */
-  for (UndoStep *us_iter = us_target; us_iter != NULL; us_iter = us_iter->next) {
-    const bool is_final = (us_iter == us_target_active);
-
-    if (!is_final) {
-      BLI_assert(us_iter->skip == true);
-      CLOG_INFO(&LOG,
-                2,
-                "redo continue with skip addr=%p, name='%s', type='%s'",
-                us_iter,
-                us_iter->name,
-                us_iter->type->name);
-    }
-
-    undosys_step_decode(C, G_MAIN, ustack, us_iter, 1, is_final);
-    ustack->step_active = us_iter;
-
-    if (is_final) {
-      /* Redo process is finished and successful. */
-      return true;
-    }
-  }
-
-  BLI_assert(
-      !"This should never be reached, either undo stack is corrupted, or code above is buggy");
   return false;
 }
 
-bool BKE_undosys_step_redo_with_data(UndoStack *ustack, bContext *C, UndoStep *us)
+/**
+ * Redo until `us_target` step becomes the active (currently loaded) one.
+ *
+ * \warning This function assumes that the given target step is _after_ current active one.
+ *
+ * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target` will become the
+ *       active step.
+ *
+ * \note In case `use_skip` is true, the final target will always be **after** the given one (if
+ *       the given one has to be skipped).
+ */
+bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
+                                        bContext *C,
+                                        UndoStep *us_target,
+                                        bool use_skip)
 {
-  return BKE_undosys_step_redo_with_data_ex(ustack, C, us, true);
+  /* In case there is no active step, we consider we just load given step, so reference must be
+   * the previous one. */
+  UndoStep *us_reference = ustack->step_active != NULL ? ustack->step_active : us_target->prev;
+
+  BLI_assert(BKE_undosys_step_calc_direction(ustack, us_target, us_reference) == 1);
+
+  return BKE_undosys_step_load_data_ex(ustack, C, us_target, us_reference, use_skip);
 }
 
+/**
+ * Redo until `us_target` step becomes the active (currently loaded) one.
+ *
+ * \note See #BKE_undosys_step_redo_with_data_ex for details.
+ */
+bool BKE_undosys_step_redo_with_data(UndoStack *ustack, bContext *C, UndoStep *us_target)
+{
+  return BKE_undosys_step_redo_with_data_ex(ustack, C, us_target, true);
+}
+
+/**
+ * Redo one step from current active one.
+ */
 bool BKE_undosys_step_redo(UndoStack *ustack, bContext *C)
 {
-  return BKE_undosys_step_redo_with_data(ustack, C, ustack->step_active);
-}
-
-bool BKE_undosys_step_load_data(UndoStack *ustack, bContext *C, UndoStep *us)
-{
-  UNDO_NESTED_ASSERT(false);
-  const int index_active = BLI_findindex(&ustack->steps, ustack->step_active);
-  const int index_target = BLI_findindex(&ustack->steps, us);
-  BLI_assert(!ELEM(-1, index_active, index_target));
-  bool ok = true;
-
-  if (index_target < index_active) {
-    uint i = index_active - index_target;
-    while (i-- && ok) {
-      ok = BKE_undosys_step_undo_with_data_ex(ustack, C, ustack->step_active, false);
-    }
+  if (ustack->step_active != NULL) {
+    return BKE_undosys_step_redo_with_data(ustack, C, ustack->step_active->next);
   }
-  else if (index_target > index_active) {
-    uint i = index_target - index_active;
-    while (i-- && ok) {
-      ok = BKE_undosys_step_redo_with_data_ex(ustack, C, ustack->step_active, false);
-    }
-  }
-
-  if (ok) {
-    BLI_assert(ustack->step_active == us);
-  }
-
-  return ok;
+  return false;
 }
 
 /**
