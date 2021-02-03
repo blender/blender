@@ -447,16 +447,16 @@ OIIO_SKIP=false
 LLVM_VERSION="9.0.1"
 LLVM_VERSION_SHORT="9.0"
 LLVM_VERSION_MIN="6.0"
-LLVM_VERSION_MAX="11.0"
+LLVM_VERSION_MAX="12.0"
 LLVM_VERSION_FOUND=""
 LLVM_FORCE_BUILD=false
 LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.10.10"
-OSL_VERSION_SHORT="1.10"
-OSL_VERSION_MIN="1.10"
+OSL_VERSION="1.11.10.0"
+OSL_VERSION_SHORT="1.11"
+OSL_VERSION_MIN="1.11"
 OSL_VERSION_MAX="2.0"
 OSL_FORCE_BUILD=false
 OSL_FORCE_REBUILD=false
@@ -2327,7 +2327,6 @@ compile_OSL() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
-    cmake_d="$cmake_d -D BUILDSTATIC=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_PLUGINS=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_TESTS=OFF"
     cmake_d="$cmake_d -D USE_SIMD=sse2"
@@ -2335,6 +2334,9 @@ compile_OSL() {
     cmake_d="$cmake_d -D USE_PARTIO=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_MATERIALX=OFF"
     cmake_d="$cmake_d -D USE_QT=OFF"
+    cmake_d="$cmake_d -D USE_PYTHON=OFF"
+
+    cmake_d="$cmake_d -D CMAKE_CXX_STANDARD=14"
 
     #~ cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
 
@@ -2351,6 +2353,9 @@ compile_OSL() {
 
     if [ -d $INST/oiio ]; then
       cmake_d="$cmake_d -D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
+      # HACK! SIC!!!!
+      # Quiet incredible, but if root dir is given, path to lib is found, but not path to include...
+      cmake_d="$cmake_d -D OPENIMAGEIO_INCLUDE_DIR=$INST/oiio/include"
     fi
 
     if [ ! -z $LLVM_VERSION_FOUND ]; then
@@ -4088,7 +4093,7 @@ install_DEB() {
   else
     check_package_version_ge_lt_DEB llvm-dev $LLVM_VERSION_MIN $LLVM_VERSION_MAX
     if [ $? -eq 0 ]; then
-      install_packages_DEB llvm-dev clang
+      install_packages_DEB llvm-dev clang libclang-dev
       have_llvm=true
       LLVM_VERSION=`llvm-config --version`
       LLVM_VERSION_FOUND=$LLVM_VERSION
