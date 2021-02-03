@@ -530,6 +530,7 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
 void SCULPT_boundary_data_free(SculptBoundary *boundary)
 {
   MEM_SAFE_FREE(boundary->vertices);
+  MEM_SAFE_FREE(boundary->edges);
   MEM_SAFE_FREE(boundary->distance);
   MEM_SAFE_FREE(boundary->edit_info);
   MEM_SAFE_FREE(boundary->bend.pivot_positions);
