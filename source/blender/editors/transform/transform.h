@@ -722,8 +722,6 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3]);
 
 void calculatePropRatio(TransInfo *t);
 
-void getViewVector(const TransInfo *t, const float coord[3], float vec[3]);
-
 void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
 
 void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);

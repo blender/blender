@@ -64,19 +64,6 @@
 #include "transform_orientations.h"
 #include "transform_snap.h"
 
-/* ************************** Functions *************************** */
-
-void getViewVector(const TransInfo *t, const float coord[3], float vec[3])
-{
-  if (t->persp != RV3D_ORTHO) {
-    sub_v3_v3v3(vec, coord, t->viewinv[3]);
-  }
-  else {
-    copy_v3_v3(vec, t->viewinv[2]);
-  }
-  normalize_v3(vec);
-}
-
 /* ************************** GENERICS **************************** */
 
 void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options)

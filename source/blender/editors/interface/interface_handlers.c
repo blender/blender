@@ -9014,6 +9014,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
 {
   int retval = WM_UI_HANDLER_CONTINUE;
   int type = event->type, val = event->val;
+  int scroll_dir = 1;
   bool redraw = false;
 
   uiList *ui_list = listbox->custom_data;
@@ -9029,6 +9030,11 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   /* Convert pan to scroll-wheel. */
   if (type == MOUSEPAN) {
     ui_pan_to_scroll(event, &type, &val);
+
+    /* 'ui_pan_to_scroll' gives the absolute direction. */
+    if (event->is_direction_inverted) {
+      scroll_dir = -1;
+    }
 
     /* If type still is mouse-pan, we call it handled, since delta-y accumulate. */
     /* also see wm_event_system.c do_wheel_ui hack */
@@ -9124,7 +9130,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
     else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
       if (dyn_data->height > dyn_data->visual_height) {
         /* list template will clamp */
-        ui_list->list_scroll += (type == WHEELUPMOUSE) ? -1 : 1;
+        ui_list->list_scroll += scroll_dir * ((type == WHEELUPMOUSE) ? -1 : 1);
 
         redraw = true;
         retval = WM_UI_HANDLER_BREAK;
