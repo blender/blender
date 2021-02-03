@@ -51,6 +51,7 @@ typedef struct bNodeLinkDrag {
    * This way the links can be added to the node tree while being stored in this list.
    */
   ListBase links;
+  bool from_multi_input_socket;
   int in_out;
 } bNodeLinkDrag;
 

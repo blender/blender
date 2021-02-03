@@ -1317,10 +1317,22 @@ AlembicProcedural::~AlembicProcedural()
   foreach (Node *node, objects) {
     AlembicObject *abc_object = static_cast<AlembicObject *>(node);
 
-    objects_set.insert(abc_object->get_object());
-    geometries_set.insert(abc_object->get_object()->get_geometry());
+    if (abc_object->get_object()) {
+      objects_set.insert(abc_object->get_object());
+
+      if (abc_object->get_object()->get_geometry()) {
+        geometries_set.insert(abc_object->get_object()->get_geometry());
+      }
+    }
 
     delete_node(abc_object);
+  }
+
+  /* We may delete a Procedural before rendering started, so scene_ can be null. */
+  if (!scene_) {
+    assert(geometries_set.empty());
+    assert(objects_set.empty());
+    return;
   }
 
   scene_->delete_nodes(geometries_set, this);

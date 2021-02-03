@@ -281,25 +281,30 @@ static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
   return count;
 }
 
-/* find an eligible socket for linking */
+/* Find an eligible socket for linking. */
 static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree, bNode *node, bNodeSocket *cur)
 {
-  /* link swapping: try to find a free slot with a matching name */
-
   bNodeSocket *first = cur->in_out == SOCK_IN ? node->inputs.first : node->outputs.first;
   bNodeSocket *sock;
 
-  sock = cur->next ? cur->next : first; /* wrap around the list end */
+  /* Iterate over all sockets of the target node, to find one that matches the same socket type.
+   * The idea behind this is: When a user connects an input to a socket that is
+   * already linked (and if its not an Multi Input Socket), we try to find a replacement socket for
+   * the link that we try to overwrite and connect that previous link to the new socket. */
+  sock = cur->next ? cur->next : first; /* Wrap around the list end. */
   while (sock != cur) {
     if (!nodeSocketIsHidden(sock) && node_link_socket_match(sock, cur)) {
-      int link_count = node_count_links(ntree, sock);
-      /* take +1 into account since we would add a new link */
-      if (link_count + 1 <= nodeSocketLinkLimit(sock)) {
-        return sock; /* found a valid free socket we can swap to */
-      }
+      break;
     }
+    sock = sock->next ? sock->next : first; /* Wrap around the list end. */
+  }
 
-    sock = sock->next ? sock->next : first; /* wrap around the list end */
+  if (!nodeSocketIsHidden(sock) && node_link_socket_match(sock, cur)) {
+    int link_count = node_count_links(ntree, sock);
+    /* Take +1 into account since we would add a new link. */
+    if (link_count + 1 <= nodeSocketLinkLimit(sock)) {
+      return sock; /* Found a valid free socket we can swap to. */
+    }
   }
   return NULL;
 }
@@ -309,7 +314,6 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
   bNodeSocket *sock = link->tosock;
   bNodeLink *tlink, *tlink_next;
 
-  /* inputs can have one link only, outputs can have unlimited links */
   if (node != link->tonode) {
     return;
   }

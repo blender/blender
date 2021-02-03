@@ -3549,6 +3549,9 @@ void nodeSetSocketAvailability(bNodeSocket *sock, bool is_available)
 int nodeSocketLinkLimit(const bNodeSocket *sock)
 {
   bNodeSocketType *stype = sock->typeinfo;
+  if (sock->flag & SOCK_MULTI_INPUT) {
+    return 4095;
+  }
   if (stype != nullptr && stype->use_link_limits_of_type) {
     int limit = (sock->in_out == SOCK_IN) ? stype->input_link_limit : stype->output_link_limit;
     return limit;
@@ -4770,6 +4773,7 @@ static void registerGeometryNodes()
   register_node_type_geo_align_rotation_to_vector();
   register_node_type_geo_sample_texture();
   register_node_type_geo_points_to_volume();
+  register_node_type_geo_collection_info();
 }
 
 static void registerFunctionNodes()

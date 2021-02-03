@@ -836,31 +836,38 @@ static bNodeLinkDrag *node_link_init(Main *bmain, SpaceNode *snode, float cursor
     nldrag = MEM_callocN(sizeof(bNodeLinkDrag), "drag link op customdata");
 
     const int num_links = nodeCountSocketLinks(snode->edittree, sock);
-    int link_limit = nodeSocketLinkLimit(sock);
-    if (num_links > 0 && (num_links >= link_limit || detach)) {
+    if (num_links > 0) {
       /* dragged links are fixed on output side */
       nldrag->in_out = SOCK_OUT;
       /* detach current links and store them in the operator data */
+      bNodeLink *link_to_pick;
       LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &snode->edittree->links) {
         if (link->tosock == sock) {
-          LinkData *linkdata = MEM_callocN(sizeof(LinkData), "drag link op link data");
-          bNodeLink *oplink = MEM_callocN(sizeof(bNodeLink), "drag link op link");
-          linkdata->data = oplink;
-          *oplink = *link;
-          oplink->next = oplink->prev = NULL;
-          oplink->flag |= NODE_LINK_VALID;
-          oplink->flag &= ~NODE_LINK_TEST;
-          if (node_connected_to_output(bmain, snode->edittree, link->tonode)) {
-            oplink->flag |= NODE_LINK_TEST;
+          if (sock->flag & SOCK_MULTI_INPUT) {
+            nldrag->from_multi_input_socket = true;
           }
+          link_to_pick = link;
+        }
+      }
 
-          BLI_addtail(&nldrag->links, linkdata);
-          nodeRemLink(snode->edittree, link);
+      if (link_to_pick != NULL && !nldrag->from_multi_input_socket) {
+        LinkData *linkdata = MEM_callocN(sizeof(LinkData), "drag link op link data");
+        bNodeLink *oplink = MEM_callocN(sizeof(bNodeLink), "drag link op link");
+        linkdata->data = oplink;
+        *oplink = *link_to_pick;
+        oplink->next = oplink->prev = NULL;
+        oplink->flag |= NODE_LINK_VALID;
+        oplink->flag &= ~NODE_LINK_TEST;
+        if (node_connected_to_output(bmain, snode->edittree, link_to_pick->tonode)) {
+          oplink->flag |= NODE_LINK_TEST;
+        }
 
-          /* send changed event to original link->tonode */
-          if (node) {
-            snode_update(snode, node);
-          }
+        BLI_addtail(&nldrag->links, linkdata);
+        nodeRemLink(snode->edittree, link_to_pick);
+
+        /* send changed event to original link->tonode */
+        if (node) {
+          snode_update(snode, node);
         }
       }
     }
@@ -896,6 +903,8 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   float cursor[2];
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
+  RNA_float_set_array(op->ptr, "drag_start", cursor);
+  RNA_boolean_set(op->ptr, "has_link_picked", false);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
@@ -941,7 +950,28 @@ void NODE_OT_link(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
+  PropertyRNA *prop;
+
   RNA_def_boolean(ot->srna, "detach", false, "Detach", "Detach and redirect existing links");
+  prop = RNA_def_boolean(
+      ot->srna,
+      "has_link_picked",
+      false,
+      "Has Link Picked",
+      "The operation has placed a link. Only used for multi-input sockets, where the "
+      "link is picked later");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  RNA_def_float_array(ot->srna,
+                      "drag_start",
+                      2,
+                      0,
+                      -UI_PRECISION_FLOAT_MAX,
+                      UI_PRECISION_FLOAT_MAX,
+                      "Drag Start",
+                      "The position of the mouse cursor at the start of the operation",
+                      -UI_PRECISION_FLOAT_MAX,
+                      UI_PRECISION_FLOAT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* ********************** Make Link operator ***************** */

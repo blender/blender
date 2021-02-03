@@ -1611,6 +1611,7 @@ static void sculpt_gesture_project_end(bContext *C, SculptGestureContext *sgcont
   if (ss->deform_modifiers_active || ss->shapekey_active) {
     SCULPT_flush_stroke_deform(sd, sgcontext->vc.obact, true);
   }
+
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
   SCULPT_flush_update_done(C, sgcontext->vc.obact, SCULPT_UPDATE_COORDS);
 }

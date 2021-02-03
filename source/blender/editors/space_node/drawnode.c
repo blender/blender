@@ -3374,6 +3374,13 @@ static void node_geometry_buts_points_to_volume(uiLayout *layout,
   uiItemR(layout, ptr, "input_type_radius", DEFAULT_FLAGS, IFACE_("Radius"), ICON_NONE);
 }
 
+static void node_geometry_buts_collection_info(uiLayout *layout,
+                                               bContext *UNUSED(C),
+                                               PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+}
+
 static void node_geometry_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -3433,6 +3440,9 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_POINTS_TO_VOLUME:
       ntype->draw_buttons = node_geometry_buts_points_to_volume;
+      break;
+    case GEO_NODE_COLLECTION_INFO:
+      ntype->draw_buttons = node_geometry_buts_collection_info;
       break;
   }
 }

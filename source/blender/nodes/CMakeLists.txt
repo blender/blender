@@ -150,6 +150,7 @@ set(SRC
   geometry/nodes/node_geo_attribute_randomize.cc
   geometry/nodes/node_geo_attribute_vector_math.cc
   geometry/nodes/node_geo_boolean.cc
+  geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_join_geometry.cc

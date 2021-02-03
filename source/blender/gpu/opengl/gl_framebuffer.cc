@@ -142,13 +142,13 @@ bool GLFrameBuffer::check(char err_out[256])
 
 #undef FORMAT_STATUS
 
-  const char *format = "GPUFrameBuffer: frame-buffer status %s\n";
+  const char *format = "GPUFrameBuffer: %s status %s\n";
 
   if (err_out) {
-    BLI_snprintf(err_out, 256, format, err);
+    BLI_snprintf(err_out, 256, format, this->name_, err);
   }
   else {
-    fprintf(stderr, format, err);
+    fprintf(stderr, format, this->name_, err);
   }
 
   return false;
