@@ -106,6 +106,10 @@ static int geometry_extract_apply(bContext *C,
 
   BKE_sculpt_mask_layers_ensure(ob, NULL);
 
+  /* Ensures that deformation from sculpt mode is taken into accunt before duplicating the mesh to
+   * extract the geometry. */
+  CTX_data_ensure_evaluated_depsgraph(C);
+
   Mesh *mesh = ob->data;
   Mesh *new_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);
 

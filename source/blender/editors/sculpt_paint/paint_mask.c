@@ -1465,6 +1465,12 @@ static void sculpt_gesture_project_apply_for_symmetry_pass(bContext *UNUSED(C),
 
 static void sculpt_gesture_project_end(bContext *C, SculptGestureContext *sgcontext)
 {
+  SculptSession *ss = sgcontext->ss;
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  if (ss->deform_modifiers_active || ss->shapekey_active) {
+    SCULPT_flush_stroke_deform(sd, sgcontext->vc.obact, true);
+  }
+
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
   SCULPT_flush_update_done(C, sgcontext->vc.obact, SCULPT_UPDATE_COORDS);
 }
