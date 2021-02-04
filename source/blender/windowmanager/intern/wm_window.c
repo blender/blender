@@ -560,6 +560,13 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                       wmWindow *win,
                                       bool is_dialog)
 {
+  /* On Windows, if there is a parent window then force is_dialog. Otherwise the parent
+     handle is not used in window creation and they do not stay on top of parents. */
+#ifdef WIN32
+  if (win->parent) {
+    is_dialog = true;
+  }
+#endif
 
   /* a new window is created when pageflip mode is required for a window */
   GHOST_GLSettings glSettings = {0};
@@ -858,13 +865,15 @@ wmWindow *WM_window_open_temp(bContext *C,
   /* changes rect to fit within desktop */
   wm_window_check_position(&rect);
 
-  /* Reuse temporary or dialog window if one is open (but don't use a dialog for a regular
-   * temporary window, or vice versa). */
+  /* Reuse temporary windows when they share the same title. */
   wmWindow *win = NULL;
   LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-    if (WM_window_is_temp_screen(win_iter) &&
-        (dialog == GHOST_IsDialogWindow(win_iter->ghostwin))) {
-      win = win_iter;
+    if (WM_window_is_temp_screen(win_iter)) {
+      char *wintitle = GHOST_GetTitle(win_iter->ghostwin);
+      if (strcmp(title, wintitle) == 0) {
+        win = win_iter;
+      }
+      free(wintitle);
     }
   }
 
