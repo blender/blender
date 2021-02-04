@@ -606,7 +606,7 @@ def preset_find(name, preset_path, display_name=False, ext=".py"):
         if display_name:
             filename = ""
             for fn in _os.listdir(directory):
-                if fn.endswith(ext) and name == _bpy.path.display_name(fn):
+                if fn.endswith(ext) and name == _bpy.path.display_name(fn, title_case=False):
                     filename = fn
                     break
         else:
