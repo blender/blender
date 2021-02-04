@@ -140,7 +140,6 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
  */
 LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
                                               int ofblocktype,
-
                                               const bool use_assets_only,
                                               int *r_tot_names)
 {
