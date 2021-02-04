@@ -477,6 +477,13 @@ static void lib_override_linked_group_tag(
     BKE_main_relations_create(bmain, 0);
   }
 
+  if ((id->tag & LIB_TAG_MISSING)) {
+    id->tag |= missing_tag;
+  }
+  else {
+    id->tag |= tag;
+  }
+
   if (ELEM(GS(id->name), ID_OB, ID_GR)) {
     LibOverrideGroupTagData data = {.id_root = id, .tag = tag, .missing_tag = missing_tag};
     /* Tag all collections and objects. */
@@ -572,6 +579,8 @@ static void lib_override_local_group_tag(Main *bmain,
                                          const uint tag,
                                          const uint missing_tag)
 {
+  id->tag |= tag;
+
   LibOverrideGroupTagData data = {.id_root = id, .tag = tag, .missing_tag = missing_tag};
   /* Tag all local overrides in id_root's group. */
   BKE_library_foreach_ID_link(
@@ -580,8 +589,6 @@ static void lib_override_local_group_tag(Main *bmain,
 
 static bool lib_override_library_create_do(Main *bmain, ID *id_root)
 {
-  id_root->tag |= LIB_TAG_DOIT;
-
   BKE_main_relations_create(bmain, 0);
 
   lib_override_linked_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING, false);
@@ -780,7 +787,6 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
 
-  id_root->tag |= LIB_TAG_DOIT;
   ID *id_root_reference = id_root->override_library->reference;
 
   lib_override_local_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING);
@@ -955,9 +961,6 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
 void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
-
-  /* Tag all collections and objects, as well as other IDs using them. */
-  id_root->tag |= LIB_TAG_DOIT;
 
   /* Tag all library overrides in the chains of dependencies from the given root one. */
   lib_override_local_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_DOIT);
