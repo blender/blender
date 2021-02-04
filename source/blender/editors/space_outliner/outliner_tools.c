@@ -1789,21 +1789,44 @@ static bool outliner_id_operation_item_poll(bContext *C,
                                             const int enum_value)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  TreeElement *te = get_target_element(space_outliner);
+  TreeStoreElem *tselem = TREESTORE(te);
+  if (!TSE_IS_REAL_ID(tselem)) {
+    return false;
+  }
+
+  Object *ob = NULL;
+  if (GS(tselem->id->name) == ID_OB) {
+    ob = (Object *)tselem->id;
+  }
 
   switch (enum_value) {
     case OUTLINER_IDOP_MARK_ASSET:
     case OUTLINER_IDOP_CLEAR_ASSET:
       return U.experimental.use_asset_browser;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE:
+      if (ID_IS_OVERRIDABLE_LIBRARY(tselem->id)) {
+        return true;
+      }
+      return false;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY:
-      return true;
+      if (ID_IS_OVERRIDABLE_LIBRARY(tselem->id) || (ID_IS_LINKED(tselem->id))) {
+        return true;
+      }
+      return false;
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_PROXY_CONVERT:
+      if (ob != NULL && ob->proxy != NULL) {
+        return true;
+      }
+      return false;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY:
-      return true;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY:
-      return true;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_DELETE_HIERARCHY:
-      return true;
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id)) {
+        return true;
+      }
+      return false;
     case OUTLINER_IDOP_SINGLE:
       if (!space_outliner || ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
         return true;
