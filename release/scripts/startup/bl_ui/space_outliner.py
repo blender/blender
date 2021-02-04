@@ -239,10 +239,10 @@ class OUTLINER_MT_collection(Menu):
         if space.display_mode == 'VIEW_LAYER':
             layout.separator()
             layout.menu("OUTLINER_MT_collection_view_layer", icon='RENDERLAYERS')
-            layout.separator()
 
-            row = layout.row(align=True)
-            row.operator_enum("outliner.collection_color_tag_set", "color", icon_only=True)
+        layout.separator()
+        row = layout.row(align=True)
+        row.operator_enum("outliner.collection_color_tag_set", "color", icon_only=True)
 
         layout.separator()
 
