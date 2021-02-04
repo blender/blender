@@ -54,6 +54,7 @@
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
+#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -101,10 +102,7 @@ static CLG_LogRef LOG = {"bke.action"};
  *
  * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
-static void action_copy_data(Main *UNUSED(bmain),
-                             ID *id_dst,
-                             const ID *id_src,
-                             const int UNUSED(flag))
+static void action_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
 {
   bAction *action_dst = (bAction *)id_dst;
   const bAction *action_src = (const bAction *)id_src;
@@ -145,6 +143,13 @@ static void action_copy_data(Main *UNUSED(bmain),
       }
     }
   }
+
+  if (flag & LIB_ID_COPY_NO_PREVIEW) {
+    action_dst->preview = NULL;
+  }
+  else {
+    BKE_previewimg_id_copy(&action_dst->id, &action_src->id);
+  }
 }
 
 /** Free (or release) any data used by this action (does not free the action itself). */
@@ -161,6 +166,8 @@ static void action_free_data(struct ID *id)
 
   /* Free pose-references (aka local markers). */
   BLI_freelistN(&action->markers);
+
+  BKE_previewimg_free(&action->preview);
 }
 
 static void action_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -192,6 +199,8 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
       BLO_write_struct(writer, TimeMarker, marker);
     }
+
+    BKE_previewimg_blend_write(writer, act->preview);
   }
 }
 
@@ -218,6 +227,9 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_data_address(reader, &agrp->channels.first);
     BLO_read_data_address(reader, &agrp->channels.last);
   }
+
+  BLO_read_data_address(reader, &act->preview);
+  BKE_previewimg_blend_read(reader, act->preview);
 }
 
 static void blend_read_lib_constraint_channels(BlendLibReader *reader, ID *id, ListBase *chanbase)

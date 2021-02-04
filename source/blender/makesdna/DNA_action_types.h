@@ -676,6 +676,8 @@ typedef struct bAction {
    */
   int idroot;
   char _pad[4];
+
+  PreviewImage *preview;
 } bAction;
 
 /* Flags for the action */
