@@ -49,7 +49,7 @@
 static eRedrawFlag seq_slide_handleEvent(struct TransInfo *t, const wmEvent *event)
 {
   BLI_assert(t->mode == TFM_SEQ_SLIDE);
-  wmKeyMapItem *kmi = t->custom.mode.data;
+  const wmKeyMapItem *kmi = t->custom.mode.data;
   if (kmi && event->type == kmi->type && event->val == kmi->val) {
     /* Allows the 'Expand to fit' effect to be enabled as a toogle. */
     t->flag ^= T_ALT_TRANSFORM;
@@ -73,7 +73,7 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
   ofs += BLI_snprintf(
       str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Sequence Slide: %s%s, ("), &tvec[0], t->con.text);
 
-  wmKeyMapItem *kmi = t->custom.mode.data;
+  const wmKeyMapItem *kmi = t->custom.mode.data;
   if (kmi) {
     ofs += WM_keymap_item_to_string(kmi, false, str + ofs, UI_MAX_DRAW_STR - ofs);
   }
@@ -158,7 +158,7 @@ void initSeqSlide(TransInfo *t)
 
   if (t->keymap) {
     /* Workaround to use the same key as the modal keymap. */
-    t->custom.mode.data = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
+    t->custom.mode.data = (void *)WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
   }
 }
 /** \} */
