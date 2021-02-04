@@ -549,10 +549,10 @@ static void applyObjectConstraintSize(TransInfo *t,
   }
 }
 
-static void constraints_rotation_imp(TransInfo *t,
-                                     float axismtx[3][3],
-                                     float r_vec[3],
-                                     float *r_angle)
+static void constraints_rotation_impl(TransInfo *t,
+                                      float axismtx[3][3],
+                                      float r_vec[3],
+                                      float *r_angle)
 {
   BLI_assert(t->con.mode & CON_APPLY);
   int mode = t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
@@ -598,7 +598,7 @@ static void applyAxisConstraintRot(
     TransInfo *t, TransDataContainer *UNUSED(tc), TransData *td, float vec[3], float *angle)
 {
   if (!td && t->con.mode & CON_APPLY) {
-    constraints_rotation_imp(t, t->spacemtx, vec, angle);
+    constraints_rotation_impl(t, t->spacemtx, vec, angle);
   }
 }
 
@@ -637,7 +637,7 @@ static void applyObjectConstraintRot(
       axismtx = td->axismtx;
     }
 
-    constraints_rotation_imp(t, axismtx, vec, angle);
+    constraints_rotation_impl(t, axismtx, vec, angle);
   }
 }
 
