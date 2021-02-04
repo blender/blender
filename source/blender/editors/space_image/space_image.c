@@ -234,6 +234,7 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_pack);
   WM_operatortype_append(IMAGE_OT_unpack);
 
+  WM_operatortype_append(IMAGE_OT_flip);
   WM_operatortype_append(IMAGE_OT_invert);
   WM_operatortype_append(IMAGE_OT_resize);
 
