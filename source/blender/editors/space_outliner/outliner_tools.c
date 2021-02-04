@@ -23,6 +23,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
@@ -91,6 +93,8 @@
 #include "SEQ_sequencer.h"
 
 #include "outliner_intern.h"
+
+static CLG_LogRef LOG = {"ed.outliner.tools"};
 
 /* -------------------------------------------------------------------- */
 /** \name ID/Library/Data Set/Un-link Utilities
@@ -824,6 +828,9 @@ static void id_override_library_create_fn(bContext *C,
       BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
     }
   }
+  else {
+    CLOG_WARN(&LOG, "Could not create library override for data block '%s'", id_root->name);
+  }
 }
 
 static void id_override_library_reset_fn(bContext *C,
@@ -851,6 +858,9 @@ static void id_override_library_reset_fn(bContext *C,
 
     WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, NULL);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  }
+  else {
+    CLOG_WARN(&LOG, "Could not reset library override of data block '%s'", id_root->name);
   }
 }
 
@@ -883,6 +893,9 @@ static void id_override_library_resync_fn(bContext *C,
 
     BKE_lib_override_library_resync(bmain, scene, CTX_data_view_layer(C), id_root);
   }
+  else {
+    CLOG_WARN(&LOG, "Could not resync library override of data block '%s'", id_root->name);
+  }
 }
 
 static void id_override_library_delete_fn(bContext *C,
@@ -913,6 +926,9 @@ static void id_override_library_delete_fn(bContext *C,
     }
 
     BKE_lib_override_library_delete(bmain, id_root);
+  }
+  else {
+    CLOG_WARN(&LOG, "Could not delete library override of data block '%s'", id_root->name);
   }
 }
 
