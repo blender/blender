@@ -2403,6 +2403,13 @@ static void animfilter_modifier_idpoin_cb(void *afm_ptr,
       }
       break;
     }
+    case ID_NT: {
+      bNodeTree *node_tree = (bNodeTree *)id;
+      if (!(afm->ads->filterflag & ADS_FILTER_NONTREE)) {
+        afm->items += animdata_filter_ds_nodetree(
+            afm->ac, &afm->tmp_data, afm->ads, owner_id, node_tree, afm->filter_mode);
+      }
+    }
 
     /* TODO: images? */
     default:
