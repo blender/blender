@@ -560,15 +560,15 @@ static void constraints_rotation_imp(TransInfo *t,
   switch (mode) {
     case CON_AXIS0:
     case (CON_AXIS1 | CON_AXIS2):
-      negate_v3_v3(r_vec, axismtx[0]);
+      copy_v3_v3(r_vec, axismtx[0]);
       break;
     case CON_AXIS1:
     case (CON_AXIS0 | CON_AXIS2):
-      negate_v3_v3(r_vec, axismtx[1]);
+      copy_v3_v3(r_vec, axismtx[1]);
       break;
     case CON_AXIS2:
     case (CON_AXIS0 | CON_AXIS1):
-      negate_v3_v3(r_vec, axismtx[2]);
+      copy_v3_v3(r_vec, axismtx[2]);
       break;
   }
   /* don't flip axis if asked to or if num input */

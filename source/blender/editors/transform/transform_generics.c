@@ -428,7 +428,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   BLI_assert(is_zero_v4(t->values_modal_offset));
 
-  bool use_orient_axis = false;
   bool t_values_set_is_array = false;
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "value")) &&
@@ -453,11 +452,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
 
-  if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
-    t->orient_axis = RNA_property_enum_get(op->ptr, prop);
-    use_orient_axis = true;
-  }
-
   if (op && (prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
     bool constraint_axis[3] = {false, false, false};
     if (t->flag & T_INPUT_IS_VALUES_FINAL) {
@@ -465,9 +459,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         /* For operators whose `t->values` is array, set constraint so that the
          * orientation is more intuitive in the Redo Panel. */
         constraint_axis[0] = constraint_axis[1] = constraint_axis[2] = true;
-      }
-      else if (use_orient_axis) {
-        constraint_axis[t->orient_axis] = true;
       }
     }
     else if (RNA_property_is_set(op->ptr, prop)) {
@@ -497,6 +488,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     short orient_type_set = V3D_ORIENT_GLOBAL;
     short orient_type_matrix_set = -1;
 
+    bool use_orient_axis = false;
+
     if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
       TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
       orient_type_scene = orient_slot->type;
@@ -507,6 +500,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
 
     short orient_type_default = orient_type_scene;
+
+    if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
+      t->orient_axis = RNA_property_enum_get(op->ptr, prop);
+      use_orient_axis = true;
+    }
 
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
       t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
