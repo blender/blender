@@ -506,6 +506,7 @@ geometry_node_categories = [
         NodeItem("FunctionNodeRandomFloat"),
         NodeItem("ShaderNodeValue"),
         NodeItem("FunctionNodeInputVector"),
+        NodeItem("GeometryNodeIsViewport"),
     ]),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=[
         NodeItem("GeometryNodeBoolean"),

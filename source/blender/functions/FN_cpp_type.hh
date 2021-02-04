@@ -929,4 +929,9 @@ inline std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
     static std::unique_ptr<const CPPType> cpp_type = blender::fn::create_cpp_type<TYPE_NAME>( \
         STRINGIFY(IDENTIFIER), default_value); \
     return *cpp_type; \
+  } \
+  /* Support using `CPPType::get<const T>()`. Otherwise the caller would have to remove const. */ \
+  template<> const blender::fn::CPPType &blender::fn::CPPType::get<const TYPE_NAME>() \
+  { \
+    return blender::fn::CPPType::get<TYPE_NAME>(); \
   }
