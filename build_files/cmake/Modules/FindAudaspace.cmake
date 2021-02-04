@@ -19,7 +19,7 @@
 #=============================================================================
 
 IF(NOT AUDASPACE_ROOT_DIR AND NOT $ENV{AUDASPACE_ROOT_DIR} STREQUAL "")
- SET(AUDASPACE_ROOT_DIR $ENV{AUDASPACE_ROOT_DIR})
+  SET(AUDASPACE_ROOT_DIR $ENV{AUDASPACE_ROOT_DIR})
 ENDIF()
 
 SET(_audaspace_SEARCH_DIRS

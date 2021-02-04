@@ -389,7 +389,7 @@ function(blender_add_lib
 endfunction()
 
 function(blender_add_test_suite)
-  if (ARGC LESS 1)
+  if(ARGC LESS 1)
     message(FATAL_ERROR "No arguments supplied to blender_add_test_suite()")
   endif()
 
@@ -1209,9 +1209,9 @@ function(find_python_package
         site-packages
         dist-packages
         vendor-packages
-       NO_DEFAULT_PATH
-       DOC
-         "Path to python site-packages or dist-packages containing '${package}' module"
+      NO_DEFAULT_PATH
+      DOC
+        "Path to python site-packages or dist-packages containing '${package}' module"
     )
     mark_as_advanced(PYTHON_${_upper_package}_PATH)
 

@@ -185,7 +185,7 @@ endif()
 
 if(WITH_OPENVDB)
   list(APPEND INC
-     ../../../intern/openvdb
+    ../../../intern/openvdb
   )
   list(APPEND INC_SYS
     ${OPENVDB_INCLUDE_DIRS}
