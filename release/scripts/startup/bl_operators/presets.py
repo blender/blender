@@ -77,7 +77,7 @@ class AddPresetBase:
                 setattr(cls, attr, trans)
             return trans
 
-        name = name.lower().strip()
+        name = name.strip()
         name = bpy.path.display_name_to_filepath(name)
         trans = maketrans_init()
         # Strip surrounding "_" as they are displayed as spaces.
@@ -249,7 +249,7 @@ class ExecutePreset(Operator):
 
         # change the menu title to the most recently chosen option
         preset_class = getattr(bpy.types, self.menu_idname)
-        preset_class.bl_label = bpy.path.display_name(basename(filepath))
+        preset_class.bl_label = bpy.path.display_name(basename(filepath), title_case=False)
 
         ext = splitext(filepath)[1].lower()
 

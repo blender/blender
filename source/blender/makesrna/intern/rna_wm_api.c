@@ -72,6 +72,12 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 
 #  include "WM_types.h"
 
+/* Needed since RNA doesn't use `const` in function signatures. */
+static bool rna_KeyMapItem_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2)
+{
+  return WM_keymap_item_compare(k1, k2);
+}
+
 static void rna_KeyMapItem_to_string(wmKeyMapItem *kmi, bool compact, char *result)
 {
   WM_keymap_item_to_string(kmi, compact, result, UI_MAX_SHORTCUT_STR);
@@ -1103,7 +1109,7 @@ void RNA_api_keymapitem(StructRNA *srna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  func = RNA_def_function(srna, "compare", "WM_keymap_item_compare");
+  func = RNA_def_function(srna, "compare", "rna_KeyMapItem_compare");
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_boolean(func, "result", 0, "Comparison result", "");

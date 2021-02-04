@@ -50,6 +50,7 @@ void register_node_type_geo_align_rotation_to_vector(void);
 void register_node_type_geo_sample_texture(void);
 void register_node_type_geo_points_to_volume(void);
 void register_node_type_geo_collection_info(void);
+void register_node_type_geo_is_viewport(void);
 
 #ifdef __cplusplus
 }

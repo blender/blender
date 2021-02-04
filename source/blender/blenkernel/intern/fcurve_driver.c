@@ -240,7 +240,7 @@ bool driver_get_variable_property(ChannelDriver *driver,
     ptr = PointerRNA_NULL;
     prop = NULL; /* OK. */
   }
-  else if (RNA_path_resolve_property_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
+  else if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
     /* OK. */
   }
   else {

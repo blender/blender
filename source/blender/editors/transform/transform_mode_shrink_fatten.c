@@ -49,7 +49,7 @@
 static eRedrawFlag shrinkfatten_handleEvent(struct TransInfo *t, const wmEvent *event)
 {
   BLI_assert(t->mode == TFM_SHRINKFATTEN);
-  wmKeyMapItem *kmi = t->custom.mode.data;
+  const wmKeyMapItem *kmi = t->custom.mode.data;
   if (kmi && event->type == kmi->type && event->val == kmi->val) {
     /* Allows the 'Even Thickness' effect to be enabled as a toogle. */
     t->flag ^= T_ALT_TRANSFORM;
@@ -90,7 +90,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   }
   ofs += BLI_strncpy_rlen(str + ofs, ", (", sizeof(str) - ofs);
 
-  wmKeyMapItem *kmi = t->custom.mode.data;
+  const wmKeyMapItem *kmi = t->custom.mode.data;
   if (kmi) {
     ofs += WM_keymap_item_to_string(kmi, false, str + ofs, sizeof(str) - ofs);
   }
@@ -150,7 +150,7 @@ void initShrinkFatten(TransInfo *t)
 
     if (t->keymap) {
       /* Workaround to use the same key as the modal keymap. */
-      t->custom.mode.data = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
+      t->custom.mode.data = (void *)WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
     }
   }
 }

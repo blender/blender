@@ -1173,10 +1173,6 @@ static void nlaeval_snapshot_free_data(NlaEvalSnapshot *snapshot)
 static void nlaevalchan_free_data(NlaEvalChannel *nec)
 {
   nlavalidmask_free(&nec->domain);
-
-  if (nec->blend_snapshot != NULL) {
-    nlaevalchan_snapshot_free(nec->blend_snapshot);
-  }
 }
 
 /* Initialize a full NLA evaluation state structure. */
@@ -1661,92 +1657,6 @@ static bool nla_combine_quaternion_get_inverted_strip_values(const float lower_v
   return true;
 }
 
-/* Data about the current blend mode. */
-typedef struct NlaBlendData {
-  NlaEvalSnapshot *snapshot;
-  int mode;
-  float influence;
-
-  NlaEvalChannel *blend_queue;
-} NlaBlendData;
-
-/* Queue the channel for deferred blending. */
-static NlaEvalChannelSnapshot *nlaevalchan_queue_blend(NlaBlendData *blend, NlaEvalChannel *nec)
-{
-  if (!nec->in_blend) {
-    if (nec->blend_snapshot == NULL) {
-      nec->blend_snapshot = nlaevalchan_snapshot_new(nec);
-    }
-
-    nec->in_blend = true;
-    nlaevalchan_snapshot_copy(nec->blend_snapshot, &nec->base_snapshot);
-
-    nec->next_blend = blend->blend_queue;
-    blend->blend_queue = nec;
-  }
-
-  return nec->blend_snapshot;
-}
-
-/* Accumulate (i.e. blend) the given value on to the channel it affects. */
-static bool nlaeval_blend_value(NlaBlendData *blend,
-                                NlaEvalChannel *nec,
-                                int array_index,
-                                float value)
-{
-  if (nec == NULL) {
-    return false;
-  }
-
-  if (!nlaevalchan_validate_index_ex(nec, array_index)) {
-    return false;
-  }
-
-  NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_ensure_channel(blend->snapshot, nec);
-  float *p_value = &nec_snapshot->values[array_index];
-
-  if (blend->mode == NLASTRIP_MODE_COMBINE) {
-    /* Quaternion blending is deferred until all sub-channel values are known. */
-    if (nec->mix_mode == NEC_MIX_QUATERNION) {
-      NlaEvalChannelSnapshot *blend_snapshot = nlaevalchan_queue_blend(blend, nec);
-
-      blend_snapshot->values[array_index] = value;
-    }
-    else {
-      float base_value = nec->base_snapshot.values[array_index];
-
-      *p_value = nla_combine_value(nec->mix_mode, base_value, *p_value, value, blend->influence);
-    }
-  }
-  else {
-    *p_value = nla_blend_value(blend->mode, *p_value, value, blend->influence);
-  }
-
-  return true;
-}
-
-/* Finish deferred quaternion blending. */
-static void nlaeval_blend_flush(NlaBlendData *blend)
-{
-  NlaEvalChannel *nec;
-
-  while ((nec = blend->blend_queue)) {
-    blend->blend_queue = nec->next_blend;
-    nec->in_blend = false;
-
-    NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_ensure_channel(blend->snapshot, nec);
-    NlaEvalChannelSnapshot *blend_snapshot = nec->blend_snapshot;
-
-    if (nec->mix_mode == NEC_MIX_QUATERNION) {
-      nla_combine_quaternion(
-          nec_snapshot->values, blend_snapshot->values, blend->influence, nec_snapshot->values);
-    }
-    else {
-      BLI_assert(!"mix quaternion");
-    }
-  }
-}
-
 /* Blend the specified snapshots into the target, and free the input snapshots. */
 static void nlaeval_snapshot_mix_and_free(NlaEvalData *nlaeval,
                                           NlaEvalSnapshot *out,
@@ -1857,6 +1767,45 @@ static void nlaeval_fmodifiers_split_stacks(ListBase *list1, ListBase *list2)
 
 /* ---------------------- */
 
+/** Fills \a r_snapshot with the \a action's evaluated fcurve values with modifiers applied. */
+static void nlasnapshot_from_action(PointerRNA *ptr,
+                                    NlaEvalData *channels,
+                                    ListBase *modifiers,
+                                    bAction *action,
+                                    const float evaltime,
+                                    NlaEvalSnapshot *r_snapshot)
+{
+  FCurve *fcu;
+
+  action_idcode_patch_check(ptr->owner_id, action);
+
+  /* Evaluate modifiers which modify time to evaluate the base curves at. */
+  FModifiersStackStorage storage;
+  storage.modifier_count = BLI_listbase_count(modifiers);
+  storage.size_per_modifier = evaluate_fmodifiers_storage_size_per_modifier(modifiers);
+  storage.buffer = alloca(storage.modifier_count * storage.size_per_modifier);
+
+  const float modified_evaltime = evaluate_time_fmodifiers(
+      &storage, modifiers, NULL, 0.0f, evaltime);
+
+  for (fcu = action->curves.first; fcu; fcu = fcu->next) {
+    if (!is_fcurve_evaluatable(fcu)) {
+      continue;
+    }
+
+    NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
+
+    NlaEvalChannelSnapshot *necs = nlaeval_snapshot_ensure_channel(r_snapshot, nec);
+    if (!nlaevalchan_validate_index_ex(nec, fcu->array_index)) {
+      continue;
+    }
+
+    float value = evaluate_fcurve(fcu, modified_evaltime);
+    evaluate_value_fmodifiers(&storage, modifiers, fcu, &value, evaltime);
+    necs->values[fcu->array_index] = value;
+  }
+}
+
 /* evaluate action-clip strip */
 static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
                                          NlaEvalData *channels,
@@ -1864,10 +1813,8 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
                                          NlaEvalStrip *nes,
                                          NlaEvalSnapshot *snapshot)
 {
-  ListBase tmp_modifiers = {NULL, NULL};
+
   NlaStrip *strip = nes->strip;
-  FCurve *fcu;
-  float evaltime;
 
   /* sanity checks for action */
   if (strip == NULL) {
@@ -1879,54 +1826,20 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
     return;
   }
 
-  action_idcode_patch_check(ptr->owner_id, strip->act);
+  ListBase tmp_modifiers = {NULL, NULL};
 
   /* join this strip's modifiers to the parent's modifiers (own modifiers first) */
   nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers);
 
-  /* evaluate strip's modifiers which modify time to evaluate the base curves at */
-  FModifiersStackStorage storage;
-  storage.modifier_count = BLI_listbase_count(&tmp_modifiers);
-  storage.size_per_modifier = evaluate_fmodifiers_storage_size_per_modifier(&tmp_modifiers);
-  storage.buffer = alloca(storage.modifier_count * storage.size_per_modifier);
+  NlaEvalSnapshot strip_snapshot;
+  nlaeval_snapshot_init(&strip_snapshot, channels, NULL);
 
-  evaltime = evaluate_time_fmodifiers(&storage, &tmp_modifiers, NULL, 0.0f, strip->strip_time);
+  nlasnapshot_from_action(
+      ptr, channels, &tmp_modifiers, strip->act, strip->strip_time, &strip_snapshot);
+  nlasnapshot_blend(
+      channels, snapshot, &strip_snapshot, strip->blendmode, strip->influence, snapshot);
 
-  NlaBlendData blend = {
-      .snapshot = snapshot,
-      .mode = strip->blendmode,
-      .influence = strip->influence,
-  };
-
-  /* Evaluate all the F-Curves in the action,
-   * saving the relevant pointers to data that will need to be used. */
-  for (fcu = strip->act->curves.first; fcu; fcu = fcu->next) {
-
-    if (!is_fcurve_evaluatable(fcu)) {
-      continue;
-    }
-
-    /* evaluate the F-Curve's value for the time given in the strip
-     * NOTE: we use the modified time here, since strip's F-Curve Modifiers
-     * are applied on top of this.
-     */
-    float value = evaluate_fcurve(fcu, evaltime);
-
-    /* apply strip's F-Curve Modifiers on this value
-     * NOTE: we apply the strip's original evaluation time not the modified one
-     * (as per standard F-Curve eval)
-     */
-    evaluate_value_fmodifiers(&storage, &tmp_modifiers, fcu, &value, strip->strip_time);
-
-    /* Get an NLA evaluation channel to work with,
-     * and accumulate the evaluated value with the value(s)
-     * stored in this channel if it has been used already. */
-    NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
-
-    nlaeval_blend_value(&blend, nec, fcu->array_index, value);
-  }
-
-  nlaeval_blend_flush(&blend);
+  nlaeval_snapshot_free_data(&strip_snapshot);
 
   /* unlink this strip's modifiers from the parent's modifiers again */
   nlaeval_fmodifiers_split_stacks(&strip->modifiers, modifiers);
@@ -2593,6 +2506,67 @@ static void animsys_calculate_nla(PointerRNA *ptr,
 
   /* free temp data */
   nlaeval_free(&echannels);
+}
+
+/* ---------------------- */
+
+/** Blends the \a lower_snapshot with the \a upper_snapshot into \a r_blended_snapshot according
+ * to the given \a upper_blendmode and \a upper_influence. */
+void nlasnapshot_blend(NlaEvalData *eval_data,
+                       NlaEvalSnapshot *lower_snapshot,
+                       NlaEvalSnapshot *upper_snapshot,
+                       const short upper_blendmode,
+                       const float upper_influence,
+                       NlaEvalSnapshot *r_blended_snapshot)
+{
+  nlaeval_snapshot_ensure_size(r_blended_snapshot, eval_data->num_channels);
+
+  const bool zero_upper_influence = IS_EQF(upper_influence, 0.0f);
+
+  LISTBASE_FOREACH (NlaEvalChannel *, nec, &eval_data->channels) {
+    const int length = nec->base_snapshot.length;
+
+    NlaEvalChannelSnapshot *upper_necs = nlaeval_snapshot_get(upper_snapshot, nec->index);
+    NlaEvalChannelSnapshot *lower_necs = nlaeval_snapshot_get(lower_snapshot, nec->index);
+    if (upper_necs == NULL && lower_necs == NULL) {
+      continue;
+    }
+
+    /** Blend with lower_snapshot's base or default. */
+    if (lower_necs == NULL) {
+      lower_necs = nlaeval_snapshot_find_channel(lower_snapshot->base, nec);
+    }
+
+    NlaEvalChannelSnapshot *result_necs = nlaeval_snapshot_ensure_channel(r_blended_snapshot, nec);
+
+    if (upper_necs == NULL || zero_upper_influence) {
+      memcpy(result_necs->values, lower_necs->values, length * sizeof(float));
+      continue;
+    }
+
+    if (upper_blendmode == NLASTRIP_MODE_COMBINE) {
+      const int mix_mode = nec->mix_mode;
+      if (mix_mode == NEC_MIX_QUATERNION) {
+        nla_combine_quaternion(
+            lower_necs->values, upper_necs->values, upper_influence, result_necs->values);
+      }
+      else {
+        for (int j = 0; j < length; j++) {
+          result_necs->values[j] = nla_combine_value(mix_mode,
+                                                     nec->base_snapshot.values[j],
+                                                     lower_necs->values[j],
+                                                     upper_necs->values[j],
+                                                     upper_influence);
+        }
+      }
+    }
+    else {
+      for (int j = 0; j < length; j++) {
+        result_necs->values[j] = nla_blend_value(
+            upper_blendmode, lower_necs->values[j], upper_necs->values[j], upper_influence);
+      }
+    }
+  }
 }
 
 /* ---------------------- */

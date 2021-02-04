@@ -2484,11 +2484,11 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 /**
  * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
  */
-static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
-                                    ARegion *region,
-                                    View3D *v3d,
-                                    GPUViewport *viewport,
-                                    const bool use_opengl_context)
+static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
+                                     ARegion *region,
+                                     View3D *v3d,
+                                     GPUViewport *viewport,
+                                     const bool use_opengl_context)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
@@ -2611,7 +2611,7 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
     }
   }
 
-  drw_draw_depth_loop_imp(depsgraph, region, v3d, viewport, use_opengl_context);
+  drw_draw_depth_loop_impl(depsgraph, region, v3d, viewport, use_opengl_context);
 }
 
 /**
@@ -2627,7 +2627,7 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
 
   use_drw_engine(&draw_engine_gpencil_type);
 
-  drw_draw_depth_loop_imp(depsgraph, region, v3d, viewport, true);
+  drw_draw_depth_loop_impl(depsgraph, region, v3d, viewport, true);
 }
 
 void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, const rcti *rect)

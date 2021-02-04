@@ -1365,6 +1365,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE 1021
 #define GEO_NODE_POINTS_TO_VOLUME 1022
 #define GEO_NODE_COLLECTION_INFO 1023
+#define GEO_NODE_IS_VIEWPORT 1024
 
 /** \} */
 

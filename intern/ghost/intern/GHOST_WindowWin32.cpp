@@ -88,103 +88,55 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_fpGetPointerInfoHistory(NULL),
       m_fpGetPointerPenInfoHistory(NULL),
       m_fpGetPointerTouchInfoHistory(NULL),
-      m_parentWindowHwnd(parentwindow ? parentwindow->m_hWnd : NULL),
+      m_parentWindowHwnd(parentwindow ? parentwindow->m_hWnd : HWND_DESKTOP),
       m_debug_context(is_debug)
 {
-  // Create window
-  if (state != GHOST_kWindowStateFullScreen) {
-    RECT rect;
-    MONITORINFO monitor;
-    GHOST_TUns32 tw, th;
-
-#ifndef _MSC_VER
-    int cxsizeframe = GetSystemMetrics(SM_CXSIZEFRAME);
-    int cysizeframe = GetSystemMetrics(SM_CYSIZEFRAME);
-#else
-    // MSVC 2012+ returns bogus values from GetSystemMetrics, bug in Windows
-    // http://connect.microsoft.com/VisualStudio/feedback/details/753224/regression-getsystemmetrics-delivers-different-values
-    RECT cxrect = {0, 0, 0, 0};
-    AdjustWindowRectEx(
-        &cxrect, WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_THICKFRAME | WS_DLGFRAME, FALSE, 0);
-
-    int cxsizeframe = abs(cxrect.bottom);
-    int cysizeframe = abs(cxrect.left);
-#endif
-
-    width += cxsizeframe * 2;
-    height += cysizeframe * 2 + GetSystemMetrics(SM_CYCAPTION);
-
-    rect.left = left;
-    rect.right = left + width;
-    rect.top = top;
-    rect.bottom = top + height;
-
-    monitor.cbSize = sizeof(monitor);
-    monitor.dwFlags = 0;
-
-    // take taskbar into account
-    GetMonitorInfo(MonitorFromRect(&rect, MONITOR_DEFAULTTONEAREST), &monitor);
-
-    th = monitor.rcWork.bottom - monitor.rcWork.top;
-    tw = monitor.rcWork.right - monitor.rcWork.left;
-
-    if (tw < width) {
-      width = tw;
-      left = monitor.rcWork.left;
-    }
-    else if (monitor.rcWork.right < left + (int)width)
-      left = monitor.rcWork.right - width;
-    else if (left < monitor.rcWork.left)
-      left = monitor.rcWork.left;
-
-    if (th < height) {
-      height = th;
-      top = monitor.rcWork.top;
-    }
-    else if (monitor.rcWork.bottom < top + (int)height)
-      top = monitor.rcWork.bottom - height;
-    else if (top < monitor.rcWork.top)
-      top = monitor.rcWork.top;
-
-    int wintype = WS_OVERLAPPEDWINDOW;
-    if ((m_parentWindowHwnd != 0) && !dialog) {
-      wintype = WS_CHILD;
-      GetWindowRect(m_parentWindowHwnd, &rect);
-      left = 0;
-      top = 0;
-      width = rect.right - rect.left;
-      height = rect.bottom - rect.top;
-    }
-
-    wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
-    m_hWnd = ::CreateWindowW(s_windowClassName,                // pointer to registered class name
-                             title_16,                         // pointer to window name
-                             wintype,                          // window style
-                             left,                             // horizontal position of window
-                             top,                              // vertical position of window
-                             width,                            // window width
-                             height,                           // window height
-                             dialog ? 0 : m_parentWindowHwnd,  // handle to parent or owner window
-                             0,                     // handle to menu or child-window identifier
-                             ::GetModuleHandle(0),  // handle to application instance
-                             0);                    // pointer to window-creation data
-    free(title_16);
+  wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
+  RECT win_rect = {left, top, left + width, top + height};
+  RECT parent_rect = {0, 0, 0, 0};
+  if (parentwindow) {
+    GetWindowRect(m_parentWindowHwnd, &parent_rect);
   }
-  else {
-    wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
-    m_hWnd = ::CreateWindowW(s_windowClassName,     // pointer to registered class name
+
+  DWORD style = parentwindow ?
+                    WS_POPUPWINDOW | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX :
+                    WS_OVERLAPPEDWINDOW;
+
+  if (state == GHOST_kWindowStateFullScreen) {
+    style |= WS_MAXIMIZE;
+  }
+
+  /* Forces owned windows onto taskbar and allows minimization. */
+  DWORD extended_style = parentwindow ? WS_EX_APPWINDOW : 0;
+
+  /* Monitor details. */
+  MONITORINFOEX monitor;
+  monitor.cbSize = sizeof(MONITORINFOEX);
+  monitor.dwFlags = 0;
+  GetMonitorInfo(
+      MonitorFromRect(parentwindow ? &parent_rect : &win_rect, MONITOR_DEFAULTTONEAREST),
+      &monitor);
+
+  /* Adjust our requested size to allow for caption and borders and constrain to monitor. */
+  AdjustWindowRectEx(&win_rect, WS_CAPTION, FALSE, 0);
+  width = min(monitor.rcWork.right - monitor.rcWork.left, win_rect.right - win_rect.left);
+  left = min(max(monitor.rcWork.left, win_rect.left), monitor.rcWork.right - width);
+  height = min(monitor.rcWork.bottom - monitor.rcWork.top, win_rect.bottom - win_rect.top);
+  top = min(max(monitor.rcWork.top, win_rect.top), monitor.rcWork.bottom - height);
+
+  m_hWnd = ::CreateWindowExW(extended_style,        // window extended style
+                             s_windowClassName,     // pointer to registered class name
                              title_16,              // pointer to window name
-                             WS_MAXIMIZE,           // window style
+                             style,                 // window style
                              left,                  // horizontal position of window
                              top,                   // vertical position of window
                              width,                 // window width
                              height,                // window height
-                             HWND_DESKTOP,          // handle to parent or owner window
+                             m_parentWindowHwnd,    // handle to parent or owner window
                              0,                     // handle to menu or child-window identifier
                              ::GetModuleHandle(0),  // handle to application instance
                              0);                    // pointer to window-creation data
-    free(title_16);
-  }
+  free(title_16);
 
   m_user32 = ::LoadLibrary("user32.dll");
 
@@ -268,14 +220,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
     }
   }
 
-  if (dialog && parentwindow) {
-    ::SetWindowLongPtr(
-        m_hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUPWINDOW | WS_CAPTION | WS_MAXIMIZEBOX | WS_SIZEBOX);
-    ::SetWindowLongPtr(m_hWnd, GWLP_HWNDPARENT, (LONG_PTR)m_parentWindowHwnd);
-    ::SetWindowPos(
-        m_hWnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-  }
-  else if (parentwindow) {
+  if (parentwindow && !dialog) {
     RAWINPUTDEVICE device = {0};
     device.usUsagePage = 0x01; /* usUsagePage & usUsage for keyboard*/
     device.usUsage = 0x06;     /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */

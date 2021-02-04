@@ -169,12 +169,12 @@ static PyObject *py_shader_uniform_block_from_name(BPyGPUShader *self, PyObject 
   return PyLong_FromLong(uniform);
 }
 
-static bool py_shader_uniform_vector_imp(PyObject *args,
-                                         int elem_size,
-                                         int *r_location,
-                                         int *r_length,
-                                         int *r_count,
-                                         Py_buffer *r_pybuffer)
+static bool py_shader_uniform_vector_impl(PyObject *args,
+                                          int elem_size,
+                                          int *r_location,
+                                          int *r_length,
+                                          int *r_count,
+                                          Py_buffer *r_pybuffer)
 {
   PyObject *buffer;
 
@@ -223,7 +223,7 @@ static PyObject *py_shader_uniform_vector_float(BPyGPUShader *self, PyObject *ar
 
   Py_buffer pybuffer;
 
-  if (!py_shader_uniform_vector_imp(args, sizeof(float), &location, &length, &count, &pybuffer)) {
+  if (!py_shader_uniform_vector_impl(args, sizeof(float), &location, &length, &count, &pybuffer)) {
     return NULL;
   }
 
@@ -244,7 +244,7 @@ static PyObject *py_shader_uniform_vector_int(BPyGPUShader *self, PyObject *args
 
   Py_buffer pybuffer;
 
-  if (!py_shader_uniform_vector_imp(args, sizeof(int), &location, &length, &count, &pybuffer)) {
+  if (!py_shader_uniform_vector_impl(args, sizeof(int), &location, &length, &count, &pybuffer)) {
     return NULL;
   }
 
