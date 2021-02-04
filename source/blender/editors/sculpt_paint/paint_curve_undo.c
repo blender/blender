@@ -126,7 +126,7 @@ static bool paintcurve_undosys_step_encode(struct bContext *C,
 static void paintcurve_undosys_step_decode(struct bContext *UNUSED(C),
                                            struct Main *UNUSED(bmain),
                                            UndoStep *us_p,
-                                           int UNUSED(dir),
+                                           const eUndoStepDir UNUSED(dir),
                                            bool UNUSED(is_final))
 {
   PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;

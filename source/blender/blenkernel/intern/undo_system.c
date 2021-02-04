@@ -176,8 +176,12 @@ static bool undosys_step_encode(bContext *C, Main *bmain, UndoStack *ustack, Und
   return ok;
 }
 
-static void undosys_step_decode(
-    bContext *C, Main *bmain, UndoStack *ustack, UndoStep *us, int dir, bool is_final)
+static void undosys_step_decode(bContext *C,
+                                Main *bmain,
+                                UndoStack *ustack,
+                                UndoStep *us,
+                                const eUndoStepDir dir,
+                                bool is_final)
 {
   CLOG_INFO(&LOG, 2, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 
@@ -677,9 +681,9 @@ UndoStep *BKE_undosys_step_find_by_type(UndoStack *ustack, const UndoType *ut)
  *
  * \return -1 for undo, 1 for redo, 0 in case of error.
  */
-int BKE_undosys_step_calc_direction(const UndoStack *ustack,
-                                    const UndoStep *us_target,
-                                    const UndoStep *us_reference)
+eUndoStepDir BKE_undosys_step_calc_direction(const UndoStack *ustack,
+                                             const UndoStep *us_target,
+                                             const UndoStep *us_reference)
 {
   if (us_reference == NULL) {
     us_reference = ustack->step_active;
@@ -694,26 +698,26 @@ int BKE_undosys_step_calc_direction(const UndoStack *ustack,
    *    to the end of the list, rather than its start. */
   /* NOTE: in case target step is the active one, we assume we are in an undo case... */
   if (ELEM(us_target, us_reference, us_reference->prev)) {
-    return -1;
+    return STEP_UNDO;
   }
   if (us_target == us_reference->next) {
-    return 1;
+    return STEP_REDO;
   }
 
   /* Search forward, and then backward. */
   for (UndoStep *us_iter = us_reference->next; us_iter != NULL; us_iter = us_iter->next) {
     if (us_iter == us_target) {
-      return 1;
+      return STEP_REDO;
     }
   }
   for (UndoStep *us_iter = us_reference->prev; us_iter != NULL; us_iter = us_iter->prev) {
     if (us_iter == us_target) {
-      return -1;
+      return STEP_UNDO;
     }
   }
 
   BLI_assert(!"Target undo step not found, this should not happen and may indicate an undo stack corruption");
-  return 0;
+  return STEP_INVALID;
 }
 
 /**
@@ -752,8 +756,8 @@ bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
   }
 
   /* This considers we are in undo case if both `us_target` and `us_reference` are the same. */
-  const int undo_dir = BKE_undosys_step_calc_direction(ustack, us_target, us_reference);
-  BLI_assert(undo_dir != 0);
+  const eUndoStepDir undo_dir = BKE_undosys_step_calc_direction(ustack, us_target, us_reference);
+  BLI_assert(undo_dir != STEP_INVALID);
 
   /* This will be the active step once the undo process is complete.
    *

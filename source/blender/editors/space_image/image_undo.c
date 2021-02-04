@@ -947,13 +947,15 @@ static void image_undosys_step_decode_redo(ImageUndoStep *us)
 }
 
 static void image_undosys_step_decode(
-    struct bContext *C, struct Main *bmain, UndoStep *us_p, int dir, bool is_final)
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
 {
+  BLI_assert(dir != STEP_INVALID);
+
   ImageUndoStep *us = (ImageUndoStep *)us_p;
-  if (dir < 0) {
+  if (dir == STEP_UNDO) {
     image_undosys_step_decode_undo(us, is_final);
   }
-  else {
+  else if (dir == STEP_REDO) {
     image_undosys_step_decode_redo(us);
   }
 

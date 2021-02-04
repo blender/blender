@@ -57,6 +57,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_studiolight.h"
+#include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
@@ -148,7 +149,7 @@ static void setup_app_data(bContext *C,
     LOAD_UNDO,
   } mode;
 
-  if (params->undo_direction != 0) {
+  if (params->undo_direction != STEP_INVALID) {
     BLI_assert(bfd->curscene != NULL);
     mode = LOAD_UNDO;
   }

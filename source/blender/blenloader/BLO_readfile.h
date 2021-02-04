@@ -84,8 +84,8 @@ struct BlendFileReadParams {
   uint skip_flags : 3; /* eBLOReadSkip */
   uint is_startup : 1;
 
-  /** Whether we are reading the memfile for an undo (< 0) or a redo (> 0). */
-  int undo_direction : 2;
+  /** Whether we are reading the memfile for an undo or a redo. */
+  int undo_direction; /* eUndoStepDir */
 };
 
 /* skip reading some data-block types (may want to skip screen data too). */

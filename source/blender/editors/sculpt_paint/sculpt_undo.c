@@ -1527,9 +1527,14 @@ static void sculpt_undosys_step_decode_redo(struct bContext *C,
   }
 }
 
-static void sculpt_undosys_step_decode(
-    struct bContext *C, struct Main *bmain, UndoStep *us_p, int dir, bool UNUSED(is_final))
+static void sculpt_undosys_step_decode(struct bContext *C,
+                                       struct Main *bmain,
+                                       UndoStep *us_p,
+                                       const eUndoStepDir dir,
+                                       bool UNUSED(is_final))
 {
+  BLI_assert(dir != STEP_INVALID);
+
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   /* Ensure sculpt mode. */
@@ -1568,10 +1573,10 @@ static void sculpt_undosys_step_decode(
   }
 
   SculptUndoStep *us = (SculptUndoStep *)us_p;
-  if (dir < 0) {
+  if (dir == STEP_UNDO) {
     sculpt_undosys_step_decode_undo(C, depsgraph, us);
   }
-  else {
+  else if (dir == STEP_REDO) {
     sculpt_undosys_step_decode_redo(C, depsgraph, us);
   }
 }
