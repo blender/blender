@@ -816,6 +816,21 @@ static void rna_GPencil_stroke_point_pop(ID *id,
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
+static void rna_GPencil_stroke_point_update(ID *id, bGPDstroke *stroke)
+{
+  bGPdata *gpd = (bGPdata *)id;
+
+  /* Calc geometry data. */
+  if (stroke) {
+    BKE_gpencil_stroke_geometry_update(gpd, stroke);
+
+    DEG_id_tag_update(&gpd->id,
+                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+
+    WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+  }
+}
+
 static bGPDstroke *rna_GPencil_stroke_new(bGPDframe *frame)
 {
   bGPDstroke *stroke = BKE_gpencil_stroke_new(0, 0, 1.0f);
@@ -1274,6 +1289,10 @@ static void rna_def_gpencil_stroke_points_api(BlenderRNA *brna, PropertyRNA *cpr
   RNA_def_function_ui_description(func, "Remove a grease pencil stroke point");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
   RNA_def_int(func, "index", -1, INT_MIN, INT_MAX, "Index", "point index", INT_MIN, INT_MAX);
+
+  func = RNA_def_function(srna, "update", "rna_GPencil_stroke_point_update");
+  RNA_def_function_ui_description(func, "Recalculate internal triangulation data");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 }
 
 /* This information is read only and it can be used by add-ons */
