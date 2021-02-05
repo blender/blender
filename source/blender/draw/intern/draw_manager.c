@@ -1715,7 +1715,12 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
 
   GPU_matrix_identity_set();
   GPU_matrix_identity_projection_set();
-  const bool do_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
+  const bool do_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 ||
+                           (ELEM(v3d->shading.type, OB_WIRE, OB_SOLID)) ||
+                           (ELEM(v3d->shading.type, OB_MATERIAL) &&
+                            (v3d->shading.flag & V3D_SHADING_SCENE_WORLD) == 0) ||
+                           (ELEM(v3d->shading.type, OB_RENDER) &&
+                            (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER) == 0);
   GPU_viewport_unbind_from_offscreen(render_viewport, ofs, do_color_management, do_overlays);
 
   if (draw_background) {
