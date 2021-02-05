@@ -41,7 +41,6 @@ Checks:  >
   -modernize-pass-by-value,
   -modernize-raw-string-literal,
   -modernize-avoid-bind,
-  -modernize-use-transparent-functors,
 
 WarningsAsErrors: '*'
 CheckOptions:
