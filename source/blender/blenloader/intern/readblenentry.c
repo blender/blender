@@ -177,7 +177,9 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
  * \return A BLI_linklist of BLODataBlockInfo *. The links and #BLODataBlockInfo.asset_data should
  *         be freed with MEM_freeN.
  */
-LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh, int ofblocktype, int *tot_info_items)
+LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
+                                             int ofblocktype,
+                                             int *r_tot_info_items)
 {
   FileData *fd = (FileData *)bh;
   LinkNode *infos = NULL;
@@ -208,7 +210,7 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh, int ofblocktype, i
     }
   }
 
-  *tot_info_items = tot;
+  *r_tot_info_items = tot;
   return infos;
 }
 
@@ -218,10 +220,10 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh, int ofblocktype, i
  *
  * \param bh: The blendhandle to access.
  * \param ofblocktype: The type of names to get.
- * \param tot_prev: The length of the returned list.
+ * \param r_tot_prev: The length of the returned list.
  * \return A BLI_linklist of PreviewImage. The PreviewImage links should be freed with malloc.
  */
-LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *tot_prev)
+LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev)
 {
   FileData *fd = (FileData *)bh;
   LinkNode *previews = NULL;
@@ -302,7 +304,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
     }
   }
 
-  *tot_prev = tot;
+  *r_tot_prev = tot;
   return previews;
 }
 

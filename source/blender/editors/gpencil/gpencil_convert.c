@@ -370,7 +370,7 @@ static int gpencil_find_end_of_stroke_idx(tGpTimingData *gtd,
 static void gpencil_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd,
                                                           RNG *rng,
                                                           int *nbr_gaps,
-                                                          float *tot_gaps_time)
+                                                          float *r_tot_gaps_time)
 {
   float delta_time = 0.0f;
 
@@ -387,10 +387,10 @@ static void gpencil_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd,
   }
   gtd->tot_time -= delta_time;
 
-  *tot_gaps_time = (float)(*nbr_gaps) * gtd->gap_duration;
-  gtd->tot_time += *tot_gaps_time;
+  *r_tot_gaps_time = (float)(*nbr_gaps) * gtd->gap_duration;
+  gtd->tot_time += *r_tot_gaps_time;
   if (G.debug & G_DEBUG) {
-    printf("%f, %f, %f, %d\n", gtd->tot_time, delta_time, *tot_gaps_time, *nbr_gaps);
+    printf("%f, %f, %f, %d\n", gtd->tot_time, delta_time, *r_tot_gaps_time, *nbr_gaps);
   }
   if (gtd->gap_randomness > 0.0f) {
     BLI_rng_srandom(rng, gtd->seed);

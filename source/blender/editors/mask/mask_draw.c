@@ -539,7 +539,7 @@ static void draw_spline_curve(const bContext *C,
   uint tot_feather_point;
   float(*feather_points)[2];
 
-  diff_points = BKE_mask_spline_differentiate_with_resolution(spline, &tot_diff_point, resol);
+  diff_points = BKE_mask_spline_differentiate_with_resolution(spline, resol, &tot_diff_point);
 
   if (!diff_points) {
     return;
@@ -550,7 +550,7 @@ static void draw_spline_curve(const bContext *C,
   }
 
   feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution(
-      spline, &tot_feather_point, resol, (is_fill != false));
+      spline, resol, (is_fill != false), &tot_feather_point);
 
   /* draw feather */
   mask_spline_feather_color_get(mask_layer, spline, is_spline_sel, rgb_tmp);

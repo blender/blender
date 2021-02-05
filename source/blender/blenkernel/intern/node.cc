@@ -3917,22 +3917,23 @@ static int node_get_deplist_recurs(bNodeTree *ntree, bNode *node, bNode ***nsort
   return level;
 }
 
-void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes)
+void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***r_deplist, int *r_deplist_len)
 {
-  *totnodes = 0;
+  *r_deplist_len = 0;
 
   /* first clear data */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->done = false;
-    (*totnodes)++;
+    (*r_deplist_len)++;
   }
-  if (*totnodes == 0) {
-    *deplist = nullptr;
+  if (*r_deplist_len == 0) {
+    *r_deplist = nullptr;
     return;
   }
 
   bNode **nsort;
-  nsort = *deplist = (bNode **)MEM_callocN((*totnodes) * sizeof(bNode *), "sorted node array");
+  nsort = *r_deplist = (bNode **)MEM_callocN((*r_deplist_len) * sizeof(bNode *),
+                                             "sorted node array");
 
   /* recursive check */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {

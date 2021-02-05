@@ -453,7 +453,9 @@ void ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
 void ntreeUpdateAllNew(struct Main *main);
 void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
-void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes);
+void ntreeGetDependencyList(struct bNodeTree *ntree,
+                            struct bNode ***r_deplist,
+                            int *r_deplist_len);
 
 /* XXX old trees handle output flags automatically based on special output
  * node types and last active selection.

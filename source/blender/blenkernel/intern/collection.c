@@ -1909,7 +1909,7 @@ bool BKE_collection_move(Main *bmain,
 /** \name Iterators
  * \{ */
 
-/* scene collection iteractor */
+/* Scene collection iterator. */
 
 typedef struct CollectionsIteratorData {
   Scene *scene;
@@ -1941,10 +1941,12 @@ static void scene_collections_build_array(Collection *collection, void *data)
   (*array)++;
 }
 
-static void scene_collections_array(Scene *scene, Collection ***collections_array, int *tot)
+static void scene_collections_array(Scene *scene,
+                                    Collection ***r_collections_array,
+                                    int *r_collections_array_len)
 {
-  *collections_array = NULL;
-  *tot = 0;
+  *r_collections_array = NULL;
+  *r_collections_array_len = 0;
 
   if (scene == NULL) {
     return;
@@ -1952,14 +1954,15 @@ static void scene_collections_array(Scene *scene, Collection ***collections_arra
 
   Collection *collection = scene->master_collection;
   BLI_assert(collection != NULL);
-  scene_collection_callback(collection, scene_collections_count, tot);
+  scene_collection_callback(collection, scene_collections_count, r_collections_array_len);
 
-  if (*tot == 0) {
+  if (*r_collections_array_len == 0) {
     return;
   }
 
-  Collection **array = MEM_mallocN(sizeof(Collection *) * (*tot), "CollectionArray");
-  *collections_array = array;
+  Collection **array = MEM_mallocN(sizeof(Collection *) * (*r_collections_array_len),
+                                   "CollectionArray");
+  *r_collections_array = array;
   scene_collection_callback(collection, scene_collections_build_array, &array);
 }
 
