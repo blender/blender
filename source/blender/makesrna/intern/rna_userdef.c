@@ -5654,7 +5654,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem view_zoom_styles[] = {
-      {USER_ZOOM_CONT,
+      {USER_ZOOM_CONTINUE,
        "CONTINUE",
        0,
        "Continue",

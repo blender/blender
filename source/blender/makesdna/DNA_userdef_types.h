@@ -1013,8 +1013,11 @@ typedef enum ePathCompare_Flag {
 
 /** #UserDef.viewzoom */
 typedef enum eViewZoom_Style {
-  USER_ZOOM_CONT = 0,
+  /** Update zoom continuously with a timer while dragging the cursor. */
+  USER_ZOOM_CONTINUE = 0,
+  /** Map changes in distance from the view center to zoom. */
   USER_ZOOM_SCALE = 1,
+  /** Map horizontal/vertical motion to zoom. */
   USER_ZOOM_DOLLY = 2,
 } eViewZoom_Style;
 
