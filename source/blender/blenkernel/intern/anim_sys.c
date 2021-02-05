@@ -2223,7 +2223,7 @@ static bool is_action_track_evaluated_without_nla(const AnimData *adt,
   }
 
   /** NLA settings interference. */
-  if ((adt->flag & (ADT_NLA_SOLO_TRACK | ADT_NLA_EDIT_ON)) == 0) {
+  if ((adt->flag & (ADT_NLA_SOLO_TRACK | ADT_NLA_EDIT_ON)) != 0) {
     return false;
   }
 
