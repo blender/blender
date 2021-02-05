@@ -10516,7 +10516,7 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
     return dists;
   }
 
-  float *first_affected_co = SCULPT_vertex_co_get(ss, first_affected);
+  const float *first_affected_co = SCULPT_vertex_co_get(ss, first_affected);
   for (int i = 0; i < totvert; i++) {
     dists[i] = len_v3v3(first_affected_co, SCULPT_vertex_co_get(ss, i));
   }
