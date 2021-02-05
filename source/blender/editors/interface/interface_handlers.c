@@ -3735,13 +3735,14 @@ static void ui_do_but_textedit(
             button_activate_state(C, but, BUTTON_STATE_EXIT);
           }
         }
-        /* the hotkey here is not well defined, was G.qual so we check all */
-        else if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
-          ui_textedit_prev_but(block, but, data);
-          button_activate_state(C, but, BUTTON_STATE_EXIT);
-        }
-        else {
-          ui_textedit_next_but(block, but, data);
+        else if (!IS_EVENT_MOD(event, ctrl, alt, oskey)) {
+          /* Use standard keys for cycling through buttons Tab, Shift-Tab to reverse. */
+          if (event->shift) {
+            ui_textedit_prev_but(block, but, data);
+          }
+          else {
+            ui_textedit_next_but(block, but, data);
+          }
           button_activate_state(C, but, BUTTON_STATE_EXIT);
         }
         retval = WM_UI_HANDLER_BREAK;
