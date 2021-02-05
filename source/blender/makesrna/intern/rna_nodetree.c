@@ -8793,6 +8793,30 @@ static void def_geo_align_rotation_to_vector(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem pivot_axis_items[] = {
+      {GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_AUTO,
+       "AUTO",
+       ICON_NONE,
+       "Auto",
+       "Automatically detect the best rotation axis to rotate towards the vector"},
+      {GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_X,
+       "X",
+       ICON_NONE,
+       "X",
+       "Rotate around the local X axis"},
+      {GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_Y,
+       "Y",
+       ICON_NONE,
+       "Y",
+       "Rotate around the local Y axis"},
+      {GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_Z,
+       "Z",
+       ICON_NONE,
+       "Z",
+       "Rotate around the local Z axis"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryAlignRotationToVector", "storage");
@@ -8800,6 +8824,11 @@ static void def_geo_align_rotation_to_vector(StructRNA *srna)
   prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, axis_items);
   RNA_def_property_ui_text(prop, "Axis", "Axis to align to the vector");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "pivot_axis", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, pivot_axis_items);
+  RNA_def_property_ui_text(prop, "Pivot Axis", "Axis to rotate around");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "input_type_factor", PROP_ENUM, PROP_NONE);
