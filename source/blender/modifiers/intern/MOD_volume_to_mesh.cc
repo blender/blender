@@ -24,6 +24,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_volume.h"
+#include "BKE_volume_to_mesh.hh"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
@@ -128,139 +129,6 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_VolumeToMesh, panel_draw);
 }
 
-#ifdef WITH_OPENVDB
-
-struct VolumeToMeshOp {
-  const openvdb::GridBase &base_grid;
-  VolumeToMeshModifierData &vmmd;
-  const ModifierEvalContext &ctx;
-  std::vector<openvdb::Vec3s> verts;
-  std::vector<openvdb::Vec3I> tris;
-  std::vector<openvdb::Vec4I> quads;
-
-  template<typename GridType> bool operator()()
-  {
-    if constexpr (std::is_scalar_v<typename GridType::ValueType>) {
-      this->generate_mesh_data<GridType>();
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
-  template<typename GridType> void generate_mesh_data()
-  {
-    /* Make a new transform from the index space into the mesh object space. */
-    openvdb::math::Transform::Ptr transform = this->base_grid.transform().copy();
-    transform->postMult(openvdb::Mat4d((float *)vmmd.object->obmat));
-    openvdb::Mat4d imat = openvdb::Mat4d((float *)ctx.object->imat);
-    /* `imat` had floating point issues and wasn't affine. */
-    imat.setCol(3, openvdb::Vec4d(0, 0, 0, 1));
-    transform->postMult(imat);
-
-    /* Create a new grid with a different transform. The underlying tree is shared. */
-    typename GridType::ConstPtr grid = openvdb::gridConstPtrCast<GridType>(
-        this->base_grid.copyGridReplacingTransform(transform));
-
-    if (this->vmmd.resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_GRID) {
-      this->grid_to_mesh(*grid);
-      return;
-    }
-
-    const float resolution_factor = this->compute_resolution_factor(*grid);
-    typename GridType::Ptr temp_grid = this->create_grid_with_changed_resolution(
-        *grid, resolution_factor);
-    this->grid_to_mesh(*temp_grid);
-  }
-
-  template<typename GridType>
-  typename GridType::Ptr create_grid_with_changed_resolution(const GridType &old_grid,
-                                                             const float resolution_factor)
-  {
-    BLI_assert(resolution_factor > 0.0f);
-
-    openvdb::Mat4R xform;
-    xform.setToScale(openvdb::Vec3d(resolution_factor));
-    openvdb::tools::GridTransformer transformer{xform};
-
-    typename GridType::Ptr new_grid = GridType::create();
-    transformer.transformGrid<openvdb::tools::BoxSampler>(old_grid, *new_grid);
-    new_grid->transform() = old_grid.transform();
-    new_grid->transform().preScale(1.0f / resolution_factor);
-    return new_grid;
-  }
-
-  float compute_resolution_factor(const openvdb::GridBase &grid) const
-  {
-    const openvdb::Vec3s voxel_size{grid.voxelSize()};
-    const float current_voxel_size = std::max({voxel_size[0], voxel_size[1], voxel_size[2]});
-    const float desired_voxel_size = this->compute_desired_voxel_size(grid);
-    return current_voxel_size / desired_voxel_size;
-  }
-
-  float compute_desired_voxel_size(const openvdb::GridBase &grid) const
-  {
-    if (this->vmmd.resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE) {
-      return this->vmmd.voxel_size;
-    }
-    const openvdb::CoordBBox coord_bbox = base_grid.evalActiveVoxelBoundingBox();
-    const openvdb::BBoxd bbox = grid.transform().indexToWorld(coord_bbox);
-    const float max_extent = bbox.extents()[bbox.maxExtent()];
-    const float voxel_size = max_extent / this->vmmd.voxel_amount;
-    return voxel_size;
-  }
-
-  template<typename GridType> void grid_to_mesh(const GridType &grid)
-  {
-    openvdb::tools::volumeToMesh(
-        grid, this->verts, this->tris, this->quads, this->vmmd.threshold, this->vmmd.adaptivity);
-  }
-};
-
-static Mesh *new_mesh_from_openvdb_data(Span<openvdb::Vec3s> verts,
-                                        Span<openvdb::Vec3I> tris,
-                                        Span<openvdb::Vec4I> quads)
-{
-  const int tot_loops = 3 * tris.size() + 4 * quads.size();
-  const int tot_polys = tris.size() + quads.size();
-
-  Mesh *mesh = BKE_mesh_new_nomain(verts.size(), 0, 0, tot_loops, tot_polys);
-
-  /* Write vertices. */
-  for (const int i : verts.index_range()) {
-    const blender::float3 co = blender::float3(verts[i].asV());
-    copy_v3_v3(mesh->mvert[i].co, co);
-  }
-
-  /* Write triangles. */
-  for (const int i : tris.index_range()) {
-    mesh->mpoly[i].loopstart = 3 * i;
-    mesh->mpoly[i].totloop = 3;
-    for (int j = 0; j < 3; j++) {
-      /* Reverse vertex order to get correct normals. */
-      mesh->mloop[3 * i + j].v = tris[i][2 - j];
-    }
-  }
-
-  /* Write quads. */
-  const int poly_offset = tris.size();
-  const int loop_offset = tris.size() * 3;
-  for (const int i : quads.index_range()) {
-    mesh->mpoly[poly_offset + i].loopstart = loop_offset + 4 * i;
-    mesh->mpoly[poly_offset + i].totloop = 4;
-    for (int j = 0; j < 4; j++) {
-      /* Reverse vertex order to get correct normals. */
-      mesh->mloop[loop_offset + 4 * i + j].v = quads[i][3 - j];
-    }
-  }
-
-  BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_calc_normals(mesh);
-  return mesh;
-}
-#endif
-
 static Mesh *create_empty_mesh(const Mesh *input_mesh)
 {
   Mesh *new_mesh = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
@@ -296,16 +164,35 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     return create_empty_mesh(input_mesh);
   }
 
-  const openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
+  const openvdb::GridBase::ConstPtr local_grid = BKE_volume_grid_openvdb_for_read(volume,
+                                                                                  volume_grid);
 
-  const VolumeGridType grid_type = BKE_volume_grid_type(volume_grid);
-  VolumeToMeshOp to_mesh_op{*grid, *vmmd, *ctx};
-  if (!BKE_volume_grid_type_operation(grid_type, to_mesh_op)) {
-    BKE_modifier_set_error(ctx->object, md, "Expected a scalar grid");
+  openvdb::math::Transform::Ptr transform = local_grid->transform().copy();
+  transform->postMult(openvdb::Mat4d(((float *)vmmd->object->obmat)));
+  openvdb::Mat4d imat = openvdb::Mat4d((float *)ctx->object->imat);
+  /* `imat` had floating point issues and wasn't affine. */
+  imat.setCol(3, openvdb::Vec4d(0, 0, 0, 1));
+  transform->postMult(imat);
+
+  /* Create a temporary transformed grid. The underlying tree is shared. */
+  openvdb::GridBase::ConstPtr transformed_grid = local_grid->copyGridReplacingTransform(transform);
+
+  blender::bke::VolumeToMeshResolution resolution;
+  resolution.mode = (VolumeToMeshResolutionMode)vmmd->resolution_mode;
+  if (resolution.mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT) {
+    resolution.settings.voxel_amount = vmmd->voxel_amount;
+  }
+  if (resolution.mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE) {
+    resolution.settings.voxel_size = vmmd->voxel_size;
+  }
+
+  Mesh *mesh = blender::bke::volume_to_mesh(
+      *transformed_grid, resolution, vmmd->threshold, vmmd->adaptivity);
+  if (mesh == nullptr) {
+    BKE_modifier_set_error(ctx->object, md, "Could not generate mesh from grid");
     return create_empty_mesh(input_mesh);
   }
 
-  Mesh *mesh = new_mesh_from_openvdb_data(to_mesh_op.verts, to_mesh_op.tris, to_mesh_op.quads);
   BKE_mesh_copy_settings(mesh, input_mesh);
   if (vmmd->flag & VOLUME_TO_MESH_USE_SMOOTH_SHADE) {
     BKE_mesh_smooth_flag_set(mesh, true);

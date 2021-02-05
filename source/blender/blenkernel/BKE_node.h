@@ -1369,6 +1369,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_COLLECTION_INFO 1023
 #define GEO_NODE_IS_VIEWPORT 1024
 #define GEO_NODE_ATTRIBUTE_PROXIMITY 1025
+#define GEO_NODE_VOLUME_TO_MESH 1026
 
 /** \} */
 

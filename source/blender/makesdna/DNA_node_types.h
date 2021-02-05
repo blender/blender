@@ -1209,6 +1209,13 @@ typedef struct NodeGeometryAttributeProximity {
   char _pad[7];
 } NodeGeometryAttributeProximity;
 
+typedef struct NodeGeometryVolumeToMesh {
+  /* VolumeToMeshResolutionMode */
+  uint8_t resolution_mode;
+
+  char _pad[7];
+} NodeGeometryVolumeToMesh;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1

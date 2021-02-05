@@ -4777,6 +4777,7 @@ static void registerGeometryNodes()
   register_node_type_geo_points_to_volume();
   register_node_type_geo_collection_info();
   register_node_type_geo_is_viewport();
+  register_node_type_geo_volume_to_mesh();
 }
 
 static void registerFunctionNodes()
