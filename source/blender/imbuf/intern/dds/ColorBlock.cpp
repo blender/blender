@@ -400,7 +400,7 @@ void ColorBlock::boundsRangeAlpha(Color32 *start, Color32 *end) const
 #endif
 
 #if 0
-/** Sort colors by abosolute value in their 16 bit representation. */
+/** Sort colors by absolute value in their 16 bit representation. */
 void ColorBlock::sortColorsByAbsoluteValue()
 {
   /* Dummy selection sort. */

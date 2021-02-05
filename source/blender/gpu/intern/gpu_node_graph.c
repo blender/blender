@@ -132,7 +132,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
     case GPU_NODE_LINK_ATTR:
       input->source = GPU_SOURCE_ATTR;
       input->attr = link->attr;
-      /* Failsafe handling if the same attribute is used with different datatypes for
+      /* Fail-safe handling if the same attribute is used with different data-types for
        * some reason (only really makes sense with float/vec2/vec3/vec4 though). This
        * can happen if mixing the generic Attribute node with specialized ones. */
       CLAMP_MIN(input->attr->gputype, type);

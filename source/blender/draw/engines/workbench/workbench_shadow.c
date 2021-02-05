@@ -157,7 +157,7 @@ void workbench_shadow_cache_init(WORKBENCH_Data *data)
     DRWState state = DRW_STATE_DEPTH_LESS | DRW_STATE_STENCIL_ALWAYS;
 #endif
 
-    /* TODO(fclem): Merge into one pass with subpasses. */
+    /* TODO(fclem): Merge into one pass with sub-passes. */
     DRW_PASS_CREATE(psl->shadow_ps[0], state | depth_pass_state);
     DRW_PASS_CREATE(psl->shadow_ps[1], state | depth_fail_state);
 

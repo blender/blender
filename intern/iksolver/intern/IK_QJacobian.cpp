@@ -203,7 +203,7 @@ void IK_QJacobian::InvertSDLS()
   // singular the least squares inverse tries to minimize |J(dtheta) - dX)|
   // and doesn't try to minimize  dTheta. This results in eratic changes in
   // angle. The damped least squares minimizes |dtheta| to try and reduce this
-  // erratic behaviour.
+  // erratic behavior.
   //
   // The selectively damped least squares (SDLS) is used here instead of the
   // DLS. The SDLS damps individual singular values, instead of using a single
@@ -325,7 +325,7 @@ void IK_QJacobian::InvertDLS()
   // inverse tries to minimize |J(dtheta) - dX)| and doesn't
   // try to minimize  dTheta. This results in eratic changes in angle.
   // Damped least squares minimizes |dtheta| to try and reduce this
-  // erratic behaviour.
+  // erratic behavior.
 
   // We don't want to use the damped solution everywhere so we
   // only increase lamda from zero as we approach a singularity.

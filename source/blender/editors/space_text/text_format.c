@@ -237,7 +237,7 @@ bool ED_text_is_syntax_highlight_supported(Text *text)
 
   const char *text_ext = BLI_path_extension(text->id.name + 2);
   if (text_ext == NULL) {
-    /* Extensionless datablocks are considered highlightable as Python. */
+    /* Extensionless data-blocks are considered highlightable as Python. */
     return true;
   }
   text_ext++; /* skip the '.' */

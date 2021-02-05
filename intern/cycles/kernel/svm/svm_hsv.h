@@ -37,7 +37,7 @@ ccl_device void svm_node_hsv(
 
   color = rgb_to_hsv(color);
 
-  /* remember: fmod doesn't work for negative numbers here */
+  /* Remember: `fmodf` doesn't work for negative numbers here. */
   color.x = fmodf(color.x + hue + 0.5f, 1.0f);
   color.y = saturate(color.y * sat);
   color.z *= val;
@@ -48,7 +48,7 @@ ccl_device void svm_node_hsv(
   color.y = fac * color.y + (1.0f - fac) * in_color.y;
   color.z = fac * color.z + (1.0f - fac) * in_color.z;
 
-  /* Clamp color to prevent negative values caused by oversaturation. */
+  /* Clamp color to prevent negative values caused by over saturation. */
   color.x = max(color.x, 0.0f);
   color.y = max(color.y, 0.0f);
   color.z = max(color.z, 0.0f);

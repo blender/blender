@@ -66,9 +66,9 @@ typedef struct DepthDropper {
   bool is_undo;
 
   bool is_set;
-  float init_depth; /* for resetting on cancel */
+  float init_depth; /* For resetting on cancel. */
 
-  bool accum_start; /* has mouse been presed */
+  bool accum_start; /* Has mouse been pressed. */
   float accum_depth;
   int accum_tot;
 

@@ -248,7 +248,7 @@ typedef struct GpencilModifierTypeInfo {
 
 #define GPENCIL_MODIFIER_TYPE_PANEL_PREFIX "MOD_PT_gpencil_"
 
-/* Initialize modifier's global data (type info and some common global storages). */
+/* Initialize modifier's global data (type info and some common global storage). */
 void BKE_gpencil_modifier_init(void);
 
 void BKE_gpencil_modifierType_panel_id(GpencilModifierType type, char *r_idname);

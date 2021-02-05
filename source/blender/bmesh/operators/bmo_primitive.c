@@ -962,7 +962,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
     BM_mesh_calc_uvs_sphere(bm, FACE_MARK, cd_loop_uv_offset);
   }
 
-  /* and now do imat */
+  /* Now apply the inverse matrix. */
   BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
     if (BMO_vert_flag_test(bm, eve, VERT_MARK)) {
       mul_m4_v3(mat, eve->co);
@@ -1585,9 +1585,9 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
   float inv_mat[4][4];
   int loop_index;
 
-  /* Transform the upvector like we did the cone itself, without location. */
+  /* Transform the up-vector like we did the cone itself, without location. */
   mul_mat3_m4_v3(mat, local_up);
-  /* Remove global scaling... */
+  /* Remove global scaling. */
   normalize_v3(local_up);
 
   invert_m4_m4(inv_mat, mat);

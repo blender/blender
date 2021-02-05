@@ -40,7 +40,7 @@ GHOST_SystemPathsWin32::~GHOST_SystemPathsWin32()
 
 const GHOST_TUns8 *GHOST_SystemPathsWin32::getSystemDir(int, const char *versionstr) const
 {
-  /* 1 utf-16 might translante into 3 utf-8. 2 utf-16 translates into 4 utf-8*/
+  /* 1 utf-16 might translate into 3 utf-8. 2 utf-16 translates into 4 utf-8. */
   static char knownpath[MAX_PATH * 3 + 128] = {0};
   PWSTR knownpath_16 = NULL;
 

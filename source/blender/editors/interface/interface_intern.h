@@ -525,7 +525,7 @@ struct uiBlock {
   /** for doing delayed */
   int bounds, minbounds;
 
-  /** pulldowns, to detect outside, can differ per case how it is created */
+  /** pull-downs, to detect outside, can differ per case how it is created. */
   rctf safety;
   /** uiSafetyRct list */
   ListBase saferct;
@@ -659,7 +659,7 @@ void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3]);
 /* interface_regions.c */
 
 struct uiKeyNavLock {
-  /* set when we're using keyinput */
+  /* Set when we're using key-input. */
   bool is_keynav;
   /* only used to check if we've moved the cursor */
   int event_xy[2];
@@ -756,7 +756,7 @@ uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, voi
 ColorPicker *ui_block_colorpicker_create(struct uiBlock *block);
 
 /* interface_region_search.c */
-/* Searchbox for string button */
+/* Search-box for string button. */
 struct ARegion *ui_searchbox_create_generic(struct bContext *C,
                                             struct ARegion *butregion,
                                             uiButSearch *search_but);

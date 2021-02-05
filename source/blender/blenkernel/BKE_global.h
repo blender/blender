@@ -59,7 +59,7 @@ typedef struct Global {
 
   short moving;
 
-  /** To indicate render is busy, prevent renderwindow events etc. */
+  /** To indicate render is busy, prevent render-window events etc. */
   bool is_rendering;
 
   /**

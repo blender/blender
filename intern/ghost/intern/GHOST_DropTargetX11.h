@@ -103,22 +103,22 @@ class GHOST_DropTargetX11 {
   /* Data type of the dragged object */
   GHOST_TDragnDropTypes m_draggedObjectType;
 
-  /* is dnd stuff initialzied */
+  /* Is drag-and-drop stuff initialized. */
   static bool m_xdndInitialized;
 
-  /* class holding internal stiff of xdnd library */
+  /* Class holding internal stiff of `xdnd` library. */
   static DndClass m_dndClass;
 
-  /* list of supported types to be dragged into */
+  /* List of supported types to be dragged into. */
   static Atom *m_dndTypes;
 
-  /* list of supported dran'n'drop actions */
+  /* List of supported drag-and-drop actions. */
   static Atom *m_dndActions;
 
-  /* List of supported MIME types to be dragged into */
+  /* List of supported MIME types to be dragged into. */
   static const char *m_dndMimeTypes[];
 
-  /* counter of references to global XDND structures */
+  /* Counter of references to global #XDND structures. */
   static int m_refCounter;
 
 #ifdef WITH_CXX_GUARDEDALLOC

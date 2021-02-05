@@ -1783,25 +1783,25 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 /** \name Old/New Pointer Map
  * \{ */
 
-/* only direct databocks */
+/* Only direct data-blocks. */
 static void *newdataadr(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
 }
 
-/* only direct databocks */
+/* Only direct data-blocks. */
 static void *newdataadr_no_us(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->datamap, adr, false);
 }
 
-/* direct datablocks with global linking */
+/* Direct datablocks with global linking. */
 void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->globmap, adr, true);
 }
 
-/* used to restore packed data after undo */
+/* Used to restore packed data after undo. */
 static void *newpackedadr(FileData *fd, const void *adr)
 {
   if (fd->packedmap && adr) {

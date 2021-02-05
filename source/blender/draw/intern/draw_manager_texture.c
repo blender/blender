@@ -26,7 +26,7 @@
 /* Maybe gpu_texture.c is a better place for this. */
 static bool drw_texture_format_supports_framebuffer(eGPUTextureFormat format)
 {
-  /* Some formats do not work with framebuffers. */
+  /* Some formats do not work with frame-buffers. */
   switch (format) {
     /* Only add formats that are COMPATIBLE with FB.
      * Generally they are multiple of 16bit. */

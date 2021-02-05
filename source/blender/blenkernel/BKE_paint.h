@@ -365,7 +365,7 @@ typedef struct SculptBoundaryEditInfo {
   /* How many steps were needed to reach this vertex from the boundary. */
   int num_propagation_steps;
 
-  /* Stregth that is used to deform this vertex. */
+  /* Strength that is used to deform this vertex. */
   float strength_factor;
 } SculptBoundaryEditInfo;
 
@@ -530,7 +530,7 @@ typedef struct SculptSession {
   float gesture_initial_normal[3];
   bool gesture_initial_hit;
 
-  /* TODO(jbakker): Replace rv3d adn v3d with ViewContext */
+  /* TODO(jbakker): Replace rv3d and v3d with ViewContext */
   struct RegionView3D *rv3d;
   struct View3D *v3d;
   struct Scene *scene;

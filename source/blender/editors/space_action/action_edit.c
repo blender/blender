@@ -73,7 +73,7 @@
 /* ************************************************************************** */
 /* POSE MARKERS STUFF */
 
-/* *************************** Localise Markers ***************************** */
+/* *************************** Localize Markers ***************************** */
 
 /* ensure that there is:
  * 1) an active action editor
@@ -322,7 +322,7 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
   bAnimListElem *ale;
   int filter;
 
-  /* NOTE: not bool, since we want prioritise individual channels over expanders */
+  /* NOTE: not bool, since we want prioritize individual channels over expanders. */
   short found = 0;
 
   /* get all items - we need to do it this way */
@@ -346,7 +346,7 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
       found = acf->channel_role;
 
       /* only stop our search when we've found an actual channel
-       * - datablock expanders get less priority so that we don't abort prematurely
+       * - data-block expanders get less priority so that we don't abort prematurely
        */
       if (found == ACHANNEL_ROLE_CHANNEL) {
         break;

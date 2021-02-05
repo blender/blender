@@ -242,7 +242,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   {
-    /* Perform min/max downsample */
+    /* Perform min/max down-sample. */
     DRW_PASS_CREATE(psl->maxz_downlevel_ps, downsample_write | DRW_STATE_DEPTH_ALWAYS);
     grp = DRW_shgroup_create(EEVEE_shaders_effect_maxz_downlevel_sh_get(), psl->maxz_downlevel_ps);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &txl->maxzbuffer);

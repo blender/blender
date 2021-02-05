@@ -197,7 +197,7 @@ void IMB_freezbuffloatImBuf(ImBuf *ibuf)
   ibuf->mall &= ~IB_zbuffloat;
 }
 
-/** Free all pixel data (assosiated with image size). */
+/** Free all pixel data (associated with image size). */
 void imb_freerectImbuf_all(ImBuf *ibuf)
 {
   imb_freerectImBuf(ibuf);

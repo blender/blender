@@ -20,7 +20,7 @@
 /** \file
  * \ingroup gpu
  *
- * Encapsulation of Framebuffer states (attached textures, viewport, scissors).
+ * Encapsulation of Frame-buffer states (attached textures, viewport, scissors).
  */
 
 #pragma once
@@ -45,22 +45,22 @@ class GLFrameBuffer : public FrameBuffer {
  private:
   /** OpenGL handle. */
   GLuint fbo_id_ = 0;
-  /** Context the handle is from. Framebuffers are not shared accros contexts. */
+  /** Context the handle is from. Frame-buffers are not shared across contexts. */
   GLContext *context_ = NULL;
   /** State Manager of the same contexts. */
   GLStateManager *state_manager_ = NULL;
   /** Copy of the GL state. Contains ONLY color attachments enums for slot binding. */
   GLenum gl_attachments_[GPU_FB_MAX_COLOR_ATTACHMENT];
-  /** Internal framebuffers are immutable. */
+  /** Internal frame-buffers are immutable. */
   bool immutable_;
-  /** True is the framebuffer has its first color target using the GPU_SRGB8_A8 format. */
+  /** True is the frame-buffer has its first color target using the GPU_SRGB8_A8 format. */
   bool srgb_;
-  /** True is the framebuffer has been bound using the GL_FRAMEBUFFER_SRGB feature. */
+  /** True is the frame-buffer has been bound using the GL_FRAMEBUFFER_SRGB feature. */
   bool enabled_srgb_ = false;
 
  public:
   /**
-   * Create a conventional framebuffer to attach texture to.
+   * Create a conventional frame-buffer to attach texture to.
    */
   GLFrameBuffer(const char *name);
 

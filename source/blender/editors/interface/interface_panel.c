@@ -1339,7 +1339,7 @@ void ui_draw_aligned_panel(const uiStyle *style,
 {
   const Panel *panel = block->panel;
 
-  /* Add 0.001f to prevent flicker frpm float inaccuracy. */
+  /* Add 0.001f to prevent flicker from float inaccuracy. */
   const rcti header_rect = {
       rect->xmin,
       rect->xmax,
@@ -2366,7 +2366,7 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
       PanelCategoryDyn *pc_dyn = UI_panel_category_find(region, category);
       if (LIKELY(pc_dyn)) {
         if (is_mousewheel) {
-          /* We can probably get rid of this and only allow ctrl-tabbing. */
+          /* We can probably get rid of this and only allow Ctrl-Tabbing. */
           pc_dyn = (event->type == WHEELDOWNMOUSE) ? pc_dyn->next : pc_dyn->prev;
         }
         else {

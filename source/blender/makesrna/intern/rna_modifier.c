@@ -681,7 +681,7 @@ static void rna_Modifier_is_active_set(PointerRNA *ptr, bool value)
   ModifierData *md = ptr->data;
 
   if (value) {
-    /* Disable the active flag of all other modif-iers. */
+    /* Disable the active flag of all other modifiers. */
     for (ModifierData *prev_md = md->prev; prev_md != NULL; prev_md = prev_md->prev) {
       prev_md->flag &= ~eModifierFlag_Active;
     }

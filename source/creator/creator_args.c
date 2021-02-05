@@ -1160,7 +1160,7 @@ static int arg_handle_env_system_set(int argc, const char **argv, void *UNUSED(d
   }
 
   for (; *ch_src; ch_src++, ch_dst++) {
-    *ch_dst = (*ch_src == '-') ? '_' : (*ch_src) - 32; /* toupper() */
+    *ch_dst = (*ch_src == '-') ? '_' : (*ch_src) - 32; /* Inline #toupper() */
   }
 
   *ch_dst = '\0';
@@ -1958,7 +1958,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
 
   if (success) {
     if (G.background) {
-      /* ensuer we use 'C->data.scene' for background render */
+      /* Ensure we use 'C->data.scene' for background render. */
       CTX_wm_window_set(C, NULL);
     }
   }

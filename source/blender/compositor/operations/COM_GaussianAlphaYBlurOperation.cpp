@@ -42,7 +42,8 @@ void *GaussianAlphaYBlurOperation::initializeTileData(rcti * /*rect*/)
 
 void GaussianAlphaYBlurOperation::initExecution()
 {
-  /* BlurBaseOperation::initExecution(); */ /* until we suppoer size input - comment this */
+  /* Until we support size input - comment this. */
+  // BlurBaseOperation::initExecution();
 
   initMutex();
 

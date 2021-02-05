@@ -37,7 +37,7 @@
 
 #  include "WM_api.h"
 
-/* matching fnction in rna_ID.c */
+/* Matching function in rna_ID.c */
 static int rna_VectorFont_filepath_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
   VFont *vfont = (VFont *)ptr->owner_id;

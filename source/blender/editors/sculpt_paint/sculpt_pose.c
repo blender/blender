@@ -738,7 +738,7 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
      * iteration an the current iteration. */
     for (int j = 0; j < totvert; j++) {
       ik_chain->segments[i].weights[j] = pose_factor_grow[j] - pose_factor_grow_prev[j];
-      /* Store the current grow factor status for the next interation. */
+      /* Store the current grow factor status for the next iteration. */
       pose_factor_grow_prev[j] = pose_factor_grow[j];
     }
   }

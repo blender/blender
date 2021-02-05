@@ -143,7 +143,7 @@ static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
   return NULL;
 }
 
-/* interpoaltes along a line made up of 2 segments (used for edge slide) */
+/* Interpolates along a line made up of 2 segments (used for edge slide). */
 static void interp_line_v3_v3v3v3(
     float p[3], const float v1[3], const float v2[3], const float v3[3], float t)
 {

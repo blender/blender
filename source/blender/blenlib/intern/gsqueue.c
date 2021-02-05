@@ -41,7 +41,7 @@ struct QueueChunk {
 
 struct _GSQueue {
   struct QueueChunk *chunk_first; /* first active chunk to pop from */
-  struct QueueChunk *chunk_last;  /* flast active chunk to push onto */
+  struct QueueChunk *chunk_last;  /* last active chunk to push onto */
   struct QueueChunk *chunk_free;  /* free chunks to reuse */
   size_t chunk_first_index;       /* index into 'chunk_first' */
   size_t chunk_last_index;        /* index into 'chunk_last' */

@@ -129,7 +129,7 @@ static void shaderdata_to_shaderglobals(
   /* clear trace data */
   tdata->tracedata.init = false;
 
-  /* used by renderservices */
+  /* Used by render-services. */
   sd->osl_globals = kg;
   sd->osl_path_state = state;
 }

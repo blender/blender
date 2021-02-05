@@ -358,7 +358,7 @@ class Scene : public NodeOwner {
 
   DeviceRequestedFeatures get_requested_device_features();
 
-  /* Maximumnumber of closure during session lifetime. */
+  /* Maximum number of closure during session lifetime. */
   int max_closure_global;
 
   /* Get maximum number of closures to be used in kernel. */

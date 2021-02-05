@@ -234,7 +234,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
   }
 
   {
-    /* Update noise Framebuffer. */
+    /* Update noise Frame-buffer. */
     GPU_framebuffer_ensure_config(
         &fbl->update_noise_fb,
         {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE_LAYER(e_data.util_tex, 2)});

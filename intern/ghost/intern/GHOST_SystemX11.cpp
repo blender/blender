@@ -23,7 +23,7 @@
  * \ingroup GHOST
  */
 
-#include <X11/XKBlib.h> /* Allow detectable auto-repeate. */
+#include <X11/XKBlib.h> /* Allow detectable auto-repeat. */
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
@@ -185,10 +185,10 @@ GHOST_SystemX11::GHOST_SystemX11() : GHOST_System(), m_xkb_descr(NULL), m_start_
     GHOST_ASSERT(false, "Could not instantiate timer!");
   }
 
-  /* Taking care not to overflow the tv.tv_sec * 1000 */
+  /* Taking care not to overflow the `tv.tv_sec * 1000`. */
   m_start_time = GHOST_TUns64(tv.tv_sec) * 1000 + tv.tv_usec / 1000;
 
-  /* Use detectable auto-repeate, mac and windows also do this. */
+  /* Use detectable auto-repeat, mac and windows also do this. */
   int use_xkb;
   int xkb_opcode, xkb_event, xkb_error;
   int xkb_major = XkbMajorVersion, xkb_minor = XkbMinorVersion;
@@ -528,7 +528,7 @@ bool GHOST_SystemX11::openX11_IM()
   if (!m_display)
     return false;
 
-  /* set locale modifiers such as "@im=ibus" specified by XMODIFIERS */
+  /* set locale modifiers such as `@im=ibus` specified by XMODIFIERS. */
   XSetLocaleModifiers("");
 
   m_xim = XOpenIM(m_display, NULL, (char *)GHOST_X11_RES_NAME, (char *)GHOST_X11_RES_CLASS);
@@ -1146,7 +1146,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
        */
       if ((xke->keycode >= 10 && xke->keycode < 20) &&
           ((key_sym = XLookupKeysym(xke, ShiftMask)) >= XK_0) && (key_sym <= XK_9)) {
-        /* pass (keep shift'ed key_sym) */
+        /* Pass (keep shifted `key_sym`). */
       }
       else {
         /* regular case */
@@ -1161,12 +1161,12 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #endif
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-      /* getting unicode on key-up events gives XLookupNone status */
+      /* Setting unicode on key-up events gives #XLookupNone status. */
       XIC xic = window->getX11_XIC();
       if (xic && xke->type == KeyPress) {
         Status status;
 
-        /* use utf8 because its not locale depentant, from xorg docs */
+        /* Use utf8 because its not locale repentant, from XORG docs. */
         if (!(len = Xutf8LookupString(
                   xic, xke, utf8_buf, sizeof(utf8_array) - 5, &key_sym, &status))) {
           utf8_buf[0] = '\0';
@@ -1269,8 +1269,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         gbmask = GHOST_kButtonMaskRight;
       /* It seems events 6 and 7 are for horizontal scrolling.
        * you can re-order button mapping like this... (swaps 6,7 with 8,9)
-       *   xmodmap -e "pointer = 1 2 3 4 5 8 9 6 7"
-       */
+       * `xmodmap -e "pointer = 1 2 3 4 5 8 9 6 7"` */
       else if (xbe.button == 6)
         gbmask = GHOST_kButtonMaskButton6;
       else if (xbe.button == 7)
@@ -1289,8 +1288,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
     /* change of size, border, layer etc. */
     case ConfigureNotify: {
-      /* XConfigureEvent & xce = xe->xconfigure; */
-
+      // XConfigureEvent & xce = xe->xconfigure;
       g_event = new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window);
       break;
     }
@@ -1934,8 +1932,8 @@ static GHOST_TKey ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCo
 #define XCLIB_XCOUT_SENTCONVSEL 1   /* sent a request */
 #define XCLIB_XCOUT_INCR 2          /* in an incr loop */
 #define XCLIB_XCOUT_FALLBACK 3      /* STRING failed, need fallback to UTF8 */
-#define XCLIB_XCOUT_FALLBACK_UTF8 4 /* UTF8 failed, move to compouned */
-#define XCLIB_XCOUT_FALLBACK_COMP 5 /* compouned failed, move to text. */
+#define XCLIB_XCOUT_FALLBACK_UTF8 4 /* UTF8 failed, move to compound. */
+#define XCLIB_XCOUT_FALLBACK_COMP 5 /* compound failed, move to text. */
 #define XCLIB_XCOUT_FALLBACK_TEXT 6
 
 /* Retrieves the contents of a selections. */
@@ -2198,30 +2196,30 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
       restore_events.push_back(evt);
     }
 
-    /* fallback is needed. set XA_STRING to target and restart the loop. */
+    /* Fallback is needed. Set #XA_STRING to target and restart the loop. */
     if (context == XCLIB_XCOUT_FALLBACK) {
       context = XCLIB_XCOUT_NONE;
       target = m_atom.STRING;
       continue;
     }
     else if (context == XCLIB_XCOUT_FALLBACK_UTF8) {
-      /* utf8 fail, move to compouned text. */
+      /* utf8 fail, move to compound text. */
       context = XCLIB_XCOUT_NONE;
       target = m_atom.COMPOUND_TEXT;
       continue;
     }
     else if (context == XCLIB_XCOUT_FALLBACK_COMP) {
-      /* compouned text fail, move to text. */
+      /* Compound text fail, move to text. */
       context = XCLIB_XCOUT_NONE;
       target = m_atom.TEXT;
       continue;
     }
     else if (context == XCLIB_XCOUT_FALLBACK_TEXT) {
-      /* text fail, nothing else to try, break. */
+      /* Text fail, nothing else to try, break. */
       context = XCLIB_XCOUT_NONE;
     }
 
-    /* only continue if xcout() is doing something */
+    /* Only continue if #xcout() is doing something. */
     if (context == XCLIB_XCOUT_NONE)
       break;
   }
@@ -2232,9 +2230,7 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
   }
 
   if (sel_len) {
-    /* only print the buffer out, and free it, if it's not
-     * empty
-     */
+    /* Only print the buffer out, and free it, if it's not empty. */
     unsigned char *tmp_data = (unsigned char *)malloc(sel_len + 1);
     memcpy((char *)tmp_data, (char *)sel_buf, sel_len);
     tmp_data[sel_len] = '\0';
@@ -2288,28 +2284,28 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
  * \{ */
 class DialogData {
  public:
-  /* Width of the dialog */
+  /* Width of the dialog. */
   uint width;
-  /* Heigth of the dialog */
+  /* Height of the dialog. */
   uint height;
-  /* Default padding (x direction) between controls and edge of dialog */
+  /* Default padding (x direction) between controls and edge of dialog. */
   uint padding_x;
-  /* Default padding (y direction) between controls and edge of dialog */
+  /* Default padding (y direction) between controls and edge of dialog. */
   uint padding_y;
-  /* Width of a single button */
+  /* Width of a single button. */
   uint button_width;
-  /* Height of a single button */
+  /* Height of a single button. */
   uint button_height;
-  /* Inset of a button to its text */
+  /* Inset of a button to its text. */
   uint button_inset_x;
-  /* Size of the border of the button */
+  /* Size of the border of the button. */
   uint button_border_size;
   /* Height of a line of text */
   uint line_height;
-  /* offset of the text inside the button */
+  /* Offset of the text inside the button. */
   uint button_text_offset_y;
 
-  /* Construct a new DialogData with the default settings */
+  /* Construct a new #DialogData with the default settings. */
   DialogData()
       : width(640),
         height(175),

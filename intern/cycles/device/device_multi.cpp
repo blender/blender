@@ -296,7 +296,7 @@ class MultiDevice : public Device {
       i++;
     }
 
-    /* Change geomtry BVH pointers back to the multi BVH */
+    /* Change geometry BVH pointers back to the multi BVH. */
     for (size_t k = 0; k < bvh->geometry.size(); ++k) {
       bvh->geometry[k]->bvh = geom_bvhs[k];
     }

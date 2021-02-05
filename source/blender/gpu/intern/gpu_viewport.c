@@ -86,10 +86,10 @@ struct GPUViewport {
   int size[2];
   int flag;
 
-  /* Set the active view (for stereoscoptic viewport rendering). */
+  /* Set the active view (for stereoscopic viewport rendering). */
   int active_view;
 
-  /* If engine_handles mismatch we free all ViewportEngineData in this viewport. */
+  /* If engine_handles mismatch we free all #ViewportEngineData in this viewport. */
   struct {
     void *handle;
     ViewportEngineData *data;
@@ -589,7 +589,7 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   /* Restore. */
   view_settings->curve_mapping = tmp_curve_mapping;
   viewport->view_settings.curve_mapping = tmp_curve_mapping_vp;
-  /* Only copy curvemapping if needed. Avoid uneeded OCIO cache miss. */
+  /* Only copy curve-mapping if needed. Avoid unneeded OCIO cache miss. */
   if (tmp_curve_mapping && viewport->view_settings.curve_mapping == NULL) {
     BKE_color_managed_view_settings_free(&viewport->view_settings);
     viewport->view_settings.curve_mapping = BKE_curvemapping_copy(tmp_curve_mapping);
@@ -820,7 +820,7 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
   const float w = (float)GPU_texture_width(color);
   const float h = (float)GPU_texture_height(color);
 
-  /* We allow rects with min/max swapped, but we also need coorectly assigned coordinates. */
+  /* We allow rects with min/max swapped, but we also need correctly assigned coordinates. */
   rcti sanitized_rect = *rect;
   BLI_rcti_sanitize(&sanitized_rect);
 
@@ -974,7 +974,7 @@ static void gpu_viewport_passes_free(PassList *psl, int psl_len)
   memset(psl->passes, 0, sizeof(*psl->passes) * psl_len);
 }
 
-/* Must be executed inside Drawmanager Opengl Context. */
+/* Must be executed inside Draw-manager OpenGL Context. */
 void GPU_viewport_free(GPUViewport *viewport)
 {
   gpu_viewport_engines_data_free(viewport);

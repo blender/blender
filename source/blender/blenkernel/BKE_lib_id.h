@@ -219,7 +219,7 @@ void id_fake_user_set(struct ID *id);
 void id_fake_user_clear(struct ID *id);
 void BKE_id_clear_newpoin(struct ID *id);
 
-/** Flags to control make local code behaviour. */
+/** Flags to control make local code behavior. */
 enum {
   /** Making that ID local is part of making local a whole library. */
   LIB_ID_MAKELOCAL_FULL_LIBRARY = 1 << 0,

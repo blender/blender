@@ -161,7 +161,7 @@ ccl_device_inline void math_trimatrix_add_gramian(ccl_global float *A,
   }
 }
 
-/* Transpose matrix A inplace. */
+/* Transpose matrix A in place. */
 ccl_device_inline void math_matrix_transpose(ccl_global float *A, int n, int stride)
 {
   for (int i = 0; i < n; i++) {

@@ -8993,7 +8993,7 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
   for (int i = 0; i < totvert; i++) {
     const int from_v = i;
 
-    /* This vertex does not have a fake neighbor yet, seach one for it. */
+    /* This vertex does not have a fake neighbor yet, search one for it. */
     if (ss->fake_neighbors.fake_neighbor_index[from_v] == FAKE_NEIGHBOR_NONE) {
       const int to_v = SCULPT_fake_neighbor_search(sd, ob, from_v, max_dist);
       if (to_v != -1) {

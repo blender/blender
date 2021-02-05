@@ -97,8 +97,8 @@ class GHOST_ContextD3D : public GHOST_Context {
   }
 
   /**
-   * Gets the OpenGL framebuffer associated with the OpenGL context
-   * \return The ID of an OpenGL framebuffer object.
+   * Gets the OpenGL frame-buffer associated with the OpenGL context
+   * \return The ID of an OpenGL frame-buffer object.
    */
   unsigned int getDefaultFramebuffer()
   {

@@ -580,7 +580,7 @@ typedef struct {
   GHOST_TUns32 xPixels;
   /** Number of lines. */
   GHOST_TUns32 yPixels;
-  /** Numberof bits per pixel. */
+  /** Number of bits per pixel. */
   GHOST_TUns32 bpp;
   /** Refresh rate (in Hertz). */
   GHOST_TUns32 frequency;

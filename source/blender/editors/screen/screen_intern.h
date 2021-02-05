@@ -29,10 +29,10 @@ struct bContextDataResult;
 
 /* internal exports only */
 
-#define AZONESPOTW UI_HEADER_OFFSET         /* width of corner azone - max */
-#define AZONESPOTH (0.6f * U.widget_unit)   /* height of corner azone */
-#define AZONEFADEIN (5.0f * U.widget_unit)  /* when azone is totally visible */
-#define AZONEFADEOUT (6.5f * U.widget_unit) /* when we start seeing the azone */
+#define AZONESPOTW UI_HEADER_OFFSET         /* width of corner #AZone - max */
+#define AZONESPOTH (0.6f * U.widget_unit)   /* height of corner #AZone */
+#define AZONEFADEIN (5.0f * U.widget_unit)  /* when #AZone is totally visible */
+#define AZONEFADEOUT (6.5f * U.widget_unit) /* when we start seeing the #AZone */
 
 #define AREAJOINTOLERANCE (1.0f * U.widget_unit) /* Edges must be close to allow joining. */
 

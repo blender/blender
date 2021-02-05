@@ -291,7 +291,7 @@ static void test_polyfill_template_main(const char *id,
   (void)0
 
 /* -------------------------------------------------------------------- */
-/* visualisation functions (not needed for testing) */
+/* visualization functions (not needed for testing) */
 
 #ifdef USE_OBJ_PREVIEW
 static void polyfill_to_obj(const char *id,

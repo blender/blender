@@ -1190,7 +1190,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
               }
             }
           }
-          /* Remove old deprecated region from filebrowsers */
+          /* Remove old deprecated region from file-browsers. */
           else if (sl->spacetype == SPACE_FILE) {
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_CHANNELS) {

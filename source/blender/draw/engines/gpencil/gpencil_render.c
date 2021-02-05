@@ -47,7 +47,7 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
   const float *viewport_size = DRW_viewport_size_get();
   const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-  /* Set the pers & view matrix. */
+  /* Set the perspective & view matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
 
   struct Object *camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));

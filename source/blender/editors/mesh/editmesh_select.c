@@ -2205,7 +2205,7 @@ void EDBM_selectmode_set(BMEditMesh *em)
     }
   }
   else if (em->selectmode & SCE_SELECT_FACE) {
-    /* deselect eges, and select again based on face select */
+    /* Deselect edges, and select again based on face select. */
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
       BM_edge_select_set(em->bm, eed, false);
     }
@@ -2247,7 +2247,7 @@ void EDBM_selectmode_convert(BMEditMesh *em,
 
   /* first tag-to-select, then select --- this avoids a feedback loop */
 
-  /* have to find out what the selectionmode was previously */
+  /* Have to find out what the selection-mode was previously. */
   if (selectmode_old == SCE_SELECT_VERTEX) {
     if (bm->totvertsel == 0) {
       /* pass */

@@ -140,7 +140,7 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
   TreeElement *te_hovered;
   float view_mval[2];
 
-  /* Emtpy tree, e.g. while filtered. */
+  /* Empty tree, e.g. while filtered. */
   if (BLI_listbase_is_empty(&space_outliner->tree)) {
     return NULL;
   }

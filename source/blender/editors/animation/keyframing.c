@@ -614,7 +614,7 @@ int insert_vert_fcurve(
     return -1;
   }
 
-  /* set handletype and interpolation */
+  /* Set handle-type and interpolation. */
   if ((fcu->totvert > 2) && (flag & INSERTKEY_REPLACE) == 0) {
     BezTriple *bezt = (fcu->bezt + a);
 

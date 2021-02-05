@@ -327,7 +327,7 @@ static void voxel_size_edit_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar),
   const float total_len = len_v3v3(cd->preview_plane[0], cd->preview_plane[1]);
   const int tot_lines = (int)(total_len / cd->voxel_size);
 
-  /* Smoothstep to reduce the alpha of the grid as the line number increases. */
+  /* Smooth-step to reduce the alpha of the grid as the line number increases. */
   const float a = VOXEL_SIZE_EDIT_MAX_GRIDS_LINES * 0.1f;
   const float b = VOXEL_SIZE_EDIT_MAX_GRIDS_LINES;
   const float x = clamp_f((tot_lines - a) / (b - a), 0.0f, 1.0);
@@ -738,7 +738,7 @@ static int quadriflow_break_job(void *customdata)
   return should_break;
 }
 
-/* called by oceanbake, wmJob sends notifier */
+/** Called by ocean-bake, #wmJob sends notifier. */
 static void quadriflow_update_job(void *customdata, float progress, int *cancel)
 {
   QuadriFlowJob *qj = customdata;
@@ -982,7 +982,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
     quadriflow_free_job(job);
   }
   else {
-    /* Non blocking call. For when the operator has been called from the gui */
+    /* Non blocking call. For when the operator has been called from the GUI. */
     job->is_nonblocking_job = true;
 
     wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),

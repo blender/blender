@@ -954,7 +954,7 @@ void ED_spacetype_sequencer(void)
   art->listener = sequencer_main_region_listener;
   BLI_addhead(&st->regiontypes, art);
 
-  /* Hud. */
+  /* HUD. */
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 

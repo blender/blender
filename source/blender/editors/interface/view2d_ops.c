@@ -2224,7 +2224,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
     scroller_activate_init(C, op, event, in_scroller);
     v2dScrollerMove *vsm = (v2dScrollerMove *)op->customdata;
 
-    /* support for quick jump to location - gtk and qt do this on linux */
+    /* Support for quick jump to location - GTK and QT do this on Linux. */
     if (event->type == MIDDLEMOUSE) {
       switch (vsm->scroller) {
         case 'h': /* horizontal scroller - so only horizontal movement

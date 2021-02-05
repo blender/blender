@@ -20,7 +20,7 @@
 /** \file
  * \ingroup gpu
  *
- * GPU Framebuffer
+ * GPU Frame-buffer
  * - this is a wrapper for an OpenGL framebuffer object (FBO). in practice
  *   multiple FBO's may be created.
  * - actual FBO creation & config is deferred until GPU_framebuffer_bind or
@@ -210,7 +210,7 @@ class FrameBuffer {
   };
 };
 
-/* Syntacting suggar. */
+/* Syntactic sugar. */
 static inline GPUFrameBuffer *wrap(FrameBuffer *vert)
 {
   return reinterpret_cast<GPUFrameBuffer *>(vert);

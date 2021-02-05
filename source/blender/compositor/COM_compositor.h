@@ -268,8 +268,8 @@ extern "C" {
  * When an ExecutionGroup schedules a Chunk the schedule method of the WorkScheduler
  * The Workscheduler determines if the chunk can be run on an OpenCLDevice
  * (and that there are available OpenCLDevice).
- * If this is the case the chunk will be added to the worklist for OpenCLDevice's
- * otherwise the chunk will be added to the worklist of CPUDevices.
+ * If this is the case the chunk will be added to the work-list for OpenCLDevice's
+ * otherwise the chunk will be added to the work-list of CPUDevices.
  *
  * A thread will read the work-list and sends a workpackage to its device.
  *

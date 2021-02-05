@@ -225,7 +225,7 @@ static void applyarmature_process_selected_recursive(bArmature *arm,
   ApplyArmature_ParentState new_pstate = {.bone = bone};
 
   if (BLI_findptr(selected, pchan, offsetof(CollectionPointerLink, ptr.data))) {
-    /* SELECTED BONE: Snap to final pose transform minus unapplied parent effects.
+    /* SELECTED BONE: Snap to final pose transform minus un-applied parent effects.
      *
      * I.e. bone position with accumulated parent effects but no local
      * transformation will match the original final pose_mat.

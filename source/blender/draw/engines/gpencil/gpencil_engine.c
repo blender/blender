@@ -281,7 +281,7 @@ void GPENCIL_cache_init(void *ved)
                                   });
   }
   else {
-    /* Free uneeded buffers. */
+    /* Free unneeded buffers. */
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->snapshot_fb);
     DRW_TEXTURE_FREE_SAFE(txl->snapshot_depth_tx);
     DRW_TEXTURE_FREE_SAFE(txl->snapshot_color_tx);
@@ -333,7 +333,7 @@ void GPENCIL_cache_init(void *ved)
     pd->dof_params[0] = -focus_dist * pd->dof_params[1];
   }
   else {
-    /* Disable DoF blur scalling. */
+    /* Disable DoF blur scaling. */
     pd->camera = NULL;
   }
 }
@@ -346,7 +346,7 @@ typedef struct gpIterPopulateData {
   GPENCIL_PrivateData *pd;
   GPENCIL_MaterialPool *matpool;
   DRWShadingGroup *grp;
-  /* Last material UBO bound. Used to avoid uneeded buffer binding. */
+  /* Last material UBO bound. Used to avoid unneeded buffer binding. */
   GPUUniformBuf *ubo_mat;
   GPUUniformBuf *ubo_lights;
   /* Last texture bound. */
@@ -385,7 +385,7 @@ static void gpencil_drawcall_flush(gpIterPopulateData *iter)
   iter->vcount = 0;
 }
 
-/* Group drawcalls that are consecutive and with the same type. Reduces GPU driver overhead. */
+/* Group draw-calls that are consecutive and with the same type. Reduces GPU driver overhead. */
 static void gpencil_drawcall_add(
     gpIterPopulateData *iter, struct GPUBatch *geom, bool instancing, int v_first, int v_count)
 {
@@ -399,7 +399,7 @@ static void gpencil_drawcall_add(
 #endif
 
   int last = iter->vfirst + iter->vcount;
-  /* Interupt drawcall grouping if the sequence is not consecutive. */
+  /* Interrupt draw-call grouping if the sequence is not consecutive. */
   if ((geom != iter->geom) || (v_first - last > 3)) {
     gpencil_drawcall_flush(iter);
   }
@@ -686,7 +686,7 @@ void GPENCIL_cache_finish(void *ved)
   /* Sort object by decreasing Z to avoid most of alpha ordering issues. */
   gpencil_object_cache_sort(pd);
 
-  /* Create framebuffers only if needed. */
+  /* Create frame-buffers only if needed. */
   if (pd->tobjects.first) {
     eGPUTextureFormat format = pd->use_signed_fb ? GPU_RGBA16F : GPU_R11F_G11F_B10F;
 

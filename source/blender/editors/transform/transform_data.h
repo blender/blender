@@ -122,11 +122,11 @@ typedef struct TransDataCurveHandleFlags {
 
 typedef struct TransData {
   TRANSDATABASIC;
-  /** Distance needed to affect element (for Proportionnal Editing). */
+  /** Distance needed to affect element (for Proportional Editing). */
   float dist;
-  /** Distance to the nearest element (for Proportionnal Editing). */
+  /** Distance to the nearest element (for Proportional Editing). */
   float rdist;
-  /** Factor of the transformation (for Proportionnal Editing). */
+  /** Factor of the transformation (for Proportional Editing). */
   float factor;
   /** Value pointer for special transforms. */
   float *val;
@@ -141,11 +141,11 @@ typedef struct TransData {
   struct Object *ob;
   /** For objects/bones, the first constraint in its constraint stack. */
   struct bConstraint *con;
-  /** For objects, poses. 1 single malloc per TransInfo! */
+  /** For objects, poses. 1 single allocation per #TransInfo! */
   TransDataExtension *ext;
   /** for curves, stores handle flags for modification/cancel. */
   TransDataCurveHandleFlags *hdata;
-  /** If set, copy of Object or PoseChannel protection. */
+  /** If set, copy of Object or #bPoseChannel protection. */
   short protectflag;
 } TransData;
 

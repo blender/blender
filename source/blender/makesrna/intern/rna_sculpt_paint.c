@@ -896,7 +896,7 @@ static void rna_def_gp_paint(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_GpPaint_path");
   RNA_def_struct_ui_text(srna, "Grease Pencil Paint", "");
 
-  /* Use vertex color (main swith). */
+  /* Use vertex color (main switch). */
   prop = RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "mode");
   RNA_def_property_enum_items(prop, rna_enum_gpencil_paint_mode);

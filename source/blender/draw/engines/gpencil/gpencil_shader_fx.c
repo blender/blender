@@ -397,7 +397,7 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
   unit_m4(uv_mat);
   zero_v2(wave_ofs);
 
-  /* We reseted the uv_mat so we need to accound for the rotation in the  */
+  /* We reset the uv_mat so we need to account for the rotation in the  */
   copy_v2_fl2(tmp, 0.0f, blur_size[1]);
   rotate_v2_v2fl(blur_dir, tmp, -fx->rotation);
   mul_v2_v2(blur_dir, vp_size_inv);

@@ -166,7 +166,7 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
   }
 
   for (y = my2; y >= my0; y--, xs0 += dx0) {
-    /* xs0 is the xcoord! */
+    /* xs0 is the X-coordinate! */
     span[y] = xs0;
   }
 }

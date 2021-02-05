@@ -142,7 +142,7 @@ static void eevee_ensure_cube_views(
   float winmat[4][4];
   float side = near;
 
-  /* TODO shadowcube array. */
+  /* TODO: shadow-cube array. */
   if (true) {
     /* This half texel offset is used to ensure correct filtering between faces. */
     /* FIXME: This exhibit float precision issue with lower cube_res.

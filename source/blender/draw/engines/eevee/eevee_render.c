@@ -556,7 +556,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   DRW_render_instance_buffer_finish();
 
   /* Need to be called after DRW_render_instance_buffer_finish() */
-  /* Also we weed to have a correct fbo bound for DRW_hair_update */
+  /* Also we weed to have a correct FBO bound for DRW_hair_update */
   GPU_framebuffer_bind(fbl->main_fb);
   DRW_hair_update();
 

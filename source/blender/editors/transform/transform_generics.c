@@ -1193,7 +1193,7 @@ void calculateCenter(TransInfo *t)
 
   calculateCenter2D(t);
 
-  /* for panning from cameraview */
+  /* For panning from the camera-view. */
   if ((t->flag & T_OBJECT) && (t->flag & T_OVERRIDE_CENTER) == 0) {
     if (t->spacetype == SPACE_VIEW3D && t->region && t->region->regiontype == RGN_TYPE_WINDOW) {
 
@@ -1416,7 +1416,7 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
   if (td->ext->rotOrder == ROT_MODE_QUAT) {
     float quat[4];
 
-    /* calculate the total rotatation */
+    /* Calculate the total rotation. */
     quat_to_mat3(obmat, td->ext->iquat);
     if (use_drot) {
       mul_m3_m3m3(obmat, dmat, obmat);
@@ -1437,7 +1437,7 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
   else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
     float axis[3], angle;
 
-    /* calculate the total rotatation */
+    /* Calculate the total rotation. */
     axis_angle_to_mat3(obmat, td->ext->irotAxis, td->ext->irotAngle);
     if (use_drot) {
       mul_m3_m3m3(obmat, dmat, obmat);
@@ -1459,7 +1459,7 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
   else {
     float eul[3];
 
-    /* calculate the total rotatation */
+    /* Calculate the total rotation. */
     eulO_to_mat3(obmat, td->ext->irot, td->ext->rotOrder);
     if (use_drot) {
       mul_m3_m3m3(obmat, dmat, obmat);

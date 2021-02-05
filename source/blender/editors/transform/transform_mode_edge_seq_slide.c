@@ -51,7 +51,7 @@ static eRedrawFlag seq_slide_handleEvent(struct TransInfo *t, const wmEvent *eve
   BLI_assert(t->mode == TFM_SEQ_SLIDE);
   const wmKeyMapItem *kmi = t->custom.mode.data;
   if (kmi && event->type == kmi->type && event->val == kmi->val) {
-    /* Allows the 'Expand to fit' effect to be enabled as a toogle. */
+    /* Allows the "Expand to Fit" effect to be enabled as a toggle. */
     t->flag ^= T_ALT_TRANSFORM;
     return TREDRAW_HARD;
   }

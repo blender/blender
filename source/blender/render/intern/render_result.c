@@ -443,7 +443,7 @@ RenderResult *render_result_new(
   }
   FOREACH_VIEW_LAYER_TO_RENDER_END;
 
-  /* previewrender doesn't do layers, so we make a default one */
+  /* Preview-render doesn't do layers, so we make a default one. */
   if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {
     rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
     BLI_addtail(&rr->layers, rl);

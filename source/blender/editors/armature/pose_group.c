@@ -423,7 +423,7 @@ static int group_sort_exec(bContext *C, wmOperator *UNUSED(op))
     BLI_addtail(&pose->agroups, agrp_array[i].agrp);
   }
 
-  /* fix changed bone group indizes in bones */
+  /* Fix changed bone group indices in bones. */
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
     for (i = 0; i < agrp_count; i++) {
       if (pchan->agrp_index == agrp_array[i].index) {

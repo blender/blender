@@ -51,7 +51,7 @@ static inline int sampler_binding(int32_t program,
                                   int32_t uniform_location,
                                   int *sampler_len)
 {
-  /* Identify sampler uniforms and asign sampler units to them. */
+  /* Identify sampler uniforms and assign sampler units to them. */
   GLint type;
   glGetActiveUniformsiv(program, 1, &uniform_index, GL_UNIFORM_TYPE, &type);
 
@@ -106,7 +106,7 @@ static inline int image_binding(int32_t program,
                                 int32_t uniform_location,
                                 int *image_len)
 {
-  /* Identify image uniforms and asign image units to them. */
+  /* Identify image uniforms and assign image units to them. */
   GLint type;
   glGetActiveUniformsiv(program, 1, &uniform_index, GL_UNIFORM_TYPE, &type);
 
@@ -133,7 +133,7 @@ static inline int image_binding(int32_t program,
 
 GLShaderInterface::GLShaderInterface(GLuint program)
 {
-  /* Necessary to make glUniform works. */
+  /* Necessary to make #glUniform works. */
   glUseProgram(program);
 
   GLint max_attr_name_len = 0, attr_len = 0;

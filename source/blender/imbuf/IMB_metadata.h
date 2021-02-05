@@ -35,7 +35,7 @@ struct anim;
  * The metadata is a list of key/value pairs (both char *) that can me
  * saved in the header of several image formats.
  * Apart from some common keys like
- * 'Software' and 'Description' (png standard) we'll use keys within the
+ * 'Software' and 'Description' (PNG standard) we'll use keys within the
  * Blender namespace, so should be called 'Blender::StampInfo' or 'Blender::FrameNum'
  * etc...
  *

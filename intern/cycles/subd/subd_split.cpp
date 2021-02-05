@@ -549,7 +549,7 @@ void DiagSplit::split_ngon(const Mesh::SubdFace &face, Patch *patches, size_t pa
     subpatch.edge_v1.indices_decrease_along_edge = true;
     subpatch.edge_u0.indices_decrease_along_edge = u0_reversed;
 
-    /* Perfrom split. */
+    /* Perform split. */
     {
       subpatch.edge_u0.T = T(subpatch.patch, subpatch.c00, subpatch.c10);
       subpatch.edge_u1.T = T(subpatch.patch, subpatch.c01, subpatch.c11);
@@ -646,7 +646,7 @@ void DiagSplit::post_split()
   /* Set start and end indices for edges generated from a split. */
   foreach (Edge &edge, edges) {
     if (edge.start_vert_index < 0) {
-      /* Fixup offsets. */
+      /* Fix up offsets. */
       if (edge.top_indices_decrease) {
         edge.top_offset = edge.top->T - edge.top_offset;
       }

@@ -55,7 +55,7 @@ static bool UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
   BMLoop *l2, *l3;
   BMFace *f2;
 
-  /* checks if there are any unmarked boundary edges in the face regio */
+  /* Checks if there are any unmarked boundary edges in the face region. */
 
   BMW_init(&regwalker,
            bm,
@@ -159,7 +159,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
     }
 
     BLI_array_clear(faces);
-    faces = NULL; /* forces different allocatio */
+    faces = NULL; /* Forces different allocation. */
 
     BMW_init(&regwalker,
              bm,

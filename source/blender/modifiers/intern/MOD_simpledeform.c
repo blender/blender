@@ -256,7 +256,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
 
   smd->limit[0] = min_ff(smd->limit[0], smd->limit[1]); /* Upper limit >= than lower limit */
 
-  /* Calculate matrixs do convert between coordinate spaces */
+  /* Calculate matrix to convert between coordinate spaces. */
   if (smd->origin != NULL) {
     transf = &tmp_transf;
     BLI_SPACE_TRANSFORM_SETUP(transf, ob, smd->origin);
@@ -314,7 +314,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
       simpleDeform_callback = simpleDeform_stretch;
       break;
     default:
-      return; /* No simpledeform mode? */
+      return; /* No simple-deform mode? */
   }
 
   if (smd->mode == MOD_SIMPLEDEFORM_MODE_BEND) {

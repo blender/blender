@@ -48,7 +48,7 @@
 #include "ED_space_api.h"
 #include "ED_transform_snap_object_context.h"
 
-#include "PIL_time.h" /* smoothview */
+#include "PIL_time.h" /* Smooth-view. */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -872,7 +872,7 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
           /* delta time */
           t = (float)(PIL_check_seconds_timer() - walk->teleport.initial_time);
 
-          /* reduce the veolocity, if JUMP wasn't hold for long enough */
+          /* Reduce the velocity, if JUMP wasn't hold for long enough. */
           t = min_ff(t, JUMP_TIME_MAX);
           walk->speed_jump = JUMP_SPEED_MIN +
                              t * (JUMP_SPEED_MAX - JUMP_SPEED_MIN) / JUMP_TIME_MAX;

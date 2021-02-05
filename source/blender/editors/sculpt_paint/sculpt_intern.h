@@ -511,7 +511,7 @@ void SCULPT_boundary_edges_preview_draw(const uint gpuattr,
                                         const float outline_alpha);
 void SCULPT_boundary_pivot_line_preview_draw(const uint gpuattr, struct SculptSession *ss);
 
-/* Multiplane Scrape Brush. */
+/* Multi-plane Scrape Brush. */
 void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
                                            Brush *brush,

@@ -256,7 +256,7 @@ void RE_SetCamera(struct Render *re, struct Object *cam_ob);
 /* get current view and window transform */
 void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
 
-/* set the render threads based on the command-line and autothreads setting */
+/* Set the render threads based on the command-line and auto-threads setting. */
 void RE_init_threadcount(Render *re);
 
 bool RE_WriteRenderViewsImage(struct ReportList *reports,

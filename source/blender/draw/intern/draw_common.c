@@ -161,7 +161,7 @@ void DRW_globals_update(void)
 
   /* Grid */
   UI_GetThemeColorShade4fv(TH_GRID, 10, gb->colorGrid);
-  /* emphasise division lines lighter instead of darker, if background is darker than grid */
+  /* Emphasize division lines lighter instead of darker, if background is darker than grid. */
   UI_GetThemeColorShade4fv(
       TH_GRID,
       (gb->colorGrid[0] + gb->colorGrid[1] + gb->colorGrid[2] + 0.12f >
@@ -333,7 +333,7 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
           theme_id = TH_EMPTY;
           break;
         case OB_LIGHTPROBE:
-          /* TODO add lightprobe color */
+          /* TODO: add light-probe color. */
           theme_id = TH_EMPTY;
           break;
         default:

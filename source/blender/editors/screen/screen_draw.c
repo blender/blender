@@ -478,7 +478,7 @@ void ED_screen_draw_split_preview(ScrArea *area, const int dir, const float fac)
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  /* splitpoint */
+  /* Split-point. */
   GPU_blend(GPU_BLEND_ALPHA);
 
   immUniformColor4ub(255, 255, 255, 100);

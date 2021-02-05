@@ -4010,7 +4010,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   short numcuts = 1;
   const short mode = RNA_int_get(op->ptr, "type");
 
-  /* allocd vars */
+  /* Allocated variables. */
   float(*screen_vert_coords)[2], (*sco)[2], (*mouse_path)[2];
 
   /* edit-object needed for matrix, and region->regiondata for projections to work */

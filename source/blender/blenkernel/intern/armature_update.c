@@ -428,8 +428,8 @@ static void splineik_evaluate_bone(
         if (fabsf(scaleFac) != 0.0f) {
           scale = 1.0f / fabsf(scaleFac);
 
-          /* we need to clamp this within sensible values */
-          /* NOTE: these should be fine for now, but should get sanitised in future */
+          /* We need to clamp this within sensible values. */
+          /* NOTE: these should be fine for now, but should get sanitized in future. */
           CLAMP(scale, 0.0001f, 100000.0f);
         }
         else {
@@ -483,7 +483,7 @@ static void splineik_evaluate_bone(
           final_scale = 1.0f;
         }
 
-        /* apply the scaling (assuming normalised scale) */
+        /* Apply the scaling (assuming normalized scale). */
         mul_v3_fl(poseMat[0], final_scale);
         mul_v3_fl(poseMat[2], final_scale);
         break;

@@ -201,8 +201,8 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
 
   /* Repeat a similar operation for all vertices in the queue. */
   /* In this case, add to the queue the vertices connected by 2 steps using the diagonals in any
-   * direction. If a solution exists and intial_vertex was a pole, this is guaranteed that will tag
-   * all the (0,0) vertices of the grids, and nothing else. */
+   * direction. If a solution exists and `initial_vertex` was a pole, this is guaranteed that will
+   * tag all the (0,0) vertices of the grids, and nothing else. */
   /* If it was not a pole, it may or may not find a solution, even if the solution exists. */
   while (!BLI_gsqueue_is_empty(queue)) {
     BMVert *from_v;

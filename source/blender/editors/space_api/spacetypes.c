@@ -287,7 +287,7 @@ static void xxx_free(SpaceLink *UNUSED(sl))
 {
 }
 
-/* spacetype; init callback for usage, should be redoable */
+/* spacetype; init callback for usage, should be re-doable. */
 static void xxx_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 

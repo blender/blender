@@ -222,7 +222,7 @@ static void deformVerts(ModifierData *md,
         }
       }
 
-      /* happens on file load (ONLY when i decomment changes in readfile.c) */
+      /* Happens on file load (ONLY when I un-comment changes in readfile.c) */
       if (!collmd->bvhtree) {
         collmd->bvhtree = bvhtree_build_from_mvert(
             collmd->current_x, collmd->tri, collmd->tri_num, ob->pd->pdef_sboft);

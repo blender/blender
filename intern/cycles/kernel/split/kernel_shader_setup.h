@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device void kernel_shader_setup(KernelGlobals *kg,
                                     ccl_local_param unsigned int *local_queue_atomics)
 {
-  /* Enqeueue RAY_TO_REGENERATE rays into QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue. */
+  /* Enqueue RAY_TO_REGENERATE rays into QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue. */
   if (ccl_local_id(0) == 0 && ccl_local_id(1) == 0) {
     *local_queue_atomics = 0;
   }

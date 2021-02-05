@@ -83,11 +83,11 @@ class Texture {
 
  protected:
   /* ---- Texture format (immutable after init). ---- */
-  /** Width & Height & Depth. For cubemap arrays, d is number of facelayers. */
+  /** Width & Height & Depth. For cube-map arrays, d is number of face-layers. */
   int w_, h_, d_;
   /** Internal data format. */
   eGPUTextureFormat format_;
-  /** Format caracteristics. */
+  /** Format characteristics. */
   eGPUTextureFormatFlag format_flag_;
   /** Texture type. */
   eGPUTextureType type_;
@@ -101,7 +101,7 @@ class Texture {
   /** For debugging */
   char name_[DEBUG_NAME_LEN];
 
-  /** Framebuffer references to update on deletion. */
+  /** Frame-buffer references to update on deletion. */
   GPUAttachmentType fb_attachment_[GPU_TEX_MAX_FBO_ATTACHED];
   FrameBuffer *fb_[GPU_TEX_MAX_FBO_ATTACHED];
 
@@ -245,7 +245,7 @@ class Texture {
   virtual bool init_internal(GPUVertBuf *vbo) = 0;
 };
 
-/* Syntacting suggar. */
+/* Syntactic sugar. */
 static inline GPUTexture *wrap(Texture *vert)
 {
   return reinterpret_cast<GPUTexture *>(vert);

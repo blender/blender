@@ -3433,7 +3433,7 @@ static EdgeHalf *next_edgehalf_bev(BevelParams *bp,
     }
     normalize_v3(dir_new_edge);
 
-    /* Use this edge if it is the most parallel to the orignial so far. */
+    /* Use this edge if it is the most parallel to the original so far. */
     float new_dot = dot_v3v3(dir_new_edge, dir_start_edge);
     if (new_dot > best_dot) {
       second_best_dot = best_dot; /* For remembering if the choice was too close. */
@@ -4674,7 +4674,7 @@ static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, BoundVert *vpipe)
             f = (float)k / (float)ns; /* Ring runs along the pipe, so segment is used here. */
           }
 
-          /* Place the vertex by interpolatin between the two profile points using the factor. */
+          /* Place the vertex by interpolating between the two profile points using the factor. */
           interp_v3_v3v3(mesh_vert(vm, i, j, k)->co, profile_point_pipe1, profile_point_pipe2, f);
         }
         else {
@@ -6385,7 +6385,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
         /* Edges in face are non-contiguous in our ordering around bv.
          * Which way should we go when going from eprev to e? */
         if (count_ccw_edges_between(eprev, e) < count_ccw_edges_between(e, eprev)) {
-          /* Go counterclockewise from eprev to e. */
+          /* Go counter-clockwise from eprev to e. */
           go_ccw = true;
         }
         else {
@@ -6419,7 +6419,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
         BLI_array_append(ee, bme);
       }
       while (v != vend) {
-        /* Check for special case: multisegment 3rd face opposite a beveled edge with no vmesh. */
+        /* Check for special case: multi-segment 3rd face opposite a beveled edge with no vmesh. */
         bool corner3special = (vm->mesh_kind == M_NONE && v->ebev != e && v->ebev != eprev);
         if (go_ccw) {
           int i = v->index;
@@ -7566,7 +7566,7 @@ void BM_mesh_bevel(BMesh *bm,
     }
   }
 
-  /* Perhaps clamp offset to avoid geometry colliisions. */
+  /* Perhaps clamp offset to avoid geometry collisions. */
   if (limit_offset) {
     bevel_limit_offset(&bp, bm);
 

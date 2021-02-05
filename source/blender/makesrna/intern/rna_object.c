@@ -1304,11 +1304,13 @@ static void rna_MaterialSlot_link_set(PointerRNA *ptr, int value)
 
   if (value) {
     ob->matbits[index] = 1;
-    /* ob->colbits |= (1 << index); */ /* DEPRECATED */
+    /* DEPRECATED */
+    // ob->colbits |= (1 << index);
   }
   else {
     ob->matbits[index] = 0;
-    /* ob->colbits &= ~(1 << index); */ /* DEPRECATED */
+    /* DEPRECATED */
+    // ob->colbits &= ~(1 << index);
   }
 }
 

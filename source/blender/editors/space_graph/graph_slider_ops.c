@@ -380,7 +380,7 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
         break;
       }
 
-      /* Unhandled event - maybe it was some view manip? */
+      /* Unhandled event - maybe it was some view manipulation? */
       /* Allow to pass through. */
       return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
     }

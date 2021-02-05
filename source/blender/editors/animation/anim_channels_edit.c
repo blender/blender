@@ -1736,7 +1736,7 @@ static int animchannels_group_exec(bContext *C, wmOperator *op)
     /* free temp data */
     ANIM_animdata_freelist(&anim_data);
 
-    /* updatss */
+    /* Updates. */
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
   }
 

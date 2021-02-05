@@ -1036,7 +1036,7 @@ bool BM_mesh_intersect(BMesh *bm,
 #endif
 
   if (boolean_mode != BMESH_ISECT_BOOLEAN_NONE) {
-    /* keep original geometrty for raycast callbacks */
+    /* Keep original geometry for ray-cast callbacks. */
     float **cos;
     int i, j;
 
@@ -1546,7 +1546,7 @@ bool BM_mesh_intersect(BMesh *bm,
       bool do_remove, do_flip;
 
       {
-        /* for now assyme this is an OK face to test with (not degenerate!) */
+        /* For now assume this is an OK face to test with (not degenerate!) */
         BMFace *f = ftable[groups_array[fg]];
         float co[3];
         int hits;

@@ -1047,7 +1047,7 @@ void createTransData(bContext *C, TransInfo *t)
   else if (t->spacetype == SPACE_SEQ) {
     t->flag |= T_POINTS | T_2D_EDIT;
     t->obedit_type = -1;
-    t->num.flag |= NUM_NO_FRACTION; /* sequencer has no use for floating point trasnform */
+    t->num.flag |= NUM_NO_FRACTION; /* sequencer has no use for floating point transform. */
     convert_type = TC_SEQ_DATA;
   }
   else if (t->spacetype == SPACE_GRAPH) {

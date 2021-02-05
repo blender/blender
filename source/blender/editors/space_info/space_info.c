@@ -150,7 +150,7 @@ static void info_main_region_draw(const bContext *C, ARegion *region)
 
   info_textview_update_rect(C, region);
 
-  /* worlks best with no view2d matrix set */
+  /* Works best with no view2d matrix set. */
   UI_view2d_view_ortho(v2d);
 
   info_textview_main(sinfo, region, CTX_wm_reports(C));

@@ -722,7 +722,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
 
 void text_drawcache_tag_update(SpaceText *st, int full)
 {
-  /* this happens if text editor ops are caled from python */
+  /* This happens if text editor ops are called from Python. */
   if (st == NULL) {
     return;
   }

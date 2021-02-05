@@ -658,7 +658,7 @@ static void do_versions_291_fcurve_handles_limit(FCurve *fcu)
 {
   uint i = 1;
   for (BezTriple *bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-    /* Only adjust bezier keyframes. */
+    /* Only adjust bezier key-frames. */
     if (bezt->ipo != BEZT_IPO_BEZ) {
       continue;
     }
@@ -1097,10 +1097,10 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 291, 5)) {
-    /* Fix fcurves to allow for new bezier handles behaviour (T75881 and D8752). */
+    /* Fix fcurves to allow for new bezier handles behavior (T75881 and D8752). */
     for (bAction *act = bmain->actions.first; act; act = act->id.next) {
       for (FCurve *fcu = act->curves.first; fcu; fcu = fcu->next) {
-        /* Only need to fix Bezier curves with at least 2 keyframes. */
+        /* Only need to fix Bezier curves with at least 2 key-frames. */
         if (fcu->totvert < 2 || fcu->bezt == NULL) {
           continue;
         }

@@ -115,7 +115,7 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
     return;
   }
 
-  /* gcc warns these could be uninitialized, but its ok. */
+  /* GCC warns these could be uninitialized, but its ok. */
   pixel_from_buffer(out, &outI, &outF, xout, yout);
 
   bicubic_interpolation_color(in, outI, outF, u, v);

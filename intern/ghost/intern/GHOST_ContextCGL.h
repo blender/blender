@@ -115,10 +115,10 @@ class GHOST_ContextCGL : public GHOST_Context {
   /** The OpenGL drawing context */
   NSOpenGLContext *m_openGLContext;
 
-  /** The virtualized default framebuffer */
+  /** The virtualized default frame-buffer. */
   unsigned int m_defaultFramebuffer;
 
-  /** The virtualized default framebuffer's texture */
+  /** The virtualized default frame-buffer's texture. */
   MTLTexture *m_defaultFramebufferMetalTexture;
 
   bool m_coreProfile;

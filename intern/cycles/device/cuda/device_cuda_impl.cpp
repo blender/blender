@@ -184,7 +184,7 @@ CUDADevice::CUDADevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool 
 
   functions.loaded = false;
 
-  /* Intialize CUDA. */
+  /* Initialize CUDA. */
   CUresult result = cuInit(0);
   if (result != CUDA_SUCCESS) {
     set_error(string_printf("Failed to initialize CUDA runtime (%s)", cuewErrorString(result)));

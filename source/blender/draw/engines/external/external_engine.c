@@ -108,7 +108,7 @@ static void external_engine_init(void *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   ARegion *region = draw_ctx->region;
 
-  /* Depth prepass */
+  /* Depth pre-pass. */
   if (!e_data.depth_sh) {
     const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[GPU_SHADER_CFG_DEFAULT];
 

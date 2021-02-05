@@ -358,7 +358,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
   init_context.t = t;
   init_context.tc = tc;
 
-  /* Count required tranformation data. */
+  /* Count required transformation data. */
 
   tc->data_len = 0;
 

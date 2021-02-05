@@ -210,7 +210,7 @@ typedef struct KnifeTool_OpData {
   /* run by the UI or not */
   bool is_interactive;
 
-  /* operatpr options */
+  /* Operator options. */
   bool cut_through;   /* preference, can be modified at runtime (that feature may go) */
   bool only_select;   /* set on initialization */
   bool select_result; /* set on initialization */

@@ -3704,7 +3704,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
     }
   }
   else {
-    /* Assigning to an IDProperty desguised as RNA one. */
+    /* Assigning to an IDProperty disguised as RNA one. */
     if (ptr_value.type != NULL && !RNA_struct_is_a(ptr_value.type, &RNA_ID)) {
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -3741,7 +3741,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
       pprop->set(ptr, ptr_value, reports);
     }
   }
-  /* IDProperty desguised as RNA property (and not yet defined in ptr). */
+  /* IDProperty disguised as RNA property (and not yet defined in ptr). */
   else if (prop->flag & PROP_EDITABLE) {
     IDPropertyTemplate val = {0};
     IDProperty *group;
@@ -6174,7 +6174,7 @@ char *RNA_path_full_property_py_ex(
   }
   else {
     if (use_fallback) {
-      /* fuzzy fallback. be explicit in our ignoranc. */
+      /* Fuzzy fallback. Be explicit in our ignorance. */
       data_path = RNA_property_identifier(prop);
       data_delim = " ... ";
     }

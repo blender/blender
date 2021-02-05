@@ -20,7 +20,7 @@
 /** \file
  * \ingroup gpu
  *
- * GPU Framebuffer
+ * GPU Frame-buffer
  * - this is a wrapper for an OpenGL framebuffer object (FBO). in practice
  *   multiple FBO's may be created.
  * - actual FBO creation & config is deferred until GPU_framebuffer_bind or
@@ -79,7 +79,7 @@ GPUFrameBuffer *GPU_framebuffer_back_get(void);
     } \
   } while (0)
 
-/* Framebuffer setup : You need to call GPU_framebuffer_bind for these
+/* Frame-buffer setup: You need to call #GPU_framebuffer_bind for these
  * to be effective. */
 
 void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment attachment, int slot);
@@ -154,7 +154,7 @@ void GPU_framebuffer_texture_layer_attach(
 void GPU_framebuffer_texture_cubeface_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip);
 
-/* Framebuffer operations */
+/* Frame-buffer operations. */
 
 void GPU_framebuffer_viewport_set(GPUFrameBuffer *fb, int x, int y, int w, int h);
 void GPU_framebuffer_viewport_get(GPUFrameBuffer *fb, int r_viewport[4]);

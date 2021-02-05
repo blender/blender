@@ -303,10 +303,10 @@ class GHOST_ImeWin32 {
    */
   void EndIME(HWND window_handle);
 
-  /* Updatg resultInfo and compInfo */
+  /** Update #resultInfo and #compInfo */
   void UpdateInfo(HWND window_handle);
 
-  /* disable ime when start up */
+  /** Disable IME when start up. */
   void CheckFirst(HWND window_handle);
 
   ImeComposition resultInfo, compInfo;

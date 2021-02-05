@@ -42,7 +42,7 @@ CCL_NAMESPACE_BEGIN
 
 #define BVH_FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
-/* Debugging heleprs */
+/* Debugging helpers. */
 #ifdef __KERNEL_DEBUG__
 #  define BVH_DEBUG_INIT() \
     do { \

@@ -34,7 +34,7 @@ typedef enum {
   GPU_VERTBUF_INVALID = 0,
   /** Was init with a vertex format. */
   GPU_VERTBUF_INIT = (1 << 0),
-  /** Data has been touched and need to be reuploaded. */
+  /** Data has been touched and need to be re-uploaded. */
   GPU_VERTBUF_DATA_DIRTY = (1 << 1),
   /** The buffer has been created inside GPU memory. */
   GPU_VERTBUF_DATA_UPLOADED = (1 << 2),

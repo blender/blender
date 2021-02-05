@@ -435,7 +435,7 @@ ccl_device_inline float bvh_instance_push(
   return t;
 }
 
-/* Transorm ray to exit static object in BVH */
+/* Transform ray to exit static object in BVH. */
 
 ccl_device_inline float bvh_instance_pop(
     KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *dir, float3 *idir, float t)
@@ -497,7 +497,7 @@ ccl_device_inline float bvh_instance_motion_push(KernelGlobals *kg,
   return t;
 }
 
-/* Transorm ray to exit motion blurred object in BVH */
+/* Transform ray to exit motion blurred object in BVH. */
 
 ccl_device_inline float bvh_instance_motion_pop(KernelGlobals *kg,
                                                 int object,

@@ -754,7 +754,7 @@ template<> CDTVert<double>::CDTVert(const vec2<double> &pt)
 {
   this->co.exact = pt;
   this->co.approx = pt;
-  this->co.abs_approx = pt; /* Not used, so does't matter. */
+  this->co.abs_approx = pt; /* Not used, so doesn't matter. */
   this->input_ids = nullptr;
   this->symedge = nullptr;
   this->index = -1;
@@ -1411,12 +1411,12 @@ void dc_tri(CDTArrangement<T> *cdt,
 /* Guibas-Stolfi Divide-and_Conquer algorithm. */
 template<typename T> void dc_triangulate(CDTArrangement<T> *cdt, Array<SiteInfo<T>> &sites)
 {
-  /* Compress sites in place to eliminted verts that merge to others. */
+  /* Compress sites in place to eliminated verts that merge to others. */
   int i = 0;
   int j = 0;
   int nsites = sites.size();
   while (j < nsites) {
-    /* Invariante: sites[0..i-1] have non-merged verts from 0..(j-1) in them. */
+    /* Invariant: `sites[0..i-1]` have non-merged verts from `0..(j-1)` in them. */
     sites[i] = sites[j++];
     if (sites[i].v->merge_to_index < 0) {
       i++;

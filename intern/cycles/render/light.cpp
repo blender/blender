@@ -979,7 +979,7 @@ void LightManager::device_update(Device *device,
 
   VLOG(1) << "Total " << scene->lights.size() << " lights.";
 
-  /* Detect which lights are enabled, also determins if we need to update the background. */
+  /* Detect which lights are enabled, also determines if we need to update the background. */
   test_enabled_lights(scene);
 
   device_free(device, dscene, need_update_background);

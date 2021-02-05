@@ -35,7 +35,7 @@ ccl_device_noinline bool kernel_split_branched_path_volume_indirect_light_iter(K
   PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
   ShaderData *emission_sd = AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]);
 
-  /* GPU: no decoupled ray marching, scatter probalistically */
+  /* GPU: no decoupled ray marching, scatter probabilistically. */
   int num_samples = kernel_data.integrator.volume_samples;
   float num_samples_inv = 1.0f / num_samples;
 

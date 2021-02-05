@@ -54,7 +54,8 @@
 
 #include "DNA_modifier_types.h"
 
-/* The formatting of these bmesh operators is parsed by
+/**
+ * The formatting of these bmesh operators is parsed by
  * 'doc/python_api/rst_from_bmesh_opdefines.py'
  * for use in python docs, so reStructuredText may be used
  * rather than doxygen syntax.
@@ -65,8 +66,7 @@
  * """
  * Region Extend.
  *
- * paragraph1, Extends bleh bleh bleh.
- * Bleh Bleh bleh.
+ * paragraph1, Extends on the title above.
  *
  * Another paragraph.
  *
@@ -1268,7 +1268,7 @@ static BMOpDefine bmo_subdivide_edges_def = {
    {"quad_corner_type",  BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_subdivide_edges_quad_corner_type}, /* quad corner type */
    {"use_grid_fill", BMO_OP_SLOT_BOOL},   /* fill in fully-selected faces with a grid */
    {"use_single_edge", BMO_OP_SLOT_BOOL}, /* tessellate the case of one edge selected in a quad or triangle */
-   {"use_only_quads", BMO_OP_SLOT_BOOL},  /* only subdivide quads (for loopcut) */
+   {"use_only_quads", BMO_OP_SLOT_BOOL},  /* Only subdivide quads (for loop-cut). */
    {"use_sphere", BMO_OP_SLOT_BOOL},     /* for making new primitives only */
    {"use_smooth_even", BMO_OP_SLOT_BOOL},  /* maintain even offset when smoothing */
    {{'\0'}},

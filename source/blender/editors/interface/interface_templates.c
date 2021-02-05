@@ -349,7 +349,7 @@ static bool id_search_allows_id(TemplateID *template_ui, const int flag, ID *id,
     }
   }
 
-  /* Hide dot-datablocks, but only if filter does not force them visible. */
+  /* Hide dot prefixed data-blocks, but only if filter does not force them visible. */
   if (U.uiflag & USER_HIDE_DOT) {
     if ((id->name[2] == '.') && (query[0] != '.')) {
       return false;
@@ -923,7 +923,7 @@ static void template_ID(const bContext *C,
   idfrom = template_ui->ptr.owner_id;
   // lb = template_ui->idlb;
 
-  /* Allow opertators to take the ID from context. */
+  /* Allow operators to take the ID from context. */
   uiLayoutSetContextPointer(layout, "id", &idptr);
 
   block = uiLayoutGetBlock(layout);
@@ -934,7 +934,7 @@ static void template_ID(const bContext *C,
   }
 
   if (text) {
-    /* Add label resepecting the separated layout property split state. */
+    /* Add label respecting the separated layout property split state. */
     uiItemL_respect_property_split(layout, text, ICON_NONE);
   }
 

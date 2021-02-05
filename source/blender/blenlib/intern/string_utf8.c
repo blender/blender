@@ -225,8 +225,7 @@ int BLI_utf8_invalid_strip(char *str, size_t length)
   return tot;
 }
 
-/* compatible with BLI_strncpy, but esnure no partial utf8 chars */
-
+/** Compatible with #BLI_strncpy, but ensure no partial UTF8 chars. */
 #define BLI_STR_UTF8_CPY(dst, src, maxncpy) \
   { \
     size_t utf8_size; \

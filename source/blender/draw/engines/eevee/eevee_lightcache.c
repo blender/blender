@@ -99,9 +99,9 @@ typedef struct EEVEE_LightBake {
   GPUTexture *rt_color;
   /** Target cube depth texture. */
   GPUTexture *rt_depth;
-  /** Target cube framebuffers. */
+  /** Target cube frame-buffers. */
   GPUFrameBuffer *rt_fb[6];
-  /** Storage framebuffer. */
+  /** Storage frame-buffer. */
   GPUFrameBuffer *store_fb;
   /** Cube render target resolution. */
   int rt_res;
@@ -135,7 +135,7 @@ typedef struct EEVEE_LightBake {
   int grid_curr;
   /** The current light bounce being evaluated. */
   int bounce_curr, bounce_len;
-  /** Resolution of the Visibility shadowmap. */
+  /** Resolution of the Visibility shadow-map. */
   float vis_res;
   /** Result of previous light bounce. */
   GPUTexture *grid_prev;
@@ -163,7 +163,7 @@ typedef struct EEVEE_LightBake {
   /** For only handling the resources. */
   bool resource_only;
   bool own_resources;
-  /** If the lightcache was created for baking, it's first owned by the baker. */
+  /** If the light-cache was created for baking, it's first owned by the baker. */
   bool own_light_cache;
   /** ms. delay the start of the baking to not slowdown interactions (TODO remove) */
   int delay;
@@ -907,7 +907,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
   Scene *scene_eval = DEG_get_evaluated_scene(lbake->depsgraph);
   lbake->sldata = sldata;
 
-  /* Disable all effects BUT high bitdepth shadows. */
+  /* Disable all effects BUT high bit-depth shadows. */
   scene_eval->eevee.flag &= SCE_EEVEE_SHADOW_HIGH_BITDEPTH;
   scene_eval->eevee.taa_samples = 1;
   scene_eval->eevee.gi_irradiance_smoothing = 0.0f;
@@ -980,7 +980,7 @@ static void eevee_lightbake_copy_irradiance(EEVEE_LightBake *lbake, LightCache *
 {
   DRW_TEXTURE_FREE_SAFE(lbake->grid_prev);
 
-  /* Copy texture by reading back and reuploading it. */
+  /* Copy texture by reading back and re-uploading it. */
   float *tex = GPU_texture_read(lcache->grid_tx.tex, GPU_DATA_FLOAT, 0);
   lbake->grid_prev = DRW_texture_create_2d_array(lbake->irr_size[0],
                                                  lbake->irr_size[1],
@@ -1330,7 +1330,7 @@ void EEVEE_lightbake_update(void *custom_data)
   EEVEE_LightBake *lbake = (EEVEE_LightBake *)custom_data;
   Scene *scene_orig = lbake->scene;
 
-  /* If a new lightcache was created, free the old one and reference the new. */
+  /* If a new light-cache was created, free the old one and reference the new. */
   if (lbake->lcache && scene_orig->eevee.light_cache_data != lbake->lcache) {
     if (scene_orig->eevee.light_cache_data != NULL) {
       EEVEE_lightcache_free(scene_orig->eevee.light_cache_data);
@@ -1353,7 +1353,7 @@ static bool lightbake_do_sample(EEVEE_LightBake *lbake,
 
   Depsgraph *depsgraph = lbake->depsgraph;
 
-  /* TODO: make DRW manager instanciable (and only lock on drawing) */
+  /* TODO: make DRW manager instantiable (and only lock on drawing) */
   eevee_lightbake_context_enable(lbake);
   DRW_custom_pipeline(&draw_engine_eevee_type, depsgraph, render_callback, lbake);
   lbake->done += 1;

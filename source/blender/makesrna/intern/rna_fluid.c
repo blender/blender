@@ -1964,7 +1964,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Tension",
-      "Surface tension of liquid (higher value results in greater hydrophobic behaviour)");
+      "Surface tension of liquid (higher value results in greater hydrophobic behavior)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
   prop = RNA_def_property(srna, "viscosity_base", PROP_FLOAT, PROP_NONE);

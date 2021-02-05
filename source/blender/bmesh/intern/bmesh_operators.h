@@ -24,7 +24,7 @@
 
 /*--------defines/enumerations for specific operators-------*/
 
-/*quad innervert values*/
+/* Quad `innervert` values. */
 enum {
   SUBD_CORNER_INNERVERT,
   SUBD_CORNER_PATH,

@@ -304,7 +304,7 @@ ccl_device_inline bool sample_is_even(int pattern, int sample)
 #elif defined(__KERNEL_OPENCL__)
     return popcount(sample & 0xaaaaaaaa) & 1;
 #else
-    /* TODO(Stefan): popcnt intrinsic for Windows with fallback for older CPUs. */
+    /* TODO(Stefan): pop-count intrinsic for Windows with fallback for older CPUs. */
     int i = sample & 0xaaaaaaaa;
     i = i - ((i >> 1) & 0x55555555);
     i = (i & 0x33333333) + ((i >> 2) & 0x33333333);

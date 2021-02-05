@@ -580,7 +580,7 @@ void Controller::ComputeViewMap()
   vmBuilder.setRenderMonitor(_pRenderMonitor);
 
 #if 0
-  // Builds a tesselated form of the silhouette for display purpose:
+  // Builds a tessellated form of the silhouette for display purpose:
   //---------------------------------------------------------------
   ViewMapTesselator3D sTesselator3d;
   ViewMapTesselator2D sTesselator2d;

@@ -3419,7 +3419,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
       break;
   }
 
-    /* Set output format, png in case exr isn't supported */
+    /* Set output format, PNG in case EXR isn't supported. */
 #ifdef WITH_OPENEXR
   if (format == R_IMF_IMTYPE_OPENEXR) { /* OpenEXR 32-bit float */
     ibuf->ftype = IMB_FTYPE_OPENEXR;

@@ -178,7 +178,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         x = (float)CFRA;
       }
 
-      /* Normalise units of cursor's value. */
+      /* Normalize units of cursor's value. */
       if (sipo) {
         y = (sipo->cursorVal / unit_scale) - offset;
       }
@@ -2263,7 +2263,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
-    /* Normalise cursor value (for normalised F-Curves display). */
+    /* Normalize cursor value (for normalized F-Curves display). */
     if (mode == GRAPHKEYS_SNAP_VALUE) {
       short mapping_flag = ANIM_get_normalization_flags(ac);
       float offset;

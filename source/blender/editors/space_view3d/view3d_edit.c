@@ -2888,7 +2888,7 @@ static void view3d_from_minmax(bContext *C,
                           });
   }
 
-  /* smooth view does viewlock RV3D_BOXVIEW copy */
+  /* Smooth-view does view-lock #RV3D_BOXVIEW copy. */
 }
 
 /**
@@ -3282,7 +3282,7 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
     ED_view3d_smooth_view(
         C, v3d, region, smooth_viewtx, &(const V3D_SmoothParams){.ofs = new_ofs});
 
-    /* smooth view does viewlock RV3D_BOXVIEW copy */
+    /* Smooth view does view-lock #RV3D_BOXVIEW copy. */
   }
 
   return OPERATOR_FINISHED;

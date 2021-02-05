@@ -649,7 +649,7 @@ static StructRNA *rna_UIList_register(Main *bmain,
   uiList dummyuilist = {NULL};
   PointerRNA dummyul_ptr;
   int have_function[3];
-  size_t over_alloc = 0; /* warning, if this becomes a bess, we better do another alloc */
+  size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
 
   /* setup dummy menu & menu type to store static properties in */
   dummyuilist.type = &dummyult;
@@ -669,7 +669,7 @@ static StructRNA *rna_UIList_register(Main *bmain,
     return NULL;
   }
 
-  /* check if we have registered this uilist type before, and remove it */
+  /* Check if we have registered this UI-list type before, and remove it. */
   ult = WM_uilisttype_find(dummyult.idname, true);
   if (ult && ult->rna_ext.srna) {
     rna_UIList_unregister(bmain, ult->rna_ext.srna);
@@ -904,7 +904,7 @@ static StructRNA *rna_Menu_register(Main *bmain,
   Menu dummymenu = {NULL};
   PointerRNA dummymtr;
   int have_function[2];
-  size_t over_alloc = 0; /* warning, if this becomes a bess, we better do another alloc */
+  size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
   size_t description_size = 0;
   char _menu_descr[RNA_DYN_DESCR_MAX];
 

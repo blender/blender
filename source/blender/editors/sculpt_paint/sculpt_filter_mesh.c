@@ -553,7 +553,7 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
     filter_cache->sharpen_factor[i] = 1.0f - pow2f(1.0f - filter_cache->sharpen_factor[i]);
   }
 
-  /* Smooth the calculated factors and directions to remove high frecuency detail. */
+  /* Smooth the calculated factors and directions to remove high frequency detail. */
   for (int smooth_iterations = 0;
        smooth_iterations < filter_cache->sharpen_curvature_smooth_iterations;
        smooth_iterations++) {

@@ -518,7 +518,7 @@ class GeometryNodesEvaluator {
  * TODO(Hans): Codify this with some sort of table or refactor IDProperty use in RNA_access.c.
  */
 struct SocketPropertyType {
-  /* Create the actual propery used to store the data for the modifier. */
+  /* Create the actual property used to store the data for the modifier. */
   IDProperty *(*create_prop)(const bNodeSocket &socket, const char *name);
   /* Reused to build the "soft_min" property too. */
   IDProperty *(*create_min_ui_prop)(const bNodeSocket &socket, const char *name);

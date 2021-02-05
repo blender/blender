@@ -423,11 +423,11 @@ static void calc_tangent_ortho(float ts[3][3])
   cross_v3_v3v3(ts[1], ts[2], v_tan_a);
   mul_v3_fl(ts[1], dot_v3v3(ts[1], v_tan_b) < 0.0f ? -1.0f : 1.0f);
 
-  /* orthognalise tangent */
+  /* Orthogonalize tangent. */
   mul_v3_v3fl(t_vec_a, ts[2], dot_v3v3(ts[2], v_tan_a));
   sub_v3_v3v3(ts[0], v_tan_a, t_vec_a);
 
-  /* orthognalise bitangent */
+  /* Orthogonalize bi-tangent. */
   mul_v3_v3fl(t_vec_a, ts[2], dot_v3v3(ts[2], ts[1]));
   mul_v3_v3fl(t_vec_b, ts[0], dot_v3v3(ts[0], ts[1]) / dot_v3v3(v_tan_a, v_tan_a));
   sub_v3_v3(ts[1], t_vec_a);

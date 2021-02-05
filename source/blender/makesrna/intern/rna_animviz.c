@@ -61,7 +61,7 @@ static void rna_AnimViz_path_start_frame_set(PointerRNA *ptr, int value)
 {
   bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
 
-  /* XXX: watchit! Path Start > MAXFRAME/2 could be a problem... */
+  /* XXX: Watch it! Path Start > MAXFRAME/2 could be a problem. */
   data->path_sf = value;
   FRAMENUMBER_MIN_CLAMP(data->path_sf);
 

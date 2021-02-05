@@ -699,11 +699,11 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
   BKE_armature_bonelist_free(&arm->bonebase, true);
   arm->act_bone = NULL;
 
-  /* remove zero sized bones, this gives unstable restposes */
+  /* Remove zero sized bones, this gives unstable rest-poses. */
   for (eBone = arm->edbo->first; eBone; eBone = neBone) {
     float len_sq = len_squared_v3v3(eBone->head, eBone->tail);
     neBone = eBone->next;
-    /* TODO(sergey): How to ensure this is a constexpr? */
+    /* TODO(sergey): How to ensure this is a `constexpr`? */
     if (len_sq <= square_f(0.000001f)) { /* FLT_EPSILON is too large? */
       EditBone *fBone;
 

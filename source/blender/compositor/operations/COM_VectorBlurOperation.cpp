@@ -589,7 +589,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
     printf("Found uninitialized speed in vector buffer... fixed.\n");
   }
 
-  /* min speed? then copy speedbuffer to recalculate speed vectors */
+  /* Min speed? then copy speed-buffer to recalculate speed vectors. */
   if (nbd->minspeed) {
     float minspeed = (float)nbd->minspeed;
     float minspeedsq = minspeed * minspeed;
@@ -619,7 +619,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
     SWAP(float *, minvecbufrect, vecbufrect);
   }
 
-  /* make vertex buffer with averaged speed and zvalues */
+  /* Make vertex buffer with averaged speed and Z-values. */
   rectvz = (float *)MEM_callocN(sizeof(float[4]) * (xsize + 1) * (ysize + 1), "vertices");
   dvz = rectvz;
   for (y = 0; y <= ysize; y++) {
@@ -728,7 +728,8 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
 
   antialias_tagbuf(xsize, ysize, rectmove);
 
-  /* has to become static, the init-jit calls a random-seed, screwing up texture noise node */
+  /* Has to become static, the jitter initialization calls a random-seed,
+   * screwing up texture noise node. */
   if (firsttime) {
     firsttime = 0;
     BLI_jitter_init(jit, 256);

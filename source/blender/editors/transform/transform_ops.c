@@ -432,7 +432,7 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
    * since we're not reading from 'td->center' in this case. see: T40241 */
   if (t->tsnap.target == SCE_SNAP_TARGET_ACTIVE) {
     /* In camera view, tsnap callback is not set
-     * (see initSnappingMode() in transfrom_snap.c, and T40348). */
+     * (see #initSnappingMode() in transform_snap.c, and T40348). */
     if (t->tsnap.targetSnap && ((t->tsnap.status & TARGET_INIT) == 0)) {
       t->tsnap.targetSnap(t);
     }
@@ -444,7 +444,7 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   if ((exit_code & OPERATOR_RUNNING_MODAL) == 0) {
     transformops_exit(C, op);
-    exit_code &= ~OPERATOR_PASS_THROUGH; /* preventively remove passthrough */
+    exit_code &= ~OPERATOR_PASS_THROUGH; /* Preventively remove pass-through. */
   }
   else {
     if (mode_prev != t->mode) {

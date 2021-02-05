@@ -78,7 +78,7 @@ ccl_device void kernel_filter_construct_transform(const ccl_global float *ccl_re
   /* === Generate the feature transformation. ===
    * This transformation maps the num_features-dimensional feature space to a reduced feature
    * (r-feature) space which generally has fewer dimensions.
-   * This mainly helps to prevent overfitting. */
+   * This mainly helps to prevent over-fitting. */
   float feature_matrix[DENOISE_FEATURES * DENOISE_FEATURES];
   math_matrix_zero(feature_matrix, num_features);
   FOR_PIXEL_WINDOW
@@ -91,7 +91,7 @@ ccl_device void kernel_filter_construct_transform(const ccl_global float *ccl_re
 
   math_matrix_jacobi_eigendecomposition(feature_matrix, transform, num_features, transform_stride);
   *rank = 0;
-  /* Prevent overfitting when a small window is used. */
+  /* Prevent over-fitting when a small window is used. */
   int max_rank = min(num_features, num_pixels / 3);
   if (pca_threshold < 0.0f) {
     float threshold_energy = 0.0f;

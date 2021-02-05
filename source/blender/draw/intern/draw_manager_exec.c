@@ -272,7 +272,7 @@ static void drw_stencil_state_set(uint write_mask, uint reference, uint compare_
   GPU_stencil_compare_mask_set(compare_mask);
 }
 
-/* Reset state to not interfer with other UI drawcall */
+/* Reset state to not interfere with other UI draw-call. */
 void DRW_state_reset_ex(DRWState state)
 {
   DST.state = ~state;
@@ -855,7 +855,7 @@ static void draw_call_batching_do(DRWShadingGroup *shgroup,
                                   DRWCommandsState *state,
                                   DRWCommandDraw *call)
 {
-  /* If any condition requires to interupt the merging. */
+  /* If any condition requires to interrupt the merging. */
   bool neg_scale = DRW_handle_negative_scale_get(&call->handle);
   int chunk = DRW_handle_chunk_get(&call->handle);
   int id = DRW_handle_id_get(&call->handle);

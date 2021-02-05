@@ -171,7 +171,7 @@ static void um_arraystore_cd_compact(struct CustomData *cdata,
       else {
         bcd_reference_current = NULL;
 
-        /* do a full lookup when un-alligned */
+        /* Do a full lookup when unaligned. */
         if (bcd_reference) {
           const BArrayCustomData *bcd_iter = bcd_reference;
           while (bcd_iter) {

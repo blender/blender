@@ -77,12 +77,12 @@ void GPU_samplers_update(void);
  */
 
 /* Wrapper to supported OpenGL/Vulkan texture internal storage
- * If you need a type just uncomment it. Be aware that some formats
- * are not supported by renderbuffers. All of the following formats
+ * If you need a type just un-comment it. Be aware that some formats
+ * are not supported by render-buffers. All of the following formats
  * are part of the OpenGL 3.3 core
  * specification. */
 typedef enum eGPUTextureFormat {
-  /* Formats texture & renderbuffer */
+  /* Formats texture & render-buffer. */
   GPU_RGBA8UI,
   GPU_RGBA8I,
   GPU_RGBA8,

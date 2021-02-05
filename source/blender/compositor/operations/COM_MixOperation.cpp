@@ -705,7 +705,7 @@ void MixMultiplyOperation::executePixelSampled(float output[4],
   clampIfNeeded(output);
 }
 
-/* ******** Mix Ovelray Operation ******** */
+/* ******** Mix Overlay Operation ******** */
 
 MixOverlayOperation::MixOverlayOperation()
 {

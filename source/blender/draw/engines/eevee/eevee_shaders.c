@@ -85,7 +85,7 @@ static struct {
   struct GPUShader *lookdev_background;
   struct GPUShader *update_noise_sh;
 
-  /* Downsample Depth */
+  /* Down-sample Depth */
   struct GPUShader *minz_downlevel_sh;
   struct GPUShader *maxz_downlevel_sh;
   struct GPUShader *minz_downdepth_sh;
@@ -96,7 +96,7 @@ static struct {
   struct GPUShader *minz_copydepth_sh;
   struct GPUShader *maxz_copydepth_sh;
 
-  /* Simple Downsample */
+  /* Simple Down-sample */
   struct GPUShader *downsample_sh;
   struct GPUShader *downsample_cube_sh;
 

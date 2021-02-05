@@ -104,7 +104,7 @@ static void workbench_dof_setup_samples(struct GPUUniformBuf **ubo,
         square_to_circle(x, y, &r, &T);
         samp[2] = r;
 
-        /* Bokeh shape parametrisation */
+        /* Bokeh shape parameterization. */
         if (bokeh_sides > 1.0f) {
           float denom = T - (2.0 * M_PI / bokeh_sides) *
                                 floorf((bokeh_sides * T + M_PI) / (2.0 * M_PI));

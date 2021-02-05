@@ -1108,7 +1108,7 @@ void IMB_exr_write_channels(void *handle)
     const size_t num_pixels = ((size_t)data->width) * data->height;
     half *rect_half = nullptr, *current_rect_half = nullptr;
 
-    /* We allocate teporary storage for half pixels for all the channels at once. */
+    /* We allocate temporary storage for half pixels for all the channels at once. */
     if (data->num_half_channels != 0) {
       rect_half = (half *)MEM_mallocN(sizeof(half) * data->num_half_channels * num_pixels,
                                       __func__);
@@ -1235,7 +1235,7 @@ void IMB_exr_read_channels(void *handle)
     Header header = in.header();
     Box2i dw = header.dataWindow();
 
-    /* Insert all matching channel into framebuffer. */
+    /* Insert all matching channel into frame-buffer. */
     FrameBuffer frameBuffer;
     ExrChannel *echan;
 

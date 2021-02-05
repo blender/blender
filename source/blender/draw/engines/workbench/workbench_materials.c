@@ -76,7 +76,7 @@ void workbench_material_ubo_data(WORKBENCH_PrivateData *wpd,
         alpha *= mat->a;
         copy_v3_v3(data->base_color, &mat->r);
         metallic = mat->metallic;
-        roughness = sqrtf(mat->roughness); /* Remap to disney roughness. */
+        roughness = sqrtf(mat->roughness); /* Remap to Disney roughness. */
       }
       else {
         copy_v3_fl(data->base_color, 0.8f);

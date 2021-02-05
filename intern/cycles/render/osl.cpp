@@ -380,7 +380,7 @@ const char *OSLShaderManager::shader_load_filepath(string filepath)
         return hash;
     }
 
-    /* autocompile .OSL to .OSO if needed */
+    /* Auto-compile .OSL to .OSO if needed. */
     if (oso_modified_time == 0 || (oso_modified_time < modified_time)) {
       OSLShaderManager::osl_compile(filepath, osopath);
       modified_time = path_modified_time(osopath);
@@ -562,7 +562,7 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
     }
   }
 
-  /* set bytcode hash or filepath */
+  /* Set byte-code hash or file-path. */
   if (!bytecode_hash.empty()) {
     node->bytecode_hash = bytecode_hash;
   }

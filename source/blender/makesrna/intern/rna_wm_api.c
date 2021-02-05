@@ -162,7 +162,7 @@ static void rna_gizmo_group_type_unlink_delayed(ReportList *reports, const char 
   }
 }
 
-/* placeholder data for final implementation of a true progressbar */
+/* Placeholder data for final implementation of a true progress-bar. */
 static struct wmStaticProgress {
   float min;
   float max;

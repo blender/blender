@@ -513,7 +513,7 @@ void constraintSizeLim(TransInfo *t, TransData *td)
       return;
     }
 
-    /* extrace scale from matrix and apply back sign */
+    /* Extract scale from matrix and apply back sign. */
     mat4_to_size(td->ext->size, cob.matrix);
     mul_v3_v3(td->ext->size, size_sign);
   }
@@ -705,7 +705,7 @@ void ElementRotation_ex(TransInfo *t,
         mul_m3_m3m3(totmat, mat, td->ext->r_mtx);
         mul_m3_m3m3(smat, td->ext->r_smtx, totmat);
 
-        /* calculate the total rotatation in eulers */
+        /* Calculate the total rotation in eulers. */
         copy_v3_v3(eul, td->ext->irot);
         eulO_to_mat3(eulmat, eul, td->ext->rotOrder);
 
@@ -778,7 +778,7 @@ void ElementRotation_ex(TransInfo *t,
         mul_m3_m3m3(totmat, mat, td->mtx);
         mul_m3_m3m3(smat, td->smtx, totmat);
 
-        /* calculate the total rotatation in eulers */
+        /* Calculate the total rotation in eulers. */
         add_v3_v3v3(eul, td->ext->irot, td->ext->drot); /* correct for delta rot */
         eulO_to_mat3(obmat, eul, td->ext->rotOrder);
         /* mat = transform, obmat = object rotation */
@@ -902,7 +902,7 @@ static void TransMat3ToSize(const float mat[3][3], const float smat[3][3], float
 
   mat3_to_rot_size(rmat, size, mat);
 
-  /* first tried with dotproduct... but the sign flip is crucial */
+  /* First tried with dot-product... but the sign flip is crucial. */
   if (dot_v3v3(rmat[0], smat[0]) < 0.0f) {
     size[0] = -size[0];
   }

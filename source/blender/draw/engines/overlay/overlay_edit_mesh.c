@@ -344,7 +344,7 @@ void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
   if (pd->edit_mesh.do_zbufclip) {
     DRW_draw_pass(psl->edit_mesh_depth_ps[IN_FRONT]);
 
-    /* render facefill */
+    /* Render face-fill. */
     DRW_view_set_active(pd->view_edit_faces);
     DRW_draw_pass(psl->edit_mesh_faces_ps[NOT_IN_FRONT]);
 

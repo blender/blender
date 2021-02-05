@@ -298,7 +298,7 @@ void createTransCurveVerts(TransInfo *t)
               }
 
               if ((bezt_tx & SEL_F1) == 0 && (bezt_tx & SEL_F3) == 0) {
-                /* If the middle is selected but the sides arnt, this is needed */
+                /* If the middle is selected but the sides aren't, this is needed. */
                 if (hdata == NULL) {
                   /* if the handle was not saved by the previous handle */
                   hdata = initTransDataCurveHandles(td, bezt);

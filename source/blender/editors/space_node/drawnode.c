@@ -190,7 +190,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
     cumap->flag &= ~CUMA_DRAW_SAMPLE;
   }
 
-  /* "Tone" (Standard/Filmlike) only used in the Compositor. */
+  /* "Tone" (Standard/Film-like) only used in the Compositor. */
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   uiTemplateCurveMapping(
       layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT));
@@ -559,7 +559,7 @@ static void node_draw_reroute(const bContext *C,
   if (node->flag & SELECT) {
     GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
-    /* using different shades of TH_TEXT_HI for the empasis, like triangle */
+    /* Using different shades of #TH_TEXT_HI for the emphasis, like triangle. */
     if (node->flag & NODE_ACTIVE) {
       UI_GetThemeColorShadeAlpha4fv(TH_TEXT_HI, 0, -40, debug_color);
     }

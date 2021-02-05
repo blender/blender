@@ -367,14 +367,14 @@ static void detect_workarounds()
     }
   }
 
-  /* Some Intel drivers have issues with using mips as framebuffer targets if
-   * GL_TEXTURE_MAX_LEVEL is higher than the target mip.
+  /* Some Intel drivers have issues with using mips as frame-buffer targets if
+   * GL_TEXTURE_MAX_LEVEL is higher than the target MIP.
    * Only check at the end after all other workarounds because this uses the drawing code.
    * Also after device/driver flags to avoid the check that causes pre GCN Radeon to crash. */
   if (GCaps.mip_render_workaround == false) {
     GCaps.mip_render_workaround = detect_mip_render_workaround();
   }
-  /* Disable multidraw if the base instance cannot be read. */
+  /* Disable multi-draw if the base instance cannot be read. */
   if (GLContext::shader_draw_parameters_support == false) {
     GLContext::multi_draw_indirect_support = false;
   }

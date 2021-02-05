@@ -18,7 +18,7 @@
  * \ingroup spconsole
  */
 
-#include <ctype.h> /* ispunct */
+#include <ctype.h> /* #ispunct */
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -749,7 +749,7 @@ static int console_clear_exec(bContext *C, wmOperator *op)
 
   /*ConsoleLine *ci = */ console_history_verify(C);
 
-  if (scrollback) { /* last item in mistory */
+  if (scrollback) { /* Last item in history. */
     while (sc->scrollback.first) {
       console_scrollback_free(sc, sc->scrollback.first);
     }
