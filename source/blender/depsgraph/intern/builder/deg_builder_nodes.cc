@@ -1568,7 +1568,6 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   }
   /* nodetree itself */
   add_id_node(&ntree->id);
-  bNodeTree *ntree_cow = get_cow_datablock(ntree);
   /* General parameters. */
   build_parameters(&ntree->id);
   build_idproperties(ntree->id.properties);
@@ -1576,16 +1575,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   build_animdata(&ntree->id);
   /* Shading update. */
   add_operation_node(&ntree->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
-  /* NOTE: We really pass original and CoW node trees here, this is how the
-   * callback works. Ideally we need to find a better way for that.
-   *
-   * TODO(sergey): The callback seems to be a no-op, so better to remove it. */
-  add_operation_node(&ntree->id,
-                     NodeType::SHADING_PARAMETERS,
-                     OperationCode::MATERIAL_UPDATE,
-                     [ntree_cow, ntree](::Depsgraph *depsgraph) {
-                       BKE_nodetree_shading_params_eval(depsgraph, ntree_cow, ntree);
-                     });
+  add_operation_node(&ntree->id, NodeType::SHADING_PARAMETERS, OperationCode::MATERIAL_UPDATE);
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);

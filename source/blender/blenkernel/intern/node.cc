@@ -4943,10 +4943,3 @@ void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer
     }
   }
 }
-
-void BKE_nodetree_shading_params_eval(struct Depsgraph *depsgraph,
-                                      bNodeTree *ntree_dst,
-                                      const bNodeTree *ntree_src)
-{
-  DEG_debug_print_eval(depsgraph, __func__, ntree_src->id.name, ntree_dst);
-}
