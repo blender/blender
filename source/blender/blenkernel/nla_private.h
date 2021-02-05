@@ -182,6 +182,8 @@ void nladata_flush_channels(PointerRNA *ptr,
                             NlaEvalSnapshot *snapshot,
                             const bool flush_to_original);
 
+void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapshot);
+
 void nlasnapshot_blend(NlaEvalData *eval_data,
                        NlaEvalSnapshot *lower_snapshot,
                        NlaEvalSnapshot *upper_snapshot,
