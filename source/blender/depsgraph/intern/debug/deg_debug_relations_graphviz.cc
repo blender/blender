@@ -184,7 +184,7 @@ static void deg_debug_graphviz_legend(DotExportContext &ctx)
 
   std::stringstream ss;
   ss << "<";
-  ss << "<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">";
+  ss << R"(<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">)";
   ss << "<TR><TD COLSPAN=\"2\"><B>Legend</B></TD></TR>";
 
 #ifdef COLOR_SCHEME_NODE_CLASS
