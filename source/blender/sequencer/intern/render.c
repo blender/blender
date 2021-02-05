@@ -599,10 +599,12 @@ static void multibuf(ImBuf *ibuf, const float fmul)
   }
 }
 
-/* Effect, mask and scene in strip input strips are rendered in preview resolution. They are
- * already downscaled. input_preprocess() does not expect this to happen. Other strip types are
- * rendered with original media resolution, unless proxies are enabled for them. With proxies
- * is_proxy_image will be set correctly to true.*/
+/**
+ * Effect, mask and scene in strip input strips are rendered in preview resolution.
+ * They are already down-scaled. #input_preprocess() does not expect this to happen.
+ * Other strip types are rendered with original media resolution, unless proxies are
+ * enabled for them. With proxies `is_proxy_image` will be set correctly to true.
+ */
 static bool seq_need_scale_to_render_size(const Sequence *seq, bool is_proxy_image)
 {
   if (is_proxy_image) {

@@ -275,15 +275,15 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node,
                                                 COLLADAFW::Node *par = nullptr,
                                                 Object *parob = nullptr)
 {
-  /* The split in T29246, rootmap must point at actual root when
+  /* The split in T29246, root_map must point at actual root when
    * calculating bones in apply_curves_as_matrix. - actual root is the root node.
    * This has to do with inverse bind poses being world space
-   * (the sources for skinned bones' restposes) and the way
-   * non-skinning nodes have their "restpose" recursively calculated.
+   * (the sources for skinned bones' rest-poses) and the way
+   * non-skinning nodes have their "rest-pose" recursively calculated.
    * XXX TODO: design issue, how to support unrelated joints taking
    * part in skinning. */
   if (par) {  // && par->getType() == COLLADAFW::Node::JOINT) {
-    /* par is root if there's no corresp. key in root_map */
+    /* If par is root if there's no corresponding key in root_map. */
     if (root_map.find(par->getUniqueId()) == root_map.end()) {
       root_map[node->getUniqueId()] = node;
     }
@@ -942,7 +942,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
         case CAM_PERSP:
         default: {
           double x = camera->getXFov().getValue();
-          /* x is in degrees, cam->lens is in millimiters */
+          /* X is in degrees, cam->lens is in millimeters. */
           cam->lens = fov_to_focallength(DEG2RADF(x), cam->sensor_x);
         } break;
       }
@@ -955,7 +955,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
         case CAM_PERSP:
         default: {
           double yfov = camera->getYFov().getValue();
-          /* yfov is in degrees, cam->lens is in millimiters */
+          /* yfov is in degrees, cam->lens is in millimeters. */
           cam->lens = fov_to_focallength(DEG2RADF(yfov), cam->sensor_x);
         } break;
       }

@@ -1566,7 +1566,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
     for (uint g_index = 1; g_index < group_arr_len; g_index++) {
       struct EdgeGroupIsland *g = group_arr[g_index];
 
-      /* the range of verts this group uses in 'verts_arr' (not uncluding the last index) */
+      /* The range of verts this group uses in 'verts_arr' (not including the last index). */
       vert_range[0] = vert_range[1];
       vert_range[1] += g->vert_len;
 

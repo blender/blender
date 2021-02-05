@@ -65,7 +65,7 @@ static const EnumPropertyItem DT_layer_items[] = {
      0,
      "Vertex Group(s)",
      "Transfer active or all vertex groups"},
-#if 0 /* XXX For now, would like to finish/merge work from 2014 gsoc first. */
+#if 0 /* XXX For now, would like to finish/merge work from 2014 GSOC first. */
     {DT_TYPE_SHAPEKEY, "SHAPEKEYS", 0, "Shapekey(s)", "Transfer active or all shape keys"},
 #endif
 /* XXX When SkinModifier is enabled,

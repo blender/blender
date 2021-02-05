@@ -3024,7 +3024,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
     i++;
   }
 
-  /* make a copy of ocean to use for baking - threadsafety */
+  /* Make a copy of ocean to use for baking - thread-safety. */
   struct Ocean *ocean = BKE_ocean_add();
   BKE_ocean_init_from_modifier(ocean, omd, omd->resolution);
 

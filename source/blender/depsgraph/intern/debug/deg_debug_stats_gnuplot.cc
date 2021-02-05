@@ -87,7 +87,7 @@ string gnuplotify_name(const string &name)
   for (int i = 0; i < length; i++) {
     const char ch = name[i];
     if (ch == '_') {
-      result += "\\\\\\";
+      result += R"(\\\)";
     }
     result += ch;
   }

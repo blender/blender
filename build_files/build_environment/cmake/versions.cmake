@@ -265,7 +265,7 @@ set(PUGIXML_URI https://github.com/zeux/pugixml/archive/v${PUGIXML_VERSION}.tar.
 set(PUGIXML_HASH 0c208b0664c7fb822bf1b49ad035e8fd)
 
 set(FLEXBISON_VERSION 2.5.5)
-set(FLEXBISON_URI http://prdownloads.sourceforge.net/winflexbison//win_flex_bison-2.5.5.zip)
+set(FLEXBISON_URI http://prdownloads.sourceforge.net/winflexbison/win_flex_bison-2.5.5.zip)
 set(FLEXBISON_HASH d87a3938194520d904013abef3df10ce)
 
 # Libraries to keep Python modules static on Linux.
@@ -309,7 +309,7 @@ set(LIBGLU_URI ftp://ftp.freedesktop.org/pub/mesa/glu/glu-${LIBGLU_VERSION}.tar.
 set(LIBGLU_HASH 151aef599b8259efe9acd599c96ea2a3)
 
 set(MESA_VERSION 18.3.1)
-set(MESA_URI ftp://ftp.freedesktop.org/pub/mesa//mesa-${MESA_VERSION}.tar.xz)
+set(MESA_URI ftp://ftp.freedesktop.org/pub/mesa/mesa-${MESA_VERSION}.tar.xz)
 set(MESA_HASH d60828056d77bfdbae0970f9b15fb1be)
 
 set(NASM_VERSION 2.15.02)

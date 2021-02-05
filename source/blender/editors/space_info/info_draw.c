@@ -56,7 +56,7 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
   int shade = (tvc->iter_tmp % 2) ? 4 : -4;
   UI_GetThemeColorShade4ubv(bg_id, shade, bg);
 
-  /* Icon color and backgound depend of report type. */
+  /* Icon color and background depend of report type. */
 
   int icon_fg_id;
   int icon_bg_id;

@@ -215,7 +215,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
     return false;
   }
 
-  /* for each AnimData block with NLA-data, try exitting tweak-mode */
+  /* For each AnimData block with NLA-data, try exiting tweak-mode. */
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ale->data;
 
@@ -418,7 +418,7 @@ static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, floa
   int filter;
 
   SpaceNla *snla = (SpaceNla *)ac->sl;
-  /* NOTE: not bool, since we want prioritise individual channels over expanders */
+  /* NOTE: not bool, since we want prioritize individual channels over expanders. */
   short found = 0;
 
   /* get all items - we need to do it this way */
@@ -442,7 +442,7 @@ static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, floa
       found = acf->channel_role;
 
       /* only stop our search when we've found an actual channel
-       * - datablock expanders get less priority so that we don't abort prematurely
+       * - data-block expanders get less priority so that we don't abort prematurely
        */
       if (found == ACHANNEL_ROLE_CHANNEL) {
         break;
@@ -1532,11 +1532,11 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
     const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(ale->id);
 
     if (BKE_nlatrack_is_nonlocal_in_liboverride(ale->id, nlt)) {
-      /* No re-ordering of strips whithin non-local tracks of override data. */
+      /* No re-ordering of strips within non-local tracks of override data. */
       continue;
     }
 
-    /* make temporary metastrips so that entire islands of selections can be moved around */
+    /* Make temporary meta-strips so that entire islands of selections can be moved around. */
     BKE_nlastrips_make_metas(&nlt->strips, 1);
 
     /* special case: if there is only 1 island

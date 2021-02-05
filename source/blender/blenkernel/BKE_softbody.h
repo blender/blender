@@ -49,7 +49,7 @@ typedef struct BodyPoint {
 /* allocates and initializes general main data */
 extern struct SoftBody *sbNew(struct Scene *scene);
 
-/* frees internal data and softbody itself */
+/* frees internal data and soft-body itself */
 extern void sbFree(struct Object *ob);
 
 /* frees simulation data to reset simulation */
@@ -66,7 +66,7 @@ extern void sbObjectStep(struct Depsgraph *depsgraph,
 /* makes totally fresh start situation, resets time */
 extern void sbObjectToSoftbody(struct Object *ob);
 
-/* links the softbody module to a 'test for Interrupt' function */
+/* links the soft-body module to a 'test for Interrupt' function */
 /* pass NULL to unlink again */
 extern void sbSetInterruptCallBack(int (*f)(void));
 

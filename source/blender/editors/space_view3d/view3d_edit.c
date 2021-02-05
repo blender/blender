@@ -2025,7 +2025,7 @@ static float viewzoom_scale_value(const rcti *winrct,
 {
   float zfac;
 
-  if (viewzoom == USER_ZOOM_CONT) {
+  if (viewzoom == USER_ZOOM_CONTINUE) {
     double time = PIL_check_seconds_timer();
     float time_step = (float)(time - *r_timer_lastdraw);
     float fac;
@@ -2043,7 +2043,6 @@ static float viewzoom_scale_value(const rcti *winrct,
       fac = -fac;
     }
 
-    /* oldstyle zoom */
     zfac = 1.0f + ((fac / 20.0f) * time_step);
     *r_timer_lastdraw = time;
   }
@@ -2405,7 +2404,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       return OPERATOR_FINISHED;
     }
 
-    if (U.viewzoom == USER_ZOOM_CONT) {
+    if (U.viewzoom == USER_ZOOM_CONTINUE) {
       /* needs a timer to continue redrawing */
       vod->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
       vod->prev.time = PIL_check_seconds_timer();
@@ -2888,7 +2887,7 @@ static void view3d_from_minmax(bContext *C,
                           });
   }
 
-  /* smooth view does viewlock RV3D_BOXVIEW copy */
+  /* Smooth-view does view-lock #RV3D_BOXVIEW copy. */
 }
 
 /**
@@ -3021,7 +3020,6 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
  * Move & Zoom the view to fit selected contents.
  * \{ */
 
-/* like a localview without local!, was centerview() in 2.4x */
 static int viewselected_exec(bContext *C, wmOperator *op)
 {
   ARegion *region = CTX_wm_region(C);
@@ -3282,7 +3280,7 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
     ED_view3d_smooth_view(
         C, v3d, region, smooth_viewtx, &(const V3D_SmoothParams){.ofs = new_ofs});
 
-    /* smooth view does viewlock RV3D_BOXVIEW copy */
+    /* Smooth view does view-lock #RV3D_BOXVIEW copy. */
   }
 
   return OPERATOR_FINISHED;

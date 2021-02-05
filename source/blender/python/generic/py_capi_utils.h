@@ -85,7 +85,7 @@ PyObject *PyC_DefaultNameSpace(const char *filename);
 void PyC_RunQuicky(const char *filepath, int n, ...);
 bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[]);
 
-void PyC_MainModule_Backup(PyObject **main_mod);
+void PyC_MainModule_Backup(PyObject **r_main_mod);
 void PyC_MainModule_Restore(PyObject *main_mod);
 
 void PyC_SetHomePath(const char *py_path_bundle);

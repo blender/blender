@@ -104,7 +104,7 @@ typedef struct SDefBindCalcData {
  * needed once when running bind, so optimizing this structure isn't a priority.
  */
 typedef struct SDefBindPoly {
-  /** Coordinates copied directly from the modifiers inptut. */
+  /** Coordinates copied directly from the modifiers input. */
   float (*coords)[3];
   /** Coordinates projected into 2D space using `normal`. */
   float (*coords_v2)[2];

@@ -59,14 +59,14 @@ FOREACH(COMPONENT ${_embree_FIND_COMPONENTS})
     PATH_SUFFIXES
       lib64 lib
     )
-  IF (NOT EMBREE_${UPPERCOMPONENT}_LIBRARY)
-    IF (EMBREE_EMBREE3_LIBRARY)
+  IF(NOT EMBREE_${UPPERCOMPONENT}_LIBRARY)
+    IF(EMBREE_EMBREE3_LIBRARY)
       # If we can't find all the static libraries, try to fall back to the shared library if found.
       # This allows building with a shared embree library
       SET(_embree_LIBRARIES ${EMBREE_EMBREE3_LIBRARY})
       BREAK()
-    ENDIF ()
-  ENDIF ()
+    ENDIF()
+  ENDIF()
   LIST(APPEND _embree_LIBRARIES "${EMBREE_${UPPERCOMPONENT}_LIBRARY}")
 ENDFOREACH()
 

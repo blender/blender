@@ -39,9 +39,8 @@ Checks:  >
   -modernize-use-nodiscard,
   -modernize-loop-convert,
   -modernize-pass-by-value,
-  -modernize-use-default-member-init,
-  -modernize-raw-string-literal,
-  -modernize-avoid-bind,
-  -modernize-use-transparent-functors,
 
 WarningsAsErrors: '*'
+CheckOptions:
+  - key: modernize-use-default-member-init.UseAssignment
+    value: 1

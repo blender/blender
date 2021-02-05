@@ -379,7 +379,7 @@ MINLINE float fractf(float a)
   return a - floorf(a);
 }
 
-/* Adapted from godotengine math_funcs.h. */
+/* Adapted from godot-engine math_funcs.h. */
 MINLINE float wrapf(float value, float max, float min)
 {
   float range = max - min;
@@ -716,7 +716,7 @@ MALWAYS_INLINE __m128 _bli_math_improve_5throot_solution(const __m128 old_result
   __m128 approx2 = _mm_mul_ps(old_result, old_result);
   __m128 approx4 = _mm_mul_ps(approx2, approx2);
   __m128 t = _mm_div_ps(x, approx4);
-  __m128 summ = _mm_add_ps(_mm_mul_ps(_mm_set1_ps(4.0f), old_result), t); /* fma */
+  __m128 summ = _mm_add_ps(_mm_mul_ps(_mm_set1_ps(4.0f), old_result), t); /* FMA. */
   return _mm_mul_ps(summ, _mm_set1_ps(1.0f / 5.0f));
 }
 

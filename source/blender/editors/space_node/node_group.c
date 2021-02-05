@@ -1039,7 +1039,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
   snode_notify(C, snode);
   snode_dag_update(C, snode);
 
-  /* We broke relations in node tree, need to rebuild them in the grahes. */
+  /* We broke relations in node tree, need to rebuild them in the graphs. */
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;

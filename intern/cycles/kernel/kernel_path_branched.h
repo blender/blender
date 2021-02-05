@@ -155,7 +155,7 @@ ccl_device_forceinline void kernel_branched_path_volume(KernelGlobals *kg,
   else
 #      endif /* __VOLUME_DECOUPLED__ */
   {
-    /* GPU: no decoupled ray marching, scatter probalistically */
+    /* GPU: no decoupled ray marching, scatter probabilistically. */
     int num_samples = kernel_data.integrator.volume_samples;
     float num_samples_inv = 1.0f / num_samples;
 

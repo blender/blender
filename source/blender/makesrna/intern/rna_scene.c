@@ -1495,7 +1495,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_exr_codec_itemf(bContext 
   int i = 1, totitem = 0;
 
   if (imf->depth == 16) {
-    return rna_enum_exr_codec_items; /* All compression types are defined for halfs */
+    return rna_enum_exr_codec_items; /* All compression types are defined for half-float. */
   }
 
   for (i = 0; i < R_IMF_EXR_CODEC_MAX; i++) {
@@ -2102,7 +2102,7 @@ static char *rna_TransformOrientationSlot_path(PointerRNA *ptr)
     }
   }
 
-  /* Should not happen, but in case, just return defqult path. */
+  /* Should not happen, but in case, just return default path. */
   BLI_assert(0);
   return BLI_strdup("transform_orientation_slots[0]");
 }
@@ -7712,7 +7712,7 @@ void RNA_def_scene(BlenderRNA *brna)
       prop, "Preview Range End Frame", "Alternative end frame for UI playback");
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME, NULL);
 
-  /* Subframe for moblur debug. */
+  /* Sub-frame for motion-blur debug. */
   prop = RNA_def_property(srna, "show_subframe", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_boolean_sdna(prop, NULL, "r.flag", SCER_SHOW_SUBFRAME);

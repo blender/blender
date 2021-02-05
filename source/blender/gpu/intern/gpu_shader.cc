@@ -106,7 +106,7 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
     error_line = error_char = -1;
     if (log_line[0] >= '0' && log_line[0] <= '9') {
       error_line = (int)strtol(log_line, &error_line_number_end, 10);
-      /* Try to fetch the error caracter (not always available). */
+      /* Try to fetch the error character (not always available). */
       if (ELEM(error_line_number_end[0], '(', ':') && error_line_number_end[1] != ' ') {
         error_char = (int)strtol(error_line_number_end + 1, &log_line, 10);
       }

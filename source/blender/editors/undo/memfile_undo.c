@@ -145,19 +145,18 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
 static void memfile_undosys_step_decode(struct bContext *C,
                                         struct Main *bmain,
                                         UndoStep *us_p,
-                                        int undo_direction,
+                                        const eUndoStepDir undo_direction,
                                         bool UNUSED(is_final))
 {
-  BLI_assert(undo_direction != 0);
+  BLI_assert(undo_direction != STEP_INVALID);
 
   bool use_old_bmain_data = true;
 
   if (USER_EXPERIMENTAL_TEST(&U, use_undo_legacy)) {
     use_old_bmain_data = false;
   }
-  else if (undo_direction > 0) {
-    /* Redo case.
-     * The only time we should have to force a complete redo is when current step is tagged as a
+  else if (undo_direction == STEP_REDO) {
+    /* The only time we should have to force a complete redo is when current step is tagged as a
      * redo barrier.
      * If previous step was not a memfile one should not matter here, current data in old bmain
      * should still always be valid for unchanged data-blocks. */
@@ -165,9 +164,8 @@ static void memfile_undosys_step_decode(struct bContext *C,
       use_old_bmain_data = false;
     }
   }
-  else {
-    /* Undo case.
-     * Here we do not care whether current step is an undo barrier, since we are coming from
+  else if (undo_direction == STEP_UNDO) {
+    /* Here we do not care whether current step is an undo barrier, since we are coming from
      * 'the future' we can still re-use old data. However, if *next* undo step
      * (i.e. the one immediately in the future, the one we are coming from)
      * is a barrier, then we have to force a complete undo.

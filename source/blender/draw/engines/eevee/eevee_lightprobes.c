@@ -704,11 +704,11 @@ static void lightbake_planar_ensure_view(EEVEE_PlanarReflection *eplanar,
 static void eevee_lightprobes_extract_from_cache(EEVEE_LightProbesInfo *pinfo, LightCache *lcache)
 {
   /* copy the entire cache for now (up to MAX_PROBE) */
-  /* TODO Frutum cull to only add visible probes. */
+  /* TODO: frustum cull to only add visible probes. */
   memcpy(pinfo->probe_data,
          lcache->cube_data,
          sizeof(EEVEE_LightProbe) * max_ii(1, min_ii(lcache->cube_len, MAX_PROBE)));
-  /* TODO compute the max number of grid based on sample count. */
+  /* TODO: compute the max number of grid based on sample count. */
   memcpy(pinfo->grid_data,
          lcache->grid_data,
          sizeof(EEVEE_LightGrid) * max_ii(1, min_ii(lcache->grid_len, MAX_GRID)));
@@ -1041,7 +1041,7 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
     pinfo->layer = probe_idx * 6;
     pinfo->roughness = i / (float)maxlevel;
     pinfo->roughness *= pinfo->roughness;     /* Disney Roughness */
-    pinfo->roughness *= pinfo->roughness;     /* Distribute Roughness accros lod more evenly */
+    pinfo->roughness *= pinfo->roughness;     /* Distribute Roughness across lod more evenly. */
     CLAMP(pinfo->roughness, 1e-8f, 0.99999f); /* Avoid artifacts */
 
 #if 1 /* Variable Sample count and bias (fast) */

@@ -359,7 +359,7 @@ void GPU_framebuffer_viewport_reset(GPUFrameBuffer *gpu_fb)
   unwrap(gpu_fb)->viewport_reset();
 }
 
-/* ---------- Framebuffer Operations ----------- */
+/* ---------- Frame-buffer Operations ----------- */
 
 void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
                            eGPUFrameBufferBits buffers,

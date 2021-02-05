@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 /* "Correlated Multi-Jittered Sampling"
  * Andrew Kensler, Pixar Technical Memo 13-01, 2013 */
 
-/* todo: find good value, suggested 64 gives pattern on cornell box ceiling */
+/* TODO: find good value, suggested 64 gives pattern on cornell box ceiling. */
 #define CMJ_RANDOM_OFFSET_LIMIT 4096
 
 ccl_device_inline bool cmj_is_pow2(int i)
@@ -179,7 +179,7 @@ ccl_device void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
     smodm = cmj_fast_mod_pow2(s, m);
   }
   else {
-    /* Doing s*inmv gives precision issues here. */
+    /* Doing `s * inmv` gives precision issues here. */
     sdivm = s / m;
     smodm = s - sdivm * m;
   }

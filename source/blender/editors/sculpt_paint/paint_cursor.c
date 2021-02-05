@@ -1755,7 +1755,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
     else if (brush->cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_RADIAL &&
              brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
       /* Display the simulation limits if sculpting outside them. */
-      /* This does not makes much sense of plane falloff as the falloff is infinte or global. */
+      /* This does not makes much sense of plane falloff as the falloff is infinite or global. */
 
       if (len_v3v3(ss->cache->true_location, ss->cache->true_initial_location) >
           ss->cache->radius * (1.0f + brush->cloth_sim_limit)) {

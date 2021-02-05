@@ -177,7 +177,7 @@ void *BM_iter_as_arrayN(BMesh *bm,
 
   BLI_assert(stack_array_size == 0 || (stack_array_size && stack_array));
 
-  /* we can't rely on coun't being set */
+  /* We can't rely on #BMIter.count being set. */
   switch (itype) {
     case BM_VERTS_OF_MESH:
       iter.count = bm->totvert;

@@ -133,7 +133,7 @@ class BCAnimationCurve {
 
   void get_frames(BCFrames &frames) const;
 
-  /* Curve edit functions create a copy of the underlaying FCurve */
+  /* Curve edit functions create a copy of the underlying #FCurve. */
   FCurve *get_edit_fcurve();
   bool add_value_from_rna(const int frame);
   bool add_value_from_matrix(const BCSample &sample, const int frame);

@@ -224,13 +224,13 @@ enum StitchModes {
   STITCH_EDGE,
 };
 
-/* UvElement identification. */
+/** #UvElement identification. */
 typedef struct UvElementID {
   int faceIndex;
   int elementIndex;
 } UvElementID;
 
-/* StitchState initializition. */
+/** #StitchState initialization. */
 typedef struct StitchStateInit {
   int uv_selected_count;
   UvElementID *to_select;
@@ -2050,7 +2050,7 @@ static StitchState *stitch_init(bContext *C,
 
   BLI_ghash_free(edge_hash, NULL, NULL);
 
-  /* refill an edge hash to create edge connnectivity data */
+  /* Refill an edge hash to create edge connectivity data. */
   state->edge_hash = edge_hash = BLI_ghash_new(uv_edge_hash, uv_edge_compare, "stitch_edge_hash");
   for (i = 0; i < total_edges; i++) {
     BLI_ghash_insert(edge_hash, edges + i, edges + i);

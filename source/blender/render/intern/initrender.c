@@ -177,8 +177,11 @@ void RE_SetOverrideCamera(Render *re, Object *cam_ob)
   re->camera_override = cam_ob;
 }
 
-/* call this after InitState() */
-/* per render, there's one persistent viewplane. Parts will set their own viewplanes */
+/**
+ * Per render, there's one persistent view-plane. Parts will set their own view-planes.
+ *
+ * \note call this after #RE_InitState().
+ */
 void RE_SetCamera(Render *re, Object *cam_ob)
 {
   CameraParams params;

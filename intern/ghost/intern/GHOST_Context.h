@@ -127,8 +127,8 @@ class GHOST_Context : public GHOST_IContext {
   }
 
   /**
-   * Gets the OpenGL framebuffer associated with the OpenGL context
-   * \return The ID of an OpenGL framebuffer object.
+   * Gets the OpenGL frame-buffer associated with the OpenGL context
+   * \return The ID of an OpenGL frame-buffer object.
    */
   virtual unsigned int getDefaultFramebuffer()
   {

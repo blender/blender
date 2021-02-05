@@ -361,7 +361,7 @@ class AlembicProcedural : public Procedural {
   /* Tag for an update only if something was modified. */
   void tag_update(Scene *scene);
 
-  /* Returns a pointer to an exisiting or a newly created AlembicObject for the given path. */
+  /* Returns a pointer to an existing or a newly created AlembicObject for the given path. */
   AlembicObject *get_or_create_object(const ustring &path);
 
  private:

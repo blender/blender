@@ -532,7 +532,7 @@ static void protectflag_to_drawflags_ebone(RegionView3D *rv3d, const EditBone *e
 /* could move into BLI_math however this is only useful for display/editing purposes */
 static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], const float angle)
 {
-  /* X/Y are arbitrary axies, most importantly Z is the axis of rotation */
+  /* X/Y are arbitrary axes, most importantly Z is the axis of rotation. */
 
   float cross_vec[3];
   float quat[4];

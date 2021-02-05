@@ -29,6 +29,7 @@
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
@@ -8793,6 +8794,30 @@ static void def_geo_align_rotation_to_vector(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem pivot_axis_items[] = {
+      {GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_AUTO,
+       "AUTO",
+       ICON_NONE,
+       "Auto",
+       "Automatically detect the best rotation axis to rotate towards the vector"},
+      {GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_X,
+       "X",
+       ICON_NONE,
+       "X",
+       "Rotate around the local X axis"},
+      {GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_Y,
+       "Y",
+       ICON_NONE,
+       "Y",
+       "Rotate around the local Y axis"},
+      {GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_Z,
+       "Z",
+       ICON_NONE,
+       "Z",
+       "Rotate around the local Z axis"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryAlignRotationToVector", "storage");
@@ -8800,6 +8825,11 @@ static void def_geo_align_rotation_to_vector(StructRNA *srna)
   prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, axis_items);
   RNA_def_property_ui_text(prop, "Axis", "Axis to align to the vector");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "pivot_axis", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, pivot_axis_items);
+  RNA_def_property_ui_text(prop, "Pivot Axis", "Axis to rotate around");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "input_type_factor", PROP_ENUM, PROP_NONE);
@@ -8936,6 +8966,70 @@ static void def_geo_collection_info(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_node_geometry_collection_info_transform_space_items);
   RNA_def_property_ui_text(prop, "Transform Space", "The transformation of the geometry output");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_attribute_proximity(StructRNA *srna)
+{
+  static const EnumPropertyItem target_geometry_element[] = {
+      {GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_POINTS,
+       "POINTS",
+       ICON_NONE,
+       "Points",
+       "Calculate proximity to the target's points (usually faster than the other two modes)"},
+      {GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_EDGES,
+       "EDGES",
+       ICON_NONE,
+       "Edges",
+       "Calculate proximity to the target's edges"},
+      {GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES,
+       "FACES",
+       ICON_NONE,
+       "Faces",
+       "Calculate proximity to the target's faces"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryAttributeProximity", "storage");
+
+  prop = RNA_def_property(srna, "target_geometry_element", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, target_geometry_element);
+  RNA_def_property_enum_default(prop, GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES);
+  RNA_def_property_ui_text(
+      prop, "Target Geometry", "Element of the target geometry to calculate the distance from");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_volume_to_mesh(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem resolution_mode_items[] = {
+      {VOLUME_TO_MESH_RESOLUTION_MODE_GRID,
+       "GRID",
+       0,
+       "Grid",
+       "Use resolution of the volume grid"},
+      {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT,
+       "VOXEL_AMOUNT",
+       0,
+       "Voxel Amount",
+       "Desired number of voxels along one axis"},
+      {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE,
+       "VOXEL_SIZE",
+       0,
+       "Voxel Size",
+       "Desired voxel side length"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryVolumeToMesh", "storage");
+
+  prop = RNA_def_property(srna, "resolution_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, resolution_mode_items);
+  RNA_def_property_ui_text(prop, "Resolution Mode", "How the voxel size is specified");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 /* -------------------------------------------------------------------------- */

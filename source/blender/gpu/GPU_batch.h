@@ -84,7 +84,7 @@ typedef struct GPUBatch {
   GPUVertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** NULL if element list not needed */
   GPUIndexBuf *elem;
-  /** Bookeeping. */
+  /** Bookkeeping. */
   eGPUBatchFlag flag;
   /** Type of geometry to draw. */
   GPUPrimType prim_type;

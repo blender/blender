@@ -1148,12 +1148,12 @@ typedef struct NodeGeometryRotatePoints {
 typedef struct NodeGeometryAlignRotationToVector {
   /* GeometryNodeAlignRotationToVectorAxis */
   uint8_t axis;
+  /* GeometryNodeAlignRotationToVectorPivotAxis */
+  uint8_t pivot_axis;
 
   /* GeometryNodeAttributeInputMode */
   uint8_t input_type_factor;
   uint8_t input_type_vector;
-
-  char _pad[5];
 } NodeGeometryAlignRotationToVector;
 
 typedef struct NodeGeometryPointScale {
@@ -1201,6 +1201,20 @@ typedef struct NodeGeometryCollectionInfo {
 
   char _pad[7];
 } NodeGeometryCollectionInfo;
+
+typedef struct NodeGeometryAttributeProximity {
+  /* GeometryNodeAttributeProximityTargetGeometryElement. */
+  uint8_t target_geometry_element;
+
+  char _pad[7];
+} NodeGeometryAttributeProximity;
+
+typedef struct NodeGeometryVolumeToMesh {
+  /* VolumeToMeshResolutionMode */
+  uint8_t resolution_mode;
+
+  char _pad[7];
+} NodeGeometryVolumeToMesh;
 
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
@@ -1589,6 +1603,12 @@ typedef enum NodeShaderOutputTarget {
 
 /* Geometry Nodes */
 
+typedef enum GeometryNodeAttributeProximityTargetGeometryElement {
+  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_POINTS = 0,
+  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_EDGES = 1,
+  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES = 2,
+} GeometryNodeAttributeProximityTargetGeometryElement;
+
 /* Boolean Node */
 typedef enum GeometryNodeBooleanOperation {
   GEO_NODE_BOOLEAN_INTERSECT = 0,
@@ -1646,6 +1666,13 @@ typedef enum GeometryNodeAlignRotationToVectorAxis {
   GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_Y = 1,
   GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_Z = 2,
 } GeometryNodeAlignRotationToVectorAxis;
+
+typedef enum GeometryNodeAlignRotationToVectorPivotAxis {
+  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_AUTO = 0,
+  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_X = 1,
+  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_Y = 2,
+  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_Z = 3,
+} GeometryNodeAlignRotationToVectorPivotAxis;
 
 typedef enum GeometryNodeTransformSpace {
   GEO_NODE_TRANSFORM_SPACE_ORIGINAL = 0,

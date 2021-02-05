@@ -51,7 +51,7 @@ static eRedrawFlag shrinkfatten_handleEvent(struct TransInfo *t, const wmEvent *
   BLI_assert(t->mode == TFM_SHRINKFATTEN);
   const wmKeyMapItem *kmi = t->custom.mode.data;
   if (kmi && event->type == kmi->type && event->val == kmi->val) {
-    /* Allows the 'Even Thickness' effect to be enabled as a toogle. */
+    /* Allows the "Even Thickness" effect to be enabled as a toggle. */
     t->flag ^= T_ALT_TRANSFORM;
     return TREDRAW_HARD;
   }

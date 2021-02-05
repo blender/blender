@@ -3905,7 +3905,7 @@ static float bm_edge_seg_isect(const float sco_a[2],
     x12 = mouse_path[i][0];
     y12 = mouse_path[i][1];
 
-    /* Perp. Distance from point to line */
+    /* Calculate the distance from point to line. */
     if (m2 != MAXSLOPE) {
       /* sqrt(m2 * m2 + 1); Only looking for change in sign.  Skip extra math .*/
       dist = (y12 - m2 * x12 - b2);
@@ -4010,7 +4010,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   short numcuts = 1;
   const short mode = RNA_int_get(op->ptr, "type");
 
-  /* allocd vars */
+  /* Allocated variables. */
   float(*screen_vert_coords)[2], (*sco)[2], (*mouse_path)[2];
 
   /* edit-object needed for matrix, and region->regiondata for projections to work */

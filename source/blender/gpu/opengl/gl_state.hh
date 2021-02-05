@@ -42,7 +42,7 @@ class GLTexture;
  */
 class GLStateManager : public StateManager {
  public:
-  /** Anothter reference to the active framebuffer. */
+  /** Another reference to the active frame-buffer. */
   GLFrameBuffer *active_fb = nullptr;
 
  private:

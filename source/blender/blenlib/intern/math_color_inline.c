@@ -41,7 +41,7 @@ MALWAYS_INLINE __m128 srgb_to_linearrgb_v4_simd(const __m128 c)
   __m128 cmp = _mm_cmplt_ps(c, _mm_set1_ps(0.04045f));
   __m128 lt = _mm_max_ps(_mm_mul_ps(c, _mm_set1_ps(1.0f / 12.92f)), _mm_set1_ps(0.0f));
   __m128 gtebase = _mm_mul_ps(_mm_add_ps(c, _mm_set1_ps(0.055f)),
-                              _mm_set1_ps(1.0f / 1.055f)); /* fma */
+                              _mm_set1_ps(1.0f / 1.055f)); /* FMA. */
   __m128 gte = _bli_math_fastpow24(gtebase);
   return _bli_math_blend_sse(cmp, lt, gte);
 }

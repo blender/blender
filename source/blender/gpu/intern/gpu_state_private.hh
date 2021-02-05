@@ -101,16 +101,16 @@ union GPUStateMutable {
     /** Positive if using program point size. */
     /* TODO(fclem): should be passed as uniform to all shaders. */
     float point_size;
-    /** Not supported on every platform. Prefer using wideline shader. */
+    /** Not supported on every platform. Prefer using wide-line shader. */
     float line_width;
     /** Mutable stencil states. */
     uint8_t stencil_write_mask;
     uint8_t stencil_compare_mask;
     uint8_t stencil_reference;
     uint8_t _pad0;
-    /* IMPORTANT: ensure x64 stuct alignment. */
+    /* IMPORTANT: ensure x64 struct alignment. */
   };
-  /* Here to allow fast bitwise ops. */
+  /* Here to allow fast bit-wise ops. */
   uint64_t data[9];
 };
 

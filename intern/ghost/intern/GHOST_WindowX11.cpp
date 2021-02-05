@@ -1169,7 +1169,7 @@ GHOST_TSuccess GHOST_WindowX11::setOrder(GHOST_TWindowOrder order)
 
     XGetWindowAttributes(m_display, m_window, &attr);
 
-    /* iconized windows give bad match error */
+    /* Minimized windows give bad match error. */
     if (attr.map_state == IsViewable)
       XSetInputFocus(m_display, m_window, RevertToPointerRoot, CurrentTime);
     XFlush(m_display);

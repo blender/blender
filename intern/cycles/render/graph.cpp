@@ -276,7 +276,7 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
       emission->set_color(make_float3(1.0f, 1.0f, 1.0f));
       emission->set_strength(1.0f);
       convert = add(emission);
-      /* Connect float inputs to Strength to save an additional Falue->Color conversion. */
+      /* Connect float inputs to Strength to save an additional Value->Color conversion. */
       if (from->type() == SocketType::FLOAT) {
         convert_in = convert->input("Strength");
       }

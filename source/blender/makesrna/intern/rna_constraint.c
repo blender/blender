@@ -3032,7 +3032,7 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
       prop, "Use Original Scale", "Apply volume preservation over the original scaling");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
-  /* volume presevation for "volumetric" scale mode */
+  /* Volume preservation for "volumetric" scale mode. */
   prop = RNA_def_property(srna, "bulge", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0, 100.0f);
   RNA_def_property_ui_text(

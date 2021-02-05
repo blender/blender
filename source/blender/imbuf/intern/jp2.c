@@ -476,7 +476,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       r = image->comps[0].data;
       a = (use_alpha) ? image->comps[1].data : NULL;
 
-      /* grayscale 12bits+ */
+      /* Gray-scale 12bits+ */
       if (use_alpha) {
         a = image->comps[1].data;
         PIXEL_LOOPER_BEGIN (rect_float) {
@@ -500,7 +500,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       g = image->comps[1].data;
       b = image->comps[2].data;
 
-      /* rgb or rgba 12bits+ */
+      /* RGB or RGBA 12bits+ */
       if (use_alpha) {
         a = image->comps[3].data;
         PIXEL_LOOPER_BEGIN (rect_float) {
@@ -551,7 +551,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       g = image->comps[1].data;
       b = image->comps[2].data;
 
-      /* 8bit rgb or rgba */
+      /* 8bit RGB or RGBA */
       if (use_alpha) {
         a = image->comps[3].data;
         PIXEL_LOOPER_BEGIN (rect_uchar) {

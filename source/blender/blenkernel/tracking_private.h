@@ -125,7 +125,7 @@ float *tracking_track_get_mask_for_region(int frame_width,
                                           const float region_max[2],
                                           MovieTrackingTrack *track);
 
-/*********************** Frame accessr *************************/
+/*********************** Frame Accessor *************************/
 
 struct libmv_FrameAccessor;
 

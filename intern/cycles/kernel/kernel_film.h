@@ -63,12 +63,12 @@ ccl_device float4 film_map(KernelGlobals *kg, float4 rgba_in, float scale)
 {
   float4 result;
 
-  /* conversion to srgb */
+  /* Conversion to SRGB. */
   result.x = color_linear_to_srgb(rgba_in.x * scale);
   result.y = color_linear_to_srgb(rgba_in.y * scale);
   result.z = color_linear_to_srgb(rgba_in.z * scale);
 
-  /* clamp since alpha might be > 1.0 due to russian roulette */
+  /* Clamp since alpha might be > 1.0 due to Russian roulette. */
   result.w = saturate(rgba_in.w * scale);
 
   return result;

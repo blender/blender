@@ -1311,7 +1311,7 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
     tria_col[3] = wcol->item[3];
   }
 
-  /* Draw everything in one drawcall */
+  /* Draw everything in one draw-call. */
   if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3] || tria_col[3] ||
       show_alpha_checkers) {
     widgetbase_set_uniform_colors_ubv(
@@ -2349,7 +2349,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     int icon_size = BLI_rcti_size_y(rect);
     int text_size = 0;
 
-    /* This is a bit britle, but avoids adding an 'UI_BUT_HAS_LABEL' flag to but... */
+    /* This is a bit brittle, but avoids adding an 'UI_BUT_HAS_LABEL' flag to but... */
     if (icon_size > BLI_rcti_size_x(rect)) {
       /* button is not square, it has extra height for label */
       text_size = UI_UNIT_Y;
@@ -3614,7 +3614,7 @@ static void widget_scroll(
     rect1.xmin = rect1.xmin + ceilf(fac * (value - but->softmin));
     rect1.xmax = rect1.xmin + ceilf(fac * (but->a1 - but->softmin));
 
-    /* ensure minimium size */
+    /* Ensure minimum size. */
     const float min = BLI_rcti_size_y(rect);
 
     if (BLI_rcti_size_x(&rect1) < min) {
@@ -3631,7 +3631,7 @@ static void widget_scroll(
     rect1.ymax = rect1.ymax - ceilf(fac * (value - but->softmin));
     rect1.ymin = rect1.ymax - ceilf(fac * (but->a1 - but->softmin));
 
-    /* ensure minimium size */
+    /* Ensure minimum size. */
     const float min = BLI_rcti_size_x(rect);
 
     if (BLI_rcti_size_y(&rect1) < min) {
@@ -3668,7 +3668,7 @@ static void widget_progressbar(
   const float offs = wcol->roundness * BLI_rcti_size_y(&rect_prog);
   float w = value * BLI_rcti_size_x(&rect_prog);
 
-  /* ensure minimium size */
+  /* Ensure minimum size. */
   w = MAX2(w, offs);
 
   rect_bar.xmax = rect_bar.xmin + w;

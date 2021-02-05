@@ -1959,7 +1959,7 @@ static short snapCurve(SnapData *snapdata,
   int clip_plane_len = snapdata->clip_plane_len;
 
   if (snapdata->has_occlusion_plane) {
-    /* We snap to vertices even if coccluded. */
+    /* We snap to vertices even if occluded. */
     clip_planes++;
     clip_plane_len--;
   }

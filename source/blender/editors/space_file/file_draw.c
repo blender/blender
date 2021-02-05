@@ -473,7 +473,7 @@ static void file_draw_preview(uiBlock *block,
 
   but = uiDefBut(block, UI_BTYPE_LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, NULL);
 
-  /* dragregion */
+  /* Drag-region. */
   if (drag) {
     ID *id;
 

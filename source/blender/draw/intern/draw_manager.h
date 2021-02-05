@@ -266,14 +266,14 @@ typedef union DRWCommand {
   DRWCommandClear clear;
 } DRWCommand;
 
-/* Used for agregating calls into GPUVertBufs. */
+/** Used for aggregating calls into #GPUVertBuf's. */
 struct DRWCallBuffer {
   GPUVertBuf *buf;
   GPUVertBuf *buf_select;
   int count;
 };
 
-/* Used by DRWUniform.type */
+/** Used by #DRWUniform.type */
 typedef enum {
   DRW_UNIFORM_INT = 0,
   DRW_UNIFORM_INT_COPY,
@@ -324,8 +324,8 @@ struct DRWUniform {
     /* DRW_UNIFORM_BLOCK_OBATTRS */
     struct GPUUniformAttrList *uniform_attrs;
   };
-  int location;      /* Uniform location or binding point for textures and ubos. */
-  uint8_t type;      /* DRWUniformType */
+  int location;      /* Uniform location or binding point for textures and UBO's. */
+  uint8_t type;      /* #DRWUniformType */
   uint8_t length;    /* Length of vector types. */
   uint8_t arraysize; /* Array size of scalar/vector types. */
 };

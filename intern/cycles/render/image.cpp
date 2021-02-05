@@ -419,7 +419,7 @@ int ImageManager::add_image_slot(ImageLoader *loader,
 
   thread_scoped_lock device_lock(images_mutex);
 
-  /* Fnd existing image. */
+  /* Find existing image. */
   for (slot = 0; slot < images.size(); slot++) {
     img = images[slot];
     if (img && ImageLoader::equals(img->loader, loader) && img->params == params) {

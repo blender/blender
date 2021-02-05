@@ -70,15 +70,6 @@
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo"};
 
-/**
- * \warning Values are used in #ED_undo_gpencil_step,
- * which should eventually be replaced with the undo-system.
- */
-enum eUndoStepDir {
-  STEP_REDO = 1,
-  STEP_UNDO = -1,
-};
-
 /* -------------------------------------------------------------------- */
 /** \name Generic Undo System Access
  *
@@ -276,7 +267,7 @@ static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportLis
    * FIXME: However, it seems to never be used in current code (`ED_gpencil_session_active` seems
    * to always return false). */
   if (ED_gpencil_session_active()) {
-    return ED_undo_gpencil_step(C, (int)step);
+    return ED_undo_gpencil_step(C, step);
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);

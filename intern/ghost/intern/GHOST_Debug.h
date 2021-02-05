@@ -26,7 +26,7 @@
 
 #ifdef _MSC_VER
 #  ifdef DEBUG
-/* Suppress stl-MSVC debug info warning. */
+/* Suppress STL-MSVC debug info warning. */
 #    pragma warning(disable : 4786)
 #  endif
 #endif

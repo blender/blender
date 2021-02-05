@@ -2158,7 +2158,7 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
   l_f1->next->prev = l_f2->prev;
   l_f2->prev->next = l_f1->next;
 
-  /* if l_f1 was baseloop, make l_f1->next the base. */
+  /* If `l_f1` was base-loop, make `l_f1->next` the base. */
   if (BM_FACE_FIRST_LOOP(f1) == l_f1) {
     BM_FACE_FIRST_LOOP(f1) = l_f1->next;
   }

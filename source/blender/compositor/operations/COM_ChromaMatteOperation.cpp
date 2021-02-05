@@ -61,11 +61,10 @@ void ChromaMatteOperation::executePixelSampled(float output[4],
   this->m_inputImageProgram->readSampled(inImage, x, y, sampler);
 
   /* Store matte(alpha) value in [0] to go with
-   * COM_SetAlphaMultiplyOperation and the Value output.
-   */
+   * #COM_SetAlphaMultiplyOperation and the Value output. */
 
-  /* Algorithm from book "Video Demistified," does not include the spill reduction part */
-  /* find theta, the angle that the color space should be rotated based on key */
+  /* Algorithm from book "Video Demystified", does not include the spill reduction part. */
+  /* Find theta, the angle that the color space should be rotated based on key. */
 
   /* rescale to -1.0..1.0 */
   // inImage[0] = (inImage[0] * 2.0f) - 1.0f;  // UNUSED

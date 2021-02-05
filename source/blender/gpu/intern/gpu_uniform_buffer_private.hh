@@ -65,7 +65,7 @@ class UniformBuf {
   }
 };
 
-/* Syntacting suggar. */
+/* Syntactic sugar. */
 static inline GPUUniformBuf *wrap(UniformBuf *vert)
 {
   return reinterpret_cast<GPUUniformBuf *>(vert);

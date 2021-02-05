@@ -770,7 +770,7 @@ void ED_node_post_apply_transform(bContext *UNUSED(C), bNodeTree *UNUSED(ntree))
    * which only exists during actual drawing. Can we rely on valid totr rects?
    */
   /* make sure nodes have correct bounding boxes after transform */
-  /* node_update_nodetree(C, ntree, 0.0f, 0.0f); */
+  // node_update_nodetree(C, ntree, 0.0f, 0.0f);
 }
 
 /* ***************** generic operator functions for nodes ***************** */
@@ -1199,7 +1199,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     if (node->flag & SELECT) {
       BKE_node_copy_store_new_pointers(ntree, node, LIB_ID_COPY_DEFAULT);
 
-      /* to ensure redraws or rerenders happen */
+      /* To ensure redraws or re-renders happen. */
       ED_node_tag_update_id(snode->id);
     }
 

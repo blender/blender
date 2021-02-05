@@ -109,7 +109,7 @@ static GPUPass *gpu_pass_cache_resolve_collision(GPUPass *pass,
                                                  uint32_t hash)
 {
   BLI_spin_lock(&pass_cache_spin);
-  /* Collision, need to strcmp the whole shader. */
+  /* Collision, need to `strcmp` the whole shader. */
   for (; pass && (pass->hash == hash); pass = pass->next) {
     if ((defs != NULL) && (!STREQ(pass->defines, defs))) { /* Pass */
     }

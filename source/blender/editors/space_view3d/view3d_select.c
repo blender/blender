@@ -596,7 +596,7 @@ static bool do_lasso_select_objects(ViewContext *vc,
   }
 
   for (base = vc->view_layer->object_bases.first; base; base = base->next) {
-    if (BASE_SELECTABLE(v3d, base)) { /* use this to avoid un-needed lasso lookups */
+    if (BASE_SELECTABLE(v3d, base)) { /* Use this to avoid unnecessary lasso look-ups. */
       const bool is_select = base->flag & BASE_SELECTED;
       const bool is_inside = ((ED_view3d_project_base(vc->region, base) == V3D_PROJ_RET_OK) &&
                               BLI_lasso_is_point_inside(
@@ -1447,7 +1447,7 @@ static const EnumPropertyItem *object_select_menu_enum_itemf(bContext *C,
   int totitem = 0;
   int i = 0;
 
-  /* don't need context but avoid docgen using this */
+  /* Don't need context but avoid API doc-generation using this. */
   if (C == NULL || object_mouse_select_menu_data[i].idname[0] == '\0') {
     return DummyRNA_NULL_items;
   }
@@ -2494,7 +2494,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   }
 
   /* Pass-through allows tweaks
-   * FINISHED to signal one operator worked. */
+   * FINISHED to signal one operator worked */
   if (retval) {
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;

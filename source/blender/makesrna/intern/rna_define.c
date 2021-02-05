@@ -1298,7 +1298,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
 
     dcont = rna_find_container_def(cont);
 
-    /* XXX - toto, detect supertype collisions */
+    /* TODO: detect super-type collisions. */
     if (rna_findlink(&dcont->properties, identifier)) {
       CLOG_ERROR(&LOG, "duplicate identifier \"%s.%s\"", CONTAINER_RNA_ID(cont), identifier);
       DefRNA.error = true;

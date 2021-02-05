@@ -518,7 +518,7 @@ typedef struct EEVEE_LightsInfo {
   struct EEVEE_Shadow shadow_data[MAX_SHADOW];
   struct EEVEE_ShadowCube shadow_cube_data[MAX_SHADOW_CUBE];
   struct EEVEE_ShadowCascade shadow_cascade_data[MAX_SHADOW_CASCADE];
-  /* Additionnal rendering info for cascade. */
+  /* Additional rendering info for cascade. */
   struct EEVEE_ShadowCascadeRender shadow_cascade_render[MAX_SHADOW_CASCADE];
   /* Back index in light_data. */
   uchar shadow_cube_light_indices[MAX_SHADOW_CUBE];
@@ -766,7 +766,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *source_buffer;     /* latest updated texture */
   struct GPUFrameBuffer *target_buffer; /* next target to render to */
   struct GPUTexture *final_tx;          /* Final color to transform to display color space. */
-  struct GPUFrameBuffer *final_fb;      /* Framebuffer with final_tx as attachment. */
+  struct GPUFrameBuffer *final_fb;      /* Frame-buffer with final_tx as attachment. */
 } EEVEE_EffectsInfo;
 
 /* ***************** COMMON DATA **************** */
@@ -1431,7 +1431,7 @@ static const float texcomat[4][4] = {
     {0.5f, 0.5f, 0.5f, 1.0f},
 };
 
-/* Cubemap Matrices */
+/* Cube-map Matrices */
 static const float cubefacemat[6][4][4] = {
     /* Pos X */
     {{0.0f, 0.0f, -1.0f, 0.0f},

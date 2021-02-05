@@ -392,7 +392,7 @@ void ui_pie_menu_level_create(uiBlock *block,
   EnumPropertyItem *remaining = MEM_mallocN(array_size + sizeof(EnumPropertyItem),
                                             "pie_level_item_array");
   memcpy(remaining, items + totitem_parent, array_size);
-  /* a NULL terminating sentinal element is required */
+  /* A NULL terminating sentinel element is required. */
   memset(&remaining[totitem_remain], 0, sizeof(EnumPropertyItem));
 
   /* yuk, static... issue is we can't reliably free this without doing dangerous changes */

@@ -42,7 +42,7 @@ class DrawList {
   virtual void submit() = 0;
 };
 
-/* Syntacting suggar. */
+/* Syntactic sugar. */
 static inline GPUDrawList *wrap(DrawList *vert)
 {
   return reinterpret_cast<GPUDrawList *>(vert);

@@ -76,7 +76,7 @@ class Shader {
   void print_log(Span<const char *> sources, char *log, const char *stage, const bool error);
 };
 
-/* Syntacting suggar. */
+/* Syntactic sugar. */
 static inline GPUShader *wrap(Shader *vert)
 {
   return reinterpret_cast<GPUShader *>(vert);

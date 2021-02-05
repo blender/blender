@@ -49,7 +49,7 @@ void mesh_customdatacorrect_init(TransInfo *t);
 
 /* transform_convert_sequencer.c */
 int transform_convert_sequencer_get_snap_bound(TransInfo *t);
-
+void transform_convert_sequencer_channel_clamp(TransInfo *t);
 /********************* intern **********************/
 
 typedef enum eTransConvertType {

@@ -446,7 +446,7 @@ int BLI_string_search_query(StringSearch *search, const char *query, void ***r_d
   for (const int score : result_indices_by_score.keys()) {
     found_scores.append(score);
   }
-  std::sort(found_scores.begin(), found_scores.end(), std::greater<int>());
+  std::sort(found_scores.begin(), found_scores.end(), std::greater<>());
 
   /* Add results to output vector in correct order. First come the results with the best match
    * score. Results with the same score are in the order they have been added to the search. */

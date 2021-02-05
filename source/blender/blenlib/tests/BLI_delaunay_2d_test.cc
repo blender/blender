@@ -1661,10 +1661,10 @@ void rand_delaunay_test(int test_kind,
             }
           }
           for (int i = 0; i < size; ++i) {
-            /* Horizontal edges: connect p(i,0) to p(i,size-1). */
+            /* Horizontal edges: connect `p(i,0)` to `p(i,size-1)`. */
             in.edge[i].first = i * size;
             in.edge[i].second = i * size + size - 1;
-            /* Vertical edges: conntect p(0,i) to p(size-1,i). */
+            /* Vertical edges: connect `p(0,i)` to `p(size-1,i)`. */
             in.edge[size + i].first = i;
             in.edge[size + i].second = (size - 1) * size + i;
           }
@@ -1695,7 +1695,7 @@ void rand_delaunay_test(int test_kind,
             in.vert[ib][1] = T(sin(angle2));
             in.vert[ic][0] = T((param * cos(angle3)));
             in.vert[ic][1] = T((param * sin(angle3)));
-            /* Put the coordinates in ccw order. */
+            /* Put the coordinates in CCW order. */
             in.face[i].append(ia);
             int orient = orient2d(in.vert[ia], in.vert[ib], in.vert[ic]);
             if (orient >= 0) {

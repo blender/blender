@@ -774,7 +774,7 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
   }
 }
 
-/* Edge detection/adjecency */
+/* Edge detection/adjacency. */
 #define NO_EDGE INT_MAX
 static void set_edge_adjacency_lines_indices(
     EdgeHash *eh, GPUIndexBufBuilder *elb, bool *r_is_manifold, uint v1, uint v2, uint v3)

@@ -203,7 +203,7 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
   GHOST_TStringArray *strArray = NULL;
   int totPaths = 0, curLength = 0;
 
-  /* count total number of file pathes in buffer */
+  /* Count total number of file paths in buffer. */
   for (int i = 0; i <= dropBufferSize; i++) {
     if (dropBuffer[i] == 0 || dropBuffer[i] == '\n' || dropBuffer[i] == '\r') {
       if (curLength) {

@@ -1,4 +1,3 @@
-
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,13 +19,6 @@
 
 /** \file
  * \ingroup gpu
- *
- * GPU Framebuffer
- * - this is a wrapper for an OpenGL framebuffer object (FBO). in practice
- *   multiple FBO's may be created.
- * - actual FBO creation & config is deferred until GPU_framebuffer_bind or
- *   GPU_framebuffer_check_valid to allow creation & config while another
- *   opengl context is bound (since FBOs are not shared between ogl contexts).
  */
 
 #pragma once

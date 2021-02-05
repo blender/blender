@@ -225,7 +225,7 @@ BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_Material, 16)
 typedef struct WORKBENCH_Prepass {
   /** Hash storing shading group for each Material or GPUTexture to reduce state changes. */
   struct GHash *material_hash;
-  /** First common (non-vcol and non-image colored) shading group to created subgroups. */
+  /** First common (non-vertex-color and non-image-colored) shading group to created subgroups. */
   struct DRWShadingGroup *common_shgrp;
   /** First Vertex Color shading group to created subgroups. */
   struct DRWShadingGroup *vcol_shgrp;
@@ -384,7 +384,7 @@ typedef struct WORKBENCH_ViewLayerData {
   struct GPUUniformBuf *cavity_sample_ubo;
   /** Blue noise texture used to randomize the sampling of some effects.*/
   struct GPUTexture *cavity_jitter_tx;
-  /** Materials ubos allocated in a memblock for easy bookeeping. */
+  /** Materials UBO's allocated in a memblock for easy bookkeeping. */
   struct BLI_memblock *material_ubo;
   struct BLI_memblock *material_ubo_data;
   /** Number of samples for which cavity_sample_ubo is valid. */

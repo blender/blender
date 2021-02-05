@@ -253,7 +253,7 @@ static uint kdtree2d_balance_recursive(
     return 0 + ofs;
   }
 
-  /* quicksort style sorting around median */
+  /* Quick-sort style sorting around median. */
   neg = 0;
   pos = totnode - 1;
   median = totnode / 2;
@@ -284,7 +284,7 @@ static uint kdtree2d_balance_recursive(
     }
   }
 
-  /* set node and sort subnodes */
+  /* Set node and sort sub-nodes. */
   node = &nodes[median];
   node->axis = axis;
   axis = !axis;

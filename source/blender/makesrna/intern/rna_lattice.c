@@ -132,12 +132,12 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
   Object *ob;
   int newu, newv, neww;
 
-  /* we don't modify the actual pnts, but go through opnts instead */
+  /* We don't modify the actual `pnts`, but go through `opnts` instead. */
   newu = (lt->opntsu > 0) ? lt->opntsu : lt->pntsu;
   newv = (lt->opntsv > 0) ? lt->opntsv : lt->pntsv;
   neww = (lt->opntsw > 0) ? lt->opntsw : lt->pntsw;
 
-  /* BKE_lattice_resize needs an object, any object will have the same result */
+  /* #BKE_lattice_resize needs an object, any object will have the same result */
   for (ob = bmain->objects.first; ob; ob = ob->id.next) {
     if (ob->data == lt) {
       BKE_lattice_resize(lt, newu, newv, neww, ob);

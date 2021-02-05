@@ -463,7 +463,7 @@ inline bool isnan(double i) {
 #endif
 }
 
-/// Ceil function that has the same behaviour for positive
+/// Ceil function that has the same behavior for positive
 /// and negative values
 template <typename FloatType>
 FloatType ceil0(const FloatType& value) {

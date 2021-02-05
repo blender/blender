@@ -295,7 +295,7 @@ static LinkNode *bm_edgenet_path_calc(BMEdge *e,
 
   vn_1->flag = vn_2->flag = (f_index == -1) ? VNINFO_FLAG_IS_MIXFACE : 0;
 
-  /* prime the searchlist */
+  /* Prime the search-list. */
   BLI_linklist_prepend_pool(&v_ls_prev, e->v1, path_pool);
   BLI_linklist_prepend_pool(&v_ls_prev, e->v2, path_pool);
 

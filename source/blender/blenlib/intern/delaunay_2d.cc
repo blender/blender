@@ -561,14 +561,14 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
     const vec2<double> &uco = u->co.approx;
     const vec2<double> &vco = v->co.approx;
     int strokew = e->input_ids == nullptr ? thin_line : thick_line;
-    f << "<line fill=\"none\" stroke=\"black\" stroke-width=\"" << strokew << "\" x1=\""
+    f << R"(<line fill="none" stroke="black" stroke-width=")" << strokew << "\" x1=\""
       << SX(uco[0]) << "\" y1=\"" << SY(uco[1]) << "\" x2=\"" << SX(vco[0]) << "\" y2=\""
       << SY(vco[1]) << "\">\n";
     f << "  <title>" << vertname(u) << vertname(v) << "</title>\n";
     f << "</line>\n";
     if (draw_edge_labels) {
       f << "<text x=\"" << SX((uco[0] + vco[0]) / 2) << "\" y=\"" << SY((uco[1] + vco[1]) / 2)
-        << "\" font-size=\"small\">";
+        << R"(" font-size="small">)";
       f << vertname(u) << vertname(v) << sename(&e->symedges[0]) << sename(&e->symedges[1])
         << "</text>\n";
     }
@@ -576,13 +576,13 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
 
   int i = 0;
   for (const CDTVert<T> *v : cdt.verts) {
-    f << "<circle fill=\"black\" cx=\"" << SX(v->co.approx[0]) << "\" cy=\"" << SY(v->co.approx[1])
+    f << R"(<circle fill="black" cx=")" << SX(v->co.approx[0]) << "\" cy=\"" << SY(v->co.approx[1])
       << "\" r=\"" << vert_radius << "\">\n";
     f << "  <title>[" << i << "]" << v->co.approx << "</title>\n";
     f << "</circle>\n";
     if (draw_vert_labels) {
       f << "<text x=\"" << SX(v->co.approx[0]) + vert_radius << "\" y=\""
-        << SY(v->co.approx[1]) - vert_radius << "\" font-size=\"small\">[" << i << "]</text>\n";
+        << SY(v->co.approx[1]) - vert_radius << R"(" font-size="small">[)" << i << "]</text>\n";
     }
     ++i;
   }
@@ -754,7 +754,7 @@ template<> CDTVert<double>::CDTVert(const vec2<double> &pt)
 {
   this->co.exact = pt;
   this->co.approx = pt;
-  this->co.abs_approx = pt; /* Not used, so does't matter. */
+  this->co.abs_approx = pt; /* Not used, so doesn't matter. */
   this->input_ids = nullptr;
   this->symedge = nullptr;
   this->index = -1;
@@ -1411,12 +1411,12 @@ void dc_tri(CDTArrangement<T> *cdt,
 /* Guibas-Stolfi Divide-and_Conquer algorithm. */
 template<typename T> void dc_triangulate(CDTArrangement<T> *cdt, Array<SiteInfo<T>> &sites)
 {
-  /* Compress sites in place to eliminted verts that merge to others. */
+  /* Compress sites in place to eliminated verts that merge to others. */
   int i = 0;
   int j = 0;
   int nsites = sites.size();
   while (j < nsites) {
-    /* Invariante: sites[0..i-1] have non-merged verts from 0..(j-1) in them. */
+    /* Invariant: `sites[0..i-1]` have non-merged verts from `0..(j-1)` in them. */
     sites[i] = sites[j++];
     if (sites[i].v->merge_to_index < 0) {
       i++;

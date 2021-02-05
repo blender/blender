@@ -46,7 +46,7 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
-#include "PIL_time.h" /* USER_ZOOM_CONT */
+#include "PIL_time.h" /* USER_ZOOM_CONTINUE */
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -1108,7 +1108,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 
   /* Check if the 'timer' is initialized, as zooming with the trackpad
    * never uses the "Continuous" zoom method, and the 'timer' is not initialized. */
-  if ((U.viewzoom == USER_ZOOM_CONT) && vzd->timer) { /* XXX store this setting as RNA prop? */
+  if ((U.viewzoom == USER_ZOOM_CONTINUE) && vzd->timer) { /* XXX store this setting as RNA prop? */
     const double time = PIL_check_seconds_timer();
     const float time_step = (float)(time - vzd->timer_lastdraw);
 
@@ -1304,7 +1304,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
   /* add temp handler */
   WM_event_add_modal_handler(C, op);
 
-  if (U.viewzoom == USER_ZOOM_CONT) {
+  if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vzd->timer = WM_event_add_timer(CTX_wm_manager(C), window, TIMER, 0.01f);
     vzd->timer_lastdraw = PIL_check_seconds_timer();
@@ -1363,7 +1363,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
       dx *= BLI_rctf_size_x(&v2d->cur);
       dy *= BLI_rctf_size_y(&v2d->cur);
     }
-    else { /* USER_ZOOM_CONT or USER_ZOOM_DOLLY */
+    else { /* USER_ZOOM_CONTINUE or USER_ZOOM_DOLLY */
       float facx = zoomfac * (event->x - vzd->lastx);
       float facy = zoomfac * (event->y - vzd->lasty);
 
@@ -1410,7 +1410,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
      * - Continuous zoom only depends on distance of mouse
      *   to starting point to determine rate of change.
      */
-    if (U.viewzoom != USER_ZOOM_CONT) { /* XXX store this setting as RNA prop? */
+    if (U.viewzoom != USER_ZOOM_CONTINUE) { /* XXX store this setting as RNA prop? */
       vzd->lastx = event->x;
       vzd->lasty = event->y;
     }
@@ -2224,7 +2224,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
     scroller_activate_init(C, op, event, in_scroller);
     v2dScrollerMove *vsm = (v2dScrollerMove *)op->customdata;
 
-    /* support for quick jump to location - gtk and qt do this on linux */
+    /* Support for quick jump to location - GTK and QT do this on Linux. */
     if (event->type == MIDDLEMOUSE) {
       switch (vsm->scroller) {
         case 'h': /* horizontal scroller - so only horizontal movement

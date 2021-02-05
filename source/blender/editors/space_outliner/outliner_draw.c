@@ -3059,7 +3059,7 @@ static void outliner_draw_tree_element(bContext *C,
     }
     else {
       active = tree_element_type_active(C, tvc, space_outliner, te, tselem, OL_SETSEL_NONE, false);
-      /* active collection*/
+      /* Active collection. */
     }
 
     /* active circle */
@@ -3079,7 +3079,7 @@ static void outliner_draw_tree_element(bContext *C,
     }
     else if (te->subtree.first || (tselem->type == 0 && te->idcode == ID_SCE) ||
              (te->flag & TE_LAZY_CLOSED)) {
-      /* open/close icon, only when sublevels, except for scene */
+      /* Open/close icon, only when sub-levels, except for scene. */
       int icon_x = startx;
 
       /* Icons a bit higher. */
@@ -3517,7 +3517,7 @@ static void outliner_draw_tree(bContext *C,
     GPU_scissor(0, 0, mask_x, region->winy);
   }
 
-  /* Draw hierarhcy lines for collections and object children. */
+  /* Draw hierarchy lines for collections and object children. */
   starty = (int)region->v2d.tot.ymax - OL_Y_OFFSET;
   startx = mode_column_offset + UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
   outliner_draw_hierarchy_lines(space_outliner, &space_outliner->tree, startx, &starty);

@@ -574,7 +574,7 @@ void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
     /* free temp memory */
     ANIM_animdata_freelist(&anim_data);
 
-    /* perform after-transfrom validation */
+    /* Perform after-transform validation. */
     ED_nla_postop_refresh(&ac);
   }
 }

@@ -703,7 +703,7 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
     unalignedSplitSAH = params.sah_node_cost * unaligned_split.bounds.half_area() +
                         params.sah_primitive_cost * unaligned_split.nodeSAH;
     /* TOOD(sergey): Check we can create leaf already. */
-    /* Check whether unaligned split is better than the regulat one. */
+    /* Check whether unaligned split is better than the regular one. */
     if (unalignedSplitSAH < splitSAH) {
       do_unalinged_split = true;
     }
@@ -842,7 +842,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
   vector<BVHReference, LeafReferenceStackAllocator> object_references;
 
   uint visibility[PRIMITIVE_NUM_TOTAL] = {0};
-  /* NOTE: Keep initializtion in sync with actual number of primitives. */
+  /* NOTE: Keep initialization in sync with actual number of primitives. */
   BoundBox bounds[PRIMITIVE_NUM_TOTAL] = {
       BoundBox::empty, BoundBox::empty, BoundBox::empty, BoundBox::empty};
   int ob_num = 0;

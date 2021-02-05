@@ -20,7 +20,7 @@
 /** \file
  * \ingroup gpu
  *
- * Encapsulation of Framebuffer states (attached textures, viewport, scissors).
+ * Encapsulation of Frame-buffer states (attached textures, viewport, scissors).
  */
 
 #pragma once

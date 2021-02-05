@@ -103,7 +103,7 @@ static bool compile_cuda(CompilationSettings &settings)
     return false;
   }
 
-  /* Tranfer options to a classic C array. */
+  /* Transfer options to a classic C array. */
   vector<const char *> opts(options.size());
   for (size_t i = 0; i < options.size(); i++) {
     opts[i] = options[i].c_str();

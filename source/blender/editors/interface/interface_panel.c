@@ -926,9 +926,9 @@ bool UI_panel_matches_search_filter(const Panel *panel)
 /**
  * Set the flag telling the panel to use its search result status for its expansion.
  */
-static void panel_set_expansion_from_seach_filter_recursive(const bContext *C,
-                                                            Panel *panel,
-                                                            const bool use_search_closed)
+static void panel_set_expansion_from_search_filter_recursive(const bContext *C,
+                                                             Panel *panel,
+                                                             const bool use_search_closed)
 {
   /* This has to run on inactive panels that may not have a type,
    * but we can prevent running on header-less panels in some cases. */
@@ -939,21 +939,21 @@ static void panel_set_expansion_from_seach_filter_recursive(const bContext *C,
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
     /* Don't check if the sub-panel is active, otherwise the
      * expansion won't be reset when the parent is closed. */
-    panel_set_expansion_from_seach_filter_recursive(C, child_panel, use_search_closed);
+    panel_set_expansion_from_search_filter_recursive(C, child_panel, use_search_closed);
   }
 }
 
 /**
  * Set the flag telling every panel to override its expansion with its search result status.
  */
-static void region_panels_set_expansion_from_seach_filter(const bContext *C,
-                                                          ARegion *region,
-                                                          const bool use_search_closed)
+static void region_panels_set_expansion_from_search_filter(const bContext *C,
+                                                           ARegion *region,
+                                                           const bool use_search_closed)
 {
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     /* Don't check if the panel is active, otherwise the expansion won't
      * be correct when switching back to tab after exiting search. */
-    panel_set_expansion_from_seach_filter_recursive(C, panel, use_search_closed);
+    panel_set_expansion_from_search_filter_recursive(C, panel, use_search_closed);
   }
   set_panels_list_data_expand_flag(C, region);
 }
@@ -1339,7 +1339,7 @@ void ui_draw_aligned_panel(const uiStyle *style,
 {
   const Panel *panel = block->panel;
 
-  /* Add 0.001f to prevent flicker frpm float inaccuracy. */
+  /* Add 0.001f to prevent flicker from float inaccuracy. */
   const rcti header_rect = {
       rect->xmin,
       rect->xmax,
@@ -1923,10 +1923,10 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   const bool region_search_filter_active = region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE;
 
   if (properties_space_needs_realign(area, region)) {
-    region_panels_set_expansion_from_seach_filter(C, region, region_search_filter_active);
+    region_panels_set_expansion_from_search_filter(C, region, region_search_filter_active);
   }
   else if (region->flag & RGN_FLAG_SEARCH_FILTER_UPDATE) {
-    region_panels_set_expansion_from_seach_filter(C, region, region_search_filter_active);
+    region_panels_set_expansion_from_search_filter(C, region, region_search_filter_active);
   }
 
   if (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE) {
@@ -2366,7 +2366,7 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
       PanelCategoryDyn *pc_dyn = UI_panel_category_find(region, category);
       if (LIKELY(pc_dyn)) {
         if (is_mousewheel) {
-          /* We can probably get rid of this and only allow ctrl-tabbing. */
+          /* We can probably get rid of this and only allow Ctrl-Tabbing. */
           pc_dyn = (event->type == WHEELDOWNMOUSE) ? pc_dyn->next : pc_dyn->prev;
         }
         else {

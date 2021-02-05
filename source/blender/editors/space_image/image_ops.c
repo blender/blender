@@ -467,7 +467,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
   UI_view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &vpd->location[0], &vpd->location[1]);
 
-  if (U.viewzoom == USER_ZOOM_CONT) {
+  if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vpd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
     vpd->timer_lastdraw = PIL_check_seconds_timer();
@@ -579,12 +579,10 @@ static void image_zoom_apply(ViewZoomData *vpd,
     delta = -delta;
   }
 
-  if (viewzoom == USER_ZOOM_CONT) {
+  if (viewzoom == USER_ZOOM_CONTINUE) {
     double time = PIL_check_seconds_timer();
     float time_step = (float)(time - vpd->timer_lastdraw);
     float zfac;
-
-    /* oldstyle zoom */
     zfac = 1.0f + ((delta / 20.0f) * time_step);
     vpd->timer_lastdraw = time;
     /* this is the final zoom, but instead make it into a factor */
@@ -2663,6 +2661,126 @@ void IMAGE_OT_new(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Flip Operator
+ * \{ */
+
+static int image_flip_exec(bContext *C, wmOperator *op)
+{
+  Image *ima = image_from_context(C);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
+
+  if (ibuf == NULL) {
+    /* TODO: this should actually never happen, but does for render-results -> cleanup. */
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool flip_horizontal = RNA_boolean_get(op->ptr, "use_flip_horizontal");
+  const bool flip_vertical = RNA_boolean_get(op->ptr, "use_flip_vertical");
+
+  if (!flip_horizontal && !flip_vertical) {
+    BKE_image_release_ibuf(ima, ibuf, NULL);
+    return OPERATOR_FINISHED;
+  }
+
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &sima->iuser);
+
+  if (is_paint) {
+    ED_imapaint_clear_partial_redraw();
+  }
+
+  const int size_x = ibuf->x;
+  const int size_y = ibuf->y;
+
+  if (ibuf->rect_float) {
+    float *float_pixels = (float *)ibuf->rect_float;
+
+    float *orig_float_pixels = MEM_dupallocN(float_pixels);
+    for (int x = 0; x < size_x; x++) {
+      for (int y = 0; y < size_y; y++) {
+        const int source_pixel_x = flip_horizontal ? size_x - x - 1 : x;
+        const int source_pixel_y = flip_vertical ? size_y - y - 1 : y;
+
+        float *source_pixel = &orig_float_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
+        float *target_pixel = &float_pixels[4 * (x + y * size_x)];
+
+        copy_v4_v4(target_pixel, source_pixel);
+      }
+    }
+    MEM_freeN(orig_float_pixels);
+
+    if (ibuf->rect) {
+      IMB_rect_from_float(ibuf);
+    }
+  }
+  else if (ibuf->rect) {
+    char *char_pixels = (char *)ibuf->rect;
+    char *orig_char_pixels = MEM_dupallocN(char_pixels);
+    for (int x = 0; x < size_x; x++) {
+      for (int y = 0; y < size_y; y++) {
+        const int source_pixel_x = flip_horizontal ? size_x - x - 1 : x;
+        const int source_pixel_y = flip_vertical ? size_y - y - 1 : y;
+
+        char *source_pixel = &orig_char_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
+        char *target_pixel = &char_pixels[4 * (x + y * size_x)];
+
+        copy_v4_v4_char(target_pixel, source_pixel);
+      }
+    }
+    MEM_freeN(orig_char_pixels);
+  }
+  else {
+    BKE_image_release_ibuf(ima, ibuf, NULL);
+    return OPERATOR_CANCELLED;
+  }
+
+  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+  BKE_image_mark_dirty(ima, ibuf);
+
+  if (ibuf->mipmap[0]) {
+    ibuf->userflags |= IB_MIPMAP_INVALID;
+  }
+
+  ED_image_undo_push_end();
+
+  /* force GPU reupload, all image is invalid. */
+  BKE_image_free_gputextures(ima);
+
+  WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+
+  BKE_image_release_ibuf(ima, ibuf, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_flip(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Flip Image";
+  ot->idname = "IMAGE_OT_flip";
+  ot->description = "Flip the image";
+
+  /* api callbacks */
+  ot->exec = image_flip_exec;
+  ot->poll = image_from_context_has_data_poll_no_image_user;
+
+  /* properties */
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(
+      ot->srna, "use_flip_horizontal", false, "Horizontal", "Flip the image horizontally");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(
+      ot->srna, "use_flip_vertical", false, "Vertical", "Flip the image vertically");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Invert Operators
  * \{ */
 
@@ -2747,7 +2865,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 
   ED_image_undo_push_end();
 
-  /* force GPU reupload, all image is invalid */
+  /* Force GPU re-upload, all image is invalid. */
   BKE_image_free_gputextures(ima);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
@@ -2838,7 +2956,7 @@ static int image_scale_exec(bContext *C, wmOperator *op)
 
   ED_image_undo_push_end();
 
-  /* force GPU reupload, all image is invalid */
+  /* Force GPU re-upload, all image is invalid. */
   BKE_image_free_gputextures(ima);
 
   DEG_id_tag_update(&ima->id, 0);

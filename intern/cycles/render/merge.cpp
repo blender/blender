@@ -151,7 +151,7 @@ static bool parse_channels(const ImageSpec &in_spec,
     string layername, passname, channelname;
     if (parse_channel_name(
             pass.channel_name, layername, passname, channelname, multiview_channels)) {
-      /* Channer part of a render layer. */
+      /* Channel part of a render layer. */
       pass.op = parse_channel_operation(passname);
     }
     else {
@@ -163,7 +163,7 @@ static bool parse_channels(const ImageSpec &in_spec,
     file_layers[layername].passes.push_back(pass);
   }
 
-  /* Loop over all detected RenderLayers, check whether they contain a full set of input channels.
+  /* Loop over all detected render-layers, check whether they contain a full set of input channels.
    * Any channels that won't be processed internally are also passed through. */
   for (auto &i : file_layers) {
     const string &name = i.first;
@@ -457,7 +457,7 @@ static bool save_output(const string &filepath,
 
   out.reset();
 
-  /* Copy temporary file to outputput filepath. */
+  /* Copy temporary file to output filepath. */
   string rename_error;
   if (ok && !OIIO::Filesystem::rename(tmp_filepath, filepath, rename_error)) {
     error = "Failed to move merged image to " + filepath + ": " + rename_error;

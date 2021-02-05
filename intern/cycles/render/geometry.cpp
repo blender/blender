@@ -1453,7 +1453,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       if (shader->need_update_uvs) {
         device_update_flags |= ATTR_FLOAT2_NEEDS_REALLOC;
 
-        /* Attributes might need to be tesselated if added. */
+        /* Attributes might need to be tessellated if added. */
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
           if (mesh->need_tesselation()) {
@@ -1465,7 +1465,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       if (shader->need_update_attribute) {
         device_update_flags |= ATTRS_NEED_REALLOC;
 
-        /* Attributes might need to be tesselated if added. */
+        /* Attributes might need to be tessellated if added. */
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
           if (mesh->need_tesselation()) {

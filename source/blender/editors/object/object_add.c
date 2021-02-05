@@ -1711,9 +1711,8 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_add_type(C, OB_SPEAKER, NULL, loc, rot, false, local_view_bits);
   const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(ob);
 
-  /* to make it easier to start using this immediately in NLA, a default sound clip is created
-   * ready to be moved around to retime the sound and/or make new sound clips
-   */
+  /* To make it easier to start using this immediately in NLA, a default sound clip is created
+   * ready to be moved around to re-time the sound and/or make new sound clips. */
   {
     /* create new data for NLA hierarchy */
     AnimData *adt = BKE_animdata_add_id(&ob->id);

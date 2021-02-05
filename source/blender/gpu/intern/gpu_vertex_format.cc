@@ -105,7 +105,7 @@ uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len)
 
 static uchar copy_attr_name(GPUVertFormat *format, const char *name)
 {
-  /* strncpy does 110% of what we need; let's do exactly 100% */
+  /* `strncpy` does 110% of what we need; let's do exactly 100% */
   uchar name_offset = format->name_offset;
   char *name_copy = format->names + name_offset;
   uint available = GPU_VERT_ATTR_NAMES_BUF_LEN - name_offset;
@@ -162,7 +162,7 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
       assert(comp_len != 8 && comp_len != 12 && comp_len != 16);
   }
 #endif
-  format->name_len++; /* multiname support */
+  format->name_len++; /* Multi-name support. */
 
   const uint attr_id = format->attr_len++;
   GPUVertAttr *attr = &format->attrs[attr_id];
@@ -186,7 +186,7 @@ void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
   assert(format->name_len < GPU_VERT_FORMAT_MAX_NAMES); /* there's room for more */
   assert(attr->name_len < GPU_VERT_ATTR_MAX_NAMES);
 #endif
-  format->name_len++; /* multiname support */
+  format->name_len++; /* Multi-name support. */
   attr->names[attr->name_len++] = copy_attr_name(format, alias);
 }
 

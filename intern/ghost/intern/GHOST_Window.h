@@ -392,7 +392,7 @@ class GHOST_Window : public GHOST_IWindow {
   /** Stores whether this is a full screen window. */
   bool m_fullScreen;
 
-  /** Whether to attempt to initialize a context with a stereo framebuffer. */
+  /** Whether to attempt to initialize a context with a stereo frame-buffer. */
   bool m_wantStereoVisual;
 
   /** Full-screen width */

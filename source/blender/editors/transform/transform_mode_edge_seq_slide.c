@@ -35,10 +35,12 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "BLT_translation.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
 
@@ -51,7 +53,7 @@ static eRedrawFlag seq_slide_handleEvent(struct TransInfo *t, const wmEvent *eve
   BLI_assert(t->mode == TFM_SEQ_SLIDE);
   const wmKeyMapItem *kmi = t->custom.mode.data;
   if (kmi && event->type == kmi->type && event->val == kmi->val) {
-    /* Allows the 'Expand to fit' effect to be enabled as a toogle. */
+    /* Allows the "Expand to Fit" effect to be enabled as a toggle. */
     t->flag ^= T_ALT_TRANSFORM;
     return TREDRAW_HARD;
   }
@@ -106,6 +108,7 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
   float values_final[3] = {0.0f};
 
   snapSequenceBounds(t, mval);
+  transform_convert_sequencer_channel_clamp(t);
   if (applyNumInput(&t->num, values_final)) {
     if (t->con.mode & CON_APPLY) {
       if (t->con.mode & CON_AXIS0) {

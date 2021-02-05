@@ -201,7 +201,7 @@ void BLT_lang_init(void)
   const char *const messagepath = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
 #endif
 
-  /* Make sure LANG is correct and wouldn't cause #std::rumtime_error. */
+  /* Make sure LANG is correct and wouldn't cause #std::runtime_error. */
 #ifndef _WIN32
   /* TODO(sergey): This code only ensures LANG is set properly, so later when
    * Cycles will try to use file system API from boost there will be no runtime

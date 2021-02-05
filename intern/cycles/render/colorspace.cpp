@@ -386,7 +386,7 @@ void ColorSpaceManager::free_memory()
 #endif
 }
 
-/* Template instanstations so we don't have to inline functions. */
+/* Template instantiations so we don't have to inline functions. */
 template void ColorSpaceManager::to_scene_linear(ustring, uchar *, size_t, bool);
 template void ColorSpaceManager::to_scene_linear(ustring, ushort *, size_t, bool);
 template void ColorSpaceManager::to_scene_linear(ustring, half *, size_t, bool);

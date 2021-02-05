@@ -847,7 +847,7 @@ bool DenoiseImage::save_output(const string &out_filepath, string &error)
 
   out.reset();
 
-  /* Copy temporary file to outputput filepath. */
+  /* Copy temporary file to output filepath. */
   string rename_error;
   if (ok && !OIIO::Filesystem::rename(tmp_filepath, out_filepath, rename_error)) {
     error = "Failed to move denoised image to " + out_filepath + ": " + rename_error;

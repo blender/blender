@@ -2905,7 +2905,7 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
   }
 }
 
-/************************ subdivide opertor *********************/
+/************************ subdivide operator *********************/
 
 /* works like normal edit mode subdivide, inserts keys between neighboring selected keys */
 static void subdivide_particle(PEData *data, int pa_index)
@@ -3029,7 +3029,7 @@ void PARTICLE_OT_subdivide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ remove doubles opertor *********************/
+/************************ remove doubles operator *********************/
 
 static int remove_doubles_exec(bContext *C, wmOperator *op)
 {
@@ -4565,7 +4565,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
   mval[0] = mouse[0];
   mval[1] = mouse[1];
 
-  /* disable locking temporatily for disconnected hair */
+  /* Disable locking temporarily for disconnected hair. */
   if (edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR) {
     pset->flag &= ~PE_LOCK_FIRST;
   }
@@ -5003,7 +5003,7 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  /* disable locking temporatily for disconnected hair */
+  /* Disable locking temporarily for disconnected hair. */
   if (edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR) {
     pset->flag &= ~PE_LOCK_FIRST;
   }

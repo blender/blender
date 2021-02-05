@@ -93,7 +93,7 @@ ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buff
   math_matrix_jacobi_eigendecomposition(feature_matrix, transform, num_features, 1);
 
   *rank = 0;
-  /* Prevent overfitting when a small window is used. */
+  /* Prevent over-fitting when a small window is used. */
   int max_rank = min(num_features, num_pixels / 3);
   if (pca_threshold < 0.0f) {
     float threshold_energy = 0.0f;

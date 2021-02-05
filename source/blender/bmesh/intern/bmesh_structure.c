@@ -537,7 +537,7 @@ int bmesh_radial_length(const BMLoop *l)
 
   do {
     if (UNLIKELY(!l_iter)) {
-      /* radial cycle is broken (not a circulat loop) */
+      /* Radial cycle is broken (not a circular loop). */
       BMESH_ASSERT(0);
       return 0;
     }

@@ -1055,25 +1055,22 @@ static std::ostream &operator<<(std::ostream &os, const CoplanarClusterInfo &cli
 enum ITT_value_kind { INONE, IPOINT, ISEGMENT, ICOPLANAR };
 
 struct ITT_value {
-  mpq3 p1;      /* Only relevant for IPOINT and ISEGMENT kind. */
-  mpq3 p2;      /* Only relevant for ISEGMENT kind. */
-  int t_source; /* Index of the source triangle that intersected the target one. */
-  enum ITT_value_kind kind;
+  mpq3 p1;           /* Only relevant for IPOINT and ISEGMENT kind. */
+  mpq3 p2;           /* Only relevant for ISEGMENT kind. */
+  int t_source = -1; /* Index of the source triangle that intersected the target one. */
+  enum ITT_value_kind kind = INONE;
 
-  ITT_value() : t_source(-1), kind(INONE)
-  {
-  }
-  ITT_value(ITT_value_kind k) : t_source(-1), kind(k)
+  ITT_value() = default;
+  explicit ITT_value(ITT_value_kind k) : kind(k)
   {
   }
   ITT_value(ITT_value_kind k, int tsrc) : t_source(tsrc), kind(k)
   {
   }
-  ITT_value(ITT_value_kind k, const mpq3 &p1) : p1(p1), t_source(-1), kind(k)
+  ITT_value(ITT_value_kind k, const mpq3 &p1) : p1(p1), kind(k)
   {
   }
-  ITT_value(ITT_value_kind k, const mpq3 &p1, const mpq3 &p2)
-      : p1(p1), p2(p2), t_source(-1), kind(k)
+  ITT_value(ITT_value_kind k, const mpq3 &p1, const mpq3 &p2) : p1(p1), p2(p2), kind(k)
   {
   }
   ITT_value(const ITT_value &other)
@@ -1385,7 +1382,7 @@ static ITT_value itt_canon2(const mpq3 &p1,
   return ITT_value(ISEGMENT, intersect_1, intersect_2);
 }
 
-/* Helper function for intersect_tri_tri. Args have been canonicalized for triangle 1. */
+/* Helper function for intersect_tri_tri. Arguments have been canonicalized for triangle 1. */
 
 static ITT_value itt_canon1(const mpq3 &p1,
                             const mpq3 &q1,
@@ -2026,7 +2023,7 @@ class TriOverlaps {
     if (dbg_level > 0) {
       std::cout << "TriOverlaps construction\n";
     }
-    /* Tree type is 8 => octtree; axis = 6 => using XYZ axes only. */
+    /* Tree type is 8 => octree; axis = 6 => using XYZ axes only. */
     tree_ = BLI_bvhtree_new(tm.face_size(), FLT_EPSILON, 8, 6);
     /* In the common case of a binary boolean and no self intersection in
      * each shape, we will use two trees and simple bounding box overlap. */
@@ -2378,7 +2375,7 @@ static CDT_data calc_cluster_subdivided(const CoplanarClusterInfo &clinfo,
       }
     }
   }
-  /* Use CDT to subdivide the cluster triangles and the points and segs in itts. */
+  /* Use CDT to subdivide the cluster triangles and the points and segments in itts. */
   CDT_data cd_data = prepare_cdt_input_for_cluster(tm, clinfo, c, itts);
   do_cdt(cd_data);
   return cd_data;

@@ -205,7 +205,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
 
   const bool relax_face_sets = !(ss->cache->iteration_count % 3 == 0);
-  /* This operations needs a stregth tweak as the relax deformation is too weak by default. */
+  /* This operations needs a strength tweak as the relax deformation is too weak by default. */
   if (relax_face_sets) {
     bstrength *= 2.0f;
   }
@@ -313,7 +313,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
   const int mode = RNA_enum_get(op->ptr, "mode");
 
-  /* Dyntopo not suported. */
+  /* Dyntopo not supported. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     return OPERATOR_CANCELLED;
   }

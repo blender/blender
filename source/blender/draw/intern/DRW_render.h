@@ -93,7 +93,7 @@ typedef char DRWViewportEmptyList;
 #define DRW_VIEWPORT_LIST_SIZE(list) \
   (sizeof(list) == sizeof(DRWViewportEmptyList) ? 0 : ((sizeof(list)) / sizeof(void *)))
 
-/* Unused members must be either pass list or 'char *' when not usd. */
+/* Unused members must be either pass list or 'char *' when not used. */
 #define DRW_VIEWPORT_DATA_SIZE(ty) \
   { \
     DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->fbl)), DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->txl)), \
@@ -327,14 +327,14 @@ typedef enum {
   /** Culling test */
   DRW_STATE_CULL_BACK = (1 << 7),
   DRW_STATE_CULL_FRONT = (1 << 8),
-  /** Stencil test . These options are mutal exclusive and packed into 2 bits*/
+  /** Stencil test . These options are mutually exclusive and packed into 2 bits. */
   DRW_STATE_STENCIL_ALWAYS = (1 << 9),
   DRW_STATE_STENCIL_EQUAL = (2 << 9),
   DRW_STATE_STENCIL_NEQUAL = (3 << 9),
 
   /** Blend state. These options are mutual exclusive and packed into 4 bits */
   DRW_STATE_BLEND_ADD = (1 << 11),
-  /** Same as additive but let alpha accumulate without premult. */
+  /** Same as additive but let alpha accumulate without pre-multiply. */
   DRW_STATE_BLEND_ADD_FULL = (2 << 11),
   /** Standard alpha blending. */
   DRW_STATE_BLEND_ALPHA = (3 << 11),

@@ -80,7 +80,7 @@ class network_device_memory : public device_memory {
   vector<char> local_data;
 };
 
-/* Common netowrk error function / object for both DeviceNetwork and DeviceServer*/
+/* Common network error function / object for both DeviceNetwork and DeviceServer. */
 class NetworkError {
  public:
   NetworkError()

@@ -132,7 +132,7 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
     }
   }
 
-  /* evil hack - redo resize if cliping needed */
+  /* Evil hack - redo resize if clipping needed. */
   if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values_final, 1)) {
     size_to_mat3(mat, t->values_final);
 

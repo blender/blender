@@ -369,7 +369,7 @@ void BLI_filelist_entry_datetime_to_string(const struct stat *st,
   int yesterday_yday = 0;
 
   if (r_is_today || r_is_yesterday) {
-    /* Localtime() has only one buffer so need to get data out before called again. */
+    /* `localtime()` has only one buffer so need to get data out before called again. */
     const time_t ts_now = time(NULL);
     struct tm *today = localtime(&ts_now);
 

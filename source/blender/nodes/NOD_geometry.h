@@ -28,6 +28,7 @@ void register_node_type_geo_group(void);
 
 void register_node_type_geo_attribute_fill(void);
 void register_node_type_geo_attribute_vector_math(void);
+void register_node_type_geo_attribute_proximity(void);
 void register_node_type_geo_boolean(void);
 void register_node_type_geo_edge_split(void);
 void register_node_type_geo_transform(void);
@@ -51,6 +52,7 @@ void register_node_type_geo_sample_texture(void);
 void register_node_type_geo_points_to_volume(void);
 void register_node_type_geo_collection_info(void);
 void register_node_type_geo_is_viewport(void);
+void register_node_type_geo_volume_to_mesh(void);
 
 #ifdef __cplusplus
 }

@@ -135,7 +135,7 @@ bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string
   return prop.getPropertyHeader(name) != nullptr;
 }
 
-typedef std::pair<Alembic::AbcCoreAbstract::index_t, float> index_time_pair_t;
+using index_time_pair_t = std::pair<Alembic::AbcCoreAbstract::index_t, float>;
 
 float get_weight_and_index(float time,
                            const Alembic::AbcCoreAbstract::TimeSamplingPtr &time_sampling,

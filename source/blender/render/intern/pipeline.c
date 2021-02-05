@@ -2337,7 +2337,7 @@ static int do_write_image_or_movie(Render *re,
   printf(" (Saving: %s)\n", name);
 
   fputc('\n', stdout);
-  fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
+  fflush(stdout);
 
   return ok;
 }
@@ -2737,7 +2737,7 @@ void RE_init_threadcount(Render *re)
 void RE_layer_load_from_file(
     RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
 {
-  /* OCIO_TODO: assume layer was saved in defaule color space */
+  /* OCIO_TODO: assume layer was saved in default color space */
   ImBuf *ibuf = IMB_loadiffname(filename, IB_rect, NULL);
   RenderPass *rpass = NULL;
 

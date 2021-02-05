@@ -1339,7 +1339,7 @@ static int bake(const BakeAPIRender *bkr,
       highpoly[i].ob_eval->base_flag |= (BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
       highpoly[i].me = BKE_mesh_new_from_object(NULL, highpoly[i].ob_eval, false);
 
-      /* lowpoly to highpoly transformation matrix */
+      /* Low-poly to high-poly transformation matrix. */
       copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->obmat);
       invert_m4_m4(highpoly[i].imat, highpoly[i].obmat);
 

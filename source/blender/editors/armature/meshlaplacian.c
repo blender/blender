@@ -422,7 +422,7 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTr
   }
 }
 
-/* Raytracing for vertex to bone/vertex visibility */
+/* Ray-tracing for vertex to bone/vertex visibility. */
 static void heat_ray_tree_create(LaplacianSystem *sys)
 {
   const MLoopTri *looptri = sys->heat.mlooptri;

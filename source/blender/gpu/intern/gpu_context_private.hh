@@ -93,7 +93,7 @@ class Context {
   bool is_active_on_thread(void);
 };
 
-/* Syntacting suggar. */
+/* Syntactic sugar. */
 static inline GPUContext *wrap(Context *ctx)
 {
   return reinterpret_cast<GPUContext *>(ctx);

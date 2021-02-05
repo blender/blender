@@ -363,7 +363,7 @@ namespace blender::gpu {
 void GLContext::debug_group_begin(const char *name, int index)
 {
   if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
-    /* Add 10 to avoid conlision with other indices from other possible callback layers. */
+    /* Add 10 to avoid collision with other indices from other possible callback layers. */
     index += 10;
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, index, -1, name);
   }

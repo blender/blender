@@ -625,7 +625,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_OUT1);
   RNA_def_property_ui_text(prop, "Use Output", "Save this output layer");
 
-  /* output for secondary sufrace data */
+  /* Output for secondary surface data. */
   prop = RNA_def_property(srna, "output_name_b", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "output_name2");
   RNA_def_property_ui_text(prop, "Output Name", "Name used to save output from this surface");

@@ -53,7 +53,7 @@ typedef struct MultiresBakeRender {
   int baked_objects, baked_faces;
 
   int raytrace_structure; /* Optimization structure to be used for AO baking */
-  int octree_resolution;  /* Reslution of octotree when using octotree optimization structure */
+  int octree_resolution;  /* Resolution of octree when using octree optimization structure */
   int threads;            /* Number of threads to be used for baking */
 
   float user_scale; /* User scale used to scale displacement when baking derivative map. */

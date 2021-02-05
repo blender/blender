@@ -125,7 +125,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     oxr_binding.wgl.hGLRC = ctx_wgl.m_hGLRC;
 #endif
 
-    /* Generate a framebuffer to use for blitting into the texture. */
+    /* Generate a frame-buffer to use for blitting into the texture. */
     glGenFramebuffers(1, &m_fbo);
   }
 

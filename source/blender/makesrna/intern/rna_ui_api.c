@@ -595,7 +595,7 @@ static const char *rna_ui_get_enum_name(bContext *C,
                                         const char *identifier)
 {
   PropertyRNA *prop = NULL;
-  const EnumPropertyItem *items = NULL, *item;
+  const EnumPropertyItem *items = NULL;
   bool free;
   const char *name = "";
 
@@ -609,11 +609,9 @@ static const char *rna_ui_get_enum_name(bContext *C,
   RNA_property_enum_items_gettexted(C, ptr, prop, &items, NULL, &free);
 
   if (items) {
-    for (item = items; item->identifier; item++) {
-      if (item->identifier[0] && STREQ(item->identifier, identifier)) {
-        name = item->name;
-        break;
-      }
+    const int index = RNA_enum_from_identifier(items, identifier);
+    if (index != -1) {
+      name = items[index].name;
     }
     if (free) {
       MEM_freeN((void *)items);
@@ -629,7 +627,7 @@ static const char *rna_ui_get_enum_description(bContext *C,
                                                const char *identifier)
 {
   PropertyRNA *prop = NULL;
-  const EnumPropertyItem *items = NULL, *item;
+  const EnumPropertyItem *items = NULL;
   bool free;
   const char *desc = "";
 
@@ -643,11 +641,9 @@ static const char *rna_ui_get_enum_description(bContext *C,
   RNA_property_enum_items_gettexted(C, ptr, prop, &items, NULL, &free);
 
   if (items) {
-    for (item = items; item->identifier; item++) {
-      if (item->identifier[0] && STREQ(item->identifier, identifier)) {
-        desc = item->description;
-        break;
-      }
+    const int index = RNA_enum_from_identifier(items, identifier);
+    if (index != -1) {
+      desc = items[index].description;
     }
     if (free) {
       MEM_freeN((void *)items);
@@ -663,7 +659,7 @@ static int rna_ui_get_enum_icon(bContext *C,
                                 const char *identifier)
 {
   PropertyRNA *prop = NULL;
-  const EnumPropertyItem *items = NULL, *item;
+  const EnumPropertyItem *items = NULL;
   bool free;
   int icon = ICON_NONE;
 
@@ -677,11 +673,9 @@ static int rna_ui_get_enum_icon(bContext *C,
   RNA_property_enum_items(C, ptr, prop, &items, NULL, &free);
 
   if (items) {
-    for (item = items; item->identifier; item++) {
-      if (item->identifier[0] && STREQ(item->identifier, identifier)) {
-        icon = item->icon;
-        break;
-      }
+    const int index = RNA_enum_from_identifier(items, identifier);
+    if (index != -1) {
+      icon = items[index].icon;
     }
     if (free) {
       MEM_freeN((void *)items);

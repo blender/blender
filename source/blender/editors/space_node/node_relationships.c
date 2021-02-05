@@ -736,7 +736,7 @@ static void node_link_find_socket(bContext *C, wmOperator *op, float cursor[2])
   }
 }
 
-/* loop that adds a nodelink, called by function below  */
+/* Loop that adds a node-link, called by function below. */
 /* in_out = starting socket */
 static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -1543,7 +1543,7 @@ void ED_node_link_intersect_test(ScrArea *area, int test)
       /* loop over link coords to find shortest dist to
        * upper left node edge of a intersected line segment */
       for (int i = 0; i < NODE_LINK_RESOL; i++) {
-        /* check if the node rect intersetcts the line from this point to next one */
+        /* Check if the node rectangle intersects the line from this point to next one. */
         if (BLI_rctf_isect_segment(&select->totr, coord_array[i], coord_array[i + 1])) {
           /* store the shortest distance to the upper left edge
            * of all intersections found so far */

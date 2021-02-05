@@ -235,7 +235,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
   }
   else if (t->spacetype == SPACE_IMAGE) {
     if (validSnap(t)) {
-      /* This will not draw, and Im nor sure why - campbell */
+      /* This will not draw, and I'm nor sure why - campbell */
       /* TODO: see 2.7x for non-working code */
     }
   }
@@ -383,7 +383,7 @@ void applyProject(TransInfo *t)
         }
       }
 
-#if 0 /* TODO: sipport this? */
+#if 0 /* TODO: support this? */
          constraintTransLim(t, td);
 #endif
     }

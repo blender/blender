@@ -2434,9 +2434,9 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                                      vm[orig_mloop[loopstart + j].v]);
             BLI_assert(flip ||
                        vm[orig_medge[new_edge->old_edge].v1] == vm[orig_mloop[loopstart + j].v]);
-            /* The vert thats in the current loop. */
+            /* The vert that's in the current loop. */
             const uint new_v1 = new_edge->link_edge_groups[flip]->new_vert;
-            /* The vert thats in the next loop. */
+            /* The vert that's in the next loop. */
             const uint new_v2 = new_edge->link_edge_groups[1 - flip]->new_vert;
             if (k == 0 || face_verts[k - 1] != new_v1) {
               face_loops[k] = loopstart + j;

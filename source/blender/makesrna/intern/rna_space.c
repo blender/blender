@@ -2478,7 +2478,7 @@ static void rna_FileSelectPrams_filter_glob_set(PointerRNA *ptr, const char *val
 
   BLI_strncpy(params->filter_glob, value, sizeof(params->filter_glob));
 
-  /* Remove stupi things like last group being a wildcard-only one... */
+  /* Remove stupid things like last group being a wildcard-only one. */
   BLI_path_extension_glob_validate(params->filter_glob);
 }
 
@@ -4658,7 +4658,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
       }
     }
 
-    /* Heper for drawing the icon. */
+    /* Helper for drawing the icon. */
     prop = RNA_def_property(srna, "icon_from_show_object_viewport", PROP_INT, PROP_NONE);
     RNA_def_property_int_funcs(
         prop, "rna_SpaceView3D_icon_from_show_object_viewport_get", NULL, NULL);
@@ -5702,13 +5702,13 @@ static void rna_def_space_graph(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
-  /* dopesheet */
+  /* Dope-sheet. */
   prop = RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "DopeSheet");
   RNA_def_property_pointer_sdna(prop, NULL, "ads");
   RNA_def_property_ui_text(prop, "Dope Sheet", "Settings for filtering animation data");
 
-  /* autosnap */
+  /* Auto-snap. */
   prop = RNA_def_property(srna, "auto_snap", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "autosnap");
   RNA_def_property_enum_items(prop, autosnap_items);
@@ -5716,14 +5716,14 @@ static void rna_def_space_graph(BlenderRNA *brna)
       prop, "Auto Snap", "Automatic time snapping settings for transformations");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
-  /* readonly state info */
+  /* Read-only state info. */
   prop = RNA_def_property(srna, "has_ghost_curves", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_SpaceGraphEditor_has_ghost_curves_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Has Ghost Curves", "Graph Editor instance has some ghost curves stored");
 
-  /* nromalize curves */
+  /* Normalize curves. */
   prop = RNA_def_property(srna, "use_normalization", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_NORMALIZE);
   RNA_def_property_ui_text(prop,

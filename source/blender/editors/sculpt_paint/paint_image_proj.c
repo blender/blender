@@ -138,7 +138,7 @@ BLI_INLINE uchar f_to_char(const float val)
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 /* projectFaceSeamFlags options */
-//#define PROJ_FACE_IGNORE  (1<<0)  /* When the face is hidden, backfacing or occluded */
+//#define PROJ_FACE_IGNORE  (1<<0)  /* When the face is hidden, back-facing or occluded. */
 //#define PROJ_FACE_INIT    (1<<1)  /* When we have initialized the faces data */
 
 /* If this face has a seam on any of its edges. */
@@ -150,7 +150,7 @@ BLI_INLINE uchar f_to_char(const float val)
 #  define PROJ_FACE_NOSEAM1 (1 << 5)
 #  define PROJ_FACE_NOSEAM2 (1 << 6)
 
-/* If the seam is completely initialized, including adjecent seams. */
+/* If the seam is completely initialized, including adjacent seams. */
 #  define PROJ_FACE_SEAM_INIT0 (1 << 8)
 #  define PROJ_FACE_SEAM_INIT1 (1 << 9)
 #  define PROJ_FACE_SEAM_INIT2 (1 << 10)
@@ -294,7 +294,7 @@ typedef struct ProjPaintState {
 
   /** verts projected into floating point screen space. */
   float (*screenCoords)[4];
-  /** 2D bounds for mesh verts on the screen's plane (screenspace). */
+  /** 2D bounds for mesh verts on the screen's plane (screen-space). */
   float screenMin[2];
   float screenMax[2];
   /** Calculated from screenMin & screenMax. */
@@ -310,10 +310,10 @@ typedef struct ProjPaintState {
   bool do_stencil_brush;
   bool do_material_slots;
 
-  /** Use raytraced occlusion? - ortherwise will paint right through to the back. */
+  /** Use ray-traced occlusion? - otherwise will paint right through to the back. */
   bool do_occlude;
   /** ignore faces with normals pointing away,
-   * skips a lot of raycasts if your normals are correctly flipped. */
+   * skips a lot of ray-casts if your normals are correctly flipped. */
   bool do_backfacecull;
   /** mask out pixels based on their normals. */
   bool do_mask_normal;
@@ -579,7 +579,7 @@ static Image *project_paint_face_clone_image(const ProjPaintState *ps, int tri_i
 /* fast projection bucket array lookup, use the safe version for bound checking  */
 static int project_bucket_offset(const ProjPaintState *ps, const float projCoSS[2])
 {
-  /* If we were not dealing with screenspace 2D coords we could simple do...
+  /* If we were not dealing with screen-space 2D coords we could simple do...
    * ps->bucketRect[x + (y*ps->buckets_y)] */
 
   /* please explain?
@@ -887,8 +887,8 @@ static int project_paint_occlude_ptv_clip(const float pt[3],
   return -1;
 }
 
-/* Check if a screenspace location is occluded by any other faces
- * check, pixelScreenCo must be in screenspace, its Z-Depth only needs to be used for comparison
+/* Check if a screen-space location is occluded by any other faces
+ * check, pixelScreenCo must be in screen-space, its Z-Depth only needs to be used for comparison
  * and doesn't need to be correct in relation to X and Y coords
  * (this is the case in perspective view) */
 static bool project_bucket_point_occluded(const ProjPaintState *ps,
@@ -1514,10 +1514,10 @@ static void project_face_seams_init(const ProjPaintState *ps,
 }
 #endif  // PROJ_DEBUG_NOSEAMBLEED
 
-/* Converts a UV location to a 3D screenspace location
+/* Converts a UV location to a 3D screen-space location
  * Takes a 'uv' and 3 UV coords, and sets the values of pixelScreenCo
  *
- * This is used for finding a pixels location in screenspace for painting */
+ * This is used for finding a pixels location in screen-space for painting */
 static void screen_px_from_ortho(const float uv[2],
                                  const float v1co[3],
                                  const float v2co[3],
@@ -1537,7 +1537,7 @@ static void screen_px_from_ortho(const float uv[2],
 static void screen_px_from_persp(const float uv[2],
                                  const float v1co[4],
                                  const float v2co[4],
-                                 const float v3co[4], /* screenspace coords */
+                                 const float v3co[4], /* screen-space coords */
                                  const float uv1co[2],
                                  const float uv2co[2],
                                  const float uv3co[2],
@@ -1923,7 +1923,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
     projPixel->newColor.uint = 0;
   }
 
-  /* screenspace unclamped, we could keep its z and w values but don't need them at the moment */
+  /* Screen-space unclamped, we could keep its z and w values but don't need them at the moment. */
   if (ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
     copy_v3_v3(projPixel->worldCoSS, world_spaceCo);
   }
@@ -2304,14 +2304,14 @@ static bool project_bucket_isect_circle(const float cent[2],
   return false;
 }
 
-/* Note for rect_to_uvspace_ortho() and rect_to_uvspace_persp()
+/* Note for #rect_to_uvspace_ortho() and #rect_to_uvspace_persp()
  * in ortho view this function gives good results when bucket_bounds are outside the triangle
  * however in some cases, perspective view will mess up with faces
- * that have minimal screenspace area (viewed from the side).
+ * that have minimal screen-space area (viewed from the side).
  *
  * for this reason its not reliable in this case so we'll use the Simple Barycentric'
- * funcs that only account for points inside the triangle.
- * however switching back to this for ortho is always an option */
+ * functions that only account for points inside the triangle.
+ * however switching back to this for ortho is always an option. */
 
 static void rect_to_uvspace_ortho(const rctf *bucket_bounds,
                                   const float *v1coSS,
@@ -2517,8 +2517,8 @@ static void project_bucket_clip_face(const bool is_ortho,
     flip = (((line_point_side_v2(v1coSS, v2coSS, v3coSS) > 0.0f) != is_flip_object) !=
             (line_point_side_v2(uv1co, uv2co, uv3co) > 0.0f));
 
-    /* all screenspace points are inside the bucket bounding box,
-     * this means we don't need to clip and can simply return the UVs */
+    /* All screen-space points are inside the bucket bounding box,
+     * this means we don't need to clip and can simply return the UVs. */
     if (flip) { /* facing the back? */
       copy_v2_v2(bucket_bounds_uv[0], uv3co);
       copy_v2_v2(bucket_bounds_uv[1], uv2co);
@@ -2635,7 +2635,7 @@ static void project_bucket_clip_face(const bool is_ortho,
           (line_point_side_v2(uv1co, uv2co, uv3co) > 0.0f));
 
   if (inside_face_flag == ISECT_ALL4) {
-    /* bucket is totally inside the screenspace face, we can safely use weights */
+    /* Bucket is totally inside the screen-space face, we can safely use weights. */
 
     if (is_ortho) {
       rect_to_uvspace_ortho(
@@ -2656,7 +2656,7 @@ static void project_bucket_clip_face(const bool is_ortho,
      * The 2 cases above are where the face is inside the bucket
      * or the bucket is inside the face.
      *
-     * we need to make a convex polyline from the intersection between the screenspace face
+     * we need to make a convex poly-line from the intersection between the screen-space face
      * and the bucket bounds.
      *
      * There are a number of ways this could be done, currently it just collects all
@@ -2997,7 +2997,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
   /* vert co screen-space, these will be assigned to lt_vtri[0-2] */
   const float *v1coSS, *v2coSS, *v3coSS;
 
-  /* vertex screenspace coords */
+  /* Vertex screen-space coords. */
   const float *vCo[3];
 
   float w[3], wco[3];
@@ -3007,9 +3007,9 @@ static void project_paint_face_init(const ProjPaintState *ps,
   float pixelScreenCo[4];
   bool do_3d_mapping = ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D;
 
-  /* ispace bounds */
+  /* Image-space bounds. */
   rcti bounds_px;
-  /* vars for getting uvspace bounds */
+  /* Variables for getting UV-space bounds. */
 
   /* bucket bounds in UV space so we can init pixels only for this face,  */
   float lt_uv_pxoffset[3][2];
@@ -3207,10 +3207,10 @@ static void project_paint_face_init(const ProjPaintState *ps,
       /* inset face coords.  NOTE!!! ScreenSace for ortho, Worldspace in perspective view */
       float insetCos[3][3];
 
-      /* vertex screenspace coords */
+      /* Vertex screen-space coords. */
       const float *vCoSS[3];
 
-      /* Store the screenspace coords of the face,
+      /* Store the screen-space coords of the face,
        * clipped by the bucket's screen aligned rectangle. */
       float bucket_clip_edges[2][2];
       float edge_verts_inset_clip[2][3];
@@ -3419,7 +3419,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
 }
 
 /**
- * Takes floating point screenspace min/max and
+ * Takes floating point screen-space min/max and
  * returns int min/max to be used as indices for ps->bucketRect, ps->bucketFlags
  */
 static void project_paint_bucket_bounds(const ProjPaintState *ps,
@@ -3888,7 +3888,7 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
         float no[3];
         mul_v3_fl(edges[a], 1.0f / counter[a]);
         normal_short_to_float_v3(no, mv->no);
-        /* augment the diffe*/
+        /* Augment the difference. */
         cavities[a] = saacos(10.0f * dot_v3v3(no, edges[a])) * (float)M_1_PI;
       }
       else {
@@ -4308,7 +4308,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
           slot_last = slot;
         }
 
-        /* don't allow using the same inage for painting and stencilling */
+        /* Don't allow using the same image for painting and stenciling. */
         if (slot->ima == ps->stencil_ima) {
           /* Delay continuing the loop until after loop_uvs and bleed faces are initialized.
            * While this shouldn't be used, face-winding reads all polys.
@@ -4338,7 +4338,6 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       continue;
     }
 
-    /* tfbase here should be non-null! */
     BLI_assert(mloopuv_base != NULL);
 
     if (is_face_sel && tpage) {

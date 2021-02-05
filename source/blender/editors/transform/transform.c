@@ -135,7 +135,7 @@ void setTransformViewAspect(TransInfo *t, float r_aspect[3])
     }
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    /* depemds on context of usage */
+    /* Depends on context of usage. */
   }
 }
 
@@ -471,7 +471,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
   }
   else if (t->spacetype == SPACE_SEQ) {
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, NULL);
-    /* Keyframes on strips has been moved, so make sure related editos are informed. */
+    /* Key-frames on strips has been moved, so make sure related editors are informed. */
     WM_event_add_notifier(C, NC_ANIMATION, NULL);
   }
   else if (t->spacetype == SPACE_IMAGE) {
@@ -1249,7 +1249,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 
   createTransData(C, t); /* make TransData structs from selection */
 
-  t->around = centerMode; /* override userdefined mode */
+  t->around = centerMode; /* override user-defined mode. */
 
   if (t->data_len_all == 0) {
     success = false;

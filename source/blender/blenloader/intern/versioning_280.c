@@ -1390,7 +1390,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
       }
     }
 
-    /* Cleanup deprecated flag from particlesettings data-blocks. */
+    /* Cleanup deprecated flag from particle-settings data-blocks. */
     for (ParticleSettings *part = bmain->particles.first; part; part = part->id.next) {
       part->draw &= ~PART_DRAW_EMITTER;
     }
@@ -2110,7 +2110,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (Tex *tex = bmain->textures.first; tex; tex = tex->id.next) {
-      /* Removed envmap, pointdensity, voxeldata, ocean textures. */
+      /* Removed environment map, point-density, voxel-data, ocean textures. */
       if (ELEM(tex->type, 10, 14, 15, 16)) {
         tex->type = 0;
       }
@@ -4303,7 +4303,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Elatic deform brush */
+    /* Elastic deform brush */
     for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
       if (br->ob_mode & OB_MODE_SCULPT && br->elastic_deform_volume_preservation == 0.0f) {
         br->elastic_deform_volume_preservation = 0.5f;

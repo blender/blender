@@ -260,7 +260,7 @@ static wmGizmo *rna_GizmoProperties_find_operator(PointerRNA *ptr)
   wmWindowManager *wm = (wmWindowManager *)ptr->owner_id;
 #  endif
 
-  /* We could try workaruond this lookup, but not trivial. */
+  /* We could try workaround this lookup, but not trivial. */
   for (bScreen *screen = G_MAIN->screens.first; screen; screen = screen->id.next) {
     IDProperty *properties = ptr->data;
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -1089,7 +1089,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "event", "Event", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  /* TODO, shuold be a enum-flag */
+  /* TODO, should be a enum-flag */
   parm = RNA_def_enum_flag(func, "tweak", tweak_actions, 0, "Tweak", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_enum_flag(

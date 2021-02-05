@@ -93,7 +93,7 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
     line_tex = txl->overlay_line_tx;
   }
   else {
-    /* Just a copy of the defaults framebuffers. */
+    /* Just a copy of the defaults frame-buffers. */
     color_tex = dtxl->color_overlay;
   }
 

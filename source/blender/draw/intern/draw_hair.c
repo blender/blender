@@ -320,7 +320,7 @@ void DRW_hair_update(void)
     max_size = max_ii(max_size, pr_call->vert_len);
   }
 
-  /* Create target Texture / Framebuffer */
+  /* Create target Texture / Frame-buffer */
   /* Don't use max size as it can be really heavy and fail.
    * Do chunks of maximum 2048 * 2048 hair points. */
   int width = 2048;

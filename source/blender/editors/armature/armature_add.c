@@ -122,9 +122,6 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool
   return bone;
 }
 
-/* previously addvert_armature */
-/* the ctrl-click method */
-
 /**
  * Note this is already ported to multi-objects as it is.
  * Since only the active bone is extruded even for single objects,

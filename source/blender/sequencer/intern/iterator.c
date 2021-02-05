@@ -75,31 +75,31 @@ static void seq_build_array(ListBase *seqbase, Sequence ***array, int depth)
 }
 
 static void seq_array(Editing *ed,
-                      Sequence ***seqarray,
-                      int *tot,
-                      const bool use_current_sequences)
+                      const bool use_current_sequences,
+                      Sequence ***r_seqarray,
+                      int *r_seqarray_len)
 {
   Sequence **array;
 
-  *seqarray = NULL;
-  *tot = 0;
+  *r_seqarray = NULL;
+  *r_seqarray_len = 0;
 
   if (ed == NULL) {
     return;
   }
 
   if (use_current_sequences) {
-    seq_count(ed->seqbasep, tot);
+    seq_count(ed->seqbasep, r_seqarray_len);
   }
   else {
-    seq_count(&ed->seqbase, tot);
+    seq_count(&ed->seqbase, r_seqarray_len);
   }
 
-  if (*tot == 0) {
+  if (*r_seqarray_len == 0) {
     return;
   }
 
-  *seqarray = array = MEM_mallocN(sizeof(Sequence *) * (*tot), "SeqArray");
+  *r_seqarray = array = MEM_mallocN(sizeof(Sequence *) * (*r_seqarray_len), "SeqArray");
   if (use_current_sequences) {
     seq_build_array(ed->seqbasep, &array, 0);
   }
@@ -111,7 +111,7 @@ static void seq_array(Editing *ed,
 void SEQ_iterator_begin(Editing *ed, SeqIterator *iter, const bool use_current_sequences)
 {
   memset(iter, 0, sizeof(*iter));
-  seq_array(ed, &iter->array, &iter->tot, use_current_sequences);
+  seq_array(ed, use_current_sequences, &iter->array, &iter->tot);
 
   if (iter->tot) {
     iter->cur = 0;

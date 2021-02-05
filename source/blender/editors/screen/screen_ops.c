@@ -1637,7 +1637,7 @@ static int area_snap_calc_location(const bScreen *screen,
             /* Thirds. */
             1.0f / 3.0f,
             2.0f / 3.0f,
-            /* Quaters. */
+            /* Quarters. */
             1.0f / 4.0f,
             3.0f / 4.0f,
             /* Eighth. */

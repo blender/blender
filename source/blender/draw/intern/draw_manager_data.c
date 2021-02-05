@@ -978,7 +978,7 @@ static void drw_sculpt_get_frustum_planes(Object *ob, float planes[6][4])
 
 static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 {
-  /* PBVH should always exist for non-empty meshes, created by depsgrah eval. */
+  /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
   PBVH *pbvh = (scd->ob->sculpt) ? scd->ob->sculpt->pbvh : NULL;
   if (!pbvh) {
     return;
@@ -1601,10 +1601,10 @@ static void draw_frustum_bound_sphere_calc(const BoundBox *bbox,
 
     /* Detect which of the corner of the far clipping plane is the farthest to the origin */
     float nfar[4];               /* most extreme far point in NDC space */
-    float farxy[2];              /* farpoint projection onto the near plane */
+    float farxy[2];              /* far-point projection onto the near plane */
     float farpoint[3] = {0.0f};  /* most extreme far point in camera coordinate */
     float nearpoint[3];          /* most extreme near point in camera coordinate */
-    float farcenter[3] = {0.0f}; /* center of far cliping plane in camera coordinate */
+    float farcenter[3] = {0.0f}; /* center of far clipping plane in camera coordinate */
     float F = -1.0f, N;          /* square distance of far and near point to origin */
     float f, n; /* distance of far and near point to z axis. f is always > 0 but n can be < 0 */
     float e, s; /* far and near clipping distance (<0) */

@@ -1108,7 +1108,7 @@ BoneExtended &ArmatureImporter::add_bone_extended(EditBone *bone,
   }
 
   if (!has_connect && this->import_settings->auto_connect) {
-    /* auto connect only whyen parent has exactly one child*/
+    /* Auto connect only when parent has exactly one child. */
     connect_type = sibcount == 1;
   }
 

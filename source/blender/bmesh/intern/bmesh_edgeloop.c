@@ -450,7 +450,7 @@ void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops, const boo
   }
   mul_v3_fl(cent, 1.0f / (float)tot);
 
-  /* find far outest loop */
+  /* Find the furthest out loop. */
   {
     BMEdgeLoopStore *el_store_best = NULL;
     float len_best_sq = -1.0f;

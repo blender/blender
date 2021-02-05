@@ -178,7 +178,7 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
   if (id_node->components.is_empty() && deg_copy_on_write_is_needed(id_type)) {
     ComponentNode *comp_cow = id_node->add_component(NodeType::COPY_ON_WRITE);
     OperationNode *op_cow = comp_cow->add_operation(
-        function_bind(deg_evaluate_copy_on_write, _1, id_node),
+        [id_node](::Depsgraph *depsgraph) { deg_evaluate_copy_on_write(depsgraph, id_node); },
         OperationCode::COPY_ON_WRITE,
         "",
         -1);
@@ -696,7 +696,9 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   add_operation_node(&object->id,
                      NodeType::SYNCHRONIZATION,
                      OperationCode::SYNCHRONIZE_TO_ORIGINAL,
-                     function_bind(BKE_object_sync_to_original, _1, object_cow));
+                     [object_cow](::Depsgraph *depsgraph) {
+                       BKE_object_sync_to_original(depsgraph, object_cow);
+                     });
 }
 
 void DepsgraphNodeBuilder::build_object_from_layer(int base_index,
@@ -725,16 +727,15 @@ void DepsgraphNodeBuilder::build_object_flags(int base_index,
   Object *object_cow = get_cow_datablock(object);
   const bool is_from_set = (linked_state == DEG_ID_LINKED_VIA_SET);
   /* TODO(sergey): Is this really best component to be used? */
-  add_operation_node(&object->id,
-                     NodeType::OBJECT_FROM_LAYER,
-                     OperationCode::OBJECT_BASE_FLAGS,
-                     function_bind(BKE_object_eval_eval_base_flags,
-                                   _1,
-                                   scene_cow,
-                                   view_layer_index_,
-                                   object_cow,
-                                   base_index,
-                                   is_from_set));
+  add_operation_node(
+      &object->id,
+      NodeType::OBJECT_FROM_LAYER,
+      OperationCode::OBJECT_BASE_FLAGS,
+      [view_layer_index = view_layer_index_, scene_cow, object_cow, base_index, is_from_set](
+          ::Depsgraph *depsgraph) {
+        BKE_object_eval_eval_base_flags(
+            depsgraph, scene_cow, view_layer_index, object_cow, base_index, is_from_set);
+      });
 }
 
 void DepsgraphNodeBuilder::build_object_proxy_from(Object *object, bool is_object_visible)
@@ -853,34 +854,38 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
   op_node = add_operation_node(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_INIT);
   op_node->set_as_entry();
   /* Local transforms (from transform channels - loc/rot/scale + deltas). */
-  add_operation_node(&object->id,
-                     NodeType::TRANSFORM,
-                     OperationCode::TRANSFORM_LOCAL,
-                     function_bind(BKE_object_eval_local_transform, _1, ob_cow));
+  add_operation_node(
+      &object->id,
+      NodeType::TRANSFORM,
+      OperationCode::TRANSFORM_LOCAL,
+      [ob_cow](::Depsgraph *depsgraph) { BKE_object_eval_local_transform(depsgraph, ob_cow); });
   /* Object parent. */
   if (object->parent != nullptr) {
-    add_operation_node(&object->id,
-                       NodeType::TRANSFORM,
-                       OperationCode::TRANSFORM_PARENT,
-                       function_bind(BKE_object_eval_parent, _1, ob_cow));
+    add_operation_node(
+        &object->id,
+        NodeType::TRANSFORM,
+        OperationCode::TRANSFORM_PARENT,
+        [ob_cow](::Depsgraph *depsgraph) { BKE_object_eval_parent(depsgraph, ob_cow); });
   }
   /* Object constraints. */
   if (object->constraints.first != nullptr) {
     build_object_constraints(object);
   }
   /* Rest of transformation update. */
-  add_operation_node(&object->id,
-                     NodeType::TRANSFORM,
-                     OperationCode::TRANSFORM_EVAL,
-                     function_bind(BKE_object_eval_uber_transform, _1, ob_cow));
+  add_operation_node(
+      &object->id,
+      NodeType::TRANSFORM,
+      OperationCode::TRANSFORM_EVAL,
+      [ob_cow](::Depsgraph *depsgraph) { BKE_object_eval_uber_transform(depsgraph, ob_cow); });
   /* Operation to take of rigid body simulation. soft bodies and other friends
    * in the context of point cache invalidation. */
   add_operation_node(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_SIMULATION_INIT);
   /* Object transform is done. */
-  op_node = add_operation_node(&object->id,
-                               NodeType::TRANSFORM,
-                               OperationCode::TRANSFORM_FINAL,
-                               function_bind(BKE_object_eval_transform_final, _1, ob_cow));
+  op_node = add_operation_node(
+      &object->id,
+      NodeType::TRANSFORM,
+      OperationCode::TRANSFORM_FINAL,
+      [ob_cow](::Depsgraph *depsgraph) { BKE_object_eval_transform_final(depsgraph, ob_cow); });
   op_node->set_as_exit();
 }
 
@@ -904,12 +909,14 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
 void DepsgraphNodeBuilder::build_object_constraints(Object *object)
 {
   /* create node for constraint stack */
-  add_operation_node(
-      &object->id,
-      NodeType::TRANSFORM,
-      OperationCode::TRANSFORM_CONSTRAINTS,
-      function_bind(
-          BKE_object_eval_constraints, _1, get_cow_datablock(scene_), get_cow_datablock(object)));
+  Scene *scene_cow = get_cow_datablock(scene_);
+  Object *object_cow = get_cow_datablock(object);
+  add_operation_node(&object->id,
+                     NodeType::TRANSFORM,
+                     OperationCode::TRANSFORM_CONSTRAINTS,
+                     [scene_cow, object_cow](::Depsgraph *depsgraph) {
+                       BKE_object_eval_constraints(depsgraph, scene_cow, object_cow);
+                     });
 }
 
 void DepsgraphNodeBuilder::build_object_pointcache(Object *object)
@@ -922,7 +929,9 @@ void DepsgraphNodeBuilder::build_object_pointcache(Object *object)
   add_operation_node(&object->id,
                      NodeType::POINT_CACHE,
                      OperationCode::POINT_CACHE_RESET,
-                     function_bind(BKE_object_eval_ptcache_reset, _1, scene_cow, object_cow));
+                     [scene_cow, object_cow](::Depsgraph *depsgraph) {
+                       BKE_object_eval_ptcache_reset(depsgraph, scene_cow, object_cow);
+                     });
 }
 
 /**
@@ -950,10 +959,10 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
     operation_node = add_operation_node(id, NodeType::ANIMATION, OperationCode::ANIMATION_ENTRY);
     operation_node->set_as_entry();
     /* All the evaluation nodes. */
-    add_operation_node(id,
-                       NodeType::ANIMATION,
-                       OperationCode::ANIMATION_EVAL,
-                       function_bind(BKE_animsys_eval_animdata, _1, id_cow));
+    add_operation_node(
+        id, NodeType::ANIMATION, OperationCode::ANIMATION_EVAL, [id_cow](::Depsgraph *depsgraph) {
+          BKE_animsys_eval_animdata(depsgraph, id_cow);
+        });
     /* Explicit exit operation. */
     operation_node = add_operation_node(id, NodeType::ANIMATION, OperationCode::ANIMATION_EXIT);
     operation_node->set_as_exit();
@@ -989,10 +998,11 @@ void DepsgraphNodeBuilder::build_animation_images(ID *id)
 {
   if (BKE_image_user_id_has_animation(id)) {
     ID *id_cow = get_cow_id(id);
-    add_operation_node(id,
-                       NodeType::IMAGE_ANIMATION,
-                       OperationCode::IMAGE_ANIMATION,
-                       function_bind(BKE_image_user_id_eval_animation, _1, id_cow));
+    add_operation_node(
+        id,
+        NodeType::IMAGE_ANIMATION,
+        OperationCode::IMAGE_ANIMATION,
+        [id_cow](::Depsgraph *depsgraph) { BKE_image_user_id_eval_animation(depsgraph, id_cow); });
   }
 }
 
@@ -1020,12 +1030,15 @@ void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve, int driver_index
    * has not yet been allocated at this point we can't. As a workaround
    * the animation systems allocates an array so we can do a fast lookup
    * with the driver index. */
-  ensure_operation_node(id,
-                        NodeType::PARAMETERS,
-                        OperationCode::DRIVER,
-                        function_bind(BKE_animsys_eval_driver, _1, id_cow, driver_index, fcurve),
-                        fcurve->rna_path ? fcurve->rna_path : "",
-                        fcurve->array_index);
+  ensure_operation_node(
+      id,
+      NodeType::PARAMETERS,
+      OperationCode::DRIVER,
+      [id_cow, driver_index, fcurve](::Depsgraph *depsgraph) {
+        BKE_animsys_eval_driver(depsgraph, id_cow, driver_index, fcurve);
+      },
+      fcurve->rna_path ? fcurve->rna_path : "",
+      fcurve->array_index);
   build_driver_variables(id, fcurve);
 }
 
@@ -1103,10 +1116,11 @@ void DepsgraphNodeBuilder::build_world(World *world)
   add_id_node(&world->id);
   World *world_cow = get_cow_datablock(world);
   /* Shading update. */
-  add_operation_node(&world->id,
-                     NodeType::SHADING,
-                     OperationCode::WORLD_UPDATE,
-                     function_bind(BKE_world_eval, _1, world_cow));
+  add_operation_node(
+      &world->id,
+      NodeType::SHADING,
+      OperationCode::WORLD_UPDATE,
+      [world_cow](::Depsgraph *depsgraph) { BKE_world_eval(depsgraph, world_cow); });
   build_idproperties(world->id.properties);
   /* Animation. */
   build_animdata(&world->id);
@@ -1142,16 +1156,19 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
    * instead? */
 
   /* Init/rebuild operation. */
-  add_operation_node(&scene->id,
-                     NodeType::TRANSFORM,
-                     OperationCode::RIGIDBODY_REBUILD,
-                     function_bind(BKE_rigidbody_rebuild_sim, _1, scene_cow));
-  /* Do-sim operation. */
-  OperationNode *sim_node = add_operation_node(
+  add_operation_node(
       &scene->id,
       NodeType::TRANSFORM,
-      OperationCode::RIGIDBODY_SIM,
-      function_bind(BKE_rigidbody_eval_simulation, _1, scene_cow));
+      OperationCode::RIGIDBODY_REBUILD,
+      [scene_cow](::Depsgraph *depsgraph) { BKE_rigidbody_rebuild_sim(depsgraph, scene_cow); });
+  /* Do-sim operation. */
+  OperationNode *sim_node = add_operation_node(&scene->id,
+                                               NodeType::TRANSFORM,
+                                               OperationCode::RIGIDBODY_SIM,
+                                               [scene_cow](::Depsgraph *depsgraph) {
+                                                 BKE_rigidbody_eval_simulation(depsgraph,
+                                                                               scene_cow);
+                                               });
   sim_node->set_as_entry();
   sim_node->set_as_exit();
   sim_node->owner->entry_operation = sim_node;
@@ -1173,12 +1190,13 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
       /* Create operation for flushing results. */
       /* Object's transform component - where the rigidbody operation
        * lives. */
-      add_operation_node(
-          &object->id,
-          NodeType::TRANSFORM,
-          OperationCode::RIGIDBODY_TRANSFORM_COPY,
-          function_bind(
-              BKE_rigidbody_object_sync_transforms, _1, scene_cow, get_cow_datablock(object)));
+      Object *object_cow = get_cow_datablock(object);
+      add_operation_node(&object->id,
+                         NodeType::TRANSFORM,
+                         OperationCode::RIGIDBODY_TRANSFORM_COPY,
+                         [scene_cow, object_cow](::Depsgraph *depsgraph) {
+                           BKE_rigidbody_object_sync_transforms(depsgraph, scene_cow, object_cow);
+                         });
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
@@ -1219,9 +1237,10 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object, bool is_object
 
   Object *ob_cow = get_cow_datablock(object);
   OperationNode *op_node;
-  op_node = add_operation_node(psys_comp,
-                               OperationCode::PARTICLE_SYSTEM_INIT,
-                               function_bind(BKE_particle_system_eval_init, _1, ob_cow));
+  op_node = add_operation_node(
+      psys_comp, OperationCode::PARTICLE_SYSTEM_INIT, [ob_cow](::Depsgraph *depsgraph) {
+        BKE_particle_system_eval_init(depsgraph, ob_cow);
+      });
   op_node->set_as_entry();
   /* Build all particle systems. */
   LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
@@ -1278,7 +1297,9 @@ void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *particle_se
   add_operation_node(&particle_settings->id,
                      NodeType::PARTICLE_SETTINGS,
                      OperationCode::PARTICLE_SETTINGS_RESET,
-                     function_bind(BKE_particle_settings_eval_reset, _1, particle_settings_cow));
+                     [particle_settings_cow](::Depsgraph *depsgraph) {
+                       BKE_particle_settings_eval_reset(depsgraph, particle_settings_cow);
+                     });
   op_node = add_operation_node(
       &particle_settings->id, NodeType::PARTICLE_SETTINGS, OperationCode::PARTICLE_SETTINGS_EVAL);
   op_node->set_as_exit();
@@ -1323,11 +1344,12 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object, bool is_ob
   op_node = add_operation_node(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_INIT);
   op_node->set_as_entry();
   /* Geometry evaluation. */
-  op_node = add_operation_node(
-      &object->id,
-      NodeType::GEOMETRY,
-      OperationCode::GEOMETRY_EVAL,
-      function_bind(BKE_object_eval_uber_data, _1, scene_cow, object_cow));
+  op_node = add_operation_node(&object->id,
+                               NodeType::GEOMETRY,
+                               OperationCode::GEOMETRY_EVAL,
+                               [scene_cow, object_cow](::Depsgraph *depsgraph) {
+                                 BKE_object_eval_uber_data(depsgraph, scene_cow, object_cow);
+                               });
   op_node->set_as_exit();
   /* Materials. */
   build_materials(object->mat, object->totcol);
@@ -1337,10 +1359,11 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object, bool is_ob
   build_object_data_geometry_datablock((ID *)object->data, is_object_visible);
   build_dimensions(object);
   /* Batch cache. */
-  add_operation_node(&object->id,
-                     NodeType::BATCH_CACHE,
-                     OperationCode::GEOMETRY_SELECT_UPDATE,
-                     function_bind(BKE_object_select_update, _1, object_cow));
+  add_operation_node(
+      &object->id,
+      NodeType::BATCH_CACHE,
+      OperationCode::GEOMETRY_SELECT_UPDATE,
+      [object_cow](::Depsgraph *depsgraph) { BKE_object_select_update(depsgraph, object_cow); });
 }
 
 void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool is_object_visible)
@@ -1368,7 +1391,9 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
       op_node = add_operation_node(obdata,
                                    NodeType::GEOMETRY,
                                    OperationCode::GEOMETRY_EVAL,
-                                   function_bind(BKE_mesh_eval_geometry, _1, (Mesh *)obdata_cow));
+                                   [obdata_cow](::Depsgraph *depsgraph) {
+                                     BKE_mesh_eval_geometry(depsgraph, (Mesh *)obdata_cow);
+                                   });
       op_node->set_as_entry();
       break;
     }
@@ -1378,11 +1403,12 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
       break;
     }
     case ID_CU: {
-      op_node = add_operation_node(
-          obdata,
-          NodeType::GEOMETRY,
-          OperationCode::GEOMETRY_EVAL,
-          function_bind(BKE_curve_eval_geometry, _1, (Curve *)obdata_cow));
+      op_node = add_operation_node(obdata,
+                                   NodeType::GEOMETRY,
+                                   OperationCode::GEOMETRY_EVAL,
+                                   [obdata_cow](::Depsgraph *depsgraph) {
+                                     BKE_curve_eval_geometry(depsgraph, (Curve *)obdata_cow);
+                                   });
       op_node->set_as_entry();
       /* Make sure objects used for bevel.taper are in the graph.
        * NOTE: This objects might be not linked to the scene. */
@@ -1399,22 +1425,25 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
       break;
     }
     case ID_LT: {
-      op_node = add_operation_node(
-          obdata,
-          NodeType::GEOMETRY,
-          OperationCode::GEOMETRY_EVAL,
-          function_bind(BKE_lattice_eval_geometry, _1, (Lattice *)obdata_cow));
+      op_node = add_operation_node(obdata,
+                                   NodeType::GEOMETRY,
+                                   OperationCode::GEOMETRY_EVAL,
+                                   [obdata_cow](::Depsgraph *depsgraph) {
+                                     BKE_lattice_eval_geometry(depsgraph, (Lattice *)obdata_cow);
+                                   });
       op_node->set_as_entry();
       break;
     }
 
     case ID_GD: {
       /* GPencil evaluation operations. */
-      op_node = add_operation_node(
-          obdata,
-          NodeType::GEOMETRY,
-          OperationCode::GEOMETRY_EVAL,
-          function_bind(BKE_gpencil_frame_active_set, _1, (bGPdata *)obdata_cow));
+      op_node = add_operation_node(obdata,
+                                   NodeType::GEOMETRY,
+                                   OperationCode::GEOMETRY_EVAL,
+                                   [obdata_cow](::Depsgraph *depsgraph) {
+                                     BKE_gpencil_frame_active_set(depsgraph,
+                                                                  (bGPdata *)obdata_cow);
+                                   });
       op_node->set_as_entry();
       break;
     }
@@ -1430,11 +1459,12 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
     }
     case ID_VO: {
       /* Volume frame update. */
-      op_node = add_operation_node(
-          obdata,
-          NodeType::GEOMETRY,
-          OperationCode::GEOMETRY_EVAL,
-          function_bind(BKE_volume_eval_geometry, _1, (Volume *)obdata_cow));
+      op_node = add_operation_node(obdata,
+                                   NodeType::GEOMETRY,
+                                   OperationCode::GEOMETRY_EVAL,
+                                   [obdata_cow](::Depsgraph *depsgraph) {
+                                     BKE_volume_eval_geometry(depsgraph, (Volume *)obdata_cow);
+                                   });
       op_node->set_as_entry();
       break;
     }
@@ -1450,7 +1480,9 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
   add_operation_node(obdata,
                      NodeType::BATCH_CACHE,
                      OperationCode::GEOMETRY_SELECT_UPDATE,
-                     function_bind(BKE_object_data_select_update, _1, obdata_cow));
+                     [obdata_cow](::Depsgraph *depsgraph) {
+                       BKE_object_data_select_update(depsgraph, obdata_cow);
+                     });
 }
 
 void DepsgraphNodeBuilder::build_armature(bArmature *armature)
@@ -1466,7 +1498,9 @@ void DepsgraphNodeBuilder::build_armature(bArmature *armature)
   add_operation_node(&armature->id,
                      NodeType::ARMATURE,
                      OperationCode::ARMATURE_EVAL,
-                     function_bind(BKE_armature_refresh_layer_used, _1, armature_cow));
+                     [armature_cow](::Depsgraph *depsgraph) {
+                       BKE_armature_refresh_layer_used(depsgraph, armature_cow);
+                     });
   build_armature_bones(&armature->bonebase);
 }
 
@@ -1506,7 +1540,7 @@ void DepsgraphNodeBuilder::build_light(Light *lamp)
   add_operation_node(&lamp->id,
                      NodeType::SHADING,
                      OperationCode::LIGHT_UPDATE,
-                     function_bind(BKE_light_eval, _1, lamp_cow));
+                     [lamp_cow](::Depsgraph *depsgraph) { BKE_light_eval(depsgraph, lamp_cow); });
 }
 
 void DepsgraphNodeBuilder::build_nodetree_socket(bNodeSocket *socket)
@@ -1534,7 +1568,6 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   }
   /* nodetree itself */
   add_id_node(&ntree->id);
-  bNodeTree *ntree_cow = get_cow_datablock(ntree);
   /* General parameters. */
   build_parameters(&ntree->id);
   build_idproperties(ntree->id.properties);
@@ -1542,12 +1575,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   build_animdata(&ntree->id);
   /* Shading update. */
   add_operation_node(&ntree->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
-  /* NOTE: We really pass original and CoW node trees here, this is how the
-   * callback works. Ideally we need to find a better way for that. */
-  add_operation_node(&ntree->id,
-                     NodeType::SHADING_PARAMETERS,
-                     OperationCode::MATERIAL_UPDATE,
-                     function_bind(BKE_nodetree_shading_params_eval, _1, ntree_cow, ntree));
+  add_operation_node(&ntree->id, NodeType::SHADING_PARAMETERS, OperationCode::MATERIAL_UPDATE);
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);
@@ -1626,10 +1654,11 @@ void DepsgraphNodeBuilder::build_material(Material *material)
   add_id_node(&material->id);
   Material *material_cow = get_cow_datablock(material);
   /* Shading update. */
-  add_operation_node(&material->id,
-                     NodeType::SHADING,
-                     OperationCode::MATERIAL_UPDATE,
-                     function_bind(BKE_material_eval, _1, material_cow));
+  add_operation_node(
+      &material->id,
+      NodeType::SHADING,
+      OperationCode::MATERIAL_UPDATE,
+      [material_cow](::Depsgraph *depsgraph) { BKE_material_eval(depsgraph, material_cow); });
   build_idproperties(material->id.properties);
   /* Material animation. */
   build_animdata(&material->id);
@@ -1714,7 +1743,9 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
   add_operation_node(cache_file_id,
                      NodeType::CACHE,
                      OperationCode::FILE_CACHE_UPDATE,
-                     function_bind(BKE_cachefile_eval, bmain_, _1, cache_file_cow));
+                     [bmain = bmain_, cache_file_cow](::Depsgraph *depsgraph) {
+                       BKE_cachefile_eval(bmain, depsgraph, cache_file_cow);
+                     });
 }
 
 void DepsgraphNodeBuilder::build_mask(Mask *mask)
@@ -1729,15 +1760,16 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
   build_animdata(mask_id);
   build_parameters(mask_id);
   /* Animation based on mask's shapes. */
-  add_operation_node(mask_id,
-                     NodeType::ANIMATION,
-                     OperationCode::MASK_ANIMATION,
-                     function_bind(BKE_mask_eval_animation, _1, mask_cow));
+  add_operation_node(
+      mask_id,
+      NodeType::ANIMATION,
+      OperationCode::MASK_ANIMATION,
+      [mask_cow](::Depsgraph *depsgraph) { BKE_mask_eval_animation(depsgraph, mask_cow); });
   /* Final mask evaluation. */
-  add_operation_node(mask_id,
-                     NodeType::PARAMETERS,
-                     OperationCode::MASK_EVAL,
-                     function_bind(BKE_mask_eval_update, _1, mask_cow));
+  add_operation_node(
+      mask_id, NodeType::PARAMETERS, OperationCode::MASK_EVAL, [mask_cow](::Depsgraph *depsgraph) {
+        BKE_mask_eval_update(depsgraph, mask_cow);
+      });
   /* Build parents. */
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
@@ -1781,12 +1813,16 @@ void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
   add_operation_node(clip_id,
                      NodeType::PARAMETERS,
                      OperationCode::MOVIECLIP_EVAL,
-                     function_bind(BKE_movieclip_eval_update, _1, bmain_, clip_cow));
+                     [bmain = bmain_, clip_cow](::Depsgraph *depsgraph) {
+                       BKE_movieclip_eval_update(depsgraph, bmain, clip_cow);
+                     });
 
   add_operation_node(clip_id,
                      NodeType::BATCH_CACHE,
                      OperationCode::MOVIECLIP_SELECT_UPDATE,
-                     function_bind(BKE_movieclip_eval_selection_update, _1, clip_cow));
+                     [clip_cow](::Depsgraph *depsgraph) {
+                       BKE_movieclip_eval_selection_update(depsgraph, clip_cow);
+                     });
 }
 
 void DepsgraphNodeBuilder::build_lightprobe(LightProbe *probe)
@@ -1826,7 +1862,9 @@ void DepsgraphNodeBuilder::build_sound(bSound *sound)
   add_operation_node(&sound->id,
                      NodeType::AUDIO,
                      OperationCode::SOUND_EVAL,
-                     function_bind(BKE_sound_evaluate, _1, bmain_, sound_cow));
+                     [bmain = bmain_, sound_cow](::Depsgraph *depsgraph) {
+                       BKE_sound_evaluate(depsgraph, bmain, sound_cow);
+                     });
   build_idproperties(sound->id.properties);
   build_animdata(&sound->id);
   build_parameters(&sound->id);
@@ -1849,7 +1887,9 @@ void DepsgraphNodeBuilder::build_simulation(Simulation *simulation)
   add_operation_node(&simulation->id,
                      NodeType::SIMULATION,
                      OperationCode::SIMULATION_EVAL,
-                     function_bind(BKE_simulation_data_update, _1, scene_cow, simulation_cow));
+                     [scene_cow, simulation_cow](::Depsgraph *depsgraph) {
+                       BKE_simulation_data_update(depsgraph, scene_cow, simulation_cow);
+                     });
 }
 
 void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
@@ -1865,7 +1905,9 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
   add_operation_node(&scene->id,
                      NodeType::SEQUENCER,
                      OperationCode::SEQUENCES_EVAL,
-                     function_bind(BKE_scene_eval_sequencer_sequences, _1, scene_cow));
+                     [scene_cow](::Depsgraph *depsgraph) {
+                       BKE_scene_eval_sequencer_sequences(depsgraph, scene_cow);
+                     });
   /* Make sure data for sequences is in the graph. */
   Sequence *seq;
   SEQ_ALL_BEGIN (scene->ed, seq) {
@@ -1904,7 +1946,9 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
   add_operation_node(&scene->id,
                      NodeType::AUDIO,
                      OperationCode::AUDIO_VOLUME,
-                     function_bind(BKE_scene_update_tag_audio_volume, _1, scene_cow));
+                     [scene_cow](::Depsgraph *depsgraph) {
+                       BKE_scene_update_tag_audio_volume(depsgraph, scene_cow);
+                     });
 }
 
 void DepsgraphNodeBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer *view_layer)

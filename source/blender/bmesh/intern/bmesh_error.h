@@ -33,7 +33,7 @@ void BMO_error_raise(BMesh *bm, BMOperator *owner, int errcode, const char *msg)
 int BMO_error_get(BMesh *bm, const char **msg, BMOperator **op);
 bool BMO_error_occurred(BMesh *bm);
 
-/* same as geterror, only pops the error off the stack as well */
+/* Same as #BMO_error_get, only pops the error off the stack as well. */
 int BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op);
 void BMO_error_clear(BMesh *bm);
 

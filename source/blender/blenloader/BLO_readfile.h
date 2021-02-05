@@ -84,8 +84,8 @@ struct BlendFileReadParams {
   uint skip_flags : 3; /* eBLOReadSkip */
   uint is_startup : 1;
 
-  /** Whether we are reading the memfile for an undo (< 0) or a redo (> 0). */
-  int undo_direction : 2;
+  /** Whether we are reading the memfile for an undo or a redo. */
+  int undo_direction; /* eUndoStepDir */
 };
 
 /* skip reading some data-block types (may want to skip screen data too). */
@@ -134,8 +134,8 @@ struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
                                                      int *r_tot_names);
 struct LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
                                                     int ofblocktype,
-                                                    int *tot_info_items);
-struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *tot_prev);
+                                                    int *r_tot_info_items);
+struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev);
 struct LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
 
 void BLO_blendhandle_close(BlendHandle *bh);

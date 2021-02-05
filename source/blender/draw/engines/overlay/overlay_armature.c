@@ -1691,13 +1691,13 @@ static void draw_bone_degrees_of_freedom(ArmatureDrawContext *ctx, bPoseChannel 
 
   unit_m4(posetrans);
   translate_m4(posetrans, pchan->pose_mat[3][0], pchan->pose_mat[3][1], pchan->pose_mat[3][2]);
-  /* in parent-bone pose space... */
+  /* In parent-bone pose space... */
   if (pchan->parent) {
     copy_m4_m4(tmp, pchan->parent->pose_mat);
     zero_v3(tmp[3]);
     mul_m4_m4m4(posetrans, posetrans, tmp);
   }
-  /* ... but own restspace */
+  /* ... but own rest-space. */
   mul_m4_m4m3(posetrans, posetrans, pchan->bone->bone_mat);
 
   float scale = pchan->bone->length * pchan->size[1];

@@ -129,7 +129,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
   /* Some systems have drawing glitches without this. */
   GPU_clear_depth(1.0f);
 
-  /* Draws the view into the surface_data->viewport's framebuffers */
+  /* Draws the view into the surface_data->viewport's frame-buffers. */
   ED_view3d_draw_offscreen_simple(draw_data->depsgraph,
                                   draw_data->scene,
                                   &settings->shading,

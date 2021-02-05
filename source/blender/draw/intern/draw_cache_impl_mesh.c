@@ -405,7 +405,7 @@ static void drw_mesh_weight_state_extract(Object *ob,
                                              &wstate->defgroup_sel_count);
       }
     }
-    /* With only one selected bone Multipaint reverts to regular mode. */
+    /* With only one selected bone Multi-paint reverts to regular mode. */
     else {
       wstate->defgroup_sel_count = 0;
       MEM_SAFE_FREE(wstate->defgroup_sel);

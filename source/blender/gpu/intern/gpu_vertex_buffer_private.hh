@@ -62,7 +62,7 @@ class VertBuf {
   void init(const GPUVertFormat *format, GPUUsageType usage);
   void clear(void);
 
-  /* Data manament */
+  /* Data management. */
   void allocate(uint vert_len);
   void resize(uint vert_len);
   void upload(void);
@@ -105,7 +105,7 @@ class VertBuf {
   virtual void duplicate_data(VertBuf *dst) = 0;
 };
 
-/* Syntacting suggar. */
+/* Syntactic sugar. */
 static inline GPUVertBuf *wrap(VertBuf *vert)
 {
   return reinterpret_cast<GPUVertBuf *>(vert);

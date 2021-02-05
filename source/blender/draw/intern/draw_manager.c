@@ -1570,13 +1570,13 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   drw_engines_enable(view_layer, engine_type, gpencil_engine_needed);
   drw_engines_data_validate();
 
-  /* Update ubos */
+  /* Update UBO's */
   DRW_globals_update();
 
   drw_debug_init();
   DRW_hair_init();
 
-  /* No framebuffer allowed before drawing. */
+  /* No frame-buffer allowed before drawing. */
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
   /* Init engines */
@@ -1642,7 +1642,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   DRW_draw_callbacks_post_scene();
 
   if (WM_draw_region_get_bound_viewport(region)) {
-    /* Don't unbind the framebuffer yet in this case and let
+    /* Don't unbind the frame-buffer yet in this case and let
      * GPU_viewport_unbind do it, so that we can still do further
      * drawing of action zones on top. */
   }
@@ -1715,7 +1715,12 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
 
   GPU_matrix_identity_set();
   GPU_matrix_identity_projection_set();
-  const bool do_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
+  const bool do_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 ||
+                           (ELEM(v3d->shading.type, OB_WIRE, OB_SOLID)) ||
+                           (ELEM(v3d->shading.type, OB_MATERIAL) &&
+                            (v3d->shading.flag & V3D_SHADING_SCENE_WORLD) == 0) ||
+                           (ELEM(v3d->shading.type, OB_RENDER) &&
+                            (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER) == 0);
   GPU_viewport_unbind_from_offscreen(render_viewport, ofs, do_color_management, do_overlays);
 
   if (draw_background) {
@@ -2083,12 +2088,12 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
   drw_engines_enable_editors();
   drw_engines_data_validate();
 
-  /* Update ubos */
+  /* Update UBO's */
   DRW_globals_update();
 
   drw_debug_init();
 
-  /* No framebuffer allowed before drawing. */
+  /* No frame-buffer allowed before drawing. */
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
   GPU_framebuffer_bind(DST.default_framebuffer);
   GPU_framebuffer_clear_depth_stencil(DST.default_framebuffer, 1.0f, 0xFF);
@@ -2186,7 +2191,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
   GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
   if (WM_draw_region_get_bound_viewport(region)) {
-    /* Don't unbind the framebuffer yet in this case and let
+    /* Don't unbind the frame-buffer yet in this case and let
      * GPU_viewport_unbind do it, so that we can still do further
      * drawing of action zones on top. */
   }
@@ -2368,7 +2373,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   drw_context_state_init();
   drw_viewport_var_init();
 
-  /* Update ubos */
+  /* Update UBO's */
   DRW_globals_update();
 
   /* Init engines */
@@ -2440,7 +2445,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
     DRW_render_instance_buffer_finish();
   }
 
-  /* Setup framebuffer */
+  /* Setup frame-buffer. */
   draw_select_framebuffer_depth_only_setup(viewport_size);
   GPU_framebuffer_bind(g_select_buffer.framebuffer_depth_only);
   GPU_framebuffer_clear_depth(g_select_buffer.framebuffer_depth_only, 1.0f);
@@ -2516,7 +2521,7 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
   drw_task_graph_init();
   drw_engines_data_validate();
 
-  /* Setup framebuffer */
+  /* Setup frame-buffer. */
   DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(
       DST.viewport);
   GPU_framebuffer_bind(fbl->depth_only_fb);
@@ -2526,7 +2531,7 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
   drw_context_state_init();
   drw_viewport_var_init();
 
-  /* Update ubos */
+  /* Update UBO's */
   DRW_globals_update();
 
   /* Init engines */
@@ -2582,7 +2587,7 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
   drw_state_ensure_not_reused(&DST);
 #endif
 
-  /* Changin context */
+  /* Changing context. */
   if (use_opengl_context) {
     DRW_opengl_context_disable();
   }
@@ -2666,7 +2671,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
   DST.viewport = viewport;
   drw_viewport_var_init();
 
-  /* Update ubos */
+  /* Update UBO's */
   DRW_globals_update();
 
   /* Init Select Engine */
@@ -2723,7 +2728,7 @@ void DRW_draw_depth_object(
   GPU_matrix_set(rv3d->viewmat);
   GPU_matrix_mul(object->obmat);
 
-  /* Setup framebuffer */
+  /* Setup frame-buffer. */
   DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
 
   GPU_framebuffer_bind(fbl->depth_only_fb);

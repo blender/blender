@@ -1098,7 +1098,7 @@ void RENDER_OT_render(wmOperatorType *ot)
   ot->cancel = screen_render_cancel;
   ot->exec = screen_render_exec;
 
-  /* this isn't needed, causes failer in background mode */
+  /* This isn't needed, causes failure in background mode. */
 #if 0
   ot->poll = ED_operator_screenactive;
 #endif

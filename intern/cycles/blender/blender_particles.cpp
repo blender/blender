@@ -31,7 +31,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
                                       BL::DepsgraphObjectInstance &b_instance,
                                       Object *object)
 {
-  /* test if this dupli was generated from a particle sytem */
+  /* Test if this dupli was generated from a particle system. */
   BL::ParticleSystem b_psys = b_instance.particle_system();
   if (!b_psys)
     return false;

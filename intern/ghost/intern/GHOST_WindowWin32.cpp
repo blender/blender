@@ -1368,7 +1368,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
   GHOST_TUns32 fullBitRow, fullMaskRow;
   int x, y, cols;
 
-  cols = sizeX / 8; /* Num of whole bytes per row (width of bm/mask) */
+  cols = sizeX / 8; /* Number of whole bytes per row (width of bm/mask). */
   if (sizeX % 8)
     cols++;
 
@@ -1407,7 +1407,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 
 GHOST_TSuccess GHOST_WindowWin32::setProgressBar(float progress)
 {
-  /*SetProgressValue sets state to TBPF_NORMAL automaticly*/
+  /* #SetProgressValue sets state to #TBPF_NORMAL automatically. */
   if (m_Bar && S_OK == m_Bar->SetProgressValue(m_hWnd, 10000 * progress, 10000))
     return GHOST_kSuccess;
 

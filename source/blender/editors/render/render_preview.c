@@ -1184,7 +1184,7 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
     return;
   }
 
-  /* waste of cpu cyles... but the imbuf API has no other way to scale fast (ton) */
+  /* Waste of cpu cycles... but the imbuf API has no other way to scale fast (ton). */
   ima = IMB_dupImBuf(ibuf);
 
   if (!ima) {

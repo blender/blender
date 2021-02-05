@@ -41,7 +41,7 @@ typedef struct ShaderInput {
   uint32_t name_offset;
   uint32_t name_hash;
   int32_t location;
-  /** Defined at interface creation or in shader. Only for Samplers, UBOs and Vertex Attribs. */
+  /** Defined at interface creation or in shader. Only for Samplers, UBOs and Vertex Attributes. */
   int32_t binding;
 } ShaderInput;
 
@@ -226,7 +226,7 @@ inline const ShaderInput *ShaderInterface::input_lookup(const ShaderInput *const
   for (int i = inputs_len - 1; i >= 0; i--) {
     if (inputs[i].name_hash == name_hash) {
       if ((i > 0) && UNLIKELY(inputs[i - 1].name_hash == name_hash)) {
-        /* Hash colision resolve. */
+        /* Hash collision resolve. */
         for (; i >= 0 && inputs[i].name_hash == name_hash; i--) {
           if (STREQ(name, name_buffer_ + inputs[i].name_offset)) {
             return inputs + i; /* not found */

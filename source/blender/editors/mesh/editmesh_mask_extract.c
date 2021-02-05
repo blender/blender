@@ -81,7 +81,7 @@ typedef struct GeometryExtactParams {
   /* For extracting Mask. */
   float mask_threshold;
 
-  /* Common paramenters. */
+  /* Common parameters. */
   bool add_boundary_loop;
   int num_smooth_iterations;
   bool apply_shrinkwrap;
@@ -106,7 +106,7 @@ static int geometry_extract_apply(bContext *C,
 
   BKE_sculpt_mask_layers_ensure(ob, NULL);
 
-  /* Ensures that deformation from sculpt mode is taken into accunt before duplicating the mesh to
+  /* Ensures that deformation from sculpt mode is taken into account before duplicating the mesh to
    * extract the geometry. */
   CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -385,7 +385,7 @@ static int face_set_extract_modal(bContext *C, wmOperator *op, const wmEvent *ev
         ED_workspace_status_text(C, NULL);
 
         /* This modal operator uses and eyedropper to pick a Face Set from the mesh. This ensures
-         * that the mouse clicked in a viewport region and its coordinates can be used to raycast
+         * that the mouse clicked in a viewport region and its coordinates can be used to ray-cast
          * the PBVH and update the active Face Set ID. */
         bScreen *screen = CTX_wm_screen(C);
         ARegion *region = BKE_screen_find_main_region_at_xy(

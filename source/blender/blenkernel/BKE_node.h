@@ -453,7 +453,9 @@ void ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
 void ntreeUpdateAllNew(struct Main *main);
 void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
-void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes);
+void ntreeGetDependencyList(struct bNodeTree *ntree,
+                            struct bNode ***r_deplist,
+                            int *r_deplist_len);
 
 /* XXX old trees handle output flags automatically based on special output
  * node types and last active selection.
@@ -1366,6 +1368,8 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_POINTS_TO_VOLUME 1022
 #define GEO_NODE_COLLECTION_INFO 1023
 #define GEO_NODE_IS_VIEWPORT 1024
+#define GEO_NODE_ATTRIBUTE_PROXIMITY 1025
+#define GEO_NODE_VOLUME_TO_MESH 1026
 
 /** \} */
 

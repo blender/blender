@@ -94,6 +94,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
 #include "DRW_engine.h"
@@ -1294,12 +1295,12 @@ static ssize_t fd_read_from_memfile(FileData *filedata,
       seek += readsize;
       if (r_is_memchunck_identical != NULL) {
         /* `is_identical` of current chunk represents whether it changed compared to previous undo
-         * step. this is fine in redo case (filedata->undo_direction > 0), but not in undo case,
-         * where we need an extra flag defined when saving the next (future) step after the one we
-         * want to restore, as we are supposed to 'come from' that future undo step, and not the
-         * one before current one. */
-        *r_is_memchunck_identical &= filedata->undo_direction > 0 ? chunk->is_identical :
-                                                                    chunk->is_identical_future;
+         * step. this is fine in redo case, but not in undo case, where we need an extra flag
+         * defined when saving the next (future) step after the one we want to restore, as we are
+         * supposed to 'come from' that future undo step, and not the one before current one. */
+        *r_is_memchunck_identical &= filedata->undo_direction == STEP_REDO ?
+                                         chunk->is_identical :
+                                         chunk->is_identical_future;
       }
     } while (totread < size);
 
@@ -1782,25 +1783,25 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 /** \name Old/New Pointer Map
  * \{ */
 
-/* only direct databocks */
+/* Only direct data-blocks. */
 static void *newdataadr(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
 }
 
-/* only direct databocks */
+/* Only direct data-blocks. */
 static void *newdataadr_no_us(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->datamap, adr, false);
 }
 
-/* direct datablocks with global linking */
+/* Direct datablocks with global linking. */
 void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->globmap, adr, true);
 }
 
-/* used to restore packed data after undo */
+/* Used to restore packed data after undo. */
 static void *newpackedadr(FileData *fd, const void *adr)
 {
   if (fd->packedmap && adr) {
@@ -2400,11 +2401,12 @@ static int direct_link_id_restore_recalc(const FileData *fd,
 
     /* Tags that were set between the target state and the current state,
      * that we need to perform again. */
-    if (fd->undo_direction < 0) {
+    if (fd->undo_direction == STEP_UNDO) {
       /* Undo: tags from target to the current state. */
       recalc |= id_current->recalc_up_to_undo_push;
     }
     else {
+      BLI_assert(fd->undo_direction == STEP_REDO);
       /* Redo: tags from current to the target state. */
       recalc |= id_target->recalc_up_to_undo_push;
     }

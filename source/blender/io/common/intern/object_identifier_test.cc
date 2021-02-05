@@ -129,7 +129,7 @@ TEST_F(ObjectIdentifierOrderTest, duplicated_objects)
   EXPECT_FALSE(id_different_dupli_b < id_dupli_b);
 }
 
-TEST_F(ObjectIdentifierOrderTest, behaviour_as_map_keys)
+TEST_F(ObjectIdentifierOrderTest, behavior_as_map_keys)
 {
   ObjectIdentifier id_root = ObjectIdentifier::for_graph_root();
   ObjectIdentifier id_another_root = ObjectIdentifier::for_graph_root();

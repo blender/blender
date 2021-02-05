@@ -91,7 +91,7 @@ typedef struct FileData {
   struct MemFile *memfile;
   /** Whether we are undoing (< 0) or redoing (> 0), used to choose which 'unchanged' flag to use
    * to detect unchanged data from memfile. */
-  short undo_direction;
+  int undo_direction; /* eUndoStepDir */
 
   /** Variables needed for reading from file. */
   gzFile gzfiledes;

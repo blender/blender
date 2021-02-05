@@ -448,7 +448,7 @@ bool RenderBuffers::get_pass_rect(
           pixels[1] = f.y * scale_exposure;
           pixels[2] = f.z * scale_exposure;
 
-          /* clamp since alpha might be > 1.0 due to russian roulette */
+          /* Clamp since alpha might be > 1.0 due to Russian roulette. */
           pixels[3] = saturate(f.w * scale);
         }
       }

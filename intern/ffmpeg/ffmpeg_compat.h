@@ -49,16 +49,6 @@
 
 #include <libswscale/swscale.h>
 
-/* Stupid way to distinguish FFmpeg from Libav:
- * - FFmpeg's MICRO version starts from 100 and goes up, while
- * - Libav's micro is always below 100.
- */
-#if LIBAVCODEC_VERSION_MICRO >= 100
-#  define AV_USING_FFMPEG
-#else
-#  define AV_USING_LIBAV
-#endif
-
 #if (LIBAVFORMAT_VERSION_MAJOR > 52) || \
     ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 105))
 #  define FFMPEG_HAVE_AVIO 1
@@ -527,22 +517,6 @@ bool av_check_encoded_with_ffmpeg(AVFormatContext *ctx)
   }
   return false;
 }
-
-/* Libav doesn't have av_guess_frame_rate().
- * It was introduced in FFmpeg's lavf 55.1.100. */
-#ifdef AV_USING_LIBAV
-AVRational av_guess_frame_rate(AVFormatContext *ctx, AVStream *stream, AVFrame *frame)
-{
-  (void)ctx;
-  (void)frame;
-#  if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 23, 1)
-  /* For until r_frame_rate was deprecated (in Libav) use it. */
-  return stream->r_frame_rate;
-#  else
-  return stream->avg_frame_rate;
-#  endif
-}
-#endif
 
 #if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(51, 32, 0)
 #  define AV_OPT_SEARCH_FAKE_OBJ 0

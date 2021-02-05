@@ -190,7 +190,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
     cumap->flag &= ~CUMA_DRAW_SAMPLE;
   }
 
-  /* "Tone" (Standard/Filmlike) only used in the Compositor. */
+  /* "Tone" (Standard/Film-like) only used in the Compositor. */
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   uiTemplateCurveMapping(
       layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT));
@@ -559,7 +559,7 @@ static void node_draw_reroute(const bContext *C,
   if (node->flag & SELECT) {
     GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
-    /* using different shades of TH_TEXT_HI for the empasis, like triangle */
+    /* Using different shades of #TH_TEXT_HI for the emphasis, like triangle. */
     if (node->flag & NODE_ACTIVE) {
       UI_GetThemeColorShadeAlpha4fv(TH_TEXT_HI, 0, -40, debug_color);
     }
@@ -3336,6 +3336,7 @@ static void node_geometry_buts_align_rotation_to_vector(uiLayout *layout,
                                                         PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "axis", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "pivot_axis", DEFAULT_FLAGS, IFACE_("Pivot"), ICON_NONE);
   uiLayout *col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "input_type_factor", DEFAULT_FLAGS, IFACE_("Factor"), ICON_NONE);
   uiItemR(col, ptr, "input_type_vector", DEFAULT_FLAGS, IFACE_("Vector"), ICON_NONE);
@@ -3379,6 +3380,22 @@ static void node_geometry_buts_collection_info(uiLayout *layout,
                                                PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+}
+
+static void node_geometry_buts_attribute_proximity(uiLayout *layout,
+                                                   bContext *UNUSED(C),
+                                                   PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "target_geometry_element", DEFAULT_FLAGS, "", ICON_NONE);
+}
+
+static void node_geometry_buts_volume_to_mesh(uiLayout *layout,
+                                              bContext *UNUSED(C),
+                                              PointerRNA *ptr)
+{
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "resolution_mode", DEFAULT_FLAGS, IFACE_("Resolution"), ICON_NONE);
 }
 
 static void node_geometry_set_butfunc(bNodeType *ntype)
@@ -3443,6 +3460,12 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_COLLECTION_INFO:
       ntype->draw_buttons = node_geometry_buts_collection_info;
+      break;
+    case GEO_NODE_ATTRIBUTE_PROXIMITY:
+      ntype->draw_buttons = node_geometry_buts_attribute_proximity;
+      break;
+    case GEO_NODE_VOLUME_TO_MESH:
+      ntype->draw_buttons = node_geometry_buts_volume_to_mesh;
       break;
   }
 }

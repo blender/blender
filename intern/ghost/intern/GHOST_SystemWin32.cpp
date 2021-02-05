@@ -963,7 +963,7 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
     processCursorEvent(window);
   }
   else {
-    /* Tablet should be hadling inbetween mouse moves, only move to event position. */
+    /* Tablet should be handling in between mouse moves, only move to event position. */
     DWORD msgPos = ::GetMessagePos();
     int msgPosX = GET_X_LPARAM(msgPos);
     int msgPosY = GET_Y_LPARAM(msgPos);

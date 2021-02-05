@@ -29,7 +29,7 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-/********* righthand faces implementation ****** */
+/********* Right-hand faces implementation ****** */
 
 #define FACE_FLAG (1 << 0)
 #define FACE_FLIP (1 << 1)

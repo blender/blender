@@ -1641,7 +1641,7 @@ enum RayState {
   RAY_UPDATE_BUFFER,
   /* Denotes ray needs to skip most surface shader work. */
   RAY_HAS_ONLY_VOLUME,
-  /* Donotes ray has hit background */
+  /* Denotes ray has hit background */
   RAY_HIT_BACKGROUND,
   /* Denotes ray has to be regenerated */
   RAY_TO_REGENERATE,
@@ -1699,7 +1699,7 @@ typedef struct WorkTile {
   ccl_global float *buffer;
 } WorkTile;
 
-/* Precoumputed sample table sizes for PMJ02 sampler. */
+/* Pre-computed sample table sizes for PMJ02 sampler. */
 #define NUM_PMJ_SAMPLES 64 * 64
 #define NUM_PMJ_PATTERNS 48
 

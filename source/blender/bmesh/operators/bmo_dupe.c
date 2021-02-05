@@ -109,7 +109,7 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
   BMO_slot_map_elem_insert(op, slot_edgemap_out, e_src, e_dst);
   BMO_slot_map_elem_insert(op, slot_edgemap_out, e_dst, e_src);
 
-  /* add to new/old edge map if necassary */
+  /* Add to new/old edge map if necessary. */
   if (rlen < 2) {
     /* not sure what non-manifold cases of greater than three
      * radial should do. */

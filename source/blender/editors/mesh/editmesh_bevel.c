@@ -575,7 +575,7 @@ static void edbm_bevel_mouse_set_value(wmOperator *op, const wmEvent *event)
     opdata->shift_value[vmode] = -1.0f;
   }
 
-  /* clamp accordingto value mode, and store value back */
+  /* Clamp according to value mode, and store value back. */
   CLAMP(value, value_clamp_min[vmode], value_clamp_max[vmode]);
   if (vmode == SEGMENTS_VALUE) {
     opdata->segments = value;

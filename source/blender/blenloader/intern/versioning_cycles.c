@@ -1420,7 +1420,7 @@ void do_versions_after_linking_cycles(Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 64)) {
-    /* Unfiy Cycles and Eevee settings. */
+    /* Unify Cycles and Eevee settings. */
     Scene *scene = bmain->scenes.first;
     const char *engine = (scene) ? scene->r.engine : "CYCLES";
 

@@ -216,7 +216,7 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
 
-  /* worlks best with no view2d matrix set */
+  /* Works best with no view2d matrix set. */
   UI_view2d_view_ortho(v2d);
 
   /* data... */

@@ -38,7 +38,7 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
   return r;
 }
 
-/* Remap coordnate from 0..1 box to -1..-1 */
+/* Remap coordinate from 0..1 box to -1..-1 */
 ccl_device_inline float3 texco_remap_square(float3 co)
 {
   return (co - make_float3(0.5f, 0.5f, 0.5f)) * 2.0f;
