@@ -1074,7 +1074,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             }
           }
 
-          if (size_native % 4) {
+          if (size_native % 4 && !ELEM(size_native, 1, 2)) {
             fprintf(stderr,
                     "Sizeerror 4 in struct: %s (add %d bytes)\n",
                     types[structtype],
