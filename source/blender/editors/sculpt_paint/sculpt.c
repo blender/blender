@@ -10529,7 +10529,6 @@ float *SCULPT_geodesic_distances_create(Object *ob,
                                         const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
-  const int totvert = SCULPT_vertex_count_get(ss);
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       return SCULPT_geodesic_mesh_create(ob, initial_vertices, limit_radius);
