@@ -40,7 +40,6 @@ Checks:  >
   -modernize-loop-convert,
   -modernize-pass-by-value,
   -modernize-raw-string-literal,
-  -modernize-avoid-bind,
 
 WarningsAsErrors: '*'
 CheckOptions:
