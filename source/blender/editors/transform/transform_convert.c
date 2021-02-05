@@ -993,10 +993,6 @@ void createTransData(bContext *C, TransInfo *t)
     else {
       convert_type = TC_CURSOR_VIEW3D;
     }
-
-    /* Since we're transforming the cursor, initialize this value before it's modified.
-     * Needed for #snap_grid_apply to access the cursor location. */
-    transformCenter_from_type(t, V3D_AROUND_CURSOR);
   }
   else if (!(t->options & CTX_PAINT_CURVE) && (t->spacetype == SPACE_VIEW3D) && ob &&
            (ob->mode == OB_MODE_SCULPT) && ob->sculpt) {

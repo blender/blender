@@ -1184,13 +1184,6 @@ void calculateCenter(TransInfo *t)
   }
   calculateCenterLocal(t, t->center_global);
 
-  /* avoid calculating again */
-  {
-    TransCenterData *cd = &t->center_cache[t->around];
-    copy_v3_v3(cd->global, t->center_global);
-    cd->is_set = true;
-  }
-
   calculateCenter2D(t);
 
   /* For panning from the camera-view. */
@@ -1235,23 +1228,6 @@ void calculateCenter(TransInfo *t)
       t->zfac = 0.0f;
     }
   }
-}
-
-BLI_STATIC_ASSERT(ARRAY_SIZE(((TransInfo *)NULL)->center_cache) == (V3D_AROUND_ACTIVE + 1),
-                  "test size");
-
-/**
- * Lazy initialize transform center data, when we need to access center values from other types.
- */
-const TransCenterData *transformCenter_from_type(TransInfo *t, int around)
-{
-  BLI_assert(around <= V3D_AROUND_ACTIVE);
-  TransCenterData *cd = &t->center_cache[around];
-  if (cd->is_set == false) {
-    calculateCenter_FromAround(t, around, cd->global);
-    cd->is_set = true;
-  }
-  return cd;
 }
 
 void calculatePropRatio(TransInfo *t)

@@ -166,8 +166,10 @@ typedef enum {
 typedef enum {
   SNAP_FORCED = 1 << 0,
   TARGET_INIT = 1 << 1,
-  POINT_INIT = 1 << 2,
-  MULTI_POINTS = 1 << 3,
+  /* Special flag for snap to grid. */
+  TARGET_GRID_INIT = 1 << 2,
+  POINT_INIT = 1 << 3,
+  MULTI_POINTS = 1 << 4,
 } eTSnap;
 
 /** #TransCon.mode, #TransInfo.con.mode */
@@ -310,6 +312,7 @@ typedef struct TransSnap {
   float snapPoint[3];
   /** to this point (in global-space). */
   float snapTarget[3];
+  float snapTargetGrid[3];
   float snapNormal[3];
   char snapNodeBorder;
   ListBase points;
@@ -539,9 +542,6 @@ typedef struct TransInfo {
   float center_global[3];
   /** center in screen coordinates. */
   float center2d[2];
-  /* Lazy initialize center data for when we need other center values.
-   * V3D_AROUND_ACTIVE + 1 (static assert checks this) */
-  TransCenterData center_cache[5];
   /** maximum index on the input vector. */
   short idx_max;
   /** Snapping Gears. */
@@ -764,7 +764,6 @@ void recalcData(TransInfo *t);
 void calculateCenter2D(TransInfo *t);
 void calculateCenterLocal(TransInfo *t, const float center_global[3]);
 
-const TransCenterData *transformCenter_from_type(TransInfo *t, int around);
 void calculateCenter(TransInfo *t);
 
 /* API functions for getting center points */
