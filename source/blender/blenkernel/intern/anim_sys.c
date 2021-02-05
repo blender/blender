@@ -1795,6 +1795,11 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
 
     NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
 
+    /* Invalid path or property cannot be animated. */
+    if (nec == NULL) {
+      continue;
+    }
+
     NlaEvalChannelSnapshot *necs = nlaeval_snapshot_ensure_channel(r_snapshot, nec);
     if (!nlaevalchan_validate_index_ex(nec, fcu->array_index)) {
       continue;
