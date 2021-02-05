@@ -4505,10 +4505,11 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
 
     float orig_co[3];
     if (brush->flag2 & BRUSH_USE_SURFACE_FALLOFF) {
-      const float geodesic_dist = ss->cache->geodesic_dists[ss->cache->mirror_symmetry_pass][vd.index];
+      const float geodesic_dist =
+          ss->cache->geodesic_dists[ss->cache->mirror_symmetry_pass][vd.index];
 
       if (geodesic_dist == FLT_MAX) {
-          continue;
+        continue;
       }
 
       float disp[3];
