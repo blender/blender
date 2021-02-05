@@ -35,10 +35,12 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "BLT_translation.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
 
@@ -106,6 +108,7 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
   float values_final[3] = {0.0f};
 
   snapSequenceBounds(t, mval);
+  transform_convert_sequencer_channel_clamp(t);
   if (applyNumInput(&t->num, values_final)) {
     if (t->con.mode & CON_APPLY) {
       if (t->con.mode & CON_AXIS0) {
