@@ -204,14 +204,12 @@ class GridBase : public PbClass {
   inline void checkIndex(int i, int j, int k) const;
   //! Check if indices are within bounds, otherwise error (should only be called when debugging)
   inline void checkIndex(IndexInt idx) const;
-  //! Check if index is within given boundaries
-  inline bool isInBounds(const Vec3i &p, int bnd) const;
-  //! Check if index is within given boundaries
-  inline bool isInBounds(const Vec3i &p) const;
-  //! Check if index is within given boundaries
+  //! Check if vector int is within given boundaries
+  inline bool isInBounds(const Vec3i &p, int bnd = 0) const;
+  //! Check if vector real is within given boundaries
   inline bool isInBounds(const Vec3 &p, int bnd = 0) const
   {
-    return isInBounds(toVec3i(p), bnd);
+    return isInBounds(toVec3iFloor(p), bnd);
   }
   //! Check if linear index is in the range of the array
   inline bool isInBounds(IndexInt idx) const;
@@ -1783,11 +1781,6 @@ inline void GridBase::checkIndex(IndexInt idx) const
     s << "Grid " << mName << " dim " << mSize << " : index " << idx << " out of bound ";
     errMsg(s.str());
   }
-}
-
-bool GridBase::isInBounds(const Vec3i &p) const
-{
-  return (p.x >= 0 && p.y >= 0 && p.z >= 0 && p.x < mSize.x && p.y < mSize.y && p.z < mSize.z);
 }
 
 bool GridBase::isInBounds(const Vec3i &p, int bnd) const

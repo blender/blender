@@ -209,11 +209,11 @@ typename GridType::Ptr exportVDB(Grid<T> *from, float clip, openvdb::FloatGrid::
         openvdb::Coord(from->getSizeX() - 1, from->getSizeY() - 1, from->getSizeZ() - 1));
     openvdb::tools::Dense<ValueT, openvdb::tools::MemoryLayout::LayoutXYZ> dense(bbox, data);
 
-    // Trick: Set clip value to very small / negative value in order to copy all values of dense
-    // grids
-    float tmpClip = (from->saveSparse()) ? clip : -std::numeric_limits<Real>::max();
+    // Use clip value, or (when not exporting in sparse mode) clear it in order to copy all values
+    // of dense grid
+    ValueT tmpClip = (from->saveSparse()) ? ValueT(clip) : ValueT(0);
     // Copy from dense to sparse grid structure considering clip value
-    openvdb::tools::copyFromDense(dense, *to, ValueT(tmpClip));
+    openvdb::tools::copyFromDense(dense, *to, tmpClip);
 
     // If present, use clip grid to trim down current vdb grid even more
     if (from->saveSparse() && clipGrid && !clipGrid->empty()) {
@@ -245,10 +245,10 @@ void exportVDB(ParticleDataImpl<MantaType> *from,
   std::vector<VDBType> vdbValues;
   std::string name = from->getName();
 
+  BasicParticleSystem *pp = dynamic_cast<BasicParticleSystem *>(from->getParticleSys());
   FOR_PARTS(*from)
   {
     // Optionally, skip exporting particles that have been marked as deleted
-    BasicParticleSystem *pp = dynamic_cast<BasicParticleSystem *>(from->getParticleSys());
     if (skipDeletedParts && !pp->isActive(idx)) {
       continue;
     }

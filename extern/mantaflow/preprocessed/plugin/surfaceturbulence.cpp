@@ -2145,8 +2145,7 @@ void PbRegister_particleSurfaceTurbulence()
 void debugCheckParts(const BasicParticleSystem &parts, const FlagGrid &flags)
 {
   for (int idx = 0; idx < parts.size(); idx++) {
-    Vec3i p = toVec3i(parts.getPos(idx));
-    if (!flags.isInBounds(p)) {
+    if (!flags.isInBounds(parts.getPos(idx))) {
       debMsg("bad position??? " << idx << " " << parts.getPos(idx), 1);
       exit(1);
     }

@@ -429,7 +429,7 @@ void markFluidCells(const BasicParticleSystem &parts,
   for (IndexInt idx = 0; idx < parts.size(); idx++) {
     if (!parts.isActive(idx) || (ptype && ((*ptype)[idx] & exclude)))
       continue;
-    Vec3i p = toVec3i(parts.getPos(idx));
+    Vec3i p = toVec3iFloor(parts.getPos(idx));
     if (flags.isInBounds(p) && flags.isEmpty(p))
       flags(p) = (flags(p) | FlagGrid::TypeFluid) & ~FlagGrid::TypeEmpty;
   }
@@ -544,7 +544,7 @@ void adjustNumber(BasicParticleSystem &parts,
   // count particles in cells, and delete excess particles
   for (IndexInt idx = 0; idx < (int)parts.size(); idx++) {
     if (parts.isActive(idx)) {
-      Vec3i p = toVec3i(parts.getPos(idx));
+      Vec3i p = toVec3iFloor(parts.getPos(idx));
       if (!tmp.isInBounds(p)) {
         parts.kill(idx);  // out of domain, remove
         continue;
@@ -711,7 +711,7 @@ void gridParticleIndex(const BasicParticleSystem &parts,
   for (IndexInt idx = 0; idx < (IndexInt)parts.size(); idx++) {
     if (parts.isActive(idx)) {
       // check index for validity...
-      Vec3i p = toVec3i(parts.getPos(idx));
+      Vec3i p = toVec3iFloor(parts.getPos(idx));
       if (!index.isInBounds(p)) {
         inactive++;
         continue;
@@ -740,7 +740,7 @@ void gridParticleIndex(const BasicParticleSystem &parts,
   for (IndexInt idx = 0; idx < (IndexInt)parts.size(); idx++) {
     if (!parts.isActive(idx))
       continue;
-    Vec3i p = toVec3i(parts.getPos(idx));
+    Vec3i p = toVec3iFloor(parts.getPos(idx));
     if (!index.isInBounds(p)) {
       continue;
     }
@@ -1636,7 +1636,7 @@ struct knPushOutofObs : public KernelBase {
   {
     if (!parts.isActive(idx) || (ptype && ((*ptype)[idx] & exclude)))
       return;
-    Vec3i p = toVec3i(parts.getPos(idx));
+    Vec3i p = toVec3iFloor(parts.getPos(idx));
 
     if (!flags.isInBounds(p))
       return;

@@ -664,6 +664,11 @@ template<class T> inline Vec3i toVec3iRound(T v)
   return Vec3i((int)round(v[0]), (int)round(v[1]), (int)round(v[2]));
 }
 
+template<class T> inline Vec3i toVec3iFloor(T v)
+{
+  return Vec3i((int)floor(v[0]), (int)floor(v[1]), (int)floor(v[2]));
+}
+
 //! convert to int Vector if values are close enough to an int
 template<class T> inline Vec3i toVec3iChecked(T v)
 {
