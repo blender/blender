@@ -38,6 +38,7 @@ struct BMEditMesh;
 struct MFace;
 struct MVert;
 struct Mesh;
+struct PointCloud;
 
 struct BVHCache;
 
@@ -248,6 +249,20 @@ float bvhtree_sphereray_tri_intersection(const BVHTreeRay *ray,
                                          const float v0[3],
                                          const float v1[3],
                                          const float v2[3]);
+
+typedef struct BVHTreeFromPointCloud {
+  struct BVHTree *tree;
+
+  BVHTree_NearestPointCallback nearest_callback;
+
+  const float (*coords)[3];
+} BVHTreeFromPointCloud;
+
+BVHTree *BKE_bvhtree_from_pointcloud_get(struct BVHTreeFromPointCloud *data,
+                                         const struct PointCloud *pointcloud,
+                                         const int tree_type);
+
+void free_bvhtree_from_pointcloud(struct BVHTreeFromPointCloud *data);
 
 /**
  * BVHCache

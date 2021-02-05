@@ -27,6 +27,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLI_linklist.h"
 #include "BLI_math.h"
@@ -1717,3 +1718,41 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 
   memset(data, 0, sizeof(*data));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Point Cloud BVH Building
+ * \{ */
+
+BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
+                                         const PointCloud *pointcloud,
+                                         const int tree_type)
+{
+  BVHTree *tree = BLI_bvhtree_new(pointcloud->totpoint, 0.0f, tree_type, 6);
+  if (!tree) {
+    return NULL;
+  }
+
+  for (int i = 0; i < pointcloud->totpoint; i++) {
+    BLI_bvhtree_insert(tree, i, pointcloud->co[i], 1);
+  }
+  BLI_assert(BLI_bvhtree_get_len(tree) == pointcloud->totpoint);
+  BLI_bvhtree_balance(tree);
+
+  data->coords = pointcloud->co;
+  data->tree = tree;
+  data->nearest_callback = NULL;
+
+  return tree;
+}
+
+void free_bvhtree_from_pointcloud(BVHTreeFromPointCloud *data)
+{
+  if (data->tree) {
+    BLI_bvhtree_free(data->tree);
+  }
+  memset(data, 0, sizeof(*data));
+}
+
+/** \} */

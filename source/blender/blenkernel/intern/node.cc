@@ -4753,6 +4753,7 @@ static void registerGeometryNodes()
 
   register_node_type_geo_attribute_compare();
   register_node_type_geo_attribute_fill();
+  register_node_type_geo_attribute_proximity();
   register_node_type_geo_attribute_vector_math();
   register_node_type_geo_triangulate();
   register_node_type_geo_edge_split();

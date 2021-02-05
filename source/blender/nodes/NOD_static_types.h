@@ -293,6 +293,8 @@ DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE, def_geo_attribute_sampl
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VOLUME, def_geo_points_to_volume, "POINTS_TO_VOLUME", PointsToVolume, "Points to Volume", "")
 DefNode(GeometryNode, GEO_NODE_COLLECTION_INFO, def_geo_collection_info, "COLLECTION_INFO", CollectionInfo, "Collection Info", "")
 DefNode(GeometryNode, GEO_NODE_IS_VIEWPORT, 0, "IS_VIEWPORT", IsViewport, "Is Viewport", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_PROXIMITY, def_geo_attribute_proximity, "ATTRIBUTE_PROXIMITY", AttributeProximity, "Attribute Proximity", "")
+
 
 /* undefine macros */
 #undef DefNode

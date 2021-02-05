@@ -3381,6 +3381,13 @@ static void node_geometry_buts_collection_info(uiLayout *layout,
   uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 }
 
+static void node_geometry_buts_attribute_proximity(uiLayout *layout,
+                                                   bContext *UNUSED(C),
+                                                   PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "target_geometry_element", DEFAULT_FLAGS, "", ICON_NONE);
+}
+
 static void node_geometry_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -3443,6 +3450,9 @@ static void node_geometry_set_butfunc(bNodeType *ntype)
       break;
     case GEO_NODE_COLLECTION_INFO:
       ntype->draw_buttons = node_geometry_buts_collection_info;
+      break;
+    case GEO_NODE_ATTRIBUTE_PROXIMITY:
+      ntype->draw_buttons = node_geometry_buts_attribute_proximity;
       break;
   }
 }

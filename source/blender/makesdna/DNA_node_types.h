@@ -1202,6 +1202,13 @@ typedef struct NodeGeometryCollectionInfo {
   char _pad[7];
 } NodeGeometryCollectionInfo;
 
+typedef struct NodeGeometryAttributeProximity {
+  /* GeometryNodeAttributeProximityTargetGeometryElement. */
+  uint8_t target_geometry_element;
+
+  char _pad[7];
+} NodeGeometryAttributeProximity;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -1588,6 +1595,12 @@ typedef enum NodeShaderOutputTarget {
 } NodeShaderOutputTarget;
 
 /* Geometry Nodes */
+
+typedef enum GeometryNodeAttributeProximityTargetGeometryElement {
+  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_POINTS = 0,
+  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_EDGES = 1,
+  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES = 2,
+} GeometryNodeAttributeProximityTargetGeometryElement;
 
 /* Boolean Node */
 typedef enum GeometryNodeBooleanOperation {

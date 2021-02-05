@@ -8938,6 +8938,39 @@ static void def_geo_collection_info(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_geo_attribute_proximity(StructRNA *srna)
+{
+  static const EnumPropertyItem target_geometry_element[] = {
+      {GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_POINTS,
+       "POINTS",
+       ICON_NONE,
+       "Points",
+       "Calculate proximity to the target's points (usually faster than the other two modes)"},
+      {GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_EDGES,
+       "EDGES",
+       ICON_NONE,
+       "Edges",
+       "Calculate proximity to the target's edges"},
+      {GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES,
+       "FACES",
+       ICON_NONE,
+       "Faces",
+       "Calculate proximity to the target's faces"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryAttributeProximity", "storage");
+
+  prop = RNA_def_property(srna, "target_geometry_element", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, target_geometry_element);
+  RNA_def_property_enum_default(prop, GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES);
+  RNA_def_property_ui_text(
+      prop, "Target Geometry", "Element of the target geometry to calculate the distance from");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
 /* -------------------------------------------------------------------------- */
 
 static void rna_def_shader_node(BlenderRNA *brna)
