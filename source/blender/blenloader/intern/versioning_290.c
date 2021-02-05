@@ -1611,12 +1611,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         brush->gpencil_settings->fill_factor = 1.0f;
       }
     }
-
-    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "CurveMapping", "*pressure_size_curve")) {
-      LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-        BKE_brush_default_input_curves_set(br);
-      }
-    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 3)) {
@@ -1678,5 +1672,10 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "CurveMapping", "*pressure_size_curve")) {
+      LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+        BKE_brush_default_input_curves_set(br);
+      }
+    }
   }
 }
