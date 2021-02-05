@@ -10193,7 +10193,7 @@ static void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
 typedef enum eSculptMaskInitMode {
   SCULPT_MASK_INIT_RANDOM_PER_VERTEX,
   SCULPT_MASK_INIT_RANDOM_PER_FACE_SET,
-  SCULPT_MASK_INIT_RANDOM_PER_COMPONENT,
+  SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART,
 } eSculptMaskInitMode;
 
 static EnumPropertyItem prop_sculpt_mask_init_mode_types[] = {
@@ -10212,10 +10212,10 @@ static EnumPropertyItem prop_sculpt_mask_init_mode_types[] = {
         "",
     },
     {
-        SCULPT_MASK_INIT_RANDOM_PER_COMPONENT,
-        "RANDOM_PER_COMPONENT",
+        SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART,
+        "RANDOM_PER_LOOSE_PART",
         0,
-        "Random per Component",
+        "Random per Loose Part",
         "",
     },
     {0, NULL, 0, NULL, NULL},
@@ -10244,7 +10244,7 @@ static void mask_init_task_cb(void *__restrict userdata,
         *vd.mask = BLI_hash_int_01(face_set + seed);
         break;
       }
-      case SCULPT_MASK_INIT_RANDOM_PER_COMPONENT:
+      case SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART:
         *vd.mask = BLI_hash_int_01(ss->vertex_info.connected_component[vd.index] + seed);
         break;
     }
@@ -10274,7 +10274,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_begin(ob, "init mask");
 
-  if (mode == SCULPT_MASK_INIT_RANDOM_PER_COMPONENT) {
+  if (mode == SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART) {
     SCULPT_connected_components_ensure(ob);
   }
 
