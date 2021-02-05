@@ -332,7 +332,7 @@ void applyProject(TransInfo *t)
       if (tc->use_local_mat) {
         mul_m4_v3(tc->mat, iloc);
       }
-      else if (t->flag & T_OBJECT) {
+      else if (t->options & CTX_OBJECT) {
         BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
         copy_v3_v3(iloc, td->ob->obmat[3]);
       }
@@ -366,7 +366,7 @@ void applyProject(TransInfo *t)
 
           add_v3_v3(td->loc, tvec);
 
-          if (t->tsnap.align && (t->flag & T_OBJECT)) {
+          if (t->tsnap.align && (t->options & CTX_OBJECT)) {
             /* handle alignment as well */
             const float *original_normal;
             float mat[3][3];
@@ -422,7 +422,7 @@ void applyGridAbsolute(TransInfo *t)
       if (tc->use_local_mat) {
         mul_m4_v3(tc->mat, iloc);
       }
-      else if (t->flag & T_OBJECT) {
+      else if (t->options & CTX_OBJECT) {
         BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
         copy_v3_v3(iloc, td->ob->obmat[3]);
       }
@@ -571,7 +571,8 @@ static void initSnappingMode(TransInfo *t)
     }
   }
 
-  if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && (t->flag & T_CAMERA) == 0) {
+  if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) &&
+      (t->options & CTX_CAMERA) == 0) {
     /* Only 3D view or UV. */
     /* Not with camera selected in camera view. */
 
@@ -1068,7 +1069,7 @@ static void TargetSnapClosest(TransInfo *t)
     TransData *closest = NULL;
 
     /* Object mode */
-    if (t->flag & T_OBJECT) {
+    if (t->options & CTX_OBJECT) {
       int i;
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         TransData *td = tc->data;

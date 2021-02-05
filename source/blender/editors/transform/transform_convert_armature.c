@@ -870,8 +870,6 @@ void createTransPose(TransInfo *t)
       t->mode = TFM_RESIZE;
     }
   }
-
-  t->flag |= T_POSE;
 }
 
 void createTransArmatureVerts(TransInfo *t)

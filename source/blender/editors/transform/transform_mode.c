@@ -70,7 +70,7 @@ int transform_mode_really_used(bContext *C, int mode)
 bool transdata_check_local_center(TransInfo *t, short around)
 {
   return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
-          ((t->flag & (T_OBJECT | T_POSE)) ||
+          ((t->options & (CTX_OBJECT | CTX_POSE_BONE)) ||
            /* implicit: (t->flag & T_EDIT) */
            (ELEM(t->obedit_type, OB_MESH, OB_CURVE, OB_MBALL, OB_ARMATURE, OB_GPENCIL)) ||
            (t->spacetype == SPACE_GRAPH) ||
@@ -629,7 +629,7 @@ void ElementRotation_ex(TransInfo *t,
    * matrix (and inverse). That is not all though. Once the proper translation
    * has been computed, it has to be converted back into the bone's space.
    */
-  else if (t->flag & T_POSE) {
+  else if (t->options & CTX_POSE_BONE) {
     /* Extract and invert armature object matrix */
 
     if ((td->flag & TD_NO_LOC) == 0) {
@@ -1026,7 +1026,7 @@ void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, float ma
     mul_v3_fl(vec, td->factor);
   }
 
-  if (t->flag & (T_OBJECT | T_POSE)) {
+  if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
     mul_m3_v3(td->smtx, vec);
   }
 

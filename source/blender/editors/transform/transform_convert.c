@@ -928,10 +928,10 @@ int special_transform_moving(TransInfo *t)
   if (t->spacetype == SPACE_GRAPH) {
     return G_TRANSFORM_FCURVES;
   }
-  if ((t->flag & T_EDIT) || (t->flag & T_POSE)) {
+  if ((t->flag & T_EDIT) || (t->options & CTX_POSE_BONE)) {
     return G_TRANSFORM_EDIT;
   }
-  if (t->flag & (T_OBJECT | T_TEXTURE)) {
+  if (t->options & (CTX_OBJECT | CTX_TEXTURE_SPACE)) {
     return G_TRANSFORM_OBJ;
   }
 
@@ -985,8 +985,6 @@ void createTransData(bContext *C, TransInfo *t)
 
   /* if tests must match recalcData for correct updates */
   if (t->options & CTX_CURSOR) {
-    t->flag |= T_CURSOR;
-
     if (t->spacetype == SPACE_IMAGE) {
       convert_type = TC_CURSOR_IMAGE;
     }
@@ -998,11 +996,10 @@ void createTransData(bContext *C, TransInfo *t)
            (ob->mode == OB_MODE_SCULPT) && ob->sculpt) {
     convert_type = TC_SCULPT;
   }
-  else if (t->options & CTX_TEXTURE) {
-    t->flag |= T_TEXTURE;
+  else if (t->options & CTX_TEXTURE_SPACE) {
     convert_type = TC_OBJECT_TEXSPACE;
   }
-  else if (t->options & CTX_EDGE) {
+  else if (t->options & CTX_EDGE_DATA) {
     t->flag |= T_EDIT;
     convert_type = TC_MESH_EDGES;
     /* Multi object editing. */
@@ -1142,6 +1139,8 @@ void createTransData(bContext *C, TransInfo *t)
     /* In grease pencil all transformations must be canceled if not Object or Edit. */
   }
   else {
+    t->options |= CTX_OBJECT;
+
     /* Needed for correct Object.obmat after duplication, see: T62135. */
     BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
 
@@ -1152,7 +1151,6 @@ void createTransData(bContext *C, TransInfo *t)
       t->options |= CTX_OBMODE_XFORM_SKIP_CHILDREN;
     }
 
-    t->flag |= T_OBJECT;
     convert_type = TC_OBJECT;
   }
 
@@ -1164,6 +1162,7 @@ void createTransData(bContext *C, TransInfo *t)
       createTransActionData(C, t);
       break;
     case TC_POSE:
+      t->options |= CTX_POSE_BONE;
       createTransPose(t);
       /* Disable PET, its not usable in pose mode yet T32444. */
       init_prop_edit = false;
@@ -1225,11 +1224,11 @@ void createTransData(bContext *C, TransInfo *t)
         if ((rv3d->persp == RV3D_CAMOB) && v3d->camera) {
           /* we could have a flag to easily check an object is being transformed */
           if (v3d->camera->id.tag & LIB_TAG_DOIT) {
-            t->flag |= T_CAMERA;
+            t->options |= CTX_CAMERA;
           }
         }
         else if (v3d->ob_center && v3d->ob_center->id.tag & LIB_TAG_DOIT) {
-          t->flag |= T_CAMERA;
+          t->options |= CTX_CAMERA;
         }
       }
       break;

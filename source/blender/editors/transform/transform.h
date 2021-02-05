@@ -74,83 +74,82 @@ struct wmTimer;
 /** #TransInfo.options */
 typedef enum {
   CTX_NONE = 0,
-  CTX_TEXTURE = (1 << 0),
-  CTX_EDGE = (1 << 1),
-  CTX_NO_PET = (1 << 2),
-  CTX_NO_MIRROR = (1 << 3),
-  CTX_AUTOCONFIRM = (1 << 4),
-  CTX_MOVIECLIP = (1 << 6),
-  CTX_MASK = (1 << 7),
-  CTX_PAINT_CURVE = (1 << 8),
-  CTX_GPENCIL_STROKES = (1 << 9),
-  CTX_CURSOR = (1 << 10),
+
+  /* These are similar to TransInfo::data_type. */
+  CTX_CAMERA = (1 << 0),
+  CTX_CURSOR = (1 << 1),
+  CTX_EDGE_DATA = (1 << 2),
+  CTX_GPENCIL_STROKES = (1 << 3),
+  CTX_MASK = (1 << 4),
+  CTX_MOVIECLIP = (1 << 5),
+  CTX_OBJECT = (1 << 6),
+  CTX_PAINT_CURVE = (1 << 7),
+  CTX_POSE_BONE = (1 << 8),
+  CTX_TEXTURE_SPACE = (1 << 9),
+
+  CTX_NO_PET = (1 << 10),
+  CTX_NO_MIRROR = (1 << 11),
+  CTX_AUTOCONFIRM = (1 << 12),
   /** When transforming object's, adjust the object data so it stays in the same place. */
-  CTX_OBMODE_XFORM_OBDATA = (1 << 11),
+  CTX_OBMODE_XFORM_OBDATA = (1 << 13),
   /** Transform object parents without moving their children. */
-  CTX_OBMODE_XFORM_SKIP_CHILDREN = (1 << 12),
+  CTX_OBMODE_XFORM_SKIP_CHILDREN = (1 << 14),
 } eTContext;
 
 /** #TransInfo.flag */
 typedef enum {
-  T_OBJECT = 1 << 0,
   /** \note We could remove 'T_EDIT' and use 'obedit_type', for now ensure they're in sync. */
-  T_EDIT = 1 << 1,
-  T_POSE = 1 << 2,
-  T_TEXTURE = 1 << 3,
-  /** Transforming the 3d view. */
-  T_CAMERA = 1 << 4,
-  /** Transforming the 3D cursor. */
-  T_CURSOR = 1 << 5,
+  T_EDIT = 1 << 0,
   /** Transform points, having no rotation/scale. */
-  T_POINTS = 1 << 6,
+  T_POINTS = 1 << 1,
   /** restrictions flags */
-  T_NO_CONSTRAINT = 1 << 7,
-  T_NULL_ONE = 1 << 8,
-  T_NO_ZERO = 1 << 9,
+  T_NO_CONSTRAINT = 1 << 2,
+  T_NULL_ONE = 1 << 3,
+  T_NO_ZERO = 1 << 4,
   T_ALL_RESTRICTIONS = T_NO_CONSTRAINT | T_NULL_ONE | T_NO_ZERO,
 
-  T_PROP_EDIT = 1 << 10,
-  T_PROP_CONNECTED = 1 << 11,
-  T_PROP_PROJECTED = 1 << 12,
+  T_PROP_EDIT = 1 << 5,
+  T_PROP_CONNECTED = 1 << 6,
+  T_PROP_PROJECTED = 1 << 7,
   T_PROP_EDIT_ALL = T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED,
 
-  T_V3D_ALIGN = 1 << 13,
+  T_V3D_ALIGN = 1 << 8,
   /** For 2D views such as UV or f-curve. */
-  T_2D_EDIT = 1 << 14,
-  T_CLIP_UV = 1 << 15,
+  T_2D_EDIT = 1 << 9,
+  T_CLIP_UV = 1 << 10,
 
   /** Auto-IK is on. */
-  T_AUTOIK = 1 << 16,
+  T_AUTOIK = 1 << 11,
 
   /** Don't use mirror even if the data-block option is set. */
-  T_NO_MIRROR = 1 << 17,
+  T_NO_MIRROR = 1 << 12,
 
   /** To indicate that the value set in the `value` parameter is the final
    * value of the transformation, modified only by the constrain. */
-  T_INPUT_IS_VALUES_FINAL = 1 << 18,
+  T_INPUT_IS_VALUES_FINAL = 1 << 13,
 
   /** To specify if we save back settings at the end. */
-  T_MODAL = 1 << 19,
+  T_MODAL = 1 << 14,
 
   /** No re-topology (projection). */
-  T_NO_PROJECT = 1 << 20,
+  T_NO_PROJECT = 1 << 15,
 
-  T_RELEASE_CONFIRM = 1 << 21,
+  T_RELEASE_CONFIRM = 1 << 16,
 
   /** Alternative transformation. used to add offset to tracking markers. */
-  T_ALT_TRANSFORM = 1 << 22,
+  T_ALT_TRANSFORM = 1 << 17,
 
   /** #TransInfo.center has been set, don't change it. */
-  T_OVERRIDE_CENTER = 1 << 23,
+  T_OVERRIDE_CENTER = 1 << 18,
 
-  T_MODAL_CURSOR_SET = 1 << 24,
+  T_MODAL_CURSOR_SET = 1 << 19,
 
-  T_CLNOR_REBUILD = 1 << 25,
+  T_CLNOR_REBUILD = 1 << 20,
 
   /** Merges unselected into selected after transforming (runs after transforming). */
-  T_AUTOMERGE = 1 << 26,
+  T_AUTOMERGE = 1 << 21,
   /** Runs auto-merge & splits. */
-  T_AUTOSPLIT = 1 << 27,
+  T_AUTOSPLIT = 1 << 22,
 } eTFlag;
 
 /** #TransInfo.modifiers */

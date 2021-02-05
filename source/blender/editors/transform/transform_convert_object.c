@@ -963,7 +963,7 @@ void recalcData_objects(TransInfo *t)
        */
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
-      if (t->flag & T_TEXTURE) {
+      if (t->options & CTX_TEXTURE_SPACE) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
     }
@@ -991,7 +991,7 @@ void recalcData_objects(TransInfo *t)
 
 void special_aftertrans_update__object(bContext *C, TransInfo *t)
 {
-  BLI_assert(t->flag & (T_OBJECT | T_TEXTURE));
+  BLI_assert(t->options & (CTX_OBJECT | CTX_TEXTURE_SPACE));
 
   Object *ob;
   const bool canceled = (t->state == TRANS_CANCEL);
