@@ -3905,7 +3905,7 @@ static float bm_edge_seg_isect(const float sco_a[2],
     x12 = mouse_path[i][0];
     y12 = mouse_path[i][1];
 
-    /* Perp. Distance from point to line */
+    /* Calculate the distance from point to line. */
     if (m2 != MAXSLOPE) {
       /* sqrt(m2 * m2 + 1); Only looking for change in sign.  Skip extra math .*/
       dist = (y12 - m2 * x12 - b2);

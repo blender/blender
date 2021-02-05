@@ -2337,7 +2337,7 @@ static int do_write_image_or_movie(Render *re,
   printf(" (Saving: %s)\n", name);
 
   fputc('\n', stdout);
-  fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
+  fflush(stdout);
 
   return ok;
 }

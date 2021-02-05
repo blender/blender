@@ -20,12 +20,7 @@
 /** \file
  * \ingroup gpu
  *
- * GPU Frame-buffer
- * - this is a wrapper for an OpenGL framebuffer object (FBO). in practice
- *   multiple FBO's may be created.
- * - actual FBO creation & config is deferred until GPU_framebuffer_bind or
- *   GPU_framebuffer_check_valid to allow creation & config while another
- *   opengl context is bound (since FBOs are not shared between ogl contexts).
+ * Private frame buffer API.
  */
 
 #pragma once

@@ -387,7 +387,7 @@ void bmo_average_vert_facedata_exec(BMesh *bm, BMOperator *op)
   BMOIter siter;
   BMIter iter;
   BMVert *v;
-  BMLoop *l /* , *firstl = NULL */;
+  BMLoop *l;
   CDBlockBytes min, max;
   int i;
 

@@ -4338,7 +4338,6 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       continue;
     }
 
-    /* tfbase here should be non-null! */
     BLI_assert(mloopuv_base != NULL);
 
     if (is_face_sel && tpage) {
