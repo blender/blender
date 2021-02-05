@@ -1214,8 +1214,8 @@ struct knFlipUpdateSecondaryParticlesLinear : public KernelBase {
 
       // anti tunneling for small obstacles
       for (int ct = 1; ct < antitunneling; ct++) {
-        Vec3i tempPos = toVec3i(pts_sec[idx].pos +
-                                ct * (1 / Real(antitunneling)) * dt * v_sec[idx]);
+        Vec3i tempPos = toVec3iFloor(pts_sec[idx].pos +
+                                     ct * (1 / Real(antitunneling)) * dt * v_sec[idx]);
         if (!flags.isInBounds(tempPos) || flags(tempPos) & FlagGrid::TypeObstacle) {
           pts_sec.kill(idx);
           return;
@@ -1234,8 +1234,8 @@ struct knFlipUpdateSecondaryParticlesLinear : public KernelBase {
 
       // anti tunneling for small obstacles
       for (int ct = 1; ct < antitunneling; ct++) {
-        Vec3i tempPos = toVec3i(pts_sec[idx].pos +
-                                ct * (1 / Real(antitunneling)) * dt * v_sec[idx]);
+        Vec3i tempPos = toVec3iFloor(pts_sec[idx].pos +
+                                     ct * (1 / Real(antitunneling)) * dt * v_sec[idx]);
         if (!flags.isInBounds(tempPos) || flags(tempPos) & FlagGrid::TypeObstacle) {
           pts_sec.kill(idx);
           return;
@@ -1252,7 +1252,7 @@ struct knFlipUpdateSecondaryParticlesLinear : public KernelBase {
       const Vec3 vj = v.getInterpolated(pts_sec[idx].pos);
       // anti tunneling for small obstacles
       for (int ct = 1; ct < antitunneling; ct++) {
-        Vec3i tempPos = toVec3i(pts_sec[idx].pos + ct * (1 / Real(antitunneling)) * dt * vj);
+        Vec3i tempPos = toVec3iFloor(pts_sec[idx].pos + ct * (1 / Real(antitunneling)) * dt * vj);
         if (!flags.isInBounds(tempPos) || flags(tempPos) & FlagGrid::TypeObstacle) {
           pts_sec.kill(idx);
           return;
@@ -1474,8 +1474,8 @@ struct knFlipUpdateSecondaryParticlesCubic : public KernelBase {
 
       // anti tunneling for small obstacles
       for (int ct = 1; ct < antitunneling; ct++) {
-        Vec3i tempPos = toVec3i(pts_sec[idx].pos +
-                                ct * (1 / Real(antitunneling)) * dt * v_sec[idx]);
+        Vec3i tempPos = toVec3iFloor(pts_sec[idx].pos +
+                                     ct * (1 / Real(antitunneling)) * dt * v_sec[idx]);
         if (!flags.isInBounds(tempPos) || flags(tempPos) & FlagGrid::TypeObstacle) {
           pts_sec.kill(idx);
           return;
@@ -1515,8 +1515,8 @@ struct knFlipUpdateSecondaryParticlesCubic : public KernelBase {
 
       // anti tunneling for small obstacles
       for (int ct = 1; ct < antitunneling; ct++) {
-        Vec3i tempPos = toVec3i(pts_sec[idx].pos +
-                                ct * (1 / Real(antitunneling)) * dt * v_sec[idx]);
+        Vec3i tempPos = toVec3iFloor(pts_sec[idx].pos +
+                                     ct * (1 / Real(antitunneling)) * dt * v_sec[idx]);
         if (!flags.isInBounds(tempPos) || flags(tempPos) & FlagGrid::TypeObstacle) {
           pts_sec.kill(idx);
           return;
@@ -1554,8 +1554,8 @@ struct knFlipUpdateSecondaryParticlesCubic : public KernelBase {
 
       // anti tunneling for small obstacles
       for (int ct = 1; ct < antitunneling; ct++) {
-        Vec3i tempPos = toVec3i(pts_sec[idx].pos + ct * (1 / Real(antitunneling)) * dt *
-                                                       (sumNumerator / sumDenominator));
+        Vec3i tempPos = toVec3iFloor(pts_sec[idx].pos + ct * (1 / Real(antitunneling)) * dt *
+                                                            (sumNumerator / sumDenominator));
         if (!flags.isInBounds(tempPos) || flags(tempPos) & FlagGrid::TypeObstacle) {
           pts_sec.kill(idx);
           return;
@@ -1863,7 +1863,7 @@ struct knFlipDeleteParticlesInObstacle : public KernelBase {
       return;
 
     const Vec3 &xi = pts[idx].pos;
-    const Vec3i xidx = toVec3i(xi);
+    const Vec3i xidx = toVec3iFloor(xi);
     // remove particles that completely left the bounds
     if (!flags.isInBounds(xidx)) {
       pts.kill(idx);
