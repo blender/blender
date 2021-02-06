@@ -1219,7 +1219,7 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
   }
 
   /* Check corrupt cases, bow-tie geometry,
-   * cant handle these because edge data wont exist so just return 0. */
+   * can't handle these because edge data won't exist so just return 0. */
   if (nr == 3) {
     if (
         /* real edges */

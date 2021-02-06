@@ -289,7 +289,7 @@ typedef struct Brush {
 
   int curve_preset;
 
-  /* Maximun distance to search fake neighbors from a vertex. */
+  /* Maximum distance to search fake neighbors from a vertex. */
   float disconnected_distance_max;
 
   int deform_target;

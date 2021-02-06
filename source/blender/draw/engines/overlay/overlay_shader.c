@@ -238,7 +238,7 @@ void OVERLAY_shader_library_ensure(void)
 {
   if (e_data.lib == NULL) {
     e_data.lib = DRW_shader_library_create();
-    /* NOTE: Theses needs to be ordered by dependencies. */
+    /* NOTE: These need to be ordered by dependencies. */
     DRW_SHADER_LIB_ADD(e_data.lib, common_globals_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, common_overlay_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, common_colormanagement_lib);

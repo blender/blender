@@ -43,7 +43,7 @@ class GLVaoCache;
 
 class GLSharedOrphanLists {
  public:
-  /** Mutex for the bellow structures. */
+  /** Mutex for the below structures. */
   std::mutex lists_mutex;
   /** Buffers and textures are shared across context. Any context can free them. */
   Vector<GLuint> textures;
@@ -92,7 +92,7 @@ class GLContext : public Context {
    */
   Set<GLVaoCache *> vao_caches_;
   Set<GPUFrameBuffer *> framebuffers_;
-  /** Mutex for the bellow structures. */
+  /** Mutex for the below structures. */
   std::mutex lists_mutex_;
   /** VertexArrays and framebuffers are not shared across context. */
   Vector<GLuint> orphaned_vertarrays_;

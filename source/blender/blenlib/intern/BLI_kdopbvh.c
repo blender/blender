@@ -1312,7 +1312,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
   bool use_threading = (flag & BVH_OVERLAP_USE_THREADING) != 0 &&
                        (tree1->totleaf > KDOPBVH_THREAD_LEAF_THRESHOLD);
 
-  /* `RETURN_PAIRS` was not implemented without `max_interations`. */
+  /* 'RETURN_PAIRS' was not implemented without 'max_interactions'. */
   BLI_assert(overlap_pairs || max_interactions);
 
   const int root_node_len = BLI_bvhtree_overlap_thread_num(tree1);

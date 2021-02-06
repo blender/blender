@@ -236,7 +236,7 @@
     .flag = 0, \
   }
 
-/* Defines are scattered accross too many files, they need to be moved to DNA. */
+/* Defines are scattered across too many files, they need to be moved to DNA. */
 #if 0
 #define _DNA_DEFAULT_DataTransferModifierData \
   { \

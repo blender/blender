@@ -145,7 +145,7 @@ static struct VolumeFileCache {
 
     /* Has the grid tree been loaded? */
     bool is_loaded;
-    /* Error message if an error occured during loading. */
+    /* Error message if an error occurred while loading. */
     std::string error_msg;
     /* User counting. */
     int num_metadata_users;

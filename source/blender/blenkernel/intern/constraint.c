@@ -4693,7 +4693,7 @@ static void pivotcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *ta
   copy_m3_m4(rotMat, cob->matrix);
   normalize_m3(rotMat);
 
-  /* correct the pivot by the rotation axis otherwise the pivot translates when it shouldnt */
+  /* correct the pivot by the rotation axis otherwise the pivot translates when it shouldn't */
   mat3_normalized_to_axis_angle(axis, &angle, rotMat);
   if (angle) {
     float dvec[3];

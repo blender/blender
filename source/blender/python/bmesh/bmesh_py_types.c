@@ -293,7 +293,7 @@ static int bpy_bmesh_select_mode_set(BPy_BMesh *self, PyObject *value)
     return -1;
   }
   if (flag == 0) {
-    PyErr_SetString(PyExc_TypeError, "bm.select_mode: cant assignt an empty value");
+    PyErr_SetString(PyExc_TypeError, "bm.select_mode: can't assign an empty value");
     return -1;
   }
 

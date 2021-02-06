@@ -1375,7 +1375,7 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
     }
   }
   else {
-    return; /* string is NULL, probably shouldnt happen but return anyway */
+    return; /* string is NULL, probably shouldn't happen but return anyway */
   }
 
   /* Resolve relative references */

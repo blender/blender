@@ -263,6 +263,6 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   mesh->totedge = new_totedge;
   mesh->medge = new_edges.data();
 
-  /* Explicitely clear edge maps, because that way it can be parallelized. */
+  /* Explicitly clear edge maps, because that way it can be parallelized. */
   clear_hash_tables(edge_maps);
 }

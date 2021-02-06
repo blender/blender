@@ -2304,7 +2304,7 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd,
       }
       return;
     }
-    /* we cant use the num_dmcache */
+    /* we can't use the num_dmcache */
     psys_particle_on_dm(
         psmd->mesh_final, from, index, index_dmcache, fuv, foffset, vec, nor, utan, vtan, orco);
   }

@@ -1594,7 +1594,7 @@ static bool nla_combine_get_inverted_strip_value(const int mix_mode,
       if (IS_EQF(base_value, 0.0f)) {
         base_value = 1.0f;
       }
-      /* Divison by zero. */
+      /* Division by zero. */
       if (IS_EQF(lower_value, 0.0f)) {
         /* Resolve 0/0 to 1. */
         if (IS_EQF(blended_value, 0.0f)) {

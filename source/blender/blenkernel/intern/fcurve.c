@@ -1110,7 +1110,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
 
   if (fcu->fpt == NULL) {
     /* No data to unbake. */
-    CLOG_ERROR(&LOG, "Error: Curve containts no baked keyframes");
+    CLOG_ERROR(&LOG, "Error: Curve contains no baked keyframes");
     return;
   }
 

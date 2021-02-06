@@ -2099,7 +2099,7 @@ static int wm_handler_operator_call(bContext *C,
           handler->op = NULL;
         }
 
-        /* Putting back screen context, reval can pass trough after modal failures! */
+        /* Putting back screen context, reval can pass through after modal failures! */
         if ((retval & OPERATOR_PASS_THROUGH) || wm_event_always_pass(event)) {
           CTX_wm_area_set(C, area);
           CTX_wm_region_set(C, region);

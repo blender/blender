@@ -128,7 +128,7 @@ class WriteAttribute {
   void *array_buffer_ = nullptr;
   /* True, when the buffer points to a temporary array. */
   bool array_is_temporary_ = false;
-  /* This helps to protect agains forgetting to apply changes done to the array. */
+  /* This helps to protect against forgetting to apply changes done to the array. */
   bool array_should_be_applied_ = false;
 
  public:

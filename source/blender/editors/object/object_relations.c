@@ -2341,7 +2341,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 
 static bool make_override_library_object_overridable_check(Main *bmain, Object *object)
 {
-  /* An object is actually overrideable only if it is in at least one local collections.
+  /* An object is actually overridable only if it is in at least one local collection.
    * Unfortunately 'direct link' flag is not enough here. */
   LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
     if (!ID_IS_LINKED(collection) && BKE_collection_has_object(collection, object)) {

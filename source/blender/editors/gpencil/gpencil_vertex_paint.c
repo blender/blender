@@ -151,7 +151,7 @@ typedef struct tGP_BrushVertexpaintData {
   tGP_Grid *grid;
   /** Total number of rows/cols. */
   int grid_size;
-  /** Total number of cells elments in the grid array. */
+  /** Total number of cells elements in the grid array. */
   int grid_len;
   /** Grid sample position (used to determine distance of falloff) */
   int grid_sample[2];

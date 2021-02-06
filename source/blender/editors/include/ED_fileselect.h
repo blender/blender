@@ -194,7 +194,7 @@ typedef enum FSMenuInsert {
   FS_INSERT_SAVE = (1 << 1),
   /** moves the item to the front of the list when its not already there */
   FS_INSERT_FIRST = (1 << 2),
-  /** just append to preseve delivered order */
+  /** just append to preserve delivered order */
   FS_INSERT_LAST = (1 << 3),
 } FSMenuInsert;
 

@@ -138,7 +138,7 @@ TEST_F(TrackingTest, BKE_tracking_marker_get_interpolated)
     BKE_tracking_track_free(&track);
   }
 
-  /* More comprehensive test, which resembles real life trackign scenario better. */
+  /* More comprehensive test, which resembles real-life tracking scenario better. */
   {
     MovieTrackingTrack track = {nullptr};
 

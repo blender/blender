@@ -415,7 +415,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   {
     /* Renderpass accumulation. */
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ADD_FULL;
-    /* Create an instance of each of theses passes and link them together. */
+    /* Create an instance of each of these passes and link them together. */
     DRWPass *passes[] = {
         psl->material_ps,
         psl->material_cull_ps,

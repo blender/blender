@@ -665,7 +665,7 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__double
 
     len_feather = len_v2v2(bezt_prev->vec[1], bezt_curr->vec[1]);
 
-    /* scale by chane in length */
+    /* scale by change in length */
     len_scalar = len_feather / len_base;
     dist_ensure_v2_v2fl(bezt_prev->vec[2],
                         bezt_prev->vec[1],

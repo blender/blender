@@ -169,7 +169,7 @@ void main()
   }
 
 #ifdef SELECT_EDGES
-  /* HACK: to avoid loosing sub pixel object in selections, we add a bit of randomness to the
+  /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
   gl_Position.xy += sizeViewportInv.xy * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
 #endif

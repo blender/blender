@@ -554,7 +554,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
   for (i = 2; (i <= layout->rows + 1); i += 2) {
     sy = (int)v2d->cur.ymax - layout->offset_top - i * item_height - layout->tile_border_y;
 
-    /* Offsett pattern slightly to add scroll effect. */
+    /* Offset pattern slightly to add scroll effect. */
     sy += round_fl_to_int(item_height * (v2d->tot.ymax - v2d->cur.ymax) / item_height);
 
     immRectf(pos,

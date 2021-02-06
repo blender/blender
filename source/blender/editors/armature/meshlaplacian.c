@@ -497,7 +497,7 @@ static float heat_source_distance(LaplacianSystem *sys, int vertex, int source)
 {
   float closest[3], d[3], dist, cosine;
 
-  /* compute euclidian distance */
+  /* compute Euclidean distance */
   closest_to_line_segment_v3(
       closest, sys->heat.verts[vertex], sys->heat.root[source], sys->heat.tip[source]);
 

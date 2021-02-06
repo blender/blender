@@ -437,13 +437,13 @@ BLI_INLINE int isPolyValid(const float coords[][2], const uint nr)
   for (int i = 0; i < nr; i++) {
     sub_v2_v2v2(curr_vec, coords[i], prev_co);
 
-    /* Check ovelap between directly adjacent vertices. */
+    /* Check overlap between directly adjacent vertices. */
     const float curr_len = normalize_v2(curr_vec);
     if (curr_len < FLT_EPSILON) {
       return MOD_SDEF_BIND_RESULT_OVERLAP_ERR;
     }
 
-    /* Check ovelap between vertices skipping one. */
+    /* Check overlap between vertices skipping one. */
     if (len_squared_v2v2(prev_prev_co, coords[i]) < FLT_EPSILON * FLT_EPSILON) {
       return MOD_SDEF_BIND_RESULT_OVERLAP_ERR;
     }

@@ -731,7 +731,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
  *
  * - One single loop; an edge is added to connect the ends
  * - Two loops; two edges are added to connect the endpoints (based on the
- *   shortest distance between each endpont).
+ *   shortest distance between each endpoint).
  */
 static BMOpDefine bmo_edgenet_prepare_def = {
   "edgenet_prepare",
