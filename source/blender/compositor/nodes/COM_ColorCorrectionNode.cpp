@@ -32,9 +32,9 @@ void ColorCorrectionNode::convertToOperations(NodeConverter &converter,
 
   ColorCorrectionOperation *operation = new ColorCorrectionOperation();
   operation->setData((NodeColorCorrection *)editorNode->storage);
-  operation->setRedChannelEnabled((editorNode->custom1 & 1) > 0);
-  operation->setGreenChannelEnabled((editorNode->custom1 & 2) > 0);
-  operation->setBlueChannelEnabled((editorNode->custom1 & 4) > 0);
+  operation->setRedChannelEnabled((editorNode->custom1 & 1) != 0);
+  operation->setGreenChannelEnabled((editorNode->custom1 & 2) != 0);
+  operation->setBlueChannelEnabled((editorNode->custom1 & 4) != 0);
   converter.addOperation(operation);
 
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));

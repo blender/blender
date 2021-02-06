@@ -449,8 +449,8 @@ void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
           (stl->g_data->render_passes & EEVEE_RENDERPASSES_LIGHT_PASS) :
           stl->g_data->render_passes;
 
-  bool is_valid = (render_pass & EEVEE_RENDERPASSES_ALL) > 0;
-  bool needs_color_transfer = (render_pass & EEVEE_RENDERPASSES_COLOR_PASS) > 0 &&
+  bool is_valid = (render_pass & EEVEE_RENDERPASSES_ALL) != 0;
+  bool needs_color_transfer = (render_pass & EEVEE_RENDERPASSES_COLOR_PASS) != 0 &&
                               DRW_state_is_opengl_render();
   UNUSED_VARS(needs_color_transfer);
 
