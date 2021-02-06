@@ -20,6 +20,10 @@
 
 #include <string.h>
 
+#include "DNA_ID.h"
+#include "DNA_asset_types.h"
+#include "DNA_defaults.h"
+
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
@@ -29,17 +33,13 @@
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 
-#include "DNA_ID.h"
-#include "DNA_asset_types.h"
-#include "DNA_defaults.h"
-
 #include "BLO_read_write.h"
 
 #include "MEM_guardedalloc.h"
 
 AssetMetaData *BKE_asset_metadata_create(void)
 {
-  AssetMetaData *asset_data = MEM_callocN(sizeof(*asset_data), __func__);
+  AssetMetaData *asset_data = (AssetMetaData *)MEM_callocN(sizeof(*asset_data), __func__);
   memcpy(asset_data, DNA_struct_default_get(AssetMetaData), sizeof(*asset_data));
   return asset_data;
 }
@@ -57,7 +57,7 @@ void BKE_asset_metadata_free(AssetMetaData **asset_data)
 
 static AssetTag *asset_metadata_tag_add(AssetMetaData *asset_data, const char *const name)
 {
-  AssetTag *tag = MEM_callocN(sizeof(*tag), __func__);
+  AssetTag *tag = (AssetTag *)MEM_callocN(sizeof(*tag), __func__);
   BLI_strncpy(tag->name, name, sizeof(tag->name));
 
   BLI_addtail(&asset_data->tags, tag);
@@ -81,12 +81,12 @@ AssetTag *BKE_asset_metadata_tag_add(AssetMetaData *asset_data, const char *name
 struct AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data,
                                                           const char *name)
 {
-  struct AssetTagEnsureResult result = {.tag = NULL};
+  struct AssetTagEnsureResult result = {nullptr};
   if (!name[0]) {
     return result;
   }
 
-  AssetTag *tag = BLI_findstring(&asset_data->tags, name, offsetof(AssetTag, name));
+  AssetTag *tag = (AssetTag *)BLI_findstring(&asset_data->tags, name, offsetof(AssetTag, name));
 
   if (tag) {
     result.tag = tag;

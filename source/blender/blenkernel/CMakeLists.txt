@@ -78,7 +78,7 @@ set(SRC
   intern/armature.c
   intern/armature_deform.c
   intern/armature_update.c
-  intern/asset.c
+  intern/asset.cc
   intern/attribute.c
   intern/attribute_access.cc
   intern/autoexec.c

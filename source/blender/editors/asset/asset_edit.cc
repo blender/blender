@@ -45,7 +45,7 @@ bool ED_asset_mark_id(const bContext *C, ID *id)
 
   id->asset_data = BKE_asset_metadata_create();
 
-  UI_icon_render_id(C, NULL, id, ICON_SIZE_PREVIEW, true);
+  UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
 
   return true;
 }
@@ -65,5 +65,5 @@ bool ED_asset_clear_id(ID *id)
 bool ED_asset_can_make_single_from_context(const bContext *C)
 {
   /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_clear() to use. */
-  return CTX_data_pointer_get_type_silent(C, "id", &RNA_ID).data != NULL;
+  return CTX_data_pointer_get_type_silent(C, "id", &RNA_ID).data != nullptr;
 }

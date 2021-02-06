@@ -64,7 +64,8 @@ static ListBase /* CollectionPointerLink */ asset_operation_get_ids_from_context
   PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
 
   if (idptr.data) {
-    CollectionPointerLink *ctx_link = MEM_callocN(sizeof(*ctx_link), __func__);
+    CollectionPointerLink *ctx_link = (CollectionPointerLink *)MEM_callocN(sizeof(*ctx_link),
+                                                                           __func__);
     ctx_link->ptr = idptr;
     BLI_addtail(&list, ctx_link);
   }
@@ -84,7 +85,7 @@ static void asset_mark_for_idptr_list(const bContext *C,
   LISTBASE_FOREACH (CollectionPointerLink *, ctx_id, ids) {
     BLI_assert(RNA_struct_is_ID(ctx_id->ptr.type));
 
-    ID *id = ctx_id->ptr.data;
+    ID *id = (ID *)ctx_id->ptr.data;
     if (id->asset_data) {
       r_stats->tot_already_asset++;
       continue;
@@ -138,8 +139,8 @@ static int asset_mark_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
-  WM_main_add_notifier(NC_ASSET | NA_ADDED, NULL);
+  WM_main_add_notifier(NC_ID | NA_EDITED, nullptr);
+  WM_main_add_notifier(NC_ASSET | NA_ADDED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -166,14 +167,14 @@ struct AssetClearResultStats {
 };
 
 static void asset_clear_from_idptr_list(const ListBase /* CollectionPointerLink */ *ids,
-                                        struct AssetClearResultStats *r_stats)
+                                        AssetClearResultStats *r_stats)
 {
   memset(r_stats, 0, sizeof(*r_stats));
 
   LISTBASE_FOREACH (CollectionPointerLink *, ctx_id, ids) {
     BLI_assert(RNA_struct_is_ID(ctx_id->ptr.type));
 
-    ID *id = ctx_id->ptr.data;
+    ID *id = (ID *)ctx_id->ptr.data;
     if (!id->asset_data) {
       continue;
     }
@@ -185,8 +186,7 @@ static void asset_clear_from_idptr_list(const ListBase /* CollectionPointerLink 
   }
 }
 
-static bool asset_clear_result_report(const struct AssetClearResultStats *stats,
-                                      ReportList *reports)
+static bool asset_clear_result_report(const AssetClearResultStats *stats, ReportList *reports)
 
 {
   if (stats->tot_removed < 1) {
@@ -210,7 +210,7 @@ static int asset_clear_exec(bContext *C, wmOperator *op)
 {
   ListBase ids = asset_operation_get_ids_from_context(C);
 
-  struct AssetClearResultStats stats;
+  AssetClearResultStats stats;
   asset_clear_from_idptr_list(&ids, &stats);
   BLI_freelistN(&ids);
 
@@ -218,8 +218,8 @@ static int asset_clear_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
-  WM_main_add_notifier(NC_ASSET | NA_REMOVED, NULL);
+  WM_main_add_notifier(NC_ID | NA_EDITED, nullptr);
+  WM_main_add_notifier(NC_ASSET | NA_REMOVED, nullptr);
 
   return OPERATOR_FINISHED;
 }
