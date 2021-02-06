@@ -187,9 +187,12 @@ void special_aftertrans_update__node(bContext *C, TransInfo *t);
 
 /* transform_convert_object.c */
 void createTransObject(bContext *C, TransInfo *t);
-void createTransTexspace(TransInfo *t);
 void recalcData_objects(TransInfo *t);
 void special_aftertrans_update__object(bContext *C, TransInfo *t);
+
+/* transform_convert_object_texspace.c */
+void createTransTexspace(TransInfo *t);
+void recalcData_texspace(TransInfo *t);
 
 /* transform_convert_paintcurve.c */
 void createTransPaintCurveVerts(bContext *C, TransInfo *t);

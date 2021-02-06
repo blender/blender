@@ -892,7 +892,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
       special_aftertrans_update__node(C, t);
       break;
     case TC_OBJECT:
-    case TC_OBJECT_TEXSPACE:
       special_aftertrans_update__object(C, t);
       break;
     case TC_SCULPT:
@@ -912,6 +911,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     case TC_LATTICE_VERTS:
     case TC_MBALL_VERTS:
     case TC_MESH_UV:
+    case TC_OBJECT_TEXSPACE:
     case TC_PAINT_CURVE_VERTS:
     case TC_PARTICLE_VERTS:
     case TC_NONE:
@@ -1552,8 +1552,10 @@ void recalcData(TransInfo *t)
       flushTransNodes(t);
       break;
     case TC_OBJECT:
-    case TC_OBJECT_TEXSPACE:
       recalcData_objects(t);
+      break;
+    case TC_OBJECT_TEXSPACE:
+      recalcData_texspace(t);
       break;
     case TC_PAINT_CURVE_VERTS:
       flushTransPaintCurve(t);
