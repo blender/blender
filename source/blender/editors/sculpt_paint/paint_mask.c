@@ -950,6 +950,24 @@ static EnumPropertyItem prop_trim_orientation_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+typedef enum eSculptTrimLocationType {
+  SCULPT_GESTURE_TRIM_LOCATION_DEPTH_SURFACE,
+  SCULPT_GESTURE_TRIM_LOCATION_DEPTH_VOLUME,
+} eSculptTrimLocationType;
+static EnumPropertyItem prop_trim_location_types[] = {
+    {SCULPT_GESTURE_TRIM_LOCATION_DEPTH_SURFACE,
+     "DEPTH_SURFACE",
+     0,
+     "Surface",
+     "Use the surface under the cursor to locate the trimming shape"},
+    {SCULPT_GESTURE_TRIM_LOCATION_DEPTH_VOLUME,
+     "DEPTH_VOLUME",
+     0,
+     "Volume",
+     "Use the volume of the mesh to locate the trimming shape in the center of the volume"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 typedef struct SculptGestureTrimOperation {
   SculptGestureOperation op;
 
@@ -963,6 +981,7 @@ typedef struct SculptGestureTrimOperation {
 
   eSculptTrimOperationType mode;
   eSculptTrimOrientationType orientation;
+  eSculptTrimLocationType location;
 } SculptGestureTrimOperation;
 
 static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
@@ -1054,8 +1073,19 @@ static void sculpt_gesture_trim_calculate_depth(bContext *C, SculptGestureContex
 
   if (trim_operation->use_cursor_depth) {
     float world_space_gesture_initial_location[3];
-    mul_v3_m4v3(
-        world_space_gesture_initial_location, vc->obact->obmat, ss->gesture_initial_location);
+
+    switch (trim_operation->location) {
+      case SCULPT_GESTURE_TRIM_LOCATION_DEPTH_SURFACE: {
+        mul_v3_m4v3(
+            world_space_gesture_initial_location, vc->obact->obmat, ss->gesture_initial_location);
+
+      } break;
+      case SCULPT_GESTURE_TRIM_LOCATION_DEPTH_VOLUME: {
+        float center_co[3];
+        mid_v3_v3v3(center_co, ss->gesture_initial_location, ss->gesture_initial_back_location);
+        mul_v3_m4v3(world_space_gesture_initial_location, vc->obact->obmat, center_co);
+      } break;
+    }
 
     float mid_point_depth;
     if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
@@ -1363,6 +1393,7 @@ static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext,
   trim_operation->mode = RNA_enum_get(op->ptr, "trim_mode");
   trim_operation->use_cursor_depth = RNA_boolean_get(op->ptr, "use_cursor_depth");
   trim_operation->orientation = RNA_enum_get(op->ptr, "trim_orientation");
+  trim_operation->location = RNA_enum_get(op->ptr, "trim_location");
 
   /* If the cursor was not over the mesh, force the orientation to view. */
   if (!sgcontext->ss->gesture_initial_hit) {
@@ -1389,6 +1420,13 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
                prop_trim_orientation_types,
                SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
                "Shape Orientation",
+               NULL);
+
+  RNA_def_enum(ot->srna,
+               "trim_location",
+               prop_trim_location_types,
+               SCULPT_GESTURE_TRIM_LOCATION_DEPTH_SURFACE,
+               "Shape Location",
                NULL);
 }
 
@@ -1741,7 +1779,7 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
   SculptCursorGeometryInfo sgi;
   float mouse[2] = {event->mval[0], event->mval[1]};
   SCULPT_vertex_random_access_ensure(ss);
-  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false);
   if (ss->gesture_initial_hit) {
     copy_v3_v3(ss->gesture_initial_location, sgi.location);
     copy_v3_v3(ss->gesture_initial_normal, sgi.normal);
@@ -1782,9 +1820,10 @@ static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const w
   SculptCursorGeometryInfo sgi;
   float mouse[2] = {event->mval[0], event->mval[1]};
   SCULPT_vertex_random_access_ensure(ss);
-  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, true);
   if (ss->gesture_initial_hit) {
     copy_v3_v3(ss->gesture_initial_location, sgi.location);
+    copy_v3_v3(ss->gesture_initial_back_location, sgi.back_location);
     copy_v3_v3(ss->gesture_initial_normal, sgi.normal);
   }
 

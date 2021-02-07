@@ -2887,8 +2887,17 @@ typedef struct {
   const float *ray_start;
   const float *ray_normal;
   bool hit;
+  int hit_count;
+  bool back_hit;
   float depth;
   bool original;
+
+  /* Depth of the second raycast hit. */
+  float back_depth;
+
+  /* When the back depth is not needed, this can be set to false to avoid traversing unnecesary
+   * nodes. */
+  bool use_back_depth;
 
   int active_vertex_index;
   float *face_normal;
@@ -7791,8 +7800,8 @@ void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *b
 
 static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 {
-  if (BKE_pbvh_node_get_tmin(node) < *tmin) {
-    SculptRaycastData *srd = data_v;
+  SculptRaycastData *srd = data_v;
+  if (srd->use_back_depth || BKE_pbvh_node_get_tmin(node) < *tmin) {
     float(*origco)[3] = NULL;
     bool use_origco = false;
 
@@ -7815,12 +7824,18 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
                               srd->ray_start,
                               srd->ray_normal,
                               &srd->isect_precalc,
+                              &srd->hit_count,
                               &srd->depth,
+                              &srd->back_depth,
                               &srd->active_vertex_index,
                               &srd->active_face_grid_index,
                               srd->face_normal)) {
       srd->hit = true;
       *tmin = srd->depth;
+    }
+
+    if (srd->hit_count >= 2) {
+      srd->back_hit = true;
     }
   }
 }
@@ -7901,7 +7916,8 @@ float SCULPT_raycast_init(ViewContext *vc,
 bool SCULPT_cursor_geometry_info_update(bContext *C,
                                         SculptCursorGeometryInfo *out,
                                         const float mouse[2],
-                                        bool use_sampled_normal)
+                                        bool use_sampled_normal,
+                                        bool use_back_depth)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
@@ -7931,14 +7947,19 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   /* PBVH raycast to get active vertex and face normal. */
   depth = SCULPT_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, original);
   SCULPT_stroke_modifiers_check(C, ob, brush);
+  float back_depth = depth;
 
   SculptRaycastData srd = {
       .original = original,
       .ss = ob->sculpt,
       .hit = false,
+      .back_hit = false,
       .ray_start = ray_start,
       .ray_normal = ray_normal,
       .depth = depth,
+      .back_depth = back_depth,
+      .hit_count = 0,
+      .use_back_depth = use_back_depth,
       .face_normal = face_normal,
   };
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
@@ -7975,6 +7996,17 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   copy_v3_v3(out->location, ray_normal);
   mul_v3_fl(out->location, srd.depth);
   add_v3_v3(out->location, ray_start);
+
+  if (use_back_depth) {
+    copy_v3_v3(out->back_location, ray_normal);
+    if (srd.back_hit) {
+      mul_v3_fl(out->back_location, srd.back_depth);
+    }
+    else {
+      mul_v3_fl(out->back_location, srd.depth);
+    }
+    add_v3_v3(out->back_location, ray_start);
+  }
 
   /* Option to return the face normal directly for performance o accuracy reasons. */
   if (!use_sampled_normal) {
@@ -9814,7 +9846,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   float mouse[2];
   mouse[0] = event->mval[0];
   mouse[1] = event->mval[1];
-  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false);
 
   SCULPT_undo_push_begin(ob, "Mask by color");
 

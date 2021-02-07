@@ -197,7 +197,7 @@ static void sculpt_gradient_context_init_common(bContext *C,
   /* Depth */
   SculptCursorGeometryInfo sgi;
   float mouse[2] = {event->mval[0], event->mval[1]};
-  const bool hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  const bool hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false);
   if (hit) {
     copy_v3_v3(gcontext->depth_point, sgi.location);
   }

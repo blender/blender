@@ -74,6 +74,7 @@ void SCULPT_tag_update_overlays(bContext *C);
 
 typedef struct SculptCursorGeometryInfo {
   float location[3];
+  float back_location[3];
   float normal[3];
   float active_vertex_co[3];
 } SculptCursorGeometryInfo;
@@ -82,7 +83,8 @@ bool SCULPT_stroke_get_location(struct bContext *C, float out[3], const float mo
 bool SCULPT_cursor_geometry_info_update(bContext *C,
                                         SculptCursorGeometryInfo *out,
                                         const float mouse[2],
-                                        bool use_sampled_normal);
+                                        bool use_sampled_normal,
+                                        bool use_back_depth);
 void SCULPT_geometry_preview_lines_update(bContext *C, struct SculptSession *ss, float radius);
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush);

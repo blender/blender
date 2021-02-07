@@ -188,7 +188,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     float mouse[2];
     mouse[0] = event->mval[0];
     mouse[1] = event->mval[1];
-    if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
+    if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false)) {
       /* The cursor is over the mesh, get the update iteration from the updated active vertex. */
       mask_expand_update_it = ss->filter_cache->mask_update_it[(int)SCULPT_active_vertex_get(ss)];
     }
@@ -368,7 +368,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   op->customdata = MEM_mallocN(sizeof(float[2]), "initial mouse position");
   copy_v2_v2(op->customdata, mouse);
 
-  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 

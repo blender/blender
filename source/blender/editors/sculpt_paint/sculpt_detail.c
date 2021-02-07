@@ -180,7 +180,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, int mx, int my)
 
   /* Update the active vertex. */
   const float mouse[2] = {mx, my};
-  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
