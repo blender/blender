@@ -1127,6 +1127,11 @@ void SCULPT_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
 void SCULPT_floodfill_add_initial(SculptFloodFill *flood, int index)
 {
   BLI_gsqueue_push(flood->queue, &index);
+}
+
+void SCULPT_floodfill_add_and_skip_initial(SculptFloodFill *flood, int index)
+{
+  BLI_gsqueue_push(flood->queue, &index);
   BLI_BITMAP_ENABLE(flood->visited_vertices, index);
 }
 

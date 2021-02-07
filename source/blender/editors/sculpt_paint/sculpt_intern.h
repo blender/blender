@@ -304,6 +304,7 @@ void SCULPT_floodfill_add_initial_with_symmetry(struct Sculpt *sd,
                                                 int index,
                                                 float radius);
 void SCULPT_floodfill_add_initial(SculptFloodFill *flood, int index);
+void SCULPT_floodfill_add_and_skip_initial(SculptFloodFill *flood, int index);
 void SCULPT_floodfill_execute(
     struct SculptSession *ss,
     SculptFloodFill *flood,

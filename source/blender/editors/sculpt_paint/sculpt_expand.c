@@ -603,7 +603,7 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
     if (!BLI_BITMAP_TEST(boundary_vertices, i)) {
       continue;
     }
-    SCULPT_floodfill_add_initial(&flood, i);
+    SCULPT_floodfill_add_and_skip_initial(&flood, i);
   }
   MEM_freeN(boundary_vertices);
 
