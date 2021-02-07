@@ -118,6 +118,10 @@ static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
 
 static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int i)
 {
+  if (!SCULPT_vertex_visible_get(ss, i)) {
+      return false;
+  }
+
   bool enabled = false;
 
   if (expand_cache->snap) {
@@ -142,7 +146,13 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
 
 static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_cache, const int f)
 {
+  if (ss->face_sets[f] <= 0) {
+      return false;
+  }
+
   bool enabled = false;
+
+
   if (expand_cache->snap_enabled_face_sets) {
     const int face_set = ss->face_sets[f];
     enabled = BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
