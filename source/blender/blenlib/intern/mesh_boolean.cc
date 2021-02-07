@@ -2584,6 +2584,7 @@ static IMesh raycast_boolean(const IMesh &tm,
       }
     }
   }
+  BLI_bvhtree_free(tree);
   ans.set_faces(out_faces);
   return ans;
 }
