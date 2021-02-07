@@ -1098,9 +1098,17 @@ static void sculpt_gesture_trim_calculate_depth(bContext *C, SculptGestureContex
       /* When using normal orientation, if the stroke started over the mesh, position the mid point
        * at 0 distance from the shape plane. This positions the trimming shape half inside of the
        * surface. */
-      mid_point_depth = ss->gesture_initial_hit ?
-                            0.0f :
-                            (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
+      if (SCULPT_GESTURE_TRIM_LOCATION_DEPTH_VOLUME) {
+        mid_point_depth = ss->gesture_initial_hit ?
+                              dist_signed_to_plane_v3(world_space_gesture_initial_location,
+                                                      shape_plane) :
+                              (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
+      }
+      else {
+        mid_point_depth = ss->gesture_initial_hit ?
+                              0.0f :
+                              (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
+      }
     }
 
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;

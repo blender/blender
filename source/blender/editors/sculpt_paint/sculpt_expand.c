@@ -119,7 +119,7 @@ static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
 static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int i)
 {
   if (!SCULPT_vertex_visible_get(ss, i)) {
-      return false;
+    return false;
   }
 
   bool enabled = false;
@@ -147,11 +147,10 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
 static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_cache, const int f)
 {
   if (ss->face_sets[f] <= 0) {
-      return false;
+    return false;
   }
 
   bool enabled = false;
-
 
   if (expand_cache->snap_enabled_face_sets) {
     const int face_set = ss->face_sets[f];
@@ -1305,7 +1304,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
       case SCULPT_EXPAND_MODAL_BRUSH_GRADIENT_TOGGLE: {
         expand_cache->brush_gradient = !expand_cache->brush_gradient;
         if (expand_cache->brush_gradient) {
-            expand_cache->falloff_gradient = true;
+          expand_cache->falloff_gradient = true;
         }
         break;
       }
