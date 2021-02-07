@@ -4751,45 +4751,45 @@ static void registerGeometryNodes()
 {
   register_node_type_geo_group();
 
+  register_node_type_geo_align_rotation_to_vector();
+  register_node_type_geo_attribute_color_ramp();
   register_node_type_geo_attribute_compare();
   register_node_type_geo_attribute_fill();
+  register_node_type_geo_attribute_math();
+  register_node_type_geo_attribute_mix();
   register_node_type_geo_attribute_proximity();
+  register_node_type_geo_attribute_randomize();
   register_node_type_geo_attribute_vector_math();
-  register_node_type_geo_triangulate();
-  register_node_type_geo_edge_split();
-  register_node_type_geo_transform();
-  register_node_type_geo_subdivision_surface();
   register_node_type_geo_boolean();
+  register_node_type_geo_collection_info();
+  register_node_type_geo_edge_split();
+  register_node_type_geo_is_viewport();
+  register_node_type_geo_join_geometry();
+  register_node_type_geo_object_info();
   register_node_type_geo_point_distribute();
   register_node_type_geo_point_instance();
-  register_node_type_geo_point_separate();
-  register_node_type_geo_point_scale();
-  register_node_type_geo_point_translate();
-  register_node_type_geo_object_info();
-  register_node_type_geo_attribute_randomize();
-  register_node_type_geo_attribute_math();
-  register_node_type_geo_join_geometry();
-  register_node_type_geo_attribute_mix();
-  register_node_type_geo_attribute_color_ramp();
   register_node_type_geo_point_rotate();
-  register_node_type_geo_align_rotation_to_vector();
-  register_node_type_geo_sample_texture();
+  register_node_type_geo_point_scale();
+  register_node_type_geo_point_separate();
+  register_node_type_geo_point_translate();
   register_node_type_geo_points_to_volume();
-  register_node_type_geo_collection_info();
-  register_node_type_geo_is_viewport();
+  register_node_type_geo_sample_texture();
+  register_node_type_geo_subdivision_surface();
+  register_node_type_geo_transform();
+  register_node_type_geo_triangulate();
   register_node_type_geo_volume_to_mesh();
 }
 
 static void registerFunctionNodes()
 {
   register_node_type_fn_boolean_math();
-  register_node_type_fn_float_compare();
-  register_node_type_fn_switch();
-  register_node_type_fn_group_instance_id();
   register_node_type_fn_combine_strings();
+  register_node_type_fn_float_compare();
+  register_node_type_fn_group_instance_id();
+  register_node_type_fn_input_vector();
   register_node_type_fn_object_transforms();
   register_node_type_fn_random_float();
-  register_node_type_fn_input_vector();
+  register_node_type_fn_switch();
 }
 
 void BKE_node_system_init(void)
