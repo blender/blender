@@ -1293,6 +1293,9 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
       }
       case SCULPT_EXPAND_MODAL_BRUSH_GRADIENT_TOGGLE: {
         expand_cache->brush_gradient = !expand_cache->brush_gradient;
+        if (expand_cache->brush_gradient) {
+            expand_cache->falloff_gradient = true;
+        }
         break;
       }
       case SCULPT_EXPAND_MODAL_SNAP_TOGGLE: {
