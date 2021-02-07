@@ -2059,6 +2059,59 @@ bool ray_face_intersection_tri(const float ray_start[3],
   return false;
 }
 
+bool ray_update_depth_and_hit_count(const float depth_test,
+                                    float *r_depth,
+                                    float *r_back_depth,
+                                    int *hit_count)
+{
+  (*hit_count)++;
+  if (depth_test < *r_depth) {
+    *r_back_depth = *r_depth;
+    *r_depth = depth_test;
+    return true;
+  }
+  else if (depth_test > *r_depth && depth_test <= *r_back_depth) {
+    *r_back_depth = depth_test;
+    return false;
+  }
+
+  return false;
+}
+
+float ray_face_intersection_depth_quad(const float ray_start[3],
+                                       struct IsectRayPrecalc *isect_precalc,
+                                       const float t0[3],
+                                       const float t1[3],
+                                       const float t2[3],
+                                       const float t3[3],
+                                       float *r_depth,
+                                       float *r_back_depth,
+                                       int *hit_count)
+{
+  float depth_test;
+  if (!(isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) ||
+        isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t2, t3, &depth_test, NULL))) {
+    return false;
+  }
+  return ray_update_depth_and_hit_count(depth_test, r_depth, r_back_depth, hit_count);
+}
+
+bool ray_face_intersection_depth_tri(const float ray_start[3],
+                                     struct IsectRayPrecalc *isect_precalc,
+                                     const float t0[3],
+                                     const float t1[3],
+                                     const float t2[3],
+                                     float *r_depth,
+                                     float *r_back_depth,
+                                     int *hit_count)
+{
+  float depth_test;
+  if (!isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL)) {
+    return false;
+  }
+  return ray_update_depth_and_hit_count(depth_test, r_depth, r_back_depth, hit_count);
+}
+
 /* Take advantage of the fact we know this wont be an intersection.
  * Just handle ray-tri edges. */
 static float dist_squared_ray_to_tri_v3_fast(const float ray_origin[3],
@@ -2138,7 +2191,9 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
                                     const float ray_start[3],
                                     const float ray_normal[3],
                                     struct IsectRayPrecalc *isect_precalc,
+                                    int *hit_count,
                                     float *depth,
+                                    float *depth_back,
                                     int *r_active_vertex_index,
                                     int *r_active_face_index,
                                     float *r_face_normal)
@@ -2172,26 +2227,29 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
       co[2] = vert[mloop[lt->tri[2]].v].co;
     }
 
-    if (ray_face_intersection_tri(ray_start, isect_precalc, co[0], co[1], co[2], depth)) {
-      hit = true;
+    if (!ray_face_intersection_depth_tri(
+            ray_start, isect_precalc, co[0], co[1], co[2], depth, depth_back, hit_count)) {
+      continue;
+    }
 
-      if (r_face_normal) {
-        normal_tri_v3(r_face_normal, co[0], co[1], co[2]);
-      }
+    hit = true;
 
-      if (r_active_vertex_index) {
-        float location[3] = {0.0f};
-        madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
-        for (int j = 0; j < 3; j++) {
-          /* Always assign nearest_vertex_co in the first iteration to avoid comparison against
-           * uninitialized values. This stores the closest vertex in the current intersecting
-           * triangle. */
-          if (j == 0 ||
-              len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
-            copy_v3_v3(nearest_vertex_co, co[j]);
-            *r_active_vertex_index = mloop[lt->tri[j]].v;
-            *r_active_face_index = lt->poly;
-          }
+    if (r_face_normal) {
+      normal_tri_v3(r_face_normal, co[0], co[1], co[2]);
+    }
+
+    if (r_active_vertex_index) {
+      float location[3] = {0.0f};
+      madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
+      for (int j = 0; j < 3; j++) {
+        /* Always assign nearest_vertex_co in the first iteration to avoid comparison against
+         * uninitialized values. This stores the closest vertex in the current intersecting
+         * triangle. */
+        if (j == 0 ||
+            len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
+          copy_v3_v3(nearest_vertex_co, co[j]);
+          *r_active_vertex_index = mloop[lt->tri[j]].v;
+          *r_active_face_index = lt->poly;
         }
       }
     }
@@ -2206,7 +2264,9 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
                                     const float ray_start[3],
                                     const float ray_normal[3],
                                     struct IsectRayPrecalc *isect_precalc,
+                                    int *hit_count,
                                     float *depth,
+                                    float *back_depth,
                                     int *r_active_vertex_index,
                                     int *r_active_grid_index,
                                     float *r_face_normal)
@@ -2251,37 +2311,45 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
           co[3] = CCG_grid_elem_co(gridkey, grid, x, y + 1);
         }
 
-        if (ray_face_intersection_quad(
-                ray_start, isect_precalc, co[0], co[1], co[2], co[3], depth)) {
-          hit = true;
+        if (ray_face_intersection_depth_quad(ray_start,
+                                             isect_precalc,
+                                             co[0],
+                                             co[1],
+                                             co[2],
+                                             co[3],
+                                             depth,
+                                             back_depth,
+                                             hit_count)) {
+          continue;
+        }
+        hit = true;
 
-          if (r_face_normal) {
-            normal_quad_v3(r_face_normal, co[0], co[1], co[2], co[3]);
-          }
+        if (r_face_normal) {
+          normal_quad_v3(r_face_normal, co[0], co[1], co[2], co[3]);
+        }
 
-          if (r_active_vertex_index) {
-            float location[3] = {0.0};
-            madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
+        if (r_active_vertex_index) {
+          float location[3] = {0.0};
+          madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
 
-            const int x_it[4] = {0, 1, 1, 0};
-            const int y_it[4] = {0, 0, 1, 1};
+          const int x_it[4] = {0, 1, 1, 0};
+          const int y_it[4] = {0, 0, 1, 1};
 
-            for (int j = 0; j < 4; j++) {
-              /* Always assign nearest_vertex_co in the first iteration to avoid comparison against
-               * uninitialized values. This stores the closest vertex in the current intersecting
-               * quad. */
-              if (j == 0 || len_squared_v3v3(location, co[j]) <
-                                len_squared_v3v3(location, nearest_vertex_co)) {
-                copy_v3_v3(nearest_vertex_co, co[j]);
+          for (int j = 0; j < 4; j++) {
+            /* Always assign nearest_vertex_co in the first iteration to avoid comparison against
+             * uninitialized values. This stores the closest vertex in the current intersecting
+             * quad. */
+            if (j == 0 || len_squared_v3v3(location, co[j]) <
+                              len_squared_v3v3(location, nearest_vertex_co)) {
+              copy_v3_v3(nearest_vertex_co, co[j]);
 
-                *r_active_vertex_index = gridkey->grid_area * grid_index +
-                                         (y + y_it[j]) * gridkey->grid_size + (x + x_it[j]);
-              }
+              *r_active_vertex_index = gridkey->grid_area * grid_index +
+                                       (y + y_it[j]) * gridkey->grid_size + (x + x_it[j]);
             }
           }
-          if (r_active_grid_index) {
-            *r_active_grid_index = grid_index;
-          }
+        }
+        if (r_active_grid_index) {
+          *r_active_grid_index = grid_index;
         }
       }
     }
@@ -2301,7 +2369,9 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            const float ray_start[3],
                            const float ray_normal[3],
                            struct IsectRayPrecalc *isect_precalc,
+                           int *hit_count,
                            float *depth,
+                           float *back_depth,
                            int *active_vertex_index,
                            int *active_face_grid_index,
                            float *face_normal)
@@ -2320,7 +2390,9 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                                      ray_start,
                                      ray_normal,
                                      isect_precalc,
+                                     hit_count,
                                      depth,
+                                     back_depth,
                                      active_vertex_index,
                                      active_face_grid_index,
                                      face_normal);
@@ -2332,7 +2404,9 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                                      ray_start,
                                      ray_normal,
                                      isect_precalc,
+                                     hit_count,
                                      depth,
+                                     back_depth,
                                      active_vertex_index,
                                      active_face_grid_index,
                                      face_normal);
