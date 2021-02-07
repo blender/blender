@@ -537,6 +537,8 @@ void SCULPT_boundary_data_free(SculptBoundary *boundary)
   MEM_SAFE_FREE(boundary->bend.pivot_positions);
   MEM_SAFE_FREE(boundary->bend.pivot_rotation_axis);
   MEM_SAFE_FREE(boundary->slide.directions);
+  MEM_SAFE_FREE(boundary->circle.origin);
+  MEM_SAFE_FREE(boundary->circle.radius);
   MEM_SAFE_FREE(boundary);
 }
 
@@ -620,6 +622,45 @@ static void sculpt_boundary_twist_data_init(SculptSession *ss, SculptBoundary *b
     normalize_v3(boundary->twist.rotation_axis);
   }
   MEM_freeN(poly_verts);
+}
+
+static void sculpt_boundary_circle_data_init(SculptSession *ss, SculptBoundary *boundary)
+{
+
+  const int totvert = SCULPT_vertex_count_get(ss);
+  const int totcircles = boundary->max_propagation_steps + 1;
+
+  boundary->circle.radius = MEM_calloc_arrayN(totcircles, sizeof(float), "radius");
+  boundary->circle.origin = MEM_calloc_arrayN(totcircles, sizeof(float) * 3, "origin");
+
+  int *count = MEM_calloc_arrayN(totcircles, sizeof(int), "count");
+  for (int i = 0; i < totvert; i++) {
+    const int propagation_step_index = boundary->edit_info[i].num_propagation_steps;
+    if (propagation_step_index == -1) {
+      continue;
+    }
+    add_v3_v3(boundary->circle.origin[propagation_step_index], SCULPT_vertex_co_get(ss, i));
+    count[propagation_step_index]++;
+  }
+
+  for (int i = 0; i < totcircles; i++) {
+    mul_v3_fl(boundary->circle.origin[i], 1.0f / count[i]);
+  }
+
+  for (int i = 0; i < totvert; i++) {
+    const int propagation_step_index = boundary->edit_info[i].num_propagation_steps;
+    if (propagation_step_index == -1) {
+      continue;
+    }
+    boundary->circle.radius[propagation_step_index] += len_v3v3(
+        boundary->circle.origin[propagation_step_index], SCULPT_vertex_co_get(ss, i));
+  }
+
+  for (int i = 0; i < totcircles; i++) {
+    boundary->circle.radius[i] *= 1.0f / count[i];
+  }
+
+  MEM_freeN(count);
 }
 
 static float sculpt_boundary_displacement_from_grab_delta_get(SculptSession *ss,
@@ -931,6 +972,61 @@ static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
+static void do_boundary_brush_circle_task_cb_ex(void *__restrict userdata,
+                                                const int n,
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const int symmetry_pass = ss->cache->mirror_symmetry_pass;
+  const SculptBoundary *boundary = ss->cache->boundaries[symmetry_pass];
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
+  const Brush *brush = data->brush;
+
+  const float strength = ss->cache->bstrength;
+
+  PBVHVertexIter vd;
+  SculptOrigVertData orig_data;
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (boundary->edit_info[vd.index].num_propagation_steps == -1) {
+      continue;
+    }
+
+    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    if (!SCULPT_check_vertex_pivot_symmetry(
+            orig_data.co, boundary->initial_vertex_position, symm)) {
+      continue;
+    }
+
+    const int propagation_steps = boundary->edit_info[vd.index].num_propagation_steps;
+    float *circle_origin = boundary->circle.origin[propagation_steps];
+    float circle_disp[3];
+    sub_v3_v3v3(circle_disp, circle_origin, orig_data.co);
+    normalize_v3(circle_disp);
+    mul_v3_fl(circle_disp, -boundary->circle.radius[propagation_steps]);
+    float target_circle_co[3];
+    add_v3_v3v3(target_circle_co, circle_origin, circle_disp);
+
+    float disp[3];
+    sub_v3_v3v3(disp, target_circle_co, vd.co);
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+    const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
+    madd_v3_v3v3fl(target_co,
+                   vd.co,
+                   disp,
+                   boundary->edit_info[vd.index].strength_factor * mask * automask * strength);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
 /* Main Brush Function. */
 void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
@@ -965,6 +1061,9 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
           break;
         case BRUSH_BOUNDARY_DEFORM_TWIST:
           sculpt_boundary_twist_data_init(ss, ss->cache->boundaries[symm_area]);
+          break;
+        case BRUSH_BOUNDARY_DEFORM_CIRCLE:
+          sculpt_boundary_circle_data_init(ss, ss->cache->boundaries[symm_area]);
           break;
         case BRUSH_BOUNDARY_DEFORM_INFLATE:
         case BRUSH_BOUNDARY_DEFORM_GRAB:
@@ -1010,6 +1109,9 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
       break;
     case BRUSH_BOUNDARY_DEFORM_SMOOTH:
       BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_smooth_task_cb_ex, &settings);
+      break;
+    case BRUSH_BOUNDARY_DEFORM_CIRCLE:
+      BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_circle_task_cb_ex, &settings);
       break;
   }
 }

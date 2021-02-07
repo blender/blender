@@ -432,6 +432,12 @@ typedef struct SculptBoundary {
     float rotation_axis[3];
     float pivot_position[3];
   } twist;
+
+  /* Cicrle Deform type. */
+  struct {
+    float (*origin)[3];
+    float *radius;
+  } circle;
 } SculptBoundary;
 
 typedef struct SculptFakeNeighbors {

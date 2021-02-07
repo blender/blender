@@ -2220,6 +2220,7 @@ static void rna_def_brush(BlenderRNA *brna)
       {BRUSH_BOUNDARY_DEFORM_GRAB, "GRAB", 0, "Grab", ""},
       {BRUSH_BOUNDARY_DEFORM_TWIST, "TWIST", 0, "Twist", ""},
       {BRUSH_BOUNDARY_DEFORM_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+      {BRUSH_BOUNDARY_DEFORM_CIRCLE, "CIRCLE", 0, "Circle", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
