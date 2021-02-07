@@ -184,8 +184,9 @@ static float sculpt_expand_gradient_falloff_get(ExpandCache *expand_cache, const
   if (expand_cache->invert) {
     linear_falloff = (falloff_factor - active_factor) / (loop_len - active_factor);
   }
-
-  linear_falloff = 1.0f - (falloff_factor / active_factor);
+  else {
+    linear_falloff = 1.0f - (falloff_factor / active_factor);
+  }
 
   if (!expand_cache->brush_gradient) {
     return linear_falloff;
