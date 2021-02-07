@@ -2419,7 +2419,7 @@ static void adduplicateflagNurb(
                 memcpy(newnu->bp, &nu->bp[a], newu * newv * sizeof(BPoint));
                 memcpy(&newnu->bp[newu * newv], nu->bp, newu * cyclicv * sizeof(BPoint));
 
-                /* check for actvert in cylicv selection */
+                /* check for actvert in cyclicv selection */
                 if (cu->actnu == i) {
                   calc_duplicate_actvert(
                       editnurb, newnurb, cu, cu->actvert, a, (newu * newv) + cu->actvert);
@@ -6102,7 +6102,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
       }
 
       if (!split && cut != -1 && nu->pntsu > 2 && !(nu->flagu & CU_NURB_CYCLIC)) {
-        /* start and points copied if connecting segment was deleted and not cylic spline */
+        /* start and points copied if connecting segment was deleted and not cyclic spline */
         bezt1 = nu->bezt;
         bezt2 = &nu->bezt[1];
 
@@ -6232,7 +6232,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
         }
 
         if (!split && cut != -1 && nu->pntsu > 2 && !(nu->flagu & CU_NURB_CYCLIC)) {
-          /* start and points copied if connecting segment was deleted and not cylic spline */
+          /* start and points copied if connecting segment was deleted and not cyclic spline */
           bp1 = nu->bp;
           bp2 = &nu->bp[1];
 
@@ -6352,7 +6352,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
         }
 
         if (!split && cut != -1 && nu->pntsv > 2 && !(nu->flagv & CU_NURB_CYCLIC)) {
-          /* start and points copied if connecting segment was deleted and not cylic spline */
+          /* start and points copied if connecting segment was deleted and not cyclic spline */
           bp1 = nu->bp;
           bp2 = &nu->bp[nu->pntsu];
 

@@ -74,7 +74,7 @@ endif()
 if(WITH_TBB)
   blender_include_dirs(${TBB_INCLUDE_DIRS})
   if(NOT APPLE)
-    # APPLE plaform uses full paths for linking libraries.
+    # APPLE platform uses full paths for linking libraries.
     link_directories(${LIBDIR}/tbb/lib)
   endif()
 endif()

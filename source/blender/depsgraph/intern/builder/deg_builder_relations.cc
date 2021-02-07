@@ -2496,7 +2496,7 @@ void DepsgraphRelationBuilder::build_material(Material *material)
   /* Animated / driven parameters (without nodetree). */
   OperationKey material_key(&material->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
   ComponentKey parameters_key(&material->id, NodeType::PARAMETERS);
-  add_relation(parameters_key, material_key, "Material's paramters");
+  add_relation(parameters_key, material_key, "Material's parameters");
 
   /* material's nodetree */
   if (material->nodetree != nullptr) {

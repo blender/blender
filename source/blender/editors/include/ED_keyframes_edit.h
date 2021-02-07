@@ -118,7 +118,7 @@ typedef struct KeyframeEdit_CircleData {
 } KeyframeEdit_CircleData;
 
 /* ************************************************ */
-/* Non-Destuctive Editing API (keyframes_edit.c) */
+/* Non-Destructive Editing API (keyframes_edit.c) */
 
 /* --- Defines for 'OK' polls + KeyframeEditData Flags --------- */
 

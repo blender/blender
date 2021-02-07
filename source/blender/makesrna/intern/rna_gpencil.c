@@ -168,6 +168,7 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 
 #  include "BKE_action.h"
 #  include "BKE_animsys.h"
+#  include "BKE_deform.h"
 #  include "BKE_gpencil.h"
 #  include "BKE_gpencil_curve.h"
 #  include "BKE_gpencil_geom.h"
@@ -831,6 +832,59 @@ static void rna_GPencil_stroke_point_update(ID *id, bGPDstroke *stroke)
   }
 }
 
+static float rna_GPencilStrokePoints_weight_get(bGPDstroke *stroke,
+                                                ReportList *reports,
+                                                int vertex_group_index,
+                                                int point_index)
+{
+  MDeformVert *dvert = stroke->dvert;
+  if (dvert == NULL) {
+    BKE_report(reports, RPT_ERROR, "Groups: No groups for this stroke");
+    return -1.0f;
+  }
+
+  if (dvert->totweight <= vertex_group_index || vertex_group_index < 0) {
+    BKE_report(reports, RPT_ERROR, "Groups: index out of range");
+    return -1.0f;
+  }
+
+  if (stroke->totpoints <= point_index || point_index < 0) {
+    BKE_report(reports, RPT_ERROR, "GPencilStrokePoints: index out of range");
+    return -1.0f;
+  }
+
+  MDeformVert *pt_dvert = stroke->dvert + point_index;
+  MDeformWeight *dw = BKE_defvert_find_index(pt_dvert, vertex_group_index);
+  if (dw) {
+    return dw->weight;
+  }
+
+  return -1.0f;
+}
+
+static void rna_GPencilStrokePoints_weight_set(
+    bGPDstroke *stroke, ReportList *reports, int vertex_group_index, int point_index, float weight)
+{
+  BKE_gpencil_dvert_ensure(stroke);
+
+  MDeformVert *dvert = stroke->dvert;
+  if (dvert == NULL) {
+    BKE_report(reports, RPT_ERROR, "Groups: No groups for this stroke");
+    return;
+  }
+
+  if (stroke->totpoints <= point_index || point_index < 0) {
+    BKE_report(reports, RPT_ERROR, "GPencilStrokePoints: index out of range");
+    return;
+  }
+
+  MDeformVert *pt_dvert = stroke->dvert + point_index;
+  MDeformWeight *dw = BKE_defvert_ensure_index(pt_dvert, vertex_group_index);
+  if (dw) {
+    dw->weight = weight;
+  }
+}
+
 static bGPDstroke *rna_GPencil_stroke_new(bGPDframe *frame)
 {
   bGPDstroke *stroke = BKE_gpencil_stroke_new(0, 0, 1.0f);
@@ -1069,21 +1123,6 @@ static void rna_GPencil_clear(bGPdata *gpd)
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
-static void rna_GpencilVertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-  bGPDstroke *gps = ptr->data;
-
-  if (gps->dvert) {
-    MDeformVert *dvert = gps->dvert;
-
-    rna_iterator_array_begin(
-        iter, (void *)dvert->dw, sizeof(MDeformWeight), dvert->totweight, 0, NULL);
-  }
-  else {
-    rna_iterator_array_begin(iter, NULL, 0, 0, 0, NULL);
-  }
-}
-
 static char *rna_GreasePencilGrid_path(PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("grid");
@@ -1293,6 +1332,54 @@ static void rna_def_gpencil_stroke_points_api(BlenderRNA *brna, PropertyRNA *cpr
   func = RNA_def_function(srna, "update", "rna_GPencil_stroke_point_update");
   RNA_def_function_ui_description(func, "Recalculate internal triangulation data");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+
+  func = RNA_def_function(srna, "weight_get", "rna_GPencilStrokePoints_weight_get");
+  RNA_def_function_ui_description(func, "Get vertex group point weight");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_int(func,
+              "vertex_group_index",
+              0,
+              0,
+              INT_MAX,
+              "Vertex Group Index",
+              "Index of Vertex Group in the array of groups",
+              0,
+              INT_MAX);
+  RNA_def_int(func,
+              "point_index",
+              0,
+              0,
+              INT_MAX,
+              "Point Index",
+              "Index of the Point in the array",
+              0,
+              INT_MAX);
+  parm = RNA_def_float(
+      func, "weight", 0, -FLT_MAX, FLT_MAX, "Weight", "Point Weight", -FLT_MAX, FLT_MAX);
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "weight_set", "rna_GPencilStrokePoints_weight_set");
+  RNA_def_function_ui_description(func, "Set vertex group point weight");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_int(func,
+              "vertex_group_index",
+              0,
+              0,
+              INT_MAX,
+              "Vertex Group Index",
+              "Index of Vertex Group in the array of groups",
+              0,
+              INT_MAX);
+  RNA_def_int(func,
+              "point_index",
+              0,
+              0,
+              INT_MAX,
+              "Point Index",
+              "Index of the Point in the array",
+              0,
+              INT_MAX);
+  RNA_def_float(func, "weight", 0, -FLT_MAX, FLT_MAX, "Weight", "Point Weight", -FLT_MAX, FLT_MAX);
 }
 
 /* This information is read only and it can be used by add-ons */
@@ -1519,21 +1606,6 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "GPencilStrokePoint");
   RNA_def_property_ui_text(prop, "Stroke Points", "Stroke data points");
   rna_def_gpencil_stroke_points_api(brna, prop);
-
-  /* vertex groups */
-  prop = RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_GpencilVertex_groups_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_get",
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL);
-  RNA_def_property_struct_type(prop, "GpencilVertexGroupElement");
-  RNA_def_property_ui_text(
-      prop, "Groups", "Weights for the vertex groups this vertex is member of");
 
   /* Triangles */
   prop = RNA_def_property(srna, "triangles", PROP_COLLECTION, PROP_NONE);

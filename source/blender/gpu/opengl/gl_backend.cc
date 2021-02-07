@@ -308,7 +308,7 @@ static void detect_workarounds()
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) && !GLEW_VERSION_4_5) {
     GLContext::copy_image_support = false;
   }
-  /* Special fix for theses specific GPUs.
+  /* Special fix for these specific GPUs.
    * Without this workaround, blender crashes on startup. (see T72098) */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(renderer, "HD Graphics 620") || strstr(renderer, "HD Graphics 630"))) {

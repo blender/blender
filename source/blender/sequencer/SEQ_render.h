@@ -51,7 +51,7 @@ typedef struct SeqRenderData {
   bool is_proxy_render;
   bool is_prefetch_render;
   int view_id;
-  /* ID of task for asigning temp cache entries to particular task(thread, etc.) */
+  /* ID of task for assigning temp cache entries to particular task(thread, etc.) */
   eSeqTaskId task_id;
 
   /* special case for OpenGL render */

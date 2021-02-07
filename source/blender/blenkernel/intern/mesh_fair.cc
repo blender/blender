@@ -612,6 +612,7 @@ static void prefair_and_fair_vertices(FairingContext *fairing_context,
   /* Fair. */
   VoronoiVertexWeight *voronoi_vertex_weights = new VoronoiVertexWeight(fairing_context);
   CotangentLoopWeight *cotangent_loop_weights = new CotangentLoopWeight(fairing_context);
+
   fairing_context->fair_vertices(
       affected_vertices, depth, voronoi_vertex_weights, cotangent_loop_weights);
 

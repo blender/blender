@@ -807,6 +807,9 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
   }
   BMVert *v1 = lef1->v;
   BMVert *v2 = lef2->v;
+  if (v1 == v2) {
+    return false;
+  }
   BLI_assert((v1 == e->v1 && v2 == e->v2) || (v1 == e->v2 && v2 == e->v1));
   UNUSED_VARS_NDEBUG(v1, v2);
   BMLoop *lv1f1 = lef1;

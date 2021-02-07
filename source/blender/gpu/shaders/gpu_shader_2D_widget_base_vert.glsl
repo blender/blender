@@ -57,7 +57,7 @@ in float dummy;
 
 vec2 do_widget(void)
 {
-  /* Offset to avoid loosing pixels (mimics conservative rasterization). */
+  /* Offset to avoid losing pixels (mimics conservative rasterization). */
   const vec2 ofs = vec2(0.5, -0.5);
   lineWidth = abs(rect.x - recti.x);
   vec2 emboss_ofs = vec2(0.0, -lineWidth);

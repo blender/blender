@@ -22,6 +22,9 @@
 
 #include <string.h>
 
+#include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
+
 #include "BLI_fileops.h"
 #include "BLI_utildefines.h"
 
@@ -32,9 +35,6 @@
 #include "BKE_report.h"
 
 #include "BLT_translation.h"
-
-#include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "ED_render.h"
 #include "ED_undo.h"
@@ -56,7 +56,7 @@ static bool lib_id_preview_editing_poll(bContext *C)
   const PointerRNA idptr = CTX_data_pointer_get(C, "id");
   BLI_assert(!idptr.data || RNA_struct_is_ID(idptr.type));
 
-  const ID *id = idptr.data;
+  const ID *id = (ID *)idptr.data;
   if (!id) {
     return false;
   }
@@ -88,11 +88,11 @@ static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
   }
 
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
-  ID *id = idptr.data;
+  ID *id = (ID *)idptr.data;
 
   BKE_previewimg_id_custom_set(id, path);
 
-  WM_event_add_notifier(C, NC_ASSET, NULL);
+  WM_event_add_notifier(C, NC_ASSET, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -123,7 +123,7 @@ static void ED_OT_lib_id_load_custom_preview(wmOperatorType *ot)
 static int lib_id_generate_preview_exec(bContext *C, wmOperator *UNUSED(op))
 {
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
-  ID *id = idptr.data;
+  ID *id = (ID *)idptr.data;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
@@ -131,9 +131,9 @@ static int lib_id_generate_preview_exec(bContext *C, wmOperator *UNUSED(op))
   if (preview) {
     BKE_previewimg_clear(preview);
   }
-  UI_icon_render_id(C, NULL, id, ICON_SIZE_PREVIEW, true);
+  UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
 
-  WM_event_add_notifier(C, NC_ASSET, NULL);
+  WM_event_add_notifier(C, NC_ASSET, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -169,15 +169,15 @@ static int lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op)
     idptr = RNA_property_pointer_get(&pprop.ptr, pprop.prop);
   }
 
-  if ((pprop.prop == NULL) || RNA_pointer_is_null(&idptr) || !RNA_struct_is_ID(idptr.type)) {
+  if ((pprop.prop == nullptr) || RNA_pointer_is_null(&idptr) || !RNA_struct_is_ID(idptr.type)) {
     BKE_report(
         op->reports, RPT_ERROR, "Incorrect context for running data-block fake user toggling");
     return OPERATOR_CANCELLED;
   }
 
-  ID *id = idptr.data;
+  ID *id = (ID *)idptr.data;
 
-  if ((id->lib != NULL) || (ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))) {
+  if ((id->lib != nullptr) || (ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))) {
     BKE_report(op->reports, RPT_ERROR, "Data-block type does not support fake user");
     return OPERATOR_CANCELLED;
   }
@@ -217,14 +217,14 @@ static int lib_id_unlink_exec(bContext *C, wmOperator *op)
     idptr = RNA_property_pointer_get(&pprop.ptr, pprop.prop);
   }
 
-  if ((pprop.prop == NULL) || RNA_pointer_is_null(&idptr) || !RNA_struct_is_ID(idptr.type)) {
+  if ((pprop.prop == nullptr) || RNA_pointer_is_null(&idptr) || !RNA_struct_is_ID(idptr.type)) {
     BKE_report(
         op->reports, RPT_ERROR, "Incorrect context for running data-block fake user toggling");
     return OPERATOR_CANCELLED;
   }
 
   memset(&idptr, 0, sizeof(idptr));
-  RNA_property_pointer_set(&pprop.ptr, pprop.prop, idptr, NULL);
+  RNA_property_pointer_set(&pprop.ptr, pprop.prop, idptr, nullptr);
   RNA_property_update(C, &pprop.ptr, pprop.prop);
 
   return OPERATOR_FINISHED;

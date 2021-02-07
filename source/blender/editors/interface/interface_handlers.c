@@ -6837,7 +6837,7 @@ static bool ui_numedit_but_CURVE(uiBlock *block,
 
 #ifdef USE_CONT_MOUSE_CORRECT
       /* note: using 'cmp_last' is weak since there may be multiple points selected,
-       * but in practice this isnt really an issue */
+       * but in practice this isn't really an issue */
       if (ui_but_is_cursor_warp(but)) {
         /* OK but can go outside bounds */
         data->ungrab_mval[0] = but->rect.xmin + ((cmp_last->x - cumap->curr.xmin) * zoomx);
@@ -7108,7 +7108,7 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
       changed = true;
 #ifdef USE_CONT_MOUSE_CORRECT
       /* note: using 'cmp_last' is weak since there may be multiple points selected,
-       * but in practice this isnt really an issue */
+       * but in practice this isn't really an issue */
       if (ui_but_is_cursor_warp(but)) {
         /* OK but can go outside bounds */
         data->ungrab_mval[0] = but->rect.xmin + ((last_x - profile->view_rect.xmin) * zoomx);
@@ -8617,7 +8617,7 @@ void ui_but_activate_event(bContext *C, ARegion *region, uiBut *but)
  * Simulate moving the mouse over a button (or navigating to it with arrow keys).
  *
  * exported so menus can start with a highlighted button,
- * even if the mouse isnt over it
+ * even if the mouse isn't over it
  */
 void ui_but_activate_over(bContext *C, ARegion *region, uiBut *but)
 {

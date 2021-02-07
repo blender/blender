@@ -845,7 +845,7 @@ void special_aftertrans_update__sequencer(bContext *UNUSED(C), TransInfo *t)
   /* Marker transform, not especially nice but we may want to move markers
    * at the same time as strips in the Video Sequencer. */
   if (sseq->flag & SEQ_MARKER_TRANS) {
-    /* cant use TFM_TIME_EXTEND
+    /* can't use TFM_TIME_EXTEND
      * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead */
 
     if (t->mode == TFM_SEQ_SLIDE) {

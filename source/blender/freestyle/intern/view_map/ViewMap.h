@@ -228,7 +228,7 @@ class ViewMap {
    */
   ViewVertex *InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newViewEdges);
 
-  /* connects a FEdge to the graph trough a SVertex */
+  /* connects a FEdge to the graph through a SVertex */
   // FEdge *Connect(FEdge *ioEdge, SVertex *ioVertex);
 
   /* Clean temporary FEdges created by chaining */
@@ -1085,13 +1085,13 @@ class ViewEdge : public Interface1D {
     return __B;
   }
 
-  /*! Returns the first FEdge that constitues this ViewEdge. */
+  /*! Returns the first FEdge that constitutes this ViewEdge. */
   inline FEdge *fedgeA()
   {
     return _FEdgeA;
   }
 
-  /*! Returns the last FEdge that constitues this ViewEdge. */
+  /*! Returns the last FEdge that constitutes this ViewEdge. */
   inline FEdge *fedgeB()
   {
     return _FEdgeB;

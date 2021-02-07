@@ -166,7 +166,7 @@ typedef struct ClothSimSettings {
   /** Mechanical damping of shear springs. */
   float shear_damp;
 
-  /** The maximum lenght an internal spring can have during creation. */
+  /** The maximum length an internal spring can have during creation. */
   float internal_spring_max_length;
   /** How much the interal spring can diverge from the vertex normal during creation. */
   float internal_spring_max_diversion;

@@ -128,7 +128,7 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
                                                eGPUShaderConfig sh_cfg);
 
 /* Will only work after setting the batch program. */
-/* TODO(fclem): Theses needs to be replaced by GPU_shader_uniform_* with explicit shader. */
+/* TODO(fclem): These need to be replaced by GPU_shader_uniform_* with explicit shader. */
 #define GPU_batch_uniform_1i(batch, name, x) GPU_shader_uniform_1i((batch)->shader, name, x);
 #define GPU_batch_uniform_1b(batch, name, x) GPU_shader_uniform_1b((batch)->shader, name, x);
 #define GPU_batch_uniform_1f(batch, name, x) GPU_shader_uniform_1f((batch)->shader, name, x);

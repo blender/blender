@@ -346,7 +346,7 @@ static const char *wm_area_name(ScrArea *area)
     SPACE_NAME(SPACE_TOPBAR);
     SPACE_NAME(SPACE_STATUSBAR);
     default:
-      return "Unkown Space";
+      return "Unknown Space";
   }
 }
 

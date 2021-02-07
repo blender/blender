@@ -166,7 +166,7 @@ typedef struct SeqCacheKey {
   float timeline_frame; /* Only for reference - used for freeing when cache is full. */
   float cost;           /* In short: render time(s) divided by playback frame duration(s) */
   bool is_temp_cache;   /* this cache entry will be freed before rendering next frame */
-  /* ID of task for asigning temp cache entries to particular task(thread, etc.) */
+  /* ID of task for assigning temp cache entries to particular task(thread, etc.) */
   eSeqTaskId task_id;
   int type;
 } SeqCacheKey;

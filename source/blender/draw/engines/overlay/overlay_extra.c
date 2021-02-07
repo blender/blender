@@ -1176,7 +1176,7 @@ void OVERLAY_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
   invert_v3(scale);
   for (int i = 0; i < 4; i++) {
     mul_v3_v3(vec[i], scale);
-    /* Project to z=-1 plane. Makes positionning / scaling easier. (see shader) */
+    /* Project to z=-1 plane. Makes positioning / scaling easier. (see shader) */
     mul_v2_fl(vec[i], 1.0f / fabsf(vec[i][2]));
   }
 

@@ -1684,11 +1684,12 @@ void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
 
 /* Stroke Simplify ------------------------------------- */
 
-/** Reduce a series of points to a simplified version, but
+/**
+ * Reduce a series of points to a simplified version, but
  * maintains the general shape of the series
  *
  * Ramer - Douglas - Peucker algorithm
- * by http ://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
+ * by http://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
  * \param gpd: Grease pencil data-block
  * \param gps: Grease pencil stroke
  * \param epsilon: Epsilon value to define precision of the algorithm

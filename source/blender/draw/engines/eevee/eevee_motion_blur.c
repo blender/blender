@@ -476,7 +476,7 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
           if (vbo) {
             /* Use the vbo to perform the copy on the GPU. */
             GPU_vertbuf_use(vbo);
-            /* Perform a copy to avoid loosing it after RE_engine_frame_set(). */
+            /* Perform a copy to avoid losing it after RE_engine_frame_set(). */
             mb_geom->vbo[mb_step] = vbo = GPU_vertbuf_duplicate(vbo);
             /* Find and replace "pos" attrib name. */
             GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);

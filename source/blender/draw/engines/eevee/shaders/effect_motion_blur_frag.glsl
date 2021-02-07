@@ -60,7 +60,7 @@ vec2 sample_weights(float center_depth,
                     float sample_motion_length,
                     float offset_length)
 {
-  /* Clasify foreground/background. */
+  /* Classify foreground/background. */
   vec2 depth_weight = depth_compare(center_depth, sample_depth);
   /* Weight if sample is overlapping or under the center pixel. */
   vec2 spread_weight = spread_compare(center_motion_length, sample_motion_length, offset_length);

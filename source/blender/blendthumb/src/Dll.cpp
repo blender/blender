@@ -160,7 +160,7 @@ struct REGISTRY_ENTRY {
   PCWSTR pszValueName;
   DWORD dwValueType;
   PCWSTR pszData;  // These two fields could/should have been a union, but C++
-  DWORD dwData;    // only lets you initalize the first field in a union.
+  DWORD dwData;    // only lets you initialize the first field in a union.
 };
 
 // Creates a registry key (if needed) and sets the default value of the key

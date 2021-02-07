@@ -907,7 +907,7 @@ static void extract_tris_finish(const MeshRenderData *mr,
   if (mr->use_final_mesh && cache->final.tris_per_mat) {
     MeshBufferCache *mbc = &cache->final;
     for (int i = 0; i < mr->mat_len; i++) {
-      /* Theses IBOs have not been queried yet but we create them just in case they are needed
+      /* These IBOs have not been queried yet but we create them just in case they are needed
        * later since they are not tracked by mesh_buffer_cache_create_requested(). */
       if (mbc->tris_per_mat[i] == NULL) {
         mbc->tris_per_mat[i] = GPU_indexbuf_calloc();
@@ -1380,7 +1380,7 @@ static void extract_lines_paint_mask_iter_poly_mesh(const MeshRenderData *mr,
         }
       }
       else {
-        /* Set theses unselected loop only if this edge has no other selected loop. */
+        /* Set these unselected loop only if this edge has no other selected loop. */
         if (!BLI_BITMAP_TEST(data->select_map, e_index)) {
           GPU_indexbuf_set_line_verts(&data->elb, e_index, ml_index, ml_index_other);
         }
@@ -5230,7 +5230,7 @@ static void *extract_skin_roots_init(const MeshRenderData *mr,
     }
   }
 
-  /* It's really unlikely that all verts will be roots. Resize to avoid loosing VRAM. */
+  /* It's really unlikely that all verts will be roots. Resize to avoid losing VRAM. */
   GPU_vertbuf_data_len_set(vbo, root_len);
 
   return NULL;

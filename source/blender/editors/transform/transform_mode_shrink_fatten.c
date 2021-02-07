@@ -64,6 +64,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   int i;
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;
+  UnitSettings *unit = &t->scene->unit;
 
   distance = t->values[0];
 
@@ -74,15 +75,21 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   t->values_final[0] = distance;
 
   /* header print for NumInput */
-  ofs += BLI_strncpy_rlen(str + ofs, TIP_("Shrink/Fatten:"), sizeof(str) - ofs);
+  ofs += BLI_strncpy_rlen(str + ofs, TIP_("Shrink/Fatten: "), sizeof(str) - ofs);
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
-    outputNumInput(&(t->num), c, &t->scene->unit);
-    ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, " %s", c);
+    outputNumInput(&(t->num), c, unit);
+    ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, "%s", c);
   }
   else {
     /* default header print */
-    ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, " %.4f", distance);
+    if (unit != NULL) {
+      ofs += BKE_unit_value_as_string(
+          str + ofs, sizeof(str) - ofs, distance * unit->scale_length, 4, B_UNIT_LENGTH, unit, true);
+    }
+    else {
+      ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, "%.4f", distance);
+    }
   }
 
   if (t->proptext[0]) {

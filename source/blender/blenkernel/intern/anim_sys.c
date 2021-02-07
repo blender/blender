@@ -1594,7 +1594,7 @@ static bool nla_combine_get_inverted_strip_value(const int mix_mode,
       if (IS_EQF(base_value, 0.0f)) {
         base_value = 1.0f;
       }
-      /* Divison by zero. */
+      /* Division by zero. */
       if (IS_EQF(lower_value, 0.0f)) {
         /* Resolve 0/0 to 1. */
         if (IS_EQF(blended_value, 0.0f)) {
@@ -1655,55 +1655,6 @@ static bool nla_combine_quaternion_get_inverted_strip_values(const float lower_v
   pow_qt_fl_normalized(r_strip_values, 1.0f / influence);
 
   return true;
-}
-
-/* Blend the specified snapshots into the target, and free the input snapshots. */
-static void nlaeval_snapshot_mix_and_free(NlaEvalData *nlaeval,
-                                          NlaEvalSnapshot *out,
-                                          NlaEvalSnapshot *in1,
-                                          NlaEvalSnapshot *in2,
-                                          float alpha)
-{
-  BLI_assert(in1->base == out && in2->base == out);
-
-  nlaeval_snapshot_ensure_size(out, nlaeval->num_channels);
-
-  for (int i = 0; i < nlaeval->num_channels; i++) {
-    NlaEvalChannelSnapshot *c_in1 = nlaeval_snapshot_get(in1, i);
-    NlaEvalChannelSnapshot *c_in2 = nlaeval_snapshot_get(in2, i);
-
-    if (c_in1 || c_in2) {
-      NlaEvalChannelSnapshot *c_out = out->channels[i];
-
-      /* Steal the entry from one of the input snapshots. */
-      if (c_out == NULL) {
-        if (c_in1 != NULL) {
-          c_out = c_in1;
-          in1->channels[i] = NULL;
-        }
-        else {
-          c_out = c_in2;
-          in2->channels[i] = NULL;
-        }
-      }
-
-      if (c_in1 == NULL) {
-        c_in1 = nlaeval_snapshot_find_channel(in1->base, c_out->channel);
-      }
-      if (c_in2 == NULL) {
-        c_in2 = nlaeval_snapshot_find_channel(in2->base, c_out->channel);
-      }
-
-      out->channels[i] = c_out;
-
-      for (int j = 0; j < c_out->length; j++) {
-        c_out->values[j] = c_in1->values[j] * (1.0f - alpha) + c_in2->values[j] * alpha;
-      }
-    }
-  }
-
-  nlaeval_snapshot_free_data(in1);
-  nlaeval_snapshot_free_data(in2);
 }
 
 /* ---------------------- */
@@ -1794,6 +1745,11 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
     }
 
     NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
+
+    /* Invalid path or property cannot be animated. */
+    if (nec == NULL) {
+      continue;
+    }
 
     NlaEvalChannelSnapshot *necs = nlaeval_snapshot_ensure_channel(r_snapshot, nec);
     if (!nlaevalchan_validate_index_ex(nec, fcu->array_index)) {
@@ -1905,8 +1861,13 @@ static void nlastrip_evaluate_transition(PointerRNA *ptr,
   nlastrip_evaluate(
       ptr, channels, &tmp_modifiers, &tmp_nes, &snapshot2, anim_eval_context, flush_to_original);
 
-  /* accumulate temp-buffer and full-buffer, using the 'real' strip */
-  nlaeval_snapshot_mix_and_free(channels, snapshot, &snapshot1, &snapshot2, nes->strip_time);
+  /** Replace \a snapshot2 NULL channels with base or default values so all channels blend. */
+  nlasnapshot_ensure_channels(channels, &snapshot2);
+  nlasnapshot_blend(
+      channels, &snapshot1, &snapshot2, NLASTRIP_MODE_REPLACE, nes->strip_time, snapshot);
+
+  nlaeval_snapshot_free_data(&snapshot1);
+  nlaeval_snapshot_free_data(&snapshot2);
 
   /* unlink this strip's modifiers from the parent's modifiers again */
   nlaeval_fmodifiers_split_stacks(&nes->strip->modifiers, modifiers);
@@ -2262,7 +2223,7 @@ static bool is_action_track_evaluated_without_nla(const AnimData *adt,
   }
 
   /** NLA settings interference. */
-  if ((adt->flag & (ADT_NLA_SOLO_TRACK | ADT_NLA_EDIT_ON)) == 0) {
+  if ((adt->flag & (ADT_NLA_SOLO_TRACK | ADT_NLA_EDIT_ON)) != 0) {
     return false;
   }
 
@@ -2509,6 +2470,13 @@ static void animsys_calculate_nla(PointerRNA *ptr,
 }
 
 /* ---------------------- */
+
+void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapshot)
+{
+  LISTBASE_FOREACH (NlaEvalChannel *, nec, &eval_data->channels) {
+    nlaeval_snapshot_ensure_channel(snapshot, nec);
+  }
+}
 
 /** Blends the \a lower_snapshot with the \a upper_snapshot into \a r_blended_snapshot according
  * to the given \a upper_blendmode and \a upper_influence. */

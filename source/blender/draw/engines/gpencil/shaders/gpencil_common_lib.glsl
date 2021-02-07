@@ -393,7 +393,7 @@ void stroke_vertex()
     is_squares = false;
   }
 
-  /* Enpoints, we discard the vertices. */
+  /* Endpoints, we discard the vertices. */
   if (ma1.x == -1 || (!is_dot && ma2.x == -1)) {
     discard_vert();
     return;
