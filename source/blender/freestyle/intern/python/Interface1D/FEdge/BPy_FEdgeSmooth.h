@@ -38,7 +38,7 @@ extern PyTypeObject FEdgeSmooth_Type;
 /*---------------------------Python BPy_FEdgeSmooth structure definition----------*/
 typedef struct {
   BPy_FEdge py_fe;
-  FEdgeSmooth *fes;
+  Freestyle::FEdgeSmooth *fes;
 } BPy_FEdgeSmooth;
 
 /*---------------------------Python BPy_FEdgeSmooth visible prototypes-----------*/

@@ -38,7 +38,7 @@ extern PyTypeObject StrokeVertex_Type;
 /*---------------------------Python BPy_StrokeVertex structure definition----------*/
 typedef struct {
   BPy_CurvePoint py_cp;
-  StrokeVertex *sv;
+  Freestyle::StrokeVertex *sv;
 } BPy_StrokeVertex;
 
 /*---------------------------Python BPy_StrokeVertex visible prototypes-----------*/

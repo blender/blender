@@ -37,7 +37,7 @@ extern PyTypeObject Stroke_Type;
 /*---------------------------Python BPy_Stroke structure definition----------*/
 typedef struct {
   BPy_Interface1D py_if1D;
-  Stroke *s;
+  Freestyle::Stroke *s;
 } BPy_Stroke;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

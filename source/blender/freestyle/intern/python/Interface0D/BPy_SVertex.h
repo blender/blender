@@ -37,7 +37,7 @@ extern PyTypeObject SVertex_Type;
 /*---------------------------Python BPy_SVertex structure definition----------*/
 typedef struct {
   BPy_Interface0D py_if0D;
-  SVertex *sv;
+  Freestyle::SVertex *sv;
 } BPy_SVertex;
 
 /*---------------------------Python BPy_SVertex visible prototypes-----------*/

@@ -26,8 +26,6 @@ extern "C" {
 
 #include "../system/Iterator.h"
 
-using namespace Freestyle;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,7 +38,7 @@ extern PyTypeObject Iterator_Type;
 
 /*---------------------------Python BPy_Iterator structure definition----------*/
 typedef struct {
-  PyObject_HEAD Iterator *it;
+  PyObject_HEAD Freestyle::Iterator *it;
 } BPy_Iterator;
 
 /*---------------------------Python BPy_Iterator visible prototypes-----------*/

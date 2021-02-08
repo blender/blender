@@ -36,7 +36,7 @@ extern PyTypeObject UnaryFunction0DFloat_Type;
 /*---------------------------Python BPy_UnaryFunction0DFloat structure definition----------*/
 typedef struct {
   BPy_UnaryFunction0D py_uf0D;
-  UnaryFunction0D<float> *uf0D_float;
+  Freestyle::UnaryFunction0D<float> *uf0D_float;
 } BPy_UnaryFunction0DFloat;
 
 /*---------------------------Python BPy_UnaryFunction0DFloat visible prototypes-----------*/

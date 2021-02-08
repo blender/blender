@@ -38,7 +38,7 @@ extern PyTypeObject StrokeVertexIterator_Type;
 /*---------------------------Python BPy_StrokeVertexIterator structure definition----------*/
 typedef struct {
   BPy_Iterator py_it;
-  StrokeInternal::StrokeVertexIterator *sv_it;
+  Freestyle::StrokeInternal::StrokeVertexIterator *sv_it;
   bool reversed;
   /* attribute to make next() work correctly */
   bool at_start;

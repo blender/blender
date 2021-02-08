@@ -26,11 +26,7 @@ extern "C" {
 
 #include <iostream>
 
-using namespace std;
-
 #include "../system/Id.h"
-
-using namespace Freestyle;
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,7 +40,7 @@ extern PyTypeObject Id_Type;
 
 /*---------------------------Python BPy_Id structure definition----------*/
 typedef struct {
-  PyObject_HEAD Id *id;
+  PyObject_HEAD Freestyle::Id *id;
 } BPy_Id;
 
 /*---------------------------Python BPy_Id visible prototypes-----------*/
