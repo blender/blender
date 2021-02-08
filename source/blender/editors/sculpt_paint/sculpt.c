@@ -1154,7 +1154,6 @@ void SCULPT_floodfill_add_initial_with_symmetry(
       }
       if (v != -1) {
         SCULPT_floodfill_add_initial(flood, v);
-        BLI_BITMAP_ENABLE(flood->visited_vertices, v);
       }
     }
   }
