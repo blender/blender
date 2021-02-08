@@ -2287,12 +2287,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_R_LAYER:
         data.icon = ICON_RENDER_RESULT;
         break;
-      case TSE_LINKED_LAMP:
-        data.icon = ICON_LIGHT_DATA;
-        break;
-      case TSE_LINKED_MAT:
-        data.icon = ICON_MATERIAL_DATA;
-        break;
       case TSE_POSEGRP_BASE:
       case TSE_POSEGRP:
         data.icon = ICON_GROUP_BONE;
