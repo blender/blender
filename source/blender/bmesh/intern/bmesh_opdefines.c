@@ -1394,7 +1394,7 @@ static BMOpDefine bmo_duplicate_def = {
   /* slots_out */
   {{"geom_orig.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
    {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
-  /* facemap maps from source faces to dupe
+  /* face_map maps from source faces to dupe
    * faces, and from dupe faces to source faces */
    {"vert_map.out", BMO_OP_SLOT_MAPPING, {(int)BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
    {"edge_map.out", BMO_OP_SLOT_MAPPING, {(int)BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},

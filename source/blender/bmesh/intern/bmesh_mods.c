@@ -802,7 +802,7 @@ void BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2
   /* we know this will work */
   BM_edge_face_pair(e, &fa, &fb);
 
-  /* so we can use ccw variable correctly,
+  /* so we can use `ccw` variable correctly,
    * otherwise we could use the edges verts direct */
   BM_edge_ordered_verts(e, &v1, &v2);
 
@@ -886,7 +886,7 @@ bool BM_edge_rotate_check_degenerate(BMEdge *e, BMLoop *l1, BMLoop *l2)
   /* verts from the loops passed */
 
   BMVert *v1, *v2;
-  /* these are the opposite verts - the verts that _would_ be used if 'ccw' was inverted*/
+  /* These are the opposite verts - the verts that _would_ be used if `ccw` was inverted. */
   BMVert *v1_alt, *v2_alt;
 
   /* this should have already run */
@@ -1070,7 +1070,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
         BM_face_normal_flip(bm, fb);
 
         if (ccw) {
-          /* needed otherwise ccw toggles direction */
+          /* Needed otherwise `ccw` toggles direction */
           e_new->l = e_new->l->radial_next;
         }
       }

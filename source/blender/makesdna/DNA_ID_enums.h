@@ -102,11 +102,11 @@ typedef enum ID_Type {
 /* Deprecated. */
 #define ID_SCRN MAKE_ID2('S', 'N')
 
-/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */
+/* NOTE: Fake IDs, needed for `g.sipo->blocktype` or outliner. */
 #define ID_SEQ MAKE_ID2('S', 'Q')
 /* constraint */
 #define ID_CO MAKE_ID2('C', 'O')
-/* pose (action channel, used to be ID_AC in code, so we keep code for backwards compat) */
+/* pose (action channel, used to be ID_AC in code, so we keep code for backwards compatible). */
 #define ID_PO MAKE_ID2('A', 'C')
 /* used in outliner... */
 #define ID_NLA MAKE_ID2('N', 'L')

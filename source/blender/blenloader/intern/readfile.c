@@ -3928,9 +3928,11 @@ static void lib_link_all(FileData *fd, Main *bmain)
 #endif
 }
 
-/* Checks to perform after `lib_link_all`.
- * Those operations cannot perfom properly in a split bmain case, since some data from other
- * bmain's (aka libraries) may not have been processed yet. */
+/**
+ * Checks to perform after `lib_link_all`.
+ * Those operations cannot perform properly in a split bmain case, since some data from other
+ * bmain's (aka libraries) may not have been processed yet.
+ */
 static void after_liblink_merged_bmain_process(Main *bmain)
 {
   /* We only expect a merged Main here, not a split one. */

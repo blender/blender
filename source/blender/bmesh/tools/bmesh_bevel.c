@@ -235,7 +235,7 @@ typedef struct BoundVert {
   /** Is this boundvert the side of the custom profile's start. */
   bool is_profile_start;
   char _pad[3];
-  /** Length of seam starting from current boundvert to next boundvert with ccw ordering. */
+  /** Length of seam starting from current boundvert to next boundvert with CCW ordering. */
   int seam_len;
   /** Same as seam_len but defines length of sharp edges. */
   int sharp_len;
@@ -1961,7 +1961,7 @@ static bool make_unit_square_map(const float va[3],
 /**
  * Like make_unit_square_map, but this one makes a matrix that transforms the
  * (1,1,1) corner of a unit cube into an arbitrary corner with corner vert d
- * and verts around it a, b, c (in ccw order, viewed from d normal dir).
+ * and verts around it a, b, c (in CCW order, viewed from d normal dir).
  * The matrix mat is calculated to map:
  *    (1,0,0) -> va
  *    (0,1,0) -> vb
@@ -1969,9 +1969,9 @@ static bool make_unit_square_map(const float va[3],
  *    (1,1,1) -> vd
  * We want M to make M*A=B where A has the left side above, as columns
  * and B has the right side as columns - both extended into homogeneous coords.
- * So M = B*(Ainverse).  Doing Ainverse by hand gives the code below.
- * The cols of M are 1/2{va-vb+vc-vd}, 1/2{-va+vb-vc+vd}, 1/2{-va-vb+vc+vd},
- * and 1/2{va+vb+vc-vd}
+ * So `M = B*(Ainverse)`.  Doing `Ainverse` by hand gives the code below.
+ * The cols of M are `1/2{va-vb+vc-vd}`, `1/2{-va+vb-vc+vd}`, `1/2{-va-vb+vc+vd}`,
+ * and `1/2{va+vb+vc-vd}`
  * and Blender matrices have cols at m[i][*].
  */
 static void make_unit_cube_map(
@@ -6378,7 +6378,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
           go_ccw = (e->fnext != f);
         }
         else {
-          go_ccw = true; /* Going ccw around bv to trace this corner. */
+          go_ccw = true; /* Going CCW around bv to trace this corner. */
         }
       }
       else if (eprev->prev == e) {
@@ -7230,17 +7230,17 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
  *          B
  * </pre>
  *
- * where edges are A, B, and C, following a face around vertices a, b, c, d.
- * th1 is angle abc and th2 is angle bcd;
+ * where edges are A, B, and C, following a face around vertices `a, b, c, d`.
+ * `th1` is angle `abc` and th2 is angle `bcd`;
  * and the argument `EdgeHalf eb` is B, going from b to c.
  * In general case, edge offset specs for A, B, C have
- * the form ka*t, kb*t, kc*t where ka, kb, kc are some factors
+ * the form `ka*t`, `kb*t`, `kc*t` where `ka`, `kb`, `kc` are some factors
  * (may be 0) and t is the current bp->offset.
  * We want to calculate t at which the clone of B parallel
  * to it collapses. This can be calculated using trig.
  * Another case of geometry collision that can happen is
  * When B slides along A because A is un-beveled.
- * Then it might collide with a.  Similarly for B sliding along C.
+ * Then it might collide with a. Similarly for B sliding along C.
  */
 static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
 {

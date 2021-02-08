@@ -143,7 +143,7 @@ void bmesh_disk_vert_replace(BMEdge *e, BMVert *v_dst, BMVert *v_src)
  *
  * The loop cycle keeps track of a faces vertices and edges. It should be noted that the
  * direction of a loop cycle is either CW or CCW depending on the face normal, and is
- * not oriented to the faces editedges.
+ * not oriented to the faces edit-edges.
  *
  * Functions relating to this cycle:
  * - bmesh_cycle_XXX family of functions.

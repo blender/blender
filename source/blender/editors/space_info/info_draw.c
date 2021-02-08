@@ -56,7 +56,7 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
   int shade = (tvc->iter_tmp % 2) ? 4 : -4;
   UI_GetThemeColorShade4ubv(bg_id, shade, bg);
 
-  /* Don't show icon on subsequent rows of multirow report. */
+  /* Don't show icon on subsequent rows of multi-row report. */
   *r_icon = (tvc->iter_char_begin != 0) ? ICON_NONE : UI_icon_from_report_type(report->type);
 
   int icon_fg_id = UI_text_colorid_from_report_type(report->type);

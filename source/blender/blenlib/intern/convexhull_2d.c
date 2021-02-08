@@ -28,7 +28,7 @@
 #include "BLI_strict_flags.h"
 #include "BLI_utildefines.h"
 
-/* Copyright 2001, softSurfer (www.softsurfer.com)
+/* Copyright 2001, softSurfer (http://www.softsurfer.com)
  * This code may be freely used and modified for any purpose
  * providing that this copyright notice is included with it.
  * SoftSurfer makes no warranty for this code, and cannot be held

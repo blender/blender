@@ -2744,7 +2744,7 @@ static int image_flip_exec(bContext *C, wmOperator *op)
 
   ED_image_undo_push_end();
 
-  /* force GPU reupload, all image is invalid. */
+  /* force GPU re-upload, all image is invalid. */
   BKE_image_free_gputextures(ima);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);

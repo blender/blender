@@ -1706,7 +1706,7 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
   if (draw_background) {
     /* HACK(fclem): In this case we need to make sure the final alpha is 1.
      * We use the blend mode to ensure that. A better way to fix that would
-     * be to do that in the colormanagmeent shader. */
+     * be to do that in the color-management shader. */
     GPU_offscreen_bind(ofs, false);
     GPU_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
     /* Premult Alpha over black background. */
