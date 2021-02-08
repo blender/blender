@@ -273,6 +273,15 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   {
     /* Keep this block, even when empty. */
     FROM_DEFAULT_V4_UCHAR(space_properties.active);
+
+    FROM_DEFAULT_V4_UCHAR(space_info.info_error);
+    FROM_DEFAULT_V4_UCHAR(space_info.info_warning);
+    FROM_DEFAULT_V4_UCHAR(space_info.info_info);
+    FROM_DEFAULT_V4_UCHAR(space_info.info_debug);
+    FROM_DEFAULT_V4_UCHAR(space_info.info_debug_text);
+    FROM_DEFAULT_V4_UCHAR(space_info.info_property);
+    FROM_DEFAULT_V4_UCHAR(space_info.info_error);
+    FROM_DEFAULT_V4_UCHAR(space_info.info_operator);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
