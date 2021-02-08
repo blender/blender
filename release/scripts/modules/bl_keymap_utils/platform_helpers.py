@@ -49,6 +49,7 @@ def keyconfig_data_oskey_from_ctrl_for_macos(keyconfig_data_src):
                     'W',
                     'ACCENT_GRAVE',
                     'PERIOD',
+                    'TAB',
             }):
                 if (not item_event.get("alt")) and (not item_event.get("shift")):
                     return False

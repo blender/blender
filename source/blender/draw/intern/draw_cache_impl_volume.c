@@ -40,6 +40,7 @@
 #include "BKE_volume_render.h"
 
 #include "GPU_batch.h"
+#include "GPU_capabilities.h"
 #include "GPU_texture.h"
 
 #include "DEG_depsgraph_query.h"
@@ -145,25 +146,46 @@ void DRW_volume_batch_cache_free(Volume *volume)
   volume_batch_cache_clear(volume);
   MEM_SAFE_FREE(volume->batch_cache);
 }
+typedef struct VolumeWireframeUserData {
+  Volume *volume;
+  Scene *scene;
+} VolumeWireframeUserData;
 
 static void drw_volume_wireframe_cb(
     void *userdata, float (*verts)[3], int (*edges)[2], int totvert, int totedge)
 {
-  Volume *volume = userdata;
+  VolumeWireframeUserData *data = userdata;
+  Scene *scene = data->scene;
+  Volume *volume = data->volume;
   VolumeBatchCache *cache = volume->batch_cache;
+  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
+                             GPU_use_hq_normals_workaround();
 
   /* Create vertex buffer. */
   static GPUVertFormat format = {0};
-  static uint pos_id, nor_id;
+  static GPUVertFormat format_hq = {0};
+  static struct {
+    uint pos_id, nor_id;
+    uint pos_hq_id, nor_hq_id;
+  } attr_id;
+
   if (format.attr_len == 0) {
-    pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    nor_id = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    attr_id.pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    attr_id.nor_id = GPU_vertformat_attr_add(
+        &format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    attr_id.pos_id = GPU_vertformat_attr_add(&format_hq, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    attr_id.nor_id = GPU_vertformat_attr_add(
+        &format_hq, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
   }
 
   static float normal[3] = {1.0f, 0.0f, 0.0f};
-  GPUPackedNormal packed_normal = GPU_normal_convert_i10_v3(normal);
+  GPUNormal packed_normal;
+  GPU_normal_convert_v3(&packed_normal, normal, do_hq_normals);
+  uint pos_id = do_hq_normals ? attr_id.pos_hq_id : attr_id.pos_id;
+  uint nor_id = do_hq_normals ? attr_id.nor_hq_id : attr_id.nor_id;
 
-  cache->face_wire.pos_nor_in_order = GPU_vertbuf_create_with_format(&format);
+  cache->face_wire.pos_nor_in_order = GPU_vertbuf_create_with_format(do_hq_normals ? &format_hq :
+                                                                                     &format);
   GPU_vertbuf_data_alloc(cache->face_wire.pos_nor_in_order, totvert);
   GPU_vertbuf_attr_fill(cache->face_wire.pos_nor_in_order, pos_id, verts);
   GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
@@ -209,7 +231,11 @@ GPUBatch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume)
     }
 
     /* Create wireframe from OpenVDB tree. */
-    BKE_volume_grid_wireframe(volume, volume_grid, drw_volume_wireframe_cb, volume);
+    const DRWContextState *draw_ctx = DRW_context_state_get();
+    VolumeWireframeUserData userdata;
+    userdata.volume = volume;
+    userdata.scene = draw_ctx->scene;
+    BKE_volume_grid_wireframe(volume, volume_grid, drw_volume_wireframe_cb, &userdata);
   }
 
   return cache->face_wire.batch;
@@ -304,9 +330,17 @@ static DRWVolumeGrid *volume_grid_cache_get(Volume *volume,
                                                 format,
                                                 GPU_DATA_FLOAT,
                                                 dense_grid.voxels);
-    GPU_texture_swizzle_set(cache_grid->texture, (channels == 3) ? "rgb1" : "rrr1");
-    GPU_texture_wrap_mode(cache_grid->texture, false, false);
-    BKE_volume_dense_float_grid_clear(&dense_grid);
+    /* The texture can be null if the resolution along one axis is larger than
+     * GL_MAX_3D_TEXTURE_SIZE. */
+    if (cache_grid->texture != NULL) {
+      GPU_texture_swizzle_set(cache_grid->texture, (channels == 3) ? "rgb1" : "rrr1");
+      GPU_texture_wrap_mode(cache_grid->texture, false, false);
+      BKE_volume_dense_float_grid_clear(&dense_grid);
+    }
+    else {
+      MEM_freeN(dense_grid.voxels);
+      printf("Error: Could not allocate 3D texture for volume.\n");
+    }
   }
 
   /* Free grid from memory if it wasn't previously loaded. */

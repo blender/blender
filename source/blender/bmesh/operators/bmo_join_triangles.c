@@ -66,7 +66,7 @@ static float quad_calc_error(const float v1[3],
     error += diff;
   }
 
-  /* Colinearity */
+  /* Co-linearity */
   {
     float edge_vecs[4][3];
     float diff;

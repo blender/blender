@@ -195,10 +195,14 @@ void BPY_context_dict_clear_members_array(void **dict_p,
 
   PyObject *dict = *dict_p;
   BLI_assert(PyDict_Check(dict));
+
+  /* Use #PyDict_Pop instead of #PyDict_DelItemString to avoid setting the exception,
+   * while supported it's good to avoid for low level functions like this that run often. */
   for (uint i = 0; i < context_members_len; i++) {
-    if (PyDict_DelItemString(dict, context_members[i])) {
-      PyErr_Clear();
-    }
+    PyObject *key = PyUnicode_FromString(context_members[i]);
+    PyObject *item = _PyDict_Pop(dict, key, Py_None);
+    Py_DECREF(key);
+    Py_DECREF(item);
   }
 
   if (use_gil) {
@@ -337,12 +341,20 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     }
   }
 
-  /* Without this the `sys.stdout` may be set to 'ascii'
-   * (it is on my system at least), where printing unicode values will raise
-   * an error, this is highly annoying, another stumbling block for developers,
-   * so use a more relaxed error handler and enforce utf-8 since the rest of
-   * Blender is utf-8 too - campbell */
-  Py_SetStandardStreamEncoding("utf-8", "surrogateescape");
+  /* Force `utf-8` on all platforms, since this is what's used for Blender's internal strings,
+   * providing consistent encoding behavior across all Blender installations.
+   *
+   * This also uses the `surrogateescape` error handler ensures any unexpected bytes are escaped
+   * instead of raising an error.
+   *
+   * Without this `sys.getfilesystemencoding()` and `sys.stdout` for example may be set to ASCII
+   * or some other encoding - where printing some `utf-8` values will raise an error.
+   *
+   * This can cause scripts to fail entirely on some systems.
+   *
+   * This assignment is the equivalent of enabling the `PYTHONUTF8` environment variable.
+   * See `PEP-540` for details on exactly what this changes. */
+  Py_UTF8Mode = 1;
 
   /* Suppress error messages when calculating the module search path.
    * While harmless, it's noisy. */
@@ -438,6 +450,13 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
   py_tstate = PyGILState_GetThisThreadState();
   PyEval_ReleaseThread(py_tstate);
 #endif
+
+#ifdef WITH_PYTHON_MODULE
+  /* Disable all add-ons at exit, not essential, it just avoids resource leaks, see T71362. */
+  BPY_run_string_eval(C,
+                      (const char *[]){"atexit", "addon_utils", NULL},
+                      "atexit.register(addon_utils.disable_all)");
+#endif
 }
 
 void BPY_python_end(void)
@@ -532,7 +551,7 @@ void BPY_DECREF(void *pyob_ptr)
 void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
 {
   const PyGILState_STATE gilstate = PyGILState_Ensure();
-  const int do_invalidate = (Py_REFCNT((PyObject *)pyob_ptr) > 1);
+  const bool do_invalidate = (Py_REFCNT((PyObject *)pyob_ptr) > 1);
   Py_DECREF((PyObject *)pyob_ptr);
   if (do_invalidate) {
     pyrna_invalidate(pyob_ptr);

@@ -36,7 +36,7 @@ class ColorCurveOperation : public CurveBaseOperation {
   ColorCurveOperation();
 
   /**
-   * the inner loop of this program
+   * The inner loop of this operation.
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
@@ -65,7 +65,7 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
   ConstantLevelColorCurveOperation();
 
   /**
-   * the inner loop of this program
+   * The inner loop of this operation.
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 

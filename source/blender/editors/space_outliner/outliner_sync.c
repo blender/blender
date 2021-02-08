@@ -378,7 +378,7 @@ void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_out
 
   selected_items_free(&selected_items);
 
-  /* Tag for updates and clear dirty flag toprevent a sync to the outliner on draw */
+  /* Tag for updates and clear dirty flag to prevent a sync to the outliner on draw. */
   if (sync_types.object) {
     space_outliner->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_OBJECT;
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
@@ -545,7 +545,7 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
   active_data->sequence = SEQ_select_active_get(scene);
 }
 
-/* If outliner is dirty sync selection from view layer and sequwncer */
+/* If outliner is dirty sync selection from view layer and sequencer. */
 void outliner_sync_selection(const bContext *C, SpaceOutliner *space_outliner)
 {
   /* Set which types of data to sync from sync dirty flag and outliner display mode */

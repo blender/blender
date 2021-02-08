@@ -50,8 +50,7 @@ static void geo_node_attribute_randomize_update(bNodeTree *UNUSED(ntree), bNode 
   bNodeSocket *sock_min_float = sock_max_vector->next;
   bNodeSocket *sock_max_float = sock_min_float->next;
 
-  const int data_type = node->custom1;
-
+  const CustomDataType data_type = static_cast<CustomDataType>(node->custom1);
   nodeSetSocketAvailability(sock_min_vector, data_type == CD_PROP_FLOAT3);
   nodeSetSocketAvailability(sock_max_vector, data_type == CD_PROP_FLOAT3);
   nodeSetSocketAvailability(sock_min_float, data_type == CD_PROP_FLOAT);
@@ -74,9 +73,9 @@ static float noise_from_index(const int seed, const int hash)
   return BLI_hash_int_01(combined_hash);
 }
 
-static void randomize_attribute(BooleanWriteAttribute &attribute,
-                                Span<uint32_t> hashes,
-                                const int seed)
+static void randomize_attribute_bool(BooleanWriteAttribute attribute,
+                                     Span<uint32_t> hashes,
+                                     const int seed)
 {
   MutableSpan<bool> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
@@ -86,8 +85,11 @@ static void randomize_attribute(BooleanWriteAttribute &attribute,
   attribute.apply_span();
 }
 
-static void randomize_attribute(
-    FloatWriteAttribute &attribute, float min, float max, Span<uint32_t> hashes, const int seed)
+static void randomize_attribute_float(FloatWriteAttribute attribute,
+                                      const float min,
+                                      const float max,
+                                      Span<uint32_t> hashes,
+                                      const int seed)
 {
   MutableSpan<float> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
@@ -97,8 +99,11 @@ static void randomize_attribute(
   attribute.apply_span();
 }
 
-static void randomize_attribute(
-    Float3WriteAttribute &attribute, float3 min, float3 max, Span<uint32_t> hashes, const int seed)
+static void randomize_attribute_float3(Float3WriteAttribute attribute,
+                                       const float3 min,
+                                       const float3 max,
+                                       Span<uint32_t> hashes,
+                                       const int seed)
 {
   MutableSpan<float3> attribute_span = attribute.get_span();
   for (const int i : IndexRange(attribute.size())) {
@@ -129,8 +134,7 @@ Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &compo
   }
   else {
     /* If there is no "id" attribute for per-point variation, just create it here. */
-    RandomNumberGenerator rng;
-    rng.seed(0);
+    RandomNumberGenerator rng(0);
     for (const int i : hashes.index_range()) {
       hashes[i] = rng.get_uint32();
     }
@@ -151,7 +155,7 @@ static void randomize_attribute(GeometryComponent &component,
     return;
   }
 
-  WriteAttributePtr attribute = component.attribute_try_ensure_for_write(
+  OutputAttributePtr attribute = component.attribute_try_get_for_output(
       attribute_name, domain, data_type);
   if (!attribute) {
     return;
@@ -161,27 +165,26 @@ static void randomize_attribute(GeometryComponent &component,
 
   switch (data_type) {
     case CD_PROP_FLOAT: {
-      FloatWriteAttribute float_attribute = std::move(attribute);
       const float min_value = params.get_input<float>("Min_001");
       const float max_value = params.get_input<float>("Max_001");
-      randomize_attribute(float_attribute, min_value, max_value, hashes, seed);
+      randomize_attribute_float(*attribute, min_value, max_value, hashes, seed);
       break;
     }
     case CD_PROP_FLOAT3: {
-      Float3WriteAttribute float3_attribute = std::move(attribute);
       const float3 min_value = params.get_input<float3>("Min");
       const float3 max_value = params.get_input<float3>("Max");
-      randomize_attribute(float3_attribute, min_value, max_value, hashes, seed);
+      randomize_attribute_float3(*attribute, min_value, max_value, hashes, seed);
       break;
     }
     case CD_PROP_BOOL: {
-      BooleanWriteAttribute boolean_attribute = std::move(attribute);
-      randomize_attribute(boolean_attribute, hashes, seed);
+      randomize_attribute_bool(*attribute, hashes, seed);
       break;
     }
     default:
       break;
   }
+
+  attribute.save();
 }
 
 static void geo_node_random_attribute_exec(GeoNodeExecParams params)

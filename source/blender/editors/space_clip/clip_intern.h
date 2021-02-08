@@ -171,7 +171,14 @@ void clip_delete_plane_track(struct bContext *C,
                              struct MovieClip *clip,
                              struct MovieTrackingPlaneTrack *plane_track);
 
+void clip_view_offset_for_center_to_point(
+    SpaceClip *sc, const float x, const float y, float *r_offset_x, float *r_offset_y);
 void clip_view_center_to_point(SpaceClip *sc, float x, float y);
+
+bool clip_view_calculate_view_selection(
+    const struct bContext *C, bool fit, float *r_offset_x, float *r_offset_y, float *r_zoom);
+
+bool clip_view_has_locked_selection(const struct bContext *C);
 
 void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);
 
@@ -191,6 +198,7 @@ void CLIP_OT_clear_solution(struct wmOperatorType *ot);
 
 void CLIP_OT_clear_track_path(struct wmOperatorType *ot);
 void CLIP_OT_join_tracks(struct wmOperatorType *ot);
+void CLIP_OT_average_tracks(struct wmOperatorType *ot);
 
 void CLIP_OT_disable_markers(struct wmOperatorType *ot);
 void CLIP_OT_hide_tracks(struct wmOperatorType *ot);

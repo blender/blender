@@ -70,7 +70,7 @@ struct TaskNode {
 #ifdef WITH_TBB
         tbb_node(task_graph->tbb_graph,
                  tbb::flow::unlimited,
-                 std::bind(&TaskNode::run, this, std::placeholders::_1)),
+                 [&](const tbb::flow::continue_msg input) { run(input); }),
 #endif
         run_func(run_func),
         task_data(task_data),

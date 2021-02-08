@@ -239,7 +239,7 @@ typedef struct DRWVolumeGrid {
   float texture_to_object[4][4];
   float object_to_texture[4][4];
 
-  /* Transfrom from bounds to texture space. */
+  /* Transform from bounds to texture space. */
   float object_to_bounds[4][4];
   float bounds_to_texture[4][4];
 } DRWVolumeGrid;

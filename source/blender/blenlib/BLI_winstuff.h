@@ -64,7 +64,7 @@ extern "C" {
 #  define S_ISDIR(x) (((x)&_S_IFDIR) == _S_IFDIR)
 #endif
 
-/* defines for using ISO C++ conformant names */
+/* Defines for using ISO C++ conferment names. */
 #if !defined(_MSC_VER) || _MSC_VER < 1900
 #  define snprintf _snprintf
 #endif

@@ -324,19 +324,27 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* Recalculate bounds of effect strips. */
+  /* Recalculate bounds of effect strips, offsetting the keyframes if not snapping any handle. */
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->type & SEQ_TYPE_EFFECT) {
+      const bool either_handle_selected = (seq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) != 0;
+
       if (seq->seq1 && (seq->seq1->flag & SELECT)) {
-        SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        if (!either_handle_selected) {
+          SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        }
         SEQ_time_update_sequence(scene, seq);
       }
       else if (seq->seq2 && (seq->seq2->flag & SELECT)) {
-        SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        if (!either_handle_selected) {
+          SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        }
         SEQ_time_update_sequence(scene, seq);
       }
       else if (seq->seq3 && (seq->seq3->flag & SELECT)) {
-        SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        if (!either_handle_selected) {
+          SEQ_offset_animdata(scene, seq, (snap_frame - seq->startdisp));
+        }
         SEQ_time_update_sequence(scene, seq);
       }
     }
@@ -1255,7 +1263,9 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
   last_seq->seq2 = seq2;
   last_seq->seq3 = seq3;
 
+  int old_start = last_seq->start;
   SEQ_relations_update_changed_seq_and_deps(scene, last_seq, 1, 1);
+  SEQ_offset_animdata(scene, last_seq, (last_seq->start - old_start));
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -1384,6 +1394,10 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
   const bool ignore_selection = RNA_boolean_get(op->ptr, "ignore_selection");
 
   SEQ_prefetch_stop(scene);
+
+  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+    seq->tmp = NULL;
+  }
 
   LISTBASE_FOREACH_BACKWARD (Sequence *, seq, ed->seqbasep) {
     if (use_cursor_position && seq->machine != split_channel) {
@@ -3205,223 +3219,6 @@ void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot)
 
   prop = RNA_def_boolean(ot->srna, "preview", false, "Preview", "Set the preview range instead");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Unused functions
- * \{ */
-
-#if 0
-static void set_filter_seq(Scene *scene)
-{
-  Sequence *seq;
-  Editing *ed = SEQ_editing_get(scene, false);
-
-  if (ed == NULL) {
-    return;
-  }
-
-  if (okee("Set Deinterlace") == 0) {
-    return;
-  }
-
-  SEQ_CURRENT_BEGIN (ed, seq) {
-    if (seq->flag & SELECT) {
-      if (seq->type == SEQ_TYPE_MOVIE) {
-        seq->flag |= SEQ_FILTERY;
-        SEQ_add_reload_new_file(bmain, scene, seq, false);
-        SEQ_time_update_sequence(scene, seq);
-      }
-    }
-  }
-  SEQ_CURRENT_END;
-}
-
-static void UNUSED_FUNCTION(seq_remap_paths)(Scene *scene)
-{
-  Sequence *seq, *last_seq = SEQ_select_active_get(scene);
-  Editing *ed = SEQ_editing_get(scene, false);
-  char from[FILE_MAX], to[FILE_MAX], stripped[FILE_MAX];
-
-  if (last_seq == NULL) {
-    return;
-  }
-
-  BLI_strncpy(from, last_seq->strip->dir, sizeof(from));
-  /* XXX  if (0 == sbutton(from, 0, sizeof(from) - 1, "From: "))
-   *      return; */
-
-  BLI_strncpy(to, from, sizeof(to));
-  /* XXX  if (0 == sbutton(to, 0, sizeof(to) - 1, "To: "))
-   *      return; */
-
-  if (STREQ(to, from)) {
-    return;
-  }
-
-  SEQ_CURRENT_BEGIN (ed, seq) {
-    if (seq->flag & SELECT) {
-      if (STREQLEN(seq->strip->dir, from, strlen(from))) {
-        printf("found %s\n", seq->strip->dir);
-
-        /* Strip off the beginning. */
-        stripped[0] = 0;
-        BLI_strncpy(stripped, seq->strip->dir + strlen(from), FILE_MAX);
-
-        /* New path. */
-        BLI_snprintf(seq->strip->dir, sizeof(seq->strip->dir), "%s%s", to, stripped);
-        printf("new %s\n", seq->strip->dir);
-      }
-    }
-  }
-  SEQ_CURRENT_END;
-}
-
-static Sequence *sequence_find_parent(Scene *scene, Sequence *child)
-{
-  Editing *ed = SEQ_editing_get(scene, false);
-  Sequence *parent = NULL;
-  Sequence *seq;
-
-  if (ed == NULL) {
-    return NULL;
-  }
-
-  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((seq != child) && seq_is_parent(seq, child)) {
-      parent = seq;
-      break;
-    }
-  }
-
-  return parent;
-}
-
-static int seq_get_snaplimit(View2D *v2d)
-{
-  /* fake mouse coords to get the snap value
-   * a bit lazy but its only done once pre transform */
-  float xmouse, ymouse, x;
-  int mval[2] = {24, 0}; /* 24 screen px snap */
-
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &xmouse, &ymouse);
-  x = xmouse;
-  mval[0] = 0;
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &xmouse, &ymouse);
-  return (int)(x - xmouse);
-}
-
-#endif
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Unused in current file
- * \{ */
-
-void seq_rectf(Sequence *seq, rctf *rect)
-{
-  rect->xmin = seq->startdisp;
-  rect->xmax = seq->enddisp;
-  rect->ymin = seq->machine + SEQ_STRIP_OFSBOTTOM;
-  rect->ymax = seq->machine + SEQ_STRIP_OFSTOP;
-}
-
-Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int sel)
-{
-  /* sel: 0==unselected, 1==selected, -1==don't care. */
-  Sequence *seq;
-  Editing *ed = SEQ_editing_get(scene, false);
-
-  if (ed == NULL) {
-    return NULL;
-  }
-
-  if (sel > 0) {
-    sel = SELECT;
-  }
-
-  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((seq != test) && (test->machine == seq->machine) &&
-        ((sel == -1) || (sel && (seq->flag & SELECT)) ||
-         (sel == 0 && (seq->flag & SELECT) == 0))) {
-      switch (lr) {
-        case SEQ_SIDE_LEFT:
-          if (test->startdisp == (seq->enddisp)) {
-            return seq;
-          }
-          break;
-        case SEQ_SIDE_RIGHT:
-          if (test->enddisp == (seq->startdisp)) {
-            return seq;
-          }
-          break;
-      }
-    }
-  }
-  return NULL;
-}
-
-Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[2])
-{
-  Sequence *seq;
-  Editing *ed = SEQ_editing_get(scene, false);
-  float x, y;
-  float pixelx;
-  float handsize;
-  float displen;
-  *hand = SEQ_SIDE_NONE;
-
-  if (ed == NULL) {
-    return NULL;
-  }
-
-  pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
-
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-
-  seq = ed->seqbasep->first;
-
-  while (seq) {
-    if (seq->machine == (int)y) {
-      /* Check for both normal strips, and strips that have been flipped horizontally. */
-      if (((seq->startdisp < seq->enddisp) && (seq->startdisp <= x && seq->enddisp >= x)) ||
-          ((seq->startdisp > seq->enddisp) && (seq->startdisp >= x && seq->enddisp <= x))) {
-        if (SEQ_transform_sequence_can_be_translated(seq)) {
-
-          /* Clamp handles to defined size in pixel space. */
-          handsize = 2.0f * sequence_handle_size_get_clamped(seq, pixelx);
-          displen = (float)abs(seq->startdisp - seq->enddisp);
-
-          /* Don't even try to grab the handles of small strips. */
-          if (displen / pixelx > 16) {
-
-            /* Set the max value to handle to 1/3 of the total len when its
-             * less than 28. This is important because otherwise selecting
-             * handles happens even when you click in the middle. */
-            if ((displen / 3) < 30 * pixelx) {
-              handsize = displen / 3;
-            }
-            else {
-              CLAMP(handsize, 7 * pixelx, 30 * pixelx);
-            }
-
-            if (handsize + seq->startdisp >= x) {
-              *hand = SEQ_SIDE_LEFT;
-            }
-            else if (-handsize + seq->enddisp <= x) {
-              *hand = SEQ_SIDE_RIGHT;
-            }
-          }
-        }
-        return seq;
-      }
-    }
-    seq = seq->next;
-  }
-  return NULL;
 }
 
 /** \} */

@@ -194,6 +194,17 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
     }
   }
 
+  /* On undo, tag for update so the depsgraph doesn't use stale edit-mode data,
+   * this is possible when mixing edit-mode and memory-file undo.
+   *
+   * By convention, objects are not left in edit-mode - so this isn't often problem in practice,
+   * since exiting edit-mode will tag the objects too.
+   *
+   * However there is no guarantee the active object _never_ changes while in edit-mode.
+   * Python for example can do this, some callers to #ED_object_base_activate
+   * don't handle modes either (doing so isn't always practical).
+   *
+   * To reproduce the problem where stale data is used, see: T84920. */
   for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
     if (ob->type == OB_MESH) {
       Mesh *me = ob->data;
@@ -201,12 +212,18 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
         EDBM_mesh_free(me->edit_mesh);
         MEM_freeN(me->edit_mesh);
         me->edit_mesh = NULL;
+        if (do_undo_system == false) {
+          DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+        }
       }
     }
     else if (ob->type == OB_ARMATURE) {
       bArmature *arm = ob->data;
       if (arm->edbo) {
         ED_armature_edit_free(ob->data);
+        if (do_undo_system == false) {
+          DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+        }
       }
     }
   }

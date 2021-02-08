@@ -73,7 +73,7 @@
 /* ************************************************************************** */
 /* POSE MARKERS STUFF */
 
-/* *************************** Localise Markers ***************************** */
+/* *************************** Localize Markers ***************************** */
 
 /* ensure that there is:
  * 1) an active action editor
@@ -322,7 +322,7 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
   bAnimListElem *ale;
   int filter;
 
-  /* NOTE: not bool, since we want prioritise individual channels over expanders */
+  /* NOTE: not bool, since we want prioritize individual channels over expanders. */
   short found = 0;
 
   /* get all items - we need to do it this way */
@@ -346,7 +346,7 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
       found = acf->channel_role;
 
       /* only stop our search when we've found an actual channel
-       * - datablock expanders get less priority so that we don't abort prematurely
+       * - data-block expanders get less priority so that we don't abort prematurely
        */
       if (found == ACHANNEL_ROLE_CHANNEL) {
         break;
@@ -1036,12 +1036,13 @@ void ACTION_OT_delete(wmOperatorType *ot)
   ot->description = "Remove all selected keyframes";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = actkeys_delete_exec;
   ot->poll = ED_operator_action_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /* ******************** Clean Keyframes Operator ************************* */

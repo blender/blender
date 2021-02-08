@@ -294,8 +294,7 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
     /* subtract existing cost to further differentiate edges from one another
      *
      * keep topology cost below 0.0 so their values don't interfere with quadric cost,
-     * (and they get handled first).
-     * */
+     * (and they get handled first). */
     if (vweights == NULL) {
       cost = bm_decim_build_edge_cost_single_squared__topology(e) - cost;
     }
@@ -1319,9 +1318,9 @@ void BM_mesh_decimate_collapse(BMesh *bm,
   UNUSED_VARS(do_triangulate);
 #endif
 
-  /* alloc vars */
+  /* Allocate variables. */
   vquadrics = MEM_callocN(sizeof(Quadric) * bm->totvert, __func__);
-  /* since some edges may be degenerate, we might be over allocing a little here */
+  /* Since some edges may be degenerate, we might be over allocating a little here. */
   eheap = BLI_heap_new_ex(bm->totedge);
   eheap_table = MEM_mallocN(sizeof(HeapNode *) * bm->totedge, __func__);
   tot_edge_orig = bm->totedge;

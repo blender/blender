@@ -63,7 +63,7 @@
  * because 'near' is disabled through BLI_windstuff */
 #  include "BLI_winstuff.h"
 #  include "utfconv.h"
-#  include <direct.h> /* chdir */
+#  include <direct.h> /* #chdir */
 #  include <shlobj.h>
 #endif
 

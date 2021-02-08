@@ -42,7 +42,7 @@ def get_cmake_options(builder):
     elif builder.platform == 'linux':
         config_file = "build_files/buildbot/config/blender_linux.cmake"
 
-    optix_sdk_dir = os.path.join(builder.blender_dir, '..', '..', 'NVIDIA-Optix-SDK')
+    optix_sdk_dir = os.path.join(builder.blender_dir, '..', '..', 'NVIDIA-Optix-SDK-7.1')
     options.append('-DOPTIX_ROOT_DIR:PATH=' + optix_sdk_dir)
 
     # Workaround to build sm_30 kernels with CUDA 10, since CUDA 11 no longer supports that architecture

@@ -41,7 +41,7 @@ ccl_device_inline void kernel_split_branched_path_indirect_loop_init(KernelGloba
 
 #  undef BRANCHED_STORE
 
-  /* set loop counters to intial position */
+  /* Set loop counters to initial position. */
   branched_state->next_closure = 0;
   branched_state->next_sample = 0;
 }

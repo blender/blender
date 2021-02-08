@@ -908,7 +908,6 @@ wmKeyMap *WM_modalkeymap_find(wmKeyConfig *keyconf, const char *idname)
     if (km->flag & KEYMAP_MODAL) {
       if (STREQLEN(idname, km->idname, KMAP_MAX_NAME)) {
         return km;
-        break;
       }
     }
   }
@@ -950,9 +949,9 @@ wmKeyMapItem *WM_modalkeymap_add_item_str(
   return kmi;
 }
 
-static wmKeyMapItem *wm_modalkeymap_find_propvalue_iter(wmKeyMap *km,
-                                                        wmKeyMapItem *kmi,
-                                                        const int propvalue)
+static const wmKeyMapItem *wm_modalkeymap_find_propvalue_iter(const wmKeyMap *km,
+                                                              const wmKeyMapItem *kmi,
+                                                              const int propvalue)
 {
   if (km->flag & KEYMAP_MODAL) {
     kmi = kmi ? kmi->next : km->items.first;
@@ -969,7 +968,7 @@ static wmKeyMapItem *wm_modalkeymap_find_propvalue_iter(wmKeyMap *km,
   return NULL;
 }
 
-wmKeyMapItem *WM_modalkeymap_find_propvalue(wmKeyMap *km, const int propvalue)
+const wmKeyMapItem *WM_modalkeymap_find_propvalue(const wmKeyMap *km, const int propvalue)
 {
   return wm_modalkeymap_find_propvalue_iter(km, NULL, propvalue);
 }
@@ -1202,7 +1201,7 @@ int WM_keymap_item_raw_to_string(const short shift,
 #undef ADD_SEP
 }
 
-int WM_keymap_item_to_string(wmKeyMapItem *kmi,
+int WM_keymap_item_to_string(const wmKeyMapItem *kmi,
                              const bool compact,
                              char *result,
                              const int result_len)
@@ -1219,14 +1218,17 @@ int WM_keymap_item_to_string(wmKeyMapItem *kmi,
                                       result_len);
 }
 
-int WM_modalkeymap_items_to_string(
-    wmKeyMap *km, const int propvalue, const bool compact, char *result, const int result_len)
+int WM_modalkeymap_items_to_string(const wmKeyMap *km,
+                                   const int propvalue,
+                                   const bool compact,
+                                   char *result,
+                                   const int result_len)
 {
   int totlen = 0;
   bool add_sep = false;
 
   if (km) {
-    wmKeyMapItem *kmi;
+    const wmKeyMapItem *kmi;
 
     /* Find all shortcuts related to that propvalue! */
     for (kmi = WM_modalkeymap_find_propvalue(km, propvalue); kmi && totlen < (result_len - 2);
@@ -1655,7 +1657,7 @@ wmKeyMapItem *WM_key_event_operator_from_keymap(wmKeyMap *keymap,
       });
 }
 
-bool WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
+bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2)
 {
   if (k1->flag & KMI_INACTIVE || k2->flag & KMI_INACTIVE) {
     return 0;

@@ -18,6 +18,7 @@
  * \ingroup RNA
  */
 
+/* Use a define instead of `#pragma once` because of `BKE_addon.h`, `ED_object.h` & others. */
 #ifndef __RNA_TYPES_H__
 #define __RNA_TYPES_H__
 

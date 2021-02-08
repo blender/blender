@@ -47,10 +47,13 @@ typedef struct BrushClone {
   char _pad[4];
 } BrushClone;
 
+#define GPENCIL_MIN_FILL_FAC 0.05f
+
 typedef struct BrushGpencilSettings {
   /** Amount of smoothing to apply to newly created strokes. */
   float draw_smoothfac;
-  char _pad2[4];
+  /** Fill zoom factor */
+  float fill_factor;
   /** Amount of alpha strength to apply to newly created strokes. */
   float draw_strength;
   /** Amount of jitter to apply to newly created strokes. */
@@ -75,8 +78,8 @@ typedef struct BrushGpencilSettings {
   float fill_threshold;
   /** Number of pixel to consider the leak is too small (x 2). */
   short fill_leak;
-  /** Fill zoom factor */
-  short fill_factor;
+  char _pad2[2];
+
   int flag2;
 
   /** Number of simplify steps. */
@@ -288,7 +291,7 @@ typedef struct Brush {
 
   int curve_preset;
 
-  /* Maximun distance to search fake neighbors from a vertex. */
+  /* Maximum distance to search fake neighbors from a vertex. */
   float disconnected_distance_max;
 
   int deform_target;

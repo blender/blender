@@ -1002,6 +1002,23 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
 #  pragma GCC diagnostic pop
 #endif
 
+static bool cloth_bvh_collision_is_active(const ClothModifierData *UNUSED(clmd),
+                                          const Cloth *cloth,
+                                          const MVertTri *tri_a)
+{
+  const ClothVertex *verts = cloth->verts;
+
+  /* Fully pinned triangles don't need collision processing. */
+  const int flags_a = verts[tri_a->tri[0]].flags & verts[tri_a->tri[1]].flags &
+                      verts[tri_a->tri[2]].flags;
+
+  if (flags_a & (CLOTH_VERT_FLAG_PINNED | CLOTH_VERT_FLAG_NOOBJCOLL)) {
+    return false;
+  }
+
+  return true;
+}
+
 static void cloth_collision(void *__restrict userdata,
                             const int index,
                             const TaskParallelTLS *__restrict UNUSED(tls))
@@ -1059,13 +1076,31 @@ static void cloth_collision(void *__restrict userdata,
   }
 }
 
-static bool cloth_bvh_selfcollision_is_active(const Cloth *cloth,
+static bool cloth_bvh_selfcollision_is_active(const ClothModifierData *clmd,
+                                              const Cloth *cloth,
                                               const MVertTri *tri_a,
-                                              const MVertTri *tri_b,
-                                              bool sewing_active)
+                                              const MVertTri *tri_b)
 {
   const ClothVertex *verts = cloth->verts;
+
+  /* Skip when either triangle is excluded. */
+  const int flags_a = verts[tri_a->tri[0]].flags & verts[tri_a->tri[1]].flags &
+                      verts[tri_a->tri[2]].flags;
+  const int flags_b = verts[tri_b->tri[0]].flags & verts[tri_b->tri[1]].flags &
+                      verts[tri_b->tri[2]].flags;
+
+  if ((flags_a | flags_b) & CLOTH_VERT_FLAG_NOSELFCOLL) {
+    return false;
+  }
+
+  /* Skip when both triangles are pinned. */
+  if ((flags_a & flags_b) & CLOTH_VERT_FLAG_PINNED) {
+    return false;
+  }
+
   /* Ignore overlap of neighboring triangles and triangles connected by a sewing edge. */
+  bool sewing_active = (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW);
+
   for (uint i = 0; i < 3; i++) {
     for (uint j = 0; j < 3; j++) {
       if (tri_a->tri[i] == tri_b->tri[j]) {
@@ -1078,12 +1113,6 @@ static bool cloth_bvh_selfcollision_is_active(const Cloth *cloth,
         }
       }
     }
-  }
-
-  if (((verts[tri_a->tri[0]].flags & verts[tri_a->tri[1]].flags & verts[tri_a->tri[2]].flags) |
-       (verts[tri_b->tri[0]].flags & verts[tri_b->tri[1]].flags & verts[tri_b->tri[2]].flags)) &
-      CLOTH_VERT_FLAG_NOSELFCOLL) {
-    return false;
   }
 
   return true;
@@ -1106,10 +1135,7 @@ static void cloth_selfcollision(void *__restrict userdata,
   tri_a = &clmd->clothObject->tri[data->overlap[index].indexA];
   tri_b = &clmd->clothObject->tri[data->overlap[index].indexB];
 
-#ifdef DEBUG
-  bool sewing_active = (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW);
-  BLI_assert(cloth_bvh_selfcollision_is_active(clmd->clothObject, tri_a, tri_b, sewing_active));
-#endif
+  BLI_assert(cloth_bvh_selfcollision_is_active(clmd, clmd->clothObject, tri_a, tri_b));
 
   /* Compute distance and normal. */
   distance = compute_collision_point_tri_tri(verts1[tri_a->tri[0]].tx,
@@ -1212,13 +1238,8 @@ static void add_collision_object(ListBase *relations,
                                  int level,
                                  unsigned int modifier_type)
 {
-  CollisionModifierData *cmd = NULL;
-
   /* only get objects with collision modifier */
-  if (((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) ||
-      (modifier_type != eModifierType_Collision)) {
-    cmd = (CollisionModifierData *)BKE_modifiers_findby_type(ob, modifier_type);
-  }
+  ModifierData *cmd = BKE_modifiers_findby_type(ob, modifier_type);
 
   if (cmd) {
     CollisionRelation *relation = MEM_callocN(sizeof(CollisionRelation), "CollisionRelation");
@@ -1293,6 +1314,10 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
   LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
     /* Get evaluated object. */
     Object *ob = (Object *)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
+
+    if (modifier_type == eModifierType_Collision && !(ob->pd && ob->pd->deflect)) {
+      continue;
+    }
 
     if (ob != self) {
       objects[num] = ob;
@@ -1508,6 +1533,18 @@ static int cloth_bvh_selfcollisions_resolve(ClothModifierData *clmd,
   return ret;
 }
 
+static bool cloth_bvh_obj_overlap_cb(void *userdata,
+                                     int index_a,
+                                     int UNUSED(index_b),
+                                     int UNUSED(thread))
+{
+  ClothModifierData *clmd = (ClothModifierData *)userdata;
+  struct Cloth *clothObject = clmd->clothObject;
+  const MVertTri *tri_a = &clothObject->tri[index_a];
+
+  return cloth_bvh_collision_is_active(clmd, clothObject, tri_a);
+}
+
 static bool cloth_bvh_self_overlap_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
 {
   /* No need for equal combinations (eg. (0,1) & (1,0)). */
@@ -1518,9 +1555,7 @@ static bool cloth_bvh_self_overlap_cb(void *userdata, int index_a, int index_b, 
     tri_a = &clothObject->tri[index_a];
     tri_b = &clothObject->tri[index_b];
 
-    bool sewing_active = (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW);
-
-    if (cloth_bvh_selfcollision_is_active(clothObject, tri_a, tri_b, sewing_active)) {
+    if (cloth_bvh_selfcollision_is_active(clmd, clothObject, tri_a, tri_b)) {
       return true;
     }
   }
@@ -1578,8 +1613,11 @@ int cloth_bvh_collision(
         /* Move object to position (step) in time. */
         collision_move_object(collmd, step + dt, step, false);
 
-        overlap_obj[i] = BLI_bvhtree_overlap(
-            cloth_bvh, collmd->bvhtree, &coll_counts_obj[i], NULL, NULL);
+        overlap_obj[i] = BLI_bvhtree_overlap(cloth_bvh,
+                                             collmd->bvhtree,
+                                             &coll_counts_obj[i],
+                                             is_hair ? NULL : cloth_bvh_obj_overlap_cb,
+                                             clmd);
       }
     }
   }

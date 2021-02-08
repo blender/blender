@@ -135,7 +135,7 @@ static void createTransGPencil_curves(bContext *C,
               continue;
             }
             /* Check if the color is editable. */
-            if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+            if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
               continue;
             }
             /* Check if stroke has an editcurve */
@@ -242,7 +242,7 @@ static void createTransGPencil_curves(bContext *C,
       }
 
       /* Calculate difference matrix. */
-      BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+      BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
       copy_m3_m4(mtx, diff_mat);
       pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
@@ -263,7 +263,7 @@ static void createTransGPencil_curves(bContext *C,
               continue;
             }
             /* Check if the color is editable. */
-            if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+            if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
               continue;
             }
             /* Check if stroke has an editcurve */
@@ -436,7 +436,7 @@ static void createTransGPencil_strokes(bContext *C,
               continue;
             }
             /* Check if the color is editable. */
-            if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+            if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
               continue;
             }
 
@@ -507,7 +507,7 @@ static void createTransGPencil_strokes(bContext *C,
       }
 
       /* Calculate difference matrix. */
-      BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+      BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
       /* Undo matrix. */
       invert_m4_m4(inverse_diff_mat, diff_mat);
 
@@ -551,7 +551,7 @@ static void createTransGPencil_strokes(bContext *C,
               continue;
             }
             /* check if the color is editable */
-            if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+            if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
               continue;
             }
             /* What we need to include depends on proportional editing settings... */

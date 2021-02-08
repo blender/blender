@@ -104,7 +104,7 @@ static void workbench_dof_setup_samples(struct GPUUniformBuf **ubo,
         square_to_circle(x, y, &r, &T);
         samp[2] = r;
 
-        /* Bokeh shape parametrisation */
+        /* Bokeh shape parameterization. */
         if (bokeh_sides > 1.0f) {
           float denom = T - (2.0 * M_PI / bokeh_sides) *
                                 floorf((bokeh_sides * T + M_PI) / (2.0 * M_PI));
@@ -133,14 +133,14 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   RegionView3D *rv3d = draw_ctx->rv3d;
   View3D *v3d = draw_ctx->v3d;
-  Scene *scene = draw_ctx->scene;
+
   Object *camera;
 
   if (v3d && rv3d) {
     camera = (rv3d->persp == RV3D_CAMOB) ? v3d->camera : NULL;
   }
   else {
-    camera = scene->camera;
+    camera = wpd->cam_original_ob;
   }
 
   Camera *cam = camera != NULL ? camera->data : NULL;

@@ -36,9 +36,12 @@ class BakeManager {
   void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
   void device_free(Device *device, DeviceScene *dscene);
 
-  bool need_update;
+  void tag_update();
+
+  bool need_update() const;
 
  private:
+  bool need_update_;
   ShaderEvalType type;
   int pass_filter;
   std::string object_name;

@@ -48,6 +48,7 @@ def physics_add(layout, md, name, type, typeicon, toggles):
         if toggles:
             row.prop(md, "show_viewport", text="")
             row.prop(md, "show_render", text="")
+        return row
     else:
         row.operator(
             "object.modifier_add",
@@ -89,7 +90,10 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
             col.operator("object.forcefield_toggle", text="Force Field", icon='X')
 
         if obj.type == 'MESH':
-            physics_add(col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
+            row = physics_add(col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
+            if row and obj.collision:
+                row.prop(obj.collision, "use", text="", icon='HIDE_OFF' if obj.collision.use else 'HIDE_ON')
+
             physics_add(col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
             physics_add(col, context.dynamic_paint, "Dynamic Paint", 'DYNAMIC_PAINT', 'MOD_DYNAMICPAINT', True)
 

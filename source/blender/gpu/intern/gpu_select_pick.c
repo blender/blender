@@ -269,7 +269,7 @@ typedef struct GPUPickState {
     ListBase bufs;
   } cache;
 
-  /* Pickign methods */
+  /* Picking methods. */
   union {
     /* GPU_SELECT_PICK_ALL */
     struct {

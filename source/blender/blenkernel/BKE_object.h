@@ -77,16 +77,23 @@ bool BKE_object_modifier_gpencil_use_time(struct Object *ob, struct GpencilModif
 
 bool BKE_object_shaderfx_use_time(struct Object *ob, struct ShaderFxData *md);
 
+bool BKE_object_supports_modifiers(const struct Object *ob);
 bool BKE_object_support_modifier_type_check(const struct Object *ob, int modifier_type);
 
 /* Active modifier. */
 void BKE_object_modifier_set_active(struct Object *ob, struct ModifierData *md);
 struct ModifierData *BKE_object_active_modifier(const struct Object *ob);
 
-bool BKE_object_copy_modifier(struct Object *ob_dst,
+bool BKE_object_copy_modifier(struct Main *bmain,
+                              struct Scene *scene,
+                              struct Object *ob_dst,
                               const struct Object *ob_src,
                               struct ModifierData *md);
 bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, struct GpencilModifierData *md);
+bool BKE_object_modifier_stack_copy(struct Object *ob_dst,
+                                    const struct Object *ob_src,
+                                    const bool do_copy_all,
+                                    const int flag_subdata);
 void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_free_modifiers(struct Object *ob, const int flag);
 void BKE_object_free_shaderfx(struct Object *ob, const int flag);
@@ -289,7 +296,6 @@ void BKE_object_eval_uber_data(struct Depsgraph *depsgraph,
                                struct Object *ob);
 void BKE_object_eval_assign_data(struct Object *object, struct ID *data, bool is_owned);
 
-void BKE_object_eval_boundbox(struct Depsgraph *depsgraph, struct Object *object);
 void BKE_object_sync_to_original(struct Depsgraph *depsgraph, struct Object *object);
 
 void BKE_object_eval_ptcache_reset(struct Depsgraph *depsgraph,

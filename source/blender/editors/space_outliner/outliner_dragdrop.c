@@ -140,6 +140,11 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
   TreeElement *te_hovered;
   float view_mval[2];
 
+  /* Empty tree, e.g. while filtered. */
+  if (BLI_listbase_is_empty(&space_outliner->tree)) {
+    return NULL;
+  }
+
   UI_view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
   te_hovered = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
@@ -493,7 +498,7 @@ static bool parent_clear_poll(bContext *C,
       case ID_OB:
         return ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE);
       case ID_GR:
-        return event->shift;
+        return event->shift || ELEM(tselem->type, TSE_LIBRARY_OVERRIDE_BASE);
       default:
         return true;
     }

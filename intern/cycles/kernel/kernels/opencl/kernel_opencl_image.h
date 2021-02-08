@@ -15,7 +15,20 @@
  */
 
 #ifdef WITH_NANOVDB
+/* Data type to replace `double` used in the NanoVDB headers. Cycles don't need doubles, and is
+ * safer and more portable to never use double datatype on GPU.
+ * Use a special structure, so that the following is true:
+ * - No unnoticed implicit cast or mathematical operations used on scalar 64bit type
+ *   (which rules out trick like using `uint64_t` as a drop-in replacement for double).
+ * - Padding rules are matching exactly `double`
+ *   (which rules out array of `uint8_t`). */
+typedef struct ccl_vdb_double_t {
+  uint64_t i;
+} ccl_vdb_double_t;
+
+#  define double ccl_vdb_double_t
 #  include "nanovdb/CNanoVDB.h"
+#  undef double
 #endif
 
 /* For OpenCL we do manual lookup and interpolation. */

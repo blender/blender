@@ -106,7 +106,7 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     GPU_framebuffer_texture_attach(fbl->main_fb, effects->ssr_specrough_input, 2, 0);
 
-    /* Raytracing output */
+    /* Ray-tracing output. */
     effects->ssr_hit_output = DRW_texture_pool_query_2d(
         tracing_res[0], tracing_res[1], GPU_RG16I, &draw_engine_eevee_type);
     effects->ssr_pdf_output = DRW_texture_pool_query_2d(

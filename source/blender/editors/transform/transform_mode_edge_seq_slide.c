@@ -35,10 +35,12 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "BLT_translation.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
 
@@ -49,9 +51,9 @@
 static eRedrawFlag seq_slide_handleEvent(struct TransInfo *t, const wmEvent *event)
 {
   BLI_assert(t->mode == TFM_SEQ_SLIDE);
-  wmKeyMapItem *kmi = t->custom.mode.data;
+  const wmKeyMapItem *kmi = t->custom.mode.data;
   if (kmi && event->type == kmi->type && event->val == kmi->val) {
-    /* Allows the 'Expand to fit' effect to be enabled as a toogle. */
+    /* Allows the "Expand to Fit" effect to be enabled as a toggle. */
     t->flag ^= T_ALT_TRANSFORM;
     return TREDRAW_HARD;
   }
@@ -73,7 +75,7 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
   ofs += BLI_snprintf(
       str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Sequence Slide: %s%s, ("), &tvec[0], t->con.text);
 
-  wmKeyMapItem *kmi = t->custom.mode.data;
+  const wmKeyMapItem *kmi = t->custom.mode.data;
   if (kmi) {
     ofs += WM_keymap_item_to_string(kmi, false, str + ofs, UI_MAX_DRAW_STR - ofs);
   }
@@ -106,6 +108,7 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
   float values_final[3] = {0.0f};
 
   snapSequenceBounds(t, mval);
+  transform_convert_sequencer_channel_clamp(t);
   if (applyNumInput(&t->num, values_final)) {
     if (t->con.mode & CON_APPLY) {
       if (t->con.mode & CON_AXIS0) {
@@ -158,7 +161,7 @@ void initSeqSlide(TransInfo *t)
 
   if (t->keymap) {
     /* Workaround to use the same key as the modal keymap. */
-    t->custom.mode.data = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
+    t->custom.mode.data = (void *)WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
   }
 }
 /** \} */

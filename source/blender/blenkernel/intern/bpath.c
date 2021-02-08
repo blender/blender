@@ -23,7 +23,7 @@
  * - passing output paths to the visitor?, like render out.
  * - passing sequence strips with many images.
  * - passing directory paths - visitors don't know which path is a dir or a file.
- * */
+ */
 
 #include <sys/stat.h>
 

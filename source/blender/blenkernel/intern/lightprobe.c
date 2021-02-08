@@ -107,6 +107,8 @@ IDTypeInfo IDType_ID_LP = {
     .blend_read_expand = NULL,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 void BKE_lightprobe_type_set(LightProbe *probe, const short lightprobe_type)

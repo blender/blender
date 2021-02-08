@@ -1125,6 +1125,11 @@ void RNA_def_struct_name_property(struct StructRNA *srna, struct PropertyRNA *pr
     CLOG_ERROR(&LOG, "\"%s.%s\", must be a string property.", srna->identifier, prop->identifier);
     DefRNA.error = true;
   }
+  else if (srna->nameproperty != NULL) {
+    CLOG_ERROR(
+        &LOG, "\"%s.%s\", name property is already set.", srna->identifier, prop->identifier);
+    DefRNA.error = true;
+  }
   else {
     srna->nameproperty = prop;
   }
@@ -1293,7 +1298,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
 
     dcont = rna_find_container_def(cont);
 
-    /* XXX - toto, detect supertype collisions */
+    /* TODO: detect super-type collisions. */
     if (rna_findlink(&dcont->properties, identifier)) {
       CLOG_ERROR(&LOG, "duplicate identifier \"%s.%s\"", CONTAINER_RNA_ID(cont), identifier);
       DefRNA.error = true;
@@ -4105,6 +4110,16 @@ PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont_,
   PropertyRNA *prop;
 
   ASSERT_SOFT_HARD_LIMITS;
+
+#ifdef DEBUG
+  /* Properties with PROP_PERCENTAGE should use a range like 0 to 100, unlike PROP_FACTOR. */
+  if (hardmax < 2.0f) {
+    CLOG_WARN(&LOG,
+              "Percentage property with incorrect range: %s.%s",
+              CONTAINER_RNA_ID(cont),
+              identifier);
+  }
+#endif
 
   prop = RNA_def_property(cont, identifier, PROP_FLOAT, PROP_PERCENTAGE);
   RNA_def_property_float_default(prop, default_value);

@@ -120,12 +120,12 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
             COLLADAFW::FloatOrDoubleArray &intan = curve->getInTangentValues();
             COLLADAFW::FloatOrDoubleArray &outtan = curve->getOutTangentValues();
 
-            /* intangent */
+            /* In-tangent. */
             unsigned int index = 2 * (j * dim + i);
             bez.vec[0][0] = bc_get_float_value(intan, index) * fps;
             bez.vec[0][1] = bc_get_float_value(intan, index + 1);
 
-            /* outtangent */
+            /* Out-tangent. */
             bez.vec[2][0] = bc_get_float_value(outtan, index) * fps;
             bez.vec[2][1] = bc_get_float_value(outtan, index + 1);
             if (curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER) {

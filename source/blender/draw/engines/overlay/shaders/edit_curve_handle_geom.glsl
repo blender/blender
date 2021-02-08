@@ -53,9 +53,8 @@ void main()
   bool edge_selected = (((vertFlag[1] | vertFlag[0]) & VERT_SELECTED) != 0);
   bool handle_selected = (showCurveHandles &&
                           (((vertFlag[1] | vertFlag[0]) & VERT_SELECTED_BEZT_HANDLE) != 0));
-  /* It reuses freestyle flag because the flag is 8 bits and all are already used and this
-   * flag is not used in this context. */
-  bool is_gpencil = ((vertFlag[1] & EDGE_FREESTYLE) != 0);
+
+  bool is_gpencil = ((vertFlag[1] & VERT_GPENCIL_BEZT_HANDLE) != 0);
 
   /* If handle type is only selected and the edge is not selected, don't show. */
   if ((curveHandleDisplay != CURVE_HANDLE_ALL) && (!handle_selected)) {

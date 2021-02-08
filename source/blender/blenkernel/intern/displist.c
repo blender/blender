@@ -458,6 +458,7 @@ static void curve_to_displist(Curve *cu,
 /**
  * \param normal_proj: Optional normal that's used to project the scanfill verts into 2d coords.
  * Pass this along if known since it saves time calculating the normal.
+ * This is also used to initialize #DispList.nors (one normal per display list).
  * \param flipnormal: Flip the normal (same as passing \a normal_proj negated)
  */
 void BKE_displist_fill(ListBase *dispbase,
@@ -487,6 +488,7 @@ void BKE_displist_fill(ListBase *dispbase,
 
   while (cont) {
     int dl_flag_accum = 0;
+    int dl_rt_accum = 0;
     cont = 0;
     totvert = 0;
     nextcol = 0;
@@ -534,6 +536,7 @@ void BKE_displist_fill(ListBase *dispbase,
           }
         }
         dl_flag_accum |= dl->flag;
+        dl_rt_accum |= dl->rt;
       }
     }
 
@@ -543,12 +546,25 @@ void BKE_displist_fill(ListBase *dispbase,
         dlnew = MEM_callocN(sizeof(DispList), "filldisplist");
         dlnew->type = DL_INDEX3;
         dlnew->flag = (dl_flag_accum & (DL_BACK_CURVE | DL_FRONT_CURVE));
+        dlnew->rt = (dl_rt_accum & CU_SMOOTH);
         dlnew->col = colnr;
         dlnew->nr = totvert;
         dlnew->parts = tot;
 
         dlnew->index = MEM_mallocN(sizeof(int[3]) * tot, "dlindex");
         dlnew->verts = MEM_mallocN(sizeof(float[3]) * totvert, "dlverts");
+
+        if (normal_proj != NULL) {
+          /* Use a single normal for #DL_INDEX3.
+           * Counter intuitively, the normal must always be the flipped projection vector. */
+          dlnew->nors = MEM_mallocN(sizeof(float[3]), "dlnors");
+          if (flipnormal) {
+            copy_v3_v3(dlnew->nors, normal_proj);
+          }
+          else {
+            negate_v3_v3(dlnew->nors, normal_proj);
+          }
+        }
 
         /* vert data */
         f1 = dlnew->verts;
@@ -1116,7 +1132,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
        *
        * The right solution would be to COW the Curve data block at the input of the modifier
        * stack just like what the mesh modifier does.
-       * */
+       */
       modified = BKE_mesh_new_nomain_from_curve_displist(ob, dispbase);
     }
 

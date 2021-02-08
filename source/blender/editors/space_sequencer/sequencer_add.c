@@ -1069,6 +1069,9 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
   else if (seq->type == SEQ_TYPE_TEXT) {
     seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   }
+  else if (SEQ_effect_get_num_inputs(seq->type) == 1) {
+    seq->blend_mode = seq1->blend_mode;
+  }
 
   /* Set channel. If unset, use lowest free one above strips. */
   if (!RNA_struct_property_is_set(op->ptr, "channel")) {

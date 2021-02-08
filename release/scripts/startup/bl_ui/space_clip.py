@@ -303,11 +303,11 @@ class CLIP_MT_masking_editor_menus(Menu):
 
         if clip:
             layout.menu("MASK_MT_select")
-            layout.menu("CLIP_MT_clip")  # XXX - remove?
+            layout.menu("CLIP_MT_clip")
             layout.menu("MASK_MT_add")
             layout.menu("MASK_MT_mask")
         else:
-            layout.menu("CLIP_MT_clip")  # XXX - remove?
+            layout.menu("CLIP_MT_clip")
 
 
 class CLIP_PT_clip_view_panel:
@@ -502,7 +502,9 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Merge:")
-        row.operator("clip.join_tracks", text="Join Tracks")
+        sub = row.column()
+        sub.operator("clip.join_tracks", text="Join Tracks")
+        sub.operator("clip.average_tracks", text="Average Tracks")
 
 
 class CLIP_PT_tools_plane_tracking(CLIP_PT_tracking_panel, Panel):
@@ -807,16 +809,19 @@ class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):
         layout.use_property_decorate = False
 
         clip = context.space_data.clip
+        active = clip.tracking.tracks.active
+
+        if not active:
+            layout.active = False
+            layout.label(text="No active track")
+            return
 
         col = layout.column()
+        col.prop(active, "motion_model")
+        col.prop(active, "pattern_match", text="Match")
 
-        active = clip.tracking.tracks.active
-        if active:
-            col.prop(active, "motion_model")
-            col.prop(active, "pattern_match", text="Match")
-
-            col.prop(active, "use_brute")
-            col.prop(active, "use_normalization")
+        col.prop(active, "use_brute")
+        col.prop(active, "use_normalization")
 
 
 class CLIP_PT_track_settings_extras(CLIP_PT_tracking_panel, Panel):
@@ -826,6 +831,12 @@ class CLIP_PT_track_settings_extras(CLIP_PT_tracking_panel, Panel):
     bl_label = "Tracking Settings Extras"
     bl_parent_id = 'CLIP_PT_track_settings'
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        clip = context.space_data.clip
+
+        return clip.tracking.tracks.active
 
     def draw(self, context):
         layout = self.layout
@@ -1321,9 +1332,16 @@ class CLIP_MT_clip(Menu):
         layout.operator("clip.open")
 
         if clip:
+            layout.operator("clip.set_scene_frames")
+            layout.operator("clip.set_center_principal")
             layout.operator("clip.prefetch")
             layout.operator("clip.reload")
             layout.menu("CLIP_MT_proxy")
+
+            layout.separator()
+
+            layout.operator("clip.set_viewport_background")
+            layout.operator("clip.setup_tracking_scene")
 
 
 class CLIP_MT_proxy(Menu):
@@ -1336,65 +1354,161 @@ class CLIP_MT_proxy(Menu):
         layout.operator("clip.delete_proxy")
 
 
-class CLIP_MT_track(Menu):
-    bl_label = "Track"
+class CLIP_MT_track_transform(Menu):
+    bl_label = "Transform"
 
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("clip.clear_solution")
-        layout.operator("clip.solve_camera")
+        layout.operator("transform.translate")
+        layout.operator("transform.rotate")
+        layout.operator("transform.resize")
 
-        layout.separator()
-        props = layout.operator("clip.clear_track_path", text="Clear After")
-        props.clear_active = False
-        props.action = 'REMAINED'
 
-        props = layout.operator("clip.clear_track_path", text="Clear Before")
+class CLIP_MT_track_motion(Menu):
+    bl_label = "Track Motion"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        props = layout.operator("clip.track_markers", text="Backwards")
+        props.backwards = True
+        props.sequence = True
+
+        props = layout.operator("clip.track_markers", text="Frame Backwards")
+        props.backwards = True
+        props.sequence = False
+
+        props = layout.operator("clip.track_markers", text="Forwards")
+        props.backwards = False
+        props.sequence = True
+
+        props = layout.operator("clip.track_markers", text="Frame Forwards")
+        props.backwards = False
+        props.sequence = False
+
+
+class CLIP_MT_track_clear(Menu):
+    bl_label = "Clear"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        props = layout.operator("clip.clear_track_path", text="Before")
         props.clear_active = False
         props.action = 'UPTO'
 
-        props = layout.operator("clip.clear_track_path", text="Clear Track Path")
+        props = layout.operator("clip.clear_track_path", text="After")
+        props.clear_active = False
+        props.action = 'REMAINED'
+
+        props = layout.operator("clip.clear_track_path", text="Track Path")
         props.clear_active = False
         props.action = 'ALL'
 
         layout.separator()
-        layout.operator("clip.join_tracks")
 
-        layout.separator()
+        layout.operator("clip.clear_solution", text="Solution")
+
+
+class CLIP_MT_track_refine(Menu):
+    bl_label = "Refine"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        props = layout.operator("clip.refine_markers", text="Backwards")
+        props.backwards = True
+
+        props = layout.operator("clip.refine_markers", text="Forwards")
+        props.backwards = False
+
+
+class CLIP_MT_track_animation(Menu):
+    bl_label = "Animation"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("clip.keyframe_insert")
+        layout.operator("clip.keyframe_delete")
+
+
+class CLIP_MT_track_visibility(Menu):
+    bl_label = "Show/Hide"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("clip.hide_tracks_clear")
+        layout.operator("clip.hide_tracks", text="Hide Selected").unselected = False
+        layout.operator("clip.hide_tracks", text="Hide Unselected").unselected = True
+
+
+class CLIP_MT_track_cleanup(Menu):
+    bl_label = "Clean Up"
+
+    def draw(self, _context):
+        layout = self.layout
+
         layout.operator("clip.clean_tracks")
+        layout.operator("clip.filter_tracks")
+
+
+class CLIP_MT_track(Menu):
+    bl_label = "Track"
+
+    def draw(self, context):
+        layout = self.layout
+
+        clip = context.space_data.clip
+        tracking_object = clip.tracking.objects.active
+
+        layout.menu("CLIP_MT_track_transform")
+        layout.menu("CLIP_MT_track_motion")
+        layout.menu("CLIP_MT_track_clear")
+        layout.menu("CLIP_MT_track_refine")
 
         layout.separator()
-        layout.operator("clip.copy_tracks")
-        layout.operator("clip.paste_tracks")
+
+        layout.operator("clip.add_marker_move", text="Add Marker")
+        layout.operator("clip.detect_features")
+        layout.operator("clip.create_plane_track")
 
         layout.separator()
-        props = layout.operator("clip.track_markers", text="Track Frame Backwards")
-        props.backwards = True
-        props.sequence = False
 
-        props = layout.operator("clip.track_markers", text="Track Backwards")
-        props.backwards = True
-        props.sequence = True
-
-        props = layout.operator("clip.track_markers", text="Track Forwards")
-        props.backwards = False
-        props.sequence = True
-
-        props = layout.operator("clip.track_markers", text="Track Frame Forwards")
-        props.backwards = False
-        props.sequence = False
+        layout.operator("clip.solve_camera",
+                     text="Solve Camera Motion" if tracking_object.is_camera
+                     else "Solve Object Motion")
 
         layout.separator()
+
+        layout.operator("clip.join_tracks")
+        layout.operator("clip.average_tracks")
+
+        layout.separator()
+
+        layout.operator("clip.copy_tracks", icon='COPYDOWN')
+        layout.operator("clip.paste_tracks", icon='PASTEDOWN')
+
+        layout.separator()
+
+        layout.operator("clip.track_settings_as_default", text="Copy Settings to Defaults")
+        layout.operator("clip.track_settings_to_track", text="Apply Default Settings")
+
+        layout.separator()
+
+        layout.menu("CLIP_MT_track_animation")
+
+        layout.separator()
+
+        layout.menu("CLIP_MT_track_visibility")
+        layout.menu("CLIP_MT_track_cleanup")
+
+        layout.separator()
+
         layout.operator("clip.delete_track")
         layout.operator("clip.delete_marker")
-
-        layout.separator()
-        layout.operator("clip.add_marker_move")
-
-        layout.separator()
-        layout.menu("CLIP_MT_track_visibility")
-        layout.menu("CLIP_MT_track_transform")
 
 
 class CLIP_MT_reconstruction(Menu):
@@ -1411,6 +1525,7 @@ class CLIP_MT_reconstruction(Menu):
         layout.operator("clip.set_axis", text="Set Y Axis").axis = 'Y'
 
         layout.operator("clip.set_scale")
+        layout.operator("clip.apply_solution_scale")
 
         layout.separator()
 
@@ -1418,25 +1533,13 @@ class CLIP_MT_reconstruction(Menu):
         layout.operator("clip.bundles_to_mesh")
 
 
-class CLIP_MT_track_visibility(Menu):
-    bl_label = "Show/Hide"
+class CLIP_MT_select_grouped(Menu):
+    bl_label = "Select Grouped"
 
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("clip.hide_tracks_clear")
-        layout.operator("clip.hide_tracks", text="Hide Selected").unselected = False
-        layout.operator("clip.hide_tracks", text="Hide Unselected").unselected = True
-
-
-class CLIP_MT_track_transform(Menu):
-    bl_label = "Transform"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator("transform.translate")
-        layout.operator("transform.resize")
+        layout.operator_enum("clip.select_grouped", "group")
 
 
 class CLIP_MT_select(Menu):
@@ -1450,21 +1553,15 @@ class CLIP_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("clip.select_all"
-                        ).action = 'TOGGLE'
-        layout.operator("clip.select_all",
-                        text="Inverse").action = 'INVERT'
+        layout.operator("clip.select_all").action = 'TOGGLE'
+        layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
 
         layout.menu("CLIP_MT_select_grouped")
 
+        layout.separator()
 
-class CLIP_MT_select_grouped(Menu):
-    bl_label = "Select Grouped"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator_enum("clip.select_grouped", "group")
+        layout.operator("clip.stabilize_2d_select")
+        layout.operator("clip.stabilize_2d_rotation_select")
 
 
 class CLIP_MT_tracking_context_menu(Menu):
@@ -1514,6 +1611,7 @@ class CLIP_MT_tracking_context_menu(Menu):
             layout.separator()
 
             layout.operator("clip.join_tracks")
+            layout.operator("clip.average_tracks")
 
             layout.separator()
 
@@ -1737,7 +1835,6 @@ classes = (
     CLIP_PT_display,
     CLIP_PT_clip_display,
     CLIP_PT_marker_display,
-    CLIP_MT_track,
     CLIP_MT_tracking_editor_menus,
     CLIP_MT_masking_editor_menus,
     CLIP_PT_track,
@@ -1777,8 +1874,14 @@ classes = (
     CLIP_MT_clip,
     CLIP_MT_proxy,
     CLIP_MT_reconstruction,
-    CLIP_MT_track_visibility,
+    CLIP_MT_track,
     CLIP_MT_track_transform,
+    CLIP_MT_track_motion,
+    CLIP_MT_track_clear,
+    CLIP_MT_track_refine,
+    CLIP_MT_track_animation,
+    CLIP_MT_track_visibility,
+    CLIP_MT_track_cleanup,
     CLIP_MT_select,
     CLIP_MT_select_grouped,
     CLIP_MT_tracking_context_menu,

@@ -18,12 +18,15 @@
 
 #include "COM_OutputFileOperation.h"
 
+#include "COM_MetaData.h"
+
 #include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
+#include "BKE_cryptomatte.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -35,6 +38,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+#include "RE_pipeline.h"
 
 void add_exr_channels(void *exrhandle,
                       const char *layerName,
@@ -210,7 +215,8 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(
     const char *path,
     const ColorManagedViewSettings *viewSettings,
     const ColorManagedDisplaySettings *displaySettings,
-    const char *viewName)
+    const char *viewName,
+    const bool saveAsRender)
 {
   this->m_rd = rd;
   this->m_tree = tree;
@@ -227,6 +233,7 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(
   this->m_viewSettings = viewSettings;
   this->m_displaySettings = displaySettings;
   this->m_viewName = viewName;
+  this->m_saveAsRender = saveAsRender;
 }
 
 void OutputSingleLayerOperation::initExecution()
@@ -260,7 +267,7 @@ void OutputSingleLayerOperation::deinitExecution()
     ibuf->dither = this->m_rd->dither_intensity;
 
     IMB_colormanagement_imbuf_for_write(
-        ibuf, true, false, m_viewSettings, m_displaySettings, this->m_format);
+        ibuf, m_saveAsRender, false, m_viewSettings, m_displaySettings, this->m_format);
 
     suffix = BKE_scene_multiview_view_suffix_get(this->m_rd, this->m_viewName);
 
@@ -299,13 +306,15 @@ OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bo
   this->imageInput = nullptr;
 }
 
-OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(const RenderData *rd,
+OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(const Scene *scene,
+                                                                   const RenderData *rd,
                                                                    const bNodeTree *tree,
                                                                    const char *path,
                                                                    char exr_codec,
                                                                    bool exr_half_float,
                                                                    const char *viewName)
 {
+  this->m_scene = scene;
   this->m_rd = rd;
   this->m_tree = tree;
 
@@ -321,6 +330,30 @@ void OutputOpenExrMultiLayerOperation::add_layer(const char *name,
 {
   this->addInputSocket(datatype);
   this->m_layers.push_back(OutputOpenExrLayer(name, datatype, use_layer));
+}
+
+StampData *OutputOpenExrMultiLayerOperation::createStampData() const
+{
+  /* StampData API doesn't provide functions to modify an instance without having a RenderResult.
+   */
+  RenderResult render_result;
+  StampData *stamp_data = BKE_stamp_info_from_scene_static(m_scene);
+  render_result.stamp_data = stamp_data;
+  for (int i = 0; i < this->m_layers.size(); i++) {
+    const OutputOpenExrLayer *layer = &this->m_layers[i];
+    /* Skip unconnected sockets. */
+    if (layer->imageInput == nullptr) {
+      continue;
+    }
+    std::unique_ptr<MetaData> meta_data = layer->imageInput->getMetaData();
+    if (meta_data) {
+      blender::StringRef layer_name = blender::BKE_cryptomatte_extract_layer_name(
+          blender::StringRef(layer->name, BLI_strnlen(layer->name, sizeof(layer->name))));
+      meta_data->replaceHashNeutralCryptomatteKeys(layer_name);
+      meta_data->addToRenderResult(&render_result);
+    }
+  }
+  return stamp_data;
 }
 
 void OutputOpenExrMultiLayerOperation::initExecution()
@@ -386,7 +419,8 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
     }
 
     /* when the filename has no permissions, this can fail */
-    if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, nullptr)) {
+    StampData *stamp_data = createStampData();
+    if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, stamp_data)) {
       IMB_exr_write_channels(exrhandle);
     }
     else {
@@ -404,5 +438,6 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 
       this->m_layers[i].imageInput = nullptr;
     }
+    BKE_stamp_data_free(stamp_data);
   }
 }

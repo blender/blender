@@ -605,7 +605,7 @@ static short pyrna_rotation_euler_order_get(PointerRNA *ptr,
 
   if (*r_prop_eul_order) {
     const short order = RNA_property_enum_get(ptr, *r_prop_eul_order);
-    /* Could be quat or axisangle. */
+    /* Could be quaternion or axis-angle. */
     if (order >= EULER_ORDER_XYZ && order <= EULER_ORDER_ZYX) {
       return order;
     }
@@ -5051,7 +5051,7 @@ static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key
 {
   Py_ssize_t key_len_ssize_t;
   const char *key = _PyUnicode_AsStringAndSize(key_ob, &key_len_ssize_t);
-  const int key_len = (int)key_len_ssize_t; /* Comare with same type. */
+  const int key_len = (int)key_len_ssize_t; /* Compare with same type. */
 
   char name[256], *nameptr;
   int namelen;
@@ -5094,7 +5094,7 @@ static bool foreach_attr_type(BPy_PropertyRNA *self,
   *r_attr_tot = 0;
   *r_attr_signed = false;
 
-  /* Note: this is fail with zero length lists, so don't let this get caled in that case. */
+  /* NOTE: this is fail with zero length lists, so don't let this get called in that case. */
   RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop) {
     prop = RNA_struct_find_property(&itemptr, attr);
     if (prop) {
@@ -8737,15 +8737,17 @@ void pyrna_free_types(void)
   RNA_PROP_END;
 }
 
-/* Note! MemLeak XXX
+/**
+ * \warning memory leak!
  *
  * There is currently a bug where moving the registration of a Python class does
- * not properly manage reference-counts from the Python class. As the srna owns
+ * not properly manage reference-counts from the Python class. As the `srna` owns
  * the Python class this should not be so tricky, but changing the references as
  * you'd expect when changing ownership crashes blender on exit so I had to comment out
- * the decref. This is not so bad because the leak only happens when re-registering (hold F8)
+ * the #Py_DECREF. This is not so bad because the leak only happens when re-registering
+ * (continuously running `SCRIPT_OT_reload`).
  * - Should still be fixed - Campbell
- * */
+ */
 PyDoc_STRVAR(pyrna_register_class_doc,
              ".. method:: register_class(cls)\n"
              "\n"

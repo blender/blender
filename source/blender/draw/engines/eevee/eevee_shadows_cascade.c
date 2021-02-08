@@ -330,7 +330,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
     DRW_debug_sphere(center, csm_render->radius[c], dbg_col);
 #endif
 
-    /* Project into lightspace */
+    /* Project into light-space. */
     mul_m4_v3(viewmat, center);
 
     /* Snap projection center to nearest texel to cancel shimmering. */
@@ -376,7 +376,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
 #endif
   }
 
-  /* Bias is in clipspace, divide by range. */
+  /* Bias is in clip-space, divide by range. */
   shdw_data->bias = csm_render->original_bias * 0.05f / fabsf(sh_far - sh_near);
   shdw_data->near = sh_near;
   shdw_data->far = sh_far;

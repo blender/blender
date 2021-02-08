@@ -35,7 +35,7 @@ class InvertOperation : public NodeOperation {
   InvertOperation();
 
   /**
-   * the inner loop of this program
+   * The inner loop of this operation.
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 

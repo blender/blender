@@ -79,7 +79,7 @@ else()
     set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV})
     set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python)
     set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_linux.diff)
- endif()
+  endif()
 
   set(PYTHON_CONFIGURE_EXTRA_ARGS "--with-openssl=${LIBDIR}/ssl")
   set(PYTHON_CFLAGS "-I${LIBDIR}/sqlite/include -I${LIBDIR}/bzip2/include -I${LIBDIR}/lzma/include -I${LIBDIR}/zlib/include")

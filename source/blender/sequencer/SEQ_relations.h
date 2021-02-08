@@ -27,12 +27,12 @@
 extern "C" {
 #endif
 
+struct ListBase;
+struct Main;
+struct MovieClip;
+struct ReportList;
 struct Scene;
 struct Sequence;
-struct Main;
-struct ListBase;
-struct ReportList;
-struct MovieClip;
 
 void SEQ_relations_sequence_free_anim(struct Sequence *seq);
 void SEQ_relations_update_changed_seq_and_deps(struct Scene *scene,

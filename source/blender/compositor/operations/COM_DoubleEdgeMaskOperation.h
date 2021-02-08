@@ -27,7 +27,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
    */
   SocketReader *m_inputOuterMask;
   SocketReader *m_inputInnerMask;
-  bool m_adjecentOnly;
+  bool m_adjacentOnly;
   bool m_keepInside;
   float *m_cachedInstance;
 
@@ -36,7 +36,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   void doDoubleEdgeMask(float *imask, float *omask, float *res);
   /**
-   * the inner loop of this program
+   * The inner loop of this operation.
    */
   void executePixel(float output[4], int x, int y, void *data);
 
@@ -56,9 +56,9 @@ class DoubleEdgeMaskOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output);
 
-  void setAdjecentOnly(bool adjecentOnly)
+  void setAdjecentOnly(bool adjacentOnly)
   {
-    this->m_adjecentOnly = adjecentOnly;
+    this->m_adjacentOnly = adjacentOnly;
   }
   void setKeepInside(bool keepInside)
   {

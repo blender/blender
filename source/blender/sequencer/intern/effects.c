@@ -3150,6 +3150,20 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
   }
 }
 
+/**
+ * Generator strips with zero inputs have their length set to 1 permanently. In some cases it is
+ * useful to use speed effect on these strips because they can be animated. This can be done by
+ * using their length as is on timeline as content length. See T82698.
+ */
+static int seq_effect_speed_get_strip_content_length(const Sequence *seq)
+{
+  if (SEQ_effect_get_num_inputs(seq->type) == 0) {
+    return seq->enddisp - seq->startdisp;
+  }
+
+  return seq->len;
+}
+
 void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
 {
   int timeline_frame;
@@ -3184,9 +3198,11 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
 
   fallback_fac = 1.0;
 
+  const int target_strip_length = seq_effect_speed_get_strip_content_length(seq->seq1);
+
   if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
-    if ((seq->seq1->enddisp != seq->seq1->start) && (seq->seq1->len != 0)) {
-      fallback_fac = (float)seq->seq1->len / (float)(seq->seq1->enddisp - seq->seq1->start);
+    if ((seq->seq1->enddisp != seq->seq1->start) && (target_strip_length != 0)) {
+      fallback_fac = (float)target_strip_length / (float)(seq->seq1->enddisp - seq->seq1->start);
       flags = SEQ_SPEED_INTEGRATE;
       fcu = NULL;
     }
@@ -3216,8 +3232,8 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
 
       cursor += facf;
 
-      if (cursor >= seq->seq1->len) {
-        v->frameMap[timeline_frame] = seq->seq1->len - 1;
+      if (cursor >= target_strip_length) {
+        v->frameMap[timeline_frame] = target_strip_length - 1;
       }
       else {
         v->frameMap[timeline_frame] = cursor;
@@ -3239,12 +3255,12 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
       }
 
       if (flags & SEQ_SPEED_COMPRESS_IPO_Y) {
-        facf *= seq->seq1->len;
+        facf *= target_strip_length;
       }
       facf *= v->globalSpeed;
 
-      if (facf >= seq->seq1->len) {
-        facf = seq->seq1->len - 1;
+      if (facf >= target_strip_length) {
+        facf = target_strip_length - 1;
       }
       else {
         v->lastValidFrame = timeline_frame;

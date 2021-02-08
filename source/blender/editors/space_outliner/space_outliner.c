@@ -102,16 +102,22 @@ static void outliner_main_region_free(ARegion *UNUSED(region))
 {
 }
 
-static void outliner_main_region_listener(wmWindow *UNUSED(win),
-                                          ScrArea *area,
-                                          ARegion *region,
-                                          wmNotifier *wmn,
-                                          const Scene *UNUSED(scene))
+static void outliner_main_region_listener(const wmRegionListenerParams *params)
 {
+  ScrArea *area = params->area;
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
   SpaceOutliner *space_outliner = area->spacedata.first;
 
   /* context changes */
   switch (wmn->category) {
+    case NC_WM:
+      switch (wmn->data) {
+        case ND_LIB_OVERRIDE_CHANGED:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      break;
     case NC_SCENE:
       switch (wmn->data) {
         case ND_OB_ACTIVE:
@@ -152,8 +158,6 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
     case NC_OBJECT:
       switch (wmn->data) {
         case ND_TRANSFORM:
-          /* transform doesn't change outliner data */
-          break;
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
         case ND_DRAW:
@@ -191,7 +195,7 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
       }
       break;
     case NC_ID:
-      if (wmn->action == NA_RENAME) {
+      if (ELEM(wmn->action, NA_RENAME, NA_ADDED)) {
         ED_region_tag_redraw(region);
       }
       break;
@@ -217,9 +221,17 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
           ED_region_tag_redraw(region);
           break;
         case ND_ANIMCHAN:
-          if (wmn->action == NA_SELECTED) {
+          if (ELEM(wmn->action, NA_SELECTED, NA_RENAME)) {
             ED_region_tag_redraw(region);
           }
+          break;
+        case ND_NLA:
+          if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
+            ED_region_tag_redraw(region);
+          }
+          break;
+        case ND_NLA_ORDER:
+          ED_region_tag_redraw(region);
           break;
       }
       break;
@@ -251,15 +263,13 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void outliner_main_region_message_subscribe(const struct bContext *UNUSED(C),
-                                                   struct WorkSpace *UNUSED(workspace),
-                                                   struct Scene *UNUSED(scene),
-                                                   struct bScreen *UNUSED(screen),
-                                                   struct ScrArea *area,
-                                                   struct ARegion *region,
-                                                   struct wmMsgBus *mbus)
+static void outliner_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  ScrArea *area = params->area;
+  ARegion *region = params->region;
   SpaceOutliner *space_outliner = area->spacedata.first;
+
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
       .user_data = region,
@@ -288,12 +298,11 @@ static void outliner_header_region_free(ARegion *UNUSED(region))
 {
 }
 
-static void outliner_header_region_listener(wmWindow *UNUSED(win),
-                                            ScrArea *UNUSED(area),
-                                            ARegion *region,
-                                            wmNotifier *wmn,
-                                            const Scene *UNUSED(scene))
+static void outliner_header_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SCENE:

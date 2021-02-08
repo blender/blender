@@ -225,13 +225,16 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
     rgba_uchar_to_float(col, icon_bg);
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_aa(true,
-                        hpadding,
-                        line_top - bg_size - vpadding,
-                        bg_size + hpadding,
-                        line_top - vpadding,
-                        4 * UI_DPI_FAC,
-                        col);
+    UI_draw_roundbox_aa(
+        &(const rctf){
+            .xmin = hpadding,
+            .xmax = bg_size + hpadding,
+            .ymin = line_top - bg_size - vpadding,
+            .ymax = line_top - vpadding,
+        },
+        true,
+        4 * UI_DPI_FAC,
+        col);
   }
 
   if (icon) {

@@ -510,7 +510,6 @@ static void eevee_render_result_cryptomatte(RenderLayer *rl,
   if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_CRYPTOMATTE) != 0) {
     EEVEE_cryptomatte_render_result(rl, viewname, rect, vedata, sldata);
   }
-  EEVEE_cryptomatte_free(vedata);
 }
 
 static void eevee_render_draw_background(EEVEE_Data *vedata)
@@ -557,7 +556,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   DRW_render_instance_buffer_finish();
 
   /* Need to be called after DRW_render_instance_buffer_finish() */
-  /* Also we weed to have a correct fbo bound for DRW_hair_update */
+  /* Also we weed to have a correct FBO bound for DRW_hair_update */
   GPU_framebuffer_bind(fbl->main_fb);
   DRW_hair_update();
 

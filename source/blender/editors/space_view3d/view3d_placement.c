@@ -91,6 +91,11 @@ enum ePlace_Origin {
   PLACE_ORIGIN_CENTER = 2,
 };
 
+enum ePlace_Aspect {
+  PLACE_ASPECT_FREE = 1,
+  PLACE_ASPECT_FIXED = 2,
+};
+
 enum ePlace_Depth {
   PLACE_DEPTH_SURFACE = 1,
   PLACE_DEPTH_CURSOR_PLANE = 2,
@@ -100,6 +105,11 @@ enum ePlace_Depth {
 enum ePlace_Orient {
   PLACE_ORIENT_SURFACE = 1,
   PLACE_ORIENT_DEFAULT = 2,
+};
+
+enum ePlace_SnapTo {
+  PLACE_SNAP_TO_GEOMETRY = 1,
+  PLACE_SNAP_TO_DEFAULT = 2,
 };
 
 struct InteractivePlaceData {
@@ -116,8 +126,17 @@ struct InteractivePlaceData {
 
   /** Primary & secondary steps. */
   struct {
-    bool is_centered;
-    bool is_fixed_aspect;
+    /**
+     * When centered, drag out the shape from the center.
+     * Toggling the setting flips the value from it's initial state.
+     */
+    bool is_centered, is_centered_init;
+    /**
+     * When fixed, constrain the X/Y aspect for the initial #STEP_BASE drag.
+     * For #STEP_DEPTH match the maximum X/Y dimension.
+     * Toggling the setting flips the value from it's initial state.
+     */
+    bool is_fixed_aspect, is_fixed_aspect_init;
     float plane[4];
     float co_dst[3];
 
@@ -159,9 +178,6 @@ struct InteractivePlaceData {
   float matrix_orient[3][3];
   int orient_axis;
 
-  /** The tool option, if we start centered, invert toggling behavior. */
-  bool is_centered_init;
-
   bool use_snap, is_snap_found, is_snap_invert;
   float snap_co[3];
 
@@ -184,6 +200,8 @@ struct InteractivePlaceData {
 
   /** Optional snap gizmo, needed for snapping. */
   wmGizmo *snap_gizmo;
+
+  enum ePlace_SnapTo snap_to;
 };
 
 /** \} */
@@ -357,6 +375,56 @@ static wmGizmoGroup *idp_gizmogroup_from_region(ARegion *region)
 {
   wmGizmoMap *gzmap = region->gizmo_map;
   return gzmap ? WM_gizmomap_group_find(gzmap, view3d_gzgt_placement_id) : NULL;
+}
+
+/**
+ * Calculate 3D view incremental (grid) snapping.
+ *
+ * \note This could be moved to a public function.
+ */
+static bool idp_snap_calc_incremental(
+    Scene *scene, View3D *v3d, ARegion *region, const float co_relative[3], float co[3])
+{
+  if ((scene->toolsettings->snap_mode & SCE_SNAP_MODE_INCREMENT) == 0) {
+    return false;
+  }
+
+  const float grid_size = ED_view3d_grid_view_scale(scene, v3d, region, NULL);
+  if (UNLIKELY(grid_size == 0.0f)) {
+    return false;
+  }
+
+  if (scene->toolsettings->snap_flag & SCE_SNAP_ABS_GRID) {
+    co_relative = NULL;
+  }
+
+  if (co_relative != NULL) {
+    sub_v3_v3(co, co_relative);
+  }
+  mul_v3_fl(co, 1.0f / grid_size);
+  co[0] = roundf(co[0]);
+  co[1] = roundf(co[1]);
+  co[2] = roundf(co[2]);
+  mul_v3_fl(co, grid_size);
+  if (co_relative != NULL) {
+    add_v3_v3(co, co_relative);
+  }
+
+  return true;
+}
+
+static void idp_snap_gizmo_update_snap_elements(Scene *scene,
+                                                enum ePlace_SnapTo snap_to,
+                                                wmGizmo *gizmo)
+{
+  const int snap_mode =
+      (snap_to == PLACE_SNAP_TO_GEOMETRY) ?
+          (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
+           /* SCE_SNAP_MODE_VOLUME | SCE_SNAP_MODE_GRID | SCE_SNAP_MODE_INCREMENT | */
+           SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT) :
+          scene->toolsettings->snap_mode;
+
+  RNA_enum_set(gizmo->ptr, "snap_elements_force", snap_mode);
 }
 
 /** \} */
@@ -542,11 +610,12 @@ static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
     /* Use a copy in case aspect was applied to the quad. */
     float base_co_dst[3];
     copy_v3_v3(base_co_dst, quad_base[2]);
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < ARRAY_SIZE(quad_base); i++) {
       sub_v3_v3(quad_base[i], base_co_dst);
       mul_v3_fl(quad_base[i], 2.0f);
       add_v3_v3(quad_base[i], base_co_dst);
     }
+    fixed_aspect_dimension *= 2.0f;
   }
 
   /* *** Secondary *** */
@@ -566,10 +635,18 @@ static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
   }
 
   if (ipd->step[1].is_centered) {
-    for (int i = 0; i < ARRAY_SIZE(quad_base); i++) {
-      sub_v3_v3(quad_base[i], delta_local);
+    float temp_delta[3];
+    if (ipd->step[1].is_fixed_aspect) {
+      mul_v3_v3fl(temp_delta, delta_local, 0.5f);
     }
-    mul_v3_fl(delta_local, 2.0f);
+    else {
+      copy_v3_v3(temp_delta, delta_local);
+      mul_v3_fl(delta_local, 2.0f);
+    }
+
+    for (int i = 0; i < ARRAY_SIZE(quad_base); i++) {
+      sub_v3_v3(quad_base[i], temp_delta);
+    }
   }
 
   if ((ipd->step_index == STEP_DEPTH) &&
@@ -594,10 +671,10 @@ static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
   return true;
 }
 
-static void draw_circle_in_quad(const float v1[2],
-                                const float v2[2],
-                                const float v3[2],
-                                const float v4[2],
+static void draw_circle_in_quad(const float v1[3],
+                                const float v2[3],
+                                const float v3[3],
+                                const float v4[3],
                                 const int resolution,
                                 const float color[4])
 {
@@ -784,16 +861,24 @@ static void view3d_interactive_add_calc_plane(bContext *C,
                                               Scene *scene,
                                               View3D *v3d,
                                               ARegion *region,
-                                              wmGizmo *snap_gizmo,
                                               const float mval_fl[2],
+                                              wmGizmo *snap_gizmo,
+                                              const enum ePlace_SnapTo snap_to,
                                               const enum ePlace_Depth plane_depth,
                                               const enum ePlace_Orient plane_orient,
                                               const int plane_axis,
+                                              const bool plane_axis_auto,
                                               float r_co_src[3],
                                               float r_matrix_orient[3][3])
 {
   const RegionView3D *rv3d = region->regiondata;
   ED_transform_calc_orientation_from_type(C, r_matrix_orient);
+
+  /* Non-orthogonal matrices cause the preview and final result not to match.
+   *
+   * While making orthogonal doesn't always work well (especially with gimbal orientation for e.g.)
+   * it's a corner case, without better alternatives as objects don't support shear. */
+  orthogonalize_m3(r_matrix_orient, plane_axis);
 
   SnapObjectContext *snap_context = NULL;
   bool snap_context_free = false;
@@ -831,8 +916,8 @@ static void view3d_interactive_add_calc_plane(bContext *C,
       found_surface_or_normal = true;
     }
 
-    if (!found_surface_or_normal) {
-      /* Drawing into empty mspace, draw onto the plane most aligned to the view direction. */
+    if (!found_surface_or_normal && plane_axis_auto) {
+      /* Drawing into empty space, draw onto the plane most aligned to the view direction. */
       mat3_align_axis_to_v3(r_matrix_orient, plane_axis, rv3d->viewinv[2]);
     }
   }
@@ -908,6 +993,12 @@ static void view3d_interactive_add_calc_plane(bContext *C,
     }
   }
 
+  if (!is_snap_found && ((snap_gizmo != NULL) && ED_gizmotypes_snap_3d_is_enabled(snap_gizmo))) {
+    if (snap_to == PLACE_SNAP_TO_DEFAULT) {
+      idp_snap_calc_incremental(scene, v3d, region, NULL, r_co_src);
+    }
+  }
+
   if (snap_context_free) {
     ED_transform_snap_object_context_destroy(snap_context);
   }
@@ -923,8 +1014,17 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 {
 
   const int plane_axis = RNA_enum_get(op->ptr, "plane_axis");
+  const bool plane_axis_auto = RNA_boolean_get(op->ptr, "plane_axis_auto");
+  const enum ePlace_SnapTo snap_to = RNA_enum_get(op->ptr, "snap_target");
   const enum ePlace_Depth plane_depth = RNA_enum_get(op->ptr, "plane_depth");
-  const enum ePlace_Origin plane_origin = RNA_enum_get(op->ptr, "plane_origin");
+  const enum ePlace_Origin plane_origin[2] = {
+      RNA_enum_get(op->ptr, "plane_origin_base"),
+      RNA_enum_get(op->ptr, "plane_origin_depth"),
+  };
+  const enum ePlace_Aspect plane_aspect[2] = {
+      RNA_enum_get(op->ptr, "plane_aspect_base"),
+      RNA_enum_get(op->ptr, "plane_aspect_depth"),
+  };
   const enum ePlace_Orient plane_orient = RNA_enum_get(op->ptr, "plane_orientation");
 
   const float mval_fl[2] = {UNPACK2(event->mval)};
@@ -946,25 +1046,51 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
     }
   }
 
+  /* For tweak events the snap target may have changed since dragging,
+   * update the snap target at the cursor location where tweak began.
+   *
+   * NOTE: we could investigating solving this in a more generic way,
+   * so each operator doesn't have to account for it. */
+  if (ISTWEAK(event->type)) {
+    if (ipd->snap_gizmo != NULL) {
+      ED_gizmotypes_snap_3d_update(ipd->snap_gizmo,
+                                   CTX_data_ensure_evaluated_depsgraph(C),
+                                   ipd->region,
+                                   ipd->v3d,
+                                   G_MAIN->wm.first,
+                                   mval_fl,
+                                   NULL,
+                                   NULL);
+    }
+  }
+
   ipd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
   view3d_interactive_add_calc_plane(C,
                                     ipd->scene,
                                     ipd->v3d,
                                     ipd->region,
-                                    ipd->snap_gizmo,
                                     mval_fl,
+                                    ipd->snap_gizmo,
+                                    snap_to,
                                     plane_depth,
                                     plane_orient,
                                     plane_axis,
+                                    plane_axis_auto,
                                     ipd->co_src,
                                     ipd->matrix_orient);
 
   ipd->orient_axis = plane_axis;
-  ipd->is_centered_init = (plane_origin == PLACE_ORIGIN_CENTER);
-  ipd->step[0].is_centered = ipd->is_centered_init;
-  ipd->step[1].is_centered = ipd->is_centered_init;
+  for (int i = 0; i < 2; i++) {
+    ipd->step[i].is_centered_init = (plane_origin[i] == PLACE_ORIGIN_CENTER);
+    ipd->step[i].is_centered = ipd->step[i].is_centered_init;
+
+    ipd->step[i].is_fixed_aspect_init = (plane_aspect[i] == PLACE_ASPECT_FIXED);
+    ipd->step[i].is_fixed_aspect = ipd->step[i].is_fixed_aspect_init;
+  }
+
   ipd->step_index = STEP_BASE;
+  ipd->snap_to = snap_to;
 
   plane_from_point_normal_v3(ipd->step[0].plane, ipd->co_src, ipd->matrix_orient[plane_axis]);
 
@@ -1156,7 +1282,7 @@ void viewplace_modal_keymap(wmKeyConfig *keyconf)
       {0, NULL, 0, NULL, NULL},
   };
 
-  const char *keymap_name = "View3D Placement Modal Map";
+  const char *keymap_name = "View3D Placement Modal";
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, keymap_name);
 
   /* This function is called for each space-type, only needs to add map once. */
@@ -1188,7 +1314,8 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         ATTR_FALLTHROUGH;
       }
       case PLACE_MODAL_FIXED_ASPECT_OFF: {
-        ipd->step[ipd->step_index].is_fixed_aspect = is_fallthrough;
+        ipd->step[ipd->step_index].is_fixed_aspect =
+            is_fallthrough ^ ipd->step[ipd->step_index].is_fixed_aspect_init;
         do_redraw = true;
         break;
       }
@@ -1197,7 +1324,8 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         ATTR_FALLTHROUGH;
       }
       case PLACE_MODAL_PIVOT_CENTER_OFF: {
-        ipd->step[ipd->step_index].is_centered = is_fallthrough;
+        ipd->step[ipd->step_index].is_centered = is_fallthrough ^
+                                                 ipd->step[ipd->step_index].is_centered_init;
         do_redraw = true;
         break;
       }
@@ -1214,13 +1342,18 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
       }
     }
   }
-
-  if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
-    view3d_interactive_add_exit(C, op);
-    return OPERATOR_CANCELLED;
-  }
-  if (event->type == MOUSEMOVE) {
-    do_cursor_update = true;
+  else {
+    switch (event->type) {
+      case EVT_ESCKEY:
+      case RIGHTMOUSE: {
+        view3d_interactive_add_exit(C, op);
+        return OPERATOR_CANCELLED;
+      }
+      case MOUSEMOVE: {
+        do_cursor_update = true;
+        break;
+      }
+    }
   }
 
   if (ipd->wait_for_input) {
@@ -1260,9 +1393,13 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         copy_v3_v3(ipd->step[1].co_dst, ipd->step[0].co_dst);
         ipd->step_index = STEP_DEPTH;
 
-        /* Keep these values from the previous step. */
-        ipd->step[1].is_centered = ipd->step[0].is_centered;
-        ipd->step[1].is_fixed_aspect = ipd->step[0].is_fixed_aspect;
+        /* Use the toggle from the previous step. */
+        if (ipd->step[0].is_centered != ipd->step[0].is_centered_init) {
+          ipd->step[1].is_centered = !ipd->step[1].is_centered;
+        }
+        if (ipd->step[0].is_fixed_aspect != ipd->step[0].is_fixed_aspect_init) {
+          ipd->step[1].is_fixed_aspect = !ipd->step[1].is_fixed_aspect;
+        }
       }
     }
   }
@@ -1336,7 +1473,9 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
           RNA_float_set_array(&op_props, "location", location);
           RNA_float_set_array(&op_props, "scale", scale);
           /* Always use default size here. */
-          RNA_float_set(&op_props, "size", 2.0f);
+          if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CUBE) {
+            RNA_float_set(&op_props, "size", 2.0f);
+          }
           WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props);
           WM_operator_properties_free(&op_props);
         }
@@ -1389,6 +1528,12 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
                 ipd->step[STEP_BASE].co_dst)) {
           /* pass */
         }
+
+        if (ipd->use_snap && (ipd->snap_to == PLACE_SNAP_TO_DEFAULT)) {
+          if (idp_snap_calc_incremental(
+                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_BASE].co_dst)) {
+          }
+        }
       }
     }
     else if (ipd->step_index == STEP_DEPTH) {
@@ -1404,6 +1549,12 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
                 ipd->step[STEP_DEPTH].is_degenerate_view_align ? ipd->view_plane : NULL,
                 ipd->step[STEP_DEPTH].co_dst)) {
           /* pass */
+        }
+
+        if (ipd->use_snap && (ipd->snap_to == PLACE_SNAP_TO_DEFAULT)) {
+          if (idp_snap_calc_incremental(
+                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_DEPTH].co_dst)) {
+          }
         }
       }
 
@@ -1470,6 +1621,14 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
+  prop = RNA_def_boolean(ot->srna,
+                         "plane_axis_auto",
+                         false,
+                         "Auto Axis",
+                         "Select the closest axis when placing objects "
+                         "(surface overrides)");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
   static const EnumPropertyItem plane_depth_items[] = {
       {PLACE_DEPTH_SURFACE,
        "SURFACE",
@@ -1479,13 +1638,14 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
       {PLACE_DEPTH_CURSOR_PLANE,
        "CURSOR_PLANE",
        0,
-       "3D Cursor Plane",
-       "Start placement using a point projected onto the selected axis at the 3D cursor position"},
+       "Cursor Plane",
+       "Start placement using a point projected onto the orientation axis "
+       "at the 3D cursor position"},
       {PLACE_DEPTH_CURSOR_VIEW,
        "CURSOR_VIEW",
        0,
-       "3D Cursor View",
-       "Start placement using the mouse cursor projected onto the view plane"},
+       "Cursor View",
+       "Start placement using a point projected onto the view plane at the 3D cursor position"},
       {0, NULL, 0, NULL, NULL},
   };
   prop = RNA_def_property(ot->srna, "plane_depth", PROP_ENUM, PROP_NONE);
@@ -1494,23 +1654,12 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_enum_items(prop, plane_depth_items);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  static const EnumPropertyItem origin_items[] = {
-      {PLACE_ORIGIN_BASE, "BASE", 0, "Base", "Start placing the corner position"},
-      {PLACE_ORIGIN_CENTER, "CENTER", 0, "Center", "Start placing the center position"},
-      {0, NULL, 0, NULL, NULL},
-  };
-  prop = RNA_def_property(ot->srna, "plane_origin", PROP_ENUM, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Origin", "The initial position for placement");
-  RNA_def_property_enum_default(prop, PLACE_ORIGIN_BASE);
-  RNA_def_property_enum_items(prop, origin_items);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
   static const EnumPropertyItem plane_orientation_items[] = {
       {PLACE_ORIENT_SURFACE,
        "SURFACE",
        ICON_SNAP_NORMAL,
        "Surface",
-       "Use the surface normal (the transform orientation as a fallback)"},
+       "Use the surface normal (using the transform orientation as a fallback)"},
       {PLACE_ORIENT_DEFAULT,
        "DEFAULT",
        ICON_ORIENTATION_GLOBAL,
@@ -1523,6 +1672,49 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_enum_default(prop, PLACE_ORIENT_SURFACE);
   RNA_def_property_enum_items(prop, plane_orientation_items);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  static const EnumPropertyItem snap_to_items[] = {
+      {PLACE_SNAP_TO_GEOMETRY, "GEOMETRY", 0, "Geometry", "Snap to all geometry"},
+      {PLACE_SNAP_TO_DEFAULT, "DEFAULT", 0, "Default", "Use the current snap settings"},
+      {0, NULL, 0, NULL, NULL},
+  };
+  prop = RNA_def_property(ot->srna, "snap_target", PROP_ENUM, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Snap to", "The target to use while snapping");
+  RNA_def_property_enum_default(prop, PLACE_SNAP_TO_GEOMETRY);
+  RNA_def_property_enum_items(prop, snap_to_items);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  { /* Plane Origin. */
+    static const EnumPropertyItem items[] = {
+        {PLACE_ORIGIN_BASE, "EDGE", 0, "Edge", "Start placing the edge position"},
+        {PLACE_ORIGIN_CENTER, "CENTER", 0, "Center", "Start placing the center position"},
+        {0, NULL, 0, NULL, NULL},
+    };
+    const char *identifiers[2] = {"plane_origin_base", "plane_origin_depth"};
+    for (int i = 0; i < 2; i++) {
+      prop = RNA_def_property(ot->srna, identifiers[i], PROP_ENUM, PROP_NONE);
+      RNA_def_property_ui_text(prop, "Origin", "The initial position for placement");
+      RNA_def_property_enum_default(prop, PLACE_ORIGIN_BASE);
+      RNA_def_property_enum_items(prop, items);
+      RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+    }
+  }
+
+  { /* Plane Aspect. */
+    static const EnumPropertyItem items[] = {
+        {PLACE_ASPECT_FREE, "FREE", 0, "Free", "Use an unconstrained aspect"},
+        {PLACE_ASPECT_FIXED, "FIXED", 0, "Fixed", "Use a fixed 1:1 aspect"},
+        {0, NULL, 0, NULL, NULL},
+    };
+    const char *identifiers[2] = {"plane_aspect_base", "plane_aspect_depth"};
+    for (int i = 0; i < 2; i++) {
+      prop = RNA_def_property(ot->srna, identifiers[i], PROP_ENUM, PROP_NONE);
+      RNA_def_property_ui_text(prop, "Aspect", "The initial aspect setting");
+      RNA_def_property_enum_default(prop, PLACE_ASPECT_FREE);
+      RNA_def_property_enum_items(prop, items);
+      RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+    }
+  }
 
   /* When not accessed via a tool. */
   prop = RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "");
@@ -1547,11 +1739,6 @@ static void WIDGETGROUP_placement_setup(const bContext *UNUSED(C), wmGizmoGroup 
     const wmGizmoType *gzt_snap;
     gzt_snap = WM_gizmotype_find("GIZMO_GT_snap_3d", true);
     gizmo = WM_gizmo_new_ptr(gzt_snap, gzgroup, NULL);
-    RNA_enum_set(gizmo->ptr,
-                 "snap_elements_force",
-                 (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
-                  /* SCE_SNAP_MODE_VOLUME | SCE_SNAP_MODE_GRID | SCE_SNAP_MODE_INCREMENT | */
-                  SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT));
 
     WM_gizmo_set_color(gizmo, (float[4]){1.0f, 1.0f, 1.0f, 1.0f});
 
@@ -1604,7 +1791,9 @@ static void gizmo_plane_update_cursor(const bContext *C,
   bToolRef *tref = area->runtime.tool;
   WM_toolsystem_ref_properties_ensure_from_operator(tref, ot, &ptr);
 
+  const enum ePlace_SnapTo snap_to = RNA_enum_get(&ptr, "snap_target");
   const int plane_axis = RNA_enum_get(&ptr, "plane_axis");
+  const bool plane_axis_auto = RNA_boolean_get(&ptr, "plane_axis_auto");
   const enum ePlace_Depth plane_depth = RNA_enum_get(&ptr, "plane_depth");
   const enum ePlace_Orient plane_orient = RNA_enum_get(&ptr, "plane_orientation");
 
@@ -1622,15 +1811,23 @@ static void gizmo_plane_update_cursor(const bContext *C,
     }
   }
 
+  /* This ensures the snap gizmo has settings from this tool.
+   * This function call could be moved a more appropriate place,
+   * responding to the setting being changed for example,
+   * however setting the value isn't expensive, so do it here.  */
+  idp_snap_gizmo_update_snap_elements(scene, snap_to, snap_gizmo);
+
   view3d_interactive_add_calc_plane((bContext *)C,
                                     scene,
                                     v3d,
                                     region,
-                                    snap_gizmo,
                                     mval_fl,
+                                    snap_gizmo,
+                                    snap_to,
                                     plane_depth,
                                     plane_orient,
                                     plane_axis,
+                                    plane_axis_auto,
                                     r_co,
                                     r_matrix_orient);
   *r_plane_axis = plane_axis;
@@ -1809,8 +2006,37 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
   }
 
   /* Draw */
-  const float pixel_size = ED_view3d_pixel_size(rv3d, plc->matrix[3]);
+  float pixel_size;
+
+  if (rv3d->is_persp) {
+    float center[3];
+    negate_v3_v3(center, rv3d->ofs);
+    pixel_size = ED_view3d_pixel_size(rv3d, center);
+  }
+  else {
+    pixel_size = ED_view3d_pixel_size(rv3d, plc->matrix[3]);
+  }
+
   if (pixel_size > FLT_EPSILON) {
+
+    /* Arbitrary, 1.0 is a little too strong though. */
+    float color_alpha = 0.75f;
+    if (rv3d->is_persp) {
+      /* Scale down the alpha when this is drawn very small,
+       * since the add shader causes the small size to show too dense & bright. */
+      const float relative_pixel_scale = pixel_size / ED_view3d_pixel_size(rv3d, plc->matrix[3]);
+      if (relative_pixel_scale < 1.0f) {
+        color_alpha *= max_ff(square_f(relative_pixel_scale), 0.3f);
+      }
+    }
+
+    {
+      /* Extra adjustment when it's near view-aligned as it seems overly bright. */
+      float view_vector[3];
+      ED_view3d_global_to_vector(rv3d, plc->matrix[3], view_vector);
+      float view_dot = fabsf(dot_v3v3(plc->matrix[plc->plane_axis], view_vector));
+      color_alpha *= max_ff(0.3f, 1.0f - square_f(square_f(1.0f - view_dot)));
+    }
 
     /* Setup viewport & matrix. */
     wmViewport(&region->winrct);
@@ -1819,7 +2045,7 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
     GPU_matrix_projection_set(rv3d->winmat);
     GPU_matrix_set(rv3d->viewmat);
 
-    const float scale_mod = U.gizmo_size * U.dpi_fac;
+    const float scale_mod = U.gizmo_size * 2 * U.dpi_fac;
 
     float final_scale = (scale_mod * pixel_size);
 
@@ -1831,13 +2057,18 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
 
     float fac = final_scale_fade / final_scale;
 
-    float color[4] = {1, 1, 1, 1};
-    color[3] = square_f(1.0f - fac);
-    gizmo_plane_draw_grid(
-        lines * lines_subdiv, final_scale, final_scale_fade, plc->matrix, plc->plane_axis, color);
+    float color[4] = {1, 1, 1, color_alpha};
+    color[3] *= square_f(1.0f - fac);
+    if (color[3] > 0.0f) {
+      gizmo_plane_draw_grid(lines * lines_subdiv,
+                            final_scale,
+                            final_scale_fade,
+                            plc->matrix,
+                            plc->plane_axis,
+                            color);
+    }
 
-    /* Arbitrary, 1.0 is a little too strong though. */
-    color[3] = 0.75f;
+    color[3] = color_alpha;
     /* When the grid is large, we only need the 2x lines in the middle. */
     if (fac < 0.2f) {
       lines = 1;

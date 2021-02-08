@@ -441,38 +441,91 @@ class _defs_view3d_select:
 
 class _defs_view3d_add:
 
+    @staticmethod
+    def description_interactive_add(context, _item, _km, *, prefix):
+        km = context.window_manager.keyconfigs.user.keymaps["View3D Placement Modal"]
+
+        def keymap_item_from_propvalue(propvalue):
+            for item in km.keymap_items:
+                if item.propvalue == propvalue:
+                    return item
+
+        if km is not None:
+            kmi_snap = keymap_item_from_propvalue('SNAP_ON')
+            kmi_center = keymap_item_from_propvalue('PIVOT_CENTER_ON')
+            kmi_fixed_aspect = keymap_item_from_propvalue('FIXED_ASPECT_ON')
+        else:
+            kmi_snap = None
+            kmi_center = None
+            kmi_fixed_aspect = None
+        return tip_(
+            "%s\n"
+            "\u2022 %s toggles snap while dragging.\n"
+            "\u2022 %s toggles dragging from the center.\n"
+            "\u2022 %s toggles fixed aspect"
+        ) % (
+            prefix,
+            kmi_to_string_or_none(kmi_snap),
+            kmi_to_string_or_none(kmi_center),
+            kmi_to_string_or_none(kmi_fixed_aspect),
+        )
+
     # Layout tweaks here would be good to avoid,
     # this shows limits in layout engine, as buttons are using a lot of space.
     @staticmethod
-    def draw_settings_interactive_add(layout, tool):
+    def draw_settings_interactive_add(layout, tool, extra):
+        show_extra = False
         props = tool.operator_properties("view3d.interactive_add")
-        row = layout.row()
-        row.scale_x = 0.8
-        row.label(text="Depth:")
-        row = layout.row()
-        row.scale_x = 0.9
-        row.prop(props, "plane_depth", text="")
-        row = layout.row()
-        row.prop(props, "plane_axis", text="")
-        row = layout.row()
-        row.scale_x = 0.8
-        row.label(text="Orientation:")
-        row = layout.row()
-        row.prop(props, "plane_orientation", text="")
-        row = layout.row()
-        row.scale_x = 0.7
-        row.prop(props, "plane_origin")
+        if not extra:
+            row = layout.row()
+            row.scale_x = 0.8
+            row.label(text="Depth:")
+            row = layout.row()
+            row.scale_x = 0.9
+            row.prop(props, "plane_depth", text="")
+            row = layout.row()
+            row.scale_x = 0.8
+            row.label(text="Orientation:")
+            row = layout.row()
+            row.prop(props, "plane_orientation", text="")
+            row = layout.row()
+            row.scale_x = 0.8
+            row.prop(props, "snap_target")
+
+            region_is_header = bpy.context.region.type == 'TOOL_HEADER'
+
+            if region_is_header:
+                # Don't draw the "extra" popover here as we might have other settings & this should be last.
+                show_extra = True
+            else:
+                extra = True
+
+        if extra:
+            layout.use_property_split = True
+            layout.row().prop(props, "plane_axis", expand=True)
+            layout.row().prop(props, "plane_axis_auto")
+
+            layout.label(text="Base")
+            layout.row().prop(props, "plane_origin_base", expand=True)
+            layout.row().prop(props, "plane_aspect_base", expand=True)
+            layout.label(text="Height")
+            layout.row().prop(props, "plane_origin_depth", expand=True)
+            layout.row().prop(props, "plane_aspect_depth", expand=True)
+        return show_extra
 
     @ToolDef.from_fn
     def cube_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
+
         return dict(
             idname="builtin.primitive_cube_add",
             label="Add Cube",
             icon="ops.mesh.primitive_cube_add_gizmo",
-            description=(
-                "Add cube to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add cube to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
@@ -481,18 +534,24 @@ class _defs_view3d_add:
 
     @ToolDef.from_fn
     def cone_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if extra:
+                return
 
             props = tool.operator_properties("mesh.primitive_cone_add")
             layout.prop(props, "vertices")
             layout.prop(props, "end_fill_type")
+
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
+
         return dict(
             idname="builtin.primitive_cone_add",
             label="Add Cone",
             icon="ops.mesh.primitive_cone_add_gizmo",
-            description=(
-                "Add cone to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add cone to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
@@ -501,18 +560,23 @@ class _defs_view3d_add:
 
     @ToolDef.from_fn
     def cylinder_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if extra:
+                return
 
             props = tool.operator_properties("mesh.primitive_cylinder_add")
             layout.prop(props, "vertices")
             layout.prop(props, "end_fill_type")
+
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
             idname="builtin.primitive_cylinder_add",
             label="Add Cylinder",
             icon="ops.mesh.primitive_cylinder_add_gizmo",
-            description=(
-                "Add cylinder to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add cylinder to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
@@ -521,18 +585,23 @@ class _defs_view3d_add:
 
     @ToolDef.from_fn
     def uv_sphere_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if extra:
+                return
 
             props = tool.operator_properties("mesh.primitive_uv_sphere_add")
             layout.prop(props, "segments")
             layout.prop(props, "ring_count")
+
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
             idname="builtin.primitive_uv_sphere_add",
             label="Add UV Sphere",
             icon="ops.mesh.primitive_sphere_add_gizmo",
-            description=(
-                "Add cylinder to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add sphere to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
@@ -541,17 +610,22 @@ class _defs_view3d_add:
 
     @ToolDef.from_fn
     def ico_sphere_add():
-        def draw_settings(_context, layout, tool):
-            _defs_view3d_add.draw_settings_interactive_add(layout, tool)
+        def draw_settings(_context, layout, tool, *, extra=False):
+            show_extra = _defs_view3d_add.draw_settings_interactive_add(layout, tool, extra)
+            if extra:
+                return
 
             props = tool.operator_properties("mesh.primitive_ico_sphere_add")
             layout.prop(props, "subdivisions")
+
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
             idname="builtin.primitive_ico_sphere_add",
             label="Add Ico Sphere",
             icon="ops.mesh.primitive_sphere_add_gizmo",
-            description=(
-                "Add cylinder to mesh interactively"
+            description=lambda *args: _defs_view3d_add.description_interactive_add(
+                *args, prefix=tip_("Add sphere to mesh interactively"),
             ),
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
@@ -1488,6 +1562,7 @@ class _defs_texture_paint:
             icon_prefix="brush.paint_texture.",
             type=bpy.types.Brush,
             attr="image_tool",
+            cursor='PAINT_CROSS',
         )
 
 
@@ -1514,12 +1589,22 @@ class _defs_weight_paint:
 
     @ToolDef.from_fn
     def sample_weight():
+        def draw_settings(context, layout, tool):
+            if context.tool_settings.unified_paint_settings.use_unified_weight:
+                weight = context.tool_settings.unified_paint_settings.weight
+            elif context.tool_settings.weight_paint.brush:
+                weight = context.tool_settings.weight_paint.brush.weight
+            else:
+                return
+            layout.label(text="Weight: %.3f" % weight)
         return dict(
             idname="builtin.sample_weight",
             label="Sample Weight",
             icon="ops.paint.weight_sample",
+            cursor='EYEDROPPER',
             widget=None,
             keymap=(),
+            draw_settings=draw_settings
         )
 
     @ToolDef.from_fn
@@ -1528,6 +1613,7 @@ class _defs_weight_paint:
             idname="builtin.sample_vertex_group",
             label="Sample Vertex Group",
             icon="ops.paint.weight_sample_group",
+            cursor='EYEDROPPER',
             widget=None,
             keymap=(),
         )
@@ -2570,12 +2656,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'OBJECT': [
             *_tools_default,
-            # Currently experimental.
-            # None, _tools_view3d_add,
-            lambda context: (
-                (None, VIEW3D_PT_tools_active._tools_view3d_add)
-                if (context is None or context.preferences.experimental.use_object_add_tool) else ()
-            ),
+            None,
+            _tools_view3d_add,
         ],
         'POSE': [
             *_tools_default,
@@ -2604,12 +2686,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'EDIT_MESH': [
             *_tools_default,
 
-            # Currently experimental.
-            # None, _tools_view3d_add,
-            lambda context: (
-                (None, VIEW3D_PT_tools_active._tools_view3d_add)
-                if (context is None or context.preferences.experimental.use_object_add_tool) else ()
-            ),
+            None,
+            _tools_view3d_add,
             None,
             (
                 _defs_edit_mesh.extrude,

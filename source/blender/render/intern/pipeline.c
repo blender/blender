@@ -983,53 +983,6 @@ void render_update_anim_renderdata(Render *re, RenderData *rd, ListBase *render_
   BLI_duplicatelist(&re->r.views, &rd->views);
 }
 
-void RE_SetWindow(Render *re, const rctf *viewplane, float clip_start, float clip_end)
-{
-  /* re->ok flag? */
-
-  re->viewplane = *viewplane;
-  re->clip_start = clip_start;
-  re->clip_end = clip_end;
-
-  perspective_m4(re->winmat,
-                 re->viewplane.xmin,
-                 re->viewplane.xmax,
-                 re->viewplane.ymin,
-                 re->viewplane.ymax,
-                 re->clip_start,
-                 re->clip_end);
-}
-
-void RE_SetOrtho(Render *re, const rctf *viewplane, float clip_start, float clip_end)
-{
-  /* re->ok flag? */
-
-  re->viewplane = *viewplane;
-  re->clip_start = clip_start;
-  re->clip_end = clip_end;
-
-  orthographic_m4(re->winmat,
-                  re->viewplane.xmin,
-                  re->viewplane.xmax,
-                  re->viewplane.ymin,
-                  re->viewplane.ymax,
-                  re->clip_start,
-                  re->clip_end);
-}
-
-void RE_GetViewPlane(Render *re, rctf *r_viewplane, rcti *r_disprect)
-{
-  *r_viewplane = re->viewplane;
-
-  /* make disprect zero when no border render, is needed to detect changes in 3d view render */
-  if (re->r.mode & R_BORDER) {
-    *r_disprect = re->disprect;
-  }
-  else {
-    BLI_rcti_init(r_disprect, 0, 0, 0, 0);
-  }
-}
-
 /* image and movie output has to move to either imbuf or kernel */
 void RE_display_init_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))
 {
@@ -1130,7 +1083,7 @@ void RE_AddObject(Render *UNUSED(re), Object *UNUSED(ob))
 static void do_render_3d(Render *re)
 {
   re->current_scene_update(re->suh, re->scene);
-  RE_engine_render(re, 0);
+  RE_engine_render(re, false);
 }
 
 /* make sure disprect is not affected by the render border */
@@ -1599,7 +1552,7 @@ static void do_render_all_options(Render *re)
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
   SEQ_relations_free_all_anim_ibufs(re->scene, re->r.cfra);
 
-  if (RE_engine_render(re, 1)) {
+  if (RE_engine_render(re, true)) {
     /* in this case external render overrides all */
   }
   else if (RE_seq_render_active(re->scene, &re->r)) {
@@ -2018,7 +1971,7 @@ void RE_RenderFrame(Render *re,
     if (write_still && !G.is_break) {
       if (BKE_imtype_is_movie(rd.im_format.imtype)) {
         /* operator checks this but in case its called from elsewhere */
-        printf("Error: cant write single images with a movie format!\n");
+        printf("Error: can't write single images with a movie format!\n");
       }
       else {
         char name[FILE_MAX];
@@ -2055,12 +2008,39 @@ void RE_RenderFrame(Render *re,
 }
 
 #ifdef WITH_FREESTYLE
+
+/* Not freestyle specific, currently only used by free-style. */
+static void change_renderdata_engine(Render *re, const char *new_engine)
+{
+  if (!STREQ(re->r.engine, new_engine)) {
+    if (re->engine) {
+      RE_engine_free(re->engine);
+      re->engine = NULL;
+    }
+    BLI_strncpy(re->r.engine, new_engine, sizeof(re->r.engine));
+  }
+}
+
+static bool use_eevee_for_freestyle_render(Render *re)
+{
+  RenderEngineType *type = RE_engines_find(re->r.engine);
+  return !(type->flag & RE_USE_CUSTOM_FREESTYLE);
+}
+
 void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render)
 {
   re->result_ok = 0;
   if (render_init_from_main(re, &scene->r, bmain, scene, NULL, NULL, 0, 0)) {
     if (render) {
+      char scene_engine[32];
+      BLI_strncpy(scene_engine, re->r.engine, sizeof(scene_engine));
+      if (use_eevee_for_freestyle_render(re)) {
+        change_renderdata_engine(re, RE_engine_id_BLENDER_EEVEE);
+      }
+
       do_render_3d(re);
+
+      change_renderdata_engine(re, scene_engine);
     }
   }
   re->result_ok = 1;
@@ -2357,7 +2337,7 @@ static int do_write_image_or_movie(Render *re,
   printf(" (Saving: %s)\n", name);
 
   fputc('\n', stdout);
-  fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
+  fflush(stdout);
 
   return ok;
 }
@@ -2757,7 +2737,7 @@ void RE_init_threadcount(Render *re)
 void RE_layer_load_from_file(
     RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
 {
-  /* OCIO_TODO: assume layer was saved in defaule color space */
+  /* OCIO_TODO: assume layer was saved in default color space */
   ImBuf *ibuf = IMB_loadiffname(filename, IB_rect, NULL);
   RenderPass *rpass = NULL;
 

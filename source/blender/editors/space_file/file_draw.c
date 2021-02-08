@@ -131,7 +131,15 @@ static void draw_tile(int sx, int sy, int width, int height, int colorid, int sh
   UI_GetThemeColorShade4fv(colorid, shade, color);
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_aa(
-      true, (float)sx, (float)(sy - height), (float)(sx + width), (float)sy, 5.0f, color);
+      &(const rctf){
+          .xmin = (float)sx,
+          .xmax = (float)(sx + width),
+          .ymin = (float)(sy - height),
+          .ymax = (float)sy,
+      },
+      true,
+      5.0f,
+      color);
 }
 
 static void file_draw_icon(uiBlock *block,
@@ -465,7 +473,7 @@ static void file_draw_preview(uiBlock *block,
 
   but = uiDefBut(block, UI_BTYPE_LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, NULL);
 
-  /* dragregion */
+  /* Drag-region. */
   if (drag) {
     ID *id;
 
@@ -546,7 +554,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
   for (i = 2; (i <= layout->rows + 1); i += 2) {
     sy = (int)v2d->cur.ymax - layout->offset_top - i * item_height - layout->tile_border_y;
 
-    /* Offsett pattern slightly to add scroll effect. */
+    /* Offset pattern slightly to add scroll effect. */
     sy += round_fl_to_int(item_height * (v2d->tot.ymax - v2d->cur.ymax) / item_height);
 
     immRectf(pos,

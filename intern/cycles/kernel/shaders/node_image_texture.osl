@@ -42,7 +42,7 @@ point map_to_sphere(vector dir)
   float v, u;
   if (len > 0.0) {
     if (dir[0] == 0.0 && dir[1] == 0.0) {
-      u = 0.0; /* Othwise domain error. */
+      u = 0.0; /* Otherwise domain error. */
     }
     else {
       u = (1.0 - atan2(dir[0], dir[1]) / M_PI) / 2.0;

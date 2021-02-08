@@ -52,6 +52,7 @@
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -2289,6 +2290,11 @@ static void rna_property_update(
     DEG_id_tag_update(ptr->owner_id,
                       ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_PARAMETERS);
 
+    /* When updating an ID pointer property, tag depsgraph for update. */
+    if (prop->type == PROP_POINTER && RNA_struct_is_ID(RNA_property_pointer_type(ptr, prop))) {
+      DEG_relations_tag_update(bmain);
+    }
+
     WM_main_add_notifier(NC_WINDOW, NULL);
     /* Not nice as well, but the only way to make sure material preview
      * is updated with custom nodes.
@@ -3678,8 +3684,10 @@ void RNA_property_pointer_set(PointerRNA *ptr,
                               PointerRNA ptr_value,
                               ReportList *reports)
 {
-  PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
+  /* Detect IDProperty and retrieve the actual PropertyRNA pointer before cast. */
   IDProperty *idprop = rna_idproperty_check(&prop, ptr);
+
+  PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
   /* Check types. */
@@ -3696,7 +3704,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
     }
   }
   else {
-    /* Assigning to an IDProperty desguised as RNA one. */
+    /* Assigning to an IDProperty disguised as RNA one. */
     if (ptr_value.type != NULL && !RNA_struct_is_a(ptr_value.type, &RNA_ID)) {
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -3733,7 +3741,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
       pprop->set(ptr, ptr_value, reports);
     }
   }
-  /* IDProperty desguised as RNA property (and not yet defined in ptr). */
+  /* IDProperty disguised as RNA property (and not yet defined in ptr). */
   else if (prop->flag & PROP_EDITABLE) {
     IDPropertyTemplate val = {0};
     IDProperty *group;
@@ -5696,8 +5704,7 @@ static char *rna_idp_path(PointerRNA *ptr,
   BLI_assert(haystack->type == IDP_GROUP);
 
   link.up = parent_link;
-  /* always set both name and index,
-   * else a stale value might get used */
+  /* Always set both name and index, else a stale value might get used. */
   link.name = NULL;
   link.index = -1;
 
@@ -5708,11 +5715,30 @@ static char *rna_idp_path(PointerRNA *ptr,
       path = rna_idp_path_create(&link);
       break;
     }
+
+    /* Early out in case the IDProperty type cannot contain RNA properties. */
+    if (!ELEM(iter->type, IDP_GROUP, IDP_IDPARRAY)) {
+      continue;
+    }
+
+    /* Ensure this is RNA. */
+    /* NOTE: `iter` might be a fully user-defined IDProperty (a.k.a. custom data), which name
+     * collides with an actual fully static RNA property of the same struct (which would then not
+     * be flagged with `PROP_IDPROPERTY`).
+     *
+     * That case must be ignored here, we only want to deal with runtime RNA properties stored in
+     * IDProps.
+     *
+     * See T84091. */
+    PropertyRNA *prop = RNA_struct_find_property(ptr, iter->name);
+    if (prop == NULL || (prop->flag & PROP_IDPROPERTY) == 0) {
+      continue;
+    }
+
     if (iter->type == IDP_GROUP) {
-      /* ensure this is RNA */
-      PropertyRNA *prop = RNA_struct_find_property(ptr, iter->name);
-      if (prop && prop->type == PROP_POINTER) {
+      if (prop->type == PROP_POINTER) {
         PointerRNA child_ptr = RNA_property_pointer_get(ptr, prop);
+        BLI_assert(!RNA_pointer_is_null(&child_ptr));
         link.name = iter->name;
         link.index = -1;
         if ((path = rna_idp_path(&child_ptr, iter, needle, &link))) {
@@ -5721,8 +5747,7 @@ static char *rna_idp_path(PointerRNA *ptr,
       }
     }
     else if (iter->type == IDP_IDPARRAY) {
-      PropertyRNA *prop = RNA_struct_find_property(ptr, iter->name);
-      if (prop && prop->type == PROP_COLLECTION) {
+      if (prop->type == PROP_COLLECTION) {
         IDProperty *array = IDP_IDPArray(iter);
         if (needle >= array && needle < (iter->len + array)) { /* found! */
           link.name = iter->name;
@@ -5735,6 +5760,7 @@ static char *rna_idp_path(PointerRNA *ptr,
         for (j = 0; j < iter->len; j++, array++) {
           PointerRNA child_ptr;
           if (RNA_property_collection_lookup_int(ptr, prop, j, &child_ptr)) {
+            BLI_assert(!RNA_pointer_is_null(&child_ptr));
             link.index = j;
             if ((path = rna_idp_path(&child_ptr, array, needle, &link))) {
               break;
@@ -5752,7 +5778,10 @@ static char *rna_idp_path(PointerRNA *ptr,
 }
 
 /**
- * Find the path from the structure referenced by the pointer to the #IDProperty object.
+ * Find the path from the structure referenced by the pointer to the runtime RNA-defined
+ * #IDProperty object.
+ *
+ * \note Does *not* handle pure user-defined IDProperties (a.k.a. custom properties).
  *
  * \param ptr: Reference to the object owning the custom property storage.
  * \param needle: Custom property object to find.
@@ -6145,7 +6174,7 @@ char *RNA_path_full_property_py_ex(
   }
   else {
     if (use_fallback) {
-      /* fuzzy fallback. be explicit in our ignoranc. */
+      /* Fuzzy fallback. Be explicit in our ignorance. */
       data_path = RNA_property_identifier(prop);
       data_delim = " ... ";
     }

@@ -307,7 +307,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
   /* Extract the first 256 character from TTF */
   lcode = charcode = FT_Get_First_Char(face, &glyph_index);
 
-  /* No charmap found from the ttf so we need to figure it out */
+  /* No `charmap` found from the TTF so we need to figure it out. */
   if (glyph_index == 0) {
     FT_CharMap found = NULL;
     FT_CharMap charmap;

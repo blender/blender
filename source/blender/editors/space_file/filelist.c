@@ -276,6 +276,7 @@ typedef struct FileListInternEntry {
   char *redirection_path;
   /** not strictly needed, but used during sorting, avoids to have to recompute it there... */
   char *name;
+  bool free_name;
 
   /**
    * This is data from the current main, represented by this file. It's crucial that this is
@@ -1366,7 +1367,7 @@ static bool filelist_checkdir_main_assets(struct FileList *UNUSED(filelist),
 
 static void filelist_entry_clear(FileDirEntry *entry)
 {
-  if (entry->name) {
+  if (entry->name && ((entry->flags & FILE_ENTRY_NAME_FREE) != 0)) {
     MEM_freeN(entry->name);
   }
   if (entry->description) {
@@ -1451,7 +1452,7 @@ static void filelist_intern_entry_free(FileListInternEntry *entry)
   if (entry->redirection_path) {
     MEM_freeN(entry->redirection_path);
   }
-  if (entry->name) {
+  if (entry->name && entry->free_name) {
     MEM_freeN(entry->name);
   }
   /* If we own the asset-data (it was generated from external file data), free it. */
@@ -1953,7 +1954,13 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
 
   ret->entry = rev;
   ret->relpath = BLI_strdup(entry->relpath);
-  ret->name = BLI_strdup(entry->name);
+  if (entry->free_name) {
+    ret->name = BLI_strdup(entry->name);
+    ret->flags |= FILE_ENTRY_NAME_FREE;
+  }
+  else {
+    ret->name = entry->name;
+  }
   ret->description = BLI_strdupcat(filelist->filelist.root, entry->relpath);
   memcpy(ret->uuid, entry->uuid, sizeof(ret->uuid));
   ret->blentype = entry->blentype;
@@ -3175,6 +3182,7 @@ static void filelist_readjob_do(const bool do_lib,
       entry->relpath = BLI_strdup(dir + 2); /* + 2 to remove '//'
                                              * added by BLI_path_rel to rel_subdir. */
       entry->name = BLI_strdup(fileentry_uiname(root, entry->relpath, entry->typeflag, dir));
+      entry->free_name = true;
 
       /* Here we decide whether current filedirentry is to be listed too, or not. */
       if (max_recursion && (is_lib || (recursion_level <= max_recursion))) {
@@ -3288,7 +3296,8 @@ static void filelist_readjob_main_assets(Main *current_main,
 
     entry = MEM_callocN(sizeof(*entry), __func__);
     entry->relpath = BLI_strdup(id_code_name);
-    entry->name = BLI_strdup(id_iter->name + 2);
+    entry->name = id_iter->name + 2;
+    entry->free_name = false;
     entry->typeflag |= FILE_TYPE_BLENDERLIB | FILE_TYPE_ASSET;
     entry->blentype = GS(id_iter->name);
     *((uint32_t *)entry->uuid) = atomic_add_and_fetch_uint32(

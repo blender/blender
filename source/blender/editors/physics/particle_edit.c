@@ -1999,7 +1999,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
   int p;
   int k;
 
-  const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
+  const float randfac = RNA_float_get(op->ptr, "ratio");
   const int seed = WM_operator_properties_select_random_seed_increment_get(op);
   const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
   RNG *rng;
@@ -2905,7 +2905,7 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
   }
 }
 
-/************************ subdivide opertor *********************/
+/************************ subdivide operator *********************/
 
 /* works like normal edit mode subdivide, inserts keys between neighboring selected keys */
 static void subdivide_particle(PEData *data, int pa_index)
@@ -3029,7 +3029,7 @@ void PARTICLE_OT_subdivide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ remove doubles opertor *********************/
+/************************ remove doubles operator *********************/
 
 static int remove_doubles_exec(bContext *C, wmOperator *op)
 {
@@ -3496,6 +3496,21 @@ static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
+static bool mirror_poll(bContext *C)
+{
+  if (!PE_hair_poll(C)) {
+    return false;
+  }
+
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Scene *scene = CTX_data_scene(C);
+  Object *ob = CTX_data_active_object(C);
+  PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
+
+  /* The operator only works for hairs emitted from faces. */
+  return edit->psys->part->from == PART_FROM_FACE;
+}
+
 void PARTICLE_OT_mirror(wmOperatorType *ot)
 {
   /* identifiers */
@@ -3505,7 +3520,7 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mirror_exec;
-  ot->poll = PE_hair_poll;
+  ot->poll = mirror_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3735,8 +3750,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
       }
     }
     else {
-      /* compute position as if hair was standing up straight.
-       * */
+      /* Compute position as if hair was standing up straight. */
       float length;
       copy_v3_v3(co_prev, co);
       copy_v3_v3(co, key->co);
@@ -4551,7 +4565,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
   mval[0] = mouse[0];
   mval[1] = mouse[1];
 
-  /* disable locking temporatily for disconnected hair */
+  /* Disable locking temporarily for disconnected hair. */
   if (edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR) {
     pset->flag &= ~PE_LOCK_FIRST;
   }
@@ -4989,7 +5003,7 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  /* disable locking temporatily for disconnected hair */
+  /* Disable locking temporarily for disconnected hair. */
   if (edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR) {
     pset->flag &= ~PE_LOCK_FIRST;
   }

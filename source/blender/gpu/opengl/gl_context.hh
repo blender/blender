@@ -43,7 +43,7 @@ class GLVaoCache;
 
 class GLSharedOrphanLists {
  public:
-  /** Mutex for the bellow structures. */
+  /** Mutex for the below structures. */
   std::mutex lists_mutex;
   /** Buffers and textures are shared across context. Any context can free them. */
   Vector<GLuint> textures;
@@ -87,17 +87,17 @@ class GLContext : public Context {
 
  private:
   /**
-   * GPUBatch & GPUFramebuffer have references to the context they are from, in the case the
+   * #GPUBatch & #GPUFramebuffer have references to the context they are from, in the case the
    * context is destroyed, we need to remove any reference to it.
    */
   Set<GLVaoCache *> vao_caches_;
   Set<GPUFrameBuffer *> framebuffers_;
-  /** Mutex for the bellow structures. */
+  /** Mutex for the below structures. */
   std::mutex lists_mutex_;
   /** VertexArrays and framebuffers are not shared across context. */
   Vector<GLuint> orphaned_vertarrays_;
   Vector<GLuint> orphaned_framebuffers_;
-  /** GLBackend onws this data. */
+  /** #GLBackend owns this data. */
   GLSharedOrphanLists &shared_orphan_list_;
 
  public:

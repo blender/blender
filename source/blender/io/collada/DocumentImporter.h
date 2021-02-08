@@ -125,7 +125,7 @@ class DocumentImporter : COLLADAFW::IWriter {
 
   /** Add element and data for UniqueId */
   bool addExtraTags(const COLLADAFW::UniqueId &uid, ExtraTags *extra_tags);
-  /** Get an extisting ExtraTags for uid */
+  /** Get an existing #ExtraTags for uid */
   ExtraTags *getExtraTags(const COLLADAFW::UniqueId &uid);
 
   bool is_armature(COLLADAFW::Node *node);

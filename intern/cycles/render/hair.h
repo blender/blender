@@ -146,7 +146,7 @@ class Hair : public Geometry {
   /* BVH */
   void pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, size_t curvekey_offset);
 
-  void pack_primitives(PackedBVH &pack, int object, uint visibility) override;
+  void pack_primitives(PackedBVH *pack, int object, uint visibility, bool pack_all) override;
 };
 
 CCL_NAMESPACE_END

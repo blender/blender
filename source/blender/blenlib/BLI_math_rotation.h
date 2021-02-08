@@ -17,8 +17,7 @@
  * All rights reserved.
  *
  * The Original Code is: some of this file.
- *
- * */
+ */
 
 #pragma once
 
@@ -178,7 +177,7 @@ typedef enum eEulerRotationOrders {
   EULER_ORDER_YZX,
   EULER_ORDER_ZXY,
   EULER_ORDER_ZYX,
-  /* there are 6 more entries with dulpicate entries included */
+  /* There are 6 more entries with duplicate entries included. */
 } eEulerRotationOrders;
 
 void eulO_to_quat(float quat[4], const float eul[3], const short order);

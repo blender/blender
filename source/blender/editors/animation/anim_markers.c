@@ -749,8 +749,8 @@ static bool ed_marker_move_use_time(MarkerMove *mm)
       ((mm->slink->spacetype == SPACE_ACTION) &&
        (((SpaceAction *)mm->slink)->flag & SACTION_DRAWTIME)) ||
       ((mm->slink->spacetype == SPACE_GRAPH) &&
-       !(((SpaceGraph *)mm->slink)->flag & SIPO_DRAWTIME)) ||
-      ((mm->slink->spacetype == SPACE_NLA) && !(((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME))) {
+       (((SpaceGraph *)mm->slink)->flag & SIPO_DRAWTIME)) ||
+      ((mm->slink->spacetype == SPACE_NLA) && (((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME))) {
     return true;
   }
 
@@ -1210,6 +1210,7 @@ static void select_marker_camera_switch(
 {
 #ifdef DURIAN_CAMERA_SWITCH
   if (camera) {
+    BLI_assert(CTX_data_mode_enum(C) == CTX_MODE_OBJECT);
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Base *base;
@@ -1281,6 +1282,15 @@ static int ed_marker_select_exec(bContext *C, wmOperator *op)
   bool camera = false;
 #ifdef DURIAN_CAMERA_SWITCH
   camera = RNA_boolean_get(op->ptr, "camera");
+  if (camera) {
+    /* Supporting mode switching from this operator doesn't seem so useful.
+     * So only allow setting the active camera in object-mode. */
+    if (CTX_data_mode_enum(C) != CTX_MODE_OBJECT) {
+      BKE_report(
+          op->reports, RPT_WARNING, "Selecting the camera is only supported in object mode");
+      camera = false;
+    }
+  }
 #endif
   int mval[2];
   mval[0] = RNA_int_get(op->ptr, "mouse_x");

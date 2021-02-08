@@ -76,7 +76,7 @@ extern "C" {
  * IMPORTANT: Do not allocate manually as the real struct is bigger (i.e: GLBatch). This is only
  * the common and "public" part of the struct. Use the provided allocator.
  * TODO(fclem): Make the content of this struct hidden and expose getters/setters.
- **/
+ */
 typedef struct GPUBatch {
   /** verts[0] is required, others can be NULL */
   GPUVertBuf *verts[GPU_BATCH_VBO_MAX_LEN];
@@ -84,7 +84,7 @@ typedef struct GPUBatch {
   GPUVertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** NULL if element list not needed */
   GPUIndexBuf *elem;
-  /** Bookeeping. */
+  /** Bookkeeping. */
   eGPUBatchFlag flag;
   /** Type of geometry to draw. */
   GPUPrimType prim_type;
@@ -128,7 +128,7 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
                                                eGPUShaderConfig sh_cfg);
 
 /* Will only work after setting the batch program. */
-/* TODO(fclem): Theses needs to be replaced by GPU_shader_uniform_* with explicit shader. */
+/* TODO(fclem): These need to be replaced by GPU_shader_uniform_* with explicit shader. */
 #define GPU_batch_uniform_1i(batch, name, x) GPU_shader_uniform_1i((batch)->shader, name, x);
 #define GPU_batch_uniform_1b(batch, name, x) GPU_shader_uniform_1b((batch)->shader, name, x);
 #define GPU_batch_uniform_1f(batch, name, x) GPU_shader_uniform_1f((batch)->shader, name, x);

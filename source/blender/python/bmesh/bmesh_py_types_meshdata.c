@@ -272,12 +272,12 @@ PyObject *BPy_BMVertSkin_CreatePyObject(struct MVertSkin *mvertskin)
 #define MLOOPCOL_FROM_CAPSULE(color_capsule) \
   ((MLoopCol *)PyCapsule_GetPointer(color_capsule, NULL))
 
-static void mloopcol_to_float(const MLoopCol *mloopcol, float r_col[3])
+static void mloopcol_to_float(const MLoopCol *mloopcol, float r_col[4])
 {
   rgba_uchar_to_float(r_col, (const uchar *)&mloopcol->r);
 }
 
-static void mloopcol_from_float(MLoopCol *mloopcol, const float col[3])
+static void mloopcol_from_float(MLoopCol *mloopcol, const float col[4])
 {
   rgba_float_to_uchar((uchar *)&mloopcol->r, col);
 }

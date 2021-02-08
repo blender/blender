@@ -73,7 +73,7 @@ bool neighbor_affect_this_tile(ivec2 offset, vec2 velocity)
    * identical or both have opposite signs relative to
    * offset. If the offset coordinate is zero then
    * velocity is irrelevant.
-   **/
+   */
   vec2 point = sign(offset * velocity);
 
   float dist = (point.x + point.y);
@@ -96,7 +96,7 @@ bool neighbor_affect_this_tile(ivec2 offset, vec2 velocity)
    *          |____|____|____|
    *          |    |    |    |
    *          |____|____|____|
-   **/
+   */
   return (abs(dist) == displacement);
 }
 
@@ -114,7 +114,7 @@ bool neighbor_affect_this_tile(ivec2 offset, vec2 velocity)
  *   |___/|////|____|
  *   |  //|////|    | <--- This tile can't possibly be affected by the center one
  *   |_///|///_|____|
- **/
+ */
 void main()
 {
   vec4 max_motion = vec4(0.0);

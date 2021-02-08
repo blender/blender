@@ -326,6 +326,8 @@ typedef struct BevelParams {
   ProfileSpacing pro_spacing_miter;
   /** Information about 'math' loop layers, like UV layers. */
   MathLayerInfo math_layer_info;
+  /** The argument BMesh. */
+  BMesh *bm;
   /** Blender units to offset each side of a beveled edge. */
   float offset;
   /** How offset is measured; enum defined in bmesh_operators.h. */
@@ -805,6 +807,9 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
   }
   BMVert *v1 = lef1->v;
   BMVert *v2 = lef2->v;
+  if (v1 == v2) {
+    return false;
+  }
   BLI_assert((v1 == e->v1 && v2 == e->v2) || (v1 == e->v2 && v2 == e->v1));
   UNUSED_VARS_NDEBUG(v1, v2);
   BMLoop *lv1f1 = lef1;
@@ -1230,6 +1235,7 @@ static void offset_meet_lines_percent_or_absolute(BevelParams *bp,
   EdgeHalf e0, e3, e4, e5;
   BMFace *f1, *f2;
   float d0, d3, d4, d5;
+  float e1_wt, e2_wt;
   v1 = BM_edge_other_vert(e1->e, v);
   v2 = BM_edge_other_vert(e2->e, v);
   f1 = e1->fnext;
@@ -1259,10 +1265,19 @@ static void offset_meet_lines_percent_or_absolute(BevelParams *bp,
         d4 = bp->offset * BM_edge_calc_length(e4.e) / 100.0f;
         d5 = bp->offset * BM_edge_calc_length(e5.e) / 100.0f;
       }
-      slide_dist(&e4, v, d4, r_l1a);
-      slide_dist(&e0, v1, d0, r_l1b);
-      slide_dist(&e5, v, d5, r_l2a);
-      slide_dist(&e3, v2, d3, r_l2b);
+      if (bp->use_weights) {
+        CustomData *cd = &bp->bm->edata;
+        e1_wt = BM_elem_float_data_get(cd, e1->e, CD_BWEIGHT);
+        e2_wt = BM_elem_float_data_get(cd, e2->e, CD_BWEIGHT);
+      }
+      else {
+        e1_wt = 1.0f;
+        e2_wt = 1.0f;
+      }
+      slide_dist(&e4, v, d4 * e1_wt, r_l1a);
+      slide_dist(&e0, v1, d0 * e1_wt, r_l1b);
+      slide_dist(&e5, v, d5 * e2_wt, r_l2a);
+      slide_dist(&e3, v2, d3 * e2_wt, r_l2b);
     }
   }
   if (no_offsets) {
@@ -1573,7 +1588,13 @@ static bool offset_on_edge_between(BevelParams *bp,
   if (ELEM(bp->offset_type, BEVEL_AMT_PERCENT, BEVEL_AMT_ABSOLUTE)) {
     BMVert *v2 = BM_edge_other_vert(emid->e, v);
     if (bp->offset_type == BEVEL_AMT_PERCENT) {
-      interp_v3_v3v3(meetco, v->co, v2->co, bp->offset / 100.0f);
+      float wt = 1.0;
+      if (bp->use_weights) {
+        CustomData *cd = &bp->bm->edata;
+        wt = 0.5f * (BM_elem_float_data_get(cd, e1->e, CD_BWEIGHT) +
+                     BM_elem_float_data_get(cd, e2->e, CD_BWEIGHT));
+      }
+      interp_v3_v3v3(meetco, v->co, v2->co, wt * bp->offset / 100.0f);
     }
     else {
       float dir[3];
@@ -3415,7 +3436,7 @@ static EdgeHalf *next_edgehalf_bev(BevelParams *bp,
     }
     normalize_v3(dir_new_edge);
 
-    /* Use this edge if it is the most parallel to the orignial so far. */
+    /* Use this edge if it is the most parallel to the original so far. */
     float new_dot = dot_v3v3(dir_new_edge, dir_start_edge);
     if (new_dot > best_dot) {
       second_best_dot = best_dot; /* For remembering if the choice was too close. */
@@ -4656,7 +4677,7 @@ static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, BoundVert *vpipe)
             f = (float)k / (float)ns; /* Ring runs along the pipe, so segment is used here. */
           }
 
-          /* Place the vertex by interpolatin between the two profile points using the factor. */
+          /* Place the vertex by interpolating between the two profile points using the factor. */
           interp_v3_v3v3(mesh_vert(vm, i, j, k)->co, profile_point_pipe1, profile_point_pipe2, f);
         }
         else {
@@ -6367,7 +6388,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
         /* Edges in face are non-contiguous in our ordering around bv.
          * Which way should we go when going from eprev to e? */
         if (count_ccw_edges_between(eprev, e) < count_ccw_edges_between(e, eprev)) {
-          /* Go counterclockewise from eprev to e. */
+          /* Go counter-clockwise from eprev to e. */
           go_ccw = true;
         }
         else {
@@ -6401,7 +6422,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
         BLI_array_append(ee, bme);
       }
       while (v != vend) {
-        /* Check for special case: multisegment 3rd face opposite a beveled edge with no vmesh. */
+        /* Check for special case: multi-segment 3rd face opposite a beveled edge with no vmesh. */
         bool corner3special = (vm->mesh_kind == M_NONE && v->ebev != e && v->ebev != eprev);
         if (go_ccw) {
           int i = v->index;
@@ -7211,14 +7232,14 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
  *
  * where edges are A, B, and C, following a face around vertices a, b, c, d.
  * th1 is angle abc and th2 is angle bcd;
- * and the argument EdgeHalf eb is B, going from b to c.
+ * and the argument `EdgeHalf eb` is B, going from b to c.
  * In general case, edge offset specs for A, B, C have
  * the form ka*t, kb*t, kc*t where ka, kb, kc are some factors
  * (may be 0) and t is the current bp->offset.
  * We want to calculate t at which the clone of B parallel
  * to it collapses. This can be calculated using trig.
  * Another case of geometry collision that can happen is
- * When B slides along A because A is unbeveled.
+ * When B slides along A because A is un-beveled.
  * Then it might collide with a.  Similarly for B sliding along C.
  */
 static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
@@ -7458,6 +7479,7 @@ void BM_mesh_bevel(BMesh *bm,
   BMLoop *l;
   BevVert *bv;
   BevelParams bp = {
+      .bm = bm,
       .offset = offset,
       .offset_type = offset_type,
       .seg = max_ii(segments, 1),
@@ -7547,7 +7569,7 @@ void BM_mesh_bevel(BMesh *bm,
     }
   }
 
-  /* Perhaps clamp offset to avoid geometry colliisions. */
+  /* Perhaps clamp offset to avoid geometry collisions. */
   if (limit_offset) {
     bevel_limit_offset(&bp, bm);
 

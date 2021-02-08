@@ -443,7 +443,7 @@ RenderResult *render_result_new(
   }
   FOREACH_VIEW_LAYER_TO_RENDER_END;
 
-  /* previewrender doesn't do layers, so we make a default one */
+  /* Preview-render doesn't do layers, so we make a default one. */
   if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {
     rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
     BLI_addtail(&rr->layers, rl);
@@ -1229,6 +1229,10 @@ void render_result_exr_file_begin(Render *re, RenderEngine *engine)
 /* end write of exr tile file, read back first sample */
 void render_result_exr_file_end(Render *re, RenderEngine *engine)
 {
+  /* Preserve stamp data. */
+  struct StampData *stamp_data = re->result->stamp_data;
+  re->result->stamp_data = NULL;
+
   /* Close EXR files. */
   for (RenderResult *rr = re->result; rr; rr = rr->next) {
     LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
@@ -1243,6 +1247,7 @@ void render_result_exr_file_end(Render *re, RenderEngine *engine)
   BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
   render_result_free_list(&re->fullresult, re->result);
   re->result = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+  re->result->stamp_data = stamp_data;
   BLI_rw_mutex_unlock(&re->resultmutex);
 
   LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {

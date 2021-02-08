@@ -45,7 +45,7 @@ void BM_mesh_edgeloops_calc_normal(BMesh *bm, struct ListBase *eloops);
 void BM_mesh_edgeloops_calc_normal_aligned(BMesh *bm,
                                            struct ListBase *eloops,
                                            const float no_align[3]);
-void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops, const bool use_normals);
+void BM_mesh_edgeloops_calc_order(BMesh *bm, ListBase *eloops, const bool use_normals);
 
 /* single edgeloop */
 struct BMEdgeLoopStore *BM_edgeloop_copy(struct BMEdgeLoopStore *el_store);

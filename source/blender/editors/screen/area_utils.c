@@ -22,6 +22,8 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BKE_screen.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
@@ -42,14 +44,11 @@
 /**
  * Callback for #ARegionType.message_subscribe
  */
-void ED_region_generic_tools_region_message_subscribe(const struct bContext *UNUSED(C),
-                                                      struct WorkSpace *UNUSED(workspace),
-                                                      struct Scene *UNUSED(scene),
-                                                      struct bScreen *UNUSED(screen),
-                                                      struct ScrArea *UNUSED(area),
-                                                      struct ARegion *region,
-                                                      struct wmMsgBus *mbus)
+void ED_region_generic_tools_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  ARegion *region = params->region;
+
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
       .user_data = region,

@@ -111,6 +111,16 @@ static void deformVerts(ModifierData *md,
   MVert *tempVert = NULL;
   Object *ob = ctx->object;
 
+  /* If collision is disabled, free the stale data and exit. */
+  if (!ob->pd || !ob->pd->deflect) {
+    if (!ob->pd) {
+      printf("CollisionModifier: collision settings are missing!\n");
+    }
+
+    freeData(md);
+    return;
+  }
+
   if (mesh == NULL) {
     mesh_src = MOD_deform_mesh_eval_get(ob, NULL, NULL, NULL, numVerts, false, false);
   }
@@ -118,11 +128,6 @@ static void deformVerts(ModifierData *md,
     /* Not possible to use get_mesh() in this case as we'll modify its vertices
      * and get_mesh() would return 'mesh' directly. */
     mesh_src = (Mesh *)BKE_id_copy_ex(NULL, (ID *)mesh, NULL, LIB_ID_COPY_LOCALIZE);
-  }
-
-  if (!ob->pd) {
-    printf("CollisionModifier deformVerts: Should not happen!\n");
-    return;
   }
 
   if (mesh_src) {
@@ -217,7 +222,7 @@ static void deformVerts(ModifierData *md,
         }
       }
 
-      /* happens on file load (ONLY when i decomment changes in readfile.c) */
+      /* Happens on file load (ONLY when I un-comment changes in readfile.c) */
       if (!collmd->bvhtree) {
         collmd->bvhtree = bvhtree_build_from_mvert(
             collmd->current_x, collmd->tri, collmd->tri_num, ob->pd->pdef_sboft);

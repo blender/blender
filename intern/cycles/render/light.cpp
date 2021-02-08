@@ -162,7 +162,13 @@ Light::Light() : Node(node_type)
 
 void Light::tag_update(Scene *scene)
 {
-  scene->light_manager->need_update = is_modified();
+  if (is_modified()) {
+    scene->light_manager->tag_update(scene, LightManager::LIGHT_MODIFIED);
+
+    if (samples_is_modified()) {
+      scene->integrator->tag_update(scene, Integrator::LIGHT_SAMPLES_MODIFIED);
+    }
+  }
 }
 
 bool Light::has_contribution(Scene *scene)
@@ -183,7 +189,7 @@ bool Light::has_contribution(Scene *scene)
 
 LightManager::LightManager()
 {
-  need_update = true;
+  update_flags = UPDATE_ALL;
   need_update_background = true;
   use_light_visibility = false;
   last_background_enabled = false;
@@ -962,7 +968,7 @@ void LightManager::device_update(Device *device,
                                  Scene *scene,
                                  Progress &progress)
 {
-  if (!need_update)
+  if (!need_update())
     return;
 
   scoped_callback_timer timer([scene](double time) {
@@ -973,7 +979,7 @@ void LightManager::device_update(Device *device,
 
   VLOG(1) << "Total " << scene->lights.size() << " lights.";
 
-  /* Detect which lights are enabled, also determins if we need to update the background. */
+  /* Detect which lights are enabled, also determines if we need to update the background. */
   test_enabled_lights(scene);
 
   device_free(device, dscene, need_update_background);
@@ -1000,7 +1006,7 @@ void LightManager::device_update(Device *device,
 
   scene->film->set_use_light_visibility(use_light_visibility);
 
-  need_update = false;
+  update_flags = UPDATE_NONE;
   need_update_background = false;
 }
 
@@ -1015,9 +1021,14 @@ void LightManager::device_free(Device *, DeviceScene *dscene, const bool free_ba
   dscene->ies_lights.free();
 }
 
-void LightManager::tag_update(Scene * /*scene*/)
+void LightManager::tag_update(Scene * /*scene*/, uint32_t flag)
 {
-  need_update = true;
+  update_flags |= flag;
+}
+
+bool LightManager::need_update() const
+{
+  return update_flags != UPDATE_NONE;
 }
 
 int LightManager::add_ies_from_file(const string &filename)
@@ -1063,7 +1074,7 @@ int LightManager::add_ies(const string &content)
   ies_slots[slot]->users = 1;
   ies_slots[slot]->hash = hash;
 
-  need_update = true;
+  update_flags = UPDATE_ALL;
   need_update_background = true;
 
   return slot;
@@ -1082,8 +1093,10 @@ void LightManager::remove_ies(int slot)
   ies_slots[slot]->users--;
 
   /* If the slot has no more users, update the device to remove it. */
-  need_update |= (ies_slots[slot]->users == 0);
-  need_update_background |= need_update;
+  if (ies_slots[slot]->users == 0) {
+    update_flags |= UPDATE_ALL;
+    need_update_background = true;
+  }
 }
 
 void LightManager::device_update_ies(DeviceScene *dscene)

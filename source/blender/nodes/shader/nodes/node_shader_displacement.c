@@ -65,8 +65,7 @@ static int gpu_shader_displacement(GPUMaterial *mat,
         mat, node, "node_displacement_object", in, out, GPU_builtin(GPU_OBJECT_MATRIX));
   }
 
-  return GPU_stack_link(
-      mat, node, "node_displacement_world", in, out, GPU_builtin(GPU_OBJECT_MATRIX));
+  return GPU_stack_link(mat, node, "node_displacement_world", in, out);
 }
 
 /* node type definition */

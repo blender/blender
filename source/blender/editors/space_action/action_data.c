@@ -158,78 +158,7 @@ static void actedit_change_action(bContext *C, bAction *act)
   RNA_property_update(C, &ptr, prop);
 }
 
-/* ******************** New Action Operators *********************** */
-
-static void action_creation_assign(bContext *C,
-                                   bAction *action,
-                                   PointerRNA *ptr,
-                                   PropertyRNA *prop)
-{
-  PointerRNA idptr;
-  /* Set the new action.
-   * NOTE: we can't use actedit_change_action, as this function is also called from the NLA. */
-  RNA_id_pointer_create(&action->id, &idptr);
-  RNA_property_pointer_set(ptr, prop, idptr, NULL);
-  RNA_property_update(C, ptr, prop);
-}
-
-/**
- * Stash the previously active action to prevent it from being lost.
- * \return The old action if any.
- */
-static bAction *action_creation_stash_old(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
-{
-  bAction *oldact = NULL;
-  AnimData *adt = NULL;
-
-  if (prop) {
-    /* The operator was called from a button. */
-    PointerRNA oldptr;
-
-    oldptr = RNA_property_pointer_get(ptr, prop);
-    oldact = (bAction *)oldptr.owner_id;
-
-    /* stash the old action to prevent it from being lost */
-    if (ptr->type == &RNA_AnimData) {
-      adt = ptr->data;
-    }
-    else if (ptr->type == &RNA_SpaceDopeSheetEditor) {
-      adt = ED_actedit_animdata_from_context(C);
-    }
-  }
-  else {
-    adt = ED_actedit_animdata_from_context(C);
-    oldact = adt->action;
-  }
-
-  if (!adt || !oldact) {
-    /* Found nothing to stash in current context. */
-    return NULL;
-  }
-
-  /* Perform stashing operation. */
-  if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(ptr->owner_id))) {
-    /* The stash operation will remove the user already
-     * (and unlink the action from the AnimData action slot).
-     * Hence, we must unset the ref to the action in the
-     * action editor too (if this is where we're being called from)
-     * first before setting the new action once it is created,
-     * or else the user gets decremented twice!
-     */
-    if (ptr->type == &RNA_SpaceDopeSheetEditor) {
-      SpaceAction *saction = ptr->data;
-      saction->action = NULL;
-    }
-  }
-  else {
-#if 0
-    printf("WARNING: Failed to stash %s. It may already exist in the NLA stack though\n",
-           oldact->id.name);
-#endif
-  }
-
-  return oldact;
-}
+/* ******************** New Action Operator *********************** */
 
 /* Criteria:
  *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions...
@@ -278,17 +207,71 @@ static bool action_new_poll(bContext *C)
 
 static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  PointerRNA ptr;
+  PointerRNA ptr, idptr;
   PropertyRNA *prop;
 
+  bAction *oldact = NULL;
+  AnimData *adt = NULL;
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
-  action_creation_stash_old(C, &ptr, prop);
-
-  bAction *action = action_create_new(C, NULL);
   if (prop) {
-    action_creation_assign(C, action, &ptr, prop);
+    /* The operator was called from a button. */
+    PointerRNA oldptr;
+
+    oldptr = RNA_property_pointer_get(&ptr, prop);
+    oldact = (bAction *)oldptr.owner_id;
+
+    /* stash the old action to prevent it from being lost */
+    if (ptr.type == &RNA_AnimData) {
+      adt = ptr.data;
+    }
+    else if (ptr.type == &RNA_SpaceDopeSheetEditor) {
+      adt = ED_actedit_animdata_from_context(C);
+    }
+  }
+  else {
+    adt = ED_actedit_animdata_from_context(C);
+    oldact = adt->action;
+  }
+  {
+    bAction *action = NULL;
+
+    /* Perform stashing operation - But only if there is an action */
+    if (adt && oldact) {
+      /* stash the action */
+      if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(ptr.owner_id))) {
+        /* The stash operation will remove the user already
+         * (and unlink the action from the AnimData action slot).
+         * Hence, we must unset the ref to the action in the
+         * action editor too (if this is where we're being called from)
+         * first before setting the new action once it is created,
+         * or else the user gets decremented twice!
+         */
+        if (ptr.type == &RNA_SpaceDopeSheetEditor) {
+          SpaceAction *saction = ptr.data;
+          saction->action = NULL;
+        }
+      }
+      else {
+#if 0
+        printf("WARNING: Failed to stash %s. It may already exist in the NLA stack though\n",
+               oldact->id.name);
+#endif
+      }
+    }
+
+    /* create action */
+    action = action_create_new(C, oldact);
+
+    if (prop) {
+      /* set this new action
+       * NOTE: we can't use actedit_change_action, as this function is also called from the NLA
+       */
+      RNA_id_pointer_create(&action->id, &idptr);
+      RNA_property_pointer_set(&ptr, prop, idptr, NULL);
+      RNA_property_update(C, &ptr, prop);
+    }
   }
 
   /* set notifier that keyframes have changed */
@@ -302,7 +285,7 @@ void ACTION_OT_new(wmOperatorType *ot)
   /* identifiers */
   ot->name = "New Action";
   ot->idname = "ACTION_OT_new";
-  ot->description = "Create a new action";
+  ot->description = "Create new action";
 
   /* api callbacks */
   ot->exec = action_new_exec;
@@ -310,45 +293,6 @@ void ACTION_OT_new(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-static int action_duplicate_assign_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  PointerRNA ptr;
-  PropertyRNA *prop;
-
-  /* hook into UI */
-  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
-
-  bAction *old_action = action_creation_stash_old(C, &ptr, prop);
-
-  bAction *new_action = action_create_new(C, old_action);
-  if (prop) {
-    action_creation_assign(C, new_action, &ptr, prop);
-  }
-
-  /* set notifier that keyframes have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
-
-  return OPERATOR_FINISHED;
-}
-
-/**
- * Duplicate an action assigned to a templateID and update it's assignment - based on UI context.
- */
-void ACTION_OT_duplicate_assign(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Duplicate & Assign Action";
-  ot->idname = "ACTION_OT_duplicate_assign";
-  ot->description = "Create a copy of an existing action and assign it";
-
-  /* api callbacks */
-  ot->exec = action_duplicate_assign_exec;
-  ot->poll = action_new_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
 /* ******************* Action Push-Down Operator ******************** */

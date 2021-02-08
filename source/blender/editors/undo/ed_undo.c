@@ -145,12 +145,14 @@ void ED_undo_push(bContext *C, const char *str)
     }
   }
 
+  UndoPushReturn push_retval;
+
   /* Only apply limit if this is the last undo step. */
   if (wm->undo_stack->step_active && (wm->undo_stack->step_active->next == NULL)) {
     BKE_undosys_stack_limit_steps_and_memory(wm->undo_stack, steps - 1, 0);
   }
 
-  BKE_undosys_step_push(wm->undo_stack, C, str);
+  push_retval = BKE_undosys_step_push(wm->undo_stack, C, str);
 
   if (U.undomemory != 0) {
     const size_t memory_limit = (size_t)U.undomemory * 1024 * 1024;
@@ -160,19 +162,23 @@ void ED_undo_push(bContext *C, const char *str)
   if (CLOG_CHECK(&LOG, 1)) {
     BKE_undosys_print(wm->undo_stack);
   }
+
+  if (push_retval & UNDO_PUSH_RET_OVERRIDE_CHANGED) {
+    WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
+  }
 }
 
 /**
- * \note Also check #undo_history_exec in bottom if you change notifiers.
+ * Common pre management of undo/redo (killing all running jobs, calling pre handlers, etc.).
  */
-static int ed_undo_step_impl(
-    bContext *C, int step, const char *undoname, int undo_index, ReportList *reports)
+static void ed_undo_step_pre(bContext *C,
+                             wmWindowManager *wm,
+                             const enum eUndoStepDir undo_dir,
+                             ReportList *reports)
 {
-  /* Mutually exclusives, ensure correct input. */
-  BLI_assert(((undoname || undo_index != -1) && !step) ||
-             (!(undoname || undo_index != -1) && step));
-  CLOG_INFO(&LOG, 1, "name='%s', step=%d", undoname, step);
-  wmWindowManager *wm = CTX_wm_manager(C);
+  BLI_assert(ELEM(undo_dir, STEP_UNDO, STEP_REDO));
+
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ScrArea *area = CTX_wm_area(C);
 
@@ -181,18 +187,12 @@ static int ed_undo_step_impl(
   WM_jobs_kill_all(wm);
 
   if (G.debug & G_DEBUG_IO) {
-    Main *bmain = CTX_data_main(C);
     if (bmain->lock != NULL) {
       BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* undo step");
       BLO_main_validate_libraries(bmain, reports);
     }
   }
 
-  /* TODO(campbell): undo_system: use undo system */
-  /* grease pencil can be can be used in plenty of spaces, so check it first */
-  if (ED_gpencil_session_active()) {
-    return ED_undo_gpencil_step(C, step, undoname);
-  }
   if (area && (area->spacetype == SPACE_VIEW3D)) {
     Object *obact = CTX_data_active_object(C);
     if (obact && (obact->type == OB_GPENCIL)) {
@@ -200,89 +200,40 @@ static int ed_undo_step_impl(
     }
   }
 
-  UndoStep *step_data_from_name = NULL;
-  int step_for_callback = step;
-  if (undoname != NULL) {
-    step_data_from_name = BKE_undosys_step_find_by_name(wm->undo_stack, undoname);
-    if (step_data_from_name == NULL) {
-      return OPERATOR_CANCELLED;
-    }
-
-    /* TODO(campbell), could use simple optimization. */
-    /* Pointers match on redo. */
-    step_for_callback = (BLI_findindex(&wm->undo_stack->steps, step_data_from_name) <
-                         BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active)) ?
-                            1 :
-                            -1;
-  }
-  else if (undo_index != -1) {
-    step_for_callback = (undo_index <
-                         BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active)) ?
-                            1 :
-                            -1;
-  }
-
   /* App-Handlers (pre). */
   {
     /* Note: ignore grease pencil for now. */
-    Main *bmain = CTX_data_main(C);
     wm->op_undo_depth++;
     BKE_callback_exec_id(
-        bmain, &scene->id, (step_for_callback > 0) ? BKE_CB_EVT_UNDO_PRE : BKE_CB_EVT_REDO_PRE);
+        bmain, &scene->id, (undo_dir == STEP_UNDO) ? BKE_CB_EVT_UNDO_PRE : BKE_CB_EVT_REDO_PRE);
     wm->op_undo_depth--;
   }
+}
 
-  /* Undo System */
-  {
-    if (undoname) {
-      BKE_undosys_step_undo_with_data(wm->undo_stack, C, step_data_from_name);
-    }
-    else if (undo_index != -1) {
-      BKE_undosys_step_undo_from_index(wm->undo_stack, C, undo_index);
-    }
-    else {
-      if (step == 1) {
-        BKE_undosys_step_undo(wm->undo_stack, C);
-      }
-      else {
-        BKE_undosys_step_redo(wm->undo_stack, C);
-      }
-    }
+/**
+ * Common post management of undo/redo (calling post handlers, adding notifiers etc.).
+ *
+ * \note Also check #undo_history_exec in bottom if you change notifiers.
+ */
+static void ed_undo_step_post(bContext *C,
+                              wmWindowManager *wm,
+                              const enum eUndoStepDir undo_dir,
+                              ReportList *reports)
+{
+  BLI_assert(ELEM(undo_dir, STEP_UNDO, STEP_REDO));
 
-    /* Set special modes for grease pencil */
-    if (area && (area->spacetype == SPACE_VIEW3D)) {
-      Object *obact = CTX_data_active_object(C);
-      if (obact && (obact->type == OB_GPENCIL)) {
-        /* set cursor */
-        if (ELEM(obact->mode,
-                 OB_MODE_PAINT_GPENCIL,
-                 OB_MODE_SCULPT_GPENCIL,
-                 OB_MODE_WEIGHT_GPENCIL,
-                 OB_MODE_VERTEX_GPENCIL)) {
-          ED_gpencil_toggle_brush_cursor(C, true, NULL);
-        }
-        else {
-          ED_gpencil_toggle_brush_cursor(C, false, NULL);
-        }
-        /* set workspace mode */
-        Base *basact = CTX_data_active_base(C);
-        ED_object_base_activate(C, basact);
-      }
-    }
-  }
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
 
   /* App-Handlers (post). */
   {
-    Main *bmain = CTX_data_main(C);
-    scene = CTX_data_scene(C);
     wm->op_undo_depth++;
     BKE_callback_exec_id(
-        bmain, &scene->id, step_for_callback > 0 ? BKE_CB_EVT_UNDO_POST : BKE_CB_EVT_REDO_POST);
+        bmain, &scene->id, (undo_dir == STEP_UNDO) ? BKE_CB_EVT_UNDO_POST : BKE_CB_EVT_REDO_POST);
     wm->op_undo_depth--;
   }
 
   if (G.debug & G_DEBUG_IO) {
-    Main *bmain = CTX_data_main(C);
     if (bmain->lock != NULL) {
       BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* undo step");
       BLO_main_validate_libraries(bmain, reports);
@@ -293,30 +244,123 @@ static int ed_undo_step_impl(
   WM_event_add_notifier(C, NC_WM | ND_UNDO, NULL);
 
   WM_toolsystem_refresh_active(C);
-
-  Main *bmain = CTX_data_main(C);
   WM_toolsystem_refresh_screen_all(bmain);
 
   if (CLOG_CHECK(&LOG, 1)) {
     BKE_undosys_print(wm->undo_stack);
   }
+}
+
+/** Undo or redo one step from current active one.
+ *  May undo or redo several steps at once only if the target step is a 'skipped' one.
+ *  The target step will be the one immediately before or after the active one. */
+static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportList *reports)
+{
+  BLI_assert(ELEM(step, STEP_UNDO, STEP_REDO));
+
+  CLOG_INFO(&LOG, 1, "direction=%s", (step == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO");
+
+  /* TODO(campbell): undo_system: use undo system */
+  /* grease pencil can be can be used in plenty of spaces, so check it first */
+  /* FIXME: This gpencil undo effectively only supports the one step undo/redo, undo based on name
+   * or index is fully not implemented.
+   * FIXME: However, it seems to never be used in current code (`ED_gpencil_session_active` seems
+   * to always return false). */
+  if (ED_gpencil_session_active()) {
+    return ED_undo_gpencil_step(C, step);
+  }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  ed_undo_step_pre(C, wm, step, reports);
+
+  if (step == STEP_UNDO) {
+    BKE_undosys_step_undo(wm->undo_stack, C);
+  }
+  else {
+    BKE_undosys_step_redo(wm->undo_stack, C);
+  }
+
+  ed_undo_step_post(C, wm, step, reports);
 
   return OPERATOR_FINISHED;
 }
 
-static int ed_undo_step_direction(bContext *C, int step, ReportList *reports)
-{
-  return ed_undo_step_impl(C, step, NULL, -1, reports);
-}
-
+/** Undo the step matching given name.
+ *  May undo several steps at once.
+ *  The target step will be the one immediately before given named one. */
 static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *reports)
 {
-  return ed_undo_step_impl(C, 0, undo_name, -1, reports);
+  BLI_assert(undo_name != NULL);
+
+  /* FIXME: See comments in `ed_undo_step_direction`. */
+  if (ED_gpencil_session_active()) {
+    BLI_assert(!"Not implemented currently.");
+  }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  UndoStep *undo_step_from_name = BKE_undosys_step_find_by_name(wm->undo_stack, undo_name);
+  if (undo_step_from_name == NULL) {
+    CLOG_ERROR(&LOG, "Step name='%s' not found in current undo stack", undo_name);
+
+    return OPERATOR_CANCELLED;
+  }
+
+  UndoStep *undo_step_target = undo_step_from_name->prev;
+  if (undo_step_target == NULL) {
+    CLOG_ERROR(&LOG, "Step name='%s' cannot be undone", undo_name);
+
+    return OPERATOR_CANCELLED;
+  }
+
+  const int undo_dir_i = BKE_undosys_step_calc_direction(wm->undo_stack, undo_step_target, NULL);
+  BLI_assert(ELEM(undo_dir_i, -1, 1));
+  const enum eUndoStepDir undo_dir = (undo_dir_i == -1) ? STEP_UNDO : STEP_REDO;
+
+  CLOG_INFO(&LOG,
+            1,
+            "name='%s', found direction=%s",
+            undo_name,
+            (undo_dir == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO");
+
+  ed_undo_step_pre(C, wm, undo_dir, reports);
+
+  BKE_undosys_step_load_data_ex(wm->undo_stack, C, undo_step_target, NULL, true);
+
+  ed_undo_step_post(C, wm, undo_dir, reports);
+
+  return OPERATOR_FINISHED;
 }
 
-static int ed_undo_step_by_index(bContext *C, int index, ReportList *reports)
+/** Load the step matching given index in the stack.
+ *  May undo or redo several steps at once.
+ *  The target step will be the one indicated by the given index. */
+static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *reports)
 {
-  return ed_undo_step_impl(C, 0, NULL, index, reports);
+  BLI_assert(undo_index >= 0);
+
+  /* FIXME: See comments in `ed_undo_step_direction`. */
+  if (ED_gpencil_session_active()) {
+    BLI_assert(!"Not implemented currently.");
+  }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  const int active_step_index = BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active);
+  const enum eUndoStepDir undo_dir = (undo_index < active_step_index) ? STEP_UNDO : STEP_REDO;
+
+  CLOG_INFO(&LOG,
+            1,
+            "index='%d', found direction=%s",
+            undo_index,
+            (undo_dir == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO");
+
+  ed_undo_step_pre(C, wm, undo_dir, reports);
+
+  BKE_undosys_step_load_from_index(wm->undo_stack, C, undo_index);
+
+  ed_undo_step_post(C, wm, undo_dir, reports);
+
+  return OPERATOR_FINISHED;
 }
 
 void ED_undo_grouped_push(bContext *C, const char *str)
@@ -334,11 +378,11 @@ void ED_undo_grouped_push(bContext *C, const char *str)
 
 void ED_undo_pop(bContext *C)
 {
-  ed_undo_step_direction(C, 1, NULL);
+  ed_undo_step_direction(C, STEP_UNDO, NULL);
 }
 void ED_undo_redo(bContext *C)
 {
-  ed_undo_step_direction(C, -1, NULL);
+  ed_undo_step_direction(C, STEP_REDO, NULL);
 }
 
 void ED_undo_push_op(bContext *C, wmOperator *op)
@@ -442,7 +486,7 @@ static int ed_undo_exec(bContext *C, wmOperator *op)
 {
   /* "last operator" should disappear, later we can tie this with undo stack nicer */
   WM_operator_stack_clear(CTX_wm_manager(C));
-  int ret = ed_undo_step_direction(C, 1, op->reports);
+  int ret = ed_undo_step_direction(C, STEP_UNDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
     /* Keep button under the cursor active. */
     WM_event_add_mousemove(CTX_wm_window(C));
@@ -471,7 +515,7 @@ static int ed_undo_push_exec(bContext *C, wmOperator *op)
 
 static int ed_redo_exec(bContext *C, wmOperator *op)
 {
-  int ret = ed_undo_step_direction(C, -1, op->reports);
+  int ret = ed_undo_step_direction(C, STEP_REDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
     /* Keep button under the cursor active. */
     WM_event_add_mousemove(CTX_wm_window(C));

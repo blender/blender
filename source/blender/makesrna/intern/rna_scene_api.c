@@ -420,10 +420,10 @@ void RNA_api_scene(StructRNA *srna)
                "Method for splitting the quads into triangles");
   RNA_def_enum(func,
                "ngon_method",
-               rna_enum_modifier_triangulate_quad_method_items,
+               rna_enum_modifier_triangulate_ngon_method_items,
                0,
-               "Polygon Method",
-               "Method for splitting the polygons into triangles");
+               "N-gon Method",
+               "Method for splitting the n-gons into triangles");
 
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 #  endif

@@ -358,7 +358,7 @@ void GLStateManager::set_blend(const eGPUBlend value)
    * DST is frame-buffer color.
    * final.rgb = SRC.rgb * src_rgb + DST.rgb * dst_rgb;
    * final.a = SRC.a * src_alpha + DST.a * dst_alpha;
-   **/
+   */
   GLenum src_rgb, src_alpha, dst_rgb, dst_alpha;
   switch (value) {
     default:

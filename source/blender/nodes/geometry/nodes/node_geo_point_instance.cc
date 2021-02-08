@@ -47,8 +47,10 @@ static void geo_node_point_instance_update(bNodeTree *UNUSED(tree), bNode *node)
   bNodeSocket *collection_socket = object_socket->next;
   bNodeSocket *seed_socket = collection_socket->next;
 
-  GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)node->custom1;
-  const bool use_whole_collection = node->custom2 == 0;
+  NodeGeometryPointInstance *node_storage = (NodeGeometryPointInstance *)node->storage;
+  GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)node_storage->instance_type;
+  const bool use_whole_collection = (node_storage->flag &
+                                     GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION) != 0;
 
   nodeSetSocketAvailability(object_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_OBJECT);
   nodeSetSocketAvailability(collection_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION);
@@ -79,43 +81,48 @@ static void get_instanced_data__collection(
     MutableSpan<std::optional<InstancedData>> r_instances_data)
 {
   const bNode &node = params.node();
+  NodeGeometryPointInstance *node_storage = (NodeGeometryPointInstance *)node.storage;
+
   bke::PersistentCollectionHandle collection_handle =
       params.get_input<bke::PersistentCollectionHandle>("Collection");
   Collection *collection = params.handle_map().lookup(collection_handle);
-  if (collection != nullptr) {
-    const bool use_whole_collection = node.custom2 == 0;
-    if (use_whole_collection) {
+  if (collection == nullptr) {
+    return;
+  }
+
+  const bool use_whole_collection = (node_storage->flag &
+                                     GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION) != 0;
+  if (use_whole_collection) {
+    InstancedData instance;
+    instance.type = INSTANCE_DATA_TYPE_COLLECTION;
+    instance.data.collection = collection;
+    r_instances_data.fill(instance);
+  }
+  else {
+    Vector<InstancedData> possible_instances;
+    /* Direct child objects are instanced as objects. */
+    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+      Object *object = cob->ob;
+      InstancedData instance;
+      instance.type = INSTANCE_DATA_TYPE_OBJECT;
+      instance.data.object = object;
+      possible_instances.append(instance);
+    }
+    /* Direct child collections are instanced as collections. */
+    LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+      Collection *child_collection = child->collection;
       InstancedData instance;
       instance.type = INSTANCE_DATA_TYPE_COLLECTION;
-      instance.data.collection = collection;
-      r_instances_data.fill(instance);
+      instance.data.collection = child_collection;
+      possible_instances.append(instance);
     }
-    else {
-      Vector<InstancedData> possible_instances;
-      /* Direct child objects are instanced as objects. */
-      LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-        Object *object = cob->ob;
-        InstancedData instance;
-        instance.type = INSTANCE_DATA_TYPE_OBJECT;
-        instance.data.object = object;
-        possible_instances.append(instance);
-      }
-      /* Direct child collections are instanced as collections. */
-      LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-        Collection *child_collection = child->collection;
-        InstancedData instance;
-        instance.type = INSTANCE_DATA_TYPE_COLLECTION;
-        instance.data.collection = child_collection;
-        possible_instances.append(instance);
-      }
 
-      if (!possible_instances.is_empty()) {
-        const int seed = params.get_input<int>("Seed");
-        Array<uint32_t> ids = get_geometry_element_ids_as_uints(component, ATTR_DOMAIN_POINT);
-        for (const int i : r_instances_data.index_range()) {
-          const int index = BLI_hash_int_2d(ids[i], seed) % possible_instances.size();
-          r_instances_data[i] = possible_instances[index];
-        }
+    if (!possible_instances.is_empty()) {
+      const int seed = params.get_input<int>("Seed");
+      Array<uint32_t> ids = get_geometry_element_ids_as_uints(component, ATTR_DOMAIN_POINT);
+      for (const int i : r_instances_data.index_range()) {
+        const int index = BLI_hash_int_2d(ids[i], seed) % possible_instances.size();
+        r_instances_data[i] = possible_instances[index];
       }
     }
   }
@@ -126,8 +133,9 @@ static Array<std::optional<InstancedData>> get_instanced_data(const GeoNodeExecP
                                                               const int amount)
 {
   const bNode &node = params.node();
-  const GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)node.custom1;
-
+  NodeGeometryPointInstance *node_storage = (NodeGeometryPointInstance *)node.storage;
+  const GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)
+                                                 node_storage->instance_type;
   Array<std::optional<InstancedData>> instances_data(amount);
 
   switch (type) {
@@ -159,10 +167,13 @@ static void add_instances_from_geometry_component(InstancesComponent &instances,
       "rotation", domain, {0, 0, 0});
   Float3ReadAttribute scales = src_geometry.attribute_get_for_read<float3>(
       "scale", domain, {1, 1, 1});
+  Int32ReadAttribute ids = src_geometry.attribute_get_for_read<int>("id", domain, -1);
 
   for (const int i : IndexRange(domain_size)) {
     if (instances_data[i].has_value()) {
-      instances.add_instance(*instances_data[i], positions[i], rotations[i], scales[i]);
+      float transform[4][4];
+      loc_eul_size_to_mat4(transform, positions[i], rotations[i], scales[i]);
+      instances.add_instance(*instances_data[i], transform, ids[i]);
     }
   }
 }
@@ -184,6 +195,16 @@ static void geo_node_point_instance_exec(GeoNodeExecParams params)
 
   params.set_output("Geometry", std::move(geometry_set_out));
 }
+
+static void geo_node_point_instance_init(bNodeTree *UNUSED(tree), bNode *node)
+{
+  NodeGeometryPointInstance *data = (NodeGeometryPointInstance *)MEM_callocN(
+      sizeof(NodeGeometryPointInstance), __func__);
+  data->instance_type = GEO_NODE_POINT_INSTANCE_TYPE_OBJECT;
+  data->flag |= GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION;
+  node->storage = data;
+}
+
 }  // namespace blender::nodes
 
 void register_node_type_geo_point_instance()
@@ -192,6 +213,9 @@ void register_node_type_geo_point_instance()
 
   geo_node_type_base(&ntype, GEO_NODE_POINT_INSTANCE, "Point Instance", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(&ntype, geo_node_point_instance_in, geo_node_point_instance_out);
+  node_type_init(&ntype, blender::nodes::geo_node_point_instance_init);
+  node_type_storage(
+      &ntype, "NodeGeometryPointInstance", node_free_standard_storage, node_copy_standard_storage);
   node_type_update(&ntype, blender::nodes::geo_node_point_instance_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_instance_exec;
   nodeRegisterType(&ntype);

@@ -63,7 +63,7 @@ class DATA_PT_volume_file(DataButtonsPanel, Panel):
 
         layout.prop(volume, "filepath", text="")
 
-        if len(volume.filepath):
+        if volume.filepath:
             layout.use_property_split = True
             layout.use_property_decorate = False
 
@@ -76,7 +76,7 @@ class DATA_PT_volume_file(DataButtonsPanel, Panel):
                 col.prop(volume, "sequence_mode", text="Mode")
 
         error_msg = volume.grids.error_message
-        if len(error_msg):
+        if error_msg:
             layout.separator()
             col = layout.column(align=True)
             col.label(text="Failed to load volume:")

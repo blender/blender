@@ -32,7 +32,7 @@
 
 #include "COM_DilateErodeOperation.h"
 
-#include "COM_KeyingSetAlphaOperation.h"
+#include "COM_SetAlphaMultiplyOperation.h"
 
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
@@ -239,7 +239,7 @@ void KeyingNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputScreen, keyingOperation->getInputSocket(1));
 
   if (keying_data->blur_pre) {
-    /* chroma preblur operation for input of keying operation  */
+    /* Chroma pre-blur operation for input of keying operation. */
     NodeOperationOutput *preBluredImage = setupPreBlur(
         converter, inputImage, keying_data->blur_pre);
     converter.addLink(preBluredImage, keyingOperation->getInputSocket(0));
@@ -323,7 +323,7 @@ void KeyingNode::convertToOperations(NodeConverter &converter,
   }
 
   /* set alpha channel to output image */
-  KeyingSetAlphaOperation *alphaOperation = new KeyingSetAlphaOperation();
+  SetAlphaMultiplyOperation *alphaOperation = new SetAlphaMultiplyOperation();
   converter.addOperation(alphaOperation);
 
   converter.mapInputSocket(inputImage, alphaOperation->getInputSocket(0));

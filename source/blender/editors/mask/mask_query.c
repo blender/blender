@@ -604,17 +604,24 @@ void ED_mask_point_pos__reverse(
   *yr = co[1];
 }
 
-bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2])
+bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2], bool include_handles)
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Mask *mask = CTX_data_edit_mask(C);
+
   bool ok = false;
 
   if (mask == NULL) {
     return ok;
   }
 
+  /* Use evaluated mask to take animation into account.
+   * The animation of splies is not "flushed" back to original, so need to explicitly
+   * sue evaluated datablock here. */
+  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask->id);
+
   INIT_MINMAX2(min, max);
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer != NULL;
+  for (MaskLayer *mask_layer = mask_eval->masklayers.first; mask_layer != NULL;
        mask_layer = mask_layer->next) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
@@ -631,22 +638,29 @@ bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2])
         }
         if (bezt->f2 & SELECT) {
           minmax_v2v2_v2(min, max, deform_point->bezt.vec[1]);
+          ok = true;
         }
-        if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
+
+        if (!include_handles) {
+          /* Ignore handles. */
+        }
+        else if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
           BKE_mask_point_handle(deform_point, MASK_WHICH_HANDLE_STICK, handle);
           minmax_v2v2_v2(min, max, handle);
+          ok = true;
         }
         else {
           if ((bezt->f1 & SELECT) && (bezt->h1 != HD_VECT)) {
             BKE_mask_point_handle(deform_point, MASK_WHICH_HANDLE_LEFT, handle);
             minmax_v2v2_v2(min, max, handle);
+            ok = true;
           }
           if ((bezt->f3 & SELECT) && (bezt->h2 != HD_VECT)) {
             BKE_mask_point_handle(deform_point, MASK_WHICH_HANDLE_RIGHT, handle);
             minmax_v2v2_v2(min, max, handle);
+            ok = true;
           }
         }
-        ok = true;
       }
     }
   }

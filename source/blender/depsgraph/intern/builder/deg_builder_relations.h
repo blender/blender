@@ -198,6 +198,9 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
 
   virtual void build_id(ID *id);
 
+  /* Build function for ID types that do not need their own build_xxx() function. */
+  virtual void build_generic_id(ID *id);
+
   virtual void build_idproperties(IDProperty *id_property);
 
   virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);

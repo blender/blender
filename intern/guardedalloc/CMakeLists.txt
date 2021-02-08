@@ -49,12 +49,6 @@ set(LIB
 )
 
 if(WIN32 AND NOT UNIX)
-  list(APPEND SRC
-    intern/mmap_win.c
-
-    mmap_win.h
-  )
-
   list(APPEND INC_SYS
     ${PTHREADS_INC}
   )

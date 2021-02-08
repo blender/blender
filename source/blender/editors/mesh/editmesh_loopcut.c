@@ -222,7 +222,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
       else if (is_macro && (cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
         EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
       }
-      /* force edge slide to edge select mode in in face select mode */
+      /* Force edge slide to edge select mode in face select mode. */
       else if (EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_FACE, SCE_SELECT_EDGE)) {
         /* pass, the change will flush selection */
       }

@@ -257,7 +257,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_attribute);
   }
 
-  if (!USER_VERSION_ATLEAST(292, 6)) {
+  if (!USER_VERSION_ATLEAST(292, 12)) {
     FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_shader);
   }
 
@@ -272,6 +272,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    */
   {
     /* Keep this block, even when empty. */
+    FROM_DEFAULT_V4_UCHAR(space_properties.active);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
@@ -826,6 +827,13 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
+  if (!USER_VERSION_ATLEAST(293, 2)) {
+    /* Enable asset browser features by default for alpha testing.
+     * BLO_sanitize_experimental_features_userpref_blend() will disable it again for non-alpha
+     * builds. */
+    userdef->experimental.use_asset_browser = true;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -837,6 +845,9 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
+    if (userdef->gizmo_size_navigate_v3d == 0) {
+      userdef->gizmo_size_navigate_v3d = 80;
+    }
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {

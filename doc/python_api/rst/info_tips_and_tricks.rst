@@ -24,10 +24,9 @@ The three main use cases for the terminal are:
 - If the script runs for too long or you accidentally enter an infinite loop,
   :kbd:`Ctrl-C` in the terminal (:kbd:`Ctrl-Break` on Windows) will quit the script early.
 
-.. note::
+.. seealso::
 
-   For Linux and macOS users this means starting the terminal first, then running Blender from within it.
-   On Windows the terminal can be enabled from the Help menu.
+   :ref:`blender_manual:command_line-launch-index`.
 
 
 Interface Tricks

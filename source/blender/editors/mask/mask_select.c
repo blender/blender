@@ -214,11 +214,16 @@ static int select_all_exec(bContext *C, wmOperator *op)
   Mask *mask = CTX_data_edit_mask(C);
   int action = RNA_enum_get(op->ptr, "action");
 
+  MaskViewLockState lock_state;
+  ED_mask_view_lock_state_store(C, &lock_state);
+
   ED_mask_select_toggle_all(mask, action);
   ED_mask_select_flush_all(mask);
 
   DEG_id_tag_update(&mask->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+  ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
 
   return OPERATOR_FINISHED;
 }
@@ -260,6 +265,9 @@ static int select_exec(bContext *C, wmOperator *op)
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   eMaskWhichHandle which_handle;
   const float threshold = 19;
+
+  MaskViewLockState lock_state;
+  ED_mask_view_lock_state_store(C, &lock_state);
 
   RNA_float_get_array(op->ptr, "location", co);
 
@@ -324,6 +332,8 @@ static int select_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&mask->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 
+    ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
+
     return OPERATOR_FINISHED;
   }
 
@@ -364,12 +374,15 @@ static int select_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&mask->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 
+    ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
+
     return OPERATOR_FINISHED;
   }
   if (deselect_all) {
     /* For clip editor tracks, leave deselect all to clip editor. */
     if (!ED_clip_can_select(C)) {
       ED_mask_deselect_all(C);
+      ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
       return OPERATOR_FINISHED;
     }
   }

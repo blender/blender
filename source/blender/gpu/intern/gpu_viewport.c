@@ -86,10 +86,10 @@ struct GPUViewport {
   int size[2];
   int flag;
 
-  /* Set the active view (for stereoscoptic viewport rendering). */
+  /* Set the active view (for stereoscopic viewport rendering). */
   int active_view;
 
-  /* If engine_handles mismatch we free all ViewportEngineData in this viewport. */
+  /* If engine_handles mismatch we free all #ViewportEngineData in this viewport. */
   struct {
     void *handle;
     ViewportEngineData *data;
@@ -589,7 +589,7 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   /* Restore. */
   view_settings->curve_mapping = tmp_curve_mapping;
   viewport->view_settings.curve_mapping = tmp_curve_mapping_vp;
-  /* Only copy curvemapping if needed. Avoid uneeded OCIO cache miss. */
+  /* Only copy curve-mapping if needed. Avoid unneeded OCIO cache miss. */
   if (tmp_curve_mapping && viewport->view_settings.curve_mapping == NULL) {
     BKE_color_managed_view_settings_free(&viewport->view_settings);
     viewport->view_settings.curve_mapping = BKE_curvemapping_copy(tmp_curve_mapping);
@@ -749,7 +749,8 @@ static void gpu_viewport_batch_free(GPUViewport *viewport)
 static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
                                            const rctf *rect_pos,
                                            const rctf *rect_uv,
-                                           bool display_colorspace)
+                                           bool display_colorspace,
+                                           bool do_overlay_merge)
 {
   DefaultTextureList *dtxl = viewport->txl;
   GPUTexture *color = dtxl->color;
@@ -771,7 +772,7 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
                                                               NULL,
                                                               viewport->dither,
                                                               false,
-                                                              true);
+                                                              do_overlay_merge);
   }
 
   GPUBatch *batch = gpu_viewport_batch_get(viewport, rect_pos, rect_uv);
@@ -780,6 +781,7 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
   }
   else {
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE);
+    GPU_batch_uniform_1i(batch, "overlay", do_overlay_merge);
     GPU_batch_uniform_1i(batch, "display_transform", display_colorspace);
     GPU_batch_uniform_1i(batch, "image_texture", 0);
     GPU_batch_uniform_1i(batch, "overlays_texture", 1);
@@ -803,7 +805,8 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
 void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
                                     int view,
                                     const rcti *rect,
-                                    bool display_colorspace)
+                                    bool display_colorspace,
+                                    bool do_overlay_merge)
 {
   gpu_viewport_framebuffer_view_set(viewport, view);
   DefaultFramebufferList *dfbl = viewport->fbl;
@@ -817,7 +820,7 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
   const float w = (float)GPU_texture_width(color);
   const float h = (float)GPU_texture_height(color);
 
-  /* We allow rects with min/max swapped, but we also need coorectly assigned coordinates. */
+  /* We allow rects with min/max swapped, but we also need correctly assigned coordinates. */
   rcti sanitized_rect = *rect;
   BLI_rcti_sanitize(&sanitized_rect);
 
@@ -850,7 +853,8 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
     SWAP(float, uv_rect.ymin, uv_rect.ymax);
   }
 
-  gpu_viewport_draw_colormanaged(viewport, &pos_rect, &uv_rect, display_colorspace);
+  gpu_viewport_draw_colormanaged(
+      viewport, &pos_rect, &uv_rect, display_colorspace, do_overlay_merge);
 }
 
 /**
@@ -862,7 +866,7 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
  */
 void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *rect)
 {
-  GPU_viewport_draw_to_screen_ex(viewport, view, rect, true);
+  GPU_viewport_draw_to_screen_ex(viewport, view, rect, true, true);
 }
 
 /**
@@ -870,7 +874,8 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *re
  */
 void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
                                         struct GPUOffScreen *ofs,
-                                        bool display_colorspace)
+                                        bool display_colorspace,
+                                        bool do_overlay_merge)
 {
   DefaultFramebufferList *dfbl = viewport->fbl;
   DefaultTextureList *dtxl = viewport->txl;
@@ -896,7 +901,8 @@ void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
       .ymax = 1.0f,
   };
 
-  gpu_viewport_draw_colormanaged(viewport, &pos_rect, &uv_rect, display_colorspace);
+  gpu_viewport_draw_colormanaged(
+      viewport, &pos_rect, &uv_rect, display_colorspace, do_overlay_merge);
 
   /* This one is from the offscreen. Don't free it with the viewport. */
   dtxl->depth = NULL;
@@ -968,7 +974,7 @@ static void gpu_viewport_passes_free(PassList *psl, int psl_len)
   memset(psl->passes, 0, sizeof(*psl->passes) * psl_len);
 }
 
-/* Must be executed inside Drawmanager Opengl Context. */
+/* Must be executed inside Draw-manager OpenGL Context. */
 void GPU_viewport_free(GPUViewport *viewport)
 {
   gpu_viewport_engines_data_free(viewport);

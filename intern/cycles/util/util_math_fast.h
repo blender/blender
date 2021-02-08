@@ -84,7 +84,7 @@ ccl_device_inline int fast_rint(float x)
 {
   /* used by sin/cos/tan range reduction. */
 #ifdef __KERNEL_SSE4__
-  /* Single roundps instruction on SSE4.1+ (for gcc/clang at least). */
+  /* Single `roundps` instruction on SSE4.1+ (for gcc/clang at least). */
   return float_to_int(rintf(x));
 #else
   /* emulate rounding by adding/subtracting 0.5. */
@@ -613,7 +613,7 @@ ccl_device_inline float fast_erfcf(float x)
 
 ccl_device_inline float fast_ierff(float x)
 {
-  /* From: Approximating the erfinv function by Mike Giles. */
+  /* From: Approximating the `erfinv` function by Mike Giles. */
   /* To avoid trouble at the limit, clamp input to 1-eps. */
   float a = fabsf(x);
   if (a > 0.99999994f) {

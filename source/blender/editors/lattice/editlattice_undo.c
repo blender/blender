@@ -212,8 +212,11 @@ static bool lattice_undosys_step_encode(struct bContext *C, Main *bmain, UndoSte
   return true;
 }
 
-static void lattice_undosys_step_decode(
-    struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir), bool UNUSED(is_final))
+static void lattice_undosys_step_decode(struct bContext *C,
+                                        struct Main *bmain,
+                                        UndoStep *us_p,
+                                        const eUndoStepDir UNUSED(dir),
+                                        bool UNUSED(is_final))
 {
   LatticeUndoStep *us = (LatticeUndoStep *)us_p;
 
@@ -283,7 +286,7 @@ void ED_lattice_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = lattice_undosys_foreach_ID_ref;
 
-  ut->use_context = true;
+  ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE;
 
   ut->step_size = sizeof(LatticeUndoStep);
 }

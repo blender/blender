@@ -868,7 +868,7 @@ static bool joint_callback(const iTaSC::Timestamp &timestamp,
     float rmat[3][3];
 
     if (chan->rotmode > 0) {
-      /* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation
+      /* Euler rotations (will cause gimbal lock, but this can be alleviated a bit with rotation
        * orders) */
       eulO_to_mat3(rmat, chan->eul, chan->rotmode);
     }
@@ -1878,7 +1878,7 @@ static void execute_scene(struct Depsgraph *depsgraph,
 
 /*---------------------------------------------------
  * plugin interface
- * */
+ */
 void itasc_initialize_tree(struct Depsgraph *depsgraph,
                            struct Scene *scene,
                            Object *ob,

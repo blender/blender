@@ -42,32 +42,20 @@ static Geometry::Type determine_geom_type(BL::Object &b_ob, bool use_particle_ha
   return Geometry::MESH;
 }
 
-Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
-                                     BL::Object &b_ob,
-                                     BL::Object &b_ob_instance,
-                                     bool object_updated,
-                                     bool use_particle_hair,
-                                     TaskPool *task_pool)
+array<Node *> BlenderSync::find_used_shaders(BL::Object &b_ob)
 {
-  /* Test if we can instance or if the object is modified. */
-  BL::ID b_ob_data = b_ob.data();
-  BL::ID b_key_id = (BKE_object_is_modified(b_ob)) ? b_ob_instance : b_ob_data;
   BL::Material material_override = view_layer.material_override;
   Shader *default_shader = (b_ob.type() == BL::Object::type_VOLUME) ? scene->default_volume :
                                                                       scene->default_surface;
-  Geometry::Type geom_type = determine_geom_type(b_ob, use_particle_hair);
-  GeometryKey key(b_key_id.ptr.data, geom_type);
 
-  /* Find shader indices. */
   array<Node *> used_shaders;
 
-  BL::Object::material_slots_iterator slot;
-  for (b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
+  for (BL::MaterialSlot &b_slot : b_ob.material_slots) {
     if (material_override) {
       find_shader(material_override, used_shaders, default_shader);
     }
     else {
-      BL::ID b_material(slot->material());
+      BL::ID b_material(b_slot.material());
       find_shader(b_material, used_shaders, default_shader);
     }
   }
@@ -78,6 +66,25 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
     else
       used_shaders.push_back_slow(default_shader);
   }
+
+  return used_shaders;
+}
+
+Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
+                                     BL::Object &b_ob,
+                                     BL::Object &b_ob_instance,
+                                     bool object_updated,
+                                     bool use_particle_hair,
+                                     TaskPool *task_pool)
+{
+  /* Test if we can instance or if the object is modified. */
+  BL::ID b_ob_data = b_ob.data();
+  BL::ID b_key_id = (BKE_object_is_modified(b_ob)) ? b_ob_instance : b_ob_data;
+  Geometry::Type geom_type = determine_geom_type(b_ob, use_particle_hair);
+  GeometryKey key(b_key_id.ptr.data, geom_type);
+
+  /* Find shader indices. */
+  array<Node *> used_shaders = find_used_shaders(b_ob);
 
   /* Ensure we only sync instanced geometry once. */
   Geometry *geom = geometry_map.find(key);
@@ -124,7 +131,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
       foreach (Node *node, geom->get_used_shaders()) {
         Shader *shader = static_cast<Shader *>(node);
-        if (shader->need_update_geometry) {
+        if (shader->need_update_geometry()) {
           attribute_recalc = true;
         }
       }

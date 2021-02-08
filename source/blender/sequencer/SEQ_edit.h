@@ -27,10 +27,10 @@
 extern "C" {
 #endif
 
+struct ListBase;
+struct Main;
 struct Scene;
 struct Sequence;
-struct Main;
-struct ListBase;
 
 int SEQ_edit_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
 void SEQ_edit_flag_for_removal(struct Scene *scene,

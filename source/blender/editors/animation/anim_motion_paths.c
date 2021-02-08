@@ -331,7 +331,7 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
     int fcu_sfra = motionpath_get_prev_prev_keyframe(mpt, &fcu_keys, current_frame);
     int fcu_efra = motionpath_get_next_next_keyframe(mpt, &fcu_keys, current_frame);
 
-    /* Extend range furher, since accelleration compensation propagates even further away. */
+    /* Extend range further, since acceleration compensation propagates even further away. */
     if (fcu->auto_smoothing != FCURVE_SMOOTH_NONE) {
       fcu_sfra = motionpath_get_prev_prev_keyframe(mpt, &fcu_keys, fcu_sfra);
       fcu_efra = motionpath_get_next_next_keyframe(mpt, &fcu_keys, fcu_efra);

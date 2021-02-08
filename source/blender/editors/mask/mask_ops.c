@@ -226,13 +226,19 @@ typedef struct SlidePointData {
   int width, height;
 
   float prev_mouse_coord[2];
+
+  /* Previous clip coordinate which was resolved from mouse position (0, 0).
+   * Is used to compensate for view offset moving in-between of mouse events when
+   * lock-to-selection is enabled. */
+  float prev_zero_coord[2];
+
   float no[2];
 
   bool is_curvature_only, is_accurate, is_initial_feather, is_overall_feather;
 
   bool is_sliding_new_point;
 
-  /* Data needed to restre the state. */
+  /* Data needed to restore the state. */
   float vec[3][3];
   char old_h1, old_h2;
 
@@ -431,6 +437,9 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
   const float threshold = 19;
   eMaskWhichHandle which_handle;
 
+  MaskViewLockState lock_state;
+  ED_mask_view_lock_state_store(C, &lock_state);
+
   ED_mask_mouse_pos(area, region, event->mval, co);
   ED_mask_get_size(area, &width, &height);
 
@@ -530,7 +539,15 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
     }
     customdata->which_handle = which_handle;
 
+    {
+      WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+      DEG_id_tag_update(&mask->id, 0);
+
+      ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
+    }
+
     ED_mask_mouse_pos(area, region, event->mval, customdata->prev_mouse_coord);
+    ED_mask_mouse_pos(area, region, (int[2]){0, 0}, customdata->prev_zero_coord);
   }
 
   return customdata;
@@ -655,10 +672,24 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       ED_mask_mouse_pos(area, region, event->mval, co);
       sub_v2_v2v2(delta, co, data->prev_mouse_coord);
+      copy_v2_v2(data->prev_mouse_coord, co);
+
+      /* Compensate for possibly moved view offset since the last event.
+       * The idea is to see how mapping of a fixed and known position did change. */
+      {
+        float zero_coord[2];
+        ED_mask_mouse_pos(area, region, (int[2]){0, 0}, zero_coord);
+
+        float zero_delta[2];
+        sub_v2_v2v2(zero_delta, zero_coord, data->prev_zero_coord);
+        sub_v2_v2(delta, zero_delta);
+
+        copy_v2_v2(data->prev_zero_coord, zero_coord);
+      }
+
       if (data->is_accurate) {
         mul_v2_fl(delta, 0.2f);
       }
-      copy_v2_v2(data->prev_mouse_coord, co);
 
       if (data->action == SLIDE_ACTION_HANDLE) {
         float new_handle[2];
@@ -832,7 +863,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
       if (event->type == data->event_invoke_type && event->val == KM_RELEASE) {
         Scene *scene = CTX_data_scene(C);
 
-        /* dont key sliding feather uw's */
+        /* Don't key sliding feather UW's. */
         if ((data->action == SLIDE_ACTION_FEATHER && data->uw) == false) {
           if (IS_AUTOKEY_ON(scene)) {
             ED_mask_layer_shape_auto_key(data->mask_layer, CFRA);
@@ -966,6 +997,9 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(bContext *C,
   float u, co[2];
   BezTriple *next_bezt;
 
+  MaskViewLockState lock_state;
+  ED_mask_view_lock_state_store(C, &lock_state);
+
   ED_mask_mouse_pos(CTX_wm_area(C), CTX_wm_region(C), event->mval, co);
 
   if (!ED_mask_find_nearest_diff_point(C,
@@ -1019,7 +1053,7 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(bContext *C,
   slide_data->bezt_backup = *slide_data->adjust_bezt;
   slide_data->other_bezt_backup = *slide_data->other_bezt;
 
-  /* Let's dont touch other side of the point for now, so set handle to FREE. */
+  /* Let's don't touch other side of the point for now, so set handle to FREE. */
   if (u < 0.5f) {
     if (slide_data->adjust_bezt->h2 <= HD_VECT) {
       slide_data->adjust_bezt->h2 = HD_FREE;
@@ -1046,6 +1080,9 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(bContext *C,
   mask_layer->act_spline = spline;
   mask_layer->act_point = point;
   ED_mask_select_flush_all(mask);
+
+  DEG_id_tag_update(&mask->id, 0);
+  ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
 
   return slide_data;
 }
@@ -1233,7 +1270,7 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
     case LEFTMOUSE:
     case RIGHTMOUSE:
       if (event->type == slide_data->event_invoke_type && event->val == KM_RELEASE) {
-        /* dont key sliding feather uw's */
+        /* Don't key sliding feather UW's. */
         if (IS_AUTOKEY_ON(scene)) {
           ED_mask_layer_shape_auto_key(slide_data->mask_layer, CFRA);
         }

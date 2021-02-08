@@ -1256,7 +1256,7 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
      *
      * Each version has slightly different criteria for detecting an edge pixel.
      */
-    if (this->m_adjecentOnly) {  // if "adjacent only" inner edge mode is turned on
+    if (this->m_adjacentOnly) {  // if "adjacent only" inner edge mode is turned on
       if (this->m_keepInside) {  // if "keep inside" buffer edge mode is turned on
         do_adjacentKeepBorders(t, rw, limask, lomask, lres, res, rsize);
       }
@@ -1313,7 +1313,7 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
   this->addOutputSocket(COM_DT_VALUE);
   this->m_inputInnerMask = nullptr;
   this->m_inputOuterMask = nullptr;
-  this->m_adjecentOnly = false;
+  this->m_adjacentOnly = false;
   this->m_keepInside = false;
   this->setComplex(true);
 }

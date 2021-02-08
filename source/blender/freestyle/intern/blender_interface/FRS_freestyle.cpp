@@ -178,24 +178,6 @@ static void init_view(Render *re)
   }
 }
 
-static void init_camera(Render *re)
-{
-  // It is assumed that imported meshes are in the camera coordinate system.
-  // Therefore, the view point (i.e., camera position) is at the origin, and
-  // the model-view matrix is simply the identity matrix.
-
-  zero_v3(g_freestyle.viewpoint);
-
-  unit_m4(g_freestyle.mv);
-
-  copy_m4_m4(g_freestyle.proj, re->winmat);
-
-#if 0
-  print_m4("mv", g_freestyle.mv);
-  print_m4("proj", g_freestyle.proj);
-#endif
-}
-
 static char *escape_quotes(char *name)
 {
   char *s = (char *)MEM_mallocN(strlen(name) * 2 + 1, "escape_quotes");
@@ -518,6 +500,11 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
   int x, y, rectx, recty;
 
   if (freestyle_render == nullptr || freestyle_render->result == nullptr) {
+    if (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS) {
+      // Create a blank render pass output.
+      RE_create_render_pass(
+          re->result, RE_PASSNAME_FREESTYLE, 4, "RGBA", view_layer->name, re->viewname);
+    }
     return;
   }
 
@@ -632,9 +619,8 @@ void FRS_init_stroke_renderer(Render *re)
   controller->ResetRenderCount();
 }
 
-void FRS_begin_stroke_rendering(Render *re)
+void FRS_begin_stroke_rendering(Render *UNUSED(re))
 {
-  init_camera(re);
 }
 
 void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
@@ -656,6 +642,15 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
       &re->scene->view_layers, view_layer->name, offsetof(ViewLayer, name));
   Depsgraph *depsgraph = DEG_graph_new(re->main, re->scene, scene_view_layer, DAG_EVAL_RENDER);
   BKE_scene_graph_update_for_newframe(depsgraph);
+
+  /* Init camera
+   * Objects are transformed into camera coordinate system, therefore the camera position
+   * is zero and the modelview matrix is the identity matrix. */
+  Object *ob_camera_orig = RE_GetCamera(re);
+  Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, ob_camera_orig);
+  zero_v3(g_freestyle.viewpoint);
+  unit_m4(g_freestyle.mv);
+  RE_GetCameraWindow(re, ob_camera_eval, g_freestyle.proj);
 
   // prepare Freestyle:
   //   - load mesh
@@ -687,8 +682,8 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
       g_freestyle.scene = nullptr;
 
       // composite result
+      FRS_composite_result(re, view_layer, freestyle_render);
       if (freestyle_render) {
-        FRS_composite_result(re, view_layer, freestyle_render);
         RE_FreeRender(freestyle_render);
       }
     }

@@ -215,7 +215,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
     return false;
   }
 
-  /* for each AnimData block with NLA-data, try exitting tweak-mode */
+  /* For each AnimData block with NLA-data, try exiting tweak-mode. */
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ale->data;
 
@@ -418,7 +418,7 @@ static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, floa
   int filter;
 
   SpaceNla *snla = (SpaceNla *)ac->sl;
-  /* NOTE: not bool, since we want prioritise individual channels over expanders */
+  /* NOTE: not bool, since we want prioritize individual channels over expanders. */
   short found = 0;
 
   /* get all items - we need to do it this way */
@@ -442,7 +442,7 @@ static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, floa
       found = acf->channel_role;
 
       /* only stop our search when we've found an actual channel
-       * - datablock expanders get less priority so that we don't abort prematurely
+       * - data-block expanders get less priority so that we don't abort prematurely
        */
       if (found == ACHANNEL_ROLE_CHANNEL) {
         break;
@@ -693,7 +693,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
   DEG_relations_tag_update(ac.bmain);
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -823,7 +823,7 @@ static int nlaedit_add_transition_exec(bContext *C, wmOperator *op)
     ED_nla_postop_refresh(&ac);
 
     /* set notifier that things have changed */
-    WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
     /* done */
     return OPERATOR_FINISHED;
@@ -920,7 +920,7 @@ static int nlaedit_add_sound_exec(bContext *C, wmOperator *UNUSED(op))
   ED_nla_postop_refresh(&ac);
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -992,7 +992,7 @@ static int nlaedit_add_meta_exec(bContext *C, wmOperator *UNUSED(op))
   ANIM_animdata_freelist(&anim_data);
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -1053,7 +1053,7 @@ static int nlaedit_remove_meta_exec(bContext *C, wmOperator *UNUSED(op))
   ANIM_animdata_freelist(&anim_data);
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -1155,7 +1155,7 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
     }
 
     /* set notifier that things have changed */
-    WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
     /* done */
     return OPERATOR_FINISHED;
@@ -1260,7 +1260,7 @@ static int nlaedit_delete_exec(bContext *C, wmOperator *UNUSED(op))
   DEG_relations_tag_update(ac.bmain);
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -1415,7 +1415,7 @@ static int nlaedit_split_exec(bContext *C, wmOperator *UNUSED(op))
   ED_nla_postop_refresh(&ac);
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -1532,11 +1532,11 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
     const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(ale->id);
 
     if (BKE_nlatrack_is_nonlocal_in_liboverride(ale->id, nlt)) {
-      /* No re-ordering of strips whithin non-local tracks of override data. */
+      /* No re-ordering of strips within non-local tracks of override data. */
       continue;
     }
 
-    /* make temporary metastrips so that entire islands of selections can be moved around */
+    /* Make temporary meta-strips so that entire islands of selections can be moved around. */
     BKE_nlastrips_make_metas(&nlt->strips, 1);
 
     /* special case: if there is only 1 island
@@ -1659,6 +1659,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ORDER, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -1744,6 +1745,7 @@ static int nlaedit_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ORDER, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -1829,6 +1831,7 @@ static int nlaedit_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ORDER, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -2002,7 +2005,7 @@ static int nlaedit_make_single_user_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
   /* done */
   return OPERATOR_FINISHED;
@@ -2241,6 +2244,8 @@ static int nlaedit_snap_exec(bContext *C, wmOperator *op)
   scene = ac.scene;
   secf = (float)FPS;
 
+  bool any_added = false;
+
   /* since we may add tracks, perform this in reverse order */
   for (ale = anim_data.last; ale; ale = ale->prev) {
     ListBase tmp_strips = {NULL, NULL};
@@ -2314,6 +2319,8 @@ static int nlaedit_snap_exec(bContext *C, wmOperator *op)
         /* clear temp meta-strips on this new track,
          * as we may not be able to get back to it */
         BKE_nlastrips_clear_metas(&track->strips, 0, 1);
+
+        any_added = true;
       }
     }
 
@@ -2333,6 +2340,9 @@ static int nlaedit_snap_exec(bContext *C, wmOperator *op)
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  if (any_added) {
+    WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
+  }
 
   /* done */
   return OPERATOR_FINISHED;

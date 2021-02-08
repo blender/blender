@@ -129,12 +129,11 @@ static void topbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *regi
   ED_region_header_init(region);
 }
 
-static void topbar_main_region_listener(wmWindow *UNUSED(win),
-                                        ScrArea *UNUSED(area),
-                                        ARegion *region,
-                                        wmNotifier *wmn,
-                                        const Scene *UNUSED(scene))
+static void topbar_main_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_WM:
@@ -160,12 +159,11 @@ static void topbar_main_region_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void topbar_header_listener(wmWindow *UNUSED(win),
-                                   ScrArea *UNUSED(area),
-                                   ARegion *region,
-                                   wmNotifier *wmn,
-                                   const Scene *UNUSED(scene))
+static void topbar_header_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_WM:
@@ -191,14 +189,12 @@ static void topbar_header_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void topbar_header_region_message_subscribe(const struct bContext *UNUSED(C),
-                                                   struct WorkSpace *workspace,
-                                                   struct Scene *UNUSED(scene),
-                                                   struct bScreen *UNUSED(screen),
-                                                   struct ScrArea *UNUSED(area),
-                                                   struct ARegion *region,
-                                                   struct wmMsgBus *mbus)
+static void topbar_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  WorkSpace *workspace = params->workspace;
+  ARegion *region = params->region;
+
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
       .user_data = region,

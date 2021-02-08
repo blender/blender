@@ -526,10 +526,10 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
     if (eve->poly_nr == nr) {
       if (eve->f != SF_VERT_ZERO_LEN) {
         verts++;
-        eve->f = SF_VERT_NEW; /* flag for connectedges later on */
+        eve->f = SF_VERT_NEW; /* Flag for connect edges later on. */
         sc->vert = eve;
         sc->edge_first = sc->edge_last = NULL;
-        /* Note, debug print only will work for curve polyfill, union is in use for mesh */
+        /* Note, debug print only will work for curve poly-fill, union is in use for mesh. */
         /* if (even->tmp.v == NULL) eve->tmp.u = verts; */
         sc++;
       }
@@ -609,7 +609,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
   sc = scdata;
   for (a = 0; a < verts; a++) {
     /* printf("VERTEX %d index %d\n", a, sc->vert->tmp.u); */
-    /* set connectflags  */
+    /* Set connect-flags. */
     for (ed1 = sc->edge_first; ed1; ed1 = eed_next) {
       eed_next = ed1->next;
       if (ed1->v1->edge_tot == 1 || ed1->v2->edge_tot == 1) {

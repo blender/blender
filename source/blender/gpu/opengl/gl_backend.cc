@@ -96,6 +96,11 @@ void GLBackend::platform_init()
     GPG.device = GPU_DEVICE_SOFTWARE;
     GPG.driver = GPU_DRIVER_SOFTWARE;
   }
+  else if (strstr(vendor, "Apple")) {
+    /* Apple Silicon. */
+    GPG.device = GPU_DEVICE_APPLE;
+    GPG.driver = GPU_DRIVER_OFFICIAL;
+  }
   else if (strstr(renderer, "Apple Software Renderer")) {
     GPG.device = GPU_DEVICE_SOFTWARE;
     GPG.driver = GPU_DRIVER_SOFTWARE;
@@ -127,19 +132,6 @@ void GLBackend::platform_init()
           strstr(version, "Build 9.18") || strstr(version, "Build 10.18.10.3") ||
           strstr(version, "Build 10.18.10.4") || strstr(version, "Build 10.18.10.5") ||
           strstr(version, "Build 10.18.14.4")) {
-        GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
-      }
-    }
-
-    /* Driver 20.11.2/3 fixes a lot of issues for the Navi cards, but introduces new ones
-     * for Polaris based cards cards. The viewport has glitches but doesn't crash.
-     * See T82856,T83574.  */
-    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
-        (strstr(version, " 20.11.2 ") || strstr(version, " 20.11.3 "))) {
-      if (strstr(renderer, "Radeon RX 460 ") || strstr(renderer, "Radeon RX 470 ") ||
-          strstr(renderer, "Radeon RX 480 ") || strstr(renderer, "Radeon RX 490 ") ||
-          strstr(renderer, "Radeon RX 560 ") || strstr(renderer, "Radeon RX 570 ") ||
-          strstr(renderer, "Radeon RX 580 ") || strstr(renderer, "Radeon RX 590 ")) {
         GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
@@ -257,15 +249,16 @@ static void detect_workarounds()
   if (!GLEW_VERSION_4_0) {
     GLContext::base_instance_support = false;
   }
-  /* The renderers include:
-   *   Mobility Radeon HD 5000;
-   *   Radeon HD 7500M;
-   *   Radeon HD 7570M;
-   *   Radeon HD 7600M;
-   * And many others... */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(version, "4.5.13399") || strstr(version, "4.5.13417") ||
-       strstr(version, "4.5.13422"))) {
+       strstr(version, "4.5.13422") || strstr(version, "4.5.13467"))) {
+    /* The renderers include:
+     *   Radeon HD 5000;
+     *   Radeon HD 7500M;
+     *   Radeon HD 7570M;
+     *   Radeon HD 7600M;
+     *   Radeon R5 Graphics;
+     * And others... */
     GLContext::unused_fb_slot_workaround = true;
     GCaps.mip_render_workaround = true;
     GCaps.shader_image_load_store_support = false;
@@ -284,6 +277,21 @@ static void detect_workarounds()
     GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
   }
+  /* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
+   * `GL_INT_2_10_10_10_REV` data type correctly. This data type is used to pack normals and flags.
+   * The work around uses `GPU_RGBA16I`.
+   */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
+        strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
+        strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
+        strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
+        strstr(renderer, " RX 590 ") || strstr(renderer, " RX550/550 ") ||
+        strstr(renderer, " (TM) 520  ") || strstr(renderer, " (TM) 530  ") ||
+        strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
+      GCaps.use_hq_normals_workaround = true;
+    }
+  }
   /* There is an issue with the #glBlitFramebuffer on MacOS with radeon pro graphics.
    * Blitting depth with#GL_DEPTH24_STENCIL8 is buggy so the workaround is to use
    * #GPU_DEPTH32F_STENCIL8. Then Blitting depth will work but blitting stencil will
@@ -300,7 +308,7 @@ static void detect_workarounds()
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) && !GLEW_VERSION_4_5) {
     GLContext::copy_image_support = false;
   }
-  /* Special fix for theses specific GPUs.
+  /* Special fix for these specific GPUs.
    * Without this workaround, blender crashes on startup. (see T72098) */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(renderer, "HD Graphics 620") || strstr(renderer, "HD Graphics 630"))) {
@@ -359,14 +367,14 @@ static void detect_workarounds()
     }
   }
 
-  /* Some Intel drivers have issues with using mips as framebuffer targets if
-   * GL_TEXTURE_MAX_LEVEL is higher than the target mip.
+  /* Some Intel drivers have issues with using mips as frame-buffer targets if
+   * GL_TEXTURE_MAX_LEVEL is higher than the target MIP.
    * Only check at the end after all other workarounds because this uses the drawing code.
    * Also after device/driver flags to avoid the check that causes pre GCN Radeon to crash. */
   if (GCaps.mip_render_workaround == false) {
     GCaps.mip_render_workaround = detect_mip_render_workaround();
   }
-  /* Disable multidraw if the base instance cannot be read. */
+  /* Disable multi-draw if the base instance cannot be read. */
   if (GLContext::shader_draw_parameters_support == false) {
     GLContext::multi_draw_indirect_support = false;
   }
@@ -374,7 +382,7 @@ static void detect_workarounds()
   if (GLContext::debug_layer_support == false) {
     GLContext::debug_layer_workaround = true;
   }
-}
+}  // namespace blender::gpu
 
 /** Internal capabilities. */
 GLint GLContext::max_cubemap_size = 0;

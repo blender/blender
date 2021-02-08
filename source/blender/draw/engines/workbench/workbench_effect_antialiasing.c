@@ -75,7 +75,7 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
     swap_v2_v2(table[0], table[closest_index]);
   }
 
-  /* sort list based on furtest distance with previous */
+  /* Sort list based on farthest distance with previous. */
   for (int i = 0; i < num - 2; i++) {
     float f_squared_dist = 0.0;
     int f_index = i;

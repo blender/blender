@@ -62,45 +62,31 @@ if(WIN32)
     target_link_options(blender_test PRIVATE /wholearchive:$<TARGET_FILE:${_lib}>)
   endforeach()
 elseif(APPLE)
+  # force_load for `_test_libs` ensures that all symbols definitely make it into the test binary.
+  # But linking against them again using `target_link_libraries` creates duplicate symbol
+  # errors when linker cannot deduplicate a force loaded and linked library.
+  # So force load test libraries separately, and link against their non-"test libraries"
+  # dependencies separately.
+
+  # Gather dependencies of all test libraries.
+  set(_test_libs_dependencies)
   foreach(_lib ${_test_libs})
-    # We need -force_load for every test library and target_link_libraries will
-    # deduplicate it. So explicitly set as linker option for every test lib.
-    target_link_libraries(blender_test ${_lib})
+    get_target_property(_interface_libs ${_lib} INTERFACE_LINK_LIBRARIES)
+    if(_interface_libs)
+      list(APPEND _test_libs_dependencies ${_interface_libs})
+    endif()
+    unset(_interface_libs)
+  endforeach()
+
+  # Force load test libraries. Ensure that they are not linked twice in case they
+  # are used as dependencies of other test libraries.
+  foreach(_lib ${_test_libs})
+    list(REMOVE_ITEM _test_libs_dependencies ${_lib})
     target_link_options(blender_test PRIVATE "LINKER:-force_load,$<TARGET_FILE:${_lib}>")
   endforeach()
+
+  target_link_libraries(blender_test "${_test_libs_dependencies}")
+  unset(_test_libs_dependencies)
 endif()
 
 unset(_test_libs)
-
-# This runs the blender_test executable with `--gtest_list_tests`, then
-# exposes those tests individually to the ctest runner.
-# See https://cmake.org/cmake/help/v3.18/module/GoogleTest.html
-#
-# We have our own modified copy of this CMake module.
-include(GTest)
-
-set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
-  ${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/GTestAddTests.cmake
-)
-
-if(APPLE)
-  set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Contents/Resources/${BLENDER_VERSION})
-else()
-  if(WIN32 OR WITH_INSTALL_PORTABLE)
-    set(_test_release_dir ${TEST_INSTALL_DIR}/${BLENDER_VERSION})
-  else()
-    set(_test_release_dir ${TEST_INSTALL_DIR}/share/blender/${BLENDER_VERSION})
-  endif()
-endif()
-
-gtest_discover_tests(blender_test
-  WORKING_DIRECTORY "${TEST_INSTALL_DIR}"
-# So that it will run after the install phase that will copy the required libraries
-  DISCOVERY_MODE PRE_TEST
-# So that unit tests know where to find files:
-  EXTRA_ARGS
-    --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
-    --test-release-dir "${_test_release_dir}"
-)
-
-unset(_test_release_dir)

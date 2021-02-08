@@ -20,6 +20,7 @@
  * \ingroup modifiers
  */
 
+#include "BLI_alloca.h"
 #include "BLI_math.h"
 #include "BLI_math_geom.h"
 #include "BLI_task.h"
@@ -103,7 +104,7 @@ typedef struct SDefBindCalcData {
  * needed once when running bind, so optimizing this structure isn't a priority.
  */
 typedef struct SDefBindPoly {
-  /** Coordinates copied directly from the modifiers inptut. */
+  /** Coordinates copied directly from the modifiers input. */
   float (*coords)[3];
   /** Coordinates projected into 2D space using `normal`. */
   float (*coords_v2)[2];
@@ -113,7 +114,12 @@ typedef struct SDefBindPoly {
   float weight_dist_proj;
   float weight_dist;
   float weight;
+  /** Distances from the centroid to edges flanking the corner vertex, used to penalize
+   *  small or long and narrow faces in favor of bigger and more square ones. */
   float scales[2];
+  /** Distance weight from the corner vertex to the chord line, used to penalize
+   *  cases with the three consecutive vertices being nearly in line. */
+  float scale_mid;
   /** Center of `coords` */
   float centroid[3];
   /** Center of `coords_v2` */
@@ -122,15 +128,18 @@ typedef struct SDefBindPoly {
    * The calculated normal of coords (could be shared between faces).
    */
   float normal[3];
+  /** Vectors pointing from the centroid to the midpoints of the two edges
+   *  flanking the corner vertex. */
   float cent_edgemid_vecs_v2[2][2];
-  /**
-   * The unsigned angle of this face-corner in `[0.0 .. PI]` range,
-   * where a small value is a thin corner. PI is is a straight line.
-   * Take care dividing by this value as it can approach zero.
-   */
+  /** Angle between the cent_edgemid_vecs_v2 vectors. */
   float edgemid_angle;
+  /** Angles between the centroid-to-point and cent_edgemid_vecs_v2 vectors.
+   *  Positive values measured towards the corner; clamped non-negative. */
   float point_edgemid_angles[2];
+  /** Angles between the centroid-to-corner and cent_edgemid_vecs_v2 vectors. */
   float corner_edgemid_angles[2];
+  /** Weight of the bind mode based on the corner and two adjacent vertices,
+   *  versus the one based on the centroid and the dominant edge. */
   float dominant_angle_weight;
   /** Index of the input polygon. */
   uint index;
@@ -160,7 +169,9 @@ typedef struct SDefDeformData {
   const SDefVert *const bind_verts;
   float (*const targetCos)[3];
   float (*const vertexCos)[3];
-  float *const weights;
+  const MDeformVert *const dvert;
+  int const defgrp_index;
+  bool const invert_vgroup;
   float const strength;
 } SDefDeformData;
 
@@ -411,13 +422,14 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
 
 BLI_INLINE int isPolyValid(const float coords[][2], const uint nr)
 {
-  float prev_co[2];
+  float prev_co[2], prev_prev_co[2];
   float curr_vec[2], prev_vec[2];
 
   if (!is_poly_convex_v2(coords, nr)) {
     return MOD_SDEF_BIND_RESULT_CONCAVE_ERR;
   }
 
+  copy_v2_v2(prev_prev_co, coords[nr - 2]);
   copy_v2_v2(prev_co, coords[nr - 1]);
   sub_v2_v2v2(prev_vec, prev_co, coords[nr - 2]);
   normalize_v2(prev_vec);
@@ -425,15 +437,23 @@ BLI_INLINE int isPolyValid(const float coords[][2], const uint nr)
   for (int i = 0; i < nr; i++) {
     sub_v2_v2v2(curr_vec, coords[i], prev_co);
 
+    /* Check overlap between directly adjacent vertices. */
     const float curr_len = normalize_v2(curr_vec);
     if (curr_len < FLT_EPSILON) {
       return MOD_SDEF_BIND_RESULT_OVERLAP_ERR;
     }
 
+    /* Check overlap between vertices skipping one. */
+    if (len_squared_v2v2(prev_prev_co, coords[i]) < FLT_EPSILON * FLT_EPSILON) {
+      return MOD_SDEF_BIND_RESULT_OVERLAP_ERR;
+    }
+
+    /* Check for adjacent parallel edges. */
     if (1.0f - dot_v2v2(prev_vec, curr_vec) < FLT_EPSILON) {
       return MOD_SDEF_BIND_RESULT_CONCAVE_ERR;
     }
 
+    copy_v2_v2(prev_prev_co, prev_co);
     copy_v2_v2(prev_co, coords[i]);
     copy_v2_v2(prev_vec, curr_vec);
   }
@@ -457,9 +477,9 @@ static void freeBindData(SDefBindWeightData *const bwdata)
   MEM_freeN(bwdata);
 }
 
-BLI_INLINE float computeAngularWeight(const float point_angle)
+BLI_INLINE float computeAngularWeight(const float point_angle, const float edgemid_angle)
 {
-  return sinf(point_angle * M_PI_2);
+  return sinf(min_ff(point_angle / edgemid_angle, 1) * M_PI_2);
 }
 
 BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
@@ -600,33 +620,51 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
 
         avg_point_dist += bpoly->weight_dist;
 
-        /* Compute centroid to mid-edge vectors */
-        mid_v2_v2v2(bpoly->cent_edgemid_vecs_v2[0],
-                    bpoly->coords_v2[bpoly->edge_vert_inds[0]],
-                    bpoly->coords_v2[bpoly->corner_ind]);
+        /* Common vertex coordinates. */
+        const float *const vert0_v2 = bpoly->coords_v2[bpoly->edge_vert_inds[0]];
+        const float *const vert1_v2 = bpoly->coords_v2[bpoly->edge_vert_inds[1]];
+        const float *const corner_v2 = bpoly->coords_v2[bpoly->corner_ind];
 
-        mid_v2_v2v2(bpoly->cent_edgemid_vecs_v2[1],
-                    bpoly->coords_v2[bpoly->edge_vert_inds[1]],
-                    bpoly->coords_v2[bpoly->corner_ind]);
+        /* Compute centroid to mid-edge vectors */
+        mid_v2_v2v2(bpoly->cent_edgemid_vecs_v2[0], vert0_v2, corner_v2);
+        mid_v2_v2v2(bpoly->cent_edgemid_vecs_v2[1], vert1_v2, corner_v2);
 
         sub_v2_v2(bpoly->cent_edgemid_vecs_v2[0], bpoly->centroid_v2);
         sub_v2_v2(bpoly->cent_edgemid_vecs_v2[1], bpoly->centroid_v2);
 
-        /* Compute poly scales with respect to mid-edges, and normalize the vectors */
-        bpoly->scales[0] = normalize_v2(bpoly->cent_edgemid_vecs_v2[0]);
-        bpoly->scales[1] = normalize_v2(bpoly->cent_edgemid_vecs_v2[1]);
+        normalize_v2(bpoly->cent_edgemid_vecs_v2[0]);
+        normalize_v2(bpoly->cent_edgemid_vecs_v2[1]);
 
-        /* Compute the required polygon angles */
+        /* Compute poly scales with respect to the two edges. */
+        bpoly->scales[0] = dist_to_line_v2(bpoly->centroid_v2, vert0_v2, corner_v2);
+        bpoly->scales[1] = dist_to_line_v2(bpoly->centroid_v2, vert1_v2, corner_v2);
+
+        /* Compute the angle between the edge mid vectors. */
         bpoly->edgemid_angle = angle_normalized_v2v2(bpoly->cent_edgemid_vecs_v2[0],
                                                      bpoly->cent_edgemid_vecs_v2[1]);
 
-        sub_v2_v2v2(tmp_vec_v2, bpoly->coords_v2[bpoly->corner_ind], bpoly->centroid_v2);
+        /* Compute the angles between the corner and the edge mid vectors. The angles
+         * are computed signed in order to correctly clamp point_edgemid_angles later. */
+        float corner_angles[2];
+
+        sub_v2_v2v2(tmp_vec_v2, corner_v2, bpoly->centroid_v2);
         normalize_v2(tmp_vec_v2);
 
-        bpoly->corner_edgemid_angles[0] = angle_normalized_v2v2(tmp_vec_v2,
-                                                                bpoly->cent_edgemid_vecs_v2[0]);
-        bpoly->corner_edgemid_angles[1] = angle_normalized_v2v2(tmp_vec_v2,
-                                                                bpoly->cent_edgemid_vecs_v2[1]);
+        corner_angles[0] = angle_signed_v2v2(tmp_vec_v2, bpoly->cent_edgemid_vecs_v2[0]);
+        corner_angles[1] = angle_signed_v2v2(tmp_vec_v2, bpoly->cent_edgemid_vecs_v2[1]);
+
+        bpoly->corner_edgemid_angles[0] = fabsf(corner_angles[0]);
+        bpoly->corner_edgemid_angles[1] = fabsf(corner_angles[1]);
+
+        /* Verify that the computed values are valid (the polygon isn't somehow
+         * degenerate despite having passed isPolyValid). */
+        if (bpoly->scales[0] < FLT_EPSILON || bpoly->scales[1] < FLT_EPSILON ||
+            bpoly->edgemid_angle < FLT_EPSILON || bpoly->corner_edgemid_angles[0] < FLT_EPSILON ||
+            bpoly->corner_edgemid_angles[1] < FLT_EPSILON) {
+          freeBindData(bwdata);
+          data->success = MOD_SDEF_BIND_RESULT_GENERIC_ERR;
+          return NULL;
+        }
 
         /* Check for infinite weights, and compute angular data otherwise. */
         if (bpoly->weight_dist < FLT_EPSILON) {
@@ -637,15 +675,54 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           inf_weight_flags |= MOD_SDEF_INFINITE_WEIGHT_DIST_PROJ;
         }
         else {
-          float cent_point_vec[2];
+          /* Compute angles between the point and the edge mid vectors.  */
+          float cent_point_vec[2], point_angles[2];
 
           sub_v2_v2v2(cent_point_vec, bpoly->point_v2, bpoly->centroid_v2);
           normalize_v2(cent_point_vec);
 
-          bpoly->point_edgemid_angles[0] = angle_normalized_v2v2(cent_point_vec,
-                                                                 bpoly->cent_edgemid_vecs_v2[0]);
-          bpoly->point_edgemid_angles[1] = angle_normalized_v2v2(cent_point_vec,
-                                                                 bpoly->cent_edgemid_vecs_v2[1]);
+          point_angles[0] = angle_signed_v2v2(cent_point_vec, bpoly->cent_edgemid_vecs_v2[0]) *
+                            signf(corner_angles[0]);
+          point_angles[1] = angle_signed_v2v2(cent_point_vec, bpoly->cent_edgemid_vecs_v2[1]) *
+                            signf(corner_angles[1]);
+
+          if (point_angles[0] <= 0 && point_angles[1] <= 0) {
+            /* If the point is outside the corner formed by the edge mid vectors,
+             * choose to clamp the closest side and flip the other. */
+            if (point_angles[0] < point_angles[1]) {
+              point_angles[0] = bpoly->edgemid_angle - point_angles[1];
+            }
+            else {
+              point_angles[1] = bpoly->edgemid_angle - point_angles[0];
+            }
+          }
+
+          bpoly->point_edgemid_angles[0] = max_ff(0, point_angles[0]);
+          bpoly->point_edgemid_angles[1] = max_ff(0, point_angles[1]);
+
+          /* Compute the distance scale for the corner. The base value is the orthogonal
+           * distance from the corner to the chord, scaled by sqrt(2) to preserve the old
+           * values in case of a square grid. This doesn't use the centroid because the
+           * LOOPTRI method only uses these three vertices. */
+          bpoly->scale_mid = area_tri_v2(vert0_v2, corner_v2, vert1_v2) /
+                             len_v2v2(vert0_v2, vert1_v2) * sqrtf(2);
+
+          if (bpoly->inside) {
+            /* When inside, interpolate to centroid-based scale close to the center. */
+            float min_dist = min_ff(bpoly->scales[0], bpoly->scales[1]);
+
+            bpoly->scale_mid = interpf(bpoly->scale_mid,
+                                       (bpoly->scales[0] + bpoly->scales[1]) / 2,
+                                       min_ff(bpoly->weight_dist_proj / min_dist, 1));
+          }
+
+          /* Verify that the additional computed values are valid. */
+          if (bpoly->scale_mid < FLT_EPSILON ||
+              bpoly->point_edgemid_angles[0] + bpoly->point_edgemid_angles[1] < FLT_EPSILON) {
+            freeBindData(bwdata);
+            data->success = MOD_SDEF_BIND_RESULT_GENERIC_ERR;
+            return NULL;
+          }
         }
       }
     }
@@ -685,12 +762,15 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
 
       /* Compute angular weight component */
       if (epolys->num == 1) {
-        ang_weights[0] = computeAngularWeight(bpolys[0]->point_edgemid_angles[edge_on_poly[0]]);
+        ang_weights[0] = computeAngularWeight(bpolys[0]->point_edgemid_angles[edge_on_poly[0]],
+                                              bpolys[0]->edgemid_angle);
         bpolys[0]->weight_angular *= ang_weights[0] * ang_weights[0];
       }
       else if (epolys->num == 2) {
-        ang_weights[0] = computeAngularWeight(bpolys[0]->point_edgemid_angles[edge_on_poly[0]]);
-        ang_weights[1] = computeAngularWeight(bpolys[1]->point_edgemid_angles[edge_on_poly[1]]);
+        ang_weights[0] = computeAngularWeight(bpolys[0]->point_edgemid_angles[edge_on_poly[0]],
+                                              bpolys[0]->edgemid_angle);
+        ang_weights[1] = computeAngularWeight(bpolys[1]->point_edgemid_angles[edge_on_poly[1]],
+                                              bpolys[1]->edgemid_angle);
 
         bpolys[0]->weight_angular *= ang_weights[0] * ang_weights[1];
         bpolys[1]->weight_angular *= ang_weights[0] * ang_weights[1];
@@ -728,6 +808,13 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         bpoly->dominant_angle_weight = corner_angle_weights[1];
       }
 
+      /* Check for invalid weights just in case computations fail. */
+      if (bpoly->dominant_angle_weight < 0 || bpoly->dominant_angle_weight > 1) {
+        freeBindData(bwdata);
+        data->success = MOD_SDEF_BIND_RESULT_GENERIC_ERR;
+        return NULL;
+      }
+
       bpoly->dominant_angle_weight = sinf(bpoly->dominant_angle_weight * M_PI_2);
 
       /* Compute quadratic angular scale interpolation weight */
@@ -745,10 +832,15 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
       inv_sqr *= inv_sqr;
       scale_weight = sqr / (sqr + inv_sqr);
 
+      BLI_assert(scale_weight >= 0 && scale_weight <= 1);
+
       /* Compute interpolated scale (no longer need the individual scales,
        * so simply storing the result over the scale in index zero) */
-      bpoly->scales[0] = bpoly->scales[bpoly->dominant_edge] * (1.0f - scale_weight) +
-                         bpoly->scales[!bpoly->dominant_edge] * scale_weight;
+      bpoly->scales[0] = interpf(bpoly->scale_mid,
+                                 interpf(bpoly->scales[!bpoly->dominant_edge],
+                                         bpoly->scales[bpoly->dominant_edge],
+                                         scale_weight),
+                                 bpoly->dominant_angle_weight);
 
       /* Scale the point distance weights, and introduce falloff */
       bpoly->weight_dist_proj /= bpoly->scales[0];
@@ -1191,7 +1283,17 @@ static void deformVert(void *__restrict userdata,
   const int num_binds = data->bind_verts[index].numbinds;
   float *const vertexCos = data->vertexCos[index];
   float norm[3], temp[3], offset[3];
-  const float weight = (data->weights != NULL) ? data->weights[index] : 1.0f;
+
+  /* Retrieve the value of the weight vertex group if specified. */
+  float weight = 1.0f;
+
+  if (data->dvert && data->defgrp_index != -1) {
+    weight = BKE_defvert_find_weight(&data->dvert[index], data->defgrp_index);
+
+    if (data->invert_vgroup) {
+      weight = 1.0f - weight;
+    }
+  }
 
   /* Check if this vertex will be deformed. If it is not deformed we return and avoid
    * unnecessary calculations. */
@@ -1206,7 +1308,16 @@ static void deformVert(void *__restrict userdata,
   for (int j = 0; j < num_binds; j++) {
     max_verts = MAX2(max_verts, sdbind[j].numverts);
   }
-  float(*coords_buffer)[3] = MEM_malloc_arrayN(max_verts, sizeof(*coords_buffer), __func__);
+
+  const bool big_buffer = max_verts > 256;
+  float(*coords_buffer)[3];
+
+  if (UNLIKELY(big_buffer)) {
+    coords_buffer = MEM_malloc_arrayN(max_verts, sizeof(*coords_buffer), __func__);
+  }
+  else {
+    coords_buffer = BLI_array_alloca(coords_buffer, max_verts);
+  }
 
   for (int j = 0; j < num_binds; j++, sdbind++) {
     for (int k = 0; k < sdbind->numverts; k++) {
@@ -1216,28 +1327,32 @@ static void deformVert(void *__restrict userdata,
     normal_poly_v3(norm, coords_buffer, sdbind->numverts);
     zero_v3(temp);
 
-    /* ---------- looptri mode ---------- */
-    if (sdbind->mode == MOD_SDEF_MODE_LOOPTRI) {
-      madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[0]], sdbind->vert_weights[0]);
-      madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[1]], sdbind->vert_weights[1]);
-      madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[2]], sdbind->vert_weights[2]);
-    }
-    else {
+    switch (sdbind->mode) {
+      /* ---------- looptri mode ---------- */
+      case MOD_SDEF_MODE_LOOPTRI: {
+        madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[0]], sdbind->vert_weights[0]);
+        madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[1]], sdbind->vert_weights[1]);
+        madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[2]], sdbind->vert_weights[2]);
+        break;
+      }
+
       /* ---------- ngon mode ---------- */
-      if (sdbind->mode == MOD_SDEF_MODE_NGON) {
+      case MOD_SDEF_MODE_NGON: {
         for (int k = 0; k < sdbind->numverts; k++) {
           madd_v3_v3fl(temp, coords_buffer[k], sdbind->vert_weights[k]);
         }
+        break;
       }
 
       /* ---------- centroid mode ---------- */
-      else if (sdbind->mode == MOD_SDEF_MODE_CENTROID) {
+      case MOD_SDEF_MODE_CENTROID: {
         float cent[3];
         mid_v3_v3_array(cent, coords_buffer, sdbind->numverts);
 
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[0]], sdbind->vert_weights[0]);
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[1]], sdbind->vert_weights[1]);
         madd_v3_v3fl(temp, cent, sdbind->vert_weights[2]);
+        break;
       }
     }
 
@@ -1251,7 +1366,10 @@ static void deformVert(void *__restrict userdata,
 
   /* Add the offset to start coord multiplied by the strength and weight values. */
   madd_v3_v3fl(vertexCos, offset, data->strength * weight);
-  MEM_freeN(coords_buffer);
+
+  if (UNLIKELY(big_buffer)) {
+    MEM_freeN(coords_buffer);
+  }
 }
 
 static void surfacedeformModifier_do(ModifierData *md,
@@ -1332,33 +1450,16 @@ static void surfacedeformModifier_do(ModifierData *md,
   int defgrp_index;
   MDeformVert *dvert;
   MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
-  float *weights = NULL;
-  const bool invert_group = (smd->flags & MOD_SDEF_INVERT_VGROUP) != 0;
-
-  if (defgrp_index != -1) {
-    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, mesh->totvert);
-    /* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
-    if (dvert == NULL) {
-      /* Add a valid data layer! */
-      dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, mesh->totvert);
-    }
-
-    if (dvert) {
-      weights = MEM_calloc_arrayN((size_t)numverts, sizeof(*weights), __func__);
-      MDeformVert *dv = dvert;
-      for (uint i = 0; i < numverts; i++, dv++) {
-        weights[i] = invert_group ? (1.0f - BKE_defvert_find_weight(dv, defgrp_index)) :
-                                    BKE_defvert_find_weight(dv, defgrp_index);
-      }
-    }
-  }
+  const bool invert_vgroup = (smd->flags & MOD_SDEF_INVERT_VGROUP) != 0;
 
   /* Actual vertex location update starts here */
   SDefDeformData data = {
       .bind_verts = smd->verts,
       .targetCos = MEM_malloc_arrayN(tnumverts, sizeof(float[3]), "SDefTargetVertArray"),
       .vertexCos = vertexCos,
-      .weights = weights,
+      .dvert = dvert,
+      .defgrp_index = defgrp_index,
+      .invert_vgroup = invert_vgroup,
       .strength = smd->strength,
   };
 
@@ -1372,8 +1473,6 @@ static void surfacedeformModifier_do(ModifierData *md,
 
     MEM_freeN(data.targetCos);
   }
-
-  MEM_SAFE_FREE(weights);
 }
 
 static void deformVerts(ModifierData *md,
@@ -1449,9 +1548,9 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, !is_bound);
   uiItemR(col, ptr, "target", 0, NULL, ICON_NONE);
-
   uiItemR(col, ptr, "falloff", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "strength", 0, NULL, ICON_NONE);
+
+  uiItemR(layout, ptr, "strength", 0, NULL, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 

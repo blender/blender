@@ -233,7 +233,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 
   /* if type is already enabled, toggle it off */
   if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-    int exists = dynamicPaint_outputLayerExists(surface, ob, output);
+    bool exists = dynamicPaint_outputLayerExists(surface, ob, output);
     const char *name;
 
     if (output == 0) {

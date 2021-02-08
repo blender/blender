@@ -1001,7 +1001,7 @@ static void menu_search_update_fn(const bContext *UNUSED(C),
   }
 
   struct MenuSearch_Item **filtered_items;
-  int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_items);
+  const int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_items);
 
   for (int i = 0; i < filtered_amount; i++) {
     struct MenuSearch_Item *item = filtered_items[i];
@@ -1069,6 +1069,7 @@ static bool ui_search_menu_create_context_menu(struct bContext *C,
 
 static struct ARegion *ui_search_menu_create_tooltip(struct bContext *C,
                                                      struct ARegion *region,
+                                                     const rcti *UNUSED(item_rect),
                                                      void *arg,
                                                      void *active)
 {

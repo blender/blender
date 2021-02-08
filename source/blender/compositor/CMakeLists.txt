@@ -71,6 +71,8 @@ set(SRC
   intern/COM_MemoryBuffer.h
   intern/COM_MemoryProxy.cpp
   intern/COM_MemoryProxy.h
+  intern/COM_MetaData.cpp
+  intern/COM_MetaData.h
   intern/COM_Node.cpp
   intern/COM_Node.h
   intern/COM_NodeConverter.cpp
@@ -355,8 +357,6 @@ set(SRC
   operations/COM_KeyingDespillOperation.h
   operations/COM_KeyingOperation.cpp
   operations/COM_KeyingOperation.h
-  operations/COM_KeyingSetAlphaOperation.cpp
-  operations/COM_KeyingSetAlphaOperation.h
 
   operations/COM_ColorSpillOperation.cpp
   operations/COM_ColorSpillOperation.h
@@ -461,8 +461,10 @@ set(SRC
   operations/COM_MapRangeOperation.h
   operations/COM_MapValueOperation.cpp
   operations/COM_MapValueOperation.h
-  operations/COM_SetAlphaOperation.cpp
-  operations/COM_SetAlphaOperation.h
+  operations/COM_SetAlphaMultiplyOperation.cpp
+  operations/COM_SetAlphaMultiplyOperation.h
+  operations/COM_SetAlphaReplaceOperation.cpp
+  operations/COM_SetAlphaReplaceOperation.h
 
   # Distort operation
   operations/COM_DisplaceOperation.cpp

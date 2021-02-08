@@ -263,7 +263,7 @@ static void build_bvh_spatial(PROCESS *process,
  * BASED AT CODE (but mostly rewritten) :
  * C code from the article
  * "An Implicit Surface Polygonizer"
- * by Jules Bloomenthal, jbloom@beauty.gmu.edu
+ * by Jules Bloomenthal <jbloom@beauty.gmu.edu>
  * in "Graphics Gems IV", Academic Press, 1994
  *
  * Authored by Jules Bloomenthal, Xerox PARC.
@@ -1199,7 +1199,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       zero_size = 0;
       ml = NULL;
 
-      /* If this metaball is the original that's used for duplication, only have it it visible when
+      /* If this metaball is the original that's used for duplication, only have it visible when
        * the instancer is visible too. */
       if ((base->flag_legacy & OB_FROMDUPLI) == 0 && ob->parent != NULL &&
           (ob->parent->transflag & parenting_dupli_transflag) != 0 &&

@@ -140,25 +140,34 @@ set(SRC
   function/nodes/node_fn_switch.cc
   function/node_function_util.cc
 
+  geometry/nodes/node_geo_align_rotation_to_vector.cc
   geometry/nodes/node_geo_attribute_color_ramp.cc
   geometry/nodes/node_geo_attribute_compare.cc
   geometry/nodes/node_geo_attribute_fill.cc
   geometry/nodes/node_geo_attribute_math.cc
+  geometry/nodes/node_geo_attribute_mix.cc
+  geometry/nodes/node_geo_attribute_sample_texture.cc
+  geometry/nodes/node_geo_attribute_proximity.cc
   geometry/nodes/node_geo_attribute_randomize.cc
+  geometry/nodes/node_geo_attribute_vector_math.cc
   geometry/nodes/node_geo_boolean.cc
+  geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_edge_split.cc
+  geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
-  geometry/nodes/node_geo_attribute_mix.cc
   geometry/nodes/node_geo_object_info.cc
   geometry/nodes/node_geo_point_distribute.cc
-  geometry/nodes/node_geo_point_distribute_poisson_disk.cc
   geometry/nodes/node_geo_point_instance.cc
+  geometry/nodes/node_geo_point_rotate.cc
+  geometry/nodes/node_geo_point_scale.cc
   geometry/nodes/node_geo_point_separate.cc
-  geometry/nodes/node_geo_rotate_points.cc
+  geometry/nodes/node_geo_point_translate.cc
+  geometry/nodes/node_geo_points_to_volume.cc
   geometry/nodes/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_transform.cc
   geometry/nodes/node_geo_triangulate.cc
+  geometry/nodes/node_geo_volume_to_mesh.cc
   geometry/node_geometry_exec.cc
   geometry/node_geometry_tree.cc
   geometry/node_geometry_util.cc
@@ -305,6 +314,7 @@ set(SRC
   NOD_derived_node_tree.hh
   NOD_function.h
   NOD_geometry.h
+  NOD_geometry_exec.hh
   NOD_math_functions.hh
   NOD_node_tree_dependencies.hh
   NOD_node_tree_multi_function.hh
@@ -343,6 +353,10 @@ if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
+if(WITH_TBB)
+  add_definitions(-DWITH_TBB)
+endif()
+
 if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
 endif()
@@ -360,6 +374,13 @@ endif()
 
 if(WITH_OPENSUBDIV)
   add_definitions(-DWITH_OPENSUBDIV)
+endif()
+
+if(WITH_OPENVDB)
+  list(APPEND INC_SYS
+    ${OPENVDB_INCLUDE_DIRS}
+  )
+  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

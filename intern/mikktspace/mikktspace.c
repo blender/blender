@@ -138,7 +138,7 @@ MIKK_INLINE tbool VNotZero(const SVec3 v)
 
 // Shift operations in C are only defined for shift values which are
 // not negative and smaller than sizeof(value) * CHAR_BIT.
-// The mask, used with bitwise-and (&), prevents undefined behaviour
+// The mask, used with bitwise-and (&), prevents undefined behavior
 // when the shift count is 0 or >= the width of unsigned int.
 MIKK_INLINE unsigned int rotl(unsigned int value, unsigned int count)
 {
@@ -1454,12 +1454,12 @@ static void BuildNeighborsFast(STriInfo pTriInfos[],
       pEdges[f * 3 + i].f = f;                      // record face number
     }
 
-  // sort over all edges by i0, this is the pricy one.
+  // sort over all edges by i0, this is the pricey one.
   QuickSortEdges(pEdges, 0, iNrTrianglesIn * 3 - 1, 0, uSeed);  // sort channel 0 which is i0
 
   // sub sort over i1, should be fast.
   // could replace this with a 64 bit int sort over (i0,i1)
-  // with i0 as msb in the quicksort call above.
+  // with i0 as msb in the quick-sort call above.
   iEntries = iNrTrianglesIn * 3;
   iCurStartIndex = 0;
   for (i = 1; i < iEntries; i++) {

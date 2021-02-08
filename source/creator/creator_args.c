@@ -496,7 +496,7 @@ static const char arg_handle_print_help_doc[] =
     "Print this help text and exit.";
 static const char arg_handle_print_help_doc_win32[] =
     "\n\t"
-    "Print this help text and exit (windows only).";
+    "Print this help text and exit (Windows only).";
 static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
   bArgs *ba = (bArgs *)data;
@@ -586,10 +586,12 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-no-threads");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-time");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-pretty");
+  BLI_args_print_arg_doc(ba, "--debug-depsgraph-uuid");
+  BLI_args_print_arg_doc(ba, "--debug-ghost");
   BLI_args_print_arg_doc(ba, "--debug-gpu");
-  BLI_args_print_arg_doc(ba, "--debug-gpumem");
-  BLI_args_print_arg_doc(ba, "--debug-gpu-shaders");
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
+  BLI_args_print_arg_doc(ba, "--debug-gpu-shaders");
+  BLI_args_print_arg_doc(ba, "--debug-gpumem");
   BLI_args_print_arg_doc(ba, "--debug-wm");
 #  ifdef WITH_XR_OPENXR
   BLI_args_print_arg_doc(ba, "--debug-xr");
@@ -600,8 +602,11 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
   printf("\n");
   BLI_args_print_arg_doc(ba, "--debug-fpe");
+  BLI_args_print_arg_doc(ba, "--debug-exit-on-error");
   BLI_args_print_arg_doc(ba, "--disable-crash-handler");
   BLI_args_print_arg_doc(ba, "--disable-abort-handler");
+
+  BLI_args_print_arg_doc(ba, "--verbose");
 
   printf("\n");
   printf("Misc Options:\n");
@@ -619,6 +624,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   printf("\n");
 
   BLI_args_print_arg_doc(ba, "--help");
+  BLI_args_print_arg_doc(ba, "/?");
 
   /* WIN32 only (ignored for non-win32) */
   BLI_args_print_arg_doc(ba, "-R");
@@ -631,10 +637,15 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   // printf("\n");
   // printf("Experimental Features:\n");
 
-  /* Other options _must_ be last (anything not handled will show here) */
-  printf("\n");
-  printf("Other Options:\n");
-  BLI_args_print_other_doc(ba);
+  /* Other options _must_ be last (anything not handled will show here).
+   *
+   * Note that it's good practice for this to remain empty,
+   * nevertheless print if any exist. */
+  if (BLI_args_has_other_doc(ba)) {
+    printf("\n");
+    printf("Other Options:\n");
+    BLI_args_print_other_doc(ba);
+  }
 
   printf("\n");
   printf("Argument Parsing:\n");
@@ -977,9 +988,9 @@ static const char arg_handle_debug_mode_generic_set_doc_depsgraph_no_threads[] =
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph_pretty[] =
     "\n\t"
     "Enable colors for dependency graph debug messages.";
-static const char arg_handle_debug_mode_generic_set_doc_gpumem[] =
+static const char arg_handle_debug_mode_generic_set_doc_gpu_force_workarounds[] =
     "\n\t"
-    "Enable GPU memory stats in status bar.";
+    "Enable workarounds for typical GPU issues and disable all GPU extensions.";
 
 static int arg_handle_debug_mode_generic_set(int UNUSED(argc),
                                              const char **UNUSED(argv),
@@ -1149,7 +1160,7 @@ static int arg_handle_env_system_set(int argc, const char **argv, void *UNUSED(d
   }
 
   for (; *ch_src; ch_src++, ch_dst++) {
-    *ch_dst = (*ch_src == '-') ? '_' : (*ch_src) - 32; /* toupper() */
+    *ch_dst = (*ch_src == '-') ? '_' : (*ch_src) - 32; /* Inline #toupper() */
   }
 
   *ch_dst = '\0';
@@ -1947,7 +1958,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
 
   if (success) {
     if (G.background) {
-      /* ensuer we use 'C->data.scene' for background render */
+      /* Ensure we use 'C->data.scene' for background render. */
       CTX_wm_window_set(C, NULL);
     }
   }
@@ -2159,18 +2170,8 @@ void main_args_setup(bContext *C, bArgs *ba)
                (void *)G_DEBUG_DEPSGRAPH_UUID);
   BLI_args_add(ba,
                NULL,
-               "--debug-gpumem",
-               CB_EX(arg_handle_debug_mode_generic_set, gpumem),
-               (void *)G_DEBUG_GPU_MEM);
-  BLI_args_add(ba,
-               NULL,
-               "--debug-gpu-shaders",
-               CB_EX(arg_handle_debug_mode_generic_set, gpumem),
-               (void *)G_DEBUG_GPU_SHADERS);
-  BLI_args_add(ba,
-               NULL,
                "--debug-gpu-force-workarounds",
-               CB_EX(arg_handle_debug_mode_generic_set, gpumem),
+               CB_EX(arg_handle_debug_mode_generic_set, gpu_force_workarounds),
                (void *)G_DEBUG_GPU_FORCE_WORKAROUNDS);
   BLI_args_add(ba, NULL, "--debug-exit-on-error", CB(arg_handle_debug_exit_on_error), NULL);
 

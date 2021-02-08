@@ -134,7 +134,6 @@ void uiTemplateMovieClip(
                  ptr,
                  propname,
                  NULL,
-                 NULL,
                  "CLIP_OT_open",
                  NULL,
                  UI_TEMPLATE_ID_FILTER_ALL,

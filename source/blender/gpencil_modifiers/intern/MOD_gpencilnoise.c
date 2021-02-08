@@ -110,11 +110,11 @@ static bool dependsOnTime(GpencilModifierData *md)
   return (mmd->flag & GP_NOISE_USE_RANDOM) != 0;
 }
 
-static float *noise_table(int len, int seed)
+static float *noise_table(int len, int offset, int seed)
 {
   float *table = MEM_callocN(sizeof(float) * len, __func__);
   for (int i = 0; i < len; i++) {
-    table[i] = BLI_hash_int_01(BLI_hash_int_2d(seed, i + 1));
+    table[i] = BLI_hash_int_01(BLI_hash_int_2d(seed, i + offset + 1));
   }
   return table;
 }
@@ -172,11 +172,19 @@ static void deformStroke(GpencilModifierData *md,
   /* Sanitize as it can create out of bound reads. */
   float noise_scale = clamp_f(mmd->noise_scale, 0.0f, 1.0f);
 
-  int len = ceilf(gps->totpoints * noise_scale) + 1;
-  float *noise_table_position = (mmd->factor > 0.0f) ? noise_table(len, seed + 2) : NULL;
-  float *noise_table_strength = (mmd->factor_strength > 0.0f) ? noise_table(len, seed + 3) : NULL;
-  float *noise_table_thickness = (mmd->factor_thickness > 0.0f) ? noise_table(len, seed) : NULL;
-  float *noise_table_uvs = (mmd->factor_uvs > 0.0f) ? noise_table(len, seed + 4) : NULL;
+  int len = ceilf(gps->totpoints * noise_scale) + 2;
+  float *noise_table_position = (mmd->factor > 0.0f) ?
+                                    noise_table(len, (int)floor(mmd->noise_offset), seed + 2) :
+                                    NULL;
+  float *noise_table_strength = (mmd->factor_strength > 0.0f) ?
+                                    noise_table(len, (int)floor(mmd->noise_offset), seed + 3) :
+                                    NULL;
+  float *noise_table_thickness = (mmd->factor_thickness > 0.0f) ?
+                                     noise_table(len, (int)floor(mmd->noise_offset), seed) :
+                                     NULL;
+  float *noise_table_uvs = (mmd->factor_uvs > 0.0f) ?
+                               noise_table(len, (int)floor(mmd->noise_offset), seed + 4) :
+                               NULL;
 
   /* Calculate stroke normal. */
   if (gps->totpoints > 2) {
@@ -225,24 +233,27 @@ static void deformStroke(GpencilModifierData *md,
       cross_v3_v3v3(vec2, vec1, normal);
       normalize_v3(vec2);
 
-      float noise = table_sample(noise_table_position, i * noise_scale);
+      float noise = table_sample(noise_table_position,
+                                 i * noise_scale + fractf(mmd->noise_offset));
       madd_v3_v3fl(&pt->x, vec2, (noise * 2.0f - 1.0f) * weight * mmd->factor * 0.1f);
     }
 
     if (mmd->factor_thickness > 0.0f) {
-      float noise = table_sample(noise_table_thickness, i * noise_scale);
+      float noise = table_sample(noise_table_thickness,
+                                 i * noise_scale + fractf(mmd->noise_offset));
       pt->pressure *= max_ff(1.0f + (noise * 2.0f - 1.0f) * weight * mmd->factor_thickness, 0.0f);
       CLAMP_MIN(pt->pressure, GPENCIL_STRENGTH_MIN);
     }
 
     if (mmd->factor_strength > 0.0f) {
-      float noise = table_sample(noise_table_strength, i * noise_scale);
+      float noise = table_sample(noise_table_strength,
+                                 i * noise_scale + fractf(mmd->noise_offset));
       pt->strength *= max_ff(1.0f - noise * weight * mmd->factor_strength, 0.0f);
       CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
     }
 
     if (mmd->factor_uvs > 0.0f) {
-      float noise = table_sample(noise_table_uvs, i * noise_scale);
+      float noise = table_sample(noise_table_uvs, i * noise_scale + fractf(mmd->noise_offset));
       pt->uv_rot += (noise * 2.0f - 1.0f) * weight * mmd->factor_uvs * M_PI_2;
       CLAMP(pt->uv_rot, -M_PI_2, M_PI_2);
     }
@@ -292,6 +303,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "factor_thickness", 0, IFACE_("Thickness"), ICON_NONE);
   uiItemR(col, ptr, "factor_uvs", 0, IFACE_("UV"), ICON_NONE);
   uiItemR(col, ptr, "noise_scale", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "noise_offset", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "seed", 0, NULL, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -316,7 +329,6 @@ static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "random"));
 
   uiItemR(layout, ptr, "step", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "seed", 0, NULL, ICON_NONE);
 }
 
 static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)

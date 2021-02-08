@@ -24,12 +24,16 @@
 
 #include "DNA_node_types.h"
 
+struct Depsgraph;
+
 namespace blender::nodes {
 
 using bke::BooleanReadAttribute;
 using bke::BooleanWriteAttribute;
 using bke::Color4fReadAttribute;
 using bke::Color4fWriteAttribute;
+using bke::Float2ReadAttribute;
+using bke::Float2WriteAttribute;
 using bke::Float3ReadAttribute;
 using bke::Float3WriteAttribute;
 using bke::FloatReadAttribute;
@@ -54,18 +58,21 @@ class GeoNodeExecParams {
   GValueMap<StringRef> &output_values_;
   const PersistentDataHandleMap &handle_map_;
   const Object *self_object_;
+  Depsgraph *depsgraph_;
 
  public:
   GeoNodeExecParams(const bNode &node,
                     GValueMap<StringRef> &input_values,
                     GValueMap<StringRef> &output_values,
                     const PersistentDataHandleMap &handle_map,
-                    const Object *self_object)
+                    const Object *self_object,
+                    Depsgraph *depsgraph)
       : node_(node),
         input_values_(input_values),
         output_values_(output_values),
         handle_map_(handle_map),
-        self_object_(self_object)
+        self_object_(self_object),
+        depsgraph_(depsgraph)
   {
   }
 
@@ -94,6 +101,25 @@ class GeoNodeExecParams {
     this->check_extract_input(identifier, &CPPType::get<T>());
 #endif
     return input_values_.extract<T>(identifier);
+  }
+
+  /**
+   * Get input as vector for multi input socket with the given identifier.
+   *
+   * This method can only be called once for each identifier.
+   */
+  template<typename T> Vector<T> extract_multi_input(StringRef identifier)
+  {
+    Vector<T> values;
+    values.append(input_values_.extract<T>(identifier));
+    int i = 1;
+    std::string sub_identifier = identifier + "[1]";
+    while (input_values_.contains(sub_identifier)) {
+      values.append(input_values_.extract<T>(sub_identifier));
+      i++;
+      sub_identifier = identifier + "[" + std::to_string(i) + "]";
+    }
+    return values;
   }
 
   /**
@@ -161,6 +187,11 @@ class GeoNodeExecParams {
   const Object *self_object() const
   {
     return self_object_;
+  }
+
+  Depsgraph *depsgraph() const
+  {
+    return depsgraph_;
   }
 
   /**

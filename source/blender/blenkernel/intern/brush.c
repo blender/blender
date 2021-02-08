@@ -375,7 +375,7 @@ static int brush_undo_preserve_cb(LibraryIDLinkCallbackData *cb_data)
 
 static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 {
-  /* Whole Brush is preserved accross undo's. */
+  /* Whole Brush is preserved across undos. */
   BKE_lib_id_swap(NULL, id_new, id_old);
 
   /* `id_new` now has content from `id_old`, we need to ensure those old ID pointers are valid.
@@ -410,6 +410,8 @@ IDTypeInfo IDType_ID_BR = {
     .blend_read_expand = brush_blend_read_expand,
 
     .blend_read_undo_preserve = brush_undo_preserve,
+
+    .lib_override_apply_post = NULL,
 };
 
 static RNG *brush_rng;
@@ -978,7 +980,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->fill_leak = 3;
       brush->gpencil_settings->fill_threshold = 0.1f;
       brush->gpencil_settings->fill_simplylvl = 1;
-      brush->gpencil_settings->fill_factor = 1;
+      brush->gpencil_settings->fill_factor = 1.0f;
 
       brush->gpencil_settings->draw_strength = 1.0f;
       brush->gpencil_settings->hardeness = 1.0f;

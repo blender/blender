@@ -482,9 +482,7 @@ static StructRNA *rna_Property_refine(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
-  prop = rna_ensure_property(prop);
-
-  switch (prop->type) {
+  switch (RNA_property_type(prop)) {
     case PROP_BOOLEAN:
       return &RNA_BoolProperty;
     case PROP_INT:
@@ -507,70 +505,64 @@ static StructRNA *rna_Property_refine(PointerRNA *ptr)
 static void rna_Property_identifier_get(PointerRNA *ptr, char *value)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  strcpy(value, ((PropertyRNA *)prop)->identifier);
+  strcpy(value, RNA_property_identifier(prop));
 }
 
 static int rna_Property_identifier_length(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return strlen(prop->identifier);
+  return strlen(RNA_property_identifier(prop));
 }
 
 static void rna_Property_name_get(PointerRNA *ptr, char *value)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  strcpy(value, prop->name ? prop->name : "");
+  const char *name = RNA_property_ui_name_raw(prop);
+  strcpy(value, name ? name : "");
 }
 
 static int rna_Property_name_length(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->name ? strlen(prop->name) : 0;
+  const char *name = RNA_property_ui_name_raw(prop);
+  return name ? strlen(name) : 0;
 }
 
 static void rna_Property_description_get(PointerRNA *ptr, char *value)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  strcpy(value, prop->description ? prop->description : "");
+  const char *description = RNA_property_ui_description_raw(prop);
+  strcpy(value, description ? description : "");
 }
 static int rna_Property_description_length(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->description ? strlen(prop->description) : 0;
+  const char *description = RNA_property_ui_description_raw(prop);
+  return description ? strlen(description) : 0;
 }
 
 static void rna_Property_translation_context_get(PointerRNA *ptr, char *value)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  strcpy(value, prop->translation_context);
+  strcpy(value, RNA_property_translation_context(prop));
 }
 
 static int rna_Property_translation_context_length(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return strlen(prop->translation_context);
+  return strlen(RNA_property_translation_context(prop));
 }
 
 static int rna_Property_type_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->type;
+  return RNA_property_type(prop);
 }
 
 static int rna_Property_subtype_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->subtype;
+  return RNA_property_subtype(prop);
 }
 
 static PointerRNA rna_Property_srna_get(PointerRNA *ptr)
@@ -583,15 +575,13 @@ static PointerRNA rna_Property_srna_get(PointerRNA *ptr)
 static int rna_Property_unit_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return RNA_SUBTYPE_UNIT(prop->subtype);
+  return RNA_property_unit(prop);
 }
 
 static int rna_Property_icon_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  prop = rna_ensure_property(prop);
-  return prop->icon;
+  return RNA_property_ui_icon(prop);
 }
 
 static bool rna_Property_readonly_get(PointerRNA *ptr)
@@ -1289,12 +1279,22 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                                                                   0);
 
   if (is_id) {
-    /* For now, once we deal with nodetrees we'll want to get rid of that one. */
-    //    BLI_assert(no_ownership);
+    /* Owned IDs (the ones we want to actually compare in depth, instead of just comparing pointer
+     * values) should be always properly tagged as 'virtual' overrides. */
+    ID *id = propptr_a->owner_id;
+    if (id != NULL && !ID_IS_OVERRIDE_LIBRARY(id)) {
+      id = propptr_b->owner_id;
+      if (id != NULL && !ID_IS_OVERRIDE_LIBRARY(id)) {
+        id = NULL;
+      }
+    }
+
+    BLI_assert(no_ownership || id == NULL || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id));
+    UNUSED_VARS_NDEBUG(id);
   }
 
   if (override) {
-    if (no_ownership /* || is_id */ || is_null || is_type_diff || !is_valid_for_diffing) {
+    if (no_ownership || is_null || is_type_diff || !is_valid_for_diffing) {
       /* In case this pointer prop does not own its data (or one is NULL), do not compare structs!
        * This is a quite safe path to infinite loop, among other nasty issues.
        * Instead, just compare pointers themselves. */
@@ -1314,9 +1314,9 @@ static int rna_property_override_diff_propptr(Main *bmain,
             BLI_assert(op->rna_prop_type == property_type);
           }
 
+          IDOverrideLibraryPropertyOperation *opop = NULL;
           if (created || rna_itemname_a != NULL || rna_itemname_b != NULL ||
               rna_itemindex_a != -1 || rna_itemindex_b != -1) {
-            IDOverrideLibraryPropertyOperation *opop;
             opop = BKE_lib_override_library_property_operation_get(op,
                                                                    IDOVERRIDE_LIBRARY_OP_REPLACE,
                                                                    rna_itemname_b,
@@ -1336,6 +1336,38 @@ static int rna_property_override_diff_propptr(Main *bmain,
           }
           else {
             BKE_lib_override_library_operations_tag(op, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
+          }
+
+          if (is_id && no_ownership) {
+            if (opop == NULL) {
+              opop = BKE_lib_override_library_property_operation_find(op,
+                                                                      rna_itemname_b,
+                                                                      rna_itemname_a,
+                                                                      rna_itemindex_b,
+                                                                      rna_itemindex_a,
+                                                                      true,
+                                                                      NULL);
+              BLI_assert(opop != NULL);
+            }
+
+            BLI_assert(propptr_a->data == propptr_a->owner_id);
+            BLI_assert(propptr_b->data == propptr_b->owner_id);
+            ID *id_a = propptr_a->data;
+            ID *id_b = propptr_b->data;
+            if (ELEM(NULL, id_a, id_b)) {
+              /* In case one of the pointer is NULL and not the other, we consider that the
+               * override is not matching its reference anymore. */
+              opop->flag &= ~IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
+            }
+            else if (id_a->override_library != NULL && id_a->override_library->reference == id_b) {
+              opop->flag |= IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
+            }
+            else if (id_b->override_library != NULL && id_b->override_library->reference == id_a) {
+              opop->flag |= IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
+            }
+            else {
+              opop->flag &= ~IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
+            }
           }
         }
       }
@@ -1478,7 +1510,6 @@ int rna_property_override_diff_default(Main *bmain,
                          rna_path != NULL;
 
   const bool no_ownership = (prop_a->rnaprop->flag & PROP_PTR_NO_OWNERSHIP) != 0;
-  const bool no_prop_name = (prop_a->rnaprop->flag_override & PROPOVERRIDE_NO_PROP_NAME) != 0;
 
   /* Note: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
    * and that we never remove anything. */
@@ -1734,6 +1765,11 @@ int rna_property_override_diff_default(Main *bmain,
     }
 
     case PROP_POINTER: {
+      /* Using property name check only makes sense for items of a collection, not for a single
+       * pointer.
+       * Doing this here avoids having to manually specify `PROPOVERRIDE_NO_PROP_NAME` to things
+       * like ShapeKey pointers. */
+      const bool no_prop_name = true;
       if (STREQ(prop_a->identifier, "rna_type")) {
         /* Dummy 'pass' answer, this is a meta-data and must be ignored... */
         return 0;
@@ -1762,6 +1798,8 @@ int rna_property_override_diff_default(Main *bmain,
     }
 
     case PROP_COLLECTION: {
+      const bool no_prop_name = (prop_a->rnaprop->flag_override & PROPOVERRIDE_NO_PROP_NAME) != 0;
+
       bool equals = true;
       bool abort = false;
       int idx_a = 0;

@@ -78,7 +78,7 @@ BakeManager::BakeManager()
   type = SHADER_EVAL_BAKE;
   pass_filter = 0;
 
-  need_update = true;
+  need_update_ = true;
 }
 
 BakeManager::~BakeManager()
@@ -114,9 +114,9 @@ void BakeManager::set(Scene *scene,
 
   /* create device and update scene */
   scene->film->tag_modified();
-  scene->integrator->tag_update(scene);
+  scene->integrator->tag_update(scene, Integrator::UPDATE_ALL);
 
-  need_update = true;
+  need_update_ = true;
 }
 
 void BakeManager::device_update(Device * /*device*/,
@@ -124,7 +124,7 @@ void BakeManager::device_update(Device * /*device*/,
                                 Scene *scene,
                                 Progress & /* progress */)
 {
-  if (!need_update)
+  if (!need_update())
     return;
 
   scoped_callback_timer timer([scene](double time) {
@@ -152,11 +152,21 @@ void BakeManager::device_update(Device * /*device*/,
     object_index++;
   }
 
-  need_update = false;
+  need_update_ = false;
 }
 
 void BakeManager::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 {
+}
+
+void BakeManager::tag_update()
+{
+  need_update_ = true;
+}
+
+bool BakeManager::need_update() const
+{
+  return need_update_;
 }
 
 CCL_NAMESPACE_END

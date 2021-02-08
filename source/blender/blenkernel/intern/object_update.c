@@ -225,7 +225,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
     case OB_GPENCIL: {
       BKE_gpencil_prepare_eval_data(depsgraph, scene, ob);
       BKE_gpencil_modifiers_calc(depsgraph, scene, ob);
-      BKE_gpencil_update_layer_parent(depsgraph, ob);
+      BKE_gpencil_update_layer_transforms(depsgraph, ob);
       break;
     }
     case OB_HAIR:
@@ -268,25 +268,17 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       }
     }
   }
-  BKE_object_eval_boundbox(depsgraph, ob);
 }
 
-/**
- * TODO(sergey): Ensure that bounding box is already calculated, and move this
- * into #BKE_object_sync_to_original().
- */
-void BKE_object_eval_boundbox(Depsgraph *depsgraph, Object *object)
+/** Bounding box from evaluated geometry. */
+static void object_sync_boundbox_to_original(Object *object_orig, Object *object_eval)
 {
-  if (!DEG_is_active(depsgraph)) {
-    return;
-  }
-  Object *ob_orig = DEG_get_original_object(object);
-  BoundBox *bb = BKE_object_boundbox_get(object);
+  BoundBox *bb = BKE_object_boundbox_get(object_eval);
   if (bb != NULL) {
-    if (ob_orig->runtime.bb == NULL) {
-      ob_orig->runtime.bb = MEM_mallocN(sizeof(*ob_orig->runtime.bb), __func__);
+    if (object_orig->runtime.bb == NULL) {
+      object_orig->runtime.bb = MEM_mallocN(sizeof(*object_orig->runtime.bb), __func__);
     }
-    *ob_orig->runtime.bb = *bb;
+    *object_orig->runtime.bb = *bb;
   }
 }
 
@@ -315,6 +307,8 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
       md_orig->error = BLI_strdup(md->error);
     }
   }
+
+  object_sync_boundbox_to_original(object_orig, object);
 }
 
 bool BKE_object_eval_proxy_copy(Depsgraph *depsgraph, Object *object)

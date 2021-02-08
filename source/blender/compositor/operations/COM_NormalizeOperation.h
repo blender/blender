@@ -42,7 +42,7 @@ class NormalizeOperation : public NodeOperation {
   NormalizeOperation();
 
   /**
-   * the inner loop of this program
+   * The inner loop of this operation.
    */
   void executePixel(float output[4], int x, int y, void *data);
 

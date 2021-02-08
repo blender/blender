@@ -901,7 +901,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
             MEM_freeN(link);
           }
           else {
-            /* avoid prepending 'data' to the path */
+            /* Avoid prepending 'data' to the path. */
             RNA_id_pointer_create(id_data, &link->ptr);
           }
 
@@ -1521,7 +1521,6 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 
     UI_but_string_info_get(C,
                            but,
-                           NULL,
                            &but_label,
                            &rna_label,
                            &enum_label,

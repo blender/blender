@@ -118,6 +118,9 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
 
             col.prop(field, "strength")
 
+            sub = col.column(heading="Affect")
+            sub.prop(field, "apply_to_location", text="Location")
+
             col = flow.column()
             col.prop(field, "texture_nabla")
             col.prop(field, "use_object_coords")
@@ -127,6 +130,10 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
             col = flow.column()
             col.prop(field, "strength")
             col.prop(field, "flow")
+
+            sub = col.column(heading="Affect")
+            sub.prop(field, "apply_to_location", text="Location")
+            sub.prop(field, "apply_to_rotation", text="Rotation")
 
             col = flow.column()
             col.prop(field, "source_object")

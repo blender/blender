@@ -235,7 +235,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
   }
   else if (t->spacetype == SPACE_IMAGE) {
     if (validSnap(t)) {
-      /* This will not draw, and Im nor sure why - campbell */
+      /* This will not draw, and I'm nor sure why - campbell */
       /* TODO: see 2.7x for non-working code */
     }
   }
@@ -299,83 +299,93 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 
 void applyProject(TransInfo *t)
 {
+  if (!t->tsnap.project) {
+    return;
+  }
+
+  if (!activeSnap(t) || (t->flag & T_NO_PROJECT)) {
+    return;
+  }
+
+  if (doForceIncrementSnap(t)) {
+    return;
+  }
+
+  float tvec[3];
+  int i;
+
   /* XXX FLICKER IN OBJECT MODE */
-  if ((t->tsnap.project) && activeSnap(t) && (t->flag & T_NO_PROJECT) == 0) {
-    float tvec[3];
-    int i;
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    TransData *td = tc->data;
+    for (i = 0; i < tc->data_len; i++, td++) {
+      float iloc[3], loc[3], no[3];
+      float mval_fl[2];
+      if (td->flag & TD_SKIP) {
+        continue;
+      }
 
-    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      TransData *td = tc->data;
-      for (i = 0; i < tc->data_len; i++, td++) {
-        float iloc[3], loc[3], no[3];
-        float mval_fl[2];
-        if (td->flag & TD_SKIP) {
-          continue;
-        }
+      if ((t->flag & T_PROP_EDIT) && (td->factor == 0.0f)) {
+        continue;
+      }
 
-        if ((t->flag & T_PROP_EDIT) && (td->factor == 0.0f)) {
-          continue;
-        }
+      copy_v3_v3(iloc, td->loc);
+      if (tc->use_local_mat) {
+        mul_m4_v3(tc->mat, iloc);
+      }
+      else if (t->flag & T_OBJECT) {
+        BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
+        copy_v3_v3(iloc, td->ob->obmat[3]);
+      }
 
-        copy_v3_v3(iloc, td->loc);
-        if (tc->use_local_mat) {
-          mul_m4_v3(tc->mat, iloc);
-        }
-        else if (t->flag & T_OBJECT) {
-          BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
-          copy_v3_v3(iloc, td->ob->obmat[3]);
-        }
-
-        if (ED_view3d_project_float_global(t->region, iloc, mval_fl, V3D_PROJ_TEST_NOP) ==
-            V3D_PROJ_RET_OK) {
-          if (ED_transform_snap_object_project_view3d(
-                  t->tsnap.object_context,
-                  t->depsgraph,
-                  SCE_SNAP_MODE_FACE,
-                  &(const struct SnapObjectParams){
-                      .snap_select = t->tsnap.modeSelect,
-                      .use_object_edit_cage = (t->flag & T_EDIT) != 0,
-                      .use_occlusion_test = false,
-                      .use_backface_culling = t->tsnap.use_backface_culling,
-                  },
-                  mval_fl,
-                  NULL,
-                  0,
-                  loc,
-                  no)) {
+      if (ED_view3d_project_float_global(t->region, iloc, mval_fl, V3D_PROJ_TEST_NOP) ==
+          V3D_PROJ_RET_OK) {
+        if (ED_transform_snap_object_project_view3d(
+                t->tsnap.object_context,
+                t->depsgraph,
+                SCE_SNAP_MODE_FACE,
+                &(const struct SnapObjectParams){
+                    .snap_select = t->tsnap.modeSelect,
+                    .use_object_edit_cage = (t->flag & T_EDIT) != 0,
+                    .use_occlusion_test = false,
+                    .use_backface_culling = t->tsnap.use_backface_culling,
+                },
+                mval_fl,
+                NULL,
+                0,
+                loc,
+                no)) {
 #if 0
             if (tc->use_local_mat) {
               mul_m4_v3(tc->imat, loc);
             }
 #endif
 
-            sub_v3_v3v3(tvec, loc, iloc);
+          sub_v3_v3v3(tvec, loc, iloc);
 
-            mul_m3_v3(td->smtx, tvec);
+          mul_m3_v3(td->smtx, tvec);
 
-            add_v3_v3(td->loc, tvec);
+          add_v3_v3(td->loc, tvec);
 
-            if (t->tsnap.align && (t->flag & T_OBJECT)) {
-              /* handle alignment as well */
-              const float *original_normal;
-              float mat[3][3];
+          if (t->tsnap.align && (t->flag & T_OBJECT)) {
+            /* handle alignment as well */
+            const float *original_normal;
+            float mat[3][3];
 
-              /* In pose mode, we want to align normals with Y axis of bones... */
-              original_normal = td->axismtx[2];
+            /* In pose mode, we want to align normals with Y axis of bones... */
+            original_normal = td->axismtx[2];
 
-              rotation_between_vecs_to_mat3(mat, original_normal, no);
+            rotation_between_vecs_to_mat3(mat, original_normal, no);
 
-              transform_data_ext_rotate(td, mat, true);
+            transform_data_ext_rotate(td, mat, true);
 
-              /* TODO support constraints for rotation too? see ElementRotation */
-            }
+            /* TODO support constraints for rotation too? see ElementRotation */
           }
         }
+      }
 
-#if 0 /* TODO: sipport this? */
+#if 0 /* TODO: support this? */
          constraintTransLim(t, td);
 #endif
-      }
     }
   }
 }
@@ -1424,10 +1434,21 @@ static void snap_grid_apply(
   const float *center_global = t->center_global;
   const float *asp = t->aspect;
 
-  /* use a fallback for cursor selection,
-   * this isn't useful as a global center for absolute grid snapping
-   * since its not based on the position of the selection. */
-  if (t->around == V3D_AROUND_CURSOR) {
+  if (t->options & CTX_CURSOR) {
+    /* Note that we must already have called #transformCenter_from_type, otherwise
+     * we would be lazy-initializing data which is being transformed,
+     * causing the transformed cursor location to be used instead of it's initial location. */
+    BLI_assert(t->center_cache[V3D_AROUND_CURSOR].is_set);
+
+    /* Use a fallback when transforming the cursor.
+     * In this case the center is _not_ derived from the cursor which is being transformed. */
+    const TransCenterData *cd = transformCenter_from_type(t, V3D_AROUND_CURSOR);
+    center_global = cd->global;
+  }
+  else if (t->around == V3D_AROUND_CURSOR) {
+    /* Use a fallback for cursor selection,
+     * this isn't useful as a global center for absolute grid snapping
+     * since its not based on the position of the selection. */
     const TransCenterData *cd = transformCenter_from_type(t, V3D_AROUND_CENTER_MEDIAN);
     center_global = cd->global;
   }
@@ -1525,7 +1546,7 @@ static void snap_increment_apply(TransInfo *t,
   snap_increment_apply_ex(t, max_index, increment_dist, asp, r_val, r_val);
 }
 
-bool transform_snap_increment(TransInfo *t, float *val)
+bool transform_snap_increment_ex(TransInfo *t, bool use_local_space, float *r_val)
 {
   if (!activeSnap(t)) {
     return false;
@@ -1541,10 +1562,24 @@ bool transform_snap_increment(TransInfo *t, float *val)
     return false;
   }
 
-  float increment_dist = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
+  if (use_local_space) {
+    BLI_assert(t->idx_max == 2);
+    mul_m3_v3(t->spacemtx_inv, r_val);
+  }
 
-  snap_increment_apply(t, t->idx_max, increment_dist, val);
+  float increment_dist = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
+  snap_increment_apply(t, t->idx_max, increment_dist, r_val);
+
+  if (use_local_space) {
+    mul_m3_v3(t->spacemtx, r_val);
+  }
+
   return true;
+}
+
+bool transform_snap_increment(TransInfo *t, float *r_val)
+{
+  return transform_snap_increment_ex(t, false, r_val);
 }
 
 /** \} */

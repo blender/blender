@@ -122,9 +122,6 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool
   return bone;
 }
 
-/* previously addvert_armature */
-/* the ctrl-click method */
-
 /**
  * Note this is already ported to multi-objects as it is.
  * Since only the active bone is extruded even for single objects,
@@ -306,8 +303,7 @@ static EditBone *get_named_editbone(ListBase *edbo, const char *name)
   return NULL;
 }
 
-/* Call this before doing any duplications
- * */
+/* Call this before doing any duplications. */
 void preEditBoneDuplicate(ListBase *editbones)
 {
   /* clear temp */
@@ -518,7 +514,8 @@ static void updateDuplicateActionConstraintSettings(EditBone *dup_bone,
   /* See if there is any channels that uses this bone */
   ListBase ani_curves;
   BLI_listbase_clear(&ani_curves);
-  if (BKE_fcurves_filter(&ani_curves, &act->curves, "pose.bones[", orig_bone->name)) {
+  if ((act != NULL) &&
+      BKE_fcurves_filter(&ani_curves, &act->curves, "pose.bones[", orig_bone->name)) {
     /* Create a copy and mirror the animation */
     for (LinkData *ld = ani_curves.first; ld; ld = ld->next) {
       FCurve *old_curve = ld->data;

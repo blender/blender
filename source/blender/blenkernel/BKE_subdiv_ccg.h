@@ -293,7 +293,7 @@ bool BKE_subdiv_ccg_check_coord_valid(const SubdivCCG *subdiv_ccg, const SubdivC
  *   neighbor elements in total).
  *
  * - For the corner element a single neighboring element on every adjacent edge, single from
- *   every gird.
+ *   every grid.
  *
  * - For the boundary element two neighbor elements on the boundary (from same grid) and one
  *   element inside of every neighboring grid. */

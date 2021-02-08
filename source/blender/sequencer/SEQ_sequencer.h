@@ -29,26 +29,9 @@ extern "C" {
 
 #include "DNA_scene_types.h"
 
-struct Depsgraph;
 struct Editing;
-struct GPUOffScreen;
-struct GSet;
-struct ImBuf;
-struct Main;
-struct Mask;
-struct ReportList;
 struct Scene;
-struct SeqIndexBuildContext;
 struct Sequence;
-struct SequenceModifierData;
-struct Stereo3dFormat;
-struct StripElem;
-struct TextVars;
-struct bContext;
-struct bSound;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
 struct SequencerToolSettings;
 
 /* RNA enums, just to be more readable */

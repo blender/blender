@@ -459,7 +459,7 @@ static wchar_t *next_slash(wchar_t *path)
   return slash;
 }
 
-/* adds a slash if the unc path points sto a share */
+/* Adds a slash if the UNC path points to a share. */
 static void BLI_path_add_slash_to_share(wchar_t *uncpath)
 {
   wchar_t *slash_after_server = next_slash(uncpath + 2);
@@ -1279,7 +1279,7 @@ void BLI_setenv(const char *env, const char *val)
   uputenv(env, val);
 
 #else
-  /* linux/osx/bsd */
+  /* Linux/macOS/BSD */
   if (val) {
     setenv(env, val, 1);
   }
@@ -1375,7 +1375,7 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
     }
   }
   else {
-    return; /* string is NULL, probably shouldnt happen but return anyway */
+    return; /* string is NULL, probably shouldn't happen but return anyway */
   }
 
   /* Resolve relative references */
@@ -1650,7 +1650,7 @@ bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filenam
  * - Wont create any directories.
  * - Doesn't use CWD, or deal with relative paths.
  * - Only fill's in \a dir and \a file when they are non NULL.
- * */
+ */
 void BLI_split_dirfile(
     const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen)
 {

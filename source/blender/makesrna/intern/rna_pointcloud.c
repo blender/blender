@@ -135,7 +135,7 @@ static void rna_def_pointcloud(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "PointCloud", "ID");
-  RNA_def_struct_ui_text(srna, "PointCloud", "Point cloud data-block");
+  RNA_def_struct_ui_text(srna, "Point Cloud", "Point cloud data-block");
   RNA_def_struct_ui_icon(srna, ICON_POINTCLOUD_DATA);
 
   /* geometry */

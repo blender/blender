@@ -95,12 +95,11 @@ static void statusbar_keymap(struct wmKeyConfig *UNUSED(keyconf))
 {
 }
 
-static void statusbar_header_region_listener(wmWindow *UNUSED(win),
-                                             ScrArea *UNUSED(area),
-                                             ARegion *region,
-                                             wmNotifier *wmn,
-                                             const Scene *UNUSED(scene))
+static void statusbar_header_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SCREEN:
@@ -131,14 +130,11 @@ static void statusbar_header_region_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void statusbar_header_region_message_subscribe(const bContext *UNUSED(C),
-                                                      WorkSpace *UNUSED(workspace),
-                                                      Scene *UNUSED(scene),
-                                                      bScreen *UNUSED(screen),
-                                                      ScrArea *UNUSED(area),
-                                                      ARegion *region,
-                                                      struct wmMsgBus *mbus)
+static void statusbar_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  ARegion *region = params->region;
+
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
       .user_data = region,

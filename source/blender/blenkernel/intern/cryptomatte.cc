@@ -22,8 +22,11 @@
  */
 
 #include "BKE_cryptomatte.h"
+#include "BKE_cryptomatte.hh"
+#include "BKE_image.h"
 #include "BKE_main.h"
 
+#include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -32,48 +35,144 @@
 #include "BLI_dynstr.h"
 #include "BLI_hash_mm3.h"
 #include "BLI_listbase.h"
+#include "BLI_set.hh"
 #include "BLI_string.h"
 
 #include "MEM_guardedalloc.h"
 
+#include <cctype>
 #include <cstring>
+#include <iomanip>
 #include <sstream>
 #include <string>
+#include <string_view>
 
-static uint32_t cryptomatte_hash(const ID *id)
+enum CryptomatteLayerState {
+  EMPTY,
+  FILLED,
+  CLOSED,
+};
+
+struct CryptomatteLayer {
+  CryptomatteLayerState state = CryptomatteLayerState::EMPTY;
+  blender::Set<std::string> names;
+  std::stringstream manifest;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("cryptomatte:CryptomatteLayer")
+#endif
+
+  void add_hash(std::string name, uint32_t cryptomatte_hash)
+  {
+    BLI_assert(state != CryptomatteLayerState::CLOSED);
+    const bool first_item = names.is_empty();
+    if (!names.add(name)) {
+      return;
+    }
+
+    if (first_item) {
+      state = CryptomatteLayerState::FILLED;
+      manifest << "{";
+    }
+    else {
+      manifest << ",";
+    }
+    manifest << quoted(name) << ":\"";
+    manifest << std::setfill('0') << std::setw(sizeof(uint32_t) * 2) << std::hex
+             << cryptomatte_hash;
+    manifest << "\"";
+  }
+
+  void close_manifest()
+  {
+    BLI_assert(state != CryptomatteLayerState::CLOSED);
+    if (state == CryptomatteLayerState::FILLED) {
+      manifest << "}";
+    }
+    state = CryptomatteLayerState::CLOSED;
+  }
+
+  std::string manifest_get_string()
+  {
+    BLI_assert(state == CryptomatteLayerState::CLOSED);
+    return manifest.str();
+  }
+};
+
+struct CryptomatteSession {
+  CryptomatteLayer objects;
+  CryptomatteLayer assets;
+  CryptomatteLayer materials;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("cryptomatte:CryptomatteSession")
+#endif
+
+  void finish()
+  {
+    objects.close_manifest();
+    materials.close_manifest();
+    assets.close_manifest();
+  }
+};
+
+CryptomatteSession *BKE_cryptomatte_init(void)
 {
-  const char *name = &id->name[2];
-  const int name_len = BLI_strnlen(name, MAX_NAME);
-  uint32_t cryptohash_int = BKE_cryptomatte_hash(name, name_len);
-  return cryptohash_int;
+  CryptomatteSession *session = new CryptomatteSession();
+  return session;
 }
 
-uint32_t BKE_cryptomatte_hash(const char *name, int name_len)
+void BKE_cryptomatte_finish(CryptomatteSession *session)
+{
+  BLI_assert(session != nullptr);
+  session->finish();
+}
+
+void BKE_cryptomatte_free(CryptomatteSession *session)
+{
+  BLI_assert(session != nullptr);
+  delete session;
+}
+
+uint32_t BKE_cryptomatte_hash(const char *name, const int name_len)
 {
   uint32_t cryptohash_int = BLI_hash_mm3((const unsigned char *)name, name_len, 0);
   return cryptohash_int;
 }
 
-uint32_t BKE_cryptomatte_object_hash(const Object *object)
+static uint32_t cryptomatte_hash(CryptomatteLayer *layer, const ID *id)
 {
-  return cryptomatte_hash(&object->id);
+  const char *name = &id->name[2];
+  const int name_len = BLI_strnlen(name, MAX_NAME - 2);
+  uint32_t cryptohash_int = BKE_cryptomatte_hash(name, name_len);
+
+  if (layer != nullptr) {
+    layer->add_hash(std::string(name, name_len), cryptohash_int);
+  }
+
+  return cryptohash_int;
 }
 
-uint32_t BKE_cryptomatte_material_hash(const Material *material)
+uint32_t BKE_cryptomatte_object_hash(CryptomatteSession *session, const Object *object)
+{
+  return cryptomatte_hash(&session->objects, &object->id);
+}
+
+uint32_t BKE_cryptomatte_material_hash(CryptomatteSession *session, const Material *material)
 {
   if (material == nullptr) {
     return 0.0f;
   }
-  return cryptomatte_hash(&material->id);
+  return cryptomatte_hash(&session->materials, &material->id);
 }
 
-uint32_t BKE_cryptomatte_asset_hash(const Object *object)
+uint32_t BKE_cryptomatte_asset_hash(CryptomatteSession *session, const Object *object)
 {
   const Object *asset_object = object;
   while (asset_object->parent != nullptr) {
     asset_object = asset_object->parent;
   }
-  return cryptomatte_hash(&asset_object->id);
+  return cryptomatte_hash(&session->assets, &asset_object->id);
 }
 
 /* Convert a cryptomatte hash to a float.
@@ -188,3 +287,98 @@ void BKE_cryptomatte_matte_id_to_entries(const Main *bmain,
     }
   }
 }
+
+static std::string cryptomatte_determine_name(const ViewLayer *view_layer,
+                                              const std::string cryptomatte_layer_name)
+{
+  std::stringstream stream;
+  const size_t view_layer_name_len = BLI_strnlen(view_layer->name, sizeof(view_layer->name));
+  stream << std::string(view_layer->name, view_layer_name_len) << "." << cryptomatte_layer_name;
+  return stream.str();
+}
+
+static uint32_t cryptomatte_determine_identifier(const std::string name)
+{
+  return BLI_hash_mm3(reinterpret_cast<const unsigned char *>(name.c_str()), name.length(), 0);
+}
+
+static void add_render_result_meta_data(RenderResult *render_result,
+                                        const blender::StringRef layer_name,
+                                        const blender::StringRefNull key_name,
+                                        const blender::StringRefNull value)
+{
+  BKE_render_result_stamp_data(
+      render_result,
+      blender::BKE_cryptomatte_meta_data_key(layer_name, key_name).c_str(),
+      value.data());
+}
+
+void BKE_cryptomatte_store_metadata(struct CryptomatteSession *session,
+                                    RenderResult *render_result,
+                                    const ViewLayer *view_layer,
+                                    eViewLayerCryptomatteFlags cryptomatte_layer,
+                                    const char *cryptomatte_layer_name)
+{
+  /* Create Manifest. */
+  CryptomatteLayer *layer = nullptr;
+  switch (cryptomatte_layer) {
+    case VIEW_LAYER_CRYPTOMATTE_OBJECT:
+      layer = &session->objects;
+      break;
+    case VIEW_LAYER_CRYPTOMATTE_MATERIAL:
+      layer = &session->materials;
+      break;
+    case VIEW_LAYER_CRYPTOMATTE_ASSET:
+      layer = &session->assets;
+      break;
+    default:
+      BLI_assert(!"Incorrect cryptomatte layer");
+      break;
+  }
+
+  const std::string manifest = layer->manifest_get_string();
+  const std::string name = cryptomatte_determine_name(view_layer, cryptomatte_layer_name);
+
+  /* Store the meta data into the render result. */
+  add_render_result_meta_data(render_result, name, "name", name);
+  add_render_result_meta_data(render_result, name, "hash", "MurmurHash3_32");
+  add_render_result_meta_data(render_result, name, "conversion", "uint32_to_float32");
+  add_render_result_meta_data(render_result, name, "manifest", manifest);
+}
+
+namespace blender {
+
+/* Return the hash of the given cryptomatte layer name.
+ *
+ * The cryptomatte specification limits the hash to 7 characters.
+ * The 7 position limitation solves issues when using cryptomatte together with OpenEXR.
+ * The specification suggests to use the first 7 chars of the hashed layer_name.
+ */
+static std::string cryptomatte_layer_name_hash(const StringRef layer_name)
+{
+  std::stringstream stream;
+  const uint32_t render_pass_identifier = cryptomatte_determine_identifier(layer_name);
+  stream << std::setfill('0') << std::setw(sizeof(uint32_t) * 2) << std::hex
+         << render_pass_identifier;
+  return stream.str().substr(0, 7);
+}
+
+std::string BKE_cryptomatte_meta_data_key(const StringRef layer_name, const StringRefNull key_name)
+{
+  return "cryptomatte/" + cryptomatte_layer_name_hash(layer_name) + "/" + key_name;
+}
+
+/* Extracts the cryptomatte name from a render pass name.
+ *
+ * Example: A render pass could be named `CryptoObject00`. This
+ *   function would remove the trailing digits and return `CryptoObject`. */
+StringRef BKE_cryptomatte_extract_layer_name(const StringRef render_pass_name)
+{
+  int64_t last_token = render_pass_name.size();
+  while (last_token > 0 && std::isdigit(render_pass_name[last_token - 1])) {
+    last_token -= 1;
+  }
+  return render_pass_name.substr(0, last_token);
+}
+
+}  // namespace blender

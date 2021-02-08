@@ -23,6 +23,7 @@ from rna_prop_ui import PropertyPanel
 
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilLayerMasksPanel,
+    GreasePencilLayerTransformPanel,
     GreasePencilLayerAdjustmentsPanel,
     GreasePencilLayerRelationsPanel,
     GreasePencilLayerDisplayPanel,
@@ -90,8 +91,10 @@ class GPENCIL_MT_layer_context_menu(Menu):
         layout = self.layout
         ob = context.object
         gpd = ob.data
+        gpl = gpd.layers.active
 
-        layout.operator("gpencil.layer_duplicate", icon='DUPLICATE')
+        layout.operator("gpencil.layer_duplicate", text="Duplicate", icon='DUPLICATE').mode='ALL'
+        layout.operator("gpencil.layer_duplicate", text="Duplicate Empty Keyframes").mode='EMPTY'
 
         layout.separator()
 
@@ -103,6 +106,7 @@ class GPENCIL_MT_layer_context_menu(Menu):
         layout.operator("gpencil.lock_all", icon='LOCKED', text="Lock All")
         layout.operator("gpencil.unlock_all", icon='UNLOCKED', text="Unlock All")
         layout.prop(gpd, "use_autolock_layers", text="Autolock Inactive Layers")
+        layout.prop(gpl, "lock_material")
 
         layout.separator()
 
@@ -184,6 +188,12 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
 
 class DATA_PT_gpencil_layer_masks(LayerDataButtonsPanel, GreasePencilLayerMasksPanel, Panel):
     bl_label = "Masks"
+    bl_parent_id = 'DATA_PT_gpencil_layers'
+    bl_options = {'DEFAULT_CLOSED'}
+
+
+class DATA_PT_gpencil_layer_transform(LayerDataButtonsPanel, GreasePencilLayerTransformPanel, Panel):
+    bl_label = "Transform"
     bl_parent_id = 'DATA_PT_gpencil_layers'
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -424,6 +434,7 @@ classes = (
     DATA_PT_gpencil_onion_skinning_custom_colors,
     DATA_PT_gpencil_onion_skinning_display,
     DATA_PT_gpencil_layer_masks,
+    DATA_PT_gpencil_layer_transform,
     DATA_PT_gpencil_layer_adjustments,
     DATA_PT_gpencil_layer_relations,
     DATA_PT_gpencil_layer_display,

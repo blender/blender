@@ -40,20 +40,17 @@ struct Sequence;
 struct ImBuf *seq_cache_get(const struct SeqRenderData *context,
                             struct Sequence *seq,
                             float timeline_frame,
-                            int type,
-                            bool skip_disk_cache);
+                            int type);
 void seq_cache_put(const struct SeqRenderData *context,
                    struct Sequence *seq,
                    float timeline_frame,
                    int type,
-                   struct ImBuf *i,
-                   bool skip_disk_cache);
+                   struct ImBuf *i);
 bool seq_cache_put_if_possible(const struct SeqRenderData *context,
                                struct Sequence *seq,
                                float timeline_frame,
                                int type,
-                               struct ImBuf *nval,
-                               bool skip_disk_cache);
+                               struct ImBuf *nval);
 bool seq_cache_recycle_item(struct Scene *scene);
 void seq_cache_free_temp_cache(struct Scene *scene, short id, int timeline_frame);
 void seq_cache_destruct(struct Scene *scene);

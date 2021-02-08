@@ -118,7 +118,10 @@ extern const EnumPropertyItem rna_enum_nla_mode_blend_items[];
 
 extern const EnumPropertyItem rna_enum_motionpath_bake_location_items[];
 
-extern const EnumPropertyItem rna_enum_event_value_items[];
+extern const EnumPropertyItem rna_enum_event_value_all_items[];
+extern const EnumPropertyItem rna_enum_event_value_keymouse_items[];
+extern const EnumPropertyItem rna_enum_event_value_tweak_items[];
+
 extern const EnumPropertyItem rna_enum_event_type_items[];
 extern const EnumPropertyItem rna_enum_event_type_mask_items[];
 

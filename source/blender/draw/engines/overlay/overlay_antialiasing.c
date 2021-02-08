@@ -80,7 +80,7 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
 
   bool need_wire_expansion = (G_draw.block.sizePixel > 1.0f);
   pd->antialiasing.enabled = need_wire_expansion ||
-                             ((U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) > 0);
+                             ((U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0);
 
   GPUTexture *color_tex = NULL;
   GPUTexture *line_tex = NULL;
@@ -93,7 +93,7 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
     line_tex = txl->overlay_line_tx;
   }
   else {
-    /* Just a copy of the defaults framebuffers. */
+    /* Just a copy of the defaults frame-buffers. */
     color_tex = dtxl->color_overlay;
   }
 
@@ -127,7 +127,7 @@ void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata)
   if (pd->antialiasing.enabled) {
     /* `antialiasing.enabled` is also enabled for wire expansion. Check here if
      * anti aliasing is needed. */
-    const bool do_smooth_lines = (U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) > 0;
+    const bool do_smooth_lines = (U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0;
 
     DRW_PASS_CREATE(psl->antialiasing_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL);
 

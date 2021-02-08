@@ -86,8 +86,8 @@ static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, eGPUTextureFormat *
 
 /**
  * Apply colormanagement and scale buffer if needed.
- * *r_freedata is set to true if the returned buffer need to be manually freed.
- **/
+ * `*r_freedata` is set to true if the returned buffer need to be manually freed.
+ */
 static void *imb_gpu_get_data(const ImBuf *ibuf,
                               const bool do_rescale,
                               const int rescale_size[2],

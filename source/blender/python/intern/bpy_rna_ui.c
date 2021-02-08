@@ -28,6 +28,8 @@
 
 #include "UI_interface.h"
 
+#include "RNA_types.h"
+
 #include "bpy_rna.h"
 #include "bpy_rna_ui.h"
 

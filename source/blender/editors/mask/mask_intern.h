@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "ED_clip.h"
+
 struct Mask;
 struct bContext;
 struct wmOperatorType;
@@ -91,6 +93,19 @@ void ED_mask_select_flush_all(struct Mask *mask);
 /* mask_editor.c */
 bool ED_maskedit_poll(struct bContext *C);
 bool ED_maskedit_mask_poll(struct bContext *C);
+
+/* Generalized solution for preserving editor viewport when making changes while lock-to-selection
+ * is enabled.
+ * Any mask operator can use this API, without worrying that some editors do not have an idea of
+ * lock-to-selection. */
+
+typedef struct MaskViewLockState {
+  ClipViewLockState space_clip_state;
+} MaskViewLockState;
+
+void ED_mask_view_lock_state_store(const struct bContext *C, MaskViewLockState *state);
+void ED_mask_view_lock_state_restore_no_jump(const struct bContext *C,
+                                             const MaskViewLockState *state);
 
 /* mask_query.c */
 bool ED_mask_find_nearest_diff_point(const struct bContext *C,

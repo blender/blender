@@ -56,7 +56,7 @@
     .flags = 0, \
     .val_flags = MOD_BEVEL_AMT_OFFSET, \
     .profile_type = MOD_BEVEL_PROFILE_SUPERELLIPSE, \
-    .lim_flags = 0, \
+    .lim_flags = MOD_BEVEL_ANGLE, \
     .e_flags = 0, \
     .mat = -1, \
     .edge_flags = 0, \
@@ -179,6 +179,7 @@
     .loop_count = 2, \
     .group = NULL, \
     .vgroup_selfcol = 0, \
+    .vgroup_objcol = 0, \
     .clamp = 0.0f, \
     .self_clamp = 0.0f, \
   }
@@ -235,7 +236,7 @@
     .flag = 0, \
   }
 
-/* Defines are scattered accross too many files, they need to be moved to DNA. */
+/* Defines are scattered across too many files, they need to be moved to DNA. */
 #if 0
 #define _DNA_DEFAULT_DataTransferModifierData \
   { \
@@ -439,7 +440,7 @@
     .renderlvl = 0, \
     .totlvl = 0, \
     .flags = eMultiresModifierFlag_UseCrease | eMultiresModifierFlag_ControlEdges, \
-    .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS, \
+    .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES, \
     .quality = 4, \
     .boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL, \
   }
@@ -621,7 +622,7 @@
     .levels = 1, \
     .renderLevels = 2, \
     .flags = eSubsurfModifierFlag_UseCrease | eSubsurfModifierFlag_ControlEdges, \
-    .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS, \
+    .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES, \
     .quality = 3, \
     .boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL, \
     .emCache = NULL, \

@@ -66,6 +66,7 @@ void GaussianXBlurOperation::updateGauss()
   if (this->m_gausstab == nullptr) {
     updateSize();
     float rad = max_ff(m_size * m_data.sizex, 0.0f);
+    rad = min_ff(rad, MAX_GAUSSTAB_RADIUS);
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
     this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);

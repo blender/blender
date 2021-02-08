@@ -344,7 +344,7 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
 
     DRW_view_set_active(effects->lookdev_view);
 
-    /* Find the right framebuffers to render to. */
+    /* Find the right frame-buffers to render to. */
     GPUFrameBuffer *fb = (effects->target_buffer == fbl->effect_color_fb) ? fbl->main_fb :
                                                                             fbl->effect_fb;
 

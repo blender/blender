@@ -521,7 +521,7 @@ static bool has_animated_geom_params(const ICompoundProperty arbGeomParams)
   return false;
 }
 
-/* Specialisation of has_animations() as defined in abc_reader_object.h. */
+/* Specialization of #has_animations() as defined in abc_reader_object.h. */
 template<> bool has_animations(Alembic::AbcGeom::IPolyMeshSchema &schema, ImportSettings *settings)
 {
   if (settings->is_sequence || !schema.isConstant()) {

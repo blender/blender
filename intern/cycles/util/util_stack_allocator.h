@@ -126,7 +126,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
     return size_t(-1);
   }
 
-  /* Rebind to other ype of allocator. */
+  /* Rebind to other type of allocator. */
 
   template<class U> struct rebind {
     typedef StackAllocator<SIZE, U> other;

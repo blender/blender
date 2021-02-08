@@ -41,7 +41,7 @@ namespace gpu {
 
 /**
  * Implementation of Multi Draw Indirect using OpenGL.
- **/
+ */
 class GLDrawList : public DrawList {
  public:
   GLDrawList(int length);

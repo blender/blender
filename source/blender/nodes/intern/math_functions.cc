@@ -146,4 +146,70 @@ const FloatMathOperationInfo *get_float_compare_operation_info(const int operati
   return nullptr;
 }
 
+const FloatMathOperationInfo *get_float3_math_operation_info(const int operation)
+{
+
+#define RETURN_OPERATION_INFO(title_case_name, shader_name) \
+  { \
+    static const FloatMathOperationInfo info{title_case_name, shader_name}; \
+    return &info; \
+  } \
+  ((void)0)
+
+  switch (operation) {
+    case NODE_VECTOR_MATH_ADD:
+      RETURN_OPERATION_INFO("Add", "vector_math_add");
+    case NODE_VECTOR_MATH_SUBTRACT:
+      RETURN_OPERATION_INFO("Subtract", "vector_math_subtract");
+    case NODE_VECTOR_MATH_MULTIPLY:
+      RETURN_OPERATION_INFO("Multiply", "vector_math_multiply");
+    case NODE_VECTOR_MATH_DIVIDE:
+      RETURN_OPERATION_INFO("Divide", "vector_math_divide");
+    case NODE_VECTOR_MATH_CROSS_PRODUCT:
+      RETURN_OPERATION_INFO("Cross Product", "vector_math_cross");
+    case NODE_VECTOR_MATH_PROJECT:
+      RETURN_OPERATION_INFO("Project", "vector_math_project");
+    case NODE_VECTOR_MATH_REFLECT:
+      RETURN_OPERATION_INFO("Reflect", "vector_math_reflect");
+    case NODE_VECTOR_MATH_DOT_PRODUCT:
+      RETURN_OPERATION_INFO("Dot Product", "vector_math_dot");
+    case NODE_VECTOR_MATH_DISTANCE:
+      RETURN_OPERATION_INFO("Distance", "vector_math_distance");
+    case NODE_VECTOR_MATH_LENGTH:
+      RETURN_OPERATION_INFO("Length", "vector_math_length");
+    case NODE_VECTOR_MATH_SCALE:
+      RETURN_OPERATION_INFO("Scale", "vector_math_scale");
+    case NODE_VECTOR_MATH_NORMALIZE:
+      RETURN_OPERATION_INFO("Normalize", "vector_math_normalize");
+    case NODE_VECTOR_MATH_SNAP:
+      RETURN_OPERATION_INFO("Snap", "vector_math_snap");
+    case NODE_VECTOR_MATH_FLOOR:
+      RETURN_OPERATION_INFO("Floor", "vector_math_floor");
+    case NODE_VECTOR_MATH_CEIL:
+      RETURN_OPERATION_INFO("Ceiling", "vector_math_ceil");
+    case NODE_VECTOR_MATH_MODULO:
+      RETURN_OPERATION_INFO("Modulo", "vector_math_modulo");
+    case NODE_VECTOR_MATH_FRACTION:
+      RETURN_OPERATION_INFO("Fraction", "vector_math_fraction");
+    case NODE_VECTOR_MATH_ABSOLUTE:
+      RETURN_OPERATION_INFO("Absolute", "vector_math_absolute");
+    case NODE_VECTOR_MATH_MINIMUM:
+      RETURN_OPERATION_INFO("Minimum", "vector_math_minimum");
+    case NODE_VECTOR_MATH_MAXIMUM:
+      RETURN_OPERATION_INFO("Maximum", "vector_math_maximum");
+    case NODE_VECTOR_MATH_WRAP:
+      RETURN_OPERATION_INFO("Wrap", "vector_math_wrap");
+    case NODE_VECTOR_MATH_SINE:
+      RETURN_OPERATION_INFO("Sine", "vector_math_sine");
+    case NODE_VECTOR_MATH_COSINE:
+      RETURN_OPERATION_INFO("Cosine", "vector_math_cosine");
+    case NODE_VECTOR_MATH_TANGENT:
+      RETURN_OPERATION_INFO("Tangent", "vector_math_tangent");
+  }
+
+#undef RETURN_OPERATION_INFO
+
+  return nullptr;
+}
+
 }  // namespace blender::nodes

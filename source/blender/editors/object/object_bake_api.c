@@ -441,13 +441,30 @@ static bool bake_object_check(ViewLayer *view_layer,
   }
 
   Mesh *me = (Mesh *)ob->data;
-  if (CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) == -1) {
-    BKE_reportf(
-        reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
+
+  if (me->totpoly == 0) {
+    BKE_reportf(reports, RPT_ERROR, "No faces found in the object \"%s\"", ob->id.name + 2);
     return false;
   }
 
-  if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
+  if (target == R_BAKE_TARGET_VERTEX_COLORS) {
+    MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+    MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
+    if (mcol == NULL && mloopcol == NULL) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "No vertex colors layer found in the object \"%s\"",
+                  ob->id.name + 2);
+      return false;
+    }
+  }
+  else if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
+    if (CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) == -1) {
+      BKE_reportf(
+          reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
+      return false;
+    }
+
     for (int i = 0; i < ob->totcol; i++) {
       bNodeTree *ntree = NULL;
       bNode *node = NULL;
@@ -674,7 +691,7 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
           reports, RPT_ERROR, "No active image found, add a material or bake to an external file");
       return false;
     }
-    else if (bkr->is_split_materials) {
+    if (bkr->is_split_materials) {
       BKE_report(
           reports,
           RPT_ERROR,
@@ -1045,10 +1062,10 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
       bake_result_to_rgba(rgba, &result[mloop->v * num_channels], num_channels);
 
       if (is_noncolor) {
-        linearrgb_to_srgb_uchar4(&mloopcol->r, rgba);
+        unit_float_to_uchar_clamp_v4(&mloopcol->r, rgba);
       }
       else {
-        unit_float_to_uchar_clamp_v4(&mloopcol->r, rgba);
+        linearrgb_to_srgb_uchar4(&mloopcol->r, rgba);
       }
     }
   }
@@ -1120,7 +1137,7 @@ static bool bake_targets_output(const BakeAPIRender *bkr,
     if (bkr->save_mode == R_BAKE_SAVE_INTERNAL) {
       return bake_targets_output_internal(bkr, targets, ob, pixel_array, reports);
     }
-    else if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
+    if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
       return bake_targets_output_external(bkr, targets, ob, ob_eval, me, pixel_array, reports);
     }
   }
@@ -1322,7 +1339,7 @@ static int bake(const BakeAPIRender *bkr,
       highpoly[i].ob_eval->base_flag |= (BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
       highpoly[i].me = BKE_mesh_new_from_object(NULL, highpoly[i].ob_eval, false);
 
-      /* lowpoly to highpoly transformation matrix */
+      /* Low-poly to high-poly transformation matrix. */
       copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->obmat);
       invert_m4_m4(highpoly[i].imat, highpoly[i].obmat);
 

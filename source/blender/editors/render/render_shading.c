@@ -148,10 +148,18 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob)
   if (!ED_operator_object_active_local_editable_ex(C, ob)) {
     return false;
   }
+  if (!OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
+    return false;
+  }
+
+  /* Material linked to object. */
+  if (ob->matbits && ob->actcol && ob->matbits[ob->actcol - 1]) {
+    return true;
+  }
+
+  /* Material linked to obdata. */
   const ID *data = ob->data;
-  return (OB_TYPE_SUPPORT_MATERIAL(ob->type) &&
-          /* Object data checks. */
-          data && !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
+  return (data && !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
 static bool object_materials_supported_poll(bContext *C)
@@ -735,40 +743,45 @@ void OBJECT_OT_material_slot_remove_unused(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Create Material Operators
+/** \name New Material Operator
  * \{ */
 
-struct MaterialCreationData {
-  Object *ob;
-  PropertyPointerRNA pprop;
-};
-
-static void material_creation_data_init_from_UI_context(bContext *C,
-                                                        struct MaterialCreationData *r_create_data)
+static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  PointerRNA ptr;
+  Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+  Main *bmain = CTX_data_main(C);
+  PointerRNA ptr, idptr;
   PropertyRNA *prop;
 
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
-  r_create_data->ob = (prop && RNA_struct_is_a(ptr.type, &RNA_Object)) ? ptr.data : NULL;
-  r_create_data->pprop.ptr = ptr;
-  r_create_data->pprop.prop = prop;
-}
+  Object *ob = (prop && RNA_struct_is_a(ptr.type, &RNA_Object)) ? ptr.data : NULL;
 
-static void material_creation_assign(bContext *C,
-                                     Material *ma,
-                                     struct MaterialCreationData *create_data)
-{
-  Main *bmain = CTX_data_main(C);
+  /* add or copy material */
+  if (ma) {
+    Material *new_ma = (Material *)BKE_id_copy_ex(
+        bmain, &ma->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+    ma = new_ma;
+  }
+  else {
+    const char *name = DATA_("Material");
+    if (!(ob != NULL && ob->type == OB_GPENCIL)) {
+      ma = BKE_material_add(bmain, name);
+    }
+    else {
+      ma = BKE_gpencil_material_add(bmain, name);
+    }
+    ED_node_shader_default(C, &ma->id);
+    ma->use_nodes = true;
+  }
 
-  if (create_data->pprop.prop) {
-    if (create_data->ob != NULL) {
+  if (prop) {
+    if (ob != NULL) {
       /* Add slot follows user-preferences for creating new slots,
        * RNA pointer assignment doesn't, see: T60014. */
-      if (BKE_object_material_get_p(create_data->ob, create_data->ob->actcol) == NULL) {
-        BKE_object_material_slot_add(bmain, create_data->ob);
+      if (BKE_object_material_get_p(ob, ob->actcol) == NULL) {
+        BKE_object_material_slot_add(bmain, ob);
       }
     }
 
@@ -776,32 +789,10 @@ static void material_creation_assign(bContext *C,
      * pointer use also increases user, so this compensates it */
     id_us_min(&ma->id);
 
-    PointerRNA idptr;
     RNA_id_pointer_create(&ma->id, &idptr);
-    RNA_property_pointer_set(&create_data->pprop.ptr, create_data->pprop.prop, idptr, NULL);
-    RNA_property_update(C, &create_data->pprop.ptr, create_data->pprop.prop);
+    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
+    RNA_property_update(C, &ptr, prop);
   }
-}
-
-static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Main *bmain = CTX_data_main(C);
-  struct MaterialCreationData create_data;
-
-  material_creation_data_init_from_UI_context(C, &create_data);
-
-  const char *name = DATA_("Material");
-  Material *ma;
-  if ((create_data.ob == NULL) || (create_data.ob->type != OB_GPENCIL)) {
-    ma = BKE_material_add(bmain, name);
-  }
-  else {
-    ma = BKE_gpencil_material_add(bmain, name);
-  }
-  ED_node_shader_default(C, &ma->id);
-  ma->use_nodes = true;
-
-  material_creation_assign(C, ma, &create_data);
 
   WM_event_add_notifier(C, NC_MATERIAL | NA_ADDED, ma);
 
@@ -823,56 +814,26 @@ void MATERIAL_OT_new(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-static int duplicate_material_exec(bContext *C, wmOperator *op)
-{
-  Material *old_ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
-
-  if (!old_ma) {
-    BKE_report(
-        op->reports,
-        RPT_ERROR,
-        "Incorrect context for duplicating a material (did not find material to duplicate)");
-    return OPERATOR_CANCELLED;
-  }
-
-  Main *bmain = CTX_data_main(C);
-  struct MaterialCreationData create_data;
-
-  material_creation_data_init_from_UI_context(C, &create_data);
-
-  Material *new_ma = (Material *)BKE_id_copy_ex(
-      bmain, &old_ma->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
-
-  material_creation_assign(C, new_ma, &create_data);
-
-  WM_event_add_notifier(C, NC_MATERIAL | NA_ADDED, new_ma);
-
-  return OPERATOR_FINISHED;
-}
-
-void MATERIAL_OT_duplicate(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Duplicate Material";
-  ot->idname = "MATERIAL_OT_duplicate";
-  ot->description = "Duplicate an existing material";
-
-  /* api callbacks */
-  ot->exec = duplicate_material_exec;
-  ot->poll = object_materials_supported_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-}
+/** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Create Texture Operators
+/** \name New Texture Operator
  * \{ */
 
-static void texture_creation_assign(bContext *C, Tex *tex)
+static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+  Main *bmain = CTX_data_main(C);
   PointerRNA ptr, idptr;
   PropertyRNA *prop;
+
+  /* add or copy texture */
+  if (tex) {
+    tex = (Tex *)BKE_id_copy(bmain, &tex->id);
+  }
+  else {
+    tex = BKE_texture_add(bmain, DATA_("Texture"));
+  }
 
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
@@ -886,14 +847,6 @@ static void texture_creation_assign(bContext *C, Tex *tex)
     RNA_property_pointer_set(&ptr, prop, idptr, NULL);
     RNA_property_update(C, &ptr, prop);
   }
-}
-
-static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Main *bmain = CTX_data_main(C);
-  Tex *tex = BKE_texture_add(bmain, DATA_("Texture"));
-
-  texture_creation_assign(C, tex);
 
   WM_event_add_notifier(C, NC_TEXTURE | NA_ADDED, tex);
 
@@ -914,52 +867,30 @@ void TEXTURE_OT_new(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-static int duplicate_texture_exec(bContext *C, wmOperator *op)
-{
-  Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-
-  if (!tex) {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               "Incorrect context for duplicating a texture (did not find texture to duplicate)");
-    return OPERATOR_CANCELLED;
-  }
-
-  /* add or copy texture */
-  Main *bmain = CTX_data_main(C);
-  tex = (Tex *)BKE_id_copy(bmain, &tex->id);
-
-  texture_creation_assign(C, tex);
-
-  WM_event_add_notifier(C, NC_TEXTURE | NA_ADDED, tex);
-
-  return OPERATOR_FINISHED;
-}
-
-void TEXTURE_OT_duplicate(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Duplicate Texture";
-  ot->idname = "TEXTURE_OT_duplicate";
-  ot->description = "Duplicate an existing texture";
-
-  /* api callbacks */
-  ot->exec = duplicate_texture_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Create world operators
+/** \name new world operator
  * \{ */
 
-static void world_creation_assign(bContext *C, World *wo)
+static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  World *wo = CTX_data_pointer_get_type(C, "world", &RNA_World).data;
+  Main *bmain = CTX_data_main(C);
   PointerRNA ptr, idptr;
   PropertyRNA *prop;
+
+  /* add or copy world */
+  if (wo) {
+    World *new_wo = (World *)BKE_id_copy_ex(
+        bmain, &wo->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+    wo = new_wo;
+  }
+  else {
+    wo = BKE_world_add(bmain, DATA_("World"));
+    ED_node_shader_default(C, &wo->id);
+    wo->use_nodes = true;
+  }
 
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
@@ -973,17 +904,6 @@ static void world_creation_assign(bContext *C, World *wo)
     RNA_property_pointer_set(&ptr, prop, idptr, NULL);
     RNA_property_update(C, &ptr, prop);
   }
-}
-
-static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Main *bmain = CTX_data_main(C);
-
-  World *wo = BKE_world_add(bmain, DATA_("World"));
-  ED_node_shader_default(C, &wo->id);
-  wo->use_nodes = true;
-
-  world_creation_assign(C, wo);
 
   WM_event_add_notifier(C, NC_WORLD | NA_ADDED, wo);
 
@@ -995,40 +915,10 @@ void WORLD_OT_new(wmOperatorType *ot)
   /* identifiers */
   ot->name = "New World";
   ot->idname = "WORLD_OT_new";
-  ot->description = "Create a new world data-block";
+  ot->description = "Create a new world Data-Block";
 
   /* api callbacks */
   ot->exec = new_world_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-}
-
-static int duplicate_world_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  World *wo = CTX_data_pointer_get_type(C, "world", &RNA_World).data;
-
-  if (wo) {
-    Main *bmain = CTX_data_main(C);
-    wo = (World *)BKE_id_copy(bmain, &wo->id);
-  }
-
-  world_creation_assign(C, wo);
-
-  WM_event_add_notifier(C, NC_WORLD | NA_ADDED, wo);
-
-  return OPERATOR_FINISHED;
-}
-
-void WORLD_OT_duplicate(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Duplicate World";
-  ot->idname = "WORLD_OT_duplicate";
-  ot->description = "Duplicate an existing world data-block";
-
-  /* api callbacks */
-  ot->exec = duplicate_world_exec;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

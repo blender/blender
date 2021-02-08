@@ -2278,7 +2278,7 @@ T convolveGrid(Grid<T> &originGrid, GaussianKernelCreator &gkSigma, Vec3 pos, in
     step = Vec3(0.0, 0.0, 1.0);
   T pxResult(0);
   for (int i = 0; i < gkSigma.mDim; ++i) {
-    Vec3i curpos = toVec3i(pos - step * (i - gkSigma.mDim / 2));
+    Vec3i curpos = toVec3iFloor(pos - step * (i - gkSigma.mDim / 2));
     if (originGrid.isInBounds(curpos))
       pxResult += gkSigma.get1DKernelValue(i) * originGrid.get(curpos);
     else {  // TODO , improve...
@@ -2423,7 +2423,7 @@ struct KnBlurMACGridGauss : public KernelBase {
 
     Vec3 pxResult(0.0f);
     for (int di = 0; di < gkSigma.mDim; ++di) {
-      Vec3i curpos = toVec3i(pos - step * (di - gkSigma.mDim / 2));
+      Vec3i curpos = toVec3iFloor(pos - step * (di - gkSigma.mDim / 2));
       if (!originGrid.isInBounds(curpos)) {
         if (curpos.x < 0)
           curpos.x = 0;

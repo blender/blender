@@ -184,3 +184,39 @@ void ED_operatormacros_mask(void)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lock-to-selection viewport preservation
+ * \{ */
+
+void ED_mask_view_lock_state_store(const bContext *C, MaskViewLockState *state)
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  if (space_clip != NULL) {
+    ED_clip_view_lock_state_store(C, &state->space_clip_state);
+  }
+}
+
+void ED_mask_view_lock_state_restore_no_jump(const bContext *C, const MaskViewLockState *state)
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  if (space_clip != NULL) {
+    if ((space_clip->flag & SC_LOCK_SELECTION) == 0) {
+      /* Early output if the editor is not locked to selection.
+       * Avoids forced dependency graph evaluation here. */
+      return;
+    }
+
+    /* Mask's lock-to-selection requires deformed splines to be evaluated to calculate bounds of
+     * points after animation has been evaluated. The restore-no-jump type of function does
+     * calculation of new offset for the view for an updated state of mask to cancel the offset out
+     * by modifying locked offset. In order to do such calculation mask needs to be evaluated after
+     * modification by an operator. */
+    struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    (void)depsgraph;
+
+    ED_clip_view_lock_state_restore_no_jump(C, &state->space_clip_state);
+  }
+}
+
+/** \} */

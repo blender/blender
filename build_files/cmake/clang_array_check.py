@@ -13,7 +13,7 @@ Invocation:
    export CLANG_BIND_DIR="/dsk/src/llvm/tools/clang/bindings/python"
    export CLANG_LIB_DIR="/opt/llvm/lib"
 
-   python2 clang_array_check.py somefile.c -DSOME_DEFINE -I/some/include
+   python clang_array_check.py somefile.c -DSOME_DEFINE -I/some/include
 
 ... defines and includes are optional
 
@@ -76,6 +76,32 @@ defs_precalc = {
     "glNormal3bv": {0: 3},
     "glNormal3iv": {0: 3},
     "glNormal3sv": {0: 3},
+
+    # GPU immediate mode.
+    "immVertex2iv": {1: 2},
+
+    "immVertex2fv": {1: 2},
+    "immVertex3fv": {1: 3},
+
+    "immAttr2fv": {1: 2},
+    "immAttr3fv": {1: 3},
+    "immAttr4fv": {1: 4},
+
+    "immAttr3ubv": {1: 3},
+    "immAttr4ubv": {1: 4},
+
+    "immUniform2fv": {1: 2},
+    "immUniform3fv": {1: 3},
+    "immUniform4fv": {1: 4},
+
+    "immUniformColor3fv": {0: 3},
+    "immUniformColor4fv": {0: 4},
+
+    "immUniformColor3ubv": {1: 3},
+    "immUniformColor4ubv": {1: 4},
+
+    "immUniformColor3fvAlpha": {0: 3},
+    "immUniformColor4fvAlpha": {0: 4},
 }
 
 # -----------------------------------------------------------------------------
@@ -100,7 +126,8 @@ else:
     if CLANG_LIB_DIR is None:
         print("$CLANG_LIB_DIR clang lib dir not set")
 
-sys.path.append(CLANG_BIND_DIR)
+if CLANG_BIND_DIR:
+    sys.path.append(CLANG_BIND_DIR)
 
 import clang
 import clang.cindex
@@ -108,7 +135,8 @@ from clang.cindex import (CursorKind,
                           TypeKind,
                           TokenKind)
 
-clang.cindex.Config.set_library_path(CLANG_LIB_DIR)
+if CLANG_LIB_DIR:
+    clang.cindex.Config.set_library_path(CLANG_LIB_DIR)
 
 index = clang.cindex.Index.create()
 

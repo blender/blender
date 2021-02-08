@@ -17,8 +17,8 @@
 
 set(INC
     ../include
-    ../../blenlib
     ../../blenkernel
+    ../../blenlib
     ../../makesdna
     ../../makesrna
     ../../windowmanager
@@ -29,8 +29,8 @@ set(INC_SYS
 )
 
 set(SRC
-  asset_edit.c
-  asset_ops.c
+  asset_edit.cc
+  asset_ops.cc
 )
 
 set(LIB

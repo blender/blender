@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_undo_system.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
@@ -62,7 +63,7 @@
 #define UNDO_DISK 0
 
 bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
-                             const int undo_direction,
+                             const eUndoStepDir undo_direction,
                              const bool use_old_bmain_data,
                              bContext *C)
 {
@@ -80,7 +81,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
   }
   else {
     struct BlendFileReadParams params = {0};
-    params.undo_direction = undo_direction > 0 ? 1 : -1;
+    params.undo_direction = undo_direction;
     if (!use_old_bmain_data) {
       params.skip_flags |= BLO_READ_SKIP_UNDO_OLD_MAIN;
     }

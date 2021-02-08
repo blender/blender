@@ -363,7 +363,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     }
   }
   else {
-    /* shouldnt suddenly give errors mid-render but possible */
+    /* shouldn't suddenly give errors mid-render but possible */
     char err_out[256] = "unknown";
     ImBuf *ibuf_view;
     const int alpha_mode = (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL;

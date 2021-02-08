@@ -398,13 +398,9 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
     }
 
     if (set != OL_SETSEL_NONE) {
-      ED_object_base_activate(C, base); /* adds notifier */
+      ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
       DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-    }
-
-    if (ob != OBEDIT_FROM_VIEW_LAYER(view_layer)) {
-      ED_object_editmode_exit(C, EM_FREEDATA);
     }
   }
   return OL_DRAWSEL_NORMAL;
@@ -1547,7 +1543,7 @@ static bool outliner_is_co_within_active_mode_column(bContext *C,
  * Action to run when clicking in the outliner,
  *
  * May expend/collapse branches or activate items.
- * */
+ */
 static int outliner_item_do_activate_from_cursor(bContext *C,
                                                  const int mval[2],
                                                  const bool extend,

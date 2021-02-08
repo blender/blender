@@ -14,12 +14,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_ASSET_H__
-#define __BKE_ASSET_H__
-
 /** \file
  * \ingroup bke
  */
+
+#pragma once
 
 #include "BLI_utildefines.h"
 
@@ -55,5 +54,3 @@ void BKE_asset_metadata_read(struct BlendDataReader *reader, struct AssetMetaDat
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_ASSET_H__ */

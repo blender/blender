@@ -657,7 +657,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.mask
   brush.sculpt.multiplane_scrape
   brush.sculpt.nudge
-  brush.sculpt.paint
   brush.sculpt.pinch
   brush.sculpt.pose
   brush.sculpt.rotate
@@ -667,7 +666,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.snake_hook
   brush.sculpt.thumb
   brush.sculpt.topology
-  brush.sculpt.vcol_boundary
   brush.uv_sculpt.grab
   brush.uv_sculpt.pinch
   brush.uv_sculpt.relax

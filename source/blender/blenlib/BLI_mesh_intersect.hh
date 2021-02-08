@@ -95,7 +95,7 @@ struct Plane {
   /* Test equality on the exact fields. */
   bool operator==(const Plane &other) const;
 
-  /* Hash onthe exact fields. */
+  /* Hash on the exact fields. */
   uint64_t hash() const;
 
   void make_canonical();
@@ -144,7 +144,7 @@ struct Face : NonCopyable {
   /* Test equality of verts, in same positions. */
   bool operator==(const Face &other) const;
 
-  /* Test equaliy faces allowing cyclic shifts. */
+  /* Test equality faces allowing cyclic shifts. */
   bool cyclic_equal(const Face &other) const;
 
   FacePos next_pos(FacePos p) const

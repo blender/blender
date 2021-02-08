@@ -480,8 +480,8 @@ static void gpencil_edit_modifier_report_property(wmOperatorType *ot)
 
 /**
  * \param event: If this isn't NULL, the operator will also look for panels underneath
- * the cursor with customdata set to a modifier.
- * \param r_retval: This should be used if #event is used in order to to return
+ * the cursor with custom-data set to a modifier.
+ * \param r_retval: This should be used if #event is used in order to return
  * #OPERATOR_PASS_THROUGH to check other operators with the same key set.
  */
 static bool gpencil_edit_modifier_invoke_properties(bContext *C,
@@ -830,6 +830,102 @@ void OBJECT_OT_gpencil_modifier_copy(wmOperatorType *ot)
   ot->invoke = gpencil_modifier_copy_invoke;
   ot->exec = gpencil_modifier_copy_exec;
   ot->poll = gpencil_edit_modifier_liboverride_allowed_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  gpencil_edit_modifier_properties(ot);
+}
+
+/************************ Copy Modifier to Selected Operator *********************/
+
+static int gpencil_modifier_copy_to_selected_exec(bContext *C, wmOperator *op)
+{
+  Object *obact = ED_object_active_context(C);
+  GpencilModifierData *md = gpencil_edit_modifier_property_get(op, obact, 0);
+
+  if (!md) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (obact->type != OB_GPENCIL) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Source object '%s' is not a grease pencil object",
+                obact->id.name + 2);
+    return OPERATOR_CANCELLED;
+  }
+
+  CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+    if (ob == obact) {
+      continue;
+    }
+
+    if (ob->type != OB_GPENCIL) {
+      BKE_reportf(op->reports,
+                  RPT_WARNING,
+                  "Destination object '%s' is not a grease pencil object",
+                  ob->id.name + 2);
+      continue;
+    }
+
+    /* This always returns true right now. */
+    BKE_object_copy_gpencil_modifier(ob, md);
+
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+  }
+  CTX_DATA_END;
+
+  return OPERATOR_FINISHED;
+}
+
+static int gpencil_modifier_copy_to_selected_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
+{
+  int retval;
+  if (gpencil_edit_modifier_invoke_properties(C, op, event, &retval)) {
+    return gpencil_modifier_copy_to_selected_exec(C, op);
+  }
+  return retval;
+}
+
+static bool gpencil_modifier_copy_to_selected_poll(bContext *C)
+{
+  Object *obact = ED_object_active_context(C);
+
+  /* This could have a performance impact in the worst case, where there are many objects selected
+   * and none of them pass the check. But that should be uncommon, and this operator is only
+   * exposed in a drop-down menu anyway. */
+  bool found_supported_objects = false;
+  CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+    if (ob == obact) {
+      continue;
+    }
+
+    if (ob->type == OB_GPENCIL) {
+      found_supported_objects = true;
+      break;
+    }
+  }
+  CTX_DATA_END;
+
+  if (!found_supported_objects) {
+    CTX_wm_operator_poll_msg_set(C, "No supported objects were selected");
+    return false;
+  }
+  return true;
+}
+
+void OBJECT_OT_gpencil_modifier_copy_to_selected(wmOperatorType *ot)
+{
+  ot->name = "Copy Modifier to Selected";
+  ot->description = "Copy the modifier from the active object to all selected objects";
+  ot->idname = "OBJECT_OT_gpencil_modifier_copy_to_selected";
+
+  ot->invoke = gpencil_modifier_copy_to_selected_invoke;
+  ot->exec = gpencil_modifier_copy_to_selected_exec;
+  ot->poll = gpencil_modifier_copy_to_selected_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

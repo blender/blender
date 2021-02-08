@@ -37,33 +37,34 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
   const bNode &bnode = params.node();
   NodeAttributeColorRamp *node_storage = (NodeAttributeColorRamp *)bnode.storage;
 
-  const std::string result_name = params.get_input<std::string>("Result");
-  /* Once we support more domains at the user level, we have to decide how the result domain is
-   * choosen. */
-  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
+  /* Always output a color attribute for now. We might want to allow users to customize.
+   * Using the type of an existing attribute could work, but does not have a real benefit
+   * currently. */
   const CustomDataType result_type = CD_PROP_COLOR;
 
-  WriteAttributePtr attribute_result = component.attribute_try_ensure_for_write(
+  const std::string result_name = params.get_input<std::string>("Result");
+  /* Once we support more domains at the user level, we have to decide how the result domain is
+   * chosen. */
+  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
+  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
     return;
   }
-
-  Color4fWriteAttribute attribute_out = std::move(attribute_result);
 
   const std::string input_name = params.get_input<std::string>("Attribute");
   FloatReadAttribute attribute_in = component.attribute_get_for_read<float>(
       input_name, result_domain, 0.0f);
 
   Span<float> data_in = attribute_in.get_span();
-  MutableSpan<Color4f> data_out = attribute_out.get_span();
+  MutableSpan<Color4f> data_out = attribute_result->get_span_for_write_only<Color4f>();
 
   ColorBand *color_ramp = &node_storage->color_ramp;
   for (const int i : data_in.index_range()) {
     BKE_colorband_evaluate(color_ramp, data_in[i], data_out[i]);
   }
 
-  attribute_out.apply_span();
+  attribute_result.apply_span_and_save();
 }
 
 static void geo_node_attribute_color_ramp_exec(GeoNodeExecParams params)

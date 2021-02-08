@@ -50,6 +50,7 @@ set(SRC
   transform_convert_mball.c
   transform_convert_mesh.c
   transform_convert_mesh_edge.c
+  transform_convert_mesh_skin.c
   transform_convert_mesh_uv.c
   transform_convert_nla.c
   transform_convert_node.c

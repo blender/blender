@@ -495,8 +495,8 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
   }
 
   if (!tvs->transverts_tot && tvs->transverts) {
-    /* prevent memory leak. happens for curves/latticies due to */
-    /* difficult condition of adding points to trans data */
+    /* Prevent memory leak. happens for curves/lattices due to
+     * difficult condition of adding points to trans data. */
     MEM_freeN(tvs->transverts);
     tvs->transverts = NULL;
   }

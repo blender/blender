@@ -127,17 +127,49 @@ static void sequence_invalidate_cache(Scene *scene,
   SEQ_prefetch_stop(scene);
 }
 
+/* Find metastrips that contain invalidated_seq and invalidate them. */
+static bool seq_relations_find_and_invalidate_metas(Scene *scene,
+                                                    Sequence *invalidated_seq,
+                                                    Sequence *meta_seq)
+{
+  ListBase *seqbase;
+
+  if (meta_seq == NULL) {
+    Editing *ed = SEQ_editing_get(scene, false);
+    seqbase = &ed->seqbase;
+  }
+  else {
+    seqbase = &meta_seq->seqbase;
+  }
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (seq->type == SEQ_TYPE_META) {
+      if (seq_relations_find_and_invalidate_metas(scene, invalidated_seq, seq)) {
+        sequence_invalidate_cache(scene, seq, true, SEQ_CACHE_ALL_TYPES);
+        return true;
+      }
+    }
+    if (seq == invalidated_seq && meta_seq != NULL) {
+      sequence_invalidate_cache(scene, meta_seq, true, SEQ_CACHE_ALL_TYPES);
+      return true;
+    }
+  }
+  return false;
+}
+
 void SEQ_relations_invalidate_cache_in_range(Scene *scene,
                                              Sequence *seq,
                                              Sequence *range_mask,
                                              int invalidate_types)
 {
   seq_cache_cleanup_sequence(scene, seq, range_mask, invalidate_types, true);
+  seq_relations_find_and_invalidate_metas(scene, seq, NULL);
 }
 
 void SEQ_relations_invalidate_cache_raw(Scene *scene, Sequence *seq)
 {
   sequence_invalidate_cache(scene, seq, true, SEQ_CACHE_ALL_TYPES);
+  seq_relations_find_and_invalidate_metas(scene, seq, NULL);
 }
 
 void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
@@ -147,6 +179,7 @@ void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
                             true,
                             SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_COMPOSITE |
                                 SEQ_CACHE_STORE_FINAL_OUT);
+  seq_relations_find_and_invalidate_metas(scene, seq, NULL);
 }
 
 void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq)
@@ -157,6 +190,7 @@ void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq)
 
   sequence_invalidate_cache(
       scene, seq, true, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
+  seq_relations_find_and_invalidate_metas(scene, seq, NULL);
 }
 
 void SEQ_relations_invalidate_dependent(Scene *scene, Sequence *seq)
@@ -167,6 +201,7 @@ void SEQ_relations_invalidate_dependent(Scene *scene, Sequence *seq)
 
   sequence_invalidate_cache(
       scene, seq, false, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
+  seq_relations_find_and_invalidate_metas(scene, seq, NULL);
 }
 
 static void invalidate_scene_strips(Scene *scene, Scene *scene_target, ListBase *seqbase)

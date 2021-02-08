@@ -193,6 +193,32 @@ bool deg_iterator_components_step(BLI_Iterator *iter)
     }
   }
 
+  /* The volume component. */
+  if (data->geometry_component_id == 2) {
+    data->geometry_component_id++;
+
+    /* Don't use a temporary object for this component, when the owner is a volume object. */
+    if (data->geometry_component_owner->type == OB_VOLUME) {
+      iter->current = data->geometry_component_owner;
+      return true;
+    }
+
+    const VolumeComponent *component = geometry_set->get_component_for_read<VolumeComponent>();
+    if (component != nullptr) {
+      const Volume *volume = component->get_for_read();
+
+      if (volume != nullptr) {
+        Object *temp_object = &data->temp_geometry_component_object;
+        *temp_object = *data->geometry_component_owner;
+        temp_object->type = OB_VOLUME;
+        temp_object->data = (void *)volume;
+        temp_object->runtime.select_id = data->geometry_component_owner->runtime.select_id;
+        iter->current = temp_object;
+        return true;
+      }
+    }
+  }
+
   data->geometry_component_owner = nullptr;
   return false;
 }

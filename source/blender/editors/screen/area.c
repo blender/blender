@@ -141,13 +141,15 @@ void ED_region_pixelspace(ARegion *region)
 }
 
 /* only exported for WM */
-void ED_region_do_listen(
-    wmWindow *win, ScrArea *area, ARegion *region, wmNotifier *note, const Scene *scene)
+void ED_region_do_listen(wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *notifier = params->notifier;
+
   /* generic notes first */
-  switch (note->category) {
+  switch (notifier->category) {
     case NC_WM:
-      if (note->data == ND_FILEREAD) {
+      if (notifier->data == ND_FILEREAD) {
         ED_region_tag_redraw(region);
       }
       break;
@@ -157,16 +159,16 @@ void ED_region_do_listen(
   }
 
   if (region->type && region->type->listener) {
-    region->type->listener(win, area, region, note, scene);
+    region->type->listener(params);
   }
 }
 
 /* only exported for WM */
-void ED_area_do_listen(wmWindow *win, ScrArea *area, wmNotifier *note, Scene *scene)
+void ED_area_do_listen(wmSpaceTypeListenerParams *params)
 {
   /* no generic notes? */
-  if (area->type && area->type->listener) {
-    area->type->listener(win, area, note, scene);
+  if (params->area->type && params->area->type->listener) {
+    params->area->type->listener(params);
   }
 }
 
@@ -289,7 +291,15 @@ static void region_draw_azone_tab_arrow(ScrArea *area, ARegion *region, AZone *a
   float alpha = WM_region_use_viewport(area, region) ? 0.6f : 0.4f;
   const float color[4] = {0.05f, 0.05f, 0.05f, alpha};
   UI_draw_roundbox_aa(
-      true, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, color);
+      &(const rctf){
+          .xmin = (float)az->x1,
+          .xmax = (float)az->x2,
+          .ymin = (float)az->y1,
+          .ymax = (float)az->y2,
+      },
+      true,
+      4.0f,
+      color);
 
   draw_azone_arrow((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, az->edge);
 }
@@ -373,7 +383,16 @@ static void region_draw_status_text(ScrArea *area, ARegion *region)
     float color[4] = {0.0f, 0.0f, 0.0f, 0.5f};
     UI_GetThemeColor3fv(TH_BACK, color);
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_aa(true, x1, y1, x2, y2, 4.0f, color);
+    UI_draw_roundbox_aa(
+        &(const rctf){
+            .xmin = x1,
+            .xmax = x2,
+            .ymin = y1,
+            .ymax = y2,
+        },
+        true,
+        4.0f,
+        color);
 
     UI_FontThemeColor(fontid, TH_TEXT);
   }
@@ -418,16 +437,13 @@ void ED_area_do_msg_notify_tag_refresh(
   ED_area_tag_refresh(area);
 }
 
-void ED_area_do_mgs_subscribe_for_tool_header(
-    /* Follow ARegionType.message_subscribe */
-    const struct bContext *UNUSED(C),
-    struct WorkSpace *workspace,
-    struct Scene *UNUSED(scene),
-    struct bScreen *UNUSED(screen),
-    struct ScrArea *UNUSED(area),
-    struct ARegion *region,
-    struct wmMsgBus *mbus)
+/* Follow ARegionType.message_subscribe */
+void ED_area_do_mgs_subscribe_for_tool_header(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  WorkSpace *workspace = params->workspace;
+  ARegion *region = params->region;
+
   BLI_assert(region->regiontype == RGN_TYPE_TOOL_HEADER);
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
@@ -438,16 +454,12 @@ void ED_area_do_mgs_subscribe_for_tool_header(
       mbus, &workspace->id, workspace, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
 }
 
-void ED_area_do_mgs_subscribe_for_tool_ui(
-    /* Follow ARegionType.message_subscribe */
-    const struct bContext *UNUSED(C),
-    struct WorkSpace *workspace,
-    struct Scene *UNUSED(scene),
-    struct bScreen *UNUSED(screen),
-    struct ScrArea *UNUSED(area),
-    struct ARegion *region,
-    struct wmMsgBus *mbus)
+void ED_area_do_mgs_subscribe_for_tool_ui(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  WorkSpace *workspace = params->workspace;
+  ARegion *region = params->region;
+
   BLI_assert(region->regiontype == RGN_TYPE_UI);
   const char *panel_category_tool = "Tool";
   const char *category = UI_panel_category_active_get(region, false);
@@ -634,7 +646,16 @@ void ED_region_do_draw(bContext *C, ARegion *region)
       WM_msg_subscribe_rna(mbus, &ptr, NULL, &msg_sub_value_region_tag_redraw, __func__);
     }
 
-    ED_region_message_subscribe(C, workspace, scene, screen, area, region, mbus);
+    wmRegionMessageSubscribeParams message_subscribe_params = {
+        .context = C,
+        .message_bus = mbus,
+        .workspace = workspace,
+        .scene = scene,
+        .screen = screen,
+        .area = area,
+        .region = region,
+    };
+    ED_region_message_subscribe(&message_subscribe_params);
   }
 }
 
@@ -4027,14 +4048,12 @@ void ED_region_cache_draw_cached_segments(
 /**
  * Generate subscriptions for this region.
  */
-void ED_region_message_subscribe(bContext *C,
-                                 struct WorkSpace *workspace,
-                                 struct Scene *scene,
-                                 struct bScreen *screen,
-                                 struct ScrArea *area,
-                                 struct ARegion *region,
-                                 struct wmMsgBus *mbus)
+void ED_region_message_subscribe(wmRegionMessageSubscribeParams *params)
 {
+  ARegion *region = params->region;
+  const bContext *C = params->context;
+  struct wmMsgBus *mbus = params->message_bus;
+
   if (region->gizmo_map != NULL) {
     WM_gizmomap_message_subscribe(C, region->gizmo_map, region, mbus);
   }
@@ -4044,7 +4063,7 @@ void ED_region_message_subscribe(bContext *C,
   }
 
   if (region->type->message_subscribe != NULL) {
-    region->type->message_subscribe(C, workspace, scene, screen, area, region, mbus);
+    region->type->message_subscribe(params);
   }
 }
 

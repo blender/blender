@@ -1,7 +1,5 @@
-/* Prevent Long enum lists */
-.field-body {
-   display: block;
-   width: 100%;
+/* T76453: Prevent Long enum lists */
+.field-list li {
    max-height: 245px;
    overflow-y: auto !important;
 }

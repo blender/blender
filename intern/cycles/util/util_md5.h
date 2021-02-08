@@ -49,7 +49,7 @@ class MD5Hash {
   void process(const uint8_t *data);
   void finish(uint8_t digest[16]);
 
-  uint32_t count[2]; /* message length in bits, lsw first */
+  uint32_t count[2]; /* message length in bits, LSW first. */
   uint32_t abcd[4];  /* digest buffer */
   uint8_t buf[64];   /* accumulate block */
 };

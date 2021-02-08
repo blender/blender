@@ -258,6 +258,16 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
 
     copy_m4_m4(mat, ob->obmat);
 
+    /* Rotate and scale except align to cursor. */
+    bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
+    if (gpl != NULL) {
+      if (ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR) {
+        float matrot[3][3];
+        copy_m3_m4(matrot, gpl->layer_mat);
+        mul_m4_m4m3(mat, mat, matrot);
+      }
+    }
+
     float viewinv[4][4];
     /* Set the grid in the selected axis */
     switch (ts->gp_sculpt.lock_axis) {
@@ -293,6 +303,11 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
     translate_m4(mat, gpd->grid.offset[0], gpd->grid.offset[1], 0.0f);
     mul_v2_v2fl(size, gpd->grid.scale, 2.0f * ED_scene_grid_scale(scene, &grid_unit));
     rescale_m4(mat, (float[3]){size[0], size[1], 0.0f});
+
+    /* Apply layer loc transform, except cursor mode. */
+    if ((gpl != NULL) && (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
+      add_v3_v3(mat[3], gpl->layer_mat[3]);
+    }
 
     const int gridlines = (gpd->grid.lines <= 0) ? 1 : gpd->grid.lines;
     int line_ct = gridlines * 4 + 2;

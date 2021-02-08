@@ -170,7 +170,7 @@ openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const struct Volume *vo
                                                          struct VolumeGrid *grid,
                                                          const bool clear);
 
-VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase::Ptr &grid);
+VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase &grid);
 
 template<typename OpType>
 auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)

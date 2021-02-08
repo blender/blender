@@ -152,6 +152,7 @@ struct PathSelectParams {
 };
 
 struct UserData_UV {
+  const SpaceImage *sima;
   Scene *scene;
   BMEditMesh *em;
   uint cd_loop_uv_offset;
@@ -239,7 +240,8 @@ static void looptag_set_cb(BMLoop *l, bool val, void *user_data_v)
   }
 }
 
-static int mouse_mesh_uv_shortest_path_vert(Scene *scene,
+static int mouse_mesh_uv_shortest_path_vert(const SpaceImage *sima,
+                                            Scene *scene,
                                             Object *obedit,
                                             const struct PathSelectParams *op_params,
                                             BMLoop *l_src,
@@ -281,6 +283,7 @@ static int mouse_mesh_uv_shortest_path_vert(Scene *scene,
   }
 
   struct UserData_UV user_data = {
+      .sima = sima,
       .scene = scene,
       .em = em,
       .cd_loop_uv_offset = cd_loop_uv_offset,
@@ -400,13 +403,15 @@ static bool facetag_test_cb(BMFace *f, void *user_data_v)
 static void facetag_set_cb(BMFace *f, bool val, void *user_data_v)
 {
   struct UserData_UV *user_data = user_data_v;
+  const SpaceImage *sima = user_data->sima;
   const Scene *scene = user_data->scene;
   BMEditMesh *em = user_data->em;
   const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
-  uvedit_face_select_set(scene, em, f, val, false, cd_loop_uv_offset);
+  uvedit_face_select_set_with_sticky(sima, scene, em, f, val, false, cd_loop_uv_offset);
 }
 
-static int mouse_mesh_uv_shortest_path_face(Scene *scene,
+static int mouse_mesh_uv_shortest_path_face(const SpaceImage *sima,
+                                            Scene *scene,
                                             Object *obedit,
                                             const struct PathSelectParams *op_params,
                                             BMFace *f_src,
@@ -419,6 +424,7 @@ static int mouse_mesh_uv_shortest_path_face(Scene *scene,
   int flush = 0;
 
   struct UserData_UV user_data = {
+      .sima = sima,
       .scene = scene,
       .em = em,
       .cd_loop_uv_offset = cd_loop_uv_offset,
@@ -497,7 +503,8 @@ static int mouse_mesh_uv_shortest_path_face(Scene *scene,
 
 static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op);
 
-static bool uv_shortest_path_pick_ex(Scene *scene,
+static bool uv_shortest_path_pick_ex(const SpaceImage *sima,
+                                     Scene *scene,
                                      Depsgraph *depsgraph,
                                      Object *obedit,
                                      const struct PathSelectParams *op_params,
@@ -515,7 +522,8 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
     /* pass */
   }
   else if (ele_src->head.htype == BM_FACE) {
-    flush = mouse_mesh_uv_shortest_path_face(scene,
+    flush = mouse_mesh_uv_shortest_path_face(sima,
+                                             scene,
                                              obedit,
                                              op_params,
                                              (BMFace *)ele_src,
@@ -525,7 +533,8 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
     ok = true;
   }
   else if (ele_src->head.htype == BM_LOOP) {
-    flush = mouse_mesh_uv_shortest_path_vert(scene,
+    flush = mouse_mesh_uv_shortest_path_vert(sima,
+                                             scene,
                                              obedit,
                                              op_params,
                                              (BMLoop *)ele_src,
@@ -565,6 +574,7 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
 
 static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
   const char uv_selectmode = ED_uvedit_select_mode_get(scene);
@@ -603,7 +613,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   BMElem *ele_src = NULL, *ele_dst = NULL;
 
   if (uv_selectmode == UV_SELECT_FACE) {
-    UvNearestHit hit = UV_NEAREST_HIT_INIT;
+    UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
     if (!uv_find_nearest_face(scene, obedit, co, &hit)) {
       return OPERATOR_CANCELLED;
     }
@@ -616,7 +626,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   }
 
   else if (uv_selectmode & UV_SELECT_EDGE) {
-    UvNearestHit hit = UV_NEAREST_HIT_INIT;
+    UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
     if (!uv_find_nearest_edge(scene, obedit, co, &hit)) {
       return OPERATOR_CANCELLED;
     }
@@ -642,7 +652,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     ele_dst = (BMElem *)hit.l;
   }
   else {
-    UvNearestHit hit = UV_NEAREST_HIT_INIT;
+    UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
     if (!uv_find_nearest_vert(scene, obedit, co, 0.0f, &hit)) {
       return OPERATOR_CANCELLED;
     }
@@ -671,7 +681,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   }
 
   uv_shortest_path_pick_ex(
-      scene, depsgraph, obedit, &op_params, ele_src, ele_dst, aspect_y, cd_loop_uv_offset);
+      sima, scene, depsgraph, obedit, &op_params, ele_src, ele_dst, aspect_y, cd_loop_uv_offset);
 
   /* To support redo. */
   int index;
@@ -695,6 +705,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
 static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  const SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
   const char uv_selectmode = ED_uvedit_select_mode_get(scene);
   Object *obedit = CTX_data_edit_object(C);
@@ -745,8 +756,15 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
   path_select_params_from_op(op, &op_params);
   op_params.track_active = true;
 
-  if (!uv_shortest_path_pick_ex(
-          scene, depsgraph, obedit, &op_params, ele_src, ele_dst, aspect_y, cd_loop_uv_offset)) {
+  if (!uv_shortest_path_pick_ex(sima,
+                                scene,
+                                depsgraph,
+                                obedit,
+                                &op_params,
+                                ele_src,
+                                ele_dst,
+                                aspect_y,
+                                cd_loop_uv_offset)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -765,7 +783,7 @@ void UV_OT_shortest_path_pick(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = uv_shortest_path_pick_invoke;
   ot->exec = uv_shortest_path_pick_exec;
-  ot->poll = ED_operator_uvedit;
+  ot->poll = ED_operator_uvedit_space_image;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -787,6 +805,7 @@ void UV_OT_shortest_path_pick(wmOperatorType *ot)
 static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  const SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
   const char uv_selectmode = ED_uvedit_select_mode_get(scene);
   bool found_valid_elements = false;
@@ -835,8 +854,15 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
       struct PathSelectParams op_params;
       path_select_params_from_op(op, &op_params);
 
-      uv_shortest_path_pick_ex(
-          scene, depsgraph, obedit, &op_params, ele_src, ele_dst, aspect_y, cd_loop_uv_offset);
+      uv_shortest_path_pick_ex(sima,
+                               scene,
+                               depsgraph,
+                               obedit,
+                               &op_params,
+                               ele_src,
+                               ele_dst,
+                               aspect_y,
+                               cd_loop_uv_offset);
 
       found_valid_elements = true;
     }
@@ -861,7 +887,7 @@ void UV_OT_shortest_path_select(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = uv_shortest_path_select_exec;
-  ot->poll = ED_operator_editmesh;
+  ot->poll = ED_operator_uvedit_space_image;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

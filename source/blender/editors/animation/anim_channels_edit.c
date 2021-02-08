@@ -393,7 +393,11 @@ static void anim_channels_select_set(bAnimContext *ac,
         FCurve *fcu = (FCurve *)ale->data;
 
         ACHANNEL_SET_FLAG(fcu, sel, FCURVE_SELECTED);
-        fcu->flag &= ~FCURVE_ACTIVE;
+        if ((fcu->flag & FCURVE_SELECTED) == 0) {
+          /* Only erase the ACTIVE flag when deselecting. This ensures that "select all curves"
+           * retains the currently active curve. */
+          fcu->flag &= ~FCURVE_ACTIVE;
+        }
         break;
       }
       case ANIMTYPE_SHAPEKEY: {
@@ -1197,7 +1201,7 @@ static void rearrange_nla_channels(bAnimContext *ac, AnimData *adt, eRearrangeAn
   rearrange_animchannel_islands(
       &adt->nla_tracks, rearrange_func, mode, ANIMTYPE_NLATRACK, &anim_data_visible);
 
-  /* Add back non-local NLA tracks at the begining of the animation data's list. */
+  /* Add back non-local NLA tracks at the beginning of the animation data's list. */
   if (!BLI_listbase_is_empty(&extracted_nonlocal_nla_tracks)) {
     BLI_assert(is_liboverride);
     ((NlaTrack *)extracted_nonlocal_nla_tracks.last)->next = adt->nla_tracks.first;
@@ -1580,6 +1584,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 
   /* send notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ORDER, NULL);
 
   return OPERATOR_FINISHED;
 }
@@ -1731,7 +1736,7 @@ static int animchannels_group_exec(bContext *C, wmOperator *op)
     /* free temp data */
     ANIM_animdata_freelist(&anim_data);
 
-    /* updatss */
+    /* Updates. */
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
   }
 
@@ -2900,6 +2905,7 @@ static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), const
 
   /* handle click */
   if (rename_anim_channels(&ac, channel_index)) {
+    WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
     return OPERATOR_FINISHED;
   }
 
@@ -2986,18 +2992,16 @@ static int click_select_channel_object(bContext *C,
     }
   }
 
-  /* change active object - regardless of whether it is now selected [T37883] */
-  ED_object_base_activate(C, base); /* adds notifier */
+  /* Change active object - regardless of whether it is now selected, see: T37883.
+   *
+   * Ensure we exit edit-mode on whatever object was active before
+   * to avoid getting stuck there, see: T48747. */
+  ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
 
   if ((adt) && (adt->flag & ADT_UI_SELECTED)) {
     adt->flag |= ADT_UI_ACTIVE;
   }
 
-  /* Ensure we exit editmode on whatever object was active before
-   * to avoid getting stuck there - T48747. */
-  if (ob != CTX_data_edit_object(C)) {
-    ED_object_editmode_exit(C, EM_FREEDATA);
-  }
   return (ND_ANIMCHAN | NA_SELECTED);
 }
 

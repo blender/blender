@@ -168,8 +168,11 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 /** \name Sample Weight Operator
  * \{ */
 
-/* sets wp->weight to the closest weight value to vertex */
-/* note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
+/**
+ * Sets wp->weight to the closest weight value to vertex.
+ *
+ * \note we can't sample front-buffer, weight colors are interpolated too unpredictable.
+ */
 static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -201,7 +204,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
       }
       else if (ED_mesh_pick_face(
                    C, vc.obact, event->mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
-        /* this relies on knowning the internal worksings of ED_mesh_pick_face_vert() */
+        /* This relies on knowing the internal workings of #ED_mesh_pick_face_vert() */
         BKE_report(
             op->reports, RPT_WARNING, "The modifier used does not support deformed locations");
       }
@@ -604,7 +607,7 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
   Mesh *me = grad_data->me;
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
-  /* Optionally restrict to assigned verices only. */
+  /* Optionally restrict to assigned vertices only. */
   if (grad_data->use_vgroup_restrict && ((vs->flag & VGRAD_STORE_DW_EXIST) == 0)) {
     return;
   }

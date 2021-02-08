@@ -244,7 +244,7 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
           continue;
         }
 
-        /* maintain coorect terminating edge */
+        /* Maintain correct terminating edge. */
         if (pi->edge_last == eed) {
           pi->edge_last = NULL;
         }

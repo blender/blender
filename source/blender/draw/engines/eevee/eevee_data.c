@@ -130,7 +130,7 @@ EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *
   }
 
   EEVEE_ObjectKey key, *key_p;
-  /* Small hack to avoid another comparisson. */
+  /* Small hack to avoid another comparison. */
   key.ob = (Object *)((char *)ob + hair);
   DupliObject *dup = DRW_object_get_dupli(ob);
   if (dup) {

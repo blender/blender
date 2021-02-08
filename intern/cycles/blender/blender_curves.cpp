@@ -67,11 +67,10 @@ static bool ObtainCacheParticleData(
   Transform tfm = get_transform(b_ob->matrix_world());
   Transform itfm = transform_quick_inverse(tfm);
 
-  BL::Object::modifiers_iterator b_mod;
-  for (b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
-    if ((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) &&
-        (background ? b_mod->show_render() : b_mod->show_viewport())) {
-      BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
+  for (BL::Modifier &b_mod : b_ob->modifiers) {
+    if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
+        (background ? b_mod.show_render() : b_mod.show_viewport())) {
+      BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
       BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
       BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
@@ -163,11 +162,10 @@ static bool ObtainCacheParticleUV(Hair *hair,
 
   CData->curve_uv.clear();
 
-  BL::Object::modifiers_iterator b_mod;
-  for (b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
-    if ((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) &&
-        (background ? b_mod->show_render() : b_mod->show_viewport())) {
-      BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
+  for (BL::Modifier &b_mod : b_ob->modifiers) {
+    if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
+        (background ? b_mod.show_render() : b_mod.show_viewport())) {
+      BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
       BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
       BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
@@ -226,11 +224,10 @@ static bool ObtainCacheParticleVcol(Hair *hair,
 
   CData->curve_vcol.clear();
 
-  BL::Object::modifiers_iterator b_mod;
-  for (b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
-    if ((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) &&
-        (background ? b_mod->show_render() : b_mod->show_viewport())) {
-      BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
+  for (BL::Modifier &b_mod : b_ob->modifiers) {
+    if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
+        (background ? b_mod.show_render() : b_mod.show_viewport())) {
+      BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
       BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
       BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
@@ -510,11 +507,10 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int 
 bool BlenderSync::object_has_particle_hair(BL::Object b_ob)
 {
   /* Test if the object has a particle modifier with hair. */
-  BL::Object::modifiers_iterator b_mod;
-  for (b_ob.modifiers.begin(b_mod); b_mod != b_ob.modifiers.end(); ++b_mod) {
-    if ((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) &&
-        (preview ? b_mod->show_viewport() : b_mod->show_render())) {
-      BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
+  for (BL::Modifier &b_mod : b_ob.modifiers) {
+    if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
+        (preview ? b_mod.show_viewport() : b_mod.show_render())) {
+      BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
       BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
       BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
@@ -678,9 +674,7 @@ static void export_hair_curves(Scene *scene, Hair *hair, BL::Hair b_hair)
   /* Export curves and points. */
   vector<float> points_length;
 
-  BL::Hair::curves_iterator b_curve_iter;
-  for (b_hair.curves.begin(b_curve_iter); b_curve_iter != b_hair.curves.end(); ++b_curve_iter) {
-    BL::HairCurve b_curve = *b_curve_iter;
+  for (BL::HairCurve &b_curve : b_hair.curves) {
     const int first_point_index = b_curve.first_point_index();
     const int num_points = b_curve.num_points();
 
@@ -748,9 +742,7 @@ static void export_hair_curves_motion(Hair *hair, BL::Hair b_hair, int motion_st
   int num_motion_keys = 0;
   int curve_index = 0;
 
-  BL::Hair::curves_iterator b_curve_iter;
-  for (b_hair.curves.begin(b_curve_iter); b_curve_iter != b_hair.curves.end(); ++b_curve_iter) {
-    BL::HairCurve b_curve = *b_curve_iter;
+  for (BL::HairCurve &b_curve : b_hair.curves) {
     const int first_point_index = b_curve.first_point_index();
     const int num_points = b_curve.num_points();
 
@@ -855,10 +847,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *ha
     hair->set_value(socket, new_hair, socket);
   }
 
-  hair->attributes.clear();
-  foreach (Attribute &attr, new_hair.attributes.attributes) {
-    hair->attributes.attributes.push_back(std::move(attr));
-  }
+  hair->attributes.update(std::move(new_hair.attributes));
 
   /* tag update */
 

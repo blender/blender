@@ -106,14 +106,10 @@ typedef struct NlaEvalChannel {
 
   int index;
   bool is_array;
-  bool in_blend;
   char mix_mode;
 
-  struct NlaEvalChannel *next_blend;
-  NlaEvalChannelSnapshot *blend_snapshot;
-
-  /* Mask of array items controlled by NLA. */
-  NlaValidMask valid;
+  /* Associated with the RNA property's value(s), marks which elements are affected by NLA. */
+  NlaValidMask domain;
 
   /* Base set of values. */
   NlaEvalChannelSnapshot base_snapshot;
@@ -185,6 +181,15 @@ void nladata_flush_channels(PointerRNA *ptr,
                             NlaEvalData *channels,
                             NlaEvalSnapshot *snapshot,
                             const bool flush_to_original);
+
+void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapshot);
+
+void nlasnapshot_blend(NlaEvalData *eval_data,
+                       NlaEvalSnapshot *lower_snapshot,
+                       NlaEvalSnapshot *upper_snapshot,
+                       const short upper_blendmode,
+                       const float upper_influence,
+                       NlaEvalSnapshot *r_blended_snapshot);
 
 #ifdef __cplusplus
 }

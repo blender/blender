@@ -203,3 +203,22 @@ bool BM_edge_uv_share_vert_check(BMEdge *e, BMLoop *l_a, BMLoop *l_b, const int 
 
   return true;
 }
+
+/**
+ * Check if the point is inside the UV face.
+ */
+bool BM_face_uv_point_inside_test(const BMFace *f, const float co[2], const int cd_loop_uv_offset)
+{
+  float(*projverts)[2] = BLI_array_alloca(projverts, f->len);
+
+  BMLoop *l_iter;
+  int i;
+
+  BLI_assert(BM_face_is_normal_valid(f));
+
+  for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l_iter = l_iter->next) {
+    copy_v2_v2(projverts[i], BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset));
+  }
+
+  return isect_point_poly_v2(co, projverts, f->len, false);
+}

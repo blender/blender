@@ -533,7 +533,7 @@ static void bchunk_list_calc_trim_len(const BArrayInfo *info,
     data_trim_len = data_trim_len - data_last_chunk_len;
     if (data_last_chunk_len) {
       if (data_last_chunk_len < info->chunk_byte_size_min) {
-        /* may be zero and thats OK */
+        /* May be zero and that's OK. */
         data_trim_len -= info->chunk_byte_size;
         data_last_chunk_len += info->chunk_byte_size;
       }

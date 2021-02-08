@@ -22,7 +22,7 @@
  * EEVEE LUT generation:
  *
  * Routine to generate the LUT used by eevee stored in eevee_lut.h
- * Theses functions are not to be used in the final executable.
+ * These functions are not to be used in the final executable.
  */
 
 #include "DRW_render.h"

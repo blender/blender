@@ -160,11 +160,12 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
     build_scene_sequencer(scene);
   }
   /* Collections. */
-  add_operation_node(
-      &scene->id,
-      NodeType::LAYER_COLLECTIONS,
-      OperationCode::VIEW_LAYER_EVAL,
-      function_bind(BKE_layer_eval_view_layer_indexed, _1, scene_cow, view_layer_index_));
+  add_operation_node(&scene->id,
+                     NodeType::LAYER_COLLECTIONS,
+                     OperationCode::VIEW_LAYER_EVAL,
+                     [view_layer_index = view_layer_index_, scene_cow](::Depsgraph *depsgraph) {
+                       BKE_layer_eval_view_layer_indexed(depsgraph, scene_cow, view_layer_index);
+                     });
   /* Parameters evaluation for scene relations mainly. */
   build_scene_compositor(scene);
   build_scene_parameters(scene);

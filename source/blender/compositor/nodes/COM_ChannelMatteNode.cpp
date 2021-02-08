@@ -20,7 +20,7 @@
 #include "BKE_node.h"
 #include "COM_ChannelMatteOperation.h"
 #include "COM_ConvertOperation.h"
-#include "COM_SetAlphaOperation.h"
+#include "COM_SetAlphaMultiplyOperation.h"
 
 ChannelMatteNode::ChannelMatteNode(bNode *editorNode) : Node(editorNode)
 {
@@ -64,7 +64,7 @@ void ChannelMatteNode::convertToOperations(NodeConverter &converter,
   operation->setSettings((NodeChroma *)node->storage, node->custom2);
   converter.addOperation(operation);
 
-  SetAlphaOperation *operationAlpha = new SetAlphaOperation();
+  SetAlphaMultiplyOperation *operationAlpha = new SetAlphaMultiplyOperation();
   converter.addOperation(operationAlpha);
 
   if (convert != nullptr) {

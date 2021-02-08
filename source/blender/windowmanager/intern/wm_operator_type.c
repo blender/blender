@@ -424,9 +424,8 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
           wm_event_free_handler(&handler->head);
         }
 
-        /* if operator is blocking, grab cursor
-         * This may end up grabbing twice, but we don't care.
-         * */
+        /* If operator is blocking, grab cursor.
+         * This may end up grabbing twice, but we don't care. */
         if (op->opm->type->flag & OPTYPE_BLOCKING) {
           int bounds[4] = {-1, -1, -1, -1};
           int wrap = WM_CURSOR_WRAP_NONE;
@@ -596,7 +595,7 @@ char *WM_operatortype_description(struct bContext *C,
                                   struct wmOperatorType *ot,
                                   struct PointerRNA *properties)
 {
-  if (C && ot->get_description && properties) {
+  if (ot->get_description && properties) {
     char *description = ot->get_description(C, ot, properties);
 
     if (description) {

@@ -35,12 +35,13 @@ but not to fully cover each topic.
 
 A quick list of helpful things to know before starting:
 
-- Blender uses Python 3.x; some online documentation still assumes version 2.x.
-- The interactive console is great for testing one-liners.
-  It also has autocompletion so you can inspect the API quickly.
-- Button tooltips show Python attributes and operator names.
-- The context menu of buttons directly links to this API documentation.
-- More operator examples can be found in the text editor's template menu.
+- Enable :ref:`Developer Extra <blender_manual:prefs-interface-dev-extras`
+  and :ref:`Python Tooltips <blender_manual:prefs-interface-tooltips-python>`.
+- The :ref:`Python Console <blender_manual:bpy.types.SpaceConsole>`
+  is great for testing one-liners; it has autocompletion so you can inspect the API quickly.
+- Button tooltips show Python attributes and operator names (when enabled see above).
+- The context menu of buttons directly links to this API documentation (when enabled see above).
+- Many python examples can be found in the text editor's template menu.
 - To examine further scripts distributed with Blender, see:
 
   - ``scripts/startup/bl_ui`` for the user interface.
@@ -237,7 +238,7 @@ Examples:
    {'FINISHED'}
    >>> bpy.ops.mesh.hide(unselected=False)
    {'FINISHED'}
-   >>> bpy.ops.object.scale_apply()
+   >>> bpy.ops.object.transform_apply()
    {'FINISHED'}
 
 .. tip::

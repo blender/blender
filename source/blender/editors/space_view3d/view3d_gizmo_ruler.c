@@ -548,9 +548,9 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   RulerItem *ruler_item = (RulerItem *)gz;
   ARegion *region = ruler_info->region;
   RegionView3D *rv3d = region->regiondata;
-  const float cap_size = 4.0f;
-  const float bg_margin = 4.0f * U.pixelsize;
-  const float arc_size = 64.0f * U.pixelsize;
+  const float cap_size = 4.0f * U.dpi_fac;
+  const float bg_margin = 4.0f * U.dpi_fac;
+  const float arc_size = 64.0f * U.dpi_fac;
 #define ARC_STEPS 24
   const int arc_steps = ARC_STEPS;
   const float color_act[4] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -1075,9 +1075,7 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
     view3d_ruler_to_gpencil(C, gzgroup);
   }
 
-  if (gz) {
-    MEM_SAFE_FREE(gz->interaction_data);
-  }
+  MEM_SAFE_FREE(gz->interaction_data);
 
   ruler_state_set(ruler_info, RULER_STATE_NORMAL);
 }

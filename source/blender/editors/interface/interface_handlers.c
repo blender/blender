@@ -334,7 +334,6 @@ typedef struct uiHandleButtonData {
   int retval;
   /* booleans (could be made into flags) */
   bool cancel, escapecancel;
-  bool skip_undo_push;
   bool applied, applied_interactive;
   bool changed_cursor;
   wmTimer *flashtimer;
@@ -350,7 +349,7 @@ typedef struct uiHandleButtonData {
 #endif
   ColorBand *coba;
 
-  /* tooltip */
+  /* Tool-tip. */
   uint tooltip_force : 1;
 
   /* auto open */
@@ -505,7 +504,7 @@ bool ui_but_is_editing(const uiBut *but)
 void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 {
   static int lastdy = 0;
-  int dy = WM_event_absolute_delta_y(event);
+  const int dy = WM_event_absolute_delta_y(event);
 
   /* This event should be originally from event->type,
    * converting wrong event into wheel is bad, see T33803. */
@@ -821,9 +820,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 /* typically call ui_apply_but_undo(), ui_apply_but_autokey() */
 static void ui_apply_but_undo(uiBut *but)
 {
-  const bool force_skip_undo = (but->active && but->active->skip_undo_push);
-
-  if (but->flag & UI_BUT_UNDO && !force_skip_undo) {
+  if (but->flag & UI_BUT_UNDO) {
     const char *str = NULL;
     size_t str_len_clip = SIZE_MAX - 1;
     bool skip_undo = false;
@@ -1620,7 +1617,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 static bool ui_but_is_drag_toggle(const uiBut *but)
 {
   return ((ui_drag_toggle_but_is_supported(but) == true) &&
-          /* menu check is importnt so the button dragged over isn't removed instantly */
+          /* Menu check is important so the button dragged over isn't removed instantly. */
           (ui_block_is_menu(but->block) == false));
 }
 
@@ -1993,7 +1990,12 @@ static bool ui_but_drag_init(bContext *C,
     }
     else {
       wmDrag *drag = WM_event_start_drag(
-          C, but->icon, but->dragtype, but->dragpoin, ui_but_value_get(but), WM_DRAG_NOP);
+          C,
+          but->icon,
+          but->dragtype,
+          but->dragpoin,
+          ui_but_value_get(but),
+          (but->dragflag & UI_BUT_DRAGPOIN_FREE) ? WM_DRAG_FREE_DATA : WM_DRAG_NOP);
       /* wmDrag has ownership over dragpoin now, stop messing with it. */
       but->dragpoin = NULL;
 
@@ -2869,8 +2871,7 @@ void ui_but_active_string_clear_and_exit(bContext *C, uiBut *but)
   but->active->str[0] = 0;
 
   ui_apply_but_TEX(C, but, but->active);
-  /* use onfree event so undo is handled by caller and apply is already done above */
-  button_activate_exit((bContext *)C, but, but->active, false, true);
+  button_activate_state(C, but, BUTTON_STATE_EXIT);
 }
 
 static void ui_textedit_string_ensure_max_length(uiBut *but, uiHandleButtonData *data, int maxlen)
@@ -3709,9 +3710,9 @@ static void ui_do_but_textedit(
 
       case EVT_AKEY:
 
-        /* Ctrl + A: Select all */
+        /* Ctrl-A: Select all. */
 #if defined(__APPLE__)
-        /* OSX uses cmd-a systemwide, so add it */
+        /* OSX uses Command-A system-wide, so add it. */
         if ((event->oskey && !IS_EVENT_MOD(event, shift, alt, ctrl)) ||
             (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey)))
 #else
@@ -3725,7 +3726,7 @@ static void ui_do_but_textedit(
         break;
 
       case EVT_TABKEY:
-        /* there is a key conflict here, we can't tab with autocomplete */
+        /* There is a key conflict here, we can't tab with auto-complete. */
         if (but->autocomplete_func || data->searchbox) {
           const int autocomplete = ui_textedit_autocomplete(C, but, data);
           changed = autocomplete != AUTOCOMPLETE_NO_MATCH;
@@ -3734,13 +3735,14 @@ static void ui_do_but_textedit(
             button_activate_state(C, but, BUTTON_STATE_EXIT);
           }
         }
-        /* the hotkey here is not well defined, was G.qual so we check all */
-        else if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
-          ui_textedit_prev_but(block, but, data);
-          button_activate_state(C, but, BUTTON_STATE_EXIT);
-        }
-        else {
-          ui_textedit_next_but(block, but, data);
+        else if (!IS_EVENT_MOD(event, ctrl, alt, oskey)) {
+          /* Use standard keys for cycling through buttons Tab, Shift-Tab to reverse. */
+          if (event->shift) {
+            ui_textedit_prev_but(block, but, data);
+          }
+          else {
+            ui_textedit_next_but(block, but, data);
+          }
           button_activate_state(C, but, BUTTON_STATE_EXIT);
         }
         retval = WM_UI_HANDLER_BREAK;
@@ -4015,38 +4017,16 @@ static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
   ED_region_tag_redraw(data->region);
 }
 
-static void ui_but_extra_operator_icon_apply_func(uiBut *but, uiButExtraOpIcon *op_icon)
+static void ui_but_extra_operator_icon_apply(bContext *C, uiBut *but, uiButExtraOpIcon *op_icon)
 {
-  if (ui_afterfunc_check(but->block, but)) {
-    uiAfterFunc *after = ui_afterfunc_new();
-
-    after->optype = op_icon->optype_params->optype;
-    after->opcontext = op_icon->optype_params->opcontext;
-    after->opptr = op_icon->optype_params->opptr;
-
-    if (but->context) {
-      after->context = CTX_store_copy(but->context);
-    }
-
-    /* Ownership moved, don't let the UI code free it. */
-    op_icon->optype_params->opptr = NULL;
+  if (but->active->interactive) {
+    ui_apply_but(C, but->block, but, but->active, true);
   }
-}
-
-static void ui_but_extra_operator_icon_apply(bContext *C,
-                                             uiBut *but,
-                                             uiHandleButtonData *data,
-                                             uiButExtraOpIcon *op_icon)
-{
   button_activate_state(C, but, BUTTON_STATE_EXIT);
-  ui_apply_but(C, but->block, but, data, true);
-
-  data->postbut = but;
-  data->posttype = BUTTON_ACTIVATE_OVER;
-  /* Leave undo up to the operator. */
-  data->skip_undo_push = true;
-
-  ui_but_extra_operator_icon_apply_func(but, op_icon);
+  WM_operator_name_call_ptr(C,
+                            op_icon->optype_params->optype,
+                            op_icon->optype_params->opcontext,
+                            op_icon->optype_params->opptr);
 
   /* Force recreation of extra operator icons (pseudo update). */
   ui_but_extra_operator_icons_free(but);
@@ -4214,9 +4194,17 @@ static uiButExtraOpIcon *ui_but_extra_operator_icon_mouse_over_get(uiBut *but,
     return NULL;
   }
 
+  /* Same as in 'widget_draw_extra_icons', icon padding from the right edge. */
+  xmax -= 0.2 * icon_size;
+
+  /* Handle the padding space from the right edge as the last button. */
+  if (x > xmax) {
+    return but->extra_op_icons.last;
+  }
+
   /* Inverse order, from right to left. */
   LISTBASE_FOREACH_BACKWARD (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
-    if ((x > (xmax - icon_size)) && x < xmax) {
+    if ((x > (xmax - icon_size)) && x <= xmax) {
       return op_icon;
     }
     xmax -= icon_size;
@@ -4245,7 +4233,7 @@ static bool ui_do_but_extra_operator_icon(bContext *C,
   ED_region_tag_redraw(data->region);
   button_tooltip_timer_reset(C, but);
 
-  ui_but_extra_operator_icon_apply(C, but, data, op_icon);
+  ui_but_extra_operator_icon_apply(C, but, op_icon);
   /* Note: 'but', 'data' may now be freed, don't access. */
 
   return true;
@@ -4588,7 +4576,7 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
       return WM_UI_HANDLER_BREAK;
     }
     if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
-      /* Support ctrl-wheel to cycle values on expanded enum rows. */
+      /* Support Ctrl-Wheel to cycle values on expanded enum rows. */
       if (but->type == UI_BTYPE_ROW) {
         int type = event->type;
         int val = event->val;
@@ -5099,7 +5087,7 @@ static int ui_do_but_NUM(
     else if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
       if (data->dragchange) {
 #ifdef USE_DRAG_MULTINUM
-        /* if we started multibutton but didn't drag, then edit */
+        /* If we started multi-button but didn't drag, then edit. */
         if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
           click = 1;
         }
@@ -5421,7 +5409,7 @@ static int ui_do_but_SLI(
     else if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
       if (data->dragchange) {
 #ifdef USE_DRAG_MULTINUM
-        /* if we started multibutton but didn't drag, then edit */
+        /* If we started multi-button but didn't drag, then edit. */
         if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
           click = 1;
         }
@@ -6849,7 +6837,7 @@ static bool ui_numedit_but_CURVE(uiBlock *block,
 
 #ifdef USE_CONT_MOUSE_CORRECT
       /* note: using 'cmp_last' is weak since there may be multiple points selected,
-       * but in practice this isnt really an issue */
+       * but in practice this isn't really an issue */
       if (ui_but_is_cursor_warp(but)) {
         /* OK but can go outside bounds */
         data->ungrab_mval[0] = but->rect.xmin + ((cmp_last->x - cumap->curr.xmin) * zoomx);
@@ -7120,7 +7108,7 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
       changed = true;
 #ifdef USE_CONT_MOUSE_CORRECT
       /* note: using 'cmp_last' is weak since there may be multiple points selected,
-       * but in practice this isnt really an issue */
+       * but in practice this isn't really an issue */
       if (ui_but_is_cursor_warp(but)) {
         /* OK but can go outside bounds */
         data->ungrab_mval[0] = but->rect.xmin + ((last_x - profile->view_rect.xmin) * zoomx);
@@ -7835,7 +7823,7 @@ static void ui_blocks_set_tooltips(ARegion *region, const bool enable)
 }
 
 /**
- * Recreate tooltip (use to update dynamic tips)
+ * Recreate tool-tip (use to update dynamic tips)
  */
 void UI_but_tooltip_refresh(bContext *C, uiBut *but)
 {
@@ -7880,10 +7868,7 @@ static ARegion *ui_but_tooltip_init(
   uiBut *but = UI_region_active_but_get(region);
   *r_exit_on_event = false;
   if (but) {
-    uiButExtraOpIcon *extra_icon = ui_but_extra_operator_icon_mouse_over_get(
-        but, but->active, CTX_wm_window(C)->eventstate);
-
-    return UI_tooltip_create_from_button_or_extra_icon(C, region, but, extra_icon, is_label);
+    return UI_tooltip_create_from_button(C, region, but, is_label);
   }
   return NULL;
 }
@@ -7937,7 +7922,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
     return;
   }
 
-  /* highlight has timers for tooltips and auto open */
+  /* Highlight has timers for tool-tips and auto open. */
   if (state == BUTTON_STATE_HIGHLIGHT) {
     but->flag &= ~UI_SELECT;
 
@@ -8277,7 +8262,7 @@ static void button_activate_exit(
     }
   }
 
-  /* disable tooltips until mousemove + last active flag */
+  /* Disable tool-tips until mouse-move + last active flag. */
   LISTBASE_FOREACH (uiBlock *, block_iter, &data->region->uiblocks) {
     LISTBASE_FOREACH (uiBut *, bt, &block_iter->buttons) {
       bt->flag &= ~UI_BUT_LAST_ACTIVE;
@@ -8341,7 +8326,7 @@ void ui_but_active_free(const bContext *C, uiBut *but)
 }
 
 /* returns the active button with an optional checking function */
-static uiBut *ui_context_button_active(ARegion *region, bool (*but_check_cb)(uiBut *))
+static uiBut *ui_context_button_active(const ARegion *region, bool (*but_check_cb)(const uiBut *))
 {
   uiBut *but_found = NULL;
 
@@ -8365,7 +8350,7 @@ static uiBut *ui_context_button_active(ARegion *region, bool (*but_check_cb)(uiB
 
       but_found = activebut;
 
-      /* recurse into opened menu, like colorpicker case */
+      /* Recurse into opened menu, like color-picker case. */
       if (data && data->menu && (region != data->menu->region)) {
         region = data->menu->region;
       }
@@ -8382,7 +8367,7 @@ static uiBut *ui_context_button_active(ARegion *region, bool (*but_check_cb)(uiB
   return but_found;
 }
 
-static bool ui_context_rna_button_active_test(uiBut *but)
+static bool ui_context_rna_button_active_test(const uiBut *but)
 {
   return (but->rnapoin.data != NULL);
 }
@@ -8407,7 +8392,7 @@ uiBut *UI_context_active_but_get_respect_menu(const bContext *C)
   return ui_context_button_active(region_menu ? region_menu : CTX_wm_region(C), NULL);
 }
 
-uiBut *UI_region_active_but_get(ARegion *region)
+uiBut *UI_region_active_but_get(const ARegion *region)
 {
   return ui_context_button_active(region, NULL);
 }
@@ -8505,6 +8490,15 @@ wmOperator *UI_context_active_operator_get(const struct bContext *C)
   return NULL;
 }
 
+/**
+ * Try to find a search-box region opened from a button in \a button_region.
+ */
+ARegion *UI_region_searchbox_region_get(const ARegion *button_region)
+{
+  uiBut *but = UI_region_active_but_get(button_region);
+  return (but != NULL) ? but->active->searchbox : NULL;
+}
+
 /* helper function for insert keyframe, reset to default, etc operators */
 void UI_context_update_anim_flag(const bContext *C)
 {
@@ -8538,7 +8532,7 @@ void UI_context_update_anim_flag(const bContext *C)
     }
 
     if (activebut) {
-      /* always recurse into opened menu, so all buttons update (like colorpicker) */
+      /* Always recurse into opened menu, so all buttons update (like color-picker). */
       uiHandleButtonData *data = activebut->active;
       if (data && data->menu) {
         region = data->menu->region;
@@ -8580,7 +8574,8 @@ static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *reg
       button_activate_init(C, region, but, BUTTON_ACTIVATE_OVER);
 
       if (event->alt && but->active) {
-        /* display tooltips if holding alt on mouseover when tooltips are off in prefs */
+        /* Display tool-tips if holding Alt on mouse-over when tool-tips are disabled in the
+         * preferences. */
         but->active->tooltip_force = true;
       }
     }
@@ -8622,7 +8617,7 @@ void ui_but_activate_event(bContext *C, ARegion *region, uiBut *but)
  * Simulate moving the mouse over a button (or navigating to it with arrow keys).
  *
  * exported so menus can start with a highlighted button,
- * even if the mouse isnt over it
+ * even if the mouse isn't over it
  */
 void ui_but_activate_over(bContext *C, ARegion *region, uiBut *but)
 {
@@ -8802,7 +8797,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
           button_activate_state(C, but, BUTTON_STATE_EXIT);
         }
         else if (event->x != event->prevx || event->y != event->prevy) {
-          /* re-enable tooltip on mouse move */
+          /* Re-enable tool-tip on mouse move. */
           ui_blocks_set_tooltips(region, true);
           button_tooltip_timer_reset(C, but);
         }
@@ -8826,7 +8821,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
         break;
       }
       /* XXX hardcoded keymap check... but anyway,
-       * while view changes, tooltips should be removed */
+       * while view changes, tool-tips should be removed */
       case WHEELUPMOUSE:
       case WHEELDOWNMOUSE:
       case MIDDLEMOUSE:
@@ -9021,6 +9016,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
 {
   int retval = WM_UI_HANDLER_CONTINUE;
   int type = event->type, val = event->val;
+  int scroll_dir = 1;
   bool redraw = false;
 
   uiList *ui_list = listbox->custom_data;
@@ -9036,6 +9032,11 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   /* Convert pan to scroll-wheel. */
   if (type == MOUSEPAN) {
     ui_pan_to_scroll(event, &type, &val);
+
+    /* 'ui_pan_to_scroll' gives the absolute direction. */
+    if (event->is_direction_inverted) {
+      scroll_dir = -1;
+    }
 
     /* If type still is mouse-pan, we call it handled, since delta-y accumulate. */
     /* also see wm_event_system.c do_wheel_ui hack */
@@ -9131,7 +9132,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
     else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
       if (dyn_data->height > dyn_data->visual_height) {
         /* list template will clamp */
-        ui_list->list_scroll += (type == WHEELUPMOUSE) ? -1 : 1;
+        ui_list->list_scroll += scroll_dir * ((type == WHEELUPMOUSE) ? -1 : 1);
 
         redraw = true;
         retval = WM_UI_HANDLER_BREAK;
@@ -9523,7 +9524,7 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
       /* pass, skip for dialogs */
     }
     else if (!ui_region_contains_point_px(but->active->region, event->x, event->y)) {
-      /* pass, needed to click-exit outside of non-flaoting menus */
+      /* Pass, needed to click-exit outside of non-floating menus. */
       ui_region_auto_open_clear(but->active->region);
     }
     else if ((!ELEM(event->type, MOUSEMOVE, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN)) &&
@@ -9929,6 +9930,12 @@ static int ui_handle_menu_event(bContext *C,
               break;
             }
 
+            /* Only respond to explicit press to avoid the event that opened the menu
+             * activating an item when the key is held. */
+            if (event->is_repeat) {
+              break;
+            }
+
             if (event->alt) {
               act += 10;
             }
@@ -10008,8 +10015,11 @@ static int ui_handle_menu_event(bContext *C,
         case EVT_XKEY:
         case EVT_YKEY:
         case EVT_ZKEY: {
-          if ((event->val == KM_PRESS || event->val == KM_DBL_CLICK) &&
-              !IS_EVENT_MOD(event, shift, ctrl, oskey)) {
+          if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK) &&
+              !IS_EVENT_MOD(event, shift, ctrl, oskey) &&
+              /* Only respond to explicit press to avoid the event that opened the menu
+               * activating an item when the key is held. */
+              !event->is_repeat) {
             if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval)) {
               break;
             }
@@ -10136,7 +10146,7 @@ static int ui_handle_menu_event(bContext *C,
 
           ui_mouse_motion_towards_check(block, menu, &event->x, is_parent_inside == false);
 
-          /* check for all parent rects, enables arrowkeys to be used */
+          /* Check for all parent rects, enables arrow-keys to be used. */
           for (saferct = block->saferct.first; saferct; saferct = saferct->next) {
             /* for mouse move we only check our own rect, for other
              * events we check all preceding block rects too to make
@@ -10410,7 +10420,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
         }
       }
 
-      /* check pie velociy here if gesture has ended */
+      /* Check pie velocity here if gesture has ended. */
       if (block->pie_data.flags & UI_PIE_GESTURE_END_WAIT) {
         float len_sq = 10;
 
@@ -10736,7 +10746,7 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(use
     }
   }
 
-  /* re-enable tooltips */
+  /* Re-enable tool-tips. */
   if (event->type == MOUSEMOVE && (event->x != event->prevx || event->y != event->prevy)) {
     ui_blocks_set_tooltips(region, true);
   }
@@ -10833,7 +10843,7 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
     }
   }
 
-  /* re-enable tooltips */
+  /* Re-enable tool-tips. */
   if (event->type == MOUSEMOVE && (event->x != event->prevx || event->y != event->prevy)) {
     ui_blocks_set_tooltips(region, true);
   }
@@ -10927,7 +10937,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
     WM_event_add_mousemove(win);
   }
   else {
-    /* re-enable tooltips */
+    /* Re-enable tool-tips */
     if (event->type == MOUSEMOVE && (event->x != event->prevx || event->y != event->prevy)) {
       ui_blocks_set_tooltips(menu->region, true);
     }
@@ -10937,7 +10947,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
   ui_apply_but_funcs_after(C);
 
   if (reset_pie) {
-    /* reaqcuire window in case pie invalidates it somehow */
+    /* Reacquire window in case pie invalidates it somehow. */
     wmWindow *win = CTX_wm_window(C);
 
     if (win) {

@@ -1354,8 +1354,8 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* adds window to WM */
   rcti rect = area->totrct;
   BLI_rcti_translate(&rect, win->posx, win->posy);
-  rect.xmax = rect.xmin + BLI_rcti_size_x(&rect) / U.pixelsize;
-  rect.ymax = rect.ymin + BLI_rcti_size_y(&rect) / U.pixelsize;
+  rect.xmax = rect.xmin + BLI_rcti_size_x(&rect);
+  rect.ymax = rect.ymin + BLI_rcti_size_y(&rect);
 
   wmWindow *newwin = WM_window_open(C, &rect);
   if (newwin == NULL) {
@@ -1637,7 +1637,7 @@ static int area_snap_calc_location(const bScreen *screen,
             /* Thirds. */
             1.0f / 3.0f,
             2.0f / 3.0f,
-            /* Quaters. */
+            /* Quarters. */
             1.0f / 4.0f,
             3.0f / 4.0f,
             /* Eighth. */
@@ -3611,7 +3611,7 @@ static int spacedata_cleanup_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Cleanup Space Data";
+  ot->name = "Clean Up Space Data";
   ot->description = "Remove unused settings for invisible editors";
   ot->idname = "SCREEN_OT_spacedata_cleanup";
 

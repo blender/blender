@@ -85,7 +85,8 @@ int save(const string &name,
          bool precisionHalf = true,
          int precision = PRECISION_HALF,
          float clip = 1e-4,
-         const Grid<Real> *clipGrid = nullptr)
+         const Grid<Real> *clipGrid = nullptr,
+         const bool meta = false)
 {
 
   if (!precisionHalf) {
@@ -105,7 +106,7 @@ int save(const string &name,
     return writeGridsVol(name, &objects);
   if (ext == ".vdb")
     return writeObjectsVDB(
-        name, &objects, worldSize, skipDeletedParts, compression, precision, clip, clipGrid);
+        name, &objects, worldSize, skipDeletedParts, compression, precision, clip, clipGrid, meta);
   else if (ext == ".npz")
     return writeGridsNumpy(name, &objects);
   else if (ext == ".txt")
@@ -134,6 +135,7 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       int precision = _args.getOpt<int>("precision", 6, PRECISION_HALF, &_lock);
       float clip = _args.getOpt<float>("clip", 7, 1e-4, &_lock);
       const Grid<Real> *clipGrid = _args.getPtrOpt<Grid<Real>>("clipGrid", 8, nullptr, &_lock);
+      const bool meta = _args.getOpt<bool>("meta", 9, false, &_lock);
       _retval = toPy(save(name,
                           objects,
                           worldSize,
@@ -142,7 +144,8 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
                           precisionHalf,
                           precision,
                           clip,
-                          clipGrid));
+                          clipGrid,
+                          meta));
       _args.check();
     }
     pbFinalizePlugin(parent, "save", !noTiming);

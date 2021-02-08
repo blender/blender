@@ -187,8 +187,11 @@ static bool mball_undosys_step_encode(struct bContext *C, struct Main *bmain, Un
   return true;
 }
 
-static void mball_undosys_step_decode(
-    struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir), bool UNUSED(is_final))
+static void mball_undosys_step_decode(struct bContext *C,
+                                      struct Main *bmain,
+                                      UndoStep *us_p,
+                                      const eUndoStepDir UNUSED(dir),
+                                      bool UNUSED(is_final))
 {
   MBallUndoStep *us = (MBallUndoStep *)us_p;
 
@@ -258,7 +261,7 @@ void ED_mball_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = mball_undosys_foreach_ID_ref;
 
-  ut->use_context = true;
+  ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE;
 
   ut->step_size = sizeof(MBallUndoStep);
 }

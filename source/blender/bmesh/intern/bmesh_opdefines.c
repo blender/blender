@@ -54,7 +54,8 @@
 
 #include "DNA_modifier_types.h"
 
-/* The formatting of these bmesh operators is parsed by
+/**
+ * The formatting of these bmesh operators is parsed by
  * 'doc/python_api/rst_from_bmesh_opdefines.py'
  * for use in python docs, so reStructuredText may be used
  * rather than doxygen syntax.
@@ -65,8 +66,7 @@
  * """
  * Region Extend.
  *
- * paragraph1, Extends bleh bleh bleh.
- * Bleh Bleh bleh.
+ * paragraph1, Extends on the title above.
  *
  * Another paragraph.
  *
@@ -326,6 +326,7 @@ static BMOpDefine bmo_mirror_def = {
    {"mirror_u",        BMO_OP_SLOT_BOOL},  /* mirror UVs across the u axis */
    {"mirror_v",        BMO_OP_SLOT_BOOL},  /* mirror UVs across the v axis */
    {"mirror_udim",     BMO_OP_SLOT_BOOL},  /* mirror UVs in each tile */
+   {"use_shapekey",    BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   /* slots_out */
@@ -730,7 +731,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
  *
  * - One single loop; an edge is added to connect the ends
  * - Two loops; two edges are added to connect the endpoints (based on the
- *   shortest distance between each endpont).
+ *   shortest distance between each endpoint).
  */
 static BMOpDefine bmo_edgenet_prepare_def = {
   "edgenet_prepare",
@@ -758,6 +759,7 @@ static BMOpDefine bmo_rotate_def = {
    {"matrix",          BMO_OP_SLOT_MAT},  /* matrix defining rotation */
    {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
    {"space",           BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
+   {"use_shapekey",    BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   {{{'\0'}}},  /* no output */
@@ -776,6 +778,7 @@ static BMOpDefine bmo_translate_def = {
   {{"vec", BMO_OP_SLOT_VEC},  /* translation offset */
    {"space", BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
    {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+   {"use_shapekey", BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   {{{'\0'}}},  /* no output */
@@ -794,6 +797,7 @@ static BMOpDefine bmo_scale_def = {
   {{"vec", BMO_OP_SLOT_VEC},  /* scale factor */
    {"space", BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
    {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+   {"use_shapekey", BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   {{{'\0'}}},  /* no output */
@@ -814,6 +818,7 @@ static BMOpDefine bmo_transform_def = {
   {{"matrix",          BMO_OP_SLOT_MAT},  /* transform matrix */
    {"space",           BMO_OP_SLOT_MAT},  /* matrix to define the space (typically object matrix) */
    {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+   {"use_shapekey",    BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   {{{'\0'}}},  /* no output */
@@ -1278,7 +1283,7 @@ static BMOpDefine bmo_subdivide_edges_def = {
    {"quad_corner_type",  BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_subdivide_edges_quad_corner_type}, /* quad corner type */
    {"use_grid_fill", BMO_OP_SLOT_BOOL},   /* fill in fully-selected faces with a grid */
    {"use_single_edge", BMO_OP_SLOT_BOOL}, /* tessellate the case of one edge selected in a quad or triangle */
-   {"use_only_quads", BMO_OP_SLOT_BOOL},  /* only subdivide quads (for loopcut) */
+   {"use_only_quads", BMO_OP_SLOT_BOOL},  /* Only subdivide quads (for loop-cut). */
    {"use_sphere", BMO_OP_SLOT_BOOL},     /* for making new primitives only */
    {"use_smooth_even", BMO_OP_SLOT_BOOL},  /* maintain even offset when smoothing */
    {{'\0'}},
@@ -2087,6 +2092,7 @@ static BMOpDefine bmo_symmetrize_def = {
   {{"input", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}}, /* input geometry */
    {"direction", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_axis_neg_xyz_and_xyz}, /* axis to use */
    {"dist", BMO_OP_SLOT_FLT}, /* minimum distance */
+   {"use_shapekey", BMO_OP_SLOT_BOOL},  /* Transform shape keys too. */
    {{'\0'}},
   },
   /* slots_out */

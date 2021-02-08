@@ -47,9 +47,10 @@ OutputOpenExrSingleLayerMultiViewOperation::OutputOpenExrSingleLayerMultiViewOpe
     const char *path,
     const ColorManagedViewSettings *viewSettings,
     const ColorManagedDisplaySettings *displaySettings,
-    const char *viewName)
+    const char *viewName,
+    const bool saveAsRender)
     : OutputSingleLayerOperation(
-          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName)
+          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName, saveAsRender)
 {
 }
 
@@ -143,13 +144,14 @@ void OutputOpenExrSingleLayerMultiViewOperation::deinitExecution()
 /************************************ OpenEXR Multilayer Multiview *******************************/
 
 OutputOpenExrMultiLayerMultiViewOperation::OutputOpenExrMultiLayerMultiViewOperation(
+    const Scene *scene,
     const RenderData *rd,
     const bNodeTree *tree,
     const char *path,
     char exr_codec,
     bool exr_half_float,
     const char *viewName)
-    : OutputOpenExrMultiLayerOperation(rd, tree, path, exr_codec, exr_half_float, viewName)
+    : OutputOpenExrMultiLayerOperation(scene, rd, tree, path, exr_codec, exr_half_float, viewName)
 {
 }
 
@@ -195,12 +197,16 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
     BLI_make_existing_file(filename);
 
     /* prepare the file with all the channels for the header */
-    if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, nullptr) == 0) {
+    StampData *stamp_data = createStampData();
+    if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, stamp_data) ==
+        0) {
       printf("Error Writing Multilayer Multiview Openexr\n");
       IMB_exr_close(exrhandle);
+      BKE_stamp_data_free(stamp_data);
     }
     else {
       IMB_exr_clear_channels(exrhandle);
+      BKE_stamp_data_free(stamp_data);
       return exrhandle;
     }
   }
@@ -268,9 +274,10 @@ OutputStereoOperation::OutputStereoOperation(const RenderData *rd,
                                              const char *name,
                                              const ColorManagedViewSettings *viewSettings,
                                              const ColorManagedDisplaySettings *displaySettings,
-                                             const char *viewName)
+                                             const char *viewName,
+                                             const bool saveAsRender)
     : OutputSingleLayerOperation(
-          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName)
+          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName, saveAsRender)
 {
   BLI_strncpy(this->m_name, name, sizeof(this->m_name));
   this->m_channels = get_datatype_size(datatype);

@@ -274,7 +274,7 @@ uniform bool isFirstPass;
 vec2 compute_uvs(float x)
 {
   vec2 uv = uvcoordsvar.xy;
-  /* Tranform UV (loc, rot, scale) */
+  /* Transform UV (loc, rot, scale) */
   uv = uv.x * uvRotX + uv.y * uvRotY + uvOffset;
   uv += blurDir * x;
   /* Wave deform. */

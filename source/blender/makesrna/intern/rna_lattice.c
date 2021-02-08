@@ -24,6 +24,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -131,12 +132,12 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
   Object *ob;
   int newu, newv, neww;
 
-  /* we don't modify the actual pnts, but go through opnts instead */
+  /* We don't modify the actual `pnts`, but go through `opnts` instead. */
   newu = (lt->opntsu > 0) ? lt->opntsu : lt->pntsu;
   newv = (lt->opntsv > 0) ? lt->opntsv : lt->pntsv;
   neww = (lt->opntsw > 0) ? lt->opntsw : lt->pntsw;
 
-  /* BKE_lattice_resize needs an object, any object will have the same result */
+  /* #BKE_lattice_resize needs an object, any object will have the same result */
   for (ob = bmain->objects.first; ob; ob = ob->id.next) {
     if (ob->data == lt) {
       BKE_lattice_resize(lt, newu, newv, neww, ob);
@@ -268,7 +269,7 @@ static void rna_def_latticepoint(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_LatticePoint_path");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+  RNA_def_property_boolean_sdna(prop, NULL, "f1", SELECT);
   RNA_def_property_ui_text(prop, "Point selected", "Selection status");
 
   prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);

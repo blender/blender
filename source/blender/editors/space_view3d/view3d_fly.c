@@ -48,7 +48,7 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
-#include "PIL_time.h" /* smoothview */
+#include "PIL_time.h" /* Smooth-view. */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -84,7 +84,7 @@ enum {
   FLY_MODAL_PRECISION_DISABLE,
   FLY_MODAL_FREELOOK_ENABLE,
   FLY_MODAL_FREELOOK_DISABLE,
-  FLY_MODAL_SPEED, /* mousepan typically */
+  FLY_MODAL_SPEED, /* mouse-pan typically. */
 };
 
 /* relative view axis locking - xlock, zlock */
@@ -537,7 +537,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         fly->state = FLY_CONFIRM;
         break;
 
-      /* speed adjusting with mousepan (trackpad) */
+      /* Speed adjusting with mouse-pan (track-pad). */
       case FLY_MODAL_SPEED: {
         float fac = 0.02f * (event->prevy - event->y);
 
@@ -768,7 +768,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
   /* this is the direction that's added to the view offset per redraw */
   float dvec[3] = {0, 0, 0};
 
-  /* Camera Uprighting variables */
+  /* Camera Up-righting variables. */
   float moffset[2];  /* mouse offset from the views center */
   float tmp_quat[4]; /* used for rotating the view */
 
@@ -950,7 +950,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
           }
         }
 
-        /* only apply xcorrect when mouse isn't applying x rot */
+        /* Only apply X-axis correction when mouse isn't applying x rotation. */
         if (fly->xlock == FLY_AXISLOCK_STATE_ACTIVE && moffset[1] == 0) {
           float upvec[3];
           copy_v3_fl3(upvec, 0.0f, 0.0f, 1.0f);

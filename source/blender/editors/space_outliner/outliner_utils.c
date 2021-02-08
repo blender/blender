@@ -169,7 +169,7 @@ TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
   return te;
 }
 
-/* Find specific item from the treestore */
+/* Find specific item from the trees-tore. */
 TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {

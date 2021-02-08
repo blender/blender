@@ -883,6 +883,7 @@ static bool image_undosys_step_encode(struct bContext *C,
     }
   }
   else {
+    BLI_assert(C != NULL);
     /* Happens when switching modes. */
     ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
     BLI_assert(ELEM(paint_mode, PAINT_MODE_TEXTURE_2D, PAINT_MODE_TEXTURE_3D));
@@ -946,13 +947,15 @@ static void image_undosys_step_decode_redo(ImageUndoStep *us)
 }
 
 static void image_undosys_step_decode(
-    struct bContext *C, struct Main *bmain, UndoStep *us_p, int dir, bool is_final)
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
 {
+  BLI_assert(dir != STEP_INVALID);
+
   ImageUndoStep *us = (ImageUndoStep *)us_p;
-  if (dir < 0) {
+  if (dir == STEP_UNDO) {
     image_undosys_step_decode_undo(us, is_final);
   }
-  else {
+  else if (dir == STEP_REDO) {
     image_undosys_step_decode_redo(us);
   }
 
@@ -995,7 +998,11 @@ void ED_image_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = image_undosys_foreach_ID_ref;
 
-  ut->use_context = true;
+  /* NOTE this is actually a confusing case, since it expects a valid context, but only in a
+   * specific case, see `image_undosys_step_encode` code. We cannot specify
+   * `UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE` though, as it can be called with a NULL context by
+   * current code. */
+  ut->flags = 0;
 
   ut->step_size = sizeof(ImageUndoStep);
 }

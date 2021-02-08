@@ -69,9 +69,6 @@ void BKE_brush_gpencil_weight_presets(struct Main *bmain,
                                       const bool reset);
 void BKE_gpencil_brush_preset_set(struct Main *bmain, struct Brush *brush, const short type);
 
-/* image icon function */
-struct ImBuf *get_brush_icon(struct Brush *brush);
-
 /* jitter */
 void BKE_brush_jitter_pos(const struct Scene *scene,
                           struct Brush *brush,

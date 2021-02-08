@@ -211,7 +211,7 @@ static GPUVertFormat *gpencil_edit_stroke_format(void)
 /* MUST match the format below. */
 typedef struct gpEditCurveVert {
   float pos[3];
-  int data;
+  uint32_t data;
 } gpEditCurveVert;
 
 static GPUVertFormat *gpencil_edit_curve_format(void)
@@ -220,7 +220,7 @@ static GPUVertFormat *gpencil_edit_curve_format(void)
   if (format.attr_len == 0) {
     /* initialize vertex formats */
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
+    GPU_vertformat_attr_add(&format, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
   }
   return &format;
 }
@@ -754,17 +754,16 @@ static void gpencil_edit_curve_stroke_count_cb(bGPDlayer *gpl,
   iter->curve_len += gps->editcurve->tot_curve_points * 4;
 }
 
-static char gpencil_beztriple_vflag_get(char flag,
-                                        char col_id,
-                                        bool handle_point,
-                                        const bool handle_selected)
+static uint32_t gpencil_beztriple_vflag_get(char flag,
+                                            char col_id,
+                                            bool handle_point,
+                                            const bool handle_selected)
 {
-  char vflag = 0;
+  uint32_t vflag = 0;
   SET_FLAG_FROM_TEST(vflag, (flag & SELECT), VFLAG_VERT_SELECTED);
   SET_FLAG_FROM_TEST(vflag, handle_point, BEZIER_HANDLE);
   SET_FLAG_FROM_TEST(vflag, handle_selected, VFLAG_VERT_SELECTED_BEZT_HANDLE);
-  /* Reuse flag of Freestyle to indicate is GPencil data. */
-  vflag |= VFLAG_EDGE_FREESTYLE;
+  vflag |= VFLAG_VERT_GPENCIL_BEZT_HANDLE;
 
   /* Handle color id. */
   vflag |= col_id << COLOR_SHIFT;
@@ -794,27 +793,27 @@ static void gpencil_edit_curve_stroke_iter_cb(bGPDlayer *gpl,
   for (int i = 0; i < editcurve->tot_curve_points; i++) {
     BezTriple *bezt = &editcurve->curve_points[i].bezt;
     const bool handle_selected = BEZT_ISSEL_ANY(bezt);
-    const char vflag[3] = {
+    const uint32_t vflag[3] = {
         gpencil_beztriple_vflag_get(bezt->f1, bezt->h1, true, handle_selected),
         gpencil_beztriple_vflag_get(bezt->f2, bezt->h1, hide, handle_selected),
         gpencil_beztriple_vflag_get(bezt->f3, bezt->h2, true, handle_selected),
     };
 
     /* First segment. */
-    copy_v3_v3(vert_ptr->pos, bezt->vec[0]);
+    mul_v3_m4v3(vert_ptr->pos, gpl->layer_mat, bezt->vec[0]);
     vert_ptr->data = vflag[0];
     vert_ptr++;
 
-    copy_v3_v3(vert_ptr->pos, bezt->vec[1]);
+    mul_v3_m4v3(vert_ptr->pos, gpl->layer_mat, bezt->vec[1]);
     vert_ptr->data = vflag[1];
     vert_ptr++;
 
     /* Second segment. */
-    copy_v3_v3(vert_ptr->pos, bezt->vec[1]);
+    mul_v3_m4v3(vert_ptr->pos, gpl->layer_mat, bezt->vec[1]);
     vert_ptr->data = vflag[1];
     vert_ptr++;
 
-    copy_v3_v3(vert_ptr->pos, bezt->vec[2]);
+    mul_v3_m4v3(vert_ptr->pos, gpl->layer_mat, bezt->vec[2]);
     vert_ptr->data = vflag[2];
     vert_ptr++;
   }

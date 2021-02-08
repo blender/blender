@@ -32,7 +32,7 @@ namespace blender::io::alembic {
 /* Writer for Alembic geometry. Does not assume the object is a mesh object. */
 class ABCGenericMeshWriter : public ABCAbstractWriter {
  private:
-  /* Either polymesh or subd is used, depending on is_subd_.
+  /* Either poly-mesh or subdivision-surface is used, depending on is_subd_.
    * References to the schema must be kept, or Alembic will not properly write. */
   Alembic::AbcGeom::OPolyMesh abc_poly_mesh_;
   Alembic::AbcGeom::OPolyMeshSchema abc_poly_mesh_schema_;

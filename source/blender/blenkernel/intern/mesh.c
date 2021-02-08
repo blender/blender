@@ -364,6 +364,8 @@ IDTypeInfo IDType_ID_ME = {
     .blend_read_expand = mesh_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 enum {
@@ -845,9 +847,7 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 
 Mesh *BKE_mesh_add(Main *bmain, const char *name)
 {
-  Mesh *me;
-
-  me = BKE_id_new(bmain, ID_ME, name);
+  Mesh *me = BKE_id_new(bmain, ID_ME, name);
 
   return me;
 }
@@ -941,7 +941,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   Mesh *me_dst = BKE_id_new_nomain(ID_ME, NULL);
 
-  me_dst->mselect = MEM_dupallocN(me_dst->mselect);
+  me_dst->mselect = MEM_dupallocN(me_src->mselect);
 
   me_dst->totvert = verts_len;
   me_dst->totedge = edges_len;
@@ -1008,10 +1008,9 @@ BMesh *BKE_mesh_to_bmesh_ex(const Object *ob,
                             const struct BMeshCreateParams *create_params,
                             const struct BMeshFromMeshParams *convert_params)
 {
-  BMesh *bm;
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
-  bm = BM_mesh_create(&allocsize, create_params);
+  BMesh *bm = BM_mesh_create(&allocsize, create_params);
   BM_mesh_bm_from_me(ob, bm, me, convert_params);
 
   return bm;
@@ -1164,17 +1163,14 @@ void BKE_mesh_texspace_copy_from_object(Mesh *me, Object *ob)
 float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 {
   Mesh *me = ob->data;
-  MVert *mvert = NULL;
   Mesh *tme = me->texcomesh ? me->texcomesh : me;
-  int a, totvert;
-  float(*vcos)[3] = NULL;
 
   /* Get appropriate vertex coordinates */
-  vcos = MEM_calloc_arrayN(me->totvert, sizeof(*vcos), "orco mesh");
-  mvert = tme->mvert;
-  totvert = min_ii(tme->totvert, me->totvert);
+  float(*vcos)[3] = MEM_calloc_arrayN(me->totvert, sizeof(*vcos), "orco mesh");
+  MVert *mvert = tme->mvert;
+  int totvert = min_ii(tme->totvert, me->totvert);
 
-  for (a = 0; a < totvert; a++, mvert++) {
+  for (int a = 0; a < totvert; a++, mvert++) {
     copy_v3_v3(vcos[a], mvert->co);
   }
 
@@ -1184,18 +1180,17 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, int invert)
 {
   float loc[3], size[3];
-  int a;
 
   BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, loc, size);
 
   if (invert) {
-    for (a = 0; a < totvert; a++) {
+    for (int a = 0; a < totvert; a++) {
       float *co = orco[a];
       madd_v3_v3v3v3(co, loc, co, size);
     }
   }
   else {
-    for (a = 0; a < totvert; a++) {
+    for (int a = 0; a < totvert; a++) {
       float *co = orco[a];
       co[0] = (co[0] - loc[0]) / size[0];
       co[1] = (co[1] - loc[1]) / size[1];
@@ -1226,7 +1221,7 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
   }
 
   /* Check corrupt cases, bow-tie geometry,
-   * cant handle these because edge data wont exist so just return 0. */
+   * can't handle these because edge data won't exist so just return 0. */
   if (nr == 3) {
     if (
         /* real edges */
@@ -1276,7 +1271,6 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 
 Mesh *BKE_mesh_from_object(Object *ob)
 {
-
   if (ob == NULL) {
     return NULL;
   }
@@ -1416,8 +1410,7 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
  */
 int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart, uint vert)
 {
-  int j;
-  for (j = 0; j < poly->totloop; j++, loopstart++) {
+  for (int j = 0; j < poly->totloop; j++, loopstart++) {
     if (loopstart->v == vert) {
       return j;
     }
@@ -1684,11 +1677,9 @@ void BKE_mesh_mselect_validate(Mesh *me)
  */
 int BKE_mesh_mselect_find(Mesh *me, int index, int type)
 {
-  int i;
-
   BLI_assert(ELEM(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
-  for (i = 0; i < me->totselect; i++) {
+  for (int i = 0; i < me->totselect; i++) {
     if ((me->mselect[i].index == index) && (me->mselect[i].type == type)) {
       return i;
     }

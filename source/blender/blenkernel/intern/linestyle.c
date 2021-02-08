@@ -767,6 +767,8 @@ IDTypeInfo IDType_ID_LS = {
     .blend_read_expand = linestyle_blend_read_expand,
 
     .blend_read_undo_preserve = NULL,
+
+    .lib_override_apply_post = NULL,
 };
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {

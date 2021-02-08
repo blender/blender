@@ -105,51 +105,9 @@
 
 static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect);
 
-ImBuf *get_brush_icon(Brush *brush)
-{
-  static const int flags = IB_rect | IB_multilayer | IB_metadata;
-
-  char path[FILE_MAX];
-  const char *folder;
-
-  if (!(brush->icon_imbuf)) {
-    if (brush->flag & BRUSH_CUSTOM_ICON) {
-
-      if (brush->icon_filepath[0]) {
-        /* First use the path directly to try and load the file. */
-
-        BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
-        BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
-
-        /* use default colorspaces for brushes */
-        brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
-
-        /* otherwise lets try to find it in other directories */
-        if (!(brush->icon_imbuf)) {
-          folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
-
-          BLI_make_file_string(
-              BKE_main_blendfile_path_from_global(), path, folder, brush->icon_filepath);
-
-          if (path[0]) {
-            /* use fefault color spaces */
-            brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
-          }
-        }
-
-        if (brush->icon_imbuf) {
-          BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
-        }
-      }
-    }
-  }
-
-  if (!(brush->icon_imbuf)) {
-    brush->id.icon_id = 0;
-  }
-
-  return brush->icon_imbuf;
-}
+/* -------------------------------------------------------------------- */
+/** \name Local Structs
+ * \{ */
 
 typedef struct ShaderPreview {
   /* from wmJob */
@@ -193,7 +151,11 @@ typedef struct IconPreview {
   ListBase sizes;
 } IconPreview;
 
-/* *************************** Preview for buttons *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Preview for Buttons
+ * \{ */
 
 static Main *G_pr_main = NULL;
 static Main *G_pr_main_grease_pencil = NULL;
@@ -236,6 +198,11 @@ static bool check_engine_supports_preview(Scene *scene)
 {
   RenderEngineType *type = RE_engines_find(scene->r.engine);
   return (type->flag & RE_USE_PREVIEW) != 0;
+}
+
+static bool preview_method_is_render(int pr_method)
+{
+  return ELEM(pr_method, PR_ICON_RENDER, PR_BUTS_RENDER, PR_NODE_RENDER);
 }
 
 void ED_preview_free_dbase(void)
@@ -708,7 +675,11 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
   }
 }
 
-/* **************************** Object preview ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Preview
+ * \{ */
 
 struct ObjectPreviewData {
   /* The main for the preview, not of the current file. */
@@ -834,7 +805,11 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
   BKE_main_free(preview_main);
 }
 
-/* **************************** new shader preview system ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Shader Preview System
+ * \{ */
 
 /* inside thread, called by renderer, sets job update value */
 static void shader_preview_update(void *spv,
@@ -1145,7 +1120,57 @@ static void shader_preview_free(void *customdata)
   MEM_freeN(sp);
 }
 
-/* ************************* icon preview ********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Icon Preview
+ * \{ */
+
+static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
+{
+  static const int flags = IB_rect | IB_multilayer | IB_metadata;
+
+  char path[FILE_MAX];
+  const char *folder;
+
+  if (!(brush->icon_imbuf)) {
+    if (brush->flag & BRUSH_CUSTOM_ICON) {
+
+      if (brush->icon_filepath[0]) {
+        /* First use the path directly to try and load the file. */
+
+        BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
+        BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
+
+        /* use default colorspaces for brushes */
+        brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
+
+        /* otherwise lets try to find it in other directories */
+        if (!(brush->icon_imbuf)) {
+          folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
+
+          BLI_make_file_string(
+              BKE_main_blendfile_path_from_global(), path, folder, brush->icon_filepath);
+
+          if (path[0]) {
+            /* Use default color spaces. */
+            brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
+          }
+        }
+
+        if (brush->icon_imbuf) {
+          BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
+        }
+      }
+    }
+  }
+
+  if (!(brush->icon_imbuf)) {
+    brush->id.icon_id = 0;
+  }
+
+  return brush->icon_imbuf;
+}
 
 static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
 {
@@ -1159,7 +1184,7 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
     return;
   }
 
-  /* waste of cpu cyles... but the imbuf API has no other way to scale fast (ton) */
+  /* Waste of cpu cycles... but the imbuf API has no other way to scale fast (ton). */
   ima = IMB_dupImBuf(ibuf);
 
   if (!ima) {
@@ -1277,7 +1302,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
     else if (idtype == ID_BR) {
       Brush *br = (Brush *)id;
 
-      br->icon_imbuf = get_brush_icon(br);
+      br->icon_imbuf = icon_preview_imbuf_from_brush(br);
 
       memset(sp->pr_rect, 0x88, sp->sizex * sp->sizey * sizeof(uint));
 
@@ -1332,13 +1357,12 @@ static void common_preview_startjob(void *customdata,
  */
 static void other_id_types_preview_render(IconPreview *ip,
                                           IconPreviewSize *cur_size,
-                                          const bool is_deferred,
+                                          const int pr_method,
                                           short *stop,
                                           short *do_update,
                                           float *progress)
 {
   ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
-  const bool is_render = !is_deferred;
 
   /* These types don't use the ShaderPreview mess, they have their own types and functions. */
   BLI_assert(!ip->id || !ELEM(GS(ip->id->name), ID_OB));
@@ -1348,7 +1372,7 @@ static void other_id_types_preview_render(IconPreview *ip,
   sp->owner = ip->owner;
   sp->sizex = cur_size->sizex;
   sp->sizey = cur_size->sizey;
-  sp->pr_method = is_render ? PR_ICON_RENDER : PR_ICON_DEFERRED;
+  sp->pr_method = pr_method;
   sp->pr_rect = cur_size->rect;
   sp->id = ip->id;
   sp->id_copy = ip->id_copy;
@@ -1356,7 +1380,7 @@ static void other_id_types_preview_render(IconPreview *ip,
   sp->own_id_copy = false;
   Material *ma = NULL;
 
-  if (is_render) {
+  if (sp->pr_method == PR_ICON_RENDER) {
     BLI_assert(ip->id);
 
     /* grease pencil use its own preview file */
@@ -1404,6 +1428,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
 
   for (cur_size = ip->sizes.first; cur_size; cur_size = cur_size->next) {
     PreviewImage *prv = ip->owner;
+    /* Is this a render job or a deferred loading job? */
+    const int pr_method = (prv->tag & PRV_TAG_DEFFERED) ? PR_ICON_DEFERRED : PR_ICON_RENDER;
 
     if (*stop) {
       break;
@@ -1414,7 +1440,7 @@ static void icon_preview_startjob_all_sizes(void *customdata,
       continue;
     }
 
-    if (!check_engine_supports_preview(ip->scene)) {
+    if (preview_method_is_render(pr_method) && !check_engine_supports_preview(ip->scene)) {
       continue;
     }
 
@@ -1430,8 +1456,7 @@ static void icon_preview_startjob_all_sizes(void *customdata,
       object_preview_render(ip, cur_size);
     }
     else {
-      other_id_types_preview_render(
-          ip, cur_size, (prv->tag & PRV_TAG_DEFFERED), stop, do_update, progress);
+      other_id_types_preview_render(ip, cur_size, pr_method, stop, do_update, progress);
     }
   }
 }
@@ -1614,7 +1639,7 @@ void ED_preview_shader_job(const bContext *C,
   /* Use workspace render only for buttons Window,
    * since the other previews are related to the datablock. */
 
-  if (!check_engine_supports_preview(scene)) {
+  if (preview_method_is_render(method) && !check_engine_supports_preview(scene)) {
     return;
   }
 
@@ -1686,3 +1711,5 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main *UNUSED(bmain))
     WM_jobs_kill(wm, NULL, icon_preview_startjob_all_sizes);
   }
 }
+
+/** \} */

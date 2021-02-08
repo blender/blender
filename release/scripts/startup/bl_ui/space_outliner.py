@@ -239,10 +239,10 @@ class OUTLINER_MT_collection(Menu):
         if space.display_mode == 'VIEW_LAYER':
             layout.separator()
             layout.menu("OUTLINER_MT_collection_view_layer", icon='RENDERLAYERS')
-            layout.separator()
 
-            row = layout.row(align=True)
-            row.operator_enum("outliner.collection_color_tag_set", "color", icon_only=True)
+        layout.separator()
+        row = layout.row(align=True)
+        row.operator_enum("outliner.collection_color_tag_set", "color", icon_only=True)
 
         layout.separator()
 
@@ -375,11 +375,11 @@ class OUTLINER_PT_filter(Panel):
         row.label(icon='OBJECT_DATAMODE')
         row.prop(space, "use_filter_object", text="Objects")
         row = col.row(align=True)
-        row.label(icon="BLANK1")
+        row.label(icon='BLANK1')
         row.prop(space, "filter_state", text="")
         sub = row.row(align=True)
         sub.enabled = space.filter_state != 'ALL'
-        sub.prop(space, "filter_invert", text="", icon="ARROW_LEFTRIGHT")
+        sub.prop(space, "filter_invert", text="", icon='ARROW_LEFTRIGHT')
 
         sub = col.column(align=True)
         sub.active = space.use_filter_object
@@ -410,6 +410,10 @@ class OUTLINER_PT_filter(Panel):
         row = sub.row()
         row.label(icon='EMPTY_DATA')
         row.prop(space, "use_filter_object_empty", text="Empties")
+        row = sub.row()
+        if bpy.data.libraries:
+            row.label(icon='LIBRARY_DATA_OVERRIDE')
+            row.prop(space, "use_filter_lib_override", text="Library Overrides")
 
         if (
                 bpy.data.curves or

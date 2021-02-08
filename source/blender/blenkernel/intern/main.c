@@ -211,35 +211,51 @@ void BKE_main_unlock(struct Main *bmain)
 
 static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  MainIDRelations *rel = cb_data->user_data;
+  MainIDRelations *bmain_relations = cb_data->user_data;
   ID *id_self = cb_data->id_self;
   ID **id_pointer = cb_data->id_pointer;
   const int cb_flag = cb_data->cb_flag;
 
   if (*id_pointer) {
-    MainIDRelationsEntry *entry, **entry_p;
+    MainIDRelationsEntry **entry_p;
 
-    entry = BLI_mempool_alloc(rel->entry_pool);
-    if (BLI_ghash_ensure_p(rel->id_user_to_used, id_self, (void ***)&entry_p)) {
-      entry->next = *entry_p;
+    /* Add `id_pointer` as child of `id_self`. */
+    {
+      if (!BLI_ghash_ensure_p(
+              bmain_relations->relations_from_pointers, id_self, (void ***)&entry_p)) {
+        *entry_p = MEM_callocN(sizeof(**entry_p), __func__);
+        (*entry_p)->session_uuid = id_self->session_uuid;
+      }
+      else {
+        BLI_assert((*entry_p)->session_uuid == id_self->session_uuid);
+      }
+      MainIDRelationsEntryItem *to_id_entry = BLI_mempool_alloc(bmain_relations->entry_items_pool);
+      to_id_entry->next = (*entry_p)->to_ids;
+      to_id_entry->id_pointer.to = id_pointer;
+      to_id_entry->session_uuid = (*id_pointer != NULL) ? (*id_pointer)->session_uuid :
+                                                          MAIN_ID_SESSION_UUID_UNSET;
+      to_id_entry->usage_flag = cb_flag;
+      (*entry_p)->to_ids = to_id_entry;
     }
-    else {
-      entry->next = NULL;
-    }
-    entry->id_pointer = id_pointer;
-    entry->usage_flag = cb_flag;
-    *entry_p = entry;
 
-    entry = BLI_mempool_alloc(rel->entry_pool);
-    if (BLI_ghash_ensure_p(rel->id_used_to_user, *id_pointer, (void ***)&entry_p)) {
-      entry->next = *entry_p;
+    /* Add `id_self` as parent of `id_pointer`. */
+    if (*id_pointer != NULL) {
+      if (!BLI_ghash_ensure_p(
+              bmain_relations->relations_from_pointers, *id_pointer, (void ***)&entry_p)) {
+        *entry_p = MEM_callocN(sizeof(**entry_p), __func__);
+        (*entry_p)->session_uuid = (*id_pointer)->session_uuid;
+      }
+      else {
+        BLI_assert((*entry_p)->session_uuid == (*id_pointer)->session_uuid);
+      }
+      MainIDRelationsEntryItem *from_id_entry = BLI_mempool_alloc(
+          bmain_relations->entry_items_pool);
+      from_id_entry->next = (*entry_p)->from_ids;
+      from_id_entry->id_pointer.from = id_self;
+      from_id_entry->session_uuid = id_self->session_uuid;
+      from_id_entry->usage_flag = cb_flag;
+      (*entry_p)->from_ids = from_id_entry;
     }
-    else {
-      entry->next = NULL;
-    }
-    entry->id_pointer = (ID **)id_self;
-    entry->usage_flag = cb_flag;
-    *entry_p = entry;
   }
 
   return IDWALK_RET_NOP;
@@ -253,59 +269,63 @@ void BKE_main_relations_create(Main *bmain, const short flag)
   }
 
   bmain->relations = MEM_mallocN(sizeof(*bmain->relations), __func__);
-  bmain->relations->id_used_to_user = BLI_ghash_new(
+  bmain->relations->relations_from_pointers = BLI_ghash_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
-  bmain->relations->id_user_to_used = BLI_ghash_new(
-      BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
-  bmain->relations->entry_pool = BLI_mempool_create(
-      sizeof(MainIDRelationsEntry), 128, 128, BLI_MEMPOOL_NOP);
+  bmain->relations->entry_items_pool = BLI_mempool_create(
+      sizeof(MainIDRelationsEntryItem), 128, 128, BLI_MEMPOOL_NOP);
+
+  bmain->relations->flag = flag;
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     const int idwalk_flag = IDWALK_READONLY |
                             ((flag & MAINIDRELATIONS_INCLUDE_UI) != 0 ? IDWALK_INCLUDE_UI : 0);
+
+    /* Ensure all IDs do have an entry, even if they are not connected to any other. */
+    MainIDRelationsEntry **entry_p;
+    if (!BLI_ghash_ensure_p(bmain->relations->relations_from_pointers, id, (void ***)&entry_p)) {
+      *entry_p = MEM_callocN(sizeof(**entry_p), __func__);
+      (*entry_p)->session_uuid = id->session_uuid;
+    }
+    else {
+      BLI_assert((*entry_p)->session_uuid == id->session_uuid);
+    }
+
     BKE_library_foreach_ID_link(
         NULL, id, main_relations_create_idlink_cb, bmain->relations, idwalk_flag);
   }
   FOREACH_MAIN_ID_END;
-
-  bmain->relations->flag = flag;
 }
 
 void BKE_main_relations_free(Main *bmain)
 {
-  if (bmain->relations) {
-    if (bmain->relations->id_used_to_user) {
-      BLI_ghash_free(bmain->relations->id_used_to_user, NULL, NULL);
+  if (bmain->relations != NULL) {
+    if (bmain->relations->relations_from_pointers != NULL) {
+      BLI_ghash_free(bmain->relations->relations_from_pointers, NULL, MEM_freeN);
     }
-    if (bmain->relations->id_user_to_used) {
-      BLI_ghash_free(bmain->relations->id_user_to_used, NULL, NULL);
-    }
-    BLI_mempool_destroy(bmain->relations->entry_pool);
+    BLI_mempool_destroy(bmain->relations->entry_items_pool);
     MEM_freeN(bmain->relations);
     bmain->relations = NULL;
   }
 }
 
-/**
- * Remove an ID from the relations (the two entries for that ID, not the ID from entries in other
- * IDs' relationships).
- *
- * Does not free any allocated memory.
- * Allows to use those relations as a way to mark an ID as already processed, without requiring any
- * additional tagging or GSet.
- * Obviously, relations should be freed after use then, since this will make them fully invalid.
- */
-void BKE_main_relations_ID_remove(Main *bmain, ID *id)
+/** Set or clear given `tag` in all relation entries of given `bmain`. */
+void BKE_main_relations_tag_set(struct Main *bmain,
+                                const MainIDRelationsEntryTags tag,
+                                const bool value)
 {
-  if (bmain->relations) {
-    /* Note: we do not free the entries from the mempool, those will be dealt with when finally
-     * freeing the whole relations. */
-    if (bmain->relations->id_used_to_user) {
-      BLI_ghash_remove(bmain->relations->id_used_to_user, id, NULL, NULL);
+  if (bmain->relations == NULL) {
+    return;
+  }
+  for (GHashIterator *gh_iter = BLI_ghashIterator_new(bmain->relations->relations_from_pointers);
+       !BLI_ghashIterator_done(gh_iter);
+       BLI_ghashIterator_step(gh_iter)) {
+    MainIDRelationsEntry *entry = BLI_ghashIterator_getValue(gh_iter);
+    if (value) {
+      entry->tags |= tag;
     }
-    if (bmain->relations->id_user_to_used) {
-      BLI_ghash_remove(bmain->relations->id_user_to_used, id, NULL, NULL);
+    else {
+      entry->tags &= ~tag;
     }
   }
 }

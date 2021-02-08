@@ -454,7 +454,7 @@ ccl_device_inline bool cylinder_culling_test(const float2 p1, const float2 p2, c
   /* Performs culling against a cylinder. */
   const float2 dp = p2 - p1;
   const float num = dp.x * p1.y - dp.y * p1.x;
-  const float den2 = dot(p2 - p1, p2 - p1);
+  const float den2 = dot(dp, dp);
   return num * num <= r * r * den2;
 }
 
@@ -571,46 +571,46 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
   for (int i = 0; i < N; i++) {
     const float u = i * step_size;
     const float4 p1 = catmull_rom_basis_eval(curve, u + step_size);
-    bool valid = cylinder_culling_test(
+    const bool valid = cylinder_culling_test(
         make_float2(p0.x, p0.y), make_float2(p1.x, p1.y), max(p0.w, p1.w));
-    if (!valid) {
-      continue;
-    }
 
     /* Evaluate next point. */
     float3 dp1dt = float4_to_float3(catmull_rom_basis_derivative(curve, u + step_size));
     dp1dt = (max3(fabs(dp1dt)) < eps) ? float4_to_float3(p1 - p0) : dp1dt;
     const float3 wn1 = normalize(make_float3(dp1dt.y, -dp1dt.x, 0.0f)) * p1.w;
 
-    /* Construct quad coordinates. */
-    const float3 lp0 = float4_to_float3(p0) + wn0;
-    const float3 lp1 = float4_to_float3(p1) + wn1;
-    const float3 up0 = float4_to_float3(p0) - wn0;
-    const float3 up1 = float4_to_float3(p1) - wn1;
+    if (valid) {
+      /* Construct quad coordinates. */
+      const float3 lp0 = float4_to_float3(p0) + wn0;
+      const float3 lp1 = float4_to_float3(p1) + wn1;
+      const float3 up0 = float4_to_float3(p0) - wn0;
+      const float3 up1 = float4_to_float3(p1) - wn1;
 
-    /* Intersect quad. */
-    float vu, vv, vt;
-    bool valid0 = ribbon_intersect_quad(isect->t, lp0, lp1, up1, up0, &vu, &vv, &vt);
-
-    if (valid0) {
-      /* ignore self intersections */
-      const float avoidance_factor = 2.0f;
-      if (avoidance_factor != 0.0f) {
-        float r = mix(p0.w, p1.w, vu);
-        valid0 = vt > avoidance_factor * r;
-      }
+      /* Intersect quad. */
+      float vu, vv, vt;
+      bool valid0 = ribbon_intersect_quad(isect->t, lp0, lp1, up1, up0, &vu, &vv, &vt);
 
       if (valid0) {
-        vv = 2.0f * vv - 1.0f;
+        /* ignore self intersections */
+        const float avoidance_factor = 2.0f;
+        if (avoidance_factor != 0.0f) {
+          float r = mix(p0.w, p1.w, vu);
+          valid0 = vt > avoidance_factor * r;
+        }
 
-        /* Record intersection. */
-        isect->t = vt;
-        isect->u = u + vu * step_size;
-        isect->v = vv;
-        return true;
+        if (valid0) {
+          vv = 2.0f * vv - 1.0f;
+
+          /* Record intersection. */
+          isect->t = vt;
+          isect->u = u + vu * step_size;
+          isect->v = vv;
+          return true;
+        }
       }
     }
 
+    /* Store point for next step. */
     p0 = p1;
     wn0 = wn1;
   }

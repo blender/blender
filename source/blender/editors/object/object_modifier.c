@@ -30,6 +30,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_dynamicpaint_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -344,7 +346,7 @@ static bool object_modifier_remove(
    * get called twice on same modifier, so make
    * sure it is in list. */
   if (BLI_findindex(&ob->modifiers, md) == -1) {
-    return 0;
+    return false;
   }
 
   /* special cases */
@@ -391,7 +393,7 @@ static bool object_modifier_remove(
   BKE_modifier_free(md);
   BKE_object_free_derived_caches(ob);
 
-  return 1;
+  return true;
 }
 
 bool ED_object_modifier_remove(
@@ -533,7 +535,7 @@ void ED_object_modifier_copy_to_object(bContext *C,
                                        Object *ob_src,
                                        ModifierData *md)
 {
-  BKE_object_copy_modifier(ob_dst, ob_src, md);
+  BKE_object_copy_modifier(CTX_data_main(C), CTX_data_scene(C), ob_dst, ob_src, md);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob_dst);
   DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
@@ -672,18 +674,18 @@ static Mesh *modifier_apply_create_mesh_for_modifier(Depsgraph *depsgraph,
   return mesh_applied;
 }
 
-static int modifier_apply_shape(Main *bmain,
-                                ReportList *reports,
-                                Depsgraph *depsgraph,
-                                Scene *scene,
-                                Object *ob,
-                                ModifierData *md_eval)
+static bool modifier_apply_shape(Main *bmain,
+                                 ReportList *reports,
+                                 Depsgraph *depsgraph,
+                                 Scene *scene,
+                                 Object *ob,
+                                 ModifierData *md_eval)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
 
   if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
-    return 0;
+    return false;
   }
 
   /* We could investigate using the #CD_ORIGINDEX layer
@@ -697,19 +699,18 @@ static int modifier_apply_shape(Main *bmain,
    * we can look into supporting them. */
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh_applied;
     Mesh *me = ob->data;
     Key *key = me->key;
 
     if (!BKE_modifier_is_same_topology(md_eval) || mti->type == eModifierTypeType_NonGeometrical) {
       BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to shapes");
-      return 0;
+      return false;
     }
 
-    mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, false);
+    Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, false);
     if (!mesh_applied) {
       BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
-      return 0;
+      return false;
     }
 
     if (key == NULL) {
@@ -729,29 +730,28 @@ static int modifier_apply_shape(Main *bmain,
   else {
     /* TODO: implement for hair, point-clouds and volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
-static int modifier_apply_obdata(
+static bool modifier_apply_obdata(
     ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md_eval)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
 
   if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
-    return 0;
+    return false;
   }
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh_applied;
     Mesh *me = ob->data;
     MultiresModifierData *mmd = find_multires_modifier_before(scene, md_eval);
 
     if (me->key && mti->type != eModifierTypeType_NonGeometrical) {
       BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to a mesh with shape keys");
-      return 0;
+      return false;
     }
 
     /* Multires: ensure that recent sculpting is applied */
@@ -762,14 +762,14 @@ static int modifier_apply_obdata(
     if (mmd && mmd->totlvl && mti->type == eModifierTypeType_OnlyDeform) {
       if (!multiresModifier_reshapeFromDeformModifier(depsgraph, ob, mmd, md_eval)) {
         BKE_report(reports, RPT_ERROR, "Multires modifier returned error, skipping apply");
-        return 0;
+        return false;
       }
     }
     else {
-      mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, true);
+      Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, true);
       if (!mesh_applied) {
         BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
-        return 0;
+        return false;
       }
 
       BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
@@ -788,7 +788,7 @@ static int modifier_apply_obdata(
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(
           reports, RPT_ERROR, "Transform curve to mesh in order to apply constructive modifiers");
-      return 0;
+      return false;
     }
 
     BKE_report(reports,
@@ -811,7 +811,7 @@ static int modifier_apply_obdata(
 
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(reports, RPT_ERROR, "Constructive modifiers cannot be applied");
-      return 0;
+      return false;
     }
 
     int numVerts;
@@ -826,7 +826,7 @@ static int modifier_apply_obdata(
   else {
     /* TODO: implement for hair, point-clouds and volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
-    return 0;
+    return false;
   }
 
   /* lattice modifier can be applied to particle system too */
@@ -840,7 +840,7 @@ static int modifier_apply_obdata(
     }
   }
 
-  return 1;
+  return true;
 }
 
 bool ED_object_modifier_apply(Main *bmain,
@@ -906,20 +906,19 @@ bool ED_object_modifier_apply(Main *bmain,
   return true;
 }
 
-int ED_object_modifier_copy(
+bool ED_object_modifier_copy(
     ReportList *UNUSED(reports), Main *bmain, Scene *scene, Object *ob, ModifierData *md)
 {
-  ModifierData *nmd;
-
   if (md->type == eModifierType_ParticleSystem) {
-    nmd = object_copy_particle_system(bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
+    ModifierData *nmd = object_copy_particle_system(
+        bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
     BLI_remlink(&ob->modifiers, nmd);
     BLI_insertlinkafter(&ob->modifiers, md, nmd);
     BKE_object_modifier_set_active(ob, nmd);
     return true;
   }
 
-  nmd = BKE_modifier_new(md->type);
+  ModifierData *nmd = BKE_modifier_new(md->type);
   BKE_modifier_copydata(md, nmd);
   BLI_insertlinkafter(&ob->modifiers, md, nmd);
   BKE_modifier_unique_name(&ob->modifiers, nmd);
@@ -927,7 +926,7 @@ int ED_object_modifier_copy(
 
   nmd->flag |= eModifierFlag_OverrideLibrary_Local;
 
-  return 1;
+  return true;
 }
 
 /** \} */
@@ -1621,8 +1620,8 @@ static int modifier_set_active_exec(bContext *C, wmOperator *op)
  * pointer then it would always set the active modifier to the already active modifier.
  *
  * \param event: If this isn't NULL, the operator will also look for panels underneath
- * the cursor with customdata set to a modifier.
- * \param r_retval: This should be used if #event is used in order to to return
+ * the cursor with custom-data set to a modifier.
+ * \param r_retval: This should be used if #event is used in order to return
  * #OPERATOR_PASS_THROUGH to check other operators with the same key set.
  */
 bool edit_modifier_invoke_properties_with_hover_no_active(bContext *C,
@@ -1675,6 +1674,151 @@ void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
   ot->invoke = modifier_set_active_invoke;
   ot->exec = modifier_set_active_exec;
   ot->poll = edit_modifier_liboverride_allowed_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+}
+
+/** \} */
+/** \name Copy Modifier To Selected Operator
+ * \{ */
+
+static int modifier_copy_to_selected_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  Object *obact = ED_object_active_context(C);
+  ModifierData *md = edit_modifier_property_get(op, obact, 0);
+
+  if (!md) {
+    return OPERATOR_CANCELLED;
+  }
+
+  int num_copied = 0;
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
+
+  CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+    if (ob == obact) {
+      continue;
+    }
+
+    /* Checked in #BKE_object_copy_modifier, but check here too so we can give a better message. */
+    if (!BKE_object_support_modifier_type_check(ob, md->type)) {
+      BKE_reportf(op->reports,
+                  RPT_WARNING,
+                  "Object '%s' does not support %s modifiers",
+                  ob->id.name + 2,
+                  mti->name);
+      continue;
+    }
+
+    if (mti->flags & eModifierTypeFlag_Single) {
+      if (BKE_modifiers_findby_type(ob, md->type)) {
+        BKE_reportf(op->reports,
+                    RPT_WARNING,
+                    "Modifier can only be added once to object '%s'",
+                    ob->id.name + 2);
+        continue;
+      }
+    }
+
+    if (!BKE_object_copy_modifier(bmain, scene, ob, obact, md)) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR,
+                  "Copying modifier '%s' to object '%s' failed",
+                  md->name,
+                  ob->id.name + 2);
+    }
+
+    num_copied++;
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+  }
+  CTX_DATA_END;
+
+  if (num_copied > 0) {
+    DEG_relations_tag_update(bmain);
+  }
+  else {
+    BKE_reportf(op->reports, RPT_ERROR, "Modifier '%s' was not copied to any objects", md->name);
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static int modifier_copy_to_selected_invoke(bContext *C,
+                                            wmOperator *op,
+                                            const wmEvent *UNUSED(event))
+{
+  if (edit_modifier_invoke_properties(C, op)) {
+    return modifier_copy_to_selected_exec(C, op);
+  }
+  /* Work around multiple operators using the same shortcut. */
+  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+}
+
+static bool modifier_copy_to_selected_poll(bContext *C)
+{
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+  Object *obact = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
+  ModifierData *md = ptr.data;
+
+  /* This just mirrors the check in #BKE_object_copy_modifier,
+   * but there is no reasoning for it there. */
+  if (md && ELEM(md->type, eModifierType_Hook, eModifierType_Collision)) {
+    CTX_wm_operator_poll_msg_set(C, "Not supported for \"Collision\" or \"Hook\" modifiers");
+    return false;
+  }
+
+  if (!obact) {
+    CTX_wm_operator_poll_msg_set(C, "No selected object is active");
+    return false;
+  }
+
+  if (!BKE_object_supports_modifiers(obact)) {
+    CTX_wm_operator_poll_msg_set(C, "Object type of source object is not supported");
+    return false;
+  }
+
+  /* This could have a performance impact in the worst case, where there are many objects selected
+   * and none of them pass either of the checks. But that should be uncommon, and this operator is
+   * only exposed in a drop-down menu anyway. */
+  bool found_supported_objects = false;
+  CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+    if (ob == obact) {
+      continue;
+    }
+
+    if (!md && BKE_object_supports_modifiers(ob)) {
+      /* Skip type check if modifier could not be found ("modifier" context variable not set). */
+      found_supported_objects = true;
+      break;
+    }
+    if (BKE_object_support_modifier_type_check(ob, md->type)) {
+      found_supported_objects = true;
+      break;
+    }
+  }
+  CTX_DATA_END;
+
+  if (!found_supported_objects) {
+    CTX_wm_operator_poll_msg_set(C, "No supported objects were selected");
+    return false;
+  }
+  return true;
+}
+
+void OBJECT_OT_modifier_copy_to_selected(wmOperatorType *ot)
+{
+  ot->name = "Copy Modifier to Selected";
+  ot->description = "Copy the modifier from the active object to all selected objects";
+  ot->idname = "OBJECT_OT_modifier_copy_to_selected";
+
+  ot->invoke = modifier_copy_to_selected_invoke;
+  ot->exec = modifier_copy_to_selected_exec;
+  ot->poll = modifier_copy_to_selected_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -2880,7 +3024,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
     i++;
   }
 
-  /* make a copy of ocean to use for baking - threadsafety */
+  /* Make a copy of ocean to use for baking - thread-safety. */
   struct Ocean *ocean = BKE_ocean_add();
   BKE_ocean_init_from_modifier(ocean, omd, omd->resolution);
 

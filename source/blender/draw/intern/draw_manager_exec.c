@@ -266,13 +266,13 @@ static void drw_stencil_state_set(uint write_mask, uint reference, uint compare_
    * - (compare_mask & reference) is what is tested against (compare_mask & stencil_value)
    *   stencil_value being the value stored in the stencil buffer.
    * - (write-mask & reference) is what gets written if the test condition is fulfilled.
-   **/
+   */
   GPU_stencil_write_mask_set(write_mask);
   GPU_stencil_reference_set(reference);
   GPU_stencil_compare_mask_set(compare_mask);
 }
 
-/* Reset state to not interfer with other UI drawcall */
+/* Reset state to not interfere with other UI draw-call. */
 void DRW_state_reset_ex(DRWState state)
 {
   DST.state = ~state;
@@ -344,7 +344,7 @@ void DRW_state_reset(void)
   /* Should stay constant during the whole rendering. */
   GPU_point_size(5);
   GPU_line_smooth(false);
-  /* Bypass U.pixelsize factor by using a factor of 0.0f. Will be clamped to 1.0f. */
+  /* Bypass #U.pixelsize factor by using a factor of 0.0f. Will be clamped to 1.0f. */
   GPU_line_width(0.0f);
 }
 
@@ -855,7 +855,7 @@ static void draw_call_batching_do(DRWShadingGroup *shgroup,
                                   DRWCommandsState *state,
                                   DRWCommandDraw *call)
 {
-  /* If any condition requires to interupt the merging. */
+  /* If any condition requires to interrupt the merging. */
   bool neg_scale = DRW_handle_negative_scale_get(&call->handle);
   int chunk = DRW_handle_chunk_get(&call->handle);
   int id = DRW_handle_id_get(&call->handle);

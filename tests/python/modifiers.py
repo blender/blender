@@ -45,7 +45,7 @@ def get_generate_modifiers_list(test_object_name, randomize=False):
 
     generate_modifiers = [
         ModifierSpec('array', 'ARRAY', {}),
-        ModifierSpec('bevel', 'BEVEL', {'width': 0.1}),
+        ModifierSpec('bevel', 'BEVEL', {'width': 0.1, 'limit_method': 'NONE'}),
         ModifierSpec('boolean', 'BOOLEAN', {'object': boolean_test_object, 'solver': 'FAST'}),
         ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2),
         ModifierSpec('decimate', 'DECIMATE', {}),
@@ -64,7 +64,8 @@ def get_generate_modifiers_list(test_object_name, randomize=False):
         # ModifierSpec('screw', 'SCREW', {}), # screw can make the test very slow. Skipping for now.
 
         ModifierSpec('solidify', 'SOLIDIFY', {}),
-        ModifierSpec('subsurf', 'SUBSURF', {}),
+        # Opensubdiv results might differ slightly when compiled with different optimization flags.
+        #ModifierSpec('subsurf', 'SUBSURF', {}),
         ModifierSpec('triangulate', 'TRIANGULATE', {}),
         ModifierSpec('wireframe', 'WIREFRAME', {})
 
@@ -92,16 +93,13 @@ def main():
         MeshTest("CubeMaskFirst", "testCubeMaskFirst", "expectedCubeMaskFirst", mask_first_list),
 
         MeshTest("CollapseDecimate", "testCollapseDecimate", "expectedCollapseDecimate",
-                 [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2}),
-                  ModifierSpec('decimate', 'DECIMATE',
+                 [ModifierSpec('decimate', 'DECIMATE',
                                {'decimate_type': 'COLLAPSE', 'ratio': 0.25, 'use_collapse_triangulate': True})]),
         MeshTest("PlanarDecimate", "testPlanarDecimate", "expectedPlanarDecimate",
-                 [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2}),
-                  ModifierSpec('decimate', 'DECIMATE',
+                 [ModifierSpec('decimate', 'DECIMATE',
                                {'decimate_type': 'DISSOLVE', 'angle_limit': math.radians(30)})]),
         MeshTest("UnsubdivideDecimate", "testUnsubdivideDecimate", "expectedUnsubdivideDecimate",
-                 [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2}),
-                  ModifierSpec('decimate', 'DECIMATE', {'decimate_type': 'UNSUBDIV', 'iterations': 2})]),
+                 [ModifierSpec('decimate', 'DECIMATE', {'decimate_type': 'UNSUBDIV', 'iterations': 2})]),
 
         # 5
         MeshTest("RadialBisectMirror", "testRadialBisectMirror", "expectedRadialBisectMirror",
@@ -286,7 +284,7 @@ def main():
                  [ModifierSpec('array', 'ARRAY', {})]),
 
         MeshTest("CurveBevel", "testObjBezierCurveBevel", "expObjBezierCurveBevel",
-                 [ModifierSpec('bevel', 'BEVEL', {})]),
+                 [ModifierSpec('bevel', 'BEVEL', {'limit_method': 'NONE'})]),
 
         MeshTest("CurveBuild", "testObjBezierCurveBuild", "expObjBezierCurveBuild",
                  [ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2)]),

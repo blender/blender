@@ -120,7 +120,8 @@ struct double2 {
 
   static double distance_squared(const double2 &a, const double2 &b)
   {
-    return double2::dot(a, b);
+    double2 diff = a - b;
+    return double2::dot(diff, diff);
   }
 
   struct isect_result {

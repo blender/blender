@@ -67,6 +67,13 @@ struct wmWindowManager;
 
 #define BKE_ST_MAXNAME 64
 
+typedef struct wmSpaceTypeListenerParams {
+  struct wmWindow *window;
+  struct ScrArea *area;
+  struct wmNotifier *notifier;
+  const struct Scene *scene;
+} wmSpaceTypeListenerParams;
+
 typedef struct SpaceType {
   struct SpaceType *next, *prev;
 
@@ -85,10 +92,7 @@ typedef struct SpaceType {
   /* exit is called when the area is hidden or removed */
   void (*exit)(struct wmWindowManager *wm, struct ScrArea *area);
   /* Listeners can react to bContext changes */
-  void (*listener)(struct wmWindow *win,
-                   struct ScrArea *area,
-                   struct wmNotifier *wmn,
-                   struct Scene *scene);
+  void (*listener)(const wmSpaceTypeListenerParams *params);
 
   /* called when the mouse moves out of the area */
   void (*deactivate)(struct ScrArea *area);
@@ -134,6 +138,24 @@ typedef struct SpaceType {
 
 /* region types are also defined using spacetypes_init, via a callback */
 
+typedef struct wmRegionListenerParams {
+  struct wmWindow *window;
+  struct ScrArea *area; /* Can be NULL when the region is not part of an area. */
+  struct ARegion *region;
+  struct wmNotifier *notifier;
+  const struct Scene *scene;
+} wmRegionListenerParams;
+
+typedef struct wmRegionMessageSubscribeParams {
+  const struct bContext *context;
+  struct wmMsgBus *message_bus;
+  struct WorkSpace *workspace;
+  struct Scene *scene;
+  struct bScreen *screen;
+  struct ScrArea *area;
+  struct ARegion *region;
+} wmRegionMessageSubscribeParams;
+
 typedef struct ARegionType {
   struct ARegionType *next, *prev;
 
@@ -158,19 +180,9 @@ typedef struct ARegionType {
   /* snap the size of the region (can be NULL for no snapping). */
   int (*snap_size)(const struct ARegion *region, int size, int axis);
   /* contextual changes should be handled here */
-  void (*listener)(struct wmWindow *win,
-                   struct ScrArea *area,
-                   struct ARegion *region,
-                   struct wmNotifier *wmn,
-                   const struct Scene *scene);
+  void (*listener)(const wmRegionListenerParams *params);
   /* Optional callback to generate subscriptions. */
-  void (*message_subscribe)(const struct bContext *C,
-                            struct WorkSpace *workspace,
-                            struct Scene *scene,
-                            struct bScreen *screen,
-                            struct ScrArea *area,
-                            struct ARegion *region,
-                            struct wmMsgBus *mbus);
+  void (*message_subscribe)(const wmRegionMessageSubscribeParams *params);
 
   void (*free)(struct ARegion *);
 

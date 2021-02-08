@@ -31,7 +31,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
                                       BL::DepsgraphObjectInstance &b_instance,
                                       Object *object)
 {
-  /* test if this dupli was generated from a particle sytem */
+  /* Test if this dupli was generated from a particle system. */
   BL::ParticleSystem b_psys = b_instance.particle_system();
   if (!b_psys)
     return false;
@@ -57,7 +57,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
 
   /* no update needed? */
   if (!need_update && !object->get_geometry()->is_modified() &&
-      !scene->object_manager->need_update)
+      !scene->object_manager->need_update())
     return true;
 
   /* first time used in this sync loop? clear and tag update */
@@ -85,7 +85,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   object->set_particle_index(psys->particles.size() - 1);
 
   if (object->particle_index_is_modified())
-    scene->object_manager->tag_update(scene);
+    scene->object_manager->tag_update(scene, ObjectManager::PARTICLE_MODIFIED);
 
   /* return that this object has particle data */
   return true;

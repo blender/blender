@@ -41,46 +41,78 @@ typedef struct UvNearestHit {
   /** Always set if we have a hit. */
   struct BMFace *efa;
   struct BMLoop *l;
-  /** Needs to be set before calling nearest functions. */
+  /**
+   * Needs to be set before calling nearest functions.
+   *
+   * \note When #UV_NEAREST_HIT_INIT_DIST_PX or #UV_NEAREST_HIT_INIT_MAX are used,
+   * this value is pixels squared.
+   */
   float dist_sq;
+
+  /** Scale the UV's to account for aspect ratio from the image view. */
+  float scale[2];
 } UvNearestHit;
 
-#define UV_NEAREST_HIT_INIT \
+#define UV_NEAREST_HIT_INIT_DIST_PX(v2d, dist_px) \
+  { \
+    .dist_sq = square_f(U.pixelsize * dist_px), \
+    .scale = { \
+        UI_view2d_scale_get_x(v2d), \
+        UI_view2d_scale_get_y(v2d), \
+    }, \
+  }
+
+#define UV_NEAREST_HIT_INIT_MAX(v2d) \
   { \
     .dist_sq = FLT_MAX, \
+    .scale = { \
+        UI_view2d_scale_get_x(v2d), \
+        UI_view2d_scale_get_y(v2d), \
+    }, \
   }
 
 bool uv_find_nearest_vert(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
                           const float penalty_dist,
-                          struct UvNearestHit *hit_final);
+                          struct UvNearestHit *hit);
 bool uv_find_nearest_vert_multi(struct Scene *scene,
                                 struct Object **objects,
                                 const uint objects_len,
                                 const float co[2],
                                 const float penalty_dist,
-                                struct UvNearestHit *hit_final);
+                                struct UvNearestHit *hit);
 
 bool uv_find_nearest_edge(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
-                          struct UvNearestHit *hit_final);
+                          struct UvNearestHit *hit);
 bool uv_find_nearest_edge_multi(struct Scene *scene,
                                 struct Object **objects,
                                 const uint objects_len,
                                 const float co[2],
-                                struct UvNearestHit *hit_final);
+                                struct UvNearestHit *hit);
 
+bool uv_find_nearest_face_ex(struct Scene *scene,
+                             struct Object *obedit,
+                             const float co[2],
+                             struct UvNearestHit *hit,
+                             const bool only_in_face);
 bool uv_find_nearest_face(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
-                          struct UvNearestHit *hit_final);
+                          struct UvNearestHit *hit);
+bool uv_find_nearest_face_multi_ex(struct Scene *scene,
+                                   struct Object **objects,
+                                   const uint objects_len,
+                                   const float co[2],
+                                   struct UvNearestHit *hit,
+                                   const bool only_in_face);
 bool uv_find_nearest_face_multi(struct Scene *scene,
                                 struct Object **objects,
                                 const uint objects_len,
                                 const float co[2],
-                                struct UvNearestHit *hit_final);
+                                struct UvNearestHit *hit);
 
 BMLoop *uv_find_nearest_loop_from_vert(struct Scene *scene,
                                        struct Object *obedit,
@@ -96,7 +128,6 @@ BMLoop *uv_find_nearest_loop_from_edge(struct Scene *scene,
 void uvedit_live_unwrap_update(struct SpaceImage *sima,
                                struct Scene *scene,
                                struct Object *obedit);
-void uvedit_pixel_to_float(struct SpaceImage *sima, float pixeldist, float r_dist[2]);
 
 /* operators */
 

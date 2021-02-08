@@ -594,7 +594,7 @@ float quat_split_swing_and_twist(const float q_in[4], int axis, float r_swing[4]
       BLI_assert(fabsf(r_swing[axis + 1]) < BLI_ASSERT_UNIT_EPSILON);
     }
 
-    /* Output twist last just in case q ovelaps r_twist. */
+    /* Output twist last just in case q overlaps r_twist. */
     if (r_twist) {
       r_twist[0] = cos_t;
       zero_v3(r_twist + 1);
@@ -1581,7 +1581,7 @@ void quat_to_compatible_eul(float eul[3], const float oldrot[3], const float qua
  * was adapted from
  *      ANSI C code from the article
  *      "Euler Angle Conversion"
- *      by Ken Shoemake, shoemake@graphics.cis.upenn.edu
+ *      by Ken Shoemake <shoemake@graphics.cis.upenn.edu>
  *      in "Graphics Gems IV", Academic Press, 1994
  * for use in Blender
  */

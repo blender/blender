@@ -684,6 +684,8 @@ class ShaderImageTextureWrapper():
             self.owner_shader._grid_to_location(-1, 0 + self.grid_row_diff, dst_node=node_image, ref_node=self.node_dst)
 
             tree.links.new(node_image.outputs["Alpha" if self.use_alpha else "Color"], self.socket_dst)
+            if self.use_alpha:
+                self.owner_shader.material.blend_method = 'BLEND'
 
             self._node_image = node_image
         return self._node_image
@@ -700,9 +702,16 @@ class ShaderImageTextureWrapper():
                 image = image.copy()
             image.colorspace_settings.is_data = self.colorspace_is_data
         if self.colorspace_name is not ...:
-            if image.colorspace_settings.is_data != self.colorspace_is_data and image.users >= 1:
+            if image.colorspace_settings.name != self.colorspace_name and image.users >= 1:
                 image = image.copy()
             image.colorspace_settings.name = self.colorspace_name
+        if self.use_alpha:
+            # Try to be smart, and only use image's alpha output if image actually has alpha data.
+            tree = self.owner_shader.material.node_tree
+            if image.channels < 4 or image.depth in {24, 8}:
+                tree.links.new(self.node_image.outputs["Color"], self.socket_dst)
+            else:
+                tree.links.new(self.node_image.outputs["Alpha"], self.socket_dst)
         self.node_image.image = image
 
     image = property(image_get, image_set)

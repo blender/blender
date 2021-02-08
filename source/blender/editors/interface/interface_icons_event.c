@@ -118,7 +118,15 @@ void icon_draw_rect_input(float x,
   UI_GetThemeColor4fv(TH_TEXT, color);
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_aa(
-      false, (int)x - U.pixelsize, (int)y, (int)(x + w), (int)(y + h), 3.0f * U.pixelsize, color);
+      &(const rctf){
+          .xmin = (int)x - U.pixelsize,
+          .xmax = (int)(x + w),
+          .ymin = (int)y,
+          .ymax = (int)(y + h),
+      },
+      false,
+      3.0f * U.pixelsize,
+      color);
 
   const enum {
     UNIX,

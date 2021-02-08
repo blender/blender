@@ -2151,7 +2151,7 @@ void OpenCLDevice::release_program_safe(cl_program program)
   }
 }
 
-/* ** Those guys are for workign around some compiler-specific bugs ** */
+/* ** Those guys are for working around some compiler-specific bugs ** */
 
 cl_program OpenCLDevice::load_cached_kernel(ustring key, thread_scoped_lock &cache_locker)
 {

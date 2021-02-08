@@ -304,6 +304,9 @@ static int mouse_select(bContext *C, const float co[2], const bool extend, const
   track = find_nearest_track(sc, tracksbase, co, &distance_to_track);
   plane_track = find_nearest_plane_track(sc, plane_tracks_base, co, &distance_to_plane_track);
 
+  ClipViewLockState lock_state;
+  ED_clip_view_lock_state_store(C, &lock_state);
+
   /* Do not select beyond some reasonable distance, that is useless and
    * prevents the 'deselect on nothing' behavior. */
   if (distance_to_track > 0.05f) {
@@ -377,10 +380,7 @@ static int mouse_select(bContext *C, const float co[2], const bool extend, const
     ED_mask_deselect_all(C);
   }
 
-  if (!extend) {
-    sc->xlockof = 0.0f;
-    sc->ylockof = 0.0f;
-  }
+  ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
 
   BKE_tracking_dopesheet_tag_update(tracking);
 
@@ -867,14 +867,16 @@ static int select_all_exec(bContext *C, wmOperator *op)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
 
-  int action = RNA_enum_get(op->ptr, "action");
+  const int action = RNA_enum_get(op->ptr, "action");
+
+  ClipViewLockState lock_state;
+  ED_clip_view_lock_state_store(C, &lock_state);
 
   bool has_selection = false;
-
   ED_clip_select_all(sc, action, &has_selection);
 
-  if (!has_selection) {
-    sc->flag &= ~SC_LOCK_SELECTION;
+  if (has_selection) {
+    ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
   }
 
   BKE_tracking_dopesheet_tag_update(tracking);

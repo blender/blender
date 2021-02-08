@@ -107,6 +107,8 @@ typedef struct NoiseGpencilModifierData {
   float factor_uvs;
   /** Noise Frequency scaling */
   float noise_scale;
+  float noise_offset;
+  char _pad[4];
   /** How many frames before recalculate randoms. */
   int step;
   /** Custom index for passes. */
@@ -180,7 +182,7 @@ typedef struct ThickGpencilModifierData {
   int flag;
   /** Relative thickness factor. */
   float thickness_fac;
-  /** Absolute thickness overide. */
+  /** Absolute thickness override. */
   int thickness;
   /** Custom index for passes. */
   int layer_pass;

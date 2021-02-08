@@ -318,7 +318,7 @@ bool hair_ensure_procedural_data(Object *object,
   HairBatchCache *cache = hair_batch_cache_get(hair);
   *r_hair_cache = &cache->hair;
 
-  const int steps = 2; /* TODO: don't hardcode? */
+  const int steps = 2; /* TODO: don't hard-code? */
   (*r_hair_cache)->final[subdiv].strands_res = 1 << (steps + subdiv);
 
   /* Refreshed on combing and simulation. */

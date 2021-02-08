@@ -370,6 +370,7 @@ DrawEngineType draw_engine_select_type = {
     NULL,
     NULL,
     NULL,
+    NULL,
 };
 
 /* Note: currently unused, we may want to register so we can see this when debugging the view. */

@@ -128,6 +128,17 @@ static void rna_Image_colormanage_update(Main *bmain, Scene *UNUSED(scene), Poin
   WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 }
 
+static void rna_Image_alpha_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  Image *ima = (Image *)ptr->owner_id;
+  /* When operating on a generated image, avoid re-generating when changing the alpha-mode
+   * as it doesn't impact generated images, causing them to reload pixel data, see T82785. */
+  if (ima->source == IMA_SRC_GENERATED) {
+    return;
+  }
+  rna_Image_colormanage_update(bmain, scene, ptr);
+}
+
 static void rna_Image_views_format_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   Image *ima = (Image *)ptr->owner_id;
@@ -1118,7 +1129,8 @@ static void rna_def_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_float", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Image_is_float_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Is Float", "True if this image is stored in floating-point buffer");
+  RNA_def_property_ui_text(
+      prop, "Is Float", "True if this image is stored in floating-point buffer");
 
   prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");
@@ -1132,7 +1144,7 @@ static void rna_def_image(BlenderRNA *brna)
                            "Alpha Mode",
                            "Representation of alpha in the image file, to convert to and from "
                            "when saving and loading the image");
-  RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_colormanage_update");
+  RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_alpha_mode_update");
 
   prop = RNA_def_property(srna, "use_half_precision", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IMA_HIGH_BITDEPTH);

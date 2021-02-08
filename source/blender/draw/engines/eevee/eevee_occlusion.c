@@ -273,7 +273,7 @@ void EEVEE_occlusion_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *
   if (fbl->ao_accum_fb != NULL) {
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-    /* Update the min_max/horizon buffers so the refracion materials appear in it. */
+    /* Update the min_max/horizon buffers so the refraction materials appear in it. */
     EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);
     EEVEE_occlusion_compute(sldata, vedata, dtxl->depth, -1);
 

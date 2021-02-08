@@ -155,7 +155,7 @@ static void workbench_render_result_z(struct RenderLayer *rl,
           rp->rect[i] = 1e10f; /* Background */
         }
         else {
-          rp->rect[i] = -rp->rect[i] * range + near;
+          rp->rect[i] = rp->rect[i] * range - near;
         }
       }
     }
@@ -175,6 +175,8 @@ void workbench_render(void *ved, RenderEngine *engine, RenderLayer *render_layer
     return;
   }
 
+  workbench_private_data_alloc(data->stl);
+  data->stl->wpd->cam_original_ob = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
   workbench_engine_init(data);
 
   workbench_cache_init(data);

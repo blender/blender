@@ -560,6 +560,13 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                       wmWindow *win,
                                       bool is_dialog)
 {
+  /* On Windows, if there is a parent window then force is_dialog. Otherwise the parent
+     handle is not used in window creation and they do not stay on top of parents. */
+#ifdef WIN32
+  if (win->parent) {
+    is_dialog = true;
+  }
+#endif
 
   /* a new window is created when pageflip mode is required for a window */
   GHOST_GLSettings glSettings = {0};
@@ -801,10 +808,12 @@ wmWindow *WM_window_open(bContext *C, const rcti *rect)
   wmWindow *win_prev = CTX_wm_window(C);
   wmWindow *win = wm_window_new(CTX_data_main(C), wm, win_prev, false);
 
-  win->posx = rect->xmin;
-  win->posy = rect->ymin;
-  win->sizex = BLI_rcti_size_x(rect);
-  win->sizey = BLI_rcti_size_y(rect);
+  const float native_pixel_size = GHOST_GetNativePixelSize(win_prev->ghostwin);
+
+  win->posx = rect->xmin / native_pixel_size;
+  win->posy = rect->ymin / native_pixel_size;
+  win->sizex = BLI_rcti_size_x(rect) / native_pixel_size;
+  win->sizey = BLI_rcti_size_y(rect) / native_pixel_size;
 
   WM_check(C);
 
@@ -856,13 +865,15 @@ wmWindow *WM_window_open_temp(bContext *C,
   /* changes rect to fit within desktop */
   wm_window_check_position(&rect);
 
-  /* Reuse temporary or dialog window if one is open (but don't use a dialog for a regular
-   * temporary window, or vice versa). */
+  /* Reuse temporary windows when they share the same title. */
   wmWindow *win = NULL;
   LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-    if (WM_window_is_temp_screen(win_iter) &&
-        (dialog == GHOST_IsDialogWindow(win_iter->ghostwin))) {
-      win = win_iter;
+    if (WM_window_is_temp_screen(win_iter)) {
+      char *wintitle = GHOST_GetTitle(win_iter->ghostwin);
+      if (strcmp(title, wintitle) == 0) {
+        win = win_iter;
+      }
+      free(wintitle);
     }
   }
 

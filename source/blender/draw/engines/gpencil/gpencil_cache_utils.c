@@ -365,7 +365,7 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
     if (gpl->blend_mode == eGplBlendMode_HardLight) {
-      /* We cannot do custom blending on MultiTarget framebuffers.
+      /* We cannot do custom blending on Multi-Target frame-buffers.
        * Workaround by doing 2 passes. */
       grp = DRW_shgroup_create(sh, tgp_layer->blend_ps);
       DRW_shgroup_state_disable(grp, DRW_STATE_BLEND_MUL);

@@ -136,7 +136,7 @@ class BlenderSession {
 
   /* ** Resumable render ** */
 
-  /* Overall number of chunks in which the sample range is to be devided. */
+  /* Overall number of chunks in which the sample range is to be divided. */
   static int num_resumable_chunks;
 
   /* Current resumable chunk index to render. */

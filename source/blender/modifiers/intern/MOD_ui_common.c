@@ -256,6 +256,11 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
             "OBJECT_OT_modifier_copy");
   }
 
+  uiItemO(layout,
+          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
+          0,
+          "OBJECT_OT_modifier_copy_to_selected");
+
   uiItemS(layout);
 
   /* Move to first. */
@@ -346,8 +351,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     }
   }
   /* Collision and Surface are always enabled, hide buttons. */
-  if (((md->type != eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) &&
-      (md->type != eModifierType_Surface)) {
+  if ((md->type != eModifierType_Collision) && (md->type != eModifierType_Surface)) {
     if (mti->flags & eModifierTypeFlag_SupportsEditmode) {
       sub = uiLayoutRow(row, true);
       uiLayoutSetActive(sub, (md->mode & eModifierMode_Realtime));
@@ -456,6 +460,7 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
   BLI_strncpy(panel_type->label, label, BKE_ST_MAXNAME);
   BLI_strncpy(panel_type->context, "modifier", BKE_ST_MAXNAME);
   BLI_strncpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
+  BLI_strncpy(panel_type->active_property, "is_active", BKE_ST_MAXNAME);
 
   panel_type->draw_header = draw_header;
   panel_type->draw = draw;

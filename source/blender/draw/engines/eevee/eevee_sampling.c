@@ -69,11 +69,11 @@ void EEVEE_sample_rectangle(int sample_ofs,
 
   BLI_halton_2d(ht_primes, ht_offset, sample_ofs, ht_point);
 
-  /* Decorelate AA and shadow samples. (see T68594) */
+  /* De-correlate AA and shadow samples. (see T68594) */
   ht_point[0] = fmod(ht_point[0] * 1151.0, 1.0);
   ht_point[1] = fmod(ht_point[1] * 1069.0, 1.0);
 
-  /* Change ditribution center to be 0,0 */
+  /* Change distribution center to be 0,0 */
   ht_point[0] = (ht_point[0] > 0.5f) ? ht_point[0] - 1.0f : ht_point[0];
   ht_point[1] = (ht_point[1] > 0.5f) ? ht_point[1] - 1.0f : ht_point[1];
 

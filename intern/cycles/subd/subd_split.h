@@ -40,7 +40,7 @@ class DiagSplit {
   SubdParams params;
 
   vector<Subpatch> subpatches;
-  /* deque is used so that element pointers remain vaild when size is changed. */
+  /* `deque` is used so that element pointers remain valid when size is changed. */
   deque<Edge> edges;
 
   float3 to_world(Patch *patch, float2 uv);

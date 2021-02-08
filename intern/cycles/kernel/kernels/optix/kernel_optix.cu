@@ -45,13 +45,12 @@ template<bool always = false> ccl_device_forceinline uint get_object_id()
   uint object = optixGetInstanceId();
 #endif
   // Choose between always returning object ID or only for instances
-  if (always)
-    // Can just remove the high bit since instance always contains object ID
-    return object & 0x7FFFFF;
-  // Set to OBJECT_NONE if this is not an instanced object
-  else if (object & 0x800000)
-    object = OBJECT_NONE;
-  return object;
+  if (always || (object & 1) == 0)
+    // Can just remove the low bit since instance always contains object ID
+    return object >> 1;
+  else
+    // Set to OBJECT_NONE if this is not an instanced object
+    return OBJECT_NONE;
 }
 
 extern "C" __global__ void __raygen__kernel_optix_path_trace()

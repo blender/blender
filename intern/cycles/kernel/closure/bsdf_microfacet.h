@@ -125,7 +125,7 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(KernelGlobals *kg,
   }
   *slope_y = fast_ierff(2.0f * randv - 1.0f);
 #else
-  /* Use precomputed table on CPU, it gives better perfomance. */
+  /* Use precomputed table on CPU, it gives better performance. */
   int beckmann_table_offset = kernel_data.tables.beckmann_offset;
 
   *slope_x = lookup_table_read_2D(

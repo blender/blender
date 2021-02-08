@@ -424,11 +424,6 @@ static PyGetSetDef bpy_app_getsets[] = {
      bpy_app_debug_set,
      bpy_app_debug_doc,
      (void *)G_DEBUG_SIMDATA},
-    {"debug_gpumem",
-     bpy_app_debug_get,
-     bpy_app_debug_set,
-     bpy_app_debug_doc,
-     (void *)G_DEBUG_GPU_MEM},
     {"debug_io", bpy_app_debug_get, bpy_app_debug_set, bpy_app_debug_doc, (void *)G_DEBUG_IO},
 
     {"use_event_simulate",

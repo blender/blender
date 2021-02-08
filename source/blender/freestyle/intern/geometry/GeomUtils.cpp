@@ -435,12 +435,12 @@ bool overlapTriangleBox(Vec3r &boxcenter, Vec3r &boxhalfsize, Vec3r triverts[3])
 // Tomas Möller
 // Prosolvia Clarus AB
 // Sweden
-// tompa@clarus.se
+// <tompa@clarus.se>
 //
 // Ben Trumbore
 // Cornell University
 // Ithaca, New York
-// wbt@graphics.cornell.edu
+// <wbt@graphics.cornell.edu>
 bool intersectRayTriangle(const Vec3r &orig,
                           const Vec3r &dir,
                           const Vec3r &v0,

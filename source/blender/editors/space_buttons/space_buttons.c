@@ -514,12 +514,11 @@ static void buttons_main_region_layout(const bContext *C, ARegion *region)
   sbuts->mainbo = sbuts->mainb;
 }
 
-static void buttons_main_region_listener(wmWindow *UNUSED(win),
-                                         ScrArea *UNUSED(area),
-                                         ARegion *region,
-                                         wmNotifier *wmn,
-                                         const Scene *UNUSED(scene))
+static void buttons_main_region_listener(const wmRegionListenerParams *params)
 {
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SCREEN:
@@ -567,15 +566,13 @@ static void buttons_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void buttons_header_region_message_subscribe(const bContext *UNUSED(C),
-                                                    WorkSpace *UNUSED(workspace),
-                                                    Scene *UNUSED(scene),
-                                                    bScreen *UNUSED(screen),
-                                                    ScrArea *area,
-                                                    ARegion *region,
-                                                    struct wmMsgBus *mbus)
+static void buttons_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  ScrArea *area = params->area;
+  ARegion *region = params->region;
   SpaceProperties *sbuts = area->spacedata.first;
+
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
       .user_data = region,
@@ -621,14 +618,12 @@ static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *regio
   ED_region_panels_draw(C, region);
 }
 
-static void buttons_navigation_bar_region_message_subscribe(const bContext *UNUSED(C),
-                                                            WorkSpace *UNUSED(workspace),
-                                                            Scene *UNUSED(scene),
-                                                            bScreen *UNUSED(screen),
-                                                            ScrArea *UNUSED(area),
-                                                            ARegion *region,
-                                                            struct wmMsgBus *mbus)
+static void buttons_navigation_bar_region_message_subscribe(
+    const wmRegionMessageSubscribeParams *params)
 {
+  struct wmMsgBus *mbus = params->message_bus;
+  ARegion *region = params->region;
+
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
       .user_data = region,
@@ -657,11 +652,10 @@ static void buttons_area_redraw(ScrArea *area, short buttons)
  * \{ */
 
 /* reused! */
-static void buttons_area_listener(wmWindow *UNUSED(win),
-                                  ScrArea *area,
-                                  wmNotifier *wmn,
-                                  Scene *UNUSED(scene))
+static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
 {
+  ScrArea *area = params->area;
+  wmNotifier *wmn = params->notifier;
   SpaceProperties *sbuts = area->spacedata.first;
 
   /* context changes */

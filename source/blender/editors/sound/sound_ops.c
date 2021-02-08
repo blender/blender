@@ -877,7 +877,7 @@ static void SOUND_OT_unpack(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(
       ot->srna, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
-  /* XXX, weark!, will fail with library, name collisions */
+  /* XXX: weak!, will fail with library, name collisions */
   RNA_def_string(
       ot->srna, "id", NULL, MAX_ID_NAME - 2, "Sound Name", "Sound data-block name to unpack");
 }

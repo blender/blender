@@ -288,7 +288,7 @@ void main()
 
   ls_ray_dir -= ls_ray_ori;
 
-  /* TODO: Align rays to volume center so that it mimics old behaviour of slicing the volume. */
+  /* TODO: Align rays to volume center so that it mimics old behavior of slicing the volume. */
 
   float dist = line_unit_box_intersect_dist(ls_ray_ori, ls_ray_dir);
   if (dist > 0.0) {

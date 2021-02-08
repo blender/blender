@@ -123,7 +123,7 @@ bool EEVEE_shadows_cube_setup(EEVEE_LightsInfo *linfo, const EEVEE_Light *evli, 
      * Note that this may be a rough approximation an may not converge to a perfectly
      * smooth shadow (because sample distribution is quite non-uniform) but is enough
      * in practice.
-     **/
+     */
     /* NOTE: this has implication for spotlight rendering optimization
      * (see EEVEE_shadows_draw_cubemap). */
     float angular_texel_size = 2.0f * DEG2RADF(90) / (float)linfo->shadow_cube_size;
@@ -142,7 +142,7 @@ static void eevee_ensure_cube_views(
   float winmat[4][4];
   float side = near;
 
-  /* TODO shadowcube array. */
+  /* TODO: shadow-cube array. */
   if (true) {
     /* This half texel offset is used to ensure correct filtering between faces. */
     /* FIXME: This exhibit float precision issue with lower cube_res.

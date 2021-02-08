@@ -276,7 +276,7 @@ void ED_gpencil_layer_frames_duplicate(bGPDlayer *gpl)
       bGPDframe *gpfd;
 
       /* duplicate frame, and deselect self */
-      gpfd = BKE_gpencil_frame_duplicate(gpf);
+      gpfd = BKE_gpencil_frame_duplicate(gpf, true);
       gpf->flag &= ~GP_FRAME_SELECT;
 
       BLI_insertlinkafter(&gpl->frames, gpf, gpfd);
@@ -361,7 +361,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
       /* if frame is selected, make duplicate it and its strokes */
       if (gpf->flag & GP_FRAME_SELECT) {
         /* make a copy of this frame */
-        bGPDframe *new_frame = BKE_gpencil_frame_duplicate(gpf);
+        bGPDframe *new_frame = BKE_gpencil_frame_duplicate(gpf, true);
         BLI_addtail(&copied_frames, new_frame);
 
         /* extend extents for keyframes encountered */

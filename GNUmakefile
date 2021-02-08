@@ -183,8 +183,13 @@ endif
 ifndef DEPS_INSTALL_DIR
 	DEPS_INSTALL_DIR:=$(shell dirname "$(BLENDER_DIR)")/lib/$(OS_NCASE)
 
-	ifneq ($(OS_NCASE),darwin)
-		# Add processor type to directory name
+	# Add processor type to directory name, except for darwin x86_64
+	# which by convention does not have it.
+	ifeq ($(OS_NCASE),darwin)
+		ifneq ($(CPU),x86_64)
+			DEPS_INSTALL_DIR:=$(DEPS_INSTALL_DIR)_$(CPU)
+		endif
+	else
 		DEPS_INSTALL_DIR:=$(DEPS_INSTALL_DIR)_$(CPU)
 	endif
 endif
@@ -198,7 +203,7 @@ endif
 # in libraries, or python 2 for running make update to get it.
 ifeq ($(OS_NCASE),darwin)
 	ifeq (, $(shell command -v $(PYTHON)))
-		PYTHON:=../lib/darwin/python/bin/python3.7m
+		PYTHON:=$(DEPS_INSTALL_DIR)/python/bin/python3.7m
 		ifeq (, $(shell command -v $(PYTHON)))
 			PYTHON:=python
 		endif
@@ -520,7 +525,7 @@ format: .FORCE
 
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
 doc_py: .FORCE
-	ASAN_OPTIONS=halt_on_error=0 \
+	ASAN_OPTIONS=halt_on_error=0:${ASAN_OPTIONS} \
 	$(BLENDER_BIN) --background -noaudio --factory-startup \
 		--python doc/python_api/sphinx_doc_gen.py
 	sphinx-build -b html -j $(NPROCS) doc/python_api/sphinx-in doc/python_api/sphinx-out

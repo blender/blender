@@ -358,11 +358,7 @@ void BlenderSession::do_write_update_render_tile(RenderTile &rtile,
 
   if (do_read_only) {
     /* copy each pass */
-    BL::RenderLayer::passes_iterator b_iter;
-
-    for (b_rlay.passes.begin(b_iter); b_iter != b_rlay.passes.end(); ++b_iter) {
-      BL::RenderPass b_pass(*b_iter);
-
+    for (BL::RenderPass &b_pass : b_rlay.passes) {
       /* find matching pass type */
       PassType pass_type = BlenderSync::get_pass_type(b_pass);
       int components = b_pass.channels();
@@ -552,7 +548,6 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
       int seed = scene->integrator->get_seed();
       seed += hash_uint2(seed, hash_uint2(view_index * 0xdeadbeef, 0));
       scene->integrator->set_seed(seed);
-      scene->integrator->tag_update(scene);
     }
 
     /* Update number of samples per layer. */
@@ -736,10 +731,7 @@ void BlenderSession::do_write_update_render_result(BL::RenderLayer &b_rlay,
 
   if (!do_update_only) {
     /* copy each pass */
-    BL::RenderLayer::passes_iterator b_iter;
-
-    for (b_rlay.passes.begin(b_iter); b_iter != b_rlay.passes.end(); ++b_iter) {
-      BL::RenderPass b_pass(*b_iter);
+    for (BL::RenderPass &b_pass : b_rlay.passes) {
       int components = b_pass.channels();
 
       /* Copy pixels from regular render passes. */
@@ -1115,10 +1107,6 @@ void BlenderSession::update_resumable_tile_manager(int num_samples)
           << "number of samples to render is " << range_num_samples;
 
   scene->integrator->set_start_sample(rounded_range_start_sample);
-
-  if (scene->integrator->is_modified()) {
-    scene->integrator->tag_update(scene);
-  }
 
   session->tile_manager.range_start_sample = rounded_range_start_sample;
   session->tile_manager.range_num_samples = rounded_range_num_samples;

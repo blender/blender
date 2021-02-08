@@ -1360,7 +1360,7 @@ GPUBatch *DRW_cache_field_vortex_get(void)
 #undef SPIRAL_RESOL
 }
 
-/* Screenaligned circle. */
+/* Screen-aligned circle. */
 GPUBatch *DRW_cache_field_curve_get(void)
 {
 #define CIRCLE_RESOL 32
@@ -1449,7 +1449,7 @@ GPUBatch *DRW_cache_field_cone_limit_get(void)
 #undef CIRCLE_RESOL
 }
 
-/* Screenaligned dashed circle */
+/* Screen-aligned dashed circle */
 GPUBatch *DRW_cache_field_sphere_limit_get(void)
 {
 #define CIRCLE_RESOL 32
@@ -3420,7 +3420,7 @@ GPUBatch *DRW_cache_particles_get_prim(int type)
 
         int v = 0;
         int flag = VCLASS_EMPTY_AXES;
-        /* Set minimum to 0.001f so we can easilly normalize to get the color. */
+        /* Set minimum to 0.001f so we can easily normalize to get the color. */
         GPU_vertbuf_vert_set(vbo, v++, &(Vert){{0.0f, 0.0001f, 0.0f}, flag});
         GPU_vertbuf_vert_set(vbo, v++, &(Vert){{0.0f, 2.0f, 0.0f}, flag});
         GPU_vertbuf_vert_set(vbo, v++, &(Vert){{0.0001f, 0.0f, 0.0f}, flag});
@@ -3625,7 +3625,7 @@ void drw_batch_cache_generate_requested(Object *ob)
         DRW_mesh_batch_cache_create_requested(
             DST.task_graph, ob, mesh_eval, scene, is_paint_mode, use_hide);
       }
-      DRW_curve_batch_cache_create_requested(ob);
+      DRW_curve_batch_cache_create_requested(ob, scene);
       break;
     /* TODO all cases */
     default:

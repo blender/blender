@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bli
  * \brief File and directory operations.
- * */
+ */
 
 #pragma once
 
@@ -88,10 +88,10 @@ typedef enum eFileAttributes {
   FILE_ATTR_TEMPORARY = 1 << 7,       /* Used for temporary storage. */
   FILE_ATTR_SPARSE_FILE = 1 << 8,     /* Sparse File. */
   FILE_ATTR_OFFLINE = 1 << 9,         /* Data is not immediately available. */
-  FILE_ATTR_ALIAS = 1 << 10,          /* Mac Alias or Windows Lnk. File-based redirection. */
-  FILE_ATTR_REPARSE_POINT = 1 << 11,  /* File has associated reparse point. */
+  FILE_ATTR_ALIAS = 1 << 10,          /* Mac Alias or Windows LNK. File-based redirection. */
+  FILE_ATTR_REPARSE_POINT = 1 << 11,  /* File has associated re-parse point. */
   FILE_ATTR_SYMLINK = 1 << 12,        /* Reference to another file. */
-  FILE_ATTR_JUNCTION_POINT = 1 << 13, /* Folder Symlink. */
+  FILE_ATTR_JUNCTION_POINT = 1 << 13, /* Folder Symbolic-link. */
   FILE_ATTR_MOUNT_POINT = 1 << 14,    /* Volume mounted as a folder. */
   FILE_ATTR_HARDLINK = 1 << 15,       /* Duplicated directory entry. */
 } eFileAttributes;

@@ -383,7 +383,8 @@ static void gpencil_save_selected_point(tGP_BrushWeightpaintData *gso,
 /* Select points in this stroke and add to an array to be used later. */
 static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
                                               bGPDstroke *gps,
-                                              const float diff_mat[4][4])
+                                              const float diff_mat[4][4],
+                                              const float bound_mat[4][4])
 {
   GP_SpaceConversion *gsc = &gso->gsc;
   rcti *rect = &gso->brush_rect;
@@ -402,7 +403,7 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
   bool include_last = false;
 
   /* Check if the stroke collide with brush. */
-  if (!ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, diff_mat)) {
+  if (!ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat)) {
     return;
   }
 
@@ -505,7 +506,8 @@ static bool gpencil_weightpaint_brush_do_frame(bContext *C,
                                                tGP_BrushWeightpaintData *gso,
                                                bGPDlayer *gpl,
                                                bGPDframe *gpf,
-                                               const float diff_mat[4][4])
+                                               const float diff_mat[4][4],
+                                               const float bound_mat[4][4])
 {
   Object *ob = CTX_data_active_object(C);
   char tool = gso->brush->gpencil_weight_tool;
@@ -526,12 +528,12 @@ static bool gpencil_weightpaint_brush_do_frame(bContext *C,
       continue;
     }
     /* Check if the color is editable. */
-    if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+    if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
       continue;
     }
 
     /* Check points below the brush. */
-    gpencil_weightpaint_select_stroke(gso, gps, diff_mat);
+    gpencil_weightpaint_select_stroke(gso, gps, diff_mat, bound_mat);
   }
 
   /*---------------------------------------------------------------------
@@ -578,9 +580,11 @@ static bool gpencil_weightpaint_brush_apply_to_layers(bContext *C, tGP_BrushWeig
       continue;
     }
 
-    /* calculate difference matrix */
-    float diff_mat[4][4];
-    BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+    /* Calculate transform matrix. */
+    float diff_mat[4][4], bound_mat[4][4];
+    BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
+    copy_m4_m4(bound_mat, diff_mat);
+    mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_invmat);
 
     /* Active Frame or MultiFrame? */
     if (gso->is_multiframe) {
@@ -608,7 +612,7 @@ static bool gpencil_weightpaint_brush_apply_to_layers(bContext *C, tGP_BrushWeig
           }
 
           /* affect strokes in this frame */
-          changed |= gpencil_weightpaint_brush_do_frame(C, gso, gpl, gpf, diff_mat);
+          changed |= gpencil_weightpaint_brush_do_frame(C, gso, gpl, gpf, diff_mat, bound_mat);
         }
       }
     }
@@ -616,7 +620,8 @@ static bool gpencil_weightpaint_brush_apply_to_layers(bContext *C, tGP_BrushWeig
       if (gpl->actframe != NULL) {
         /* Apply to active frame's strokes */
         gso->mf_falloff = 1.0f;
-        changed |= gpencil_weightpaint_brush_do_frame(C, gso, gpl, gpl->actframe, diff_mat);
+        changed |= gpencil_weightpaint_brush_do_frame(
+            C, gso, gpl, gpl->actframe, diff_mat, bound_mat);
       }
     }
   }

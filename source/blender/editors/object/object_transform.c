@@ -1394,7 +1394,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
              * (all layers are considered without evaluating lock attributes) */
             LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
               /* calculate difference matrix */
-              BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
+              BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
               /* undo matrix */
               invert_m4_m4(inverse_diff_mat, diff_mat);
               LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {

@@ -77,7 +77,7 @@ void RE_texture_rng_exit(void)
 
 /* ------------------------------------------------------------------------- */
 
-/* this allows colorbanded textures to control normals as well */
+/* This allows color-banded textures to control normals as well. */
 static void tex_normal_derivate(const Tex *tex, TexResult *texres)
 {
   if (tex->flag & TEX_COLORBAND) {
@@ -167,7 +167,7 @@ static int blend(const Tex *tex, const float texvec[3], TexResult *texres)
 /* ------------------------------------------------------------------------- */
 /* ************************************************************************* */
 
-/* newnoise: all noisebased types now have different noisebases to choose from */
+/* newnoise: all noise-based types now have different noise-bases to choose from. */
 
 static int clouds(const Tex *tex, const float texvec[3], TexResult *texres)
 {
@@ -1059,7 +1059,7 @@ static void do_2d_mapping(
       dyt[2] *= 0.5f;
     }
 
-    /* if area, then reacalculate dxt[] and dyt[] */
+    /* If area, then recalculate `dxt[]` and `dyt[]` */
     if (areaflag) {
       fx = area[0];
       fy = area[1];

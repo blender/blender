@@ -383,7 +383,7 @@ if(WITH_CYCLES_OPENSUBDIV)
         optimized ${OPENSUBDIV_ROOT_DIR}/lib/osdGPU.lib
         debug ${OPENSUBDIV_ROOT_DIR}/lib/osdCPU_d.lib
         debug ${OPENSUBDIV_ROOT_DIR}/lib/osdGPU_d.lib
-     )
+      )
     endif()
   endif()
 endif()

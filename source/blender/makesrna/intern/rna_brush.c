@@ -1312,7 +1312,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
-  /* Randomnes factor for pressure */
+  /* Randomness factor for pressure */
   prop = RNA_def_property(srna, "random_pressure", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "draw_random_press");
   RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -1321,7 +1321,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
-  /* Randomnes factor for strength */
+  /* Randomness factor for strength */
   prop = RNA_def_property(srna, "random_strength", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "draw_random_strength");
   RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -1454,7 +1454,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
-  /* fill threshold for transparence */
+  /* Fill threshold for transparency. */
   prop = RNA_def_property(srna, "fill_threshold", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "fill_threshold");
   RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -1472,13 +1472,13 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
   /* fill factor size */
-  prop = RNA_def_property(srna, "fill_factor", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "fill_factor");
-  RNA_def_property_range(prop, 1, 8);
+  prop = RNA_def_property(srna, "fill_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "fill_factor");
+  RNA_def_property_range(prop, GPENCIL_MIN_FILL_FAC, 8.0f);
   RNA_def_property_ui_text(
       prop,
-      "Resolution",
-      "Multiplier for fill resolution, higher resolution is more accurate but slower");
+      "Precision",
+      "Factor for fill boundary accuracy, higher values are more accurate but slower");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 

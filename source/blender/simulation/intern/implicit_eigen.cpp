@@ -904,7 +904,7 @@ BLI_INLINE void dfdx_damp(float to[3][3],
 
 BLI_INLINE void dfdv_damp(float to[3][3], const float dir[3], float damping)
 {
-  /* derivative of force wrt velocity */
+  /* Derivative of force with regards to velocity. */
   outerproduct(to, dir, dir);
   mul_m3_fl(to, -damping);
 }
@@ -936,7 +936,7 @@ BLI_INLINE float fbstar(float length, float L, float kb, float cb)
   }
 }
 
-/* function to calculae bending spring force (taken from Choi & Co) */
+/* Function to calculate bending spring force (taken from Choi & Co). */
 BLI_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 {
   float tempfb_fl = kb * fb(length, L);

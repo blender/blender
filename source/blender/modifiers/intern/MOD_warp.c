@@ -466,17 +466,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
 
   int texture_coords = RNA_enum_get(ptr, "texture_coords");
 
-  uiTemplateID(layout,
-               C,
-               ptr,
-               "texture",
-               "texture.new",
-               "texture.duplicate",
-               NULL,
-               NULL,
-               0,
-               ICON_NONE,
-               NULL);
+  uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
 
   uiLayoutSetPropSep(layout, true);
 

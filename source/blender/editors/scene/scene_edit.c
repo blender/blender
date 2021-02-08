@@ -240,8 +240,9 @@ static void SCENE_OT_new(wmOperatorType *ot)
 
 static bool scene_delete_poll(bContext *C)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  return (scene->id.prev || scene->id.next);
+  return BKE_scene_can_be_removed(bmain, scene);
 }
 
 static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))

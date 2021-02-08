@@ -1,7 +1,6 @@
 /* Apache License, Version 2.0 */
 
-#ifndef __BLENDER_TESTING_BLI_RESSOURCE_STRING_H__
-#define __BLENDER_TESTING_BLI_RESSOURCE_STRING_H__
+#pragma once
 
 /* Data file, don't format. */
 /* clang-format off */
@@ -606,5 +605,3 @@ const char words10k[] =
 ;
 
 /* clang-format on */
-
-#endif /* __BLENDER_TESTING_BLI_RESSOURCE_STRING_H__ */

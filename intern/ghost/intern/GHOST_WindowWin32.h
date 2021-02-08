@@ -41,7 +41,7 @@
 // PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first
 #define PACKETDATA \
   (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR | PK_X | PK_Y | PK_TIME)
-#define PACKETMODE PK_BUTTONS
+#define PACKETMODE 0
 #include <pktdef.h>
 
 class GHOST_SystemWin32;
@@ -467,6 +467,11 @@ class GHOST_WindowWin32 : public GHOST_Window {
   void setWintabOverlap(bool overlap);
 
   /**
+   * Resets Wintab state.
+   */
+  void processWintabLeave();
+
+  /**
    * Handle Wintab coordinate changes when DisplayChange events occur.
    */
   void processWintabDisplayChangeEvent();
@@ -568,7 +573,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /** Pointer to system. */
   GHOST_SystemWin32 *m_system;
-  /** Pointer to COM IDropTarget implementor. */
+  /** Pointer to COM #IDropTarget implementer. */
   GHOST_DropTargetWin32 *m_dropTarget;
   /** Window handle. */
   HWND m_hWnd;
@@ -577,14 +582,16 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /** Flag for if window has captured the mouse. */
   bool m_hasMouseCaptured;
-  /** Flag if an operator grabs the mouse with WM_cursor_grab_enable/ungrab().
-   *  Multiple grabs must be released with a single ungrab. */
+  /**
+   * Flag if an operator grabs the mouse with #WM_cursor_grab_enable, #WM_cursor_grab_disable
+   * Multiple grabs must be released with a single un-grab.
+   */
   bool m_hasGrabMouse;
   /** Count of number of pressed buttons. */
   int m_nPressedButtons;
   /** HCURSOR structure of the custom cursor. */
   HCURSOR m_customCursor;
-  /** Request GL context aith alpha channel. */
+  /** Request GL context with alpha channel. */
   bool m_wantAlphaBackground;
 
   /** ITaskbarList3 structure for progress bar. */
@@ -614,6 +621,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
     HCTX context = NULL;
     /** Number of connected Wintab digitizers. */
     UINT numDevices = 0;
+    /** Pressed button map. */
+    GHOST_TUns8 buttons = 0;
     LONG maxPressure = 0;
     LONG maxAzimuth = 0, maxAltitude = 0;
     /** Reusable buffer to read in Wintab Packets. */

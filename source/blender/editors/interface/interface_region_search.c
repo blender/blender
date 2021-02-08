@@ -289,7 +289,7 @@ int ui_searchbox_find_index(ARegion *region, const char *name)
   return UI_search_items_find_index(&data->items, name);
 }
 
-/* x and y in screencoords */
+/* x and y in screen-coords. */
 bool ui_searchbox_inside(ARegion *region, int x, int y)
 {
   uiSearchboxData *data = region->regiondata;
@@ -347,9 +347,20 @@ static struct ARegion *wm_searchbox_tooltip_init(struct bContext *C,
       }
 
       uiButSearch *search_but = (uiButSearch *)but;
-      if (search_but->item_tooltip_fn) {
-        return search_but->item_tooltip_fn(C, region, search_but->arg, search_but->item_active);
+      if (!search_but->item_tooltip_fn) {
+        continue;
       }
+
+      ARegion *searchbox_region = UI_region_searchbox_region_get(region);
+      uiSearchboxData *data = searchbox_region->regiondata;
+
+      BLI_assert(data->items.pointers[data->active] == search_but->item_active);
+
+      rcti rect;
+      ui_searchbox_butrect(&rect, data, data->active);
+
+      return search_but->item_tooltip_fn(
+          C, region, &rect, search_but->arg, search_but->item_active);
     }
   }
   return NULL;
@@ -452,8 +463,11 @@ static void ui_searchbox_update_fn(bContext *C,
                                    const char *str,
                                    uiSearchItems *items)
 {
-  wmWindow *win = CTX_wm_window(C);
-  WM_tooltip_clear(C, win);
+  /* While the button is in text editing mode (searchbox open), remove tooltips on every update. */
+  if (search_but->but.editstr) {
+    wmWindow *win = CTX_wm_window(C);
+    WM_tooltip_clear(C, win);
+  }
   search_but->items_update_fn(C, search_but->arg, str, items);
 }
 
@@ -610,7 +624,15 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
         char *name = data->items.names[a];
         int icon = data->items.icons[a];
         char *name_sep_test = NULL;
-        const bool use_sep_char = data->use_sep || (state & UI_BUT_HAS_SEP_CHAR);
+
+        uiMenuItemSeparatorType separator_type = UI_MENU_ITEM_SEPARATOR_NONE;
+        if (data->use_sep) {
+          separator_type = UI_MENU_ITEM_SEPARATOR_SHORTCUT;
+        }
+        /* Only set for displaying additional hint (e.g. library name of a linked data-block). */
+        else if (state & UI_BUT_HAS_SEP_CHAR) {
+          separator_type = UI_MENU_ITEM_SEPARATOR_HINT;
+        }
 
         ui_searchbox_butrect(&rect, data, a);
 
@@ -623,7 +645,7 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
           }
 
           /* Simple menu item. */
-          ui_draw_menu_item(&data->fstyle, &rect, name, icon, state, use_sep_char, NULL);
+          ui_draw_menu_item(&data->fstyle, &rect, name, icon, state, separator_type, NULL);
         }
         else {
           /* Split menu item, faded text before the separator. */
@@ -637,8 +659,13 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
           const char name_sep_prev = *name_sep;
           *name_sep = '\0';
           int name_width = 0;
-          ui_draw_menu_item(
-              &data->fstyle, &rect, name, 0, state | UI_BUT_INACTIVE, false, &name_width);
+          ui_draw_menu_item(&data->fstyle,
+                            &rect,
+                            name,
+                            0,
+                            state | UI_BUT_INACTIVE,
+                            UI_MENU_ITEM_SEPARATOR_NONE,
+                            &name_width);
           *name_sep = name_sep_prev;
           rect.xmin += name_width;
           rect.xmin += UI_UNIT_X / 4;
@@ -650,7 +677,7 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
 
           /* The previous menu item draws the active selection. */
           ui_draw_menu_item(
-              &data->fstyle, &rect, name_sep, icon, state & ~UI_ACTIVE, use_sep_char, NULL);
+              &data->fstyle, &rect, name_sep, icon, state & ~UI_ACTIVE, separator_type, NULL);
         }
       }
       /* indicate more */
@@ -943,10 +970,16 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, text_pre),
                           data->items.icons[a],
                           state,
-                          false,
+                          UI_MENU_ITEM_SEPARATOR_NONE,
                           NULL);
-        ui_draw_menu_item(
-            &data->fstyle, &rect_post, data->items.names[a], 0, state, data->use_sep, NULL);
+        ui_draw_menu_item(&data->fstyle,
+                          &rect_post,
+                          data->items.names[a],
+                          0,
+                          state,
+                          data->use_sep ? UI_MENU_ITEM_SEPARATOR_SHORTCUT :
+                                          UI_MENU_ITEM_SEPARATOR_NONE,
+                          NULL);
       }
     }
     /* indicate more */
@@ -1027,7 +1060,7 @@ void ui_but_search_refresh(uiButSearch *search_but)
 
   ui_searchbox_update_fn(but->block->evil_C, search_but, but->drawstr, items);
 
-  /* only redalert when we are sure of it, this can miss cases when >10 matches */
+  /* Only red-alert when we are sure of it, this can miss cases when >10 matches. */
   if (items->totitem == 0) {
     UI_but_flag_enable(but, UI_BUT_REDALERT);
   }

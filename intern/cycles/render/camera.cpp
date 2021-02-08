@@ -212,8 +212,8 @@ void Camera::compute_auto_viewplane()
     viewplane.top = 1.0f;
   }
   else {
-    float aspect = (float)width / (float)height;
-    if (width >= height) {
+    float aspect = (float)full_width / (float)full_height;
+    if (full_width >= full_height) {
       viewplane.left = -aspect;
       viewplane.right = aspect;
       viewplane.bottom = -1.0f;
@@ -252,11 +252,11 @@ void Camera::update(Scene *scene)
   Transform fulltoborder = transform_from_viewplane(viewport_camera_border);
   Transform bordertofull = transform_inverse(fulltoborder);
 
-  /* ndc to raster */
+  /* NDC to raster. */
   Transform ndctoraster = transform_scale(width, height, 1.0f) * bordertofull;
   Transform full_ndctoraster = transform_scale(full_width, full_height, 1.0f) * bordertofull;
 
-  /* raster to screen */
+  /* Raster to screen. */
   Transform screentondc = fulltoborder * transform_from_viewplane(viewplane);
 
   Transform screentoraster = ndctoraster * screentondc;
@@ -264,7 +264,7 @@ void Camera::update(Scene *scene)
   Transform full_screentoraster = full_ndctoraster * screentondc;
   Transform full_rastertoscreen = transform_inverse(full_screentoraster);
 
-  /* screen to camera */
+  /* Screen to camera. */
   ProjectionTransform cameratoscreen;
   if (camera_type == CAMERA_PERSPECTIVE)
     cameratoscreen = projection_perspective(fov, nearclip, farclip);

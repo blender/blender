@@ -285,7 +285,7 @@ static int do_step_cloth(
     mul_m4_v3(ob->obmat, verts->xconst);
   }
 
-  effectors = BKE_effectors_create(depsgraph, ob, NULL, clmd->sim_parms->effector_weights);
+  effectors = BKE_effectors_create(depsgraph, ob, NULL, clmd->sim_parms->effector_weights, false);
 
   if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH) {
     cloth_update_verts(ob, clmd, result);
@@ -611,6 +611,8 @@ int cloth_uses_vgroup(ClothModifierData *clmd)
 {
   return (((clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF) &&
            (clmd->coll_parms->vgroup_selfcol > 0)) ||
+          ((clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) &&
+           (clmd->coll_parms->vgroup_objcol > 0)) ||
           (clmd->sim_parms->vgroup_pressure > 0) || (clmd->sim_parms->vgroup_struct > 0) ||
           (clmd->sim_parms->vgroup_bend > 0) || (clmd->sim_parms->vgroup_shrink > 0) ||
           (clmd->sim_parms->vgroup_intern > 0) || (clmd->sim_parms->vgroup_mass > 0));
@@ -644,8 +646,8 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
       verts->shrink_factor = 0.0f;
 
       /* Reset vertex flags */
-      verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
-      verts->flags &= ~CLOTH_VERT_FLAG_NOSELFCOLL;
+      verts->flags &= ~(CLOTH_VERT_FLAG_PINNED | CLOTH_VERT_FLAG_NOSELFCOLL |
+                        CLOTH_VERT_FLAG_NOOBJCOLL);
 
       MDeformVert *dvert = CustomData_get(&mesh->vdata, i, CD_MDEFORMVERT);
       if (dvert) {
@@ -679,6 +681,12 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
           if (dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_selfcol - 1)) {
             if (dvert->dw[j].weight > 0.0f) {
               verts->flags |= CLOTH_VERT_FLAG_NOSELFCOLL;
+            }
+          }
+
+          if (dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_objcol - 1)) {
+            if (dvert->dw[j].weight > 0.0f) {
+              verts->flags |= CLOTH_VERT_FLAG_NOOBJCOLL;
             }
           }
 

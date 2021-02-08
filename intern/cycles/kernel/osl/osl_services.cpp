@@ -1033,7 +1033,7 @@ bool OSLRenderServices::get_background_attribute(
     return set_attribute_int(f, type, derivatives, val);
   }
   else if (name == u_ndc) {
-    /* NDC coordinates with special exception for otho */
+    /* NDC coordinates with special exception for orthographic projection. */
     OSLThreadData *tdata = kg->osl_tdata;
     OSL::ShaderGlobals *globals = &tdata->globals;
     float3 ndc[3];

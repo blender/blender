@@ -32,7 +32,7 @@
 #include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_state.hh"
-#include "gpu_vertex_buffer_private.hh" /* TODO shoud be gl_vertex_buffer.hh */
+#include "gpu_vertex_buffer_private.hh" /* TODO should be `gl_vertex_buffer.hh` */
 
 #include "gl_texture.hh"
 
@@ -489,7 +489,7 @@ void GLTexture::samplers_init()
      * - GL_TEXTURE_MIN_LOD is -1000.
      * - GL_TEXTURE_MAX_LOD is 1000.
      * - GL_TEXTURE_LOD_BIAS is 0.0f.
-     **/
+     */
 
     char sampler_name[128] = "\0\0";
     SNPRINTF(sampler_name,

@@ -40,7 +40,7 @@ class FILEBROWSER_HT_header(Header):
         row.prop(params, "asset_library", text="")
         # External libraries don't auto-refresh, add refresh button.
         if params.asset_library != 'LOCAL':
-            row.operator("file.refresh", text="", icon="FILE_REFRESH")
+            row.operator("file.refresh", text="", icon='FILE_REFRESH')
 
         layout.separator_spacer()
 
@@ -197,7 +197,8 @@ class FILEBROWSER_PT_filter(Panel):
 
                 sub = row.column(align=True)
 
-                sub.prop(params, "use_filter_asset_only")
+                if context.preferences.experimental.use_asset_browser:
+                    sub.prop(params, "use_filter_asset_only")
 
                 filter_id = params.filter_id
                 for identifier in dir(filter_id):
@@ -390,7 +391,8 @@ class FILEBROWSER_PT_advanced_filter(Panel):
                 layout.separator()
                 col = layout.column(align=True)
 
-                col.prop(params, "use_filter_asset_only")
+                if context.preferences.experimental.use_asset_browser:
+                    col.prop(params, "use_filter_asset_only")
 
                 filter_id = params.filter_id
                 for identifier in dir(filter_id):

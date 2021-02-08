@@ -53,11 +53,6 @@ typedef struct img_folder {
   float *rates;
 } img_fol_t;
 
-enum {
-  DCP_CINEMA2K = 3,
-  DCP_CINEMA4K = 4,
-};
-
 static bool check_jp2(const unsigned char *mem, const size_t size) /* J2K_CFMT */
 {
   if (size < sizeof(JP2_HEAD)) {
@@ -481,7 +476,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       r = image->comps[0].data;
       a = (use_alpha) ? image->comps[1].data : NULL;
 
-      /* grayscale 12bits+ */
+      /* Gray-scale 12bits+ */
       if (use_alpha) {
         a = image->comps[1].data;
         PIXEL_LOOPER_BEGIN (rect_float) {
@@ -505,7 +500,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       g = image->comps[1].data;
       b = image->comps[2].data;
 
-      /* rgb or rgba 12bits+ */
+      /* RGB or RGBA 12bits+ */
       if (use_alpha) {
         a = image->comps[3].data;
         PIXEL_LOOPER_BEGIN (rect_float) {
@@ -556,7 +551,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       g = image->comps[1].data;
       b = image->comps[2].data;
 
-      /* 8bit rgb or rgba */
+      /* 8bit RGB or RGBA */
       if (use_alpha) {
         a = image->comps[3].data;
         PIXEL_LOOPER_BEGIN (rect_uchar) {
@@ -733,7 +728,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
         parameters->cp_rsiz = OPJ_STD_RSIZ;
       }
       else {
-        parameters->cp_rsiz = DCP_CINEMA2K;
+        parameters->cp_rsiz = OPJ_CINEMA2K;
       }
       break;
 
@@ -754,7 +749,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
         parameters->cp_rsiz = OPJ_STD_RSIZ;
       }
       else {
-        parameters->cp_rsiz = DCP_CINEMA2K;
+        parameters->cp_rsiz = OPJ_CINEMA4K;
       }
       parameters->numpocs = init_4K_poc(parameters->POC, parameters->numresolution);
       break;

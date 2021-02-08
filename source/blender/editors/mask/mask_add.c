@@ -507,6 +507,9 @@ static int add_vertex_handle_cyclic(
 
 static int add_vertex_exec(bContext *C, wmOperator *op)
 {
+  MaskViewLockState lock_state;
+  ED_mask_view_lock_state_store(C, &lock_state);
+
   Mask *mask = CTX_data_edit_mask(C);
   if (mask == NULL) {
     /* if there's no active mask, create one */
@@ -547,6 +550,8 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
   }
 
   DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
+
+  ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
 
   return OPERATOR_FINISHED;
 }
@@ -690,6 +695,9 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 static int create_primitive_from_points(
     bContext *C, wmOperator *op, const float (*points)[2], int num_points, char handle_type)
 {
+  MaskViewLockState lock_state;
+  ED_mask_view_lock_state_store(C, &lock_state);
+
   ScrArea *area = CTX_wm_area(C);
   int size = RNA_float_get(op->ptr, "size");
 
@@ -751,6 +759,8 @@ static int create_primitive_from_points(
   WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
   DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
+
+  ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
 
   return OPERATOR_FINISHED;
 }

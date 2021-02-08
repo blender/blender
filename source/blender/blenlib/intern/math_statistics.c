@@ -15,7 +15,7 @@
  *
  * The Original Code is Copyright (C) 2015 by Blender Foundation.
  * All rights reserved.
- * */
+ */
 
 /** \file
  * \ingroup bli

@@ -361,7 +361,6 @@ class UniformVertexWeight : public VertexWeight {
       }
     }
   }
-  ~UniformVertexWeight() = default;
 
   float weight_at_index(const int index) override
   {
@@ -415,7 +414,6 @@ class VoronoiVertexWeight : public VertexWeight {
       vertex_weights_[i] = area != 0.0f ? 1.0f / area : 1e12;
     }
   }
-  ~VoronoiVertexWeight() = default;
 
   float weight_at_index(const int index) override
   {
@@ -477,7 +475,7 @@ static void prefair_and_fair_vertices(FairingContext *fairing_context,
 
   /* Fair. */
   VoronoiVertexWeight *voronoi_vertex_weights = new VoronoiVertexWeight(fairing_context);
-  /* TODO: Implemente cotangent loop weights. */
+  /* TODO: Implement cotangent loop weights. */
   fairing_context->fair_vertices(
       affected_vertices, depth, voronoi_vertex_weights, uniform_loop_weights);
 

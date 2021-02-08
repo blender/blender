@@ -64,6 +64,7 @@ extern "C" {
 #define RE_USE_SPHERICAL_STEREO 128
 #define RE_USE_STEREO_VIEWPORT 256
 #define RE_USE_GPU_CONTEXT 512
+#define RE_USE_CUSTOM_FREESTYLE 1024
 
 /* RenderEngine.flag */
 #define RE_ENGINE_ANIMATION 1
@@ -204,7 +205,7 @@ void RE_engine_update_memory_stats(RenderEngine *engine, float mem_used, float m
 void RE_engine_report(RenderEngine *engine, int type, const char *msg);
 void RE_engine_set_error_message(RenderEngine *engine, const char *msg);
 
-int RE_engine_render(struct Render *re, int do_all);
+bool RE_engine_render(struct Render *re, bool do_all);
 
 bool RE_engine_is_external(const struct Render *re);
 

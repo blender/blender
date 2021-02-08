@@ -27,8 +27,8 @@
 extern "C" {
 #endif
 
-struct Sequence;
 struct Editing;
+struct Sequence;
 
 typedef struct SeqIterator {
   struct Sequence **array;

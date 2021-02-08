@@ -460,7 +460,7 @@ bool ED_fileselect_is_asset_browser(const SpaceFile *sfile)
 
 void ED_fileselect_window_params_get(const wmWindow *win, int win_size[2], bool *is_maximized)
 {
-  /* Get DPI/pixelsize independent size to be stored in preferences. */
+  /* Get DPI/pixel-size independent size to be stored in preferences. */
   WM_window_set_dpi(win); /* Ensure the DPI is taken from the right window. */
 
   win_size[0] = WM_window_pixels_x(win) / UI_DPI_FAC;

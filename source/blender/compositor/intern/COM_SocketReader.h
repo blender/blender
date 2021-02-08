@@ -19,7 +19,11 @@
 #pragma once
 
 #include "BLI_rect.h"
+#include "COM_MetaData.h"
 #include "COM_defines.h"
+
+#include <memory>
+#include <optional>
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
@@ -32,6 +36,7 @@ typedef enum PixelSampler {
 } PixelSampler;
 
 class MemoryBuffer;
+
 /**
  * \brief Helper class for reading socket data.
  * Only use this class for dispatching (un-ary and n-ary) executions.
@@ -132,6 +137,14 @@ class SocketReader {
   inline unsigned int getHeight() const
   {
     return this->m_height;
+  }
+
+  /* Return the meta data associated with this branch.
+   *
+   * The return parameter holds an instance or is an nullptr. */
+  virtual std::unique_ptr<MetaData> getMetaData() const
+  {
+    return std::unique_ptr<MetaData>();
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC

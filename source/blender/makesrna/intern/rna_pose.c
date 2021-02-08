@@ -138,8 +138,22 @@ static char *rna_PoseBone_path(PointerRNA *ptr)
 
 /* Bone groups only. */
 
-static bActionGroup *rna_bone_group_new(ID *id, bPose *pose, const char *name)
+static bool rna_bone_group_poll(Object *ob, ReportList *reports)
 {
+  if ((ob->proxy != NULL) || (ob->proxy_group != NULL) || ID_IS_OVERRIDE_LIBRARY(ob)) {
+    BKE_report(reports, RPT_ERROR, "Cannot edit bone groups for proxies or library overrides");
+    return false;
+  }
+
+  return true;
+}
+
+static bActionGroup *rna_bone_group_new(ID *id, bPose *pose, ReportList *reports, const char *name)
+{
+  if (!rna_bone_group_poll((Object *)id, reports)) {
+    return NULL;
+  }
+
   bActionGroup *grp = BKE_pose_add_group(pose, name);
   WM_main_add_notifier(NC_OBJECT | ND_POSE | NA_ADDED, id);
   return grp;
@@ -147,6 +161,10 @@ static bActionGroup *rna_bone_group_new(ID *id, bPose *pose, const char *name)
 
 static void rna_bone_group_remove(ID *id, bPose *pose, ReportList *reports, PointerRNA *grp_ptr)
 {
+  if (!rna_bone_group_poll((Object *)id, reports)) {
+    return;
+  }
+
   bActionGroup *grp = grp_ptr->data;
   const int grp_idx = BLI_findindex(&pose->agroups, grp);
 
@@ -163,6 +181,11 @@ static void rna_bone_group_remove(ID *id, bPose *pose, ReportList *reports, Poin
 
 void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
 {
+  Object *ob = (Object *)ptr->owner_id;
+  if (!rna_bone_group_poll(ob, NULL)) {
+    return;
+  }
+
   bActionGroup *grp = ptr->data;
 
   /* ensure only valid values get set */
@@ -184,6 +207,10 @@ bool rna_ActionGroup_is_custom_colorset_get(PointerRNA *ptr)
 static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
 {
   Object *ob = (Object *)ptr->owner_id;
+  if (!rna_bone_group_poll(ob, NULL)) {
+    return;
+  }
+
   bActionGroup *agrp = ptr->data;
 
   /* copy the new name into the name slot */
@@ -1619,7 +1646,7 @@ static void rna_def_bone_groups(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "new", "rna_bone_group_new");
   RNA_def_function_ui_description(func, "Add a new bone group to the object");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID); /* ID needed for refresh */
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS); /* ID needed for refresh */
   RNA_def_string(func, "name", "Group", MAX_NAME, "", "Name of the new group");
   /* return type */
   parm = RNA_def_pointer(func, "group", "BoneGroup", "", "New bone group");

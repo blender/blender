@@ -689,7 +689,7 @@ static void pose_slide_rest_pose_apply(bContext *C, tPoseSlideOp *pso)
       /* Not strictly a transform, but custom properties contribute
        * to the pose produced in many rigs (e.g. the facial rigs used in Sintel). */
       /* TODO Not implemented */
-      // pose_slide_apply_props(pso, pfl, "[\""); /* dummy " for texteditor bugs */
+      // pose_slide_apply_props(pso, pfl, "[\"");
     }
   }
 
@@ -702,7 +702,7 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 {
   tPChanFCurveLink *pfl;
 
-  /* sanitise the frame ranges */
+  /* Sanitize the frame ranges. */
   if (pso->prevFrame == pso->nextFrame) {
     /* move out one step either side */
     pso->prevFrame--;
@@ -765,7 +765,7 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (pfl->oldprops)) {
       /* Not strictly a transform, but custom properties contribute
        * to the pose produced in many rigs (e.g. the facial rigs used in Sintel). */
-      pose_slide_apply_props(pso, pfl, "[\""); /* dummy " for texteditor bugs */
+      pose_slide_apply_props(pso, pfl, "[\"");
     }
   }
 
@@ -1125,7 +1125,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
       if (event->val == KM_PRESS) {
         switch (event->type) {
           /* Transform Channel Limits  */
-          /* XXX: Replace these hardcoded hotkeys with a modalmap that can be customised */
+          /* XXX: Replace these hard-coded hotkeys with a modal-map that can be customized. */
           case EVT_GKEY: /* Location */
           {
             pose_slide_toggle_channels_mode(op, pso, PS_TFM_LOC);
@@ -1183,7 +1183,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
       else {
-        /* unhandled event - maybe it was some view manip? */
+        /* unhandled event - maybe it was some view manipulation? */
         /* allow to pass through */
         return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
       }
@@ -1246,15 +1246,15 @@ static void pose_slide_opdef_properties(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  prop = RNA_def_float_percentage(ot->srna,
-                                  "percentage",
-                                  0.5f,
-                                  0.0f,
-                                  1.0f,
-                                  "Percentage",
-                                  "Weighting factor for which keyframe is favored more",
-                                  0.0,
-                                  1.0);
+  prop = RNA_def_float_factor(ot->srna,
+                              "factor",
+                              0.5f,
+                              0.0f,
+                              1.0f,
+                              "Factor",
+                              "Weighting factor for which keyframe is favored more",
+                              0.0,
+                              1.0);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_int(ot->srna,
@@ -1779,7 +1779,7 @@ static void pose_propagate_fcurve(
   float refVal = 0.0f;
   bool keyExists;
   int i, match;
-  short first = 1;
+  bool first = true;
 
   /* skip if no keyframes to edit */
   if ((fcu->bezt == NULL) || (fcu->totvert < 2)) {
@@ -1826,7 +1826,7 @@ static void pose_propagate_fcurve(
     }
     else if (mode == POSE_PROPAGATE_NEXT_KEY) {
       /* stop after the first keyframe has been processed */
-      if (first == 0) {
+      if (first == false) {
         break;
       }
     }
@@ -1865,7 +1865,7 @@ static void pose_propagate_fcurve(
 
     /* select keyframe to indicate that it's been changed */
     bezt->f2 |= SELECT;
-    first = 0;
+    first = false;
   }
 }
 

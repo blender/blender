@@ -477,7 +477,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   return km;
 }
 
-static bool wm_keymap_item_uses_modifier(wmKeyMapItem *kmi, const int event_modifier)
+static bool wm_keymap_item_uses_modifier(const wmKeyMapItem *kmi, const int event_modifier)
 {
   if (kmi->ctrl != KM_ANY) {
     if ((kmi->ctrl == KM_NOTHING) != ((event_modifier & KM_CTRL) == 0)) {
@@ -505,9 +505,9 @@ static bool wm_keymap_item_uses_modifier(wmKeyMapItem *kmi, const int event_modi
   return true;
 }
 
-bool WM_keymap_uses_event_modifier(wmKeyMap *keymap, const int event_modifier)
+bool WM_keymap_uses_event_modifier(const wmKeyMap *keymap, const int event_modifier)
 {
-  LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
+  LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
     if ((kmi->flag & KMI_INACTIVE) == 0) {
       if (wm_keymap_item_uses_modifier(kmi, event_modifier)) {
         return true;

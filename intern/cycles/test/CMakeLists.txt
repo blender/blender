@@ -55,11 +55,15 @@ set(SRC
 )
 
 if(CXX_HAS_AVX)
-  list(APPEND SRC util_avxf_avx_test.cpp)
+  list(APPEND SRC
+    util_avxf_avx_test.cpp
+  )
   set_source_files_properties(util_avxf_avx_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
 endif()
 if(CXX_HAS_AVX2)
-  list(APPEND SRC util_avxf_avx2_test.cpp)
+  list(APPEND SRC
+    util_avxf_avx2_test.cpp
+  )
   set_source_files_properties(util_avxf_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
 endif()
 

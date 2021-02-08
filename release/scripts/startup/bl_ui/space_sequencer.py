@@ -141,16 +141,9 @@ class SEQUENCER_HT_header(Header):
 
         SEQUENCER_MT_editor_menus.draw_collapsible(context, layout)
 
-        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
-            layout.separator_spacer()
-            row = layout.row(align=True)
-            row.prop(sequencer_tool_settings, "fit_method", text="")
-            layout.separator_spacer()
+        layout.separator_spacer()
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
-            if st.view_type == 'PREVIEW':
-                layout.separator_spacer()
-
             layout.prop(st, "display_mode", text="", icon_only=True)
             layout.prop(st, "preview_channels", text="", icon_only=True)
 
@@ -412,7 +405,19 @@ class SEQUENCER_MT_view(Menu):
             layout.separator()
             layout.prop(st, "show_seconds")
             layout.prop(st, "show_markers")
-            layout.menu("SEQUENCER_MT_view_cache", text="Show Cache")
+            if context.preferences.view.show_developer_ui:
+                layout.menu("SEQUENCER_MT_view_cache", text="Show Cache")
+
+        if is_preview:
+            layout.separator()
+            if st.display_mode == 'IMAGE':
+                layout.prop(st, "use_zoom_to_fit")
+                layout.prop(ed, "show_overlay", text="Show Frame Overlay")
+                layout.prop(st, "show_safe_areas", text="Show Safe Areas")
+                layout.prop(st, "show_metadata", text="Show Metadata")
+                layout.prop(st, "show_annotation", text="Show Annotations")
+            elif st.display_mode == 'WAVEFORM':
+                layout.prop(st, "show_separate_color", text="Show Separate Color Channels")
 
         layout.separator()
 
@@ -1877,11 +1882,12 @@ class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
     bl_label = "Cache Settings"
-    bl_category = "Proxy & Cache"
+    bl_category = "Cache"
 
     @classmethod
     def poll(cls, context):
-        return cls.has_sequencer(context) and context.scene.sequence_editor
+        show_developer_ui = context.preferences.view.show_developer_ui
+        return cls.has_sequencer(context) and  context.scene.sequence_editor and show_developer_ui
 
     def draw(self, context):
         layout = self.layout
@@ -1900,7 +1906,7 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
     bl_label = "Proxy Settings"
-    bl_category = "Proxy & Cache"
+    bl_category = "Proxy"
 
     @classmethod
     def poll(cls, context):
@@ -1925,7 +1931,7 @@ class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
     bl_label = "Strip Proxy & Timecode"
-    bl_category = "Proxy & Cache"
+    bl_category = "Proxy"
 
     @classmethod
     def poll(cls, context):
@@ -1936,7 +1942,7 @@ class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
         if not strip:
             return False
 
-        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'META', 'MULTICAM'}
+        return strip.type in {'MOVIE', 'IMAGE'}
 
     def draw_header(self, context):
         strip = act_strip(context)
@@ -1987,14 +1993,15 @@ class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
     bl_label = "Strip Cache"
-    bl_category = "Proxy & Cache"
+    bl_category = "Cache"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
+        show_developer_ui = context.preferences.view.show_developer_ui
         if not cls.has_sequencer(context):
             return False
-        if act_strip(context) is not None:
+        if act_strip(context) is not None and show_developer_ui:
             return True
         return False
 

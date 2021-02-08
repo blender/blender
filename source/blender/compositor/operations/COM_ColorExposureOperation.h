@@ -16,8 +16,8 @@
  * Copyright 2020, Blender Foundation.
  */
 
-#ifndef __COM_COLOREXPOSUREOPERATION_H__
-#define __COM_COLOREXPOSUREOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class ExposureOperation : public NodeOperation {
@@ -32,7 +32,7 @@ class ExposureOperation : public NodeOperation {
   ExposureOperation();
 
   /**
-   * the inner loop of this program
+   * The inner loop of this operation.
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 
@@ -46,4 +46,3 @@ class ExposureOperation : public NodeOperation {
    */
   void deinitExecution();
 };
-#endif

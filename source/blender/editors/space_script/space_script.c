@@ -156,13 +156,8 @@ static void script_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void script_main_region_listener(wmWindow *UNUSED(win),
-                                        ScrArea *UNUSED(area),
-                                        ARegion *UNUSED(region),
-                                        wmNotifier *UNUSED(wmn),
-                                        const Scene *UNUSED(scene))
+static void script_main_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
-/* context changes */
 /* XXX - Todo, need the ScriptSpace accessible to get the python script to run. */
 #if 0
   BPY_run_script_space_listener()

@@ -1156,7 +1156,7 @@ ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap)
   return &gzmap->groups;
 }
 
-void WM_gizmomap_message_subscribe(bContext *C,
+void WM_gizmomap_message_subscribe(const bContext *C,
                                    wmGizmoMap *gzmap,
                                    ARegion *region,
                                    struct wmMsgBus *mbus)

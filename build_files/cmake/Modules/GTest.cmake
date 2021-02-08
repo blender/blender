@@ -272,7 +272,7 @@ cmake_policy(SET CMP0057 NEW) # if IN_LIST
 #------------------------------------------------------------------------------
 function(gtest_add_tests)
 
-  if (ARGC LESS 1)
+  if(ARGC LESS 1)
     message(FATAL_ERROR "No arguments supplied to gtest_add_tests()")
   endif()
 
@@ -298,7 +298,7 @@ function(gtest_add_tests)
     set(autoAddSources YES)
   else()
     # Non-keyword syntax, convert to keyword form
-    if (ARGC LESS 3)
+    if(ARGC LESS 3)
       message(FATAL_ERROR "gtest_add_tests() without keyword options requires at least 3 arguments")
     endif()
     set(ARGS_TARGET     "${ARGV0}")
@@ -329,6 +329,9 @@ function(gtest_add_tests)
 
   set(gtest_case_name_regex ".*\\( *([A-Za-z_0-9]+) *, *([A-Za-z_0-9]+) *\\).*")
   set(gtest_test_type_regex "(TYPED_TEST|TEST_?[FP]?)")
+
+  # This will get a filter for each test suite.
+  set(test_filters "")
 
   foreach(source IN LISTS ARGS_SOURCES)
     if(NOT ARGS_SKIP_DEPENDENCY)
@@ -376,17 +379,23 @@ function(gtest_add_tests)
           list(APPEND testList ${ctest_test_name})
         endif()
       else()
-        set(ctest_test_name ${ARGS_TEST_PREFIX}${gtest_test_name}${ARGS_TEST_SUFFIX})
-        add_test(NAME ${ctest_test_name}
-                 ${workDir}
-                 COMMAND ${ARGS_TARGET}
-                   --gtest_filter=${gtest_test_name}
-                   ${ARGS_EXTRA_ARGS}
-        )
-        list(APPEND testList ${ctest_test_name})
+        # BLENDER: collect tests named "suite.testcase" as list of "suite.*" filters.
+        string(REGEX REPLACE "\\..*$" "" gtest_suite_name ${gtest_test_name})
+        list(APPEND test_filters "${gtest_suite_name}.*")
       endif()
     endforeach()
   endforeach()
+
+  # Join all found GTest suite names into one big filter.
+  list(REMOVE_DUPLICATES test_filters)
+  list(JOIN test_filters ":" gtest_filter)
+  add_test(NAME ${ARGS_TEST_PREFIX}
+           ${workDir}
+           COMMAND ${ARGS_TARGET}
+             --gtest_filter=${gtest_filter}
+             ${ARGS_EXTRA_ARGS}
+  )
+  list(APPEND testList ${ARGS_TEST_PREFIX})
 
   if(ARGS_TEST_LIST)
     set(${ARGS_TEST_LIST} ${testList} PARENT_SCOPE)
@@ -394,157 +403,8 @@ function(gtest_add_tests)
 
 endfunction()
 
-#------------------------------------------------------------------------------
-
-function(gtest_discover_tests TARGET)
-  cmake_parse_arguments(
-    ""
-    "NO_PRETTY_TYPES;NO_PRETTY_VALUES"
-    "TEST_PREFIX;TEST_SUFFIX;WORKING_DIRECTORY;TEST_LIST;DISCOVERY_TIMEOUT;XML_OUTPUT_DIR;DISCOVERY_MODE"
-    "EXTRA_ARGS;PROPERTIES"
-    ${ARGN}
-  )
-
-  if(NOT _WORKING_DIRECTORY)
-    set(_WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-  endif()
-  if(NOT _TEST_LIST)
-    set(_TEST_LIST ${TARGET}_TESTS)
-  endif()
-  if(NOT _DISCOVERY_TIMEOUT)
-    set(_DISCOVERY_TIMEOUT 5)
-  endif()
-  if(NOT _DISCOVERY_MODE)
-    if(NOT CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE)
-      set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE "POST_BUILD")
-    endif()
-    set(_DISCOVERY_MODE ${CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE})
-  endif()
-
-  get_property(
-    has_counter
-    TARGET ${TARGET}
-    PROPERTY CTEST_DISCOVERED_TEST_COUNTER
-    SET
-  )
-  if(has_counter)
-    get_property(
-      counter
-      TARGET ${TARGET}
-      PROPERTY CTEST_DISCOVERED_TEST_COUNTER
-    )
-    math(EXPR counter "${counter} + 1")
-  else()
-    set(counter 1)
-  endif()
-  set_property(
-    TARGET ${TARGET}
-    PROPERTY CTEST_DISCOVERED_TEST_COUNTER
-    ${counter}
-  )
-
-  # Define rule to generate test list for aforementioned test executable
-  # Blender: use _ instead of [] to avoid problems with zsh regex.
-  set(ctest_file_base "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_${counter}_")
-  set(ctest_include_file "${ctest_file_base}_include.cmake")
-  set(ctest_tests_file "${ctest_file_base}_tests.cmake")
-  get_property(crosscompiling_emulator
-    TARGET ${TARGET}
-    PROPERTY CROSSCOMPILING_EMULATOR
-  )
-
-  if(_DISCOVERY_MODE STREQUAL "POST_BUILD")
-    add_custom_command(
-      TARGET ${TARGET} POST_BUILD
-      BYPRODUCTS "${ctest_tests_file}"
-      COMMAND "${CMAKE_COMMAND}"
-              -D "TEST_TARGET=${TARGET}"
-              -D "TEST_EXECUTABLE=$<TARGET_FILE:${TARGET}>"
-              -D "TEST_EXECUTOR=${crosscompiling_emulator}"
-              -D "TEST_WORKING_DIR=${_WORKING_DIRECTORY}"
-              -D "TEST_EXTRA_ARGS=${_EXTRA_ARGS}"
-              -D "TEST_PROPERTIES=${_PROPERTIES}"
-              -D "TEST_PREFIX=${_TEST_PREFIX}"
-              -D "TEST_SUFFIX=${_TEST_SUFFIX}"
-              -D "NO_PRETTY_TYPES=${_NO_PRETTY_TYPES}"
-              -D "NO_PRETTY_VALUES=${_NO_PRETTY_VALUES}"
-              -D "TEST_LIST=${_TEST_LIST}"
-              -D "CTEST_FILE=${ctest_tests_file}"
-              -D "TEST_DISCOVERY_TIMEOUT=${_DISCOVERY_TIMEOUT}"
-              -D "TEST_XML_OUTPUT_DIR=${_XML_OUTPUT_DIR}"
-              -P "${_GOOGLETEST_DISCOVER_TESTS_SCRIPT}"
-      VERBATIM
-    )
-
-    file(WRITE "${ctest_include_file}"
-      "if(EXISTS \"${ctest_tests_file}\")\n"
-      "  include(\"${ctest_tests_file}\")\n"
-      "else()\n"
-      "  add_test(${TARGET}_NOT_BUILT ${TARGET}_NOT_BUILT)\n"
-      "endif()\n"
-    )
-  elseif(_DISCOVERY_MODE STREQUAL "PRE_TEST")
-
-    get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL
-        PROPERTY GENERATOR_IS_MULTI_CONFIG
-    )
-
-    if(GENERATOR_IS_MULTI_CONFIG)
-      set(ctest_tests_file "${ctest_file_base}_tests-$<CONFIG>.cmake")
-    endif()
-
-    string(CONCAT ctest_include_content
-      "if(EXISTS \"$<TARGET_FILE:${TARGET}>\")"                                    "\n"
-      "  if(\"$<TARGET_FILE:${TARGET}>\" IS_NEWER_THAN \"${ctest_tests_file}\")"   "\n"
-      "    include(\"${_GOOGLETEST_DISCOVER_TESTS_SCRIPT}\")"                      "\n"
-      "    gtest_discover_tests_impl("                                             "\n"
-      "      TEST_EXECUTABLE"        " [==[" "$<TARGET_FILE:${TARGET}>"   "]==]"   "\n"
-      "      TEST_EXECUTOR"          " [==[" "${crosscompiling_emulator}" "]==]"   "\n"
-      "      TEST_WORKING_DIR"       " [==[" "${_WORKING_DIRECTORY}"      "]==]"   "\n"
-      "      TEST_EXTRA_ARGS"        " [==[" "${_EXTRA_ARGS}"             "]==]"   "\n"
-      "      TEST_PROPERTIES"        " [==[" "${_PROPERTIES}"             "]==]"   "\n"
-      "      TEST_PREFIX"            " [==[" "${_TEST_PREFIX}"            "]==]"   "\n"
-      "      TEST_SUFFIX"            " [==[" "${_TEST_SUFFIX}"            "]==]"   "\n"
-      "      NO_PRETTY_TYPES"        " [==[" "${_NO_PRETTY_TYPES}"        "]==]"   "\n"
-      "      NO_PRETTY_VALUES"       " [==[" "${_NO_PRETTY_VALUES}"       "]==]"   "\n"
-      "      TEST_LIST"              " [==[" "${_TEST_LIST}"              "]==]"   "\n"
-      "      CTEST_FILE"             " [==[" "${ctest_tests_file}"        "]==]"   "\n"
-      "      TEST_DISCOVERY_TIMEOUT" " [==[" "${_DISCOVERY_TIMEOUT}"      "]==]"   "\n"
-      "      TEST_XML_OUTPUT_DIR"    " [==[" "${_XML_OUTPUT_DIR}"         "]==]"   "\n"
-      "    )"                                                                      "\n"
-      "  endif()"                                                                  "\n"
-      "  include(\"${ctest_tests_file}\")"                                         "\n"
-      "else()"                                                                     "\n"
-      "  add_test(${TARGET}_NOT_BUILT ${TARGET}_NOT_BUILT)"                        "\n"
-      "endif()"                                                                    "\n"
-    )
-
-    if(GENERATOR_IS_MULTI_CONFIG)
-      foreach(_config ${CMAKE_CONFIGURATION_TYPES})
-        file(GENERATE OUTPUT "${ctest_file_base}_include-${_config}.cmake" CONTENT "${ctest_include_content}" CONDITION $<CONFIG:${_config}>)
-      endforeach()
-      file(WRITE "${ctest_include_file}" "include(\"${ctest_file_base}_include-\${CTEST_CONFIGURATION_TYPE}.cmake\")")
-    else()
-      file(GENERATE OUTPUT "${ctest_file_base}_include.cmake" CONTENT "${ctest_include_content}")
-      file(WRITE "${ctest_include_file}" "include(\"${ctest_file_base}_include.cmake\")")
-    endif()
-
-  else()
-    message(FATAL_ERROR "Unknown DISCOVERY_MODE: ${_DISCOVERY_MODE}")
-  endif()
-
-  # Add discovered tests to directory TEST_INCLUDE_FILES
-  set_property(DIRECTORY
-    APPEND PROPERTY TEST_INCLUDE_FILES "${ctest_include_file}"
-  )
-
-endfunction()
-
-###############################################################################
-
-set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
-  ${CMAKE_CURRENT_LIST_DIR}/GTestAddTests.cmake
-)
+# BLENDER: remove the discovery function gtest_discover_tests(). It's not used,
+# as it generates too many test invocations.
 
 # Restore project's policies
 cmake_policy(POP)

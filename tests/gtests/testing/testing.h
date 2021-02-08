@@ -16,6 +16,13 @@ const std::string &flags_test_release_dir(); /* bin/{blender version} in the bui
 
 }  // namespace blender::tests
 
+#define EXPECT_V2_NEAR(a, b, eps) \
+  { \
+    EXPECT_NEAR(a[0], b[0], eps); \
+    EXPECT_NEAR(a[1], b[1], eps); \
+  } \
+  (void)0
+
 #define EXPECT_V3_NEAR(a, b, eps) \
   { \
     EXPECT_NEAR(a[0], b[0], eps); \

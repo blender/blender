@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/* Use a define instead of `#pragma once` because of `bmesh_iterators_inline.h` */
 #ifndef __BLI_TASK_H__
 #define __BLI_TASK_H__
 
@@ -104,8 +105,10 @@ void BLI_task_pool_work_and_wait(TaskPool *pool);
 /* cancel all tasks, keep worker threads running */
 void BLI_task_pool_cancel(TaskPool *pool);
 
-/* for worker threads, test if canceled */
-bool BLI_task_pool_canceled(TaskPool *pool);
+/* for worker threads, test if current task pool canceled. this function may
+ * only be called from worker threads and pool must be the task pool that the
+ * thread is currently executing a task from. */
+bool BLI_task_pool_current_canceled(TaskPool *pool);
 
 /* optional userdata pointer to pass along to run function */
 void *BLI_task_pool_user_data(TaskPool *pool);

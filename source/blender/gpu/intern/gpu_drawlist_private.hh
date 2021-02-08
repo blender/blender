@@ -33,7 +33,7 @@ namespace gpu {
 /**
  * Implementation of Multi Draw Indirect.
  * Base class which is then specialized for each implementation (GL, VK, ...).
- **/
+ */
 class DrawList {
  public:
   virtual ~DrawList(){};
@@ -42,7 +42,7 @@ class DrawList {
   virtual void submit() = 0;
 };
 
-/* Syntacting suggar. */
+/* Syntactic sugar. */
 static inline GPUDrawList *wrap(DrawList *vert)
 {
   return reinterpret_cast<GPUDrawList *>(vert);

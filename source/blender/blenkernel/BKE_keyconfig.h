@@ -43,10 +43,10 @@ typedef struct wmKeyConfigPrefType_Runtime {
 typedef struct wmKeyConfigPrefType_Runtime wmKeyConfigPrefType_Runtime;
 #endif
 
-/* KeyConfig preferenes (UserDef). */
+/* KeyConfig preferences (UserDef). */
 struct wmKeyConfigPref *BKE_keyconfig_pref_ensure(struct UserDef *userdef, const char *kc_idname);
 
-/* KeyConfig preferenes (RNA). */
+/* KeyConfig preferences (RNA). */
 struct wmKeyConfigPrefType_Runtime *BKE_keyconfig_pref_type_find(const char *idname, bool quiet);
 void BKE_keyconfig_pref_type_add(struct wmKeyConfigPrefType_Runtime *kpt_rt);
 void BKE_keyconfig_pref_type_remove(const struct wmKeyConfigPrefType_Runtime *kpt_rt);

@@ -289,9 +289,8 @@ void BLI_threadpool_clear(ListBase *threadbase)
 void BLI_threadpool_end(ListBase *threadbase)
 {
 
-  /* only needed if there's actually some stuff to end
-   * this way we don't end up decrementing thread_levels on an empty threadbase
-   * */
+  /* Only needed if there's actually some stuff to end
+   * this way we don't end up decrementing thread_levels on an empty `threadbase`. */
   if (threadbase == nullptr || BLI_listbase_is_empty(threadbase)) {
     return;
   }
@@ -469,7 +468,7 @@ void BLI_spin_lock(SpinLock *spin)
 #elif defined(_MSC_VER)
   while (InterlockedExchangeAcquire(spin, 1)) {
     while (*spin) {
-      /* Spin-lock hint for processors with hyperthreading. */
+      /* Spin-lock hint for processors with hyper-threading. */
       YieldProcessor();
     }
   }

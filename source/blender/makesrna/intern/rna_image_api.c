@@ -322,9 +322,9 @@ void RNA_api_image(StructRNA *srna)
   func = RNA_def_function(srna, "scale", "rna_Image_scale");
   RNA_def_function_ui_description(func, "Scale the image in pixels");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  parm = RNA_def_int(func, "width", 1, 1, 10000, "", "Width", 1, 10000);
+  parm = RNA_def_int(func, "width", 1, 1, INT_MAX, "", "Width", 1, INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_int(func, "height", 1, 1, 10000, "", "Height", 1, 10000);
+  parm = RNA_def_int(func, "height", 1, 1, INT_MAX, "", "Height", 1, INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "gl_touch", "rna_Image_gl_touch");

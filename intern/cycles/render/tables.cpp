@@ -28,7 +28,7 @@ CCL_NAMESPACE_BEGIN
 
 LookupTables::LookupTables()
 {
-  need_update = true;
+  need_update_ = true;
 }
 
 LookupTables::~LookupTables()
@@ -38,7 +38,7 @@ LookupTables::~LookupTables()
 
 void LookupTables::device_update(Device *, DeviceScene *dscene, Scene *scene)
 {
-  if (!need_update)
+  if (!need_update())
     return;
 
   scoped_callback_timer timer([scene](double time) {
@@ -52,12 +52,17 @@ void LookupTables::device_update(Device *, DeviceScene *dscene, Scene *scene)
   if (lookup_tables.size() > 0)
     dscene->lookup_table.copy_to_device();
 
-  need_update = false;
+  need_update_ = false;
 }
 
 void LookupTables::device_free(Device *, DeviceScene *dscene)
 {
   dscene->lookup_table.free();
+}
+
+bool LookupTables::need_update() const
+{
+  return need_update_;
 }
 
 static size_t round_up_to_multiple(size_t size, size_t chunk)
@@ -69,7 +74,7 @@ size_t LookupTables::add_table(DeviceScene *dscene, vector<float> &data)
 {
   assert(data.size() > 0);
 
-  need_update = true;
+  need_update_ = true;
 
   Table new_table;
   new_table.offset = 0;
@@ -107,7 +112,7 @@ void LookupTables::remove_table(size_t *offset)
     return;
   }
 
-  need_update = true;
+  need_update_ = true;
 
   list<Table>::iterator table;
 

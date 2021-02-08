@@ -18,12 +18,23 @@
 
 #include "COM_SetAlphaNode.h"
 #include "COM_ExecutionSystem.h"
-#include "COM_SetAlphaOperation.h"
+#include "COM_SetAlphaMultiplyOperation.h"
+#include "COM_SetAlphaReplaceOperation.h"
 
 void SetAlphaNode::convertToOperations(NodeConverter &converter,
                                        const CompositorContext & /*context*/) const
 {
-  SetAlphaOperation *operation = new SetAlphaOperation();
+  const bNode *editorNode = this->getbNode();
+  const NodeSetAlpha *storage = static_cast<const NodeSetAlpha *>(editorNode->storage);
+  NodeOperation *operation = nullptr;
+  switch (storage->mode) {
+    case CMP_NODE_SETALPHA_MODE_APPLY:
+      operation = new SetAlphaMultiplyOperation();
+      break;
+    case CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA:
+      operation = new SetAlphaReplaceOperation();
+      break;
+  }
 
   if (!this->getInputSocket(0)->isLinked() && this->getInputSocket(1)->isLinked()) {
     operation->setResolutionInputSocketIndex(1);

@@ -865,11 +865,11 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[])
 }
 
 /* restore MUST be called after this */
-void PyC_MainModule_Backup(PyObject **main_mod)
+void PyC_MainModule_Backup(PyObject **r_main_mod)
 {
   PyObject *modules = PyImport_GetModuleDict();
-  *main_mod = PyDict_GetItemString(modules, "__main__");
-  Py_XINCREF(*main_mod); /* don't free */
+  *r_main_mod = PyDict_GetItemString(modules, "__main__");
+  Py_XINCREF(*r_main_mod); /* don't free */
 }
 
 void PyC_MainModule_Restore(PyObject *main_mod)

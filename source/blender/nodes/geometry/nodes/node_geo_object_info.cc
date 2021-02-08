@@ -19,6 +19,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
+#include "BKE_volume.h"
 
 #include "BLI_math_matrix.h"
 
@@ -38,6 +39,11 @@ static bNodeSocketTemplate geo_node_object_info_out[] = {
 namespace blender::nodes {
 static void geo_node_object_info_exec(GeoNodeExecParams params)
 {
+  const bNode &bnode = params.node();
+  NodeGeometryObjectInfo *node_storage = (NodeGeometryObjectInfo *)bnode.storage;
+  const bool transform_space_relative = (node_storage->transform_space ==
+                                         GEO_NODE_TRANSFORM_SPACE_RELATIVE);
+
   bke::PersistentObjectHandle object_handle = params.extract_input<bke::PersistentObjectHandle>(
       "Object");
   Object *object = params.handle_map().lookup(object_handle);
@@ -50,8 +56,16 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
   const Object *self_object = params.self_object();
 
   if (object != nullptr) {
+    float transform[4][4];
+    mul_m4_m4m4(transform, self_object->imat, object->obmat);
+
     float quaternion[4];
-    mat4_decompose(location, quaternion, scale, object->obmat);
+    if (transform_space_relative) {
+      mat4_decompose(location, quaternion, scale, transform);
+    }
+    else {
+      mat4_decompose(location, quaternion, scale, object->obmat);
+    }
     quat_to_eul(rotation, quaternion);
 
     if (object != self_object) {
@@ -63,14 +77,26 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
           /* Make a copy because the life time of the other mesh might be shorter. */
           Mesh *copied_mesh = BKE_mesh_copy_for_eval(mesh, false);
 
-          /* Transform into the local space of the object that is being modified. */
-          float transform[4][4];
-          mul_m4_m4m4(transform, self_object->imat, object->obmat);
-          BKE_mesh_transform(copied_mesh, transform, true);
+          if (transform_space_relative) {
+            /* Transform into the local space of the object that is being modified. */
+            BKE_mesh_transform(copied_mesh, transform, true);
+          }
 
           MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
           mesh_component.replace(copied_mesh);
           mesh_component.copy_vertex_group_names_from_object(*object);
+        }
+      }
+      if (object->type == OB_VOLUME) {
+        InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
+
+        if (transform_space_relative) {
+          instances.add_instance(object, transform);
+        }
+        else {
+          float unit_transform[4][4];
+          unit_m4(unit_transform);
+          instances.add_instance(object, unit_transform);
         }
       }
     }
@@ -81,6 +107,15 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
   params.set_output("Scale", scale);
   params.set_output("Geometry", geometry_set);
 }
+
+static void geo_node_object_info_node_init(bNodeTree *UNUSED(tree), bNode *node)
+{
+  NodeGeometryObjectInfo *data = (NodeGeometryObjectInfo *)MEM_callocN(
+      sizeof(NodeGeometryObjectInfo), __func__);
+  data->transform_space = GEO_NODE_TRANSFORM_SPACE_ORIGINAL;
+  node->storage = data;
+}
+
 }  // namespace blender::nodes
 
 void register_node_type_geo_object_info()
@@ -89,6 +124,9 @@ void register_node_type_geo_object_info()
 
   geo_node_type_base(&ntype, GEO_NODE_OBJECT_INFO, "Object Info", NODE_CLASS_INPUT, 0);
   node_type_socket_templates(&ntype, geo_node_object_info_in, geo_node_object_info_out);
+  node_type_init(&ntype, blender::nodes::geo_node_object_info_node_init);
+  node_type_storage(
+      &ntype, "NodeGeometryObjectInfo", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_object_info_exec;
   nodeRegisterType(&ntype);
 }

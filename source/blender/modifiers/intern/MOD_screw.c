@@ -486,9 +486,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /*
      * Normal Calculation (for face flipping)
      * Sort edge verts for correct face flipping
-     * NOT REALLY NEEDED but face flipping is nice.
-     *
-     * */
+     * NOT REALLY NEEDED but face flipping is nice. */
 
     /* Notice!
      *
@@ -780,7 +778,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
          * use edge connectivity work this out */
         if (SV_IS_VALID(vc->v[0])) {
           if (SV_IS_VALID(vc->v[1])) {
-            /* 2 edges connedted */
+            /* 2 edges connected. */
             /* make 2 connecting vert locations relative to the middle vert */
             sub_v3_v3v3(tmp_vec1, mvert_new[vc->v[0]].co, mvert_new[i].co);
             sub_v3_v3v3(tmp_vec2, mvert_new[vc->v[1]].co, mvert_new[i].co);

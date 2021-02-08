@@ -1612,7 +1612,7 @@ class OSLNode : public ShaderNode {
 
   SHADER_NODE_NO_CLONE_CLASS(OSLNode)
 
-  /* ideally we could beter detect this, but we can't query this now */
+  /* Ideally we could better detect this, but we can't query this now. */
   bool has_spatial_varying()
   {
     return true;

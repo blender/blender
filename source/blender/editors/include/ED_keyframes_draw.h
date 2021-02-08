@@ -255,9 +255,7 @@ void gpencil_to_keylist(struct bDopeSheet *ads,
 /* Grease Pencil Layer */
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys);
 /* Mask */
-void mask_to_keylist(struct bDopeSheet *UNUSED(ads),
-                     struct MaskLayer *masklay,
-                     struct DLRBT_Tree *keys);
+void mask_to_keylist(struct bDopeSheet *ads, struct MaskLayer *masklay, struct DLRBT_Tree *keys);
 
 /* ActKeyColumn API ---------------- */
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */

@@ -222,9 +222,7 @@ class BlenderVolumeLoader : public VDBImageLoader {
     b_volume.grids.load(b_data.ptr.data);
 
 #ifdef WITH_OPENVDB
-    BL::Volume::grids_iterator b_grid_iter;
-    for (b_volume.grids.begin(b_grid_iter); b_grid_iter != b_volume.grids.end(); ++b_grid_iter) {
-      BL::VolumeGrid b_volume_grid(*b_grid_iter);
+    for (BL::VolumeGrid &b_volume_grid : b_volume.grids) {
       if (b_volume_grid.name() == grid_name) {
         const bool unload = !b_volume_grid.is_loaded();
 
@@ -260,9 +258,7 @@ static void sync_volume_object(BL::BlendData &b_data,
   volume->set_object_space((b_render.space() == BL::VolumeRender::space_OBJECT));
 
   /* Find grid with matching name. */
-  BL::Volume::grids_iterator b_grid_iter;
-  for (b_volume.grids.begin(b_grid_iter); b_grid_iter != b_volume.grids.end(); ++b_grid_iter) {
-    BL::VolumeGrid b_grid = *b_grid_iter;
+  for (BL::VolumeGrid &b_grid : b_volume.grids) {
     ustring name = ustring(b_grid.name());
     AttributeStandard std = ATTR_STD_NONE;
 

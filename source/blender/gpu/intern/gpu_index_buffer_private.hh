@@ -44,9 +44,9 @@ static inline size_t to_bytesize(GPUIndexBufType type)
 /**
  * Base class which is then specialized for each implementation (GL, VK, ...).
  *
- * NOTE: IndexBuf does not hold any GPUPrimType. This is because it can be interpreted
- *       differently by multiple batches.
- **/
+ * \note #IndexBuf does not hold any #GPUPrimType.
+ * This is because it can be interpreted differently by multiple batches.
+ */
 class IndexBuf {
  protected:
   /** Type of indices used inside this buffer. */
@@ -57,7 +57,7 @@ class IndexBuf {
   uint32_t index_len_ = 0;
   /** Base index: Added to all indices after fetching. Allows index compression. */
   uint32_t index_base_ = 0;
-  /** Bookeeping. */
+  /** Bookkeeping. */
   bool is_init_ = false;
   /** Is this object only a reference to a subrange of another IndexBuf. */
   bool is_subrange_ = false;
@@ -96,7 +96,7 @@ class IndexBuf {
   inline uint index_range(uint *r_min, uint *r_max);
 };
 
-/* Syntacting suggar. */
+/* Syntactic sugar. */
 static inline GPUIndexBuf *wrap(IndexBuf *indexbuf)
 {
   return reinterpret_cast<GPUIndexBuf *>(indexbuf);

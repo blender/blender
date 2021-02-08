@@ -29,6 +29,14 @@ struct float2 {
   {
   }
 
+  explicit float2(float value) : x(value), y(value)
+  {
+  }
+
+  explicit float2(int value) : x(value), y(value)
+  {
+  }
+
   float2(float x, float y) : x(x), y(y)
   {
   }
@@ -50,6 +58,11 @@ struct float2 {
   float length() const
   {
     return len_v2(*this);
+  }
+
+  float length_squared() const
+  {
+    return len_squared_v2(*this);
   }
 
   float2 &operator+=(const float2 &other)
@@ -141,7 +154,8 @@ struct float2 {
 
   static float distance_squared(const float2 &a, const float2 &b)
   {
-    return float2::dot(a, b);
+    float2 diff = a - b;
+    return float2::dot(diff, diff);
   }
 
   struct isect_result {

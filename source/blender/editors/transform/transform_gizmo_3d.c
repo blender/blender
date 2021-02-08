@@ -532,7 +532,7 @@ static void protectflag_to_drawflags_ebone(RegionView3D *rv3d, const EditBone *e
 /* could move into BLI_math however this is only useful for display/editing purposes */
 static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], const float angle)
 {
-  /* X/Y are arbitrary axies, most importantly Z is the axis of rotation */
+  /* X/Y are arbitrary axes, most importantly Z is the axis of rotation. */
 
   float cross_vec[3];
   float quat[4];
@@ -704,7 +704,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
       if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
 
         /* calculate difference matrix */
-        BKE_gpencil_parent_matrix_get(depsgraph, ob, gpl, diff_mat);
+        BKE_gpencil_layer_transform_matrix_get(depsgraph, ob, gpl, diff_mat);
 
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpl->actframe->strokes) {
           /* skip strokes that are invalid for current view */
@@ -1298,6 +1298,11 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
 void drawDial3d(const TransInfo *t)
 {
   if (t->mode == TFM_ROTATION && t->spacetype == SPACE_VIEW3D) {
+    if (t->options & CTX_PAINT_CURVE) {
+      /* Matrices are in the screen space. Not supported. */
+      return;
+    }
+
     wmGizmo *gz = wm_gizmomap_modal_get(t->region->gizmo_map);
     if (gz == NULL) {
       /* We only draw Dial3d if the operator has been called by a gizmo. */
@@ -1331,7 +1336,7 @@ void drawDial3d(const TransInfo *t)
     }
     else {
       axis_idx = MAN_AXIS_ROT_C;
-      negate_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
+      copy_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
       scale *= 1.2f;
       line_with -= 1.0f;
     }
@@ -1860,7 +1865,10 @@ static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
     PropertyRNA *prop_orient_type = RNA_struct_find_property(ptr, "orient_type");
     const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(
         scene, ggd->twtype_init);
-    if (orient_slot == &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
+    if ((gz == ggd->gizmos[MAN_AXIS_ROT_C]) ||
+        (orient_slot == &scene->orientation_slots[SCE_ORIENT_DEFAULT])) {
+      /* #MAN_AXIS_ROT_C always uses the #V3D_ORIENT_VIEW orientation,
+       * optionally we could set this orientation instead of unset the property. */
       RNA_property_unset(ptr, prop_orient_type);
     }
     else {

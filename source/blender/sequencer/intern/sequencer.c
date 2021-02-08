@@ -133,7 +133,6 @@ Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int 
 
   seq->strip = seq_strip_alloc(type);
   seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format");
-  seq->cache_flag = SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_COMPOSITE;
 
   SEQ_relations_session_uuid_generate(seq);
 
@@ -247,8 +246,7 @@ Editing *SEQ_editing_ensure(Scene *scene)
     ed->seqbasep = &ed->seqbase;
     ed->cache = NULL;
     ed->cache_flag = SEQ_CACHE_STORE_FINAL_OUT;
-    ed->cache_flag |= SEQ_CACHE_VIEW_FINAL_OUT;
-    ed->cache_flag |= SEQ_CACHE_VIEW_ENABLE;
+    ed->cache_flag |= SEQ_CACHE_STORE_RAW;
   }
 
   return scene->ed;
@@ -361,7 +359,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
   Sequence *seqn = MEM_dupallocN(seq);
 
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-    SEQ_relations_session_uuid_generate(seq);
+    SEQ_relations_session_uuid_generate(seqn);
   }
 
   seq->tmp = seqn;

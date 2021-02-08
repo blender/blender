@@ -30,8 +30,8 @@ set(DEFSRC
   rna_animation.c
   rna_animviz.c
   rna_armature.c
-  rna_attribute.c
   rna_asset.c
+  rna_attribute.c
   rna_boid.c
   rna_brush.c
   rna_cachefile.c
@@ -189,7 +189,6 @@ set(SRC
   ../../../../intern/guardedalloc/intern/mallocn.c
   ../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
   ../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
-  ../../../../intern/guardedalloc/intern/mmap_win.c
 
   # Needed for defaults.
   ../../../../release/datafiles/userdef/userdef_default.c

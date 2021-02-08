@@ -201,12 +201,13 @@ _display_name_literals = {
 }
 
 
-def display_name(name, *, has_ext=True):
+def display_name(name, *, has_ext=True, title_case=True):
     """
     Creates a display string from name to be used menus and the user interface.
-    Capitalize the first letter in all lowercase names,
-    mixed case names are kept as is. Intended for use with
-    filenames and module names.
+    Intended for use with filenames and module names.
+
+    :arg has_ext: Remove file extension from name
+    :arg title_case: Convert lowercase names to title case
     """
 
     if has_ext:
@@ -220,7 +221,7 @@ def display_name(name, *, has_ext=True):
     # (when paths can't start with numbers for eg).
     name = name.replace("_", " ").lstrip(" ")
 
-    if name.islower():
+    if title_case and name.islower():
         name = name.lower().title()
 
     name = _clean_utf8(name)

@@ -713,7 +713,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
     return ibuf;
   }
 
-  if (!ELEM(tga.imgtyp, 1, 9)) { /* happens sometimes (beuh) */
+  if (!ELEM(tga.imgtyp, 1, 9)) { /* happens sometimes (ugh) */
     if (cmap) {
       MEM_freeN(cmap);
       cmap = NULL;

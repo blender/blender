@@ -60,7 +60,7 @@ static int bm_edge_face(BMEdge *e)
 }
 
 /**
- * Get the next available edge we can use to attempt tp calculate a path from.
+ * Get the next available edge we can use to attempt to calculate a path from.
  */
 static BMEdge *bm_edgenet_edge_get_next(BMesh *bm,
                                         LinkNode **edge_queue,
@@ -295,7 +295,7 @@ static LinkNode *bm_edgenet_path_calc(BMEdge *e,
 
   vn_1->flag = vn_2->flag = (f_index == -1) ? VNINFO_FLAG_IS_MIXFACE : 0;
 
-  /* prime the searchlist */
+  /* Prime the search-list. */
   BLI_linklist_prepend_pool(&v_ls_prev, e->v1, path_pool);
   BLI_linklist_prepend_pool(&v_ls_prev, e->v2, path_pool);
 

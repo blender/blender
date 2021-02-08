@@ -53,12 +53,7 @@ void workbench_engine_init(void *ved)
 
   workbench_shader_library_ensure();
 
-  if (!stl->wpd) {
-    stl->wpd = MEM_callocN(sizeof(*stl->wpd), __func__);
-    stl->wpd->taa_sample_len_previous = -1;
-    stl->wpd->view_updated = true;
-  }
-
+  workbench_private_data_alloc(stl);
   WORKBENCH_PrivateData *wpd = stl->wpd;
   workbench_private_data_init(wpd);
   workbench_update_world_ubo(wpd);
@@ -641,6 +636,7 @@ DrawEngineType draw_engine_workbench = {
     &workbench_view_update,
     &workbench_id_update,
     &workbench_render,
+    NULL,
 };
 
 RenderEngineType DRW_engine_viewport_workbench_type = {

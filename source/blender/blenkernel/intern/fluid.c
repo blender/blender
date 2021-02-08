@@ -3225,7 +3225,7 @@ static void update_effectors(
   ListBase *effectors;
   /* make sure smoke flow influence is 0.0f */
   fds->effector_weights->weight[PFIELD_FLUIDFLOW] = 0.0f;
-  effectors = BKE_effectors_create(depsgraph, ob, NULL, fds->effector_weights);
+  effectors = BKE_effectors_create(depsgraph, ob, NULL, fds->effector_weights, false);
 
   if (effectors) {
     /* Precalculate wind forces. */
@@ -3652,7 +3652,7 @@ static int manta_step(
   }
 
   /* Total time must not exceed framecount times framelength. Correct tiny errors here. */
-  CLAMP(fds->time_total, fds->time_total, time_total_old + fds->frame_length);
+  CLAMP_MAX(fds->time_total, time_total_old + fds->frame_length);
 
   /* Compute shadow grid for gas simulations. Make sure to skip if bake job was canceled early. */
   if (fds->type == FLUID_DOMAIN_TYPE_GAS && result) {
@@ -3921,7 +3921,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   prev_guide = manta_has_guiding(fds->fluid, fmd, prev_frame, guide_parent);
 
   /* Unused for now. */
-  UNUSED_VARS(has_guide, prev_guide, next_mesh, next_guide);
+  UNUSED_VARS(next_mesh, next_guide);
 
   bool with_gdomain;
   with_gdomain = (fds->guide_source == FLUID_DOMAIN_GUIDE_SRC_DOMAIN);
@@ -4001,8 +4001,11 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
         has_config = manta_read_config(fds->fluid, fmd, mesh_frame);
       }
 
-      /* Update mesh data from file is faster than via Python (manta_read_mesh()). */
-      has_mesh = manta_read_mesh(fds->fluid, fmd, mesh_frame);
+      /* Only load the mesh at the resolution it ways originally simulated at.
+       * The mesh files don't have a header, i.e. the don't store the grid resolution. */
+      if (!manta_needs_realloc(fds->fluid, fmd)) {
+        has_mesh = manta_read_mesh(fds->fluid, fmd, mesh_frame);
+      }
     }
 
     /* Read particles cache. */
@@ -4072,6 +4075,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
       break;
     case FLUID_DOMAIN_CACHE_REPLAY:
     default:
+      if (with_guide) {
+        baking_guide = !has_guide && (is_startframe || prev_guide);
+      }
       baking_data = !has_data && (is_startframe || prev_data);
       if (with_smoke && with_noise) {
         baking_noise = !has_noise && (is_startframe || prev_noise);
@@ -5133,6 +5139,9 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     FluidFlowSettings *tffs = tfmd->flow;
     FluidFlowSettings *ffs = fmd->flow;
 
+    /* NOTE: This is dangerous, as it will generate invalid data in case we are copying between
+     * different objects. Extra external code has to be called then to ensure proper remapping of
+     * that pointer. See e.g. `BKE_object_copy_particlesystems` or `BKE_object_copy_modifier`. */
     tffs->psys = ffs->psys;
     tffs->noise_texture = ffs->noise_texture;
 

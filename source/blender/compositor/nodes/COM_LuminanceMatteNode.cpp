@@ -20,7 +20,7 @@
 #include "BKE_node.h"
 #include "COM_ConvertOperation.h"
 #include "COM_LuminanceMatteOperation.h"
-#include "COM_SetAlphaOperation.h"
+#include "COM_SetAlphaMultiplyOperation.h"
 
 LuminanceMatteNode::LuminanceMatteNode(bNode *editorNode) : Node(editorNode)
 {
@@ -42,7 +42,7 @@ void LuminanceMatteNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputSocket, operationSet->getInputSocket(0));
   converter.mapOutputSocket(outputSocketMatte, operationSet->getOutputSocket(0));
 
-  SetAlphaOperation *operation = new SetAlphaOperation();
+  SetAlphaMultiplyOperation *operation = new SetAlphaMultiplyOperation();
   converter.addOperation(operation);
 
   converter.mapInputSocket(inputSocket, operation->getInputSocket(0));

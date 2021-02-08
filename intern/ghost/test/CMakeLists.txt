@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(GhostMultiTest)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../../..//build_files/cmake/Modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../../../build_files/cmake/Modules")
 
 set(WITH_GUARDEDALLOC ON)
 

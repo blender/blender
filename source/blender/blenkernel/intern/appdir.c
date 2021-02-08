@@ -987,7 +987,7 @@ static const int app_template_directory_id[2] = {
 bool BKE_appdir_app_template_any(void)
 {
   char temp_dir[FILE_MAX];
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < ARRAY_SIZE(app_template_directory_id); i++) {
     if (BKE_appdir_folder_id_ex(app_template_directory_id[i],
                                 app_template_directory_search[i],
                                 temp_dir,
@@ -1000,7 +1000,7 @@ bool BKE_appdir_app_template_any(void)
 
 bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_len)
 {
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < ARRAY_SIZE(app_template_directory_id); i++) {
     char subdir[FILE_MAX];
     BLI_join_dirfile(subdir, sizeof(subdir), app_template_directory_search[i], app_template);
     if (BKE_appdir_folder_id_ex(app_template_directory_id[i], subdir, path, path_len)) {
@@ -1014,7 +1014,7 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
 {
   /* Test if app template provides a `userpref.blend`.
    * If not, we will share user preferences with the rest of Blender. */
-  if (!app_template && app_template[0]) {
+  if (app_template[0] == '\0') {
     return false;
   }
 
@@ -1034,7 +1034,7 @@ void BKE_appdir_app_templates(ListBase *templates)
 {
   BLI_listbase_clear(templates);
 
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < ARRAY_SIZE(app_template_directory_id); i++) {
     char subdir[FILE_MAX];
     if (!BKE_appdir_folder_id_ex(app_template_directory_id[i],
                                  app_template_directory_search[i],

@@ -32,8 +32,8 @@
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_boolean_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry A")},
-    {SOCK_GEOMETRY, N_("Geometry B")},
+    {SOCK_GEOMETRY, N_("Geometry 1")},
+    {SOCK_GEOMETRY, N_("Geometry 2")},
     {-1, ""},
 };
 
@@ -105,8 +105,8 @@ static Mesh *mesh_boolean_calc(const Mesh *mesh_a, const Mesh *mesh_b, int boole
 namespace blender::nodes {
 static void geo_node_boolean_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set_in_a = params.extract_input<GeometrySet>("Geometry A");
-  GeometrySet geometry_set_in_b = params.extract_input<GeometrySet>("Geometry B");
+  GeometrySet geometry_set_in_a = params.extract_input<GeometrySet>("Geometry 1");
+  GeometrySet geometry_set_in_b = params.extract_input<GeometrySet>("Geometry 2");
   GeometrySet geometry_set_out;
 
   GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)params.node().custom1;

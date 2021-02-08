@@ -1053,7 +1053,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       const uint64_t data_flag = 0;
 
       if (!(me_src->cd_flag & ME_CDFLAG_EDGE_CREASE)) {
-        if (use_delete && !me_dst) {
+        if (use_delete) {
           me_dst->cd_flag &= ~ME_CDFLAG_EDGE_CREASE;
         }
         return true;
@@ -1085,7 +1085,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       const uint64_t data_flag = 0;
 
       if (!(me_src->cd_flag & ME_CDFLAG_EDGE_BWEIGHT)) {
-        if (use_delete && !me_dst) {
+        if (use_delete) {
           me_dst->cd_flag &= ~ME_CDFLAG_EDGE_BWEIGHT;
         }
         return true;

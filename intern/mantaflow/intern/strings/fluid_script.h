@@ -412,7 +412,9 @@ def fluid_post_step_$ID$():\n\
     mantaMsg('Fluid post step')\n\
     \n\
     # Copy vel grid to reals grids (which Blender internal will in turn use for vel access)\n\
-    copyVec3ToReal(source=vel_s$ID$, targetX=x_vel_s$ID$, targetY=y_vel_s$ID$, targetZ=z_vel_s$ID$)\n";
+    copyVec3ToReal(source=vel_s$ID$, targetX=x_vel_s$ID$, targetY=y_vel_s$ID$, targetZ=z_vel_s$ID$)\n\
+    if using_guiding_s$ID$:\n\
+        copyVec3ToReal(source=guidevel_sg$ID$, targetX=x_guidevel_s$ID$, targetY=y_guidevel_s$ID$, targetZ=z_guidevel_s$ID$)\n";
 
 //////////////////////////////////////////////////////////////////////
 // DESTRUCTION
@@ -676,7 +678,9 @@ const std::string fluid_load_guiding =
 def fluid_load_guiding_$ID$(path, framenr, file_format):\n\
     mantaMsg('Fluid load guiding, frame ' + str(framenr))\n\
     guidevel_sg$ID$.setName('$NAME_VELOCITY_GUIDE$')\n\
-    fluid_file_import_s$ID$(dict=fluid_guiding_dict_s$ID$, path=path, framenr=framenr, file_format=file_format, file_name=file_guiding_s$ID$)\n";
+    fluid_file_import_s$ID$(dict=fluid_guiding_dict_s$ID$, path=path, framenr=framenr, file_format=file_format, file_name=file_guiding_s$ID$)\n\
+    \n\
+    copyVec3ToReal(source=guidevel_sg$ID$, targetX=x_guidevel_s$ID$, targetY=y_guidevel_s$ID$, targetZ=z_guidevel_s$ID$)\n";
 
 const std::string fluid_load_vel =
     "\n\
@@ -707,7 +711,7 @@ def fluid_file_export_s$ID$(framenr, file_format, path, dict, file_name=None, mo
             file = os.path.join(path, file_name + '_' + framenr + file_format)\n\
             if not os.path.isfile(file) or mode_override:\n\
                 if file_format == '.vdb':\n\
-                    saveCombined = save(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$, skipDeletedParts=True, compression=vdbCompression_s$ID$, precision=vdbPrecision_s$ID$, clip=vdbClip_s$ID$, clipGrid=clipGrid)\n\
+                    saveCombined = save(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$, skipDeletedParts=True, compression=vdbCompression_s$ID$, precision=vdbPrecision_s$ID$, clip=vdbClip_s$ID$, clipGrid=clipGrid, meta=True)\n\
                 elif file_format == '.bobj.gz' or file_format == '.obj':\n\
                     for name, object in dict.items():\n\
                         if not os.path.isfile(file) or mode_override:\n\

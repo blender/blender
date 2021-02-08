@@ -42,7 +42,8 @@ void *GaussianAlphaYBlurOperation::initializeTileData(rcti * /*rect*/)
 
 void GaussianAlphaYBlurOperation::initExecution()
 {
-  /* BlurBaseOperation::initExecution(); */ /* until we suppoer size input - comment this */
+  /* Until we support size input - comment this. */
+  // BlurBaseOperation::initExecution();
 
   initMutex();
 
@@ -60,6 +61,7 @@ void GaussianAlphaYBlurOperation::updateGauss()
   if (this->m_gausstab == nullptr) {
     updateSize();
     float rad = max_ff(m_size * m_data.sizey, 0.0f);
+    rad = min_ff(rad, MAX_GAUSSTAB_RADIUS);
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
     m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);

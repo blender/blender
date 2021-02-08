@@ -57,7 +57,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   int l, x, y, w, h, i;
   int tgti, *top;
 
-  if (!st || !st->text) {
+  if (!st->text) {
     return 0;
   }
   if (!texttool_text_is_active(st->text)) {

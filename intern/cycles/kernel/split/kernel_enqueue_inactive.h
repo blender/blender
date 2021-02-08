@@ -20,7 +20,7 @@ ccl_device void kernel_enqueue_inactive(KernelGlobals *kg,
                                         ccl_local_param unsigned int *local_queue_atomics)
 {
 #ifdef __BRANCHED_PATH__
-  /* Enqeueue RAY_INACTIVE rays into QUEUE_INACTIVE_RAYS queue. */
+  /* Enqueue RAY_INACTIVE rays into QUEUE_INACTIVE_RAYS queue. */
   if (ccl_local_id(0) == 0 && ccl_local_id(1) == 0) {
     *local_queue_atomics = 0;
   }

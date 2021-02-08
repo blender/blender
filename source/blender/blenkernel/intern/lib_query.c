@@ -237,9 +237,12 @@ static void library_foreach_ID_link(Main *bmain,
        * but we might as well use it (Main->relations is always assumed valid,
        * it's responsibility of code creating it to free it,
        * especially if/when it starts modifying Main database). */
-      MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->id_user_to_used, id);
-      for (; entry != NULL; entry = entry->next) {
-        BKE_lib_query_foreachid_process(&data, entry->id_pointer, entry->usage_flag);
+      MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers,
+                                                     id);
+      for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != NULL;
+           to_id_entry = to_id_entry->next) {
+        BKE_lib_query_foreachid_process(
+            &data, to_id_entry->id_pointer.to, to_id_entry->usage_flag);
       }
       continue;
     }
@@ -413,13 +416,14 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
       return ELEM(id_type_used, ID_MA);
     case ID_SIM:
       return ELEM(id_type_used, ID_OB, ID_IM);
+    case ID_WM:
+      return ELEM(id_type_used, ID_SCE, ID_WS);
     case ID_IM:
     case ID_VF:
     case ID_TXT:
     case ID_SO:
     case ID_AR:
     case ID_AC:
-    case ID_WM:
     case ID_PAL:
     case ID_PC:
     case ID_CF:

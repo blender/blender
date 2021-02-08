@@ -1394,15 +1394,14 @@ bool MANTA::readGuiding(FluidModifierData *fmd, int framenr, bool sourceDomain)
   if (with_debug)
     cout << "MANTA::readGuiding()" << endl;
 
-  FluidDomainSettings *fds = fmd->domain;
-
   if (!mUsingGuiding)
     return false;
-  if (!fds)
+  if (!fmd)
     return false;
 
   ostringstream ss;
   vector<string> pythonCommands;
+  FluidDomainSettings *fds = fmd->domain;
 
   string directory = (sourceDomain) ? getDirectory(fmd, FLUID_DOMAIN_DIR_DATA) :
                                       getDirectory(fmd, FLUID_DOMAIN_DIR_GUIDE);
@@ -1985,7 +1984,9 @@ float MANTA::getTimestep()
 bool MANTA::needsRealloc(FluidModifierData *fmd)
 {
   FluidDomainSettings *fds = fmd->domain;
-  return (fds->res[0] != mResX || fds->res[1] != mResY || fds->res[2] != mResZ);
+  return ((fds->res_max[0] - fds->res_min[0]) != mResX ||
+          (fds->res_max[1] - fds->res_min[1]) != mResY ||
+          (fds->res_max[2] - fds->res_min[2]) != mResZ);
 }
 
 void MANTA::adaptTimestep()

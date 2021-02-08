@@ -190,6 +190,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
+    BKE_sculpt_ensure_orig_mesh_data(CTX_data_scene(C), ob);
     ED_sculpt_undo_geometry_end(ob);
   }
 
@@ -326,7 +327,7 @@ static void voxel_size_edit_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar),
   const float total_len = len_v3v3(cd->preview_plane[0], cd->preview_plane[1]);
   const int tot_lines = (int)(total_len / cd->voxel_size);
 
-  /* Smoothstep to reduce the alpha of the grid as the line number increases. */
+  /* Smooth-step to reduce the alpha of the grid as the line number increases. */
   const float a = VOXEL_SIZE_EDIT_MAX_GRIDS_LINES * 0.1f;
   const float b = VOXEL_SIZE_EDIT_MAX_GRIDS_LINES;
   const float x = clamp_f((tot_lines - a) / (b - a), 0.0f, 1.0);
@@ -645,6 +646,7 @@ typedef struct QuadriFlowJob {
   short *stop, *do_update;
   float *progress;
 
+  Scene *scene;
   int target_faces;
   int seed;
   bool use_mesh_symmetry;
@@ -736,7 +738,7 @@ static int quadriflow_break_job(void *customdata)
   return should_break;
 }
 
-/* called by oceanbake, wmJob sends notifier */
+/** Called by ocean-bake, #wmJob sends notifier. */
 static void quadriflow_update_job(void *customdata, float progress, int *cancel)
 {
   QuadriFlowJob *qj = customdata;
@@ -773,8 +775,10 @@ static Mesh *remesh_symmetry_bisect(Object *ob, Mesh *mesh, eSymmetryAxes symmet
       zero_v3(plane_no);
       plane_no[axis] = -1.0f;
       mesh_bisect_temp = mesh_bisect;
-      mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane(
-          ob, &mmd, mesh_bisect, axis, plane_co, plane_no);
+
+      mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(ob, 
+          &mmd, mesh_bisect, axis, plane_co, plane_no);
+
       if (mesh_bisect_temp != mesh_bisect) {
         BKE_id_free(NULL, mesh_bisect_temp);
       }
@@ -803,7 +807,7 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
       mmd.flag = 0;
       mmd.flag &= MOD_MIR_AXIS_X << i;
       mesh_mirror_temp = mesh_mirror;
-      mesh_mirror = BKE_mesh_mirror_apply_mirror_on_axis(&mmd, NULL, ob, mesh_mirror, axis);
+      mesh_mirror = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(&mmd, ob, mesh_mirror, axis);
       if (mesh_mirror_temp != mesh_mirror) {
         BKE_id_free(NULL, mesh_mirror_temp);
       }
@@ -892,6 +896,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
+    BKE_sculpt_ensure_orig_mesh_data(qj->scene, ob);
     ED_sculpt_undo_geometry_end(ob);
   }
 
@@ -935,6 +940,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   QuadriFlowJob *job = MEM_mallocN(sizeof(QuadriFlowJob), "QuadriFlowJob");
 
   job->owner = CTX_data_active_object(C);
+  job->scene = CTX_data_scene(C);
 
   job->target_faces = RNA_int_get(op->ptr, "target_faces");
   job->seed = RNA_int_get(op->ptr, "seed");
@@ -978,7 +984,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
     quadriflow_free_job(job);
   }
   else {
-    /* Non blocking call. For when the operator has been called from the gui */
+    /* Non blocking call. For when the operator has been called from the GUI. */
     job->is_nonblocking_job = true;
 
     wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),

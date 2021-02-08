@@ -205,7 +205,7 @@ BLI_INLINE list_node *sweep_up(struct SortInfo *si, list_node *list, unsigned in
  * The 'ranks' array essentially captures the recursion stack of a mergesort.
  * The merge tree is built in a bottom-up manner.  The control loop for
  * updating the 'ranks' array is analogous to incrementing a binary integer,
- * and the `O(n)` time for counting upto n translates to `O(n)` merges when
+ * and the `O(n)` time for counting `upto` n translates to `O(n)` merges when
  * inserting `rank-0` lists.
  * When we plug in the sizes of the lists involved in those merges,
  * we get the `O(n log n)` time for the sort.

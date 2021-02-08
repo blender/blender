@@ -251,7 +251,7 @@ ccl_device void kernel_bake_evaluate(
     path_rng_2D(kg, rng_hash, sample, num_samples, PRNG_FILTER_U, &filter_x, &filter_y);
   }
 
-  /* Barycentric UV with subpixel offset. */
+  /* Barycentric UV with sub-pixel offset. */
   float u = primitive[2];
   float v = primitive[3];
 

@@ -37,6 +37,7 @@ struct bContext;
 struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
+struct NodeInsertOfsData;
 struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmWindow;
@@ -50,8 +51,26 @@ typedef struct bNodeLinkDrag {
    * This way the links can be added to the node tree while being stored in this list.
    */
   ListBase links;
+  bool from_multi_input_socket;
   int in_out;
 } bNodeLinkDrag;
+
+typedef struct SpaceNode_Runtime {
+  float aspect;
+
+  /** Mouse position for drawing socket-less links and adding nodes. */
+  float cursor[2];
+
+  /** For auto compositing. */
+  bool recalc;
+
+  /** Temporary data for modal linking operator. */
+  struct ListBase linkdrag;
+
+  /* XXX hack for translate_attach op-macros to pass data from transform op to insert_offset op */
+  /** Temporary data for node insert offset (in UI called Auto-offset). */
+  struct NodeInsertOfsData *iofsd;
+} SpaceNode_Runtime;
 
 /* space_node.c */
 
@@ -61,14 +80,17 @@ void space_node_group_offset(struct SpaceNode *snode, float *x, float *y);
 /* node_draw.c */
 int node_get_colorid(struct bNode *node);
 int node_get_resize_cursor(int directions);
-void node_draw_shadow(struct SpaceNode *snode, struct bNode *node, float radius, float alpha);
+void node_draw_shadow(const struct SpaceNode *snode,
+                      const struct bNode *node,
+                      float radius,
+                      float alpha);
 void node_draw_default(const struct bContext *C,
                        struct ARegion *region,
                        struct SpaceNode *snode,
                        struct bNodeTree *ntree,
                        struct bNode *node,
                        bNodeInstanceKey key);
-void node_draw_sockets(struct View2D *v2d,
+void node_draw_sockets(const struct View2D *v2d,
                        const struct bContext *C,
                        struct bNodeTree *ntree,
                        struct bNode *node,
@@ -92,9 +114,9 @@ void node_draw_space(const bContext *C, ARegion *region);
 
 void node_set_cursor(struct wmWindow *win, struct SpaceNode *snode, float cursor[2]);
 /* DPI scaled coords */
-void node_to_view(struct bNode *node, float x, float y, float *rx, float *ry);
-void node_to_updated_rect(struct bNode *node, rctf *r_rect);
-void node_from_view(struct bNode *node, float x, float y, float *rx, float *ry);
+void node_to_view(const struct bNode *node, float x, float y, float *rx, float *ry);
+void node_to_updated_rect(const struct bNode *node, rctf *r_rect);
+void node_from_view(const struct bNode *node, float x, float y, float *rx, float *ry);
 
 /* node_buttons.c */
 void node_buttons_register(struct ARegionType *art);
@@ -145,17 +167,17 @@ void nodelink_batch_start(struct SpaceNode *snode);
 void nodelink_batch_end(struct SpaceNode *snode);
 
 void node_draw_link(struct View2D *v2d, struct SpaceNode *snode, struct bNodeLink *link);
-void node_draw_link_bezier(struct View2D *v2d,
-                           struct SpaceNode *snode,
-                           struct bNodeLink *link,
+void node_draw_link_bezier(const struct View2D *v2d,
+                           const struct SpaceNode *snode,
+                           const struct bNodeLink *link,
                            int th_col1,
                            int th_col2,
                            int th_col3);
-bool node_link_bezier_points(struct View2D *v2d,
-                             struct SpaceNode *snode,
-                             struct bNodeLink *link,
+bool node_link_bezier_points(const struct View2D *v2d,
+                             const struct SpaceNode *snode,
+                             const struct bNodeLink *link,
                              float coord_array[][2],
-                             int resol);
+                             const int resol);
 void draw_nodespace_back_pix(const struct bContext *C,
                              struct ARegion *region,
                              struct SpaceNode *snode,

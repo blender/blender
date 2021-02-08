@@ -74,7 +74,7 @@ endif()
 if(WITH_TBB)
   blender_include_dirs(${TBB_INCLUDE_DIRS})
   if(NOT APPLE)
-    # APPLE plaform uses full paths for linking libraries.
+    # APPLE platform uses full paths for linking libraries.
     link_directories(${LIBDIR}/tbb/lib)
   endif()
 endif()
@@ -764,7 +764,7 @@ elseif(WIN32)
         PATTERN "*.pyo" EXCLUDE                 # * any cache *
       )
 
-       install(
+      install(
         DIRECTORY ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib
         DESTINATION ${BLENDER_VERSION}/python/
         CONFIGURATIONS Debug
@@ -772,7 +772,6 @@ elseif(WIN32)
         PATTERN "__pycache__" EXCLUDE           # * any cache *
         PATTERN "*.pyc" EXCLUDE                 # * any cache *
         PATTERN "*.pyo" EXCLUDE                 # * any cache *)
-
       )
 
       install(

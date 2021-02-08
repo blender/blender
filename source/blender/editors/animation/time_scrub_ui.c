@@ -22,6 +22,7 @@
  */
 
 #include "BKE_context.h"
+#include "BKE_scene.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -91,7 +92,6 @@ static void draw_current_frame(const Scene *scene,
                                const View2D *v2d,
                                const rcti *scrub_region_rect,
                                int current_frame,
-                               float sub_frame,
                                bool draw_line)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
@@ -109,7 +109,7 @@ static void draw_current_frame(const Scene *scene,
   if (draw_line) {
     /* Draw vertical line to from the bottom of the current frame box to the bottom of the screen.
      */
-    const float subframe_x = UI_view2d_view_to_region_x(v2d, current_frame + sub_frame);
+    const float subframe_x = UI_view2d_view_to_region_x(v2d, BKE_scene_frame_get(scene));
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -124,23 +124,22 @@ static void draw_current_frame(const Scene *scene,
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
-  UI_draw_roundbox_3fv_alpha(true,
-                             frame_x - box_width / 2 + U.pixelsize / 2,
-                             scrub_region_rect->ymin + box_padding,
-                             frame_x + box_width / 2 + U.pixelsize / 2,
-                             scrub_region_rect->ymax - box_padding,
-                             4 * UI_DPI_FAC,
-                             bg_color,
-                             1.0f);
+  float outline_color[4];
+  UI_GetThemeColorShade4fv(TH_CFRAME, 5, outline_color);
 
-  UI_GetThemeColorShade4fv(TH_CFRAME, 5, bg_color);
-  UI_draw_roundbox_aa(false,
-                      frame_x - box_width / 2 + U.pixelsize / 2,
-                      scrub_region_rect->ymin + box_padding,
-                      frame_x + box_width / 2 + U.pixelsize / 2,
-                      scrub_region_rect->ymax - box_padding,
-                      4 * UI_DPI_FAC,
-                      bg_color);
+  UI_draw_roundbox_4fv_ex(
+      &(const rctf){
+          .xmin = frame_x - box_width / 2 + U.pixelsize / 2,
+          .xmax = frame_x + box_width / 2 + U.pixelsize / 2,
+          .ymin = scrub_region_rect->ymin + box_padding,
+          .ymax = scrub_region_rect->ymax - box_padding,
+      },
+      bg_color,
+      NULL,
+      1.0f,
+      outline_color,
+      U.pixelsize,
+      4 * UI_DPI_FAC);
 
   uchar text_color[4];
   UI_GetThemeColor4ubv(TH_HEADER_TEXT_HI, text_color);
@@ -163,13 +162,7 @@ void ED_time_scrub_draw_current_frame(const ARegion *region,
   rcti scrub_region_rect;
   get_time_scrub_region_rect(region, &scrub_region_rect);
 
-  draw_current_frame(scene,
-                     display_seconds,
-                     v2d,
-                     &scrub_region_rect,
-                     scene->r.cfra,
-                     scene->r.subframe,
-                     draw_line);
+  draw_current_frame(scene, display_seconds, v2d, &scrub_region_rect, scene->r.cfra, draw_line);
   GPU_matrix_pop_projection();
 }
 

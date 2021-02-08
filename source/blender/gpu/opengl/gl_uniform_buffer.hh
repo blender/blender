@@ -34,7 +34,7 @@ namespace gpu {
 
 /**
  * Implementation of Uniform Buffers using OpenGL.
- **/
+ */
 class GLUniformBuf : public UniformBuf {
  private:
   /** Slot to which this UBO is currently bound. -1 if not bound. */

@@ -167,6 +167,8 @@ static void scene_init_data(ID *id)
                      &gp_primitive_curve->clipr,
                      CURVE_PRESET_BELL,
                      CURVEMAP_SLOPE_POSITIVE);
+  /* Grease pencil interpolate. */
+  scene->toolsettings->gp_interpolate.step = 1;
 
   scene->unit.system = USER_UNIT_METRIC;
   scene->unit.scale_length = 1.0f;
@@ -1687,6 +1689,19 @@ static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
   }
 }
 
+static void scene_lib_override_apply_post(ID *id_dst, ID *UNUSED(id_src))
+{
+  Scene *scene = (Scene *)id_dst;
+
+  if (scene->rigidbody_world != NULL) {
+    PTCacheID pid;
+    BKE_ptcache_id_from_rigidbody(&pid, NULL, scene->rigidbody_world);
+    LISTBASE_FOREACH (PointCache *, point_cache, pid.ptcaches) {
+      point_cache->flag |= PTCACHE_FLAG_INFO_DIRTY;
+    }
+  }
+}
+
 IDTypeInfo IDType_ID_SCE = {
     .id_code = ID_SCE,
     .id_filter = FILTER_ID_SCE,
@@ -1712,6 +1727,8 @@ IDTypeInfo IDType_ID_SCE = {
     .blend_read_expand = scene_blend_read_expand,
 
     .blend_read_undo_preserve = scene_undo_preserve,
+
+    .lib_override_apply_post = scene_lib_override_apply_post,
 };
 
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
@@ -1904,7 +1921,6 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
       sce_copy->id.properties = IDP_CopyProperty(sce->id.properties);
     }
 
-    MEM_freeN(sce_copy->toolsettings);
     BKE_sound_destroy_scene(sce_copy);
 
     /* copy color management settings */
@@ -1929,6 +1945,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     sce_copy->display = sce->display;
 
     /* tool settings */
+    BKE_toolsettings_free(sce_copy->toolsettings);
     sce_copy->toolsettings = BKE_toolsettings_copy(sce->toolsettings, 0);
 
     /* make a private copy of the avicodecdata */
@@ -2030,6 +2047,21 @@ void BKE_scene_groups_relink(Scene *sce)
   if (sce->rigidbody_world) {
     BKE_rigidbody_world_groups_relink(sce->rigidbody_world);
   }
+}
+
+bool BKE_scene_can_be_removed(const Main *bmain, const Scene *scene)
+{
+  /* Linked scenes can always be removed. */
+  if (ID_IS_LINKED(scene)) {
+    return true;
+  }
+  /* Local scenes can only be removed, when there is at least one local scene left. */
+  LISTBASE_FOREACH (Scene *, other_scene, &bmain->scenes) {
+    if (other_scene != scene && !ID_IS_LINKED(other_scene)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)
@@ -3287,7 +3319,7 @@ int BKE_scene_multiview_num_videos_get(const RenderData *rd)
 
 /* This is a key which identifies depsgraph. */
 typedef struct DepsgraphKey {
-  ViewLayer *view_layer;
+  const ViewLayer *view_layer;
   /* TODO(sergey): Need to include window somehow (same layer might be in a
    * different states in different windows).
    */
@@ -3422,10 +3454,17 @@ static Depsgraph **scene_ensure_depsgraph_p(Main *bmain, Scene *scene, ViewLayer
   return depsgraph_ptr;
 }
 
-Depsgraph *BKE_scene_get_depsgraph(Scene *scene, ViewLayer *view_layer)
+Depsgraph *BKE_scene_get_depsgraph(const Scene *scene, const ViewLayer *view_layer)
 {
-  Depsgraph **depsgraph_ptr = scene_get_depsgraph_p(scene, view_layer, false);
-  return (depsgraph_ptr != NULL) ? *depsgraph_ptr : NULL;
+  BLI_assert(BKE_scene_has_view_layer(scene, view_layer));
+
+  if (scene->depsgraph_hash == NULL) {
+    return NULL;
+  }
+
+  DepsgraphKey key;
+  key.view_layer = view_layer;
+  return BLI_ghash_lookup(scene->depsgraph_hash, &key);
 }
 
 Depsgraph *BKE_scene_ensure_depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer)

@@ -403,27 +403,25 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
   }
   BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
-  if (num == DMCACHE_NOTFOUND) {
+  if (ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     if (particle->num < modifier->mesh_final->totface) {
       num = particle->num;
     }
   }
 
   /* get uvco */
-  if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+  if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME) &&
+      !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
+    MFace *mface;
+    MTFace *mtface;
 
-    if (num != DMCACHE_NOTFOUND) {
-      MFace *mface;
-      MTFace *mtface;
+    mface = modifier->mesh_final->mface;
+    mtface = modifier->mesh_final->mtface;
 
-      mface = modifier->mesh_final->mface;
-      mtface = modifier->mesh_final->mtface;
-
-      if (mface && mtface) {
-        mtface += num;
-        psys_interpolate_uvs(mtface, mface->v4, particle->fuv, r_uv);
-        return;
-      }
+    if (mface && mtface) {
+      mtface += num;
+      psys_interpolate_uvs(mtface, mface->v4, particle->fuv, r_uv);
+      return;
     }
   }
 
@@ -3658,6 +3656,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_ParticleSystem_name_set");
   RNA_def_struct_name_property(srna, prop);
 
+  RNA_define_lib_overridable(true);
+
   /* access to particle settings is redirected through functions */
   /* to allow proper id-buttons functionality */
   prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
@@ -3717,7 +3717,6 @@ static void rna_def_particle_system(BlenderRNA *brna)
   prop = RNA_def_property(srna, "reactor_target_object", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "target_ob");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop,
                            "Reactor Target Object",
                            "For reactor systems, the object that has the target particle system "
@@ -3995,6 +3994,8 @@ static void rna_def_particle_system(BlenderRNA *brna)
       prop, "Timestep", "The current simulation time step size, as a fraction of a frame");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+  RNA_define_lib_overridable(false);
+
   RNA_def_struct_path_func(srna, "rna_ParticleSystem_path");
 
   /* extract cached hair location data */
@@ -4015,7 +4016,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  prop = RNA_def_pointer(func, "particle", "Particle", "", "Particle");
+  parm = RNA_def_pointer(func, "particle", "Particle", "", "Particle");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   RNA_def_int(func, "particle_no", 0, INT_MIN, INT_MAX, "Particle no", "", INT_MIN, INT_MAX);
   RNA_def_int(func, "uv_no", 0, INT_MIN, INT_MAX, "UV no", "", INT_MIN, INT_MAX);

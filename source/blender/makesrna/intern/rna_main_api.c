@@ -172,6 +172,9 @@ static Camera *rna_Main_cameras_new(Main *bmain, const char *name)
 
   ID *id = BKE_camera_add(bmain, safe_name);
   id_us_min(id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return (Camera *)id;
 }
 
@@ -180,16 +183,20 @@ static Scene *rna_Main_scenes_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  return BKE_scene_add(bmain, safe_name);
+  Scene *scene = BKE_scene_add(bmain, safe_name);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
+  return scene;
 }
 static void rna_Main_scenes_remove(
     Main *bmain, bContext *C, ReportList *reports, PointerRNA *scene_ptr, bool do_unlink)
 {
   /* don't call BKE_id_free(...) directly */
   Scene *scene = scene_ptr->data;
-  Scene *scene_new;
 
-  if ((scene_new = scene->id.prev) || (scene_new = scene->id.next)) {
+  if (BKE_scene_can_be_removed(bmain, scene)) {
+    Scene *scene_new = scene->id.prev ? scene->id.prev : scene->id.next;
     if (do_unlink) {
       wmWindow *win = CTX_wm_window(C);
 
@@ -209,8 +216,10 @@ static void rna_Main_scenes_remove(
     rna_Main_ID_remove(bmain, reports, scene_ptr, do_unlink, true, true);
   }
   else {
-    BKE_reportf(
-        reports, RPT_ERROR, "Scene '%s' is the last, cannot be removed", scene->id.name + 2);
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Scene '%s' is the last local one, cannot be removed",
+                scene->id.name + 2);
   }
 }
 
@@ -249,6 +258,8 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
   ob->data = data;
   BKE_object_materials_test(bmain, ob, ob->data);
 
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return ob;
 }
 
@@ -259,6 +270,9 @@ static Material *rna_Main_materials_new(Main *bmain, const char *name)
 
   ID *id = (ID *)BKE_material_add(bmain, safe_name);
   id_us_min(id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return (Material *)id;
 }
 
@@ -309,6 +323,9 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 
   Mesh *me = BKE_mesh_add(bmain, safe_name);
   id_us_min(&me->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return me;
 }
 
@@ -331,7 +348,12 @@ static Mesh *rna_Main_meshes_new_from_object(Main *bmain,
       return NULL;
   }
 
-  return BKE_mesh_new_from_object_to_bmain(bmain, depsgraph, object, preserve_all_data_layers);
+  Mesh *mesh = BKE_mesh_new_from_object_to_bmain(
+      bmain, depsgraph, object, preserve_all_data_layers);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
+  return mesh;
 }
 
 static Light *rna_Main_lights_new(Main *bmain, const char *name, int type)
@@ -342,6 +364,9 @@ static Light *rna_Main_lights_new(Main *bmain, const char *name, int type)
   Light *lamp = BKE_light_add(bmain, safe_name);
   lamp->type = type;
   id_us_min(&lamp->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return lamp;
 }
 
@@ -371,6 +396,9 @@ static Image *rna_Main_images_new(Main *bmain,
                                          is_data,
                                          tiled);
   id_us_min(&image->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return image;
 }
 static Image *rna_Main_images_load(Main *bmain,
@@ -397,6 +425,9 @@ static Image *rna_Main_images_load(Main *bmain,
   }
 
   id_us_min((ID *)ima);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return ima;
 }
 
@@ -407,6 +438,9 @@ static Lattice *rna_Main_lattices_new(Main *bmain, const char *name)
 
   Lattice *lt = BKE_lattice_add(bmain, safe_name);
   id_us_min(&lt->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return lt;
 }
 
@@ -417,6 +451,9 @@ static Curve *rna_Main_curves_new(Main *bmain, const char *name, int type)
 
   Curve *cu = BKE_curve_add(bmain, safe_name, type);
   id_us_min(&cu->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return cu;
 }
 
@@ -427,6 +464,9 @@ static MetaBall *rna_Main_metaballs_new(Main *bmain, const char *name)
 
   MetaBall *mb = BKE_mball_add(bmain, safe_name);
   id_us_min(&mb->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return mb;
 }
 
@@ -452,6 +492,9 @@ static VFont *rna_Main_fonts_load(Main *bmain,
                 filepath,
                 errno ? strerror(errno) : TIP_("unsupported font format"));
   }
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return font;
 }
 
@@ -463,6 +506,9 @@ static Tex *rna_Main_textures_new(Main *bmain, const char *name, int type)
   Tex *tex = BKE_texture_add(bmain, safe_name);
   BKE_texture_type_set(tex, type);
   id_us_min(&tex->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return tex;
 }
 
@@ -473,6 +519,9 @@ static Brush *rna_Main_brushes_new(Main *bmain, const char *name, int mode)
 
   Brush *brush = BKE_brush_add(bmain, safe_name, mode);
   id_us_min(&brush->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return brush;
 }
 
@@ -490,6 +539,9 @@ static World *rna_Main_worlds_new(Main *bmain, const char *name)
 
   World *world = BKE_world_add(bmain, safe_name);
   id_us_min(&world->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return world;
 }
 
@@ -498,7 +550,11 @@ static Collection *rna_Main_collections_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  return BKE_collection_add(bmain, NULL, safe_name);
+  Collection *collection = BKE_collection_add(bmain, NULL, safe_name);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
+  return collection;
 }
 
 static Speaker *rna_Main_speakers_new(Main *bmain, const char *name)
@@ -508,6 +564,9 @@ static Speaker *rna_Main_speakers_new(Main *bmain, const char *name)
 
   Speaker *speaker = BKE_speaker_add(bmain, safe_name);
   id_us_min(&speaker->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return speaker;
 }
 
@@ -523,6 +582,9 @@ static bSound *rna_Main_sounds_load(Main *bmain, const char *name, bool check_ex
   }
 
   id_us_min(&sound->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return sound;
 }
 
@@ -531,7 +593,11 @@ static Text *rna_Main_texts_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  return BKE_text_add(bmain, safe_name);
+  Text *text = BKE_text_add(bmain, safe_name);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
+  return text;
 }
 
 static Text *rna_Main_texts_load(Main *bmain,
@@ -551,6 +617,9 @@ static Text *rna_Main_texts_load(Main *bmain,
                 filepath,
                 errno ? strerror(errno) : TIP_("unable to load text"));
   }
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return txt;
 }
 
@@ -561,6 +630,9 @@ static bArmature *rna_Main_armatures_new(Main *bmain, const char *name)
 
   bArmature *arm = BKE_armature_add(bmain, safe_name);
   id_us_min(&arm->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return arm;
 }
 
@@ -571,6 +643,9 @@ static bAction *rna_Main_actions_new(Main *bmain, const char *name)
 
   bAction *act = BKE_action_add(bmain, safe_name);
   id_fake_user_clear(&act->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return act;
 }
 
@@ -581,6 +656,9 @@ static ParticleSettings *rna_Main_particles_new(Main *bmain, const char *name)
 
   ParticleSettings *part = BKE_particlesettings_add(bmain, safe_name);
   id_us_min(&part->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return part;
 }
 
@@ -591,6 +669,9 @@ static Palette *rna_Main_palettes_new(Main *bmain, const char *name)
 
   Palette *palette = BKE_palette_add(bmain, safe_name);
   id_us_min(&palette->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return (Palette *)palette;
 }
 
@@ -622,6 +703,9 @@ static MovieClip *rna_Main_movieclip_load(Main *bmain,
   }
 
   id_us_min((ID *)clip);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return clip;
 }
 
@@ -630,7 +714,11 @@ static Mask *rna_Main_mask_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  return BKE_mask_new(bmain, safe_name);
+  Mask *mask = BKE_mask_new(bmain, safe_name);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
+  return mask;
 }
 
 static FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name)
@@ -640,6 +728,9 @@ static FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char *name
 
   FreestyleLineStyle *linestyle = BKE_linestyle_new(bmain, safe_name);
   id_us_min(&linestyle->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return linestyle;
 }
 
@@ -653,6 +744,9 @@ static LightProbe *rna_Main_lightprobe_new(Main *bmain, const char *name, int ty
   BKE_lightprobe_type_set(probe, type);
 
   id_us_min(&probe->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return probe;
 }
 
@@ -663,6 +757,9 @@ static bGPdata *rna_Main_gpencils_new(Main *bmain, const char *name)
 
   bGPdata *gpd = BKE_gpencil_data_addnew(bmain, safe_name);
   id_us_min(&gpd->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return gpd;
 }
 
@@ -674,6 +771,9 @@ static Hair *rna_Main_hairs_new(Main *bmain, const char *name)
 
   Hair *hair = BKE_hair_add(bmain, safe_name);
   id_us_min(&hair->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return hair;
 }
 #  endif
@@ -686,6 +786,9 @@ static PointCloud *rna_Main_pointclouds_new(Main *bmain, const char *name)
 
   PointCloud *pointcloud = BKE_pointcloud_add(bmain, safe_name);
   id_us_min(&pointcloud->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return pointcloud;
 }
 #  endif
@@ -697,6 +800,9 @@ static Volume *rna_Main_volumes_new(Main *bmain, const char *name)
 
   Volume *volume = BKE_volume_add(bmain, safe_name);
   id_us_min(&volume->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return volume;
 }
 
@@ -708,6 +814,9 @@ static Simulation *rna_Main_simulations_new(Main *bmain, const char *name)
 
   Simulation *simulation = BKE_simulation_add(bmain, safe_name);
   id_us_min(&simulation->id);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return simulation;
 }
 #  endif

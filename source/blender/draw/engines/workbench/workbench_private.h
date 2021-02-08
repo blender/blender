@@ -70,6 +70,7 @@ extern struct DrawEngineType draw_engine_workbench;
 #define OBJECT_ID_PASS_ENABLED(wpd) (OBJECT_OUTLINE_ENABLED(wpd) || CURVATURE_ENABLED(wpd))
 #define NORMAL_ENCODING_ENABLED() (true)
 
+struct Object;
 struct RenderEngine;
 struct RenderLayer;
 struct rcti;
@@ -224,7 +225,7 @@ BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_Material, 16)
 typedef struct WORKBENCH_Prepass {
   /** Hash storing shading group for each Material or GPUTexture to reduce state changes. */
   struct GHash *material_hash;
-  /** First common (non-vcol and non-image colored) shading group to created subgroups. */
+  /** First common (non-vertex-color and non-image-colored) shading group to created subgroups. */
   struct DRWShadingGroup *common_shgrp;
   /** First Vertex Color shading group to created subgroups. */
   struct DRWShadingGroup *vcol_shgrp;
@@ -351,6 +352,9 @@ typedef struct WORKBENCH_PrivateData {
   float dof_rotation;
   float dof_ratio;
 
+  /* Camera override for rendering. */
+  struct Object *cam_original_ob;
+
   /** True if any volume needs to be rendered. */
   bool volumes_do;
   /** Convenience boolean. */
@@ -380,7 +384,7 @@ typedef struct WORKBENCH_ViewLayerData {
   struct GPUUniformBuf *cavity_sample_ubo;
   /** Blue noise texture used to randomize the sampling of some effects.*/
   struct GPUTexture *cavity_jitter_tx;
-  /** Materials ubos allocated in a memblock for easy bookeeping. */
+  /** Materials UBO's allocated in a memblock for easy bookkeeping. */
   struct BLI_memblock *material_ubo;
   struct BLI_memblock *material_ubo_data;
   /** Number of samples for which cavity_sample_ubo is valid. */
@@ -504,6 +508,7 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
   workbench_image_setup_ex(wpd, ob, mat_nr, ima, iuser, interp, WORKBENCH_DATATYPE_HAIR)
 
 /* workbench_data.c */
+void workbench_private_data_alloc(WORKBENCH_StorageList *stl);
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
 void workbench_update_world_ubo(WORKBENCH_PrivateData *wpd);
 void workbench_update_material_ubos(WORKBENCH_PrivateData *wpd);
@@ -513,7 +518,7 @@ struct GPUUniformBuf *workbench_material_ubo_alloc(WORKBENCH_PrivateData *wpd);
 void workbench_volume_engine_init(WORKBENCH_Data *vedata);
 void workbench_volume_cache_init(WORKBENCH_Data *vedata);
 void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
-                                     struct Scene *UNUSED(scene),
+                                     struct Scene *scene,
                                      struct Object *ob,
                                      struct ModifierData *md,
                                      eV3DShadingColorType color_type);

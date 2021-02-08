@@ -88,17 +88,16 @@ static int add_marker_exec(bContext *C, wmOperator *op)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   float pos[2];
 
+  ClipViewLockState lock_state;
+  ED_clip_view_lock_state_store(C, &lock_state);
+
   RNA_float_get_array(op->ptr, "location", pos);
 
   if (!add_marker(C, pos[0], pos[1])) {
     return OPERATOR_CANCELLED;
   }
 
-  /* Reset offset from locked position, so frame jumping wouldn't be so
-   * confusing.
-   */
-  sc->xlockof = 0;
-  sc->ylockof = 0;
+  ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
 
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
@@ -244,8 +243,6 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
       changed = true;
     }
   }
-  /* Nothing selected now, unlock view so it can be scrolled nice again. */
-  sc->flag &= ~SC_LOCK_SELECTION;
   if (changed) {
     WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
   }
@@ -312,11 +309,6 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
         changed = true;
       }
     }
-  }
-
-  if (!has_selection) {
-    /* Nothing selected now, unlock view so it can be scrolled nice again. */
-    sc->flag &= ~SC_LOCK_SELECTION;
   }
 
   if (!changed) {
@@ -1225,13 +1217,6 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
     clip->tracking.act_plane_track = NULL;
   }
 
-  if (unselected == 0) {
-    /* No selection on screen now, unlock view so it can be
-     * scrolled nice again.
-     */
-    sc->flag &= ~SC_LOCK_SELECTION;
-  }
-
   BKE_tracking_dopesheet_tag_update(tracking);
   WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
@@ -1488,6 +1473,97 @@ void CLIP_OT_join_tracks(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/********************** Average tracks operator *********************/
+
+static int average_tracks_exec(bContext *C, wmOperator *op)
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  MovieTracking *tracking = &clip->tracking;
+
+  /* Collect source tracks. */
+  int num_source_tracks;
+  MovieTrackingTrack **source_tracks = BKE_tracking_selected_tracks_in_active_object(
+      tracking, &num_source_tracks);
+  if (num_source_tracks == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Create new empty track, which will be the averaged result.
+   * Makes it simple to average all selection  to it. */
+  ListBase *tracks_list = BKE_tracking_get_active_tracks(tracking);
+  MovieTrackingTrack *result_track = BKE_tracking_track_add_empty(tracking, tracks_list);
+
+  /* Perform averaging. */
+  BKE_tracking_tracks_average(result_track, source_tracks, num_source_tracks);
+
+  const bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
+  if (!keep_original) {
+    for (int i = 0; i < num_source_tracks; i++) {
+      clip_delete_track(C, clip, source_tracks[i]);
+    }
+  }
+
+  /* Update selection, making the result track active and selected. */
+  /* TODO(sergey): Should become some sort of utility function available for all operators. */
+
+  BKE_tracking_track_select(tracks_list, result_track, TRACK_AREA_ALL, 0);
+  ListBase *plane_tracks_list = BKE_tracking_get_active_plane_tracks(tracking);
+  BKE_tracking_plane_tracks_deselect_all(plane_tracks_list);
+
+  clip->tracking.act_track = result_track;
+  clip->tracking.act_plane_track = NULL;
+
+  /* Inform the dependency graph and interface about changes. */
+  DEG_id_tag_update(&clip->id, 0);
+  WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
+
+  /* Free memory. */
+  MEM_freeN(source_tracks);
+
+  return OPERATOR_FINISHED;
+}
+
+static int average_tracks_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  PropertyRNA *prop_keep_original = RNA_struct_find_property(op->ptr, "keep_original");
+  if (!RNA_property_is_set(op->ptr, prop_keep_original)) {
+    SpaceClip *space_clip = CTX_wm_space_clip(C);
+    MovieClip *clip = ED_space_clip_get_clip(space_clip);
+    MovieTracking *tracking = &clip->tracking;
+
+    const int num_selected_tracks = BKE_tracking_count_selected_tracks_in_active_object(tracking);
+
+    if (num_selected_tracks == 1) {
+      RNA_property_boolean_set(op->ptr, prop_keep_original, false);
+    }
+  }
+
+  return average_tracks_exec(C, op);
+}
+
+void CLIP_OT_average_tracks(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Average Tracks";
+  ot->description = "Average selected tracks into active";
+  ot->idname = "CLIP_OT_average_tracks";
+
+  /* API callbacks. */
+  ot->exec = average_tracks_exec;
+  ot->invoke = average_tracks_invoke;
+  ot->poll = ED_space_clip_tracking_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties. */
+  PropertyRNA *prop;
+
+  prop = RNA_def_boolean(ot->srna, "keep_original", 1, "Keep Original", "Keep original tracks");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /********************** lock tracks operator *********************/

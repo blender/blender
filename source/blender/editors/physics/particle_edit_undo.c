@@ -247,7 +247,7 @@ static bool particle_undosys_step_encode(struct bContext *C,
 static void particle_undosys_step_decode(struct bContext *C,
                                          struct Main *UNUSED(bmain),
                                          UndoStep *us_p,
-                                         int UNUSED(dir),
+                                         const eUndoStepDir UNUSED(dir),
                                          bool UNUSED(is_final))
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -299,7 +299,7 @@ void ED_particle_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = particle_undosys_foreach_ID_ref;
 
-  ut->use_context = true;
+  ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE;
 
   ut->step_size = sizeof(ParticleUndoStep);
 }

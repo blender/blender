@@ -128,7 +128,7 @@ static struct VolumeFileCache {
       std::lock_guard<std::mutex> lock(mutex);
       return simplified_grids.lookup_or_add_cb(simplify_level, [&]() {
         const float resolution_factor = 1.0f / (1 << simplify_level);
-        const VolumeGridType grid_type = BKE_volume_grid_type_openvdb(grid);
+        const VolumeGridType grid_type = BKE_volume_grid_type_openvdb(*grid);
         return BKE_volume_grid_create_with_changed_resolution(grid_type, *grid, resolution_factor);
       });
     }
@@ -145,7 +145,7 @@ static struct VolumeFileCache {
 
     /* Has the grid tree been loaded? */
     bool is_loaded;
-    /* Error message if an error occured during loading. */
+    /* Error message if an error occurred while loading. */
     std::string error_msg;
     /* User counting. */
     int num_metadata_users;
@@ -252,7 +252,7 @@ static struct VolumeFileCache {
   }
 
   /* Cache contents */
-  typedef std::unordered_set<Entry, EntryHasher, EntryEqual> EntrySet;
+  using EntrySet = std::unordered_set<Entry, EntryHasher, EntryEqual>;
   EntrySet cache;
   /* Mutex for multithreaded access. */
   std::mutex mutex;
@@ -523,6 +523,8 @@ static void volume_copy_data(Main *UNUSED(bmain),
     volume_dst->runtime.grids = OBJECT_GUARDED_NEW(VolumeGridVector, grids_src);
   }
 #endif
+
+  volume_dst->batch_cache = nullptr;
 }
 
 static void volume_free_data(ID *id)
@@ -642,6 +644,8 @@ IDTypeInfo IDType_ID_VO = {
     /* blend_read_expand */ volume_blend_read_expand,
 
     /* blend_read_undo_preserve */ nullptr,
+
+    /* lib_override_apply_post */ nullptr,
 };
 
 void BKE_volume_init_grids(Volume *volume)
@@ -783,21 +787,22 @@ bool BKE_volume_load(Volume *volume, Main *bmain)
 
   /* Get absolute file path at current frame. */
   const char *volume_name = volume->id.name + 2;
-  volume_filepath_get(bmain, volume, grids.filepath);
+  char filepath[FILE_MAX];
+  volume_filepath_get(bmain, volume, filepath);
 
-  CLOG_INFO(&LOG, 1, "Volume %s: load %s", volume_name, grids.filepath);
+  CLOG_INFO(&LOG, 1, "Volume %s: load %s", volume_name, filepath);
 
   /* Test if file exists. */
-  if (!BLI_exists(grids.filepath)) {
+  if (!BLI_exists(filepath)) {
     char filename[FILE_MAX];
-    BLI_split_file_part(grids.filepath, filename, sizeof(filename));
+    BLI_split_file_part(filepath, filename, sizeof(filename));
     grids.error_msg = filename + std::string(" not found");
     CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
     return false;
   }
 
   /* Open OpenVDB file. */
-  openvdb::io::File file(grids.filepath);
+  openvdb::io::File file(filepath);
   openvdb::GridPtrVec vdb_grids;
 
   try {
@@ -814,10 +819,12 @@ bool BKE_volume_load(Volume *volume, Main *bmain)
   /* Add grids read from file to own vector, filtering out any NULL pointers. */
   for (const openvdb::GridBase::Ptr &vdb_grid : vdb_grids) {
     if (vdb_grid) {
-      VolumeFileCache::Entry template_entry(grids.filepath, vdb_grid);
+      VolumeFileCache::Entry template_entry(filepath, vdb_grid);
       grids.emplace_back(template_entry, volume->runtime.default_simplify_level);
     }
   }
+
+  BLI_strncpy(grids.filepath, filepath, FILE_MAX);
 
   return grids.error_msg.empty();
 #else
@@ -1230,39 +1237,39 @@ const char *BKE_volume_grid_name(const VolumeGrid *volume_grid)
 }
 
 #ifdef WITH_OPENVDB
-VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase::Ptr &grid)
+VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase &grid)
 {
-  if (grid->isType<openvdb::FloatGrid>()) {
+  if (grid.isType<openvdb::FloatGrid>()) {
     return VOLUME_GRID_FLOAT;
   }
-  if (grid->isType<openvdb::Vec3fGrid>()) {
+  if (grid.isType<openvdb::Vec3fGrid>()) {
     return VOLUME_GRID_VECTOR_FLOAT;
   }
-  if (grid->isType<openvdb::BoolGrid>()) {
+  if (grid.isType<openvdb::BoolGrid>()) {
     return VOLUME_GRID_BOOLEAN;
   }
-  if (grid->isType<openvdb::DoubleGrid>()) {
+  if (grid.isType<openvdb::DoubleGrid>()) {
     return VOLUME_GRID_DOUBLE;
   }
-  if (grid->isType<openvdb::Int32Grid>()) {
+  if (grid.isType<openvdb::Int32Grid>()) {
     return VOLUME_GRID_INT;
   }
-  if (grid->isType<openvdb::Int64Grid>()) {
+  if (grid.isType<openvdb::Int64Grid>()) {
     return VOLUME_GRID_INT64;
   }
-  if (grid->isType<openvdb::Vec3IGrid>()) {
+  if (grid.isType<openvdb::Vec3IGrid>()) {
     return VOLUME_GRID_VECTOR_INT;
   }
-  if (grid->isType<openvdb::Vec3dGrid>()) {
+  if (grid.isType<openvdb::Vec3dGrid>()) {
     return VOLUME_GRID_VECTOR_DOUBLE;
   }
-  if (grid->isType<openvdb::StringGrid>()) {
+  if (grid.isType<openvdb::StringGrid>()) {
     return VOLUME_GRID_STRING;
   }
-  if (grid->isType<openvdb::MaskGrid>()) {
+  if (grid.isType<openvdb::MaskGrid>()) {
     return VOLUME_GRID_MASK;
   }
-  if (grid->isType<openvdb::points::PointDataGrid>()) {
+  if (grid.isType<openvdb::points::PointDataGrid>()) {
     return VOLUME_GRID_POINTS;
   }
   return VOLUME_GRID_UNKNOWN;
@@ -1273,7 +1280,7 @@ VolumeGridType BKE_volume_grid_type(const VolumeGrid *volume_grid)
 {
 #ifdef WITH_OPENVDB
   const openvdb::GridBase::Ptr grid = volume_grid->grid();
-  return BKE_volume_grid_type_openvdb(grid);
+  return BKE_volume_grid_type_openvdb(*grid);
 #else
   UNUSED_VARS(volume_grid);
 #endif

@@ -93,7 +93,7 @@ typedef char DRWViewportEmptyList;
 #define DRW_VIEWPORT_LIST_SIZE(list) \
   (sizeof(list) == sizeof(DRWViewportEmptyList) ? 0 : ((sizeof(list)) / sizeof(void *)))
 
-/* Unused members must be either pass list or 'char *' when not usd. */
+/* Unused members must be either pass list or 'char *' when not used. */
 #define DRW_VIEWPORT_DATA_SIZE(ty) \
   { \
     DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->fbl)), DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->txl)), \
@@ -131,6 +131,7 @@ typedef struct DrawEngineType {
                           struct RenderEngine *engine,
                           struct RenderLayer *layer,
                           const struct rcti *rect);
+  void (*store_metadata)(void *vedata, struct RenderResult *render_result);
 } DrawEngineType;
 
 /* Textures */
@@ -326,14 +327,14 @@ typedef enum {
   /** Culling test */
   DRW_STATE_CULL_BACK = (1 << 7),
   DRW_STATE_CULL_FRONT = (1 << 8),
-  /** Stencil test . These options are mutal exclusive and packed into 2 bits*/
+  /** Stencil test . These options are mutually exclusive and packed into 2 bits. */
   DRW_STATE_STENCIL_ALWAYS = (1 << 9),
   DRW_STATE_STENCIL_EQUAL = (2 << 9),
   DRW_STATE_STENCIL_NEQUAL = (3 << 9),
 
   /** Blend state. These options are mutual exclusive and packed into 4 bits */
   DRW_STATE_BLEND_ADD = (1 << 11),
-  /** Same as additive but let alpha accumulate without premult. */
+  /** Same as additive but let alpha accumulate without pre-multiply. */
   DRW_STATE_BLEND_ADD_FULL = (2 << 11),
   /** Standard alpha blending. */
   DRW_STATE_BLEND_ALPHA = (3 << 11),
@@ -471,7 +472,7 @@ void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint
   } while (0)
 
 /* Can only be called during iter phase. */
-uint32_t DRW_object_resource_id_get(Object *UNUSED(ob));
+uint32_t DRW_object_resource_id_get(Object *ob);
 
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state);
@@ -480,7 +481,7 @@ void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state);
  * - (compare_mask & reference) is what is tested against (compare_mask & stencil_value)
  *   stencil_value being the value stored in the stencil buffer.
  * - (write-mask & reference) is what gets written if the test condition is fulfilled.
- **/
+ */
 void DRW_shgroup_stencil_set(DRWShadingGroup *shgroup,
                              uint write_mask,
                              uint reference,

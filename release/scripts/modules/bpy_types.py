@@ -982,6 +982,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             props_default=props_default,
             filter_ext=lambda ext: ext.lower() in ext_valid,
             add_operator=add_operator,
+            display_name=lambda name: bpy.path.display_name(name, title_case=False)
         )
 
     @classmethod

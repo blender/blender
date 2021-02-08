@@ -899,7 +899,7 @@ float BKE_defvert_calc_lock_relative_weight(float weight,
   }
 
   /* handle division by zero */
-  if (locked_weight >= 1.0f) {
+  if (locked_weight >= 1.0f - VERTEX_WEIGHT_LOCK_EPSILON) {
     if (weight != 0.0f) {
       return 1.0f;
     }

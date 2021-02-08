@@ -16,8 +16,7 @@
  * Copyright 2020, Blender Foundation.
  */
 
-#ifndef __COM_EXPOSURENODE_H__
-#define __COM_EXPOSURENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -30,5 +29,3 @@ class ExposureNode : public Node {
   ExposureNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif

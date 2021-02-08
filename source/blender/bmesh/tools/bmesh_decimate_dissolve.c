@@ -188,7 +188,7 @@ static void mul_v2_m3v3_center(float r[2],
 
 static bool bm_loop_collapse_is_degenerate(BMLoop *l_ear)
 {
-  /* calculate relative to the centeral vertex for higher precision */
+  /* Calculate relative to the central vertex for higher precision. */
   const float *center = l_ear->v->co;
 
   float tri_2d[3][2];

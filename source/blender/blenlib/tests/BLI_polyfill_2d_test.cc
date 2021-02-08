@@ -291,7 +291,7 @@ static void test_polyfill_template_main(const char *id,
   (void)0
 
 /* -------------------------------------------------------------------- */
-/* visualisation functions (not needed for testing) */
+/* visualization functions (not needed for testing) */
 
 #ifdef USE_OBJ_PREVIEW
 static void polyfill_to_obj(const char *id,
@@ -491,7 +491,7 @@ TEST(polyfill2d, Spiral)
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
-/* Test case from http:# www.flipcode.com/archives/Efficient_Polygon_Triangulation.shtml */
+/* Test case from http://www.flipcode.com/archives/Efficient_Polygon_Triangulation.shtml */
 TEST(polyfill2d, TestFlipCode)
 {
   const float poly[][2] = {
@@ -561,7 +561,7 @@ TEST(polyfill2d, SelfOverlap)
   TEST_POLYFILL_TEMPLATE_STATIC(poly, true);
 }
 
-/* Test case from http:# www.davdata.nl/math/polygons.html */
+/* Test case from http://www.davdata.nl/math/polygons.html */
 TEST(polyfill2d, TestDavData)
 {
   const float poly[][2] = {
@@ -573,7 +573,7 @@ TEST(polyfill2d, TestDavData)
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
-/* Issue 815, http:# code.google.com/p/libgdx/issues/detail?id=815 */
+/* Issue 815, http://code.google.com/p/libgdx/issues/detail?id=815 */
 TEST(polyfill2d, Issue815)
 {
   const float poly[][2] = {
@@ -589,7 +589,7 @@ TEST(polyfill2d, Issue815)
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
-/* Issue 207, comment #1, http:# code.google.com/p/libgdx/issues/detail?id=207#c1 */
+/* Issue 207, comment #1, http://code.google.com/p/libgdx/issues/detail?id=207#c1 */
 TEST(polyfill2d, Issue207_1)
 {
   const float poly[][2] = {
@@ -608,8 +608,8 @@ TEST(polyfill2d, Issue207_1)
   TEST_POLYFILL_TEMPLATE_STATIC(poly, true);
 }
 
-/* Issue 207, comment #11, http:# code.google.com/p/libgdx/issues/detail?id=207#c11 */
-/* Also on issue 1081, http:# code.google.com/p/libgdx/issues/detail?id=1081 */
+/* Issue 207, comment #11, http://code.google.com/p/libgdx/issues/detail?id=207#c11 */
+/* Also on issue 1081, http://code.google.com/p/libgdx/issues/detail?id=1081 */
 TEST(polyfill2d, Issue207_11)
 {
   const float poly[][2] = {
@@ -628,7 +628,7 @@ TEST(polyfill2d, Issue207_11)
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
-/* Issue 1407, http:# code.google.com/p/libgdx/issues/detail?id=1407 */
+/* Issue 1407, http://code.google.com/p/libgdx/issues/detail?id=1407 */
 TEST(polyfill2d, Issue1407)
 {
   const float poly[][2] = {
@@ -640,7 +640,7 @@ TEST(polyfill2d, Issue1407)
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
-/* Issue 1407, http:# code.google.com/p/libgdx/issues/detail?id=1407, */
+/* Issue 1407, http://code.google.com/p/libgdx/issues/detail?id=1407, */
 /* with an additional point to show what is happening. */
 TEST(polyfill2d, Issue1407_pt)
 {
