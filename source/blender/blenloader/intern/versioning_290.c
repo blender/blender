@@ -1672,10 +1672,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "CurveMapping", "*pressure_size_curve")) {
-      LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-        BKE_brush_default_input_curves_set(br);
-      }
+    LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+      BKE_brush_default_input_curves_set(br);
     }
   }
 }
