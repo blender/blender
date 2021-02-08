@@ -15,7 +15,16 @@
  */
 
 #include "BLI_listbase.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_function_util.hh"
+
+static void fn_node_switch_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
+}
 
 static bNodeSocketTemplate fn_node_switch_in[] = {
     {SOCK_BOOLEAN, N_("Switch")},
@@ -72,5 +81,6 @@ void register_node_type_fn_switch()
   fn_node_type_base(&ntype, FN_NODE_SWITCH, "Switch", 0, 0);
   node_type_socket_templates(&ntype, fn_node_switch_in, fn_node_switch_out);
   node_type_update(&ntype, fn_node_switch_update);
+  ntype.draw_buttons = fn_node_switch_layout;
   nodeRegisterType(&ntype);
 }

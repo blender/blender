@@ -14,16 +14,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_task.hh"
+#include "BLI_timeit.hh"
+
+#include "DNA_mesh_types.h"
 
 #include "BKE_bvhutils.h"
-#include "BLI_kdopbvh.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "node_geometry_util.hh"
-
-#include "BLI_timeit.hh"
-#include "DNA_mesh_types.h"
 
 static bNodeSocketTemplate geo_node_attribute_proximity_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
@@ -36,6 +39,13 @@ static bNodeSocketTemplate geo_node_attribute_proximity_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_attribute_proximity_layout(uiLayout *layout,
+                                                bContext *UNUSED(C),
+                                                PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "target_geometry_element", 0, "", ICON_NONE);
+}
 
 static void geo_attribute_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -220,5 +230,6 @@ void register_node_type_geo_attribute_proximity()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_proximity_exec;
+  ntype.draw_buttons = geo_node_attribute_proximity_layout;
   nodeRegisterType(&ntype);
 }

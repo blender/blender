@@ -18,6 +18,9 @@
 
 #include "BKE_colorband.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_point_scale_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Factor")},
@@ -29,6 +32,11 @@ static bNodeSocketTemplate geo_node_point_scale_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_point_scale_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "input_type", 0, IFACE_("Type"), ICON_NONE);
+}
 
 namespace blender::nodes {
 
@@ -96,5 +104,6 @@ void register_node_type_geo_point_scale()
   node_type_storage(
       &ntype, "NodeGeometryPointScale", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_scale_exec;
+  ntype.draw_buttons = geo_node_point_scale_layout;
   nodeRegisterType(&ntype);
 }

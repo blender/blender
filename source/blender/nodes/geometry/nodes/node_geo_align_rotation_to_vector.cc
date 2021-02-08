@@ -18,6 +18,9 @@
 
 #include "BLI_math_rotation.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_align_rotation_to_vector_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Factor")},
@@ -31,6 +34,17 @@ static bNodeSocketTemplate geo_node_align_rotation_to_vector_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_align_rotation_to_vector_layout(uiLayout *layout,
+                                                     bContext *UNUSED(C),
+                                                     PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "pivot_axis", 0, IFACE_("Pivot"), ICON_NONE);
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "input_type_factor", 0, IFACE_("Factor"), ICON_NONE);
+  uiItemR(col, ptr, "input_type_vector", 0, IFACE_("Vector"), ICON_NONE);
+}
 
 namespace blender::nodes {
 
@@ -202,5 +216,6 @@ void register_node_type_geo_align_rotation_to_vector()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_align_rotation_to_vector_exec;
+  ntype.draw_buttons = geo_node_align_rotation_to_vector_layout;
   nodeRegisterType(&ntype);
 }

@@ -20,6 +20,9 @@
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_mesh.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_subdivision_surface_in[] = {
@@ -35,6 +38,17 @@ static bNodeSocketTemplate geo_node_subdivision_surface_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_subdivision_surface_layout(uiLayout *layout,
+                                                bContext *UNUSED(C),
+                                                PointerRNA *UNUSED(ptr))
+{
+#ifndef WITH_OPENSUBDIV
+  uiItemL(layout, IFACE_("Disabled, built without OpenSubdiv"), ICON_ERROR);
+#else
+  UNUSED_VARS(layout);
+#endif
+}
 
 namespace blender::nodes {
 static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
@@ -112,5 +126,6 @@ void register_node_type_geo_subdivision_surface()
   node_type_socket_templates(
       &ntype, geo_node_subdivision_surface_in, geo_node_subdivision_surface_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_subdivision_surface_exec;
+  ntype.draw_buttons = geo_node_subdivision_surface_layout;
   nodeRegisterType(&ntype);
 }

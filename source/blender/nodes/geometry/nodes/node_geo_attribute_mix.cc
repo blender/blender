@@ -18,6 +18,9 @@
 
 #include "DNA_material_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_attribute_mix_in[] = {
@@ -40,6 +43,15 @@ static bNodeSocketTemplate geo_node_mix_attribute_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_attribute_mix_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "blend_type", 0, "", ICON_NONE);
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "input_type_factor", 0, IFACE_("Factor"), ICON_NONE);
+  uiItemR(col, ptr, "input_type_a", 0, IFACE_("A"), ICON_NONE);
+  uiItemR(col, ptr, "input_type_b", 0, IFACE_("B"), ICON_NONE);
+}
 
 namespace blender::nodes {
 
@@ -204,6 +216,7 @@ void register_node_type_geo_attribute_mix()
   node_type_socket_templates(&ntype, geo_node_attribute_mix_in, geo_node_mix_attribute_out);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_mix_init);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_mix_update);
+  ntype.draw_buttons = geo_node_attribute_mix_layout;
   node_type_storage(
       &ntype, "NodeAttributeMix", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_mix_exec;

@@ -19,6 +19,9 @@
 #include "BLI_hash.h"
 #include "BLI_rand.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
@@ -37,6 +40,13 @@ static bNodeSocketTemplate geo_node_attribute_randomize_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_attribute_random_layout(uiLayout *layout,
+                                             bContext *UNUSED(C),
+                                             PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
+}
 
 static void geo_node_attribute_randomize_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -215,5 +225,6 @@ void register_node_type_geo_attribute_randomize()
   node_type_init(&ntype, geo_node_attribute_randomize_init);
   node_type_update(&ntype, geo_node_attribute_randomize_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_random_attribute_exec;
+  ntype.draw_buttons = geo_node_attribute_random_layout;
   nodeRegisterType(&ntype);
 }

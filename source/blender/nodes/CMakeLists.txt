@@ -26,6 +26,7 @@ set(INC
   intern
   shader
   texture
+  ../editors/include
   ../blenkernel
   ../blenlib
   ../blentranslation

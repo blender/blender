@@ -18,6 +18,9 @@
 
 #include "BKE_colorband.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_attribute_color_ramp_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Attribute")},
@@ -29,6 +32,13 @@ static bNodeSocketTemplate geo_node_attribute_color_ramp_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_attribute_color_ramp_layout(uiLayout *layout,
+                                                 bContext *UNUSED(C),
+                                                 PointerRNA *ptr)
+{
+  uiTemplateColorRamp(layout, ptr, "color_ramp", 0);
+}
 
 namespace blender::nodes {
 
@@ -104,5 +114,6 @@ void register_node_type_geo_attribute_color_ramp()
   node_type_init(&ntype, blender::nodes::geo_node_attribute_color_ramp_init);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_color_ramp_exec;
+  ntype.draw_buttons = geo_node_attribute_color_ramp_layout;
   nodeRegisterType(&ntype);
 }

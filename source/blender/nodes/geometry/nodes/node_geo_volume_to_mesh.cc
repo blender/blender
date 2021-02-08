@@ -31,6 +31,9 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_volume_to_mesh_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Grid")},
@@ -45,6 +48,13 @@ static bNodeSocketTemplate geo_node_volume_to_mesh_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_volume_to_mesh_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "resolution_mode", 0, IFACE_("Resolution"), ICON_NONE);
+}
 
 namespace blender::nodes {
 
@@ -156,5 +166,6 @@ void register_node_type_geo_volume_to_mesh()
   node_type_init(&ntype, blender::nodes::geo_node_volume_to_mesh_init);
   node_type_update(&ntype, blender::nodes::geo_node_volume_to_mesh_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_volume_to_mesh_exec;
+  ntype.draw_buttons = geo_node_volume_to_mesh_layout;
   nodeRegisterType(&ntype);
 }

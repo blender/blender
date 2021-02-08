@@ -26,6 +26,9 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "NOD_math_functions.hh"
 
 static bNodeSocketTemplate geo_node_attribute_math_in[] = {
@@ -44,18 +47,6 @@ static bNodeSocketTemplate geo_node_attribute_math_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
-
-static void geo_node_attribute_math_init(bNodeTree *UNUSED(tree), bNode *node)
-{
-  NodeAttributeMath *data = (NodeAttributeMath *)MEM_callocN(sizeof(NodeAttributeMath),
-                                                             "NodeAttributeMath");
-
-  data->operation = NODE_MATH_ADD;
-  data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
-  data->input_type_b = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
-  data->input_type_c = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
-  node->storage = data;
-}
 
 static bool operation_use_input_c(const NodeMathOperation operation)
 {
@@ -115,6 +106,34 @@ static bool operation_use_input_b(const NodeMathOperation operation)
   }
   BLI_assert(false);
   return false;
+}
+
+static void geo_node_attribute_math_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeAttributeMath *node_storage = (NodeAttributeMath *)node->storage;
+  NodeMathOperation operation = (NodeMathOperation)node_storage->operation;
+
+  uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "input_type_a", 0, IFACE_("Type A"), ICON_NONE);
+
+  if (operation_use_input_b(operation)) {
+    uiItemR(layout, ptr, "input_type_b", 0, IFACE_("Type B"), ICON_NONE);
+  }
+  if (operation_use_input_c(operation)) {
+    uiItemR(layout, ptr, "input_type_c", 0, IFACE_("Type C"), ICON_NONE);
+  }
+}
+
+static void geo_node_attribute_math_init(bNodeTree *UNUSED(tree), bNode *node)
+{
+  NodeAttributeMath *data = (NodeAttributeMath *)MEM_callocN(sizeof(NodeAttributeMath), __func__);
+
+  data->operation = NODE_MATH_ADD;
+  data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  data->input_type_b = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  data->input_type_c = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  node->storage = data;
 }
 
 namespace blender::nodes {
@@ -267,6 +286,7 @@ void register_node_type_geo_attribute_math()
   geo_node_type_base(&ntype, GEO_NODE_ATTRIBUTE_MATH, "Attribute Math", NODE_CLASS_ATTRIBUTE, 0);
   node_type_socket_templates(&ntype, geo_node_attribute_math_in, geo_node_attribute_math_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_math_exec;
+  ntype.draw_buttons = geo_node_attribute_math_layout;
   node_type_update(&ntype, blender::nodes::geo_node_attribute_math_update);
   node_type_init(&ntype, geo_node_attribute_math_init);
   node_type_storage(

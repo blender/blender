@@ -18,6 +18,9 @@
 
 #include "RNA_enum_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 extern "C" {
@@ -38,6 +41,12 @@ static bNodeSocketTemplate geo_node_triangulate_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_triangulate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "quad_method", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "ngon_method", 0, "", ICON_NONE);
+}
 
 static void geo_triangulate_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -75,5 +84,6 @@ void register_node_type_geo_triangulate()
   node_type_socket_templates(&ntype, geo_node_triangulate_in, geo_node_triangulate_out);
   node_type_init(&ntype, geo_triangulate_init);
   ntype.geometry_node_execute = blender::nodes::geo_node_triangulate_exec;
+  ntype.draw_buttons = geo_node_triangulate_layout;
   nodeRegisterType(&ntype);
 }

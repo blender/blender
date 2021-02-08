@@ -25,6 +25,9 @@
 #include "BKE_lib_id.h"
 #include "BKE_volume.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_points_to_volume_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_FLOAT, N_("Density"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
@@ -39,6 +42,16 @@ static bNodeSocketTemplate geo_node_point_translate_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_points_to_volume_layout(uiLayout *layout,
+                                             bContext *UNUSED(C),
+                                             PointerRNA *ptr)
+{
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "resolution_mode", 0, IFACE_("Resolution"), ICON_NONE);
+  uiItemR(layout, ptr, "input_type_radius", 0, IFACE_("Radius"), ICON_NONE);
+}
 
 namespace blender::nodes {
 
@@ -255,5 +268,6 @@ void register_node_type_geo_points_to_volume()
   node_type_init(&ntype, blender::nodes::geo_node_points_to_volume_init);
   node_type_update(&ntype, blender::nodes::geo_node_points_to_volume_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_points_to_volume_exec;
+  ntype.draw_buttons = geo_node_points_to_volume_layout;
   nodeRegisterType(&ntype);
 }
