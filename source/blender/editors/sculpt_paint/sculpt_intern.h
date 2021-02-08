@@ -1176,6 +1176,9 @@ typedef enum eSculptExpandRecursionType {
   SCULPT_EXPAND_RECURSION_GEODESICS,
 } eSculptExpandRecursionType;
 
+#define EXPAND_SYMM_AREAS 8
+#define EXPAND_ACTIVE_COMPOMENT_NONE -1
+
 typedef struct ExpandCache {
   eSculptExpandTargetType target;
 
@@ -1192,6 +1195,8 @@ typedef struct ExpandCache {
   int initial_active_vertex;
   int initial_active_face_set;
   int next_face_set;
+
+  int active_connected_components[EXPAND_SYMM_AREAS];
 
   GSet *snap_enabled_face_sets;
 

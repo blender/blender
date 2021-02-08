@@ -116,9 +116,33 @@ static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
 
 #define SCULPT_EXPAND_LOOP_THRESHOLD 0.00001f
 
+static bool sculpt_expand_is_vert_in_active_compoment(SculptSession *ss,
+                                                      ExpandCache *expand_cache,
+                                                      const int v)
+{
+  for (int i = 0; i < EXPAND_SYMM_AREAS; i++) {
+    if (ss->vertex_info.connected_component[v] == expand_cache->active_connected_components[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
+                                                      ExpandCache *expand_cache,
+                                                      const int f)
+{
+  const MLoop *loop = &ss->mloop[ss->mpoly[f].loopstart];
+  return sculpt_expand_is_vert_in_active_compoment(ss, expand_cache, loop->v);
+}
+
 static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int i)
 {
   if (!SCULPT_vertex_visible_get(ss, i)) {
+    return false;
+  }
+
+  if (!sculpt_expand_is_vert_in_active_compoment(ss, expand_cache, i)) {
     return false;
   }
 
@@ -147,6 +171,10 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
 static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_cache, const int f)
 {
   if (ss->face_sets[f] <= 0) {
+    return false;
+  }
+
+  if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, f)) {
     return false;
   }
 
@@ -505,6 +533,11 @@ static void sculpt_expand_update_max_face_falloff_factor(SculptSession *ss,
     if (expand_cache->face_falloff_factor[i] == FLT_MAX) {
       continue;
     }
+
+    if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, i)) {
+      continue;
+    }
+
     expand_cache->max_face_falloff_factor = max_ff(expand_cache->max_face_falloff_factor,
                                                    expand_cache->face_falloff_factor[i]);
   }
@@ -1219,6 +1252,34 @@ static void sculpt_expand_resursion_step_add(Object *ob,
   MEM_freeN(enabled_vertices);
 }
 
+static void sculpt_expand_find_active_connected_components_from_vert(Object *ob,
+                                                                     ExpandCache *expand_cache,
+                                                                     const int initial_vertex)
+{
+  SculptSession *ss = ob->sculpt;
+  for (int i = 0; i < EXPAND_SYMM_AREAS; i++) {
+    expand_cache->active_connected_components[i] = EXPAND_ACTIVE_COMPOMENT_NONE;
+  }
+
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  for (char symm_it = 0; symm_it <= symm; symm_it++) {
+    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+      continue;
+    }
+
+    int v = SCULPT_EXPAND_VERTEX_NONE;
+    if (symm_it == 0) {
+      v = initial_vertex;
+    }
+    else {
+      float location[3];
+      flip_v3_v3(location, SCULPT_vertex_co_get(ss, initial_vertex), symm_it);
+      v = SCULPT_nearest_vertex_get(NULL, ob, location, FLT_MAX, false);
+    }
+    expand_cache->active_connected_components[symm_it] = ss->vertex_info.connected_component[v];
+  }
+}
+
 static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
                                                            Object *ob,
                                                            ExpandCache *expand_cache,
@@ -1240,6 +1301,7 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
   else {
     expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
   }
+  sculpt_expand_find_active_connected_components_from_vert(ob, expand_cache, initial_vertex);
 }
 
 static void sculpt_expand_move_propagation_origin(bContext *C,
@@ -1542,6 +1604,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
+  SCULPT_connected_components_ensure(ob);
 
   /* Initialize undo. */
   SCULPT_undo_push_begin(ob, "expand");
