@@ -103,14 +103,14 @@ enum {
 #define TSE_SEQ_STRIP 27    /* NO ID */
 #define TSE_SEQUENCE_DUP 28 /* NO ID */
 #define TSE_LINKED_PSYS 29
-#define TSE_RNA_STRUCT 30     /* NO ID */
-#define TSE_RNA_PROPERTY 31   /* NO ID */
-#define TSE_RNA_ARRAY_ELEM 32 /* NO ID */
-#define TSE_NLA_TRACK 33      /* NO ID */
-#define TSE_KEYMAP 34         /* NO ID */
-#define TSE_KEYMAP_ITEM 35    /* NO ID */
-#define TSE_ID_BASE 36        /* NO ID */
-#define TSE_GP_LAYER 37       /* NO ID */
+#define TSE_RNA_STRUCT 30        /* NO ID */
+#define TSE_RNA_PROPERTY 31      /* NO ID */
+#define TSE_RNA_ARRAY_ELEM 32    /* NO ID */
+#define TSE_NLA_TRACK 33         /* NO ID */
+/* #define TSE_KEYMAP 34 */      /* UNUSED */
+/* #define TSE_KEYMAP_ITEM 35 */ /* UNUSED */
+#define TSE_ID_BASE 36           /* NO ID */
+#define TSE_GP_LAYER 37          /* NO ID */
 #define TSE_LAYER_COLLECTION 38
 #define TSE_SCENE_COLLECTION_BASE 39
 #define TSE_VIEW_COLLECTION_BASE 40
@@ -132,8 +132,6 @@ enum {
          TSE_RNA_STRUCT, \
          TSE_RNA_PROPERTY, \
          TSE_RNA_ARRAY_ELEM, \
-         TSE_KEYMAP, \
-         TSE_KEYMAP_ITEM, \
          TSE_ID_BASE, \
          TSE_GP_LAYER))
 
