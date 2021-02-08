@@ -1671,5 +1671,19 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* UV/Image Max resolution images in image editor. */
+    if (!DNA_struct_find(fd->filesdna, "SpaceImageOverlay")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+            if (space->spacetype == SPACE_IMAGE) {
+              SpaceImage *sima = (SpaceImage *)space;
+              sima->iuser.flag |= IMA_SHOW_MAX_RESOLUTION;
+            }
+          }
+        }
+      }
+    }
   }
 }
