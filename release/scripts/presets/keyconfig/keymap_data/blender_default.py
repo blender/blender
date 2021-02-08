@@ -5598,7 +5598,7 @@ def km_sculpt_expand_modal(_params):
         ("FALLOFF_TOPOLOGY", {"type": 'TWO', "value": 'PRESS', "any": True, "repeat" : False}, None),
         ("FALLOFF_TOPOLOGY_DIAGONALS", {"type": 'THREE', "value": 'PRESS', "any": True, "repeat" : False}, None),
         ("FALLOFF_SPHERICAL", {"type": 'FOUR', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("SNAP_TOGGLE", {"type": 'Z', "value": 'ANY', "any": True, "repeat" : False}, None),
+        ("SNAP_TOGGLE", {"type": 'LEFT_CTRL', "value": 'ANY', "repeat" : False}, None),
         ("LOOP_COUNT_INCREASE", {"type": 'W', "value": 'PRESS', "any": True, "repeat" : True}, None),
         ("LOOP_COUNT_DECREASE", {"type": 'Q', "value": 'PRESS', "any": True, "repeat" : True}, None),
         ("BRUSH_GRADIENT_TOGGLE", {"type": 'B', "value": 'PRESS', "any": True, "repeat" : False}, None),
