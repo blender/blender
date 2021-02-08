@@ -111,6 +111,14 @@ bool imb_is_a_bmp(const uchar *buf, size_t size)
   return checkbmp(buf, size);
 }
 
+static size_t imb_bmp_calc_row_size_in_bytes(size_t x, size_t depth)
+{
+  if (depth <= 8) {
+    return (depth * x + 31) / 32 * 4;
+  }
+  return (depth >> 3) * x;
+}
+
 ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   ImBuf *ibuf = NULL;
@@ -130,7 +138,8 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
-  bmp = mem + LITTLE_LONG(*(int *)(mem + 10));
+  const size_t pixel_data_offset = LITTLE_LONG(*(int *)(mem + 10));
+  bmp = mem + pixel_data_offset;
 
   if (CHECK_HEADER_FIELD_BMP(mem)) {
     /* skip fileheader */
@@ -149,6 +158,13 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
   depth = LITTLE_SHORT(bmi.biBitCount);
   xppm = LITTLE_LONG(bmi.biXPelsPerMeter);
   yppm = LITTLE_LONG(bmi.biYPelsPerMeter);
+
+  const size_t row_size_in_bytes = imb_bmp_calc_row_size_in_bytes(x, depth);
+  const size_t num_expected_data_bytes = row_size_in_bytes * y;
+  const size_t num_actual_data_bytes = size - pixel_data_offset;
+  if (num_actual_data_bytes < num_expected_data_bytes) {
+    return NULL;
+  }
 
   if (depth <= 8) {
     ibuf_depth = 24;
@@ -179,7 +195,6 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
     rect = (uchar *)ibuf->rect;
 
     if (depth <= 8) {
-      const int rowsize = (depth * x + 31) / 32 * 4;
       const char(*palette)[4] = (void *)(mem + skip);
       const int startmask = ((1 << depth) - 1) << 8;
       for (size_t i = y; i > 0; i--) {
@@ -212,7 +227,7 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
           }
         }
         /* Advance to the next row */
-        bmp += (rowsize - nbytes);
+        bmp += (row_size_in_bytes - nbytes);
       }
     }
     else if (depth == 16) {
