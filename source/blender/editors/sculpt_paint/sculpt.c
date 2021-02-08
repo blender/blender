@@ -3631,13 +3631,12 @@ static void sculpt_scene_project_view_ray_init(Object *ob,
 
 static void sculpt_scene_project_vertex_normal_ray_init(Object *ob,
                                                         const int vertex_index,
+                                                        const float original_normal[3],
                                                         float r_ray_normal[3],
                                                         float r_ray_origin[3])
 {
   SculptSession *ss = ob->sculpt;
-  float vertex_normal[3];
-  SCULPT_vertex_normal_get(ss, vertex_index, vertex_normal);
-  mul_v3_m4v3(r_ray_normal, ob->obmat, vertex_normal);
+  mul_v3_m4v3(r_ray_normal, ob->obmat, original_normal);
   normalize_v3(r_ray_normal);
 
   mul_v3_m4v3(r_ray_origin, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
@@ -3728,18 +3727,23 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
-  PBVHVertexIter vd;
 
   const float bstrength = clamp_f(ss->cache->bstrength, 0.0f, 1.0f);
   const Brush *brush = data->brush;
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  SculptOrigVertData orig_data;
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+
+  PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    SCULPT_orig_vert_data_update(&orig_data, &vd);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -3762,10 +3766,13 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
       case BRUSH_SCENE_PROJECT_DIRECTION_VIEW:
         sculpt_scene_project_view_ray_init(data->ob, vd.index, ray_normal, ray_origin);
         break;
-      case BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL:
-        sculpt_scene_project_vertex_normal_ray_init(data->ob, vd.index, ray_normal, ray_origin);
+      case BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL: {
+        float normal[3];
+        normal_short_to_float_v3(normal, orig_data.no);
+        sculpt_scene_project_vertex_normal_ray_init(
+            data->ob, vd.index, normal, ray_normal, ray_origin);
         use_both_directions = true;
-        break;
+      } break;
       case BRUSH_SCENE_PROJECT_DIRECTION_BRUSH_NORMAL:
         sculpt_scene_project_brush_normal_ray_init(data->ob, vd.index, ray_normal, ray_origin);
         use_both_directions = true;
@@ -3786,6 +3793,10 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
     sub_v3_v3v3(disp, hit_co, vd.co);
     mul_v3_fl(disp, fade);
     add_v3_v3(vd.co, disp);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
   }
   BKE_pbvh_vertex_iter_end;
 }
