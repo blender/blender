@@ -45,6 +45,9 @@ struct MDeformVert;
 #define GP_DEFAULT_CURVE_ERROR 0.1f
 #define GP_DEFAULT_CURVE_EDIT_CORNER_ANGLE M_PI_2
 
+#define GPENCIL_MIN_FILL_FAC 0.05f
+#define GPENCIL_MAX_FILL_FAC 5.0f
+
 /* ***************************************** */
 /* GP Stroke Points */
 
@@ -809,8 +812,9 @@ typedef enum eGP_DrawMode {
 /* Check if 'multiedit sessions' is enabled */
 #define GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) \
   ((gpd) && \
-   ((gpd)->flag & (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
-                   GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)) && \
+   ((gpd)->flag & \
+    (GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
+     GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)) && \
    ((gpd)->flag & GP_DATA_STROKE_MULTIEDIT))
 
 #define GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd) \

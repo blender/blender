@@ -975,7 +975,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_FILL_AREA: {
-      brush->size = 20.0f;
+      brush->size = 5.0f;
 
       brush->gpencil_settings->fill_leak = 3;
       brush->gpencil_settings->fill_threshold = 0.1f;
@@ -988,6 +988,8 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothfac = 0.1f;
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 1;
+
+      brush->gpencil_settings->flag |= GP_BRUSH_FILL_SHOW_EXTENDLINES;
 
       brush->gpencil_settings->icon_id = GP_BRUSH_ICON_FILL;
       brush->gpencil_tool = GPAINT_TOOL_FILL;

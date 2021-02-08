@@ -149,6 +149,11 @@ void BKE_gpencil_stroke_join(struct bGPDstroke *gps_a,
                              struct bGPDstroke *gps_b,
                              const bool leave_gaps,
                              const bool fit_thickness);
+void BKE_gpencil_stroke_copy_to_keyframes(struct bGPdata *gpd,
+                                          struct bGPDlayer *gpl,
+                                          struct bGPDframe *gpf,
+                                          struct bGPDstroke *gps,
+                                          const bool tail);
 
 bool BKE_gpencil_convert_mesh(struct Main *bmain,
                               struct Depsgraph *depsgraph,

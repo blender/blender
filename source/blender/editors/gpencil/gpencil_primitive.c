@@ -1377,6 +1377,12 @@ static void gpencil_primitive_interaction_end(bContext *C,
     BKE_gpencil_stroke_geometry_update(tgpi->gpd, gps);
   }
 
+  /* In Multiframe mode, duplicate the stroke in other frames. */
+  if (GPENCIL_MULTIEDIT_SESSIONS_ON(tgpi->gpd)) {
+    const bool tail = (ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK);
+    BKE_gpencil_stroke_copy_to_keyframes(tgpi->gpd, tgpi->gpl, gpf, gps, tail);
+  }
+
   DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_COPY_ON_WRITE);
   DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 

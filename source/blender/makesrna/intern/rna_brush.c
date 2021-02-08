@@ -1466,7 +1466,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   /* fill factor size */
   prop = RNA_def_property(srna, "fill_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "fill_factor");
-  RNA_def_property_range(prop, GPENCIL_MIN_FILL_FAC, 8.0f);
+  RNA_def_property_range(prop, GPENCIL_MIN_FILL_FAC, GPENCIL_MAX_FILL_FAC);
   RNA_def_property_ui_text(
       prop,
       "Precision",
@@ -1606,6 +1606,15 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_ui_text(prop, "Value", "Random factor to modify original value");
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+
+  /* Factor to extend stroke extremes in Fill tool. */
+  prop = RNA_def_property(srna, "extend_stroke_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "fill_extend_fac");
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_float_default(prop, 0.0f);
+  RNA_def_property_ui_text(
+      prop, "Stroke Extension", "Strokes end extension for closing gaps, use zero to disable");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
   /* Flags */
@@ -1827,11 +1836,26 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Lines", "Show help lines for filling to see boundaries");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
+  prop = RNA_def_property(srna, "show_fill_extend", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_FILL_SHOW_EXTENDLINES);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop, "Show Extend Lines", "Show help lines for stroke extension");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
   prop = RNA_def_property(srna, "show_fill", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_BRUSH_FILL_HIDE);
   RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(
       prop, "Show Fill", "Show transparent lines to use as boundary for filling");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "use_fill_autofit", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_BRUSH_FILL_FIT_DISABLE);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop,
+      "Automatic Fit",
+      "Fit the shape of the stroke to try to fill areas outside visible viewport");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "use_default_eraser", PROP_BOOLEAN, PROP_NONE);

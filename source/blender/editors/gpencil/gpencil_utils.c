@@ -3032,12 +3032,12 @@ void ED_gpencil_sbuffer_vertex_color_set(Depsgraph *depsgraph,
   }
 }
 
-/* Helper to get the bigger 2D bound box points. */
-static void gpencil_projected_2d_bound_box(GP_SpaceConversion *gsc,
-                                           bGPDstroke *gps,
-                                           const float diff_mat[4][4],
-                                           float r_min[2],
-                                           float r_max[2])
+/* Get the bigger 2D bound box points. */
+void ED_gpencil_projected_2d_bound_box(GP_SpaceConversion *gsc,
+                                       bGPDstroke *gps,
+                                       const float diff_mat[4][4],
+                                       float r_min[2],
+                                       float r_max[2])
 {
   float bounds[8][2];
   BoundBox bb;
@@ -3082,7 +3082,7 @@ bool ED_gpencil_stroke_check_collision(GP_SpaceConversion *gsc,
     BKE_gpencil_stroke_boundingbox_calc(gps);
   }
 
-  gpencil_projected_2d_bound_box(gsc, gps, diff_mat, boundbox_min, boundbox_max);
+  ED_gpencil_projected_2d_bound_box(gsc, gps, diff_mat, boundbox_min, boundbox_max);
 
   rcti rect_stroke = {boundbox_min[0], boundbox_max[0], boundbox_min[1], boundbox_max[1]};
 

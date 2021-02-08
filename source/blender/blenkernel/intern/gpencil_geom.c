@@ -3228,6 +3228,45 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
   }
 }
 
+/* Copy the stroke of the frame to all frames selected (except current). */
+void BKE_gpencil_stroke_copy_to_keyframes(
+    bGPdata *gpd, bGPDlayer *gpl, bGPDframe *gpf, bGPDstroke *gps, const bool tail)
+{
+  GHash *frame_list = BLI_ghash_int_new_ex(__func__, 64);
+  BKE_gpencil_frame_selected_hash(gpd, frame_list);
+
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, frame_list) {
+    int cfra = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
+
+    if (gpf->framenum != cfra) {
+      bGPDframe *gpf_new = BKE_gpencil_layer_frame_find(gpl, cfra);
+      if (gpf_new == NULL) {
+        gpf_new = BKE_gpencil_frame_addnew(gpl, cfra);
+      }
+
+      if (gpf_new == NULL) {
+        continue;
+      }
+
+      bGPDstroke *gps_new = BKE_gpencil_stroke_duplicate(gps, true, true);
+      if (gps_new == NULL) {
+        continue;
+      }
+
+      if (tail) {
+        BLI_addhead(&gpf_new->strokes, gps_new);
+      }
+      else {
+        BLI_addtail(&gpf_new->strokes, gps_new);
+      }
+    }
+  }
+
+  /* Free hash table. */
+  BLI_ghash_free(frame_list, NULL, NULL);
+}
+
 /* Stroke Uniform Subdivide  ------------------------------------- */
 
 typedef struct tSamplePoint {

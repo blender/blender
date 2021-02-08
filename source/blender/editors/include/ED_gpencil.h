@@ -370,6 +370,11 @@ bool ED_gpencil_stroke_point_is_inside(struct bGPDstroke *gps,
                                        struct GP_SpaceConversion *gsc,
                                        int mouse[2],
                                        const float diff_mat[4][4]);
+void ED_gpencil_projected_2d_bound_box(struct GP_SpaceConversion *gsc,
+                                       struct bGPDstroke *gps,
+                                       const float diff_mat[4][4],
+                                       float r_min[2],
+                                       float r_max[2]);
 
 struct bGPDstroke *ED_gpencil_stroke_nearest_to_ends(struct bContext *C,
                                                      struct GP_SpaceConversion *gsc,
