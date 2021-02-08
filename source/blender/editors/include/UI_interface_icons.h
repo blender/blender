@@ -23,8 +23,8 @@
 
 #pragma once
 
-/* Required for enum iconSizes which can't be forward declared if this file is included in C++. */
-#include "DNA_ID.h"
+/* Required for #eIconSizes which can't be forward declared if this file is included in C++. */
+#include "DNA_ID_enums.h"
 
 #ifdef __cplusplus
 extern "C" {
