@@ -3624,9 +3624,15 @@ static void sculpt_scene_project_view_ray_init(Object *ob,
   SculptSession *ss = ob->sculpt;
   float world_space_vertex_co[3];
   mul_v3_m4v3(world_space_vertex_co, ob->obmat, SCULPT_vertex_co_get(ss, vertex_index));
-  sub_v3_v3v3(r_ray_normal, world_space_vertex_co, ss->cache->view_origin);
-  normalize_v3(r_ray_normal);
-  copy_v3_v3(r_ray_origin, ss->cache->view_origin);
+  if (ss->cache->vc->rv3d->is_persp) {
+    sub_v3_v3v3(r_ray_normal, world_space_vertex_co, ss->cache->view_origin);
+    normalize_v3(r_ray_normal);
+    copy_v3_v3(r_ray_origin, ss->cache->view_origin);
+  }
+  else {
+    mul_v3_mat3_m4v3(r_ray_normal, ob->obmat, ss->cache->view_normal);
+    sub_v3_v3v3(r_ray_origin, world_space_vertex_co, r_ray_normal);
+  }
 }
 
 static void sculpt_scene_project_vertex_normal_ray_init(Object *ob,
