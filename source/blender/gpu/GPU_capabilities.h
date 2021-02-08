@@ -38,7 +38,7 @@ int GPU_max_textures_vert(void);
 int GPU_max_textures_geom(void);
 int GPU_max_textures_frag(void);
 
-int GPU_texture_size_with_limit(int res);
+int GPU_texture_size_with_limit(int res, bool limit_gl_texture_size);
 
 bool GPU_mip_render_workaround(void);
 bool GPU_depth_blitting_workaround(void);
