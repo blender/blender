@@ -183,7 +183,7 @@ static bool sculpt_undo_restore_deformed(
   return false;
 }
 
-__attribute__((optnone)) static bool sculpt_undo_restore_coords(bContext *C,
+static bool sculpt_undo_restore_coords(bContext *C,
                                                                 Depsgraph *depsgraph,
                                                                 SculptUndoNode *unode)
 {
@@ -327,7 +327,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
   return true;
 }
 
-__attribute__((optnone)) static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
+static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
@@ -1415,7 +1415,7 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
   return true;
 }
 
-__attribute__((optnone)) SculptUndoNode *SCULPT_undo_push_node(Object *ob,
+SculptUndoNode *SCULPT_undo_push_node(Object *ob,
                                                                PBVHNode *node,
                                                                SculptUndoType type)
 {

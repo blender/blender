@@ -948,13 +948,188 @@ static bool edge_queue_vert_in_sphere(const EdgeQueue *q, BMVert *v)
   return len_squared_v3v3(q->center, v->co) <= q->radius_squared;
 }
 
+/* reduce script
+
+on factor;
+
+ax := 0;
+ay := 0;
+
+e1x := bx - ax;
+e1y := by - ay;
+e2x := cx - bx;
+e2y := cy - by;
+e3x := ax - cx;
+e3y := ay - cy;
+
+l1 := (e1x**2 + e1y**2)**0.5;
+l2 := (e2x**2 + e2y**2)**0.5;
+l3 := (e3x**2 + e3y**2)**0.5;
+
+load_package "avector";
+
+e1 := avec(e1x / l1, e1y / l1, 0.0);
+e2 := avec(e2x / l2, e2y / l2, 0.0);
+e3 := avec(e3x / l3, e3y / l3, 0.0);
+
+ax := 0;
+ay := 0;
+
+d1 := x1*e1[1] - y1*e1[0];
+d2 := x1*e2[1] - y1*e2[0];
+d3 := x1*e3[1] - y1*e3[0];
+
+d1 := d1**2;
+d2 := d2**2;
+d3 := d3**2;
+
+on fort;
+d1;
+d2;
+d3;
+off fort;
+
+fdis := (sqrt(dis)/nz)**2 + planedis**2;
+*/
+
+static float dist_to_tri_sphere(
+    float p[3], float v1[3], float v2[3], float v3[3], float n[3])
+{
+
+  // find projection axis;
+  int axis1, axis2, axis3;
+  double nx = n[0] < 0.0 ? -n[0] : n[0];
+  double ny = n[1] < 0.0 ? -n[1] : n[1];
+  double nz = n[2] < 0.0 ? -n[2] : n[2];
+
+  const double feps = 0.000001;
+
+  if (nx > ny && nx > nz) {
+    axis1 = 1;
+    axis2 = 2;
+    axis3 = 0;
+  }
+  else if (ny > nx && ny > nz) {
+    axis1 = 0;
+    axis2 = 2;
+    axis3 = 1;
+  }
+  else {
+    axis1 = 0;
+    axis2 = 1;
+    axis3 = 2;
+  }
+
+  double planedis = (p[0] - v1[0]) * n[0] + (p[1] - v1[1]) * n[1] + (p[2] - v1[2]) * n[2];
+  planedis = planedis < 0.0 ? -planedis : planedis;
+
+  double ax = v1[axis1], ay = v1[axis2];
+  double bx = v2[axis1] - ax, by = v2[axis2] - ay;
+  double cx = v3[axis1] - ax, cy = v3[axis2] - ay;
+  double bx2 = bx * bx, by2 = by * by, cx2 = cx * cx, cy2 = cy * cy;
+  
+  double x1 = p[axis1] - ax;
+  double y1 = p[axis2] - ay;
+
+  bool s1 = x1 * by - y1 * bx < 0.0;
+  bool s2 = x1 * (cy - by) - y1 * (cx - bx) < 0.0;
+  bool s3 = x1 * -cy - y1 * -cx < 0.0;
+
+  int side = 0;
+
+  int mask = s1 | (s2 << 1) | (s3 << 2);
+  if (mask == 0.0) {
+    return planedis * planedis;
+  }
+
+  double d1, d2, d3, div;
+  
+
+  /*
+//\  3|
+//  \ |
+//    b
+//    | \
+//  1 |   \  2
+//    |  0  \
+// ___a_______c___
+//  5 |   4      \ 6
+*/
+
+  double dis = 0.0;
+  switch (mask) {
+    case 1:
+      div = (bx2 + by2);
+
+      if (div > feps) {
+        d1 = (bx * y1 - by * x1);
+        d1 = (d1 * d1) / div;
+      }
+      else {
+        d1 = x1 * x1 + y1 * y1;
+      }
+
+      dis = d1;
+      break;
+    case 3:
+      dis = ((x1 - bx) * (x1 - bx) + (y1 - by) * (y1 - by));
+      break;
+    case 2:
+      div = ((bx - cx) * (bx - cx) + (by - cy) * (by - cy));
+      if (div > feps) {
+        d2 = ((bx - cx) * y1 - (by - cy) * x1);
+        d2 = (d2 * d2) / div;
+      }
+      else {
+        d2 = (x1 - bx) * (x1 - bx) + (y1 - by) * (y1 - by);
+      }
+      dis = d2;
+      break;
+    case 6:
+      dis = (x1 - cx) * (x1 - cx) + (y1 - cy) * (y1 - cy);
+      break;
+    case 4:
+      div = (cx2 + cy2);
+
+      if (div > feps) {
+        d3 = (cx * y1 - cy * x1);
+        d3 = (d3 * d3) / div;
+      }
+      else {
+        d3 = (x1-cx)*(x1-cx) + (y1-cy)*(y1-cy);
+      }
+
+      dis = d3;
+      break;
+    case 5:
+      dis = x1 * x1 + y1 * y1;
+      break;
+  }
+
+  nz = n[axis3] < 0.0 ? -n[axis3] : n[axis3];
+
+  return (float)(dis + nz * nz * planedis * planedis) / (nz * nz);
+}
+
 static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 {
-  BMVert *v_tri[3];
   float c[3];
+  float v1[3], v2[3], v3[3], co[3];
+  const float mul = 1.0f;
+
+  BMLoop *l = f->l_first;
+
+  /* Check if triangle intersects the sphere */
+  float dis = dist_to_tri_sphere(q->center, l->v->co, l->next->v->co, l->prev->v->co, f->no);
+
+  //closest_on_tri_to_point_v3(c, co, v1, v2, v3);
+
+  //float dis2 = len_squared_v3v3(q->center, c);
+  //float dis3 = sqrtf(dis2);
+
+  return dis <= q->radius_squared;
 
   /* Get closest point in triangle to sphere center */
-  BM_face_as_array_vert_tri(f, v_tri);
 #if 0
   /*
   closest_on_tri_to_point_v3 is being slow
@@ -973,7 +1148,7 @@ static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
   }
   return mindis <= q->radius_squared;
 #else
-  closest_on_tri_to_point_v3(c, q->center, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co);
+  closest_on_tri_to_point_v3(c, q->center, l->v->co, l->next->v->co, l->prev->v->co);
 
   /* Check if triangle intersects the sphere */
   return len_squared_v3v3(q->center, c) <= q->radius_squared;

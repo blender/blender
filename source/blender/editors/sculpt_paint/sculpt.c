@@ -4133,7 +4133,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
   /* We divide out the squared alpha and multiply by the squared crease
    * to give us the pinch strength. */
-  crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor;
+  crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor * 2.0;
   brush_alpha = BKE_brush_alpha_get(scene, brush);
   if (brush_alpha > 0.0f) {
     crease_correction /= brush_alpha * brush_alpha;
@@ -6184,7 +6184,7 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 }
 
-__attribute__((optnone)) static void do_brush_action_task_cb(
+static void do_brush_action_task_cb(
     void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;

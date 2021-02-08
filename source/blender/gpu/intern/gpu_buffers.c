@@ -777,7 +777,7 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hid
  * \{ */
 
 /* Output a BMVert into a VertexBufferFormat array at v_index. */
-static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
+__attribute__((optnone)) static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
                                           GPUVertBuf *vert_buf,
                                           int v_index,
                                           const float fno[3],
@@ -1194,7 +1194,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   tottri = gpu_bmesh_face_visible_count(bm_faces);
 
   // XXX disable indexed verts for now
-  if (0 && buffers->smooth) {
+  if (buffers->smooth) {
     /* Count visible vertices */
     totvert = gpu_bmesh_vert_visible_count(bm_unique_verts, bm_other_verts);
   }
@@ -1229,7 +1229,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   int v_index = 0;
 
   // disable shared vertex mode for now
-  if (buffers->smooth && 0) {
+  if (buffers->smooth) {
     /* Fill the vertex and triangle buffer in one pass over faces. */
     GPUIndexBufBuilder elb, elb_lines;
     GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tottri, totvert);
