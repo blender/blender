@@ -211,6 +211,8 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
       drawArrow(pos_id, DOWN);
       break;
     }
+    case HLP_NONE:
+      break;
   }
 
   GPU_matrix_pop();

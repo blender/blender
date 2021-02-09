@@ -34,7 +34,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
 #include "DEG_depsgraph.h"

@@ -35,12 +35,8 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
-#include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_sequencer.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

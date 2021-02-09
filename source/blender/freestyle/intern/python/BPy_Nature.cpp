@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+using namespace Freestyle;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 static PyObject *BPy_Nature_and(PyObject *a, PyObject *b);

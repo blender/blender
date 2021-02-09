@@ -183,7 +183,7 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
     return;
   }
 
-  /* frees all editmode undos */
+  /* Frees all edit-mode undo-steps. */
   if (do_undo_system && G_MAIN->wm.first) {
     wmWindowManager *wm = G_MAIN->wm.first;
     /* normally we don't check for NULL undo stack,

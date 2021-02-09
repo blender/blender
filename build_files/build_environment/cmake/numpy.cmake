@@ -47,4 +47,5 @@ ExternalProject_Add(external_numpy
 add_dependencies(
   external_numpy
   external_python
+  external_python_site_packages
 )

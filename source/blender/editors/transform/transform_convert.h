@@ -52,34 +52,6 @@ int transform_convert_sequencer_get_snap_bound(TransInfo *t);
 void transform_convert_sequencer_channel_clamp(TransInfo *t);
 /********************* intern **********************/
 
-typedef enum eTransConvertType {
-  TC_NONE = 0,
-  TC_ACTION_DATA,
-  TC_POSE,
-  TC_ARMATURE_VERTS,
-  TC_CURSOR_IMAGE,
-  TC_CURSOR_VIEW3D,
-  TC_CURVE_VERTS,
-  TC_GRAPH_EDIT_DATA,
-  TC_GPENCIL,
-  TC_LATTICE_VERTS,
-  TC_MASKING_DATA,
-  TC_MBALL_VERTS,
-  TC_MESH_VERTS,
-  TC_MESH_EDGES,
-  TC_MESH_SKIN,
-  TC_MESH_UV,
-  TC_NLA_DATA,
-  TC_NODE_DATA,
-  TC_OBJECT,
-  TC_OBJECT_TEXSPACE,
-  TC_PAINT_CURVE_VERTS,
-  TC_PARTICLE_VERTS,
-  TC_SCULPT,
-  TC_SEQ_DATA,
-  TC_TRACKING_DATA,
-} eTransConvertType;
-
 /* transform_convert.c */
 bool transform_mode_use_local_origins(const TransInfo *t);
 void transform_around_single_fallback_ex(TransInfo *t, int data_len_all);
@@ -215,9 +187,12 @@ void special_aftertrans_update__node(bContext *C, TransInfo *t);
 
 /* transform_convert_object.c */
 void createTransObject(bContext *C, TransInfo *t);
-void createTransTexspace(TransInfo *t);
 void recalcData_objects(TransInfo *t);
 void special_aftertrans_update__object(bContext *C, TransInfo *t);
+
+/* transform_convert_object_texspace.c */
+void createTransTexspace(TransInfo *t);
+void recalcData_texspace(TransInfo *t);
 
 /* transform_convert_paintcurve.c */
 void createTransPaintCurveVerts(bContext *C, TransInfo *t);

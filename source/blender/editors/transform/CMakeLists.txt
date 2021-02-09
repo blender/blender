@@ -55,6 +55,7 @@ set(SRC
   transform_convert_nla.c
   transform_convert_node.c
   transform_convert_object.c
+  transform_convert_object_texspace.c
   transform_convert_paintcurve.c
   transform_convert_particle.c
   transform_convert_sculpt.c

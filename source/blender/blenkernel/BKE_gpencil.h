@@ -115,6 +115,8 @@ struct bGPDlayer *BKE_gpencil_layer_duplicate(const struct bGPDlayer *gpl_src,
                                               const bool dup_frames,
                                               const bool dup_strokes);
 void BKE_gpencil_frame_copy_strokes(struct bGPDframe *gpf_src, struct bGPDframe *gpf_dst);
+void BKE_gpencil_frame_selected_hash(struct bGPdata *gpd, struct GHash *r_list);
+
 struct bGPDcurve *BKE_gpencil_stroke_curve_duplicate(struct bGPDcurve *gpc_src);
 struct bGPDstroke *BKE_gpencil_stroke_duplicate(struct bGPDstroke *gps_src,
                                                 const bool dup_points,

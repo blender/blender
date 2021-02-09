@@ -21,6 +21,9 @@
 
 #include "RNA_enum_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_function_util.hh"
 
 static bNodeSocketTemplate fn_node_float_compare_in[] = {
@@ -34,6 +37,11 @@ static bNodeSocketTemplate fn_node_float_compare_out[] = {
     {SOCK_BOOLEAN, N_("Result")},
     {-1, ""},
 };
+
+static void geo_node_float_compare_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
+}
 
 static void node_float_compare_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -105,5 +113,6 @@ void register_node_type_fn_float_compare()
   node_type_label(&ntype, node_float_compare_label);
   node_type_update(&ntype, node_float_compare_update);
   ntype.expand_in_mf_network = node_float_compare_expand_in_mf_network;
+  ntype.draw_buttons = geo_node_float_compare_layout;
   nodeRegisterType(&ntype);
 }

@@ -84,8 +84,13 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   else {
     /* default header print */
     if (unit != NULL) {
-      ofs += BKE_unit_value_as_string(
-          str + ofs, sizeof(str) - ofs, distance * unit->scale_length, 4, B_UNIT_LENGTH, unit, true);
+      ofs += BKE_unit_value_as_string(str + ofs,
+                                      sizeof(str) - ofs,
+                                      distance * unit->scale_length,
+                                      4,
+                                      B_UNIT_LENGTH,
+                                      unit,
+                                      true);
     }
     else {
       ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, "%.4f", distance);

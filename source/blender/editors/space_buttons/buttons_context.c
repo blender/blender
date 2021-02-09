@@ -33,8 +33,6 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
-#include "DNA_collection_types.h"
-#include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -53,7 +51,6 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
 
 #include "RNA_access.h"
 

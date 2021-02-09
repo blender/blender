@@ -26,8 +26,6 @@ extern "C" {
 
 #include "../stroke/Predicates0D.h"
 
-using namespace Freestyle;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +39,7 @@ extern PyTypeObject BinaryPredicate0D_Type;
 
 /*---------------------------Python BPy_BinaryPredicate0D structure definition----------*/
 typedef struct {
-  PyObject_HEAD BinaryPredicate0D *bp0D;
+  PyObject_HEAD Freestyle::BinaryPredicate0D *bp0D;
 } BPy_BinaryPredicate0D;
 
 /*---------------------------Python BPy_BinaryPredicate0D visible prototypes-----------*/

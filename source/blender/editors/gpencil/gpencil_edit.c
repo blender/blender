@@ -4948,11 +4948,14 @@ static int gpencil_cutter_lasso_select(bContext *C,
                                        GPencilTestFn is_inside_fn,
                                        void *user_data)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *obact = CTX_data_active_object(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   ScrArea *area = CTX_wm_area(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   const float scale = ts->gp_sculpt.isect_threshold;
   const bool flat_caps = RNA_boolean_get(op->ptr, "flat_caps");
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   bGPDspoint *pt;
   GP_SpaceConversion gsc = {NULL};
@@ -4979,57 +4982,87 @@ static int gpencil_cutter_lasso_select(bContext *C,
   }
   CTX_DATA_END;
 
-  /* select points */
-  GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
-    int tot_inside = 0;
-    const int oldtot = gps->totpoints;
-    for (int i = 0; i < gps->totpoints; i++) {
-      pt = &gps->points[i];
-      if ((pt->flag & GP_SPOINT_SELECT) || (pt->flag & GP_SPOINT_TAG)) {
-        continue;
-      }
-      /* convert point coords to screen-space */
-      const bool is_inside = is_inside_fn(gps, pt, &gsc, gpstroke_iter.diff_mat, user_data);
-      if (is_inside) {
-        tot_inside++;
-        changed = true;
-        pt->flag |= GP_SPOINT_SELECT;
-        gps->flag |= GP_STROKE_SELECT;
-        float r_hita[3], r_hitb[3];
-        if (gps->totpoints > 1) {
-          ED_gpencil_select_stroke_segment(gpd, gpl, gps, pt, true, true, scale, r_hita, r_hitb);
+  /* Select points */
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    if ((gpl->flag & GP_LAYER_LOCKED) || ((gpl->flag & GP_LAYER_HIDE))) {
+      continue;
+    }
+
+    float diff_mat[4][4];
+    BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
+
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+      if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+        if (gpf == NULL) {
+          continue;
         }
-        /* avoid infinite loops */
-        if (gps->totpoints > oldtot) {
+
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
+            continue;
+          } /* check if the color is editable */
+          if (ED_gpencil_stroke_material_editable(obact, gpl, gps) == false) {
+            continue;
+          }
+          int tot_inside = 0;
+          const int oldtot = gps->totpoints;
+          for (int i = 0; i < gps->totpoints; i++) {
+            pt = &gps->points[i];
+            if ((pt->flag & GP_SPOINT_SELECT) || (pt->flag & GP_SPOINT_TAG)) {
+              continue;
+            }
+            /* convert point coords to screen-space */
+            const bool is_inside = is_inside_fn(gps, pt, &gsc, diff_mat, user_data);
+            if (is_inside) {
+              tot_inside++;
+              changed = true;
+              pt->flag |= GP_SPOINT_SELECT;
+              gps->flag |= GP_STROKE_SELECT;
+              float r_hita[3], r_hitb[3];
+              if (gps->totpoints > 1) {
+                ED_gpencil_select_stroke_segment(
+                    gpd, gpl, gps, pt, true, true, scale, r_hita, r_hitb);
+              }
+              /* avoid infinite loops */
+              if (gps->totpoints > oldtot) {
+                break;
+              }
+            }
+          }
+          /* if mark all points inside lasso set to remove all stroke */
+          if ((tot_inside == oldtot) || ((tot_inside == 1) && (oldtot == 2))) {
+            for (int i = 0; i < gps->totpoints; i++) {
+              pt = &gps->points[i];
+              pt->flag |= GP_SPOINT_SELECT;
+            }
+          }
+        }
+        /* if not multiedit, exit loop. */
+        if (!is_multiedit) {
           break;
         }
       }
     }
-    /* if mark all points inside lasso set to remove all stroke */
-    if ((tot_inside == oldtot) || ((tot_inside == 1) && (oldtot == 2))) {
-      for (int i = 0; i < gps->totpoints; i++) {
-        pt = &gps->points[i];
-        pt->flag |= GP_SPOINT_SELECT;
-      }
-    }
   }
-  GP_EDITABLE_STROKES_END(gpstroke_iter);
 
-  /* dissolve selected points */
+  /* Dissolve selected points. */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    if (gpl->flag & GP_LAYER_LOCKED) {
-      continue;
-    }
-
-    bGPDframe *gpf = gpl->actframe;
-    if (gpf == NULL) {
-      continue;
-    }
-    LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
-      if (gps->flag & GP_STROKE_SELECT) {
-        gpencil_cutter_dissolve(gpd, gpl, gps, flat_caps);
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    bGPDframe *gpf_act = gpl->actframe;
+    for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+      gpl->actframe = gpf;
+      LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
+        if (gps->flag & GP_STROKE_SELECT) {
+          gpencil_cutter_dissolve(gpd, gpl, gps, flat_caps);
+        }
+      }
+      /* if not multiedit, exit loop. */
+      if (!is_multiedit) {
+        break;
       }
     }
+    gpl->actframe = gpf_act;
   }
 
   /* updates */

@@ -3157,7 +3157,7 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
  */
 static int seq_effect_speed_get_strip_content_length(const Sequence *seq)
 {
-  if (SEQ_effect_get_num_inputs(seq->type) == 0) {
+  if ((seq->type & SEQ_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(seq->type) == 0) {
     return seq->enddisp - seq->startdisp;
   }
 

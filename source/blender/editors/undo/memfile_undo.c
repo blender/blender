@@ -314,8 +314,8 @@ struct MemFile *ED_undosys_stack_memfile_get_active(UndoStack *ustack)
  * If the last undo step is a memfile one, find the first #MemFileChunk matching given ID
  * (using its session UUID), and tag it as "changed in the future".
  *
- * Since non-memfile undos cannot automatically set this flag in the previous step as done with
- * memfile ones, this has to be called manually by relevant undo code.
+ * Since non-memfile undo-steps cannot automatically set this flag in the previous step as done
+ * with memfile ones, this has to be called manually by relevant undo code.
  *
  * \note Only current known case for this is undoing a switch from Object to Sculpt mode (see
  * T82388).

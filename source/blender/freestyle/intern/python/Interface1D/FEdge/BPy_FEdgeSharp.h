@@ -37,7 +37,7 @@ extern PyTypeObject FEdgeSharp_Type;
 /*---------------------------Python BPy_FEdgeSharp structure definition----------*/
 typedef struct {
   BPy_FEdge py_fe;
-  FEdgeSharp *fes;
+  Freestyle::FEdgeSharp *fes;
 } BPy_FEdgeSharp;
 
 /*---------------------------Python BPy_FEdgeSharp visible prototypes-----------*/

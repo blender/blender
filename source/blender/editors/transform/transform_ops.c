@@ -411,7 +411,7 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
   int exit_code;
 
   TransInfo *t = op->customdata;
-  const enum TfmMode mode_prev = t->mode;
+  const eTfmMode mode_prev = t->mode;
 
 #if defined(WITH_INPUT_NDOF) && 0
   /* Stable 2D mouse coords map to different 3D coords while the 3D mouse is active

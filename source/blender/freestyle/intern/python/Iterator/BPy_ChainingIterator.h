@@ -38,7 +38,7 @@ extern PyTypeObject ChainingIterator_Type;
 /*---------------------------Python BPy_ChainingIterator structure definition----------*/
 typedef struct {
   BPy_ViewEdgeIterator py_ve_it;
-  ChainingIterator *c_it;
+  Freestyle::ChainingIterator *c_it;
 } BPy_ChainingIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

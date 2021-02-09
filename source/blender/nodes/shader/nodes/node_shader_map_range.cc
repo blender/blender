@@ -122,7 +122,8 @@ class MapRangeFunction : public blender::fn::MultiFunction {
 
     if (clamp_) {
       for (int64_t i : mask) {
-        CLAMP(results[i], 0.0f, 1.0f);
+        results[i] = (to_min[i] > to_max[i]) ? clamp_f(results[i], to_max[i], to_min[i]) :
+                                               clamp_f(results[i], to_min[i], to_max[i]);
       }
     }
   }

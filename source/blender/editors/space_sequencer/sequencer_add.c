@@ -66,8 +66,6 @@
 
 #include "UI_interface.h"
 
-#include "BKE_sound.h"
-
 #ifdef WITH_AUDASPACE
 #  include <AUD_Sequence.h>
 #endif

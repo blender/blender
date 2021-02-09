@@ -22,6 +22,9 @@
 
 #include "RE_texture.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_attribute_sample_texture_in[] = {
@@ -35,6 +38,13 @@ static bNodeSocketTemplate geo_node_attribute_sample_texture_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_attribute_sample_texture_layout(uiLayout *layout,
+                                                     bContext *C,
+                                                     PointerRNA *ptr)
+{
+  uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
+}
 
 namespace blender::nodes {
 
@@ -103,5 +113,6 @@ void register_node_type_geo_sample_texture()
   node_type_socket_templates(
       &ntype, geo_node_attribute_sample_texture_in, geo_node_attribute_sample_texture_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_sample_texture_exec;
+  ntype.draw_buttons = geo_node_attribute_sample_texture_layout;
   nodeRegisterType(&ntype);
 }

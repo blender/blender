@@ -24,6 +24,9 @@
 
 #include "RNA_enum_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "BKE_mesh.h"
 
 #include "bmesh.h"
@@ -41,6 +44,11 @@ static bNodeSocketTemplate geo_node_boolean_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_boolean_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
+}
 
 static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 {
@@ -147,6 +155,7 @@ void register_node_type_geo_boolean()
 
   geo_node_type_base(&ntype, GEO_NODE_BOOLEAN, "Boolean", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(&ntype, geo_node_boolean_in, geo_node_boolean_out);
+  ntype.draw_buttons = geo_node_boolean_layout;
   ntype.geometry_node_execute = blender::nodes::geo_node_boolean_exec;
   nodeRegisterType(&ntype);
 }

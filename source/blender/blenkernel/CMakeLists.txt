@@ -81,6 +81,7 @@ set(SRC
   intern/asset.cc
   intern/attribute.c
   intern/attribute_access.cc
+  intern/attribute_math.cc
   intern/autoexec.c
   intern/blender.c
   intern/blender_copybuffer.c

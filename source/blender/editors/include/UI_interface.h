@@ -1413,6 +1413,8 @@ enum {
 
 int UI_icon_from_id(struct ID *id);
 int UI_icon_from_report_type(int type);
+int UI_icon_colorid_from_report_type(int type);
+int UI_text_colorid_from_report_type(int type);
 
 int UI_icon_from_event_type(short event_type, short event_value);
 int UI_icon_from_keymap_item(const struct wmKeyMapItem *kmi, int r_icon_mod[4]);

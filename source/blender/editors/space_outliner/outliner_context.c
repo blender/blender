@@ -27,8 +27,6 @@
 
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
-
 #include "outliner_intern.h"
 
 static void outliner_context_selected_ids_recursive(const ListBase *subtree,

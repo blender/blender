@@ -26,8 +26,6 @@ extern "C" {
 
 #include "../view_map/ViewMap.h"
 
-using namespace Freestyle;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,7 +38,7 @@ extern PyTypeObject ViewMap_Type;
 
 /*---------------------------Python BPy_ViewMap structure definition----------*/
 typedef struct {
-  PyObject_HEAD ViewMap *vm;
+  PyObject_HEAD Freestyle::ViewMap *vm;
 } BPy_ViewMap;
 
 /*---------------------------Python BPy_ViewMap visible prototypes-----------*/

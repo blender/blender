@@ -18,124 +18,128 @@
  * \ingroup edasset
  */
 
-#include <string.h>
-
-#include "BKE_asset.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string_utils.h"
-#include "BLI_utildefines.h"
-
-#include "DNA_asset_types.h"
-#include "DNA_userdef_types.h"
+#include "BLI_vector.hh"
 
 #include "ED_asset.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 /* -------------------------------------------------------------------- */
 
-struct AssetMarkResultStats {
-  int tot_created;
-  int tot_already_asset;
-  ID *last_id;
-};
+using PointerRNAVec = blender::Vector<PointerRNA>;
 
-static bool asset_ops_poll(bContext *UNUSED(C))
+static bool asset_operation_poll(bContext * /*C*/)
 {
   return U.experimental.use_asset_browser;
 }
 
 /**
- * Return the IDs to operate on as list of #CollectionPointerLink links. Needs freeing.
+ * Return the IDs to operate on as PointerRNA vector. Either a single one ("id" context member) or
+ * multiple ones ("selected_ids" context member).
  */
-static ListBase /* CollectionPointerLink */ asset_operation_get_ids_from_context(const bContext *C)
+static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C)
 {
-  ListBase list = {0};
+  PointerRNAVec ids;
 
   PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
-
   if (idptr.data) {
-    CollectionPointerLink *ctx_link = (CollectionPointerLink *)MEM_callocN(sizeof(*ctx_link),
-                                                                           __func__);
-    ctx_link->ptr = idptr;
-    BLI_addtail(&list, ctx_link);
+    /* Single ID. */
+    ids.append(idptr);
   }
   else {
+    ListBase list;
     CTX_data_selected_ids(C, &list);
+    LISTBASE_FOREACH (CollectionPointerLink *, link, &list) {
+      ids.append(link->ptr);
+    }
+    BLI_freelistN(&list);
   }
 
-  return list;
+  return ids;
 }
 
-static void asset_mark_for_idptr_list(const bContext *C,
-                                      const ListBase /* CollectionPointerLink */ *ids,
-                                      struct AssetMarkResultStats *r_stats)
+/* -------------------------------------------------------------------- */
+
+class AssetMarkHelper {
+ public:
+  void operator()(const bContext &C, PointerRNAVec &ids);
+
+  void reportResults(ReportList &reports) const;
+  bool wasSuccessful() const;
+
+ private:
+  struct Stats {
+    int tot_created = 0;
+    int tot_already_asset = 0;
+    ID *last_id = nullptr;
+  };
+
+  Stats stats;
+};
+
+void AssetMarkHelper::operator()(const bContext &C, PointerRNAVec &ids)
 {
-  memset(r_stats, 0, sizeof(*r_stats));
+  for (PointerRNA &ptr : ids) {
+    BLI_assert(RNA_struct_is_ID(ptr.type));
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_id, ids) {
-    BLI_assert(RNA_struct_is_ID(ctx_id->ptr.type));
-
-    ID *id = (ID *)ctx_id->ptr.data;
+    ID *id = static_cast<ID *>(ptr.data);
     if (id->asset_data) {
-      r_stats->tot_already_asset++;
+      stats.tot_already_asset++;
       continue;
     }
 
-    if (ED_asset_mark_id(C, id)) {
-      r_stats->last_id = id;
-      r_stats->tot_created++;
+    if (ED_asset_mark_id(&C, id)) {
+      stats.last_id = id;
+      stats.tot_created++;
     }
   }
 }
 
-static bool asset_mark_results_report(const struct AssetMarkResultStats *stats,
-                                      ReportList *reports)
+bool AssetMarkHelper::wasSuccessful() const
+{
+  return stats.tot_created > 0;
+}
+
+void AssetMarkHelper::reportResults(ReportList &reports) const
 {
   /* User feedback on failure. */
-  if ((stats->tot_created < 1) && (stats->tot_already_asset > 0)) {
-    BKE_report(reports,
-               RPT_ERROR,
-               "Selected data-blocks are already assets (or do not support use as assets)");
-    return false;
+  if (!wasSuccessful()) {
+    if ((stats.tot_already_asset > 0)) {
+      BKE_report(&reports,
+                 RPT_ERROR,
+                 "Selected data-blocks are already assets (or do not support use as assets)");
+    }
+    else {
+      BKE_report(&reports,
+                 RPT_ERROR,
+                 "No data-blocks to create assets for found (or do not support use as assets)");
+    }
   }
-  if (stats->tot_created < 1) {
-    BKE_report(reports,
-               RPT_ERROR,
-               "No data-blocks to create assets for found (or do not support use as assets)");
-    return false;
-  }
-
   /* User feedback on success. */
-  if (stats->tot_created == 1) {
+  else if (stats.tot_created == 1) {
     /* If only one data-block: Give more useful message by printing asset name. */
-    BKE_reportf(reports, RPT_INFO, "Data-block '%s' is now an asset", stats->last_id->name + 2);
+    BKE_reportf(&reports, RPT_INFO, "Data-block '%s' is now an asset", stats.last_id->name + 2);
   }
   else {
-    BKE_reportf(reports, RPT_INFO, "%i data-blocks are now assets", stats->tot_created);
+    BKE_reportf(&reports, RPT_INFO, "%i data-blocks are now assets", stats.tot_created);
   }
-
-  return true;
 }
 
 static int asset_mark_exec(bContext *C, wmOperator *op)
 {
-  ListBase ids = asset_operation_get_ids_from_context(C);
+  PointerRNAVec ids = asset_operation_get_ids_from_context(C);
 
-  struct AssetMarkResultStats stats;
-  asset_mark_for_idptr_list(C, &ids, &stats);
-  BLI_freelistN(&ids);
+  AssetMarkHelper mark_helper;
+  mark_helper(*C, ids);
+  mark_helper.reportResults(*op->reports);
 
-  if (!asset_mark_results_report(&stats, op->reports)) {
+  if (!mark_helper.wasSuccessful()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -154,67 +158,75 @@ static void ASSET_OT_mark(wmOperatorType *ot)
   ot->idname = "ASSET_OT_mark";
 
   ot->exec = asset_mark_exec;
-  ot->poll = asset_ops_poll;
+  ot->poll = asset_operation_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* -------------------------------------------------------------------- */
 
-struct AssetClearResultStats {
-  int tot_removed;
-  ID *last_id;
+class AssetClearHelper {
+ public:
+  void operator()(PointerRNAVec &ids);
+
+  void reportResults(ReportList &reports) const;
+  bool wasSuccessful() const;
+
+ private:
+  struct Stats {
+    int tot_cleared = 0;
+    ID *last_id = nullptr;
+  };
+
+  Stats stats;
 };
 
-static void asset_clear_from_idptr_list(const ListBase /* CollectionPointerLink */ *ids,
-                                        AssetClearResultStats *r_stats)
+void AssetClearHelper::operator()(PointerRNAVec &ids)
 {
-  memset(r_stats, 0, sizeof(*r_stats));
+  for (PointerRNA &ptr : ids) {
+    BLI_assert(RNA_struct_is_ID(ptr.type));
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_id, ids) {
-    BLI_assert(RNA_struct_is_ID(ctx_id->ptr.type));
-
-    ID *id = (ID *)ctx_id->ptr.data;
+    ID *id = static_cast<ID *>(ptr.data);
     if (!id->asset_data) {
       continue;
     }
 
     if (ED_asset_clear_id(id)) {
-      r_stats->tot_removed++;
-      r_stats->last_id = id;
+      stats.tot_cleared++;
+      stats.last_id = id;
     }
   }
 }
 
-static bool asset_clear_result_report(const AssetClearResultStats *stats, ReportList *reports)
-
+void AssetClearHelper::reportResults(ReportList &reports) const
 {
-  if (stats->tot_removed < 1) {
-    BKE_report(reports, RPT_ERROR, "No asset data-blocks selected/focused");
-    return false;
+  if (!wasSuccessful()) {
+    BKE_report(&reports, RPT_ERROR, "No asset data-blocks selected/focused");
   }
-
-  if (stats->tot_removed == 1) {
+  else if (stats.tot_cleared == 1) {
     /* If only one data-block: Give more useful message by printing asset name. */
     BKE_reportf(
-        reports, RPT_INFO, "Data-block '%s' is no asset anymore", stats->last_id->name + 2);
+        &reports, RPT_INFO, "Data-block '%s' is no asset anymore", stats.last_id->name + 2);
   }
   else {
-    BKE_reportf(reports, RPT_INFO, "%i data-blocks are no assets anymore", stats->tot_removed);
+    BKE_reportf(&reports, RPT_INFO, "%i data-blocks are no assets anymore", stats.tot_cleared);
   }
+}
 
-  return true;
+bool AssetClearHelper::wasSuccessful() const
+{
+  return stats.tot_cleared > 0;
 }
 
 static int asset_clear_exec(bContext *C, wmOperator *op)
 {
-  ListBase ids = asset_operation_get_ids_from_context(C);
+  PointerRNAVec ids = asset_operation_get_ids_from_context(C);
 
-  AssetClearResultStats stats;
-  asset_clear_from_idptr_list(&ids, &stats);
-  BLI_freelistN(&ids);
+  AssetClearHelper clear_helper;
+  clear_helper(ids);
+  clear_helper.reportResults(*op->reports);
 
-  if (!asset_clear_result_report(&stats, op->reports)) {
+  if (!clear_helper.wasSuccessful()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -233,7 +245,7 @@ static void ASSET_OT_clear(wmOperatorType *ot)
   ot->idname = "ASSET_OT_clear";
 
   ot->exec = asset_clear_exec;
-  ot->poll = asset_ops_poll;
+  ot->poll = asset_operation_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

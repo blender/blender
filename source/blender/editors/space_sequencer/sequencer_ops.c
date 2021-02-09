@@ -29,12 +29,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_markers.h"
-#include "ED_select_utils.h"
 #include "ED_sequencer.h"
-#include "ED_transform.h" /* Transform keymap. */
-
-#include "SEQ_sequencer.h"
 
 #include "sequencer_intern.h"
 

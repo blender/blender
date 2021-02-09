@@ -914,7 +914,7 @@ static void drawObjectConstraint(TransInfo *t)
         mul_m3_m3m3(tmp_axismtx, tc->mat3_unit, td->axismtx);
         axismtx = tmp_axismtx;
       }
-      else if (t->flag & T_POSE) {
+      else if (t->options & CTX_POSE_BONE) {
         mul_v3_m4v3(co, tc->mat, td->center);
         axismtx = td->axismtx;
       }

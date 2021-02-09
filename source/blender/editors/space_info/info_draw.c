@@ -35,7 +35,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "GPU_framebuffer.h"
 #include "info_intern.h"
 #include "textview.h"
 
@@ -56,47 +55,11 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
   int shade = (tvc->iter_tmp % 2) ? 4 : -4;
   UI_GetThemeColorShade4ubv(bg_id, shade, bg);
 
-  /* Icon color and background depend of report type. */
+  /* Don't show icon on subsequent rows of multi-row report. */
+  *r_icon = (tvc->iter_char_begin != 0) ? ICON_NONE : UI_icon_from_report_type(report->type);
 
-  int icon_fg_id;
-  int icon_bg_id;
-
-  if (tvc->iter_char_begin != 0) {
-    *r_icon = ICON_NONE;
-  }
-  else if (report->type & RPT_ERROR_ALL) {
-    icon_fg_id = TH_INFO_ERROR_TEXT;
-    icon_bg_id = TH_INFO_ERROR;
-    *r_icon = ICON_CANCEL;
-  }
-  else if (report->type & RPT_WARNING_ALL) {
-    icon_fg_id = TH_INFO_WARNING_TEXT;
-    icon_bg_id = TH_INFO_WARNING;
-    *r_icon = ICON_ERROR;
-  }
-  else if (report->type & RPT_INFO_ALL) {
-    icon_fg_id = TH_INFO_INFO_TEXT;
-    icon_bg_id = TH_INFO_INFO;
-    *r_icon = ICON_INFO;
-  }
-  else if (report->type & RPT_DEBUG_ALL) {
-    icon_fg_id = TH_INFO_DEBUG_TEXT;
-    icon_bg_id = TH_INFO_DEBUG;
-    *r_icon = ICON_SYSTEM;
-  }
-  else if (report->type & RPT_PROPERTY) {
-    icon_fg_id = TH_INFO_PROPERTY_TEXT;
-    icon_bg_id = TH_INFO_PROPERTY;
-    *r_icon = ICON_OPTIONS;
-  }
-  else if (report->type & RPT_OPERATOR) {
-    icon_fg_id = TH_INFO_OPERATOR_TEXT;
-    icon_bg_id = TH_INFO_OPERATOR;
-    *r_icon = ICON_CHECKMARK;
-  }
-  else {
-    *r_icon = ICON_NONE;
-  }
+  int icon_fg_id = UI_text_colorid_from_report_type(report->type);
+  int icon_bg_id = UI_icon_colorid_from_report_type(report->type);
 
   if (report->flag & SELECT) {
     icon_fg_id = TH_INFO_SELECTED;
@@ -105,6 +68,8 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
 
   if (*r_icon != ICON_NONE) {
     UI_GetThemeColor4ubv(icon_fg_id, r_icon_fg);
+    /* This theme color is RGB only, so set alpha. */
+    r_icon_fg[3] = 255;
     UI_GetThemeColor4ubv(icon_bg_id, r_icon_bg);
     return TVC_LINE_FG | TVC_LINE_BG | TVC_LINE_ICON | TVC_LINE_ICON_FG | TVC_LINE_ICON_BG;
   }

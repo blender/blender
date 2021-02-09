@@ -991,9 +991,6 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_ID_BASE) {
     /* pass */
   }
-  else if (ELEM(type, TSE_KEYMAP, TSE_KEYMAP_ITEM)) {
-    /* pass */
-  }
   else {
     /* Other cases must be caught above. */
     BLI_assert(TSE_IS_REAL_ID(tselem));
@@ -1212,50 +1209,6 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
         sprintf((char *)te->name, "  %d", index + 1);
       }
       te->flag |= TE_FREE_NAME;
-    }
-  }
-  else if (type == TSE_KEYMAP) {
-    wmKeyMap *km = (wmKeyMap *)idv;
-    char opname[OP_MAX_TYPENAME];
-
-    te->directdata = idv;
-    te->name = km->idname;
-
-    if (TSELEM_OPEN(tselem, space_outliner)) {
-      int a;
-      LISTBASE_FOREACH_INDEX (wmKeyMapItem *, kmi, &km->items, a) {
-        const char *key = WM_key_event_string(kmi->type, false);
-
-        if (key[0]) {
-          wmOperatorType *ot = NULL;
-
-          if (kmi->propvalue) {
-            /* pass */
-          }
-          else {
-            ot = WM_operatortype_find(kmi->idname, 0);
-          }
-
-          if (ot || kmi->propvalue) {
-            TreeElement *ten = outliner_add_element(
-                space_outliner, &te->subtree, kmi, te, TSE_KEYMAP_ITEM, a);
-
-            ten->directdata = kmi;
-
-            if (kmi->propvalue) {
-              ten->name = IFACE_("Modal map, not yet");
-            }
-            else {
-              WM_operator_py_idname(opname, ot->idname);
-              ten->name = BLI_strdup(opname);
-              ten->flag |= TE_FREE_NAME;
-            }
-          }
-        }
-      }
-    }
-    else {
-      te->flag |= TE_LAZY_CLOSED;
     }
   }
 

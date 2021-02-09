@@ -604,7 +604,22 @@ void ED_mask_point_pos__reverse(
   *yr = co[1];
 }
 
-bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2], bool include_handles)
+static void handle_position_for_minmax(const MaskSplinePoint *point,
+                                       eMaskWhichHandle which_handle,
+                                       bool handles_as_control_point,
+                                       float r_handle[2])
+{
+  if (handles_as_control_point) {
+    copy_v2_v2(r_handle, point->bezt.vec[1]);
+    return;
+  }
+  BKE_mask_point_handle(point, which_handle, r_handle);
+}
+
+bool ED_mask_selected_minmax(const bContext *C,
+                             float min[2],
+                             float max[2],
+                             bool handles_as_control_point)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Mask *mask = CTX_data_edit_mask(C);
@@ -641,22 +656,22 @@ bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2], bool
           ok = true;
         }
 
-        if (!include_handles) {
-          /* Ignore handles. */
-        }
-        else if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
-          BKE_mask_point_handle(deform_point, MASK_WHICH_HANDLE_STICK, handle);
+        if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
+          handle_position_for_minmax(
+              deform_point, MASK_WHICH_HANDLE_STICK, handles_as_control_point, handle);
           minmax_v2v2_v2(min, max, handle);
           ok = true;
         }
         else {
           if ((bezt->f1 & SELECT) && (bezt->h1 != HD_VECT)) {
-            BKE_mask_point_handle(deform_point, MASK_WHICH_HANDLE_LEFT, handle);
+            handle_position_for_minmax(
+                deform_point, MASK_WHICH_HANDLE_LEFT, handles_as_control_point, handle);
             minmax_v2v2_v2(min, max, handle);
             ok = true;
           }
           if ((bezt->f3 & SELECT) && (bezt->h2 != HD_VECT)) {
-            BKE_mask_point_handle(deform_point, MASK_WHICH_HANDLE_RIGHT, handle);
+            handle_position_for_minmax(
+                deform_point, MASK_WHICH_HANDLE_RIGHT, handles_as_control_point, handle);
             minmax_v2v2_v2(min, max, handle);
             ok = true;
           }

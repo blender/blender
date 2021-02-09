@@ -30,8 +30,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "atomic_ops.h"
-
 #include "sequencer_intern.h"
 
 /* XXX, why is this function better than BLI_math version?

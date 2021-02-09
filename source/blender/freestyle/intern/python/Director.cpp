@@ -56,6 +56,8 @@
 #include "UnaryFunction1D/BPy_UnaryFunction1DVec3f.h"
 #include "UnaryFunction1D/BPy_UnaryFunction1DVectorViewShape.h"
 
+using namespace Freestyle;
+
 // BinaryPredicate0D: __call__
 int Director_BPy_BinaryPredicate0D___call__(BinaryPredicate0D *bp0D,
                                             Interface0D &i1,

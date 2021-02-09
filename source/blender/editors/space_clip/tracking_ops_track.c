@@ -30,7 +30,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
-#include "BKE_report.h"
 #include "BKE_tracking.h"
 
 #include "WM_api.h"

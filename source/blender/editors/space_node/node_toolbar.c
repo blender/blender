@@ -29,9 +29,6 @@
 #include "BKE_screen.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
-
-#include "ED_screen.h"
 
 #include "node_intern.h" /* own include */
 

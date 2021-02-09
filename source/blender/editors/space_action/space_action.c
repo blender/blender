@@ -55,7 +55,6 @@
 #include "ED_space_api.h"
 #include "ED_time_scrub_ui.h"
 
-#include "GPU_framebuffer.h"
 #include "action_intern.h" /* own include */
 
 /* ******************** default callbacks for action space ***************** */

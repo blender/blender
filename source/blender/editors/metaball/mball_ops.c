@@ -29,9 +29,7 @@
 #include "WM_types.h"
 
 #include "ED_mball.h"
-#include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_select_utils.h"
 
 #include "mball_intern.h"
 

@@ -26,8 +26,6 @@ extern "C" {
 
 #include "../view_map/Interface0D.h"
 
-using namespace Freestyle;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +39,7 @@ extern PyTypeObject Interface0D_Type;
 
 /*---------------------------Python BPy_Interface0D structure definition----------*/
 typedef struct {
-  PyObject_HEAD Interface0D *if0D;
+  PyObject_HEAD Freestyle::Interface0D *if0D;
   bool borrowed; /* true if *if0D is a borrowed object */
 } BPy_Interface0D;
 

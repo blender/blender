@@ -287,7 +287,7 @@ void BKE_undosys_stack_clear(UndoStack *ustack)
 
 void BKE_undosys_stack_clear_active(UndoStack *ustack)
 {
-  /* Remove active and all following undos. */
+  /* Remove active and all following undo-steps. */
   UndoStep *us = ustack->step_active;
 
   if (us) {
@@ -517,7 +517,7 @@ UndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
     retval |= UNDO_PUSH_RET_OVERRIDE_CHANGED;
   }
 
-  /* Remove all undos after (also when 'ustack->step_active == NULL'). */
+  /* Remove all undo-steps after (also when 'ustack->step_active == NULL'). */
   while (ustack->steps.last != ustack->step_active) {
     UndoStep *us_iter = ustack->steps.last;
     undosys_step_free_and_unlink(ustack, us_iter);

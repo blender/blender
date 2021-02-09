@@ -851,6 +851,7 @@ bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness)
 
   gps->mat_nr = mat_idx;
 
+  gps->dvert = NULL;
   gps->editcurve = NULL;
 
   return gps;
@@ -2606,6 +2607,15 @@ void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
       LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
         if (gpf == act_gpf || (gpf->flag & GP_FRAME_SELECT)) {
           gpf->runtime.onion_id = 0;
+          if (do_onion) {
+            if (gpf->framenum < act_gpf->framenum) {
+              gpf->runtime.onion_id = -1;
+            }
+            else {
+              gpf->runtime.onion_id = 1;
+            }
+          }
+
           if (sta_gpf == NULL) {
             sta_gpf = gpf;
           }
@@ -2937,6 +2947,28 @@ int BKE_gpencil_material_find_index_by_name_prefix(Object *ob, const char *name_
   }
 
   return -1;
+}
+
+/* Create a hash with the list of selected frame number. */
+void BKE_gpencil_frame_selected_hash(bGPdata *gpd, struct GHash *r_list)
+{
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl_iter, &gpd->layers) {
+    if ((gpl != NULL) && (!is_multiedit) && (gpl != gpl_iter)) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl_iter->frames) {
+      if (((gpf == gpl->actframe) && (!is_multiedit)) ||
+          ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+        if (!BLI_ghash_lookup(r_list, POINTER_FROM_INT(gpf->framenum))) {
+          BLI_ghash_insert(r_list, POINTER_FROM_INT(gpf->framenum), gpf);
+        }
+      }
+    }
+  }
 }
 
 /** \} */

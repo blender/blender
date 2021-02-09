@@ -51,8 +51,6 @@
 
 #include "ED_object.h"
 
-#include "UI_interface.h"
-
 #include "object_intern.h"
 
 /* All possible data to transfer.

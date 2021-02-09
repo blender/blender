@@ -66,7 +66,7 @@ void ED_mask_cursor_location_get(struct ScrArea *area, float cursor[2]);
 bool ED_mask_selected_minmax(const struct bContext *C,
                              float min[2],
                              float max[2],
-                             bool include_handles);
+                             bool handles_as_control_point);
 
 /* mask_draw.c */
 void ED_mask_draw(const struct bContext *C, const char draw_flag, const char draw_type);

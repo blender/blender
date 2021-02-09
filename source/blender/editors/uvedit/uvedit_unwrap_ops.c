@@ -1336,9 +1336,9 @@ static void uv_map_rotation_matrix_ex(float result[4][4],
   zero_m4(rotup);
   zero_m4(rotside);
 
-  /* compensate front/side.. against opengl x,y,z world definition */
-  /* this is "kanonen gegen spatzen", a few plus minus 1 will do here */
-  /* i wanted to keep the reason here, so we're rotating*/
+  /* Compensate front/side.. against opengl x,y,z world definition.
+   * This is "a sledgehammer to crack a nut" (overkill), a few plus minus 1 will do here.
+   * I wanted to keep the reason here, so we're rotating. */
   sideangle = (float)M_PI * (sideangledeg + 180.0f) / 180.0f;
   rotside[0][0] = cosf(sideangle);
   rotside[0][1] = -sinf(sideangle);

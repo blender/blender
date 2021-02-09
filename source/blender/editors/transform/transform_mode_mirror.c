@@ -152,7 +152,7 @@ static void ElementMirror(TransInfo *t, TransDataContainer *tc, TransData *td, i
       sub_v3_v3(vec, td->center);
     }
 
-    if (t->flag & (T_OBJECT | T_POSE)) {
+    if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
       mul_m3_v3(td->smtx, vec);
     }
 

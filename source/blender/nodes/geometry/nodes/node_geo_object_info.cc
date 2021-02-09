@@ -23,6 +23,9 @@
 
 #include "BLI_math_matrix.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_object_info_in[] = {
     {SOCK_OBJECT, N_("Object")},
     {-1, ""},
@@ -35,6 +38,11 @@ static bNodeSocketTemplate geo_node_object_info_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_object_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+}
 
 namespace blender::nodes {
 static void geo_node_object_info_exec(GeoNodeExecParams params)
@@ -128,5 +136,6 @@ void register_node_type_geo_object_info()
   node_type_storage(
       &ntype, "NodeGeometryObjectInfo", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_object_info_exec;
+  ntype.draw_buttons = geo_node_object_info_layout;
   nodeRegisterType(&ntype);
 }

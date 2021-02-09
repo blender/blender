@@ -119,6 +119,10 @@ typedef struct ImageTile {
 /* #define IMA_UNUSED_2         (1 << 2) */
 #define IMA_NEED_FRAME_RECALC (1 << 3)
 #define IMA_SHOW_STEREO (1 << 4)
+/* Do not limit the resolution by the limit texture size option in the user preferences.
+ * Images in the image editor or used as a backdrop are always shown using the maximum
+ * possible resolution. */
+#define IMA_SHOW_MAX_RESOLUTION (1 << 5)
 
 /* Used to get the correct gpu texture from an Image datablock. */
 typedef enum eGPUTextureTarget {
@@ -229,6 +233,8 @@ enum {
   IMA_GPU_PARTIAL_REFRESH = (1 << 1),
   /** All mipmap levels in OpenGL texture set? */
   IMA_GPU_MIPMAP_COMPLETE = (1 << 2),
+  /** Current texture resolution won't be limited by the GL Texture Limit user preference. */
+  IMA_GPU_MAX_RESOLUTION = (1 << 3),
 };
 
 /* Image.source, where the image comes from */

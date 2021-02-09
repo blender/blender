@@ -26,8 +26,6 @@ extern "C" {
 
 #include "../stroke/Operators.h"
 
-using namespace Freestyle;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -23,7 +23,6 @@
 
 #include "BKE_attribute.h"
 #include "BKE_context.h"
-#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -34,7 +33,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_geometry.h"
 #include "ED_object.h"
 
 #include "geometry_intern.h"

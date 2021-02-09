@@ -33,6 +33,9 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_pointcloud.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_point_distribute_in[] = {
@@ -48,6 +51,13 @@ static bNodeSocketTemplate geo_node_point_distribute_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_point_distribute_layout(uiLayout *layout,
+                                             bContext *UNUSED(C),
+                                             PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "distribute_method", 0, "", ICON_NONE);
+}
 
 static void node_point_distribute_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -485,5 +495,6 @@ void register_node_type_geo_point_distribute()
   node_type_socket_templates(&ntype, geo_node_point_distribute_in, geo_node_point_distribute_out);
   node_type_update(&ntype, node_point_distribute_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_distribute_exec;
+  ntype.draw_buttons = geo_node_point_distribute_layout;
   nodeRegisterType(&ntype);
 }

@@ -2410,7 +2410,9 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
       rect->xmin += 0.2f * U.widget_unit;
     }
 
-    widget_draw_icon(but, icon, alpha, rect, wcol->text);
+    /* By default icon is the color of text, but can optionally override with but->col. */
+    widget_draw_icon(but, icon, alpha, rect, (but->col[3] != 0) ? but->col : wcol->text);
+
     if (show_menu_icon) {
       BLI_assert(but->block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT);
       widget_draw_submenu_tria(but, rect, wcol);

@@ -225,7 +225,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->flag = 0;
 
-  if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE)) &&
+  if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) &&
       ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL)) {
     t->obedit_type = obact->type;
   }
@@ -272,7 +272,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* Crease needs edge flag */
   if (ELEM(t->mode, TFM_CREASE, TFM_BWEIGHT)) {
-    t->options |= CTX_EDGE;
+    t->options |= CTX_EDGE_DATA;
   }
 
   t->remove_on_cancel = false;
@@ -1110,7 +1110,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
       return true;
     }
   }
-  else if (t->flag & T_POSE) {
+  else if (t->options & CTX_POSE_BONE) {
     ViewLayer *view_layer = t->view_layer;
     Object *ob = OBACT(view_layer);
     if (ED_object_calc_active_center_for_posemode(ob, select_only, r_center)) {
@@ -1184,20 +1184,13 @@ void calculateCenter(TransInfo *t)
   }
   calculateCenterLocal(t, t->center_global);
 
-  /* avoid calculating again */
-  {
-    TransCenterData *cd = &t->center_cache[t->around];
-    copy_v3_v3(cd->global, t->center_global);
-    cd->is_set = true;
-  }
-
   calculateCenter2D(t);
 
   /* For panning from the camera-view. */
-  if ((t->flag & T_OBJECT) && (t->flag & T_OVERRIDE_CENTER) == 0) {
+  if ((t->options & CTX_OBJECT) && (t->flag & T_OVERRIDE_CENTER) == 0) {
     if (t->spacetype == SPACE_VIEW3D && t->region && t->region->regiontype == RGN_TYPE_WINDOW) {
 
-      if (t->flag & T_CAMERA) {
+      if (t->options & CTX_CAMERA) {
         float axis[3];
         /* persinv is nasty, use viewinv instead, always right */
         copy_v3_v3(axis, t->viewinv[2]);
@@ -1235,23 +1228,6 @@ void calculateCenter(TransInfo *t)
       t->zfac = 0.0f;
     }
   }
-}
-
-BLI_STATIC_ASSERT(ARRAY_SIZE(((TransInfo *)NULL)->center_cache) == (V3D_AROUND_ACTIVE + 1),
-                  "test size");
-
-/**
- * Lazy initialize transform center data, when we need to access center values from other types.
- */
-const TransCenterData *transformCenter_from_type(TransInfo *t, int around)
-{
-  BLI_assert(around <= V3D_AROUND_ACTIVE);
-  TransCenterData *cd = &t->center_cache[around];
-  if (cd->is_set == false) {
-    calculateCenter_FromAround(t, around, cd->global);
-    cd->is_set = true;
-  }
-  return cd;
 }
 
 void calculatePropRatio(TransInfo *t)

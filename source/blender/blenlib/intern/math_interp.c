@@ -139,10 +139,10 @@ BLI_INLINE void bicubic_interpolation(const unsigned char *byte_buffer,
 
       y1 = j + m;
       CLAMP(y1, 0, height - 1);
-      /* normally we could do this */
-      /* w = P(n-a) * P(b-m); */
-      /* except that would call P() 16 times per pixel therefor pow() 64 times,
-       * better precalc these */
+      /* Normally we could do this:
+       * `w = P(n-a) * P(b-m);`
+       * except that would call `P()` 16 times per pixel therefor `pow()` 64 times,
+       * better pre-calculate these. */
       w = wx * wy[m + 1];
 
       if (float_output) {

@@ -6831,18 +6831,32 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
   width = min_ii((int)(rti->widthfac * width), width);
   width = max_ii(width, 10 * UI_DPI_FAC);
 
-  /* make a box around the report to make it stand out */
   UI_block_align_begin(block);
-  but = uiDefBut(
-      block, UI_BTYPE_ROUNDBOX, 0, "", 0, 0, UI_UNIT_X + 5, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-  /* set the report's bg color in but->col - UI_BTYPE_ROUNDBOX feature */
-  rgba_float_to_uchar(but->col, rti->col);
 
+  /* Background for icon. */
   but = uiDefBut(block,
                  UI_BTYPE_ROUNDBOX,
                  0,
                  "",
-                 UI_UNIT_X + 5,
+                 0,
+                 0,
+                 UI_UNIT_X + (6 * UI_DPI_FAC),
+                 UI_UNIT_Y,
+                 NULL,
+                 0.0f,
+                 0.0f,
+                 0,
+                 0,
+                 "");
+  /* UI_BTYPE_ROUNDBOX's bg color is set in but->col. */
+  UI_GetThemeColorType4ubv(UI_icon_colorid_from_report_type(report->type), SPACE_INFO, but->col);
+
+  /* Background for the rest of the message. */
+  but = uiDefBut(block,
+                 UI_BTYPE_ROUNDBOX,
+                 0,
+                 "",
+                 UI_UNIT_X + (6 * UI_DPI_FAC),
                  0,
                  UI_UNIT_X + width,
                  UI_UNIT_Y,
@@ -6852,46 +6866,39 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                  0,
                  0,
                  "");
-  rgba_float_to_uchar(but->col, rti->col);
+
+  /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
+  UI_GetThemeColorType4ubv(UI_icon_colorid_from_report_type(report->type), SPACE_INFO, but->col);
+  but->col[3] = 64;
 
   UI_block_align_end(block);
-
-  /* icon and report message on top */
-  const int icon = UI_icon_from_report_type(report->type);
-
-  /* XXX: temporary operator to dump all reports to a text block, but only if more than 1 report
-   * to be shown instead of icon when appropriate...
-   */
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
-  if (reports->list.first != reports->list.last) {
-    uiDefIconButO(block,
-                  UI_BTYPE_BUT,
-                  "SCREEN_OT_info_log_show",
-                  WM_OP_INVOKE_REGION_WIN,
-                  icon,
-                  2,
-                  0,
-                  UI_UNIT_X,
-                  UI_UNIT_Y,
-                  TIP_("Click to see the remaining reports in text block: 'Recent Reports'"));
-  }
-  else {
-    uiDefIconBut(
-        block, UI_BTYPE_LABEL, 0, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-  }
+  /* The report icon itself. */
+  but = uiDefIconButO(block,
+                      UI_BTYPE_BUT,
+                      "SCREEN_OT_info_log_show",
+                      WM_OP_INVOKE_REGION_WIN,
+                      UI_icon_from_report_type(report->type),
+                      (3 * UI_DPI_FAC),
+                      0,
+                      UI_UNIT_X,
+                      UI_UNIT_Y,
+                      TIP_("Click to see the remaining reports in text block: 'Recent Reports'"));
+  UI_GetThemeColorType4ubv(UI_text_colorid_from_report_type(report->type), SPACE_INFO, but->col);
+  but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
 
+  /* The report message. */
   but = uiDefButO(block,
                   UI_BTYPE_BUT,
                   "SCREEN_OT_info_log_show",
                   WM_OP_INVOKE_REGION_WIN,
                   report->message,
-                  UI_UNIT_X + 5,
+                  UI_UNIT_X,
                   0,
-                  UI_UNIT_X + width,
+                  width + UI_UNIT_X,
                   UI_UNIT_Y,
                   "Show in Info Log");
-  rgba_float_to_uchar(but->col, rti->col);
 }
 
 void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)

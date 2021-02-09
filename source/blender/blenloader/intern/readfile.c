@@ -3918,6 +3918,26 @@ static void lib_link_all(FileData *fd, Main *bmain)
   }
   FOREACH_MAIN_ID_END;
 
+#ifndef NDEBUG
+  /* Double check we do not have any 'need link' tag remaining, this should never be the case once
+   * this function has run. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    BLI_assert((id->tag & LIB_TAG_NEED_LINK) == 0);
+  }
+  FOREACH_MAIN_ID_END;
+#endif
+}
+
+/**
+ * Checks to perform after `lib_link_all`.
+ * Those operations cannot perform properly in a split bmain case, since some data from other
+ * bmain's (aka libraries) may not have been processed yet.
+ */
+static void after_liblink_merged_bmain_process(Main *bmain)
+{
+  /* We only expect a merged Main here, not a split one. */
+  BLI_assert((bmain->prev == NULL) && (bmain->next == NULL));
+
   /* Check for possible cycles in scenes' 'set' background property. */
   lib_link_scenes_check_set(bmain);
 
@@ -3928,15 +3948,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
   /* We have to rebuild that runtime information *after* all data-blocks have been properly linked.
    */
   BKE_main_collections_parent_relations_rebuild(bmain);
-
-#ifndef NDEBUG
-  /* Double check we do not have any 'need link' tag remaining, this should never be the case once
-   * this function has run. */
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    BLI_assert((id->tag & LIB_TAG_NEED_LINK) == 0);
-  }
-  FOREACH_MAIN_ID_END;
-#endif
 }
 
 /** \} */
@@ -4159,6 +4170,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     blo_join_main(&mainlist);
 
     lib_link_all(fd, bfd->main);
+    after_liblink_merged_bmain_process(bfd->main);
 
     /* Skip in undo case. */
     if (fd->memfile == NULL) {
@@ -5107,6 +5119,7 @@ static void library_link_end(Main *mainl,
   mainl = NULL; /* blo_join_main free's mainl, cant use anymore */
 
   lib_link_all(*fd, mainvar);
+  after_liblink_merged_bmain_process(mainvar);
 
   /* Some versioning code does expect some proper userrefcounting, e.g. in conversion from
    * groups to collections... We could optimize out that first call when we are reading a

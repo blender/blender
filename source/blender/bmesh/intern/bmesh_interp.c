@@ -342,8 +342,12 @@ static void mdisp_axis_from_quad(const float v1[3],
   normalize_v3(r_axis_y);
 }
 
-/* tl is loop to project onto, l is loop whose internal displacement, co, is being
- * projected.  x and y are location in loop's mdisps grid of point co. */
+/**
+ * \param l_src: is loop whose internal displacement.
+ * \param l_dst: is loop to project onto.
+ * \param p: The point being projected.
+ * \param r_axis_x, r_axis_y: The location in loop's #CD_MDISPS grid of point `p`.
+ */
 static bool mdisp_in_mdispquad(BMLoop *l_src,
                                BMLoop *l_dst,
                                const float l_dst_f_center[3],

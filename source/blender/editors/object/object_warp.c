@@ -36,7 +36,6 @@
 #include "WM_types.h"
 
 #include "ED_transverts.h"
-#include "ED_view3d.h"
 
 #include "object_intern.h"
 

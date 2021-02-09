@@ -440,7 +440,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
     }
     else {
       /* Do we need more refined tags? */
-      if (t->flag & T_POSE) {
+      if (t->options & CTX_POSE_BONE) {
         WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
       }
       else {
@@ -484,7 +484,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
       wmWindow *window = CTX_wm_window(C);
       WM_paint_cursor_tag_redraw(window, t->region);
     }
-    else if (t->flag & T_CURSOR) {
+    else if (t->options & CTX_CURSOR) {
       ED_area_tag_redraw(t->area);
     }
     else {
@@ -695,6 +695,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
       {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint Plane", ""},
+      {TFM_MODAL_PRECISION, "PRECISION", 0, "Precision Mode", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -806,8 +807,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   const int modifiers_prev = t->modifiers;
   const int mode_prev = t->mode;
 
-  t->redraw |= handleMouseInput(t, &t->mouse, event);
-
   /* Handle modal numinput events first, if already activated. */
   if (((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) && hasNumInput(&t->num) &&
       handleNumInput(t->context, &(t->num), event)) {
@@ -895,7 +894,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_ROTATE:
         /* only switch when... */
-        if (!(t->options & CTX_TEXTURE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
+        if (!(t->options & CTX_TEXTURE_SPACE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
           if (transform_mode_is_changeable(t->mode)) {
             restoreTransObjects(t);
             resetTransModal(t);
@@ -1069,7 +1068,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             t->modifiers &= ~(MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE);
           }
           else {
-            if (t->flag & T_CAMERA) {
+            if (t->options & CTX_CAMERA) {
               /* Exception for switching to dolly, or trackball, in camera view. */
               if (t->mode == TFM_TRANSLATION) {
                 setLocalConstraint(t, (CON_AXIS2), TIP_("along local Z"));
@@ -1093,6 +1092,19 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           }
           t->redraw |= TREDRAW_HARD;
           handled = true;
+        }
+        break;
+      case TFM_MODAL_PRECISION:
+        if (event->prevval == KM_PRESS) {
+          t->modifiers |= MOD_PRECISION;
+          /* Shift is modifier for higher precision transform. */
+          t->mouse.precision = 1;
+          t->redraw |= TREDRAW_HARD;
+        }
+        else if (event->prevval == KM_RELEASE) {
+          t->modifiers &= ~MOD_PRECISION;
+          t->mouse.precision = 0;
+          t->redraw |= TREDRAW_HARD;
         }
         break;
       /* Those two are only handled in transform's own handler, see T44634! */
@@ -1382,7 +1394,7 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
      */
     if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
       if (region == t->region) {
-        if (t->flag & (T_OBJECT | T_POSE)) {
+        if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
           if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
             drawAutoKeyWarning(t, region);
           }
@@ -1652,7 +1664,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   if ((prop = RNA_struct_find_property(op->ptr, "texture_space")) &&
       RNA_property_is_set(op->ptr, prop)) {
     if (RNA_property_boolean_get(op->ptr, prop)) {
-      options |= CTX_TEXTURE;
+      options |= CTX_TEXTURE_SPACE;
     }
   }
 

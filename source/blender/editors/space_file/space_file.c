@@ -261,7 +261,7 @@ static void file_ensure_valid_region_state(bContext *C,
     }
   }
   /* If there's an file-operation, ensure we have the option and execute region */
-  else if (sfile->op) {
+  else if (sfile->op && !BKE_area_find_region_type(area, RGN_TYPE_TOOL_PROPS)) {
     ARegion *region_ui = file_ui_region_ensure(area, region_tools);
     ARegion *region_execute = file_execute_region_ensure(area, region_ui);
     ARegion *region_props = file_tool_props_region_ensure(area, region_execute);
@@ -276,7 +276,7 @@ static void file_ensure_valid_region_state(bContext *C,
     needs_init = true;
   }
   /* If there's _no_ file-operation, ensure we _don't_ have the option and execute region */
-  else {
+  else if (!sfile->op) {
     ARegion *region_props = BKE_area_find_region_type(area, RGN_TYPE_TOOL_PROPS);
     ARegion *region_execute = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE);
     ARegion *region_ui = file_ui_region_ensure(area, region_tools);

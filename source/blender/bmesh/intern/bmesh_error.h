@@ -25,7 +25,7 @@
 /*----------- bmop error system ----------*/
 
 /* pushes an error onto the bmesh error stack.
- * if msg is null, then the default message for the errorcode is used.*/
+ * if msg is null, then the default message for the `errcode` is used. */
 void BMO_error_raise(BMesh *bm, BMOperator *owner, int errcode, const char *msg);
 
 /* gets the topmost error from the stack.

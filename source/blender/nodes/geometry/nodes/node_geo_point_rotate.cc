@@ -18,6 +18,9 @@
 
 #include "BLI_math_rotation.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_point_rotate_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Axis")},
@@ -33,6 +36,23 @@ static bNodeSocketTemplate geo_node_point_rotate_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_point_rotate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  NodeGeometryRotatePoints *storage = (NodeGeometryRotatePoints *)((bNode *)ptr->data)->storage;
+
+  uiItemR(layout, ptr, "type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+  uiLayout *col = uiLayoutColumn(layout, false);
+  if (storage->type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE) {
+    uiItemR(col, ptr, "input_type_axis", 0, IFACE_("Axis"), ICON_NONE);
+    uiItemR(col, ptr, "input_type_angle", 0, IFACE_("Angle"), ICON_NONE);
+  }
+  else {
+    uiItemR(col, ptr, "input_type_rotation", 0, IFACE_("Rotation"), ICON_NONE);
+  }
+}
 
 namespace blender::nodes {
 
@@ -202,5 +222,6 @@ void register_node_type_geo_point_rotate()
   node_type_storage(
       &ntype, "NodeGeometryRotatePoints", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_rotate_exec;
+  ntype.draw_buttons = geo_node_point_rotate_layout;
   nodeRegisterType(&ntype);
 }

@@ -27,9 +27,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
 #include "BKE_paint.h"
 
 #include "DNA_brush_types.h"
@@ -45,9 +43,6 @@
 #include "RNA_access.h"
 
 #include "ED_gpencil.h"
-#include "ED_object.h"
-#include "ED_select_utils.h"
-#include "ED_transform.h"
 
 #include "gpencil_intern.h"
 
