@@ -34,7 +34,6 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
-#include "UI_view2d.h"
 
 #include "WM_api.h"
 #include "WM_message.h"

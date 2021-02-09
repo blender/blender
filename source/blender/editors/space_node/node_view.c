@@ -52,7 +52,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "NOD_composite.h"
 #include "node_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */

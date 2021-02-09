@@ -27,7 +27,6 @@
 
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_path_util.h"
@@ -35,7 +34,6 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_image_types.h"
-#include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
@@ -44,8 +42,6 @@
 #include "BKE_main.h"
 
 #include "ED_image.h"
-
-#include "WM_types.h"
 
 typedef struct ImageFrame {
   struct ImageFrame *next, *prev;

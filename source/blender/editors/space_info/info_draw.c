@@ -35,7 +35,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "GPU_framebuffer.h"
 #include "info_intern.h"
 #include "textview.h"
 

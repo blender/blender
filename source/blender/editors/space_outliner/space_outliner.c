@@ -31,9 +31,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_layer.h"
 #include "BKE_outliner_treehash.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -51,7 +49,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "GPU_framebuffer.h"
 #include "outliner_intern.h"
 #include "tree/tree_display.h"
 

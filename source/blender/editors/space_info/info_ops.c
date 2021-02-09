@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "DNA_packedFile_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -51,8 +50,6 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-
-#include "IMB_imbuf_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

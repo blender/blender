@@ -20,11 +20,9 @@
 
 #include "BKE_asset.h"
 #include "BKE_context.h"
-#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 
 #include "DNA_ID.h"
-#include "DNA_asset_types.h"
 
 #include "UI_interface_icons.h"
 

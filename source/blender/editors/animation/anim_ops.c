@@ -29,12 +29,10 @@
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -50,10 +48,8 @@
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 #include "ED_time_scrub_ui.h"
-#include "ED_util.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"

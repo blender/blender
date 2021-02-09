@@ -23,14 +23,9 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
-
 #include "WM_api.h"
-#include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_physics.h"
-#include "ED_select_utils.h"
 
 #include "physics_intern.h" /* own include */
 

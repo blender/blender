@@ -23,14 +23,10 @@
 
 #include "DNA_node_types.h"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_context.h"
 
 #include "ED_node.h" /* own include */
 #include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_transform.h"
 
 #include "RNA_access.h"
 

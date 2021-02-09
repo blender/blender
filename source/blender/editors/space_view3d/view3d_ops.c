@@ -24,7 +24,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -36,7 +35,6 @@
 
 #include "BKE_appdir.h"
 #include "BKE_blender_copybuffer.h"
-#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -49,7 +47,6 @@
 
 #include "ED_outliner.h"
 #include "ED_screen.h"
-#include "ED_select_utils.h"
 #include "ED_transform.h"
 
 #include "view3d_intern.h"

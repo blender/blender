@@ -35,7 +35,6 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_node.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
 
 #include "ED_node.h"

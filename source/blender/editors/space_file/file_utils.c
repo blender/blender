@@ -19,7 +19,6 @@
  */
 
 #include "BLI_fileops.h"
-#include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"

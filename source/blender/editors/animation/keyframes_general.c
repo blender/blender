@@ -39,13 +39,11 @@
 
 #include "BKE_action.h"
 #include "BKE_curve.h"
-#include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
-#include "RNA_enum_types.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"

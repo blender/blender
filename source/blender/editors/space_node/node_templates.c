@@ -35,7 +35,6 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_scene.h"
 
 #include "RNA_access.h"
 

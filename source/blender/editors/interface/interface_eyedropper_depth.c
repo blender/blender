@@ -41,8 +41,6 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
-#include "DEG_depsgraph.h"
-
 #include "RNA_access.h"
 
 #include "UI_interface.h"

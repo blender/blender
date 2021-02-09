@@ -33,7 +33,6 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_anim_data.h"

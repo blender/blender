@@ -46,7 +46,6 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_clip.h"
-#include "ED_gpencil.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"

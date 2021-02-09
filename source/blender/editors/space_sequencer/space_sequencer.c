@@ -51,7 +51,6 @@
 
 #include "RNA_access.h"
 
-#include "SEQ_sequencer.h"
 #include "SEQ_utils.h"
 
 #include "UI_interface.h"

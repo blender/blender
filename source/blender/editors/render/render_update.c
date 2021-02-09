@@ -25,7 +25,6 @@
 
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -33,7 +32,6 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
 #include "DRW_engine.h"
@@ -44,13 +42,11 @@
 
 #include "BKE_context.h"
 #include "BKE_icons.h"
-#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
-#include "BKE_workspace.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -64,8 +60,6 @@
 #include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
-
-#include "render_intern.h" /* own include */
 
 #include <stdio.h>
 

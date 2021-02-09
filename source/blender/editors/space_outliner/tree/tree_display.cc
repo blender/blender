@@ -18,8 +18,6 @@
  * \ingroup spoutliner
  */
 
-#include "BLI_listbase.h"
-
 #include "DNA_listBase.h"
 
 #include "tree_display.hh"

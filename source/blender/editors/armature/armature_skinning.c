@@ -30,7 +30,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_string_utils.h"
 
@@ -49,8 +48,6 @@
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
-
-#include "eigen_capi.h"
 
 #include "armature_intern.h"
 #include "meshlaplacian.h"

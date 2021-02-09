@@ -35,19 +35,16 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "DNA_mesh_types.h"
 #  include "DNA_modifier_types.h"
 #  include "DNA_object_types.h"
 #  include "DNA_scene_types.h"
 #  include "DNA_space_types.h"
 
 #  include "BKE_context.h"
-#  include "BKE_global.h"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 
 #  include "BLI_listbase.h"
-#  include "BLI_math_vector.h"
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"

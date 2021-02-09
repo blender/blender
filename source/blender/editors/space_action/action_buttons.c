@@ -26,33 +26,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "DNA_anim_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
-
 #include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_fcurve.h"
 #include "BKE_screen.h"
-#include "BKE_unit.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
-
-#include "RNA_access.h"
-
-#include "ED_anim_api.h"
-#include "ED_keyframing.h"
-#include "ED_screen.h"
-
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "action_intern.h" /* own include */
 

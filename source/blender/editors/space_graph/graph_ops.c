@@ -32,15 +32,11 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
-#include "ED_markers.h"
-#include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_select_utils.h"
 #include "ED_transform.h"
 
 #include "graph_intern.h"

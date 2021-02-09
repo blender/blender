@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 
@@ -52,7 +51,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "GPU_framebuffer.h"
 #include "nla_intern.h" /* own include */
 
 /* ******************** default callbacks for nla space ***************** */

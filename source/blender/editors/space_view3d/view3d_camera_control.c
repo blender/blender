@@ -50,11 +50,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_screen.h"
-
 #include "view3d_intern.h" /* own include */
-
-#include "BLI_strict_flags.h"
 
 typedef struct View3DCameraControl {
 

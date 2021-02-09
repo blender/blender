@@ -33,7 +33,6 @@
 #include "BKE_boids.h"
 #include "BKE_context.h"
 #include "BKE_main.h"
-#include "BKE_particle.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

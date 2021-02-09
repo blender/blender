@@ -28,16 +28,11 @@
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 
-#include "BLT_translation.h"
-
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_material_types.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_paint.h"
@@ -48,16 +43,11 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "UI_view2d.h"
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"
-#include "ED_view3d.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 #include "gpencil_intern.h"
 

@@ -24,8 +24,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_image_types.h"
 #include "DNA_mask_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -37,14 +35,9 @@
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_editmesh.h"
 #include "BKE_image.h"
-#include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_material.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -56,7 +49,6 @@
 
 #include "ED_image.h"
 #include "ED_mask.h"
-#include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -65,19 +57,13 @@
 #include "ED_uvedit.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
 #include "WM_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "GPU_batch_presets.h"
-#include "GPU_framebuffer.h"
-#include "GPU_viewport.h"
-
 #include "DRW_engine.h"
-#include "DRW_engine_types.h"
 
 #include "image_intern.h"
 

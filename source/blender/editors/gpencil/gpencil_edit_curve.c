@@ -28,13 +28,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_gpencil_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
