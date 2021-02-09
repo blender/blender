@@ -66,6 +66,11 @@ static void proximity_calc(MutableSpan<float> distance_span,
                            const bool bvh_mesh_success,
                            const bool bvh_pointcloud_success)
 {
+  /* The pointcloud loop uses the values already in the span,
+   * which is only set if the mesh BVH is used (because it's first). */
+  if (!bvh_mesh_success) {
+    distance_span.fill(FLT_MAX);
+  }
 
   IndexRange range = positions.index_range();
   parallel_for(range, 512, [&](IndexRange range) {
@@ -84,11 +89,6 @@ static void proximity_calc(MutableSpan<float> distance_span,
                                  &tree_data_mesh);
         distance_span[i] = sqrtf(nearest.dist_sq);
       }
-    }
-
-    /* The next loop(s) use the values already in the span. */
-    if (!bvh_mesh_success) {
-      distance_span.fill(FLT_MAX);
     }
 
     if (bvh_pointcloud_success) {
