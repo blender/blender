@@ -1891,9 +1891,8 @@ void BKE_armature_mat_pose_to_bone_ex(struct Depsgraph *depsgraph,
    * bone loc/sca/rot is ignored, scene and frame are not used. */
   BKE_pose_where_is_bone(depsgraph, NULL, ob, &work_pchan, 0.0f, false);
 
-  /* find the matrix, need to remove the bone transforms first so this is
-   * calculated as a matrix to set rather than a difference ontop of what's
-   * already there. */
+  /* Find the matrix, need to remove the bone transforms first so this is calculated
+   * as a matrix to set rather than a difference on top of what's already there. */
   unit_m4(outmat);
   BKE_pchan_apply_mat4(&work_pchan, outmat, false);
 
@@ -1945,7 +1944,7 @@ void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float r_mat[3][3])
     float quat[4];
 
     /* NOTE: we now don't normalize the stored values anymore,
-     * since this was kindof evil in some cases but if this proves to be too problematic,
+     * since this was kind of evil in some cases but if this proves to be too problematic,
      * switch back to the old system of operating directly on the stored copy. */
     normalize_qt_qt(quat, pchan->quat);
     quat_to_mat3(r_mat, quat);

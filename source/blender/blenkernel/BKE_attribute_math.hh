@@ -242,8 +242,8 @@ template<> struct DefaultMixerStruct<bool> {
   {
     return value >= 0.5f;
   }
-  /* Store interpolated bools in a float temporary. Otherwise information provided by weights is
-   * easily rounded away. */
+  /* Store interpolated booleans in a float temporary.
+   * Otherwise information provided by weights is easily rounded away. */
   using type = SimpleMixerWithAccumulationType<bool, float, float_to_bool>;
 };
 

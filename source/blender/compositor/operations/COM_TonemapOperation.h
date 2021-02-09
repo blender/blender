@@ -22,7 +22,7 @@
 #include "DNA_node_types.h"
 
 /**
- * \brief temporarily storage during execution of Tonemap
+ * \brief temporarily storage during execution of Tone-map
  * \ingroup operation
  */
 typedef struct AvgLogLum {

@@ -438,7 +438,7 @@ GPUShader *EEVEE_shaders_probe_planar_display_sh_get(void)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Downsampling
+/** \name Down-sampling
  * \{ */
 
 GPUShader *EEVEE_shaders_effect_downsample_sh_get(void)

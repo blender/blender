@@ -93,7 +93,7 @@ enum {
   GP_DRAWFILLS_ONLY3D = (1 << 1),   /* only draw 3d-strokes */
 };
 
-/* Temporary fill operation data (op->customdata) */
+/* Temporary fill operation data `op->customdata`. */
 typedef struct tGPDfill {
   bContext *C;
   struct Main *bmain;
@@ -112,7 +112,7 @@ typedef struct tGPDfill {
   struct View3D *v3d;
   /** region where painting originated */
   struct ARegion *region;
-  /** current GP datablock */
+  /** Current GP data-block. */
   struct bGPdata *gpd;
   /** current material */
   struct Material *mat;
@@ -172,9 +172,9 @@ typedef struct tGPDfill {
   /** handle for drawing strokes while operator is running 3d stuff */
   void *draw_handle_3d;
 
-  /* tmp size x */
+  /* Temporary size x. */
   int bwinx;
-  /* tmp size y */
+  /* Temporary size y. */
   int bwiny;
   rcti brect;
 
@@ -610,7 +610,7 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* draw strokes in offscreen buffer */
+/* Draw strokes in off-screen buffer. */
 static bool gpencil_render_offscreen(tGPDfill *tgpf)
 {
   bool is_ortho = false;
@@ -661,7 +661,7 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
                                      &clip_end,
                                      NULL);
 
-  /* Rescale viewplane to fit all strokes. */
+  /* Rescale `viewplane` to fit all strokes. */
   float width = viewplane.xmax - viewplane.xmin;
   float height = viewplane.ymax - viewplane.ymin;
 
@@ -734,21 +734,21 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
 
   BKE_image_release_ibuf(tgpf->ima, ibuf, NULL);
 
-  /* switch back to window-system-provided framebuffer */
+  /* Switch back to window-system-provided frame-buffer. */
   GPU_offscreen_unbind(offscreen, true);
   GPU_offscreen_free(offscreen);
 
   return true;
 }
 
-/* return pixel data (rgba) at index */
+/* Return pixel data (RGBA) at index. */
 static void get_pixel(const ImBuf *ibuf, const int idx, float r_col[4])
 {
   BLI_assert(ibuf->rect_float != NULL);
   memcpy(r_col, &ibuf->rect_float[idx * 4], sizeof(float[4]));
 }
 
-/* set pixel data (rgba) at index */
+/* Set pixel data (RGBA) at index. */
 static void set_pixel(ImBuf *ibuf, int idx, const float col[4])
 {
   BLI_assert(ibuf->rect_float != NULL);
@@ -890,17 +890,20 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
     }
   }
 
-  /* the fill use a stack to save the pixel list instead of the common recursive
+  /**
+   * The fill use a stack to save the pixel list instead of the common recursive
    * 4-contact point method.
    * The problem with recursive calls is that for big fill areas, we can get max limit
    * of recursive calls and STACK_OVERFLOW error.
    *
    * The 4-contact point analyze the pixels to the left, right, bottom and top
-   *      -----------
-   *      |    X    |
-   *      |   XoX   |
-   *      |    X    |
-   *      -----------
+   * <pre>
+   * -----------
+   * |    X    |
+   * |   XoX   |
+   * |    X    |
+   * -----------
+   * </pre>
    */
   while (!BLI_stack_is_empty(stack)) {
     int v;
@@ -988,7 +991,7 @@ static void gpencil_set_borders(tGPDfill *tgpf, const bool transparent)
   tgpf->ima->id.tag |= LIB_TAG_DOIT;
 }
 
-/* Invert image to paint invese area. */
+/* Invert image to paint inverse area. */
 static void gpencil_invert_image(tGPDfill *tgpf)
 {
   ImBuf *ibuf;
@@ -1092,16 +1095,19 @@ static void gpencil_erase_processed_area(tGPDfill *tgpf)
   tgpf->ima->id.tag |= LIB_TAG_DOIT;
 }
 
-/* Naive dilate
+/**
+ * Naive dilate
  *
  * Expand green areas into enclosing red areas.
  * Using stack prevents creep when replacing colors directly.
+ * <pre>
  * -----------
  *  XXXXXXX
  *  XoooooX
  *  XXooXXX
  *   XXXX
  * -----------
+ * </pre>
  */
 static bool dilate_shape(ImBuf *ibuf)
 {
@@ -1276,7 +1282,7 @@ static void gpencil_get_outline_points(tGPDfill *tgpf, const bool dilate)
     int cur_back_offset = -1;
     for (int i = 0; i < NEIGHBOR_COUNT; i++) {
       if (backtracked_offset[0][0] == offset[i][0] && backtracked_offset[0][1] == offset[i][1]) {
-        /* Finding the bracktracked pixel offset index */
+        /* Finding the back-tracked pixel offset index */
         cur_back_offset = i;
         break;
       }
@@ -1306,7 +1312,7 @@ static void gpencil_get_outline_points(tGPDfill *tgpf, const bool dilate)
       cur_back_offset++;
       loop++;
     }
-    /* Current pixel is equal to starting or firt pixel. */
+    /* Current pixel is equal to starting or first pixel. */
     if ((boundary_co[0] == start_co[0] && boundary_co[1] == start_co[1]) ||
         (boundary_co[0] == first_co[0] && boundary_co[1] == first_co[1])) {
       BLI_stack_pop(tgpf->stack, &v);
@@ -1323,7 +1329,7 @@ static void gpencil_get_outline_points(tGPDfill *tgpf, const bool dilate)
   BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 }
 
-/* get z-depth array to reproject on surface */
+/* Get z-depth array to reproject on surface. */
 static void gpencil_get_depth_array(tGPDfill *tgpf)
 {
   tGPspoint *ptc;
@@ -1374,7 +1380,7 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
     }
 
     if (found_depth == false) {
-      /* eeh... not much we can do.. :/, ignore depth in this case */
+      /* Sigh! not much we can do here. Ignore depth in this case. */
       for (i = totpoints - 1; i >= 0; i--) {
         tgpf->depth_arr[i] = 0.9999f;
       }

@@ -1669,7 +1669,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
             SpaceImage *sima = (SpaceImage *)space;
             sima->iuser.flag |= IMA_SHOW_MAX_RESOLUTION;
           }
-          /* Enable Outliner render visibilty column. */
+          /* Enable Outliner render visibility column. */
           else if (space->spacetype == SPACE_OUTLINER) {
             SpaceOutliner *space_outliner = (SpaceOutliner *)space;
             space_outliner->show_restrict_flags |= SO_RESTRICT_RENDER;
