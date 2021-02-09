@@ -88,7 +88,7 @@
 #define FILL_DEBUG 0
 
 /* Duplicated: etempFlags */
-const enum {
+enum {
   GP_DRAWFILLS_NOSTATUS = (1 << 0), /* don't draw status info */
   GP_DRAWFILLS_ONLY3D = (1 << 1),   /* only draw 3d-strokes */
 };
