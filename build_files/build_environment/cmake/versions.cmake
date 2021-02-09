@@ -144,9 +144,9 @@ set(PYTHON_SHORT_VERSION_NO_DOTS 39)
 set(PYTHON_URI https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz)
 set(PYTHON_HASH 61981498e75ac8f00adcb908281fadb6)
 
-set(TBB_VERSION 2019_U9)
+set(TBB_VERSION 2020_U2)
 set(TBB_URI https://github.com/oneapi-src/oneTBB/archive/${TBB_VERSION}.tar.gz)
-set(TBB_HASH 26263622e9187212ec240dcf01b66207)
+set(TBB_HASH 1b711ae956524855088df3bbf5ec65dc)
 
 set(OPENVDB_VERSION 7.0.0)
 set(OPENVDB_URI https://github.com/AcademySoftwareFoundation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz)

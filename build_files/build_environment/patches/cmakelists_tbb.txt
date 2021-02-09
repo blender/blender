@@ -20,6 +20,7 @@ if(APPLE)
 endif()
 
 file(GLOB tbb_src "${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/src/old/*.cpp")
+list(REMOVE_ITEM tbb_src ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/tbb_bind.cpp)
 list(APPEND tbb_src ${CMAKE_CURRENT_SOURCE_DIR}/src/rml/client/rml_tbb.cpp)
 file(GLOB to_remove "${CMAKE_CURRENT_SOURCE_DIR}/src/old/test*.cpp")
 list(REMOVE_ITEM tbb_src ${to_remove})
