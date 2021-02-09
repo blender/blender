@@ -32,11 +32,11 @@ set(JPEG_VERSION 2.0.4)
 set(JPEG_URI https://github.com/libjpeg-turbo/libjpeg-turbo/archive/${JPEG_VERSION}.tar.gz)
 set(JPEG_HASH 44c43e4a9fb352f47090804529317c88)
 
-set(BOOST_VERSION 1.70.0)
-set(BOOST_VERSION_NODOTS 1_70_0)
-set(BOOST_VERSION_NODOTS_SHORT 1_70)
+set(BOOST_VERSION 1.73.0)
+set(BOOST_VERSION_NODOTS 1_73_0)
+set(BOOST_VERSION_NODOTS_SHORT 1_73)
 set(BOOST_URI https://dl.bintray.com/boostorg/release/${BOOST_VERSION}/source/boost_${BOOST_VERSION_NODOTS}.tar.gz)
-set(BOOST_HASH fea771fe8176828fabf9c09242ee8c26)
+set(BOOST_HASH 4036cd27ef7548b8d29c30ea10956196)
 
 # Using old version as recommended by OpenVDB build documentation.
 set(BLOSC_VERSION 1.5.0)
