@@ -377,6 +377,17 @@ void MeshComponent::copy_vertex_group_names_from_object(const Object &object)
   }
 }
 
+const blender::Map<std::string, int> &MeshComponent::vertex_group_names() const
+{
+  return vertex_group_names_;
+}
+
+/* This is only exposed for the internal attribute API. */
+blender::Map<std::string, int> &MeshComponent::vertex_group_names()
+{
+  return vertex_group_names_;
+}
+
 /* Get the mesh from this component. This method can be used by multiple threads at the same
  * time. Therefore, the returned mesh should not be modified. No ownership is transferred. */
 const Mesh *MeshComponent::get_for_read() const

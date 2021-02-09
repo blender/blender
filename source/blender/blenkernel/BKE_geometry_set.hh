@@ -68,6 +68,10 @@ template<> struct DefaultHash<GeometryComponentType> {
 };
 }  // namespace blender
 
+namespace blender::bke {
+struct ComponentAttributeProviders;
+}
+
 class GeometryComponent;
 
 /**
@@ -152,23 +156,18 @@ class GeometryComponent {
   bool attribute_exists(const blender::StringRef attribute_name) const;
 
   /* Returns true when the geometry component supports this attribute domain. */
-  virtual bool attribute_domain_supported(const AttributeDomain domain) const;
-  /* Returns true when the given data type is supported in the given domain. */
-  virtual bool attribute_domain_with_type_supported(const AttributeDomain domain,
-                                                    const CustomDataType data_type) const;
+  bool attribute_domain_supported(const AttributeDomain domain) const;
   /* Can only be used with supported domain types. */
   virtual int attribute_domain_size(const AttributeDomain domain) const;
-  /* Attributes with these names cannot be created or removed via this api. */
-  virtual bool attribute_is_builtin(const blender::StringRef attribute_name) const;
 
   /* Get read-only access to the highest priority attribute with the given name.
    * Returns null if the attribute does not exist. */
-  virtual blender::bke::ReadAttributePtr attribute_try_get_for_read(
+  blender::bke::ReadAttributePtr attribute_try_get_for_read(
       const blender::StringRef attribute_name) const;
 
   /* Get read and write access to the highest priority attribute with the given name.
    * Returns null if the attribute does not exist. */
-  virtual blender::bke::WriteAttributePtr attribute_try_get_for_write(
+  blender::bke::WriteAttributePtr attribute_try_get_for_write(
       const blender::StringRef attribute_name);
 
   /* Get a read-only attribute for the domain based on the given attribute. This can be used to
@@ -178,14 +177,14 @@ class GeometryComponent {
       blender::bke::ReadAttributePtr attribute, const AttributeDomain domain) const;
 
   /* Returns true when the attribute has been deleted. */
-  virtual bool attribute_try_delete(const blender::StringRef attribute_name);
+  bool attribute_try_delete(const blender::StringRef attribute_name);
 
   /* Returns true when the attribute has been created. */
-  virtual bool attribute_try_create(const blender::StringRef attribute_name,
-                                    const AttributeDomain domain,
-                                    const CustomDataType data_type);
+  bool attribute_try_create(const blender::StringRef attribute_name,
+                            const AttributeDomain domain,
+                            const CustomDataType data_type);
 
-  virtual blender::Set<std::string> attribute_names() const;
+  blender::Set<std::string> attribute_names() const;
   virtual bool is_empty() const;
 
   /* Get a read-only attribute for the given domain and data type.
@@ -257,6 +256,9 @@ class GeometryComponent {
                                                   const AttributeDomain domain,
                                                   const CustomDataType data_type,
                                                   const void *default_value = nullptr);
+
+ private:
+  virtual const blender::bke::ComponentAttributeProviders *get_attribute_providers() const;
 };
 
 template<typename T>
@@ -359,30 +361,20 @@ class MeshComponent : public GeometryComponent {
   Mesh *release();
 
   void copy_vertex_group_names_from_object(const struct Object &object);
+  const blender::Map<std::string, int> &vertex_group_names() const;
+  blender::Map<std::string, int> &vertex_group_names();
 
   const Mesh *get_for_read() const;
   Mesh *get_for_write();
 
-  bool attribute_domain_supported(const AttributeDomain domain) const final;
-  bool attribute_domain_with_type_supported(const AttributeDomain domain,
-                                            const CustomDataType data_type) const final;
   int attribute_domain_size(const AttributeDomain domain) const final;
-  bool attribute_is_builtin(const blender::StringRef attribute_name) const final;
 
-  blender::bke::ReadAttributePtr attribute_try_get_for_read(
-      const blender::StringRef attribute_name) const final;
-  blender::bke::WriteAttributePtr attribute_try_get_for_write(
-      const blender::StringRef attribute_name) final;
-
-  bool attribute_try_delete(const blender::StringRef attribute_name) final;
-  bool attribute_try_create(const blender::StringRef attribute_name,
-                            const AttributeDomain domain,
-                            const CustomDataType data_type) final;
-
-  blender::Set<std::string> attribute_names() const final;
   bool is_empty() const final;
 
   static constexpr inline GeometryComponentType static_type = GeometryComponentType::Mesh;
+
+ private:
+  const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
 };
 
 /** A geometry component that stores a point cloud. */
@@ -405,26 +397,14 @@ class PointCloudComponent : public GeometryComponent {
   const PointCloud *get_for_read() const;
   PointCloud *get_for_write();
 
-  bool attribute_domain_supported(const AttributeDomain domain) const final;
-  bool attribute_domain_with_type_supported(const AttributeDomain domain,
-                                            const CustomDataType data_type) const final;
   int attribute_domain_size(const AttributeDomain domain) const final;
-  bool attribute_is_builtin(const blender::StringRef attribute_name) const final;
 
-  blender::bke::ReadAttributePtr attribute_try_get_for_read(
-      const blender::StringRef attribute_name) const final;
-  blender::bke::WriteAttributePtr attribute_try_get_for_write(
-      const blender::StringRef attribute_name) final;
-
-  bool attribute_try_delete(const blender::StringRef attribute_name) final;
-  bool attribute_try_create(const blender::StringRef attribute_name,
-                            const AttributeDomain domain,
-                            const CustomDataType data_type) final;
-
-  blender::Set<std::string> attribute_names() const final;
   bool is_empty() const final;
 
   static constexpr inline GeometryComponentType static_type = GeometryComponentType::PointCloud;
+
+ private:
+  const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
 };
 
 /** A geometry component that stores instances. */
