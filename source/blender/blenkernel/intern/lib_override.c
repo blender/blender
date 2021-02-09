@@ -1647,24 +1647,26 @@ static bool lib_override_library_id_reset_do(Main *bmain, ID *id_root)
                          &ptr_root_lib);
 
       bool prop_exists = RNA_path_resolve_property(&ptr_root, op->rna_path, &ptr, &prop);
-      BLI_assert(prop_exists);
-      prop_exists = RNA_path_resolve_property(&ptr_root_lib, op->rna_path, &ptr_lib, &prop_lib);
-
       if (prop_exists) {
-        BLI_assert(ELEM(RNA_property_type(prop), PROP_POINTER, PROP_COLLECTION));
-        BLI_assert(RNA_property_type(prop) == RNA_property_type(prop_lib));
-        if (is_collection) {
-          ptr.type = RNA_property_pointer_type(&ptr, prop);
-          ptr_lib.type = RNA_property_pointer_type(&ptr_lib, prop_lib);
-        }
-        else {
-          ptr = RNA_property_pointer_get(&ptr, prop);
-          ptr_lib = RNA_property_pointer_get(&ptr_lib, prop_lib);
-        }
-        if (ptr.owner_id != NULL && ptr_lib.owner_id != NULL) {
-          BLI_assert(ptr.type == ptr_lib.type);
-          do_op_delete = !(RNA_struct_is_ID(ptr.type) && ptr.owner_id->override_library != NULL &&
-                           ptr.owner_id->override_library->reference == ptr_lib.owner_id);
+        prop_exists = RNA_path_resolve_property(&ptr_root_lib, op->rna_path, &ptr_lib, &prop_lib);
+
+        if (prop_exists) {
+          BLI_assert(ELEM(RNA_property_type(prop), PROP_POINTER, PROP_COLLECTION));
+          BLI_assert(RNA_property_type(prop) == RNA_property_type(prop_lib));
+          if (is_collection) {
+            ptr.type = RNA_property_pointer_type(&ptr, prop);
+            ptr_lib.type = RNA_property_pointer_type(&ptr_lib, prop_lib);
+          }
+          else {
+            ptr = RNA_property_pointer_get(&ptr, prop);
+            ptr_lib = RNA_property_pointer_get(&ptr_lib, prop_lib);
+          }
+          if (ptr.owner_id != NULL && ptr_lib.owner_id != NULL) {
+            BLI_assert(ptr.type == ptr_lib.type);
+            do_op_delete = !(RNA_struct_is_ID(ptr.type) &&
+                             ptr.owner_id->override_library != NULL &&
+                             ptr.owner_id->override_library->reference == ptr_lib.owner_id);
+          }
         }
       }
     }
