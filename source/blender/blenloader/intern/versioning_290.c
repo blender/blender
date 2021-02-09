@@ -1660,6 +1660,25 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 6)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          /* UV/Image Max resolution images in image editor. */
+          if (space->spacetype == SPACE_IMAGE) {
+            SpaceImage *sima = (SpaceImage *)space;
+            sima->iuser.flag |= IMA_SHOW_MAX_RESOLUTION;
+          }
+          /* Enable Outliner render visibilty column. */
+          else if (space->spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = (SpaceOutliner *)space;
+            space_outliner->show_restrict_flags |= SO_RESTRICT_RENDER;
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1671,17 +1690,5 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    /* UV/Image Max resolution images in image editor. */
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
-          if (space->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)space;
-            sima->iuser.flag |= IMA_SHOW_MAX_RESOLUTION;
-          }
-        }
-      }
-    }
   }
 }
