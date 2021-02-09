@@ -503,8 +503,6 @@ static void lib_override_linked_group_tag(
     }
   }
 
-  lib_override_hierarchy_dependencies_recursive_tag(bmain, id, tag, missing_tag);
-
   if (create_bmain_relations) {
     BKE_main_relations_free(bmain);
   }
@@ -794,6 +792,9 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
   lib_override_local_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING);
 
   lib_override_linked_group_tag(bmain, id_root_reference, LIB_TAG_DOIT, LIB_TAG_MISSING, false);
+
+  lib_override_hierarchy_dependencies_recursive_tag(
+      bmain, id_root_reference, LIB_TAG_DOIT, LIB_TAG_MISSING);
 
   /* Make a mapping 'linked reference IDs' -> 'Local override IDs' of existing overrides. */
   GHash *linkedref_to_old_override = BLI_ghash_new(
