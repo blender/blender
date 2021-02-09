@@ -1388,8 +1388,8 @@ enum {
 
   ATTRS_NEED_REALLOC = (ATTR_FLOAT_NEEDS_REALLOC | ATTR_FLOAT2_NEEDS_REALLOC |
                         ATTR_FLOAT3_NEEDS_REALLOC | ATTR_UCHAR4_NEEDS_REALLOC),
-  DEVICE_MESH_DATA_NEEDS_REALLOC = (CURVE_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
-  DEVICE_CURVE_DATA_NEEDS_REALLOC = (MESH_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
+  DEVICE_MESH_DATA_NEEDS_REALLOC = (MESH_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
+  DEVICE_CURVE_DATA_NEEDS_REALLOC = (CURVE_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
 };
 
 static void update_device_flags_attribute(uint32_t &device_update_flags,
@@ -1591,16 +1591,16 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     dscene->attributes_map.tag_realloc();
     dscene->attributes_float2.tag_realloc();
   }
-  else if (device_update_flags & ATTR_FLOAT_MODIFIED) {
-    dscene->attributes_float.tag_modified();
+  else if (device_update_flags & ATTR_FLOAT2_MODIFIED) {
+    dscene->attributes_float2.tag_modified();
   }
 
   if (device_update_flags & ATTR_FLOAT3_NEEDS_REALLOC) {
     dscene->attributes_map.tag_realloc();
     dscene->attributes_float3.tag_realloc();
   }
-  else if (device_update_flags & ATTR_FLOAT_MODIFIED) {
-    dscene->attributes_float.tag_modified();
+  else if (device_update_flags & ATTR_FLOAT3_MODIFIED) {
+    dscene->attributes_float3.tag_modified();
   }
 
   if (device_update_flags & ATTR_UCHAR4_NEEDS_REALLOC) {
