@@ -78,9 +78,9 @@ set(FREEGLUT_VERSION 3.0.0)
 set(FREEGLUT_URI http://pilotfiber.dl.sourceforge.net/project/freeglut/freeglut/${FREEGLUT_VERSION}/freeglut-${FREEGLUT_VERSION}.tar.gz)
 set(FREEGLUT_HASH 90c3ca4dd9d51cf32276bc5344ec9754)
 
-set(ALEMBIC_VERSION 1.7.12)
+set(ALEMBIC_VERSION 1.7.16)
 set(ALEMBIC_URI https://github.com/alembic/alembic/archive/${ALEMBIC_VERSION}.tar.gz)
-set(ALEMBIC_MD5 e2b3777f23c5c09481a008cc6f0f8a40)
+set(ALEMBIC_MD5 effcc86e42fe6605588e3de57bde6677)
 
 # hash is for 3.1.2
 set(GLFW_GIT_UID 30306e54705c3adae9fe082c816a3be71963485c)
