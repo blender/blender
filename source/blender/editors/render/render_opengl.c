@@ -367,9 +367,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     char err_out[256] = "unknown";
     ImBuf *ibuf_view;
     const int alpha_mode = (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL;
-    eImBufFlags imbuf_flags = oglrender->color_depth <= R_IMF_CHAN_DEPTH_8 ? IB_rect :
-                                                                             IB_rectfloat;
-
     if (view_context) {
       ibuf_view = ED_view3d_draw_offscreen_imbuf(depsgraph,
                                                  scene,
@@ -378,7 +375,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                  region,
                                                  sizex,
                                                  sizey,
-                                                 imbuf_flags,
+                                                 IB_rectfloat,
                                                  alpha_mode,
                                                  viewname,
                                                  true,
@@ -398,7 +395,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                         scene->camera,
                                                         oglrender->sizex,
                                                         oglrender->sizey,
-                                                        imbuf_flags,
+                                                        IB_rectfloat,
                                                         V3D_OFSDRAW_SHOW_ANNOTATION,
                                                         alpha_mode,
                                                         viewname,
