@@ -1326,6 +1326,13 @@ static void sculpt_expand_move_propagation_origin(bContext *C,
                                                             expand_cache->falloff_factor_type);
 }
 
+static void sculpt_expand_ensure_sculptsession_data(Object *ob)
+{
+  SCULPT_vertex_random_access_ensure(ob->sculpt);
+  SCULPT_connected_components_ensure(ob);
+  SCULPT_boundary_info_ensure(ob);
+}
+
 static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
@@ -1338,8 +1345,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
 
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-  SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_boundary_info_ensure(ob);
+  sculpt_expand_ensure_sculptsession_data(ob);
 
   const float mouse[2] = {event->mval[0], event->mval[1]};
   const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mouse);
@@ -1602,9 +1608,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
-  SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_boundary_info_ensure(ob);
-  SCULPT_connected_components_ensure(ob);
+  sculpt_expand_ensure_sculptsession_data(ob);
 
   /* Initialize undo. */
   SCULPT_undo_push_begin(ob, "expand");
