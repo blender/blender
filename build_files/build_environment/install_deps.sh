@@ -1101,8 +1101,8 @@ FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
 
 XR_OPENXR_USE_REPO=false
 XR_OPENXR_SOURCE=("https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_VERSION}.tar.gz")
-#~ XR_OPENXR_SOURCE_REPO=("https://github.com/KhronosGroup/OpenXR-SDK-Source.git")
-#~ XR_OPENXR_REPO_UID="5292e57fda47561e672fba0a4b6e545c0f25dd8d"
+#~ XR_OPENXR_SOURCE_REPO=("https://github.com/KhronosGroup/OpenXR-SDK.git")
+#~ XR_OPENXR_REPO_UID="5900c51562769b03bea699dc0352cae56acb6419d"
 #~ XR_OPENXR_REPO_BRANCH="master"
 
 # C++11 is required now
