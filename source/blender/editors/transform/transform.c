@@ -695,6 +695,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
       {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint Plane", ""},
+      {TFM_MODAL_PRECISION, "PRECISION", 0, "Precision Mode", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -805,8 +806,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   bool handled = false;
   const int modifiers_prev = t->modifiers;
   const int mode_prev = t->mode;
-
-  t->redraw |= handleMouseInput(t, &t->mouse, event);
 
   /* Handle modal numinput events first, if already activated. */
   if (((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) && hasNumInput(&t->num) &&
@@ -1093,6 +1092,19 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           }
           t->redraw |= TREDRAW_HARD;
           handled = true;
+        }
+        break;
+      case TFM_MODAL_PRECISION:
+        if (event->prevval == KM_PRESS) {
+          t->modifiers |= MOD_PRECISION;
+          /* Shift is modifier for higher precision transform. */
+          t->mouse.precision = 1;
+          t->redraw |= TREDRAW_HARD;
+        }
+        else if (event->prevval == KM_RELEASE) {
+          t->modifiers &= ~MOD_PRECISION;
+          t->mouse.precision = 0;
+          t->redraw |= TREDRAW_HARD;
         }
         break;
       /* Those two are only handled in transform's own handler, see T44634! */

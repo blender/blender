@@ -285,6 +285,8 @@ enum {
 
   TFM_MODAL_AUTOCONSTRAINT = 28,
   TFM_MODAL_AUTOCONSTRAINTPLANE = 29,
+
+  TFM_MODAL_PRECISION = 30,
 };
 
 /** \} */
@@ -720,9 +722,6 @@ typedef enum {
 void initMouseInput(
     TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], const bool precision);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
-eRedrawFlag handleMouseInput(struct TransInfo *t,
-                             struct MouseInput *mi,
-                             const struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t,
                      struct MouseInput *mi,
                      const int mval[2],
