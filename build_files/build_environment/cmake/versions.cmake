@@ -148,9 +148,9 @@ set(TBB_VERSION 2020_U2)
 set(TBB_URI https://github.com/oneapi-src/oneTBB/archive/${TBB_VERSION}.tar.gz)
 set(TBB_HASH 1b711ae956524855088df3bbf5ec65dc)
 
-set(OPENVDB_VERSION 7.0.0)
+set(OPENVDB_VERSION 8.0.1)
 set(OPENVDB_URI https://github.com/AcademySoftwareFoundation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz)
-set(OPENVDB_HASH fd6c4f168282f7e0e494d290cd531fa8)
+set(OPENVDB_HASH 01b490be16cc0e15c690f9a153c21461)
 
 set(NANOVDB_GIT_UID e62f7a0bf1e27397223c61ddeaaf57edf111b77f)
 set(NANOVDB_URI https://github.com/AcademySoftwareFoundation/openvdb/archive/${NANOVDB_GIT_UID}.tar.gz)
