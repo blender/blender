@@ -26,36 +26,30 @@ diff -Naur external_usd_base/cmake/macros/Public.cmake external_usd/cmake/macros
      endforeach()
      foreach(lib ${PXR_OBJECT_LIBS})
          set(objects "${objects};\$<TARGET_OBJECTS:${lib}>")
-
-diff --git a/pxr/base/arch/align.h b/pxr/base/arch/align.h
-index f3cabf4..ebc8a69 100644
---- a/pxr/base/arch/align.h
-+++ b/pxr/base/arch/align.h
-@@ -77,7 +77,11 @@ ArchAlignMemory(void *base)
- /// The size of a CPU cache line on the current processor architecture in bytes.
- ///
- /// \hideinitializer
-+#if defined(ARCH_OS_DARWIN) && defined(ARCH_CPU_ARM)
-+#define ARCH_CACHE_LINE_SIZE 128
-+#else
- #define ARCH_CACHE_LINE_SIZE 64
-+#endif
+diff -ru USD-20.11/pxr/base/tf/pxrLZ4/lz4.cpp external_usd/pxr/base/tf/pxrLZ4/lz4.cpp
+--- USD-20.11/pxr/base/tf/pxrLZ4/lz4.cpp        2020-10-14 19:25:19.000000000 +0100
++++ external_usd/pxr/base/tf/pxrLZ4/lz4.cpp     2021-02-09 09:28:51.496190085 +0000
+@@ -614,6 +614,15 @@
+ /*-************************************
+ *  Internal Definitions used in Tests
+ **************************************/
++
++/*******************************************************************
++ * Disabled in Blender. The BLOSC library also exposes these
++ * functions, and this causes 'duplicate symbol' linker errors.
++ *
++ * This problem has been reported upstream at
++ * https://github.com/PixarAnimationStudios/USD/issues/1447
++ *
++ *******************************************************************
+ #if defined (__cplusplus)
+ extern "C" {
+ #endif
+@@ -627,6 +636,7 @@
+ #if defined (__cplusplus)
+ }
+ #endif
++********************************************************************/
  
- ///@}
- 
-diff --git a/pxr/base/arch/math.h b/pxr/base/arch/math.h
-index 3e66c37..64a052c 100644
---- a/pxr/base/arch/math.h
-+++ b/pxr/base/arch/math.h
-@@ -42,7 +42,7 @@ PXR_NAMESPACE_OPEN_SCOPE
- /// \addtogroup group_arch_Math
- ///@{
- 
--#if defined (ARCH_CPU_INTEL) || defined(doxygen)
-+#if defined (ARCH_CPU_INTEL) || defined(ARCH_CPU_ARM) || defined(doxygen)
- 
- /// This is the smallest value e such that 1+e^2 == 1, using floats.
- /// True for all IEEE754 chipsets.
-
-
-
+ /*-******************************
+ *  Compression functions
