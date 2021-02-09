@@ -1216,6 +1216,20 @@ typedef struct NodeGeometryVolumeToMesh {
   char _pad[7];
 } NodeGeometryVolumeToMesh;
 
+typedef struct NodeAttributeCombineXYZ {
+  /* GeometryNodeAttributeInputMode. */
+  uint8_t input_type_x;
+  uint8_t input_type_y;
+  uint8_t input_type_z;
+
+  char _pad[1];
+} NodeAttributeCombineXYZ;
+
+typedef struct NodeAttributeSeparateXYZ {
+  /* GeometryNodeAttributeInputMode. */
+  uint8_t input_type;
+} NodeAttributeSeparateXYZ;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
