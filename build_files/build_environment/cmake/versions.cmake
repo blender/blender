@@ -317,9 +317,9 @@ set(NASM_VERSION 2.15.02)
 set(NASM_URI https://github.com/netwide-assembler/nasm/archive/nasm-${NASM_VERSION}.tar.gz)
 set(NASM_HASH aded8b796c996a486a56e0515c83e414116decc3b184d88043480b32eb0a8589)
 
-set(XR_OPENXR_SDK_VERSION 1.0.8)
+set(XR_OPENXR_SDK_VERSION 1.0.14)
 set(XR_OPENXR_SDK_URI https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_SDK_VERSION}.tar.gz)
-set(XR_OPENXR_SDK_HASH c6de63d2e0f9029aa58dfa97cad8ce07)
+set(XR_OPENXR_SDK_HASH 0df6b2fd6045423451a77ff6bc3e1a75)
 
 set(ISPC_VERSION v1.14.1)
 set(ISPC_URI https://github.com/ispc/ispc/archive/${ISPC_VERSION}.tar.gz)
