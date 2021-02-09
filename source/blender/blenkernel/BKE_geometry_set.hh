@@ -174,7 +174,7 @@ class GeometryComponent {
    * interpolate from one domain to another.
    * Returns null if the interpolation is not implemented. */
   virtual blender::bke::ReadAttributePtr attribute_try_adapt_domain(
-      blender::bke::ReadAttributePtr attribute, const AttributeDomain domain) const;
+      blender::bke::ReadAttributePtr attribute, const AttributeDomain new_domain) const;
 
   /* Returns true when the attribute has been deleted. */
   bool attribute_try_delete(const blender::StringRef attribute_name);
@@ -368,6 +368,8 @@ class MeshComponent : public GeometryComponent {
   Mesh *get_for_write();
 
   int attribute_domain_size(const AttributeDomain domain) const final;
+  blender::bke::ReadAttributePtr attribute_try_adapt_domain(
+      blender::bke::ReadAttributePtr attribute, const AttributeDomain new_domain) const final;
 
   bool is_empty() const final;
 

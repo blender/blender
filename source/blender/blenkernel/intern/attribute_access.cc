@@ -17,6 +17,7 @@
 #include <utility>
 
 #include "BKE_attribute_access.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_geometry_set.hh"
@@ -307,6 +308,29 @@ template<typename T> class ArrayReadAttribute final : public ReadAttribute {
  public:
   ArrayReadAttribute(AttributeDomain domain, Span<T> data)
       : ReadAttribute(domain, CPPType::get<T>(), data.size()), data_(data)
+  {
+  }
+
+  void get_internal(const int64_t index, void *r_value) const override
+  {
+    new (r_value) T(data_[index]);
+  }
+
+  void initialize_span() const override
+  {
+    /* The data will not be modified, so this const_cast is fine. */
+    array_buffer_ = const_cast<T *>(data_.data());
+    array_is_temporary_ = false;
+  }
+};
+
+template<typename T> class OwnedArrayReadAttribute final : public ReadAttribute {
+ private:
+  Array<T> data_;
+
+ public:
+  OwnedArrayReadAttribute(AttributeDomain domain, Array<T> data)
+      : ReadAttribute(domain, CPPType::get<T>(), data.size()), data_(std::move(data))
   {
   }
 
@@ -1344,10 +1368,10 @@ ReadAttributePtr GeometryComponent::attribute_try_get_for_read(
   return {};
 }
 
-ReadAttributePtr GeometryComponent::attribute_try_adapt_domain(ReadAttributePtr attribute,
-                                                               const AttributeDomain domain) const
+ReadAttributePtr GeometryComponent::attribute_try_adapt_domain(
+    ReadAttributePtr attribute, const AttributeDomain new_domain) const
 {
-  if (attribute && attribute->domain() == domain) {
+  if (attribute && attribute->domain() == new_domain) {
     return attribute;
   }
   return {};
@@ -1763,6 +1787,77 @@ int MeshComponent::attribute_domain_size(const AttributeDomain domain) const
       break;
   }
   return 0;
+}
+
+namespace blender::bke {
+
+template<typename T>
+void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
+                                            const TypedReadAttribute<T> &attribute,
+                                            MutableSpan<T> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totvert);
+  attribute_math::DefaultMixer<T> mixer(r_values);
+
+  for (const int loop_index : IndexRange(mesh.totloop)) {
+    const T value = attribute[loop_index];
+    const MLoop &loop = mesh.mloop[loop_index];
+    const int point_index = loop.v;
+    mixer.mix_in(point_index, value);
+  }
+  mixer.finalize();
+}
+
+static ReadAttributePtr adapt_mesh_domain_corner_to_point(const Mesh &mesh,
+                                                          ReadAttributePtr attribute)
+{
+  ReadAttributePtr new_attribute;
+  const CustomDataType data_type = attribute->custom_data_type();
+  attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+    using T = decltype(dummy);
+    if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
+      /* We compute all interpolated values at once, because for this interpolation, one has to
+       * iterate over all loops anyway. */
+      Array<T> values(mesh.totvert);
+      adapt_mesh_domain_corner_to_point_impl<T>(mesh, *attribute, values);
+      new_attribute = std::make_unique<OwnedArrayReadAttribute<T>>(ATTR_DOMAIN_POINT,
+                                                                   std::move(values));
+    }
+  });
+  return new_attribute;
+}
+
+}  // namespace blender::bke
+
+ReadAttributePtr MeshComponent::attribute_try_adapt_domain(ReadAttributePtr attribute,
+                                                           const AttributeDomain new_domain) const
+{
+  if (!attribute) {
+    return {};
+  }
+  if (attribute->size() == 0) {
+    return {};
+  }
+  const AttributeDomain old_domain = attribute->domain();
+  if (old_domain == new_domain) {
+    return attribute;
+  }
+
+  switch (old_domain) {
+    case ATTR_DOMAIN_CORNER: {
+      switch (new_domain) {
+        case ATTR_DOMAIN_POINT:
+          return blender::bke::adapt_mesh_domain_corner_to_point(*mesh_, std::move(attribute));
+        default:
+          break;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+
+  return {};
 }
 
 /** \} */
