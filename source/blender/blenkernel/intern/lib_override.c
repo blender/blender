@@ -370,8 +370,9 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
 
 /* Tag all IDs in dependency relationships within an override hierarchy/group.
  *
+ * Requires existing `Main.relations`.
+ *
  * Note: this is typically called to complete `lib_override_linked_group_tag()`.
- * Note: BMain's relations mapping won't be valid anymore after that call.
  */
 static bool lib_override_hierarchy_dependencies_recursive_tag(Main *bmain,
                                                               ID *id,
@@ -464,19 +465,19 @@ static int lib_override_linked_group_tag_cb(LibraryIDLinkCallbackData *cb_data)
 
 /* This will tag at least all 'boundary' linked IDs for a potential override group.
  *
+ * Requires existing `Main.relations`.
+ *
  * Note that you will then need to call #lib_override_hierarchy_dependencies_recursive_tag to
  * complete tagging of all dependencies within the override group.
  *
  * We currently only consider Collections and Objects (that are not used as bone shapes) as valid
  * boundary IDs to define an override group.
  */
-static void lib_override_linked_group_tag(
-    Main *bmain, ID *id, const uint tag, const uint missing_tag, const bool create_bmain_relations)
+static void lib_override_linked_group_tag(Main *bmain,
+                                          ID *id,
+                                          const uint tag,
+                                          const uint missing_tag)
 {
-  if (create_bmain_relations) {
-    BKE_main_relations_create(bmain, 0);
-  }
-
   if ((id->tag & LIB_TAG_MISSING)) {
     id->tag |= missing_tag;
   }
@@ -501,10 +502,6 @@ static void lib_override_linked_group_tag(
         }
       }
     }
-  }
-
-  if (create_bmain_relations) {
-    BKE_main_relations_free(bmain);
   }
 }
 
@@ -564,14 +561,7 @@ static int lib_override_local_group_tag_cb(LibraryIDLinkCallbackData *cb_data)
   return IDWALK_RET_NOP;
 }
 
-/* This will tag at least all 'boundary' linked IDs for a potential override group.
- *
- * Note that you will then need to call #lib_override_hierarchy_dependencies_recursive_tag to
- * complete tagging of all dependencies within the override group.
- *
- * We currently only consider Collections and Objects (that are not used as bone shapes) as valid
- * boundary IDs to define an override group.
- */
+/* This will tag all override IDs of an override group defined by the given `id_root`. */
 static void lib_override_local_group_tag(Main *bmain,
                                          ID *id,
                                          const uint tag,
@@ -589,7 +579,7 @@ static bool lib_override_library_create_do(Main *bmain, ID *id_root)
 {
   BKE_main_relations_create(bmain, 0);
 
-  lib_override_linked_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING, false);
+  lib_override_linked_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING);
   lib_override_hierarchy_dependencies_recursive_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING);
 
   BKE_main_relations_free(bmain);
@@ -791,7 +781,7 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
 
   lib_override_local_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING);
 
-  lib_override_linked_group_tag(bmain, id_root_reference, LIB_TAG_DOIT, LIB_TAG_MISSING, false);
+  lib_override_linked_group_tag(bmain, id_root_reference, LIB_TAG_DOIT, LIB_TAG_MISSING);
 
   lib_override_hierarchy_dependencies_recursive_tag(
       bmain, id_root_reference, LIB_TAG_DOIT, LIB_TAG_MISSING);
