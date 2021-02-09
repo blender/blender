@@ -368,23 +368,30 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
   return success;
 }
 
+typedef struct LibOverrideGroupTagData {
+  Main *bmain;
+  ID *id_root;
+  uint tag;
+  uint missing_tag;
+} LibOverrideGroupTagData;
+
 /* Tag all IDs in dependency relationships within an override hierarchy/group.
  *
  * Requires existing `Main.relations`.
  *
  * Note: this is typically called to complete `lib_override_linked_group_tag()`.
  */
-static bool lib_override_hierarchy_dependencies_recursive_tag(Main *bmain,
-                                                              ID *id,
-                                                              const uint tag,
-                                                              const uint missing_tag)
+static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTagData *data)
 {
+  Main *bmain = data->bmain;
+  ID *id = data->id_root;
+
   MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);
   BLI_assert(entry != NULL);
 
   if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
     /* This ID has already been processed. */
-    return (*(uint *)&id->tag & tag) != 0;
+    return (*(uint *)&id->tag & data->tag) != 0;
   }
   /* This way we won't process again that ID, should we encounter it again through another
    * relationship hierarchy. */
@@ -400,20 +407,16 @@ static bool lib_override_hierarchy_dependencies_recursive_tag(Main *bmain,
     /* We only consider IDs from the same library. */
     ID *to_id = *to_id_entry->id_pointer.to;
     if (to_id != NULL && to_id->lib == id->lib) {
-      if (lib_override_hierarchy_dependencies_recursive_tag(bmain, to_id, tag, missing_tag)) {
-        id->tag |= tag;
+      LibOverrideGroupTagData sub_data = *data;
+      sub_data.id_root = to_id;
+      if (lib_override_hierarchy_dependencies_recursive_tag(&sub_data)) {
+        id->tag |= data->tag;
       }
     }
   }
 
-  return (*(uint *)&id->tag & tag) != 0;
+  return (*(uint *)&id->tag & data->tag) != 0;
 }
-
-typedef struct LibOverrideGroupTagData {
-  ID *id_root;
-  uint tag;
-  uint missing_tag;
-} LibOverrideGroupTagData;
 
 static int lib_override_linked_group_tag_cb(LibraryIDLinkCallbackData *cb_data)
 {
@@ -473,31 +476,30 @@ static int lib_override_linked_group_tag_cb(LibraryIDLinkCallbackData *cb_data)
  * We currently only consider Collections and Objects (that are not used as bone shapes) as valid
  * boundary IDs to define an override group.
  */
-static void lib_override_linked_group_tag(Main *bmain,
-                                          ID *id,
-                                          const uint tag,
-                                          const uint missing_tag)
+static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
 {
-  if ((id->tag & LIB_TAG_MISSING)) {
-    id->tag |= missing_tag;
+  Main *bmain = data->bmain;
+  ID *id_root = data->id_root;
+
+  if ((id_root->tag & LIB_TAG_MISSING)) {
+    id_root->tag |= data->missing_tag;
   }
   else {
-    id->tag |= tag;
+    id_root->tag |= data->tag;
   }
 
-  if (ELEM(GS(id->name), ID_OB, ID_GR)) {
-    LibOverrideGroupTagData data = {.id_root = id, .tag = tag, .missing_tag = missing_tag};
+  if (ELEM(GS(id_root->name), ID_OB, ID_GR)) {
     /* Tag all collections and objects. */
     BKE_library_foreach_ID_link(
-        bmain, id, lib_override_linked_group_tag_cb, &data, IDWALK_READONLY | IDWALK_RECURSE);
+        bmain, id_root, lib_override_linked_group_tag_cb, data, IDWALK_READONLY | IDWALK_RECURSE);
 
     /* Then, we remove (untag) bone shape objects, you shall never want to directly/explicitly
      * override those. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      if (ob->type == OB_ARMATURE && ob->pose != NULL && (ob->id.tag & tag)) {
+      if (ob->type == OB_ARMATURE && ob->pose != NULL && (ob->id.tag & data->tag)) {
         for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
           if (pchan->custom != NULL) {
-            pchan->custom->id.tag &= ~(tag | missing_tag);
+            pchan->custom->id.tag &= ~(data->tag | data->missing_tag);
           }
         }
       }
@@ -562,25 +564,26 @@ static int lib_override_local_group_tag_cb(LibraryIDLinkCallbackData *cb_data)
 }
 
 /* This will tag all override IDs of an override group defined by the given `id_root`. */
-static void lib_override_local_group_tag(Main *bmain,
-                                         ID *id,
-                                         const uint tag,
-                                         const uint missing_tag)
+static void lib_override_local_group_tag(LibOverrideGroupTagData *data)
 {
-  id->tag |= tag;
+  Main *bmain = data->bmain;
+  ID *id_root = data->id_root;
 
-  LibOverrideGroupTagData data = {.id_root = id, .tag = tag, .missing_tag = missing_tag};
+  id_root->tag |= data->tag;
+
   /* Tag all local overrides in id_root's group. */
   BKE_library_foreach_ID_link(
-      bmain, id, lib_override_local_group_tag_cb, &data, IDWALK_READONLY | IDWALK_RECURSE);
+      bmain, id_root, lib_override_local_group_tag_cb, data, IDWALK_READONLY | IDWALK_RECURSE);
 }
 
 static bool lib_override_library_create_do(Main *bmain, ID *id_root)
 {
   BKE_main_relations_create(bmain, 0);
 
-  lib_override_linked_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING);
-  lib_override_hierarchy_dependencies_recursive_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING);
+  LibOverrideGroupTagData data = {
+      .bmain = bmain, .id_root = id_root, .tag = LIB_TAG_DOIT, .missing_tag = LIB_TAG_MISSING};
+  lib_override_linked_group_tag(&data);
+  lib_override_hierarchy_dependencies_recursive_tag(&data);
 
   BKE_main_relations_free(bmain);
 
@@ -779,12 +782,13 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
 
   BKE_main_relations_create(bmain, 0);
 
-  lib_override_local_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_MISSING);
+  LibOverrideGroupTagData data = {
+      .bmain = bmain, .id_root = id_root, .tag = LIB_TAG_DOIT, .missing_tag = LIB_TAG_MISSING};
+  lib_override_local_group_tag(&data);
 
-  lib_override_linked_group_tag(bmain, id_root_reference, LIB_TAG_DOIT, LIB_TAG_MISSING);
-
-  lib_override_hierarchy_dependencies_recursive_tag(
-      bmain, id_root_reference, LIB_TAG_DOIT, LIB_TAG_MISSING);
+  data.id_root = id_root_reference;
+  lib_override_linked_group_tag(&data);
+  lib_override_hierarchy_dependencies_recursive_tag(&data);
 
   /* Make a mapping 'linked reference IDs' -> 'Local override IDs' of existing overrides. */
   GHash *linkedref_to_old_override = BLI_ghash_new(
@@ -826,8 +830,7 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
   FOREACH_MAIN_ID_END;
 
   /* Code above may have added some tags, we need to update this too. */
-  lib_override_hierarchy_dependencies_recursive_tag(
-      bmain, id_root_reference, LIB_TAG_DOIT, LIB_TAG_MISSING);
+  lib_override_hierarchy_dependencies_recursive_tag(&data);
 
   BKE_main_relations_free(bmain);
 
@@ -984,7 +987,9 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
 
   /* Tag all library overrides in the chains of dependencies from the given root one. */
-  lib_override_local_group_tag(bmain, id_root, LIB_TAG_DOIT, LIB_TAG_DOIT);
+  LibOverrideGroupTagData data = {
+      .bmain = bmain, .id_root = id_root, .tag = LIB_TAG_DOIT, .missing_tag = LIB_TAG_MISSING};
+  lib_override_local_group_tag(&data);
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
