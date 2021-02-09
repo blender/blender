@@ -69,7 +69,7 @@ template<> struct DefaultHash<GeometryComponentType> {
 }  // namespace blender
 
 namespace blender::bke {
-struct ComponentAttributeProviders;
+class ComponentAttributeProviders;
 }
 
 class GeometryComponent;
