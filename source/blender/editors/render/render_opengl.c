@@ -381,6 +381,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                  imbuf_flags,
                                                  alpha_mode,
                                                  viewname,
+                                                 true,
                                                  oglrender->ofs,
                                                  err_out);
 
