@@ -1016,12 +1016,15 @@ static void sculpt_gesture_trim_shape_origin_normal_get(SculptGestureContext *sg
       break;
     case SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE:
       mul_v3_m4v3(r_origin, sgcontext->vc.obact->obmat, sgcontext->ss->gesture_initial_location);
-      mul_v3_m4v3(r_normal, sgcontext->vc.obact->obmat, sgcontext->ss->gesture_initial_normal);
+      /* Transforming the normal does not take non uniform scaling into account. Sculpt mode is not
+       * expected to work on object with non uniform scaling. */
+      copy_v3_v3(r_normal, sgcontext->ss->gesture_initial_normal);
+      mul_mat3_m4_v3(sgcontext->vc.obact->obmat, r_normal);
       break;
   }
 }
 
-static void sculpt_gesture_trim_calculate_depth(bContext *C, SculptGestureContext *sgcontext)
+static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
 
@@ -1070,13 +1073,11 @@ static void sculpt_gesture_trim_calculate_depth(bContext *C, SculptGestureContex
       mid_point_depth = ss->gesture_initial_hit ?
                             0.0f :
                             (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
+
+
     }
 
-    Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-    Brush *brush = BKE_paint_brush(&sd->paint);
-    Scene *scene = CTX_data_scene(C);
-    const float depth_radius = BKE_brush_unprojected_radius_get(scene, brush);
-
+    const float depth_radius = ss->cursor_radius;
     trim_operation->depth_front = mid_point_depth - depth_radius;
     trim_operation->depth_back = mid_point_depth + depth_radius;
   }
@@ -1312,7 +1313,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  sculpt_gesture_trim_calculate_depth(C, sgcontext);
+  sculpt_gesture_trim_calculate_depth(sgcontext);
   sculpt_gesture_trim_geometry_generate(sgcontext);
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
   SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_GEOMETRY);
