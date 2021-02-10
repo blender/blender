@@ -973,6 +973,80 @@ static int countAndCleanTransDataContainer(TransInfo *t)
   return t->data_len_all;
 }
 
+static void init_proportional_edit(TransInfo *t)
+{
+  eTConvertType convert_type = t->data_type;
+  switch (convert_type) {
+    case TC_ACTION_DATA:
+    case TC_ARMATURE_VERTS:
+    case TC_CURVE_VERTS:
+    case TC_GRAPH_EDIT_DATA:
+    case TC_GPENCIL:
+    case TC_LATTICE_VERTS:
+    case TC_MASKING_DATA:
+    case TC_MBALL_VERTS:
+    case TC_MESH_VERTS:
+    case TC_MESH_EDGES:
+    case TC_MESH_SKIN:
+    case TC_MESH_UV:
+    case TC_NODE_DATA:
+    case TC_OBJECT:
+    case TC_PARTICLE_VERTS:
+      break;
+    case TC_POSE: /* See T32444. */
+    case TC_CURSOR_IMAGE:
+    case TC_CURSOR_VIEW3D:
+    case TC_NLA_DATA:
+    case TC_OBJECT_TEXSPACE:
+    case TC_PAINT_CURVE_VERTS:
+    case TC_SCULPT:
+    case TC_SEQ_DATA:
+    case TC_TRACKING_DATA:
+    case TC_NONE:
+    default:
+      t->options |= CTX_NO_PET;
+      t->flag &= ~T_PROP_EDIT_ALL;
+      return;
+  }
+
+  if (t->data_len_all && (t->flag & T_PROP_EDIT)) {
+    if (convert_type == TC_OBJECT) {
+      /* Selected objects are already first, no need to presort. */
+    }
+    else {
+      sort_trans_data_selected_first(t);
+    }
+
+    if (ELEM(convert_type, TC_ACTION_DATA, TC_GRAPH_EDIT_DATA)) {
+      /* Distance has already been set. */
+    }
+    else if (ELEM(convert_type, TC_MESH_VERTS, TC_MESH_SKIN)) {
+      if (t->flag & T_PROP_CONNECTED) {
+        /* Already calculated by transform_convert_mesh_connectivity_distance. */
+      }
+      else {
+        set_prop_dist(t, false);
+      }
+    }
+    else if (convert_type == TC_MESH_UV && t->flag & T_PROP_CONNECTED) {
+      /* Already calculated by uv_set_connectivity_distance. */
+    }
+    else if (convert_type == TC_CURVE_VERTS && t->obedit_type == OB_CURVE) {
+      set_prop_dist(t, false);
+    }
+    else {
+      set_prop_dist(t, true);
+    }
+
+    sort_trans_data_dist(t);
+  }
+  else if (ELEM(t->obedit_type, OB_CURVE)) {
+    /* Needed because bezier handles can be partially selected
+     * and are still added into transform data. */
+    sort_trans_data_selected_first(t);
+  }
+}
+
 void createTransData(bContext *C, TransInfo *t)
 {
   Scene *scene = t->scene;
@@ -1147,8 +1221,6 @@ void createTransData(bContext *C, TransInfo *t)
   }
 
   t->data_type = convert_type;
-  bool init_prop_edit = (t->flag & T_PROP_EDIT) != 0;
-
   switch (convert_type) {
     case TC_ACTION_DATA:
       createTransActionData(C, t);
@@ -1157,18 +1229,15 @@ void createTransData(bContext *C, TransInfo *t)
       t->options |= CTX_POSE_BONE;
       createTransPose(t);
       /* Disable PET, its not usable in pose mode yet T32444. */
-      init_prop_edit = false;
       break;
     case TC_ARMATURE_VERTS:
       createTransArmatureVerts(t);
       break;
     case TC_CURSOR_IMAGE:
       createTransCursor_image(t);
-      init_prop_edit = false;
       break;
     case TC_CURSOR_VIEW3D:
       createTransCursor_view3d(t);
-      init_prop_edit = false;
       break;
     case TC_CURVE_VERTS:
       createTransCurveVerts(t);
@@ -1202,7 +1271,6 @@ void createTransData(bContext *C, TransInfo *t)
       break;
     case TC_NLA_DATA:
       createTransNlaData(C, t);
-      init_prop_edit = false;
       break;
     case TC_NODE_DATA:
       createTransNodeData(t);
@@ -1226,26 +1294,21 @@ void createTransData(bContext *C, TransInfo *t)
       break;
     case TC_OBJECT_TEXSPACE:
       createTransTexspace(t);
-      init_prop_edit = false;
       break;
     case TC_PAINT_CURVE_VERTS:
       createTransPaintCurveVerts(C, t);
-      init_prop_edit = false;
       break;
     case TC_PARTICLE_VERTS:
       createTransParticleVerts(C, t);
       break;
     case TC_SCULPT:
       createTransSculpt(C, t);
-      init_prop_edit = false;
       break;
     case TC_SEQ_DATA:
       createTransSeqData(t);
-      init_prop_edit = false;
       break;
     case TC_TRACKING_DATA:
       createTransTrackingData(C, t);
-      init_prop_edit = false;
       break;
     case TC_NONE:
     default:
@@ -1256,49 +1319,7 @@ void createTransData(bContext *C, TransInfo *t)
   }
 
   countAndCleanTransDataContainer(t);
-
-  if (t->data_len_all && init_prop_edit) {
-    if (convert_type == TC_OBJECT) {
-      /* Selected objects are already first, no need to presort. */
-    }
-    else {
-      sort_trans_data_selected_first(t);
-    }
-
-    if (ELEM(convert_type, TC_ACTION_DATA, TC_GRAPH_EDIT_DATA)) {
-      /* Distance has already been set. */
-    }
-    else if (ELEM(convert_type, TC_MESH_VERTS, TC_MESH_SKIN)) {
-      if (t->flag & T_PROP_CONNECTED) {
-        /* Already calculated by transform_convert_mesh_connectivity_distance. */
-      }
-      else {
-        set_prop_dist(t, false);
-      }
-    }
-    else if (convert_type == TC_MESH_UV && t->flag & T_PROP_CONNECTED) {
-      /* Already calculated by uv_set_connectivity_distance. */
-    }
-    else if (convert_type == TC_CURVE_VERTS && t->obedit_type == OB_CURVE) {
-      set_prop_dist(t, false);
-    }
-    else {
-      set_prop_dist(t, true);
-    }
-
-    sort_trans_data_dist(t);
-  }
-  else {
-    if (ELEM(t->obedit_type, OB_CURVE)) {
-      /* Needed because bezier handles can be partially selected
-       * and are still added into transform data. */
-      sort_trans_data_selected_first(t);
-    }
-
-    if (!init_prop_edit) {
-      t->flag &= ~T_PROP_EDIT_ALL;
-    }
-  }
+  init_proportional_edit(t);
 
   BLI_assert((!(t->flag & T_EDIT)) == (!(t->obedit_type != -1)));
 }
