@@ -25,6 +25,8 @@
 
 #include "GHOST_Types.h"
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -160,6 +162,7 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * The new window is added to the list of windows managed.
  * Never explicitly delete the window, use disposeWindow() instead.
  * \param systemhandle: The handle to the system.
+ * \param parentWindow: Handle of parent (or owner) window, or NULL
  * \param title: The name of the window.
  * (displayed in the title bar of the window if the OS supports it).
  * \param left: The coordinate of the left edge of the window.
@@ -167,30 +170,22 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param width: The width the window.
  * \param height: The height the window.
  * \param state: The state of the window when opened.
+ * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
  * \param type: The type of drawing context installed in this window.
  * \param glSettings: Misc OpenGL options.
  * \return A handle to the new window ( == NULL if creation failed).
  */
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
+                                             GHOST_WindowHandle parent_windowhandle,
                                              const char *title,
                                              GHOST_TInt32 left,
                                              GHOST_TInt32 top,
                                              GHOST_TUns32 width,
                                              GHOST_TUns32 height,
                                              GHOST_TWindowState state,
+                                             bool is_dialog,
                                              GHOST_TDrawingContextType type,
                                              GHOST_GLSettings glSettings);
-
-extern GHOST_WindowHandle GHOST_CreateDialogWindow(GHOST_SystemHandle systemhandle,
-                                                   GHOST_WindowHandle parent_windowhandle,
-                                                   const char *title,
-                                                   GHOST_TInt32 left,
-                                                   GHOST_TInt32 top,
-                                                   GHOST_TUns32 width,
-                                                   GHOST_TUns32 height,
-                                                   GHOST_TWindowState state,
-                                                   GHOST_TDrawingContextType type,
-                                                   GHOST_GLSettings glSettings);
 
 /**
  * Create a new offscreen context.

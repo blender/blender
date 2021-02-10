@@ -318,12 +318,14 @@ MainWindow *mainwindow_new(MultiTestApp *app)
   GHOST_GLSettings glSettings = {0};
 
   win = GHOST_CreateWindow(sys,
+                           NULL,
                            "MultiTest:Main",
                            40,
                            40,
                            400,
                            400,
                            GHOST_kWindowStateNormal,
+                           false,
                            GHOST_kDrawingContextTypeOpenGL,
                            glSettings);
 
@@ -573,12 +575,14 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app)
 
   GHOST_GetMainDisplayDimensions(sys, &screensize[0], &screensize[1]);
   win = GHOST_CreateWindow(sys,
+                           NULL,
                            "MultiTest:Logger",
                            40,
                            screensize[1] - 432,
                            800,
                            300,
                            GHOST_kWindowStateNormal,
+                           false,
                            GHOST_kDrawingContextTypeOpenGL,
                            glSettings);
 
@@ -773,12 +777,14 @@ ExtraWindow *extrawindow_new(MultiTestApp *app)
   GHOST_WindowHandle win;
 
   win = GHOST_CreateWindow(sys,
+                           NULL,
                            "MultiTest:Extra",
                            500,
                            40,
                            400,
                            400,
                            GHOST_kWindowStateNormal,
+                           false,
                            GHOST_kDrawingContextTypeOpenGL,
                            glSettings);
 

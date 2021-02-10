@@ -1097,6 +1097,7 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
   posy = (scr_h - posy - sizey);
 
   g_WS.ghost_window = GHOST_CreateWindow(g_WS.ghost_system,
+                                         NULL,
                                          title,
                                          posx,
                                          posy,
@@ -1104,6 +1105,7 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
                                          sizey,
                                          /* could optionally start fullscreen */
                                          GHOST_kWindowStateNormal,
+                                         false,
                                          GHOST_kDrawingContextTypeOpenGL,
                                          glsettings);
 }
