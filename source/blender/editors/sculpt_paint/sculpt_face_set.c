@@ -148,40 +148,42 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         float poly_center[3];
         BKE_mesh_calc_poly_center(p, &ss->mloop[p->loopstart], mvert, poly_center);
 
-        if (sculpt_brush_test_sq_fn(&test, poly_center)) {
-          const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                      brush,
-                                                                      vd.co,
-                                                                      sqrtf(test.dist),
-                                                                      vd.no,
-                                                                      vd.fno,
-                                                                      vd.mask ? *vd.mask : 0.0f,
-                                                                      vd.index,
-                                                                      thread_id);
+        if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
+          continue;
+        }
+        const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                    brush,
+                                                                    vd.co,
+                                                                    sqrtf(test.dist),
+                                                                    vd.no,
+                                                                    vd.fno,
+                                                                    vd.mask ? *vd.mask : 0.0f,
+                                                                    vd.index,
+                                                                    thread_id);
 
-          if (fade > 0.05f && ss->face_sets[vert_map->indices[j]] > 0) {
-            ss->face_sets[vert_map->indices[j]] = abs(ss->cache->paint_face_set);
-          }
+        if (fade > 0.05f && ss->face_sets[vert_map->indices[j]] > 0) {
+          ss->face_sets[vert_map->indices[j]] = abs(ss->cache->paint_face_set);
         }
       }
     }
 
     else if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
       {
-        if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-          const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                      brush,
-                                                                      vd.co,
-                                                                      sqrtf(test.dist),
-                                                                      vd.no,
-                                                                      vd.fno,
-                                                                      vd.mask ? *vd.mask : 0.0f,
-                                                                      vd.index,
-                                                                      thread_id);
+        if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+          continue;
+        }
+        const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                    brush,
+                                                                    vd.co,
+                                                                    sqrtf(test.dist),
+                                                                    vd.no,
+                                                                    vd.fno,
+                                                                    vd.mask ? *vd.mask : 0.0f,
+                                                                    vd.index,
+                                                                    thread_id);
 
-          if (fade > 0.05f) {
-            SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
-          }
+        if (fade > 0.05f) {
+          SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
         }
       }
     }
@@ -214,23 +216,26 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      if (relax_face_sets != SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
-        const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                    brush,
-                                                                    vd.co,
-                                                                    sqrtf(test.dist),
-                                                                    vd.no,
-                                                                    vd.fno,
-                                                                    vd.mask ? *vd.mask : 0.0f,
-                                                                    vd.index,
-                                                                    thread_id);
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+    if (relax_face_sets == SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
+      continue;
+    }
 
-        SCULPT_relax_vertex(ss, &vd, fade * bstrength, relax_face_sets, vd.co);
-        if (vd.mvert) {
-          vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-        }
-      }
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                sqrtf(test.dist),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.index,
+                                                                thread_id);
+
+    SCULPT_relax_vertex(ss, &vd, fade * bstrength, relax_face_sets, vd.co);
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -582,44 +587,49 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
   int next_face_set = 1;
 
   for (int i = 0; i < totfaces; i++) {
-    if (!BLI_BITMAP_TEST(visited_faces, i)) {
-      GSQueue *queue;
-      queue = BLI_gsqueue_new(sizeof(int));
+    if (BLI_BITMAP_TEST(visited_faces, i)) {
+      continue;
+    }
+    GSQueue *queue;
+    queue = BLI_gsqueue_new(sizeof(int));
 
-      face_sets[i] = next_face_set;
-      BLI_BITMAP_ENABLE(visited_faces, i);
-      BLI_gsqueue_push(queue, &i);
+    face_sets[i] = next_face_set;
+    BLI_BITMAP_ENABLE(visited_faces, i);
+    BLI_gsqueue_push(queue, &i);
 
-      while (!BLI_gsqueue_is_empty(queue)) {
-        int from_f;
-        BLI_gsqueue_pop(queue, &from_f);
+    while (!BLI_gsqueue_is_empty(queue)) {
+      int from_f;
+      BLI_gsqueue_pop(queue, &from_f);
 
-        BMFace *f, *f_neighbor;
-        BMEdge *ed;
-        BMIter iter_a, iter_b;
+      BMFace *f, *f_neighbor;
+      BMEdge *ed;
+      BMIter iter_a, iter_b;
 
-        f = BM_face_at_index(bm, from_f);
+      f = BM_face_at_index(bm, from_f);
 
-        BM_ITER_ELEM (ed, &iter_a, f, BM_EDGES_OF_FACE) {
-          BM_ITER_ELEM (f_neighbor, &iter_b, ed, BM_FACES_OF_EDGE) {
-            if (f_neighbor != f) {
-              int neighbor_face_index = BM_elem_index_get(f_neighbor);
-              if (!BLI_BITMAP_TEST(visited_faces, neighbor_face_index)) {
-                if (test(bm, f, ed, f_neighbor, threshold)) {
-                  face_sets[neighbor_face_index] = next_face_set;
-                  BLI_BITMAP_ENABLE(visited_faces, neighbor_face_index);
-                  BLI_gsqueue_push(queue, &neighbor_face_index);
-                }
-              }
-            }
+      BM_ITER_ELEM (ed, &iter_a, f, BM_EDGES_OF_FACE) {
+        BM_ITER_ELEM (f_neighbor, &iter_b, ed, BM_FACES_OF_EDGE) {
+          if (f_neighbor == f) {
+            continue;
           }
+          int neighbor_face_index = BM_elem_index_get(f_neighbor);
+          if (BLI_BITMAP_TEST(visited_faces, neighbor_face_index)) {
+            continue;
+          }
+          if (!test(bm, f, ed, f_neighbor, threshold)) {
+            continue;
+          }
+
+          face_sets[neighbor_face_index] = next_face_set;
+          BLI_BITMAP_ENABLE(visited_faces, neighbor_face_index);
+          BLI_gsqueue_push(queue, &neighbor_face_index);
         }
       }
-
-      next_face_set += 1;
-
-      BLI_gsqueue_free(queue);
     }
+
+    next_face_set += 1;
+
+    BLI_gsqueue_free(queue);
   }
 
   MEM_SAFE_FREE(visited_faces);

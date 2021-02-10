@@ -88,38 +88,39 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
 
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      float local_co[3];
-      float normal[3];
-      if (vd.no) {
-        normal_short_to_float_v3(normal, vd.no);
-      }
-      else {
-        copy_v3_v3(normal, vd.fno);
-      }
-      mul_v3_m4v3(local_co, mat, vd.co);
-      /* Use the brush falloff to weight the sampled normals. */
-      const float fade = SCULPT_brush_strength_factor(ss,
-                                                      brush,
-                                                      vd.co,
-                                                      sqrtf(test.dist),
-                                                      vd.no,
-                                                      vd.fno,
-                                                      vd.mask ? *vd.mask : 0.0f,
-                                                      vd.index,
-                                                      thread_id);
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+    float local_co[3];
+    float normal[3];
+    if (vd.no) {
+      normal_short_to_float_v3(normal, vd.no);
+    }
+    else {
+      copy_v3_v3(normal, vd.fno);
+    }
+    mul_v3_m4v3(local_co, mat, vd.co);
+    /* Use the brush falloff to weight the sampled normals. */
+    const float fade = SCULPT_brush_strength_factor(ss,
+                                                    brush,
+                                                    vd.co,
+                                                    sqrtf(test.dist),
+                                                    vd.no,
+                                                    vd.fno,
+                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.index,
+                                                    thread_id);
 
-      /* Sample the normal and area of the +X and -X axis individually. */
-      if (local_co[0] > 0.0f) {
-        madd_v3_v3fl(mssd->area_nos[0], normal, fade);
-        add_v3_v3(mssd->area_cos[0], vd.co);
-        mssd->area_count[0]++;
-      }
-      else {
-        madd_v3_v3fl(mssd->area_nos[1], normal, fade);
-        add_v3_v3(mssd->area_cos[1], vd.co);
-        mssd->area_count[1]++;
-      }
+    /* Sample the normal and area of the +X and -X axis individually. */
+    if (local_co[0] > 0.0f) {
+      madd_v3_v3fl(mssd->area_nos[0], normal, fade);
+      add_v3_v3(mssd->area_cos[0], vd.co);
+      mssd->area_count[0]++;
+    }
+    else {
+      madd_v3_v3fl(mssd->area_nos[1], normal, fade);
+      add_v3_v3(mssd->area_cos[1], vd.co);
+      mssd->area_count[1]++;
     }
     BKE_pbvh_vertex_iter_end;
   }
@@ -168,56 +169,61 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
 
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      float local_co[3];
-      bool deform = false;
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
 
-      mul_v3_m4v3(local_co, mat, vd.co);
+    float local_co[3];
+    bool deform = false;
 
-      if (local_co[0] > 0.0f) {
-        deform = !SCULPT_plane_point_side(vd.co, scrape_planes[0]);
-      }
-      else {
-        deform = !SCULPT_plane_point_side(vd.co, scrape_planes[1]);
-      }
+    mul_v3_m4v3(local_co, mat, vd.co);
 
-      if (angle < 0.0f) {
-        deform = true;
-      }
+    if (local_co[0] > 0.0f) {
+      deform = !SCULPT_plane_point_side(vd.co, scrape_planes[0]);
+    }
+    else {
+      deform = !SCULPT_plane_point_side(vd.co, scrape_planes[1]);
+    }
 
-      if (deform) {
-        float intr[3];
-        float val[3];
+    if (angle < 0.0f) {
+      deform = true;
+    }
 
-        if (local_co[0] > 0.0f) {
-          closest_to_plane_normalized_v3(intr, scrape_planes[0], vd.co);
-        }
-        else {
-          closest_to_plane_normalized_v3(intr, scrape_planes[1], vd.co);
-        }
+    if (!deform) {
+      continue;
+    }
 
-        sub_v3_v3v3(val, intr, vd.co);
-        if (SCULPT_plane_trim(ss->cache, brush, val)) {
-          /* Deform the local space along the Y axis to avoid artifacts on curved strokes. */
-          /* This produces a not round brush tip. */
-          local_co[1] *= 2.0f;
-          const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                      brush,
-                                                                      vd.co,
-                                                                      len_v3(local_co),
-                                                                      vd.no,
-                                                                      vd.fno,
-                                                                      vd.mask ? *vd.mask : 0.0f,
-                                                                      vd.index,
-                                                                      thread_id);
+    float intr[3];
+    float val[3];
 
-          mul_v3_v3fl(proxy[vd.i], val, fade);
+    if (local_co[0] > 0.0f) {
+      closest_to_plane_normalized_v3(intr, scrape_planes[0], vd.co);
+    }
+    else {
+      closest_to_plane_normalized_v3(intr, scrape_planes[1], vd.co);
+    }
 
-          if (vd.mvert) {
-            vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-          }
-        }
-      }
+    sub_v3_v3v3(val, intr, vd.co);
+    if (!SCULPT_plane_trim(ss->cache, brush, val)) {
+      continue;
+    }
+    /* Deform the local space along the Y axis to avoid artifacts on curved strokes. */
+    /* This produces a not round brush tip. */
+    local_co[1] *= 2.0f;
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                len_v3(local_co),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.index,
+                                                                thread_id);
+
+    mul_v3_v3fl(proxy[vd.i], val, fade);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
   }
   BKE_pbvh_vertex_iter_end;

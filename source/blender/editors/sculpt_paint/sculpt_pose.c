@@ -490,49 +490,51 @@ static bool pose_face_sets_floodfill_cb(
     is_vertex_valid = SCULPT_vertex_has_face_set(ss, index, data->current_face_set);
   }
 
-  if (is_vertex_valid) {
+  if (!is_vertex_valid) {
+    return visit_next;
+  }
 
-    if (!BLI_BITMAP_TEST(data->is_weighted, index)) {
-      data->pose_factor[index] = 1.0f;
-      BLI_BITMAP_ENABLE(data->is_weighted, index);
-      visit_next = true;
-    }
+  if (!BLI_BITMAP_TEST(data->is_weighted, index)) {
+    data->pose_factor[index] = 1.0f;
+    BLI_BITMAP_ENABLE(data->is_weighted, index);
+    visit_next = true;
+  }
 
-    /* Fallback origin accumulation. */
-    if (symmetry_check) {
-      add_v3_v3(data->fallback_origin, SCULPT_vertex_co_get(ss, index));
-      data->fallback_count++;
-    }
+  /* Fallback origin accumulation. */
+  if (symmetry_check) {
+    add_v3_v3(data->fallback_origin, SCULPT_vertex_co_get(ss, index));
+    data->fallback_count++;
+  }
 
-    if (symmetry_check && !SCULPT_vertex_has_unique_face_set(ss, index)) {
+  if (!symmetry_check || SCULPT_vertex_has_unique_face_set(ss, index)) {
+    return visit_next;
+  }
 
-      /* We only add coordinates for calculating the origin when it is possible to go from this
-       * vertex to another vertex in a valid face set for the next iteration. */
-      bool count_as_boundary = false;
+  /* We only add coordinates for calculating the origin when it is possible to go from this
+   * vertex to another vertex in a valid face set for the next iteration. */
+  bool count_as_boundary = false;
 
-      SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-        int next_face_set_candidate = SCULPT_vertex_face_set_get(ss, ni.index);
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
+    int next_face_set_candidate = SCULPT_vertex_face_set_get(ss, ni.index);
 
-        /* Check if we can get a valid face set for the next iteration from this neighbor. */
-        if (SCULPT_vertex_has_unique_face_set(ss, ni.index) &&
-            !BLI_gset_haskey(data->visited_face_sets, POINTER_FROM_INT(next_face_set_candidate))) {
-          if (!data->next_face_set_found) {
-            data->next_face_set = next_face_set_candidate;
-            data->next_vertex = ni.index;
-            data->next_face_set_found = true;
-          }
-          count_as_boundary = true;
-        }
+    /* Check if we can get a valid face set for the next iteration from this neighbor. */
+    if (SCULPT_vertex_has_unique_face_set(ss, ni.index) &&
+        !BLI_gset_haskey(data->visited_face_sets, POINTER_FROM_INT(next_face_set_candidate))) {
+      if (!data->next_face_set_found) {
+        data->next_face_set = next_face_set_candidate;
+        data->next_vertex = ni.index;
+        data->next_face_set_found = true;
       }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-      /* Origin accumulation. */
-      if (count_as_boundary) {
-        add_v3_v3(data->pose_origin, SCULPT_vertex_co_get(ss, index));
-        data->tot_co++;
-      }
+      count_as_boundary = true;
     }
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  /* Origin accumulation. */
+  if (count_as_boundary) {
+    add_v3_v3(data->pose_origin, SCULPT_vertex_co_get(ss, index));
+    data->tot_co++;
   }
   return visit_next;
 }
