@@ -153,31 +153,16 @@ GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
 }
 
 GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
+                                      GHOST_WindowHandle parent_windowhandle,
                                       const char *title,
                                       GHOST_TInt32 left,
                                       GHOST_TInt32 top,
                                       GHOST_TUns32 width,
                                       GHOST_TUns32 height,
                                       GHOST_TWindowState state,
+                                      bool is_dialog,
                                       GHOST_TDrawingContextType type,
                                       GHOST_GLSettings glSettings)
-{
-  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
-
-  return (GHOST_WindowHandle)system->createWindow(
-      title, left, top, width, height, state, type, glSettings, false, false);
-}
-
-GHOST_WindowHandle GHOST_CreateDialogWindow(GHOST_SystemHandle systemhandle,
-                                            GHOST_WindowHandle parent_windowhandle,
-                                            const char *title,
-                                            GHOST_TInt32 left,
-                                            GHOST_TInt32 top,
-                                            GHOST_TUns32 width,
-                                            GHOST_TUns32 height,
-                                            GHOST_TWindowState state,
-                                            GHOST_TDrawingContextType type,
-                                            GHOST_GLSettings glSettings)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
@@ -190,7 +175,7 @@ GHOST_WindowHandle GHOST_CreateDialogWindow(GHOST_SystemHandle systemhandle,
                                                   type,
                                                   glSettings,
                                                   false,
-                                                  true,
+                                                  is_dialog,
                                                   (GHOST_IWindow *)parent_windowhandle);
 }
 
