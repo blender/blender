@@ -21,11 +21,14 @@
  * WIN32_LEAN_AND_MEAN and similar are defined beforehand. */
 #include "util_windows.h"
 
-#define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
-#include <tbb/tbb.h>
+#include <tbb/enumerable_thread_specific.h>
+#include <tbb/parallel_for.h>
+#include <tbb/task_arena.h>
+#include <tbb/task_group.h>
 
 #if TBB_INTERFACE_VERSION_MAJOR >= 10
 #  define WITH_TBB_GLOBAL_CONTROL
+#  include <tbb/global_control.h>
 #endif
 
 CCL_NAMESPACE_BEGIN

@@ -32,9 +32,10 @@
 #include "atomic_ops.h"
 
 #ifdef WITH_TBB
-/* Quiet top level deprecation message, unrelated to API usage here. */
-#  define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
-#  include <tbb/tbb.h>
+#  include <tbb/blocked_range.h>
+#  include <tbb/enumerable_thread_specific.h>
+#  include <tbb/parallel_for.h>
+#  include <tbb/parallel_reduce.h>
 #endif
 
 #ifdef WITH_TBB

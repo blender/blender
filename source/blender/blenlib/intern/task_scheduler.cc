@@ -26,10 +26,10 @@
 #include "BLI_threads.h"
 
 #ifdef WITH_TBB
-/* Quiet top level deprecation message, unrelated to API usage here. */
-#  define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
-#  include <tbb/tbb.h>
+/* Need to include at least one header to get the version define. */
+#  include <tbb/blocked_range.h>
 #  if TBB_INTERFACE_VERSION_MAJOR >= 10
+#    include <tbb/global_control.h>
 #    define WITH_TBB_GLOBAL_CONTROL
 #  endif
 #endif
