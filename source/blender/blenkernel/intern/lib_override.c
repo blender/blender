@@ -516,62 +516,6 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
   }
 }
 
-static int lib_override_local_group_tag_cb(LibraryIDLinkCallbackData *cb_data)
-{
-  if (cb_data->cb_flag &
-      (IDWALK_CB_EMBEDDED | IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
-    return IDWALK_RET_STOP_RECURSION;
-  }
-
-  LibOverrideGroupTagData *data = cb_data->user_data;
-  const uint tag = data->tag;
-  const uint missing_tag = data->missing_tag;
-
-  ID *id_root = data->id_root;
-  Library *library_reference_root = id_root->override_library->reference->lib;
-  ID *id = *cb_data->id_pointer;
-  ID *id_owner = cb_data->id_owner;
-
-  BLI_assert(id_owner == cb_data->id_self);
-
-  if (ELEM(id, NULL, id_owner)) {
-    return IDWALK_RET_NOP;
-  }
-
-  if (*(uint *)&id->tag & (tag | missing_tag)) {
-    /* Already processed and tagged, nothing else to do here. */
-    return IDWALK_RET_STOP_RECURSION;
-  }
-
-  if (!ID_IS_OVERRIDE_LIBRARY(id) || ID_IS_LINKED(id)) {
-    /* Fully local, or linked ID, those are never part of a local override group. */
-    return IDWALK_RET_STOP_RECURSION;
-  }
-
-  /* NOTE: Since we rejected embedded data too at the beginning of this function, id should only be
-   * a real override now.
-   *
-   * However, our usual trouble maker, Key, is not considered as an embedded ID currently, yet it
-   * is never a real override either. Enjoy. */
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-    return IDWALK_RET_NOP;
-  }
-
-  if (id->override_library->reference->lib != library_reference_root) {
-    /* We do not override data-blocks from other libraries, nor do we process them. */
-    return IDWALK_RET_STOP_RECURSION;
-  }
-
-  if (id->override_library->reference->tag & LIB_TAG_MISSING) {
-    id->tag |= missing_tag;
-  }
-  else {
-    id->tag |= tag;
-  }
-
-  return IDWALK_RET_NOP;
-}
-
 static void lib_override_local_group_tag_recursive(LibOverrideGroupTagData *data)
 {
   Main *bmain = data->bmain;
@@ -612,7 +556,7 @@ static void lib_override_local_group_tag_recursive(LibOverrideGroupTagData *data
     /* Do not tag 'virtual' overrides (shape keys here, as we already rejected embedded case
      * above). */
     if (ID_IS_OVERRIDE_LIBRARY_REAL(to_id)) {
-      ID *reference_lib = NULL;
+      Library *reference_lib = NULL;
       if (GS(id_owner->name) == ID_KE) {
         reference_lib = ((Key *)id_owner)->from->override_library->reference->lib;
       }
