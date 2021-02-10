@@ -23,6 +23,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_mesh_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -911,6 +912,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     case TC_LATTICE_VERTS:
     case TC_MBALL_VERTS:
     case TC_MESH_UV:
+    case TC_MESH_SKIN:
     case TC_OBJECT_TEXSPACE:
     case TC_PAINT_CURVE_VERTS:
     case TC_PARTICLE_VERTS:
@@ -978,7 +980,6 @@ static void init_proportional_edit(TransInfo *t)
   eTConvertType convert_type = t->data_type;
   switch (convert_type) {
     case TC_ACTION_DATA:
-    case TC_ARMATURE_VERTS:
     case TC_CURVE_VERTS:
     case TC_GRAPH_EDIT_DATA:
     case TC_GPENCIL:
@@ -993,7 +994,8 @@ static void init_proportional_edit(TransInfo *t)
     case TC_OBJECT:
     case TC_PARTICLE_VERTS:
       break;
-    case TC_POSE: /* See T32444. */
+    case TC_POSE: /* Disable PET, its not usable in pose mode yet T32444. */
+    case TC_ARMATURE_VERTS:
     case TC_CURSOR_IMAGE:
     case TC_CURSOR_VIEW3D:
     case TC_NLA_DATA:
@@ -1047,14 +1049,155 @@ static void init_proportional_edit(TransInfo *t)
   }
 }
 
-void createTransData(bContext *C, TransInfo *t)
+/* For multi object editing. */
+static void init_TransDataContainers(TransInfo *t,
+                                     Object *obact,
+                                     Object **objects,
+                                     uint objects_len)
 {
-  Scene *scene = t->scene;
+  switch (t->data_type) {
+    case TC_POSE:
+    case TC_ARMATURE_VERTS:
+    case TC_CURVE_VERTS:
+    case TC_GPENCIL:
+    case TC_LATTICE_VERTS:
+    case TC_MBALL_VERTS:
+    case TC_MESH_VERTS:
+    case TC_MESH_EDGES:
+    case TC_MESH_SKIN:
+    case TC_MESH_UV:
+      break;
+    case TC_ACTION_DATA:
+    case TC_GRAPH_EDIT_DATA:
+    case TC_CURSOR_IMAGE:
+    case TC_CURSOR_VIEW3D:
+    case TC_MASKING_DATA:
+    case TC_NLA_DATA:
+    case TC_NODE_DATA:
+    case TC_OBJECT:
+    case TC_OBJECT_TEXSPACE:
+    case TC_PAINT_CURVE_VERTS:
+    case TC_PARTICLE_VERTS:
+    case TC_SCULPT:
+    case TC_SEQ_DATA:
+    case TC_TRACKING_DATA:
+    case TC_NONE:
+    default:
+      /* Does not support Multi object editing. */
+      return;
+  }
+
+  const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
+  const short object_type = obact ? obact->type : -1;
+
+  if ((object_mode & OB_MODE_EDIT) || (t->data_type == TC_GPENCIL) ||
+      ((object_mode & OB_MODE_POSE) && (object_type == OB_ARMATURE))) {
+    if (t->data_container) {
+      MEM_freeN(t->data_container);
+    }
+
+    bool free_objects = false;
+    if (objects == NULL) {
+      objects = BKE_view_layer_array_from_objects_in_mode(
+          t->view_layer,
+          (t->spacetype == SPACE_VIEW3D) ? t->view : NULL,
+          &objects_len,
+          {
+              .object_mode = object_mode,
+              .no_dup_data = true,
+          });
+      free_objects = true;
+    }
+
+    t->data_container = MEM_callocN(sizeof(*t->data_container) * objects_len, __func__);
+    t->data_container_len = objects_len;
+
+    for (int i = 0; i < objects_len; i++) {
+      TransDataContainer *tc = &t->data_container[i];
+      if (((t->flag & T_NO_MIRROR) == 0) && ((t->options & CTX_NO_MIRROR) == 0) &&
+          (objects[i]->type == OB_MESH)) {
+        tc->use_mirror_axis_x = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_X) != 0;
+        tc->use_mirror_axis_y = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_Y) != 0;
+        tc->use_mirror_axis_z = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_Z) != 0;
+      }
+
+      if (object_mode & OB_MODE_EDIT) {
+        tc->obedit = objects[i];
+        /* Check needed for UV's */
+        if ((t->flag & T_2D_EDIT) == 0) {
+          tc->use_local_mat = true;
+        }
+      }
+      else if (object_mode & OB_MODE_POSE) {
+        tc->poseobj = objects[i];
+        tc->use_local_mat = true;
+      }
+      else if (t->data_type == TC_GPENCIL) {
+        tc->use_local_mat = true;
+      }
+
+      if (tc->use_local_mat) {
+        BLI_assert((t->flag & T_2D_EDIT) == 0);
+        copy_m4_m4(tc->mat, objects[i]->obmat);
+        copy_m3_m4(tc->mat3, tc->mat);
+        /* for non-invertible scale matrices, invert_m4_m4_fallback()
+         * can still provide a valid pivot */
+        invert_m4_m4_fallback(tc->imat, tc->mat);
+        invert_m3_m3(tc->imat3, tc->mat3);
+        normalize_m3_m3(tc->mat3_unit, tc->mat3);
+      }
+      /* Otherwise leave as zero. */
+    }
+
+    if (free_objects) {
+      MEM_freeN(objects);
+    }
+  }
+}
+
+static eTFlag flags_from_data_type(eTConvertType data_type)
+{
+  switch (data_type) {
+    case TC_ACTION_DATA:
+    case TC_GRAPH_EDIT_DATA:
+    case TC_MASKING_DATA:
+    case TC_NLA_DATA:
+    case TC_NODE_DATA:
+    case TC_PAINT_CURVE_VERTS:
+    case TC_SEQ_DATA:
+    case TC_TRACKING_DATA:
+      return T_POINTS | T_2D_EDIT;
+    case TC_ARMATURE_VERTS:
+    case TC_CURVE_VERTS:
+    case TC_GPENCIL:
+    case TC_LATTICE_VERTS:
+    case TC_MBALL_VERTS:
+    case TC_MESH_VERTS:
+    case TC_MESH_SKIN:
+      return T_EDIT | T_POINTS;
+    case TC_MESH_EDGES:
+      return T_EDIT;
+    case TC_MESH_UV:
+      return T_EDIT | T_POINTS | T_2D_EDIT;
+    case TC_PARTICLE_VERTS:
+      return T_POINTS;
+    case TC_POSE:
+    case TC_CURSOR_IMAGE:
+    case TC_CURSOR_VIEW3D:
+    case TC_OBJECT:
+    case TC_OBJECT_TEXSPACE:
+    case TC_SCULPT:
+    case TC_NONE:
+    default:
+      break;
+  }
+  return 0;
+}
+
+static eTConvertType convert_type_get(const TransInfo *t, const Object **r_obj_armature)
+{
   ViewLayer *view_layer = t->view_layer;
   Object *ob = OBACT(view_layer);
-
-  t->data_len_all = -1;
-
   eTConvertType convert_type = TC_NONE;
 
   /* if tests must match recalcData for correct updates */
@@ -1074,19 +1217,12 @@ void createTransData(bContext *C, TransInfo *t)
     convert_type = TC_OBJECT_TEXSPACE;
   }
   else if (t->options & CTX_EDGE_DATA) {
-    t->flag |= T_EDIT;
     convert_type = TC_MESH_EDGES;
-    /* Multi object editing. */
-    initTransDataContainers_FromObjectData(t, ob, NULL, 0);
   }
   else if (t->options & CTX_GPENCIL_STROKES) {
-    t->options |= CTX_GPENCIL_STROKES;
-    t->flag |= T_POINTS | T_EDIT;
     convert_type = TC_GPENCIL;
-    initTransDataContainers_FromObjectData(t, ob, NULL, 0);
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    t->flag |= T_POINTS | T_2D_EDIT;
     if (t->options & CTX_MASK) {
       convert_type = TC_MASKING_DATA;
     }
@@ -1096,41 +1232,25 @@ void createTransData(bContext *C, TransInfo *t)
       }
     }
     else if (t->obedit_type == OB_MESH) {
-      t->flag |= T_EDIT;
       convert_type = TC_MESH_UV;
-      initTransDataContainers_FromObjectData(t, ob, NULL, 0);
     }
   }
   else if (t->spacetype == SPACE_ACTION) {
-    t->flag |= T_POINTS | T_2D_EDIT;
-    t->obedit_type = -1;
     convert_type = TC_ACTION_DATA;
   }
   else if (t->spacetype == SPACE_NLA) {
-    t->flag |= T_POINTS | T_2D_EDIT;
-    t->obedit_type = -1;
     convert_type = TC_NLA_DATA;
   }
   else if (t->spacetype == SPACE_SEQ) {
-    t->flag |= T_POINTS | T_2D_EDIT;
-    t->obedit_type = -1;
-    t->num.flag |= NUM_NO_FRACTION; /* sequencer has no use for floating point transform. */
     convert_type = TC_SEQ_DATA;
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    t->flag |= T_POINTS | T_2D_EDIT;
-    t->obedit_type = -1;
     convert_type = TC_GRAPH_EDIT_DATA;
   }
   else if (t->spacetype == SPACE_NODE) {
-    t->flag |= T_POINTS | T_2D_EDIT;
-    t->obedit_type = -1;
     convert_type = TC_NODE_DATA;
   }
   else if (t->spacetype == SPACE_CLIP) {
-    t->flag |= T_POINTS | T_2D_EDIT;
-    t->obedit_type = -1;
-
     if (t->options & CTX_MOVIECLIP) {
       convert_type = TC_TRACKING_DATA;
     }
@@ -1139,11 +1259,6 @@ void createTransData(bContext *C, TransInfo *t)
     }
   }
   else if (t->obedit_type != -1) {
-    t->flag |= T_EDIT | T_POINTS;
-
-    /* Multi object editing. */
-    initTransDataContainers_FromObjectData(t, ob, NULL, 0);
-
     if (t->obedit_type == OB_MESH) {
       if (t->mode == TFM_SKIN_RESIZE) {
         convert_type = TC_MESH_SKIN;
@@ -1162,38 +1277,25 @@ void createTransData(bContext *C, TransInfo *t)
       convert_type = TC_MBALL_VERTS;
     }
     else if (t->obedit_type == OB_ARMATURE) {
-      t->flag &= ~T_PROP_EDIT;
       convert_type = TC_ARMATURE_VERTS;
     }
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
-    /* XXX this is currently limited to active armature only... */
-
-    /* XXX active-layer checking isn't done
-     * as that should probably be checked through context instead. */
-
-    /* Multi object editing. */
-    initTransDataContainers_FromObjectData(t, ob, NULL, 0);
     convert_type = TC_POSE;
   }
   else if (ob && (ob->mode & OB_MODE_ALL_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
     Object *ob_armature = transform_object_deform_pose_armature_get(t, ob);
     if (ob_armature) {
-      Object *objects[1];
-      objects[0] = ob_armature;
-      uint objects_len = 1;
-      initTransDataContainers_FromObjectData(t, ob_armature, objects, objects_len);
+      *r_obj_armature = ob_armature;
       convert_type = TC_POSE;
     }
   }
   else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) &&
-           PE_start_edit(PE_get_current(t->depsgraph, scene, ob))) {
-    t->flag |= T_POINTS;
+           PE_start_edit(PE_get_current(t->depsgraph, t->scene, ob))) {
     convert_type = TC_PARTICLE_VERTS;
   }
   else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
     if ((t->options & CTX_PAINT_CURVE) && !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN)) {
-      t->flag |= T_POINTS | T_2D_EDIT;
       convert_type = TC_PAINT_CURVE_VERTS;
     }
   }
@@ -1205,30 +1307,40 @@ void createTransData(bContext *C, TransInfo *t)
     /* In grease pencil all transformations must be canceled if not Object or Edit. */
   }
   else {
-    t->options |= CTX_OBJECT;
-
-    /* Needed for correct Object.obmat after duplication, see: T62135. */
-    BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
-
-    if ((scene->toolsettings->transform_flag & SCE_XFORM_DATA_ORIGIN) != 0) {
-      t->options |= CTX_OBMODE_XFORM_OBDATA;
-    }
-    if ((scene->toolsettings->transform_flag & SCE_XFORM_SKIP_CHILDREN) != 0) {
-      t->options |= CTX_OBMODE_XFORM_SKIP_CHILDREN;
-    }
-
     convert_type = TC_OBJECT;
   }
 
-  t->data_type = convert_type;
-  switch (convert_type) {
+  return convert_type;
+}
+
+void createTransData(bContext *C, TransInfo *t)
+{
+  t->data_len_all = -1;
+
+  Object *ob_armature = NULL;
+  t->data_type = convert_type_get(t, &ob_armature);
+  t->flag |= flags_from_data_type(t->data_type);
+
+  if (ob_armature) {
+    init_TransDataContainers(t, ob_armature, &ob_armature, 1);
+  }
+  else {
+    ViewLayer *view_layer = t->view_layer;
+    Object *ob = OBACT(view_layer);
+    init_TransDataContainers(t, ob, NULL, 0);
+  }
+
+  switch (t->data_type) {
     case TC_ACTION_DATA:
+      t->obedit_type = -1;
       createTransActionData(C, t);
       break;
     case TC_POSE:
       t->options |= CTX_POSE_BONE;
+
+      /* XXX active-layer checking isn't done
+       * as that should probably be checked through context instead. */
       createTransPose(t);
-      /* Disable PET, its not usable in pose mode yet T32444. */
       break;
     case TC_ARMATURE_VERTS:
       createTransArmatureVerts(t);
@@ -1243,6 +1355,7 @@ void createTransData(bContext *C, TransInfo *t)
       createTransCurveVerts(t);
       break;
     case TC_GRAPH_EDIT_DATA:
+      t->obedit_type = -1;
       createTransGraphEditData(C, t);
       break;
     case TC_GPENCIL:
@@ -1252,6 +1365,9 @@ void createTransData(bContext *C, TransInfo *t)
       createTransLatticeVerts(t);
       break;
     case TC_MASKING_DATA:
+      if (t->spacetype == SPACE_CLIP) {
+        t->obedit_type = -1;
+      }
       createTransMaskingData(C, t);
       break;
     case TC_MBALL_VERTS:
@@ -1270,12 +1386,25 @@ void createTransData(bContext *C, TransInfo *t)
       createTransUVs(C, t);
       break;
     case TC_NLA_DATA:
+      t->obedit_type = -1;
       createTransNlaData(C, t);
       break;
     case TC_NODE_DATA:
+      t->obedit_type = -1;
       createTransNodeData(t);
       break;
     case TC_OBJECT:
+      t->options |= CTX_OBJECT;
+
+      /* Needed for correct Object.obmat after duplication, see: T62135. */
+      BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
+
+      if ((t->settings->transform_flag & SCE_XFORM_DATA_ORIGIN) != 0) {
+        t->options |= CTX_OBMODE_XFORM_OBDATA;
+      }
+      if ((t->settings->transform_flag & SCE_XFORM_SKIP_CHILDREN) != 0) {
+        t->options |= CTX_OBMODE_XFORM_SKIP_CHILDREN;
+      }
       createTransObject(C, t);
       /* Check if we're transforming the camera from the camera */
       if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
@@ -1305,9 +1434,12 @@ void createTransData(bContext *C, TransInfo *t)
       createTransSculpt(C, t);
       break;
     case TC_SEQ_DATA:
+      t->obedit_type = -1;
+      t->num.flag |= NUM_NO_FRACTION; /* sequencer has no use for floating point transform. */
       createTransSeqData(t);
       break;
     case TC_TRACKING_DATA:
+      t->obedit_type = -1;
       createTransTrackingData(C, t);
       break;
     case TC_NONE:
@@ -1319,6 +1451,7 @@ void createTransData(bContext *C, TransInfo *t)
   }
 
   countAndCleanTransDataContainer(t);
+
   init_proportional_edit(t);
 
   BLI_assert((!(t->flag & T_EDIT)) == (!(t->obedit_type != -1)));

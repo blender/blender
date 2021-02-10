@@ -26,7 +26,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_types.h"
-#include "DNA_mesh_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -118,79 +117,6 @@ void resetTransModal(TransInfo *t)
 void resetTransRestrictions(TransInfo *t)
 {
   t->flag &= ~T_ALL_RESTRICTIONS;
-}
-
-void initTransDataContainers_FromObjectData(TransInfo *t,
-                                            Object *obact,
-                                            Object **objects,
-                                            uint objects_len)
-{
-  const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
-  const short object_type = obact ? obact->type : -1;
-
-  if ((object_mode & OB_MODE_EDIT) || (t->options & CTX_GPENCIL_STROKES) ||
-      ((object_mode & OB_MODE_POSE) && (object_type == OB_ARMATURE))) {
-    if (t->data_container) {
-      MEM_freeN(t->data_container);
-    }
-
-    bool free_objects = false;
-    if (objects == NULL) {
-      objects = BKE_view_layer_array_from_objects_in_mode(
-          t->view_layer,
-          (t->spacetype == SPACE_VIEW3D) ? t->view : NULL,
-          &objects_len,
-          {
-              .object_mode = object_mode,
-              .no_dup_data = true,
-          });
-      free_objects = true;
-    }
-
-    t->data_container = MEM_callocN(sizeof(*t->data_container) * objects_len, __func__);
-    t->data_container_len = objects_len;
-
-    for (int i = 0; i < objects_len; i++) {
-      TransDataContainer *tc = &t->data_container[i];
-      if (((t->flag & T_NO_MIRROR) == 0) && ((t->options & CTX_NO_MIRROR) == 0) &&
-          (objects[i]->type == OB_MESH)) {
-        tc->use_mirror_axis_x = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_X) != 0;
-        tc->use_mirror_axis_y = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_Y) != 0;
-        tc->use_mirror_axis_z = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_Z) != 0;
-      }
-
-      if (object_mode & OB_MODE_EDIT) {
-        tc->obedit = objects[i];
-        /* Check needed for UV's */
-        if ((t->flag & T_2D_EDIT) == 0) {
-          tc->use_local_mat = true;
-        }
-      }
-      else if (object_mode & OB_MODE_POSE) {
-        tc->poseobj = objects[i];
-        tc->use_local_mat = true;
-      }
-      else if (t->options & CTX_GPENCIL_STROKES) {
-        tc->use_local_mat = true;
-      }
-
-      if (tc->use_local_mat) {
-        BLI_assert((t->flag & T_2D_EDIT) == 0);
-        copy_m4_m4(tc->mat, objects[i]->obmat);
-        copy_m3_m4(tc->mat3, tc->mat);
-        /* for non-invertible scale matrices, invert_m4_m4_fallback()
-         * can still provide a valid pivot */
-        invert_m4_m4_fallback(tc->imat, tc->mat);
-        invert_m3_m3(tc->imat3, tc->mat3);
-        normalize_m3_m3(tc->mat3_unit, tc->mat3);
-      }
-      /* Otherwise leave as zero. */
-    }
-
-    if (free_objects) {
-      MEM_freeN(objects);
-    }
-  }
 }
 
 /**
@@ -1456,7 +1382,7 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
   }
 }
 
-Object *transform_object_deform_pose_armature_get(TransInfo *t, Object *ob)
+Object *transform_object_deform_pose_armature_get(const TransInfo *t, Object *ob)
 {
   if (!(ob->mode & OB_MODE_ALL_WEIGHT_PAINT)) {
     return NULL;
