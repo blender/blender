@@ -298,24 +298,26 @@ float *SCULPT_boundary_automasking_init(Object *ob,
 
   for (int propagation_it = 0; propagation_it < propagation_steps; propagation_it++) {
     for (int i = 0; i < totvert; i++) {
-      if (edge_distance[i] == EDGE_DISTANCE_INF) {
-        SculptVertexNeighborIter ni;
-        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
-          if (edge_distance[ni.index] == propagation_it) {
-            edge_distance[i] = propagation_it + 1;
-          }
-        }
-        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+      if (edge_distance[i] != EDGE_DISTANCE_INF) {
+        continue;
       }
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+        if (edge_distance[ni.index] == propagation_it) {
+          edge_distance[i] = propagation_it + 1;
+        }
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
     }
   }
 
   for (int i = 0; i < totvert; i++) {
-    if (edge_distance[i] != EDGE_DISTANCE_INF) {
-      const float p = 1.0f - ((float)edge_distance[i] / (float)propagation_steps);
-      const float edge_boundary_automask = pow2f(p);
-      automask_factor[i] *= (1.0f - edge_boundary_automask);
+    if (edge_distance[i] == EDGE_DISTANCE_INF) {
+      continue;
     }
+    const float p = 1.0f - ((float)edge_distance[i] / (float)propagation_steps);
+    const float edge_boundary_automask = pow2f(p);
+    automask_factor[i] *= (1.0f - edge_boundary_automask);
   }
 
   MEM_SAFE_FREE(edge_distance);
