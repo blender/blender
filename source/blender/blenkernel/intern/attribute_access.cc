@@ -731,7 +731,7 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
     if (custom_data == nullptr) {
       return false;
     }
-    const void *data = CustomData_get_layer(custom_data, data_type_);
+    const void *data = CustomData_get_layer(custom_data, stored_type_);
     return data != nullptr;
   }
 };

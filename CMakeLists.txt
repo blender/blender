@@ -63,6 +63,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/platform")
 # avoid having empty buildtype
 if(NOT DEFINED CMAKE_BUILD_TYPE_INIT)
   set(CMAKE_BUILD_TYPE_INIT "Release")
+  # Internal logic caches this variable, avoid showing it by default
+  # since it's easy to accidentally set instead of the build type.
+  mark_as_advanced(CMAKE_BUILD_TYPE_INIT)
 endif()
 
 # Omit superfluous "Up-to-date" messages.
@@ -614,6 +617,7 @@ endif()
 if(UNIX)
   # See WITH_WINDOWS_SCCACHE for Windows.
   option(WITH_COMPILER_CCACHE "Use ccache to improve rebuild times (Works with Ninja, Makefiles and Xcode)" OFF)
+  mark_as_advanced(WITH_COMPILER_CCACHE)
 endif()
 
 # The following only works with the Ninja generator in CMake >= 3.0.

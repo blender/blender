@@ -414,7 +414,6 @@ typedef struct OrigSpaceLoop {
 
 typedef struct FreestyleEdge {
   char flag;
-  char _pad[3];
 } FreestyleEdge;
 
 /** #FreestyleEdge.flag */
@@ -424,7 +423,6 @@ enum {
 
 typedef struct FreestyleFace {
   char flag;
-  char _pad[3];
 } FreestyleFace;
 
 /** #FreestyleFace.flag */

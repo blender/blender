@@ -268,6 +268,7 @@ static PyObject *py_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *args,
                            true,
                            "",
                            false,
+                           true,
                            self->ofs,
                            NULL);
 

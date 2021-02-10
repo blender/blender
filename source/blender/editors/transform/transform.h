@@ -776,6 +776,8 @@ void calculatePropRatio(TransInfo *t);
 
 void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
 
+struct Object *transform_object_deform_pose_armature_get(TransInfo *t, struct Object *ob);
+
 void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 
 /* TODO. transform_query.c */

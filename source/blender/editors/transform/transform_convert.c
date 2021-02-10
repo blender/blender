@@ -1103,21 +1103,13 @@ void createTransData(bContext *C, TransInfo *t)
     convert_type = TC_POSE;
   }
   else if (ob && (ob->mode & OB_MODE_ALL_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
-    /* Important that ob_armature can be set even when its not selected T23412.
-     * Lines below just check is also visible. */
-    Object *ob_armature = BKE_modifiers_is_deformed_by_armature(ob);
-    if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
-      Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
-      if (base_arm) {
-        View3D *v3d = t->view;
-        if (BASE_VISIBLE(v3d, base_arm)) {
-          Object *objects[1];
-          objects[0] = ob_armature;
-          uint objects_len = 1;
-          initTransDataContainers_FromObjectData(t, ob_armature, objects, objects_len);
-          convert_type = TC_POSE;
-        }
-      }
+    Object *ob_armature = transform_object_deform_pose_armature_get(t, ob);
+    if (ob_armature) {
+      Object *objects[1];
+      objects[0] = ob_armature;
+      uint objects_len = 1;
+      initTransDataContainers_FromObjectData(t, ob_armature, objects, objects_len);
+      convert_type = TC_POSE;
     }
   }
   else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) &&

@@ -44,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_mask.h"
+#include "BKE_modifier.h"
 #include "BKE_paint.h"
 
 #include "ED_clip.h"
@@ -1453,4 +1454,24 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
     /* apply */
     copy_v3_v3(td->ext->rot, eul);
   }
+}
+
+Object *transform_object_deform_pose_armature_get(TransInfo *t, Object *ob)
+{
+  if (!(ob->mode & OB_MODE_ALL_WEIGHT_PAINT)) {
+    return NULL;
+  }
+  /* Important that ob_armature can be set even when its not selected T23412.
+   * Lines below just check is also visible. */
+  Object *ob_armature = BKE_modifiers_is_deformed_by_armature(ob);
+  if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
+    Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
+    if (base_arm) {
+      View3D *v3d = t->view;
+      if (BASE_VISIBLE(v3d, base_arm)) {
+        return ob_armature;
+      }
+    }
+  }
+  return NULL;
 }
