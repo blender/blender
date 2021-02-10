@@ -567,9 +567,9 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
 
     /* When using the plane falloff mode the falloff is not constrained by the brush radius. */
     /* Brushes that use elastic deformation are also not constrained by radius. */
-    if (!sculpt_brush_test_sq_fn(&test, current_vertex_location) &&  !use_falloff_plane && !use_elastic_drag) 
-    {
-        continue;
+    if (!sculpt_brush_test_sq_fn(&test, current_vertex_location) && !use_falloff_plane &&
+        !use_elastic_drag) {
+      continue;
     }
 
     float dist = sqrtf(test.dist);
@@ -598,84 +598,84 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
       copy_v3_v3(normal, vd.fno);
     }
 
-      switch (brush->cloth_deform_type) {
-        case BRUSH_CLOTH_DEFORM_DRAG:
-          sub_v3_v3v3(brush_disp, ss->cache->location, ss->cache->last_location);
-          normalize_v3(brush_disp);
-          mul_v3_v3fl(force, brush_disp, fade);
-          break;
-        case BRUSH_CLOTH_DEFORM_PUSH:
-          /* Invert the fade to push inwards. */
-          mul_v3_v3fl(force, offset, -fade);
-          break;
-        case BRUSH_CLOTH_DEFORM_GRAB:
-          madd_v3_v3v3fl(cloth_sim->deformation_pos[vd.index],
-                         cloth_sim->init_pos[vd.index],
-                         ss->cache->grab_delta_symmetry,
-                         fade);
-          if (use_falloff_plane) {
-            cloth_sim->deformation_strength[vd.index] = clamp_f(fade, 0.0f, 1.0f);
-          }
-          else {
-            cloth_sim->deformation_strength[vd.index] = 1.0f;
-          }
-          zero_v3(force);
-          break;
-        case BRUSH_CLOTH_DEFORM_SNAKE_HOOK:
-          copy_v3_v3(cloth_sim->deformation_pos[vd.index], cloth_sim->pos[vd.index]);
-          madd_v3_v3fl(cloth_sim->deformation_pos[vd.index], ss->cache->grab_delta_symmetry, fade);
-          cloth_sim->deformation_strength[vd.index] = fade;
-          zero_v3(force);
-          break;
-        case BRUSH_CLOTH_DEFORM_PINCH_POINT:
-          if (use_falloff_plane) {
-            float distance = dist_signed_to_plane_v3(vd.co, deform_plane);
-            copy_v3_v3(brush_disp, plane_normal);
-            mul_v3_fl(brush_disp, -distance);
-          }
-          else {
-            sub_v3_v3v3(brush_disp, ss->cache->location, vd.co);
-          }
-          normalize_v3(brush_disp);
-          mul_v3_v3fl(force, brush_disp, fade);
-          break;
-        case BRUSH_CLOTH_DEFORM_PINCH_PERPENDICULAR: {
-          float disp_center[3];
-          float x_disp[3];
-          float z_disp[3];
-          sub_v3_v3v3(disp_center, ss->cache->location, vd.co);
-          normalize_v3(disp_center);
-          mul_v3_v3fl(x_disp, x_object_space, dot_v3v3(disp_center, x_object_space));
-          mul_v3_v3fl(z_disp, z_object_space, dot_v3v3(disp_center, z_object_space));
-          add_v3_v3v3(disp_center, x_disp, z_disp);
-          mul_v3_v3fl(force, disp_center, fade);
-        } break;
-        case BRUSH_CLOTH_DEFORM_INFLATE:
-          mul_v3_v3fl(force, normal, fade);
-          break;
-        case BRUSH_CLOTH_DEFORM_EXPAND:
-          cloth_sim->length_constraint_tweak[vd.index] += fade * 0.1f;
-          zero_v3(force);
-          break;
-        case BRUSH_CLOTH_DEFORM_ELASTIC_DRAG: {
-          float final_disp[3];
-          sub_v3_v3v3(brush_disp, ss->cache->location, ss->cache->last_location);
-          mul_v3_v3fl(final_disp, brush_disp, ss->cache->bstrength);
-          float location[3];
-          if (use_falloff_plane) {
-            closest_to_plane_v3(location, deform_plane, vd.co);
-          }
-          else {
-            copy_v3_v3(location, ss->cache->location);
-          }
-          BKE_kelvinlet_grab_triscale(final_disp, &params, vd.co, location, brush_disp);
-          mul_v3_fl(final_disp, 20.0f * (1.0f - fade));
-          add_v3_v3(cloth_sim->pos[vd.index], final_disp);
-          zero_v3(force);
-        }
-
+    switch (brush->cloth_deform_type) {
+      case BRUSH_CLOTH_DEFORM_DRAG:
+        sub_v3_v3v3(brush_disp, ss->cache->location, ss->cache->last_location);
+        normalize_v3(brush_disp);
+        mul_v3_v3fl(force, brush_disp, fade);
         break;
+      case BRUSH_CLOTH_DEFORM_PUSH:
+        /* Invert the fade to push inwards. */
+        mul_v3_v3fl(force, offset, -fade);
+        break;
+      case BRUSH_CLOTH_DEFORM_GRAB:
+        madd_v3_v3v3fl(cloth_sim->deformation_pos[vd.index],
+                       cloth_sim->init_pos[vd.index],
+                       ss->cache->grab_delta_symmetry,
+                       fade);
+        if (use_falloff_plane) {
+          cloth_sim->deformation_strength[vd.index] = clamp_f(fade, 0.0f, 1.0f);
+        }
+        else {
+          cloth_sim->deformation_strength[vd.index] = 1.0f;
+        }
+        zero_v3(force);
+        break;
+      case BRUSH_CLOTH_DEFORM_SNAKE_HOOK:
+        copy_v3_v3(cloth_sim->deformation_pos[vd.index], cloth_sim->pos[vd.index]);
+        madd_v3_v3fl(cloth_sim->deformation_pos[vd.index], ss->cache->grab_delta_symmetry, fade);
+        cloth_sim->deformation_strength[vd.index] = fade;
+        zero_v3(force);
+        break;
+      case BRUSH_CLOTH_DEFORM_PINCH_POINT:
+        if (use_falloff_plane) {
+          float distance = dist_signed_to_plane_v3(vd.co, deform_plane);
+          copy_v3_v3(brush_disp, plane_normal);
+          mul_v3_fl(brush_disp, -distance);
+        }
+        else {
+          sub_v3_v3v3(brush_disp, ss->cache->location, vd.co);
+        }
+        normalize_v3(brush_disp);
+        mul_v3_v3fl(force, brush_disp, fade);
+        break;
+      case BRUSH_CLOTH_DEFORM_PINCH_PERPENDICULAR: {
+        float disp_center[3];
+        float x_disp[3];
+        float z_disp[3];
+        sub_v3_v3v3(disp_center, ss->cache->location, vd.co);
+        normalize_v3(disp_center);
+        mul_v3_v3fl(x_disp, x_object_space, dot_v3v3(disp_center, x_object_space));
+        mul_v3_v3fl(z_disp, z_object_space, dot_v3v3(disp_center, z_object_space));
+        add_v3_v3v3(disp_center, x_disp, z_disp);
+        mul_v3_v3fl(force, disp_center, fade);
+      } break;
+      case BRUSH_CLOTH_DEFORM_INFLATE:
+        mul_v3_v3fl(force, normal, fade);
+        break;
+      case BRUSH_CLOTH_DEFORM_EXPAND:
+        cloth_sim->length_constraint_tweak[vd.index] += fade * 0.1f;
+        zero_v3(force);
+        break;
+      case BRUSH_CLOTH_DEFORM_ELASTIC_DRAG: {
+        float final_disp[3];
+        sub_v3_v3v3(brush_disp, ss->cache->location, ss->cache->last_location);
+        mul_v3_v3fl(final_disp, brush_disp, ss->cache->bstrength);
+        float location[3];
+        if (use_falloff_plane) {
+          closest_to_plane_v3(location, deform_plane, vd.co);
+        }
+        else {
+          copy_v3_v3(location, ss->cache->location);
+        }
+        BKE_kelvinlet_grab_triscale(final_disp, &params, vd.co, location, brush_disp);
+        mul_v3_fl(final_disp, 20.0f * (1.0f - fade));
+        add_v3_v3(cloth_sim->pos[vd.index], final_disp);
+        zero_v3(force);
       }
+
+      break;
+    }
 
     cloth_brush_apply_force_to_vertex(ss, ss->cache->cloth_sim, force, vd.index);
   }
@@ -865,19 +865,19 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
     const float mask_v = (1.0f - (vd.mask ? *vd.mask : 0.0f)) *
                          SCULPT_automasking_factor_get(automasking, ss, vd.index);
 
-      /* Prevents the vertices from sliding without creating folds when all vertices and forces are
-       * in the same plane. */
-      float noise[3];
-      cloth_simulation_noise_get(noise, ss, vd.index, 0.000001f);
-      add_v3_v3(cloth_sim->pos[i], noise);
+    /* Prevents the vertices from sliding without creating folds when all vertices and forces are
+     * in the same plane. */
+    float noise[3];
+    cloth_simulation_noise_get(noise, ss, vd.index, 0.000001f);
+    add_v3_v3(cloth_sim->pos[i], noise);
 
-      if (USE_SOLVER_RIPPLE_CONSTRAINT) {
-        cloth_brush_constraint_pos_to_line(cloth_sim, i);
-      }
+    if (USE_SOLVER_RIPPLE_CONSTRAINT) {
+      cloth_brush_constraint_pos_to_line(cloth_sim, i);
+    }
 
-      if (cloth_sim->collider_list != NULL) {
-        cloth_brush_solve_collision(data->ob, cloth_sim, i);
-      }
+    if (cloth_sim->collider_list != NULL) {
+      cloth_brush_solve_collision(data->ob, cloth_sim, i);
+    }
 
     if (cloth_sim->collider_list != NULL) {
       cloth_brush_solve_collision(data->ob, cloth_sim, i);

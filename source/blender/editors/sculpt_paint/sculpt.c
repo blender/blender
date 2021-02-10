@@ -6512,141 +6512,139 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     SCULPT_pose_brush_init(sd, ob, ss, brush);
   }
 
-    if (brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
-      if (!ss->cache->cloth_sim) {
-        ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-            ss, 1.0f, 1.0f, 0.0f, false, true);
-        SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
-      }
-      SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
-      SCULPT_cloth_brush_ensure_nodes_constraints(
-          sd, ob, nodes, totnode, ss->cache->cloth_sim, ss->cache->location, FLT_MAX);
+  if (brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
+    if (!ss->cache->cloth_sim) {
+      ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
+          ss, 1.0f, 1.0f, 0.0f, false, true);
+      SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
+    }
+    SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
+    SCULPT_cloth_brush_ensure_nodes_constraints(
+        sd, ob, nodes, totnode, ss->cache->cloth_sim, ss->cache->location, FLT_MAX);
   }
 
+  bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
 
-    bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
-
-
-    /* Apply one type of brush action. */
-    switch (brush->sculpt_tool) {
-      case SCULPT_TOOL_DRAW:
-        do_draw_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_SMOOTH:
-        if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
-          SCULPT_do_smooth_brush(sd, ob, nodes, totnode);
-        }
-        else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
-          SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
-        }
-        else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_DIRECTIONAL) {
-          SCULPT_do_directional_smooth_brush(sd, ob, nodes, totnode);
-        }
-        break;
-      case SCULPT_TOOL_CREASE:
-        do_crease_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_BLOB:
-        do_crease_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_PINCH:
-        do_pinch_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_INFLATE:
-        do_inflate_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_GRAB:
-        do_grab_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_ROTATE:
-        do_rotate_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_SNAKE_HOOK:
-        do_snake_hook_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_NUDGE:
-        do_nudge_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_THUMB:
-        do_thumb_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_LAYER:
-        do_layer_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_FLATTEN:
-        do_flatten_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_CLAY:
-        do_clay_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_CLAY_STRIPS:
-        do_clay_strips_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_MULTIPLANE_SCRAPE:
-        SCULPT_do_multiplane_scrape_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_CLAY_THUMB:
-        do_clay_thumb_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_FILL:
-        if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-          do_scrape_brush(sd, ob, nodes, totnode);
-        }
-        else {
-          do_fill_brush(sd, ob, nodes, totnode);
-        }
-        break;
-      case SCULPT_TOOL_SCRAPE:
-        if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-          do_fill_brush(sd, ob, nodes, totnode);
-        }
-        else {
-          do_scrape_brush(sd, ob, nodes, totnode);
-        }
-        break;
-      case SCULPT_TOOL_MASK:
-        do_mask_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_POSE:
-        SCULPT_do_pose_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_DRAW_SHARP:
-        do_draw_sharp_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_ELASTIC_DEFORM:
-        do_elastic_deform_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_SLIDE_RELAX:
-        do_slide_relax_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_BOUNDARY:
-        SCULPT_do_boundary_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_CLOTH:
-        SCULPT_do_cloth_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_DRAW_FACE_SETS:
-        SCULPT_do_draw_face_sets_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_DISPLACEMENT_ERASER:
-        do_displacement_eraser_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_DISPLACEMENT_SMEAR:
-        do_displacement_smear_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_PAINT:
-        SCULPT_do_paint_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_SMEAR:
-        SCULPT_do_smear_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_FAIRING:
-        do_fairing_brush(sd, ob, nodes, totnode);
-        break;
-      case SCULPT_TOOL_SCENE_PROJECT:
-        do_scene_project_brush(sd, ob, nodes, totnode);
-        break;
-    }
+  /* Apply one type of brush action. */
+  switch (brush->sculpt_tool) {
+    case SCULPT_TOOL_DRAW:
+      do_draw_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_SMOOTH:
+      if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
+        SCULPT_do_smooth_brush(sd, ob, nodes, totnode);
+      }
+      else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
+        SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
+      }
+      else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_DIRECTIONAL) {
+        SCULPT_do_directional_smooth_brush(sd, ob, nodes, totnode);
+      }
+      break;
+    case SCULPT_TOOL_CREASE:
+      do_crease_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_BLOB:
+      do_crease_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_PINCH:
+      do_pinch_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_INFLATE:
+      do_inflate_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_GRAB:
+      do_grab_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_ROTATE:
+      do_rotate_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_SNAKE_HOOK:
+      do_snake_hook_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_NUDGE:
+      do_nudge_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_THUMB:
+      do_thumb_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_LAYER:
+      do_layer_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_FLATTEN:
+      do_flatten_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_CLAY:
+      do_clay_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_CLAY_STRIPS:
+      do_clay_strips_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_MULTIPLANE_SCRAPE:
+      SCULPT_do_multiplane_scrape_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_CLAY_THUMB:
+      do_clay_thumb_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_FILL:
+      if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
+        do_scrape_brush(sd, ob, nodes, totnode);
+      }
+      else {
+        do_fill_brush(sd, ob, nodes, totnode);
+      }
+      break;
+    case SCULPT_TOOL_SCRAPE:
+      if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
+        do_fill_brush(sd, ob, nodes, totnode);
+      }
+      else {
+        do_scrape_brush(sd, ob, nodes, totnode);
+      }
+      break;
+    case SCULPT_TOOL_MASK:
+      do_mask_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_POSE:
+      SCULPT_do_pose_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_DRAW_SHARP:
+      do_draw_sharp_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_ELASTIC_DEFORM:
+      do_elastic_deform_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_SLIDE_RELAX:
+      do_slide_relax_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_BOUNDARY:
+      SCULPT_do_boundary_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_CLOTH:
+      SCULPT_do_cloth_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_DRAW_FACE_SETS:
+      SCULPT_do_draw_face_sets_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_DISPLACEMENT_ERASER:
+      do_displacement_eraser_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_DISPLACEMENT_SMEAR:
+      do_displacement_smear_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_PAINT:
+      SCULPT_do_paint_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_SMEAR:
+      SCULPT_do_smear_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_FAIRING:
+      do_fairing_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_SCENE_PROJECT:
+      do_scene_project_brush(sd, ob, nodes, totnode);
+      break;
+  }
 
   if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
       brush->autosmooth_factor > 0) {
@@ -6783,25 +6781,25 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 
   BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
 
-    const bool use_orco = ELEM(brush->sculpt_tool,
-                               SCULPT_TOOL_GRAB,
-                               SCULPT_TOOL_ROTATE,
-                               SCULPT_TOOL_THUMB,
-                               SCULPT_TOOL_BOUNDARY,
-                               SCULPT_TOOL_ELASTIC_DEFORM,
+  const bool use_orco = ELEM(brush->sculpt_tool,
+                             SCULPT_TOOL_GRAB,
+                             SCULPT_TOOL_ROTATE,
+                             SCULPT_TOOL_THUMB,
+                             SCULPT_TOOL_BOUNDARY,
+                             SCULPT_TOOL_ELASTIC_DEFORM,
 
-                               SCULPT_TOOL_POSE);
-    SculptThreadedTaskData data = {
-        .sd = sd,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-        .use_proxies_orco = use_orco,
-    };
+                             SCULPT_TOOL_POSE);
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+      .use_proxies_orco = use_orco,
+  };
 
-    TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
   MEM_SAFE_FREE(nodes);
 }
 
@@ -7909,36 +7907,34 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
     if (BKE_pbvh_type(srd->ss->pbvh) == PBVH_BMESH) {
       use_origco = true;
     }
-          else {
-        /* Intersect with coordinates from before we started stroke. */
-        SculptUndoNode *unode = SCULPT_undo_get_node(node);
-        origco = (unode) ? unode->co : NULL;
-        use_origco = origco ? true : false;
-      }
+    else {
+      /* Intersect with coordinates from before we started stroke. */
+      SculptUndoNode *unode = SCULPT_undo_get_node(node);
+      origco = (unode) ? unode->co : NULL;
+      use_origco = origco ? true : false;
     }
-    
+  }
 
-    if (BKE_pbvh_node_raycast(srd->ss->pbvh,
-                              node,
-                              origco,
-                              use_origco,
-                              srd->ray_start,
-                              srd->ray_normal,
-                              &srd->isect_precalc,
-                              &srd->hit_count,
-                              &srd->depth,
-                              &srd->back_depth,
-                              &srd->active_vertex_index,
-                              &srd->active_face_grid_index,
-                              srd->face_normal)) {
-      srd->hit = true;
-      *tmin = srd->depth;
-    }
+  if (BKE_pbvh_node_raycast(srd->ss->pbvh,
+                            node,
+                            origco,
+                            use_origco,
+                            srd->ray_start,
+                            srd->ray_normal,
+                            &srd->isect_precalc,
+                            &srd->hit_count,
+                            &srd->depth,
+                            &srd->back_depth,
+                            &srd->active_vertex_index,
+                            &srd->active_face_grid_index,
+                            srd->face_normal)) {
+    srd->hit = true;
+    *tmin = srd->depth;
+  }
 
-    if (srd->hit_count >= 2) {
-      srd->back_hit = true;
-    }
-
+  if (srd->hit_count >= 2) {
+    srd->back_hit = true;
+  }
 }
 
 static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *tmin)
