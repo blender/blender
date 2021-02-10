@@ -427,6 +427,10 @@ typedef struct PreviewImage {
   (ID_IS_LINKED(_id) && !ID_MISSING(_id) && (((const ID *)(_id))->tag & LIB_TAG_EXTERN) != 0 && \
    (BKE_idtype_get_info_from_id((const ID *)(_id))->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0)
 
+/* NOTE: The three checks below do not take into account whether given ID is linked or not (when
+ * chaining overrides over several libraries). User must ensure the ID is not linked itself
+ * currently. */
+/* TODO: add `_EDITABLE` versions of those macros (that would check if ID is linked or not)? */
 #define ID_IS_OVERRIDE_LIBRARY_REAL(_id) \
   (((const ID *)(_id))->override_library != NULL && \
    ((const ID *)(_id))->override_library->reference != NULL)
