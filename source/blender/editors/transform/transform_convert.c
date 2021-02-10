@@ -1194,7 +1194,7 @@ static eTFlag flags_from_data_type(eTConvertType data_type)
   return 0;
 }
 
-static eTConvertType convert_type_get(const TransInfo *t, const Object **r_obj_armature)
+static eTConvertType convert_type_get(const TransInfo *t, Object **r_obj_armature)
 {
   ViewLayer *view_layer = t->view_layer;
   Object *ob = OBACT(view_layer);
