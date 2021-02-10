@@ -158,7 +158,7 @@ class VIEW3D_HT_tool_header(Header):
         elif mode_string == 'POSE':
             _row, sub = row_for_mirror()
             sub.prop(context.object.pose, "use_mirror_x", text="X", toggle=True)
-        elif mode_string in {'EDIT_MESH', 'PAINT_WEIGHT', 'SCULPT', 'PAINT_VERTEX'}:
+        elif mode_string in {'EDIT_MESH', 'PAINT_WEIGHT', 'SCULPT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             # Mesh Modes, Use Mesh Symmetry
             row, sub = row_for_mirror()
             sub.prop(context.object.data, "use_mirror_x", text="X", toggle=True)
