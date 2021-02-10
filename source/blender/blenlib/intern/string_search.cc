@@ -259,6 +259,7 @@ static int get_shortest_word_index_that_startswith(StringRef query,
     if (word.startswith(query)) {
       if (word.size() < best_word_size) {
         best_word_index = i;
+        best_word_size = word.size();
       }
     }
   }
