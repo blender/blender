@@ -309,6 +309,7 @@ void interp_v4_v4v4_uchar(unsigned char target[4],
 void mid_v3_v3v3(float r[3], const float a[3], const float b[3]);
 void mid_v2_v2v2(float r[2], const float a[2], const float b[2]);
 void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float v3[3]);
+void mid_v2_v2v2v2(float v[2], const float v1[2], const float v2[2], const float v3[2]);
 void mid_v3_v3v3v3v3(
     float v[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], const unsigned int nbr);
