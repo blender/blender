@@ -609,6 +609,12 @@ short transform_orientation_matrix_get(
     orientation_index_custom = orientation - V3D_ORIENT_CUSTOM;
     orientation = V3D_ORIENT_CUSTOM;
   }
+  else if (ob && (ob->mode & OB_MODE_ALL_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
+    Object *ob_armature = transform_object_deform_pose_armature_get(t, ob);
+    if (ob_armature) {
+      ob = ob_armature;
+    }
+  }
 
   if ((t->spacetype == SPACE_VIEW3D) && t->region && (t->region->regiontype == RGN_TYPE_WINDOW)) {
     rv3d = t->region->regiondata;
