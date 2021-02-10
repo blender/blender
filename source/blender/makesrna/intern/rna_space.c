@@ -4008,7 +4008,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_occlude_wire", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_OCCLUDE_WIRE);
   RNA_def_property_ui_text(prop, "Hidden Wire", "Use hidden wireframe display");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
 
   prop = RNA_def_property(srna, "show_face_normals", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_FACE_NORMALS);
