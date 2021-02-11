@@ -1154,8 +1154,17 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
   SculptSession *ss = ob->sculpt;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   const int totvert = SCULPT_vertex_count_get(ss);
+
+  const bool initial_invert_state = expand_cache->invert;
+  expand_cache->invert = false;
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
-  BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, true);
+
+  const float use_mesh_boundary = expand_cache->falloff_factor_type !=
+                                  SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
+
+  BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(
+      ss, enabled_vertices, use_mesh_boundary);
+  expand_cache->invert = initial_invert_state;
 
   int total = 0;
   float avg[3] = {0.0f};
