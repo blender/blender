@@ -3560,10 +3560,10 @@ void draw_nodespace_back_pix(const bContext *C,
 }
 
 /* return quadratic beziers points for a given nodelink and clip if v2d is not NULL. */
-static bool node_link_bezier_handles(const View2D *v2d,
-                                     const SpaceNode *snode,
-                                     const bNodeLink *link,
-                                     float vec[4][2])
+bool node_link_bezier_handles(const View2D *v2d,
+                              const SpaceNode *snode,
+                              const bNodeLink *link,
+                              float vec[4][2])
 {
   float cursor[2] = {0.0f, 0.0f};
 
@@ -3591,6 +3591,9 @@ static bool node_link_bezier_handles(const View2D *v2d,
   if (link->tosock) {
     vec[3][0] = link->tosock->locx;
     vec[3][1] = link->tosock->locy;
+    if (!(link->tonode->flag & NODE_HIDDEN) && link->tosock->flag & SOCK_MULTI_INPUT) {
+      node_link_calculate_multi_input_position(link, vec[3]);
+    }
     toreroute = (link->tonode && link->tonode->type == NODE_REROUTE);
   }
   else {
@@ -3902,7 +3905,7 @@ void node_draw_link_bezier(const View2D *v2d,
                            int th_col3)
 {
   float vec[4][2];
-
+  const bool highlighted = link->flag & NODE_LINK_TEMP_HIGHLIGHT;
   if (node_link_bezier_handles(v2d, snode, link, vec)) {
     int drawarrow = ((link->tonode && (link->tonode->type == NODE_REROUTE)) &&
                      (link->fromnode && (link->fromnode->type == NODE_REROUTE)));
@@ -3911,7 +3914,7 @@ void node_draw_link_bezier(const View2D *v2d,
       nodelink_batch_init();
     }
 
-    if (g_batch_link.enabled) {
+    if (g_batch_link.enabled && !highlighted) {
       /* Add link to batch. */
       nodelink_batch_add_link(
           snode, vec[0], vec[1], vec[2], vec[3], th_col1, th_col2, th_col3, drawarrow);
@@ -3924,6 +3927,12 @@ void node_draw_link_bezier(const View2D *v2d,
       }
       UI_GetThemeColor4fv(th_col1, colors[1]);
       UI_GetThemeColor4fv(th_col2, colors[2]);
+
+      if (highlighted) {
+        float link_preselection_highlight_color[4];
+        UI_GetThemeColor4fv(TH_SELECT, link_preselection_highlight_color);
+        copy_v4_v4(colors[2], link_preselection_highlight_color);
+      }
 
       GPUBatch *batch = g_batch_link.batch_single;
       GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);

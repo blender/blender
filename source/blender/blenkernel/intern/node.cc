@@ -573,6 +573,7 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   sock->typeinfo = nullptr;
   BLO_read_data_address(reader, &sock->storage);
   BLO_read_data_address(reader, &sock->default_value);
+  sock->total_inputs = 0; /* Clear runtime data set before drawing. */
   sock->cache = nullptr;
 }
 

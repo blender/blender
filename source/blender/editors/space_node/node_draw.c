@@ -22,6 +22,8 @@
  * \brief higher level node drawing for the node editor.
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
@@ -500,6 +502,16 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     PointerRNA sockptr;
     RNA_pointer_create(&ntree->id, &RNA_NodeSocket, nsock, &sockptr);
 
+    /* Add the half the height of a multi-input socket to cursor Y
+     * to account for the increased height of the taller sockets. */
+    float multi_input_socket_offset = 0.0f;
+    if (nsock->flag & SOCK_MULTI_INPUT) {
+      if (nsock->total_inputs > 2) {
+        multi_input_socket_offset = (nsock->total_inputs - 2) * NODE_MULTI_INPUT_LINK_GAP;
+      }
+    }
+    dy -= multi_input_socket_offset * 0.5f;
+
     uiLayout *layout = UI_block_layout(node->block,
                                        UI_LAYOUT_VERTICAL,
                                        UI_LAYOUT_PANEL,
@@ -533,7 +545,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     /* place the socket circle in the middle of the layout */
     nsock->locy = 0.5f * (dy + buty);
 
-    dy = buty;
+    dy = buty - multi_input_socket_offset * 0.5;
     if (nsock->next) {
       dy -= NODE_SOCKDY;
     }
@@ -749,6 +761,27 @@ static void node_socket_draw(const bNodeSocket *sock,
   immAttr1f(size_id, size);
   immAttr4fv(outline_col_id, color_outline);
   immVertex2f(pos_id, locx, locy);
+}
+
+static void node_socket_draw_multi_input(const float color[4],
+                                         const float color_outline[4],
+                                         const float width,
+                                         const float height,
+                                         const int locx,
+                                         const int locy)
+{
+  const float outline_width = 1.0f;
+  /* UI_draw_roundbox draws the outline on the outer side, so compensate for the outline width. */
+  const rctf rect = {
+      .xmin = locx - width + outline_width * 0.5f,
+      .xmax = locx + width - outline_width * 0.5f,
+      .ymin = locy - height + outline_width * 0.5f,
+      .ymax = locy + height - outline_width * 0.5f,
+  };
+
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  UI_draw_roundbox_4fv_ex(
+      &rect, color, NULL, 1.0f, color_outline, outline_width, width - outline_width * 0.5f);
 }
 
 static void node_socket_outline_color_get(bool selected, float r_outline_color[4])
@@ -1006,6 +1039,10 @@ void node_draw_sockets(const View2D *v2d,
       selected_input_len++;
       continue;
     }
+    /* Don't draw multi-input sockets here since they are drawn in a different batch. */
+    if (sock->flag & SOCK_MULTI_INPUT) {
+      continue;
+    }
 
     node_socket_draw_nested(C,
                             ntree,
@@ -1115,6 +1152,28 @@ void node_draw_sockets(const View2D *v2d,
 
   GPU_program_point_size(false);
   GPU_blend(GPU_BLEND_NONE);
+
+  /* Draw multi-nput sockets after the others because they are drawn with "UI_roundbox"
+   * rather than with GL_POINT. */
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+    if (nodeSocketIsHidden(socket)) {
+      continue;
+    }
+    if (!(socket->flag & SOCK_MULTI_INPUT)) {
+      continue;
+    }
+
+    const bool is_node_hidden = (node->flag & NODE_HIDDEN);
+    const float width = NODE_SOCKSIZE;
+    float height = is_node_hidden ? width : node_socket_calculate_height(socket) - width;
+
+    float color[4];
+    float outline_color[4];
+    node_socket_color_get((bContext *)C, ntree, &node_ptr, socket, color);
+    node_socket_outline_color_get(selected, outline_color);
+
+    node_socket_draw_multi_input(color, outline_color, width, height, socket->locx, socket->locy);
+  }
 }
 
 static void node_draw_basis(const bContext *C,
@@ -1590,15 +1649,65 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
   }
 }
 
+static void count_mutli_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    LISTBASE_FOREACH (struct bNodeSocket *, socket, &node->inputs) {
+      if (socket->flag & SOCK_MULTI_INPUT) {
+        socket->total_inputs = 0;
+        LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+          if (link->tosock == socket) {
+            socket->total_inputs++;
+          }
+        }
+        /* Count temporary links going into this socket. */
+        LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
+          LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
+            bNodeLink *link = (bNodeLink *)linkdata->data;
+            if (link->tosock == socket) {
+              socket->total_inputs++;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 void node_update_nodetree(const bContext *C, bNodeTree *ntree)
 {
   /* make sure socket "used" tags are correct, for displaying value buttons */
+  SpaceNode *snode = CTX_wm_space_node(C);
   ntreeTagUsedSockets(ntree);
+
+  count_mutli_input_socket_links(ntree, snode);
 
   /* update nodes front to back, so children sizes get updated before parents */
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree->nodes) {
     node_update(C, ntree, node);
   }
+}
+
+static int compare_link_by_angle_to_node(const void *a, const void *b)
+{
+  const bNodeLink *link_a = *(const bNodeLink **)a;
+  const bNodeLink *link_b = *(const bNodeLink **)b;
+
+  BLI_assert(link_a->tosock == link_b->tosock);
+  const float socket_location[2] = {link_a->tosock->locx, link_a->tosock->locy};
+  const float up_direction[2] = {0.0f, 1.0f};
+
+  float delta_a[2] = {link_a->fromsock->locx - socket_location[0],
+                      link_a->fromsock->locy - socket_location[1]};
+  normalize_v2(delta_a);
+  const float angle_a = angle_normalized_v2v2(up_direction, delta_a);
+
+  float delta_b[2] = {link_b->fromsock->locx - socket_location[0],
+                      link_b->fromsock->locy - socket_location[1]};
+  normalize_v2(delta_b);
+  const float angle_b = angle_normalized_v2v2(up_direction, delta_b);
+
+  return angle_a < angle_b ? 1 : -1;
 }
 
 static void node_draw(const bContext *C,
@@ -1614,6 +1723,46 @@ static void node_draw(const bContext *C,
 }
 
 #define USE_DRAW_TOT_UPDATE
+
+/**
+ * Automatically sort the input links to multi-input sockets to avoid crossing noodles.
+ */
+static void sort_multi_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      if (socket->flag & SOCK_MULTI_INPUT) {
+        /* The total is calculated in #node_update_nodetree, which runs before this draw step. */
+        const int total_inputs = socket->total_inputs;
+        bNodeLink **input_links = MEM_malloc_arrayN(total_inputs, sizeof(bNodeLink *), __func__);
+
+        int index = 0;
+        LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+          if (link->tosock == socket) {
+            input_links[index] = (bNodeLink *)link;
+            index++;
+          }
+        }
+        LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
+          LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
+            bNodeLink *link = (bNodeLink *)linkdata->data;
+            if (link->tosock == socket) {
+              input_links[index] = (bNodeLink *)link;
+              index++;
+            }
+          }
+        }
+
+        qsort(input_links, total_inputs, sizeof(bNodeLink *), compare_link_by_angle_to_node);
+        for (int i = 0; i < total_inputs; i++) {
+          input_links[i]->multi_input_socket_index = i;
+        }
+
+        MEM_freeN(input_links);
+      }
+    }
+  }
+}
 
 void node_draw_nodetree(const bContext *C,
                         ARegion *region,
@@ -1650,6 +1799,9 @@ void node_draw_nodetree(const bContext *C,
   /* node lines */
   GPU_blend(GPU_BLEND_ALPHA);
   nodelink_batch_start(snode);
+
+  sort_multi_input_socket_links(ntree, snode);
+
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     if (!nodeLinkIsHidden(link)) {
       node_draw_link(&region->v2d, snode, link);
