@@ -580,7 +580,7 @@ class MeshTest:
         compare_success = (compare_result == 'Same')
 
         # Also check if invalid geometry (which is never expected) had to be corrected...
-        validation_success = evaluated_test_mesh.validate(verbose=True) == False
+        validation_success = not evaluated_test_mesh.validate(verbose=True)
 
         if compare_success and validation_success:
             if self.verbose:
