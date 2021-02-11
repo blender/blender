@@ -915,7 +915,15 @@ void ObjectManager::tag_update(Scene *scene, uint32_t flag)
 
   /* avoid infinite loops if the geometry manager tagged us for an update */
   if ((flag & GEOMETRY_MANAGER) == 0) {
-    scene->geometry_manager->tag_update(scene, GeometryManager::OBJECT_MANAGER);
+    uint32_t geometry_flag = GeometryManager::OBJECT_MANAGER;
+
+    /* Also notify in case added or removed objects were instances, as no Geometry might have been
+     * added or removed, but the BVH still needs to updated. */
+    if ((flag & (OBJECT_ADDED | OBJECT_REMOVED)) != 0) {
+      geometry_flag |= (GeometryManager::GEOMETRY_ADDED | GeometryManager::GEOMETRY_REMOVED);
+    }
+
+    scene->geometry_manager->tag_update(scene, geometry_flag);
   }
 
   scene->light_manager->tag_update(scene, LightManager::OBJECT_MANAGER);
