@@ -24,8 +24,16 @@
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_join_geometry_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_GEOMETRY, N_("Geometry")},
+    {SOCK_GEOMETRY,
+        N_("Geometry"),
+        0.0f,
+        0.0f,
+        0.0f,
+        1.0f,
+        -1.0f,
+        1.0f,
+        PROP_NONE,
+        SOCK_MULTI_INPUT},
     {-1, ""},
 };
 
@@ -252,11 +260,11 @@ static void join_components(Span<const VolumeComponent *> src_components, Geomet
 }
 
 template<typename Component>
-static void join_component_type(Span<const GeometrySet *> src_geometry_sets, GeometrySet &result)
+static void join_component_type(Span<GeometrySet> src_geometry_sets, GeometrySet &result)
 {
   Vector<const Component *> components;
-  for (const GeometrySet *geometry_set : src_geometry_sets) {
-    const Component *component = geometry_set->get_component_for_read<Component>();
+  for (const GeometrySet &geometry_set : src_geometry_sets) {
+    const Component *component = geometry_set.get_component_for_read<Component>();
     if (component != nullptr && !component->is_empty()) {
       components.append(component);
     }
@@ -274,16 +282,13 @@ static void join_component_type(Span<const GeometrySet *> src_geometry_sets, Geo
 
 static void geo_node_join_geometry_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set_a = params.extract_input<GeometrySet>("Geometry");
-  GeometrySet geometry_set_b = params.extract_input<GeometrySet>("Geometry_001");
+  Vector<GeometrySet> geometry_sets = params.extract_multi_input<GeometrySet>("Geometry");
+
   GeometrySet geometry_set_result;
-
-  std::array<const GeometrySet *, 2> src_geometry_sets = {&geometry_set_a, &geometry_set_b};
-
-  join_component_type<MeshComponent>(src_geometry_sets, geometry_set_result);
-  join_component_type<PointCloudComponent>(src_geometry_sets, geometry_set_result);
-  join_component_type<InstancesComponent>(src_geometry_sets, geometry_set_result);
-  join_component_type<VolumeComponent>(src_geometry_sets, geometry_set_result);
+  join_component_type<MeshComponent>(geometry_sets, geometry_set_result);
+  join_component_type<PointCloudComponent>(geometry_sets, geometry_set_result);
+  join_component_type<InstancesComponent>(geometry_sets, geometry_set_result);
+  join_component_type<VolumeComponent>(geometry_sets, geometry_set_result);
 
   params.set_output("Geometry", std::move(geometry_set_result));
 }

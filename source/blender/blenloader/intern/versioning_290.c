@@ -735,6 +735,23 @@ static void version_node_socket_name(bNodeTree *ntree,
   }
 }
 
+static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+    if (link->tonode->type == GEO_NODE_JOIN_GEOMETRY && !(link->tosock->flag & SOCK_MULTI_INPUT)) {
+      link->tosock = link->tonode->inputs.first;
+    }
+  }
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == GEO_NODE_JOIN_GEOMETRY) {
+      bNodeSocket *socket = node->inputs.first;
+      socket->flag |= SOCK_MULTI_INPUT;
+      socket->limit = 4095;
+      nodeRemoveSocket(ntree, node, socket->next);
+    }
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -1679,6 +1696,14 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 7)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_join_geometry_for_multi_input_socket(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
