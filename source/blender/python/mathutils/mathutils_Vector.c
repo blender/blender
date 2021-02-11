@@ -3042,15 +3042,11 @@ PyTypeObject vector_Type = {
     /* Methods to implement standard operations */
 
     (destructor)BaseMathObject_dealloc, /* destructor tp_dealloc; */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
-    NULL,                  /* getattrfunc tp_getattr; */
-    NULL,                  /* setattrfunc tp_setattr; */
-    NULL,                  /* cmpfunc tp_compare; */
-    (reprfunc)Vector_repr, /* reprfunc tp_repr; */
+    0,                                  /* tp_vectorcall_offset */
+    NULL,                               /* getattrfunc tp_getattr; */
+    NULL,                               /* setattrfunc tp_setattr; */
+    NULL,                               /* cmpfunc tp_compare; */
+    (reprfunc)Vector_repr,              /* reprfunc tp_repr; */
 
     /* Method suites for standard classes */
 
@@ -3065,7 +3061,7 @@ PyTypeObject vector_Type = {
 #ifndef MATH_STANDALONE
     (reprfunc)Vector_str, /* reprfunc tp_str; */
 #else
-    NULL,            /* reprfunc tp_str; */
+    NULL, /* reprfunc tp_str; */
 #endif
     NULL, /* getattrofunc tp_getattro; */
     NULL, /* setattrofunc tp_setattro; */

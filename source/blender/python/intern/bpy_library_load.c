@@ -94,13 +94,9 @@ static PyTypeObject bpy_lib_Type = {
     0,                                        /* tp_itemsize */
     /* methods */
     (destructor)bpy_lib_dealloc, /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
-    NULL, /* getattrfunc tp_getattr; */
-    NULL, /* setattrfunc tp_setattr; */
+    0,                           /* tp_vectorcall_offset */
+    NULL,                        /* getattrfunc tp_getattr; */
+    NULL,                        /* setattrfunc tp_setattr; */
     NULL,
     /* tp_compare */ /* DEPRECATED in python 3.0! */
     NULL,            /* tp_repr */
