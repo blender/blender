@@ -537,18 +537,18 @@ static struct PyMethodDef py_matrix_methods[] = {
 };
 
 PyDoc_STRVAR(py_matrix_doc, "This module provides access to the matrix stack.");
-static PyModuleDef BPyGPU_matrix_module_def = {
+static PyModuleDef py_matrix_module_def = {
     PyModuleDef_HEAD_INIT,
     .m_name = "gpu.matrix",
     .m_doc = py_matrix_doc,
     .m_methods = py_matrix_methods,
 };
 
-PyObject *BPyInit_gpu_matrix(void)
+PyObject *bpygpu_matrix_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&BPyGPU_matrix_module_def);
+  submodule = PyModule_Create(&py_matrix_module_def);
 
   if (PyType_Ready(&BPyGPU_matrix_stack_context_Type) < 0) {
     return NULL;

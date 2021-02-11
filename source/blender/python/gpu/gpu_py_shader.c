@@ -736,7 +736,7 @@ PyDoc_STRVAR(py_shader_module_doc,
              "3D_SMOOTH_COLOR\n"
              "   :Attributes: vec3 pos, vec4 color\n"
              "   :Uniforms: none\n");
-static PyModuleDef BPyGPU_shader_module_def = {
+static PyModuleDef py_shader_module_def = {
     PyModuleDef_HEAD_INIT,
     .m_name = "gpu.shader",
     .m_doc = py_shader_module_doc,
@@ -760,11 +760,11 @@ PyObject *BPyGPUShader_CreatePyObject(GPUShader *shader, bool is_builtin)
   return (PyObject *)self;
 }
 
-PyObject *BPyInit_gpu_shader(void)
+PyObject *bpygpu_shader_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&BPyGPU_shader_module_def);
+  submodule = PyModule_Create(&py_shader_module_def);
 
   return submodule;
 }

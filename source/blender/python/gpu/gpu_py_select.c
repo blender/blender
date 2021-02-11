@@ -69,18 +69,18 @@ static struct PyMethodDef py_select_methods[] = {
 };
 
 PyDoc_STRVAR(py_select_doc, "This module provides access to selection.");
-static PyModuleDef BPyGPU_select_module_def = {
+static PyModuleDef py_select_module_def = {
     PyModuleDef_HEAD_INIT,
     .m_name = "gpu.select",
     .m_doc = py_select_doc,
     .m_methods = py_select_methods,
 };
 
-PyObject *BPyInit_gpu_select(void)
+PyObject *bpygpu_select_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&BPyGPU_select_module_def);
+  submodule = PyModule_Create(&py_select_module_def);
 
   return submodule;
 }
