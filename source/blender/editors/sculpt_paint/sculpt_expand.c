@@ -956,40 +956,6 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
   }
 }
 
-static void sculpt_expand_face_sets_update_task_cb(void *__restrict userdata,
-                                                   const int i,
-                                                   const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
-  ExpandCache *expand_cache = ss->expand_cache;
-
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
-  {
-    const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.index);
-
-    if (!enabled) {
-      continue;
-    }
-
-    if (expand_cache->falloff_gradient) {
-      SCULPT_vertex_face_set_increase(ss, vd.index, expand_cache->next_face_set);
-    }
-    else {
-      SCULPT_vertex_face_set_set(ss, vd.index, expand_cache->next_face_set);
-    }
-
-    if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  BKE_pbvh_node_mark_update_mask(node);
-}
-
 static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expand_cache)
 {
   const int totface = ss->totfaces;
@@ -1158,10 +1124,6 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
           0, expand_cache->totnode, &data, sculpt_expand_mask_update_task_cb, &settings);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      /*
-      BLI_task_parallel_range(
-          0, expand_cache->totnode, &data, sculpt_expand_face_sets_update_task_cb, &settings);
-      */
       sculpt_expand_face_sets_update(ss, expand_cache);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
