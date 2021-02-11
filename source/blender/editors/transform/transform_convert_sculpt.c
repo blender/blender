@@ -49,7 +49,7 @@ void createTransSculpt(bContext *C, TransInfo *t)
     return;
   }
 
-  Object *ob = CTX_data_active_object(t->context);
+  Object *ob = OBACT(t->view_layer);
   SculptSession *ss = ob->sculpt;
 
   {
@@ -101,7 +101,7 @@ void createTransSculpt(bContext *C, TransInfo *t)
   copy_m3_m4(td->axismtx, ob->obmat);
 
   BLI_assert(!(t->options & CTX_PAINT_CURVE));
-  ED_sculpt_init_transform(C);
+  ED_sculpt_init_transform(C, ob);
 }
 
 /** \} */
@@ -113,7 +113,8 @@ void createTransSculpt(bContext *C, TransInfo *t)
 
 void recalcData_sculpt(TransInfo *t)
 {
-  ED_sculpt_update_modal_transform(t->context);
+  Object *ob = OBACT(t->view_layer);
+  ED_sculpt_update_modal_transform(t->context, ob);
 }
 
 void special_aftertrans_update__sculpt(bContext *C, TransInfo *t)
@@ -124,8 +125,9 @@ void special_aftertrans_update__sculpt(bContext *C, TransInfo *t)
     return;
   }
 
+  Object *ob = OBACT(t->view_layer);
   BLI_assert(!(t->options & CTX_PAINT_CURVE));
-  ED_sculpt_end_transform(C);
+  ED_sculpt_end_transform(C, ob);
 }
 
 /** \} */
