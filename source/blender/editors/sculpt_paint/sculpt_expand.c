@@ -1281,11 +1281,13 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
   copy_v2_v2(ss->expand_cache->initial_mouse, mouse);
   expand_cache->initial_active_vertex = initial_vertex;
   expand_cache->initial_active_face_set = SCULPT_active_face_set_get(ss);
-  if (expand_cache->modify_active) {
-    expand_cache->next_face_set = SCULPT_active_face_set_get(ss);
-  }
-  else {
-    expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
+  if (expand_cache->next_face_set == SCULPT_FACE_SET_NONE) {
+    if (expand_cache->modify_active) {
+      expand_cache->next_face_set = SCULPT_active_face_set_get(ss);
+    }
+    else {
+      expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
+    }
   }
   sculpt_expand_find_active_connected_components_from_vert(ob, expand_cache, initial_vertex);
 }
