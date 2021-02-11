@@ -2312,14 +2312,14 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
         }
 
         if (!ray_face_intersection_depth_quad(ray_start,
-                                             isect_precalc,
-                                             co[0],
-                                             co[1],
-                                             co[2],
-                                             co[3],
-                                             depth,
-                                             back_depth,
-                                             hit_count)) {
+                                              isect_precalc,
+                                              co[0],
+                                              co[1],
+                                              co[2],
+                                              co[3],
+                                              depth,
+                                              back_depth,
+                                              hit_count)) {
           continue;
         }
         hit = true;
