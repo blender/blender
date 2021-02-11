@@ -1061,7 +1061,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
        * Note that:
        *     - This effectively 'lock' main number keys to always output number events
        *       (except when using alt-gr).
-       *     - This enforces users to use an ascii-compatible keymap with Blender -
+       *     - This enforces users to use an ASCII-compatible keymap with Blender -
        *       but at least it gives predictable and consistent results.
        *
        * Also, note that nothing in XLib sources [1] makes it obvious why those two functions give

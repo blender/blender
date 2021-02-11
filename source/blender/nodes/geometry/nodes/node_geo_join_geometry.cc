@@ -25,15 +25,15 @@
 
 static bNodeSocketTemplate geo_node_join_geometry_in[] = {
     {SOCK_GEOMETRY,
-        N_("Geometry"),
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        -1.0f,
-        1.0f,
-        PROP_NONE,
-        SOCK_MULTI_INPUT},
+     N_("Geometry"),
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     -1.0f,
+     1.0f,
+     PROP_NONE,
+     SOCK_MULTI_INPUT},
     {-1, ""},
 };
 

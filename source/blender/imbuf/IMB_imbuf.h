@@ -27,7 +27,7 @@
  * This module offers import/export of several graphical file formats.
  * \ingroup imbuf
  *
- * \page IMB Imbuf module external interface
+ * \page IMB ImBuf module external interface
  * \section imb_about About the IMB module
  *
  * External interface of the IMage Buffer module. This module offers
