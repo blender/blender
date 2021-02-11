@@ -147,7 +147,7 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
   }
 
   if (expand_cache->all_enabled) {
-      return true;
+    return true;
   }
 
   bool enabled = false;
@@ -183,7 +183,7 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
   }
 
   if (expand_cache->all_enabled) {
-      return true;
+    return true;
   }
 
   bool enabled = false;
@@ -1152,6 +1152,7 @@ static int sculpt_expand_target_vertex_update_and_get(bContext *C,
 static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache *expand_cache)
 {
   SculptSession *ss = ob->sculpt;
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   const int totvert = SCULPT_vertex_count_get(ss);
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, true);
@@ -1159,11 +1160,24 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
   int total = 0;
   float avg[3] = {0.0f};
 
+  const float *expand_init_co = SCULPT_vertex_co_get(ss, expand_cache->initial_active_vertex);
+
   for (int i = 0; i < totvert; i++) {
     if (!BLI_BITMAP_TEST(boundary_vertices, i)) {
       continue;
     }
-    add_v3_v3(avg, SCULPT_vertex_co_get(ss, i));
+
+    if (!sculpt_expand_is_vert_in_active_compoment(ss, expand_cache, i)) {
+      continue;
+    }
+
+    const float *vertex_co = SCULPT_vertex_co_get(ss, i);
+
+    if (!SCULPT_check_vertex_pivot_symmetry(vertex_co, expand_init_co, symm)) {
+      continue;
+    }
+
+    add_v3_v3(avg, vertex_co);
     total++;
   }
 
