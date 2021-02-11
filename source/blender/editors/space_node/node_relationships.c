@@ -732,8 +732,8 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
         tlink = NULL;
         to_count--;
       }
-      /* Also remove link if it comes from the same output. */
-      if (tlink->fromsock == from) {
+      else if (tlink->fromsock == from) {
+        /* Also remove link if it comes from the same output. */
         nodeRemLink(ntree, tlink);
         tlink = NULL;
         to_count--;
