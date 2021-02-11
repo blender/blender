@@ -78,6 +78,9 @@ typedef struct SpaceNode_Runtime {
 void space_node_group_offset(struct SpaceNode *snode, float *x, float *y);
 
 /* node_draw.c */
+float node_socket_calculate_height(const bNodeSocket *socket);
+void node_link_calculate_multi_input_position(const bNodeLink *link, float r[2]);
+
 int node_get_colorid(struct bNode *node);
 int node_get_resize_cursor(int directions);
 void node_draw_shadow(const struct SpaceNode *snode,
@@ -178,6 +181,10 @@ bool node_link_bezier_points(const struct View2D *v2d,
                              const struct bNodeLink *link,
                              float coord_array[][2],
                              const int resol);
+bool node_link_bezier_handles(const struct View2D *v2d,
+                              const struct SpaceNode *snode,
+                              const struct bNodeLink *link,
+                              float vec[4][2]);
 void draw_nodespace_back_pix(const struct bContext *C,
                              struct ARegion *region,
                              struct SpaceNode *snode,
@@ -290,6 +297,7 @@ extern const char *node_context_dir[];
 #define NODE_HEIGHT(node) (node->height * UI_DPI_FAC)
 #define NODE_MARGIN_X (1.10f * U.widget_unit)
 #define NODE_SOCKSIZE (0.25f * U.widget_unit)
+#define NODE_MULTI_INPUT_LINK_GAP (0.25f * U.widget_unit)
 #define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)
 #define NODE_LINK_RESOL 12
 

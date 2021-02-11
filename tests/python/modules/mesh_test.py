@@ -580,7 +580,7 @@ class MeshTest:
         compare_success = (compare_result == 'Same')
 
         # Also check if invalid geometry (which is never expected) had to be corrected...
-        validation_success = evaluated_test_mesh.validate(verbose=True) == False
+        validation_success = not evaluated_test_mesh.validate(verbose=True)
 
         if compare_success and validation_success:
             if self.verbose:
@@ -662,8 +662,7 @@ class RunTest:
             test_name = each_test.test_name
             if self.verbose:
                 print()
-                print("Running test {}...".format(test_number))
-                print("Test name {}\n".format(test_name))
+                print("Running test {}/{}: {}...".format(test_number+1, len(self.tests), test_name))
             success = self.run_test(test_name)
 
             if not success:

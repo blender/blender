@@ -45,13 +45,13 @@
  *
  * \{ */
 
-void createTransParticleVerts(bContext *C, TransInfo *t)
+void createTransParticleVerts(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     TransData *td = NULL;
     TransDataExtension *tx;
-    Object *ob = CTX_data_active_object(C);
+    Object *ob = OBACT(t->view_layer);
     ParticleEditSettings *pset = PE_settings(t->scene);
     PTCacheEdit *edit = PE_get_current(t->depsgraph, t->scene, ob);
     ParticleSystem *psys = NULL;

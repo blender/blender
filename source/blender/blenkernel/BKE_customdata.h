@@ -421,6 +421,7 @@ int CustomData_sizeof(int type);
 /* get the name of a layer type */
 const char *CustomData_layertype_name(int type);
 bool CustomData_layertype_is_singleton(int type);
+bool CustomData_layertype_is_dynamic(int type);
 int CustomData_layertype_layers_max(const int type);
 
 /* make sure the name of layer at index is unique */

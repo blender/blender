@@ -37,7 +37,6 @@ MONKEY_LOOP_EDGE = {131, 278, 299, 305, 307, 334, 337, 359, 384, 396, 399, 412, 
 
 def main():
     tests = [
-        #### 0
         # bisect
         MeshTest("CubeBisect", "testCubeBisect", "expectedCubeBisect",
                  [OperatorSpecEditMode("bisect",
@@ -57,7 +56,6 @@ def main():
                  [OperatorSpecEditMode("decimate",
                                        {"ratio": 0.1}, "FACE", {i for i in range(500)})]),
 
-        ### 4
         # delete
         MeshTest("CubeDeleteVertices", "testCubeDeleteVertices", "expectedCubeDeleteVertices",
                  [OperatorSpecEditMode("delete", {}, "VERT", {3})]),
@@ -75,7 +73,6 @@ def main():
                  "expectedMonkeyDeleteEdgeLoopEdges",
                  [OperatorSpecEditMode("delete_edgeloop", {}, "EDGE", MONKEY_LOOP_EDGE)]),
 
-        ### 9
         # delete loose
         MeshTest("CubeDeleteLooseVertices", "testCubeDeleteLooseVertices",
                  "expectedCubeDeleteLooseVertices",
@@ -98,7 +95,6 @@ def main():
                  "expectedCubeDissolveDegenerate",
                  [OperatorSpecEditMode("dissolve_degenerate", {}, "VERT", {i for i in range(8)})]),
 
-        ### 13
         # dissolve edges
         MeshTest("CylinderDissolveEdges", "testCylinderDissolveEdges", "expectedCylinderDissolveEdges",
                  [OperatorSpecEditMode("dissolve_edges", {}, "EDGE", {0, 5, 6, 9})]),
@@ -107,7 +103,6 @@ def main():
         MeshTest("CubeDissolveFaces", "testCubeDissolveFaces", "expectedCubeDissolveFaces",
                  [OperatorSpecEditMode("dissolve_faces", {}, "VERT", {5, 34, 47, 49, 83, 91, 95})]),
 
-        ### 15
         # dissolve verts
         MeshTest("CubeDissolveVerts", "testCubeDissolveVerts", "expectedCubeDissolveVerts",
                  [OperatorSpecEditMode("dissolve_verts", {}, "VERT", {16, 20, 22, 23, 25})]),
@@ -124,7 +119,6 @@ def main():
         MeshTest("ConeDuplicateEdges", "testConeDuplicateEdges", "expectedConeDuplicateEdges",
                  [OperatorSpecEditMode("duplicate", {}, "EDGE", {i for i in range(64)})]),
 
-        ### 20
         # edge collapse
         MeshTest("CylinderEdgeCollapse", "testCylinderEdgeCollapse", "expectedCylinderEdgeCollapse",
                  [OperatorSpecEditMode("edge_collapse", {}, "EDGE", {1, 9, 4})]),
@@ -143,7 +137,6 @@ def main():
         MeshTest("CubeEdgeSplit", "testCubeEdgeSplit", "expectedCubeEdgeSplit",
                  [OperatorSpecEditMode("edge_split", {}, "EDGE", {2, 5, 8, 11, 14, 17, 20, 23})]),
 
-        ### 25
         # face make planar
         MeshTest("MonkeyFaceMakePlanar", "testMonkeyFaceMakePlanar",
                  "expectedMonkeyFaceMakePlanar",
@@ -166,14 +159,12 @@ def main():
         MeshTest("PlaneFillGrid", "testPlaneFillGrid",
                  "expectedPlaneFillGrid",
                  [OperatorSpecEditMode("fill_grid", {}, "EDGE", {1, 2, 3, 4, 5, 7, 9, 10, 11, 12, 13, 15})]),
-
         MeshTest("PlaneFillGridSimpleBlending",
                  "testPlaneFillGridSimpleBlending",
                  "expectedPlaneFillGridSimpleBlending",
                  [OperatorSpecEditMode("fill_grid", {"use_interp_simple": True}, "EDGE",
                                        {1, 2, 3, 4, 5, 7, 9, 10, 11, 12, 13, 15})]),
 
-        ### 31
         # fill holes
         MeshTest("SphereFillHoles", "testSphereFillHoles", "expectedSphereFillHoles",
                  [OperatorSpecEditMode("fill_holes", {"sides": 9}, "VERT", {i for i in range(481)})]),
@@ -184,7 +175,6 @@ def main():
                                                                              {5, 16, 17, 19, 20, 22, 23, 34, 47, 49, 50,
                                                                               52,
                                                                               59, 61, 62, 65, 83, 91, 95})]),
-
         MeshTest("CubeInsetEvenOffsetFalse",
                  "testCubeInsetEvenOffsetFalse", "expectedCubeInsetEvenOffsetFalse",
                  [OperatorSpecEditMode("inset", {"thickness": 0.2, "use_even_offset": False}, "VERT",

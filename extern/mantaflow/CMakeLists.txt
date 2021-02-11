@@ -75,6 +75,8 @@ endif()
 
 if(WITH_OPENVDB)
   add_definitions(-DOPENVDB=1)
+  # OpenVDB headers use deprecated TBB headers, silence warning.
+  add_definitions(-DTBB_SUPPRESS_DEPRECATED_MESSAGES=1)
 endif()
 
 if(WITH_OPENVDB_BLOSC)

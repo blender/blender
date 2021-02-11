@@ -737,10 +737,6 @@ void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *t, float val
 /** \name Generics
  * \{ */
 
-void initTransDataContainers_FromObjectData(TransInfo *t,
-                                            struct Object *obact,
-                                            struct Object **objects,
-                                            uint objects_len);
 void initTransInfo(struct bContext *C,
                    TransInfo *t,
                    struct wmOperator *op,
@@ -776,7 +772,7 @@ void calculatePropRatio(TransInfo *t);
 
 void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
 
-struct Object *transform_object_deform_pose_armature_get(TransInfo *t, struct Object *ob);
+struct Object *transform_object_deform_pose_armature_get(const TransInfo *t, struct Object *ob);
 
 void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 

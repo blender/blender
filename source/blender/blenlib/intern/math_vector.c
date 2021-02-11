@@ -280,6 +280,12 @@ void mid_v2_v2v2(float r[2], const float a[2], const float b[2])
   r[1] = 0.5f * (a[1] + b[1]);
 }
 
+void mid_v2_v2v2v2(float v[2], const float v1[2], const float v2[2], const float v3[2])
+{
+  v[0] = (v1[0] + v2[0] + v3[0]) / 3.0f;
+  v[1] = (v1[1] + v2[1] + v3[1]) / 3.0f;
+}
+
 void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float v3[3])
 {
   v[0] = (v1[0] + v2[0] + v3[0]) / 3.0f;

@@ -98,6 +98,25 @@ typedef struct CompoJob {
   float *progress;
 } CompoJob;
 
+float node_socket_calculate_height(const bNodeSocket *socket)
+{
+  float sock_height = NODE_SOCKSIZE * 2.0f;
+  if (socket->flag & SOCK_MULTI_INPUT) {
+    sock_height += max_ii(NODE_MULTI_INPUT_LINK_GAP * 0.5f * socket->total_inputs, NODE_SOCKSIZE);
+  }
+  return sock_height;
+}
+
+void node_link_calculate_multi_input_position(const bNodeLink *link, float r[2])
+{
+  float offset = (link->tosock->total_inputs * NODE_MULTI_INPUT_LINK_GAP -
+                  NODE_MULTI_INPUT_LINK_GAP) *
+                 0.5;
+  r[0] = link->tosock->locx - NODE_SOCKSIZE * 0.5f;
+  r[1] = link->tosock->locy - offset +
+         (link->multi_input_socket_index * NODE_MULTI_INPUT_LINK_GAP);
+}
+
 static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
 {
   LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
@@ -1104,6 +1123,21 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
 }
 
 /* checks snode->mouse position, and returns found node/socket */
+static bool cursor_isect_multi_input_socket(const float cursor[2], const bNodeSocket *socket)
+{
+  const float node_socket_height = node_socket_calculate_height(socket);
+  const rctf multi_socket_rect = {
+      .xmin = socket->locx - NODE_SOCKSIZE * 4,
+      .xmax = socket->locx + NODE_SOCKSIZE,
+      .ymin = socket->locy - node_socket_height * 0.5 - NODE_SOCKSIZE * 2.0f,
+      .ymax = socket->locy + node_socket_height * 0.5 + NODE_SOCKSIZE * 2.0f,
+  };
+  if (BLI_rctf_isect_pt(&multi_socket_rect, cursor[0], cursor[1])) {
+    return true;
+  }
+  return false;
+}
+
 /* type is SOCK_IN and/or SOCK_OUT */
 int node_find_indicated_socket(
     SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, float cursor[2], int in_out)
@@ -1132,7 +1166,16 @@ int node_find_indicated_socket(
     if (in_out & SOCK_IN) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         if (!nodeSocketIsHidden(sock)) {
-          if (BLI_rctf_isect_pt(&rect, sock->locx, sock->locy)) {
+          if (sock->flag & SOCK_MULTI_INPUT && !(node->flag & NODE_HIDDEN)) {
+            if (cursor_isect_multi_input_socket(cursor, sock)) {
+              if (node == visible_node(snode, &rect)) {
+                *nodep = node;
+                *sockp = sock;
+                return 1;
+              }
+            }
+          }
+          else if (BLI_rctf_isect_pt(&rect, sock->locx, sock->locy)) {
             if (node == visible_node(snode, &rect)) {
               *nodep = node;
               *sockp = sock;
