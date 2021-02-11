@@ -271,6 +271,9 @@ typedef struct MIntProperty {
 typedef struct MStringProperty {
   char s[255], s_len;
 } MStringProperty;
+typedef struct MBoolProperty {
+  uint8_t b;
+} MBoolProperty;
 
 /** \} */
 

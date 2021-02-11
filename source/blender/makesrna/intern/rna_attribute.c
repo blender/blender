@@ -169,6 +169,9 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
     case CD_PROP_STRING:
       struct_size = sizeof(MStringProperty);
       break;
+    case CD_PROP_BOOL:
+      struct_size = sizeof(MBoolProperty);
+      break;
     default:
       struct_size = 0;
       length = 0;
@@ -298,6 +301,9 @@ PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter)
       break;
     case CD_PROP_STRING:
       type = &RNA_StringAttribute;
+      break;
+    case CD_PROP_BOOL:
+      type = &RNA_BoolAttribute;
       break;
     default:
       return PointerRNA_NULL;
@@ -555,6 +561,34 @@ static void rna_def_attribute_string(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 }
 
+static void rna_def_attribute_bool(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "BoolAttribute", "Attribute");
+  RNA_def_struct_sdna(srna, "CustomDataLayer");
+  RNA_def_struct_ui_text(srna, "Bool Attribute", "Bool geometry attribute");
+
+  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BoolAttributeValue");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Attribute_data_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Attribute_data_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+
+  srna = RNA_def_struct(brna, "BoolAttributeValue", NULL);
+  RNA_def_struct_sdna(srna, "MBoolProperty");
+  RNA_def_struct_ui_text(srna, "Bool Attribute Value", "Bool value in geometry attribute");
+  prop = RNA_def_property(srna, "value", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "b", 0x01);
+}
+
 static void rna_def_attribute(BlenderRNA *brna)
 {
   PropertyRNA *prop;
@@ -592,6 +626,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   rna_def_attribute_byte_color(brna);
   rna_def_attribute_int(brna);
   rna_def_attribute_string(brna);
+  rna_def_attribute_bool(brna);
 }
 
 /* Mesh/PointCloud/Hair.attributes */
