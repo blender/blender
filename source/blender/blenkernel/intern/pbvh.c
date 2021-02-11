@@ -2311,7 +2311,7 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
           co[3] = CCG_grid_elem_co(gridkey, grid, x, y + 1);
         }
 
-        if (ray_face_intersection_depth_quad(ray_start,
+        if (!ray_face_intersection_depth_quad(ray_start,
                                              isect_precalc,
                                              co[0],
                                              co[1],
