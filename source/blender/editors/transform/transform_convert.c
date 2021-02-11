@@ -1246,7 +1246,7 @@ void createTransData(bContext *C, TransInfo *t)
       init_prop_edit = false;
       break;
     case TC_PARTICLE_VERTS:
-      createTransParticleVerts(C, t);
+      createTransParticleVerts(t);
       break;
     case TC_SCULPT:
       createTransSculpt(C, t);
