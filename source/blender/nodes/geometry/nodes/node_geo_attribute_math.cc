@@ -290,6 +290,6 @@ void register_node_type_geo_attribute_math()
   node_type_update(&ntype, blender::nodes::geo_node_attribute_math_update);
   node_type_init(&ntype, geo_node_attribute_math_init);
   node_type_storage(
-      &ntype, "NodeAttributeCompare", node_free_standard_storage, node_copy_standard_storage);
+      &ntype, "NodeAttributeMath", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);
 }
