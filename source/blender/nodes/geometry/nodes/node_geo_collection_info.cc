@@ -72,9 +72,6 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
     copy_v3_v3(transform_mat[3], collection->instance_offset);
 
     mul_m4_m4_pre(transform_mat, self_object->imat);
-
-    float3 self_loc;
-    copy_v3_v3(self_loc, self_object->obmat[3]);
   }
   instances.add_instance(instance, transform_mat, -1);
 
