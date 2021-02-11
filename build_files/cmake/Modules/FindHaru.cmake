@@ -35,11 +35,13 @@ find_path(HARU_INCLUDE_DIR
     ${_haru_SEARCH_DIRS}
   PATH_SUFFIXES
     include/haru
+    include
 )
 
 find_library(HARU_LIBRARY
   NAMES
     hpdfs
+    hpdf
   HINTS
     ${_haru_SEARCH_DIRS}
   PATH_SUFFIXES
