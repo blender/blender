@@ -1223,8 +1223,6 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         row.prop(gp_settings, "fill_leak", text="Leak Size")
         row = layout.row(align=True)
         row.prop(brush, "size", text="Thickness")
-        row = layout.row(align=True)
-        row.prop(gp_settings, "use_fill_autofit", text="", icon="SNAP_FACE_CENTER")
 
     else:  # brush.gpencil_tool == 'DRAW/TINT':
         row = layout.row(align=True)
