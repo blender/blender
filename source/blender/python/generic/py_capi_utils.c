@@ -879,40 +879,6 @@ void PyC_MainModule_Restore(PyObject *main_mod)
   Py_XDECREF(main_mod);
 }
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #Py_SetPythonHome Wrapper
- * \{ */
-
-/**
- * - Must be called before #Py_Initialize.
- * - Expects output of `BKE_appdir_folder_id(BLENDER_PYTHON, NULL)`.
- * - Note that the `PYTHONPATH` environment variable isn't reliable, see T31506.
- *   Use #Py_SetPythonHome instead.
- */
-void PyC_SetHomePath(const char *py_path_bundle)
-{
-#  ifdef __APPLE__
-  /* OSX allow file/directory names to contain : character (represented as / in the Finder)
-   * but current Python lib (release 3.1.1) doesn't handle these correctly */
-  if (strchr(py_path_bundle, ':')) {
-    fprintf(stderr,
-            "Warning! Blender application is located in a path containing ':' or '/' chars\n"
-            "This may make python import function fail\n");
-  }
-#  endif
-
-  /* Set the environment path. */
-  wchar_t py_path_bundle_wchar[1024];
-
-  /* Can't use `mbstowcs` on linux gives bug: T23018. */
-  BLI_strncpy_wchar_from_utf8(
-      py_path_bundle_wchar, py_path_bundle, ARRAY_SIZE(py_path_bundle_wchar));
-
-  Py_SetPythonHome(py_path_bundle_wchar);
-}
-
 bool PyC_IsInterpreterActive(void)
 {
   /* instead of PyThreadState_Get, which calls Py_FatalError */
