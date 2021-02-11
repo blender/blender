@@ -146,6 +146,10 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
     return false;
   }
 
+  if (expand_cache->all_enabled) {
+      return true;
+  }
+
   bool enabled = false;
 
   if (expand_cache->snap) {
@@ -176,6 +180,10 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
 
   if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, f)) {
     return false;
+  }
+
+  if (expand_cache->all_enabled) {
+      return true;
   }
 
   bool enabled = false;
@@ -1124,9 +1132,11 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
   /* Update the active factor in the cache. */
   if (vertex == SCULPT_EXPAND_VERTEX_NONE) {
     expand_cache->active_factor = expand_cache->max_falloff_factor;
+    expand_cache->all_enabled = true;
   }
   else {
     expand_cache->active_factor = expand_cache->falloff_factor[vertex];
+    expand_cache->all_enabled = false;
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {

@@ -1190,6 +1190,7 @@ typedef struct ExpandCache {
   float max_face_falloff_factor;
 
   float active_factor;
+  bool all_enabled;
 
   float initial_mouse[2];
   int initial_active_vertex;
