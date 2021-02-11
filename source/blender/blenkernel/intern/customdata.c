@@ -4273,6 +4273,18 @@ bool CustomData_layertype_is_singleton(int type)
 }
 
 /**
+ * Has dynamically allocated members.
+ * This is useful to know if operations such as #memcmp are
+ * valid when comparing data from two layers.
+ */
+bool CustomData_layertype_is_dynamic(int type)
+{
+  const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+  return (typeInfo->free != NULL);
+}
+
+/**
  * \return Maximum number of layers of given \a type, -1 means 'no limit'.
  */
 int CustomData_layertype_layers_max(const int type)
