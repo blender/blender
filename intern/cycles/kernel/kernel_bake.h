@@ -233,6 +233,7 @@ ccl_device void kernel_bake_evaluate(
   ccl_global float *differential = buffer + kernel_data.film.pass_bake_differential;
   ccl_global float *output = buffer + kernel_data.film.pass_combined;
 
+  int seed = __float_as_uint(primitive[0]);
   int prim = __float_as_uint(primitive[1]);
   if (prim == -1)
     return;
@@ -240,7 +241,7 @@ ccl_device void kernel_bake_evaluate(
   prim += kernel_data.bake.tri_offset;
 
   /* Random number generator. */
-  uint rng_hash = hash_uint2(x, y) ^ kernel_data.integrator.seed;
+  uint rng_hash = hash_uint(seed) ^ kernel_data.integrator.seed;
   int num_samples = kernel_data.integrator.aa_samples;
 
   float filter_x, filter_y;
