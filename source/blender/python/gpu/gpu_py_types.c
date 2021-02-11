@@ -62,18 +62,12 @@ PyObject *bpygpu_types_init(void)
     return NULL;
   }
 
-#define MODULE_TYPE_ADD(s, t) \
-  PyModule_AddObject(s, t.tp_name, (PyObject *)&t); \
-  Py_INCREF((PyObject *)&t)
-
-  MODULE_TYPE_ADD(submodule, BPyGPUVertFormat_Type);
-  MODULE_TYPE_ADD(submodule, BPyGPUVertBuf_Type);
-  MODULE_TYPE_ADD(submodule, BPyGPUIndexBuf_Type);
-  MODULE_TYPE_ADD(submodule, BPyGPUBatch_Type);
-  MODULE_TYPE_ADD(submodule, BPyGPUOffScreen_Type);
-  MODULE_TYPE_ADD(submodule, BPyGPUShader_Type);
-
-#undef MODULE_TYPE_ADD
+  PyModule_AddType(submodule, &BPyGPUVertFormat_Type);
+  PyModule_AddType(submodule, &BPyGPUVertBuf_Type);
+  PyModule_AddType(submodule, &BPyGPUIndexBuf_Type);
+  PyModule_AddType(submodule, &BPyGPUBatch_Type);
+  PyModule_AddType(submodule, &BPyGPUOffScreen_Type);
+  PyModule_AddType(submodule, &BPyGPUShader_Type);
 
   return submodule;
 }

@@ -1799,16 +1799,10 @@ static PyObject *BPyInit_idprop_types(void)
 
   IDProp_Init_Types();
 
-#define MODULE_TYPE_ADD(s, t) \
-  PyModule_AddObject(s, t.tp_name, (PyObject *)&t); \
-  Py_INCREF((PyObject *)&t)
-
   /* bmesh_py_types.c */
-  MODULE_TYPE_ADD(submodule, BPy_IDGroup_Type);
-  MODULE_TYPE_ADD(submodule, BPy_IDGroup_Iter_Type);
-  MODULE_TYPE_ADD(submodule, BPy_IDArray_Type);
-
-#undef MODULE_TYPE_ADD
+  PyModule_AddType(submodule, &BPy_IDGroup_Type);
+  PyModule_AddType(submodule, &BPy_IDGroup_Iter_Type);
+  PyModule_AddType(submodule, &BPy_IDArray_Type);
 
   return submodule;
 }

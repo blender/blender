@@ -1331,7 +1331,7 @@ PyMODINIT_FUNC PyInit_mathutils_bvhtree(void)
     return NULL;
   }
 
-  PyModule_AddObject(m, "BVHTree", (PyObject *)&PyBVHTree_Type);
+  PyModule_AddType(m, &PyBVHTree_Type);
 
   return m;
 }

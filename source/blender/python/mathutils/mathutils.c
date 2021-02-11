@@ -784,11 +784,11 @@ PyMODINIT_FUNC PyInit_mathutils(void)
   mod = PyModule_Create(&M_Mathutils_module_def);
 
   /* each type has its own new() function */
-  PyModule_AddObject(mod, vector_Type.tp_name, (PyObject *)&vector_Type);
-  PyModule_AddObject(mod, matrix_Type.tp_name, (PyObject *)&matrix_Type);
-  PyModule_AddObject(mod, euler_Type.tp_name, (PyObject *)&euler_Type);
-  PyModule_AddObject(mod, quaternion_Type.tp_name, (PyObject *)&quaternion_Type);
-  PyModule_AddObject(mod, color_Type.tp_name, (PyObject *)&color_Type);
+  PyModule_AddType(mod, &vector_Type);
+  PyModule_AddType(mod, &matrix_Type);
+  PyModule_AddType(mod, &euler_Type);
+  PyModule_AddType(mod, &quaternion_Type);
+  PyModule_AddType(mod, &color_Type);
 
   /* submodule */
   PyModule_AddObject(mod, "geometry", (submodule = PyInit_mathutils_geometry()));
