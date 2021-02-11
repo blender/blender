@@ -4654,7 +4654,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
         RNA_def_property_boolean_negative_sdna(
             prop, NULL, view_mask_member[mask_index], info[type_index].type_mask);
         RNA_def_property_ui_text(prop, info[type_index].name, "");
-        RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+        RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
       }
     }
 
