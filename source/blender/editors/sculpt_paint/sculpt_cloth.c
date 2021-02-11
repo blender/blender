@@ -865,6 +865,9 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
     const float mask_v = (1.0f - (vd.mask ? *vd.mask : 0.0f)) *
                          SCULPT_automasking_factor_get(automasking, ss, vd.index);
 
+    madd_v3_v3fl(cloth_sim->pos[i], pos_diff, mask_v);
+    madd_v3_v3fl(cloth_sim->pos[i], cloth_sim->acceleration[i], mask_v);
+
     /* Prevents the vertices from sliding without creating folds when all vertices and forces are
      * in the same plane. */
     float noise[3];
@@ -873,10 +876,6 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
 
     if (USE_SOLVER_RIPPLE_CONSTRAINT) {
       cloth_brush_constraint_pos_to_line(cloth_sim, i);
-    }
-
-    if (cloth_sim->collider_list != NULL) {
-      cloth_brush_solve_collision(data->ob, cloth_sim, i);
     }
 
     if (cloth_sim->collider_list != NULL) {
