@@ -563,7 +563,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   /* Sort transparents before the loop. */
   DRW_pass_sort_shgroup_z(psl->transparent_pass);
 
-  uint tot_sample = stl->g_data->render_tot_samples;
+  uint tot_sample = stl->g_data->render_sample_count_per_timestep;
   uint render_samples = 0;
 
   /* SSR needs one iteration to start properly. */

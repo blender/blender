@@ -77,9 +77,16 @@ static struct {
   struct GPUShader *bloom_resolve_sh[2];
 
   /* Depth Of Field */
-  struct GPUShader *dof_downsample_sh[2];
-  struct GPUShader *dof_scatter_sh[2];
-  struct GPUShader *dof_resolve_sh[2];
+  struct GPUShader *dof_bokeh_sh;
+  struct GPUShader *dof_setup_sh;
+  struct GPUShader *dof_flatten_tiles_sh;
+  struct GPUShader *dof_dilate_tiles_sh[2];
+  struct GPUShader *dof_downsample_sh;
+  struct GPUShader *dof_reduce_sh[2];
+  struct GPUShader *dof_gather_sh[DOF_GATHER_MAX_PASS][2];
+  struct GPUShader *dof_filter_sh;
+  struct GPUShader *dof_scatter_sh[2][2];
+  struct GPUShader *dof_resolve_sh[2][2];
 
   /* General purpose Shaders. */
   struct GPUShader *lookdev_background;
@@ -192,8 +199,18 @@ extern char datatoc_cubemap_lib_glsl[];
 extern char datatoc_default_frag_glsl[];
 extern char datatoc_lookdev_world_frag_glsl[];
 extern char datatoc_effect_bloom_frag_glsl[];
-extern char datatoc_effect_dof_frag_glsl[];
-extern char datatoc_effect_dof_vert_glsl[];
+extern char datatoc_effect_dof_bokeh_frag_glsl[];
+extern char datatoc_effect_dof_dilate_tiles_frag_glsl[];
+extern char datatoc_effect_dof_downsample_frag_glsl[];
+extern char datatoc_effect_dof_filter_frag_glsl[];
+extern char datatoc_effect_dof_flatten_tiles_frag_glsl[];
+extern char datatoc_effect_dof_gather_frag_glsl[];
+extern char datatoc_effect_dof_lib_glsl[];
+extern char datatoc_effect_dof_reduce_frag_glsl[];
+extern char datatoc_effect_dof_resolve_frag_glsl[];
+extern char datatoc_effect_dof_scatter_frag_glsl[];
+extern char datatoc_effect_dof_scatter_vert_glsl[];
+extern char datatoc_effect_dof_setup_frag_glsl[];
 extern char datatoc_effect_downsample_cube_frag_glsl[];
 extern char datatoc_effect_downsample_frag_glsl[];
 extern char datatoc_effect_gtao_frag_glsl[];
@@ -281,6 +298,7 @@ static void eevee_shader_library_ensure(void)
     DRW_SHADER_LIB_ADD(e_data.lib, volumetric_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, closure_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, ssr_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, effect_dof_lib);
 
     /* Add one for each Closure */
     e_data.closure_lit_lib = BLI_string_joinN(datatoc_closure_lit_lib_glsl,
@@ -1010,48 +1028,172 @@ GPUShader *EEVEE_shaders_bloom_resolve_get(bool high_quality)
 /** \name Depth of field
  * \{ */
 
-GPUShader *EEVEE_shaders_depth_of_field_downsample_get(bool use_alpha)
+GPUShader *EEVEE_shaders_depth_of_field_bokeh_get(void)
 {
-  int index = use_alpha ? 1 : 0;
-  if (e_data.dof_downsample_sh[index] == NULL) {
-    e_data.dof_downsample_sh[index] = DRW_shader_create_fullscreen_with_shaderlib(
-        datatoc_effect_dof_frag_glsl,
-        e_data.lib,
-        use_alpha ? "#define USE_ALPHA_DOF\n"
-                    "#define STEP_DOWNSAMPLE\n" :
-                    "#define STEP_DOWNSAMPLE\n");
+  if (e_data.dof_bokeh_sh == NULL) {
+    e_data.dof_bokeh_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_bokeh_frag_glsl, e_data.lib, DOF_SHADER_DEFINES);
   }
-  return e_data.dof_downsample_sh[index];
+  return e_data.dof_bokeh_sh;
 }
 
-GPUShader *EEVEE_shaders_depth_of_field_scatter_get(bool use_alpha)
+GPUShader *EEVEE_shaders_depth_of_field_setup_get(void)
 {
-  int index = use_alpha ? 1 : 0;
-  if (e_data.dof_scatter_sh[index] == NULL) {
-    e_data.dof_scatter_sh[index] = DRW_shader_create_with_shaderlib(datatoc_effect_dof_vert_glsl,
-                                                                    NULL,
-                                                                    datatoc_effect_dof_frag_glsl,
-                                                                    e_data.lib,
-                                                                    use_alpha ?
-                                                                        "#define USE_ALPHA_DOF\n"
-                                                                        "#define STEP_SCATTER\n" :
-                                                                        "#define STEP_SCATTER\n");
+  if (e_data.dof_setup_sh == NULL) {
+    e_data.dof_setup_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_setup_frag_glsl, e_data.lib, DOF_SHADER_DEFINES);
   }
-  return e_data.dof_scatter_sh[index];
+  return e_data.dof_setup_sh;
 }
 
-GPUShader *EEVEE_shaders_depth_of_field_resolve_get(bool use_alpha)
+GPUShader *EEVEE_shaders_depth_of_field_flatten_tiles_get(void)
 {
-  int index = use_alpha ? 1 : 0;
-  if (e_data.dof_resolve_sh[index] == NULL) {
-    e_data.dof_resolve_sh[index] = DRW_shader_create_fullscreen_with_shaderlib(
-        datatoc_effect_dof_frag_glsl,
-        e_data.lib,
-        use_alpha ? "#define USE_ALPHA_DOF\n"
-                    "#define STEP_RESOLVE\n" :
-                    "#define STEP_RESOLVE\n");
+  if (e_data.dof_flatten_tiles_sh == NULL) {
+    e_data.dof_flatten_tiles_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_flatten_tiles_frag_glsl, e_data.lib, DOF_SHADER_DEFINES);
   }
-  return e_data.dof_resolve_sh[index];
+  return e_data.dof_flatten_tiles_sh;
+}
+
+GPUShader *EEVEE_shaders_depth_of_field_dilate_tiles_get(bool b_pass)
+{
+  int pass = b_pass;
+  if (e_data.dof_dilate_tiles_sh[pass] == NULL) {
+    e_data.dof_dilate_tiles_sh[pass] = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_dilate_tiles_frag_glsl,
+        e_data.lib,
+        (pass == 0) ? DOF_SHADER_DEFINES "#define DILATE_MODE_MIN_MAX\n" :
+                      DOF_SHADER_DEFINES "#define DILATE_MODE_MIN_ABS\n");
+  }
+  return e_data.dof_dilate_tiles_sh[pass];
+}
+
+GPUShader *EEVEE_shaders_depth_of_field_downsample_get(void)
+{
+  if (e_data.dof_downsample_sh == NULL) {
+    e_data.dof_downsample_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_downsample_frag_glsl, e_data.lib, DOF_SHADER_DEFINES);
+  }
+  return e_data.dof_downsample_sh;
+}
+
+GPUShader *EEVEE_shaders_depth_of_field_reduce_get(bool b_is_copy_pass)
+{
+  int is_copy_pass = b_is_copy_pass;
+  if (e_data.dof_reduce_sh[is_copy_pass] == NULL) {
+    e_data.dof_reduce_sh[is_copy_pass] = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_reduce_frag_glsl,
+        e_data.lib,
+        (is_copy_pass) ? DOF_SHADER_DEFINES "#define COPY_PASS\n" :
+                         DOF_SHADER_DEFINES "#define REDUCE_PASS\n");
+  }
+  return e_data.dof_reduce_sh[is_copy_pass];
+}
+
+GPUShader *EEVEE_shaders_depth_of_field_gather_get(EEVEE_DofGatherPass pass, bool b_use_bokeh_tx)
+{
+  int use_bokeh_tx = b_use_bokeh_tx;
+  if (e_data.dof_gather_sh[pass][use_bokeh_tx] == NULL) {
+    DynStr *ds = BLI_dynstr_new();
+
+    BLI_dynstr_append(ds, DOF_SHADER_DEFINES);
+
+    switch (pass) {
+      case DOF_GATHER_FOREGROUND:
+        BLI_dynstr_append(ds, "#define DOF_FOREGROUND_PASS\n");
+        break;
+      case DOF_GATHER_BACKGROUND:
+        BLI_dynstr_append(ds, "#define DOF_BACKGROUND_PASS\n");
+        break;
+      case DOF_GATHER_HOLEFILL:
+        BLI_dynstr_append(ds,
+                          "#define DOF_BACKGROUND_PASS\n"
+                          "#define DOF_HOLEFILL_PASS\n");
+        break;
+      default:
+        break;
+    }
+
+    if (use_bokeh_tx) {
+      BLI_dynstr_append(ds, "#define DOF_BOKEH_TEXTURE\n");
+    }
+
+    char *define = BLI_dynstr_get_cstring(ds);
+    BLI_dynstr_free(ds);
+
+    e_data.dof_gather_sh[pass][use_bokeh_tx] = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_gather_frag_glsl, e_data.lib, define);
+
+    MEM_freeN(define);
+  }
+  return e_data.dof_gather_sh[pass][use_bokeh_tx];
+}
+
+GPUShader *EEVEE_shaders_depth_of_field_filter_get(void)
+{
+  if (e_data.dof_filter_sh == NULL) {
+    e_data.dof_filter_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_filter_frag_glsl, e_data.lib, DOF_SHADER_DEFINES);
+  }
+  return e_data.dof_filter_sh;
+}
+
+GPUShader *EEVEE_shaders_depth_of_field_scatter_get(bool b_is_foreground, bool b_use_bokeh_tx)
+{
+  int is_foreground = b_is_foreground;
+  int use_bokeh_tx = b_use_bokeh_tx;
+  if (e_data.dof_scatter_sh[is_foreground][use_bokeh_tx] == NULL) {
+    DynStr *ds = BLI_dynstr_new();
+
+    BLI_dynstr_append(ds, DOF_SHADER_DEFINES);
+    BLI_dynstr_append(
+        ds, (is_foreground) ? "#define DOF_FOREGROUND_PASS\n" : "#define DOF_BACKGROUND_PASS\n");
+
+    if (use_bokeh_tx) {
+      BLI_dynstr_append(ds, "#define DOF_BOKEH_TEXTURE\n");
+    }
+
+    char *define = BLI_dynstr_get_cstring(ds);
+    BLI_dynstr_free(ds);
+
+    e_data.dof_scatter_sh[is_foreground][use_bokeh_tx] = DRW_shader_create_with_shaderlib(
+        datatoc_effect_dof_scatter_vert_glsl,
+        NULL,
+        datatoc_effect_dof_scatter_frag_glsl,
+        e_data.lib,
+        define);
+
+    MEM_freeN(define);
+  }
+  return e_data.dof_scatter_sh[is_foreground][use_bokeh_tx];
+}
+
+GPUShader *EEVEE_shaders_depth_of_field_resolve_get(bool b_use_bokeh_tx, bool b_use_hq_gather)
+{
+  int use_hq_gather = b_use_hq_gather;
+  int use_bokeh_tx = b_use_bokeh_tx;
+  if (e_data.dof_resolve_sh[use_bokeh_tx][use_hq_gather] == NULL) {
+    DynStr *ds = BLI_dynstr_new();
+
+    BLI_dynstr_append(ds, DOF_SHADER_DEFINES);
+    BLI_dynstr_append(ds, "#define DOF_RESOLVE_PASS\n");
+
+    if (use_bokeh_tx) {
+      BLI_dynstr_append(ds, "#define DOF_BOKEH_TEXTURE\n");
+    }
+
+    BLI_dynstr_appendf(ds, "#define DOF_SLIGHT_FOCUS_DENSITY %d\n", use_hq_gather ? 4 : 2);
+
+    char *define = BLI_dynstr_get_cstring(ds);
+    BLI_dynstr_free(ds);
+
+    e_data.dof_resolve_sh[use_bokeh_tx][use_hq_gather] =
+        DRW_shader_create_fullscreen_with_shaderlib(
+            datatoc_effect_dof_resolve_frag_glsl, e_data.lib, define);
+
+    MEM_freeN(define);
+  }
+  return e_data.dof_resolve_sh[use_bokeh_tx][use_hq_gather];
 }
 
 /* \} */
@@ -1458,6 +1600,27 @@ void EEVEE_shaders_free(void)
   DRW_SHADER_FREE_SAFE(e_data.velocity_resolve_sh);
   DRW_SHADER_FREE_SAFE(e_data.taa_resolve_sh);
   DRW_SHADER_FREE_SAFE(e_data.taa_resolve_reproject_sh);
+  DRW_SHADER_FREE_SAFE(e_data.dof_bokeh_sh);
+  DRW_SHADER_FREE_SAFE(e_data.dof_setup_sh);
+  DRW_SHADER_FREE_SAFE(e_data.dof_flatten_tiles_sh);
+  DRW_SHADER_FREE_SAFE(e_data.dof_dilate_tiles_sh[0]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_dilate_tiles_sh[1]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_downsample_sh);
+  DRW_SHADER_FREE_SAFE(e_data.dof_reduce_sh[0]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_reduce_sh[1]);
+  for (int i = 0; i < DOF_GATHER_MAX_PASS; i++) {
+    DRW_SHADER_FREE_SAFE(e_data.dof_gather_sh[i][0]);
+    DRW_SHADER_FREE_SAFE(e_data.dof_gather_sh[i][1]);
+  }
+  DRW_SHADER_FREE_SAFE(e_data.dof_filter_sh);
+  DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh[0][0]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh[0][1]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh[1][0]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh[1][1]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_resolve_sh[0][0]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_resolve_sh[0][1]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_resolve_sh[1][0]);
+  DRW_SHADER_FREE_SAFE(e_data.dof_resolve_sh[1][1]);
   DRW_SHADER_FREE_SAFE(e_data.cryptomatte_sh[0]);
   DRW_SHADER_FREE_SAFE(e_data.cryptomatte_sh[1]);
   for (int i = 0; i < 2; i++) {
@@ -1465,9 +1628,6 @@ void EEVEE_shaders_free(void)
     DRW_SHADER_FREE_SAFE(e_data.bloom_downsample_sh[i]);
     DRW_SHADER_FREE_SAFE(e_data.bloom_upsample_sh[i]);
     DRW_SHADER_FREE_SAFE(e_data.bloom_resolve_sh[i]);
-    DRW_SHADER_FREE_SAFE(e_data.dof_downsample_sh[i]);
-    DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh[i]);
-    DRW_SHADER_FREE_SAFE(e_data.dof_resolve_sh[i]);
   }
   for (int i = 0; i < SSR_MAX_SHADER; i++) {
     DRW_SHADER_FREE_SAFE(e_data.ssr_sh[i]);

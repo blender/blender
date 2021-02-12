@@ -456,13 +456,17 @@ static void eevee_render_to_image(void *vedata,
   }
   EEVEE_PrivateData *g_data = ved->stl->g_data;
 
-  EEVEE_render_modules_init(vedata, engine, depsgraph);
-
   int initial_frame = CFRA;
   float initial_subframe = SUBFRA;
   float shuttertime = (do_motion_blur) ? scene->eevee.motion_blur_shutter : 0.0f;
   int time_steps_tot = (do_motion_blur) ? max_ii(1, scene->eevee.motion_blur_steps) : 1;
-  g_data->render_tot_samples = divide_ceil_u(scene->eevee.taa_render_samples, time_steps_tot);
+  g_data->render_timesteps = time_steps_tot;
+
+  EEVEE_render_modules_init(vedata, engine, depsgraph);
+
+  g_data->render_sample_count_per_timestep = EEVEE_temporal_sampling_sample_count_get(scene,
+                                                                                      ved->stl);
+
   /* Compute start time. The motion blur will cover `[time ...time + shuttertime]`. */
   float time = initial_frame + initial_subframe;
   switch (scene->eevee.motion_blur_position) {
@@ -553,7 +557,8 @@ static void eevee_render_to_image(void *vedata,
 
     /* Actual drawing. */
     {
-      EEVEE_renderpasses_output_init(sldata, vedata, g_data->render_tot_samples * time_steps_tot);
+      EEVEE_renderpasses_output_init(
+          sldata, vedata, g_data->render_sample_count_per_timestep * time_steps_tot);
 
       EEVEE_temporal_sampling_create_view(vedata);
       EEVEE_render_draw(vedata, engine, render_layer, rect);

@@ -1642,8 +1642,11 @@ typedef struct SceneEEVEE {
   float gtao_factor;
   float gtao_quality;
 
+  float bokeh_overblur;
   float bokeh_max_size;
   float bokeh_threshold;
+  float bokeh_neighbor_max;
+  float bokeh_denoise_fac;
 
   float bloom_color[3];
   float bloom_threshold;
@@ -1658,7 +1661,6 @@ typedef struct SceneEEVEE {
   int motion_blur_position;
   float motion_blur_shutter;
   float motion_blur_depth_scale;
-  char _pad0[4];
 
   int shadow_method DNA_DEPRECATED;
   int shadow_cube_size;
@@ -2420,6 +2422,8 @@ enum {
   SCE_EEVEE_GI_AUTOBAKE = (1 << 19),
   SCE_EEVEE_SHADOW_SOFT = (1 << 20),
   SCE_EEVEE_OVERSCAN = (1 << 21),
+  SCE_EEVEE_DOF_HQ_SLIGHT_FOCUS = (1 << 22),
+  SCE_EEVEE_DOF_JITTER = (1 << 23),
 };
 
 /* SceneEEVEE->shadow_method */

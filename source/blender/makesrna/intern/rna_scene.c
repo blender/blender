@@ -7368,20 +7368,65 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   /* Depth of Field */
+
   prop = RNA_def_property(srna, "bokeh_max_size", PROP_FLOAT, PROP_PIXEL);
   RNA_def_property_ui_text(
       prop, "Max Size", "Max size of the bokeh shape for the depth of field (lower is faster)");
   RNA_def_property_range(prop, 0.0f, 2000.0f);
-  RNA_def_property_ui_range(prop, 2.0f, 200.0f, 1, 3);
+  RNA_def_property_ui_range(prop, 0.0f, 200.0f, 100.0f, 1);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "bokeh_threshold", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_ui_text(
       prop, "Sprite Threshold", "Brightness threshold for using sprite base depth of field");
   RNA_def_property_range(prop, 0.0f, 100000.0f);
-  RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+  RNA_def_property_ui_range(prop, 0.0f, 10.0f, 10, 2);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+  prop = RNA_def_property(srna, "bokeh_neighbor_max", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(prop,
+                           "Neighbor Rejection",
+                           "Maximum brightness to consider when rejecting bokeh sprites "
+                           "based on neighboorhod (lower is faster)");
+  RNA_def_property_range(prop, 0.0f, 100000.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 40.0f, 10, 2);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+  prop = RNA_def_property(srna, "bokeh_denoise_fac", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(
+      prop, "Denoise Amount", "Amount of flicker removal applied to bokeh highlights");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10, 2);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+  prop = RNA_def_property(srna, "use_bokeh_high_quality_slight_defocus", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_DOF_HQ_SLIGHT_FOCUS);
+  RNA_def_property_ui_text(prop,
+                           "High Quality Slight Defocus",
+                           "Sample all pixels in almost in-focus regions to eliminate noise");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+  prop = RNA_def_property(srna, "use_bokeh_jittered", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_DOF_JITTER);
+  RNA_def_property_ui_text(prop,
+                           "Jitter Camera",
+                           "Jitter camera position to create accurate bluring "
+                           "using render samples");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+  prop = RNA_def_property(srna, "bokeh_overblur", PROP_FLOAT, PROP_PERCENTAGE);
+  RNA_def_property_ui_text(prop,
+                           "Overblur",
+                           "Apply blur to each jittered sample to reduce "
+                           "undersampling artifacts");
+  RNA_def_property_range(prop, 0, 100);
+  RNA_def_property_ui_range(prop, 0.0f, 20.0f, 1, 1);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* Bloom */
   prop = RNA_def_property(srna, "use_bloom", PROP_BOOLEAN, PROP_NONE);

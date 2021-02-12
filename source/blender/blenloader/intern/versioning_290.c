@@ -1733,6 +1733,14 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    * \note Keep this message at the bottom of the function.
    */
   {
+    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "bokeh_overblur")) {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        scene->eevee.bokeh_neighbor_max = 10.0f;
+        scene->eevee.bokeh_denoise_fac = 0.75f;
+        scene->eevee.bokeh_overblur = 5.0f;
+      }
+    }
+
     /* Keep this block, even when empty. */
   }
 }
