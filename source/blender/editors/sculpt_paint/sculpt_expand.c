@@ -132,6 +132,7 @@ static bool sculpt_expand_is_vert_in_active_compoment(SculptSession *ss,
   return false;
 }
 
+
 static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
                                                       ExpandCache *expand_cache,
                                                       const int f)
@@ -161,6 +162,18 @@ static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
   return expand_cache->falloff_factor[i] + distorsion;
 }
 
+static float sculpt_expand_max_vertex_falloff_factor_get(ExpandCache *expand_cache) {
+  if (expand_cache->texture_distorsion_strength == 0.0f) {
+    return expand_cache->max_falloff_factor;
+  }
+
+  if (!expand_cache->brush->mtex.tex) {
+    return expand_cache->max_falloff_factor;
+  }
+
+  return expand_cache->max_falloff_factor + (0.5f * expand_cache->texture_distorsion_strength);
+}
+
 static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int i)
 {
   if (!SCULPT_vertex_visible_get(ss, i)) {
@@ -182,7 +195,8 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
     enabled = BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
   }
   else {
-    const float loop_len = (expand_cache->max_falloff_factor / expand_cache->loop_count) +
+    const float max_falloff_factor = sculpt_expand_max_vertex_falloff_factor_get(expand_cache);
+    const float loop_len = (max_falloff_factor / expand_cache->loop_count) +
                            SCULPT_EXPAND_LOOP_THRESHOLD;
 
     const float vertex_falloff_factor = sculpt_expand_falloff_value_vertex_get(
@@ -249,7 +263,8 @@ static float sculpt_expand_gradient_falloff_get(SculptSession *ss,
     return 1.0f;
   }
 
-  const float loop_len = (expand_cache->max_falloff_factor / expand_cache->loop_count) +
+  const float max_falloff_factor = sculpt_expand_max_vertex_falloff_factor_get(expand_cache);
+  const float loop_len = (max_falloff_factor / expand_cache->loop_count) +
                          SCULPT_EXPAND_LOOP_THRESHOLD;
 
   const float vertex_falloff_factor = sculpt_expand_falloff_value_vertex_get(ss, expand_cache, i);
@@ -1517,7 +1532,6 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
     }
   }
 
-  printf("DISTORSION %f\n", expand_cache->texture_distorsion_strength);
   if (expand_cache->move) {
     sculpt_expand_move_propagation_origin(C, ob, event, expand_cache);
   }
