@@ -44,6 +44,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
@@ -946,7 +947,7 @@ static bool bake_targets_init_vertex_colors(BakeTargets *targets, Object *ob, Re
   targets->num_materials = ob->totcol;
 
   BakeImage *bk_image = &targets->images[0];
-  bk_image->width = me->totvert;
+  bk_image->width = me->totloop;
   bk_image->height = 1;
   bk_image->offset = 0;
   bk_image->image = NULL;
@@ -968,6 +969,7 @@ static void bake_targets_populate_pixels_vertex_colors(BakeTargets *targets,
 
     pixel->primitive_id = -1;
     pixel->object_id = 0;
+    pixel->seed = 0;
     pixel->du_dx = 0.0f;
     pixel->du_dy = 0.0f;
     pixel->dv_dx = 0.0f;
@@ -986,14 +988,19 @@ static void bake_targets_populate_pixels_vertex_colors(BakeTargets *targets,
     const MLoopTri *lt = &looptri[i];
 
     for (int j = 0; j < 3; j++) {
-      const unsigned int v = me->mloop[lt->tri[j]].v;
-      BakePixel *pixel = &pixel_array[v];
+      const unsigned int l = lt->tri[j];
+      BakePixel *pixel = &pixel_array[l];
 
       if (pixel->primitive_id != -1) {
         continue;
       }
 
       pixel->primitive_id = i;
+
+      /* Seed is the vertex, so that sampling noise is coherent for the same
+       * vertex, but different corners can still have different normals,
+       * materials and UVs. */
+      pixel->seed = me->mloop[l].v;
 
       /* Barycentric coordinates, nudged a bit to avoid precision issues that
        * may happen when exactly at the vertex coordinate. */
@@ -1015,24 +1022,24 @@ static void bake_targets_populate_pixels_vertex_colors(BakeTargets *targets,
   MEM_freeN(looptri);
 }
 
-static void bake_result_to_rgba(float rgba[4], const float *result, const int num_channels)
+static void bake_result_add_to_rgba(float rgba[4], const float *result, const int num_channels)
 {
   if (num_channels == 4) {
-    copy_v4_v4(rgba, result);
+    add_v4_v4(rgba, result);
   }
   else if (num_channels == 3) {
-    copy_v3_v3(rgba, result);
-    rgba[3] = 1.0f;
+    add_v3_v3(rgba, result);
+    rgba[3] += 1.0f;
   }
   else {
-    rgba[0] = result[0];
-    rgba[1] = result[0];
-    rgba[2] = result[0];
-    rgba[3] = 1.0f;
+    rgba[0] += result[0];
+    rgba[1] += result[0];
+    rgba[2] += result[0];
+    rgba[3] += 1.0f;
   }
 }
 
-static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
+static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob, Mesh *me_split)
 {
   Mesh *me = ob->data;
   MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
@@ -1040,26 +1047,45 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
   const int num_channels = targets->num_channels;
   const float *result = targets->result;
 
+  /* We bake using a mesh with additional vertices for split normals, but the
+   * number of loops must match to be able to transfer the vertex colors. */
+  BLI_assert(me->totloop == me_split->totloop);
+  UNUSED_VARS_NDEBUG(me_split);
+
   if (mcol) {
-    /* Float vertex colors in scene linear color space. */
     const int totvert = me->totvert;
-    for (int i = 0; i < totvert; i++, mcol++) {
-      bake_result_to_rgba(mcol->color, &result[i * num_channels], num_channels);
+    const int totloop = me->totloop;
+
+    /* Accumulate float vertex colors in scene linear color space. */
+    int *num_loops_for_vertex = MEM_callocN(sizeof(int) * me->totvert, "num_loops_for_vertex");
+    memset(mcol, 0, sizeof(MPropCol) * me->totvert);
+
+    MLoop *mloop = me->mloop;
+    for (int i = 0; i < totloop; i++, mloop++) {
+      const int v = mloop->v;
+      bake_result_add_to_rgba(mcol[v].color, &result[i * num_channels], num_channels);
+      num_loops_for_vertex[v]++;
     }
+
+    /* Normalize for number of loops. */
+    for (int i = 0; i < totvert; i++) {
+      if (num_loops_for_vertex[i] > 0) {
+        mul_v4_fl(mcol[i].color, 1.0f / num_loops_for_vertex[i]);
+      }
+    }
+
+    MEM_SAFE_FREE(num_loops_for_vertex);
   }
   else {
-    /* Byte loop colors in sRGB colors space.
-     *
-     * Note that colors have been baked per vertex and not per corner, which
-     * could be useful to preserve material discontinuities. However this also
-     * leads to unintended discontinuities due to sampling noise. */
+    /* Byte loop colors in sRGB colors space. */
     MLoop *mloop = me->mloop;
     const int totloop = me->totloop;
     const bool is_noncolor = targets->is_noncolor;
 
     for (int i = 0; i < totloop; i++, mloop++, mloopcol++) {
       float rgba[4];
-      bake_result_to_rgba(rgba, &result[mloop->v * num_channels], num_channels);
+      zero_v4(rgba);
+      bake_result_add_to_rgba(rgba, &result[i * num_channels], num_channels);
 
       if (is_noncolor) {
         unit_float_to_uchar_clamp_v4(&mloopcol->r, rgba);
@@ -1142,7 +1168,7 @@ static bool bake_targets_output(const BakeAPIRender *bkr,
     }
   }
   else if (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) {
-    return bake_targets_output_vertex_colors(targets, ob);
+    return bake_targets_output_vertex_colors(targets, ob, me);
   }
 
   return false;
@@ -1212,10 +1238,6 @@ static int bake(const BakeAPIRender *bkr,
     }
   }
 
-  if (!bake_targets_init(bkr, &targets, ob_low, reports)) {
-    goto cleanup;
-  }
-
   if (bkr->is_selected_to_active) {
     CollectionPointerLink *link;
     tot_highpoly = 0;
@@ -1245,9 +1267,6 @@ static int bake(const BakeAPIRender *bkr,
     }
   }
 
-  pixel_array_low = MEM_mallocN(sizeof(BakePixel) * targets.num_pixels, "bake pixels low poly");
-  pixel_array_high = MEM_mallocN(sizeof(BakePixel) * targets.num_pixels, "bake pixels high poly");
-
   /* for multires bake, use linear UV subdivision to match low res UVs */
   if (bkr->pass_type == SCE_PASS_NORMAL && bkr->normal_space == R_BAKE_SPACE_TANGENT &&
       !bkr->is_selected_to_active) {
@@ -1265,11 +1284,17 @@ static int bake(const BakeAPIRender *bkr,
   /* get the mesh as it arrives in the renderer */
   me_low = bake_mesh_new_from_object(ob_low_eval);
 
-  /* populate the pixel array with the face data */
+  /* Initialize bake targets. */
+  if (!bake_targets_init(bkr, &targets, ob_low_eval, reports)) {
+    goto cleanup;
+  }
+
+  /* Populate the pixel array with the face data. Except if we use a cage, then
+   * it is populated later with the cage mesh (smoothed version of the mesh). */
+  pixel_array_low = MEM_mallocN(sizeof(BakePixel) * targets.num_pixels, "bake pixels low poly");
   if ((bkr->is_selected_to_active && (ob_cage == NULL) && bkr->is_cage) == false) {
     bake_targets_populate_pixels(bkr, &targets, me_low, pixel_array_low);
   }
-  /* else populate the pixel array with the 'cage' mesh (the smooth version of the mesh)  */
 
   if (bkr->is_selected_to_active) {
     CollectionPointerLink *link;
@@ -1358,6 +1383,9 @@ static int bake(const BakeAPIRender *bkr,
     ob_low_eval->base_flag &= ~(BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
 
     /* populate the pixel arrays with the corresponding face data for each high poly object */
+    pixel_array_high = MEM_mallocN(sizeof(BakePixel) * targets.num_pixels,
+                                   "bake pixels high poly");
+
     if (!RE_bake_pixels_populate_from_objects(me_low,
                                               pixel_array_low,
                                               pixel_array_high,
