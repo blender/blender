@@ -2191,8 +2191,7 @@ class WM_OT_batch_rename(Operator):
                         id
                         for ob in context.selected_objects
                         if ob.type == data_type
-                        for id in (ob.data,)
-                        if id is not None and id.library is None
+                        if (id := ob.data) is not None and id.library is None
                     ))
                     if only_selected else
                     [id for id in getattr(bpy.data, attr) if id.library is None],

@@ -26,26 +26,31 @@
 
 define HELP_TEXT
 
-Convenience Targets
+Blender Convenience Targets
    Provided for building Blender, (multiple at once can be used).
 
    * debug:         Build a debug binary.
    * full:          Enable all supported dependencies & options.
    * lite:          Disable non essential features for a smaller binary and faster build.
-   * release        Complete build with all options enabled including CUDA and Optix, matching the releases on blender.org
+   * release:       Complete build with all options enabled including CUDA and Optix, matching the releases on blender.org
    * headless:      Build without an interface (renderfarm or server automation).
    * cycles:        Build Cycles standalone only, without Blender.
    * bpy:           Build as a python module which can be loaded from python directly.
-   * deps:          Build library dependencies (intended only for platform maintainers).
-
    * developer:     Enable faster builds, error checking and tests, recommended for developers.
-   * config:        Run cmake configuration tool to set build options.
    * ninja:         Use ninja build tool for faster builds.
    * ccache:        Use ccache for faster rebuilds.
 
    Note: passing the argument 'BUILD_DIR=path' when calling make will override the default build dir.
    Note: passing the argument 'BUILD_CMAKE_ARGS=args' lets you add cmake arguments.
 
+Other Convenience Targets
+   Provided for other building operations.
+
+   * config:        Run cmake configuration tool to set build options.
+   * deps:          Build library dependencies (intended only for platform maintainers).
+
+                    The existance of locally build dependancies overrides the pre-built dependencies from subversion.
+                    These must be manually removed from '../lib/' to go back to using the pre-compiled libraries.
 
 Project Files
    Generate project files for development environments.
@@ -85,12 +90,15 @@ Static Source Code Checking
    * check_descriptions:    Check for duplicate/invalid descriptions.
 
 Spell Checkers
+   This runs the spell checker from the developer tools repositor.
 
    * check_spelling_c:      Check for spelling errors (C/C++ only),
    * check_spelling_osl:    Check for spelling errors (OSL only).
    * check_spelling_py:     Check for spelling errors (Python only).
 
-   Note that spell checkers can take a 'CHECK_SPELLING_CACHE' filepath argument,
+   Note: an additional word-list is maintained at: 'source/tools/check_source/check_spelling_c_config.py'
+
+   Note: that spell checkers can take a 'CHECK_SPELLING_CACHE' filepath argument,
    so re-running does not need to re-check unchanged files.
 
    Example:
@@ -123,7 +131,7 @@ Utilities
    * update:
      updates git and all submodules
 
-   * format
+   * format:
      Format source code using clang (uses PATHS if passed in). For example::
 
         make format PATHS="source/blender/blenlib source/blender/blenkernel"

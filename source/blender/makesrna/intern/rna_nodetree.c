@@ -9029,6 +9029,7 @@ static void def_geo_volume_to_mesh(StructRNA *srna)
   prop = RNA_def_property(srna, "resolution_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, resolution_mode_items);
   RNA_def_property_ui_text(prop, "Resolution Mode", "How the voxel size is specified");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 static void def_geo_attribute_combine_xyz(StructRNA *srna)

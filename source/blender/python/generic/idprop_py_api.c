@@ -1192,12 +1192,8 @@ PyTypeObject BPy_IDGroup_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL, /* destructor tp_dealloc; */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
+    NULL,                       /* destructor tp_dealloc; */
+    0,                          /* tp_vectorcall_offset */
     NULL,                       /* getattrfunc tp_getattr; */
     NULL,                       /* setattrfunc tp_setattr; */
     NULL,                       /* cmpfunc tp_compare; */
@@ -1605,12 +1601,8 @@ PyTypeObject BPy_IDArray_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL, /* destructor tp_dealloc; */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
+    NULL,                       /* destructor tp_dealloc; */
+    0,                          /* tp_vectorcall_offset */
     NULL,                       /* getattrfunc tp_getattr; */
     NULL,                       /* setattrfunc tp_setattr; */
     NULL,                       /* cmpfunc tp_compare; */
@@ -1726,12 +1718,8 @@ PyTypeObject BPy_IDGroup_Iter_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL, /* destructor tp_dealloc; */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
+    NULL,                        /* destructor tp_dealloc; */
+    0,                           /* tp_vectorcall_offset */
     NULL,                        /* getattrfunc tp_getattr; */
     NULL,                        /* setattrfunc tp_setattr; */
     NULL,                        /* cmpfunc tp_compare; */
@@ -1811,16 +1799,10 @@ static PyObject *BPyInit_idprop_types(void)
 
   IDProp_Init_Types();
 
-#define MODULE_TYPE_ADD(s, t) \
-  PyModule_AddObject(s, t.tp_name, (PyObject *)&t); \
-  Py_INCREF((PyObject *)&t)
-
   /* bmesh_py_types.c */
-  MODULE_TYPE_ADD(submodule, BPy_IDGroup_Type);
-  MODULE_TYPE_ADD(submodule, BPy_IDGroup_Iter_Type);
-  MODULE_TYPE_ADD(submodule, BPy_IDArray_Type);
-
-#undef MODULE_TYPE_ADD
+  PyModule_AddType(submodule, &BPy_IDGroup_Type);
+  PyModule_AddType(submodule, &BPy_IDGroup_Iter_Type);
+  PyModule_AddType(submodule, &BPy_IDArray_Type);
 
   return submodule;
 }

@@ -131,22 +131,22 @@ if(WITH_CODEC_SNDFILE)
 endif()
 
 if(WITH_PYTHON)
-  # we use precompiled libraries for py 3.7 and up by default
-  set(PYTHON_VERSION 3.7)
+  # we use precompiled libraries for py 3.9 and up by default
+  set(PYTHON_VERSION 3.9)
   if(NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
     # normally cached but not since we include them with blender
-    set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}m")
-    set(PYTHON_EXECUTABLE "${LIBDIR}/python/bin/python${PYTHON_VERSION}m")
-    set(PYTHON_LIBRARY ${LIBDIR}/python/lib/libpython${PYTHON_VERSION}m.a)
+    set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
+    set(PYTHON_EXECUTABLE "${LIBDIR}/python/bin/python${PYTHON_VERSION}")
+    set(PYTHON_LIBRARY ${LIBDIR}/python/lib/libpython${PYTHON_VERSION}.a)
     set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
     # set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
   else()
     # module must be compiled against Python framework
     set(_py_framework "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}")
 
-    set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}m")
-    set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}m")
-    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}/config-${PYTHON_VERSION}m")
+    set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}")
+    set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}")
+    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}/config-${PYTHON_VERSION}")
     # set(PYTHON_LIBRARY python${PYTHON_VERSION})
     # set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
 

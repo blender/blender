@@ -1112,6 +1112,9 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
                               0.0f :
                               (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
       }
+      mid_point_depth = ss->gesture_initial_hit ?
+                            0.0f :
+                            (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
     }
 
     const float depth_radius = ss->cursor_radius;

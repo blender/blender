@@ -194,7 +194,7 @@ static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y,
         primitive[1] = int_as_float(-1);
       }
       else {
-        primitive[0] = int_as_float(bake_pixel->object_id);
+        primitive[0] = int_as_float(bake_pixel->seed);
         primitive[1] = int_as_float(bake_pixel->primitive_id);
         primitive[2] = bake_pixel->uv[0];
         primitive[3] = bake_pixel->uv[1];

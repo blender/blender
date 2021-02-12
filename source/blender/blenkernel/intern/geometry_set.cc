@@ -23,6 +23,8 @@
 
 #include "DNA_object_types.h"
 
+#include "BLI_rand.hh"
+
 #include "MEM_guardedalloc.h"
 
 using blender::float3;
@@ -577,6 +579,68 @@ bool InstancesComponent::is_empty() const
   return transforms_.size() == 0;
 }
 
+static blender::Array<int> generate_unique_instance_ids(Span<int> original_ids)
+{
+  using namespace blender;
+  Array<int> unique_ids(original_ids.size());
+
+  Set<int> used_unique_ids;
+  used_unique_ids.reserve(original_ids.size());
+  Vector<int> instances_with_id_collision;
+  for (const int instance_index : original_ids.index_range()) {
+    const int original_id = original_ids[instance_index];
+    if (used_unique_ids.add(original_id)) {
+      /* The original id has not been used by another instance yet. */
+      unique_ids[instance_index] = original_id;
+    }
+    else {
+      /* The original id of this instance collided with a previous instance, it needs to be looked
+       * at again in a second pass. Don't generate a new random id here, because this might collide
+       * with other existing ids. */
+      instances_with_id_collision.append(instance_index);
+    }
+  }
+
+  Map<int, RandomNumberGenerator> generator_by_original_id;
+  for (const int instance_index : instances_with_id_collision) {
+    const int original_id = original_ids[instance_index];
+    RandomNumberGenerator &rng = generator_by_original_id.lookup_or_add_cb(original_id, [&]() {
+      RandomNumberGenerator rng;
+      rng.seed_random(original_id);
+      return rng;
+    });
+
+    const int max_iteration = 100;
+    for (int iteration = 0;; iteration++) {
+      /* Try generating random numbers until an unused one has been found. */
+      const int random_id = rng.get_int32();
+      if (used_unique_ids.add(random_id)) {
+        /* This random id is not used by another instance. */
+        unique_ids[instance_index] = random_id;
+        break;
+      }
+      if (iteration == max_iteration) {
+        /* It seems to be very unlikely that we ever run into this case (assuming there are less
+         * than 2^30 instances). However, if that happens, it's better to use an id that is not
+         * unique than to be stuck in an infinite loop. */
+        unique_ids[instance_index] = original_id;
+        break;
+      }
+    }
+  }
+
+  return unique_ids;
+}
+
+blender::Span<int> InstancesComponent::almost_unique_ids() const
+{
+  std::lock_guard lock(almost_unique_ids_mutex_);
+  if (almost_unique_ids_.size() != ids_.size()) {
+    almost_unique_ids_ = generate_unique_instance_ids(ids_);
+  }
+  return almost_unique_ids_;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -674,7 +738,7 @@ bool BKE_geometry_set_has_instances(const GeometrySet *geometry_set)
 
 int BKE_geometry_set_instances(const GeometrySet *geometry_set,
                                float (**r_transforms)[4][4],
-                               int **r_ids,
+                               const int **r_almost_unique_ids,
                                InstancedData **r_instanced_data)
 {
   const InstancesComponent *component = geometry_set->get_component_for_read<InstancesComponent>();
@@ -682,9 +746,8 @@ int BKE_geometry_set_instances(const GeometrySet *geometry_set,
     return 0;
   }
   *r_transforms = (float(*)[4][4])component->transforms().data();
-  *r_ids = (int *)component->ids().data();
   *r_instanced_data = (InstancedData *)component->instanced_data().data();
-  *r_instanced_data = (InstancedData *)component->instanced_data().data();
+  *r_almost_unique_ids = (const int *)component->almost_unique_ids().data();
   return component->instances_amount();
 }
 

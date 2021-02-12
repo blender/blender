@@ -1153,8 +1153,8 @@ void node_draw_sockets(const View2D *v2d,
   GPU_program_point_size(false);
   GPU_blend(GPU_BLEND_NONE);
 
-  /* Draw multi-nput sockets after the others because they are drawn with "UI_roundbox"
-   * rather than with GL_POINT. */
+  /* Draw multi-input sockets after the others because they are drawn with `UI_draw_roundbox`
+   * rather than with `GL_POINT`. */
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
     if (nodeSocketIsHidden(socket)) {
       continue;

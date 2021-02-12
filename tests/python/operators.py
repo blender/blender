@@ -137,6 +137,15 @@ def main():
         MeshTest("CubeEdgeSplit", "testCubeEdgeSplit", "expectedCubeEdgeSplit",
                  [OperatorSpecEditMode("edge_split", {}, "EDGE", {2, 5, 8, 11, 14, 17, 20, 23})]),
 
+        ### 25
+        # edge ring select - Cannot be tested. Need user input.
+        # MeshTest("CubeEdgeRingSelect", "testCubeEdgeRingSelect", "expectedCubeEdgeRingSelect",
+        #         [OperatorSpecEditMode("edgering_select", {}, "EDGE", {5, 20, 25, 26})]),
+        # MeshTest("EmptyMeshEdgeRingSelect", "testGridEdgeRingSelect", "expectedGridEdgeRingSelect",
+        #         [OperatorSpecEditMode("edgering_select", {}, "VERT", {65, 66, 67})]),
+        # MeshTest("EmptyMeshEdgeRingSelect", "testEmptyMeshdgeRingSelect", "expectedEmptyMeshEdgeRingSelect",
+        #         [OperatorSpecEditMode("edgering_select", {}, "VERT", {})]),
+
         # face make planar
         MeshTest("MonkeyFaceMakePlanar", "testMonkeyFaceMakePlanar",
                  "expectedMonkeyFaceMakePlanar",
@@ -146,6 +155,15 @@ def main():
         MeshTest("PlaneFaceSplitByEdges", "testPlaneFaceSplitByEdges",
                  "expectedPlaneFaceSplitByEdges",
                  [OperatorSpecEditMode("face_split_by_edges", {}, "VERT", {i for i in range(6)})]),
+
+        # faces select linked flat
+        MeshTest("CubeFacesSelectLinkedFlat", "testCubeFaceSelectLinkedFlat", "expectedCubeFaceSelectLinkedFlat",
+                 [OperatorSpecEditMode("faces_select_linked_flat", {}, "FACE", {7})]),
+        MeshTest("PlaneFacesSelectLinkedFlat", "testPlaneFaceSelectLinkedFlat", "expectedPlaneFaceSelectLinkedFlat",
+                 [OperatorSpecEditMode("faces_select_linked_flat", {}, "VERT", {1})]),
+        MeshTest("EmptyMeshFacesSelectLinkedFlat", "testEmptyMeshFaceSelectLinkedFlat",
+                 "expectedEmptyMeshFaceSelectLinkedFlat",
+                 [OperatorSpecEditMode("faces_select_linked_flat", {}, "VERT", {})]),
 
         # fill
         MeshTest("IcosphereFill", "testIcosphereFill", "expectedIcosphereFill",

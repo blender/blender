@@ -135,6 +135,7 @@ static void store_bake_pixel(void *handle, int x, int y, float u, float v)
   pixel->dv_dx = bd->dv_dx;
   pixel->dv_dy = bd->dv_dy;
   pixel->object_id = 0;
+  pixel->seed = i;
 }
 
 void RE_bake_mask_fill(const BakePixel pixel_array[], const size_t num_pixels, char *mask)
@@ -383,6 +384,7 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
 
     pixel_high->primitive_id = primitive_id_high;
     pixel_high->object_id = hit_mesh;
+    pixel_high->seed = pixel_id;
 
     /* ray direction in high poly object space */
     float dir_high[3];
@@ -434,6 +436,7 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
   else {
     pixel_array[pixel_id].primitive_id = -1;
     pixel_array[pixel_id].object_id = -1;
+    pixel_array[pixel_id].seed = 0;
   }
 
   MEM_freeN(hits);

@@ -59,6 +59,7 @@ typedef struct BakeTargets {
 
 typedef struct BakePixel {
   int primitive_id, object_id;
+  int seed;
   float uv[2];
   float du_dx, du_dy;
   float dv_dx, dv_dy;

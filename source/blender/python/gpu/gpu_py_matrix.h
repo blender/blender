@@ -20,4 +20,4 @@
 
 #pragma once
 
-PyObject *BPyInit_gpu_matrix(void);
+PyObject *bpygpu_matrix_init(void);

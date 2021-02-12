@@ -88,8 +88,6 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[]);
 void PyC_MainModule_Backup(PyObject **r_main_mod);
 void PyC_MainModule_Restore(PyObject *main_mod);
 
-void PyC_SetHomePath(const char *py_path_bundle);
-
 bool PyC_IsInterpreterActive(void);
 
 void *PyC_RNA_AsPointer(PyObject *value, const char *type_name);

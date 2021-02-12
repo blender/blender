@@ -459,7 +459,7 @@ PyMODINIT_FUNC PyInit_mathutils_kdtree(void)
   if (PyType_Ready(&PyKDTree_Type)) {
     return NULL;
   }
-  PyModule_AddObject(m, "KDTree", (PyObject *)&PyKDTree_Type);
+  PyModule_AddType(m, &PyKDTree_Type);
 
   return m;
 }
