@@ -1511,12 +1511,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         // Keyboard events, processed
         ////////////////////////////////////////////////////////////////////////
         case WM_INPUT: {
-          // check WM_INPUT from input sink when ghost window is not in the foreground
-          if (wParam == RIM_INPUTSINK) {
-            if (GetFocus() != hwnd)  // WM_INPUT message not for this window
-              return 0;
-          }  // else wParam == RIM_INPUT
-
           RAWINPUT raw;
           RAWINPUT *raw_ptr = &raw;
           UINT rawSize = sizeof(RAWINPUT);
