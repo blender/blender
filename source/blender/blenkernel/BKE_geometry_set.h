@@ -47,7 +47,7 @@ typedef struct InstancedData {
 
 int BKE_geometry_set_instances(const struct GeometrySet *geometry_set,
                                float (**r_transforms)[4][4],
-                               int **r_ids,
+                               const int **r_almost_unique_ids,
                                struct InstancedData **r_instanced_data);
 
 #ifdef __cplusplus

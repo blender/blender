@@ -814,15 +814,17 @@ static const DupliGenerator gen_dupli_verts_pointcloud = {
 static void make_duplis_instances_component(const DupliContext *ctx)
 {
   float(*instance_offset_matrices)[4][4];
-  int *ids;
   InstancedData *instanced_data;
-  const int amount = BKE_geometry_set_instances(
-      ctx->object->runtime.geometry_set_eval, &instance_offset_matrices, &ids, &instanced_data);
+  const int *almost_unique_ids;
+  const int amount = BKE_geometry_set_instances(ctx->object->runtime.geometry_set_eval,
+                                                &instance_offset_matrices,
+                                                &almost_unique_ids,
+                                                &instanced_data);
 
   for (int i = 0; i < amount; i++) {
     InstancedData *data = &instanced_data[i];
 
-    const int id = ids[i] != -1 ? ids[i] : i;
+    const int id = almost_unique_ids[i];
 
     if (data->type == INSTANCE_DATA_TYPE_OBJECT) {
       Object *object = data->data.object;
