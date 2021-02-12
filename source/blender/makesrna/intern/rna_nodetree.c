@@ -398,74 +398,6 @@ static const EnumPropertyItem prop_shader_output_target_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static const EnumPropertyItem rna_node_geometry_boolean_method_items[] = {
-    {GEO_NODE_BOOLEAN_INTERSECT,
-     "INTERSECT",
-     0,
-     "Intersect",
-     "Keep the part of the mesh that is common between all operands"},
-    {GEO_NODE_BOOLEAN_UNION, "UNION", 0, "Union", "Combine meshes in an additive way"},
-    {GEO_NODE_BOOLEAN_DIFFERENCE,
-     "DIFFERENCE",
-     0,
-     "Difference",
-     "Combine meshes in a subtractive way"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static const EnumPropertyItem rna_node_geometry_triangulate_quad_method_items[] = {
-    {GEO_NODE_TRIANGULATE_QUAD_BEAUTY,
-     "BEAUTY",
-     0,
-     "Beauty",
-     "Split the quads in nice triangles, slower method"},
-    {GEO_NODE_TRIANGULATE_QUAD_FIXED,
-     "FIXED",
-     0,
-     "Fixed",
-     "Split the quads on the first and third vertices"},
-    {GEO_NODE_TRIANGULATE_QUAD_ALTERNATE,
-     "FIXED_ALTERNATE",
-     0,
-     "Fixed Alternate",
-     "Split the quads on the 2nd and 4th vertices"},
-    {GEO_NODE_TRIANGULATE_QUAD_SHORTEDGE,
-     "SHORTEST_DIAGONAL",
-     0,
-     "Shortest Diagonal",
-     "Split the quads based on the distance between the vertices"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static const EnumPropertyItem rna_node_geometry_triangulate_ngon_method_items[] = {
-    {GEO_NODE_TRIANGULATE_NGON_BEAUTY,
-     "BEAUTY",
-     0,
-     "Beauty",
-     "Arrange the new triangles evenly (slow)"},
-    {GEO_NODE_TRIANGULATE_NGON_EARCLIP,
-     "CLIP",
-     0,
-     "Clip",
-     "Split the polygons with an ear clipping algorithm"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static const EnumPropertyItem rna_node_geometry_point_distribute_method_items[] = {
-    {GEO_NODE_POINT_DISTRIBUTE_RANDOM,
-     "RANDOM",
-     0,
-     "Random",
-     "Distribute points randomly on the surface"},
-    {GEO_NODE_POINT_DISTRIBUTE_POISSON,
-     "POISSON",
-     0,
-     "Poisson Disk",
-     "Distribute the points randomly on the surface while taking a minimum distance between "
-     "points into account"},
-    {0, NULL, 0, NULL, NULL},
-};
-
 #endif
 
 #define ITEM_ATTRIBUTE \
@@ -8524,6 +8456,21 @@ static void def_geo_boolean(StructRNA *srna)
 {
   PropertyRNA *prop;
 
+  static const EnumPropertyItem rna_node_geometry_boolean_method_items[] = {
+      {GEO_NODE_BOOLEAN_INTERSECT,
+       "INTERSECT",
+       0,
+       "Intersect",
+       "Keep the part of the mesh that is common between all operands"},
+      {GEO_NODE_BOOLEAN_UNION, "UNION", 0, "Union", "Combine meshes in an additive way"},
+      {GEO_NODE_BOOLEAN_DIFFERENCE,
+       "DIFFERENCE",
+       0,
+       "Difference",
+       "Combine meshes in a subtractive way"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_node_geometry_boolean_method_items);
@@ -8535,6 +8482,44 @@ static void def_geo_boolean(StructRNA *srna)
 static void def_geo_triangulate(StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  static const EnumPropertyItem rna_node_geometry_triangulate_quad_method_items[] = {
+      {GEO_NODE_TRIANGULATE_QUAD_BEAUTY,
+       "BEAUTY",
+       0,
+       "Beauty",
+       "Split the quads in nice triangles, slower method"},
+      {GEO_NODE_TRIANGULATE_QUAD_FIXED,
+       "FIXED",
+       0,
+       "Fixed",
+       "Split the quads on the first and third vertices"},
+      {GEO_NODE_TRIANGULATE_QUAD_ALTERNATE,
+       "FIXED_ALTERNATE",
+       0,
+       "Fixed Alternate",
+       "Split the quads on the 2nd and 4th vertices"},
+      {GEO_NODE_TRIANGULATE_QUAD_SHORTEDGE,
+       "SHORTEST_DIAGONAL",
+       0,
+       "Shortest Diagonal",
+       "Split the quads based on the distance between the vertices"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem rna_node_geometry_triangulate_ngon_method_items[] = {
+      {GEO_NODE_TRIANGULATE_NGON_BEAUTY,
+       "BEAUTY",
+       0,
+       "Beauty",
+       "Arrange the new triangles evenly (slow)"},
+      {GEO_NODE_TRIANGULATE_NGON_EARCLIP,
+       "CLIP",
+       0,
+       "Clip",
+       "Split the polygons with an ear clipping algorithm"},
+      {0, NULL, 0, NULL, NULL},
+  };
 
   prop = RNA_def_property(srna, "quad_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
@@ -8766,6 +8751,21 @@ static void def_geo_attribute_attribute_compare(StructRNA *srna)
 static void def_geo_point_distribute(StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  static const EnumPropertyItem rna_node_geometry_point_distribute_method_items[] = {
+      {GEO_NODE_POINT_DISTRIBUTE_RANDOM,
+       "RANDOM",
+       0,
+       "Random",
+       "Distribute points randomly on the surface"},
+      {GEO_NODE_POINT_DISTRIBUTE_POISSON,
+       "POISSON",
+       0,
+       "Poisson Disk",
+       "Distribute the points randomly on the surface while taking a minimum distance between "
+       "points into account"},
+      {0, NULL, 0, NULL, NULL},
+  };
 
   prop = RNA_def_property(srna, "distribute_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
