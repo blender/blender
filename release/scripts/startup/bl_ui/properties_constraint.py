@@ -20,7 +20,7 @@
 from bpy.types import Panel
 
 
-class ObjectConstraintPanel(Panel):
+class ObjectConstraintPanel:
     bl_context = "constraint"
 
     @classmethod
@@ -28,7 +28,7 @@ class ObjectConstraintPanel(Panel):
         return (context.object)
 
 
-class BoneConstraintPanel(Panel):
+class BoneConstraintPanel:
     bl_context = "bone_constraint"
 
     @classmethod
@@ -36,7 +36,7 @@ class BoneConstraintPanel(Panel):
         return (context.pose_bone)
 
 
-class OBJECT_PT_constraints(ObjectConstraintPanel):
+class OBJECT_PT_constraints(ObjectConstraintPanel, Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = "Object Constraints"
@@ -50,7 +50,7 @@ class OBJECT_PT_constraints(ObjectConstraintPanel):
         layout.template_constraints(use_bone_constraints=False)
 
 
-class BONE_PT_constraints(BoneConstraintPanel):
+class BONE_PT_constraints(BoneConstraintPanel, Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = "Bone Constraints"
@@ -66,7 +66,7 @@ class BONE_PT_constraints(BoneConstraintPanel):
 
 # Parent class for constraint panels, with templates and drawing methods
 # shared between the bone and object constraint panels
-class ConstraintButtonsPanel(Panel):
+class ConstraintButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = ""
@@ -970,7 +970,7 @@ class ConstraintButtonsPanel(Panel):
 
 
 # Parent class for constraint subpanels
-class ConstraintButtonsSubPanel(Panel):
+class ConstraintButtonsSubPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = ""
@@ -1148,149 +1148,149 @@ class ConstraintButtonsSubPanel(Panel):
 
 # Child Of Constraint
 
-class OBJECT_PT_bChildOfConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bChildOfConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_childof(context)
 
 
-class BONE_PT_bChildOfConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bChildOfConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_childof(context)
 
 # Track To Constraint
 
 
-class OBJECT_PT_bTrackToConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bTrackToConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_trackto(context)
 
 
-class BONE_PT_bTrackToConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bTrackToConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_trackto(context)
 
 # Follow Path Constraint
 
 
-class OBJECT_PT_bFollowPathConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bFollowPathConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_follow_path(context)
 
 
-class BONE_PT_bFollowPathConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bFollowPathConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_follow_path(context)
 
 
 # Rotation Limit Constraint
 
-class OBJECT_PT_bRotLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bRotLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_rot_limit(context)
 
 
-class BONE_PT_bRotLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bRotLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_rot_limit(context)
 
 
 # Location Limit Constraint
 
-class OBJECT_PT_bLocLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bLocLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_loc_limit(context)
 
 
-class BONE_PT_bLocLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bLocLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_loc_limit(context)
 
 
 # Size Limit Constraint
 
-class OBJECT_PT_bSizeLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bSizeLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_size_limit(context)
 
 
-class BONE_PT_bSizeLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bSizeLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_size_limit(context)
 
 
 # Rotate Like Constraint
 
-class OBJECT_PT_bRotateLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bRotateLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_rotate_like(context)
 
 
-class BONE_PT_bRotateLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bRotateLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_rotate_like(context)
 
 
 # Locate Like Constraint
 
-class OBJECT_PT_bLocateLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bLocateLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_locate_like(context)
 
 
-class BONE_PT_bLocateLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bLocateLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_locate_like(context)
 
 
 # Size Like Constraint
 
-class OBJECT_PT_bSizeLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bSizeLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_size_like(context)
 
 
-class BONE_PT_bSizeLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bSizeLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_size_like(context)
 
 
 # Same Volume Constraint
 
-class OBJECT_PT_bSameVolumeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bSameVolumeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_same_volume(context)
 
 
-class BONE_PT_bSameVolumeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bSameVolumeConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_same_volume(context)
 
 
 # Trans Like Constraint
 
-class OBJECT_PT_bTransLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bTransLikeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_trans_like(context)
 
 
-class BONE_PT_bTransLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bTransLikeConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_trans_like(context)
 
 
 # Action Constraint
 
-class OBJECT_PT_bActionConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bActionConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_action(context)
 
 
-class BONE_PT_bActionConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bActionConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_action(context)
 
 
-class OBJECT_PT_bActionConstraint_target(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+class OBJECT_PT_bActionConstraint_target(ObjectConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "OBJECT_PT_bActionConstraint"
     bl_label = "Target"
 
@@ -1298,7 +1298,7 @@ class OBJECT_PT_bActionConstraint_target(ObjectConstraintPanel, ConstraintButton
         self.draw_action_target(context)
 
 
-class BONE_PT_bActionConstraint_target(BoneConstraintPanel, ConstraintButtonsSubPanel):
+class BONE_PT_bActionConstraint_target(BoneConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "BONE_PT_bActionConstraint"
     bl_label = "Target"
 
@@ -1306,7 +1306,7 @@ class BONE_PT_bActionConstraint_target(BoneConstraintPanel, ConstraintButtonsSub
         self.draw_action_target(context)
 
 
-class OBJECT_PT_bActionConstraint_action(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+class OBJECT_PT_bActionConstraint_action(ObjectConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "OBJECT_PT_bActionConstraint"
     bl_label = "Action"
 
@@ -1314,7 +1314,7 @@ class OBJECT_PT_bActionConstraint_action(ObjectConstraintPanel, ConstraintButton
         self.draw_action_action(context)
 
 
-class BONE_PT_bActionConstraint_action(BoneConstraintPanel, ConstraintButtonsSubPanel):
+class BONE_PT_bActionConstraint_action(BoneConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "BONE_PT_bActionConstraint"
     bl_label = "Action"
 
@@ -1324,77 +1324,77 @@ class BONE_PT_bActionConstraint_action(BoneConstraintPanel, ConstraintButtonsSub
 
 # Lock Track Constraint
 
-class OBJECT_PT_bLockTrackConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bLockTrackConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_lock_track(context)
 
 
-class BONE_PT_bLockTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bLockTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_lock_track(context)
 
 
 # Disance Limit Constraint
 
-class OBJECT_PT_bDistLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bDistLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_dist_limit(context)
 
 
-class BONE_PT_bDistLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bDistLimitConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_dist_limit(context)
 
 
 # Stretch To Constraint
 
-class OBJECT_PT_bStretchToConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bStretchToConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_stretch_to(context)
 
 
-class BONE_PT_bStretchToConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bStretchToConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_stretch_to(context)
 
 
 # Min Max Constraint
 
-class OBJECT_PT_bMinMaxConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bMinMaxConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_min_max(context)
 
 
-class BONE_PT_bMinMaxConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bMinMaxConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_min_max(context)
 
 
 # Clamp To Constraint
 
-class OBJECT_PT_bClampToConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bClampToConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_clamp_to(context)
 
 
-class BONE_PT_bClampToConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bClampToConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_clamp_to(context)
 
 
 # Transform Constraint
 
-class OBJECT_PT_bTransformConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bTransformConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_transform(context)
 
 
-class BONE_PT_bTransformConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bTransformConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_transform(context)
 
 
-class OBJECT_PT_bTransformConstraint_source(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+class OBJECT_PT_bTransformConstraint_source(ObjectConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "OBJECT_PT_bTransformConstraint"
     bl_label = "Map From"
 
@@ -1402,7 +1402,7 @@ class OBJECT_PT_bTransformConstraint_source(ObjectConstraintPanel, ConstraintBut
         self.draw_transform_from(context)
 
 
-class BONE_PT_bTransformConstraint_from(BoneConstraintPanel, ConstraintButtonsSubPanel):
+class BONE_PT_bTransformConstraint_from(BoneConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "BONE_PT_bTransformConstraint"
     bl_label = "Map From"
 
@@ -1410,7 +1410,7 @@ class BONE_PT_bTransformConstraint_from(BoneConstraintPanel, ConstraintButtonsSu
         self.draw_transform_from(context)
 
 
-class OBJECT_PT_bTransformConstraint_destination(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+class OBJECT_PT_bTransformConstraint_destination(ObjectConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "OBJECT_PT_bTransformConstraint"
     bl_label = "Map To"
 
@@ -1418,7 +1418,7 @@ class OBJECT_PT_bTransformConstraint_destination(ObjectConstraintPanel, Constrai
         self.draw_transform_to(context)
 
 
-class BONE_PT_bTransformConstraint_to(BoneConstraintPanel, ConstraintButtonsSubPanel):
+class BONE_PT_bTransformConstraint_to(BoneConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "BONE_PT_bTransformConstraint"
     bl_label = "Map To"
 
@@ -1428,36 +1428,36 @@ class BONE_PT_bTransformConstraint_to(BoneConstraintPanel, ConstraintButtonsSubP
 
 # Shrinkwrap Constraint
 
-class OBJECT_PT_bShrinkwrapConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bShrinkwrapConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_shrinkwrap(context)
 
 
-class BONE_PT_bShrinkwrapConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bShrinkwrapConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_shrinkwrap(context)
 
 
 # Damp Track Constraint
 
-class OBJECT_PT_bDampTrackConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bDampTrackConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_damp_track(context)
 
 
-class BONE_PT_bDampTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bDampTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_damp_track(context)
 
 
 # Spline IK Constraint
 
-class BONE_PT_bSplineIKConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bSplineIKConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_spline_ik(context)
 
 
-class BONE_PT_bSplineIKConstraint_fitting(BoneConstraintPanel, ConstraintButtonsSubPanel):
+class BONE_PT_bSplineIKConstraint_fitting(BoneConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "BONE_PT_bSplineIKConstraint"
     bl_label = "Fitting"
 
@@ -1465,7 +1465,7 @@ class BONE_PT_bSplineIKConstraint_fitting(BoneConstraintPanel, ConstraintButtons
         self.draw_spline_ik_fitting(context)
 
 
-class BONE_PT_bSplineIKConstraint_chain_scaling(BoneConstraintPanel, ConstraintButtonsSubPanel):
+class BONE_PT_bSplineIKConstraint_chain_scaling(BoneConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "BONE_PT_bSplineIKConstraint"
     bl_label = "Chain Scaling"
 
@@ -1475,89 +1475,89 @@ class BONE_PT_bSplineIKConstraint_chain_scaling(BoneConstraintPanel, ConstraintB
 
 # Pivot Constraint
 
-class OBJECT_PT_bPivotConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bPivotConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_pivot(context)
 
 
-class BONE_PT_bPivotConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bPivotConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_pivot(context)
 
 
 # Follow Track Constraint
 
-class OBJECT_PT_bFollowTrackConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bFollowTrackConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_follow_track(context)
 
 
-class BONE_PT_bFollowTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bFollowTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_follow_track(context)
 
 
 # Camera Solver Constraint
 
-class OBJECT_PT_bCameraSolverConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bCameraSolverConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_camera_solver(context)
 
 
-class BONE_PT_bCameraSolverConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bCameraSolverConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_camera_solver(context)
 
 
 # Object Solver Constraint
 
-class OBJECT_PT_bObjectSolverConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bObjectSolverConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_object_solver(context)
 
 
-class BONE_PT_bObjectSolverConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bObjectSolverConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_object_solver(context)
 
 
 # Transform Cache Constraint
 
-class OBJECT_PT_bTransformCacheConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bTransformCacheConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_transform_cache(context)
 
 
-class BONE_PT_bTransformCacheConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bTransformCacheConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_transform_cache(context)
 
 
 # Python Constraint
 
-class OBJECT_PT_bPythonConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bPythonConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_python_constraint(context)
 
 
-class BONE_PT_bPythonConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bPythonConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_python_constraint(context)
 
 
 # Armature Constraint
 
-class OBJECT_PT_bArmatureConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bArmatureConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_armature(context)
 
 
-class BONE_PT_bArmatureConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bArmatureConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_armature(context)
 
 
-class OBJECT_PT_bArmatureConstraint_bones(ObjectConstraintPanel, ConstraintButtonsSubPanel):
+class OBJECT_PT_bArmatureConstraint_bones(ObjectConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "OBJECT_PT_bArmatureConstraint"
     bl_label = "Bones"
 
@@ -1565,7 +1565,7 @@ class OBJECT_PT_bArmatureConstraint_bones(ObjectConstraintPanel, ConstraintButto
         self.draw_armature_bones(context)
 
 
-class BONE_PT_bArmatureConstraint_bones(BoneConstraintPanel, ConstraintButtonsSubPanel):
+class BONE_PT_bArmatureConstraint_bones(BoneConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "BONE_PT_bArmatureConstraint"
     bl_label = "Bones"
 
@@ -1575,12 +1575,12 @@ class BONE_PT_bArmatureConstraint_bones(BoneConstraintPanel, ConstraintButtonsSu
 
 # Inverse Kinematic Constraint
 
-class OBJECT_PT_bKinematicConstraint(ObjectConstraintPanel, ConstraintButtonsPanel):
+class OBJECT_PT_bKinematicConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_kinematic(context)
 
 
-class BONE_PT_bKinematicConstraint(BoneConstraintPanel, ConstraintButtonsPanel):
+class BONE_PT_bKinematicConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
         self.draw_kinematic(context)
 

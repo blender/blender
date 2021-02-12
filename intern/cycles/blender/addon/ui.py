@@ -886,7 +886,7 @@ class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
 
 
-class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, ViewLayerCryptomattePanel):
+class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, ViewLayerCryptomattePanel, Panel):
     bl_label = "Cryptomatte"
     bl_context = "view_layer"
     bl_parent_id = "CYCLES_RENDER_PT_passes"
