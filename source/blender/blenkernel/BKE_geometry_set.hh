@@ -416,6 +416,13 @@ class InstancesComponent : public GeometryComponent {
   blender::Vector<int> ids_;
   blender::Vector<InstancedData> instanced_data_;
 
+  /* These almost unique ids are generated based on `ids_`, which might not contain unique ids at
+   * all. They are *almost* unique, because under certain very unlikely circumstances, they are not
+   * unique. Code using these ids should not crash when they are not unique but can generally
+   * expect them to be unique. */
+  mutable std::mutex almost_unique_ids_mutex_;
+  mutable blender::Array<int> almost_unique_ids_;
+
  public:
   InstancesComponent();
   ~InstancesComponent() = default;
@@ -431,6 +438,8 @@ class InstancesComponent : public GeometryComponent {
   blender::Span<int> ids() const;
   blender::MutableSpan<blender::float4x4> transforms();
   int instances_amount() const;
+
+  blender::Span<int> almost_unique_ids() const;
 
   bool is_empty() const final;
 
