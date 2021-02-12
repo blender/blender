@@ -1409,52 +1409,6 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
                 split.label(text="None")
 
 
-class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
-    bl_label = "Sound"
-    bl_parent_id = ""
-    bl_category = "Strip"
-
-    @classmethod
-    def poll(cls, context):
-        if not cls.has_sequencer(context):
-            return False
-
-        strip = act_strip(context)
-        if not strip:
-            return False
-
-        return (strip.type == 'SOUND')
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        strip = act_strip(context)
-        sound = strip.sound
-
-        layout.active = not strip.mute
-
-        layout.template_ID(strip, "sound", open="sound.open")
-        if sound is not None:
-            layout.prop(sound, "filepath", text="")
-
-            layout.use_property_split = True
-            layout.use_property_decorate = False
-
-            layout.alignment = 'RIGHT'
-            sub = layout.column(align=True)
-            split = sub.split(factor=0.5, align=True)
-            split.alignment = 'RIGHT'
-            if sound.packed_file:
-                split.label(text="Unpack")
-                split.operator("sound.unpack", icon='PACKAGE', text="")
-            else:
-                split.label(text="Pack")
-                split.operator("sound.pack", icon='UGLYPACKAGE', text="")
-
-            layout.prop(sound, "use_memory_cache")
-
-
 class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
     bl_label = "Scene"
     bl_category = "Strip"
