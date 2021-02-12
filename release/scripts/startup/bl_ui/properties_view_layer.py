@@ -143,10 +143,8 @@ class VIEWLAYER_PT_eevee_layer_passes_effects(ViewLayerButtonsPanel, Panel):
         col.active = scene_eevee.use_bloom
 
 
-class VIEWLAYER_PT_layer_passes_aov(ViewLayerButtonsPanel, Panel):
+class ViewLayerAOVPanel(ViewLayerButtonsPanel, Panel):
     bl_label = "Shader AOV"
-    bl_parent_id = "VIEWLAYER_PT_layer_passes"
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -168,6 +166,11 @@ class VIEWLAYER_PT_layer_passes_aov(ViewLayerButtonsPanel, Panel):
         aov = view_layer.active_aov
         if aov and not aov.is_valid:
             layout.label(text="Conflicts with another render pass with the same name", icon='ERROR')
+
+
+class VIEWLAYER_PT_layer_passes_aov(ViewLayerAOVPanel):
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
 
 class ViewLayerCryptomattePanel(ViewLayerButtonsPanel, Panel):
