@@ -5604,6 +5604,8 @@ def km_sculpt_expand_modal(_params):
         ("LOOP_COUNT_INCREASE", {"type": 'W', "value": 'PRESS', "any": True, "repeat" : True}, None),
         ("LOOP_COUNT_DECREASE", {"type": 'Q', "value": 'PRESS', "any": True, "repeat" : True}, None),
         ("BRUSH_GRADIENT_TOGGLE", {"type": 'B', "value": 'PRESS', "any": True, "repeat" : False}, None),
+        ("TEXTURE_DISTORSION_INCREASE", {"type": 'Y', "value": 'PRESS', "any": False, "repeat" : True}, None),
+        ("TEXTURE_DISTORSION_DECREASE", {"type": 'T', "value": 'PRESS', "any": False, "repeat" : True}, None),
     ])
     return keymap
 

@@ -39,6 +39,7 @@
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_image.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_multires.h"
@@ -93,6 +94,8 @@ enum {
   SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE,
   SCULPT_EXPAND_MODAL_LOOP_COUNT_DECREASE,
   SCULPT_EXPAND_MODAL_BRUSH_GRADIENT_TOGGLE,
+  SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_INCREASE,
+  SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_DECREASE,
 };
 
 static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
@@ -114,6 +117,7 @@ static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+#define SCULPT_EXPAND_TEXTURE_DISTORSION_STEP 0.1f
 #define SCULPT_EXPAND_LOOP_THRESHOLD 0.00001f
 
 static bool sculpt_expand_is_vert_in_active_compoment(SculptSession *ss,
@@ -134,6 +138,27 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
 {
   const MLoop *loop = &ss->mloop[ss->mpoly[f].loopstart];
   return sculpt_expand_is_vert_in_active_compoment(ss, expand_cache, loop->v);
+}
+
+static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
+                                                    ExpandCache *expand_cache,
+                                                    const int i)
+{
+  if (expand_cache->texture_distorsion_strength == 0.0f) {
+    return expand_cache->falloff_factor[i];
+  }
+
+  if (!expand_cache->brush->mtex.tex) {
+    return expand_cache->falloff_factor[i];
+  }
+
+  float rgba[4];
+  const float *vertex_co = SCULPT_vertex_co_get(ss, i);
+  const float avg = BKE_brush_sample_tex_3d(
+      expand_cache->scene, expand_cache->brush, vertex_co, rgba, 0, ss->tex_pool);
+
+  const float distorsion = (avg - 0.5f) * expand_cache->texture_distorsion_strength;
+  return expand_cache->falloff_factor[i] + distorsion;
 }
 
 static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int i)
@@ -160,8 +185,10 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
     const float loop_len = (expand_cache->max_falloff_factor / expand_cache->loop_count) +
                            SCULPT_EXPAND_LOOP_THRESHOLD;
 
+    const float vertex_falloff_factor = sculpt_expand_falloff_value_vertex_get(
+        ss, expand_cache, i);
     const float active_factor = fmod(expand_cache->active_factor, loop_len);
-    const float falloff_factor = fmod(expand_cache->falloff_factor[i], loop_len);
+    const float falloff_factor = fmod(vertex_falloff_factor, loop_len);
 
     enabled = falloff_factor < active_factor;
   }
@@ -195,6 +222,7 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
   else {
     const float loop_len = (expand_cache->max_face_falloff_factor / expand_cache->loop_count) +
                            SCULPT_EXPAND_LOOP_THRESHOLD;
+
     const float active_factor = fmod(expand_cache->active_factor, loop_len);
     const float falloff_factor = fmod(expand_cache->face_falloff_factor[f], loop_len);
     enabled = falloff_factor < active_factor;
@@ -213,7 +241,9 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
   return enabled;
 }
 
-static float sculpt_expand_gradient_falloff_get(ExpandCache *expand_cache, const int i)
+static float sculpt_expand_gradient_falloff_get(SculptSession *ss,
+                                                ExpandCache *expand_cache,
+                                                const int i)
 {
   if (!expand_cache->falloff_gradient) {
     return 1.0f;
@@ -221,8 +251,10 @@ static float sculpt_expand_gradient_falloff_get(ExpandCache *expand_cache, const
 
   const float loop_len = (expand_cache->max_falloff_factor / expand_cache->loop_count) +
                          SCULPT_EXPAND_LOOP_THRESHOLD;
+
+  const float vertex_falloff_factor = sculpt_expand_falloff_value_vertex_get(ss, expand_cache, i);
   const float active_factor = fmod(expand_cache->active_factor, loop_len);
-  const float falloff_factor = fmod(expand_cache->falloff_factor[i], loop_len);
+  const float falloff_factor = fmod(vertex_falloff_factor, loop_len);
 
   float linear_falloff;
 
@@ -930,7 +962,7 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
     float new_mask;
 
     if (enabled) {
-      new_mask = sculpt_expand_gradient_falloff_get(expand_cache, vd.index);
+      new_mask = sculpt_expand_gradient_falloff_get(ss, expand_cache, vd.index);
     }
     else {
       new_mask = 0.0f;
@@ -998,7 +1030,7 @@ static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
     float fade;
 
     if (enabled) {
-      fade = sculpt_expand_gradient_falloff_get(expand_cache, vd.index);
+      fade = sculpt_expand_gradient_falloff_get(ss, expand_cache, vd.index);
     }
     else {
       fade = 0.0f;
@@ -1229,6 +1261,8 @@ static void sculpt_expand_resursion_step_add(Object *ob,
   SculptSession *ss = ob->sculpt;
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
 
+  expand_cache->texture_distorsion_strength = 0.0f;
+
   switch (recursion_type) {
     case SCULPT_EXPAND_RECURSION_GEODESICS:
       sculpt_expand_geodesics_from_state_boundary(ob, expand_cache, enabled_vertices);
@@ -1325,9 +1359,14 @@ static void sculpt_expand_move_propagation_origin(bContext *C,
 
 static void sculpt_expand_ensure_sculptsession_data(Object *ob)
 {
-  SCULPT_vertex_random_access_ensure(ob->sculpt);
+
+  SculptSession *ss = ob->sculpt;
+  SCULPT_vertex_random_access_ensure(ss);
   SCULPT_connected_components_ensure(ob);
   SCULPT_boundary_info_ensure(ob);
+  if (!ss->tex_pool) {
+    ss->tex_pool = BKE_image_pool_new();
+  }
 }
 
 static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1463,9 +1502,22 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         expand_cache->loop_count = max_ii(expand_cache->loop_count, 1);
         break;
       }
+      case SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_INCREASE: {
+        expand_cache->texture_distorsion_strength += SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
+        expand_cache->texture_distorsion_strength = min_ff(
+            expand_cache->texture_distorsion_strength, 10.0f);
+        break;
+      }
+      case SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_DECREASE: {
+        expand_cache->texture_distorsion_strength -= SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
+        expand_cache->texture_distorsion_strength = max_ff(
+            expand_cache->texture_distorsion_strength, 0.0f);
+        break;
+      }
     }
   }
 
+  printf("DISTORSION %f\n", expand_cache->texture_distorsion_strength);
   if (expand_cache->move) {
     sculpt_expand_move_propagation_origin(C, ob, event, expand_cache);
   }
@@ -1532,10 +1584,9 @@ static void sculpt_expand_delete_face_set_id(
   BLI_LINKSTACK_FREE(queue_next);
 }
 
-static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
-                                                   Object *ob,
-                                                   ExpandCache *expand_cache,
-                                                   wmOperator *op)
+static void sculpt_expand_cache_initial_config_set(bContext *C,
+                                                   wmOperator *op,
+                                                   ExpandCache *expand_cache)
 {
 
   expand_cache->invert = RNA_boolean_get(op->ptr, "invert");
@@ -1549,12 +1600,18 @@ static void sculpt_expand_cache_initial_config_set(Sculpt *sd,
   expand_cache->loop_count = 1;
   expand_cache->brush_gradient = false;
 
+  Object *ob = CTX_data_active_object(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
   expand_cache->brush = BKE_paint_brush(&sd->paint);
   BKE_curvemapping_init(expand_cache->brush->curve);
   copy_v4_fl(expand_cache->fill_color, 1.0f);
   copy_v3_v3(expand_cache->fill_color, BKE_brush_color_get(ss->scene, expand_cache->brush));
   IMB_colormanagement_srgb_to_scene_linear_v3(expand_cache->fill_color);
+
+  expand_cache->scene = CTX_data_scene(C);
+  expand_cache->mtex = &expand_cache->brush->mtex;
+  expand_cache->texture_distorsion_strength = 0.0f;
 
   expand_cache->blend_mode = expand_cache->brush->blend;
 }
@@ -1594,7 +1651,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Create and configure the Expand Cache. */
   ss->expand_cache = MEM_callocN(sizeof(ExpandCache), "expand cache");
-  sculpt_expand_cache_initial_config_set(sd, ob, ss->expand_cache, op);
+  sculpt_expand_cache_initial_config_set(C, op, ss->expand_cache);
 
   /* Update object. */
   const bool needs_colors = ss->expand_cache->target == SCULPT_EXPAND_TARGET_COLORS;
@@ -1688,6 +1745,16 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        "BRUSH_GRADIENT_TOGGLE",
        0,
        "Toggle Brush Gradient",
+       ""},
+      {SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_INCREASE,
+       "TEXTURE_DISTORSION_INCREASE",
+       0,
+       "Texture Distorsion Increase",
+       ""},
+      {SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_DECREASE,
+       "TEXTURE_DISTORSION_DECREASE",
+       0,
+       "Texture Distorsion Decrease",
        ""},
       {0, NULL, 0, NULL, NULL},
   };

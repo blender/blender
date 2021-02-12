@@ -1201,6 +1201,10 @@ typedef struct ExpandCache {
 
   GSet *snap_enabled_face_sets;
 
+  struct Scene *scene;
+  struct MTex *mtex;
+  float texture_distorsion_strength;
+
   PBVHNode **nodes;
   int totnode;
 
