@@ -338,6 +338,52 @@ CustomDataType attribute_data_type_highest_complexity(Span<CustomDataType> data_
   return most_complex_type;
 }
 
+/**
+ * \note Generally the order should mirror the order of the domains
+ * established in each component's ComponentAttributeProviders.
+ */
+static int attribute_domain_priority(const AttributeDomain domain)
+{
+  switch (domain) {
+#if 0
+    case ATTR_DOMAIN_CURVE:
+      return 0;
+#endif
+    case ATTR_DOMAIN_POLYGON:
+      return 1;
+    case ATTR_DOMAIN_EDGE:
+      return 2;
+    case ATTR_DOMAIN_POINT:
+      return 3;
+    case ATTR_DOMAIN_CORNER:
+      return 4;
+    default:
+      /* Domain not supported in nodes yet. */
+      BLI_assert(false);
+      return 0;
+  }
+}
+
+/**
+ * Domains with a higher "information density" have a higher priority, in order
+ * to choose a domain that will not lose data through domain conversion.
+ */
+AttributeDomain attribute_domain_highest_priority(Span<AttributeDomain> domains)
+{
+  int highest_priority = INT_MIN;
+  AttributeDomain highest_priority_domain = ATTR_DOMAIN_CORNER;
+
+  for (const AttributeDomain domain : domains) {
+    const int priority = attribute_domain_priority(domain);
+    if (priority > highest_priority) {
+      highest_priority = priority;
+      highest_priority_domain = domain;
+    }
+  }
+
+  return highest_priority_domain;
+}
+
 }  // namespace blender::nodes
 
 bool geo_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)

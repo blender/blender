@@ -17,6 +17,8 @@
 #include "NOD_geometry_exec.hh"
 #include "NOD_type_callbacks.hh"
 
+#include "node_geometry_util.hh"
+
 namespace blender::nodes {
 
 const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name) const
@@ -102,6 +104,40 @@ CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
 
   BLI_assert(false);
   return default_type;
+}
+
+/**
+ * If any of the corresponding input sockets are attributes instead of single values,
+ * use the highest priority attribute domain from among them.
+ * Otherwise return the default domain.
+ */
+AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
+    Span<std::string> names,
+    const GeometryComponent &component,
+    const AttributeDomain default_domain) const
+{
+  Vector<AttributeDomain, 8> input_domains;
+  for (const std::string &name : names) {
+    const bNodeSocket *found_socket = this->find_available_socket(name);
+    BLI_assert(found_socket != nullptr); /* A socket should be available socket for the name. */
+    if (found_socket == nullptr) {
+      continue;
+    }
+
+    if (found_socket->type == SOCK_STRING) {
+      const std::string name = this->get_input<std::string>(found_socket->identifier);
+      ReadAttributePtr attribute = component.attribute_try_get_for_read(name);
+      if (attribute) {
+        input_domains.append(attribute->domain());
+      }
+    }
+  }
+
+  if (input_domains.size() > 0) {
+    return attribute_domain_highest_priority(input_domains);
+  }
+
+  return default_domain;
 }
 
 void GeoNodeExecParams::check_extract_input(StringRef identifier,

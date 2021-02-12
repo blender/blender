@@ -153,17 +153,32 @@ Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &compo
   return hashes;
 }
 
+static AttributeDomain get_result_domain(const GeometryComponent &component,
+                                         const GeoNodeExecParams &params,
+                                         StringRef attribute_name)
+{
+  /* Use the domain of the result attribute if it already exists. */
+  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(attribute_name);
+  if (result_attribute) {
+    return result_attribute->domain();
+  }
+
+  /* Otherwise use the input domain chosen in the interface. */
+  const bNode &node = params.node();
+  return static_cast<AttributeDomain>(node.custom2);
+}
+
 static void randomize_attribute(GeometryComponent &component,
                                 const GeoNodeExecParams &params,
                                 const int seed)
 {
-  const bNode &node = params.node();
-  const CustomDataType data_type = static_cast<CustomDataType>(node.custom1);
-  const AttributeDomain domain = static_cast<AttributeDomain>(node.custom2);
   const std::string attribute_name = params.get_input<std::string>("Attribute");
   if (attribute_name.empty()) {
     return;
   }
+  const bNode &node = params.node();
+  const CustomDataType data_type = static_cast<CustomDataType>(node.custom1);
+  const AttributeDomain domain = get_result_domain(component, params, attribute_name);
 
   OutputAttributePtr attribute = component.attribute_try_get_for_output(
       attribute_name, domain, data_type);

@@ -148,9 +148,12 @@ static void attribute_calc_proximity(GeometryComponent &component,
                                      GeometrySet &geometry_set_target,
                                      GeoNodeExecParams &params)
 {
+  /* This node works on the "point" domain, since that is where positions are stored. */
+  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
+
   const std::string result_attribute_name = params.get_input<std::string>("Result");
   OutputAttributePtr distance_attribute = component.attribute_try_get_for_output(
-      result_attribute_name, ATTR_DOMAIN_POINT, CD_PROP_FLOAT);
+      result_attribute_name, result_domain, CD_PROP_FLOAT);
 
   ReadAttributePtr position_attribute = component.attribute_try_get_for_read("position");
   BLI_assert(position_attribute->custom_data_type() == CD_PROP_FLOAT3);
