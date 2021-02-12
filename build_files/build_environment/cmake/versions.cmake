@@ -301,9 +301,9 @@ set(USD_VERSION 20.05)
 set(USD_URI https://github.com/PixarAnimationStudios/USD/archive/v${USD_VERSION}.tar.gz)
 set(USD_HASH 6d679e739e7f65725d9c029e37dda9fc)
 
-set(OIDN_VERSION 1.2.3)
+set(OIDN_VERSION 1.3.0)
 set(OIDN_URI https://github.com/OpenImageDenoise/oidn/releases/download/v${OIDN_VERSION}/oidn-${OIDN_VERSION}.src.tar.gz)
-set(OIDN_HASH 1f11466c2c3efc27faba5ec7078d12b2)
+set(OIDN_HASH 301a5a0958d375a942014df0679b9270)
 
 set(LIBGLU_VERSION 9.0.1)
 set(LIBGLU_URI ftp://ftp.freedesktop.org/pub/mesa/glu/glu-${LIBGLU_VERSION}.tar.xz)
