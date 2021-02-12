@@ -621,10 +621,12 @@ struct CustomDataAccessInfo {
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   using AsReadAttribute = ReadAttributePtr (*)(const void *data, const int domain_size);
   using AsWriteAttribute = WriteAttributePtr (*)(void *data, const int domain_size);
+  using UpdateOnWrite = void (*)(GeometryComponent &component);
   const CustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
   const AsReadAttribute as_read_attribute_;
   const AsWriteAttribute as_write_attribute_;
+  const UpdateOnWrite update_on_write_;
 
  public:
   BuiltinCustomDataLayerProvider(std::string attribute_name,
@@ -636,13 +638,15 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
                                  const DeletableEnum deletable,
                                  const CustomDataAccessInfo custom_data_access,
                                  const AsReadAttribute as_read_attribute,
-                                 const AsWriteAttribute as_write_attribute)
+                                 const AsWriteAttribute as_write_attribute,
+                                 const UpdateOnWrite update_on_write)
       : BuiltinAttributeProvider(
             std::move(attribute_name), domain, attribute_type, creatable, writable, deletable),
         stored_type_(stored_type),
         custom_data_access_(custom_data_access),
         as_read_attribute_(as_read_attribute),
-        as_write_attribute_(as_write_attribute)
+        as_write_attribute_(as_write_attribute),
+        update_on_write_(update_on_write)
   {
   }
 
@@ -678,6 +682,9 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
     if (data != new_data) {
       custom_data_access_.update_custom_data_pointers(component);
       data = new_data;
+    }
+    if (update_on_write_ != nullptr) {
+      update_on_write_(component);
     }
     return as_write_attribute_(data, domain_size);
   }
@@ -1187,6 +1194,14 @@ static WriteAttributePtr make_vertex_position_write_attribute(void *data, const 
       ATTR_DOMAIN_POINT, MutableSpan<MVert>((MVert *)data, domain_size));
 }
 
+static void tag_normals_dirty_when_writing_position(GeometryComponent &component)
+{
+  Mesh *mesh = get_mesh_from_component_for_write(component);
+  if (mesh != nullptr) {
+    mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  }
+}
+
 template<typename T, AttributeDomain Domain>
 static ReadAttributePtr make_array_read_attribute(const void *data, const int domain_size)
 {
@@ -1248,7 +1263,8 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                  BuiltinAttributeProvider::NonDeletable,
                                                  point_access,
                                                  make_vertex_position_read_attribute,
-                                                 make_vertex_position_write_attribute);
+                                                 make_vertex_position_write_attribute,
+                                                 tag_normals_dirty_when_writing_position);
   static MeshUVsAttributeProvider uvs;
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
@@ -1302,7 +1318,8 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
       BuiltinAttributeProvider::NonDeletable,
       point_access,
       make_array_read_attribute<float3, ATTR_DOMAIN_POINT>,
-      make_array_write_attribute<float3, ATTR_DOMAIN_POINT>);
+      make_array_write_attribute<float3, ATTR_DOMAIN_POINT>,
+      nullptr);
   static BuiltinCustomDataLayerProvider radius(
       "radius",
       ATTR_DOMAIN_POINT,
@@ -1313,7 +1330,8 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
       BuiltinAttributeProvider::Deletable,
       point_access,
       make_array_read_attribute<float, ATTR_DOMAIN_POINT>,
-      make_array_write_attribute<float, ATTR_DOMAIN_POINT>);
+      make_array_write_attribute<float, ATTR_DOMAIN_POINT>,
+      nullptr);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
   return ComponentAttributeProviders({&position, &radius}, {&point_custom_data});
 }
