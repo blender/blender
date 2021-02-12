@@ -163,6 +163,8 @@ static void geo_node_align_rotation_to_vector_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
   if (geometry_set.has<MeshComponent>()) {
     align_rotations_on_component(geometry_set.get_component_for_write<MeshComponent>(), params);
   }

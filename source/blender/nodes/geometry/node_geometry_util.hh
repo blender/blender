@@ -49,4 +49,21 @@ CustomDataType attribute_data_type_highest_complexity(Span<CustomDataType>);
 Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &component,
                                                   const AttributeDomain domain);
 
+GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set);
+
+struct AttributeInfo {
+  CustomDataType data_type;
+  AttributeDomain domain;
+};
+
+/**
+ * Add information about all the attributes on every component of the type. The resulting info
+ * will contain the highest complexity data type and the highest priority domain among every
+ * attribute with the given name on all of the input components.
+ */
+void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
+                           const GeometryComponentType component_type,
+                           Span<GeometryInstanceGroup> set_groups,
+                           const Set<std::string> &ignored_attributes);
+
 }  // namespace blender::nodes

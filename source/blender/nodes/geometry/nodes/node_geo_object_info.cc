@@ -77,35 +77,15 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
     quat_to_eul(rotation, quaternion);
 
     if (object != self_object) {
-      if (object->type == OB_MESH) {
-        Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object, false);
-        if (mesh != nullptr) {
-          BKE_mesh_wrapper_ensure_mdata(mesh);
+      InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
 
-          /* Make a copy because the life time of the other mesh might be shorter. */
-          Mesh *copied_mesh = BKE_mesh_copy_for_eval(mesh, false);
-
-          if (transform_space_relative) {
-            /* Transform into the local space of the object that is being modified. */
-            BKE_mesh_transform(copied_mesh, transform, true);
-          }
-
-          MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-          mesh_component.replace(copied_mesh);
-          mesh_component.copy_vertex_group_names_from_object(*object);
-        }
+      if (transform_space_relative) {
+        instances.add_instance(object, transform);
       }
-      if (object->type == OB_VOLUME) {
-        InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-
-        if (transform_space_relative) {
-          instances.add_instance(object, transform);
-        }
-        else {
-          float unit_transform[4][4];
-          unit_m4(unit_transform);
-          instances.add_instance(object, unit_transform);
-        }
+      else {
+        float unit_transform[4][4];
+        unit_m4(unit_transform);
+        instances.add_instance(object, unit_transform);
       }
     }
   }

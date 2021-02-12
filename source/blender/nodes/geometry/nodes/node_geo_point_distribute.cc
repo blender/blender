@@ -419,6 +419,9 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet geometry_set_out;
 
+  /* TODO: This node only needs read-only access to input instances. */
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
   GeometryNodePointDistributeMethod distribute_method =
       static_cast<GeometryNodePointDistributeMethod>(params.node().custom1);
 

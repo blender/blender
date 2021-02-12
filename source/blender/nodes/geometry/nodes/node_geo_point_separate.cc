@@ -178,6 +178,10 @@ static void geo_node_point_separate_exec(GeoNodeExecParams params)
   GeometrySet out_set_a(geometry_set);
   GeometrySet out_set_b;
 
+  /* TODO: This is not necessary-- the input goemetry set can be read only,
+   * but it must be rewritten to handle instance groups. */
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
   if (geometry_set.has<PointCloudComponent>()) {
     separate_point_cloud(*geometry_set.get_component_for_read<PointCloudComponent>(),
                          params,
