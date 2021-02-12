@@ -1109,6 +1109,16 @@ typedef struct NodeAttributeMix {
   uint8_t input_type_b;
 } NodeAttributeMix;
 
+typedef struct NodeAttributeRandomize {
+  /* CustomDataType. */
+  uint8_t data_type;
+  /* AttributeDomain. */
+  uint8_t domain;
+  /* GeometryNodeAttributeRandomizeMode. */
+  uint8_t operation;
+  char _pad[1];
+} NodeAttributeRandomize;
+
 typedef struct NodeAttributeVectorMath {
   /* NodeVectorMathOperation */
   uint8_t operation;
@@ -1637,6 +1647,7 @@ typedef enum GeometryNodeAttributeInputMode {
   GEO_NODE_ATTRIBUTE_INPUT_VECTOR = 2,
   GEO_NODE_ATTRIBUTE_INPUT_COLOR = 3,
   GEO_NODE_ATTRIBUTE_INPUT_BOOLEAN = 4,
+  GEO_NODE_ATTRIBUTE_INPUT_INTEGER = 5,
 } GeometryNodeAttributeInputMode;
 
 typedef enum GeometryNodePointDistributeMethod {
@@ -1648,6 +1659,13 @@ typedef enum GeometryNodeRotatePointsType {
   GEO_NODE_POINT_ROTATE_TYPE_EULER = 0,
   GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE = 1,
 } GeometryNodeRotatePointsType;
+
+typedef enum GeometryNodeAttributeRandomizeMode {
+  GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE = 0,
+  GEO_NODE_ATTRIBUTE_RANDOMIZE_ADD = 1,
+  GEO_NODE_ATTRIBUTE_RANDOMIZE_SUBTRACT = 2,
+  GEO_NODE_ATTRIBUTE_RANDOMIZE_MULTIPLY = 3,
+} GeometryNodeAttributeRandomizeMode;
 
 typedef enum GeometryNodeRotatePointsSpace {
   GEO_NODE_POINT_ROTATE_SPACE_OBJECT = 0,

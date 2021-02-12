@@ -355,6 +355,30 @@ const EnumPropertyItem rna_enum_node_filter_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem rna_node_geometry_attribute_randomize_operation_items[] = {
+    {GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE,
+     "REPLACE_CREATE",
+     ICON_NONE,
+     "Replace/Create",
+     "Replace the value and data type of an existing attribute, or create a new one"},
+    {GEO_NODE_ATTRIBUTE_RANDOMIZE_ADD,
+     "ADD",
+     ICON_NONE,
+     "Add",
+     "Add the random values to the existing attribute values"},
+    {GEO_NODE_ATTRIBUTE_RANDOMIZE_SUBTRACT,
+     "SUBTRACT",
+     ICON_NONE,
+     "Subtract",
+     "Subtract random values from the existing attribute values"},
+    {GEO_NODE_ATTRIBUTE_RANDOMIZE_MULTIPLY,
+     "MULTIPLY",
+     ICON_NONE,
+     "Multiply",
+     "Multiply the existing attribute values with the random values"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem node_sampler_type_items[] = {
     {0, "NEAREST", 0, "Nearest", ""},
@@ -1921,7 +1945,7 @@ static const EnumPropertyItem *itemf_function_check(
 
 static bool attribute_random_type_supported(const EnumPropertyItem *item)
 {
-  return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_BOOL);
+  return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_BOOL, CD_PROP_INT32);
 }
 static const EnumPropertyItem *rna_GeometryNodeAttributeRandom_type_itemf(
     bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
@@ -1930,15 +1954,47 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeRandom_type_itemf(
   return itemf_function_check(rna_enum_attribute_type_items, attribute_random_type_supported);
 }
 
-static bool attribute_random_domain_supported(const EnumPropertyItem *item)
+static const EnumPropertyItem *rna_GeometryNodeAttributeRandomize_operation_itemf(
+    bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-  return item->value == ATTR_DOMAIN_POINT;
-}
-static const EnumPropertyItem *rna_GeometryNodeAttributeRandom_domain_itemf(
-    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
-{
+  bNode *node = ptr->data;
+  const NodeAttributeRandomize *node_storage = (NodeAttributeRandomize *)node->storage;
+  const CustomDataType data_type = (CustomDataType)node_storage->data_type;
+
+  EnumPropertyItem *item_array = NULL;
+  int items_len = 0;
+  for (const EnumPropertyItem *item = rna_node_geometry_attribute_randomize_operation_items;
+       item->identifier != NULL;
+       item++) {
+    if (data_type == CD_PROP_BOOL) {
+      if (item->value == GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE) {
+        RNA_enum_item_add(&item_array, &items_len, item);
+      }
+    }
+    else {
+      RNA_enum_item_add(&item_array, &items_len, item);
+    }
+  }
+  RNA_enum_item_end(&item_array, &items_len);
+
   *r_free = true;
-  return itemf_function_check(rna_enum_attribute_domain_items, attribute_random_domain_supported);
+  return item_array;
+}
+
+static void rna_GeometryNodeAttributeRandomize_data_type_update(Main *bmain,
+                                                                Scene *scene,
+                                                                PointerRNA *ptr)
+{
+  bNode *node = ptr->data;
+  NodeAttributeRandomize *node_storage = (NodeAttributeRandomize *)node->storage;
+
+  /* The boolean data type has no extra operations besides,
+   * replace, so make sure the enum value is set properly. */
+  if (node_storage->data_type == CD_PROP_BOOL) {
+    node_storage->operation = GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE;
+  }
+
+  rna_Node_socket_update(bmain, scene, ptr);
 }
 
 static bool attribute_fill_type_supported(const EnumPropertyItem *item)
@@ -8528,9 +8584,27 @@ static void def_geo_attribute_create_common(StructRNA *srna,
 
 static void def_geo_attribute_randomize(StructRNA *srna)
 {
-  def_geo_attribute_create_common(srna,
-                                  "rna_GeometryNodeAttributeRandom_type_itemf",
-                                  "rna_GeometryNodeAttributeRandom_domain_itemf");
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeAttributeRandomize", "storage");
+
+  prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "data_type");
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeRandom_type_itemf");
+  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_ui_text(prop, "Data Type", "Type of data stored in attribute");
+  RNA_def_property_update(
+      prop, NC_NODE | NA_EDITED, "rna_GeometryNodeAttributeRandomize_data_type_update");
+
+  prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "operation");
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_randomize_operation_items);
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_GeometryNodeAttributeRandomize_operation_itemf");
+  RNA_def_property_enum_default(prop, GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE);
+  RNA_def_property_ui_text(prop, "Operation", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 static void def_geo_attribute_fill(StructRNA *srna)

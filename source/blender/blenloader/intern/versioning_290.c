@@ -1704,6 +1704,25 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
     FOREACH_NODETREE_END;
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 8)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == GEO_NODE_POINT_INSTANCE && node->storage == NULL) {
+          NodeAttributeRandomize *data = (NodeAttributeRandomize *)MEM_callocN(
+              sizeof(NodeAttributeRandomize), __func__);
+          data->data_type = node->custom1;
+          data->operation = GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE;
+          node->storage = data;
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
