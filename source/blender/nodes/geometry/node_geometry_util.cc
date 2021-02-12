@@ -38,7 +38,7 @@ void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
     }
     const GeometryComponent &component = *set.get_component_for_read(component_type);
 
-    for (const std::string name : component.attribute_names()) {
+    for (const std::string &name : component.attribute_names()) {
       if (ignored_attributes.contains(name)) {
         continue;
       }
