@@ -264,7 +264,7 @@ void rna_def_mtex_common(struct BlenderRNA *brna,
                          const char *update,
                          const char *update_index);
 void rna_def_texpaint_slots(struct BlenderRNA *brna, struct StructRNA *srna);
-void rna_def_view_layer_common(struct StructRNA *srna, const bool scene);
+void rna_def_view_layer_common(struct BlenderRNA *brna, struct StructRNA *srna, const bool scene);
 
 void rna_def_actionbone_group_common(struct StructRNA *srna,
                                      int update_flag,

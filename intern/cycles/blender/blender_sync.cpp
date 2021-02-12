@@ -697,9 +697,15 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay,
     }
   }
 
-  RNA_BEGIN (&crl, b_aov, "aovs") {
-    bool is_color = (get_enum(b_aov, "type") == 1);
-    string name = get_string(b_aov, "name");
+  BL::ViewLayer::aovs_iterator b_aov_iter;
+  for (b_view_layer.aovs.begin(b_aov_iter); b_aov_iter != b_view_layer.aovs.end(); ++b_aov_iter) {
+    BL::AOV b_aov(*b_aov_iter);
+    if (!b_aov.is_valid()) {
+      continue;
+    }
+
+    string name = b_aov.name();
+    bool is_color = b_aov.type() == BL::AOV::type_COLOR;
 
     if (is_color) {
       b_engine.add_pass(name.c_str(), 4, "RGBA", b_view_layer.name().c_str());
@@ -710,7 +716,6 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay,
       Pass::add(PASS_AOV_VALUE, passes, name.c_str());
     }
   }
-  RNA_END;
 
   scene->film->set_denoising_data_pass(denoising.use || denoising.store_passes);
   scene->film->set_denoising_clean_pass(scene->film->get_denoising_flags() &
