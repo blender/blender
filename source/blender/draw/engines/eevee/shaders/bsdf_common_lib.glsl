@@ -24,6 +24,7 @@ float ior_from_f0(float f0)
   return (-f - 1.0) / (f - 1.0);
 }
 
+/* Simplified form of F_eta(eta, 1.0). */
 float f0_from_ior(float eta)
 {
   float A = (eta - 1.0) / (eta + 1.0);
@@ -56,30 +57,21 @@ float F_eta(float eta, float cos_theta)
    * the refracted direction */
   float c = abs(cos_theta);
   float g = eta * eta - 1.0 + c * c;
-  float result;
-
   if (g > 0.0) {
     g = sqrt(g);
-    vec2 g_c = vec2(g) + vec2(c, -c);
-    float A = g_c.y / g_c.x;
-    A *= A;
-    g_c *= c;
-    float B = (g_c.y - 1.0) / (g_c.x + 1.0);
-    B *= B;
-    result = 0.5 * A * (1.0 + B);
+    float A = (g - c) / (g + c);
+    float B = (c * (g + c) - 1.0) / (c * (g - c) + 1.0);
+    return 0.5 * A * A * (1.0 + B * B);
   }
-  else {
-    result = 1.0; /* TIR (no refracted component) */
-  }
-
-  return result;
+  /* Total internal reflections. */
+  return 1.0;
 }
 
 /* Fresnel color blend base on fresnel factor */
 vec3 F_color_blend(float eta, float fresnel, vec3 f0_color)
 {
-  float f0 = F_eta(eta, 1.0);
-  float fac = saturate((fresnel - f0) / max(1e-8, 1.0 - f0));
+  float f0 = f0_from_ior(eta);
+  float fac = saturate((fresnel - f0) / (1.0 - f0));
   return mix(f0_color, vec3(1.0), fac);
 }
 
