@@ -44,13 +44,11 @@ if(APPLE AND NOT("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64"))
 endif()
 
 if(WIN32)
-  set(OCIO_PATCH opencolorio_win.diff)
   set(OPENCOLORIO_EXTRA_ARGS
     ${OPENCOLORIO_EXTRA_ARGS}
     -DOCIO_INLINES_HIDDEN=OFF
   )
 else()
-  set(OCIO_PATCH opencolorio.diff)
   set(OPENCOLORIO_EXTRA_ARGS
     ${OPENCOLORIO_EXTRA_ARGS}
   )
@@ -61,6 +59,7 @@ ExternalProject_Add(external_opencolorio
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH MD5=${OPENCOLORIO_HASH}
   PREFIX ${BUILD_DIR}/opencolorio
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/opencolorio/src/external_opencolorio < ${PATCH_DIR}/opencolorio.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opencolorio ${DEFAULT_CMAKE_FLAGS} ${OPENCOLORIO_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/opencolorio
 )
