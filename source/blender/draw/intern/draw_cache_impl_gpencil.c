@@ -44,7 +44,7 @@
 #include "draw_cache.h"
 #include "draw_cache_impl.h"
 
-#define BEZIER_HANDLE 1 << 3
+#define BEZIER_HANDLE (1 << 3)
 #define COLOR_SHIFT 5
 
 /* ---------------------------------------------------------------------- */

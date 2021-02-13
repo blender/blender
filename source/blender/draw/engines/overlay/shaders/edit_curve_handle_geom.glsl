@@ -1,7 +1,7 @@
 
 /* Keep the same value of `ACTIVE_NURB` in `draw_cache_imp_curve.c` */
-#define ACTIVE_NURB 1 << 2
-#define EVEN_U_BIT 1 << 4
+#define ACTIVE_NURB (1 << 2)
+#define EVEN_U_BIT (1 << 4)
 #define COLOR_SHIFT 5
 
 /* Keep the same value in `handle_display` in `DNA_view3d_types.h` */

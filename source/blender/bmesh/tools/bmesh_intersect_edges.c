@@ -39,7 +39,7 @@
 
 #define KDOP_TREE_TYPE 4
 #define KDOP_AXIS_LEN 14
-#define BLI_STACK_PAIR_LEN 2 * KDOP_TREE_TYPE
+#define BLI_STACK_PAIR_LEN (2 * KDOP_TREE_TYPE)
 
 /* -------------------------------------------------------------------- */
 /** \name Weld Linked Wire Edges into Linked Faces
