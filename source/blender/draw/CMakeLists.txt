@@ -90,6 +90,7 @@ set(SRC
   engines/eevee/eevee_lights.c
   engines/eevee/eevee_lookdev.c
   engines/eevee/eevee_lut.c
+  engines/eevee/eevee_lut_gen.c
   engines/eevee/eevee_materials.c
   engines/eevee/eevee_mist.c
   engines/eevee/eevee_motion_blur.c

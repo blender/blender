@@ -1518,6 +1518,10 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata);
 /** eevee_engine.c */
 void EEVEE_cache_populate(void *vedata, Object *ob);
 
+/** eevee_lut_gen.c */
+float *EEVEE_lut_update_ggx_brdf(int lut_size);
+float *EEVEE_lut_update_ggx_btdf(int lut_size, int lut_depth);
+
 /* Shadow Matrix */
 static const float texcomat[4][4] = {
     /* From NDC to TexCo */

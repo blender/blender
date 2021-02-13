@@ -6,8 +6,8 @@ void node_bsdf_glass(vec4 color,
                      float roughness,
                      float ior,
                      vec3 N,
-                     float use_multiscatter,
-                     float ssr_id,
+                     const float do_multiscatter,
+                     const float ssr_id,
                      out Closure result)
 {
   CLOSURE_VARS_DECLARE_2(Glossy, Refraction);
@@ -23,11 +23,16 @@ void node_bsdf_glass(vec4 color,
 
   result = CLOSURE_DEFAULT;
 
-  float fresnel = F_eta(in_Refraction_1.ior, dot(in_Glossy_0.N, cameraVec));
+  float NV = dot(in_Refraction_1.N, cameraVec);
 
-  vec2 split_sum = brdf_lut(dot(in_Glossy_0.N, cameraVec), in_Glossy_0.roughness);
-  vec3 brdf = (use_multiscatter != 0.0) ? F_brdf_multi_scatter(vec3(1.0), vec3(1.0), split_sum) :
-                                          F_brdf_single_scatter(vec3(1.0), vec3(1.0), split_sum);
+  float fresnel = (do_multiscatter != 0.0) ?
+                      btdf_lut(NV, in_Refraction_1.roughness, in_Refraction_1.ior).y :
+                      F_eta(in_Refraction_1.ior, NV);
+
+  vec2 split_sum = brdf_lut(NV, in_Glossy_0.roughness);
+  vec3 brdf = (do_multiscatter != 0.0) ? F_brdf_multi_scatter(vec3(1.0), vec3(1.0), split_sum) :
+                                         F_brdf_single_scatter(vec3(1.0), vec3(1.0), split_sum);
+
   out_Glossy_0.radiance = closure_mask_ssr_radiance(out_Glossy_0.radiance, ssr_id);
   out_Glossy_0.radiance *= brdf;
   out_Glossy_0.radiance = render_pass_glossy_mask(vec3(1.0), out_Glossy_0.radiance);
@@ -35,6 +40,10 @@ void node_bsdf_glass(vec4 color,
   closure_load_ssr_data(
       out_Glossy_0.radiance, in_Glossy_0.roughness, in_Glossy_0.N, ssr_id, result);
 
+  float btdf = (do_multiscatter != 0.0) ?
+                   1.0 :
+                   btdf_lut(NV, in_Refraction_1.roughness, in_Refraction_1.ior).x;
+  out_Refraction_1.radiance *= btdf;
   out_Refraction_1.radiance = render_pass_glossy_mask(vec3(1.0), out_Refraction_1.radiance);
   out_Refraction_1.radiance *= color.rgb * (1.0 - fresnel);
   /* Simulate 2nd absorption event. */

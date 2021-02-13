@@ -567,11 +567,8 @@ GPUShader *EEVEE_shaders_effect_maxz_copydepth_sh_get(void)
 GPUShader *EEVEE_shaders_ggx_lut_sh_get(void)
 {
   if (e_data.ggx_lut_sh == NULL) {
-    e_data.ggx_lut_sh = DRW_shader_create_with_shaderlib(datatoc_lightprobe_vert_glsl,
-                                                         datatoc_lightprobe_geom_glsl,
-                                                         datatoc_bsdf_lut_frag_glsl,
-                                                         e_data.lib,
-                                                         "#define HAMMERSLEY_SIZE 8192\n");
+    e_data.ggx_lut_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_bsdf_lut_frag_glsl, e_data.lib, NULL);
   }
   return e_data.ggx_lut_sh;
 }

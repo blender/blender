@@ -40,7 +40,7 @@ ClosureEvalGlossy closure_Glossy_eval_init(inout ClosureInputGlossy cl_in,
   cl_out.radiance = vec3(0.0);
 
   float NV = dot(cl_in.N, cl_common.V);
-  vec2 lut_uv = lut_coords_ltc(NV, cl_in.roughness);
+  vec2 lut_uv = lut_coords(NV, cl_in.roughness);
 
   ClosureEvalGlossy cl_eval;
   cl_eval.ltc_mat = texture(utilTex, vec3(lut_uv, LTC_MAT_LAYER));

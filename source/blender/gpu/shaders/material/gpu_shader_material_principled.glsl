@@ -70,7 +70,6 @@ void node_bsdf_principled(vec4 base_color,
   in_Refraction_3.N = N; /* Normalized during eval. */
   in_Refraction_3.roughness = do_multiscatter != 0.0 ? roughness : transmission_roughness;
   in_Refraction_3.ior = ior;
-  
 
   CLOSURE_EVAL_FUNCTION_4(node_bsdf_principled, Diffuse, Glossy, Glossy, Refraction);
 
@@ -92,9 +91,9 @@ void node_bsdf_principled(vec4 base_color,
 
   vec3 base_color_tint = tint_from_color(base_color.rgb);
 
-  /* TODO(fclem) This isn't good for rough glass using multiscatter (since the fresnel is applied
-   * on each microfacet in cycles). */
-  float fresnel = F_eta(in_Refraction_3.ior, NV);
+  float fresnel = (do_multiscatter != 0.0) ?
+                      btdf_lut(NV, in_Glossy_1.roughness, in_Refraction_3.ior).y :
+                      F_eta(in_Refraction_3.ior, NV);
 
   {
     /* Glossy reflections.
@@ -159,7 +158,11 @@ void node_bsdf_principled(vec4 base_color,
   }
 
   if (transmission > 1e-5) {
+    float btdf = (do_multiscatter != 0.0) ?
+                     1.0 :
+                     btdf_lut(NV, in_Refraction_3.roughness, in_Refraction_3.ior).x;
     /* TODO(fclem) This could be going to a transmission render pass instead. */
+    out_Refraction_3.radiance *= btdf;
     out_Refraction_3.radiance = render_pass_glossy_mask(vec3(1), out_Refraction_3.radiance);
     out_Refraction_3.radiance *= base_color.rgb;
     /* Simulate 2nd transmission event. */

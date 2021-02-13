@@ -9,6 +9,9 @@ uniform float lodFactor;
 uniform float lodMax;
 uniform float intensityFac;
 
+uniform float sampleCount;
+uniform float invSampleCount;
+
 in vec3 worldPosition;
 
 out vec4 FragColor;
@@ -144,7 +147,7 @@ void main()
   float weight = 0.0;
   vec3 out_radiance = vec3(0.0);
   for (float i = 0; i < sampleCount; i++) {
-    vec3 L = sample_hemisphere(i, N, T, B); /* Microfacet normal */
+    vec3 L = sample_hemisphere(i, invSampleCount, N, T, B); /* Microfacet normal */
     float NL = dot(N, L);
 
     if (NL > 0.0) {
