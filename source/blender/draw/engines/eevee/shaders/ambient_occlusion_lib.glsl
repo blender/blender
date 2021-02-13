@@ -191,15 +191,15 @@ void gtao_deferred(
   dirs.xy = get_ao_dir(noise.x * 0.5);
   dirs.zw = get_ao_dir(noise.x * 0.5 + 0.5);
 
-  bent_normal = normal * 1e-8;
-  visibility = 1e-8;
+  bent_normal = vec3(0.0);
+  visibility = 0.0;
 
   horizons = unpack_horizons(horizons);
 
   integrate_slice(normal, dirs.xy, horizons.xy, visibility, bent_normal);
   integrate_slice(normal, dirs.zw, horizons.zw, visibility, bent_normal);
 
-  bent_normal = normalize(bent_normal / visibility);
+  bent_normal = safe_normalize(bent_normal);
 
   visibility *= 0.5; /* We integrated 2 slices. */
 }
@@ -240,13 +240,24 @@ float gtao_multibounce(float visibility, vec3 albedo)
   return max(x, ((x * a + b) * x + c) * x);
 }
 
+float diffuse_occlusion(vec3 N, vec3 vis_cone_dir, float vis_cone_aperture_cos, vec3 albedo)
+{
+  if ((int(aoSettings) & USE_AO) == 0) {
+    return 1.0;
+  }
+  /* If the shading normal is orthogonal to the geometric normal, it should be half lit. */
+  float horizon_fac = saturate(dot(N, vis_cone_dir) * 0.5 + 0.5);
+  float ao = vis_cone_aperture_cos * horizon_fac;
+  return gtao_multibounce(ao, albedo);
+}
+
 float specular_occlusion(float NV, float AO, float roughness)
 {
   return saturate(pow(NV + AO, roughness) - 1.0 + AO);
 }
 
 /* Use the right occlusion  */
-float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec4 rand, out vec3 bent_normal)
+float occlusion_compute(vec3 N, vec3 vpos, vec4 rand, out vec3 bent_normal)
 {
 #ifndef USE_REFRACTION
   if ((int(aoSettings) & USE_AO) != 0) {
@@ -263,10 +274,6 @@ float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec4 rand, out 
     visibility = max(1e-3, visibility);
 
     if ((int(aoSettings) & USE_BENT_NORMAL) != 0) {
-      /* The bent normal will show the facet look of the mesh. Try to minimize this. */
-      float mix_fac = visibility * visibility * visibility;
-      bent_normal = normalize(mix(bent_normal, vnor, mix_fac));
-
       bent_normal = transform_direction(ViewMatrixInverse, bent_normal);
     }
     else {
@@ -276,10 +283,10 @@ float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec4 rand, out 
     /* Scale by user factor */
     visibility = pow(visibility, aoFactor);
 
-    return min(visibility, user_occlusion);
+    return visibility;
   }
 #endif
 
   bent_normal = N;
-  return user_occlusion;
+  return 1.0;
 }

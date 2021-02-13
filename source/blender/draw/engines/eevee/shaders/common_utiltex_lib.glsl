@@ -12,6 +12,13 @@ uniform sampler2DArray utilTex;
 
 #define LUT_SIZE 64
 
+#define LTC_MAT_LAYER 0
+#define LTC_BRDF_LAYER 1
+#define BRDF_LUT_LAYER 1
+#define NOISE_LAYER 2
+#define LTC_DISK_LAYER 3 /* UNUSED */
+/* Layers 4 to 20 are for BTDF Lut. */
+
 /**
  * Reminder: The 4 noise values are based of 3 uncorrelated blue noises:
  * x : Uniformly distributed value [0..1] (noise 1).
@@ -23,6 +30,7 @@ uniform sampler2DArray utilTex;
 /* Return texture coordinates to sample Surface LUT */
 vec2 lut_coords(float cosTheta, float roughness)
 {
+  /* TODO(fclem) Ugly Acos here. Get rid ot this. Should use same mapping as lut_coords_ltc. */
   float theta = acos(cosTheta);
   vec2 coords = vec2(roughness, theta / M_PI_2);
 
@@ -36,6 +44,11 @@ vec2 lut_coords_ltc(float cosTheta, float roughness)
 
   /* scale and bias coordinates, for correct filtered lookup */
   return coords * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
+}
+
+vec2 brdf_lut(float cosTheta, float roughness)
+{
+  return textureLod(utilTex, vec3(lut_coords(cosTheta, roughness), BRDF_LUT_LAYER), 0.0).rg;
 }
 
 float get_btdf_lut(float NV, float roughness, float ior)

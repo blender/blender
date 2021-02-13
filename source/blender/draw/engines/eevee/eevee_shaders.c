@@ -149,7 +149,6 @@ static struct {
   struct GPUShader *volumetric_accum_sh;
 
   /* Shader strings */
-  char *closure_lit_lib;
   char *surface_lit_frag;
   char *surface_prepass_frag;
   char *surface_geom_barycentric;
@@ -191,7 +190,7 @@ extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_lut_frag_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
 extern char datatoc_btdf_lut_frag_glsl[];
-extern char datatoc_closure_lib_glsl[];
+extern char datatoc_closure_type_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_common_utiltex_lib_glsl[];
 extern char datatoc_cryptomatte_frag_glsl[];
@@ -241,7 +240,11 @@ extern char datatoc_lightprobe_planar_downsample_geom_glsl[];
 extern char datatoc_lightprobe_planar_downsample_vert_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_lights_lib_glsl[];
-extern char datatoc_closure_lit_lib_glsl[];
+extern char datatoc_closure_eval_lib_glsl[];
+extern char datatoc_closure_eval_diffuse_lib_glsl[];
+extern char datatoc_closure_eval_glossy_lib_glsl[];
+extern char datatoc_closure_eval_refraction_lib_glsl[];
+extern char datatoc_closure_eval_translucent_lib_glsl[];
 extern char datatoc_ltc_lib_glsl[];
 extern char datatoc_object_motion_frag_glsl[];
 extern char datatoc_object_motion_vert_glsl[];
@@ -296,24 +299,14 @@ static void eevee_shader_library_ensure(void)
     DRW_SHADER_LIB_ADD(e_data.lib, lights_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, surface_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, volumetric_lib);
-    DRW_SHADER_LIB_ADD(e_data.lib, closure_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, ssr_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, effect_dof_lib);
-
-    /* Add one for each Closure */
-    e_data.closure_lit_lib = BLI_string_joinN(datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl,
-                                              datatoc_closure_lit_lib_glsl);
-
-    DRW_shader_library_add_file(e_data.lib, e_data.closure_lit_lib, "closure_lit_lib.glsl");
+    DRW_SHADER_LIB_ADD(e_data.lib, closure_type_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_diffuse_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_glossy_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_translucent_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_refraction_lib);
 
     e_data.surface_lit_frag = DRW_shader_library_create_shader_string(e_data.lib,
                                                                       datatoc_surface_frag_glsl);
@@ -1545,7 +1538,6 @@ struct GPUMaterial *EEVEE_material_get(
 
 void EEVEE_shaders_free(void)
 {
-  MEM_SAFE_FREE(e_data.closure_lit_lib);
   MEM_SAFE_FREE(e_data.surface_prepass_frag);
   MEM_SAFE_FREE(e_data.surface_lit_frag);
   MEM_SAFE_FREE(e_data.surface_geom_barycentric);

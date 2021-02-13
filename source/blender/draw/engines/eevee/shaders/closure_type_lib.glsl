@@ -147,16 +147,26 @@ Closure closure_emission(vec3 rgb)
 
 #ifndef VOLUMETRICS
 
+/* Let radiance passthrough or replace it to get the BRDF and color
+ * to applied to the SSR result. */
+vec3 closure_mask_ssr_radiance(vec3 radiance, float ssr_id)
+{
+  return (ssrToggle && int(ssr_id) == outputSsrId) ? vec3(1.0) : radiance;
+}
+
 void closure_load_ssr_data(
-    vec3 ssr_spec, float roughness, vec3 N, vec3 viewVec, int ssr_id, inout Closure cl)
+    vec3 ssr_radiance, float roughness, vec3 N, float ssr_id, inout Closure cl)
 {
   /* Still encode to avoid artifacts in the SSR pass. */
   vec3 vN = normalize(mat3(ViewMatrix) * N);
-  cl.ssr_normal = normal_encode(vN, viewVec);
+  cl.ssr_normal = normal_encode(vN, viewCameraVec);
 
-  if (ssr_id == outputSsrId) {
-    cl.ssr_data = vec4(ssr_spec, roughness);
+  if (ssrToggle && int(ssr_id) == outputSsrId) {
+    cl.ssr_data = vec4(ssr_radiance, roughness);
     cl.flag |= CLOSURE_SSR_FLAG;
+  }
+  else {
+    cl.radiance += ssr_radiance;
   }
 }
 
@@ -169,13 +179,11 @@ void closure_load_sss_data(
     cl.sss_radius = radius;
     cl.sss_albedo = sss_albedo;
     cl.flag |= CLOSURE_SSS_FLAG;
-    cl.radiance += render_pass_diffuse_mask(sss_albedo, vec3(0));
+    /* Irradiance will be convolved by SSSS pass. Do not add to radiance. */
+    sss_irradiance = vec3(0);
   }
-  else
 #  endif
-  {
-    cl.radiance += render_pass_diffuse_mask(sss_albedo, sss_irradiance * sss_albedo);
-  }
+  cl.radiance += render_pass_diffuse_mask(vec3(1), sss_irradiance) * sss_albedo;
 }
 
 #endif

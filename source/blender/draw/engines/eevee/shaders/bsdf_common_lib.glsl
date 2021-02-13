@@ -1,6 +1,15 @@
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
+vec3 diffuse_dominant_dir(vec3 N, vec3 vis_cone_dir, float vis_cone_aperture_cos)
+{
+  /* TODO(fclem) revisit this. bent too much towards vis_cone_dir. */
+  vis_cone_aperture_cos *= sqr(vis_cone_aperture_cos);
+
+  N = mix(vis_cone_dir, N, vis_cone_aperture_cos);
+  return normalize(N);
+}
+
 vec3 specular_dominant_dir(vec3 N, vec3 V, float roughness)
 {
   vec3 R = -reflect(V, N);
@@ -79,7 +88,7 @@ vec3 F_brdf_single_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
   /* Unreal specular matching : if specular color is below 2% intensity,
    * treat as shadowning */
-  return saturate(50.0 * dot(f0, vec3(0.3, 0.6, 0.1))) * lut.y * abs(f90) + lut.x * f0;
+  return lut.y * f90 + lut.x * f0;
 }
 
 /* Multi-scattering brdf approximation from :
@@ -87,11 +96,7 @@ vec3 F_brdf_single_scatter(vec3 f0, vec3 f90, vec2 lut)
  * by Carmelo J. Fdez-Agüera. */
 vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
-  vec3 FssEss = F_brdf_single_scatter(f0, f90, lut);
-  /* Hack to avoid many more shader variations. */
-  if (f90.g < 0.0) {
-    return FssEss;
-  }
+  vec3 FssEss = lut.y * f90 + lut.x * f0;
 
   float Ess = lut.x + lut.y;
   float Ems = 1.0 - Ess;
@@ -101,8 +106,6 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
    * does not care about energy conservation of the specular layer for dielectrics. */
   return FssEss + Fms * Ems;
 }
-
-#define F_brdf(f0, f90, lut) F_brdf_multi_scatter(f0, f90, lut)
 
 /* GGX */
 float D_ggx_opti(float NH, float a2)

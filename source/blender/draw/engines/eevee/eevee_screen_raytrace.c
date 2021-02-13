@@ -191,6 +191,12 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     DRW_shgroup_uniform_texture_ref(grp, "hitBuffer", &effects->ssr_hit_output);
     DRW_shgroup_uniform_texture_ref(grp, "pdfBuffer", &effects->ssr_pdf_output);
     DRW_shgroup_uniform_texture_ref(grp, "prevColorBuffer", &txl->color_double_buffer);
+    DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
+    DRW_shgroup_uniform_texture_ref(grp, "shadowCubeTexture", &sldata->shadow_cube_pool);
+    DRW_shgroup_uniform_texture_ref(grp, "shadowCascadeTexture", &sldata->shadow_cascade_pool);
+    DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+    DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+    DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
     DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
     DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
     DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
@@ -198,7 +204,6 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
     DRW_shgroup_uniform_int(grp, "neighborOffset", &effects->ssr_neighbor_ofs, 1);
     if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
-      DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
       DRW_shgroup_uniform_texture_ref(grp, "horizonBuffer", &effects->gtao_horizons);
     }
 

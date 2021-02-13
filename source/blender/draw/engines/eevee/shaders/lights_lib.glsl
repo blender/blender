@@ -252,32 +252,29 @@ float light_attenuation(LightData ld, vec4 l_vector)
   return vis;
 }
 
-float light_shadowing(LightData ld,
-                      vec3 W,
-#ifndef VOLUMETRICS
-                      vec3 viewPosition,
-                      float tracing_depth,
-                      vec3 true_normal,
-                      float rand_x,
-                      const bool use_contact_shadows,
-#endif
-                      float vis)
+float light_shadowing(LightData ld, vec3 W, float vis)
 {
 #if !defined(VOLUMETRICS) || defined(VOLUME_SHADOW)
-  /* shadowing */
   if (ld.l_shadowid >= 0.0 && vis > 0.001) {
-
     if (ld.l_type == SUN) {
       vis *= sample_cascade_shadow(int(ld.l_shadowid), W);
     }
     else {
       vis *= sample_cube_shadow(int(ld.l_shadowid), W);
     }
+  }
+#endif
+  return vis;
+}
 
-#  ifndef VOLUMETRICS
+#ifndef VOLUMETRICS
+float light_contact_shadows(
+    LightData ld, vec3 P, vec3 vP, float tracing_depth, vec3 vNg, float rand_x, float vis)
+{
+  if (ld.l_shadowid >= 0.0 && vis > 0.001) {
     ShadowData sd = shadows_data[int(ld.l_shadowid)];
     /* Only compute if not already in shadow. */
-    if (use_contact_shadows && sd.sh_contact_dist > 0.0 && vis > 1e-8) {
+    if (sd.sh_contact_dist > 0.0) {
       /* Contact Shadows. */
       vec3 ray_ori, ray_dir;
       float trace_distance;
@@ -287,54 +284,34 @@ float light_shadowing(LightData ld,
         ray_dir = shadows_cascade_data[int(sd.sh_data_index)].sh_shadow_vec * trace_distance;
       }
       else {
-        ray_dir = shadows_cube_data[int(sd.sh_data_index)].position.xyz - W;
+        ray_dir = shadows_cube_data[int(sd.sh_data_index)].position.xyz - P;
         float len = length(ray_dir);
         trace_distance = min(sd.sh_contact_dist, len);
         ray_dir *= trace_distance / len;
       }
 
       ray_dir = transform_direction(ViewMatrix, ray_dir);
-      ray_ori = vec3(viewPosition.xy, tracing_depth) + true_normal * sd.sh_contact_offset;
+      ray_ori = vec3(vP.xy, tracing_depth) + vNg * sd.sh_contact_offset;
 
       vec3 hit_pos = raycast(
           -1, ray_ori, ray_dir, sd.sh_contact_thickness, rand_x, 0.1, 0.001, false);
 
       if (hit_pos.z > 0.0) {
         hit_pos = get_view_space_from_depth(hit_pos.xy, hit_pos.z);
-        float hit_dist = distance(viewPosition, hit_pos);
+        float hit_dist = distance(vP, hit_pos);
         float dist_ratio = hit_dist / trace_distance;
-        return vis * saturate(dist_ratio * 3.0 - 2.0);
+        return saturate(dist_ratio * 3.0 - 2.0);
       }
     }
-#  endif /* VOLUMETRICS */
   }
-#endif
-
-  return vis;
+  return 1.0;
 }
+#endif /* VOLUMETRICS */
 
-float light_visibility(LightData ld,
-                       vec3 W,
-#ifndef VOLUMETRICS
-                       vec3 viewPosition,
-                       float tracing_depth,
-                       vec3 true_normal,
-                       float rand_x,
-                       const bool use_contact_shadows,
-#endif
-                       vec4 l_vector)
+float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 {
   float l_atten = light_attenuation(ld, l_vector);
-  return light_shadowing(ld,
-                         W,
-#ifndef VOLUMETRICS
-                         viewPosition,
-                         tracing_depth,
-                         true_normal,
-                         rand_x,
-                         use_contact_shadows,
-#endif
-                         l_atten);
+  return light_shadowing(ld, W, l_atten);
 }
 
 float light_diffuse(LightData ld, vec3 N, vec3 V, vec4 l_vector)
