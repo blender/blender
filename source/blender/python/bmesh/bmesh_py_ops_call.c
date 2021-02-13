@@ -184,7 +184,7 @@ static int bpy_slot_from_py(BMesh *bm,
       if (slot->slot_subtype.intg == BMO_OP_SLOT_SUBTYPE_INT_ENUM) {
         int enum_val = -1;
         PyC_FlagSet *items = (PyC_FlagSet *)slot->data.enum_data.flags;
-        const char *enum_str = _PyUnicode_AsString(value);
+        const char *enum_str = PyUnicode_AsUTF8(value);
 
         if (enum_str == NULL) {
           PyErr_Format(PyExc_TypeError,
@@ -787,7 +787,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
     PyObject *key, *value;
     Py_ssize_t pos = 0;
     while (PyDict_Next(kw, &pos, &key, &value)) {
-      const char *slot_name = _PyUnicode_AsString(key);
+      const char *slot_name = PyUnicode_AsUTF8(key);
       BMOpSlot *slot;
 
       if (!BMO_slot_exists(bmop.slots_in, slot_name)) {

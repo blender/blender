@@ -245,7 +245,7 @@ static PyTypeObject bmesh_op_Type = {
 
 static PyObject *bpy_bmesh_ops_module_getattro(PyObject *UNUSED(self), PyObject *pyname)
 {
-  const char *opname = _PyUnicode_AsString(pyname);
+  const char *opname = PyUnicode_AsUTF8(pyname);
 
   if (BMO_opcode_from_opname(opname) != -1) {
     return bpy_bmesh_op_CreatePyObject(opname);

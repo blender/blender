@@ -670,7 +670,7 @@ static int Euler_order_set(EulerObject *self, PyObject *value, void *UNUSED(clos
     return -1;
   }
 
-  if (((order_str = _PyUnicode_AsString(value)) == NULL) ||
+  if (((order_str = PyUnicode_AsUTF8(value)) == NULL) ||
       ((order = euler_order_from_string(order_str, "euler.order")) == -1)) {
     return -1;
   }

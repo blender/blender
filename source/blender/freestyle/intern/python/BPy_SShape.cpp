@@ -201,7 +201,7 @@ static int SShape_name_set(BPy_SShape *self, PyObject *value, void *UNUSED(closu
     PyErr_SetString(PyExc_TypeError, "value must be a string");
     return -1;
   }
-  const char *name = _PyUnicode_AsString(value);
+  const char *name = PyUnicode_AsUTF8(value);
   self->ss->setName(name);
   return 0;
 }

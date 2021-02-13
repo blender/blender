@@ -64,7 +64,7 @@ bool bpygpu_is_init_or_error(void)
 int bpygpu_ParsePrimType(PyObject *o, void *p)
 {
   Py_ssize_t mode_id_len;
-  const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
+  const char *mode_id = PyUnicode_AsUTF8AndSize(o, &mode_id_len);
   if (mode_id == NULL) {
     PyErr_Format(PyExc_ValueError, "expected a string, got %s", Py_TYPE(o)->tp_name);
     return 0;
