@@ -4,7 +4,7 @@ layout(triangle_strip, max_vertices = 4) out;
 
 in vec4 finalColor[2];
 in vec4 finalColorOuter[2];
-in int selectOveride[2];
+in int selectOverride[2];
 
 flat out vec4 finalColorOuter_f;
 out vec4 finalColor_f;
@@ -80,7 +80,7 @@ void main()
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
 #endif
-  vec4 final_color = (selectOveride[0] == 0) ? finalColor[1] : finalColor[0];
+  vec4 final_color = (selectOverride[0] == 0) ? finalColor[1] : finalColor[0];
   do_vertex(final_color, pos1, half_size, edge_ofs.xy);
   do_vertex(final_color, pos1, -half_size, -edge_ofs.xy);
 
