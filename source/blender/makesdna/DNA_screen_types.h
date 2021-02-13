@@ -285,7 +285,7 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   /** Defined as UI_MAX_NAME_STR. */
   char list_id[64];
 
-  /** How items are layedout in the list. */
+  /** How items are laid out in the list. */
   int layout_type;
   int flag;
 
@@ -319,7 +319,7 @@ typedef struct TransformOrientation {
 typedef struct uiPreview {
   struct uiPreview *next, *prev;
 
-  /** Defined as UI_MAX_NAME_STR. */
+  /** Defined as #UI_MAX_NAME_STR. */
   char preview_id[64];
   short height;
   char _pad1[6];
@@ -360,7 +360,7 @@ typedef struct ScrArea_Runtime {
 typedef struct ScrArea {
   struct ScrArea *next, *prev;
 
-  /** Ordered (bl, tl, tr, br). */
+  /** Ordered (bottom-left, top-left, top-right, bottom-right). */
   ScrVert *v1, *v2, *v3, *v4;
   /** If area==full, this is the parent. */
   bScreen *full;

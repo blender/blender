@@ -1226,7 +1226,7 @@ typedef struct NodeAttributeSeparateXYZ {
 /* script node flag */
 #define NODE_SCRIPT_AUTO_UPDATE 1
 
-/* ies node mode */
+/* IES node mode. */
 #define NODE_IES_INTERNAL 0
 #define NODE_IES_EXTERNAL 1
 
@@ -1550,7 +1550,7 @@ enum {
 /* image */
 #define CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT 1
 
-/* viewer and cmposite output */
+/* viewer and composite output. */
 #define CMP_NODE_OUTPUT_IGNORE_ALPHA 1
 
 /* Plane track deform node */

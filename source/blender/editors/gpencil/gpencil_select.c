@@ -645,7 +645,7 @@ static bool gpencil_select_same_material(bContext *C)
     CTX_DATA_END;
   }
 
-  /* free memomy */
+  /* Free memory. */
   if (selected_colors != NULL) {
     BLI_gset_free(selected_colors, NULL);
   }

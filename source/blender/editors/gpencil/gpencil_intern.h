@@ -341,7 +341,7 @@ bool gpencil_brush_create_presets_poll(bContext *C);
 
 extern ListBase gpencil_strokes_copypastebuf;
 
-/* Build a map for converting between old colornames and destination-color-refs */
+/* Build a map for converting between old color-names and destination-color-refs. */
 struct GHash *gpencil_copybuf_validate_colormap(struct bContext *C);
 
 /* Stroke Editing ------------------------------------ */

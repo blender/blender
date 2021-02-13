@@ -75,7 +75,7 @@
 #  include "BKE_writeffmpeg.h"
 #endif
 
-#include "IMB_imbuf.h" /* for proxy / timecode versioning stuff */
+#include "IMB_imbuf.h" /* for proxy / time-code versioning stuff. */
 
 #include "NOD_common.h"
 #include "NOD_texture.h"

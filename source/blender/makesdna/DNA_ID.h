@@ -467,7 +467,7 @@ typedef struct PreviewImage {
   } \
   ((void)0)
 
-/** id->flag (persitent). */
+/** id->flag (persistent). */
 enum {
   /** Don't delete the datablock even if unused. */
   LIB_FAKEUSER = 1 << 9,
@@ -534,7 +534,7 @@ enum {
 
   /* tag data-block as having an extra user. */
   LIB_TAG_EXTRAUSER = 1 << 2,
-  /* tag data-block as having actually increased usercount for the extra virtual user. */
+  /* tag data-block as having actually increased user-count for the extra virtual user. */
   LIB_TAG_EXTRAUSER_SET = 1 << 7,
 
   /* RESET_AFTER_USE tag newly duplicated/copied IDs.

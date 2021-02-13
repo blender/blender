@@ -156,7 +156,7 @@ typedef struct MovieClipScopes {
   struct MovieTrackingTrack *track;
   /** Marker scopes are created for. */
   struct MovieTrackingMarker *marker;
-  /** Scale used for sliding from previewe area. */
+  /** Scale used for sliding from preview area. */
   float slide_scale[2];
 } MovieClipScopes;
 

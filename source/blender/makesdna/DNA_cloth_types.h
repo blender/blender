@@ -52,7 +52,7 @@ typedef struct ClothSimSettings {
   float Cvi;
   /** Gravity/external force vector. */
   float gravity[3];
-  /** This is the duration of our time step, computed..   */
+  /** This is the duration of our time step, computed. */
   float dt;
   /** The mass of the entire cloth. */
   float mass;
@@ -78,9 +78,9 @@ typedef struct ClothSimSettings {
   float time_scale;
   /** See SB. */
   float maxgoal;
-  /** Scaling of effector forces (see softbody_calc_forces)..*/
+  /** Scaling of effector forces (see #softbody_calc_forces). */
   float eff_force_scale;
-  /** Scaling of effector wind (see softbody_calc_forces)..   */
+  /** Scaling of effector wind (see #softbody_calc_forces). */
   float eff_wind_scale;
   float sim_time_old;
   float defgoal;

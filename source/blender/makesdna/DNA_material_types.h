@@ -45,11 +45,11 @@ struct bNodeTree;
 typedef struct TexPaintSlot {
   /** Image to be painted on. */
   struct Image *ima;
-  /** Customdata index for uv layer, MAX_NAM.E*/
+  /** Custom-data index for uv layer, #MAX_NAME. */
   char *uvname;
   /** Do we have a valid image and UV map. */
   int valid;
-  /** Copy of node inteporlation setting. */
+  /** Copy of node interpolation setting. */
   int interp;
 } TexPaintSlot;
 

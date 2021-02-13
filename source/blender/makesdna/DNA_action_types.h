@@ -290,13 +290,13 @@ typedef struct bPoseChannel {
   /** Matrix result of loc/quat/size, and where we put deform in, see next line */
   float chan_mat[4][4];
   /**
-   * Constraints accumulate here. in the end, pose_mat = bone->arm_mat * chan_mat
+   * Constraints accumulate here. in the end, `pose_mat = bone->arm_mat * chan_mat`
    * this matrix is object space.
    */
   float pose_mat[4][4];
   /** For display, pose_mat with bone length applied. */
   float disp_mat[4][4];
-  /** For display, pose_mat with bone length applied and translated to tai.l*/
+  /** For display, pose_mat with bone length applied and translated to tail. */
   float disp_tail_mat[4][4];
   /**
    * Inverse result of constraints.
@@ -653,7 +653,7 @@ typedef enum eActionGroup_Flag {
  * that affects a group of related settings (as defined by the user).
  */
 typedef struct bAction {
-  /** ID-serialisation for relinking. */
+  /** ID-serialization for relinking. */
   ID id;
 
   /** Function-curves (FCurve). */

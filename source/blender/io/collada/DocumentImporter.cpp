@@ -657,7 +657,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
       }
     }
 
-    /* XXX: if there're multiple instances, only one is stored */
+    /* XXX: if there are multiple instances, only one is stored. */
 
     if (!ob) {
       goto finally;

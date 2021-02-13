@@ -2022,7 +2022,7 @@ static void gpencil_brush_delete_mode_brushes(Main *bmain,
       }
     }
 
-    /* Before delete, unpinn any material of the brush. */
+    /* Before delete, un-pin any material of the brush. */
     if ((brush->gpencil_settings) && (brush->gpencil_settings->material != NULL)) {
       brush->gpencil_settings->material = NULL;
       brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;

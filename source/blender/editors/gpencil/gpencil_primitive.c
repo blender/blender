@@ -1276,7 +1276,7 @@ static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *
   /* set cursor to indicate modal */
   WM_cursor_modal_set(win, WM_CURSOR_CROSS);
 
-  /* update sindicator in header */
+  /* Updates indicator in header. */
   gpencil_primitive_status_indicators(C, tgpi);
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);

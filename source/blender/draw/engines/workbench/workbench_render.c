@@ -54,7 +54,7 @@ static void workbench_render_matrices_init(RenderEngine *engine, Depsgraph *deps
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
   struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
 
-  /* Set the persective, view and window matrix. */
+  /* Set the perspective, view and window matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
 
   RE_GetCameraWindow(engine->re, ob_camera_eval, winmat);

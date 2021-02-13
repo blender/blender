@@ -1100,33 +1100,33 @@ typedef struct GP_Sculpt_Settings {
   struct GP_Sculpt_Guide guide;
 } GP_Sculpt_Settings;
 
-/* GP_Sculpt_Settings.flag */
+/** #GP_Sculpt_Settings.flag */
 typedef enum eGP_Sculpt_SettingsFlag {
-  /* enable falloff for multiframe editing */
+  /** Enable falloff for multi-frame editing. */
   GP_SCULPT_SETT_FLAG_FRAME_FALLOFF = (1 << 0),
-  /* apply primitive curve */
+  /** Apply primitive curve. */
   GP_SCULPT_SETT_FLAG_PRIMITIVE_CURVE = (1 << 1),
-  /* Scale thickness. */
+  /** Scale thickness. */
   GP_SCULPT_SETT_FLAG_SCALE_THICKNESS = (1 << 3),
 } eGP_Sculpt_SettingsFlag;
 
-/* GP_Sculpt_Settings.gpencil_selectmode_sculpt */
+/** #GP_Sculpt_Settings.gpencil_selectmode_sculpt */
 typedef enum eGP_Sculpt_SelectMaskFlag {
-  /* only affect selected points */
+  /** Only affect selected points. */
   GP_SCULPT_MASK_SELECTMODE_POINT = (1 << 0),
-  /* only affect selected strokes */
+  /** Only affect selected strokes. */
   GP_SCULPT_MASK_SELECTMODE_STROKE = (1 << 1),
-  /* only affect selected segmenst */
+  /** only affect selected segments. */
   GP_SCULPT_MASK_SELECTMODE_SEGMENT = (1 << 2),
 } eGP_Sculpt_SelectMaskFlag;
 
-/* GP_Sculpt_Settings.gpencil_selectmode_vertex */
+/** #GP_Sculpt_Settings.gpencil_selectmode_vertex */
 typedef enum eGP_vertex_SelectMaskFlag {
-  /* only affect selected points */
+  /** Only affect selected points. */
   GP_VERTEX_MASK_SELECTMODE_POINT = (1 << 0),
-  /* only affect selected strokes */
+  /** Only affect selected strokes. */
   GP_VERTEX_MASK_SELECTMODE_STROKE = (1 << 1),
-  /* only affect selected segmenst */
+  /** Only affect selected segments. */
   GP_VERTEX_MASK_SELECTMODE_SEGMENT = (1 << 2),
 } eGP_Vertex_SelectMaskFlag;
 

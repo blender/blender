@@ -2001,7 +2001,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
                            "Explicitly scale resulting frame to compensate zoom of original shot");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_tracking_flushUpdate");
 
-  /* autoscale */
+  /* Auto-scale. */
   prop = RNA_def_property(srna, "use_autoscale", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_AUTOSCALE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

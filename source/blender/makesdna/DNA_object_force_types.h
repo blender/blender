@@ -310,7 +310,7 @@ typedef struct SoftBody {
   struct Collection *collision_group;
 
   struct EffectorWeights *effector_weights;
-  /* reverse esimated obmatrix .. no need to store in blend file .. how ever who cares */
+  /* Reverse estimated object-matrix (run-time data, no need to store in the file). */
   float lcom[3];
   float lrot[3][3];
   float lscale[3][3];

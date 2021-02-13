@@ -6485,7 +6485,7 @@ static void do_tiled(
     }
   }
 
-  /* First do the "untiled" position to initialize the stroke for this location. */
+  /* First do the "un-tiled" position to initialize the stroke for this location. */
   cache->tile_pass = 0;
   action(sd, ob, brush, ups);
 
@@ -9706,7 +9706,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   copy_m4_m4(cd->gizmo_mat, cursor_trans);
   mul_m4_m4_post(cd->gizmo_mat, cursor_rot);
 
-  /* Initize the position of the triangle vertices. */
+  /* Initialize the position of the triangle vertices. */
   const float y_axis[3] = {0.0f, cd->radius, 0.0f};
   for (int i = 0; i < 3; i++) {
     zero_v3(cd->preview_tri[i]);

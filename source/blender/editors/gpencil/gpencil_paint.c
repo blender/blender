@@ -149,9 +149,9 @@ typedef struct tGPsdata {
   Scene *scene;
   struct Depsgraph *depsgraph;
 
-  /** current object. */
+  /** Current object. */
   Object *ob;
-  /** Obeject eval. */
+  /** Evaluated object. */
   Object *ob_eval;
   /** window where painting originated. */
   wmWindow *win;

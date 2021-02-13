@@ -401,7 +401,7 @@ static void outliner_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_i
 
   /* Some early out checks. */
   if (!TREESTORE_ID_TYPE(old_id)) {
-    return; /* ID type is not used by outilner... */
+    return; /* ID type is not used by outliner. */
   }
 
   if (space_outliner->search_tse.id == old_id) {

@@ -242,7 +242,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     WM_gizmo_target_property_def_rna_ptr(widget, gz_prop_type, &camera_ptr, prop, -1);
   }
 
-  /* This could be handled more elegently (split into two gizmo groups). */
+  /* This could be handled more elegantly (split into two gizmo groups). */
   if ((v3d->gizmo_show_camera & V3D_GIZMO_SHOW_CAMERA_LENS) == 0) {
     WM_gizmo_set_flag(cagzgroup->focal_len, WM_GIZMO_HIDDEN, true);
     WM_gizmo_set_flag(cagzgroup->ortho_scale, WM_GIZMO_HIDDEN, true);
