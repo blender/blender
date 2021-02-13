@@ -142,7 +142,7 @@ static void eevee_init_noise_texture(void)
   e_data.noise_tex = DRW_texture_create_2d(64, 64, GPU_RGBA16F, 0, (float *)blue_noise);
 }
 
-#define RUNTIME_LUT_CREATION 1
+#define RUNTIME_LUT_CREATION 0
 
 static void eevee_init_util_texture(void)
 {
