@@ -1040,8 +1040,10 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
     pinfo->padding_size *= pinfo->texel_size;
     pinfo->layer = probe_idx * 6;
     pinfo->roughness = i / (float)maxlevel;
-    pinfo->roughness *= pinfo->roughness;     /* Disney Roughness */
-    pinfo->roughness *= pinfo->roughness;     /* Distribute Roughness across lod more evenly. */
+    /* Disney Roughness */
+    pinfo->roughness = square_f(pinfo->roughness);
+    /* Distribute Roughness across lod more evenly */
+    pinfo->roughness = square_f(square_f(pinfo->roughness));
     CLAMP(pinfo->roughness, 1e-8f, 0.99999f); /* Avoid artifacts */
 
 #if 1 /* Variable Sample count and bias (fast) */

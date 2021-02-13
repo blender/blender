@@ -185,7 +185,7 @@ typedef struct LightCache {
 } LightCache;
 
 /* Bump the version number for lightcache data structure changes. */
-#define LIGHTCACHE_STATIC_VERSION 1
+#define LIGHTCACHE_STATIC_VERSION 2
 
 /* LightCache->type */
 enum {
