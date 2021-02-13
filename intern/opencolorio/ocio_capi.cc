@@ -210,7 +210,7 @@ void OCIO_cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor, OCIO_Pac
 }
 
 void OCIO_cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
-                                   OCIO_PackedImageDesc *img)
+                                      OCIO_PackedImageDesc *img)
 {
   impl->cpuProcessorApply_predivide(cpu_processor, img);
 }
