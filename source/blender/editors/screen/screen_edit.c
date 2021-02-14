@@ -1556,7 +1556,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
   /* Seek audio to ensure playback in preview range with AV sync. */
   DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
 
-  /* notifier catched by top header, for button */
+  /* Notifier caught by top header, for button. */
   WM_event_add_notifier(C, NC_SCREEN | ND_ANIMPLAY, NULL);
 }
 

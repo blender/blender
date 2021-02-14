@@ -2378,7 +2378,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob;
     bActionStrip *strip;
 
-    /* nla-strips - scale */
+    /* NLA-strips - scale. */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       for (strip = ob->nlastrips.first; strip; strip = strip->next) {
         float length, actlength, repeat;

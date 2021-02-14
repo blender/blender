@@ -276,7 +276,7 @@ BLI_INLINE float wval_exclusion(float weight, float paintval, float fac)
 /**
  * \param weight: Typically the current weight: #MDeformWeight.weight
  *
- * \return The final weight, not that this is _not_ clamped from [0-1].
+ * \return The final weight, note that this is _not_ clamped from [0-1].
  * Clamping must be done on the final #MDeformWeight.weight
  *
  * \note vertex-paint has an equivalent function: #ED_vpaint_blend_tool

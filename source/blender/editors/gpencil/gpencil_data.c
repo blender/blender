@@ -1589,7 +1589,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
                 continue;
               }
             }
-            /* some stroke is already at botom */
+            /* Some stroke is already at bottom. */
             if (ELEM(direction, GP_STROKE_MOVE_BOTTOM, GP_STROKE_MOVE_DOWN)) {
               if (gps == gpf->strokes.first) {
                 gpf_lock = true;

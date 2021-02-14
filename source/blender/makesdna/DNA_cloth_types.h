@@ -104,16 +104,19 @@ typedef struct ClothSimSettings {
   float shrink_max;
 
   /* Air pressure */
-  /* The uniform pressure that is constanty applied to the mesh. Can be negative */
+  /** The uniform pressure that is constantly applied to the mesh. Can be negative. */
   float uniform_pressure_force;
-  /* User set volume. This is the volume the mesh wants to expand to (the equilibrium volume). */
+  /** User set volume. This is the volume the mesh wants to expand to (the equilibrium volume). */
   float target_volume;
-  /* The scaling factor to apply to the actual pressure.
-   * pressure=( (current_volume/target_volume) - 1 + uniform_pressure_force) *
-   * pressure_factor */
+  /**
+   * The scaling factor to apply to the actual pressure.
+   * `pressure = ((current_volume/target_volume) - 1 + uniform_pressure_force) * pressure_factor`
+   */
   float pressure_factor;
-  /* Density of the fluid inside or outside the object for use in the hydrostatic pressure
-   * gradient. */
+  /**
+   * Density of the fluid inside or outside the object
+   * for use in the hydro-static pressure gradient.
+   */
   float fluid_density;
   short vgroup_pressure;
   char _pad7[6];
@@ -168,7 +171,7 @@ typedef struct ClothSimSettings {
 
   /** The maximum length an internal spring can have during creation. */
   float internal_spring_max_length;
-  /** How much the interal spring can diverge from the vertex normal during creation. */
+  /** How much the internal spring can diverge from the vertex normal during creation. */
   float internal_spring_max_diversion;
   /** Vertex group for scaling structural stiffness. */
   short vgroup_intern;

@@ -1721,7 +1721,7 @@ typedef enum eRemeshModifierMode {
 typedef struct RemeshModifierData {
   ModifierData modifier;
 
-  /* floodfill option, controls how small components can be before they are removed */
+  /** Flood-fill option, controls how small components can be before they are removed. */
   float threshold;
 
   /* ratio between size of model and grid */

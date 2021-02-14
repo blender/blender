@@ -1854,7 +1854,7 @@ void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
       ID_EXTRA_USERS(ob) == 0) {
     /* We cannot delete indirectly used object... */
     printf(
-        "WARNING, undeletable object '%s', should have been catched before reaching this "
+        "WARNING, undeletable object '%s', should have been caught before reaching this "
         "function!",
         ob->id.name + 2);
     return;

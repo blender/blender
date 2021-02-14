@@ -312,7 +312,7 @@ typedef enum eRigidBodyCon_Type {
   RBC_TYPE_HINGE = 1,
   /** simulates wheel suspension */
   /* RBC_TYPE_HINGE2 = 2, */ /* UNUSED */
-  /** restricts movent to a specified axis */
+  /** Restricts moment to a specified axis. */
   RBC_TYPE_SLIDER = 3,
   /** lets object rotate within a specified cone */
   /* RBC_TYPE_CONE_TWIST = 4, */ /* UNUSED */
@@ -329,7 +329,7 @@ typedef enum eRigidBodyCon_Type {
   /** Simplified spring constraint with only once axis that's
    * automatically placed between the connected bodies */
   /* RBC_TYPE_SPRING = 10, */ /* UNUSED */
-  /** dirves bodies by applying linear and angular forces */
+  /** Drives bodies by applying linear and angular forces. */
   RBC_TYPE_MOTOR = 11,
 } eRigidBodyCon_Type;
 

@@ -1877,7 +1877,7 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
     BKE_brush_gpencil_paint_presets(bmain, ts, true);
     changed = true;
   }
-  /* Be sure curves are initializated. */
+  /* Be sure curves are initialized. */
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_sensitivity);
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_strength);
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_jitter);
@@ -1888,7 +1888,7 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_rand_saturation);
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_rand_value);
 
-  /* assign to temp tGPsdata */
+  /* Assign to temp #tGPsdata */
   p->brush = paint->brush;
   if (paint->brush->gpencil_tool != GPAINT_TOOL_ERASE) {
     p->eraser = gpencil_get_default_eraser(p->bmain, ts);

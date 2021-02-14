@@ -1111,7 +1111,7 @@ static void gpencil_add_move_points(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gp
       BKE_gpencil_stroke_geometry_update(gpd, gps);
       BKE_gpencil_stroke_geometry_update(gpd, gps_new);
 
-      /* deselect orinal point */
+      /* Deselect original point. */
       pt->flag &= ~GP_SPOINT_SELECT;
     }
   }
@@ -1241,7 +1241,7 @@ static void gpencil_curve_extrude_points(bGPdata *gpd,
     }
   }
 
-  /* Edgcase for single curve point. */
+  /* Edge-case for single curve point. */
   if (gpc->tot_curve_points == 1) {
     last_select = false;
   }
@@ -1331,7 +1331,7 @@ static int gpencil_extrude_exec(bContext *C, wmOperator *op)
 
           changed = true;
         }
-        /* if not multiedit, exit loop*/
+        /* If not multi-edit, exit loop. */
         if (!is_multiedit) {
           break;
         }
@@ -1379,8 +1379,11 @@ void GPENCIL_OT_extrude(wmOperatorType *ot)
  *   from several different layers into a single layer.
  * \{ */
 
-/* list of bGPDstroke instances */
-/* NOTE: is exposed within the editors/gpencil module so that other tools can use it too */
+/**
+ * list of #bGPDstroke instances
+ *
+ * \note is exposed within the editors/gpencil module so that other tools can use it too.
+ */
 ListBase gpencil_strokes_copypastebuf = {NULL, NULL};
 
 /* Hash for hanging on to all the colors used by strokes in the buffer

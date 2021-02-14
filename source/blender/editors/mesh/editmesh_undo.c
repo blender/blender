@@ -565,7 +565,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
                                  ((LinkData *)um_arraystore.local_links.last)->data :
                                  NULL;
 
-    /* add oursrlves */
+    /* Add ourselves. */
     BLI_addtail(&um_arraystore.local_links, BLI_genericNodeN(um));
 
 #  ifdef USE_ARRAY_STORE_THREAD

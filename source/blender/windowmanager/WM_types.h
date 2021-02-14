@@ -549,7 +549,7 @@ typedef struct wmEvent {
 
   /** Event code itself (short, is also in keymap). */
   short type;
-  /** Press, release, scrollvalue. */
+  /** Press, release, scroll-value. */
   short val;
   /** Mouse pointer position, screen coord. */
   int x, y;

@@ -1146,7 +1146,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   PlayState ps = {0};
 
-  /* ps.doubleb   = true;*/ /* UNUSED */
   ps.go = true;
   ps.direction = true;
   ps.next_frame = 1;
@@ -1162,7 +1161,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   ps.indicator = false;
   ps.dropped_file[0] = 0;
   ps.zoom = 1.0f;
-  /* resetmap = false */
   ps.draw_flip[0] = false;
   ps.draw_flip[1] = false;
 
@@ -1423,7 +1421,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
 
 #ifdef USE_FRAME_CACHE_LIMIT
-        /* really basic memory conservation scheme. Keep frames in a fifo queue */
+        /* Really basic memory conservation scheme. Keep frames in a FIFO queue. */
         node = inmempicsbase.last;
 
         while (node && added_images > PLAY_FRAME_CACHE_MAX) {

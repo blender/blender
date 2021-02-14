@@ -224,7 +224,7 @@ typedef struct SoftBody {
    * rather find them by name tag to find it -> jow20090613.
    * MAX_VGROUP_NAME */
   char namedVG_Mass[64];
-  /** Softbody amount of gravitaion to apply. */
+  /** Softbody amount of gravitation to apply. */
   float grav;
   /** Friction to env. */
   float mediafrict;

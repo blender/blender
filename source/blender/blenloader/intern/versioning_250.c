@@ -412,7 +412,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 
     area_add_window_regions(area, area->spacedata.first, &area->regionbase);
 
-    /* space imageselect is deprecated */
+    /* Space image-select is deprecated. */
     for (sl = area->spacedata.first; sl; sl = sl->next) {
       if (sl->spacetype == SPACE_IMASEL) {
         sl->spacetype = SPACE_EMPTY; /* spacedata then matches */

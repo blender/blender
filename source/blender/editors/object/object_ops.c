@@ -154,7 +154,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy);
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy_to_selected);
 
-  /* shader fx */
+  /* Shader FX. */
   WM_operatortype_append(OBJECT_OT_shaderfx_add);
   WM_operatortype_append(OBJECT_OT_shaderfx_remove);
   WM_operatortype_append(OBJECT_OT_shaderfx_move_up);

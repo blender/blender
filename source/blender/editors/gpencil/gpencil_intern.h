@@ -611,7 +611,7 @@ typedef struct bActListElem {
 
   struct bActionGroup *grp; /* action group that owns the channel */
 
-  void *owner;     /* will either be an action channel or fake ipo-channel (for keys) */
+  void *owner;     /* will either be an action channel or fake IPO-channel (for keys) */
   short ownertype; /* type of owner */
 } bActListElem;
 
@@ -624,7 +624,7 @@ typedef enum ACTFILTER_FLAGS {
   ACTFILTER_SEL = (1 << 1),        /* should channels be selected */
   ACTFILTER_FOREDIT = (1 << 2),    /* does editable status matter */
   ACTFILTER_CHANNELS = (1 << 3),   /* do we only care that it is a channel */
-  ACTFILTER_IPOKEYS = (1 << 4),    /* only channels referencing ipo's */
+  ACTFILTER_IPOKEYS = (1 << 4),    /* only channels referencing IPO's */
   ACTFILTER_ONLYICU = (1 << 5),    /* only reference ipo-curves */
   ACTFILTER_FORDRAWING = (1 << 6), /* make list for interface drawing */
   ACTFILTER_ACTGROUPED = (1 << 7), /* belongs to the active group */
