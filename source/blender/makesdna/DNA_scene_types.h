@@ -2178,6 +2178,7 @@ typedef enum ePaintFlags {
   PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2),
   PAINT_USE_CAVITY_MASK = (1 << 3),
   PAINT_SCULPT_DELAY_UPDATES = (1 << 4),
+  PAINT_SCULPT_SHOW_PIVOT = (1 << 5),
 } ePaintFlags;
 
 /**

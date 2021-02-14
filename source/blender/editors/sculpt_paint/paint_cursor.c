@@ -1636,6 +1636,16 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
         2);
   }
 
+  /* Transform Pivot. */
+  if (pcontext->paint && pcontext->paint->flags & PAINT_SCULPT_SHOW_PIVOT) {
+    cursor_draw_point_screen_space(
+        pcontext->pos,
+        pcontext->region,
+        pcontext->ss->pivot_pos,
+        pcontext->vc.obact->obmat,
+        2);
+  }
+
   if (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) {
     paint_cursor_preview_boundary_data_update(pcontext, update_previews);
     paint_cursor_preview_boundary_data_pivot_draw(pcontext);
