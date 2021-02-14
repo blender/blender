@@ -620,8 +620,7 @@ static void rna_def_paint(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_sculpt_pivot", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_SCULPT_SHOW_PIVOT);
-  RNA_def_property_ui_text(
-      prop, "Show Pivot", "Show Transform Tool Sculpt Pivot");
+  RNA_def_property_ui_text(prop, "Show Pivot", "Show Transform Tool Sculpt Pivot");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "use_sculpt_delay_updates", PROP_BOOLEAN, PROP_NONE);

@@ -157,7 +157,8 @@ static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
   const float avg = BKE_brush_sample_tex_3d(
       expand_cache->scene, expand_cache->brush, vertex_co, rgba, 0, ss->tex_pool);
 
-  const float distorsion = (avg - 0.5f) * expand_cache->texture_distorsion_strength;
+  const float distorsion = (avg - 0.5f) * expand_cache->texture_distorsion_strength *
+                           expand_cache->max_falloff_factor;
   return expand_cache->falloff_factor[i] + distorsion;
 }
 
@@ -171,7 +172,8 @@ static float sculpt_expand_max_vertex_falloff_factor_get(ExpandCache *expand_cac
     return expand_cache->max_falloff_factor;
   }
 
-  return expand_cache->max_falloff_factor + (0.5f * expand_cache->texture_distorsion_strength);
+  return expand_cache->max_falloff_factor +
+         (0.5f * expand_cache->texture_distorsion_strength * expand_cache->max_falloff_factor);
 }
 
 static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int i)
@@ -868,11 +870,11 @@ static void sculpt_expand_cache_data_free(ExpandCache *expand_cache)
   MEM_SAFE_FREE(expand_cache);
 }
 
-static void sculpt_expand_cache_free(SculptSession *ss) {
-    sculpt_expand_cache_data_free(ss->expand_cache);
-    ss->expand_cache = NULL;
+static void sculpt_expand_cache_free(SculptSession *ss)
+{
+  sculpt_expand_cache_data_free(ss->expand_cache);
+  ss->expand_cache = NULL;
 }
-
 
 static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *expand_cache)
 {
@@ -1524,11 +1526,11 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
       case SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_INCREASE: {
-        expand_cache->texture_distorsion_strength += expand_cache->max_falloff_factor * SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
+        expand_cache->texture_distorsion_strength += SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
         break;
       }
       case SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_DECREASE: {
-        expand_cache->texture_distorsion_strength -= expand_cache->max_falloff_factor * SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
+        expand_cache->texture_distorsion_strength -= SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
         expand_cache->texture_distorsion_strength = max_ff(
             expand_cache->texture_distorsion_strength, 0.0f);
         break;
