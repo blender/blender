@@ -1429,7 +1429,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
         if (clip->tracking.stabilization.scale == 0.0f) {
           /* ensure init.
-           * Was previously used for autoscale only,
+           * Was previously used for auto-scale only,
            * now used always (as "target scale") */
           clip->tracking.stabilization.scale = 1.0f;
         }

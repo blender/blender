@@ -133,8 +133,11 @@ if(WITH_OPENCOLORIO)
     SYSTEM
     ${OPENCOLORIO_INCLUDE_DIRS}
   )
+  list(APPEND LIB
+    ${OPENCOLORIO_LIBRARIES}
+  )
   if(WIN32)
-    add_definitions(-DOpenColorIO_STATIC)
+    add_definitions(-DOpenColorIO_SKIP_IMPORTS)
   endif()
 endif()
 

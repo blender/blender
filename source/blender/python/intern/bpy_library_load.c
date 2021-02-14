@@ -361,7 +361,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
           for (i = 0; i < size; i++) {
             PyObject *item_src = PyList_GET_ITEM(ls, i);
             PyObject *item_dst; /* must be set below */
-            const char *item_idname = _PyUnicode_AsString(item_src);
+            const char *item_idname = PyUnicode_AsUTF8(item_src);
 
             // printf("  %s\n", item_idname);
 

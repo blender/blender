@@ -147,16 +147,17 @@ static void determine_final_data_type_and_domain(Span<const GeometryComponent *>
                                                  AttributeDomain *r_domain)
 {
   Vector<CustomDataType> data_types;
+  Vector<AttributeDomain> domains;
   for (const GeometryComponent *component : components) {
     ReadAttributePtr attribute = component->attribute_try_get_for_read(attribute_name);
     if (attribute) {
       data_types.append(attribute->custom_data_type());
-      /* TODO: Use highest priority domain. */
-      *r_domain = attribute->domain();
+      domains.append(attribute->domain());
     }
   }
 
   *r_type = attribute_data_type_highest_complexity(data_types);
+  *r_domain = attribute_domain_highest_priority(domains);
 }
 
 static void fill_new_attribute(Span<const GeometryComponent *> src_components,
@@ -200,8 +201,8 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
     AttributeDomain domain;
     determine_final_data_type_and_domain(src_components, attribute_name, &data_type, &domain);
 
-    result.attribute_try_create(attribute_name, domain, data_type);
-    WriteAttributePtr write_attribute = result.attribute_try_get_for_write(attribute_name);
+    OutputAttributePtr write_attribute = result.attribute_try_get_for_output(
+        attribute_name, domain, data_type);
     if (!write_attribute ||
         &write_attribute->cpp_type() != bke::custom_data_type_to_cpp_type(data_type) ||
         write_attribute->domain() != domain) {
@@ -209,7 +210,7 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
     }
     fn::GMutableSpan dst_span = write_attribute->get_span_for_write_only();
     fill_new_attribute(src_components, attribute_name, data_type, domain, dst_span);
-    write_attribute->apply_span();
+    write_attribute.apply_span_and_save();
   }
 }
 

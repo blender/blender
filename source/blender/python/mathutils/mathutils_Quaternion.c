@@ -195,7 +195,7 @@ static PyObject *Quaternion_to_swing_twist(QuaternionObject *self, PyObject *axi
   int axis;
 
   if (axis_arg && PyUnicode_Check(axis_arg)) {
-    axis_str = _PyUnicode_AsString(axis_arg);
+    axis_str = PyUnicode_AsUTF8(axis_arg);
   }
 
   if (axis_str && axis_str[0] >= 'X' && axis_str[0] <= 'Z' && axis_str[1] == 0) {

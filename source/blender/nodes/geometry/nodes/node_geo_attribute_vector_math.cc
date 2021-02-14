@@ -327,12 +327,35 @@ static void do_math_operation_fl3_to_fl(const Float3ReadAttribute &input_a,
   UNUSED_VARS_NDEBUG(success);
 }
 
+static AttributeDomain get_result_domain(const GeometryComponent &component,
+                                         const GeoNodeExecParams &params,
+                                         const NodeVectorMathOperation operation,
+                                         StringRef result_name)
+{
+  /* Use the domain of the result attribute if it already exists. */
+  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
+  if (result_attribute) {
+    return result_attribute->domain();
+  }
+
+  /* Otherwise use the highest priority domain from existing input attributes, or the default. */
+  const AttributeDomain default_domain = ATTR_DOMAIN_POINT;
+  if (operation_use_input_b(operation)) {
+    if (operation_use_input_c(operation)) {
+      return params.get_highest_priority_input_domain({"A", "B", "C"}, component, default_domain);
+    }
+    return params.get_highest_priority_input_domain({"A", "B"}, component, default_domain);
+  }
+  return params.get_highest_priority_input_domain({"A"}, component, default_domain);
+}
+
 static void attribute_vector_math_calc(GeometryComponent &component,
                                        const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
   const NodeAttributeVectorMath *node_storage = (const NodeAttributeVectorMath *)node.storage;
   const NodeVectorMathOperation operation = (NodeVectorMathOperation)node_storage->operation;
+  const std::string result_name = params.get_input<std::string>("Result");
 
   /* The number and type of the input attribute depend on the operation. */
   const CustomDataType read_type_a = CD_PROP_FLOAT3;
@@ -343,7 +366,8 @@ static void attribute_vector_math_calc(GeometryComponent &component,
 
   /* The result domain is always point for now. */
   const CustomDataType result_type = operation_get_result_type(operation);
-  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
+  const AttributeDomain result_domain = get_result_domain(
+      component, params, operation, result_name);
 
   ReadAttributePtr attribute_a = params.get_input_attribute(
       "A", component, result_domain, read_type_a, nullptr);
@@ -366,7 +390,6 @@ static void attribute_vector_math_calc(GeometryComponent &component,
   }
 
   /* Get result attribute first, in case it has to overwrite one of the existing attributes. */
-  const std::string result_name = params.get_input<std::string>("Result");
   OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
@@ -418,6 +441,8 @@ static void attribute_vector_math_calc(GeometryComponent &component,
 static void geo_node_attribute_vector_math_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
+  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (geometry_set.has<MeshComponent>()) {
     attribute_vector_math_calc(geometry_set.get_component_for_write<MeshComponent>(), params);

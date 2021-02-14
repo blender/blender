@@ -20,7 +20,7 @@
 
 #pragma once
 
-/* Note that some struct members for colormapping and colorbands are not initialized here. */
+/* Note that some struct members for color-mapping and color-bands are not initialized here. */
 
 /* Struct members on own line. */
 /* clang-format off */

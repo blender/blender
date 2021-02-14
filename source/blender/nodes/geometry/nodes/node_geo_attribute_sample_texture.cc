@@ -48,29 +48,51 @@ static void geo_node_attribute_sample_texture_layout(uiLayout *layout,
 
 namespace blender::nodes {
 
+static AttributeDomain get_result_domain(const GeometryComponent &component,
+                                         StringRef result_attribute_name,
+                                         StringRef map_attribute_name)
+{
+  /* Use the domain of the result attribute if it already exists. */
+  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_attribute_name);
+  if (result_attribute) {
+    return result_attribute->domain();
+  }
+
+  /* Otherwise use the name of the map attribute. */
+  ReadAttributePtr map_attribute = component.attribute_try_get_for_read(map_attribute_name);
+  if (map_attribute) {
+    return map_attribute->domain();
+  }
+
+  /* The node won't execute in this case, but we still have to return a value. */
+  return ATTR_DOMAIN_POINT;
+}
+
 static void execute_on_component(GeometryComponent &component, const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
   Tex *texture = reinterpret_cast<Tex *>(node.id);
-  const std::string result_attribute_name = params.get_input<std::string>("Result");
-
   if (texture == nullptr) {
     return;
   }
 
+  const std::string result_attribute_name = params.get_input<std::string>("Result");
   const std::string mapping_name = params.get_input<std::string>("Mapping");
   if (!component.attribute_exists(mapping_name)) {
     return;
   }
 
+  const AttributeDomain result_domain = get_result_domain(
+      component, result_attribute_name, mapping_name);
+
   OutputAttributePtr attribute_out = component.attribute_try_get_for_output(
-      result_attribute_name, ATTR_DOMAIN_POINT, CD_PROP_COLOR);
+      result_attribute_name, result_domain, CD_PROP_COLOR);
   if (!attribute_out) {
     return;
   }
 
   Float3ReadAttribute mapping_attribute = component.attribute_get_for_read<float3>(
-      mapping_name, ATTR_DOMAIN_POINT, {0, 0, 0});
+      mapping_name, result_domain, {0, 0, 0});
 
   MutableSpan<Color4f> colors = attribute_out->get_span<Color4f>();
   for (const int i : IndexRange(mapping_attribute.size())) {
@@ -87,6 +109,8 @@ static void execute_on_component(GeometryComponent &component, const GeoNodeExec
 static void geo_node_attribute_sample_texture_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
+  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (geometry_set.has<MeshComponent>()) {
     execute_on_component(geometry_set.get_component_for_write<MeshComponent>(), params);

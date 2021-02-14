@@ -105,7 +105,7 @@ static int py_parse_fetch_mode(const char *str, int length)
 static int py_ParseVertCompType(PyObject *o, void *p)
 {
   Py_ssize_t length;
-  const char *str = _PyUnicode_AsStringAndSize(o, &length);
+  const char *str = PyUnicode_AsUTF8AndSize(o, &length);
 
   if (str == NULL) {
     PyErr_Format(PyExc_ValueError, "expected a string, got %s", Py_TYPE(o)->tp_name);
@@ -125,7 +125,7 @@ static int py_ParseVertCompType(PyObject *o, void *p)
 static int py_ParseVertFetchMode(PyObject *o, void *p)
 {
   Py_ssize_t length;
-  const char *str = _PyUnicode_AsStringAndSize(o, &length);
+  const char *str = PyUnicode_AsUTF8AndSize(o, &length);
 
   if (str == NULL) {
     PyErr_Format(PyExc_ValueError, "expected a string, got %s", Py_TYPE(o)->tp_name);

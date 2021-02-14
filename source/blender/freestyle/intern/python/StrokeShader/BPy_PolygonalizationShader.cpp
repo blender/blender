@@ -43,7 +43,7 @@ static char PolygonalizationShader___doc__[] =
     "\n"
     "   :arg error: The error we want our polygonal approximation to have\n"
     "      with respect to the original geometry.  The smaller, the closer\n"
-    "      the new stroke is to the orinal one.  This error corresponds to\n"
+    "      the new stroke is to the original one.  This error corresponds to\n"
     "      the maximum distance between the new stroke and the old one.\n"
     "   :type error: float\n"
     "\n"

@@ -69,14 +69,27 @@ static void geo_node_attribute_combine_xyz_update(bNodeTree *UNUSED(ntree), bNod
       *node, "Z", (GeometryNodeAttributeInputMode)node_storage->input_type_z);
 }
 
+static AttributeDomain get_result_domain(const GeometryComponent &component,
+                                         const GeoNodeExecParams &params,
+                                         StringRef result_name)
+{
+  /* Use the domain of the result attribute if it already exists. */
+  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
+  if (result_attribute) {
+    return result_attribute->domain();
+  }
+
+  /* Otherwise use the highest priority domain from existing input attributes, or the default. */
+  return params.get_highest_priority_input_domain({"X", "Y", "Z"}, component, ATTR_DOMAIN_POINT);
+}
+
 static void combine_attributes(GeometryComponent &component, const GeoNodeExecParams &params)
 {
   const std::string result_name = params.get_input<std::string>("Result");
-  /* The result domain is always point for now. */
-  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
   if (result_name.empty()) {
     return;
   }
+  const AttributeDomain result_domain = get_result_domain(component, params, result_name);
 
   OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, CD_PROP_FLOAT3);

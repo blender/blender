@@ -279,7 +279,7 @@ static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
                                  ((LinkData *)uf_arraystore.local_links.last)->data :
                                  NULL;
 
-    /* add oursrlves */
+    /* Add ourselves. */
     BLI_addtail(&uf_arraystore.local_links, BLI_genericNodeN(uf));
 
     uf_arraystore_compact_with_info(uf, uf_ref);

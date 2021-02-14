@@ -72,9 +72,9 @@ typedef struct bConstraint {
   /** Constraint name, MAX_NAME. */
   char name[64];
 
-  /** Amount of influence exherted by constraint (0.0-1.0). */
+  /** Amount of influence exerted by constraint (0.0-1.0). */
   float enforce;
-  /** Point along subtarget bone where the actual target is. 0=head (default for all), 1=tail. */
+  /** Point along `subtarget` bone where the actual target is. 0=head (default for all), 1=tail. */
   float headtail;
 
   /* old animation system, deprecated for 2.5. */

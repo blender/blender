@@ -95,7 +95,7 @@ layout(std140) uniform globalsBlock
   vec4 colorCurrentFrame;
 
   vec4 colorGrid;
-  vec4 colorGridEmphasise;
+  vec4 colorGridEmphasis;
   vec4 colorGridAxisX;
   vec4 colorGridAxisY;
   vec4 colorGridAxisZ;

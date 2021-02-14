@@ -461,7 +461,7 @@ void applySnapping(TransInfo *t, float *vec)
            activeSnap(t)) {
     double current = PIL_check_seconds_timer();
 
-    /* Time base quirky code to go around findnearest slowness */
+    /* Time base quirky code to go around find-nearest slowness. */
     /* TODO: add exception for object mode, no need to slow it down then. */
     if (current - t->tsnap.last >= 0.01) {
       t->tsnap.calcSnap(t, vec);

@@ -149,9 +149,9 @@ typedef struct tGPsdata {
   Scene *scene;
   struct Depsgraph *depsgraph;
 
-  /** current object. */
+  /** Current object. */
   Object *ob;
-  /** Obeject eval. */
+  /** Evaluated object. */
   Object *ob_eval;
   /** window where painting originated. */
   wmWindow *win;
@@ -1087,7 +1087,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     }
 
     /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
-    if ((!is_depth) && (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera)) {
+    if ((!is_depth) &&
+        (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || (is_camera))) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
     }
   }
@@ -1236,7 +1237,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     /* change position relative to parent object */
     gpencil_apply_parent(depsgraph, obact, gpl, gps);
     /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
-    if ((!is_depth) && ((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera) {
+    if ((!is_depth) && (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera)) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
     }
 
@@ -1876,7 +1877,7 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
     BKE_brush_gpencil_paint_presets(bmain, ts, true);
     changed = true;
   }
-  /* Be sure curves are initializated. */
+  /* Be sure curves are initialized. */
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_sensitivity);
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_strength);
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_jitter);
@@ -1887,7 +1888,7 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_rand_saturation);
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_rand_value);
 
-  /* assign to temp tGPsdata */
+  /* Assign to temp #tGPsdata */
   p->brush = paint->brush;
   if (paint->brush->gpencil_tool != GPAINT_TOOL_ERASE) {
     p->eraser = gpencil_get_default_eraser(p->bmain, ts);

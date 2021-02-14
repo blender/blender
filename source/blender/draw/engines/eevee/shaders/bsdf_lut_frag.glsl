@@ -1,48 +1,57 @@
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 
-out vec4 FragColor;
+uniform float sampleCount;
+
+out vec2 FragColor;
 
 void main()
 {
-  vec3 N, T, B, V;
+  /* Make sure coordinates are covering the whole [0..1] range at texel center. */
+  float y = floor(gl_FragCoord.y) / (LUT_SIZE - 1);
+  float x = floor(gl_FragCoord.x) / (LUT_SIZE - 1);
 
-  float NV = (1.0 - (clamp(gl_FragCoord.y / LUT_SIZE, 1e-4, 0.9999)));
-  float sqrtRoughness = clamp(gl_FragCoord.x / LUT_SIZE, 1e-4, 0.9999);
-  float a = sqrtRoughness * sqrtRoughness;
-  float a2 = a * a;
+  float NV = clamp(1.0 - y * y, 1e-4, 0.9999);
+  float a = x * x;
+  float a2 = clamp(a * a, 1e-4, 0.9999);
 
-  N = vec3(0.0, 0.0, 1.0);
-  T = vec3(1.0, 0.0, 0.0);
-  B = vec3(0.0, 1.0, 0.0);
-  V = vec3(sqrt(1.0 - NV * NV), 0.0, NV);
-
-  setup_noise();
+  vec3 V = vec3(sqrt(1.0 - NV * NV), 0.0, NV);
 
   /* Integrating BRDF */
   float brdf_accum = 0.0;
   float fresnel_accum = 0.0;
-  for (float i = 0; i < sampleCount; i++) {
-    vec3 H = sample_ggx(i, a2, N, T, B); /* Microfacet normal */
-    vec3 L = -reflect(V, H);
-    float NL = L.z;
+  for (float j = 0.0; j < sampleCount; j++) {
+    for (float i = 0.0; i < sampleCount; i++) {
+      vec3 Xi = (vec3(i, j, 0.0) + 0.5) / sampleCount;
+      Xi.yz = vec2(cos(Xi.y * M_2PI), sin(Xi.y * M_2PI));
 
-    if (NL > 0.0) {
-      float NH = max(H.z, 0.0);
-      float VH = max(dot(V, H), 0.0);
+      vec3 H = sample_ggx(Xi, a2); /* Microfacet normal */
+      vec3 L = -reflect(V, H);
+      float NL = L.z;
 
-      float G1_v = G1_Smith_GGX(NV, a2);
-      float G1_l = G1_Smith_GGX(NL, a2);
-      float G_smith = 4.0 * NV * NL / (G1_v * G1_l); /* See G1_Smith_GGX for explanations. */
+      if (NL > 0.0) {
+        float NH = max(H.z, 0.0);
+        float VH = max(dot(V, H), 0.0);
 
-      float brdf = (G_smith * VH) / (NH * NV);
-      float Fc = pow(1.0 - VH, 5.0);
+        float G1_v = G1_Smith_GGX(NV, a2);
+        float G1_l = G1_Smith_GGX(NL, a2);
+        float G_smith = 4.0 * NV * NL / (G1_v * G1_l); /* See G1_Smith_GGX for explanations. */
 
-      brdf_accum += (1.0 - Fc) * brdf;
-      fresnel_accum += Fc * brdf;
+        float brdf = (G_smith * VH) / (NH * NV);
+
+        /* Follow maximum specular value for principled bsdf. */
+        const float specular = 1.0;
+        const float eta = (2.0 / (1.0 - sqrt(0.08 * specular))) - 1.0;
+        float fresnel = F_eta(eta, VH);
+        float Fc = F_color_blend(eta, fresnel, vec3(0)).r;
+
+        brdf_accum += (1.0 - Fc) * brdf;
+        fresnel_accum += Fc * brdf;
+      }
     }
   }
-  brdf_accum /= sampleCount;
-  fresnel_accum /= sampleCount;
+  brdf_accum /= sampleCount * sampleCount;
+  fresnel_accum /= sampleCount * sampleCount;
 
-  FragColor = vec4(brdf_accum, fresnel_accum, 0.0, 1.0);
+  FragColor = vec2(brdf_accum, fresnel_accum);
 }

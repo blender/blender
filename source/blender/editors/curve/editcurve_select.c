@@ -501,7 +501,7 @@ void CURVE_OT_de_select_first(wmOperatorType *ot)
   ot->idname = "CURVE_OT_de_select_first";
   ot->description = "(De)select first of visible part of each NURBS";
 
-  /* api cfirstbacks */
+  /* api callbacks */
   ot->exec = de_select_first_exec;
   ot->poll = ED_operator_editcurve;
 
@@ -535,7 +535,7 @@ void CURVE_OT_de_select_last(wmOperatorType *ot)
   ot->idname = "CURVE_OT_de_select_last";
   ot->description = "(De)select last of visible part of each NURBS";
 
-  /* api clastbacks */
+  /* api callbacks */
   ot->exec = de_select_last_exec;
   ot->poll = ED_operator_editcurve;
 

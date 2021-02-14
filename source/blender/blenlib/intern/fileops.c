@@ -158,7 +158,7 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *r_size)
   return mem;
 }
 
-#define CHUNK 256 * 1024
+#define CHUNK (256 * 1024)
 
 /* gzip byte array from memory and write it to file at certain position.
  * return size of gzip stream.

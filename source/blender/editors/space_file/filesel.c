@@ -280,7 +280,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
       params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_VOLUME : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_glob"))) {
-      /* Protection against pyscripts not setting proper size limit... */
+      /* Protection against Python scripts not setting proper size limit. */
       char *tmp = RNA_property_string_get_alloc(
           op->ptr, prop, params->filter_glob, sizeof(params->filter_glob), NULL);
       if (tmp != params->filter_glob) {
@@ -418,7 +418,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
   FileSelectParams *base_params = &asset_params->base_params;
   bUserAssetLibrary *user_library = NULL;
 
-  /* Ensure valid repo, or fall-back to local one. */
+  /* Ensure valid repository, or fall-back to local one. */
   if (library->type == FILE_ASSET_LIBRARY_CUSTOM) {
     BLI_assert(library->custom_library_index >= 0);
 

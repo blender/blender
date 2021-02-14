@@ -149,7 +149,7 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
       PyObject *filename_py, *text_py;
 
       if (parse_syntax_error(value, &message, &filename_py, lineno, offset, &text_py)) {
-        const char *filename = _PyUnicode_AsString(filename_py);
+        const char *filename = PyUnicode_AsUTF8(filename_py);
         /* python adds a '/', prefix, so check for both */
         if ((BLI_path_cmp(filename, filepath) == 0) ||
             (ELEM(filename[0], '\\', '/') && BLI_path_cmp(filename + 1, filepath) == 0)) {

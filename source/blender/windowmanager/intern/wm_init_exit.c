@@ -624,13 +624,13 @@ void WM_exit_ex(bContext *C, const bool do_python)
 #ifdef WITH_PYTHON
   /* option not to close python so we can use 'atexit' */
   if (do_python && ((C == NULL) || CTX_py_init_get(C))) {
-    /* XXX - old note */
-    /* before BKE_blender_free so py's gc happens while library still exists */
-    /* needed at least for a rare sigsegv that can happen in pydrivers */
-
-    /* Update for blender 2.5, move after BKE_blender_free because Blender now holds references to
-     * PyObject's so decref'ing them after python ends causes bad problems every time
-     * the py-driver bug can be fixed if it happens again we can deal with it then. */
+    /* NOTE: (old note)
+     * before BKE_blender_free so Python's garbage-collection happens while library still exists.
+     * Needed at least for a rare crash that can happen in python-drivers.
+     *
+     * Update for Blender 2.5, move after #BKE_blender_free because Blender now holds references
+     * to #PyObject's so #Py_DECREF'ing them after Python ends causes bad problems every time
+     * the python-driver bug can be fixed if it happens again we can deal with it then. */
     BPY_python_end();
   }
 #else

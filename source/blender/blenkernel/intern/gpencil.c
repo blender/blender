@@ -98,9 +98,9 @@ static void greasepencil_copy_data(Main *UNUSED(bmain),
     /* Apply local layer transform to all frames. Calc the active frame is not enough
      * because onion skin can use more frames. This is more slow but required here. */
     if (gpl_dst->actframe != NULL) {
-      bool transfomed = ((!is_zero_v3(gpl_dst->location)) || (!is_zero_v3(gpl_dst->rotation)) ||
-                         (!is_one_v3(gpl_dst->scale)));
-      if (transfomed) {
+      bool transformed = ((!is_zero_v3(gpl_dst->location)) || (!is_zero_v3(gpl_dst->rotation)) ||
+                          (!is_one_v3(gpl_dst->scale)));
+      if (transformed) {
         loc_eul_size_to_mat4(
             gpl_dst->layer_mat, gpl_dst->location, gpl_dst->rotation, gpl_dst->scale);
         bool do_onion = ((gpl_dst->onion_flag & GP_LAYER_ONIONSKIN) != 0);
@@ -2902,14 +2902,14 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
       }
 
       /* Calc local layer transform. */
-      bool transfomed = ((!is_zero_v3(gpl->location)) || (!is_zero_v3(gpl->rotation)) ||
-                         (!is_one_v3(gpl->scale)));
-      if (transfomed) {
+      bool transformed = ((!is_zero_v3(gpl->location)) || (!is_zero_v3(gpl->rotation)) ||
+                          (!is_one_v3(gpl->scale)));
+      if (transformed) {
         loc_eul_size_to_mat4(gpl->layer_mat, gpl->location, gpl->rotation, gpl->scale);
       }
 
       /* only redo if any change */
-      if (changed || transfomed) {
+      if (changed || transformed) {
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpl->actframe->strokes) {
           bGPDspoint *pt;
           int i;
@@ -2919,7 +2919,7 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
               mul_m4_v3(cur_mat, &pt->x);
             }
 
-            if (transfomed) {
+            if (transformed) {
               mul_m4_v3(gpl->layer_mat, &pt->x);
             }
           }

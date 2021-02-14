@@ -128,9 +128,9 @@ typedef struct MetaBall {
 
 /* ml->type */
 #define MB_BALL 0
-#define MB_TUBEX 1 /* depercated */
-#define MB_TUBEY 2 /* depercated */
-#define MB_TUBEZ 3 /* depercated */
+#define MB_TUBEX 1 /* deprecated. */
+#define MB_TUBEY 2 /* deprecated. */
+#define MB_TUBEZ 3 /* deprecated. */
 #define MB_TUBE 4
 #define MB_PLANE 5
 #define MB_ELIPSOID 6

@@ -560,7 +560,7 @@ void BLF_draw_ascii_ex(int fontid, const char *str, size_t len, struct ResultBLF
   if (font) {
     blf_draw_gl__start(font);
     if (font->flags & BLF_WORD_WRAP) {
-      /* use non-ascii draw function for word-wrap */
+      /* Use non-ASCII draw function for word-wrap. */
       blf_font_draw__wrap(font, str, len, r_info);
     }
     else {

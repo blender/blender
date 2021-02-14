@@ -602,7 +602,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /* Wintab API */
   struct {
-    /** WinTab dll handle */
+    /** WinTab DLL handle. */
     HMODULE handle = NULL;
 
     /** API functions */

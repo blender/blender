@@ -277,8 +277,7 @@ void ED_view3d_smooth_view_ex(
       if (rv3d->smooth_timer) {
         WM_event_remove_timer(wm, win, rv3d->smooth_timer);
       }
-      /* TIMER1 is hardcoded in keymap */
-      /* max 30 frs/sec */
+      /* #TIMER1 is hard-coded in key-map. */
       rv3d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0);
 
       ok = true;
@@ -1210,8 +1209,8 @@ static uint free_localview_bit(Main *bmain)
 
   ushort local_view_bits = 0;
 
-  /* sometimes we lose a localview: when an area is closed */
-  /* check all areas: which localviews are in use? */
+  /* Sometimes we lose a local-view: when an area is closed.
+   * Check all areas: which local-views are in use? */
   for (screen = bmain->screens.first; screen; screen = screen->id.next) {
     for (area = screen->areabase.first; area; area = area->next) {
       SpaceLink *sl = area->spacedata.first;

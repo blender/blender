@@ -718,7 +718,7 @@ static eOLDrawState tree_element_active_bone(bContext *C,
   return OL_DRAWSEL_NONE;
 }
 
-/* ebones only draw in editmode armature */
+/** Edit-bones only draw in edit-mode armature. */
 static void tree_element_active_ebone__sel(bContext *C, bArmature *arm, EditBone *ebone, short sel)
 {
   if (sel) {

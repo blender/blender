@@ -1333,7 +1333,7 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
               if (IDP_EqualsProperties_ex(properties, properties_default, is_strict)) {
                 char kmi_str[128];
                 WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
-                /* Note gievn properties could come from other things than menu entry... */
+                /* NOTE: given properties could come from other things than menu entry. */
                 printf(
                     "%s: Some set values in menu entry match default op values, "
                     "this might not be desired!\n",

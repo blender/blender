@@ -106,7 +106,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 typedef enum eUIEmbossType {
   UI_EMBOSS = 0,          /* use widget style for drawing */
   UI_EMBOSS_NONE = 1,     /* Nothing, only icon and/or text */
-  UI_EMBOSS_PULLDOWN = 2, /* Pulldown menu style */
+  UI_EMBOSS_PULLDOWN = 2, /* Pull-down menu style */
   UI_EMBOSS_RADIAL = 3,   /* Pie Menu */
   /**
    * The same as #UI_EMBOSS_NONE, unless the button has

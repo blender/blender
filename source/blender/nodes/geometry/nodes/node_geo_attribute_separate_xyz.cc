@@ -69,21 +69,48 @@ static void extract_input(const int index, const Span<float3> &input, MutableSpa
   }
 }
 
+static AttributeDomain get_result_domain(const GeometryComponent &component,
+                                         const GeoNodeExecParams &params,
+                                         StringRef result_name_x,
+                                         StringRef result_name_y,
+                                         StringRef result_name_z)
+{
+  /* Use the highest priority domain from any existing attribute outputs. */
+  Vector<AttributeDomain, 3> output_domains;
+  ReadAttributePtr attribute_x = component.attribute_try_get_for_read(result_name_x);
+  ReadAttributePtr attribute_y = component.attribute_try_get_for_read(result_name_y);
+  ReadAttributePtr attribute_z = component.attribute_try_get_for_read(result_name_z);
+  if (attribute_x) {
+    output_domains.append(attribute_x->domain());
+  }
+  if (attribute_y) {
+    output_domains.append(attribute_y->domain());
+  }
+  if (attribute_z) {
+    output_domains.append(attribute_z->domain());
+  }
+  if (output_domains.size() > 0) {
+    return attribute_domain_highest_priority(output_domains);
+  }
+
+  /* Otherwise use the domain of the input attribute, or the default. */
+  return params.get_highest_priority_input_domain({"Vector"}, component, ATTR_DOMAIN_POINT);
+}
+
 static void separate_attribute(GeometryComponent &component, const GeoNodeExecParams &params)
 {
   const std::string result_name_x = params.get_input<std::string>("Result X");
   const std::string result_name_y = params.get_input<std::string>("Result Y");
   const std::string result_name_z = params.get_input<std::string>("Result Z");
-  /* The node is only for float3 to float conversions. */
-  const CustomDataType input_type = CD_PROP_FLOAT3;
-  const CustomDataType result_type = CD_PROP_FLOAT;
-  /* The result domain is always point for now. */
-  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
-
-  /* No output to write to. */
   if (result_name_x.empty() && result_name_y.empty() && result_name_z.empty()) {
     return;
   }
+
+  /* The node is only for float3 to float conversions. */
+  const CustomDataType input_type = CD_PROP_FLOAT3;
+  const CustomDataType result_type = CD_PROP_FLOAT;
+  const AttributeDomain result_domain = get_result_domain(
+      component, params, result_name_x, result_name_y, result_name_z);
 
   ReadAttributePtr attribute_input = params.get_input_attribute(
       "Vector", component, result_domain, input_type, nullptr);

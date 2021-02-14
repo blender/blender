@@ -1152,7 +1152,7 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
   }
   else {
     Py_ssize_t length;
-    const char *buffer = _PyUnicode_AsStringAndSize(ret, &length);
+    const char *buffer = PyUnicode_AsUTF8AndSize(ret, &length);
     memcpy(value, buffer, length + 1);
     Py_DECREF(ret);
   }
@@ -1213,7 +1213,7 @@ static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA 
   }
   else {
     Py_ssize_t length_ssize_t = 0;
-    _PyUnicode_AsStringAndSize(ret, &length_ssize_t);
+    PyUnicode_AsUTF8AndSize(ret, &length_ssize_t);
     length = length_ssize_t;
     Py_DECREF(ret);
   }
@@ -1488,7 +1488,7 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   else {
     if (def) {
       if (!py_long_as_int(def, &def_int_cmp)) {
-        def_string_cmp = _PyUnicode_AsString(def);
+        def_string_cmp = PyUnicode_AsUTF8(def);
         if (def_string_cmp == NULL) {
           PyErr_Format(PyExc_TypeError,
                        "EnumProperty(...): default option must be a 'str' or 'int' "
@@ -1517,14 +1517,13 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
 
     if ((PyTuple_CheckExact(item)) && (item_size = PyTuple_GET_SIZE(item)) &&
         (item_size >= 3 && item_size <= 5) &&
-        (tmp.identifier = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
-        (tmp.name = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
-        (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2),
-                                                      &desc_str_size)) &&
+        (tmp.identifier = PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
+        (tmp.name = PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
+        (tmp.description = PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
         /* TODO, number isn't ensured to be unique from the script author */
         (item_size != 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value)) &&
         (item_size != 5 || ((py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.icon) ||
-                             (tmp_icon = _PyUnicode_AsString(PyTuple_GET_ITEM(item, 3)))) &&
+                             (tmp_icon = PyUnicode_AsUTF8(PyTuple_GET_ITEM(item, 3)))) &&
                             py_long_as_int(PyTuple_GET_ITEM(item, 4), &tmp.value)))) {
       if (is_enum_flag) {
         if (item_size < 4) {
@@ -3301,7 +3300,7 @@ StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix)
   if (!srna) {
     if (PyErr_Occurred()) {
       PyObject *msg = PyC_ExceptionBuffer();
-      const char *msg_char = _PyUnicode_AsString(msg);
+      const char *msg_char = PyUnicode_AsUTF8(msg);
       PyErr_Format(
           PyExc_TypeError, "%.200s expected an RNA type, failed with: %s", error_prefix, msg_char);
       Py_DECREF(msg);

@@ -388,21 +388,6 @@ void id_remap_fn(struct bContext *C,
                  struct TreeStoreElem *tselem,
                  void *user_data);
 
-void item_object_mode_enter_fn(struct bContext *C,
-                               struct ReportList *reports,
-                               struct Scene *scene,
-                               TreeElement *te,
-                               struct TreeStoreElem *tsep,
-                               struct TreeStoreElem *tselem,
-                               void *user_data);
-void item_object_mode_exit_fn(struct bContext *C,
-                              struct ReportList *reports,
-                              struct Scene *scene,
-                              TreeElement *te,
-                              struct TreeStoreElem *tsep,
-                              struct TreeStoreElem *tselem,
-                              void *user_data);
-
 void outliner_set_coordinates(struct ARegion *region, struct SpaceOutliner *space_outliner);
 
 void outliner_item_openclose(struct SpaceOutliner *space_outliner,

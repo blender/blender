@@ -2,6 +2,8 @@
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_glossy_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(raytrace_lib.glsl)
 #pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(ssr_lib.glsl)
@@ -170,7 +172,7 @@ void main()
   /* Importance sampling bias */
   rand.x = mix(rand.x, 0.0, ssrBrdfBias);
 
-  vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
+  vec3 W = transform_point(ViewMatrixInverse, viewPosition);
   vec3 wN = transform_direction(ViewMatrixInverse, N);
 
   vec3 T, B;
@@ -180,12 +182,12 @@ void main()
   for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
     PlanarData pd = planars_data[i];
 
-    float fade = probe_attenuation_planar(pd, worldPosition, wN, 0.0);
+    float fade = probe_attenuation_planar(pd, W, wN, 0.0);
 
     if (fade > 0.5) {
       /* Find view vector / reflection plane intersection. */
       /* TODO optimize, use view space for all. */
-      vec3 tracePosition = line_plane_intersect(worldPosition, cameraVec, pd.pl_plane_eq);
+      vec3 tracePosition = line_plane_intersect(W, cameraVec, pd.pl_plane_eq);
       tracePosition = transform_point(ViewMatrix, tracePosition);
       vec3 planeNormal = transform_direction(ViewMatrix, pd.pl_normal);
 
@@ -212,6 +214,8 @@ uniform isampler2D hitBuffer;
 uniform sampler2D pdfBuffer;
 
 uniform int neighborOffset;
+
+in vec4 uvcoordsvar;
 
 const ivec2 neighbors[32] = ivec2[32](ivec2(0, 0),
                                       ivec2(1, 1),
@@ -298,7 +302,7 @@ float get_sample_depth(vec2 hit_co, bool is_planar, float planar_index)
 
 vec3 get_hit_vector(vec3 hit_pos,
                     PlanarData pd,
-                    vec3 worldPosition,
+                    vec3 P,
                     vec3 N,
                     vec3 V,
                     bool is_planar,
@@ -309,7 +313,7 @@ vec3 get_hit_vector(vec3 hit_pos,
 
   if (is_planar) {
     /* Reflect back the hit position to have it in non-reflected world space */
-    vec3 trace_pos = line_plane_intersect(worldPosition, V, pd.pl_plane_eq);
+    vec3 trace_pos = line_plane_intersect(P, V, pd.pl_plane_eq);
     hit_vec = hit_pos - trace_pos;
     hit_vec = reflect(hit_vec, pd.pl_normal);
     /* Modify here so mip texel alignment is correct. */
@@ -317,8 +321,8 @@ vec3 get_hit_vector(vec3 hit_pos,
   }
   else {
     /* Find hit position in previous frame. */
-    hit_co = get_reprojected_reflection(hit_pos, worldPosition, N);
-    hit_vec = hit_pos - worldPosition;
+    hit_co = get_reprojected_reflection(hit_pos, P, N);
+    hit_vec = hit_pos - P;
   }
 
   mask = screen_border_mask(hit_co);
@@ -339,7 +343,7 @@ vec4 get_ssr_samples(vec4 hit_pdf,
                      ivec4 hit_data[2],
                      PlanarData pd,
                      float planar_index,
-                     vec3 worldPosition,
+                     vec3 P,
                      vec3 N,
                      vec3 V,
                      float roughnessSquared,
@@ -379,14 +383,10 @@ vec4 get_ssr_samples(vec4 hit_pdf,
 
   /* Get actual hit vector and hit coordinate (from last frame). */
   vec4 mask = vec4(1.0);
-  hit_pos[0] = get_hit_vector(
-      hit_pos[0], pd, worldPosition, N, V, is_planar.x, hit_co[0].xy, mask.x);
-  hit_pos[1] = get_hit_vector(
-      hit_pos[1], pd, worldPosition, N, V, is_planar.y, hit_co[0].zw, mask.y);
-  hit_pos[2] = get_hit_vector(
-      hit_pos[2], pd, worldPosition, N, V, is_planar.z, hit_co[1].xy, mask.z);
-  hit_pos[3] = get_hit_vector(
-      hit_pos[3], pd, worldPosition, N, V, is_planar.w, hit_co[1].zw, mask.w);
+  hit_pos[0] = get_hit_vector(hit_pos[0], pd, P, N, V, is_planar.x, hit_co[0].xy, mask.x);
+  hit_pos[1] = get_hit_vector(hit_pos[1], pd, P, N, V, is_planar.y, hit_co[0].zw, mask.y);
+  hit_pos[2] = get_hit_vector(hit_pos[2], pd, P, N, V, is_planar.z, hit_co[1].xy, mask.z);
+  hit_pos[3] = get_hit_vector(hit_pos[3], pd, P, N, V, is_planar.w, hit_co[1].zw, mask.w);
 
   vec4 hit_dist;
   hit_dist.x = length(hit_pos[0]);
@@ -476,47 +476,30 @@ vec4 get_ssr_samples(vec4 hit_pdf,
   return accum;
 }
 
-void main()
+void raytrace_resolve(ClosureInputGlossy cl_in,
+                      inout ClosureEvalGlossy cl_eval,
+                      inout ClosureEvalCommon cl_common,
+                      inout ClosureOutputGlossy cl_out)
 {
-  ivec2 fullres_texel = ivec2(gl_FragCoord.xy);
 #  ifdef FULLRES
-  ivec2 halfres_texel = fullres_texel;
+  ivec2 texel = ivec2(gl_FragCoord.xy);
 #  else
-  ivec2 halfres_texel = ivec2(gl_FragCoord.xy / 2.0);
+  ivec2 texel = ivec2(gl_FragCoord.xy / 2.0);
 #  endif
-  vec2 uvs = gl_FragCoord.xy / vec2(textureSize(depthBuffer, 0));
-
-  float depth = textureLod(depthBuffer, uvs, 0.0).r;
-
-  /* Early out */
-  if (depth == 1.0) {
-    discard;
-  }
-
   /* Using world space */
-  vec3 viewPosition = get_view_space_from_depth(uvs, depth); /* Needed for viewCameraVec */
-  vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
-  vec3 V = cameraVec;
-  vec3 vN = normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, viewCameraVec);
-  vec3 N = transform_direction(ViewMatrixInverse, vN);
-  vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
+  vec3 V = cl_common.V;
+  vec3 N = cl_in.N;
+  vec3 P = cl_common.P;
 
-  /* Early out */
-  if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0) {
-    discard;
-  }
-
-  float roughness = speccol_roughness.a;
-  float roughnessSquared = max(1e-3, roughness * roughness);
-
-  vec4 spec_accum = vec4(0.0);
+  float roughness = cl_in.roughness;
+  float roughnessSquared = max(1e-3, sqr(roughness));
 
   /* Resolve SSR */
   float cone_cos = cone_cosine(roughnessSquared);
   float cone_tan = sqrt(1 - cone_cos * cone_cos) / cone_cos;
   cone_tan *= mix(saturate(dot(N, -V) * 2.0), 1.0, roughness); /* Elongation fit */
 
-  vec2 source_uvs = project_point(pastViewProjectionMatrix, worldPosition).xy * 0.5 + 0.5;
+  vec2 source_uvs = project_point(pastViewProjectionMatrix, P).xy * 0.5 + 0.5;
 
   vec4 ssr_accum = vec4(0.0);
   float weight_acc = 0.0;
@@ -525,16 +508,16 @@ void main()
     /* TODO optimize with textureGather */
     /* Doing these fetches early to hide latency. */
     vec4 hit_pdf;
-    hit_pdf.x = texelFetch(pdfBuffer, halfres_texel + neighbors[0 + neighborOffset], 0).r;
-    hit_pdf.y = texelFetch(pdfBuffer, halfres_texel + neighbors[1 + neighborOffset], 0).r;
-    hit_pdf.z = texelFetch(pdfBuffer, halfres_texel + neighbors[2 + neighborOffset], 0).r;
-    hit_pdf.w = texelFetch(pdfBuffer, halfres_texel + neighbors[3 + neighborOffset], 0).r;
+    hit_pdf.x = texelFetch(pdfBuffer, texel + neighbors[0 + neighborOffset], 0).r;
+    hit_pdf.y = texelFetch(pdfBuffer, texel + neighbors[1 + neighborOffset], 0).r;
+    hit_pdf.z = texelFetch(pdfBuffer, texel + neighbors[2 + neighborOffset], 0).r;
+    hit_pdf.w = texelFetch(pdfBuffer, texel + neighbors[3 + neighborOffset], 0).r;
 
     ivec4 hit_data[2];
-    hit_data[0].xy = texelFetch(hitBuffer, halfres_texel + neighbors[0 + neighborOffset], 0).rg;
-    hit_data[0].zw = texelFetch(hitBuffer, halfres_texel + neighbors[1 + neighborOffset], 0).rg;
-    hit_data[1].xy = texelFetch(hitBuffer, halfres_texel + neighbors[2 + neighborOffset], 0).rg;
-    hit_data[1].zw = texelFetch(hitBuffer, halfres_texel + neighbors[3 + neighborOffset], 0).rg;
+    hit_data[0].xy = texelFetch(hitBuffer, texel + neighbors[0 + neighborOffset], 0).rg;
+    hit_data[0].zw = texelFetch(hitBuffer, texel + neighbors[1 + neighborOffset], 0).rg;
+    hit_data[1].xy = texelFetch(hitBuffer, texel + neighbors[2 + neighborOffset], 0).rg;
+    hit_data[1].zw = texelFetch(hitBuffer, texel + neighbors[3 + neighborOffset], 0).rg;
 
     /* Find Planar Reflections affecting this pixel */
     PlanarData pd;
@@ -542,7 +525,7 @@ void main()
     for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
       pd = planars_data[i];
 
-      float fade = probe_attenuation_planar(pd, worldPosition, N, 0.0);
+      float fade = probe_attenuation_planar(pd, P, N, 0.0);
 
       if (fade > 0.5) {
         planar_index = float(i);
@@ -554,7 +537,7 @@ void main()
                                  hit_data,
                                  pd,
                                  planar_index,
-                                 worldPosition,
+                                 P,
                                  N,
                                  V,
                                  roughnessSquared,
@@ -564,19 +547,51 @@ void main()
   }
 
   /* Compute SSR contribution */
-  if (weight_acc > 0.0) {
-    ssr_accum /= weight_acc;
-    /* fade between 0.5 and 1.0 roughness */
-    ssr_accum.a *= smoothstep(ssrMaxRoughness + 0.2, ssrMaxRoughness, roughness);
-    accumulate_light(ssr_accum.rgb, ssr_accum.a, spec_accum);
+  ssr_accum *= (weight_acc == 0.0) ? 0.0 : (1.0 / weight_acc);
+  /* fade between 0.5 and 1.0 roughness */
+  ssr_accum.a *= smoothstep(ssrMaxRoughness + 0.2, ssrMaxRoughness, roughness);
+
+  cl_eval.raytrace_radiance = ssr_accum.rgb * ssr_accum.a;
+  cl_common.specular_accum -= ssr_accum.a;
+}
+
+CLOSURE_EVAL_FUNCTION_DECLARE_1(ssr_resolve, Glossy)
+
+void main()
+{
+  ivec2 texel = ivec2(gl_FragCoord.xy);
+  float depth = texelFetch(depthBuffer, texel, 0).r;
+
+  if (depth == 1.0) {
+    discard;
   }
 
-  /* If SSR contribution is not 1.0, blend with cubemaps */
-  if (spec_accum.a < 1.0) {
-    fallback_cubemap(N, V, worldPosition, viewPosition, roughness, roughnessSquared, spec_accum);
+  vec4 speccol_roughness = texelFetch(specroughBuffer, texel, 0).rgba;
+  vec3 brdf = speccol_roughness.rgb;
+  float roughness = speccol_roughness.a;
+
+  if (max_v3(brdf) <= 0.0) {
+    discard;
   }
 
-  fragColor = vec4(spec_accum.rgb * speccol_roughness.rgb, 1.0);
+  viewPosition = get_view_space_from_depth(uvcoordsvar.xy, depth);
+  worldPosition = transform_point(ViewMatrixInverse, viewPosition);
+
+  vec2 normal_encoded = texelFetch(normalBuffer, texel, 0).rg;
+  viewNormal = normal_decode(normal_encoded, viewCameraVec);
+  worldNormal = transform_direction(ViewMatrixInverse, viewNormal);
+
+  CLOSURE_VARS_DECLARE_1(Glossy);
+
+  in_Glossy_0.N = worldNormal;
+  in_Glossy_0.roughness = roughness;
+
+  /* Do a full deferred evaluation of the glossy BSDF. The only difference is that we inject the
+   * SSR resolve before the cubemap iter. BRDF term is already computed during main pass and is
+   * passed as specular color. */
+  CLOSURE_EVAL_FUNCTION_1(ssr_resolve, Glossy);
+
+  fragColor = vec4(out_Glossy_0.radiance * brdf, 1.0);
 }
 
 #endif

@@ -50,9 +50,9 @@
 
 /* See: edit_curve_point_vert.glsl for duplicate includes. */
 #define SELECT 1
-#define ACTIVE_NURB 1 << 2
-#define BEZIER_HANDLE 1 << 3
-#define EVEN_U_BIT 1 << 4 /* Alternate this bit for every U vert. */
+#define ACTIVE_NURB (1 << 2)
+#define BEZIER_HANDLE (1 << 3)
+#define EVEN_U_BIT (1 << 4) /* Alternate this bit for every U vert. */
 #define COLOR_SHIFT 5
 
 /* Used as values of `color_id` in `edit_curve_overlay_handle_geom.glsl` */

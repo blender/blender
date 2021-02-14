@@ -90,6 +90,7 @@ set(SRC
   engines/eevee/eevee_lights.c
   engines/eevee/eevee_lookdev.c
   engines/eevee/eevee_lut.c
+  engines/eevee/eevee_lut_gen.c
   engines/eevee/eevee_materials.c
   engines/eevee/eevee_mist.c
   engines/eevee/eevee_motion_blur.c
@@ -197,7 +198,6 @@ set(LIB
 
 data_to_c_simple(engines/eevee/shaders/ambient_occlusion_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/background_vert.glsl SRC)
-data_to_c_simple(engines/eevee/shaders/closure_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/common_uniforms_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/common_utiltex_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lights_lib.glsl SRC)
@@ -215,10 +215,25 @@ data_to_c_simple(engines/eevee/shaders/lightprobe_grid_fill_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lightprobe_planar_display_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lightprobe_planar_display_vert.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/lookdev_world_frag.glsl SRC)
-data_to_c_simple(engines/eevee/shaders/closure_lit_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/closure_eval_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/closure_eval_diffuse_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/closure_eval_glossy_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/closure_eval_refraction_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/closure_eval_translucent_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/closure_type_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/effect_bloom_frag.glsl SRC)
-data_to_c_simple(engines/eevee/shaders/effect_dof_vert.glsl SRC)
-data_to_c_simple(engines/eevee/shaders/effect_dof_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_bokeh_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_dilate_tiles_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_downsample_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_filter_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_flatten_tiles_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_gather_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_reduce_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_resolve_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_scatter_frag.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_scatter_vert.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/effect_dof_setup_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/effect_downsample_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/effect_downsample_cube_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/effect_gtao_frag.glsl SRC)

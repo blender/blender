@@ -1439,13 +1439,7 @@ enum {
   OL_OP_DESELECT,
   OL_OP_SELECT_HIERARCHY,
   OL_OP_REMAP,
-  OL_OP_LOCALIZED, /* disabled, see below */
-  OL_OP_TOGVIS,
-  OL_OP_TOGSEL,
-  OL_OP_TOGREN,
   OL_OP_RENAME,
-  OL_OP_OBJECT_MODE_ENTER,
-  OL_OP_OBJECT_MODE_EXIT,
   OL_OP_PROXY_TO_OVERRIDE_CONVERT,
 };
 
@@ -1459,8 +1453,6 @@ static const EnumPropertyItem prop_object_op_types[] = {
      "Remap Users",
      "Make all users of selected data-blocks to use instead a new chosen one"},
     {OL_OP_RENAME, "RENAME", 0, "Rename", ""},
-    {OL_OP_OBJECT_MODE_ENTER, "OBJECT_MODE_ENTER", 0, "Enter Mode", ""},
-    {OL_OP_OBJECT_MODE_EXIT, "OBJECT_MODE_EXIT", 0, "Exit Mode", ""},
     {OL_OP_PROXY_TO_OVERRIDE_CONVERT,
      "OBJECT_PROXY_TO_OVERRIDE",
      0,
@@ -1524,11 +1516,6 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
         C, op->reports, scene, space_outliner, &space_outliner->tree, id_remap_fn, NULL);
     /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth
      * trick does not work here). */
-  }
-  else if (event == OL_OP_LOCALIZED) { /* disabled, see above enum (ton) */
-    outliner_do_object_operation(
-        C, op->reports, scene, space_outliner, &space_outliner->tree, id_local_fn);
-    str = "Localized Objects";
   }
   else if (event == OL_OP_RENAME) {
     outliner_do_object_operation(
@@ -2444,9 +2431,6 @@ typedef enum eOutliner_AnimDataOps {
 
   OUTLINER_ANIMOP_REFRESH_DRV,
   OUTLINER_ANIMOP_CLEAR_DRV
-
-  /* OUTLINER_ANIMOP_COPY_DRIVERS, */
-  /* OUTLINER_ANIMOP_PASTE_DRIVERS */
 } eOutliner_AnimDataOps;
 
 static const EnumPropertyItem prop_animdata_op_types[] = {
@@ -2458,8 +2442,6 @@ static const EnumPropertyItem prop_animdata_op_types[] = {
     {OUTLINER_ANIMOP_SET_ACT, "SET_ACT", 0, "Set Action", ""},
     {OUTLINER_ANIMOP_CLEAR_ACT, "CLEAR_ACT", 0, "Unlink Action", ""},
     {OUTLINER_ANIMOP_REFRESH_DRV, "REFRESH_DRIVERS", 0, "Refresh Drivers", ""},
-    /* {OUTLINER_ANIMOP_COPY_DRIVERS, "COPY_DRIVERS", 0, "Copy Drivers", ""}, */
-    /* {OUTLINER_ANIMOP_PASTE_DRIVERS, "PASTE_DRIVERS", 0, "Paste Drivers", ""}, */
     {OUTLINER_ANIMOP_CLEAR_DRV, "CLEAR_DRIVERS", 0, "Clear Drivers", ""},
     {0, NULL, 0, NULL, NULL},
 };

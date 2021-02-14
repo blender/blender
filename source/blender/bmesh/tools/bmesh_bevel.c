@@ -58,9 +58,9 @@
 #define BEVEL_EPSILON_ANG DEG2RADF(2.0f)
 #define BEVEL_SMALL_ANG DEG2RADF(10.0f)
 /** Difference in dot products that corresponds to 10 degree difference between vectors. */
-#define BEVEL_SMALL_ANG_DOT 1 - cosf(BEVEL_SMALL_ANG)
+#define BEVEL_SMALL_ANG_DOT (1.0f - cosf(BEVEL_SMALL_ANG))
 /** Difference in dot products that corresponds to 2.0 degree difference between vectors. */
-#define BEVEL_EPSILON_ANG_DOT 1 - cosf(BEVEL_EPSILON_ANG)
+#define BEVEL_EPSILON_ANG_DOT (1.0f - cosf(BEVEL_EPSILON_ANG))
 #define BEVEL_MAX_ADJUST_PCT 10.0f
 #define BEVEL_MAX_AUTO_ADJUST_PCT 300.0f
 #define BEVEL_MATCH_SPEC_WEIGHT 0.2

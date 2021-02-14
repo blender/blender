@@ -585,8 +585,8 @@ void BPY_python_backtrace(FILE *fp)
     PyFrameObject *frame = tstate->frame;
     do {
       const int line = PyCode_Addr2Line(frame->f_code, frame->f_lasti);
-      const char *filename = _PyUnicode_AsString(frame->f_code->co_filename);
-      const char *funcname = _PyUnicode_AsString(frame->f_code->co_name);
+      const char *filename = PyUnicode_AsUTF8(frame->f_code->co_filename);
+      const char *funcname = PyUnicode_AsUTF8(frame->f_code->co_name);
       fprintf(fp, "  File \"%s\", line %d in %s\n", filename, line, funcname);
     } while ((frame = frame->f_back));
   }
@@ -778,7 +778,7 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
   /* updating the module dict below will lose the reference to __file__ */
   PyObject *filename_obj = PyModule_GetFilenameObject(bpy_proxy);
 
-  const char *filename_rel = _PyUnicode_AsString(filename_obj); /* can be relative */
+  const char *filename_rel = PyUnicode_AsUTF8(filename_obj); /* can be relative */
   char filename_abs[1024];
 
   BLI_strncpy(filename_abs, filename_rel, sizeof(filename_abs));

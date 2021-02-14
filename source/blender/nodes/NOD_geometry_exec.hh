@@ -222,6 +222,10 @@ class GeoNodeExecParams {
                                                const GeometryComponent &component,
                                                const CustomDataType default_type) const;
 
+  AttributeDomain get_highest_priority_input_domain(Span<std::string> names,
+                                                    const GeometryComponent &component,
+                                                    const AttributeDomain default_domain) const;
+
  private:
   /* Utilities for detecting common errors at when using this class. */
   void check_extract_input(StringRef identifier, const CPPType *requested_type = nullptr) const;

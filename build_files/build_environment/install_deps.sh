@@ -454,10 +454,10 @@ TBB_FORCE_BUILD=false
 TBB_FORCE_REBUILD=false
 TBB_SKIP=false
 
-OCIO_VERSION="1.1.1"
-OCIO_VERSION_SHORT="1.1"
-OCIO_VERSION_MIN="1.0"
-OCIO_VERSION_MAX="1.2"
+OCIO_VERSION="2.0.0"
+OCIO_VERSION_SHORT="2.0"
+OCIO_VERSION_MIN="2.0"
+OCIO_VERSION_MAX="3.0"
 OCIO_FORCE_BUILD=false
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
@@ -1787,8 +1787,8 @@ compile_OCIO() {
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D OCIO_BUILD_APPS=OFF"
-    cmake_d="$cmake_d -D OCIO_BUILD_PYGLUE=OFF"
-    cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
+    cmake_d="$cmake_d -D OCIO_BUILD_PYTHON=OFF"
+    cmake_d="$cmake_d -D OCIO_BUILD_GPU_TESTS=OFF"
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"

@@ -124,7 +124,9 @@ BLI_INLINE float table_sample(float *table, float x)
   return interpf(table[(int)ceilf(x)], table[(int)floor(x)], fractf(x));
 }
 
-/* aply noise effect based on stroke direction */
+/**
+ * Apply noise effect based on stroke direction.
+ */
 static void deformStroke(GpencilModifierData *md,
                          Depsgraph *depsgraph,
                          Object *ob,

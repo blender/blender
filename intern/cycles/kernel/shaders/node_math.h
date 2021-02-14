@@ -74,7 +74,7 @@ vector snap(vector a, vector b)
   return floor(safe_divide(a, b)) * b;
 }
 
-/* Adapted from godotengine math_funcs.h. */
+/* Adapted from GODOT-engine math_funcs.h. */
 float wrap(float value, float max, float min)
 {
   float range = max - min;

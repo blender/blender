@@ -68,7 +68,7 @@ static void operator_properties_init(wmOperatorType *ot)
     if (bl_property) {
       if (PyUnicode_Check(bl_property)) {
         /* since the property is explicitly given, raise an error if its not found */
-        prop_id = _PyUnicode_AsString(bl_property);
+        prop_id = PyUnicode_AsUTF8(bl_property);
         prop_raise_error = true;
       }
       else {

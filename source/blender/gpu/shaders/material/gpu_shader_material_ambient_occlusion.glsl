@@ -4,7 +4,7 @@ void node_ambient_occlusion(
 {
   vec3 bent_normal;
   vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
-  result_ao = occlusion_compute(normalize(normal), viewPosition, 1.0, rand, bent_normal);
+  result_ao = occlusion_compute(normalize(normal), viewPosition, rand, bent_normal);
   result_color = result_ao * color;
 }
 #else

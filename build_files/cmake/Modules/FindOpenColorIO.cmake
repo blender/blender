@@ -26,7 +26,8 @@ ENDIF()
 SET(_opencolorio_FIND_COMPONENTS
   OpenColorIO
   yaml-cpp
-  tinyxml
+  expat
+  pystring
 )
 
 SET(_opencolorio_SEARCH_DIRS
@@ -60,12 +61,23 @@ FOREACH(COMPONENT ${_opencolorio_FIND_COMPONENTS})
   ENDIF()
 ENDFOREACH()
 
+IF(EXISTS "${OPENCOLORIO_INCLUDE_DIR}/OpenColorIO/OpenColorABI.h")
+  # Search twice, because this symbol changed between OCIO 1.x and 2.x
+  FILE(STRINGS "${OPENCOLORIO_INCLUDE_DIR}/OpenColorIO/OpenColorABI.h" _opencolorio_version
+    REGEX "^#define OCIO_VERSION_STR[ \t].*$")
+  IF(NOT _opencolorio_version)
+    file(STRINGS "${OPENCOLORIO_INCLUDE_DIR}/OpenColorIO/OpenColorABI.h" _opencolorio_version
+      REGEX "^#define OCIO_VERSION[ \t].*$")
+  ENDIF()
+  STRING(REGEX MATCHALL "[0-9]+[.0-9]+" OPENCOLORIO_VERSION ${_opencolorio_version})
+ENDIF()
 
 # handle the QUIETLY and REQUIRED arguments and set OPENCOLORIO_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenColorIO DEFAULT_MSG
-    _opencolorio_LIBRARIES OPENCOLORIO_INCLUDE_DIR)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenColorIO
+    REQUIRED_VARS _opencolorio_LIBRARIES OPENCOLORIO_INCLUDE_DIR
+    VERSION_VAR OPENCOLORIO_VERSION)
 
 IF(OPENCOLORIO_FOUND)
   SET(OPENCOLORIO_LIBRARIES ${_opencolorio_LIBRARIES})
@@ -78,6 +90,7 @@ MARK_AS_ADVANCED(
   OPENCOLORIO_OPENCOLORIO_LIBRARY
   OPENCOLORIO_TINYXML_LIBRARY
   OPENCOLORIO_YAML-CPP_LIBRARY
+  OPENCOLORIO_VERSION
 )
 
 UNSET(COMPONENT)

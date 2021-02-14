@@ -240,20 +240,31 @@ static CustomDataType get_data_type(GeometryComponent &component,
   return CD_PROP_FLOAT;
 }
 
+static AttributeDomain get_result_domain(const GeometryComponent &component,
+                                         const GeoNodeExecParams &params,
+                                         StringRef result_name)
+{
+  /* Use the domain of the result attribute if it already exists. */
+  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
+  if (result_attribute) {
+    return result_attribute->domain();
+  }
+
+  /* Otherwise use the highest priority domain from existing input attributes, or the default. */
+  return params.get_highest_priority_input_domain({"A", "B"}, component, ATTR_DOMAIN_POINT);
+}
+
 static void attribute_compare_calc(GeometryComponent &component, const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
   NodeAttributeCompare *node_storage = (NodeAttributeCompare *)node.storage;
   const FloatCompareOperation operation = static_cast<FloatCompareOperation>(
       node_storage->operation);
-
-  /* The result type of this node is always float. */
-  const CustomDataType result_type = CD_PROP_BOOL;
-  /* The result domain is always point for now. */
-  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
-
-  /* Get result attribute first, in case it has to overwrite one of the existing attributes. */
   const std::string result_name = params.get_input<std::string>("Result");
+
+  const CustomDataType result_type = CD_PROP_BOOL;
+  const AttributeDomain result_domain = get_result_domain(component, params, result_name);
+
   OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
@@ -317,6 +328,8 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
 static void geo_node_attribute_compare_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
+  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (geometry_set.has<MeshComponent>()) {
     attribute_compare_calc(geometry_set.get_component_for_write<MeshComponent>(), params);

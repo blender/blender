@@ -150,6 +150,31 @@ static void find_used_ids_from_settings(const NodesModifierSettings &settings, S
       &ids);
 }
 
+static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Object &object)
+{
+  DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
+  if (&(ID &)object != &ctx->object->id) {
+    if (object.type != OB_EMPTY) {
+      DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
+    }
+  }
+}
+
+static void add_collection_object_relations_recursive(const ModifierUpdateDepsgraphContext *ctx,
+                                                      Collection &collection)
+{
+  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection.gobject) {
+    BLI_assert(collection_object->ob != nullptr);
+    Object &object = *collection_object->ob;
+    add_object_relation(ctx, object);
+  }
+  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection.children) {
+    BLI_assert(collection_child->collection != nullptr);
+    Collection &collection = *collection_child->collection;
+    add_collection_object_relations_recursive(ctx, collection);
+  }
+}
+
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
@@ -163,18 +188,16 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     for (ID *id : used_ids) {
       if (GS(id->name) == ID_OB) {
         Object *object = reinterpret_cast<Object *>(id);
-        DEG_add_object_relation(ctx->node, object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
-        if (id != &ctx->object->id) {
-          if (object->type != OB_EMPTY) {
-            DEG_add_object_relation(
-                ctx->node, (Object *)id, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
-          }
-        }
+        add_object_relation(ctx, *object);
+      }
+      if (GS(id->name) == ID_GR) {
+        Collection *collection = reinterpret_cast<Collection *>(id);
+        add_collection_object_relations_recursive(ctx, *collection);
       }
     }
   }
 
-  /* TODO: Add dependency for collection changes. */
+  /* TODO: Add dependency for adding and removing objects in collections. */
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)

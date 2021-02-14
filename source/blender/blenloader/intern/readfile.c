@@ -2740,7 +2740,7 @@ static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, View
 
           v3d->localvd->camera = scene->camera;
 
-          /* Localview can become invalid during undo/redo steps,
+          /* Local-view can become invalid during undo/redo steps,
            * so we exit it when no could be found. */
           for (base = view_layer->object_bases.first; base; base = base->next) {
             if (base->local_view_bits & v3d->local_view_uuid) {
@@ -2752,7 +2752,7 @@ static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, View
             v3d->localvd = NULL;
             v3d->local_view_uuid = 0;
 
-            /* Regionbase storage is different depending if the space is active. */
+            /* Region-base storage is different depending if the space is active. */
             ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                    &sl->regionbase;
             LISTBASE_FOREACH (ARegion *, region, regionbase) {

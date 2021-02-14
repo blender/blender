@@ -102,7 +102,7 @@ typedef struct bGPDspoint {
   bGPDspoint_Runtime runtime;
 } bGPDspoint;
 
-/* bGPDspoint->flag */
+/** #bGPDspoint.flag */
 typedef enum eGPDspoint_Flag {
   /* stroke point is selected (for editing) */
   GP_SPOINT_SELECT = (1 << 0),
@@ -144,7 +144,7 @@ typedef struct bGPDpalettecolor {
   char _pad[6];
 } bGPDpalettecolor;
 
-/* bGPDpalettecolor->flag */
+/** #bGPDpalettecolor.flag */
 typedef enum eGPDpalettecolor_Flag {
   /* color is active */
   /* PC_COLOR_ACTIVE = (1 << 0), */ /* UNUSED */
@@ -171,7 +171,7 @@ typedef struct bGPDpalette {
   char _pad[6];
 } bGPDpalette;
 
-/* bGPDpalette->flag */
+/** #bGPDpalette.flag */
 typedef enum eGPDpalette_Flag {
   /* palette is active */
   PL_PALETTE_ACTIVE = (1 << 0),
@@ -319,7 +319,7 @@ typedef struct bGPDstroke {
   bGPDstroke_Runtime runtime;
 } bGPDstroke;
 
-/* bGPDstroke->flag */
+/** #bGPDstroke.flag */
 typedef enum eGPDstroke_Flag {
   /* stroke is in 3d-space */
   GP_STROKE_3DSPACE = (1 << 0),
@@ -347,19 +347,19 @@ typedef enum eGPDstroke_Flag {
   GP_STROKE_ERASER = (1 << 15),
 } eGPDstroke_Flag;
 
-/* bGPDstroke->caps */
+/** #bGPDstroke.caps */
 typedef enum eGPDstroke_Caps {
   /* type of extreme */
   GP_STROKE_CAP_ROUND = 0,
   GP_STROKE_CAP_FLAT = 1,
 
-  /* Keeo last. */
+  /* Keep last. */
   GP_STROKE_CAP_MAX,
 } GPDstroke_Caps;
 
 /* Arrows ----------------------- */
 
-/* bGPDataRuntime.arrowstyle */
+/** #bGPDataRuntime.arrowstyle */
 typedef enum eGPDstroke_Arrowstyle {
   GP_STROKE_ARROWSTYLE_NONE = 0,
   GP_STROKE_ARROWSTYLE_SEGMENT = 2,
@@ -553,13 +553,13 @@ typedef enum eGPDlayer_Flag {
   GP_LAYER_IS_RULER = (1 << 14),
 } eGPDlayer_Flag;
 
-/* bGPDlayer->onion_flag */
+/** #bGPDlayer.onion_flag */
 typedef enum eGPDlayer_OnionFlag {
   /* do onion skinning */
   GP_LAYER_ONIONSKIN = (1 << 0),
 } eGPDlayer_OnionFlag;
 
-/* layer blend_mode */
+/** #bGPDlayer.blend_mode */
 typedef enum eGPLayerBlendModes {
   eGplBlendMode_Regular = 0,
   eGplBlendMode_HardLight = 1,
@@ -706,8 +706,10 @@ typedef struct bGPdata {
   bGPdata_Runtime runtime;
 } bGPdata;
 
-/* bGPdata->flag */
-/* NOTE: A few flags have been deprecated since early 2.5,
+/**
+ * #bGPdata.flag
+ *
+ * NOTE: A few flags have been deprecated since early 2.5,
  *       since they have been made redundant by interaction
  *       changes made during the porting process.
  */

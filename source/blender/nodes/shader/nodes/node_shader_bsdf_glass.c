@@ -49,6 +49,10 @@ static int node_shader_gpu_bsdf_glass(GPUMaterial *mat,
     GPU_link(mat, "world_normals_get", &in[3].link);
   }
 
+  if (node->custom1 == SHD_GLOSSY_SHARP) {
+    GPU_link(mat, "set_value_zero", &in[1].link);
+  }
+
   GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY | GPU_MATFLAG_REFRACT);
 
   float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;

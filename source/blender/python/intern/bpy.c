@@ -261,7 +261,7 @@ PyDoc_STRVAR(bpy_escape_identifier_doc,
 static PyObject *bpy_escape_identifier(PyObject *UNUSED(self), PyObject *value)
 {
   Py_ssize_t value_str_len;
-  const char *value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
+  const char *value_str = PyUnicode_AsUTF8AndSize(value, &value_str_len);
 
   if (value_str == NULL) {
     PyErr_SetString(PyExc_TypeError, "expected a string");
@@ -299,7 +299,7 @@ PyDoc_STRVAR(bpy_unescape_identifier_doc,
 static PyObject *bpy_unescape_identifier(PyObject *UNUSED(self), PyObject *value)
 {
   Py_ssize_t value_str_len;
-  const char *value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
+  const char *value_str = PyUnicode_AsUTF8AndSize(value, &value_str_len);
 
   if (value_str == NULL) {
     PyErr_SetString(PyExc_TypeError, "expected a string");

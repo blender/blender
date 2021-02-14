@@ -1854,7 +1854,7 @@ void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
       ID_EXTRA_USERS(ob) == 0) {
     /* We cannot delete indirectly used object... */
     printf(
-        "WARNING, undeletable object '%s', should have been catched before reaching this "
+        "WARNING, undeletable object '%s', should have been caught before reaching this "
         "function!",
         ob->id.name + 2);
     return;
@@ -2300,7 +2300,7 @@ static void make_object_duplilist_real(bContext *C,
         /* OK to keep most of the members uninitialized,
          * they won't be read, this is simply for a hash lookup. */
         DupliObject dob_key;
-        /* We are looking one step upper in hierarchy, so we need to 'shift' the persitent_id,
+        /* We are looking one step upper in hierarchy, so we need to 'shift' the `persistent_id`,
          * ignoring the first item.
          * We only check on persistent_id here, since we have no idea what object it might be. */
         memcpy(&dob_key.persistent_id[0],

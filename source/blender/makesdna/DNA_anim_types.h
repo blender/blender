@@ -82,7 +82,7 @@ typedef enum eFModifier_Types {
   FMODIFIER_TYPE_ENVELOPE = 3,
   FMODIFIER_TYPE_CYCLES = 4,
   FMODIFIER_TYPE_NOISE = 5,
-  /** Unimplemented - for applying: fft, high/low pass filters, etc. */
+  /** Unimplemented - for applying: FFT, high/low pass filters, etc. */
   FMODIFIER_TYPE_FILTER = 6,
   FMODIFIER_TYPE_PYTHON = 7,
   FMODIFIER_TYPE_LIMITS = 8,

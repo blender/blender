@@ -32,6 +32,7 @@ extern "C" {
 
 struct ImBuf;
 struct OCIO_ConstProcessorRcPtr;
+struct OCIO_ConstCPUProcessorRcPtr;
 
 extern float imbuf_luma_coefficients[3];
 extern float imbuf_xyz_to_rgb[3][3];
@@ -46,8 +47,8 @@ typedef struct ColorSpace {
   char name[MAX_COLORSPACE_NAME];
   char description[MAX_COLORSPACE_DESCRIPTION];
 
-  struct OCIO_ConstProcessorRcPtr *to_scene_linear;
-  struct OCIO_ConstProcessorRcPtr *from_scene_linear;
+  struct OCIO_ConstCPUProcessorRcPtr *to_scene_linear;
+  struct OCIO_ConstCPUProcessorRcPtr *from_scene_linear;
 
   bool is_invertible;
   bool is_data;
@@ -66,8 +67,8 @@ typedef struct ColorManagedDisplay {
   char name[MAX_COLORSPACE_NAME];
   ListBase views; /* LinkData.data -> ColorManagedView */
 
-  struct OCIO_ConstProcessorRcPtr *to_scene_linear;
-  struct OCIO_ConstProcessorRcPtr *from_scene_linear;
+  struct OCIO_ConstCPUProcessorRcPtr *to_scene_linear;
+  struct OCIO_ConstCPUProcessorRcPtr *from_scene_linear;
 } ColorManagedDisplay;
 
 typedef struct ColorManagedView {

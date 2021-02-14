@@ -110,7 +110,7 @@ static int add_marker_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   ARegion *region = CTX_wm_region(C);
 
   if (!RNA_struct_property_is_set(op->ptr, "location")) {
-    /* If location is not set, use mouse positio nas default. */
+    /* If location is not set, use mouse position as default. */
     float co[2];
     ED_clip_mouse_pos(sc, region, event->mval, co);
     RNA_float_set_array(op->ptr, "location", co);

@@ -46,11 +46,11 @@ size_t count_utf_16_from_8(const char *string8);
 /**
  * conv_utf_*** errors
  */
-#define UTF_ERROR_NULL_IN 1 << 0 /* Error occures when requered parameter is missing*/
-#define UTF_ERROR_ILLCHAR 1 << 1 /* Error if character is in illigal UTF rage*/
+#define UTF_ERROR_NULL_IN (1 << 0) /* Error occures when requered parameter is missing*/
+#define UTF_ERROR_ILLCHAR (1 << 1) /* Error if character is in illigal UTF rage*/
 #define UTF_ERROR_SMALL \
-  1 << 2 /* Passed size is to small. It gives legal string with character missing at the end*/
-#define UTF_ERROR_ILLSEQ 1 << 3 /* Error if sequence is broken and doesn't finish*/
+  (1 << 2) /* Passed size is to small. It gives legal string with character missing at the end */
+#define UTF_ERROR_ILLSEQ (1 << 3) /* Error if sequence is broken and doesn't finish*/
 
 /**
  * Converts utf-16 string to allocated utf-8 string

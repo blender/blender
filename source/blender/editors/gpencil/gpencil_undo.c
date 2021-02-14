@@ -132,7 +132,7 @@ void gpencil_undo_push(bGPdata *gpd)
   // printf("\t\tGP - undo push\n");
 
   if (cur_node) {
-    /* remove all un-done nodes from stack */
+    /* Remove all undone nodes from stack. */
     undo_node = cur_node->next;
 
     while (undo_node) {

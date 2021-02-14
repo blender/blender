@@ -13,7 +13,15 @@ uniform float refractionDepth;
   vec3 worldNormal; \
   vec3 viewNormal;
 
-#ifdef GPU_GEOMETRY_SHADER
+#if defined(STEP_RESOLVE) || defined(STEP_RAYTRACE)
+/* SSR will set these global variables itself.
+ * Also make false positive compiler warnings disapear by setting values. */
+vec3 worldPosition = vec3(0);
+vec3 viewPosition = vec3(0);
+vec3 worldNormal = vec3(0);
+vec3 viewNormal = vec3(0);
+
+#elif defined(GPU_GEOMETRY_SHADER)
 in ShaderStageInterface{SURFACE_INTERFACE} dataIn[];
 
 out ShaderStageInterface{SURFACE_INTERFACE} dataOut;
@@ -24,7 +32,7 @@ out ShaderStageInterface{SURFACE_INTERFACE} dataOut;
     dataOut.worldNormal = dataIn[vert].worldNormal; \
     dataOut.viewNormal = dataIn[vert].viewNormal;
 
-#else
+#else /* GPU_VERTEX_SHADER || GPU_FRAGMENT_SHADER*/
 
 IN_OUT ShaderStageInterface{SURFACE_INTERFACE};
 

@@ -3,12 +3,14 @@
 /** \name Common Math Utilities
  * \{ */
 
-#define M_PI 3.14159265358979323846     /* pi */
-#define M_2PI 6.28318530717958647692    /* 2*pi */
-#define M_PI_2 1.57079632679489661923   /* pi/2 */
-#define M_1_PI 0.318309886183790671538  /* 1/pi */
-#define M_1_2PI 0.159154943091895335768 /* 1/(2*pi) */
-#define M_1_PI2 0.101321183642337771443 /* 1/(pi^2) */
+#define M_PI 3.14159265358979323846      /* pi */
+#define M_2PI 6.28318530717958647692     /* 2*pi */
+#define M_PI_2 1.57079632679489661923    /* pi/2 */
+#define M_1_PI 0.318309886183790671538   /* 1/pi */
+#define M_1_2PI 0.159154943091895335768  /* 1/(2*pi) */
+#define M_1_PI2 0.101321183642337771443  /* 1/(pi^2) */
+#define M_SQRT2 1.41421356237309504880   /* sqrt(2) */
+#define M_SQRT1_2 0.70710678118654752440 /* 1/sqrt(2) */
 #define FLT_MAX 3.402823e+38
 
 vec3 mul(mat3 m, vec3 v)
@@ -31,6 +33,13 @@ vec3 project_point(mat4 m, vec3 v)
 {
   vec4 tmp = m * vec4(v, 1.0);
   return tmp.xyz / tmp.w;
+}
+
+mat2 rot2_from_angle(float a)
+{
+  float c = cos(a);
+  float s = sin(a);
+  return mat2(c, -s, s, c);
 }
 
 #define min3(a, b, c) min(a, min(b, c))
@@ -72,6 +81,22 @@ float sum(vec4 v) { return dot(vec4(1.0), v); }
 float avg(vec2 v) { return dot(vec2(1.0 / 2.0), v); }
 float avg(vec3 v) { return dot(vec3(1.0 / 3.0), v); }
 float avg(vec4 v) { return dot(vec4(1.0 / 4.0), v); }
+
+float safe_rcp(float a) { return (a != 0.0) ? (1.0 / a) : 0.0; }
+vec2 safe_rcp(vec2 a) { return mix(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0))); }
+vec4 safe_rcp(vec4 a) { return mix(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0))); }
+
+float sqr(float a) { return a * a; }
+vec2 sqr(vec2 a) { return a * a; }
+vec3 sqr(vec3 a) { return a * a; }
+vec4 sqr(vec4 a) { return a * a; }
+
+float len_squared(vec3 a) { return dot(a, a); }
+float len_squared(vec2 a) { return dot(a, a); }
+
+#define weighted_sum(val0, val1, val2, val3, weights) ((val0 * weights[0] + val1 * weights[1] + val2 * weights[2] + val3 * weights[3]) * safe_rcp(sum(weights)));
+#define weighted_sum_array(val, weights) ((val[0] * weights[0] + val[1] * weights[1] + val[2] * weights[2] + val[3] * weights[3]) * safe_rcp(sum(weights)));
+
 /* clang-format on */
 
 #define saturate(a) clamp(a, 0.0, 1.0)
@@ -88,9 +113,13 @@ float distance_squared(vec3 a, vec3 b)
   return dot(a, a);
 }
 
-float len_squared(vec3 a)
+vec3 safe_normalize(vec3 v)
 {
-  return dot(a, a);
+  float len = length(v);
+  if (isnan(len) || len == 0.0) {
+    return vec3(1.0, 0.0, 0.0);
+  }
+  return v / len;
 }
 
 /** \} */
@@ -128,3 +157,14 @@ vec2 fast_acos(vec2 v)
 }
 
 /** \} */
+
+/*
+ * For debugging purpose mainly.
+ * From https://www.shadertoy.com/view/4dsSzr
+ * By Morgan McGuire @morgan3d, http://graphicscodex.com
+ * Reuse permitted under the BSD license.
+ */
+vec3 neon_gradient(float t)
+{
+  return clamp(vec3(t * 1.3 + 0.1, sqr(abs(0.43 - t) * 1.7), (1.0 - t) * 1.7), 0.0, 1.0);
+}

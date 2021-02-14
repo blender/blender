@@ -93,7 +93,7 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   DRW_view_viewmat_get(NULL, viewmat, false);
   DRW_view_viewmat_get(NULL, viewinv, true);
 
-  /* if perps */
+  /* If perspective view or non-axis aligned view. */
   if (winmat[3][3] == 0.0f || rv3d->view == RV3D_VIEW_USER) {
     if (show_axis_x) {
       shd->grid_flag |= PLANE_XY | SHOW_AXIS_X;

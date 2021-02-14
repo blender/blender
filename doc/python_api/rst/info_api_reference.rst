@@ -186,7 +186,7 @@ For example, if you want to access the texture of a brush via Python to adjust i
 #. From the Sidebar expand the Brush Settings panel's *Texture* subpanel and add a new texture.
    *Notice the texture data-block menu itself doesn't have very useful links (you can check the tooltips).*
 #. The contrast setting isn't exposed in the Sidebar, so view the texture in the
-   :ref:`Properties Editor <blender_manual:bpy.types.Texture.contrast`
+   :ref:`Properties Editor <blender_manual:bpy.types.Texture.contrast>`.
 #. Open the context menu of the contrast field and select *Online Python Reference*.
    This takes you to ``bpy.types.Texture.contrast``. Now you can see that ``contrast`` is a property of texture.
 #. To find out how to access the texture from the brush check on the references at the bottom of the page.

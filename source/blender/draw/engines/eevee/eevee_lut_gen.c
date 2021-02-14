@@ -27,145 +27,97 @@
 
 #include "DRW_render.h"
 
-#include "BLI_alloca.h"
+#include "BLI_fileops.h"
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 
 #include "eevee_private.h"
 
-static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
+#define DO_FILE_OUTPUT 0
+
+float *EEVEE_lut_update_ggx_brdf(int lut_size)
 {
-  struct GPUTexture *tex;
-  struct GPUFrameBuffer *fb = NULL;
-  static float samples_len = 8192.0f;
-  static float inv_samples_len = 1.0f / 8192.0f;
-
-  DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
+  DRWPass *pass = DRW_pass_create(__func__, DRW_STATE_WRITE_COLOR);
   DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_ggx_lut_sh_get(), pass);
-  DRW_shgroup_uniform_float(grp, "sampleCount", &samples_len, 1);
-  DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_len, 1);
-  DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
-  DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
+  DRW_shgroup_uniform_float_copy(grp, "sampleCount", 64.0f); /* Actual sample count is squared. */
+  DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
-  struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
-  DRW_shgroup_call(grp, geom, NULL);
-
-  float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
-
-  tex = DRW_texture_create_2d(w, h, GPU_RG16F, DRW_TEX_FILTER, (float *)texels);
-
-  DRWFboTexture tex_filter = {&tex, GPU_RG16F, DRW_TEX_FILTER};
-  GPU_framebuffer_init(&fb, &draw_engine_eevee_type, w, h, &tex_filter, 1);
-
+  GPUTexture *tex = DRW_texture_create_2d(lut_size, lut_size, GPU_RG16F, 0, NULL);
+  GPUFrameBuffer *fb = NULL;
+  GPU_framebuffer_ensure_config(&fb,
+                                {
+                                    GPU_ATTACHMENT_NONE,
+                                    GPU_ATTACHMENT_TEXTURE(tex),
+                                });
   GPU_framebuffer_bind(fb);
   DRW_draw_pass(pass);
+  GPU_FRAMEBUFFER_FREE_SAFE(fb);
 
-  float *data = MEM_mallocN(sizeof(float[3]) * w * h, "lut");
-  GPU_framebuffer_read_color(fb, 0, 0, w, h, 3, 0, GPU_DATA_FLOAT, data);
-
-  printf("{");
-  for (int i = 0; i < w * h * 3; i += 3) {
-    printf("%ff, %ff, ", data[i], data[i + 1]);
-    i += 3;
-    printf("%ff, %ff, ", data[i], data[i + 1]);
-    i += 3;
-    printf("%ff, %ff, ", data[i], data[i + 1]);
-    i += 3;
-    printf("%ff, %ff, \n", data[i], data[i + 1]);
+  float *data = GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  GPU_texture_free(tex);
+#if DO_FILE_OUTPUT
+  /* Content is to be put inside eevee_lut.c */
+  FILE *f = BLI_fopen("bsdf_split_sum_ggx.h", "w");
+  fprintf(f, "const float bsdf_split_sum_ggx[%d * %d * 2] = {", lut_size, lut_size);
+  for (int i = 0; i < lut_size * lut_size * 2;) {
+    fprintf(f, "\n    ");
+    for (int j = 0; j < 4; j++, i += 2) {
+      fprintf(f, "%ff, %ff, ", data[i], data[i + 1]);
+    }
   }
-  printf("}");
-
-  MEM_freeN(texels);
-  MEM_freeN(data);
-
-  return tex;
-}
-
-static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
-{
-  struct GPUTexture *tex;
-  struct GPUTexture *hammersley = create_hammersley_sample_texture(8192);
-  struct GPUFrameBuffer *fb = NULL;
-  static float samples_len = 8192.0f;
-  static float a2 = 0.0f;
-  static float inv_samples_len = 1.0f / 8192.0f;
-
-  DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
-  DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_ggx_refraction_lut_sh_get(), pass);
-  DRW_shgroup_uniform_float(grp, "a2", &a2, 1);
-  DRW_shgroup_uniform_float(grp, "sampleCount", &samples_len, 1);
-  DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_len, 1);
-  DRW_shgroup_uniform_texture(grp, "texHammersley", hammersley);
-  DRW_shgroup_uniform_texture(grp, "utilTex", e_data.util_tex);
-
-  struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
-  DRW_shgroup_call(grp, geom, NULL);
-
-  float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
-
-  tex = DRW_texture_create_2d(w, h, GPU_R16F, DRW_TEX_FILTER, (float *)texels);
-
-  DRWFboTexture tex_filter = {&tex, GPU_R16F, DRW_TEX_FILTER};
-  GPU_framebuffer_init(&fb, &draw_engine_eevee_type, w, h, &tex_filter, 1);
-
-  GPU_framebuffer_bind(fb);
-
-  float *data = MEM_mallocN(sizeof(float[3]) * w * h, "lut");
-
-  float inc = 1.0f / 31.0f;
-  float roughness = 1e-8f - inc;
-  FILE *f = BLI_fopen("btdf_split_sum_ggx.h", "w");
-  fprintf(f, "static float btdf_split_sum_ggx[32][64 * 64] = {\n");
-  do {
-    roughness += inc;
-    CLAMP(roughness, 1e-4f, 1.0f);
-    a2 = powf(roughness, 4.0f);
-    DRW_draw_pass(pass);
-
-    GPU_framebuffer_read_data(0, 0, w, h, 3, 0, data);
-
-#if 1
-    fprintf(f, "\t{\n\t\t");
-    for (int i = 0; i < w * h * 3; i += 3) {
-      fprintf(f, "%ff,", data[i]);
-      if (((i / 3) + 1) % 12 == 0) {
-        fprintf(f, "\n\t\t");
-      }
-      else {
-        fprintf(f, " ");
-      }
-    }
-    fprintf(f, "\n\t},\n");
-#else
-    for (int i = 0; i < w * h * 3; i += 3) {
-      if (data[i] < 0.01) {
-        printf(" ");
-      }
-      else if (data[i] < 0.3) {
-        printf(".");
-      }
-      else if (data[i] < 0.6) {
-        printf("+");
-      }
-      else if (data[i] < 0.9) {
-        printf("%%");
-      }
-      else {
-        printf("#");
-      }
-      if ((i / 3 + 1) % 64 == 0) {
-        printf("\n");
-      }
-    }
+  fprintf(f, "\n};\n");
+  fclose(f);
 #endif
 
-  } while (roughness < 1.0f);
-  fprintf(f, "\n};\n");
+  return data;
+}
 
+float *EEVEE_lut_update_ggx_btdf(int lut_size, int lut_depth)
+{
+  float roughness;
+  DRWPass *pass = DRW_pass_create(__func__, DRW_STATE_WRITE_COLOR);
+  DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_ggx_refraction_lut_sh_get(), pass);
+  DRW_shgroup_uniform_float_copy(grp, "sampleCount", 64.0f); /* Actual sample count is squared. */
+  DRW_shgroup_uniform_float(grp, "z", &roughness, 1);
+  DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+
+  GPUTexture *tex = DRW_texture_create_2d_array(lut_size, lut_size, lut_depth, GPU_RG16F, 0, NULL);
+  GPUFrameBuffer *fb = NULL;
+  for (int i = 0; i < lut_depth; i++) {
+    GPU_framebuffer_ensure_config(&fb,
+                                  {
+                                      GPU_ATTACHMENT_NONE,
+                                      GPU_ATTACHMENT_TEXTURE_LAYER(tex, i),
+                                  });
+    GPU_framebuffer_bind(fb);
+    roughness = i / (lut_depth - 1.0f);
+    DRW_draw_pass(pass);
+  }
+
+  GPU_FRAMEBUFFER_FREE_SAFE(fb);
+
+  float *data = GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  GPU_texture_free(tex);
+
+#if DO_FILE_OUTPUT
+  /* Content is to be put inside eevee_lut.c. Don't forget to format the output. */
+  FILE *f = BLI_fopen("btdf_split_sum_ggx.h", "w");
+  fprintf(f, "const float btdf_split_sum_ggx[%d][%d * %d * 2] = {", lut_depth, lut_size, lut_size);
+  fprintf(f, "\n    ");
+  int ofs = 0;
+  for (int d = 0; d < lut_depth; d++) {
+    fprintf(f, "{\n");
+    for (int i = 0; i < lut_size * lut_size * 2;) {
+      for (int j = 0; j < 4; j++, i += 2, ofs += 2) {
+        fprintf(f, "%ff, %ff, ", data[ofs], data[ofs + 1]);
+      }
+      fprintf(f, "\n    ");
+    }
+    fprintf(f, "},\n");
+  }
+  fprintf(f, "};\n");
   fclose(f);
+#endif
 
-  MEM_freeN(texels);
-  MEM_freeN(data);
-
-  return tex;
+  return data;
 }

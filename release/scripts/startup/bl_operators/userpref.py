@@ -1042,7 +1042,7 @@ class PREFERENCES_OT_studiolight_new(Operator):
         default="StudioLight",
     )
 
-    ask_overide = False
+    ask_override = False
 
     def execute(self, context):
         import os
@@ -1057,8 +1057,8 @@ class PREFERENCES_OT_studiolight_new(Operator):
 
         filepath_final = os.path.join(path_studiolights, filename)
         if os.path.isfile(filepath_final):
-            if not self.ask_overide:
-                self.ask_overide = True
+            if not self.ask_override:
+                self.ask_override = True
                 return wm.invoke_props_dialog(self, width=320)
             else:
                 for studio_light in prefs.studio_lights:
@@ -1078,7 +1078,7 @@ class PREFERENCES_OT_studiolight_new(Operator):
 
     def draw(self, _context):
         layout = self.layout
-        if self.ask_overide:
+        if self.ask_override:
             layout.label(text="Warning, file already exists. Overwrite existing file?")
         else:
             layout.prop(self, "filename")

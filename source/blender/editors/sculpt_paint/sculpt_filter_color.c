@@ -86,7 +86,7 @@ static EnumPropertyItem prop_color_filter_types[] = {
     {COLOR_FILTER_SATURATION, "SATURATION", 0, "Saturation", "Change saturation"},
     {COLOR_FILTER_VALUE, "VALUE", 0, "Value", "Change value"},
 
-    {COLOR_FILTER_BRIGHTNESS, "BRIGTHNESS", 0, "Brightness", "Change brightness"},
+    {COLOR_FILTER_BRIGHTNESS, "BRIGHTNESS", 0, "Brightness", "Change brightness"},
     {COLOR_FILTER_CONTRAST, "CONTRAST", 0, "Contrast", "Change contrast"},
 
     {COLOR_FILTER_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth colors"},

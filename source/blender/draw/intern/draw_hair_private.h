@@ -24,7 +24,7 @@
 #pragma once
 
 #define MAX_LAYER_NAME_CT 4 /* u0123456789, u, au, a0123456789 */
-#define MAX_LAYER_NAME_LEN GPU_MAX_SAFE_ATTR_NAME + 2
+#define MAX_LAYER_NAME_LEN (GPU_MAX_SAFE_ATTR_NAME + 2)
 #define MAX_THICKRES 2    /* see eHairType */
 #define MAX_HAIR_SUBDIV 4 /* see hair_subdiv rna */
 

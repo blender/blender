@@ -125,10 +125,25 @@ static void do_mix_operation(const CustomDataType result_type,
   }
 }
 
+static AttributeDomain get_result_domain(const GeometryComponent &component,
+                                         const GeoNodeExecParams &params,
+                                         StringRef result_name)
+{
+  /* Use the domain of the result attribute if it already exists. */
+  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
+  if (result_attribute) {
+    return result_attribute->domain();
+  }
+
+  /* Otherwise use the highest priority domain from existing input attributes, or the default. */
+  return params.get_highest_priority_input_domain({"A", "B"}, component, ATTR_DOMAIN_POINT);
+}
+
 static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
   const NodeAttributeMix *node_storage = (const NodeAttributeMix *)node.storage;
+  const std::string result_name = params.get_input<std::string>("Result");
 
   /* Use the highest complexity data type among the inputs and outputs, that way the node will
    * never "remove information". Use CD_PROP_BOOL as the lowest complexity data type, but in any
@@ -139,14 +154,7 @@ static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecPa
       params.get_input_attribute_data_type("Result", component, CD_PROP_BOOL),
   });
 
-  /* Once we support more domains at the user level, we have to decide how the result domain is
-   * chosen. */
-  AttributeDomain result_domain = ATTR_DOMAIN_POINT;
-  const std::string result_name = params.get_input<std::string>("Result");
-  const ReadAttributePtr result_attribute_read = component.attribute_try_get_for_read(result_name);
-  if (result_attribute_read) {
-    result_domain = result_attribute_read->domain();
-  }
+  const AttributeDomain result_domain = get_result_domain(component, params, result_name);
 
   OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
@@ -173,6 +181,8 @@ static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecPa
 static void geo_node_attribute_mix_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
+  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (geometry_set.has<MeshComponent>()) {
     attribute_mix_calc(geometry_set.get_component_for_write<MeshComponent>(), params);

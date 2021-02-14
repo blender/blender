@@ -137,9 +137,9 @@ float probe_attenuation_planar(PlanarData pd, vec3 W, vec3 N, float roughness)
   return fac;
 }
 
-float probe_attenuation_grid(GridData gd, mat4 localmat, vec3 W, out vec3 localpos)
+float probe_attenuation_grid(GridData gd, vec3 W, out vec3 localpos)
 {
-  localpos = transform_point(localmat, W);
+  localpos = transform_point(gd.localmat, W);
   vec3 pos_to_edge = max(vec3(0.0), abs(localpos) - 1.0);
   float fade = length(pos_to_edge);
   return saturate(-fade * gd.g_atten_scale + gd.g_atten_bias);
@@ -167,7 +167,7 @@ vec3 probe_evaluate_cube(int pd_id, vec3 W, vec3 R, float roughness)
    * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf
    */
   float original_roughness = roughness;
-  float linear_roughness = sqrt(roughness);
+  float linear_roughness = fast_sqrt(roughness);
   float distance_roughness = saturate(dist * linear_roughness / length(intersection));
   linear_roughness = mix(distance_roughness, linear_roughness, linear_roughness);
   roughness = linear_roughness * linear_roughness;
@@ -175,16 +175,17 @@ vec3 probe_evaluate_cube(int pd_id, vec3 W, vec3 R, float roughness)
   float fac = saturate(original_roughness * 2.0 - 1.0);
   R = mix(intersection, R, fac * fac);
 
-  return textureLod_cubemapArray(probeCubes, vec4(R, float(pd_id)), roughness * prbLodCubeMax).rgb;
+  float lod = linear_roughness * prbLodCubeMax;
+  return textureLod_cubemapArray(probeCubes, vec4(R, float(pd_id)), lod).rgb;
 }
 
 vec3 probe_evaluate_world_spec(vec3 R, float roughness)
 {
-  return textureLod_cubemapArray(probeCubes, vec4(R, 0.0), roughness * prbLodCubeMax).rgb;
+  float lod = fast_sqrt(roughness) * prbLodCubeMax;
+  return textureLod_cubemapArray(probeCubes, vec4(R, 0.0), lod).rgb;
 }
 
-vec3 probe_evaluate_planar(
-    float id, PlanarData pd, vec3 W, vec3 N, vec3 V, float roughness, inout float fade)
+vec3 probe_evaluate_planar(int id, PlanarData pd, vec3 W, vec3 N, vec3 V, float roughness)
 {
   /* Find view vector / reflection plane intersection. */
   vec3 point_on_plane = line_plane_intersect(W, V, pd.pl_plane_eq);
@@ -226,7 +227,7 @@ void fallback_cubemap(vec3 N,
 #ifdef SSR_AO
   vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
   vec3 bent_normal;
-  float final_ao = occlusion_compute(N, viewPosition, 1.0, rand, bent_normal);
+  float final_ao = occlusion_compute(N, viewPosition, rand, bent_normal);
   final_ao = specular_occlusion(dot(N, V), final_ao, roughness);
 #else
   const float final_ao = 1.0;

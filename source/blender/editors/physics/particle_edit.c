@@ -88,7 +88,9 @@
 
 #include "particle_edit_utildefines.h"
 
-/**************************** utilities *******************************/
+/* -------------------------------------------------------------------- */
+/** \name Public Utilities
+ * \{ */
 
 bool PE_poll(bContext *C)
 {
@@ -178,9 +180,56 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
   MEM_freeN(edit);
 }
 
-/************************************************/
-/*          Edit Mode Helpers                   */
-/************************************************/
+int PE_minmax(
+    Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, float min[3], float max[3])
+{
+  Object *ob = OBACT(view_layer);
+  PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
+  ParticleSystem *psys;
+  ParticleSystemModifierData *psmd_eval = NULL;
+  POINT_P;
+  KEY_K;
+  float co[3], mat[4][4];
+  int ok = 0;
+
+  if (!edit) {
+    return ok;
+  }
+
+  if ((psys = edit->psys)) {
+    psmd_eval = edit->psmd_eval;
+  }
+  else {
+    unit_m4(mat);
+  }
+
+  LOOP_VISIBLE_POINTS {
+    if (psys) {
+      psys_mat_hair_to_global(
+          ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
+    }
+
+    LOOP_SELECTED_KEYS {
+      copy_v3_v3(co, key->co);
+      mul_m4_v3(mat, co);
+      DO_MINMAX(co, min, max);
+      ok = 1;
+    }
+  }
+
+  if (!ok) {
+    BKE_object_minmax(ob, min, max, true);
+    ok = 1;
+  }
+
+  return ok;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Mode Helpers
+ * \{ */
 
 int PE_start_edit(PTCacheEdit *edit)
 {
@@ -409,7 +458,11 @@ static int pe_x_mirror(Object *ob)
   return 0;
 }
 
-/****************** common struct passed to callbacks ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Common Struct Passed to Callbacks
+ * \{ */
 
 typedef struct PEData {
   ViewContext vc;
@@ -519,7 +572,11 @@ static void PE_free_random_generator(PEData *data)
   }
 }
 
-/*************************** selection utilities *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Selection Utilities
+ * \{ */
 
 static bool key_test_depth(const PEData *data, const float co[3], const int screen_co[2])
 {
@@ -632,7 +689,11 @@ static bool point_is_selected(PTCacheEditPoint *point)
   return 0;
 }
 
-/*************************** iterators *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Iterators
+ * \{ */
 
 typedef void (*ForPointFunc)(PEData *data, int point_index);
 typedef void (*ForHitPointFunc)(PEData *data, int point_index, float mouse_distance);
@@ -905,9 +966,11 @@ static int count_selected_keys(Scene *scene, PTCacheEdit *edit)
   return sel;
 }
 
-/************************************************/
-/*          Particle Edit Mirroring             */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Particle Edit Mirroring
+ * \{ */
 
 static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 {
@@ -1115,9 +1178,11 @@ static void PE_apply_mirror(Object *ob, ParticleSystem *psys)
   }
 }
 
-/************************************************/
-/*          Edit Calculation                    */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Calculation
+ * \{ */
 
 typedef struct DeflectEmitterIter {
   Object *object;
@@ -1605,9 +1670,11 @@ void PE_update_object(Depsgraph *depsgraph, Scene *scene, Object *ob, int usefla
   }
 }
 
-/************************************************/
-/*          Edit Selections                     */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Selections
+ * \{ */
 
 /*-----selection callbacks-----*/
 
@@ -1703,7 +1770,11 @@ static void toggle_key_select(PEData *data, int point_index, int key_index, bool
   data->is_changed = true;
 }
 
-/************************ de select all operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name De-Select All Operator
+ * \{ */
 
 static bool select_action_apply(PTCacheEditPoint *point, PTCacheEditKey *key, int action)
 {
@@ -1794,7 +1865,11 @@ void PARTICLE_OT_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
-/************************ pick select operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pick Select Operator
+ * \{ */
 
 bool PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
@@ -1843,7 +1918,11 @@ bool PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool desele
   return true;
 }
 
-/************************ select root operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Root Operator
+ * \{ */
 
 static void select_root(PEData *data, int point_index)
 {
@@ -1906,7 +1985,11 @@ void PARTICLE_OT_select_roots(wmOperatorType *ot)
   WM_operator_properties_select_action(ot, SEL_SELECT, false);
 }
 
-/************************ select tip operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Tip Operator
+ * \{ */
 
 static void select_tip(PEData *data, int point_index)
 {
@@ -1977,7 +2060,11 @@ void PARTICLE_OT_select_tips(wmOperatorType *ot)
   WM_operator_properties_select_action(ot, SEL_SELECT, false);
 }
 
-/*********************** select random operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Random Operator
+ * \{ */
 
 enum { RAN_HAIR, RAN_POINTS };
 
@@ -2064,7 +2151,11 @@ void PARTICLE_OT_select_random(wmOperatorType *ot)
                           "Select either hair or points");
 }
 
-/************************ select linked operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked operator
+ * \{ */
 
 static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2146,7 +2237,12 @@ void PARTICLE_OT_select_linked_pick(wmOperatorType *ot)
   RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "", 0, 16384);
 }
 
-/************************ box select operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Box Select Operator
+ * \{ */
+
 bool PE_deselect_all_visible_ex(PTCacheEdit *edit)
 {
   bool changed = false;
@@ -2211,7 +2307,11 @@ bool PE_box_select(bContext *C, const rcti *rect, const int sel_op)
   return data.is_changed;
 }
 
-/************************ circle select operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Circle Select Operator
+ * \{ */
 
 bool PE_circle_select(bContext *C, const int sel_op, const int mval[2], float rad)
 {
@@ -2244,7 +2344,11 @@ bool PE_circle_select(bContext *C, const int sel_op, const int mval[2], float ra
   return data.is_changed;
 }
 
-/************************ lasso select operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lasso Select Operator
+ * \{ */
 
 int PE_lasso_select(bContext *C, const int mcoords[][2], const int mcoords_len, const int sel_op)
 {
@@ -2331,7 +2435,11 @@ int PE_lasso_select(bContext *C, const int mcoords[][2], const int mcoords_len, 
   return OPERATOR_CANCELLED;
 }
 
-/*************************** hide operator **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hide Operator
+ * \{ */
 
 static int hide_exec(bContext *C, wmOperator *op)
 {
@@ -2388,7 +2496,11 @@ void PARTICLE_OT_hide(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
-/*************************** reveal operator **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reveal Operator
+ * \{ */
 
 static int reveal_exec(bContext *C, wmOperator *op)
 {
@@ -2435,7 +2547,11 @@ void PARTICLE_OT_reveal(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
-/************************ select less operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Less Operator
+ * \{ */
 
 static void select_less_keys(PEData *data, int point_index)
 {
@@ -2498,7 +2614,11 @@ void PARTICLE_OT_select_less(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ select more operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select More Operator
+ * \{ */
 
 static void select_more_keys(PEData *data, int point_index)
 {
@@ -2566,7 +2686,11 @@ void PARTICLE_OT_select_more(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ rekey operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Re-Key Operator
+ * \{ */
 
 static void rekey_particle(PEData *data, int pa_index)
 {
@@ -2723,7 +2847,11 @@ static void rekey_particle_to_time(
   pa->flag &= ~PARS_REKEY;
 }
 
-/************************* utilities **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
 
 static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
 {
@@ -2905,7 +3033,11 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
   }
 }
 
-/************************ subdivide operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Subdivide Operator
+ * \{ */
 
 /* works like normal edit mode subdivide, inserts keys between neighboring selected keys */
 static void subdivide_particle(PEData *data, int pa_index)
@@ -3029,7 +3161,11 @@ void PARTICLE_OT_subdivide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ remove doubles operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Doubles Operator
+ * \{ */
 
 static int remove_doubles_exec(bContext *C, wmOperator *op)
 {
@@ -3192,7 +3328,11 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
                 1);
 }
 
-/************************ cursor drawing *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor Drawing
+ * \{ */
 
 static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata))
 {
@@ -3238,7 +3378,11 @@ static void toggle_particle_cursor(Scene *scene, bool enable)
   }
 }
 
-/*************************** delete operator **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Operator
+ * \{ */
 
 enum { DEL_PARTICLE, DEL_KEY };
 
@@ -3314,7 +3458,11 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
                           "Delete a full particle or only keys");
 }
 
-/*************************** mirror operator **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mirror Operator
+ * \{ */
 
 static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagged)
 {
@@ -3526,7 +3674,11 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************* brush edit callbacks ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Brush Edit Callbacks
+ * \{ */
 
 static void brush_comb(PEData *data,
                        float UNUSED(mat[4][4]),
@@ -4474,7 +4626,11 @@ static int brush_add(const bContext *C, PEData *data, short number)
   return n;
 }
 
-/************************* brush edit operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Brush Edit Operator
+ * \{ */
 
 typedef struct BrushEdit {
   Scene *scene;
@@ -4864,7 +5020,11 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-/*********************** cut shape ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cut Shape
+ * \{ */
 
 static bool shape_cut_poll(bContext *C)
 {
@@ -5070,54 +5230,11 @@ void PARTICLE_OT_shape_cut(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ utilities ******************************/
+/** \} */
 
-int PE_minmax(
-    Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, float min[3], float max[3])
-{
-  Object *ob = OBACT(view_layer);
-  PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
-  ParticleSystem *psys;
-  ParticleSystemModifierData *psmd_eval = NULL;
-  POINT_P;
-  KEY_K;
-  float co[3], mat[4][4];
-  int ok = 0;
-
-  if (!edit) {
-    return ok;
-  }
-
-  if ((psys = edit->psys)) {
-    psmd_eval = edit->psmd_eval;
-  }
-  else {
-    unit_m4(mat);
-  }
-
-  LOOP_VISIBLE_POINTS {
-    if (psys) {
-      psys_mat_hair_to_global(
-          ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
-    }
-
-    LOOP_SELECTED_KEYS {
-      copy_v3_v3(co, key->co);
-      mul_m4_v3(mat, co);
-      DO_MINMAX(co, min, max);
-      ok = 1;
-    }
-  }
-
-  if (!ok) {
-    BKE_object_minmax(ob, min, max, true);
-    ok = 1;
-  }
-
-  return ok;
-}
-
-/************************ particle edit toggle operator ************************/
+/* -------------------------------------------------------------------- */
+/** \name Particle Edit Toggle Operator
+ * \{ */
 
 /* initialize needed data for bake edit */
 void PE_create_particle_edit(
@@ -5371,7 +5488,11 @@ void PARTICLE_OT_particle_edit_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ set editable operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Editable Operator
+ * \{ */
 
 static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -5421,7 +5542,11 @@ void PARTICLE_OT_edited_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ Unify length operator ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unify length operator
+ * \{ */
 
 static float calculate_point_length(PTCacheEditPoint *point)
 {
@@ -5533,3 +5658,5 @@ void PARTICLE_OT_unify_length(struct wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */

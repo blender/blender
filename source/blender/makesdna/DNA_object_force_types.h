@@ -224,7 +224,7 @@ typedef struct SoftBody {
    * rather find them by name tag to find it -> jow20090613.
    * MAX_VGROUP_NAME */
   char namedVG_Mass[64];
-  /** Softbody amount of gravitaion to apply. */
+  /** Softbody amount of gravitation to apply. */
   float grav;
   /** Friction to env. */
   float mediafrict;
@@ -310,7 +310,7 @@ typedef struct SoftBody {
   struct Collection *collision_group;
 
   struct EffectorWeights *effector_weights;
-  /* reverse esimated obmatrix .. no need to store in blend file .. how ever who cares */
+  /* Reverse estimated object-matrix (run-time data, no need to store in the file). */
   float lcom[3];
   float lrot[3][3];
   float lscale[3][3];

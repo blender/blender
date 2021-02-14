@@ -42,23 +42,23 @@ struct AnimData;
  */
 
 typedef struct Bone {
-  /**  Next/prev elements within this list. */
+  /** Next/previous elements within this list. */
   struct Bone *next, *prev;
   /** User-Defined Properties on this Bone. */
   IDProperty *prop;
-  /**  Parent (ik parent if appropriate flag is set. */
+  /** Parent (IK parent if appropriate flag is set). */
   struct Bone *parent;
-  /**  Children   . */
+  /** Children. */
   ListBase childbase;
-  /**  Name of the bone - must be unique within the armature, MAXBONENAME. */
+  /** Name of the bone - must be unique within the armature, MAXBONENAME. */
   char name[64];
 
-  /**  roll is input for editmode, length calculated. */
+  /** Roll is input for edit-mode, length calculated. */
   float roll;
   float head[3];
-  /**  head/tail and roll in Bone Space   . */
+  /** Head/tail and roll in Bone Space. */
   float tail[3];
-  /**  rotation derived from head/tail/roll. */
+  /** Rotation derived from head/tail/roll. */
   float bone_mat[3][3];
 
   int flag;
@@ -67,21 +67,24 @@ typedef struct Bone {
   char _pad[7];
 
   float arm_head[3];
-  /**  head/tail in Armature Space (rest pos). */
+  /** Head/tail in Armature Space (rest pose). */
   float arm_tail[3];
-  /**  matrix: (bonemat(b)+head(b))*arm_mat(b-1), rest po.s*/
+  /** Matrix: `(bonemat(b)+head(b))*arm_mat(b-1)`, rest pose. */
   float arm_mat[4][4];
-  /** Roll in Armature Space (rest pos). */
+  /** Roll in Armature Space (rest pose). */
   float arm_roll;
 
-  /**  dist, weight: for non-deformgroup deforms. */
+  /** dist, weight: for non-deformgroup deforms. */
   float dist, weight;
-  /**  width: for block bones. keep in this order, transform!. */
+  /** width: for block bones. keep in this order, transform!. */
   float xwidth, length, zwidth;
-  /** Radius for head/tail sphere, defining deform as well, parent->rad_tip overrides rad_head. */
+  /**
+   * Radius for head/tail sphere, defining deform as well,
+   * `parent->rad_tip` overrides `rad_head`.
+   */
   float rad_head, rad_tail;
 
-  /** Curved bones settings - these define the "restpose" for a curved bone. */
+  /** Curved bones settings - these define the "rest-pose" for a curved bone. */
   float roll1, roll2;
   float curve_in_x, curve_in_y;
   float curve_out_x, curve_out_y;
@@ -90,11 +93,11 @@ typedef struct Bone {
   float scale_in_x, scale_in_y;
   float scale_out_x, scale_out_y;
 
-  /**  patch for upward compat, UNUSED!. */
+  /** Patch for upward compatibility, UNUSED! */
   float size[3];
   /** Layers that bone appears on. */
   int layer;
-  /**  for B-bones. */
+  /** For B-bones. */
   short segments;
 
   /** Type of next/prev bone handles. */
@@ -126,7 +129,7 @@ typedef struct bArmature {
 
   /** Active bone. */
   Bone *act_bone;
-  /** Active editbone (in editmode). */
+  /** Active edit-bone (in edit-mode). */
   struct EditBone *act_edbone;
 
   /** ID data is older than edit-mode data (TODO: move to edit-mode struct). */

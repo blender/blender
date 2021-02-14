@@ -2474,7 +2474,7 @@ static void adduplicateflagNurb(
               memcpy(&newnu->bp[b * newu], &nu->bp[b * nu->pntsu], newu * sizeof(BPoint));
             }
 
-            /* check for actvert in the unused cyclicuv selection */
+            /* Check for `actvert` in the unused cyclic-UV selection. */
             if (cu->actnu == i) {
               if (cu->actvert == -1) {
                 calc_duplicate_actnurb(editnurb, newnurb, cu);

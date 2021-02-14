@@ -1589,7 +1589,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
                 continue;
               }
             }
-            /* some stroke is already at botom */
+            /* Some stroke is already at bottom. */
             if (ELEM(direction, GP_STROKE_MOVE_BOTTOM, GP_STROKE_MOVE_DOWN)) {
               if (gps == gpf->strokes.first) {
                 gpf_lock = true;
@@ -2022,7 +2022,7 @@ static void gpencil_brush_delete_mode_brushes(Main *bmain,
       }
     }
 
-    /* Before delete, unpinn any material of the brush. */
+    /* Before delete, un-pin any material of the brush. */
     if ((brush->gpencil_settings) && (brush->gpencil_settings->material != NULL)) {
       brush->gpencil_settings->material = NULL;
       brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;

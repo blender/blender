@@ -357,6 +357,9 @@ if(WITH_INTERNATIONAL)
 endif()
 
 if(WITH_TBB)
+  list(APPEND INC_SYS
+    ${TBB_INCLUDE_DIRS}
+  )
   add_definitions(-DWITH_TBB)
 endif()
 

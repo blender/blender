@@ -220,16 +220,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
     }
   }
 
-  if (parentwindow && !dialog) {
-    RAWINPUTDEVICE device = {0};
-    device.usUsagePage = 0x01; /* usUsagePage & usUsage for keyboard*/
-    device.usUsage = 0x06;     /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
-    device.dwFlags |=
-        RIDEV_INPUTSINK;  // makes WM_INPUT is visible for ghost when has parent window
-    device.hwndTarget = m_hWnd;
-    RegisterRawInputDevices(&device, 1, sizeof(device));
-  }
-
   // Initialize Windows Ink
   if (m_user32) {
     m_fpGetPointerInfoHistory = (GHOST_WIN32_GetPointerInfoHistory)::GetProcAddress(

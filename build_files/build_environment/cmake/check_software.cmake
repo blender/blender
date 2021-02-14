@@ -33,6 +33,16 @@ if(UNIX)
     yasm
   )
 
+  if(NOT APPLE)
+    set(_required_software
+      ${_required_software}
+
+      # Needed for Mesa.
+      meson
+      ninja
+    )
+  endif()
+
   foreach(_software ${_required_software})
     find_program(_software_find NAMES ${_software})
     if(NOT _software_find)
@@ -60,7 +70,7 @@ if(UNIX)
       "  ${_software_missing}\n"
       "\n"
       "On Debian and Ubuntu:\n"
-      "  apt install autoconf automake libtool yasm tcl\n"
+      "  apt install autoconf automake libtool yasm tcl ninja-build meson python3-mako\n"
       "\n"
       "On macOS (with homebrew):\n"
       "  brew install autoconf automake bison libtool pkg-config yasm\n"
