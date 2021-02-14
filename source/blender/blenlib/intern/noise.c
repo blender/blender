@@ -36,6 +36,10 @@ static float noise3_perlin(const float vec[3]);
 /* UNUSED */
 // #define HASHVEC(x, y, z) hashvectf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]
 
+/* -------------------------------------------------------------------- */
+/** \name Static Data
+ * \{ */
+
 /* needed for voronoi */
 #define HASHPNT(x, y, z) hashpntf + 3 * hash[(hash[(hash[(z)&255] + (y)) & 255] + (x)) & 255]
 static const float hashpntf[768] = {
@@ -263,9 +267,11 @@ static const float hashvectf[768] = {
     0.64801,   -0.100586, 0.114716,  0.044525,  -0.992371, 0.966003,  0.244873,  -0.082764,
 };
 
-/**************************/
-/*  IMPROVED PERLIN NOISE */
-/**************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Improved Perlin Noise Implementation (New)
+ * \{ */
 
 BLI_INLINE float lerp(float t, float a, float b)
 {
@@ -328,9 +334,11 @@ static float newPerlinU(float x, float y, float z)
   return (0.5f + 0.5f * newPerlin(x, y, z));
 }
 
-/**************************/
-/* END OF IMPROVED PERLIN */
-/**************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Improved Perlin Noise Implementation (Original)
+ * \{ */
 
 /* Was BLI_noise_hnoise(), removed noisesize, so other functions can call it without scaling. */
 static float orgBlenderNoise(float x, float y, float z)
@@ -855,9 +863,11 @@ float BLI_noise_hnoisep(float noisesize, float x, float y, float z)
   return noise3_perlin(vec);
 }
 
-/******************/
-/* VORONOI/WORLEY */
-/******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Voronoi/Worley Implementation
+ * \{ */
 
 /* distance metrics for voronoi, e parameter only used in Minkowski */
 /* Camberra omitted, didn't seem useful */
@@ -1105,13 +1115,11 @@ static float voronoi_CrS(float x, float y, float z)
   return (2.0f * t - 1.0f);
 }
 
-/***************/
-/* voronoi end */
-/***************/
+/** \} */
 
-/*************/
-/* CELLNOISE */
-/*************/
+/* -------------------------------------------------------------------- */
+/** \name Cell-Noise Implementation
+ * \{ */
 
 /* returns unsigned cellnoise */
 static float BLI_cellNoiseU(float x, float y, float z)
@@ -1152,9 +1160,11 @@ void BLI_noise_cell_v3(float x, float y, float z, float ca[3])
   ca[2] = p[2];
 }
 
-/*****************/
-/* end cellnoise */
-/*****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public API's
+ * \{ */
 
 /* newnoise: generic noise function for use with different noisebases */
 float BLI_noise_generic_noise(
@@ -1747,6 +1757,4 @@ float BLI_noise_mg_variable_lacunarity(
   return noisefunc2(x + rv[0], y + rv[1], z + rv[2]); /* distorted-domain noise */
 }
 
-/****************/
-/* musgrave end */
-/****************/
+/** \} */
