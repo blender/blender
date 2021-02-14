@@ -117,7 +117,7 @@ static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-#define SCULPT_EXPAND_TEXTURE_DISTORSION_STEP 0.1f
+#define SCULPT_EXPAND_TEXTURE_DISTORSION_STEP 0.01f
 #define SCULPT_EXPAND_LOOP_THRESHOLD 0.00001f
 
 static bool sculpt_expand_is_vert_in_active_compoment(SculptSession *ss,
@@ -1524,13 +1524,11 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
       case SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_INCREASE: {
-        expand_cache->texture_distorsion_strength += SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
-        expand_cache->texture_distorsion_strength = min_ff(
-            expand_cache->texture_distorsion_strength, 10.0f);
+        expand_cache->texture_distorsion_strength += expand_cache->max_falloff_factor * SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
         break;
       }
       case SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_DECREASE: {
-        expand_cache->texture_distorsion_strength -= SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
+        expand_cache->texture_distorsion_strength -= expand_cache->max_falloff_factor * SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
         expand_cache->texture_distorsion_strength = max_ff(
             expand_cache->texture_distorsion_strength, 0.0f);
         break;
