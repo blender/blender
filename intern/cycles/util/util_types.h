@@ -23,7 +23,7 @@
 
 /* Standard Integer Types */
 
-#if !defined(__KERNEL_GPU__) && !defined(_WIN32)
+#if !defined(__KERNEL_GPU__)
 #  include <stdint.h>
 #endif
 
@@ -57,25 +57,6 @@ typedef unsigned long uint64_t;
 #endif
 
 #ifndef __KERNEL_GPU__
-#  ifdef _WIN32
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
-
-typedef signed int int32_t;
-typedef unsigned int uint32_t;
-
-typedef long long int64_t;
-typedef unsigned long long uint64_t;
-#    ifdef __KERNEL_64_BIT__
-typedef int64_t ssize_t;
-#    else
-typedef int32_t ssize_t;
-#    endif
-#  endif /* _WIN32 */
-
 /* Generic Memory Pointer */
 
 typedef uint64_t device_ptr;

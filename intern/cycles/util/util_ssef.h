@@ -730,27 +730,27 @@ __forceinline float reduce_add(const ssef &v)
   return _mm_cvtss_f32(vreduce_add(v));
 }
 
-__forceinline size_t select_min(const ssef &v)
+__forceinline uint32_t select_min(const ssef &v)
 {
   return __bsf(movemask(v == vreduce_min(v)));
 }
-__forceinline size_t select_max(const ssef &v)
+__forceinline uint32_t select_max(const ssef &v)
 {
   return __bsf(movemask(v == vreduce_max(v)));
 }
 
-__forceinline size_t select_min(const sseb &valid, const ssef &v)
+__forceinline uint32_t select_min(const sseb &valid, const ssef &v)
 {
   const ssef a = select(valid, v, ssef(pos_inf));
   return __bsf(movemask(valid & (a == vreduce_min(a))));
 }
-__forceinline size_t select_max(const sseb &valid, const ssef &v)
+__forceinline uint32_t select_max(const sseb &valid, const ssef &v)
 {
   const ssef a = select(valid, v, ssef(neg_inf));
   return __bsf(movemask(valid & (a == vreduce_max(a))));
 }
 
-__forceinline size_t movemask(const ssef &a)
+__forceinline uint32_t movemask(const ssef &a)
 {
   return _mm_movemask_ps(a);
 }

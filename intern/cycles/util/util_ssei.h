@@ -516,21 +516,21 @@ __forceinline int reduce_add(const ssei &v)
   return extract<0>(vreduce_add(v));
 }
 
-__forceinline size_t select_min(const ssei &v)
+__forceinline uint32_t select_min(const ssei &v)
 {
   return __bsf(movemask(v == vreduce_min(v)));
 }
-__forceinline size_t select_max(const ssei &v)
+__forceinline uint32_t select_max(const ssei &v)
 {
   return __bsf(movemask(v == vreduce_max(v)));
 }
 
-__forceinline size_t select_min(const sseb &valid, const ssei &v)
+__forceinline uint32_t select_min(const sseb &valid, const ssei &v)
 {
   const ssei a = select(valid, v, ssei((int)pos_inf));
   return __bsf(movemask(valid & (a == vreduce_min(a))));
 }
-__forceinline size_t select_max(const sseb &valid, const ssei &v)
+__forceinline uint32_t select_max(const sseb &valid, const ssei &v)
 {
   const ssei a = select(valid, v, ssei((int)neg_inf));
   return __bsf(movemask(valid & (a == vreduce_max(a))));

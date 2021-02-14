@@ -258,12 +258,12 @@ template<size_t dst> __forceinline const sseb insert(const sseb &a, const bool b
 ////////////////////////////////////////////////////////////////////////////////
 
 #  if defined(__KERNEL_SSE41__)
-__forceinline size_t popcnt(const sseb &a)
+__forceinline uint32_t popcnt(const sseb &a)
 {
-  return __popcnt(_mm_movemask_ps(a));
+  return _mm_popcnt_u32(_mm_movemask_ps(a));
 }
 #  else
-__forceinline size_t popcnt(const sseb &a)
+__forceinline uint32_t popcnt(const sseb &a)
 {
   return bool(a[0]) + bool(a[1]) + bool(a[2]) + bool(a[3]);
 }
@@ -290,7 +290,7 @@ __forceinline bool none(const sseb &b)
   return _mm_movemask_ps(b) == 0x0;
 }
 
-__forceinline size_t movemask(const sseb &a)
+__forceinline uint32_t movemask(const sseb &a)
 {
   return _mm_movemask_ps(a);
 }

@@ -20,7 +20,7 @@
 #include "util/util_math.h"
 #include "util/util_types.h"
 
-#ifdef __KERNEL_SSE2__
+#if !defined(__KERNEL_GPU__) && defined(__KERNEL_SSE2__)
 #  include "util/util_simd.h"
 #endif
 

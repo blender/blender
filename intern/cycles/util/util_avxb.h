@@ -191,12 +191,12 @@ __forceinline const avxb unpackhi(const avxb &a, const avxb &b)
 ////////////////////////////////////////////////////////////////////////////////
 
 #if defined(__KERNEL_SSE41__)
-__forceinline size_t popcnt(const avxb &a)
+__forceinline uint32_t popcnt(const avxb &a)
 {
-  return __popcnt(_mm256_movemask_ps(a));
+  return _mm_popcnt_u32(_mm256_movemask_ps(a));
 }
 #else
-__forceinline size_t popcnt(const avxb &a)
+__forceinline uint32_t popcnt(const avxb &a)
 {
   return bool(a[0]) + bool(a[1]) + bool(a[2]) + bool(a[3]) + bool(a[4]) + bool(a[5]) + bool(a[6]) +
          bool(a[7]);
@@ -224,7 +224,7 @@ __forceinline bool none(const avxb &b)
   return _mm256_movemask_ps(b) == 0x0;
 }
 
-__forceinline size_t movemask(const avxb &a)
+__forceinline uint32_t movemask(const avxb &a)
 {
   return _mm256_movemask_ps(a);
 }
