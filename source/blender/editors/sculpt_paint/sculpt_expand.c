@@ -383,7 +383,7 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
   SCULPT_floodfill_execute(ss, &flood, mask_expand_normal_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
 
-  for (int i = 0; i < totvert; i++) {
+  for (int i = e0; i < totvert; i++) {
     dists[i] = FLT_MAX;
   }
 
@@ -597,6 +597,31 @@ static void sculpt_expand_update_max_face_falloff_factor(SculptSession *ss,
 
     expand_cache->max_face_falloff_factor = max_ff(expand_cache->max_face_falloff_factor,
                                                    expand_cache->face_falloff_factor[i]);
+  }
+}
+
+static void sculpt_expand_mesh_face_falloff_from_grids_falloff(SculptSession *ss,
+                                                               Mesh *mesh,
+                                                               ExpandCache *expand_cache)
+{
+  if (expand_cache->face_falloff_factor) {
+    MEM_freeN(expand_cache->face_falloff_factor);
+  }
+  expand_cache->face_falloff_factor = MEM_malloc_arrayN(
+      mesh->totpoly, sizeof(float), "face falloff factors");
+
+  const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+
+  for (int p = 0; p < mesh->totpoly; p++) {
+    MPoly *poly = &mesh->mpoly[p];
+    float accum = 0.0f;
+    for (int l = 0; l < poly->totloop; l++) {
+      const int grid_loop_index = (poly->loopstart + l) * key->grid_area;
+      for (int g = 0; g < key->grid_area; g++) {
+        accum += expand_cache->falloff_factor[grid_loop_index + g];
+      }
+    }
+    expand_cache->face_falloff_factor[p] = accum / poly->totloop;
   }
 }
 
@@ -814,6 +839,20 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
 {
 
   MEM_SAFE_FREE(expand_cache->falloff_factor);
+  expand_cache->falloff_factor_type = falloff_type;
+
+  SculptSession *ss = ob->sculpt;
+
+  /* Handle limited support for Multires. */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    expand_cache->falloff_factor = sculpt_expand_topology_falloff_create(sd, ob, vertex);
+    sculpt_expand_update_max_falloff_factor(ss, expand_cache);
+    if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
+      sculpt_expand_mesh_face_falloff_from_grids_falloff(ss, ob->data, expand_cache);
+      sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
+    }
+    return;
+  }
 
   switch (falloff_type) {
     case SCULPT_EXPAND_FALLOFF_GEODESIC:
@@ -845,9 +884,6 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
       break;
   }
 
-  expand_cache->falloff_factor_type = falloff_type;
-
-  SculptSession *ss = ob->sculpt;
   sculpt_expand_update_max_falloff_factor(ss, expand_cache);
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
     sculpt_expand_mesh_face_falloff_from_vertex_falloff(ob->data, expand_cache);
@@ -1282,6 +1318,10 @@ static void sculpt_expand_resursion_step_add(Object *ob,
                                              const eSculptExpandRecursionType recursion_type)
 {
   SculptSession *ss = ob->sculpt;
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return;
+  }
+
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
 
   expand_cache->texture_distorsion_strength = 0.0f;
