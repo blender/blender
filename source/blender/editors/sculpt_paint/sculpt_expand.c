@@ -383,7 +383,7 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
   SCULPT_floodfill_execute(ss, &flood, mask_expand_normal_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
 
-  for (int i = e0; i < totvert; i++) {
+  for (int i = 0; i < totvert; i++) {
     dists[i] = FLT_MAX;
   }
 
@@ -621,7 +621,7 @@ static void sculpt_expand_mesh_face_falloff_from_grids_falloff(SculptSession *ss
         accum += expand_cache->falloff_factor[grid_loop_index + g];
       }
     }
-    expand_cache->face_falloff_factor[p] = accum / poly->totloop;
+    expand_cache->face_falloff_factor[p] = accum / (poly->totloop * key->grid_area);
   }
 }
 
