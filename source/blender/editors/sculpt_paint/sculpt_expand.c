@@ -853,7 +853,7 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
   }
 }
 
-static void sculpt_expand_cache_free(ExpandCache *expand_cache)
+static void sculpt_expand_cache_data_free(ExpandCache *expand_cache)
 {
   if (expand_cache->snap_enabled_face_sets) {
     BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
@@ -867,6 +867,12 @@ static void sculpt_expand_cache_free(ExpandCache *expand_cache)
   MEM_SAFE_FREE(expand_cache->initial_color);
   MEM_SAFE_FREE(expand_cache);
 }
+
+static void sculpt_expand_cache_free(SculptSession *ss) {
+    sculpt_expand_cache_data_free(ss->expand_cache);
+    ss->expand_cache = NULL;
+}
+
 
 static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *expand_cache)
 {
@@ -954,7 +960,7 @@ static void sculpt_expand_cancel(bContext *C, wmOperator *UNUSED(op))
   sculpt_expand_restore_original_state(C, ob, ss->expand_cache);
 
   SCULPT_undo_push_end();
-  sculpt_expand_cache_free(ss->expand_cache);
+  sculpt_expand_cache_free(ss);
 }
 
 static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
@@ -1265,7 +1271,7 @@ static void sculpt_expand_finish(bContext *C)
       break;
   }
 
-  sculpt_expand_cache_free(ss->expand_cache);
+  sculpt_expand_cache_free(ss);
   ED_workspace_status_text(C, NULL);
 }
 
