@@ -309,9 +309,9 @@ set(LIBGLU_VERSION 9.0.1)
 set(LIBGLU_URI ftp://ftp.freedesktop.org/pub/mesa/glu/glu-${LIBGLU_VERSION}.tar.xz)
 set(LIBGLU_HASH 151aef599b8259efe9acd599c96ea2a3)
 
-set(MESA_VERSION 18.3.1)
+set(MESA_VERSION 20.3.4)
 set(MESA_URI ftp://ftp.freedesktop.org/pub/mesa/mesa-${MESA_VERSION}.tar.xz)
-set(MESA_HASH d60828056d77bfdbae0970f9b15fb1be)
+set(MESA_HASH 556338446aef8ae947a789b3e0b5e056)
 
 set(NASM_VERSION 2.15.02)
 set(NASM_URI https://github.com/netwide-assembler/nasm/archive/nasm-${NASM_VERSION}.tar.gz)
