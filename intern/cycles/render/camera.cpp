@@ -741,7 +741,8 @@ float Camera::world_to_raster_size(float3 P)
     float3 D = transform_point(&worldtocamera, P);
     float dist = len(D);
 
-    Ray ray = {{0}};
+    Ray ray;
+    memset(&ray, 0, sizeof(ray));
 
     /* Distortion can become so great that the results become meaningless, there
      * may be a better way to do this, but calculating differentials from the

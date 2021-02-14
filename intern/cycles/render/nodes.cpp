@@ -2081,6 +2081,16 @@ ConvertNode::ConvertNode(SocketType::Type from_, SocketType::Type to_, bool auto
     special_type = SHADER_SPECIAL_TYPE_AUTOCONVERT;
 }
 
+/* Union usage requires a manual copy constructor. */
+ConvertNode::ConvertNode(const ConvertNode &other)
+    : ShaderNode(other),
+      from(other.from),
+      to(other.to),
+      value_color(other.value_color),
+      value_string(other.value_string)
+{
+}
+
 void ConvertNode::constant_fold(const ConstantFolder &folder)
 {
   /* proxy nodes should have been removed at this point */

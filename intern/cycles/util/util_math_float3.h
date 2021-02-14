@@ -304,8 +304,12 @@ ccl_device_inline float3 clamp(const float3 &a, const float3 &mn, const float3 &
 ccl_device_inline float3 fabs(const float3 &a)
 {
 #  ifdef __KERNEL_SSE__
+#    ifdef __KERNEL_NEON__
+  return float3(vabsq_f32(a.m128));
+#    else
   __m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff));
   return float3(_mm_and_ps(a.m128, mask));
+#    endif
 #  else
   return make_float3(fabsf(a.x), fabsf(a.y), fabsf(a.z));
 #  endif
@@ -447,7 +451,13 @@ ccl_device_inline bool is_zero(const float3 a)
 
 ccl_device_inline float reduce_add(const float3 a)
 {
+#if defined(__KERNEL_SSE__) && defined(__KERNEL_NEON__)
+  __m128 t = a.m128;
+  t[3] = 0.0f;
+  return vaddvq_f32(t);
+#else
   return (a.x + a.y + a.z);
+#endif
 }
 
 ccl_device_inline float average(const float3 a)

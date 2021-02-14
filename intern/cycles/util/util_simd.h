@@ -35,6 +35,9 @@
 #  include <intrin.h>
 #elif (defined(__x86_64__) || defined(__i386__))
 #  include <x86intrin.h>
+#elif defined(__KERNEL_NEON__)
+#  define SSE2NEON_PRECISE_MINMAX 1
+#  include <sse2neon.h>
 #endif
 
 /* Floating Point Control, for Embree. */
@@ -115,6 +118,80 @@ static struct StepTy {
 } step ccl_maybe_unused;
 
 #endif
+
+/* Utilities used by Neon */
+#if defined(__KERNEL_NEON__)
+template<class type, int i0, int i1, int i2, int i3> type shuffle_neon(const type &a)
+{
+  if (i0 == i1 && i0 == i2 && i0 == i3) {
+    return vdupq_laneq_s32(a, i0);
+  }
+  static const uint8_t tbl[16] = {(i0 * 4) + 0,
+                                  (i0 * 4) + 1,
+                                  (i0 * 4) + 2,
+                                  (i0 * 4) + 3,
+                                  (i1 * 4) + 0,
+                                  (i1 * 4) + 1,
+                                  (i1 * 4) + 2,
+                                  (i1 * 4) + 3,
+                                  (i2 * 4) + 0,
+                                  (i2 * 4) + 1,
+                                  (i2 * 4) + 2,
+                                  (i2 * 4) + 3,
+                                  (i3 * 4) + 0,
+                                  (i3 * 4) + 1,
+                                  (i3 * 4) + 2,
+                                  (i3 * 4) + 3};
+
+  return vqtbl1q_s8(int8x16_t(a), *(int8x16_t *)tbl);
+}
+
+template<class type, int i0, int i1, int i2, int i3>
+type shuffle_neon(const type &a, const type &b)
+{
+  if (&a == &b) {
+    static const uint8_t tbl[16] = {(i0 * 4) + 0,
+                                    (i0 * 4) + 1,
+                                    (i0 * 4) + 2,
+                                    (i0 * 4) + 3,
+                                    (i1 * 4) + 0,
+                                    (i1 * 4) + 1,
+                                    (i1 * 4) + 2,
+                                    (i1 * 4) + 3,
+                                    (i2 * 4) + 0,
+                                    (i2 * 4) + 1,
+                                    (i2 * 4) + 2,
+                                    (i2 * 4) + 3,
+                                    (i3 * 4) + 0,
+                                    (i3 * 4) + 1,
+                                    (i3 * 4) + 2,
+                                    (i3 * 4) + 3};
+
+    return vqtbl1q_s8(int8x16_t(b), *(int8x16_t *)tbl);
+  }
+  else {
+
+    static const uint8_t tbl[16] = {(i0 * 4) + 0,
+                                    (i0 * 4) + 1,
+                                    (i0 * 4) + 2,
+                                    (i0 * 4) + 3,
+                                    (i1 * 4) + 0,
+                                    (i1 * 4) + 1,
+                                    (i1 * 4) + 2,
+                                    (i1 * 4) + 3,
+                                    (i2 * 4) + 0 + 16,
+                                    (i2 * 4) + 1 + 16,
+                                    (i2 * 4) + 2 + 16,
+                                    (i2 * 4) + 3 + 16,
+                                    (i3 * 4) + 0 + 16,
+                                    (i3 * 4) + 1 + 16,
+                                    (i3 * 4) + 2 + 16,
+                                    (i3 * 4) + 3 + 16};
+
+    return vqtbl2q_s8((int8x16x2_t){a, b}, *(int8x16_t *)tbl);
+  }
+}
+#endif /* __KERNEL_NEON */
 
 /* Intrinsics Functions
  *
@@ -428,8 +505,9 @@ __forceinline __m128i _mm_max_epi32_emu(__m128i value, __m128i input)
   return _mm_blendv_epi8(value, input, _mm_cmplt_epi32(value, input));
 }
 
-#    undef _mm_extract_epi32
-#    define _mm_extract_epi32 _mm_extract_epi32_emu
+#    ifndef __KERNEL_NEON__
+#      undef _mm_extract_epi32
+#      define _mm_extract_epi32 _mm_extract_epi32_emu
 __forceinline int _mm_extract_epi32_emu(__m128i input, const int index)
 {
   switch (index) {
@@ -446,6 +524,7 @@ __forceinline int _mm_extract_epi32_emu(__m128i input, const int index)
       return 0;
   }
 }
+#    endif
 
 #    undef _mm_insert_epi32
 #    define _mm_insert_epi32 _mm_insert_epi32_emu
