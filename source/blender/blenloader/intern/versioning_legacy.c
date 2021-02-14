@@ -1316,13 +1316,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      /* btw. armature_rebuild_pose is further only called on leave editmode */
+      /* Note: #BKE_pose_rebuild is further only called on leave edit-mode. */
       if (ob->type == OB_ARMATURE) {
         if (ob->pose) {
           BKE_pose_tag_recalc(bmain, ob->pose);
         }
 
-        /* cannot call stuff now (pointers!), done in setup_app_data */
+        /* Cannot call stuff now (pointers!), done in #setup_app_data. */
         ob->id.recalc |= ID_RECALC_ALL;
 
         /* new generic xray option */

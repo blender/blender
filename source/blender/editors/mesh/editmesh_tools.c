@@ -3101,7 +3101,8 @@ static bool merge_firstlast(BMEditMesh *em,
    * so do extra check for data here
    */
 
-  /* do sanity check in mergemenu in edit.c ?*/
+  /* While #merge_type_itemf does a sanity check, this operation runs on all edit-mode objects.
+   * Some of them may not have the expected selection state. */
   if (use_first == false) {
     if (!em->bm->selected.last || ((BMEditSelection *)em->bm->selected.last)->htype != BM_VERT) {
       return false;
