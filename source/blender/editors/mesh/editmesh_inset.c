@@ -97,9 +97,20 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
       outputNumInput(&opdata->num_input, flts_str, &sce->unit);
     }
     else {
-      BLI_snprintf(flts_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "thickness"));
-      BLI_snprintf(
-          flts_str + NUM_STR_REP_LEN, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "depth"));
+      BKE_unit_value_as_string(flts_str,
+                               NUM_STR_REP_LEN,
+                               RNA_float_get(op->ptr, "thickness"),
+                               4,
+                               B_UNIT_LENGTH,
+                               &sce->unit,
+                               true);
+      BKE_unit_value_as_string(flts_str + NUM_STR_REP_LEN,
+                               NUM_STR_REP_LEN,
+                               RNA_float_get(op->ptr, "depth"),
+                               4,
+                               B_UNIT_LENGTH,
+                               &sce->unit,
+                               true);
     }
     BLI_snprintf(msg,
                  sizeof(msg),
