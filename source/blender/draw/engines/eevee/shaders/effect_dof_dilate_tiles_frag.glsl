@@ -1,7 +1,7 @@
 
 /**
  * Tile dilate pass: Takes the 8x8 Tiles buffer and converts dilates the tiles with large CoC to
- * their neighboorhod. This pass is repeated multiple time until the maximum CoC can be covered.
+ * their neighborhood. This pass is repeated multiple time until the maximum CoC can be covered.
  **/
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)

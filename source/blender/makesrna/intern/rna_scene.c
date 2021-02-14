@@ -7388,7 +7388,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Neighbor Rejection",
                            "Maximum brightness to consider when rejecting bokeh sprites "
-                           "based on neighboorhod (lower is faster)");
+                           "based on neighborhood (lower is faster)");
   RNA_def_property_range(prop, 0.0f, 100000.0f);
   RNA_def_property_ui_range(prop, 0.0f, 40.0f, 10, 2);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
