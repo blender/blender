@@ -88,7 +88,7 @@ float *BlurBaseOperation::make_gausstab(float rad, int size)
   return gausstab;
 }
 
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
 __m128 *BlurBaseOperation::convert_gausstab_sse(const float *gausstab, int size)
 {
   int n = 2 * size + 1;
