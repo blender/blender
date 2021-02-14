@@ -370,8 +370,8 @@ if(WITH_PYTHON_INSTALL)
   endif()
 endif()
 
-option(WITH_CPU_SSE              "Enable SIMD instruction if they're detected on the host machine" ON)
-mark_as_advanced(WITH_CPU_SSE)
+option(WITH_CPU_SIMD              "Enable SIMD instruction if they're detected on the host machine" ON)
+mark_as_advanced(WITH_CPU_SIMD)
 
 # Cycles
 option(WITH_CYCLES                  "Enable Cycles Render Engine" ON)
@@ -775,14 +775,6 @@ if(WITH_GHOST_SDL OR WITH_HEADLESS)
   set(WITH_XR_OPENXR     OFF)
 endif()
 
-if(WITH_CPU_SSE)
-  TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
-else()
-  message(STATUS "SSE and SSE2 optimizations are DISABLED!")
-  set(COMPILER_SSE_FLAG)
-  set(COMPILER_SSE2_FLAG)
-endif()
-
 if(WITH_BUILDINFO)
   find_package(Git)
   if(NOT GIT_FOUND)
@@ -962,22 +954,55 @@ if(WITH_INTERNATIONAL)
   endif()
 endif()
 
-# See TEST_SSE_SUPPORT() for how this is defined.
+# See TEST_SSE_SUPPORT() and TEST_NEON_SUPPORT() for how these are defined.
+#
+# This is done globally, so that all modules can use it if available, and
+# because these are used in headers used by many modules.
+if(WITH_CPU_SIMD)
+  set(COMPILER_SSE_FLAG)
+  set(COMPILER_SSE2_FLAG)
 
-# Do it globally, SSE2 is required for quite some time now.
-# Doing it now allows to use SSE/SSE2 in inline headers.
-if(SUPPORT_SSE_BUILD)
-  string(PREPEND PLATFORM_CFLAGS "${COMPILER_SSE_FLAG} ")
-  add_definitions(-D__SSE__ -D__MMX__)
-endif()
-if(SUPPORT_SSE2_BUILD)
-  string(APPEND PLATFORM_CFLAGS " ${COMPILER_SSE2_FLAG}")
-  add_definitions(-D__SSE2__)
-  if(NOT SUPPORT_SSE_BUILD) # don't double up
-    add_definitions(-D__MMX__)
+  # Test Neon first since macOS Arm can compile and run x86-64 SSE binaries.
+  TEST_NEON_SUPPORT()
+  if(SUPPORT_NEON_BUILD)
+    # Neon
+    if(SSE2NEON_FOUND)
+      blender_include_dirs_sys("${SSE2NEON_INCLUDE_DIRS}")
+      add_definitions(-DWITH_SSE2NEON)
+    endif()
+  else()
+    # SSE
+    TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
+    if(SUPPORT_SSE_BUILD)
+      string(PREPEND PLATFORM_CFLAGS "${COMPILER_SSE_FLAG} ")
+      add_definitions(-D__SSE__ -D__MMX__)
+    endif()
+    if(SUPPORT_SSE2_BUILD)
+      string(APPEND PLATFORM_CFLAGS " ${COMPILER_SSE2_FLAG}")
+      add_definitions(-D__SSE2__)
+      if(NOT SUPPORT_SSE_BUILD) # don't double up
+        add_definitions(-D__MMX__)
+      endif()
+    endif()
   endif()
-endif()
 
+  # Print instructions used
+  if(SUPPORT_NEON_BUILD)
+    if(SSE2NEON_FOUND)
+      message(STATUS "Neon SIMD instructions enabled")
+    else()
+      message(STATUS "Neon SIMD instructions detected but unused, requires sse2neon")
+    endif()
+  elseif(SUPPORT_SSE2_BUILD)
+    message(STATUS "SSE2 SIMD instructions enabled")
+  elseif(SUPPORT_SSE_BUILD)
+    message(STATUS "SSE SIMD instructions enabled")
+  else()
+    message(STATUS "No SIMD instructions detected")
+  endif()
+else()
+  message(STATUS "SIMD instructions disabled")
+endif()
 
 # set the endian define
 if(MSVC)
