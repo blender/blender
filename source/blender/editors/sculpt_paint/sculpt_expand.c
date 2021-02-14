@@ -600,15 +600,10 @@ static void sculpt_expand_update_max_face_falloff_factor(SculptSession *ss,
   }
 }
 
-static void sculpt_expand_mesh_face_falloff_from_grids_falloff(SculptSession *ss,
-                                                               Mesh *mesh,
-                                                               ExpandCache *expand_cache)
+static void sculpt_expand_grids_to_faces_falloff(SculptSession *ss,
+                                                 Mesh *mesh,
+                                                 ExpandCache *expand_cache)
 {
-  if (expand_cache->face_falloff_factor) {
-    MEM_freeN(expand_cache->face_falloff_factor);
-  }
-  expand_cache->face_falloff_factor = MEM_malloc_arrayN(
-      mesh->totpoly, sizeof(float), "face falloff factors");
 
   const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
 
@@ -625,15 +620,8 @@ static void sculpt_expand_mesh_face_falloff_from_grids_falloff(SculptSession *ss
   }
 }
 
-static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(Mesh *mesh,
-                                                                ExpandCache *expand_cache)
+static void sculpt_expand_vertex_to_faces_falloff(Mesh *mesh, ExpandCache *expand_cache)
 {
-  if (expand_cache->face_falloff_factor) {
-    MEM_freeN(expand_cache->face_falloff_factor);
-  }
-  expand_cache->face_falloff_factor = MEM_malloc_arrayN(
-      mesh->totpoly, sizeof(float), "face falloff factors");
-
   for (int p = 0; p < mesh->totpoly; p++) {
     MPoly *poly = &mesh->mpoly[p];
     float accum = 0.0f;
@@ -642,6 +630,27 @@ static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(Mesh *mesh,
       accum += expand_cache->falloff_factor[loop->v];
     }
     expand_cache->face_falloff_factor[p] = accum / poly->totloop;
+  }
+}
+
+static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(SculptSession *ss,
+                                                                Mesh *mesh,
+                                                                ExpandCache *expand_cache)
+{
+  if (expand_cache->face_falloff_factor) {
+    MEM_freeN(expand_cache->face_falloff_factor);
+  }
+  expand_cache->face_falloff_factor = MEM_malloc_arrayN(
+      mesh->totpoly, sizeof(float), "face falloff factors");
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+    sculpt_expand_vertex_to_faces_falloff(mesh, expand_cache);
+  }
+  else if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    sculpt_expand_grids_to_faces_falloff(ss, mesh, expand_cache);
+  }
+  else {
+    BLI_assert(false);
   }
 }
 
@@ -837,32 +846,25 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
     const int vertex,
     eSculptExpandFalloffType falloff_type)
 {
-
   MEM_SAFE_FREE(expand_cache->falloff_factor);
   expand_cache->falloff_factor_type = falloff_type;
 
   SculptSession *ss = ob->sculpt;
-
-  /* Handle limited support for Multires. */
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
-    expand_cache->falloff_factor = sculpt_expand_topology_falloff_create(sd, ob, vertex);
-    sculpt_expand_update_max_falloff_factor(ss, expand_cache);
-    if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-      sculpt_expand_mesh_face_falloff_from_grids_falloff(ss, ob->data, expand_cache);
-      sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
-    }
-    return;
-  }
+  const bool has_topology_info = BKE_pbvh_type(ss->pbvh) == PBVH_FACES;
 
   switch (falloff_type) {
     case SCULPT_EXPAND_FALLOFF_GEODESIC:
-      expand_cache->falloff_factor = sculpt_expand_geodesic_falloff_create(sd, ob, vertex);
+      expand_cache->falloff_factor = has_topology_info ?
+                                         sculpt_expand_geodesic_falloff_create(sd, ob, vertex) :
+                                         sculpt_expand_spherical_falloff_create(sd, ob, vertex);
       break;
     case SCULPT_EXPAND_FALLOFF_TOPOLOGY:
       expand_cache->falloff_factor = sculpt_expand_topology_falloff_create(sd, ob, vertex);
       break;
     case SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS:
-      expand_cache->falloff_factor = sculpt_expand_diagonals_falloff_create(sd, ob, vertex);
+      expand_cache->falloff_factor = has_topology_info ?
+                                         sculpt_expand_diagonals_falloff_create(sd, ob, vertex) :
+                                         sculpt_expand_topology_falloff_create(sd, ob, vertex);
       break;
     case SCULPT_EXPAND_FALLOFF_NORMALS:
       expand_cache->falloff_factor = sculpt_expand_normal_falloff_create(sd, ob, vertex, 300.0f);
@@ -886,7 +888,7 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
 
   sculpt_expand_update_max_falloff_factor(ss, expand_cache);
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ob->data, expand_cache);
+    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ss, ob->data, expand_cache);
     sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
   }
 }
@@ -1337,7 +1339,7 @@ static void sculpt_expand_resursion_step_add(Object *ob,
 
   sculpt_expand_update_max_falloff_factor(ss, expand_cache);
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ob->data, expand_cache);
+    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ss, ob->data, expand_cache);
     sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
   }
 
