@@ -154,6 +154,7 @@ static void randomize_attribute_bool(MutableSpan<bool> span,
                                      const GeometryNodeAttributeRandomizeMode operation)
 {
   BLI_assert(operation == GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE);
+  UNUSED_VARS_NDEBUG(operation);
   for (const int i : span.index_range()) {
     const bool random_value = get_random_value<bool>(ids[i], seed);
     span[i] = random_value;
