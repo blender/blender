@@ -1711,7 +1711,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == GEO_NODE_POINT_INSTANCE && node->storage == NULL) {
+        if (node->type == GEO_NODE_ATTRIBUTE_RANDOMIZE && node->storage == NULL) {
           NodeAttributeRandomize *data = (NodeAttributeRandomize *)MEM_callocN(
               sizeof(NodeAttributeRandomize), __func__);
           data->data_type = node->custom1;
