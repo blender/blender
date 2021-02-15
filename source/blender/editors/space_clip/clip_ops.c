@@ -1837,7 +1837,7 @@ void CLIP_OT_cursor_set(wmOperatorType *ot)
 /** \name Toggle Lock To Selection Operator
  * \{ */
 
-static int lock_selection_togglee_exec(bContext *C, wmOperator *UNUSED(op))
+static int lock_selection_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
 
@@ -1862,7 +1862,7 @@ void CLIP_OT_lock_selection_toggle(wmOperatorType *ot)
 
   /* api callbacks */
   ot->poll = ED_space_clip_poll;
-  ot->exec = lock_selection_togglee_exec;
+  ot->exec = lock_selection_toggle_exec;
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
