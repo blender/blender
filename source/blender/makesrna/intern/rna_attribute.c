@@ -79,6 +79,34 @@ static char *rna_Attribute_path(PointerRNA *ptr)
   return BLI_sprintfN("attributes['%s']", layer->name);
 }
 
+static StructRNA *srna_by_custom_data_layer_type(const CustomDataType type)
+{
+  switch (type) {
+    case CD_PROP_FLOAT:
+      return &RNA_FloatAttribute;
+    case CD_PROP_INT32:
+      return &RNA_IntAttribute;
+    case CD_PROP_FLOAT3:
+      return &RNA_FloatVectorAttribute;
+    case CD_PROP_COLOR:
+      return &RNA_FloatColorAttribute;
+    case CD_MLOOPCOL:
+      return &RNA_ByteColorAttribute;
+    case CD_PROP_STRING:
+      return &RNA_StringAttribute;
+    case CD_PROP_BOOL:
+      return &RNA_BoolAttribute;
+    default:
+      return NULL;
+  }
+}
+
+static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
+{
+  CustomDataLayer *layer = ptr->data;
+  return srna_by_custom_data_layer_type(layer->type);
+}
+
 static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
 {
   BKE_id_attribute_rename(ptr->owner_id, ptr->data, value, NULL);
@@ -280,35 +308,11 @@ void rna_AttributeGroup_iterator_next(CollectionPropertyIterator *iter)
 PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter)
 {
   /* refine to the proper type */
-  StructRNA *type;
   CustomDataLayer *layer = rna_iterator_array_get(iter);
-
-  switch (layer->type) {
-    case CD_PROP_FLOAT:
-      type = &RNA_FloatAttribute;
-      break;
-    case CD_PROP_INT32:
-      type = &RNA_IntAttribute;
-      break;
-    case CD_PROP_FLOAT3:
-      type = &RNA_FloatVectorAttribute;
-      break;
-    case CD_PROP_COLOR:
-      type = &RNA_FloatColorAttribute;
-      break;
-    case CD_MLOOPCOL:
-      type = &RNA_ByteColorAttribute;
-      break;
-    case CD_PROP_STRING:
-      type = &RNA_StringAttribute;
-      break;
-    case CD_PROP_BOOL:
-      type = &RNA_BoolAttribute;
-      break;
-    default:
-      return PointerRNA_NULL;
+  StructRNA *type = srna_by_custom_data_layer_type(layer->type);
+  if (type == NULL) {
+    return PointerRNA_NULL;
   }
-
   return rna_pointer_inherit_refine(&iter->parent, type, layer);
 }
 
@@ -598,6 +602,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(srna, "Attribute", "Geometry attribute");
   RNA_def_struct_path_func(srna, "rna_Attribute_path");
+  RNA_def_struct_refine_func(srna, "rna_Attribute_refine");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Attribute_name_set");
