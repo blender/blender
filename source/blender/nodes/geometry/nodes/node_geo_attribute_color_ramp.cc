@@ -37,7 +37,7 @@ static void geo_node_attribute_color_ramp_layout(uiLayout *layout,
                                                  bContext *UNUSED(C),
                                                  PointerRNA *ptr)
 {
-  uiTemplateColorRamp(layout, ptr, "color_ramp", 0);
+  uiTemplateColorRamp(layout, ptr, "color_ramp", false);
 }
 
 namespace blender::nodes {

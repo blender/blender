@@ -56,12 +56,10 @@ static float coc_radius_from_camera_depth(bool is_ortho, EEVEE_EffectsInfo *fx, 
   if (multiplier == 0.0f || bias == 0.0f) {
     return 0.0f;
   }
-  else if (is_ortho) {
+  if (is_ortho) {
     return (camera_depth + multiplier / bias) * multiplier;
   }
-  else {
-    return multiplier / camera_depth - bias;
-  }
+  return multiplier / camera_depth - bias;
 }
 
 static float polygon_sides_length(float sides_count)
@@ -164,11 +162,11 @@ bool EEVEE_depth_of_field_jitter_get(EEVEE_EffectsInfo *fx,
   return true;
 }
 
-int EEVEE_depth_of_field_sample_count_get(EEVEE_EffectsInfo *fx,
+int EEVEE_depth_of_field_sample_count_get(EEVEE_EffectsInfo *effects,
                                           int sample_count,
                                           int *r_ring_count)
 {
-  if (fx->dof_jitter_radius == 0.0f) {
+  if (effects->dof_jitter_radius == 0.0f) {
     if (r_ring_count != NULL) {
       *r_ring_count = 0;
     }

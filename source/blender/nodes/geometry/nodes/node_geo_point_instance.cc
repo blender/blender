@@ -44,9 +44,9 @@ static bNodeSocketTemplate geo_node_point_instance_out[] = {
 
 static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "instance_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "instance_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   if (RNA_enum_get(ptr, "instance_type") == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION) {
-    uiItemR(layout, ptr, "use_whole_collection", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "use_whole_collection", 0, nullptr, ICON_NONE);
   }
 }
 

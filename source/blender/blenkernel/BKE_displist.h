@@ -116,7 +116,7 @@ bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, i
 void BKE_displist_fill(const struct ListBase *dispbase,
                        struct ListBase *to,
                        const float normal_proj[3],
-                       const bool flipnormal);
+                       const bool flip_normal);
 
 float BKE_displist_calc_taper(
     struct Depsgraph *depsgraph, struct Scene *scene, struct Object *taperobj, int cur, int tot);
