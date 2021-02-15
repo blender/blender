@@ -546,19 +546,19 @@ int UI_icon_from_report_type(int type)
   if (type & RPT_ERROR_ALL) {
     return ICON_CANCEL;
   }
-  else if (type & RPT_WARNING_ALL) {
+  if (type & RPT_WARNING_ALL) {
     return ICON_ERROR;
   }
-  else if (type & RPT_INFO_ALL) {
+  if (type & RPT_INFO_ALL) {
     return ICON_INFO;
   }
-  else if (type & RPT_DEBUG_ALL) {
+  if (type & RPT_DEBUG_ALL) {
     return ICON_SYSTEM;
   }
-  else if (type & RPT_PROPERTY) {
+  if (type & RPT_PROPERTY) {
     return ICON_OPTIONS;
   }
-  else if (type & RPT_OPERATOR) {
+  if (type & RPT_OPERATOR) {
     return ICON_CHECKMARK;
   }
   return ICON_INFO;
@@ -569,24 +569,22 @@ int UI_icon_colorid_from_report_type(int type)
   if (type & RPT_ERROR_ALL) {
     return TH_INFO_ERROR;
   }
-  else if (type & RPT_WARNING_ALL) {
+  if (type & RPT_WARNING_ALL) {
     return TH_INFO_WARNING;
   }
-  else if (type & RPT_INFO_ALL) {
+  if (type & RPT_INFO_ALL) {
     return TH_INFO_INFO;
   }
-  else if (type & RPT_DEBUG_ALL) {
+  if (type & RPT_DEBUG_ALL) {
     return TH_INFO_DEBUG;
   }
-  else if (type & RPT_PROPERTY) {
+  if (type & RPT_PROPERTY) {
     return TH_INFO_PROPERTY;
   }
-  else if (type & RPT_OPERATOR) {
+  if (type & RPT_OPERATOR) {
     return TH_INFO_OPERATOR;
   }
-  else {
-    return TH_INFO_WARNING;
-  }
+  return TH_INFO_WARNING;
 }
 
 int UI_text_colorid_from_report_type(int type)
@@ -594,24 +592,22 @@ int UI_text_colorid_from_report_type(int type)
   if (type & RPT_ERROR_ALL) {
     return TH_INFO_ERROR_TEXT;
   }
-  else if (type & RPT_WARNING_ALL) {
+  if (type & RPT_WARNING_ALL) {
     return TH_INFO_WARNING_TEXT;
   }
-  else if (type & RPT_INFO_ALL) {
+  if (type & RPT_INFO_ALL) {
     return TH_INFO_INFO_TEXT;
   }
-  else if (type & RPT_DEBUG_ALL) {
+  if (type & RPT_DEBUG_ALL) {
     return TH_INFO_DEBUG_TEXT;
   }
-  else if (type & RPT_PROPERTY) {
+  if (type & RPT_PROPERTY) {
     return TH_INFO_PROPERTY_TEXT;
   }
-  else if (type & RPT_OPERATOR) {
+  if (type & RPT_OPERATOR) {
     return TH_INFO_OPERATOR_TEXT;
   }
-  else {
-    return TH_INFO_WARNING_TEXT;
-  }
+  return TH_INFO_WARNING_TEXT;
 }
 
 /********************************** Misc **************************************/

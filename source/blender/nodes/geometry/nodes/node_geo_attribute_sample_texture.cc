@@ -43,7 +43,7 @@ static void geo_node_attribute_sample_texture_layout(uiLayout *layout,
                                                      bContext *C,
                                                      PointerRNA *ptr)
 {
-  uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
+  uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
 }
 
 namespace blender::nodes {

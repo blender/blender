@@ -509,13 +509,12 @@ static bool mask_has_selection(const bContext *C)
         if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
           return true;
         }
-        else {
-          if ((bezt->f1 & SELECT) && (bezt->h1 != HD_VECT)) {
-            return true;
-          }
-          if ((bezt->f3 & SELECT) && (bezt->h2 != HD_VECT)) {
-            return true;
-          }
+
+        if ((bezt->f1 & SELECT) && (bezt->h1 != HD_VECT)) {
+          return true;
+        }
+        if ((bezt->f3 & SELECT) && (bezt->h2 != HD_VECT)) {
+          return true;
         }
       }
     }

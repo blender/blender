@@ -41,8 +41,8 @@ static void geo_node_point_rotate_layout(uiLayout *layout, bContext *UNUSED(C), 
 {
   NodeGeometryRotatePoints *storage = (NodeGeometryRotatePoints *)((bNode *)ptr->data)->storage;
 
-  uiItemR(layout, ptr, "type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, false);
   if (storage->type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE) {

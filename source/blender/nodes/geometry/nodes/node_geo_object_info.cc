@@ -41,7 +41,7 @@ static bNodeSocketTemplate geo_node_object_info_out[] = {
 
 static void geo_node_object_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
 namespace blender::nodes {
