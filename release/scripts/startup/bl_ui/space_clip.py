@@ -113,7 +113,6 @@ class CLIP_PT_clip_display(Panel):
         row = layout.row()
         col = row.column()
         col.prop(sc.clip_user, "use_render_undistorted", text="Render Undistorted")
-        col.prop(sc, "lock_selection", text="Lock to Selection")
         col = row.column()
         col.prop(sc, "show_stable", text="Show Stable")
         col.prop(sc, "show_grid", text="Grid")
@@ -190,7 +189,7 @@ class CLIP_HT_header(Header):
                 row.prop(sc, "pivot_point", text="", icon_only=True)
                 row = layout.row(align=True)
                 icon = 'LOCKED' if sc.lock_selection else 'UNLOCKED'
-                row.prop(sc, "lock_selection", icon=icon, text="")
+                row.operator("clip.lock_selection_toggle", icon=icon, text="", depress=sc.lock_selection)
                 row.popover(panel='CLIP_PT_display')
 
             elif sc.view == 'GRAPH':
@@ -250,7 +249,7 @@ class CLIP_HT_header(Header):
             row.popover(panel='CLIP_PT_mask_display')
             row = layout.row(align=True)
             icon = 'LOCKED' if sc.lock_selection else 'UNLOCKED'
-            row.prop(sc, "lock_selection", icon=icon, text="")
+            row.operator("clip.lock_selection_toggle", icon=icon, text="", depress=sc.lock_selection)
             row.popover(panel='CLIP_PT_display')
 
     def draw(self, context):
