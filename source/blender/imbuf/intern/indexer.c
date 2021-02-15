@@ -40,6 +40,8 @@
 
 #include "BKE_global.h"
 
+#  include "BLI_threads.h"
+
 #ifdef WITH_AVI
 #  include "AVI_avi.h"
 #endif
@@ -495,6 +497,8 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->st->id = 0;
 
   rv->c = rv->st->codec;
+  rv->c->thread_count = BLI_system_thread_count();
+  rv->c->thread_type = FF_THREAD_SLICE;
   rv->c->codec_type = AVMEDIA_TYPE_VIDEO;
   rv->c->codec_id = AV_CODEC_ID_MJPEG;
   rv->c->width = width;
