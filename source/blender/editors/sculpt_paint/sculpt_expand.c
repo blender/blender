@@ -700,6 +700,8 @@ static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
                                                         BLI_bitmap *enabled_vertices)
 {
   SculptSession *ss = ob->sculpt;
+  BLI_assert(BKE_pbvh_type(ss->pbvh) == PBVH_FACES);
+
   GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, false);
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -768,7 +770,12 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
     BLI_BITMAP_ENABLE(enabled_vertices, i);
   }
 
-  sculpt_expand_geodesics_from_state_boundary(ob, expand_cache, enabled_vertices);
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+    sculpt_expand_geodesics_from_state_boundary(ob, expand_cache, enabled_vertices);
+  }
+  else {
+    sculpt_expand_topology_from_state_boundary(ob, expand_cache, enabled_vertices);
+  }
 
   MEM_freeN(enabled_vertices);
 
