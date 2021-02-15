@@ -95,8 +95,8 @@ enum {
   SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE,
   SCULPT_EXPAND_MODAL_LOOP_COUNT_DECREASE,
   SCULPT_EXPAND_MODAL_BRUSH_GRADIENT_TOGGLE,
-  SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_INCREASE,
-  SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_DECREASE,
+  SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE,
+  SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_DECREASE,
 };
 
 static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
@@ -118,7 +118,7 @@ static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-#define SCULPT_EXPAND_TEXTURE_DISTORSION_STEP 0.01f
+#define SCULPT_EXPAND_TEXTURE_DISTORTION_STEP 0.01f
 #define SCULPT_EXPAND_LOOP_THRESHOLD 0.00001f
 
 static bool sculpt_expand_is_vert_in_active_compoment(SculptSession *ss,
@@ -145,7 +145,7 @@ static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
                                                     ExpandCache *expand_cache,
                                                     const int i)
 {
-  if (expand_cache->texture_distorsion_strength == 0.0f) {
+  if (expand_cache->texture_distortion_strength == 0.0f) {
     return expand_cache->falloff_factor[i];
   }
 
@@ -158,14 +158,14 @@ static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
   const float avg = BKE_brush_sample_tex_3d(
       expand_cache->scene, expand_cache->brush, vertex_co, rgba, 0, ss->tex_pool);
 
-  const float distorsion = (avg - 0.5f) * expand_cache->texture_distorsion_strength *
+  const float distortion = (avg - 0.5f) * expand_cache->texture_distortion_strength *
                            expand_cache->max_falloff_factor;
-  return expand_cache->falloff_factor[i] + distorsion;
+  return expand_cache->falloff_factor[i] + distortion;
 }
 
 static float sculpt_expand_max_vertex_falloff_factor_get(ExpandCache *expand_cache)
 {
-  if (expand_cache->texture_distorsion_strength == 0.0f) {
+  if (expand_cache->texture_distortion_strength == 0.0f) {
     return expand_cache->max_falloff_factor;
   }
 
@@ -174,7 +174,7 @@ static float sculpt_expand_max_vertex_falloff_factor_get(ExpandCache *expand_cac
   }
 
   return expand_cache->max_falloff_factor +
-         (0.5f * expand_cache->texture_distorsion_strength * expand_cache->max_falloff_factor);
+         (0.5f * expand_cache->texture_distortion_strength * expand_cache->max_falloff_factor);
 }
 
 static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int i)
@@ -1339,7 +1339,7 @@ static void sculpt_expand_resursion_step_add(Object *ob,
 
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
 
-  expand_cache->texture_distorsion_strength = 0.0f;
+  expand_cache->texture_distortion_strength = 0.0f;
 
   switch (recursion_type) {
     case SCULPT_EXPAND_RECURSION_GEODESICS:
@@ -1597,14 +1597,14 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         expand_cache->loop_count = max_ii(expand_cache->loop_count, 1);
         break;
       }
-      case SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_INCREASE: {
-        expand_cache->texture_distorsion_strength += SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
+      case SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE: {
+        expand_cache->texture_distortion_strength += SCULPT_EXPAND_TEXTURE_DISTORTION_STEP;
         break;
       }
-      case SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_DECREASE: {
-        expand_cache->texture_distorsion_strength -= SCULPT_EXPAND_TEXTURE_DISTORSION_STEP;
-        expand_cache->texture_distorsion_strength = max_ff(
-            expand_cache->texture_distorsion_strength, 0.0f);
+      case SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_DECREASE: {
+        expand_cache->texture_distortion_strength -= SCULPT_EXPAND_TEXTURE_DISTORTION_STEP;
+        expand_cache->texture_distortion_strength = max_ff(
+            expand_cache->texture_distortion_strength, 0.0f);
         break;
       }
     }
@@ -1703,7 +1703,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
 
   expand_cache->scene = CTX_data_scene(C);
   expand_cache->mtex = &expand_cache->brush->mtex;
-  expand_cache->texture_distorsion_strength = 0.0f;
+  expand_cache->texture_distortion_strength = 0.0f;
 
   expand_cache->blend_mode = expand_cache->brush->blend;
 }
@@ -1838,15 +1838,15 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Toggle Brush Gradient",
        ""},
-      {SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_INCREASE,
-       "TEXTURE_DISTORSION_INCREASE",
+      {SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE,
+       "TEXTURE_DISTORTION_INCREASE",
        0,
-       "Texture Distorsion Increase",
+       "Texture Distortion Increase",
        ""},
-      {SCULPT_EXPAND_MODAL_TEXTURE_DISTORSION_DECREASE,
-       "TEXTURE_DISTORSION_DECREASE",
+      {SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_DECREASE,
+       "TEXTURE_DISTORTION_DECREASE",
        0,
-       "Texture Distorsion Decrease",
+       "Texture Distortion Decrease",
        ""},
       {0, NULL, 0, NULL, NULL},
   };

@@ -1203,7 +1203,7 @@ typedef struct ExpandCache {
 
   struct Scene *scene;
   struct MTex *mtex;
-  float texture_distorsion_strength;
+  float texture_distortion_strength;
 
   PBVHNode **nodes;
   int totnode;
