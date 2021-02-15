@@ -206,6 +206,13 @@ set(PLATFORM_LINKFLAGS
 
 list(APPEND PLATFORM_LINKLIBS c++)
 
+if(WITH_OPENIMAGEDENOISE)
+  if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+    # OpenImageDenoise uses BNNS from the Accelerate framework.
+    string(APPEND PLATFORM_LINKFLAGS " -framework Accelerate")
+  endif()
+endif()
+
 if(WITH_JACK)
   string(APPEND PLATFORM_LINKFLAGS " -F/Library/Frameworks -weak_framework jackmp")
 endif()
@@ -343,12 +350,6 @@ if(WITH_CYCLES_OSL)
     message(STATUS "OSL not found")
     set(WITH_CYCLES_OSL OFF)
   endif()
-endif()
-
-if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
-  set(WITH_CYCLES_EMBREE OFF)
-  set(WITH_OPENIMAGEDENOISE OFF)
-  set(WITH_CPU_SSE OFF)
 endif()
 
 if(WITH_CYCLES_EMBREE)
