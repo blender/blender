@@ -48,6 +48,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_scene.h"
+#include "BKE_subdiv_ccg.h"
 
 #include "DEG_depsgraph.h"
 
@@ -811,8 +812,13 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
 static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
                                                        ExpandCache *expand_cache)
 {
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return;
+  }
+
   const bool prev_snap_state = expand_cache->snap;
   const bool prev_invert_state = expand_cache->invert;
+
   expand_cache->snap = false;
   expand_cache->invert = false;
 
@@ -1441,6 +1447,23 @@ static void sculpt_expand_ensure_sculptsession_data(Object *ob)
   }
 }
 
+static int sculpt_expand_active_face_set_id_get(SculptSession *ss, ExpandCache *expand_cache)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return expand_cache->origin_face_sets[ss->active_face_index];
+    case PBVH_GRIDS: {
+      const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
+                                                               ss->active_grid_index);
+      return expand_cache->origin_face_sets[face_index];
+    }
+    case PBVH_BMESH: {
+      BLI_assert(false);
+    }
+  }
+  return SCULPT_FACE_SET_NONE;
+}
+
 static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
@@ -1592,7 +1615,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   }
 
   if (expand_cache->snap) {
-    const int active_face_set_id = expand_cache->initial_face_sets[ss->active_face_index];
+    const int active_face_set_id = sculpt_expand_active_face_set_id_get(ss, expand_cache);
     if (!BLI_gset_haskey(expand_cache->snap_enabled_face_sets,
                          POINTER_FROM_INT(active_face_set_id))) {
       BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(active_face_set_id));
