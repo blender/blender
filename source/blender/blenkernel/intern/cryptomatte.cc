@@ -182,7 +182,7 @@ uint32_t BKE_cryptomatte_asset_hash(CryptomatteSession *session, const Object *o
  * https://github.com/Psyop/Cryptomatte/blob/master/specification/cryptomatte_specification.pdf.
  *
  * The conversion uses as many 32 bit floating point values as possible to minimize hash
- * collisions. Unfortunately not all 32 bits can be as NaN and Inf can be problematic.
+ * collisions. Unfortunately not all 32 bits can be used as NaN and Inf can be problematic.
  *
  * Note that this conversion assumes to be running on a L-endian system. */
 float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash)
