@@ -194,11 +194,13 @@ void draw_nodespace_back_pix(const struct bContext *C,
 bNode *node_add_node(
     const struct bContext *C, const char *idname, int type, float locx, float locy);
 void NODE_OT_add_reroute(struct wmOperatorType *ot);
+void NODE_OT_add_group(struct wmOperatorType *ot);
 void NODE_OT_add_file(struct wmOperatorType *ot);
 void NODE_OT_add_mask(struct wmOperatorType *ot);
 void NODE_OT_new_node_tree(struct wmOperatorType *ot);
 
 /* node_group.c */
+const char *node_group_idname(struct bContext *C);
 void NODE_OT_group_make(struct wmOperatorType *ot);
 void NODE_OT_group_insert(struct wmOperatorType *ot);
 void NODE_OT_group_ungroup(struct wmOperatorType *ot);

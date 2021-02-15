@@ -659,6 +659,14 @@ static void node_main_region_draw(const bContext *C, ARegion *region)
 
 /* ************* dropboxes ************* */
 
+static bool node_group_drop_poll(bContext *UNUSED(C),
+                                 wmDrag *drag,
+                                 const wmEvent *UNUSED(event),
+                                 const char **UNUSED(r_tooltip))
+{
+  return WM_drag_is_ID_type(drag, ID_NT);
+}
+
 static bool node_ima_drop_poll(bContext *UNUSED(C),
                                wmDrag *drag,
                                const wmEvent *UNUSED(event),
@@ -677,6 +685,17 @@ static bool node_mask_drop_poll(bContext *UNUSED(C),
                                 const char **UNUSED(r_tooltip))
 {
   return WM_drag_is_ID_type(drag, ID_MSK);
+}
+
+static void node_group_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
+
+  RNA_string_set(drop->ptr, "name", id->name + 2);
+  if (drag->type == WM_DRAG_ASSET) {
+    /* ID just appended, so free it when dropping fails. */
+    RNA_boolean_set(drop->ptr, "free_id_on_error", true);
+  }
 }
 
 static void node_id_drop_copy(wmDrag *drag, wmDropBox *drop)
@@ -705,6 +724,7 @@ static void node_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
 
+  WM_dropbox_add(lb, "NODE_OT_add_group", node_group_drop_poll, node_group_drop_copy);
   WM_dropbox_add(lb, "NODE_OT_add_file", node_ima_drop_poll, node_id_path_drop_copy);
   WM_dropbox_add(lb, "NODE_OT_add_mask", node_mask_drop_poll, node_id_drop_copy);
 }

@@ -107,7 +107,7 @@ static const char *group_ntree_idname(bContext *C)
   return snode->tree_idname;
 }
 
-static const char *group_node_idname(bContext *C)
+const char *node_group_idname(bContext *C)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -147,7 +147,7 @@ static bNode *node_group_get_active(bContext *C, const char *node_idname)
 static int node_group_edit_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  const char *node_idname = group_node_idname(C);
+  const char *node_idname = node_group_idname(C);
   const bool exit = RNA_boolean_get(op->ptr, "exit");
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
@@ -400,7 +400,7 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
-  const char *node_idname = group_node_idname(C);
+  const char *node_idname = node_group_idname(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
@@ -1013,7 +1013,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
   const char *ntree_idname = group_ntree_idname(C);
-  const char *node_idname = group_node_idname(C);
+  const char *node_idname = node_group_idname(C);
   Main *bmain = CTX_data_main(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
@@ -1070,7 +1070,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
-  const char *node_idname = group_node_idname(C);
+  const char *node_idname = node_group_idname(C);
   Main *bmain = CTX_data_main(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
