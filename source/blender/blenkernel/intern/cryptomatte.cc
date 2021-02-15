@@ -47,7 +47,7 @@
 #include <string>
 #include <string_view>
 
-enum CryptomatteLayerState {
+enum class CryptomatteLayerState {
   EMPTY,
   FILLED,
   CLOSED,
