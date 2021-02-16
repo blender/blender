@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#pragma once
+
 #include "BKE_geometry_set.hh"
 
 namespace blender::bke {
@@ -38,5 +40,22 @@ struct GeometryInstanceGroup {
 };
 
 Vector<GeometryInstanceGroup> geometry_set_gather_instances(const GeometrySet &geometry_set);
+
+GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set);
+
+struct AttributeInfo {
+  CustomDataType data_type;
+  AttributeDomain domain;
+};
+
+/**
+ * Add information about all the attributes on every component of the type. The resulting info
+ * will contain the highest complexity data type and the highest priority domain among every
+ * attribute with the given name on all of the input components.
+ */
+void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
+                           const GeometryComponentType component_type,
+                           Span<bke::GeometryInstanceGroup> set_groups,
+                           const Set<std::string> &ignored_attributes);
 
 }  // namespace blender::bke

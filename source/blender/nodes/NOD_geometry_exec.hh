@@ -20,6 +20,7 @@
 
 #include "BKE_attribute_access.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_persistent_data_handle.hh"
 
 #include "DNA_node_types.h"
@@ -38,6 +39,7 @@ using bke::Float3ReadAttribute;
 using bke::Float3WriteAttribute;
 using bke::FloatReadAttribute;
 using bke::FloatWriteAttribute;
+using bke::geometry_set_realize_instances;
 using bke::Int32ReadAttribute;
 using bke::Int32WriteAttribute;
 using bke::PersistentDataHandleMap;
