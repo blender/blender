@@ -215,8 +215,8 @@ vec3 probe_evaluate_planar(int id, PlanarData pd, vec3 W, vec3 N, vec3 V, float 
 
 void fallback_cubemap(vec3 N,
                       vec3 V,
-                      vec3 W,
-                      vec3 viewPosition,
+                      vec3 P,
+                      vec3 vP,
                       float roughness,
                       float roughnessSquared,
                       inout vec4 spec_accum)
@@ -224,21 +224,15 @@ void fallback_cubemap(vec3 N,
   /* Specular probes */
   vec3 spec_dir = specular_dominant_dir(N, V, roughnessSquared);
 
-#ifdef SSR_AO
-  vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
-  vec3 bent_normal;
-  float final_ao = occlusion_compute(N, viewPosition, rand, bent_normal);
-  final_ao = specular_occlusion(dot(N, V), final_ao, roughness);
-#else
-  const float final_ao = 1.0;
-#endif
+  OcclusionData occlusion_data = occlusion_load(vP, 1.0);
+  float final_ao = specular_occlusion(occlusion_data, V, N, roughness, spec_dir);
 
   /* Starts at 1 because 0 is world probe */
   for (int i = 1; i < MAX_PROBE && i < prbNumRenderCube && spec_accum.a < 0.999; i++) {
-    float fade = probe_attenuation_cube(i, W);
+    float fade = probe_attenuation_cube(i, P);
 
     if (fade > 0.0) {
-      vec3 spec = final_ao * probe_evaluate_cube(i, W, spec_dir, roughness);
+      vec3 spec = final_ao * probe_evaluate_cube(i, P, spec_dir, roughness);
       accumulate_light(spec, fade, spec_accum);
     }
   }

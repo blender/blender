@@ -4,7 +4,13 @@ void node_ambient_occlusion(
 {
   vec3 bent_normal;
   vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
-  result_ao = occlusion_compute(normalize(normal), viewPosition, rand, bent_normal);
+  OcclusionData data = occlusion_load(viewPosition, 1.0);
+
+  vec3 V = cameraVec;
+  vec3 N = normalize(normal);
+  vec3 Ng = safe_normalize(cross(dFdx(worldPosition), dFdy(worldPosition)));
+
+  result_ao = diffuse_occlusion(data, V, N, Ng);
   result_color = result_ao * color;
 }
 #else

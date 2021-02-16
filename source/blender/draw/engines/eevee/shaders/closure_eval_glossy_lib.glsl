@@ -45,7 +45,11 @@ ClosureEvalGlossy closure_Glossy_eval_init(inout ClosureInputGlossy cl_in,
   ClosureEvalGlossy cl_eval;
   cl_eval.ltc_mat = texture(utilTex, vec3(lut_uv, LTC_MAT_LAYER));
   cl_eval.probe_sampling_dir = specular_dominant_dir(cl_in.N, cl_common.V, sqr(cl_in.roughness));
-  cl_eval.spec_occlusion = specular_occlusion(NV, cl_common.occlusion, cl_in.roughness);
+  cl_eval.spec_occlusion = specular_occlusion(cl_common.occlusion_data,
+                                              cl_common.V,
+                                              cl_common.N,
+                                              cl_in.roughness,
+                                              cl_eval.probe_sampling_dir);
   cl_eval.raytrace_radiance = vec3(0.0);
 
 #ifdef STEP_RESOLVE /* SSR */

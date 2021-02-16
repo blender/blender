@@ -122,6 +122,12 @@ vec3 safe_normalize(vec3 v)
   return v / len;
 }
 
+vec3 normalize_len(vec3 v, out float len)
+{
+  len = length(v);
+  return v / len;
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */

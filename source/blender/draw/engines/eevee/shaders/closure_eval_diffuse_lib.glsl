@@ -27,10 +27,12 @@ ClosureEvalDiffuse closure_Diffuse_eval_init(inout ClosureInputDiffuse cl_in,
   cl_out.radiance = vec3(0.0);
 
   ClosureEvalDiffuse cl_eval;
-  cl_eval.ambient_occlusion = diffuse_occlusion(
-      cl_in.N, cl_common.bent_normal, cl_common.occlusion, cl_in.albedo);
-  cl_eval.probe_sampling_dir = diffuse_dominant_dir(
-      cl_in.N, cl_common.bent_normal, cl_common.occlusion);
+  cl_eval.ambient_occlusion = diffuse_occlusion(cl_common.occlusion_data,
+                                                cl_common.V,
+                                                cl_in.N,
+                                                cl_common.Ng,
+                                                cl_in.albedo,
+                                                cl_eval.probe_sampling_dir);
   return cl_eval;
 }
 

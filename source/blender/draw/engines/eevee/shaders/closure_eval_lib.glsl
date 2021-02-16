@@ -167,6 +167,8 @@ struct ClosureInputCommon {
 #define CLOSURE_INPUT_COMMON_DEFAULT ClosureInputCommon(1.0)
 
 struct ClosureEvalCommon {
+  /** Result of SSAO. */
+  OcclusionData occlusion_data;
   /** View vector. */
   vec3 V;
   /** Surface position. */
@@ -177,15 +179,12 @@ struct ClosureEvalCommon {
   vec3 vN;
   /** Surface position. (viewspace) */
   vec3 vP;
+  /** Geometric normal, always facing camera. */
+  vec3 Ng;
   /** Geometric normal, always facing camera. (viewspace) */
   vec3 vNg;
   /** Random numbers. 3 random sequences. zw is a random point on a circle. */
   vec4 rand;
-  /** Final occlusion factor. Mix of the user occlusion and SSAO. */
-  float occlusion;
-  /** Least occluded direction in the hemisphere. */
-  vec3 bent_normal;
-
   /** Specular probe accumulator. Shared between planar and cubemap probe. */
   float specular_accum;
   /** Diffuse probe accumulator. */
@@ -208,7 +207,8 @@ ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)
   cl_eval.N = safe_normalize(gl_FrontFacing ? worldNormal : -worldNormal);
   cl_eval.vN = safe_normalize(gl_FrontFacing ? viewNormal : -viewNormal);
   cl_eval.vP = viewPosition;
-  cl_eval.vNg = safe_normalize(cross(dFdx(viewPosition), dFdy(viewPosition)));
+  cl_eval.Ng = safe_normalize(cross(dFdx(cl_eval.P), dFdy(cl_eval.P)));
+  cl_eval.vNg = transform_direction(ViewMatrix, cl_eval.Ng);
   /* TODO(fclem) See if we can avoid this complicated setup. */
   cl_eval.tracing_depth = gl_FragCoord.z;
   /* Constant bias (due to depth buffer precision) */
@@ -218,10 +218,7 @@ ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)
   /* Convert to view Z. */
   cl_eval.tracing_depth = get_view_z_from_depth(cl_eval.tracing_depth);
 
-  /* TODO(fclem) Do occlusion evaluation per Closure using shading normal. */
-  cl_eval.occlusion = min(
-      cl_in.occlusion,
-      occlusion_compute(cl_eval.N, cl_eval.vP, cl_eval.rand, cl_eval.bent_normal));
+  cl_eval.occlusion_data = occlusion_load(cl_eval.vP, cl_in.occlusion);
 
   cl_eval.specular_accum = 1.0;
   cl_eval.diffuse_accum = 1.0;
