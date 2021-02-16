@@ -5,7 +5,7 @@ uniform sampler2D searchTex;
 uniform sampler2D blendTex;
 uniform sampler2D colorTex;
 uniform float mixFactor;
-uniform float taaSampleCountInv;
+uniform float taaAccumulatedWeight;
 
 in vec2 uvs;
 in vec2 pixcoord;
@@ -39,6 +39,12 @@ void main()
   if (mixFactor < 1.0) {
     fragColor += texture(colorTex, uvs) * (1.0 - mixFactor);
   }
-  fragColor *= taaSampleCountInv;
+  fragColor /= taaAccumulatedWeight;
+  fragColor = exp2(fragColor) - 0.5;
+
+  /* Avoid float precision issue. */
+  if (fragColor.a > 0.999) {
+    fragColor.a = 1.0;
+  }
 #endif
 }

@@ -264,6 +264,37 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
   }
 }
 
+static float filter_blackman_harris(float x, const float width)
+{
+  if (x > width * 0.5f) {
+    return 0.0f;
+  }
+  x = 2.0f * M_PI * clamp_f((x / width + 0.5f), 0.0f, 1.0f);
+  return 0.35875f - 0.48829f * cosf(x) + 0.14128f * cosf(2.0f * x) - 0.01168f * cosf(3.0f * x);
+}
+
+/* Compute weights for the 3x3 neighborhood using a 1.5px filter. */
+static void workbench_antialiasing_weights_get(const float offset[2],
+                                               float r_weights[9],
+                                               float *r_weight_sum)
+{
+  /* NOTE: If filter width is bigger than 2.0f, then we need to sample more neighborhood. */
+  const float filter_width = 2.0f;
+  *r_weight_sum = 0.0f;
+  int i = 0;
+  for (int x = -1; x <= 1; x++) {
+    for (int y = -1; y <= 1; y++, i++) {
+      float sample_co[2] = {x, y};
+      add_v2_v2(sample_co, offset);
+      float r = len_v2(sample_co);
+      /* fclem: is radial distance ok here? */
+      float weight = filter_blackman_harris(r, filter_width);
+      *r_weight_sum += weight;
+      r_weights[i] = weight;
+    }
+  }
+}
+
 void workbench_antialiasing_cache_init(WORKBENCH_Data *vedata)
 {
   WORKBENCH_TextureList *txl = vedata->txl;
@@ -278,10 +309,12 @@ void workbench_antialiasing_cache_init(WORKBENCH_Data *vedata)
 
   {
     DRW_PASS_CREATE(psl->aa_accum_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
+    DRW_PASS_INSTANCE_CREATE(psl->aa_accum_replace_ps, psl->aa_accum_ps, DRW_STATE_WRITE_COLOR);
 
     GPUShader *shader = workbench_shader_antialiasing_accumulation_get();
     grp = DRW_shgroup_create(shader, psl->aa_accum_ps);
-    DRW_shgroup_uniform_texture(grp, "colorBuffer", dtxl->color);
+    DRW_shgroup_uniform_texture_ex(grp, "colorBuffer", dtxl->color, GPU_SAMPLER_DEFAULT);
+    DRW_shgroup_uniform_float(grp, "samplesWeights", wpd->taa_weights, 9);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
 
@@ -325,7 +358,7 @@ void workbench_antialiasing_cache_init(WORKBENCH_Data *vedata)
     DRW_shgroup_uniform_texture(grp, "colorTex", txl->history_buffer_tx);
     DRW_shgroup_uniform_vec4_copy(grp, "viewportMetrics", metrics);
     DRW_shgroup_uniform_float(grp, "mixFactor", &wpd->smaa_mix_factor, 1);
-    DRW_shgroup_uniform_float(grp, "taaSampleCountInv", &wpd->taa_sample_inv, 1);
+    DRW_shgroup_uniform_float(grp, "taaAccumulatedWeight", &wpd->taa_weight_accum, 1);
 
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
@@ -368,6 +401,8 @@ bool workbench_antialiasing_setup(WORKBENCH_Data *vedata)
       transform_offset = e_data.jitter_32[min_ii(wpd->taa_sample, 32)];
       break;
   }
+
+  workbench_antialiasing_weights_get(transform_offset, wpd->taa_weights, &wpd->taa_weights_sum);
 
   /* construct new matrices from transform delta */
   float winmat[4][4], viewmat[4][4], persmat[4][4];
@@ -419,8 +454,11 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
   const bool last_sample = wpd->taa_sample + 1 == wpd->taa_sample_len;
   const bool taa_finished = wpd->taa_sample >= wpd->taa_sample_len;
   if (wpd->taa_sample == 0) {
+    wpd->taa_weight_accum = wpd->taa_weights_sum;
     wpd->valid_history = true;
-    GPU_texture_copy(txl->history_buffer_tx, dtxl->color);
+
+    GPU_framebuffer_bind(fbl->antialiasing_fb);
+    DRW_draw_pass(psl->aa_accum_replace_ps);
     /* In playback mode, we are sure the next redraw will not use the same viewmatrix.
      * In this case no need to save the depth buffer. */
     if (!wpd->is_playback) {
@@ -435,6 +473,7 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
       /* Accumulate result to the TAA buffer. */
       GPU_framebuffer_bind(fbl->antialiasing_fb);
       DRW_draw_pass(psl->aa_accum_ps);
+      wpd->taa_weight_accum += wpd->taa_weights_sum;
     }
     /* Copy back the saved depth buffer for correct overlays. */
     GPU_texture_copy(dtxl->depth, txl->depth_buffer_tx);
@@ -446,7 +485,6 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
   if (!DRW_state_is_image_render() || last_sample) {
     /* After a certain point SMAA is no longer necessary. */
     wpd->smaa_mix_factor = 1.0f - clamp_f(wpd->taa_sample / 4.0f, 0.0f, 1.0f);
-    wpd->taa_sample_inv = 1.0f / min_ii(wpd->taa_sample + 1, wpd->taa_sample_len);
 
     if (wpd->smaa_mix_factor > 0.0f) {
       GPU_framebuffer_bind(fbl->smaa_edge_fb);
