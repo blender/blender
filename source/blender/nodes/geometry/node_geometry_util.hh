@@ -25,6 +25,7 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_node.h"
 
 #include "BLT_translation.h"
@@ -61,7 +62,7 @@ struct AttributeInfo {
  */
 void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
                            const GeometryComponentType component_type,
-                           Span<GeometryInstanceGroup> set_groups,
+                           Span<bke::GeometryInstanceGroup> set_groups,
                            const Set<std::string> &ignored_attributes);
 
 }  // namespace blender::nodes

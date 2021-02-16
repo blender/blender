@@ -26,6 +26,8 @@
 
 namespace blender::nodes {
 
+using bke::GeometryInstanceGroup;
+
 void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
                            const GeometryComponentType component_type,
                            Span<GeometryInstanceGroup> set_groups,
@@ -261,7 +263,7 @@ GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)
 
   GeometrySet new_geometry_set;
 
-  Vector<GeometryInstanceGroup> set_groups = BKE_geometry_set_gather_instances(geometry_set);
+  Vector<GeometryInstanceGroup> set_groups = bke::geometry_set_gather_instances(geometry_set);
   join_instance_groups_mesh(set_groups, new_geometry_set);
   join_instance_groups_pointcloud(set_groups, new_geometry_set);
   join_instance_groups_volume(set_groups, new_geometry_set);
