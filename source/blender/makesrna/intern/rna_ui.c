@@ -261,9 +261,14 @@ static StructRNA *rna_Panel_register(Main *bmain,
   Panel dummypanel = {NULL};
   PointerRNA dummyptr;
   int have_function[4];
+  size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
+  char _panel_descr[RNA_DYN_DESCR_MAX];
+  size_t description_size = 0;
 
   /* setup dummy panel & panel type to store static properties in */
   dummypanel.type = &dummypt;
+  _panel_descr[0] = '\0';
+  dummypanel.type->description = _panel_descr;
   RNA_pointer_create(NULL, &RNA_Panel, &dummypanel, &dummyptr);
 
   /* We have to set default context! Else we get a void string... */
@@ -355,8 +360,21 @@ static StructRNA *rna_Panel_register(Main *bmain,
   }
 
   /* create a new panel type */
-  pt = MEM_mallocN(sizeof(PanelType), "python buttons panel");
+  if (_panel_descr[0]) {
+    description_size = strlen(_panel_descr) + 1;
+    over_alloc += description_size;
+  }
+  pt = MEM_callocN(sizeof(PanelType) + over_alloc, "python buttons panel");
   memcpy(pt, &dummypt, sizeof(dummypt));
+
+  if (_panel_descr[0]) {
+    char *buf = (char *)(pt + 1);
+    memcpy(buf, _panel_descr, description_size);
+    pt->description = buf;
+  }
+  else {
+    pt->description = NULL;
+  }
 
   pt->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, pt->idname, &RNA_Panel);
   RNA_def_struct_translation_context(pt->rna_ext.srna, pt->translation_context);
@@ -993,6 +1011,18 @@ static StructRNA *rna_Menu_refine(PointerRNA *mtr)
   return (menu->type && menu->type->rna_ext.srna) ? menu->type->rna_ext.srna : &RNA_Menu;
 }
 
+static void rna_Panel_bl_description_set(PointerRNA *ptr, const char *value)
+{
+  Panel *data = (Panel *)(ptr->data);
+  char *str = (char *)data->type->description;
+  if (!str[0]) {
+    BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
+  }
+  else {
+    BLI_assert(!"setting the bl_description on a non-builtin panel");
+  }
+}
+
 static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
 {
   Menu *data = (Menu *)(ptr->data);
@@ -1407,6 +1437,14 @@ static void rna_def_panel(BlenderRNA *brna)
   RNA_def_property_string_default(prop, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_define_verify_sdna(true);
+
+  prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "type->description");
+  RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Panel_bl_description_set");
+  /* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
 
   prop = RNA_def_property(srna, "bl_category", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "type->category");
