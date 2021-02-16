@@ -639,7 +639,7 @@ int insert_vert_fcurve(
 
   /* don't recalculate handles if fast is set
    * - this is a hack to make importers faster
-   * - we may calculate twice (due to autohandle needing to be calculated twice)
+   * - we may calculate twice (due to auto-handle needing to be calculated twice)
    */
   if ((flag & INSERTKEY_FAST) == 0) {
     calchandles_fcurve(fcu);

@@ -995,7 +995,7 @@ bool EDBM_unified_findnearest(ViewContext *vc,
 /* -------------------------------------------------------------------- */
 /** \name Alternate Find Nearest Vert/Edge (optional boundary)
  *
- * \note This uses ray-cast method instead of backbuffer,
+ * \note This uses ray-cast method instead of back-buffer,
  * currently used for poly-build.
  * \{ */
 

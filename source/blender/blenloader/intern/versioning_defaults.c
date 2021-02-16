@@ -330,7 +330,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Enable Soft Shadows by default. */
   scene->eevee.flag |= SCE_EEVEE_SHADOW_SOFT;
 
-  /* Be sure curfalloff and primitive are initializated */
+  /* Be sure `curfalloff` and primitive are initialized. */
   ToolSettings *ts = scene->toolsettings;
   if (ts->gp_sculpt.cur_falloff == NULL) {
     ts->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);

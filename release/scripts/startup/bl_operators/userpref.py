@@ -18,8 +18,6 @@
 
 # <pep8 compliant>
 
-# TODO, use PREFERENCES_OT_* prefix for operators.
-
 import bpy
 from bpy.types import (
     Operator,
@@ -899,7 +897,6 @@ class PREFERENCES_OT_app_template_install(Operator):
                 traceback.print_exc()
                 return {'CANCELLED'}
 
-            # _module_extract_prepare(file_to_extract)
             file_to_extract_root = _zipfile_root_namelist(file_to_extract)
             if self.overwrite:
                 for f in file_to_extract_root:

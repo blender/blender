@@ -1746,8 +1746,7 @@ void UI_view2d_smooth_view(bContext *C, ARegion *region, const rctf *cur, const 
       if (v2d->smooth_timer) {
         WM_event_remove_timer(wm, win, v2d->smooth_timer);
       }
-      /* TIMER1 is hardcoded in keymap */
-      /* max 30 frs/sec */
+      /* TIMER1 is hard-coded in key-map. */
       v2d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0);
 
       ok = true;

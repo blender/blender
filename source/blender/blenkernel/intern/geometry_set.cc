@@ -612,7 +612,7 @@ static GeometrySet object_get_geometry_set_for_read(const Object &object)
     }
   }
 
-  /* TODO: Cover the case of pointclouds without modifiers-- they may not be covered by the
+  /* TODO: Cover the case of point-clouds without modifiers-- they may not be covered by the
    * #geometry_set_eval case above. */
 
   /* TODO: Add volume support. */

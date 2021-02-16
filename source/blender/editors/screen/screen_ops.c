@@ -5083,7 +5083,7 @@ static void SCREEN_OT_delete(wmOperatorType *ot)
 /** \name Region Alpha Blending Operator
  *
  * Implementation note: a disappearing region needs at least 1 last draw with
- * 100% backbuffer texture over it - then triple buffer will clear it entirely.
+ * 100% back-buffer texture over it - then triple buffer will clear it entirely.
  * This because flag #RGN_FLAG_HIDDEN is set in end - region doesn't draw at all then.
  *
  * \{ */
