@@ -775,10 +775,10 @@ static void node_socket_draw_multi_input(const float color[4],
   const float outline_width = 1.0f;
   /* UI_draw_roundbox draws the outline on the outer side, so compensate for the outline width. */
   const rctf rect = {
-      .xmin = locx - width + outline_width * 0.5f,
-      .xmax = locx + width - outline_width * 0.5f,
-      .ymin = locy - height + outline_width * 0.5f,
-      .ymax = locy + height - outline_width * 0.5f,
+      locx - width + outline_width * 0.5f,
+      locx + width - outline_width * 0.5f,
+      locy - height + outline_width * 0.5f,
+      locy + height - outline_width * 0.5f,
   };
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
