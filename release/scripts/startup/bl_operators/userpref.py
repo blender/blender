@@ -36,16 +36,36 @@ from bpy.props import (
 from bpy.app.translations import pgettext_tip as tip_
 
 
-def module_filesystem_remove(path_base, module_name):
+def _zipfile_root_namelist(file_to_extract):
+    # Return a list of root paths from zipfile.ZipFile.namelist.
     import os
+    root_paths = []
+    for f in file_to_extract.namelist():
+        # Python's `zipfile` API always adds a separate at the end of directories.
+        # use `os.path.normpath` instead of `f.removesuffix(os.sep)`
+        # since paths could be stored as `./paths/./`.
+        #
+        # Note that `..` prefixed paths can exist in ZIP files but they don't write to parent directory when extracting.
+        # Nor do they pass the `os.sep not in f` test, this is important,
+        # otherwise `shutil.rmtree` below could made to remove directories outside the installation directory.
+        f = os.path.normpath(f)
+        if os.sep not in f:
+            root_paths.append(f)
+    return root_paths
+
+
+def _module_filesystem_remove(path_base, module_name):
+    # Remove all Python modules with `module_name` in `base_path`.
+    # The `module_name` is expected to be a result from `_zipfile_root_namelist`.
+    import os
+    import shutil
     module_name = os.path.splitext(module_name)[0]
     for f in os.listdir(path_base):
         f_base = os.path.splitext(f)[0]
         if f_base == module_name:
             f_full = os.path.join(path_base, f)
-
             if os.path.isdir(f_full):
-                os.rmdir(f_full)
+                shutil.rmtree(f_full)
             else:
                 os.remove(f_full)
 
@@ -635,11 +655,12 @@ class PREFERENCES_OT_addon_install(Operator):
                 traceback.print_exc()
                 return {'CANCELLED'}
 
+            file_to_extract_root = _zipfile_root_namelist(file_to_extract)
             if self.overwrite:
-                for f in file_to_extract.namelist():
-                    module_filesystem_remove(path_addons, f)
+                for f in file_to_extract_root:
+                    _module_filesystem_remove(path_addons, f)
             else:
-                for f in file_to_extract.namelist():
+                for f in file_to_extract_root:
                     path_dest = os.path.join(path_addons, os.path.basename(f))
                     if os.path.exists(path_dest):
                         self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
@@ -655,7 +676,7 @@ class PREFERENCES_OT_addon_install(Operator):
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
             if self.overwrite:
-                module_filesystem_remove(path_addons, os.path.basename(pyfile))
+                _module_filesystem_remove(path_addons, os.path.basename(pyfile))
             elif os.path.exists(path_dest):
                 self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
                 return {'CANCELLED'}
@@ -878,11 +899,13 @@ class PREFERENCES_OT_app_template_install(Operator):
                 traceback.print_exc()
                 return {'CANCELLED'}
 
+            # _module_extract_prepare(file_to_extract)
+            file_to_extract_root = _zipfile_root_namelist(file_to_extract)
             if self.overwrite:
-                for f in file_to_extract.namelist():
-                    module_filesystem_remove(path_app_templates, f)
+                for f in file_to_extract_root:
+                    _module_filesystem_remove(path_app_templates, f)
             else:
-                for f in file_to_extract.namelist():
+                for f in file_to_extract_root:
                     path_dest = os.path.join(path_app_templates, os.path.basename(f))
                     if os.path.exists(path_dest):
                         self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
