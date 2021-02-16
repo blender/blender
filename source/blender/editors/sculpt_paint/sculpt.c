@@ -10471,8 +10471,6 @@ static void SCULPT_OT_mask_init(wmOperatorType *ot)
                "");
 }
 
-
-
 static int sculpt_reset_brushes_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);

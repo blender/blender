@@ -1154,6 +1154,7 @@ typedef struct SculptGradientContext {
   void (*sculpt_gradient_end)(struct bContext *);
 } SculptGradientContext;
 
+/* Sculpt Expand. */
 typedef enum eSculptExpandFalloffType {
   SCULPT_EXPAND_FALLOFF_GEODESIC,
   SCULPT_EXPAND_FALLOFF_TOPOLOGY,
@@ -1180,16 +1181,21 @@ typedef enum eSculptExpandRecursionType {
 #define EXPAND_ACTIVE_COMPOMENT_NONE -1
 
 typedef struct ExpandCache {
+  /* Target data elements that the expand operation will affect. */
   eSculptExpandTargetType target;
 
-  eSculptExpandFalloffType falloff_factor_type;
-  float *falloff_factor;
-  float max_falloff_factor;
+  /* Falloff  data. */
+  eSculptExpandFalloffType falloff_type;
+  float *falloff;
+  float max_falloff;
 
-  float *face_falloff_factor;
-  float max_face_falloff_factor;
+  float *face_falloff;
+  float max_face_falloff;
 
-  float active_factor;
+  float active_falloff;
+
+  /* When set to true, expand skips all falloff computations and considers all elements as enabled.
+   */
   bool all_enabled;
 
   float initial_mouse[2];
@@ -1197,17 +1203,23 @@ typedef struct ExpandCache {
   int initial_active_face_set;
   int next_face_set;
 
+  /* Active components checks. */
   int active_connected_components[EXPAND_SYMM_AREAS];
 
+  /* Snapping. */
   GSet *snap_enabled_face_sets;
 
+  Brush *brush;
   struct Scene *scene;
   struct MTex *mtex;
   float texture_distortion_strength;
 
+  /* Cached PBVH nodes. This allows to skip gathering all nodes from the PBVH each time expand
+   * needs to update the state of the elements. */
   PBVHNode **nodes;
   int totnode;
 
+  /* Expand state options. */
   int loop_count;
   bool invert;
   bool preserve;
@@ -1218,19 +1230,19 @@ typedef struct ExpandCache {
   bool reposition_pivot;
   bool brush_gradient;
 
-  Brush *brush;
-
   float initial_mouse_move[2];
   float original_mouse_move[2];
   int update_face_set;
 
+  /* Color target data type related data. */
   float fill_color[4];
   short blend_mode;
 
-  float *initial_mask;
   int *initial_face_sets;
+
+  float *original_mask;
   int *origin_face_sets;
-  float (*initial_color)[4];
+  float (*original_color)[4];
 } ExpandCache;
 
 typedef struct FilterCache {
