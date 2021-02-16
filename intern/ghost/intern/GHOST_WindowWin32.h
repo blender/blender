@@ -34,14 +34,12 @@
 #  include "GHOST_ImeWin32.h"
 #endif
 
-#include <queue>
 #include <vector>
 
 #include <wintab.h>
 // PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first
-#define PACKETDATA \
-  (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR | PK_X | PK_Y | PK_TIME)
-#define PACKETMODE 0
+#define PACKETDATA (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
+#define PACKETMODE PK_BUTTONS
 #include <pktdef.h>
 
 class GHOST_SystemWin32;
@@ -49,13 +47,9 @@ class GHOST_DropTargetWin32;
 
 // typedefs for WinTab functions to allow dynamic loading
 typedef UINT(API *GHOST_WIN32_WTInfo)(UINT, UINT, LPVOID);
-typedef BOOL(API *GHOST_WIN32_WTGet)(HCTX, LPLOGCONTEXTA);
-typedef BOOL(API *GHOST_WIN32_WTSet)(HCTX, LPLOGCONTEXTA);
 typedef HCTX(API *GHOST_WIN32_WTOpen)(HWND, LPLOGCONTEXTA, BOOL);
 typedef BOOL(API *GHOST_WIN32_WTClose)(HCTX);
-typedef int(API *GHOST_WIN32_WTPacketsGet)(HCTX, int, LPVOID);
-typedef int(API *GHOST_WIN32_WTQueueSizeGet)(HCTX);
-typedef BOOL(API *GHOST_WIN32_WTQueueSizeSet)(HCTX, int);
+typedef BOOL(API *GHOST_WIN32_WTPacket)(HCTX, UINT, LPVOID);
 typedef BOOL(API *GHOST_WIN32_WTEnable)(HCTX, BOOL);
 typedef BOOL(API *GHOST_WIN32_WTOverlap)(HCTX, BOOL);
 
@@ -236,14 +230,7 @@ struct GHOST_PointerInfoWin32 {
   GHOST_TButtonMask buttonMask;
   POINT pixelLocation;
   GHOST_TUns64 time;
-  GHOST_TabletData tabletData;
-};
 
-struct GHOST_WintabInfoWin32 {
-  GHOST_TInt32 x, y;
-  GHOST_TEventType type;
-  GHOST_TButtonMask button;
-  GHOST_TUns64 time;
   GHOST_TabletData tabletData;
 };
 
@@ -437,6 +424,11 @@ class GHOST_WindowWin32 : public GHOST_Window {
   HCURSOR getStandardCursor(GHOST_TStandardCursor shape) const;
   void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
+  const GHOST_TabletData &getTabletData()
+  {
+    return m_tabletData;
+  }
+
   /**
    * Query whether given tablet API should be used.
    * \param api: Tablet API to test.
@@ -455,50 +447,15 @@ class GHOST_WindowWin32 : public GHOST_Window {
                                 LPARAM lParam);
 
   /**
-   * Enables or disables Wintab context.
-   * \param enable: Whether the context should be enabled.
-   */
-  void setWintabEnabled(bool enable);
-
-  /**
-   * Changes Wintab context overlap.
-   * \param overlap: Whether context should be brought to top of overlap order.
-   */
-  void setWintabOverlap(bool overlap);
-
-  /**
-   * Resets Wintab state.
-   */
-  void processWintabLeave();
-
-  /**
-   * Handle Wintab coordinate changes when DisplayChange events occur.
-   */
-  void processWintabDisplayChangeEvent();
-
-  /**
-   * Updates cached Wintab properties for current cursor.
-   */
-  void updateWintabCursorInfo();
-
-  /**
    * Handle Wintab info changes such as change in number of connected tablets.
    * \param lParam: LPARAM of the event.
    */
   void processWintabInfoChangeEvent(LPARAM lParam);
 
-  /**
-   * Translate Wintab packets into GHOST_WintabInfoWin32 structs.
-   * \param outWintabInfo: Storage to return resulting GHOST_WintabInfoWin32 structs.
-   * \return Success if able to read packets, even if there are none.
-   */
-  GHOST_TSuccess getWintabInfo(std::vector<GHOST_WintabInfoWin32> &outWintabInfo);
-
-  /**
-   * Get the most recent tablet data.
-   * \return Most recent tablet data.
-   */
-  GHOST_TabletData getLastTabletData();
+  void processWin32TabletActivateEvent(WORD state);
+  void processWin32TabletInitEvent();
+  void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
+  void bringTabletContextToFront();
 
   GHOST_TSuccess beginFullScreen() const
   {
@@ -511,9 +468,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
   }
 
   GHOST_TUns16 getDPIHint() override;
-
-  /** Whether the mouse is either over or captured by the window. */
-  bool m_mousePresent;
 
   /** Whether a tablet stylus is being tracked. */
   bool m_tabletInRange;
@@ -600,50 +554,28 @@ class GHOST_WindowWin32 : public GHOST_Window {
   static const wchar_t *s_windowClassName;
   static const int s_maxTitleLength;
 
+  /** Tablet data for GHOST */
+  GHOST_TabletData m_tabletData;
+
   /* Wintab API */
   struct {
     /** WinTab DLL handle. */
     HMODULE handle = NULL;
 
     /** API functions */
-    GHOST_WIN32_WTInfo info = NULL;
-    GHOST_WIN32_WTGet get = NULL;
-    GHOST_WIN32_WTSet set = NULL;
-    GHOST_WIN32_WTOpen open = NULL;
-    GHOST_WIN32_WTClose close = NULL;
-    GHOST_WIN32_WTPacketsGet packetsGet = NULL;
-    GHOST_WIN32_WTQueueSizeGet queueSizeGet = NULL;
-    GHOST_WIN32_WTQueueSizeSet queueSizeSet = NULL;
-    GHOST_WIN32_WTEnable enable = NULL;
-    GHOST_WIN32_WTOverlap overlap = NULL;
+    GHOST_WIN32_WTInfo info;
+    GHOST_WIN32_WTOpen open;
+    GHOST_WIN32_WTClose close;
+    GHOST_WIN32_WTPacket packet;
+    GHOST_WIN32_WTEnable enable;
+    GHOST_WIN32_WTOverlap overlap;
 
-    /** Stores the Tablet context if detected Tablet features using WinTab.dll. */
-    HCTX context = NULL;
-    /** Number of connected Wintab digitizers. */
-    UINT numDevices = 0;
-    /** Pressed button map. */
-    GHOST_TUns8 buttons = 0;
-    LONG maxPressure = 0;
-    LONG maxAzimuth = 0, maxAltitude = 0;
-    /** Reusable buffer to read in Wintab Packets. */
-    std::vector<PACKET> pkts;
+    /** Stores the Tablet context if detected Tablet features using WinTab.dll */
+    HCTX tablet;
+    LONG maxPressure;
+    LONG maxAzimuth, maxAltitude;
+    UINT numDevices;
   } m_wintab;
-
-  /** Most recent tablet data. */
-  GHOST_TabletData lastTabletData = GHOST_TABLET_DATA_NONE;
-
-  /**
-   * Wintab setup.
-   */
-  void initializeWintab();
-
-  /**
-   * Convert Wintab system mapped (mouse) buttons into Ghost button mask.
-   * \param cursor: The Wintab cursor associated to the button.
-   * \param physicalButton: The physical button ID to inspect.
-   * \return The system mapped button.
-   */
-  GHOST_TButtonMask wintabMouseToGhost(UINT cursor, WORD physicalButton);
 
   GHOST_TWindowState m_normal_state;
 
