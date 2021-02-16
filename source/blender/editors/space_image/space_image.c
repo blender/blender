@@ -280,7 +280,7 @@ static void image_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
-  WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy);
+  WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy, NULL);
 }
 
 /**

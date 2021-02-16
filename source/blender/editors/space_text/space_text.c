@@ -367,8 +367,8 @@ static void text_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "TEXT_OT_open", text_drop_poll, text_drop_copy);
-  WM_dropbox_add(lb, "TEXT_OT_insert", text_drop_paste_poll, text_drop_paste);
+  WM_dropbox_add(lb, "TEXT_OT_open", text_drop_poll, text_drop_copy, NULL);
+  WM_dropbox_add(lb, "TEXT_OT_insert", text_drop_paste_poll, text_drop_paste, NULL);
 }
 
 /* ************* end drop *********** */

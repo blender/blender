@@ -323,9 +323,6 @@ static bNodeTree *node_add_group_get_and_poll_group_node_tree(Main *bmain,
     return NULL;
   }
   if ((node_group->type != ntree->type) || !nodeGroupPoll(ntree, node_group)) {
-    if (RNA_boolean_get(op->ptr, "free_id_on_error")) {
-      BKE_id_delete(bmain, node_group);
-    }
     return NULL;
   }
 
@@ -389,8 +386,6 @@ static int node_add_group_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
 void NODE_OT_add_group(wmOperatorType *ot)
 {
-  PropertyRNA *prop;
-
   /* identifiers */
   ot->name = "Add Node Group";
   ot->description = "Add an existing node group to the current node editor";
@@ -405,13 +400,6 @@ void NODE_OT_add_group(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   RNA_def_string(ot->srna, "name", "Mask", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
-  prop = RNA_def_boolean(
-      ot->srna,
-      "free_id_on_error",
-      false,
-      "Free Group on Error",
-      "Free the named node group data-block if it could not be added to the tree");
-  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* ****************** Add File Node Operator  ******************* */

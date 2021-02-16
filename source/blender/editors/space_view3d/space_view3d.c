@@ -689,21 +689,41 @@ static void view3d_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "OBJECT_OT_add_named", view3d_ob_drop_poll, view3d_ob_drop_copy);
-  WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
-  WM_dropbox_add(
-      lb, "VIEW3D_OT_background_image_add", view3d_ima_bg_drop_poll, view3d_id_path_drop_copy);
-  WM_dropbox_add(
-      lb, "OBJECT_OT_drop_named_image", view3d_ima_empty_drop_poll, view3d_id_path_drop_copy);
-  WM_dropbox_add(lb, "OBJECT_OT_volume_import", view3d_volume_drop_poll, view3d_id_path_drop_copy);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_add_named",
+                 view3d_ob_drop_poll,
+                 view3d_ob_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_drop_named_material",
+                 view3d_mat_drop_poll,
+                 view3d_id_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "VIEW3D_OT_background_image_add",
+                 view3d_ima_bg_drop_poll,
+                 view3d_id_path_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_drop_named_image",
+                 view3d_ima_empty_drop_poll,
+                 view3d_id_path_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_volume_import",
+                 view3d_volume_drop_poll,
+                 view3d_id_path_drop_copy,
+                 WM_drag_free_imported_drag_ID);
   WM_dropbox_add(lb,
                  "OBJECT_OT_collection_instance_add",
                  view3d_collection_drop_poll,
-                 view3d_collection_drop_copy);
+                 view3d_collection_drop_copy,
+                 WM_drag_free_imported_drag_ID);
   WM_dropbox_add(lb,
                  "OBJECT_OT_data_instance_add",
                  view3d_object_data_drop_poll,
-                 view3d_id_drop_copy_with_type);
+                 view3d_id_drop_copy_with_type,
+                 WM_drag_free_imported_drag_ID);
 }
 
 static void view3d_widgets(void)

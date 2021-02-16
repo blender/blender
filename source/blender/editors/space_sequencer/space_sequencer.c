@@ -448,9 +448,9 @@ static void sequencer_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy);
-  WM_dropbox_add(lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy);
-  WM_dropbox_add(lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy);
+  WM_dropbox_add(lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, NULL);
+  WM_dropbox_add(lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, NULL);
+  WM_dropbox_add(lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, NULL);
 }
 
 /* ************* end drop *********** */
