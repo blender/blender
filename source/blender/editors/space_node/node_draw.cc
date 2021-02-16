@@ -27,6 +27,7 @@
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -34,7 +35,11 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_map.hh"
 #include "BLI_math.h"
+#include "BLI_span.hh"
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
@@ -42,6 +47,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_ui_storage.hh"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 
@@ -73,6 +80,11 @@
 #ifdef WITH_COMPOSITOR
 #  include "COM_compositor.h"
 #endif
+
+using blender::Map;
+using blender::Span;
+using blender::StringRef;
+using blender::Vector;
 
 extern "C" {
 /* XXX interface.h */
@@ -1178,6 +1190,135 @@ void node_draw_sockets(const View2D *v2d,
   }
 }
 
+static int node_error_type_to_icon(const NodeWarningType type)
+{
+  switch (type) {
+    case NodeWarningType::Error:
+      return ICON_ERROR;
+    case NodeWarningType::Warning:
+      return ICON_ERROR;
+    case NodeWarningType::Info:
+      return ICON_INFO;
+  }
+
+  BLI_assert(false);
+  return ICON_ERROR;
+}
+
+static uint8_t node_error_type_priority(const NodeWarningType type)
+{
+  switch (type) {
+    case NodeWarningType::Error:
+      return 3;
+    case NodeWarningType::Warning:
+      return 2;
+    case NodeWarningType::Info:
+      return 1;
+  }
+
+  BLI_assert(false);
+  return 0;
+}
+
+static NodeWarningType node_error_highest_priority(Span<NodeWarning> warnings)
+{
+  uint8_t highest_priority = 0;
+  NodeWarningType highest_priority_type = NodeWarningType::Info;
+  for (const NodeWarning &warning : warnings) {
+    const uint8_t priority = node_error_type_priority(warning.type);
+    if (priority > highest_priority) {
+      highest_priority = priority;
+      highest_priority_type = warning.type;
+    }
+  }
+  return highest_priority_type;
+}
+
+static char *node_errrors_tooltip_fn(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
+{
+  const NodeUIStorage **storage_pointer_alloc = static_cast<const NodeUIStorage **>(argN);
+  const NodeUIStorage *node_ui_storage = *storage_pointer_alloc;
+  Span<NodeWarning> warnings = node_ui_storage->warnings;
+
+  std::string complete_string;
+
+  for (const NodeWarning &warning : warnings.drop_back(1)) {
+    complete_string += warning.message;
+    complete_string += '\n';
+  }
+
+  complete_string += warnings.last().message;
+
+  /* Remove the last period-- the tooltip system adds this automatically. */
+  if (complete_string.back() == '.') {
+    complete_string.pop_back();
+  }
+
+  return BLI_strdupn(complete_string.c_str(), complete_string.size());
+}
+
+#define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
+
+static const NodeUIStorage *node_ui_storage_get_from_context(const bContext *C,
+                                                             const bNodeTree &ntree,
+                                                             const bNode &node)
+{
+  const NodeTreeUIStorage *ui_storage = ntree.ui_storage;
+  if (ui_storage == nullptr) {
+    return nullptr;
+  }
+
+  const Object *active_object = CTX_data_active_object(C);
+  const ModifierData *active_modifier = BKE_object_active_modifier(active_object);
+  if (active_object == nullptr || active_modifier == nullptr) {
+    return nullptr;
+  }
+
+  const NodeTreeEvaluationContext context(*active_object, *active_modifier);
+  const Map<std::string, NodeUIStorage> *storage = ui_storage->context_map.lookup_ptr(context);
+  if (storage == nullptr) {
+    return nullptr;
+  }
+
+  return storage->lookup_ptr_as(StringRef(node.name));
+}
+
+static void node_add_error_message_button(
+    const bContext *C, bNodeTree &ntree, bNode &node, const rctf &rect, float &icon_offset)
+{
+  const NodeUIStorage *node_ui_storage = node_ui_storage_get_from_context(C, ntree, node);
+  if (node_ui_storage == nullptr) {
+    return;
+  }
+
+  /* The UI API forces us to allocate memory for each error button, because the
+   * ownership of #UI_but_func_tooltip_set's argument is transferred to the button. */
+  const NodeUIStorage **storage_pointer_alloc = (const NodeUIStorage **)MEM_mallocN(
+      sizeof(NodeUIStorage *), __func__);
+  *storage_pointer_alloc = node_ui_storage;
+
+  const NodeWarningType display_type = node_error_highest_priority(node_ui_storage->warnings);
+
+  icon_offset -= NODE_HEADER_ICON_SIZE;
+  UI_block_emboss_set(node.block, UI_EMBOSS_NONE);
+  uiBut *but = uiDefIconBut(node.block,
+                            UI_BTYPE_BUT,
+                            0,
+                            node_error_type_to_icon(display_type),
+                            icon_offset,
+                            rect.ymax - NODE_DY,
+                            NODE_HEADER_ICON_SIZE,
+                            UI_UNIT_Y,
+                            nullptr,
+                            0,
+                            0,
+                            0,
+                            0,
+                            nullptr);
+  UI_but_func_tooltip_set(but, node_errrors_tooltip_fn, storage_pointer_alloc);
+  UI_block_emboss_set(node.block, UI_EMBOSS);
+}
+
 static void node_draw_basis(const bContext *C,
                             const View2D *v2d,
                             const SpaceNode *snode,
@@ -1186,7 +1327,7 @@ static void node_draw_basis(const bContext *C,
                             bNodeInstanceKey key)
 {
   /* float socket_size = NODE_SOCKSIZE*U.dpi/72; */ /* UNUSED */
-  const float iconbutw = 0.8f * U.widget_unit;
+  const float iconbutw = NODE_HEADER_ICON_SIZE;
 
   /* skip if out of view */
   if (BLI_rctf_isect(&node->totr, &v2d->cur, nullptr) == false) {
@@ -1296,6 +1437,8 @@ static void node_draw_basis(const bContext *C,
                  "");
     UI_block_emboss_set(node->block, UI_EMBOSS);
   }
+
+  node_add_error_message_button(C, *ntree, *node, *rct, iconofs);
 
   /* title */
   if (node->flag & SELECT) {
