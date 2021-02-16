@@ -254,6 +254,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   return dists;
 }
 
+/* For sculpt mesh data that does not support a geodesic distances algorithm, fallback to the
+ * distance to each vertex. */
 static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices)
 {
 

@@ -98,10 +98,16 @@
  */
 #define SCULPT_EXPAND_VERTEX_NONE -1
 
+/* Used for defining an unitialized active component index for an unused symmetry pass. */
+
+#define EXPAND_ACTIVE_COMPOMENT_NONE -1
 /* Defines how much each time the texture distortion is increased/decreased when using the modal
  * keymap. */
 #define SCULPT_EXPAND_TEXTURE_DISTORTION_STEP 0.01f
 
+/* This threshold offsets the required falloff value to start a new loop. This is needed because in
+ * some situations, vertices which have the same falloff value as max_falloff will start a new
+ * loop, which is undesired. */
 #define SCULPT_EXPAND_LOOP_THRESHOLD 0.00001f
 
 /* Expand Modal Keymap. */
@@ -378,9 +384,7 @@ static BLI_bitmap *sculpt_expand_boundary_from_enabled(SculptSession *ss,
   return boundary_vertices;
 }
 
-
-
-/* Functions implementing differnt algorithms for initializing the falloff values. */
+/* Functions implementing different algorithms for initializing falloff values. */
 
 /* Geodesic: Initializes the falloff with geodesic distances from the given active vertex, taking
  * symmetry into account. */
@@ -772,9 +776,11 @@ static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(SculptSession *s
   }
 }
 
-/* Recursions. These functions will generate new falloff values based on the state of the vertices from the current ExpandCache options and falloff values. */
+/* Recursions. These functions will generate new falloff values based on the state of the vertices
+ * from the current ExpandCache options and falloff values. */
 
-/* Geodesic recursion: Initializes falloff values using geodesic distances from the boundary of the current vertices state. */
+/* Geodesic recursion: Initializes falloff values using geodesic distances from the boundary of the
+ * current vertices state. */
 static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
                                                         ExpandCache *expand_cache,
                                                         BLI_bitmap *enabled_vertices)
@@ -800,7 +806,8 @@ static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
   BLI_gset_free(initial_vertices, NULL);
 }
 
-/* Geodesic recursion: Initializes falloff values using topology steps from the boundary of the current vertices state, increasing the value by 1 each time a new vertex is visited. */
+/* Geodesic recursion: Initializes falloff values using topology steps from the boundary of the
+ * current vertices state, increasing the value by 1 each time a new vertex is visited. */
 static void sculpt_expand_topology_from_state_boundary(Object *ob,
                                                        ExpandCache *expand_cache,
                                                        BLI_bitmap *enabled_vertices)
@@ -844,7 +851,9 @@ static void sculpt_expand_resursion_step_add(Object *ob,
 
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
 
-  /* Each time a new recursion step is created, reset the distortion strength. This is the expedted result from the recursion, as otherwise the new falloff will render with undesired distortion from the beginning */
+  /* Each time a new recursion step is created, reset the distortion strength. This is the expedted
+   * result from the recursion, as otherwise the new falloff will render with undesired distortion
+   * from the beginning */
   expand_cache->texture_distortion_strength = 0.0f;
 
   switch (recursion_type) {
@@ -923,8 +932,8 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
   }
 }
 
-
-/* Main function to initialize new falloff values in a ExpandCache given an initial vertex and a falloff type. */
+/* Main function to initialize new falloff values in a ExpandCache given an initial vertex and a
+ * falloff type. */
 static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
     ExpandCache *expand_cache,
     Sculpt *sd,
@@ -979,8 +988,9 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
   }
 }
 
-
-/* Adds to the snapping Face Set gset all Face Sets which contain all enabled vertices for the current ExpandCache state. This improves the usability of snapping, as already enabled elements won't switch their state when toggling snapping with the modal keymap.*/
+/* Adds to the snapping Face Set gset all Face Sets which contain all enabled vertices for the
+ * current ExpandCache state. This improves the usability of snapping, as already enabled elements
+ * won't switch their state when toggling snapping with the modal keymap.*/
 static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
                                                        ExpandCache *expand_cache)
 {
@@ -988,7 +998,8 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
     return;
   }
 
-  /* Make sure this code runs with snapping and invert disabled. This simplifies the code and prevents using this function with snapping already enabled. */
+  /* Make sure this code runs with snapping and invert disabled. This simplifies the code and
+   * prevents using this function with snapping already enabled. */
   const bool prev_snap_state = expand_cache->snap;
   const bool prev_invert_state = expand_cache->invert;
   expand_cache->snap = false;
@@ -1024,7 +1035,6 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
   expand_cache->invert = prev_invert_state;
 }
 
-
 /* Functions to free a ExpandCache */
 static void sculpt_expand_cache_data_free(ExpandCache *expand_cache)
 {
@@ -1035,19 +1045,19 @@ static void sculpt_expand_cache_data_free(ExpandCache *expand_cache)
   MEM_SAFE_FREE(expand_cache->falloff);
   MEM_SAFE_FREE(expand_cache->face_falloff);
   MEM_SAFE_FREE(expand_cache->original_mask);
-  MEM_SAFE_FREE(expand_cache->origin_face_sets);
+  MEM_SAFE_FREE(expand_cache->original_face_sets);
   MEM_SAFE_FREE(expand_cache->initial_face_sets);
-  MEM_SAFE_FREE(expand_cache->original_color);
+  MEM_SAFE_FREE(expand_cache->original_colors);
   MEM_SAFE_FREE(expand_cache);
 }
 
 static void sculpt_expand_cache_free(SculptSession *ss)
 {
   sculpt_expand_cache_data_free(ss->expand_cache);
-  /* Needs to be set to NULL as the paint cursor relies on checking this pointer detecting if an expand operation is running. */
+  /* Needs to be set to NULL as the paint cursor relies on checking this pointer detecting if an
+   * expand operation is running. */
   ss->expand_cache = NULL;
 }
-
 
 /* Functions to restore the original state from the ExpandCache when canceling the operator. */
 static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *expand_cache)
@@ -1061,7 +1071,7 @@ static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *
   }
   MEM_freeN(nodes);
   for (int i = 0; i < ss->totfaces; i++) {
-    ss->face_sets[i] = expand_cache->origin_face_sets[i];
+    ss->face_sets[i] = expand_cache->original_face_sets[i];
   }
 }
 
@@ -1075,7 +1085,7 @@ static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *exp
     PBVHVertexIter vd;
     BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
     {
-      copy_v4_v4(vd.col, expand_cache->original_color[vd.index]);
+      copy_v4_v4(vd.col, expand_cache->original_colors[vd.index]);
     }
     BKE_pbvh_vertex_iter_end;
     BKE_pbvh_node_mark_redraw(node);
@@ -1101,7 +1111,8 @@ static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expa
   MEM_freeN(nodes);
 }
 
-/* Main function to restore the original state of the data to how it was before starting the expand operation. */
+/* Main function to restore the original state of the data to how it was before starting the expand
+ * operation. */
 static void sculpt_expand_restore_original_state(bContext *C,
                                                  Object *ob,
                                                  ExpandCache *expand_cache)
@@ -1129,6 +1140,7 @@ static void sculpt_expand_restore_original_state(bContext *C,
   }
 }
 
+/* Cancel operator callback. */
 static void sculpt_expand_cancel(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = CTX_data_active_object(C);
@@ -1140,6 +1152,9 @@ static void sculpt_expand_cancel(bContext *C, wmOperator *UNUSED(op))
   sculpt_expand_cache_free(ss);
 }
 
+/* Functions to update the sculpt mesh data. */
+
+/* Callback to update mask data per PBVH node. */
 static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
                                               const int i,
                                               const TaskParallelTLS *__restrict UNUSED(tls))
@@ -1186,6 +1201,7 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
   }
 }
 
+/* Update Face Set data. Not multithreaded per node as nodes don't contain face arrays. */
 static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expand_cache)
 {
   const int totface = ss->totfaces;
@@ -1203,10 +1219,11 @@ static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expan
   }
 
   for (int i = 0; i < expand_cache->totnode; i++) {
-    BKE_pbvh_node_mark_update_mask(expand_cache->nodes[i]);
+    BKE_pbvh_node_mark_redraw(ss->expand_cache->nodes[i]);
   }
 }
 
+/* Callback to update vertex colors per PBVH node. */
 static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
                                                 const int i,
                                                 const TaskParallelTLS *__restrict UNUSED(tls))
@@ -1241,7 +1258,7 @@ static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
     float final_fill_color[4];
     mul_v4_v4fl(final_fill_color, expand_cache->fill_color, fade);
     IMB_blend_color_float(final_color,
-                          expand_cache->original_color[vd.index],
+                          expand_cache->original_colors[vd.index],
                           final_fill_color,
                           expand_cache->blend_mode);
 
@@ -1265,10 +1282,6 @@ static void sculpt_expand_flush_updates(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  for (int i = 0; i < ss->expand_cache->totnode; i++) {
-    BKE_pbvh_node_mark_redraw(ss->expand_cache->nodes[i]);
-  }
-
   switch (ss->expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
       SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
@@ -1284,32 +1297,37 @@ static void sculpt_expand_flush_updates(bContext *C)
   }
 }
 
+/* Store the original mesh data state in the expand cache. */
 static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_cache)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
   const int totface = ss->totfaces;
 
-  expand_cache->original_mask = MEM_malloc_arrayN(totvert, sizeof(float), "initial mask");
-  for (int i = 0; i < totvert; i++) {
-    expand_cache->original_mask[i] = SCULPT_vertex_mask_get(ss, i);
-  }
-
+  /* Face Sets are always stored as they are needed for snapping. */
   expand_cache->initial_face_sets = MEM_malloc_arrayN(totvert, sizeof(int), "initial face set");
-  expand_cache->origin_face_sets = MEM_malloc_arrayN(totvert, sizeof(int), "initial face set");
+  expand_cache->original_face_sets = MEM_malloc_arrayN(totvert, sizeof(int), "original face set");
   for (int i = 0; i < totface; i++) {
     expand_cache->initial_face_sets[i] = ss->face_sets[i];
-    expand_cache->origin_face_sets[i] = ss->face_sets[i];
+    expand_cache->original_face_sets[i] = ss->face_sets[i];
+  }
+
+  if (expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
+    expand_cache->original_mask = MEM_malloc_arrayN(totvert, sizeof(float), "initial mask");
+    for (int i = 0; i < totvert; i++) {
+      expand_cache->original_mask[i] = SCULPT_vertex_mask_get(ss, i);
+    }
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
-    expand_cache->original_color = MEM_malloc_arrayN(totvert, sizeof(float[4]), "initial colors");
+    expand_cache->original_colors = MEM_malloc_arrayN(totvert, sizeof(float[4]), "initial colors");
     for (int i = 0; i < totvert; i++) {
-      copy_v4_v4(expand_cache->original_color[i], SCULPT_vertex_color_get(ss, i));
+      copy_v4_v4(expand_cache->original_colors[i], SCULPT_vertex_color_get(ss, i));
     }
   }
 }
 
+/* Restore the state of the Face Sets before a new update. */
 static void sculpt_expand_face_sets_restore(SculptSession *ss, ExpandCache *expand_cache)
 {
   const int totfaces = ss->totfaces;
@@ -1325,45 +1343,53 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
   ExpandCache *expand_cache = ss->expand_cache;
 
   /* Update the active factor in the cache. */
-if (vertex == SCULPT_EXPAND_VERTEX_NONE) {
-  expand_cache->active_falloff = expand_cache->max_falloff;
-  expand_cache->all_enabled = true;
+  if (vertex == SCULPT_EXPAND_VERTEX_NONE) {
+    /* This means that the cursor is not over the mesh, so a valid active fallof can't be
+     * determined. In this situations, don't evalue enabled states and default all vertices in
+     * connected components to enabled. */
+    expand_cache->active_falloff = expand_cache->max_falloff;
+    expand_cache->all_enabled = true;
+  }
+  else {
+    expand_cache->active_falloff = expand_cache->falloff[vertex];
+    expand_cache->all_enabled = false;
+  }
+
+  if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
+    /* Face sets needs to be restored their initial state on each iteration as the overwrite
+     * existing data. */
+    sculpt_expand_face_sets_restore(ss, expand_cache);
+  }
+
+  /* Update the mesh sculpt data. */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = expand_cache->nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, expand_cache->totnode);
+
+  switch (expand_cache->target) {
+    case SCULPT_EXPAND_TARGET_MASK:
+      BLI_task_parallel_range(
+          0, expand_cache->totnode, &data, sculpt_expand_mask_update_task_cb, &settings);
+      break;
+    case SCULPT_EXPAND_TARGET_FACE_SETS:
+      sculpt_expand_face_sets_update(ss, expand_cache);
+      break;
+    case SCULPT_EXPAND_TARGET_COLORS:
+      BLI_task_parallel_range(
+          0, expand_cache->totnode, &data, sculpt_expand_colors_update_task_cb, &settings);
+      break;
+  }
+
+  sculpt_expand_flush_updates(C);
 }
-else {
-  expand_cache->active_falloff = expand_cache->falloff[vertex];
-  expand_cache->all_enabled = false;
-}
 
-if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-  sculpt_expand_face_sets_restore(ss, expand_cache);
-}
-
-SculptThreadedTaskData data = {
-    .sd = sd,
-    .ob = ob,
-    .nodes = expand_cache->nodes,
-};
-
-TaskParallelSettings settings;
-BKE_pbvh_parallel_range_settings(&settings, true, expand_cache->totnode);
-
-switch (expand_cache->target) {
-  case SCULPT_EXPAND_TARGET_MASK:
-    BLI_task_parallel_range(
-        0, expand_cache->totnode, &data, sculpt_expand_mask_update_task_cb, &settings);
-    break;
-  case SCULPT_EXPAND_TARGET_FACE_SETS:
-    sculpt_expand_face_sets_update(ss, expand_cache);
-    break;
-  case SCULPT_EXPAND_TARGET_COLORS:
-    BLI_task_parallel_range(
-        0, expand_cache->totnode, &data, sculpt_expand_colors_update_task_cb, &settings);
-    break;
-}
-
-sculpt_expand_flush_updates(C);
-}
-
+/* Updates the SculptSession cursor data and gets the active vertex if the cursor is over the mesh.
+ */
 static int sculpt_expand_target_vertex_update_and_get(bContext *C,
                                                       Object *ob,
                                                       const float mouse[2])
@@ -1378,6 +1404,8 @@ static int sculpt_expand_target_vertex_update_and_get(bContext *C,
   }
 }
 
+/* Moves the sculpt pivot to the average point of the boundary enabled vertices of the current
+ * expand state. Take symmetry and active components into account. */
 static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache *expand_cache)
 {
   SculptSession *ss = ob->sculpt;
@@ -1388,11 +1416,17 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
   expand_cache->invert = false;
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
 
+  /* For boundary topology, position the pivot using only the boundary of the enabled vertices,
+   * without taking mesh boundary into account. This allows to creat deformations like bending the
+   * mesh from the boundary of the mask that was just created. */
   const float use_mesh_boundary = expand_cache->falloff_type !=
                                   SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
 
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(
       ss, enabled_vertices, use_mesh_boundary);
+
+  /* Ignore invert state, as this is the expected behaivour in most cases and mask are created in
+   * inverted state by default. */
   expand_cache->invert = initial_invert_state;
 
   int total = 0;
@@ -1451,6 +1485,8 @@ static void sculpt_expand_finish(bContext *C)
   ED_workspace_status_text(C, NULL);
 }
 
+/* Finds and stores in the ExpandCache the sculpt connected component index for each symmetry passn
+ * needed for expand. */
 static void sculpt_expand_find_active_connected_components_from_vert(Object *ob,
                                                                      ExpandCache *expand_cache,
                                                                      const int initial_vertex)
@@ -1466,19 +1502,22 @@ static void sculpt_expand_find_active_connected_components_from_vert(Object *ob,
       continue;
     }
 
-    int v = SCULPT_EXPAND_VERTEX_NONE;
+    int vertex_symm = SCULPT_EXPAND_VERTEX_NONE;
     if (symm_it == 0) {
-      v = initial_vertex;
+      vertex_symm = initial_vertex;
     }
     else {
       float location[3];
       flip_v3_v3(location, SCULPT_vertex_co_get(ss, initial_vertex), symm_it);
-      v = SCULPT_nearest_vertex_get(NULL, ob, location, FLT_MAX, false);
+      vertex_symm = SCULPT_nearest_vertex_get(NULL, ob, location, FLT_MAX, false);
     }
-    expand_cache->active_connected_components[symm_it] = ss->vertex_info.connected_component[v];
+    expand_cache->active_connected_components[symm_it] =
+        ss->vertex_info.connected_component[vertex_symm];
   }
 }
 
+/* Stores the active vertex, Face Set and mouse coordinates in the ExpandCache based on the current
+ * cursor position. */
 static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
                                                            Object *ob,
                                                            ExpandCache *expand_cache,
@@ -1494,7 +1533,11 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
   copy_v2_v2(ss->expand_cache->initial_mouse, mouse);
   expand_cache->initial_active_vertex = initial_vertex;
   expand_cache->initial_active_face_set = SCULPT_active_face_set_get(ss);
+
   if (expand_cache->next_face_set == SCULPT_FACE_SET_NONE) {
+    /* Only set the next face set once, otherwise this ID will constaintly update to a new one each
+     * time this function is called for using a new initial vertex from a different cursor
+     * position. */
     if (expand_cache->modify_active) {
       expand_cache->next_face_set = SCULPT_active_face_set_get(ss);
     }
@@ -1502,9 +1545,14 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
       expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
     }
   }
+
+  /* The new mouse position can be over a different connected component, so this needs to be
+   * udpated. */
   sculpt_expand_find_active_connected_components_from_vert(ob, expand_cache, initial_vertex);
 }
 
+/* Displaces the initial mouse coordinates using the new mouse position to get a new active vertex.
+ * After that, initializes a new falloff of the same type with the new active vertex. */
 static void sculpt_expand_move_propagation_origin(bContext *C,
                                                   Object *ob,
                                                   const wmEvent *event,
@@ -1524,9 +1572,9 @@ static void sculpt_expand_move_propagation_origin(bContext *C,
       expand_cache, sd, ob, expand_cache->initial_active_vertex, expand_cache->falloff_type);
 }
 
+/* Ensures that the SculptSession contains the required data needed for Expand. */
 static void sculpt_expand_ensure_sculptsession_data(Object *ob)
 {
-
   SculptSession *ss = ob->sculpt;
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_connected_components_ensure(ob);
@@ -1536,17 +1584,19 @@ static void sculpt_expand_ensure_sculptsession_data(Object *ob)
   }
 }
 
+/* Returns the active Face Sets ID from the enabled face or grid in the ScultpSession. */
 static int sculpt_expand_active_face_set_id_get(SculptSession *ss, ExpandCache *expand_cache)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return expand_cache->origin_face_sets[ss->active_face_index];
+      return expand_cache->original_face_sets[ss->active_face_index];
     case PBVH_GRIDS: {
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
                                                                ss->active_grid_index);
-      return expand_cache->origin_face_sets[face_index];
+      return expand_cache->original_face_sets[face_index];
     }
     case PBVH_BMESH: {
+      /* Dyntopo does not support Face Set functionality. */
       BLI_assert(false);
     }
   }
@@ -1559,17 +1609,21 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
+  /* Skips INBETWEEN_MOUSEMOVE events and other events that may cause unnecessary updates. */
   if (!ELEM(event->type, MOUSEMOVE, EVT_MODAL_MAP)) {
     return OPERATOR_RUNNING_MODAL;
   }
 
+  /* Update SculptSession data. */
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   sculpt_expand_ensure_sculptsession_data(ob);
 
+  /* Update and get the active vertex (and face) from the cursor. */
   const float mouse[2] = {event->mval[0], event->mval[1]};
   const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mouse);
 
+  /* Handle the modal keymap state changes. */
   ExpandCache *expand_cache = ss->expand_cache;
   if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
@@ -1699,10 +1753,12 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
     }
   }
 
+  /* Handle epxnad origin movement if enabled */
   if (expand_cache->move) {
     sculpt_expand_move_propagation_origin(C, ob, event, expand_cache);
   }
 
+  /* Add new Face Sets IDs to the snapping gset if enabled. */
   if (expand_cache->snap) {
     const int active_face_set_id = sculpt_expand_active_face_set_id_get(ss, expand_cache);
     if (!BLI_gset_haskey(expand_cache->snap_enabled_face_sets,
@@ -1711,13 +1767,17 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
     }
   }
 
+  /* Update the sculpt data with the current state of the ExpandCache. */
   sculpt_expand_update_for_vertex(C, ob, target_expand_vertex);
 
   return OPERATOR_RUNNING_MODAL;
 }
 
+/* Deletes the delete_id Face Set ID from the mesh Face Sets and stores the result in r_face_set.
+ * The faces that were using the delete_id Face Set are filled using the content from their
+ * neighbors. */
 static void sculpt_expand_delete_face_set_id(
-    Mesh *mesh, MeshElemMap *pmap, int *face_sets, const int totface, const int delete_id)
+    int *r_face_sets, Mesh *mesh, MeshElemMap *pmap, const int totface, const int delete_id)
 {
 
   BLI_LINKSTACK_DECLARE(queue, int);
@@ -1727,7 +1787,7 @@ static void sculpt_expand_delete_face_set_id(
   BLI_LINKSTACK_INIT(queue_next);
 
   for (int i = 0; i < totface; i++) {
-    if (face_sets[i] == delete_id) {
+    if (r_face_sets[i] == delete_id) {
       BLI_LINKSTACK_PUSH(queue, i);
     }
   }
@@ -1744,14 +1804,14 @@ static void sculpt_expand_delete_face_set_id(
         for (int i = 0; i < vert_map->count; i++) {
 
           const int neighbor_face_index = vert_map->indices[i];
-          if (face_sets[neighbor_face_index] != delete_id) {
-            other_id = face_sets[neighbor_face_index];
+          if (r_face_sets[neighbor_face_index] != delete_id) {
+            other_id = r_face_sets[neighbor_face_index];
           }
         }
       }
 
       if (other_id != delete_id) {
-        face_sets[f_index] = other_id;
+        r_face_sets[f_index] = other_id;
       }
       else {
         BLI_LINKSTACK_PUSH(queue_next, f_index);
@@ -1769,7 +1829,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
                                                    wmOperator *op,
                                                    ExpandCache *expand_cache)
 {
-
+  /* RNA properties. */
   expand_cache->invert = RNA_boolean_get(op->ptr, "invert");
   expand_cache->preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
   expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
@@ -1777,10 +1837,11 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
   expand_cache->modify_active = RNA_boolean_get(op->ptr, "use_modify_active");
   expand_cache->reposition_pivot = RNA_boolean_get(op->ptr, "use_reposition_pivot");
 
-  /* TODO: Expose in RNA. */
+  /* These can be exposed in RNA if needed. */
   expand_cache->loop_count = 1;
   expand_cache->brush_gradient = false;
 
+  /* Texture and color data from the active Brush. */
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -1793,10 +1854,10 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
   expand_cache->scene = CTX_data_scene(C);
   expand_cache->mtex = &expand_cache->brush->mtex;
   expand_cache->texture_distortion_strength = 0.0f;
-
   expand_cache->blend_mode = expand_cache->brush->blend;
 }
 
+/* Does the undo sculpt push for the affected target data of the ExpandCache */
 static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
 {
   SculptSession *ss = ob->sculpt;
@@ -1838,6 +1899,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   const bool needs_colors = ss->expand_cache->target == SCULPT_EXPAND_TARGET_COLORS;
 
   if (needs_colors) {
+    /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
+     * earlier steps modifying the data. */
     BKE_sculpt_color_layer_create_if_needed(ob);
     depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   }
@@ -1861,23 +1924,26 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   sculpt_expand_original_state_store(ob, ss->expand_cache);
 
   if (ss->expand_cache->modify_active) {
-    sculpt_expand_delete_face_set_id(ob->data,
+    sculpt_expand_delete_face_set_id(ss->expand_cache->initial_face_sets,
+                                     ob->data,
                                      ss->pmap,
-                                     ss->expand_cache->initial_face_sets,
                                      ss->totfaces,
                                      ss->expand_cache->next_face_set);
   }
 
-  /* Initialize the factors. */
+  /* Initialize the falloff. */
   eSculptExpandFalloffType falloff_type = RNA_enum_get(op->ptr, "falloff_type");
+
+  /* When starting from a boundary vertex, set the initial falloff to boundary. */
   if (SCULPT_vertex_is_boundary(ss, ss->expand_cache->initial_active_vertex)) {
     falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
 
+  falloff_type = SCULPT_EXPAND_FALLOFF_NORMALS;
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
       ss->expand_cache, sd, ob, ss->expand_cache->initial_active_vertex, falloff_type);
 
-  /* Initial update. */
+  /* Initial mesh data update, resets all target data in the sculpt mesh. */
   sculpt_expand_update_for_vertex(C, ob, ss->expand_cache->initial_active_vertex);
 
   WM_event_add_modal_handler(C, op);

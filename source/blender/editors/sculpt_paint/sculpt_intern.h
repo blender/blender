@@ -1178,7 +1178,6 @@ typedef enum eSculptExpandRecursionType {
 } eSculptExpandRecursionType;
 
 #define EXPAND_SYMM_AREAS 8
-#define EXPAND_ACTIVE_COMPOMENT_NONE -1
 
 typedef struct ExpandCache {
   /* Target data elements that the expand operation will affect. */
@@ -1241,8 +1240,8 @@ typedef struct ExpandCache {
   int *initial_face_sets;
 
   float *original_mask;
-  int *origin_face_sets;
-  float (*original_color)[4];
+  int *original_face_sets;
+  float (*original_colors)[4];
 } ExpandCache;
 
 typedef struct FilterCache {
