@@ -29,6 +29,7 @@
 #include "BLI_ghash.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #ifdef _WIN32
 #  include "BLI_winstuff.h"
@@ -39,8 +40,6 @@
 #include "imbuf.h"
 
 #include "BKE_global.h"
-
-#  include "BLI_threads.h"
 
 #ifdef WITH_AVI
 #  include "AVI_avi.h"
