@@ -134,7 +134,7 @@ AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
   }
 
   if (input_domains.size() > 0) {
-    return attribute_domain_highest_priority(input_domains);
+    return bke::attribute_domain_highest_priority(input_domains);
   }
 
   return default_domain;

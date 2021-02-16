@@ -156,8 +156,8 @@ static void determine_final_data_type_and_domain(Span<const GeometryComponent *>
     }
   }
 
-  *r_type = attribute_data_type_highest_complexity(data_types);
-  *r_domain = attribute_domain_highest_priority(domains);
+  *r_type = bke::attribute_data_type_highest_complexity(data_types);
+  *r_domain = bke::attribute_domain_highest_priority(domains);
 }
 
 static void fill_new_attribute(Span<const GeometryComponent *> src_components,

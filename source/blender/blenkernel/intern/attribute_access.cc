@@ -508,6 +508,96 @@ CustomDataType cpp_type_to_custom_data_type(const blender::fn::CPPType &type)
   return static_cast<CustomDataType>(-1);
 }
 
+static int attribute_data_type_complexity(const CustomDataType data_type)
+{
+  switch (data_type) {
+    case CD_PROP_BOOL:
+      return 0;
+    case CD_PROP_INT32:
+      return 1;
+    case CD_PROP_FLOAT:
+      return 2;
+    case CD_PROP_FLOAT2:
+      return 3;
+    case CD_PROP_FLOAT3:
+      return 4;
+    case CD_PROP_COLOR:
+      return 5;
+#if 0 /* These attribute types are not supported yet. */
+    case CD_MLOOPCOL:
+      return 3;
+    case CD_PROP_STRING:
+      return 6;
+#endif
+    default:
+      /* Only accept "generic" custom data types used by the attribute system. */
+      BLI_assert(false);
+      return 0;
+  }
+}
+
+CustomDataType attribute_data_type_highest_complexity(Span<CustomDataType> data_types)
+{
+  int highest_complexity = INT_MIN;
+  CustomDataType most_complex_type = CD_PROP_COLOR;
+
+  for (const CustomDataType data_type : data_types) {
+    const int complexity = attribute_data_type_complexity(data_type);
+    if (complexity > highest_complexity) {
+      highest_complexity = complexity;
+      most_complex_type = data_type;
+    }
+  }
+
+  return most_complex_type;
+}
+
+/**
+ * \note Generally the order should mirror the order of the domains
+ * established in each component's ComponentAttributeProviders.
+ */
+static int attribute_domain_priority(const AttributeDomain domain)
+{
+  switch (domain) {
+#if 0
+    case ATTR_DOMAIN_CURVE:
+      return 0;
+#endif
+    case ATTR_DOMAIN_POLYGON:
+      return 1;
+    case ATTR_DOMAIN_EDGE:
+      return 2;
+    case ATTR_DOMAIN_POINT:
+      return 3;
+    case ATTR_DOMAIN_CORNER:
+      return 4;
+    default:
+      /* Domain not supported in nodes yet. */
+      BLI_assert(false);
+      return 0;
+  }
+}
+
+/**
+ * Domains with a higher "information density" have a higher priority, in order
+ * to choose a domain that will not lose data through domain conversion.
+ */
+AttributeDomain attribute_domain_highest_priority(Span<AttributeDomain> domains)
+{
+  int highest_priority = INT_MIN;
+  AttributeDomain highest_priority_domain = ATTR_DOMAIN_CORNER;
+
+  for (const AttributeDomain domain : domains) {
+    const int priority = attribute_domain_priority(domain);
+    if (priority > highest_priority) {
+      highest_priority = priority;
+      highest_priority_domain = domain;
+    }
+  }
+
+  return highest_priority_domain;
+}
+
 /**
  * A #BuiltinAttributeProvider is responsible for exactly one attribute on a geometry component.
  * The attribute is identified by its name and has a fixed domain and type. Builtin attributes do
