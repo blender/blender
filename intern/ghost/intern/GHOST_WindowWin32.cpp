@@ -92,7 +92,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_debug_context(is_debug)
 {
   wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
-  RECT win_rect = {left, top, left + width, top + height};
+  RECT win_rect = {left, top, (long)(left + width), (long)(top + height)};
   RECT parent_rect = {0, 0, 0, 0};
   if (parentwindow) {
     GetWindowRect(m_parentWindowHwnd, &parent_rect);
