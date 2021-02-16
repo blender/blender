@@ -331,7 +331,6 @@ class GeometryNodesEvaluator {
   void compute_output_and_forward(const DOutputSocket &socket_to_compute)
   {
     const DNode &node = socket_to_compute.node();
-    const bNode &bnode = *node.bnode();
 
     if (!socket_to_compute.is_available()) {
       /* If the output is not available, use a default value. */
@@ -360,7 +359,7 @@ class GeometryNodesEvaluator {
     /* Execute the node. */
     GValueMap<StringRef> node_outputs_map{allocator_};
     GeoNodeExecParams params{
-        bnode, node_inputs_map, node_outputs_map, handle_map_, self_object_, depsgraph_};
+        node, node_inputs_map, node_outputs_map, handle_map_, self_object_, depsgraph_};
     this->execute_node(node, params);
 
     /* Forward computed outputs to linked input sockets. */

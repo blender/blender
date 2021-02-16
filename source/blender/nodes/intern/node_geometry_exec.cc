@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "NOD_derived_node_tree.hh"
 #include "NOD_geometry_exec.hh"
 #include "NOD_type_callbacks.hh"
 
@@ -23,12 +24,9 @@ namespace blender::nodes {
 
 const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name) const
 {
-  LISTBASE_FOREACH (const bNodeSocket *, socket, &node_.inputs) {
-    if ((socket->flag & SOCK_UNAVAIL) != 0) {
-      continue;
-    }
-    if (name == socket->name) {
-      return socket;
+  for (const DSocket *socket : node_.inputs()) {
+    if (socket->is_available() && socket->name() == name) {
+      return socket->bsocket();
     }
   }
 
@@ -144,18 +142,19 @@ void GeoNodeExecParams::check_extract_input(StringRef identifier,
                                             const CPPType *requested_type) const
 {
   bNodeSocket *found_socket = nullptr;
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node_.inputs) {
-    if (identifier == socket->identifier) {
-      found_socket = socket;
+  for (const DSocket *socket : node_.inputs()) {
+    if (socket->identifier() == identifier) {
+      found_socket = socket->bsocket();
       break;
     }
   }
+
   if (found_socket == nullptr) {
     std::cout << "Did not find an input socket with the identifier '" << identifier << "'.\n";
     std::cout << "Possible identifiers are: ";
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node_.inputs) {
-      if ((socket->flag & SOCK_UNAVAIL) == 0) {
-        std::cout << "'" << socket->identifier << "', ";
+    for (const DSocket *socket : node_.inputs()) {
+      if (socket->is_available()) {
+        std::cout << "'" << socket->identifier() << "', ";
       }
     }
     std::cout << "\n";
@@ -185,18 +184,19 @@ void GeoNodeExecParams::check_extract_input(StringRef identifier,
 void GeoNodeExecParams::check_set_output(StringRef identifier, const CPPType &value_type) const
 {
   bNodeSocket *found_socket = nullptr;
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node_.outputs) {
-    if (identifier == socket->identifier) {
-      found_socket = socket;
+  for (const DSocket *socket : node_.outputs()) {
+    if (socket->identifier() == identifier) {
+      found_socket = socket->bsocket();
       break;
     }
   }
+
   if (found_socket == nullptr) {
     std::cout << "Did not find an output socket with the identifier '" << identifier << "'.\n";
     std::cout << "Possible identifiers are: ";
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node_.outputs) {
-      if ((socket->flag & SOCK_UNAVAIL) == 0) {
-        std::cout << "'" << socket->identifier << "', ";
+    for (const DSocket *socket : node_.outputs()) {
+      if (socket->is_available()) {
+        std::cout << "'" << socket->identifier() << "', ";
       }
     }
     std::cout << "\n";
