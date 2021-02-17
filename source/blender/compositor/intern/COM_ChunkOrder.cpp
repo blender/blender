@@ -29,13 +29,12 @@ ChunkOrder::ChunkOrder()
 
 void ChunkOrder::update_distance(ChunkOrderHotspot **hotspots, unsigned int len_hotspots)
 {
-  unsigned int index;
   double new_distance = FLT_MAX;
-  for (index = 0; index < len_hotspots; index++) {
+  for (int index = 0; index < len_hotspots; index++) {
     ChunkOrderHotspot *hotspot = hotspots[index];
-    double ndistance = hotspot->determineDistance(x, y);
-    if (ndistance < new_distance) {
-      new_distance = ndistance;
+    double distance_to_hotspot = hotspot->calc_distance(x, y);
+    if (distance_to_hotspot < new_distance) {
+      new_distance = distance_to_hotspot;
     }
   }
   this->distance = new_distance;
