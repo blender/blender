@@ -1411,7 +1411,7 @@ enum {
   UI_TEMPLATE_ID_FILTER_AVAILABLE = 1,
 };
 
-int UI_icon_from_id(struct ID *id);
+int UI_icon_from_id(const struct ID *id);
 int UI_icon_from_report_type(int type);
 int UI_icon_colorid_from_report_type(int type);
 int UI_text_colorid_from_report_type(int type);

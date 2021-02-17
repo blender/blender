@@ -511,21 +511,15 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
 }
 
 /***************************** ID Utilities *******************************/
-int UI_icon_from_id(ID *id)
+int UI_icon_from_id(const ID *id)
 {
-  Object *ob;
-  PointerRNA ptr;
-  short idcode;
-
   if (id == NULL) {
     return ICON_NONE;
   }
 
-  idcode = GS(id->name);
-
   /* exception for objects */
-  if (idcode == ID_OB) {
-    ob = (Object *)id;
+  if (GS(id->name) == ID_OB) {
+    Object *ob = (Object *)id;
 
     if (ob->type == OB_EMPTY) {
       return ICON_EMPTY_DATA;
@@ -535,7 +529,8 @@ int UI_icon_from_id(ID *id)
 
   /* otherwise get it through RNA, creating the pointer
    * will set the right type, also with subclassing */
-  RNA_id_pointer_create(id, &ptr);
+  PointerRNA ptr;
+  RNA_id_pointer_create((ID *)id, &ptr);
 
   return (ptr.type) ? RNA_struct_ui_icon(ptr.type) : ICON_NONE;
 }
