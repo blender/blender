@@ -3903,7 +3903,8 @@ static void mesh_stretch_area_finish(const MeshRenderData *mr,
       area_ratio[f] = area_ratio_get(area, uvarea);
     }
   }
-  else if (mr->extract_type == MR_EXTRACT_MAPPED) {
+  else {
+    BLI_assert(ELEM(mr->extract_type, MR_EXTRACT_MAPPED, MR_EXTRACT_MESH));
     const MLoopUV *uv_data = CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
     const MPoly *mp = mr->mpoly;
     for (int mp_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
@@ -3913,10 +3914,6 @@ static void mesh_stretch_area_finish(const MeshRenderData *mr,
       tot_uv_area += uvarea;
       area_ratio[mp_index] = area_ratio_get(area, uvarea);
     }
-  }
-  else {
-    /* Should not happen. */
-    BLI_assert(0);
   }
 
   cache->tot_area = tot_area;
@@ -3942,17 +3939,14 @@ static void mesh_stretch_area_finish(const MeshRenderData *mr,
       }
     }
   }
-  else if (mr->extract_type == MR_EXTRACT_MAPPED) {
+  else {
+    BLI_assert(ELEM(mr->extract_type, MR_EXTRACT_MAPPED, MR_EXTRACT_MESH));
     const MPoly *mp = mr->mpoly;
     for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
       for (int i = 0; i < mp->totloop; i++, l_index++) {
         loop_stretch[l_index] = poly_stretch[mp_index];
       }
     }
-  }
-  else {
-    /* Should not happen. */
-    BLI_assert(0);
   }
 
   MEM_freeN(area_ratio);
@@ -4047,11 +4041,9 @@ static void *extract_stretch_angle_init(const MeshRenderData *mr,
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     data->cd_ofs = CustomData_get_offset(&mr->bm->ldata, CD_MLOOPUV);
   }
-  else if (mr->extract_type == MR_EXTRACT_MAPPED) {
-    data->luv = CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
-  }
   else {
-    BLI_assert(0);
+    BLI_assert(ELEM(mr->extract_type, MR_EXTRACT_MAPPED, MR_EXTRACT_MESH));
+    data->luv = CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
   }
   return data;
 }
