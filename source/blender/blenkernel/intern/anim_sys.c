@@ -2491,7 +2491,7 @@ void nlasnapshot_enable_all_blend_domain(NlaEvalSnapshot *snapshot)
       continue;
     }
 
-    BLI_bitmap_set_all(necs->blend_domain.ptr, true, 4);
+    BLI_bitmap_set_all(necs->blend_domain.ptr, true, necs->length);
   }
 }
 
