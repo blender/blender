@@ -873,6 +873,10 @@ void ShaderManager::init_xyz_transforms()
       return;
     }
   }
+  else {
+    /* No reference role found to determine XYZ. */
+    return;
+  }
 
   xyz_to_r = float4_to_float3(xyz_to_rgb.x);
   xyz_to_g = float4_to_float3(xyz_to_rgb.y);
