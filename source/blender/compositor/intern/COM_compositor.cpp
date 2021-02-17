@@ -40,9 +40,9 @@ void COM_execute(RenderData *rd,
                  const ColorManagedDisplaySettings *displaySettings,
                  const char *viewName)
 {
-  /* initialize mutex, TODO this mutex init is actually not thread safe and
+  /* Initialize mutex, TODO this mutex init is actually not thread safe and
    * should be done somewhere as part of blender startup, all the other
-   * initializations can be done lazily */
+   * initializations can be done lazily. */
   if (is_compositorMutex_init == false) {
     BLI_mutex_init(&s_compositorMutex);
     is_compositorMutex_init = true;
@@ -51,8 +51,8 @@ void COM_execute(RenderData *rd,
   BLI_mutex_lock(&s_compositorMutex);
 
   if (editingtree->test_break(editingtree->tbh)) {
-    // during editing multiple calls to this method can be triggered.
-    // make sure one the last one will be doing the work.
+    /* During editing multiple compositor executions can be triggered.
+     * Make sure this is the most recent one. */
     BLI_mutex_unlock(&s_compositorMutex);
     return;
   }
@@ -76,24 +76,22 @@ void COM_execute(RenderData *rd,
   }
   BKE_node_preview_init_tree(editingtree, preview_width, preview_height, false);
 
-  /* initialize workscheduler, will check if already done. TODO deinitialize somewhere */
+  /* Initialize workscheduler. */
   bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL) != 0;
   WorkScheduler::initialize(use_opencl, BKE_render_num_threads(rd));
 
-  /* set progress bar to 0% and status to init compositing */
+  /* Reset progress bar and status. */
   editingtree->progress(editingtree->prh, 0.0);
   editingtree->stats_draw(editingtree->sdh, IFACE_("Compositing"));
 
+  /* Execute. */
   bool twopass = (editingtree->flag & NTREE_TWO_PASS) && !rendering;
-  /* initialize execution system */
   if (twopass) {
     ExecutionSystem fast_pass(
         rd, scene, editingtree, rendering, true, viewSettings, displaySettings, viewName);
     fast_pass.execute();
 
     if (editingtree->test_break(editingtree->tbh)) {
-      // during editing multiple calls to this method can be triggered.
-      // make sure one the last one will be doing the work.
       BLI_mutex_unlock(&s_compositorMutex);
       return;
     }
