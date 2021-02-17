@@ -730,14 +730,18 @@ static int gpencil_modifier_apply_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
   int apply_as = RNA_enum_get(op->ptr, "apply_as");
+  const bool do_report = RNA_boolean_get(op->ptr, "report");
 
   if (md == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  /* Store name temporarily for report. */
+  int reports_len;
   char name[MAX_NAME];
-  strcpy(name, md->name);
+  if (do_report) {
+    reports_len = BLI_listbase_count(&op->reports->list);
+    strcpy(name, md->name); /* Store name temporarily since the modifier is removed. */
+  }
 
   if (!ED_object_gpencil_modifier_apply(bmain, op->reports, depsgraph, ob, md, apply_as)) {
     return OPERATOR_CANCELLED;
@@ -746,8 +750,12 @@ static int gpencil_modifier_apply_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
-  if (RNA_boolean_get(op->ptr, "report")) {
-    BKE_reportf(op->reports, RPT_INFO, "Applied modifier: %s", name);
+  if (do_report) {
+    /* Only add this report if the operator didn't cause another one. The purpose here is
+     * to alert that something happened, and the previous report will do that anyway. */
+    if (BLI_listbase_count(&op->reports->list) == reports_len) {
+      BKE_reportf(op->reports, RPT_INFO, "Applied modifier: %s", name);
+    }
   }
 
   return OPERATOR_FINISHED;
