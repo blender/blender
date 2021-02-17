@@ -20,6 +20,7 @@
 
 # Xcode and system configuration for Apple.
 
+# Detect processor architecture.
 if(NOT CMAKE_OSX_ARCHITECTURES)
   execute_process(COMMAND uname -m OUTPUT_VARIABLE ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
   message(STATUS "Detected native architecture ${ARCHITECTURE}.")
@@ -28,55 +29,92 @@ if(NOT CMAKE_OSX_ARCHITECTURES)
     FORCE)
 endif()
 
-if(NOT DEFINED OSX_SYSTEM)
-  execute_process(
-      COMMAND xcodebuild -version -sdk macosx SDKVersion
-      OUTPUT_VARIABLE OSX_SYSTEM
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif()
-
-# workaround for incorrect cmake xcode lookup for developer previews - XCODE_VERSION does not
-# take xcode-select path into account but would always look  into /Applications/Xcode.app
-# while dev versions are named Xcode<version>-DP<preview_number>
+# Detect developer directory. Depending on configuration this may be either
+# an Xcode or Command Line Tools installation.
 execute_process(
     COMMAND xcode-select --print-path
-    OUTPUT_VARIABLE XCODE_CHECK OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(REPLACE "/Contents/Developer" "" XCODE_BUNDLE ${XCODE_CHECK}) # truncate to bundlepath in any case
+    OUTPUT_VARIABLE XCODE_DEVELOPER_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+# Detect Xcode version. It is provided by the Xcode generator but not
+# Unix Makefiles or Ninja.
 if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")
-  # Unix makefile generator does not fill XCODE_VERSION var, so we get it with a command.
   # Note that `xcodebuild -version` gives output in two lines: first line will include
   # Xcode version, second one will include build number. We are only interested in the
-  # former one. Here is an example of the output:
+  # first line. Here is an example of the output:
   #   Xcode 11.4
   #   Build version 11E146
   # The expected XCODE_VERSION in this case is 11.4.
+  execute_process(
+    COMMAND xcodebuild -version
+    OUTPUT_VARIABLE _xcode_vers_build_nr
+    RESULT_VARIABLE _xcode_vers_result
+    ERROR_QUIET)
 
-  execute_process(COMMAND xcodebuild -version OUTPUT_VARIABLE XCODE_VERS_BUILD_NR)
+  if(_xcode_vers_result EQUAL 0)
+    # Convert output to a single line by replacing newlines with spaces.
+    # This is needed because regex replace can not operate through the newline character
+    # and applies substitutions for each individual lines.
+    string(REPLACE "\n" " " _xcode_vers_build_nr_single_line "${_xcode_vers_build_nr}")
+    string(REGEX REPLACE "(.*)Xcode ([0-9\\.]+).*" "\\2" XCODE_VERSION "${_xcode_vers_build_nr_single_line}")
+    unset(_xcode_vers_build_nr_single_line)
+  endif()
 
-  # Convert output to a single line by replacling newlines with spaces.
-  # This is needed because regex replace can not operate through the newline character
-  # and applies substitutions for each individual lines.
-  string(REPLACE "\n" " " XCODE_VERS_BUILD_NR_SINGLE_LINE "${XCODE_VERS_BUILD_NR}")
-
-  string(REGEX REPLACE "(.*)Xcode ([0-9\\.]+).*" "\\2" XCODE_VERSION "${XCODE_VERS_BUILD_NR_SINGLE_LINE}")
-
-  unset(XCODE_VERS_BUILD_NR)
-  unset(XCODE_VERS_BUILD_NR_SINGLE_LINE)
+  unset(_xcode_vers_build_nr)
+  unset(_xcode_vers_result)
 endif()
 
-message(STATUS "Detected OS X ${OSX_SYSTEM} and Xcode ${XCODE_VERSION} at ${XCODE_BUNDLE}")
+if(XCODE_VERSION)
+  # Construct SDKs path ourselves, because xcode-select path could be ambiguous.
+  # Both /Applications/Xcode.app/Contents/Developer or /Applications/Xcode.app would be allowed.
+  set(XCODE_SDK_DIR ${XCODE_DEVELOPER_DIR}/Platforms/MacOSX.platform//Developer/SDKs)
+
+  # Detect SDK version to use
+  if(NOT DEFINED OSX_SYSTEM)
+    execute_process(
+        COMMAND xcodebuild -version -sdk macosx SDKVersion
+        OUTPUT_VARIABLE OSX_SYSTEM
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+
+  message(STATUS "Detected OS X ${OSX_SYSTEM} and Xcode ${XCODE_VERSION} at ${XCODE_DEVELOPER_DIR}")
+  message(STATUS "SDKs Directory: " ${XCODE_SDK_DIR})
+else()
+  # If no Xcode version found, try detecting command line tools.
+  execute_process(
+      COMMAND pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
+      OUTPUT_VARIABLE _cltools_pkg_info
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      RESULT_VARIABLE _cltools_pkg_info_result
+      ERROR_QUIET)
+
+  if(_cltools_pkg_info_result EQUAL 0)
+    # Extract version.
+    string(REGEX REPLACE ".*version: ([0-9]+)\\.([0-9]+).*" "\\1.\\2" XCODE_VERSION "${_cltools_pkg_info}")
+    # SDK directory.
+    set(XCODE_SDK_DIR "${XCODE_DEVELOPER_DIR}/SDKs")
+
+    # Detect SDK version to use.
+    if(NOT DEFINED OSX_SYSTEM)
+      execute_process(
+          COMMAND xcrun --show-sdk-version
+          OUTPUT_VARIABLE OSX_SYSTEM
+          OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
+
+    message(STATUS "Detected OS X ${OSX_SYSTEM} and Command Line Tools ${XCODE_VERSION} at ${XCODE_DEVELOPER_DIR}")
+    message(STATUS "SDKs Directory: " ${XCODE_SDK_DIR})
+  else()
+    message(FATAL_ERROR "No Xcode or Command Line Tools detected")
+  endif()
+
+  unset( _cltools_pkg_info)
+  unset(__cltools_pkg_info_result)
+endif()
 
 # Require a relatively recent Xcode version.
 if(${XCODE_VERSION} VERSION_LESS 10.0)
   message(FATAL_ERROR "Only Xcode version 10.0 and newer is supported")
 endif()
-
-# note: xcode-select path could be ambiguous,
-# cause /Applications/Xcode.app/Contents/Developer or /Applications/Xcode.app would be allowed
-# so i use a selfcomposed bundlepath here
-set(OSX_SYSROOT_PREFIX ${XCODE_BUNDLE}/Contents/Developer/Platforms/MacOSX.platform)
-message(STATUS "OSX_SYSROOT_PREFIX: " ${OSX_SYSROOT_PREFIX})
 
 # Collect list of OSX system versions which will be used to detect path to corresponding SDK.
 # Start with macOS SDK version reported by xcodebuild and include possible extra ones.
@@ -101,10 +139,9 @@ endif()
 # Loop through all possible versions and pick the first one which resolves to a valid SDK path.
 set(OSX_SDK_PATH)
 set(OSX_SDK_FOUND FALSE)
-set(OSX_SDK_PREFIX ${OSX_SYSROOT_PREFIX}/Developer/SDKs)
 set(OSX_SDKROOT)
 foreach(OSX_SDK_VERSION ${OSX_SDK_TEST_VERSIONS})
-  set(CURRENT_OSX_SDK_PATH "${OSX_SDK_PREFIX}/MacOSX${OSX_SDK_VERSION}.sdk")
+  set(CURRENT_OSX_SDK_PATH "${XCODE_SDK_DIR}/MacOSX${OSX_SDK_VERSION}.sdk")
   if(EXISTS ${CURRENT_OSX_SDK_PATH})
     set(OSX_SDK_PATH "${CURRENT_OSX_SDK_PATH}")
     set(OSX_SDKROOT macosx${OSX_SDK_VERSION})
@@ -112,7 +149,6 @@ foreach(OSX_SDK_VERSION ${OSX_SDK_TEST_VERSIONS})
     break()
   endif()
 endforeach()
-unset(OSX_SDK_PREFIX)
 unset(OSX_SDK_TEST_VERSIONS)
 
 if(NOT OSX_SDK_FOUND)
