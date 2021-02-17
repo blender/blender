@@ -29,8 +29,10 @@
 #include "COM_compositor.h"
 #include "clew.h"
 
-static ThreadMutex s_compositorMutex;
-static bool is_compositorMutex_init = false;
+static struct {
+  bool is_initialized = false;
+  ThreadMutex mutex;
+} g_compositor;
 
 void COM_execute(RenderData *rd,
                  Scene *scene,
@@ -43,17 +45,17 @@ void COM_execute(RenderData *rd,
   /* Initialize mutex, TODO this mutex init is actually not thread safe and
    * should be done somewhere as part of blender startup, all the other
    * initializations can be done lazily. */
-  if (is_compositorMutex_init == false) {
-    BLI_mutex_init(&s_compositorMutex);
-    is_compositorMutex_init = true;
+  if (!g_compositor.is_initialized) {
+    BLI_mutex_init(&g_compositor.mutex);
+    g_compositor.is_initialized = true;
   }
 
-  BLI_mutex_lock(&s_compositorMutex);
+  BLI_mutex_lock(&g_compositor.mutex);
 
   if (editingtree->test_break(editingtree->tbh)) {
     /* During editing multiple compositor executions can be triggered.
      * Make sure this is the most recent one. */
-    BLI_mutex_unlock(&s_compositorMutex);
+    BLI_mutex_unlock(&g_compositor.mutex);
     return;
   }
 
@@ -92,7 +94,7 @@ void COM_execute(RenderData *rd,
     fast_pass.execute();
 
     if (editingtree->test_break(editingtree->tbh)) {
-      BLI_mutex_unlock(&s_compositorMutex);
+      BLI_mutex_unlock(&g_compositor.mutex);
       return;
     }
   }
@@ -101,16 +103,16 @@ void COM_execute(RenderData *rd,
       rd, scene, editingtree, rendering, false, viewSettings, displaySettings, viewName);
   system.execute();
 
-  BLI_mutex_unlock(&s_compositorMutex);
+  BLI_mutex_unlock(&g_compositor.mutex);
 }
 
 void COM_deinitialize()
 {
-  if (is_compositorMutex_init) {
-    BLI_mutex_lock(&s_compositorMutex);
+  if (g_compositor.is_initialized) {
+    BLI_mutex_lock(&g_compositor.mutex);
     WorkScheduler::deinitialize();
-    is_compositorMutex_init = false;
-    BLI_mutex_unlock(&s_compositorMutex);
-    BLI_mutex_end(&s_compositorMutex);
+    g_compositor.is_initialized = false;
+    BLI_mutex_unlock(&g_compositor.mutex);
+    BLI_mutex_end(&g_compositor.mutex);
   }
 }
