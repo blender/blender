@@ -1045,11 +1045,27 @@ void GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
   GHOST_TabletData td = window->getTabletData();
 
+  /* Window's mouse history function returns a history of up to 64 mouse moves, including those
+   * processed during previous mouse move events. This means we must track and filter out events we
+   * have already processed.
+   *
+   * The API accepts and returns 32 bit points, but error or fails when passed a negative number
+   * where the HIWORD is not zeroed, and will return a negative numbers with HIWORD zeroed.
+   * Therefore we must zero the HIWORD of points passed in and sign extend from the LOWORD of
+   * points received. Note: negative position values occur for multi-monitor systems whose primary
+   * display is not the top-leftmost display.
+   *
+   * Querying the mouse history with valid mouse positions sometimes fails, commonly at the screen
+   * edge. In these cases we fall back to using information provided by the event instead of the
+   * mouse event history.
+   *
+   * Further explanation - https://devblogs.microsoft.com/oldnewthing/20120314-00/?p=8103 */
+
   DWORD msgPos = ::GetMessagePos();
   LONG msgTime = ::GetMessageTime();
 
-  /* GetMessagePointsEx processes points as 16 bit integers and can fail or return erroneous values
-   * if negative input is not truncated. */
+  /* GetMessagePointsEx processes 32 bit points as 16 bit integers and can fail or return erroneous
+   * values if negative input's HIWORD is not zeroed. */
   int msgPosX = GET_X_LPARAM(msgPos) & 0x0000FFFF;
   int msgPosY = GET_Y_LPARAM(msgPos) & 0x0000FFFF;
 
@@ -1078,10 +1094,10 @@ void GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
       break;
     }
 
-    /* GetMouseMovePointsEx returns 16 bit number as 32 bit. If negative, we need to sign extend.
-     */
-    points[i].x = points[i].x > 32767 ? points[i].x | 0xFFFF0000 : points[i].x;
-    points[i].y = points[i].y > 32767 ? points[i].y | 0xFFFF0000 : points[i].y;
+    /* GetMouseMovePointsEx returns 16 bit number as 32 bit with HIWORD zeroed. If the signed
+     * LOWORD is negative, we need to sign extend. */
+    points[i].x = points[i].x & 0x8000 ? points[i].x | 0xFFFF0000 : points[i].x;
+    points[i].y = points[i].y & 0x8000 ? points[i].y | 0xFFFF0000 : points[i].y;
 
     if (points[i].time == system->m_mouseTimestamp && points[i].x == system->m_mousePosX &&
         points[i].y == system->m_mousePosY) {
@@ -1097,7 +1113,14 @@ void GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
                                             td));
   }
 
-  DWORD lastTimestamp = points[0].time;
+  /* Update last processed mouse position and time, checking for time overflow. If not overflown
+   * and the this event's time is less than the last, this mousemove event occurred before a cursor
+   * wrap so we should not update last mouse position and time. */
+  if (points[0].time >= system->m_mouseTimestamp || ::GetTickCount() < system->m_mouseTimestamp) {
+    system->m_mousePosX = points[0].x;
+    system->m_mousePosY = points[0].y;
+    system->m_mouseTimestamp = points[0].time;
+  }
 
   /* Check if we need to wrap the cursor. */
   if (window->getCursorGrabModeIsWarp() && !window->m_tabletInRange) {
@@ -1124,17 +1147,10 @@ void GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
       system->setCursorPosition(x_wrap, y_wrap);
       window->setCursorGrabAccum(x_accum + (x_current - x_wrap), y_accum + (y_current - y_wrap));
 
-      /* First message after SendInput wrap is invalid for unknown reasons, skip events until one
-       * tick after SendInput event time. */
-      lastTimestamp = ::GetTickCount() + 1;
+      /* Update the mouse timestamp so that mouse moves prior to wrap are skipped. This is a lower
+       * bound, the timestamp for the generated mouse move may be different. */
+      system->m_mouseTimestamp = ::GetTickCount();
     }
-  }
-
-  system->m_mousePosX = points[0].x;
-  system->m_mousePosY = points[0].y;
-  /* Use latest time, checking for overflow. */
-  if (lastTimestamp > system->m_mouseTimestamp || ::GetTickCount() < system->m_mouseTimestamp) {
-    system->m_mouseTimestamp = lastTimestamp;
   }
 }
 

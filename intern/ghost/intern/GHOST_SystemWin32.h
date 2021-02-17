@@ -454,6 +454,10 @@ class GHOST_SystemWin32 : public GHOST_System {
   /** Wheel delta accumulator. */
   int m_wheelDeltaAccum;
 
+  /**
+   * Last mouse position and time values, used when inspecting mouse history to know what has
+   * already been processed.
+   */
   /** Last mouse x position. */
   int m_mousePosX;
   /** Last mouse y position. */
