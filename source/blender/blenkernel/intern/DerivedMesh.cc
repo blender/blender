@@ -1189,6 +1189,14 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       /* No existing verts to deform, need to build them. */
       if (!deformed_verts) {
         if (mesh_final) {
+          Mesh *mesh_final_new = prepare_geometry_set_for_mesh_modifier(mesh_final,
+                                                                        geometry_set_final);
+          if (mesh_final_new != mesh_final) {
+            BLI_assert(mesh_final != mesh_input);
+            BKE_id_free(nullptr, mesh_final);
+            mesh_final = mesh_final_new;
+          }
+
           /* Deforming a mesh, read the vertex locations
            * out of the mesh and deform them. Once done with this
            * run of deformers verts will be written back. */
