@@ -1185,32 +1185,51 @@ typedef struct ExpandCache {
 
   /* Falloff  data. */
   eSculptExpandFalloffType falloff_type;
+
+  /* Indexed by vertex index, precalculated falloff value of that vertex (without any falloff
+   * editing modification applied). */
   float *falloff;
+  /* Max falloff value in *falloff. */
   float max_falloff;
 
+  /* Indexed by base mesh poly index, precalculatd falloff value of that face. This values are
+   * calculated from the per vertex falloff (*falloff) when needed. */
   float *face_falloff;
   float max_face_falloff;
 
+  /* Falloff value of the active element (vertex or base mesh face) that Expand will expand to. */
   float active_falloff;
 
   /* When set to true, expand skips all falloff computations and considers all elements as enabled.
    */
   bool all_enabled;
 
+  float initial_mouse_move[2];
   float initial_mouse[2];
   int initial_active_vertex;
   int initial_active_face_set;
+
   int next_face_set;
+  int update_face_set;
+
+  float original_mouse_move[2];
 
   /* Active components checks. */
+  /* Indexed by symmetry pass index, contains the connected component ID found in
+   * SculptSession->vertex_info.connected_component. Other connected components not found in this
+   * array will be ignored by Expand. */
   int active_connected_components[EXPAND_SYMM_AREAS];
 
   /* Snapping. */
+  /* GSet containing all Face Sets IDs that Expand will use to snap the new data. */
   GSet *snap_enabled_face_sets;
 
+  /* Texture distortion data. */
   Brush *brush;
   struct Scene *scene;
   struct MTex *mtex;
+
+  /* Controls how much texture distortion will be applied to the current falloff */
   float texture_distortion_strength;
 
   /* Cached PBVH nodes. This allows to skip gathering all nodes from the PBVH each time expand
@@ -1219,26 +1238,50 @@ typedef struct ExpandCache {
   int totnode;
 
   /* Expand state options. */
+
+  /* Number of loops (times that the falloff is going to be repeated. */
   int loop_count;
+
+  /* Invert the falloff result. */
   bool invert;
+
+  /* When set to true, preserves the previous state of the data and adds the new one on top. */
   bool preserve;
+
+  /* When set to true, the mask or colors will be applied as a gradient. */
   bool falloff_gradient;
-  bool move;
-  bool snap;
-  bool modify_active;
-  bool reposition_pivot;
+
+  /* When set to true, Expand will use the Brush fallof curve data to shape the gradient. */
   bool brush_gradient;
 
-  float initial_mouse_move[2];
-  float original_mouse_move[2];
-  int update_face_set;
+  /* When set to true, Expand will move the origin (initial active vertex and cursor position)
+   * instead of updating the active vertex and active falloff. */
+  bool move;
+
+  /* When set to true, Expand will snap the new data to the Face Sets IDs found in
+   * *initial_face_sets. */
+  bool snap;
+
+  /* When set to true, Expand will use the current Face Set ID to modify an existing Face Set
+   * instead of creating a new one. */
+  bool modify_active_face_set;
+
+  /* When set to true, Expand will reposition the sculpt pivot to the boundary of the expand result
+   * after finishing the operation. */
+  bool reposition_pivot;
 
   /* Color target data type related data. */
   float fill_color[4];
   short blend_mode;
 
+  /* Face Sets at the first step of the expand operation, before starting modifying the active
+   * vertex and active falloff. These are not the original Face Sets of the sculpt before starting
+   * the operator as they could have been modified by Expand when initializing the operator and
+   * before starting changing the active vertex. These Face Sets are used for restoring and
+   * checking the Face Sets state while the Expand operation modal runs. */
   int *initial_face_sets;
 
+  /* Original data of the sculpt as it was before running the Expand operator. */
   float *original_mask;
   int *original_face_sets;
   float (*original_colors)[4];

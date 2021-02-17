@@ -1542,7 +1542,7 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
     /* Only set the next face set once, otherwise this ID will constaintly update to a new one each
      * time this function is called for using a new initial vertex from a different cursor
      * position. */
-    if (expand_cache->modify_active) {
+    if (expand_cache->modify_active_face_set) {
       expand_cache->next_face_set = SCULPT_active_face_set_get(ss);
     }
     else {
@@ -1838,7 +1838,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
   expand_cache->preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
   expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
   expand_cache->target = RNA_enum_get(op->ptr, "target");
-  expand_cache->modify_active = RNA_boolean_get(op->ptr, "use_modify_active");
+  expand_cache->modify_active_face_set = RNA_boolean_get(op->ptr, "use_modify_active");
   expand_cache->reposition_pivot = RNA_boolean_get(op->ptr, "use_reposition_pivot");
 
   /* These can be exposed in RNA if needed. */
@@ -1927,7 +1927,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   /* Store initial state. */
   sculpt_expand_original_state_store(ob, ss->expand_cache);
 
-  if (ss->expand_cache->modify_active) {
+  if (ss->expand_cache->modify_active_face_set) {
     sculpt_expand_delete_face_set_id(ss->expand_cache->initial_face_sets,
                                      ob->data,
                                      ss->pmap,
