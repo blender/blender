@@ -102,7 +102,7 @@ class WorkScheduler {
    * A node can generate a different operation tree when OpenCLDevices exists.
    * \see CompositorContext.getHasActiveOpenCLDevices
    */
-  static bool hasGPUDevices();
+  static bool has_gpu_devices();
 
   static int current_thread_id();
 

@@ -178,7 +178,7 @@ void WorkScheduler::stop()
 #endif
 }
 
-bool WorkScheduler::hasGPUDevices()
+bool WorkScheduler::has_gpu_devices()
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 #  ifdef COM_OPENCL_ENABLED

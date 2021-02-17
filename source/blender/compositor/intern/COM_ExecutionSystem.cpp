@@ -59,7 +59,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
     this->m_context.setQuality((CompositorQuality)editingtree->edit_quality);
   }
   this->m_context.setRendering(rendering);
-  this->m_context.setHasActiveOpenCLDevices(WorkScheduler::hasGPUDevices() &&
+  this->m_context.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
                                             (editingtree->flag & NTREE_COM_OPENCL));
 
   this->m_context.setRenderData(rd);
