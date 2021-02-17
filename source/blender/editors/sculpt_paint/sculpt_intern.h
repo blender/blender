@@ -1204,14 +1204,21 @@ typedef struct ExpandCache {
    */
   bool all_enabled;
 
+  /* Initial mouse and cursor data from where the current falloff started. This data can be changed
+   * during the execution of Expand by moving the origin. */
   float initial_mouse_move[2];
   float initial_mouse[2];
   int initial_active_vertex;
   int initial_active_face_set;
 
+  /* Face set ID that is going to be used when creating a new Face Set. */
   int next_face_set;
+
+  /* Face Set ID of the Face set selected for editing. */
   int update_face_set;
 
+  /* Mouse position since the last time the origin was moved. Used for reference when moving the
+   * intial position of Expand. */
   float original_mouse_move[2];
 
   /* Active components checks. */
@@ -1259,7 +1266,7 @@ typedef struct ExpandCache {
   bool move;
 
   /* When set to true, Expand will snap the new data to the Face Sets IDs found in
-   * *initial_face_sets. */
+   * *original_face_sets. */
   bool snap;
 
   /* When set to true, Expand will use the current Face Set ID to modify an existing Face Set
