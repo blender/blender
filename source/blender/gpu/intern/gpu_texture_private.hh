@@ -384,15 +384,15 @@ inline int to_component_len(eGPUTextureFormat format)
   }
 }
 
-inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_format)
+inline size_t to_bytesize(eGPUDataFormat data_format)
 {
   switch (data_format) {
     case GPU_DATA_UNSIGNED_BYTE:
-      return 1 * to_component_len(tex_format);
+      return 1;
     case GPU_DATA_FLOAT:
     case GPU_DATA_INT:
     case GPU_DATA_UNSIGNED_INT:
-      return 4 * to_component_len(tex_format);
+      return 4;
     case GPU_DATA_UNSIGNED_INT_24_8:
     case GPU_DATA_10_11_11_REV:
       return 4;
@@ -400,6 +400,11 @@ inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_form
       BLI_assert(!"Data format incorrect or unsupported\n");
       return 0;
   }
+}
+
+inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_format)
+{
+  return to_component_len(tex_format) * to_bytesize(data_format);
 }
 
 /* Definitely not complete, edit according to the gl specification. */

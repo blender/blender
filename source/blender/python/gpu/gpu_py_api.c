@@ -35,6 +35,7 @@
 
 #include "gpu_py_matrix.h"
 #include "gpu_py_select.h"
+#include "gpu_py_state.h"
 #include "gpu_py_types.h"
 
 #include "gpu_py_api.h" /* own include */
@@ -132,6 +133,9 @@ PyObject *BPyInit_gpu(void)
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   PyModule_AddObject(mod, "shader", (submodule = bpygpu_shader_init()));
+  PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+
+  PyModule_AddObject(mod, "state", (submodule = bpygpu_state_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   return mod;

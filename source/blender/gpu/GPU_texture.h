@@ -272,6 +272,10 @@ int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
 
+/* utilities */
+size_t GPU_texture_component_len(eGPUTextureFormat format);
+size_t GPU_texture_dataformat_size(eGPUDataFormat data_format);
+
 #ifdef __cplusplus
 }
 #endif

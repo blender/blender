@@ -20,16 +20,15 @@
 
 #pragma once
 
-#include "gpu_py_buffer.h"
+#include "BLI_compiler_attrs.h"
 
-#include "gpu_py_batch.h"
-#include "gpu_py_element.h"
-#include "gpu_py_framebuffer.h"
-#include "gpu_py_offscreen.h"
-#include "gpu_py_shader.h"
-#include "gpu_py_texture.h"
-#include "gpu_py_uniformbuffer.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_vertex_format.h"
+extern PyTypeObject BPyGPUTexture_Type;
 
-PyObject *bpygpu_types_init(void);
+#define BPyGPUTexture_Check(v) (Py_TYPE(v) == &BPyGPUTexture_Type)
+
+typedef struct BPyGPUTexture {
+  PyObject_HEAD struct GPUTexture *tex;
+} BPyGPUTexture;
+
+int bpygpu_ParseTexture(PyObject *o, void *p);
+PyObject *BPyGPUTexture_CreatePyObject(struct GPUTexture *tex) ATTR_NONNULL(1);
