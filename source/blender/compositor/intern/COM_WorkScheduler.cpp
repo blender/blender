@@ -44,30 +44,34 @@
 #  error COM_CURRENT_THREADING_MODEL No threading model selected
 #endif
 
-/** \brief list of all CPUDevices. for every hardware thread an instance of CPUDevice is created */
-static vector<CPUDevice *> g_cpudevices;
 static ThreadLocal(CPUDevice *) g_thread_device;
+static struct {
+  /** \brief list of all CPUDevices. for every hardware thread an instance of CPUDevice is created
+   */
+  vector<CPUDevice *> cpu_devices;
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-/** \brief list of all thread for every CPUDevice in cpudevices a thread exists. */
-static ListBase g_cputhreads;
-static bool g_cpuInitialized = false;
-/** \brief all scheduled work for the cpu */
-static ThreadQueue *g_cpuqueue;
-static ThreadQueue *g_gpuqueue;
+  /** \brief list of all thread for every CPUDevice in cpudevices a thread exists. */
+  ListBase cpu_threads;
+  bool cpu_initialized = false;
+  /** \brief all scheduled work for the cpu */
+  ThreadQueue *cpu_queue;
+  ThreadQueue *gpu_queue;
 #  ifdef COM_OPENCL_ENABLED
-static cl_context g_context;
-static cl_program g_program;
-/** \brief list of all OpenCLDevices. for every OpenCL GPU device an instance of OpenCLDevice is
- * created. */
-static vector<OpenCLDevice *> g_gpudevices;
-/** \brief list of all thread for every GPUDevice in cpudevices a thread exists. */
-static ListBase g_gputhreads;
-/** \brief all scheduled work for the GPU. */
-static bool g_openclActive = false;
-static bool g_openclInitialized = false;
+  cl_context opencl_context;
+  cl_program opencl_program;
+  /** \brief list of all OpenCLDevices. for every OpenCL GPU device an instance of OpenCLDevice is
+   * created. */
+  vector<OpenCLDevice *> gpu_devices;
+  /** \brief list of all thread for every GPUDevice in cpudevices a thread exists. */
+  ListBase gpu_threads;
+  /** \brief all scheduled work for the GPU. */
+  bool opencl_active = false;
+  bool opencl_initialized = false;
 #  endif
 #endif
+
+} g_work_scheduler;
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 void *WorkScheduler::thread_execute_cpu(void *data)
@@ -75,7 +79,7 @@ void *WorkScheduler::thread_execute_cpu(void *data)
   CPUDevice *device = (CPUDevice *)data;
   WorkPackage *work;
   BLI_thread_local_set(g_thread_device, device);
-  while ((work = (WorkPackage *)BLI_thread_queue_pop(g_cpuqueue))) {
+  while ((work = (WorkPackage *)BLI_thread_queue_pop(g_work_scheduler.cpu_queue))) {
     device->execute(work);
     delete work;
   }
@@ -88,7 +92,7 @@ void *WorkScheduler::thread_execute_gpu(void *data)
   Device *device = (Device *)data;
   WorkPackage *work;
 
-  while ((work = (WorkPackage *)BLI_thread_queue_pop(g_gpuqueue))) {
+  while ((work = (WorkPackage *)BLI_thread_queue_pop(g_work_scheduler.gpu_queue))) {
     device->execute(work);
     delete work;
   }
@@ -106,14 +110,14 @@ void WorkScheduler::schedule(ExecutionGroup *group, int chunkNumber)
   delete package;
 #elif COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 #  ifdef COM_OPENCL_ENABLED
-  if (group->isOpenCL() && g_openclActive) {
-    BLI_thread_queue_push(g_gpuqueue, package);
+  if (group->isOpenCL() && g_work_scheduler.opencl_active) {
+    BLI_thread_queue_push(g_work_scheduler.gpu_queue, package);
   }
   else {
-    BLI_thread_queue_push(g_cpuqueue, package);
+    BLI_thread_queue_push(g_work_scheduler.cpu_queue, package);
   }
 #  else
-  BLI_thread_queue_push(g_cpuqueue, package);
+  BLI_thread_queue_push(g_work_scheduler.cpu_queue, package);
 #  endif
 #endif
 }
@@ -122,24 +126,26 @@ void WorkScheduler::start(CompositorContext &context)
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
   unsigned int index;
-  g_cpuqueue = BLI_thread_queue_init();
-  BLI_threadpool_init(&g_cputhreads, thread_execute_cpu, g_cpudevices.size());
-  for (index = 0; index < g_cpudevices.size(); index++) {
-    Device *device = g_cpudevices[index];
-    BLI_threadpool_insert(&g_cputhreads, device);
+  g_work_scheduler.cpu_queue = BLI_thread_queue_init();
+  BLI_threadpool_init(
+      &g_work_scheduler.cpu_threads, thread_execute_cpu, g_work_scheduler.cpu_devices.size());
+  for (index = 0; index < g_work_scheduler.cpu_devices.size(); index++) {
+    Device *device = g_work_scheduler.cpu_devices[index];
+    BLI_threadpool_insert(&g_work_scheduler.cpu_threads, device);
   }
 #  ifdef COM_OPENCL_ENABLED
   if (context.getHasActiveOpenCLDevices()) {
-    g_gpuqueue = BLI_thread_queue_init();
-    BLI_threadpool_init(&g_gputhreads, thread_execute_gpu, g_gpudevices.size());
-    for (index = 0; index < g_gpudevices.size(); index++) {
-      Device *device = g_gpudevices[index];
-      BLI_threadpool_insert(&g_gputhreads, device);
+    g_work_scheduler.gpu_queue = BLI_thread_queue_init();
+    BLI_threadpool_init(
+        &g_work_scheduler.gpu_threads, thread_execute_gpu, g_work_scheduler.gpu_devices.size());
+    for (index = 0; index < g_work_scheduler.gpu_devices.size(); index++) {
+      Device *device = g_work_scheduler.gpu_devices[index];
+      BLI_threadpool_insert(&g_work_scheduler.gpu_threads, device);
     }
-    g_openclActive = true;
+    g_work_scheduler.opencl_active = true;
   }
   else {
-    g_openclActive = false;
+    g_work_scheduler.opencl_active = false;
   }
 #  endif
 #endif
@@ -148,12 +154,12 @@ void WorkScheduler::finish()
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 #  ifdef COM_OPENCL_ENABLED
-  if (g_openclActive) {
-    BLI_thread_queue_wait_finish(g_gpuqueue);
-    BLI_thread_queue_wait_finish(g_cpuqueue);
+  if (g_work_scheduler.opencl_active) {
+    BLI_thread_queue_wait_finish(g_work_scheduler.gpu_queue);
+    BLI_thread_queue_wait_finish(g_work_scheduler.cpu_queue);
   }
   else {
-    BLI_thread_queue_wait_finish(g_cpuqueue);
+    BLI_thread_queue_wait_finish(g_work_scheduler.cpu_queue);
   }
 #  else
   BLI_thread_queue_wait_finish(cpuqueue);
@@ -163,26 +169,26 @@ void WorkScheduler::finish()
 void WorkScheduler::stop()
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-  BLI_thread_queue_nowait(g_cpuqueue);
-  BLI_threadpool_end(&g_cputhreads);
-  BLI_thread_queue_free(g_cpuqueue);
-  g_cpuqueue = nullptr;
+  BLI_thread_queue_nowait(g_work_scheduler.cpu_queue);
+  BLI_threadpool_end(&g_work_scheduler.cpu_threads);
+  BLI_thread_queue_free(g_work_scheduler.cpu_queue);
+  g_work_scheduler.cpu_queue = nullptr;
 #  ifdef COM_OPENCL_ENABLED
-  if (g_openclActive) {
-    BLI_thread_queue_nowait(g_gpuqueue);
-    BLI_threadpool_end(&g_gputhreads);
-    BLI_thread_queue_free(g_gpuqueue);
-    g_gpuqueue = nullptr;
+  if (g_work_scheduler.opencl_active) {
+    BLI_thread_queue_nowait(g_work_scheduler.gpu_queue);
+    BLI_threadpool_end(&g_work_scheduler.gpu_threads);
+    BLI_thread_queue_free(g_work_scheduler.gpu_queue);
+    g_work_scheduler.gpu_queue = nullptr;
   }
 #  endif
 #endif
 }
 
-bool WorkScheduler::hasGPUDevices()
+bool WorkScheduler::has_gpu_devices()
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 #  ifdef COM_OPENCL_ENABLED
-  return !g_gpudevices.empty();
+  return !g_work_scheduler.gpu_devices.empty();
 #  else
   return 0;
 #  endif
@@ -205,37 +211,37 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
   /* deinitialize if number of threads doesn't match */
-  if (g_cpudevices.size() != num_cpu_threads) {
+  if (g_work_scheduler.cpu_devices.size() != num_cpu_threads) {
     Device *device;
 
-    while (!g_cpudevices.empty()) {
-      device = g_cpudevices.back();
-      g_cpudevices.pop_back();
+    while (!g_work_scheduler.cpu_devices.empty()) {
+      device = g_work_scheduler.cpu_devices.back();
+      g_work_scheduler.cpu_devices.pop_back();
       device->deinitialize();
       delete device;
     }
-    if (g_cpuInitialized) {
+    if (g_work_scheduler.cpu_initialized) {
       BLI_thread_local_delete(g_thread_device);
     }
-    g_cpuInitialized = false;
+    g_work_scheduler.cpu_initialized = false;
   }
 
   /* initialize CPU threads */
-  if (!g_cpuInitialized) {
+  if (!g_work_scheduler.cpu_initialized) {
     for (int index = 0; index < num_cpu_threads; index++) {
       CPUDevice *device = new CPUDevice(index);
       device->initialize();
-      g_cpudevices.push_back(device);
+      g_work_scheduler.cpu_devices.push_back(device);
     }
     BLI_thread_local_create(g_thread_device);
-    g_cpuInitialized = true;
+    g_work_scheduler.cpu_initialized = true;
   }
 
 #  ifdef COM_OPENCL_ENABLED
   /* deinitialize OpenCL GPU's */
-  if (use_opencl && !g_openclInitialized) {
-    g_context = nullptr;
-    g_program = nullptr;
+  if (use_opencl && !g_work_scheduler.opencl_initialized) {
+    g_work_scheduler.opencl_context = nullptr;
+    g_work_scheduler.opencl_program = nullptr;
 
     /* This will check for errors and skip if already initialized. */
     if (clewInit() != CLEW_SUCCESS) {
@@ -270,26 +276,40 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
             sizeof(cl_device_id) * numberOfDevices, __func__);
         clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices, nullptr);
 
-        g_context = clCreateContext(
+        g_work_scheduler.opencl_context = clCreateContext(
             nullptr, numberOfDevices, cldevices, clContextError, nullptr, &error);
         if (error != CL_SUCCESS) {
           printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
         }
         const char *cl_str[2] = {datatoc_COM_OpenCLKernels_cl, nullptr};
-        g_program = clCreateProgramWithSource(g_context, 1, cl_str, nullptr, &error);
-        error = clBuildProgram(g_program, numberOfDevices, cldevices, nullptr, nullptr, nullptr);
+        g_work_scheduler.opencl_program = clCreateProgramWithSource(
+            g_work_scheduler.opencl_context, 1, cl_str, nullptr, &error);
+        error = clBuildProgram(g_work_scheduler.opencl_program,
+                               numberOfDevices,
+                               cldevices,
+                               nullptr,
+                               nullptr,
+                               nullptr);
         if (error != CL_SUCCESS) {
           cl_int error2;
           size_t ret_val_size = 0;
           printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
-          error2 = clGetProgramBuildInfo(
-              g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, nullptr, &ret_val_size);
+          error2 = clGetProgramBuildInfo(g_work_scheduler.opencl_program,
+                                         cldevices[0],
+                                         CL_PROGRAM_BUILD_LOG,
+                                         0,
+                                         nullptr,
+                                         &ret_val_size);
           if (error2 != CL_SUCCESS) {
             printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
           }
           char *build_log = (char *)MEM_mallocN(sizeof(char) * ret_val_size + 1, __func__);
-          error2 = clGetProgramBuildInfo(
-              g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, nullptr);
+          error2 = clGetProgramBuildInfo(g_work_scheduler.opencl_program,
+                                         cldevices[0],
+                                         CL_PROGRAM_BUILD_LOG,
+                                         ret_val_size,
+                                         build_log,
+                                         nullptr);
           if (error2 != CL_SUCCESS) {
             printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
           }
@@ -307,9 +327,12 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
             if (error2 != CL_SUCCESS) {
               printf("CLERROR[%d]: %s\n", error2, clewErrorString(error2));
             }
-            OpenCLDevice *clDevice = new OpenCLDevice(g_context, device, g_program, vendorID);
+            OpenCLDevice *clDevice = new OpenCLDevice(g_work_scheduler.opencl_context,
+                                                      device,
+                                                      g_work_scheduler.opencl_program,
+                                                      vendorID);
             clDevice->initialize();
-            g_gpudevices.push_back(clDevice);
+            g_work_scheduler.gpu_devices.push_back(clDevice);
           }
         }
         MEM_freeN(cldevices);
@@ -317,7 +340,7 @@ void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
       MEM_freeN(platforms);
     }
 
-    g_openclInitialized = true;
+    g_work_scheduler.opencl_initialized = true;
   }
 #  endif
 #endif
@@ -327,38 +350,38 @@ void WorkScheduler::deinitialize()
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
   /* deinitialize CPU threads */
-  if (g_cpuInitialized) {
+  if (g_work_scheduler.cpu_initialized) {
     Device *device;
-    while (!g_cpudevices.empty()) {
-      device = g_cpudevices.back();
-      g_cpudevices.pop_back();
+    while (!g_work_scheduler.cpu_devices.empty()) {
+      device = g_work_scheduler.cpu_devices.back();
+      g_work_scheduler.cpu_devices.pop_back();
       device->deinitialize();
       delete device;
     }
     BLI_thread_local_delete(g_thread_device);
-    g_cpuInitialized = false;
+    g_work_scheduler.cpu_initialized = false;
   }
 
 #  ifdef COM_OPENCL_ENABLED
   /* deinitialize OpenCL GPU's */
-  if (g_openclInitialized) {
+  if (g_work_scheduler.opencl_initialized) {
     Device *device;
-    while (!g_gpudevices.empty()) {
-      device = g_gpudevices.back();
-      g_gpudevices.pop_back();
+    while (!g_work_scheduler.gpu_devices.empty()) {
+      device = g_work_scheduler.gpu_devices.back();
+      g_work_scheduler.gpu_devices.pop_back();
       device->deinitialize();
       delete device;
     }
-    if (g_program) {
-      clReleaseProgram(g_program);
-      g_program = nullptr;
+    if (g_work_scheduler.opencl_program) {
+      clReleaseProgram(g_work_scheduler.opencl_program);
+      g_work_scheduler.opencl_program = nullptr;
     }
-    if (g_context) {
-      clReleaseContext(g_context);
-      g_context = nullptr;
+    if (g_work_scheduler.opencl_context) {
+      clReleaseContext(g_work_scheduler.opencl_context);
+      g_work_scheduler.opencl_context = nullptr;
     }
 
-    g_openclInitialized = false;
+    g_work_scheduler.opencl_initialized = false;
   }
 #  endif
 #endif

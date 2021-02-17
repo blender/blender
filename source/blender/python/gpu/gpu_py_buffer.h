@@ -20,16 +20,34 @@
 
 #pragma once
 
-#include "gpu_py_buffer.h"
+extern PyTypeObject BPyGPU_BufferType;
 
-#include "gpu_py_batch.h"
-#include "gpu_py_element.h"
-#include "gpu_py_framebuffer.h"
-#include "gpu_py_offscreen.h"
-#include "gpu_py_shader.h"
-#include "gpu_py_texture.h"
-#include "gpu_py_uniformbuffer.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_vertex_format.h"
+#define BPyGPU_Buffer_Check(v) (Py_TYPE(v) == &BPyGPU_BufferType)
 
-PyObject *bpygpu_types_init(void);
+/**
+ * Buffer Object
+ *
+ * For Python access to GPU functions requiring a pointer.
+ */
+typedef struct BPyGPUBuffer {
+  PyObject_VAR_HEAD PyObject *parent;
+
+  int format;
+  int shape_len;
+  Py_ssize_t *shape;
+
+  union {
+    char *as_byte;
+    int *as_int;
+    uint *as_uint;
+    float *as_float;
+
+    void *as_void;
+  } buf;
+} BPyGPUBuffer;
+
+size_t bpygpu_Buffer_size(BPyGPUBuffer *buffer);
+BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(const int format,
+                                           const int shape_len,
+                                           const Py_ssize_t *shape,
+                                           void *buffer);

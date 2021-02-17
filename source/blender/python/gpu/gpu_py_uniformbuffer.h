@@ -20,16 +20,14 @@
 
 #pragma once
 
-#include "gpu_py_buffer.h"
+#include "BLI_compiler_attrs.h"
 
-#include "gpu_py_batch.h"
-#include "gpu_py_element.h"
-#include "gpu_py_framebuffer.h"
-#include "gpu_py_offscreen.h"
-#include "gpu_py_shader.h"
-#include "gpu_py_texture.h"
-#include "gpu_py_uniformbuffer.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_vertex_format.h"
+extern PyTypeObject BPyGPUUniformBuf_Type;
 
-PyObject *bpygpu_types_init(void);
+#define BPyGPUUniformBuf_Check(v) (Py_TYPE(v) == &BPyGPUUniformBuf_Type)
+
+typedef struct BPyGPUUniformBuf {
+  PyObject_HEAD struct GPUUniformBuf *ubo;
+} BPyGPUUniformBuf;
+
+PyObject *BPyGPUUniformBuf_CreatePyObject(struct GPUUniformBuf *ubo) ATTR_NONNULL(1);

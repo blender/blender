@@ -403,7 +403,7 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
   if (lcache->grid_tx.tex == NULL) {
     lcache->grid_tx.tex = GPU_texture_create_2d_array(
         "lightcache_irradiance", UNPACK3(lcache->grid_tx.tex_size), 1, IRRADIANCE_FORMAT, NULL);
-    GPU_texture_update(lcache->grid_tx.tex, GPU_DATA_UNSIGNED_BYTE, lcache->grid_tx.data);
+    GPU_texture_update(lcache->grid_tx.tex, GPU_DATA_UBYTE, lcache->grid_tx.data);
 
     if (lcache->grid_tx.tex == NULL) {
       lcache->flag |= LIGHTCACHE_NOT_USABLE;
@@ -470,7 +470,7 @@ bool EEVEE_lightcache_load(LightCache *lcache)
 static void eevee_lightbake_readback_irradiance(LightCache *lcache)
 {
   MEM_SAFE_FREE(lcache->grid_tx.data);
-  lcache->grid_tx.data = GPU_texture_read(lcache->grid_tx.tex, GPU_DATA_UNSIGNED_BYTE, 0);
+  lcache->grid_tx.data = GPU_texture_read(lcache->grid_tx.tex, GPU_DATA_UBYTE, 0);
   lcache->grid_tx.data_type = LIGHTCACHETEX_BYTE;
   lcache->grid_tx.components = 4;
 }

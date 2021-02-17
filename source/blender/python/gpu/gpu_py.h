@@ -20,16 +20,4 @@
 
 #pragma once
 
-#include "gpu_py_buffer.h"
-
-#include "gpu_py_batch.h"
-#include "gpu_py_element.h"
-#include "gpu_py_framebuffer.h"
-#include "gpu_py_offscreen.h"
-#include "gpu_py_shader.h"
-#include "gpu_py_texture.h"
-#include "gpu_py_uniformbuffer.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_vertex_format.h"
-
-PyObject *bpygpu_types_init(void);
+extern struct PyC_StringEnumItems bpygpu_dataformat_items[];

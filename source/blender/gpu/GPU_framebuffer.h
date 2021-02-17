@@ -209,6 +209,10 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
                                           void (*callback)(void *userData, int level),
                                           void *userData);
 
+void GPU_framebuffer_push(GPUFrameBuffer *fb);
+GPUFrameBuffer *GPU_framebuffer_pop(void);
+uint GPU_framebuffer_stack_level_get(void);
+
 /* GPU OffScreen
  * - wrapper around frame-buffer and texture for simple off-screen drawing
  */

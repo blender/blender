@@ -608,3 +608,20 @@ void GPU_samplers_update(void)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GPU texture utilities
+ *
+ * \{ */
+
+size_t GPU_texture_component_len(eGPUTextureFormat tex_format)
+{
+  return to_component_len(tex_format);
+}
+
+size_t GPU_texture_dataformat_size(eGPUDataFormat data_format)
+{
+  return to_bytesize(data_format);
+}
+
+/** \} */

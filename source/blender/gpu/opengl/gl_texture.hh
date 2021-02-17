@@ -274,11 +274,11 @@ inline GLenum to_gl(eGPUDataFormat format)
       return GL_FLOAT;
     case GPU_DATA_INT:
       return GL_INT;
-    case GPU_DATA_UNSIGNED_INT:
+    case GPU_DATA_UINT:
       return GL_UNSIGNED_INT;
-    case GPU_DATA_UNSIGNED_BYTE:
+    case GPU_DATA_UBYTE:
       return GL_UNSIGNED_BYTE;
-    case GPU_DATA_UNSIGNED_INT_24_8:
+    case GPU_DATA_UINT_24_8:
       return GL_UNSIGNED_INT_24_8;
     case GPU_DATA_10_11_11_REV:
       return GL_UNSIGNED_INT_10F_11F_11F_REV;

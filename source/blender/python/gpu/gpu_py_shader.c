@@ -26,12 +26,16 @@
 #include "BLI_utildefines.h"
 
 #include "GPU_shader.h"
+#include "GPU_texture.h"
+#include "GPU_uniform_buffer.h"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
 #include "gpu_py_api.h"
+#include "gpu_py_texture.h"
+#include "gpu_py_uniformbuffer.h"
 #include "gpu_py_vertex_format.h"
 
 #include "gpu_py_shader.h" /* own include */
@@ -464,6 +468,64 @@ static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(pygpu_shader_uniform_sampler_doc,
+             ".. method:: uniform_sampler(name, texture)\n"
+             "\n"
+             "   Specify the value of a texture uniform variable for the current GPUShader.\n"
+             "\n"
+             "   :param name: name of the uniform variable whose texture is to be specified.\n"
+             "   :type name: str\n"
+             "   :param texture: Texture to attach.\n"
+             "   :type texture: :class:`gpu.types.GPUTexture`\n");
+static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args)
+{
+  const char *name;
+  BPyGPUTexture *py_texture;
+  if (!PyArg_ParseTuple(
+          args, "sO!:GPUShader.uniform_sampler", &name, &BPyGPUTexture_Type, &py_texture)) {
+    return NULL;
+  }
+
+  int slot = GPU_shader_get_texture_binding(self->shader, name);
+  GPU_texture_bind(py_texture->tex, slot);
+  GPU_shader_uniform_1i(self->shader, name, slot);
+
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    pygpu_shader_uniform_block_doc,
+    ".. method:: uniform_block(name, ubo)\n"
+    "\n"
+    "   Specify the value of an uniform buffer object variable for the current GPUShader.\n"
+    "\n"
+    "   :param name: name of the uniform variable whose UBO is to be specified.\n"
+    "   :type name: str\n"
+    "   :param ubo: Uniform Buffer to attach.\n"
+    "   :type texture: :class:`gpu.types.GPUUniformBuf`\n");
+static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
+{
+  const char *name;
+  BPyGPUUniformBuf *py_ubo;
+  if (!PyArg_ParseTuple(
+          args, "sO!:GPUShader.uniform_block", &name, &BPyGPUUniformBuf_Type, &py_ubo)) {
+    return NULL;
+  }
+
+  int slot = GPU_shader_get_uniform_block(self->shader, name);
+  if (slot == -1) {
+    PyErr_SetString(
+        PyExc_BufferError,
+        "GPUShader.uniform_buffer: uniform block not found, make sure the name is correct");
+    return NULL;
+  }
+
+  GPU_uniformbuf_bind(py_ubo->ubo, slot);
+  GPU_shader_uniform_1i(self->shader, name, slot);
+
+  Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(
     pygpu_shader_attr_from_name_doc,
     ".. method:: attr_from_name(name)\n"
@@ -535,6 +597,14 @@ static struct PyMethodDef pygpu_shader__tp_methods[] = {
      (PyCFunction)pygpu_shader_uniform_int,
      METH_VARARGS,
      pygpu_shader_uniform_int_doc},
+    {"uniform_sampler",
+     (PyCFunction)pygpu_shader_uniform_sampler,
+     METH_VARARGS,
+     pygpu_shader_uniform_sampler_doc},
+    {"uniform_block",
+     (PyCFunction)pygpu_shader_uniform_block,
+     METH_VARARGS,
+     pygpu_shader_uniform_block_doc},
     {"attr_from_name",
      (PyCFunction)pygpu_shader_attr_from_name,
      METH_O,

@@ -29,14 +29,9 @@
 /** \brief the workscheduler
  * \ingroup execution
  */
-class WorkScheduler {
+struct WorkScheduler {
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-  /**
-   * \brief are we being stopped.
-   */
-  static bool isStopping();
-
   /**
    * \brief main thread loop for cpudevices
    * inside this loop new work is queried and being executed
@@ -107,7 +102,7 @@ class WorkScheduler {
    * A node can generate a different operation tree when OpenCLDevices exists.
    * \see CompositorContext.getHasActiveOpenCLDevices
    */
-  static bool hasGPUDevices();
+  static bool has_gpu_devices();
 
   static int current_thread_id();
 
