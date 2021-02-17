@@ -110,6 +110,11 @@
  * loop, which is undesired. */
 #define SCULPT_EXPAND_LOOP_THRESHOLD 0.00001f
 
+/* Defines how much changes in curvature in the mesh affect the falloff shape when using normal
+ * falloff. This default was found experimentally and it works well in most cases, but can be
+ * exposed for tweaking if needed. */
+#define SCULPT_EXPAND_NORMALS_FALLOFF_EDGE_SENSITIVITY 300
+
 /* Expand Modal Keymap. */
 enum {
   SCULPT_EXPAND_MODAL_CONFIRM = 1,
@@ -435,7 +440,9 @@ static float *sculpt_expand_topology_falloff_create(Sculpt *sd, Object *ob, cons
   return dists;
 }
 
-/* Normals: */
+/* Normals: Floodfills the mesh and reduces the falloff depending on the normal difference between
+ * each vertex and the previous one. This creates falloff pattens that follow and snap to the hard
+ * edges of the object. */
 
 static bool mask_expand_normal_floodfill_cb(
     SculptSession *ss, int from_v, int to_v, bool is_duplicate, void *userdata)
@@ -462,7 +469,7 @@ static bool mask_expand_normal_floodfill_cb(
 
 static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
                                                   Object *ob,
-                                                  const int vertex,
+                                                  const int v,
                                                   const float edge_sensitivity)
 {
   SculptSession *ss = ob->sculpt;
@@ -475,20 +482,16 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
 
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
-  SCULPT_floodfill_add_initial_with_symmetry(sd, ob, ss, &flood, vertex, FLT_MAX);
+  SCULPT_floodfill_add_initial_with_symmetry(sd, ob, ss, &flood, v, FLT_MAX);
 
   ExpandFloodFillData fdata;
   fdata.dists = dists;
   fdata.edge_factor = edge_factor;
   fdata.edge_sensitivity = edge_sensitivity;
-  SCULPT_vertex_normal_get(ss, vertex, fdata.original_normal);
+  SCULPT_vertex_normal_get(ss, v, fdata.original_normal);
 
   SCULPT_floodfill_execute(ss, &flood, mask_expand_normal_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
-
-  for (int i = 0; i < totvert; i++) {
-    dists[i] = FLT_MAX;
-  }
 
   for (int repeat = 0; repeat < 2; repeat++) {
     for (int i = 0; i < totvert; i++) {
@@ -962,7 +965,8 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
                                   sculpt_expand_topology_falloff_create(sd, ob, v);
       break;
     case SCULPT_EXPAND_FALLOFF_NORMALS:
-      expand_cache->falloff = sculpt_expand_normal_falloff_create(sd, ob, v, 300.0f);
+      expand_cache->falloff = sculpt_expand_normal_falloff_create(
+          sd, ob, v, SCULPT_EXPAND_NORMALS_FALLOFF_EDGE_SENSITIVITY);
       break;
     case SCULPT_EXPAND_FALLOFF_SPHERICAL:
       expand_cache->falloff = sculpt_expand_spherical_falloff_create(sd, ob, v);
@@ -1939,7 +1943,6 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
 
-  falloff_type = SCULPT_EXPAND_FALLOFF_NORMALS;
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
       ss->expand_cache, sd, ob, ss->expand_cache->initial_active_vertex, falloff_type);
 
