@@ -34,9 +34,37 @@ static struct {
   ThreadMutex mutex;
 } g_compositor;
 
-void COM_execute(RenderData *rd,
+/* Make sure node tree has previews.
+ * Don't create previews in advance, this is done when adding preview operations.
+ * Reserved preview size is determined by render output for now. */
+static void compositor_init_node_previews(const RenderData *render_data, bNodeTree *node_tree)
+{
+  /* We fit the aspect into COM_PREVIEW_SIZE x COM_PREVIEW_SIZE image to avoid
+   * insane preview resolution, which might even overflow preview dimensions. */
+  const float aspect = render_data->xsch > 0 ?
+                           (float)render_data->ysch / (float)render_data->xsch :
+                           1.0f;
+  int preview_width, preview_height;
+  if (aspect < 1.0f) {
+    preview_width = COM_PREVIEW_SIZE;
+    preview_height = (int)(COM_PREVIEW_SIZE * aspect);
+  }
+  else {
+    preview_width = (int)(COM_PREVIEW_SIZE / aspect);
+    preview_height = COM_PREVIEW_SIZE;
+  }
+  BKE_node_preview_init_tree(node_tree, preview_width, preview_height, false);
+}
+
+static void compositor_reset_node_tree_status(bNodeTree *node_tree)
+{
+  node_tree->progress(node_tree->prh, 0.0);
+  node_tree->stats_draw(node_tree->sdh, IFACE_("Compositing"));
+}
+
+void COM_execute(RenderData *render_data,
                  Scene *scene,
-                 bNodeTree *editingtree,
+                 bNodeTree *node_tree,
                  int rendering,
                  const ColorManagedViewSettings *viewSettings,
                  const ColorManagedDisplaySettings *displaySettings,
@@ -52,55 +80,35 @@ void COM_execute(RenderData *rd,
 
   BLI_mutex_lock(&g_compositor.mutex);
 
-  if (editingtree->test_break(editingtree->tbh)) {
+  if (node_tree->test_break(node_tree->tbh)) {
     /* During editing multiple compositor executions can be triggered.
      * Make sure this is the most recent one. */
     BLI_mutex_unlock(&g_compositor.mutex);
     return;
   }
 
-  /* Make sure node tree has previews.
-   * Don't create previews in advance, this is done when adding preview operations.
-   * Reserved preview size is determined by render output for now.
-   *
-   * We fit the aspect into COM_PREVIEW_SIZE x COM_PREVIEW_SIZE image to avoid
-   * insane preview resolution, which might even overflow preview dimensions.
-   */
-  const float aspect = rd->xsch > 0 ? (float)rd->ysch / (float)rd->xsch : 1.0f;
-  int preview_width, preview_height;
-  if (aspect < 1.0f) {
-    preview_width = COM_PREVIEW_SIZE;
-    preview_height = (int)(COM_PREVIEW_SIZE * aspect);
-  }
-  else {
-    preview_width = (int)(COM_PREVIEW_SIZE / aspect);
-    preview_height = COM_PREVIEW_SIZE;
-  }
-  BKE_node_preview_init_tree(editingtree, preview_width, preview_height, false);
+  compositor_init_node_previews(render_data, node_tree);
+  compositor_reset_node_tree_status(node_tree);
 
   /* Initialize workscheduler. */
-  const bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL) != 0;
-  WorkScheduler::initialize(use_opencl, BKE_render_num_threads(rd));
-
-  /* Reset progress bar and status. */
-  editingtree->progress(editingtree->prh, 0.0);
-  editingtree->stats_draw(editingtree->sdh, IFACE_("Compositing"));
+  const bool use_opencl = (node_tree->flag & NTREE_COM_OPENCL) != 0;
+  WorkScheduler::initialize(use_opencl, BKE_render_num_threads(render_data));
 
   /* Execute. */
-  const bool twopass = (editingtree->flag & NTREE_TWO_PASS) && !rendering;
+  const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;
   if (twopass) {
     ExecutionSystem fast_pass(
-        rd, scene, editingtree, rendering, true, viewSettings, displaySettings, viewName);
+        render_data, scene, node_tree, rendering, true, viewSettings, displaySettings, viewName);
     fast_pass.execute();
 
-    if (editingtree->test_break(editingtree->tbh)) {
+    if (node_tree->test_break(node_tree->tbh)) {
       BLI_mutex_unlock(&g_compositor.mutex);
       return;
     }
   }
 
   ExecutionSystem system(
-      rd, scene, editingtree, rendering, false, viewSettings, displaySettings, viewName);
+      render_data, scene, node_tree, rendering, false, viewSettings, displaySettings, viewName);
   system.execute();
 
   BLI_mutex_unlock(&g_compositor.mutex);
