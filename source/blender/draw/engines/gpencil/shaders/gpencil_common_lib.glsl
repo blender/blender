@@ -347,7 +347,7 @@ float stroke_thickness_modulate(float thickness)
 float clamp_small_stroke_thickness(float thickness)
 {
   /* To avoid aliasing artifacts, we clamp the line thickness and
-   * the reduce its opacity in the fragment shader.*/
+   * reduce its opacity in the fragment shader.*/
   float min_thickness = gl_Position.w * 1.3;
   thickness = max(min_thickness, thickness);
 
