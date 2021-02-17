@@ -252,7 +252,7 @@ static bool createGPUShader(OCIO_GPUShader &shader,
   /* Set uniforms. */
   for (OCIO_GPUUniform &uniform : textures.uniforms) {
     const GpuShaderDesc::UniformData &data = uniform.data;
-    const char *name = name;
+    const char *name = uniform.name.c_str();
 
     if (data.m_getDouble) {
       GPU_shader_uniform_1f(sh, name, (float)data.m_getDouble());
