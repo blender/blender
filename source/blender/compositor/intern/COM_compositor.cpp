@@ -87,10 +87,9 @@ void COM_execute(RenderData *rd,
   bool twopass = (editingtree->flag & NTREE_TWO_PASS) && !rendering;
   /* initialize execution system */
   if (twopass) {
-    ExecutionSystem *system = new ExecutionSystem(
-        rd, scene, editingtree, rendering, twopass, viewSettings, displaySettings, viewName);
-    system->execute();
-    delete system;
+    ExecutionSystem fast_pass(
+        rd, scene, editingtree, rendering, true, viewSettings, displaySettings, viewName);
+    fast_pass.execute();
 
     if (editingtree->test_break(editingtree->tbh)) {
       // during editing multiple calls to this method can be triggered.
@@ -100,10 +99,9 @@ void COM_execute(RenderData *rd,
     }
   }
 
-  ExecutionSystem *system = new ExecutionSystem(
+  ExecutionSystem system(
       rd, scene, editingtree, rendering, false, viewSettings, displaySettings, viewName);
-  system->execute();
-  delete system;
+  system.execute();
 
   BLI_mutex_unlock(&s_compositorMutex);
 }
