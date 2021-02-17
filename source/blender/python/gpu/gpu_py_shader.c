@@ -494,8 +494,8 @@ static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args
 }
 
 PyDoc_STRVAR(
-    pygpu_shader_uniform_buffer_doc,
-    ".. method:: uniform_buffer(name, ubo)\n"
+    pygpu_shader_uniform_block_doc,
+    ".. method:: uniform_block(name, ubo)\n"
     "\n"
     "   Specify the value of an uniform buffer object variable for the current GPUShader.\n"
     "\n"
@@ -503,12 +503,12 @@ PyDoc_STRVAR(
     "   :type name: str\n"
     "   :param ubo: Uniform Buffer to attach.\n"
     "   :type texture: :class:`gpu.types.GPUUniformBuf`\n");
-static PyObject *pygpu_shader_uniform_buffer(BPyGPUShader *self, PyObject *args)
+static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
 {
   const char *name;
   BPyGPUUniformBuf *py_ubo;
   if (!PyArg_ParseTuple(
-          args, "sO!:GPUShader.uniform_buffer", &name, &BPyGPUUniformBuf_Type, &py_ubo)) {
+          args, "sO!:GPUShader.uniform_block", &name, &BPyGPUUniformBuf_Type, &py_ubo)) {
     return NULL;
   }
 
@@ -601,10 +601,10 @@ static struct PyMethodDef pygpu_shader__tp_methods[] = {
      (PyCFunction)pygpu_shader_uniform_sampler,
      METH_VARARGS,
      pygpu_shader_uniform_sampler_doc},
-    {"uniform_buffer",
-     (PyCFunction)pygpu_shader_uniform_buffer,
+    {"uniform_block",
+     (PyCFunction)pygpu_shader_uniform_block,
      METH_VARARGS,
-     pygpu_shader_uniform_buffer_doc},
+     pygpu_shader_uniform_block_doc},
     {"attr_from_name",
      (PyCFunction)pygpu_shader_attr_from_name,
      METH_O,
