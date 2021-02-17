@@ -1483,7 +1483,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
 
 /* Outliner drag and drop. This operator mostly exists to support dragging
  * from outliner text instead of only from the icon, and also to show a
- * hint in the statusbar keymap. */
+ * hint in the status-bar key-map. */
 
 void OUTLINER_OT_item_drag_drop(wmOperatorType *ot)
 {

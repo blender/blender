@@ -196,7 +196,7 @@ typedef struct ColorManagedViewSettings {
   char look[64];
   /** View transform which is being applied when displaying buffer on the screen. */
   char view_transform[64];
-  /** Fstop exposure. */
+  /** F-stop exposure. */
   float exposure;
   /** Post-display gamma transform. */
   float gamma;

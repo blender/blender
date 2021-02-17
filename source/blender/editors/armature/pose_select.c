@@ -138,8 +138,10 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
   }
 }
 
-/* called from editview.c, for mode-less pose selection */
-/* assumes scene obact and basact is still on old situation */
+/**
+ * Called for mode-less pose selection.
+ * assumes the active object is still on old situation.
+ */
 bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
                                               View3D *v3d,
                                               Base *base,
