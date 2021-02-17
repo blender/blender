@@ -1440,6 +1440,18 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   foreach (Geometry *geom, scene->geometry) {
     geom->has_volume = false;
 
+    if (geom->attributes.modified) {
+      device_update_flags |= ATTRS_NEED_REALLOC;
+    }
+
+    if (geom->is_mesh()) {
+      Mesh *mesh = static_cast<Mesh *>(geom);
+
+      if (mesh->subd_attributes.modified) {
+        device_update_flags |= ATTRS_NEED_REALLOC;
+      }
+    }
+
     foreach (Node *node, geom->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       if (shader->has_volume) {
