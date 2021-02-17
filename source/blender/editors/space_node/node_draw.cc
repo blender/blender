@@ -1808,11 +1808,8 @@ void node_update_nodetree(const bContext *C, bNodeTree *ntree)
   }
 }
 
-static int compare_link_by_angle_to_node(const void *a, const void *b)
+static bool compare_link_by_angle_to_node(const bNodeLink *link_a, const bNodeLink *link_b)
 {
-  const bNodeLink *link_a = *(const bNodeLink **)a;
-  const bNodeLink *link_b = *(const bNodeLink **)b;
-
   BLI_assert(link_a->tosock == link_b->tosock);
   const float socket_location[2] = {link_a->tosock->locx, link_a->tosock->locy};
   const float up_direction[2] = {0.0f, 1.0f};
@@ -1827,7 +1824,7 @@ static int compare_link_by_angle_to_node(const void *a, const void *b)
   normalize_v2(delta_b);
   const float angle_b = angle_normalized_v2v2(up_direction, delta_b);
 
-  return angle_a < angle_b ? 1 : -1;
+  return angle_a > angle_b;
 }
 
 static void node_draw(const bContext *C,
@@ -1854,32 +1851,27 @@ static void sort_multi_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
       if (socket->flag & SOCK_MULTI_INPUT) {
         /* The total is calculated in #node_update_nodetree, which runs before this draw step. */
         const int total_inputs = socket->total_inputs;
-        bNodeLink **input_links = (bNodeLink **)MEM_malloc_arrayN(
-            total_inputs, sizeof(bNodeLink *), __func__);
+        Vector<bNodeLink *> input_links;
+        input_links.reserve(total_inputs);
 
-        int index = 0;
         LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
           if (link->tosock == socket) {
-            input_links[index] = (bNodeLink *)link;
-            index++;
+            input_links.append(link);
           }
         }
         LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
           LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
             bNodeLink *link = (bNodeLink *)linkdata->data;
             if (link->tosock == socket) {
-              input_links[index] = (bNodeLink *)link;
-              index++;
+              input_links.append(link);
             }
           }
         }
 
-        qsort(input_links, total_inputs, sizeof(bNodeLink *), compare_link_by_angle_to_node);
-        for (int i = 0; i < total_inputs; i++) {
+        std::sort(input_links.begin(), input_links.end(), compare_link_by_angle_to_node);
+        for (const int i : input_links.index_range()) {
           input_links[i]->multi_input_socket_index = i;
         }
-
-        MEM_freeN(input_links);
       }
     }
   }
