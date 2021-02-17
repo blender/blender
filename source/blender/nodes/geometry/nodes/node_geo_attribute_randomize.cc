@@ -82,30 +82,39 @@ static void geo_node_attribute_randomize_update(bNodeTree *UNUSED(ntree), bNode 
 
 namespace blender::nodes {
 
-template<typename T> T get_random_value(const uint32_t id, const uint32_t seed);
+template<typename T>
+T random_value_in_range(const uint32_t id, const uint32_t seed, const T min, const T max);
 
-template<> inline bool get_random_value(const uint32_t id, const uint32_t seed)
+template<>
+inline float random_value_in_range(const uint32_t id,
+                                   const uint32_t seed,
+                                   const float min,
+                                   const float max)
 {
-  return BLI_hash_int_2d_to_float(id, seed) > 0.5f;
+  return BLI_hash_int_2d_to_float(id, seed) * (max - min) + min;
 }
 
-template<> inline int get_random_value(const uint32_t id, const uint32_t seed)
+template<>
+inline int random_value_in_range(const uint32_t id,
+                                 const uint32_t seed,
+                                 const int min,
+                                 const int max)
 {
-  return BLI_hash_int_2d(id, seed);
+  return round_fl_to_int(
+      random_value_in_range<float>(id, seed, static_cast<float>(min), static_cast<float>(max)));
 }
 
-template<> inline float get_random_value(const uint32_t id, const uint32_t seed)
-{
-  return BLI_hash_int_2d_to_float(id, seed);
-}
-
-template<> inline float3 get_random_value(const uint32_t id, const uint32_t seed)
+template<>
+inline float3 random_value_in_range(const uint32_t id,
+                                    const uint32_t seed,
+                                    const float3 min,
+                                    const float3 max)
 {
   const float x = BLI_hash_int_3d_to_float(seed, id, 435109);
   const float y = BLI_hash_int_3d_to_float(seed, id, 380867);
   const float z = BLI_hash_int_3d_to_float(seed, id, 1059217);
 
-  return float3(x, y, z);
+  return float3(x, y, z) * (max - min) + min;
 }
 
 template<typename T>
@@ -120,25 +129,25 @@ static void randomize_attribute(MutableSpan<T> span,
   switch (operation) {
     case GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE:
       for (const int i : span.index_range()) {
-        const T random_value = get_random_value<T>(ids[i], seed) * (max - min) + min;
+        const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
         span[i] = random_value;
       }
       break;
     case GEO_NODE_ATTRIBUTE_RANDOMIZE_ADD:
       for (const int i : span.index_range()) {
-        const T random_value = get_random_value<T>(ids[i], seed) * (max - min) + min;
+        const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
         span[i] = span[i] + random_value;
       }
       break;
     case GEO_NODE_ATTRIBUTE_RANDOMIZE_SUBTRACT:
       for (const int i : span.index_range()) {
-        const T random_value = get_random_value<T>(ids[i], seed) * (max - min) + min;
+        const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
         span[i] = span[i] - random_value;
       }
       break;
     case GEO_NODE_ATTRIBUTE_RANDOMIZE_MULTIPLY:
       for (const int i : span.index_range()) {
-        const T random_value = get_random_value<T>(ids[i], seed) * (max - min) + min;
+        const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
         span[i] = span[i] * random_value;
       }
       break;
@@ -156,7 +165,7 @@ static void randomize_attribute_bool(MutableSpan<bool> span,
   BLI_assert(operation == GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE);
   UNUSED_VARS_NDEBUG(operation);
   for (const int i : span.index_range()) {
-    const bool random_value = get_random_value<bool>(ids[i], seed);
+    const bool random_value = BLI_hash_int_2d_to_float(ids[i], seed) > 0.5f;
     span[i] = random_value;
   }
 }
