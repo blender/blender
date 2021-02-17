@@ -115,7 +115,7 @@ static struct global_gpu_state {
   bool use_curve_mapping;
   int curve_mapping_timestamp;
   OCIO_CurveMappingSettings curve_mapping_settings;
-} global_gpu_state = {NULL};
+} global_gpu_state = {false};
 
 static struct global_color_picking_state {
   /* Cached processor for color picking conversion. */

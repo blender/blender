@@ -224,17 +224,6 @@ __forceinline uint32_t __bsf(uint32_t v)
 #  endif
 }
 
-__forceinline uint32_t __bsf(uint32_t v)
-{
-#  if defined(__KERNEL_AVX2__)
-  return _tzcnt_u32(v);
-#  else
-  unsigned long r = 0;
-  _BitScanForward(&r, v);
-  return r;
-#  endif
-}
-
 __forceinline uint32_t __bsr(uint32_t v)
 {
   unsigned long r = 0;
