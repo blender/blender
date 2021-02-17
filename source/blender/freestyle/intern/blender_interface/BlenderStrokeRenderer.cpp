@@ -628,7 +628,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   mesh->mloopcol = colors;
 
   mesh->mat = (Material **)MEM_mallocN(sizeof(Material *) * mesh->totcol, "MaterialList");
-  for (const auto &item : group->materials.items()) {
+  for (const auto item : group->materials.items()) {
     Material *material = item.key;
     const int matnr = item.value;
     mesh->mat[matnr] = material;

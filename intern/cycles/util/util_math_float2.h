@@ -72,6 +72,16 @@ ccl_device_inline float2 safe_divide_float2_float(const float2 a, const float b)
  * Definition.
  */
 
+ccl_device_inline float2 zero_float2()
+{
+  return make_float2(0.0f, 0.0f);
+}
+
+ccl_device_inline float2 one_float2()
+{
+  return make_float2(1.0f, 1.0f);
+}
+
 #ifndef __KERNEL_OPENCL__
 ccl_device_inline float2 operator-(const float2 &a)
 {
@@ -256,7 +266,7 @@ ccl_device_inline float2 floor(const float2 &a)
 
 ccl_device_inline float2 safe_divide_float2_float(const float2 a, const float b)
 {
-  return (b != 0.0f) ? a / b : make_float2(0.0f, 0.0f);
+  return (b != 0.0f) ? a / b : zero_float2();
 }
 
 CCL_NAMESPACE_END

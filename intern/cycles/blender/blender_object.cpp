@@ -323,8 +323,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
       object->set_random_id(b_instance.random_id());
     }
     else {
-      object->set_dupli_generated(make_float3(0.0f, 0.0f, 0.0f));
-      object->set_dupli_uv(make_float2(0.0f, 0.0f));
+      object->set_dupli_generated(zero_float3());
+      object->set_dupli_uv(zero_float2());
       object->set_random_id(hash_uint2(hash_string(object->name.c_str()), 0));
     }
 

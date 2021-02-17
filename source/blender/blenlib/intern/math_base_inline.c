@@ -31,11 +31,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef __SSE2__
-#  include <emmintrin.h>
-#endif
-
 #include "BLI_math_base.h"
+#include "BLI_simd.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -685,10 +682,10 @@ MINLINE int integer_digits_i(const int i)
 
 /* Internal helpers for SSE2 implementation.
  *
- * NOTE: Are to be called ONLY from inside `#ifdef __SSE2__` !!!
+ * NOTE: Are to be called ONLY from inside `#ifdef BLI_HAVE_SSE2` !!!
  */
 
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
 
 /* Calculate initial guess for arg^exp based on float representation
  * This method gives a constant bias, which can be easily compensated by
@@ -769,7 +766,7 @@ MALWAYS_INLINE __m128 _bli_math_blend_sse(const __m128 mask, const __m128 a, con
   return _mm_or_ps(_mm_and_ps(mask, a), _mm_andnot_ps(mask, b));
 }
 
-#endif /* __SSE2__ */
+#endif /* BLI_HAVE_SSE2 */
 
 /* Low level conversion functions */
 MINLINE unsigned char unit_float_to_uchar_clamp(float val)

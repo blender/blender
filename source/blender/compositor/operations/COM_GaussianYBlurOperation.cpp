@@ -26,7 +26,7 @@
 GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
   this->m_gausstab = nullptr;
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   this->m_gausstab_sse = nullptr;
 #endif
   this->m_filtersize = 0;
@@ -54,7 +54,7 @@ void GaussianYBlurOperation::initExecution()
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
     this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
     this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab, m_filtersize);
 #endif
   }
@@ -69,7 +69,7 @@ void GaussianYBlurOperation::updateGauss()
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
     this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
     this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab, m_filtersize);
 #endif
   }
@@ -94,7 +94,7 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
   int step = getStep();
   const int bufferIndexx = ((xmin - bufferstartx) * 4);
 
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   __m128 accum_r = _mm_load_ps(color_accum);
   for (int ny = ymin; ny < ymax; ny += step) {
     index = (ny - y) + this->m_filtersize;
@@ -162,7 +162,7 @@ void GaussianYBlurOperation::deinitExecution()
     MEM_freeN(this->m_gausstab);
     this->m_gausstab = nullptr;
   }
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   if (this->m_gausstab_sse) {
     MEM_freeN(this->m_gausstab_sse);
     this->m_gausstab_sse = nullptr;

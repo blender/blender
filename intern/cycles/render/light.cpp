@@ -116,17 +116,17 @@ NODE_DEFINE(Light)
   type_enum.insert("spot", LIGHT_SPOT);
   SOCKET_ENUM(light_type, "Type", type_enum, LIGHT_POINT);
 
-  SOCKET_COLOR(strength, "Strength", make_float3(1.0f, 1.0f, 1.0f));
+  SOCKET_COLOR(strength, "Strength", one_float3());
 
-  SOCKET_POINT(co, "Co", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_POINT(co, "Co", zero_float3());
 
-  SOCKET_VECTOR(dir, "Dir", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_VECTOR(dir, "Dir", zero_float3());
   SOCKET_FLOAT(size, "Size", 0.0f);
   SOCKET_FLOAT(angle, "Angle", 0.0f);
 
-  SOCKET_VECTOR(axisu, "Axis U", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_VECTOR(axisu, "Axis U", zero_float3());
   SOCKET_FLOAT(sizeu, "Size U", 1.0f);
-  SOCKET_VECTOR(axisv, "Axis V", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_VECTOR(axisv, "Axis V", zero_float3());
   SOCKET_FLOAT(sizev, "Size V", 1.0f);
   SOCKET_BOOLEAN(round, "Round", false);
 
@@ -173,7 +173,7 @@ void Light::tag_update(Scene *scene)
 
 bool Light::has_contribution(Scene *scene)
 {
-  if (strength == make_float3(0.0f, 0.0f, 0.0f)) {
+  if (strength == zero_float3()) {
     return false;
   }
   if (is_portal) {

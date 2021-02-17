@@ -151,8 +151,9 @@ char *blf_dir_search(const char *file)
   return s;
 }
 
-/* Some font have additional file with metrics information,
- * in general, the extension of the file is: .afm or .pfm
+/**
+ * Some font have additional file with metrics information,
+ * in general, the extension of the file is: `.afm` or `.pfm`
  */
 char *blf_dir_metrics_search(const char *filename)
 {

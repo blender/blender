@@ -297,15 +297,15 @@ void GLTexture::update_sub(
 void GLTexture::generate_mipmap()
 {
   this->ensure_mipmaps(9999);
-  /* Some drivers have bugs when using glGenerateMipmap with depth textures (see T56789).
+  /* Some drivers have bugs when using #glGenerateMipmap with depth textures (see T56789).
    * In this case we just create a complete texture with mipmaps manually without
    * down-sampling. You must initialize the texture levels using other methods like
-   * GPU_framebuffer_recursive_downsample(). */
+   * #GPU_framebuffer_recursive_downsample(). */
   if (format_flag_ & GPU_FORMAT_DEPTH) {
     return;
   }
 
-  /* Downsample from mip 0 using implementation. */
+  /* Down-sample from mip 0 using implementation. */
   if (GLContext::direct_state_access_support) {
     glGenerateTextureMipmap(tex_id_);
   }

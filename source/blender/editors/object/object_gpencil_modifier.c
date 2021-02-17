@@ -173,28 +173,28 @@ void ED_object_gpencil_modifier_clear(Main *bmain, Object *ob)
   DEG_relations_tag_update(bmain);
 }
 
-int ED_object_gpencil_modifier_move_up(ReportList *UNUSED(reports),
-                                       Object *ob,
-                                       GpencilModifierData *md)
+bool ED_object_gpencil_modifier_move_up(ReportList *UNUSED(reports),
+                                        Object *ob,
+                                        GpencilModifierData *md)
 {
   if (md->prev) {
     BLI_remlink(&ob->greasepencil_modifiers, md);
     BLI_insertlinkbefore(&ob->greasepencil_modifiers, md->prev, md);
   }
 
-  return 1;
+  return true;
 }
 
-int ED_object_gpencil_modifier_move_down(ReportList *UNUSED(reports),
-                                         Object *ob,
-                                         GpencilModifierData *md)
+bool ED_object_gpencil_modifier_move_down(ReportList *UNUSED(reports),
+                                          Object *ob,
+                                          GpencilModifierData *md)
 {
   if (md->next) {
     BLI_remlink(&ob->greasepencil_modifiers, md);
     BLI_insertlinkafter(&ob->greasepencil_modifiers, md->next, md);
   }
 
-  return 1;
+  return true;
 }
 
 bool ED_object_gpencil_modifier_move_to_index(ReportList *reports,
@@ -234,57 +234,57 @@ bool ED_object_gpencil_modifier_move_to_index(ReportList *reports,
   return true;
 }
 
-static int gpencil_modifier_apply_obdata(
+static bool gpencil_modifier_apply_obdata(
     ReportList *reports, Main *bmain, Depsgraph *depsgraph, Object *ob, GpencilModifierData *md)
 {
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
 
   if (mti->isDisabled && mti->isDisabled(md, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
-    return 0;
+    return false;
   }
 
   if (ob->type == OB_GPENCIL) {
     if (ELEM(NULL, ob, ob->data)) {
-      return 0;
+      return false;
     }
     if (mti->bakeModifier == NULL) {
       BKE_report(reports, RPT_ERROR, "Not implemented");
-      return 0;
+      return false;
     }
     mti->bakeModifier(bmain, depsgraph, md, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
   else {
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
-int ED_object_gpencil_modifier_apply(Main *bmain,
-                                     ReportList *reports,
-                                     Depsgraph *depsgraph,
-                                     Object *ob,
-                                     GpencilModifierData *md,
-                                     int UNUSED(mode))
+bool ED_object_gpencil_modifier_apply(Main *bmain,
+                                      ReportList *reports,
+                                      Depsgraph *depsgraph,
+                                      Object *ob,
+                                      GpencilModifierData *md,
+                                      int UNUSED(mode))
 {
 
   if (ob->type == OB_GPENCIL) {
     if (ob->mode != OB_MODE_OBJECT) {
       BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in paint, sculpt or edit mode");
-      return 0;
+      return false;
     }
 
     if (((ID *)ob->data)->us > 1) {
       BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
-      return 0;
+      return false;
     }
   }
   else if (((ID *)ob->data)->us > 1) {
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
-    return 0;
+    return false;
   }
 
   if (md != ob->greasepencil_modifiers.first) {
@@ -292,16 +292,16 @@ int ED_object_gpencil_modifier_apply(Main *bmain,
   }
 
   if (!gpencil_modifier_apply_obdata(reports, bmain, depsgraph, ob, md)) {
-    return 0;
+    return false;
   }
 
   BLI_remlink(&ob->greasepencil_modifiers, md);
   BKE_gpencil_modifier_free(md);
 
-  return 1;
+  return true;
 }
 
-int ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModifierData *md)
+bool ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModifierData *md)
 {
   GpencilModifierData *nmd;
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
@@ -310,7 +310,7 @@ int ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModi
   if (mti->flags & eGpencilModifierTypeFlag_Single) {
     if (BKE_gpencil_modifiers_findby_type(ob, type)) {
       BKE_report(reports, RPT_WARNING, "Only one modifier of this type is allowed");
-      return 0;
+      return false;
     }
   }
 
@@ -321,7 +321,7 @@ int ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModi
 
   nmd->flag |= eGpencilModifierFlag_OverrideLibrary_Local;
 
-  return 1;
+  return true;
 }
 
 void ED_object_gpencil_modifier_copy_to_object(Object *ob_dst, GpencilModifierData *md)
@@ -730,14 +730,18 @@ static int gpencil_modifier_apply_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
   int apply_as = RNA_enum_get(op->ptr, "apply_as");
+  const bool do_report = RNA_boolean_get(op->ptr, "report");
 
   if (md == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  /* Store name temporarily for report. */
+  int reports_len;
   char name[MAX_NAME];
-  strcpy(name, md->name);
+  if (do_report) {
+    reports_len = BLI_listbase_count(&op->reports->list);
+    strcpy(name, md->name); /* Store name temporarily since the modifier is removed. */
+  }
 
   if (!ED_object_gpencil_modifier_apply(bmain, op->reports, depsgraph, ob, md, apply_as)) {
     return OPERATOR_CANCELLED;
@@ -746,8 +750,12 @@ static int gpencil_modifier_apply_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
-  if (RNA_boolean_get(op->ptr, "report")) {
-    BKE_reportf(op->reports, RPT_INFO, "Applied modifier: %s", name);
+  if (do_report) {
+    /* Only add this report if the operator didn't cause another one. The purpose here is
+     * to alert that something happened, and the previous report will do that anyway. */
+    if (BLI_listbase_count(&op->reports->list) == reports_len) {
+      BKE_reportf(op->reports, RPT_INFO, "Applied modifier: %s", name);
+    }
   }
 
   return OPERATOR_FINISHED;

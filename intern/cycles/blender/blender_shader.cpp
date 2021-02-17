@@ -1404,7 +1404,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
         world_color = get_float3(b_world.color());
       }
       else {
-        world_color = make_float3(0.0f, 0.0f, 0.0f);
+        world_color = zero_float3();
       }
 
       BackgroundNode *background = graph->create_node<BackgroundNode>();
@@ -1535,7 +1535,7 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
       }
       else {
         EmissionNode *emission = graph->create_node<EmissionNode>();
-        emission->set_color(make_float3(1.0f, 1.0f, 1.0f));
+        emission->set_color(one_float3());
         emission->set_strength(1.0f);
         graph->add(emission);
 

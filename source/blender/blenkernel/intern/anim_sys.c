@@ -1050,6 +1050,7 @@ static NlaEvalChannelSnapshot *nlaevalchan_snapshot_new(NlaEvalChannel *nec)
 
   nec_snapshot->channel = nec;
   nec_snapshot->length = length;
+  nlavalidmask_init(&nec_snapshot->blend_domain, length);
 
   return nec_snapshot;
 }
@@ -1059,6 +1060,7 @@ static void nlaevalchan_snapshot_free(NlaEvalChannelSnapshot *nec_snapshot)
 {
   BLI_assert(!nec_snapshot->is_base);
 
+  nlavalidmask_free(&nec_snapshot->blend_domain);
   MEM_freeN(nec_snapshot);
 }
 
@@ -1751,14 +1753,22 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
       continue;
     }
 
-    NlaEvalChannelSnapshot *necs = nlaeval_snapshot_ensure_channel(r_snapshot, nec);
     if (!nlaevalchan_validate_index_ex(nec, fcu->array_index)) {
       continue;
     }
 
+    NlaEvalChannelSnapshot *necs = nlaeval_snapshot_ensure_channel(r_snapshot, nec);
+
     float value = evaluate_fcurve(fcu, modified_evaltime);
     evaluate_value_fmodifiers(&storage, modifiers, fcu, &value, evaltime);
     necs->values[fcu->array_index] = value;
+
+    if (nec->mix_mode == NEC_MIX_QUATERNION) {
+      BLI_bitmap_set_all(necs->blend_domain.ptr, true, 4);
+    }
+    else {
+      BLI_BITMAP_ENABLE(necs->blend_domain.ptr, fcu->array_index);
+    }
   }
 }
 
@@ -1863,6 +1873,8 @@ static void nlastrip_evaluate_transition(PointerRNA *ptr,
 
   /** Replace \a snapshot2 NULL channels with base or default values so all channels blend. */
   nlasnapshot_ensure_channels(channels, &snapshot2);
+  /** Mark all \a snapshot2 channel's values to blend. */
+  nlasnapshot_enable_all_blend_domain(&snapshot2);
   nlasnapshot_blend(
       channels, &snapshot1, &snapshot2, NLASTRIP_MODE_REPLACE, nes->strip_time, snapshot);
 
@@ -2471,6 +2483,18 @@ static void animsys_calculate_nla(PointerRNA *ptr,
 
 /* ---------------------- */
 
+void nlasnapshot_enable_all_blend_domain(NlaEvalSnapshot *snapshot)
+{
+  for (int i = 0; i < snapshot->size; i++) {
+    NlaEvalChannelSnapshot *necs = nlaeval_snapshot_get(snapshot, i);
+    if (necs == NULL) {
+      continue;
+    }
+
+    BLI_bitmap_set_all(necs->blend_domain.ptr, true, necs->length);
+  }
+}
+
 void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapshot)
 {
   LISTBASE_FOREACH (NlaEvalChannel *, nec, &eval_data->channels) {
@@ -2479,7 +2503,12 @@ void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapsh
 }
 
 /** Blends the \a lower_snapshot with the \a upper_snapshot into \a r_blended_snapshot according
- * to the given \a upper_blendmode and \a upper_influence. */
+ * to the given \a upper_blendmode and \a upper_influence.
+ *
+ * For \a upper_snapshot, blending limited to values in the \a blend_domain. For Replace blendmode,
+ * this allows the upper snapshot to have a location XYZ channel where only a subset of values are
+ * blended.
+ */
 void nlasnapshot_blend(NlaEvalData *eval_data,
                        NlaEvalSnapshot *lower_snapshot,
                        NlaEvalSnapshot *upper_snapshot,
@@ -2507,19 +2536,30 @@ void nlasnapshot_blend(NlaEvalData *eval_data,
 
     NlaEvalChannelSnapshot *result_necs = nlaeval_snapshot_ensure_channel(r_blended_snapshot, nec);
 
+    /** Always copy \a lower_snapshot to result, irrelevant of whether \a upper_snapshot has a
+     * corresponding channel. This only matters when \a lower_snapshot not the same as
+     * \a r_blended_snapshot. */
+    memcpy(result_necs->values, lower_necs->values, length * sizeof(float));
     if (upper_necs == NULL || zero_upper_influence) {
-      memcpy(result_necs->values, lower_necs->values, length * sizeof(float));
       continue;
     }
 
     if (upper_blendmode == NLASTRIP_MODE_COMBINE) {
       const int mix_mode = nec->mix_mode;
       if (mix_mode == NEC_MIX_QUATERNION) {
+        if (!BLI_BITMAP_TEST_BOOL(upper_necs->blend_domain.ptr, 0)) {
+          continue;
+        }
+
         nla_combine_quaternion(
             lower_necs->values, upper_necs->values, upper_influence, result_necs->values);
       }
       else {
         for (int j = 0; j < length; j++) {
+          if (!BLI_BITMAP_TEST_BOOL(upper_necs->blend_domain.ptr, j)) {
+            continue;
+          }
+
           result_necs->values[j] = nla_combine_value(mix_mode,
                                                      nec->base_snapshot.values[j],
                                                      lower_necs->values[j],
@@ -2530,6 +2570,10 @@ void nlasnapshot_blend(NlaEvalData *eval_data,
     }
     else {
       for (int j = 0; j < length; j++) {
+        if (!BLI_BITMAP_TEST_BOOL(upper_necs->blend_domain.ptr, j)) {
+          continue;
+        }
+
         result_necs->values[j] = nla_blend_value(
             upper_blendmode, lower_necs->values[j], upper_necs->values[j], upper_influence);
       }

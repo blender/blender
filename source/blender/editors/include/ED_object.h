@@ -462,25 +462,25 @@ bool ED_object_gpencil_modifier_remove(struct ReportList *reports,
                                        struct Object *ob,
                                        struct GpencilModifierData *md);
 void ED_object_gpencil_modifier_clear(struct Main *bmain, struct Object *ob);
-int ED_object_gpencil_modifier_move_down(struct ReportList *reports,
-                                         struct Object *ob,
-                                         struct GpencilModifierData *md);
-int ED_object_gpencil_modifier_move_up(struct ReportList *reports,
-                                       struct Object *ob,
-                                       struct GpencilModifierData *md);
+bool ED_object_gpencil_modifier_move_down(struct ReportList *reports,
+                                          struct Object *ob,
+                                          struct GpencilModifierData *md);
+bool ED_object_gpencil_modifier_move_up(struct ReportList *reports,
+                                        struct Object *ob,
+                                        struct GpencilModifierData *md);
 bool ED_object_gpencil_modifier_move_to_index(struct ReportList *reports,
                                               struct Object *ob,
                                               struct GpencilModifierData *md,
                                               const int index);
-int ED_object_gpencil_modifier_apply(struct Main *bmain,
-                                     struct ReportList *reports,
-                                     struct Depsgraph *depsgraph,
+bool ED_object_gpencil_modifier_apply(struct Main *bmain,
+                                      struct ReportList *reports,
+                                      struct Depsgraph *depsgraph,
+                                      struct Object *ob,
+                                      struct GpencilModifierData *md,
+                                      int mode);
+bool ED_object_gpencil_modifier_copy(struct ReportList *reports,
                                      struct Object *ob,
-                                     struct GpencilModifierData *md,
-                                     int mode);
-int ED_object_gpencil_modifier_copy(struct ReportList *reports,
-                                    struct Object *ob,
-                                    struct GpencilModifierData *md);
+                                     struct GpencilModifierData *md);
 void ED_object_gpencil_modifier_copy_to_object(struct Object *ob_dst,
                                                struct GpencilModifierData *md);
 

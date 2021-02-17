@@ -121,8 +121,8 @@ static bool ObtainCacheParticleData(
           CData->curve_firstkey.push_back_slow(keyno);
 
           float curve_length = 0.0f;
-          float3 prev_co_world = make_float3(0.0f, 0.0f, 0.0f);
-          float3 prev_co_object = make_float3(0.0f, 0.0f, 0.0f);
+          float3 prev_co_world = zero_float3();
+          float3 prev_co_object = zero_float3();
           for (int step_no = 0; step_no < ren_step; step_no++) {
             float3 co_world = prev_co_world;
             b_psys.co_hair(*b_ob, pa_no, step_no, &co_world.x);
@@ -197,7 +197,7 @@ static bool ObtainCacheParticleUV(Hair *hair,
           BL::Mesh::uv_layers_iterator l;
           b_mesh->uv_layers.begin(l);
 
-          float2 uv = make_float2(0.0f, 0.0f);
+          float2 uv = zero_float2();
           if (b_mesh->uv_layers.length())
             b_psys.uv_on_emitter(psmd, *b_pa, pa_no, uv_num, &uv.x);
           CData->curve_uv.push_back_slow(uv);
@@ -678,7 +678,7 @@ static void export_hair_curves(Scene *scene, Hair *hair, BL::Hair b_hair)
     const int first_point_index = b_curve.first_point_index();
     const int num_points = b_curve.num_points();
 
-    float3 prev_co = make_float3(0.0f, 0.0f, 0.0f);
+    float3 prev_co = zero_float3();
     float length = 0.0f;
     if (attr_intercept) {
       points_length.clear();

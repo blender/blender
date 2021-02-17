@@ -477,7 +477,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
   if (node->typeinfo->draw_buttons && (node->flag & NODE_OPTIONS)) {
     dy -= NODE_DYS / 2;
 
-    /* set this for uifunc() that don't use layout engine yet */
+    /* Set this for `uifunc()` that don't use layout engine yet. */
     node->butr.xmin = 0;
     node->butr.xmax = NODE_WIDTH(node) - 2 * NODE_DYS;
     node->butr.ymin = 0;
@@ -2029,8 +2029,8 @@ void node_draw_space(const bContext *C, ARegion *region)
   GPU_depth_test(GPU_DEPTH_NONE);
   GPU_scissor_test(true);
 
-  /* XXX snode->runtime->cursor set in coordspace for placing new nodes, used for drawing noodles
-   * too */
+  /* XXX `snode->runtime->cursor` set in coordinate-space for placing new nodes,
+   * used for drawing noodles too. */
   UI_view2d_region_to_view(&region->v2d,
                            win->eventstate->x - region->winrct.xmin,
                            win->eventstate->y - region->winrct.ymin,

@@ -1931,7 +1931,8 @@ static void rna_GeometryNodeAttributeRandomize_data_type_update(Main *bmain,
 
 static bool attribute_fill_type_supported(const EnumPropertyItem *item)
 {
-  return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_PROP_BOOL);
+  return ELEM(
+      item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_PROP_BOOL, CD_PROP_INT32);
 }
 static const EnumPropertyItem *rna_GeometryNodeAttributeFill_type_itemf(bContext *UNUSED(C),
                                                                         PointerRNA *UNUSED(ptr),

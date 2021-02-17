@@ -1383,14 +1383,18 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_active_context(C);
   ModifierData *md = edit_modifier_property_get(op, ob, 0);
+  const bool do_report = RNA_boolean_get(op->ptr, "report");
 
   if (md == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  /* Store name temporarily for report. */
+  int reports_len;
   char name[MAX_NAME];
-  strcpy(name, md->name);
+  if (do_report) {
+    reports_len = BLI_listbase_count(&op->reports->list);
+    strcpy(name, md->name); /* Store name temporarily since the modifier is removed. */
+  }
 
   if (!ED_object_modifier_apply(
           bmain, op->reports, depsgraph, scene, ob, md, apply_as, keep_modifier)) {
@@ -1401,8 +1405,12 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
-  if (RNA_boolean_get(op->ptr, "report")) {
-    BKE_reportf(op->reports, RPT_INFO, "Applied modifier: %s", name);
+  if (do_report) {
+    /* Only add this report if the operator didn't cause another one. The purpose here is
+     * to alert that something happened, and the previous report will do that anyway. */
+    if (BLI_listbase_count(&op->reports->list) == reports_len) {
+      BKE_reportf(op->reports, RPT_INFO, "Applied modifier: %s", name);
+    }
   }
 
   return OPERATOR_FINISHED;

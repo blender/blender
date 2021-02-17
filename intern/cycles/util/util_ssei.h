@@ -445,14 +445,22 @@ __forceinline ssei unpackhi(const ssei &a, const ssei &b)
 template<size_t i0, size_t i1, size_t i2, size_t i3>
 __forceinline const ssei shuffle(const ssei &a)
 {
+#  ifdef __KERNEL_NEON__
+  return shuffle_neon<ssei, i0, i1, i2, i3>(a);
+#  else
   return _mm_shuffle_epi32(a, _MM_SHUFFLE(i3, i2, i1, i0));
+#  endif
 }
 
 template<size_t i0, size_t i1, size_t i2, size_t i3>
 __forceinline const ssei shuffle(const ssei &a, const ssei &b)
 {
+#  ifdef __KERNEL_NEON__
+  return shuffle_neon<ssei, i0, i1, i2, i3>(a, b);
+#  else
   return _mm_castps_si128(
       _mm_shuffle_ps(_mm_castsi128_ps(a), _mm_castsi128_ps(b), _MM_SHUFFLE(i3, i2, i1, i0)));
+#  endif
 }
 
 template<size_t i0> __forceinline const ssei shuffle(const ssei &b)
@@ -505,32 +513,44 @@ __forceinline const ssei vreduce_add(const ssei &v)
 
 __forceinline int reduce_min(const ssei &v)
 {
+#    ifdef __KERNEL_NEON__
+  return vminvq_s32(v);
+#    else
   return extract<0>(vreduce_min(v));
+#    endif
 }
 __forceinline int reduce_max(const ssei &v)
 {
+#    ifdef __KERNEL_NEON__
+  return vmaxvq_s32(v);
+#    else
   return extract<0>(vreduce_max(v));
+#    endif
 }
 __forceinline int reduce_add(const ssei &v)
 {
+#    ifdef __KERNEL_NEON__
+  return vaddvq_s32(v);
+#    else
   return extract<0>(vreduce_add(v));
+#    endif
 }
 
-__forceinline size_t select_min(const ssei &v)
+__forceinline uint32_t select_min(const ssei &v)
 {
   return __bsf(movemask(v == vreduce_min(v)));
 }
-__forceinline size_t select_max(const ssei &v)
+__forceinline uint32_t select_max(const ssei &v)
 {
   return __bsf(movemask(v == vreduce_max(v)));
 }
 
-__forceinline size_t select_min(const sseb &valid, const ssei &v)
+__forceinline uint32_t select_min(const sseb &valid, const ssei &v)
 {
   const ssei a = select(valid, v, ssei((int)pos_inf));
   return __bsf(movemask(valid & (a == vreduce_min(a))));
 }
-__forceinline size_t select_max(const sseb &valid, const ssei &v)
+__forceinline uint32_t select_max(const sseb &valid, const ssei &v)
 {
   const ssei a = select(valid, v, ssei((int)neg_inf));
   return __bsf(movemask(valid & (a == vreduce_max(a))));

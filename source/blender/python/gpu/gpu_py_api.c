@@ -105,13 +105,13 @@ success:
 /** \name GPU Module
  * \{ */
 
-PyDoc_STRVAR(GPU_doc,
+PyDoc_STRVAR(pygpu_doc,
              "This module provides Python wrappers for the GPU implementation in Blender.\n"
              "Some higher level functions can be found in the `gpu_extras` module.");
-static struct PyModuleDef GPU_module_def = {
+static struct PyModuleDef pygpu_module_def = {
     PyModuleDef_HEAD_INIT,
     .m_name = "gpu",
-    .m_doc = GPU_doc,
+    .m_doc = pygpu_doc,
 };
 
 PyObject *BPyInit_gpu(void)
@@ -120,7 +120,7 @@ PyObject *BPyInit_gpu(void)
   PyObject *submodule;
   PyObject *mod;
 
-  mod = PyModule_Create(&GPU_module_def);
+  mod = PyModule_Create(&pygpu_module_def);
 
   PyModule_AddObject(mod, "types", (submodule = bpygpu_types_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);

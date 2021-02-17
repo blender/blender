@@ -442,7 +442,7 @@ void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_EffectsInfo *effects = stl->effects;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-  /* We can only draw a single renderpass. Lightpasses also select their color pass
+  /* We can only draw a single render-pass. Light-passes also select their color pass
    * (a second pass). We mask the light pass when a light pass is selected. */
   const eViewLayerEEVEEPassType render_pass =
       ((stl->g_data->render_passes & EEVEE_RENDERPASSES_LIGHT_PASS) != 0) ?

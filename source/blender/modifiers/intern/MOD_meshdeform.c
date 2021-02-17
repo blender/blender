@@ -24,6 +24,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_math.h"
+#include "BLI_simd.h"
 #include "BLI_task.h"
 
 #include "BLT_translation.h"
@@ -60,10 +61,6 @@
 
 #include "MOD_ui_common.h"
 #include "MOD_util.h"
-
-#ifdef __SSE2__
-#  include <emmintrin.h>
-#endif
 
 static void initData(ModifierData *md)
 {
@@ -188,7 +185,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
   float gridvec[3], dvec[3], ivec[3], wx, wy, wz;
   float weight, cageweight, totweight, *cageco;
   int i, j, a, x, y, z, size;
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   __m128 co = _mm_setzero_ps();
 #else
   float co[3] = {0.0f, 0.0f, 0.0f};
@@ -243,7 +240,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
     for (j = 0; j < cell->totinfluence; j++, inf++) {
       cageco = dco[inf->vertex];
       cageweight = weight * inf->weight;
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
       {
         __m128 cageweight_r = _mm_set1_ps(cageweight);
         /* This will load one extra element, this is ok because
@@ -261,7 +258,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
     }
   }
 
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   copy_v3_v3(vec, (float *)&co);
 #else
   copy_v3_v3(vec, co);

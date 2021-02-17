@@ -570,8 +570,8 @@ static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
 {
   FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.stretch_angle);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.stretch_area);
+    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_stretch_angle);
+    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_stretch_area);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_data);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_uv);
@@ -1497,13 +1497,13 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
     DRW_ibo_request(cache->batch.edituv_faces_stretch_area, &mbufcache->ibo.edituv_tris);
     DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbufcache->vbo.uv);
     DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbufcache->vbo.edituv_data);
-    DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbufcache->vbo.stretch_area);
+    DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbufcache->vbo.edituv_stretch_area);
   }
   if (DRW_batch_requested(cache->batch.edituv_faces_stretch_angle, GPU_PRIM_TRIS)) {
     DRW_ibo_request(cache->batch.edituv_faces_stretch_angle, &mbufcache->ibo.edituv_tris);
     DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbufcache->vbo.uv);
     DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbufcache->vbo.edituv_data);
-    DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbufcache->vbo.stretch_angle);
+    DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbufcache->vbo.edituv_stretch_angle);
   }
   if (DRW_batch_requested(cache->batch.edituv_edges, GPU_PRIM_LINES)) {
     DRW_ibo_request(cache->batch.edituv_edges, &mbufcache->ibo.edituv_lines);
@@ -1522,8 +1522,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   }
 
   /* Meh loose Scene const correctness here. */
-  const bool use_subsurf_fdots = scene ? BKE_modifiers_uses_subsurf_facedots((Scene *)scene, ob) :
-                                         false;
+  const bool use_subsurf_fdots = scene ? BKE_modifiers_uses_subsurf_facedots(scene, ob) : false;
 
   if (do_uvcage) {
     mesh_buffer_cache_create_requested(task_graph,

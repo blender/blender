@@ -32,7 +32,7 @@
 /** \name GPU Types Module
  * \{ */
 
-static struct PyModuleDef py_types_module_def = {
+static struct PyModuleDef pygpu_types_module_def = {
     PyModuleDef_HEAD_INIT,
     .m_name = "gpu.types",
 };
@@ -41,7 +41,7 @@ PyObject *bpygpu_types_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&py_types_module_def);
+  submodule = PyModule_Create(&pygpu_types_module_def);
 
   if (PyType_Ready(&BPyGPUVertFormat_Type) < 0) {
     return NULL;

@@ -333,7 +333,7 @@ void Mesh::add_vertex(float3 P)
   tag_verts_modified();
 
   if (get_num_subd_faces()) {
-    vert_patch_uv.push_back_reserved(make_float2(0.0f, 0.0f));
+    vert_patch_uv.push_back_reserved(zero_float2());
     tag_vert_patch_uv_modified();
   }
 }
@@ -344,7 +344,7 @@ void Mesh::add_vertex_slow(float3 P)
   tag_verts_modified();
 
   if (get_num_subd_faces()) {
-    vert_patch_uv.push_back_slow(make_float2(0.0f, 0.0f));
+    vert_patch_uv.push_back_slow(zero_float2());
     tag_vert_patch_uv_modified();
   }
 }
@@ -494,7 +494,7 @@ void Mesh::compute_bounds()
 
   if (!bnds.valid()) {
     /* empty mesh */
-    bnds.grow(make_float3(0.0f, 0.0f, 0.0f));
+    bnds.grow(zero_float3());
   }
 
   bounds = bnds;

@@ -365,7 +365,7 @@ class GHOST_ImeWin32 {
    *     MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED);
    *   * "ja-JP" (0x0411)
    *     MAKELANGID(LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN), etc.
-   *   (See <winnt.h> for other available values.)
+   *   (See `winnt.h` for other available values.)
    * This Language ID is used for processing language-specific operations in
    * IME functions.
    */

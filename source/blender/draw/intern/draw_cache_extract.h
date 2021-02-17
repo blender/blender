@@ -109,8 +109,8 @@ typedef struct MeshBufferCache {
     /* Only for edit mode. */
     GPUVertBuf *edit_data; /* extend */
     GPUVertBuf *edituv_data;
-    GPUVertBuf *stretch_area;
-    GPUVertBuf *stretch_angle;
+    GPUVertBuf *edituv_stretch_area;
+    GPUVertBuf *edituv_stretch_angle;
     GPUVertBuf *mesh_analysis;
     GPUVertBuf *fdots_pos;
     GPUVertBuf *fdots_nor;

@@ -70,11 +70,9 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
   if (!(sd->flag & (SD_EXTINCTION | SD_SCATTER | SD_EMISSION)))
     return false;
 
-  coeff->sigma_s = make_float3(0.0f, 0.0f, 0.0f);
-  coeff->sigma_t = (sd->flag & SD_EXTINCTION) ? sd->closure_transparent_extinction :
-                                                make_float3(0.0f, 0.0f, 0.0f);
-  coeff->emission = (sd->flag & SD_EMISSION) ? sd->closure_emission_background :
-                                               make_float3(0.0f, 0.0f, 0.0f);
+  coeff->sigma_s = zero_float3();
+  coeff->sigma_t = (sd->flag & SD_EXTINCTION) ? sd->closure_transparent_extinction : zero_float3();
+  coeff->emission = (sd->flag & SD_EMISSION) ? sd->closure_emission_background : zero_float3();
 
   if (sd->flag & SD_SCATTER) {
     for (int i = 0; i < sd->num_closure; i++) {
@@ -204,7 +202,7 @@ ccl_device void kernel_volume_shadow_homogeneous(KernelGlobals *kg,
                                                  ShaderData *sd,
                                                  float3 *throughput)
 {
-  float3 sigma_t = make_float3(0.0f, 0.0f, 0.0f);
+  float3 sigma_t = zero_float3();
 
   if (volume_shader_extinction_sample(kg, sd, state, ray->P, &sigma_t))
     *throughput *= volume_color_transmittance(sigma_t, ray->t);
@@ -230,7 +228,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg,
   /* compute extinction at the start */
   float t = 0.0f;
 
-  float3 sum = make_float3(0.0f, 0.0f, 0.0f);
+  float3 sum = zero_float3();
 
   for (int i = 0; i < max_steps; i++) {
     /* advance to new position */
@@ -243,7 +241,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg,
     }
 
     float3 new_P = ray->P + ray->D * (t + step_offset);
-    float3 sigma_t = make_float3(0.0f, 0.0f, 0.0f);
+    float3 sigma_t = zero_float3();
 
     /* compute attenuation over segment */
     if (volume_shader_extinction_sample(kg, sd, state, new_P, &sigma_t)) {
@@ -365,8 +363,7 @@ ccl_device float kernel_volume_distance_sample(
   float sample_t = min(max_t, -logf(1.0f - xi * (1.0f - sample_transmittance)) / sample_sigma_t);
 
   *transmittance = volume_color_transmittance(sigma_t, sample_t);
-  *pdf = safe_divide_color(sigma_t * *transmittance,
-                           make_float3(1.0f, 1.0f, 1.0f) - full_transmittance);
+  *pdf = safe_divide_color(sigma_t * *transmittance, one_float3() - full_transmittance);
 
   /* todo: optimization: when taken together with hit/miss decision,
    * the full_transmittance cancels out drops out and xi does not
@@ -380,8 +377,7 @@ ccl_device float3 kernel_volume_distance_pdf(float max_t, float3 sigma_t, float 
   float3 full_transmittance = volume_color_transmittance(sigma_t, max_t);
   float3 transmittance = volume_color_transmittance(sigma_t, sample_t);
 
-  return safe_divide_color(sigma_t * transmittance,
-                           make_float3(1.0f, 1.0f, 1.0f) - full_transmittance);
+  return safe_divide_color(sigma_t * transmittance, one_float3() - full_transmittance);
 }
 
 /* Emission */
@@ -508,7 +504,7 @@ kernel_volume_integrate_homogeneous(KernelGlobals *kg,
 
       /* modify pdf for hit/miss decision */
       if (probalistic_scatter)
-        pdf *= make_float3(1.0f, 1.0f, 1.0f) - volume_color_transmittance(coeff.sigma_t, t);
+        pdf *= one_float3() - volume_color_transmittance(coeff.sigma_t, t);
 
       new_tp = *throughput * coeff.sigma_s * transmittance / dot(channel_pdf, pdf);
       t = sample_t;
@@ -578,7 +574,7 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
 
   /* compute coefficients at the start */
   float t = 0.0f;
-  float3 accum_transmittance = make_float3(1.0f, 1.0f, 1.0f);
+  float3 accum_transmittance = one_float3();
 
   /* pick random color channel, we use the Veach one-sample
    * model with balance heuristic for the channels */
@@ -654,7 +650,7 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
         new_tp = tp * transmittance;
       }
       else {
-        transmittance = make_float3(0.0f, 0.0f, 0.0f);
+        transmittance = zero_float3();
         new_tp = tp;
       }
 
@@ -671,7 +667,7 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
 
         /* stop if nearly all light blocked */
         if (tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps) {
-          tp = make_float3(0.0f, 0.0f, 0.0f);
+          tp = zero_float3();
           break;
         }
       }
@@ -811,10 +807,10 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
   }
 
   /* init accumulation variables */
-  float3 accum_emission = make_float3(0.0f, 0.0f, 0.0f);
-  float3 accum_transmittance = make_float3(1.0f, 1.0f, 1.0f);
-  float3 accum_albedo = make_float3(0.0f, 0.0f, 0.0f);
-  float3 cdf_distance = make_float3(0.0f, 0.0f, 0.0f);
+  float3 accum_emission = zero_float3();
+  float3 accum_transmittance = one_float3();
+  float3 accum_albedo = zero_float3();
+  float3 cdf_distance = zero_float3();
   float t = 0.0f;
 
   segment->numsteps = 0;
@@ -880,8 +876,8 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
       }
       else {
         /* store empty step */
-        step->sigma_t = make_float3(0.0f, 0.0f, 0.0f);
-        step->sigma_s = make_float3(0.0f, 0.0f, 0.0f);
+        step->sigma_t = zero_float3();
+        step->sigma_s = zero_float3();
         step->closure_flag = 0;
 
         segment->numsteps++;
@@ -1011,12 +1007,12 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(KernelGlobals *
     step = segment->steps;
 
     float prev_t = 0.0f;
-    float3 step_pdf_distance = make_float3(1.0f, 1.0f, 1.0f);
+    float3 step_pdf_distance = one_float3();
 
     if (segment->numsteps > 1) {
       float prev_cdf = 0.0f;
       float step_cdf = 1.0f;
-      float3 prev_cdf_distance = make_float3(0.0f, 0.0f, 0.0f);
+      float3 prev_cdf_distance = zero_float3();
 
       for (int i = 0;; i++, step++) {
         /* todo: optimize using binary search */
@@ -1047,7 +1043,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(KernelGlobals *
 
     /* modify pdf for hit/miss decision */
     if (probalistic_scatter)
-      distance_pdf *= make_float3(1.0f, 1.0f, 1.0f) - segment->accum_transmittance;
+      distance_pdf *= one_float3() - segment->accum_transmittance;
 
     pdf = dot(channel_pdf, distance_pdf * step_pdf_distance);
 
@@ -1066,10 +1062,10 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(KernelGlobals *
     step = segment->steps;
 
     float prev_t = 0.0f;
-    float3 step_pdf_distance = make_float3(1.0f, 1.0f, 1.0f);
+    float3 step_pdf_distance = one_float3();
 
     if (segment->numsteps > 1) {
-      float3 prev_cdf_distance = make_float3(0.0f, 0.0f, 0.0f);
+      float3 prev_cdf_distance = zero_float3();
 
       int numsteps = segment->numsteps;
       int high = numsteps - 1;

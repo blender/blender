@@ -3849,9 +3849,9 @@ static const MeshExtract extract_edituv_data = {
 /** \name Extract Edit UV area stretch
  * \{ */
 
-static void *extract_stretch_area_init(const MeshRenderData *mr,
-                                       struct MeshBatchCache *UNUSED(cache),
-                                       void *buf)
+static void *extract_edituv_stretch_area_init(const MeshRenderData *mr,
+                                              struct MeshBatchCache *UNUSED(cache),
+                                              void *buf)
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -3880,10 +3880,10 @@ BLI_INLINE float area_ratio_to_stretch(float ratio, float tot_ratio, float inv_t
   return (ratio > 1.0f) ? (1.0f / ratio) : ratio;
 }
 
-static void mesh_stretch_area_finish(const MeshRenderData *mr,
-                                     struct MeshBatchCache *cache,
-                                     void *buf,
-                                     void *UNUSED(data))
+static void mesh_edituv_stretch_area_finish(const MeshRenderData *mr,
+                                            struct MeshBatchCache *cache,
+                                            void *buf,
+                                            void *UNUSED(data))
 {
   float tot_area = 0.0f, tot_uv_area = 0.0f;
   float *area_ratio = MEM_mallocN(sizeof(float) * mr->poly_len, __func__);
@@ -3903,7 +3903,8 @@ static void mesh_stretch_area_finish(const MeshRenderData *mr,
       area_ratio[f] = area_ratio_get(area, uvarea);
     }
   }
-  else if (mr->extract_type == MR_EXTRACT_MAPPED) {
+  else {
+    BLI_assert(ELEM(mr->extract_type, MR_EXTRACT_MAPPED, MR_EXTRACT_MESH));
     const MLoopUV *uv_data = CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
     const MPoly *mp = mr->mpoly;
     for (int mp_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
@@ -3913,10 +3914,6 @@ static void mesh_stretch_area_finish(const MeshRenderData *mr,
       tot_uv_area += uvarea;
       area_ratio[mp_index] = area_ratio_get(area, uvarea);
     }
-  }
-  else {
-    /* Should not happen. */
-    BLI_assert(0);
   }
 
   cache->tot_area = tot_area;
@@ -3942,7 +3939,8 @@ static void mesh_stretch_area_finish(const MeshRenderData *mr,
       }
     }
   }
-  else if (mr->extract_type == MR_EXTRACT_MAPPED) {
+  else {
+    BLI_assert(ELEM(mr->extract_type, MR_EXTRACT_MAPPED, MR_EXTRACT_MESH));
     const MPoly *mp = mr->mpoly;
     for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
       for (int i = 0; i < mp->totloop; i++, l_index++) {
@@ -3950,17 +3948,13 @@ static void mesh_stretch_area_finish(const MeshRenderData *mr,
       }
     }
   }
-  else {
-    /* Should not happen. */
-    BLI_assert(0);
-  }
 
   MEM_freeN(area_ratio);
 }
 
-static const MeshExtract extract_stretch_area = {
-    .init = extract_stretch_area_init,
-    .finish = mesh_stretch_area_finish,
+static const MeshExtract extract_edituv_stretch_area = {
+    .init = extract_edituv_stretch_area_init,
+    .finish = mesh_edituv_stretch_area_finish,
     .data_flag = 0,
     .use_threading = false,
 };
@@ -4007,9 +4001,9 @@ static short v2_to_short_angle(const float v[2])
   return atan2f(v[1], v[0]) * (float)M_1_PI * SHRT_MAX;
 }
 
-static void edituv_get_stretch_angle(float auv[2][2],
-                                     const float av[2][3],
-                                     UVStretchAngle *r_stretch)
+static void edituv_get_edituv_stretch_angle(float auv[2][2],
+                                            const float av[2][3],
+                                            UVStretchAngle *r_stretch)
 {
   /* Send UV's to the shader and let it compute the aspect corrected angle. */
   r_stretch->uv_angles[0] = v2_to_short_angle(auv[0]);
@@ -4025,9 +4019,9 @@ static void edituv_get_stretch_angle(float auv[2][2],
 #endif
 }
 
-static void *extract_stretch_angle_init(const MeshRenderData *mr,
-                                        struct MeshBatchCache *UNUSED(cache),
-                                        void *buf)
+static void *extract_edituv_stretch_angle_init(const MeshRenderData *mr,
+                                               struct MeshBatchCache *UNUSED(cache),
+                                               void *buf)
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -4047,18 +4041,16 @@ static void *extract_stretch_angle_init(const MeshRenderData *mr,
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     data->cd_ofs = CustomData_get_offset(&mr->bm->ldata, CD_MLOOPUV);
   }
-  else if (mr->extract_type == MR_EXTRACT_MAPPED) {
-    data->luv = CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
-  }
   else {
-    BLI_assert(0);
+    BLI_assert(ELEM(mr->extract_type, MR_EXTRACT_MAPPED, MR_EXTRACT_MESH));
+    data->luv = CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
   }
   return data;
 }
 
-static void extract_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
-                                               const ExtractPolyBMesh_Params *params,
-                                               void *_data)
+static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
+                                                      const ExtractPolyBMesh_Params *params,
+                                                      void *_data)
 {
   MeshExtract_StretchAngle_Data *data = _data;
   float(*auv)[2] = data->auv, *last_auv = data->last_auv;
@@ -4098,14 +4090,14 @@ static void extract_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
       compute_normalize_edge_vectors(
           auv, av, luv->uv, luv_next->uv, bm_vert_co_get(mr, l->v), bm_vert_co_get(mr, l_next->v));
     }
-    edituv_get_stretch_angle(auv, av, &data->vbo_data[l_index]);
+    edituv_get_edituv_stretch_angle(auv, av, &data->vbo_data[l_index]);
   }
   EXTRACT_POLY_AND_LOOP_FOREACH_BM_END(l);
 }
 
-static void extract_stretch_angle_iter_poly_mesh(const MeshRenderData *mr,
-                                                 const ExtractPolyMesh_Params *params,
-                                                 void *_data)
+static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr,
+                                                        const ExtractPolyMesh_Params *params,
+                                                        void *_data)
 {
   MeshExtract_StretchAngle_Data *data = _data;
 
@@ -4142,24 +4134,24 @@ static void extract_stretch_angle_iter_poly_mesh(const MeshRenderData *mr,
       compute_normalize_edge_vectors(
           auv, av, data->luv[ml_index].uv, data->luv[l_next].uv, v->co, v_next->co);
     }
-    edituv_get_stretch_angle(auv, av, &data->vbo_data[ml_index]);
+    edituv_get_edituv_stretch_angle(auv, av, &data->vbo_data[ml_index]);
   }
   EXTRACT_POLY_AND_LOOP_FOREACH_MESH_END;
 }
 
-static void extract_stretch_angle_finish(const MeshRenderData *UNUSED(mr),
-                                         struct MeshBatchCache *UNUSED(cache),
-                                         void *UNUSED(buf),
-                                         void *data)
+static void extract_edituv_stretch_angle_finish(const MeshRenderData *UNUSED(mr),
+                                                struct MeshBatchCache *UNUSED(cache),
+                                                void *UNUSED(buf),
+                                                void *data)
 {
   MEM_freeN(data);
 }
 
-static const MeshExtract extract_stretch_angle = {
-    .init = extract_stretch_angle_init,
-    .iter_poly_bm = extract_stretch_angle_iter_poly_bm,
-    .iter_poly_mesh = extract_stretch_angle_iter_poly_mesh,
-    .finish = extract_stretch_angle_finish,
+static const MeshExtract extract_edituv_stretch_angle = {
+    .init = extract_edituv_stretch_angle_init,
+    .iter_poly_bm = extract_edituv_stretch_angle_iter_poly_bm,
+    .iter_poly_mesh = extract_edituv_stretch_angle_iter_poly_mesh,
+    .finish = extract_edituv_stretch_angle_finish,
     .data_flag = 0,
     .use_threading = false,
 };
@@ -5984,8 +5976,8 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   TEST_ASSIGN(VBO, vbo, weights);
   TEST_ASSIGN(VBO, vbo, edit_data);
   TEST_ASSIGN(VBO, vbo, edituv_data);
-  TEST_ASSIGN(VBO, vbo, stretch_area);
-  TEST_ASSIGN(VBO, vbo, stretch_angle);
+  TEST_ASSIGN(VBO, vbo, edituv_stretch_area);
+  TEST_ASSIGN(VBO, vbo, edituv_stretch_angle);
   TEST_ASSIGN(VBO, vbo, mesh_analysis);
   TEST_ASSIGN(VBO, vbo, fdots_pos);
   TEST_ASSIGN(VBO, vbo, fdots_nor);
@@ -6078,8 +6070,8 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   EXTRACT(vbo, weights);
   EXTRACT(vbo, edit_data);
   EXTRACT(vbo, edituv_data);
-  EXTRACT(vbo, stretch_area);
-  EXTRACT(vbo, stretch_angle);
+  EXTRACT(vbo, edituv_stretch_area);
+  EXTRACT(vbo, edituv_stretch_angle);
   EXTRACT(vbo, mesh_analysis);
   EXTRACT(vbo, fdots_pos);
   EXTRACT(vbo, fdots_nor);

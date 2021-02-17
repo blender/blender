@@ -284,6 +284,10 @@ if(WITH_NANOVDB)
   endif()
 endif()
 
+if(WITH_CPU_SIMD)
+  find_package_wrapper(sse2neon)
+endif()
+
 if(WITH_ALEMBIC)
   find_package_wrapper(Alembic)
 

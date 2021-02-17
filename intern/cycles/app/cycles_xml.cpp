@@ -564,19 +564,19 @@ static void xml_read_transform(xml_node node, Transform &tfm)
   }
 
   if (node.attribute("translate")) {
-    float3 translate = make_float3(0.0f, 0.0f, 0.0f);
+    float3 translate = zero_float3();
     xml_read_float3(&translate, node, "translate");
     tfm = tfm * transform_translate(translate);
   }
 
   if (node.attribute("rotate")) {
-    float4 rotate = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float4 rotate = zero_float4();
     xml_read_float4(&rotate, node, "rotate");
     tfm = tfm * transform_rotate(DEG2RADF(rotate.x), make_float3(rotate.y, rotate.z, rotate.w));
   }
 
   if (node.attribute("scale")) {
-    float3 scale = make_float3(0.0f, 0.0f, 0.0f);
+    float3 scale = zero_float3();
     xml_read_float3(&scale, node, "scale");
     tfm = tfm * transform_scale(scale);
   }

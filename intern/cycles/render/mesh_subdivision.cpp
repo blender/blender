@@ -341,9 +341,9 @@ struct OsdPatch : Patch {
 
     float3 du, dv;
     if (P)
-      *P = make_float3(0.0f, 0.0f, 0.0f);
-    du = make_float3(0.0f, 0.0f, 0.0f);
-    dv = make_float3(0.0f, 0.0f, 0.0f);
+      *P = zero_float3();
+    du = zero_float3();
+    dv = zero_float3();
 
     for (int i = 0; i < cv.size(); i++) {
       float3 p = osd_data->verts[cv[i]].value;
@@ -484,8 +484,8 @@ void Mesh::tessellate(DiagSplit *split)
       }
       else {
         /* ngon */
-        float3 center_vert = make_float3(0.0f, 0.0f, 0.0f);
-        float3 center_normal = make_float3(0.0f, 0.0f, 0.0f);
+        float3 center_vert = zero_float3();
+        float3 center_normal = zero_float3();
 
         float inv_num_corners = 1.0f / float(face.num_corners);
         for (int corner = 0; corner < face.num_corners; corner++) {
@@ -613,7 +613,7 @@ void Mesh::tessellate(DiagSplit *split)
             uchar *center = (uchar *)data + (subd_face_corners.size() + ngons) * stride;
 
             float inv_num_corners = 1.0f / float(face.num_corners);
-            float4 val = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+            float4 val = zero_float4();
 
             for (int corner = 0; corner < face.num_corners; corner++) {
               for (int i = 0; i < 4; i++) {

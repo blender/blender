@@ -68,9 +68,9 @@ class Subpatch {
 
   explicit Subpatch(Patch *patch = nullptr)
       : patch(patch),
-        c00(make_float2(0.0f, 0.0f)),
+        c00(zero_float2()),
         c01(make_float2(0.0f, 1.0f)),
-        c11(make_float2(1.0f, 1.0f)),
+        c11(one_float2()),
         c10(make_float2(1.0f, 0.0f))
   {
   }

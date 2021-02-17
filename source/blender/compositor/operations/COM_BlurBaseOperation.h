@@ -23,16 +23,14 @@
 
 #define MAX_GAUSSTAB_RADIUS 30000
 
-#ifdef __SSE2__
-#  include <emmintrin.h>
-#endif
+#include "BLI_simd.h"
 
 class BlurBaseOperation : public NodeOperation, public QualityStepHelper {
  private:
  protected:
   BlurBaseOperation(DataType data_type);
   float *make_gausstab(float rad, int size);
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   __m128 *convert_gausstab_sse(const float *gausstab, int size);
 #endif
   float *make_dist_fac_inverse(float rad, int size, int falloff);

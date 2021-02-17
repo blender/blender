@@ -186,6 +186,12 @@ ccl_device_inline Transform make_transform_frame(float3 N)
 
 #ifndef __KERNEL_GPU__
 
+ccl_device_inline Transform transform_zero()
+{
+  Transform zero = {zero_float4(), zero_float4(), zero_float4()};
+  return zero;
+}
+
 ccl_device_inline Transform operator*(const Transform a, const Transform b)
 {
   float4 c_x = make_float4(b.x.x, b.y.x, b.z.x, 0.0f);

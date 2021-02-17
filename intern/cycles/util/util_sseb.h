@@ -197,9 +197,14 @@ __forceinline const sseb unpackhi(const sseb &a, const sseb &b)
 template<size_t i0, size_t i1, size_t i2, size_t i3>
 __forceinline const sseb shuffle(const sseb &a)
 {
+#  ifdef __KERNEL_NEON__
+  return shuffle_neon<int32x4_t, i0, i1, i2, i3>(a);
+#  else
   return _mm_castsi128_ps(_mm_shuffle_epi32(a, _MM_SHUFFLE(i3, i2, i1, i0)));
+#  endif
 }
 
+#  ifndef __KERNEL_NEON__
 template<> __forceinline const sseb shuffle<0, 1, 0, 1>(const sseb &a)
 {
   return _mm_movelh_ps(a, a);
@@ -209,13 +214,19 @@ template<> __forceinline const sseb shuffle<2, 3, 2, 3>(const sseb &a)
 {
   return _mm_movehl_ps(a, a);
 }
+#  endif
 
 template<size_t i0, size_t i1, size_t i2, size_t i3>
 __forceinline const sseb shuffle(const sseb &a, const sseb &b)
 {
+#  ifdef __KERNEL_NEON__
+  return shuffle_neon<int32x4_t, i0, i1, i2, i3>(a, b);
+#  else
   return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0));
+#  endif
 }
 
+#  ifndef __KERNEL_NEON__
 template<> __forceinline const sseb shuffle<0, 1, 0, 1>(const sseb &a, const sseb &b)
 {
   return _mm_movelh_ps(a, b);
@@ -225,8 +236,9 @@ template<> __forceinline const sseb shuffle<2, 3, 2, 3>(const sseb &a, const sse
 {
   return _mm_movehl_ps(b, a);
 }
+#  endif
 
-#  if defined(__KERNEL_SSE3__)
+#  if defined(__KERNEL_SSE3__) && !defined(__KERNEL_NEON__)
 template<> __forceinline const sseb shuffle<0, 0, 2, 2>(const sseb &a)
 {
   return _mm_moveldup_ps(a);
@@ -241,7 +253,16 @@ template<> __forceinline const sseb shuffle<1, 1, 3, 3>(const sseb &a)
 template<size_t dst, size_t src, size_t clr>
 __forceinline const sseb insert(const sseb &a, const sseb &b)
 {
+#    ifdef __KERNEL_NEON__
+  sseb res = a;
+  if (clr)
+    res[dst] = 0;
+  else
+    res[dst] = b[src];
+  return res;
+#    else
   return _mm_insert_ps(a, b, (dst << 4) | (src << 6) | clr);
+#    endif
 }
 template<size_t dst, size_t src> __forceinline const sseb insert(const sseb &a, const sseb &b)
 {
@@ -258,12 +279,18 @@ template<size_t dst> __forceinline const sseb insert(const sseb &a, const bool b
 ////////////////////////////////////////////////////////////////////////////////
 
 #  if defined(__KERNEL_SSE41__)
-__forceinline size_t popcnt(const sseb &a)
+__forceinline uint32_t popcnt(const sseb &a)
 {
-  return __popcnt(_mm_movemask_ps(a));
+#    if defined(__KERNEL_NEON__)
+  const int32x4_t mask = {1, 1, 1, 1};
+  int32x4_t t = vandq_s32(a.m128, mask);
+  return vaddvq_s32(t);
+#    else
+  return _mm_popcnt_u32(_mm_movemask_ps(a));
+#    endif
 }
 #  else
-__forceinline size_t popcnt(const sseb &a)
+__forceinline uint32_t popcnt(const sseb &a)
 {
   return bool(a[0]) + bool(a[1]) + bool(a[2]) + bool(a[3]);
 }
@@ -271,26 +298,46 @@ __forceinline size_t popcnt(const sseb &a)
 
 __forceinline bool reduce_and(const sseb &a)
 {
+#  if defined(__KERNEL_NEON__)
+  return vaddvq_s32(a.m128) == -4;
+#  else
   return _mm_movemask_ps(a) == 0xf;
+#  endif
 }
 __forceinline bool reduce_or(const sseb &a)
 {
+#  if defined(__KERNEL_NEON__)
+  return vaddvq_s32(a.m128) != 0x0;
+#  else
   return _mm_movemask_ps(a) != 0x0;
+#  endif
 }
 __forceinline bool all(const sseb &b)
 {
+#  if defined(__KERNEL_NEON__)
+  return vaddvq_s32(b.m128) == -4;
+#  else
   return _mm_movemask_ps(b) == 0xf;
+#  endif
 }
 __forceinline bool any(const sseb &b)
 {
+#  if defined(__KERNEL_NEON__)
+  return vaddvq_s32(b.m128) != 0x0;
+#  else
   return _mm_movemask_ps(b) != 0x0;
+#  endif
 }
 __forceinline bool none(const sseb &b)
 {
+#  if defined(__KERNEL_NEON__)
+  return vaddvq_s32(b.m128) == 0x0;
+#  else
   return _mm_movemask_ps(b) == 0x0;
+#  endif
 }
 
-__forceinline size_t movemask(const sseb &a)
+__forceinline uint32_t movemask(const sseb &a)
 {
   return _mm_movemask_ps(a);
 }

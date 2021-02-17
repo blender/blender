@@ -360,7 +360,7 @@ void BVHBuild::add_references(BVHRange &root)
 
   /* happens mostly on empty meshes */
   if (!bounds.valid())
-    bounds.grow(make_float3(0.0f, 0.0f, 0.0f));
+    bounds.grow(zero_float3());
 
   root = BVHRange(bounds, center, 0, references.size());
 }
@@ -851,7 +851,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
   for (int i = 0; i < range.size(); i++) {
     const BVHReference &ref = references[range.start() + i];
     if (ref.prim_index() != -1) {
-      int type_index = bitscan(ref.prim_type() & PRIMITIVE_ALL);
+      uint32_t type_index = bitscan((uint32_t)(ref.prim_type() & PRIMITIVE_ALL));
       p_ref[type_index].push_back(ref);
       p_type[type_index].push_back(ref.prim_type());
       p_index[type_index].push_back(ref.prim_index());

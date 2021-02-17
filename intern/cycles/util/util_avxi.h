@@ -711,21 +711,21 @@ __forceinline int reduce_add(const avxi &v)
   return extract<0>(extract<0>(vreduce_add(v)));
 }
 
-__forceinline size_t select_min(const avxi &v)
+__forceinline uint32_t select_min(const avxi &v)
 {
   return __bsf(movemask(v == vreduce_min(v)));
 }
-__forceinline size_t select_max(const avxi &v)
+__forceinline uint32_t select_max(const avxi &v)
 {
   return __bsf(movemask(v == vreduce_max(v)));
 }
 
-__forceinline size_t select_min(const avxb &valid, const avxi &v)
+__forceinline uint32_t select_min(const avxb &valid, const avxi &v)
 {
   const avxi a = select(valid, v, avxi(pos_inf));
   return __bsf(movemask(valid & (a == vreduce_min(a))));
 }
-__forceinline size_t select_max(const avxb &valid, const avxi &v)
+__forceinline uint32_t select_max(const avxb &valid, const avxi &v)
 {
   const avxi a = select(valid, v, avxi(neg_inf));
   return __bsf(movemask(valid & (a == vreduce_max(a))));

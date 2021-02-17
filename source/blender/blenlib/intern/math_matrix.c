@@ -277,7 +277,7 @@ void mul_m4_m4m4_uniq(float R[4][4], const float A[4][4], const float B[4][4])
   BLI_assert(!ELEM(R, A, B));
 
   /* matrix product: R[j][k] = A[j][i] . B[i][k] */
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   __m128 A0 = _mm_loadu_ps(A[0]);
   __m128 A1 = _mm_loadu_ps(A[1]);
   __m128 A2 = _mm_loadu_ps(A[2]);

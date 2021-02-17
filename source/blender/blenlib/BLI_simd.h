@@ -12,35 +12,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
  */
 
-#include "COM_ChunkOrder.h"
-#include "BLI_math.h"
+#pragma once
 
-ChunkOrder::ChunkOrder()
-{
-  distance = 0.0;
-  number = 0;
-  x = 0;
-  y = 0;
-}
+/** \file
+ * \ingroup bli
+ *
+ * SIMD instruction support.
+ */
 
-void ChunkOrder::update_distance(ChunkOrderHotspot **hotspots, unsigned int len_hotspots)
-{
-  double new_distance = FLT_MAX;
-  for (int index = 0; index < len_hotspots; index++) {
-    ChunkOrderHotspot *hotspot = hotspots[index];
-    double distance_to_hotspot = hotspot->calc_distance(x, y);
-    if (distance_to_hotspot < new_distance) {
-      new_distance = distance_to_hotspot;
-    }
-  }
-  this->distance = new_distance;
-}
-
-bool operator<(const ChunkOrder &a, const ChunkOrder &b)
-{
-  return a.distance < b.distance;
-}
+#if defined(__ARM_NEON) && defined(WITH_SSE2NEON)
+/* SSE/SSE2 emulation on ARM Neon. Match SSE precision. */
+#  define SSE2NEON_PRECISE_MINMAX 1
+#  define SSE2NEON_PRECISE_DIV 1
+#  define SSE2NEON_PRECISE_SQRT 1
+#  include <sse2neon.h>
+#  define BLI_HAVE_SSE2
+#elif defined(__SSE2__)
+/* Native SSE2 on Intel/AMD. */
+#  include <emmintrin.h>
+#  define BLI_HAVE_SSE2
+#endif

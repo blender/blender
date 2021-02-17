@@ -321,8 +321,11 @@ if(WITH_OPENVDB)
 endif()
 
 if(WITH_NANOVDB)
-  set(NANOVDB ${LIBDIR}/nanovdb)
-  set(NANOVDB_INCLUDE_DIR ${NANOVDB}/include)
+  find_package(NanoVDB)
+endif()
+
+if(WITH_CPU_SIMD)
+  find_package(sse2neon)
 endif()
 
 if(WITH_LLVM)

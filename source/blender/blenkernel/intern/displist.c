@@ -292,6 +292,7 @@ bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, i
 /* ICC with the optimization -02 causes crashes. */
 #  pragma intel optimization_level 1
 #endif
+
 static void curve_to_displist(const Curve *cu,
                               const ListBase *nubase,
                               const bool for_render,
@@ -420,9 +421,10 @@ static void curve_to_displist(const Curve *cu,
       dl->charidx = nu->charidx;
       dl->type = (is_cyclic && (dl->nr != 2)) ? DL_POLY : DL_SEGM;
 
+      float(*coords)[3] = (float(*)[3])dl->verts;
       for (int i = 0; i < len; i++) {
         const BPoint *bp = &nu->bp[i];
-        copy_v3_v3(&dl->verts[i], bp->vec);
+        copy_v3_v3(coords[i], bp->vec);
       }
     }
   }

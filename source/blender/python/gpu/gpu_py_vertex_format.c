@@ -50,7 +50,7 @@
  * Use with PyArg_ParseTuple's "O&" formatting.
  * \{ */
 
-static int py_parse_component_type(const char *str, int length)
+static int pygpu_vertformat_parse_component_type(const char *str, int length)
 {
   if (length == 2) {
     switch (*((ushort *)str)) {
@@ -83,7 +83,7 @@ static int py_parse_component_type(const char *str, int length)
   return -1;
 }
 
-static int py_parse_fetch_mode(const char *str, int length)
+static int pygpu_vertformat_parse_fetch_mode(const char *str, int length)
 {
 #define MATCH_ID(id) \
   if (length == strlen(STRINGIFY(id))) { \
@@ -102,7 +102,7 @@ static int py_parse_fetch_mode(const char *str, int length)
   return -1;
 }
 
-static int py_ParseVertCompType(PyObject *o, void *p)
+static int pygpu_ParseVertCompType(PyObject *o, void *p)
 {
   Py_ssize_t length;
   const char *str = PyUnicode_AsUTF8AndSize(o, &length);
@@ -112,7 +112,7 @@ static int py_ParseVertCompType(PyObject *o, void *p)
     return 0;
   }
 
-  const int comp_type = py_parse_component_type(str, length);
+  const int comp_type = pygpu_vertformat_parse_component_type(str, length);
   if (comp_type == -1) {
     PyErr_Format(PyExc_ValueError, "unknown component type: '%s", str);
     return 0;
@@ -122,7 +122,7 @@ static int py_ParseVertCompType(PyObject *o, void *p)
   return 1;
 }
 
-static int py_ParseVertFetchMode(PyObject *o, void *p)
+static int pygpu_ParseVertFetchMode(PyObject *o, void *p)
 {
   Py_ssize_t length;
   const char *str = PyUnicode_AsUTF8AndSize(o, &length);
@@ -132,7 +132,7 @@ static int py_ParseVertFetchMode(PyObject *o, void *p)
     return 0;
   }
 
-  const int fetch_mode = py_parse_fetch_mode(str, length);
+  const int fetch_mode = pygpu_vertformat_parse_fetch_mode(str, length);
   if (fetch_mode == -1) {
     PyErr_Format(PyExc_ValueError, "unknown type literal: '%s'", str);
     return 0;
@@ -148,7 +148,9 @@ static int py_ParseVertFetchMode(PyObject *o, void *p)
 /** \name VertFormat Type
  * \{ */
 
-static PyObject *py_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *pygpu_vertformat__tp_new(PyTypeObject *UNUSED(type),
+                                          PyObject *args,
+                                          PyObject *kwds)
 {
   if (PyTuple_GET_SIZE(args) || (kwds && PyDict_Size(kwds))) {
     PyErr_SetString(PyExc_ValueError, "This function takes no arguments");
@@ -158,7 +160,7 @@ static PyObject *py_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, P
 }
 
 PyDoc_STRVAR(
-    py_VertFormat_attr_add_doc,
+    pygpu_vertformat_attr_add_doc,
     ".. method:: attr_add(id, comp_type, len, fetch_mode)\n"
     "\n"
     "   Add a new attribute to the format.\n"
@@ -177,7 +179,7 @@ PyDoc_STRVAR(
     "      converted to a normal 4 byte float when used.\n"
     "      Possible values are `FLOAT`, `INT`, `INT_TO_FLOAT_UNIT` and `INT_TO_FLOAT`.\n"
     "   :type fetch_mode: `str`\n");
-static PyObject *py_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
+static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
 {
   struct {
     const char *id;
@@ -197,10 +199,10 @@ static PyObject *py_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *args, 
                                         kwds,
                                         &_parser,
                                         &params.id,
-                                        py_ParseVertCompType,
+                                        pygpu_ParseVertCompType,
                                         &params.comp_type,
                                         &params.len,
-                                        py_ParseVertFetchMode,
+                                        pygpu_ParseVertFetchMode,
                                         &params.fetch_mode)) {
     return NULL;
   }
@@ -210,31 +212,31 @@ static PyObject *py_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *args, 
   return PyLong_FromLong(attr_id);
 }
 
-static struct PyMethodDef py_VertFormat_methods[] = {
+static struct PyMethodDef pygpu_vertformat__tp_methods[] = {
     {"attr_add",
-     (PyCFunction)py_VertFormat_attr_add,
+     (PyCFunction)pygpu_vertformat_attr_add,
      METH_VARARGS | METH_KEYWORDS,
-     py_VertFormat_attr_add_doc},
+     pygpu_vertformat_attr_add_doc},
     {NULL, NULL, 0, NULL},
 };
 
-static void py_VertFormat_dealloc(BPyGPUVertFormat *self)
+static void pygpu_vertformat__tp_dealloc(BPyGPUVertFormat *self)
 {
   Py_TYPE(self)->tp_free(self);
 }
 
-PyDoc_STRVAR(py_VertFormat_doc,
+PyDoc_STRVAR(pygpu_vertformat__tp_doc,
              ".. class:: GPUVertFormat()\n"
              "\n"
              "   This object contains information about the structure of a vertex buffer.\n");
 PyTypeObject BPyGPUVertFormat_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUVertFormat",
     .tp_basicsize = sizeof(BPyGPUVertFormat),
-    .tp_dealloc = (destructor)py_VertFormat_dealloc,
+    .tp_dealloc = (destructor)pygpu_vertformat__tp_dealloc,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_doc = py_VertFormat_doc,
-    .tp_methods = py_VertFormat_methods,
-    .tp_new = py_VertFormat_new,
+    .tp_doc = pygpu_vertformat__tp_doc,
+    .tp_methods = pygpu_vertformat__tp_methods,
+    .tp_new = pygpu_vertformat__tp_new,
 };
 
 /** \} */

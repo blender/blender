@@ -26,7 +26,7 @@
 GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
   this->m_gausstab = nullptr;
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   this->m_gausstab_sse = nullptr;
 #endif
   this->m_filtersize = 0;
@@ -55,7 +55,7 @@ void GaussianXBlurOperation::initExecution()
 
     /* TODO(sergey): De-duplicate with the case below and Y blur. */
     this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
     this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab, m_filtersize);
 #endif
   }
@@ -70,7 +70,7 @@ void GaussianXBlurOperation::updateGauss()
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
     this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
     this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab, m_filtersize);
 #endif
   }
@@ -95,7 +95,7 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
   int offsetadd = getOffsetAdd();
   int bufferindex = ((xmin - bufferstartx) * 4) + ((ymin - bufferstarty) * 4 * bufferwidth);
 
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   __m128 accum_r = _mm_load_ps(color_accum);
   for (int nx = xmin, index = (xmin - x) + this->m_filtersize; nx < xmax;
        nx += step, index += step) {
@@ -162,7 +162,7 @@ void GaussianXBlurOperation::deinitExecution()
     MEM_freeN(this->m_gausstab);
     this->m_gausstab = nullptr;
   }
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   if (this->m_gausstab_sse) {
     MEM_freeN(this->m_gausstab_sse);
     this->m_gausstab_sse = nullptr;
