@@ -39,7 +39,7 @@
 /** \name IndexBuf Type
  * \{ */
 
-static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
@@ -175,13 +175,13 @@ static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyO
   return BPyGPUIndexBuf_CreatePyObject(GPU_indexbuf_build(&builder));
 }
 
-static void py_IndexBuf_dealloc(BPyGPUIndexBuf *self)
+static void pygpu_IndexBuf__tp_dealloc(BPyGPUIndexBuf *self)
 {
   GPU_indexbuf_discard(self->elem);
   Py_TYPE(self)->tp_free(self);
 }
 
-PyDoc_STRVAR(py_gpu_element_doc,
+PyDoc_STRVAR(pygpu_IndexBuf__tp_doc,
              ".. class:: GPUIndexBuf(type, seq)\n"
              "\n"
              "   Contains an index buffer.\n"
@@ -199,10 +199,10 @@ PyDoc_STRVAR(py_gpu_element_doc,
 PyTypeObject BPyGPUIndexBuf_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUIndexBuf",
     .tp_basicsize = sizeof(BPyGPUIndexBuf),
-    .tp_dealloc = (destructor)py_IndexBuf_dealloc,
+    .tp_dealloc = (destructor)pygpu_IndexBuf__tp_dealloc,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_doc = py_gpu_element_doc,
-    .tp_new = py_IndexBuf_new,
+    .tp_doc = pygpu_IndexBuf__tp_doc,
+    .tp_new = pygpu_IndexBuf__tp_new,
 };
 
 /** \} */

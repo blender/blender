@@ -48,7 +48,7 @@
 /** \name Utility Functions
  * \{ */
 
-static bool py_batch_is_program_or_error(BPyGPUBatch *self)
+static bool pygpu_batch_is_program_or_error(BPyGPUBatch *self)
 {
   if (!self->batch->shader) {
     PyErr_SetString(PyExc_RuntimeError, "batch does not have any program assigned to it");
@@ -63,7 +63,7 @@ static bool py_batch_is_program_or_error(BPyGPUBatch *self)
 /** \name GPUBatch Type
  * \{ */
 
-static PyObject *py_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *pygpu_batch__tp_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
@@ -121,7 +121,7 @@ static PyObject *py_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObje
   return (PyObject *)ret;
 }
 
-PyDoc_STRVAR(py_Batch_vertbuf_add_doc,
+PyDoc_STRVAR(pygpu_batch_vertbuf_add_doc,
 ".. method:: vertbuf_add(buf)\n"
 "\n"
 "   Add another vertex buffer to the Batch.\n"
@@ -134,7 +134,7 @@ PyDoc_STRVAR(py_Batch_vertbuf_add_doc,
 "   :param buf: The vertex buffer that will be added to the batch.\n"
 "   :type buf: :class:`gpu.types.GPUVertBuf`\n"
 );
-static PyObject *py_Batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_buf)
+static PyObject *pygpu_batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_buf)
 {
   if (!BPyGPUVertBuf_Check(py_buf)) {
     PyErr_Format(PyExc_TypeError, "Expected a GPUVertBuf, got %s", Py_TYPE(py_buf)->tp_name);
@@ -167,7 +167,7 @@ static PyObject *py_Batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_buf)
 }
 
 PyDoc_STRVAR(
-    py_Batch_program_set_doc,
+    pygpu_batch_program_set_doc,
     ".. method:: program_set(program)\n"
     "\n"
     "   Assign a shader to this batch that will be used for drawing when not overwritten later.\n"
@@ -177,7 +177,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param program: The program/shader the batch will use in future draw calls.\n"
     "   :type program: :class:`gpu.types.GPUShader`\n");
-static PyObject *py_Batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_shader)
+static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_shader)
 {
   if (!BPyGPUShader_Check(py_shader)) {
     PyErr_Format(PyExc_TypeError, "Expected a GPUShader, got %s", Py_TYPE(py_shader)->tp_name);
@@ -208,7 +208,7 @@ static PyObject *py_Batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_shader
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(py_Batch_draw_doc,
+PyDoc_STRVAR(pygpu_batch_draw_doc,
              ".. method:: draw(program=None)\n"
              "\n"
              "   Run the drawing program with the parameters assigned to the batch.\n"
@@ -216,7 +216,7 @@ PyDoc_STRVAR(py_Batch_draw_doc,
              "   :param program: Program that performs the drawing operations.\n"
              "      If ``None`` is passed, the last program set to this batch will run.\n"
              "   :type program: :class:`gpu.types.GPUShader`\n");
-static PyObject *py_Batch_draw(BPyGPUBatch *self, PyObject *args)
+static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
 {
   BPyGPUShader *py_program = NULL;
 
@@ -224,7 +224,7 @@ static PyObject *py_Batch_draw(BPyGPUBatch *self, PyObject *args)
     return NULL;
   }
   if (py_program == NULL) {
-    if (!py_batch_is_program_or_error(self)) {
+    if (!pygpu_batch_is_program_or_error(self)) {
       return NULL;
     }
   }
@@ -236,42 +236,42 @@ static PyObject *py_Batch_draw(BPyGPUBatch *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-static PyObject *py_Batch_program_use_begin(BPyGPUBatch *self)
+static PyObject *pygpu_batch_program_use_begin(BPyGPUBatch *self)
 {
-  if (!py_batch_is_program_or_error(self)) {
+  if (!pygpu_batch_is_program_or_error(self)) {
     return NULL;
   }
   GPU_shader_bind(self->batch->shader);
   Py_RETURN_NONE;
 }
 
-static PyObject *py_Batch_program_use_end(BPyGPUBatch *self)
+static PyObject *pygpu_batch_program_use_end(BPyGPUBatch *self)
 {
-  if (!py_batch_is_program_or_error(self)) {
+  if (!pygpu_batch_is_program_or_error(self)) {
     return NULL;
   }
   GPU_shader_unbind();
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef py_Batch_methods[] = {
-    {"vertbuf_add", (PyCFunction)py_Batch_vertbuf_add, METH_O, py_Batch_vertbuf_add_doc},
-    {"program_set", (PyCFunction)py_Batch_program_set, METH_O, py_Batch_program_set_doc},
-    {"draw", (PyCFunction)py_Batch_draw, METH_VARARGS, py_Batch_draw_doc},
-    {"_program_use_begin", (PyCFunction)py_Batch_program_use_begin, METH_NOARGS, ""},
-    {"_program_use_end", (PyCFunction)py_Batch_program_use_end, METH_NOARGS, ""},
+static struct PyMethodDef pygpu_batch__tp_methods[] = {
+    {"vertbuf_add", (PyCFunction)pygpu_batch_vertbuf_add, METH_O, pygpu_batch_vertbuf_add_doc},
+    {"program_set", (PyCFunction)pygpu_batch_program_set, METH_O, pygpu_batch_program_set_doc},
+    {"draw", (PyCFunction)pygpu_batch_draw, METH_VARARGS, pygpu_batch_draw_doc},
+    {"_program_use_begin", (PyCFunction)pygpu_batch_program_use_begin, METH_NOARGS, ""},
+    {"_program_use_end", (PyCFunction)pygpu_batch_program_use_end, METH_NOARGS, ""},
     {NULL, NULL, 0, NULL},
 };
 
 #ifdef USE_GPU_PY_REFERENCES
 
-static int py_Batch_traverse(BPyGPUBatch *self, visitproc visit, void *arg)
+static int pygpu_batch__tp_traverse(BPyGPUBatch *self, visitproc visit, void *arg)
 {
   Py_VISIT(self->references);
   return 0;
 }
 
-static int py_Batch_clear(BPyGPUBatch *self)
+static int pygpu_batch__tp_clear(BPyGPUBatch *self)
 {
   Py_CLEAR(self->references);
   return 0;
@@ -279,14 +279,14 @@ static int py_Batch_clear(BPyGPUBatch *self)
 
 #endif
 
-static void py_Batch_dealloc(BPyGPUBatch *self)
+static void pygpu_batch__tp_dealloc(BPyGPUBatch *self)
 {
   GPU_batch_discard(self->batch);
 
 #ifdef USE_GPU_PY_REFERENCES
   if (self->references) {
     PyObject_GC_UnTrack(self);
-    py_Batch_clear(self);
+    pygpu_batch__tp_clear(self);
     Py_XDECREF(self->references);
   }
 #endif
@@ -295,7 +295,7 @@ static void py_Batch_dealloc(BPyGPUBatch *self)
 }
 
 PyDoc_STRVAR(
-    py_gpu_batch_doc,
+    pygpu_batch__tp_doc,
     ".. class:: GPUBatch(type, buf, elem=None)\n"
     "\n"
     "   Reusable container for drawable geometry.\n"
@@ -319,17 +319,17 @@ PyDoc_STRVAR(
 PyTypeObject BPyGPUBatch_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUBatch",
     .tp_basicsize = sizeof(BPyGPUBatch),
-    .tp_dealloc = (destructor)py_Batch_dealloc,
+    .tp_dealloc = (destructor)pygpu_batch__tp_dealloc,
 #ifdef USE_GPU_PY_REFERENCES
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    .tp_doc = py_gpu_batch_doc,
-    .tp_traverse = (traverseproc)py_Batch_traverse,
-    .tp_clear = (inquiry)py_Batch_clear,
+    .tp_doc = pygpu_batch__tp_doc,
+    .tp_traverse = (traverseproc)pygpu_batch__tp_traverse,
+    .tp_clear = (inquiry)pygpu_batch__tp_clear,
 #else
     .tp_flags = Py_TPFLAGS_DEFAULT,
 #endif
-    .tp_methods = py_Batch_methods,
-    .tp_new = py_Batch_new,
+    .tp_methods = pygpu_batch__tp_methods,
+    .tp_new = pygpu_batch__tp_new,
 };
 
 /** \} */
