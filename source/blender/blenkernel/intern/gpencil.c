@@ -2605,7 +2605,7 @@ void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
       sta_gpf = end_gpf = NULL;
       /* Check the whole range and tag the editable frames. */
       LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-        if (gpf == act_gpf || (gpf->flag & GP_FRAME_SELECT)) {
+        if (act_gpf != NULL && (gpf == act_gpf || (gpf->flag & GP_FRAME_SELECT))) {
           gpf->runtime.onion_id = 0;
           if (do_onion) {
             if (gpf->framenum < act_gpf->framenum) {

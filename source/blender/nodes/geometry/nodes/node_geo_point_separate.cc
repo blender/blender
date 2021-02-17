@@ -178,7 +178,7 @@ static void geo_node_point_separate_exec(GeoNodeExecParams params)
   GeometrySet out_set_a(geometry_set);
   GeometrySet out_set_b;
 
-  /* TODO: This is not necessary-- the input goemetry set can be read only,
+  /* TODO: This is not necessary-- the input geometry set can be read only,
    * but it must be rewritten to handle instance groups. */
   geometry_set = geometry_set_realize_instances(geometry_set);
 

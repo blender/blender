@@ -756,7 +756,7 @@ bool ED_buttons_should_sync_with_outliner(const bContext *C,
   ScrArea *active_area = CTX_wm_area(C);
   const bool auto_sync = ED_area_has_shared_border(active_area, area) &&
                          sbuts->outliner_sync == PROPERTIES_SYNC_AUTO;
-  return auto_sync || sbuts->outliner_sync == PROPERTIES_SYNC_ON;
+  return auto_sync || sbuts->outliner_sync == PROPERTIES_SYNC_ALWAYS;
 }
 
 void ED_buttons_set_context(const bContext *C,

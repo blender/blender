@@ -4805,13 +4805,21 @@ static void rna_def_space_properties(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem tab_sync_items[] = {
-      {PROPERTIES_SYNC_ON, "ON", 0, "On", "Always sync from outliner editors to this editor"},
-      {PROPERTIES_SYNC_OFF, "OFF", 0, "Off", "Never sync from outliner editors to this editor"},
+      {PROPERTIES_SYNC_ALWAYS,
+       "ALWAYS",
+       0,
+       "Always",
+       "Always change tabs when clicking an icon in an outliner"},
+      {PROPERTIES_SYNC_NEVER,
+       "NEVER",
+       0,
+       "Never",
+       "Never change tabs when clicking an icon in an outliner"},
       {PROPERTIES_SYNC_AUTO,
        "AUTO",
        0,
        "Auto",
-       "Sync when this editor shares an edge with an outliner editor"},
+       "Change tabs only when this editor shares a border the outliner"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -4870,7 +4878,9 @@ static void rna_def_space_properties(BlenderRNA *brna)
   prop = RNA_def_property(srna, "outliner_sync", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "outliner_sync");
   RNA_def_property_enum_items(prop, tab_sync_items);
-  RNA_def_property_ui_text(prop, "Outliner Sync", "Sync tabs from outliner datablock selection");
+  RNA_def_property_ui_text(prop,
+                           "Outliner Sync",
+                           "Change to the corresponding tab when outliner data icons are clicked");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, NULL);
 }
 

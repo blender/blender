@@ -20,11 +20,16 @@
 
 #include "BKE_attribute_access.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_geometry_set_instances.hh"
+#include "BKE_node_ui_storage.hh"
 #include "BKE_persistent_data_handle.hh"
 
 #include "DNA_node_types.h"
 
+#include "NOD_derived_node_tree.hh"
+
 struct Depsgraph;
+struct ModifierData;
 
 namespace blender::nodes {
 
@@ -38,6 +43,7 @@ using bke::Float3ReadAttribute;
 using bke::Float3WriteAttribute;
 using bke::FloatReadAttribute;
 using bke::FloatWriteAttribute;
+using bke::geometry_set_realize_instances;
 using bke::Int32ReadAttribute;
 using bke::Int32WriteAttribute;
 using bke::PersistentDataHandleMap;
@@ -53,25 +59,28 @@ using fn::GValueMap;
 
 class GeoNodeExecParams {
  private:
-  const bNode &node_;
+  const DNode &node_;
   GValueMap<StringRef> &input_values_;
   GValueMap<StringRef> &output_values_;
   const PersistentDataHandleMap &handle_map_;
   const Object *self_object_;
+  const ModifierData *modifier_;
   Depsgraph *depsgraph_;
 
  public:
-  GeoNodeExecParams(const bNode &node,
+  GeoNodeExecParams(const DNode &node,
                     GValueMap<StringRef> &input_values,
                     GValueMap<StringRef> &output_values,
                     const PersistentDataHandleMap &handle_map,
                     const Object *self_object,
+                    const ModifierData *modifier,
                     Depsgraph *depsgraph)
       : node_(node),
         input_values_(input_values),
         output_values_(output_values),
         handle_map_(handle_map),
         self_object_(self_object),
+        modifier_(modifier),
         depsgraph_(depsgraph)
   {
   }
@@ -176,7 +185,7 @@ class GeoNodeExecParams {
    */
   const bNode &node() const
   {
-    return node_;
+    return *node_.bnode();
   }
 
   const PersistentDataHandleMap &handle_map() const
@@ -195,8 +204,17 @@ class GeoNodeExecParams {
   }
 
   /**
+   * Add an error message displayed at the top of the node when displaying the node tree,
+   * and potentially elsewhere in Blender.
+   */
+  void error_message_add(const NodeWarningType type, std::string message) const;
+
+  /**
    * Creates a read-only attribute based on node inputs. The method automatically detects which
-   * input with the given name is available.
+   * input socket with the given name is available.
+   *
+   * \note This will add an error message if the string socket is active and
+   * the input attribute does not exist.
    */
   ReadAttributePtr get_input_attribute(const StringRef name,
                                        const GeometryComponent &component,

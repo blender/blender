@@ -2820,8 +2820,14 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
                   ListBase single_lb = {drag, drag};
                   event->customdata = &single_lb;
 
-                  wm_operator_call_internal(
+                  int op_retval = wm_operator_call_internal(
                       C, drop->ot, drop->ptr, NULL, drop->opcontext, false, event);
+                  OPERATOR_RETVAL_CHECK(op_retval);
+
+                  if ((op_retval & OPERATOR_CANCELLED) && drop->cancel) {
+                    drop->cancel(CTX_data_main(C), drag, drop);
+                  }
+
                   action |= WM_HANDLER_BREAK;
 
                   /* Free the drags. */

@@ -682,19 +682,25 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr
   }
 
   /* Add look transform. */
-  const bool use_look = (strlen(look) != 0);
+  bool use_look = (look != nullptr && look[0] != 0);
   if (use_look) {
     const char *look_output = LookTransform::GetLooksResultColorSpace(
         config, config->getCurrentContext(), look);
 
-    LookTransformRcPtr lt = LookTransform::Create();
-    lt->setSrc(input);
-    lt->setDst(look_output);
-    lt->setLooks(look);
-    group->appendTransform(lt);
+    if (look_output != nullptr && look_output[0] != 0) {
+      LookTransformRcPtr lt = LookTransform::Create();
+      lt->setSrc(input);
+      lt->setDst(look_output);
+      lt->setLooks(look);
+      group->appendTransform(lt);
 
-    /* Make further transforms aware of the color space change. */
-    input = look_output;
+      /* Make further transforms aware of the color space change. */
+      input = look_output;
+    }
+    else {
+      /* For empty looks, no output color space is returned. */
+      use_look = false;
+    }
   }
 
   /* Add view and display transform. */

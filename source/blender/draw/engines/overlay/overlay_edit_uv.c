@@ -401,7 +401,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
   /* HACK: When editing objects that share the same mesh we should only draw the
    * first one in the order that is used during uv editing. We can only trust that the first object
    * has the correct batches with the correct selection state. See T83187. */
-  if (pd->edit_uv.do_uv_overlay || pd->edit_uv.do_uv_shadow_overlay) {
+  if ((pd->edit_uv.do_uv_overlay || pd->edit_uv.do_uv_shadow_overlay) &&
+      draw_ctx->obact->type == OB_MESH) {
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
         draw_ctx->view_layer, NULL, &objects_len, draw_ctx->object_mode);

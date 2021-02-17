@@ -517,7 +517,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_viewport_request_redraw();
   }
 
-  /* Record pers matrix for the next frame. */
+  /* Record perspective matrix for the next frame. */
   DRW_view_persmat_get(effects->taa_view, effects->prev_persmat, false);
 
   /* Update double buffer status if render mode. */

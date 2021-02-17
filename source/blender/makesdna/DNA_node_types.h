@@ -43,6 +43,7 @@ struct bNodeLink;
 struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
+struct NodeTreeUIStorage;
 struct uiBlock;
 
 #define NODE_MAXSTR 64
@@ -501,6 +502,8 @@ typedef struct bNodeTree {
   int (*test_break)(void *);
   void (*update_draw)(void *);
   void *tbh, *prh, *sdh, *udh;
+
+  struct NodeTreeUIStorage *ui_storage;
 } bNodeTree;
 
 /* ntree->type, index */

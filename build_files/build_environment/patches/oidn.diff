@@ -1,0 +1,40 @@
+diff -Naur oidn-1.3.0/cmake/FindTBB.cmake external_openimagedenoise/cmake/FindTBB.cmake
+--- oidn-1.3.0/cmake/FindTBB.cmake	2021-02-04 16:20:26 -0700
++++ external_openimagedenoise/cmake/FindTBB.cmake	2021-02-12 09:35:53 -0700
+@@ -332,20 +332,22 @@
+       ${TBB_ROOT}/lib/${TBB_ARCH}/${TBB_VCVER}
+       ${TBB_ROOT}/lib
+     )
+-
+     # On Windows, also search the DLL so that the client may install it.
+     file(GLOB DLL_NAMES
+       ${TBB_ROOT}/bin/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME}.dll
+       ${TBB_ROOT}/bin/${LIB_NAME}.dll
++      ${TBB_ROOT}/lib/${LIB_NAME}.dll
+       ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME}.dll
+       ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME_GLOB1}.dll
+       ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME_GLOB2}.dll
+       ${TBB_ROOT}/../redist/${TBB_ARCH}/tbb/${TBB_VCVER}/${LIB_NAME}.dll
+       ${TBB_ROOT}/../redist/${TBB_ARCH}_win/tbb/${TBB_VCVER}/${LIB_NAME}.dll
+     )
+-    list(GET DLL_NAMES 0 DLL_NAME)
+-    get_filename_component(${BIN_DIR_VAR} "${DLL_NAME}" DIRECTORY)
+-    set(${DLL_VAR} "${DLL_NAME}" CACHE PATH "${COMPONENT_NAME} ${BUILD_CONFIG} dll path")
++    if (DLL_NAMES) 
++        list(GET DLL_NAMES 0 DLL_NAME)
++        get_filename_component(${BIN_DIR_VAR} "${DLL_NAME}" DIRECTORY)
++        set(${DLL_VAR} "${DLL_NAME}" CACHE PATH "${COMPONENT_NAME} ${BUILD_CONFIG} dll path")
++    endif()
+   elseif(APPLE)
+     set(LIB_PATHS ${TBB_ROOT}/lib)
+   else()
+--- external_openimagedenoise/cmake/oidn_ispc.cmake	2021-02-15 17:29:34.000000000 +0100
++++ external_openimagedenoise/cmake/oidn_ispc.cmake2	2021-02-15 17:29:28.000000000 +0100
+@@ -98,7 +98,7 @@
+   elseif(OIDN_ARCH STREQUAL "ARM64")
+     set(ISPC_ARCHITECTURE "aarch64")
+     if(APPLE)
+-      set(ISPC_TARGET_OS "--target-os=ios")
++      set(ISPC_TARGET_OS "--target-os=macos")
+     endif()
+   endif()

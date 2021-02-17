@@ -34,12 +34,17 @@ FIND_PATH(EMBREE_INCLUDE_DIR
     include
 )
 
+IF(NOT (APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")))
+  SET(_embree_SIMD_COMPONENTS
+    embree_sse42
+    embree_avx
+    embree_avx2
+  )
+ENDIF()
 
 SET(_embree_FIND_COMPONENTS
   embree3
-  embree_sse42
-  embree_avx
-  embree_avx2
+  ${_embree_SIMD_COMPONENTS}
   lexers
   math
   simd

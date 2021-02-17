@@ -639,7 +639,7 @@ static void clip_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, 0);
 
-  WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy);
+  WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy, NULL);
 }
 
 static void clip_refresh(const bContext *C, ScrArea *area)

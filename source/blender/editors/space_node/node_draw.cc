@@ -27,6 +27,7 @@
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -34,7 +35,11 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_map.hh"
 #include "BLI_math.h"
+#include "BLI_span.hh"
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
@@ -42,6 +47,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_ui_storage.hh"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 
@@ -74,9 +81,16 @@
 #  include "COM_compositor.h"
 #endif
 
+using blender::Map;
+using blender::Span;
+using blender::StringRef;
+using blender::Vector;
+
+extern "C" {
 /* XXX interface.h */
 extern void ui_draw_dropshadow(
     const rctf *rct, float radius, float aspect, float alpha, int select);
+}
 
 float ED_node_grid_size(void)
 {
@@ -103,13 +117,13 @@ static bNodeTree *node_tree_from_ID(ID *id)
     return ntreeFromID(id);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void ED_node_tag_update_id(ID *id)
 {
   bNodeTree *ntree = node_tree_from_ID(id);
-  if (id == NULL || ntree == NULL) {
+  if (id == nullptr || ntree == nullptr) {
     return;
   }
 
@@ -156,7 +170,7 @@ void ED_node_tag_update_nodetree(Main *bmain, bNodeTree *ntree, bNode *node)
   }
 
   bool do_tag_update = true;
-  if (node != NULL) {
+  if (node != nullptr) {
     if (!node_connected_to_output(bmain, ntree, node)) {
       do_tag_update = false;
     }
@@ -196,10 +210,10 @@ static bool compare_nodes(const bNode *a, const bNode *b)
     }
     /* any selected ancestor moves the node forward */
     if (parent->flag & NODE_ACTIVE) {
-      a_active = 1;
+      a_active = true;
     }
     if (parent->flag & NODE_SELECT) {
-      a_select = 1;
+      a_select = true;
     }
   }
   for (bNode *parent = b->parent; parent; parent = parent->parent) {
@@ -209,10 +223,10 @@ static bool compare_nodes(const bNode *a, const bNode *b)
     }
     /* any selected ancestor moves the node forward */
     if (parent->flag & NODE_ACTIVE) {
-      b_active = 1;
+      b_active = true;
     }
     if (parent->flag & NODE_SELECT) {
-      b_select = 1;
+      b_select = true;
     }
   }
 
@@ -245,7 +259,7 @@ void ED_node_sort(bNodeTree *ntree)
 
   int k = 1;
   while (k < totnodes) {
-    bNode *first_a = ntree->nodes.first;
+    bNode *first_a = (bNode *)ntree->nodes.first;
     bNode *first_b = first_a;
 
     do {
@@ -254,7 +268,7 @@ void ED_node_sort(bNodeTree *ntree)
         first_b = first_b->next;
       }
       /* all batches merged? */
-      if (first_b == NULL) {
+      if (first_b == nullptr) {
         break;
       }
 
@@ -281,7 +295,7 @@ void ED_node_sort(bNodeTree *ntree)
       first_b = node_b;
       for (; b < k; b++) {
         /* all nodes sorted? */
-        if (first_b == NULL) {
+        if (first_b == nullptr) {
           break;
         }
         first_b = first_b->next;
@@ -399,7 +413,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
     UI_block_align_end(node->block);
-    UI_block_layout_resolve(node->block, NULL, &buty);
+    UI_block_layout_resolve(node->block, nullptr, &buty);
 
     /* ensure minimum socket height in case layout is empty */
     buty = min_ii(buty, dy - NODE_DY);
@@ -488,7 +502,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     node->typeinfo->draw_buttons(layout, (bContext *)C, &nodeptr);
 
     UI_block_align_end(node->block);
-    UI_block_layout_resolve(node->block, NULL, &buty);
+    UI_block_layout_resolve(node->block, nullptr, &buty);
 
     dy = buty - NODE_DYS / 2;
   }
@@ -536,7 +550,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
     UI_block_align_end(node->block);
-    UI_block_layout_resolve(node->block, NULL, &buty);
+    UI_block_layout_resolve(node->block, nullptr, &buty);
 
     /* ensure minimum socket height in case layout is empty */
     buty = min_ii(buty, dy - NODE_DY);
@@ -773,15 +787,15 @@ static void node_socket_draw_multi_input(const float color[4],
   const float outline_width = 1.0f;
   /* UI_draw_roundbox draws the outline on the outer side, so compensate for the outline width. */
   const rctf rect = {
-      .xmin = locx - width + outline_width * 0.5f,
-      .xmax = locx + width - outline_width * 0.5f,
-      .ymin = locy - height + outline_width * 0.5f,
-      .ymax = locy + height - outline_width * 0.5f,
+      locx - width + outline_width * 0.5f,
+      locx + width - outline_width * 0.5f,
+      locy - height + outline_width * 0.5f,
+      locy + height - outline_width * 0.5f,
   };
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv_ex(
-      &rect, color, NULL, 1.0f, color_outline, outline_width, width - outline_width * 0.5f);
+      &rect, color, nullptr, 1.0f, color_outline, outline_width, width - outline_width * 0.5f);
 }
 
 static void node_socket_outline_color_get(bool selected, float r_outline_color[4])
@@ -807,7 +821,7 @@ void node_socket_color_get(
 
   sock->typeinfo->draw_color(C, &ptr, node_ptr, r_color);
 
-  bNode *node = node_ptr->data;
+  bNode *node = (bNode *)node_ptr->data;
   if (node->flag & NODE_MUTED) {
     r_color[3] *= 0.25f;
   }
@@ -957,7 +971,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
                    preview->rect,
                    scale,
                    scale,
-                   NULL);
+                   nullptr);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -977,7 +991,7 @@ static void node_toggle_button_cb(struct bContext *C, void *node_argv, void *op_
   /* select & activate only the button's node */
   node_select_single(C, node);
 
-  WM_operator_name_call(C, opname, WM_OP_INVOKE_DEFAULT, NULL);
+  WM_operator_name_call(C, opname, WM_OP_INVOKE_DEFAULT, nullptr);
 }
 
 void node_draw_shadow(const SpaceNode *snode, const bNode *node, float radius, float alpha)
@@ -1022,7 +1036,7 @@ void node_draw_sockets(const View2D *v2d,
 
   /* set handle size */
   float scale;
-  UI_view2d_scale_get(v2d, &scale, NULL);
+  UI_view2d_scale_get(v2d, &scale, nullptr);
   scale *= 2.25f * NODE_SOCKSIZE;
 
   if (!select_all) {
@@ -1176,6 +1190,135 @@ void node_draw_sockets(const View2D *v2d,
   }
 }
 
+static int node_error_type_to_icon(const NodeWarningType type)
+{
+  switch (type) {
+    case NodeWarningType::Error:
+      return ICON_ERROR;
+    case NodeWarningType::Warning:
+      return ICON_ERROR;
+    case NodeWarningType::Info:
+      return ICON_INFO;
+  }
+
+  BLI_assert(false);
+  return ICON_ERROR;
+}
+
+static uint8_t node_error_type_priority(const NodeWarningType type)
+{
+  switch (type) {
+    case NodeWarningType::Error:
+      return 3;
+    case NodeWarningType::Warning:
+      return 2;
+    case NodeWarningType::Info:
+      return 1;
+  }
+
+  BLI_assert(false);
+  return 0;
+}
+
+static NodeWarningType node_error_highest_priority(Span<NodeWarning> warnings)
+{
+  uint8_t highest_priority = 0;
+  NodeWarningType highest_priority_type = NodeWarningType::Info;
+  for (const NodeWarning &warning : warnings) {
+    const uint8_t priority = node_error_type_priority(warning.type);
+    if (priority > highest_priority) {
+      highest_priority = priority;
+      highest_priority_type = warning.type;
+    }
+  }
+  return highest_priority_type;
+}
+
+static char *node_errrors_tooltip_fn(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
+{
+  const NodeUIStorage **storage_pointer_alloc = static_cast<const NodeUIStorage **>(argN);
+  const NodeUIStorage *node_ui_storage = *storage_pointer_alloc;
+  Span<NodeWarning> warnings = node_ui_storage->warnings;
+
+  std::string complete_string;
+
+  for (const NodeWarning &warning : warnings.drop_back(1)) {
+    complete_string += warning.message;
+    complete_string += '\n';
+  }
+
+  complete_string += warnings.last().message;
+
+  /* Remove the last period-- the tooltip system adds this automatically. */
+  if (complete_string.back() == '.') {
+    complete_string.pop_back();
+  }
+
+  return BLI_strdupn(complete_string.c_str(), complete_string.size());
+}
+
+#define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
+
+static const NodeUIStorage *node_ui_storage_get_from_context(const bContext *C,
+                                                             const bNodeTree &ntree,
+                                                             const bNode &node)
+{
+  const NodeTreeUIStorage *ui_storage = ntree.ui_storage;
+  if (ui_storage == nullptr) {
+    return nullptr;
+  }
+
+  const Object *active_object = CTX_data_active_object(C);
+  const ModifierData *active_modifier = BKE_object_active_modifier(active_object);
+  if (active_object == nullptr || active_modifier == nullptr) {
+    return nullptr;
+  }
+
+  const NodeTreeEvaluationContext context(*active_object, *active_modifier);
+  const Map<std::string, NodeUIStorage> *storage = ui_storage->context_map.lookup_ptr(context);
+  if (storage == nullptr) {
+    return nullptr;
+  }
+
+  return storage->lookup_ptr_as(StringRef(node.name));
+}
+
+static void node_add_error_message_button(
+    const bContext *C, bNodeTree &ntree, bNode &node, const rctf &rect, float &icon_offset)
+{
+  const NodeUIStorage *node_ui_storage = node_ui_storage_get_from_context(C, ntree, node);
+  if (node_ui_storage == nullptr) {
+    return;
+  }
+
+  /* The UI API forces us to allocate memory for each error button, because the
+   * ownership of #UI_but_func_tooltip_set's argument is transferred to the button. */
+  const NodeUIStorage **storage_pointer_alloc = (const NodeUIStorage **)MEM_mallocN(
+      sizeof(NodeUIStorage *), __func__);
+  *storage_pointer_alloc = node_ui_storage;
+
+  const NodeWarningType display_type = node_error_highest_priority(node_ui_storage->warnings);
+
+  icon_offset -= NODE_HEADER_ICON_SIZE;
+  UI_block_emboss_set(node.block, UI_EMBOSS_NONE);
+  uiBut *but = uiDefIconBut(node.block,
+                            UI_BTYPE_BUT,
+                            0,
+                            node_error_type_to_icon(display_type),
+                            icon_offset,
+                            rect.ymax - NODE_DY,
+                            NODE_HEADER_ICON_SIZE,
+                            UI_UNIT_Y,
+                            nullptr,
+                            0,
+                            0,
+                            0,
+                            0,
+                            nullptr);
+  UI_but_func_tooltip_set(but, node_errrors_tooltip_fn, storage_pointer_alloc);
+  UI_block_emboss_set(node.block, UI_EMBOSS);
+}
+
 static void node_draw_basis(const bContext *C,
                             const View2D *v2d,
                             const SpaceNode *snode,
@@ -1184,12 +1327,12 @@ static void node_draw_basis(const bContext *C,
                             bNodeInstanceKey key)
 {
   /* float socket_size = NODE_SOCKSIZE*U.dpi/72; */ /* UNUSED */
-  float iconbutw = 0.8f * UI_UNIT_X;
+  const float iconbutw = NODE_HEADER_ICON_SIZE;
 
   /* skip if out of view */
-  if (BLI_rctf_isect(&node->totr, &v2d->cur, NULL) == false) {
+  if (BLI_rctf_isect(&node->totr, &v2d->cur, nullptr) == false) {
     UI_block_end(C, node->block);
-    node->block = NULL;
+    node->block = nullptr;
     return;
   }
 
@@ -1213,16 +1356,16 @@ static void node_draw_basis(const bContext *C,
 
   rctf *rct = &node->totr;
   UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
-  UI_draw_roundbox_aa(
-      &(const rctf){
-          .xmin = rct->xmin,
-          .xmax = rct->xmax,
-          .ymin = rct->ymax - NODE_DY,
-          .ymax = rct->ymax,
-      },
-      true,
-      BASIS_RAD,
-      color);
+
+  {
+    const rctf rect = {
+        rct->xmin,
+        rct->xmax,
+        rct->ymax - NODE_DY,
+        rct->ymax,
+    };
+    UI_draw_roundbox_aa(&rect, true, BASIS_RAD, color);
+  }
 
   /* show/hide icons */
   float iconofs = rct->xmax - 0.35f * U.widget_unit;
@@ -1239,7 +1382,7 @@ static void node_draw_basis(const bContext *C,
                               rct->ymax - NODE_DY,
                               iconbutw,
                               UI_UNIT_Y,
-                              NULL,
+                              nullptr,
                               0,
                               0,
                               0,
@@ -1266,7 +1409,7 @@ static void node_draw_basis(const bContext *C,
                               rct->ymax - NODE_DY,
                               iconbutw,
                               UI_UNIT_Y,
-                              NULL,
+                              nullptr,
                               0,
                               0,
                               0,
@@ -1286,7 +1429,7 @@ static void node_draw_basis(const bContext *C,
                  rct->ymax - NODE_DY,
                  iconbutw,
                  UI_UNIT_Y,
-                 NULL,
+                 nullptr,
                  0,
                  0,
                  0,
@@ -1294,6 +1437,8 @@ static void node_draw_basis(const bContext *C,
                  "");
     UI_block_emboss_set(node->block, UI_EMBOSS);
   }
+
+  node_add_error_message_button(C, *ntree, *node, *rct, iconofs);
 
   /* title */
   if (node->flag & SELECT) {
@@ -1316,7 +1461,7 @@ static void node_draw_basis(const bContext *C,
                           rct->ymax - NODE_DY / 2.2f - but_size / 2,
                           but_size,
                           but_size,
-                          NULL,
+                          nullptr,
                           0,
                           0,
                           0,
@@ -1341,7 +1486,7 @@ static void node_draw_basis(const bContext *C,
                         (int)(rct->ymax - NODE_DY),
                         (short)(iconofs - rct->xmin - (18.0f * U.dpi_fac)),
                         (short)NODE_DY,
-                        NULL,
+                        nullptr,
                         0,
                         0,
                         0,
@@ -1371,17 +1516,16 @@ static void node_draw_basis(const bContext *C,
     color[3] = 0.5f;
   }
 
-  UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
-  UI_draw_roundbox_aa(
-      &(const rctf){
-          .xmin = rct->xmin,
-          .xmax = rct->xmax,
-          .ymin = rct->ymin,
-          .ymax = rct->ymax - NODE_DY,
-      },
-      true,
-      BASIS_RAD,
-      color);
+  {
+    UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
+    const rctf rect = {
+        rct->xmin,
+        rct->xmax,
+        rct->ymin,
+        rct->ymax - NODE_DY,
+    };
+    UI_draw_roundbox_aa(&rect, true, BASIS_RAD, color);
+  }
 
   /* outline active and selected emphasis */
   if (node->flag & SELECT) {
@@ -1389,16 +1533,7 @@ static void node_draw_basis(const bContext *C,
         (node->flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, 0, -40, color);
 
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_aa(
-        &(const rctf){
-            .xmin = rct->xmin,
-            .xmax = rct->xmax,
-            .ymin = rct->ymin,
-            .ymax = rct->ymax,
-        },
-        false,
-        BASIS_RAD,
-        color);
+    UI_draw_roundbox_aa(rct, false, BASIS_RAD, color);
   }
 
   /* disable lines */
@@ -1409,9 +1544,9 @@ static void node_draw_basis(const bContext *C,
   node_draw_sockets(v2d, C, ntree, node, true, false);
 
   /* preview */
-  bNodeInstanceHash *previews = CTX_data_pointer_get(C, "node_previews").data;
+  bNodeInstanceHash *previews = (bNodeInstanceHash *)CTX_data_pointer_get(C, "node_previews").data;
   if (node->flag & NODE_PREVIEW && previews) {
-    bNodePreview *preview = BKE_node_instance_hash_lookup(previews, key);
+    bNodePreview *preview = (bNodePreview *)BKE_node_instance_hash_lookup(previews, key);
     if (preview && (preview->xsize && preview->ysize)) {
       if (preview->rect && !BLI_rctf_is_empty(&node->prvr)) {
         node_draw_preview(preview, &node->prvr);
@@ -1421,7 +1556,7 @@ static void node_draw_basis(const bContext *C,
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);
-  node->block = NULL;
+  node->block = nullptr;
 }
 
 static void node_draw_hidden(const bContext *C,
@@ -1436,7 +1571,7 @@ static void node_draw_hidden(const bContext *C,
   float hiddenrad = BLI_rctf_size_y(rct) / 2.0f;
 
   float scale;
-  UI_view2d_scale_get(v2d, &scale, NULL);
+  UI_view2d_scale_get(v2d, &scale, nullptr);
 
   /* shadow */
   node_draw_shadow(snode, node, hiddenrad, 1.0f);
@@ -1468,17 +1603,13 @@ static void node_draw_hidden(const bContext *C,
     GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
 
-    UI_draw_roundbox_3fv_alpha(
-        &(const rctf){
-            .xmin = rct->xmin + 1,
-            .xmax = rct->xmax - 1,
-            .ymin = rct->ymin + 1,
-            .ymax = rct->ymax - 1,
-        },
-        false,
-        hiddenrad,
-        node->color,
-        1.0f);
+    const rctf rect = {
+        rct->xmin + 1,
+        rct->xmax - 1,
+        rct->ymin + 1,
+        rct->ymax - 1,
+    };
+    UI_draw_roundbox_3fv_alpha(&rect, false, hiddenrad, node->color, 1.0f);
 
     GPU_line_smooth(false);
     GPU_blend(GPU_BLEND_NONE);
@@ -1505,7 +1636,7 @@ static void node_draw_hidden(const bContext *C,
                           centy - but_size / 2,
                           but_size,
                           but_size,
-                          NULL,
+                          nullptr,
                           0,
                           0,
                           0,
@@ -1539,7 +1670,7 @@ static void node_draw_hidden(const bContext *C,
                         round_fl_to_int(centy - NODE_DY * 0.5f),
                         (short)(BLI_rctf_size_x(rct) - ((18.0f + 12.0f) * U.dpi_fac)),
                         (short)NODE_DY,
-                        NULL,
+                        nullptr,
                         0,
                         0,
                         0,
@@ -1581,7 +1712,7 @@ static void node_draw_hidden(const bContext *C,
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);
-  node->block = NULL;
+  node->block = nullptr;
 }
 
 int node_get_resize_cursor(int directions)
@@ -1611,7 +1742,7 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode, float cursor[2])
     }
     else {
       /* check nodes front to back */
-      for (node = ntree->nodes.last; node; node = node->prev) {
+      for (node = (bNode *)ntree->nodes.last; node; node = node->prev) {
         if (BLI_rctf_isect_pt(&node->totr, cursor[0], cursor[1])) {
           break; /* first hit on node stops */
         }
@@ -1734,7 +1865,8 @@ static void sort_multi_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
       if (socket->flag & SOCK_MULTI_INPUT) {
         /* The total is calculated in #node_update_nodetree, which runs before this draw step. */
         const int total_inputs = socket->total_inputs;
-        bNodeLink **input_links = MEM_malloc_arrayN(total_inputs, sizeof(bNodeLink *), __func__);
+        bNodeLink **input_links = (bNodeLink **)MEM_malloc_arrayN(
+            total_inputs, sizeof(bNodeLink *), __func__);
 
         int index = 0;
         LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -1770,7 +1902,7 @@ void node_draw_nodetree(const bContext *C,
                         bNodeTree *ntree,
                         bNodeInstanceKey parent_key)
 {
-  if (ntree == NULL) {
+  if (ntree == nullptr) {
     return; /* groups... */
   }
 
@@ -1921,7 +2053,7 @@ void node_draw_space(const bContext *C, ARegion *region)
   if (snode->treepath.last) {
     static const int max_depth = 2;
 
-    bNodeTreePath *path = snode->treepath.last;
+    bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
 
     /* update tree path name (drawn in the bottom left) */
     ID *name_id = (path->nodetree && path->nodetree != snode->nodetree) ? &path->nodetree->id :
@@ -2032,5 +2164,5 @@ void node_draw_space(const bContext *C, ARegion *region)
   draw_tree_path(snode);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, nullptr);
 }

@@ -164,6 +164,7 @@ typedef struct WORKBENCH_PassList {
   struct DRWPass *volume_ps;
 
   struct DRWPass *aa_accum_ps;
+  struct DRWPass *aa_accum_replace_ps;
   struct DRWPass *aa_edge_ps;
   struct DRWPass *aa_weight_ps;
   struct DRWPass *aa_resolve_ps;
@@ -286,8 +287,12 @@ typedef struct WORKBENCH_PrivateData {
   int taa_sample_len_previous;
   /** Current TAA sample index in [0..taa_sample_len[ range. */
   int taa_sample;
-  /** Inverse of taa_sample to divide the accumulation buffer. */
-  float taa_sample_inv;
+  /** Weight accumulated. */
+  float taa_weight_accum;
+  /** Samples weight for this iteration. */
+  float taa_weights[9];
+  /** Sum of taa_weights. */
+  float taa_weights_sum;
   /** If the view has been updated and TAA needs to be reset. */
   bool view_updated;
   /** True if the history buffer contains relevant data and false if it could contain garbage. */

@@ -5083,7 +5083,7 @@ static void SCREEN_OT_delete(wmOperatorType *ot)
 /** \name Region Alpha Blending Operator
  *
  * Implementation note: a disappearing region needs at least 1 last draw with
- * 100% backbuffer texture over it - then triple buffer will clear it entirely.
+ * 100% back-buffer texture over it - then triple buffer will clear it entirely.
  * This because flag #RGN_FLAG_HIDDEN is set in end - region doesn't draw at all then.
  *
  * \{ */
@@ -5567,8 +5567,8 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 
   /* dropbox for entire window */
   ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
-  WM_dropbox_add(lb, "WM_OT_drop_blend_file", blend_file_drop_poll, blend_file_drop_copy);
-  WM_dropbox_add(lb, "UI_OT_drop_color", UI_drop_color_poll, UI_drop_color_copy);
+  WM_dropbox_add(lb, "WM_OT_drop_blend_file", blend_file_drop_poll, blend_file_drop_copy, NULL);
+  WM_dropbox_add(lb, "UI_OT_drop_color", UI_drop_color_poll, UI_drop_color_copy, NULL);
 
   keymap_modal_set(keyconf);
 }

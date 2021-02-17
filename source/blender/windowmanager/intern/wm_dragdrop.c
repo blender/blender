@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
+#include "BKE_lib_id.h"
 
 #include "GPU_shader.h"
 #include "GPU_state.h"
@@ -95,11 +96,13 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 wmDropBox *WM_dropbox_add(ListBase *lb,
                           const char *idname,
                           bool (*poll)(bContext *, wmDrag *, const wmEvent *, const char **),
-                          void (*copy)(wmDrag *, wmDropBox *))
+                          void (*copy)(wmDrag *, wmDropBox *),
+                          void (*cancel)(struct Main *, wmDrag *, wmDropBox *))
 {
   wmDropBox *drop = MEM_callocN(sizeof(wmDropBox), "wmDropBox");
   drop->poll = poll;
   drop->copy = copy;
+  drop->cancel = cancel;
   drop->ot = WM_operatortype_find(idname, 0);
   drop->opcontext = WM_OP_INVOKE_DEFAULT;
 
@@ -382,6 +385,9 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
 /**
  * When dragging a local ID, return that. Otherwise, if dragging an asset-handle, link or append
  * that depending on what was chosen by the drag-box (currently append only in fact).
+ *
+ * Use #WM_drag_free_imported_drag_ID() as cancel callback of the drop-box, so that the asset
+ * import is rolled back if the drop operator fails.
  */
 ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
 {
@@ -400,6 +406,39 @@ ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
 
   /* Link/append the asset. */
   return wm_drag_asset_id_import(asset_drag);
+}
+
+/**
+ * \brief Free asset ID imported for cancelled drop.
+ *
+ * If the asset was imported (linked/appended) using #WM_drag_get_local_ID_or_import_from_asset()`
+ * (typically via a #wmDropBox.copy() callback), we want the ID to be removed again if the drop
+ * operator cancels.
+ * This is for use as #wmDropBox.cancel() callback.
+ */
+void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *drop)
+{
+  if (drag->type != WM_DRAG_ASSET) {
+    return;
+  }
+
+  wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+  if (!asset_drag) {
+    return;
+  }
+
+  /* Get name from property, not asset data - it may have changed after importing to ensure
+   * uniqueness (name is assumed to be set from the imported ID name). */
+  char name[MAX_ID_NAME - 2];
+  RNA_string_get(drop->ptr, "name", name);
+  if (!name[0]) {
+    return;
+  }
+
+  ID *id = BKE_libblock_find_name(bmain, asset_drag->id_type, name);
+  if (id) {
+    BKE_id_delete(bmain, id);
+  }
 }
 
 /* ************** draw ***************** */

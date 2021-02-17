@@ -390,8 +390,8 @@ ccl_device_forceinline float eval_phase_dwivedi(float v, float phase_log, float 
 
 ccl_device_forceinline float sample_phase_dwivedi(float v, float phase_log, float rand)
 {
-  /* Based on Eq. 10 from [2]: v - (v + 1) * pow((v - 1) / (v + 1), rand)
-   * Since we're already precomputing phase_log = log((v + 1) / (v - 1)) for the evaluation,
+  /* Based on Eq. 10 from [2]: `v - (v + 1) * pow((v - 1) / (v + 1), rand)`
+   * Since we're already pre-computing `phase_log = log((v + 1) / (v - 1))` for the evaluation,
    * we can implement the power function like this. */
   return v - (v + 1) * expf(-rand * phase_log);
 }
@@ -455,7 +455,7 @@ ccl_device_noinline
   float3 sigma_s = sigma_t * alpha;
 
   /* Theoretically it should be better to use the exact alpha for the channel we're sampling at
-   * each bounce, but in practise there doesn't seem to be a noticeable difference in exchange
+   * each bounce, but in practice there doesn't seem to be a noticeable difference in exchange
    * for making the code significantly more complex and slower (if direction sampling depends on
    * the sampled channel, we need to compute its PDF per-channel and consider it for MIS later on).
    *

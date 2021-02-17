@@ -90,7 +90,7 @@ static AttributeDomain get_result_domain(const GeometryComponent &component,
     output_domains.append(attribute_z->domain());
   }
   if (output_domains.size() > 0) {
-    return attribute_domain_highest_priority(output_domains);
+    return bke::attribute_domain_highest_priority(output_domains);
   }
 
   /* Otherwise use the domain of the input attribute, or the default. */

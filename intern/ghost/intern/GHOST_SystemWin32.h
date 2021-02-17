@@ -64,8 +64,6 @@ class GHOST_SystemWin32 : public GHOST_System {
    ** Time(r) functionality
    ***************************************************************************************/
 
-  GHOST_TUns64 millisSinceStart(__int64 ms) const;
-
   /**
    * This method converts performance counter measurements into milliseconds since the start of the
    * system process.
@@ -267,16 +265,6 @@ class GHOST_SystemWin32 : public GHOST_System {
                                           int mouseY,
                                           void *data);
 
-  /***************************************************************************************
-   ** Modify tablet API
-   ***************************************************************************************/
-
-  /**
-   * Set which tablet API to use.
-   * \param api: Enum indicating which API to use.
-   */
-  void setTabletAPI(GHOST_TTabletAPI api) override;
-
  protected:
   /**
    * Initializes the system.
@@ -367,13 +355,6 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param scanCode: The ScanCode of pressed key (similar to PS/2 Set 1).
    */
   GHOST_TKey processSpecialKey(short vKey, short scanCode) const;
-
-  /**
-   * Creates a window size event.
-   * \param window: The window receiving the event (the active window).
-   * \return The event created.
-   */
-  static GHOST_Event *processWindowSizeEvent(GHOST_WindowWin32 *window);
 
   /**
    * Creates a window event.

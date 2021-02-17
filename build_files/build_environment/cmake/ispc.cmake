@@ -21,27 +21,31 @@ if(WIN32)
     -DFLEX_EXECUTABLE=${LIBDIR}/flexbison/win_flex.exe
     -DBISON_EXECUTABLE=${LIBDIR}/flexbison/win_bison.exe
     -DM4_EXECUTABLE=${DOWNLOAD_DIR}/mingw/mingw64/msys/1.0/bin/m4.exe
+    -DARM_ENABLED=Off
   )
 elseif(APPLE)
   # Use bison installed via Homebrew.
   # The one which comes which Xcode toolset is too old.
   if("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64")
-    set(HOMEBREW_LOCATION "/opt/homebrew")
+    set(ISPC_EXTRA_ARGS_APPLE
+      -DBISON_EXECUTABLE=/opt/homebrew/opt/bison/bin/bison
+      -DARM_ENABLED=On
+    )
   else()
-    set(HOMEBREW_LOCATION "/usr/local")
+    set(ISPC_EXTRA_ARGS_APPLE
+      -DBISON_EXECUTABLE=/usr/local/opt/bison/bin/bison
+      -DARM_ENABLED=Off
+    )
   endif()
-  set(ISPC_EXTRA_ARGS_APPLE
-    -DBISON_EXECUTABLE=${HOMEBREW_LOCATION}/opt/bison/bin/bison
-  )
 elseif(UNIX)
   set(ISPC_EXTRA_ARGS_UNIX
     -DCMAKE_C_COMPILER=${LIBDIR}/clang/bin/clang
     -DCMAKE_CXX_COMPILER=${LIBDIR}/clang/bin/clang++
+    -DARM_ENABLED=Off
   )
 endif()
 
 set(ISPC_EXTRA_ARGS
-    -DARM_ENABLED=Off
     -DISPC_NO_DUMPS=On
     -DISPC_INCLUDE_EXAMPLES=Off
     -DISPC_INCLUDE_TESTS=Off

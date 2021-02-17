@@ -196,8 +196,8 @@ static void console_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "CONSOLE_OT_insert", id_drop_poll, id_drop_copy);
-  WM_dropbox_add(lb, "CONSOLE_OT_insert", path_drop_poll, path_drop_copy);
+  WM_dropbox_add(lb, "CONSOLE_OT_insert", id_drop_poll, id_drop_copy, NULL);
+  WM_dropbox_add(lb, "CONSOLE_OT_insert", path_drop_poll, path_drop_copy, NULL);
 }
 
 /* ************* end drop *********** */

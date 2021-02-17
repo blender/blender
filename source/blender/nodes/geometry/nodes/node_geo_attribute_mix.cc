@@ -148,7 +148,7 @@ static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecPa
   /* Use the highest complexity data type among the inputs and outputs, that way the node will
    * never "remove information". Use CD_PROP_BOOL as the lowest complexity data type, but in any
    * real situation it won't be returned. */
-  const CustomDataType result_type = attribute_data_type_highest_complexity({
+  const CustomDataType result_type = bke::attribute_data_type_highest_complexity({
       params.get_input_attribute_data_type("A", component, CD_PROP_BOOL),
       params.get_input_attribute_data_type("B", component, CD_PROP_BOOL),
       params.get_input_attribute_data_type("Result", component, CD_PROP_BOOL),

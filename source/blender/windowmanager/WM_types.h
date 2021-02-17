@@ -904,6 +904,12 @@ typedef struct wmDropBox {
   void (*copy)(struct wmDrag *, struct wmDropBox *);
 
   /**
+   * If the operator is cancelled (returns `OPERATOR_CANCELLED`), this can be used for cleanup of
+   * `copy()` resources.
+   */
+  void (*cancel)(struct Main *, struct wmDrag *, struct wmDropBox *);
+
+  /**
    * If poll succeeds, operator is called.
    * Not saved in file, so can be pointer.
    */

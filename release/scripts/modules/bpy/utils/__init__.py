@@ -121,15 +121,25 @@ def _test_import(module_name, loaded_modules):
     return mod
 
 
-# Reloading would add twice.
+# Check before adding paths as reloading would add twice.
+
+# Storing and restoring the full `sys.path` is risky as this may be intentionally modified
+# by technical users/developers.
+#
+# Instead, track which paths have been added, clearing them before refreshing.
+# This supports the case of loading a new preferences file which may reset scripts path.
+_sys_path_ensure_paths = set()
+
 def _sys_path_ensure_prepend(path):
     if path not in _sys.path:
         _sys.path.insert(0, path)
+        _sys_path_ensure_paths.add(path)
 
 
 def _sys_path_ensure_append(path):
     if path not in _sys.path:
         _sys.path.append(path)
+        _sys_path_ensure_paths.add(path)
 
 
 def modules_from_path(path, loaded_modules):
@@ -390,6 +400,13 @@ def refresh_script_paths():
     """
     Run this after creating new script paths to update sys.path
     """
+
+    for path in _sys_path_ensure_paths:
+        try:
+            _sys.path.remove(path)
+        except ValueError:
+            pass
+    _sys_path_ensure_paths.clear()
 
     for base_path in script_paths():
         for path_subdir in _script_module_dirs:

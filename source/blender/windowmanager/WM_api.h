@@ -678,7 +678,8 @@ struct wmDropBox *WM_dropbox_add(
     ListBase *lb,
     const char *idname,
     bool (*poll)(struct bContext *, struct wmDrag *, const struct wmEvent *event, const char **),
-    void (*copy)(struct wmDrag *, struct wmDropBox *));
+    void (*copy)(struct wmDrag *, struct wmDropBox *),
+    void (*cancel)(struct Main *, struct wmDrag *, struct wmDropBox *));
 ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
 /* ID drag and drop */
@@ -689,6 +690,10 @@ bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
 
 struct wmDragAsset *WM_drag_get_asset_data(const struct wmDrag *drag, int idcode);
 struct ID *WM_drag_get_local_ID_or_import_from_asset(const struct wmDrag *drag, int idcode);
+
+void WM_drag_free_imported_drag_ID(struct Main *bmain,
+                                   struct wmDrag *drag,
+                                   struct wmDropBox *drop);
 
 /* Set OpenGL viewport and scissor */
 void wmViewport(const struct rcti *winrct);

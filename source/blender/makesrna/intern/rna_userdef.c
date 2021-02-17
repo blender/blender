@@ -5830,8 +5830,10 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "tablet_api", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, tablet_api);
-  RNA_def_property_ui_text(
-      prop, "Tablet API", "Select the tablet API to use for pressure sensitivity");
+  RNA_def_property_ui_text(prop,
+                           "Tablet API",
+                           "Select the tablet API to use for pressure sensitivity (may require "
+                           "restarting Blender for changes to take effect)");
   RNA_def_property_update(prop, 0, "rna_userdef_tablet_api_update");
 
 #  ifdef WITH_INPUT_NDOF

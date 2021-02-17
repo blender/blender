@@ -2156,7 +2156,7 @@ bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Backdraw for Selection
+/** \name Back-Draw for Selection
  * \{ */
 
 /**
@@ -2200,7 +2200,7 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
   }
 
   /* TODO: Create a flag in `DRW_manager` because the drawing is no longer
-   *       made on the backbuffer in this case. */
+   *       made on the back-buffer in this case. */
   v3d->flag &= ~V3D_INVALID_BACKBUF;
 }
 
@@ -2229,7 +2229,7 @@ static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void 
 void ED_view3d_select_id_validate(ViewContext *vc)
 {
   /* TODO: Create a flag in `DRW_manager` because the drawing is no longer
-   *       made on the backbuffer in this case. */
+   *       made on the back-buffer in this case. */
   if (vc->v3d->flag & V3D_INVALID_BACKBUF) {
     validate_object_select_id(vc->depsgraph, vc->view_layer, vc->region, vc->v3d, vc->obact);
   }

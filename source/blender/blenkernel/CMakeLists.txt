@@ -130,6 +130,7 @@ set(SRC
   intern/font.c
   intern/freestyle.c
   intern/geometry_set.cc
+  intern/geometry_set_instances.cc
   intern/gpencil.c
   intern/gpencil_curve.c
   intern/gpencil_geom.c
@@ -199,6 +200,7 @@ set(SRC
   intern/multires_versioning.c
   intern/nla.c
   intern/node.cc
+  intern/node_ui_storage.cc
   intern/object.c
   intern/object_deform.c
   intern/object_dupli.c
@@ -327,6 +329,7 @@ set(SRC
   BKE_freestyle.h
   BKE_geometry_set.h
   BKE_geometry_set.hh
+  BKE_geometry_set_instances.hh
   BKE_global.h
   BKE_gpencil.h
   BKE_gpencil_curve.h

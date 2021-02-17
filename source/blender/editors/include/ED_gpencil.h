@@ -62,8 +62,6 @@ struct bAnimContext;
 struct wmKeyConfig;
 struct wmOperator;
 
-enum eUndoStepDir;
-
 #define GPENCIL_MINIMUM_JOIN_DIST 20.0f
 
 /* Reproject stroke modes. */
@@ -215,7 +213,7 @@ bool ED_gpencil_anim_copybuf_paste(struct bAnimContext *ac, const short copy_mod
 
 /* ------------ Grease-Pencil Undo System ------------------ */
 int ED_gpencil_session_active(void);
-int ED_undo_gpencil_step(struct bContext *C, const enum eUndoStepDir step);
+int ED_undo_gpencil_step(struct bContext *C, const int step); /* eUndoStepDir. */
 
 /* ------------ Grease-Pencil Armature ------------------ */
 bool ED_gpencil_add_armature(const struct bContext *C,

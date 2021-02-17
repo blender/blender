@@ -72,7 +72,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                                      bool is_debug,
                                      bool dialog)
     : GHOST_Window(width, height, state, wantStereoVisual, false),
-      m_mousePresent(false),
       m_tabletInRange(false),
       m_inLiveResize(false),
       m_system(system),
@@ -82,7 +81,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_nPressedButtons(0),
       m_customCursor(0),
       m_wantAlphaBackground(alphaBackground),
-      m_wintab(),
       m_normal_state(GHOST_kWindowStateNormal),
       m_user32(NULL),
       m_fpGetPointerInfoHistory(NULL),
@@ -92,8 +90,13 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_debug_context(is_debug)
 {
   wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
-  RECT win_rect = {left, top, left + width, top + height};
+  RECT win_rect = {left, top, (long)(left + width), (long)(top + height)};
   RECT parent_rect = {0, 0, 0, 0};
+
+  // Initialize tablet variables
+  memset(&m_wintab, 0, sizeof(m_wintab));
+  m_tabletData = GHOST_TABLET_DATA_NONE;
+
   if (parentwindow) {
     GetWindowRect(m_parentWindowHwnd, &parent_rect);
   }
@@ -230,24 +233,68 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
         m_user32, "GetPointerTouchInfoHistory");
   }
 
-  if ((m_wintab.handle = ::LoadLibrary("Wintab32.dll")) &&
-      (m_wintab.info = (GHOST_WIN32_WTInfo)::GetProcAddress(m_wintab.handle, "WTInfoA")) &&
-      (m_wintab.open = (GHOST_WIN32_WTOpen)::GetProcAddress(m_wintab.handle, "WTOpenA")) &&
-      (m_wintab.get = (GHOST_WIN32_WTGet)::GetProcAddress(m_wintab.handle, "WTGetA")) &&
-      (m_wintab.set = (GHOST_WIN32_WTSet)::GetProcAddress(m_wintab.handle, "WTSetA")) &&
-      (m_wintab.close = (GHOST_WIN32_WTClose)::GetProcAddress(m_wintab.handle, "WTClose")) &&
-      (m_wintab.packetsGet = (GHOST_WIN32_WTPacketsGet)::GetProcAddress(m_wintab.handle,
-                                                                        "WTPacketsGet")) &&
-      (m_wintab.queueSizeGet = (GHOST_WIN32_WTQueueSizeGet)::GetProcAddress(m_wintab.handle,
-                                                                            "WTQueueSizeGet")) &&
-      (m_wintab.queueSizeSet = (GHOST_WIN32_WTQueueSizeSet)::GetProcAddress(m_wintab.handle,
-                                                                            "WTQueueSizeSet")) &&
-      (m_wintab.enable = (GHOST_WIN32_WTEnable)::GetProcAddress(m_wintab.handle, "WTEnable")) &&
-      (m_wintab.overlap = (GHOST_WIN32_WTOverlap)::GetProcAddress(m_wintab.handle, "WTOverlap"))) {
-    initializeWintab();
-    setWintabEnabled(true);
-  }
+  // Initialize Wintab
+  m_wintab.handle = ::LoadLibrary("Wintab32.dll");
+  if (m_wintab.handle && m_system->getTabletAPI() != GHOST_kTabletNative) {
+    // Get API functions
+    m_wintab.info = (GHOST_WIN32_WTInfo)::GetProcAddress(m_wintab.handle, "WTInfoA");
+    m_wintab.open = (GHOST_WIN32_WTOpen)::GetProcAddress(m_wintab.handle, "WTOpenA");
+    m_wintab.close = (GHOST_WIN32_WTClose)::GetProcAddress(m_wintab.handle, "WTClose");
+    m_wintab.packet = (GHOST_WIN32_WTPacket)::GetProcAddress(m_wintab.handle, "WTPacket");
+    m_wintab.enable = (GHOST_WIN32_WTEnable)::GetProcAddress(m_wintab.handle, "WTEnable");
+    m_wintab.overlap = (GHOST_WIN32_WTOverlap)::GetProcAddress(m_wintab.handle, "WTOverlap");
 
+    // Let's see if we can initialize tablet here.
+    // Check if WinTab available by getting system context info.
+    LOGCONTEXT lc = {0};
+    lc.lcOptions |= CXO_SYSTEM;
+    if (m_wintab.open && m_wintab.info && m_wintab.info(WTI_DEFSYSCTX, 0, &lc)) {
+      // Now init the tablet
+      /* The maximum tablet size, pressure and orientation (tilt) */
+      AXIS TabletX, TabletY, Pressure, Orientation[3];
+
+      // Open a Wintab context
+
+      // Open the context
+      lc.lcPktData = PACKETDATA;
+      lc.lcPktMode = PACKETMODE;
+      lc.lcOptions |= CXO_MESSAGES;
+      lc.lcMoveMask = PACKETDATA;
+
+      /* Set the entire tablet as active */
+      m_wintab.info(WTI_DEVICES, DVC_X, &TabletX);
+      m_wintab.info(WTI_DEVICES, DVC_Y, &TabletY);
+
+      /* get the max pressure, to divide into a float */
+      BOOL pressureSupport = m_wintab.info(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
+      if (pressureSupport)
+        m_wintab.maxPressure = Pressure.axMax;
+      else
+        m_wintab.maxPressure = 0;
+
+      /* get the max tilt axes, to divide into floats */
+      BOOL tiltSupport = m_wintab.info(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
+      if (tiltSupport) {
+        /* does the tablet support azimuth ([0]) and altitude ([1]) */
+        if (Orientation[0].axResolution && Orientation[1].axResolution) {
+          /* all this assumes the minimum is 0 */
+          m_wintab.maxAzimuth = Orientation[0].axMax;
+          m_wintab.maxAltitude = Orientation[1].axMax;
+        }
+        else { /* no so dont do tilt stuff */
+          m_wintab.maxAzimuth = m_wintab.maxAltitude = 0;
+        }
+      }
+
+      // The Wintab spec says we must open the context disabled if we are using cursor masks.
+      m_wintab.tablet = m_wintab.open(m_hWnd, &lc, FALSE);
+      if (m_wintab.enable && m_wintab.tablet) {
+        m_wintab.enable(m_wintab.tablet, TRUE);
+      }
+
+      m_wintab.info(WTI_INTERFACE, IFC_NDEVICES, &m_wintab.numDevices);
+    }
+  }
   CoCreateInstance(
       CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_ITaskbarList3, (LPVOID *)&m_Bar);
 }
@@ -261,12 +308,12 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
   }
 
   if (m_wintab.handle) {
-    setWintabEnabled(false);
-    if (m_wintab.close && m_wintab.context) {
-      m_wintab.close(m_wintab.context);
+    if (m_wintab.close && m_wintab.tablet) {
+      m_wintab.close(m_wintab.tablet);
     }
 
     FreeLibrary(m_wintab.handle);
+    memset(&m_wintab, 0, sizeof(m_wintab));
   }
 
   if (m_user32) {
@@ -908,62 +955,6 @@ GHOST_TSuccess GHOST_WindowWin32::hasCursorShape(GHOST_TStandardCursor cursorSha
   return (getStandardCursor(cursorShape)) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
-void GHOST_WindowWin32::initializeWintab()
-{
-  /* Return if wintab library handle doesn't exist or wintab is already initialized. */
-  if (!m_wintab.handle || m_wintab.context) {
-    return;
-  }
-
-  /* Check if WinTab available by getting system context info. */
-  LOGCONTEXT lc = {0};
-  if (m_wintab.open && m_wintab.info && m_wintab.queueSizeGet && m_wintab.queueSizeSet &&
-      m_wintab.info(WTI_DEFSYSCTX, 0, &lc)) {
-
-    lc.lcPktData = PACKETDATA;
-    lc.lcPktMode = PACKETMODE;
-    lc.lcMoveMask = PACKETDATA;
-    lc.lcOptions |= CXO_CSRMESSAGES | CXO_MESSAGES;
-    /* Wacom maps y origin to the tablet's bottom. Invert to match Windows y origin mapping to the
-     * screen top. */
-    lc.lcOutExtY = -lc.lcOutExtY;
-
-    m_wintab.info(WTI_INTERFACE, IFC_NDEVICES, &m_wintab.numDevices);
-
-    updateWintabCursorInfo();
-
-    /* The Wintab spec says we must open the context disabled if we are using cursor masks. */
-    m_wintab.context = m_wintab.open(m_hWnd, &lc, FALSE);
-
-    /* Wintab provides no way to determine the maximum queue size aside from checking if attempts
-     * to change the queue size are successful. */
-    const int maxQueue = 500;
-    int queueSize = m_wintab.queueSizeGet(m_wintab.context);
-
-    while (queueSize < maxQueue) {
-      int testSize = min(queueSize + 16, maxQueue);
-      if (m_wintab.queueSizeSet(m_wintab.context, testSize)) {
-        queueSize = testSize;
-      }
-      else {
-        /* From Windows Wintab Documentation for WTQueueSizeSet:
-         * "If the return value is zero, the context has no queue because the function deletes the
-         * original queue before attempting to create a new one. The application must continue
-         * calling the function with a smaller queue size until the function returns a non - zero
-         * value."
-         *
-         * In our case we start with a known valid queue size and in the event of failure roll
-         * back to the last valid queue size. The Wintab spec dates back to 16 bit Windows, thus
-         * assumes memory recently deallocated may not be available, which is no longer a practical
-         * concern. */
-        m_wintab.queueSizeSet(m_wintab.context, queueSize);
-        break;
-      }
-    }
-    m_wintab.pkts.resize(queueSize);
-  }
-}
-
 GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
     std::vector<GHOST_PointerInfoWin32> &outPointerInfo, WPARAM wParam, LPARAM lParam)
 {
@@ -1043,82 +1034,21 @@ GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
     }
   }
 
-  if (!outPointerInfo.empty()) {
-    lastTabletData = outPointerInfo.back().tabletData;
-  }
-
   return GHOST_kSuccess;
 }
 
-void GHOST_WindowWin32::setWintabEnabled(bool enable)
+void GHOST_WindowWin32::processWin32TabletActivateEvent(WORD state)
 {
-  if (m_wintab.enable && m_wintab.get && m_wintab.context) {
-    LOGCONTEXT context = {0};
-
-    if (m_wintab.get(m_wintab.context, &context)) {
-      if (enable && context.lcStatus & CXS_DISABLED && useTabletAPI(GHOST_kTabletWintab)) {
-        m_wintab.enable(m_wintab.context, true);
-
-        POINT cursorPos;
-        ::GetCursorPos(&cursorPos);
-        GHOST_Rect bounds;
-        getClientBounds(bounds);
-        if (bounds.isInside(cursorPos.x, cursorPos.y)) {
-          setWintabOverlap(true);
-        }
-      }
-      else if (!enable && !(context.lcStatus & CXS_DISABLED)) {
-        setWintabOverlap(false);
-        m_wintab.enable(m_wintab.context, false);
-      }
-    }
+  if (!useTabletAPI(GHOST_kTabletWintab)) {
+    return;
   }
-}
 
-void GHOST_WindowWin32::setWintabOverlap(bool overlap)
-{
-  if (m_wintab.overlap && m_wintab.get && m_wintab.packetsGet && m_wintab.context) {
-    LOGCONTEXT context = {0};
+  if (m_wintab.enable && m_wintab.tablet) {
+    m_wintab.enable(m_wintab.tablet, state);
 
-    if (m_wintab.get(m_wintab.context, &context)) {
-      if (overlap && context.lcStatus & CXS_OBSCURED && useTabletAPI(GHOST_kTabletWintab)) {
-        m_wintab.overlap(m_wintab.context, true);
-      }
-      else if (!overlap && context.lcStatus & CXS_ONTOP) {
-        m_wintab.overlap(m_wintab.context, false);
-
-        /* If context is disabled, Windows Ink may be active and managing m_tabletInRange. Don't
-         * modify it. */
-        if (!(context.lcStatus & CXS_DISABLED)) {
-          processWintabLeave();
-        }
-      }
+    if (m_wintab.overlap && state) {
+      m_wintab.overlap(m_wintab.tablet, TRUE);
     }
-  }
-}
-
-void GHOST_WindowWin32::processWintabLeave()
-{
-  m_tabletInRange = false;
-  m_wintab.buttons = 0;
-  /* Clear the packet queue. */
-  m_wintab.packetsGet(m_wintab.context, m_wintab.pkts.size(), m_wintab.pkts.data());
-}
-
-void GHOST_WindowWin32::processWintabDisplayChangeEvent()
-{
-  LOGCONTEXT lc_sys = {0}, lc_curr = {0};
-
-  if (m_wintab.info && m_wintab.get && m_wintab.set && m_wintab.info(WTI_DEFSYSCTX, 0, &lc_sys)) {
-
-    m_wintab.get(m_wintab.context, &lc_curr);
-
-    lc_curr.lcOutOrgX = lc_sys.lcOutOrgX;
-    lc_curr.lcOutOrgY = lc_sys.lcOutOrgY;
-    lc_curr.lcOutExtX = lc_sys.lcOutExtX;
-    lc_curr.lcOutExtY = -lc_sys.lcOutExtY;
-
-    m_wintab.set(m_wintab.context, &lc_curr);
   }
 }
 
@@ -1138,24 +1068,36 @@ bool GHOST_WindowWin32::useTabletAPI(GHOST_TTabletAPI api) const
   }
 }
 
-void GHOST_WindowWin32::updateWintabCursorInfo()
+void GHOST_WindowWin32::processWin32TabletInitEvent()
 {
-  if (m_wintab.info && m_wintab.context) {
-    AXIS Pressure, Orientation[3];
+  if (!useTabletAPI(GHOST_kTabletWintab)) {
+    return;
+  }
+
+  // Let's see if we can initialize tablet here
+  if (m_wintab.info && m_wintab.tablet) {
+    AXIS Pressure, Orientation[3]; /* The maximum tablet size */
 
     BOOL pressureSupport = m_wintab.info(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
-    m_wintab.maxPressure = pressureSupport ? Pressure.axMax : 0;
+    if (pressureSupport)
+      m_wintab.maxPressure = Pressure.axMax;
+    else
+      m_wintab.maxPressure = 0;
 
     BOOL tiltSupport = m_wintab.info(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
-    /* Does the tablet support azimuth ([0]) and altitude ([1]). */
-    if (tiltSupport && Orientation[0].axResolution && Orientation[1].axResolution) {
-      m_wintab.maxAzimuth = Orientation[0].axMax;
-      m_wintab.maxAltitude = Orientation[1].axMax;
-    }
-    else {
-      m_wintab.maxAzimuth = m_wintab.maxAltitude = 0;
+    if (tiltSupport) {
+      /* does the tablet support azimuth ([0]) and altitude ([1]) */
+      if (Orientation[0].axResolution && Orientation[1].axResolution) {
+        m_wintab.maxAzimuth = Orientation[0].axMax;
+        m_wintab.maxAltitude = Orientation[1].axMax;
+      }
+      else { /* no so dont do tilt stuff */
+        m_wintab.maxAzimuth = m_wintab.maxAltitude = 0;
+      }
     }
   }
+
+  m_tabletData.Active = GHOST_kTabletModeNone;
 }
 
 void GHOST_WindowWin32::processWintabInfoChangeEvent(LPARAM lParam)
@@ -1163,151 +1105,86 @@ void GHOST_WindowWin32::processWintabInfoChangeEvent(LPARAM lParam)
   /* Update number of connected Wintab digitizers */
   if (LOWORD(lParam) == WTI_INTERFACE && HIWORD(lParam) == IFC_NDEVICES) {
     m_wintab.info(WTI_INTERFACE, IFC_NDEVICES, &m_wintab.numDevices);
-    if (useTabletAPI(GHOST_kTabletWintab)) {
-      setWintabEnabled(true);
-    }
   }
 }
 
-GHOST_TButtonMask GHOST_WindowWin32::wintabMouseToGhost(UINT cursor, WORD physicalButton)
+void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 {
-  const WORD numButtons = 32;
-  BYTE logicalButtons[numButtons] = {0};
-  BYTE systemButtons[numButtons] = {0};
-
-  m_wintab.info(WTI_CURSORS + cursor, CSR_BUTTONMAP, &logicalButtons);
-  m_wintab.info(WTI_CURSORS + cursor, CSR_SYSBTNMAP, &systemButtons);
-
-  if (physicalButton >= numButtons) {
-    return GHOST_kButtonMaskNone;
-  }
-  BYTE lb = logicalButtons[physicalButton];
-
-  if (lb >= numButtons) {
-    return GHOST_kButtonMaskNone;
-  }
-  switch (systemButtons[lb]) {
-    case SBN_LCLICK:
-      return GHOST_kButtonMaskLeft;
-    case SBN_RCLICK:
-      return GHOST_kButtonMaskRight;
-    case SBN_MCLICK:
-      return GHOST_kButtonMaskMiddle;
-    default:
-      return GHOST_kButtonMaskNone;
-  }
-}
-
-GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
-{
-  if (!(useTabletAPI(GHOST_kTabletWintab) && m_wintab.packetsGet && m_wintab.context)) {
-    return GHOST_kFailure;
+  if (!useTabletAPI(GHOST_kTabletWintab)) {
+    return;
   }
 
-  GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)GHOST_System::getSystem();
-
-  const int numPackets = m_wintab.packetsGet(
-      m_wintab.context, m_wintab.pkts.size(), m_wintab.pkts.data());
-  outWintabInfo.resize(numPackets);
-
-  for (int i = 0; i < numPackets; i++) {
-    PACKET pkt = m_wintab.pkts[i];
-    GHOST_WintabInfoWin32 &out = outWintabInfo[i];
-
-    out.tabletData = GHOST_TABLET_DATA_NONE;
-    /* % 3 for multiple devices ("DualTrack"). */
-    switch (pkt.pkCursor % 3) {
-      case 0:
-        /* Puck - processed as mouse. */
-        out.tabletData.Active = GHOST_kTabletModeNone;
-        break;
-      case 1:
-        out.tabletData.Active = GHOST_kTabletModeStylus;
-        break;
-      case 2:
-        out.tabletData.Active = GHOST_kTabletModeEraser;
-        break;
-    }
-
-    out.x = pkt.pkX;
-    out.y = pkt.pkY;
-
-    if (m_wintab.maxPressure > 0) {
-      out.tabletData.Pressure = (float)pkt.pkNormalPressure / (float)m_wintab.maxPressure;
-    }
-
-    if ((m_wintab.maxAzimuth > 0) && (m_wintab.maxAltitude > 0)) {
-      ORIENTATION ort = pkt.pkOrientation;
-      float vecLen;
-      float altRad, azmRad; /* In radians. */
-
-      /*
-       * From the wintab spec:
-       * orAzimuth: Specifies the clockwise rotation of the cursor about the z axis through a
-       * full circular range.
-       * orAltitude: Specifies the angle with the x-y plane through a signed, semicircular range.
-       * Positive values specify an angle upward toward the positive z axis; negative values
-       * specify an angle downward toward the negative z axis.
-       *
-       * wintab.h defines orAltitude as a UINT but documents orAltitude as positive for upward
-       * angles and negative for downward angles. WACOM uses negative altitude values to show that
-       * the pen is inverted; therefore we cast orAltitude as an (int) and then use the absolute
-       * value.
-       */
-
-      /* Convert raw fixed point data to radians. */
-      altRad = (float)((fabs((float)ort.orAltitude) / (float)m_wintab.maxAltitude) * M_PI / 2.0);
-      azmRad = (float)(((float)ort.orAzimuth / (float)m_wintab.maxAzimuth) * M_PI * 2.0);
-
-      /* Find length of the stylus' projected vector on the XY plane. */
-      vecLen = cos(altRad);
-
-      /* From there calculate X and Y components based on azimuth. */
-      out.tabletData.Xtilt = sin(azmRad) * vecLen;
-      out.tabletData.Ytilt = (float)(sin(M_PI / 2.0 - azmRad) * vecLen);
-    }
-
-    /* Some Wintab libraries don't handle relative button input, so we track button presses
-     * manually. */
-    out.button = GHOST_kButtonMaskNone;
-    out.type = GHOST_kEventCursorMove;
-
-    DWORD buttonsChanged = m_wintab.buttons ^ pkt.pkButtons;
-    if (buttonsChanged) {
-      /* Find the index for the changed button from the button map. */
-      WORD physicalButton = 0;
-      for (DWORD diff = (unsigned)buttonsChanged >> 1; diff > 0; diff = (unsigned)diff >> 1) {
-        physicalButton++;
+  if (m_wintab.packet && m_wintab.tablet) {
+    PACKET pkt;
+    if (m_wintab.packet((HCTX)lParam, wParam, &pkt)) {
+      switch (pkt.pkCursor % 3) { /* % 3 for multiple devices ("DualTrack") */
+        case 0:
+          m_tabletData.Active = GHOST_kTabletModeNone; /* puck - not yet supported */
+          break;
+        case 1:
+          m_tabletData.Active = GHOST_kTabletModeStylus; /* stylus */
+          break;
+        case 2:
+          m_tabletData.Active = GHOST_kTabletModeEraser; /* eraser */
+          break;
       }
 
-      out.button = wintabMouseToGhost(pkt.pkCursor, physicalButton);
-
-      if (out.button != GHOST_kButtonMaskNone) {
-        if (buttonsChanged & pkt.pkButtons) {
-          out.type = GHOST_kEventButtonDown;
-        }
-        else {
-          out.type = GHOST_kEventButtonUp;
-        }
+      if (m_wintab.maxPressure > 0) {
+        m_tabletData.Pressure = (float)pkt.pkNormalPressure / (float)m_wintab.maxPressure;
+      }
+      else {
+        m_tabletData.Pressure = 1.0f;
       }
 
-      /* Only update handled button, in case multiple button events arrived simultaneously. */
-      m_wintab.buttons ^= 1 << physicalButton;
+      if ((m_wintab.maxAzimuth > 0) && (m_wintab.maxAltitude > 0)) {
+        ORIENTATION ort = pkt.pkOrientation;
+        float vecLen;
+        float altRad, azmRad; /* in radians */
+
+        /*
+         * from the wintab spec:
+         * orAzimuth    Specifies the clockwise rotation of the
+         * cursor about the z axis through a full circular range.
+         *
+         * orAltitude   Specifies the angle with the x-y plane
+         * through a signed, semicircular range.  Positive values
+         * specify an angle upward toward the positive z axis;
+         * negative values specify an angle downward toward the negative z axis.
+         *
+         * wintab.h defines .orAltitude as a UINT but documents .orAltitude
+         * as positive for upward angles and negative for downward angles.
+         * WACOM uses negative altitude values to show that the pen is inverted;
+         * therefore we cast .orAltitude as an (int) and then use the absolute value.
+         */
+
+        /* convert raw fixed point data to radians */
+        altRad = (float)((fabs((float)ort.orAltitude) / (float)m_wintab.maxAltitude) * M_PI / 2.0);
+        azmRad = (float)(((float)ort.orAzimuth / (float)m_wintab.maxAzimuth) * M_PI * 2.0);
+
+        /* find length of the stylus' projected vector on the XY plane */
+        vecLen = cos(altRad);
+
+        /* from there calculate X and Y components based on azimuth */
+        m_tabletData.Xtilt = sin(azmRad) * vecLen;
+        m_tabletData.Ytilt = (float)(sin(M_PI / 2.0 - azmRad) * vecLen);
+      }
+      else {
+        m_tabletData.Xtilt = 0.0f;
+        m_tabletData.Ytilt = 0.0f;
+      }
     }
-
-    out.time = system->tickCountToMillis(pkt.pkTime);
   }
-
-  if (!outWintabInfo.empty()) {
-    lastTabletData = outWintabInfo.back().tabletData;
-  }
-
-  return GHOST_kSuccess;
 }
 
-GHOST_TabletData GHOST_WindowWin32::getLastTabletData()
+void GHOST_WindowWin32::bringTabletContextToFront()
 {
-  return lastTabletData;
+  if (!useTabletAPI(GHOST_kTabletWintab)) {
+    return;
+  }
+
+  if (m_wintab.overlap && m_wintab.tablet) {
+    m_wintab.overlap(m_wintab.tablet, TRUE);
+  }
 }
 
 GHOST_TUns16 GHOST_WindowWin32::getDPIHint()

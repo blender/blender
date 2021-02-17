@@ -101,6 +101,12 @@ static void get_instanced_data__collection(
     return;
   }
 
+  if (BLI_listbase_is_empty(&collection->children) &&
+      BLI_listbase_is_empty(&collection->gobject)) {
+    params.error_message_add(NodeWarningType::Info, "Collection is empty.");
+    return;
+  }
+
   const bool use_whole_collection = (node_storage->flag &
                                      GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION) != 0;
   if (use_whole_collection) {

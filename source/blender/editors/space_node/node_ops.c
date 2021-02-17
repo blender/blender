@@ -88,6 +88,7 @@ void node_operatortypes(void)
   WM_operatortype_append(NODE_OT_backimage_fit);
   WM_operatortype_append(NODE_OT_backimage_sample);
 
+  WM_operatortype_append(NODE_OT_add_group);
   WM_operatortype_append(NODE_OT_add_file);
   WM_operatortype_append(NODE_OT_add_mask);
 

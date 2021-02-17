@@ -473,6 +473,21 @@ static void layerCopy_propFloat(const void *source, void *dest, int count)
   memcpy(dest, source, sizeof(MFloatProperty) * count);
 }
 
+static void layerInterp_propFloat(const void **sources,
+                                  const float *weights,
+                                  const float *UNUSED(sub_weights),
+                                  int count,
+                                  void *dest)
+{
+  float result = 0.0f;
+  for (int i = 0; i < count; i++) {
+    const float interp_weight = weights[i];
+    const float src = *(const float *)sources[i];
+    result += src * interp_weight;
+  }
+  *(float *)dest = result;
+}
+
 static bool layerValidate_propFloat(void *data, const uint totitems, const bool do_fixes)
 {
   MFloatProperty *fp = data;
@@ -1553,7 +1568,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      N_("Float"),
      layerCopy_propFloat,
      NULL,
-     NULL,
+     layerInterp_propFloat,
      NULL,
      NULL,
      layerValidate_propFloat},
