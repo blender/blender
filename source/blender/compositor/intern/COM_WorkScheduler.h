@@ -33,11 +33,6 @@ class WorkScheduler {
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
   /**
-   * \brief are we being stopped.
-   */
-  static bool isStopping();
-
-  /**
    * \brief main thread loop for cpudevices
    * inside this loop new work is queried and being executed
    */
