@@ -31,6 +31,7 @@ static bNodeSocketTemplate geo_node_attribute_fill_in[] = {
     {SOCK_FLOAT, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
     {SOCK_RGBA, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
     {SOCK_BOOLEAN, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
+    {SOCK_INT, N_("Value"), 0, 0, 0, 0, -10000000.0f, 10000000.0f},
     {-1, ""},
 };
 
@@ -56,6 +57,7 @@ static void geo_node_attribute_fill_update(bNodeTree *UNUSED(ntree), bNode *node
   bNodeSocket *socket_value_float = socket_value_vector->next;
   bNodeSocket *socket_value_color4f = socket_value_float->next;
   bNodeSocket *socket_value_boolean = socket_value_color4f->next;
+  bNodeSocket *socket_value_int32 = socket_value_boolean->next;
 
   const CustomDataType data_type = static_cast<CustomDataType>(node->custom1);
 
@@ -63,6 +65,7 @@ static void geo_node_attribute_fill_update(bNodeTree *UNUSED(ntree), bNode *node
   nodeSetSocketAvailability(socket_value_float, data_type == CD_PROP_FLOAT);
   nodeSetSocketAvailability(socket_value_color4f, data_type == CD_PROP_COLOR);
   nodeSetSocketAvailability(socket_value_boolean, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(socket_value_int32, data_type == CD_PROP_INT32);
 }
 
 namespace blender::nodes {
@@ -123,6 +126,11 @@ static void fill_attribute(GeometryComponent &component, const GeoNodeExecParams
       MutableSpan<bool> attribute_span = attribute->get_span_for_write_only<bool>();
       attribute_span.fill(value);
       break;
+    }
+    case CD_PROP_INT32: {
+      const int value = params.get_input<int>("Value_004");
+      MutableSpan<int> attribute_span = attribute->get_span_for_write_only<int>();
+      attribute_span.fill(value);
     }
     default:
       break;
