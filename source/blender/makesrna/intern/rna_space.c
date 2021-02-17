@@ -4819,7 +4819,7 @@ static void rna_def_space_properties(BlenderRNA *brna)
        "AUTO",
        0,
        "Auto",
-       "Change tabs only when this editor shares a border the outliner"},
+       "Change tabs only when this editor shares a border with an outliner"},
       {0, NULL, 0, NULL, NULL},
   };
 
