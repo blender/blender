@@ -351,7 +351,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
       G.f &= ~G_FLAG_RENDER_VIEWPORT;
 
       gp_rect = MEM_mallocN(sizeof(uchar[4]) * sizex * sizey, "offscreen rect");
-      GPU_offscreen_read_pixels(oglrender->ofs, GPU_DATA_UNSIGNED_BYTE, gp_rect);
+      GPU_offscreen_read_pixels(oglrender->ofs, GPU_DATA_UBYTE, gp_rect);
 
       for (i = 0; i < sizex * sizey * 4; i += 4) {
         blend_color_mix_byte(&render_rect[i], &render_rect[i], &gp_rect[i]);

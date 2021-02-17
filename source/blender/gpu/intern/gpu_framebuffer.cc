@@ -656,7 +656,7 @@ void GPU_offscreen_draw_to_screen(GPUOffScreen *ofs, int x, int y)
 
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, eGPUDataFormat format, void *pixels)
 {
-  BLI_assert(ELEM(format, GPU_DATA_UNSIGNED_BYTE, GPU_DATA_FLOAT));
+  BLI_assert(ELEM(format, GPU_DATA_UBYTE, GPU_DATA_FLOAT));
 
   const int w = GPU_texture_width(ofs->color);
   const int h = GPU_texture_height(ofs->color);

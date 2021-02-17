@@ -483,7 +483,7 @@ bool gpu_select_pick_load_id(uint id, bool end)
     const uint rect_len = ps->src.rect_len;
     GPUFrameBuffer *fb = GPU_framebuffer_active_get();
     GPU_framebuffer_read_depth(
-        fb, UNPACK4(ps->gl.clip_readpixels), GPU_DATA_UNSIGNED_INT, ps->gl.rect_depth_test->buf);
+        fb, UNPACK4(ps->gl.clip_readpixels), GPU_DATA_UINT, ps->gl.rect_depth_test->buf);
     /* perform initial check since most cases the array remains unchanged  */
 
     bool do_pass = false;

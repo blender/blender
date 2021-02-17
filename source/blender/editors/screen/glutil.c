@@ -131,7 +131,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
   }
 
   const bool use_float_data = ELEM(gpu_format, GPU_RGBA16F, GPU_RGB16F, GPU_R16F);
-  eGPUDataFormat gpu_data = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
+  eGPUDataFormat gpu_data = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
   size_t stride = components * ((use_float_data) ? sizeof(float) : sizeof(uchar));
 
   GPUTexture *tex = GPU_texture_create_2d("immDrawPixels", tex_w, tex_h, 1, gpu_format, NULL);

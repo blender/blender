@@ -49,7 +49,7 @@ static void imb_gpu_get_format(const ImBuf *ibuf,
                          !IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace));
   high_bitdepth = (!(ibuf->flags & IB_halffloat) && high_bitdepth);
 
-  *r_data_format = (float_rect) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
+  *r_data_format = (float_rect) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   if (float_rect) {
     *r_texture_format = high_bitdepth ? GPU_RGBA32F : GPU_RGBA16F;

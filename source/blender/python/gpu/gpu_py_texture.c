@@ -314,7 +314,7 @@ static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObje
   }
 
   if (shape != 1 &&
-      ELEM(pygpu_dataformat.value_found, GPU_DATA_UNSIGNED_INT_24_8, GPU_DATA_10_11_11_REV)) {
+      ELEM(pygpu_dataformat.value_found, GPU_DATA_UINT_24_8, GPU_DATA_10_11_11_REV)) {
     PyErr_SetString(PyExc_AttributeError,
                     "`UINT_24_8` and `10_11_11_REV` only support single values");
     return NULL;
@@ -330,7 +330,7 @@ static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObje
     return NULL;
   }
 
-  if (pygpu_dataformat.value_found == GPU_DATA_UNSIGNED_BYTE) {
+  if (pygpu_dataformat.value_found == GPU_DATA_UBYTE) {
     /* Convert to byte. */
     values.c[0] = values.i[0];
     values.c[1] = values.i[1];
@@ -362,13 +362,13 @@ static PyObject *pygpu_texture_read(BPyGPUTexture *self)
       break;
     case GPU_DEPTH24_STENCIL8:
     case GPU_DEPTH32F_STENCIL8:
-      best_data_format = GPU_DATA_UNSIGNED_INT_24_8;
+      best_data_format = GPU_DATA_UINT_24_8;
       break;
     case GPU_R8UI:
     case GPU_R16UI:
     case GPU_RG16UI:
     case GPU_R32UI:
-      best_data_format = GPU_DATA_UNSIGNED_INT;
+      best_data_format = GPU_DATA_UINT;
       break;
     case GPU_RG16I:
     case GPU_R16I:
@@ -379,7 +379,7 @@ static PyObject *pygpu_texture_read(BPyGPUTexture *self)
     case GPU_RGBA8:
     case GPU_RGBA8UI:
     case GPU_SRGB8_A8:
-      best_data_format = GPU_DATA_UNSIGNED_BYTE;
+      best_data_format = GPU_DATA_UBYTE;
       break;
     case GPU_R11F_G11F_B10F:
       best_data_format = GPU_DATA_10_11_11_REV;

@@ -57,11 +57,11 @@ static const char *pygpu_buffer_formatstr(eGPUDataFormat data_format)
       return "f";
     case GPU_DATA_INT:
       return "i";
-    case GPU_DATA_UNSIGNED_INT:
+    case GPU_DATA_UINT:
       return "I";
-    case GPU_DATA_UNSIGNED_BYTE:
+    case GPU_DATA_UBYTE:
       return "B";
-    case GPU_DATA_UNSIGNED_INT_24_8:
+    case GPU_DATA_UINT_24_8:
     case GPU_DATA_10_11_11_REV:
       return "I";
     default:
@@ -114,10 +114,10 @@ static PyObject *pygpu_buffer__sq_item(BPyGPUBuffer *self, int i)
         return Py_BuildValue(formatstr, self->buf.as_float[i]);
       case GPU_DATA_INT:
         return Py_BuildValue(formatstr, self->buf.as_int[i]);
-      case GPU_DATA_UNSIGNED_BYTE:
+      case GPU_DATA_UBYTE:
         return Py_BuildValue(formatstr, self->buf.as_byte[i]);
-      case GPU_DATA_UNSIGNED_INT:
-      case GPU_DATA_UNSIGNED_INT_24_8:
+      case GPU_DATA_UINT:
+      case GPU_DATA_UINT_24_8:
       case GPU_DATA_10_11_11_REV:
         return Py_BuildValue(formatstr, self->buf.as_uint[i]);
     }
@@ -433,10 +433,10 @@ static int pygpu_buffer__sq_ass_item(BPyGPUBuffer *self, int i, PyObject *v)
       return PyArg_Parse(v, "f:Expected floats", &self->buf.as_float[i]) ? 0 : -1;
     case GPU_DATA_INT:
       return PyArg_Parse(v, "i:Expected ints", &self->buf.as_int[i]) ? 0 : -1;
-    case GPU_DATA_UNSIGNED_BYTE:
+    case GPU_DATA_UBYTE:
       return PyArg_Parse(v, "b:Expected ints", &self->buf.as_byte[i]) ? 0 : -1;
-    case GPU_DATA_UNSIGNED_INT:
-    case GPU_DATA_UNSIGNED_INT_24_8:
+    case GPU_DATA_UINT:
+    case GPU_DATA_UINT_24_8:
     case GPU_DATA_10_11_11_REV:
       return PyArg_Parse(v, "b:Expected ints", &self->buf.as_uint[i]) ? 0 : -1;
     default:

@@ -647,7 +647,7 @@ static void gpu_texture_update_scaled(GPUTexture *tex,
   }
 
   void *data = (ibuf->rect_float) ? (void *)(ibuf->rect_float) : (void *)(ibuf->rect);
-  eGPUDataFormat data_format = (ibuf->rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
+  eGPUDataFormat data_format = (ibuf->rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   GPU_texture_update_sub(tex, data_format, data, x, y, layer, w, h, 1);
 
@@ -673,7 +673,7 @@ static void gpu_texture_update_unscaled(GPUTexture *tex,
   }
 
   void *data = (rect_float) ? (void *)(rect_float + tex_offset) : (void *)(rect + tex_offset);
-  eGPUDataFormat data_format = (rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
+  eGPUDataFormat data_format = (rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   /* Partial update without scaling. Stride and offset are used to copy only a
    * subset of a possible larger buffer than what we are updating. */

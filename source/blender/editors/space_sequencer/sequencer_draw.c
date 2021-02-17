@@ -1533,7 +1533,7 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
 
   /* Default */
   *r_format = GPU_RGBA8;
-  *r_data = GPU_DATA_UNSIGNED_BYTE;
+  *r_data = GPU_DATA_UBYTE;
 
   /* Fallback to CPU based color space conversion. */
   if (force_fallback) {
@@ -1580,7 +1580,7 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
   if ((ibuf->rect || ibuf->rect_float) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
     *r_format = GPU_RGBA8;
-    *r_data = GPU_DATA_UNSIGNED_BYTE;
+    *r_data = GPU_DATA_UBYTE;
   }
   if (cache_handle) {
     IMB_display_buffer_release(cache_handle);
@@ -1682,7 +1682,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
 
     display_buffer = (uchar *)ibuf->rect;
     format = GPU_RGBA8;
-    data = GPU_DATA_UNSIGNED_BYTE;
+    data = GPU_DATA_UBYTE;
   }
   else {
     display_buffer = sequencer_OCIO_transform_ibuf(C, ibuf, &glsl_used, &format, &data);
