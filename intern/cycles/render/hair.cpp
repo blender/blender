@@ -416,7 +416,7 @@ void Hair::compute_bounds()
 
   if (!bnds.valid()) {
     /* empty mesh */
-    bnds.grow(make_float3(0.0f, 0.0f, 0.0f));
+    bnds.grow(zero_float3());
   }
 
   bounds = bnds;

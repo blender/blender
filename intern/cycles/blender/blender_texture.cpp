@@ -43,8 +43,8 @@ void point_density_texture_space(BL::Depsgraph &b_depsgraph,
 {
   BL::Object b_ob(b_point_density_node.object());
   if (!b_ob) {
-    loc = make_float3(0.0f, 0.0f, 0.0f);
-    size = make_float3(0.0f, 0.0f, 0.0f);
+    loc = zero_float3();
+    size = zero_float3();
     return;
   }
   float3 min, max;

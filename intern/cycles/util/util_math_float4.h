@@ -98,6 +98,20 @@ ccl_device_inline float4 reduce_add(const float4 &a);
  * Definition.
  */
 
+ccl_device_inline float4 zero_float4()
+{
+#ifdef __KERNEL_SSE__
+  return float4(_mm_setzero_ps());
+#else
+  return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+#endif
+}
+
+ccl_device_inline float4 one_float4()
+{
+  return make_float4(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
 #ifndef __KERNEL_OPENCL__
 ccl_device_inline float4 operator-(const float4 &a)
 {
@@ -474,7 +488,7 @@ ccl_device_inline float4 load_float4(const float *v)
 
 ccl_device_inline float4 safe_divide_float4_float(const float4 a, const float b)
 {
-  return (b != 0.0f) ? a / b : make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  return (b != 0.0f) ? a / b : zero_float4();
 }
 
 ccl_device_inline bool isfinite4_safe(float4 v)

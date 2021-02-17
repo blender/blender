@@ -106,8 +106,8 @@ ccl_device differential differential_zero()
 ccl_device differential3 differential3_zero()
 {
   differential3 d;
-  d.dx = make_float3(0.0f, 0.0f, 0.0f);
-  d.dy = make_float3(0.0f, 0.0f, 0.0f);
+  d.dx = zero_float3();
+  d.dy = zero_float3();
 
   return d;
 }

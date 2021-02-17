@@ -360,7 +360,7 @@ void BVHBuild::add_references(BVHRange &root)
 
   /* happens mostly on empty meshes */
   if (!bounds.valid())
-    bounds.grow(make_float3(0.0f, 0.0f, 0.0f));
+    bounds.grow(zero_float3());
 
   root = BVHRange(bounds, center, 0, references.size());
 }

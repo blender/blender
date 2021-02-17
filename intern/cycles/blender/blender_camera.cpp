@@ -112,7 +112,7 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings &b_rende
   bcam->focaldistance = 10.0f;
 
   bcam->zoom = 1.0f;
-  bcam->pixelaspect = make_float2(1.0f, 1.0f);
+  bcam->pixelaspect = one_float2();
   bcam->aperture_ratio = 1.0f;
 
   bcam->sensor_width = 36.0f;

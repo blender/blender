@@ -259,9 +259,7 @@ TEST_F(RenderGraph, constant_fold_emission1)
   EXPECT_ANY_MESSAGE(log);
   CORRECT_INFO_MESSAGE(log, "Discarding closure Emission.");
 
-  builder
-      .add_node(ShaderNodeBuilder<EmissionNode>(graph, "Emission")
-                    .set("Color", make_float3(0.0f, 0.0f, 0.0f)))
+  builder.add_node(ShaderNodeBuilder<EmissionNode>(graph, "Emission").set("Color", zero_float3()))
       .output_closure("Emission::Emission");
 
   graph.finalize(scene);
@@ -288,8 +286,7 @@ TEST_F(RenderGraph, constant_fold_background1)
   CORRECT_INFO_MESSAGE(log, "Discarding closure Background.");
 
   builder
-      .add_node(ShaderNodeBuilder<BackgroundNode>(graph, "Background")
-                    .set("Color", make_float3(0.0f, 0.0f, 0.0f)))
+      .add_node(ShaderNodeBuilder<BackgroundNode>(graph, "Background").set("Color", zero_float3()))
       .output_closure("Background::Background");
 
   graph.finalize(scene);
@@ -892,8 +889,7 @@ TEST_F(RenderGraph, constant_fold_gamma_part_0)
   builder
       .add_attribute("Attribute")
       /* constant on the left */
-      .add_node(ShaderNodeBuilder<GammaNode>(graph, "Gamma_Cx")
-                    .set("Color", make_float3(0.0f, 0.0f, 0.0f)))
+      .add_node(ShaderNodeBuilder<GammaNode>(graph, "Gamma_Cx").set("Color", zero_float3()))
       .add_connection("Attribute::Fac", "Gamma_Cx::Gamma")
       /* constant on the right */
       .add_node(ShaderNodeBuilder<GammaNode>(graph, "Gamma_xC").set("Gamma", 0.0f))
@@ -922,8 +918,7 @@ TEST_F(RenderGraph, constant_fold_gamma_part_1)
   builder
       .add_attribute("Attribute")
       /* constant on the left */
-      .add_node(ShaderNodeBuilder<GammaNode>(graph, "Gamma_Cx")
-                    .set("Color", make_float3(1.0f, 1.0f, 1.0f)))
+      .add_node(ShaderNodeBuilder<GammaNode>(graph, "Gamma_Cx").set("Color", one_float3()))
       .add_connection("Attribute::Fac", "Gamma_Cx::Gamma")
       /* constant on the right */
       .add_node(ShaderNodeBuilder<GammaNode>(graph, "Gamma_xC").set("Gamma", 1.0f))

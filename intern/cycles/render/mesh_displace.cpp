@@ -197,7 +197,7 @@ bool GeometryManager::displace(
   for (int key : stitch_keys) {
     pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(key);
 
-    float3 pos = make_float3(0.0f, 0.0f, 0.0f);
+    float3 pos = zero_float3();
     int num = 0;
 
     for (map_it_t v = verts.first; v != verts.second; ++v) {
@@ -264,7 +264,7 @@ bool GeometryManager::displace(
     for (size_t i = 0; i < num_triangles; i++) {
       if (tri_has_true_disp[i]) {
         for (size_t j = 0; j < 3; j++) {
-          vN[mesh->get_triangle(i).v[j]] = make_float3(0.0f, 0.0f, 0.0f);
+          vN[mesh->get_triangle(i).v[j]] = zero_float3();
         }
       }
     }
@@ -333,7 +333,7 @@ bool GeometryManager::displace(
         for (size_t i = 0; i < num_triangles; i++) {
           if (tri_has_true_disp[i]) {
             for (size_t j = 0; j < 3; j++) {
-              mN[mesh->get_triangle(i).v[j]] = make_float3(0.0f, 0.0f, 0.0f);
+              mN[mesh->get_triangle(i).v[j]] = zero_float3();
             }
           }
         }

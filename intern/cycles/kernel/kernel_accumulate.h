@@ -32,11 +32,11 @@ ccl_device_inline void bsdf_eval_init(BsdfEval *eval,
   eval->use_light_pass = use_light_pass;
 
   if (eval->use_light_pass) {
-    eval->diffuse = make_float3(0.0f, 0.0f, 0.0f);
-    eval->glossy = make_float3(0.0f, 0.0f, 0.0f);
-    eval->transmission = make_float3(0.0f, 0.0f, 0.0f);
-    eval->transparent = make_float3(0.0f, 0.0f, 0.0f);
-    eval->volume = make_float3(0.0f, 0.0f, 0.0f);
+    eval->diffuse = zero_float3();
+    eval->glossy = zero_float3();
+    eval->transmission = zero_float3();
+    eval->transparent = zero_float3();
+    eval->volume = zero_float3();
 
     if (type == CLOSURE_BSDF_TRANSPARENT_ID)
       eval->transparent = value;
@@ -55,7 +55,7 @@ ccl_device_inline void bsdf_eval_init(BsdfEval *eval,
     eval->diffuse = value;
   }
 #ifdef __SHADOW_TRICKS__
-  eval->sum_no_mis = make_float3(0.0f, 0.0f, 0.0f);
+  eval->sum_no_mis = zero_float3();
 #endif
 }
 
@@ -174,55 +174,55 @@ ccl_device_inline void path_radiance_init(KernelGlobals *kg, PathRadiance *L)
   L->use_light_pass = kernel_data.film.use_light_pass;
 
   if (kernel_data.film.use_light_pass) {
-    L->indirect = make_float3(0.0f, 0.0f, 0.0f);
-    L->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
+    L->indirect = zero_float3();
+    L->direct_emission = zero_float3();
 
-    L->color_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-    L->color_glossy = make_float3(0.0f, 0.0f, 0.0f);
-    L->color_transmission = make_float3(0.0f, 0.0f, 0.0f);
+    L->color_diffuse = zero_float3();
+    L->color_glossy = zero_float3();
+    L->color_transmission = zero_float3();
 
-    L->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-    L->direct_glossy = make_float3(0.0f, 0.0f, 0.0f);
-    L->direct_transmission = make_float3(0.0f, 0.0f, 0.0f);
-    L->direct_volume = make_float3(0.0f, 0.0f, 0.0f);
+    L->direct_diffuse = zero_float3();
+    L->direct_glossy = zero_float3();
+    L->direct_transmission = zero_float3();
+    L->direct_volume = zero_float3();
 
-    L->indirect_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-    L->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
-    L->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
-    L->indirect_volume = make_float3(0.0f, 0.0f, 0.0f);
+    L->indirect_diffuse = zero_float3();
+    L->indirect_glossy = zero_float3();
+    L->indirect_transmission = zero_float3();
+    L->indirect_volume = zero_float3();
 
     L->transparent = 0.0f;
-    L->emission = make_float3(0.0f, 0.0f, 0.0f);
-    L->background = make_float3(0.0f, 0.0f, 0.0f);
-    L->ao = make_float3(0.0f, 0.0f, 0.0f);
-    L->shadow = make_float3(0.0f, 0.0f, 0.0f);
+    L->emission = zero_float3();
+    L->background = zero_float3();
+    L->ao = zero_float3();
+    L->shadow = zero_float3();
     L->mist = 0.0f;
 
-    L->state.diffuse = make_float3(0.0f, 0.0f, 0.0f);
-    L->state.glossy = make_float3(0.0f, 0.0f, 0.0f);
-    L->state.transmission = make_float3(0.0f, 0.0f, 0.0f);
-    L->state.volume = make_float3(0.0f, 0.0f, 0.0f);
-    L->state.direct = make_float3(0.0f, 0.0f, 0.0f);
+    L->state.diffuse = zero_float3();
+    L->state.glossy = zero_float3();
+    L->state.transmission = zero_float3();
+    L->state.volume = zero_float3();
+    L->state.direct = zero_float3();
   }
   else
 #endif
   {
     L->transparent = 0.0f;
-    L->emission = make_float3(0.0f, 0.0f, 0.0f);
+    L->emission = zero_float3();
   }
 
 #ifdef __SHADOW_TRICKS__
-  L->path_total = make_float3(0.0f, 0.0f, 0.0f);
-  L->path_total_shaded = make_float3(0.0f, 0.0f, 0.0f);
-  L->shadow_background_color = make_float3(0.0f, 0.0f, 0.0f);
+  L->path_total = zero_float3();
+  L->path_total_shaded = zero_float3();
+  L->shadow_background_color = zero_float3();
   L->shadow_throughput = 0.0f;
   L->shadow_transparency = 1.0f;
   L->has_shadow_catcher = 0;
 #endif
 
 #ifdef __DENOISING_FEATURES__
-  L->denoising_normal = make_float3(0.0f, 0.0f, 0.0f);
-  L->denoising_albedo = make_float3(0.0f, 0.0f, 0.0f);
+  L->denoising_normal = zero_float3();
+  L->denoising_albedo = zero_float3();
   L->denoising_depth = 0.0f;
 #endif
 
@@ -561,13 +561,13 @@ ccl_device_inline void path_radiance_reset_indirect(PathRadiance *L)
 {
 #ifdef __PASSES__
   if (L->use_light_pass) {
-    L->state.diffuse = make_float3(0.0f, 0.0f, 0.0f);
-    L->state.glossy = make_float3(0.0f, 0.0f, 0.0f);
-    L->state.transmission = make_float3(0.0f, 0.0f, 0.0f);
-    L->state.volume = make_float3(0.0f, 0.0f, 0.0f);
+    L->state.diffuse = zero_float3();
+    L->state.glossy = zero_float3();
+    L->state.transmission = zero_float3();
+    L->state.volume = zero_float3();
 
-    L->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
-    L->indirect = make_float3(0.0f, 0.0f, 0.0f);
+    L->direct_emission = zero_float3();
+    L->indirect = zero_float3();
   }
 #endif
 }
@@ -642,19 +642,19 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg,
     /* Reject invalid value */
     if (!isfinite_safe(sum)) {
       kernel_assert(!"Non-finite sum in path_radiance_clamp_and_sum!");
-      L_sum = make_float3(0.0f, 0.0f, 0.0f);
+      L_sum = zero_float3();
 
-      L->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-      L->direct_glossy = make_float3(0.0f, 0.0f, 0.0f);
-      L->direct_transmission = make_float3(0.0f, 0.0f, 0.0f);
-      L->direct_volume = make_float3(0.0f, 0.0f, 0.0f);
+      L->direct_diffuse = zero_float3();
+      L->direct_glossy = zero_float3();
+      L->direct_transmission = zero_float3();
+      L->direct_volume = zero_float3();
 
-      L->indirect_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-      L->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
-      L->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
-      L->indirect_volume = make_float3(0.0f, 0.0f, 0.0f);
+      L->indirect_diffuse = zero_float3();
+      L->indirect_glossy = zero_float3();
+      L->indirect_transmission = zero_float3();
+      L->indirect_volume = zero_float3();
 
-      L->emission = make_float3(0.0f, 0.0f, 0.0f);
+      L->emission = zero_float3();
     }
   }
 
@@ -668,7 +668,7 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg,
     float sum = fabsf((L_sum).x) + fabsf((L_sum).y) + fabsf((L_sum).z);
     if (!isfinite_safe(sum)) {
       kernel_assert(!"Non-finite final sum in path_radiance_clamp_and_sum!");
-      L_sum = make_float3(0.0f, 0.0f, 0.0f);
+      L_sum = zero_float3();
     }
   }
 
@@ -711,7 +711,7 @@ ccl_device_inline void path_radiance_split_denoising(KernelGlobals *kg,
 #  undef ADD_COMPONENT
 #else
   *noisy = L->emission;
-  *clean = make_float3(0.0f, 0.0f, 0.0f);
+  *clean = zero_float3();
 #endif
 
 #ifdef __SHADOW_TRICKS__

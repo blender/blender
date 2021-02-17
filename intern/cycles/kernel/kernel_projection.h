@@ -56,7 +56,7 @@ ccl_device float3 spherical_to_direction(float theta, float phi)
 ccl_device float2 direction_to_equirectangular_range(float3 dir, float4 range)
 {
   if (is_zero(dir))
-    return make_float2(0.0f, 0.0f);
+    return zero_float2();
 
   float u = (atan2f(dir.y, dir.x) - range.y) / range.x;
   float v = (acosf(dir.z / len(dir)) - range.w) / range.z;
@@ -103,7 +103,7 @@ ccl_device float3 fisheye_to_direction(float u, float v, float fov)
   float r = sqrtf(u * u + v * v);
 
   if (r > 1.0f)
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_float3();
 
   float phi = safe_acosf((r != 0.0f) ? u / r : 0.0f);
   float theta = r * fov * 0.5f;
@@ -136,7 +136,7 @@ fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float wi
   float r = sqrtf(u * u + v * v);
 
   if (r > rmax)
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_float3();
 
   float phi = safe_acosf((r != 0.0f) ? u / r : 0.0f);
   float theta = 2.0f * asinf(r / (2.0f * lens));
@@ -158,7 +158,7 @@ ccl_device float3 mirrorball_to_direction(float u, float v)
   dir.z = 2.0f * v - 1.0f;
 
   if (dir.x * dir.x + dir.z * dir.z > 1.0f)
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_float3();
 
   dir.y = -sqrtf(max(1.0f - dir.x * dir.x - dir.z * dir.z, 0.0f));
 

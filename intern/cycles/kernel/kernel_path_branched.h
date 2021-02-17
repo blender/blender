@@ -374,7 +374,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
                                                PathRadiance *L)
 {
   /* initialize */
-  float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
+  float3 throughput = one_float3();
 
   path_radiance_init(kg, L);
 
