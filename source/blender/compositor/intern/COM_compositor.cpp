@@ -79,7 +79,7 @@ void COM_execute(RenderData *rd,
   BKE_node_preview_init_tree(editingtree, preview_width, preview_height, false);
 
   /* Initialize workscheduler. */
-  bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL) != 0;
+  const bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL) != 0;
   WorkScheduler::initialize(use_opencl, BKE_render_num_threads(rd));
 
   /* Reset progress bar and status. */
@@ -87,7 +87,7 @@ void COM_execute(RenderData *rd,
   editingtree->stats_draw(editingtree->sdh, IFACE_("Compositing"));
 
   /* Execute. */
-  bool twopass = (editingtree->flag & NTREE_TWO_PASS) && !rendering;
+  const bool twopass = (editingtree->flag & NTREE_TWO_PASS) && !rendering;
   if (twopass) {
     ExecutionSystem fast_pass(
         rd, scene, editingtree, rendering, true, viewSettings, displaySettings, viewName);
