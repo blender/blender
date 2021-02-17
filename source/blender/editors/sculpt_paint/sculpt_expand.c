@@ -242,6 +242,9 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
   bool enabled = false;
 
   if (expand_cache->snap) {
+    /* Face Sets are not being modified when using this function, so it is ok to get this directly
+     * from the Sculpt API instead of implementing a custom function to get them from
+     * expand_cache->original_face_sets. */
     const int face_set = SCULPT_vertex_face_set_get(ss, v);
     enabled = BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
   }
@@ -282,7 +285,7 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
   bool enabled = false;
 
   if (expand_cache->snap_enabled_face_sets) {
-    const int face_set = ss->face_sets[f];
+    const int face_set = expand_cache->original_face_sets[f];
     enabled = BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
   }
   else {
@@ -1013,7 +1016,7 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
 
   const int totface = ss->totfaces;
   for (int i = 0; i < totface; i++) {
-    const int face_set = expand_cache->initial_face_sets[i];
+    const int face_set = expand_cache->original_face_sets[i];
     BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
   }
 
@@ -1027,7 +1030,7 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
       }
     }
     if (any_disabled) {
-      const int face_set = expand_cache->initial_face_sets[p];
+      const int face_set = expand_cache->original_face_sets[p];
       if (BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set))) {
         BLI_gset_remove(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set), NULL);
       }
