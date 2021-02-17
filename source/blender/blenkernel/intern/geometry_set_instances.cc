@@ -350,9 +350,10 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups, Ge
   MeshComponent &dst_component = result.get_component_for_write<MeshComponent>();
   dst_component.replace(new_mesh);
 
-  /* The position attribute is handled above already. */
+  /* Don't copy attributes that are stored directly in the mesh data structs. */
   Map<std::string, AttributeInfo> attributes;
-  gather_attribute_info(attributes, GeometryComponentType::Mesh, set_groups, {"position"});
+  gather_attribute_info(
+      attributes, GeometryComponentType::Mesh, set_groups, {"position", "material_index"});
   join_attributes(set_groups,
                   GeometryComponentType::Mesh,
                   attributes,

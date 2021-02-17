@@ -1292,6 +1292,29 @@ static void tag_normals_dirty_when_writing_position(GeometryComponent &component
   }
 }
 
+static int get_material_index(const MPoly &mpoly)
+{
+  return static_cast<int>(mpoly.mat_nr);
+}
+
+static void set_material_index(MPoly &mpoly, const int &index)
+{
+  mpoly.mat_nr = static_cast<short>(std::clamp(index, 0, SHRT_MAX));
+}
+
+static ReadAttributePtr make_material_index_read_attribute(const void *data, const int domain_size)
+{
+  return std::make_unique<DerivedArrayReadAttribute<MPoly, int, get_material_index>>(
+      ATTR_DOMAIN_POLYGON, Span<MPoly>((const MPoly *)data, domain_size));
+}
+
+static WriteAttributePtr make_material_index_write_attribute(void *data, const int domain_size)
+{
+  return std::make_unique<
+      DerivedArrayWriteAttribute<MPoly, int, get_material_index, set_material_index>>(
+      ATTR_DOMAIN_POLYGON, MutableSpan<MPoly>((MPoly *)data, domain_size));
+}
+
 template<typename T, AttributeDomain Domain>
 static ReadAttributePtr make_array_read_attribute(const void *data, const int domain_size)
 {
@@ -1355,6 +1378,19 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                  make_vertex_position_read_attribute,
                                                  make_vertex_position_write_attribute,
                                                  tag_normals_dirty_when_writing_position);
+
+  static BuiltinCustomDataLayerProvider material_index("material_index",
+                                                       ATTR_DOMAIN_POLYGON,
+                                                       CD_PROP_INT32,
+                                                       CD_MPOLY,
+                                                       BuiltinAttributeProvider::NonCreatable,
+                                                       BuiltinAttributeProvider::Writable,
+                                                       BuiltinAttributeProvider::NonDeletable,
+                                                       polygon_access,
+                                                       make_material_index_read_attribute,
+                                                       make_material_index_write_attribute,
+                                                       nullptr);
+
   static MeshUVsAttributeProvider uvs;
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
@@ -1362,7 +1398,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   static CustomDataAttributeProvider edge_custom_data(ATTR_DOMAIN_EDGE, edge_access);
   static CustomDataAttributeProvider polygon_custom_data(ATTR_DOMAIN_POLYGON, polygon_access);
 
-  return ComponentAttributeProviders({&position},
+  return ComponentAttributeProviders({&position, &material_index},
                                      {&uvs,
                                       &corner_custom_data,
                                       &vertex_groups,

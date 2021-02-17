@@ -221,8 +221,9 @@ static void join_components(Span<const MeshComponent *> src_components, Geometry
   MeshComponent &dst_component = result.get_component_for_write<MeshComponent>();
   dst_component.replace(new_mesh);
 
-  /* The position attribute is handled above already. */
-  join_attributes(to_base_components(src_components), dst_component, {"position"});
+  /* Don't copy attributes that are stored directly in the mesh data structs. */
+  join_attributes(
+      to_base_components(src_components), dst_component, {"position", "material_index"});
 }
 
 static void join_components(Span<const PointCloudComponent *> src_components, GeometrySet &result)
