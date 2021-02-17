@@ -531,20 +531,7 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 {
   if (!::GetActiveWindow())
     return GHOST_kFailure;
-
-  INPUT input;
-  input.type = INPUT_MOUSE;
-  input.mi.mouseData = 0;
-  input.mi.time = ::GetTickCount();
-  /* Map from virtual screen to 0-65535 inclusive. */
-  input.mi.dx = (x - GetSystemMetrics(SM_XVIRTUALSCREEN)) * 65535 /
-                (GetSystemMetrics(SM_CXVIRTUALSCREEN) - 1);
-  input.mi.dy = (y - GetSystemMetrics(SM_YVIRTUALSCREEN)) * 65535 /
-                (GetSystemMetrics(SM_CYVIRTUALSCREEN) - 1);
-  input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
-  SendInput(1, &input, sizeof(input));
-
-  return GHOST_kSuccess;
+  return ::SetCursorPos(x, y) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) const
