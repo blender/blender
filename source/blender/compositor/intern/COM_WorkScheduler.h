@@ -29,7 +29,7 @@
 /** \brief the workscheduler
  * \ingroup execution
  */
-class WorkScheduler {
+struct WorkScheduler {
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
   /**
