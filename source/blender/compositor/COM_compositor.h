@@ -339,9 +339,9 @@ extern "C" {
  */
 /* clang-format off */
 
-void COM_execute(RenderData *rd,
+void COM_execute(RenderData *render_data,
                  Scene *scene,
-                 bNodeTree *editingtree,
+                 bNodeTree *node_tree,
                  int rendering,
                  const ColorManagedViewSettings *viewSettings,
                  const ColorManagedDisplaySettings *displaySettings,
