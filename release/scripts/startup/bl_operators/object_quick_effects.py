@@ -496,7 +496,7 @@ class QuickLiquid(Operator):
             obj_bb_minmax(obj, min_co, max_co)
 
         # add the liquid domain object
-        bpy.ops.mesh.primitive_cube_add()
+        bpy.ops.mesh.primitive_cube_add(align='WORLD')
         obj = context.active_object
         obj.name = "Liquid Domain"
 
