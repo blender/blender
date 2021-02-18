@@ -44,7 +44,7 @@ Vector<GeometryInstanceGroup> geometry_set_gather_instances(const GeometrySet &g
 GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_set);
 GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set);
 
-struct AttributeInfo {
+struct AttributeKind {
   CustomDataType data_type;
   AttributeDomain domain;
 };
@@ -54,7 +54,7 @@ struct AttributeInfo {
  * will contain the highest complexity data type and the highest priority domain among every
  * attribute with the given name on all of the input components.
  */
-void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
+void gather_attribute_info(Map<std::string, AttributeKind> &attributes,
                            Span<GeometryComponentType> component_types,
                            Span<bke::GeometryInstanceGroup> set_groups,
                            const Set<std::string> &ignored_attributes);

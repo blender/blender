@@ -165,7 +165,7 @@ Vector<GeometryInstanceGroup> geometry_set_gather_instances(const GeometrySet &g
   return result_vector;
 }
 
-void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
+void gather_attribute_info(Map<std::string, AttributeKind> &attributes,
                            Span<GeometryComponentType> component_types,
                            Span<GeometryInstanceGroup> set_groups,
                            const Set<std::string> &ignored_attributes)
@@ -189,14 +189,14 @@ void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
         const AttributeDomain domain = read_attribute->domain();
         const CustomDataType data_type = read_attribute->custom_data_type();
 
-        auto add_info = [&, data_type, domain](AttributeInfo *info) {
-          info->domain = domain;
-          info->data_type = data_type;
+        auto add_info = [&, data_type, domain](AttributeKind *attribute_kind) {
+          attribute_kind->domain = domain;
+          attribute_kind->data_type = data_type;
         };
-        auto modify_info = [&, data_type, domain](AttributeInfo *info) {
-          info->domain = domain; /* TODO: Use highest priority domain. */
-          info->data_type = bke::attribute_data_type_highest_complexity(
-              {info->data_type, data_type});
+        auto modify_info = [&, data_type, domain](AttributeKind *attribute_kind) {
+          attribute_kind->domain = domain; /* TODO: Use highest priority domain. */
+          attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
+              {attribute_kind->data_type, data_type});
         };
 
         attributes.add_or_modify(name, add_info, modify_info);
@@ -315,10 +315,10 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
 
 static void join_attributes(Span<GeometryInstanceGroup> set_groups,
                             Span<GeometryComponentType> component_types,
-                            const Map<std::string, AttributeInfo> &attribute_info,
+                            const Map<std::string, AttributeKind> &attribute_info,
                             GeometryComponent &result)
 {
-  for (Map<std::string, AttributeInfo>::Item entry : attribute_info.items()) {
+  for (Map<std::string, AttributeKind>::Item entry : attribute_info.items()) {
     StringRef name = entry.key;
     const AttributeDomain domain_output = entry.value.domain;
     const CustomDataType data_type_output = entry.value.data_type;
@@ -383,7 +383,7 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
   }
 
   /* Don't copy attributes that are stored directly in the mesh data structs. */
-  Map<std::string, AttributeInfo> attributes;
+  Map<std::string, AttributeKind> attributes;
   gather_attribute_info(attributes, component_types, set_groups, {"position", "material_index"});
   join_attributes(
       set_groups, component_types, attributes, static_cast<GeometryComponent &>(dst_component));
@@ -404,7 +404,7 @@ static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_grou
   PointCloudComponent &dst_component = result.get_component_for_write<PointCloudComponent>();
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(totpoint);
   dst_component.replace(pointcloud);
-  Map<std::string, AttributeInfo> attributes;
+  Map<std::string, AttributeKind> attributes;
   gather_attribute_info(attributes, {GeometryComponentType::PointCloud}, set_groups, {});
   join_attributes(set_groups,
                   {GeometryComponentType::PointCloud},
