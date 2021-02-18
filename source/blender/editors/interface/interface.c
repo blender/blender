@@ -3948,6 +3948,9 @@ uiBut *ui_but_change_type(uiBut *but, eButType new_type)
       UNUSED_VARS_NDEBUG(found_layout);
       ui_button_group_replace_but_ptr(uiLayoutGetBlock(but->layout), old_but_ptr, but);
     }
+    if (UI_editsource_enable_check()) {
+      UI_editsource_but_replace(old_but_ptr, but);
+    }
   }
 
   return but;
