@@ -7977,31 +7977,6 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
     }
   }
 
-  if (ret == 0) {
-    /* This block can be removed once 2.8x is released and annotations are in use. */
-    bool has_warning = false;
-    while (PyDict_Next(class_dict, &pos, &key, &item)) {
-      if (pyrna_is_deferred_prop(item)) {
-        if (!has_warning) {
-          printf(
-              "Warning: class %.200s "
-              "contains a property which should be an annotation!\n",
-              RNA_struct_identifier(srna));
-          PyC_LineSpit();
-          has_warning = true;
-        }
-        printf("    assign as a type annotation: %.200s.%.200s\n",
-               RNA_struct_identifier(srna),
-               PyUnicode_AsUTF8(key));
-      }
-      ret = deferred_register_prop(srna, key, item);
-
-      if (ret != 0) {
-        break;
-      }
-    }
-  }
-
   return ret;
 }
 
