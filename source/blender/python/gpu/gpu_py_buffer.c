@@ -330,9 +330,7 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args
         Py_DECREF(ob);
         return NULL;
       }
-      else {
-        shape[i] = PyLong_AsLong(ob);
-      }
+      shape[i] = PyLong_AsLong(ob);
       Py_DECREF(ob);
 
       if (shape[i] < 1) {
