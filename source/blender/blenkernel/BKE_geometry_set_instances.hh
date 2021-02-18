@@ -41,6 +41,7 @@ struct GeometryInstanceGroup {
 
 Vector<GeometryInstanceGroup> geometry_set_gather_instances(const GeometrySet &geometry_set);
 
+GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_set);
 GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set);
 
 struct AttributeInfo {
@@ -54,7 +55,7 @@ struct AttributeInfo {
  * attribute with the given name on all of the input components.
  */
 void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
-                           const GeometryComponentType component_type,
+                           Span<GeometryComponentType> component_types,
                            Span<bke::GeometryInstanceGroup> set_groups,
                            const Set<std::string> &ignored_attributes);
 

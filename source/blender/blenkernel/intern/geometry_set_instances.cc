@@ -24,6 +24,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 
 namespace blender::bke {
 
@@ -165,44 +166,47 @@ Vector<GeometryInstanceGroup> geometry_set_gather_instances(const GeometrySet &g
 }
 
 void gather_attribute_info(Map<std::string, AttributeInfo> &attributes,
-                           const GeometryComponentType component_type,
+                           Span<GeometryComponentType> component_types,
                            Span<GeometryInstanceGroup> set_groups,
                            const Set<std::string> &ignored_attributes)
 {
   for (const GeometryInstanceGroup &set_group : set_groups) {
     const GeometrySet &set = set_group.geometry_set;
-    if (!set.has(component_type)) {
-      continue;
-    }
-    const GeometryComponent &component = *set.get_component_for_read(component_type);
-
-    for (const std::string &name : component.attribute_names()) {
-      if (ignored_attributes.contains(name)) {
+    for (const GeometryComponentType component_type : component_types) {
+      if (!set.has(component_type)) {
         continue;
       }
-      const ReadAttributePtr read_attribute = component.attribute_try_get_for_read(name);
-      if (!read_attribute) {
-        continue;
+      const GeometryComponent &component = *set.get_component_for_read(component_type);
+
+      for (const std::string &name : component.attribute_names()) {
+        if (ignored_attributes.contains(name)) {
+          continue;
+        }
+        const ReadAttributePtr read_attribute = component.attribute_try_get_for_read(name);
+        if (!read_attribute) {
+          continue;
+        }
+        const AttributeDomain domain = read_attribute->domain();
+        const CustomDataType data_type = read_attribute->custom_data_type();
+
+        auto add_info = [&, data_type, domain](AttributeInfo *info) {
+          info->domain = domain;
+          info->data_type = data_type;
+        };
+        auto modify_info = [&, data_type, domain](AttributeInfo *info) {
+          info->domain = domain; /* TODO: Use highest priority domain. */
+          info->data_type = bke::attribute_data_type_highest_complexity(
+              {info->data_type, data_type});
+        };
+
+        attributes.add_or_modify(name, add_info, modify_info);
       }
-      const AttributeDomain domain = read_attribute->domain();
-      const CustomDataType data_type = read_attribute->custom_data_type();
-
-      auto add_info = [&, data_type, domain](AttributeInfo *info) {
-        info->domain = domain;
-        info->data_type = data_type;
-      };
-      auto modify_info = [&, data_type, domain](AttributeInfo *info) {
-        info->domain = domain; /* TODO: Use highest priority domain. */
-        info->data_type = bke::attribute_data_type_highest_complexity(
-            {info->data_type, data_type});
-      };
-
-      attributes.add_or_modify(name, add_info, modify_info);
     }
   }
 }
 
-static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGroup> set_groups)
+static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGroup> set_groups,
+                                                       const bool convert_points_to_vertices)
 {
   int totverts = 0;
   int totloops = 0;
@@ -214,16 +218,21 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
   int64_t cd_dirty_loop = 0;
   for (const GeometryInstanceGroup &set_group : set_groups) {
     const GeometrySet &set = set_group.geometry_set;
+    const int tot_transforms = set_group.transforms.size();
     if (set.has_mesh()) {
       const Mesh &mesh = *set.get_mesh_for_read();
-      totverts += mesh.totvert * set_group.transforms.size();
-      totloops += mesh.totloop * set_group.transforms.size();
-      totedges += mesh.totedge * set_group.transforms.size();
-      totpolys += mesh.totpoly * set_group.transforms.size();
+      totverts += mesh.totvert * tot_transforms;
+      totloops += mesh.totloop * tot_transforms;
+      totedges += mesh.totedge * tot_transforms;
+      totpolys += mesh.totpoly * tot_transforms;
       cd_dirty_vert |= mesh.runtime.cd_dirty_vert;
       cd_dirty_poly |= mesh.runtime.cd_dirty_poly;
       cd_dirty_edge |= mesh.runtime.cd_dirty_edge;
       cd_dirty_loop |= mesh.runtime.cd_dirty_loop;
+    }
+    if (convert_points_to_vertices && set.has_pointcloud()) {
+      const PointCloud &pointcloud = *set.get_pointcloud_for_read();
+      totverts += pointcloud.totpoint * tot_transforms;
     }
   }
 
@@ -287,13 +296,25 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
         poly_offset += mesh.totpoly;
       }
     }
+    if (convert_points_to_vertices && set.has_pointcloud()) {
+      const PointCloud &pointcloud = *set.get_pointcloud_for_read();
+      for (const float4x4 &transform : set_group.transforms) {
+        for (const int i : IndexRange(pointcloud.totpoint)) {
+          MVert &new_vert = new_mesh->mvert[vert_offset + i];
+          const float3 old_position = pointcloud.co[i];
+          const float3 new_position = transform * old_position;
+          copy_v3_v3(new_vert.co, new_position);
+        }
+        vert_offset += pointcloud.totpoint;
+      }
+    }
   }
 
   return new_mesh;
 }
 
 static void join_attributes(Span<GeometryInstanceGroup> set_groups,
-                            const GeometryComponentType component_type,
+                            Span<GeometryComponentType> component_types,
                             const Map<std::string, AttributeInfo> &attribute_info,
                             GeometryComponent &result)
 {
@@ -315,26 +336,28 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
     int offset = 0;
     for (const GeometryInstanceGroup &set_group : set_groups) {
       const GeometrySet &set = set_group.geometry_set;
-      if (set.has(component_type)) {
-        const GeometryComponent &component = *set.get_component_for_read(component_type);
-        const int domain_size = component.attribute_domain_size(domain_output);
-        if (domain_size == 0) {
-          continue; /* Domain size is 0, so no need to increment the offset. */
-        }
-        ReadAttributePtr source_attribute = component.attribute_try_get_for_read(
-            name, domain_output, data_type_output);
-
-        if (source_attribute) {
-          fn::GSpan src_span = source_attribute->get_span();
-          const void *src_buffer = src_span.data();
-          for (const int UNUSED(i) : set_group.transforms.index_range()) {
-            void *dst_buffer = dst_span[offset];
-            cpp_type->copy_to_initialized_n(src_buffer, dst_buffer, domain_size);
-            offset += domain_size;
+      for (const GeometryComponentType component_type : component_types) {
+        if (set.has(component_type)) {
+          const GeometryComponent &component = *set.get_component_for_read(component_type);
+          const int domain_size = component.attribute_domain_size(domain_output);
+          if (domain_size == 0) {
+            continue; /* Domain size is 0, so no need to increment the offset. */
           }
-        }
-        else {
-          offset += domain_size * set_group.transforms.size();
+          ReadAttributePtr source_attribute = component.attribute_try_get_for_read(
+              name, domain_output, data_type_output);
+
+          if (source_attribute) {
+            fn::GSpan src_span = source_attribute->get_span();
+            const void *src_buffer = src_span.data();
+            for (const int UNUSED(i) : set_group.transforms.index_range()) {
+              void *dst_buffer = dst_span[offset];
+              cpp_type->copy_to_initialized_n(src_buffer, dst_buffer, domain_size);
+              offset += domain_size;
+            }
+          }
+          else {
+            offset += domain_size * set_group.transforms.size();
+          }
         }
       }
     }
@@ -343,21 +366,27 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
   }
 }
 
-static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups, GeometrySet &result)
+static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
+                                      bool convert_points_to_vertices,
+                                      GeometrySet &result)
 {
-  Mesh *new_mesh = join_mesh_topology_and_builtin_attributes(set_groups);
+  Mesh *new_mesh = join_mesh_topology_and_builtin_attributes(set_groups,
+                                                             convert_points_to_vertices);
 
   MeshComponent &dst_component = result.get_component_for_write<MeshComponent>();
   dst_component.replace(new_mesh);
 
+  Vector<GeometryComponentType> component_types;
+  component_types.append(GeometryComponentType::Mesh);
+  if (convert_points_to_vertices) {
+    component_types.append(GeometryComponentType::PointCloud);
+  }
+
   /* Don't copy attributes that are stored directly in the mesh data structs. */
   Map<std::string, AttributeInfo> attributes;
-  gather_attribute_info(
-      attributes, GeometryComponentType::Mesh, set_groups, {"position", "material_index"});
-  join_attributes(set_groups,
-                  GeometryComponentType::Mesh,
-                  attributes,
-                  static_cast<GeometryComponent &>(dst_component));
+  gather_attribute_info(attributes, component_types, set_groups, {"position", "material_index"});
+  join_attributes(
+      set_groups, component_types, attributes, static_cast<GeometryComponent &>(dst_component));
 }
 
 static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_groups,
@@ -376,9 +405,9 @@ static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_grou
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(totpoint);
   dst_component.replace(pointcloud);
   Map<std::string, AttributeInfo> attributes;
-  gather_attribute_info(attributes, GeometryComponentType::Mesh, set_groups, {});
+  gather_attribute_info(attributes, {GeometryComponentType::PointCloud}, set_groups, {});
   join_attributes(set_groups,
-                  GeometryComponentType::PointCloud,
+                  {GeometryComponentType::PointCloud},
                   attributes,
                   static_cast<GeometryComponent &>(dst_component));
 }
@@ -392,6 +421,23 @@ static void join_instance_groups_volume(Span<GeometryInstanceGroup> set_groups,
   UNUSED_VARS(set_groups, dst_component);
 }
 
+GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_set)
+{
+  if (!geometry_set.has_instances() && !geometry_set.has_pointcloud()) {
+    return geometry_set;
+  }
+
+  GeometrySet new_geometry_set = geometry_set;
+  Vector<GeometryInstanceGroup> set_groups = geometry_set_gather_instances(geometry_set);
+  join_instance_groups_mesh(set_groups, true, new_geometry_set);
+  /* Remove all instances, even though some might contain other non-mesh data. We can't really
+   * keep only non-mesh instances in general. */
+  new_geometry_set.remove<InstancesComponent>();
+  /* If there was a point cloud, it is now part of the mesh. */
+  new_geometry_set.remove<PointCloudComponent>();
+  return new_geometry_set;
+}
+
 GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)
 {
   if (!geometry_set.has_instances()) {
@@ -400,8 +446,8 @@ GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)
 
   GeometrySet new_geometry_set;
 
-  Vector<GeometryInstanceGroup> set_groups = bke::geometry_set_gather_instances(geometry_set);
-  join_instance_groups_mesh(set_groups, new_geometry_set);
+  Vector<GeometryInstanceGroup> set_groups = geometry_set_gather_instances(geometry_set);
+  join_instance_groups_mesh(set_groups, false, new_geometry_set);
   join_instance_groups_pointcloud(set_groups, new_geometry_set);
   join_instance_groups_volume(set_groups, new_geometry_set);
 

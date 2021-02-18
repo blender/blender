@@ -890,7 +890,7 @@ void BKE_mesh_wrapper_deferred_finalize(Mesh *me_eval,
  */
 static Mesh *prepare_geometry_set_for_mesh_modifier(Mesh *mesh, GeometrySet &r_geometry_set)
 {
-  if (!r_geometry_set.has_instances()) {
+  if (!r_geometry_set.has_instances() && !r_geometry_set.has_pointcloud()) {
     return mesh;
   }
 
@@ -901,7 +901,8 @@ static Mesh *prepare_geometry_set_for_mesh_modifier(Mesh *mesh, GeometrySet &r_g
   }
   {
     /* Combine mesh and all instances into a single mesh that can be passed to the modifier. */
-    GeometrySet new_geometry_set = blender::bke::geometry_set_realize_instances(r_geometry_set);
+    GeometrySet new_geometry_set = blender::bke::geometry_set_realize_mesh_for_modifier(
+        r_geometry_set);
     MeshComponent &mesh_component = new_geometry_set.get_component_for_write<MeshComponent>();
     Mesh *new_mesh = mesh_component.release();
     r_geometry_set = new_geometry_set;
