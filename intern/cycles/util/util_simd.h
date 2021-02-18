@@ -290,7 +290,7 @@ __forceinline uint64_t bitscan(uint64_t v)
 #  endif /* __KERNEL_64_BIT__ */
 
 #elif (defined(__x86_64__) || defined(__i386__)) && defined(__KERNEL_SSE2__)
-/* Instrinsic functions with x86 SSE. */
+/* Intrinsic functions with x86 SSE. */
 
 __forceinline uint32_t __bsf(const uint32_t v)
 {

@@ -476,9 +476,9 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *gpu_fb,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name  Framebuffer Stack
+/** \name  Frame-Buffer Stack
  *
- * Keeps track of framebuffer binding operation to restore previously bound frambuffers.
+ * Keeps track of frame-buffer binding operation to restore previously bound frame-buffers.
  * \{ */
 
 #define FRAMEBUFFER_STACK_DEPTH 16

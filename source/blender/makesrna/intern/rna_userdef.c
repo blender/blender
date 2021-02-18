@@ -4866,7 +4866,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
                            "Translate the names of new data-blocks (objects, materials...)");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-  /* Statusbar. */
+  /* Status-bar. */
 
   prop = RNA_def_property(srna, "show_statusbar_memory", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "statusbar_flag", STATUSBAR_SHOW_MEMORY);

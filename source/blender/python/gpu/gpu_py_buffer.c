@@ -649,8 +649,8 @@ size_t bpygpu_Buffer_size(BPyGPUBuffer *buffer)
 /**
  * Create a buffer object
  *
- * \param dimensions: An array of ndimensions integers representing the size of each dimension.
- * \param initbuffer: When not NULL holds a contiguous buffer
+ * \param shape: An array of `shape_len` integers representing the size of each dimension.
+ * \param buffer: When not NULL holds a contiguous buffer
  * with the correct format from which the buffer will be initialized
  */
 BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(const int format,
