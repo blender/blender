@@ -2009,9 +2009,9 @@ int MeshComponent::attribute_domain_size(const AttributeDomain domain) const
 namespace blender::bke {
 
 template<typename T>
-void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
-                                            const TypedReadAttribute<T> &attribute,
-                                            MutableSpan<T> r_values)
+static void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
+                                                   const TypedReadAttribute<T> &attribute,
+                                                   MutableSpan<T> r_values)
 {
   BLI_assert(r_values.size() == mesh.totvert);
   attribute_math::DefaultMixer<T> mixer(r_values);
@@ -2044,6 +2044,38 @@ static ReadAttributePtr adapt_mesh_domain_corner_to_point(const Mesh &mesh,
   return new_attribute;
 }
 
+template<typename T>
+static void adapt_mesh_domain_point_to_corner_impl(const Mesh &mesh,
+                                                   const TypedReadAttribute<T> &attribute,
+                                                   MutableSpan<T> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totloop);
+
+  for (const int loop_index : IndexRange(mesh.totloop)) {
+    const int vertex_index = mesh.mloop[loop_index].v;
+    r_values[loop_index] = attribute[vertex_index];
+  }
+}
+
+static ReadAttributePtr adapt_mesh_domain_point_to_corner(const Mesh &mesh,
+                                                          ReadAttributePtr attribute)
+{
+  ReadAttributePtr new_attribute;
+  const CustomDataType data_type = attribute->custom_data_type();
+  attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+    using T = decltype(dummy);
+    /* It is not strictly necessary to compute the value for all corners here. Instead one could
+     * lazily lookup the mesh topology when a specific index accessed. This can be more efficient
+     * when an algorithm only accesses very few of the corner values. However, for the algorithms
+     * we currently have, precomputing the array is fine. Also, it is easier to implement. */
+    Array<T> values(mesh.totloop);
+    adapt_mesh_domain_point_to_corner_impl<T>(mesh, *attribute, values);
+    new_attribute = std::make_unique<OwnedArrayReadAttribute<T>>(ATTR_DOMAIN_CORNER,
+                                                                 std::move(values));
+  });
+  return new_attribute;
+}
+
 }  // namespace blender::bke
 
 ReadAttributePtr MeshComponent::attribute_try_adapt_domain(ReadAttributePtr attribute,
@@ -2069,6 +2101,14 @@ ReadAttributePtr MeshComponent::attribute_try_adapt_domain(ReadAttributePtr attr
           break;
       }
       break;
+    }
+    case ATTR_DOMAIN_POINT: {
+      switch (new_domain) {
+        case ATTR_DOMAIN_CORNER:
+          return blender::bke::adapt_mesh_domain_point_to_corner(*mesh_, std::move(attribute));
+        default:
+          break;
+      }
     }
     default:
       break;
