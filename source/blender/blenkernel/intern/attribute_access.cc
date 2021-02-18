@@ -1019,22 +1019,44 @@ static const Mesh *get_mesh_from_component_for_read(const GeometryComponent &com
 }
 
 /**
- * This attribute provider makes uv maps available as float2 attributes.
+ * This attribute provider is used for uv maps and vertex colors.
  */
-class MeshUVsAttributeProvider final : public DynamicAttributesProvider {
+class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
+ private:
+  using AsReadAttribute = ReadAttributePtr (*)(const void *data, const int domain_size);
+  using AsWriteAttribute = WriteAttributePtr (*)(void *data, const int domain_size);
+  const AttributeDomain domain_;
+  const CustomDataType stored_type_;
+  const CustomDataAccessInfo custom_data_access_;
+  const AsReadAttribute as_read_attribute_;
+  const AsWriteAttribute as_write_attribute_;
+
  public:
+  NamedLegacyCustomDataProvider(const AttributeDomain domain,
+                                const CustomDataType stored_type,
+                                const CustomDataAccessInfo custom_data_access,
+                                const AsReadAttribute as_read_attribute,
+                                const AsWriteAttribute as_write_attribute)
+      : domain_(domain),
+        stored_type_(stored_type),
+        custom_data_access_(custom_data_access),
+        as_read_attribute_(as_read_attribute),
+        as_write_attribute_(as_write_attribute)
+  {
+  }
+
   ReadAttributePtr try_get_for_read(const GeometryComponent &component,
                                     const StringRef attribute_name) const final
   {
-    const Mesh *mesh = get_mesh_from_component_for_read(component);
-    if (mesh == nullptr) {
+    const CustomData *custom_data = custom_data_access_.get_const_custom_data(component);
+    if (custom_data == nullptr) {
       return {};
     }
-    for (const CustomDataLayer &layer : Span(mesh->ldata.layers, mesh->ldata.totlayer)) {
-      if (layer.type == CD_MLOOPUV) {
+    for (const CustomDataLayer &layer : Span(custom_data->layers, custom_data->totlayer)) {
+      if (layer.type == stored_type_) {
         if (layer.name == attribute_name) {
-          return std::make_unique<DerivedArrayReadAttribute<MLoopUV, float2, get_loop_uv>>(
-              ATTR_DOMAIN_CORNER, Span(static_cast<const MLoopUV *>(layer.data), mesh->totloop));
+          const int domain_size = component.attribute_domain_size(domain_);
+          return as_read_attribute_(layer.data, domain_size);
         }
       }
     }
@@ -1044,22 +1066,21 @@ class MeshUVsAttributeProvider final : public DynamicAttributesProvider {
   WriteAttributePtr try_get_for_write(GeometryComponent &component,
                                       const StringRef attribute_name) const final
   {
-    Mesh *mesh = get_mesh_from_component_for_write(component);
-    if (mesh == nullptr) {
+    CustomData *custom_data = custom_data_access_.get_custom_data(component);
+    if (custom_data == nullptr) {
       return {};
     }
-    for (CustomDataLayer &layer : MutableSpan(mesh->ldata.layers, mesh->ldata.totlayer)) {
-      if (layer.type == CD_MLOOPUV) {
+    for (CustomDataLayer &layer : MutableSpan(custom_data->layers, custom_data->totlayer)) {
+      if (layer.type == stored_type_) {
         if (layer.name == attribute_name) {
+          const int domain_size = component.attribute_domain_size(domain_);
           void *data_old = layer.data;
           void *data_new = CustomData_duplicate_referenced_layer_named(
-              &mesh->ldata, CD_MLOOPUV, layer.name, mesh->totloop);
+              custom_data, stored_type_, layer.name, domain_size);
           if (data_old != data_new) {
-            BKE_mesh_update_customdata_pointers(mesh, false);
+            custom_data_access_.update_custom_data_pointers(component);
           }
-          return std::make_unique<
-              DerivedArrayWriteAttribute<MLoopUV, float2, get_loop_uv, set_loop_uv>>(
-              ATTR_DOMAIN_CORNER, MutableSpan(static_cast<MLoopUV *>(layer.data), mesh->totloop));
+          return as_write_attribute_(layer.data, domain_size);
         }
       }
     }
@@ -1068,15 +1089,19 @@ class MeshUVsAttributeProvider final : public DynamicAttributesProvider {
 
   bool try_delete(GeometryComponent &component, const StringRef attribute_name) const final
   {
-    Mesh *mesh = get_mesh_from_component_for_write(component);
-    if (mesh == nullptr) {
+    CustomData *custom_data = custom_data_access_.get_custom_data(component);
+    if (custom_data == nullptr) {
       return false;
     }
-    for (const int i : IndexRange(mesh->ldata.totlayer)) {
-      const CustomDataLayer &layer = mesh->ldata.layers[i];
-      if (layer.type == CD_MLOOPUV && layer.name == attribute_name) {
-        CustomData_free_layer(&mesh->ldata, CD_MLOOPUV, mesh->totloop, i);
-        return true;
+    for (const int i : IndexRange(custom_data->totlayer)) {
+      const CustomDataLayer &layer = custom_data->layers[i];
+      if (layer.type == stored_type_) {
+        if (layer.name == attribute_name) {
+          const int domain_size = component.attribute_domain_size(domain_);
+          CustomData_free_layer(custom_data, stored_type_, domain_size, i);
+          custom_data_access_.update_custom_data_pointers(component);
+          return true;
+        }
       }
     }
     return false;
@@ -1084,12 +1109,12 @@ class MeshUVsAttributeProvider final : public DynamicAttributesProvider {
 
   void list(const GeometryComponent &component, Set<std::string> &r_names) const final
   {
-    const Mesh *mesh = get_mesh_from_component_for_read(component);
-    if (mesh == nullptr) {
+    const CustomData *custom_data = custom_data_access_.get_const_custom_data(component);
+    if (custom_data == nullptr) {
       return;
     }
-    for (const CustomDataLayer &layer : Span(mesh->ldata.layers, mesh->ldata.totlayer)) {
-      if (layer.type == CD_MLOOPUV) {
+    for (const CustomDataLayer &layer : Span(custom_data->layers, custom_data->totlayer)) {
+      if (layer.type == stored_type_) {
         r_names.add(layer.name);
       }
     }
@@ -1097,18 +1122,7 @@ class MeshUVsAttributeProvider final : public DynamicAttributesProvider {
 
   void supported_domains(Vector<AttributeDomain> &r_domains) const final
   {
-    r_domains.append_non_duplicates(ATTR_DOMAIN_CORNER);
-  }
-
- private:
-  static float2 get_loop_uv(const MLoopUV &uv)
-  {
-    return float2(uv.uv);
-  }
-
-  static void set_loop_uv(MLoopUV &uv, const float2 &co)
-  {
-    copy_v2_v2(uv.uv, co);
+    r_domains.append_non_duplicates(domain_);
   }
 };
 
@@ -1315,6 +1329,53 @@ static WriteAttributePtr make_material_index_write_attribute(void *data, const i
       ATTR_DOMAIN_POLYGON, MutableSpan<MPoly>((MPoly *)data, domain_size));
 }
 
+static float2 get_loop_uv(const MLoopUV &uv)
+{
+  return float2(uv.uv);
+}
+
+static void set_loop_uv(MLoopUV &uv, const float2 &co)
+{
+  copy_v2_v2(uv.uv, co);
+}
+
+static ReadAttributePtr make_uvs_read_attribute(const void *data, const int domain_size)
+{
+  return std::make_unique<DerivedArrayReadAttribute<MLoopUV, float2, get_loop_uv>>(
+      ATTR_DOMAIN_CORNER, Span((const MLoopUV *)data, domain_size));
+}
+
+static WriteAttributePtr make_uvs_write_attribute(void *data, const int domain_size)
+{
+  return std::make_unique<DerivedArrayWriteAttribute<MLoopUV, float2, get_loop_uv, set_loop_uv>>(
+      ATTR_DOMAIN_CORNER, MutableSpan((MLoopUV *)data, domain_size));
+}
+
+static Color4f get_loop_color(const MLoopCol &col)
+{
+  Color4f value;
+  rgba_uchar_to_float(value, &col.r);
+  return value;
+}
+
+static void set_loop_color(MLoopCol &col, const Color4f &value)
+{
+  rgba_float_to_uchar(&col.r, value);
+}
+
+static ReadAttributePtr make_vertex_color_read_attribute(const void *data, const int domain_size)
+{
+  return std::make_unique<DerivedArrayReadAttribute<MLoopCol, Color4f, get_loop_color>>(
+      ATTR_DOMAIN_CORNER, Span((const MLoopCol *)data, domain_size));
+}
+
+static WriteAttributePtr make_vertex_color_write_attribute(void *data, const int domain_size)
+{
+  return std::make_unique<
+      DerivedArrayWriteAttribute<MLoopCol, Color4f, get_loop_color, set_loop_color>>(
+      ATTR_DOMAIN_CORNER, MutableSpan((MLoopCol *)data, domain_size));
+}
+
 template<typename T, AttributeDomain Domain>
 static ReadAttributePtr make_array_read_attribute(const void *data, const int domain_size)
 {
@@ -1391,7 +1452,18 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                        make_material_index_write_attribute,
                                                        nullptr);
 
-  static MeshUVsAttributeProvider uvs;
+  static NamedLegacyCustomDataProvider uvs(ATTR_DOMAIN_CORNER,
+                                           CD_MLOOPUV,
+                                           corner_access,
+                                           make_uvs_read_attribute,
+                                           make_uvs_write_attribute);
+
+  static NamedLegacyCustomDataProvider vertex_colors(ATTR_DOMAIN_CORNER,
+                                                     CD_MLOOPCOL,
+                                                     corner_access,
+                                                     make_vertex_color_read_attribute,
+                                                     make_vertex_color_write_attribute);
+
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
@@ -1400,6 +1472,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
 
   return ComponentAttributeProviders({&position, &material_index},
                                      {&uvs,
+                                      &vertex_colors,
                                       &corner_custom_data,
                                       &vertex_groups,
                                       &point_custom_data,
