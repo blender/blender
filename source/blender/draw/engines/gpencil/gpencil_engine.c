@@ -140,7 +140,7 @@ void GPENCIL_engine_init(void *ved)
 
     /* For non active frame, use only lines in multiedit mode. */
     const bool overlays_on = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
-    stl->pd->use_multiedit_lines_only = !overlays_on ||
+    stl->pd->use_multiedit_lines_only = overlays_on &&
                                         (v3d->gp_flag & V3D_GP_SHOW_MULTIEDIT_LINES) != 0;
 
     const bool shmode_xray_support = v3d->shading.type <= OB_SOLID;
@@ -497,10 +497,10 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
                    (!iter->pd->simplify_fill) && ((gps->flag & GP_STROKE_NOFILL) == 0);
 
   bool only_lines = gpl && gpf && gpl->actframe != gpf && iter->pd->use_multiedit_lines_only;
-  bool hide_onion = gpl && gpf && gpf->runtime.onion_id != 0 &&
-                    ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0);
-
-  if (hide_material || (!show_stroke && !show_fill) || (only_lines && hide_onion) || hide_onion) {
+  bool is_onion = gpl && gpf && gpf->runtime.onion_id != 0;
+  bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0);
+  if ((hide_material) || (!show_stroke && !show_fill) || (only_lines && !is_onion) ||
+      (hide_onion)) {
     return;
   }
 
