@@ -369,7 +369,7 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args
     PyBuffer_Release(&pybuffer);
   }
   else {
-    buffer = BPyGPU_Buffer_CreatePyObject(pygpu_dataformat.value_found, shape_len, shape, NULL);
+    buffer = BPyGPU_Buffer_CreatePyObject(pygpu_dataformat.value_found, shape, shape_len, NULL);
     if (init && pygpu_buffer_ass_slice(buffer, 0, shape[0], init)) {
       Py_DECREF(buffer);
       return NULL;
@@ -654,8 +654,8 @@ size_t bpygpu_Buffer_size(BPyGPUBuffer *buffer)
  * with the correct format from which the buffer will be initialized
  */
 BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(const int format,
-                                           const int shape_len,
                                            const Py_ssize_t *shape,
+                                           const int shape_len,
                                            void *buffer)
 {
   if (buffer == NULL) {

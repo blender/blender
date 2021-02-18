@@ -48,6 +48,6 @@ typedef struct BPyGPUBuffer {
 
 size_t bpygpu_Buffer_size(BPyGPUBuffer *buffer);
 BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(const int format,
-                                           const int shape_len,
                                            const Py_ssize_t *shape,
+                                           const int shape_len,
                                            void *buffer);
