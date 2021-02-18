@@ -54,6 +54,10 @@
 
 #include "node_intern.h" /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
 /**
  * XXX Does some additional initialization on top of #nodeAddNode
  * Can be used with both custom and static nodes,
@@ -93,7 +97,12 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
   return node;
 }
 
-/* ********************** Add reroute operator ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Reroute Operator
+ * \{ */
+
 static bool add_reroute_intersect_check(bNodeLink *link,
                                         float mcoords[][2],
                                         int tot,
@@ -309,7 +318,11 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
   RNA_def_int(ot->srna, "cursor", WM_CURSOR_CROSS, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
 
-/* ****************** Add Node Group Operator  ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Node Group Operator
+ * \{ */
 
 static bNodeTree *node_add_group_get_and_poll_group_node_tree(Main *bmain,
                                                               wmOperator *op,
@@ -402,7 +415,11 @@ void NODE_OT_add_group(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", "Mask", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
 }
 
-/* ****************** Add File Node Operator  ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add File Node Operator
+ * \{ */
 
 static bool node_add_file_poll(bContext *C)
 {
@@ -510,7 +527,11 @@ void NODE_OT_add_file(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
 }
 
-/* ****************** Add Mask Node Operator  ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Mask Node Operator
+ * \{ */
 
 static bool node_add_mask_poll(bContext *C)
 {
@@ -571,7 +592,11 @@ void NODE_OT_add_mask(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", "Mask", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
 }
 
-/********************** New node tree operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Node Tree Operator
+ * \{ */
 
 static int new_node_tree_exec(bContext *C, wmOperator *op)
 {
@@ -659,3 +684,5 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
   RNA_def_enum_funcs(prop, new_node_tree_type_itemf);
   RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME - 2, "Name", "");
 }
+
+/** \} */
