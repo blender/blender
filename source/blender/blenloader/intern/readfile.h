@@ -33,6 +33,7 @@
 #include "DNA_windowmanager_types.h" /* for ReportType */
 #include "zlib.h"
 
+struct BLI_mmap_file;
 struct BLOCacheStorage;
 struct IDNameLib_Map;
 struct Key;
@@ -41,7 +42,6 @@ struct Object;
 struct OldNewMap;
 struct ReportList;
 struct UserDef;
-struct BLI_mmap_file;
 
 typedef struct IDNameLib_Map IDNameLib_Map;
 

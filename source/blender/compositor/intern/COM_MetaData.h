@@ -25,8 +25,8 @@
 #include "MEM_guardedalloc.h"
 
 /* Forward declarations. */
-struct StampData;
 struct RenderResult;
+struct StampData;
 
 /* Cryptomatte includes hash in its meta data keys. The hash is generated from the render
  * layer/pass name. Compositing happens without the knowledge of the original layer and pass. The

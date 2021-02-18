@@ -24,10 +24,10 @@
 #include "DNA_modifier_types.h"
 #include "DNA_session_uuid_types.h"
 
+struct ModifierData;
+struct Object;
 struct bNode;
 struct bNodeTree;
-struct Object;
-struct ModifierData;
 
 using blender::Map;
 
