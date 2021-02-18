@@ -124,6 +124,13 @@ static void seq_convert_transform_crop(const Scene *scene,
                                        Sequence *seq,
                                        const eSpaceSeq_Proxy_RenderSize render_size)
 {
+  if (seq->strip->transform == NULL) {
+    seq->strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
+  }
+  if (seq->strip->crop == NULL) {
+    seq->strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
+  }
+
   StripCrop *c = seq->strip->crop;
   StripTransform *t = seq->strip->transform;
   int old_image_center_x = scene->r.xsch / 2;
