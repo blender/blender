@@ -85,7 +85,9 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
                             (GPENCIL_VERTEX_MODE(gpd) && !use_vertex_mask));
 
   const bool do_multiedit = GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const bool show_multi_edit_lines = (v3d->gp_flag & V3D_GP_SHOW_MULTIEDIT_LINES) != 0;
+  const bool show_multi_edit_lines = (do_multiedit) &&
+                                     ((v3d->gp_flag & (V3D_GP_SHOW_MULTIEDIT_LINES |
+                                                       V3D_GP_SHOW_EDIT_LINES)) != 0);
 
   const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES) || show_multi_edit_lines;
 
