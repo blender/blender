@@ -100,18 +100,21 @@ static void sample_mesh_surface(const Mesh &mesh,
 
   for (const int looptri_index : looptris.index_range()) {
     const MLoopTri &looptri = looptris[looptri_index];
-    const int v0_index = mesh.mloop[looptri.tri[0]].v;
-    const int v1_index = mesh.mloop[looptri.tri[1]].v;
-    const int v2_index = mesh.mloop[looptri.tri[2]].v;
+    const int v0_loop = looptri.tri[0];
+    const int v1_loop = looptri.tri[1];
+    const int v2_loop = looptri.tri[2];
+    const int v0_index = mesh.mloop[v0_loop].v;
+    const int v1_index = mesh.mloop[v1_loop].v;
+    const int v2_index = mesh.mloop[v2_loop].v;
     const float3 v0_pos = mesh.mvert[v0_index].co;
     const float3 v1_pos = mesh.mvert[v1_index].co;
     const float3 v2_pos = mesh.mvert[v2_index].co;
 
     float looptri_density_factor = 1.0f;
     if (density_factors != nullptr) {
-      const float v0_density_factor = std::max(0.0f, (*density_factors)[v0_index]);
-      const float v1_density_factor = std::max(0.0f, (*density_factors)[v1_index]);
-      const float v2_density_factor = std::max(0.0f, (*density_factors)[v2_index]);
+      const float v0_density_factor = std::max(0.0f, (*density_factors)[v0_loop]);
+      const float v1_density_factor = std::max(0.0f, (*density_factors)[v1_loop]);
+      const float v2_density_factor = std::max(0.0f, (*density_factors)[v2_loop]);
       looptri_density_factor = (v0_density_factor + v1_density_factor + v2_density_factor) / 3.0f;
     }
     const float area = area_tri_v3(v0_pos, v1_pos, v2_pos);
@@ -196,13 +199,13 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
     const MLoopTri &looptri = looptris[looptri_indices[i]];
     const float3 bary_coord = bary_coords[i];
 
-    const int v0_index = mesh.mloop[looptri.tri[0]].v;
-    const int v1_index = mesh.mloop[looptri.tri[1]].v;
-    const int v2_index = mesh.mloop[looptri.tri[2]].v;
+    const int v0_loop = looptri.tri[0];
+    const int v1_loop = looptri.tri[1];
+    const int v2_loop = looptri.tri[2];
 
-    const float v0_density_factor = std::max(0.0f, density_factors[v0_index]);
-    const float v1_density_factor = std::max(0.0f, density_factors[v1_index]);
-    const float v2_density_factor = std::max(0.0f, density_factors[v2_index]);
+    const float v0_density_factor = std::max(0.0f, density_factors[v0_loop]);
+    const float v1_density_factor = std::max(0.0f, density_factors[v1_loop]);
+    const float v2_density_factor = std::max(0.0f, density_factors[v2_loop]);
 
     const float probablity = v0_density_factor * bary_coord.x + v1_density_factor * bary_coord.y +
                              v2_density_factor * bary_coord.z;
@@ -449,7 +452,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   }
 
   const FloatReadAttribute density_factors = mesh_component.attribute_get_for_read<float>(
-      density_attribute, ATTR_DOMAIN_POINT, 1.0f);
+      density_attribute, ATTR_DOMAIN_CORNER, 1.0f);
   const int seed = params.get_input<int>("Seed");
 
   Vector<float3> positions;
