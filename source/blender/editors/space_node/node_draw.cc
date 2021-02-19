@@ -1282,7 +1282,7 @@ static void node_add_error_message_button(
     const bContext *C, bNodeTree &ntree, bNode &node, const rctf &rect, float &icon_offset)
 {
   const NodeUIStorage *node_ui_storage = node_ui_storage_get_from_context(C, ntree, node);
-  if (node_ui_storage == nullptr) {
+  if (node_ui_storage == nullptr || node_ui_storage->warnings.is_empty()) {
     return;
   }
 
