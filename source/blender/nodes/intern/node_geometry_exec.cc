@@ -37,8 +37,6 @@ void GeoNodeExecParams::error_message_add(const NodeWarningType type, std::strin
   }
   bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
 
-  BKE_nodetree_ui_storage_ensure(*btree_original);
-
   const NodeTreeEvaluationContext context(*self_object_, *modifier_);
 
   BKE_nodetree_error_message_add(

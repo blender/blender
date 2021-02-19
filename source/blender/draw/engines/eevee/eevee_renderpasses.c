@@ -283,8 +283,9 @@ void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
   EEVEE_EffectsInfo *effects = stl->effects;
 
   /* Compensate for taa_current_sample being incremented after last drawing in
-   * EEVEE_temporal_sampling_draw. */
-  const int current_sample = effects->taa_current_sample - 1;
+   * EEVEE_temporal_sampling_draw when DRW_state_is_image_render(). */
+  const int current_sample = DRW_state_is_image_render() ? effects->taa_current_sample - 1 :
+                                                           effects->taa_current_sample;
   g_data->renderpass_current_sample = current_sample;
   g_data->renderpass_type = renderpass_type;
   g_data->renderpass_postprocess = PASS_POST_UNDEFINED;

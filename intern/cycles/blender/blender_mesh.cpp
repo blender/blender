@@ -350,7 +350,7 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
 static void attr_create_generic(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool subdivision)
 {
   if (subdivision) {
-    /* TODO: Handle subdivison correctly. */
+    /* TODO: Handle subdivision correctly. */
     return;
   }
   AttributeSet &attributes = mesh->attributes;

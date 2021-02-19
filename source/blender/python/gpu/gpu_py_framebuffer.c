@@ -300,7 +300,7 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject *UNUSED(self),
   if (!pygpu_framebuffer_new_parse_arg(depth_attachment, &config[0])) {
     return NULL;
   }
-  else if (config[0].tex && !GPU_texture_depth(config[0].tex)) {
+  if (config[0].tex && !GPU_texture_depth(config[0].tex)) {
     PyErr_SetString(PyExc_ValueError, "Depth texture with incompatible format");
     return NULL;
   }

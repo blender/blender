@@ -1411,7 +1411,7 @@ enum {
   UI_TEMPLATE_ID_FILTER_AVAILABLE = 1,
 };
 
-int UI_icon_from_id(struct ID *id);
+int UI_icon_from_id(const struct ID *id);
 int UI_icon_from_report_type(int type);
 int UI_icon_colorid_from_report_type(int type);
 int UI_text_colorid_from_report_type(int type);
@@ -2545,6 +2545,7 @@ void UI_template_fix_linking(void);
 /* UI_OT_editsource helpers */
 bool UI_editsource_enable_check(void);
 void UI_editsource_active_but_test(uiBut *but);
+void UI_editsource_but_replace(const uiBut *old_but, uiBut *new_but);
 
 /* UI_butstore_ helpers */
 typedef struct uiButStore uiButStore;

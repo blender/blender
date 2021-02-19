@@ -615,6 +615,7 @@ void fill_vertex()
 
   strokeHardeness = 1.0;
   strokeThickness = 1e18;
+  unclampedThickness = 1e20;
   strokeAspect = vec2(1.0);
   strokePt1 = strokePt2 = vec2(0.0);
 

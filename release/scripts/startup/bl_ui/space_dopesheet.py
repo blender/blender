@@ -322,7 +322,7 @@ class DOPESHEET_MT_editor_menus(Menu):
         if st.mode != 'GPENCIL':
             layout.menu("DOPESHEET_MT_key")
         else:
-            layout.menu("DOPESHEET_MT_gpencil_frame")
+            layout.menu("DOPESHEET_MT_gpencil_key")
 
 
 class DOPESHEET_MT_view(Menu):
@@ -558,8 +558,8 @@ class DOPESHEET_MT_gpencil_channel(Menu):
         layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
 
 
-class DOPESHEET_MT_gpencil_frame(Menu):
-    bl_label = "Frame"
+class DOPESHEET_MT_gpencil_key(Menu):
+    bl_label = "Key"
 
     def draw(self, _context):
         layout = self.layout
@@ -569,15 +569,14 @@ class DOPESHEET_MT_gpencil_frame(Menu):
         layout.operator_menu_enum("action.mirror", "type", text="Mirror")
 
         layout.separator()
-        layout.operator("action.duplicate")
-        layout.operator("action.delete")
+        layout.operator("action.keyframe_insert")
 
         layout.separator()
-        layout.operator("action.keyframe_type")
+        layout.operator("action.delete")
+        layout.operator("gpencil.interpolate_reverse")
 
-        # layout.separator()
-        # layout.operator("action.copy")
-        # layout.operator("action.paste")
+        layout.separator()
+        layout.operator("action.keyframe_type", text="Keyframe Type")
 
 
 class DOPESHEET_MT_delete(Menu):
@@ -761,7 +760,7 @@ classes = (
     DOPESHEET_MT_key,
     DOPESHEET_MT_key_transform,
     DOPESHEET_MT_gpencil_channel,
-    DOPESHEET_MT_gpencil_frame,
+    DOPESHEET_MT_gpencil_key,
     DOPESHEET_MT_delete,
     DOPESHEET_MT_context_menu,
     DOPESHEET_MT_channel_context_menu,

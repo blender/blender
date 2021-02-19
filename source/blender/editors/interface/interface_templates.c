@@ -558,14 +558,13 @@ void UI_context_active_but_prop_get_templateID(bContext *C,
                                                PointerRNA *r_ptr,
                                                PropertyRNA **r_prop)
 {
-  TemplateID *template_ui;
   uiBut *but = UI_context_active_but_get(C);
 
   memset(r_ptr, 0, sizeof(*r_ptr));
   *r_prop = NULL;
 
   if (but && but->func_argN) {
-    template_ui = but->func_argN;
+    TemplateID *template_ui = but->func_argN;
     *r_ptr = template_ui->ptr;
     *r_prop = template_ui->prop;
   }
@@ -911,22 +910,18 @@ static void template_ID(const bContext *C,
                         const bool hide_buttons)
 {
   uiBut *but;
-  uiBlock *block;
-  PointerRNA idptr;
-  // ListBase *lb; // UNUSED
-  ID *id, *idfrom;
   const bool editable = RNA_property_editable(&template_ui->ptr, template_ui->prop);
   const bool use_previews = template_ui->preview = (flag & UI_ID_PREVIEWS) != 0;
 
-  idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
-  id = idptr.data;
-  idfrom = template_ui->ptr.owner_id;
+  PointerRNA idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
+  ID *id = idptr.data;
+  ID *idfrom = template_ui->ptr.owner_id;
   // lb = template_ui->idlb;
 
   /* Allow operators to take the ID from context. */
   uiLayoutSetContextPointer(layout, "id", &idptr);
 
-  block = uiLayoutGetBlock(layout);
+  uiBlock *block = uiLayoutGetBlock(layout);
   UI_block_align_begin(block);
 
   if (idptr.type) {
@@ -1330,19 +1325,14 @@ static void ui_template_id(uiLayout *layout,
                            const bool live_icon,
                            const bool hide_buttons)
 {
-  TemplateID *template_ui;
-  PropertyRNA *prop;
-  StructRNA *type;
-  short idcode;
-
-  prop = RNA_struct_find_property(ptr, propname);
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
   if (!prop || RNA_property_type(prop) != PROP_POINTER) {
     RNA_warning("pointer property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
     return;
   }
 
-  template_ui = MEM_callocN(sizeof(TemplateID), "TemplateID");
+  TemplateID *template_ui = MEM_callocN(sizeof(TemplateID), "TemplateID");
   template_ui->ptr = *ptr;
   template_ui->prop = prop;
   template_ui->prv_rows = prv_rows;
@@ -1363,8 +1353,8 @@ static void ui_template_id(uiLayout *layout,
     flag |= UI_ID_OPEN;
   }
 
-  type = RNA_property_pointer_type(ptr, prop);
-  idcode = RNA_type_to_ID_code(type);
+  StructRNA *type = RNA_property_pointer_type(ptr, prop);
+  short idcode = RNA_type_to_ID_code(type);
   template_ui->idcode = idcode;
   template_ui->idlb = which_libbase(CTX_data_main(C), idcode);
 
@@ -1563,12 +1553,9 @@ void uiTemplateAnyID(uiLayout *layout,
                      const char *proptypename,
                      const char *text)
 {
-  PropertyRNA *propID, *propType;
-  uiLayout *split, *row, *sub;
-
   /* get properties... */
-  propID = RNA_struct_find_property(ptr, propname);
-  propType = RNA_struct_find_property(ptr, proptypename);
+  PropertyRNA *propID = RNA_struct_find_property(ptr, propname);
+  PropertyRNA *propType = RNA_struct_find_property(ptr, proptypename);
 
   if (!propID || RNA_property_type(propID) != PROP_POINTER) {
     RNA_warning("pointer property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
@@ -1583,10 +1570,10 @@ void uiTemplateAnyID(uiLayout *layout,
   /* Start drawing UI Elements using standard defines */
 
   /* NOTE: split amount here needs to be synced with normal labels */
-  split = uiLayoutSplit(layout, 0.33f, false);
+  uiLayout *split = uiLayoutSplit(layout, 0.33f, false);
 
   /* FIRST PART ................................................ */
-  row = uiLayoutRow(split, false);
+  uiLayout *row = uiLayoutRow(split, false);
 
   /* Label - either use the provided text, or will become "ID-Block:" */
   if (text) {
@@ -1605,7 +1592,7 @@ void uiTemplateAnyID(uiLayout *layout,
 
   /* HACK: special group just for the enum,
    * otherwise we get ugly layout with text included too... */
-  sub = uiLayoutRow(row, true);
+  uiLayout *sub = uiLayoutRow(row, true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
   uiItemFullR(sub, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
@@ -1804,18 +1791,15 @@ static TemplateSearch *template_search_setup(PointerRNA *ptr,
                                              PointerRNA *searchptr,
                                              const char *const searchpropname)
 {
-  TemplateSearch *template_search;
-  PropertyRNA *prop, *searchprop;
-
-  prop = RNA_struct_find_property(ptr, propname);
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
   if (!prop || RNA_property_type(prop) != PROP_POINTER) {
     RNA_warning("pointer property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
     return NULL;
   }
-  searchprop = template_search_get_searchprop(ptr, prop, searchptr, searchpropname);
+  PropertyRNA *searchprop = template_search_get_searchprop(ptr, prop, searchptr, searchpropname);
 
-  template_search = MEM_callocN(sizeof(*template_search), __func__);
+  TemplateSearch *template_search = MEM_callocN(sizeof(*template_search), __func__);
   template_search->search_data.target_ptr = *ptr;
   template_search->search_data.target_prop = prop;
   template_search->search_data.search_ptr = *searchptr;
@@ -1891,18 +1875,15 @@ void uiTemplatePathBuilder(uiLayout *layout,
                            PointerRNA *UNUSED(root_ptr),
                            const char *text)
 {
-  PropertyRNA *propPath;
-  uiLayout *row;
-
   /* check that properties are valid */
-  propPath = RNA_struct_find_property(ptr, propname);
+  PropertyRNA *propPath = RNA_struct_find_property(ptr, propname);
   if (!propPath || RNA_property_type(propPath) != PROP_STRING) {
     RNA_warning("path property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
     return;
   }
 
   /* Start drawing UI Elements using standard defines */
-  row = uiLayoutRow(layout, true);
+  uiLayout *row = uiLayoutRow(layout, true);
 
   /* Path (existing string) Widget */
   uiItemR(row, ptr, propname, 0, text, ICON_RNA);

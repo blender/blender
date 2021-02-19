@@ -40,9 +40,12 @@ static void geo_node_attribute_combine_xyz_layout(uiLayout *layout,
                                                   bContext *UNUSED(C),
                                                   PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "input_type_x", 0, IFACE_("Type X"), ICON_NONE);
-  uiItemR(layout, ptr, "input_type_y", 0, IFACE_("Type Y"), ICON_NONE);
-  uiItemR(layout, ptr, "input_type_z", 0, IFACE_("Type Z"), ICON_NONE);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "input_type_x", 0, IFACE_("X"), ICON_NONE);
+  uiItemR(col, ptr, "input_type_y", 0, IFACE_("Y"), ICON_NONE);
+  uiItemR(col, ptr, "input_type_z", 0, IFACE_("Z"), ICON_NONE);
 }
 
 namespace blender::nodes {

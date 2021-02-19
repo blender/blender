@@ -390,11 +390,8 @@ static PyObject *pygpu_texture_read(BPyGPUTexture *self)
   }
 
   void *buf = GPU_texture_read(self->tex, best_data_format, 0);
-  return (PyObject *)BPyGPU_Buffer_CreatePyObject(
-      best_data_format,
-      2,
-      (Py_ssize_t[2]){GPU_texture_height(self->tex), GPU_texture_width(self->tex)},
-      buf);
+  const Py_ssize_t shape[2] = {GPU_texture_height(self->tex), GPU_texture_width(self->tex)};
+  return (PyObject *)BPyGPU_Buffer_CreatePyObject(best_data_format, shape, ARRAY_SIZE(shape), buf);
 }
 
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD

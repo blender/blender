@@ -37,13 +37,13 @@ struct Collection;
 struct ID;
 struct Image;
 struct ListBase;
+struct NodeTreeUIStorage;
 struct bGPdata;
 struct bNodeInstanceHash;
 struct bNodeLink;
 struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
-struct NodeTreeUIStorage;
 struct uiBlock;
 
 #define NODE_MAXSTR 64

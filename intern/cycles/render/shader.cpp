@@ -807,7 +807,7 @@ static bool to_scene_linear_transform(OCIO::ConstConfigRcPtr &config,
   try {
     processor = config->getProcessor(OCIO::ROLE_SCENE_LINEAR, colorspace);
   }
-  catch (OCIO::Exception &exception) {
+  catch (OCIO::Exception &) {
     return false;
   }
 

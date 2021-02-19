@@ -81,6 +81,7 @@ import sys
 import inspect
 import shutil
 import logging
+import warnings
 
 from textwrap import indent
 
@@ -1204,7 +1205,7 @@ def pycontext2sphinx(basepath):
     # for member in sorted(unique):
     #     print('        "%s": ("", False),' % member)
     if len(context_type_map) > len(unique):
-        raise Exception(
+        warnings.warn(
             "Some types are not used: %s" %
             str([member for member in context_type_map if member not in unique]))
     else:
@@ -1714,7 +1715,6 @@ except ModuleNotFoundError:
 
     fw("if html_theme == 'sphinx_rtd_theme':\n")
     fw("    html_theme_options = {\n")
-    fw("        'canonical_url': 'https://docs.blender.org/api/current/',\n")
     # fw("        'analytics_id': '',\n")
     # fw("        'collapse_navigation': True,\n")
     fw("        'sticky_navigation': False,\n")
@@ -1726,6 +1726,7 @@ except ModuleNotFoundError:
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("html_show_sphinx = False\n")
+    fw("html_baseurl = 'https://docs.blender.org/api/current/'\n")
     fw("html_use_opensearch = 'https://docs.blender.org/api/current'\n")
     fw("html_split_index = True\n")
     fw("html_static_path = ['static']\n")

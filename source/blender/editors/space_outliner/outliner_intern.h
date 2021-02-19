@@ -153,8 +153,7 @@ enum {
   TE_ICONROW = (1 << 1),
   TE_LAZY_CLOSED = (1 << 2),
   TE_FREE_NAME = (1 << 3),
-  TE_DISABLED = (1 << 4),
-  TE_DRAGGING = (1 << 5),
+  TE_DRAGGING = (1 << 4),
   TE_CHILD_NOT_IN_COLLECTION = (1 << 6),
   /* Child elements of the same type in the icon-row are drawn merged as one icon.
    * This flag is set for an element that is part of these merged child icons. */

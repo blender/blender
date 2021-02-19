@@ -133,6 +133,14 @@ if(WITH_OPENVDB)
   list(APPEND LIB
     ${OPENVDB_LIBRARIES}
   )
+  if(WIN32)
+    # OpenVDB emits lots of these, they should be suppressed through other
+    # means but MSVC 16.8/16.9 has broken this functionality, so C4251 is
+    # suppressed here explicitly. See
+    # https://developercommunity.visualstudio.com/content/problem/1167590/bug.html
+    # for details.
+    string(APPEND CMAKE_CXX_FLAGS " /wd4251")
+  endif()
 endif()
 
 set(SRC

@@ -91,8 +91,8 @@ static void pygpu_fill_format_elem(void *data_dst_void, PyObject *py_src, const 
 
 /* No error checking, callers must run PyErr_Occurred */
 static void pygpu_fill_format_sequence(void *data_dst_void,
-                                 PyObject *py_seq_fast,
-                                 const GPUVertAttr *attr)
+                                       PyObject *py_seq_fast,
+                                       const GPUVertAttr *attr)
 {
   const uint len = attr->comp_len;
   PyObject **value_fast_items = PySequence_Fast_ITEMS(py_seq_fast);
@@ -117,9 +117,9 @@ static void pygpu_fill_format_sequence(void *data_dst_void,
 #undef WARN_TYPE_LIMIT_POP
 
 static bool pygpu_vertbuf_fill_impl(GPUVertBuf *vbo,
-                              uint data_id,
-                              PyObject *seq,
-                              const char *error_prefix)
+                                    uint data_id,
+                                    PyObject *seq,
+                                    const char *error_prefix)
 {
   const char *exc_str_size_mismatch = "Expected a %s of size %d, got %u";
 
@@ -213,7 +213,10 @@ static bool pygpu_vertbuf_fill_impl(GPUVertBuf *vbo,
   return ok;
 }
 
-static int pygpu_vertbuf_fill(GPUVertBuf *buf, int id, PyObject *py_seq_data, const char *error_prefix)
+static int pygpu_vertbuf_fill(GPUVertBuf *buf,
+                              int id,
+                              PyObject *py_seq_data,
+                              const char *error_prefix)
 {
   if (id < 0 || id >= GPU_vertbuf_get_format(buf)->attr_len) {
     PyErr_Format(PyExc_ValueError, "Format id %d out of range", id);

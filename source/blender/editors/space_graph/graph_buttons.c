@@ -105,6 +105,16 @@ static bool graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve *
   return true;
 }
 
+FCurve *ANIM_graph_context_fcurve(const bContext *C)
+{
+  FCurve *fcu;
+  if (!graph_panel_context(C, NULL, &fcu)) {
+    return NULL;
+  }
+
+  return fcu;
+}
+
 static bool graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   return graph_panel_context(C, NULL, NULL);
@@ -1312,6 +1322,16 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
 /* All the drawing code is in editors/animation/fmodifier_ui.c */
 
 #define B_FMODIFIER_REDRAW 20
+/** The start of FModifier panels registered for the graph editor. */
+#define GRAPH_FMODIFIER_PANEL_PREFIX "GRAPH"
+
+static void graph_fmodifier_panel_id(void *fcm_link, char *r_name)
+{
+  FModifier *fcm = (FModifier *)fcm_link;
+  eFModifier_Types type = fcm->type;
+  const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
+  BLI_snprintf(r_name, BKE_ST_MAXNAME, "%s_PT_%s", GRAPH_FMODIFIER_PANEL_PREFIX, fmi->name);
+}
 
 static void do_graph_region_modifier_buttons(bContext *C, void *UNUSED(arg), int event)
 {
@@ -1327,10 +1347,8 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
 {
   bAnimListElem *ale;
   FCurve *fcu;
-  FModifier *fcm;
-  uiLayout *col, *row;
+  uiLayout *row;
   uiBlock *block;
-  bool active;
 
   if (!graph_panel_context(C, &ale, &fcu)) {
     return;
@@ -1355,14 +1373,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
     uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_fmodifier_paste");
   }
 
-  active = !(fcu->flag & FCURVE_MOD_OFF);
-  /* draw each modifier */
-  for (fcm = fcu->modifiers.first; fcm; fcm = fcm->next) {
-    col = uiLayoutColumn(panel->layout, true);
-    uiLayoutSetActive(col, active);
-
-    ANIM_uiTemplate_fmodifier_draw(col, ale->fcurve_owner_id, &fcu->modifiers, fcm);
-  }
+  ANIM_fmodifier_panels(C, ale->fcurve_owner_id, &fcu->modifiers, graph_fmodifier_panel_id);
 
   MEM_freeN(ale);
 }
@@ -1426,9 +1437,13 @@ void graph_buttons_register(ARegionType *art)
   strcpy(pt->label, N_("Modifiers"));
   strcpy(pt->category, "Modifiers");
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  pt->flag = PANEL_TYPE_NO_HEADER;
   pt->draw = graph_panel_modifiers;
   pt->poll = graph_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
+
+  ANIM_modifier_panels_register_graph_and_NLA(art, GRAPH_FMODIFIER_PANEL_PREFIX, graph_panel_poll);
+  ANIM_modifier_panels_register_graph_only(art, GRAPH_FMODIFIER_PANEL_PREFIX, graph_panel_poll);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel view");
   strcpy(pt->idname, "GRAPH_PT_view");

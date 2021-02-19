@@ -56,8 +56,10 @@ static void geo_node_attribute_compare_layout(uiLayout *layout,
                                               PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "input_type_a", 0, IFACE_("Type A"), ICON_NONE);
-  uiItemR(layout, ptr, "input_type_b", 0, IFACE_("Type B"), ICON_NONE);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "input_type_a", 0, IFACE_("A"), ICON_NONE);
+  uiItemR(layout, ptr, "input_type_b", 0, IFACE_("B"), ICON_NONE);
 }
 
 static void geo_node_attribute_compare_init(bNodeTree *UNUSED(tree), bNode *node)

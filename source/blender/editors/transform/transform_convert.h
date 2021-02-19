@@ -24,9 +24,9 @@
 
 #pragma once
 
-struct BezTriple;
 struct BMEditMesh;
 struct BMesh;
+struct BezTriple;
 struct FCurve;
 struct ListBase;
 struct Object;

@@ -1421,18 +1421,24 @@ static void socket_id_user_decrement(bNodeSocket *sock)
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject *default_value = (bNodeSocketValueObject *)sock->default_value;
-      id_us_min(&default_value->value->id);
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
       break;
     }
     case SOCK_IMAGE: {
       bNodeSocketValueImage *default_value = (bNodeSocketValueImage *)sock->default_value;
-      id_us_min(&default_value->value->id);
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
       break;
     }
     case SOCK_COLLECTION: {
       bNodeSocketValueCollection *default_value = (bNodeSocketValueCollection *)
                                                       sock->default_value;
-      id_us_min(&default_value->value->id);
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
       break;
     }
     case SOCK_FLOAT:
@@ -4788,6 +4794,7 @@ static void registerGeometryNodes()
   register_node_type_geo_points_to_volume();
   register_node_type_geo_sample_texture();
   register_node_type_geo_subdivision_surface();
+  register_node_type_geo_subdivision_surface_simple();
   register_node_type_geo_transform();
   register_node_type_geo_triangulate();
   register_node_type_geo_volume_to_mesh();

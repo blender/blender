@@ -24,12 +24,10 @@
 #include "DNA_modifier_types.h"
 #include "DNA_session_uuid_types.h"
 
+struct ModifierData;
+struct Object;
 struct bNode;
 struct bNodeTree;
-struct Object;
-struct ModifierData;
-
-using blender::Map;
 
 /**
  * Contains the context necessary to determine when to display settings for a certain node tree
@@ -80,13 +78,11 @@ struct NodeUIStorage {
 };
 
 struct NodeTreeUIStorage {
-  Map<NodeTreeEvaluationContext, Map<std::string, NodeUIStorage>> context_map;
+  blender::Map<NodeTreeEvaluationContext, blender::Map<std::string, NodeUIStorage>> context_map;
 };
 
 void BKE_nodetree_ui_storage_free_for_context(bNodeTree &ntree,
                                               const NodeTreeEvaluationContext &context);
-
-void BKE_nodetree_ui_storage_ensure(bNodeTree &ntree);
 
 void BKE_nodetree_error_message_add(bNodeTree &ntree,
                                     const NodeTreeEvaluationContext &context,

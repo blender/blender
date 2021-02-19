@@ -160,6 +160,18 @@ void GeometrySet::add(const GeometryComponent &component)
   components_.add_new(component.type(), std::move(component_ptr));
 }
 
+/**
+ * Get all geometry components in this geometry set for read-only access.
+ */
+Vector<const GeometryComponent *> GeometrySet::get_components_for_read() const
+{
+  Vector<const GeometryComponent *> components;
+  for (const GeometryComponentPtr &ptr : components_.values()) {
+    components.append(ptr.get());
+  }
+  return components;
+}
+
 void GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_max) const
 {
   const PointCloud *pointcloud = this->get_pointcloud_for_read();

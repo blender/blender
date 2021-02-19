@@ -32,12 +32,12 @@
 struct ARegion;
 struct ARegionType;
 struct Main;
+struct NodeInsertOfsData;
 struct View2D;
 struct bContext;
 struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
-struct NodeInsertOfsData;
 struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmWindow;

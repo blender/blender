@@ -90,6 +90,9 @@ BPy_StructRNA *bpy_context_module = NULL; /* for fast access */
 static PyObject *pyrna_struct_Subtype(PointerRNA *ptr);
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self);
 
+static PyObject *pyrna_register_class(PyObject *self, PyObject *py_class);
+static PyObject *pyrna_unregister_class(PyObject *self, PyObject *py_class);
+
 #define BPY_DOC_ID_PROP_TYPE_NOTE \
   "   .. note::\n" \
   "\n" \
@@ -7657,11 +7660,26 @@ PyObject *BPY_rna_doc(void)
 }
 #endif
 
-/* pyrna_basetype_* - BPy_BaseTypeRNA is just a BPy_PropertyRNA struct with a different type
- * the self->ptr and self->prop are always set to the "structs" collection */
-/* ---------------getattr-------------------------------------------- */
-static PyObject *pyrna_basetype_getattro(BPy_BaseTypeRNA *self, PyObject *pyname)
+/* -------------------------------------------------------------------- */
+/** \name RNA Types Module `bpy.types`
+ * \{ */
+
+/**
+ * This could be a static variable as we only have one `bpy.types` module,
+ * it just keeps the data isolated to store in the module it's self.
+ *
+ * This data doesn't chance one initialized.
+ */
+struct BPy_TypesModule_State {
+  /** `RNA_BlenderRNA`. */
+  PointerRNA ptr;
+  /** `RNA_BlenderRNA.structs`, exposed as `bpy.types` */
+  PropertyRNA *prop;
+};
+
+static PyObject *bpy_types_module_getattro(PyObject *self, PyObject *pyname)
 {
+  struct BPy_TypesModule_State *state = PyModule_GetState(self);
   PointerRNA newptr;
   PyObject *ret;
   const char *name = PyUnicode_AsUTF8(pyname);
@@ -7670,7 +7688,7 @@ static PyObject *pyrna_basetype_getattro(BPy_BaseTypeRNA *self, PyObject *pyname
     PyErr_SetString(PyExc_AttributeError, "bpy.types: __getattr__ must be a string");
     ret = NULL;
   }
-  else if (RNA_property_collection_lookup_string(&self->ptr, self->prop, name, &newptr)) {
+  else if (RNA_property_collection_lookup_string(&state->ptr, state->prop, name, &newptr)) {
     ret = pyrna_struct_Subtype(&newptr);
     if (ret == NULL) {
       PyErr_Format(PyExc_RuntimeError,
@@ -7692,79 +7710,60 @@ static PyObject *pyrna_basetype_getattro(BPy_BaseTypeRNA *self, PyObject *pyname
   return ret;
 }
 
-static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self);
-static PyObject *pyrna_register_class(PyObject *self, PyObject *py_class);
-static PyObject *pyrna_unregister_class(PyObject *self, PyObject *py_class);
-
-static struct PyMethodDef pyrna_basetype_methods[] = {
-    {"__dir__", (PyCFunction)pyrna_basetype_dir, METH_NOARGS, ""},
-    {NULL, NULL, 0, NULL},
-};
-
-/* Used to call ..._keys() direct, but we need to filter out operator subclasses. */
-#if 0
-static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
+static PyObject *bpy_types_module_dir(PyObject *self)
 {
-  PyObject *list;
-#  if 0
-  PyMethodDef *meth;
-#  endif
-
-  list = pyrna_prop_collection_keys(self); /* Like calling structs.keys(), avoids looping here. */
-
-#  if 0 /* For now only contains __dir__. */
-  for (meth = pyrna_basetype_methods; meth->ml_name; meth++) {
-    PyList_APPEND(list, PyUnicode_FromString(meth->ml_name));
-  }
-#  endif
-  return list;
-}
-
-#else
-
-static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
-{
+  struct BPy_TypesModule_State *state = PyModule_GetState(self);
   PyObject *ret = PyList_New(0);
 
-  RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop) {
+  RNA_PROP_BEGIN (&state->ptr, itemptr, state->prop) {
     StructRNA *srna = itemptr.data;
     PyList_APPEND(ret, PyUnicode_FromString(RNA_struct_identifier(srna)));
   }
   RNA_PROP_END;
 
+  /* Include the modules `__dict__` for Python only types. */
+  PyObject *submodule_dict = PyModule_GetDict(self);
+  PyObject *key, *value;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(submodule_dict, &pos, &key, &value)) {
+    PyList_APPEND(ret, key);
+  }
   return ret;
 }
 
-#endif
+static struct PyMethodDef bpy_types_module_methods[] = {
+    {"__getattr__", (PyCFunction)bpy_types_module_getattro, METH_O, NULL},
+    {"__dir__", (PyCFunction)bpy_types_module_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL},
+};
 
-static PyTypeObject pyrna_basetype_Type = BLANK_PYTHON_TYPE;
+PyDoc_STRVAR(bpy_types_module_doc, "Access to internal Blender types");
+static struct PyModuleDef bpy_types_module_def = {
+    PyModuleDef_HEAD_INIT,
+    "bpy.types",                          /* m_name */
+    bpy_types_module_doc,                 /* m_doc */
+    sizeof(struct BPy_TypesModule_State), /* m_size */
+    bpy_types_module_methods,             /* m_methods */
+    NULL,                                 /* m_reload */
+    NULL,                                 /* m_traverse */
+    NULL,                                 /* m_clear */
+    NULL,                                 /* m_free */
+};
 
 /**
  * Accessed from Python as 'bpy.types'
  */
 PyObject *BPY_rna_types(void)
 {
-  BPy_BaseTypeRNA *self;
+  PyObject *submodule = PyModule_Create(&bpy_types_module_def);
+  struct BPy_TypesModule_State *state = PyModule_GetState(submodule);
 
-  if ((pyrna_basetype_Type.tp_flags & Py_TPFLAGS_READY) == 0) {
-    pyrna_basetype_Type.tp_name = "RNA_Types";
-    pyrna_basetype_Type.tp_basicsize = sizeof(BPy_BaseTypeRNA);
-    pyrna_basetype_Type.tp_getattro = (getattrofunc)pyrna_basetype_getattro;
-    pyrna_basetype_Type.tp_flags = Py_TPFLAGS_DEFAULT;
-    pyrna_basetype_Type.tp_methods = pyrna_basetype_methods;
-
-    if (PyType_Ready(&pyrna_basetype_Type) < 0) {
-      return NULL;
-    }
-  }
-
-  /* Static members for the base class. */
-  /* Add __name__ since help() expects it. */
-  PyDict_SetItem(pyrna_basetype_Type.tp_dict, bpy_intern_str___name__, bpy_intern_str_bpy_types);
+  RNA_blender_rna_pointer_create(&state->ptr);
+  state->prop = RNA_struct_find_property(&state->ptr, "structs");
 
   /* Internal base types we have no other accessors for. */
   {
-    PyTypeObject *pyrna_types[] = {
+    static PyTypeObject *pyrna_types[] = {
         &pyrna_struct_meta_idprop_Type,
         &pyrna_struct_Type,
         &pyrna_prop_Type,
@@ -7773,22 +7772,16 @@ PyObject *BPY_rna_types(void)
         &pyrna_func_Type,
     };
 
+    PyObject *submodule_dict = PyModule_GetDict(submodule);
     for (int i = 0; i < ARRAY_SIZE(pyrna_types); i += 1) {
-      PyDict_SetItemString(
-          pyrna_basetype_Type.tp_dict, pyrna_types[i]->tp_name, (PyObject *)pyrna_types[i]);
+      PyDict_SetItemString(submodule_dict, pyrna_types[i]->tp_name, (PyObject *)pyrna_types[i]);
     }
   }
 
-  self = (BPy_BaseTypeRNA *)PyObject_NEW(BPy_BaseTypeRNA, &pyrna_basetype_Type);
-
-  /* Avoid doing this lookup for every getattr. */
-  RNA_blender_rna_pointer_create(&self->ptr);
-  self->prop = RNA_struct_find_property(&self->ptr, "structs");
-#ifdef USE_WEAKREFS
-  self->in_weakreflist = NULL;
-#endif
-  return (PyObject *)self;
+  return submodule;
 }
+
+/** \} */
 
 StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *error_prefix)
 {
@@ -7969,31 +7962,6 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
   if ((annotations_dict = PyDict_GetItem(class_dict, bpy_intern_str___annotations__)) &&
       PyDict_CheckExact(annotations_dict)) {
     while (PyDict_Next(annotations_dict, &pos, &key, &item)) {
-      ret = deferred_register_prop(srna, key, item);
-
-      if (ret != 0) {
-        break;
-      }
-    }
-  }
-
-  if (ret == 0) {
-    /* This block can be removed once 2.8x is released and annotations are in use. */
-    bool has_warning = false;
-    while (PyDict_Next(class_dict, &pos, &key, &item)) {
-      if (pyrna_is_deferred_prop(item)) {
-        if (!has_warning) {
-          printf(
-              "Warning: class %.200s "
-              "contains a property which should be an annotation!\n",
-              RNA_struct_identifier(srna));
-          PyC_LineSpit();
-          has_warning = true;
-        }
-        printf("    assign as a type annotation: %.200s.%.200s\n",
-               RNA_struct_identifier(srna),
-               PyUnicode_AsUTF8(key));
-      }
       ret = deferred_register_prop(srna, key, item);
 
       if (ret != 0) {

@@ -103,55 +103,6 @@ typedef struct tGPDdraw {
   float diff_mat[4][4];        /* matrix */
 } tGPDdraw;
 
-/* Temporary interpolate operation data */
-typedef struct tGPDinterpolate_layer {
-  struct tGPDinterpolate_layer *next, *prev;
-
-  /** layer */
-  struct bGPDlayer *gpl;
-  /** frame before current frame (interpolate-from) */
-  struct bGPDframe *prevFrame;
-  /** frame after current frame (interpolate-to) */
-  struct bGPDframe *nextFrame;
-  /** interpolated frame */
-  struct bGPDframe *interFrame;
-  /** interpolate factor */
-  float factor;
-
-} tGPDinterpolate_layer;
-
-typedef struct tGPDinterpolate {
-  /** Current depsgraph from context */
-  struct Depsgraph *depsgraph;
-  /** current scene from context */
-  struct Scene *scene;
-  /** area where painting originated */
-  struct ScrArea *area;
-  /** region where painting originated */
-  struct ARegion *region;
-  /** current GP datablock */
-  struct bGPdata *gpd;
-  /** current material */
-  struct Material *mat;
-
-  /** current frame number */
-  int cframe;
-  /** (tGPDinterpolate_layer) layers to be interpolated */
-  ListBase ilayers;
-  /** value for determining the displacement influence */
-  float shift;
-  /** initial interpolation factor for active layer */
-  float init_factor;
-  /** shift low limit (-100%) */
-  float low_limit;
-  /** shift upper limit (200%) */
-  float high_limit;
-  /** flag from toolsettings */
-  int flag;
-
-  NumInput num; /* numeric input */
-} tGPDinterpolate;
-
 /* Modal Operator Drawing Callbacks ------------------------ */
 void ED_gpencil_draw_fill(struct tGPDdraw *tgpw);
 

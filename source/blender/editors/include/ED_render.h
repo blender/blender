@@ -29,16 +29,16 @@
 extern "C" {
 #endif
 
-struct bContext;
-struct bScreen;
 struct DEGEditorUpdateContext;
 struct Depsgraph;
 struct ID;
-struct Main;
 struct MTex;
+struct Main;
 struct Render;
 struct Scene;
 struct ScrArea;
+struct bContext;
+struct bScreen;
 struct wmWindow;
 struct wmWindowManager;
 
