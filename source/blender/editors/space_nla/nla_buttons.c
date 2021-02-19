@@ -37,6 +37,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_screen.h"
 
@@ -182,6 +183,17 @@ bool nla_panel_context(const bContext *C,
   ANIM_animdata_freelist(&anim_data);
 
   return (found != 0);
+}
+
+NlaStrip *ANIM_nla_context_strip(const bContext *C)
+{
+  PointerRNA strip_ptr;
+  if (!nla_panel_context(C, NULL, NULL, &strip_ptr)) {
+    return NULL;
+  }
+  NlaStrip *strip = strip_ptr.data;
+
+  return strip;
 }
 
 #if 0
@@ -535,13 +547,23 @@ static void nla_panel_animated_strip_time(const bContext *C, Panel *panel)
   uiItemR(layout, &strip_ptr, "strip_time", 0, NULL, ICON_NONE);
 }
 
+#define NLA_FMODIFIER_PANEL_PREFIX "NLA"
+
+static void nla_fmodifier_panel_id(void *fcm_link, char *r_name)
+{
+  FModifier *fcm = (FModifier *)fcm_link;
+  eFModifier_Types type = fcm->type;
+  snprintf(r_name, BKE_ST_MAXNAME, "%s_PT_", NLA_FMODIFIER_PANEL_PREFIX);
+  const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
+  BLI_snprintf(r_name, BKE_ST_MAXNAME, "%s_PT_%s", NLA_FMODIFIER_PANEL_PREFIX, fmi->name);
+}
+
 /* F-Modifiers for active NLA-Strip */
 static void nla_panel_modifiers(const bContext *C, Panel *panel)
 {
   PointerRNA strip_ptr;
   NlaStrip *strip;
-  FModifier *fcm;
-  uiLayout *col, *row;
+  uiLayout *row;
   uiBlock *block;
 
   /* check context and also validity of pointer */
@@ -569,12 +591,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *panel)
     uiItemO(row, "", ICON_PASTEDOWN, "NLA_OT_fmodifier_paste");
   }
 
-  /* draw each modifier */
-  for (fcm = strip->modifiers.first; fcm; fcm = fcm->next) {
-    col = uiLayoutColumn(panel->layout, true);
-
-    ANIM_uiTemplate_fmodifier_draw(col, strip_ptr.owner_id, &strip->modifiers, fcm);
-  }
+  ANIM_fmodifier_panels(C, strip_ptr.owner_id, &strip->modifiers, nla_fmodifier_panel_id);
 }
 
 /* ******************* general ******************************** */
@@ -657,5 +674,9 @@ void nla_buttons_register(ARegionType *art)
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = nla_panel_modifiers;
   pt->poll = nla_strip_eval_panel_poll;
+  pt->flag = PANEL_TYPE_NO_HEADER;
   BLI_addtail(&art->paneltypes, pt);
+
+  ANIM_modifier_panels_register_graph_and_NLA(
+      art, NLA_FMODIFIER_PANEL_PREFIX, nla_strip_eval_panel_poll);
 }

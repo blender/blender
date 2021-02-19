@@ -57,6 +57,13 @@ typedef struct FModifier {
   short type;
   /** Settings for the modifier. */
   short flag;
+  /**
+   * Expansion state for the modifier panel and its subpanels, stored as a bitfield
+   * in depth-first order. (Maximum of sizeof(short) total panels).
+   */
+  short ui_expand_flag;
+
+  char _pad[6];
 
   /** The amount that the modifier should influence the value. */
   float influence;
@@ -96,8 +103,10 @@ typedef enum eFModifier_Types {
 typedef enum eFModifier_Flags {
   /** Modifier is not able to be evaluated for some reason, and should be skipped (internal). */
   FMODIFIER_FLAG_DISABLED = (1 << 0),
-  /** Modifier's data is expanded (in UI). */
+#ifdef DNA_DEPRECATED_ALLOW
+  /** Modifier's data is expanded (in UI). Deprecated, use `ui_expand_flag`. */
   FMODIFIER_FLAG_EXPANDED = (1 << 1),
+#endif
   /** Modifier is active one (in UI) for editing purposes. */
   FMODIFIER_FLAG_ACTIVE = (1 << 2),
   /** User wants modifier to be skipped. */

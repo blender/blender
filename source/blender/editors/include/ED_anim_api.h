@@ -33,7 +33,11 @@ struct ID;
 struct ListBase;
 
 struct ARegion;
+struct ARegionType;
 struct Main;
+struct NlaStrip;
+struct FModifier;
+struct PanelType;
 struct ReportList;
 struct ScrArea;
 struct SpaceLink;
@@ -675,11 +679,25 @@ void ANIM_draw_framerange(struct Scene *scene, struct View2D *v2d);
 
 /* ------------- UI Panel Drawing -------------- */
 
-/* draw a given F-Modifier for some layout/UI-Block */
-void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout,
-                                    struct ID *fcurve_owner_id,
-                                    ListBase *modifiers,
-                                    struct FModifier *fcm);
+struct NlaStrip *ANIM_nla_context_strip(const struct bContext *C);
+struct FCurve *ANIM_graph_context_fcurve(const struct bContext *C);
+
+/* Needed for abstraction between the graph editor and the NLA editor. */
+typedef bool (*PanelTypePollFn)(const struct bContext *C, struct PanelType *pt);
+/* Avoid including "UI_interface.h" here. */
+typedef void (*uiListPanelIDFromDataFunc)(void *data_link, char *r_idname);
+
+void ANIM_fmodifier_panels(const struct bContext *C,
+                           struct ID *owner_id,
+                           struct ListBase *fmodifiers,
+                           uiListPanelIDFromDataFunc panel_id_fn);
+
+void ANIM_modifier_panels_register_graph_and_NLA(struct ARegionType *region_type,
+                                                 const char *modifier_panel_prefix,
+                                                 PanelTypePollFn poll_function);
+void ANIM_modifier_panels_register_graph_only(struct ARegionType *region_type,
+                                              const char *modifier_panel_prefix,
+                                              PanelTypePollFn poll_function);
 
 /* ------------- Copy/Paste Buffer -------------- */
 

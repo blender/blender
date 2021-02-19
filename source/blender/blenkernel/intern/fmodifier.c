@@ -32,6 +32,7 @@
 #include "CLG_log.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLT_translation.h"
 
@@ -1133,7 +1134,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
   /* add modifier itself */
   fcm = MEM_callocN(sizeof(FModifier), "F-Curve Modifier");
   fcm->type = type;
-  fcm->flag = FMODIFIER_FLAG_EXPANDED;
+  fcm->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT; /* Expand the main panel, not the subpanels. */
   fcm->curve = owner_fcu;
   fcm->influence = 1.0f;
   BLI_addtail(modifiers, fcm);
