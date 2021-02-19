@@ -50,8 +50,12 @@ struct bGPDcurve *BKE_gpencil_stroke_editcurve_generate(struct bGPDstroke *gps,
 void BKE_gpencil_stroke_editcurve_update(struct bGPdata *gpd,
                                          struct bGPDlayer *gpl,
                                          struct bGPDstroke *gps);
-void BKE_gpencil_editcurve_stroke_sync_selection(struct bGPDstroke *gps, struct bGPDcurve *gpc);
-void BKE_gpencil_stroke_editcurve_sync_selection(struct bGPDstroke *gps, struct bGPDcurve *gpc);
+void BKE_gpencil_editcurve_stroke_sync_selection(struct bGPdata *gpd,
+                                                 struct bGPDstroke *gps,
+                                                 struct bGPDcurve *gpc);
+void BKE_gpencil_stroke_editcurve_sync_selection(struct bGPdata *gpd,
+                                                 struct bGPDstroke *gps,
+                                                 struct bGPDcurve *gpc);
 void BKE_gpencil_strokes_selected_update_editcurve(struct bGPdata *gpd);
 void BKE_gpencil_strokes_selected_sync_selection_editcurve(struct bGPdata *gpd);
 void BKE_gpencil_stroke_update_geometry_from_editcurve(struct bGPDstroke *gps,

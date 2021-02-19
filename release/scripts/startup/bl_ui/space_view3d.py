@@ -715,13 +715,6 @@ class VIEW3D_HT_header(Header):
                     text="Multiframe",
                 )
 
-            if gpd.use_stroke_edit_mode or gpd.is_stroke_paint_mode:
-                row = layout.row(align=True)
-                row.popover(
-                    panel="VIEW3D_PT_tools_grease_pencil_interpolate",
-                    text="Interpolate",
-                )
-
         overlay = view.overlay
 
         VIEW3D_MT_editor_menus.draw_collapsible(context, layout)

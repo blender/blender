@@ -104,6 +104,7 @@ static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpo
   Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = CTX_data_active_object(C);
+  bGPdata *gpd = ob->data;
   bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
 
   Scene *scene = CTX_data_scene(C);
@@ -133,6 +134,7 @@ static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpo
   /* stroke */
   bGPDstroke *gps = BKE_gpencil_stroke_new(MAX2(ob->actcol - 1, 0), totpoints, brush->size);
   gps->flag |= GP_STROKE_SELECT;
+  BKE_gpencil_stroke_select_index_set(gpd, gps, false);
 
   if (cyclic) {
     gps->flag |= GP_STROKE_CYCLIC;
@@ -241,6 +243,7 @@ static void gpencil_calc_points_factor(bContext *C,
           }
         }
         gps->flag &= ~GP_STROKE_SELECT;
+        BKE_gpencil_stroke_select_index_set(NULL, gps, true);
       }
     }
   }

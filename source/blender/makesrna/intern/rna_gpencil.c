@@ -717,7 +717,7 @@ static void rna_GPencil_stroke_point_select_set(PointerRNA *ptr, const bool valu
     }
 
     /* Check if the stroke should be selected or not... */
-    BKE_gpencil_stroke_sync_selection(gps);
+    BKE_gpencil_stroke_sync_selection(gpd, gps);
   }
 }
 
@@ -933,6 +933,7 @@ static void rna_GPencil_stroke_close(ID *id,
 
 static void rna_GPencil_stroke_select_set(PointerRNA *ptr, const bool value)
 {
+  bGPdata *gpd = (bGPdata *)ptr->owner_id;
   bGPDstroke *gps = ptr->data;
   bGPDspoint *pt;
   int i;
@@ -940,9 +941,11 @@ static void rna_GPencil_stroke_select_set(PointerRNA *ptr, const bool value)
   /* set new value */
   if (value) {
     gps->flag |= GP_STROKE_SELECT;
+    BKE_gpencil_stroke_select_index_set(gpd, gps, false);
   }
   else {
     gps->flag &= ~GP_STROKE_SELECT;
+    BKE_gpencil_stroke_select_index_set(NULL, gps, true);
   }
 
   /* ensure that the stroke's points are selected in the same way */
@@ -1744,6 +1747,11 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Vertex Fill Color", "Color used to mix with fill color to get final color");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+  /* Selection Index */
+  prop = RNA_def_property(srna, "select_index", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "select_index");
+  RNA_def_property_ui_text(prop, "Select Index", "Index of selection used for interpolation");
 }
 
 static void rna_def_gpencil_strokes_api(BlenderRNA *brna, PropertyRNA *cprop)

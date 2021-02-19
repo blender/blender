@@ -214,7 +214,7 @@ static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *op)
       if (gpc->flag & GP_CURVE_NEEDS_STROKE_UPDATE) {
         BKE_gpencil_stroke_editcurve_update(gpd, gpl, gps);
         /* Update the selection from the stroke to the curve. */
-        BKE_gpencil_editcurve_stroke_sync_selection(gps, gps->editcurve);
+        BKE_gpencil_editcurve_stroke_sync_selection(gpd, gps, gps->editcurve);
 
         gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
         BKE_gpencil_stroke_geometry_update(gpd, gps);
@@ -992,6 +992,7 @@ static int gpencil_duplicate_exec(bContext *C, wmOperator *op)
             pt->flag &= ~GP_SPOINT_SELECT;
           }
           gps->flag &= ~GP_STROKE_SELECT;
+          BKE_gpencil_stroke_select_index_set(NULL, gps, true);
 
           changed = true;
         }
@@ -1193,6 +1194,7 @@ static void gpencil_add_move_points(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gp
   /* if the stroke is not reused, deselect */
   if (!do_stroke) {
     gps->flag &= ~GP_STROKE_SELECT;
+    BKE_gpencil_stroke_select_index_set(NULL, gps, true);
   }
 }
 
@@ -1709,6 +1711,7 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
     }
 
     gps->flag &= ~GP_STROKE_SELECT;
+    BKE_gpencil_stroke_select_index_set(NULL, gps, true);
   }
   CTX_DATA_END;
 
@@ -2548,6 +2551,7 @@ static bool gpencil_dissolve_selected_stroke_points(bContext *C,
 
         /* deselect the stroke, since none of its selected points will still be selected */
         gps->flag &= ~GP_STROKE_SELECT;
+        BKE_gpencil_stroke_select_index_set(NULL, gps, true);
         for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
           pt->flag &= ~GP_SPOINT_SELECT;
         }
@@ -2620,6 +2624,7 @@ static int gpencil_delete_selected_points(bContext *C)
           if (gps->flag & GP_STROKE_SELECT) {
             /* deselect old stroke, since it will be used as template for the new strokes */
             gps->flag &= ~GP_STROKE_SELECT;
+            BKE_gpencil_stroke_select_index_set(NULL, gps, true);
 
             if (is_curve_edit) {
               bGPDcurve *gpc = gps->editcurve;
@@ -3790,7 +3795,7 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
       if (is_curve_edit && gps->editcurve != NULL) {
         BKE_gpencil_stroke_editcurve_update(gpd, gpl, gps);
         /* Update the selection from the stroke to the curve. */
-        BKE_gpencil_editcurve_stroke_sync_selection(gps, gps->editcurve);
+        BKE_gpencil_editcurve_stroke_sync_selection(gpd, gps, gps->editcurve);
 
         gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
         BKE_gpencil_stroke_geometry_update(gpd, gps);
@@ -4574,6 +4579,7 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
               else if (mode == GP_SEPARATE_STROKE) {
                 /* deselect old stroke */
                 gps->flag &= ~GP_STROKE_SELECT;
+                BKE_gpencil_stroke_select_index_set(NULL, gps, true);
                 /* unlink from source frame */
                 BLI_remlink(&gpf->strokes, gps);
                 gps->prev = gps->next = NULL;
@@ -4982,6 +4988,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
     }
 
     gps->flag &= ~GP_STROKE_SELECT;
+    BKE_gpencil_stroke_select_index_set(NULL, gps, true);
   }
   CTX_DATA_END;
 
@@ -5022,6 +5029,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
               changed = true;
               pt->flag |= GP_SPOINT_SELECT;
               gps->flag |= GP_STROKE_SELECT;
+              BKE_gpencil_stroke_select_index_set(gpd, gps, false);
               float r_hita[3], r_hitb[3];
               if (gps->totpoints > 1) {
                 ED_gpencil_select_stroke_segment(

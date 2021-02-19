@@ -1132,22 +1132,6 @@ typedef enum eGP_vertex_SelectMaskFlag {
 
 /* Settings for GP Interpolation Operators */
 typedef struct GP_Interpolate_Settings {
-  /** #eGP_Interpolate_SettingsFlag. */
-  short flag;
-
-  /** #eGP_Interpolate_Type - Interpolation Mode. */
-  char type;
-  /** #eBezTriple_Easing - Easing mode (if easing equation used). */
-  char easing;
-
-  /** BEZT_IPO_BACK. */
-  float back;
-  /** BEZT_IPO_ELASTIC. */
-  float amplitude, period;
-  /* Step between sequence interpolated frames. */
-  int step;
-  char _pad[4];
-
   /** Custom interpolation curve (for use with GP_IPO_CURVEMAP). */
   struct CurveMapping *custom_ipo;
 } GP_Interpolate_Settings;
