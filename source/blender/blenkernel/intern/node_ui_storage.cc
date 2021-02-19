@@ -31,7 +31,7 @@ using blender::Map;
 using blender::StringRef;
 using blender::Vector;
 
-void BKE_nodetree_ui_storage_ensure(bNodeTree &ntree)
+static void ui_storage_ensure(bNodeTree &ntree)
 {
   if (ntree.ui_storage == nullptr) {
     ntree.ui_storage = new NodeTreeUIStorage();
@@ -89,7 +89,7 @@ void BKE_nodetree_error_message_add(bNodeTree &ntree,
                                     const NodeWarningType type,
                                     std::string message)
 {
-  BLI_assert(ntree.ui_storage != nullptr);
+  ui_storage_ensure(ntree);
   NodeTreeUIStorage &ui_storage = *ntree.ui_storage;
 
   node_error_message_log(ntree, node, message, type);

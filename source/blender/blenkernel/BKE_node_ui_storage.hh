@@ -84,8 +84,6 @@ struct NodeTreeUIStorage {
 void BKE_nodetree_ui_storage_free_for_context(bNodeTree &ntree,
                                               const NodeTreeEvaluationContext &context);
 
-void BKE_nodetree_ui_storage_ensure(bNodeTree &ntree);
-
 void BKE_nodetree_error_message_add(bNodeTree &ntree,
                                     const NodeTreeEvaluationContext &context,
                                     const bNode &node,
