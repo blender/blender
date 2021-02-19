@@ -523,6 +523,13 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
         MEM_SAFE_FREE(nc->matte_id);
       }
+      else if (node->type == FN_NODE_INPUT_STRING) {
+        NodeInputString *storage = (NodeInputString *)node->storage;
+        if (storage->string) {
+          BLO_write_string(writer, storage->string);
+        }
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, storage);
+      }
       else if (node->typeinfo != &NodeTypeUndefined) {
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
@@ -683,6 +690,11 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
           ImageUser *iuser = (ImageUser *)node->storage;
           iuser->ok = 1;
           iuser->scene = nullptr;
+          break;
+        }
+        case FN_NODE_INPUT_STRING: {
+          NodeInputString *storage = (NodeInputString *)node->storage;
+          BLO_read_data_address(reader, &storage->string);
           break;
         }
         default:
@@ -4806,6 +4818,7 @@ static void registerFunctionNodes()
   register_node_type_fn_combine_strings();
   register_node_type_fn_float_compare();
   register_node_type_fn_group_instance_id();
+  register_node_type_fn_input_string();
   register_node_type_fn_input_vector();
   register_node_type_fn_object_transforms();
   register_node_type_fn_random_float();
