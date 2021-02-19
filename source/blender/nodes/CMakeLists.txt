@@ -168,6 +168,7 @@ set(SRC
   geometry/nodes/node_geo_point_translate.cc
   geometry/nodes/node_geo_points_to_volume.cc
   geometry/nodes/node_geo_subdivision_surface.cc
+  geometry/nodes/node_geo_subdivision_surface_simple.cc
   geometry/nodes/node_geo_transform.cc
   geometry/nodes/node_geo_triangulate.cc
   geometry/nodes/node_geo_volume_to_mesh.cc
