@@ -77,13 +77,15 @@ static void geo_node_attribute_vector_math_layout(uiLayout *layout,
   const NodeVectorMathOperation operation = (const NodeVectorMathOperation)node_storage.operation;
 
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "input_type_a", 0, IFACE_("Type A"), ICON_NONE);
 
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "input_type_a", 0, IFACE_("A"), ICON_NONE);
   if (operation_use_input_b(operation)) {
-    uiItemR(layout, ptr, "input_type_b", 0, IFACE_("Type B"), ICON_NONE);
+    uiItemR(layout, ptr, "input_type_b", 0, IFACE_("B"), ICON_NONE);
   }
   if (operation_use_input_c(operation)) {
-    uiItemR(layout, ptr, "input_type_c", 0, IFACE_("Type C"), ICON_NONE);
+    uiItemR(layout, ptr, "input_type_c", 0, IFACE_("C"), ICON_NONE);
   }
 }
 

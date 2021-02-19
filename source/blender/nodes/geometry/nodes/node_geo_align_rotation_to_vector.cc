@@ -40,6 +40,8 @@ static void geo_node_align_rotation_to_vector_layout(uiLayout *layout,
                                                      PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "pivot_axis", 0, IFACE_("Pivot"), ICON_NONE);
   uiLayout *col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "input_type_factor", 0, IFACE_("Factor"), ICON_NONE);
