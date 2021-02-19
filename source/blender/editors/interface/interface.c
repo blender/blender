@@ -4080,11 +4080,6 @@ static uiBut *ui_def_but(uiBlock *block,
   }
 #endif
 
-  /* Always keep text in radio-buttons (expanded enums) center aligned. */
-  if (ELEM(but->type, UI_BTYPE_ROW)) {
-    but->drawflag &= ~UI_BUT_TEXT_LEFT;
-  }
-
   but->drawflag |= (block->flag & UI_BUT_ALIGN);
 
   if (block->lock == true) {
