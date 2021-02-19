@@ -1229,7 +1229,7 @@ static NodeWarningType node_error_highest_priority(Span<NodeWarning> warnings)
   return highest_priority_type;
 }
 
-static char *node_errrors_tooltip_fn(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
+static char *node_errors_tooltip_fn(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
 {
   const NodeUIStorage **storage_pointer_alloc = static_cast<const NodeUIStorage **>(argN);
   const NodeUIStorage *node_ui_storage = *storage_pointer_alloc;
@@ -1310,7 +1310,7 @@ static void node_add_error_message_button(
                             0,
                             0,
                             nullptr);
-  UI_but_func_tooltip_set(but, node_errrors_tooltip_fn, storage_pointer_alloc);
+  UI_but_func_tooltip_set(but, node_errors_tooltip_fn, storage_pointer_alloc);
   UI_block_emboss_set(node.block, UI_EMBOSS);
 }
 
