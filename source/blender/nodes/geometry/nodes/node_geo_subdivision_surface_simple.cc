@@ -70,11 +70,14 @@ static void geo_node_subdivision_surface_simple_exec(GeoNodeExecParams params)
   mesh_settings.use_optimal_display = false;
 
   /* Initialize subdivision settings. */
-  SubdivSettings subdiv_settings = {0};
+  SubdivSettings subdiv_settings;
   subdiv_settings.is_simple = true;
   subdiv_settings.is_adaptive = false;
   subdiv_settings.use_creases = false;
   subdiv_settings.level = 1;
+  subdiv_settings.vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
+      0);
+  subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(0);
 
   /* Apply subdivision from mesh. */
   Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, mesh_in);
