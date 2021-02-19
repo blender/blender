@@ -81,6 +81,7 @@ import sys
 import inspect
 import shutil
 import logging
+import warning
 
 from textwrap import indent
 
@@ -1204,7 +1205,7 @@ def pycontext2sphinx(basepath):
     # for member in sorted(unique):
     #     print('        "%s": ("", False),' % member)
     if len(context_type_map) > len(unique):
-        raise Exception(
+        warnings.warn(
             "Some types are not used: %s" %
             str([member for member in context_type_map if member not in unique]))
     else:
