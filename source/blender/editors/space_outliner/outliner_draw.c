@@ -2958,6 +2958,41 @@ static void outliner_set_coord_tree_element(TreeElement *te, int startx, int sta
   }
 }
 
+static bool element_should_draw_faded(const TreeViewContext *tvc,
+                                      const TreeElement *te,
+                                      const TreeStoreElem *tselem)
+{
+  if (tselem->type == 0) {
+    switch (te->idcode) {
+      case ID_OB: {
+        const Object *ob = (const Object *)tselem->id;
+        /* Lookup in view layer is logically const as it only checks a cache. */
+        const Base *base = (te->directdata) ? (const Base *)te->directdata :
+                                              BKE_view_layer_base_find(
+                                                  (ViewLayer *)tvc->view_layer, (Object *)ob);
+        const bool is_visible = (base != NULL) && (base->flag & BASE_VISIBLE_VIEWLAYER);
+        if (!is_visible) {
+          return true;
+        }
+      }
+    }
+  }
+  switch (tselem->type) {
+    case TSE_LAYER_COLLECTION: {
+      const LayerCollection *layer_collection = (const LayerCollection *)te->directdata;
+      const bool is_visibe = layer_collection->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
+      const bool is_excluded = layer_collection->flag & LAYER_COLLECTION_EXCLUDE;
+      return !is_visibe || is_excluded;
+    }
+  }
+
+  if (te->flag & TE_CHILD_NOT_IN_COLLECTION) {
+    return true;
+  }
+
+  return false;
+}
+
 static void outliner_draw_tree_element(bContext *C,
                                        uiBlock *block,
                                        const uiFontStyle *fstyle,
@@ -2981,10 +3016,7 @@ static void outliner_draw_tree_element(bContext *C,
   outliner_icon_background_colors(icon_bgcolor, icon_border);
 
   if (*starty + 2 * UI_UNIT_Y >= region->v2d.cur.ymin && *starty <= region->v2d.cur.ymax) {
-    const float alpha_fac = ((te->flag & TE_DISABLED) || (te->flag & TE_CHILD_NOT_IN_COLLECTION) ||
-                             draw_grayed_out) ?
-                                0.5f :
-                                1.0f;
+    const float alpha_fac = element_should_draw_faded(tvc, te, tselem) ? 0.5f : 1.0f;
     int xmax = region->v2d.cur.xmax;
 
     if ((tselem->flag & TSE_TEXTBUT) && (*te_edit == NULL)) {
