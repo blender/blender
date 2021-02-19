@@ -7720,6 +7720,14 @@ static PyObject *bpy_types_module_dir(PyObject *self)
     PyList_APPEND(ret, PyUnicode_FromString(RNA_struct_identifier(srna)));
   }
   RNA_PROP_END;
+
+  /* Include the modules `__dict__` for Python only types. */
+  PyObject *submodule_dict = PyModule_GetDict(self);
+  PyObject *key, *value;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(submodule_dict, &pos, &key, &value)) {
+    PyList_APPEND(ret, key);
+  }
   return ret;
 }
 
