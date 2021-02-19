@@ -65,7 +65,15 @@ static void align_rotations_auto_pivot(const Float3ReadAttribute &vectors,
     mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
 
     const float3 new_axis = vector.normalized();
-    const float3 rotation_axis = float3::cross_high_precision(old_axis, new_axis);
+    float3 rotation_axis = float3::cross_high_precision(old_axis, new_axis);
+    if (is_zero_v3(rotation_axis)) {
+      /* The vectors are linearly dependent, so we fall back to another axis. */
+      rotation_axis = float3::cross_high_precision(old_axis, float3(1, 0, 0));
+      if (is_zero_v3(rotation_axis))
+        /* This is now guaranteed to not be zero. */
+        rotation_axis = float3::cross_high_precision(old_axis, float3(0, 1, 0));
+    }
+
     const float full_angle = angle_normalized_v3v3(old_axis, new_axis);
     const float angle = factors[i] * full_angle;
 
