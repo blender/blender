@@ -1876,9 +1876,7 @@ static void outliner_buttons(const bContext *C,
   tselem = TREESTORE(te);
 
   BLI_assert(tselem->flag & TSE_TEXTBUT);
-  /* If we add support to rename Sequence.
-   * need change this.
-   */
+  /* If we add support to rename Sequence, need change this. */
 
   if (tselem->type == TSE_EBONE) {
     len = sizeof(((EditBone *)0)->name);
@@ -1912,11 +1910,11 @@ static void outliner_buttons(const bContext *C,
                 "");
   UI_but_func_rename_set(bt, namebutton_fn, tselem);
 
-  /* returns false if button got removed */
+  /* Returns false if button got removed. */
   if (false == UI_but_active_only(C, region, block, bt)) {
     tselem->flag &= ~TSE_TEXTBUT;
 
-    /* bad! (notifier within draw) without this, we don't get a refresh */
+    /* Bad! (notifier within draw) without this, we don't get a refresh. */
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, NULL);
   }
 }
@@ -2623,7 +2621,7 @@ static void tselem_draw_icon(uiBlock *block,
 
   /* Collection colors and icons covered by restrict buttons. */
   if (!is_clickable || x >= xmax || is_collection) {
-    /* placement of icons, copied from interface_widgets.c */
+    /* Placement of icons, copied from interface_widgets.c */
     float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
     x += 2.0f * aspect;
     y += 2.0f * aspect;
@@ -2647,8 +2645,7 @@ static void tselem_draw_icon(uiBlock *block,
     /* Reduce alpha to match icon buttons */
     alpha *= 0.8f;
 
-    /* restrict column clip... it has been coded by simply overdrawing,
-     * doesn't work for buttons */
+    /* Restrict column clip. it has been coded by simply overdrawing, doesn't work for buttons. */
     uchar color[4];
     if (UI_icon_get_theme_color(data.icon, color)) {
       UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, color, true);
@@ -2980,9 +2977,9 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
   switch (tselem->type) {
     case TSE_LAYER_COLLECTION: {
       const LayerCollection *layer_collection = (const LayerCollection *)te->directdata;
-      const bool is_visibe = layer_collection->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
+      const bool is_visible = layer_collection->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
       const bool is_excluded = layer_collection->flag & LAYER_COLLECTION_EXCLUDE;
-      return !is_visibe || is_excluded;
+      return !is_visible || is_excluded;
     }
   }
 
@@ -3023,18 +3020,18 @@ static void outliner_draw_tree_element(bContext *C,
       *te_edit = te;
     }
 
-    /* icons can be ui buts, we don't want it to overlap with restrict */
+    /* Icons can be ui buts, we don't want it to overlap with restrict .*/
     if (restrict_column_width > 0) {
       xmax -= restrict_column_width + UI_UNIT_X;
     }
 
     GPU_blend(GPU_BLEND_ALPHA);
 
-    /* colors for active/selected data */
+    /* Colors for active/selected data. */
     if (tselem->type == 0) {
       if (te->idcode == ID_SCE) {
         if (tselem->id == (ID *)tvc->scene) {
-          /* active scene */
+          /* Active scene. */
           icon_bgcolor[3] = 0.2f;
           active = OL_DRAWSEL_ACTIVE;
         }
@@ -3051,26 +3048,26 @@ static void outliner_draw_tree_element(bContext *C,
 
         if (is_selected) {
           if (ob == tvc->obact) {
-            /* active selected object */
+            /* Active selected object. */
             UI_GetThemeColor3ubv(TH_ACTIVE_OBJECT, text_color);
             text_color[3] = 255;
           }
           else {
-            /* other selected objects */
+            /* Other selected objects. */
             UI_GetThemeColor3ubv(TH_SELECTED_OBJECT, text_color);
             text_color[3] = 255;
           }
         }
       }
       else if (is_object_data_in_editmode(tselem->id, tvc->obact)) {
-        /* objects being edited */
+        /* Objects being edited. */
         UI_GetThemeColor4fv(TH_EDITED_OBJECT, icon_bgcolor);
         icon_border[3] = 0.3f;
         active = OL_DRAWSEL_ACTIVE;
       }
       else {
         if (tree_element_active(C, tvc, space_outliner, te, OL_SETSEL_NONE, false)) {
-          /* active items like camera or material */
+          /* Active items like camera or material. */
           icon_bgcolor[3] = 0.2f;
           active = OL_DRAWSEL_ACTIVE;
         }
@@ -3088,7 +3085,7 @@ static void outliner_draw_tree_element(bContext *C,
       /* Active collection. */
     }
 
-    /* active circle */
+    /* Active circle. */
     if (active != OL_DRAWSEL_NONE) {
       outliner_draw_active_indicator((float)startx + offsx + UI_UNIT_X,
                                      (float)*starty,
@@ -3124,7 +3121,7 @@ static void outliner_draw_tree_element(bContext *C,
     }
     offsx += UI_UNIT_X;
 
-    /* datatype icon */
+    /* Data-type icon. */
     if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE))) {
       tselem_draw_icon(block,
                        xmax,
@@ -3151,7 +3148,7 @@ static void outliner_draw_tree_element(bContext *C,
     }
     GPU_blend(GPU_BLEND_NONE);
 
-    /* name */
+    /* Name. */
     if ((tselem->flag & TSE_TEXTBUT) == 0) {
       if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
         UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.75f, text_color);
@@ -3163,11 +3160,11 @@ static void outliner_draw_tree_element(bContext *C,
 
     offsx += (int)(UI_UNIT_X + UI_fontstyle_string_width(fstyle, te->name));
 
-    /* closed item, we draw the icons, not when it's a scene, or master-server list though */
+    /* Closed item, we draw the icons, not when it's a scene, or master-server list though. */
     if (!TSELEM_OPEN(tselem, space_outliner)) {
       if (te->subtree.first) {
         if (tselem->type == 0 && te->idcode == ID_SCE) {
-          /* pass */
+          /* Pass. */
         }
         /* this tree element always has same amount of branches, so don't draw */
         else if (tselem->type != TSE_R_LAYER) {
@@ -3194,7 +3191,7 @@ static void outliner_draw_tree_element(bContext *C,
       }
     }
   }
-  /* store coord and continue, we need coordinates for elements outside view too */
+  /* Store coord and continue, we need coordinates for elements outside view too. */
   te->xs = startx;
   te->ys = *starty;
   te->xend = startx + offsx;
@@ -3348,7 +3345,7 @@ static void outliner_draw_struct_marks(ARegion *region,
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
 
-    /* selection status */
+    /* Selection status. */
     if (TSELEM_OPEN(tselem, space_outliner)) {
       if (tselem->type == TSE_RNA_STRUCT) {
         GPUVertFormat *format = immVertexFormat();
@@ -3399,7 +3396,7 @@ static void outliner_draw_highlights_recursive(uint pos,
     const TreeStoreElem *tselem = TREESTORE(te);
     const int start_y = *io_start_y;
 
-    /* selection status */
+    /* Selection status. */
     if ((tselem->flag & TSE_ACTIVE) && (tselem->flag & TSE_SELECTED)) {
       immUniformColor4fv(col_active);
       immRecti(pos, 0, start_y, (int)region->v2d.cur.xmax, start_y + UI_UNIT_Y);
@@ -3409,12 +3406,12 @@ static void outliner_draw_highlights_recursive(uint pos,
       immRecti(pos, 0, start_y, (int)region->v2d.cur.xmax, start_y + UI_UNIT_Y);
     }
 
-    /* highlights */
+    /* Highlights. */
     if (tselem->flag & (TSE_DRAG_ANY | TSE_HIGHLIGHTED | TSE_SEARCHMATCH)) {
       const int end_x = (int)region->v2d.cur.xmax;
 
       if (tselem->flag & TSE_DRAG_ANY) {
-        /* drag and drop highlight */
+        /* Drag and drop highlight. */
         float col[4];
         UI_GetThemeColorShade4fv(TH_BACK, -40, col);
 
@@ -3437,14 +3434,13 @@ static void outliner_draw_highlights_recursive(uint pos,
       }
       else {
         if (is_searching && (tselem->flag & TSE_SEARCHMATCH)) {
-          /* search match highlights
-           *   we don't expand items when searching in the data-blocks but we
-           *   still want to highlight any filter matches. */
+          /* Ssearch match highlights. We don't expand items when searching in the data-blocks,
+           * but we still want to highlight any filter matches. */
           immUniformColor4fv(col_searchmatch);
           immRecti(pos, start_x, start_y, end_x, start_y + UI_UNIT_Y);
         }
         else if (tselem->flag & TSE_HIGHLIGHTED) {
-          /* mouse hover highlight */
+          /* Mouse hover highlight. */
           immUniformColor4fv(col_highlight);
           immRecti(pos, 0, start_y, end_x, start_y + UI_UNIT_Y);
         }
@@ -3476,9 +3472,9 @@ static void outliner_draw_highlights(ARegion *region,
   float col_selection[4], col_active[4], col_searchmatch[4];
 
   UI_GetThemeColor3fv(TH_SELECT_HIGHLIGHT, col_selection);
-  col_selection[3] = 1.0f; /* no alpha */
+  col_selection[3] = 1.0f; /* No alpha. */
   UI_GetThemeColor3fv(TH_SELECT_ACTIVE, col_active);
-  col_active[3] = 1.0f; /* no alpha */
+  col_active[3] = 1.0f; /* No alpha. */
   UI_GetThemeColor4fv(TH_MATCH, col_searchmatch);
   col_searchmatch[3] = 0.5f;
 
@@ -3528,12 +3524,12 @@ static void outliner_draw_tree(bContext *C,
     outliner_draw_struct_marks(region, space_outliner, &space_outliner->tree, &starty);
   }
 
-  /* draw highlights before hierarchy */
+  /* Draw highlights before hierarchy. */
   starty = (int)region->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
   startx = 0;
   outliner_draw_highlights(region, space_outliner, startx, &starty);
 
-  /* set scissor so tree elements or lines can't overlap restriction icons */
+  /* Set scissor so tree elements or lines can't overlap restriction icons. */
   int scissor[4] = {0};
   if (restrict_column_width > 0.0f) {
     int mask_x = BLI_rcti_size_x(&region->v2d.mask) - (int)restrict_column_width + 1;
@@ -3567,7 +3563,7 @@ static void outliner_draw_tree(bContext *C,
   }
 
   if (restrict_column_width > 0.0f) {
-    /* reset scissor */
+    /* Reset scissor. */
     GPU_scissor(UNPACK4(scissor));
   }
 }
@@ -3634,7 +3630,7 @@ static void outliner_update_viewable_area(ARegion *region,
   int sizex = outliner_width(space_outliner, tree_width, restrict_column_width);
   int sizey = tree_height;
 
-  /* extend size to allow for horizontal scrollbar and extra offset */
+  /* Extend size to allow for horizontal scrollbar and extra offset. */
   sizey += V2D_SCROLL_HEIGHT + OL_Y_OFFSET;
 
   UI_view2d_totRect_set(&region->v2d, sizex, sizey);
@@ -3657,27 +3653,27 @@ void draw_outliner(const bContext *C)
 
   outliner_build_tree(mainvar, tvc.scene, tvc.view_layer, space_outliner, region); /* Always. */
 
-  /* If global sync select is dirty, flag other outliners */
+  /* If global sync select is dirty, flag other outliners. */
   if (ED_outliner_select_sync_is_dirty(C)) {
     ED_outliner_select_sync_flag_outliners(C);
   }
 
-  /* Sync selection state from view layer */
+  /* Sync selection state from view layer. */
   if (!ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_DATA_API, SO_ID_ORPHANS) &&
       space_outliner->flag & SO_SYNC_SELECT) {
     outliner_sync_selection(C, space_outliner);
   }
 
-  /* force display to pixel coords */
+  /* Force display to pixel coords. */
   v2d->flag |= (V2D_PIXELOFS_X | V2D_PIXELOFS_Y);
-  /* set matrix for 2d-view controls */
+  /* Set matrix for 2D-view controls. */
   UI_view2d_view_ortho(v2d);
 
-  /* Only show mode column in View Layers and Scenes view */
+  /* Only show mode column in View Layers and Scenes view. */
   const bool use_mode_column = (space_outliner->flag & SO_MODE_COLUMN) &&
                                (ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES));
 
-  /* draw outliner stuff (background, hierarchy lines and names) */
+  /* Draw outliner stuff (background, hierarchy lines and names). */
   const float restrict_column_width = outliner_restrict_columns_width(space_outliner);
   outliner_back(region);
   block = UI_block_begin(C, region, __func__, UI_EMBOSS);
