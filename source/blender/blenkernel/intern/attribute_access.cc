@@ -1641,9 +1641,12 @@ bool GeometryComponent::attribute_try_create(const StringRef attribute_name,
                                              const CustomDataType data_type)
 {
   using namespace blender::bke;
+  if (attribute_name.is_empty()) {
+    return false;
+  }
   const ComponentAttributeProviders *providers = this->get_attribute_providers();
   if (providers == nullptr) {
-    return {};
+    return false;
   }
   const BuiltinAttributeProvider *builtin_provider =
       providers->builtin_attribute_providers().lookup_default_as(attribute_name, nullptr);
