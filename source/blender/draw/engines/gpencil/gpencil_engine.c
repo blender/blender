@@ -488,6 +488,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
 {
   gpIterPopulateData *iter = (gpIterPopulateData *)thunk;
 
+  bGPdata *gpd = iter->ob->data;
   MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(iter->ob, gps->mat_nr + 1);
 
   const bool is_render = iter->pd->is_render;
@@ -496,8 +497,8 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
                      (!is_render && ((gps->flag & GP_STROKE_NOFILL) != 0));
   bool show_fill = (gps->tot_triangles > 0) && ((gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0) &&
                    (!iter->pd->simplify_fill) && ((gps->flag & GP_STROKE_NOFILL) == 0);
-
-  bool only_lines = gpl && gpf && gpl->actframe != gpf && iter->pd->use_multiedit_lines_only;
+  bool only_lines = !GPENCIL_PAINT_MODE(gpd) && gpl && gpf && gpl->actframe != gpf &&
+                    iter->pd->use_multiedit_lines_only;
   bool is_onion = gpl && gpf && gpf->runtime.onion_id != 0;
   bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0);
   if ((hide_material) || (!show_stroke && !show_fill) || (only_lines && !is_onion) ||
