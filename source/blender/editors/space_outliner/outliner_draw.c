@@ -760,7 +760,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           char newname[sizeof(bone->name)];
 
           /* always make current object active */
-          tree_element_active(C, &tvc, space_outliner, te, OL_SETSEL_NORMAL, true);
+          tree_element_activate(C, &tvc, te, OL_SETSEL_NORMAL, true);
 
           /* restore bone name */
           BLI_strncpy(newname, bone->name, sizeof(bone->name));
@@ -778,7 +778,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           char newname[sizeof(pchan->name)];
 
           /* always make current pose-bone active */
-          tree_element_active(C, &tvc, space_outliner, te, OL_SETSEL_NORMAL, true);
+          tree_element_activate(C, &tvc, te, OL_SETSEL_NORMAL, true);
 
           BLI_assert(ob->type == OB_ARMATURE);
 
@@ -2872,16 +2872,11 @@ static void outliner_draw_iconrow(bContext *C,
           active = OL_DRAWSEL_ACTIVE;
         }
         else {
-          active = tree_element_active(C, tvc, space_outliner, te, OL_SETSEL_NONE, false);
+          active = tree_element_active_state_get(tvc, te, tselem);
         }
       }
-      else if (tselem->type == TSE_GP_LAYER) {
-        bGPDlayer *gpl = te->directdata;
-        active = (gpl->flag & GP_LAYER_ACTIVE) ? OL_DRAWSEL_ACTIVE : OL_DRAWSEL_NONE;
-      }
       else {
-        active = tree_element_type_active(
-            C, tvc, space_outliner, te, tselem, OL_SETSEL_NONE, false);
+        active = tree_element_type_active_state_get(C, tvc, te, tselem);
       }
 
       if (!ELEM(tselem->type, 0, TSE_LAYER_COLLECTION, TSE_R_LAYER, TSE_GP_LAYER)) {
@@ -3029,14 +3024,7 @@ static void outliner_draw_tree_element(bContext *C,
 
     /* Colors for active/selected data. */
     if (tselem->type == 0) {
-      if (te->idcode == ID_SCE) {
-        if (tselem->id == (ID *)tvc->scene) {
-          /* Active scene. */
-          icon_bgcolor[3] = 0.2f;
-          active = OL_DRAWSEL_ACTIVE;
-        }
-      }
-      else if (te->idcode == ID_OB) {
+      if (te->idcode == ID_OB) {
         Object *ob = (Object *)tselem->id;
         Base *base = (te->directdata) ? (Base *)te->directdata :
                                         BKE_view_layer_base_find(tvc->view_layer, ob);
@@ -3066,23 +3054,15 @@ static void outliner_draw_tree_element(bContext *C,
         active = OL_DRAWSEL_ACTIVE;
       }
       else {
-        if (tree_element_active(C, tvc, space_outliner, te, OL_SETSEL_NONE, false)) {
+        if (tree_element_active_state_get(tvc, te, tselem)) {
           /* Active items like camera or material. */
           icon_bgcolor[3] = 0.2f;
           active = OL_DRAWSEL_ACTIVE;
         }
       }
     }
-    else if (tselem->type == TSE_GP_LAYER) {
-      /* Active grease pencil layer. */
-      if (((bGPDlayer *)te->directdata)->flag & GP_LAYER_ACTIVE) {
-        icon_bgcolor[3] = 0.2f;
-        active = OL_DRAWSEL_ACTIVE;
-      }
-    }
     else {
-      active = tree_element_type_active(C, tvc, space_outliner, te, tselem, OL_SETSEL_NONE, false);
-      /* Active collection. */
+      active = tree_element_type_active_state_get(C, tvc, te, tselem);
     }
 
     /* Active circle. */
