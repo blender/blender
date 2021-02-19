@@ -1421,18 +1421,24 @@ static void socket_id_user_decrement(bNodeSocket *sock)
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject *default_value = (bNodeSocketValueObject *)sock->default_value;
-      id_us_min(&default_value->value->id);
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
       break;
     }
     case SOCK_IMAGE: {
       bNodeSocketValueImage *default_value = (bNodeSocketValueImage *)sock->default_value;
-      id_us_min(&default_value->value->id);
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
       break;
     }
     case SOCK_COLLECTION: {
       bNodeSocketValueCollection *default_value = (bNodeSocketValueCollection *)
                                                       sock->default_value;
-      id_us_min(&default_value->value->id);
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
       break;
     }
     case SOCK_FLOAT:
