@@ -193,7 +193,7 @@ harvest(haru/lib haru/lib "*.a")
 
 if(UNIX AND NOT APPLE)
   harvest(libglu/lib mesa/lib "*.so*")
-  harvest(mesa/lib mesa/lib "*.so*")
+  harvest(mesa/lib64 mesa/lib "*.so*")
 endif()
 
 endif()
