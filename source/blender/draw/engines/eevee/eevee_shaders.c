@@ -753,9 +753,6 @@ struct GPUShader *EEVEE_shaders_effect_screen_raytrace_sh_get(EEVEE_SSRShaderOpt
     if (options & SSR_FULL_TRACE) {
       BLI_dynstr_append(ds_defines, "#define FULLRES\n");
     }
-    if (options & SSR_AO) {
-      BLI_dynstr_append(ds_defines, "#define SSR_AO\n");
-    }
     char *ssr_define_str = BLI_dynstr_get_cstring(ds_defines);
     BLI_dynstr_free(ds_defines);
 
