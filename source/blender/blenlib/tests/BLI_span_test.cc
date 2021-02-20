@@ -62,6 +62,15 @@ TEST(span, DropFront)
   EXPECT_EQ(slice[2], 7);
 }
 
+TEST(span, DropFrontLargeN)
+{
+  Vector<int> a = {1, 2, 3, 4, 5};
+  Span<int> slice1 = Span<int>(a).drop_front(100);
+  MutableSpan<int> slice2 = MutableSpan<int>(a).drop_front(100);
+  EXPECT_TRUE(slice1.is_empty());
+  EXPECT_TRUE(slice2.is_empty());
+}
+
 TEST(span, DropFrontAll)
 {
   Vector<int> a = {4, 5, 6, 7};
@@ -78,6 +87,15 @@ TEST(span, TakeFront)
   EXPECT_EQ(slice[1], 5);
 }
 
+TEST(span, TakeFrontLargeN)
+{
+  Vector<int> a = {4, 5, 6, 7};
+  Span<int> slice1 = Span<int>(a).take_front(100);
+  MutableSpan<int> slice2 = MutableSpan<int>(a).take_front(100);
+  EXPECT_EQ(slice1.size(), 4);
+  EXPECT_EQ(slice2.size(), 4);
+}
+
 TEST(span, TakeBack)
 {
   Vector<int> a = {5, 6, 7, 8};
@@ -85,6 +103,15 @@ TEST(span, TakeBack)
   EXPECT_EQ(slice.size(), 2);
   EXPECT_EQ(slice[0], 7);
   EXPECT_EQ(slice[1], 8);
+}
+
+TEST(span, TakeBackLargeN)
+{
+  Vector<int> a = {3, 4, 5, 6};
+  Span<int> slice1 = Span<int>(a).take_back(100);
+  MutableSpan<int> slice2 = MutableSpan<int>(a).take_back(100);
+  EXPECT_EQ(slice1.size(), 4);
+  EXPECT_EQ(slice2.size(), 4);
 }
 
 TEST(span, Slice)
@@ -110,6 +137,19 @@ TEST(span, SliceRange)
   EXPECT_EQ(slice.size(), 2);
   EXPECT_EQ(slice[0], 3);
   EXPECT_EQ(slice[1], 4);
+}
+
+TEST(span, SliceLargeN)
+{
+  Vector<int> a = {1, 2, 3, 4, 5};
+  Span<int> slice1 = Span<int>(a).slice(3, 100);
+  MutableSpan<int> slice2 = MutableSpan<int>(a).slice(3, 100);
+  EXPECT_EQ(slice1.size(), 2);
+  EXPECT_EQ(slice2.size(), 2);
+  EXPECT_EQ(slice1[0], 4);
+  EXPECT_EQ(slice2[0], 4);
+  EXPECT_EQ(slice1[1], 5);
+  EXPECT_EQ(slice2[1], 5);
 }
 
 TEST(span, Contains)
@@ -337,7 +377,7 @@ TEST(span, MutableReverseIterator)
   EXPECT_EQ_ARRAY(src.data(), Span({14, 15, 16, 17}).data(), 4);
 }
 
-TEST(span, constexpr_)
+TEST(span, Constexpr)
 {
   static constexpr std::array<int, 3> src = {3, 2, 1};
   constexpr Span<int> span(src);
