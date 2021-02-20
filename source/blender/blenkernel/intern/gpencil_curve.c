@@ -781,7 +781,9 @@ void BKE_gpencil_stroke_editcurve_update(bGPdata *gpd, bGPDlayer *gpl, bGPDstrok
 /**
  * Sync the selection from stroke to editcurve
  */
-void BKE_gpencil_editcurve_stroke_sync_selection(bGPdata *gpd, bGPDstroke *gps, bGPDcurve *gpc)
+void BKE_gpencil_editcurve_stroke_sync_selection(bGPdata *UNUSED(gpd),
+                                                 bGPDstroke *gps,
+                                                 bGPDcurve *gpc)
 {
   if (gps->flag & GP_STROKE_SELECT) {
     gpc->flag |= GP_CURVE_SELECT;

@@ -549,62 +549,6 @@ static const EnumPropertyItem rna_enum_view_layer_aov_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-#ifndef RNA_RUNTIME
-static const EnumPropertyItem rna_enum_gpencil_interpolation_mode_items[] = {
-    /* interpolation */
-    {0, "", 0, N_("Interpolation"), "Standard transitions between keyframes"},
-    {GP_IPO_LINEAR,
-     "LINEAR",
-     ICON_IPO_LINEAR,
-     "Linear",
-     "Straight-line interpolation between A and B (i.e. no ease in/out)"},
-    {GP_IPO_CURVEMAP,
-     "CUSTOM",
-     ICON_IPO_BEZIER,
-     "Custom",
-     "Custom interpolation defined using a curve map"},
-
-    /* easing */
-    {0,
-     "",
-     0,
-     N_("Easing (by strength)"),
-     "Predefined inertial transitions, useful for motion graphics (from least to most "
-     "''dramatic'')"},
-    {GP_IPO_SINE,
-     "SINE",
-     ICON_IPO_SINE,
-     "Sinusoidal",
-     "Sinusoidal easing (weakest, almost linear but with a slight curvature)"},
-    {GP_IPO_QUAD, "QUAD", ICON_IPO_QUAD, "Quadratic", "Quadratic easing"},
-    {GP_IPO_CUBIC, "CUBIC", ICON_IPO_CUBIC, "Cubic", "Cubic easing"},
-    {GP_IPO_QUART, "QUART", ICON_IPO_QUART, "Quartic", "Quartic easing"},
-    {GP_IPO_QUINT, "QUINT", ICON_IPO_QUINT, "Quintic", "Quintic easing"},
-    {GP_IPO_EXPO, "EXPO", ICON_IPO_EXPO, "Exponential", "Exponential easing (dramatic)"},
-    {GP_IPO_CIRC,
-     "CIRC",
-     ICON_IPO_CIRC,
-     "Circular",
-     "Circular easing (strongest and most dynamic)"},
-
-    {0, "", 0, N_("Dynamic Effects"), "Simple physics-inspired easing effects"},
-    {GP_IPO_BACK, "BACK", ICON_IPO_BACK, "Back", "Cubic easing with overshoot and settle"},
-    {GP_IPO_BOUNCE,
-     "BOUNCE",
-     ICON_IPO_BOUNCE,
-     "Bounce",
-     "Exponentially decaying parabolic bounce, like when objects collide"},
-    {GP_IPO_ELASTIC,
-     "ELASTIC",
-     ICON_IPO_ELASTIC,
-     "Elastic",
-     "Exponentially decaying sine wave, like an elastic band"},
-
-    {0, NULL, 0, NULL, NULL},
-};
-
-#endif
-
 const EnumPropertyItem rna_enum_transform_pivot_items_full[] = {
     {V3D_AROUND_CENTER_BOUNDS,
      "BOUNDING_BOX_CENTER",
