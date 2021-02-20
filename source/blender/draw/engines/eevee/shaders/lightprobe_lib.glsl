@@ -116,25 +116,26 @@ float probe_attenuation_cube(int pd_id, vec3 W)
   return fac;
 }
 
-float probe_attenuation_planar(PlanarData pd, vec3 W, vec3 N, float roughness)
+float probe_attenuation_planar(PlanarData pd, vec3 W)
 {
-  /* Normal Facing */
-  float fac = saturate(dot(pd.pl_normal, N) * pd.pl_facing_scale + pd.pl_facing_bias);
-
   /* Distance from plane */
-  fac *= saturate(abs(dot(pd.pl_plane_eq, vec4(W, 1.0))) * pd.pl_fade_scale + pd.pl_fade_bias);
-
+  float fac = saturate(abs(dot(pd.pl_plane_eq, vec4(W, 1.0))) * pd.pl_fade_scale +
+                       pd.pl_fade_bias);
   /* Fancy fast clipping calculation */
   vec2 dist_to_clip;
   dist_to_clip.x = dot(pd.pl_clip_pos_x, W);
   dist_to_clip.y = dot(pd.pl_clip_pos_y, W);
   /* compare and add all tests */
   fac *= step(2.0, dot(step(pd.pl_clip_edges, dist_to_clip.xxyy), vec2(-1.0, 1.0).xyxy));
-
-  /* Decrease influence for high roughness */
-  fac *= saturate(1.0 - roughness * 10.0);
-
   return fac;
+}
+
+float probe_attenuation_planar_normal_roughness(PlanarData pd, vec3 N, float roughness)
+{
+  /* Normal Facing */
+  float fac = saturate(dot(pd.pl_normal, N) * pd.pl_facing_scale + pd.pl_facing_bias);
+  /* Decrease influence for high roughness */
+  return fac * saturate(1.0 - roughness * 10.0);
 }
 
 float probe_attenuation_grid(GridData gd, vec3 W, out vec3 localpos)

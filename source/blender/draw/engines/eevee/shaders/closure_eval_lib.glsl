@@ -65,13 +65,6 @@
   { \
     CLOSURE_EVAL_DECLARE(t0, t1, t2, t3); \
 \
-    for (int i = 0; cl_common.specular_accum > 0.0 && i < prbNumPlanar && i < MAX_PLANAR; i++) { \
-      ClosurePlanarData planar = closure_planar_eval_init(i, cl_common); \
-      if (planar.attenuation > 1e-8) { \
-        CLOSURE_META_SUBROUTINE_DATA(planar_eval, planar, t0, t1, t2, t3); \
-      } \
-    } \
-\
     /* Starts at 1 because 0 is world cubemap. */ \
     for (int i = 1; cl_common.specular_accum > 0.0 && i < prbNumRenderCube && i < MAX_PROBE; \
          i++) { \
@@ -90,6 +83,11 @@
     } \
 \
     CLOSURE_META_SUBROUTINE(indirect_end, t0, t1, t2, t3); \
+\
+    ClosurePlanarData planar = closure_planar_eval_init(cl_common); \
+    if (planar.attenuation > 1e-8) { \
+      CLOSURE_META_SUBROUTINE_DATA(planar_eval, planar, t0, t1, t2, t3); \
+    } \
 \
     for (int i = 0; i < laNumLight && i < MAX_LIGHT; i++) { \
       ClosureLightData light = closure_light_eval_init(cl_common, i); \
@@ -281,14 +279,20 @@ struct ClosurePlanarData {
   float attenuation; /** Attenuation. */
 };
 
-ClosurePlanarData closure_planar_eval_init(int planar_id, inout ClosureEvalCommon cl_common)
+ClosurePlanarData closure_planar_eval_init(inout ClosureEvalCommon cl_common)
 {
   ClosurePlanarData planar;
-  planar.id = planar_id;
-  planar.data = planars_data[planar_id];
-  planar.attenuation = probe_attenuation_planar(planar.data, cl_common.P, cl_common.N, 0.0);
-  planar.attenuation = min(planar.attenuation, cl_common.specular_accum);
-  cl_common.specular_accum -= planar.attenuation;
+  planar.attenuation = 0.0;
+
+  /* Find planar with the maximum weight. TODO(fclem)  */
+  for (int i = 0; i < prbNumPlanar && i < MAX_PLANAR; i++) {
+    float attenuation = probe_attenuation_planar(planars_data[i], cl_common.P);
+    if (attenuation > planar.attenuation) {
+      planar.id = i;
+      planar.attenuation = attenuation;
+      planar.data = planars_data[i];
+    }
+  }
   return planar;
 }
 

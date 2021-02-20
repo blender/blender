@@ -182,7 +182,8 @@ void main()
   for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
     PlanarData pd = planars_data[i];
 
-    float fade = probe_attenuation_planar(pd, W, wN, 0.0);
+    float fade = probe_attenuation_planar(pd, W);
+    fade *= probe_attenuation_planar_normal_roughness(pd, wN, 0.0);
 
     if (fade > 0.5) {
       /* Find view vector / reflection plane intersection. */
@@ -525,7 +526,8 @@ void raytrace_resolve(ClosureInputGlossy cl_in,
     for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
       pd = planars_data[i];
 
-      float fade = probe_attenuation_planar(pd, P, N, 0.0);
+      float fade = probe_attenuation_planar(pd, P);
+      fade *= probe_attenuation_planar_normal_roughness(pd, N, 0.0);
 
       if (fade > 0.5) {
         planar_index = float(i);
