@@ -80,12 +80,13 @@ float search_horizon(vec3 vI,
                      vec2 uv_start,
                      vec2 uv_dir,
                      sampler2D depth_tx,
+                     const float inverted,
                      float radius,
                      const float sample_count)
 {
   float sample_count_inv = 1.0 / sample_count;
   /* Init at cos(M_PI). */
-  float h = -1.0;
+  float h = (inverted != 0.0) ? 1.0 : -1.0;
 
   /* TODO(fclem) samples steps should be using the same approach as raytrace. (DDA line algo.) */
   for (float i = 0.0; i < sample_count; i++) {
@@ -97,7 +98,8 @@ float search_horizon(vec3 vI,
     float depth = textureLod(depth_tx, uv * mipRatio[mip].xy, floor(lod)).r;
 
     /* Bias depth a bit to avoid self shadowing issues. */
-    depth += 2.0 * 2.4e-7;
+    const float bias = 2.0 * 2.4e-7;
+    depth += (inverted != 0.0) ? -bias : bias;
 
     vec3 s = get_view_space_from_depth(uv, depth);
     vec3 omega_s = s - vP;
@@ -109,26 +111,29 @@ float search_horizon(vec3 vI,
     /* TODO(fclem) parameter. */
     float dist_fac = sqr(saturate(dist_ratio * 2.0 - 1.0));
 
-    /* TODO This need to take the stride distance into account. Now it works because stride is
-     * constant. */
     /* Thickness heuristic (Eq. 9). */
-    if (s_h < h) {
-      /* TODO(fclem) parameter. */
-      const float thickness_fac = 0.2;
-      s_h = mix(h, s_h, thickness_fac);
+    if (inverted != 0.0) {
+      h = min(h, s_h);
     }
     else {
-      s_h = max(h, s_h);
+      /* TODO This need to take the stride distance into account. Now it works because stride is
+       * constant. */
+      if (s_h < h) {
+        /* TODO(fclem) parameter. */
+        const float thickness_fac = 0.2;
+        s_h = mix(h, s_h, thickness_fac);
+      }
+      else {
+        s_h = max(h, s_h);
+      }
+      h = mix(s_h, h, dist_fac);
     }
-    h = mix(s_h, h, dist_fac);
   }
   return fast_acos(h);
 }
 
-OcclusionData occlusion_search(vec3 vP,
-                               sampler2D depth_tx,
-                               float radius,
-                               const float dir_sample_count)
+OcclusionData occlusion_search(
+    vec3 vP, sampler2D depth_tx, float radius, const float inverted, const float dir_sample_count)
 {
   if ((int(aoSettings) & USE_AO) == 0) {
     return NO_OCCLUSION_DATA;
@@ -142,7 +147,8 @@ OcclusionData occlusion_search(vec3 vP,
   vec3 avg_dir = vec3(0.0);
   float avg_apperture = 0.0;
 
-  OcclusionData data = NO_OCCLUSION_DATA;
+  OcclusionData data = (inverted != 0.0) ? OcclusionData(vec4(0, 0, 0, 0), 1.0) :
+                                           NO_OCCLUSION_DATA;
 
   for (int i = 0; i < 2; i++) {
     /* View > NDC > Uv space. */
@@ -155,11 +161,11 @@ OcclusionData occlusion_search(vec3 vP,
     /* No need to trace more. */
     uv_dir -= uv_ofs;
 
-    if (max_px_dir > 0.0) {
+    if (max_px_dir > 1.0) {
       data.horizons[0 + i * 2] = search_horizon(
-          vI, vP, noise.y, uv + uv_ofs, uv_dir, depth_tx, radius, dir_sample_count);
+          vI, vP, noise.y, uv + uv_ofs, uv_dir, depth_tx, inverted, radius, dir_sample_count);
       data.horizons[1 + i * 2] = -search_horizon(
-          vI, vP, noise.y, uv - uv_ofs, -uv_dir, depth_tx, radius, dir_sample_count);
+          vI, vP, noise.y, uv - uv_ofs, -uv_dir, depth_tx, inverted, radius, dir_sample_count);
     }
     /* Rotate 90 degrees. */
     dir = vec2(-dir.y, dir.x);
@@ -168,8 +174,29 @@ OcclusionData occlusion_search(vec3 vP,
   return data;
 }
 
-void occlusion_eval(
-    OcclusionData data, vec3 V, vec3 N, vec3 Ng, out float visibility, out vec3 bent_normal)
+vec2 clamp_horizons_to_hemisphere(vec2 horizons, float angle_N, const float inverted)
+{
+  /* Add a little bias to fight self shadowing. */
+  const float max_angle = M_PI_2 - 0.05;
+
+  if (inverted != 0.0) {
+    horizons.x = max(horizons.x, angle_N + max_angle);
+    horizons.y = min(horizons.y, angle_N - max_angle);
+  }
+  else {
+    horizons.x = min(horizons.x, angle_N + max_angle);
+    horizons.y = max(horizons.y, angle_N - max_angle);
+  }
+  return horizons;
+}
+
+void occlusion_eval(OcclusionData data,
+                    vec3 V,
+                    vec3 N,
+                    vec3 Ng,
+                    const float inverted,
+                    out float visibility,
+                    out vec3 bent_normal)
 {
   if ((int(aoSettings) & USE_AO) == 0) {
     visibility = data.custom_occlusion;
@@ -177,7 +204,9 @@ void occlusion_eval(
     return;
   }
 
-  if (min_v4(abs(data.horizons)) == M_PI) {
+  bool early_out = (inverted != 0.0) ? (max_v4(abs(data.horizons)) == 0.0) :
+                                       (min_v4(abs(data.horizons)) == M_PI);
+  if (early_out) {
     visibility = dot(N, Ng) * 0.5 + 0.5;
     visibility = min(visibility, data.custom_occlusion);
 
@@ -215,10 +244,8 @@ void occlusion_eval(
     /* Gamma, angle between normalized projected normal and view vector. */
     float angle_Ng = sign(Ng_sin) * fast_acos(Ng_cos);
     float angle_N = sign(N_sin) * fast_acos(N_cos);
-    /* Add a little bias to fight self shadowing. */
-    const float max_angle = M_PI_2 - 0.05;
     /* Clamp horizons to hemisphere around shading normal. */
-    h = clamp(h, angle_N - max_angle, angle_N + max_angle);
+    h = clamp_horizons_to_hemisphere(h, angle_N, inverted);
 
     float bent_angle = (h.x + h.y) * 0.5;
     /* NOTE: here we multiply z by 0.5 as it shows less difference with the geometric normal.
@@ -228,10 +255,10 @@ void occlusion_eval(
 
     /* Clamp to geometric normal only for integral to keep smooth bent normal. */
     /* This is done to match Cycles ground truth but adds some computation. */
-    h = clamp(h, angle_Ng - max_angle, angle_Ng + max_angle);
+    h = clamp_horizons_to_hemisphere(h, angle_Ng, inverted);
 
     /* Inner integral (Eq. 7). */
-    float a = dot(-cos(2.0 * h - angle_N) + cos(angle_N) + 2.0 * h * sin(angle_N), vec2(0.25));
+    float a = dot(-cos(2.0 * h - angle_N) + N_cos + 2.0 * h * N_sin, vec2(0.25));
     /* Correct normal not on plane (Eq. 8). */
     visibility += proj_N_len * a;
 
@@ -274,7 +301,7 @@ float diffuse_occlusion(OcclusionData data, vec3 V, vec3 N, vec3 Ng)
 {
   vec3 unused;
   float visibility;
-  occlusion_eval(data, V, N, Ng, visibility, unused);
+  occlusion_eval(data, V, N, Ng, 0.0, visibility, unused);
   /* Scale by user factor */
   visibility = pow(saturate(visibility), aoFactor);
   return visibility;
@@ -284,7 +311,7 @@ float diffuse_occlusion(
     OcclusionData data, vec3 V, vec3 N, vec3 Ng, vec3 albedo, out vec3 bent_normal)
 {
   float visibility;
-  occlusion_eval(data, V, N, Ng, visibility, bent_normal);
+  occlusion_eval(data, V, N, Ng, 0.0, visibility, bent_normal);
 
   visibility = gtao_multibounce(visibility, albedo);
   /* Scale by user factor */
@@ -328,7 +355,7 @@ float specular_occlusion(
 {
   vec3 visibility_dir;
   float visibility;
-  occlusion_eval(data, V, N, N, visibility, visibility_dir);
+  occlusion_eval(data, V, N, N, 0.0, visibility, visibility_dir);
 
   specular_dir = normalize(mix(specular_dir, visibility_dir, roughness * (1.0 - visibility)));
 
@@ -363,7 +390,7 @@ OcclusionData occlusion_load(vec3 vP, float custom_occlusion)
   }
 #else
   /* For blended surfaces and  */
-  data = occlusion_search(vP, maxzBuffer, aoDistance, 8.0);
+  data = occlusion_search(vP, maxzBuffer, aoDistance, 0.0, 8.0);
 #endif
 
   data.custom_occlusion = custom_occlusion;

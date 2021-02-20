@@ -118,7 +118,7 @@ void main()
   OcclusionData data = NO_OCCLUSION_DATA;
   /* Do not trace for background */
   if (depth != 1.0) {
-    data = occlusion_search(vP, maxzBuffer, aoDistance, 8.0);
+    data = occlusion_search(vP, maxzBuffer, aoDistance, 0.0, 8.0);
   }
 
   FragColor = pack_occlusion_data(data);
