@@ -107,6 +107,7 @@ set(SRC
   intern/cryptomatte.cc
   intern/curve.c
   intern/curve_bevel.c
+  intern/curve_convert.c
   intern/curve_decimate.c
   intern/curve_deform.c
   intern/curveprofile.c
