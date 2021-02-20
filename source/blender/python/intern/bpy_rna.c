@@ -7668,7 +7668,7 @@ PyObject *BPY_rna_doc(void)
  * This could be a static variable as we only have one `bpy.types` module,
  * it just keeps the data isolated to store in the module it's self.
  *
- * This data doesn't chance one initialized.
+ * This data doesn't change one initialized.
  */
 struct BPy_TypesModule_State {
   /** `RNA_BlenderRNA`. */

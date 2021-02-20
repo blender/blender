@@ -3414,7 +3414,7 @@ static void outliner_draw_highlights_recursive(uint pos,
       }
       else {
         if (is_searching && (tselem->flag & TSE_SEARCHMATCH)) {
-          /* Ssearch match highlights. We don't expand items when searching in the data-blocks,
+          /* Search match highlights. We don't expand items when searching in the data-blocks,
            * but we still want to highlight any filter matches. */
           immUniformColor4fv(col_searchmatch);
           immRecti(pos, start_x, start_y, end_x, start_y + UI_UNIT_Y);
