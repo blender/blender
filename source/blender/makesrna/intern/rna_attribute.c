@@ -45,6 +45,7 @@ const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {CD_MLOOPCOL, "BYTE_COLOR", 0, "Byte Color", "RGBA color with 8-bit precision"},
     {CD_PROP_STRING, "STRING", 0, "String", "Text string"},
     {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
+    {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -96,6 +97,8 @@ static StructRNA *srna_by_custom_data_layer_type(const CustomDataType type)
       return &RNA_StringAttribute;
     case CD_PROP_BOOL:
       return &RNA_BoolAttribute;
+    case CD_PROP_FLOAT2:
+      return &RNA_Float2Attribute;
     default:
       return NULL;
   }
@@ -199,6 +202,9 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
       break;
     case CD_PROP_BOOL:
       struct_size = sizeof(MBoolProperty);
+      break;
+    case CD_PROP_FLOAT2:
+      struct_size = sizeof(float[2]);
       break;
     default:
       struct_size = 0;
@@ -593,6 +599,41 @@ static void rna_def_attribute_bool(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "b", 0x01);
 }
 
+static void rna_def_attribute_float2(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  /* Float2 Attribute */
+  srna = RNA_def_struct(brna, "Float2Attribute", "Attribute");
+  RNA_def_struct_sdna(srna, "CustomDataLayer");
+  RNA_def_struct_ui_text(
+      srna, "Float2 Attribute", "2D vector geometry attribute, with floating-point precision");
+
+  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Float2AttributeValue");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Attribute_data_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Attribute_data_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+
+  /* Float2 Attribute Value */
+  srna = RNA_def_struct(brna, "Float2AttributeValue", NULL);
+  RNA_def_struct_sdna(srna, "vec2f");
+  RNA_def_struct_ui_text(srna, "Float2 Attribute Value", "2D Vector value in geometry attribute");
+
+  prop = RNA_def_property(srna, "vector", PROP_FLOAT, PROP_DIRECTION);
+  RNA_def_property_ui_text(prop, "Vector", "2D vector");
+  RNA_def_property_float_sdna(prop, NULL, "x");
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
+}
+
 static void rna_def_attribute(BlenderRNA *brna)
 {
   PropertyRNA *prop;
@@ -632,6 +673,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   rna_def_attribute_int(brna);
   rna_def_attribute_string(brna);
   rna_def_attribute_bool(brna);
+  rna_def_attribute_float2(brna);
 }
 
 /* Mesh/PointCloud/Hair.attributes */
