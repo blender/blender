@@ -200,7 +200,7 @@ ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)
 {
   ClosureEvalCommon cl_eval;
   cl_eval.rand = texelfetch_noise_tex(gl_FragCoord.xy);
-  cl_eval.V = cameraVec;
+  cl_eval.V = cameraVec(worldPosition);
   cl_eval.P = worldPosition;
   cl_eval.N = safe_normalize(gl_FrontFacing ? worldNormal : -worldNormal);
   cl_eval.vN = safe_normalize(gl_FrontFacing ? viewNormal : -viewNormal);

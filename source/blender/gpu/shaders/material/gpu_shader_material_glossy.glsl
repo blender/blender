@@ -16,7 +16,7 @@ void node_bsdf_glossy(
 
   result = CLOSURE_DEFAULT;
 
-  vec2 split_sum = brdf_lut(dot(in_Glossy_0.N, cameraVec), in_Glossy_0.roughness);
+  vec2 split_sum = brdf_lut(dot(in_Glossy_0.N, cameraVec(worldPosition)), in_Glossy_0.roughness);
   vec3 brdf = (use_multiscatter != 0.0) ? F_brdf_multi_scatter(vec3(1.0), vec3(1.0), split_sum) :
                                           F_brdf_single_scatter(vec3(1.0), vec3(1.0), split_sum);
   out_Glossy_0.radiance = closure_mask_ssr_radiance(out_Glossy_0.radiance, ssr_id);

@@ -142,9 +142,12 @@ void main()
   vec2 uvs = vec2(fullres_texel) / vec2(textureSize(depthBuffer, 0));
 
   /* Using view space */
-  vec3 viewPosition = get_view_space_from_depth(uvs, depth);
-  vec3 V = viewCameraVec;
-  vec3 N = normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, V);
+  vec3 vP = get_view_space_from_depth(uvs, depth);
+  vec3 P = transform_point(ViewMatrixInverse, vP);
+  vec3 vV = viewCameraVec(vP);
+  vec3 V = cameraVec(P);
+  vec3 vN = normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, vV);
+  vec3 N = transform_direction(ViewMatrixInverse, vN);
 
   /* Retrieve pixel data */
   vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
@@ -172,27 +175,24 @@ void main()
   /* Importance sampling bias */
   rand.x = mix(rand.x, 0.0, ssrBrdfBias);
 
-  vec3 W = transform_point(ViewMatrixInverse, viewPosition);
-  vec3 wN = transform_direction(ViewMatrixInverse, N);
-
-  vec3 T, B;
-  make_orthonormal_basis(N, T, B); /* Generate tangent space */
+  vec3 vT, vB;
+  make_orthonormal_basis(vN, vT, vB); /* Generate tangent space */
 
   /* Planar Reflections */
   for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
     PlanarData pd = planars_data[i];
 
-    float fade = probe_attenuation_planar(pd, W);
-    fade *= probe_attenuation_planar_normal_roughness(pd, wN, 0.0);
+    float fade = probe_attenuation_planar(pd, P);
+    fade *= probe_attenuation_planar_normal_roughness(pd, N, 0.0);
 
     if (fade > 0.5) {
       /* Find view vector / reflection plane intersection. */
       /* TODO optimize, use view space for all. */
-      vec3 tracePosition = line_plane_intersect(W, cameraVec, pd.pl_plane_eq);
+      vec3 tracePosition = line_plane_intersect(P, V, pd.pl_plane_eq);
       tracePosition = transform_point(ViewMatrix, tracePosition);
       vec3 planeNormal = transform_direction(ViewMatrix, pd.pl_normal);
 
-      do_planar_ssr(i, V, N, T, B, planeNormal, tracePosition, a2, rand);
+      do_planar_ssr(i, vV, vN, vT, vB, planeNormal, tracePosition, a2, rand);
       return;
     }
   }
@@ -200,9 +200,9 @@ void main()
   /* Constant bias (due to depth buffer precision). Helps with self intersection. */
   /* Magic numbers for 24bits of precision.
    * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
-  viewPosition.z = get_view_z_from_depth(depth - mix(2.4e-7, 4.8e-7, depth));
+  vP.z = get_view_z_from_depth(depth - mix(2.4e-7, 4.8e-7, depth));
 
-  do_ssr(V, N, T, B, viewPosition, a2, rand);
+  do_ssr(vV, vN, vT, vB, vP, a2, rand);
 }
 
 #else /* STEP_RESOLVE */
@@ -580,7 +580,7 @@ void main()
   worldPosition = transform_point(ViewMatrixInverse, viewPosition);
 
   vec2 normal_encoded = texelFetch(normalBuffer, texel, 0).rg;
-  viewNormal = normal_decode(normal_encoded, viewCameraVec);
+  viewNormal = normal_decode(normal_encoded, viewCameraVec(viewPosition));
   worldNormal = transform_direction(ViewMatrixInverse, viewNormal);
 
   CLOSURE_VARS_DECLARE_1(Glossy);

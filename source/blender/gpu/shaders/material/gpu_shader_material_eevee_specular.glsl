@@ -32,6 +32,8 @@ void node_eevee_specular(vec4 diffuse,
 
   result = CLOSURE_DEFAULT;
 
+  vec3 V = cameraVec(worldPosition);
+
   {
     /* Diffuse. */
     out_Diffuse_0.radiance = render_pass_diffuse_mask(vec3(1), out_Diffuse_0.radiance);
@@ -40,7 +42,7 @@ void node_eevee_specular(vec4 diffuse,
   }
   {
     /* Glossy. */
-    float NV = dot(in_Glossy_1.N, cameraVec);
+    float NV = dot(in_Glossy_1.N, V);
     vec2 split_sum = brdf_lut(NV, in_Glossy_1.roughness);
     vec3 brdf = F_brdf_single_scatter(specular.rgb, vec3(1.0), split_sum);
 
@@ -52,7 +54,7 @@ void node_eevee_specular(vec4 diffuse,
   }
   {
     /* Clearcoat. */
-    float NV = dot(in_Glossy_2.N, cameraVec);
+    float NV = dot(in_Glossy_2.N, V);
     vec2 split_sum = brdf_lut(NV, in_Glossy_2.roughness);
     vec3 brdf = F_brdf_single_scatter(vec3(0.04), vec3(1.0), split_sum);
 

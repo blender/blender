@@ -30,7 +30,7 @@ void main()
   vec3 s_scattering = texelFetch(volumeScattering, volume_cell, 0).rgb;
   vec3 volume_ndc = volume_to_ndc((vec3(volume_cell) + volJitter.xyz) * volInvTexSize.xyz);
   vec3 worldPosition = get_world_space_from_depth(volume_ndc.xy, volume_ndc.z);
-  vec3 wdir = cameraVec;
+  vec3 wdir = cameraVec(worldPosition);
 
   vec2 phase = texelFetch(volumePhase, volume_cell, 0).rg;
   float s_anisotropy = phase.x / max(1.0, phase.y);

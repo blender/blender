@@ -91,10 +91,8 @@ void main()
   }
   else {
     vec3 P = transform_point(ViewMatrixInverse, vP);
-    vec3 worldPosition = P; /* For cameraVec macro. TODO(fclem) make cameraVec(P). */
-    vec3 viewPosition = vP; /* For viewCameraVec macro. TODO(fclem) make viewCameraVec(vP). */
-    vec3 V = cameraVec;
-    vec3 vV = viewCameraVec;
+    vec3 V = cameraVec(P);
+    vec3 vV = viewCameraVec(vP);
     vec3 vN = normal_decode(texture(normalBuffer, uvcoordsvar.xy).rg, vV);
     vec3 N = transform_direction(ViewMatrixInverse, vN);
     vec3 Ng = transform_direction(ViewMatrixInverse, vNg);

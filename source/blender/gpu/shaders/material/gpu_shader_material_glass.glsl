@@ -23,7 +23,7 @@ void node_bsdf_glass(vec4 color,
 
   result = CLOSURE_DEFAULT;
 
-  float NV = dot(in_Refraction_1.N, cameraVec);
+  float NV = dot(in_Refraction_1.N, cameraVec(worldPosition));
 
   float fresnel = (do_multiscatter != 0.0) ?
                       btdf_lut(NV, in_Refraction_1.roughness, in_Refraction_1.ior).y :

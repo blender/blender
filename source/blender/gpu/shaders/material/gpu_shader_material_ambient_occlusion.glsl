@@ -10,7 +10,7 @@ void node_ambient_occlusion(vec4 color,
   vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
   OcclusionData data = occlusion_search(viewPosition, maxzBuffer, dist, inverted, 8.0);
 
-  vec3 V = cameraVec;
+  vec3 V = cameraVec(worldPosition);
   vec3 N = normalize(normal);
   vec3 Ng = safe_normalize(cross(dFdx(worldPosition), dFdy(worldPosition)));
 
