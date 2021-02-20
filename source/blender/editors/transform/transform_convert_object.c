@@ -860,7 +860,6 @@ static bool motionpath_need_update_object(Scene *scene, Object *ob)
 
 /* -------------------------------------------------------------------- */
 /** \name Recalc Data object
- *
  * \{ */
 
 /* helper for recalcData() - for object transforms, typically in the 3D view */

@@ -100,7 +100,6 @@ void createTransTexspace(TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Recalc Data object
- *
  * \{ */
 
 /* helper for recalcData() - for object transforms, typically in the 3D view */

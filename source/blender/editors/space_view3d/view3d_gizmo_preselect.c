@@ -36,7 +36,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Pre-Select Element Gizmo
- *
  * \{ */
 
 struct GizmoGroupPreSelElem {
@@ -72,7 +71,6 @@ void VIEW3D_GGT_mesh_preselect_elem(wmGizmoGroupType *gzgt)
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Pre-Select Edge Ring Gizmo
- *
  * \{ */
 
 struct GizmoGroupPreSelEdgeRing {

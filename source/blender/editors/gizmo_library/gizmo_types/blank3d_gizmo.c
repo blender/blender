@@ -55,7 +55,6 @@ static int gizmo_blank_test_select(bContext *UNUSED(C),
 
 /* -------------------------------------------------------------------- */
 /** \name Blank Gizmo API
- *
  * \{ */
 
 static void GIZMO_GT_blank_3d(wmGizmoType *gzt)

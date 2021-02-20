@@ -42,7 +42,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Particle Edit Transform Creation
- *
  * \{ */
 
 void createTransParticleVerts(TransInfo *t)
@@ -193,7 +192,6 @@ void createTransParticleVerts(TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Node Transform Creation
- *
  * \{ */
 
 static void flushTransParticles(TransInfo *t)
@@ -251,7 +249,6 @@ static void flushTransParticles(TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Recalc Transform Particles Data
- *
  * \{ */
 
 void recalcData_particles(TransInfo *t)

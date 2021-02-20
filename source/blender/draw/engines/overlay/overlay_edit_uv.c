@@ -575,4 +575,4 @@ void OVERLAY_edit_uv_draw(OVERLAY_Data *vedata)
   OVERLAY_edit_uv_draw_finish(vedata);
 }
 
-/* \} */
+/** \} */

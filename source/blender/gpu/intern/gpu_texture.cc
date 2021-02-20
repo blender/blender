@@ -611,7 +611,6 @@ void GPU_samplers_update(void)
 
 /* -------------------------------------------------------------------- */
 /** \name GPU texture utilities
- *
  * \{ */
 
 size_t GPU_texture_component_len(eGPUTextureFormat tex_format)

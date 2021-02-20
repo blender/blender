@@ -57,7 +57,6 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu);
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Drawing Defines
- *
  * \{ */
 
 /* determine the alpha value that should be used when
@@ -73,7 +72,6 @@ static float fcurve_display_alpha(FCurve *fcu)
 
 /* -------------------------------------------------------------------- */
 /** \name FCurve Modifier Drawing
- *
  * \{ */
 
 /* Envelope -------------- */
@@ -153,7 +151,6 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm,
 
 /* -------------------------------------------------------------------- */
 /** \name FCurve Modifier Drawing
- *
  * \{ */
 
 /* Points ---------------- */
@@ -1343,7 +1340,6 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
 
 /* -------------------------------------------------------------------- */
 /** \name Channel List
- *
  * \{ */
 
 /* left hand part */

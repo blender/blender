@@ -1684,7 +1684,7 @@ GPUShader *OVERLAY_shader_edit_uv_tiled_image_borders_get(void)
   return sh_data->edit_uv_tiled_image_borders;
 }
 
-/* \} */
+/** \} */
 
 static OVERLAY_InstanceFormats g_formats = {NULL};
 

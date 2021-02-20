@@ -67,7 +67,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name View Data Access Utilities
- *
  * \{ */
 
 void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float r_color[3])
@@ -189,7 +188,6 @@ bool ED_view3d_viewplane_get(Depsgraph *depsgraph,
 
 /* -------------------------------------------------------------------- */
 /** \name View State/Context Utilities
- *
  * \{ */
 
 /**
@@ -272,7 +270,6 @@ bool ED_view3d_context_activate(bContext *C)
 
 /* -------------------------------------------------------------------- */
 /** \name View Clipping Utilities
- *
  * \{ */
 
 void ED_view3d_clipping_calc_from_boundbox(float clip[4][4],
@@ -397,7 +394,6 @@ bool ED_view3d_clipping_clamp_minmax(const RegionView3D *rv3d, float min[3], flo
 
 /* -------------------------------------------------------------------- */
 /** \name View Bound-Box Utilities
- *
  * \{ */
 
 static bool view3d_boundbox_clip_m4(const BoundBox *bb, const float persmatob[4][4])

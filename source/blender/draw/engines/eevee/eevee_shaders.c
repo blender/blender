@@ -1012,7 +1012,7 @@ GPUShader *EEVEE_shaders_bloom_resolve_get(bool high_quality)
   return e_data.bloom_resolve_sh[index];
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Depth of field
@@ -1186,7 +1186,7 @@ GPUShader *EEVEE_shaders_depth_of_field_resolve_get(bool b_use_bokeh_tx, bool b_
   return e_data.dof_resolve_sh[use_bokeh_tx][use_hq_gather];
 }
 
-/* \} */
+/** \} */
 
 Material *EEVEE_material_default_diffuse_get(void)
 {

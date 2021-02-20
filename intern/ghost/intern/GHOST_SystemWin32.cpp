@@ -1975,6 +1975,7 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 /* -------------------------------------------------------------------- */
 /** \name Message Box
  * \{ */
+
 GHOST_TSuccess GHOST_SystemWin32::showMessageBox(const char *title,
                                                  const char *message,
                                                  const char *help_label,
@@ -2022,7 +2023,8 @@ GHOST_TSuccess GHOST_SystemWin32::showMessageBox(const char *title,
 
   return GHOST_kSuccess;
 }
-/* \} */
+
+/** \} */
 
 static DWORD GetParentProcessID(void)
 {

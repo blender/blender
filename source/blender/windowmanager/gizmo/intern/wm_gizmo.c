@@ -378,7 +378,6 @@ void WM_gizmo_set_color_highlight(wmGizmo *gz, const float color_hi[4])
 
 /* -------------------------------------------------------------------- */
 /** \name Gizmo Callback Assignment
- *
  * \{ */
 
 void WM_gizmo_set_fn_custom_modal(struct wmGizmo *gz, wmGizmoFnModal fn)
@@ -758,7 +757,6 @@ void WM_gizmo_properties_free(PointerRNA *ptr)
 
 /* -------------------------------------------------------------------- */
 /** \name General Utilities
- *
  * \{ */
 
 bool WM_gizmo_context_check_drawstep(const struct bContext *C, eWM_GizmoFlagMapDrawStep step)

@@ -895,7 +895,6 @@ static void panel_register_stepped(ARegionType *region_type,
 
 /* -------------------------------------------------------------------- */
 /** \name Panel Creation
- *
  * \{ */
 
 /**

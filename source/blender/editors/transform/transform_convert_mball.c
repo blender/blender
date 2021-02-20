@@ -34,7 +34,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Meta Elements Transform Creation
- *
  * \{ */
 
 void createTransMBallVerts(TransInfo *t)

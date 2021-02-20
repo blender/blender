@@ -523,7 +523,6 @@ void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 /** \name Dissolve at Cursor
- *
  * \{ */
 
 static int edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,

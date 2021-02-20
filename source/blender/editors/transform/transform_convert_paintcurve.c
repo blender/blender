@@ -40,7 +40,6 @@ typedef struct TransDataPaintCurve {
 
 /* -------------------------------------------------------------------- */
 /** \name Paint Curve Transform Creation
- *
  * \{ */
 
 #define PC_IS_ANY_SEL(pc) (((pc)->bez.f1 | (pc)->bez.f2 | (pc)->bez.f3) & SELECT)
@@ -203,7 +202,6 @@ void createTransPaintCurveVerts(bContext *C, TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Paint Curve Transform Flush
- *
  * \{ */
 
 void flushTransPaintCurve(TransInfo *t)

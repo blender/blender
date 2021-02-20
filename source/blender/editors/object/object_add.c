@@ -265,7 +265,6 @@ static int object_add_drop_xy_generic_invoke(bContext *C, wmOperator *op, const 
 
 /* -------------------------------------------------------------------- */
 /** \name Public Add Object API
- *
  * \{ */
 
 void ED_object_location_from_view(bContext *C, float loc[3])
@@ -3411,7 +3410,6 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 /** \name Join Object Operator
- *
  * \{ */
 
 static bool object_join_poll(bContext *C)

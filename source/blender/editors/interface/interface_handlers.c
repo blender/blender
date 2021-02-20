@@ -665,7 +665,6 @@ static void ui_afterfunc_update_preferences_dirty(uiAfterFunc *after)
 
 /* -------------------------------------------------------------------- */
 /** \name Button Snap Values
- *
  * \{ */
 
 enum eSnapType {

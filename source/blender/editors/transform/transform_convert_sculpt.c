@@ -36,7 +36,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Transform Creation
- *
  * \{ */
 
 void createTransSculpt(bContext *C, TransInfo *t)
@@ -108,7 +107,6 @@ void createTransSculpt(bContext *C, TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Recalc Data object
- *
  * \{ */
 
 void recalcData_sculpt(TransInfo *t)

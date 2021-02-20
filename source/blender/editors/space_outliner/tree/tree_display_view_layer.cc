@@ -60,7 +60,6 @@ class ObjectsChildrenBuilder {
 
 /* -------------------------------------------------------------------- */
 /** \name Tree-Display for a View Layer.
- *
  * \{ */
 
 TreeDisplayViewLayer::TreeDisplayViewLayer(SpaceOutliner &space_outliner)

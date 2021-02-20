@@ -1925,7 +1925,6 @@ bool wm_window_get_swap_interval(wmWindow *win, int *intervalOut)
 
 /* -------------------------------------------------------------------- */
 /** \name Find Window Utility
- *
  * \{ */
 static void wm_window_desktop_pos_get(const wmWindow *win,
                                       const int screen_pos[2],

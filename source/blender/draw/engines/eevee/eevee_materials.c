@@ -1120,4 +1120,4 @@ void EEVEE_material_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   }
 }
 
-/* \} */
+/** \} */

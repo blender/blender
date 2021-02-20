@@ -446,7 +446,6 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
 
 /* -------------------------------------------------------------------- */
 /** \name Arrow Gizmo API
- *
  * \{ */
 
 /**

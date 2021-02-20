@@ -283,6 +283,7 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
 /* -------------------------------------------------------------------- */
 /** \name Engine Callbacks
  * \{ */
+
 static void IMAGE_engine_init(void *ved)
 {
   IMAGE_shader_library_ensure();
@@ -394,7 +395,8 @@ static void IMAGE_engine_free(void)
   IMAGE_shader_free();
 }
 
-/* \} */
+/** \} */
+
 static const DrawEngineDataSize IMAGE_data_size = DRW_VIEWPORT_DATA_SIZE(IMAGE_Data);
 
 DrawEngineType draw_engine_image_type = {
