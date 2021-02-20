@@ -193,6 +193,71 @@ static const EnumPropertyItem property_subtype_array_items[] = {
   "'XYZ', 'XYZ_LENGTH', 'COLOR_GAMMA', 'COORDINATES', 'LAYER', 'LAYER_MEMBER', 'NONE'].\n" \
   "   :type subtype: string\n"
 
+/* -------------------------------------------------------------------- */
+/** \name Deferred Property Type
+ *
+ * Operators and classes use this so it can store the arguments given but defer
+ * running it until the operator runs where these values are used to setup
+ * the default arguments for that operator instance.
+ * \{ */
+
+static void bpy_prop_deferred_dealloc(BPy_PropDeferred *self)
+{
+  if (self->kw) {
+    PyObject_GC_UnTrack(self);
+    Py_CLEAR(self->kw);
+  }
+  PyObject_GC_Del(self);
+}
+
+static int bpy_prop_deferred_traverse(BPy_PropDeferred *self, visitproc visit, void *arg)
+{
+  Py_VISIT(self->kw);
+  return 0;
+}
+
+static int bpy_prop_deferred_clear(BPy_PropDeferred *self)
+{
+  Py_CLEAR(self->kw);
+  return 0;
+}
+
+static PyObject *bpy_prop_deferred_repr(BPy_PropDeferred *self)
+{
+  return PyUnicode_FromFormat("<%.200s, %R, %R>", Py_TYPE(self)->tp_name, self->fn, self->kw);
+}
+
+PyTypeObject bpy_prop_deferred_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+
+        .tp_name = "bpy_prop_deferred",
+    .tp_basicsize = sizeof(BPy_PropDeferred),
+    .tp_dealloc = (destructor)bpy_prop_deferred_dealloc,
+    .tp_repr = (reprfunc)bpy_prop_deferred_repr,
+
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
+
+    .tp_traverse = (traverseproc)bpy_prop_deferred_traverse,
+    .tp_clear = (inquiry)bpy_prop_deferred_clear,
+};
+
+static PyObject *bpy_prop_deferred_data_CreatePyObject(PyObject *fn, PyObject *kw)
+{
+  BPy_PropDeferred *self = PyObject_GC_New(BPy_PropDeferred, &bpy_prop_deferred_Type);
+  self->fn = fn;
+  if (kw == NULL) {
+    kw = PyDict_New();
+  }
+  else {
+    Py_INCREF(kw);
+  }
+  self->kw = kw;
+  PyObject_GC_Track(self);
+  return (PyObject *)self;
+}
+
+/** \} */
+
 /* PyObject's */
 static PyObject *pymeth_BoolProperty = NULL;
 static PyObject *pymeth_BoolVectorProperty = NULL;
@@ -246,27 +311,6 @@ static void bpy_prop_assign_flag(PropertyRNA *prop, const int flag)
 static void bpy_prop_assign_flag_override(PropertyRNA *prop, const int flag_override)
 {
   RNA_def_property_override_flag(prop, flag_override);
-}
-
-/* operators and classes use this so it can store the args given but defer
- * running it until the operator runs where these values are used to setup
- * the default args for that operator instance */
-static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
-{
-  PyObject *ret = PyTuple_New(2);
-  PyTuple_SET_ITEM(ret, 0, func);
-  Py_INCREF(func);
-
-  if (kw == NULL) {
-    kw = PyDict_New();
-  }
-  else {
-    Py_INCREF(kw);
-  }
-
-  PyTuple_SET_ITEM(ret, 1, kw);
-
-  return ret;
 }
 
 /* callbacks */
@@ -1997,7 +2041,7 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
     if (PyErr_Occurred()) { \
       return NULL; \
     } \
-    return bpy_prop_deferred_return(pymeth_##_func, kw); \
+    return bpy_prop_deferred_data_CreatePyObject(pymeth_##_func, kw); \
   } \
   (void)0
 
@@ -3667,6 +3711,10 @@ PyObject *BPY_rna_props(void)
   ASSIGN_STATIC(PointerProperty);
   ASSIGN_STATIC(CollectionProperty);
   ASSIGN_STATIC(RemoveProperty);
+
+  if (PyType_Ready(&bpy_prop_deferred_Type) < 0) {
+    return NULL;
+  }
 
   return submodule;
 }
