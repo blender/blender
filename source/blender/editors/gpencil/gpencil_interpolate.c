@@ -1431,6 +1431,10 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
       {0, NULL, 0, NULL, NULL},
   };
 
+  /**
+   * \note this is a near exact duplicate of #rna_enum_beztriple_interpolation_mode_items,
+   * Changes here will likely apply there too.
+   */
   static const EnumPropertyItem gpencil_interpolation_type_items[] = {
       /* interpolation */
       {0, "", 0, N_("Interpolation"), "Standard transitions between keyframes"},
