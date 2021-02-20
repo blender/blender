@@ -338,7 +338,7 @@ static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   ED_gpencil_fill_vertex_color_set(ts, brush, gps);
 
   gps->flag &= ~GP_STROKE_SELECT;
-  BKE_gpencil_stroke_select_index_set(NULL, gps, true);
+  BKE_gpencil_stroke_select_index_reset(gps);
   /* the polygon must be closed, so enabled cyclic */
   if (ELEM(tgpi->type, GP_STROKE_BOX, GP_STROKE_CIRCLE)) {
     gps->flag |= GP_STROKE_CYCLIC;

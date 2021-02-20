@@ -3444,7 +3444,7 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
 
   if (select) {
     gps->flag |= GP_STROKE_SELECT;
-    BKE_gpencil_stroke_select_index_set(gpd, gps, false);
+    BKE_gpencil_stroke_select_index_set(gpd, gps);
   }
 
   /* Free the sample points. Important to use the mutable loop here because we are erasing the list
