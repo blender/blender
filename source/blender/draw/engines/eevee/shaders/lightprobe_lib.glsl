@@ -99,9 +99,9 @@ layout(std140) uniform planar_block
 
 /* ----------- Functions --------- */
 
-float probe_attenuation_cube(int pd_id, vec3 W)
+float probe_attenuation_cube(int pd_id, vec3 P)
 {
-  vec3 localpos = transform_point(probes_data[pd_id].influencemat, W);
+  vec3 localpos = transform_point(probes_data[pd_id].influencemat, P);
 
   float probe_atten_fac = probes_data[pd_id].p_atten_fac;
   float fac;
@@ -116,15 +116,15 @@ float probe_attenuation_cube(int pd_id, vec3 W)
   return fac;
 }
 
-float probe_attenuation_planar(PlanarData pd, vec3 W)
+float probe_attenuation_planar(PlanarData pd, vec3 P)
 {
   /* Distance from plane */
-  float fac = saturate(abs(dot(pd.pl_plane_eq, vec4(W, 1.0))) * pd.pl_fade_scale +
+  float fac = saturate(abs(dot(pd.pl_plane_eq, vec4(P, 1.0))) * pd.pl_fade_scale +
                        pd.pl_fade_bias);
   /* Fancy fast clipping calculation */
   vec2 dist_to_clip;
-  dist_to_clip.x = dot(pd.pl_clip_pos_x, W);
-  dist_to_clip.y = dot(pd.pl_clip_pos_y, W);
+  dist_to_clip.x = dot(pd.pl_clip_pos_x, P);
+  dist_to_clip.y = dot(pd.pl_clip_pos_y, P);
   /* compare and add all tests */
   fac *= step(2.0, dot(step(pd.pl_clip_edges, dist_to_clip.xxyy), vec2(-1.0, 1.0).xyxy));
   return fac;
@@ -138,18 +138,18 @@ float probe_attenuation_planar_normal_roughness(PlanarData pd, vec3 N, float rou
   return fac * saturate(1.0 - roughness * 10.0);
 }
 
-float probe_attenuation_grid(GridData gd, vec3 W, out vec3 localpos)
+float probe_attenuation_grid(GridData gd, vec3 P, out vec3 localpos)
 {
-  localpos = transform_point(gd.localmat, W);
+  localpos = transform_point(gd.localmat, P);
   vec3 pos_to_edge = max(vec3(0.0), abs(localpos) - 1.0);
   float fade = length(pos_to_edge);
   return saturate(-fade * gd.g_atten_scale + gd.g_atten_bias);
 }
 
-vec3 probe_evaluate_cube(int pd_id, vec3 W, vec3 R, float roughness)
+vec3 probe_evaluate_cube(int pd_id, vec3 P, vec3 R, float roughness)
 {
   /* Correct reflection ray using parallax volume intersection. */
-  vec3 localpos = transform_point(probes_data[pd_id].parallaxmat, W);
+  vec3 localpos = transform_point(probes_data[pd_id].parallaxmat, P);
   vec3 localray = transform_direction(probes_data[pd_id].parallaxmat, R);
 
   float dist;
@@ -161,7 +161,7 @@ vec3 probe_evaluate_cube(int pd_id, vec3 W, vec3 R, float roughness)
   }
 
   /* Use Distance in WS directly to recover intersection */
-  vec3 intersection = W + R * dist - probes_data[pd_id].p_position;
+  vec3 intersection = P + R * dist - probes_data[pd_id].p_position;
 
   /* From Frostbite PBR Course
    * Distance based roughness
@@ -186,10 +186,10 @@ vec3 probe_evaluate_world_spec(vec3 R, float roughness)
   return textureLod_cubemapArray(probeCubes, vec4(R, 0.0), lod).rgb;
 }
 
-vec3 probe_evaluate_planar(int id, PlanarData pd, vec3 W, vec3 N, vec3 V, float roughness)
+vec3 probe_evaluate_planar(int id, PlanarData pd, vec3 P, vec3 N, vec3 V, float roughness)
 {
   /* Find view vector / reflection plane intersection. */
-  vec3 point_on_plane = line_plane_intersect(W, V, pd.pl_plane_eq);
+  vec3 point_on_plane = line_plane_intersect(P, V, pd.pl_plane_eq);
 
   /* How far the pixel is from the plane. */
   float ref_depth = 1.0; /* TODO parameter */
@@ -245,7 +245,7 @@ void fallback_cubemap(vec3 N,
   }
 }
 
-vec3 probe_evaluate_grid(GridData gd, vec3 W, vec3 N, vec3 localpos)
+vec3 probe_evaluate_grid(GridData gd, vec3 P, vec3 N, vec3 localpos)
 {
   localpos = localpos * 0.5 + 0.5;
   localpos = localpos * vec3(gd.g_resolution) - 0.5;
@@ -274,7 +274,7 @@ vec3 probe_evaluate_grid(GridData gd, vec3 W, vec3 N, vec3 localpos)
                             (gd.g_increment_x * cell_cos.x + gd.g_increment_y * cell_cos.y +
                              gd.g_increment_z * cell_cos.z);
 
-    vec3 ws_point_to_cell = ws_cell_location - W;
+    vec3 ws_point_to_cell = ws_cell_location - P;
     float ws_dist_point_to_cell = length(ws_point_to_cell);
     vec3 ws_light = ws_point_to_cell / ws_dist_point_to_cell;
 
