@@ -66,6 +66,7 @@ static void eevee_engine_init(void *ved)
   stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
   stl->g_data->valid_taa_history = (txl->taa_history != NULL);
   stl->g_data->queued_shaders_count = 0;
+  stl->g_data->render_timesteps = 1;
 
   /* Main Buffer */
   DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
