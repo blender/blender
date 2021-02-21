@@ -45,7 +45,7 @@ from bpy.props import (
 )
 
 
-class AddBox(bpy.types.Operator):
+class AddBox(bpy.types.Operator, AddObjectHelper):
     """Add a simple box mesh"""
     bl_idname = "mesh.primitive_box_add"
     bl_label = "Add Box"
@@ -74,27 +74,6 @@ class AddBox(bpy.types.Operator):
         description="Object Layers",
         size=20,
         options={'HIDDEN', 'SKIP_SAVE'},
-    )
-
-    # generic transform props
-    align_items = (
-        ('WORLD', "World", "Align the new object to the world"),
-        ('VIEW', "View", "Align the new object to the view"),
-        ('CURSOR', "3D Cursor", "Use the 3D cursor orientation for the new object")
-    )
-    align: EnumProperty(
-        name="Align",
-        items=align_items,
-        default='WORLD',
-        update=AddObjectHelper.align_update_callback,
-    )
-    location: FloatVectorProperty(
-        name="Location",
-        subtype='TRANSLATION',
-    )
-    rotation: FloatVectorProperty(
-        name="Rotation",
-        subtype='EULER',
     )
 
     def execute(self, context):
