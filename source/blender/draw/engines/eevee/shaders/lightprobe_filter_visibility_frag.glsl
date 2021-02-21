@@ -80,9 +80,9 @@ void main()
   vec2 accum = vec2(0.0);
 
   for (float i = 0; i < sampleCount; i++) {
-    vec3 sample = sample_cone(i, invSampleCount, M_PI_2 * visibilityBlur, cos, T, B);
-    float depth = texture(probeDepth, sample).r;
-    depth = get_world_distance(depth, sample);
+    vec3 samp = sample_cone(i, invSampleCount, M_PI_2 * visibilityBlur, cos, T, B);
+    float depth = texture(probeDepth, samp).r;
+    depth = get_world_distance(depth, samp);
     accum += vec2(depth, depth * depth);
   }
 
