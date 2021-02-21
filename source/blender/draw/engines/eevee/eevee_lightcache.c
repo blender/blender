@@ -914,6 +914,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
 
   stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
   stl->g_data->background_alpha = 1.0f;
+  stl->g_data->render_timesteps = 1;
 
   /* XXX TODO remove this. This is in order to make the init functions work. */
   if (DRW_view_default_get() == NULL) {
