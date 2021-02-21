@@ -135,7 +135,7 @@ void accumulate_light(vec3 light, float fac, inout vec4 accum)
   accum += vec4(light, 1.0) * min(fac, (1.0 - accum.a));
 }
 
-/* ----------- Cone Aperture Approximation --------- */
+/* ----------- Cone angle Approximation --------- */
 
 /* Return a fitted cone angle given the input roughness */
 float cone_cosine(float r)
