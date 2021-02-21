@@ -166,6 +166,8 @@ enum {
   /** The block is only used during the search process and will not be drawn.
    * Currently just for the case of a closed panel's sub-panel (and its sub-panels). */
   UI_BLOCK_SEARCH_ONLY = 1 << 25,
+  /** Hack for quick setup (splash screen) to draw text centered. */
+  UI_BLOCK_QUICK_SETUP = 1 << 26,
 };
 
 /** #uiPopupBlockHandle.menuretval */

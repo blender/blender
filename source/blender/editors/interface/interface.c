@@ -4060,7 +4060,8 @@ static uiBut *ui_def_but(uiBlock *block,
       but->drawflag |= UI_BUT_ICON_LEFT;
     }
   }
-  else if (((block->flag & UI_BLOCK_LOOP) && !ui_block_is_popover(block)) ||
+  else if (((block->flag & UI_BLOCK_LOOP) && !ui_block_is_popover(block) &&
+            !(block->flag & UI_BLOCK_QUICK_SETUP)) ||
            ELEM(but->type,
                 UI_BTYPE_MENU,
                 UI_BTYPE_TEXT,
