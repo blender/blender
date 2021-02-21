@@ -249,6 +249,13 @@ void CustomData_copy_data(const struct CustomData *source,
                           int source_index,
                           int dest_index,
                           int count);
+void CustomData_copy_data_layer(const CustomData *source,
+                                CustomData *dest,
+                                int src_layer_index,
+                                int dst_layer_index,
+                                int src_index,
+                                int dst_index,
+                                int count);
 void CustomData_copy_data_named(const struct CustomData *source,
                                 struct CustomData *dest,
                                 int source_index,
