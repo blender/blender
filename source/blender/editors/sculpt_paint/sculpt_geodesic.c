@@ -183,8 +183,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   }
 
   do {
-    int e;
-    while (e = BLI_LINKSTACK_POP(queue)) {
+    while (BLI_LINKSTACK_SIZE(queue)) {
+      const int e = BLI_LINKSTACK_POP(queue);
       int v1 = edges[e].v1;
       int v2 = edges[e].v2;
 
