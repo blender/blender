@@ -42,15 +42,8 @@ uniform sampler2D specroughBuffer;
 layout(location = 0) out ivec2 hitData;
 layout(location = 1) out float pdfData;
 
-void do_planar_ssr(int index,
-                   vec3 V,
-                   vec3 N,
-                   vec3 T,
-                   vec3 B,
-                   vec3 planeNormal,
-                   vec3 viewPosition,
-                   float a2,
-                   vec4 rand)
+void do_planar_ssr(
+    int index, vec3 V, vec3 N, vec3 T, vec3 B, vec3 planeNormal, vec3 vP, float a2, vec4 rand)
 {
   float NH;
   vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH); /* Microfacet normal */
@@ -75,12 +68,12 @@ void do_planar_ssr(int index,
    * below the reflection plane). This way it's garanted that the hit will
    * be in front of the camera. That let us tag the bad rays with a negative
    * sign in the Z component. */
-  vec3 hit_pos = raycast(index, viewPosition, R * 1e16, 1e16, rand.y, ssrQuality, a2, false);
+  vec3 hit_pos = raycast(index, vP, R * 1e16, 1e16, rand.y, ssrQuality, a2, false);
 
   hitData = encode_hit_data(hit_pos.xy, (hit_pos.z > 0.0), true);
 }
 
-void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 viewPosition, float a2, vec4 rand)
+void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 vP, float a2, vec4 rand)
 {
   float NH;
   /* Microfacet normal */
@@ -112,7 +105,7 @@ void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 viewPosition, float a2, vec4 ra
 
   pdfData = min(1024e32, pdf_ggx_reflect(NH, a2)); /* Theoretical limit of 16bit float */
 
-  vec3 hit_pos = raycast(-1, viewPosition, R * 1e16, ssrThickness, rand.y, ssrQuality, a2, true);
+  vec3 hit_pos = raycast(-1, vP, R * 1e16, ssrThickness, rand.y, ssrQuality, a2, true);
 
   hitData = encode_hit_data(hit_pos.xy, (hit_pos.z > 0.0), false);
 }

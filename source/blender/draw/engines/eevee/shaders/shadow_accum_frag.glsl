@@ -36,22 +36,21 @@ void main()
   /* Convert to view Z. */
   tracing_depth = get_view_z_from_depth(tracing_depth);
 
-  vec3 viewPosition = get_view_space_from_depth(uvs, depth);
-  vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
+  vec3 vP = get_view_space_from_depth(uvs, depth);
+  vec3 P = transform_point(ViewMatrixInverse, vP);
 
-  vec3 true_normal = safe_normalize(cross(dFdx(viewPosition), dFdy(viewPosition)));
+  vec3 vNg = safe_normalize(cross(dFdx(vP), dFdy(vP)));
 
   for (int i = 0; i < MAX_LIGHT && i < laNumLight; i++) {
     LightData ld = lights_data[i];
 
     vec4 l_vector; /* Non-Normalized Light Vector with length in last component. */
-    l_vector.xyz = ld.l_position - worldPosition;
+    l_vector.xyz = ld.l_position - P;
     l_vector.w = length(l_vector.xyz);
 
-    float l_vis = light_shadowing(ld, worldPosition, 1.0);
+    float l_vis = light_shadowing(ld, P, 1.0);
 
-    l_vis *= light_contact_shadows(
-        ld, worldPosition, viewPosition, tracing_depth, true_normal, rand.x, 1.0);
+    l_vis *= light_contact_shadows(ld, P, vP, tracing_depth, vNg, rand.x, 1.0);
 
     accum_light += l_vis;
   }
