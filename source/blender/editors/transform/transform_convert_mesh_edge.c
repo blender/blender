@@ -36,7 +36,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Edge (for crease) Transform Creation
- *
  * \{ */
 
 void createTransEdge(TransInfo *t)

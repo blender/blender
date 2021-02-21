@@ -205,8 +205,7 @@ enum {
 typedef enum EEVEE_SSRShaderOptions {
   SSR_RESOLVE = (1 << 0),
   SSR_FULL_TRACE = (1 << 1),
-  SSR_AO = (1 << 3),
-  SSR_MAX_SHADER = (1 << 4),
+  SSR_MAX_SHADER = (1 << 2),
 } EEVEE_SSRShaderOptions;
 
 /* DOF Gather pass shader variations */

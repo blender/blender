@@ -1140,6 +1140,10 @@ typedef struct NodeInputVector {
   float vector[3];
 } NodeInputVector;
 
+typedef struct NodeInputString {
+  char *string;
+} NodeInputString;
+
 typedef struct NodeGeometryRotatePoints {
   /* GeometryNodeRotatePointsType */
   uint8_t type;

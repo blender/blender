@@ -112,6 +112,13 @@ void BKE_displist_make_mball_forRender(struct Depsgraph *depsgraph,
                                        struct Object *ob,
                                        struct ListBase *dispbase);
 
+bool BKE_curve_calc_modifiers_pre(struct Depsgraph *depsgraph,
+                                  struct Scene *scene,
+                                  struct Object *ob,
+                                  struct ListBase *source_nurb,
+                                  struct ListBase *target_nurb,
+                                  const bool for_render);
+
 bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 void BKE_displist_fill(const struct ListBase *dispbase,
                        struct ListBase *to,

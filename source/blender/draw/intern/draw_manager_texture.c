@@ -43,6 +43,7 @@ static bool drw_texture_format_supports_framebuffer(eGPUTextureFormat format)
     case GPU_RG16F:
     case GPU_RG16I:
     case GPU_RG32F:
+    case GPU_RGB10_A2:
     case GPU_R11F_G11F_B10F:
     case GPU_RGBA8:
     case GPU_RGBA16:

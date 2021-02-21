@@ -434,7 +434,6 @@ static int gizmo_move_cursor_get(wmGizmo *UNUSED(gz))
 
 /* -------------------------------------------------------------------- */
 /** \name Move Gizmo API
- *
  * \{ */
 
 static void GIZMO_GT_move_3d(wmGizmoType *gzt)

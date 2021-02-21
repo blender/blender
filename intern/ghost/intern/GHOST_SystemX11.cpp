@@ -2494,7 +2494,8 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
   XFreeGC(m_display, buttonGC);
   return GHOST_kSuccess;
 }
-/* \} */
+
+/** \} */
 
 #ifdef WITH_XDND
 GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,

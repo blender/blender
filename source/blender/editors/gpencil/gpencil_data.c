@@ -3418,11 +3418,11 @@ static int gpencil_material_select_exec(bContext *C, wmOperator *op)
 
             if (!deselected) {
               gps->flag |= GP_STROKE_SELECT;
-              BKE_gpencil_stroke_select_index_set(gpd, gps, false);
+              BKE_gpencil_stroke_select_index_set(gpd, gps);
             }
             else {
               gps->flag &= ~GP_STROKE_SELECT;
-              BKE_gpencil_stroke_select_index_set(NULL, gps, true);
+              BKE_gpencil_stroke_select_index_reset(gps);
             }
             for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
               if (!deselected) {

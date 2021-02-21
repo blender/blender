@@ -42,7 +42,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Node Transform Creation
- *
  * \{ */
 
 /* transcribe given node into TransData2D for Transforming */
@@ -145,7 +144,6 @@ void createTransNodeData(TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Node Transform Creation
- *
  * \{ */
 
 void flushTransNodes(TransInfo *t)

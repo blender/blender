@@ -5141,7 +5141,6 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 
 /* -------------------------------------------------------------------- */
 /** \name Modal Keymap Status
- *
  * \{ */
 
 bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *layout)

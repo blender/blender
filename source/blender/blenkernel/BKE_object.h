@@ -32,6 +32,7 @@ extern "C" {
 
 struct Base;
 struct BoundBox;
+struct Curve;
 struct Depsgraph;
 struct GpencilModifierData;
 struct HookGpencilModifierData;
@@ -423,6 +424,21 @@ struct Mesh *BKE_object_to_mesh(struct Depsgraph *depsgraph,
                                 bool preserve_all_data_layers);
 
 void BKE_object_to_mesh_clear(struct Object *object);
+
+/* This is an utility function for Python's object.to_curve().
+ * The result is owned by the object.
+ *
+ * The curve will be freed when object is re-evaluated or is destroyed. It is possible to force
+ * clear memory used by this curve by calling BKE_object_to_curve_clear().
+ *
+ * If apply_modifiers is true and the object is a curve one, then spline deform modifiers are
+ * applied on the curve control points.
+ */
+struct Curve *BKE_object_to_curve(struct Object *object,
+                                  struct Depsgraph *depsgraph,
+                                  bool apply_modifiers);
+
+void BKE_object_to_curve_clear(struct Object *object);
 
 void BKE_object_check_uuids_unique_and_report(const struct Object *object);
 

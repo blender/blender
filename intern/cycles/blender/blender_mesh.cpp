@@ -430,6 +430,16 @@ static void attr_create_generic(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool
         });
         break;
       }
+      case BL::Attribute::data_type_FLOAT2: {
+        BL::Float2Attribute b_float2_attribute{b_attribute};
+        Attribute *attr = attributes.add(name, TypeFloat2, element);
+        float2 *data = attr->data_float2();
+        fill_generic_attribute(b_mesh, data, element, [&](int i) {
+          BL::Array<float, 2> v = b_float2_attribute.data[i].vector();
+          return make_float2(v[0], v[1]);
+        });
+        break;
+      }
       default:
         /* Not supported. */
         break;

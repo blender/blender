@@ -1460,7 +1460,6 @@ uint32_t PyC_Long_AsU32(PyObject *value)
 
 /* -------------------------------------------------------------------- */
 /** \name Py_buffer Utils
- *
  * \{ */
 
 char PyC_StructFmt_type_from_str(const char *typestr)

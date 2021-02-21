@@ -103,9 +103,8 @@ void BKE_gpencil_batch_cache_free(struct bGPdata *gpd);
 
 void BKE_gpencil_stroke_sync_selection(struct bGPdata *gpd, struct bGPDstroke *gps);
 void BKE_gpencil_curve_sync_selection(struct bGPdata *gpd, struct bGPDstroke *gps);
-void BKE_gpencil_stroke_select_index_set(struct bGPdata *gpd,
-                                         struct bGPDstroke *gps,
-                                         const bool reset);
+void BKE_gpencil_stroke_select_index_set(struct bGPdata *gpd, struct bGPDstroke *gps);
+void BKE_gpencil_stroke_select_index_reset(struct bGPDstroke *gps);
 
 struct bGPDframe *BKE_gpencil_frame_addnew(struct bGPDlayer *gpl, int cframe);
 struct bGPDframe *BKE_gpencil_frame_addcopy(struct bGPDlayer *gpl, int cframe);

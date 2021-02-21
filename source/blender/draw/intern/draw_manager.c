@@ -154,6 +154,7 @@ static bool drw_draw_show_annotation(void)
 /* -------------------------------------------------------------------- */
 /** \name Threading
  * \{ */
+
 static void drw_task_graph_init(void)
 {
   BLI_assert(DST.task_graph == NULL);
@@ -172,7 +173,8 @@ static void drw_task_graph_deinit(void)
   BLI_task_graph_free(DST.task_graph);
   DST.task_graph = NULL;
 }
-/* \} */
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Settings

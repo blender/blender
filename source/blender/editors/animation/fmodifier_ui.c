@@ -190,7 +190,7 @@ static PanelType *fmodifier_panel_register(ARegionType *region_type,
   panel_type->poll = poll;
 
   /* Give the panel the special flag that says it was built here and corresponds to a
-   * modifer rather than a PanelType. */
+   * modifier rather than a #PanelType. */
   panel_type->flag = PANEL_TYPE_HEADER_EXPAND | PANEL_TYPE_DRAW_BOX | PANEL_TYPE_INSTANCED;
   panel_type->reorder = fmodifier_reorder;
   panel_type->get_list_data_expand_flag = get_fmodifier_expand_flag;
@@ -596,7 +596,7 @@ static void panel_register_noise(ARegionType *region_type,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Enevelope Modifier
+/** \name Envelope Modifier
  * \{ */
 
 static void fmod_envelope_addpoint_cb(bContext *C, void *fcm_dv, void *UNUSED(arg))
@@ -895,11 +895,10 @@ static void panel_register_stepped(ARegionType *region_type,
 
 /* -------------------------------------------------------------------- */
 /** \name Panel Creation
- *
  * \{ */
 
 /**
- * Checks if the panels match the active strip / curve, rebubilds them if they don't.
+ * Checks if the panels match the active strip / curve, rebuilds them if they don't.
  */
 void ANIM_fmodifier_panels(const bContext *C,
                            ID *owner_id,

@@ -166,6 +166,11 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
           found_line_id = true;
           break;
         }
+/* TODO(fclem) Make this an option to display N lines before error. */
+#if 0 /* Uncomment to print shader file up to the error line to have more context. */
+        BLI_dynstr_appendf(dynstr, "%5d | ", src_line_index);
+        BLI_dynstr_nappend(dynstr, src_line, (src_line_end + 1) - src_line);
+#endif
         /* Continue to next line. */
         src_line = src_line_end + 1;
         src_line_index++;

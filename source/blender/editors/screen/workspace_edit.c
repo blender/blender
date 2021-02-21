@@ -234,7 +234,6 @@ void ED_workspace_scene_data_sync(WorkSpaceInstanceHook *hook, Scene *scene)
 
 /* -------------------------------------------------------------------- */
 /** \name Workspace Operators
- *
  * \{ */
 
 static WorkSpace *workspace_context_get(bContext *C)

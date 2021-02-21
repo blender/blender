@@ -4113,6 +4113,38 @@ void rna_ShaderNodePointDensity_density_minmax(bNode *self,
   RE_point_density_minmax(depsgraph, pd, r_min, r_max);
 }
 
+static void rna_NodeInputString_string_get(PointerRNA *ptr, char *value)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeInputString *storage = node->storage;
+
+  strcpy(value, (storage->string) ? storage->string : "");
+}
+
+static int rna_NodeInputString_string_length(PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeInputString *storage = node->storage;
+
+  return (storage->string) ? strlen(storage->string) : 0;
+}
+
+static void rna_NodeInputString_string_set(PointerRNA *ptr, const char *value)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeInputString *storage = node->storage;
+
+  if (storage->string) {
+    MEM_freeN(storage->string);
+  }
+
+  if (value && value[0]) {
+    storage->string = BLI_strdup(value);
+  }
+  else {
+    storage->string = NULL;
+  }
+}
 #else
 
 static const EnumPropertyItem prop_image_layer_items[] = {
@@ -4536,6 +4568,21 @@ static void def_fn_input_vector(StructRNA *srna)
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_sdna(prop, NULL, "vector");
   RNA_def_property_ui_text(prop, "Vector", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_fn_input_string(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeInputString", "storage");
+
+  prop = RNA_def_property(srna, "string", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_NodeInputString_string_get",
+                                "rna_NodeInputString_string_length",
+                                "rna_NodeInputString_string_set");
+  RNA_def_property_ui_text(prop, "String", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

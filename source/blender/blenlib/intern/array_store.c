@@ -1012,7 +1012,6 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
 
 /* -------------------------------------------------------------------- */
 /** \name Main Data De-Duplication Function
- *
  * \{ */
 
 /**

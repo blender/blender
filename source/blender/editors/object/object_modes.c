@@ -62,7 +62,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name High Level Mode Operations
- *
  * \{ */
 
 static const char *object_mode_op_string(eObjectMode mode)

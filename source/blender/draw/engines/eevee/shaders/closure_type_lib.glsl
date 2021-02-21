@@ -159,7 +159,7 @@ void closure_load_ssr_data(
 {
   /* Still encode to avoid artifacts in the SSR pass. */
   vec3 vN = normalize(mat3(ViewMatrix) * N);
-  cl.ssr_normal = normal_encode(vN, viewCameraVec);
+  cl.ssr_normal = normal_encode(vN, viewCameraVec(viewPosition));
 
   if (ssrToggle && int(ssr_id) == outputSsrId) {
     cl.ssr_data = vec4(ssr_radiance, roughness);

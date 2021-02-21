@@ -57,7 +57,6 @@ typedef struct TransDataMasking {
 
 /* -------------------------------------------------------------------- */
 /** \name Masking Transform Creation
- *
  * \{ */
 
 static void MaskHandleToTransData(MaskSplinePoint *point,
@@ -400,7 +399,6 @@ void createTransMaskingData(bContext *C, TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Recalc TransData Masking
- *
  * \{ */
 
 static void flushTransMasking(TransInfo *t)

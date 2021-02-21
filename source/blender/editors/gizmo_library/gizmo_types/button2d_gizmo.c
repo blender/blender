@@ -343,7 +343,6 @@ static void gizmo_button2d_free(wmGizmo *gz)
 
 /* -------------------------------------------------------------------- */
 /** \name Button Gizmo API
- *
  * \{ */
 
 static void GIZMO_GT_button_2d(wmGizmoType *gzt)

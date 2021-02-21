@@ -29,15 +29,14 @@ void main()
   outTransmittance = texelFetch(volumeExtinction, volume_cell, 0);
   vec3 s_scattering = texelFetch(volumeScattering, volume_cell, 0).rgb;
   vec3 volume_ndc = volume_to_ndc((vec3(volume_cell) + volJitter.xyz) * volInvTexSize.xyz);
-  vec3 worldPosition = get_world_space_from_depth(volume_ndc.xy, volume_ndc.z);
-  vec3 wdir = cameraVec;
+  vec3 P = get_world_space_from_depth(volume_ndc.xy, volume_ndc.z);
+  vec3 V = cameraVec(P);
 
   vec2 phase = texelFetch(volumePhase, volume_cell, 0).rg;
   float s_anisotropy = phase.x / max(1.0, phase.y);
 
   /* Environment : Average color. */
-  outScattering.rgb += irradiance_volumetric(worldPosition) * s_scattering *
-                       phase_function_isotropic();
+  outScattering.rgb += irradiance_volumetric(P) * s_scattering * phase_function_isotropic();
 
 #ifdef VOLUME_LIGHTING /* Lights */
   for (int i = 0; i < MAX_LIGHT && i < laNumLight; i++) {
@@ -45,16 +44,15 @@ void main()
     LightData ld = lights_data[i];
 
     vec4 l_vector;
-    l_vector.xyz = (ld.l_type == SUN) ? -ld.l_forward : ld.l_position - worldPosition;
+    l_vector.xyz = (ld.l_type == SUN) ? -ld.l_forward : ld.l_position - P;
     l_vector.w = length(l_vector.xyz);
 
-    float Vis = light_visibility(ld, worldPosition, l_vector);
+    float Vis = light_visibility(ld, P, l_vector);
 
-    vec3 Li = light_volume(ld, l_vector) *
-              light_volume_shadow(ld, worldPosition, l_vector, volumeExtinction);
+    vec3 Li = light_volume(ld, l_vector) * light_volume_shadow(ld, P, l_vector, volumeExtinction);
 
     outScattering.rgb += Li * Vis * s_scattering *
-                         phase_function(-wdir, l_vector.xyz / l_vector.w, s_anisotropy);
+                         phase_function(-V, l_vector.xyz / l_vector.w, s_anisotropy);
   }
 #endif
 

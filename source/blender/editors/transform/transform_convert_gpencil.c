@@ -43,7 +43,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Gpencil Transform Creation
- *
  * \{ */
 
 static void createTransGPencil_center_get(bGPDstroke *gps, float r_center[3])

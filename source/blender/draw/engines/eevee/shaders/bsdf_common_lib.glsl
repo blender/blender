@@ -1,13 +1,9 @@
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
-vec3 diffuse_dominant_dir(vec3 N, vec3 vis_cone_dir, float vis_cone_aperture_cos)
+vec3 diffuse_dominant_dir(vec3 bent_normal)
 {
-  /* TODO(fclem) revisit this. bent too much towards vis_cone_dir. */
-  vis_cone_aperture_cos *= sqr(vis_cone_aperture_cos);
-
-  N = mix(vis_cone_dir, N, vis_cone_aperture_cos);
-  return normalize(N);
+  return bent_normal;
 }
 
 vec3 specular_dominant_dir(vec3 N, vec3 V, float roughness)
@@ -139,7 +135,7 @@ void accumulate_light(vec3 light, float fac, inout vec4 accum)
   accum += vec4(light, 1.0) * min(fac, (1.0 - accum.a));
 }
 
-/* ----------- Cone Aperture Approximation --------- */
+/* ----------- Cone angle Approximation --------- */
 
 /* Return a fitted cone angle given the input roughness */
 float cone_cosine(float r)

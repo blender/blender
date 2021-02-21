@@ -42,15 +42,8 @@ uniform sampler2D specroughBuffer;
 layout(location = 0) out ivec2 hitData;
 layout(location = 1) out float pdfData;
 
-void do_planar_ssr(int index,
-                   vec3 V,
-                   vec3 N,
-                   vec3 T,
-                   vec3 B,
-                   vec3 planeNormal,
-                   vec3 viewPosition,
-                   float a2,
-                   vec4 rand)
+void do_planar_ssr(
+    int index, vec3 V, vec3 N, vec3 T, vec3 B, vec3 planeNormal, vec3 vP, float a2, vec4 rand)
 {
   float NH;
   vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH); /* Microfacet normal */
@@ -75,12 +68,12 @@ void do_planar_ssr(int index,
    * below the reflection plane). This way it's garanted that the hit will
    * be in front of the camera. That let us tag the bad rays with a negative
    * sign in the Z component. */
-  vec3 hit_pos = raycast(index, viewPosition, R * 1e16, 1e16, rand.y, ssrQuality, a2, false);
+  vec3 hit_pos = raycast(index, vP, R * 1e16, 1e16, rand.y, ssrQuality, a2, false);
 
   hitData = encode_hit_data(hit_pos.xy, (hit_pos.z > 0.0), true);
 }
 
-void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 viewPosition, float a2, vec4 rand)
+void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 vP, float a2, vec4 rand)
 {
   float NH;
   /* Microfacet normal */
@@ -112,7 +105,7 @@ void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 viewPosition, float a2, vec4 ra
 
   pdfData = min(1024e32, pdf_ggx_reflect(NH, a2)); /* Theoretical limit of 16bit float */
 
-  vec3 hit_pos = raycast(-1, viewPosition, R * 1e16, ssrThickness, rand.y, ssrQuality, a2, true);
+  vec3 hit_pos = raycast(-1, vP, R * 1e16, ssrThickness, rand.y, ssrQuality, a2, true);
 
   hitData = encode_hit_data(hit_pos.xy, (hit_pos.z > 0.0), false);
 }
@@ -142,9 +135,12 @@ void main()
   vec2 uvs = vec2(fullres_texel) / vec2(textureSize(depthBuffer, 0));
 
   /* Using view space */
-  vec3 viewPosition = get_view_space_from_depth(uvs, depth);
-  vec3 V = viewCameraVec;
-  vec3 N = normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, V);
+  vec3 vP = get_view_space_from_depth(uvs, depth);
+  vec3 P = transform_point(ViewMatrixInverse, vP);
+  vec3 vV = viewCameraVec(vP);
+  vec3 V = cameraVec(P);
+  vec3 vN = normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, vV);
+  vec3 N = transform_direction(ViewMatrixInverse, vN);
 
   /* Retrieve pixel data */
   vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
@@ -172,26 +168,24 @@ void main()
   /* Importance sampling bias */
   rand.x = mix(rand.x, 0.0, ssrBrdfBias);
 
-  vec3 W = transform_point(ViewMatrixInverse, viewPosition);
-  vec3 wN = transform_direction(ViewMatrixInverse, N);
-
-  vec3 T, B;
-  make_orthonormal_basis(N, T, B); /* Generate tangent space */
+  vec3 vT, vB;
+  make_orthonormal_basis(vN, vT, vB); /* Generate tangent space */
 
   /* Planar Reflections */
   for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
     PlanarData pd = planars_data[i];
 
-    float fade = probe_attenuation_planar(pd, W, wN, 0.0);
+    float fade = probe_attenuation_planar(pd, P);
+    fade *= probe_attenuation_planar_normal_roughness(pd, N, 0.0);
 
     if (fade > 0.5) {
       /* Find view vector / reflection plane intersection. */
       /* TODO optimize, use view space for all. */
-      vec3 tracePosition = line_plane_intersect(W, cameraVec, pd.pl_plane_eq);
+      vec3 tracePosition = line_plane_intersect(P, V, pd.pl_plane_eq);
       tracePosition = transform_point(ViewMatrix, tracePosition);
       vec3 planeNormal = transform_direction(ViewMatrix, pd.pl_normal);
 
-      do_planar_ssr(i, V, N, T, B, planeNormal, tracePosition, a2, rand);
+      do_planar_ssr(i, vV, vN, vT, vB, planeNormal, tracePosition, a2, rand);
       return;
     }
   }
@@ -199,9 +193,9 @@ void main()
   /* Constant bias (due to depth buffer precision). Helps with self intersection. */
   /* Magic numbers for 24bits of precision.
    * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
-  viewPosition.z = get_view_z_from_depth(depth - mix(2.4e-7, 4.8e-7, depth));
+  vP.z = get_view_z_from_depth(depth - mix(2.4e-7, 4.8e-7, depth));
 
-  do_ssr(V, N, T, B, viewPosition, a2, rand);
+  do_ssr(vV, vN, vT, vB, vP, a2, rand);
 }
 
 #else /* STEP_RESOLVE */
@@ -525,7 +519,8 @@ void raytrace_resolve(ClosureInputGlossy cl_in,
     for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
       pd = planars_data[i];
 
-      float fade = probe_attenuation_planar(pd, P, N, 0.0);
+      float fade = probe_attenuation_planar(pd, P);
+      fade *= probe_attenuation_planar_normal_roughness(pd, N, 0.0);
 
       if (fade > 0.5) {
         planar_index = float(i);
@@ -578,7 +573,7 @@ void main()
   worldPosition = transform_point(ViewMatrixInverse, viewPosition);
 
   vec2 normal_encoded = texelFetch(normalBuffer, texel, 0).rg;
-  viewNormal = normal_decode(normal_encoded, viewCameraVec);
+  viewNormal = normal_decode(normal_encoded, viewCameraVec(viewPosition));
   worldNormal = transform_direction(ViewMatrixInverse, viewNormal);
 
   CLOSURE_VARS_DECLARE_1(Glossy);

@@ -82,7 +82,7 @@ void main()
      * with NaN's */
     if (depth != 1.0 && any(notEqual(encoded_normal, vec2(0.0)))) {
       vec3 decoded_normal = normal_decode(texelFetch(inputBuffer, texel, 0).rg, vec3(0.0));
-      vec3 world_normal = mat3(ViewMatrixInverse) * decoded_normal;
+      vec3 world_normal = transform_direction(ViewMatrixInverse, decoded_normal);
       color.rgb = world_normal;
     }
     else {

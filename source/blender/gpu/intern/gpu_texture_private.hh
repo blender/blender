@@ -283,6 +283,7 @@ inline size_t to_bytesize(eGPUTextureFormat format)
     case GPU_RGBA8UI:
     case GPU_RGBA8:
     case GPU_SRGB8_A8:
+    case GPU_RGB10_A2:
     case GPU_R11F_G11F_B10F:
     case GPU_R32F:
     case GPU_R32UI:
@@ -368,6 +369,7 @@ inline int to_component_len(eGPUTextureFormat format)
     case GPU_RGBA16:
     case GPU_RGBA32F:
     case GPU_SRGB8_A8:
+    case GPU_RGB10_A2:
       return 4;
     case GPU_RGB16F:
     case GPU_R11F_G11F_B10F:
@@ -395,6 +397,7 @@ inline size_t to_bytesize(eGPUDataFormat data_format)
       return 4;
     case GPU_DATA_UINT_24_8:
     case GPU_DATA_10_11_11_REV:
+    case GPU_DATA_2_10_10_10_REV:
       return 4;
     default:
       BLI_assert(!"Data format incorrect or unsupported\n");
@@ -432,6 +435,8 @@ inline bool validate_data_format(eGPUTextureFormat tex_format, eGPUDataFormat da
     case GPU_RGBA8UI:
     case GPU_SRGB8_A8:
       return ELEM(data_format, GPU_DATA_UBYTE, GPU_DATA_FLOAT);
+    case GPU_RGB10_A2:
+      return ELEM(data_format, GPU_DATA_2_10_10_10_REV, GPU_DATA_FLOAT);
     case GPU_R11F_G11F_B10F:
       return ELEM(data_format, GPU_DATA_10_11_11_REV, GPU_DATA_FLOAT);
     default:
@@ -464,6 +469,8 @@ inline eGPUDataFormat to_data_format(eGPUTextureFormat tex_format)
     case GPU_RGBA8UI:
     case GPU_SRGB8_A8:
       return GPU_DATA_UBYTE;
+    case GPU_RGB10_A2:
+      return GPU_DATA_2_10_10_10_REV;
     case GPU_R11F_G11F_B10F:
       return GPU_DATA_10_11_11_REV;
     default:

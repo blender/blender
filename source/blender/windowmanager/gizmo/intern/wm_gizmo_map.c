@@ -158,7 +158,6 @@ void wm_gizmomap_select_array_remove(wmGizmoMap *gzmap, wmGizmo *gz)
 
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoMap
- *
  * \{ */
 
 static wmGizmoMap *wm_gizmomap_new_from_type_ex(struct wmGizmoMapType *gzmap_type,
@@ -1182,7 +1181,6 @@ void WM_gizmomap_message_subscribe(const bContext *C,
 
 /* -------------------------------------------------------------------- */
 /** \name Tooltip Handling
- *
  * \{ */
 
 struct ARegion *WM_gizmomap_tooltip_init(struct bContext *C,
@@ -1211,7 +1209,6 @@ struct ARegion *WM_gizmomap_tooltip_init(struct bContext *C,
 
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoMapType
- *
  * \{ */
 
 wmGizmoMapType *WM_gizmomaptype_find(const struct wmGizmoMapType_Params *gzmap_params)
@@ -1277,7 +1274,6 @@ void wm_gizmos_keymap(wmKeyConfig *keyconf)
 
 /* -------------------------------------------------------------------- */
 /** \name Updates for Dynamic Type Registration
- *
  * \{ */
 
 void WM_gizmoconfig_update_tag_group_type_init(wmGizmoMapType *gzmap_type, wmGizmoGroupType *gzgt)

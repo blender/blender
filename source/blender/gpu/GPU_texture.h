@@ -114,15 +114,15 @@ typedef enum eGPUTextureFormat {
   GPU_R16F,
   GPU_R16, /* Max texture buffer format. */
 
-/* Special formats texture & renderbuffer */
-#if 0
+  /* Special formats texture & renderbuffer */
   GPU_RGB10_A2,
-  GPU_RGB10_A2UI,
-#endif
   GPU_R11F_G11F_B10F,
   GPU_DEPTH32F_STENCIL8,
   GPU_DEPTH24_STENCIL8,
   GPU_SRGB8_A8,
+#if 0
+  GPU_RGB10_A2UI,
+#endif
 
   /* Texture only format */
   GPU_RGB16F,
@@ -175,6 +175,7 @@ typedef enum eGPUDataFormat {
   GPU_DATA_UBYTE,
   GPU_DATA_UINT_24_8,
   GPU_DATA_10_11_11_REV,
+  GPU_DATA_2_10_10_10_REV,
 } eGPUDataFormat;
 
 unsigned int GPU_texture_memory_usage_get(void);

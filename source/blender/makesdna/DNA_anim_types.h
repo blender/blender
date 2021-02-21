@@ -58,8 +58,8 @@ typedef struct FModifier {
   /** Settings for the modifier. */
   short flag;
   /**
-   * Expansion state for the modifier panel and its subpanels, stored as a bitfield
-   * in depth-first order. (Maximum of sizeof(short) total panels).
+   * Expansion state for the modifier panel and its sub-panels, stored as a bit-field
+   * in depth-first order. (Maximum of `sizeof(short)` total panels).
    */
   short ui_expand_flag;
 

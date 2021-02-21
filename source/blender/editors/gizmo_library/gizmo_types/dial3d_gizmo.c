@@ -595,7 +595,6 @@ static int gizmo_dial_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *ev
 
 /* -------------------------------------------------------------------- */
 /** \name Dial Gizmo API
- *
  * \{ */
 
 void ED_gizmotypes_dial_3d_draw_util(const float matrix_basis[4][4],

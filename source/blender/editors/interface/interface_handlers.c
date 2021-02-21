@@ -665,7 +665,6 @@ static void ui_afterfunc_update_preferences_dirty(uiAfterFunc *after)
 
 /* -------------------------------------------------------------------- */
 /** \name Button Snap Values
- *
  * \{ */
 
 enum eSnapType {
@@ -7928,7 +7927,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
     button_tooltip_timer_reset(C, but);
 
-    /* automatic open pulldown block timer */
+    /* Automatic open pull-down block timer. */
     if (ELEM(but->type, UI_BTYPE_BLOCK, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER) ||
         /* Menu button types may draw as popovers, check for this case
          * ignoring other kinds of menus (mainly enums). (see T66538). */

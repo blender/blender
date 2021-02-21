@@ -65,13 +65,6 @@
   { \
     CLOSURE_EVAL_DECLARE(t0, t1, t2, t3); \
 \
-    for (int i = 0; cl_common.specular_accum > 0.0 && i < prbNumPlanar && i < MAX_PLANAR; i++) { \
-      ClosurePlanarData planar = closure_planar_eval_init(i, cl_common); \
-      if (planar.attenuation > 1e-8) { \
-        CLOSURE_META_SUBROUTINE_DATA(planar_eval, planar, t0, t1, t2, t3); \
-      } \
-    } \
-\
     /* Starts at 1 because 0 is world cubemap. */ \
     for (int i = 1; cl_common.specular_accum > 0.0 && i < prbNumRenderCube && i < MAX_PROBE; \
          i++) { \
@@ -90,6 +83,11 @@
     } \
 \
     CLOSURE_META_SUBROUTINE(indirect_end, t0, t1, t2, t3); \
+\
+    ClosurePlanarData planar = closure_planar_eval_init(cl_common); \
+    if (planar.attenuation > 1e-8) { \
+      CLOSURE_META_SUBROUTINE_DATA(planar_eval, planar, t0, t1, t2, t3); \
+    } \
 \
     for (int i = 0; i < laNumLight && i < MAX_LIGHT; i++) { \
       ClosureLightData light = closure_light_eval_init(cl_common, i); \
@@ -167,6 +165,8 @@ struct ClosureInputCommon {
 #define CLOSURE_INPUT_COMMON_DEFAULT ClosureInputCommon(1.0)
 
 struct ClosureEvalCommon {
+  /** Result of SSAO. */
+  OcclusionData occlusion_data;
   /** View vector. */
   vec3 V;
   /** Surface position. */
@@ -177,15 +177,12 @@ struct ClosureEvalCommon {
   vec3 vN;
   /** Surface position. (viewspace) */
   vec3 vP;
+  /** Geometric normal, always facing camera. */
+  vec3 Ng;
   /** Geometric normal, always facing camera. (viewspace) */
   vec3 vNg;
   /** Random numbers. 3 random sequences. zw is a random point on a circle. */
   vec4 rand;
-  /** Final occlusion factor. Mix of the user occlusion and SSAO. */
-  float occlusion;
-  /** Least occluded direction in the hemisphere. */
-  vec3 bent_normal;
-
   /** Specular probe accumulator. Shared between planar and cubemap probe. */
   float specular_accum;
   /** Diffuse probe accumulator. */
@@ -203,12 +200,13 @@ ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)
 {
   ClosureEvalCommon cl_eval;
   cl_eval.rand = texelfetch_noise_tex(gl_FragCoord.xy);
-  cl_eval.V = cameraVec;
+  cl_eval.V = cameraVec(worldPosition);
   cl_eval.P = worldPosition;
   cl_eval.N = safe_normalize(gl_FrontFacing ? worldNormal : -worldNormal);
   cl_eval.vN = safe_normalize(gl_FrontFacing ? viewNormal : -viewNormal);
   cl_eval.vP = viewPosition;
-  cl_eval.vNg = safe_normalize(cross(dFdx(viewPosition), dFdy(viewPosition)));
+  cl_eval.Ng = safe_normalize(cross(dFdx(cl_eval.P), dFdy(cl_eval.P)));
+  cl_eval.vNg = transform_direction(ViewMatrix, cl_eval.Ng);
   /* TODO(fclem) See if we can avoid this complicated setup. */
   cl_eval.tracing_depth = gl_FragCoord.z;
   /* Constant bias (due to depth buffer precision) */
@@ -218,10 +216,7 @@ ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)
   /* Convert to view Z. */
   cl_eval.tracing_depth = get_view_z_from_depth(cl_eval.tracing_depth);
 
-  /* TODO(fclem) Do occlusion evaluation per Closure using shading normal. */
-  cl_eval.occlusion = min(
-      cl_in.occlusion,
-      occlusion_compute(cl_eval.N, cl_eval.vP, cl_eval.rand, cl_eval.bent_normal));
+  cl_eval.occlusion_data = occlusion_load(cl_eval.vP, cl_in.occlusion);
 
   cl_eval.specular_accum = 1.0;
   cl_eval.diffuse_accum = 1.0;
@@ -284,14 +279,20 @@ struct ClosurePlanarData {
   float attenuation; /** Attenuation. */
 };
 
-ClosurePlanarData closure_planar_eval_init(int planar_id, inout ClosureEvalCommon cl_common)
+ClosurePlanarData closure_planar_eval_init(inout ClosureEvalCommon cl_common)
 {
   ClosurePlanarData planar;
-  planar.id = planar_id;
-  planar.data = planars_data[planar_id];
-  planar.attenuation = probe_attenuation_planar(planar.data, cl_common.P, cl_common.N, 0.0);
-  planar.attenuation = min(planar.attenuation, cl_common.specular_accum);
-  cl_common.specular_accum -= planar.attenuation;
+  planar.attenuation = 0.0;
+
+  /* Find planar with the maximum weight. TODO(fclem)  */
+  for (int i = 0; i < prbNumPlanar && i < MAX_PLANAR; i++) {
+    float attenuation = probe_attenuation_planar(planars_data[i], cl_common.P);
+    if (attenuation > planar.attenuation) {
+      planar.id = i;
+      planar.attenuation = attenuation;
+      planar.data = planars_data[i];
+    }
+  }
   return planar;
 }
 

@@ -256,7 +256,7 @@ void DRW_draw_cursor_2d(void)
     GPU_matrix_projection_set(original_proj);
   }
 }
-/* \} */
+/** \} */
 
 /* **************************** 3D Gizmo ******************************** */
 

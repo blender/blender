@@ -565,6 +565,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  0,
                  "");
   UI_but_flag_disable(bt, UI_BUT_UNDO);
+  UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
   UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, NULL);
   bt->custom_data = cpicker;
   bt = uiDefButC(block,
@@ -582,6 +583,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  0,
                  "");
   UI_but_flag_disable(bt, UI_BUT_UNDO);
+  UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
   UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, NULL);
   bt->custom_data = cpicker;
   bt = uiDefButC(block,
@@ -599,6 +601,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  0,
                  "");
   UI_but_flag_disable(bt, UI_BUT_UNDO);
+  UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
   UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, NULL);
   bt->custom_data = cpicker;
   UI_block_align_end(block);

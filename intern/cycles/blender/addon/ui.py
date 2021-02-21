@@ -15,6 +15,7 @@
 #
 
 # <pep8 compliant>
+from __future__ import annotations
 
 import bpy
 from bpy_extras.node_utils import find_node_input

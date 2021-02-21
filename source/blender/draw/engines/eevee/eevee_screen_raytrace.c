@@ -143,7 +143,6 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 
   if ((effects->enabled_effects & EFFECT_SSR) != 0) {
     EEVEE_SSRShaderOptions options = (effects->reflection_trace_full) ? SSR_FULL_TRACE : 0;
-    options |= ((effects->enabled_effects & EFFECT_GTAO) != 0) ? SSR_AO : 0;
 
     struct GPUShader *trace_shader = EEVEE_shaders_effect_screen_raytrace_sh_get(options);
     struct GPUShader *resolve_shader = EEVEE_shaders_effect_screen_raytrace_sh_get(SSR_RESOLVE |
@@ -203,9 +202,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
     DRW_shgroup_uniform_int(grp, "neighborOffset", &effects->ssr_neighbor_ofs, 1);
-    if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
-      DRW_shgroup_uniform_texture_ref(grp, "horizonBuffer", &effects->gtao_horizons);
-    }
+    DRW_shgroup_uniform_texture_ref(grp, "horizonBuffer", &effects->gtao_horizons);
 
     DRW_shgroup_call(grp, quad, NULL);
   }
@@ -248,13 +245,13 @@ void EEVEE_reflection_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
     EEVEE_downsample_buffer(vedata, txl->color_double_buffer, 9);
 
     /* Resolve at fullres */
-    int sample = (DRW_state_is_image_render()) ? effects->taa_render_sample :
+    int samp = (DRW_state_is_image_render()) ? effects->taa_render_sample :
                                                  effects->taa_current_sample;
     /* Doing a neighbor shift only after a few iteration.
      * We wait for a prime number of cycles to avoid noise correlation.
      * This reduces variance faster. */
-    effects->ssr_neighbor_ofs = ((sample / 5) % 8) * 4;
-    switch ((sample / 11) % 4) {
+    effects->ssr_neighbor_ofs = ((samp / 5) % 8) * 4;
+    switch ((samp / 11) % 4) {
       case 0:
         effects->ssr_halfres_ofs[0] = 0;
         effects->ssr_halfres_ofs[1] = 0;

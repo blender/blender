@@ -15,6 +15,7 @@
 #
 
 # <pep8 compliant>
+from __future__ import annotations
 
 import bpy
 from bpy.props import (
@@ -841,7 +842,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             ('MEGA', "Mega", ""),
             ('SPLIT', "Split", ""),
         ),
-        update=_devices_update_callback
+        update=CyclesRenderSettings._devices_update_callback
     )
 
     debug_opencl_device_type: EnumProperty(
@@ -855,10 +856,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             ('GPU', "GPU", ""),
             ('ACCELERATOR', "Accelerator", ""),
         ),
-        update=_devices_update_callback
+        update=CyclesRenderSettings._devices_update_callback
     )
-
-    del _devices_update_callback
 
     debug_use_opencl_debug: BoolProperty(name="Debug OpenCL", default=False)
 
@@ -1481,7 +1480,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     compute_device_type: EnumProperty(
         name="Compute Device Type",
         description="Device to use for computation (rendering with Cycles)",
-        items=get_device_types,
+        items=CyclesPreferences.get_device_types,
     )
 
     devices: bpy.props.CollectionProperty(type=CyclesDeviceSettings)

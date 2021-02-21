@@ -52,7 +52,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Island Creation
- *
  * \{ */
 
 void transform_convert_mesh_islands_calc(struct BMEditMesh *em,
@@ -248,7 +247,6 @@ void transform_convert_mesh_islanddata_free(struct TransIslandData *island_data)
 
 /* -------------------------------------------------------------------- */
 /** \name Connectivity Distance for Proportional Editing
- *
  * \{ */
 
 /* Propagate distance from v1 and v2 to v0. */
@@ -453,7 +451,6 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
 
 /* -------------------------------------------------------------------- */
 /** \name TransDataMirror Creation
- *
  * \{ */
 
 /* Used for both mirror epsilon and TD_MIRROR_EDGE_ */
@@ -596,7 +593,6 @@ void transform_convert_mesh_mirrordata_free(struct TransMirrorData *mirror_data)
 
 /* -------------------------------------------------------------------- */
 /** \name Crazy Space
- *
  * \{ */
 
 /* Detect CrazySpace [tm].
@@ -702,7 +698,6 @@ void transform_convert_mesh_crazyspace_free(struct TransMeshDataCrazySpace *r_cr
 
 /* -------------------------------------------------------------------- */
 /** \name Edit Mesh Verts Transform Creation
- *
  * \{ */
 
 static void transdata_center_get(const struct TransIslandData *island_data,
@@ -1010,7 +1005,6 @@ void createTransEditVerts(TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name CustomData Layer Correction
- *
  * \{ */
 
 struct TransCustomDataMergeGroup {
@@ -1560,7 +1554,6 @@ static void mesh_customdatacorrect_restore(struct TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Recalc Mesh Data
- *
  * \{ */
 
 static void mesh_apply_to_mirror(TransInfo *t)

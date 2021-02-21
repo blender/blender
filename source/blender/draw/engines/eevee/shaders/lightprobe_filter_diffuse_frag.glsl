@@ -108,8 +108,8 @@ void main()
 
         weight = texel_solid_angle(facecoord, halfpix);
 
-        vec4 sample = textureLod(probeHdr, cubevec, lodMax);
-        sh += sample.rgb * coef * weight;
+        vec4 samp = textureLod(probeHdr, cubevec, lodMax);
+        sh += samp.rgb * coef * weight;
         weight_accum += weight;
       }
     }

@@ -246,10 +246,18 @@ TEST(string_ref, DropPrefixN)
   EXPECT_EQ(ref3, "");
 }
 
-TEST(string_ref, DropPrefix)
+TEST(string_ref, DropPrefixLargeN)
 {
   StringRef ref("test");
-  StringRef ref2 = ref.drop_prefix("tes");
+  StringRef ref2 = ref.drop_prefix(100);
+  EXPECT_EQ(ref2.size(), 0);
+  EXPECT_EQ(ref2, "");
+}
+
+TEST(string_ref, DropKnownPrefix)
+{
+  StringRef ref("test");
+  StringRef ref2 = ref.drop_known_prefix("tes");
   EXPECT_EQ(ref2.size(), 1);
   EXPECT_EQ(ref2, "t");
 }
@@ -260,6 +268,14 @@ TEST(string_ref, DropSuffix)
   StringRef ref2 = ref.drop_suffix(1);
   EXPECT_EQ(ref2.size(), 3);
   EXPECT_EQ(ref2, "tes");
+}
+
+TEST(string_ref, DropSuffixLargeN)
+{
+  StringRef ref("test");
+  StringRef ref2 = ref.drop_suffix(100);
+  EXPECT_EQ(ref2.size(), 0);
+  EXPECT_EQ(ref2, "");
 }
 
 TEST(string_ref, Substr)
@@ -298,7 +314,7 @@ TEST(string_ref, ToStringView)
   EXPECT_EQ(view, "hello");
 }
 
-TEST(string_ref, constexpr_)
+TEST(string_ref, Constexpr)
 {
   constexpr StringRef sref("World");
   BLI_STATIC_ASSERT(sref[2] == 'r', "");

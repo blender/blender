@@ -17,6 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8-80 compliant>
+from __future__ import annotations
+
 import bpy
 from bpy.types import Operator
 
@@ -156,7 +158,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             ('EXT_INT', "Exterior/Interior",
              "Use the exterior/interior radii for torus dimensions"),
         ),
-        update=mode_update_callback,
+        update=AddTorus.mode_update_callback,
     )
     major_radius: FloatProperty(
         name="Major Radius",

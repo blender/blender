@@ -22,7 +22,8 @@ void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out Cl
   result.radiance = out_Refraction_0.radiance;
 
   /* TODO(fclem) Try to not use this. */
-  result.ssr_normal = normal_encode(mat3(ViewMatrix) * in_Refraction_0.N, viewCameraVec);
+  result.ssr_normal = normal_encode(mat3(ViewMatrix) * in_Refraction_0.N,
+                                    viewCameraVec(viewPosition));
 }
 
 #else

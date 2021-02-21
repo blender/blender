@@ -34,7 +34,7 @@ float pdf_hemisphere()
 
 vec3 sample_ggx(vec3 rand, float a2)
 {
-  /* Theta is the aperture angle of the cone */
+  /* Theta is the cone angle. */
   float z = sqrt((1.0 - rand.x) / (1.0 + a2 * rand.x - rand.x)); /* cos theta */
   float r = sqrt(max(0.0, 1.0f - z * z));                        /* sin theta */
   float x = r * rand.y;

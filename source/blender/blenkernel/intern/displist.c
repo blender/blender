@@ -770,8 +770,12 @@ static ModifierData *curve_get_tessellate_point(Scene *scene,
 }
 
 /* Return true if any modifier was applied. */
-static bool curve_calc_modifiers_pre(
-    Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *nurb, const bool for_render)
+bool BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
+                                  Scene *scene,
+                                  Object *ob,
+                                  ListBase *source_nurb,
+                                  ListBase *target_nurb,
+                                  const bool for_render)
 {
   VirtualModifierData virtualModifierData;
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
@@ -810,13 +814,13 @@ static bool curve_calc_modifiers_pre(
     keyVerts = BKE_key_evaluate_object(ob, &numElems);
 
     if (keyVerts) {
-      BLI_assert(BKE_keyblock_curve_element_count(nurb) == numElems);
+      BLI_assert(BKE_keyblock_curve_element_count(source_nurb) == numElems);
 
       /* split coords from key data, the latter also includes
        * tilts, which is passed through in the modifier stack.
        * this is also the reason curves do not use a virtual
        * shape key modifier yet. */
-      deformedVerts = BKE_curve_nurbs_key_vert_coords_alloc(nurb, keyVerts, &numVerts);
+      deformedVerts = BKE_curve_nurbs_key_vert_coords_alloc(source_nurb, keyVerts, &numVerts);
     }
   }
 
@@ -832,7 +836,7 @@ static bool curve_calc_modifiers_pre(
       }
 
       if (!deformedVerts) {
-        deformedVerts = BKE_curve_nurbs_vert_coords_alloc(nurb, &numVerts);
+        deformedVerts = BKE_curve_nurbs_vert_coords_alloc(source_nurb, &numVerts);
       }
 
       mti->deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
@@ -845,11 +849,11 @@ static bool curve_calc_modifiers_pre(
   }
 
   if (deformedVerts) {
-    BKE_curve_nurbs_vert_coords_apply(nurb, deformedVerts, false);
+    BKE_curve_nurbs_vert_coords_apply(target_nurb, deformedVerts, false);
     MEM_freeN(deformedVerts);
   }
   if (keyVerts) { /* these are not passed through modifier stack */
-    BKE_curve_nurbs_key_vert_tilts_apply(nurb, keyVerts);
+    BKE_curve_nurbs_key_vert_tilts_apply(target_nurb, keyVerts);
   }
 
   if (keyVerts) {
@@ -1151,7 +1155,8 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
   }
 
   if (!for_orco) {
-    force_mesh_conversion = curve_calc_modifiers_pre(depsgraph, scene, ob, &nubase, for_render);
+    force_mesh_conversion = BKE_curve_calc_modifiers_pre(
+        depsgraph, scene, ob, &nubase, &nubase, for_render);
   }
 
   LISTBASE_FOREACH (Nurb *, nu, &nubase) {
@@ -1501,7 +1506,8 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
     }
 
     if (!for_orco) {
-      force_mesh_conversion = curve_calc_modifiers_pre(depsgraph, scene, ob, &nubase, for_render);
+      force_mesh_conversion = BKE_curve_calc_modifiers_pre(
+          depsgraph, scene, ob, &nubase, &nubase, for_render);
     }
 
     BKE_curve_bevelList_make(ob, &nubase, for_render);

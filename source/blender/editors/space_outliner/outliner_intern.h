@@ -288,19 +288,24 @@ void outliner_collection_isolate_flag(struct Scene *scene,
 int tree_element_id_type_to_index(TreeElement *te);
 
 /* outliner_select.c -------------------------------------------- */
-eOLDrawState tree_element_type_active(struct bContext *C,
-                                      const TreeViewContext *tvc,
-                                      struct SpaceOutliner *space_outliner,
-                                      TreeElement *te,
-                                      TreeStoreElem *tselem,
-                                      const eOLSetState set,
-                                      bool recursive);
-eOLDrawState tree_element_active(struct bContext *C,
-                                 const TreeViewContext *tvc,
-                                 SpaceOutliner *space_outliner,
-                                 TreeElement *te,
-                                 const eOLSetState set,
-                                 const bool handle_all_types);
+void tree_element_type_active_set(struct bContext *C,
+                                  const TreeViewContext *tvc,
+                                  TreeElement *te,
+                                  TreeStoreElem *tselem,
+                                  const eOLSetState set,
+                                  bool recursive);
+eOLDrawState tree_element_type_active_state_get(const struct bContext *C,
+                                                const struct TreeViewContext *tvc,
+                                                const TreeElement *te,
+                                                const TreeStoreElem *tselem);
+void tree_element_activate(struct bContext *C,
+                           const TreeViewContext *tvc,
+                           TreeElement *te,
+                           const eOLSetState set,
+                           const bool handle_all_types);
+eOLDrawState tree_element_active_state_get(const TreeViewContext *tvc,
+                                           const TreeElement *te,
+                                           const TreeStoreElem *tselem);
 
 struct bPoseChannel *outliner_find_parent_bone(TreeElement *te, TreeElement **r_bone_te);
 

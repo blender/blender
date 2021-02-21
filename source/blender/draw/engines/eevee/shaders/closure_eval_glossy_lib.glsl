@@ -45,7 +45,11 @@ ClosureEvalGlossy closure_Glossy_eval_init(inout ClosureInputGlossy cl_in,
   ClosureEvalGlossy cl_eval;
   cl_eval.ltc_mat = texture(utilTex, vec3(lut_uv, LTC_MAT_LAYER));
   cl_eval.probe_sampling_dir = specular_dominant_dir(cl_in.N, cl_common.V, sqr(cl_in.roughness));
-  cl_eval.spec_occlusion = specular_occlusion(NV, cl_common.occlusion, cl_in.roughness);
+  cl_eval.spec_occlusion = specular_occlusion(cl_common.occlusion_data,
+                                              cl_common.V,
+                                              cl_common.N,
+                                              cl_in.roughness,
+                                              cl_eval.probe_sampling_dir);
   cl_eval.raytrace_radiance = vec3(0.0);
 
 #ifdef STEP_RESOLVE /* SSR */
@@ -80,13 +84,13 @@ void closure_Glossy_planar_eval(ClosureInputGlossy cl_in,
                                 inout ClosureOutputGlossy cl_out)
 {
 #ifndef STEP_RESOLVE /* SSR already evaluates planar reflections. */
+  float attenuation = planar.attenuation * probe_attenuation_planar_normal_roughness(
+                                               planar.data, cl_in.N, cl_in.roughness);
+
   vec3 probe_radiance = probe_evaluate_planar(
       planar.id, planar.data, cl_common.P, cl_in.N, cl_common.V, cl_in.roughness);
-  cl_out.radiance += planar.attenuation * probe_radiance;
-#else
-  /* HACK: Fix an issue with planar reflections still being counted inside the specular
-   * accumulator. This only works because we only use one Glossy closure in the resolve pass. */
-  cl_common.specular_accum += planar.attenuation;
+
+  cl_out.radiance = mix(cl_out.radiance, probe_radiance, attenuation);
 #endif
 }
 

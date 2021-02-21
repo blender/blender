@@ -321,37 +321,36 @@ class StringRef : public StringRefBase {
   }
 
   /**
-   * Returns a new StringRef that does not contain the first n chars.
-   *
-   * This is similar to std::string_view::remove_prefix.
+   * Returns a new StringRef that does not contain the first n chars. This invokes undefined
+   * behavior when n is negative.
    */
   constexpr StringRef drop_prefix(const int64_t n) const
   {
     BLI_assert(n >= 0);
-    BLI_assert(n <= size_);
-    return StringRef(data_ + n, size_ - n);
+    const int64_t clamped_n = std::min(n, size_);
+    const int64_t new_size = size_ - clamped_n;
+    return StringRef(data_ + clamped_n, new_size);
   }
 
   /**
    * Return a new StringRef with the given prefix being skipped. This invokes undefined behavior if
    * the string does not begin with the given prefix.
    */
-  constexpr StringRef drop_prefix(StringRef prefix) const
+  constexpr StringRef drop_known_prefix(StringRef prefix) const
   {
     BLI_assert(this->startswith(prefix));
     return this->drop_prefix(prefix.size());
   }
 
   /**
-   * Return a new StringRef that does not contain the last n chars.
-   *
-   * This is similar to std::string_view::remove_suffix.
+   * Return a new StringRef that does not contain the last n chars. This invokes undefined behavior
+   * when n is negative.
    */
   constexpr StringRef drop_suffix(const int64_t n) const
   {
     BLI_assert(n >= 0);
-    BLI_assert(n <= size_);
-    return StringRef(data_, size_ - n);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return StringRef(data_, new_size);
   }
 
   /**
@@ -460,7 +459,8 @@ constexpr inline bool StringRefBase::endswith(StringRef suffix) const
 }
 
 /**
- * Return a new #StringRef containing only a sub-string of the original string.
+ * Return a new #StringRef containing only a sub-string of the original string. This invokes
+ * undefined if the start or max_size is negative.
  */
 constexpr inline StringRef StringRefBase::substr(const int64_t start,
                                                  const int64_t max_size = INT64_MAX) const

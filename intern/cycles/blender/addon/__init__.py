@@ -15,6 +15,7 @@
 #
 
 # <pep8 compliant>
+from __future__ import annotations
 
 bl_info = {
     "name": "Cycles Render Engine",

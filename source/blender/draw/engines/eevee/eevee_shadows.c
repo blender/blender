@@ -412,4 +412,4 @@ void EEVEE_shadow_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_D
   }
 }
 
-/* \} */
+/** \} */

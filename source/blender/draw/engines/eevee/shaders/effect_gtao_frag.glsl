@@ -26,60 +26,99 @@ uniform sampler2D depthBuffer;
 
 #endif
 
-uniform float rotationOffset;
+/* Similar to https://atyuwen.github.io/posts/normal-reconstruction/.
+ * This samples the depth buffer 4 time for each direction to get the most correct
+ * implicit normal reconstruction out of the depth buffer. */
+vec3 view_position_derivative_from_depth(vec2 uvs, vec2 ofs, vec3 vP, float depth_center)
+{
+  vec2 uv1 = uvs - ofs * 2.0;
+  vec2 uv2 = uvs - ofs;
+  vec2 uv3 = uvs + ofs;
+  vec2 uv4 = uvs + ofs * 2.0;
+  vec4 H;
+  H.x = gtao_textureLod(gtao_depthBuffer, uv1, 0.0).r;
+  H.y = gtao_textureLod(gtao_depthBuffer, uv2, 0.0).r;
+  H.z = gtao_textureLod(gtao_depthBuffer, uv3, 0.0).r;
+  H.w = gtao_textureLod(gtao_depthBuffer, uv4, 0.0).r;
+  /* Fix issue with depth precision. Take even larger diff. */
+  vec4 diff = abs(vec4(depth_center, H.yzw) - H.x);
+  if (max_v4(diff) < 2.4e-7 && all(lessThan(diff.xyz, diff.www))) {
+    return 0.25 * (get_view_space_from_depth(uv3, H.w) - get_view_space_from_depth(uv1, H.x));
+  }
+  /* Simplified (H.xw + 2.0 * (H.yz - H.xw)) - depth_center */
+  vec2 deltas = abs((2.0 * H.yz - H.xw) - depth_center);
+  if (deltas.x < deltas.y) {
+    return vP - get_view_space_from_depth(uv2, H.y);
+  }
+  else {
+    return get_view_space_from_depth(uv3, H.z) - vP;
+  }
+}
+
+/* TODO(fclem) port to a common place for other effects to use. */
+bool reconstruct_view_position_and_normal_from_depth(vec2 texel, out vec3 vP, out vec3 vNg)
+{
+  vec2 texel_size = 1.0 / vec2(textureSize(gtao_depthBuffer, 0).xy);
+  vec2 uvs = gl_FragCoord.xy * texel_size;
+  float depth_center = gtao_textureLod(gtao_depthBuffer, uvs, 0.0).r;
+
+  /* Background case. */
+  if (depth_center == 1.0) {
+    return false;
+  }
+
+  vP = get_view_space_from_depth(uvs, depth_center);
+
+  vec3 dPdx = view_position_derivative_from_depth(uvs, texel_size * vec2(1, 0), vP, depth_center);
+  vec3 dPdy = view_position_derivative_from_depth(uvs, texel_size * vec2(0, 1), vP, depth_center);
+
+  vNg = safe_normalize(cross(dPdx, dPdy));
+
+  return true;
+}
 
 #ifdef DEBUG_AO
 
+in vec4 uvcoordsvar;
+
 void main()
 {
-  vec2 texel_size = 1.0 / vec2(textureSize(depthBuffer, 0)).xy;
-  vec2 uvs = saturate(gl_FragCoord.xy * texel_size);
+  vec3 vP, vNg;
 
-  float depth = textureLod(depthBuffer, uvs, 0.0).r;
+  if (!reconstruct_view_position_and_normal_from_depth(gl_FragCoord.xy, vP, vNg)) {
+    /* Handle Background case. Prevent artifact due to uncleared Horizon Render Target. */
+    FragColor = vec4(0.0);
+  }
+  else {
+    vec3 P = transform_point(ViewMatrixInverse, vP);
+    vec3 V = cameraVec(P);
+    vec3 vV = viewCameraVec(vP);
+    vec3 vN = normal_decode(texture(normalBuffer, uvcoordsvar.xy).rg, vV);
+    vec3 N = transform_direction(ViewMatrixInverse, vN);
+    vec3 Ng = transform_direction(ViewMatrixInverse, vNg);
 
-  vec3 viewPosition = get_view_space_from_depth(uvs, depth);
-  vec3 V = viewCameraVec;
-  vec3 normal = normal_decode(texture(normalBuffer, uvs).rg, V);
+    OcclusionData data = occlusion_load(vP, 1.0);
 
-  vec3 bent_normal;
-  float visibility;
+    float visibility = diffuse_occlusion(data, V, N, Ng);
 
-  vec4 noise = texelfetch_noise_tex(gl_FragCoord.xy);
-
-  gtao_deferred(normal, noise, depth, visibility, bent_normal);
-
-  /* Handle Background case. Prevent artifact due to uncleared Horizon Render Target. */
-  FragColor = vec4((depth == 1.0) ? 0.0 : visibility);
+    FragColor = vec4(visibility);
+  }
 }
 
 #else
 
 void main()
 {
-  vec2 uvs = saturate(gl_FragCoord.xy / vec2(textureSize(gtao_depthBuffer, 0).xy));
+  vec2 uvs = gl_FragCoord.xy / vec2(textureSize(gtao_depthBuffer, 0).xy);
   float depth = gtao_textureLod(gtao_depthBuffer, uvs, 0.0).r;
+  vec3 vP = get_view_space_from_depth(uvs, depth);
 
-  if (depth == 1.0) {
-    /* Do not trace for background */
-    FragColor = vec4(0.0);
-    return;
+  OcclusionData data = NO_OCCLUSION_DATA;
+  /* Do not trace for background */
+  if (depth != 1.0) {
+    data = occlusion_search(vP, maxzBuffer, aoDistance, 0.0, 8.0);
   }
 
-  /* Avoid self shadowing. */
-  depth = saturate(depth - 3e-6); /* Tweaked for 24bit depth buffer. */
-
-  vec3 viewPosition = get_view_space_from_depth(uvs, depth);
-  vec4 noise = texelfetch_noise_tex(gl_FragCoord.xy);
-  vec2 max_dir = get_max_dir(viewPosition.z);
-  vec4 dirs;
-  dirs.xy = get_ao_dir(noise.x * 0.5);
-  dirs.zw = get_ao_dir(noise.x * 0.5 + 0.5);
-
-  /* Search in 4 directions. */
-  FragColor.xy = search_horizon_sweep(dirs.xy, viewPosition, uvs, noise.y, max_dir);
-  FragColor.zw = search_horizon_sweep(dirs.zw, viewPosition, uvs, noise.y, max_dir);
-
-  /* Resize output for integer texture. */
-  FragColor = pack_horizons(FragColor);
+  FragColor = pack_occlusion_data(data);
 }
 #endif
