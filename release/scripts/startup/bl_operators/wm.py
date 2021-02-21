@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+from __future__ import annotations
 
 import bpy
 from bpy.types import (
@@ -859,9 +860,7 @@ class WM_OT_url_open_preset(Operator):
 
     type: EnumProperty(
         name="Site",
-        items=lambda self, _context: (
-            item for (item, _) in WM_OT_url_open_preset.preset_items
-        ),
+        items=WM_OT_url_open_preset._preset_items,
     )
 
     id: StringProperty(
@@ -915,6 +914,10 @@ class WM_OT_url_open_preset(Operator):
           "Lists committers to Blender's source code"),
          "https://www.blender.org/about/credits/"),
     ]
+
+    @staticmethod
+    def _preset_items(_self, _context):
+        return (item for (item, _) in WM_OT_url_open_preset.preset_items)
 
     def execute(self, context):
         url = None

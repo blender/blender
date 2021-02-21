@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8-80 compliant>
+from __future__ import annotations
 
 __all__ = (
     "add_object_align_init",
@@ -180,7 +181,7 @@ class AddObjectHelper:
             ('CURSOR', "3D Cursor", "Use the 3D cursor orientation for the new object"),
         ),
         default='WORLD',
-        update=align_update_callback,
+        update=AddObjectHelper.align_update_callback,
     )
     location: FloatVectorProperty(
         name="Location",

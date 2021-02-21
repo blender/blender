@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8-80 compliant>
+from __future__ import annotations
 
 import bpy
 import nodeitems_utils
@@ -218,7 +219,7 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
     node_item: EnumProperty(
         name="Node Type",
         description="Node type",
-        items=node_enum_items,
+        items=NODE_OT_add_search.node_enum_items,
     )
 
     def execute(self, context):

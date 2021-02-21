@@ -227,6 +227,20 @@ static PyObject *bpy_prop_deferred_repr(BPy_PropDeferred *self)
   return PyUnicode_FromFormat("<%.200s, %R, %R>", Py_TYPE(self)->tp_name, self->fn, self->kw);
 }
 
+/**
+ * HACK: needed by `typing.get_type_hints`
+ * with `from __future__ import annotations` enabled or when using Python 3.10 or newer.
+ *
+ * When callable this object type passes the test for being an acceptable annotation.
+ */
+static PyObject *bpy_prop_deferred_call(BPy_PropDeferred *UNUSED(self),
+                                        PyObject *UNUSED(args),
+                                        PyObject *UNUSED(kw))
+{
+  /* Dummy value. */
+  Py_RETURN_NONE;
+}
+
 /* Get/Set Items. */
 
 /**
@@ -257,7 +271,6 @@ static PyGetSetDef bpy_prop_deferred_getset[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-
 PyTypeObject bpy_prop_deferred_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
 
@@ -265,6 +278,7 @@ PyTypeObject bpy_prop_deferred_Type = {
     .tp_basicsize = sizeof(BPy_PropDeferred),
     .tp_dealloc = (destructor)bpy_prop_deferred_dealloc,
     .tp_repr = (reprfunc)bpy_prop_deferred_repr,
+    .tp_call = (ternaryfunc)bpy_prop_deferred_call,
 
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
 

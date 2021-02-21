@@ -80,6 +80,15 @@
 #define USE_MATHUTILS
 #define USE_STRING_COERCE
 
+/**
+ * This _must_ be enabled to support Python 3.10's postponed annotations,
+ * `from __future__ import annotations`.
+ *
+ * This has the disadvantage of evaluating strings at run-time, in the future we might be able to
+ * reinstate the older, more efficient logic using descriptors, see: pep-0649
+ */
+#define USE_POSTPONED_ANNOTATIONS
+
 /* Unfortunately Python needs to hold a global reference to the context.
  * If we remove this is means `bpy.context` won't be usable from some parts of the code:
  * `bpy.app.handler` callbacks for example.
@@ -7935,6 +7944,65 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
   return 0;
 }
 
+/**
+ * Extract `__annotations__` using `typing.get_type_hints` which handles the delayed evaluation.
+ */
+static int pyrna_deferred_register_class_from_type_hints(StructRNA *srna, PyTypeObject *py_class)
+{
+  PyObject *annotations_dict = NULL;
+
+  /* `typing.get_type_hints(py_class)` */
+  {
+    PyObject *typing_mod = PyImport_ImportModuleLevel("typing", NULL, NULL, NULL, 0);
+    if (typing_mod != NULL) {
+      PyObject *get_type_hints_fn = PyObject_GetAttrString(typing_mod, "get_type_hints");
+      if (get_type_hints_fn != NULL) {
+        PyObject *args = PyTuple_New(1);
+
+        PyTuple_SET_ITEM(args, 0, (PyObject *)py_class);
+        Py_INCREF(py_class);
+
+        annotations_dict = PyObject_CallObject(get_type_hints_fn, args);
+
+        Py_DECREF(args);
+        Py_DECREF(get_type_hints_fn);
+      }
+      Py_DECREF(typing_mod);
+    }
+  }
+
+  int ret = 0;
+  if (annotations_dict != NULL) {
+    if (PyDict_CheckExact(annotations_dict)) {
+      PyObject *item, *key;
+      Py_ssize_t pos = 0;
+
+      while (PyDict_Next(annotations_dict, &pos, &key, &item)) {
+        ret = deferred_register_prop(srna, key, item);
+        if (ret != 0) {
+          break;
+        }
+      }
+    }
+    else {
+      /* Should never happen, an error wont have been raised, so raise one. */
+      PyErr_Format(PyExc_TypeError,
+                   "typing.get_type_hints returned: %.200s, expected dict\n",
+                   Py_TYPE(annotations_dict)->tp_name);
+      ret = -1;
+    }
+
+    Py_DECREF(annotations_dict);
+  }
+  else {
+    BLI_assert(PyErr_Occurred());
+    fprintf(stderr, "typing.get_type_hints failed with: %.200s\n", py_class->tp_name);
+    ret = -1;
+  }
+
+  return ret;
+}
+
 static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 {
   PyObject *annotations_dict;
@@ -7999,6 +8067,15 @@ int pyrna_deferred_register_class(StructRNA *srna, PyTypeObject *py_class)
     return 0;
   }
 
+#ifdef USE_POSTPONED_ANNOTATIONS
+  const bool use_postponed_annotations = true;
+#else
+  const bool use_postponed_annotations = false;
+#endif
+
+  if (use_postponed_annotations) {
+    return pyrna_deferred_register_class_from_type_hints(srna, py_class);
+  }
   return pyrna_deferred_register_class_recursive(srna, py_class);
 }
 
