@@ -2479,10 +2479,10 @@ class WM_OT_batch_rename(Operator):
         return wm.invoke_props_dialog(self, width=400)
 
 
-class WM_MT_splash(Menu):
-    bl_label = "Splash"
+class WM_MT_splash_quick_setup(Menu):
+    bl_label = "Quick Setup"
 
-    def draw_setup(self, context):
+    def draw(self, context):
         wm = context.window_manager
         # prefs = context.preferences
 
@@ -2570,18 +2570,11 @@ class WM_MT_splash(Menu):
         layout.separator()
         layout.separator()
 
+
+class WM_MT_splash(Menu):
+    bl_label = "Splash"
+
     def draw(self, context):
-        # Draw setup screen if no preferences have been saved yet.
-        import os
-
-        userconfig_path = bpy.utils.user_resource('CONFIG')
-        userdef_path = os.path.join(userconfig_path, "userpref.blend")
-
-        if not os.path.isfile(userdef_path):
-            self.draw_setup(context)
-            return
-
-        # Pass
         layout = self.layout
         layout.operator_context = 'EXEC_DEFAULT'
         layout.emboss = 'PULLDOWN_MENU'
@@ -2730,6 +2723,7 @@ classes = (
     WM_OT_toolbar_prompt,
     BatchRenameAction,
     WM_OT_batch_rename,
+    WM_MT_splash_quick_setup,
     WM_MT_splash,
     WM_MT_splash_about,
 )

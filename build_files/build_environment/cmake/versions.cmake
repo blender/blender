@@ -47,9 +47,9 @@ set(PTHREADS_VERSION 3.0.0)
 set(PTHREADS_URI http://sourceforge.mirrorservice.org/p/pt/pthreads4w/pthreads4w-code-v${PTHREADS_VERSION}.zip)
 set(PTHREADS_HASH f3bf81bb395840b3446197bcf4ecd653)
 
-set(OPENEXR_VERSION 2.4.0)
+set(OPENEXR_VERSION 2.5.5)
 set(OPENEXR_URI https://github.com/AcademySoftwareFoundation/openexr/archive/v${OPENEXR_VERSION}.tar.gz)
-set(OPENEXR_HASH 9e4d69cf2a12c6fb19b98af7c5e0eaee)
+set(OPENEXR_HASH 85e8a979092c9055d10ed103062d31a0)
 if(WIN32)
   # Openexr started appending _d on its own so now
   # we need to tell the build the postfix is _s while

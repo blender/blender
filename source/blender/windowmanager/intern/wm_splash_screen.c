@@ -226,7 +226,26 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
                                      0,
                                      style);
 
-  MenuType *mt = WM_menutype_find("WM_MT_splash", true);
+  MenuType *mt;
+  char userpref[FILE_MAX];
+  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
+
+  if (cfgdir) {
+    BLI_path_join(userpref, sizeof(userpref), cfgdir, BLENDER_USERPREF_FILE, NULL);
+  }
+
+  /* Draw setup screen if no preferences have been saved yet. */
+  if (!BLI_exists(userpref)) {
+    mt = WM_menutype_find("WM_MT_splash_quick_setup", true);
+
+    /* The UI_BLOCK_QUICK_SETUP flag prevents the button text from being left-aligned,
+       as it is for all menus due to the UI_BLOCK_LOOP flag, see in 'ui_def_but'. */
+    UI_block_flag_enable(block, UI_BLOCK_QUICK_SETUP);
+  }
+  else {
+    mt = WM_menutype_find("WM_MT_splash", true);
+  }
+
   if (mt) {
     UI_menutype_draw(C, mt, layout);
   }
