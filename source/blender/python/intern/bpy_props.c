@@ -227,6 +227,37 @@ static PyObject *bpy_prop_deferred_repr(BPy_PropDeferred *self)
   return PyUnicode_FromFormat("<%.200s, %R, %R>", Py_TYPE(self)->tp_name, self->fn, self->kw);
 }
 
+/* Get/Set Items. */
+
+/**
+ * Expose the function in case scripts need to introspect this information
+ * (not currently used by Blender it's self).
+ */
+static PyObject *bpy_prop_deferred_function_get(BPy_PropDeferred *self, void *UNUSED(closure))
+{
+  PyObject *ret = self->fn;
+  Py_IncRef(ret);
+  return ret;
+}
+
+/**
+ * Expose keywords in case scripts need to introspect this information
+ * (not currently used by Blender it's self).
+ */
+static PyObject *bpy_prop_deferred_keywords_get(BPy_PropDeferred *self, void *UNUSED(closure))
+{
+  PyObject *ret = self->kw;
+  Py_IncRef(ret);
+  return ret;
+}
+
+static PyGetSetDef bpy_prop_deferred_getset[] = {
+    {"function", (getter)bpy_prop_deferred_function_get, (setter)NULL, NULL, NULL},
+    {"keywords", (getter)bpy_prop_deferred_keywords_get, (setter)NULL, NULL, NULL},
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+
 PyTypeObject bpy_prop_deferred_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
 
@@ -239,6 +270,8 @@ PyTypeObject bpy_prop_deferred_Type = {
 
     .tp_traverse = (traverseproc)bpy_prop_deferred_traverse,
     .tp_clear = (inquiry)bpy_prop_deferred_clear,
+
+    .tp_getset = bpy_prop_deferred_getset,
 };
 
 static PyObject *bpy_prop_deferred_data_CreatePyObject(PyObject *fn, PyObject *kw)
