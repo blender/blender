@@ -621,8 +621,8 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   }
 
   /* set temporary new size */
-  tgpf->bwinx = tgpf->region->sizex;
-  tgpf->bwiny = tgpf->region->sizey;
+  tgpf->bwinx = tgpf->region->winx;
+  tgpf->bwiny = tgpf->region->winy;
   tgpf->brect = tgpf->region->winrct;
 
   /* resize region */
