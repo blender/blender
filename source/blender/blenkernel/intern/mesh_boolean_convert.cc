@@ -821,11 +821,12 @@ Mesh *BKE_mesh_boolean(const Mesh **meshes,
 
 #else
 Mesh *BKE_mesh_boolean(const Mesh **UNUSED(meshes),
-                       const Object **UNUSED(objects),
+                       const float (*obmats[])[4][4],
                        const int UNUSED(meshes_len),
                        const bool UNUSED(use_self),
                        const int UNUSED(boolean_mode))
 {
+  UNUSED_VARS(obmats);
   return NULL;
 }
 
