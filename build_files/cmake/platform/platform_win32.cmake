@@ -119,6 +119,7 @@ string(APPEND CMAKE_MODULE_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
 list(APPEND PLATFORM_LINKLIBS
   ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 Comctl32 version
   advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp Shlwapi
+  pathcch
 )
 
 if(WITH_INPUT_IME)
@@ -791,7 +792,14 @@ if(WITH_XR_OPENXR)
     set(XR_OPENXR_SDK ${LIBDIR}/xr_openxr_sdk)
     set(XR_OPENXR_SDK_LIBPATH ${LIBDIR}/xr_openxr_sdk/lib)
     set(XR_OPENXR_SDK_INCLUDE_DIR ${XR_OPENXR_SDK}/include)
-    set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
+    # This is the old name of this library, it is checked to
+    # support the transition between the old and new lib versions
+    # this can be removed after the next lib update.
+    if(EXISTS ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
+      set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
+    else()
+      set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loaderd.lib)
+    endif()
   else()
     message(WARNING "OpenXR-SDK was not found, disabling WITH_XR_OPENXR")
     set(WITH_XR_OPENXR OFF)
