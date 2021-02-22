@@ -2039,11 +2039,10 @@ class _defs_gpencil_paint:
     def interpolate():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("gpencil.interpolate")
-            row = layout.row()
-            row.prop(props, "layers")
-            row.prop(props, "flip")
-            row.prop(props, "smooth_factor")
-            row.prop(props, "smooth_steps")
+            layout.prop(props, "layers")
+            layout.prop(props, "flip")
+            layout.prop(props, "smooth_factor")
+            layout.prop(props, "smooth_steps")
 
         return dict(
             idname="builtin.interpolate",
@@ -2222,12 +2221,11 @@ class _defs_gpencil_edit:
     def interpolate():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("gpencil.interpolate")
-            row = layout.row()
-            row.prop(props, "layers")
-            row.prop(props, "interpolate_selected_only")
-            row.prop(props, "flip")
-            row.prop(props, "smooth_factor")
-            row.prop(props, "smooth_steps")
+            layout.prop(props, "layers")
+            layout.prop(props, "interpolate_selected_only")
+            layout.prop(props, "flip")
+            layout.prop(props, "smooth_factor")
+            layout.prop(props, "smooth_steps")
 
         return dict(
             idname="builtin.interpolate",
