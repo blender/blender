@@ -144,7 +144,7 @@ typedef struct MovieClipScopes {
   struct ImBuf *track_search;
   /** #ImBuf displayed in track preview. */
   struct ImBuf *track_preview;
-  /** Sub-pizel position of marker in track ImBuf. */
+  /** Sub-pixel position of marker in track ImBuf. */
   float track_pos[2];
   /** Active track is disabled, special notifier should be drawn. */
   short track_disabled;
