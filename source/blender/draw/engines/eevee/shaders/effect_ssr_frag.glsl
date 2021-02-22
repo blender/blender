@@ -569,6 +569,8 @@ void main()
     discard;
   }
 
+  FragDepth = depth;
+
   viewPosition = get_view_space_from_depth(uvcoordsvar.xy, depth);
   worldPosition = transform_point(ViewMatrixInverse, viewPosition);
 
