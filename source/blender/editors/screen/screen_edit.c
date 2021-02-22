@@ -1441,7 +1441,16 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
 
   switch (display_type) {
     case USER_TEMP_SPACE_DISPLAY_WINDOW:
-      if (WM_window_open_temp(C, title, x, y, sizex, sizey, (int)space_type, dialog)) {
+      if (WM_window_open(C,
+                         title,
+                         x,
+                         y,
+                         sizex,
+                         sizey,
+                         (int)space_type,
+                         dialog,
+                         true,
+                         WIN_ALIGN_LOCATION_CENTER)) {
         area = CTX_wm_area(C);
       }
       break;

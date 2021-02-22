@@ -1332,67 +1332,46 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
 /* operator callback */
 static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Main *bmain = CTX_data_main(C);
-  wmWindow *win = CTX_wm_window(C);
-  WorkSpace *workspace = WM_window_get_active_workspace(win);
-  WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
-
-  Scene *scene = CTX_data_scene(C);
   ScrArea *area = CTX_wm_area(C);
 
-  /* XXX hrmf! */
-  if (event->type == EVT_ACTIONZONE_AREA) {
+  if (event && event->customdata) {
     sActionzoneData *sad = event->customdata;
-
     if (sad == NULL) {
       return OPERATOR_PASS_THROUGH;
     }
-
     area = sad->sa1;
   }
 
-  /* adds window to WM */
-  rcti rect = area->totrct;
-  BLI_rcti_translate(&rect, win->posx, win->posy);
-  rect.xmax = rect.xmin + BLI_rcti_size_x(&rect);
-  rect.ymax = rect.ymin + BLI_rcti_size_y(&rect);
+  /* Create new window. No need to set space_type since it will be copied over. */
+  wmWindow *newwin = WM_window_open(C,
+                                    "Blender",
+                                    area->totrct.xmin,
+                                    area->totrct.ymin,
+                                    area->winx,
+                                    area->winy,
+                                    SPACE_EMPTY,
+                                    true,
+                                    false,
+                                    WIN_ALIGN_ABSOLUTE);
 
-  wmWindow *newwin = WM_window_open(C, &rect);
-  if (newwin == NULL) {
+  if (newwin) {
+    /* copy area to new screen */
+    bScreen *newsc = WM_window_get_active_screen(newwin);
+    ED_area_data_copy((ScrArea *)newsc->areabase.first, area, true);
+    ED_area_tag_redraw((ScrArea *)newsc->areabase.first);
+
+    /* screen, areas init */
+    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+  }
+  else {
     BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
-    goto finally;
   }
 
-  *newwin->stereo3d_format = *win->stereo3d_format;
-
-  newwin->scene = scene;
-
-  STRNCPY(newwin->view_layer_name, win->view_layer_name);
-
-  BKE_workspace_active_set(newwin->workspace_hook, workspace);
-  /* allocs new screen and adds to newly created window, using window size */
-  WorkSpaceLayout *layout_new = ED_workspace_layout_add(
-      bmain, workspace, newwin, BKE_workspace_layout_name_get(layout_old));
-  bScreen *newsc = BKE_workspace_layout_screen_get(layout_new);
-  WM_window_set_active_layout(newwin, workspace, layout_new);
-
-  /* copy area to new screen */
-  ED_area_data_copy((ScrArea *)newsc->areabase.first, area, true);
-
-  ED_area_tag_redraw((ScrArea *)newsc->areabase.first);
-
-  /* screen, areas init */
-  WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
-
-finally:
-  if (event->type == EVT_ACTIONZONE_AREA) {
+  if (event && event->customdata) {
     actionzone_exit(op);
   }
 
-  if (newwin) {
-    return OPERATOR_FINISHED;
-  }
-  return OPERATOR_CANCELLED;
+  return newwin ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static void SCREEN_OT_area_dupli(wmOperatorType *ot)
@@ -4866,14 +4845,16 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
   int sizey = 520 * UI_DPI_FAC;
 
   /* changes context! */
-  if (WM_window_open_temp(C,
-                          IFACE_("Blender Preferences"),
-                          event->x,
-                          event->y,
-                          sizex,
-                          sizey,
-                          SPACE_USERPREF,
-                          false) != NULL) {
+  if (WM_window_open(C,
+                     IFACE_("Blender Preferences"),
+                     event->x,
+                     event->y,
+                     sizex,
+                     sizey,
+                     SPACE_USERPREF,
+                     false,
+                     true,
+                     WIN_ALIGN_LOCATION_CENTER) != NULL) {
     /* The header only contains the editor switcher and looks empty.
      * So hiding in the temp window makes sense. */
     ScrArea *area = CTX_wm_area(C);
@@ -4925,14 +4906,16 @@ static int drivers_editor_show_exec(bContext *C, wmOperator *op)
   uiBut *but = UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   /* changes context! */
-  if (WM_window_open_temp(C,
-                          IFACE_("Blender Drivers Editor"),
-                          event->x,
-                          event->y,
-                          sizex,
-                          sizey,
-                          SPACE_GRAPH,
-                          false) != NULL) {
+  if (WM_window_open(C,
+                     IFACE_("Blender Drivers Editor"),
+                     event->x,
+                     event->y,
+                     sizex,
+                     sizey,
+                     SPACE_GRAPH,
+                     false,
+                     true,
+                     WIN_ALIGN_LOCATION_CENTER) != NULL) {
     ED_drivers_editor_init(C, CTX_wm_area(C));
 
     /* activate driver F-Curve for the property under the cursor */
@@ -4991,14 +4974,16 @@ static int info_log_show_exec(bContext *C, wmOperator *op)
   int shift_y = 480;
 
   /* changes context! */
-  if (WM_window_open_temp(C,
-                          IFACE_("Blender Info Log"),
-                          event->x,
-                          event->y + shift_y,
-                          sizex,
-                          sizey,
-                          SPACE_INFO,
-                          false) != NULL) {
+  if (WM_window_open(C,
+                     IFACE_("Blender Info Log"),
+                     event->x,
+                     event->y + shift_y,
+                     sizex,
+                     sizey,
+                     SPACE_INFO,
+                     false,
+                     true,
+                     WIN_ALIGN_LOCATION_CENTER) != NULL) {
     return OPERATOR_FINISHED;
   }
   BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
