@@ -33,7 +33,6 @@
 #include "../generic/py_capi_utils.h"
 
 #include "gpu_py.h"
-#include "gpu_py_api.h"
 #include "gpu_py_buffer.h"
 
 #include "gpu_py_texture.h" /* own include */

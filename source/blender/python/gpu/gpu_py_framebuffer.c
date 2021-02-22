@@ -34,7 +34,7 @@
 #include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
-#include "gpu_py_api.h"
+#include "gpu_py.h"
 #include "gpu_py_texture.h"
 
 #include "gpu_py_framebuffer.h" /* own include */

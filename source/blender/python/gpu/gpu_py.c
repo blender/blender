@@ -23,6 +23,7 @@
 
 #include <Python.h>
 
+#include "GPU_init_exit.h"
 #include "GPU_primitive.h"
 #include "GPU_texture.h"
 
@@ -57,4 +58,22 @@ struct PyC_StringEnumItems bpygpu_dataformat_items[] = {
     {GPU_DATA_10_11_11_REV, "10_11_11_REV"},
     {0, NULL},
 };
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
+bool bpygpu_is_init_or_error(void)
+{
+  if (!GPU_is_init()) {
+    PyErr_SetString(PyExc_SystemError,
+                    "GPU functions for drawing are not available in background mode");
+
+    return false;
+  }
+
+  return true;
+}
+
 /** \} */

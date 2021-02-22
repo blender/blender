@@ -33,7 +33,6 @@
 #include "../generic/python_utildefines.h"
 
 #include "gpu_py.h"
-#include "gpu_py_api.h"
 #include "gpu_py_element.h" /* own include */
 
 /* -------------------------------------------------------------------- */

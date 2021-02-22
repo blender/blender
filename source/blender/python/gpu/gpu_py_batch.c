@@ -39,7 +39,6 @@
 #include "../generic/py_capi_utils.h"
 
 #include "gpu_py.h"
-#include "gpu_py_api.h"
 #include "gpu_py_element.h"
 #include "gpu_py_shader.h"
 #include "gpu_py_vertex_buffer.h"
