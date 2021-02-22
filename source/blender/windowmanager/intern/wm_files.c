@@ -1398,14 +1398,8 @@ static ImBuf *blend_file_thumb(const bContext *C,
   }
 
   if (ibuf) {
-    float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
-
     /* dirty oversampling */
     IMB_scaleImBuf(ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
-
-    /* add pretty overlay */
-    IMB_thumb_overlay_blend(ibuf->rect, ibuf->x, ibuf->y, aspect);
-
     thumb = BKE_main_thumbnail_from_imbuf(NULL, ibuf);
   }
   else {
