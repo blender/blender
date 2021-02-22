@@ -151,11 +151,20 @@ static void find_used_ids_from_settings(const NodesModifierSettings &settings, S
       &ids);
 }
 
+static void add_collection_object_relations_recursive(const ModifierUpdateDepsgraphContext *ctx,
+                                                      Collection &collection);
+
 static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Object &object)
 {
   DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
   if (&(ID &)object != &ctx->object->id) {
-    if (object.type != OB_EMPTY) {
+    if (object.type == OB_EMPTY) {
+      Collection *collection_instance = object.instance_collection;
+      if (collection_instance != nullptr) {
+        add_collection_object_relations_recursive(ctx, *collection_instance);
+      }
+    }
+    else {
       DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
     }
   }
