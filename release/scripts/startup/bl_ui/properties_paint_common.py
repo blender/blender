@@ -1215,14 +1215,22 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
 
     # FIXME: tools must use their own UI drawing!
     elif brush.gpencil_tool == 'FILL':
-        row = layout.row(align=True)
-        row.prop(gp_settings, "fill_direction", text="", expand=True)
+        use_property_split_prev = layout.use_property_split
+        if compact:
+            row = layout.row(align=True)
+            row.prop(gp_settings, "fill_direction", text="", expand=True)
+        else:
+            layout.use_property_split = False
+            row = layout.row(align=True)
+            row.prop(gp_settings, "fill_direction", expand=True)
+
         row = layout.row(align=True)
         row.prop(gp_settings, "fill_factor")
         row = layout.row(align=True)
         row.prop(gp_settings, "fill_leak", text="Leak Size")
         row = layout.row(align=True)
         row.prop(brush, "size", text="Thickness")
+        layout.use_property_split = use_property_split_prev
 
     else:  # brush.gpencil_tool == 'DRAW/TINT':
         row = layout.row(align=True)
