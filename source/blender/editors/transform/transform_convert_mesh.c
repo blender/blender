@@ -306,6 +306,24 @@ static bool bmesh_test_dist_add(BMVert *v0,
   return false;
 }
 
+static bool bmesh_test_loose_edge(BMEdge *edge)
+{
+  /* Actual loose edge. */
+  if (edge->l == NULL) {
+    return true;
+  }
+
+  /* Loose edge due to hidden adjacent faces. */
+  BMIter iter;
+  BMFace *face;
+  BM_ITER_ELEM (face, &iter, edge, BM_FACES_OF_EDGE) {
+    if (BM_elem_flag_test(face, BM_ELEM_HIDDEN) == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * \param mtx: Measure distance in this space.
  * \param dists: Store the closest connected distance to selected vertices.
@@ -319,6 +337,9 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
   BLI_LINKSTACK_DECLARE(queue, BMEdge *);
 
   /* any BM_ELEM_TAG'd edge is in 'queue_next', so we don't add in twice */
+  const int tag_queued = BM_ELEM_TAG;
+  const int tag_loose = BM_ELEM_TAG_ALT;
+
   BLI_LINKSTACK_DECLARE(queue_next, BMEdge *);
 
   BLI_LINKSTACK_INIT(queue);
@@ -366,7 +387,8 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
       if (dists[i1] != FLT_MAX || dists[i2] != FLT_MAX) {
         BLI_LINKSTACK_PUSH(queue, e);
       }
-      BM_elem_flag_disable(e, BM_ELEM_TAG);
+      BM_elem_flag_disable(e, tag_queued);
+      BM_elem_flag_set(e, tag_loose, bmesh_test_loose_edge(e));
     }
   }
 
@@ -379,7 +401,7 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
       int i1 = BM_elem_index_get(v1);
       int i2 = BM_elem_index_get(v2);
 
-      if (e->l == NULL || (dists[i1] == FLT_MAX || dists[i2] == FLT_MAX)) {
+      if (BM_elem_flag_test(e, tag_loose) || (dists[i1] == FLT_MAX || dists[i2] == FLT_MAX)) {
         /* Propagate along edge from vertex with smallest to largest distance. */
         if (dists[i1] > dists[i2]) {
           SWAP(int, i1, i2);
@@ -392,16 +414,16 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
           BMEdge *e_other;
           BMIter eiter;
           BM_ITER_ELEM (e_other, &eiter, v2, BM_EDGES_OF_VERT) {
-            if (e_other != e && BM_elem_flag_test(e_other, BM_ELEM_TAG) == 0 &&
-                (e->l == NULL || e_other->l == NULL)) {
-              BM_elem_flag_enable(e_other, BM_ELEM_TAG);
+            if (e_other != e && BM_elem_flag_test(e_other, tag_queued) == 0 &&
+                (BM_elem_flag_test(e, tag_loose) || BM_elem_flag_test(e_other, tag_loose))) {
+              BM_elem_flag_enable(e_other, tag_queued);
               BLI_LINKSTACK_PUSH(queue_next, e_other);
             }
           }
         }
       }
 
-      if (e->l != NULL) {
+      if (!BM_elem_flag_test(e, tag_loose)) {
         /* Propagate across edge to vertices in adjacent faces. */
         BMLoop *l;
         BMIter liter;
@@ -417,10 +439,10 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
               BMEdge *e_other;
               BMIter eiter;
               BM_ITER_ELEM (e_other, &eiter, v_other, BM_EDGES_OF_VERT) {
-                if (e_other != e && BM_elem_flag_test(e_other, BM_ELEM_TAG) == 0 &&
-                    (e_other->l == NULL ||
+                if (e_other != e && BM_elem_flag_test(e_other, tag_queued) == 0 &&
+                    (BM_elem_flag_test(e_other, tag_loose) ||
                      dists[BM_elem_index_get(BM_edge_other_vert(e_other, v_other))] != FLT_MAX)) {
-                  BM_elem_flag_enable(e_other, BM_ELEM_TAG);
+                  BM_elem_flag_enable(e_other, tag_queued);
                   BLI_LINKSTACK_PUSH(queue_next, e_other);
                 }
               }
@@ -434,13 +456,13 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
     for (LinkNode *lnk = queue_next; lnk; lnk = lnk->next) {
       BMEdge *e_link = lnk->link;
 
-      BM_elem_flag_disable(e_link, BM_ELEM_TAG);
+      BM_elem_flag_disable(e_link, tag_queued);
     }
 
     BLI_LINKSTACK_SWAP(queue, queue_next);
 
     /* None should be tagged now since 'queue_next' is empty. */
-    BLI_assert(BM_iter_mesh_count_flag(BM_EDGES_OF_MESH, bm, BM_ELEM_TAG, true) == 0);
+    BLI_assert(BM_iter_mesh_count_flag(BM_EDGES_OF_MESH, bm, tag_queued, true) == 0);
   } while (BLI_LINKSTACK_SIZE(queue));
 
   BLI_LINKSTACK_FREE(queue);
