@@ -8267,7 +8267,7 @@ static void button_activate_exit(
       bt->flag &= ~UI_BUT_LAST_ACTIVE;
     }
 
-    block_iter->tooltipdisabled = 1;
+    block_iter->tooltipdisabled = true;
   }
 
   ui_blocks_set_tooltips(data->region, false);

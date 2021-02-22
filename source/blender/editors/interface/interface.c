@@ -988,10 +988,9 @@ bool UI_but_active_only(const bContext *C, ARegion *region, uiBlock *block, uiBu
  */
 bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *region, uiBlock *block)
 {
-
   /* Running this command before end-block has run, means buttons that open menus
    * wont have those menus correctly positioned, see T83539. */
-  BLI_assert(block->endblock != 0);
+  BLI_assert(block->endblock);
 
   bool done = false;
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
@@ -1914,7 +1913,7 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
 
   ui_update_flexible_spacing(region, block);
 
-  block->endblock = 1;
+  block->endblock = true;
 }
 
 void UI_block_end(const bContext *C, uiBlock *block)
@@ -3434,7 +3433,7 @@ void UI_blocklist_free_inactive(const bContext *C, ListBase *lb)
         UI_block_free(C, block);
       }
       else {
-        block->active = 0;
+        block->active = false;
       }
     }
   }
@@ -3451,7 +3450,7 @@ void UI_block_region_set(uiBlock *block, ARegion *region)
     oldblock = BLI_findstring(lb, block->name, offsetof(uiBlock, name));
 
     if (oldblock) {
-      oldblock->active = 0;
+      oldblock->active = false;
       oldblock->panel = NULL;
       oldblock->handle = NULL;
     }
@@ -3469,7 +3468,7 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, eU
   Scene *scene = CTX_data_scene(C);
 
   uiBlock *block = MEM_callocN(sizeof(uiBlock), "uiBlock");
-  block->active = 1;
+  block->active = true;
   block->emboss = emboss;
   block->evil_C = (void *)C; /* XXX */
 
