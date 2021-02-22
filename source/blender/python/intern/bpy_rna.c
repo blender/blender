@@ -7729,7 +7729,7 @@ static PyObject *bpy_types_module_dir(PyObject *self)
   PyObject *key, *value;
   Py_ssize_t pos = 0;
   while (PyDict_Next(submodule_dict, &pos, &key, &value)) {
-    PyList_APPEND(ret, key);
+    PyList_Append(ret, key);
   }
   return ret;
 }
