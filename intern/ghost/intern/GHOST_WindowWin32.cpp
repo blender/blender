@@ -114,8 +114,10 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   DWORD extended_style = parentwindow ? WS_EX_APPWINDOW : 0;
 
   if (dialog) {
-    style = WS_POPUPWINDOW | WS_CAPTION;
-    extended_style = WS_EX_DLGMODALFRAME | WS_EX_TOPMOST;
+    /* When we are ready to make windows of this type:
+     * style = WS_POPUPWINDOW | WS_CAPTION
+     * extended_style = WS_EX_DLGMODALFRAME | WS_EX_TOPMOST
+     */
   }
 
   /* Monitor details. */
