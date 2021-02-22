@@ -158,37 +158,16 @@ void wm_get_desktopsize(int *r_width, int *r_height)
   *r_height = uiheight;
 }
 
-/* keeps offset and size within monitor bounds */
-/* XXX solve dual screen... */
-static void wm_window_check_position(rcti *rect)
+/* keeps size within monitor bounds */
+static void wm_window_check_size(rcti *rect)
 {
   int width, height;
   wm_get_screensize(&width, &height);
-
-  if (rect->xmin < 0) {
-    rect->xmax -= rect->xmin;
-    rect->xmin = 0;
+  if (BLI_rcti_size_x(rect) > width) {
+    BLI_rcti_resize_x(rect, width);
   }
-  if (rect->ymin < 0) {
-    rect->ymax -= rect->ymin;
-    rect->ymin = 0;
-  }
-  if (rect->xmax > width) {
-    int d = rect->xmax - width;
-    rect->xmax -= d;
-    rect->xmin -= d;
-  }
-  if (rect->ymax > height) {
-    int d = rect->ymax - height;
-    rect->ymax -= d;
-    rect->ymin -= d;
-  }
-
-  if (rect->xmin < 0) {
-    rect->xmin = 0;
-  }
-  if (rect->ymin < 0) {
-    rect->ymin = 0;
+  if (BLI_rcti_size_y(rect) > height) {
+    BLI_rcti_resize_y(rect, height);
   }
 }
 
@@ -825,7 +804,7 @@ wmWindow *WM_window_open(bContext *C,
   rect.ymax = rect.ymin + sizey;
 
   /* changes rect to fit within desktop */
-  wm_window_check_position(&rect);
+  wm_window_check_size(&rect);
 
   /* Reuse temporary windows when they share the same title. */
   wmWindow *win = NULL;
