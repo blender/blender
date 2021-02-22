@@ -1005,6 +1005,9 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
         cscene, "preview_denoiser", DENOISER_NUM, DENOISER_NONE);
     denoising.start_sample = get_int(cscene, "preview_denoising_start_sample");
 
+    denoising.input_passes = (DenoiserInput)get_enum(
+        cscene, "preview_denoising_input_passes", DENOISER_INPUT_NUM, (int)denoising.input_passes);
+
     /* Auto select fastest denoiser. */
     if (denoising.type == DENOISER_NONE) {
       if (!Device::available_devices(DEVICE_MASK_OPTIX).empty()) {

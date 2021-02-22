@@ -646,6 +646,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         min=0, max=(1 << 24),
         default=1,
     )
+    preview_denoising_input_passes: EnumProperty(
+        name="Viewport Input Passes",
+        description="Passes used by the denoiser to distinguish noise from shader and geometry detail",
+        items=enum_denoising_input_passes,
+        default='RGB_ALBEDO',
+    )
 
     debug_reset_timeout: FloatProperty(
         name="Reset timeout",
@@ -1434,7 +1440,6 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         items=enum_denoising_input_passes,
         default='RGB_ALBEDO',
     )
-
     denoising_openimagedenoise_input_passes: EnumProperty(
         name="Input Passes",
         description="Passes used by the denoiser to distinguish noise from shader and geometry detail",
