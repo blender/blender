@@ -795,7 +795,7 @@ static void limits_panel_draw(const bContext *C, Panel *panel)
 
   /* Minimums. */
   col = uiLayoutColumn(layout, false);
-  row = uiLayoutRowWithHeading(col, true, IFACE_("Minumum X"));
+  row = uiLayoutRowWithHeading(col, true, IFACE_("Minimum X"));
   uiItemR(row, ptr, "use_min_x", 0, "", ICON_NONE);
   sub = uiLayoutColumn(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_min_x"));

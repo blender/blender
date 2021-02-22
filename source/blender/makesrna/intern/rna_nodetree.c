@@ -9078,7 +9078,7 @@ static void def_geo_collection_info(StructRNA *srna)
        0,
        "Relative",
        "Bring the input collection geometry into the modified object, maintaining the relative "
-       "position between the objects in the scene."},
+       "position between the objects in the scene"},
       {0, NULL, 0, NULL, NULL},
   };
 

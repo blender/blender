@@ -645,6 +645,7 @@ class SpellChecker:
         # Acronyms
         "aa", "msaa",
         "ao",
+        "aov", "aovs",
         "api",
         "apic",  # Affine Particle-In-Cell
         "asc", "cdl",
