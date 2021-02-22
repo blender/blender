@@ -50,7 +50,7 @@ shader node_principled_bsdf(string distribution = "Multiscatter GGX",
 
   float m_cdlum = luminance(BaseColor);
   color m_ctint = m_cdlum > 0.0 ? BaseColor / m_cdlum :
-                                  color(0.0, 0.0, 0.0);  // normalize lum. to isolate hue+sat
+                                  color(1.0, 1.0, 1.0);  // normalize lum. to isolate hue+sat
 
   /* rotate tangent */
   if (AnisotropicRotation != 0.0)
