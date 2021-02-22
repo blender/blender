@@ -150,8 +150,8 @@ typedef struct MovieClipScopes {
   short track_disabled;
   /** Active track is locked, no transformation should be allowed. */
   short track_locked;
-  /** Frame number scopes are created for. */
-  int framenr;
+  /** Frame number scopes are created for (measured in scene frames). */
+  int scene_framenr;
   /** Track scopes are created for. */
   struct MovieTrackingTrack *track;
   /** Marker scopes are created for. */

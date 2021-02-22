@@ -1728,7 +1728,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
   scopes->track = NULL;
   scopes->track_locked = true;
 
-  scopes->framenr = user->framenr;
+  scopes->scene_framenr = user->framenr;
   scopes->ok = true;
 
   if (clip == NULL) {
