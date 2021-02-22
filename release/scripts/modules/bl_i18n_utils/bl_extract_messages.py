@@ -862,7 +862,7 @@ def dump_messages(do_messages, do_checks, settings):
     dump_src_messages(msgs, reports, settings)
 
     # Get strings from addons' categories.
-    for uid, label, tip in bpy.types.WindowManager.addon_filter[1]['items'](bpy.context.window_manager, bpy.context):
+    for uid, label, tip in bpy.types.WindowManager.addon_filter.keywords['items'](bpy.context.window_manager, bpy.context):
         process_msg(msgs, settings.DEFAULT_CONTEXT, label, "Add-ons' categories", reports, None, settings)
         if tip:
             process_msg(msgs, settings.DEFAULT_CONTEXT, tip, "Add-ons' categories", reports, None, settings)
