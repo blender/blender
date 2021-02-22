@@ -578,7 +578,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
      * At this point we cannot yet calculate the interpolation weights, as they depend on
      * the coordinate where interpolation is to happen, but we can allocate the needed arrays,
      * so they don't have to be allocated per-layer. */
-    cos_2d = BLI_array_alloca(cos_2d, orig_mp->totloop);
+    cos_2d = (float(*)[2])BLI_array_alloca(cos_2d, orig_mp->totloop);
     weights = Array<float>(orig_mp->totloop);
     src_blocks_ofs = Array<const void *>(orig_mp->totloop);
     get_poly2d_cos(orig_me, orig_mp, cos_2d, mim.to_obj0[orig_me_index], axis_mat);
