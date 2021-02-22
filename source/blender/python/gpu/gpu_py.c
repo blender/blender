@@ -23,6 +23,7 @@
 
 #include <Python.h>
 
+#include "GPU_primitive.h"
 #include "GPU_texture.h"
 
 #include "../generic/py_capi_utils.h"
@@ -30,8 +31,22 @@
 #include "gpu_py.h" /* own include */
 
 /* -------------------------------------------------------------------- */
-/** \name GPU Module
+/** \name GPU Enums
  * \{ */
+
+struct PyC_StringEnumItems bpygpu_primtype_items[] = {
+    {GPU_PRIM_POINTS, "POINTS"},
+    {GPU_PRIM_LINES, "LINES"},
+    {GPU_PRIM_TRIS, "TRIS"},
+    {GPU_PRIM_LINE_STRIP, "LINE_STRIP"},
+    {GPU_PRIM_LINE_LOOP, "LINE_LOOP"},
+    {GPU_PRIM_TRI_STRIP, "TRI_STRIP"},
+    {GPU_PRIM_TRI_FAN, "TRI_FAN"},
+    {GPU_PRIM_LINES_ADJ, "LINES_ADJ"},
+    {GPU_PRIM_TRIS_ADJ, "TRIS_ADJ"},
+    {GPU_PRIM_LINE_STRIP_ADJ, "LINE_STRIP_ADJ"},
+    {0, NULL},
+};
 
 struct PyC_StringEnumItems bpygpu_dataformat_items[] = {
     {GPU_DATA_FLOAT, "FLOAT"},

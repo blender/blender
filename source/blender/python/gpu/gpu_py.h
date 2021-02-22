@@ -20,4 +20,5 @@
 
 #pragma once
 
+extern struct PyC_StringEnumItems bpygpu_primtype_items[];
 extern struct PyC_StringEnumItems bpygpu_dataformat_items[];
