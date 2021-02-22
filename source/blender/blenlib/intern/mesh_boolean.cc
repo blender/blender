@@ -2618,6 +2618,7 @@ static int orig_edge_for_cdt_edge(const CDT_result<mpq_class> &cdt_out,
       int b = cdt_e_orig % cdt_out.face_edge_offset;
       /* It is the bth position within cdt input face a - 1. There is only one face, f. */
       BLI_assert(a == 1);
+      UNUSED_VARS_NDEBUG(a);
       BLI_assert(b < f->size());
       return f->edge_orig[b];
     }
