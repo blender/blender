@@ -5376,6 +5376,18 @@ class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
         op = pie.operator("sculpt.face_set_change_visibility", text='Show All')
         op.mode = 'SHOW_ALL'
 
+        op = pie.operator("sculpt.face_sets_init", text='Init by UV Seams')
+        op.mode = 'UV_SEAMS'
+
+        op = pie.operator("sculpt.face_sets_init", text='Init by Loose Parts')
+        op.mode = 'LOOSE_PARTS'
+
+        op = pie.operator("sculpt.face_sets_init", text='Init by Face Sets Boundaries')
+        op.mode = 'FACE_SET_BOUNDARIES'
+
+        op = pie.operator("sculpt.face_sets_create", text='Face Set from Selection')
+        op.mode = 'SELECTION'
+
 
 class VIEW3D_MT_wpaint_vgroup_lock_pie(Menu):
     bl_label = "Vertex Group Locks"
