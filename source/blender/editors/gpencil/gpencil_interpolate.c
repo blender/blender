@@ -198,6 +198,20 @@ static bool gpencil_stroke_need_flip(Depsgraph *depsgraph,
   gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v2b[0], &v2b[1]);
 
   if (isect_seg_seg_v2(v1a, v1b, v2a, v2b) == ISECT_LINE_LINE_CROSS) {
+    float v1[2], v2[2];
+    sub_v2_v2v2(v1, v1b, v1a);
+    sub_v2_v2v2(v2, v2b, v2a);
+    float angle = angle_v2v2(v1, v2);
+    /* For very sharp angles, check distance between extremes. */
+    if (angle < DEG2RADF(15.0f)) {
+      float dist_start = len_squared_v2v2(v1a, v1a);
+      float dist_end = len_squared_v2v2(v1a, v1b);
+      if (dist_end < dist_start) {
+        return true;
+      }
+      return false;
+    }
+
     return true;
   }
 
