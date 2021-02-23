@@ -904,6 +904,14 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Gravity", "Amount of gravity after each dab");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
+  prop = RNA_def_property(srna, "smooth_strength_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "smooth_strength_factor");
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 2.0f, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "Smooth Strength", "Factor to control the strength of alt-smooth");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
   prop = RNA_def_property(srna, "transform_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, sculpt_transform_mode_items);
   RNA_def_property_ui_text(

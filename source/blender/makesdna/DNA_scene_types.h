@@ -979,6 +979,10 @@ typedef struct Sculpt {
   int transform_mode;
   int transform_deform_target;
 
+  /* Factor to tweak the stregtn of alt-smoothing. */
+  float smooth_strength_factor;
+  char _pad0[4];
+
   int automasking_flags;
 
   /* Control tablet input */

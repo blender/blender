@@ -1758,5 +1758,12 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
       BKE_brush_default_input_curves_set(br);
     }
+
+    if (!DNA_struct_elem_find(fd->filesdna, "Sculpt", "float", "smooth_strength_factor")) {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        Sculpt *sd = scene->toolsettings->sculpt;
+        sd->smooth_strength_factor = 1.0f;
+      }
+    }
   }
 }
