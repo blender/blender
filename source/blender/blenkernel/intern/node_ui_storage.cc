@@ -23,7 +23,9 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_context.h"
 #include "BKE_node_ui_storage.hh"
+#include "BKE_object.h"
 
 static CLG_LogRef LOG = {"bke.node_ui_storage"};
 
@@ -36,6 +38,30 @@ static void ui_storage_ensure(bNodeTree &ntree)
   if (ntree.ui_storage == nullptr) {
     ntree.ui_storage = new NodeTreeUIStorage();
   }
+}
+
+const NodeUIStorage *BKE_node_tree_ui_storage_get_from_context(const bContext *C,
+                                                               const bNodeTree &ntree,
+                                                               const bNode &node)
+{
+  const NodeTreeUIStorage *ui_storage = ntree.ui_storage;
+  if (ui_storage == nullptr) {
+    return nullptr;
+  }
+
+  const Object *active_object = CTX_data_active_object(C);
+  const ModifierData *active_modifier = BKE_object_active_modifier(active_object);
+  if (active_object == nullptr || active_modifier == nullptr) {
+    return nullptr;
+  }
+
+  const NodeTreeEvaluationContext context(*active_object, *active_modifier);
+  const Map<std::string, NodeUIStorage> *storage = ui_storage->context_map.lookup_ptr(context);
+  if (storage == nullptr) {
+    return nullptr;
+  }
+
+  return storage->lookup_ptr_as(StringRef(node.name));
 }
 
 /**

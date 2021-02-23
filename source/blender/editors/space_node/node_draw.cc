@@ -81,9 +81,7 @@
 #  include "COM_compositor.h"
 #endif
 
-using blender::Map;
 using blender::Span;
-using blender::StringRef;
 using blender::Vector;
 
 extern "C" {
@@ -1254,34 +1252,10 @@ static char *node_errors_tooltip_fn(bContext *UNUSED(C), void *argN, const char 
 
 #define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
 
-static const NodeUIStorage *node_ui_storage_get_from_context(const bContext *C,
-                                                             const bNodeTree &ntree,
-                                                             const bNode &node)
-{
-  const NodeTreeUIStorage *ui_storage = ntree.ui_storage;
-  if (ui_storage == nullptr) {
-    return nullptr;
-  }
-
-  const Object *active_object = CTX_data_active_object(C);
-  const ModifierData *active_modifier = BKE_object_active_modifier(active_object);
-  if (active_object == nullptr || active_modifier == nullptr) {
-    return nullptr;
-  }
-
-  const NodeTreeEvaluationContext context(*active_object, *active_modifier);
-  const Map<std::string, NodeUIStorage> *storage = ui_storage->context_map.lookup_ptr(context);
-  if (storage == nullptr) {
-    return nullptr;
-  }
-
-  return storage->lookup_ptr_as(StringRef(node.name));
-}
-
 static void node_add_error_message_button(
     const bContext *C, bNodeTree &ntree, bNode &node, const rctf &rect, float &icon_offset)
 {
-  const NodeUIStorage *node_ui_storage = node_ui_storage_get_from_context(C, ntree, node);
+  const NodeUIStorage *node_ui_storage = BKE_node_tree_ui_storage_get_from_context(C, ntree, node);
   if (node_ui_storage == nullptr || node_ui_storage->warnings.is_empty()) {
     return;
   }
