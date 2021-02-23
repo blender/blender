@@ -934,13 +934,15 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
-  GHOST_TabletData td = GHOST_TABLET_DATA_NONE;
-
-  if (window->m_tabletInRange) {
-    td = window->getTabletData();
+  if (type == GHOST_kEventButtonDown) {
+    window->updateMouseCapture(MousePressed);
+  }
+  else if (type == GHOST_kEventButtonUp) {
+    window->updateMouseCapture(MouseReleased);
   }
 
-  return new GHOST_EventButton(system->getMilliSeconds(), type, window, mask, td);
+  return new GHOST_EventButton(
+      system->getMilliSeconds(), type, window, mask, window->getTabletData());
 }
 
 void GHOST_SystemWin32::processPointerEvent(
@@ -1476,46 +1478,36 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         // Mouse events, processed
         ////////////////////////////////////////////////////////////////////////
         case WM_LBUTTONDOWN:
-          window->updateMouseCapture(MousePressed);
           event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft);
           break;
         case WM_MBUTTONDOWN:
-          window->updateMouseCapture(MousePressed);
           event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskMiddle);
           break;
         case WM_RBUTTONDOWN:
-          window->updateMouseCapture(MousePressed);
           event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight);
           break;
         case WM_XBUTTONDOWN:
           if ((short)HIWORD(wParam) == XBUTTON1) {
-            window->updateMouseCapture(MousePressed);
             event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton4);
           }
           else if ((short)HIWORD(wParam) == XBUTTON2) {
-            window->updateMouseCapture(MousePressed);
             event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton5);
           }
           break;
         case WM_LBUTTONUP:
-          window->updateMouseCapture(MouseReleased);
           event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
           break;
         case WM_MBUTTONUP:
-          window->updateMouseCapture(MouseReleased);
           event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskMiddle);
           break;
         case WM_RBUTTONUP:
-          window->updateMouseCapture(MouseReleased);
           event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight);
           break;
         case WM_XBUTTONUP:
           if ((short)HIWORD(wParam) == XBUTTON1) {
-            window->updateMouseCapture(MouseReleased);
             event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton4);
           }
           else if ((short)HIWORD(wParam) == XBUTTON2) {
-            window->updateMouseCapture(MouseReleased);
             event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton5);
           }
           break;
