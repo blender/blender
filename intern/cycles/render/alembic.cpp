@@ -966,6 +966,8 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
     array<int> curve_first_key;
     array<int> curve_shader;
 
+    const bool is_homogenous = schema.getTopologyVariance() == kHomogenousTopology;
+
     curve_keys.reserve(position->size());
     curve_radius.reserve(position->size());
     curve_first_key.reserve(curves_num_vertices->size());
@@ -986,16 +988,21 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
         curve_radius.push_back_reserved(radius * radius_scale);
       }
 
-      curve_first_key.push_back_reserved(offset);
-      curve_shader.push_back_reserved(0);
+      if (!is_homogenous || cached_data.curve_first_key.size() == 0) {
+        curve_first_key.push_back_reserved(offset);
+        curve_shader.push_back_reserved(0);
+      }
 
       offset += num_vertices;
     }
 
     cached_data.curve_keys.add_data(curve_keys, time);
     cached_data.curve_radius.add_data(curve_radius, time);
-    cached_data.curve_first_key.add_data(curve_first_key, time);
-    cached_data.curve_shader.add_data(curve_shader, time);
+
+    if (!is_homogenous || cached_data.curve_first_key.size() == 0) {
+      cached_data.curve_first_key.add_data(curve_first_key, time);
+      cached_data.curve_shader.add_data(curve_shader, time);
+    }
   }
 
   // TODO(@kevindietrich): attributes, need example files
