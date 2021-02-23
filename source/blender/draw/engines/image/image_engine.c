@@ -113,7 +113,8 @@ static void space_image_gpu_texture_get(Image *image,
   BKE_image_multiview_index(image, &sima->iuser);
 
   if (ibuf) {
-    if (sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
+    const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(ibuf);
+    if (sima_flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
       if (ibuf->zbuf) {
         BLI_assert(!"Integer based depth buffers not supported");
       }
@@ -204,30 +205,31 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
     int draw_flags = 0;
     if (space_type == SPACE_IMAGE) {
       SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
+      const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(ibuf);
       const bool do_repeat = (!is_tiled_texture) && ((sima->flag & SI_DRAW_TILE) != 0);
       SET_FLAG_FROM_TEST(draw_flags, do_repeat, IMAGE_DRAW_FLAG_DO_REPEAT);
       SET_FLAG_FROM_TEST(draw_flags, is_tiled_texture, IMAGE_DRAW_FLAG_USE_WORLD_POS);
-      if ((sima->flag & SI_USE_ALPHA) != 0) {
+      if ((sima_flag & SI_USE_ALPHA) != 0) {
         /* Show RGBA */
         draw_flags |= IMAGE_DRAW_FLAG_SHOW_ALPHA | IMAGE_DRAW_FLAG_APPLY_ALPHA;
       }
-      else if ((sima->flag & SI_SHOW_ALPHA) != 0) {
+      else if ((sima_flag & SI_SHOW_ALPHA) != 0) {
         draw_flags |= IMAGE_DRAW_FLAG_SHUFFLING;
         copy_v4_fl4(shuffle, 0.0f, 0.0f, 0.0f, 1.0f);
       }
-      else if ((sima->flag & SI_SHOW_ZBUF) != 0) {
+      else if ((sima_flag & SI_SHOW_ZBUF) != 0) {
         draw_flags |= IMAGE_DRAW_FLAG_DEPTH | IMAGE_DRAW_FLAG_SHUFFLING;
         copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
       }
-      else if ((sima->flag & SI_SHOW_R) != 0) {
+      else if ((sima_flag & SI_SHOW_R) != 0) {
         draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
         copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
       }
-      else if ((sima->flag & SI_SHOW_G) != 0) {
+      else if ((sima_flag & SI_SHOW_G) != 0) {
         draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
         copy_v4_fl4(shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
       }
-      else if ((sima->flag & SI_SHOW_B) != 0) {
+      else if ((sima_flag & SI_SHOW_B) != 0) {
         draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
         copy_v4_fl4(shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
       }
