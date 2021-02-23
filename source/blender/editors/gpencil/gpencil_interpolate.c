@@ -204,8 +204,8 @@ static bool gpencil_stroke_need_flip(Depsgraph *depsgraph,
     float angle = angle_v2v2(v1, v2);
     /* For very sharp angles, check distance between extremes. */
     if (angle < DEG2RADF(15.0f)) {
-      float dist_start = len_squared_v2v2(v1a, v1a);
-      float dist_end = len_squared_v2v2(v1a, v1b);
+      float dist_start = len_squared_v2v2(v1a, v2a);
+      float dist_end = len_squared_v2v2(v1a, v2b);
       if (dist_end < dist_start) {
         return true;
       }
