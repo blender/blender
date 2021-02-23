@@ -1466,6 +1466,37 @@ void AlembicProcedural::load_objects(Progress &progress)
   for (size_t i = 0; i < root.getNumChildren(); ++i) {
     walk_hierarchy(root, root.getChildHeader(i), nullptr, object_map, progress);
   }
+
+  /* Create nodes in the scene. */
+  for (std::pair<string, AlembicObject *> pair : object_map) {
+    AlembicObject *abc_object = pair.second;
+
+    Geometry *geometry = nullptr;
+
+    if (abc_object->schema_type == AlembicObject::CURVES) {
+      geometry = scene_->create_node<Hair>();
+    }
+    else if (abc_object->schema_type == AlembicObject::POLY_MESH ||
+             abc_object->schema_type == AlembicObject::SUBD) {
+      geometry = scene_->create_node<Mesh>();
+    }
+    else {
+      continue;
+    }
+
+    geometry->set_owner(this);
+    geometry->name = abc_object->iobject.getName();
+
+    array<Node *> used_shaders = abc_object->get_used_shaders();
+    geometry->set_used_shaders(used_shaders);
+
+    Object *object = scene_->create_node<Object>();
+    object->set_owner(this);
+    object->set_geometry(geometry);
+    object->name = abc_object->iobject.getName();
+
+    abc_object->set_object(object);
+  }
 }
 
 void AlembicProcedural::read_mesh(Scene *scene,
@@ -1475,29 +1506,7 @@ void AlembicProcedural::read_mesh(Scene *scene,
 {
   IPolyMesh polymesh(abc_object->iobject, Alembic::Abc::kWrapExisting);
 
-  Mesh *mesh = nullptr;
-
-  /* create a mesh node in the scene if not already done */
-  if (!abc_object->get_object()) {
-    mesh = scene->create_node<Mesh>();
-    mesh->set_owner(this);
-    mesh->name = abc_object->iobject.getName();
-
-    array<Node *> used_shaders = abc_object->get_used_shaders();
-    mesh->set_used_shaders(used_shaders);
-
-    /* create object*/
-    Object *object = scene->create_node<Object>();
-    object->set_owner(this);
-    object->set_geometry(mesh);
-    object->set_tfm(abc_object->xform);
-    object->name = abc_object->iobject.getName();
-
-    abc_object->set_object(object);
-  }
-  else {
-    mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
-  }
+  Mesh *mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
 
   CachedData &cached_data = abc_object->get_cached_data();
   IPolyMeshSchema schema = polymesh.getSchema();
@@ -1570,32 +1579,10 @@ void AlembicProcedural::read_subd(Scene *scene,
   ISubD subd_mesh(abc_object->iobject, Alembic::Abc::kWrapExisting);
   ISubDSchema schema = subd_mesh.getSchema();
 
-  Mesh *mesh = nullptr;
+  Mesh *mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
 
-  /* create a mesh node in the scene if not already done */
-  if (!abc_object->get_object()) {
-    mesh = scene->create_node<Mesh>();
-    mesh->set_owner(this);
-    mesh->name = abc_object->iobject.getName();
-
-    array<Node *> used_shaders = abc_object->get_used_shaders();
-    mesh->set_used_shaders(used_shaders);
-
-    /* Alembic is OpenSubDiv compliant, there is no option to set another subdivision type. */
-    mesh->set_subdivision_type(Mesh::SubdivisionType::SUBDIVISION_CATMULL_CLARK);
-
-    /* create object*/
-    Object *object = scene->create_node<Object>();
-    object->set_owner(this);
-    object->set_geometry(mesh);
-    object->set_tfm(abc_object->xform);
-    object->name = abc_object->iobject.getName();
-
-    abc_object->set_object(object);
-  }
-  else {
-    mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
-  }
+  /* Alembic is OpenSubDiv compliant, there is no option to set another subdivision type. */
+  mesh->set_subdivision_type(Mesh::SubdivisionType::SUBDIVISION_CATMULL_CLARK);
 
   if (!abc_object->has_data_loaded()) {
     abc_object->load_all_data(this, schema, scale, progress);
@@ -1696,29 +1683,7 @@ void AlembicProcedural::read_curves(Scene *scene,
                                     Progress &progress)
 {
   ICurves curves(abc_object->iobject, Alembic::Abc::kWrapExisting);
-  Hair *hair;
-
-  /* create a hair node in the scene if not already done */
-  if (!abc_object->get_object()) {
-    hair = scene->create_node<Hair>();
-    hair->set_owner(this);
-    hair->name = abc_object->iobject.getName();
-
-    array<Node *> used_shaders = abc_object->get_used_shaders();
-    hair->set_used_shaders(used_shaders);
-
-    /* create object*/
-    Object *object = scene->create_node<Object>();
-    object->set_owner(this);
-    object->set_geometry(hair);
-    object->set_tfm(abc_object->xform);
-    object->name = abc_object->iobject.getName();
-
-    abc_object->set_object(object);
-  }
-  else {
-    hair = static_cast<Hair *>(abc_object->get_object()->get_geometry());
-  }
+  Hair *hair = static_cast<Hair *>(abc_object->get_object()->get_geometry());
 
   ICurvesSchema schema = curves.getSchema();
 
