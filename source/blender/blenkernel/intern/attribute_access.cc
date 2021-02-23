@@ -685,7 +685,8 @@ class DynamicAttributesProvider {
     return false;
   };
 
-  virtual void list(const GeometryComponent &component, Set<std::string> &r_names) const = 0;
+  virtual bool foreach_attribute(const GeometryComponent &component,
+                                 const AttributeForeachCallback callback) const = 0;
   virtual void supported_domains(Vector<AttributeDomain> &r_domains) const = 0;
 };
 
@@ -964,17 +965,23 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
     return true;
   }
 
-  void list(const GeometryComponent &component, Set<std::string> &r_names) const final
+  bool foreach_attribute(const GeometryComponent &component,
+                         const AttributeForeachCallback callback) const final
   {
     const CustomData *custom_data = custom_data_access_.get_const_custom_data(component);
     if (custom_data == nullptr) {
-      return;
+      return true;
     }
     for (const CustomDataLayer &layer : Span(custom_data->layers, custom_data->totlayer)) {
-      if (this->type_is_supported((CustomDataType)layer.type)) {
-        r_names.add(layer.name);
+      const CustomDataType data_type = (CustomDataType)layer.type;
+      if (this->type_is_supported(data_type)) {
+        AttributeMetaData meta_data{domain_, data_type};
+        if (!callback(layer.name, meta_data)) {
+          return false;
+        }
       }
     }
+    return true;
   }
 
   void supported_domains(Vector<AttributeDomain> &r_domains) const final
@@ -1026,6 +1033,7 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
   using AsReadAttribute = ReadAttributePtr (*)(const void *data, const int domain_size);
   using AsWriteAttribute = WriteAttributePtr (*)(void *data, const int domain_size);
   const AttributeDomain domain_;
+  const CustomDataType attribute_type_;
   const CustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
   const AsReadAttribute as_read_attribute_;
@@ -1033,11 +1041,13 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
 
  public:
   NamedLegacyCustomDataProvider(const AttributeDomain domain,
+                                const CustomDataType attribute_type,
                                 const CustomDataType stored_type,
                                 const CustomDataAccessInfo custom_data_access,
                                 const AsReadAttribute as_read_attribute,
                                 const AsWriteAttribute as_write_attribute)
       : domain_(domain),
+        attribute_type_(attribute_type),
         stored_type_(stored_type),
         custom_data_access_(custom_data_access),
         as_read_attribute_(as_read_attribute),
@@ -1107,17 +1117,22 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
     return false;
   }
 
-  void list(const GeometryComponent &component, Set<std::string> &r_names) const final
+  bool foreach_attribute(const GeometryComponent &component,
+                         const AttributeForeachCallback callback) const final
   {
     const CustomData *custom_data = custom_data_access_.get_const_custom_data(component);
     if (custom_data == nullptr) {
-      return;
+      return true;
     }
     for (const CustomDataLayer &layer : Span(custom_data->layers, custom_data->totlayer)) {
       if (layer.type == stored_type_) {
-        r_names.add(layer.name);
+        AttributeMetaData meta_data{domain_, attribute_type_};
+        if (!callback(layer.name, meta_data)) {
+          return false;
+        }
       }
     }
+    return true;
   }
 
   void supported_domains(Vector<AttributeDomain> &r_domains) const final
@@ -1201,16 +1216,22 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     return true;
   }
 
-  void list(const GeometryComponent &component, Set<std::string> &r_names) const final
+  bool foreach_attribute(const GeometryComponent &component,
+                         const AttributeForeachCallback callback) const final
   {
     BLI_assert(component.type() == GeometryComponentType::Mesh);
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    mesh_component.vertex_group_names().foreach_item(
-        [&](StringRef name, const int vertex_group_index) {
-          if (vertex_group_index >= 0) {
-            r_names.add(name);
-          }
-        });
+    for (const auto &item : mesh_component.vertex_group_names().items()) {
+      const StringRefNull name = item.key;
+      const int vertex_group_index = item.value;
+      if (vertex_group_index >= 0) {
+        AttributeMetaData meta_data{ATTR_DOMAIN_POINT, CD_PROP_FLOAT};
+        if (!callback(name, meta_data)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   void supported_domains(Vector<AttributeDomain> &r_domains) const final
@@ -1453,12 +1474,14 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                        nullptr);
 
   static NamedLegacyCustomDataProvider uvs(ATTR_DOMAIN_CORNER,
+                                           CD_PROP_FLOAT2,
                                            CD_MLOOPUV,
                                            corner_access,
                                            make_uvs_read_attribute,
                                            make_uvs_write_attribute);
 
   static NamedLegacyCustomDataProvider vertex_colors(ATTR_DOMAIN_CORNER,
+                                                     CD_PROP_COLOR,
                                                      CD_MLOOPCOL,
                                                      corner_access,
                                                      make_vertex_color_read_attribute,
@@ -1670,22 +1693,47 @@ bool GeometryComponent::attribute_try_create(const StringRef attribute_name,
 
 Set<std::string> GeometryComponent::attribute_names() const
 {
+  Set<std::string> attributes;
+  this->attribute_foreach([&](StringRefNull name, const AttributeMetaData &UNUSED(meta_data)) {
+    attributes.add(name);
+    return true;
+  });
+  return attributes;
+}
+
+void GeometryComponent::attribute_foreach(const AttributeForeachCallback callback) const
+{
   using namespace blender::bke;
   const ComponentAttributeProviders *providers = this->get_attribute_providers();
   if (providers == nullptr) {
-    return {};
+    return;
   }
-  Set<std::string> names;
+
+  /* Keep track handled attribute names to make sure that we do not return the same name twice. */
+  Set<std::string> handled_attribute_names;
+
   for (const BuiltinAttributeProvider *provider :
        providers->builtin_attribute_providers().values()) {
     if (provider->exists(*this)) {
-      names.add_new(provider->name());
+      AttributeMetaData meta_data{provider->domain(), provider->data_type()};
+      if (!callback(provider->name(), meta_data)) {
+        return;
+      }
+      handled_attribute_names.add_new(provider->name());
     }
   }
   for (const DynamicAttributesProvider *provider : providers->dynamic_attribute_providers()) {
-    provider->list(*this, names);
+    const bool continue_loop = provider->foreach_attribute(
+        *this, [&](StringRefNull name, const AttributeMetaData &meta_data) {
+          if (handled_attribute_names.add(name)) {
+            return callback(name, meta_data);
+          }
+          return true;
+        });
+    if (!continue_loop) {
+      return;
+    }
   }
-  return names;
 }
 
 bool GeometryComponent::attribute_exists(const blender::StringRef attribute_name) const
