@@ -1344,6 +1344,11 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
   assert(scene_ == nullptr || scene_ == scene);
   scene_ = scene;
 
+  if (frame < start_frame || frame > end_frame) {
+    clear_modified();
+    return;
+  }
+
   bool need_shader_updates = false;
 
   /* Check for changes in shaders (newly requested attributes). */
