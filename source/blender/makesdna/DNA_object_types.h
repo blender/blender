@@ -630,7 +630,7 @@ enum {
  */
 #define BA_TRANSFORM_LOCKED_IN_PLACE (1 << 7)
 
-#define BA_TRANSFORM_CHILD (1 << 8) /* child of a transformed object */
+#define BA_TRANSFORM_CHILD (1 << 8)   /* child of a transformed object */
 #define BA_TRANSFORM_PARENT (1 << 13) /* parent of a transformed object */
 
 #define OB_FROMDUPLI (1 << 9)

@@ -260,6 +260,11 @@ typedef struct SculptPoseIKChain {
   SculptPoseIKChainSegment *segments;
   int tot_segments;
   float grab_delta_offset[3];
+  float bend_mat[4][4];
+  float bend_mat_inv[4][4];
+  float bend_factor;
+  float bend_limit;
+  float bend_upper_limit;
 } SculptPoseIKChain;
 
 /* Cloth Brush */
