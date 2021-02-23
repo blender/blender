@@ -46,17 +46,13 @@ void util_logging_init(const char *argv0)
 #ifdef WITH_CYCLES_LOGGING
   using CYCLES_GFLAGS_NAMESPACE::SetCommandLineOption;
 
-  /* Make it so ERROR messages are always print into console. */
-  char severity_fatal[32];
-  snprintf(severity_fatal, sizeof(severity_fatal), "%d", google::GLOG_ERROR);
-
   google::InitGoogleLogging(argv0);
   SetCommandLineOption("logtostderr", "1");
   if (!is_verbosity_set()) {
     SetCommandLineOption("v", "0");
   }
-  SetCommandLineOption("stderrthreshold", severity_fatal);
-  SetCommandLineOption("minloglevel", severity_fatal);
+  SetCommandLineOption("stderrthreshold", "0");
+  SetCommandLineOption("minloglevel", "0");
 #else
   (void)argv0;
 #endif
@@ -70,7 +66,7 @@ void util_logging_start()
   if (!is_verbosity_set()) {
     SetCommandLineOption("v", "2");
   }
-  SetCommandLineOption("stderrthreshold", "1");
+  SetCommandLineOption("stderrthreshold", "0");
   SetCommandLineOption("minloglevel", "0");
 #endif
 }
