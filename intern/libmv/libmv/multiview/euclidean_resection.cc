@@ -758,7 +758,7 @@ bool EuclideanResectionPPnP(const Mat2X &x_camera,
     Z = Zmindiag.asDiagonal();
     E = Y - Z*PR;
     error = (E - E_old).norm();
-    LOG(INFO) << "PPnP error(" << (iteration++) << "): " << error;
+    LG << "PPnP error(" << (iteration++) << "): " << error;
     E_old = E;
   }
   *t = -*R*c;

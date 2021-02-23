@@ -352,7 +352,7 @@ struct ReprojectionErrorInvertIntrinsics {
 // Print a message to the log which camera intrinsics are gonna to be optimized.
 void BundleIntrinsicsLogMessage(const int bundle_intrinsics) {
   if (bundle_intrinsics == BUNDLE_NO_INTRINSICS) {
-    LOG(INFO) << "Bundling only camera positions.";
+    LG << "Bundling only camera positions.";
   } else {
     std::string bundling_message = "";
 
@@ -373,7 +373,7 @@ void BundleIntrinsicsLogMessage(const int bundle_intrinsics) {
     APPEND_BUNDLING_INTRINSICS("p1",     BUNDLE_TANGENTIAL_P1);
     APPEND_BUNDLING_INTRINSICS("p2",     BUNDLE_TANGENTIAL_P2);
 
-    LOG(INFO) << "Bundling " << bundling_message << ".";
+    LG << "Bundling " << bundling_message << ".";
   }
 }
 
