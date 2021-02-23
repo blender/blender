@@ -534,6 +534,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
   /** Device context handle. */
   HDC m_hDC;
 
+  bool m_isDialog;
+
   /** Flag for if window has captured the mouse. */
   bool m_hasMouseCaptured;
   /**

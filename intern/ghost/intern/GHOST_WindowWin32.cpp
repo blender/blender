@@ -76,6 +76,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_inLiveResize(false),
       m_system(system),
       m_hDC(0),
+      m_isDialog(dialog),
       m_hasMouseCaptured(false),
       m_hasGrabMouse(false),
       m_nPressedButtons(0),
@@ -111,6 +112,13 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 
   /* Forces owned windows onto taskbar and allows minimization. */
   DWORD extended_style = parentwindow ? WS_EX_APPWINDOW : 0;
+
+  if (dialog) {
+    /* When we are ready to make windows of this type:
+     * style = WS_POPUPWINDOW | WS_CAPTION
+     * extended_style = WS_EX_DLGMODALFRAME | WS_EX_TOPMOST
+     */
+  }
 
   /* Monitor details. */
   MONITORINFOEX monitor;
@@ -480,31 +488,14 @@ GHOST_TSuccess GHOST_WindowWin32::setClientSize(GHOST_TUns32 width, GHOST_TUns32
 
 GHOST_TWindowState GHOST_WindowWin32::getState() const
 {
-  GHOST_TWindowState state;
-
-  // XXX 27.04.2011
-  // we need to find a way to combine parented windows + resizing if we simply set the
-  // state as GHOST_kWindowStateEmbedded we will need to check for them somewhere else.
-  // It's also strange that in Windows is the only platform we need to make this separation.
-  if ((m_parentWindowHwnd != 0) && !isDialog()) {
-    state = GHOST_kWindowStateEmbedded;
-    return state;
-  }
-
   if (::IsIconic(m_hWnd)) {
-    state = GHOST_kWindowStateMinimized;
+    return GHOST_kWindowStateMinimized;
   }
   else if (::IsZoomed(m_hWnd)) {
     LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
-    if ((result & (WS_DLGFRAME | WS_MAXIMIZE)) == (WS_DLGFRAME | WS_MAXIMIZE))
-      state = GHOST_kWindowStateMaximized;
-    else
-      state = GHOST_kWindowStateFullScreen;
+    return (result & WS_CAPTION) ? GHOST_kWindowStateMaximized : GHOST_kWindowStateFullScreen;
   }
-  else {
-    state = GHOST_kWindowStateNormal;
-  }
-  return state;
+  return GHOST_kWindowStateNormal;
 }
 
 void GHOST_WindowWin32::screenToClient(GHOST_TInt32 inX,
@@ -532,13 +523,10 @@ void GHOST_WindowWin32::clientToScreen(GHOST_TInt32 inX,
 GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 {
   GHOST_TWindowState curstate = getState();
-  LONG_PTR newstyle = -1;
+  LONG_PTR style = GetWindowLongPtr(m_hWnd, GWL_STYLE) | WS_CAPTION;
   WINDOWPLACEMENT wp;
   wp.length = sizeof(WINDOWPLACEMENT);
   ::GetWindowPlacement(m_hWnd, &wp);
-
-  if (state == GHOST_kWindowStateNormal)
-    state = m_normal_state;
 
   switch (state) {
     case GHOST_kWindowStateMinimized:
@@ -546,32 +534,22 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
       break;
     case GHOST_kWindowStateMaximized:
       wp.showCmd = SW_SHOWMAXIMIZED;
-      newstyle = WS_OVERLAPPEDWINDOW;
       break;
     case GHOST_kWindowStateFullScreen:
-      if (curstate != state && curstate != GHOST_kWindowStateMinimized)
+      if (curstate != state && curstate != GHOST_kWindowStateMinimized) {
         m_normal_state = curstate;
+      }
       wp.showCmd = SW_SHOWMAXIMIZED;
       wp.ptMaxPosition.x = 0;
       wp.ptMaxPosition.y = 0;
-      newstyle = WS_MAXIMIZE;
-      break;
-    case GHOST_kWindowStateEmbedded:
-      newstyle = WS_CHILD;
+      style &= ~WS_CAPTION;
       break;
     case GHOST_kWindowStateNormal:
     default:
       wp.showCmd = SW_SHOWNORMAL;
-      newstyle = WS_OVERLAPPEDWINDOW;
       break;
   }
-  if ((newstyle >= 0) && !isDialog()) {
-    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, newstyle);
-  }
-
-  /* Clears window cache for SetWindowLongPtr */
-  ::SetWindowPos(m_hWnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-
+  ::SetWindowLongPtr(m_hWnd, GWL_STYLE, style);
   return ::SetWindowPlacement(m_hWnd, &wp) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
@@ -718,10 +696,7 @@ void GHOST_WindowWin32::lostMouseCapture()
 
 bool GHOST_WindowWin32::isDialog() const
 {
-  HWND parent = (HWND)::GetWindowLongPtr(m_hWnd, GWLP_HWNDPARENT);
-  long int style = (long int)::GetWindowLongPtr(m_hWnd, GWL_STYLE);
-
-  return (parent != 0) && (style & WS_POPUPWINDOW);
+  return m_isDialog;
 }
 
 void GHOST_WindowWin32::updateMouseCapture(GHOST_MouseCaptureEventWin32 event)

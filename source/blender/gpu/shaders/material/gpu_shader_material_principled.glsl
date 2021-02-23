@@ -2,7 +2,7 @@
 vec3 tint_from_color(vec3 color)
 {
   float lum = dot(color, vec3(0.3, 0.6, 0.1));  /* luminance approx. */
-  return (lum > 0.0) ? color / lum : vec3(0.0); /* normalize lum. to isolate hue+sat */
+  return (lum > 0.0) ? color / lum : vec3(1.0); /* normalize lum. to isolate hue+sat */
 }
 
 float principled_sheen(float NV)

@@ -151,7 +151,9 @@ void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects, const dou
   float ofs[2];
   EEVEE_temporal_sampling_offset_calc(ht_point, rd->gauss, ofs);
 
-  window_translate_m4(winmat, persmat, ofs[0] / viewport_size[0], ofs[1] / viewport_size[1]);
+  if (effects->taa_current_sample > 1) {
+    window_translate_m4(winmat, persmat, ofs[0] / viewport_size[0], ofs[1] / viewport_size[1]);
+  }
 
   /* Jitter is in pixel space. Focus distance in world space units. */
   float dof_jitter[2], focus_distance;

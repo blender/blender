@@ -840,7 +840,7 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
 
       /* compute average albedo for channel sampling */
       if (closure_flag & SD_SCATTER) {
-        accum_albedo += dt * safe_divide_color(coeff.sigma_s, sigma_t);
+        accum_albedo += (dt / ray->t) * safe_divide_color(coeff.sigma_s, sigma_t);
       }
 
       /* compute accumulated transmittance */

@@ -178,29 +178,23 @@ void gather_attribute_info(Map<std::string, AttributeKind> &attributes,
       }
       const GeometryComponent &component = *set.get_component_for_read(component_type);
 
-      for (const std::string &name : component.attribute_names()) {
+      component.attribute_foreach([&](StringRefNull name, const AttributeMetaData &meta_data) {
         if (ignored_attributes.contains(name)) {
-          continue;
+          return true;
         }
-        const ReadAttributePtr read_attribute = component.attribute_try_get_for_read(name);
-        if (!read_attribute) {
-          continue;
-        }
-        const AttributeDomain domain = read_attribute->domain();
-        const CustomDataType data_type = read_attribute->custom_data_type();
-
-        auto add_info = [&, data_type, domain](AttributeKind *attribute_kind) {
-          attribute_kind->domain = domain;
-          attribute_kind->data_type = data_type;
+        auto add_info = [&](AttributeKind *attribute_kind) {
+          attribute_kind->domain = meta_data.domain;
+          attribute_kind->data_type = meta_data.data_type;
         };
-        auto modify_info = [&, data_type, domain](AttributeKind *attribute_kind) {
-          attribute_kind->domain = domain; /* TODO: Use highest priority domain. */
+        auto modify_info = [&](AttributeKind *attribute_kind) {
+          attribute_kind->domain = meta_data.domain; /* TODO: Use highest priority domain. */
           attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
-              {attribute_kind->data_type, data_type});
+              {attribute_kind->data_type, meta_data.data_type});
         };
 
         attributes.add_or_modify(name, add_info, modify_info);
-      }
+        return true;
+      });
     }
   }
 }

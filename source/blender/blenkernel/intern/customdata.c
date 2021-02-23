@@ -2881,20 +2881,20 @@ void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, 
   }
 }
 
-static void CustomData_copy_data_layer(const CustomData *source,
-                                       CustomData *dest,
-                                       int src_i,
-                                       int dst_i,
-                                       int src_index,
-                                       int dst_index,
-                                       int count)
+void CustomData_copy_data_layer(const CustomData *source,
+                                CustomData *dest,
+                                int src_layer_index,
+                                int dst_layer_index,
+                                int src_index,
+                                int dst_index,
+                                int count)
 {
   const LayerTypeInfo *typeInfo;
 
-  const void *src_data = source->layers[src_i].data;
-  void *dst_data = dest->layers[dst_i].data;
+  const void *src_data = source->layers[src_layer_index].data;
+  void *dst_data = dest->layers[dst_layer_index].data;
 
-  typeInfo = layerType_getInfo(source->layers[src_i].type);
+  typeInfo = layerType_getInfo(source->layers[src_layer_index].type);
 
   const size_t src_offset = (size_t)src_index * typeInfo->size;
   const size_t dst_offset = (size_t)dst_index * typeInfo->size;
@@ -2903,7 +2903,7 @@ static void CustomData_copy_data_layer(const CustomData *source,
     if (count && !(src_data == NULL && dst_data == NULL)) {
       CLOG_WARN(&LOG,
                 "null data for %s type (%p --> %p), skipping",
-                layerType_getName(source->layers[src_i].type),
+                layerType_getName(source->layers[src_layer_index].type),
                 (void *)src_data,
                 (void *)dst_data);
     }

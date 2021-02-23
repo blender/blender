@@ -7491,7 +7491,7 @@ static bool ui_numedit_but_TRACKPREVIEW(
 
   if (!scopes->track_locked) {
     const MovieClip *clip = CTX_data_edit_movieclip(C);
-    const int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scopes->framenr);
+    const int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scopes->scene_framenr);
     if (scopes->marker->framenr != clip_framenr) {
       scopes->marker = BKE_tracking_marker_ensure(scopes->track, clip_framenr);
     }
@@ -8267,7 +8267,7 @@ static void button_activate_exit(
       bt->flag &= ~UI_BUT_LAST_ACTIVE;
     }
 
-    block_iter->tooltipdisabled = 1;
+    block_iter->tooltipdisabled = true;
   }
 
   ui_blocks_set_tooltips(data->region, false);

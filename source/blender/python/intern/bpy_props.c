@@ -271,10 +271,17 @@ static PyGetSetDef bpy_prop_deferred_getset[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
+PyDoc_STRVAR(bpy_prop_deferred_doc,
+             "Intermediate storage for properties before registration.\n"
+             "\n"
+             ".. note::\n"
+             "\n"
+             "   This is not part of the stable API and may change between releases.");
+
 PyTypeObject bpy_prop_deferred_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
 
-        .tp_name = "bpy_prop_deferred",
+        .tp_name = "_PropertyDeferred",
     .tp_basicsize = sizeof(BPy_PropDeferred),
     .tp_dealloc = (destructor)bpy_prop_deferred_dealloc,
     .tp_repr = (reprfunc)bpy_prop_deferred_repr,
@@ -282,6 +289,7 @@ PyTypeObject bpy_prop_deferred_Type = {
 
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
 
+    .tp_doc = bpy_prop_deferred_doc,
     .tp_traverse = (traverseproc)bpy_prop_deferred_traverse,
     .tp_clear = (inquiry)bpy_prop_deferred_clear,
 
@@ -3762,6 +3770,7 @@ PyObject *BPY_rna_props(void)
   if (PyType_Ready(&bpy_prop_deferred_Type) < 0) {
     return NULL;
   }
+  PyModule_AddType(submodule, &bpy_prop_deferred_Type);
 
   return submodule;
 }

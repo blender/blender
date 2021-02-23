@@ -64,7 +64,7 @@ displays:
     - !<View> {name: Standard, colorspace: Raw}
 
 active_displays: [sRGB, XYZ, None]
-active_views: [Standard, Filmic, Filmic Log, Raw]
+active_views: [Standard, Filmic, Filmic Log, Raw, False Color]
 
 colorspaces:
   - !<ColorSpace>

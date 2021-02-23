@@ -263,11 +263,23 @@ class AlembicObject : public Node {
 
   bool has_data_loaded() const;
 
+  /* Enumeration used to speed up the discrimination of an IObject as IObject::matches() methods
+   * are too expensive and show up in profiles. */
+  enum AbcSchemaType {
+    INVALID,
+    POLY_MESH,
+    SUBD,
+    CURVES,
+  };
+
   bool need_shader_update = true;
 
   MatrixSampleMap xform_samples;
   Alembic::AbcGeom::IObject iobject;
   Transform xform;
+
+  /* Set if the path points to a valid IObject whose type is supported. */
+  AbcSchemaType schema_type;
 
   CachedData &get_cached_data()
   {

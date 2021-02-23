@@ -157,8 +157,16 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     }
 
     /* changes context! */
-    if (WM_window_open_temp(
-            C, IFACE_("Blender Render"), mx, my, sizex, sizey, SPACE_IMAGE, false) == NULL) {
+    if (WM_window_open(C,
+                       IFACE_("Blender Render"),
+                       mx,
+                       my,
+                       sizex,
+                       sizey,
+                       SPACE_IMAGE,
+                       false,
+                       true,
+                       WIN_ALIGN_LOCATION_CENTER) == NULL) {
       BKE_report(reports, RPT_ERROR, "Failed to open window!");
       return NULL;
     }

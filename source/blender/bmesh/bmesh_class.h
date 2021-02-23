@@ -373,7 +373,8 @@ enum {
   BM_ELEM_DRAW = (1 << 5), /* edge display */
 
   /* spare tag, assumed dirty, use define in each function to name based on use */
-  // _BM_ELEM_TAG_ALT = (1 << 6),  // UNUSED
+  BM_ELEM_TAG_ALT = (1 << 6),
+
   /**
    * For low level internal API tagging,
    * since tools may want to tag verts and not have functions clobber them.

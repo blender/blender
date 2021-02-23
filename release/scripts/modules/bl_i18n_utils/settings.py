@@ -353,6 +353,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "wav",
     "wmOwnerID '%s' not in workspace '%s'",
     "y",
+    "y = (Ax + B)",
     # Sub-strings.
     "available with",
     "brown fox",

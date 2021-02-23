@@ -609,6 +609,7 @@ NODE_DEFINE(AlembicObject)
 
 AlembicObject::AlembicObject() : Node(node_type)
 {
+  schema_type = INVALID;
 }
 
 AlembicObject::~AlembicObject()
@@ -965,6 +966,8 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
     array<int> curve_first_key;
     array<int> curve_shader;
 
+    const bool is_homogenous = schema.getTopologyVariance() == kHomogenousTopology;
+
     curve_keys.reserve(position->size());
     curve_radius.reserve(position->size());
     curve_first_key.reserve(curves_num_vertices->size());
@@ -985,16 +988,21 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
         curve_radius.push_back_reserved(radius * radius_scale);
       }
 
-      curve_first_key.push_back_reserved(offset);
-      curve_shader.push_back_reserved(0);
+      if (!is_homogenous || cached_data.curve_first_key.size() == 0) {
+        curve_first_key.push_back_reserved(offset);
+        curve_shader.push_back_reserved(0);
+      }
 
       offset += num_vertices;
     }
 
     cached_data.curve_keys.add_data(curve_keys, time);
     cached_data.curve_radius.add_data(curve_radius, time);
-    cached_data.curve_first_key.add_data(curve_first_key, time);
-    cached_data.curve_shader.add_data(curve_shader, time);
+
+    if (!is_homogenous || cached_data.curve_first_key.size() == 0) {
+      cached_data.curve_first_key.add_data(curve_first_key, time);
+      cached_data.curve_shader.add_data(curve_shader, time);
+    }
   }
 
   // TODO(@kevindietrich): attributes, need example files
@@ -1344,6 +1352,11 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
   assert(scene_ == nullptr || scene_ == scene);
   scene_ = scene;
 
+  if (frame < start_frame || frame > end_frame) {
+    clear_modified();
+    return;
+  }
+
   bool need_shader_updates = false;
 
   /* Check for changes in shaders (newly requested attributes). */
@@ -1397,13 +1410,13 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
       continue;
     }
 
-    if (IPolyMesh::matches(object->iobject.getHeader())) {
+    if (object->schema_type == AlembicObject::POLY_MESH) {
       read_mesh(scene, object, frame_time, progress);
     }
-    else if (ICurves::matches(object->iobject.getHeader())) {
+    else if (object->schema_type == AlembicObject::CURVES) {
       read_curves(scene, object, frame_time, progress);
     }
-    else if (ISubD::matches(object->iobject.getHeader())) {
+    else if (object->schema_type == AlembicObject::SUBD) {
       read_subd(scene, object, frame_time, progress);
     }
 
@@ -1460,6 +1473,37 @@ void AlembicProcedural::load_objects(Progress &progress)
   for (size_t i = 0; i < root.getNumChildren(); ++i) {
     walk_hierarchy(root, root.getChildHeader(i), nullptr, object_map, progress);
   }
+
+  /* Create nodes in the scene. */
+  for (std::pair<string, AlembicObject *> pair : object_map) {
+    AlembicObject *abc_object = pair.second;
+
+    Geometry *geometry = nullptr;
+
+    if (abc_object->schema_type == AlembicObject::CURVES) {
+      geometry = scene_->create_node<Hair>();
+    }
+    else if (abc_object->schema_type == AlembicObject::POLY_MESH ||
+             abc_object->schema_type == AlembicObject::SUBD) {
+      geometry = scene_->create_node<Mesh>();
+    }
+    else {
+      continue;
+    }
+
+    geometry->set_owner(this);
+    geometry->name = abc_object->iobject.getName();
+
+    array<Node *> used_shaders = abc_object->get_used_shaders();
+    geometry->set_used_shaders(used_shaders);
+
+    Object *object = scene_->create_node<Object>();
+    object->set_owner(this);
+    object->set_geometry(geometry);
+    object->name = abc_object->iobject.getName();
+
+    abc_object->set_object(object);
+  }
 }
 
 void AlembicProcedural::read_mesh(Scene *scene,
@@ -1469,29 +1513,7 @@ void AlembicProcedural::read_mesh(Scene *scene,
 {
   IPolyMesh polymesh(abc_object->iobject, Alembic::Abc::kWrapExisting);
 
-  Mesh *mesh = nullptr;
-
-  /* create a mesh node in the scene if not already done */
-  if (!abc_object->get_object()) {
-    mesh = scene->create_node<Mesh>();
-    mesh->set_owner(this);
-    mesh->name = abc_object->iobject.getName();
-
-    array<Node *> used_shaders = abc_object->get_used_shaders();
-    mesh->set_used_shaders(used_shaders);
-
-    /* create object*/
-    Object *object = scene->create_node<Object>();
-    object->set_owner(this);
-    object->set_geometry(mesh);
-    object->set_tfm(abc_object->xform);
-    object->name = abc_object->iobject.getName();
-
-    abc_object->set_object(object);
-  }
-  else {
-    mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
-  }
+  Mesh *mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
 
   CachedData &cached_data = abc_object->get_cached_data();
   IPolyMeshSchema schema = polymesh.getSchema();
@@ -1564,32 +1586,10 @@ void AlembicProcedural::read_subd(Scene *scene,
   ISubD subd_mesh(abc_object->iobject, Alembic::Abc::kWrapExisting);
   ISubDSchema schema = subd_mesh.getSchema();
 
-  Mesh *mesh = nullptr;
+  Mesh *mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
 
-  /* create a mesh node in the scene if not already done */
-  if (!abc_object->get_object()) {
-    mesh = scene->create_node<Mesh>();
-    mesh->set_owner(this);
-    mesh->name = abc_object->iobject.getName();
-
-    array<Node *> used_shaders = abc_object->get_used_shaders();
-    mesh->set_used_shaders(used_shaders);
-
-    /* Alembic is OpenSubDiv compliant, there is no option to set another subdivision type. */
-    mesh->set_subdivision_type(Mesh::SubdivisionType::SUBDIVISION_CATMULL_CLARK);
-
-    /* create object*/
-    Object *object = scene->create_node<Object>();
-    object->set_owner(this);
-    object->set_geometry(mesh);
-    object->set_tfm(abc_object->xform);
-    object->name = abc_object->iobject.getName();
-
-    abc_object->set_object(object);
-  }
-  else {
-    mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
-  }
+  /* Alembic is OpenSubDiv compliant, there is no option to set another subdivision type. */
+  mesh->set_subdivision_type(Mesh::SubdivisionType::SUBDIVISION_CATMULL_CLARK);
 
   if (!abc_object->has_data_loaded()) {
     abc_object->load_all_data(this, schema, scale, progress);
@@ -1690,29 +1690,7 @@ void AlembicProcedural::read_curves(Scene *scene,
                                     Progress &progress)
 {
   ICurves curves(abc_object->iobject, Alembic::Abc::kWrapExisting);
-  Hair *hair;
-
-  /* create a hair node in the scene if not already done */
-  if (!abc_object->get_object()) {
-    hair = scene->create_node<Hair>();
-    hair->set_owner(this);
-    hair->name = abc_object->iobject.getName();
-
-    array<Node *> used_shaders = abc_object->get_used_shaders();
-    hair->set_used_shaders(used_shaders);
-
-    /* create object*/
-    Object *object = scene->create_node<Object>();
-    object->set_owner(this);
-    object->set_geometry(hair);
-    object->set_tfm(abc_object->xform);
-    object->name = abc_object->iobject.getName();
-
-    abc_object->set_object(object);
-  }
-  else {
-    hair = static_cast<Hair *>(abc_object->get_object()->get_geometry());
-  }
+  Hair *hair = static_cast<Hair *>(abc_object->get_object()->get_geometry());
 
   ICurvesSchema schema = curves.getSchema();
 
@@ -1818,6 +1796,7 @@ void AlembicProcedural::walk_hierarchy(
     if (iter != object_map.end()) {
       AlembicObject *abc_object = iter->second;
       abc_object->iobject = subd;
+      abc_object->schema_type = AlembicObject::SUBD;
 
       if (xform_samples) {
         abc_object->xform_samples = *xform_samples;
@@ -1835,6 +1814,7 @@ void AlembicProcedural::walk_hierarchy(
     if (iter != object_map.end()) {
       AlembicObject *abc_object = iter->second;
       abc_object->iobject = mesh;
+      abc_object->schema_type = AlembicObject::POLY_MESH;
 
       if (xform_samples) {
         abc_object->xform_samples = *xform_samples;
@@ -1852,6 +1832,7 @@ void AlembicProcedural::walk_hierarchy(
     if (iter != object_map.end()) {
       AlembicObject *abc_object = iter->second;
       abc_object->iobject = curves;
+      abc_object->schema_type = AlembicObject::CURVES;
 
       if (xform_samples) {
         abc_object->xform_samples = *xform_samples;

@@ -144,14 +144,14 @@ typedef struct MovieClipScopes {
   struct ImBuf *track_search;
   /** #ImBuf displayed in track preview. */
   struct ImBuf *track_preview;
-  /** Sub-pizel position of marker in track ImBuf. */
+  /** Sub-pixel position of marker in track ImBuf. */
   float track_pos[2];
   /** Active track is disabled, special notifier should be drawn. */
   short track_disabled;
   /** Active track is locked, no transformation should be allowed. */
   short track_locked;
-  /** Frame number scopes are created for. */
-  int framenr;
+  /** Frame number scopes are created for (measured in scene frames). */
+  int scene_framenr;
   /** Track scopes are created for. */
   struct MovieTrackingTrack *track;
   /** Marker scopes are created for. */

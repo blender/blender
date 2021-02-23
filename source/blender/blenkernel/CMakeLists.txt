@@ -172,6 +172,7 @@ set(SRC
   intern/mball.c
   intern/mball_tessellate.c
   intern/mesh.c
+  intern/mesh_boolean_convert.cc
   intern/mesh_convert.c
   intern/mesh_evaluate.c
   intern/mesh_fair.cc
@@ -363,6 +364,7 @@ set(SRC
   BKE_mball.h
   BKE_mball_tessellate.h
   BKE_mesh.h
+  BKE_mesh_boolean_convert.h
   BKE_mesh_fair.h
   BKE_mesh_iterators.h
   BKE_mesh_mapping.h
@@ -727,6 +729,14 @@ if(WITH_TBB)
     ${TBB_LIBRARIES}
   )
 endif()
+
+if(WITH_GMP)
+  add_definitions(-DWITH_GMP)
+
+  list(APPEND INC_SYS
+    ${GMP_INCLUDE_DIRS}
+  )
+ endif()
 
 # # Warnings as errors, this is too strict!
 # if(MSVC)

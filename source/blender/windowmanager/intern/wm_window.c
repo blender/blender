@@ -158,37 +158,16 @@ void wm_get_desktopsize(int *r_width, int *r_height)
   *r_height = uiheight;
 }
 
-/* keeps offset and size within monitor bounds */
-/* XXX solve dual screen... */
-static void wm_window_check_position(rcti *rect)
+/* keeps size within monitor bounds */
+static void wm_window_check_size(rcti *rect)
 {
   int width, height;
   wm_get_screensize(&width, &height);
-
-  if (rect->xmin < 0) {
-    rect->xmax -= rect->xmin;
-    rect->xmin = 0;
+  if (BLI_rcti_size_x(rect) > width) {
+    BLI_rcti_resize_x(rect, width);
   }
-  if (rect->ymin < 0) {
-    rect->ymax -= rect->ymin;
-    rect->ymin = 0;
-  }
-  if (rect->xmax > width) {
-    int d = rect->xmax - width;
-    rect->xmax -= d;
-    rect->xmin -= d;
-  }
-  if (rect->ymax > height) {
-    int d = rect->ymax - height;
-    rect->ymax -= d;
-    rect->ymin -= d;
-  }
-
-  if (rect->xmin < 0) {
-    rect->xmin = 0;
-  }
-  if (rect->ymin < 0) {
-    rect->ymin = 0;
+  if (BLI_rcti_size_y(rect) > height) {
+    BLI_rcti_resize_y(rect, height);
   }
 }
 
@@ -462,7 +441,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 {
   if (WM_window_is_temp_screen(win)) {
     /* nothing to do for 'temp' windows,
-     * because WM_window_open_temp always sets window title  */
+     * because WM_window_open always sets window title  */
   }
   else if (win->ghostwin) {
     /* this is set to 1 if you don't have startup.blend open */
@@ -776,92 +755,77 @@ static bool wm_window_update_size_position(wmWindow *win)
 }
 
 /**
- * new window, no screen yet, but we open ghostwindow for it,
- * also gets the window level handlers
- * \note area-rip calls this.
- * \return the window or NULL.
- */
-wmWindow *WM_window_open(bContext *C, const rcti *rect)
-{
-  wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win_prev = CTX_wm_window(C);
-  wmWindow *win = wm_window_new(CTX_data_main(C), wm, win_prev, false);
-
-  const float native_pixel_size = GHOST_GetNativePixelSize(win_prev->ghostwin);
-
-  win->posx = rect->xmin / native_pixel_size;
-  win->posy = rect->ymin / native_pixel_size;
-  win->sizex = BLI_rcti_size_x(rect) / native_pixel_size;
-  win->sizey = BLI_rcti_size_y(rect) / native_pixel_size;
-
-  WM_check(C);
-
-  if (win->ghostwin) {
-    return win;
-  }
-
-  wm_window_close(C, wm, win);
-  CTX_wm_window_set(C, win_prev);
-  return NULL;
-}
-
-/**
- * Uses `screen->temp` tag to define what to do, currently it limits
- * to only one "temp" window for render out, preferences, filewindow, etc...
- *
  * \param space_type: SPACE_VIEW3D, SPACE_INFO, ... (eSpace_Type)
+ * \param dialog: whether this should be made as a dialog-style window
+ * \param temp: whether this is considered a short-lived window
+ * \param alignment: how this window is positioned relative to its parent
  * \return the window or NULL in case of failure.
  */
-wmWindow *WM_window_open_temp(bContext *C,
-                              const char *title,
-                              int x,
-                              int y,
-                              int sizex,
-                              int sizey,
-                              int space_type,
-                              bool dialog)
+wmWindow *WM_window_open(bContext *C,
+                         const char *title,
+                         int x,
+                         int y,
+                         int sizex,
+                         int sizey,
+                         int space_type,
+                         bool dialog,
+                         bool temp,
+                         WindowAlignment alignment)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win_prev = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  rcti rect;
 
-  /* convert to native OS window coordinates */
   const float native_pixel_size = GHOST_GetNativePixelSize(win_prev->ghostwin);
-  x /= native_pixel_size;
-  y /= native_pixel_size;
+  /* convert to native OS window coordinates */
+  rect.xmin = win_prev->posx + (x / native_pixel_size);
+  rect.ymin = win_prev->posy + (y / native_pixel_size);
   sizex /= native_pixel_size;
   sizey /= native_pixel_size;
 
-  /* calculate position */
-  rcti rect;
-  rect.xmin = x + win_prev->posx - sizex / 2;
-  rect.ymin = y + win_prev->posy - sizey / 2;
+  if (alignment == WIN_ALIGN_LOCATION_CENTER) {
+    /* Window centered around x,y location. */
+    rect.xmin -= sizex / 2;
+    rect.ymin -= sizey / 2;
+  }
+  else if (alignment == WIN_ALIGN_PARENT_CENTER) {
+    /* Centered within parent. X,Y as offsets from there. */
+    rect.xmin += (win_prev->sizex - sizex) / 2;
+    rect.ymin += (win_prev->sizey - sizey) / 2;
+  }
+  else {
+    /* Positioned absolutely within parent bounds. */
+  }
+
   rect.xmax = rect.xmin + sizex;
   rect.ymax = rect.ymin + sizey;
 
   /* changes rect to fit within desktop */
-  wm_window_check_position(&rect);
+  wm_window_check_size(&rect);
 
   /* Reuse temporary windows when they share the same title. */
   wmWindow *win = NULL;
-  LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-    if (WM_window_is_temp_screen(win_iter)) {
-      char *wintitle = GHOST_GetTitle(win_iter->ghostwin);
-      if (strcmp(title, wintitle) == 0) {
-        win = win_iter;
+  if (temp) {
+    LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
+      if (WM_window_is_temp_screen(win_iter)) {
+        char *wintitle = GHOST_GetTitle(win_iter->ghostwin);
+        if (strcmp(title, wintitle) == 0) {
+          win = win_iter;
+        }
+        free(wintitle);
       }
-      free(wintitle);
     }
   }
 
   /* add new window? */
   if (win == NULL) {
     win = wm_window_new(bmain, wm, win_prev, dialog);
-
     win->posx = rect.xmin;
     win->posy = rect.ymin;
+    *win->stereo3d_format = *win_prev->stereo3d_format;
   }
 
   bScreen *screen = WM_window_get_active_screen(win);
@@ -889,7 +853,7 @@ wmWindow *WM_window_open_temp(bContext *C,
     ED_screen_scene_change(C, win, scene);
   }
 
-  screen->temp = 1;
+  screen->temp = temp;
 
   /* make window active, and validate/resize */
   CTX_wm_window_set(C, win);
@@ -906,10 +870,11 @@ wmWindow *WM_window_open_temp(bContext *C,
    */
 
   /* ensure it shows the right spacetype editor */
-  ScrArea *area = screen->areabase.first;
-  CTX_wm_area_set(C, area);
-
-  ED_area_newspace(C, area, space_type, false);
+  if (space_type != SPACE_EMPTY) {
+    ScrArea *area = screen->areabase.first;
+    CTX_wm_area_set(C, area);
+    ED_area_newspace(C, area, space_type, false);
+  }
 
   ED_screen_change(C, screen);
 
@@ -949,8 +914,18 @@ int wm_window_close_exec(bContext *C, wmOperator *UNUSED(op))
 int wm_window_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
   wmWindow *win_src = CTX_wm_window(C);
+  ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TYPE_ANY, 0);
 
-  bool ok = (wm_window_copy_test(C, win_src, true, true) != NULL);
+  bool ok = (WM_window_open(C,
+                            IFACE_("Blender"),
+                            0,
+                            0,
+                            win_src->sizex * 0.95f,
+                            win_src->sizey * 0.9f,
+                            area->spacetype,
+                            false,
+                            false,
+                            WIN_ALIGN_PARENT_CENTER) != NULL);
 
   return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

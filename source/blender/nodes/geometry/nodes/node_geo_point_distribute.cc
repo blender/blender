@@ -425,8 +425,8 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   /* TODO: This node only needs read-only access to input instances. */
   geometry_set = geometry_set_realize_instances(geometry_set);
 
-  GeometryNodePointDistributeMethod distribute_method =
-      static_cast<GeometryNodePointDistributeMethod>(params.node().custom1);
+  GeometryNodePointDistributeMode distribute_method = static_cast<GeometryNodePointDistributeMode>(
+      params.node().custom1);
 
   if (!geometry_set.has_mesh()) {
     params.error_message_add(NodeWarningType::Error, "Geometry must contain a mesh.");

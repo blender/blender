@@ -510,13 +510,13 @@ struct uiBlock {
 
   const char *lockstr;
 
-  char lock;
+  bool lock;
   /** to keep blocks while drawing and free them afterwards */
-  char active;
+  bool active;
   /** to avoid tooltip after click */
-  char tooltipdisabled;
+  bool tooltipdisabled;
   /** UI_block_end done? */
-  char endblock;
+  bool endblock;
 
   /** for doing delayed */
   eBlockBoundsCalc bounds_type;

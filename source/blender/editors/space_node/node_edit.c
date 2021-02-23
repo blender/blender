@@ -722,7 +722,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node, bool *r_acti
           }
         }
 
-        LISTBASE_FOREACH (World *, wo, &bmain->materials) {
+        LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
           if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree)) {
             GPU_material_free(&wo->gpumaterial);
           }

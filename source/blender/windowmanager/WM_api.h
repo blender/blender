@@ -171,15 +171,24 @@ void WM_opengl_context_dispose(void *context);
 void WM_opengl_context_activate(void *context);
 void WM_opengl_context_release(void *context);
 
-struct wmWindow *WM_window_open(struct bContext *C, const struct rcti *rect);
-struct wmWindow *WM_window_open_temp(struct bContext *C,
-                                     const char *title,
-                                     int x,
-                                     int y,
-                                     int sizex,
-                                     int sizey,
-                                     int space_type,
-                                     bool dialog);
+/* WM_window_open alignment */
+typedef enum WindowAlignment {
+  WIN_ALIGN_ABSOLUTE = 0,
+  WIN_ALIGN_LOCATION_CENTER,
+  WIN_ALIGN_PARENT_CENTER,
+} WindowAlignment;
+
+struct wmWindow *WM_window_open(struct bContext *C,
+                                const char *title,
+                                int x,
+                                int y,
+                                int sizex,
+                                int sizey,
+                                int space_type,
+                                bool dialog,
+                                bool temp,
+                                WindowAlignment alignment);
+
 void WM_window_set_dpi(const wmWindow *win);
 
 bool WM_stereo3d_enabled(struct wmWindow *win, bool only_fullscreen_test);

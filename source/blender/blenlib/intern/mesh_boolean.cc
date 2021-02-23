@@ -2605,6 +2605,27 @@ static int find_cdt_edge(const CDT_result<mpq_class> &cdt_out, int v1, int v2)
   return -1;
 }
 
+/* Return the original edge id for the cdt output edge e_out, given that
+ * the only input to CDT was face f. Pick the first, if there are several. */
+static int orig_edge_for_cdt_edge(const CDT_result<mpq_class> &cdt_out,
+                                  int cdt_e_out,
+                                  const Face *f)
+{
+  for (int cdt_e_orig : cdt_out.edge_orig[cdt_e_out]) {
+    if (cdt_e_orig != NO_INDEX) {
+      BLI_assert(cdt_e_orig >= cdt_out.face_edge_offset);
+      int a = cdt_e_orig / cdt_out.face_edge_offset;
+      int b = cdt_e_orig % cdt_out.face_edge_offset;
+      /* It is the bth position within cdt input face a - 1. There is only one face, f. */
+      BLI_assert(a == 1);
+      UNUSED_VARS_NDEBUG(a);
+      BLI_assert(b < f->size());
+      return f->edge_orig[b];
+    }
+  }
+  return NO_INDEX;
+}
+
 /**
  * Tessellate face f into triangles and return an array of `const Face *`
  * giving that triangulation.
@@ -2660,13 +2681,7 @@ static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
     for (int i = 0; i < 3; ++i) {
       int e_out = find_cdt_edge(cdt_out, i_v_out[i], i_v_out[(i + 1) % 3]);
       BLI_assert(e_out != -1);
-      eo[i] = NO_INDEX;
-      for (int orig : cdt_out.edge_orig[e_out]) {
-        if (orig != NO_INDEX) {
-          eo[i] = orig;
-          break;
-        }
-      }
+      eo[i] = orig_edge_for_cdt_edge(cdt_out, e_out, f);
     }
     if (rev) {
       ans[t] = arena->add_face(

@@ -192,6 +192,7 @@ set(SRC
   BLI_float3.hh
   BLI_float4x4.hh
   BLI_fnmatch.h
+  BLI_function_ref.hh
   BLI_ghash.h
   BLI_gsqueue.h
   BLI_hash.h
@@ -388,6 +389,7 @@ if(WITH_GTESTS)
     tests/BLI_disjoint_set_test.cc
     tests/BLI_edgehash_test.cc
     tests/BLI_expr_pylike_eval_test.cc
+    tests/BLI_function_ref_test.cc
     tests/BLI_ghash_test.cc
     tests/BLI_hash_mm2a_test.cc
     tests/BLI_heap_simple_test.cc

@@ -196,6 +196,9 @@ struct ClosureOutput {
   vec3 radiance;
 };
 
+/* Workaround for screenspace shadows in SSR pass. */
+float FragDepth;
+
 ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)
 {
   ClosureEvalCommon cl_eval;
@@ -208,11 +211,15 @@ ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)
   cl_eval.Ng = safe_normalize(cross(dFdx(cl_eval.P), dFdy(cl_eval.P)));
   cl_eval.vNg = transform_direction(ViewMatrix, cl_eval.Ng);
   /* TODO(fclem) See if we can avoid this complicated setup. */
+#ifdef STEP_RESOLVE /* SSR */
+  cl_eval.tracing_depth = FragDepth;
+#else
   cl_eval.tracing_depth = gl_FragCoord.z;
+#endif
   /* Constant bias (due to depth buffer precision) */
   /* Magic numbers for 24bits of precision.
    * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
-  cl_eval.tracing_depth -= mix(2.4e-7, 4.8e-7, gl_FragCoord.z);
+  cl_eval.tracing_depth -= mix(2.4e-7, 4.8e-7, cl_eval.tracing_depth);
   /* Convert to view Z. */
   cl_eval.tracing_depth = get_view_z_from_depth(cl_eval.tracing_depth);
 

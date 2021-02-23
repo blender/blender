@@ -49,6 +49,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_boolean_convert.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -70,10 +71,15 @@
 #include "tools/bmesh_boolean.h"
 #include "tools/bmesh_intersect.h"
 
-// #define DEBUG_TIME
 #ifdef DEBUG_TIME
 #  include "PIL_time.h"
 #  include "PIL_time_utildefines.h"
+#endif
+
+#ifdef WITH_GMP
+const bool bypass_bmesh = true;
+#else
+const bool bypass_bmesh = false;
 #endif
 
 static void initData(ModifierData *md)
@@ -600,6 +606,68 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
   return result;
 }
 
+#ifdef WITH_GMP
+/* New method: bypass trip through BMesh. */
+static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
+                                const ModifierEvalContext *ctx,
+                                Mesh *mesh)
+{
+  Mesh *result;
+  Mesh *mesh_operand;
+  Mesh **meshes = NULL;
+  const float(**obmats)[4][4] = NULL;
+  BLI_array_declare(meshes);
+  BLI_array_declare(obmats);
+
+#  ifdef DEBUG_TIME
+  TIMEIT_START(boolean_bmesh);
+#  endif
+
+  BLI_array_append(meshes, mesh);
+  BLI_array_append(obmats, &ctx->object->obmat);
+  if (bmd->flag & eBooleanModifierFlag_Object) {
+    if (bmd->object == NULL) {
+      return mesh;
+    }
+    mesh_operand = BKE_modifier_get_evaluated_mesh_from_evaluated_object(bmd->object, false);
+    BKE_mesh_wrapper_ensure_mdata(mesh_operand);
+    BLI_array_append(meshes, mesh_operand);
+    BLI_array_append(obmats, &bmd->object->obmat);
+  }
+  else if (bmd->flag & eBooleanModifierFlag_Collection) {
+    Collection *collection = bmd->collection;
+    /* Allow collection to be empty: then target mesh will just removed self-intersections. */
+    if (collection) {
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, ob) {
+        if (ob->type == OB_MESH && ob != ctx->object) {
+          Mesh *collection_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob, false);
+          BKE_mesh_wrapper_ensure_mdata(collection_mesh);
+          BLI_array_append(meshes, collection_mesh);
+          BLI_array_append(obmats, &ob->obmat);
+        }
+      }
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+    }
+  }
+
+  const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
+  result = BKE_mesh_boolean((const Mesh **)meshes,
+                            (const float(**)[4][4])obmats,
+                            BLI_array_len(meshes),
+                            use_self,
+                            bmd->operation);
+
+  BLI_array_free(meshes);
+  BLI_array_free(obmats);
+
+#  ifdef DEBUG_TIME
+  TIMEIT_END(boolean_bmesh);
+#  endif
+
+  return result;
+}
+#endif
+
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
@@ -607,12 +675,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   Mesh *result = mesh;
   Mesh *mesh_operand_ob;
   BMesh *bm;
-  Collection *col = bmd->collection;
+  Collection *collection = bmd->collection;
 
   bool is_flip = false;
   const bool confirm_return = true;
 #ifdef WITH_GMP
   const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+  if (use_exact && bypass_bmesh) {
+    return exact_boolean_mesh(bmd, ctx, mesh);
+  }
 #else
   const bool use_exact = false;
 #endif
@@ -692,12 +763,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   else {
-    if (col == NULL && !use_exact) {
+    if (collection == NULL && !use_exact) {
       return result;
     }
 
     /* Return result for certain errors. */
-    if (BMD_error_messages(ctx->object, md, col) == confirm_return) {
+    if (BMD_error_messages(ctx->object, md, collection) == confirm_return) {
       return result;
     }
 
@@ -705,7 +776,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       result = collection_boolean_exact(bmd, ctx, mesh);
     }
     else {
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, operand_ob) {
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, operand_ob) {
         if (operand_ob->type == OB_MESH && operand_ob != ctx->object) {
 
           mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob,

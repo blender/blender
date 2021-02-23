@@ -1728,76 +1728,78 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
   scopes->track = NULL;
   scopes->track_locked = true;
 
-  if (clip) {
-    MovieTrackingTrack *act_track = BKE_tracking_track_get_active(&clip->tracking);
+  scopes->scene_framenr = user->framenr;
+  scopes->ok = true;
 
-    if (act_track) {
-      MovieTrackingTrack *track = act_track;
-      int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-
-      scopes->marker = marker;
-      scopes->track = track;
-
-      if (marker->flag & MARKER_DISABLED) {
-        scopes->track_disabled = true;
-      }
-      else {
-        ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, user);
-
-        scopes->track_disabled = false;
-
-        if (ibuf && (ibuf->rect || ibuf->rect_float)) {
-          MovieTrackingMarker undist_marker = *marker;
-
-          if (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
-            int width, height;
-            float aspy = 1.0f / clip->tracking.camera.pixel_aspect;
-
-            BKE_movieclip_get_size(clip, user, &width, &height);
-
-            undist_marker.pos[0] *= width;
-            undist_marker.pos[1] *= height * aspy;
-
-            BKE_tracking_undistort_v2(
-                &clip->tracking, width, height, undist_marker.pos, undist_marker.pos);
-
-            undist_marker.pos[0] /= width;
-            undist_marker.pos[1] /= height * aspy;
-          }
-
-          scopes->track_search = BKE_tracking_get_search_imbuf(
-              ibuf, track, &undist_marker, true, true);
-
-          scopes->undist_marker = undist_marker;
-
-          scopes->frame_width = ibuf->x;
-          scopes->frame_height = ibuf->y;
-
-          scopes->use_track_mask = (track->flag & TRACK_PREVIEW_ALPHA) != 0;
-        }
-
-        IMB_freeImBuf(ibuf);
-      }
-
-      if ((track->flag & TRACK_LOCKED) == 0) {
-        float pat_min[2], pat_max[2];
-
-        scopes->track_locked = false;
-
-        /* XXX: would work fine with non-transformed patterns, but would likely fail
-         *      with transformed patterns, but that would be easier to debug when
-         *      we'll have real pattern sampling (at least to test) */
-        BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
-
-        scopes->slide_scale[0] = pat_max[0] - pat_min[0];
-        scopes->slide_scale[1] = pat_max[1] - pat_min[1];
-      }
-    }
+  if (clip == NULL) {
+    return;
   }
 
-  scopes->framenr = user->framenr;
-  scopes->ok = true;
+  MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
+  if (track == NULL) {
+    return;
+  }
+
+  const int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
+  MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+
+  scopes->marker = marker;
+  scopes->track = track;
+
+  if (marker->flag & MARKER_DISABLED) {
+    scopes->track_disabled = true;
+  }
+  else {
+    ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, user);
+
+    scopes->track_disabled = false;
+
+    if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+      MovieTrackingMarker undist_marker = *marker;
+
+      if (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
+        int width, height;
+        float aspy = 1.0f / clip->tracking.camera.pixel_aspect;
+
+        BKE_movieclip_get_size(clip, user, &width, &height);
+
+        undist_marker.pos[0] *= width;
+        undist_marker.pos[1] *= height * aspy;
+
+        BKE_tracking_undistort_v2(
+            &clip->tracking, width, height, undist_marker.pos, undist_marker.pos);
+
+        undist_marker.pos[0] /= width;
+        undist_marker.pos[1] /= height * aspy;
+      }
+
+      scopes->track_search = BKE_tracking_get_search_imbuf(
+          ibuf, track, &undist_marker, true, true);
+
+      scopes->undist_marker = undist_marker;
+
+      scopes->frame_width = ibuf->x;
+      scopes->frame_height = ibuf->y;
+
+      scopes->use_track_mask = (track->flag & TRACK_PREVIEW_ALPHA) != 0;
+    }
+
+    IMB_freeImBuf(ibuf);
+  }
+
+  if ((track->flag & TRACK_LOCKED) == 0) {
+    float pat_min[2], pat_max[2];
+
+    scopes->track_locked = false;
+
+    /* XXX: would work fine with non-transformed patterns, but would likely fail
+     *      with transformed patterns, but that would be easier to debug when
+     *      we'll have real pattern sampling (at least to test) */
+    BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
+
+    scopes->slide_scale[0] = pat_max[0] - pat_min[0];
+    scopes->slide_scale[1] = pat_max[1] - pat_min[1];
+  }
 }
 
 static void movieclip_build_proxy_ibuf(
