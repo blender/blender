@@ -1453,10 +1453,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         ////////////////////////////////////////////////////////////////////////
         // Wintab events, processed
         ////////////////////////////////////////////////////////////////////////
-        case WT_INFOCHANGE:
-          window->processWintabInfoChangeEvent(lParam);
-          eventHandled = true;
-          break;
         case WT_PACKET:
           window->processWin32TabletEvent(wParam, lParam);
           break;

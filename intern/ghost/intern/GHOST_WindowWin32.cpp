@@ -299,8 +299,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       if (m_wintab.enable && m_wintab.tablet) {
         m_wintab.enable(m_wintab.tablet, TRUE);
       }
-
-      m_wintab.info(WTI_INTERFACE, IFC_NDEVICES, &m_wintab.numDevices);
     }
   }
   CoCreateInstance(
@@ -1033,7 +1031,7 @@ bool GHOST_WindowWin32::useTabletAPI(GHOST_TTabletAPI api) const
     return true;
   }
   else if (m_system->getTabletAPI() == GHOST_kTabletAutomatic) {
-    if (m_wintab.numDevices)
+    if (m_wintab.tablet)
       return api == GHOST_kTabletWintab;
     else
       return api == GHOST_kTabletNative;
@@ -1073,14 +1071,6 @@ void GHOST_WindowWin32::processWin32TabletInitEvent()
   }
 
   m_tabletData.Active = GHOST_kTabletModeNone;
-}
-
-void GHOST_WindowWin32::processWintabInfoChangeEvent(LPARAM lParam)
-{
-  /* Update number of connected Wintab digitizers */
-  if (LOWORD(lParam) == WTI_INTERFACE && HIWORD(lParam) == IFC_NDEVICES) {
-    m_wintab.info(WTI_INTERFACE, IFC_NDEVICES, &m_wintab.numDevices);
-  }
 }
 
 void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
