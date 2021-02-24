@@ -220,28 +220,27 @@ static bool gpencil_stroke_need_flip(Depsgraph *depsgraph,
         /* `(S)--->(E) (E)<---(S)` */
         return (dist_start >= dist_end);
       }
-      else {
-        /* Oriented inversed with original stroke start near of destination stroke.
-         * `(E)<----(S) <--->` */
-        dist_start = len_squared_v2v2(v_from_start, v_to_start);
-        dist_end = len_squared_v2v2(v_from_start, v_to_end);
-        /* `(E)<---(S) (S)--->(E)` */
-        return (dist_start < dist_end);
-      }
+
+      /* Oriented inversed with original stroke start near of destination stroke.
+       * `(E)<----(S) <--->` */
+      dist_start = len_squared_v2v2(v_from_start, v_to_start);
+      dist_end = len_squared_v2v2(v_from_start, v_to_end);
+      /* `(E)<---(S) (S)--->(E)` */
+      return (dist_start < dist_end);
     }
 
     return true;
   }
-  else {
-    /* Check that both vectors have the same direction. */
-    float v1[2], v2[2];
-    sub_v2_v2v2(v1, v_from_end, v_from_start);
-    sub_v2_v2v2(v2, v_to_end, v_to_start);
-    mul_v2_v2v2(v1, v1, v2);
-    if ((v1[0] < 0.0f) && (v1[1] < 0.0f)) {
-      return true;
-    }
+
+  /* Check that both vectors have the same direction. */
+  float v1[2], v2[2];
+  sub_v2_v2v2(v1, v_from_end, v_from_start);
+  sub_v2_v2v2(v2, v_to_end, v_to_start);
+  mul_v2_v2v2(v1, v1, v2);
+  if ((v1[0] < 0.0f) && (v1[1] < 0.0f)) {
+    return true;
   }
+
   return false;
 }
 
