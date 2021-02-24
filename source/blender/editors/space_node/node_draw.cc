@@ -791,7 +791,11 @@ static void node_socket_draw_multi_input(const float color[4],
       &rect, color, nullptr, 1.0f, color_outline, outline_width, width - outline_width * 0.5f);
 }
 
-static void node_socket_outline_color_get(bool selected, float r_outline_color[4])
+static const float virtual_node_socket_outline_color[4] = {0.5, 0.5, 0.5, 1.0};
+
+static void node_socket_outline_color_get(const bool selected,
+                                          const int socket_type,
+                                          float r_outline_color[4])
 {
   if (selected) {
     UI_GetThemeColor4fv(TH_TEXT_HI, r_outline_color);
@@ -800,6 +804,12 @@ static void node_socket_outline_color_get(bool selected, float r_outline_color[4
   else {
     copy_v4_fl(r_outline_color, 0.0f);
     r_outline_color[3] = 0.6f;
+  }
+
+  /* Until there is a better place for per socket color,
+   * the outline color for virtual sockets is set  here. */
+  if (socket_type == SOCK_CUSTOM) {
+    copy_v4_v4(r_outline_color, virtual_node_socket_outline_color);
   }
 }
 
@@ -836,7 +846,7 @@ static void node_socket_draw_nested(const bContext *C,
   float outline_color[4];
 
   node_socket_color_get((bContext *)C, ntree, node_ptr, sock, color);
-  node_socket_outline_color_get(selected, outline_color);
+  node_socket_outline_color_get(selected, sock->type, outline_color);
 
   node_socket_draw(sock,
                    color,
@@ -862,7 +872,7 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
   rcti draw_rect = *rect;
   float outline_color[4] = {0};
 
-  node_socket_outline_color_get(sock->flag & SELECT, outline_color);
+  node_socket_outline_color_get(sock->flag & SELECT, sock->type, outline_color);
 
   BLI_rcti_resize(&draw_rect, size, size);
 
@@ -1177,7 +1187,7 @@ void node_draw_sockets(const View2D *v2d,
     float color[4];
     float outline_color[4];
     node_socket_color_get((bContext *)C, ntree, &node_ptr, socket, color);
-    node_socket_outline_color_get(selected, outline_color);
+    node_socket_outline_color_get(selected, socket->type, outline_color);
 
     node_socket_draw_multi_input(color, outline_color, width, height, socket->locx, socket->locy);
   }
