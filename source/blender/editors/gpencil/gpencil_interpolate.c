@@ -200,9 +200,9 @@ static bool gpencil_stroke_need_flip(Depsgraph *depsgraph,
   const bool isect_lines = (isect_seg_seg_v2(v_from_start, v_to_start, v_from_end, v_to_end) ==
                             ISECT_LINE_LINE_CROSS);
 
-  /* If the vectors intersect or are almost parallel. */
+  /* If the vectors intersect. */
   if (isect_lines) {
-    /* For very sharp angles, check distance between extremes. */
+    /* For sharp angles, check distance between extremes. */
     float v1[2], v2[2];
     sub_v2_v2v2(v1, v_to_start, v_from_start);
     sub_v2_v2v2(v2, v_to_end, v_from_end);
