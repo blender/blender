@@ -73,12 +73,20 @@ bool transform_mode_use_local_origins(const TransInfo *t)
  */
 void transform_around_single_fallback_ex(TransInfo *t, int data_len_all)
 {
-  if ((ELEM(t->around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN, V3D_AROUND_ACTIVE)) &&
-      transform_mode_use_local_origins(t)) {
-    if (data_len_all == 1) {
-      t->around = V3D_AROUND_LOCAL_ORIGINS;
-    }
+  if (data_len_all != 1) {
+    return;
   }
+  if (!ELEM(t->around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN, V3D_AROUND_ACTIVE)) {
+    return;
+  }
+  if (!transform_mode_use_local_origins(t)) {
+    return;
+  }
+  if (t->flag | T_OVERRIDE_CENTER) {
+    return;
+  }
+
+  t->around = V3D_AROUND_LOCAL_ORIGINS;
 }
 
 void transform_around_single_fallback(TransInfo *t)
