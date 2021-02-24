@@ -4600,6 +4600,13 @@ static bool object_in_any_collection(Main *bmain, Object *ob)
     }
   }
 
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    if (scene->master_collection != NULL &&
+        BKE_collection_has_object(scene->master_collection, ob)) {
+      return true;
+    }
+  }
+
   return false;
 }
 
