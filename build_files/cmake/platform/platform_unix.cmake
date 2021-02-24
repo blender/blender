@@ -70,6 +70,7 @@ if(EXISTS ${LIBDIR})
   set(BOOST_LIBRARYDIR ${LIBDIR}/boost/lib)
   set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
+  set(CLANG_ROOT_DIR ${LIBDIR}/llvm)
 endif()
 
 if(WITH_STATIC_LIBS)
@@ -420,7 +421,9 @@ if(WITH_LLVM)
   endif()
 
   find_package_wrapper(LLVM)
-
+  if(WITH_CLANG)
+    find_package_wrapper(Clang)
+  endif()
   # Symbol conflicts with same UTF library used by OpenCollada
   if(EXISTS ${LIBDIR})
     if(WITH_OPENCOLLADA AND (${LLVM_VERSION} VERSION_LESS "4.0.0"))
@@ -430,7 +433,13 @@ if(WITH_LLVM)
 
   if(NOT LLVM_FOUND)
     set(WITH_LLVM OFF)
+    set(WITH_CLANG OFF)
     message(STATUS "LLVM not found")
+  else()
+    if(NOT CLANG_FOUND)
+      set(WITH_CLANG OFF)
+      message(STATUS "Clang not found")
+    endif()
   endif()
 endif()
 

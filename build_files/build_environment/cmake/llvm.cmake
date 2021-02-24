@@ -22,6 +22,15 @@ else()
   set(LLVM_TARGETS X86)
 endif()
 
+if(APPLE)
+  set(LLVM_XML2_ARGS
+    -DLIBXML2_LIBRARY=${LIBDIR}/xml2/lib/libxml2.a
+  )
+  set(LLVM_BUILD_CLANG_TOOLS_EXTRA ^^clang-tools-extra)
+  set(BUILD_CLANG_TOOLS ON)
+endif()
+
+
 set(LLVM_EXTRA_ARGS
   -DLLVM_USE_CRT_RELEASE=MD
   -DLLVM_USE_CRT_DEBUG=MDd
@@ -31,6 +40,8 @@ set(LLVM_EXTRA_ARGS
   -DLLVM_ENABLE_TERMINFO=OFF
   -DLLVM_BUILD_LLVM_C_DYLIB=OFF
   -DLLVM_ENABLE_UNWIND_TABLES=OFF
+  -DLLVM_ENABLE_PROJECTS=clang${LLVM_BUILD_CLANG_TOOLS_EXTRA}
+  ${LLVM_XML2_ARGS}
 )
 
 if(WIN32)
@@ -45,7 +56,9 @@ ExternalProject_Add(ll
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH MD5=${LLVM_HASH}
   CMAKE_GENERATOR ${LLVM_GENERATOR}
+  LIST_SEPARATOR ^^
   PREFIX ${BUILD_DIR}/ll
+  SOURCE_SUBDIR llvm
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/ll/src/ll < ${PATCH_DIR}/llvm.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/llvm ${DEFAULT_CMAKE_FLAGS} ${LLVM_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/llvm
@@ -63,5 +76,13 @@ if(MSVC)
   ExternalProject_Add_Step(ll after_install
     COMMAND ${LLVM_HARVEST_COMMAND}
     DEPENDEES mkdir update patch download configure build install
+  )
+endif()
+
+# We currently do not build libxml2 on Windows.
+if(APPLE)
+  add_dependencies(
+    ll
+    external_xml2
   )
 endif()

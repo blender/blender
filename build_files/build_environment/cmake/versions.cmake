@@ -116,28 +116,16 @@ set(OPENCOLORIO_HASH 1a2e3478b6cd9a1549f24e1b2205e3f0)
 if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
   # Newer version required by ISPC with arm support.
   set(LLVM_VERSION 11.0.1)
-  set(LLVM_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz)
+  set(LLVM_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.tar.xz)
   set(LLVM_HASH 6ec7ae9fd43da9b87cda15b3ab9cc7af)
-
-  set(CLANG_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang-${LLVM_VERSION}.src.tar.xz)
-  set(CLANG_HASH b4cb0b74b1f3292a89c9720f3e1e2934)
-
-  set(CLANG_TOOLS_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang-tools-extra-${LLVM_VERSION}.src.tar.xz)
-  set(CLANG_TOOLS_HASH 1e577a85948a0f07483b7c405e59a0ca)
 
   set(OPENMP_VERSION 9.0.1)
   set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${OPENMP_VERSION}/openmp-${OPENMP_VERSION}.src.tar.xz)
   set(OPENMP_HASH 6eade16057edbdecb3c4eef9daa2bfcf)
 else()
   set(LLVM_VERSION 9.0.1)
-  set(LLVM_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz)
-  set(LLVM_HASH 31eb9ce73dd2a0f8dcab8319fb03f8fc)
-
-  set(CLANG_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang-${LLVM_VERSION}.src.tar.xz)
-  set(CLANG_HASH 13468e4a44940efef1b75e8641752f90)
-
-  set(CLANG_TOOLS_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang-tools-extra-${LLVM_VERSION}.src.tar.xz)
-  set(CLANG_TOOLS_HASH c76293870b564c6a7968622b475b7646)
+  set(LLVM_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.tar.xz)
+  set(LLVM_HASH b4268e733dfe352960140dc07ef2efcb)
 
   set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/openmp-${LLVM_VERSION}.src.tar.xz)
   set(OPENMP_HASH 6eade16057edbdecb3c4eef9daa2bfcf)
@@ -151,9 +139,9 @@ set(TIFF_VERSION 4.1.0)
 set(TIFF_URI http://download.osgeo.org/libtiff/tiff-${TIFF_VERSION}.tar.gz)
 set(TIFF_HASH 2165e7aba557463acc0664e71a3ed424)
 
-set(OSL_VERSION 1.10.10)
+set(OSL_VERSION 1.11.10.0)
 set(OSL_URI https://github.com/imageworks/OpenShadingLanguage/archive/Release-${OSL_VERSION}.tar.gz)
-set(OSL_HASH 00dec08a93c8084e53848b9ad047889f)
+set(OSL_HASH dfdc23597aeef083832cbada62211756)
 
 set(PYTHON_VERSION 3.9.1)
 set(PYTHON_SHORT_VERSION 3.9)

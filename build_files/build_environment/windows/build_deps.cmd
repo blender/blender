@@ -117,7 +117,7 @@ set path=%BUILD_DIR%\downloads\mingw\mingw64\msys\1.0\bin\;%BUILD_DIR%\downloads
 mkdir %STAGING%\%BuildDir%%ARCH%R
 cd %Staging%\%BuildDir%%ARCH%R
 echo %DATE% %TIME% : Start > %StatusFile%
-cmake -G "%CMAKE_BUILDER%" %SOURCE_DIR% -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DBUILD_MODE=Release -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/
+cmake -G "%CMAKE_BUILDER%" -Thost=x64  %SOURCE_DIR% -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DBUILD_MODE=Release -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/
 echo %DATE% %TIME% : Release Configuration done >> %StatusFile%
 if "%dobuild%" == "1" (
 	msbuild /m "ll.vcxproj" /p:Configuration=Release /fl /flp:logfile=BlenderDeps_llvm.log;Verbosity=normal
@@ -130,7 +130,7 @@ if "%NODEBUG%" == "1" goto exit
 cd %BUILD_DIR%
 mkdir %STAGING%\%BuildDir%%ARCH%D
 cd %Staging%\%BuildDir%%ARCH%D
-cmake -G "%CMAKE_BUILDER%" %SOURCE_DIR% -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODE=Debug -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/  %CMAKE_DEBUG_OPTIONS%
+cmake -G "%CMAKE_BUILDER%" -Thost=x64 %SOURCE_DIR% -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODE=Debug -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/  %CMAKE_DEBUG_OPTIONS%
 echo %DATE% %TIME% : Debug Configuration done >> %StatusFile%
 if "%dobuild%" == "1" (
 	msbuild /m "ll.vcxproj" /p:Configuration=Debug /fl /flp:logfile=BlenderDeps_llvm.log;;Verbosity=normal 
