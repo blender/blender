@@ -2404,7 +2404,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
                   "use_base_parent",
                   0,
                   "Parent",
-                  "Parent newly created objects to the original duplicator");
+                  "Parent newly created objects to the original instancer");
   RNA_def_boolean(
       ot->srna, "use_hierarchy", 0, "Keep Hierarchy", "Maintain parent child relationships");
 }
