@@ -6621,6 +6621,16 @@ def km_3d_view_tool_sculpt_mesh_filter(params):
         ]},
     )
 
+def km_3d_view_tool_sculpt_ipmask_filter(params):
+    return (
+        "3D View Tool: Sculpt, IPMask Filter",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.ipmask_filter", {"type": params.tool_tweak, "value": 'ANY'},
+             None)
+        ]},
+    )
+
 
 def km_3d_view_tool_sculpt_cloth_filter(params):
     return (
@@ -7241,6 +7251,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_lasso_project(params),
         km_3d_view_tool_sculpt_box_project(params),
         km_3d_view_tool_sculpt_mesh_filter(params),
+        km_3d_view_tool_sculpt_ipmask_filter(params),
         km_3d_view_tool_sculpt_cloth_filter(params),
         km_3d_view_tool_sculpt_color_filter(params),
         km_3d_view_tool_sculpt_mask_by_color(params),

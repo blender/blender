@@ -1481,6 +1481,21 @@ class _defs_sculpt:
         )
 
     @ToolDef.from_fn
+    def ipmask_filter():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.ipmask_filter")
+            layout.prop(props, "type", expand=False)
+
+        return dict(
+            idname="builtin.ipmask_filter",
+            label="IPMask Filter",
+            icon="ops.sculpt.ipmask_filter",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def cloth_filter():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.cloth_filter")
@@ -2872,6 +2887,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,
+            _defs_sculpt.ipmask_filter,
             lambda context: (
                 (_defs_sculpt.color_filter,)
                 if context is None or (

@@ -354,6 +354,33 @@ static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
 }
 
+#define IPMASK_FILTER_STEP_SENSITIVITY 0.05f
+
+static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  SculptSession *ss = ob->sculpt;
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+    SCULPT_filter_cache_free(ss);
+    SCULPT_undo_push_end();
+    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+    return OPERATOR_FINISHED;
+  }
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
+  const float len = event->x - event->prevclickx;
+  const int target_step = len * IPMASK_FILTER_STEP_SENSITIVITY * UI_DPI_FAC;
+
+  printf("TARGET STEP %d\n", target_step);
+
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
 void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -364,6 +391,7 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = sculpt_ipmask_filter_exec;
   ot->invoke = sculpt_ipmask_filter_invoke;
+  ot->modal = sculpt_ipmask_filter_modal;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
@@ -384,12 +412,6 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
               "Number of times that the filter is going to be applied",
               1,
               100);
-  RNA_def_boolean(
-      ot->srna,
-      "auto_iteration_count",
-      false,
-      "Auto Iteration Count",
-      "Use a automatic number of iterations based on the number of vertices of the sculpt");
 }
 
 /******************************************************************************************/
