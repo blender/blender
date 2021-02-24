@@ -64,10 +64,17 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
     }
   }
 
-  /* move jitter table so that closest sample is in center */
+  float closest_sample[2];
+  copy_v2_v2(closest_sample, table[closest_index]);
   for (int index = 0; index < num; index++) {
-    sub_v2_v2(table[index], table[closest_index]);
-    mul_v2_fl(table[index], 2.0f);
+    /* move jitter table so that closest sample is in center */
+    sub_v2_v2(table[index], closest_sample);
+    for (int i = 0; i < 2; i++) {
+      /* Avoid samples outside range (wrap arround). */
+      table[index][i] = fmodf(table[index][i] + 0.5f, 1.0f);
+      /* Recenter the distribution[-1..1]. */
+      table[index][i] += table[index][i] * 2.0f - 1.0f;
+    }
   }
 
   /* swap center sample to the start of the table */
