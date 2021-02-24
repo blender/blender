@@ -66,7 +66,7 @@ struct CryptomatteLayer {
     hashes.add_overwrite(name, encode_hash(cryptomatte_hash));
   }
 
-  void add_encoded_hash(blender::StringRef name, std::string &cryptomatte_encoded_hash)
+  void add_encoded_hash(blender::StringRef name, blender::StringRefNull cryptomatte_encoded_hash)
   {
     hashes.add_overwrite(name, cryptomatte_encoded_hash);
   }
@@ -269,7 +269,7 @@ void BKE_cryptomatte_matte_id_to_entries(const Main *bmain,
 }
 
 static std::string cryptomatte_determine_name(const ViewLayer *view_layer,
-                                              const std::string cryptomatte_layer_name)
+                                              const blender::StringRefNull cryptomatte_layer_name)
 {
   std::stringstream stream;
   const size_t view_layer_name_len = BLI_strnlen(view_layer->name, sizeof(view_layer->name));
@@ -277,9 +277,9 @@ static std::string cryptomatte_determine_name(const ViewLayer *view_layer,
   return stream.str();
 }
 
-static uint32_t cryptomatte_determine_identifier(const std::string name)
+static uint32_t cryptomatte_determine_identifier(const blender::StringRef name)
 {
-  return BLI_hash_mm3(reinterpret_cast<const unsigned char *>(name.c_str()), name.length(), 0);
+  return BLI_hash_mm3(reinterpret_cast<const unsigned char *>(name.data()), name.size(), 0);
 }
 
 static void add_render_result_meta_data(RenderResult *render_result,
