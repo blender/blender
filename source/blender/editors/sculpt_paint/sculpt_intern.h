@@ -1359,6 +1359,13 @@ typedef struct FilterCache {
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
+
+
+  /* Mask Filter. */
+  int mask_filter_current_step;
+
+  GHash *mask_delta_step;
+
 } FilterCache;
 
 void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,

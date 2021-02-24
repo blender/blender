@@ -322,6 +322,74 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
 /* Interactive Preview Mask Filter */
 
 
+typedef struct MaskFilterDeltaStep {
+    int totelem;
+    int *index;
+    float *delta;
+} MaskFilterDeltaStep;
+
+
+static MaskFilterDeltaStep *sculpt_ipmask_filter_delta_create(const float *current_mask, const float *next_mask, const int totvert) {
+    int tot_modified_values = 0;
+    for (int i = 0; i < totvert; i++) {
+        if (current_mask[i] == next_mask[i]) {
+            continue;
+        }
+        tot_modified_values++;
+    }
+
+    MaskFilterDeltaStep *delta_step = MEM_callocN(sizeof (MaskFilterDeltaStep), "mask filter delta step");
+    delta_step->totelem = tot_modified_values;
+    delta_step->index = MEM_malloc_arrayN(sizeof (int), tot_modified_values, "delta indices");
+    delta_step->delta = MEM_malloc_arrayN(sizeof (float), tot_modified_values, "delta values");
+
+    int delta_step_index = 0;
+    for (int i = 0; i < totvert; i++) {
+        if (current_mask[i] == next_mask[i]) {
+            continue;
+        }
+        delta_step->index[delta_step_index] = i;
+        delta_step->delta[delta_step_index] = next_mask[i] - current_mask[i];
+        delta_step_index++;
+    }
+    return delta_step;
+}
+
+
+#define IPMASK_FILTER_STEP_SENSITIVITY 0.05f
+static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  SculptSession *ss = ob->sculpt;
+  FilterCache *filter_cache = ss->filter_cache;
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+    SCULPT_filter_cache_free(ss);
+    SCULPT_undo_push_end();
+    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+    return OPERATOR_FINISHED;
+  }
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
+  const float len = event->x - event->prevclickx;
+  const int target_step = len * IPMASK_FILTER_STEP_SENSITIVITY * UI_DPI_FAC;
+
+  printf("TARGET STEP %d\n", target_step);
+
+  if (target_step == filter_cache->mask_filter_current_step) {
+      return OPERATOR_RUNNING_MODAL;
+  }
+
+
+
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+
 static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
@@ -343,6 +411,9 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
   FilterCache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
+  filter_cache->mask_filter_current_step = 0;
+
+
 
 
 
@@ -354,32 +425,6 @@ static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
 }
 
-#define IPMASK_FILTER_STEP_SENSITIVITY 0.05f
-
-static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  SculptSession *ss = ob->sculpt;
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-
-  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end();
-    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
-    return OPERATOR_FINISHED;
-  }
-
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-
-  const float len = event->x - event->prevclickx;
-  const int target_step = len * IPMASK_FILTER_STEP_SENSITIVITY * UI_DPI_FAC;
-
-  printf("TARGET STEP %d\n", target_step);
-
-
-  return OPERATOR_RUNNING_MODAL;
-}
 
 void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
 {
