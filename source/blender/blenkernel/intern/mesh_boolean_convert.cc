@@ -91,7 +91,7 @@ class MeshesToIMeshInfo {
   /* Similarly for polys of meshes. */
   Array<int> mesh_poly_offset;
   /* For each Mesh vertex in all the meshes (with concatenated indexing),
-   * what is the IMesh Vert* allocated for it in the intput IMesh? */
+   * what is the IMesh Vert* allocated for it in the input IMesh? */
   Array<const Vert *> mesh_to_imesh_vert;
   /* Similarly for each Mesh poly. */
   Array<Face *> mesh_to_imesh_face;
