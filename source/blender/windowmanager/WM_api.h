@@ -227,6 +227,9 @@ struct wmPaintCursor *WM_paint_cursor_activate(
     void *customdata);
 
 bool WM_paint_cursor_end(struct wmPaintCursor *handle);
+void WM_paint_cursor_remove_by_type(struct wmWindowManager *wm,
+                                    void *draw_fn,
+                                    void (*free)(void *));
 void WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *region);
 
 void WM_cursor_warp(struct wmWindow *win, int x, int y);

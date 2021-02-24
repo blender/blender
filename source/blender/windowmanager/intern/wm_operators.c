@@ -2056,6 +2056,22 @@ bool WM_paint_cursor_end(wmPaintCursor *handle)
   return false;
 }
 
+void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*free)(void *))
+{
+  wmPaintCursor *pc = wm->paintcursors.first;
+  while (pc) {
+    wmPaintCursor *pc_next = pc->next;
+    if (pc->draw == draw_fn) {
+      if (free) {
+        free(pc->customdata);
+      }
+      BLI_remlink(&wm->paintcursors, pc);
+      MEM_freeN(pc);
+    }
+    pc = pc_next;
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
