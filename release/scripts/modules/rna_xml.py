@@ -26,14 +26,21 @@ def build_property_typemap(skip_classes, skip_typemap):
     property_typemap = {}
 
     for attr in dir(bpy.types):
+        # Skip internal methods.
+        if attr.startswith("_"):
+            continue
         cls = getattr(bpy.types, attr)
         if issubclass(cls, skip_classes):
             continue
+        bl_rna = getattr(cls, "bl_rna", None)
+        # Needed to skip classes added to the modules `__dict__`.
+        if bl_rna is None:
+            continue
 
         # # to support skip-save we can't get all props
-        # properties = cls.bl_rna.properties.keys()
+        # properties = bl_rna.properties.keys()
         properties = []
-        for prop_id, prop in cls.bl_rna.properties.items():
+        for prop_id, prop in bl_rna.properties.items():
             if not prop.is_skip_save:
                 properties.append(prop_id)
 
