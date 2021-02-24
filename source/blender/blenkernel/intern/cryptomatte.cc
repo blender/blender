@@ -63,7 +63,7 @@ struct CryptomatteLayer {
 
   void add_hash(blender::StringRef name, uint32_t cryptomatte_hash)
   {
-    hashes.add_overwrite(name, encode_hash(cryptomatte_hash));
+    add_encoded_hash(name, encode_hash(cryptomatte_hash));
   }
 
   void add_encoded_hash(blender::StringRef name, blender::StringRefNull cryptomatte_encoded_hash)
